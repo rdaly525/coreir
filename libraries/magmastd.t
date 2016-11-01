@@ -19,7 +19,11 @@ local function assertModule(t)
 
 end
 
--- There should be no IF statements in these generators!
+-- Modules in this library are a set of minimal primitive ops that need to be implemented
+-- to run magma on a given platform.
+-- There should be no IF statements in these generators! These should be primitive ops!
+-- Insted, there is the magmahelper library that can help choose between ops, do type coercions etc.
+
 Mstd.constantInt = M.declareModule{name="constantInt", parameters={"precision","value"},generator=constantInt}
 --Mstd.constantUint = M.declareModule{name="constantUint", parameters={"precision","value"},generator=cUint}
 --Mstd.constantBool = M.declareModule{name="constantBool", parameters={"value"}, generator=cBool}
