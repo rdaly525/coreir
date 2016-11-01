@@ -2,17 +2,17 @@ local Mtypes = {}
 
 local MTypeFunctions = {}
 local MTypeMT = {__index=MTypeFunctions, __tostring=function(ty)
-            local const = sel(ty.constant,"_const","")
+                   local const = sel(ty.__constant,"_const","")
+                   local inp = sel(ty.__input,"in_","")
+
   if ty.kind=="bool" then
-    return "bool"..const
+    return inp.."bool"..const
   elseif ty.kind=="null" then
     return "null"
   elseif ty.kind=="int" then
-    return "int"..ty.precision..const
+    return inp.."int"..ty.precision..const
   elseif ty.kind=="uint" then
-    return "uint"..ty.precision..const
-  elseif ty.kind=="bits" then
-    return "bits"..ty.precision..const
+    return inp.."uint"..ty.precision..const
   elseif ty.kind=="float" then
     return "float"..ty.precision..const
   elseif ty.kind=="array" then
@@ -33,58 +33,45 @@ function Mtypes.isType(t)
   return getmetatable(t)==MTypeMT
 end
 
--- {const,input}
-local _flags = {}
-function Mtypes.flags(t)
-  if t==nil then t={} end
-  local const = t.const
-  if const==nil then const=false end
-  local inp = t.input
-  if inp==nil then inp=false end
-  _flags[const]  = _flags[const] or {}
-  _flags[const][inp]  = _flags[const][inp] or {input=inp,const=const}
-  return _flags[const][inp]
-end
-
-Mtypes._bool={}
-function Mtypes.bool(flags) 
-  flags = Mtypes.flags(flags)
-  if Mtypes._bool[flags]==nil then Mtypes._bool[flags] = setmetatable({kind="bool",flags=flags}, MTypeMT) end
-  return Mtypes._bool[flags]
+Mtypes._bool={[true]={},[false]={}}
+function Mtypes.bool(input,const) 
+  input = (input==true); const = (const==true);
+  if Mtypes._bool[input][const]==nil then Mtypes._bool[input][const] = setmetatable({kind="bool",__input=input,__constant=const}, MTypeMT) end
+  return Mtypes._bool[input][const]
 end
 
 Mtypes._uint={}
-function Mtypes.uint(prec,flags)
-  flags = Mtypes.flags(flags)
+function Mtypes.uint(prec,input,const)
   err(prec==math.floor(prec), "uint precision should be integer, but is "..tostring(prec) )
-  Mtypes._uint[flags] = Mtypes._uint[flags] or {}
-  Mtypes._uint[flags][prec] = Mtypes._uint[flags][prec] or setmetatable({kind="uint",precision=prec,flags=flags},MTypeMT)
-  return Mtypes._uint[flags][prec]
+  input = (input==true); const = (const==true);
+  Mtypes._uint[input] = Mtypes._uint[input] or {}
+  Mtypes._uint[input][const] = Mtypes._uint[input][const] or {}
+  Mtypes._uint[input][const][prec] = Mtypes._uint[input][const][prec] or setmetatable({kind="uint",precision=prec,__input=input,__constant=const},MTypeMT)
+  return Mtypes._uint[input][const][prec]
 end
 
 Mtypes._int={}
-function Mtypes.int(prec,flags)
-  flags = Mtypes.flags(flags)
-  assert(prec==math.floor(prec))
-  Mtypes._uint[flags] = Mtypes._uint[flags] or {}
-  Mtypes._int[flags][prec] = Mtypes._int[flags][prec] or setmetatable({kind="int",precision=prec,flags=flags},MTypeMT)
-  return Mtypes._int[flags][prec]
+function Mtypes.int(prec,input,const)
+  err(prec==math.floor(prec), "int precision should be integer, but is "..tostring(prec) )
+  input = (input==true); const = (const==true);
+  Mtypes._int[input] = Mtypes._int[input] or {}
+  Mtypes._int[input][const] = Mtypes._int[input][const] or {}
+  Mtypes._int[input][const][prec] = Mtypes._int[input][const][prec] or setmetatable({kind="int",precision=prec,__input=input,__constant=const},MTypeMT)
+  return Mtypes._int[input][const][prec]
 end
 
 
 Mtypes._array={}
 
-function Mtypes.array2d( _type, w, h )
+function Mtypes.array( _type, N )
   err( Mtypes.isType(_type), "first index to array2d must be type" )
-  assert( type(w)=="number" )
-  err( type(h)=="number" or h==nil, "array2d h must be nil or number, but is:"..type(h))
-  if h==nil then h=1 end -- by convention, 1d arrays are 2d arrays with height=1
-  err(w==math.floor(w), "non integer array width "..tostring(w))
-  assert(h==math.floor(h))
+  assert( type(N)=="number" )
+
+  err(N==math.floor(N), "non integer array width "..tostring(N))
 
   -- dedup the arrays
-  local ty = setmetatable( {kind="array", over=_type, size={w,h}}, TypeMT )
-  return deepsetweak(Mtypes._array, {_type,w,h}, ty)
+  local ty = setmetatable( {kind="array", over=_type, size=N}, TypeMT )
+  return deepsetweak(Mtypes._array, {_type,N}, ty)
 end
 
 Mtypes._records = {}
@@ -116,14 +103,11 @@ end
 
 function MTypeFunctions:setInput(inp)
   if self.kind=="bool" then
-    if self.flags.input==inp then return self
-    else return Mtypes.bool(Mtypes.flags{const=self.flags.const,input=inp}) end
+    return Mtypes.bool( inp, self.__constant )
   elseif self.kind=="int" then
-    if self.flags.input==inp then return self
-    else return Mtypes.int( self.precision, Mtypes.flags{const=self.flags.const,input=inp}) end
+    return Mtypes.int( self.precision, inp, self.__constant )
   elseif self.kind=="uint" then
-    if self.flags.input==inp then return self
-    else return Mtypes.uint( self.precision, Mtypes.flags{const=self.flags.const,input=inp}) end
+    return Mtypes.uint( self.precision, inp, self.__constant )
   elseif self.kind=="record" then
     local l = {}
     for k,v in ipairs(self.list) do
@@ -143,7 +127,10 @@ function MTypeFunctions:isBool() return self.kind=="bool" end
 function MTypeFunctions:isInt() return self.kind=="int" end
 function MTypeFunctions:isUint() return self.kind=="uint" end
 function MTypeFunctions:isRecord() return self.kind=="record" end
+function MTypeFunctions:isArray() return self.kind=="array" end
 
+
+-- a tuple is a record with contiguous keys from 0...N
 function MTypeFunctions:isTuple()
   if self.kind~="record" then return false end
   local low,high
@@ -166,5 +153,59 @@ function MTypeFunctions:index(idx)
   end
 end
 
+function MTypeFunctions:slice(startIdx,len)
+  err(type(startIdx)=="number", "Type:slice() start index must be number")
+  err(type(len)=="number", "Type:slice() length must be number")
+
+  if self.kind=="record" then
+    local newlist = {}
+    err(self:isTuple(), ":slice() record type must be tuple")
+
+    for i=startIdx,startIdx+len-1 do
+      table.insert( newlist, {i-startIdx,self:index(i)} )
+    end
+    return Mtypes.record(newlist)
+  else
+    err(false,":index() only works on records and arrays")
+  end
+end
+
+-- is this type or any subcomponents of it an input?
+function MTypeFunctions:anyInputs()
+  if self.kind=="bool" or self.kind=="int" or self.kind=="uint" then
+    return self.__input
+  elseif self.kind=="record" then
+    local res = false
+    for _,v in pairs(self.list) do res = res or v[2]:anyInputs() end
+    return res
+  end
+  assert(false)
+end
+
+-- returns the entries of an aggregate in form { {key1,type1}, {key2, type2} }
+function MTypeFunctions:getKeyList()
+  if self.kind=="record" then
+    return self.list
+  end
+  assert(false)
+end
+
+function MTypeFunctions:flip()
+  if self.kind=="bool" then
+    return Mtypes.bool( not self.__input, self.__constant )
+  elseif self.kind=="int" then
+    return Mtypes.int( self.precision, not self.__input, self.__constant )
+  elseif self.kind=="uint" then
+    return Mtypes.uint( self.precision, not self.__input, self.__constant )
+  elseif self.kind=="record" then
+    local l = {}
+    for k,v in ipairs(self.list) do
+      table.insert(l, {v[1],v[2]:flip()})
+    end
+    return Mtypes.record(l)
+  end
+  assert(false)
+
+end
 
 return Mtypes
