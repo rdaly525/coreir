@@ -1,12 +1,12 @@
 CC = g++
-CFLAGS = -std=c++11 -stdlib=libc++
+CFLAGS = -std=c++11 
 
 DEPS = types.h
 OBJ = test.o types.o
 
 all: main
 
-%.o: %.c $(DEPS)
+%.o: %.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
 main: $(OBJ)

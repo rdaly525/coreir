@@ -1,5 +1,6 @@
 #include "types.h"
 #include <unordered_map>
+#include <string>
 //void port(string name, uint width,
 
 //Implement or(a[8] + b[8] )
@@ -16,17 +17,14 @@ int main(int argv[], int argn) {
 */
 
 int main() {
-  Type *type = new Type("base");
-  IntType *myint = new IntType(7);
-  cout << type->getType() << "\n";
-  cout << myint->getType() << myint->numBits() << "\n";
-  cout << __cplusplus << std::endl;
+  IntType myint(7);
+  myint.print();
+  unordered_map<string,Type> m;
+  m.emplace("a",myint);
+  RecordType r(m);
+  r.print();
+  myint.print();
 
-  //unordered_map<string,int> m;
-  ////m.emplace("a",myint);
-  //m.emplace("a",5);
-  //RecordType *r = new RecordType(m);
-  
   return 0;
 }
 
