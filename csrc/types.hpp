@@ -11,29 +11,35 @@
 using namespace std;
 
 class Type {
-  TypeEnum name;
+  protected :
+    TypeEnum type;
   public :
-    Type(TypeEnum name) : name(name) {}
-    string getType(void);
+    Type(TypeEnum type) : type(type) {}
+    bool isType(TypeEnum);
+    string getType(void); // TODO rename this. imply a string
     virtual string _string(void)=0;
+    virtual Type* flip(void)=0;
     void print(void);
 };
 
 class IntType : public Type {
-  uint32_t n;
+  uint n;
   Dir dir;
   public :
-    IntType(uint32_t n, Dir dir) : Type(INT), n(n), dir(dir) {}
-    uint32_t numBits(void);
+    IntType(uint n, Dir dir) : Type(INT), n(n), dir(dir) {}
+    uint numBits(void);
     string _string(void); 
+    Type* flip(void);
 };
 
 class ArrayType : public Type {
   Type* baseType;
-  uint32_t len;
+  uint len;
   public :
-    ArrayType(Type *baseType, uint32_t len) : Type(ARRAY), baseType(baseType), len(len) {}
+    ArrayType(Type *baseType, uint len) : Type(ARRAY), baseType(baseType), len(len) {}
     string _string(void);
+    Type* flip(void);
+    Type* idx();
 };
 
 class RecordType : public Type {
@@ -41,7 +47,9 @@ class RecordType : public Type {
   public :
     RecordType(map<string,Type*> record) : Type(RECORD), record(record) {}
     string _string(void);
-    Type* operator[](string sel);
+    Type* flip(void);
+    Type* sel(string a);
+    map<string,Type*> get(void);
 };
 
 
@@ -54,13 +62,7 @@ IntType* Int(uint bits, Dir dir);
 //FloatType* Float(uint ebits, uint mbits, Dir dir);
 //BoolType* Bool(Dir dir);
 ArrayType* Array(Type* baseType, uint len);
-//RecordType* Record(string key, Type* val,...);
-//RecordType* AddField(RecordType* record, string key, Type* val);
-
-//Type* Select(RecordType* iface, string key);
-//Type* Flip(Type* type);
-
-
-
+RecordType* Record(map<string,Type*> record);
+RecordType* AddField(RecordType* record, string key, Type* val);
 
 #endif //TYPES_HPP_

@@ -1,8 +1,8 @@
 CC = clang++-3.5
-CFLAGS = -std=c++11 
+CFLAGS = -std=c++11 -ferror-limit=5
 
-DEPS = types.hpp typeCache.hpp
-OBJ = main.o types.o typeCache.o
+DEPS = magmair.hpp types.hpp typeCache.hpp
+OBJ = main.o magmair.o types.o typeCache.o
 
 all: main
 

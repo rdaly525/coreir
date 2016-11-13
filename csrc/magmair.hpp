@@ -5,65 +5,107 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <vector>
+#include "types.hpp"
+
 using namespace std;
 
-typedef MetaData map<string,string>;
-typedef WireInstr std::pair<WireBundle*,WireBundle*>
+//So much mutual definition, so forward declare
+class WireBundleCache;
+class WireBundle;
+class Interface;
+class Instance;
+class Select;
+class Index;
+
+typedef map<string,string> MetaData ;
+typedef std::pair<WireBundle*,WireBundle*> Connection ;
+
+
 class Module {
   string name;
+  bool terminal;
   MetaData* metadata;
   Type* type;
   Interface* interface; 
-  Vector<Instance*> instances; // Should it be a map?
-  Vector<WireInstr> wireinstrs;
+  vector<Instance*> instances; // Should it be a map?
+  vector<Connection> connections;
+  WireBundleCache* cache;
   public :
-    module(string name, MetaData* metadata, Type* type) : name(name), metadata(metadata), type(type) {
-      interface = new Interface(flip(type),this)
-    }
-    
-    string _string(void);
+    Module(string name, bool terminal, Type* type);
+    ~Module();
     void print(void);
+    WireBundleCache* getCache(void);
+    string getName(void) { return name;}
     Instance* newInstance(string,Module*);
     Interface* getInterface(void);
+    Type* getType(void) {return type;}
+    void newConnect(WireBundle* a, WireBundle* b);
 };
 
-typedef enum {IFACE,INST,SEL,IDX} WireBundleType
 
 class WireBundle {
-  WireBundleType bundleType;
-  Type* type;
+  protected :
+    WireBundleEnum bundleType;
+    Module* container; // Module which it is contained in 
+    Type* type;
+  //TODO should I save head during construction? or figure it out at access
+  //WireBundleEnum* head; //Either an interface or an instance
   public :
-    WireBundle(Type* typeWireBundleType, bundleType) : type(type), bundleType(bundleType) {}
-    Select* Select(string);
-    Index* Index(uint);
+    WireBundle(WireBundleEnum bundleType, Module* container, Type* type) : bundleType(bundleType),  container(container), type(type) {}
+    virtual string _string(void)=0;
+    Select* sel(string);
+    Index* idx(uint);
+    Module* getContainer(void) { return container;}
+    Type* getType(void) { return type;}
+
 };
 
 class Interface : public WireBundle {
-  Module* mod;
   public :
-    Interface(Type* type, Module* mod) : WireBundle(type,IFACE), mod(mod) {}
-}
+    Interface(Module* container, Type* type) : WireBundle(IFACE,container,type) {}
+    string _string();
+};
+
 class Instance : public WireBundle {
-  Module* moduleType;
+  string name;
+  Module* modType;
   public :
-    Instance(Type* type, Module* modType) : WireBundle(type,INST), modType(modType) {}
+    Instance(Module* container, Type* type, string name, Module* modType) : WireBundle(INST,container,type), name(name), modType(modType) {}
+    string _string();
 };
 
 class Select : public WireBundle {
-  WireBundle* fromwire;
+  WireBundle* parent;
   string sel;
   public :
-    Select(Type* type, WireBundle* fromwire, string fromsel) : WireBundle(type,SEL), fromwire(fromwire), sel(sel) {}
+    Select(Module* container, Type* type, WireBundle* parent, string sel) : WireBundle(SEL,container,type), parent(parent), sel(sel) {}
+    string _string();
 
 };
 
 class Index : public WireBundle {
-  WireBundle* fromwire;
+  WireBundle* parent; 
   uint idx;
   public :
-    Index(Type* type, Wirebundle* fromwire, uint idx) : WireBundle(type,IDX), fromwire(fromwire), fromsel(fromsel) {}
-}
+    Index(Module* container,Type* type, WireBundle* parent, uint idx) : WireBundle(IDX,container,type), parent(parent), idx(idx) {}
+    string _string();
+};
 
+typedef std::tuple<Type*, WireBundle*, string> SelectParamType;
+typedef std::tuple<Type*, WireBundle*, uint> IndexParamType;
+
+class WireBundleCache {
+  map<SelectParamType,Select*> SelectCache;
+  map<IndexParamType,Index*> IndexCache;
+  public :
+    WireBundleCache() {};
+    ~WireBundleCache();
+    Select* newSelect(Module* container,Type* type, WireBundle* parent, string sel);
+    Index* newIndex(Module* container,Type* type, WireBundle* parent, uint idx);
+};
+
+string WireBundleEnum2Str(WireBundleEnum wb);
 void Connect(WireBundle* a, WireBundle* b);
 
 #endif //MAGMAIR_HPP_
