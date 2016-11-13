@@ -1,7 +1,7 @@
-CC = g++
+CC = clang++-3.5
 CFLAGS = -std=c++11 
 
-DEPS = types.h
+DEPS = types.hpp
 OBJ = test.o types.o
 
 all: main
