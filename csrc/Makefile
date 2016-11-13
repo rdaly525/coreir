@@ -1,8 +1,8 @@
 CC = clang++-3.5
 CFLAGS = -std=c++11 
 
-DEPS = types.hpp
-OBJ = test.o types.o
+DEPS = types.hpp typeCache.hpp
+OBJ = main.o types.o typeCache.o
 
 all: main
 

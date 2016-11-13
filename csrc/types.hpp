@@ -1,51 +1,66 @@
+#ifndef TYPES_HPP_
+#define TYPES_HPP_
+
+
 #include <iostream>
 #include <string>
 #include <map>
+#include "enums.hpp"
+
+
 using namespace std;
 
 class Type {
-  string type;
+  TypeEnum name;
   public :
-    Type(string _type) : type(_type) {}
+    Type(TypeEnum name) : name(name) {}
     string getType(void);
     virtual string _string(void)=0;
-    void print(void) { 
-      cout << "Type: " << _string() << "\n";
-    }
+    void print(void);
 };
 
 class IntType : public Type {
   uint32_t n;
-  bool input;
+  Dir dir;
   public :
-    IntType(uint32_t n, bool input) : Type("Int"), n(n), input(input) {}
+    IntType(uint32_t n, Dir dir) : Type(INT), n(n), dir(dir) {}
     uint32_t numBits(void);
-    string _string() { 
-      return (input ? "in " : "out ") + Type::getType() + to_string(n);
-    }
+    string _string(void); 
 };
 
 class ArrayType : public Type {
   Type* baseType;
   uint32_t len;
   public :
-    ArrayType(Type *baseType, uint32_t len) : Type("Array"), baseType(baseType), len(len) {}
-    string _string(void) { 
-      return Type::getType() + "<" + baseType->_string() + ">[" + to_string(len) + "]";
-    }
+    ArrayType(Type *baseType, uint32_t len) : Type(ARRAY), baseType(baseType), len(len) {}
+    string _string(void);
 };
 
 class RecordType : public Type {
   map<string,Type*> record;
   public :
-    RecordType(map<string,Type*> record) : Type("Record"), record(record) {}
-    string _string(void) {
-      string ret = "{";
-      for(map<string,Type*>::iterator it=record.begin(); it!=record.end(); ++it) {
-        ret = ret + it->first + ":" + it->second->_string() + ",";
-      }
-      return ret + "}";
-    }
+    RecordType(map<string,Type*> record) : Type(RECORD), record(record) {}
+    string _string(void);
+    Type* operator[](string sel);
 };
 
 
+//TODO This should be done in a better way
+string Dir2Str(Dir d);
+string TypeEnum2Str(TypeEnum t);
+
+//UintType* Uint(uint bits, Dir dir);
+IntType* Int(uint bits, Dir dir);
+//FloatType* Float(uint ebits, uint mbits, Dir dir);
+//BoolType* Bool(Dir dir);
+ArrayType* Array(Type* baseType, uint len);
+//RecordType* Record(string key, Type* val,...);
+//RecordType* AddField(RecordType* record, string key, Type* val);
+
+//Type* Select(RecordType* iface, string key);
+//Type* Flip(Type* type);
+
+
+
+
+#endif //TYPES_HPP_
