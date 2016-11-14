@@ -82,7 +82,7 @@ Select* WireBundle::sel(string sel) {
 
 Index* WireBundle::idx(uint idx) {
   assert(type->isType(ARRAY));
-  Type* idxType = ((ArrayType*)type)->idx();
+  Type* idxType = ((ArrayType*)type)->idx(idx);
   assert(idxType);
   return container->getCache()->newIndex(container,idxType,this,idx);
 }
@@ -214,6 +214,31 @@ void Connect(WireBundle* a, WireBundle* b) {
 
   container->newConnect(a,b);
 }
+
+bool Validate(Circuit* c) {
+// Circuit is valid if its interface and all its instances are _wired
+  if(c->isPrimitive()) {
+    cout << "Primitives are by definition valid!\n";
+    return true;
+  }
+  bool valid = true;
+  Module* mod = (Module*) c;
+  if (!mod->getInterface()->isWired()) {
+    cout << "Inteface is Not fully connected!\n";
+    valid = false;
+  }
+  vector<Instance*> insts = mod->getInstances();
+  vector<Instance*>::iterator it;
+  for(it=insts.begin(); it!=insts.end(); ++it) {
+    if (!(*it)->isWired() ) {
+      cout << "Instance: " << (*it)->_string() << " is not fully connected\n";
+      valid = false;
+    }
+  }
+  return valid;
+
+}
+
 
 Type* getType(Circuit* c) {
   return c->getType();

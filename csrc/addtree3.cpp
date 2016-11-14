@@ -2,11 +2,12 @@
 #include <map>
 #include <string>
 
-// Creates an n-bit adder
+// Creates an n-bit adder primitive
 Primitive* Adder(uint n) {
   Type* inType = Int(n,IN);
   Type* outType = Flip(inType);
-  return new Primitive("Add"+to_string(n),Record({{"inA",inType},{"inB",inType},{"out",outType}}));
+  Type* addType = Record({{"inA",inType},{"inB",inType},{"out",outType}});
+  return new Primitive("Add"+to_string(n),addType);
 }
 
 // Creates a 4->1 add reduce tree but adds in[2] twice
@@ -34,20 +35,18 @@ Module* AddTree(uint n) {
   
   Connect(add_1->sel("out"),iface->sel("out"));
   
-  Connect(add_00->sel("out"),iface->sel("out"));
+  //Connect(add_00->sel("out"),iface->sel("out"));
 
   return addTree;
 }
 
 
 int main() {
-
   cout << "Creating a 4->1 tree adder\n";
   Circuit* addtree16 = AddTree(16);
+  //Validate(addtree16);
   addtree16->print();
 
   return 0;
 }
-
-
 

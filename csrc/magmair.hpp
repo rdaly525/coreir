@@ -32,6 +32,7 @@ class Circuit {
     virtual void print(void)=0;
     string getName(void) {return name;}
     Type* getType(void) {return type;}
+    bool isPrimitive() { return primitive;}
 };
 
 class Primitive : public Circuit {
@@ -53,9 +54,11 @@ class Module : public Circuit {
     WireBundleCache* getCache(void);
     Instance* newInstance(string,Circuit*);
     Interface* getInterface(void);
+    vector<Instance*> getInstances(void) { return instances;}
     void newConnect(WireBundle* a, WireBundle* b);
 };
 
+//TODO Maybe change children to be a record or array. This would let me check if everything is wired
 
 class WireBundle {
   protected :
@@ -63,7 +66,7 @@ class WireBundle {
     Module* container; // Module which it is contained in 
     Type* type;
     //TODO should I save head during construction? or figure it out at access
-    //WireBundleEnum* head; //Either an interface or an instance
+    //WireBundleEnum* head; //Either an interface or an instance (or Constant?)
     
     bool _wired; //I am wired
     bool _childrenWired; //at least some downstream children are wired
@@ -77,7 +80,6 @@ class WireBundle {
     void setWired();
     virtual void setChildrenWired() {_childrenWired = true;}
     bool hasChildrenWired() {return _childrenWired;}
-    void getChildren();
     Select* sel(string);
     Index* idx(uint);
     Module* getContainer(void) { return container;}
@@ -133,6 +135,8 @@ class WireBundleCache {
 
 string WireBundleEnum2Str(WireBundleEnum wb);
 void Connect(WireBundle* a, WireBundle* b);
+
+bool Validate(Circuit* mod);
 
 Type* getType(Circuit*);
 

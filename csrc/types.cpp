@@ -48,7 +48,13 @@ string ArrayType::_string(void) {
 Type* ArrayType::flip(void) { 
   return typecache.newArray(baseType->flip(),len);
 }
-Type* ArrayType::idx() {
+Type* ArrayType::idx(uint i) {
+  if(i >= len) {
+    cout << "ERROR: Index out of bounds\n";
+    cout << "  idx: " << i << "\n";
+    cout << "  ArrayLen: " << len << "\n";
+    exit(0);
+  }
   return baseType;
 }
 

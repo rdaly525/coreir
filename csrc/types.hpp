@@ -41,7 +41,7 @@ class ArrayType : public Type {
     ArrayType(Type *baseType, uint len) : Type(ARRAY,baseType->hasInput()), baseType(baseType), len(len) {}
     string _string(void);
     Type* flip(void);
-    Type* idx();
+    Type* idx(uint);
 };
 
 class RecordType : public Type {
