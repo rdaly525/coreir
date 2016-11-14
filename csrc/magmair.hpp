@@ -62,11 +62,22 @@ class WireBundle {
     WireBundleEnum bundleType;
     Module* container; // Module which it is contained in 
     Type* type;
-  //TODO should I save head during construction? or figure it out at access
-  //WireBundleEnum* head; //Either an interface or an instance
+    //TODO should I save head during construction? or figure it out at access
+    //WireBundleEnum* head; //Either an interface or an instance
+    
+    bool _wired; //I am wired
+    bool _childrenWired; //at least some downstream children are wired
+    vector<WireBundle*> children;
   public :
-    WireBundle(WireBundleEnum bundleType, Module* container, Type* type) : bundleType(bundleType),  container(container), type(type) {}
+    WireBundle(WireBundleEnum bundleType, Module* container, Type* type) : bundleType(bundleType),  container(container), type(type), _wired(false) {}
     virtual string _string(void)=0;
+    bool isType(WireBundleEnum b) {return bundleType==b;}
+    void addChild(WireBundle* wb);
+    bool isWired() {return _wired;}
+    void setWired();
+    virtual void setChildrenWired() {_childrenWired = true;}
+    bool hasChildrenWired() {return _childrenWired;}
+    void getChildren();
     Select* sel(string);
     Index* idx(uint);
     Module* getContainer(void) { return container;}
@@ -93,17 +104,18 @@ class Select : public WireBundle {
   WireBundle* parent;
   string sel;
   public :
-    Select(Module* container, Type* type, WireBundle* parent, string sel) : WireBundle(SEL,container,type), parent(parent), sel(sel) {}
+    Select(Module* container, Type* type, WireBundle* parent, string sel);
     string _string();
-
+    void setChildrenWired() {_childrenWired=true; parent->setChildrenWired();}
 };
 
 class Index : public WireBundle {
   WireBundle* parent; 
   uint idx;
   public :
-    Index(Module* container,Type* type, WireBundle* parent, uint idx) : WireBundle(IDX,container,type), parent(parent), idx(idx) {}
+    Index(Module* container,Type* type, WireBundle* parent, uint idx);
     string _string();
+    void setChildrenWired() {_childrenWired=true; parent->setChildrenWired();}
 };
 
 typedef std::tuple<Type*, WireBundle*, string> SelectParamType;

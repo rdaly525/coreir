@@ -4,6 +4,7 @@
 #include "enums.hpp"
 #include "magmair.hpp"
 #include <cassert>
+#include <vector>
 
 using namespace std;
 
@@ -65,6 +66,10 @@ void Module::newConnect(WireBundle* a, WireBundle* b) {
   connections.push_back(con);
 }
 
+void WireBundle::addChild(WireBundle* wb) {
+  children.push_back(wb);
+}
+
 
 //TODO Find a principled way to deal with select/index errors 
 // Should I return a nullptr or create error message
@@ -81,8 +86,27 @@ Index* WireBundle::idx(uint idx) {
   assert(idxType);
   return container->getCache()->newIndex(container,idxType,this,idx);
 }
+void WireBundle::setWired() {
+  _wired = true;
+  vector<WireBundle*>::iterator it;
+  for (it=children.begin(); it!=children.end(); ++it) {
+    (*it)->setWired();
+  }
+}
 
+Select::Select(Module* container, Type* type, WireBundle* parent, string sel) : WireBundle(SEL,container,type), parent(parent), sel(sel) {
+  //Add this to children of parent
+  parent->addChild(this);
+  
+  //If Parent is wired, then this is wired.
+  _wired = parent->isWired();
+}
 
+Index::Index(Module* container,Type* type, WireBundle* parent, uint idx) : WireBundle(IDX,container,type), parent(parent), idx(idx) {
+  parent->addChild(this);
+
+  _wired = parent->isWired();
+}
 
 WireBundleCache::~WireBundleCache() {
   map<SelectParamType,Select*>::iterator it1;
@@ -145,6 +169,9 @@ void Connect(WireBundle* a, WireBundle* b) {
     cout << "  Module of " <<a->_string() << ": " << a->getContainer()->getName() << "\n";
     cout << "  Module of " <<b->_string() << ": " << b->getContainer()->getName() << "\n";  exit(0);
   }
+  Module* container = a->getContainer();
+  Type* aType = a->getType();
+  Type* bType = b->getType();
   //Make sure the flip of the types match
   if(a->getType() != b->getType()->flip()) {
     cout << "ERROR: Cannot connect these two types\n";
@@ -152,8 +179,40 @@ void Connect(WireBundle* a, WireBundle* b) {
     cout << "  " << b->_string() << ": " << b->getType()->_string() << "\n";
     exit(0);
   }
-  //TODO make sure there is not two drivers of the same signal
-  a->getContainer()->newConnect(a,b);
+  
+  //Make sure 'a' is not already wired (if has inputs)
+  if (aType->hasInput() && a->isWired()) {
+    cout << "ERROR: " << a->_string() << " has inputs and is already connected!\n";
+    exit(0);
+  }
+  //Make sure 'b' is not already wired (if has inputs)
+  if (bType->hasInput() && b->isWired()) {
+    cout << "ERROR: " << b->_string() << " has inputs and is already connected!\n";
+    exit(0);
+  }
+  //Make sure 'a' does not have children alreay wired (that are inputs)
+  if (a->hasChildrenWired()) {
+    cout << "ERROR: " << a->_string() << "has children(inputs) already connected!\n";
+    exit(0);
+  }
+  if (b->hasChildrenWired()) {
+    cout << "ERROR: " << b->_string() << "has children(inputs) already connected!\n";
+    exit(0);
+  }
+
+  //Update 'a' and 'b' (and children)
+  a->setWired();
+  b->setWired();
+  
+  //Update parents if we are wiring inputs
+  if (aType->hasInput()) {
+    a->setChildrenWired(); //TODO rethink these confusing names
+  }
+  if (bType->hasInput()) {
+    b->setChildrenWired();
+  }
+
+  container->newConnect(a,b);
 }
 
 Type* getType(Circuit* c) {

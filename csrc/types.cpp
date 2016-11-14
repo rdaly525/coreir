@@ -52,6 +52,11 @@ Type* ArrayType::idx() {
   return baseType;
 }
 
+RecordType::RecordType(map<string,Type*> record) : Type(RECORD,false), record(record) {
+  for(map<string,Type*>::iterator it=record.begin(); it!=record.end(); ++it) {
+    _hasInput |= it->second->hasInput();
+  }
+}
 string RecordType::_string(void) {
   string ret = "{";
   for(map<string,Type*>::iterator it=record.begin(); it!=record.end(); ++it) {

@@ -13,9 +13,11 @@ using namespace std;
 class Type {
   protected :
     TypeEnum type;
+    bool _hasInput;
   public :
-    Type(TypeEnum type) : type(type) {}
+    Type(TypeEnum type, bool _hasInput) : type(type), _hasInput(_hasInput) {}
     bool isType(TypeEnum);
+    bool hasInput() { return _hasInput;};
     string getType(void); // TODO rename this. imply a string
     virtual string _string(void)=0;
     virtual Type* flip(void)=0;
@@ -26,7 +28,7 @@ class IntType : public Type {
   uint n;
   Dir dir;
   public :
-    IntType(uint n, Dir dir) : Type(INT), n(n), dir(dir) {}
+    IntType(uint n, Dir dir) : Type(INT,dir==IN), n(n), dir(dir) {}
     uint numBits(void);
     string _string(void); 
     Type* flip(void);
@@ -36,7 +38,7 @@ class ArrayType : public Type {
   Type* baseType;
   uint len;
   public :
-    ArrayType(Type *baseType, uint len) : Type(ARRAY), baseType(baseType), len(len) {}
+    ArrayType(Type *baseType, uint len) : Type(ARRAY,baseType->hasInput()), baseType(baseType), len(len) {}
     string _string(void);
     Type* flip(void);
     Type* idx();
@@ -45,7 +47,7 @@ class ArrayType : public Type {
 class RecordType : public Type {
   map<string,Type*> record;
   public :
-    RecordType(map<string,Type*> record) : Type(RECORD), record(record) {}
+    RecordType(map<string,Type*> record);
     string _string(void);
     Type* flip(void);
     Type* sel(string a);
