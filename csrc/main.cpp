@@ -1,44 +1,50 @@
 #include "magmair.hpp"
 #include <map>
 #include <string>
-//void port(string name, uint width,
 
-//Implement or(a[8] + b[8] )
-/*
-int main(int argv[], int argn) {
-  
-  MAG mod = mag.new();
-  IFACE pa = mag.port("a",8,true);
-  PORT pb = mag.port("b",8,true);
-  PORT pc = mag.port("c",1,false);
-  RECORD rec = mag.record([pa,pb,pc])
-
+// Creates an n-bit adder
+Primitive* Adder(uint n) {
+  Type* inType = Int(n,IN);
+  Type* outType = Flip(inType);
+  return new Primitive("Add"+to_string(n),Record({{"inA",inType},{"inB",inType},{"out",outType}}));
 }
-*/
+
+// Creates a 4->1 add reduce tree
+// in[0] - (+) - (+) - out
+// in[1] /     /
+// in[2] - (+) 
+// in[3] / 
+Module* AddTree(uint n) {
+  Circuit* addn = Adder(n);
+  Type* inType = Sel(getType(addn),"inA");
+  Type* treeType = Record({{"in",Array(inType,4)},{"out",Flip(inType)}});
+  Module* addTree = new Module("AddTree"+to_string(n),treeType);
+  WireBundle* iface = addTree->getInterface();
+  WireBundle* add_00 = addTree->newInstance("add00",addn);
+  WireBundle* add_01 = addTree->newInstance("add01",addn);
+  WireBundle* add_1 = addTree->newInstance("add1",addn);
+  
+  Connect(iface->sel("in")->idx(0),add_00->sel("inA"));
+  Connect(iface->sel("in")->idx(1),add_00->sel("inB"));
+  Connect(iface->sel("in")->idx(2),add_01->sel("inA"));
+  Connect(iface->sel("in")->idx(3),add_01->sel("inB"));
+  
+  Connect(add_00->sel("out"),add_1->sel("inA"));
+  Connect(add_01->sel("out"),add_1->sel("inB"));
+  
+  Connect(add_1->sel("out"),iface->sel("out"));
+  return addTree;
+}
+
 
 int main() {
-  IntType* int7 = Int(7,IN);
-  ArrayType* array5 = Array(int7,5);
-  map<string,Type*> m = {{"b",int7},{"c",array5}};
-  RecordType* r = Record(m);
-  r->print();
 
-  Module* modA = new Module("A",false,r);
-  Module* modB = new Module("B",true,int7);
-  Module* modC = new Module("C",true,array5);
-  Instance* b_inst = modA->newInstance("b_inst",modB);
-  Instance* c_inst = modA->newInstance("c_inst",modC);
-  Interface* a_iface = modA->getInterface();
-  WireBundle* s = a_iface->sel("c");
-  Index* s2 = s->idx(2);
-  Connect(a_iface->sel("b"),b_inst);
-  Connect(s2,b_inst);
-  modA->print();
-
-  delete modA;
-  delete modB;
-  delete modC;
+  cout << "Creating a 4->1 tree adder\n";
+  Circuit* addtree16 = AddTree(16);
+  addtree16->print();
 
   return 0;
 }
+
+
 

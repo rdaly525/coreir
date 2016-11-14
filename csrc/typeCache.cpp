@@ -5,7 +5,6 @@
 using namespace std;
 
 TypeCache::~TypeCache() {
-  cout <<"Deconstruct!";
   map<RecordTypeParams,RecordType*>::iterator it1;
   for (it1=RecordTypeCache.begin(); it1!=RecordTypeCache.end(); ++it1) {
     delete it1->second;

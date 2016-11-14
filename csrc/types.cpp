@@ -6,6 +6,7 @@
 #include <string>
 #include "types.hpp"
 #include "typeCache.hpp"
+#include <cassert>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ using namespace std;
 TypeCache typecache;
 
 //TODO This should be done in a better way
-string Dir2Str(Dir d) { if(d==IN) return "IN"; else return "OUT";}
+string Dir2Str(Dir d) { if(d==IN) return "In"; else return "Out";}
 Dir flipDir(Dir d) { if(d==IN) return OUT; else return IN;}
 string TypeEnum2Str(TypeEnum t) {
   switch(t) {
@@ -31,7 +32,7 @@ bool Type::isType(TypeEnum t) {
 string Type::getType(void) {return TypeEnum2Str(type);}
 void Type::print(void) { cout << "Type: " << _string() << "\n"; }
 
-uint32_t IntType::numBits(void) { return n;}
+uint IntType::numBits(void) { return n;}
 string IntType::_string() { 
   return Dir2Str(dir) + " " + Type::getType() + to_string(n);
 }
@@ -39,7 +40,6 @@ string IntType::_string() {
 Type* IntType::flip(void) { 
   return typecache.newInt(n,flipDir(dir));
 }
-
 
 string ArrayType::_string(void) { 
   return Type::getType() + "<" + baseType->_string() + ">[" + to_string(len) + "]";
@@ -55,9 +55,10 @@ Type* ArrayType::idx() {
 string RecordType::_string(void) {
   string ret = "{";
   for(map<string,Type*>::iterator it=record.begin(); it!=record.end(); ++it) {
-    ret += it->first + ":" + it->second->_string() + ",";
+    ret += it->first + ":" + it->second->_string();
+    ret += (it == --record.end()) ? "}" : ", ";
   }
-  return ret + "}";
+  return ret;
 }
 
 Type* RecordType::flip(void) { 
@@ -75,7 +76,10 @@ Type* RecordType::sel(string a) {
   if (it != record.end()) {
     return it->second;
   } else {
-    return nullptr;
+    cout << "ERROR: Bad select field\n";
+    cout << "  sel: " << a << "\n";
+    cout << "  type: " << _string() << "\n";
+    exit(0);
   }
 }
 
@@ -100,6 +104,16 @@ RecordType* AddField(RecordType* record, string key, Type* val) {
   m.emplace(key,val);
   return typecache.newRecord(m);
 
+}
+Type* Sel(Type* record, string key) {
+  if(!record->isType(RECORD)) {
+    cout << "ERROR: Can only Sel on a record\n";
+    cout << "  Type: " << record->getType() << "\n";
+  }
+  return ((RecordType*)record)->sel(key);
+}
+Type* Flip(Type* type) {
+  return type->flip();
 }
 
 #endif //TYPES_CPP_

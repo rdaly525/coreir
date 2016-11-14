@@ -21,25 +21,38 @@ class Index;
 typedef map<string,string> MetaData ;
 typedef std::pair<WireBundle*,WireBundle*> Connection ;
 
+class Circuit {
+  protected :
+    bool primitive;
+    string name;
+    MetaData* metadata;
+    Type* type;
+  public :
+    Circuit(bool primitive, string name, Type* type) : primitive(primitive), name(name), type(type) {}
+    virtual void print(void)=0;
+    string getName(void) {return name;}
+    Type* getType(void) {return type;}
+};
 
-class Module {
-  string name;
-  bool terminal;
-  MetaData* metadata;
-  Type* type;
+class Primitive : public Circuit {
+  public :
+    Primitive(string name, Type* type) : Circuit(true,name,type) {}
+    void print(void);
+    
+};
+
+class Module : public Circuit {
   Interface* interface; 
   vector<Instance*> instances; // Should it be a map?
   vector<Connection> connections;
   WireBundleCache* cache;
   public :
-    Module(string name, bool terminal, Type* type);
+    Module(string name, Type* type);
     ~Module();
     void print(void);
     WireBundleCache* getCache(void);
-    string getName(void) { return name;}
-    Instance* newInstance(string,Module*);
+    Instance* newInstance(string,Circuit*);
     Interface* getInterface(void);
-    Type* getType(void) {return type;}
     void newConnect(WireBundle* a, WireBundle* b);
 };
 
@@ -69,10 +82,11 @@ class Interface : public WireBundle {
 
 class Instance : public WireBundle {
   string name;
-  Module* modType;
+  Circuit* circuitType;
   public :
-    Instance(Module* container, Type* type, string name, Module* modType) : WireBundle(INST,container,type), name(name), modType(modType) {}
+    Instance(Module* container, Type* type, string name, Circuit* circuitType) : WireBundle(INST,container,type), name(name), circuitType(circuitType) {}
     string _string();
+    Circuit* getCircuitType() {return circuitType;}
 };
 
 class Select : public WireBundle {
@@ -107,5 +121,7 @@ class WireBundleCache {
 
 string WireBundleEnum2Str(WireBundleEnum wb);
 void Connect(WireBundle* a, WireBundle* b);
+
+Type* getType(Circuit*);
 
 #endif //MAGMAIR_HPP_

@@ -18,7 +18,7 @@ string WireBundleEnum2Str(WireBundleEnum wb) {
   }
   assert(false);
 }
-Module::Module(string name, bool terminal, Type* type) : name(name), terminal(terminal), type(type) {
+Module::Module(string name, Type* type) : Circuit(false,name,type) {
   interface = new Interface(this,type->flip());
   cache = new WireBundleCache();
 }
@@ -31,13 +31,18 @@ Module::~Module() {
 }
 WireBundleCache* Module::getCache() { return cache;}
 
+void Primitive::print(void) {
+  cout << "Primitive: " << name << "\n";
+  cout << "  Type: " << type->_string() << "\n\n";
+}
+
 void Module::print(void) {
   cout << "Module: " << name << "\n";
   cout << "  Type: " << type->_string() << "\n";
   cout << "  Instances:\n";
   vector<Instance*>::iterator it1;
   for (it1=instances.begin(); it1!=instances.end(); ++it1) {
-    cout << "    " << (*it1)->_string() << "\n";
+    cout << "    " << (*it1)->_string() << " : " << (*it1)->getCircuitType()->getName() << "\n";
   }
   cout << "  Connections:\n";
   vector<Connection>::iterator it2;
@@ -47,8 +52,8 @@ void Module::print(void) {
   cout << "\n";
 }
 
-Instance* Module::newInstance(string name,Module* modType) {
-  Instance* inst = new Instance(this,modType->getType(),name,modType);
+Instance* Module::newInstance(string name,Circuit* circuitType) {
+  Instance* inst = new Instance(this,circuitType->getType(),name,circuitType);
   instances.push_back(inst);
   return inst;
 }
@@ -134,7 +139,6 @@ string Index::_string() {
 
 
 void Connect(WireBundle* a, WireBundle* b) {
-  cout << "Connecting " << a->_string() << " <=> " << b->_string() << "\n";
   //Make sure you are connecting within the same container
   if (a->getContainer()!=b->getContainer()) {
     cout << "ERROR: Connections can only occur within the same module\n";
@@ -152,5 +156,8 @@ void Connect(WireBundle* a, WireBundle* b) {
   a->getContainer()->newConnect(a,b);
 }
 
+Type* getType(Circuit* c) {
+  return c->getType();
+}
 
 #endif //MAGMAIR_CPP_

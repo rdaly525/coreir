@@ -64,5 +64,7 @@ IntType* Int(uint bits, Dir dir);
 ArrayType* Array(Type* baseType, uint len);
 RecordType* Record(map<string,Type*> record);
 RecordType* AddField(RecordType* record, string key, Type* val);
+Type* Sel(Type* record, string key);
+Type* Flip(Type*);
 
 #endif //TYPES_HPP_
