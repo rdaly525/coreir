@@ -20,15 +20,15 @@ Module* AddTree(uint n) {
   Type* inType = Sel(getType(addn),"inA");
   Type* treeType = Record({{"in",Array(inType,3)},{"out",Flip(inType)}});
   Module* addTree = new Module("AddTree"+to_string(n),treeType);
-  WireBundle* iface = addTree->getInterface();
-  WireBundle* add_00 = addTree->newInstance("add00",addn);
-  WireBundle* add_01 = addTree->newInstance("add01",addn);
-  WireBundle* add_1 = addTree->newInstance("add1",addn);
+  Wireable* iface = addTree->getInterface();
+  Wireable* add_00 = addTree->newInstance("add00",addn);
+  Wireable* add_01 = addTree->newInstance("add01",addn);
+  Wireable* add_1 = addTree->newInstance("add1",addn);
   
-  Connect(iface->sel("in")->idx(0),add_00->sel("inA"));
-  Connect(iface->sel("in")->idx(1),add_00->sel("inB"));
-  Connect(iface->sel("in")->idx(2),add_01->sel("inA"));
-  Connect(iface->sel("in")->idx(2),add_01->sel("inB"));
+  Connect(iface->sel("in")->sel(0),add_00->sel("inA"));
+  Connect(iface->sel("in")->sel(1),add_00->sel("inB"));
+  Connect(iface->sel("in")->sel(2),add_01->sel("inA"));
+  Connect(iface->sel("in")->sel(2),add_01->sel("inB"));
   
   Connect(add_00->sel("out"),add_1->sel("inA"));
   Connect(add_01->sel("out"),add_1->sel("inB"));
@@ -44,7 +44,7 @@ Module* AddTree(uint n) {
 int main() {
   cout << "Creating a 4->1 tree adder\n";
   Circuit* addtree16 = AddTree(16);
-  //Validate(addtree16);
+  Validate(addtree16);
   addtree16->print();
 
   return 0;

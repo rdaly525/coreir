@@ -94,10 +94,6 @@ Type* RecordType::sel(string a) {
   }
 }
 
-map<string,Type*> RecordType::get() {
-  return record;
-}
-
 IntType* Int(uint bits, Dir dir) {
   return typecache.newInt(bits,dir);
 }
@@ -111,7 +107,7 @@ RecordType* Record(map<string,Type*> record) {
 }
 
 RecordType* AddField(RecordType* record, string key, Type* val) {
-  map<string,Type*> m = record->get();
+  map<string,Type*> m = record->getRecord();
   m.emplace(key,val);
   return typecache.newRecord(m);
 

@@ -6,6 +6,6 @@
 typedef uint32_t uint;
 typedef enum {INT,ARRAY,RECORD} TypeEnum;
 typedef enum {IN,OUT} Dir;
-typedef enum {IFACE,INST,SEL,IDX} WireBundleEnum;
+typedef enum {IFACE,INST,SEL} WireableEnum;
 
 #endif //ENUMS_HPP_

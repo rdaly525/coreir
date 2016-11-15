@@ -1,6 +1,6 @@
 
 /* 
-WireBundle = Interface 
+Wireable = Interface 
            | Instance
            | Select
 
@@ -37,9 +37,9 @@ Module* newModule(string name,Type* type);
 void addMetadataToModule(Module* mod, TODO);
 Interface* getInterface(Module* module);
 Instance* newInstance(string name, Module* instanceIn, Module* instanceFrom);
-Select* Select(string key, WireBundle* wirebundle);
-Index* Index(uint idx, WireBundle* wirebundle);
-void Connect(WireBundle* a, WireBundle* b);
+Select* Select(string key, Wireable* wirebundle);
+Index* Index(uint idx, Wireable* wirebundle);
+void Connect(Wireable* a, Wireable* b);
 
 
 

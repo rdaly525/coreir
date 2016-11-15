@@ -15,15 +15,16 @@ int main() {
 
 
   Module* fused = new Module("fused",getType(binop));
-  WireBundle* iface = fused->getInterface();
-  WireBundle* binopInst = fused->newInstance("bop",binop);
-  WireBundle* unopInst = fused->newInstance("uop",unop);
+  Wireable* iface = fused->getInterface();
+  Wireable* binopInst = fused->newInstance("bop",binop);
+  Wireable* unopInst = fused->newInstance("uop",unop);
 
   Connect(iface->sel("inA"),binopInst->sel("inA"));
   Connect(iface->sel("inB"),binopInst->sel("inB"));
   Connect(binopInst->sel("out"),unopInst->sel("in"));
   Connect(unopInst->sel("out"),iface->sel("out"));
   fused->print();
+  Validate(fused);
 
   return 0;
 }

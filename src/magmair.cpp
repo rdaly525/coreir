@@ -10,18 +10,17 @@ using namespace std;
 
 // Should this be stored in the Module itself?
 
-string WireBundleEnum2Str(WireBundleEnum wb) {
+string WireableEnum2Str(WireableEnum wb) {
   switch(wb) {
     case IFACE: return "Interface";
     case INST: return "Instance";
     case SEL: return "Select";
-    case IDX: return "Index";
   }
   assert(false);
 }
 Module::Module(string name, Type* type) : Circuit(false,name,type) {
   interface = new Interface(this,type->flip());
-  cache = new WireBundleCache();
+  cache = new WireableCache();
 }
 
 Module::~Module() {
@@ -30,7 +29,7 @@ Module::~Module() {
   instances.clear();
   delete cache;
 }
-WireBundleCache* Module::getCache() { return cache;}
+WireableCache* Module::getCache() { return cache;}
 
 void Primitive::print(void) {
   cout << "Primitive: " << name << "\n";
@@ -61,91 +60,79 @@ Instance* Module::newInstance(string name,Circuit* circuitType) {
 Interface* Module::getInterface(void) {
   return interface;
 }
-void Module::newConnect(WireBundle* a, WireBundle* b) {
+void Module::newConnect(Wireable* a, Wireable* b) {
   Connection con = std::make_pair(a,b);
   connections.push_back(con);
 }
 
-void WireBundle::addChild(WireBundle* wb) {
-  children.push_back(wb);
+void Wireable::addChild(string selStr, Wireable* wb) {
+  children.emplace(selStr,wb);
 }
 
 
 //TODO Find a principled way to deal with select/index errors 
 // Should I return a nullptr or create error message
-Select* WireBundle::sel(string sel) {
+Select* Wireable::sel(string selStr) {
   assert(type->isType(RECORD));
-  Type* selType = ((RecordType*)type)->sel(sel);
+  Type* selType = ((RecordType*)type)->sel(selStr);
   assert(selType);
-  return container->getCache()->newSelect(container,selType,this,sel);
+  return container->getCache()->newSelect(container,selType,this,selStr);
 }
 
-Index* WireBundle::idx(uint idx) {
+Select* Wireable::sel(uint idx) {
   assert(type->isType(ARRAY));
   Type* idxType = ((ArrayType*)type)->idx(idx);
   assert(idxType);
-  return container->getCache()->newIndex(container,idxType,this,idx);
+  return container->getCache()->newSelect(container,idxType,this,to_string(idx));
 }
-void WireBundle::setWired() {
+
+//Set _wired and all children's parentWired
+void Wireable::addConnection(Wireable* w) {
   _wired = true;
-  vector<WireBundle*>::iterator it;
+  map<string,Wireable*>::iterator it;
   for (it=children.begin(); it!=children.end(); ++it) {
-    (*it)->setWired();
+    it->second->setParentWired();
+  }
+  connections.push_back(w);
+}
+
+//Set _parentWired and all children's setParentWired
+void Wireable::setParentWired() {
+  _parentWired = true;
+  map<string,Wireable*>::iterator it;
+  for (it=children.begin(); it!=children.end(); ++it) {
+    it->second->setParentWired();
   }
 }
 
-Select::Select(Module* container, Type* type, WireBundle* parent, string sel) : WireBundle(SEL,container,type), parent(parent), sel(sel) {
+Select::Select(Module* container, Type* type, Wireable* parent, string selStr) : Wireable(SEL,container,type), parent(parent), selStr(selStr) {
   //Add this to children of parent
-  parent->addChild(this);
+  parent->addChild(selStr,this);
   
-  //If Parent is wired, then this is wired.
-  _wired = parent->isWired();
+  //If Parent is wired or parent has wired parents
+  _parentWired = parent->isWired() || parent->isParentWired();
 }
 
-Index::Index(Module* container,Type* type, WireBundle* parent, uint idx) : WireBundle(IDX,container,type), parent(parent), idx(idx) {
-  parent->addChild(this);
-
-  _wired = parent->isWired();
-}
-
-WireBundleCache::~WireBundleCache() {
+WireableCache::~WireableCache() {
   map<SelectParamType,Select*>::iterator it1;
   for (it1=SelectCache.begin(); it1!=SelectCache.end(); ++it1) {
     delete it1->second;
   }
-  
-  map<IndexParamType,Index*>::iterator it2;
-  for (it2=IndexCache.begin(); it2!=IndexCache.end(); ++it2) {
-    delete it2->second;
-  }
-
 }
-Select* WireBundleCache::newSelect(Module* container, Type* type, WireBundle* parent, string sel) {
-  SelectParamType params = std::make_tuple(type,parent,sel);
+Select* WireableCache::newSelect(Module* container, Type* type, Wireable* parent, string selStr) {
+  SelectParamType params = std::make_tuple(type,parent,selStr);
   map<SelectParamType,Select*>::iterator it = SelectCache.find(params);
   if (it != SelectCache.end()) {
     return it->second;
   } else {
-    Select* newSelect = new Select(container,type,parent,sel);
+    Select* newSelect = new Select(container,type,parent,selStr);
     SelectCache.emplace(params,newSelect);
     return newSelect;
   }
 }
 
-Index* WireBundleCache::newIndex(Module* container, Type* type, WireBundle* parent, uint idx) {
-  IndexParamType params = std::make_tuple(type,parent,idx);
-  map<IndexParamType,Index*>::iterator it = IndexCache.find(params);
-  if (it != IndexCache.end()) {
-    return it->second;
-  } else {
-    Index* newIndex = new Index(container,type,parent,idx);
-    IndexCache.emplace(params,newIndex);
-    return newIndex;
-  }
-}
-
-string WireBundle::_string() {
-  return WireBundleEnum2Str(bundleType);
+string Wireable::_string() {
+  return WireableEnum2Str(bundleType);
 }
 string Interface::_string() {
   return container->getName();
@@ -155,14 +142,13 @@ string Instance::_string() {
 }
 
 string Select::_string() {
-  return parent->_string() + "." + sel;
-}
-string Index::_string() {
-  return parent->_string() + "[" + to_string(idx) + "]";
+  string ret = parent->_string(); 
+  bool isIdx = (selStr.find_first_not_of("0123456789")==string::npos);
+  if (isIdx) return ret + "[" + selStr + "]";
+  return ret + "." + selStr;
 }
 
-
-void Connect(WireBundle* a, WireBundle* b) {
+void Connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same container
   if (a->getContainer()!=b->getContainer()) {
     cout << "ERROR: Connections can only occur within the same module\n";
@@ -201,18 +187,52 @@ void Connect(WireBundle* a, WireBundle* b) {
   }
 
   //Update 'a' and 'b' (and children)
-  a->setWired();
-  b->setWired();
+  a->addConnection(b);
+  b->addConnection(a);
   
-  //Update parents if we are wiring inputs
+  //Update parents if we are wiring inputs.
+  //Confusing names. But this is setting the _childrenWired flag of the parents
+  //  and NOT setting the _wired of the children lol
   if (aType->hasInput()) {
-    a->setChildrenWired(); //TODO rethink these confusing names
+    a->setChildrenWired(); 
   }
   if (bType->hasInput()) {
     b->setChildrenWired();
   }
 
   container->newConnect(a,b);
+}
+
+//TODO make sure there exists at least 1 children given that _childrenWired is set
+//TODO This definitely needs nice error messages
+bool Wireable::checkWired() {
+  if (_wired) return true;
+  if (type->isBase()) return false;
+  
+  //Should have children...
+  assert(type->isType(RECORD) || type->isType(ARRAY));
+  
+  //Check if all entries of map exist and are wired
+  //Have to deal with Records and Arrays differently
+  if(type->isType(RECORD)) {
+    //iterate over type record keys
+    map<string,Type*> record = ((RecordType*)type)->getRecord();
+    map<string,Type*>::iterator tit;
+    for (tit=record.begin(); tit!=record.end(); ++tit) {
+      map<string,Wireable*>::iterator it = children.find(tit->first);
+      if (it==children.end()) return false;
+      if (!it->second->checkWired()) return false;
+    }
+  } else {
+    // iterate over the array
+    for (uint i=0; i<((ArrayType*)type)->getLen(); ++i) {
+      map<string,Wireable*>::iterator it = children.find(to_string(i));
+      if (it==children.end()) return false;
+      if (!it->second->checkWired()) return false;
+    }
+  }
+  return true;
+  
 }
 
 bool Validate(Circuit* c) {
@@ -223,18 +243,19 @@ bool Validate(Circuit* c) {
   }
   bool valid = true;
   Module* mod = (Module*) c;
-  if (!mod->getInterface()->isWired()) {
+  if (!mod->getInterface()->checkWired()) {
     cout << "Inteface is Not fully connected!\n";
-    valid = false;
+    return false;
   }
   vector<Instance*> insts = mod->getInstances();
   vector<Instance*>::iterator it;
   for(it=insts.begin(); it!=insts.end(); ++it) {
-    if (!(*it)->isWired() ) {
+    if (!(*it)->checkWired() ) {
       cout << "Instance: " << (*it)->_string() << " is not fully connected\n";
       valid = false;
     }
   }
+  cout << "You have a valid Module!\n";
   return valid;
 
 }

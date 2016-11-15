@@ -17,6 +17,7 @@ class Type {
   public :
     Type(TypeEnum type, bool _hasInput) : type(type), _hasInput(_hasInput) {}
     bool isType(TypeEnum);
+    bool isBase() {return !(isType(RECORD) || isType(ARRAY));}
     bool hasInput() { return _hasInput;};
     string getType(void); // TODO rename this. imply a string
     virtual string _string(void)=0;
@@ -42,6 +43,7 @@ class ArrayType : public Type {
     string _string(void);
     Type* flip(void);
     Type* idx(uint);
+    uint getLen() {return len;}
 };
 
 class RecordType : public Type {
@@ -51,7 +53,7 @@ class RecordType : public Type {
     string _string(void);
     Type* flip(void);
     Type* sel(string a);
-    map<string,Type*> get(void);
+    map<string,Type*> getRecord() { return record;}
 };
 
 

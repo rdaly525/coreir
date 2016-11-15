@@ -2,6 +2,7 @@
   typedef enum {In,Out} Dir;
 
 Here are all the Types in algebraic form 
+
 Type = UintType(uint bits, Dir dir)
      | IntType(uint bits, Dir dir)
      | FloatType(uint ebits, uint mbits, Dir dir)
@@ -34,15 +35,13 @@ Primitive: a 'leaf' circuit containing now interior instantiations
 
 
 Wirebundle: A group of wires (represented by a Type) which resides within a Module
-Interface: a WireBundle representing the interface to the module from the *inside* perspective of the Module. The Interface Type is equal to the flip of the Module type.
-Instance: a WireBundle representing the instantiation of a module within a module.
-Select: a WireBundle which is the record selected subgroup of wires from a WireBundle.
-Index: a WireBundle which is the array indexed subgroup of wires from a WireBundle
+Interface: a Wireable representing the interface to the module from the *inside* perspective of the Module. The Interface Type is equal to the flip of the Module type.
+Instance: a Wireable representing the instantiation of a module within a module.
+Select: a Wireable which is the record selected subgroup of wires from a Wireable.
 
-  WireBundle = Interface 
+  Wireable =  Interface 
              | Instance
              | Select
-             | Index
 
 
 Module creation
@@ -58,23 +57,23 @@ Module creation
     Interface* getInterface();
   }
 
-  class WireBundle {
+  class Wireable {
     Select* sel(string key);
-    Index* idx(uint idx);
+    Select* sel(uint idx);
   }
 
-Connect two WireBundles together.
+Connect two Wireables together.
 a and b *need* to be within the same Module
 assert(type(a) == flip(type(b)))
   
-  void Connect(WireBundle* a, WireBundle* b);
+  void Connect(Wireable* a, Wireable* b);
 
 That is it for the creation of the IR!
-Selects and Indexes are unique and can be checked directly for equality
+Selects are unique and can be checked directly for equality
 
 //Other useful functions (TODO expand)
 
-  Type* type(WireBundle* wb);
+  Type* type(Wireable* wb);
   Type* type(Module m);
   void printpretty(); 
   bool isType(...);
