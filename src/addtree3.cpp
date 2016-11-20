@@ -1,4 +1,5 @@
 #include "magmair.hpp"
+#include "lib.hpp"
 #include <map>
 #include <string>
 

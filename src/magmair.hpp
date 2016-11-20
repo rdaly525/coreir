@@ -22,29 +22,32 @@ typedef std::pair<Wireable*,Wireable*> Connection ;
 
 class Circuit {
   protected :
-    bool primitive;
+    bool _primitive;
+    bool _mutable;
     string name;
     MetaData* metadata;
     Type* type;
   public :
-    Circuit(bool primitive, string name, Type* type) : primitive(primitive), name(name), type(type) {}
+    Circuit(bool _primitive, string name, Type* type) : _primitive(_primitive), _mutable(true), name(name), type(type) {}
     virtual void print(void)=0;
     string getName(void) {return name;}
     Type* getType(void) {return type;}
-    bool isPrimitive() { return primitive;}
+    bool isPrimitive() { return _primitive;}
+    void makeImmutable() { _mutable = false;}
+    bool isMutable() { return _mutable;}
 };
 
 class Primitive : public Circuit {
   public :
     Primitive(string name, Type* type) : Circuit(true,name,type) {}
     void print(void);
-    
 };
 
 class Module : public Circuit {
   Interface* interface; 
   vector<Instance*> instances; // Should it be a map?
   vector<Connection> connections;
+  
   WireableCache* cache;
   public :
     Module(string name, Type* type);
@@ -105,6 +108,7 @@ class Instance : public Wireable {
     Instance(Module* container, Type* type, string name, Circuit* circuitType) : Wireable(INST,container,type), name(name), circuitType(circuitType) {}
     string _string();
     Circuit* getCircuitType() {return circuitType;}
+    void replace(Circuit* c) {circuitType = c;} //TODO dangerous. Could point to its container.
 };
 
 class Select : public Wireable {
@@ -129,8 +133,8 @@ class WireableCache {
 string WireableEnum2Str(WireableEnum wb);
 void Connect(Wireable* a, Wireable* b);
 
-bool Validate(Circuit* mod);
 
 Type* getType(Circuit*);
+
 
 #endif //MAGMAIR_HPP_

@@ -43,7 +43,7 @@ int main() {
   cout << "Creating a 4->1 tree adder\n";
   Circuit* addtree16 = AddTree(16);
   addtree16->print();
-  Validate(addtree16);
+  //Validate(addtree16);
 
   return 0;
 }
