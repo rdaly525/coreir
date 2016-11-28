@@ -66,6 +66,7 @@ class Module : public Circuit {
     Instance* newInstance(string,Circuit*);
     Interface* getInterface(void);
     vector<Instance*> getInstances(void) { return instances;}
+    vector<Connection> getConnections(void) { return connections; }
     void newConnect(Wireable* a, Wireable* b);
 };
 
