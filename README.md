@@ -76,6 +76,9 @@ assert(type(a) == flip(type(b)))
   
   void Connect(Wireable* a, Wireable* b);
 
+TODO NotDepend(PrimitiveWire* a, PrimitiveWire* b); can build fast simulator with this info
+//TODO potentially annotate black boxes with dependency graph of inputs to outputs in order to do fast simulate
+
 That is it for the creation of the IR!
 Selects are unique and can be checked directly for equality
 

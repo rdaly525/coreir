@@ -1,0 +1,108 @@
+Simulate A Algorithm
+Step 1: Construct sim IR
+  Given a global MagmaIR Module, create a new simModule for every instance recusrively.
+    Stop recursing if module contains a genOutputs function. (call module simPrimitive)
+      Error if lowest primitive does not have a genOutputs function
+    Create dirty bit structure for entire type.
+    For every simPrimitive
+      Allocate space for values of Entire type *except* baseType inputs. 
+    Traverse entire graph pointing input types correctly.
+  Create a testbench and instantiate main simModule
+  Create simModules for all the inputs 
+    Testbench is owner of inputs of module, so make sure module is connected correctly.
+    (There are probably simPrimitives within the module that need the pointer to the inputs)
+Step 2: Simulate set of inputs
+  Create a wire_dirty stack
+  Create a primitive_dirty stack
+  Create a sync_assign stack
+  foreach input set:
+    in Testbench set inputs to next values. Note these inputs are actually of type "output"
+    foreach input : SetDirty(inputs);
+    void dirty_propogate() {
+      foreach wire in wire_dirty:
+        wire = pop;
+        if output
+          Add all connected inputs to dirty wire list
+        if input
+          if simPrimitive then push simPrimitive on primtive_dirty stack
+          else step inside and add all connected inputs to dirty wire list
+      }
+    }
+    while(wire_dirty not empty) {
+      while(primtive_dirty not empty) {
+        prim = pop;
+        prim.simulate()
+          Note simulate might add to both wire_dirty stack and sync_assign stack
+      }
+      while(sync_assign stack) {
+        assign = pop;
+          assign the data to the value passed in.
+            //TODO this is hard to do in C++ because the value could be anything
+      }
+    } 
+
+
+////////////////////////////// EXAMPLES //////////////////////////
+
+//Tree add reduce
+Type* treeType = Record({{"in",Array(Uint(16),4)},{"out",Flip(Uint(18))}});
+void simulate(BoxedData* d,BoxedData* state, DirtyBits* db) {
+  uint32_t sum = 0;
+  for(int i=0; i<4; ++i) {
+    sum += d->R[0]->A[i]->V;
+    unsetDirty(db->R[0]->A[i]);
+  }
+  d->R[1]->V = sum & Mask(18);
+  setDirty(d->R[1]);
+}
+
+
+// Flip flop primitive
+Type* FFTypeEn = Record({{"clk",Bit},{"en",Bit},{"D",Uint(16)},{"Q",Uint(16)}});
+void simulate(BoxedData* d,BoxedData* state,DirtyBits* db) {
+  uint8_t clk_dirty = db->R[0]->V;
+  uint8_t en = d->R[1]->V;
+  uint16_t D = d->R[2]->V;
+  if(clk_dirty) { //posedge
+    if(en) {
+      syncAssign(d->R[3],d->R[2]);
+      setDirty(dirty->R[3]);
+    }
+  }
+}
+
+// BRAM primitive
+Type* bramType = Record({
+    {"clk",IN(Bit)},
+    {"w", Record({
+      {"en",IN(Bit)},
+      {"addr",IN(Uint(4))},
+      {"data",IN(Uint(32))}})},
+    {"r", Record({
+      {"en",IN(Bit)},
+      {"addr",IN(Uint(4))},
+      {"data",Uint(32)}})}
+    });
+createState(Array(Uint(32),16));
+init(BoxedData* state) {
+  for(uint i=0; i<16; i++) {
+    state->A[i]->V = 0;
+  }
+}
+void simulate(BoxedData* d, BoxedData* state, DirtyBits* db) {
+  uint8_t clk = d->R[0]->V;
+  uint8_t clk_dirty = db->R[0]->V;
+  BoxedData* write = d->R[1];
+  BoxedData* read = d->R[0];
+  if(clk_dirty && clk==1) {
+    unsetDirty(db->R[0]);
+    if(write->R[0]->V) {
+      syncAssign(state->A[write->R[1]->V], write->R[2]);
+    }
+  }
+  if(read->R[0]->V) {
+    read->R[2]->V = state->A[read->R[1]->V]->V
+    setDirty(db->R[0]->R[2]);
+  }
+}
+

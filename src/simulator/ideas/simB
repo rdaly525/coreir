@@ -1,0 +1,25 @@
+Completley organized one
+
+Given a MagmaIR mair.
+
+Goal of this is to literally construct a DAG, do a topological sort, and run it eficiently.
+
+Look at primitives first.
+
+Primitives need to be created to have different simulate functions if they have independnt relationships.
+
+primitve has set of inputs I and set of outputs O
+  Create groups G such that each G_i contains a subset of I and O representing combinational dependency information. 
+  Within each G_i, all outputs are directly dependent on each input
+  Also create a dependency relationship between each G_i. 
+    Technically it is the dependency between 
+Lets look at a flip flop with en
+Type* FFTypeEn = Record({{"clk",Bit},{"en",Bit},{"D",Uint(16)},{"Q",Uint(16)}});
+G_0 = {{I:"clk"},{O:"Q"}}
+G_1 = {{I:"en","D"},{O:}}
+the inputs to G_1 are potentially dependent on G_0 outputs
+G_0 must execute before the inputs to G_1
+
+All the Groups of all the instances should form a DAG. I can topologically sort this DAG and safely execute the entire DAG in a correct order.
+
+

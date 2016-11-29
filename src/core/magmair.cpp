@@ -1,6 +1,7 @@
 #ifndef MAGMAIR_CPP_
 #define MAGMAIR_CPP_
 
+#include "typeCache.hpp"
 #include "enums.hpp"
 #include "magmair.hpp"
 #include <cassert>
@@ -9,6 +10,9 @@
 using namespace std;
 
 // Should this be stored in the Module itself?
+
+//Global cache
+TypeCache typecache;
 
 string WireableEnum2Str(WireableEnum wb) {
   switch(wb) {
@@ -19,14 +23,14 @@ string WireableEnum2Str(WireableEnum wb) {
   assert(false);
 }
 Module::Module(string name, Type* type) : Circuit(false,name,type) {
-  interface = new Interface(this,type->flip());
+  interface = new Interface(this,Flip(type));
   cache = new WireableCache();
 }
 
 Module::~Module() {
   //Delete interface, instances, cache
   delete interface;
-  instances.clear();
+  for(vector<Instance*>::iterator it=instances.begin(); it!=instances.end(); ++it) delete (*it);
   delete cache;
 }
 WireableCache* Module::getCache() { return cache;}
@@ -134,9 +138,11 @@ Select* WireableCache::newSelect(Module* container, Type* type, Wireable* parent
 string Wireable::_string() {
   return WireableEnum2Str(bundleType);
 }
+
 string Interface::_string() {
   return container->getName();
 }
+
 string Instance::_string() {
   return name;
 }
@@ -159,7 +165,7 @@ void Connect(Wireable* a, Wireable* b) {
   Type* aType = a->getType();
   Type* bType = b->getType();
   //Make sure the flip of the types match
-  if(a->getType() != b->getType()->flip()) {
+  if(a->getType() != Flip(b->getType())) {
     cout << "ERROR: Cannot connect these two types\n";
     cout << "  " << a->_string() << ": " << a->getType()->_string() << "\n";
     cout << "  " << b->_string() << ": " << b->getType()->_string() << "\n";
@@ -235,11 +241,86 @@ bool Wireable::checkWired() {
   
 }
 
-
-
-
 Type* getType(Circuit* c) {
   return c->getType();
 }
+
+bool Validate(Circuit* c) {
+
+  // Circuit is valid if its interface and all its instances are _wired
+  if(c->isPrimitive()) {
+    cout << "Primitives are by definition valid!\n";
+    return true;
+  }
+  bool valid = true;
+  Module* mod = (Module*) c;
+  if (!mod->getInterface()->checkWired()) {
+    cout << "Inteface is Not fully connected!\n";
+    return false;
+  }
+  vector<Instance*> insts = mod->getInstances();
+  vector<Instance*>::iterator it;
+  for(it=insts.begin(); it!=insts.end(); ++it) {
+    if (!(*it)->checkWired() ) {
+      cout << "Instance: " << (*it)->_string() << " is not fully connected\n";
+      valid = false;
+    }
+  }
+  cout << "You have a valid Module!\n";
+  return valid;
+}
+
+Module* MagmaIR::newModule(string name, Type* type) {
+  Module* c = new Module(name, type);
+  modList.push_back(c);
+  return c;
+}
+Primitive* MagmaIR::newPrimitive(string name, Type* type) {
+  Primitive* c = new Primitive(name, type);
+  primList.push_back(c);
+  return c;
+}
+
+
+MagmaIR* newMagmaIR() {
+  MagmaIR* m = new MagmaIR();
+  return m;
+}
+void deleteMagmaIR(MagmaIR* m) { delete m;}
+
+IntType* Int(uint bits, Dir dir) {
+  return typecache.newInt(bits,dir);
+}
+
+IntType* Int(uint bits) {
+  return typecache.newInt(bits,OUT);
+}
+//FloatType* Float(uint ebits, uint mbits, Dir dir);
+//BoolType* Bool(Dir dir);
+ArrayType* Array(Type* elemType, uint len) {
+  return typecache.newArray(elemType,len);
+}
+RecordType* Record(map<string,Type*> record) {
+  return typecache.newRecord(record);
+}
+
+RecordType* AddField(RecordType* record, string key, Type* val) {
+  map<string,Type*> m = record->getRecord();
+  m.emplace(key,val);
+  return typecache.newRecord(m);
+
+}
+Type* Sel(Type* record, string key) {
+  if(!record->isType(RECORD)) {
+    cout << "ERROR: Can only Sel on a record\n";
+    cout << "  Type: " << record->getType() << "\n";
+  }
+  return ((RecordType*)record)->sel(key);
+}
+Type* Flip(Type* type) {
+  return type->flip(&typecache);
+}
+
+
 
 #endif //MAGMAIR_CPP_

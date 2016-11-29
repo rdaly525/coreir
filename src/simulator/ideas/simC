@@ -1,0 +1,45 @@
+MasterDirtyList. 
+
+// Each primitive owns ALL Type data. This means that technically there are two copies of the value. 
+
+Step 1: Construct sim IR
+  Given a global Module, create a new simModule for every instance recusrively.
+    Stop recursing if module contains a simulate function. (called simPrimitive)
+      Error if lowest primitive does not have a simulate function
+    Create dirty bit strucutre for entire type.
+    For every simPrimitive
+      Allocate space for values of Entire type;
+  Flatten the entire structure such that each simPrimitive only has pointers to other simPrimitives
+  Create a testbench and instansiate main simModule
+  
+
+Step 2: Simulate
+  foreach input set {
+    Create new wire_dirty list
+    Create new prim_dirty stack
+    push clk to dirty_wire stack
+    simulate(wire_dirty, prim_dirty)
+    push inputs to dirty (if changed) // TODO maybe do this after clock
+    while(
+    
+
+
+
+  }
+
+void simulate(wire_dirty, prim_dirty) {
+  foreach wireOut in wire_dirty {
+    wireOut = pop;
+    assert(wireOut is output)
+    foreach wireIn that is connected to wireOut {
+      wireIn.Val = wireOut.Val
+      setDirty(wireIn);
+      push wireIn.Prim on prim_dirty stack
+    }
+  }
+  foreach prim in prim_dirty {
+    prim.simulate()
+      Note, can push onto wire_dirty
+  }
+}
+

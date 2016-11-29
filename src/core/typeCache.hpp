@@ -8,6 +8,8 @@ using namespace std;
 class Type;
 class IntType;
 class ArrayType;
+class RecordType;
+
 
 typedef std::pair<uint32_t,Dir> IntTypeParams ;
 typedef std::pair<Type*,uint32_t> ArrayTypeParams ;

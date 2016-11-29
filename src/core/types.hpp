@@ -6,9 +6,12 @@
 #include <string>
 #include <map>
 #include "enums.hpp"
+#include "typeCache.hpp"
 
 
 using namespace std;
+
+class TypeCache;
 
 class Type {
   protected :
@@ -16,32 +19,40 @@ class Type {
     bool _hasInput;
   public :
     Type(TypeEnum type, bool _hasInput) : type(type), _hasInput(_hasInput) {}
+    virtual ~Type() {}
     bool isType(TypeEnum);
     bool isBase() {return !(isType(RECORD) || isType(ARRAY));}
     bool hasInput() { return _hasInput;};
     string getType(void); // TODO rename this. imply a string
     virtual string _string(void)=0;
-    virtual Type* flip(void)=0;
+    virtual Type* flip(TypeCache*)=0;
     void print(void);
 };
 
-class IntType : public Type {
-  uint n;
-  Dir dir;
+class BaseType : public Type {
+  protected :
+    Dir dir;
   public :
-    IntType(uint n, Dir dir) : Type(INT,dir==IN), n(n), dir(dir) {}
+    BaseType(TypeEnum type, Dir dir) : Type(type,dir==IN), dir(dir) {}
+    virtual Type* flip(TypeCache*)=0;
+};
+
+class IntType : public BaseType {
+  uint n;
+  public :
+    IntType(uint n, Dir dir) : BaseType(INT,dir), n(n) {}
     uint numBits(void);
     string _string(void); 
-    Type* flip(void);
+    Type* flip(TypeCache*);
 };
 
 class ArrayType : public Type {
-  Type* baseType;
+  Type* elemType;
   uint len;
   public :
-    ArrayType(Type *baseType, uint len) : Type(ARRAY,baseType->hasInput()), baseType(baseType), len(len) {}
+    ArrayType(Type *elemType, uint len) : Type(ARRAY,elemType->hasInput()), elemType(elemType), len(len) {}
     string _string(void);
-    Type* flip(void);
+    Type* flip(TypeCache*);
     Type* idx(uint);
     uint getLen() {return len;}
 };
@@ -51,24 +62,10 @@ class RecordType : public Type {
   public :
     RecordType(map<string,Type*> record);
     string _string(void);
-    Type* flip(void);
+    Type* flip(TypeCache*);
     Type* sel(string a);
     map<string,Type*> getRecord() { return record;}
 };
 
-
-//TODO This should be done in a better way
-string Dir2Str(Dir d);
-string TypeEnum2Str(TypeEnum t);
-
-//UintType* Uint(uint bits, Dir dir);
-IntType* Int(uint bits, Dir dir);
-//FloatType* Float(uint ebits, uint mbits, Dir dir);
-//BoolType* Bool(Dir dir);
-ArrayType* Array(Type* baseType, uint len);
-RecordType* Record(map<string,Type*> record);
-RecordType* AddField(RecordType* record, string key, Type* val);
-Type* Sel(Type* record, string key);
-Type* Flip(Type*);
 
 #endif //TYPES_HPP_
