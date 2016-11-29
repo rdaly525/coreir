@@ -1,7 +1,8 @@
-  typedef uint uint32_t;
-  typedef enum {In,Out} Dir;
+## Types 
 
-Here are all the Types in algebraic form 
+```
+typedef uint uint32_t;
+typedef enum {In,Out} Dir;
 
 Type = UintType(uint bits, Dir dir)
      | IntType(uint bits, Dir dir)
@@ -9,11 +10,12 @@ Type = UintType(uint bits, Dir dir)
      | BoolType(Dir dir)
      | ArrayType(Type baseType, uint len)
      | RecordType(pair<string sel,Type type>* args)
+```
 
-({'a',Int}{'b',Array}})
 
-C++ Type Constructors
+## C++ Type Constructors
 
+```
   UintType* Uint(uint bits, Dir dir);
   IntType* Int(uint bits, Dir dir);
   FloatType* Float(uint ebits, uint mbits, Dir dir);
@@ -23,59 +25,64 @@ C++ Type Constructors
   RecordType* AddField(RecordType* record, string key, Type* val);
   Type* Sel(RecordType* record, string key);
   Type* Flip(Type* type);
+```
 
 Note: All Types are unique regardless of construction, so they can be checked directly for equality.
 
+## Circuits
+```
+Circuit = Module
+        | Primitive
+```
+**Circuit:** Black box representing hardware that can be instantiated
 
-Circuit: Black box representing hardware that can be instantiated
-Module: a circuit which contains instantiations and connections of other circuits
-Primitive: a 'leaf' circuit containing now interior instantiations
+**Module:** A circuit which contains instantiations and connections of other circuits
 
-class Circuit {}
+**Primitive:** a 'leaf' circuit containing now interior instantiations
 
-class Module extends Circuit
-class Primitev estens Circuit
+```
+Wireable =  Interface 
+          | Instance
+          | Select
+```
+##Wireables
+**Wireable:** A group of wires (represented by a Type) which resides within a Module
 
+**Interface:** A Wireable representing the interface to the module from the *inside* perspective of the Module. The Interface Type is equal to the flip of the Module type.
 
+**Instance:** A Wireable representing the instantiation of a module within a module.
 
-  Circuit = Module
-          | Primitive
+**Select:** A Wireable which is the record (or Array) selected subgroup of wires from a Wireable.
 
-
-Wirebundle: A group of wires (represented by a Type) which resides within a Module
-Interface: a Wireable representing the interface to the module from the *inside* perspective of the Module. The Interface Type is equal to the flip of the Module type.
-Instance: a Wireable representing the instantiation of a module within a module.
-Select: a Wireable which is the record selected subgroup of wires from a Wireable.
-
-  Wireable =  Interface 
-            | Instance
-            | Select
 
 
 Module creation
 ---------------
+```
+class MagmaIR {
+  Module* newModule(stirng name, Type* type);
+  Primitive* newPrimitive(string name, Type* type);
 
-  class Primitive {
-    Primitive(string name, Type* type, verilogRef?)
-  }
+class Module {
+  Instance* newInstance(string name, Circuit* circuitType);
+  Interface* getInterface();
+}
 
-  class Module {
-    Module(string name, Type* type);
-    Instance* newInstance(string name, Circuit* circuitType);
-    Interface* getInterface();
-  }
+class Wireable {
+  Select* sel(string key);
+  Select* sel(uint idx);
+}
+```
 
-  class Wireable {
-    Select* sel(string key);
-    Select* sel(uint idx);
-  }
+##Conecting Wireables
 
+```  
+void Connect(Wireable* a, Wireable* b);
+```
 Connect two Wireables together.
-a and b *need* to be within the same Module
-assert(type(a) == flip(type(b)))
-  
-  void Connect(Wireable* a, Wireable* b);
+a and b *need* to both be within the same Module. Also a's type needs to be the flip of b's type.
 
+##TODO
 TODO NotDepend(PrimitiveWire* a, PrimitiveWire* b); can build fast simulator with this info
 //TODO potentially annotate black boxes with dependency graph of inputs to outputs in order to do fast simulate
 
