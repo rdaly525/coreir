@@ -138,16 +138,16 @@ void toNode(FILE *out, Circuit* c, set<string>& processed) {
     // TODO add uniquifier to the name?
     fprintf(out, "\nclass %s:\n", c->getName().c_str());
     fprintf(out, "  def __init__(self):\n");
-    fprintf(out, "    base = Node()\n");
+    fprintf(out, "    base = pnr.Node()\n");
     int numOuts = 0;
     for (map<string,Type*>::iterator it = m.begin(); it != m.end(); it++) { 
       // primitives should be smallest unit of composition; used composed
       // modules whenever possible
-      assert(it->second->isBase());
+      assert(it->second->isType(INT));
       if (!it->second->hasInput()) {
         numOuts++;
       }
-      fprintf(out, "    self.%s = base\n", it->first.c_str());
+      fprintf(out, "    self.%s_i = base\n", it->first.c_str());
     }
     assert(numOuts == 1);
   }
@@ -160,6 +160,7 @@ void toNodeMain(Circuit* c) {
   FILE* out = fopen("circuit.py", "w");
   set<string> processed;
   fprintf(out, "import doit\n");
+  fprintf(out, "import pnr\n");
   toNode(out, c, processed);
   fprintf(out, "\ndef run():\n");
   vector<pair<Dir, string> > refs = generateRefsForType(c->getType());
@@ -171,7 +172,7 @@ void toNodeMain(Circuit* c) {
       fprintf(out, "top.%s, ", it->second.c_str());
     }
   }
-  fprintf(out, "]:");
+  fprintf(out, "]:\n");
   fprintf(out, "    nodes += n.flatten()\n"); 
   fprintf(out, "  doit.doit(nodes)\n");
   fprintf(out, "\nif __name__ == \"__main__\":\n");
