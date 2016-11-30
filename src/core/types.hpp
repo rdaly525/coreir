@@ -44,6 +44,7 @@ class IntType : public BaseType {
     uint numBits(void);
     string _string(void); 
     Type* flip(TypeCache*);
+    Dir getDir() { return dir; }
 };
 
 class ArrayType : public Type {
@@ -55,6 +56,7 @@ class ArrayType : public Type {
     Type* flip(TypeCache*);
     Type* idx(uint);
     uint getLen() {return len;}
+    Type* getElemType() { return elemType; }
 };
 
 class RecordType : public Type {
