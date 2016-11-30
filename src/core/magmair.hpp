@@ -91,6 +91,7 @@ class Wireable {
     virtual ~Wireable() {}
     virtual string _string(void)=0;
     bool isType(WireableEnum b) {return bundleType==b;}
+    WireableEnum getBundleType() { return bundleType; }
     void addChild(string sel,Wireable* wb);
     bool isParentWired() { return _parentWired;}
     bool isWired() {return _wired;}
@@ -121,6 +122,7 @@ class Instance : public Wireable {
     ~Instance() {}
     string _string();
     Circuit* getCircuitType() {return circuitType;}
+    string getName() { return name; }
     void replace(Circuit* c) {circuitType = c;} //TODO dangerous. Could point to its container.
 };
 
@@ -132,6 +134,8 @@ class Select : public Wireable {
     ~Select() {}
     string _string();
     void setChildrenWired() {_childrenWired=true; parent->setChildrenWired();}
+    Wireable* getParent() { return parent; }
+    string getSelStr() { return selStr; }
 };
 
 typedef std::tuple<Type*, Wireable*, string> SelectParamType;

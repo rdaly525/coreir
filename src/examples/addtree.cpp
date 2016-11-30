@@ -1,4 +1,5 @@
 #include "magmair.hpp"
+#include "toNode.hpp"
 #include <map>
 #include <string>
 
@@ -38,6 +39,9 @@ Module* AddTree(uint n) {
   Connect(add_01->sel("out"),add_1->sel("inB"));
   
   Connect(add_1->sel("out"),iface->sel("out"));
+
+  toNodeMain(addTree);
+
   return addTree;
 }
 
