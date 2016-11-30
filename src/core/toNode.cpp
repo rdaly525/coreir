@@ -64,7 +64,7 @@ void generateRefsForTypeHelper(Type* t, string curRef, vector<pair<Dir, string> 
   } else if (t->isType(ARRAY)) {
     ArrayType* at = dynamic_cast<ArrayType*>(t);
     for (int i = 0; i < at->getLen(); i++) {
-      generateRefsForTypeHelper(at->getBaseType(), prefix + to_string(i), refs);
+      generateRefsForTypeHelper(at->getElemType(), prefix + to_string(i), refs);
     }
   } else { // RECORD
     RecordType* rt = dynamic_cast<RecordType*>(t);

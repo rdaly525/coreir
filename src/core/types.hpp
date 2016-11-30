@@ -56,7 +56,7 @@ class ArrayType : public Type {
     Type* flip(TypeCache*);
     Type* idx(uint);
     uint getLen() {return len;}
-    Type* getBaseType() { return baseType; }
+    Type* getElemType() { return elemType; }
 };
 
 class RecordType : public Type {

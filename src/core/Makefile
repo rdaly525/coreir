@@ -1,8 +1,8 @@
 CC = clang++
 CFLAGS = -std=c++11 -Wall -ferror-limit=5 -g
 
-DEPS = magmair.hpp types.hpp typeCache.hpp
-OBJS = magmair.o types.o typeCache.o
+DEPS = magmair.hpp types.hpp typeCache.hpp toNode.hpp
+OBJS = magmair.o types.o typeCache.o toNode.o
 
 all: magmair.a
 
