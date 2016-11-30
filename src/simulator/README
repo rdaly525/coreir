@@ -1,4 +1,9 @@
 Simulate A Algorithm
+
+each primitive has a genOutput() and genNextState();
+updateState: Guarentees that the inputs are stable. calculate the next state.
+updateOutput: Guarentees the state is stable. Calculate the outputs. inputs *may* change which will trigger calling genOutput again. 
+
 Step 1: Construct sim IR
   Given a global MagmaIR Module, create a new simModule for every instance recusrively.
     Stop recursing if module contains a genOutputs function. (call module simPrimitive)

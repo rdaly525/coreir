@@ -40,12 +40,12 @@ Circuit = Module
 
 **Primitive:** a 'leaf' circuit containing now interior instantiations
 
+##Wireables
 ```
 Wireable =  Interface 
           | Instance
           | Select
 ```
-##Wireables
 **Wireable:** A group of wires (represented by a Type) which resides within a Module
 
 **Interface:** A Wireable representing the interface to the module from the *inside* perspective of the Module. The Interface Type is equal to the flip of the Module type.
@@ -72,15 +72,21 @@ class Wireable {
   Select* sel(string key);
   Select* sel(uint idx);
 }
+
+MagmaIR* newMagmaIR();
+void deleteMagmaIR(MagmaIR* m);
 ```
 
-##Conecting Wireables
+##Connecting Wireables
 
 ```  
 void Connect(Wireable* a, Wireable* b);
 ```
 Connect two Wireables together.
 a and b *need* to both be within the same Module. Also a's type needs to be the flip of b's type.
+
+
+##Example (TODO)
 
 ##TODO
 TODO NotDepend(PrimitiveWire* a, PrimitiveWire* b); can build fast simulator with this info
@@ -91,7 +97,9 @@ Selects are unique and can be checked directly for equality
 
 //Other useful functions (TODO expand)
 
+```
   Type* type(Wireable* wb);
   Type* type(Module m);
   void printpretty(); 
   bool isType(...);
+```
