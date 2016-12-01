@@ -168,7 +168,7 @@ void toNodeMain(Circuit* c) {
   fprintf(out, "  nodes = []\n");
   fprintf(out, "  for n in [");
   for (vector<pair<Dir, string> >::iterator it = refs.begin(); it != refs.end(); it++) {
-    if (it->first == IN) {
+    if (it->first == OUT) {
       fprintf(out, "top.%s, ", it->second.c_str());
     }
   }
