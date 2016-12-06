@@ -1,18 +1,26 @@
 CC = clang++
 CFLAGS = -std=c++11 -Wall -g
-MAGMAIR_CORE = /Users/rdaly/magmair/src/core
-INCS = -I$(MAGMAIR_CORE)
-LIBS = -L$(MAGMAIR_CORE)
+CDIR = /Users/rdaly/magmair/src
+INCS = -I$(CDIR)/core -I$(CDIR)/libs
+LIBS = -L$(CDIR)/core -L$(CDIR)/libs
 DEPS = 
 
-all: addtree.run
+all: addtreeNS.run
 
 clean:
-	rm *.o *.run
+	$(MAKE) -C ../core clean
+	$(MAKE) -C ../libs clean
+	-@rm *.o *.run
 
-#TODO hack. The fucking library loading wont fucking work
-%.run: %.o ../core/magmair.a
-	$(CC) $(CFLAGS) -o $@ $^ ../core/magmair.a
+
+#$(LIBS) -lcoreir -lstdprims
+#TODO hack. Cant figure out how to load libraries
+%.run: %.o
+	$(MAKE) -C ../core coreir.a
+	$(MAKE) -C ../libs stdprims.a
+	$(CC) $(CFLAGS)  -o $@ $^ ../core/coreir.a ../libs/stdprims.a
+
+#../core/coreir.a ../libs/stdprims.a
 
 %.o: %.cpp 
 	$(CC) $(CFLAGS) $(INCS) -c -o $@ $< 

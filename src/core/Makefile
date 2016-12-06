@@ -1,18 +1,25 @@
 CC = clang++
 CFLAGS = -std=c++11 -Wall -ferror-limit=5 -g
 
-DEPS = magmair.hpp types.hpp typeCache.hpp toNode.hpp
-OBJS = magmair.o types.o typeCache.o toNode.o
+DEPS = coreir.hpp types.hpp typeCache.hpp
+OBJS = coreir.o typeconstructors.o types.o typeCache.o 
 
-all: magmair.a
+all: coreir.a
 
 run: addtree.run
 
 clean:
-	rm *.o *.a *.run
+	-@rm *.o *.a *.run
 
-magmair.a: magmair.o $(OBJS)
+coreir.a: $(OBJS)
 	ar rcs $@ $^
+
+
+#typeconstructors.o: typeconstructors.cpp
+#	$(CC) $(CFLAGS) -c $<
+
+coreir.o: coreir.cpp
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 %.o: %.cpp $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -20,5 +27,7 @@ magmair.a: magmair.o $(OBJS)
 %.run: %.o $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $^
 
-
+fuck:
+	echo $(CFLAGS)
+	echo $(CXX)
 

@@ -10,6 +10,11 @@
 using namespace std;
 
 
+ostream& operator<<(ostream& os, const Type& t) {
+  os << t.toString();
+  return os;
+}
+
 //TODO This should be done in a better way
 string Dir2Str(Dir d) { if(d==IN) return "In"; else return "Out";}
 Dir flipDir(Dir d) { if(d==IN) return OUT; else return IN;}
@@ -26,20 +31,19 @@ string TypeEnum2Str(TypeEnum t) {
 bool Type::isType(TypeEnum t) {
   return t==type;
 }
-string Type::getType(void) {return TypeEnum2Str(type);}
-void Type::print(void) { cout << "Type: " << _string() << "\n"; }
 
-uint IntType::numBits(void) { return n;}
-string IntType::_string() { 
-  return Dir2Str(dir) + " " + Type::getType() + to_string(n);
+void Type::print(void) { cout << "Type: " << (*this) << endl; }
+
+string IntType::toString(void) const { 
+  return Dir2Str(dir) + " " + TypeEnum2Str(this->type) + to_string(n);
 }
 
 Type* IntType::flip(TypeCache* tc) {
   return tc->newInt(n,flipDir(dir));
 }
 
-string ArrayType::_string(void) { 
-  return Type::getType() + "<" + elemType->_string() + ">[" + to_string(len) + "]";
+string ArrayType::toString(void) const { 
+  return TypeEnum2Str(this->type) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
 }
 
 Type* ArrayType::flip(TypeCache* tc) { 
@@ -55,25 +59,21 @@ Type* ArrayType::idx(uint i) {
   return elemType;
 }
 
-RecordType::RecordType(map<string,Type*> record) : Type(RECORD,false), record(record) {
-  for(map<string,Type*>::iterator it=record.begin(); it!=record.end(); ++it) {
-    _hasInput |= it->second->hasInput();
-  }
-}
-string RecordType::_string(void) {
+string RecordType::toString(void) const {
   string ret = "{";
-  for(map<string,Type*>::iterator it=record.begin(); it!=record.end(); ++it) {
-    ret += it->first + ":" + it->second->_string();
+  for(map<string,Type*>::const_iterator it=record.begin(); it!=record.end(); ++it) {
+    ret += it->first + ":" + it->second->toString();
     ret += (it == --record.end()) ? "}" : ", ";
   }
   return ret;
 }
 
 Type* RecordType::flip(TypeCache* tc) { 
-  map<string,Type*> m;
-  map<string,Type*>::iterator it;
-  for (it = record.begin(); it != record.end(); ++it) {
-    m.emplace(it->first,it->second->flip(tc));
+  recordparam_t m;
+  for (vector<string>::iterator it=_order.begin(); it!=_order.end(); ++it) {
+    map<string,Type*>::iterator tit = record.find(*it);
+    assert(tit!=record.end());
+    m.push_back({(*it),tit->second->flip(tc)});
   }
   return tc->newRecord(m);
 }
@@ -86,7 +86,7 @@ Type* RecordType::sel(string a) {
   } else {
     cout << "ERROR: Bad select field\n";
     cout << "  sel: " << a << "\n";
-    cout << "  type: " << _string() << "\n";
+    cout << "  type: " << (*this) << "\n";
     exit(0);
   }
 }

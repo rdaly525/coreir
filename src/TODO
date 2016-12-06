@@ -1,2 +1,22 @@
 Create Short spec for my use cases.
 
+--Major overhaul
+
+
+-Do LAZY typechecking
+-This means when wiring (connecting), do not check whether the types match or are valid
+-Have Staged compilation.
+Stage 1 unTyped -> Typed
+  -Traverse graph to create new typedWireables and typedModule graph. 
+    -Do typechecking (can the wires connect?)
+    -Convert any generators to modules
+    Should I create a new typedModule class?
+Stage 2 Typed -> Verilog/Simulator
+
+
+Simulator TODO:
+Literally everything
+
+Primitives TODO:
+-Add generators for constants
+

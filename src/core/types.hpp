@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <vector>
 #include "enums.hpp"
 #include "typeCache.hpp"
 
@@ -23,26 +24,27 @@ class Type {
     bool isType(TypeEnum);
     bool isBase() {return !(isType(RECORD) || isType(ARRAY));}
     bool hasInput() { return _hasInput;};
-    string getType(void); // TODO rename this. imply a string
-    virtual string _string(void)=0;
+    virtual string toString(void) const =0;
     virtual Type* flip(TypeCache*)=0;
     void print(void);
 };
 
+std::ostream& operator<<(ostream& os, const Type&);
+
 class BaseType : public Type {
   protected :
+    uint n;
     Dir dir;
   public :
-    BaseType(TypeEnum type, Dir dir) : Type(type,dir==IN), dir(dir) {}
+    BaseType(TypeEnum type, uint n,Dir dir) : Type(type,dir==IN), n(n), dir(dir) {}
+    uint numBits(void) {return n;}
     virtual Type* flip(TypeCache*)=0;
 };
 
 class IntType : public BaseType {
-  uint n;
   public :
-    IntType(uint n, Dir dir) : BaseType(INT,dir), n(n) {}
-    uint numBits(void);
-    string _string(void); 
+    IntType(uint n, Dir dir) : BaseType(INT,n,dir) {}
+    string toString(void) const; 
     Type* flip(TypeCache*);
     Dir getDir() { return dir; }
 };
@@ -52,18 +54,33 @@ class ArrayType : public Type {
   uint len;
   public :
     ArrayType(Type *elemType, uint len) : Type(ARRAY,elemType->hasInput()), elemType(elemType), len(len) {}
-    string _string(void);
+    string toString(void) const;
     Type* flip(TypeCache*);
     Type* idx(uint);
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
 };
 
+
+typedef vector<std::pair<string,Type*>> recordparam_t;
+
 class RecordType : public Type {
   map<string,Type*> record;
+  vector<string> _order;
   public :
-    RecordType(map<string,Type*> record);
-    string _string(void);
+    RecordType(recordparam_t _record) : Type(RECORD,false) {
+      for(recordparam_t::iterator it=_record.begin(); it!=_record.end(); ++it) {
+        record.emplace((*it).first,(*it).second);
+        _order.push_back(it->first);
+        _hasInput |= it->second->hasInput();
+      }
+    }
+    RecordType() : Type(RECORD,false) {}
+    void addItem(string s, Type* t) {
+      _order.push_back(s);
+      record.emplace(s,t);
+    }
+    string toString(void) const;
     Type* flip(TypeCache*);
     Type* sel(string a);
     map<string,Type*> getRecord() { return record;}

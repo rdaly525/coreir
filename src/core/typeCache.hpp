@@ -13,7 +13,7 @@ class RecordType;
 
 typedef std::pair<uint32_t,Dir> IntTypeParams ;
 typedef std::pair<Type*,uint32_t> ArrayTypeParams ;
-typedef std::map<string,Type*> RecordTypeParams ;
+typedef vector<std::pair<string,Type*>> RecordTypeParams ;
 
 class TypeCache {
   map<IntTypeParams,IntType*> IntTypeCache;
