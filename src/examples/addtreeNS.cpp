@@ -6,9 +6,9 @@
 
 
 void* paramGen(uint n) {
-  uint* p = (uint*) malloc(sizeof(uint));
+  uint16_t* p = (uint16_t*)allocateFromType(Int(n));
   *p = n;
-  return (void*) p;
+  return (void*) p ;
 }
 
 // Creates a 4->1 add reduce tree
@@ -24,8 +24,8 @@ Module* AddTree(CoreIRContext* c, uint n) {
   Type* treeType = Record({{"in",Array(inType,4)},{"out",Flip(inType)}});
   Module* addTree = c->defineModule("AddTree"+to_string(n),treeType);
   Wireable* iface = addTree->getInterface();
-  Wireable* add_00 = addTree->addInstance("add00",addnGen,paramGen(n));
-  Wireable* add_01 = addTree->addInstance("add01",addnGen,paramGen(n));
+  Wireable* add_00 = addTree->addInstance("add00",addnGen,Int(n),paramGen(n));
+  Wireable* add_01 = addTree->addInstance("add01",addnGen,Int(n),paramGen(n));
   Wireable* add_1 = addTree->addInstance("add1",addnMod);
   
   Connect(iface->sel("in")->sel(0),add_00->sel("inA"));

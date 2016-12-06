@@ -36,6 +36,7 @@ Type* Flip(Type* type) {
   return type->flip(&typecache);
 }
 
+//TODO might be int or Uint (add case for int8_t ...)
 void* allocateFromType(Type* t) {
   void* d;
   if (t->isBase()) {
@@ -49,14 +50,55 @@ void* allocateFromType(Type* t) {
       throw "FUCK";
     }
   }
+  else if (t->isType(ARRAY)) {
+    ArrayType* a = (ArrayType*)t;
+    d = (void**) malloc(a->getLen()*sizeof(void*));
+    void** d_array = (void**) d;
+    for(uint i=0; i<a->getLen(); ++i) {
+      d_array[i] = allocateFromType(a->getElemType());
+    }
+  }
+  else if (t->isType(RECORD)) {
+    RecordType* r = (RecordType*)t;
+    vector<string> order = r->getOrder();
+    d = (void**) malloc(order.size()*sizeof(void*));
+    void** d_array = (void**) d;
+    uint i=0;
+    for(auto it=order.begin(); it!=order.end(); ++it, ++i) {
+      d_array[i] = allocateFromType(r->sel(*it));
+    }
+  }
   else {
-    d = NULL;
-    //TODO
+    throw "FUCK";
+    exit(0);
   }
   return d;
 }
 
-void deallocateFromType(Type* t, void* v) {
+void deallocateFromType(Type* t, void* d) {
+  if (t->isBase()) free(d);
+  else if (t->isType(ARRAY)) {
+    ArrayType* a = (ArrayType*)t;
+    void** d_array = (void**) d;
+    for(uint i=0; i<a->getLen(); ++i) {
+      deallocateFromType(a->getElemType(),d_array[i]);
+    }
+    free(d_array);
+  }
+  else if (t->isType(RECORD)) {
+    RecordType* r = (RecordType*)t;
+    vector<string> order = r->getOrder();
+    void** d_array = (void**) d;
+    uint i=0;
+    for(auto it=order.begin(); it!=order.end(); ++it, ++i) {
+      deallocateFromType(r->sel(*it),d_array[i]);
+    }
+    free(d_array);
+  }
+  else {
+    throw "FUCK";
+    exit(0);
+  }
 
 }
 

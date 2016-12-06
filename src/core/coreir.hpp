@@ -28,6 +28,7 @@ class Instantiable {
     string nameSpace;
   public :
     Instantiable(InstantiableEnum instantiableType, string name,string nameSpace) : instantiableType(instantiableType), name(name), nameSpace(nameSpace) {}
+    virtual ~Instantiable() {};
     string getName() { return name;}
     virtual string toString() const =0;
 };
@@ -38,6 +39,7 @@ class OpaqueGenerator : public Instantiable {
   
   public :
     OpaqueGenerator(string name,string nameSpace) : Instantiable(OGEN,name,nameSpace) {}
+    virtual ~OpaqueGenerator() {}
     string toString() const {
       return "OpaqueGenerator: Namespace:"+nameSpace+" name:"+name;
     }
@@ -55,6 +57,7 @@ class OpaqueModule : public Instantiable {
   
   public :
     OpaqueModule(string name,string nameSpace) : Instantiable(OMOD,name,nameSpace) {}
+    virtual ~OpaqueModule() {}
     string toString() const {
       return "OpaqueModule: Namespace:"+nameSpace+" name:"+name;
     }
@@ -87,7 +90,7 @@ class Module : public Instantiable {
     WireableCache* getCache(void);
     Instance* addInstance(string,Module*);
     Instance* addInstance(string,OpaqueModule*);
-    Instance* addInstance(string,OpaqueGenerator*, void*);
+    Instance* addInstance(string,OpaqueGenerator*, Type*, void*);
     Interface* getInterface(void) {return interface;}
     vector<Instance*> getInstances(void) { return instances;}
     vector<Connection> getConnections(void) { return connections; }
@@ -142,14 +145,25 @@ class Select : public Wireable {
 class Instance : public Wireable {
   string name;
   Instantiable* instantiableType;
-  void* genParams;
+  
   public :
     Instance(Module* container, string name, Instantiable* instantiableType) : Wireable(INST,container), name(name), instantiableType(instantiableType) {}
     virtual ~Instance() {}
-    void setGenParams(void* _genParams) { genParams = _genParams;}
     Instantiable* getInstantiableType() {return instantiableType;}
     string getName() { return name; }
     string toString() const;
+};
+
+void* allocateFromType(Type* t);
+void deallocateFromType(Type* t, void* d);
+
+class GenInstance : public Instance {
+  Type* genParamsType;
+  void* genParams;
+  public :
+    GenInstance(Module* container, string name, Instantiable* instantiableType,Type* genParamsType, void* genParams) : Instance(container,name,instantiableType), genParamsType(genParamsType), genParams(genParams) {}
+    virtual ~GenInstance() {deallocateFromType(genParamsType,genParams);}
+ 
 };
 
 

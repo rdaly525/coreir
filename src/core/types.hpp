@@ -80,6 +80,7 @@ class RecordType : public Type {
       _order.push_back(s);
       record.emplace(s,t);
     }
+    vector<string> getOrder() { return _order;}
     string toString(void) const;
     Type* flip(TypeCache*);
     Type* sel(string a);

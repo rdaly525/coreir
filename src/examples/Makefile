@@ -1,6 +1,6 @@
 CC = clang++
 CFLAGS = -std=c++11 -Wall -g
-CDIR = /Users/rdaly/magmair/src
+CDIR = /Users/rdaly/coreir/src
 INCS = -I$(CDIR)/core -I$(CDIR)/libs
 LIBS = -L$(CDIR)/core -L$(CDIR)/libs
 DEPS = 

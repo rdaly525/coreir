@@ -58,9 +58,8 @@ Instance* Module::addInstance(string name, OpaqueModule* m) {
   instances.push_back(inst);
   return inst;
 }
-Instance* Module::addInstance(string name, OpaqueGenerator* m, void* genParams) {
-  Instance* inst = new Instance(this,name,m);
-  inst->setGenParams(genParams);
+Instance* Module::addInstance(string name, OpaqueGenerator* m, Type* genParamsType, void* genParams) {
+  GenInstance* inst = new GenInstance(this,name,m,genParamsType,genParams);
   instances.push_back(inst);
   return inst;
 }
@@ -178,6 +177,7 @@ CoreIRContext::~CoreIRContext() {
   delete global;
   for(map<string,NameSpace*>::iterator it=libs.begin(); it!=libs.end(); ++it)
     delete it->second;
+  for(auto it=opaques.begin(); it!=opaques.end(); ++it) delete (*it);
 }
 
 NameSpace* CoreIRContext::registerLib(string name) {
