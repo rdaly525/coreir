@@ -18,12 +18,12 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
 }
 
 
-Module::Module(string name, string nameSpace, Type* type) : Instantiable(MOD,name,nameSpace), type(type) {
+ModuleDef::ModuleDef(string name, string nameSpace, Type* type) : Instantiable(MDEF,name,nameSpace), type(type) {
   interface = new Interface(this);
   cache = new WireableCache();
 }
 
-Module::~Module() {
+ModuleDef::~ModuleDef() {
   //Delete interface, instances, cache
   delete interface;
   for(vector<Instance*>::iterator it=instances.begin(); it!=instances.end(); ++it) delete (*it);
@@ -31,8 +31,8 @@ Module::~Module() {
 }
 
 
-void Module::print(void) {
-  cout << "Module: " << name << "\n";
+void ModuleDef::print(void) {
+  cout << "ModuleDef: " << name << "\n";
   cout << "  Type: " << (*type) << "\n";
   cout << "  Instances:\n";
   vector<Instance*>::iterator it1;
@@ -46,26 +46,38 @@ void Module::print(void) {
   }
   cout << "\n";
 }
-WireableCache* Module::getCache() { return cache;}
+WireableCache* ModuleDef::getCache() { return cache;}
 
-Instance* Module::addInstance(string name, Module* m) {
+Instance* ModuleDef::addInstance(string name, ModuleDef* m) {
   Instance* inst = new Instance(this,name,m);
   instances.push_back(inst);
   return inst;
 }
-Instance* Module::addInstance(string name, OpaqueModule* m) {
+Instance* ModuleDef::addInstance(string name, ModuleDecl* m) {
   Instance* inst = new Instance(this,name,m);
   instances.push_back(inst);
   return inst;
 }
-Instance* Module::addInstance(string name, OpaqueGenerator* m, Type* genParamsType, void* genParams) {
+Instance* ModuleDef::addInstance(string name, GeneratorDecl* m, Type* genParamsType, void* genParams) {
   GenInstance* inst = new GenInstance(this,name,m,genParamsType,genParams);
   instances.push_back(inst);
   return inst;
 }
 
-
-void Module::newConnect(Wireable* a, Wireable* b) {
+void ModuleDef::Connect(Wireable* a, Wireable* b) {
+  //Make sure you are connecting within the same container
+  if (a->getContainer()!=this || b->getContainer() != this) {
+    cout << "ERROR: Connections can only occur within the same module\n";
+    cout << "  This ModuleDef: "  << this->getName() << endl;
+    cout << "  ModuleDef of " <<a->toString() << ": " << a->getContainer()->getName() << endl;
+    cout << "  ModuleDef of " <<b->toString() << ": " << b->getContainer()->getName() << endl;
+    exit(0);
+  }
+  
+  //Update 'a' and 'b' (and children)
+  a->addConnection(b);
+  b->addConnection(a);
+ 
   connections.push_back({a,b});
 }
 
@@ -119,7 +131,7 @@ WireableCache::~WireableCache() {
     delete it1->second;
   }
 }
-Select* WireableCache::newSelect(Module* container, Wireable* parent, string selStr) {
+Select* WireableCache::newSelect(ModuleDef* container, Wireable* parent, string selStr) {
   SelectParamType params = {parent,selStr};
   map<SelectParamType,Select*>::iterator it = SelectCache.find(params);
   if (it != SelectCache.end()) {
@@ -131,34 +143,19 @@ Select* WireableCache::newSelect(Module* container, Wireable* parent, string sel
   }
 }
 
-void Connect(Wireable* a, Wireable* b) {
-  //Make sure you are connecting within the same container
-  if (a->getContainer()!=b->getContainer()) {
-    cout << "ERROR: Connections can only occur within the same module\n";
-    cout << "  Module of " <<a->toString() << ": " << a->getContainer()->getName() << "\n";
-    cout << "  Module of " <<b->toString() << ": " << b->getContainer()->getName() << "\n";  exit(0);
-  }
-  Module* container = a->getContainer();
-  
-  //Update 'a' and 'b' (and children)
-  a->addConnection(b);
-  b->addConnection(a);
- 
-  container->newConnect(a,b);
-}
 
 ///////////////////////////////////////////////////////////
 //----------------------- NameSpace ---------------------//
 ///////////////////////////////////////////////////////////
 
 NameSpace::~NameSpace() {
-  for(map<string,Module*>::iterator it=modList.begin(); it!=modList.end(); ++it)
+  for(map<string,ModuleDef*>::iterator it=modList.begin(); it!=modList.end(); ++it)
     delete it->second;
 }
 
 //TODO add the verilog and sim stuff
-Module* NameSpace::defineModule(string name,Type* type) {
-  Module* m = new Module(name,this->name, type);
+ModuleDef* NameSpace::defineModuleDef(string name,Type* type) {
+  ModuleDef* m = new ModuleDef(name,this->name, type);
   modList.emplace(name,m);
   return m;
 }
@@ -167,7 +164,7 @@ void NameSpace::defineGenerator(string name,genfun_t gen) {
   genList.emplace(name,gen);
 }
 
-void NameSpace::addDefinedModule(string name, Module* m) {
+void NameSpace::addDefinedModuleDef(string name, ModuleDef* m) {
   modList.emplace(name,m);
 }
 CoreIRContext::CoreIRContext() {
@@ -190,10 +187,6 @@ NameSpace* CoreIRContext::registerLib(string name) {
   return lib;
 }
 
-Module* CoreIRContext::defineModule(string name,Type* t) {
-  return global->defineModule(name,t);
-}
-
 CoreIRContext* newContext() {
   CoreIRContext* m = new CoreIRContext();
   return m;
@@ -201,19 +194,19 @@ CoreIRContext* newContext() {
 
 void deleteContext(CoreIRContext* m) { delete m;}
 
-OpaqueGenerator* CoreIRContext::declareGen(string nameSpace,string name) { 
-  OpaqueGenerator* og = new OpaqueGenerator(nameSpace,name);
+GeneratorDecl* CoreIRContext::declareGen(string nameSpace,string name) { 
+  GeneratorDecl* og = new GeneratorDecl(nameSpace,name);
   opaques.push_back(og);
   return og;
 }
 
-OpaqueModule* CoreIRContext::declareMod(string nameSpace, string name) {
-  OpaqueModule* m = new OpaqueModule(nameSpace,name);
+ModuleDecl* CoreIRContext::declareMod(string nameSpace, string name) {
+  ModuleDecl* m = new ModuleDecl(nameSpace,name);
   opaques.push_back(m);
   return m;
 }
 
-void compile2Verilog(Module* m) {
+void compile2Verilog(ModuleDef* m) {
   cout << "PRINTING VERILOG\n";
 }
 

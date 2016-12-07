@@ -6,10 +6,6 @@ makeUintBinop(uint n,string op, string symbol) {
   return new Primitive(op+to_string(n))
 }
 
-template<typename T>
-void f(T
-
-
 string createVerilogBinop(uint n, string op, string symbol, string a, string b, string out) {
   cassert(n>0);
   string range = "[" + to_string(n-1) + ":0]";

@@ -6,7 +6,7 @@
 
 
 //Global cache
-// Should this be stored in the Module itself?
+// Should this be stored in the ModuleDef itself?
 TypeCache typecache;
 
 
@@ -76,7 +76,9 @@ void* allocateFromType(Type* t) {
 }
 
 void deallocateFromType(Type* t, void* d) {
-  if (t->isBase()) free(d);
+  if (t->isBase()) {
+    free(d);
+  }
   else if (t->isType(ARRAY)) {
     ArrayType* a = (ArrayType*)t;
     void** d_array = (void**) d;

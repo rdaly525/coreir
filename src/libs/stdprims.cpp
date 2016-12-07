@@ -20,7 +20,7 @@ void updateOutput_add2(void* iface,void* state,void* dirty,void* genargs) {
   }
 }
 
-Module* stdprim_add2(NameSpace* ns, void* genargs) {
+ModuleDef* stdprim_add2(NameSpace* ns, void* genargs) {
   uint32_t n = * ((uint32_t*) genargs);
   simfunctions_t s;
   s.allocateState = NULL;
@@ -34,7 +34,7 @@ Module* stdprim_add2(NameSpace* ns, void* genargs) {
   }
   string verilog = "VERILOG_PLUS";//createVerilogBinOp("+",n)
   Type* t = Record({{"in0",Int(n,IN)},{"in1",Int(n,IN)},{"out",Int(n)}});
-  Module* m = ns->defineModule("add2_"+to_string(n),t);
+  ModuleDef* m = ns->defineModuleDef("add2_"+to_string(n),t);
   m->addVerilog(verilog);
   m->addSimfunctions(s);
   return m;
@@ -46,7 +46,7 @@ void registerStdPrims(CoreIRContext* c, const char* name) {
 
   uint32_t* n16 = (uint32_t*) malloc(sizeof(uint32_t));
   *n16=16;
-  l->addDefinedModule("add2_16",stdprim_add2(l,n16));
+  l->addDefinedModuleDef("add2_16",stdprim_add2(l,n16));
   free(n16);
 }
 

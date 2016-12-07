@@ -35,31 +35,31 @@ class Instantiable {
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
 
-class OpaqueGenerator : public Instantiable {
+class GeneratorDecl : public Instantiable {
   
   public :
-    OpaqueGenerator(string name,string nameSpace) : Instantiable(OGEN,name,nameSpace) {}
-    virtual ~OpaqueGenerator() {}
+    GeneratorDecl(string name,string nameSpace) : Instantiable(GDEC,name,nameSpace) {}
+    virtual ~GeneratorDecl() {}
     string toString() const {
-      return "OpaqueGenerator: Namespace:"+nameSpace+" name:"+name;
+      return "GeneratorDecl: Namespace:"+nameSpace+" name:"+name;
     }
 
 };
 
-//class Generator : OpaqueGenerator {
+//class Generator : GeneratorDecl {
 //  void* genParams
 //  public :
-//    Generator(string name,string nameSpace,void* genParams) : OpaqueGenerator(GEN,name,nameSpace), genParams(genParams) {}
+//    Generator(string name,string nameSpace,void* genParams) : GeneratorDecl(GEN,name,nameSpace), genParams(genParams) {}
 //
 //}
 
-class OpaqueModule : public Instantiable {
+class ModuleDecl : public Instantiable {
   
   public :
-    OpaqueModule(string name,string nameSpace) : Instantiable(OMOD,name,nameSpace) {}
-    virtual ~OpaqueModule() {}
+    ModuleDecl(string name,string nameSpace) : Instantiable(MDEC,name,nameSpace) {}
+    virtual ~ModuleDecl() {}
     string toString() const {
-      return "OpaqueModule: Namespace:"+nameSpace+" name:"+name;
+      return "ModuleDecl: Namespace:"+nameSpace+" name:"+name;
     }
 };
 
@@ -73,7 +73,7 @@ struct simfunctions_t {
 
 typedef std::pair<Wireable*,Wireable*> Connection ;
 
-class Module : public Instantiable {
+class ModuleDef : public Instantiable {
   Type* type;
   Interface* interface; 
   vector<Instance*> instances; // Should it be a map?
@@ -82,19 +82,19 @@ class Module : public Instantiable {
   simfunctions_t sim;
   WireableCache* cache;
   public :
-    Module(string name, string nameSpace, Type* type);
-    virtual ~Module();
+    ModuleDef(string name, string nameSpace, Type* type);
+    virtual ~ModuleDef();
     void print(void);
     void addVerilog(string _v) {verilog = _v;}
     void addSimfunctions(simfunctions_t _s) {sim = _s;}
     WireableCache* getCache(void);
-    Instance* addInstance(string,Module*);
-    Instance* addInstance(string,OpaqueModule*);
-    Instance* addInstance(string,OpaqueGenerator*, Type*, void*);
+    Instance* addInstance(string,ModuleDef*);
+    Instance* addInstance(string,ModuleDecl*);
+    Instance* addInstance(string,GeneratorDecl*, Type*, void*);
     Interface* getInterface(void) {return interface;}
+    void Connect(Wireable* a, Wireable* b);
     vector<Instance*> getInstances(void) { return instances;}
     vector<Connection> getConnections(void) { return connections; }
-    void newConnect(Wireable* a, Wireable* b);
     string toString() const {
       return "module: should probably use print()";
     }
@@ -105,13 +105,13 @@ class Module : public Instantiable {
 class Wireable {
   protected :
     WireableEnum wireableType;
-    Module* container; // Module which it is contained in 
+    ModuleDef* container; // ModuleDef which it is contained in 
     vector<Wireable*> connections; 
     map<string,Wireable*> children;
   public : 
-    Wireable(WireableEnum wireableType, Module* container) : wireableType(wireableType),  container(container) {}
+    Wireable(WireableEnum wireableType, ModuleDef* container) : wireableType(wireableType),  container(container) {}
     ~Wireable() {}
-    Module* getContainer() { return container;}
+    ModuleDef* getContainer() { return container;}
     void addChild(string selStr, Wireable* wb);
     void addConnection(Wireable* w);
     Select* sel(string);
@@ -124,7 +124,7 @@ class Wireable {
 
 class Interface : public Wireable {
   public :
-    Interface(Module* container) : Wireable(IFACE,container) {}
+    Interface(ModuleDef* container) : Wireable(IFACE,container) {}
     virtual ~Interface() {}
     string toString() const;
 };
@@ -133,7 +133,7 @@ class Select : public Wireable {
   Wireable* parent;
   string selStr;
   public :
-    Select(Module* container, Wireable* parent, string selStr) : Wireable(SEL,container), parent(parent), selStr(selStr) {}
+    Select(ModuleDef* container, Wireable* parent, string selStr) : Wireable(SEL,container), parent(parent), selStr(selStr) {}
     virtual ~Select() {}
     Wireable* getParent() { return parent; }
     string getSelStr() { return selStr; }
@@ -147,7 +147,7 @@ class Instance : public Wireable {
   Instantiable* instantiableType;
   
   public :
-    Instance(Module* container, string name, Instantiable* instantiableType) : Wireable(INST,container), name(name), instantiableType(instantiableType) {}
+    Instance(ModuleDef* container, string name, Instantiable* instantiableType) : Wireable(INST,container), name(name), instantiableType(instantiableType) {}
     virtual ~Instance() {}
     Instantiable* getInstantiableType() {return instantiableType;}
     string getName() { return name; }
@@ -161,7 +161,7 @@ class GenInstance : public Instance {
   Type* genParamsType;
   void* genParams;
   public :
-    GenInstance(Module* container, string name, Instantiable* instantiableType,Type* genParamsType, void* genParams) : Instance(container,name,instantiableType), genParamsType(genParamsType), genParams(genParams) {}
+    GenInstance(ModuleDef* container, string name, Instantiable* instantiableType,Type* genParamsType, void* genParams) : Instance(container,name,instantiableType), genParamsType(genParamsType), genParams(genParams) {}
     virtual ~GenInstance() {deallocateFromType(genParamsType,genParams);}
  
 };
@@ -173,30 +173,29 @@ class WireableCache {
   public :
     WireableCache() {};
     ~WireableCache();
-    Select* newSelect(Module* container, Wireable* parent, string sel);
+    Select* newSelect(ModuleDef* container, Wireable* parent, string sel);
 };
 
-void Connect(Wireable* a, Wireable* b);
 
 class CoreIRContext;
 class NameSpace;
 
-typedef Module* (*genfun_t)(NameSpace*,void*);
+typedef ModuleDef* (*genfun_t)(NameSpace*,void*);
 
 
 class NameSpace {
   string name;
-  map<string,Module*> modList;
+  map<string,ModuleDef*> modList;
   map<string,genfun_t> genList;
   public :
     NameSpace(string name) : name(name) {}
     ~NameSpace();
     string getName() { return name;}
-    Module* defineModule(string name, Type* type);
+    ModuleDef* defineModuleDef(string name, Type* type);
     void defineGenerator(string name,genfun_t);
 
-    // Note: Module m will be deleted by this namesace's destructor
-    void addDefinedModule(string name, Module* m);
+    // Note: ModuleDef m will be deleted by this namesace's destructor
+    void addDefinedModuleDef(string name, ModuleDef* m);
 };
 
 
@@ -210,9 +209,8 @@ class CoreIRContext {
     ~CoreIRContext();
     NameSpace* getGlobal() {return global;}
     NameSpace* registerLib(string name);
-    Module* defineModule(string name,Type* t);
-    OpaqueModule* declareMod(string nameSpace, string name);
-    OpaqueGenerator* declareGen(string nameSpace,string name);
+    ModuleDecl* declareMod(string nameSpace, string name);
+    GeneratorDecl* declareGen(string nameSpace,string name);
 };
 
 CoreIRContext* newContext();
@@ -237,7 +235,7 @@ Type* Flip(Type*);
 Type* In(Type*);
 Type* Out(Type*);
 
-void compile2Verilog(Module* m);
+void compile2Verilog(ModuleDef* m);
 
 typedef struct dirty_t {
   uint8_t dirty;

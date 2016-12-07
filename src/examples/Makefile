@@ -10,7 +10,7 @@ all: addtreeNS.run
 clean:
 	$(MAKE) -C ../core clean
 	$(MAKE) -C ../libs clean
-	-@rm *.o *.run
+	-@rm -rf *.o *.run*
 
 
 #$(LIBS) -lcoreir -lstdprims
