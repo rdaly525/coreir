@@ -1,11 +1,14 @@
+#ifndef STDPRIMS_CPP_
+#define STDPRIMS_CPP_
 
 #include "stdprims.hpp"
 #include "coreir.hpp"
 
 
+
 //in0:Uint(N),in1:Uint(N),out:Uint(N)
 template <typename T>
-void updateOutput_add2(void* iface,void* state,void* dirty,void* genargs) {
+void updateOutput_add2(void* iface,void* state,void* dirty,Genargs* genargs) {
   void** dirtyCast = (void**) dirty;
   dirty_t* in0_d = (dirty_t*) (dirtyCast[0]);
   dirty_t* in1_d = (dirty_t*) (dirtyCast[1]);
@@ -20,8 +23,8 @@ void updateOutput_add2(void* iface,void* state,void* dirty,void* genargs) {
   }
 }
 
-ModuleDef* stdprim_add2(NameSpace* ns, void* genargs) {
-  uint32_t n = * ((uint32_t*) genargs);
+ModuleDef* stdprim_add2(NameSpace* ns, Genargs* genargs) {
+  uint32_t n = *((uint32_t*) genargs->data);
   simfunctions_t s;
   s.allocateState = NULL;
   if (n <= 8) s.updateOutput = updateOutput_add2<uint8_t> ;
@@ -34,20 +37,24 @@ ModuleDef* stdprim_add2(NameSpace* ns, void* genargs) {
   }
   string verilog = "VERILOG_PLUS";//createVerilogBinOp("+",n)
   Type* t = Record({{"in0",Int(n,IN)},{"in1",Int(n,IN)},{"out",Int(n)}});
-  ModuleDef* m = ns->defineModuleDef("add2_"+to_string(n),t);
+  ModuleDef* m = new ModuleDef("add2_"+to_string(n),t);
   m->addVerilog(verilog);
   m->addSimfunctions(s);
+  ns->addModuleDef(m);
   return m;
 }
 
-void registerStdPrims(CoreIRContext* c, const char* name) {
-  NameSpace* l = c->registerLib(string(name,strnlen(name,20)));
-  l->defineGenerator("add2",stdprim_add2);
-
-  uint32_t* n16 = (uint32_t*) malloc(sizeof(uint32_t));
-  *n16=16;
-  l->addDefinedModuleDef("add2_16",stdprim_add2(l,n16));
-  free(n16);
+NameSpace* registerStdPrims(CoreIRContext* c, string nameSpace) {
+  NameSpace* l = c->registerLib(nameSpace);
+  GeneratorDef* genDef = new GeneratorDef("add2",stdprim_add2);
+  l->addGeneratorDef(genDef);
+  Genargs* g= new Genargs(Int(32));
+  uint32_t* n16 = (uint32_t*) (g->data);
+  *n16 = 16;
+  l->addModuleDef(stdprim_add2(l,g));
+  delete g;
+  
+  return l;
 }
 
-
+#endif //STDPRIMS_CPP_

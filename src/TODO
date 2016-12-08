@@ -1,12 +1,26 @@
 Create Short spec for my use cases.
 
---Major overhaul
+Add the ability to access Records via index
 
+code cleanup change all for loops to use auto
+
+TODO
+Should Genargs be stored in the instance or the Generator classes
+
+Module:
+  Data ->
+    Verilog
+    Simulate
+    Driver
+    MetaData
+  Circuit stuff
 
 -Do LAZY typechecking
 -This means when wiring (connecting), do not check whether the types match or are valid
 -Have Staged compilation.
-Stage 1 unTyped -> Typed
+Stage 1 Resolve Linking
+  This will mutate the modules
+Stage 2 unTyped -> Typed
   -Traverse graph to create new typedWireables and typedModule graph. 
     -Do typechecking (can the wires connect?)
     -Convert any generators to modules
@@ -19,4 +33,4 @@ Literally everything
 
 Primitives TODO:
 -Add generators for constants
-
+-And all other normal primitives

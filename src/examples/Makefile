@@ -5,7 +5,7 @@ INCS = -I$(CDIR)/core -I$(CDIR)/libs
 LIBS = -L$(CDIR)/core -L$(CDIR)/libs
 DEPS = 
 
-all: addtreeNS.run
+all: clean addtreeNS.run
 
 clean:
 	$(MAKE) -C ../core clean
@@ -19,7 +19,7 @@ clean:
 	$(MAKE) -C ../core coreir.a
 	$(MAKE) -C ../libs stdprims.a
 	$(CC) $(CFLAGS)  -o $@ $^ ../core/coreir.a ../libs/stdprims.a
-
+	#./$@
 #../core/coreir.a ../libs/stdprims.a
 
 %.o: %.cpp 

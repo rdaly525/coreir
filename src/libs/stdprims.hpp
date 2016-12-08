@@ -1,3 +1,9 @@
+#ifndef STDPRIMS_HPP_
+#define STDPRIMS_HPP_
+
 #include "coreir.hpp"
 
-void registerStdPrims(CoreIRContext* mc, const char* name);
+NameSpace* registerStdPrims(CoreIRContext* c, string nameSpace);
+
+
+#endif //STDPRIMS_HPP_

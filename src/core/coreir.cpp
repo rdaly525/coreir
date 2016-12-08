@@ -5,6 +5,7 @@
 #include "coreir.hpp"
 #include <cassert>
 #include <vector>
+#include <set>
 
 using namespace std;
 
@@ -18,7 +19,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
 }
 
 
-ModuleDef::ModuleDef(string name, string nameSpace, Type* type) : Instantiable(MDEF,name,nameSpace), type(type) {
+ModuleDef::ModuleDef(string name, Type* type) : Instantiable(MDEF,"",name), type(type) {
   interface = new Interface(this);
   cache = new WireableCache();
 }
@@ -35,39 +36,26 @@ void ModuleDef::print(void) {
   cout << "ModuleDef: " << name << "\n";
   cout << "  Type: " << (*type) << "\n";
   cout << "  Instances:\n";
-  vector<Instance*>::iterator it1;
-  for (it1=instances.begin(); it1!=instances.end(); ++it1) {
-    cout << "    " << (**it1) << endl;
+  for (auto inst : instances) {
+    cout << "    " << (*inst) << endl;
   }
-  cout << "  Connections:\n";
-  vector<Connection>::iterator it2;
-  for (it2=connections.begin(); it2!=connections.end(); ++it2) {
-    cout << "    " << *(it2->first) << " <=> " << *(it2->second) << "\n" ;
+  cout << "  Wirings:\n";
+  for (auto wiring : wirings) {
+    cout << "    " << *(wiring.first) << " <=> " << *(wiring.second) << "\n" ;
   }
-  cout << "\n";
+  cout << endl;
 }
-WireableCache* ModuleDef::getCache() { return cache;}
 
-Instance* ModuleDef::addInstance(string name, ModuleDef* m) {
-  Instance* inst = new Instance(this,name,m);
-  instances.push_back(inst);
-  return inst;
-}
-Instance* ModuleDef::addInstance(string name, ModuleDecl* m) {
-  Instance* inst = new Instance(this,name,m);
-  instances.push_back(inst);
-  return inst;
-}
-Instance* ModuleDef::addInstance(string name, GeneratorDecl* m, Type* genParamsType, void* genParams) {
-  GenInstance* inst = new GenInstance(this,name,m,genParamsType,genParams);
+Instance* ModuleDef::addInstance(string name, Instantiable* m,Genargs* genargs) {
+  Instance* inst = new Instance(this,name,m,genargs);
   instances.push_back(inst);
   return inst;
 }
 
-void ModuleDef::Connect(Wireable* a, Wireable* b) {
+void ModuleDef::wire(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same container
   if (a->getContainer()!=this || b->getContainer() != this) {
-    cout << "ERROR: Connections can only occur within the same module\n";
+    cout << "ERROR: Wirings can only occur within the same module\n";
     cout << "  This ModuleDef: "  << this->getName() << endl;
     cout << "  ModuleDef of " <<a->toString() << ": " << a->getContainer()->getName() << endl;
     cout << "  ModuleDef of " <<b->toString() << ": " << b->getContainer()->getName() << endl;
@@ -75,10 +63,22 @@ void ModuleDef::Connect(Wireable* a, Wireable* b) {
   }
   
   //Update 'a' and 'b' (and children)
-  a->addConnection(b);
-  b->addConnection(a);
+  a->addWiring(b);
+  b->addWiring(a);
  
-  connections.push_back({a,b});
+  wirings.push_back({a,b});
+}
+// TODO THis shit is fucked.
+//void ModuleDef::setNameSpace(NameSpace* _ns) {
+//  //ns->removeModDef(this);
+//  ns = _ns;
+//}
+Genargs::Genargs(Type* type) : type(type) {
+  data = allocateFromType(type);
+}
+
+Genargs::~Genargs() {
+  deallocateFromType(type,data);
 }
 
 ///////////////////////////////////////////////////////////
@@ -89,8 +89,8 @@ void Wireable::addChild(string selStr, Wireable* wb) {
   children.emplace(selStr,wb);
 }
 
-void Wireable::addConnection(Wireable* w) {
-  connections.push_back(w);
+void Wireable::addWiring(Wireable* w) {
+  wirings.push_back(w);
 }
 
 Select* Wireable::sel(string selStr) {
@@ -149,32 +149,39 @@ Select* WireableCache::newSelect(ModuleDef* container, Wireable* parent, string 
 ///////////////////////////////////////////////////////////
 
 NameSpace::~NameSpace() {
-  for(map<string,ModuleDef*>::iterator it=modList.begin(); it!=modList.end(); ++it)
-    delete it->second;
+  for(auto modhash : modList) delete modhash.second;
+  for(auto genhash : genList) delete genhash.second;
 }
 
-//TODO add the verilog and sim stuff
-ModuleDef* NameSpace::defineModuleDef(string name,Type* type) {
-  ModuleDef* m = new ModuleDef(name,this->name, type);
-  modList.emplace(name,m);
-  return m;
+ModuleDef* NameSpace::moduleDefLookup(string name) {
+  auto it = modList.find(name);
+  if (it != modList.end()) return it->second;
+  throw "Could not find module " + name + " in namespace " + nameSpace;
 }
 
-void NameSpace::defineGenerator(string name,genfun_t gen) {
-  genList.emplace(name,gen);
+GeneratorDef* NameSpace::generatorDefLookup(string name) {
+  auto it = genList.find(name);
+  if (it != genList.end()) return it->second;
+  throw "Could not find gen " + name + " in namespace " + nameSpace;
 }
 
-void NameSpace::addDefinedModuleDef(string name, ModuleDef* m) {
-  modList.emplace(name,m);
+
+void NameSpace::addGeneratorDef(GeneratorDef* g) {
+  genList.emplace(g->getName(),g);
 }
+
+void NameSpace::addModuleDef(ModuleDef* m) {
+  modList.emplace(m->getName(),m);
+}
+
 CoreIRContext::CoreIRContext() {
   global = new NameSpace("global");
 }
+
 CoreIRContext::~CoreIRContext() {
   delete global;
-  for(map<string,NameSpace*>::iterator it=libs.begin(); it!=libs.end(); ++it)
-    delete it->second;
-  for(auto it=opaques.begin(); it!=opaques.end(); ++it) delete (*it);
+  for (auto it : libs) delete it.second;
+  for (auto it : opaques) delete it;
 }
 
 NameSpace* CoreIRContext::registerLib(string name) {
@@ -185,6 +192,11 @@ NameSpace* CoreIRContext::registerLib(string name) {
   NameSpace* lib = new NameSpace(name);
   libs.emplace(name,lib);
   return lib;
+}
+NameSpace* CoreIRContext::nameSpaceLookup(string nameSpace) {
+  auto it = libs.find(nameSpace);
+  if (it!=libs.end()) return it->second;
+  throw "Cannot find namespace: " + nameSpace;
 }
 
 CoreIRContext* newContext() {
@@ -215,6 +227,61 @@ uint8_t isDirty(dirty_t* d) {
 }
 void setDirty(dirty_t* d) {
   d->dirty = 1;
+}
+
+
+void compile(CoreIRContext* c, ModuleDef* m) {
+  cout << "COMPILING!!\n";
+  set<ModuleDef*>* resolvedMods = new set<ModuleDef*>;
+  try {
+    resolve(c,m,resolvedMods);
+  } 
+  catch(string e) {
+    cout << "ERROR: " << e << endl;
+    delete resolvedMods;
+    exit(0);
+  }
+  delete resolvedMods;
+  cout << "DONE COMPILING!!\n";
+   // ModuleDef* typed = typecheck(m);
+}
+
+//This function mutates the current moduleDef recursively to
+//  replace all ModuleDecl with ModuleDef
+//  replace all GeneratorDecl with ModuleDef
+//resolvedMods keeps getting added to
+void resolve(CoreIRContext* c, ModuleDef* m, set<ModuleDef*>* resolvedMods) {
+  
+  //Do not do any recompute if module already resolved
+  if (resolvedMods->find(m) != resolvedMods->end()) return;
+  cout << "Started Resolving: " << m->toString() << endl;
+
+  //For each instance compute if necessary and then resolve recursively
+  for (auto inst : m->getInstances()) {
+    Instantiable* instRef = inst->getInstRef();
+    ModuleDef* modDef;
+    string nameSpace = instRef->getNameSpaceStr();
+    if (instRef->isType(MDEF) ) {
+      modDef = (ModuleDef*) instRef;
+    }
+    else if (instRef->isType(MDEC) ) {
+      NameSpace* n = c->nameSpaceLookup(nameSpace);
+      modDef = n->moduleDefLookup(instRef->getName());
+      inst->replace(modDef);
+    }
+    else if (instRef->isType(GDEC) ) {
+      NameSpace* n = c->nameSpaceLookup(nameSpace);
+      GeneratorDef* genDef = n->generatorDefLookup(instRef->getName());
+      //Generate the module in the global namespace
+      modDef = genDef->getGenfun()(c->getGlobal(),inst->getGenargs());
+      inst->replace(modDef);
+    } else {
+      throw "FUCK";
+    }
+    resolve(c,modDef,resolvedMods);
+  }
+  cout << "Finished Resolving: " << m->toString() << endl;
+  resolvedMods->insert(m);
 }
 
 
