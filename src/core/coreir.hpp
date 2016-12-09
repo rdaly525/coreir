@@ -15,7 +15,7 @@ using namespace std;
 
 
 //So much mutual definition, so forward declare
-class WireableCache;
+class SelCache;
 class Wireable;
 class Interface;
 class Instance;
@@ -30,10 +30,10 @@ class Instantiable {
   public :
     Instantiable(InstantiableEnum instantiableType, string nameSpace, string name) : instantiableType(instantiableType), nameSpace(nameSpace), name(name) {}
     virtual ~Instantiable() {};
-    bool isType(InstantiableEnum t) {return instantiableType==t;}
+    virtual string toString() const =0;
     string getName() { return name;}
     string getNameSpaceStr() { return nameSpace;}
-    virtual string toString() const =0;
+    bool isType(InstantiableEnum t) {return instantiableType==t;}
 };
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
@@ -60,10 +60,10 @@ class GeneratorDef : public Instantiable {
   public :
     GeneratorDef(string name,genfun_t genfun) : Instantiable(GDEF,"",name), genfun(genfun) {}
     virtual ~GeneratorDef() {}
-    genfun_t getGenfun(void) {return genfun;}
     string toString() const {
       return "GeneratorDef: " + name;
     }
+    genfun_t getGenfun(void) {return genfun;}
 };
 
 class ModuleDecl : public Instantiable {
@@ -76,13 +76,6 @@ class ModuleDecl : public Instantiable {
     }
 };
 
-struct simfunctions_t {
-  //void* iface,void* state,void* dirty,void* genargs)
-  void (*updateOutput)(void*,void*,void*,Genargs*);
-  void* (*allocateState)(void);
-  void (*updateState)(void*,void*,void*,Genargs*);
-  void (*deallocateState)(void*);
-};
 
 typedef std::pair<Wireable*,Wireable*> Wiring ;
 
@@ -92,106 +85,141 @@ struct Genargs {
   void* data;
   Genargs(Type* type);
   ~Genargs();
-
 };
 
 
-class NameSpace;
 class ModuleDef : public Instantiable {
-  Type* type;
-  Interface* interface; 
-  vector<Instance*> instances; // Should it be a map?
-  vector<Wiring> wirings;
-  WireableCache* cache;
-  
   // TODO move these to 'metadata'
-  // TDOO think of a better name than 'metadata'
+  // TODO think of a better name than 'metadata'
   string verilog;
   simfunctions_t sim;
+  
+  protected:
+    Type* type;
+    Interface* interface; 
+    vector<Instance*> instances; // Should it be a map?
+    vector<Wiring> wirings;
+    SelCache* cache;
 
   public :
-    ModuleDef(string name, Type* type);
+    ModuleDef(string name, Type* type,InstantiableEnum e=MDEF);
     virtual ~ModuleDef();
+    string toString() const {
+      return name;
+    }
+    Type* getType(void) {return type;}
+    SelCache* getCache(void) { return cache;}
+    vector<Instance*> getInstances(void) { return instances;}
+    vector<Wiring> getWirings(void) { return wirings; }
     void print(void);
     void addVerilog(string _v) {verilog = _v;}
     void addSimfunctions(simfunctions_t _s) {sim = _s;}
 
     // User has control over Genargs
-    Instance* addInstance(string,Instantiable*, Genargs* = nullptr);
-    Interface* getInterface(void) {return interface;}
-    void wire(Wireable* a, Wireable* b);
+    virtual Instance* addInstance(string,Instantiable*, Genargs* = nullptr);
+    virtual Interface* getInterface(void) {return interface;}
+    virtual void wire(Wireable* a, Wireable* b);
     
-    WireableCache* getCache(void) { return cache;}
-    vector<Instance*> getInstances(void) { return instances;}
-    vector<Wiring> getWirings(void) { return wirings; }
-    string toString() const {
-      return name;
-    }
 };
 
 
+class Wireable;
+class Wire {
+  protected :
+    Wireable* from; // This thing is passive. so it is unused
+    vector<Wire*> wirings; 
+    Wire* parent;
+    map<string,Wire*> children;
+  public : 
+    Wire(Wireable* from,Wire* parent=nullptr) : from(from), parent(parent) {}
+    virtual ~Wire() {}
+    virtual string toString() const;
+    map<string,Wire*> getChildren() { return children;}
+    // TODO will these ever be used?
+    Wireable* getFrom() {return from;}
+    Wire* getParent() {return parent;}
+    
+    void addChild(string selStr, Wire* w);
+    
+    virtual void addWiring(Wire* w);
+    
+};
 
 class Wireable {
   protected :
     WireableEnum wireableType;
     ModuleDef* container; // ModuleDef which it is contained in 
-    vector<Wireable*> wirings; 
-    map<string,Wireable*> children;
-  public : 
-    Wireable(WireableEnum wireableType, ModuleDef* container) : wireableType(wireableType),  container(container) {}
+  public :
+    Wire* wire;
+    Wireable(WireableEnum wireableType, ModuleDef* container, Wire* wire=nullptr) : wireableType(wireableType),  container(container), wire(wire) {}
     ~Wireable() {}
-    ModuleDef* getContainer() { return container;}
-    void addChild(string selStr, Wireable* wb);
-    void addWiring(Wireable* w);
-    Select* sel(string);
-    Select* sel(uint);
     virtual string toString() const=0;
+    ModuleDef* getContainer() { return container;}
+    bool isType(WireableEnum e) {return wireableType==e;}
+    bool isTyped() { return isType(TINST) || isType(TSEL) || isType(TIFACE); }
+    void ptype() {cout << "Type=" <<wireableEnum2Str(wireableType);}
+    
+    virtual Select* sel(string);
+    Select* sel(uint);
+    
 };
 
 ostream& operator<<(ostream&, const Wireable&);
 
 class Interface : public Wireable {
   public :
-    Interface(ModuleDef* container) : Wireable(IFACE,container) {}
-    virtual ~Interface() {}
-    string toString() const;
-};
-
-class Select : public Wireable {
-  Wireable* parent;
-  string selStr;
-  public :
-    Select(ModuleDef* container, Wireable* parent, string selStr) : Wireable(SEL,container), parent(parent), selStr(selStr) {}
-    virtual ~Select() {}
-    Wireable* getParent() { return parent; }
-    string getSelStr() { return selStr; }
+    Interface(ModuleDef* container,WireableEnum e=IFACE) : Wireable(e,container) { 
+      wire = new Wire(this);
+    }
+    virtual ~Interface() {delete wire;}
     string toString() const;
 };
 
 //TODO potentially separate out generator instances and module instances
 class Instance : public Wireable {
-  string name;
+  string instname;
   Instantiable* instRef;
   
   Genargs* genargs;
  
   public :
-    Instance(ModuleDef* container, string name, Instantiable* instRef,Genargs* genargs =nullptr) : Wireable(INST,container), name(name), instRef(instRef), genargs(genargs) {}
-    virtual ~Instance() {if(genargs) delete genargs;}
-    void replace(Instantiable* newRef) { instRef = newRef;}
-    Instantiable* getInstRef() {return instRef;}
-    string getName() { return name; }
-    Genargs* getGenargs() {return genargs;}
+    Instance(ModuleDef* container, string instname, Instantiable* instRef,Genargs* genargs =nullptr, WireableEnum e=INST) : Wireable(e,container), instname(instname), instRef(instRef), genargs(genargs) {
+      wire = new Wire(this);
+    }
+    virtual ~Instance() {if(genargs) delete genargs; delete wire;}
     string toString() const;
+    Instantiable* getInstRef() {return instRef;}
+    string getInstname() { return instname; }
+    Genargs* getGenargs() {return genargs;}
+    void replace(Instantiable* newRef) { instRef = newRef;}
 };
 
-typedef std::pair<Wireable*, string> SelectParamType;
-class WireableCache {
-  map<SelectParamType,Select*> SelectCache;
+class Select : public  Wireable {
+  protected :
+    Wireable* parent;
+    string selStr;
   public :
-    WireableCache() {};
-    ~WireableCache();
-    Select* newSelect(ModuleDef* container, Wireable* parent, string sel);
+    Select(ModuleDef* container, Wireable* parent, string selStr, WireableEnum e=SEL) : Wireable(e,container), parent(parent), selStr(selStr) {
+      wire = new Wire(this);
+      parent->wire->addChild(selStr,wire);
+    }
+    virtual ~Select() {delete wire;}
+    string toString() const;
+    Wireable* getParent() { return parent; }
+    string getSelStr() { return selStr; }
+};
+
+
+class TypedSelect;
+typedef std::pair<Wireable*, string> SelectParamType;
+class SelCache {
+  map<SelectParamType,Select*> cache;
+  map<SelectParamType,TypedSelect*> typedcache;
+  public :
+    SelCache() {};
+    ~SelCache();
+    Select* newSelect(ModuleDef* container, Wireable* parent, string selStr);
+    TypedSelect* newTypedSelect(ModuleDef* container, Wireable* parent, Type* type, string selStr);
 };
 
 
@@ -207,6 +235,7 @@ class NameSpace {
     NameSpace(string nameSpace) : nameSpace(nameSpace) {}
     ~NameSpace();
     string getName() { return nameSpace;}
+    
     ModuleDef* moduleDefLookup(string name);
     GeneratorDef* generatorDefLookup(string name);
     
@@ -248,7 +277,6 @@ void deleteContext(CoreIRContext* m);
 
 
 /////
-string WireableEnum2Str(WireableEnum wb);
 bool Validate(Instantiable* c);
 
 // Int Type functions
@@ -263,8 +291,6 @@ Type* Flip(Type*);
 Type* In(Type*);
 Type* Out(Type*);
 
-void compile2Verilog(ModuleDef* m);
-
 typedef struct dirty_t {
   uint8_t dirty;
 } dirty_t;
@@ -275,7 +301,11 @@ void setDirty(dirty_t* d);
 void* allocateFromType(Type* t);
 void deallocateFromType(Type* t, void* d);
 
+// For now resolve mutates m to change every instantiable to a ModuleDef
+void resolve(CoreIRContext* c, ModuleDef* m);
+
+// typecheck does NOt mutate anything. Creates a new graph with TypedWireables
 void compile(CoreIRContext* c, ModuleDef* m);
-void resolve(CoreIRContext* c, ModuleDef* m, set<ModuleDef*>* resolvedMods);
+class TypedModuleDef;
 
 #endif //COREIR_HPP_

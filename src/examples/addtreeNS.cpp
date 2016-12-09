@@ -31,13 +31,13 @@ ModuleDef* AddTree(CoreIRContext* c, uint n) {
   Wireable* add_01 = addTree->addInstance("add01",addnMod);
   Wireable* add_1 = addTree->addInstance("add1",addnMod);
   
-  addTree->wire(iface->sel("in")->sel(0),add_00->sel("inA"));
-  addTree->wire(iface->sel("in")->sel(1),add_00->sel("inB"));
-  addTree->wire(iface->sel("in")->sel(2),add_01->sel("inA"));
-  addTree->wire(iface->sel("in")->sel(3),add_01->sel("inB"));
+  addTree->wire(iface->sel("in")->sel(0),add_00->sel("in0"));
+  addTree->wire(iface->sel("in")->sel(1),add_00->sel("in1"));
+  addTree->wire(iface->sel("in")->sel(2),add_01->sel("in0"));
+  addTree->wire(iface->sel("in")->sel(3),add_01->sel("in1"));
 
-  addTree->wire(add_00->sel("out"),add_1->sel("inA"));
-  addTree->wire(add_01->sel("out"),add_1->sel("inA"));
+  addTree->wire(add_00->sel("out"),add_1->sel("in0"));
+  addTree->wire(add_01->sel("out"),add_1->sel("in1"));
 
   addTree->wire(add_1->sel("out"),iface->sel("out"));
 
@@ -58,10 +58,6 @@ int main() {
   c->getGlobal()->print();
 
   compile(c,addtree16);
-  lib->print();
-  c->getGlobal()->print();
- 
-  addtree16->print();
   
   deleteContext(c);
   return 0;

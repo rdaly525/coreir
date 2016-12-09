@@ -7,6 +7,11 @@ code cleanup change all for loops to use auto
 TODO
 Should Genargs be stored in the instance or the Generator classes
 
+
+TODO Type::sel. What should it do for a bad select?
+
+TODO Memory leaking in the 'wire' within all insantiables. Typed wire is overwriting wire (probably)
+
 Module:
   Data ->
     Verilog
@@ -15,18 +20,7 @@ Module:
     MetaData
   Circuit stuff
 
--Do LAZY typechecking
--This means when wiring (connecting), do not check whether the types match or are valid
--Have Staged compilation.
-Stage 1 Resolve Linking
-  This will mutate the modules
-Stage 2 unTyped -> Typed
-  -Traverse graph to create new typedWireables and typedModule graph. 
-    -Do typechecking (can the wires connect?)
-    -Convert any generators to modules
-    Should I create a new typedModule class?
-Stage 2 Typed -> Verilog/Simulator
-
+Verilog creation/lowering
 
 Simulator TODO:
 Literally everything

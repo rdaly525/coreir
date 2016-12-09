@@ -3,6 +3,7 @@
 
 #include "enums.hpp"
 #include "coreir.hpp"
+#include "typedcoreir.hpp"
 #include <cassert>
 #include <vector>
 #include <set>
@@ -18,16 +19,15 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-
-ModuleDef::ModuleDef(string name, Type* type) : Instantiable(MDEF,"",name), type(type) {
+ModuleDef::ModuleDef(string name, Type* type,InstantiableEnum e) : Instantiable(e,"",name), type(type) {
   interface = new Interface(this);
-  cache = new WireableCache();
+  cache = new SelCache();
 }
 
 ModuleDef::~ModuleDef() {
   //Delete interface, instances, cache
   delete interface;
-  for(vector<Instance*>::iterator it=instances.begin(); it!=instances.end(); ++it) delete (*it);
+  for(auto inst : instances) delete inst;
   delete cache;
 }
 
@@ -46,8 +46,8 @@ void ModuleDef::print(void) {
   cout << endl;
 }
 
-Instance* ModuleDef::addInstance(string name, Instantiable* m,Genargs* genargs) {
-  Instance* inst = new Instance(this,name,m,genargs);
+Instance* ModuleDef::addInstance(string instname, Instantiable* m,Genargs* genargs) {
+  Instance* inst = new Instance(this,instname,m,genargs);
   instances.push_back(inst);
   return inst;
 }
@@ -62,9 +62,9 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
     exit(0);
   }
   
-  //Update 'a' and 'b' (and children)
-  a->addWiring(b);
-  b->addWiring(a);
+  //Update 'a' and 'b'
+  a->wire->addWiring(b->wire);
+  b->wire->addWiring(a->wire);
  
   wirings.push_back({a,b});
 }
@@ -81,38 +81,43 @@ Genargs::~Genargs() {
   deallocateFromType(type,data);
 }
 
-///////////////////////////////////////////////////////////
-//----------------------- Wireable ----------------------//
-///////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
+//----------------------- Wire ----------------------//
+///////////////////////////////////////////////////////
 
-void Wireable::addChild(string selStr, Wireable* wb) {
-  children.emplace(selStr,wb);
+void Wire::addChild(string selStr, Wire* w) {
+  children.emplace(selStr,w);
 }
 
-void Wireable::addWiring(Wireable* w) {
+void Wire::addWiring(Wire* w) {
   wirings.push_back(w);
 }
+
+
+string Wire::toString() const {
+  return "NYI: Wire string";
+}
+///////////////////////////////////////////////////////////
+//----------------------- Wireables ----------------------//
+///////////////////////////////////////////////////////////
 
 Select* Wireable::sel(string selStr) {
   return container->getCache()->newSelect(container,this,selStr);
 }
 
-Select* Wireable::sel(uint idx) {
-  return container->getCache()->newSelect(container,this,to_string(idx));
-}
+Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
 string Interface::toString() const{
   return container->getName();
 }
 
 string Instance::toString() const {
-  return name;
+  return instname;
 }
 
 string Select::toString() const {
   string ret = parent->toString(); 
-  bool isIdx = (selStr.find_first_not_of("0123456789")==string::npos);
-  if (isIdx) return ret + "[" + selStr + "]";
+  if (isNumber(selStr)) return ret + "[" + selStr + "]";
   return ret + "." + selStr;
 }
 
@@ -122,26 +127,45 @@ std::ostream& operator<<(ostream& os, const Wireable& i) {
 }
 
 ///////////////////////////////////////////////////////////
-//-------------------- WireableCache --------------------//
+//-------------------- SelCache --------------------//
 ///////////////////////////////////////////////////////////
 
-WireableCache::~WireableCache() {
-  map<SelectParamType,Select*>::iterator it1;
-  for (it1=SelectCache.begin(); it1!=SelectCache.end(); ++it1) {
-    delete it1->second;
-  }
+SelCache::~SelCache() {
+  for (auto sel : cache) delete sel.second;
+  for (auto tsel : typedcache) delete tsel.second;
 }
-Select* WireableCache::newSelect(ModuleDef* container, Wireable* parent, string selStr) {
+
+Select* SelCache::newSelect(ModuleDef* container, Wireable* parent, string selStr) {
   SelectParamType params = {parent,selStr};
-  map<SelectParamType,Select*>::iterator it = SelectCache.find(params);
-  if (it != SelectCache.end()) {
+  auto it = cache.find(params);
+  if (it != cache.end()) {
     return it->second;
-  } else {
-    Select* newSelect = new Select(container,parent,selStr);
-    SelectCache.emplace(params,newSelect);
-    return newSelect;
+  } 
+  else {
+    Select* s = new Select(container,parent,selStr);
+    cache.emplace(params,s);
+    return s;
   }
 }
+
+TypedSelect* SelCache::newTypedSelect(ModuleDef* container, Wireable* parent, Type* type, string selStr) {
+  assert(parent->isTyped());
+  SelectParamType params = {parent,selStr};
+  auto it = typedcache.find(params);
+  if (it != typedcache.end()) {
+    return it->second;
+  } 
+  else {
+    TypedWire* twire= dynamic_cast<TypedWire*>(parent->wire);
+    assert(twire);
+    TypedModuleDef* tcontainer = dynamic_cast<TypedModuleDef*>(container);
+    assert(tcontainer);
+    TypedSelect* ts = new TypedSelect(tcontainer,type,parent,selStr);
+    cache.emplace(params,ts);
+    return ts;
+  }
+}
+
 
 
 ///////////////////////////////////////////////////////////
@@ -218,10 +242,6 @@ ModuleDecl* CoreIRContext::declareMod(string nameSpace, string name) {
   return m;
 }
 
-void compile2Verilog(ModuleDef* m) {
-  cout << "PRINTING VERILOG\n";
-}
-
 uint8_t isDirty(dirty_t* d) {
   return d->dirty;
 }
@@ -229,60 +249,6 @@ void setDirty(dirty_t* d) {
   d->dirty = 1;
 }
 
-
-void compile(CoreIRContext* c, ModuleDef* m) {
-  cout << "COMPILING!!\n";
-  set<ModuleDef*>* resolvedMods = new set<ModuleDef*>;
-  try {
-    resolve(c,m,resolvedMods);
-  } 
-  catch(string e) {
-    cout << "ERROR: " << e << endl;
-    delete resolvedMods;
-    exit(0);
-  }
-  delete resolvedMods;
-  cout << "DONE COMPILING!!\n";
-   // ModuleDef* typed = typecheck(m);
-}
-
-//This function mutates the current moduleDef recursively to
-//  replace all ModuleDecl with ModuleDef
-//  replace all GeneratorDecl with ModuleDef
-//resolvedMods keeps getting added to
-void resolve(CoreIRContext* c, ModuleDef* m, set<ModuleDef*>* resolvedMods) {
-  
-  //Do not do any recompute if module already resolved
-  if (resolvedMods->find(m) != resolvedMods->end()) return;
-  cout << "Started Resolving: " << m->toString() << endl;
-
-  //For each instance compute if necessary and then resolve recursively
-  for (auto inst : m->getInstances()) {
-    Instantiable* instRef = inst->getInstRef();
-    ModuleDef* modDef;
-    string nameSpace = instRef->getNameSpaceStr();
-    if (instRef->isType(MDEF) ) {
-      modDef = (ModuleDef*) instRef;
-    }
-    else if (instRef->isType(MDEC) ) {
-      NameSpace* n = c->nameSpaceLookup(nameSpace);
-      modDef = n->moduleDefLookup(instRef->getName());
-      inst->replace(modDef);
-    }
-    else if (instRef->isType(GDEC) ) {
-      NameSpace* n = c->nameSpaceLookup(nameSpace);
-      GeneratorDef* genDef = n->generatorDefLookup(instRef->getName());
-      //Generate the module in the global namespace
-      modDef = genDef->getGenfun()(c->getGlobal(),inst->getGenargs());
-      inst->replace(modDef);
-    } else {
-      throw "FUCK";
-    }
-    resolve(c,modDef,resolvedMods);
-  }
-  cout << "Finished Resolving: " << m->toString() << endl;
-  resolvedMods->insert(m);
-}
 
 
 #endif //COREIR_CPP_

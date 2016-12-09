@@ -1,66 +1,82 @@
-class _TypedWireable {
+#ifndef TYPEDCOREIR_HPP_
+#define TYPEDCOREIR_HPP_
+
+#include "coreir.hpp"
+
+class TypedModuleDef : public ModuleDef {
+ 
+  public :
+    TypedModuleDef(string name, Type* type);
+    virtual ~TypedModuleDef() {}
+
+    // This interface must look the same
+    Instance* addInstance(string,Instantiable*, Genargs* = nullptr);
+    void wire(Wireable* a, Wireable* b);
+};
+
+class TypedWire : public Wire {
   protected :
-    WireableEnum bundleType;
-    ModuleDef* container; // ModuleDef which it is contained in 
     Type* type;
-    //TODO should I save head during construction? or figure it out at access
-    //WireableEnum* head; //Either an interface or an instance (or Constant?)
     
+
+  public :
     bool _parentWired; // a parent is either _wired or _parentWired
     bool _wired; //I am wired (entirely). Implies connections contains at least one
     bool _childrenWired; //some children *inputs* are wired
-
-    vector<Wireable*> connections; 
-    map<string,Wireable*> children;
-  public :
-    Wireable(WireableEnum bundleType, ModuleDef* container, Type* type) : bundleType(bundleType),  container(container), type(type), _parentWired(false), _wired(false), _childrenWired(false) {}
-    virtual ~Wireable() {}
-    virtual string _string(void)=0;
-    bool isType(WireableEnum b) {return bundleType==b;}
-    WireableEnum getBundleType() { return bundleType; }
-    void addChild(string sel,Wireable* wb);
-    bool isParentWired() { return _parentWired;}
-    bool isWired() {return _wired;}
-    bool hasChildrenWired() {return _childrenWired;}
-    void setParentWired(); //Set _parentWired and all children's setParentWired
-    void addConnection(Wireable* w); //Set _wired and all children's setParentWired
-    virtual void setChildrenWired() {_childrenWired = true;}
-    bool checkWired(); //recursively checks if wired
-    Select* sel(string);
-    Select* sel(uint);
-    ModuleDef* getContainer(void) { return container;}
+ 
+    
+    
+    TypedWire(Type* type,Wireable* from, Wire* parent=nullptr) : Wire(from,parent), type(type), _parentWired(false), _wired(false), _childrenWired(false) {}
+    virtual ~TypedWire() {}
+    string toString() const { return "Typed";}
+    
+    // new stuff
     Type* getType(void) { return type;}
-
+    bool isWired() {return _wired;}
+    bool isParentWired() { return _parentWired;}
+    void setParentWired(); //Set _parentWired and all children's setParentWired
+    bool hasChildrenWired() {return _childrenWired;}
+    void setChildrenWired();
+    
+    void addWiring(Wire* w); //Set _wired and all children's setParentWired
+    bool checkWired(); //recursively checks if wired
 };
 
-class _TypedInterface : public _TypedWireable {
+class TypedInterface : public Interface {
   public :
-    Interface(ModuleDef* container, Type* type) : Wireable(IFACE,container,type) {}
-    ~Interface() {}
-    string _string();
+    TypedInterface(ModuleDef* container, Type* type) : Interface(container,TIFACE) {
+      wire = new TypedWire(type,this);
+    }
+    ~TypedInterface() {}
+    Select* sel(string);
+    //string toString() const {return Interface::toString();}
 };
 
-class _TypedInstance : public _TypedWireable {
-  string name;
-  Circuit* circuitType;
+class TypedInstance : public Instance {
   public :
-    Instance(ModuleDef* container, Type* type, string name, Circuit* circuitType) : Wireable(INST,container,type), name(name), circuitType(circuitType) {}
-    ~Instance() {}
-    string _string();
-    Circuit* getCircuitType() {return circuitType;}
-    string getName() { return name; }
-    void replace(Circuit* c) {circuitType = c;} //TODO dangerous. Could point to its container.
+    TypedInstance(ModuleDef* container, Type* type, string instname, TypedModuleDef* tmodRef) : Instance(container, instname,tmodRef,nullptr,TINST) {
+      wire = new TypedWire(type,this);
+    }
+    ~TypedInstance() {}
+    Select* sel(string);
+    string toString() const {return Instance::toString();}
 };
 
-class _TypedSelect : public _TypedWireable {
-  Wireable* parent;
-  string selStr;
+class TypedSelect : public Select {
   public :
-    Select(ModuleDef* container, Type* type, Wireable* parent, string selStr);
-    ~Select() {}
-    string _string();
-    void setChildrenWired() {_childrenWired=true; parent->setChildrenWired();}
-    Wireable* getParent() { return parent; }
-    string getSelStr() { return selStr; }
+    TypedSelect(TypedModuleDef* container, Type* type, Wireable* parent, string selStr) : Select(container,parent,selStr,TSEL) {
+      TypedWire* twire = new TypedWire(type,this);
+      parent->wire->addChild(selStr,wire);
+      TypedWire* twparent = dynamic_cast<TypedWire*>(parent->wire);
+      assert(twparent);
+      // TODO maybe make all the _wired things public
+      twire->_parentWired = twparent->isWired() || twparent->isParentWired();
+      wire = twire;
+    }  
+    ~TypedSelect() {}
+    Select* sel(string);
+    void setChildrenWired();
+    string toString() const {return Select::toString();}
 };
 
+#endif //TYPEDCOREIR_HPP_

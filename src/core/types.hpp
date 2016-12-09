@@ -7,7 +7,7 @@
 #include <map>
 #include <vector>
 #include "enums.hpp"
-#include "typeCache.hpp"
+#include "typecache.hpp"
 
 
 using namespace std;
@@ -56,7 +56,7 @@ class ArrayType : public Type {
     ArrayType(Type *elemType, uint len) : Type(ARRAY,elemType->hasInput()), elemType(elemType), len(len) {}
     string toString(void) const;
     Type* flip(TypeCache*);
-    Type* idx(uint);
+    Type* sel(uint);
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
 };
@@ -69,8 +69,13 @@ class RecordType : public Type {
   vector<string> _order;
   public :
     RecordType(recordparam_t _record) : Type(RECORD,false) {
+      //TODO do not change this auto. some reason it does not work
       for(recordparam_t::iterator it=_record.begin(); it!=_record.end(); ++it) {
-        record.emplace((*it).first,(*it).second);
+        if(isNumber(it->first)) {
+          cout << "Cannot have number as record field" << endl;
+          exit(0);
+        }
+        record.emplace(it->first,it->second);
         _order.push_back(it->first);
         _hasInput |= it->second->hasInput();
       }

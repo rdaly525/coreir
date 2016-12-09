@@ -2,7 +2,7 @@
 #define TYPECONSTRUCTORS_CPP_
 
 #include "coreir.hpp"
-#include "typeCache.hpp"
+#include "typecache.hpp"
 
 
 //Global cache

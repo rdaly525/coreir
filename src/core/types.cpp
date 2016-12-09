@@ -49,12 +49,16 @@ string ArrayType::toString(void) const {
 Type* ArrayType::flip(TypeCache* tc) { 
   return tc->newArray(elemType->flip(tc),len);
 }
-Type* ArrayType::idx(uint i) {
+
+
+//TODO What to return if did not find?
+Type* ArrayType::sel(uint i) {
   if(i >= len) {
-    cout << "ERROR: Index out of bounds\n";
-    cout << "  idx: " << i << "\n";
-    cout << "  ArrayLen: " << len << "\n";
-    exit(0);
+    return nullptr;
+    //cout << "ERROR: Index out of bounds\n";
+    //cout << "  idx: " << i << "\n";
+    //cout << "  ArrayLen: " << len << "\n";
+    //exit(0);
   }
   return elemType;
 }
@@ -78,16 +82,18 @@ Type* RecordType::flip(TypeCache* tc) {
   return tc->newRecord(m);
 }
 
-//What to return if did not find?
+//TODO What to return if did not find?
 Type* RecordType::sel(string a) {
-  map<string,Type*>::iterator it = record.find(a);
+  auto it = record.find(a);
   if (it != record.end()) {
     return it->second;
-  } else {
-    cout << "ERROR: Bad select field\n";
-    cout << "  sel: " << a << "\n";
-    cout << "  type: " << (*this) << "\n";
-    exit(0);
+  } 
+  else {
+    return nullptr;  
+    //cout << "ERROR: Bad select field\n";
+    //cout << "  sel: " << a << "\n";
+    //cout << "  type: " << (*this) << "\n";
+    //exit(0);
   }
 }
 

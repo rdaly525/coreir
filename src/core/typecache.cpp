@@ -1,7 +1,7 @@
 #ifndef TYPECACHE_CPP_
 #define TYPECACHE_CPP_
 
-#include "typeCache.hpp"
+#include "typecache.hpp"
 using namespace std;
 
 TypeCache::~TypeCache() {
