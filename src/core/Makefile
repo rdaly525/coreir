@@ -2,7 +2,7 @@ CC = clang++
 CFLAGS = -std=c++11 -Wall -ferror-limit=5 -g
 
 DEPS = coreir.hpp typedcoreir.hpp enums.hpp types.hpp typecache.hpp
-OBJS = typedcoreir.o helpers.o compiler.o coreir.o compiler.o typeconstructors.o types.o typecache.o 
+OBJS = verilog.o typedcoreir.o helpers.o compiler.o coreir.o compiler.o typeconstructors.o types.o typecache.o 
 
 all: coreir.a
 

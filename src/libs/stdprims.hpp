@@ -4,6 +4,6 @@
 #include "coreir.hpp"
 
 NameSpace* registerStdPrims(CoreIRContext* c, string nameSpace);
-
+NameSpace* registerStdPrims(CoreIRContext* c);
 
 #endif //STDPRIMS_HPP_

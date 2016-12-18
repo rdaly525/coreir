@@ -1,12 +1,10 @@
-Create Short spec for my use cases.
-
-Add the ability to access Records via index
-
-code cleanup change all for loops to use auto
+TODO
+The initializing of Typedcoreir modules is so hacky. I am calling base class constructor then deleting the new'd thing, then newing my own thing.
 
 TODO
 Should Genargs be stored in the instance or the Generator classes
 
+Change isType to isKind. in general change type->kind
 
 TODO Type::sel. What should it do for a bad select?
 
@@ -17,14 +15,15 @@ Module:
     Verilog
     Simulate
     Driver
-    MetaData
+    OtherData
   Circuit stuff
 
 Verilog creation/lowering
 
-Simulator TODO:
-Literally everything
 
 Primitives TODO:
 -Add generators for constants
 -And all other normal primitives
+
+
+TODO Possibly should check for cases of modules instantiated in its own module; "recursion"

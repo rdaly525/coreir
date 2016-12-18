@@ -10,7 +10,7 @@ class TypedModuleDef : public ModuleDef {
     virtual ~TypedModuleDef() {}
 
     // This interface must look the same
-    Instance* addInstance(string,Instantiable*, Genargs* = nullptr);
+    Instance* addInstance(string,Instantiable*, GenArgs* = nullptr);
     void wire(Wireable* a, Wireable* b);
 };
 
@@ -28,7 +28,7 @@ class TypedWire : public Wire {
     
     TypedWire(Type* type,Wireable* from, Wire* parent=nullptr) : Wire(from,parent), type(type), _parentWired(false), _wired(false), _childrenWired(false) {}
     virtual ~TypedWire() {}
-    string toString() const { return "Typed";}
+    string toString() const { return "TypedWire of type: " + type->toString();}
     
     // new stuff
     Type* getType(void) { return type;}
@@ -39,12 +39,13 @@ class TypedWire : public Wire {
     void setChildrenWired();
     
     void addWiring(Wire* w); //Set _wired and all children's setParentWired
-    bool checkWired(); //recursively checks if wired
+    void checkWired(); //recursively checks if wired
 };
 
 class TypedInterface : public Interface {
   public :
     TypedInterface(ModuleDef* container, Type* type) : Interface(container,TIFACE) {
+      delete wire;
       wire = new TypedWire(type,this);
     }
     ~TypedInterface() {}
@@ -55,6 +56,7 @@ class TypedInterface : public Interface {
 class TypedInstance : public Instance {
   public :
     TypedInstance(ModuleDef* container, Type* type, string instname, TypedModuleDef* tmodRef) : Instance(container, instname,tmodRef,nullptr,TINST) {
+      delete wire;
       wire = new TypedWire(type,this);
     }
     ~TypedInstance() {}
@@ -66,12 +68,12 @@ class TypedSelect : public Select {
   public :
     TypedSelect(TypedModuleDef* container, Type* type, Wireable* parent, string selStr) : Select(container,parent,selStr,TSEL) {
       TypedWire* twire = new TypedWire(type,this);
-      parent->wire->addChild(selStr,wire);
-      TypedWire* twparent = dynamic_cast<TypedWire*>(parent->wire);
-      assert(twparent);
-      // TODO maybe make all the _wired things public
+      TypedWire* twparent = castTypedWire(parent->wire);
+      
       twire->_parentWired = twparent->isWired() || twparent->isParentWired();
       wire = twire;
+      parent->wire->addChild(selStr,wire);
+
     }  
     ~TypedSelect() {}
     Select* sel(string);

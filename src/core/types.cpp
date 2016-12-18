@@ -17,16 +17,6 @@ ostream& operator<<(ostream& os, const Type& t) {
 
 //TODO This should be done in a better way
 string Dir2Str(Dir d) { if(d==IN) return "In"; else return "Out";}
-Dir flipDir(Dir d) { if(d==IN) return OUT; else return IN;}
-string TypeEnum2Str(TypeEnum t) {
-  switch(t) {
-    case INT : return "Int";
-    case ARRAY : return "Array";
-    case RECORD : return "Record";
-    default : return "BAD";
-  }
-}
-
 
 bool Type::isType(TypeEnum t) {
   return t==type;
@@ -66,7 +56,7 @@ Type* ArrayType::sel(uint i) {
 string RecordType::toString(void) const {
   string ret = "{";
   for(map<string,Type*>::const_iterator it=record.begin(); it!=record.end(); ++it) {
-    ret += it->first + ":" + it->second->toString();
+    ret += "'" + it->first + "':" + it->second->toString();
     ret += (it == --record.end()) ? "}" : ", ";
   }
   return ret;

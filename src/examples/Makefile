@@ -5,7 +5,7 @@ INCS = -I$(CDIR)/core -I$(CDIR)/libs
 LIBS = -L$(CDIR)/core -L$(CDIR)/libs
 DEPS = 
 
-all: clean addtreeNS.run
+all: add4.run
 
 clean:
 	$(MAKE) -C ../core clean

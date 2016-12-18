@@ -19,7 +19,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-ModuleDef::ModuleDef(string name, Type* type,InstantiableEnum e) : Instantiable(e,"",name), type(type) {
+ModuleDef::ModuleDef(string name, Type* type,InstantiableEnum e) : Instantiable(e,"",name), type(type), verilog("") {
   interface = new Interface(this);
   cache = new SelCache();
 }
@@ -46,7 +46,7 @@ void ModuleDef::print(void) {
   cout << endl;
 }
 
-Instance* ModuleDef::addInstance(string instname, Instantiable* m,Genargs* genargs) {
+Instance* ModuleDef::addInstance(string instname, Instantiable* m,GenArgs* genargs) {
   Instance* inst = new Instance(this,instname,m,genargs);
   instances.push_back(inst);
   return inst;
@@ -67,18 +67,6 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   b->wire->addWiring(a->wire);
  
   wirings.push_back({a,b});
-}
-// TODO THis shit is fucked.
-//void ModuleDef::setNameSpace(NameSpace* _ns) {
-//  //ns->removeModDef(this);
-//  ns = _ns;
-//}
-Genargs::Genargs(Type* type) : type(type) {
-  data = allocateFromType(type);
-}
-
-Genargs::~Genargs() {
-  deallocateFromType(type,data);
 }
 
 ///////////////////////////////////////////////////////
@@ -156,8 +144,8 @@ TypedSelect* SelCache::newTypedSelect(ModuleDef* container, Wireable* parent, Ty
     return it->second;
   } 
   else {
-    TypedWire* twire= dynamic_cast<TypedWire*>(parent->wire);
-    assert(twire);
+    //TypedWire* twire = castTypedWire(parent->wire);
+    assert(castTypedWire(parent->wire));
     TypedModuleDef* tcontainer = dynamic_cast<TypedModuleDef*>(container);
     assert(tcontainer);
     TypedSelect* ts = new TypedSelect(tcontainer,type,parent,selStr);

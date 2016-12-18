@@ -11,11 +11,12 @@
 using namespace std;
 
 TypedModuleDef::TypedModuleDef(string name, Type* type) : ModuleDef(name,type,TMDEF) {
+  delete interface;
   interface = new TypedInterface(this,Flip(type));
 }
 
 
-Instance* TypedModuleDef::addInstance(string instname,Instantiable* m, Genargs* g) {
+Instance* TypedModuleDef::addInstance(string instname,Instantiable* m, GenArgs* g) {
   if (!m->isType(TMDEF)) {
     throw "Can only add a TypedModuleDef instnace";
   }
@@ -40,9 +41,9 @@ void TypedModuleDef::wire(Wireable* a, Wireable* b) {
     err << "  Module of " << *b << ": " << b->getContainer()->getName() << endl;
     throw err.str();
   }
-  TypedWire* atwire = dynamic_cast<TypedWire*>(a->wire);
-  TypedWire* btwire = dynamic_cast<TypedWire*>(b->wire);
-  assert(atwire && btwire);
+  TypedWire* atwire = castTypedWire(a->wire);
+  TypedWire* btwire = castTypedWire(b->wire);
+  
   Type* aType = atwire->getType();
   Type* bType = btwire->getType();
   //Make sure the flip of the types match
@@ -94,7 +95,7 @@ void TypedModuleDef::wire(Wireable* a, Wireable* b) {
 void TypedWire::addWiring(Wire* w) {
   _wired = true;
   for (auto child : children) {
-    TypedWire* tchild = dynamic_cast<TypedWire*>(child.second);
+    TypedWire* tchild = castTypedWire(child.second);
     tchild->setParentWired();
   }
   wirings.push_back(w);
@@ -104,7 +105,7 @@ void TypedWire::addWiring(Wire* w) {
 void TypedWire::setParentWired() {
   _parentWired = true;
   for (auto child : children) {
-    TypedWire* tchild = dynamic_cast<TypedWire*>(child.second);
+    TypedWire* tchild = castTypedWire(child.second);
     tchild->setParentWired();
   }
 }
@@ -112,19 +113,23 @@ void TypedWire::setParentWired() {
 void TypedWire::setChildrenWired() {
   _childrenWired=true; 
   if (parent) {
-    TypedWire* tparent = dynamic_cast<TypedWire*>(parent);
-    assert(tparent);
+    TypedWire* tparent = castTypedWire(parent);
     tparent->setChildrenWired();
   }
 }
+
+
+//string wireDebug(TypedWire* w) {
+//  cout ""w->from
+//}
+
 //TODO make sure there exists at least 1 children given that _childrenWired is set
 //TODO This definitely needs nice error messages
-bool TypedWire::checkWired() {
-  if (_wired) return true;
-  if (type->isBase()) return false;
+void TypedWire::checkWired() {
+  if (_wired) return;
+  if (type->isBase()) throw (from->toString() + " Is not connected to anything!");
   
   //Should have children...
-  
   //Check if all entries of map exist and are wired
   //Have to deal with Records and Arrays differently
   if(type->isType(RECORD)) {
@@ -132,23 +137,21 @@ bool TypedWire::checkWired() {
     auto record = ((RecordType*)type)->getRecord();
     for (auto tit : record) {
       auto it = children.find(tit.first);
-      if (it==children.end()) return false;
-      TypedWire* child = dynamic_cast<TypedWire*>(it->second);
-      assert(child);
-      if (child->checkWired()) return false;
+      if (it==children.end()) throw (from->toString() + "." + tit.first + " Is not connected!");
+      TypedWire* child = castTypedWire(it->second);
+      child->checkWired();
     }
   } 
   else {
     // iterate over the array
     for (uint i=0; i<((ArrayType*)type)->getLen(); ++i) {
       auto it = children.find(to_string(i));
-      if (it==children.end()) return false;
-      TypedWire* child = dynamic_cast<TypedWire*>(it->second);
-      assert(child);
-      if (child->checkWired()) return false;
+      if (it==children.end()) throw (from->toString() + "." + to_string(i) + " Is not connected!");;
+      TypedWire* child = castTypedWire(it->second);
+      child->checkWired();
     }
   }
-  return true;
+  return;
 }
 
 // TODO hack I need to do to get around diamond inheritance
@@ -193,22 +196,17 @@ Select* selprotoype(TypedModuleDef* container, Wireable* parent, Type* type, str
   }
   return container->getCache()->newTypedSelect(container,parent,selType,selStr);
 }
-TypedWire* getT(Wire* w) {
-  TypedWire* tw = dynamic_cast<TypedWire*>(w);
-  assert(tw);
-  return tw;
-}
 
 Select* TypedInterface::sel(string s) {
-  return selprotoype((TypedModuleDef*)container,this,getT(wire)->getType(),s);
+  return selprotoype((TypedModuleDef*)container,this,castTypedWire(wire)->getType(),s);
 }
 
 Select* TypedInstance::sel(string s) {
-  return selprotoype((TypedModuleDef*)container,this,getT(wire)->getType(),s);
+  return selprotoype((TypedModuleDef*)container,this,castTypedWire(wire)->getType(),s);
 }
 
 Select* TypedSelect::sel(string s) {
-  return selprotoype((TypedModuleDef*)container,this,getT(wire)->getType(),s);
+  return selprotoype((TypedModuleDef*)container,this,castTypedWire(wire)->getType(),s);
 }
 
 

@@ -39,9 +39,9 @@ Type* Flip(Type* type) {
 //TODO might be int or Uint (add case for int8_t ...)
 void* allocateFromType(Type* t) {
   void* d;
-  cout << "Trying to Allocating something for type " << *t << endl;
+  //cout << "Trying to Allocating something for type " << *t << endl;
   if (t->isBase()) {
-    cout << "Allocating something\n";
+    //cout << "Allocating something\n";
     uint n = ((BaseType*)t)->numBits();
     if (n <= 8) d = (uint8_t*) malloc(sizeof(uint8_t));
     else if (n <= 16) d = (uint16_t*) malloc(sizeof(uint16_t));

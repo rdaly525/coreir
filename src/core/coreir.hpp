@@ -2,6 +2,7 @@
 #define COREIR_HPP_
 
 
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <map>
@@ -10,6 +11,7 @@
 #include <cassert>
 #include "types.hpp"
 #include "enums.hpp"
+#include "genargs.hpp"
 
 using namespace std;
 
@@ -41,6 +43,7 @@ std::ostream& operator<<(ostream& os, const Instantiable&);
 class GeneratorDecl : public Instantiable {
   
   public :
+    
     GeneratorDecl(string nameSpace,string name) : Instantiable(GDEC,nameSpace,name) {}
     virtual ~GeneratorDecl() {}
     string toString() const {
@@ -51,18 +54,20 @@ class GeneratorDecl : public Instantiable {
 
 class ModuleDef;
 class NameSpace;
-struct Genargs;
+struct GenArgs;
 
-typedef ModuleDef* (*genfun_t)(NameSpace*,Genargs*);
+typedef ModuleDef* (*genfun_t)(NameSpace*,GenArgs*);
 
 class GeneratorDef : public Instantiable {
+  genargs_t gentypes;
   genfun_t genfun;
   public :
-    GeneratorDef(string name,genfun_t genfun) : Instantiable(GDEF,"",name), genfun(genfun) {}
+    GeneratorDef(string name,genargs_t gentypes,genfun_t genfun) : Instantiable(GDEF,"",name), gentypes(gentypes), genfun(genfun) {}
     virtual ~GeneratorDef() {}
     string toString() const {
       return "GeneratorDef: " + name;
     }
+    genargs_t getGentypes(void) {return gentypes;}
     genfun_t getGenfun(void) {return genfun;}
 };
 
@@ -76,22 +81,10 @@ class ModuleDecl : public Instantiable {
     }
 };
 
-
 typedef std::pair<Wireable*,Wireable*> Wiring ;
-
-// TODO change this to support modules and whatever else is needed
-struct Genargs {
-  Type* type;
-  void* data;
-  Genargs(Type* type);
-  ~Genargs();
-};
-
-
 class ModuleDef : public Instantiable {
   // TODO move these to 'metadata'
   // TODO think of a better name than 'metadata'
-  string verilog;
   simfunctions_t sim;
   
   protected:
@@ -102,6 +95,7 @@ class ModuleDef : public Instantiable {
     SelCache* cache;
 
   public :
+    string verilog; //TODO
     ModuleDef(string name, Type* type,InstantiableEnum e=MDEF);
     virtual ~ModuleDef();
     string toString() const {
@@ -111,12 +105,12 @@ class ModuleDef : public Instantiable {
     SelCache* getCache(void) { return cache;}
     vector<Instance*> getInstances(void) { return instances;}
     vector<Wiring> getWirings(void) { return wirings; }
+    bool hasInstances(void) { return !instances.empty();}
     void print(void);
     void addVerilog(string _v) {verilog = _v;}
     void addSimfunctions(simfunctions_t _s) {sim = _s;}
 
-    // User has control over Genargs
-    virtual Instance* addInstance(string,Instantiable*, Genargs* = nullptr);
+    virtual Instance* addInstance(string,Instantiable*, GenArgs* = nullptr);
     virtual Interface* getInterface(void) {return interface;}
     virtual void wire(Wireable* a, Wireable* b);
     
@@ -155,7 +149,16 @@ class Wireable {
     ~Wireable() {}
     virtual string toString() const=0;
     ModuleDef* getContainer() { return container;}
-    bool isType(WireableEnum e) {return wireableType==e;}
+    bool isType(WireableEnum e) {
+      switch(wireableType) {
+        case IFACE: return e==IFACE;
+        case INST: return e==INST;
+        case SEL: return e==SEL;
+        case TIFACE: return e==TIFACE || e==IFACE;
+        case TINST: return e==TINST || e==INST;
+        case TSEL: return e==TSEL || e==SEL;
+      }
+    }
     bool isTyped() { return isType(TINST) || isType(TSEL) || isType(TIFACE); }
     void ptype() {cout << "Type=" <<wireableEnum2Str(wireableType);}
     
@@ -180,17 +183,17 @@ class Instance : public Wireable {
   string instname;
   Instantiable* instRef;
   
-  Genargs* genargs;
+  GenArgs* genargs;
  
   public :
-    Instance(ModuleDef* container, string instname, Instantiable* instRef,Genargs* genargs =nullptr, WireableEnum e=INST) : Wireable(e,container), instname(instname), instRef(instRef), genargs(genargs) {
+    Instance(ModuleDef* container, string instname, Instantiable* instRef,GenArgs* genargs =nullptr, WireableEnum e=INST) : Wireable(e,container), instname(instname), instRef(instRef), genargs(genargs) {
       wire = new Wire(this);
     }
     virtual ~Instance() {if(genargs) delete genargs; delete wire;}
     string toString() const;
     Instantiable* getInstRef() {return instRef;}
     string getInstname() { return instname; }
-    Genargs* getGenargs() {return genargs;}
+    GenArgs* getGenArgs() {return genargs;}
     void replace(Instantiable* newRef) { instRef = newRef;}
 };
 
@@ -200,8 +203,11 @@ class Select : public  Wireable {
     string selStr;
   public :
     Select(ModuleDef* container, Wireable* parent, string selStr, WireableEnum e=SEL) : Wireable(e,container), parent(parent), selStr(selStr) {
-      wire = new Wire(this);
-      parent->wire->addChild(selStr,wire);
+      //TODO hack
+      if (e==SEL) {
+        wire = new Wire(this);
+        parent->wire->addChild(selStr,wire);
+      }
     }
     virtual ~Select() {delete wire;}
     string toString() const;
@@ -277,7 +283,6 @@ void deleteContext(CoreIRContext* m);
 
 
 /////
-bool Validate(Instantiable* c);
 
 // Int Type functions
 IntType* Int(uint bits, Dir dir);
@@ -301,11 +306,33 @@ void setDirty(dirty_t* d);
 void* allocateFromType(Type* t);
 void deallocateFromType(Type* t, void* d);
 
+class TypedModuleDef;
+
+// Compiling functions.
+// resolve, typecheck, and validate will throw errors (for now)
+
+// This is the linker that resolves the Decl and runs the generators
 // For now resolve mutates m to change every instantiable to a ModuleDef
 void resolve(CoreIRContext* c, ModuleDef* m);
+  
+// This 'typechecks' everything
+  //   Verifies all selects are valid
+  //   Verifies all connections are valid. type <==> FLIP(type)
+  //   Verifies inputs are only connected once
 
-// typecheck does NOt mutate anything. Creates a new graph with TypedWireables
-void compile(CoreIRContext* c, ModuleDef* m);
-class TypedModuleDef;
+typedef map<ModuleDef*,TypedModuleDef*> typechecked_t;
+typechecked_t* typecheck(CoreIRContext* c, ModuleDef* m);
+
+// This generates verilog
+string verilog(TypedModuleDef* tm);
+
+// This verifies that there are no unconnected wires
+void validate(TypedModuleDef* tm);
+
+// Convieniance that runs resolve, typecheck and validate
+// and catches errors;
+void compile(CoreIRContext* c, ModuleDef* m, fstream* f);
+
+
 
 #endif //COREIR_HPP_

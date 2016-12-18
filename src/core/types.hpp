@@ -38,6 +38,7 @@ class BaseType : public Type {
   public :
     BaseType(TypeEnum type, uint n,Dir dir) : Type(type,dir==IN), n(n), dir(dir) {}
     uint numBits(void) {return n;}
+    Dir getDir(void) {return dir;}
     virtual Type* flip(TypeCache*)=0;
 };
 

@@ -103,3 +103,42 @@ Selects are unique and can be checked directly for equality
   void printpretty(); 
   bool isType(...);
 ```
+Dir = In 
+    | Out
+
+Type = Int(number n, Dir d)
+     | Uint(number n, Dir d)
+     | Array(Type t, number len)
+     | Record(Field* fields)
+     | Flip(Type* t)
+
+Field(string str, Type t)
+
+
+Instantiable = ModuleDef(string name, Type t, Wire* wires)
+             | ModuleDecl(string library, string name)
+             | GeneratorDef(string name, function genfun, Genarg* genargs)
+             | GeneratorDecl(string library, string name, Genarg* genargs)
+
+Wireable = Instance(Instantiable kind)
+         | Interface(ModuleDef m)
+         | Select(string sel, Wireable w)
+
+Wire(Wireable a, Wireable b)
+
+
+Genarg = string 
+     | int
+     | ModuleDef 
+     | ModuleDecl
+
+
+Decl = ModuleDecl 
+     | GeneratorDecl
+
+Def = ModuleDef
+    | GeneratorDef
+
+CoreIR(Decl* defs)
+
+Library(Def* defs)
