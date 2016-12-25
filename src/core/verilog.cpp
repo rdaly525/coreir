@@ -81,14 +81,14 @@ void type2VWires(Type* t, string prefix, vector<VWire>* vw) {
     return;
   }
   if (prefix != "") prefix = prefix+"_";
-  if(t->isType(ARRAY)) {
+  if(t->isKind(ARRAY)) {
     ArrayType* ta = (ArrayType*)t;
     for (uint i=0; i<ta->getLen(); i++) {
       string is = to_string(i);
       type2VWires(ta->sel(i),prefix+is,vw);
     }
   }
-  else if(t->isType(RECORD)) {
+  else if(t->isKind(RECORD)) {
     RecordType* tr = (RecordType*)t;
     for (auto selstr : tr->getOrder() ) {
       type2VWires(tr->sel(selstr),prefix+selstr,vw);
@@ -97,15 +97,15 @@ void type2VWires(Type* t, string prefix, vector<VWire>* vw) {
 }
 // return prefixed name. Interface contributes nothing, instance contributes instname
 string getPrefix(Wireable* w,string suffix) {
-  if(w->isType(IFACE)) {
+  if(w->isKind(IFACE)) {
     return suffix;
   }
   if(suffix!="") suffix = "_" + suffix;
-  if(w->isType(SEL)) {
+  if(w->isKind(SEL)) {
     Select* s = (Select*) w;
     return getPrefix(s->getParent(),s->getSelStr() + suffix);
   }
-  else if(w->isType(INST)) {
+  else if(w->isKind(INST)) {
     Instance* i = (Instance*)w;
     return i->getInstname() + suffix;
   }

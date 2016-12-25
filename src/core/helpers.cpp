@@ -13,7 +13,7 @@ bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
 }
 
-string TypeEnum2Str(TypeEnum t) {
+string TypeKind2Str(TypeKind t) {
   switch(t) {
     case INT : return "Int";
     case ARRAY : return "Array";
@@ -23,7 +23,7 @@ string TypeEnum2Str(TypeEnum t) {
 }
 
 //TODO probably a better way of doing this with fancy macros
-string wireableEnum2Str(WireableEnum wb) {
+string wireableKind2Str(WireableKind wb) {
   switch(wb) {
     case IFACE: return "Interface";
     case INST: return "Instance";

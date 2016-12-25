@@ -17,7 +17,7 @@ TypedModuleDef::TypedModuleDef(string name, Type* type) : ModuleDef(name,type,TM
 
 
 Instance* TypedModuleDef::addInstance(string instname,Instantiable* m, GenArgs* g) {
-  if (!m->isType(TMDEF)) {
+  if (!m->isKind(TMDEF)) {
     throw "Can only add a TypedModuleDef instnace";
   }
   TypedModuleDef* tm = (TypedModuleDef*) m;
@@ -132,7 +132,7 @@ void TypedWire::checkWired() {
   //Should have children...
   //Check if all entries of map exist and are wired
   //Have to deal with Records and Arrays differently
-  if(type->isType(RECORD)) {
+  if(type->isKind(RECORD)) {
     //iterate over type record keys
     auto record = ((RecordType*)type)->getRecord();
     for (auto tit : record) {
@@ -159,7 +159,7 @@ void TypedWire::checkWired() {
 Select* selprotoype(TypedModuleDef* container, Wireable* parent, Type* type, string selStr) {
   ostringstream err;
   Type* selType;
-  if (type->isType(RECORD)) {
+  if (type->isKind(RECORD)) {
     selType = ((RecordType*)type)->sel(selStr);
     if (!selType) {
       err << "Bad Select: \'" << selStr << "\' not found" <<endl;
@@ -169,7 +169,7 @@ Select* selprotoype(TypedModuleDef* container, Wireable* parent, Type* type, str
       throw err.str();
     }
   }
-  else if (type->isType(ARRAY)) {
+  else if (type->isKind(ARRAY)) {
     if (!isNumber(selStr)) {
       err << "Bad Select: \'" << selStr << "\' is not a number" << endl;
       err << "  Module: " << *container << endl;

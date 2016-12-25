@@ -16,13 +16,13 @@ class TypeCache;
 
 class Type {
   protected :
-    TypeEnum type;
+    TypeKind kind;
     bool _hasInput;
   public :
-    Type(TypeEnum type, bool _hasInput) : type(type), _hasInput(_hasInput) {}
+    Type(TypeKind kind, bool _hasInput) : kind(kind), _hasInput(_hasInput) {}
     virtual ~Type() {}
-    bool isType(TypeEnum);
-    bool isBase() {return !(isType(RECORD) || isType(ARRAY));}
+    bool isKind(TypeKind);
+    bool isBase() {return !(isKind(RECORD) || isKind(ARRAY));}
     bool hasInput() { return _hasInput;};
     virtual string toString(void) const =0;
     virtual Type* flip(TypeCache*)=0;
@@ -36,7 +36,7 @@ class BaseType : public Type {
     uint n;
     Dir dir;
   public :
-    BaseType(TypeEnum type, uint n,Dir dir) : Type(type,dir==IN), n(n), dir(dir) {}
+    BaseType(TypeKind kind, uint n,Dir dir) : Type(kind,dir==IN), n(n), dir(dir) {}
     uint numBits(void) {return n;}
     Dir getDir(void) {return dir;}
     virtual Type* flip(TypeCache*)=0;

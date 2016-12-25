@@ -1,25 +1,56 @@
-## Types 
+## Algebraic structure definition
+```
+Dir = In 
+    | Out
+    // NYI | Inout
+
+Type = IntType(uint bits, Dir dir)
+     | ArrayType(Type baseType, uint len)
+     | RecordType( (string sel,Type type)* args)
+     //NYI | NamedType(string name, Type t, Dir dir)
+
+Instantiable = ModuleDef(string name, Type t, Wireing* wireings)
+             | ModuleDecl(string library, string name)
+             | GeneratorDef(string name, function genfun, genarg_t* argtypes)
+             | GeneratorDecl(string library, string name)
+
+Wireable =  Interface(ModuleDef container)
+          | Instance(ModuleDef container, string instname, Instantiable def)
+          | Select(Wireable w, string s)
+
+Wireing(Wireable a, Wireable b)
+
+genarg_t = string
+         | int
+         | ModuleDef
+          //NYI | Type
+
+GenArg = GenString(string s)
+       | GenInt(int i)
+       | GenMod(ModuleDef mod)
+       // NYI | GenType(Type t)
+
+GenArgs(genarg_t* argtypes, GenArg* args)
 
 ```
-typedef uint uint32_t;
-typedef enum {In,Out} Dir;
 
-Type = UintType(uint bits, Dir dir)
-     | IntType(uint bits, Dir dir)
-     | FloatType(uint ebits, uint mbits, Dir dir)
-     | BoolType(Dir dir)
-     | ArrayType(Type baseType, uint len)
-     | RecordType(pair<string sel,Type type>* args)
+## Types 
+```
+Example of a Ready-valid handshake type.
+
+Type* rv = Record({
+  {'data',Int(32,Out)},
+  {'valid',Int(1,Out)},
+  {'ready',Int(1,In)}
+});
+
 ```
 
 
 ## C++ Type Constructors
 
 ```
-  UintType* Uint(uint bits, Dir dir);
   IntType* Int(uint bits, Dir dir);
-  FloatType* Float(uint ebits, uint mbits, Dir dir);
-  BoolType* Bool(Dir dir);
   ArrayType* Array(Type* baseType, uint len);
   RecordType* Record(map<string,Type*> recordParams);
   RecordType* AddField(RecordType* record, string key, Type* val);
@@ -29,116 +60,55 @@ Type = UintType(uint bits, Dir dir)
 
 Note: All Types are unique regardless of construction, so they can be checked directly for equality.
 
-## Circuits
+## Instantiables
 ```
-Circuit = Module
-        | Primitive
+Instantiable = ModuleDef(string name, Type t, Wireing* wireings)
+             | ModuleDecl(string library, string name)
+             | GeneratorDef(string name, function genfun, genarg_t* argtypes)
+             | GeneratorDecl(string library, string name)
+
 ```
-**Circuit:** Black box representing hardware that can be instantiated
 
-**Module:** A circuit which contains instantiations and connections of other circuits
+**Instantaibles** are circuits that can be instantiated within a module.
 
-**Primitive:** a 'leaf' circuit containing now interior instantiations
+**ModuleDef:** Defintion of a Module/circuit. This is a graph descritpion of Instantiables (nodes) and how everything is wired together (edges)  
+**ModuleDecl:** Declaration of a Module. Does not need a definition. Will resolve to a definition in linking.  
+**GeneratorDef:** Definition of a generator. has a function of type: ModuleDef* (fun*)(NameSpace*,GenArgs*). This function will generate a new ModuleDef when given GenArgs.  
+**GeneratorDecl:** Declaration of a generator. Does not need a definition, will resolve to a definition in linking.
+
+
 
 ##Wireables
 ```
-Wireable =  Interface 
-          | Instance
-          | Select
+Wireable =  Interface(ModuleDef container)
+          | Instance(ModuleDef container, string instname, Instantiable def)
+          | Select(Wireable w, string s)
+
+Wireing(Wireable a, Wireable b)
 ```
-**Wireable:** A group of wires (represented by a Type) which resides within a Module
 
-**Interface:** A Wireable representing the interface to the module from the *inside* perspective of the Module. The Interface Type is equal to the flip of the Module type.
+**Wireable:** A group of wires which resides within a Module
 
-**Instance:** A Wireable representing the instantiation of a module within a module.
-
-**Select:** A Wireable which is the record (or Array) selected subgroup of wires from a Wireable.
-
+**Interface:** A Wireable representing the interface to the module from the *inside* perspective of the Module. The Interface Type will be equal to the flip of the Module type.  
+**Instance:** A Wireable representing the instantiation of an Instantiable within a moduleDef.  
+**Select:** A Wireable which is the record (or Array) selected subgroup of wires from a Wireable.  
+**Wiring:** Connection two wireables together. The types of these wireables should be opposite. a.type == Flip(b.type)
 
 
 Module creation
 ---------------
 ```
-class MagmaIR {
-  Module* newModule(stirng name, Type* type);
-  Primitive* newPrimitive(string name, Type* type);
+class NameSpace
+  void addModuleDef(ModuleDef* mod);
+  void addGeneratorDef(GeneratorDef* gen);
 
-class Module {
-  Instance* newInstance(string name, Circuit* circuitType);
-  Interface* getInterface();
-}
-
-class Wireable {
-  Select* sel(string key);
-  Select* sel(uint idx);
-}
-
-MagmaIR* newMagmaIR();
-void deleteMagmaIR(MagmaIR* m);
+class CoreIR 
+  NameSpace registerLib(string libname);
+  void addModuleDecl(ModuleDecl* mod);
+  void addGeneratorDecl(GeneratorDecl* gen);
 ```
-
-##Connecting Wireables
-
-```  
-void Connect(Wireable* a, Wireable* b);
-```
-Connect two Wireables together.
-a and b *need* to both be within the same Module. Also a's type needs to be the flip of b's type.
 
 
 ##Example (TODO)
 
-##TODO
-TODO NotDepend(PrimitiveWire* a, PrimitiveWire* b); can build fast simulator with this info
-//TODO potentially annotate black boxes with dependency graph of inputs to outputs in order to do fast simulate
-
-That is it for the creation of the IR!
-Selects are unique and can be checked directly for equality
-
-//Other useful functions (TODO expand)
-
-```
-  Type* type(Wireable* wb);
-  Type* type(Module m);
-  void printpretty(); 
-  bool isType(...);
-```
-Dir = In 
-    | Out
-
-Type = Int(number n, Dir d)
-     | Uint(number n, Dir d)
-     | Array(Type t, number len)
-     | Record(Field* fields)
-     | Flip(Type* t)
-
-Field(string str, Type t)
-
-
-Instantiable = ModuleDef(string name, Type t, Wire* wires)
-             | ModuleDecl(string library, string name)
-             | GeneratorDef(string name, function genfun, Genarg* genargs)
-             | GeneratorDecl(string library, string name, Genarg* genargs)
-
-Wireable = Instance(Instantiable kind)
-         | Interface(ModuleDef m)
-         | Select(string sel, Wireable w)
-
-Wire(Wireable a, Wireable b)
-
-
-Genarg = string 
-     | int
-     | ModuleDef 
-     | ModuleDecl
-
-
-Decl = ModuleDecl 
-     | GeneratorDecl
-
-Def = ModuleDef
-    | GeneratorDef
-
-CoreIR(Decl* defs)
-
-Library(Def* defs)
+##Other useful functions (TODO expand)

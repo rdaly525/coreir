@@ -68,15 +68,15 @@ void resolveRec(CoreIRContext* c, ModuleDef* m, resolved_t* resolved) {
     Instantiable* instRef = inst->getInstRef();
     ModuleDef* modDef;
     string nameSpace = instRef->getNameSpaceStr();
-    if (instRef->isType(MDEF) ) {
+    if (instRef->isKind(MDEF) ) {
       modDef = (ModuleDef*) instRef;
     }
-    else if (instRef->isType(MDEC) ) {
+    else if (instRef->isKind(MDEC) ) {
       NameSpace* n = c->nameSpaceLookup(nameSpace);
       modDef = n->moduleDefLookup(instRef->getName());
       inst->replace(modDef);
     }
-    else if (instRef->isType(GDEC) ) {
+    else if (instRef->isKind(GDEC) ) {
       NameSpace* n = c->nameSpaceLookup(nameSpace);
       GeneratorDef* genDef = n->generatorDefLookup(instRef->getName());
       //Generate the module in the global namespace
@@ -105,11 +105,11 @@ Wireable* getTypedWireable(Wireable* w,wired_t* wired) {
   if (wired->find(w) != wired->end()) {
     return wired->find(w)->second;
   }
-  assert(w->isType(SEL)); //Should be Select type
+  assert(w->isKind(SEL)); //Should be Select type
   Select* sw = (Select*) w;
   Wireable* parent = getTypedWireable(sw->getParent(),wired);
   Select* ret = parent->sel(sw->getSelStr());
-  assert(ret->isType(TSEL)); // Should be Typed Select
+  assert(ret->isKind(TSEL)); // Should be Typed Select
   wired->emplace(sw,ret);
   return ret;
 }
@@ -128,7 +128,7 @@ TypedModuleDef* typecheckRec(CoreIRContext* c, ModuleDef* m, typechecked_t* type
   wired->emplace(m->getInterface(),tm->getInterface());
   for (auto inst : m->getInstances()) {
     Instantiable* iref = inst->getInstRef();
-    if (!iref->isType(MDEF)) {
+    if (!iref->isKind(MDEF)) {
       throw "Inst " + inst->toString() + "Is not a ModuleDef!\n  Can only typecheck resolved generator/modules";
     }
     ModuleDef* mref = (ModuleDef*) iref;

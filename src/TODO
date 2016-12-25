@@ -1,14 +1,10 @@
 TODO
 The initializing of Typedcoreir modules is so hacky. I am calling base class constructor then deleting the new'd thing, then newing my own thing.
 
-TODO
-Should Genargs be stored in the instance or the Generator classes
-
 Change isType to isKind. in general change type->kind
 
-TODO Type::sel. What should it do for a bad select?
 
-TODO Memory leaking in the 'wire' within all insantiables. Typed wire is overwriting wire (probably)
+TODO Type::sel. What should it do for a bad select?
 
 Module:
   Data ->
@@ -19,6 +15,7 @@ Module:
   Circuit stuff
 
 Verilog creation/lowering
+
 
 
 Primitives TODO:

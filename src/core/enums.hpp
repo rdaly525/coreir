@@ -12,10 +12,10 @@ using namespace std;
 typedef uint32_t uint;
 
 typedef enum {IN,OUT} Dir;
-typedef enum {INT,ARRAY,RECORD} TypeEnum;
-typedef enum {IFACE,INST,SEL,TIFACE,TINST,TSEL} WireableEnum;
-typedef enum {MDEF,MDEC,GDEC,GDEF,TMDEF} InstantiableEnum;
-typedef enum {GSTRING,GINT,GMOD} genargEnum;
+typedef enum {INT,ARRAY,RECORD} TypeKind;
+typedef enum {IFACE,INST,SEL,TIFACE,TINST,TSEL} WireableKind;
+typedef enum {MDEF,MDEC,GDEC,GDEF,TMDEF} InstantiableKind;
+typedef enum {GSTRING,GINT,GMOD} genargKind;
 
 struct GenArgs;
 struct simfunctions_t {
@@ -30,8 +30,8 @@ struct simfunctions_t {
 
 //These are defined in helpers
 bool isNumber(string s);
-string TypeEnum2Str(TypeEnum t);
-string wireableEnum2Str(WireableEnum wb);
+string TypeKind2Str(TypeKind t);
+string wireableKind2Str(WireableKind wb);
 
 class Type;
 class Wire;

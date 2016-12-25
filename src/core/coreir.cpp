@@ -19,7 +19,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-ModuleDef::ModuleDef(string name, Type* type,InstantiableEnum e) : Instantiable(e,"",name), type(type), verilog("") {
+ModuleDef::ModuleDef(string name, Type* type,InstantiableKind e) : Instantiable(e,"",name), type(type), verilog("") {
   interface = new Interface(this);
   cache = new SelCache();
 }

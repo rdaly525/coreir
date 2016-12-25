@@ -18,14 +18,14 @@ ostream& operator<<(ostream& os, const Type& t) {
 //TODO This should be done in a better way
 string Dir2Str(Dir d) { if(d==IN) return "In"; else return "Out";}
 
-bool Type::isType(TypeEnum t) {
-  return t==type;
+bool Type::isKind(TypeKind t) {
+  return t==kind;
 }
 
 void Type::print(void) { cout << "Type: " << (*this) << endl; }
 
 string IntType::toString(void) const { 
-  return Dir2Str(dir) + " " + TypeEnum2Str(this->type) + to_string(n);
+  return Dir2Str(dir) + " " + TypeKind2Str(this->kind) + to_string(n);
 }
 
 Type* IntType::flip(TypeCache* tc) {
@@ -33,7 +33,7 @@ Type* IntType::flip(TypeCache* tc) {
 }
 
 string ArrayType::toString(void) const { 
-  return TypeEnum2Str(this->type) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
+  return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
 }
 
 Type* ArrayType::flip(TypeCache* tc) { 
@@ -82,7 +82,7 @@ Type* RecordType::sel(string a) {
     return nullptr;  
     //cout << "ERROR: Bad select field\n";
     //cout << "  sel: " << a << "\n";
-    //cout << "  type: " << (*this) << "\n";
+    //cout << "  kind: " << (*this) << "\n";
     //exit(0);
   }
 }

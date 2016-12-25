@@ -8,8 +8,8 @@
 //        | ModuleDef
 
 struct GenArg {
-  genargEnum kind;
-  GenArg(genargEnum kind) : kind(kind) {}
+  genargKind kind;
+  GenArg(genargKind kind) : kind(kind) {}
 };
 
 struct GenString : GenArg {
@@ -30,7 +30,7 @@ struct GenMod : GenArg {
 
 //Probably should add in the ability to pass in a type
 
-typedef vector<genargEnum> genargs_t;
+typedef vector<genargKind> genargs_t;
 struct GenArgs {
   genargs_t argtypes;
   vector<GenArg*> args;

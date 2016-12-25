@@ -26,16 +26,16 @@ class Select;
 
 class Instantiable {
   protected:
-    InstantiableEnum instantiableType;
+    InstantiableKind kind;
     string nameSpace;
     string name;
   public :
-    Instantiable(InstantiableEnum instantiableType, string nameSpace, string name) : instantiableType(instantiableType), nameSpace(nameSpace), name(name) {}
+    Instantiable(InstantiableKind kind, string nameSpace, string name) : kind(kind), nameSpace(nameSpace), name(name) {}
     virtual ~Instantiable() {};
     virtual string toString() const =0;
     string getName() { return name;}
     string getNameSpaceStr() { return nameSpace;}
-    bool isType(InstantiableEnum t) {return instantiableType==t;}
+    bool isKind(InstantiableKind t) {return kind==t;}
 };
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
@@ -96,7 +96,7 @@ class ModuleDef : public Instantiable {
 
   public :
     string verilog; //TODO
-    ModuleDef(string name, Type* type,InstantiableEnum e=MDEF);
+    ModuleDef(string name, Type* type,InstantiableKind e=MDEF);
     virtual ~ModuleDef();
     string toString() const {
       return name;
@@ -141,16 +141,16 @@ class Wire {
 
 class Wireable {
   protected :
-    WireableEnum wireableType;
+    WireableKind kind;
     ModuleDef* container; // ModuleDef which it is contained in 
   public :
     Wire* wire;
-    Wireable(WireableEnum wireableType, ModuleDef* container, Wire* wire=nullptr) : wireableType(wireableType),  container(container), wire(wire) {}
+    Wireable(WireableKind kind, ModuleDef* container, Wire* wire=nullptr) : kind(kind),  container(container), wire(wire) {}
     ~Wireable() {}
     virtual string toString() const=0;
     ModuleDef* getContainer() { return container;}
-    bool isType(WireableEnum e) {
-      switch(wireableType) {
+    bool isKind(WireableKind e) {
+      switch(kind) {
         case IFACE: return e==IFACE;
         case INST: return e==INST;
         case SEL: return e==SEL;
@@ -159,8 +159,8 @@ class Wireable {
         case TSEL: return e==TSEL || e==SEL;
       }
     }
-    bool isTyped() { return isType(TINST) || isType(TSEL) || isType(TIFACE); }
-    void ptype() {cout << "Type=" <<wireableEnum2Str(wireableType);}
+    bool isTyped() { return isKind(TINST) || isKind(TSEL) || isKind(TIFACE); }
+    void ptype() {cout << "Type=" <<wireableKind2Str(kind);}
     
     virtual Select* sel(string);
     Select* sel(uint);
@@ -171,7 +171,7 @@ ostream& operator<<(ostream&, const Wireable&);
 
 class Interface : public Wireable {
   public :
-    Interface(ModuleDef* container,WireableEnum e=IFACE) : Wireable(e,container) { 
+    Interface(ModuleDef* container,WireableKind e=IFACE) : Wireable(e,container) { 
       wire = new Wire(this);
     }
     virtual ~Interface() {delete wire;}
@@ -186,7 +186,7 @@ class Instance : public Wireable {
   GenArgs* genargs;
  
   public :
-    Instance(ModuleDef* container, string instname, Instantiable* instRef,GenArgs* genargs =nullptr, WireableEnum e=INST) : Wireable(e,container), instname(instname), instRef(instRef), genargs(genargs) {
+    Instance(ModuleDef* container, string instname, Instantiable* instRef,GenArgs* genargs =nullptr, WireableKind e=INST) : Wireable(e,container), instname(instname), instRef(instRef), genargs(genargs) {
       wire = new Wire(this);
     }
     virtual ~Instance() {if(genargs) delete genargs; delete wire;}
@@ -202,7 +202,7 @@ class Select : public  Wireable {
     Wireable* parent;
     string selStr;
   public :
-    Select(ModuleDef* container, Wireable* parent, string selStr, WireableEnum e=SEL) : Wireable(e,container), parent(parent), selStr(selStr) {
+    Select(ModuleDef* container, Wireable* parent, string selStr, WireableKind e=SEL) : Wireable(e,container), parent(parent), selStr(selStr) {
       //TODO hack
       if (e==SEL) {
         wire = new Wire(this);

@@ -26,7 +26,7 @@ RecordType* Record(vector<std::pair<string,Type*>> record) {
 }
 
 Type* Sel(Type* record, string key) {
-  if(!record->isType(RECORD)) {
+  if(!record->isKind(RECORD)) {
     cout << "ERROR: Can only Sel on a record\n";
     cout << "  Type: " << record << "\n";
   }
@@ -52,7 +52,7 @@ void* allocateFromType(Type* t) {
       throw "FUCK";
     }
   }
-  else if (t->isType(ARRAY)) {
+  else if (t->isKind(ARRAY)) {
     ArrayType* a = (ArrayType*)t;
     d = (void**) malloc(a->getLen()*sizeof(void*));
     void** d_array = (void**) d;
@@ -60,7 +60,7 @@ void* allocateFromType(Type* t) {
       d_array[i] = allocateFromType(a->getElemType());
     }
   }
-  else if (t->isType(RECORD)) {
+  else if (t->isKind(RECORD)) {
     RecordType* r = (RecordType*)t;
     vector<string> order = r->getOrder();
     d = (void**) malloc(order.size()*sizeof(void*));
@@ -81,7 +81,7 @@ void deallocateFromType(Type* t, void* d) {
   if (t->isBase()) {
     free(d);
   }
-  else if (t->isType(ARRAY)) {
+  else if (t->isKind(ARRAY)) {
     ArrayType* a = (ArrayType*)t;
     void** d_array = (void**) d;
     for(uint i=0; i<a->getLen(); ++i) {
@@ -89,7 +89,7 @@ void deallocateFromType(Type* t, void* d) {
     }
     free(d_array);
   }
-  else if (t->isType(RECORD)) {
+  else if (t->isKind(RECORD)) {
     RecordType* r = (RecordType*)t;
     vector<string> order = r->getOrder();
     void** d_array = (void**) d;
