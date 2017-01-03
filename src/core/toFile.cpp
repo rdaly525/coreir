@@ -72,10 +72,10 @@ void toFile(FILE *out, Instantiable* c, set<string>& processed) {
     // TODO add uniquifier to the name?
     fprintf(out, "{\"kind\": \"mdef\", \"name\": \"%s\",\n\"type\": ", c->getQualifiedName().c_str());
     emitTypeJSON(out, m->getType());
-    fprintf(out, ",\n\"modules\": [\n");
+    fprintf(out, ",\n\"instances\": [\n");
     for (vector<Instance*>::iterator it = instances.begin(); it != instances.end(); it++) {
       Instantiable *inst = (*it)->getInstRef();
-      fprintf(out, "{\"name\": \"%s\"", (inst->getQualifiedName() + " " + (*it)->getInstname()).c_str());
+      fprintf(out, "{\"module\": \"%s\", \"name\": \"%s\"", inst->getQualifiedName().c_str(), (*it)->getInstname().c_str());
       if ((*it)->getGenArgs() != nullptr) {
 	fprintf(out, ", \"genargs\": [");
 	vector<GenArg*> args = (*it)->getGenArgs()->args;
