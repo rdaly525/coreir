@@ -8,6 +8,7 @@
 //        | ModuleDef
 
 struct GenArg {
+  virtual ~GenArg() {}
   genargKind kind;
   GenArg(genargKind kind) : kind(kind) {}
 };

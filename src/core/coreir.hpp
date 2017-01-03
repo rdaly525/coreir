@@ -35,6 +35,7 @@ class Instantiable {
     virtual string toString() const =0;
     string getName() { return name;}
     string getNameSpaceStr() { return nameSpace;}
+    string getQualifiedName() { return (nameSpace.empty() ? "this" : nameSpace)  + "." + name; }
     bool isKind(InstantiableKind t) {return kind==t;}
 };
 
@@ -159,6 +160,7 @@ class Wireable {
         case TSEL: return e==TSEL || e==SEL;
       }
     }
+    WireableKind getKind() { return kind ; }
     bool isTyped() { return isKind(TINST) || isKind(TSEL) || isKind(TIFACE); }
     void ptype() {cout << "Type=" <<wireableKind2Str(kind);}
     
