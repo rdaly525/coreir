@@ -1,4 +1,5 @@
 #include "coreir.hpp"
+#include "toFile.hpp"
 //#include <string>
 
 #include <fstream>
@@ -34,6 +35,9 @@ int main() {
   //Add Def to global
   c->getGlobal()->addModuleDef(add4);
     
+  // emit this circuit as a file
+  toFileMain(add4, "add4.core");
+
   //Link stdprim library
   NameSpace* prims = registerStdPrims(c,"stdprims");
   prims->print();
