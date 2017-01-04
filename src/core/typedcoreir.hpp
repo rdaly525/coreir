@@ -45,7 +45,6 @@ class TypedWire : public Wire {
 class TypedInterface : public Interface {
   public :
     TypedInterface(ModuleDef* container, Type* type) : Interface(container,TIFACE) {
-      delete wire;
       wire = new TypedWire(type,this);
     }
     ~TypedInterface() {}
@@ -56,7 +55,6 @@ class TypedInterface : public Interface {
 class TypedInstance : public Instance {
   public :
     TypedInstance(ModuleDef* container, Type* type, string instname, TypedModuleDef* tmodRef) : Instance(container, instname,tmodRef,nullptr,TINST) {
-      delete wire;
       wire = new TypedWire(type,this);
     }
     ~TypedInstance() {}

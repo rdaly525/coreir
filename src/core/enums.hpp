@@ -16,6 +16,7 @@ typedef enum {INT,ARRAY,RECORD} TypeKind;
 typedef enum {IFACE,INST,SEL,TIFACE,TINST,TSEL} WireableKind;
 typedef enum {MDEF,MDEC,GDEC,GDEF,TMDEF} InstantiableKind;
 typedef enum {GSTRING,GINT,GMOD} genargKind;
+typedef enum {VERILOG,SIMULATOR} MetadataKind;
 
 struct GenArgs;
 struct simfunctions_t {

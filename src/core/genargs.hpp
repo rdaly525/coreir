@@ -28,8 +28,6 @@ struct GenMod : GenArg {
   GenMod(ModuleDef* mod) : GenArg(GMOD), mod(mod) {}
 };
 
-//Probably should add in the ability to pass in a type
-
 typedef vector<genargKind> genargs_t;
 struct GenArgs {
   genargs_t argtypes;

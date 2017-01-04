@@ -172,7 +172,7 @@ ostream& operator<<(ostream&, const Wireable&);
 class Interface : public Wireable {
   public :
     Interface(ModuleDef* container,WireableKind e=IFACE) : Wireable(e,container) { 
-      wire = new Wire(this);
+      if (e==IFACE) wire = new Wire(this);
     }
     virtual ~Interface() {delete wire;}
     string toString() const;
@@ -187,7 +187,7 @@ class Instance : public Wireable {
  
   public :
     Instance(ModuleDef* container, string instname, Instantiable* instRef,GenArgs* genargs =nullptr, WireableKind e=INST) : Wireable(e,container), instname(instname), instRef(instRef), genargs(genargs) {
-      wire = new Wire(this);
+      if (e==INST) wire = new Wire(this);
     }
     virtual ~Instance() {if(genargs) delete genargs; delete wire;}
     string toString() const;

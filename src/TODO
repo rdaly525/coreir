@@ -1,11 +1,17 @@
-TODO
-The initializing of Typedcoreir modules is so hacky. I am calling base class constructor then deleting the new'd thing, then newing my own thing.
+Named types
+  Type = Bit(Dir d=Out)
+       | Named(string name,Type raw,Dir d=Out)
+       | Array(Type,int len)
+       | Record( (string,Type)* args)
 
-Change isType to isKind. in general change type->kind
+Int
+
+
 
 
 TODO Type::sel. What should it do for a bad select?
 
+//Adding Metadata
 Module:
   Data ->
     Verilog
@@ -15,7 +21,6 @@ Module:
   Circuit stuff
 
 Verilog creation/lowering
-
 
 
 Primitives TODO:
