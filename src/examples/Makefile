@@ -10,7 +10,7 @@ all: add4.run
 clean:
 	$(MAKE) -C ../core clean
 	$(MAKE) -C ../libs clean
-	-@rm -rf *.o *.run*
+	-@rm -rf *.o *.run* *.core
 
 
 #$(LIBS) -lcoreir -lstdprims

@@ -13,7 +13,7 @@ int main() {
   Instantiable* add2 = c->declareMod("stdprims","add2_"+to_string(n));
 
   // Define Add4 Module
-  Type* add4Type = Record({{"in",Array(Int(n,IN),4)},{"out",Int(n,OUT)}});
+  Type* add4Type = Record({{"in",Array(In(Int(n)),4)},{"out",Int(n)}});
   ModuleDef* add4 = new ModuleDef("Add4",add4Type);
     Wireable* iface = add4->getInterface();
     Wireable* add_00 = add4->addInstance("add00",add2);
@@ -41,6 +41,7 @@ int main() {
   //Link stdprim library
   NameSpace* prims = registerStdPrims(c,"stdprims");
   prims->print();
+  
   fstream f;
   f.open("add4.v",fstream::out);
   assert(f.is_open());

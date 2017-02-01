@@ -148,8 +148,6 @@ void runModuleGensRec(CoreIRContext* c, ModuleDef* m, resolved_t* resolved) {
   cout << "  Finished Resolving: " << m->toString() << endl;
 }
 
-
-
 TypedModuleDef* typecheckRec(CoreIRContext* c, ModuleDef* m, typechecked_t* typechecked);
 typechecked_t* typecheck(CoreIRContext* c, ModuleDef* m) {
   cout << "Typechecking" << endl;

@@ -1,12 +1,14 @@
-Named types
-  Type = Bit(Dir d=Out)
-       | Named(string name,Type raw,Dir d=Out)
-       | Array(Type,int len)
-       | Record( (string,Type)* args)
+TODO
+For compiler, Always return new ModuleDef. Do not mutate it
 
-Int
+Error handling
+Maybe Error and warning system instead of just throwing errors?
+
+in toFile, Change Type.Type to Type.Kind
 
 
+Type system overhaul.
+///////////////////////////////////////
 
 
 TODO Type::sel. What should it do for a bad select?
@@ -20,12 +22,8 @@ Module:
     OtherData
   Circuit stuff
 
-Verilog creation/lowering
-
-
 Primitives TODO:
 -Add generators for constants
 -And all other normal primitives
 
-
-TODO Possibly should check for cases of modules instantiated in its own module; "recursion"
+Possibly should check for cases of modules instantiated in its own module. We dont want module "recursion"

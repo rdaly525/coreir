@@ -34,8 +34,8 @@ ModuleDef* add2(NameSpace* ns, GenArgs* genargs) {
 
 NameSpace* registerStdPrims(CoreIRContext* c, string nameSpace) {
   NameSpace* l = c->registerLib(nameSpace);
-  l->addGeneratorDef(new GeneratorDef("add2",genargs_t({GINT}),add2));
-  l->addGeneratorDef(new GeneratorDef("binop",genargs_t({GINT,GSTRING,GSTRING}),binop));
+  l->addModuleGenDef(new ModuleGenDef("add2",genargs_t({GINT}),add2));
+  l->addModuleGenDef(new ModuleGenDef("binop",genargs_t({GINT,GSTRING,GSTRING}),binop));
   
   
   int n = 32;
