@@ -42,14 +42,14 @@ class Instantiable {
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
 
-class ModuleGenDecl : public Instantiable {
+class GeneratorDecl : public Instantiable {
   
   public :
     
-    ModuleGenDecl(string nameSpace,string name) : Instantiable(GDEC,nameSpace,name) {}
-    virtual ~ModuleGenDecl() {}
+    GeneratorDecl(string nameSpace,string name) : Instantiable(GDEC,nameSpace,name) {}
+    virtual ~GeneratorDecl() {}
     string toString() const {
-      return "ModuleGenDecl: Namespace:"+nameSpace+" name:"+name;
+      return "GeneratorDecl: Namespace:"+nameSpace+" name:"+name;
     }
 
 };
@@ -60,14 +60,14 @@ struct GenArgs;
 
 typedef ModuleDef* (*genfun_t)(NameSpace*,GenArgs*);
 
-class ModuleGenDef : public Instantiable {
+class GeneratorDef : public Instantiable {
   genargs_t gentypes;
   genfun_t genfun;
   public :
-    ModuleGenDef(string name,genargs_t gentypes,genfun_t genfun) : Instantiable(GDEF,"",name), gentypes(gentypes), genfun(genfun) {}
-    virtual ~ModuleGenDef() {}
+    GeneratorDef(string name,genargs_t gentypes,genfun_t genfun) : Instantiable(GDEF,"",name), gentypes(gentypes), genfun(genfun) {}
+    virtual ~GeneratorDef() {}
     string toString() const {
-      return "ModuleGenDef: " + name;
+      return "GeneratorDef: " + name;
     }
     genargs_t getGentypes(void) {return gentypes;}
     genfun_t getGenfun(void) {return genfun;}
@@ -85,9 +85,6 @@ class ModuleDecl : public Instantiable {
 
 typedef std::pair<Wireable*,Wireable*> Wiring ;
 class ModuleDef : public Instantiable {
-  // TODO move these to 'metadata'
-  // TODO think of a better name than 'metadata'
-  simfunctions_t sim;
   
   protected:
     Type* type;
@@ -122,6 +119,7 @@ class ModuleDef : public Instantiable {
 class Wireable;
 class Wire {
   protected :
+    
     Wireable* from; // This thing is passive. so it is unused
     vector<Wire*> wirings; 
     Wire* parent;
@@ -145,6 +143,7 @@ class Wireable {
   protected :
     WireableKind kind;
     ModuleDef* container; // ModuleDef which it is contained in 
+    Type* type;
   public :
     Wire* wire;
     Wireable(WireableKind kind, ModuleDef* container, Wire* wire=nullptr) : kind(kind),  container(container), wire(wire) {}
@@ -231,72 +230,6 @@ class SelCache {
     TypedSelect* newTypedSelect(ModuleDef* container, Wireable* parent, Type* type, string selStr);
 };
 
-class CoreIRContext;
-class NameSpace {
-  string nameSpace;
-  map<string,ModuleDef*> modList;
-  map<string,ModuleGenDef*> modGenList;
-  public :
-    NameSpace(string nameSpace) : nameSpace(nameSpace) {}
-    ~NameSpace();
-    string getName() { return nameSpace;}
-    
-    ModuleDef* moduleDefLookup(string name);
-    ModuleGenDef* moduleGenDefLookup(string name);
-    
-    // Note: These will take control over managing the pointers
-    void addModuleDef(ModuleDef* m);
-    void addModuleGenDef(ModuleGenDef* g);
-    
-    void print() {
-      cout << "NameSpace: " << nameSpace << endl;
-      cout << "  ModuleDefs:" << endl;
-      for (auto it : modList) cout << "    " << it.second->toString() <<endl;
-      cout << "  ModuleGenDefs:" << endl;
-      for (auto it : modGenList) cout << "    " << it.second->toString() <<endl;
-      cout << endl;
-    }
-
-};
-
-
-class CoreIRContext {
-  NameSpace* global;
-  map<string,NameSpace*> libs;
-  vector<Instantiable*> opaques;
-  public :
-    CoreIRContext();
-    ~CoreIRContext();
-    NameSpace* getGlobal() {return global;}
-    NameSpace* registerLib(string name);
-    NameSpace* nameSpaceLookup(string name);
-    ModuleDecl* declareMod(string nameSpace, string name);
-    ModuleGenDecl* declareGen(string nameSpace,string name);
-};
-
-CoreIRContext* newContext();
-void deleteContext(CoreIRContext* m);
-
-
-/////
-// Int Type functions
-IntType* Int(uint bits, Dir dir=OUT);
-//Type* Float(uint ebits, uint mbits, Dir dir);
-//Type* Bool(Dir dir);
-ArrayType* Array(Type* elemType, uint len);
-RecordType* Record(recordparam_t record);
-Type* Sel(Type* record, string key);
-
-// These two are the same
-Type* Flip(Type*);
-Type* In(Type*);
-
-typedef struct dirty_t {
-  uint8_t dirty;
-} dirty_t;
-
-uint8_t isDirty(dirty_t* d);
-void setDirty(dirty_t* d);
 
 void* allocateFromType(Type* t);
 void deallocateFromType(Type* t, void* d);
@@ -315,7 +248,7 @@ void resolve(CoreIRContext* c, ModuleDef* m);
 void resolveDecls(CoreIRContext* c, ModuleDef* m);
 
 //Only runs the moduleGens
-void runModuleGens(CoreIRContext* c, ModuleDef* m);
+void runGenerators(CoreIRContext* c, ModuleDef* m);
 
 
 

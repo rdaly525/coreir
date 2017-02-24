@@ -2,28 +2,52 @@
 #define TYPECACHE_HPP_
 
 #include <map>
-#include "enums.hpp"
 #include "types.hpp"
+#include "enums.hpp"
+#include "context.hpp"
+
 using namespace std;
-class Type;
-class IntType;
-class ArrayType;
-class RecordType;
 
+typedef std::pair<uint,Type*> ArrayParams ;
+//RecordParams defined in types.hpp
+//typedef std::pair<TypeGen*,GenArgs*> TypeGenParams;
 
-typedef std::pair<uint32_t,Dir> IntTypeParams ;
-typedef std::pair<Type*,uint32_t> ArrayTypeParams ;
-typedef vector<std::pair<string,Type*>> RecordTypeParams ;
+//TODO this could actually be super slow
+// TODO this is not actually working
 
+struct TypeGenParams {
+  TypeGen* tgd;
+  GenArgs* ga;
+  TypeGenParams(TypeGen* tgd, GenArgs* ga) : tgd(tgd), ga(ga) {}
+  friend bool operator==(TypeGenParams & l,TypeGenParams & r) {
+    cout << "Checking TypeGenParams\n";
+    return (l.tgd==r.tgd) && (*l.ga == *r.ga);
+  }
+  friend bool operator!=(TypeGenParams & l,TypeGenParams & r) { return !(l == r); }
+  friend bool operator<(TypeGenParams a, TypeGenParams b) {
+    if (a.tgd != b.tgd) return a.tgd < b.tgd;
+    return *(a.ga) < *(b.ga);
+  }
+};
+
+class CoreIRContext;
 class TypeCache {
-  map<IntTypeParams,IntType*> IntTypeCache;
-  map<ArrayTypeParams,ArrayType*> ArrayTypeCache;
-  map<RecordTypeParams,RecordType*> RecordTypeCache;
+  CoreIRContext* c;
+  Type* bitI;
+  Type* bitO;
+  Type* any;
+  map<ArrayParams,Type*> ArrayCache;
+  map<RecordParams,Type*> RecordCache;
+  map<TypeGenParams,Type*> TypeGenCache;
+  //TODO TypeGenCache
   public :
-    TypeCache() {}
+    TypeCache(CoreIRContext* c); 
     ~TypeCache();
-    IntType* newInt(uint32_t n, Dir dir);
-    ArrayType* newArray(Type* base, uint32_t len);
-    RecordType* newRecord(RecordTypeParams params);
+    Type* newAny() { return any; }
+    Type* newBitIn() { return bitI; }
+    Type* newBitOut() { return bitO; }
+    Type* newArray(uint32_t len, Type* t);
+    Type* newRecord(RecordParams params);
+    Type* newTypeGenInst(TypeGen* tgd, GenArgs* args);
 };
 #endif //TYPECACHE_HPP_

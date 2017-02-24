@@ -1,17 +1,29 @@
 TODO
 For compiler, Always return new ModuleDef. Do not mutate it
 
+
 Error handling
 Maybe Error and warning system instead of just throwing errors?
-
-in toFile, Change Type.Type to Type.Kind
 
 
 Type system overhaul.
 ///////////////////////////////////////
+Next things to do
+
+You have to do TypeGenDef stuff in the library That is the fix
+
+Get TypeGenDef stuff working
+->get GenArgs and ArgKinds working
+
+
+
 
 
 TODO Type::sel. What should it do for a bad select?
+
+
+
+
 
 //Adding Metadata
 Module:

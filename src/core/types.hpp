@@ -7,82 +7,98 @@
 #include <map>
 #include <vector>
 #include "enums.hpp"
-#include "typecache.hpp"
-
+#include "genargs.hpp"
+#include <cassert>
 
 using namespace std;
 
-class TypeCache;
-
+struct GenArgs;
 class Type {
   protected :
     TypeKind kind;
+    Type* flipped;
   public :
     Type(TypeKind kind) : kind(kind) {}
     virtual ~Type() {}
-    bool isKind(TypeKind);
-    bool isBase() {return isKind(BIT) || isKind(TDEF);}
+    bool isKind(TypeKind k) {return k==kind;}
+    void setFlipped(Type* f) { flipped = f;}
+    Type* getFlipped() { return flipped;}
     virtual string toString(void) const =0;
-    virtual Type* flip(TypeCache*)=0;
     void print(void);
 };
 
-std::ostream& operator<<(ostream& os, const Type&);
 
-class BaseType : public Type {
-  protected :
-    Dir dir;
+std::ostream& operator<<(ostream& os, const Type& t);
+
+
+class AnyType : public Type {
   public :
-    BaseType(TypeKind kind, Dir dir) : Type(kind), dir(dir) {}
-    Dir getDir(void) {return dir;}
-    virtual Type* flip(TypeCache*)=0;
+    AnyType() : Type(ANY) {}
+    string toString(void) const {return "Any";}
 };
 
-class BitType : public BaseType {
+class BitInType : public Type {
   public :
-    BitType(Dir dir) : BaseType(BIT,dir) {}
-    Type* flip(TypeCache*);
-}
+    BitInType() : Type(BITIN) {}
+    string toString(void) const {return "BitIn";}
+};
 
-class TypeDef : public BaseType {
-  protected :
-    string name;
-    Type* raw;
-  public : 
-    TypeDef(string name, Type* raw, Dir dir=Out) : BaseType(TDEF,dir), name(name), raw(raw) {}
-}
-
-typedef Type* (*typegenfun_t)(NameSpace*,GenArgs*);
-class TypeGenDef : public Type {
-  protected :
-    string name;
-    typegenfun_t genfun;
-    GenArgs* genargs;
+class BitOutType : public Type {
   public :
-    TypeGenDef(string name, typegenfun_t genfun, GenArgs* genargs) : Type(TGDEF), name(name), genfun(genfun), genargs(genargs)
-}
+    BitOutType() : Type(BITOUT) {}
+    string toString(void) const {return "BitOut";}
+};
+
+class Context;
+typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, ArgKinds kinds);
+struct TypeGen {
+  string libname;
+  string name;
+  TypeGen* flipped;
+  ArgKinds kinds;
+  TypeGenFun fun;
+  bool funflip;
+  TypeGen(string libname, string name, ArgKinds kinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), kinds(kinds), fun(fun), funflip(funflip) {
+  }
+  void setFlipped(TypeGen* _flipped) {
+    flipped = _flipped;
+  }
+};
+
+
+// TODO check argtypes are actually the same as kinds
+class TypeGenType : public Type {
+  protected :
+    TypeGen* def;
+    GenArgs* args;
+  public :
+    TypeGenType(TypeGen* def, GenArgs* args);
+    TypeGen* getDef() { return def;}
+    GenArgs* getArgs() { return args;}
+    string toString(void) const { return def->name; }
+    //bool isEqual(Type* t);
+
+};
 
 class ArrayType : public Type {
   Type* elemType;
   uint len;
   public :
     ArrayType(Type *elemType, uint len) : Type(ARRAY), elemType(elemType), len(len) {}
-    string toString(void) const;
-    Type* flip(TypeCache*);
-    Type* sel(uint);
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
+    string toString(void) const { 
+      return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
+    };
 };
 
-
-typedef vector<std::pair<string,Type*>> recordparam_t;
+typedef vector<std::pair<string,Type*>> RecordParams ;
 
 class RecordType : public Type {
   map<string,Type*> record;
   vector<string> _order;
   public :
-    RecordType(recordparam_t _record) : Type(RECORD) {
-      //TODO do not change this auto. some reason it does not work
+    RecordType(RecordParams _record) : Type(RECORD) {
       for(auto field : _record) {
         if(isNumber(field.first)) {
           cout << "Cannot have number as record field" << endl;
@@ -100,8 +116,6 @@ class RecordType : public Type {
     vector<string> getOrder() { return _order;}
     map<string,Type*> getRecord() { return record;}
     string toString(void) const;
-    Type* flip(TypeCache*);
-    Type* sel(string a);
 };
 
 

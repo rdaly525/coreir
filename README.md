@@ -2,58 +2,114 @@
 ```
 // TODO Metadata
 
-Signature(string* argTypes)
+ArgKinds(string* kinds)
 Name(string libname, string name)
 
-module Type {
-  
-  Dir = In | Out | Inout
-  
-  Type = Bit(Dir? dir)
-       | Array(Type elemType, number len)
-       | Record( (string? field,Type fieldType)* args) //Ordered
-       | Named(Name name, TypeDef? def)
-       | TypeGenerator(Name name, Signature? signature, TemplateDef? def, TemplateArg? arg)
+MetaData(string data, (string key, MetaData m)*)
+
+GenArg = string
+       | int
+       | float
+       | Type
+       | Instantiable
+
+GenArgs(GenArg* args)
+
+Type = BitIn | BitOut 
+     | Array(number len, Type elemType)
+     | Record( Vector((string field,Type fieldType)) args) //Ordered
+     | TypeGen(TypeGenDef def, GenArgs args)
+     | Named(Name name, Type type)
+     | Any
  
-  NamedDef(Type raw, Dir? dir)
-  TemplateDef(templateFun :: TemplateArgType -> Type)
+TypeGenDef(Name name, ArgKinds kinds, bool flipped, function? fun)
 
-  ArgType = string
-          | number
-          | Type
 
-  TemplateArg(ArgType* args)
-}
 
-Instantiable = Module(Name name, Type.Type? t, ModuleDef? def)
-             | Generator(Name name, Signature? signature, GeneratorDef? def)
+Name(Library lib, string name)
+Instantiable = Module(Name name, Type t, MetaData? m, ModuleDef? def)
+             | Generator(Name name, Type t, MetaData? m, ArgKinds kinds, function? fun)
 
+//List of modules
+
+ModuleDef(Wire* wires)
 Wire(Wireable a, Wireable b)
-ModuleDef(Type.Type t, Wire* )
-GeneratorDef(genFun :: ArgType -> Instantiable)
-
-ArgType = string
-        | number
-        | Type
-        | Instantiable
+GeneratorDef(function :: GenArgs -> Module)
 
 Wireable = Interface(ModuleDef container)
-         | Instance(ModuleDef container, Instantiable instType, string? instName, GeneratorArg? arg)
+         | Instance(ModuleDef container, Instantiable instKind, GenArgs args)
          | Select(Wireable w, string sel)
-
-GeneratorArg(ArgType* args)
+         //| Strip(Wireable w)
+         //| Wrap(Wireable w, Type t)
 
 /////////////////////////////////
+//C api
+Context newContext();
+void deleteContext();
 
-// Not quite part of the IR
+Library newLibrary(string libname);
+void registerLib(Context c, Library lib);
+Library getGlobal(Context c);
 
-Library(string libname)
+Instantiable newModuleDecl(string name, Type t);
+ModuleDef getModuleDef(ModuleDecl m);
 
-AddInstantiable(Library lib,Instantiable i)
-AddType(Library lib, Type t)
+Instantiable newGeneratorDecl(string name, ArgKinds kinds, TypeGenDef def);
+Instantiable (*genFun)(GenArgs,Type,ArgKinds);
+void addGeneratorDef(GeneratorDecl, genFun fun);
 
-Context(Library? global)
-RegisterLib(Context c, Library lib)
+Wireable Interface(Context c, ModuleDef context);
+Wireable Instance(Context c, ModuleDef context, Instantiable kind, GenArgs args);
+Wireable Select(Context c, Wireable w, string sel);
+void wire(ModuleDef md, Wireable a, Wireable b);
+
+void libAdd_Instantiable(Library lib, Instantiable i);
+Instantiable libGet_Instantiable(Library lib, string name);
+
+
+//Type Constructors 
+
+Type (*tgenFun)(GenArgs,ArgKinds)
+TypeGenDef TypeGenDef(string name, string name_flipped, ArgKinds kinds, tgenFun fun);
+void libAdd_TypeGenDef(Library lib, TypeGenDef tgd)
+TypeGenDef libGet_TypeGenDef(Library lib, string name)
+
+Type BitIn(Context c);
+Type BitOut(Context c);
+Type Array(Context c, int n, Type t);
+Type Record(Context c, struct pair[]);
+Type TypeGen(Context c, TypeGenDef def, GenArgs args);
+
+
+// Creating GenArgs
+GenArg garg_Int(int i);
+GenArg garg_String(char* s);
+GenArg garg_Float(float f)
+GenArg garg_Type(Type t);
+GenArg garg_Instantiable(Instantiable i);
+GenArgs GenArgs(int len, GenArg* args);
+
+// Creating argKinds
+char* argkind_Int();
+char* argkind_String();
+char* argkind_Float();
+char* argkind_Type();
+char* argkind_Instantiable();
+ArgKinds ArgKinds(int len, char** args);
+
+
+//Creating/accessing MetaData
+MetaData getMetaData_Instantiable(Instantiable i);
+void addKeyValue(MetaData m, string key, string value);
+int hasKey(MetaData m, string key);
+string getValue(MetaData m, string key);
+//Probably more
+
+TypeGenDef('std', 'Int', [number], Type def(GenArgs g) return Array(g->i,BitOut))
+Int = getTypeGenDef('std','Int')
+IntIn = getTypeGenDef('std','Int')
+Int5 = TypeGen(Int,5)
+InInt5 = TypeGen(IntIn,5)
 
 
 ```

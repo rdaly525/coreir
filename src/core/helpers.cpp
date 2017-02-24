@@ -4,8 +4,8 @@
 #include "enums.hpp"
 #include <cassert>
 
-#include "coreir.hpp"
-#include "typedcoreir.hpp"
+//#include "coreir.hpp"
+//#include "typedcoreir.hpp"
 
 using namespace std;
 
@@ -15,10 +15,12 @@ bool isNumber(string s) {
 
 string TypeKind2Str(TypeKind t) {
   switch(t) {
-    case INT : return "Int";
+    case ANY : return "Any";
+    case BITIN : return "BitIn";
+    case BITOUT : return "BitOut";
     case ARRAY : return "Array";
     case RECORD : return "Record";
-    default : return "BAD";
+    default : return "NYI";
   }
 }
 
@@ -28,39 +30,39 @@ string wireableKind2Str(WireableKind wb) {
     case IFACE: return "Interface";
     case INST: return "Instance";
     case SEL: return "Select";
-    case TIFACE: return "TypedInterface";
-    case TINST: return "TypedInstance";
-    case TSEL: return "TypedSelect";
+    //case TIFACE: return "TypedInterface";
+    //case TINST: return "TypedInstance";
+    //case TSEL: return "TypedSelect";
   }
   assert(false);
 }
 
 
-TypedWire* castTypedWire(Wire* w) {
-  TypedWire* tw = dynamic_cast<TypedWire*>(w);
-  if (!tw) {
-    cout << "ERROR! Cannot cast to TypedWire!" <<endl;
-    cout << "  Wire : " << w->toString() << endl;
-    cout << "  Instantiable : " << *(w->getFrom()) << endl;
-    assert(false);
-  }
-  return tw;
-}
-Type* wireable2Type(Wireable* w) {
-  return castTypedWire(w->wire)->getType();
-}
-Dir flipDir(Dir d) { if(d==IN) return OUT; else return IN;}
-
-
-template <typename T>
-T safecast(void* obj,string err) {
-  T objcast = dynamic_cast<T>(obj);
-  if (!objcast) {
-    cout << "ERROR: " << err << endl;
-    assert(false);
-  }
-  return objcast;
-}
+//TypedWire* castTypedWire(Wire* w) {
+//  TypedWire* tw = dynamic_cast<TypedWire*>(w);
+//  if (!tw) {
+//    cout << "ERROR! Cannot cast to TypedWire!" <<endl;
+//    cout << "  Wire : " << w->toString() << endl;
+//    cout << "  Instantiable : " << *(w->getFrom()) << endl;
+//    assert(false);
+//  }
+//  return tw;
+//}
+//Type* wireable2Type(Wireable* w) {
+//  return castTypedWire(w->wire)->getType();
+//}
+//Dir flipDir(Dir d) { if(d==IN) return OUT; else return IN;}
+//
+//
+//template <typename T>
+//T safecast(void* obj,string err) {
+//  T objcast = dynamic_cast<T>(obj);
+//  if (!objcast) {
+//    cout << "ERROR: " << err << endl;
+//    assert(false);
+//  }
+//  return objcast;
+//}
 
 
 

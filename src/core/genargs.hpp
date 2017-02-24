@@ -1,16 +1,18 @@
 #ifndef GENARGS_HPP_
 #define GENARGS_HPP_
 
+#include "types.hpp"
 #include "enums.hpp"
-//genargsType(type* ts)
-//genType = string
-//        | int
-//        | ModuleDef
+#include <cassert>
 
+using namespace std;
+
+class Type;
 struct GenArg {
   virtual ~GenArg() {}
-  genargKind kind;
-  GenArg(genargKind kind) : kind(kind) {}
+  ArgKind kind;
+  GenArg(ArgKind kind) : kind(kind) {}
+  bool isKind(ArgKind k) { return kind==k; }
 };
 
 struct GenString : GenArg {
@@ -23,45 +25,54 @@ struct GenInt : GenArg {
   GenInt(int i) : GenArg(GINT), i(i) {}
 };
 
-class ModuleDef;
-struct GenMod : GenArg {
-  ModuleDef* mod;
-  GenMod(ModuleDef* mod) : GenArg(GMOD), mod(mod) {}
+struct GenType : GenArg {
+  Type* t;
+  GenType(Type* t) : GenArg(GTYPE), t(t) {}
 };
 
-typedef vector<genargKind> genargs_t;
+
+//class Instantiable;
+//struct GenInst : GenArg {
+//  Instantiable* i;
+//  GenInst(Instantiable* i) : GenArg(GINST), i(i) {}
+//};
+
 struct GenArgs {
-  genargs_t argtypes;
+  uint len;
   vector<GenArg*> args;
-  GenArgs(genargs_t argtypes) : argtypes(argtypes) {}
-  GenArgs(genargs_t argtypes, vector<void*> _args) : argtypes(argtypes) {
-    setArgs(_args);
+  GenArgs(uint len, vector<GenArg*> _args) : len(len), args(_args) {
+    assert(len < 10);
+    assert(len == args.size() );
   }
   ~GenArgs() {
-    for (auto arg : args) delete arg;
-  }
-  void setArgs(vector<void*> _args) {
-    assert(_args.size()==argtypes.size());
-    for (uint i=0; i<argtypes.size(); ++i) {
-      switch(argtypes[i]) {
-        case(GSTRING) : {
-          string* s = safecast<string*>(_args[i],"Bad Type!");
-          args.push_back(new GenString(*s));
-        }
-        case(GINT) : {
-          int* i = safecast<int*>(_args[i]);
-          args.push_back(new GenInt(*i));
-        }
-        case(GMOD) : {
-          ModuleDef* m = safecast<ModuleDef*>(_args[i]);
-          args.push_back(new GenMod(m));
-        }
-      }
-    }
+    //for (auto arg : args) delete arg;
   }
   GenArg* operator[](const int i) {
     return args[i];
   }
+  bool GenArgEq(GenArg* a, GenArg* b);
+
+  bool checkKinds(ArgKinds kinds) {
+    if (len != kinds.size()) return false;
+    bool good = true;
+    for (uint i=0; i<len; ++i) {
+      good &= args[i]->isKind(kinds[i]);
+    }
+    return good;
+  }
+  bool operator==(GenArgs r) {
+    cout << "In Genargs" << endl;
+    if (len != r.len) return false;
+    bool good = true;
+    for (uint i=0; i<len; i++) {
+      good &= GenArgEq(args[i],r[i]);
+    }
+    return good;
+  }
+  bool operator!=(GenArgs r) {
+    return !(*this == r);
+  }
+  friend bool operator<(GenArgs l, GenArgs r);
 };
 
 

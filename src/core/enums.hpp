@@ -6,26 +6,27 @@
 
 #include <stdint.h>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
 typedef uint32_t uint;
 
-typedef enum {IN,OUT} Dir;
-typedef enum {BIT,ARRAY,RECORD,TDEF,TGDEF} TypeKind;
-typedef enum {IFACE,INST,SEL,TIFACE,TINST,TSEL} WireableKind;
-typedef enum {MDEF,MDEC,GDEC,GDEF,TMDEF} InstantiableKind;
-typedef enum {GSTRING,GINT,GMOD} genargKind;
+typedef enum {BITIN, BITOUT,ARRAY,RECORD,ANY,TYPEGEN} TypeKind;
+typedef enum {IFACE,INST,SEL} WireableKind;
+typedef enum {MOD,GEN} InstantiableKind;
+typedef enum {GSTRING,GINT,GTYPE} ArgKind;
 typedef enum {VERILOG,SIMULATOR} MetadataKind;
 
-struct GenArgs;
-struct simfunctions_t {
-  //void* iface,void* state,void* dirty,void* genargs)
-  void (*updateOutput)(void*,void*,void*,GenArgs*);
-  void* (*allocateState)(void);
-  void (*updateState)(void*,void*,void*,GenArgs*);
-  void (*deallocateState)(void*);
-};
+typedef vector<ArgKind> ArgKinds;
+
+//struct simfunctions_t {
+//  //void* iface,void* state,void* dirty,void* genargs)
+//  void (*updateOutput)(void*,void*,void*,GenArgs*);
+//  void* (*allocateState)(void);
+//  void (*updateState)(void*,void*,void*,GenArgs*);
+//  void (*deallocateState)(void*);
+//};
 
 
 
@@ -34,13 +35,11 @@ bool isNumber(string s);
 string TypeKind2Str(TypeKind t);
 string wireableKind2Str(WireableKind wb);
 
-class Type;
 class Wire;
 class Wireable;
 class TypedWire;
 TypedWire* castTypedWire(Wire* w);
-Type* wireable2Type(Wireable* w);
-Dir flipDir(Dir d);
+//Type* wireable2Type(Wireable* w);
 
 template <typename T>
 T safecast(void* obj,string err="Cannot cast!");
