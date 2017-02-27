@@ -6,6 +6,7 @@
 
 //TODO might need to be const to make faster
 //Also might be better represented virtually and overloade equals/< for each GenArg
+//Should do a hashing function with unordered map instead
 bool operator<(GenArgs l, GenArgs r) {
   if (l.len != r.len) return l.len < r.len;
   for (uint i=0; i< l.len; i++) {
@@ -37,7 +38,6 @@ bool operator<(GenArgs l, GenArgs r) {
     }
 
   }
-  cout << "THE EXACT SAME\n";
   assert(l==r);
   return false;
 

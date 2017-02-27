@@ -5,11 +5,11 @@ INCS = -I$(CDIR)/core -I$(CDIR)/libs
 LIBS = -L$(CDIR)/core -L$(CDIR)/libs
 DEPS = 
 
-all: typetest.run
+all: add4.run
 
 clean:
 	$(MAKE) -C ../core clean
-	#$(MAKE) -C ../libs clean
+	$(MAKE) -C ../libs clean
 	-@rm -rf *.o *.run* *.core
 
 
@@ -17,9 +17,9 @@ clean:
 #TODO hack. Cant figure out how to load libraries
 %.run: %.o
 	$(MAKE) -C ../core context.a
-	#$(MAKE) -C ../libs stdprims.a
-	#$(CC) $(CFLAGS)  -o $@ $^ ../core/coreir.a ../libs/stdprims.a
-	$(CC) $(CFLAGS)  -o $@ $^ ../core/context.a
+	$(MAKE) -C ../libs stdlib.a
+	$(CC) $(CFLAGS)  -o $@ $^ ../core/context.a ../libs/stdlib.a
+	#$(CC) $(CFLAGS)  -o $@ $^ ../core/context.a
 	#./$@
 
 %.o: %.cpp 

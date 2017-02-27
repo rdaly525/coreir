@@ -5,6 +5,15 @@
 #include <cassert>
 
 using namespace std;
+bool operator==(TypeGenParams & l,TypeGenParams & r) {
+  cout << "Checking TypeGenParams\n";
+  return (l.tgd==r.tgd) && (*l.ga == *r.ga);
+}
+bool operator!=(TypeGenParams & l,TypeGenParams & r) { return !(l == r); }
+bool operator<(TypeGenParams a, TypeGenParams b) {
+  if (a.tgd != b.tgd) return a.tgd < b.tgd;
+  return *(a.ga) < *(b.ga);
+}
 
 TypeCache::TypeCache(CoreIRContext* c) : c(c) {
   bitI = new BitInType();

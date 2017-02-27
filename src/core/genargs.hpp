@@ -61,7 +61,6 @@ struct GenArgs {
     return good;
   }
   bool operator==(GenArgs r) {
-    cout << "In Genargs" << endl;
     if (len != r.len) return false;
     bool good = true;
     for (uint i=0; i<len; i++) {

@@ -19,15 +19,9 @@ struct TypeGenParams {
   TypeGen* tgd;
   GenArgs* ga;
   TypeGenParams(TypeGen* tgd, GenArgs* ga) : tgd(tgd), ga(ga) {}
-  friend bool operator==(TypeGenParams & l,TypeGenParams & r) {
-    cout << "Checking TypeGenParams\n";
-    return (l.tgd==r.tgd) && (*l.ga == *r.ga);
-  }
-  friend bool operator!=(TypeGenParams & l,TypeGenParams & r) { return !(l == r); }
-  friend bool operator<(TypeGenParams a, TypeGenParams b) {
-    if (a.tgd != b.tgd) return a.tgd < b.tgd;
-    return *(a.ga) < *(b.ga);
-  }
+  friend bool operator==(TypeGenParams & l,TypeGenParams & r);
+  friend bool operator!=(TypeGenParams & l,TypeGenParams & r);
+  friend bool operator<(TypeGenParams a, TypeGenParams b);
 };
 
 class CoreIRContext;

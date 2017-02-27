@@ -4,11 +4,18 @@
 #include <string>
 #include <map>
 #include "types.hpp" // For TypeGen
+#include "instantiable.hpp"
 
 using namespace std;
 
+//TODO should iList be mList and gList
 class Instantiable;
-
+class Module;
+class Generator;
+struct TypeGen;
+class CoreIRContext;
+struct GenArgs;
+typedef Type* (*TypeGenFun)(CoreIRContext* c, GenArgs* args, ArgKinds argkinds);
 class Namespace {
   string libname;
   map<string,Instantiable*> iList;
@@ -20,16 +27,7 @@ class Namespace {
       //for(auto tgd : tgdList) delete tgd.second;
     }
     string getName() { return libname;}
-    void newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun) {
-      assert(!hasTypeGen(name));
-      assert(!hasTypeGen(nameFlipped));
-      TypeGen* t = new TypeGen(libname,name,kinds,fun,false);
-      TypeGen* tf = new TypeGen(libname,nameFlipped,kinds,fun,true);
-      t->setFlipped(tf);
-      tf->setFlipped(t);
-      tList.emplace(name,t);
-      tList.emplace(nameFlipped,tf);
-    }
+    TypeGen* newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun);
     TypeGen* getTypeGen(string name) {
       assert(hasTypeGen(name));
       return tList.find(name)->second;
@@ -37,12 +35,16 @@ class Namespace {
     bool hasTypeGen(string name) {
       return tList.find(name) != tList.end();
     }
-    //Instantiable* getInstantiable(string name) {
-    //  auto it = iList.find(name);
-    //  if (it != iList.end()) return it->second;
-    //  throw "Could not find module " + name + " in library " + libname;
-    //  return nullptr;
-    //}
+    
+    void addModule(Module* i);
+    void addGenerator(Generator* i);
+
+    Generator* getGenerator(string name) {
+      auto it = iList.find(name);
+      if (it != iList.end()) return (Generator*) it->second;
+      throw "Could not find module " + name + " in library " + libname;
+      return nullptr;
+    }
 
     //void addInstantiable(Instantiable* i) {
     //  //TODO check if it already there
@@ -63,12 +65,15 @@ class Namespace {
     
     void print() {
       cout << "Namespace: " << libname << endl;
+      cout << "  NYI" << endl;
       //cout << "  Instantiables:" << endl;
       //for (auto it : iList) cout << "    " << it.second->toString() <<endl;
       cout << endl;
     }
 
 };
+
+Namespace* newNamespace(string name);
 
 
 #endif //LIBRARY_HPP_

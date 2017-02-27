@@ -1,19 +1,19 @@
 TODO
-For compiler, Always return new ModuleDef. Do not mutate it
-
-
 Error handling
 Maybe Error and warning system instead of just throwing errors?
 
 
-Type system overhaul.
+
+
+
 ///////////////////////////////////////
 Next things to do
+Get coreir working
+Seperate out into Modules, generators
 
-You have to do TypeGenDef stuff in the library That is the fix
 
-Get TypeGenDef stuff working
-->get GenArgs and ArgKinds working
+
+
 
 
 

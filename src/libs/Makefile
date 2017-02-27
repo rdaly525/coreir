@@ -5,7 +5,7 @@ INCS = -I$(COREIR_CORE)
 LIBS = -L$(COREIR_CORE)
 DEPS = 
 
-all: stdprims.a
+all: stdlib.a
 
 clean:
 	-@rm *.o *.a

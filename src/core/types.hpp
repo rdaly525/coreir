@@ -9,9 +9,10 @@
 #include "enums.hpp"
 #include "genargs.hpp"
 #include <cassert>
+#include "context.hpp"
 
 using namespace std;
-
+class CoreIRContext;
 struct GenArgs;
 class Type {
   protected :
@@ -21,9 +22,11 @@ class Type {
     Type(TypeKind kind) : kind(kind) {}
     virtual ~Type() {}
     bool isKind(TypeKind k) {return k==kind;}
+    bool getKind(TypeKind k) {return k==kind;}
     void setFlipped(Type* f) { flipped = f;}
     Type* getFlipped() { return flipped;}
     virtual string toString(void) const =0;
+    virtual bool sel(CoreIRContext* c,string sel, Type** ret);
     void print(void);
 };
 
@@ -35,6 +38,7 @@ class AnyType : public Type {
   public :
     AnyType() : Type(ANY) {}
     string toString(void) const {return "Any";}
+    bool sel(CoreIRContext* c, string sel, Type** ret);
 };
 
 class BitInType : public Type {
@@ -49,16 +53,14 @@ class BitOutType : public Type {
     string toString(void) const {return "BitOut";}
 };
 
-class Context;
-typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, ArgKinds kinds);
 struct TypeGen {
   string libname;
   string name;
   TypeGen* flipped;
-  ArgKinds kinds;
+  ArgKinds argkinds;
   TypeGenFun fun;
   bool funflip;
-  TypeGen(string libname, string name, ArgKinds kinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), kinds(kinds), fun(fun), funflip(funflip) {
+  TypeGen(string libname, string name, ArgKinds argkinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), argkinds(argkinds), fun(fun), funflip(funflip) {
   }
   void setFlipped(TypeGen* _flipped) {
     flipped = _flipped;
@@ -66,7 +68,7 @@ struct TypeGen {
 };
 
 
-// TODO check argtypes are actually the same as kinds
+// TODO check argtypes are actually the same as argkinds
 class TypeGenType : public Type {
   protected :
     TypeGen* def;
@@ -76,7 +78,7 @@ class TypeGenType : public Type {
     TypeGen* getDef() { return def;}
     GenArgs* getArgs() { return args;}
     string toString(void) const { return def->name; }
-    //bool isEqual(Type* t);
+    bool sel(CoreIRContext* c, string sel, Type** ret);
 
 };
 
@@ -90,9 +92,9 @@ class ArrayType : public Type {
     string toString(void) const { 
       return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
     };
+    bool sel(CoreIRContext* c, string sel, Type** ret);
 };
 
-typedef vector<std::pair<string,Type*>> RecordParams ;
 
 class RecordType : public Type {
   map<string,Type*> record;
@@ -116,6 +118,7 @@ class RecordType : public Type {
     vector<string> getOrder() { return _order;}
     map<string,Type*> getRecord() { return record;}
     string toString(void) const;
+    bool sel(CoreIRContext* c, string sel, Type** ret);
 };
 
 

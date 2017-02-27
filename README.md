@@ -1,11 +1,7 @@
 ## Algebraic structure definition
 ```
-// TODO Metadata
-
 ArgKinds(string* kinds)
 Name(string libname, string name)
-
-MetaData(string data, (string key, MetaData m)*)
 
 GenArg = string
        | int
@@ -18,17 +14,16 @@ GenArgs(GenArg* args)
 Type = BitIn | BitOut 
      | Array(number len, Type elemType)
      | Record( Vector((string field,Type fieldType)) args) //Ordered
-     | TypeGen(TypeGenDef def, GenArgs args)
+     | TypeGenInst(TypeGen tg, GenArgs args)
      | Named(Name name, Type type)
      | Any
  
-TypeGenDef(Name name, ArgKinds kinds, bool flipped, function? fun)
+TypeGen(Name name, ArgKinds kinds, bool flipped, function? fun)
 
+MetaData(string data, (string key, MetaData m)*)
 
-
-Name(Library lib, string name)
-Instantiable = Module(Name name, Type t, MetaData? m, ModuleDef? def)
-             | Generator(Name name, Type t, MetaData? m, ArgKinds kinds, function? fun)
+Instantiable = Module(Name name, Type t, MetaData m, ModuleDef? def)
+             | Generator(Name name, Type t, MetaData m, ArgKinds kinds, function? fun)
 
 //List of modules
 
@@ -41,89 +36,141 @@ Wireable = Interface(ModuleDef container)
          | Select(Wireable w, string sel)
          //| Strip(Wireable w)
          //| Wrap(Wireable w, Type t)
+```
 
-/////////////////////////////////
-//C api
-Context newContext();
-void deleteContext();
+##C API
+TODO convert api to  
+ErrType Function(Args);
 
-Library newLibrary(string libname);
-void registerLib(Context c, Library lib);
-Library getGlobal(Context c);
+###Context for coreIR
+```
+//CoreIR Types: 
+//  CoreIRContext
 
-Instantiable newModuleDecl(string name, Type t);
-ModuleDef getModuleDef(ModuleDecl m);
+CoreIRContext newContext();
+void deleteContext(CoreIRContext c);
+```
 
-Instantiable newGeneratorDecl(string name, ArgKinds kinds, TypeGenDef def);
-Instantiable (*genFun)(GenArgs,Type,ArgKinds);
-void addGeneratorDef(GeneratorDecl, genFun fun);
+###Namespaces
+Namespaces are similar to that of C++. Each context has a global namespace.
 
-Wireable Interface(Context c, ModuleDef context);
-Wireable Instance(Context c, ModuleDef context, Instantiable kind, GenArgs args);
-Wireable Select(Context c, Wireable w, string sel);
-void wire(ModuleDef md, Wireable a, Wireable b);
+```
+//CoreIR Types:
+//  Namespace
 
-void libAdd_Instantiable(Library lib, Instantiable i);
-Instantiable libGet_Instantiable(Library lib, string name);
+Namespace newNamespace(string name);
+void registerNamespace(Context c, Namespace namespace);
+Namespace getGlobal(Context c);  
+```
 
+###Generator Args
+Generators take a set of well specified arguments. These arguments are string, int, and type. ArgKind specifies the kind of the argument whereas GenArg is an instane of the argument itself.
 
-//Type Constructors 
+```
+//CoreIR Types:
+//  ArgKind
+//  ArgKinds
+//  GenArg
+//  GenArgs
 
-Type (*tgenFun)(GenArgs,ArgKinds)
-TypeGenDef TypeGenDef(string name, string name_flipped, ArgKinds kinds, tgenFun fun);
-void libAdd_TypeGenDef(Library lib, TypeGenDef tgd)
-TypeGenDef libGet_TypeGenDef(Library lib, string name)
+// Creating argKinds
+typedef enum {GSTRING,GINT,GTYPE} ArgKind;
+ArgKinds ArgKinds(ArgKind* kinds);
+
+//Creating GenArgs
+GenArg GInt(int i);
+GenArg GString(char* s);
+//GenArg GFloat(float f)
+GenArg GType(Type t);
+// TODO GenArg GInstantiable(Instantiable i);
+GenArgs GenArgs(int len, GenArg* args);
+
+```
+
+###Types
+TODO describe the type system
+
+```
+//CoreIR Types:
+  Type
+  TypeGen
+  tgenFun
+
+Type (*tgenFun)(Context,GenArgs,ArgKinds)
+TypeGen TypeGen(string name, string name_flipped, ArgKinds kinds, tgenFun fun);
+void addTypeGen(Namespace ns, TypeGen tgd)
+TypeGen getTypeGen(Namespace ns, string name)
 
 Type BitIn(Context c);
 Type BitOut(Context c);
 Type Array(Context c, int n, Type t);
-Type Record(Context c, struct pair[]);
-Type TypeGen(Context c, TypeGenDef def, GenArgs args);
+Type Record(Context c, <Pairs of string, types> );
+Type TypeGenInst(Context c, TypeGen tg, GenArgs args);
+//TODO Named
+```
 
+###Defining Modules and Generators
 
-// Creating GenArgs
-GenArg garg_Int(int i);
-GenArg garg_String(char* s);
-GenArg garg_Float(float f)
-GenArg garg_Type(Type t);
-GenArg garg_Instantiable(Instantiable i);
-GenArgs GenArgs(int len, GenArg* args);
+```
+//CoreIR Types:
+//  Module
+//  ModuleDef
+//  Generator
 
-// Creating argKinds
-char* argkind_Int();
-char* argkind_String();
-char* argkind_Float();
-char* argkind_Type();
-char* argkind_Instantiable();
-ArgKinds ArgKinds(int len, char** args);
+Module newModuleDecl(Context c, string name, Type* t);
+p
+ModuleDef newModuleDef(Module* m);
+void addModuleDef(Module* module, ModuleDef* moduledef);
+void addModule(Namespae ns, Module m);
+Module getModule(Namespace ns, string name);
 
+Generator newGeneratorDecl(Context c, string name, ArgKinds kinds, TypeGen tg);
+Module (*genFun)(Context,Type,GenArgs,ArgKinds);
+void addGeneratorDef(Generator decl, genFun fun);
 
+void addGenerator(Namespace ns, Generator g);
+Generator getGenerator(Namespace lib, string name);
+```
+
+###Wiring things together
+```
+Wireable Interface(Context c, ModuleDef context);
+Wireable InstanceGenerator(Context c, ModuleDef context, Module instkind);
+Wireable InstanceModule(Context c, ModuleDef context, Generator instkind, GenArgs args);
+Wireable Select(Context c, Wireable w, string sel);
+void wire(ModuleDef md, Wireable a, Wireable b);
+```
+
+###Metadata
+TODO
+
+```
 //Creating/accessing MetaData
 MetaData getMetaData_Instantiable(Instantiable i);
 void addKeyValue(MetaData m, string key, string value);
 int hasKey(MetaData m, string key);
 string getValue(MetaData m, string key);
 //Probably more
+```
 
+###Example
+```
 TypeGenDef('std', 'Int', [number], Type def(GenArgs g) return Array(g->i,BitOut))
 Int = getTypeGenDef('std','Int')
 IntIn = getTypeGenDef('std','Int')
 Int5 = TypeGen(Int,5)
 InInt5 = TypeGen(IntIn,5)
-
-
 ```
-
 
 ## Useful functions
 
 ###IR I/O
 ```
 //Inputs JSON coreIR file
-Library File2CoreIR(string fileName);
+Namespace File2CoreIR(string fileName);
 
 void Instantiable2File(Instantiable i, string fileName);
-void Library2File(Library lib, string fileName);
+void Namespace2File(Namespace lib, string fileName);
 ```
 
 ###IR creation sugar
