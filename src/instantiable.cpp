@@ -17,9 +17,13 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   os << i.toString();
   return os;
 }
-Generator::Generator(CoreIRContext* c,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,c,"",name), argkinds(argkinds), typegen(typegen) {
+Generator::Generator(CoreIRContext* c,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,c,"",name), argkinds(argkinds), typegen(typegen), genfun(nullptr) {
   //Verify that argkinds are the same
   assert(argkinds == typegen->argkinds);
+}
+
+Module::~Module() {
+  if (def) delete def;
 }
 
 string Module::toString() const {
@@ -145,7 +149,6 @@ string Interface::toString() const{
 string Instance::toString() const {
   return instname;
 }
-Instance::~Instance() {if(genargs) delete genargs;}
 string Select::toString() const {
   string ret = parent->toString(); 
   if (isNumber(selStr)) return ret + "[" + selStr + "]";

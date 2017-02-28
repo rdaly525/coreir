@@ -67,10 +67,11 @@ class Module : public Instantiable {
   ModuleDef* def;
   string verilog;
   public :
-    Module(CoreIRContext* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type) {}
+    Module(CoreIRContext* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type), def(nullptr) {}
+    ~Module();
     string toString() const;
     Type* getType() { return type;}
-    void addModuleDef(ModuleDef* _def) { def = _def;}
+    void addModuleDef(ModuleDef* _def) { assert(!def); def = _def;}
     ModuleDef* newModuleDef();
     void print(void);
     //TODO turn this into metadata
@@ -149,7 +150,6 @@ class Instance : public Wireable {
  
   public :
     Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, GenArgs* genargs =nullptr)  : Wireable(INST,context,type), instname(instname), instRef(instRef), genargs(genargs) {}
-    ~Instance();
     string toString() const;
     Instantiable* getInstRef() {return instRef;}
     string getInstname() { return instname; }

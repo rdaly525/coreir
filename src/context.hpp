@@ -6,15 +6,24 @@
 #include "types.hpp"
 #include <string>
 #include "enums.hpp"
+#include <unordered_set>
+#include <vector>
 
 using namespace std;
 class CoreIRContext {
   Namespace* global;
   map<string,Namespace*> libs;
   TypeCache* cache;
-
+  
   bool err;
   string errmsg;
+ 
+  //Memory management
+  vector<GenArg*> genargList;
+  vector<GenArgs*> genargsList;
+  unordered_set<Generator*> generatorSet;
+  unordered_set<Module*> moduleSet;
+  
   public :
     CoreIRContext();
     ~CoreIRContext();

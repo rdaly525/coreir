@@ -44,9 +44,6 @@ struct GenArgs {
     assert(len < 10);
     assert(len == args.size() );
   }
-  ~GenArgs() {
-    //for (auto arg : args) delete arg;
-  }
   GenArg* operator[](const int i) {
     return args[i];
   }

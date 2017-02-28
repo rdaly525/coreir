@@ -1,32 +1,26 @@
-#ifndef LIBRARY_HPP_
-#define LIBRARY_HPP_
+#ifndef NAMESPACE_HPP_
+#define NAMESPACE_HPP_
 
 #include <string>
 #include <map>
 #include "types.hpp" // For TypeGen
 #include "instantiable.hpp"
+#include "enums.hpp"
 
 using namespace std;
 
-//TODO should iList be mList and gList
-class Instantiable;
-class Module;
-class Generator;
-struct TypeGen;
-class CoreIRContext;
-struct GenArgs;
-typedef Type* (*TypeGenFun)(CoreIRContext* c, GenArgs* args, ArgKinds argkinds);
 class Namespace {
-  string libname;
-  map<string,Instantiable*> iList;
+  CoreIRContext* c;
+  string name;
+
+  map<string,Module*> mList;
+  map<string,Generator*> gList;
   map<string,TypeGen*> tList;
+  
   public :
-    Namespace(string libname) : libname(libname) {}
-    ~Namespace() {
-      //for(auto i : iList) delete i.second;
-      //for(auto tgd : tgdList) delete tgd.second;
-    }
-    string getName() { return libname;}
+    Namespace(CoreIRContext* c, string name) : c(c), name(name) {}
+    ~Namespace();
+    string getName() { return name;}
     TypeGen* newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun);
     TypeGen* getTypeGen(string name) {
       assert(hasTypeGen(name));
@@ -39,32 +33,12 @@ class Namespace {
     void addModule(Module* i);
     void addGenerator(Generator* i);
 
-    Generator* getGenerator(string name) {
-      auto it = iList.find(name);
-      if (it != iList.end()) return (Generator*) it->second;
-      throw "Could not find module " + name + " in library " + libname;
-      return nullptr;
-    }
+    Generator* getGenerator(string gname);
+    Module* getModule(string mname);
 
-    //void addInstantiable(Instantiable* i) {
-    //  //TODO check if it already there
-    //  iList.emplace(i->getName(),i);
-    //}
-    //TypeGen* getTypeGen(string name) {
-    //  auto it = tgdList.find(name);
-    //  if (it != tgdList.end()) return it->second;
-    //  throw "Could not find module " + name + " in library " libname;
-    //  return nullptr;
-    //}
-
-    //void addTypeGen(TypeGen* tgd) {
-    //  //TODO add both flipped and nonFlipped
-    //  //TODO check if it already there
-    //  tgdList.emplace(tgd->getName(),tgd);
-    //}
-    
+   
     void print() {
-      cout << "Namespace: " << libname << endl;
+      cout << "Namespace: " << name << endl;
       cout << "  NYI" << endl;
       //cout << "  Instantiables:" << endl;
       //for (auto it : iList) cout << "    " << it.second->toString() <<endl;
@@ -73,7 +47,7 @@ class Namespace {
 
 };
 
-Namespace* newNamespace(string name);
+Namespace* newNamespace(CoreIRContext* c,string name);
 
 
-#endif //LIBRARY_HPP_
+#endif //NAMESPACE_HPP_

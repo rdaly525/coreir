@@ -24,10 +24,10 @@ int main() {
 
   //TODO to a bunch more checking here
   //Check TypeGen
-  GenArgs* ga1 = new GenArgs(1, {c->GInt(3)});
-  GenArgs* ga2 = new GenArgs(1, {c->GInt(3)});
-  GenArgs* ga3 = new GenArgs(1, {c->GInt(4)});
-  GenArgs* ga4 = new GenArgs(1, {c->GInt(2)});
+  GenArgs* ga1 = c->newGenArgs(1, {c->GInt(3)});
+  GenArgs* ga2 = c->newGenArgs(1, {c->GInt(3)});
+  GenArgs* ga3 = c->newGenArgs(1, {c->GInt(4)});
+  GenArgs* ga4 = c->newGenArgs(1, {c->GInt(2)});
   assert(c->TypeGenInst(td1, ga1) == c->TypeGenInst(td1,ga2));
   assert(c->TypeGenInst(td1, ga1) != c->TypeGenInst(td1,ga3));
   assert(c->TypeGenInst(td1, ga1) != c->TypeGenInst(td1,ga4));

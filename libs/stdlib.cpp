@@ -41,7 +41,7 @@ Module* add2(CoreIRContext* c, Type* t, GenArgs* args, ArgKinds argkinds) {
 
 Namespace* registerStdlib(CoreIRContext* c) {
   
-  Namespace* stdlib = newNamespace("stdlib");
+  Namespace* stdlib = newNamespace(c,"stdlib");
   c->registerLib(stdlib);
 
   //Add bop typegen to library

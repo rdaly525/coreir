@@ -2,7 +2,6 @@
 #define TYPECACHE_CPP_
 
 #include "typecache.hpp"
-#include <cassert>
 
 using namespace std;
 bool operator==(TypeGenParams & l,TypeGenParams & r) {
@@ -24,12 +23,9 @@ TypeCache::TypeCache(CoreIRContext* c) : c(c) {
 }
 
 TypeCache::~TypeCache() {
-  for (auto it1 : RecordCache) {
-    delete it1.second;
-  }
-  for (auto it2 : ArrayCache) {
-    delete it2.second;
-  }
+  for (auto it : RecordCache) delete it.second;
+  for (auto it : ArrayCache) delete it.second;
+  for (auto it : TypeGenCache) delete it.second;
   delete bitI;
   delete bitO;
   delete any;
