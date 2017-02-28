@@ -64,16 +64,18 @@ class Select;
 //These are defined in helpers
 bool isNumber(string s);
 string TypeKind2Str(TypeKind t);
+string ArgKind2Str(ArgKind);
+string ArgKinds2Str(ArgKinds);
 string wireableKind2Str(WireableKind wb);
 
-class Wire;
-class Wireable;
-class TypedWire;
-TypedWire* castTypedWire(Wire* w);
+
+
+
+//TypedWire* castTypedWire(Wire* w);
 //Type* wireable2Type(Wireable* w);
 
-template <typename T>
-T safecast(void* obj,string err="Cannot cast!");
+//template <typename T>
+//T safecast(void* obj,string err="Cannot cast!");
 
 
 

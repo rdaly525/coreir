@@ -35,6 +35,7 @@ class Instantiable {
   public :
     Instantiable(InstantiableKind kind, CoreIRContext* context,string nameSpace, string name) : kind(kind), context(context), nameSpace(nameSpace), name(name) {}
     virtual ~Instantiable() {};
+    virtual bool hasDef() const=0;
     virtual string toString() const =0;
     CoreIRContext* getContext() { return context;}
     string getName() { return name;}
@@ -53,10 +54,10 @@ class Generator : public Instantiable {
   genFun genfun;
   public :
     Generator(CoreIRContext* c,string name,ArgKinds argkinds, TypeGen* typegen);
-    string toString() const {
-      return "Generator: " + name;
-    }
+    bool hasDef() const { return !!genfun; }
+    string toString() const;
     TypeGen* getTypeGen() { return typegen;}
+    genFun getGenFun() { return genfun;}
     void addGeneratorDef(genFun fun) { genfun = fun;}
     //genargs_t getGentypes(void) {return gentypes;}
     //genfun_t getGenfun(void) {return genfun;}
@@ -69,6 +70,7 @@ class Module : public Instantiable {
   public :
     Module(CoreIRContext* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type), def(nullptr) {}
     ~Module();
+    bool hasDef() const { return !!def; }
     string toString() const;
     Type* getType() { return type;}
     void addModuleDef(ModuleDef* _def) { assert(!def); def = _def;}

@@ -24,46 +24,30 @@ string TypeKind2Str(TypeKind t) {
   }
 }
 
+string ArgKind2Str(ArgKind argkind) {
+  switch(argkind) {
+    case GINT : return "int";
+    case GSTRING : return "string";
+    case GTYPE : return "type";
+  }
+}
+
+string ArgKinds2Str(ArgKinds argkinds) {
+  string ret = "(";
+  for (auto it=argkinds.begin(); it!=argkinds.end(); ++it) {
+    ret = ret + ArgKind2Str(*it) + ((it==argkinds.begin()) ? "" : ",");
+  }
+  return ret + ")";
+}
+
 //TODO probably a better way of doing this with fancy macros
 string wireableKind2Str(WireableKind wb) {
   switch(wb) {
     case IFACE: return "Interface";
     case INST: return "Instance";
     case SEL: return "Select";
-    //case TIFACE: return "TypedInterface";
-    //case TINST: return "TypedInstance";
-    //case TSEL: return "TypedSelect";
   }
   assert(false);
 }
-
-
-//TypedWire* castTypedWire(Wire* w) {
-//  TypedWire* tw = dynamic_cast<TypedWire*>(w);
-//  if (!tw) {
-//    cout << "ERROR! Cannot cast to TypedWire!" <<endl;
-//    cout << "  Wire : " << w->toString() << endl;
-//    cout << "  Instantiable : " << *(w->getFrom()) << endl;
-//    assert(false);
-//  }
-//  return tw;
-//}
-//Type* wireable2Type(Wireable* w) {
-//  return castTypedWire(w->wire)->getType();
-//}
-//Dir flipDir(Dir d) { if(d==IN) return OUT; else return IN;}
-//
-//
-//template <typename T>
-//T safecast(void* obj,string err) {
-//  T objcast = dynamic_cast<T>(obj);
-//  if (!objcast) {
-//    cout << "ERROR: " << err << endl;
-//    assert(false);
-//  }
-//  return objcast;
-//}
-
-
 
 #endif //HELPERS_CPP_

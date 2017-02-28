@@ -19,10 +19,11 @@ class CoreIRContext {
   string errmsg;
  
   //Memory management
+  vector<Namespace*> namespaceList;
   vector<GenArg*> genargList;
   vector<GenArgs*> genargsList;
-  unordered_set<Generator*> generatorSet;
-  unordered_set<Module*> moduleSet;
+  vector<Generator*> generatorList;
+  vector<Module*> moduleList;
   
   public :
     CoreIRContext();
@@ -32,7 +33,13 @@ class CoreIRContext {
     void error(string s) { errmsg = errmsg + "\t" + s + "\n";}
     bool haserror() { return err; }
     void printerror() { cout << errmsg << endl;}
-    void registerLib(Namespace* lib);
+    void clearerror() { err = false; errmsg = "";}
+    bool registerLib(Namespace* lib);
+    bool linkLib(Namespace* def, string decl);
+    
+    Namespace* newNamespace(string name);
+    Namespace* getNamespace(string s);
+
     Type* Any();
     Type* BitIn();
     Type* BitOut();

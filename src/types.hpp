@@ -60,10 +60,12 @@ struct TypeGen {
   ArgKinds argkinds;
   TypeGenFun fun;
   bool funflip;
-  TypeGen(string libname, string name, ArgKinds argkinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), argkinds(argkinds), fun(fun), funflip(funflip) {
-  }
+  TypeGen(string libname, string name, ArgKinds argkinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), argkinds(argkinds), fun(fun), funflip(funflip) {}
   void setFlipped(TypeGen* _flipped) {
     flipped = _flipped;
+  }
+  string toString() {
+    return name + ArgKinds2Str(argkinds);
   }
 };
 

@@ -1,28 +1,4 @@
-TODO
-Error handling
-Maybe Error and warning system instead of just throwing errors?
-
-
-
-
-
 ///////////////////////////////////////
-Next things to do
-Get coreir working
-Seperate out into Modules, generators
-
-
-
-
-
-
-
-
-
-TODO Type::sel. What should it do for a bad select?
-
-
-
 
 
 //Adding Metadata

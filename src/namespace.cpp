@@ -51,9 +51,14 @@ Module* Namespace::getModule(string mname) {
   c->error("  Namespace: " + name);
   return nullptr;
 }
+void Namespace::print() {
+  cout << "Namespace: " << name << endl;
+  cout << "  Generators:" << endl;
+  for (auto it : gList) cout << "    " << it.second->toString() << endl;
+  cout << endl;
+}
 
 
-Namespace* newNamespace(CoreIRContext* c, string name) { return new Namespace(c,name);}
 
 
 #endif // NAMESPACE_CPP_

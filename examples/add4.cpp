@@ -4,6 +4,7 @@
 
 //#include <fstream>
 #include "stdlib.hpp"
+#include "stdlib_v1.hpp"
 
 int main() {
   uint n = 32;
@@ -12,11 +13,13 @@ int main() {
   CoreIRContext* c = newContext();
   
   //register the stdlib
-  Namespace* std = registerStdlib(c);
+  Namespace* std = getStdlib(c);
+  c->registerLib(std);
+  std->print();
 
   //Declare add2 Generator
   Generator* add2 = std->getGenerator("add2");
-
+  assert(add2);
   // Define Add4 Module
   Type* add4Type = c->Record({
       {"in",c->Array(4,c->Array(n,c->BitIn()))},
@@ -41,8 +44,15 @@ int main() {
   // End Define Add4 Module
   add4_n->addModuleDef(def);
   if (c->haserror()) c->printerror();
-
   add4_n->print();
+  
+  // Link v1 of library
+  cout << "Linking stdlib!" << endl;
+  Namespace* stdlib_v1 = getStdlib_v1(c);
+  c->linkLib(stdlib_v1,"stdlib");
+  if (c->haserror()) c->printerror();
+
+  std->print();
 
   //Add Def to global
   c->getGlobal()->addModule(add4_n);
@@ -50,8 +60,6 @@ int main() {
   // emit this circuit as a file
   //toFileMain(add4, "add4.core");
 
-  //Link stdprim library
-  
   //fstream f;
   //f.open("add4.v",fstream::out);
   //assert(f.is_open());

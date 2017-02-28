@@ -21,6 +21,10 @@ class Namespace {
     Namespace(CoreIRContext* c, string name) : c(c), name(name) {}
     ~Namespace();
     string getName() { return name;}
+    map<string,Module*> getModules() { return mList;}
+    map<string,Generator*> getGenerators() { return gList;}
+    map<string,TypeGen*> getTypeGens() { return tList;}
+
     TypeGen* newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun);
     TypeGen* getTypeGen(string name) {
       assert(hasTypeGen(name));
@@ -36,18 +40,9 @@ class Namespace {
     Generator* getGenerator(string gname);
     Module* getModule(string mname);
 
-   
-    void print() {
-      cout << "Namespace: " << name << endl;
-      cout << "  NYI" << endl;
-      //cout << "  Instantiables:" << endl;
-      //for (auto it : iList) cout << "    " << it.second->toString() <<endl;
-      cout << endl;
-    }
-
+    void print();
 };
 
 Namespace* newNamespace(CoreIRContext* c,string name);
-
 
 #endif //NAMESPACE_HPP_

@@ -22,12 +22,20 @@ Generator::Generator(CoreIRContext* c,string name,ArgKinds argkinds, TypeGen* ty
   assert(argkinds == typegen->argkinds);
 }
 
+string Generator::toString() const {
+  string ret = "Generator: " + name;
+  ret = ret + "\n    ArgKinds: " + ArgKinds2Str(argkinds);
+  ret = ret + "\n    TypeGen: " + typegen->toString();
+  ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
+  return ret;
+}
+
 Module::~Module() {
   if (def) delete def;
 }
 
 string Module::toString() const {
-  return "Module: " + name + "\n  Type: " + type->toString();
+  return "Module: " + name + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
 }
 
 void Module::print(void) {
