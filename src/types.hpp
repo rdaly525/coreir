@@ -90,7 +90,8 @@ class ArrayType : public Type {
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
     string toString(void) const { 
-      return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
+      //return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
+      return elemType->toString() + "[" + to_string(len) + "]";
     };
     bool sel(CoreIRContext* c, string sel, Type** ret);
 };

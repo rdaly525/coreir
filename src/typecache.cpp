@@ -6,7 +6,6 @@
 
 using namespace std;
 bool operator==(TypeGenParams & l,TypeGenParams & r) {
-  cout << "Checking TypeGenParams\n";
   return (l.tgd==r.tgd) && (*l.ga == *r.ga);
 }
 bool operator!=(TypeGenParams & l,TypeGenParams & r) { return !(l == r); }
@@ -79,33 +78,19 @@ Type* TypeCache::newRecord(RecordParams params) {
 }
 
 Type* TypeCache::newTypeGenInst(TypeGen* tgd, GenArgs* args) {
-  cout << "CACHE1" << endl;
-  for (auto it : TypeGenCache) {
-    cout << "  " << it.first.tgd->name << endl;
-  }
-  cout << endl;
   TypeGenParams params(tgd,args);
   auto it = TypeGenCache.find(params);
   if (it != TypeGenCache.end()) {
     return it->second;
   }
   else {
-    cout << "C:" << tgd << " " << tgd->flipped << endl;
     Type* t = new TypeGenType(tgd,args);
     Type* tf = new TypeGenType(tgd->flipped,args);
     t->setFlipped(tf);
     tf->setFlipped(t);
-    cout << "E1" << endl;
     TypeGenCache.emplace(params,t);
-    cout << "E2" << endl;
     TypeGenParams paramsF(tgd->flipped,args);
-    cout << "E3" << endl;
     TypeGenCache.emplace(paramsF,tf);
-    cout << "E4" << endl;
-    cout << "CACHE2" << endl;
-    for (auto it : TypeGenCache) {
-      cout << "  " << it.first.tgd->name << endl;
-    }
     return t;
   }
 }

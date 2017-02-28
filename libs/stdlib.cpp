@@ -18,7 +18,7 @@
 //  ns->addModuleDef(m);
 //  return m;
 //}
-Type* bop_type(CoreIRContext* c, GenArgs args, ArgKinds kinds) {
+Type* bop_type(CoreIRContext* c, GenArgs* args, ArgKinds kinds) {
   int n = c->toInt((*args)[0]);
   Type* narray = c->Array(n,c->BitOut());
   return c->Record({

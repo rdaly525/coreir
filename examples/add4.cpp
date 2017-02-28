@@ -25,9 +25,9 @@ int main() {
   Module* add4_n = c->newModuleDecl("Add4",add4Type);
   ModuleDef* def = add4_n->newModuleDef();
     Wireable* iface = def->getInterface();
-    Wireable* add_00 = def->addInstanceGenerator("add00",add2,new GenArgs(1,{c->GInt(n)}));
-    Wireable* add_01 = def->addInstanceGenerator("add01",add2,new GenArgs(1,{c->GInt(n)}));
-    Wireable* add_1 = def->addInstanceGenerator("add1",add2,new GenArgs(1,{c->GInt(n)}));
+    Wireable* add_00 = def->addInstanceGenerator("add00",add2,c->newGenArgs(1,{c->GInt(n)}));
+    Wireable* add_01 = def->addInstanceGenerator("add01",add2,c->newGenArgs(1,{c->GInt(n)}));
+    Wireable* add_1 = def->addInstanceGenerator("add1",add2,c->newGenArgs(1,{c->GInt(n)}));
     
     def->wire(iface->sel("in")->sel(0),add_00->sel("in0"));
     def->wire(iface->sel("in")->sel(1),add_00->sel("in1"));
@@ -40,6 +40,7 @@ int main() {
     def->wire(add_1->sel("out"),iface->sel("out"));
   // End Define Add4 Module
   add4_n->addModuleDef(def);
+  if (c->haserror()) c->printerror();
 
   add4_n->print();
 

@@ -22,10 +22,14 @@ Generator::Generator(CoreIRContext* c,string name,ArgKinds argkinds, TypeGen* ty
   assert(argkinds == typegen->argkinds);
 }
 
+string Module::toString() const {
+  return "Module: " + name + "\n  Type: " + type->toString();
+}
+
 void Module::print(void) {
   cout << toString() << endl;
-  cout << "NYI" << endl;
   if(def) def->print();
+
 }
 ModuleDef* Module::newModuleDef() {
   return new ModuleDef(this);
@@ -45,15 +49,14 @@ ModuleDef::~ModuleDef() {
 
 
 void ModuleDef::print(void) {
-  cout << "ModuleDef: " << module->getName() << "\n";
-  cout << "  Type: " << (*module->getType()) << "\n";
-  cout << "  Instances:\n";
+  cout << "  Def:" << endl;
+  cout << "    Instances:" << endl;
   for (auto inst : instances) {
-    cout << "    " << (*inst) << endl;
+    cout << "      " << (*inst) << endl;
   }
-  cout << "  Wirings:\n";
+  cout << "    Wirings:\n";
   for (auto wiring : wirings) {
-    cout << "    " << *(wiring.first) << " <=> " << *(wiring.second) << "\n" ;
+    cout << "      " << *(wiring.first) << " <=> " << *(wiring.second) << endl ;
   }
   cout << endl;
 }
@@ -74,16 +77,41 @@ Instance* ModuleDef::addInstanceModule(string instname,Module* m) {
   return inst;
 }
 
+bool checkWiring(Wireable* a, Wireable* b) {
+  CoreIRContext* c = a->getContext();
+  Type* ta = a->getType();
+  Type* tb = b->getType();
+  
+  //TODO This might not be valid if:
+  //  2 outputs are connected to the same input
+  //  an inout is connected to an input (good!)
+  //  an inout is connected to an output (bad!)
+  
+  if (ta->isKind(ANY) || tb->isKind(ANY)) return true;
+  if (ta == c->Flip(tb) ) return true;
+  
+  c->newerror();
+  c->error("Cannot wire together");
+  c->error("  " + a->toString() + " : " + a->getType()->toString());
+  c->error("  " + b->toString() + " : " + b->getType()->toString());
+  return false;
+}
+
 void ModuleDef::wire(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
-  if (a->getContext()!=this || b->getContext() != this) {
-    cout << "ERROR: Wirings can only occur within the same module\n";
-    cout << "  This ModuleDef: "  << module->getName() << endl;
-    cout << "  ModuleDef of " <<a->toString() << ": " << a->getContext()->module->getName() << endl;
-    cout << "  ModuleDef of " <<b->toString() << ": " << b->getContext()->module->getName() << endl;
-    exit(0);
+  CoreIRContext* c = getContext();
+  if (a->getModuleDef()!=this || b->getModuleDef() != this) {
+    c->newerror();
+    c->error("Wirings can only occur within the same module");
+    c->error("  This ModuleDef: " + module->getName());
+    c->error("  ModuleDef of " + a->toString() + ": " + a->getModuleDef()->getName());
+    c->error("  ModuleDef of " + b->toString() + ": " + b->getModuleDef()->getName());
+    return;
   }
-  
+
+  //TODO what if we connect the same wires together
+  checkWiring(a,b);
+    
   //Update 'a' and 'b'
   a->addWiring(b);
   b->addWiring(a);
@@ -97,21 +125,21 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
 //----------------------- Wireables ----------------------//
 ///////////////////////////////////////////////////////////
 
+
 Select* Wireable::sel(string selStr) {
-  cout << "Selecting " << selStr << " from Wireable with type: " << *type << endl;
-  CoreIRContext* c = context->getContext();
+  CoreIRContext* c = getContext();
   Type* ret = c->Any();
   bool error = type->sel(c,selStr,&ret);
-  cout << "sel:" << selStr << " : " << *type << endl;
-  assert(!error);
-  cout << "  SUCCESS: " << *ret << endl;
-  return context->getCache()->newSelect(context,this,selStr,ret);
+  if (error) {
+    c->error("  Wire: " + toString());
+  }
+  return moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
 string Interface::toString() const{
-  return context->getName();
+  return moduledef->getName();
 }
 
 string Instance::toString() const {

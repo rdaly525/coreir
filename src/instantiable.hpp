@@ -68,9 +68,7 @@ class Module : public Instantiable {
   string verilog;
   public :
     Module(CoreIRContext* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type) {}
-    string toString() const {
-      return "Module: " + name;
-    }
+    string toString() const;
     Type* getType() { return type;}
     void addModuleDef(ModuleDef* _def) { def = _def;}
     ModuleDef* newModuleDef();
@@ -111,18 +109,18 @@ class ModuleDef {
 class Wireable {
   protected :
     WireableKind kind;
-    ModuleDef* context; // ModuleDef which it is contained in 
+    ModuleDef* moduledef; // ModuleDef which it is contained in 
     Type* type;
     set<Wireable*> wirings; 
     map<string,Wireable*> children;
   public :
-    Wireable(WireableKind kind, ModuleDef* context, Type* type) : kind(kind),  context(context), type(type) {}
+    Wireable(WireableKind kind, ModuleDef* moduledef, Type* type) : kind(kind),  moduledef(moduledef), type(type) {}
     virtual ~Wireable() {}
     virtual string toString() const=0;
-    ModuleDef* getContainer() { return context;}
+    ModuleDef* getModuleDef() { return moduledef;}
+    CoreIRContext* getContext() { return moduledef->getContext();}
     bool isKind(WireableKind e) { return e==kind;}
     WireableKind getKind() { return kind ; }
-    ModuleDef* getContext() { return context; }
     Type* getType() { return type;}
     void ptype() {cout << "Kind=" <<wireableKind2Str(kind);}
     void addWiring(Wireable* w) { wirings.insert(w); }
@@ -130,6 +128,8 @@ class Wireable {
     
     Select* sel(string);
     Select* sel(uint);
+
+
 };
 
 ostream& operator<<(ostream&, const Wireable&);

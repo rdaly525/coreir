@@ -3,7 +3,7 @@
 
 #include "context.hpp"
 
-CoreIRContext::CoreIRContext() {
+CoreIRContext::CoreIRContext() : err(false), errmsg("") {
   global = new Namespace("_G");
   cache = new TypeCache(this);
 }
@@ -38,6 +38,11 @@ int CoreIRContext::toInt(GenArg* g) { return ((GenInt*) g)->i; }
 string CoreIRContext::toString(GenArg* g) { return ((GenString*) g)->str; }
 Type* CoreIRContext::toType(GenArg* g) { return ((GenType*) g)->t; }
 
+// TODO cache the following for proper memory management
+GenArgs* CoreIRContext::newGenArgs(uint len, vector<GenArg*> args) {
+  return new GenArgs(len, args);
+}
+
 Generator* CoreIRContext::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg) {
   return new Generator(this,name,kinds,tg);
 }
@@ -45,7 +50,6 @@ Generator* CoreIRContext::newGeneratorDecl(string name, ArgKinds kinds, TypeGen*
 Module* CoreIRContext::newModuleDecl(string name, Type* t) {
   return new Module(this,name,t);
 }
-
 
 CoreIRContext* newContext() {
   CoreIRContext* m = new CoreIRContext();
