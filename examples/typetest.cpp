@@ -15,19 +15,19 @@ int main() {
 
 
   // Test out TypeGens
-  g->newTypeGen("int", "intIn", {GINT}, NULL);
+  g->newTypeGen("int", "intIn", {{"w",GINT}}, NULL);
   //g->newTypeGen("intIn", "int", {GINT}, NULL);
   TypeGen* td1 = g->getTypeGen("int");
   TypeGen* td2 = g->getTypeGen("intIn");
 
   assert(td1 == td2->flipped);
 
-  //TODO to a bunch more checking here
+  //TODO check a bunch more permutations
   //Check TypeGen
-  GenArgs* ga1 = c->newGenArgs(1, {c->GInt(3)});
-  GenArgs* ga2 = c->newGenArgs(1, {c->GInt(3)});
-  GenArgs* ga3 = c->newGenArgs(1, {c->GInt(4)});
-  GenArgs* ga4 = c->newGenArgs(1, {c->GInt(2)});
+  GenArgs* ga1 = c->newGenArgs({{"w",c->GInt(3)}});
+  GenArgs* ga2 = c->newGenArgs({{"w",c->GInt(3)}});
+  GenArgs* ga3 = c->newGenArgs({{"w",c->GInt(4)}});
+  GenArgs* ga4 = c->newGenArgs({{"w",c->GInt(2)}});
   
   assert(ga1 != ga2);
   assert(c->TypeGenInst(td1, ga1) == c->TypeGenInst(td1,ga2));

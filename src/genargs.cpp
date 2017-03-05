@@ -13,10 +13,11 @@
 //    
 //  }
 //}
-size_t std::hash<GenArgs>::operator() (const GenArgs& args) const {
+size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
   size_t hash = 0;
-  for (uint i=0; i< args.len; i++) {
-    GenArg* arg = args[i];
+  for (auto it : genargs.args) {
+    hash_combine(hash,it.first);
+    GenArg* arg = it.second;
     switch(arg->kind) {
       case GSTRING : {
         string arg_s = ((GenString*) arg)->str;
@@ -75,6 +76,18 @@ size_t std::hash<GenArgs>::operator() (const GenArgs& args) const {
 //  return false;
 //
 //}
+
+// TODO should just overload the == of each GenArg
+
+GenArg* GenArgs::operator[](const string s) const {
+  auto elem = args.find(s);
+  if (elem == args.end() ) {
+    c->newerror();
+    c->error("Cannot find field " + s + "In GenArgs");
+    assert(false);
+  }
+  return elem->second;
+}
 
 bool GenArgs::GenArgEq(GenArg* a, GenArg* b) {
   if (a->kind == b->kind) {

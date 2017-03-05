@@ -53,9 +53,8 @@ class CoreIRContext {
     int toInt(GenArg* g);
     string toString(GenArg* g);
     Type* toType(GenArg* g);
-    GenArgs* newGenArgs(uint len, vector<GenArg*> args);   
+    GenArgs* newGenArgs(unordered_map<string,GenArg*> args);   
 
-    //TODO have an interface for GenArgs
   
     Type* Flip(Type* t);
     Generator* newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg);

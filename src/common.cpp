@@ -35,7 +35,8 @@ string ArgKind2Str(ArgKind argkind) {
 string ArgKinds2Str(ArgKinds argkinds) {
   string ret = "(";
   for (auto it=argkinds.begin(); it!=argkinds.end(); ++it) {
-    ret = ret + ArgKind2Str(*it) + ((it==argkinds.begin()) ? "" : ",");
+    
+    ret = ret + it->first + ": " + ArgKind2Str(it->second) + ((it==argkinds.begin()) ? "" : ",");
   }
   return ret + ")";
 }

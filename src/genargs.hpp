@@ -1,9 +1,11 @@
 #ifndef GENARGS_HPP_
 #define GENARGS_HPP_
 
+
 #include "types.hpp"
 #include "common.hpp"
 #include <cassert>
+//#include <unordered_map>
 
 using namespace std;
 
@@ -51,32 +53,31 @@ struct hash<GenArgs> {
 };
 
 struct GenArgs {
-  uint len;
-  vector<GenArg*> args;
-  GenArgs(uint len, vector<GenArg*> _args) : len(len), args(_args) {
-    assert(len < 10);
-    assert(len == args.size() );
-  }
-  GenArg* operator[](const int i) const {
-    return args[i];
-  }
+  CoreIRContext* c;
+  unordered_map<string,GenArg*> args;
+  GenArgs(CoreIRContext* c, unordered_map<string,GenArg*> args) : c(c), args(args) {}
+
+  GenArg* operator[](const string s) const;
   bool GenArgEq(GenArg* a, GenArg* b);
 
   bool checkKinds(ArgKinds kinds) {
-    if (len != kinds.size()) return false;
-    bool good = true;
-    for (uint i=0; i<len; ++i) {
-      good &= args[i]->isKind(kinds[i]);
+    if (args.size() != kinds.size()) return false;
+    for (auto field : args) {
+      auto kind = kinds.find(field.first);
+      if (kind == kinds.end()) return false;
+      assert(kind->first == field.first);
+      if (! field.second->isKind(kind->second) ) return false;
     }
-    return good;
+    return true;
   }
-  bool operator==(GenArgs r) {
-    if (len != r.len) return false;
-    bool good = true;
-    for (uint i=0; i<len; i++) {
-      good &= GenArgEq(args[i],r[i]);
+  bool operator==(const GenArgs r) {
+    if (args.size() != r.args.size()) return false;
+    for (auto field : args) {
+      auto rfield = r.args.find(field.first);
+      if(rfield == r.args.end()) return false;
+      if (!GenArgEq(field.second,rfield->second)) return false;
     }
-    return good;
+    return true;
   }
   bool operator!=(GenArgs r) {
     return !(*this == r);

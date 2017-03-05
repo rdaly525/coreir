@@ -27,7 +27,7 @@ struct GenInt;
 struct GenString;
 struct GenType;
 struct GenArgs;
-typedef vector<ArgKind> ArgKinds;
+typedef unordered_map<string,ArgKind> ArgKinds;
 
 //Types.hpp
 class Type;

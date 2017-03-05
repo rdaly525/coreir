@@ -5,7 +5,7 @@
 
 
 Type* binop_type(CoreIRContext* c, GenArgs* args, ArgKinds kinds) {
-  int n = c->toInt((*args)[0]);
+  int n = c->toInt((*args)["w"]);
   Type* narray = c->Array(n,c->BitOut());
   return c->Record({
       {"in0",c->Flip(narray)},
@@ -20,10 +20,10 @@ Namespace* getStdlib(CoreIRContext* c) {
   //c->registerLib(stdlib);
 
   //Add bop typegen to library
-  stdlib->newTypeGen("binop","binop_F",{GINT},binop_type);
+  stdlib->newTypeGen("binop","binop_F",{{"w",GINT}},binop_type);
  
   //declare new add2 generator
-  Generator* add2Gen = c->newGeneratorDecl("add2",{GINT},stdlib->getTypeGen("binop"));
+  Generator* add2Gen = c->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
   
   //Add Generator to library
   stdlib->addGenerator(add2Gen);

@@ -9,7 +9,7 @@ all: add4.run
 
 clean:
 	$(MAKE) -C ../src clean
-	$(MAKE) -C ../libs clean
+	#$(MAKE) -C ../libs clean
 	-@rm -rf *.o *.run* *.core
 
 
@@ -17,8 +17,9 @@ clean:
 #TODO hack. Cant figure out how to load libraries
 %.run: %.o
 	$(MAKE) -C ../src context.a
-	$(MAKE) -C ../libs stdlib.a
-	$(CC) $(CFLAGS)  -o $@ $^ ../src/context.a ../libs/stdlib.a
+	#$(MAKE) -C ../libs stdlib.a
+	#$(CC) $(CFLAGS)  -o $@ $^ ../src/context.a ../libs/stdlib.a
+	$(CC) $(CFLAGS)  -o $@ $^ ../src/context.a
 	#./$@
 
 %.o: %.cpp 

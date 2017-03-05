@@ -1,6 +1,5 @@
 #include "context.hpp"
 //#include "toFile.hpp"
-//#include <string>
 
 //#include <fstream>
 #include "stdlib.hpp"
@@ -28,9 +27,9 @@ int main() {
   Module* add4_n = c->newModuleDecl("Add4",add4Type);
   ModuleDef* def = add4_n->newModuleDef();
     Wireable* iface = def->getInterface();
-    Wireable* add_00 = def->addInstanceGenerator("add00",add2,c->newGenArgs(1,{c->GInt(n)}));
-    Wireable* add_01 = def->addInstanceGenerator("add01",add2,c->newGenArgs(1,{c->GInt(n)}));
-    Wireable* add_1 = def->addInstanceGenerator("add1",add2,c->newGenArgs(1,{c->GInt(n)}));
+    Wireable* add_00 = def->addInstanceGenerator("add00",add2,c->newGenArgs({{"w",c->GInt(n)}}));
+    Wireable* add_01 = def->addInstanceGenerator("add01",add2,c->newGenArgs({{"w",c->GInt(n)}}));
+    Wireable* add_1 = def->addInstanceGenerator("add1",add2,c->newGenArgs({{"w",c->GInt(n)}}));
     
     def->wire(iface->sel("in")->sel(0),add_00->sel("in0"));
     def->wire(iface->sel("in")->sel(1),add_00->sel("in1"));

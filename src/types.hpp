@@ -12,8 +12,6 @@
 #include "context.hpp"
 
 using namespace std;
-class CoreIRContext;
-struct GenArgs;
 class Type {
   protected :
     TypeKind kind;

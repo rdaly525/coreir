@@ -120,8 +120,8 @@ string CoreIRContext::toString(GenArg* g) { return ((GenString*) g)->str; }
 Type* CoreIRContext::toType(GenArg* g) { return ((GenType*) g)->t; }
 
 // TODO cache the following for proper memory management
-GenArgs* CoreIRContext::newGenArgs(uint len, vector<GenArg*> args) {
-  GenArgs* ga = new GenArgs(len, args);
+GenArgs* CoreIRContext::newGenArgs(unordered_map<string,GenArg*> args) {
+  GenArgs* ga = new GenArgs(this,args);
   genargsList.push_back(ga);
   return ga;
 }

@@ -5,7 +5,7 @@
 
 //Type boptype
 Module* add2(CoreIRContext* c, Type* t, GenArgs* args, ArgKinds argkinds) {
-  int n = c->toInt((*args)[0]);
+  int n = c->toInt((*args)["w"]);
   Module* m = c->newModuleDecl("add2_"+to_string(n),t);
   string verilog = "NYI add2";
   //VModule vm(m);
@@ -24,7 +24,7 @@ Namespace* getStdlib_v1(CoreIRContext* c) {
   Namespace* stdlib_v1 = c->newNamespace("stdlib_v1");
 
   //Create new generator and add definition
-  Generator* add2Gen = c->newGeneratorDecl("add2",{GINT},stdlib->getTypeGen("binop"));
+  Generator* add2Gen = c->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
   add2Gen->addGeneratorDef(add2);
   
   //Add Generator to library
