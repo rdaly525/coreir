@@ -22,6 +22,7 @@ typedef enum {IFACE,INST,SEL} WireableKind;
 //other
 class Namespace;
 class CoreIRContext;
+struct Error;
 struct GenArg;
 struct GenInt;
 struct GenString;

@@ -102,10 +102,11 @@ bool checkWiring(Wireable* a, Wireable* b) {
   if (ta->isKind(ANY) || tb->isKind(ANY)) return true;
   if (ta == c->Flip(tb) ) return true;
   
-  c->newerror();
-  c->error("Cannot wire together");
-  c->error("  " + a->toString() + " : " + a->getType()->toString());
-  c->error("  " + b->toString() + " : " + b->getType()->toString());
+  Error e;
+  e.message("Cannot wire together");
+  e.message("  " + a->toString() + " : " + a->getType()->toString());
+  e.message("  " + b->toString() + " : " + b->getType()->toString());
+  c->error(e);
   return false;
 }
 
@@ -113,11 +114,12 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
   CoreIRContext* c = getContext();
   if (a->getModuleDef()!=this || b->getModuleDef() != this) {
-    c->newerror();
-    c->error("Wirings can only occur within the same module");
-    c->error("  This ModuleDef: " + module->getName());
-    c->error("  ModuleDef of " + a->toString() + ": " + a->getModuleDef()->getName());
-    c->error("  ModuleDef of " + b->toString() + ": " + b->getModuleDef()->getName());
+    Error e;
+    e.message("Wirings can only occur within the same module");
+    e.message("  This ModuleDef: " + module->getName());
+    e.message("  ModuleDef of " + a->toString() + ": " + a->getModuleDef()->getName());
+    e.message("  ModuleDef of " + b->toString() + ": " + b->getModuleDef()->getName());
+    c->error(e);
     return;
   }
 
@@ -141,9 +143,12 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
 Select* Wireable::sel(string selStr) {
   CoreIRContext* c = getContext();
   Type* ret = c->Any();
-  bool error = type->sel(c,selStr,&ret);
+  Error e;
+  bool error = type->sel(c,selStr,&ret,&e);
   if (error) {
-    c->error("  Wire: " + toString());
+    e.message("  Wire: " + toString());
+    e.fatal();
+    getContext()->error(e);
   }
   return moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
 }

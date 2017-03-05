@@ -82,9 +82,10 @@ size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
 GenArg* GenArgs::operator[](const string s) const {
   auto elem = args.find(s);
   if (elem == args.end() ) {
-    c->newerror();
-    c->error("Cannot find field " + s + "In GenArgs");
-    assert(false);
+    Error e;
+    e.message("Cannot find field " + s + "In GenArgs");
+    e.fatal();
+    c->error(e);
   }
   return elem->second;
 }

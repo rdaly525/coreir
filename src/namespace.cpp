@@ -36,19 +36,23 @@ void Namespace::addGenerator(Generator* g) {
 Generator* Namespace::getGenerator(string gname) {
   auto it = gList.find(gname);
   if (it != gList.end()) return it->second;
-  c->newerror();
-  c->error("Could not find Generator in library!");
-  c->error("  Generator: " + gname);
-  c->error("  Namespace: " + name);
+  Error e;
+  e.message("Could not find Generator in library!");
+  e.message("  Generator: " + gname);
+  e.message("  Namespace: " + name);
+  e.fatal();
+  c->error(e);
   return nullptr;
 }
 Module* Namespace::getModule(string mname) {
   auto it = mList.find(mname);
   if (it != mList.end()) return it->second;
-  c->newerror();
-  c->error("Could not find Module in library!");
-  c->error("  Module: " + mname);
-  c->error("  Namespace: " + name);
+  Error e;
+  e.message("Could not find Module in library!");
+  e.message("  Module: " + mname);
+  e.message("  Namespace: " + name);
+  e.fatal();
+  c->error(e);
   return nullptr;
 }
 void Namespace::print() {

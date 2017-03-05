@@ -42,14 +42,14 @@ int main() {
     def->wire(add_1->sel("out"),iface->sel("out"));
   // End Define Add4 Module
   add4_n->addModuleDef(def);
-  if (c->haserror()) c->printerror();
+  c->checkerrors();
   add4_n->print();
   
   // Link v1 of library
   cout << "Linking stdlib!" << endl;
   Namespace* stdlib_v1 = getStdlib_v1(c);
   c->linkLib(stdlib_v1, stdlib);
-  if (c->haserror()) c->printerror();
+  c->checkerrors();
 
   stdlib->print();
 

@@ -5,7 +5,7 @@
 
 using namespace std;
 
-CoreIRContext::CoreIRContext() : err(false), errmsg("") {
+CoreIRContext::CoreIRContext() : maxErrors(3) {
   global = newNamespace("_G");
   cache = new TypeCache(this);
 }
@@ -24,9 +24,10 @@ CoreIRContext::~CoreIRContext() {
 bool CoreIRContext::registerLib(Namespace* lib) {
   string name = lib->getName();
   if (libs.find(name) != libs.end()) {
-    newerror();
-    error("Namespace already exists!");
-    error("  Namespace: " + name);
+    Error e;
+    e.message("Namespace already exists!");
+    e.message("  Namespace: " + name);
+    error(e);
     return true;
   }
   libs.emplace(name,lib);
@@ -42,9 +43,11 @@ Namespace* CoreIRContext::newNamespace(string name) {
 Namespace* CoreIRContext::getNamespace(string name) {
   auto it = libs.find(name);
   if (it == libs.end()) {
-    newerror();
-    error("Could Not Find Namespace");
-    error("  Namespace : " + name);
+    Error e;
+    e.message("Could Not Find Namespace");
+    e.message("  Namespace : " + name);
+    e.fatal();
+    error(e);
     return nullptr;
   }
   return it->second;
@@ -64,7 +67,7 @@ bool CoreIRContext::linkLib(Namespace* defns, Namespace* declns) {
     Generator* gdecl = declns->getGenerator(gdefname);
     
     //If def is not found in decl,
-    //  make error?
+    //  make e.message?
     if (haserror() ) return true;
     
     genFun gdeclfun = gdecl->getGenFun();
@@ -76,10 +79,11 @@ bool CoreIRContext::linkLib(Namespace* defns, Namespace* declns) {
     //case def is found in decl, but decl already has a def
     //  Error, two definitiosn for linking
     if (gdeffun && gdeclfun && (gdeffun != gdeclfun) ) {
-      newerror();
-      error("Cannot link a def if there is already a def! (duplicate symbol)");
-      error("  Cannot link : " + defns->getName() + "." + gdefname);
-      error("  To : " + declns->getName() + "." + gdefname);
+      Error e;
+      e.message("Cannot link a def if there is already a def! (duplicate symbol)");
+      e.message("  Cannot link : " + defns->getName() + "." + gdefname);
+      e.message("  To : " + declns->getName() + "." + gdefname);
+      error(e);
       return true;
     }
 

@@ -10,6 +10,7 @@
 #include "genargs.hpp"
 #include <cassert>
 #include "context.hpp"
+#include "error.hpp"
 
 using namespace std;
 class Type {
@@ -24,7 +25,7 @@ class Type {
     void setFlipped(Type* f) { flipped = f;}
     Type* getFlipped() { return flipped;}
     virtual string toString(void) const =0;
-    virtual bool sel(CoreIRContext* c,string sel, Type** ret);
+    virtual bool sel(CoreIRContext* c,string sel, Type** ret, Error* e);
     void print(void);
 };
 
@@ -36,7 +37,7 @@ class AnyType : public Type {
   public :
     AnyType() : Type(ANY) {}
     string toString(void) const {return "Any";}
-    bool sel(CoreIRContext* c, string sel, Type** ret);
+    bool sel(CoreIRContext* c, string sel, Type** ret, Error* e);
 };
 
 class BitInType : public Type {
@@ -78,7 +79,7 @@ class TypeGenType : public Type {
     TypeGen* getDef() { return def;}
     GenArgs* getArgs() { return args;}
     string toString(void) const { return def->name; }
-    bool sel(CoreIRContext* c, string sel, Type** ret);
+    bool sel(CoreIRContext* c, string sel, Type** ret, Error* e);
 
 };
 
@@ -93,7 +94,7 @@ class ArrayType : public Type {
       //return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
       return elemType->toString() + "[" + to_string(len) + "]";
     };
-    bool sel(CoreIRContext* c, string sel, Type** ret);
+    bool sel(CoreIRContext* c, string sel, Type** ret, Error* e);
 };
 
 
@@ -119,7 +120,7 @@ class RecordType : public Type {
     vector<string> getOrder() { return _order;}
     map<string,Type*> getRecord() { return record;}
     string toString(void) const;
-    bool sel(CoreIRContext* c, string sel, Type** ret);
+    bool sel(CoreIRContext* c, string sel, Type** ret, Error* e);
 };
 
 

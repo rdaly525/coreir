@@ -4,6 +4,7 @@
 #include "namespace.hpp"
 #include "typecache.hpp"
 #include "types.hpp"
+#include "error.hpp"
 #include <string>
 #include "common.hpp"
 #include <unordered_set>
@@ -13,12 +14,13 @@ using namespace std;
 class CoreIRContext {
   Namespace* global;
   map<string,Namespace*> libs;
-  TypeCache* cache;
   
-  bool err;
-  string errmsg;
+  //Errors / TODO make errors into seperate class
+  uint maxErrors;
+  vector<Error> errors;
  
   //Memory management
+  TypeCache* cache;
   vector<Namespace*> namespaceList;
   vector<GenArg*> genargList;
   vector<GenArgs*> genargsList;
@@ -29,12 +31,26 @@ class CoreIRContext {
     CoreIRContext();
     ~CoreIRContext();
     Namespace* getGlobal() {return global;}
-    void newerror() { err = true; errmsg = errmsg + "\n\nERROR: ";}
-    void error(string s) { errmsg = errmsg + "\t" + s + "\n";}
-    bool haserror() { return err; }
-    void printerror() { cout << errmsg << endl;}
-    void clearerror() { err = false; errmsg = "";}
+    
+    //Error functions
+    void error(Error e) { 
+      errors.push_back(e);
+      if (e.isfatal || errors.size() >= maxErrors) die();
+    }
+    bool haserror() { return errors.size()>0; }
+    void checkerrors() { if (haserror()) die(); }
+    void die() { 
+      printerrors();
+      delete this; // sketch but okay if exits I guess
+      exit(1);
+    }
+    void printerrors() { 
+      for (auto err : errors) cout << "ERROR: " << err.toString() << endl << endl;
+    }
+
+    //void clearerror() { err = false; errmsg = "";}
     bool registerLib(Namespace* lib);
+    
     bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(string name);

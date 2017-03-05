@@ -5,7 +5,7 @@ INCS = -I$(CDIR)/src -I$(CDIR)/libs
 LIBS = -L$(CDIR)/src -L$(CDIR)/libs
 DEPS = 
 
-all: add4.run
+all: add4.run gentest.run typetest.run
 
 clean:
 	$(MAKE) -C ../src clean
