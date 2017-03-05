@@ -1,7 +1,7 @@
 #ifndef HELPERS_CPP_
 #define HELPERS_CPP_
 
-#include "enums.hpp"
+#include "common.hpp"
 #include <cassert>
 
 //#include "coreir.hpp"

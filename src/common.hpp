@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 using namespace std;
 
@@ -50,6 +51,23 @@ class Instance;
 class Select;
 
 
+// Magic hash function I found online
+template <class T> 
+inline void hash_combine(size_t& seed, const T& v) {
+  std::hash<T> hasher;
+  seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+//slow
+template <class T1, class T2>
+struct hash<std::pair<T1,T2>> {
+  //template <class T1, class T2>
+  size_t operator() (const std::pair<T1,T2>& p) const {
+    auto h1 = std::hash<T1>{}(p.first);
+    auto h2 = std::hash<T2>{}(p.second);
+    return h1 ^ h2;
+  }
+};
 
 //struct simfunctions_t {
 //  //void* iface,void* state,void* dirty,void* genargs)

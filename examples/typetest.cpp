@@ -28,6 +28,8 @@ int main() {
   GenArgs* ga2 = c->newGenArgs(1, {c->GInt(3)});
   GenArgs* ga3 = c->newGenArgs(1, {c->GInt(4)});
   GenArgs* ga4 = c->newGenArgs(1, {c->GInt(2)});
+  
+  assert(ga1 != ga2);
   assert(c->TypeGenInst(td1, ga1) == c->TypeGenInst(td1,ga2));
   assert(c->TypeGenInst(td1, ga1) != c->TypeGenInst(td1,ga3));
   assert(c->TypeGenInst(td1, ga1) != c->TypeGenInst(td1,ga4));

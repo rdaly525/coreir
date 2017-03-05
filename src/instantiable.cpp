@@ -1,7 +1,7 @@
 #ifndef INSTANTIABLE_CPP_
 #define INSTANTIABLE_CPP_
 
-#include "enums.hpp"
+//#include "enums.hpp"
 #include <cassert>
 #include <vector>
 #include <set>

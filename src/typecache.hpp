@@ -3,25 +3,36 @@
 
 #include <map>
 #include "types.hpp"
-#include "enums.hpp"
+#include "common.hpp"
 #include "context.hpp"
 
 using namespace std;
 
 typedef std::pair<uint,Type*> ArrayParams ;
+
 //RecordParams defined in types.hpp
 //typedef std::pair<TypeGen*,GenArgs*> TypeGenParams;
 
-//TODO this could actually be super slow
-// TODO this is not actually working
-
 struct TypeGenParams {
-  TypeGen* tgd;
+  TypeGen* tg;
   GenArgs* ga;
-  TypeGenParams(TypeGen* tgd, GenArgs* ga) : tgd(tgd), ga(ga) {}
-  friend bool operator==(TypeGenParams & l,TypeGenParams & r);
-  friend bool operator!=(TypeGenParams & l,TypeGenParams & r);
-  friend bool operator<(TypeGenParams a, TypeGenParams b);
+  TypeGenParams(TypeGen* tg, GenArgs* ga) : tg(tg), ga(ga) {}
+  friend bool operator==(const TypeGenParams & l,const TypeGenParams & r);
+  friend bool operator!=(const TypeGenParams & l,const TypeGenParams & r);
+};
+
+struct TypeGenParamsHasher {
+  size_t operator()(const TypeGenParams& tgp) const;
+};
+
+struct RecordParamsHasher {
+  size_t operator()(const RecordParams& rp) const {
+    size_t hash = 0;
+    for (auto it : rp) {
+      hash_combine(hash,it);
+    }
+    return hash;
+  }
 };
 
 class CoreIRContext;
@@ -30,10 +41,10 @@ class TypeCache {
   Type* bitI;
   Type* bitO;
   Type* any;
-  map<ArrayParams,Type*> ArrayCache;
-  map<RecordParams,Type*> RecordCache;
-  map<TypeGenParams,Type*> TypeGenCache;
-  //TODO TypeGenCache
+  unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<pair> definied in common
+  unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
+  unordered_map<TypeGenParams,Type*,TypeGenParamsHasher> TypeGenCache;
+  
   public :
     TypeCache(CoreIRContext* c); 
     ~TypeCache();

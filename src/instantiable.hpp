@@ -11,7 +11,7 @@
 #include <cassert>
 
 #include "types.hpp"
-#include "enums.hpp"
+#include "common.hpp"
 #include "genargs.hpp"
 
 using namespace std;

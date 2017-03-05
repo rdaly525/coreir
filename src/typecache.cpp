@@ -4,13 +4,16 @@
 #include "typecache.hpp"
 
 using namespace std;
-bool operator==(TypeGenParams & l,TypeGenParams & r) {
-  return (l.tgd==r.tgd) && (*l.ga == *r.ga);
+bool operator==(const TypeGenParams& l,const TypeGenParams& r) {
+  return (l.tg==r.tg) && (*l.ga == *r.ga);
 }
-bool operator!=(TypeGenParams & l,TypeGenParams & r) { return !(l == r); }
-bool operator<(TypeGenParams a, TypeGenParams b) {
-  if (a.tgd != b.tgd) return a.tgd < b.tgd;
-  return *(a.ga) < *(b.ga);
+bool operator!=(TypeGenParams& l,TypeGenParams& r) { return !(l == r); }
+
+size_t TypeGenParamsHasher::operator()(const TypeGenParams& tgp) const {
+    size_t hash = 0;
+    hash_combine(hash,tgp.tg);
+    hash_combine(hash,*(tgp.ga));
+    return hash;
 }
 
 TypeCache::TypeCache(CoreIRContext* c) : c(c) {

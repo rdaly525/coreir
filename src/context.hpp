@@ -5,7 +5,7 @@
 #include "typecache.hpp"
 #include "types.hpp"
 #include <string>
-#include "enums.hpp"
+#include "common.hpp"
 #include <unordered_set>
 #include <vector>
 
@@ -35,7 +35,7 @@ class CoreIRContext {
     void printerror() { cout << errmsg << endl;}
     void clearerror() { err = false; errmsg = "";}
     bool registerLib(Namespace* lib);
-    bool linkLib(Namespace* def, string decl);
+    bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(string name);
     Namespace* getNamespace(string s);

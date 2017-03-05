@@ -2,46 +2,79 @@
 #define GENARGS_CPP_
 
 #include "genargs.hpp"
-#include "enums.hpp"
+#include "common.hpp"
 
 //TODO might need to be const to make faster
 //Also might be better represented virtually and overloade equals/< for each GenArg
 //Should do a hashing function with unordered map instead
-bool operator<(GenArgs l, GenArgs r) {
-  if (l.len != r.len) return l.len < r.len;
-  for (uint i=0; i< l.len; i++) {
-    if (l[i]->kind != r[i]->kind) return l[i]->kind < r[i]->kind;
-    GenArg* gl = l[i];
-    GenArg* gr = r[i];
-    switch(l[i]->kind) {
+
+//struct GenArgHasher {
+//  std::size_t operator()(const GenArgs& ga) const {
+//    
+//  }
+//}
+size_t std::hash<GenArgs>::operator() (const GenArgs& args) const {
+  size_t hash = 0;
+  for (uint i=0; i< args.len; i++) {
+    GenArg* arg = args[i];
+    switch(arg->kind) {
       case GSTRING : {
-        string gls = ((GenString*) gl)->str;
-        string grs = ((GenString*) gr)->str;
-        if (gls!=grs) return gls < grs;
+        string arg_s = ((GenString*) arg)->str;
+        hash_combine(hash,arg_s);
         break;
       }
       case GINT : {
-        int gli = ((GenInt*) gl)->i;
-        int gri = ((GenInt*) gr)->i;
-        if (gli!=gri) return gli < gri;
+        int arg_i = ((GenInt*) arg)->i;
+        hash_combine(hash,arg_i);
         break;
       }
       case GTYPE : {
-        Type* glt = ((GenType*) gl)->t;
-        Type* grt = ((GenType*) gr)->t;
-        if (glt!=grt) return glt < grt;
+        Type* arg_t = ((GenType*) arg)->t;
+        hash_combine(hash,arg_t);
         break;
       }
-      default :
-        cout << "FUCK" << endl;
+      default : 
         assert(false);
     }
-
   }
-  assert(l==r);
-  return false;
-
+  return hash;
 }
+
+//bool operator<(GenArgs l, GenArgs r) {
+//  if (l.len != r.len) return l.len < r.len;
+//  for (uint i=0; i< l.len; i++) {
+//    if (l[i]->kind != r[i]->kind) return l[i]->kind < r[i]->kind;
+//    GenArg* gl = l[i];
+//    GenArg* gr = r[i];
+//    switch(l[i]->kind) {
+//      case GSTRING : {
+//        string gls = ((GenString*) gl)->str;
+//        string grs = ((GenString*) gr)->str;
+//        if (gls!=grs) return gls < grs;
+//        break;
+//      }
+//      case GINT : {
+//        int gli = ((GenInt*) gl)->i;
+//        int gri = ((GenInt*) gr)->i;
+//        if (gli!=gri) return gli < gri;
+//        break;
+//      }
+//      case GTYPE : {
+//        Type* glt = ((GenType*) gl)->t;
+//        Type* grt = ((GenType*) gr)->t;
+//        if (glt!=grt) return glt < grt;
+//        break;
+//      }
+//      default :
+//        cout << "FUCK" << endl;
+//        assert(false);
+//    }
+//
+//  }
+//  assert(l==r);
+//  return false;
+//
+//}
 
 bool GenArgs::GenArgEq(GenArg* a, GenArg* b) {
   if (a->kind == b->kind) {

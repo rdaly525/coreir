@@ -50,13 +50,13 @@ Namespace* CoreIRContext::getNamespace(string name) {
   return it->second;
 }
 
-// This tries to link all the definitions of def to decl of decl
-bool CoreIRContext::linkLib(Namespace* def, string declstr) {
-  Namespace* declns = getNamespace(declstr);
+// This tries to link all the definitions of def namespace to declarations of decl namespace
+// This will clobber declns
+bool CoreIRContext::linkLib(Namespace* defns, Namespace* declns) {
   if (haserror()) {
     return true;
   }
-  for (auto it : def->getGenerators()) {
+  for (auto it : defns->getGenerators()) {
     Generator* gdef = (it.second);
     string gdefname = gdef->getName();
     assert(it.first == gdefname);
@@ -78,8 +78,8 @@ bool CoreIRContext::linkLib(Namespace* def, string declstr) {
     if (gdeffun && gdeclfun && (gdeffun != gdeclfun) ) {
       newerror();
       error("Cannot link a def if there is already a def! (duplicate symbol)");
-      error("  Cannot link : " + def->getName() + "." + gdefname);
-      error("  To : " + declstr + "." + gdefname);
+      error("  Cannot link : " + defns->getName() + "." + gdefname);
+      error("  To : " + declns->getName() + "." + gdefname);
       return true;
     }
 

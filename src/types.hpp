@@ -6,7 +6,7 @@
 #include <string>
 #include <map>
 #include <vector>
-#include "enums.hpp"
+#include "common.hpp"
 #include "genargs.hpp"
 #include <cassert>
 #include "context.hpp"

@@ -5,7 +5,7 @@
 #include <map>
 #include "types.hpp" // For TypeGen
 #include "instantiable.hpp"
-#include "enums.hpp"
+#include "common.hpp"
 
 using namespace std;
 

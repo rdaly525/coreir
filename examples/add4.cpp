@@ -13,12 +13,12 @@ int main() {
   CoreIRContext* c = newContext();
   
   //register the stdlib
-  Namespace* std = getStdlib(c);
-  c->registerLib(std);
-  std->print();
+  Namespace* stdlib = getStdlib(c);
+  c->registerLib(stdlib);
+  stdlib->print();
 
   //Declare add2 Generator
-  Generator* add2 = std->getGenerator("add2");
+  Generator* add2 = stdlib->getGenerator("add2");
   assert(add2);
   // Define Add4 Module
   Type* add4Type = c->Record({
@@ -49,10 +49,10 @@ int main() {
   // Link v1 of library
   cout << "Linking stdlib!" << endl;
   Namespace* stdlib_v1 = getStdlib_v1(c);
-  c->linkLib(stdlib_v1,"stdlib");
+  c->linkLib(stdlib_v1, stdlib);
   if (c->haserror()) c->printerror();
 
-  std->print();
+  stdlib->print();
 
   //Add Def to global
   c->getGlobal()->addModule(add4_n);

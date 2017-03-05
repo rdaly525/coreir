@@ -2,12 +2,20 @@
 #define GENARGS_HPP_
 
 #include "types.hpp"
-#include "enums.hpp"
+#include "common.hpp"
 #include <cassert>
 
 using namespace std;
 
-class Type;
+//struct ArgKinds {
+//  unordered_map<string,ArgKind> dict;
+//  ArgKinds(unordered_map<string,ArgKind> dict) : dict(dict) {}
+//  ArgKind operator[](const string& key) {
+//    //What should I do if this is not valid?
+//    return dict[key];
+//  }
+//}
+
 struct GenArg {
   virtual ~GenArg() {}
   ArgKind kind;
@@ -37,6 +45,11 @@ struct GenType : GenArg {
 //  GenInst(Instantiable* i) : GenArg(GINST), i(i) {}
 //};
 
+template<>
+struct hash<GenArgs> {
+  size_t operator() (const GenArgs& p) const;
+};
+
 struct GenArgs {
   uint len;
   vector<GenArg*> args;
@@ -44,7 +57,7 @@ struct GenArgs {
     assert(len < 10);
     assert(len == args.size() );
   }
-  GenArg* operator[](const int i) {
+  GenArg* operator[](const int i) const {
     return args[i];
   }
   bool GenArgEq(GenArg* a, GenArg* b);
@@ -68,7 +81,6 @@ struct GenArgs {
   bool operator!=(GenArgs r) {
     return !(*this == r);
   }
-  friend bool operator<(GenArgs l, GenArgs r);
 };
 
 
