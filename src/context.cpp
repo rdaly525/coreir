@@ -147,7 +147,10 @@ CoreIRContext* newContext() {
   return m;
 }
 
-void deleteContext(CoreIRContext* m) { delete m; }
+void deleteContext(CoreIRContext* m) { 
+  cout << "DELETING!" << endl;
+  delete m;
+}
 
 
 

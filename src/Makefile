@@ -9,7 +9,8 @@ DEPS = common.hpp types.hpp typecache.hpp context.hpp
 OBJS = rungen.o typecheck.o namespace.o instantiable.o context.o types.o genargs.o typecache.o common.o
 
 
-all: context.a
+#all: context.a coreir.a
+all: coreir.a
 
 run: addtree.run
 
@@ -17,6 +18,9 @@ clean:
 	-@rm *.o *.a *.run
 
 context.a: $(OBJS)
+	ar rcs $@ $^
+
+coreir.a: coreir.o $(OBJS)
 	ar rcs $@ $^
 
 %.o: %.cpp $(DEPS)

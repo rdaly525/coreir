@@ -15,7 +15,6 @@ class CoreIRContext {
   Namespace* global;
   map<string,Namespace*> libs;
   
-  //Errors / TODO make errors into seperate class
   uint maxErrors;
   vector<Error> errors;
  
@@ -42,6 +41,7 @@ class CoreIRContext {
     void die() { 
       printerrors();
       delete this; // sketch but okay if exits I guess
+      cout << "I AM DYING!" << endl;
       exit(1);
     }
     void printerrors() { 
