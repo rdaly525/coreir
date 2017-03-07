@@ -29,6 +29,7 @@ struct GenString;
 struct GenType;
 struct GenArgs;
 typedef unordered_map<string,ArgKind> ArgKinds;
+typedef unordered_map<string,string> Metadata;
 
 //Types.hpp
 class Type;

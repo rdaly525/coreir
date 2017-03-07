@@ -21,14 +21,14 @@ class Type {
     Type(TypeKind kind) : kind(kind) {}
     virtual ~Type() {}
     bool isKind(TypeKind k) {return k==kind;}
-    bool getKind(TypeKind k) {return k==kind;}
+    TypeKind getKind() {return kind;}
     void setFlipped(Type* f) { flipped = f;}
     Type* getFlipped() { return flipped;}
     virtual string toString(void) const =0;
     virtual bool sel(CoreIRContext* c,string sel, Type** ret, Error* e);
+    virtual bool hasInput() { return false;}
     void print(void);
 };
-
 
 std::ostream& operator<<(ostream& os, const Type& t);
 
@@ -44,6 +44,7 @@ class BitInType : public Type {
   public :
     BitInType() : Type(BITIN) {}
     string toString(void) const {return "BitIn";}
+    bool hasInput() { return true;}
 };
 
 class BitOutType : public Type {
@@ -59,7 +60,7 @@ struct TypeGen {
   ArgKinds argkinds;
   TypeGenFun fun;
   bool funflip;
-  TypeGen(string libname, string name, ArgKinds argkinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), argkinds(argkinds), fun(fun), funflip(funflip) {}
+  TypeGen(string libname, string name, ArgKinds argkinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), argkinds(argkinds), fun(fun), funflip(funflip) { assert(fun);}
   void setFlipped(TypeGen* _flipped) {
     flipped = _flipped;
   }
@@ -95,6 +96,8 @@ class ArrayType : public Type {
       return elemType->toString() + "[" + to_string(len) + "]";
     };
     bool sel(CoreIRContext* c, string sel, Type** ret, Error* e);
+    bool hasInput() {return elemType->hasInput();}
+
 };
 
 
@@ -121,6 +124,13 @@ class RecordType : public Type {
     map<string,Type*> getRecord() { return record;}
     string toString(void) const;
     bool sel(CoreIRContext* c, string sel, Type** ret, Error* e);
+    bool hasInput() {
+      for ( auto it : record ) {
+        if (it.second->hasInput()) return true;
+      }
+      return false;
+    }
+
 };
 
 

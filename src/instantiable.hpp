@@ -29,20 +29,22 @@ class CoreIRContext;
 class Instantiable {
   protected:
     InstantiableKind kind;
-    CoreIRContext* context;
+    CoreIRContext* c;
     string nameSpace;
     string name;
   public :
-    Instantiable(InstantiableKind kind, CoreIRContext* context,string nameSpace, string name) : kind(kind), context(context), nameSpace(nameSpace), name(name) {}
+    Instantiable(InstantiableKind kind, CoreIRContext* c,string nameSpace, string name) : kind(kind), c(c), nameSpace(nameSpace), name(name) {}
     virtual ~Instantiable() {};
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
-    CoreIRContext* getContext() { return context;}
+    bool isKind(InstantiableKind k) { return kind==k;}
+    Module* toModule();
+    Generator* toGenerator();
+    CoreIRContext* getContext() { return c;}
     string getName() { return name;}
     string getNameSpaceStr() { return nameSpace;}
     void setNameSpaceStr(string _n) {nameSpace = _n;}
     //string getQualifiedName() { return (nameSpace.empty() ? "this" : nameSpace)  + "." + name; }
-    bool isKind(InstantiableKind t) {return kind==t;}
 };
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
@@ -57,8 +59,8 @@ class Generator : public Instantiable {
     bool hasDef() const { return !!genfun; }
     string toString() const;
     TypeGen* getTypeGen() { return typegen;}
-    genFun getGenFun() { return genfun;}
-    void addGeneratorDef(genFun fun) { genfun = fun;}
+    genFun getDef() { return genfun;}
+    void addDef(genFun fun) { genfun = fun;}
     //genargs_t getGentypes(void) {return gentypes;}
     //genfun_t getGenfun(void) {return genfun;}
 };
@@ -71,9 +73,11 @@ class Module : public Instantiable {
     Module(CoreIRContext* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type), def(nullptr) {}
     ~Module();
     bool hasDef() const { return !!def; }
+    ModuleDef* getDef() { return def; } // TODO should probably throw error if does not exist
     string toString() const;
     Type* getType() { return type;}
-    void addModuleDef(ModuleDef* _def) { assert(!def); def = _def;}
+    void addDef(ModuleDef* _def) { assert(!def); def = _def;}
+    void replaceDef(ModuleDef* _def) { def = _def;}
     ModuleDef* newModuleDef();
     void print(void);
     //TODO turn this into metadata
@@ -87,7 +91,7 @@ class ModuleDef {
     Module* module;
     Interface* interface; 
     set<Instance*> instances; // Should it be a map?
-    set<Wiring> wirings;
+    set<Wiring> wirings; // change name to wires
     SelCache* cache;
 
   public :
@@ -95,7 +99,7 @@ class ModuleDef {
     ~ModuleDef();
     //SelCache* getCache(void) { return cache;}
     set<Instance*> getInstances(void) { return instances;}
-    set<Wiring> getWirings(void) { return wirings; }
+    set<Wiring> getWires(void) { return wirings; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     CoreIRContext* getContext() { return module->getContext(); }
@@ -104,6 +108,7 @@ class ModuleDef {
     SelCache* getCache() { return cache;}
     Instance* addInstanceGenerator(string,Generator*, GenArgs*);
     Instance* addInstanceModule(string,Module*);
+    Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
     void wire(Wireable* a, Wireable* b);
     
@@ -120,6 +125,8 @@ class Wireable {
     Wireable(WireableKind kind, ModuleDef* moduledef, Type* type) : kind(kind),  moduledef(moduledef), type(type) {}
     virtual ~Wireable() {}
     virtual string toString() const=0;
+    set<Wireable*> getWires() { return wirings;}
+    map<string,Wireable*> getChildren() { return children;}
     ModuleDef* getModuleDef() { return moduledef;}
     CoreIRContext* getContext() { return moduledef->getContext();}
     bool isKind(WireableKind e) { return e==kind;}
@@ -127,11 +134,12 @@ class Wireable {
     Type* getType() { return type;}
     void ptype() {cout << "Kind=" <<wireableKind2Str(kind);}
     void addWiring(Wireable* w) { wirings.insert(w); }
-    void addChild(string selStr, Wireable* w) { children.emplace(selStr,w); }
     
     Select* sel(string);
     Select* sel(uint);
-
+  
+    // Convinience function
+    std::pair<Wireable*,vector<string>> serialize();
 
 };
 
@@ -157,6 +165,9 @@ class Instance : public Wireable {
     string getInstname() { return instname; }
     GenArgs* getGenArgs() {return genargs;}
     //void replace(Instantiable* newRef) { instRef = newRef;}
+    //Convinience functions
+    bool isGen() { return instRef->isKind(GEN);}
+    bool hasDef() { return instRef->hasDef(); }
 };
 
 class Select : public Wireable {
@@ -164,9 +175,7 @@ class Select : public Wireable {
     Wireable* parent;
     string selStr;
   public :
-    Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(SEL,context,type), parent(parent), selStr(selStr) {
-        //parent->wire->addChild(selStr,wire);
-    }
+    Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(SEL,context,type), parent(parent), selStr(selStr) {}
     string toString() const;
     Wireable* getParent() { return parent; }
     string getSelStr() { return selStr; }

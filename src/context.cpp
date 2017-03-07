@@ -63,14 +63,14 @@ bool CoreIRContext::linkLib(Namespace* defns, Namespace* declns) {
     Generator* gdef = (it.second);
     string gdefname = gdef->getName();
     assert(it.first == gdefname);
-    genFun gdeffun = gdef->getGenFun();
+    genFun gdeffun = gdef->getDef();
     Generator* gdecl = declns->getGenerator(gdefname);
     
     //If def is not found in decl,
     //  make e.message?
     if (haserror() ) return true;
     
-    genFun gdeclfun = gdecl->getGenFun();
+    genFun gdeclfun = gdecl->getDef();
 
     //case def is found in decl, but def is a decl
     //  Do nothing? Warning? Add it?
@@ -90,7 +90,7 @@ bool CoreIRContext::linkLib(Namespace* defns, Namespace* declns) {
     assert(gdeffun && !gdeclfun); // Internal check
     //case def is found in decl, decl has no def
     //  Perfect, Add def to decl
-    gdecl->addGeneratorDef(gdeffun);
+    gdecl->addDef(gdeffun);
   }
 
   //TODO do modules as well

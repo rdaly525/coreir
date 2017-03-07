@@ -7,7 +7,7 @@ struct Error {
   string msg;
   Error() {isfatal = false;}
   void fatal() { isfatal = true;}
-  void message(string s) { msg = msg + s; }
+  void message(string s) { msg = msg + s + "\n"; }
   string toString() { return msg; }
 };
 

@@ -25,7 +25,7 @@ Namespace* getStdlib_v1(CoreIRContext* c) {
 
   //Create new generator and add definition
   Generator* add2Gen = c->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
-  add2Gen->addGeneratorDef(add2);
+  add2Gen->addDef(add2);
   
   //Add Generator to library
   stdlib_v1->addGenerator(add2Gen);

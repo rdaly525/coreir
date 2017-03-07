@@ -2,8 +2,14 @@
 //#include "toFile.hpp"
 
 //#include <fstream>
+
+// Libraries
 #include "stdlib.hpp"
 #include "stdlib_v1.hpp"
+
+//Compiler Passes
+#include "passes.hpp"
+
 
 int main() {
   uint n = 32;
@@ -32,6 +38,7 @@ int main() {
     Wireable* add_1 = def->addInstanceGenerator("add1",add2,c->newGenArgs({{"w",c->GInt(n)}}));
     
     def->wire(iface->sel("in")->sel(0),add_00->sel("in0"));
+    //def->wire(iface->sel("in")->sel(1)->sel(3),add_00->sel("in0")->sel(3));
     def->wire(iface->sel("in")->sel(1),add_00->sel("in1"));
     def->wire(iface->sel("in")->sel(2),add_01->sel("in0"));
     def->wire(iface->sel("in")->sel(3),add_01->sel("in1"));
@@ -40,21 +47,34 @@ int main() {
     def->wire(add_01->sel("out"),add_1->sel("in1"));
 
     def->wire(add_1->sel("out"),iface->sel("out"));
-  // End Define Add4 Module
-  add4_n->addModuleDef(def);
+  add4_n->addDef(def);
+  cout << "Checkign Errors 1" << endl;
   c->checkerrors();
   add4_n->print();
+
+  //if (typecheck(c,add4_n)) c->die();
+  //rungenerators(c,add4_n);
+  //if (typecheck(c,add4_n)) c->die();
   
   // Link v1 of library
   cout << "Linking stdlib!" << endl;
   Namespace* stdlib_v1 = getStdlib_v1(c);
   c->linkLib(stdlib_v1, stdlib);
+ 
+  cout << "Checkign Errors 2" << endl;
   c->checkerrors();
-
   stdlib->print();
+  
+  rungenerators(c,add4_n);
+  
+  add4_n->print();
+  cout << "Typechecking!" << endl;
+  if (typecheck(c,add4_n)) c->die();
+
+
 
   //Add Def to global
-  c->getGlobal()->addModule(add4_n);
+  //c->getGlobal()->addModule(add4_n);
     
   // emit this circuit as a file
   //toFileMain(add4, "add4.core");

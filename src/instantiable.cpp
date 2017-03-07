@@ -12,6 +12,24 @@ using namespace std;
 ///////////////////////////////////////////////////////////
 //-------------------- Instantiable ---------------------//
 ///////////////////////////////////////////////////////////
+Module* Instantiable::toModule() {
+  if (isKind(MOD)) return (Module*) this;
+  Error e;
+  e.message("Cannot convert to a Module!!");
+  e.message("  " + toString());
+  e.fatal();
+  c->error(e);
+  return nullptr;
+}
+Generator* Instantiable::toGenerator() {
+  if (isKind(GEN)) return (Generator*) this;
+  Error e;
+  e.message("Cannot convert to a Generator!!");
+  e.message("  " + toString());
+  e.fatal();
+  c->error(e);
+  return nullptr;
+}
 
 ostream& operator<<(ostream& os, const Instantiable& i) {
   os << i.toString();
@@ -64,7 +82,7 @@ void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
-    cout << "      " << (*inst) << endl;
+    cout << "      " << (*inst) << " : " << inst->getInstRef()->getName() << endl;
   }
   cout << "    Wirings:\n";
   for (auto wiring : wirings) {
@@ -89,26 +107,13 @@ Instance* ModuleDef::addInstanceModule(string instname,Module* m) {
   return inst;
 }
 
-bool checkWiring(Wireable* a, Wireable* b) {
-  CoreIRContext* c = a->getContext();
-  Type* ta = a->getType();
-  Type* tb = b->getType();
-  
-  //TODO This might not be valid if:
-  //  2 outputs are connected to the same input
-  //  an inout is connected to an input (good!)
-  //  an inout is connected to an output (bad!)
-  
-  if (ta->isKind(ANY) || tb->isKind(ANY)) return true;
-  if (ta == c->Flip(tb) ) return true;
-  
-  Error e;
-  e.message("Cannot wire together");
-  e.message("  " + a->toString() + " : " + a->getType()->toString());
-  e.message("  " + b->toString() + " : " + b->getType()->toString());
-  c->error(e);
-  return false;
+Instance* ModuleDef::addInstance(Instance* i) {
+  if( i->getInstRef()->isKind(MOD)) 
+    return addInstanceModule(i->getInstname(),(Module*) i->getInstRef());
+  else 
+    return addInstanceGenerator(i->getInstname(),(Generator*) i->getInstRef(),i->getGenArgs());
 }
+
 
 void ModuleDef::wire(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
@@ -123,8 +128,8 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
     return;
   }
 
-  //TODO what if we connect the same wires together
-  checkWiring(a,b);
+  // TODO should I type check here at all?
+  //checkWiring(a,b);
     
   //Update 'a' and 'b'
   a->addWiring(b);
@@ -147,13 +152,29 @@ Select* Wireable::sel(string selStr) {
   bool error = type->sel(c,selStr,&ret,&e);
   if (error) {
     e.message("  Wire: " + toString());
-    e.fatal();
+    //e.fatal();
     getContext()->error(e);
   }
-  return moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
+  Select* child = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
+  children.emplace(selStr,child);
+  return child;
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
+
+// TODO This might be slow due to insert on a vector. Maybe use Deque?
+std::pair<Wireable*,vector<string>> Wireable::serialize() {
+  Wireable* port = this;
+  vector<string> path;
+  while(port->isKind(SEL)) {
+    Select* s = (Select*) port;
+    path.insert(path.begin(), s->getSelStr());
+    port = s->getParent();
+  }
+  return {port, path};
+}
+
+
 
 string Interface::toString() const{
   return moduledef->getName();

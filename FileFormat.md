@@ -16,9 +16,9 @@ NamedTypeReference=["namespaceName","typeName"]
 
 TypeGenDecl={"genParameter":GenParameter}
 
-Module={"declaration":ModuleDecl, "definition":ModuleDef}
+//Module={"declaration":ModuleDecl, "definition":ModuleDef}
 
-ModuleDecl = {"type":Type,"config":GenParameter, "metadata":Metadata}
+Module = {"type":Type,"config":GenParameter, "metadata":Metadata}
 
 ModuleDef = {"metadata":Metadata,
 "implementations":Metadata,

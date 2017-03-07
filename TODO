@@ -1,16 +1,12 @@
 ///////////////////////////////////////
-// Change genargs to be a dictionary instead of arg passing
-//
-// Add testing infrasturcture. Separate tests into individual directories (maybe)
-//
-// Add Inouts
-// Formulate typechecking as a compilation pass
-//   Inputs can only be connected to 1 output or multiple inouts
-//   inouts can not be connected to an output
-//
-// Metadata
-// Add metadata to Wireables and to Definitions
+ Add testing infrasturcture. Separate tests into individual directories (maybe)
 
+Metadata
+Add metadata to everywhere
+
+Add stream operator to Error so I can do
+  Error e;
+  e << "blah" << type << blah
 
 //Adding Metadata
 Module:
