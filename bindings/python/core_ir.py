@@ -23,20 +23,37 @@ COREContext_p = ct.POINTER(EmptyStruct)
 COREType_p = ct.POINTER(EmptyStruct)
 COREModule_p = ct.POINTER(EmptyStruct)
 COREModuleDef_p = ct.POINTER(EmptyStruct)
+CORERecordParam_p = ct.POINTER(EmptyStruct)
 
 coreir_lib = load_shared_lib()
+
 coreir_lib.CORENewContext.restype = COREContext_p
+
 coreir_lib.COREAny.argtypes = [COREContext_p]
 coreir_lib.COREAny.restype = COREType_p
+
 coreir_lib.COREBitIn.argtypes = [COREContext_p]
 coreir_lib.COREBitIn.restype = COREType_p
+
 coreir_lib.COREBitOut.argtypes = [COREContext_p]
 coreir_lib.COREBitOut.restype = COREType_p
+
 coreir_lib.COREArray.argtypes = [COREContext_p, ct.c_uint32, COREType_p]
 coreir_lib.COREArray.restype = COREType_p
+
+coreir_lib.CORENewRecordParam.argtypes = [COREContext_p]
+coreir_lib.CORENewRecordParam.restype = CORERecordParam_p
+
+coreir_lib.CORERecordParamAddField.argtypes = [COREContext_p, ct.c_char_p, COREType_p]
+
+coreir_lib.CORERecord.argtypes = [COREContext_p, CORERecordParam_p]
+coreir_lib.CORERecord.restype = COREType_p
+
 coreir_lib.COREPrintType.argtypes = [COREType_p, ]
+
 coreir_lib.CORELoadModule.argtypes = [COREContext_p, ct.c_char_p]
 coreir_lib.CORELoadModule.restype = COREModule_p
+
 coreir_lib.COREPrintModule.argtypes = [COREModule_p]
 
 
@@ -79,6 +96,12 @@ class Context:
             coreir_lib.CORELoadModule(
                 self.context, ct.c_char_p(str.encode(file_name))))
 
+    def Record(self, fields):
+        record_params = coreir_lib.CORENewRecordParam(self.context)
+        for key, value in fields.items():
+            coreir_lib.CORERecordParamAddField(record_params, str.encode(key), value.type)
+        return Type(coreir_lib.CORERecord(self.context, record_params))
+
     def __del__(self):
         coreir_lib.COREDeleteContext(self.context)
 
@@ -93,3 +116,4 @@ if __name__ == "__main__":
     c.Array(3, c.Array(4, c.BitIn())).print()
 
     c.Module("test").print()
+    c.Record({"ready": c.BitIn(), "valid": c.BitOut()}).print()

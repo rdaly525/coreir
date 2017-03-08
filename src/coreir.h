@@ -7,7 +7,7 @@ typedef struct COREContext COREContext;
 typedef struct COREType COREType;
 typedef struct COREModule COREModule;
 typedef struct COREModuleDef COREModuleDef;
-
+typedef struct CORERecordParam CORERecordParam;
 
 
 
@@ -20,6 +20,10 @@ extern COREType* COREAny(COREContext* CORE);
 extern COREType* COREBitIn(COREContext* CORE);
 extern COREType* COREBitOut(COREContext* CORE);
 extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
+
+extern CORERecordParam* CORENewRecordParam(COREContext* context);
+extern void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type);
+extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param);
 
 extern void COREPrintType(COREType* t);
 

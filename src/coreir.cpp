@@ -29,6 +29,15 @@ extern "C" {
   COREType* COREArray(COREContext* c,u32 len, COREType* elemType) {
     return rcast<COREType*>(rcast<Context*>(c)->Array(len,rcast<Type*>(elemType)));
   }
+  CORERecordParam* CORENewRecordParam(COREContext* context) {
+    return rcast<CORERecordParam*>(rcast<Context*>(context)->newRecordParams());
+  }
+  void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type) {
+    rcast<RecordParams*>(record_param)->push_back(std::make_pair(std::string(name), rcast<Type*>(type)));
+  }
+  COREType* CORERecord(COREContext* context, CORERecordParam* record_param) {
+    return rcast<COREType*>(rcast<Context*>(context)->Record(*rcast<RecordParams*>(record_param)));
+  }
   //COREType* COREArray(u32 len, COREType* elemType); 
   void COREPrintType(COREType* t) {
     rcast<Type*>(t)->print();

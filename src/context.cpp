@@ -18,6 +18,7 @@ Context::~Context() {
   for (auto it : genargList) delete it;
   for (auto it : generatorList) delete it;
   for (auto it : moduleList) delete it;
+  for (auto it : recordParamsList) delete it;
   delete cache;
 }
 
@@ -104,6 +105,13 @@ Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
 Type* Context::TypeGenInst(TypeGen* tgd, GenArgs* args) { return cache->newTypeGenInst(tgd,args); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
+
+RecordParams* Context::newRecordParams() {
+    RecordParams* record_param = new RecordParams();
+    recordParamsList.push_back(record_param);
+    return record_param;
+}
+
 GenArg* Context::GInt(int i) { 
   GenArg* ga = new GenInt(i); 
   genargList.push_back(ga);
