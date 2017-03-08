@@ -82,13 +82,14 @@ class Context:
     def __del__(self):
         coreir_lib.COREDeleteContext(self.context)
 
-c = Context()
-any = c.Any()
-any.print()
-c.BitIn().print()
-c.BitOut().print()
-c.Array(3, c.BitIn()).print()
+if __name__ == "__main__":
+    c = Context()
+    any = c.Any()
+    any.print()
+    c.BitIn().print()
+    c.BitOut().print()
+    c.Array(3, c.BitIn()).print()
 
-c.Array(3, c.Array(4, c.BitIn())).print()
+    c.Array(3, c.Array(4, c.BitIn())).print()
 
-c.Module("test").print()
+    c.Module("test").print()
