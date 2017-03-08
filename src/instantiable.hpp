@@ -25,22 +25,22 @@ class Instance;
 class Select;
 
 
-class CoreIRContext;
+class Context;
 class Instantiable {
   protected:
     InstantiableKind kind;
-    CoreIRContext* c;
+    Context* c;
     string nameSpace;
     string name;
   public :
-    Instantiable(InstantiableKind kind, CoreIRContext* c,string nameSpace, string name) : kind(kind), c(c), nameSpace(nameSpace), name(name) {}
+    Instantiable(InstantiableKind kind, Context* c,string nameSpace, string name) : kind(kind), c(c), nameSpace(nameSpace), name(name) {}
     virtual ~Instantiable() {};
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
     bool isKind(InstantiableKind k) { return kind==k;}
     Module* toModule();
     Generator* toGenerator();
-    CoreIRContext* getContext() { return c;}
+    Context* getContext() { return c;}
     string getName() { return name;}
     string getNameSpaceStr() { return nameSpace;}
     void setNameSpaceStr(string _n) {nameSpace = _n;}
@@ -55,7 +55,7 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   genFun genfun;
   public :
-    Generator(CoreIRContext* c,string name,ArgKinds argkinds, TypeGen* typegen);
+    Generator(Context* c,string name,ArgKinds argkinds, TypeGen* typegen);
     bool hasDef() const { return !!genfun; }
     string toString() const;
     TypeGen* getTypeGen() { return typegen;}
@@ -70,7 +70,7 @@ class Module : public Instantiable {
   ModuleDef* def;
   string verilog;
   public :
-    Module(CoreIRContext* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type), def(nullptr) {}
+    Module(Context* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type), def(nullptr) {}
     ~Module();
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() { return def; } // TODO should probably throw error if does not exist
@@ -102,7 +102,7 @@ class ModuleDef {
     set<Wiring> getWires(void) { return wirings; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
-    CoreIRContext* getContext() { return module->getContext(); }
+    Context* getContext() { return module->getContext(); }
     string getName() {return module->getName();}
     Type* getType() {return module->getType();}
     SelCache* getCache() { return cache;}
@@ -128,7 +128,7 @@ class Wireable {
     set<Wireable*> getWires() { return wirings;}
     map<string,Wireable*> getChildren() { return children;}
     ModuleDef* getModuleDef() { return moduledef;}
-    CoreIRContext* getContext() { return moduledef->getContext();}
+    Context* getContext() { return moduledef->getContext();}
     bool isKind(WireableKind e) { return e==kind;}
     WireableKind getKind() { return kind ; }
     Type* getType() { return type;}
@@ -202,13 +202,13 @@ class SelCache {
 // For now, these functions mutate m. TODO (bad compiler practice probably)
 
 // This is the resolves the Decls and runs the moduleGens
-void resolve(CoreIRContext* c, ModuleDef* m);
+void resolve(Context* c, ModuleDef* m);
 
 //Only resolves the Decls
-void resolveDecls(CoreIRContext* c, ModuleDef* m);
+void resolveDecls(Context* c, ModuleDef* m);
 
 //Only runs the moduleGens
-void runGenerators(CoreIRContext* c, ModuleDef* m);
+void runGenerators(Context* c, ModuleDef* m);
 
 
 // This 'typechecks' everything
@@ -217,7 +217,7 @@ void runGenerators(CoreIRContext* c, ModuleDef* m);
   //   Verifies inputs are only connected once
 
 //typedef map<ModuleDef*,TypedModuleDef*> typechecked_t;
-//typechecked_t* typecheck(CoreIRContext* c, ModuleDef* m);
+//typechecked_t* typecheck(Context* c, ModuleDef* m);
 
 
 // This verifies that there are no unconnected wires
@@ -228,6 +228,6 @@ void runGenerators(CoreIRContext* c, ModuleDef* m);
 
 // Convieniance that runs resolve, typecheck and validate
 // and catches errors;
-void compile(CoreIRContext* c, ModuleDef* m, fstream* f);
+void compile(Context* c, ModuleDef* m, fstream* f);
 
 #endif //COREIR_HPP_

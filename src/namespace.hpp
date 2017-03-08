@@ -10,7 +10,7 @@
 using namespace std;
 
 class Namespace {
-  CoreIRContext* c;
+  Context* c;
   string name;
 
   map<string,Module*> mList;
@@ -18,7 +18,7 @@ class Namespace {
   map<string,TypeGen*> tList;
   
   public :
-    Namespace(CoreIRContext* c, string name) : c(c), name(name) {}
+    Namespace(Context* c, string name) : c(c), name(name) {}
     ~Namespace();
     string getName() { return name;}
     map<string,Module*> getModules() { return mList;}
@@ -43,6 +43,6 @@ class Namespace {
     void print();
 };
 
-Namespace* newNamespace(CoreIRContext* c,string name);
+Namespace* newNamespace(Context* c,string name);
 
 #endif //NAMESPACE_HPP_

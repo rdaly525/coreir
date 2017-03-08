@@ -53,9 +53,9 @@ struct hash<GenArgs> {
 };
 
 struct GenArgs {
-  CoreIRContext* c;
+  Context* c;
   unordered_map<string,GenArg*> args;
-  GenArgs(CoreIRContext* c, unordered_map<string,GenArg*> args) : c(c), args(args) {}
+  GenArgs(Context* c, unordered_map<string,GenArg*> args) : c(c), args(args) {}
 
   GenArg* operator[](const string s) const;
   bool GenArgEq(GenArg* a, GenArg* b);

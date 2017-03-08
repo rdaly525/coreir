@@ -2,7 +2,7 @@
 #include <cassert>
 
 int main() {
-  CoreIRContext* c = newContext();
+  Context* c = newContext();
   Namespace* g = c->getGlobal();
 
   assert(c->Any() == c->Any() );

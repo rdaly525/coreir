@@ -15,7 +15,7 @@ int main() {
   uint n = 32;
   
   // New context
-  CoreIRContext* c = newContext();
+  Context* c = newContext();
   
   //register the stdlib
   Namespace* stdlib = getStdlib(c);

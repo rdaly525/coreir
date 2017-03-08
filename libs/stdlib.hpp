@@ -4,7 +4,7 @@
 #include "context.hpp"
 
 
-Type* binop_type(CoreIRContext* c, GenArgs* args, ArgKinds kinds) {
+Type* binop_type(Context* c, GenArgs* args, ArgKinds kinds) {
   int n = c->toInt((*args)["w"]);
   Type* narray = c->Array(n,c->BitOut());
   return c->Record({
@@ -14,7 +14,7 @@ Type* binop_type(CoreIRContext* c, GenArgs* args, ArgKinds kinds) {
   });
 }
 
-Namespace* getStdlib(CoreIRContext* c) {
+Namespace* getStdlib(Context* c) {
   
   Namespace* stdlib = c->newNamespace("stdlib");
   //c->registerLib(stdlib);

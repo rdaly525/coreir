@@ -4,8 +4,9 @@
 #include "common.hpp"
 #include "context.hpp"
 
-bool typecheck(CoreIRContext* c, Module* m);
-bool rungenerators(CoreIRContext* c, Module* m);
+bool typecheck(Context* c, Module* m);
+bool rungenerators(Context* c, Module* m);
+Module* loadModule(Context* c, string filename);
 
 
 #endif //PASSES_HPP_

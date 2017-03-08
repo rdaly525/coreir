@@ -35,9 +35,9 @@ struct RecordParamsHasher {
   }
 };
 
-class CoreIRContext;
+class Context;
 class TypeCache {
-  CoreIRContext* c;
+  Context* c;
   Type* bitI;
   Type* bitO;
   Type* any;
@@ -46,7 +46,7 @@ class TypeCache {
   unordered_map<TypeGenParams,Type*,TypeGenParamsHasher> TypeGenCache;
   
   public :
-    TypeCache(CoreIRContext* c); 
+    TypeCache(Context* c); 
     ~TypeCache();
     Type* newAny() { return any; }
     Type* newBitIn() { return bitI; }

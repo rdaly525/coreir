@@ -7,10 +7,10 @@
 using namespace std;
    
 
-bool typecheckRec(CoreIRContext* c, Module* m, set<Module*>* checked);
+bool typecheckRec(Context* c, Module* m, set<Module*>* checked);
 
 
-bool typecheck(CoreIRContext* c, Module* m) {
+bool typecheck(Context* c, Module* m) {
   cout << "Typechecking" << endl;
   set<Module*> checked;
   bool err = typecheckRec(c,m,&checked);
@@ -22,7 +22,7 @@ bool typecheck(CoreIRContext* c, Module* m) {
 //True is error
 //False is no error
 bool checkTypes(Wireable* a, Wireable* b) {
-  CoreIRContext* c = a->getContext();
+  Context* c = a->getContext();
   Type* ta = a->getType();
   Type* tb = b->getType();
   //TODO This might not be valid if:
@@ -95,7 +95,7 @@ bool checkInputOutputs(Wireable* w, Error* e) {
 //Recursively check if there are type errors
 //true is Error
 //false is no error
-bool typecheckRec(CoreIRContext* c, Module* m, set<Module*>* checked) {
+bool typecheckRec(Context* c, Module* m, set<Module*>* checked) {
   
   //Correct if has no definition
   if (!m->hasDef()) return false;

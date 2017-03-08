@@ -16,7 +16,7 @@ size_t TypeGenParamsHasher::operator()(const TypeGenParams& tgp) const {
     return hash;
 }
 
-TypeCache::TypeCache(CoreIRContext* c) : c(c) {
+TypeCache::TypeCache(Context* c) : c(c) {
   bitI = new BitInType();
   bitO = new BitOutType();
   bitI->setFlipped(bitO);

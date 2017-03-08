@@ -8,8 +8,8 @@ using namespace std;
    
 // This will recusrively run all the generators and replace module definitions
 // For every instance, if it is a generator, it 
-bool rungeneratorsRec(CoreIRContext* c, Module* m, set<Module*>* ran);
-bool rungenerators(CoreIRContext* c, Module* m) {
+bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran);
+bool rungenerators(Context* c, Module* m) {
   cout << "Running the Generators" << endl;
   set<Module*> ran;
   bool err = rungeneratorsRec(c,m,&ran);
@@ -18,7 +18,7 @@ bool rungenerators(CoreIRContext* c, Module* m) {
 }
 
 
-bool rungeneratorsRec(CoreIRContext* c, Module* m, set<Module*>* ran) {
+bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
   
   //If I already ran, then just return
   if (ran->count(m) > 0) return false;
@@ -74,7 +74,7 @@ bool rungeneratorsRec(CoreIRContext* c, Module* m, set<Module*>* ran) {
         
         //Run the typegen first
         Type* type = tg->fun(c,gargs,tg->argkinds);
-        cout << "Generated Type is : " << *type << endl;
+        
         //Run the generator
         Module* mNew= g->getDef()(c,type,gargs,tg->argkinds);
         

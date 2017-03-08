@@ -5,7 +5,7 @@
 
 void Type::print(void) { cout << "Type: " << (*this) << endl; }
 
-bool Type::sel(CoreIRContext* c,string sel, Type** ret, Error* e) {
+bool Type::sel(Context* c,string sel, Type** ret, Error* e) {
   *ret = c->Any(); 
   e->message("Cant select from this type!");
   e->message("  Type: " + toString());
@@ -29,16 +29,16 @@ TypeGenType::TypeGenType(TypeGen* def, GenArgs* args) : Type(TYPEGEN), def(def),
   assert(args->checkKinds(def->argkinds));
 }
 
-bool AnyType::sel(CoreIRContext* c, string sel, Type** ret, Error* e) {
+bool AnyType::sel(Context* c, string sel, Type** ret, Error* e) {
   *ret = c->Any();
   return false;
 }
-bool TypeGenType::sel(CoreIRContext* c, string sel, Type** ret, Error* e) {
+bool TypeGenType::sel(Context* c, string sel, Type** ret, Error* e) {
   *ret = c->Any();
   return false;
 }
 
-bool ArrayType::sel(CoreIRContext* c, string sel, Type** ret, Error* e) {
+bool ArrayType::sel(Context* c, string sel, Type** ret, Error* e) {
   *ret = c->Any();
   if (!isNumber(sel)) {
     e->message("Idx into Array needs to be a number");
@@ -59,7 +59,7 @@ bool ArrayType::sel(CoreIRContext* c, string sel, Type** ret, Error* e) {
 }
  
 // TODO should this actually return Any if it is missing?
-bool RecordType::sel(CoreIRContext* c, string sel, Type** ret, Error* e) {
+bool RecordType::sel(Context* c, string sel, Type** ret, Error* e) {
   *ret = c->Any();
   auto it = record.find(sel);
   if (it != record.end()) {

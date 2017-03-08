@@ -21,7 +21,7 @@ typedef enum {IFACE,INST,SEL} WireableKind;
 
 //other
 class Namespace;
-class CoreIRContext;
+class Context;
 struct Error;
 struct GenArg;
 struct GenInt;
@@ -33,7 +33,7 @@ typedef unordered_map<string,string> Metadata;
 
 //Types.hpp
 class Type;
-typedef Type* (*TypeGenFun)(CoreIRContext* c, GenArgs* args, ArgKinds argkinds);
+typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, ArgKinds argkinds);
 struct TypeGen;
 typedef vector<std::pair<string,Type*>> RecordParams ;
 class TypeCache;
@@ -43,7 +43,7 @@ class Instantiable;
 class Module;
 class ModuleDef;
 class Generator;
-typedef Module* (*genFun)(CoreIRContext*,Type*,GenArgs*,ArgKinds);
+typedef Module* (*genFun)(Context*,Type*,GenArgs*,ArgKinds);
 
 class Wireable;
 class SelCache;

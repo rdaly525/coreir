@@ -5,7 +5,7 @@ CDIR = /Users/rdaly/coreir
 INCS = -I$(CDIR)/src -I$(CDIR)/libs
 LIBS = -L$(CDIR)/src -L$(CDIR)/libs
 
-all: ctest.run
+all: test.run
 
 clean:
 	$(MAKE) -C ../src clean

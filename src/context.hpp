@@ -11,7 +11,7 @@
 #include <vector>
 
 using namespace std;
-class CoreIRContext {
+class Context {
   Namespace* global;
   map<string,Namespace*> libs;
   
@@ -27,8 +27,8 @@ class CoreIRContext {
   vector<Module*> moduleList;
   
   public :
-    CoreIRContext();
-    ~CoreIRContext();
+    Context();
+    ~Context();
     Namespace* getGlobal() {return global;}
     
     //Error functions
@@ -80,8 +80,8 @@ class CoreIRContext {
 
 };
 
-CoreIRContext* newContext();
-void deleteContext(CoreIRContext* m);
+Context* newContext();
+void deleteContext(Context* m);
 
 
 #endif //CONTEXT_HPP_

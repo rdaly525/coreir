@@ -5,13 +5,13 @@
 
 using namespace std;
 
-CoreIRContext::CoreIRContext() : maxErrors(3) {
+Context::Context() : maxErrors(3) {
   global = newNamespace("_G");
   cache = new TypeCache(this);
 }
 
 // Order of this matters
-CoreIRContext::~CoreIRContext() {
+Context::~Context() {
   
   for (auto it : namespaceList) delete it;
   for (auto it : genargsList) delete it;
@@ -21,7 +21,7 @@ CoreIRContext::~CoreIRContext() {
   delete cache;
 }
 
-bool CoreIRContext::registerLib(Namespace* lib) {
+bool Context::registerLib(Namespace* lib) {
   string name = lib->getName();
   if (libs.find(name) != libs.end()) {
     Error e;
@@ -34,13 +34,13 @@ bool CoreIRContext::registerLib(Namespace* lib) {
   return false;
 }
 
-Namespace* CoreIRContext::newNamespace(string name) { 
+Namespace* Context::newNamespace(string name) { 
   Namespace* n = new Namespace(this,name);
   namespaceList.push_back(n);
   return n;
 }
 
-Namespace* CoreIRContext::getNamespace(string name) {
+Namespace* Context::getNamespace(string name) {
   auto it = libs.find(name);
   if (it == libs.end()) {
     Error e;
@@ -55,7 +55,7 @@ Namespace* CoreIRContext::getNamespace(string name) {
 
 // This tries to link all the definitions of def namespace to declarations of decl namespace
 // This will clobber declns
-bool CoreIRContext::linkLib(Namespace* defns, Namespace* declns) {
+bool Context::linkLib(Namespace* defns, Namespace* declns) {
   if (haserror()) {
     return true;
   }
@@ -97,58 +97,57 @@ bool CoreIRContext::linkLib(Namespace* defns, Namespace* declns) {
   return false;
 }
 
-Type* CoreIRContext::Any() { return cache->newAny(); }
-Type* CoreIRContext::BitIn() { return cache->newBitIn(); }
-Type* CoreIRContext::BitOut() { return cache->newBitOut(); }
-Type* CoreIRContext::Array(uint n, Type* t) { return cache->newArray(n,t);}
-Type* CoreIRContext::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* CoreIRContext::TypeGenInst(TypeGen* tgd, GenArgs* args) { return cache->newTypeGenInst(tgd,args); }
-Type* CoreIRContext::Flip(Type* t) { return t->getFlipped();}
-GenArg* CoreIRContext::GInt(int i) { 
+Type* Context::Any() { return cache->newAny(); }
+Type* Context::BitIn() { return cache->newBitIn(); }
+Type* Context::BitOut() { return cache->newBitOut(); }
+Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
+Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
+Type* Context::TypeGenInst(TypeGen* tgd, GenArgs* args) { return cache->newTypeGenInst(tgd,args); }
+Type* Context::Flip(Type* t) { return t->getFlipped();}
+GenArg* Context::GInt(int i) { 
   GenArg* ga = new GenInt(i); 
   genargList.push_back(ga);
   return ga;
 }
-GenArg* CoreIRContext::GString(string s) { 
+GenArg* Context::GString(string s) { 
   GenArg* ga = new GenString(s); 
   genargList.push_back(ga);
   return ga;
 }
-GenArg* CoreIRContext::GType(Type* t) { 
+GenArg* Context::GType(Type* t) { 
   GenArg* ga = new GenType(t); 
   genargList.push_back(ga);
   return ga;
 }
-int CoreIRContext::toInt(GenArg* g) { return ((GenInt*) g)->i; }
-string CoreIRContext::toString(GenArg* g) { return ((GenString*) g)->str; }
-Type* CoreIRContext::toType(GenArg* g) { return ((GenType*) g)->t; }
+int Context::toInt(GenArg* g) { return ((GenInt*) g)->i; }
+string Context::toString(GenArg* g) { return ((GenString*) g)->str; }
+Type* Context::toType(GenArg* g) { return ((GenType*) g)->t; }
 
 // TODO cache the following for proper memory management
-GenArgs* CoreIRContext::newGenArgs(unordered_map<string,GenArg*> args) {
+GenArgs* Context::newGenArgs(unordered_map<string,GenArg*> args) {
   GenArgs* ga = new GenArgs(this,args);
   genargsList.push_back(ga);
   return ga;
 }
 
-Generator* CoreIRContext::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg) {
+Generator* Context::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg) {
   Generator* g = new Generator(this,name,kinds,tg);
   generatorList.push_back(g);
   return g;
 }
 
-Module* CoreIRContext::newModuleDecl(string name, Type* t) {
+Module* Context::newModuleDecl(string name, Type* t) {
   Module* m = new Module(this,name,t);
   moduleList.push_back(m);
   return m;
 }
 
-CoreIRContext* newContext() {
-  CoreIRContext* m = new CoreIRContext();
+Context* newContext() {
+  Context* m = new Context();
   return m;
 }
 
-void deleteContext(CoreIRContext* m) { 
-  cout << "DELETING!" << endl;
+void deleteContext(Context* m) { 
   delete m;
 }
 

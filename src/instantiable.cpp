@@ -35,7 +35,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   os << i.toString();
   return os;
 }
-Generator::Generator(CoreIRContext* c,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,c,"",name), argkinds(argkinds), typegen(typegen), genfun(nullptr) {
+Generator::Generator(Context* c,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,c,"",name), argkinds(argkinds), typegen(typegen), genfun(nullptr) {
   //Verify that argkinds are the same
   assert(argkinds == typegen->argkinds);
 }
@@ -93,7 +93,7 @@ void ModuleDef::print(void) {
 
 Instance* ModuleDef::addInstanceGenerator(string instname,Generator* gen, GenArgs* args) {
   //Should this type be resolved? Just create a typeGenInst for now
-  CoreIRContext* c = gen->getContext();
+  Context* c = gen->getContext();
   Type* type = c->TypeGenInst(gen->getTypeGen(),args);
   
   Instance* inst = new Instance(this,instname,gen,type,args);
@@ -117,7 +117,7 @@ Instance* ModuleDef::addInstance(Instance* i) {
 
 void ModuleDef::wire(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
-  CoreIRContext* c = getContext();
+  Context* c = getContext();
   if (a->getModuleDef()!=this || b->getModuleDef() != this) {
     Error e;
     e.message("Wirings can only occur within the same module");
@@ -146,7 +146,7 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
 
 
 Select* Wireable::sel(string selStr) {
-  CoreIRContext* c = getContext();
+  Context* c = getContext();
   Type* ret = c->Any();
   Error e;
   bool error = type->sel(c,selStr,&ret,&e);

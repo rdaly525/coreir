@@ -4,7 +4,7 @@
 #include "context.hpp"
 
 //Type boptype
-Module* add2(CoreIRContext* c, Type* t, GenArgs* args, ArgKinds argkinds) {
+Module* add2(Context* c, Type* t, GenArgs* args, ArgKinds argkinds) {
   int n = c->toInt((*args)["w"]);
   Module* m = c->newModuleDecl("add2_"+to_string(n),t);
   string verilog = "NYI add2";
@@ -16,7 +16,7 @@ Module* add2(CoreIRContext* c, Type* t, GenArgs* args, ArgKinds argkinds) {
 }
 
 
-Namespace* getStdlib_v1(CoreIRContext* c) {
+Namespace* getStdlib_v1(Context* c) {
   
   //Get the stdlib header which contains all the types
   Namespace* stdlib = c->getNamespace("stdlib");

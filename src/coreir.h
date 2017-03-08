@@ -1,6 +1,60 @@
 //This is for the C API
-struct C_CoreIRContext;
-typedef struct C_CoreIRContext C_CoreIRContext;
+#include "stdint.h"
 
-extern C_CoreIRContext* C_newContext();
-extern void C_deleteContext(C_CoreIRContext*);
+typedef uint32_t u32;
+
+typedef struct COREContext COREContext;
+typedef struct COREType COREType;
+typedef struct COREModule COREModule;
+typedef struct COREModuleDef COREModuleDef;
+
+
+
+
+//Context COREreater/deleters
+extern COREContext* CORENewContext();
+extern void COREDeleteContext(COREContext*);
+
+//Type COREonstructors
+extern COREType* COREAny(COREContext* CORE);
+extern COREType* COREBitIn(COREContext* CORE);
+extern COREType* COREBitOut(COREContext* CORE);
+extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
+
+extern void COREPrintType(COREType* t);
+
+extern COREModule* CORELoadModule(COREContext* c, char* filename);
+extern void COREPrintModule(COREModule* m);
+
+/*
+//Module stuff
+extern COREType* COREModuleGetType(COREModule* m);
+extern int COREModuleHasDef(COREModule* m);
+extern COREModuleDef* COREModuleGetDef(COREModule* m);
+
+// ModuleDef stuff
+extern COREInterface* COREGetInterface(COREModuleDef* m);
+extern COREInstance** COREGetInstances(COREModuleDef* m, uint* numInstances);
+extern COREWireablePair* COREGetWires(COREModuleDef* m, uint* numWires);
+
+//Wireable stuff
+extern COREWireable** COREGetConnections(COREWireable* w, uint* numConnections);
+extern COREStr2WireableMap* COREGetChildren(Wireable* w);
+
+typedef struct COREWireableSet COREWireableSet;
+
+//Maybe macrofy these
+typedef struct {
+  COREWireable* first;
+  COREWireable* second;
+} COREWireablePair;
+
+typedef struct COREStr2WireableMap;
+extern COREWireable* COREStr2WireableMapGet(COREStr2WireableMap* m, char* key);
+
+
+extern COREWireableSet* CORENewWireableSet();
+extern COREWireableSet* 
+
+
+*/
