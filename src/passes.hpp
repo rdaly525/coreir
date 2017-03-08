@@ -7,6 +7,7 @@
 bool typecheck(Context* c, Module* m);
 bool rungenerators(Context* c, Module* m);
 Module* loadModule(Context* c, string filename);
+bool saveModule(Module* top, string filename);
 
 
 #endif //PASSES_HPP_
