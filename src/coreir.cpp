@@ -49,9 +49,9 @@ extern "C" {
     return rcast<COREModule*>(loadModule(rcast<Context*>(c),file));
   }
 
-  COREModule* CORENewModule(COREContext* context, char* name, COREType* type) {
-    return rcast<COREModule*>(rcast<Context*>(context)->newModuleDecl(string(name), rcast<Type*>(type)));
-  }
+  //COREModule* CORENewModule(COREContext* context, char* name, COREType* type) {
+  //  return rcast<COREModule*>(rcast<Context*>(context)->newModuleDecl(string(name), rcast<Type*>(type)));
+  //}
 
   COREModuleDef* COREModuleNewDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
@@ -60,9 +60,10 @@ extern "C" {
   void COREModuleAddDef(COREModule* module, COREModuleDef* module_def) {
     rcast<Module*>(module)->addDef(rcast<ModuleDef*>(module_def));
   }
-  COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module) {
-    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstanceModule(string(name), rcast<Module*>(module)));
-  }
+  //TODO this is actually coming from namespace now
+  //COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module) {
+  //  return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstanceModule(string(name), rcast<Module*>(module)));
+  //}
 
   void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
     rcast<ModuleDef*>(module_def)->wire(rcast<Wireable*>(a), rcast<Wireable*>(b));
