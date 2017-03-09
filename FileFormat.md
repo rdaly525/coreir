@@ -10,7 +10,7 @@ Namespace={
   "generatorDeclarations":{"genname":GeneratorDeclaration, ...}
 }
 
-Type = "BitIn" | "BitOut" | {"Array":[N,Type]} | ["Record",{key:Type...} ] | [NamedTypeReference, GenArgs] | NamedTypeReference
+Type = "BitIn" | "BitOut" | ["Array":[N,Type]] | ["Record",{key:Type...} ] | [NamedTypeReference, GenArgs] | NamedTypeReference
 
 NamedTypeReference=["namespaceName","typeName"]
 
@@ -23,9 +23,9 @@ ModuleDef = {"metadata":Metadata,
 "instances": Instance[],
 "connections": Connection[]}
 
-Instance = {"instancename": name, "instref":InstantiatableReference, "args":GenArgs, "metadata":Metadata}
+Instance = {"instancename": name, "instref":InstantiatableReference, "args":GenArgs, "configargs":GenArgs, "metadata":Metadata}
 
-InstantiatableReference = ["module/generator" "namespacename","InstantiatableName"]
+InstantiatableReference = ["namespacename","InstantiatableName"]
     "Instantiatable" means either a module or generator
 
 Connection = [WireReference, WireReference, Metadata]

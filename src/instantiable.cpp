@@ -12,13 +12,16 @@ using namespace std;
 ///////////////////////////////////////////////////////////
 //-------------------- Instantiable ---------------------//
 ///////////////////////////////////////////////////////////
+Context* Instantiable::getContext() { return ns->getContext();}
+
+
 Module* Instantiable::toModule() {
   if (isKind(MOD)) return (Module*) this;
   Error e;
   e.message("Cannot convert to a Module!!");
   e.message("  " + toString());
   e.fatal();
-  c->error(e);
+  getContext()->error(e);
   return nullptr;
 }
 Generator* Instantiable::toGenerator() {
@@ -27,7 +30,7 @@ Generator* Instantiable::toGenerator() {
   e.message("Cannot convert to a Generator!!");
   e.message("  " + toString());
   e.fatal();
-  c->error(e);
+  getContext()->error(e);
   return nullptr;
 }
 
@@ -35,7 +38,8 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   os << i.toString();
   return os;
 }
-Generator::Generator(Context* c,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,c,"",name), argkinds(argkinds), typegen(typegen), genfun(nullptr) {
+
+Generator::Generator(Namespace* ns,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,ns,name), argkinds(argkinds), typegen(typegen), genfun(nullptr) {
   //Verify that argkinds are the same
   assert(argkinds == typegen->argkinds);
 }

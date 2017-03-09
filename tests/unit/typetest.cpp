@@ -48,18 +48,14 @@ int main() {
     c->Record({{"r",c->Flip(Int)},{"v",Int},{"d",c->Array(16,Int)}})
   };
   for (auto t: ts) {
-    cout << "T: " << *t << endl;
     assert(t == c->Flip(c->Flip(t)));
     assert(c->Array(5,t) == c->Array(5,t));
     assert(c->Array(5,t) != c->Array(6,t));
-    cout << "H1: " << *c->Flip(c->Array(7,t)) << endl;
-    cout << "H2: " << *c->Array(7,c->Flip(t)) << endl;
     assert(c->Flip(c->Array(7,t)) == c->Array(7,c->Flip(t)) );
 
     assert(c->Record({{"c",t}}) == c->Record({{"c",t}}) );
     //TODO more
   }
-
   deleteContext(c);
 
 }

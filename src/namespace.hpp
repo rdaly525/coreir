@@ -21,6 +21,7 @@ class Namespace {
     Namespace(Context* c, string name) : c(c), name(name) {}
     ~Namespace();
     string getName() { return name;}
+    Context* getContext() { return c;}
     map<string,Module*> getModules() { return mList;}
     map<string,Generator*> getGenerators() { return gList;}
     map<string,TypeGen*> getTypeGens() { return tList;}
@@ -34,8 +35,8 @@ class Namespace {
       return tList.find(name) != tList.end();
     }
     
-    void addModule(Module* i);
-    void addGenerator(Generator* i);
+    Generator* newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg);
+    Module* newModuleDecl(string name, Type* t);
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);

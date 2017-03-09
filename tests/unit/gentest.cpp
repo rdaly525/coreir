@@ -3,7 +3,6 @@
 
 int main() {
   Context* c = newContext();
-  cout << "HERE" << endl;
 
   // TODO should test a bunch of other permutations
   GenArgs g1 = *c->newGenArgs({{"a",c->GInt(5)},{"b",c->GString("ross")}});

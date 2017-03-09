@@ -13,35 +13,26 @@ Context::Context() : maxErrors(3) {
 // Order of this matters
 Context::~Context() {
   
-  for (auto it : namespaceList) delete it;
+  for (auto it : libs) delete it.second;
   for (auto it : genargsList) delete it;
   for (auto it : genargList) delete it;
-  for (auto it : generatorList) delete it;
-  for (auto it : moduleList) delete it;
   for (auto it : recordParamsList) delete it;
+ 
   delete cache;
 }
 
-bool Context::registerLib(Namespace* lib) {
-  string name = lib->getName();
-  if (libs.find(name) != libs.end()) {
-    Error e;
-    e.message("Namespace already exists!");
-    e.message("  Namespace: " + name);
-    error(e);
-    return true;
-  }
-  libs.emplace(name,lib);
-  return false;
-}
+
 
 Namespace* Context::newNamespace(string name) { 
   Namespace* n = new Namespace(this,name);
-  namespaceList.push_back(n);
+  libs.emplace(name,n);
   return n;
 }
 
 Namespace* Context::getNamespace(string name) {
+  for (auto it : libs) {
+    
+  }
   auto it = libs.find(name);
   if (it == libs.end()) {
     Error e;
@@ -138,17 +129,6 @@ GenArgs* Context::newGenArgs(unordered_map<string,GenArg*> args) {
   return ga;
 }
 
-Generator* Context::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg) {
-  Generator* g = new Generator(this,name,kinds,tg);
-  generatorList.push_back(g);
-  return g;
-}
-
-Module* Context::newModuleDecl(string name, Type* t) {
-  Module* m = new Module(this,name,t);
-  moduleList.push_back(m);
-  return m;
-}
 
 Context* newContext() {
   Context* m = new Context();

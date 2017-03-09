@@ -1,6 +1,7 @@
 ///////////////////////////////////////
 Fix names to not depend on my computer
 
+deal with namespace name alias
 
 Add testing infrasturcture. Separate tests into individual directories (maybe)
 
