@@ -1,7 +1,7 @@
 .SUFFIXES:
 
-#CC = g++
-CC = clang++
+CC = g++
+#CC = clang++
 CFLAGS = -std=c++11  -Wall  -fPIC
 
 INCS = -I../libs -I.
