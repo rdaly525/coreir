@@ -83,6 +83,8 @@ class Context {
 
 };
 
+Module* loadModule(Context* c, string filename);
+
 Context* newContext();
 void deleteContext(Context* m);
 

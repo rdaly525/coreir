@@ -1,9 +1,109 @@
+#include "json.hpp"
+#include <iostream>
+#include <fstream>
+#include "context.hpp"
 
-#include "passes.hpp"
-#include "stdlib.hpp"
-#include "stdlib_v1.hpp"
+using json = nlohmann::json;
+
+json Type2Json(Type* t);
+json ModuleDef2Json(ModuleDef* md);
+json Module2Json(Module* m);
+json Wireable2Json(Wireable* w);
+json Instance2Json(Instance* i);
+
+
+
 
 Module* loadModule(Context* c, string filename) {
+  std::ifstream file(filename);
+  json j;
+  file >> j;
+  cout << "Loading " << filename << endl;
+  return nullptr;
+}
+
+//False cannot open file
+bool saveModule(Module* m, string filename) {
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    return true;
+  }
+  json j;
+  j["top"] = m->getName();
+  j["module"] = Module2Json(m);
+  cout << std::setw(3) << j << endl;
+ 
+  //file << j;
+  return false;
+}
+
+
+json Type2Json(Type* t) {
+  json j;
+  switch(t->getKind()) {
+    case(BITIN) : j["BitIn"]; break;
+    case(BITOUT) : j["BitOut"]; break;
+    case(ARRAY) : {
+      ArrayType* at = (ArrayType*) t;
+      j["Array"] = json::array({at->getLen(), Type2Json(at->getElemType())});
+      break;
+    }
+    case(RECORD) : j["Record"] = "NYI";
+    default : j["TYPE_NYI"];
+  }
+  return j;
+}
+
+json Module2Json(Module* m) {
+  m->print();
+  json j = {
+    {"type",Type2Json(m->getType())},
+    {"config","NYI"},
+    {"metadata","NYI"},
+    {"def",ModuleDef2Json(m->getDef())}
+  };
+  return j;
+}
+
+json ModuleDef2Json(ModuleDef* md) {
+  if (!md) return "null";
+  json j;
+  j["metadata"] = "NYI";
+  j["implementations"] = "NYI";
+  json jinsts;
+  for ( auto inst : md->getInstances()) {
+    jinsts.push_back(Instance2Json(inst));
+  }
+  j["instances"] = jinsts;
+  json jwires;
+  for (auto wire : md->getWires() ) {
+    jwires.push_back(json::array({Wireable2Json(wire.first), Wireable2Json(wire.second), {"metadata","NYI"}}));
+  }
+  j["connections"] = jwires;
+  return j;
+}
+
+json Wireable2Json(Wireable* w) {
+  json j;
+  std::pair<Wireable*,vector<string>> ser = w->serialize();
+  string name = "this";
+  if(ser.first->isKind(INST)) name = ((Instance*) ser.first)->getInstname();
+  j.push_back(name);
+  for (auto str : ser.second) j.push_back(str);
+  return j;
+}
+
+json Instance2Json(Instance* i) {
+  json j;
+  Instantiable* iRef = i->getInstRef();
+  j["instancename"] = i->getInstname();
+  j["instref"] = json::array({iRef->isKind(MOD) ? "module" : "generator",iRef->getNamespaceStr(),iRef->getName()});
+  j["args"] = "NYI";
+  j["metadata"] = "NYI";
+  return j;
+}
+
+/*  
   uint n = 32;
   cout << "Loading from file: " << filename << endl;
   
@@ -52,3 +152,4 @@ Module* loadModule(Context* c, string filename) {
   
   return add4_n;
 }
+*/
