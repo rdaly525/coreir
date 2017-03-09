@@ -1,0 +1,2 @@
+#!/bin/sh
+for file in build/*; do $file; done
