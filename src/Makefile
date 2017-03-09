@@ -3,7 +3,8 @@
 CC = clang++
 CFLAGS = -std=c++11 -Wall -ferror-limit=5 -fPIC
 
-INCS = -I../src -I../libs
+CDIR := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/..)  # get parent directory
+INCS = -I$(CDIR)/src -I$(CDIR)/libs
 DEPS = common.hpp types.hpp typecache.hpp context.hpp 
 OBJS = fileIO.o rungen.o typecheck.o namespace.o instantiable.o context.o types.o genargs.o typecache.o common.o
 
