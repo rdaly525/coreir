@@ -17,12 +17,13 @@ int main() {
   // New context
   Context* c = newContext();
   Namespace* g = c->getGlobal();
-  //register the stdlib
+  
   Namespace* stdlib = getStdlib(c);
 
   stdlib->print();
 
   //Declare add2 Generator
+  Module* m1 = g->newModuleDecl("M1",c->BitIn());
   Generator* add2 = stdlib->getGenerator("add2");
   assert(add2);
   // Define Add4 Module
@@ -36,6 +37,7 @@ int main() {
     Wireable* add_00 = def->addInstanceGenerator("add00",add2,c->newGenArgs({{"w",c->GInt(n)}}));
     Wireable* add_01 = def->addInstanceGenerator("add01",add2,c->newGenArgs({{"w",c->GInt(n)}}));
     Wireable* add_1 = def->addInstanceGenerator("add1",add2,c->newGenArgs({{"w",c->GInt(n)}}));
+    Wireable* add_2 = def->addInstanceModule("m1",m1);
     
     def->wire(iface->sel("in")->sel(0),add_00->sel("in0"));
     //def->wire(iface->sel("in")->sel(1)->sel(3),add_00->sel("in0")->sel(3));

@@ -13,7 +13,6 @@ json Instance2Json(Instance* i);
 
 
 
-
 Module* loadModule(Context* c, string filename) {
   std::ifstream file(filename);
   json j;
@@ -31,9 +30,8 @@ bool saveModule(Module* m, string filename) {
   json j;
   j["top"] = m->getName();
   j["module"] = Module2Json(m);
-  cout << std::setw(3) << j << endl;
  
-  file << j;
+  file << std::setw(3) << j;
   return false;
 }
 

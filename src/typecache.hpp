@@ -8,7 +8,6 @@
 
 using namespace std;
 
-typedef std::pair<uint,Type*> ArrayParams ;
 
 //RecordParams defined in types.hpp
 //typedef std::pair<TypeGen*,GenArgs*> TypeGenParams;
@@ -34,6 +33,12 @@ struct RecordParamsHasher {
     return hash;
   }
 };
+
+//struct ArrayParamsHasher {
+//  size_t operator()(const ArrayParams& rp) const {
+//     
+//  }
+//};
 
 class Context;
 class TypeCache {

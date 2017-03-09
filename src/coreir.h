@@ -4,6 +4,7 @@
 typedef uint32_t u32;
 
 typedef struct COREContext COREContext;
+typedef struct CORENamespace CORENamespace;
 typedef struct COREType COREType;
 typedef struct COREModule COREModule;
 typedef struct COREModuleDef COREModuleDef;
@@ -32,7 +33,8 @@ extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param)
 extern void COREPrintType(COREType* t);
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename);
-extern COREModule* CORENewModule(COREContext* context, char* name, COREType* type);
+extern CORENamespace* COREGetGlobal(COREContext* c);
+extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type);
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
 extern COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module);

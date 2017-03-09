@@ -14,6 +14,9 @@ using namespace std;
 ///////////////////////////////////////////////////////////
 Context* Instantiable::getContext() { return ns->getContext();}
 
+bool operator==(const Instantiable & l,const Instantiable & r) {
+  return l.isKind(r.getKind()) && (l.getName()==r.getName()) && (l.getNamespace()->getName() == r.getNamespace()->getName());
+}
 
 Module* Instantiable::toModule() {
   if (isKind(MOD)) return (Module*) this;
@@ -53,7 +56,8 @@ string Generator::toString() const {
 }
 
 Module::~Module() {
-  if (def) delete def;
+  
+  for (auto md : mdefList) delete md;
 }
 
 string Module::toString() const {
@@ -66,7 +70,10 @@ void Module::print(void) {
 
 }
 ModuleDef* Module::newModuleDef() {
-  return new ModuleDef(this);
+  
+  ModuleDef* md = new ModuleDef(this);
+  mdefList.push_back(md);
+  return md;
 }
 
 ModuleDef::ModuleDef(Module* module) : module(module) {

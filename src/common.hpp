@@ -36,6 +36,7 @@ class Type;
 typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, ArgKinds argkinds);
 struct TypeGen;
 typedef vector<std::pair<string,Type*>> RecordParams ;
+typedef std::pair<uint,Type*> ArrayParams ;
 class TypeCache;
 
 //instantiable.hpp
@@ -52,7 +53,7 @@ class Interface;
 class Instance;
 class Select;
 
-
+//TODO This stuff is super fragile. 
 // Magic hash function I found online
 template <class T> 
 inline void hash_combine(size_t& seed, const T& v) {

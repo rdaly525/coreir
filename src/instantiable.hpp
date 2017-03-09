@@ -36,12 +36,14 @@ class Instantiable {
     virtual ~Instantiable() {};
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
-    bool isKind(InstantiableKind k) { return kind==k;}
+    bool isKind(InstantiableKind k) const { return kind==k;}
+    InstantiableKind getKind() const { return kind;}
     Module* toModule();
     Generator* toGenerator();
     Context* getContext();
-    string getName() { return name;}
-    Namespace* getNamespace() { return ns;}
+    string getName() const { return name;}
+    Namespace* getNamespace() const { return ns;}
+    friend bool operator==(const Instantiable & l,const Instantiable & r);
     //string getQualifiedName() { return (nameSpace.empty() ? "this" : nameSpace)  + "." + name; }
 };
 
@@ -67,6 +69,10 @@ class Module : public Instantiable {
   Type* type;
   ModuleDef* def;
   string verilog;
+  
+  //Memory Management
+  vector<ModuleDef*> mdefList;
+
   public :
     Module(Namespace* ns,string name, Type* type) : Instantiable(MOD,ns,name), type(type), def(nullptr) {}
     ~Module();

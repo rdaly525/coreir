@@ -49,13 +49,20 @@ extern "C" {
     return rcast<COREModule*>(loadModule(rcast<Context*>(c),file));
   }
 
-  //TODO this is actually coming from namespace now
-  //COREModule* CORENewModule(COREContext* context, char* name, COREType* type) {
-  //  return rcast<COREModule*>(rcast<Context*>(context)->newModuleDecl(string(name), rcast<Type*>(type)));
-  //}
+  CORENamespace* COREGetGlobal(COREContext* c) {
+    return rcast<CORENamespace*>(rcast<Context*>(c));
+  }
+
+  COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type) {
+    return rcast<COREModule*>(rcast<Namespace*>(ns)->newModuleDecl(string(name), rcast<Type*>(type)));
+  }
 
   COREModuleDef* COREModuleNewDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
+  }
+  
+  COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module) {
+    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstanceModule(string(name),rcast<Module*>(module)));
   }
 
   void COREModuleAddDef(COREModule* module, COREModuleDef* module_def) {

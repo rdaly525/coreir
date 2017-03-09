@@ -20,6 +20,7 @@ class EmptyStruct(ct.Structure):
 
 # Pointers to typedefs use an empty struct as a placeholder
 COREContext_p = ct.POINTER(EmptyStruct)
+CORENamespace_p = ct.POINTER(EmptyStruct)
 COREType_p = ct.POINTER(EmptyStruct)
 COREModule_p = ct.POINTER(EmptyStruct)
 COREModuleDef_p = ct.POINTER(EmptyStruct)
@@ -58,7 +59,10 @@ coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 coreir_lib.CORELoadModule.argtypes = [COREContext_p, ct.c_char_p]
 coreir_lib.CORELoadModule.restype = COREModule_p
 
-coreir_lib.CORENewModule.argtypes = [COREContext_p, ct.c_char_p, COREType_p]
+coreir_lib.COREGetGlobal.argtypes = [COREContext_p]
+coreir_lib.COREGetGlobal.restype = CORENamespace_p
+
+coreir_lib.CORENewModule.argtypes = [CORENamespace_p, ct.c_char_p, COREType_p]
 coreir_lib.CORENewModule.restype = COREModule_p
 
 coreir_lib.COREModuleAddDef.argtypes = [COREModule_p, COREModuleDef_p]
@@ -109,6 +113,7 @@ class Instance(CoreIRType):
 
 class ModuleDef(CoreIRType):
     def add_instance_module(self, name, module):
+        assert isinstance(module,Module)
         return Instance(coreir_lib.COREModuleDefAddInstanceModule(self.ptr, str.encode(name), module.ptr))
 
     def get_interface(self):
@@ -132,11 +137,19 @@ class Module(CoreIRType):
     def print(self):
         coreir_lib.COREPrintModule(self.ptr)
 
+class Namespace(CoreIRType):
+  def Module(self, name, typ):
+    return Module(
+      coreir_lib.CORENewModule(self.ptr, ct.c_char_p(str.encode(name)), typ.ptr))
 
 class Context:
     def __init__(self):
         self.context = coreir_lib.CORENewContext()
-
+        self.G = Namespace(coreir_lib.COREGetGlobal(self.context))
+    
+    def GetG(self):
+      return Namespace(coreir_lib.COREGetGlobal(self.context))
+    
     def Any(self):
         return Type(coreir_lib.COREAny(self.context))
 
@@ -156,11 +169,7 @@ class Context:
             coreir_lib.CORELoadModule(
                 self.context, ct.c_char_p(str.encode(file_name))))
 
-    def Module(self, name, typ):
-        return Module(
-            coreir_lib.CORENewModule(
-                self.context, ct.c_char_p(str.encode(name)), typ.ptr))
-
+ 
     def Record(self, fields):
         record_params = coreir_lib.CORENewRecordParam(self.context)
         for key, value in fields.items():
@@ -182,9 +191,11 @@ if __name__ == "__main__":
 
     # c.ModuleFromFile("test").print()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
-    module = c.Module("multiply_by_2", module_typ)
+    module = c.G.Module("multiply_by_2", module_typ)
+    module.print()
+    assert False
     module_def = module.new_definition()
-    add8 = c.Module("add8",
+    add8 = c.G.Module("add8",
         c.Record({
             "in1": c.Array(8, c.BitIn()),
             "in2": c.Array(8, c.BitIn()),

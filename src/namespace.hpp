@@ -9,9 +9,24 @@
 
 using namespace std;
 
+struct GenCacheParams {
+  Generator* g;
+  GenArgs* ga;
+  GenCacheParams(Generator* g, GenArgs* ga) : g(g), ga(ga) {}
+  friend bool operator==(const GenCacheParams & l,const GenCacheParams & r);
+  friend bool operator!=(const GenCacheParams & l,const GenCacheParams & r);
+
+};
+
+struct GenCacheParamsHasher {
+  size_t operator()(const GenCacheParams& gcp) const;
+};
+
 class Namespace {
   Context* c;
   string name;
+
+  unordered_map<GenCacheParams,Module*,GenCacheParamsHasher> genCache;
 
   map<string,Module*> mList;
   map<string,Generator*> gList;
@@ -40,6 +55,8 @@ class Namespace {
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);
+    
+    Module* runGenerator(Generator* g, GenArgs* ga);
 
     void print();
 };

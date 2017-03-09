@@ -18,10 +18,9 @@ Namespace* getStdlib(Context* c) {
   
   Namespace* stdlib = c->newNamespace("stdlib");
   //c->registerLib(stdlib);
-
   //Add bop typegen to library
   stdlib->newTypeGen("binop","binop_F",{{"w",GINT}},binop_type);
- 
+  
   //declare new add2 generator
   stdlib->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
   

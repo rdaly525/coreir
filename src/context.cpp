@@ -13,10 +13,10 @@ Context::Context() : maxErrors(3) {
 // Order of this matters
 Context::~Context() {
   
-  for (auto it : libs) delete it.second;
   for (auto it : genargsList) delete it;
   for (auto it : genargList) delete it;
   for (auto it : recordParamsList) delete it;
+  for (auto it : libs) delete it.second;
  
   delete cache;
 }
@@ -98,9 +98,9 @@ Type* Context::TypeGenInst(TypeGen* tgd, GenArgs* args) { return cache->newTypeG
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 RecordParams* Context::newRecordParams() {
-    RecordParams* record_param = new RecordParams();
-    recordParamsList.push_back(record_param);
-    return record_param;
+  RecordParams* record_param = new RecordParams();
+  recordParamsList.push_back(record_param);
+  return record_param;
 }
 
 GenArg* Context::GInt(int i) { 

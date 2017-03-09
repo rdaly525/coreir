@@ -1,6 +1,12 @@
 ///////////////////////////////////////
 Fix names to not depend on my computer
 
+When Generating Modules, prepend lib name in front of module name
+Make sure you cannot create two namespaces of the same name
+Make sure you cannot create two Instantiables of the same name
+
+
+
 Add testing infrasturcture. Separate tests into individual directories (maybe)
 
 Metadata
