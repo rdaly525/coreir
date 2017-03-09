@@ -6,12 +6,29 @@
 
 using namespace std;
 
-Namespace::~Namespace() {
-  // These are deleted in context
-  //for(auto m : mList) delete m.second;
-  //for(auto g : gList) delete g.second;
+bool operator==(const GenCacheParams & l,const GenCacheParams & r) {
+  return (*l.g==*r.g) && (*l.ga==*r.ga);
+}
+
+bool operator!=(const GenCacheParams & l,const GenCacheParams & r) {
+  return !(l==r);
+}
+
+size_t GenCacheParamsHasher::operator()(const GenCacheParams& gcp) const {
+  size_t hash = 0;
+  hash_combine(hash,gcp.g->getNamespace()->getName());
+  hash_combine(hash,gcp.g->getName());
+  hash_combine(hash,*gcp.ga);
+  return hash;
+}
   
+Namespace::~Namespace() {
+  for(auto m : mList) delete m.second;
+  for(auto g : gList) delete g.second;
   for(auto t : tList) delete t.second;
+
+  // Delete genCache;
+  //for(auto g : genCache) delete g.second;
 }
 
 TypeGen* Namespace::newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun) {
@@ -47,6 +64,7 @@ Generator* Namespace::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg)
 }
 
 Module* Namespace::newModuleDecl(string name, Type* t) {
+  cout << "new mod!" << name << endl;
   Module* m = new Module(this,name,t);
   mList.emplace(name,m);
   return m;
@@ -81,7 +99,20 @@ void Namespace::print() {
   cout << endl;
 }
 
-
+Module* Namespace::runGenerator(Generator* g, GenArgs* ga) {
+  GenCacheParams gcp(g,ga);
+  auto it = genCache.find(gcp);
+  if (it != genCache.end()) return it->second;
+  TypeGen* tg = g->getTypeGen();
+  
+  //Run the typegen first
+  Type* type = tg->fun(c,ga,tg->argkinds);
+  
+  //Run the generator
+  Module* mNew= g->getDef()(c,type,ga,tg->argkinds);
+  genCache.emplace(gcp,mNew);
+  return mNew;
+}
 
 
 #endif // NAMESPACE_CPP_

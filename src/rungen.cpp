@@ -70,14 +70,9 @@ bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
       else {
 
         GenArgs* gargs = inst->getGenArgs();
-        TypeGen* tg = g->getTypeGen();
+        Module* mNew = c->getGlobal()->runGenerator(g,gargs);
         
-        //Run the typegen first
-        Type* type = tg->fun(c,gargs,tg->argkinds);
-        
-        //Run the generator
-        Module* mNew= g->getDef()(c,type,gargs,tg->argkinds);
-        
+        // TODO might not need to insert already cached things
         //Add Output of generator to runQueue
         runQueue.insert(mNew);
         
@@ -85,7 +80,6 @@ bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
         old2new.emplace(inst,newDef->addInstanceModule(inst->getInstname(), mNew));
       }
     }
-
   }
 
   //Add all the wires to the new module def

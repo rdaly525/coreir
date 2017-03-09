@@ -17,7 +17,7 @@ int main() {
   // New context
   Context* c = newContext();
   Namespace* g = c->getGlobal();
-  //register the stdlib
+  
   Namespace* stdlib = getStdlib(c);
 
   stdlib->print();
