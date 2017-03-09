@@ -1,4 +1,4 @@
-*.a
-*.o
-*.run*
-*.dylib
+build/*
+tests/unit/build/*
+*~
+\#*\#

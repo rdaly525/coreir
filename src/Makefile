@@ -1,7 +1,7 @@
 .SUFFIXES:
 
-CC = clang++
-CFLAGS = -std=c++11 -Wall -ferror-limit=5 -fPIC
+CC = g++
+CFLAGS = -std=c++11  -Wall -ferror-limit=5 -fPIC
 
 INCS = -I../libs -I.
 DEPS = common.hpp types.hpp typecache.hpp context.hpp 
@@ -10,15 +10,15 @@ SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,../build/%.o,$(SRCFILES))
 BUILD = build
 
-all: coreir.a $(OBJS)
+all: ../build/coreir.a $(OBJS)
 
 clean:
 	-@rm *.o *.a *.run *.so *.dylib
 
-coreir.a: $(OBJS)
+../build/coreir.a: $(OBJS)
 	ar rcs $@ $^
 
-coreir.so: $(OBJS)
+../build/coreir.so: $(OBJS)
 	$(CC) -shared -o $@ $^
 
 coreir.dylib: $(OBJS)

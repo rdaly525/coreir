@@ -2,6 +2,9 @@ language: c
 
 before_install:
   - sudo apt-get -qq update
+  - make -C src
+  - make -C tests
 
 script:
-  - make
+  - cd tests
+  - ./run
