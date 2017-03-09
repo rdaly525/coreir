@@ -28,6 +28,7 @@ extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param)
 extern void COREPrintType(COREType* t);
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename);
+extern COREModule* CORENewModule(COREContext* context, char* name, COREType* type);
 extern void COREPrintModule(COREModule* m);
 
 /*

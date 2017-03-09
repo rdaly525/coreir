@@ -54,6 +54,9 @@ coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 coreir_lib.CORELoadModule.argtypes = [COREContext_p, ct.c_char_p]
 coreir_lib.CORELoadModule.restype = COREModule_p
 
+coreir_lib.CORENewModule.argtypes = [COREContext_p, ct.c_char_p, COREType_p]
+coreir_lib.CORENewModule.restype = COREModule_p
+
 coreir_lib.COREPrintModule.argtypes = [COREModule_p]
 
 
@@ -86,15 +89,20 @@ class Context:
     def BitOut(self):
         return Type(coreir_lib.COREBitOut(self.context))
 
-    def Array(self, len, type):
-        assert isinstance(type, Type)
-        assert isinstance(len, int)
-        return Type(coreir_lib.COREArray(self.context, len, type.type))
+    def Array(self, length, typ):
+        assert isinstance(typ, Type)
+        assert isinstance(length, int)
+        return Type(coreir_lib.COREArray(self.context, length, typ.type))
 
-    def Module(self, file_name):
+    def ModuleFromFile(self, file_name):
         return Module(
             coreir_lib.CORELoadModule(
                 self.context, ct.c_char_p(str.encode(file_name))))
+
+    def Module(self, name, typ):
+        return Module(
+            coreir_lib.CORENewModule(
+                self.context, ct.c_char_p(str.encode(name)), typ.type))
 
     def Record(self, fields):
         record_params = coreir_lib.CORENewRecordParam(self.context)
@@ -115,5 +123,6 @@ if __name__ == "__main__":
 
     c.Array(3, c.Array(4, c.BitIn())).print()
 
-    c.Module("test").print()
-    c.Record({"ready": c.BitIn(), "valid": c.BitOut()}).print()
+    c.ModuleFromFile("test").print()
+    module_typ = c.Record({"ready": c.BitIn(), "valid": c.BitOut()})
+    c.Module("my_py_module", module_typ).print()

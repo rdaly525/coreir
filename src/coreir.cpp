@@ -48,6 +48,10 @@ extern "C" {
     return rcast<COREModule*>(loadModule(rcast<Context*>(c),file));
   }
 
+  COREModule* CORENewModule(COREContext* context, char* name, COREType* type) {
+    return rcast<COREModule*>(rcast<Context*>(context)->newModuleDecl(string(name), rcast<Type*>(type)));
+  }
+
   void COREPrintModule(COREModule* m) {
     rcast<Module*>(m)->print();
   }
