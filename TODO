@@ -1,5 +1,20 @@
 ///////////////////////////////////////
-Fix names to not depend on my computer
+James TODO
+Get Travis passing by using gentest and typetest.
+Add testing infrasturcture. Separate tests into individual directories with their own builds.
+Sort out the testing makefiles
+
+Primitives TODO:
+-Add generators for constants
+-And Multiply 
+
+
+Ross TODO
+
+Finish Json Reader and Writer
+Have a test that actually writes out a file, and reads it back in
+
+Get Verilog codegen working again
 
 When instantiating generators, if the typegen function exists, run it
 and cache the type in the typegenInst
@@ -8,19 +23,11 @@ When Generating Modules, prepend lib name in front of module name
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
 
-
-
-Add testing infrasturcture. Separate tests into individual directories (maybe)
-
 Metadata
 Add metadata basically to everywhere
 
 Add stream operator to Error so I can do
   Error e;
   e << "blah" << type << blah
-
-Primitives TODO:
--Add generators for constants
--And Multiply 
 
 Should check for cases of modules instantiated in its own module. We dont want module "recursion"
