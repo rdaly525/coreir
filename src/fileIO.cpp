@@ -33,7 +33,7 @@ bool saveModule(Module* m, string filename) {
   j["module"] = Module2Json(m);
   cout << std::setw(3) << j << endl;
  
-  //file << j;
+  file << j;
   return false;
 }
 
@@ -97,7 +97,7 @@ json Instance2Json(Instance* i) {
   json j;
   Instantiable* iRef = i->getInstRef();
   j["instancename"] = i->getInstname();
-  j["instref"] = json::array({iRef->isKind(MOD) ? "module" : "generator",iRef->getNamespaceStr(),iRef->getName()});
+  j["instref"] = json::array({iRef->isKind(MOD) ? "module" : "generator",iRef->getNamespace()->getName(),iRef->getName()});
   j["args"] = "NYI";
   j["metadata"] = "NYI";
   return j;

@@ -29,21 +29,19 @@ class Context;
 class Instantiable {
   protected:
     InstantiableKind kind;
-    Context* c;
-    string nameSpace;
+    Namespace* ns;
     string name;
   public :
-    Instantiable(InstantiableKind kind, Context* c,string nameSpace, string name) : kind(kind), c(c), nameSpace(nameSpace), name(name) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, string name) : kind(kind), ns(ns), name(name) {}
     virtual ~Instantiable() {};
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
     bool isKind(InstantiableKind k) { return kind==k;}
     Module* toModule();
     Generator* toGenerator();
-    Context* getContext() { return c;}
+    Context* getContext();
     string getName() { return name;}
-    string getNamespaceStr() { return nameSpace;}
-    void setNamespaceStr(string _n) {nameSpace = _n;}
+    Namespace* getNamespace() { return ns;}
     //string getQualifiedName() { return (nameSpace.empty() ? "this" : nameSpace)  + "." + name; }
 };
 
@@ -55,7 +53,7 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   genFun genfun;
   public :
-    Generator(Context* c,string name,ArgKinds argkinds, TypeGen* typegen);
+    Generator(Namespace* ns,string name,ArgKinds argkinds, TypeGen* typegen);
     bool hasDef() const { return !!genfun; }
     string toString() const;
     TypeGen* getTypeGen() { return typegen;}
@@ -70,7 +68,7 @@ class Module : public Instantiable {
   ModuleDef* def;
   string verilog;
   public :
-    Module(Context* c,string name, Type* type) : Instantiable(MOD,c,"",name), type(type), def(nullptr) {}
+    Module(Namespace* ns,string name, Type* type) : Instantiable(MOD,ns,name), type(type), def(nullptr) {}
     ~Module();
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() { return def; } // TODO should probably throw error if does not exist

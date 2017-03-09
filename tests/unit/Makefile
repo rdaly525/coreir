@@ -1,30 +1,33 @@
 CC = clang++
 CFLAGS = -std=c++11 -Wall -g
-CDIR = 
-#INCS = -I$(CDIR)/src -I$(CDIR)/libs
-#LIBS = -L$(CDIR)/src -L$(CDIR)/libs
-INCS = -I../src -I../libs
-LIBS = -L../src -L../libs
 DEPS = 
+
+SRCDIR = ../../src
+LIBSDIR = ../../libs
+
+INCS = -I$(SRCDIR) -I$(LIBSDIR)
+LIBS = -L$(SRCDIR) -L$(LIBSDIR)
 
 .SUFFIXES:
 
 all: 
-	#add4.run gentest.run typetest.run jsontest.run
-	make -C ../src
+	make -C $(SRCDIR)
+	make add4.run
 	make jsontest.run
+	make gentest.run
+	make typetest.run
 
 clean:
 	-@rm -rf *.o *.run* *.core
 
 #$(LIBS) -lcoreir -lstdprims
 #TODO hack. Cant figure out how to load libraries
-%.run: %.o ../src/coreir.a
+%.run: %.o $(SRCDIR)/coreir.a
 	#$(CC) $(CPPFLAGS)  -o $@ $^ ../src/context.a ../libs/stdlib.a
-	$(CC) $(CFLAGS)  -o $@ $^ ../src/coreir.a
+	$(CC) $(CFLAGS)  -o $@ $^ $(SRCDIR)/coreir.a
 	#./$@
 
 %.o: %.cpp 
 	$(CC) $(CFLAGS) $(INCS) -c -o $@ $< 
 
-.PHONY: ../src/coreir.a
+.PHONY: $(SRCDIR)/coreir.a

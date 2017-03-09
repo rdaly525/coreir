@@ -26,11 +26,30 @@ TypeGen* Namespace::newTypeGen(string name, string nameFlipped, ArgKinds kinds, 
       return t;
     }
 
-void Namespace::addModule(Module* m) {
-  mList.emplace(m->getName(),m);
+//TODO deal with name conflicts
+//bool Context::registerLib(Namespace* lib) {
+//  string name = lib->getName();
+//  if (libs.find(name) != libs.end()) {
+//    Error e;
+//    e.message("Namespace already exists!");
+//    e.message("  Namespace: " + name);
+//    error(e);
+//    return true;
+//  }
+//  libs.emplace(name,lib);
+//  return false;
+//}
+
+Generator* Namespace::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg) {
+  Generator* g = new Generator(this,name,kinds,tg);
+  gList.emplace(name,g);
+  return g;
 }
-void Namespace::addGenerator(Generator* g) {
-  gList.emplace(g->getName(),g);
+
+Module* Namespace::newModuleDecl(string name, Type* t) {
+  Module* m = new Module(this,name,t);
+  mList.emplace(name,m);
+  return m;
 }
 
 Generator* Namespace::getGenerator(string gname) {

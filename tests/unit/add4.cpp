@@ -16,11 +16,10 @@ int main() {
   
   // New context
   Context* c = newContext();
-  
+  Namespace* g = c->getGlobal();
   //register the stdlib
   Namespace* stdlib = getStdlib(c);
 
-  c->registerLib(stdlib);
   stdlib->print();
 
   //Declare add2 Generator
@@ -31,7 +30,7 @@ int main() {
       {"in",c->Array(4,c->Array(n,c->BitIn()))},
       {"out",c->Array(n,c->BitOut())}
   });
-  Module* add4_n = c->newModuleDecl("Add4",add4Type);
+  Module* add4_n = g->newModuleDecl("Add4",add4Type);
   ModuleDef* def = add4_n->newModuleDef();
     Wireable* iface = def->getInterface();
     Wireable* add_00 = def->addInstanceGenerator("add00",add2,c->newGenArgs({{"w",c->GInt(n)}}));
@@ -60,6 +59,7 @@ int main() {
   // Link v1 of library
   cout << "Linking stdlib!" << endl;
   Namespace* stdlib_v1 = getStdlib_v1(c);
+  cout << "Linking!";
   c->linkLib(stdlib_v1, stdlib);
  
   cout << "Checkign Errors 2" << endl;
@@ -71,7 +71,7 @@ int main() {
   add4_n->print();
   cout << "Typechecking!" << endl;
   if (typecheck(c,add4_n)) c->die();
-  if (saveModule(add4_n, "add4n")) {
+  if (saveModule(add4_n, "add4n.json")) {
     cout << "Failed" << endl;
   }
 

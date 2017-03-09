@@ -23,10 +23,7 @@ Namespace* getStdlib(Context* c) {
   stdlib->newTypeGen("binop","binop_F",{{"w",GINT}},binop_type);
  
   //declare new add2 generator
-  Generator* add2Gen = c->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
-  
-  //Add Generator to library
-  stdlib->addGenerator(add2Gen);
+  stdlib->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
   
   return stdlib;
 }

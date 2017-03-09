@@ -20,11 +20,8 @@ class Context {
  
   //Memory management
   TypeCache* cache;
-  vector<Namespace*> namespaceList;
   vector<GenArg*> genargList;
   vector<GenArgs*> genargsList;
-  vector<Generator*> generatorList;
-  vector<Module*> moduleList;
   
   public :
     Context();
@@ -47,9 +44,6 @@ class Context {
     void printerrors() { 
       for (auto err : errors) cout << "ERROR: " << err.toString() << endl << endl;
     }
-
-    //void clearerror() { err = false; errmsg = "";}
-    bool registerLib(Namespace* lib);
     
     bool linkLib(Namespace* defns, Namespace* declns);
     
@@ -73,8 +67,6 @@ class Context {
 
   
     Type* Flip(Type* t);
-    Generator* newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg);
-    Module* newModuleDecl(string name, Type* t);
 
 
 
