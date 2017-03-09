@@ -1,7 +1,7 @@
 .SUFFIXES:
 
 CC = clang++
-CFLAGS = -std=c++11  -Wall -ferror-limit=5 -fPIC
+CFLAGS = -std=c++0x  -Wall -ferror-limit=5 -fPIC
 #CFLAGS =   -Wall  -fPIC
 
 INCS = -I../libs -I.
@@ -14,7 +14,7 @@ BUILD = build
 all: ../build/coreir.a $(OBJS)
 
 clean:
-	-@rm *.o *.a *.run *.so *.dylib
+	rm -rf ../build/*
 
 ../build/coreir.a: $(OBJS)
 	ar rcs $@ $^
