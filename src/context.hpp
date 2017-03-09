@@ -22,7 +22,8 @@ class Context {
   TypeCache* cache;
   vector<GenArg*> genargList;
   vector<GenArgs*> genargsList;
-  
+  vector<RecordParams*> recordParamsList;
+
   public :
     Context();
     ~Context();
@@ -56,6 +57,8 @@ class Context {
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
     Type* TypeGenInst(TypeGen* tgd, GenArgs* args);
+
+    RecordParams* newRecordParams();
 
     GenArg* GInt(int i);
     GenArg* GString(string s);

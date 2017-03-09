@@ -7,6 +7,13 @@ typedef struct COREContext COREContext;
 typedef struct COREType COREType;
 typedef struct COREModule COREModule;
 typedef struct COREModuleDef COREModuleDef;
+typedef struct CORERecordParam CORERecordParam;
+typedef struct COREInstance COREInstance;
+typedef struct COREInterface COREInterface;
+typedef struct CORESelect CORESelect;
+typedef struct COREWireable COREWireable;
+
+
 
 //Context COREreater/deleters
 extern COREContext* CORENewContext();
@@ -18,10 +25,21 @@ extern COREType* COREBitIn(COREContext* CORE);
 extern COREType* COREBitOut(COREContext* CORE);
 extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
 
+extern CORERecordParam* CORENewRecordParam(COREContext* context);
+extern void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type);
+extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param);
+
 extern void COREPrintType(COREType* t);
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename);
+extern COREModule* CORENewModule(COREContext* context, char* name, COREType* type);
 extern void COREPrintModule(COREModule* m);
+extern COREModuleDef* COREModuleNewDef(COREModule* m);
+extern COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module);
+extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
+extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
+extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
+extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
 
 /*
 //Module stuff
@@ -30,7 +48,6 @@ extern int COREModuleHasDef(COREModule* m);
 extern COREModuleDef* COREModuleGetDef(COREModule* m);
 
 // ModuleDef stuff
-extern COREInterface* COREGetInterface(COREModuleDef* m);
 extern COREInstance** COREGetInstances(COREModuleDef* m, uint* numInstances);
 extern COREWireablePair* COREGetWires(COREModuleDef* m, uint* numWires);
 
