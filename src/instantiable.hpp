@@ -42,8 +42,8 @@ class Instantiable {
     Generator* toGenerator();
     Context* getContext() { return c;}
     string getName() { return name;}
-    string getNameSpaceStr() { return nameSpace;}
-    void setNameSpaceStr(string _n) {nameSpace = _n;}
+    string getNamespaceStr() { return nameSpace;}
+    void setNamespaceStr(string _n) {nameSpace = _n;}
     //string getQualifiedName() { return (nameSpace.empty() ? "this" : nameSpace)  + "." + name; }
 };
 

@@ -19,6 +19,7 @@ int main() {
   
   //register the stdlib
   Namespace* stdlib = getStdlib(c);
+
   c->registerLib(stdlib);
   stdlib->print();
 
@@ -70,7 +71,9 @@ int main() {
   add4_n->print();
   cout << "Typechecking!" << endl;
   if (typecheck(c,add4_n)) c->die();
-
+  if (saveModule(add4_n, "add4n")) {
+    cout << "Failed" << endl;
+  }
 
 
   //Add Def to global

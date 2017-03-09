@@ -8,6 +8,9 @@
 int main() {
   Context* c = newContext();
   loadModule(c,"a.json");
+  
+  Module* m = c->newModuleDecl("ModTest",c->BitIn());
+  saveModule(m,"b.json");
   deleteContext(c);
   return 0;
 }

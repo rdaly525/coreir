@@ -8,9 +8,6 @@ typedef struct COREType COREType;
 typedef struct COREModule COREModule;
 typedef struct COREModuleDef COREModuleDef;
 
-
-
-
 //Context COREreater/deleters
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
