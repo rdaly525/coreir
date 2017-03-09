@@ -1,7 +1,8 @@
 .SUFFIXES:
 
 CC = g++
-CFLAGS = -std=c++11  -Wall -ferror-limit=5 -fPIC
+#CFLAGS = -std=c++11  -Wall -ferror-limit=5 -fPIC
+CFLAGS =   -Wall  -fPIC
 
 INCS = -I../libs -I.
 DEPS = common.hpp types.hpp typecache.hpp context.hpp 
