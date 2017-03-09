@@ -52,8 +52,39 @@ extern "C" {
     return rcast<COREModule*>(rcast<Context*>(context)->newModuleDecl(string(name), rcast<Type*>(type)));
   }
 
+  COREModuleDef* COREModuleNewDef(COREModule* module) {
+    return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
+  }
+
+  void COREModuleAddDef(COREModule* module, COREModuleDef* module_def) {
+    rcast<Module*>(module)->addDef(rcast<ModuleDef*>(module_def));
+  }
+  COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module) {
+    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstanceModule(string(name), rcast<Module*>(module)));
+  }
+
+  void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
+    rcast<ModuleDef*>(module_def)->wire(rcast<Wireable*>(a), rcast<Wireable*>(b));
+  }
+
+  COREInterface* COREModuleDefGetInterface(COREModuleDef* module_def) {
+    return rcast<COREInterface*>(rcast<ModuleDef*>(module_def)->getInterface());
+  }
+
+  CORESelect* COREInstanceSelect(COREInstance* instance, char* field) {
+    return rcast<CORESelect*>(rcast<Instance*>(instance)->sel(string(field)));
+  }
+
+  CORESelect* COREInterfaceSelect(COREInterface* interface, char* field) {
+    return rcast<CORESelect*>(rcast<Interface*>(interface)->sel(string(field)));
+  }
+
   void COREPrintModule(COREModule* m) {
     rcast<Module*>(m)->print();
+  }
+
+  void COREPrintModuleDef(COREModuleDef* module_def) {
+    rcast<ModuleDef*>(module_def)->print();
   }
 
 }
