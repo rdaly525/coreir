@@ -193,7 +193,6 @@ if __name__ == "__main__":
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
     module = c.G.Module("multiply_by_2", module_typ)
     module.print()
-    assert False
     module_def = module.new_definition()
     add8 = c.G.Module("add8",
         c.Record({

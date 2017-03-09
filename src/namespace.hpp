@@ -28,7 +28,7 @@ class Namespace {
 
   unordered_map<GenCacheParams,Module*,GenCacheParamsHasher> genCache;
 
-  map<string,Module*> mList;
+  unordered_map<string,Module*> mList;
   map<string,Generator*> gList;
   map<string,TypeGen*> tList;
   
@@ -37,7 +37,7 @@ class Namespace {
     ~Namespace();
     string getName() { return name;}
     Context* getContext() { return c;}
-    map<string,Module*> getModules() { return mList;}
+    unordered_map<string,Module*> getModules() { return mList;}
     map<string,Generator*> getGenerators() { return gList;}
     map<string,TypeGen*> getTypeGens() { return tList;}
 

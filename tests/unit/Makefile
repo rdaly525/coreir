@@ -12,6 +12,8 @@ LIBS = -L$(SRCDIR) -L$(LIBSDIR)
 
 all: 
 	make -C $(SRCDIR)
+	make cpptest.run
+	make ctest.run
 	make add4.run
 	make jsontest.run
 	make gentest.run
@@ -29,5 +31,9 @@ clean:
 
 %.o: %.cpp 
 	$(CC) $(CFLAGS) $(INCS) -c -o $@ $< 
+
+%.o: %.c
+	clang $(INCS) -c -o $@ $< 
+
 
 .PHONY: $(SRCDIR)/coreir.a

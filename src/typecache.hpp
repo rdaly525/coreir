@@ -46,7 +46,7 @@ class TypeCache {
   Type* bitI;
   Type* bitO;
   Type* any;
-  unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<pair> definied in common
+  unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
   unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
   unordered_map<TypeGenParams,Type*,TypeGenParamsHasher> TypeGenCache;
   
