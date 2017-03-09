@@ -63,6 +63,7 @@ Generator* Namespace::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg)
   return g;
 }
 
+//TODO do not overide hash<>
 Module* Namespace::newModuleDecl(string name, Type* t) {
   cout << "new mod!" << name << endl;
   Module* m = new Module(this,name,t);

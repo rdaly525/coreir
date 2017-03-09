@@ -34,7 +34,7 @@ extern "C" {
     return rcast<CORERecordParam*>(rcast<Context*>(context)->newRecordParams());
   }
   void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type) {
-    rcast<RecordParams*>(record_param)->push_back(std::make_pair(std::string(name), rcast<Type*>(type)));
+    rcast<RecordParams*>(record_param)->push_back(myPair<std::string,Type*>(std::string(name), rcast<Type*>(type)));
   }
   COREType* CORERecord(COREContext* context, CORERecordParam* record_param) {
     return rcast<COREType*>(rcast<Context*>(context)->Record(*rcast<RecordParams*>(record_param)));
@@ -50,7 +50,7 @@ extern "C" {
   }
 
   CORENamespace* COREGetGlobal(COREContext* c) {
-    return rcast<CORENamespace*>(rcast<Context*>(c));
+    return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());
   }
 
   COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type) {

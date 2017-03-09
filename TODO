@@ -1,6 +1,9 @@
 ///////////////////////////////////////
 Fix names to not depend on my computer
 
+When instantiating generators, if the typegen function exists, run it
+and cache the type in the typegenInst
+
 When Generating Modules, prepend lib name in front of module name
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
@@ -10,23 +13,14 @@ Make sure you cannot create two Instantiables of the same name
 Add testing infrasturcture. Separate tests into individual directories (maybe)
 
 Metadata
-Add metadata to everywhere
+Add metadata basically to everywhere
 
 Add stream operator to Error so I can do
   Error e;
   e << "blah" << type << blah
 
-//Adding Metadata
-Module:
-  Data ->
-    Verilog
-    Simulate
-    Driver
-    OtherData
-  Circuit stuff
-
 Primitives TODO:
 -Add generators for constants
--And all other normal primitives
+-And Multiply 
 
-Possibly should check for cases of modules instantiated in its own module. We dont want module "recursion"
+Should check for cases of modules instantiated in its own module. We dont want module "recursion"

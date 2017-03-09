@@ -31,12 +31,25 @@ struct GenArgs;
 typedef unordered_map<string,ArgKind> ArgKinds;
 typedef unordered_map<string,string> Metadata;
 
+template<class T1, class T2>
+
+// This is so I do not overload the std::hash<std::pair<T1,T2>> class.
+// Use myPair for hashing
+struct myPair {
+  T1 first;
+  T2 second;
+  myPair(T1 first, T2 second) : first(first), second(second) {}
+  friend bool operator==(const myPair& l,const myPair& r) {
+    return l.first==r.first && l.second==r.second;
+  }
+};
+
 //Types.hpp
 class Type;
 typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, ArgKinds argkinds);
 struct TypeGen;
-typedef vector<std::pair<string,Type*>> RecordParams ;
-typedef std::pair<uint,Type*> ArrayParams ;
+typedef vector<myPair<string,Type*>> RecordParams ;
+typedef myPair<uint,Type*> ArrayParams ;
 class TypeCache;
 
 //instantiable.hpp
@@ -63,12 +76,12 @@ inline void hash_combine(size_t& seed, const T& v) {
 
 //slow
 template <class T1, class T2>
-struct hash<std::pair<T1,T2>> {
+struct hash<myPair<T1,T2>> {
   //template <class T1, class T2>
-  size_t operator() (const std::pair<T1,T2>& p) const {
+  size_t operator() (const myPair<T1,T2>& p) const {
     auto h1 = std::hash<T1>{}(p.first);
     auto h2 = std::hash<T2>{}(p.second);
-    return h1 ^ h2;
+    return h1 ^ (h2<<1);
   }
 };
 
