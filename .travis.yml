@@ -2,10 +2,6 @@ language: c
 
 before_install:
   - sudo apt-get -qq update
-#  - apt-cache madison clang
-#  - clang++ --version
-#  - sudo apt-get install clang-3.7
-#  - clang++ --version
   - make -C src
   - make -C tests
 
