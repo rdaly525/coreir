@@ -1,12 +1,11 @@
 .SUFFIXES:
 
-CC = clang++
-CFLAGS = -std=c++0x  -Wall -ferror-limit=5 -fPIC
-#CFLAGS =   -Wall  -fPIC
+CC = g++
+#CFLAGS = -std=c++0x  -Wall -ferror-limit=5 -fPIC
+CFLAGS = -std=c++0x  -Wall  -fPIC
 
 INCS = -I../libs -I.
 DEPS = common.hpp types.hpp typecache.hpp context.hpp 
-#OBJS = fileIO.o rungen.o typecheck.o namespace.o instantiable.o context.o types.o genargs.o typecache.o common.o
 SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,../build/%.o,$(SRCFILES))
 BUILD = build
