@@ -4,7 +4,7 @@ def test_save_module():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
     module = c.G.Module("multiply_by_2", module_typ)
-    module.print()
+    # module.print()
     module_def = module.new_definition()
     add8 = c.G.Module("add8",
         c.Record({
@@ -24,7 +24,7 @@ def test_save_module():
     module_def.wire(_input, add8_in2)
     module_def.wire(output, add8_out)
     module.add_definition(module_def)
-    module.save_to_file("tmp.json")
+    module.save_to_file("python_test_output.json")
 
 # def test():
 #     c = coreir.Context()
