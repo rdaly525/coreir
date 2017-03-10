@@ -14,10 +14,12 @@ before_install:
   - echo $CORECONFIG
   - make -C src
   - make -C tests
+  - pip install pytest
 
 script:
   - cd tests
   - ./run
+  - pytest  # Test python bindings
 
 compiler:
   - gcc
