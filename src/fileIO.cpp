@@ -70,7 +70,7 @@ json ModuleDef2Json(ModuleDef* md) {
   j["implementations"] = "NYI";
   json jinsts;
   for ( auto inst : md->getInstances()) {
-    jinsts.push_back(Instance2Json(inst));
+    jinsts.push_back(Instance2Json(inst.second));
   }
   j["instances"] = jinsts;
   json jwires;
@@ -83,11 +83,9 @@ json ModuleDef2Json(ModuleDef* md) {
 
 json Wireable2Json(Wireable* w) {
   json j;
-  std::pair<Wireable*,vector<string>> ser = w->serialize();
-  string name = "this";
-  if(ser.first->isKind(INST)) name = ((Instance*) ser.first)->getInstname();
-  j.push_back(name);
-  for (auto str : ser.second) j.push_back(str);
+  std::pair<string,vector<string>> path = w->getPath();
+  j.push_back(path.first);
+  for (auto str : path.second) j.push_back(str);
   return j;
 }
 

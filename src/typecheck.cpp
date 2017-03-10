@@ -113,7 +113,7 @@ bool typecheckRec(Context* c, Module* m, set<Module*>* checked) {
   //Check if an input is connected to multiple outputs
   vector<Wireable*> work;
   work.push_back(mdef->getInterface());
-  for (auto inst : mdef->getInstances() ) work.push_back(inst);
+  for (auto instmap : mdef->getInstances() ) work.push_back(instmap.second);
   for (auto w : work) {
     Error e;
     e.message("Cannot connect multiple outputs to an inputs");
@@ -125,8 +125,8 @@ bool typecheckRec(Context* c, Module* m, set<Module*>* checked) {
   }
 
   //Recursively check all instances
-  for (auto inst : mdef->getInstances() ) {
-    Instantiable* instRef = inst->getInstRef();
+  for (auto instmap : mdef->getInstances() ) {
+    Instantiable* instRef = instmap.second->getInstRef();
     if (instRef->isKind(MOD)) {
       err |= typecheckRec(c,instRef->toModule(),checked);
     }

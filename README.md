@@ -1,6 +1,14 @@
 [![Build Status](https://travis-ci.org/rdaly525/coreir.svg?branch=master)](https://travis-ci.org/rdaly525/coreir)
 
-## Algebraic structure definition
+
+##Tested Compatable compilers:
+  gcc 4.9
+  Apple LLVM version 8.0.0 (clang-800.0.42.1)
+
+
+#TODO Add in the APIs
+
+## Algebraic structure of IR
 ```
 ArgKinds(string* kinds)
 Name(string libname, string name)
@@ -306,4 +314,4 @@ class CoreIR
 
 ##Example (TODO)
 
-##Other useful functions (TODO expand)
+

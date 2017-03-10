@@ -44,7 +44,6 @@ class Instantiable {
     string getName() const { return name;}
     Namespace* getNamespace() const { return ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
-    //string getQualifiedName() { return (nameSpace.empty() ? "this" : nameSpace)  + "." + name; }
 };
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
@@ -94,16 +93,16 @@ class ModuleDef {
   protected:
     Module* module;
     Interface* interface; 
-    set<Instance*> instances; // Should it be a map?
-    set<Wiring> wirings; // change name to wires
+    map<string,Instance*> instances;
+    set<Wiring> wires;
     SelCache* cache;
 
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
     //SelCache* getCache(void) { return cache;}
-    set<Instance*> getInstances(void) { return instances;}
-    set<Wiring> getWires(void) { return wirings; }
+    map<string,Instance*> getInstances(void) { return instances;}
+    set<Wiring> getWires(void) { return wires; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     Context* getContext() { return module->getContext(); }
@@ -114,6 +113,7 @@ class ModuleDef {
     Instance* addInstanceModule(string,Module*);
     Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
+    Wireable* sel(string s);
     void wire(Wireable* a, Wireable* b);
     
 };
@@ -143,7 +143,9 @@ class Wireable {
     Select* sel(uint);
   
     // Convinience function
-    std::pair<Wireable*,vector<string>> serialize();
+    // if this wireable is from add3inst.a.b[0], then this will look like
+    // {add3inst,{a,b,0}}
+    std::pair<string,vector<string>> getPath();
 
 };
 

@@ -30,7 +30,8 @@ bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
   set<Module*> runQueue;
   bool hasgens = false;
   ModuleDef* mdef = m->getDef();
-  for (auto inst : mdef->getInstances() ) {
+  for (auto instmap : mdef->getInstances() ) {
+    Instance* inst = instmap.second;
     if (inst->getInstRef()->isKind(MOD)) {
       runQueue.insert((Module*) inst->getInstRef());
     }
@@ -57,15 +58,16 @@ bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
   
   //create new IFACE and INST and add to map
   // If the INST is a generator and has a def, then run it first
-  old2new.emplace(mdef->getInterface(),newDef->getInterface());
-  for (auto inst : mdef->getInstances() ) {
+  for (auto instmap : mdef->getInstances() ) {
+    string instname = instmap.first;
+    Instance* inst = instmap.second;
     if( inst->getInstRef()->isKind(MOD)) {
-      old2new.emplace(inst,newDef->addInstance(inst));
+      newDef->addInstance(inst);
     }
     else {
       Generator* g = (Generator*) inst->getInstRef();
       if (!g->hasDef()) {
-        old2new.emplace(inst,newDef->addInstance(inst));
+        newDef->addInstance(inst);
       }
       else {
 
@@ -77,21 +79,19 @@ bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
         runQueue.insert(mNew);
         
         //Create new instance and add to map
-        old2new.emplace(inst,newDef->addInstanceModule(inst->getInstname(), mNew));
+        newDef->addInstanceModule(instname, mNew);
       }
     }
   }
 
   //Add all the wires to the new module def
   for (auto wire : mdef->getWires() ) {
-    std::pair<Wireable*,vector<string>> serA = wire.first->serialize();
-    std::pair<Wireable*,vector<string>> serB = wire.second->serialize();
-    assert(old2new.count(serA.first)==1);
-    assert(old2new.count(serB.first)==1);
-    Wireable* curA = old2new[serA.first];
-    Wireable* curB = old2new[serB.first];
-    for (auto str : serA.second) curA = curA->sel(str);
-    for (auto str : serB.second) curB = curB->sel(str);
+    std::pair<string,vector<string>> pathA = wire.first->getPath();
+    std::pair<string,vector<string>> pathB = wire.second->getPath();
+    Wireable* curA = newDef->sel(pathA.first);
+    Wireable* curB = newDef->sel(pathB.first);
+    for (auto str : pathA.second) curA = curA->sel(str);
+    for (auto str : pathB.second) curB = curB->sel(str);
     newDef->wire(curA,curB);
   }
   

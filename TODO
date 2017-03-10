@@ -1,20 +1,37 @@
-///////////////////////////////////////
-James TODO
-Get Travis passing by using gentest and typetest.
-Add testing infrasturcture. Separate tests into individual directories with their own builds.
-Sort out the testing makefiles
+Lenny TODO
 
-Primitives TODO:
--Add generators for constants
--And Multiply 
+Add Following functions to C interface and Python interface
+ModuleDef.getInstances() // Note I have changed this to a map of instname ->Instance
+ModuleDef.getWires() //Get all the Wireable* Wireable* pairs 
+Wireable.getConnections //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
+//The above two functions I am open to renaming to be less confusing
+
+writeFile(...)
+readFile(...)
+Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
 
 
+Dependent on Ross finishing MetaData
+  I want to have file names and line numbers for the C/Python API. This might be a tad annoying to add them back to all the C function calls, but I think there is a way in python to dynamically get this info
+
+//////////////////////////////
 Ross TODO
 
 Finish Json Reader and Writer
-Have a test that actually writes out a file, and reads it back in
+Create a test that actually writes out a file, and reads it back in.
+
+Metadata
+Add metadata basically to everywhere
+
+Change name of ArgKinds -> GenParameters
+
+Potentially store instances as a map from instname -> instance
+This means I can get a wire reference by [instname,sel0,sel1,...]
 
 Get Verilog codegen working again
+
+Think about renaming TypeGen and TypeGenInst to NamedType
+Have Type associated with TypeGenInst which is like a cache
 
 When instantiating generators, if the typegen function exists, run it
 and cache the type in the typegenInst
@@ -23,11 +40,19 @@ When Generating Modules, prepend lib name in front of module name
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
 
-Metadata
-Add metadata basically to everywhere
+Config
+  Add config GenParameters to Instantiables
+  Add config GenArgs to Instances
+
+change makefile to work with Clang
 
 Add stream operator to Error so I can do
   Error e;
   e << "blah" << type << blah
 
 Should check for cases of modules instantiated in its own module. We dont want module "recursion"
+
+Primitives TODO:
+-Add generators for constants
+-And Multiply 
+
