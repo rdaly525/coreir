@@ -74,17 +74,18 @@ inline void hash_combine(size_t& seed, const T& v) {
   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
 
-//slow
-template <class T1, class T2>
-struct std::hash<myPair<T1,T2>> {
-  //template <class T1, class T2>
-  size_t operator() (const myPair<T1,T2>& p) const {
-    auto h1 = std::hash<T1>{}(p.first);
-    auto h2 = std::hash<T2>{}(p.second);
-    return h1 ^ (h2<<1);
-  }
-};
-
+namespace std {
+  //slow
+  template <class T1, class T2>
+  struct std::hash<myPair<T1,T2>> {
+    //template <class T1, class T2>
+    size_t operator() (const myPair<T1,T2>& p) const {
+      auto h1 = std::hash<T1>{}(p.first);
+      auto h2 = std::hash<T2>{}(p.second);
+      return h1 ^ (h2<<1);
+    }
+  };
+}
 //struct simfunctions_t {
 //  //void* iface,void* state,void* dirty,void* genargs)
 //  void (*updateOutput)(void*,void*,void*,GenArgs*);

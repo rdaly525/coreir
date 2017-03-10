@@ -1,4 +1,15 @@
-CC = g++
+CORECONFIG ?= g++
+
+ifeq ($(CORECONFIG),g++)
+CXX = g++
+endif
+
+ifeq ($(CORECONFIG),g++-4.8)
+CXX = g++-4.8
+endif
+
+
+
 CFLAGS = -std=c++11 -Wall
 DEPS = 
 
@@ -8,7 +19,7 @@ LIBSDIR = ../../libs
 INCS = -I$(SRCDIR) -I$(LIBSDIR)
 LIBS = -L$(SRCDIR) -L$(LIBSDIR)
 
-SRCFILES = $(wildcard *.cpp)
+SRCFILES = $(wildcard [^_]*.cpp)
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
 
 .SUFFIXES:
@@ -30,12 +41,8 @@ clean:
 
 build/%: %.cpp ../../build/coreir.a
 	make -C $(SRCDIR)
-	$(CC) $(CFLAGS) $(INCS)  -o $@ $< ../../build/coreir.a
+	$(CXX) $(CFLAGS) $(INCS)  -o $@ $< ../../build/coreir.a
 
-
-
-#%.o: %.c
-#	clang $(INCS) -c -o $@ $< 
 
 
 #.PHONY: $(SRCDIR)/coreir.a
