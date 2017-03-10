@@ -4,7 +4,7 @@ def test_save_module():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
     module = c.G.Module("multiply_by_2", module_typ)
-    module.print()
+    # module.print()
     module_def = module.new_definition()
     add8 = c.G.Module("add8",
         c.Record({

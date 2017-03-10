@@ -102,7 +102,7 @@ class CoreIRType:
 
 
 class Type(CoreIRType):
-    def print(self):
+    def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintType(self.ptr)
 
 
@@ -129,7 +129,7 @@ class ModuleDef(CoreIRType):
     def wire(self, a, b):
         coreir_lib.COREModuleDefWire(self.ptr, a.ptr, b.ptr)
 
-    def print(self):
+    def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintModuleDef(self.ptr)
 
 
@@ -144,7 +144,7 @@ class Module(CoreIRType):
     def save_to_file(self, file_name):
         coreir_lib.CORESaveModule(self.ptr, str.encode(file_name))
 
-    def print(self):
+    def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintModule(self.ptr)
 
 class Namespace(CoreIRType):
