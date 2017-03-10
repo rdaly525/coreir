@@ -33,7 +33,7 @@ clean:
 ../build/coreir.so: $(OBJS)
 	$(CXX) -shared -o $@ $^
 
-coreir.dylib: $(OBJS)
+../build/coreir.dylib: $(OBJS)
 	$(CXX) -dynamiclib -o $@ $^
 
 ../build/%.o: %.cpp $(DEPS)

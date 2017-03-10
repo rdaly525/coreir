@@ -1,6 +1,7 @@
 from ctypes import cdll
 import ctypes as ct
 import platform
+import os
 
 
 def load_shared_lib():
@@ -13,7 +14,10 @@ def load_shared_lib():
     else:
         raise NotImplementedError(_system)
 
-    return cdll.LoadLibrary('../../src/coreir.{}'.format(shared_lib_ext))
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
+    return cdll.LoadLibrary('{}/../../../build/coreir.{}'.format(dir_path, shared_lib_ext))
 
 class EmptyStruct(ct.Structure):
     pass
@@ -59,6 +63,9 @@ coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 coreir_lib.CORELoadModule.argtypes = [COREContext_p, ct.c_char_p]
 coreir_lib.CORELoadModule.restype = COREModule_p
 
+coreir_lib.CORESaveModule.argtypes = [COREModule_p, ct.c_char_p]
+coreir_lib.CORESaveModule.restype = ct.c_bool
+
 coreir_lib.COREGetGlobal.argtypes = [COREContext_p]
 coreir_lib.COREGetGlobal.restype = CORENamespace_p
 
@@ -95,7 +102,7 @@ class CoreIRType:
 
 
 class Type(CoreIRType):
-    def print(self):
+    def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintType(self.ptr)
 
 
@@ -122,7 +129,7 @@ class ModuleDef(CoreIRType):
     def wire(self, a, b):
         coreir_lib.COREModuleDefWire(self.ptr, a.ptr, b.ptr)
 
-    def print(self):
+    def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintModuleDef(self.ptr)
 
 
@@ -134,7 +141,10 @@ class Module(CoreIRType):
         assert isinstance(definition, ModuleDef)
         coreir_lib.COREModuleAddDef(self.ptr, definition.ptr)
 
-    def print(self):
+    def save_to_file(self, file_name):
+        coreir_lib.CORESaveModule(self.ptr, str.encode(file_name))
+
+    def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintModule(self.ptr)
 
 class Namespace(CoreIRType):
@@ -178,39 +188,4 @@ class Context:
 
     def __del__(self):
         coreir_lib.COREDeleteContext(self.context)
-
-if __name__ == "__main__":
-    c = Context()
-    # any = c.Any()
-    # any.print()
-    # c.BitIn().print()
-    # c.BitOut().print()
-    # c.Array(3, c.BitIn()).print()
-
-    # c.Array(3, c.Array(4, c.BitIn())).print()
-
-    # c.ModuleFromFile("test").print()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
-    module = c.G.Module("multiply_by_2", module_typ)
-    module.print()
-    module_def = module.new_definition()
-    add8 = c.G.Module("add8",
-        c.Record({
-            "in1": c.Array(8, c.BitIn()),
-            "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.BitOut())
-        })
-    )
-    add8_inst = module_def.add_instance_module("adder", add8)
-    add8_in1 = add8_inst.select("in1")
-    add8_in2 = add8_inst.select("in2")
-    add8_out = add8_inst.select("out")
-    interface = module_def.get_interface()
-    _input = interface.select("input")
-    output = interface.select("output")
-    module_def.wire(_input, add8_in1)
-    module_def.wire(_input, add8_in2)
-    module_def.wire(output, add8_out)
-    module.add_definition(module_def)
-    module.print()
 

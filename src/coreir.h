@@ -33,6 +33,7 @@ extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param)
 extern void COREPrintType(COREType* t);
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename);
+extern bool CORESaveModule(COREModule* module, char* filename);
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type);
 extern void COREPrintModule(COREModule* m);
