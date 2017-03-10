@@ -46,11 +46,12 @@ struct GenType : GenArg {
 //  Instantiable* i;
 //  GenInst(Instantiable* i) : GenArg(GINST), i(i) {}
 //};
-
-template<>
-struct hash<GenArgs> {
-  size_t operator() (const GenArgs& p) const;
-};
+namespace std {
+  template<>
+  struct hash<GenArgs> {
+    size_t operator() (const GenArgs& p) const;
+  };
+}
 
 struct GenArgs {
   Context* c;
