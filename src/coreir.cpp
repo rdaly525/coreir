@@ -48,6 +48,11 @@ extern "C" {
     string file(filename);
     return rcast<COREModule*>(loadModule(rcast<Context*>(c),file));
   }
+  
+  bool CORESaveModule(COREModule* module, char* filename) {
+    string file(filename);
+    return rcast<COREModule*>(saveModule(rcast<Module*>(module),file));
+  }
 
   CORENamespace* COREGetGlobal(COREContext* c) {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());

@@ -63,6 +63,9 @@ coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 coreir_lib.CORELoadModule.argtypes = [COREContext_p, ct.c_char_p]
 coreir_lib.CORELoadModule.restype = COREModule_p
 
+coreir_lib.CORESaveModule.argtypes = [COREModule_p, ct.c_char_p]
+coreir_lib.CORESaveModule.restype = ct.c_bool
+
 coreir_lib.COREGetGlobal.argtypes = [COREContext_p]
 coreir_lib.COREGetGlobal.restype = CORENamespace_p
 
@@ -137,6 +140,9 @@ class Module(CoreIRType):
     def add_definition(self, definition):
         assert isinstance(definition, ModuleDef)
         coreir_lib.COREModuleAddDef(self.ptr, definition.ptr)
+
+    def save_to_file(self, file_name):
+        coreir_lib.CORESaveModule(self.ptr, str.encode(file_name))
 
     def print(self):
         coreir_lib.COREPrintModule(self.ptr)
