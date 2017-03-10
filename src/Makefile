@@ -1,6 +1,15 @@
 .SUFFIXES:
 
+CORECONFIG ?= g++
+
+ifeq ($(CORECONFIG),g++)
 CXX = g++
+endif
+
+ifeq ($(CORECONFIG),g++-4.8)
+CXX = g++-4.8
+endif
+
 #CXX = clang++
 CFLAGS = -std=c++11  -Wall  -fPIC
 

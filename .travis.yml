@@ -10,9 +10,8 @@ addons:
       - g++-4.8
 
 before_install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
-  - echo $CXX
-  - echo $CC
+  - export CORECONFIG="g++-4.8";
+  - echo $CORECONFIG
   - make -C src
   - make -C tests
 
