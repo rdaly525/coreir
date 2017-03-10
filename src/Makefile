@@ -1,7 +1,7 @@
 .SUFFIXES:
 
-CC = g++
-#CC = clang++
+CXX = g++
+#CXX = clang++
 CFLAGS = -std=c++11  -Wall  -fPIC
 
 INCS = -I../libs -I.
@@ -19,10 +19,10 @@ clean:
 	ar rcs $@ $^
 
 ../build/coreir.so: $(OBJS)
-	$(CC) -shared -o $@ $^
+	$(CXX) -shared -o $@ $^
 
 coreir.dylib: $(OBJS)
-	$(CC) -dynamiclib -o $@ $^
+	$(CXX) -dynamiclib -o $@ $^
 
 ../build/%.o: %.cpp $(DEPS)
-	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<
+	$(CXX) $(CFLAGS) $(INCS) -c -o $@ $<

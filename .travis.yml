@@ -5,13 +5,17 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     packages:
+      - clang
       - g++-4.8
 
 before_install:
-  - sudo apt-get -qq update
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - make -C src
   - make -C tests
 
 script:
   - cd tests
   - ./run
+
+os:
+  - linux
