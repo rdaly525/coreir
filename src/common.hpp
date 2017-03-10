@@ -77,7 +77,7 @@ inline void hash_combine(size_t& seed, const T& v) {
 namespace std {
   //slow
   template <class T1, class T2>
-  struct std::hash<myPair<T1,T2>> {
+  struct hash<myPair<T1,T2>> {
     //template <class T1, class T2>
     size_t operator() (const myPair<T1,T2>& p) const {
       auto h1 = std::hash<T1>{}(p.first);
