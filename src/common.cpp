@@ -29,6 +29,7 @@ string ArgKind2Str(ArgKind argkind) {
     case GINT : return "int";
     case GSTRING : return "string";
     case GTYPE : return "type";
+    default : return "NYI";
   }
 }
 
