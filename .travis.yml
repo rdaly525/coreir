@@ -11,12 +11,15 @@ addons:
 before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - make -C src echo
-  - make -C src
-  - make -C tests
+#  - make -C src
+#  - make -C tests
 
 script:
   - cd tests
   - ./run
+
+compiler:
+  - gcc
 
 os:
   - linux
