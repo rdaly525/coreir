@@ -12,6 +12,9 @@ BUILD = build
 
 all: ../build/coreir.a $(OBJS)
 
+echo:
+	echo $(CXX)
+
 clean:
 	rm -rf ../build/*
 
