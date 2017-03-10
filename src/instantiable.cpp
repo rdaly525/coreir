@@ -148,7 +148,7 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
  
   //Insert into set of wireings 
   //minmax gauranees an ordering
-  wirings.insert(std::minmax(a,b));
+  wirings.insert(a>b ? std::pair<Wireable*,Wireable*>(a,b) : std::pair<Wireable*,Wireable*>(b,a));
 }
 
 ///////////////////////////////////////////////////////////
