@@ -13,8 +13,9 @@ before_install:
   - export CORECONFIG="g++-4.9";
   - echo $CORECONFIG
   - make -C src
+  - make -C src ../build/coreir.so  # For bindings tests
   - make -C tests
-  - pip install pytest
+  - sudo pip install pytest
 
 script:
   - cd tests
