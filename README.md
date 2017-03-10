@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/rdaly525/coreir.svg?branch=master)](https://travis-ci.org/rdaly525/coreir)
+
 ## Algebraic structure definition
 ```
 ArgKinds(string* kinds)
