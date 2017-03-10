@@ -7,10 +7,10 @@ addons:
     packages:
       - build-essential
       - clang
-      - g++-4.8
+      - g++-4.9
 
 before_install:
-  - export CORECONFIG="g++-4.8";
+  - export CORECONFIG="g++-4.9";
   - echo $CORECONFIG
   - make -C src
   - make -C tests
