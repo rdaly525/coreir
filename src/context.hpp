@@ -75,7 +75,8 @@ class Context {
 
 };
 
-Module* loadModule(Context* c, string filename);
+Module* loadModule(Context* c, string filename, bool* err);
+void saveModule(Module* c, string filename, bool* err);
 
 Context* newContext();
 void deleteContext(Context* m);

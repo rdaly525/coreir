@@ -60,11 +60,11 @@ coreir_lib.CORERecord.restype = COREType_p
 
 coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 
-coreir_lib.CORELoadModule.argtypes = [COREContext_p, ct.c_char_p]
+coreir_lib.CORELoadModule.argtypes = [COREContext_p, ct.c_char_p, ct.POINTER(ct.c_bool)]
 coreir_lib.CORELoadModule.restype = COREModule_p
 
-coreir_lib.CORESaveModule.argtypes = [COREModule_p, ct.c_char_p]
-coreir_lib.CORESaveModule.restype = ct.c_bool
+coreir_lib.CORESaveModule.argtypes = [COREModule_p, ct.c_char_p, ct.POINTER(ct.c_bool)]
+#coreir_lib.CORESaveModule.restype = ct.c_bool
 
 coreir_lib.COREGetGlobal.argtypes = [COREContext_p]
 coreir_lib.COREGetGlobal.restype = CORENamespace_p
@@ -142,7 +142,11 @@ class Module(CoreIRType):
         coreir_lib.COREModuleAddDef(self.ptr, definition.ptr)
 
     def save_to_file(self, file_name):
-        coreir_lib.CORESaveModule(self.ptr, str.encode(file_name))
+        err = ct.c_bool(False)
+        assert (err.value ==False)
+        print("Trying to save to file!\n")
+        coreir_lib.CORESaveModule(self.ptr, str.encode(file_name),ct.byref(err))
+        assert(err.value==False)
 
     def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintModule(self.ptr)
@@ -175,10 +179,10 @@ class Context:
         return Type(coreir_lib.COREArray(self.context, length, typ.ptr))
 
     def ModuleFromFile(self, file_name):
-        return Module(
-            coreir_lib.CORELoadModule(
-                self.context, ct.c_char_p(str.encode(file_name))))
-
+        err = ct.c_bool(False)
+        m = coreir_lib.CORELoadModule(
+                self.context, ct.c_char_p(str.encode(file_name)),ct.byref(err))
+        return Module(m)
  
     def Record(self, fields):
         record_params = coreir_lib.CORENewRecordParam(self.context)

@@ -6,7 +6,9 @@
 #include "types.hpp" // For TypeGen
 #include "instantiable.hpp"
 #include "common.hpp"
+#include "json.hpp"
 
+using json = nlohmann::json;
 using namespace std;
 
 struct GenCacheParams {
@@ -29,8 +31,8 @@ class Namespace {
   unordered_map<GenCacheParams,Module*,GenCacheParamsHasher> genCache;
 
   unordered_map<string,Module*> mList;
-  map<string,Generator*> gList;
-  map<string,TypeGen*> tList;
+  unordered_map<string,Generator*> gList;
+  unordered_map<string,TypeGen*> tList;
   
   public :
     Namespace(Context* c, string name) : c(c), name(name) {}
@@ -38,8 +40,8 @@ class Namespace {
     string getName() { return name;}
     Context* getContext() { return c;}
     unordered_map<string,Module*> getModules() { return mList;}
-    map<string,Generator*> getGenerators() { return gList;}
-    map<string,TypeGen*> getTypeGens() { return tList;}
+    unordered_map<string,Generator*> getGenerators() { return gList;}
+    unordered_map<string,TypeGen*> getTypeGens() { return tList;}
 
     TypeGen* newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun);
     TypeGen* getTypeGen(string name) {
@@ -57,7 +59,7 @@ class Namespace {
     Module* getModule(string mname);
     
     Module* runGenerator(Generator* g, GenArgs* ga);
-
+    json toJson();
     void print();
 };
 

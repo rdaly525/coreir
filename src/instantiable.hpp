@@ -5,15 +5,17 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <map>
-#include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 #include <cassert>
 
 #include "types.hpp"
 #include "common.hpp"
 #include "genargs.hpp"
+#include "json.hpp"
 
+using json = nlohmann::json;
 using namespace std;
 
 
@@ -33,7 +35,7 @@ class Instantiable {
     string name;
   public :
     Instantiable(InstantiableKind kind, Namespace* ns, string name) : kind(kind), ns(ns), name(name) {}
-    virtual ~Instantiable() {};
+    virtual ~Instantiable() {}
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
     bool isKind(InstantiableKind k) const { return kind==k;}
@@ -42,6 +44,7 @@ class Instantiable {
     Generator* toGenerator();
     Context* getContext();
     string getName() const { return name;}
+    virtual json toJson()=0;
     Namespace* getNamespace() const { return ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
 };
@@ -57,6 +60,7 @@ class Generator : public Instantiable {
     Generator(Namespace* ns,string name,ArgKinds argkinds, TypeGen* typegen);
     bool hasDef() const { return !!genfun; }
     string toString() const;
+    json toJson();
     TypeGen* getTypeGen() { return typegen;}
     genFun getDef() { return genfun;}
     void addDef(genFun fun) { genfun = fun;}
@@ -78,6 +82,7 @@ class Module : public Instantiable {
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() { return def; } // TODO should probably throw error if does not exist
     string toString() const;
+    json toJson();
     Type* getType() { return type;}
     void addDef(ModuleDef* _def) { assert(!def); def = _def;}
     void replaceDef(ModuleDef* _def) { def = _def;}
@@ -87,22 +92,55 @@ class Module : public Instantiable {
     void addVerilog(string _v) {verilog = _v;}
 };
 
-typedef std::pair<Wireable*,Wireable*> Wiring ;
+struct Connection {
+  Wireable* first;
+  Wireable* second;
+  //Metadata* m;
+  Connection(Wireable* a, Wireable* b) {
+    if (a>b) {
+      first = a;
+      second = b;
+    }
+    else {
+      first = b;
+      second = a;
+    }
+  }
+  friend bool operator==(const Connection & l,const Connection & r) {
+    return l.first==r.first && l.second==r.second;
+  }
+  json toJson();
+};
+
+namespace std {
+  template<>
+  struct hash<Connection> {
+    size_t operator() (const Connection& c) const {
+      size_t hash;
+      hash_combine(hash,c.first);
+      hash_combine(hash,c.second);
+      return hash;
+    }
+  };
+}
+
+
+
 class ModuleDef {
   
   protected:
     Module* module;
     Interface* interface; 
-    map<string,Instance*> instances;
-    set<Wiring> wires;
+    unordered_map<string,Instance*> instances;
+    unordered_set<Connection> connections;
     SelCache* cache;
 
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
     //SelCache* getCache(void) { return cache;}
-    map<string,Instance*> getInstances(void) { return instances;}
-    set<Wiring> getWires(void) { return wires; }
+    unordered_map<string,Instance*> getInstances(void) { return instances;}
+    unordered_set<Connection> getConnections(void) { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     Context* getContext() { return module->getContext(); }
@@ -115,6 +153,7 @@ class ModuleDef {
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);
     void wire(Wireable* a, Wireable* b);
+    json toJson();
     
 };
 
@@ -123,21 +162,21 @@ class Wireable {
     WireableKind kind;
     ModuleDef* moduledef; // ModuleDef which it is contained in 
     Type* type;
-    set<Wireable*> wirings; 
-    map<string,Wireable*> children;
+    unordered_set<Wireable*> connected; 
+    unordered_map<string,Wireable*> selects;
   public :
     Wireable(WireableKind kind, ModuleDef* moduledef, Type* type) : kind(kind),  moduledef(moduledef), type(type) {}
     virtual ~Wireable() {}
     virtual string toString() const=0;
-    set<Wireable*> getWires() { return wirings;}
-    map<string,Wireable*> getChildren() { return children;}
+    virtual json toJson();
+    unordered_set<Wireable*> getConnectedWireables() { return connected;}
+    unordered_map<string,Wireable*> getChildren() { return selects;}
     ModuleDef* getModuleDef() { return moduledef;}
     Context* getContext() { return moduledef->getContext();}
     bool isKind(WireableKind e) { return e==kind;}
-    WireableKind getKind() { return kind ; }
+    WireableKind getKind() { return kind; }
     Type* getType() { return type;}
-    void ptype() {cout << "Kind=" <<wireableKind2Str(kind);}
-    void addWiring(Wireable* w) { wirings.insert(w); }
+    void addConnectedWireable(Wireable* w) { connected.insert(w); }
     
     Select* sel(string);
     Select* sel(uint);
@@ -155,6 +194,7 @@ class Interface : public Wireable {
   public :
     Interface(ModuleDef* context,Type* type) : Wireable(IFACE,context,type) {};
     string toString() const;
+    //json toJson(); just use wireables
 };
 
 //TODO potentially separate out moduleGen instances and module instances
@@ -167,6 +207,7 @@ class Instance : public Wireable {
   public :
     Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, GenArgs* genargs =nullptr)  : Wireable(INST,context,type), instname(instname), instRef(instRef), genargs(genargs) {}
     string toString() const;
+    json toJson();
     Instantiable* getInstRef() {return instRef;}
     string getInstname() { return instname; }
     GenArgs* getGenArgs() {return genargs;}
@@ -183,6 +224,7 @@ class Select : public Wireable {
   public :
     Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(SEL,context,type), parent(parent), selStr(selStr) {}
     string toString() const;
+    //json toJson(); just use Wireable's
     Wireable* getParent() { return parent; }
     string getSelStr() { return selStr; }
 };

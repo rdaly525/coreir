@@ -11,15 +11,15 @@ CXX = g++-4.9
 endif
 
 #CXX = clang++
-CFLAGS = -std=c++11  -Wall  -fPIC
+CXXFLAGS = -std=c++11  -Wall  -fPIC
 
 INCS = -I../libs -I.
-DEPS = common.hpp types.hpp typecache.hpp context.hpp 
+DEPS = common.hpp types.hpp typecache.hpp context.hpp instantiable.hpp 
 SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,../build/%.o,$(SRCFILES))
 BUILD = build
 
-all: ../build/coreir.a $(OBJS)
+all: ../build/coreir.a ../build/coreir.so ../build/coreir.dylib $(OBJS)
 
 echo:
 	echo $(CXX)
@@ -28,6 +28,7 @@ clean:
 	rm -rf ../build/*
 
 ../build/coreir.a: $(OBJS)
+	echo $(OBJS)
 	ar rcs $@ $^
 
 ../build/coreir.so: $(OBJS)
@@ -37,4 +38,4 @@ clean:
 	$(CXX) -dynamiclib -o $@ $^
 
 ../build/%.o: %.cpp $(DEPS)
-	$(CXX) $(CFLAGS) $(INCS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

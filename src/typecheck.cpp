@@ -3,16 +3,17 @@
 
 #include "common.hpp"
 #include "passes.hpp"
+#include <unordered_set>
 
 using namespace std;
    
 
-bool typecheckRec(Context* c, Module* m, set<Module*>* checked);
+bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked);
 
 
 bool typecheck(Context* c, Module* m) {
   cout << "Typechecking" << endl;
-  set<Module*> checked;
+  unordered_set<Module*> checked;
   bool err = typecheckRec(c,m,&checked);
   cout << "Done Typechecking" << endl;
   return err;
@@ -48,8 +49,8 @@ bool checkInputConnected(Wireable* w, Error* e) {
   if (!w->getType()->hasInput()) return false;
   
   // Assume this type is an input
-  if (w->getWires().size() > 0) {
-    for (auto other : w->getWires() )
+  if (w->getConnectedWireables().size() > 0) {
+    for (auto other : w->getConnectedWireables() )
       e->message("  " + w->toString() + " : " +  w->getType()->toString() + " <== " + other->toString() );
     return true;
   }
@@ -65,10 +66,10 @@ bool checkInputConnected(Wireable* w, Error* e) {
 //false is no error
 bool checkInputOutputs(Wireable* w, Error* e) {
   if (!w->getType()->hasInput()) return false;
-  int numwires = w->getWires().size();
+  int numwires = w->getConnectedWireables().size();
   bool err = false;
   if (numwires > 1) {
-    for (auto other : w->getWires() )
+    for (auto other : w->getConnectedWireables() )
       e->message("  " + w->toString() + " : " + w->getType()->toString() + " <== " + other->toString() );
     return true;
   }
@@ -82,7 +83,7 @@ bool checkInputOutputs(Wireable* w, Error* e) {
     for ( auto it : w->getChildren()) {
       if(checkInputConnected(it.second,e)) {
         err = true;
-        for (auto other : w->getWires() )
+        for (auto other : w->getConnectedWireables() )
           e->message("  " + w->toString() + " : " + w->getType()->toString() + " <== " + other->toString() );
       }
     }
@@ -95,7 +96,7 @@ bool checkInputOutputs(Wireable* w, Error* e) {
 //Recursively check if there are type errors
 //true is Error
 //false is no error
-bool typecheckRec(Context* c, Module* m, set<Module*>* checked) {
+bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked) {
   
   //Correct if has no definition
   if (!m->hasDef()) return false;
@@ -107,8 +108,8 @@ bool typecheckRec(Context* c, Module* m, set<Module*>* checked) {
   
   bool err = false;
   // Check for type compatability of every connection
-  for (auto wire : mdef->getWires() ) {
-    err |= checkTypes(wire.first,wire.second);
+  for (auto connection : mdef->getConnections() ) {
+    err |= checkTypes(connection.first,connection.second);
   }
   //Check if an input is connected to multiple outputs
   vector<Wireable*> work;

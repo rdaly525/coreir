@@ -1,5 +1,6 @@
 //This is for the C API
-#include "stdint.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 typedef uint32_t u32;
 
@@ -32,8 +33,10 @@ extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param)
 
 extern void COREPrintType(COREType* t);
 
-extern COREModule* CORELoadModule(COREContext* c, char* filename);
-extern bool CORESaveModule(COREModule* module, char* filename);
+//err is a boolean flag 
+extern COREModule* CORELoadModule(COREContext* c, char* filename, bool* err);
+extern void CORESaveModule(COREModule* module, char* filename, bool* err);
+
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type);
 extern void COREPrintModule(COREModule* m);

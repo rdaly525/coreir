@@ -24,7 +24,7 @@ def test_save_module():
     module_def.wire(_input, add8_in2)
     module_def.wire(output, add8_out)
     module.add_definition(module_def)
-    module.save_to_file("python_test_output.json")
+    #module.save_to_file("python_test_output.json")
 
 # def test():
 #     c = coreir.Context()

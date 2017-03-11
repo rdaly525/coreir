@@ -38,10 +38,10 @@ Instance = {"instancename": <name>, "instref":InstantiatableReference, "args":Ge
 
 InstantiatableReference = ["namespacename","InstantiatableName"]
 
-Connection = [WireReference, WireReference, Metadata]
+Connection = [Wireable, Wireable, Metadata]
 
-WireReference = [<instancename>,<a>,<b>,...]
-     accesses instancename.a.b. If "instancename" is "this" then this is the module's interface.
+Wireable = {"metadata":Metadata, "path":[<topname>,<a>,<b>,...]}
+     accesses topname.a.b. If "topname" is "self" then this is the module's interface.
 
 GenParameter= None | {<key>:GenParameterType,...}
 GenParameterType = "String" | "Uint" | "Int" | "Type" | "Instantiatable"

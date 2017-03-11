@@ -4,13 +4,16 @@
 
 #include <iostream>
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include "common.hpp"
 #include "genargs.hpp"
 #include <cassert>
 #include "context.hpp"
 #include "error.hpp"
+#include "json.hpp"
+
+using json = nlohmann::json;
 
 using namespace std;
 class Type {
@@ -27,6 +30,7 @@ class Type {
     virtual string toString(void) const =0;
     virtual bool sel(Context* c,string sel, Type** ret, Error* e);
     virtual bool hasInput() { return false;}
+    virtual json toJson();
     void print(void);
 };
 
@@ -84,6 +88,7 @@ class TypeGenType : public Type {
     TypeGen* getDef() { return def;}
     GenArgs* getArgs() { return args;}
     string toString(void) const { return def->name; }
+    //json toJson(); TODO
     bool sel(Context* c, string sel, Type** ret, Error* e);
 
 };
@@ -99,6 +104,7 @@ class ArrayType : public Type {
       //return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
       return elemType->toString() + "[" + to_string(len) + "]";
     };
+    json toJson();
     bool sel(Context* c, string sel, Type** ret, Error* e);
     bool hasInput() {return elemType->hasInput();}
 
@@ -106,7 +112,7 @@ class ArrayType : public Type {
 
 
 class RecordType : public Type {
-  map<string,Type*> record;
+  unordered_map<string,Type*> record;
   vector<string> _order;
   public :
     RecordType(RecordParams _record) : Type(RECORD) {
@@ -125,8 +131,9 @@ class RecordType : public Type {
       record.emplace(s,t);
     }
     vector<string> getOrder() { return _order;}
-    map<string,Type*> getRecord() { return record;}
+    unordered_map<string,Type*> getRecord() { return record;}
     string toString(void) const;
+    json toJson();
     bool sel(Context* c, string sel, Type** ret, Error* e);
     bool hasInput() {
       for ( auto it : record ) {

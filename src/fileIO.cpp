@@ -1,151 +1,148 @@
+#ifndef FILEIO_CPP_
+#define FILEIO_CPP_
+
 #include "json.hpp"
 #include <iostream>
 #include <fstream>
 #include "context.hpp"
+#include "instantiable.hpp"
+#include "namespace.hpp"
+
 
 using json = nlohmann::json;
 
-json Type2Json(Type* t);
-json ModuleDef2Json(ModuleDef* md);
-json Module2Json(Module* m);
-json Wireable2Json(Wireable* w);
-json Instance2Json(Instance* i);
-
-
-
-Module* loadModule(Context* c, string filename) {
-  std::ifstream file(filename);
+Module* loadModule(Context* c, string filename, bool* err) {
+  std::fstream file;
+  file.open(filename);
+  if (!file.is_open()) {
+    *err =false;
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return nullptr;
+  }
   json j;
   file >> j;
   cout << "Loading " << filename << endl;
+  cout << "NYI!" << endl;
   return nullptr;
 }
 
-//False cannot open file
-bool saveModule(Module* m, string filename) {
+
+//true cannot open file
+void saveModule(Module* m, string filename, bool* err) {
+  Context* c = m->getContext();
   std::ofstream file(filename);
   if (!file.is_open()) {
-    return true;
+    *err =false;
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return;
   }
+
+  //TODO I should gather only the dependent modules
   json j;
-  j["top"] = m->getName();
-  j["module"] = Module2Json(m);
- 
+  j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
+  //for (auto ns: namespaces) jnamespaces[ns->getName()] = ns->toJson();
+  j["namespaces"] = {"_G",m->getContext()->getGlobal()->toJson()};
   file << std::setw(3) << j;
-  return false;
+  return;
 }
 
 
-json Type2Json(Type* t) {
-  json j;
-  switch(t->getKind()) {
-    case(BITIN) : j["BitIn"]; break;
-    case(BITOUT) : j["BitOut"]; break;
-    case(ARRAY) : {
-      ArrayType* at = (ArrayType*) t;
-      j["Array"] = json::array({at->getLen(), Type2Json(at->getElemType())});
-      break;
-    }
-    case(RECORD) : j["Record"] = "NYI";
-    default : j["TYPE_NYI"];
-  }
-  return j;
+json Type::toJson() { 
+  return {
+    {"type",TypeKind2Str(kind)},
+    {"args", "None"}
+  };
+}
+json ArrayType::toJson() {
+  return {
+    {"type",TypeKind2Str(kind)},
+    {"args",json::array({len,elemType->toJson()})}
+  };
+}
+json RecordType::toJson() {
+  json jfields;
+  for (auto field : record) jfields[field.first] = field.second->toJson();
+  return {
+    {"type",TypeKind2Str(kind)},
+    {"args",jfields}
+  };
 }
 
-json Module2Json(Module* m) {
-  m->print();
-  json j = {
-    {"type",Type2Json(m->getType())},
+json Namespace::toJson() {
+  json jmods;
+  json jgens;
+  for (auto m : mList) jmods[m.first] = m.second->toJson();
+  for (auto g : gList) jgens[g.first] = g.second->toJson();
+  return {
+    {"modules",jmods},
+    {"generators",jgens}
+  };
+}
+
+json Module::toJson() {
+  return {
+    {"type",type->toJson()},
     {"config","NYI"},
     {"metadata","NYI"},
-    {"def",ModuleDef2Json(m->getDef())}
+    {"def",hasDef() ? getDef()->toJson() : "None"}
   };
-  return j;
 }
 
-json ModuleDef2Json(ModuleDef* md) {
-  if (!md) return "null";
+json ModuleDef::toJson() {
   json j;
   j["metadata"] = "NYI";
   j["implementations"] = "NYI";
   json jinsts;
-  for ( auto inst : md->getInstances()) {
-    jinsts.push_back(Instance2Json(inst.second));
+  for ( auto instmap : instances) {
+    jinsts[instmap.first] = instmap.second->toJson();
   }
   j["instances"] = jinsts;
-  json jwires;
-  for (auto wire : md->getWires() ) {
-    jwires.push_back(json::array({Wireable2Json(wire.first), Wireable2Json(wire.second), {"metadata","NYI"}}));
+  json jcons;
+  for (auto connection : connections) {
+    jcons.push_back(connection.toJson());
   }
-  j["connections"] = jwires;
+  j["connections"] = jcons;
   return j;
 }
 
-json Wireable2Json(Wireable* w) {
+json Connection::toJson() {
+  return {
+    {"metadata", "NYI"},
+    {"connection", json::array({first->toJson(), second->toJson()})}
+  };
+}
+
+json Wireable::toJson() {
   json j;
-  std::pair<string,vector<string>> path = w->getPath();
-  j.push_back(path.first);
-  for (auto str : path.second) j.push_back(str);
+  json jpath;
+  std::pair<string,vector<string>> path = getPath();
+  for (auto str : path.second) jpath.push_back(str);
+  j["metadata"] = "NYI";
+  jpath["path"] = jpath;
   return j;
 }
 
-json Instance2Json(Instance* i) {
+json Instance::toJson() {
   json j;
-  Instantiable* iRef = i->getInstRef();
-  j["instancename"] = i->getInstname();
-  j["instref"] = json::array({iRef->isKind(MOD) ? "module" : "generator",iRef->getNamespace()->getName(),iRef->getName()});
+  j["instancename"] = instname;
+  j["instref"] = json::array({instRef->getNamespace()->getName(),instRef->getName()});
   j["args"] = "NYI";
   j["metadata"] = "NYI";
   return j;
 }
 
-/*  
-  uint n = 32;
-  cout << "Loading from file: " << filename << endl;
-  
-  Namespace* stdlib = getStdlib(c);
-  c->registerLib(stdlib);
-
-  //Declare add2 Generator
-  Generator* add2 = stdlib->getGenerator("add2");
-  assert(add2);
-  // Define Add4 Module
-  Type* add4Type = c->Record({
-      {"in",c->Array(4,c->Array(n,c->BitIn()))},
-      {"out",c->Array(n,c->BitOut())}
-  });
-  Module* add4_n = c->newModuleDecl("Add4",add4Type);
-  ModuleDef* def = add4_n->newModuleDef();
-    Wireable* iface = def->getInterface();
-    Wireable* add_00 = def->addInstanceGenerator("add00",add2,c->newGenArgs({{"w",c->GInt(n)}}));
-    Wireable* add_01 = def->addInstanceGenerator("add01",add2,c->newGenArgs({{"w",c->GInt(n)}}));
-    Wireable* add_1 = def->addInstanceGenerator("add1",add2,c->newGenArgs({{"w",c->GInt(n)}}));
-    
-    def->wire(iface->sel("in")->sel(0),add_00->sel("in0"));
-    //def->wire(iface->sel("in")->sel(1)->sel(3),add_00->sel("in0")->sel(3));
-    def->wire(iface->sel("in")->sel(1),add_00->sel("in1"));
-    def->wire(iface->sel("in")->sel(2),add_01->sel("in0"));
-    def->wire(iface->sel("in")->sel(3),add_01->sel("in1"));
-
-    def->wire(add_00->sel("out"),add_1->sel("in0"));
-    def->wire(add_01->sel("out"),add_1->sel("in1"));
-
-    def->wire(add_1->sel("out"),iface->sel("out"));
-  add4_n->addDef(def);
-  c->checkerrors();
-  
-  // Link v1 of library
-  cout << "Linking stdlib!" << endl;
-  Namespace* stdlib_v1 = getStdlib_v1(c);
-  c->linkLib(stdlib_v1, stdlib);
- 
-  cout << "Checkign Errors 2" << endl;
-  c->checkerrors();
-  
-  rungenerators(c,add4_n);
-  
-  add4_n->print();
-  
-  return add4_n;
+json Generator::toJson() {
+  return {
+    {"genparamter","NYI"},
+    {"typegen","NYI"},
+    {"metadata","NYI"}
+  };
 }
-*/
+
+#endif //FILEIO_CPP_

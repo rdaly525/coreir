@@ -3,22 +3,23 @@
 
 #include "common.hpp"
 #include "passes.hpp"
+#include  <unordered_set>
 
 using namespace std;
    
 // This will recusrively run all the generators and replace module definitions
 // For every instance, if it is a generator, it 
-bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran);
+bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran);
 bool rungenerators(Context* c, Module* m) {
   cout << "Running the Generators" << endl;
-  set<Module*> ran;
+  unordered_set<Module*> ran;
   bool err = rungeneratorsRec(c,m,&ran);
   cout << "Done running the generators" << endl;
   return err;
 }
 
 
-bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
+bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
   
   //If I already ran, then just return
   if (ran->count(m) > 0) return false;
@@ -27,7 +28,7 @@ bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
 
   // Check if there are runnable generators
   // Also insert all modules in the runQueue
-  set<Module*> runQueue;
+  unordered_set<Module*> runQueue;
   bool hasgens = false;
   ModuleDef* mdef = m->getDef();
   for (auto instmap : mdef->getInstances() ) {
@@ -84,10 +85,10 @@ bool rungeneratorsRec(Context* c, Module* m, set<Module*>* ran) {
     }
   }
 
-  //Add all the wires to the new module def
-  for (auto wire : mdef->getWires() ) {
-    std::pair<string,vector<string>> pathA = wire.first->getPath();
-    std::pair<string,vector<string>> pathB = wire.second->getPath();
+  //Add all the connections to the new module def
+  for (auto connection : mdef->getConnections() ) {
+    std::pair<string,vector<string>> pathA = connection.first->getPath();
+    std::pair<string,vector<string>> pathB = connection.second->getPath();
     Wireable* curA = newDef->sel(pathA.first);
     Wireable* curB = newDef->sel(pathB.first);
     for (auto str : pathA.second) curA = curA->sel(str);

@@ -44,14 +44,16 @@ extern "C" {
     rcast<Type*>(t)->print();
   }
   
-  COREModule* CORELoadModule(COREContext* c, char* filename) {
+  COREModule* CORELoadModule(COREContext* c, char* filename, bool* err) {
     string file(filename);
-    return rcast<COREModule*>(loadModule(rcast<Context*>(c),file));
+    COREModule* m = rcast<COREModule*>(loadModule(rcast<Context*>(c),file,err));
+    return m;
   }
   
-  bool CORESaveModule(COREModule* module, char* filename) {
+  void CORESaveModule(COREModule* module, char* filename, bool* err) {
     string file(filename);
-    return rcast<COREModule*>(saveModule(rcast<Module*>(module),file));
+    saveModule(rcast<Module*>(module),file,err);
+    return;
   }
 
   CORENamespace* COREGetGlobal(COREContext* c) {

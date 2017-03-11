@@ -1,9 +1,6 @@
 #ifndef ENUMS_HPP_
 #define ENUMS_HPP_
 
-// Figure out easy file/line debug
-#define DEBUGINFO __FILE__ << ":" << __LINE__
-
 #include <stdint.h>
 #include <iostream>
 #include <vector>

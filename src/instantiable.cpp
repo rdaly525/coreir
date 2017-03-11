@@ -95,9 +95,9 @@ void ModuleDef::print(void) {
   for (auto inst : instances) {
     cout << "      " << inst.first << " : " << inst.second->getInstRef()->getName() << endl;
   }
-  cout << "    Wirings:\n";
-  for (auto wire : wires) {
-    cout << "      " << *(wire.first) << " <=> " << *(wire.second) << endl ;
+  cout << "    Connections:\n";
+  for (auto connection : connections) {
+    cout << "      " << *(connection.first) << " <=> " << *(connection.second) << endl ;
   }
   cout << endl;
 }
@@ -131,7 +131,7 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   Context* c = getContext();
   if (a->getModuleDef()!=this || b->getModuleDef() != this) {
     Error e;
-    e.message("Wirings can only occur within the same module");
+    e.message("connections can only occur within the same module");
     e.message("  This ModuleDef: " + module->getName());
     e.message("  ModuleDef of " + a->toString() + ": " + a->getModuleDef()->getName());
     e.message("  ModuleDef of " + b->toString() + ": " + b->getModuleDef()->getName());
@@ -143,12 +143,12 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   //checkWiring(a,b);
     
   //Update 'a' and 'b'
-  a->addWiring(b);
-  b->addWiring(a);
+  a->addConnectedWireable(b);
+  b->addConnectedWireable(a);
  
   //Insert into set of wireings 
   //minmax gauranees an ordering
-  wires.insert(a>b ? std::pair<Wireable*,Wireable*>(a,b) : std::pair<Wireable*,Wireable*>(b,a));
+  connections.insert(Connection(a,b));
 }
 
 Wireable* ModuleDef::sel(string s) { 
@@ -171,9 +171,9 @@ Select* Wireable::sel(string selStr) {
     //e.fatal();
     getContext()->error(e);
   }
-  Select* child = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
-  children.emplace(selStr,child);
-  return child;
+  Select* select = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
+  selects.emplace(selStr,select);
+  return select;
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }

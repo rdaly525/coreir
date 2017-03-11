@@ -2,13 +2,17 @@ Lenny TODO
 
 Add Following functions to C interface and Python interface
 ModuleDef.getInstances() // Note I have changed this to a map of instname ->Instance
-ModuleDef.getWires() //Get all the Wireable* Wireable* pairs 
-Wireable.getConnections //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
+ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
+Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
 //The above two functions I am open to renaming to be less confusing
+Wireable.sel(string s) //
 
-writeFile(...)
-readFile(...)
 Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
+
+We need to figure out how to do errors in python
+Right now I store all errors in the context.
+I can check if I have an error with c.hasError(), and print with c.printErrors()
+Not sure of the best way to nicely die if there are errors. We should talk about this
 
 
 Dependent on Ross finishing MetaData
@@ -25,16 +29,13 @@ Add metadata basically to everywhere
 
 Change name of ArgKinds -> GenParameters
 
-Potentially store instances as a map from instname -> instance
-This means I can get a wire reference by [instname,sel0,sel1,...]
-
 Get Verilog codegen working again
 
 Think about renaming TypeGen and TypeGenInst to NamedType
 Have Type associated with TypeGenInst which is like a cache
 
 When instantiating generators, if the typegen function exists, run it
-and cache the type in the typegenInst
+and cache the type in the typegenInst. Does this mean I need a 'strip' function?
 
 When Generating Modules, prepend lib name in front of module name
 Make sure you cannot create two namespaces of the same name
