@@ -19,7 +19,7 @@ SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,../build/%.o,$(SRCFILES))
 BUILD = build
 
-all: ../build/coreir.a ../build/coreir.so ../build/coreir.dylib $(OBJS)
+all: ../build/coreir.a $(OBJS)
 
 echo:
 	echo $(CXX)

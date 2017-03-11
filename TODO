@@ -4,7 +4,6 @@ Add Following functions to C interface and Python interface
 ModuleDef.getInstances() // Note I have changed this to a map of instname ->Instance
 ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
 Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
-//The above two functions I am open to renaming to be less confusing
 Wireable.sel(string s) //
 
 Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
