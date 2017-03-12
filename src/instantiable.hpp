@@ -14,6 +14,7 @@
 #include "common.hpp"
 #include "genargs.hpp"
 #include "json.hpp"
+#include "metadata.hpp"
 
 using json = nlohmann::json;
 using namespace std;
@@ -33,6 +34,8 @@ class Instantiable {
     InstantiableKind kind;
     Namespace* ns;
     string name;
+    Metadata metadata;
+    GenParams configparams;
   public :
     Instantiable(InstantiableKind kind, Namespace* ns, string name) : kind(kind), ns(ns), name(name) {}
     virtual ~Instantiable() {}
@@ -43,6 +46,8 @@ class Instantiable {
     Module* toModule();
     Generator* toGenerator();
     Context* getContext();
+    GenParams getConfigParams() { return configparams;}
+    Metadata getMetadata() { return metadata;}
     string getName() const { return name;}
     virtual json toJson()=0;
     Namespace* getNamespace() const { return ns;}
@@ -53,11 +58,11 @@ std::ostream& operator<<(ostream& os, const Instantiable&);
 
 
 class Generator : public Instantiable {
-  ArgKinds argkinds;
+  GenParams genparams;
   TypeGen* typegen;
   genFun genfun;
   public :
-    Generator(Namespace* ns,string name,ArgKinds argkinds, TypeGen* typegen);
+    Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen);
     bool hasDef() const { return !!genfun; }
     string toString() const;
     json toJson();
@@ -95,18 +100,16 @@ class Module : public Instantiable {
 struct Connection {
   Wireable* first;
   Wireable* second;
-  //Metadata* m;
-  Connection(Wireable* a, Wireable* b) {
-    if (a>b) {
-      first = a;
-      second = b;
-    }
-    else {
+  Metadata metadata;
+  Connection(const Connection& c) : first(c.first), second(c.second), metadata(c.metadata) {}
+  Connection(Wireable* a, Wireable* b) : first(a), second(b) {
+    if (b>a) {
       first = b;
       second = a;
     }
   }
-  friend bool operator==(const Connection & l,const Connection & r) {
+  //Metadata getMetadata() { return metadata;}
+  friend bool operator==(const Connection& l,const Connection& r) {
     return l.first==r.first && l.second==r.second;
   }
   json toJson();
@@ -124,8 +127,6 @@ namespace std {
   };
 }
 
-
-
 class ModuleDef {
   
   protected:
@@ -134,6 +135,8 @@ class ModuleDef {
     unordered_map<string,Instance*> instances;
     unordered_set<Connection> connections;
     SelCache* cache;
+    Metadata metadata;
+    Metadata implementations; // TODO maybe have this just be inhereted moduledef classes
 
   public :
     ModuleDef(Module* m);
@@ -147,6 +150,7 @@ class ModuleDef {
     string getName() {return module->getName();}
     Type* getType() {return module->getType();}
     SelCache* getCache() { return cache;}
+    Metadata getMetadata() { return metadata;}
     Instance* addInstanceGenerator(string,Generator*, GenArgs*);
     Instance* addInstanceModule(string,Module*);
     Instance* addInstance(Instance* i); //copys info about i
@@ -164,6 +168,7 @@ class Wireable {
     Type* type;
     unordered_set<Wireable*> connected; 
     unordered_map<string,Wireable*> selects;
+    Metadata metadata;
   public :
     Wireable(WireableKind kind, ModuleDef* moduledef, Type* type) : kind(kind),  moduledef(moduledef), type(type) {}
     virtual ~Wireable() {}
@@ -171,6 +176,7 @@ class Wireable {
     virtual json toJson();
     unordered_set<Wireable*> getConnectedWireables() { return connected;}
     unordered_map<string,Wireable*> getChildren() { return selects;}
+    Metadata getMetadata() { return metadata;}
     ModuleDef* getModuleDef() { return moduledef;}
     Context* getContext() { return moduledef->getContext();}
     bool isKind(WireableKind e) { return e==kind;}
@@ -201,9 +207,9 @@ class Interface : public Wireable {
 class Instance : public Wireable {
   string instname;
   Instantiable* instRef;
-  
   GenArgs* genargs;
- 
+  GenArgs* config;
+  
   public :
     Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, GenArgs* genargs =nullptr)  : Wireable(INST,context,type), instname(instname), instRef(instRef), genargs(genargs) {}
     string toString() const;
@@ -211,6 +217,7 @@ class Instance : public Wireable {
     Instantiable* getInstRef() {return instRef;}
     string getInstname() { return instname; }
     GenArgs* getGenArgs() {return genargs;}
+    GenArgs* getConfig() {return config;}
     //void replace(Instantiable* newRef) { instRef = newRef;}
     //Convinience functions
     bool isGen() { return instRef->isKind(GEN);}

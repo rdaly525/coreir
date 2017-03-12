@@ -24,8 +24,8 @@ string TypeKind2Str(TypeKind t) {
   }
 }
 
-string ArgKind2Str(ArgKind argkind) {
-  switch(argkind) {
+string GenParam2Str(GenParam genparam) {
+  switch(genparam) {
     case GINT : return "int";
     case GSTRING : return "string";
     case GTYPE : return "type";
@@ -33,11 +33,11 @@ string ArgKind2Str(ArgKind argkind) {
   }
 }
 
-string ArgKinds2Str(ArgKinds argkinds) {
+string GenParams2Str(GenParams genparams) {
   string ret = "(";
-  for (auto it=argkinds.begin(); it!=argkinds.end(); ++it) {
+  for (auto it=genparams.begin(); it!=genparams.end(); ++it) {
     
-    ret = ret + it->first + ": " + ArgKind2Str(it->second) + ((it==argkinds.begin()) ? "" : ",");
+    ret = ret + it->first + ": " + GenParam2Str(it->second) + ((it==genparams.begin()) ? "" : ",");
   }
   return ret + ")";
 }

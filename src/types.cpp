@@ -29,7 +29,7 @@ string RecordType::toString(void) const {
   return ret;
 }
 TypeGenType::TypeGenType(TypeGen* def, GenArgs* args) : Type(TYPEGEN), def(def), args(args) {
-  assert(args->checkKinds(def->argkinds));
+  assert(args->checkParams(def->genparams));
 }
 
 bool AnyType::sel(Context* c, string sel, Type** ret, Error* e) {

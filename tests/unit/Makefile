@@ -12,8 +12,15 @@ endif
 
 
 
-CXXFLAGS = -std=c++11  -Wall  -fPIC
+CXXFLAGS = -std=c++11  -Wall  -fPIC 
 CFLAGS = -Wall -fPIC
+
+
+ifdef COREDEBUG
+CXXFLAGS += -g -D_GLIBCXX_DEBUG
+endif
+
+
 DEPS = 
 
 SRCDIR = ../../src
@@ -24,7 +31,7 @@ LIBS = -L$(SRCDIR) -L$(LIBSDIR)
 
 SRCFILES = $(wildcard [^_]*.c*)
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
-EXES = $(patsubst %.c,build/%,$(SRCFILES))
+EXES += $(patsubst %.c,build/%,$(SRCFILES))
 
 .SUFFIXES:
 
@@ -55,4 +62,3 @@ build/%.o: %.c
 	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<
 
 #.PHONY: $(SRCDIR)/coreir.a
-

@@ -53,6 +53,10 @@ void saveModule(Module* m, string filename, bool* err) {
 }
 
 
+
+json params2Json(GenParams gp);
+
+
 json Type::toJson() { 
   return {
     {"type",TypeKind2Str(kind)},
@@ -85,19 +89,31 @@ json Namespace::toJson() {
   };
 }
 
-json Module::toJson() {
+json Instantiable::toJson() {
   return {
-    {"type",type->toJson()},
-    {"config","NYI"},
-    {"metadata","NYI"},
-    {"def",hasDef() ? getDef()->toJson() : "None"}
+    {"configparamters",params2Json(configparams)},
+    {"metadata",metadata.toJson()}
   };
+}
+
+json Module::toJson() {
+  json j = Instantiable::toJson();
+  j["type"] = type->toJson();
+  j["def"] = hasDef() ? getDef()->toJson() : "None";
+  return j;
+}
+
+json Generator::toJson() {
+  json j = Instantiable::toJson();
+  j["genparamters"] = params2Json(genparams);
+  j["typegen"] = "NYI";
+  return j;
 }
 
 json ModuleDef::toJson() {
   json j;
-  j["metadata"] = "NYI";
-  j["implementations"] = "NYI";
+  j["metadata"] = metadata.toJson();
+  j["implementations"] = implementations.toJson();
   json jinsts;
   for ( auto instmap : instances) {
     jinsts[instmap.first] = instmap.second->toJson();
@@ -113,7 +129,7 @@ json ModuleDef::toJson() {
 
 json Connection::toJson() {
   return {
-    {"metadata", "NYI"},
+    {"metadata", metadata.toJson()},
     {"connection", json::array({first->toJson(), second->toJson()})}
   };
 }
@@ -123,26 +139,45 @@ json Wireable::toJson() {
   json jpath;
   std::pair<string,vector<string>> path = getPath();
   for (auto str : path.second) jpath.push_back(str);
-  j["metadata"] = "NYI";
-  jpath["path"] = jpath;
+  j["metadata"] = metadata.toJson();
+  j["path"] = jpath;
   return j;
 }
 
+
 json Instance::toJson() {
+  cout << "doing instance " << instname << endl;
   json j;
   j["instancename"] = instname;
   j["instref"] = json::array({instRef->getNamespace()->getName(),instRef->getName()});
-  j["args"] = "NYI";
-  j["metadata"] = "NYI";
+  j["args"] = genargs->toJson();
+  j["metadata"] = metadata.toJson();
   return j;
 }
 
-json Generator::toJson() {
-  return {
-    {"genparamter","NYI"},
-    {"typegen","NYI"},
-    {"metadata","NYI"}
-  };
+json Metadata::toJson() {
+  if (metadata.size()==0) return "None";
+  json j;
+  for (auto it : metadata) j[it.first] = it.second;
+  return j;
 }
+
+//GenArgs
+json params2Json(GenParams gp) {
+  json j;
+  for (auto it : gp) j[it.first] = GenParam2Str(it.second);
+  return j;
+}
+
+json GenArgs::toJson() {
+  json j;
+  for (auto it : args) {
+    j[it.first] = it.second->toJson();
+  }
+  return "a";
+}
+json GenString::toJson() { return str; }
+json GenInt::toJson() { return i; }
+json GenType::toJson() { return t->toJson(); }
 
 #endif //FILEIO_CPP_

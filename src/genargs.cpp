@@ -15,6 +15,7 @@
 //}
 
 
+
 size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
   size_t hash = 0;
   for (auto it : genargs.args) {
@@ -24,6 +25,7 @@ size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
       case GSTRING : {
         string arg_s = ((GenString*) arg)->str;
         hash_combine(hash,arg_s);
+        cout << "HERE";
         break;
       }
       case GINT : {

@@ -10,7 +10,7 @@
 
 ## Algebraic structure of IR
 ```
-ArgKinds(string* kinds)
+GenParams(string* kinds)
 Name(string libname, string name)
 
 GenArg = string
@@ -28,12 +28,12 @@ Type = BitIn | BitOut
      | Named(Name name, Type type)
      | Any
  
-TypeGen(Name name, ArgKinds kinds, bool flipped, function? fun)
+TypeGen(Name name, GenParams kinds, bool flipped, function? fun)
 
 MetaData(string data, (string key, MetaData m)*)
 
 Instantiable = Module(Name name, Type t, MetaData m, ModuleDef? def)
-             | Generator(Name name, Type t, MetaData m, ArgKinds kinds, function? fun)
+             | Generator(Name name, Type t, MetaData m, GenParams kinds, function? fun)
 
 //List of modules
 
@@ -79,13 +79,13 @@ Generators take a set of well specified arguments. These arguments are string, i
 ```
 //CoreIR Types:
 //  ArgKind
-//  ArgKinds
+//  GenParams
 //  GenArg
 //  GenArgs
 
 // Creating argKinds
 typedef enum {GSTRING,GINT,GTYPE} ArgKind;
-ArgKinds ArgKinds(ArgKind* kinds);
+GenParams GenParams(ArgKind* kinds);
 
 //Creating GenArgs
 GenArg GInt(int i);
@@ -106,8 +106,8 @@ TODO describe the type system
   TypeGen
   tgenFun
 
-Type (*tgenFun)(Context,GenArgs,ArgKinds)
-TypeGen TypeGen(string name, string name_flipped, ArgKinds kinds, tgenFun fun);
+Type (*tgenFun)(Context,GenArgs,GenParams)
+TypeGen TypeGen(string name, string name_flipped, GenParams kinds, tgenFun fun);
 void addTypeGen(Namespace ns, TypeGen tgd)
 TypeGen getTypeGen(Namespace ns, string name)
 
@@ -134,8 +134,8 @@ void addModuleDef(Module* module, ModuleDef* moduledef);
 void addModule(Namespae ns, Module m);
 Module getModule(Namespace ns, string name);
 
-Generator newGeneratorDecl(Context c, string name, ArgKinds kinds, TypeGen tg);
-Module (*genFun)(Context,Type,GenArgs,ArgKinds);
+Generator newGeneratorDecl(Context c, string name, GenParams kinds, TypeGen tg);
+Module (*genFun)(Context,Type,GenArgs,GenParams);
 void addGeneratorDef(Generator decl, genFun fun);
 
 void addGenerator(Namespace ns, Generator g);

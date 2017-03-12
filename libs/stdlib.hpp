@@ -4,7 +4,7 @@
 #include "context.hpp"
 
 
-Type* binop_type(Context* c, GenArgs* args, ArgKinds kinds) {
+Type* binop_type(Context* c, GenArgs* args, GenParams kinds) {
   int n = c->toInt((*args)["w"]);
   Type* narray = c->Array(n,c->BitOut());
   return c->Record({

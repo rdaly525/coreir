@@ -43,7 +43,7 @@ class Namespace {
     unordered_map<string,Generator*> getGenerators() { return gList;}
     unordered_map<string,TypeGen*> getTypeGens() { return tList;}
 
-    TypeGen* newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun);
+    TypeGen* newTypeGen(string name, string nameFlipped, GenParams kinds, TypeGenFun fun);
     TypeGen* getTypeGen(string name) {
       assert(hasTypeGen(name));
       return tList.find(name)->second;
@@ -52,7 +52,7 @@ class Namespace {
       return tList.find(name) != tList.end();
     }
     
-    Generator* newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg);
+    Generator* newGeneratorDecl(string name, GenParams kinds, TypeGen* tg);
     Module* newModuleDecl(string name, Type* t);
 
     Generator* getGenerator(string gname);

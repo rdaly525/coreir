@@ -1,34 +1,54 @@
+Known Bugs
+  ID: 1
+  Description: 
+    Python test segfaults on Savefile call.  segfaults in Python but not in C++
+    Should write an equivelent C test to check if bug is in python or C
+  Person: Lenny
+  
+  ID: 2
+  Description:
+    Valgrind complains of unitialized values on ModuleDef.wire() (specifically connections.insert)
+    Probably has something to do with copy constructor semantics. does not cause noticeable failures... yet
+  Person: Ross
+
+
 Lenny TODO
+  Add Following functions to C interface and Python interface
+    ModuleDef.getInstances() // Note, I have changed this to a map of instname ->Instance
+    ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
+    Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
+    Wireable ModuleDef.sel(strings) // Can get either 'self' (inteface) or instances by name
+    Wireable Wireable.sel(string s) // Get Other wireables 
+    Wireable.getPath() // gets a string 'path' from instancename/self to wireable
 
-Add Following functions to C interface and Python interface
-ModuleDef.getInstances() // Note I have changed this to a map of instname ->Instance
-ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
-Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
-Wireable.sel(string s) //
+  Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
 
-Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
-
-We need to figure out how to do errors in python
-Right now I store all errors in the context.
-I can check if I have an error with c.hasError(), and print with c.printErrors()
-Not sure of the best way to nicely die if there are errors. We should talk about this
+  We need to figure out how to do errors in python
+  Right now I store all errors in the context.
+  I can check if I have an error with c.hasError(), and print with c.printErrors()
+  Not sure of the best way to nicely die if there are errors. We should talk about this
 
 
-Dependent on Ross finishing MetaData
+  Dependent on Ross finishing MetaData
   I want to have file names and line numbers for the C/Python API. This might be a tad annoying to add them back to all the C function calls, but I think there is a way in python to dynamically get this info
 
 //////////////////////////////
 Ross TODO
 
+Change Travis language to C
+
+
 Finish Json Reader and Writer
 Create a test that actually writes out a file, and reads it back in.
 
-Metadata
-Add metadata basically to everywhere
+Config
+  Augment function calls/constructors to actually do configs
 
-Change name of ArgKinds -> GenParameters
+Metadata
+  Augment function calls/constructors to use metadata
 
 Get Verilog codegen working again
+
 
 Think about renaming TypeGen and TypeGenInst to NamedType
 Have Type associated with TypeGenInst which is like a cache
@@ -40,10 +60,6 @@ When Generating Modules, prepend lib name in front of module name
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
 
-Config
-  Add config GenParameters to Instantiables
-  Add config GenArgs to Instances
-
 change makefile to work with Clang
 
 Add stream operator to Error so I can do
@@ -53,6 +69,9 @@ Add stream operator to Error so I can do
 Should check for cases of modules instantiated in its own module. We dont want module "recursion"
 
 Primitives TODO:
--Add generators for constants
--And Multiply 
+  Add generators for constants
+  Multiply
+  PE
+  GPIO
+
 

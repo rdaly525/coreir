@@ -11,7 +11,7 @@ using namespace std;
 typedef uint32_t uint;
 
 typedef enum {BITIN, BITOUT,ARRAY,RECORD,ANY,TYPEGEN} TypeKind;
-typedef enum {GSTRING,GINT,GTYPE} ArgKind;
+typedef enum {GSTRING,GINT,GTYPE} GenParam;
 
 typedef enum {MOD,GEN} InstantiableKind;
 typedef enum {IFACE,INST,SEL} WireableKind;
@@ -25,8 +25,7 @@ struct GenInt;
 struct GenString;
 struct GenType;
 struct GenArgs;
-typedef unordered_map<string,ArgKind> ArgKinds;
-typedef unordered_map<string,string> Metadata;
+typedef unordered_map<string,GenParam> GenParams;
 
 template<class T1, class T2>
 
@@ -43,7 +42,7 @@ struct myPair {
 
 //Types.hpp
 class Type;
-typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, ArgKinds argkinds);
+typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, GenParams genparams);
 struct TypeGen;
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
@@ -54,7 +53,7 @@ class Instantiable;
 class Module;
 class ModuleDef;
 class Generator;
-typedef Module* (*genFun)(Context*,Type*,GenArgs*,ArgKinds);
+typedef Module* (*genFun)(Context*,Type*,GenArgs*,GenParams);
 
 class Wireable;
 class SelCache;
@@ -96,8 +95,8 @@ namespace std {
 //These are defined in helpers
 bool isNumber(string s);
 string TypeKind2Str(TypeKind t);
-string ArgKind2Str(ArgKind);
-string ArgKinds2Str(ArgKinds);
+string GenParam2Str(GenParam);
+string GenParams2Str(GenParams);
 string wireableKind2Str(WireableKind wb);
 
 

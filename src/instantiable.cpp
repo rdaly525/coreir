@@ -42,14 +42,14 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,ns,name), argkinds(argkinds), typegen(typegen), genfun(nullptr) {
-  //Verify that argkinds are the same
-  assert(argkinds == typegen->argkinds);
+Generator::Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen) : Instantiable(GEN,ns,name), genparams(genparams), typegen(typegen), genfun(nullptr) {
+  //Verify that genparams are the same
+  assert(genparams == typegen->genparams);
 }
 
 string Generator::toString() const {
   string ret = "Generator: " + name;
-  ret = ret + "\n    ArgKinds: " + ArgKinds2Str(argkinds);
+  ret = ret + "\n    GenParams: " + GenParams2Str(genparams);
   ret = ret + "\n    TypeGen: " + typegen->toString();
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;
@@ -141,14 +141,14 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
 
   // TODO should I type check here at all?
   //checkWiring(a,b);
-    
   //Update 'a' and 'b'
   a->addConnectedWireable(b);
   b->addConnectedWireable(a);
- 
+  
+  Connection connect(a,b);
   //Insert into set of wireings 
   //minmax gauranees an ordering
-  connections.insert(Connection(a,b));
+  connections.insert(connect);
 }
 
 Wireable* ModuleDef::sel(string s) { 

@@ -61,10 +61,10 @@ struct TypeGen {
   string libname;
   string name;
   TypeGen* flipped;
-  ArgKinds argkinds;
+  GenParams genparams;
   TypeGenFun fun;
   bool funflip;
-  TypeGen(string libname, string name, ArgKinds argkinds, TypeGenFun fun, bool funflip) : libname(libname), name(name), argkinds(argkinds), fun(fun), funflip(funflip) { 
+  TypeGen(string libname, string name, GenParams genparams, TypeGenFun fun, bool funflip) : libname(libname), name(name), genparams(genparams), fun(fun), funflip(funflip) { 
     if (!fun) {
       cout << "Warning: TypeGen linking NYI" << endl;
     }
@@ -73,12 +73,12 @@ struct TypeGen {
     flipped = _flipped;
   }
   string toString() {
-    return name + ArgKinds2Str(argkinds);
+    return name + GenParams2Str(genparams);
   }
 };
 
 
-// TODO check argtypes are actually the same as argkinds
+// TODO check argtypes are actually the same as genparams
 class TypeGenType : public Type {
   protected :
     TypeGen* def;

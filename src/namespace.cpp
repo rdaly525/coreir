@@ -31,7 +31,7 @@ Namespace::~Namespace() {
   //for(auto g : genCache) delete g.second;
 }
 
-TypeGen* Namespace::newTypeGen(string name, string nameFlipped, ArgKinds kinds, TypeGenFun fun) {
+TypeGen* Namespace::newTypeGen(string name, string nameFlipped, GenParams kinds, TypeGenFun fun) {
       assert(!hasTypeGen(name));
       assert(!hasTypeGen(nameFlipped));
       TypeGen* t = new TypeGen(name,name,kinds,fun,false);
@@ -57,7 +57,7 @@ TypeGen* Namespace::newTypeGen(string name, string nameFlipped, ArgKinds kinds, 
 //  return false;
 //}
 
-Generator* Namespace::newGeneratorDecl(string name, ArgKinds kinds, TypeGen* tg) {
+Generator* Namespace::newGeneratorDecl(string name, GenParams kinds, TypeGen* tg) {
   Generator* g = new Generator(this,name,kinds,tg);
   gList.emplace(name,g);
   return g;
@@ -107,10 +107,10 @@ Module* Namespace::runGenerator(Generator* g, GenArgs* ga) {
   TypeGen* tg = g->getTypeGen();
   
   //Run the typegen first
-  Type* type = tg->fun(c,ga,tg->argkinds);
+  Type* type = tg->fun(c,ga,tg->genparams);
   
   //Run the generator
-  Module* mNew= g->getDef()(c,type,ga,tg->argkinds);
+  Module* mNew= g->getDef()(c,type,ga,tg->genparams);
   genCache.emplace(gcp,mNew);
   return mNew;
 }
