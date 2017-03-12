@@ -23,13 +23,13 @@ Lenny TODO
 
   Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
 
-  We need to figure out how to do errors in python
+  We need to figure out how to nicely pass errors to python
   Right now I store all errors in the context.
   I can check if I have an error with c.hasError(), and print with c.printErrors()
-  Not sure of the best way to nicely die if there are errors. We should talk about this
+  Right now I was thinking of just passing an err Bool* to check, and if you want the error message, you call c->printErrors(). 
+  I could definitely be persuaded on a different way. 
 
-
-  Dependent on Ross finishing MetaData
+  (Lower priority)
   I want to have file names and line numbers for the C/Python API. This might be a tad annoying to add them back to all the C function calls, but I think there is a way in python to dynamically get this info
 
 //////////////////////////////
