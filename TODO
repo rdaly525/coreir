@@ -15,13 +15,17 @@ Known Bugs
 Lenny TODO
   Add Following functions to C interface and Python interface
     DONE ModuleDef.getInstances() // Note, I have changed this to a map of instname ->Instance
-        DONE test getInstances()
+        DONE test
     DONE ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
-        TODO test getConnections()
-    TODO Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
-    TODO Wireable ModuleDef.sel(strings) // Can get either 'self' (inteface) or instances by name
-    TODO Wireable Wireable.sel(string s) // Get Other wireables 
+        TODO test
+    DONE Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
+        TODO test 
+    Done Wireable ModuleDef.sel(strings) // Can get either 'self' (inteface) or instances by name
+        TODO test 
+    Done Wireable Wireable.sel(string s) // Get Other wireables 
+        TODO test 
     TODO Wireable.getPath() // gets a string 'path' from instancename/self to wireable
+        TODO test 
 
   Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
 
