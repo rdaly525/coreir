@@ -42,14 +42,14 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,ArgKinds argkinds, TypeGen* typegen) : Instantiable(GEN,ns,name), argkinds(argkinds), typegen(typegen), genfun(nullptr) {
-  //Verify that argkinds are the same
-  assert(argkinds == typegen->argkinds);
+Generator::Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen) : Instantiable(GEN,ns,name), genparams(genparams), typegen(typegen), genfun(nullptr) {
+  //Verify that genparams are the same
+  assert(genparams == typegen->genparams);
 }
 
 string Generator::toString() const {
   string ret = "Generator: " + name;
-  ret = ret + "\n    ArgKinds: " + ArgKinds2Str(argkinds);
+  ret = ret + "\n    GenParams: " + GenParams2Str(genparams);
   ret = ret + "\n    TypeGen: " + typegen->toString();
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;
@@ -84,7 +84,7 @@ ModuleDef::ModuleDef(Module* module) : module(module) {
 ModuleDef::~ModuleDef() {
   //Delete interface, instances, cache
   delete interface;
-  for(auto inst : instances) delete inst;
+  for(auto inst : instances) delete inst.second;
   delete cache;
 }
 
@@ -93,11 +93,11 @@ void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
-    cout << "      " << (*inst) << " : " << inst->getInstRef()->getName() << endl;
+    cout << "      " << inst.first << " : " << inst.second->getInstRef()->getName() << endl;
   }
-  cout << "    Wirings:\n";
-  for (auto wiring : wirings) {
-    cout << "      " << *(wiring.first) << " <=> " << *(wiring.second) << endl ;
+  cout << "    Connections:\n";
+  for (auto connection : connections) {
+    cout << "      " << *(connection.first) << " <=> " << *(connection.second) << endl ;
   }
   cout << endl;
 }
@@ -108,13 +108,13 @@ Instance* ModuleDef::addInstanceGenerator(string instname,Generator* gen, GenArg
   Type* type = c->TypeGenInst(gen->getTypeGen(),args);
   
   Instance* inst = new Instance(this,instname,gen,type,args);
-  instances.insert(inst);
+  instances[instname] = inst;
   return inst;
 }
 
 Instance* ModuleDef::addInstanceModule(string instname,Module* m) {
   Instance* inst = new Instance(this,instname,m,m->getType(),nullptr);
-  instances.insert(inst);
+  instances[instname] = inst;
   return inst;
 }
 
@@ -131,7 +131,7 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   Context* c = getContext();
   if (a->getModuleDef()!=this || b->getModuleDef() != this) {
     Error e;
-    e.message("Wirings can only occur within the same module");
+    e.message("connections can only occur within the same module");
     e.message("  This ModuleDef: " + module->getName());
     e.message("  ModuleDef of " + a->toString() + ": " + a->getModuleDef()->getName());
     e.message("  ModuleDef of " + b->toString() + ": " + b->getModuleDef()->getName());
@@ -141,14 +141,28 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
 
   // TODO should I type check here at all?
   //checkWiring(a,b);
-    
   //Update 'a' and 'b'
-  a->addWiring(b);
-  b->addWiring(a);
- 
+  a->addConnectedWireable(b);
+  b->addConnectedWireable(a);
+  
+  Connection connect(a,b);
   //Insert into set of wireings 
   //minmax gauranees an ordering
-  wirings.insert(a>b ? std::pair<Wireable*,Wireable*>(a,b) : std::pair<Wireable*,Wireable*>(b,a));
+  connections.insert(connect);
+}
+
+void ModuleDef::wire(WirePath pathA, WirePath pathB) {
+  Wireable* curA = this->sel(pathA.first);
+  Wireable* curB = this->sel(pathB.first);
+  for (auto str : pathA.second) curA = curA->sel(str);
+  for (auto str : pathB.second) curB = curB->sel(str);
+  this->wire(curA,curB);
+}
+
+
+Wireable* ModuleDef::sel(string s) { 
+  if (s=="self") return interface;
+  else return instances[s]; 
 }
 
 ///////////////////////////////////////////////////////////
@@ -166,29 +180,31 @@ Select* Wireable::sel(string selStr) {
     //e.fatal();
     getContext()->error(e);
   }
-  Select* child = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
-  children.emplace(selStr,child);
-  return child;
+  Select* select = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
+  selects.emplace(selStr,select);
+  return select;
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
-std::pair<Wireable*,vector<string>> Wireable::serialize() {
-  Wireable* port = this;
+WirePath Wireable::getPath() {
+  Wireable* top = this;
   vector<string> path;
-  while(port->isKind(SEL)) {
-    Select* s = (Select*) port;
+  while(top->isKind(SEL)) {
+    Select* s = (Select*) top;
     path.insert(path.begin(), s->getSelStr());
-    port = s->getParent();
+    top = s->getParent();
   }
-  return {port, path};
+  if (top->isKind(IFACE)) return {"self",path};
+  string instname = ((Instance*) top)->getInstname();
+  return {instname, path};
 }
 
 
 
 string Interface::toString() const{
-  return moduledef->getName();
+  return "self";
 }
 
 string Instance::toString() const {

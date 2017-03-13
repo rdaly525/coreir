@@ -32,9 +32,6 @@ Namespace* Context::newNamespace(string name) {
 }
 
 Namespace* Context::getNamespace(string name) {
-  for (auto it : libs) {
-    
-  }
   auto it = libs.find(name);
   if (it == libs.end()) {
     Error e;

@@ -15,6 +15,7 @@
 //}
 
 
+
 size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
   size_t hash = 0;
   for (auto it : genargs.args) {
@@ -24,6 +25,7 @@ size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
       case GSTRING : {
         string arg_s = ((GenString*) arg)->str;
         hash_combine(hash,arg_s);
+        cout << "HERE";
         break;
       }
       case GINT : {
@@ -43,43 +45,6 @@ size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
   return hash;
 }
 
-//bool operator<(GenArgs l, GenArgs r) {
-//  if (l.len != r.len) return l.len < r.len;
-//  for (uint i=0; i< l.len; i++) {
-//    if (l[i]->kind != r[i]->kind) return l[i]->kind < r[i]->kind;
-//    GenArg* gl = l[i];
-//    GenArg* gr = r[i];
-//    switch(l[i]->kind) {
-//      case GSTRING : {
-//        string gls = ((GenString*) gl)->str;
-//        string grs = ((GenString*) gr)->str;
-//        if (gls!=grs) return gls < grs;
-//        break;
-//      }
-//      case GINT : {
-//        int gli = ((GenInt*) gl)->i;
-//        int gri = ((GenInt*) gr)->i;
-//        if (gli!=gri) return gli < gri;
-//        break;
-//      }
-//      case GTYPE : {
-//        Type* glt = ((GenType*) gl)->t;
-//        Type* grt = ((GenType*) gr)->t;
-//        if (glt!=grt) return glt < grt;
-//        break;
-//      }
-//      default :
-//        cout << "FUCK" << endl;
-//        assert(false);
-//    }
-//
-//  }
-//  assert(l==r);
-//  return false;
-//
-//}
-
-// TODO should just overload the == of each GenArg
 
 GenArg* GenArgs::operator[](const string s) const {
   auto elem = args.find(s);
@@ -92,6 +57,7 @@ GenArg* GenArgs::operator[](const string s) const {
   return elem->second;
 }
 
+// TODO should just overload the == of each GenArg
 bool GenArgs::GenArgEq(GenArg* a, GenArg* b) {
   if (a->kind == b->kind) {
     switch(a->kind) {

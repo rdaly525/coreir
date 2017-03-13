@@ -51,6 +51,7 @@ class Context {
     bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(string name);
+    bool hasNamespace(string name) { return libs.count(name) > 0; }
     Namespace* getNamespace(string s);
 
     Type* Any();
@@ -80,7 +81,8 @@ class Context {
 
 };
 
-Module* loadModule(Context* c, string filename);
+Module* loadModule(Context* c, string filename, bool* err);
+void saveModule(Module* c, string filename, bool* err);
 
 Context* newContext();
 void deleteContext(Context* m);

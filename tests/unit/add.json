@@ -1,0 +1,325 @@
+{
+   "namespaces": {
+      "_G": {
+         "generators": null,
+         "modules": {
+            "Add4": {
+               "configparamters": null,
+               "def": {
+                  "connections": [
+                     [
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add01",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add1",
+                              [
+                                 "in1"
+                              ]
+                           ]
+                        },
+                        {
+                           "_testing": "metadata"
+                        }
+                     ],
+                     [
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add00",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add1",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        {
+                           "_testing": "metadata"
+                        }
+                     ],
+                     [
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "0"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add00",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        {
+                           "_testing": "metadata"
+                        }
+                     ],
+                     [
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add1",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "self",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "_testing": "metadata"
+                        }
+                     ],
+                     [
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "3"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add01",
+                              [
+                                 "in1"
+                              ]
+                           ]
+                        },
+                        {
+                           "_testing": "metadata"
+                        }
+                     ],
+                     [
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "2"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add01",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        {
+                           "_testing": "metadata"
+                        }
+                     ],
+                     [
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "1"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": {
+                              "_testing": "metadata"
+                           },
+                           "path": [
+                              "add00",
+                              [
+                                 "in1"
+                              ]
+                           ]
+                        },
+                        {
+                           "_testing": "metadata"
+                        }
+                     ]
+                  ],
+                  "implementations": {
+                     "_testing": "metadata"
+                  },
+                  "instances": {
+                     "add00": {
+                        "args": "None",
+                        "instref": [
+                           "_G",
+                           "add2_32"
+                        ],
+                        "metadata": {
+                           "_testing": "metadata"
+                        }
+                     },
+                     "add01": {
+                        "args": "None",
+                        "instref": [
+                           "_G",
+                           "add2_32"
+                        ],
+                        "metadata": {
+                           "_testing": "metadata"
+                        }
+                     },
+                     "add1": {
+                        "args": "None",
+                        "instref": [
+                           "_G",
+                           "add2_32"
+                        ],
+                        "metadata": {
+                           "_testing": "metadata"
+                        }
+                     }
+                  },
+                  "metadata": {
+                     "_testing": "metadata"
+                  }
+               },
+               "metadata": {
+                  "_testing": "metadata"
+               },
+               "type": [
+                  "Record",
+                  [
+                     [
+                        "in",
+                        [
+                           "Array",
+                           4,
+                           [
+                              "Array",
+                              32,
+                              [
+                                 "BitIn"
+                              ]
+                           ]
+                        ]
+                     ],
+                     [
+                        "out",
+                        [
+                           "Array",
+                           32,
+                           [
+                              "BitOut"
+                           ]
+                        ]
+                     ]
+                  ]
+               ]
+            },
+            "add2_32": {
+               "configparamters": null,
+               "def": "None",
+               "metadata": {
+                  "_testing": "metadata"
+               },
+               "type": [
+                  "Record",
+                  [
+                     [
+                        "in0",
+                        [
+                           "Array",
+                           32,
+                           [
+                              "BitIn"
+                           ]
+                        ]
+                     ],
+                     [
+                        "in1",
+                        [
+                           "Array",
+                           32,
+                           [
+                              "BitIn"
+                           ]
+                        ]
+                     ],
+                     [
+                        "out",
+                        [
+                           "Array",
+                           32,
+                           [
+                              "BitOut"
+                           ]
+                        ]
+                     ]
+                  ]
+               ]
+            }
+         }
+      }
+   },
+   "top": [
+      "_G",
+      "Add4"
+   ]
+}

@@ -1,10 +1,21 @@
-struct Metadata {
-  MetadataKind kind;
-  Metadata(MetadataKind kind) : kind(kind) {}
-  bool isKind(MetadataKind k) {return k==kind;}
-}
+#ifndef METADATA_HPP_
+#define METADATA_HPP_
 
-struct VerilogMetadata {
-  string verilog;
-  VerilogMetadata(string verilog) : verilog(verilog), Metadata(VERILOG) {}
-}
+#include <unordered_map>
+#include "common.hpp"
+#include "json.hpp"
+
+using json = nlohmann::json;
+using namespace std;
+
+struct Metadata {
+  unordered_map<string,string> metadata;
+  Metadata() { metadata["_testing"] = "metadata";}
+  Metadata(string file,uint line) {
+    metadata["file"] = file;
+    metadata["line"] = to_string(line); // TODO
+  }
+  json toJson();
+};
+
+#endif // METADATA_HPP_

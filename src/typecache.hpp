@@ -1,7 +1,7 @@
 #ifndef TYPECACHE_HPP_
 #define TYPECACHE_HPP_
 
-#include <map>
+#include <unordered_map>
 #include "types.hpp"
 #include "common.hpp"
 #include "context.hpp"

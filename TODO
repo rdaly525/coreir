@@ -1,33 +1,79 @@
-///////////////////////////////////////
-James TODO
-Get Travis passing by using gentest and typetest.
-Add testing infrasturcture. Separate tests into individual directories with their own builds.
-Sort out the testing makefiles
+Known Bugs
+  ID: 1
+  Description: 
+    Python test segfaults on Savefile call.  segfaults in Python but not in C++
+    Should write an equivelent C test to check if bug is in python or C
+  Person: Lenny
+  
+  ID: 2
+  Description:
+    Valgrind complains of unitialized values on ModuleDef.wire() (specifically connections.insert)
+    Probably has something to do with copy constructor semantics. does not cause noticeable failures... yet
+  Person: Ross
 
-Primitives TODO:
--Add generators for constants
--And Multiply 
 
+Lenny TODO
+  Add Following functions to C interface and Python interface
+    ModuleDef.getInstances() // Note, I have changed this to a map of instname ->Instance
+    ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
+    Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
+    Wireable ModuleDef.sel(strings) // Can get either 'self' (inteface) or instances by name
+    Wireable Wireable.sel(string s) // Get Other wireables 
+    Wireable.getPath() // gets a string 'path' from instancename/self to wireable
 
+  Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
+
+  We need to figure out how to nicely pass errors to python
+  Right now I store all errors in the context.
+  I can check if I have an error with c.hasError(), and print with c.printErrors()
+  Right now I was thinking of just passing an err Bool* to check, and if you want the error message, you call c->printErrors(). 
+  I could definitely be persuaded on a different way. 
+
+  (Lower priority)
+  I want to have file names and line numbers for the C/Python API. This might be a tad annoying to add them back to all the C function calls, but I think there is a way in python to dynamically get this info
+
+//////////////////////////////
 Ross TODO
 
-Finish Json Reader and Writer
-Have a test that actually writes out a file, and reads it back in
+Fix Bug 2
+
+Create a consistent error framework. Think about adding throw/catch in cpp api. Would be super nice for invalid arguments and such
+
+Reader/Writer
+  Reader Does not do any generators yet.
+  Writer Does not do any typegen stuff yet.
+
+Config
+  Augment function calls/constructors to actually do configs
+
+Metadata
+  Augment function calls/constructors to use metadata
 
 Get Verilog codegen working again
 
+
+Think about renaming TypeGen and TypeGenInst to NamedType
+Have Type associated with TypeGenInst which is like a cache
+
 When instantiating generators, if the typegen function exists, run it
-and cache the type in the typegenInst
+and cache the type in the typegenInst. Does this mean I need a 'strip' function?
 
 When Generating Modules, prepend lib name in front of module name
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
 
-Metadata
-Add metadata basically to everywhere
+change makefile to work with Clang
 
 Add stream operator to Error so I can do
   Error e;
   e << "blah" << type << blah
 
 Should check for cases of modules instantiated in its own module. We dont want module "recursion"
+
+Primitives TODO:
+  Add generators for constants
+  Multiply
+  PE
+  GPIO
+
+

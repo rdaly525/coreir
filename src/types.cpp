@@ -19,14 +19,17 @@ std::ostream& operator<<(ostream& os, const Type& t) {
 
 string RecordType::toString(void) const {
   string ret = "{";
-  for(map<string,Type*>::const_iterator it=record.begin(); it!=record.end(); ++it) {
-    ret += "'" + it->first + "':" + it->second->toString();
-    ret += (it == --record.end()) ? "}" : ", ";
+  uint len = record.size();
+  uint i=0;
+  for(auto sel : _order) {
+    ret += "'" + sel + "':" + record.at(sel)->toString();
+    ret += (i==len-1) ? "}" : ", ";
+    ++i;
   }
   return ret;
 }
 TypeGenType::TypeGenType(TypeGen* def, GenArgs* args) : Type(TYPEGEN), def(def), args(args) {
-  assert(args->checkKinds(def->argkinds));
+  assert(args->checkParams(def->genparams));
 }
 
 bool AnyType::sel(Context* c, string sel, Type** ret, Error* e) {
@@ -46,8 +49,8 @@ bool ArrayType::sel(Context* c, string sel, Type** ret, Error* e) {
     e->message("  Type: " + toString());
     return true;
   }
-  int i = stoi(sel);
-  if (i <0 || i >= len ) {
+  uint i = stoi(sel);
+  if(i >= len ) {
     e->message("Index out of bounds for Array");
     e->message("  Required range: [0," + to_string(len-1) + "]");
     e->message("  Idx: " + sel);

@@ -1,5 +1,6 @@
 .SUFFIXES:
 
+
 CORECONFIG ?= g++
 
 ifeq ($(CORECONFIG),g++)
@@ -10,14 +11,16 @@ ifeq ($(CORECONFIG),g++-4.9)
 CXX = g++-4.9
 endif
 
-#CXX = clang++
-CFLAGS = -std=c++11  -Wall  -fPIC
+CXXFLAGS = -std=c++11  -Wall  -fPIC 
+
+ifdef COREDEBUG
+CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
+endif
 
 INCS = -I../libs -I.
-DEPS = common.hpp types.hpp typecache.hpp context.hpp 
+DEPS = common.hpp types.hpp typecache.hpp context.hpp instantiable.hpp 
 SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,../build/%.o,$(SRCFILES))
-BUILD = build
 
 all: ../build/coreir.a $(OBJS)
 
@@ -37,4 +40,4 @@ clean:
 	$(CXX) -dynamiclib -o $@ $^
 
 ../build/%.o: %.cpp $(DEPS)
-	$(CXX) $(CFLAGS) $(INCS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

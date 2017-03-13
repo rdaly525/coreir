@@ -4,7 +4,7 @@
 #include "context.hpp"
 
 //Type boptype
-Module* add2(Context* c, Type* t, GenArgs* args, ArgKinds argkinds) {
+Module* add2(Context* c, Type* t, GenArgs* args, GenParams argkinds) {
   int n = c->toInt((*args)["w"]);
   Module* m = c->getGlobal()->newModuleDecl("add2_"+to_string(n),t);
   string verilog = "NYI add2";

@@ -1,9 +1,6 @@
 #ifndef ENUMS_HPP_
 #define ENUMS_HPP_
 
-// Figure out easy file/line debug
-#define DEBUGINFO __FILE__ << ":" << __LINE__
-
 #include <stdint.h>
 #include <iostream>
 #include <vector>
@@ -14,7 +11,7 @@ using namespace std;
 typedef uint32_t uint;
 
 typedef enum {BITIN, BITOUT,ARRAY,RECORD,ANY,TYPEGEN} TypeKind;
-typedef enum {GSTRING,GINT,GTYPE} ArgKind;
+typedef enum {GSTRING,GINT,GTYPE} GenParam;
 
 typedef enum {MOD,GEN} InstantiableKind;
 typedef enum {IFACE,INST,SEL} WireableKind;
@@ -28,13 +25,12 @@ struct GenInt;
 struct GenString;
 struct GenType;
 struct GenArgs;
-typedef unordered_map<string,ArgKind> ArgKinds;
-typedef unordered_map<string,string> Metadata;
+typedef unordered_map<string,GenParam> GenParams;
 
-template<class T1, class T2>
 
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
 // Use myPair for hashing
+template<class T1, class T2>
 struct myPair {
   T1 first;
   T2 second;
@@ -46,7 +42,7 @@ struct myPair {
 
 //Types.hpp
 class Type;
-typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, ArgKinds argkinds);
+typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, GenParams genparams);
 struct TypeGen;
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
@@ -57,7 +53,7 @@ class Instantiable;
 class Module;
 class ModuleDef;
 class Generator;
-typedef Module* (*genFun)(Context*,Type*,GenArgs*,ArgKinds);
+typedef Module* (*genFun)(Context*,Type*,GenArgs*,GenParams);
 
 class Wireable;
 class SelCache;
@@ -67,6 +63,11 @@ class Instance;
 class Select;
 typedef std::pair<Wireable*,Wireable*> Wiring ;
 
+typedef std::pair<string,vector<string>> WirePath;
+
+
+
+
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
 template <class T> 
@@ -74,7 +75,6 @@ inline void hash_combine(size_t& seed, const T& v) {
   std::hash<T> hasher;
   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
-
 namespace std {
   //slow
   template <class T1, class T2>
@@ -100,8 +100,8 @@ namespace std {
 //These are defined in helpers
 bool isNumber(string s);
 string TypeKind2Str(TypeKind t);
-string ArgKind2Str(ArgKind);
-string ArgKinds2Str(ArgKinds);
+string GenParam2Str(GenParam);
+string GenParams2Str(GenParams);
 string wireableKind2Str(WireableKind wb);
 
 

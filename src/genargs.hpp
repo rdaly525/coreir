@@ -5,14 +5,15 @@
 #include "types.hpp"
 #include "common.hpp"
 #include <cassert>
-//#include <unordered_map>
+#include "json.hpp"
 
+using json = nlohmann::json;
 using namespace std;
 
-//struct ArgKinds {
-//  unordered_map<string,ArgKind> dict;
-//  ArgKinds(unordered_map<string,ArgKind> dict) : dict(dict) {}
-//  ArgKind operator[](const string& key) {
+//struct GenParams {
+//  unordered_map<string,GenParam> dict;
+//  GenParams(unordered_map<string,GenParam> dict) : dict(dict) {}
+//  GenParam operator[](const string& key) {
 //    //What should I do if this is not valid?
 //    return dict[key];
 //  }
@@ -20,24 +21,28 @@ using namespace std;
 
 struct GenArg {
   virtual ~GenArg() {}
-  ArgKind kind;
-  GenArg(ArgKind kind) : kind(kind) {}
-  bool isKind(ArgKind k) { return kind==k; }
+  GenParam kind;
+  GenArg(GenParam kind) : kind(kind) {}
+  bool isKind(GenParam k) { return kind==k; }
+  virtual json toJson()=0;
 };
 
 struct GenString : GenArg {
   string str;
   GenString(string str) : GenArg(GSTRING), str(str) {}
+  json toJson();
 };
 
 struct GenInt : GenArg {
   int i;
   GenInt(int i) : GenArg(GINT), i(i) {}
+  json toJson();
 };
 
 struct GenType : GenArg {
   Type* t;
   GenType(Type* t) : GenArg(GTYPE), t(t) {}
+  json toJson();
 };
 
 
@@ -57,11 +62,14 @@ struct GenArgs {
   Context* c;
   unordered_map<string,GenArg*> args;
   GenArgs(Context* c, unordered_map<string,GenArg*> args) : c(c), args(args) {}
-
+  json toJson();
   GenArg* operator[](const string s) const;
+  void print() {
+    for (auto arg : args) cout << " Arg: " << arg.first << endl;
+  }
   bool GenArgEq(GenArg* a, GenArg* b);
 
-  bool checkKinds(ArgKinds kinds) {
+  bool checkParams(GenParams kinds) {
     if (args.size() != kinds.size()) return false;
     for (auto field : args) {
       auto kind = kinds.find(field.first);
