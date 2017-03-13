@@ -1,5 +1,6 @@
 dist: trusty
 language: c
+sudo: false
 
 addons:
   apt:
@@ -15,8 +16,8 @@ before_install:
   - make -C src
   - make -C src ../build/coreir.so  # For bindings tests
   - make -C tests
-  - sudo pip install pytest
-  - sudo pip install -e bindings/python
+  - pip install pytest
+  - pip install -e bindings/python
 
 script:
   - cd tests
