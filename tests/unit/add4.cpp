@@ -5,7 +5,6 @@
 
 // Libraries
 #include "stdlib.hpp"
-#include "stdlib_v1.hpp"
 
 //Compiler Passes
 #include "passes.hpp"
@@ -56,10 +55,10 @@ int main() {
   if (typecheck(c,add4_n)) c->die();
   
   // Link v1 of library
-  cout << "Linking stdlib!" << endl;
-  Namespace* stdlib_v1 = getStdlib_v1(c);
-  cout << "Linking!";
-  c->linkLib(stdlib_v1, stdlib);
+  //cout << "Linking stdlib!" << endl;
+  //Namespace* stdlib_v1 = getStdlib_v1(c);
+  //cout << "Linking!";
+  //c->linkLib(stdlib_v1, stdlib);
  
   cout << "Checkign Errors 2" << endl;
   c->checkerrors();

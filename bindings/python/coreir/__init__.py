@@ -218,10 +218,11 @@ class Context:
         assert isinstance(length, int)
         return Type(coreir_lib.COREArray(self.context, length, typ.ptr))
 
-    def ModuleFromFile(self, file_name):
+    def load_from_file(self, file_name):
         err = ct.c_bool(False)
         m = coreir_lib.CORELoadModule(
                 self.context, ct.c_char_p(str.encode(file_name)),ct.byref(err))
+        assert not err.value
         return Module(m)
  
     def Record(self, fields):

@@ -1,6 +1,10 @@
 import coreir
 import ctypes as ct
 
+
+#def main():
+#  test_save_module()
+
 def test_save_module():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
@@ -26,6 +30,7 @@ def test_save_module():
     module_def.wire(output, add8_out)
     module.add_definition(module_def)
     module.save_to_file("python_test_output.json")
+    c.load_from_file("python_test_output.json")
 
 
 def test_module_def_get_instances():
@@ -76,6 +81,9 @@ def test_module_def_get_connections():
     connections = module_def.get_connections()
     for conn in connections:
         print(conn.first, conn.second)
+
+#if __name__ == "__main__":
+#  main()
 
 # def test():
 #     c = coreir.Context()
