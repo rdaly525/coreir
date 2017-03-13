@@ -14,8 +14,8 @@ Known Bugs
 
 Lenny TODO
   Add Following functions to C interface and Python interface
-    ModuleDef.getInstances() // Note, I have changed this to a map of instname ->Instance
-    ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
+    DONE ModuleDef.getInstances() // Note, I have changed this to a map of instname ->Instance
+    DONE ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
     Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
     Wireable ModuleDef.sel(strings) // Can get either 'self' (inteface) or instances by name
     Wireable Wireable.sel(string s) // Get Other wireables 
