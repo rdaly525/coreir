@@ -65,7 +65,7 @@ extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWi
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
 extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances);
-extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
+// extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
 extern COREWireable* COREConnectionGetFirst(COREConnection* connection);
 extern COREWireable* COREConnectionGetSecond(COREConnection* connection);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
