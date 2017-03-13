@@ -29,6 +29,7 @@ def test_save_module():
     module_def.wire(output, add8_out)
     module.add_definition(module_def)
     module.save_to_file("python_test_output.json")
+    c.load_from_file("python_test_output.json")
 
 #if __name__ == "__main__":
 #  main()
