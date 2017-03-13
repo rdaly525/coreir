@@ -142,22 +142,22 @@ coreir_lib.COREInstanceSelect.restype = CORESelect_p
 coreir_lib.COREPrintModuleDef.argtypes = [COREModuleDef_p]
 
 coreir_lib.COREConnectionGetFirst.argtypes = [COREConnection_p]
-coreir_lib.COREConnectionGetFirst.restyp = COREWireable_p
+coreir_lib.COREConnectionGetFirst.restype = COREWireable_p
 
 coreir_lib.COREConnectionGetSecond.argtypes = [COREConnection_p]
-coreir_lib.COREConnectionGetSecond.restyp = COREWireable_p
+coreir_lib.COREConnectionGetSecond.restype = COREWireable_p
 
 coreir_lib.COREWireableGetConnectedWireables.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREWireableGetConnectedWireables.restype = ct.POINTER(COREWireable_p)
 
 coreir_lib.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
-coreir_lib.COREWireableSelect.restyp = CORESelect_p
+coreir_lib.COREWireableSelect.restype = CORESelect_p
 
 coreir_lib.COREModuleDefSelect.argtypes = [COREModuleDef_p, ct.c_char_p]
-coreir_lib.COREModuleDefSelect.restyp = CORESelect_p
+coreir_lib.COREModuleDefSelect.restype = CORESelect_p
 
 # coreir_lib.CORESelectGetParent.argtypes = [CORESelect_p]
-# coreir_lib.CORESelectGetParent.restyp = COREWireable_p
+# coreir_lib.CORESelectGetParent.restype = COREWireable_p
 
 
 class CoreIRType:

@@ -57,6 +57,24 @@ def test_module_def_get_instances():
         assert pointer in pointers_expected
         pointers_expected.remove(pointer)
 
+def test_module_def_select():
+    c = coreir.Context()
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+    module = c.G.Module("multiply_by_2", module_typ)
+    # module.print()
+    module_def = module.new_definition()
+    add8 = c.G.Module("add8",
+        c.Record({
+            "in1": c.Array(8, c.BitIn()),
+            "in2": c.Array(8, c.BitIn()),
+            "out": c.Array(9, c.BitOut())
+        })
+    )
+    interface = module_def.get_interface()
+    assert get_pointer_addr(interface.ptr) == get_pointer_addr(module_def.select("self").ptr)
+    add8_inst = module_def.add_instance_module("adder", add8)
+    add8_inst_select = module_def.select("adder")
+    assert get_pointer_addr(add8_inst.ptr) == get_pointer_addr(add8_inst_select.ptr)
 
 # def test_module_def_get_connections():
 #     c = coreir.Context()

@@ -19,9 +19,9 @@ Lenny TODO
     DONE ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
         TODO test
     DONE Wireable.getConnectedWireables() //Get all the Wireables, which this Wireable is connected to (only 1 if no fanout)
-        TODO test 
+        DONE test 
     Done Wireable ModuleDef.sel(strings) // Can get either 'self' (inteface) or instances by name
-        TODO test 
+        DONE test 
     Done Wireable Wireable.sel(string s) // Get Other wireables 
         TODO test 
     TODO Wireable.getPath() // gets a string 'path' from instancename/self to wireable
