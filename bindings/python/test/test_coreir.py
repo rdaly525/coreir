@@ -50,7 +50,7 @@ def test_module_def_get_instances():
         pointers_expected.remove(pointer)
 
 
-def test_module_def_get_wires():
+def test_module_def_get_connections():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
     module = c.G.Module("multiply_by_2", module_typ)
@@ -73,8 +73,8 @@ def test_module_def_get_wires():
     module_def.wire(_input, add8_in1)
     module_def.wire(_input, add8_in2)
     module_def.wire(output, add8_out)
-    wires = module_def.get_wires()
-    print(wires)
+    connections = module_def.get_connections()
+    print(connections)
 
 # def test():
 #     c = coreir.Context()

@@ -14,7 +14,7 @@ typedef struct COREInstance COREInstance;
 typedef struct COREInterface COREInterface;
 typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
-typedef struct COREWiring COREWiring;
+typedef struct COREConnection COREConnection;
 
 
 
@@ -48,7 +48,7 @@ extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWi
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
 extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances);
-extern COREWiring* COREModuleDefGetWires(COREModuleDef* m, int* numWires);
+extern COREConnection* COREModuleDefGetWires(COREModuleDef* m, int* numWires);
 
 /*
 //Module stuff

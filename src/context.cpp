@@ -18,7 +18,7 @@ Context::~Context() {
   for (auto it : recordParamsList) delete it;
   for (auto it : libs) delete it.second;
   for (auto it : instanceArrays) free(it);
-  for (auto it : wiringArrays) free(it);
+  for (auto it : connectionArrays) free(it);
  
   delete cache;
 }
@@ -108,9 +108,9 @@ Instance** Context::newInstanceArray(int size) {
   return arr;
 }
 
-Wiring* Context::newWiringArray(int size) {
-  Wiring* arr = (Wiring*) malloc(sizeof(Wiring) * size);
-  wiringArrays.push_back(arr);
+Connection* Context::newConnectionArray(int size) {
+  Connection* arr = (Connection*) malloc(sizeof(Connection) * size);
+  connectionArrays.push_back(arr);
   return arr;
 }
 

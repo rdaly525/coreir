@@ -61,9 +61,9 @@ class Wireable;
 class Interface;
 class Instance;
 class Select;
-typedef std::pair<Wireable*,Wireable*> Wiring ;
 
 typedef std::pair<string,vector<string>> WirePath;
+struct Connection;
 
 
 

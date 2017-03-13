@@ -102,32 +102,32 @@ extern "C" {
 
   COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances) {
     ModuleDef* module_def = rcast<ModuleDef*>(m);
-    std::set<Instance*> instance_set = module_def->getInstances();
+    unordered_map<string,Instance*> instance_set = module_def->getInstances();
     Context* context = module_def->getContext();
     int size = instance_set.size();
     *numInstances = size;
     Instance** arr = context->newInstanceArray(size);
     int count = 0;
     for (auto it : instance_set) {
-      arr[count] = it;
+      arr[count] = it.second;
       count++;
     }
     return rcast<COREInstance**>(arr);
   }
 
-  COREWiring* COREModuleDefGetWires(COREModuleDef* m, int* numWires) {
+  COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
     ModuleDef* module_def = rcast<ModuleDef*>(m);
-    std::set<Wiring> wire_set = module_def->getWires();
+    unordered_set<Connection> connection_set = module_def->getConnections();
     Context* context = module_def->getContext();
-    int size = wire_set.size();
-    *numWires = size;
-    Wiring* arr = context->newWiringArray(size);
+    int size = connection_set.size();
+    *numConnections = size;
+    Connection* arr = context->newConnectionArray(size);
     int count = 0;
-    for (auto it : wire_set) {
-      arr[count] = it;
+    for (auto it : connection_set) {
+      memcpy(&arr[count], &it, sizeof(Connection));
       count++;
     }
-    return rcast<COREWiring*>(arr);
+    return rcast<COREConnection*>(arr);
   }
 
 }

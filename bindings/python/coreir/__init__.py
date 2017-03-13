@@ -33,7 +33,7 @@ COREInstance_p = ct.POINTER(EmptyStruct)
 COREInterface_p = ct.POINTER(EmptyStruct)
 CORESelect_p = ct.POINTER(EmptyStruct)
 COREWireable_p = ct.POINTER(EmptyStruct)
-COREWiring = EmptyStruct
+COREConnection = EmptyStruct
 
 coreir_lib = load_shared_lib()
 
@@ -89,8 +89,8 @@ coreir_lib.COREModuleDefGetInterface.restype = COREInterface_p
 coreir_lib.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREModuleDefGetInstances.restype = ct.POINTER(COREInstance_p)
 
-coreir_lib.COREModuleDefGetWires.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
-coreir_lib.COREModuleDefGetWires.restype = ct.POINTER(COREWiring)
+coreir_lib.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection)
 
 coreir_lib.COREModuleDefWire.argtypes = [COREModuleDef_p, COREWireable_p, COREWireable_p]
 
@@ -122,7 +122,7 @@ class Interface(CoreIRType):
         return Select(coreir_lib.COREInterfaceSelect(self.ptr, str.encode(field)))
 
 
-class Wiring(CoreIRType):
+class Connection(CoreIRType):
     pass
 
 
@@ -144,10 +144,10 @@ class ModuleDef(CoreIRType):
         result = coreir_lib.COREModuleDefGetInstances(self.ptr, ct.byref(size))
         return [Instance(result[i]) for i in range(size.value)]
 
-    def get_wires(self):
+    def get_connections(self):
         size = ct.c_int()
-        result = coreir_lib.COREModuleDefGetWires(self.ptr, ct.byref(size))
-        return [Wiring(result[i]) for i in range(size.value)]
+        result = coreir_lib.COREModuleDefGetConnections(self.ptr, ct.byref(size))
+        return [Connection(result[i]) for i in range(size.value)]
 
     def wire(self, a, b):
         coreir_lib.COREModuleDefWire(self.ptr, a.ptr, b.ptr)
