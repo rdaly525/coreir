@@ -64,19 +64,21 @@ int main() {
   cout << "Checkign Errors 2" << endl;
   c->checkerrors();
   //stdlib->print();
+  rungenerators(c,add4_n);
+  add4_n->print();
+  cout << "Typechecking!" << endl;
+  if (typecheck(c,add4_n)) c->die();
+ 
+  
   bool err = false;
-  saveModule(add4_n, "add4.json",&err);
+  saveModule(add4_n, "_add4.json",&err);
   if (err) {
     cout << "Could not save to json!!" << endl;
     deleteContext(c);
     return 1;
   }
   
-  rungenerators(c,add4_n);
   
-  add4_n->print();
-  cout << "Typechecking!" << endl;
-  if (typecheck(c,add4_n)) c->die();
   deleteContext(c);
   
   return 0;

@@ -57,6 +57,9 @@ class Namespace {
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);
+    Instantiable* getInstantiable(string name);
+    bool hasModule(string mname) { return mList.count(mname) > 0; }
+    bool hasInstantiable(string iname) { return mList.count(iname) > 0 || gList.count(iname) > 0; }
     
     Module* runGenerator(Generator* g, GenArgs* ga);
     json toJson();

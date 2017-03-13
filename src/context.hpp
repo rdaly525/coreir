@@ -49,6 +49,7 @@ class Context {
     bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(string name);
+    bool hasNamespace(string name) { return libs.count(name) > 0; }
     Namespace* getNamespace(string s);
 
     Type* Any();

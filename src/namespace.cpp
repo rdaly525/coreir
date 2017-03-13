@@ -63,9 +63,7 @@ Generator* Namespace::newGeneratorDecl(string name, GenParams kinds, TypeGen* tg
   return g;
 }
 
-//TODO do not overide hash<>
 Module* Namespace::newModuleDecl(string name, Type* t) {
-  cout << "new mod!" << name << endl;
   Module* m = new Module(this,name,t);
   mList.emplace(name,m);
   return m;
@@ -75,7 +73,7 @@ Generator* Namespace::getGenerator(string gname) {
   auto it = gList.find(gname);
   if (it != gList.end()) return it->second;
   Error e;
-  e.message("Could not find Generator in library!");
+  e.message("Could not find Generator in namespace!");
   e.message("  Generator: " + gname);
   e.message("  Namespace: " + name);
   e.fatal();
@@ -86,13 +84,27 @@ Module* Namespace::getModule(string mname) {
   auto it = mList.find(mname);
   if (it != mList.end()) return it->second;
   Error e;
-  e.message("Could not find Module in library!");
+  e.message("Could not find Module in namespace!");
   e.message("  Module: " + mname);
   e.message("  Namespace: " + name);
   e.fatal();
   c->error(e);
   return nullptr;
 }
+
+Instantiable* Namespace::getInstantiable(string iname) {
+  if (mList.count(iname) > 0) return mList.at(iname);
+  if (gList.count(iname) > 0) return gList.at(iname);
+  Error e;
+  e.message("Could not find Instance in library!");
+  e.message("  Instance: " + iname);
+  e.message("  Namespace: " + name);
+  e.fatal();
+  c->error(e);
+  return nullptr;
+}
+
+
 void Namespace::print() {
   cout << "Namespace: " << name << endl;
   cout << "  Generators:" << endl;
@@ -104,6 +116,7 @@ Module* Namespace::runGenerator(Generator* g, GenArgs* ga) {
   GenCacheParams gcp(g,ga);
   auto it = genCache.find(gcp);
   if (it != genCache.end()) return it->second;
+  cout << "Did not find in cache. Actualy running generator" << endl;
   TypeGen* tg = g->getTypeGen();
   
   //Run the typegen first

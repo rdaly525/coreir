@@ -151,6 +151,15 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   connections.insert(connect);
 }
 
+void ModuleDef::wire(WirePath pathA, WirePath pathB) {
+  Wireable* curA = this->sel(pathA.first);
+  Wireable* curB = this->sel(pathB.first);
+  for (auto str : pathA.second) curA = curA->sel(str);
+  for (auto str : pathB.second) curB = curB->sel(str);
+  this->wire(curA,curB);
+}
+
+
 Wireable* ModuleDef::sel(string s) { 
   if (s=="self") return interface;
   else return instances[s]; 
@@ -179,7 +188,7 @@ Select* Wireable::sel(string selStr) {
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
-std::pair<string,vector<string>> Wireable::getPath() {
+WirePath Wireable::getPath() {
   Wireable* top = this;
   vector<string> path;
   while(top->isKind(SEL)) {

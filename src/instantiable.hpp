@@ -157,6 +157,7 @@ class ModuleDef {
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);
     void wire(Wireable* a, Wireable* b);
+    void wire(WirePath a, WirePath b);
     json toJson();
     
 };
@@ -190,7 +191,7 @@ class Wireable {
     // Convinience function
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,{a,b,0}}
-    std::pair<string,vector<string>> getPath();
+    WirePath getPath();
 
 };
 

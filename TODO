@@ -35,11 +35,13 @@ Lenny TODO
 //////////////////////////////
 Ross TODO
 
-Change Travis language to C
+Fix Bug 2
 
+Create a consistent error framework. Think about adding throw/catch in cpp api. Would be super nice for invalid arguments and such
 
-Finish Json Reader and Writer
-Create a test that actually writes out a file, and reads it back in.
+Reader/Writer
+  Reader Does not do any generators yet.
+  Writer Does not do any typegen stuff yet.
 
 Config
   Augment function calls/constructors to actually do configs

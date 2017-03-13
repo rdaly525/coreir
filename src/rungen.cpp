@@ -87,13 +87,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
 
   //Add all the connections to the new module def
   for (auto connection : mdef->getConnections() ) {
-    std::pair<string,vector<string>> pathA = connection.first->getPath();
-    std::pair<string,vector<string>> pathB = connection.second->getPath();
-    Wireable* curA = newDef->sel(pathA.first);
-    Wireable* curB = newDef->sel(pathB.first);
-    for (auto str : pathA.second) curA = curA->sel(str);
-    for (auto str : pathB.second) curB = curB->sel(str);
-    newDef->wire(curA,curB);
+    newDef->wire(connection.first->getPath(),connection.second->getPath());
   }
   
   //Replace the module definition with this new one

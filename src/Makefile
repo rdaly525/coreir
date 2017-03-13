@@ -14,7 +14,7 @@ endif
 CXXFLAGS = -std=c++11  -Wall  -fPIC 
 
 ifdef COREDEBUG
-CXXFLAGS += -g -D_GLIBCXX_DEBUG
+CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
 endif
 
 INCS = -I../libs -I.

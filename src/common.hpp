@@ -27,10 +27,10 @@ struct GenType;
 struct GenArgs;
 typedef unordered_map<string,GenParam> GenParams;
 
-template<class T1, class T2>
 
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
 // Use myPair for hashing
+template<class T1, class T2>
 struct myPair {
   T1 first;
   T2 second;
@@ -62,6 +62,11 @@ class Interface;
 class Instance;
 class Select;
 
+typedef std::pair<string,vector<string>> WirePath;
+
+
+
+
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
 template <class T> 
@@ -69,7 +74,6 @@ inline void hash_combine(size_t& seed, const T& v) {
   std::hash<T> hasher;
   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
-
 namespace std {
   //slow
   template <class T1, class T2>

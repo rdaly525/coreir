@@ -17,7 +17,7 @@ CFLAGS = -Wall -fPIC
 
 
 ifdef COREDEBUG
-CXXFLAGS += -g -D_GLIBCXX_DEBUG
+CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
 endif
 
 
@@ -41,8 +41,8 @@ all: $(EXES)
 #	make -C $(SRCDIR)
 #	make cpptest.run
 #	make ctest.run
-#	make add4.run
-#	make jsontest.run
+#	make build/add4
+#	make build/jsontest
 #	make gentest.run
 #	make typetest.run
 
