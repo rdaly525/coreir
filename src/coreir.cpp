@@ -98,4 +98,34 @@ extern "C" {
     rcast<ModuleDef*>(module_def)->print();
   }
 
+  COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances) {
+    ModuleDef* module_def = rcast<ModuleDef*>(m);
+    set<Instance*> instance_set = module_def->getInstances();
+    Context* context = module_def->getContext();
+    int size = instance_set.size();
+    *numInstances = size;
+    Instance** arr = context->newInstanceArray(size);
+    int count = 0;
+    for (auto it : instance_set) {
+      arr[count] = it;
+      count++;
+    }
+    return rcast<COREInstance**>(arr);
+  }
+
+  COREWiring* COREModuleDefGetWires(COREModuleDef* m, int* numWires) {
+    ModuleDef* module_def = rcast<ModuleDef*>(m);
+    set<Wiring> wire_set = module_def->getWires();
+    Context* context = module_def->getContext();
+    int size = wire_set.size();
+    *numWires = size;
+    Wiring* arr = context->newWiringArray(size);
+    int count = 0;
+    for (auto it : wire_set) {
+      arr[count] = it;
+      count++;
+    }
+    return rcast<COREWiring*>(arr);
+  }
+
 }

@@ -65,6 +65,7 @@ class Wireable;
 class Interface;
 class Instance;
 class Select;
+typedef std::pair<Wireable*,Wireable*> Wiring ;
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online

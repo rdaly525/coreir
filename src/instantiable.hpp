@@ -88,7 +88,6 @@ class Module : public Instantiable {
     void addVerilog(string _v) {verilog = _v;}
 };
 
-typedef std::pair<Wireable*,Wireable*> Wiring ;
 class ModuleDef {
   
   protected:

@@ -23,6 +23,8 @@ class Context {
   vector<GenArg*> genargList;
   vector<GenArgs*> genargsList;
   vector<RecordParams*> recordParamsList;
+  vector<Instance**> instanceArrays;
+  vector<Wiring*> wiringArrays;
 
   public :
     Context();
@@ -59,6 +61,9 @@ class Context {
     Type* TypeGenInst(TypeGen* tgd, GenArgs* args);
 
     RecordParams* newRecordParams();
+    Instance** newInstanceArray(int size);
+    Wiring* newWiringArray(int size);
+
 
     GenArg* GInt(int i);
     GenArg* GString(string s);
