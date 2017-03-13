@@ -109,6 +109,15 @@ coreir_lib.COREConnectionGetFirst.restyp = COREWireable_p
 coreir_lib.COREConnectionGetSecond.argtypes = [COREConnection_p]
 coreir_lib.COREConnectionGetSecond.restyp = COREWireable_p
 
+coreir_lib.COREWireableGetConnectedWireables.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREWireableGetConnectedWireables.restype = ct.POINTER(COREWireable_p)
+
+coreir_lib.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
+coreir_lib.COREWireableSelect.restyp = CORESelect_p
+
+coreir_lib.COREModuleDefSelect.argtypes = [COREModuleDef_p, ct.c_char_p]
+coreir_lib.COREModuleDefSelect.restyp = CORESelect_p
+
 
 class CoreIRType:
     def __init__(self, ptr):
@@ -125,7 +134,13 @@ class Select(CoreIRType):
 
 
 class Wireable(CoreIRType):
-    pass
+    def get_connected_wireables(self):
+        size = ct.c_int()
+        result = coreir_lib.COREWireableGetConnectedWireables(self.ptr, ct.byref(size))
+        return [Wireable(result[i]) for i in range(size.value)]
+
+    def select(self, field):
+        return Select(coreir_lib.COREWireableSelect(self.ptr, str.encode(field)))
 
 
 class Interface(CoreIRType):
@@ -168,6 +183,9 @@ class ModuleDef(CoreIRType):
 
     def wire(self, a, b):
         coreir_lib.COREModuleDefWire(self.ptr, a.ptr, b.ptr)
+
+    def select(self, field):
+        return Wireable(coreir_lib.COREModuleDefSelect(self.ptr, str.encode(field)))
 
     def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintModuleDef(self.ptr)
