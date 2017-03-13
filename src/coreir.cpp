@@ -102,7 +102,7 @@ extern "C" {
 
   COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances) {
     ModuleDef* module_def = rcast<ModuleDef*>(m);
-    set<Instance*> instance_set = module_def->getInstances();
+    std::set<Instance*> instance_set = module_def->getInstances();
     Context* context = module_def->getContext();
     int size = instance_set.size();
     *numInstances = size;
@@ -117,7 +117,7 @@ extern "C" {
 
   COREWiring* COREModuleDefGetWires(COREModuleDef* m, int* numWires) {
     ModuleDef* module_def = rcast<ModuleDef*>(m);
-    set<Wiring> wire_set = module_def->getWires();
+    std::set<Wiring> wire_set = module_def->getWires();
     Context* context = module_def->getContext();
     int size = wire_set.size();
     *numWires = size;
