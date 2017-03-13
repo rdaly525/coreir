@@ -28,21 +28,38 @@ extern COREType* COREBitOut(COREContext* CORE);
 extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
 
 extern CORERecordParam* CORENewRecordParam(COREContext* context);
+
+//Check Errors
 extern void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type);
 extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param);
 
 extern void COREPrintType(COREType* t);
 
-//err is a boolean flag 
+//Errors:
 extern COREModule* CORELoadModule(COREContext* c, char* filename, bool* err);
+
+//Errors:
+//  Cannot open file for writing
 extern void CORESaveModule(COREModule* module, char* filename, bool* err);
 
 extern CORENamespace* COREGetGlobal(COREContext* c);
+
+//Errors:
+//  Invalid arg: Module name already exists
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type);
+
+
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
+
+//Errors:
+//  Invalid arg: instance name already exists
 extern COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module);
 extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
+
+//Errors:
+//  Wire Error;
+//  Typechecking errors
 extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
