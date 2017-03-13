@@ -74,7 +74,8 @@ def test_module_def_get_connections():
     module_def.wire(_input, add8_in2)
     module_def.wire(output, add8_out)
     connections = module_def.get_connections()
-    print(connections)
+    for conn in connections:
+        print(conn.first, conn.second)
 
 # def test():
 #     c = coreir.Context()

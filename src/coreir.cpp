@@ -130,4 +130,40 @@ extern "C" {
     return rcast<COREConnection*>(arr);
   }
 
+  COREWireable* COREConnectionGetFirst(COREConnection* connection) {
+    return rcast<COREWireable*>(rcast<Connection*>(connection)->first);
+  }
+
+  COREWireable* COREConnectionGetSecond(COREConnection* connection) {
+    return rcast<COREWireable*>(rcast<Connection*>(connection)->second);
+  }
+
+  COREWireable** COREWireableGetConnectedWireables(COREWireable* w, int* numWireables) {
+    Wireable* wireable = rcast<Wireable*>(w);
+    unordered_set<Wireable*> connections_set = wireable->getConnectedWireables();
+    Context* context = wireable->getContext();
+    int size = connections_set.size();
+    *numWireables = size;
+    Wireable** arr = context->newWireableArray(size);
+    int count = 0;
+    for (auto it : connections_set) {
+      arr[count] = it;
+      count++;
+    }
+    return rcast<COREWireable**>(arr);
+  }
+
+  CORESelect* COREWireableSelect(COREWireable* w, char* name) {
+    return rcast<CORESelect*>(rcast<Wireable*>(w)->sel(string(name)));
+  }
+
+  COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
+  }
+
+  // char*** COREWireableGetWirePath(COREWireable* w) {
+  //   WirePath path = rcast<Wireable*>(w)->getPath();
+  //   return rcast<COREWirePath>();
+  // }
+
 }

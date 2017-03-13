@@ -34,6 +34,7 @@ COREInterface_p = ct.POINTER(EmptyStruct)
 CORESelect_p = ct.POINTER(EmptyStruct)
 COREWireable_p = ct.POINTER(EmptyStruct)
 COREConnection = EmptyStruct
+COREConnection_p = ct.POINTER(COREConnection)
 
 coreir_lib = load_shared_lib()
 
@@ -102,6 +103,12 @@ coreir_lib.COREInstanceSelect.restype = CORESelect_p
 
 coreir_lib.COREPrintModuleDef.argtypes = [COREModuleDef_p]
 
+coreir_lib.COREConnectionGetFirst.argtypes = [COREConnection_p]
+coreir_lib.COREConnectionGetFirst.restyp = COREWireable_p
+
+coreir_lib.COREConnectionGetSecond.argtypes = [COREConnection_p]
+coreir_lib.COREConnectionGetSecond.restyp = COREWireable_p
+
 
 class CoreIRType:
     def __init__(self, ptr):
@@ -117,13 +124,23 @@ class Select(CoreIRType):
     pass
 
 
+class Wireable(CoreIRType):
+    pass
+
+
 class Interface(CoreIRType):
     def select(self, field):
         return Select(coreir_lib.COREInterfaceSelect(self.ptr, str.encode(field)))
 
 
 class Connection(CoreIRType):
-    pass
+    @property
+    def first(self):
+        return Wireable(coreir_lib.COREConnectionGetFirst(COREConnection_p(self.ptr)))
+
+    @property
+    def second(self):
+        return Wireable(coreir_lib.COREConnectionGetSecond(COREContext_p(self.ptr)))
 
 
 class Instance(CoreIRType):

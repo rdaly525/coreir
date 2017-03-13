@@ -25,6 +25,7 @@ class Context {
   vector<RecordParams*> recordParamsList;
   vector<Instance**> instanceArrays;
   vector<Connection*> connectionArrays;
+  vector<Wireable**> wireableArrays;
 
   public :
     Context();
@@ -64,6 +65,7 @@ class Context {
     RecordParams* newRecordParams();
     Instance** newInstanceArray(int size);
     Connection* newConnectionArray(int size);
+    Wireable** newWireableArray(int size);
 
 
     GenArg* GInt(int i);
