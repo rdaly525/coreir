@@ -63,6 +63,7 @@ class Instance;
 class Select;
 
 typedef std::pair<string,vector<string>> WirePath;
+struct Connection;
 
 
 

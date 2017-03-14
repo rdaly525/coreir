@@ -19,20 +19,60 @@ def load_shared_lib():
 
     return cdll.LoadLibrary('{}/../../../build/coreir.{}'.format(dir_path, shared_lib_ext))
 
-class EmptyStruct(ct.Structure):
+class COREContext(ct.Structure):
     pass
 
-# Pointers to typedefs use an empty struct as a placeholder
-COREContext_p = ct.POINTER(EmptyStruct)
-CORENamespace_p = ct.POINTER(EmptyStruct)
-COREType_p = ct.POINTER(EmptyStruct)
-COREModule_p = ct.POINTER(EmptyStruct)
-COREModuleDef_p = ct.POINTER(EmptyStruct)
-CORERecordParam_p = ct.POINTER(EmptyStruct)
-COREInstance_p = ct.POINTER(EmptyStruct)
-COREInterface_p = ct.POINTER(EmptyStruct)
-CORESelect_p = ct.POINTER(EmptyStruct)
-COREWireable_p = ct.POINTER(EmptyStruct)
+COREContext_p = ct.POINTER(COREContext)
+
+class CORENamespace(ct.Structure):
+    pass
+
+CORENamespace_p = ct.POINTER(CORENamespace)
+
+class COREType(ct.Structure):
+    pass
+
+COREType_p = ct.POINTER(COREType)
+
+class COREModule(ct.Structure):
+    pass
+
+COREModule_p = ct.POINTER(COREModule)
+
+class COREModuleDef(ct.Structure):
+    pass
+
+COREModuleDef_p = ct.POINTER(COREModuleDef)
+
+class CORERecordParam(ct.Structure):
+    pass
+
+CORERecordParam_p = ct.POINTER(CORERecordParam)
+
+class COREInstance(ct.Structure):
+    pass
+
+COREInstance_p = ct.POINTER(COREInstance)
+
+class COREInterface(ct.Structure):
+    pass
+
+COREInterface_p = ct.POINTER(COREInterface)
+
+class COREWireable(ct.Structure):
+    pass
+
+COREWireable_p = ct.POINTER(COREWireable)
+
+class CORESelect(COREWireable):
+    pass
+
+CORESelect_p = ct.POINTER(CORESelect)
+
+class COREConnection(ct.Structure):
+    pass
+
+COREConnection_p = ct.POINTER(COREConnection)
 
 coreir_lib = load_shared_lib()
 
@@ -53,7 +93,7 @@ coreir_lib.COREArray.restype = COREType_p
 coreir_lib.CORENewRecordParam.argtypes = [COREContext_p]
 coreir_lib.CORENewRecordParam.restype = CORERecordParam_p
 
-coreir_lib.CORERecordParamAddField.argtypes = [COREContext_p, ct.c_char_p, COREType_p]
+coreir_lib.CORERecordParamAddField.argtypes = [CORERecordParam_p, ct.c_char_p, COREType_p]
 
 coreir_lib.CORERecord.argtypes = [COREContext_p, CORERecordParam_p]
 coreir_lib.CORERecord.restype = COREType_p
@@ -85,6 +125,12 @@ coreir_lib.COREModuleDefAddInstanceModule.restype = COREInstance_p
 coreir_lib.COREModuleDefGetInterface.argtypes = [COREModuleDef_p]
 coreir_lib.COREModuleDefGetInterface.restype = COREInterface_p
 
+coreir_lib.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREModuleDefGetInstances.restype = ct.POINTER(COREInstance_p)
+
+# coreir_lib.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
+# coreir_lib.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection_p)
+
 coreir_lib.COREModuleDefWire.argtypes = [COREModuleDef_p, COREWireable_p, COREWireable_p]
 
 coreir_lib.COREInterfaceSelect.argtypes = [COREInterface_p, ct.c_char_p]
@@ -94,6 +140,24 @@ coreir_lib.COREInstanceSelect.argtypes = [COREInstance_p, ct.c_char_p]
 coreir_lib.COREInstanceSelect.restype = CORESelect_p
 
 coreir_lib.COREPrintModuleDef.argtypes = [COREModuleDef_p]
+
+coreir_lib.COREConnectionGetFirst.argtypes = [COREConnection_p]
+coreir_lib.COREConnectionGetFirst.restype = COREWireable_p
+
+coreir_lib.COREConnectionGetSecond.argtypes = [COREConnection_p]
+coreir_lib.COREConnectionGetSecond.restype = COREWireable_p
+
+coreir_lib.COREWireableGetConnectedWireables.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREWireableGetConnectedWireables.restype = ct.POINTER(COREWireable_p)
+
+coreir_lib.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
+coreir_lib.COREWireableSelect.restype = CORESelect_p
+
+coreir_lib.COREModuleDefSelect.argtypes = [COREModuleDef_p, ct.c_char_p]
+coreir_lib.COREModuleDefSelect.restype = CORESelect_p
+
+# coreir_lib.CORESelectGetParent.argtypes = [CORESelect_p]
+# coreir_lib.CORESelectGetParent.restype = COREWireable_p
 
 
 class CoreIRType:
@@ -106,16 +170,41 @@ class Type(CoreIRType):
         coreir_lib.COREPrintType(self.ptr)
 
 
-class Select(CoreIRType):
+class Wireable(CoreIRType):
+    def get_connected_wireables(self):
+        size = ct.c_int()
+        result = coreir_lib.COREWireableGetConnectedWireables(self.ptr, ct.byref(size))
+        return [Wireable(result[i]) for i in range(size.value)]
+
+    def select(self, field):
+        return Select(coreir_lib.COREWireableSelect(self.ptr, str.encode(field)))
+
+
+class Select(Wireable):
     pass
+    # @property
+    # def parent(self):
+    #     return Wireable(coreir_lib.CORESelectGetParent(self.ptr))
 
-class Interface(CoreIRType):
+
+class Interface(Wireable):
     def select(self, field):
         return Select(coreir_lib.COREInterfaceSelect(self.ptr, str.encode(field)))
 
-class Instance(CoreIRType):
+
+class Connection(CoreIRType):
+    @property
+    def first(self):
+        return Wireable(coreir_lib.COREConnectionGetFirst(self.ptr))
+
+    @property
+    def second(self):
+        return Wireable(coreir_lib.COREConnectionGetSecond(self.ptr))
+
+
+class Instance(Wireable):
     def select(self, field):
-        return Select(coreir_lib.COREInterfaceSelect(self.ptr, str.encode(field)))
+        return Select(coreir_lib.COREInstanceSelect(self.ptr, str.encode(field)))
 
 
 class ModuleDef(CoreIRType):
@@ -126,8 +215,21 @@ class ModuleDef(CoreIRType):
     def get_interface(self):
         return Interface(coreir_lib.COREModuleDefGetInterface(self.ptr))
 
+    def get_instances(self):
+        size = ct.c_int()
+        result = coreir_lib.COREModuleDefGetInstances(self.ptr, ct.byref(size))
+        return [Instance(result[i]) for i in range(size.value)]
+
+    # def get_connections(self):
+    #     size = ct.c_int()
+    #     result = coreir_lib.COREModuleDefGetConnections(self.ptr, ct.byref(size))
+    #     return [Connection(result[i]) for i in range(size.value)]
+
     def wire(self, a, b):
         coreir_lib.COREModuleDefWire(self.ptr, a.ptr, b.ptr)
+
+    def select(self, field):
+        return Wireable(coreir_lib.COREModuleDefSelect(self.ptr, str.encode(field)))
 
     def print_(self):  # _ because print is a keyword in py2
         coreir_lib.COREPrintModuleDef(self.ptr)

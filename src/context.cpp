@@ -17,6 +17,9 @@ Context::~Context() {
   for (auto it : genargList) delete it;
   for (auto it : recordParamsList) delete it;
   for (auto it : libs) delete it.second;
+  for (auto it : instanceArrays) free(it);
+  // for (auto it : connectionArrays) free(it);
+  for (auto it : wireableArrays) free(it);
  
   delete cache;
 }
@@ -98,6 +101,24 @@ RecordParams* Context::newRecordParams() {
   RecordParams* record_param = new RecordParams();
   recordParamsList.push_back(record_param);
   return record_param;
+}
+
+Instance** Context::newInstanceArray(int size) {
+  Instance** arr = (Instance**) malloc(sizeof(Instance*) * size);
+  instanceArrays.push_back(arr);
+  return arr;
+}
+
+// Connection* Context::newConnectionArray(int size) {
+//   Connection* arr = (Connection*) malloc(sizeof(Connection) * size);
+//   connectionArrays.push_back(arr);
+//   return arr;
+// }
+
+Wireable** Context::newWireableArray(int size) {
+  Wireable** arr = (Wireable**) malloc(sizeof(Wireable*) * size);
+  wireableArrays.push_back(arr);
+  return arr;
 }
 
 GenArg* Context::GInt(int i) { 

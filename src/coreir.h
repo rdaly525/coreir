@@ -14,7 +14,8 @@ typedef struct COREInstance COREInstance;
 typedef struct COREInterface COREInterface;
 typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
-
+typedef struct COREConnection COREConnection;
+typedef struct COREWirePath COREWirePath;
 
 
 //Context COREreater/deleters
@@ -63,6 +64,14 @@ extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
 extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
+extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances);
+// extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
+extern COREWireable* COREConnectionGetFirst(COREConnection* connection);
+extern COREWireable* COREConnectionGetSecond(COREConnection* connection);
+extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
+extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
+extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
+// extern COREWirePath* COREWireableGetWirePath(COREWireable* w);
 
 /*
 //Module stuff
@@ -71,8 +80,6 @@ extern int COREModuleHasDef(COREModule* m);
 extern COREModuleDef* COREModuleGetDef(COREModule* m);
 
 // ModuleDef stuff
-extern COREInstance** COREGetInstances(COREModuleDef* m, uint* numInstances);
-extern COREWireablePair* COREGetWires(COREModuleDef* m, uint* numWires);
 
 //Wireable stuff
 extern COREWireable** COREGetConnections(COREWireable* w, uint* numConnections);
