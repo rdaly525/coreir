@@ -114,7 +114,7 @@ extern "C" {
 
   //Create GenArgs
   COREGenArgs* CORENewGenArgs(COREContext* c) {
-    GenArgs* gas = rcast<Context*>(c)->newGenArgs({{}});
+    GenArgs* gas = rcast<Context*>(c)->newGenArgs();
     return rcast<COREGenArgs*>(gas);
   }
   void COREGenArgsAddField(COREGenArgs* genargs, char* name, COREGenArg* genarg) {

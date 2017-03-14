@@ -155,7 +155,7 @@ GenParams json2GenParams(Context* c, json j) {
 
 GenArgs* json2GenArgs(Context* c, GenParams genparams, json j) {
   if (j.is_null()) return nullptr;
-  GenArgs* gargs = c->newGenArgs({});
+  GenArgs* gargs = c->newGenArgs();
   //TODO this following code should make sure there are the same number of key-value pairs
   for (auto pmap : genparams) {
     string key = pmap.first;
@@ -324,6 +324,7 @@ json params2Json(GenParams gp) {
 }
 
 json GenArgs::toJson() {
+  this->print();
   json j;
   for (auto it : args) j[it.first] = it.second->toJson();
   return j;

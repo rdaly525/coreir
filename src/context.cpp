@@ -153,6 +153,11 @@ GenArgs* Context::newGenArgs(unordered_map<string,GenArg*> args) {
   return ga;
 }
 
+GenArgs* Context::newGenArgs() {
+  GenArgs* ga = new GenArgs(this);
+  genargsList.push_back(ga);
+  return ga;
+}
 
 Context* newContext() {
   Context* m = new Context();
