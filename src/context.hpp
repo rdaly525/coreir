@@ -24,6 +24,10 @@ class Context {
   vector<GenArgs*> genargsList;
   vector<RecordParams*> recordParamsList;
   vector<GenParams*> genparamsList;
+  vector<Instance**> instanceArrays;
+  // vector<Connection*> connectionArrays;
+  vector<Wireable**> wireableArrays;
+
   public :
     Context();
     ~Context();
@@ -61,6 +65,10 @@ class Context {
 
     RecordParams* newRecordParams();
     GenParams* newGenParams();
+    
+    Instance** newInstanceArray(int size);
+    // Connection* newConnectionArray(int size);
+    Wireable** newWireableArray(int size);
 
     GenArg* GInt(int i);
     GenArg* GString(string s);
@@ -69,11 +77,8 @@ class Context {
     string toString(GenArg* g);
     Type* toType(GenArg* g);
     GenArgs* newGenArgs(unordered_map<string,GenArg*> args);   
-
   
     Type* Flip(Type* t);
-
-
 
 };
 

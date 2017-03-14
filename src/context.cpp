@@ -18,6 +18,9 @@ Context::~Context() {
   for (auto it : recordParamsList) delete it;
   for (auto it : genparamsList) delete it;
   for (auto it : libs) delete it.second;
+  for (auto it : instanceArrays) free(it);
+  // for (auto it : connectionArrays) free(it);
+  for (auto it : wireableArrays) free(it);
  
   delete cache;
 }
@@ -104,6 +107,24 @@ GenParams* Context::newGenParams() {
   GenParams* gp = new GenParams();
   genparamsList.push_back(gp);
   return gp;
+}
+
+Instance** Context::newInstanceArray(int size) {
+  Instance** arr = (Instance**) malloc(sizeof(Instance*) * size);
+  instanceArrays.push_back(arr);
+  return arr;
+}
+
+// Connection* Context::newConnectionArray(int size) {
+//   Connection* arr = (Connection*) malloc(sizeof(Connection) * size);
+//   connectionArrays.push_back(arr);
+//   return arr;
+// }
+
+Wireable** Context::newWireableArray(int size) {
+  Wireable** arr = (Wireable**) malloc(sizeof(Wireable*) * size);
+  wireableArrays.push_back(arr);
+  return arr;
 }
 
 GenArg* Context::GInt(int i) { 

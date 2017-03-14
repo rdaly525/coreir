@@ -8,7 +8,7 @@ int main() {
   CORENamespace* ns = COREGetGlobal(c);
   
   COREGenParams* cp = CORENewGenParams(c);
-  COREGenParamsAddField(cp,"lut_table",COREGINT);
+  COREGenParamsAddField(cp,"lut_table",0); //TODO how to do enums
   COREModule* lut4 = CORENewModule(ns,"LUT4",bitIn,cp);
   
   printf("J1\n");

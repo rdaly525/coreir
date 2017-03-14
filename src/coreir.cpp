@@ -107,9 +107,9 @@ extern "C" {
     GenParams* genparams = rcast<Context*>(c)->newGenParams(); 
     return rcast<COREGenParams*>(genparams);
   }
-  void COREGenParamsAddField(COREGenParams* genparams, char* name, COREGenParam genparam) {
+  void COREGenParamsAddField(COREGenParams* genparams, char* name, int genparam) {
     GenParams* gps = rcast<GenParams*>(genparams);
-    gps->emplace(std::string(name),(GenParam) genparam); //TODO a little sketch passing genparam to COREGenParam
+    gps->emplace(std::string(name),static_cast<GenParam>(genparam));
   }
 
   //Create GenArgs
@@ -131,5 +131,71 @@ extern "C" {
   void COREPrintErrors(COREContext* c) {
     rcast<Context*>(c)->printerrors();
   }
+
+  COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances) {
+    ModuleDef* module_def = rcast<ModuleDef*>(m);
+    unordered_map<string,Instance*> instance_set = module_def->getInstances();
+    Context* context = module_def->getContext();
+    int size = instance_set.size();
+    *numInstances = size;
+    Instance** arr = context->newInstanceArray(size);
+    int count = 0;
+    for (auto it : instance_set) {
+      arr[count] = it.second;
+      count++;
+    }
+    return rcast<COREInstance**>(arr);
+  }
+
+  // COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
+  //   ModuleDef* module_def = rcast<ModuleDef*>(m);
+  //   unordered_set<Connection> connection_set = module_def->getConnections();
+  //   Context* context = module_def->getContext();
+  //   int size = connection_set.size();
+  //   *numConnections = size;
+  //   Connection* arr = context->newConnectionArray(size);
+  //   int count = 0;
+  //   for (auto it : connection_set) {
+  //     memcpy(&arr[count], &it, sizeof(Connection));
+  //     count++;
+  //   }
+  //   return rcast<COREConnection*>(arr);
+  // }
+
+  COREWireable* COREConnectionGetFirst(COREConnection* connection) {
+    return rcast<COREWireable*>(rcast<Connection*>(connection)->first);
+  }
+
+  COREWireable* COREConnectionGetSecond(COREConnection* connection) {
+    return rcast<COREWireable*>(rcast<Connection*>(connection)->second);
+  }
+
+  COREWireable** COREWireableGetConnectedWireables(COREWireable* w, int* numWireables) {
+    Wireable* wireable = rcast<Wireable*>(w);
+    unordered_set<Wireable*> connections_set = wireable->getConnectedWireables();
+    Context* context = wireable->getContext();
+    int size = connections_set.size();
+    *numWireables = size;
+    Wireable** arr = context->newWireableArray(size);
+    int count = 0;
+    for (auto it : connections_set) {
+      arr[count] = it;
+      count++;
+    }
+    return rcast<COREWireable**>(arr);
+  }
+
+  CORESelect* COREWireableSelect(COREWireable* w, char* name) {
+    return rcast<CORESelect*>(rcast<Wireable*>(w)->sel(string(name)));
+  }
+
+  COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
+  }
+
+  // char*** COREWireableGetWirePath(COREWireable* w) {
+  //   WirePath path = rcast<Wireable*>(w)->getPath();
+  //   return rcast<COREWirePath>();
+  // }
 
 }

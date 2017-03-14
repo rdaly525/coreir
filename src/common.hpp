@@ -11,7 +11,7 @@ using namespace std;
 typedef uint32_t uint;
 
 typedef enum {BITIN, BITOUT,ARRAY,RECORD,ANY,TYPEGEN} TypeKind;
-typedef enum {GSTRING,GINT,GTYPE} GenParam;
+typedef enum {GINT=0,GSTRING=1,GTYPE=2} GenParam;
 
 typedef enum {MOD,GEN} InstantiableKind;
 typedef enum {IFACE,INST,SEL} WireableKind;
@@ -63,6 +63,7 @@ class Instance;
 class Select;
 
 typedef std::pair<string,vector<string>> WirePath;
+struct Connection;
 
 
 

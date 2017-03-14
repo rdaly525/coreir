@@ -18,7 +18,8 @@ typedef struct COREGenParams COREGenParams;
 typedef struct COREGenArgs COREGenArgs;
 typedef struct COREGenArg COREGenArg;
 
-typedef enum {COREGSTRING,COREGINT,COREGTYPE} COREGenParam;
+typedef struct COREConnection COREConnection;
+typedef struct COREWirePath COREWirePath;
 
 
 //Context COREreater/deleters
@@ -39,7 +40,7 @@ extern COREType* CORERecord(COREContext* c, CORERecordParam* record_param);
 
 //Create GenParams
 extern COREGenParams* CORENewGenParams(COREContext* c);
-extern void COREGenParamsAddField(COREGenParams* genparams, char* name, COREGenParam genparam);
+extern void COREGenParamsAddField(COREGenParams* genparams, char* name, int genparam);
 
 //Create GenArgs
 extern COREGenArgs* CORENewGenArgs(COREContext* c);
@@ -80,37 +81,13 @@ extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
 extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
-
+extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances);
+// extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
+extern COREWireable* COREConnectionGetFirst(COREConnection* connection);
+extern COREWireable* COREConnectionGetSecond(COREConnection* connection);
+extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
+extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
+extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
+// extern COREWirePath* COREWireableGetWirePath(COREWireable* w);
 
 extern void COREPrintErrors(COREContext* c);
-/*
-//Module stuff
-extern COREType* COREModuleGetType(COREModule* m);
-extern int COREModuleHasDef(COREModule* m);
-extern COREModuleDef* COREModuleGetDef(COREModule* m);
-
-// ModuleDef stuff
-extern COREInstance** COREGetInstances(COREModuleDef* m, uint* numInstances);
-extern COREWireablePair* COREGetWires(COREModuleDef* m, uint* numWires);
-
-//Wireable stuff
-extern COREWireable** COREGetConnections(COREWireable* w, uint* numConnections);
-extern COREStr2WireableMap* COREGetChildren(Wireable* w);
-
-typedef struct COREWireableSet COREWireableSet;
-
-//Maybe macrofy these
-typedef struct {
-  COREWireable* first;
-  COREWireable* second;
-} COREWireablePair;
-
-typedef struct COREStr2WireableMap;
-extern COREWireable* COREStr2WireableMapGet(COREStr2WireableMap* m, char* key);
-
-
-extern COREWireableSet* CORENewWireableSet();
-extern COREWireableSet* 
-
-
-*/
