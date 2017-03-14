@@ -76,8 +76,7 @@ class Context {
     int toInt(GenArg* g);
     string toString(GenArg* g);
     Type* toType(GenArg* g);
-    GenArgs* newGenArgs(unordered_map<string,GenArg*> args);   
-    GenArgs* newGenArgs();   
+    GenArgs* newGenArgs(unordered_map<string,GenArg*> args=unordered_map<string,GenArg*>());   
   
     Type* Flip(Type* t);
 

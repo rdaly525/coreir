@@ -58,7 +58,7 @@ TypeGen* Namespace::newTypeGen(string name, string nameFlipped, GenParams kinds,
 //}
 
 Generator* Namespace::newGeneratorDecl(string name, GenParams kinds, TypeGen* tg) {
-  Generator* g = new Generator(this,name,kinds,tg,{});
+  Generator* g = new Generator(this,name,kinds,tg);
   gList.emplace(name,g);
   return g;
 }

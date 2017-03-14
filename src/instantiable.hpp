@@ -62,7 +62,7 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   genFun genfun;
   public :
-    Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen, GenParams configparams);
+    Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen, GenParams configparams=GenParams());
     bool hasDef() const { return !!genfun; }
     string toString() const;
     json toJson();
