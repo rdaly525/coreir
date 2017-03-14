@@ -37,7 +37,7 @@ class Instantiable {
     Metadata metadata;
     GenParams configparams;
   public :
-    Instantiable(InstantiableKind kind, Namespace* ns, string name) : kind(kind), ns(ns), name(name) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, string name, GenParams configparams) : kind(kind), ns(ns), name(name), configparams(configparams) {}
     virtual ~Instantiable() {}
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
@@ -62,7 +62,7 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   genFun genfun;
   public :
-    Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen);
+    Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen, GenParams configparams);
     bool hasDef() const { return !!genfun; }
     string toString() const;
     json toJson();
@@ -82,7 +82,7 @@ class Module : public Instantiable {
   vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,string name, Type* type) : Instantiable(MOD,ns,name), type(type), def(nullptr) {}
+    Module(Namespace* ns,string name, Type* type,GenParams configparams) : Instantiable(MOD,ns,name,configparams), type(type), def(nullptr) {}
     ~Module();
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() { return def; } // TODO should probably throw error if does not exist
@@ -151,8 +151,8 @@ class ModuleDef {
     Type* getType() {return module->getType();}
     SelCache* getCache() { return cache;}
     Metadata getMetadata() { return metadata;}
-    Instance* addInstanceGenerator(string,Generator*, GenArgs*);
-    Instance* addInstanceModule(string,Module*);
+    Instance* addInstance(string,Generator*,GenArgs* genargs, GenArgs* config);
+    Instance* addInstance(string,Module*,GenArgs* config);
     Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);
@@ -212,13 +212,14 @@ class Instance : public Wireable {
   GenArgs* config;
   
   public :
-    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, GenArgs* genargs =nullptr)  : Wireable(INST,context,type), instname(instname), instRef(instRef), genargs(genargs) {}
+    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, GenArgs* genargs, GenArgs* config)  : Wireable(INST,context,type), instname(instname), instRef(instRef),genargs(genargs), config(config) {}
     string toString() const;
     json toJson();
     Instantiable* getInstRef() {return instRef;}
     string getInstname() { return instname; }
     GenArgs* getGenArgs() {return genargs;}
     GenArgs* getConfig() {return config;}
+    bool hasConfig() {return !!config;}
     //void replace(Instantiable* newRef) { instRef = newRef;}
     //Convinience functions
     bool isGen() { return instRef->isKind(GEN);}

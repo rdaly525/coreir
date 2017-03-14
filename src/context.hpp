@@ -23,7 +23,7 @@ class Context {
   vector<GenArg*> genargList;
   vector<GenArgs*> genargsList;
   vector<RecordParams*> recordParamsList;
-
+  vector<GenParams*> genparamsList;
   public :
     Context();
     ~Context();
@@ -60,6 +60,7 @@ class Context {
     Type* TypeGenInst(TypeGen* tgd, GenArgs* args);
 
     RecordParams* newRecordParams();
+    GenParams* newGenParams();
 
     GenArg* GInt(int i);
     GenArg* GString(string s);

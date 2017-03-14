@@ -62,6 +62,7 @@ struct GenArgs {
   Context* c;
   unordered_map<string,GenArg*> args;
   GenArgs(Context* c, unordered_map<string,GenArg*> args) : c(c), args(args) {}
+  void addField(string s, GenArg* arg) { args[s] = arg;}
   json toJson();
   GenArg* operator[](const string s) const;
   void print() {

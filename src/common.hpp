@@ -102,7 +102,7 @@ string TypeKind2Str(TypeKind t);
 string GenParam2Str(GenParam);
 string GenParams2Str(GenParams);
 string wireableKind2Str(WireableKind wb);
-
+GenParam Str2GenParam(string s);
 
 
 

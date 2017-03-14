@@ -34,6 +34,7 @@ COREInterface_p = ct.POINTER(EmptyStruct)
 CORESelect_p = ct.POINTER(EmptyStruct)
 COREWireable_p = ct.POINTER(EmptyStruct)
 
+
 coreir_lib = load_shared_lib()
 
 coreir_lib.CORENewContext.restype = COREContext_p

@@ -15,6 +15,9 @@ typedef unordered_map<string,json> jsonmap;
 using json = nlohmann::json;
 
 Type* json2Type(Context* c, json jt);
+GenArgs* json2GenArgs(Context* c, GenParams p, json j);
+GenParams json2GenParams(Context* c, json j);
+
 Instantiable* getSymbol(Context* c, string nsname, string iname);
 
 Module* loadModule(Context* c, string filename, bool* err) {
@@ -37,6 +40,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
     string topnsname = j.at("top").at(0);
     string topmodname = j.at("top").at(1);
     
+    //First load all the module declarations
+    vector<std::pair<Module*,json>> modqueue;
     //Get or create namespace
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
@@ -52,43 +57,48 @@ Module* loadModule(Context* c, string filename, bool* err) {
         //cout << "FOR mod: " << jmodname << endl;
         //cout << std::setw(1) << jmod;
         Type* t = json2Type(c,jmod.at("type"));
-        Module* m = ns->newModuleDecl(jmodname,t);
+        GenParams configparams = json2GenParams(c,jmod.at("configparams"));
+        Module* m = ns->newModuleDecl(jmodname,t,configparams);
+        modqueue.push_back({m,jmod});
+      }
+      //TODO Load Generators
+    }
+
+    //Now do all the ModuleDefinitions
+    for (auto mq : modqueue) {
+      Module* m = mq.first;
+      json jmod = mq.second;
+      // TODO Module metadata
+      json jdef = jmod.at("def");
+      if (jdef.is_null()) {
+        continue;
+      }
+      
+      ModuleDef* mdef = m->newModuleDef();
+      // TODO ModuleDef metadata
+      // TODO moduledef implementations
+      for (auto jinstmap : jdef.at("instances").get<jsonmap>()) {
+        string instname = jinstmap.first;
+        json jinst = jinstmap.second;
+        json jinstRef = jinst.at("instref");
         
-        // TODO Module metadata
-        // TODO Module configs
-        json jdef = jmod.at("def");
-        if (jdef.is_string()) {
-          assert(jdef.get<string>()=="None");
-          continue;
+        // This function can throw an error
+        Instantiable* instRef = getSymbol(c,jinstRef.at(0),jinstRef.at(1));
+        
+        GenArgs* config = json2GenArgs(c,instRef->getConfigParams(),jinst.at("config"));
+        //Assume that if there are args, it is a generator
+        if (jinst.at("args").is_null()) { // This is a module
+          assert(instRef->isKind(MOD));
+          mdef->addInstance(instname,(Module*) instRef,config);
         }
-        
-        ModuleDef* mdef = m->newModuleDef();
-        // TODO ModuleDef metadata
-        // TODO moduledef implementations
-        for (auto jinstmap : jdef.at("instances").get<jsonmap>()) {
-          //Instance* addInstanceGenerator(string,Generator*, GenArgs*);
-          //Instance* addInstanceModule(string,Module*);
-          //Instance* addInstance(Instance* i); //copys info about i
-          string instname = jinstmap.first;
-          json jinst = jinstmap.second;
-          json jinstRef = jinst.at("instref");
-          
-          // This function can throw an error
-          Instantiable* instRef = getSymbol(c,jinstRef.at(0),jinstRef.at(1));
-          
-          //Assume that if there are args, it is a generator
-          if (jinst.at("args").is_string()) { // This is a module
-            assert(jinst.at("args").get<string>()=="None");
-            assert(instRef->isKind(MOD));
-            mdef->addInstanceModule(instname,(Module*) instRef);
-          }
-          else { // This is a generator
-            cout << "NYI Generator instances: " << instname << endl;
-            assert(instRef->isKind(GEN));
-            assert(false);
-          }
-        } // End Instances
-        //Connections
+        else { // This is a generator
+          cout << "NYI Generator instances: " << instname << endl;
+          assert(instRef->isKind(GEN));
+          assert(false);
+        }
+      } // End Instances
+      //Connections
+      if (!jdef.at("connections").is_null()) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
           //TODO connection metadata
           json wA = jcon[0].get<jsonmap>();
@@ -102,13 +112,11 @@ Module* loadModule(Context* c, string filename, bool* err) {
           WirePath pathB = {jpairB[0].get<string>(),jpairB[1].get<vector<string>>()};
           mdef->wire(pathA,pathB);
         }
-        
-        //Add Def back in
-        m->addDef(mdef);
-      } //End Module loop
-      //Load Generators
-      //TODO
-    } // End Namespace loop
+      }
+      
+      //Add Def back in
+      m->addDef(mdef);
+    } //End Module loop
     
     //Reference Top
     Instantiable* topInst = getSymbol(c,topnsname,topmodname);
@@ -131,13 +139,38 @@ Instantiable* getSymbol(Context* c, string nsname, string iname) {
       return c->getNamespace(nsname)->getInstantiable(iname);
     }
   }
-  Error e;
-  e.message("Missing Symbol: " + nsname + "." + iname);
-  e.fatal();
-  c->error(e);
+  string msg = "Missing Symbol: " + nsname + "." + iname;
+  throw std::runtime_error(msg);
   return nullptr;
 }
 
+GenParams json2GenParams(Context* c, json j) {
+  GenParams g;
+  if (j.is_null()) return g;
+  for (auto jmap : j.get<jsonmap>()) {
+    g[jmap.first] = Str2GenParam(jmap.second.get<string>());
+  }
+  return g;
+}
+
+GenArgs* json2GenArgs(Context* c, GenParams genparams, json j) {
+  if (j.is_null()) return nullptr;
+  GenArgs* gargs = c->newGenArgs({});
+  //TODO this following code should make sure there are the same number of key-value pairs
+  for (auto pmap : genparams) {
+    string key = pmap.first;
+    GenParam kind = pmap.second;
+    GenArg* g;
+    switch(kind) {
+      case GINT : g = c->GInt(j.at(key).get<int>()); break;
+      case GSTRING : g = c->GString(j.at(key).get<string>()); break;
+      case GTYPE : g = c->GType(json2Type(c,j.at(key))); break;
+      default :  throw std::runtime_error(GenParam2Str(kind) + "is not a type!");
+    }
+    gargs->addField(key,g);
+  }
+  return gargs;
+}
 
 Type* json2Type(Context* c, json jt) {
   vector<json> args =jt.get<vector<json>>();
@@ -215,7 +248,7 @@ json Namespace::toJson() {
 
 json Instantiable::toJson() {
   return {
-    {"configparamters",params2Json(configparams)},
+    {"configparams",params2Json(configparams)},
     {"metadata",metadata.toJson()}
   };
 }
@@ -223,13 +256,13 @@ json Instantiable::toJson() {
 json Module::toJson() {
   json j = Instantiable::toJson();
   j["type"] = type->toJson();
-  j["def"] = hasDef() ? getDef()->toJson() : "None";
+  j["def"] = hasDef() ? getDef()->toJson() : json();
   return j;
 }
 
 json Generator::toJson() {
   json j = Instantiable::toJson();
-  j["genparamters"] = params2Json(genparams);
+  j["genparams"] = params2Json(genparams);
   j["typegen"] = "NYI";
   return j;
 }
@@ -269,13 +302,15 @@ json Wireable::toJson() {
 json Instance::toJson() {
   json j;
   j["instref"] = json::array({instRef->getNamespace()->getName(),instRef->getName()});
-  j["args"] = this->isGen() ? genargs->toJson() : "None";
+  j["args"] = this->isGen() ? genargs->toJson() : json();
+  j["config"] = this->hasConfig() ? this->getConfig()->toJson() : json();
   j["metadata"] = metadata.toJson();
   return j;
 }
 
 json Metadata::toJson() {
-  if (metadata.size()==0) return "None";
+  return json(); // TODO
+  //if (metadata.size()==0) return {};
   json j;
   for (auto it : metadata) j[it.first] = it.second;
   return j;
@@ -283,7 +318,7 @@ json Metadata::toJson() {
 
 //GenArgs
 json params2Json(GenParams gp) {
-  json j;
+  json j = {};
   for (auto it : gp) j[it.first] = GenParam2Str(it.second);
   return j;
 }

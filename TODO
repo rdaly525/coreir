@@ -35,16 +35,14 @@ Lenny TODO
 //////////////////////////////
 Ross TODO
 
-Fix Bug 2
+Config
+  Augment function calls/constructors to actually do configs
 
-Create a consistent error framework. Think about adding throw/catch in cpp api. Would be super nice for invalid arguments and such
 
 Reader/Writer
   Reader Does not do any generators yet.
   Writer Does not do any typegen stuff yet.
 
-Config
-  Augment function calls/constructors to actually do configs
 
 Metadata
   Augment function calls/constructors to use metadata

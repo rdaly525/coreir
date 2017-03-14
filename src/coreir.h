@@ -14,7 +14,11 @@ typedef struct COREInstance COREInstance;
 typedef struct COREInterface COREInterface;
 typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
+typedef struct COREGenParams COREGenParams;
+typedef struct COREGenArgs COREGenArgs;
+typedef struct COREGenArg COREGenArg;
 
+typedef enum {COREGSTRING,COREGINT,COREGTYPE} COREGenParam;
 
 
 //Context COREreater/deleters
@@ -27,11 +31,23 @@ extern COREType* COREBitIn(COREContext* CORE);
 extern COREType* COREBitOut(COREContext* CORE);
 extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
 
-extern CORERecordParam* CORENewRecordParam(COREContext* context);
-
+//Record Params
+extern CORERecordParam* CORENewRecordParam(COREContext* c);
 //Check Errors
 extern void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type);
-extern COREType* CORERecord(COREContext* context, CORERecordParam* record_param);
+extern COREType* CORERecord(COREContext* c, CORERecordParam* record_param);
+
+//Create GenParams
+extern COREGenParams* CORENewGenParams(COREContext* c);
+extern void COREGenParamsAddField(COREGenParams* genparams, char* name, COREGenParam genparam);
+
+//Create GenArgs
+extern COREGenArgs* CORENewGenArgs(COREContext* c);
+extern void COREGenArgsAddField(COREGenArgs* genargs, char* name, COREGenArg* genarg);
+
+//Create specific GenArg
+extern COREGenArg* COREGInt(COREContext* c,int i);
+
 
 extern void COREPrintType(COREType* t);
 
@@ -46,15 +62,16 @@ extern CORENamespace* COREGetGlobal(COREContext* c);
 
 //Errors:
 //  Invalid arg: Module name already exists
-extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type);
+extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, COREGenParams* configparams);
 
 
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
+void COREModuleAddDef(COREModule* module, COREModuleDef* module_def);
 
 //Errors:
 //  Invalid arg: instance name already exists
-extern COREInstance* COREModuleDefAddInstanceModule(COREModuleDef* module_def, char* name, COREModule* module);
+extern COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, COREGenArgs* config);
 extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
 
 //Errors:
@@ -64,6 +81,8 @@ extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWi
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
 
+
+extern void COREPrintErrors(COREContext* c);
 /*
 //Module stuff
 extern COREType* COREModuleGetType(COREModule* m);

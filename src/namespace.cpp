@@ -58,13 +58,14 @@ TypeGen* Namespace::newTypeGen(string name, string nameFlipped, GenParams kinds,
 //}
 
 Generator* Namespace::newGeneratorDecl(string name, GenParams kinds, TypeGen* tg) {
-  Generator* g = new Generator(this,name,kinds,tg);
+  Generator* g = new Generator(this,name,kinds,tg,{});
   gList.emplace(name,g);
   return g;
 }
 
-Module* Namespace::newModuleDecl(string name, Type* t) {
-  Module* m = new Module(this,name,t);
+Module* Namespace::newModuleDecl(string name, Type* t, GenParams configparams) {
+  for (auto it : configparams) cout << "P: " << it.first << GenParam2Str(it.second) << endl;
+  Module* m = new Module(this,name,t, configparams);
   mList.emplace(name,m);
   return m;
 }

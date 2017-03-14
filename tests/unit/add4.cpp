@@ -33,9 +33,9 @@ int main() {
   Module* add4_n = g->newModuleDecl("Add4",add4Type);
   ModuleDef* def = add4_n->newModuleDef();
     Wireable* self = def->sel("self");
-    Wireable* add_00 = def->addInstanceGenerator("add00",add2,c->newGenArgs({{"w",c->GInt(n)}}));
-    Wireable* add_01 = def->addInstanceGenerator("add01",add2,c->newGenArgs({{"w",c->GInt(n)}}));
-    Wireable* add_1 = def->addInstanceGenerator("add1",add2,c->newGenArgs({{"w",c->GInt(n)}}));
+    Wireable* add_00 = def->addInstance("add00",add2,c->newGenArgs({{"w",c->GInt(n)}}),nullptr);
+    Wireable* add_01 = def->addInstance("add01",add2,c->newGenArgs({{"w",c->GInt(n)}}),nullptr);
+    Wireable* add_1 = def->addInstance("add1",add2,c->newGenArgs({{"w",c->GInt(n)}}),nullptr);
     
     def->wire(self->sel("in")->sel(0),add_00->sel("in0"));
     //def->wire(self->sel("in")->sel(1)->sel(3),add_00->sel("in0")->sel(3));

@@ -49,7 +49,6 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
 
   // If there are no runnable generators, then we are done
   if (!hasgens) return false;
-
   // This means there are runnable generators;
   // I will need to construct a new moduleDef
   ModuleDef* newDef = m->newModuleDef();
@@ -80,7 +79,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
         runQueue.insert(mNew);
         
         //Create new instance and add to map
-        newDef->addInstanceModule(instname, mNew);
+        newDef->addInstance(instname, mNew,nullptr);
       }
     }
   }

@@ -53,7 +53,7 @@ class Namespace {
     }
     
     Generator* newGeneratorDecl(string name, GenParams kinds, TypeGen* tg);
-    Module* newModuleDecl(string name, Type* t);
+    Module* newModuleDecl(string name, Type* t,GenParams configparams=GenParams({}));
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);

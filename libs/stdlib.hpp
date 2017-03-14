@@ -32,7 +32,8 @@ Namespace* getStdlib(Context* c) {
   stdlib->newTypeGen("binop","binop_F",{{"w",GINT}},binop_type);
   
   //declare new add2 generator
-  stdlib->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
+  Generator* g = stdlib->newGeneratorDecl("add2",{{"w",GINT}},stdlib->getTypeGen("binop"));
+  g->addDef(add2);
   
   Type* binop16 = binop_type(c,c->newGenArgs({{"w",c->GInt(16)}}),{{"w",GINT}});
   stdlib->newModuleDecl("add2_16",binop16);

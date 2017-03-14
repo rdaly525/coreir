@@ -4,14 +4,33 @@
          "generators": null,
          "modules": {
             "Add4": {
-               "configparamters": null,
+               "configparams": null,
                "def": {
                   "connections": [
                      [
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
+                           "path": [
+                              "add1",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "self",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
                            "path": [
                               "add01",
                               [
@@ -20,9 +39,7 @@
                            ]
                         },
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
                            "path": [
                               "add1",
                               [
@@ -30,97 +47,11 @@
                               ]
                            ]
                         },
-                        {
-                           "_testing": "metadata"
-                        }
+                        null
                      ],
                      [
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
-                           "path": [
-                              "add00",
-                              [
-                                 "out"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
-                           "path": [
-                              "add1",
-                              [
-                                 "in0"
-                              ]
-                           ]
-                        },
-                        {
-                           "_testing": "metadata"
-                        }
-                     ],
-                     [
-                        {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
-                           "path": [
-                              "self",
-                              [
-                                 "in",
-                                 "0"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
-                           "path": [
-                              "add00",
-                              [
-                                 "in0"
-                              ]
-                           ]
-                        },
-                        {
-                           "_testing": "metadata"
-                        }
-                     ],
-                     [
-                        {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
-                           "path": [
-                              "add1",
-                              [
-                                 "out"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
-                           "path": [
-                              "self",
-                              [
-                                 "out"
-                              ]
-                           ]
-                        },
-                        {
-                           "_testing": "metadata"
-                        }
-                     ],
-                     [
-                        {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
                            "path": [
                               "self",
                               [
@@ -130,9 +61,7 @@
                            ]
                         },
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
                            "path": [
                               "add01",
                               [
@@ -140,15 +69,32 @@
                               ]
                            ]
                         },
-                        {
-                           "_testing": "metadata"
-                        }
+                        null
                      ],
                      [
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
+                           "path": [
+                              "add00",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add1",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
                            "path": [
                               "self",
                               [
@@ -158,9 +104,7 @@
                            ]
                         },
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
                            "path": [
                               "add01",
                               [
@@ -168,15 +112,11 @@
                               ]
                            ]
                         },
-                        {
-                           "_testing": "metadata"
-                        }
+                        null
                      ],
                      [
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
                            "path": [
                               "self",
                               [
@@ -186,9 +126,7 @@
                            ]
                         },
                         {
-                           "metadata": {
-                              "_testing": "metadata"
-                           },
+                           "metadata": null,
                            "path": [
                               "add00",
                               [
@@ -196,53 +134,64 @@
                               ]
                            ]
                         },
+                        null
+                     ],
+                     [
                         {
-                           "_testing": "metadata"
-                        }
+                           "metadata": null,
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "0"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add00",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        null
                      ]
                   ],
-                  "implementations": {
-                     "_testing": "metadata"
-                  },
+                  "implementations": null,
                   "instances": {
                      "add00": {
-                        "args": "None",
+                        "args": null,
+                        "config": null,
                         "instref": [
                            "_G",
                            "add2_32"
                         ],
-                        "metadata": {
-                           "_testing": "metadata"
-                        }
+                        "metadata": null
                      },
                      "add01": {
-                        "args": "None",
+                        "args": null,
+                        "config": null,
                         "instref": [
                            "_G",
                            "add2_32"
                         ],
-                        "metadata": {
-                           "_testing": "metadata"
-                        }
+                        "metadata": null
                      },
                      "add1": {
-                        "args": "None",
+                        "args": null,
+                        "config": null,
                         "instref": [
                            "_G",
                            "add2_32"
                         ],
-                        "metadata": {
-                           "_testing": "metadata"
-                        }
+                        "metadata": null
                      }
                   },
-                  "metadata": {
-                     "_testing": "metadata"
-                  }
+                  "metadata": null
                },
-               "metadata": {
-                  "_testing": "metadata"
-               },
+               "metadata": null,
                "type": [
                   "Record",
                   [
@@ -274,11 +223,9 @@
                ]
             },
             "add2_32": {
-               "configparamters": null,
-               "def": "None",
-               "metadata": {
-                  "_testing": "metadata"
-               },
+               "configparams": null,
+               "def": null,
+               "metadata": null,
                "type": [
                   "Record",
                   [

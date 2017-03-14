@@ -42,7 +42,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen) : Instantiable(GEN,ns,name), genparams(genparams), typegen(typegen), genfun(nullptr) {
+Generator::Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen, GenParams configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), genfun(nullptr) {
   //Verify that genparams are the same
   assert(genparams == typegen->genparams);
 }
@@ -102,27 +102,27 @@ void ModuleDef::print(void) {
   cout << endl;
 }
 
-Instance* ModuleDef::addInstanceGenerator(string instname,Generator* gen, GenArgs* args) {
+Instance* ModuleDef::addInstance(string instname,Generator* gen, GenArgs* args,GenArgs* config) {
   //Should this type be resolved? Just create a typeGenInst for now
   Context* c = gen->getContext();
   Type* type = c->TypeGenInst(gen->getTypeGen(),args);
   
-  Instance* inst = new Instance(this,instname,gen,type,args);
+  Instance* inst = new Instance(this,instname,gen,type,args,config);
   instances[instname] = inst;
   return inst;
 }
 
-Instance* ModuleDef::addInstanceModule(string instname,Module* m) {
-  Instance* inst = new Instance(this,instname,m,m->getType(),nullptr);
+Instance* ModuleDef::addInstance(string instname,Module* m,GenArgs* config) {
+  Instance* inst = new Instance(this,instname,m,m->getType(),nullptr,config);
   instances[instname] = inst;
   return inst;
 }
 
 Instance* ModuleDef::addInstance(Instance* i) {
   if( i->getInstRef()->isKind(MOD)) 
-    return addInstanceModule(i->getInstname(),(Module*) i->getInstRef());
+    return addInstance(i->getInstname(),(Module*) i->getInstRef(),i->getConfig());
   else 
-    return addInstanceGenerator(i->getInstname(),(Generator*) i->getInstRef(),i->getGenArgs());
+    return addInstance(i->getInstname(),(Generator*) i->getInstRef(),i->getConfig(),i->getGenArgs());
 }
 
 

@@ -16,6 +16,7 @@ Context::~Context() {
   for (auto it : genargsList) delete it;
   for (auto it : genargList) delete it;
   for (auto it : recordParamsList) delete it;
+  for (auto it : genparamsList) delete it;
   for (auto it : libs) delete it.second;
  
   delete cache;
@@ -98,6 +99,11 @@ RecordParams* Context::newRecordParams() {
   RecordParams* record_param = new RecordParams();
   recordParamsList.push_back(record_param);
   return record_param;
+}
+GenParams* Context::newGenParams() {
+  GenParams* gp = new GenParams();
+  genparamsList.push_back(gp);
+  return gp;
 }
 
 GenArg* Context::GInt(int i) { 

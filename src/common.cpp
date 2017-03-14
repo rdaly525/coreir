@@ -32,6 +32,12 @@ string GenParam2Str(GenParam genparam) {
     default : return "NYI";
   }
 }
+GenParam Str2GenParam(string s) {
+  if (s=="int") return GINT;
+  if (s=="string") return GSTRING;
+  if (s=="type") return GTYPE;
+  throw std::runtime_error("Cannot convert " + s + " to GenParam"); 
+}
 
 string GenParams2Str(GenParams genparams) {
   string ret = "(";
