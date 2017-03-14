@@ -15,9 +15,7 @@ Known Bugs
 Lenny TODO
   Add Following functions to C interface and Python interface
     DONE ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
-        TODO test
-    Done Wireable Wireable.sel(string s) // Get Other wireables 
-        TODO test 
+        TODO test (Blocked until Ross fleshes out problems with ModuleDef.connections)
     TODO Wireable.getPath() // gets a string 'path' from instancename/self to wireable
         TODO test 
 

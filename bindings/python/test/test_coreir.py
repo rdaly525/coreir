@@ -76,6 +76,36 @@ def test_module_def_select():
     add8_inst_select = module_def.select("adder")
     assert get_pointer_addr(add8_inst.ptr) == get_pointer_addr(add8_inst_select.ptr)
 
+def test_wireable():
+    c = coreir.Context()
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+    module = c.G.Module("multiply_by_2", module_typ)
+    # module.print()
+    module_def = module.new_definition()
+    add8 = c.G.Module("add8",
+        c.Record({
+            "in1": c.Array(8, c.BitIn()),
+            "in2": c.Array(8, c.BitIn()),
+            "out": c.Array(9, c.BitOut())
+        })
+    )
+    add8_inst = module_def.add_instance_module("adder", add8)
+    add8_in1 = add8_inst.select("in1")
+    add8_in2 = add8_inst.select("in2")
+    add8_out = add8_inst.select("out")
+    interface = module_def.get_interface()
+    _input = interface.select("input")
+    output = interface.select("output")
+    module_def.wire(_input, add8_in1)
+    module_def.wire(_input, add8_in2)
+    module_def.wire(output, add8_out)
+    actual = [get_pointer_addr(wireable.ptr) for wireable in _input.get_connected_wireables()]
+    assert get_pointer_addr(add8_in1.ptr) in actual
+    assert get_pointer_addr(add8_in2.ptr) in actual
+
+    wireable = module_def.select("self")
+    assert get_pointer_addr(wireable.select("input").ptr) == get_pointer_addr(_input.ptr)
+
 # def test_module_def_get_connections():
 #     c = coreir.Context()
 #     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
@@ -106,33 +136,6 @@ def test_module_def_select():
 #     for conn in connections:
 #         print(conn.first.ptr) 
 #         print(conn.second.ptr)
-
-def test_get_connected_wireables():
-    c = coreir.Context()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
-    module = c.G.Module("multiply_by_2", module_typ)
-    # module.print()
-    module_def = module.new_definition()
-    add8 = c.G.Module("add8",
-        c.Record({
-            "in1": c.Array(8, c.BitIn()),
-            "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.BitOut())
-        })
-    )
-    add8_inst = module_def.add_instance_module("adder", add8)
-    add8_in1 = add8_inst.select("in1")
-    add8_in2 = add8_inst.select("in2")
-    add8_out = add8_inst.select("out")
-    interface = module_def.get_interface()
-    _input = interface.select("input")
-    output = interface.select("output")
-    module_def.wire(_input, add8_in1)
-    module_def.wire(_input, add8_in2)
-    module_def.wire(output, add8_out)
-    actual = [get_pointer_addr(wireable.ptr) for wireable in _input.get_connected_wireables()]
-    assert get_pointer_addr(add8_in1.ptr) in actual
-    assert get_pointer_addr(add8_in2.ptr) in actual
 
 #if __name__ == "__main__":
 #  main()
