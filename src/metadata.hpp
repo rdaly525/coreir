@@ -8,6 +8,7 @@
 using json = nlohmann::json;
 using namespace std;
 
+namespace CoreIR {
 struct Metadata {
   unordered_map<string,string> metadata;
   Metadata() { metadata["_testing"] = "metadata";}
@@ -17,5 +18,7 @@ struct Metadata {
   }
   json toJson();
 };
+
+}//CoreIR namespace
 
 #endif // METADATA_HPP_

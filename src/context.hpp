@@ -11,6 +11,9 @@
 #include <vector>
 
 using namespace std;
+
+namespace CoreIR {
+
 class Context {
   Namespace* global;
   map<string,Namespace*> libs;
@@ -88,5 +91,6 @@ void saveModule(Module* c, string filename, bool* err);
 Context* newContext();
 void deleteContext(Context* m);
 
+} //CoreIR namespace
 
 #endif //CONTEXT_HPP_

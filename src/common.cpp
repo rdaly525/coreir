@@ -8,6 +8,7 @@
 //#include "typedcoreir.hpp"
 
 using namespace std;
+namespace CoreIR {
 
 bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
@@ -57,5 +58,7 @@ string wireableKind2Str(WireableKind wb) {
   }
   assert(false);
 }
+
+} //CoreIR namespace
 
 #endif //HELPERS_CPP_

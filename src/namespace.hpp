@@ -11,6 +11,8 @@
 using json = nlohmann::json;
 using namespace std;
 
+namespace CoreIR {
+
 struct GenCacheParams {
   Generator* g;
   GenArgs* ga;
@@ -67,5 +69,7 @@ class Namespace {
 };
 
 Namespace* newNamespace(Context* c,string name);
+
+}//CoreIR namespace
 
 #endif //NAMESPACE_HPP_

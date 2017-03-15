@@ -7,6 +7,7 @@
 
 using namespace std;
    
+namespace CoreIR {
 
 bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked);
 
@@ -134,5 +135,7 @@ bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked) {
   checked->insert(m);
   return err;
 }
+
+}//CoreIR namespace
 
 #endif //TYPECHECK_CPP_

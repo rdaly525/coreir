@@ -5,6 +5,8 @@
 
 using namespace std;
 
+namespace CoreIR {
+
 Context::Context() : maxErrors(3) {
   global = newNamespace("_G");
   cache = new TypeCache(this);
@@ -163,5 +165,6 @@ void deleteContext(Context* m) {
 }
 
 
+} //CoreIR namespace
 
 #endif //CONTEXT_CPP_

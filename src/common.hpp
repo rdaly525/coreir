@@ -9,6 +9,7 @@
 using namespace std;
 
 typedef uint32_t uint;
+namespace CoreIR {
 
 typedef enum {BITIN, BITOUT,ARRAY,RECORD,ANY,TYPEGEN} TypeKind;
 typedef enum {GINT=0,GSTRING=1,GTYPE=2} GenParam;
@@ -40,13 +41,8 @@ struct myPair {
   }
 };
 
-//Types.hpp
-namespace CoreIR {
-  class Type;
-  class Module;
-}
-using namespace CoreIR;
-
+class Type;
+class Module;
 typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, GenParams genparams);
 struct TypeGen;
 typedef vector<myPair<string,Type*>> RecordParams ;
@@ -55,7 +51,6 @@ class TypeCache;
 
 //instantiable.hpp
 class Instantiable;
-
 class ModuleDef;
 class Generator;
 typedef Module* (*genFun)(Context*,Type*,GenArgs*,GenParams);
@@ -80,27 +75,6 @@ inline void hash_combine(size_t& seed, const T& v) {
   std::hash<T> hasher;
   seed ^= hasher(v) + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
-namespace std {
-  //slow
-  template <class T1, class T2>
-  struct hash<myPair<T1,T2>> {
-    //template <class T1, class T2>
-    size_t operator() (const myPair<T1,T2>& p) const {
-      auto h1 = std::hash<T1>{}(p.first);
-      auto h2 = std::hash<T2>{}(p.second);
-      return h1 ^ (h2<<1);
-    }
-  };
-}
-//struct simfunctions_t {
-//  //void* iface,void* state,void* dirty,void* genargs)
-//  void (*updateOutput)(void*,void*,void*,GenArgs*);
-//  void* (*allocateState)(void);
-//  void (*updateState)(void*,void*,void*,GenArgs*);
-//  void (*deallocateState)(void*);
-//};
-
-
 
 //These are defined in helpers
 bool isNumber(string s);
@@ -110,6 +84,22 @@ string GenParams2Str(GenParams);
 string wireableKind2Str(WireableKind wb);
 GenParam Str2GenParam(string s);
 
+
+
+} //CoreIR namespace
+
+namespace std {
+  //slow
+  template <class T1, class T2>
+  struct hash<CoreIR::myPair<T1,T2>> {
+    //template <class T1, class T2>
+    size_t operator() (const CoreIR::myPair<T1,T2>& p) const {
+      auto h1 = std::hash<T1>{}(p.first);
+      auto h2 = std::hash<T2>{}(p.second);
+      return h1 ^ (h2<<1);
+    }
+  };
+}
 
 
 //TypedWire* castTypedWire(Wire* w);

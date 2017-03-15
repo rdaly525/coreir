@@ -4,6 +4,10 @@
 #include "typecache.hpp"
 
 using namespace std;
+
+namespace CoreIR {
+
+
 bool operator==(const TypeGenParams& l,const TypeGenParams& r) {
   return (l.tg==r.tg) && (*l.ga == *r.ga);
 }
@@ -93,6 +97,8 @@ Type* TypeCache::newTypeGenInst(TypeGen* tgd, GenArgs* args) {
     return t;
   }
 }
+
+}//CoreIR namespace
 
 
 #endif //TYPECACHE_CPP_

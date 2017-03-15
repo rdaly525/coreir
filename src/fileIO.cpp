@@ -9,6 +9,7 @@
 #include "namespace.hpp"
 #include <unordered_map>
 
+namespace CoreIR {
 
 typedef unordered_map<string,json> jsonmap;
 
@@ -332,5 +333,7 @@ json GenArgs::toJson() {
 json GenString::toJson() { return str; }
 json GenInt::toJson() { return i; }
 json GenType::toJson() { return t->toJson(); }
+
+}//CoreIR namespace
 
 #endif //FILEIO_CPP_

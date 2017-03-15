@@ -9,6 +9,18 @@
 
 using namespace std;
 
+
+size_t std::hash<CoreIR::Connection>::operator() (const CoreIR::Connection& c) const {
+  size_t hash;
+  hash_combine(hash,c.first);
+  hash_combine(hash,c.second);
+  return hash;
+}
+
+
+
+
+namespace CoreIR {
 ///////////////////////////////////////////////////////////
 //-------------------- Instantiable ---------------------//
 ///////////////////////////////////////////////////////////
@@ -243,5 +255,6 @@ Select* SelCache::newSelect(ModuleDef* context, Wireable* parent, string selStr,
   }
 }
 
+}//CoreIR namespace
 
 #endif //COREIR_CPP_

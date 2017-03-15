@@ -8,6 +8,7 @@
 
 using namespace std;
 
+namespace CoreIR {
 
 //RecordParams defined in types.hpp
 //typedef std::pair<TypeGen*,GenArgs*> TypeGenParams;
@@ -60,4 +61,8 @@ class TypeCache {
     Type* newRecord(RecordParams params);
     Type* newTypeGenInst(TypeGen* tgd, GenArgs* args);
 };
+
+}//CoreIR namespace
+
+
 #endif //TYPECACHE_HPP_

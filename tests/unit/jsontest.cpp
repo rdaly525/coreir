@@ -4,6 +4,8 @@
 #include <iostream>
 #include "stdlib.hpp"
 
+using namespace CoreIR;
+
 int main() {
   Context* c = newContext();
 
@@ -14,6 +16,7 @@ int main() {
   if(err) {
     c->die();
   }
+
   m->print();
   saveModule(m,"_add.json",&err);
   if(err) {

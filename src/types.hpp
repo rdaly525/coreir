@@ -17,7 +17,9 @@ using json = nlohmann::json;
 
 using namespace std;
 
-class CoreIR::Type {
+namespace CoreIR {
+
+class Type {
   protected :
     TypeKind kind;
     Type* flipped;
@@ -36,7 +38,6 @@ class CoreIR::Type {
 };
 
 std::ostream& operator<<(ostream& os, const Type& t);
-
 
 class AnyType : public Type {
   public :
@@ -144,6 +145,8 @@ class RecordType : public Type {
     }
 
 };
+
+}//CoreIR namespace
 
 
 #endif //TYPES_HPP_

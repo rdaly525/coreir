@@ -1,6 +1,8 @@
 #include "context.hpp"
 #include <cassert>
 
+using namespace CoreIR;
+
 int main() {
   Context* c = newContext();
 

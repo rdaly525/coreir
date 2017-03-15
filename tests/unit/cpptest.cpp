@@ -2,6 +2,8 @@
 #include "coreir.h"
 #include "context.hpp"
 
+using namespace CoreIR;
+
 int main() {
   
   

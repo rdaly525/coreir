@@ -4,9 +4,7 @@
          "generators": null,
          "modules": {
             "Add4": {
-               "configparams": {
-                  "": "int"
-               },
+               "configparams": null,
                "def": {
                   "connections": [
                      [
@@ -56,6 +54,71 @@
                         {
                            "metadata": null,
                            "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "0"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add00",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add00",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add1",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "1"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add00",
+                              [
+                                 "in1"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
+                           "path": [
                               "add01",
                               [
                                  "out"
@@ -90,71 +153,6 @@
                               "add01",
                               [
                                  "in1"
-                              ]
-                           ]
-                        },
-                        null
-                     ],
-                     [
-                        {
-                           "metadata": null,
-                           "path": [
-                              "self",
-                              [
-                                 "in",
-                                 "1"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add00",
-                              [
-                                 "in1"
-                              ]
-                           ]
-                        },
-                        null
-                     ],
-                     [
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add00",
-                              [
-                                 "out"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add1",
-                              [
-                                 "in0"
-                              ]
-                           ]
-                        },
-                        null
-                     ],
-                     [
-                        {
-                           "metadata": null,
-                           "path": [
-                              "self",
-                              [
-                                 "in",
-                                 "0"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add00",
-                              [
-                                 "in0"
                               ]
                            ]
                         },
@@ -225,9 +223,7 @@
                ]
             },
             "add2_32": {
-               "configparams": {
-                  "": "int"
-               },
+               "configparams": null,
                "def": null,
                "metadata": null,
                "type": [

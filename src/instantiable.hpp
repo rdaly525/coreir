@@ -19,16 +19,15 @@
 using json = nlohmann::json;
 using namespace std;
 
+namespace std {
+  template<>
+  struct hash<CoreIR::Connection> {
+    size_t operator() (const CoreIR::Connection& c) const;
+  };
+}
 
-//So much mutual definition, so forward declare
-class SelCache;
-class Wireable;
-class Interface;
-class Instance;
-class Select;
+namespace CoreIR {
 
-
-class Context;
 class Instantiable {
   protected:
     InstantiableKind kind;
@@ -73,7 +72,7 @@ class Generator : public Instantiable {
     //genfun_t getGenfun(void) {return genfun;}
 };
 
-class CoreIR::Module : public Instantiable {
+class Module : public Instantiable {
   Type* type;
   ModuleDef* def;
   string verilog;
@@ -114,18 +113,6 @@ struct Connection {
   }
   json toJson();
 };
-
-namespace std {
-  template<>
-  struct hash<Connection> {
-    size_t operator() (const Connection& c) const {
-      size_t hash;
-      hash_combine(hash,c.first);
-      hash_combine(hash,c.second);
-      return hash;
-    }
-  };
-}
 
 class ModuleDef {
   
@@ -286,5 +273,12 @@ void runGenerators(Context* c, ModuleDef* m);
 // Convieniance that runs resolve, typecheck and validate
 // and catches errors;
 void compile(Context* c, ModuleDef* m, fstream* f);
+
+}//CoreIR namespace
+
+
+
+
+
 
 #endif //COREIR_HPP_

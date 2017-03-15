@@ -11,9 +11,7 @@ int main() {
   COREGenParamsAddField(cp,"lut_table",0); //TODO how to do enums
   COREModule* lut4 = CORENewModule(ns,"LUT4",bitIn,cp);
   
-  printf("J1\n");
   COREModule* m = CORENewModule(ns,"Main",bitIn,NULL);
-  printf("J2\n");
 
   COREModuleDef* mdef = COREModuleNewDef(m);
 

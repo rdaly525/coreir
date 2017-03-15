@@ -1,2 +1,3 @@
 #!/bin/sh
+set -x #echo on
 for file in build/*; do $file; done

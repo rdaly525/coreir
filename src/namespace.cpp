@@ -6,6 +6,8 @@
 
 using namespace std;
 
+namespace CoreIR {
+
 bool operator==(const GenCacheParams & l,const GenCacheParams & r) {
   return (*l.g==*r.g) && (*l.ga==*r.ga);
 }
@@ -128,6 +130,8 @@ Module* Namespace::runGenerator(Generator* g, GenArgs* ga) {
   genCache.emplace(gcp,mNew);
   return mNew;
 }
+
+}//CoreIR namespace
 
 
 #endif // NAMESPACE_CPP_

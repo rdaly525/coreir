@@ -18,7 +18,7 @@ Namespace={
 }
 
 Type = ["BitIn"] | ["BitOut"] | ["Array", <N>, Type] | ["Record", [<key>, Type][]}] | ["NamedType", NamedTypeReference, GenArgs]
-TypeArgs = "None" | [<N>,Type] |  | 
+TypeArgs = null | [<N>,Type] |  | 
 
 NamedTypeReference=[<namespaceName>,<typeName>]
 NamedType = {"typename":<name>, "flippedtypename":<name>,"type":Type}
@@ -26,7 +26,7 @@ NamedTypeGenerators={"typename":<name>, "flippedtypename":<name>,"genParameter":
 
 Module = {"type":Type,"configparams":GenParameter, "metadata":Metadata,"def":ModuleDef}
 
-ModuleDef = "None" | {"metadata":Metadata,
+ModuleDef = null | {"metadata":Metadata,
 "implementations":Metadata,
 "instances": {<instname>:Instance,...}
 "connections": Connection[]}
@@ -42,10 +42,10 @@ Connection = [Wireable, Wireable, Metadata]
 Wireable = {"metadata":Metadata, "path":[<topname>,[<a>,<b>,...]]}
      accesses topname.a.b. If "topname" is "self" then this is the module's interface.
 
-GenParameters = "None" | {<key>:GenParameterType,...}
+GenParameters = null | {<key>:GenParameterType,...}
 GenParameterType = "String" | "Uint" | "Int" | "Type" | "Instantiatable"
 
-GenArgs = "None" | {<key>:GenArgsValue}
+GenArgs = null | {<key>:GenArgsValue}
 GenArgsValue = <String> | <Number> | Type | InstantiatableReference
 
 Metadata={<key>:MetadataValue,...}

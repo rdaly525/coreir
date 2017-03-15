@@ -3,6 +3,8 @@
 
 #include "types.hpp"
 
+namespace CoreIR {
+
 void Type::print(void) { cout << "Type: " << (*this) << endl; }
 
 bool Type::sel(Context* c,string sel, Type** ret, Error* e) {
@@ -75,5 +77,7 @@ bool RecordType::sel(Context* c, string sel, Type** ret, Error* e) {
   return true;
 
 }
+
+}//CoreIR namespace
 
 #endif //TYPES_CPP_

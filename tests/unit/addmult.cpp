@@ -4,6 +4,8 @@
 #include "passes.hpp"
 
 
+using namespace CoreIR;
+
 
 // Create the following circuit
 //

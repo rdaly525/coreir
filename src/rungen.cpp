@@ -7,6 +7,7 @@
 
 using namespace std;
    
+namespace CoreIR {
 // This will recusrively run all the generators and replace module definitions
 // For every instance, if it is a generator, it 
 bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran);
@@ -101,5 +102,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
 
   return err;
 }
+
+}//CoreIR namespace
 
 #endif //COMPILER_CPP_

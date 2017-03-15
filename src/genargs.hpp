@@ -19,6 +19,8 @@ using namespace std;
 //  }
 //}
 
+namespace CoreIR {
+
 struct GenArg {
   virtual ~GenArg() {}
   GenParam kind;
@@ -51,12 +53,6 @@ struct GenType : GenArg {
 //  Instantiable* i;
 //  GenInst(Instantiable* i) : GenArg(GINST), i(i) {}
 //};
-namespace std {
-  template<>
-  struct hash<GenArgs> {
-    size_t operator() (const GenArgs& p) const;
-  };
-}
 
 struct GenArgs {
   Context* c;
@@ -93,6 +89,17 @@ struct GenArgs {
     return !(*this == r);
   }
 };
+
+}//CoreIR namespace
+
+
+namespace std {
+  template<>
+  struct hash<CoreIR::GenArgs> {
+    size_t operator() (const CoreIR::GenArgs& p) const;
+  };
+}
+
 
 
 #endif //GENARGS_HPP_

@@ -15,6 +15,35 @@
 //}
 
 
+namespace CoreIR {
+
+GenArg* GenArgs::operator[](const string s) const {
+  auto elem = args.find(s);
+  if (elem == args.end() ) {
+    Error e;
+    e.message("Cannot find field \"" + s + "\" In GenArgs");
+    e.fatal();
+    c->error(e);
+  }
+  return elem->second;
+}
+
+// TODO should just overload the == of each GenArg
+bool GenArgs::GenArgEq(GenArg* a, GenArg* b) {
+  if (a->kind == b->kind) {
+    switch(a->kind) {
+      case GSTRING : return ((GenString*) a)->str == ((GenString*) b)->str;
+      case GINT : return ((GenInt*) a)->i == ((GenInt*) b)->i;
+      case GTYPE : return ((GenType*) a)->t ==  ((GenType*) b)->t;
+    }
+  }
+  return false;
+}
+
+}//CoreIR namespace
+
+
+using namespace CoreIR;
 
 size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
   size_t hash = 0;
@@ -43,30 +72,6 @@ size_t std::hash<GenArgs>::operator() (const GenArgs& genargs) const {
     }
   }
   return hash;
-}
-
-
-GenArg* GenArgs::operator[](const string s) const {
-  auto elem = args.find(s);
-  if (elem == args.end() ) {
-    Error e;
-    e.message("Cannot find field " + s + "In GenArgs");
-    e.fatal();
-    c->error(e);
-  }
-  return elem->second;
-}
-
-// TODO should just overload the == of each GenArg
-bool GenArgs::GenArgEq(GenArg* a, GenArg* b) {
-  if (a->kind == b->kind) {
-    switch(a->kind) {
-      case GSTRING : return ((GenString*) a)->str == ((GenString*) b)->str;
-      case GINT : return ((GenInt*) a)->i == ((GenInt*) b)->i;
-      case GTYPE : return ((GenType*) a)->t ==  ((GenType*) b)->t;
-    }
-  }
-  return false;
 }
 
 #endif //GENARGS_CPP

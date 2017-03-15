@@ -3,6 +3,8 @@
 #include <sstream>
 #include <string>
 
+namespace CoreIR {
+
 struct Error {
   
   bool isfatal;
@@ -17,6 +19,7 @@ struct Error {
   //}
 };
 
+}//CoreIR namespace
 
 
 #endif //ERROR_HPP_
