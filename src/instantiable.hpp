@@ -73,7 +73,7 @@ class Generator : public Instantiable {
     //genfun_t getGenfun(void) {return genfun;}
 };
 
-class Module : public Instantiable {
+class CoreIR::Module : public Instantiable {
   Type* type;
   ModuleDef* def;
   string verilog;

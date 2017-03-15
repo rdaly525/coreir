@@ -16,7 +16,8 @@
 using json = nlohmann::json;
 
 using namespace std;
-class Type {
+
+class CoreIR::Type {
   protected :
     TypeKind kind;
     Type* flipped;

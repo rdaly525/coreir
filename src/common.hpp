@@ -41,7 +41,12 @@ struct myPair {
 };
 
 //Types.hpp
-class Type;
+namespace CoreIR {
+  class Type;
+  class Module;
+}
+using namespace CoreIR;
+
 typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, GenParams genparams);
 struct TypeGen;
 typedef vector<myPair<string,Type*>> RecordParams ;
@@ -50,7 +55,7 @@ class TypeCache;
 
 //instantiable.hpp
 class Instantiable;
-class Module;
+
 class ModuleDef;
 class Generator;
 typedef Module* (*genFun)(Context*,Type*,GenArgs*,GenParams);
