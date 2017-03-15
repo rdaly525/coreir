@@ -4,7 +4,7 @@
 #include "common.hpp"
 #include "context.hpp"
 
-bool typecheck(Context* c, Module* m);
-bool rungenerators(Context* c, Module* m);
+void typecheck(Context* c, Module* m, bool* err);
+void rungenerators(Context* c, Module* m, bool* err);
 
 #endif //PASSES_HPP_

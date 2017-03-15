@@ -37,7 +37,10 @@ Namespace* getStdlib(Context* c) {
   
   Type* binop16 = binop_type(c,c->newGenArgs({{"w",c->GInt(16)}}),{{"w",GINT}});
   stdlib->newModuleDecl("add2_16",binop16);
-  
+  stdlib->newModuleDecl("mult2_16",binop16);
+  stdlib->newModuleDecl("const_16",c->Array(16,c->BitOut()),{{"value",GINT}});
+  stdlib->newModuleDecl("GPI_16",c->Array(16,c->BitOut()));
+  stdlib->newModuleDecl("GPO_16",c->Array(16,c->BitIn()));
   return stdlib;
 }
 

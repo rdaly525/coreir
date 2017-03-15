@@ -52,24 +52,27 @@ int main() {
   c->checkerrors();
   add4_n->print();
 
-  if (typecheck(c,add4_n)) c->die();
+  bool err = false;
+  
+  
+  cout << "Typechecking!" << endl;
+  typecheck(c,add4_n,&err);
+  if (err) c->die();
   
   // Link v1 of library
   //cout << "Linking stdlib!" << endl;
   //Namespace* stdlib_v1 = getStdlib_v1(c);
   //cout << "Linking!";
   //c->linkLib(stdlib_v1, stdlib);
- 
-  cout << "Checkign Errors 2" << endl;
-  c->checkerrors();
-  //stdlib->print();
-  rungenerators(c,add4_n);
+  
+  rungenerators(c,add4_n,&err);
+  if (err) c->die();
+  
   add4_n->print();
-  cout << "Typechecking!" << endl;
-  if (typecheck(c,add4_n)) c->die();
+  typecheck(c,add4_n,&err);
+  if(err) c->die();
  
   
-  bool err = false;
   saveModule(add4_n, "_add4.json",&err);
   if (err) {
     cout << "Could not save to json!!" << endl;

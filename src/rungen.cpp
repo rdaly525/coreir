@@ -10,12 +10,11 @@ using namespace std;
 // This will recusrively run all the generators and replace module definitions
 // For every instance, if it is a generator, it 
 bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran);
-bool rungenerators(Context* c, Module* m) {
+void rungenerators(Context* c, Module* m, bool* err) {
   cout << "Running the Generators" << endl;
   unordered_set<Module*> ran;
-  bool err = rungeneratorsRec(c,m,&ran);
+  *err = rungeneratorsRec(c,m,&ran);
   cout << "Done running the generators" << endl;
-  return err;
 }
 
 

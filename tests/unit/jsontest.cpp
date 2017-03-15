@@ -15,7 +15,10 @@ int main() {
     c->die();
   }
   m->print();
-
+  saveModule(m,"_add.json",&err);
+  if(err) {
+    c->die();
+  }
   deleteContext(c);
   return 0;
 }

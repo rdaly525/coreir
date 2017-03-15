@@ -151,8 +151,8 @@ class ModuleDef {
     Type* getType() {return module->getType();}
     SelCache* getCache() { return cache;}
     Metadata getMetadata() { return metadata;}
-    Instance* addInstance(string,Generator*,GenArgs* genargs, GenArgs* config);
-    Instance* addInstance(string,Module*,GenArgs* config);
+    Instance* addInstance(string,Generator*,GenArgs* genargs, GenArgs* config=nullptr);
+    Instance* addInstance(string,Module*,GenArgs* config=nullptr);
     Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);

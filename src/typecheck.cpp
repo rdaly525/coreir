@@ -11,12 +11,11 @@ using namespace std;
 bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked);
 
 
-bool typecheck(Context* c, Module* m) {
+void typecheck(Context* c, Module* m, bool* err) {
   cout << "Typechecking" << endl;
   unordered_set<Module*> checked;
-  bool err = typecheckRec(c,m,&checked);
+  *err = typecheckRec(c,m,&checked);
   cout << "Done Typechecking" << endl;
-  return err;
 }
 
 
