@@ -16,8 +16,8 @@ typedef unordered_map<string,json> jsonmap;
 using json = nlohmann::json;
 
 Type* json2Type(Context* c, json jt);
-GenArgs* json2GenArgs(Context* c, GenParams p, json j);
-GenParams json2GenParams(Context* c, json j);
+Args* json2Args(Context* c, Params p, json j);
+Params json2Params(Context* c, json j);
 
 Instantiable* getSymbol(Context* c, string nsname, string iname);
 
@@ -58,7 +58,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
         //cout << "FOR mod: " << jmodname << endl;
         //cout << std::setw(1) << jmod;
         Type* t = json2Type(c,jmod.at("type"));
-        GenParams configparams = json2GenParams(c,jmod.at("configparams"));
+        Params configparams = json2Params(c,jmod.at("configparams"));
         Module* m = ns->newModuleDecl(jmodname,t,configparams);
         modqueue.push_back({m,jmod});
       }
@@ -86,7 +86,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
         // This function can throw an error
         Instantiable* instRef = getSymbol(c,jinstRef.at(0),jinstRef.at(1));
         
-        GenArgs* config = json2GenArgs(c,instRef->getConfigParams(),jinst.at("config"));
+        Args* config = json2Args(c,instRef->getConfigParams(),jinst.at("config"));
         //Assume that if there are args, it is a generator
         if (jinst.at("args").is_null()) { // This is a module
           assert(instRef->isKind(MOD));
@@ -145,28 +145,28 @@ Instantiable* getSymbol(Context* c, string nsname, string iname) {
   return nullptr;
 }
 
-GenParams json2GenParams(Context* c, json j) {
-  GenParams g;
+Params json2Params(Context* c, json j) {
+  Params g;
   if (j.is_null()) return g;
   for (auto jmap : j.get<jsonmap>()) {
-    g[jmap.first] = Str2GenParam(jmap.second.get<string>());
+    g[jmap.first] = Str2Param(jmap.second.get<string>());
   }
   return g;
 }
 
-GenArgs* json2GenArgs(Context* c, GenParams genparams, json j) {
+Args* json2Args(Context* c, Params genparams, json j) {
   if (j.is_null()) return nullptr;
-  GenArgs* gargs = c->newGenArgs();
+  Args* gargs = c->args(unordered_map<string,Arg*>());
   //TODO this following code should make sure there are the same number of key-value pairs
   for (auto pmap : genparams) {
     string key = pmap.first;
-    GenParam kind = pmap.second;
-    GenArg* g;
+    Param kind = pmap.second;
+    Arg* g;
     switch(kind) {
-      case GINT : g = c->GInt(j.at(key).get<int>()); break;
-      case GSTRING : g = c->GString(j.at(key).get<string>()); break;
-      case GTYPE : g = c->GType(json2Type(c,j.at(key))); break;
-      default :  throw std::runtime_error(GenParam2Str(kind) + "is not a type!");
+      case AINT : g = c->int2Arg(j.at(key).get<int>()); break;
+      case ASTRING : g = c->string2Arg(j.at(key).get<string>()); break;
+      case ATYPE : g = c->type2Arg(json2Type(c,j.at(key))); break;
+      default :  throw std::runtime_error(Param2Str(kind) + "is not a type!");
     }
     gargs->addField(key,g);
   }
@@ -221,7 +221,7 @@ void saveModule(Module* m, string filename, bool* err) {
 
 
 
-json params2Json(GenParams gp);
+json params2Json(Params gp);
 
 
 json Type::toJson() { 
@@ -317,14 +317,14 @@ json Metadata::toJson() {
   return j;
 }
 
-//GenArgs
-json params2Json(GenParams gp) {
+//Args
+json params2Json(Params gp) {
   json j = {};
-  for (auto it : gp) j[it.first] = GenParam2Str(it.second);
+  for (auto it : gp) j[it.first] = Param2Str(it.second);
   return j;
 }
 
-json GenArgs::toJson() {
+json Args::toJson() {
   this->print();
   json j;
   for (auto it : args) j[it.first] = it.second->toJson();

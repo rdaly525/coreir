@@ -10,39 +10,39 @@
 
 ## Algebraic structure of IR
 ```
-GenParams(string* kinds)
+Params(string* kinds)
 Name(string libname, string name)
 
-GenArg = string
+Arg = string
        | int
        | float
        | Type
        | Instantiable
 
-GenArgs(GenArg* args)
+Args(Arg* args)
 
 Type = BitIn | BitOut 
      | Array(number len, Type elemType)
      | Record( Vector((string field,Type fieldType)) args) //Ordered
-     | TypeGenInst(TypeGen tg, GenArgs args)
+     | TypeGenInst(TypeGen tg, Args args)
      | Named(Name name, Type type)
      | Any
  
-TypeGen(Name name, GenParams kinds, bool flipped, function? fun)
+TypeGen(Name name, Params kinds, bool flipped, function? fun)
 
 MetaData(string data, (string key, MetaData m)*)
 
 Instantiable = Module(Name name, Type t, MetaData m, ModuleDef? def)
-             | Generator(Name name, Type t, MetaData m, GenParams kinds, function? fun)
+             | Generator(Name name, Type t, MetaData m, Params kinds, function? fun)
 
 //List of modules
 
 ModuleDef(Wire* wires)
 Wire(Wireable a, Wireable b)
-GeneratorDef(function :: GenArgs -> Module)
+GeneratorDef(function :: Args -> Module)
 
 Wireable = Interface(ModuleDef container)
-         | Instance(ModuleDef container, Instantiable instKind, GenArgs args)
+         | Instance(ModuleDef container, Instantiable instKind, Args args)
          | Select(Wireable w, string sel)
          //| Strip(Wireable w)
          //| Wrap(Wireable w, Type t)
@@ -74,26 +74,26 @@ Namespace getGlobal(Context c);
 ```
 
 ###Generator Args
-Generators take a set of well specified arguments. These arguments are string, int, and type. ArgKind specifies the kind of the argument whereas GenArg is an instane of the argument itself.
+Generators take a set of well specified arguments. These arguments are string, int, and type. ArgKind specifies the kind of the argument whereas Arg is an instane of the argument itself.
 
 ```
 //CoreIR Types:
 //  ArgKind
-//  GenParams
-//  GenArg
-//  GenArgs
+//  Params
+//  Arg
+//  Args
 
 // Creating argKinds
 typedef enum {GSTRING,GINT,GTYPE} ArgKind;
-GenParams GenParams(ArgKind* kinds);
+Params Params(ArgKind* kinds);
 
-//Creating GenArgs
-GenArg GInt(int i);
-GenArg GString(char* s);
-//GenArg GFloat(float f)
-GenArg GType(Type t);
-// TODO GenArg GInstantiable(Instantiable i);
-GenArgs GenArgs(int len, GenArg* args);
+//Creating Args
+Arg GInt(int i);
+Arg GString(char* s);
+//Arg GFloat(float f)
+Arg GType(Type t);
+// TODO Arg GInstantiable(Instantiable i);
+Args Args(int len, Arg* args);
 
 ```
 
@@ -106,8 +106,8 @@ TODO describe the type system
   TypeGen
   tgenFun
 
-Type (*tgenFun)(Context,GenArgs,GenParams)
-TypeGen TypeGen(string name, string name_flipped, GenParams kinds, tgenFun fun);
+Type (*tgenFun)(Context,Args,Params)
+TypeGen TypeGen(string name, string name_flipped, Params kinds, tgenFun fun);
 void addTypeGen(Namespace ns, TypeGen tgd)
 TypeGen getTypeGen(Namespace ns, string name)
 
@@ -115,7 +115,7 @@ Type BitIn(Context c);
 Type BitOut(Context c);
 Type Array(Context c, int n, Type t);
 Type Record(Context c, <Pairs of string, types> );
-Type TypeGenInst(Context c, TypeGen tg, GenArgs args);
+Type TypeGenInst(Context c, TypeGen tg, Args args);
 //TODO Named
 ```
 
@@ -134,8 +134,8 @@ void addModuleDef(Module* module, ModuleDef* moduledef);
 void addModule(Namespae ns, Module m);
 Module getModule(Namespace ns, string name);
 
-Generator newGeneratorDecl(Context c, string name, GenParams kinds, TypeGen tg);
-Module (*genFun)(Context,Type,GenArgs,GenParams);
+Generator newGeneratorDecl(Context c, string name, Params kinds, TypeGen tg);
+Module (*genFun)(Context,Type,Args,Params);
 void addGeneratorDef(Generator decl, genFun fun);
 
 void addGenerator(Namespace ns, Generator g);
@@ -146,7 +146,7 @@ Generator getGenerator(Namespace lib, string name);
 ```
 Wireable Interface(Context c, ModuleDef context);
 Wireable InstanceGenerator(Context c, ModuleDef context, Module instkind);
-Wireable InstanceModule(Context c, ModuleDef context, Generator instkind, GenArgs args);
+Wireable InstanceModule(Context c, ModuleDef context, Generator instkind, Args args);
 Wireable Select(Context c, Wireable w, string sel);
 void wire(ModuleDef md, Wireable a, Wireable b);
 ```
@@ -165,7 +165,7 @@ string getValue(MetaData m, string key);
 
 ###Example
 ```
-TypeGenDef('std', 'Int', [number], Type def(GenArgs g) return Array(g->i,BitOut))
+TypeGenDef('std', 'Int', [number], Type def(Args g) return Array(g->i,BitOut))
 Int = getTypeGenDef('std','Int')
 IntIn = getTypeGenDef('std','Int')
 Int5 = TypeGen(Int,5)
@@ -276,7 +276,7 @@ Instantiable = ModuleDef(string name, Type t, Wireing* wireings)
 
 **ModuleDef:** Defintion of a Module/circuit. This is a graph descritpion of Instantiables (nodes) and how everything is wired together (edges)  
 **ModuleDecl:** Declaration of a Module. Does not need a definition. Will resolve to a definition in linking.  
-**ModuleGenDef:** Definition of a moduleGen. has a function of type: ModuleDef* (fun*)(NameSpace*,GenArgs*). This function will generate a new ModuleDef when given GenArgs.  
+**ModuleGenDef:** Definition of a moduleGen. has a function of type: ModuleDef* (fun*)(NameSpace*,Args*). This function will generate a new ModuleDef when given Args.  
 **ModuleGenDecl:** Declaration of a moduleGen. Does not need a definition, will resolve to a definition in linking.
 
 

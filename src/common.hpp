@@ -12,7 +12,7 @@ typedef uint32_t uint;
 namespace CoreIR {
 
 typedef enum {BITIN, BITOUT,ARRAY,RECORD,ANY,TYPEGEN} TypeKind;
-typedef enum {GINT=0,GSTRING=1,GTYPE=2} GenParam;
+typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
 
 typedef enum {MOD,GEN} InstantiableKind;
 typedef enum {IFACE,INST,SEL} WireableKind;
@@ -21,12 +21,12 @@ typedef enum {IFACE,INST,SEL} WireableKind;
 class Namespace;
 class Context;
 struct Error;
-struct GenArg;
+struct Arg;
 struct GenInt;
 struct GenString;
 struct GenType;
-struct GenArgs;
-typedef unordered_map<string,GenParam> GenParams;
+struct Args;
+typedef unordered_map<string,Param> Params;
 
 
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
@@ -43,17 +43,19 @@ struct myPair {
 
 class Type;
 class Module;
-typedef Type* (*TypeGenFun)(Context* c, GenArgs* args, GenParams genparams);
+typedef Type* (*TypeGenFun)(Context* c, Args* args, Params genparams);
 struct TypeGen;
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
 class TypeCache;
+struct Metadata;
+
 
 //instantiable.hpp
 class Instantiable;
 class ModuleDef;
 class Generator;
-typedef Module* (*genFun)(Context*,Type*,GenArgs*,GenParams);
+typedef Module* (*genFun)(Context*,Type*,Args*,Params);
 
 class Wireable;
 class SelCache;
@@ -79,10 +81,10 @@ inline void hash_combine(size_t& seed, const T& v) {
 //These are defined in helpers
 bool isNumber(string s);
 string TypeKind2Str(TypeKind t);
-string GenParam2Str(GenParam);
-string GenParams2Str(GenParams);
+string Param2Str(Param);
+string Params2Str(Params);
 string wireableKind2Str(WireableKind wb);
-GenParam Str2GenParam(string s);
+Param Str2Param(string s);
 
 
 

@@ -10,10 +10,10 @@
 using json = nlohmann::json;
 using namespace std;
 
-//struct GenParams {
-//  unordered_map<string,GenParam> dict;
-//  GenParams(unordered_map<string,GenParam> dict) : dict(dict) {}
-//  GenParam operator[](const string& key) {
+//struct Params {
+//  unordered_map<string,Param> dict;
+//  Params(unordered_map<string,Param> dict) : dict(dict) {}
+//  Param operator[](const string& key) {
 //    //What should I do if this is not valid?
 //    return dict[key];
 //  }
@@ -21,52 +21,52 @@ using namespace std;
 
 namespace CoreIR {
 
-struct GenArg {
-  virtual ~GenArg() {}
-  GenParam kind;
-  GenArg(GenParam kind) : kind(kind) {}
-  bool isKind(GenParam k) { return kind==k; }
+struct Arg {
+  virtual ~Arg() {}
+  Param kind;
+  Arg(Param kind) : kind(kind) {}
+  bool isKind(Param k) { return kind==k; }
   virtual json toJson()=0;
 };
 
-struct GenString : GenArg {
+struct GenString : Arg {
   string str;
-  GenString(string str) : GenArg(GSTRING), str(str) {}
+  GenString(string str) : Arg(ASTRING), str(str) {}
   json toJson();
 };
 
-struct GenInt : GenArg {
+struct GenInt : Arg {
   int i;
-  GenInt(int i) : GenArg(GINT), i(i) {}
+  GenInt(int i) : Arg(AINT), i(i) {}
   json toJson();
 };
 
-struct GenType : GenArg {
+struct GenType : Arg {
   Type* t;
-  GenType(Type* t) : GenArg(GTYPE), t(t) {}
+  GenType(Type* t) : Arg(ATYPE), t(t) {}
   json toJson();
 };
 
 
 //class Instantiable;
-//struct GenInst : GenArg {
+//struct GenInst : Arg {
 //  Instantiable* i;
-//  GenInst(Instantiable* i) : GenArg(GINST), i(i) {}
+//  GenInst(Instantiable* i) : Arg(GINST), i(i) {}
 //};
 
-struct GenArgs {
+struct Args {
   Context* c;
-  unordered_map<string,GenArg*> args;
-  GenArgs(Context* c, unordered_map<string,GenArg*> args=unordered_map<string,GenArg*>()) : c(c), args(args) {}
-  void addField(string s, GenArg* arg) { args[s] = arg;}
+  unordered_map<string,Arg*> args;
+  Args(Context* c, unordered_map<string,Arg*> args=unordered_map<string,Arg*>()) : c(c), args(args) {}
+  void addField(string s, Arg* arg) { args[s] = arg;}
   json toJson();
-  GenArg* operator[](const string s) const;
+  Arg* operator[](const string s) const;
   void print() {
     for (auto arg : args) cout << " Arg: " << arg.first << endl;
   }
-  bool GenArgEq(GenArg* a, GenArg* b);
+  bool ArgEq(Arg* a, Arg* b);
 
-  bool checkParams(GenParams kinds) {
+  bool checkParams(Params kinds) {
     if (args.size() != kinds.size()) return false;
     for (auto field : args) {
       auto kind = kinds.find(field.first);
@@ -76,16 +76,16 @@ struct GenArgs {
     }
     return true;
   }
-  bool operator==(const GenArgs r) {
+  bool operator==(const Args r) {
     if (args.size() != r.args.size()) return false;
     for (auto field : args) {
       auto rfield = r.args.find(field.first);
       if(rfield == r.args.end()) return false;
-      if (!GenArgEq(field.second,rfield->second)) return false;
+      if (!ArgEq(field.second,rfield->second)) return false;
     }
     return true;
   }
-  bool operator!=(GenArgs r) {
+  bool operator!=(Args r) {
     return !(*this == r);
   }
 };
@@ -95,8 +95,8 @@ struct GenArgs {
 
 namespace std {
   template<>
-  struct hash<CoreIR::GenArgs> {
-    size_t operator() (const CoreIR::GenArgs& p) const;
+  struct hash<CoreIR::Args> {
+    size_t operator() (const CoreIR::Args& p) const;
   };
 }
 

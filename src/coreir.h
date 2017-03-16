@@ -14,9 +14,9 @@ typedef struct COREInstance COREInstance;
 typedef struct COREInterface COREInterface;
 typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
-typedef struct COREGenParams COREGenParams;
-typedef struct COREGenArgs COREGenArgs;
-typedef struct COREGenArg COREGenArg;
+typedef struct COREParams COREParams;
+typedef struct COREArgs COREArgs;
+typedef struct COREArg COREArg;
 
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;
@@ -38,16 +38,16 @@ extern CORERecordParam* CORENewRecordParam(COREContext* c);
 extern void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type);
 extern COREType* CORERecord(COREContext* c, CORERecordParam* record_param);
 
-//Create GenParams
-extern COREGenParams* CORENewGenParams(COREContext* c);
-extern void COREGenParamsAddField(COREGenParams* genparams, char* name, int genparam);
+//Create Params
+extern COREParams* CORENewParams(COREContext* c);
+extern void COREParamsAddField(COREParams* genparams, char* name, int genparam);
 
-//Create GenArgs
-extern COREGenArgs* CORENewGenArgs(COREContext* c);
-extern void COREGenArgsAddField(COREGenArgs* genargs, char* name, COREGenArg* genarg);
+//Create Args
+extern COREArgs* CORENewArgs(COREContext* c);
+extern void COREArgsAddField(COREArgs* genargs, char* name, COREArg* genarg);
 
-//Create specific GenArg
-extern COREGenArg* COREGInt(COREContext* c,int i);
+//Create specific Arg
+extern COREArg* COREGInt(COREContext* c,int i);
 
 
 extern void COREPrintType(COREType* t);
@@ -63,7 +63,7 @@ extern CORENamespace* COREGetGlobal(COREContext* c);
 
 //Errors:
 //  Invalid arg: Module name already exists
-extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, COREGenParams* configparams);
+extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, COREParams* configparams);
 
 
 extern void COREPrintModule(COREModule* m);
@@ -72,7 +72,7 @@ void COREModuleAddDef(COREModule* module, COREModuleDef* module_def);
 
 //Errors:
 //  Invalid arg: instance name already exists
-extern COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, COREGenArgs* config);
+extern COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, COREArgs* config);
 extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
 
 //Errors:

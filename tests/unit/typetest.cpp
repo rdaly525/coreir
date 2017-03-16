@@ -17,7 +17,7 @@ int main() {
 
 
   // Test out TypeGens
-  g->newTypeGen("int", "intIn", {{"w",GINT}}, NULL);
+  g->newTypeGen("int", "intIn", {{"w",AINT}}, NULL);
   //g->newTypeGen("intIn", "int", {GINT}, NULL);
   TypeGen* td1 = g->getTypeGen("int");
   TypeGen* td2 = g->getTypeGen("intIn");
@@ -26,10 +26,10 @@ int main() {
 
   //TODO check a bunch more permutations
   //Check TypeGen
-  GenArgs* ga1 = c->newGenArgs({{"w",c->GInt(3)}});
-  GenArgs* ga2 = c->newGenArgs({{"w",c->GInt(3)}});
-  GenArgs* ga3 = c->newGenArgs({{"w",c->GInt(4)}});
-  GenArgs* ga4 = c->newGenArgs({{"w",c->GInt(2)}});
+  Args* ga1 = c->args({{"w",c->int2Arg(3)}});
+  Args* ga2 = c->args({{"w",c->int2Arg(3)}});
+  Args* ga3 = c->args({{"w",c->int2Arg(4)}});
+  Args* ga4 = c->args({{"w",c->int2Arg(2)}});
   
   assert(ga1 != ga2);
   assert(c->TypeGenInst(td1, ga1) == c->TypeGenInst(td1,ga2));

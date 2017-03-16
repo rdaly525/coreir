@@ -49,20 +49,20 @@ class CORERecordParam(ct.Structure):
 
 CORERecordParam_p = ct.POINTER(CORERecordParam)
 
-class COREGenParams(ct.Structure):
+class COREParams(ct.Structure):
   pass
 
-COREGenParams_p = ct.POINTER(COREGenParams)
+COREParams_p = ct.POINTER(COREParams)
 
-class COREGenArgs(ct.Structure):
+class COREArgs(ct.Structure):
   pass
 
-COREGenArgs_p = ct.POINTER(COREGenArgs)
+COREArgs_p = ct.POINTER(COREArgs)
 
-class COREGenArg(ct.Structure):
+class COREArg(ct.Structure):
   pass
 
-COREGenArg_p = ct.POINTER(COREGenArg)
+COREArg_p = ct.POINTER(COREArg)
 
 
 class COREInstance(ct.Structure):
@@ -116,18 +116,18 @@ coreir_lib.CORERecord.argtypes = [COREContext_p, CORERecordParam_p]
 coreir_lib.CORERecord.restype = COREType_p
 
 #GenParams and Args
-coreir_lib.CORENewGenParams.argtypes = [COREContext_p]
-coreir_lib.CORENewGenParams.restype = COREGenParams_p
+coreir_lib.CORENewParams.argtypes = [COREContext_p]
+coreir_lib.CORENewParams.restype = COREParams_p
 
-coreir_lib.COREGenParamsAddField.argtypes = [COREGenParams_p, ct.c_char_p, ct.c_int]
+coreir_lib.COREParamsAddField.argtypes = [COREParams_p, ct.c_char_p, ct.c_int]
 
-coreir_lib.CORENewGenArgs.argtypes = [COREContext_p]
-coreir_lib.CORENewGenArgs.restype = COREGenArgs_p
+coreir_lib.CORENewArgs.argtypes = [COREContext_p]
+coreir_lib.CORENewArgs.restype = COREArgs_p
 
-coreir_lib.COREGenArgsAddField.argtypes = [COREGenArgs_p, ct.c_char_p, COREGenArg_p]
+coreir_lib.COREArgsAddField.argtypes = [COREArgs_p, ct.c_char_p, COREArg_p]
 
 coreir_lib.COREGInt.argtypes = [COREContext_p,ct.c_int]
-coreir_lib.COREGInt.restype = COREGenArg_p
+coreir_lib.COREGInt.restype = COREArg_p
 
 coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 
@@ -139,7 +139,7 @@ coreir_lib.CORESaveModule.argtypes = [COREModule_p, ct.c_char_p, ct.POINTER(ct.c
 coreir_lib.COREGetGlobal.argtypes = [COREContext_p]
 coreir_lib.COREGetGlobal.restype = CORENamespace_p
 
-coreir_lib.CORENewModule.argtypes = [CORENamespace_p, ct.c_char_p, COREType_p, COREGenParams_p]
+coreir_lib.CORENewModule.argtypes = [CORENamespace_p, ct.c_char_p, COREType_p, COREParams_p]
 coreir_lib.CORENewModule.restype = COREModule_p
 
 coreir_lib.COREModuleAddDef.argtypes = [COREModule_p, COREModuleDef_p]
@@ -149,7 +149,7 @@ coreir_lib.COREPrintModule.argtypes = [COREModule_p]
 coreir_lib.COREModuleNewDef.argtypes = [COREModule_p]
 coreir_lib.COREModuleNewDef.restype = COREModuleDef_p
 
-coreir_lib.COREModuleDefAddModuleInstance.argtypes = [COREModuleDef_p, ct.c_char_p, COREModule_p, COREGenArgs_p]
+coreir_lib.COREModuleDefAddModuleInstance.argtypes = [COREModuleDef_p, ct.c_char_p, COREModule_p, COREArgs_p]
 coreir_lib.COREModuleDefAddModuleInstance.restype = COREInstance_p
 
 coreir_lib.COREModuleDefGetInterface.argtypes = [COREModuleDef_p]
@@ -256,7 +256,7 @@ class Instance(Wireable):
 class ModuleDef(CoreIRType):
     def add_module_instance(self, name, module, config=None):
         if config==None:
-          config = GenArgs(COREGenArgs_p(),None,None)
+          config = GenArgs(COREArgs_p(),None,None)
         assert isinstance(module,Module)
         assert isinstance(config,GenArgs)
         return Instance(coreir_lib.COREModuleDefAddModuleInstance(self.ptr, str.encode(name), module.ptr,config.ptr))
@@ -306,7 +306,7 @@ class Namespace(CoreIRType):
   def Module(self, name, typ,cparams=None):
     assert isinstance(typ,Type)
     if cparams==None:
-      cparams = GenParams(COREGenParams_p(),None)
+      cparams = GenParams(COREParams_p(),None)
     assert isinstance(cparams,GenParams)
     return Module(
       coreir_lib.CORENewModule(self.ptr, ct.c_char_p(str.encode(name)), typ.ptr,cparams.ptr))
@@ -337,24 +337,24 @@ class Context:
     #TODO this will generate the params, but if fields is None, return null thing
     def newGenParams(self, fields=None):
         if fields==None:
-            return GenParams(COREGenParams_p(),None)
+            return GenParams(COREParams_p(),None)
 
-        gen_params = coreir_lib.CORENewGenParams(self.context)
+        gen_params = coreir_lib.CORENewParams(self.context)
         for key, value in fields.items():
             assert value >= 0 and value < 3
-            coreir_lib.COREGenParamsAddField(gen_params, str.encode(key), ct.c_int(value))
+            coreir_lib.COREParamsAddField(gen_params, str.encode(key), ct.c_int(value))
         return GenParams(gen_params,fields)
   
     #TODO this will generate the Args, but if fields is None, return null thing
     def newGenArgs(self,genparams,fields):
         assert isinstance(genparams,GenParams)
-        gen_args = coreir_lib.CORENewGenArgs(self.context)
+        gen_args = coreir_lib.CORENewArgs(self.context)
         for key, value in fields.items():
             #TODO only works for ints right now
             assert genparams[key]==GINT
             #Should check against genparams
             gint = coreir_lib.COREGInt(self.context,ct.c_int(value))
-            coreir_lib.COREGenArgsAddField(gen_args,str.encode(key),gint)
+            coreir_lib.COREArgsAddField(gen_args,str.encode(key),gint)
         return GenArgs(gen_args,genparams,fields)
 
     def load_from_file(self, file_name):

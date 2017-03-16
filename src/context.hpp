@@ -23,10 +23,10 @@ class Context {
  
   //Memory management
   TypeCache* cache;
-  vector<GenArg*> genargList;
-  vector<GenArgs*> genargsList;
+  vector<Arg*> genargList;
+  vector<Args*> genargsList;
   vector<RecordParams*> recordParamsList;
-  vector<GenParams*> genparamsList;
+  vector<Params*> genparamsList;
   vector<Instance**> instanceArrays;
   // vector<Connection*> connectionArrays;
   vector<Wireable**> wireableArrays;
@@ -64,23 +64,24 @@ class Context {
     Type* BitOut();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
-    Type* TypeGenInst(TypeGen* tgd, GenArgs* args);
+    Type* TypeGenInst(TypeGen* tgd, Args* args);
 
     RecordParams* newRecordParams();
-    GenParams* newGenParams();
+    Params* newParams();
     
     Instance** newInstanceArray(int size);
     // Connection* newConnectionArray(int size);
     Wireable** newWireableArray(int size);
 
-    GenArg* GInt(int i);
-    GenArg* GString(string s);
-    GenArg* GType(Type* t);
-    int toInt(GenArg* g);
-    string toString(GenArg* g);
-    Type* toType(GenArg* g);
-    GenArgs* newGenArgs(unordered_map<string,GenArg*> args=unordered_map<string,GenArg*>());   
-  
+    Arg* int2Arg(int i);
+    Arg* string2Arg(string s);
+    Arg* type2Arg(Type* t);
+    
+    int arg2Int(Arg* g);
+    string arg2String(Arg* g);
+    Type* arg2Type(Arg* g);
+    
+    Args* args(unordered_map<string,Arg*> args);   
     Type* Flip(Type* t);
 
 };

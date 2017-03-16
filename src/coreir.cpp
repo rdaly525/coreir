@@ -61,9 +61,9 @@ extern "C" {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());
   }
 
-  COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, COREGenParams* configparams) {
-    GenParams g;
-    if (configparams) g =*rcast<GenParams*>(configparams) ;
+  COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, COREParams* configparams) {
+    Params g;
+    if (configparams) g =*rcast<Params*>(configparams) ;
     return rcast<COREModule*>(rcast<Namespace*>(ns)->newModuleDecl(string(name), rcast<Type*>(type),g));
   }
 
@@ -71,8 +71,8 @@ extern "C" {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
   }
   
-  COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, COREGenArgs* config) {
-    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),rcast<GenArgs*>(config)));
+  COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, COREArgs* config) {
+    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),rcast<Args*>(config)));
   }
 
   void COREModuleAddDef(COREModule* module, COREModuleDef* module_def) {
@@ -103,30 +103,30 @@ extern "C" {
     rcast<ModuleDef*>(module_def)->print();
   }
 
-  //Create GenParams
-  COREGenParams* CORENewGenParams(COREContext* c) {
-    GenParams* genparams = rcast<Context*>(c)->newGenParams(); 
-    return rcast<COREGenParams*>(genparams);
+  //Create Params
+  COREParams* CORENewParams(COREContext* c) {
+    Params* genparams = rcast<Context*>(c)->newParams(); 
+    return rcast<COREParams*>(genparams);
   }
-  void COREGenParamsAddField(COREGenParams* genparams, char* name, int genparam) {
-    GenParams* gps = rcast<GenParams*>(genparams);
-    gps->emplace(std::string(name),static_cast<GenParam>(genparam));
+  void COREParamsAddField(COREParams* genparams, char* name, int genparam) {
+    Params* gps = rcast<Params*>(genparams);
+    gps->emplace(std::string(name),static_cast<Param>(genparam));
   }
 
-  //Create GenArgs
-  COREGenArgs* CORENewGenArgs(COREContext* c) {
-    GenArgs* gas = rcast<Context*>(c)->newGenArgs();
-    return rcast<COREGenArgs*>(gas);
+  //Create Args
+  COREArgs* CORENewArgs(COREContext* c) {
+    Args* gas = rcast<Context*>(c)->args(unordered_map<string,Arg*>());
+    return rcast<COREArgs*>(gas);
   }
-  void COREGenArgsAddField(COREGenArgs* genargs, char* name, COREGenArg* genarg) {
-    GenArgs* gas = rcast<GenArgs*>(genargs);
-    gas->addField(std::string(name),rcast<GenArg*>(genarg));
+  void COREArgsAddField(COREArgs* genargs, char* name, COREArg* genarg) {
+    Args* gas = rcast<Args*>(genargs);
+    gas->addField(std::string(name),rcast<Arg*>(genarg));
   }
   
-  //Create GenArg for int
-  COREGenArg* COREGInt(COREContext* c,int i) {
-    GenArg* ga = rcast<Context*>(c)->GInt(i);
-    return rcast<COREGenArg*>(ga);
+  //Create Arg for int
+  COREArg* COREGInt(COREContext* c,int i) {
+    Arg* ga = rcast<Context*>(c)->int2Arg(i);
+    return rcast<COREArg*>(ga);
   }
 
   void COREPrintErrors(COREContext* c) {

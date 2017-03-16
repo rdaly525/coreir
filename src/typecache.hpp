@@ -11,18 +11,18 @@ using namespace std;
 namespace CoreIR {
 
 //RecordParams defined in types.hpp
-//typedef std::pair<TypeGen*,GenArgs*> TypeGenParams;
+//typedef std::pair<TypeGen*,Args*> TypeParams;
 
-struct TypeGenParams {
+struct TypeParams {
   TypeGen* tg;
-  GenArgs* ga;
-  TypeGenParams(TypeGen* tg, GenArgs* ga) : tg(tg), ga(ga) {}
-  friend bool operator==(const TypeGenParams & l,const TypeGenParams & r);
-  friend bool operator!=(const TypeGenParams & l,const TypeGenParams & r);
+  Args* ga;
+  TypeParams(TypeGen* tg, Args* ga) : tg(tg), ga(ga) {}
+  friend bool operator==(const TypeParams & l,const TypeParams & r);
+  friend bool operator!=(const TypeParams & l,const TypeParams & r);
 };
 
-struct TypeGenParamsHasher {
-  size_t operator()(const TypeGenParams& tgp) const;
+struct TypeParamsHasher {
+  size_t operator()(const TypeParams& tgp) const;
 };
 
 struct RecordParamsHasher {
@@ -49,7 +49,7 @@ class TypeCache {
   Type* any;
   unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
   unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
-  unordered_map<TypeGenParams,Type*,TypeGenParamsHasher> TypeGenCache;
+  unordered_map<TypeParams,Type*,TypeParamsHasher> TypeGenCache;
   
   public :
     TypeCache(Context* c); 
@@ -59,7 +59,7 @@ class TypeCache {
     Type* newBitOut() { return bitO; }
     Type* newArray(uint32_t len, Type* t);
     Type* newRecord(RecordParams params);
-    Type* newTypeGenInst(TypeGen* tgd, GenArgs* args);
+    Type* newTypeGenInst(TypeGen* tgd, Args* args);
 };
 
 }//CoreIR namespace

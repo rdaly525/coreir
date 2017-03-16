@@ -6,10 +6,6 @@ Known Bugs
     Probably has something to do with copy constructor semantics. does not cause noticeable failures... yet
   Person: Ross
 
-
-
-
-
 Lenny TODO
   Add Following functions to C interface and Python interface
     DONE ModuleDef.getConnections() //Get all the Wireable* Wireable* pairs 
@@ -61,11 +57,3 @@ Add stream operator to Error so I can do
   e << "blah" << type << blah
 
 Should check for cases of modules instantiated in its own module. We dont want module "recursion"
-
-Primitives TODO:
-  Add generators for constants
-  Multiply
-  PE
-  GPIO
-
-

@@ -30,7 +30,7 @@ string RecordType::toString(void) const {
   }
   return ret;
 }
-TypeGenType::TypeGenType(TypeGen* def, GenArgs* args) : Type(TYPEGEN), def(def), args(args) {
+TypeGenType::TypeGenType(TypeGen* def, Args* args) : Type(TYPEGEN), def(def), args(args) {
   assert(args->checkParams(def->genparams));
 }
 

@@ -71,7 +71,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
       }
       else {
 
-        GenArgs* gargs = inst->getGenArgs();
+        Args* gargs = inst->getArgs();
         Module* mNew = c->getGlobal()->runGenerator(g,gargs);
         
         // TODO might not need to insert already cached things

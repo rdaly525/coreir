@@ -97,7 +97,7 @@ Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::BitOut() { return cache->newBitOut(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::TypeGenInst(TypeGen* tgd, GenArgs* args) { return cache->newTypeGenInst(tgd,args); }
+Type* Context::TypeGenInst(TypeGen* tgd, Args* args) { return cache->newTypeGenInst(tgd,args); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 RecordParams* Context::newRecordParams() {
@@ -105,8 +105,8 @@ RecordParams* Context::newRecordParams() {
   recordParamsList.push_back(record_param);
   return record_param;
 }
-GenParams* Context::newGenParams() {
-  GenParams* gp = new GenParams();
+Params* Context::newParams() {
+  Params* gp = new Params();
   genparamsList.push_back(gp);
   return gp;
 }
@@ -128,29 +128,38 @@ Wireable** Context::newWireableArray(int size) {
   wireableArrays.push_back(arr);
   return arr;
 }
+    Arg* int2Arg(int i);
+    Arg* string2Arg(string s);
+    Arg* type2Arg(Type* t);
+    
+    int arg2Int(Arg* g);
+    string arg2String(Arg* g);
+    Type* arg2Type(Arg* g);
+    
+    Args* args(unordered_map<string,Arg*> args=unordered_map<string,Arg*>());   
+    Args* configArgs(unordered_map<string,Arg*> args=unordered_map<string,Arg*>());   
 
-GenArg* Context::GInt(int i) { 
-  GenArg* ga = new GenInt(i); 
+Arg* Context::int2Arg(int i) { 
+  Arg* ga = new GenInt(i); 
   genargList.push_back(ga);
   return ga;
 }
-GenArg* Context::GString(string s) { 
-  GenArg* ga = new GenString(s); 
+Arg* Context::string2Arg(string s) { 
+  Arg* ga = new GenString(s); 
   genargList.push_back(ga);
   return ga;
 }
-GenArg* Context::GType(Type* t) { 
-  GenArg* ga = new GenType(t); 
+Arg* Context::type2Arg(Type* t) { 
+  Arg* ga = new GenType(t); 
   genargList.push_back(ga);
   return ga;
 }
-int Context::toInt(GenArg* g) { return ((GenInt*) g)->i; }
-string Context::toString(GenArg* g) { return ((GenString*) g)->str; }
-Type* Context::toType(GenArg* g) { return ((GenType*) g)->t; }
+int Context::arg2Int(Arg* g) { return ((GenInt*) g)->i; }
+string Context::arg2String(Arg* g) { return ((GenString*) g)->str; }
+Type* Context::arg2Type(Arg* g) { return ((GenType*) g)->t; }
 
-// TODO cache the following for proper memory management
-GenArgs* Context::newGenArgs(unordered_map<string,GenArg*> args) {
-  GenArgs* ga = new GenArgs(this,args);
+Args* Context::args(unordered_map<string,Arg*> args) {
+  Args* ga = new Args(this,args);
   genargsList.push_back(ga);
   return ga;
 }

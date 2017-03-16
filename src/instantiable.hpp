@@ -10,9 +10,10 @@
 #include <vector>
 #include <cassert>
 
-#include "types.hpp"
 #include "common.hpp"
-#include "genargs.hpp"
+#include "context.hpp"
+#include "types.hpp"
+#include "args.hpp"
 #include "json.hpp"
 #include "metadata.hpp"
 
@@ -34,9 +35,9 @@ class Instantiable {
     Namespace* ns;
     string name;
     Metadata metadata;
-    GenParams configparams;
+    Params configparams;
   public :
-    Instantiable(InstantiableKind kind, Namespace* ns, string name, GenParams configparams) : kind(kind), ns(ns), name(name), configparams(configparams) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : kind(kind), ns(ns), name(name), configparams(configparams) {}
     virtual ~Instantiable() {}
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
@@ -45,7 +46,7 @@ class Instantiable {
     Module* toModule();
     Generator* toGenerator();
     Context* getContext();
-    GenParams getConfigParams() { return configparams;}
+    Params getConfigParams() { return configparams;}
     Metadata getMetadata() { return metadata;}
     string getName() const { return name;}
     virtual json toJson()=0;
@@ -57,11 +58,11 @@ std::ostream& operator<<(ostream& os, const Instantiable&);
 
 
 class Generator : public Instantiable {
-  GenParams genparams;
+  Params genparams;
   TypeGen* typegen;
   genFun genfun;
   public :
-    Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen, GenParams configparams=GenParams());
+    Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams=Params());
     bool hasDef() const { return !!genfun; }
     string toString() const;
     json toJson();
@@ -81,7 +82,7 @@ class Module : public Instantiable {
   vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,string name, Type* type,GenParams configparams) : Instantiable(MOD,ns,name,configparams), type(type), def(nullptr) {}
+    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(MOD,ns,name,configparams), type(type), def(nullptr) {}
     ~Module();
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() { return def; } // TODO should probably throw error if does not exist
@@ -138,8 +139,8 @@ class ModuleDef {
     Type* getType() {return module->getType();}
     SelCache* getCache() { return cache;}
     Metadata getMetadata() { return metadata;}
-    Instance* addInstance(string,Generator*,GenArgs* genargs, GenArgs* config=nullptr);
-    Instance* addInstance(string,Module*,GenArgs* config=nullptr);
+    Instance* addInstance(string,Generator*,Args* genargs, Args* config=nullptr);
+    Instance* addInstance(string,Module*,Args* config=nullptr);
     Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);
@@ -195,17 +196,17 @@ class Interface : public Wireable {
 class Instance : public Wireable {
   string instname;
   Instantiable* instRef;
-  GenArgs* genargs;
-  GenArgs* config;
+  Args* genargs;
+  Args* config;
   
   public :
-    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, GenArgs* genargs, GenArgs* config)  : Wireable(INST,context,type), instname(instname), instRef(instRef),genargs(genargs), config(config) {}
+    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, Args* genargs, Args* config)  : Wireable(INST,context,type), instname(instname), instRef(instRef),genargs(genargs), config(config) {}
     string toString() const;
     json toJson();
     Instantiable* getInstRef() {return instRef;}
     string getInstname() { return instname; }
-    GenArgs* getGenArgs() {return genargs;}
-    GenArgs* getConfig() {return config;}
+    Args* getArgs() {return genargs;}
+    Args* getConfig() {return config;}
     bool hasConfig() {return !!config;}
     //void replace(Instantiable* newRef) { instRef = newRef;}
     //Convinience functions

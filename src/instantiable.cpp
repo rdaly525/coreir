@@ -1,11 +1,12 @@
 #ifndef INSTANTIABLE_CPP_
 #define INSTANTIABLE_CPP_
 
-//#include "enums.hpp"
 #include <cassert>
 #include <vector>
 #include <set>
+
 #include "instantiable.hpp"
+
 
 using namespace std;
 
@@ -54,14 +55,14 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,GenParams genparams, TypeGen* typegen, GenParams configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), genfun(nullptr) {
+Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), genfun(nullptr) {
   //Verify that genparams are the same
   assert(genparams == typegen->genparams);
 }
 
 string Generator::toString() const {
   string ret = "Generator: " + name;
-  ret = ret + "\n    GenParams: " + GenParams2Str(genparams);
+  ret = ret + "\n    Params: " + Params2Str(genparams);
   ret = ret + "\n    TypeGen: " + typegen->toString();
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;
@@ -114,7 +115,7 @@ void ModuleDef::print(void) {
   cout << endl;
 }
 
-Instance* ModuleDef::addInstance(string instname,Generator* gen, GenArgs* args,GenArgs* config) {
+Instance* ModuleDef::addInstance(string instname,Generator* gen, Args* args,Args* config) {
   //Should this type be resolved? Just create a typeGenInst for now
   Context* c = gen->getContext();
   Type* type = c->TypeGenInst(gen->getTypeGen(),args);
@@ -124,7 +125,7 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, GenArgs* args,G
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,Module* m,GenArgs* config) {
+Instance* ModuleDef::addInstance(string instname,Module* m,Args* config) {
   Instance* inst = new Instance(this,instname,m,m->getType(),nullptr,config);
   instances[instname] = inst;
   return inst;
@@ -134,7 +135,7 @@ Instance* ModuleDef::addInstance(Instance* i) {
   if( i->getInstRef()->isKind(MOD)) 
     return addInstance(i->getInstname(),(Module*) i->getInstRef(),i->getConfig());
   else 
-    return addInstance(i->getInstname(),(Generator*) i->getInstRef(),i->getConfig(),i->getGenArgs());
+    return addInstance(i->getInstname(),(Generator*) i->getInstRef(),i->getConfig(),i->getArgs());
 }
 
 

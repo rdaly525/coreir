@@ -15,8 +15,8 @@ namespace CoreIR {
 
 struct GenCacheParams {
   Generator* g;
-  GenArgs* ga;
-  GenCacheParams(Generator* g, GenArgs* ga) : g(g), ga(ga) {}
+  Args* ga;
+  GenCacheParams(Generator* g, Args* ga) : g(g), ga(ga) {}
   friend bool operator==(const GenCacheParams & l,const GenCacheParams & r);
   friend bool operator!=(const GenCacheParams & l,const GenCacheParams & r);
 
@@ -45,7 +45,7 @@ class Namespace {
     unordered_map<string,Generator*> getGenerators() { return gList;}
     unordered_map<string,TypeGen*> getTypeGens() { return tList;}
 
-    TypeGen* newTypeGen(string name, string nameFlipped, GenParams kinds, TypeGenFun fun);
+    TypeGen* newTypeGen(string name, string nameFlipped, Params kinds, TypeGenFun fun);
     TypeGen* getTypeGen(string name) {
       assert(hasTypeGen(name));
       return tList.find(name)->second;
@@ -54,8 +54,8 @@ class Namespace {
       return tList.find(name) != tList.end();
     }
     
-    Generator* newGeneratorDecl(string name, GenParams kinds, TypeGen* tg);
-    Module* newModuleDecl(string name, Type* t,GenParams configparams=GenParams());
+    Generator* newGeneratorDecl(string name, Params kinds, TypeGen* tg);
+    Module* newModuleDecl(string name, Type* t,Params configparams=Params());
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);
@@ -63,7 +63,7 @@ class Namespace {
     bool hasModule(string mname) { return mList.count(mname) > 0; }
     bool hasInstantiable(string iname) { return mList.count(iname) > 0 || gList.count(iname) > 0; }
     
-    Module* runGenerator(Generator* g, GenArgs* ga);
+    Module* runGenerator(Generator* g, Args* ga);
     json toJson();
     void print();
 };

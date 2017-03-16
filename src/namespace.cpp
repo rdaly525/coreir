@@ -33,7 +33,7 @@ Namespace::~Namespace() {
   //for(auto g : genCache) delete g.second;
 }
 
-TypeGen* Namespace::newTypeGen(string name, string nameFlipped, GenParams kinds, TypeGenFun fun) {
+TypeGen* Namespace::newTypeGen(string name, string nameFlipped, Params kinds, TypeGenFun fun) {
       assert(!hasTypeGen(name));
       assert(!hasTypeGen(nameFlipped));
       TypeGen* t = new TypeGen(name,name,kinds,fun,false);
@@ -59,14 +59,14 @@ TypeGen* Namespace::newTypeGen(string name, string nameFlipped, GenParams kinds,
 //  return false;
 //}
 
-Generator* Namespace::newGeneratorDecl(string name, GenParams kinds, TypeGen* tg) {
+Generator* Namespace::newGeneratorDecl(string name, Params kinds, TypeGen* tg) {
   Generator* g = new Generator(this,name,kinds,tg);
   gList.emplace(name,g);
   return g;
 }
 
-Module* Namespace::newModuleDecl(string name, Type* t, GenParams configparams) {
-  for (auto it : configparams) cout << "P: " << it.first << GenParam2Str(it.second) << endl;
+Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
+  for (auto it : configparams) cout << "P: " << it.first << Param2Str(it.second) << endl;
   Module* m = new Module(this,name,t, configparams);
   mList.emplace(name,m);
   return m;
@@ -115,7 +115,7 @@ void Namespace::print() {
   cout << endl;
 }
 
-Module* Namespace::runGenerator(Generator* g, GenArgs* ga) {
+Module* Namespace::runGenerator(Generator* g, Args* ga) {
   GenCacheParams gcp(g,ga);
   auto it = genCache.find(gcp);
   if (it != genCache.end()) return it->second;

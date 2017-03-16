@@ -25,26 +25,26 @@ string TypeKind2Str(TypeKind t) {
   }
 }
 
-string GenParam2Str(GenParam genparam) {
+string Param2Str(Param genparam) {
   switch(genparam) {
-    case GINT : return "int";
-    case GSTRING : return "string";
-    case GTYPE : return "type";
+    case AINT : return "int";
+    case ASTRING : return "string";
+    case ATYPE : return "type";
     default : return "NYI";
   }
 }
-GenParam Str2GenParam(string s) {
-  if (s=="int") return GINT;
-  if (s=="string") return GSTRING;
-  if (s=="type") return GTYPE;
-  throw std::runtime_error("Cannot convert " + s + " to GenParam"); 
+Param Str2Param(string s) {
+  if (s=="int") return AINT;
+  if (s=="string") return ASTRING;
+  if (s=="type") return ATYPE;
+  throw std::runtime_error("Cannot convert " + s + " to Param"); 
 }
 
-string GenParams2Str(GenParams genparams) {
+string Params2Str(Params genparams) {
   string ret = "(";
   for (auto it=genparams.begin(); it!=genparams.end(); ++it) {
     
-    ret = ret + it->first + ": " + GenParam2Str(it->second) + ((it==genparams.begin()) ? "" : ",");
+    ret = ret + it->first + ": " + Param2Str(it->second) + ((it==genparams.begin()) ? "" : ",");
   }
   return ret + ")";
 }

@@ -6,9 +6,10 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "common.hpp"
-#include "genargs.hpp"
 #include <cassert>
+
+#include "common.hpp"
+#include "args.hpp"
 #include "context.hpp"
 #include "error.hpp"
 #include "json.hpp"
@@ -63,10 +64,10 @@ struct TypeGen {
   string libname;
   string name;
   TypeGen* flipped;
-  GenParams genparams;
+  Params genparams;
   TypeGenFun fun;
   bool funflip;
-  TypeGen(string libname, string name, GenParams genparams, TypeGenFun fun, bool funflip) : libname(libname), name(name), genparams(genparams), fun(fun), funflip(funflip) { 
+  TypeGen(string libname, string name, Params genparams, TypeGenFun fun, bool funflip) : libname(libname), name(name), genparams(genparams), fun(fun), funflip(funflip) { 
     if (!fun) {
       cout << "Warning: TypeGen linking NYI" << endl;
     }
@@ -75,7 +76,7 @@ struct TypeGen {
     flipped = _flipped;
   }
   string toString() {
-    return name + GenParams2Str(genparams);
+    return name + Params2Str(genparams);
   }
 };
 
@@ -84,11 +85,11 @@ struct TypeGen {
 class TypeGenType : public Type {
   protected :
     TypeGen* def;
-    GenArgs* args;
+    Args* args;
   public :
-    TypeGenType(TypeGen* def, GenArgs* args);
+    TypeGenType(TypeGen* def, Args* args);
     TypeGen* getDef() { return def;}
-    GenArgs* getArgs() { return args;}
+    Args* getArgs() { return args;}
     string toString(void) const { return def->name; }
     //json toJson(); TODO
     bool sel(Context* c, string sel, Type** ret, Error* e);

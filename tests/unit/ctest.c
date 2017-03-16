@@ -7,16 +7,16 @@ int main() {
   COREType* bitIn = COREBitIn(c);
   CORENamespace* ns = COREGetGlobal(c);
   
-  COREGenParams* cp = CORENewGenParams(c);
-  COREGenParamsAddField(cp,"lut_table",0); //TODO how to do enums
+  COREParams* cp = CORENewParams(c);
+  COREParamsAddField(cp,"lut_table",0); //TODO how to do enums
   COREModule* lut4 = CORENewModule(ns,"LUT4",bitIn,cp);
   
   COREModule* m = CORENewModule(ns,"Main",bitIn,NULL);
 
   COREModuleDef* mdef = COREModuleNewDef(m);
 
-  COREGenArgs* config = CORENewGenArgs(c);
-  COREGenArgsAddField(config,"lut_table",COREGInt(c,255));
+  COREArgs* config = CORENewArgs(c);
+  COREArgsAddField(config,"lut_table",COREGInt(c,255));
 
   COREModuleDefAddModuleInstance(mdef, "lut0",lut4,config);
   COREModuleAddDef(m,mdef);

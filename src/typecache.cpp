@@ -8,12 +8,12 @@ using namespace std;
 namespace CoreIR {
 
 
-bool operator==(const TypeGenParams& l,const TypeGenParams& r) {
+bool operator==(const TypeParams& l,const TypeParams& r) {
   return (l.tg==r.tg) && (*l.ga == *r.ga);
 }
-bool operator!=(TypeGenParams& l,TypeGenParams& r) { return !(l == r); }
+bool operator!=(TypeParams& l,TypeParams& r) { return !(l == r); }
 
-size_t TypeGenParamsHasher::operator()(const TypeGenParams& tgp) const {
+size_t TypeParamsHasher::operator()(const TypeParams& tgp) const {
     size_t hash = 0;
     hash_combine(hash,tgp.tg);
     hash_combine(hash,*(tgp.ga));
@@ -80,8 +80,8 @@ Type* TypeCache::newRecord(RecordParams params) {
   }
 }
 
-Type* TypeCache::newTypeGenInst(TypeGen* tgd, GenArgs* args) {
-  TypeGenParams params(tgd,args);
+Type* TypeCache::newTypeGenInst(TypeGen* tgd, Args* args) {
+  TypeParams params(tgd,args);
   auto it = TypeGenCache.find(params);
   if (it != TypeGenCache.end()) {
     return it->second;
@@ -92,7 +92,7 @@ Type* TypeCache::newTypeGenInst(TypeGen* tgd, GenArgs* args) {
     t->setFlipped(tf);
     tf->setFlipped(t);
     TypeGenCache.emplace(params,t);
-    TypeGenParams paramsF(tgd->flipped,args);
+    TypeParams paramsF(tgd->flipped,args);
     TypeGenCache.emplace(paramsF,tf);
     return t;
   }

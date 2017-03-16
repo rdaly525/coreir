@@ -17,23 +17,23 @@ Namespace={
   "generators":{<genname>:Generator, ...}
 }
 
-Type = ["BitIn"] | ["BitOut"] | ["Array", <N>, Type] | ["Record", [<key>, Type][]}] | ["NamedType", NamedTypeReference, GenArgs]
+Type = ["BitIn"] | ["BitOut"] | ["Array", <N>, Type] | ["Record", [<key>, Type][]}] | ["NamedType", NamedTypeReference, Args]
 TypeArgs = null | [<N>,Type] |  | 
 
 NamedTypeReference=[<namespaceName>,<typeName>]
 NamedType = {"typename":<name>, "flippedtypename":<name>,"type":Type}
-NamedTypeGenerators={"typename":<name>, "flippedtypename":<name>,"genParameter":GenParameter}
+NamedTypeGenerators={"typename":<name>, "flippedtypename":<name>,"genParameter":Parameter}
 
-Module = {"type":Type,"configparams":GenParameter, "metadata":Metadata,"def":ModuleDef}
+Module = {"type":Type,"configparams":Parameter, "metadata":Metadata,"def":ModuleDef}
 
 ModuleDef = null | {"metadata":Metadata,
 "implementations":Metadata,
 "instances": {<instname>:Instance,...}
 "connections": Connection[]}
 
-Generator = {"configparameters":GenParameters,"genparameters":GenParameters, "typegen":NamedTypeReference, "metadata":Metadata}
+Generator = {"configparameters":Parameters,"genparameters":Parameters, "typegen":NamedTypeReference, "metadata":Metadata}
 
-Instance = {"instref":InstantiatableReference, "args":GenArgs, "config":GenArgs, "metadata":Metadata}
+Instance = {"instref":InstantiatableReference, "args":Args, "config":Args, "metadata":Metadata}
 
 InstantiatableReference = ["namespacename","InstantiatableName"]
 
@@ -42,11 +42,11 @@ Connection = [Wireable, Wireable, Metadata]
 Wireable = {"metadata":Metadata, "path":[<topname>,[<a>,<b>,...]]}
      accesses topname.a.b. If "topname" is "self" then this is the module's interface.
 
-GenParameters = null | {<key>:GenParameterType,...}
-GenParameterType = "String" | "Uint" | "Int" | "Type" | "Instantiatable"
+Parameters = null | {<key>:ParameterType,...}
+ParameterType = "String" | "Uint" | "Int" | "Type" | "Instantiatable"
 
-GenArgs = null | {<key>:GenArgsValue}
-GenArgsValue = <String> | <Number> | Type | InstantiatableReference
+Args = null | {<key>:ArgsValue}
+ArgsValue = <String> | <Number> | Type | InstantiatableReference
 
 Metadata={<key>:MetadataValue,...}
 MetadataValue = <String> | <Number> (becomes double)
