@@ -222,6 +222,7 @@ void saveModule(Module* m, string filename, bool* err) {
 
 
 json params2Json(Params gp);
+json wireable2Json(Wireable* w);
 
 
 json Type::toJson() { 
@@ -286,19 +287,18 @@ json ModuleDef::toJson() {
 }
 
 json Connection::toJson() {
-  return json::array({first->toJson(), second->toJson(), metadata.toJson()});
+  return json::array({wireable2Json(first), wireable2Json(second), metadata.toJson()});
 }
 
-json Wireable::toJson() {
+json wireable2Json(Wireable* w) {
   json j;
-  json jpath;
-  WirePath path = getPath();
+  json jpath = json::array();
+  WirePath path = w->getPath();
   for (auto str : path.second) jpath.push_back(str);
-  j["metadata"] = metadata.toJson();
+  j["metadata"] = w->getMetadata().toJson();
   j["path"] = json::array({path.first,jpath});
   return j;
 }
-
 
 json Instance::toJson() {
   json j;

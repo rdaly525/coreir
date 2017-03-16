@@ -162,7 +162,6 @@ class Wireable {
     Wireable(WireableKind kind, ModuleDef* moduledef, Type* type) : kind(kind),  moduledef(moduledef), type(type) {}
     virtual ~Wireable() {}
     virtual string toString() const=0;
-    virtual json toJson();
     unordered_set<Wireable*> getConnectedWireables() { return connected;}
     unordered_map<string,Wireable*> getChildren() { return selects;}
     Metadata getMetadata() { return metadata;}
@@ -189,7 +188,6 @@ class Interface : public Wireable {
   public :
     Interface(ModuleDef* context,Type* type) : Wireable(IFACE,context,type) {};
     string toString() const;
-    //json toJson(); just use wireables
 };
 
 //TODO potentially separate out moduleGen instances and module instances
@@ -221,7 +219,6 @@ class Select : public Wireable {
   public :
     Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(SEL,context,type), parent(parent), selStr(selStr) {}
     string toString() const;
-    //json toJson(); just use Wireable's
     Wireable* getParent() { return parent; }
     string getSelStr() { return selStr; }
 };

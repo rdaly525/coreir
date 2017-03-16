@@ -43,7 +43,8 @@ int main() {
     def->wire(self->sel("in0"),addinst->sel("in0"));
     def->wire(constinst,addinst->sel("in1"));
     def->wire(self->sel("in1"),multinst->sel("in0"));
-    def->wire(addinst->sel("out"),multinst->sel("in2"));
+    def->wire(addinst->sel("out"),multinst->sel("in1"));
+
   addmult->addDef(def);
 
   addmult->print();
@@ -55,7 +56,12 @@ int main() {
   if(err) c->die();
 
   //Save to Json
+  cout << "Saving 2 json" << endl;
   saveModule(addmult,"addmult.json",&err);
+  if(err) c->die();
+
+  cout << "Loading json" << endl;
+  Module* m = loadModule(c,"addmult.json",&err);
   if(err) c->die();
 
   deleteContext(c);

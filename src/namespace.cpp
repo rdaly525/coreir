@@ -66,7 +66,6 @@ Generator* Namespace::newGeneratorDecl(string name, Params kinds, TypeGen* tg) {
 }
 
 Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
-  for (auto it : configparams) cout << "P: " << it.first << Param2Str(it.second) << endl;
   Module* m = new Module(this,name,t, configparams);
   mList.emplace(name,m);
   return m;
