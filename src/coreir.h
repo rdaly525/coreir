@@ -89,6 +89,8 @@ extern COREWireable* COREConnectionGetSecond(COREConnection* connection);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
 extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
+extern COREModuleDef* COREWireableGetModuleDef(COREWireable* w);
+extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
 // extern COREWirePath* COREWireableGetWirePath(COREWireable* w);
 
 extern void COREPrintErrors(COREContext* c);

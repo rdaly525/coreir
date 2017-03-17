@@ -198,6 +198,14 @@ extern "C" {
     return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
   }
 
+  COREModuleDef* COREWireableGetModuleDef(COREWireable* w) {
+    return rcast<COREModuleDef*>(rcast<Wireable*>(w)->getModuleDef());
+  }
+
+  COREModule* COREModuleDefGetModule(COREModuleDef* m) {
+    return rcast<COREModule*>(rcast<ModuleDef*>(m)->getModule());
+  }
+
   // char*** COREWireableGetWirePath(COREWireable* w) {
   //   WirePath path = rcast<Wireable*>(w)->getPath();
   //   return rcast<COREWirePath>();

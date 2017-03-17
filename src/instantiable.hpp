@@ -139,6 +139,7 @@ class ModuleDef {
     Type* getType() {return module->getType();}
     SelCache* getCache() { return cache;}
     Metadata getMetadata() { return metadata;}
+    Module* getModule() { return module; }
     Instance* addInstance(string,Generator*,Args* genargs, Args* config=nullptr);
     Instance* addInstance(string,Module*,Args* config=nullptr);
     Instance* addInstance(Instance* i); //copys info about i
