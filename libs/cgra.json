@@ -1,0 +1,16 @@
+{"namespaces":{"cgra":{"modules":
+
+"PE":{
+  "type":["record",[
+       ["inA",["Array",16,"BitIn"]]
+       ["inB",["Array",16,"BitIn"]],
+       ["out",["Array",16,"BitOut"]], ],
+  "configparams":{"op":String,"constvalue":Uint},
+},
+
+
+"IOIn":{"type":["Array",16,"BitIn"]},
+
+"IOOut":{"type":["Array",16,"BitOut"]}
+
+}}}}

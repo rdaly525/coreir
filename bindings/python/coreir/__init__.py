@@ -59,12 +59,6 @@ class COREArg(ct.Structure):
 
 COREArg_p = ct.POINTER(COREArg)
 
-
-class COREInstance(ct.Structure):
-    pass
-
-COREInstance_p = ct.POINTER(COREInstance)
-
 class COREInterface(ct.Structure):
     pass
 
@@ -74,6 +68,11 @@ class COREWireable(ct.Structure):
     pass
 
 COREWireable_p = ct.POINTER(COREWireable)
+
+class COREInstance(COREWireable):
+    pass
+
+COREInstance_p = ct.POINTER(COREInstance)
 
 class CORESelect(COREWireable):
     pass
@@ -178,11 +177,20 @@ coreir_lib.COREConnectionGetSecond.restype = COREWireable_p
 coreir_lib.COREWireableGetConnectedWireables.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREWireableGetConnectedWireables.restype = ct.POINTER(COREWireable_p)
 
+coreir_lib.COREWireableGetModuleDef.argtypes = [COREWireable_p]
+coreir_lib.COREWireableGetModuleDef.restype = COREModuleDef_p
+
 coreir_lib.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
 coreir_lib.COREWireableSelect.restype = CORESelect_p
 
+coreir_lib.COREWireableGetAncestors.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREWireableGetAncestors.restype = ct.POINTER(ct.c_char_p)
+
 coreir_lib.COREModuleDefSelect.argtypes = [COREModuleDef_p, ct.c_char_p]
 coreir_lib.COREModuleDefSelect.restype = CORESelect_p
+
+coreir_lib.COREModuleDefGetModule.argtypes = [COREModuleDef_p]
+coreir_lib.COREModuleDefGetModule.restype = COREModule_p
 
 # coreir_lib.CORESelectGetParent.argtypes = [CORESelect_p]
 # coreir_lib.CORESelectGetParent.restype = COREWireable_p
@@ -195,6 +203,7 @@ GTYPE=2
 class CoreIRType(object):
     def __init__(self, ptr):
         self.ptr = ptr
+
 class GenParams(CoreIRType):
     def __init__(self,ptr,fields):
         print("in GenParams!")
@@ -221,8 +230,19 @@ class Wireable(CoreIRType):
         result = coreir_lib.COREWireableGetConnectedWireables(self.ptr, ct.byref(size))
         return [Wireable(result[i]) for i in range(size.value)]
 
+    def get_ancestors(self):
+        size = ct.c_int()
+        result = coreir_lib.COREWireableGetAncestors(self.ptr, ct.byref(size))
+        return [result[i].decode() for i in range(size.value)]
+
     def select(self, field):
         return Select(coreir_lib.COREWireableSelect(self.ptr, str.encode(field)))
+
+    def get_module_def(self):
+        return ModuleDef(coreir_lib.COREWireableGetModuleDef(self.ptr))
+
+    def get_module(self):
+        return self.get_module_def().get_module()
 
 
 class Select(Wireable):
@@ -261,6 +281,9 @@ class ModuleDef(CoreIRType):
 
     def get_interface(self):
         return Interface(coreir_lib.COREModuleDefGetInterface(self.ptr))
+
+    def get_module(self):
+        return Module(coreir_lib.COREModuleDefGetModule(self.ptr))
 
     def get_instances(self):
         size = ct.c_int()

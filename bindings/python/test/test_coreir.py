@@ -8,6 +8,10 @@ import ctypes as ct
 def get_pointer_addr(ptr):
     return ct.cast(ptr, ct.c_void_p).value
 
+def assert_pointers_equal(ptr1, ptr2):
+    assert get_pointer_addr(ptr1) == get_pointer_addr(ptr2)
+
+
 def test_save_module():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
@@ -64,6 +68,9 @@ def test_module_def_get_instances():
         assert pointer in pointers_expected
         pointers_expected.remove(pointer)
 
+    assert_pointers_equal(instances[0].get_module_def().ptr, module_def.ptr)
+    assert_pointers_equal(instances[0].get_module().ptr, module.ptr)
+
 def test_module_def_select():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
@@ -109,6 +116,8 @@ def test_wireable():
     actual = [get_pointer_addr(wireable.ptr) for wireable in _input.get_connected_wireables()]
     assert get_pointer_addr(add8_in1.ptr) in actual
     assert get_pointer_addr(add8_in2.ptr) in actual
+    for expected, actual in zip(['adder', 'out'], add8_out.get_ancestors()):
+        assert expected == actual
 
     wireable = module_def.select("self")
     assert get_pointer_addr(wireable.select("input").ptr) == get_pointer_addr(_input.ptr)
