@@ -14,6 +14,7 @@ int main(int argc, char *argv[]){
   bool err = false;
 
   Module* m = loadModule(c,argv[1],&err);
+  if(err){c->die();}
 
   typecheck(c,m,&err);
 
