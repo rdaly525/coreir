@@ -20,7 +20,7 @@ typedef enum {
     STR2ARG_MAP         = 1,
     STR2PARAM_MAP       = 2,
     STR_VEC             = 3
-} COREContainerKind;
+} COREMapKind;
 
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
 //void* COREMapAt(void* container,void* key,COREContainerKind kind, bool* err);

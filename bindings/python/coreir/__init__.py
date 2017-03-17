@@ -85,17 +85,15 @@ class COREConnection(ct.Structure):
 COREConnection_p = ct.POINTER(COREConnection)
 
 COREContainerKind = ct.c_int
-COREContainerKind_STR2TYPE_MAP = COREContainerKind(0)
+COREContainerKind_STR2TYPE_ORDEREDMAP = COREContainerKind(0)
 COREContainerKind_STR2ARG_MAP = COREContainerKind(1)
 COREContainerKind_STR2PARAM_MAP = COREContainerKind(2)
+COREContainerKind_STRVEC = COREContainerKind(3)
 
 coreir_lib = load_shared_lib()
 
-coreir_lib.CORENewContainer.argtypes = [COREContext_p, ct.POINTER(ct.c_void_p), ct.POINTER(ct.c_void_p), ct.c_uint32, COREContainerKind]
-coreir_lib.CORENewContainer.restype = ct.c_void_p
-
-coreir_lib.COREContainerAt.argtypes = [ct.c_void_p, ct.c_void_p, COREContainerKind]
-coreir_lib.COREContainerAt.restype = ct.c_void_p
+coreir_lib.CORENewMap.argtypes = [COREContext_p, ct.c_void_p, ct.c_void_p, ct.c_uint32, COREContainerKind]
+coreir_lib.CORENewMap.restype = ct.c_void_p
 
 coreir_lib.CORENewContext.restype = COREContext_p
 
@@ -113,15 +111,6 @@ coreir_lib.COREArray.restype = COREType_p
 
 coreir_lib.CORERecord.argtypes = [COREContext_p, ct.c_void_p]
 coreir_lib.CORERecord.restype = COREType_p
-
-#GenParams and Args
-coreir_lib.CORENewArgs.argtypes = [COREContext_p]
-coreir_lib.CORENewArgs.restype = COREArgs_p
-
-coreir_lib.COREArgsAddField.argtypes = [COREArgs_p, ct.c_char_p, COREArg_p]
-
-coreir_lib.COREGInt.argtypes = [COREContext_p,ct.c_int]
-coreir_lib.COREGInt.restype = COREArg_p
 
 coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 
@@ -363,30 +352,24 @@ class Context:
         if fields==None:
             return GenParams(COREParams_p(),None)
 
-        keys = ct.c_void_p * len(fields)
-        values = ct.c_void_p * len(fields)
-        for i, (key, value) in enumerate(fields.items()):
-            assert value >= 0 and value < 3
-            keys[i] = str.encode(key)
-            values[i] = ct.byref(ct.c_int(value))  # TODO: Memory leak? Should we clean this up?
-        gen_params = CORENewContainer(self.context, keys, values,
-                len(fields), COREContainerKind_STR2ARG_MAP)
-        return GenParams(gen_params,fields)
+        keys = (str.encode(key) for key in fields.keys())
+        values = (value for value in fields.values())
+        keys = (ct.c_char_p * len(fields))(*keys)
+        values = (ct.c_int * len(fields))(*values)
+        gen_params = coreir_lib.CORENewMap(self.context, ct.cast(keys,
+            ct.c_void_p), ct.cast(values, ct.c_void_p), len(fields),
+            COREContainerKind_STR2ARG_MAP)
+        return GenParams(ct.cast(gen_params, COREParams),fields)
   
     #TODO this will generate the Args, but if fields is None, return null thing
     def newGenArgs(self,genparams,fields):
         assert isinstance(genparams,GenParams)
-        keys = ct.c_void_p * len(fields)
-        values = ct.c_void_p * len(fields)
-        for i, (key, value) in enumerate(fields.items()):
-            #TODO only works for ints right now
-            assert genparams[key]==GINT
-            #Should check against genparams
-            keys[i] = str.encode(key)
-            values[i] = ct.byref(ct.c_int(value))  # TODO: Memory leak? Should we clean this up?
-        gen_args = CORENewContainer(self.context, keys, values,
-                len(fields), COREContainerKind_STR2ARG_MAP)
-        return GenArgs(gen_args,genparams,fields)
+        keys = (ct.c_char_p * len(fields))(*(str.encode(key) for key in fields.keys()))
+        values = (ct.c_int * len(fields))(*(value for value in fields.values()))
+        gen_args = coreir_lib.CORENewMap(self.context, ct.cast(keys,
+            ct.c_void_p), ct.cast(values, ct.c_void_p), len(fields),
+            COREContainerKind_STR2ARG_MAP)
+        return GenArgs(ct.cast(gen_args, COREArgs),genparams,fields)
 
     def load_from_file(self, file_name):
         err = ct.c_bool(False)
@@ -396,13 +379,16 @@ class Context:
         return Module(m)
  
     def Record(self, fields):
-        keys = ct.c_void_p * len(fields)
-        values = ct.c_void_p * len(fields)
-        for i, (key, value) in enumerate(fields.items()):
-            keys[i] = str.encode(key)
-            values[i] = value.ptr
-        record_params = CORENewContainer(self.context, keys, values,
-                len(fields), COREContainerKind_STR2TYPE_MAP)
+        keys = []
+        values = []
+        for key, value in fields.items():
+            keys.append(str.encode(key))
+            values.append(value.ptr)
+        keys   = (ct.c_char_p * len(fields))(*keys)
+        values = (COREType_p * len(fields))(*values)
+        record_params = coreir_lib.CORENewMap(self.context, ct.cast(keys,
+            ct.c_void_p), ct.cast(values, ct.c_void_p), len(fields),
+            COREContainerKind_STR2TYPE_ORDEREDMAP)
         return Type(coreir_lib.CORERecord(self.context, record_params))
 
     def __del__(self):
