@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef uint32_t uint;
+typedef uint32_t u32;
 
 typedef struct COREContext COREContext;
 typedef struct CORENamespace CORENamespace;
@@ -15,10 +15,10 @@ typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
 typedef struct COREArg COREArg;
 
-typedef enum {STR2TYPE_MAP,STR2ARG_MAP,STR2PARAM_MAP} COREContainerKind
+typedef enum {STR2TYPE_ORDEREDMAP,STR2ARG_MAP,STR2PARAM_MAP,STR_VEC} COREMapKind;
 
-void* CORENewContainer(COREContext* c, void** keys, void** values, uint len, COREContainerKind kind);
-void* COREContainerAt(void* container,void* key,COREContainerKind kind);
+void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
+//void* COREMapAt(void* container,void* key,COREContainerKind kind, bool* err);
 
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;
