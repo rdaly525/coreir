@@ -35,7 +35,12 @@ def test_save_module():
     module_def.wire(output, add8_out)
     module.add_definition(module_def)
     module.save_to_file("python_test_output.json")
-    c.load_from_file("python_test_output.json")
+    mod = c.load_from_file("python_test_output.json")
+    mod_def = mod.get_definition()
+    print("=====================")
+    mod_def.print_()
+    module_def.print_()
+    print("=====================")
 
 
 def test_module_def_get_instances():

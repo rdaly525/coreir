@@ -149,6 +149,9 @@ coreir_lib.COREPrintModule.argtypes = [COREModule_p]
 coreir_lib.COREModuleNewDef.argtypes = [COREModule_p]
 coreir_lib.COREModuleNewDef.restype = COREModuleDef_p
 
+coreir_lib.COREModuleGetDef.argtypes = [COREModule_p]
+coreir_lib.COREModuleGetDef.restype = COREModuleDef_p
+
 coreir_lib.COREModuleDefAddModuleInstance.argtypes = [COREModuleDef_p, ct.c_char_p, COREModule_p, COREArgs_p]
 coreir_lib.COREModuleDefAddModuleInstance.restype = COREInstance_p
 
@@ -287,6 +290,9 @@ class ModuleDef(CoreIRType):
 class Module(CoreIRType):
     def new_definition(self):
         return ModuleDef(coreir_lib.COREModuleNewDef(self.ptr))
+
+    def get_definition(self):
+        return ModuleDef(coreir_lib.COREModuleGetDef(self.ptr))
 
     def add_definition(self, definition):
         assert isinstance(definition, ModuleDef)

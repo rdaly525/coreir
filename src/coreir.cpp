@@ -70,6 +70,10 @@ extern "C" {
   COREModuleDef* COREModuleNewDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
   }
+
+  COREModuleDef* COREModuleGetDef(COREModule* module) {
+    return rcast<COREModuleDef*>(rcast<Module*>(module)->getDef());
+  }
   
   COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, COREArgs* config) {
     return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),rcast<Args*>(config)));
