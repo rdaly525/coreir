@@ -374,10 +374,8 @@ class Context:
         if fields==None:
             return GenParams(COREParams_p(),None)
 
-        keys = (str.encode(key) for key in fields.keys())
-        values = (value for value in fields.values())
-        keys = (ct.c_char_p * len(fields))(*keys)
-        values = (ct.c_int * len(fields))(*values)
+        keys = (ct.c_char_p * len(fields))(*(str.encode(key) for key in fields.keys()))
+        values = (ct.c_int * len(fields))(*(value for value in fields.values()))
         gen_params = coreir_lib.CORENewMap(self.context, ct.cast(keys,
             ct.c_void_p), ct.cast(values, ct.c_void_p), len(fields),
             COREContainerKind_STR2ARG_MAP)
