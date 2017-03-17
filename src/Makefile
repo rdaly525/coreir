@@ -1,7 +1,6 @@
 .SUFFIXES:
 
 CORECONFIG ?= g++
-
 CXX ?= g++
 
 ifeq ($(CORECONFIG),g++)
