@@ -2,21 +2,27 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef uint32_t u32;
+typedef uint32_t uint;
 
 typedef struct COREContext COREContext;
 typedef struct CORENamespace CORENamespace;
 typedef struct COREType COREType;
 typedef struct COREModule COREModule;
 typedef struct COREModuleDef COREModuleDef;
-typedef struct CORERecordParam CORERecordParam;
 typedef struct COREInstance COREInstance;
 typedef struct COREInterface COREInterface;
 typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
 typedef struct COREParams COREParams;
-typedef struct COREArgs COREArgs;
 typedef struct COREArg COREArg;
+
+typedef struct COREArgs COREArgs;
+typedef struct CORERecordParam CORERecordParam;
+
+typedef enum {STR2TYPE_MAP,STR2ARG_MAP} COREContainerKind
+
+void* CORENewContainer(COREContext* c, void** keys, void** values, uint len, COREContainerKind kind);
+void* COREContainerAt(void* container,void* key,COREContainerKind kind);
 
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;
@@ -86,7 +92,7 @@ extern COREArg* COREGetConfigValue(COREInstance* i, char* s);
 extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
-extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, int* numInstances);
+extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, u32* numInstances);
 // extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
 extern COREWireable* COREConnectionGetFirst(COREConnection* connection);
 extern COREWireable* COREConnectionGetSecond(COREConnection* connection);

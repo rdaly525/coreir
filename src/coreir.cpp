@@ -13,6 +13,26 @@ T1 rcast(T2 in) {
 }
 
 extern "C" {
+  
+ typedef enum {STR2TYPE_MAP,STR2ARG_MAP} COREContainerKind
+
+  void* CORENewContainer(COREContext* c, void** keys, void** values, uint len, COREContainerKind kind);
+    if (kind==STR2TYPE_MAP) {
+      unordered_map<string,Type*>* tmap = new unordered_map<string,Type*>(); //TODO let context memory manage this
+      for (uint i=0; i<len; ++i) {
+        string s = std::string((char*) keys[i]);
+        Type* t = (Type*) values[i];
+        tmap[s] = t;
+      }
+      return (void*) tmap;
+    }
+    if (kind==STR2ARG_MAP) {
+      unordered_map<string,Arg*>* amap = new unordered
+    }
+  }
+void* COREContainerAt(void*,COREContainerKind kind);
+ 
+  
   COREContext* CORENewContext() {
     return rcast<COREContext*>(newContext());
   }
