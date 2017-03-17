@@ -15,7 +15,11 @@ typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
 typedef struct COREArg COREArg;
 
-typedef enum {STR2TYPE_MAP,STR2ARG_MAP,STR2PARAM_MAP} COREContainerKind
+typedef enum {
+    STR2TYPE_MAP = 0,
+    STR2ARG_MAP = 1,
+    STR2PARAM_MAP = 2
+} COREContainerKind;
 
 void* CORENewContainer(COREContext* c, void** keys, void** values, uint len, COREContainerKind kind);
 void* COREContainerAt(void* container,void* key,COREContainerKind kind);

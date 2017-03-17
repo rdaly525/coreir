@@ -2,7 +2,7 @@ from ctypes import cdll
 import ctypes as ct
 import platform
 import os
-
+from collections import namedtuple
 
 def load_shared_lib():
     _system = platform.system()
@@ -43,11 +43,6 @@ class COREModuleDef(ct.Structure):
     pass
 
 COREModuleDef_p = ct.POINTER(COREModuleDef)
-
-class CORERecordParam(ct.Structure):
-    pass
-
-CORERecordParam_p = ct.POINTER(CORERecordParam)
 
 class COREParams(ct.Structure):
   pass
@@ -90,8 +85,18 @@ class COREConnection(ct.Structure):
 
 COREConnection_p = ct.POINTER(COREConnection)
 
+COREContainerKind = ct.c_int
+COREContainerKind_STR2TYPE_MAP = COREContainerKind(0)
+COREContainerKind_STR2ARG_MAP = COREContainerKind(1)
+COREContainerKind_STR2PARAM_MAP = COREContainerKind(2)
 
 coreir_lib = load_shared_lib()
+
+coreir_lib.CORENewContainer.argtypes = [COREContext_p, ct.POINTER(ct.c_void_p), ct.POINTER(ct.c_void_p), ct.c_uint32, COREContainerKind]
+coreir_lib.CORENewContainer.restype = ct.c_void_p
+
+coreir_lib.COREContainerAt.argtypes = [ct.c_void_p, ct.c_void_p, COREContainerKind]
+coreir_lib.COREContainerAt.restype = ct.c_void_p
 
 coreir_lib.CORENewContext.restype = COREContext_p
 
@@ -107,20 +112,10 @@ coreir_lib.COREBitOut.restype = COREType_p
 coreir_lib.COREArray.argtypes = [COREContext_p, ct.c_uint32, COREType_p]
 coreir_lib.COREArray.restype = COREType_p
 
-coreir_lib.CORENewRecordParam.argtypes = [COREContext_p]
-coreir_lib.CORENewRecordParam.restype = CORERecordParam_p
-
-coreir_lib.CORERecordParamAddField.argtypes = [CORERecordParam_p, ct.c_char_p, COREType_p]
-
-coreir_lib.CORERecord.argtypes = [COREContext_p, CORERecordParam_p]
+coreir_lib.CORERecord.argtypes = [COREContext_p, ct.c_void_p]
 coreir_lib.CORERecord.restype = COREType_p
 
 #GenParams and Args
-coreir_lib.CORENewParams.argtypes = [COREContext_p]
-coreir_lib.CORENewParams.restype = COREParams_p
-
-coreir_lib.COREParamsAddField.argtypes = [COREParams_p, ct.c_char_p, ct.c_int]
-
 coreir_lib.CORENewArgs.argtypes = [COREContext_p]
 coreir_lib.CORENewArgs.restype = COREArgs_p
 
@@ -345,22 +340,29 @@ class Context:
         if fields==None:
             return GenParams(COREParams_p(),None)
 
-        gen_params = coreir_lib.CORENewParams(self.context)
-        for key, value in fields.items():
+        keys = ct.c_void_p * len(fields)
+        values = ct.c_void_p * len(fields)
+        for i, (key, value) in enumerate(fields.items()):
             assert value >= 0 and value < 3
-            coreir_lib.COREParamsAddField(gen_params, str.encode(key), ct.c_int(value))
+            keys[i] = str.encode(key)
+            values[i] = ct.byref(ct.c_int(value))  # TODO: Memory leak? Should we clean this up?
+        gen_params = CORENewContainer(self.context, keys, values,
+                len(fields), COREContainerKind_STR2ARG_MAP)
         return GenParams(gen_params,fields)
   
     #TODO this will generate the Args, but if fields is None, return null thing
     def newGenArgs(self,genparams,fields):
         assert isinstance(genparams,GenParams)
-        gen_args = coreir_lib.CORENewArgs(self.context)
-        for key, value in fields.items():
+        keys = ct.c_void_p * len(fields)
+        values = ct.c_void_p * len(fields)
+        for i, (key, value) in enumerate(fields.items()):
             #TODO only works for ints right now
             assert genparams[key]==GINT
             #Should check against genparams
-            gint = coreir_lib.COREGInt(self.context,ct.c_int(value))
-            coreir_lib.COREArgsAddField(gen_args,str.encode(key),gint)
+            keys[i] = str.encode(key)
+            values[i] = ct.byref(ct.c_int(value))  # TODO: Memory leak? Should we clean this up?
+        gen_args = CORENewContainer(self.context, keys, values,
+                len(fields), COREContainerKind_STR2ARG_MAP)
         return GenArgs(gen_args,genparams,fields)
 
     def load_from_file(self, file_name):
@@ -371,9 +373,13 @@ class Context:
         return Module(m)
  
     def Record(self, fields):
-        record_params = coreir_lib.CORENewRecordParam(self.context)
-        for key, value in fields.items():
-            coreir_lib.CORERecordParamAddField(record_params, str.encode(key), value.ptr)
+        keys = ct.c_void_p * len(fields)
+        values = ct.c_void_p * len(fields)
+        for i, (key, value) in enumerate(fields.items()):
+            keys[i] = str.encode(key)
+            values[i] = value.ptr
+        record_params = CORENewContainer(self.context, keys, values,
+                len(fields), COREContainerKind_STR2TYPE_MAP)
         return Type(coreir_lib.CORERecord(self.context, record_params))
 
     def __del__(self):
