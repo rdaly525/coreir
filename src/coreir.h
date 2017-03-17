@@ -91,6 +91,6 @@ extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
 extern COREModuleDef* COREWireableGetModuleDef(COREWireable* w);
 extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
-// extern COREWirePath* COREWireableGetWirePath(COREWireable* w);
+extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors);
 
 extern void COREPrintErrors(COREContext* c);

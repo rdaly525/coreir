@@ -23,6 +23,7 @@ Context::~Context() {
   for (auto it : instanceArrays) free(it);
   // for (auto it : connectionArrays) free(it);
   for (auto it : wireableArrays) free(it);
+  for (auto it : constStringArrays) free(it);
  
   delete cache;
 }
@@ -122,6 +123,12 @@ Instance** Context::newInstanceArray(int size) {
 //   connectionArrays.push_back(arr);
 //   return arr;
 // }
+
+const char** Context::newConstStringArray(int size) {
+    const char** arr = (const char**) malloc(sizeof(const char*) * size);
+    constStringArrays.push_back(arr);
+    return arr;
+}
 
 Wireable** Context::newWireableArray(int size) {
   Wireable** arr = (Wireable**) malloc(sizeof(Wireable*) * size);
