@@ -47,6 +47,7 @@ class Context {
       printerrors();
       delete this; // sketch but okay if exits I guess
       cout << "I AM DYING!" << endl;
+      delete cache;
       exit(1);
     }
     void printerrors() { 
