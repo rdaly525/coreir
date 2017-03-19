@@ -211,6 +211,10 @@ class Instance : public Wireable {
     //Convinience functions
     bool isGen() { return instRef->isKind(GEN);}
     bool hasDef() { return instRef->hasDef(); }
+    void replace(Instantiable* instRef, Args* config) {
+      this->instRef = instRef;
+      this->config = config;
+    }
 };
 
 class Select : public Wireable {
