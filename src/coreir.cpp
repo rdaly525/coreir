@@ -16,6 +16,7 @@ extern "C" {
 
   void* CORENewMap(COREContext* cc, void* keys, void* values, u32 len, COREMapKind kind) {
     Context* c = rcast<Context*>(cc);
+    void* ret;
     switch(kind) {
       case(STR2TYPE_ORDEREDMAP) : {
         char** skeys = (char**) keys;
@@ -26,7 +27,8 @@ extern "C" {
           Type* t = types[i];
           tmap->emplace_back(s,t);
         }
-        return (void*) tmap;
+        ret = (void*) tmap;
+        break;
       }
       case (STR2ARG_MAP) : {
         char** skeys = (char**) keys;
@@ -37,7 +39,8 @@ extern "C" {
           Arg* a = (Arg*) args[i];
           amap->emplace(s,a);
         }
-        return (void*) amap;
+        ret = (void*) amap;
+        break;
       }
       case (STR2PARAM_MAP) : {
         char** skeys = (char**) keys;
@@ -48,11 +51,19 @@ extern "C" {
           Param p = params[i];
           pmap->emplace(s,p);
         }
-        return (void*) pmap;
+        ret = (void*) pmap;
+        break;
       }
-      default : { c->die(); }
+      default : { cout << "BAD KIND " << kind << endl; c->die(); ret = nullptr;}
     }
-    return nullptr;
+    free(keys);
+    free(values);
+    return ret;
+  }
+  COREArgs* CORENewArgs(COREContext* c,void* args) {
+    Context* c = rcast<Context*>(COREContext*);
+    unordered_map<string,Arg*>* as = (unordered_map<string,Arg*>*) as;
+    return rcast<COREA
   }
   
   COREContext* CORENewContext() {
