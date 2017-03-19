@@ -97,7 +97,7 @@ Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::BitOut() { return cache->newBitOut(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::TypeGenInst(TypeGen* tgd, Args* args) { return cache->newTypeGenInst(tgd,args); }
+Type* Context::TypeGenInst(TypeGen* tgd, Args args) { return cache->newTypeGenInst(tgd,args); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 RecordParams* Context::newRecordParams() {
@@ -128,35 +128,25 @@ Wireable** Context::newWireableArray(int size) {
   wireableArrays.push_back(arr);
   return arr;
 }
-    Arg* int2Arg(int i);
-    Arg* string2Arg(string s);
-    Arg* type2Arg(Type* t);
-    
-    int arg2Int(Arg* g);
-    string arg2String(Arg* g);
-    Type* arg2Type(Arg* g);
-    
-    Args* args(unordered_map<string,Arg*> args=unordered_map<string,Arg*>());   
-    Args* configArgs(unordered_map<string,Arg*> args=unordered_map<string,Arg*>());   
 
 Arg* Context::int2Arg(int i) { 
-  Arg* ga = new GenInt(i); 
+  Arg* ga = new ArgInt(i); 
   genargList.push_back(ga);
   return ga;
 }
 Arg* Context::string2Arg(string s) { 
-  Arg* ga = new GenString(s); 
+  Arg* ga = new ArgString(s); 
   genargList.push_back(ga);
   return ga;
 }
 Arg* Context::type2Arg(Type* t) { 
-  Arg* ga = new GenType(t); 
+  Arg* ga = new ArgType(t); 
   genargList.push_back(ga);
   return ga;
 }
-int Context::arg2Int(Arg* g) { return ((GenInt*) g)->i; }
-string Context::arg2String(Arg* g) { return ((GenString*) g)->str; }
-Type* Context::arg2Type(Arg* g) { return ((GenType*) g)->t; }
+int Context::arg2Int(Arg* g) { return ((ArgInt*) g)->i; }
+string Context::arg2String(Arg* g) { return ((ArgString*) g)->str; }
+Type* Context::arg2Type(Arg* g) { return ((ArgType*) g)->t; }
 
 Args* Context::args(unordered_map<string,Arg*> args) {
   Args* ga = new Args(this,args);

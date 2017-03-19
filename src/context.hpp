@@ -65,7 +65,7 @@ class Context {
     Type* BitOut();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
-    Type* TypeGenInst(TypeGen* tgd, Args* args);
+    Type* TypeGenInst(TypeGen* tgd, Args args);
 
     RecordParams* newRecordParams();
     Params* newParams();
@@ -82,7 +82,6 @@ class Context {
     string arg2String(Arg* g);
     Type* arg2Type(Arg* g);
     
-    Args* args(unordered_map<string,Arg*> args);   
     Type* Flip(Type* t);
 
 };

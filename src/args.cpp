@@ -20,61 +20,49 @@
 
 namespace CoreIR {
 
-Arg* Args::operator[](const string s) const {
-  auto elem = args.find(s);
-  if (elem == args.end() ) {
-    Error e;
-    e.message("Cannot find field \"" + s + "\" In Args");
-    e.fatal();
-    c->error(e);
-  }
-  return elem->second;
+bool ArgInt::operator==(const Arg& r) const {
+  if (!Arg::operator==(r)) return false;
+  return this->i == static_cast<const ArgInt&>(r).i;
 }
 
-// TODO should just overload the == of each Arg
-bool Args::ArgEq(Arg* a, Arg* b) {
-  if (a->kind == b->kind) {
-    switch(a->kind) {
-      case ASTRING : return ((GenString*) a)->str == ((GenString*) b)->str;
-      case AINT : return ((GenInt*) a)->i == ((GenInt*) b)->i;
-      case ATYPE : return ((GenType*) a)->t ==  ((GenType*) b)->t;
-    }
-  }
-  return false;
+bool ArgString::operator==(const Arg& r) const {
+  if (!Arg::operator==(r)) return false;
+  return this->str == static_cast<const ArgString&>(r).str
 }
+
+bool ArgType::operator==(const Arg& r) const {
+  if (!Arg::operator==(r)) return false;
+  return this->t == static_cast<const ArgType&>(r).t
+}
+
+bool checkParams(Args args, Params params) {
+  if (args.size() != params.size()) return false;
+  for (auto parammap : params) {
+    auto arg = args.find(params.first);
+    if (arg == args.end()) return false;
+    if (!arg.second->isKind(params.second) ) return false;
+  }
+  return true;
+}
+
+
+
+//Arg* Args::operator[](const string s) const {
+//  auto elem = args.find(s);
+//  if (elem == args.end() ) {
+//    Error e;
+//    e.message("Cannot find field \"" + s + "\" In Args");
+//    e.fatal();
+//    c->error(e);
+//  }
+//  return elem->second;
+//}
+
+
 
 }//CoreIR namespace
 
 
 using namespace CoreIR;
-
-size_t std::hash<Args>::operator() (const Args& genargs) const {
-  size_t hash = 0;
-  for (auto it : genargs.args) {
-    hash_combine(hash,it.first);
-    Arg* arg = it.second;
-    switch(arg->kind) {
-      case ASTRING : {
-        string arg_s = ((GenString*) arg)->str;
-        hash_combine(hash,arg_s);
-        cout << "HERE";
-        break;
-      }
-      case AINT : {
-        int arg_i = ((GenInt*) arg)->i;
-        hash_combine(hash,arg_i);
-        break;
-      }
-      case ATYPE : {
-        Type* arg_t = ((GenType*) arg)->t;
-        hash_combine(hash,arg_t);
-        break;
-      }
-      default : 
-        assert(false);
-    }
-  }
-  return hash;
-}
 
 #endif //GENARGS_CPP

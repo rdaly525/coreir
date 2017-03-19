@@ -22,11 +22,11 @@ class Namespace;
 class Context;
 struct Error;
 struct Arg;
-struct GenInt;
-struct GenString;
-struct GenType;
-struct Args;
+struct ArgInt;
+struct ArgString;
+struct ArgType;
 typedef unordered_map<string,Param> Params;
+typedef unordered_map<string,Arg*> Args;
 
 
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
@@ -43,7 +43,7 @@ struct myPair {
 
 class Type;
 class Module;
-typedef Type* (*TypeGenFun)(Context* c, Args* args, Params genparams);
+typedef Type* (*TypeGenFun)(Context* c, Args args, Params genparams);
 struct TypeGen;
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
@@ -55,7 +55,7 @@ struct Metadata;
 class Instantiable;
 class ModuleDef;
 class Generator;
-typedef Module* (*genFun)(Context*,Type*,Args*,Params);
+typedef Module* (*genFun)(Context*,Type*,Args,Params);
 
 class Wireable;
 class SelCache;

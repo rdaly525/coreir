@@ -15,15 +15,21 @@ namespace CoreIR {
 
 struct TypeParams {
   TypeGen* tg;
-  Args* ga;
-  TypeParams(TypeGen* tg, Args* ga) : tg(tg), ga(ga) {}
+  Args args;
+  TypeParams(TypeGen* tg, Args args) : tg(tg), args(args) {}
   friend bool operator==(const TypeParams & l,const TypeParams & r);
-  friend bool operator!=(const TypeParams & l,const TypeParams & r);
 };
+
+
 
 struct TypeParamsHasher {
   size_t operator()(const TypeParams& tgp) const;
 };
+
+struct TypeParamsEqFn {
+  bool operator() (const TypeParams& l, const TypeParams& r) const;
+}
+
 
 struct RecordParamsHasher {
   size_t operator()(const RecordParams& rp) const {

@@ -85,11 +85,11 @@ struct TypeGen {
 class TypeGenType : public Type {
   protected :
     TypeGen* def;
-    Args* args;
+    Args genargs;
   public :
-    TypeGenType(TypeGen* def, Args* args);
+    TypeGenType(TypeGen* def, Args genargs);
     TypeGen* getDef() { return def;}
-    Args* getArgs() { return args;}
+    Args getArgs() { return genargs;}
     string toString(void) const { return def->name; }
     //json toJson(); TODO
     bool sel(Context* c, string sel, Type** ret, Error* e);

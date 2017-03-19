@@ -30,8 +30,8 @@ string RecordType::toString(void) const {
   }
   return ret;
 }
-TypeGenType::TypeGenType(TypeGen* def, Args* args) : Type(TYPEGEN), def(def), args(args) {
-  assert(args->checkParams(def->genparams));
+TypeGenType::TypeGenType(TypeGen* def, Args genargs) : Type(TYPEGEN), def(def), genargs(genargs) {
+  assert(checkParams(genargs,def->genparams));
 }
 
 bool AnyType::sel(Context* c, string sel, Type** ret, Error* e) {
