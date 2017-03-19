@@ -332,9 +332,9 @@ json Args::toJson() {
   for (auto it : args) j[it.first] = it.second->toJson();
   return j;
 }
-json GenString::toJson() { return str; }
-json GenInt::toJson() { return i; }
-json GenType::toJson() { return t->toJson(); }
+json ArgString::toJson() { return str; }
+json ArgInt::toJson() { return i; }
+json ArgType::toJson() { return t->toJson(); }
 
 }//CoreIR namespace
 

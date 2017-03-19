@@ -98,7 +98,7 @@ Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::BitOut() { return cache->newBitOut(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::TypeGenInst(TypeGen* tgd, Args* args) { return cache->newTypeGenInst(tgd,args); }
+Type* Context::TypeGenInst(TypeGen* tgd, Args args) { return cache->newTypeGenInst(tgd,args); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 RecordParams* Context::newRecordParams() {
@@ -137,17 +137,17 @@ Wireable** Context::newWireableArray(int size) {
 }
 
 Arg* Context::int2Arg(int i) { 
-  Arg* ga = new GenInt(i); 
+  Arg* ga = new ArgInt(i); 
   genargList.push_back(ga);
   return ga;
 }
 Arg* Context::string2Arg(string s) { 
-  Arg* ga = new GenString(s); 
+  Arg* ga = new ArgString(s); 
   genargList.push_back(ga);
   return ga;
 }
 Arg* Context::type2Arg(Type* t) { 
-  Arg* ga = new GenType(t); 
+  Arg* ga = new ArgType(t); 
   genargList.push_back(ga);
   return ga;
 }

@@ -31,78 +31,61 @@ struct Arg {
   Type* arg2Type();
   
   virtual json toJson()=0;
+  virtual bool operator==(const Arg& r) const=0 {
+    return r->isKind(kind);
+  }
 };
 
-struct GenString : Arg {
-  string str;
-  GenString(string str) : Arg(ASTRING), str(str) {}
-  json toJson();
-};
-
-struct GenInt : Arg {
+struct ArgInt : Arg {
   int i;
-  GenInt(int i) : Arg(AINT), i(i) {}
+  ArgInt(int i) : Arg(AINT), i(i) {}
+  bool operator==(const Arg r) const;
   json toJson();
 };
 
-struct GenType : Arg {
+struct ArgString : Arg {
+  string str;
+  ArgString(string str) : Arg(ASTRING), str(str) {}
+  bool operator==(const Arg r) const;
+  json toJson();
+};
+
+struct ArgType : Arg {
   Type* t;
-  GenType(Type* t) : Arg(ATYPE), t(t) {}
+  ArgType(Type* t) : Arg(ATYPE), t(t) {}
+  bool operator==(const Arg r) const;
   json toJson();
 };
 
 
 //class Instantiable;
-//struct GenInst : Arg {
+//struct ArgInst : Arg {
 //  Instantiable* i;
-//  GenInst(Instantiable* i) : Arg(GINST), i(i) {}
+//  ArgInst(Instantiable* i) : Arg(GINST), i(i) {}
 //};
 
-struct Args {
-  Context* c;
-  unordered_map<string,Arg*> args;
-  Args(Context* c, unordered_map<string,Arg*> args=unordered_map<string,Arg*>()) : c(c), args(args) {}
-  void addField(string s, Arg* arg) { args[s] = arg;}
-  json toJson();
-  Arg* operator[](const string s) const;
-  void print() {
-    for (auto arg : args) cout << " Arg: " << arg.first << endl;
-  }
-  bool ArgEq(Arg* a, Arg* b);
+bool checkParams(Args args, Params params);
 
-  bool checkParams(Params kinds) {
-    if (args.size() != kinds.size()) return false;
-    for (auto field : args) {
-      auto kind = kinds.find(field.first);
-      if (kind == kinds.end()) return false;
-      assert(kind->first == field.first);
-      if (! field.second->isKind(kind->second) ) return false;
-    }
-    return true;
-  }
-  bool operator==(const Args r) {
-    if (args.size() != r.args.size()) return false;
-    for (auto field : args) {
-      auto rfield = r.args.find(field.first);
-      if(rfield == r.args.end()) return false;
-      if (!ArgEq(field.second,rfield->second)) return false;
-    }
-    return true;
-  }
-  bool operator!=(Args r) {
-    return !(*this == r);
-  }
-};
+//bool operator==(const Args& l, const Args& r) {
+//    if (l.size() != r.size()) return false;
+//    for (auto field : args) {
+//      auto rfield = r.args.find(field.first);
+//      if(rfield == r.args.end()) return false;
+//      if (!ArgEq(field.second,rfield->second)) return false;
+//    }
+//    return true;
+//  }
+//};
 
 }//CoreIR namespace
 
 
-namespace std {
-  template<>
-  struct hash<CoreIR::Args> {
-    size_t operator() (const CoreIR::Args& p) const;
-  };
-}
+//namespace std {
+//  template<>
+//  struct hash<CoreIR::Args> {
+//    size_t operator() (const CoreIR::Args& p) const;
+//  };
+//}
 
 
 

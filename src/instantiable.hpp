@@ -140,8 +140,8 @@ class ModuleDef {
     SelCache* getCache() { return cache;}
     Metadata getMetadata() { return metadata;}
     Module* getModule() { return module; }
-    Instance* addInstance(string,Generator*,Args* genargs, Args* config=nullptr);
-    Instance* addInstance(string,Module*,Args* config=nullptr);
+    Instance* addInstance(string,Generator*,Args genargs, Args config=Args());
+    Instance* addInstance(string,Module*,Args config=Args());
     Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);
@@ -195,18 +195,18 @@ class Interface : public Wireable {
 class Instance : public Wireable {
   string instname;
   Instantiable* instRef;
-  Args* genargs;
-  Args* config;
+  Args genargs;
+  Args config;
   
   public :
-    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, Args* genargs, Args* config)  : Wireable(INST,context,type), instname(instname), instRef(instRef),genargs(genargs), config(config) {}
+    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, Args genargs, Args config)  : Wireable(INST,context,type), instname(instname), instRef(instRef),genargs(genargs), config(config) {}
     string toString() const;
     json toJson();
     Instantiable* getInstRef() {return instRef;}
     string getInstname() { return instname; }
-    Args* getArgs() {return genargs;}
-    Args* getConfig() {return config;}
     Arg* getConfigValue(string s);
+    Args getArgs() {return genargs;}
+    Args getConfig() {return config;}
     bool hasConfig() {return !!config;}
     //void replace(Instantiable* newRef) { instRef = newRef;}
     //Convinience functions

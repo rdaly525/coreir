@@ -115,17 +115,17 @@ void ModuleDef::print(void) {
   cout << endl;
 }
 
-Instance* ModuleDef::addInstance(string instname,Generator* gen, Args* args,Args* config) {
+Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
   //Should this type be resolved? Just create a typeGenInst for now
   Context* c = gen->getContext();
-  Type* type = c->TypeGenInst(gen->getTypeGen(),args);
+  Type* type = c->TypeGenInst(gen->getTypeGen(),genargs);
   
-  Instance* inst = new Instance(this,instname,gen,type,args,config);
+  Instance* inst = new Instance(this,instname,gen,type,genargs,config);
   instances[instname] = inst;
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,Module* m,Args* config) {
+Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   Instance* inst = new Instance(this,instname,m,m->getType(),nullptr,config);
   instances[instname] = inst;
   return inst;

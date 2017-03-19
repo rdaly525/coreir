@@ -7,15 +7,73 @@ using namespace std;
 
 namespace CoreIR {
 
+//TODO sketchy
+size_t std::hash<Args>::operator() (const Args& genargs) const {
+  size_t hash = 0;
+  for (auto it : genargs) {
+    hash_combine(hash,it.first);
+    Arg* arg = it.second;
+    switch(arg->kind) {
+      case ASTRING : {
+        string arg_s = ((ArgString*) arg)->str;
+        hash_combine(hash,arg_s);
+        break;
+      }
+      case AINT : {
+        int arg_i = ((ArgInt*) arg)->i;
+        hash_combine(hash,arg_i);
+        break;
+      }
+      case ATYPE : {
+        Type* arg_t = ((ArgType*) arg)->t;
+        hash_combine(hash,arg_t);
+        break;
+      }
+      default : 
+        assert(false);
+    }
+  }
+  return hash;
+}
+
 
 bool operator==(const TypeParams& l,const TypeParams& r) {
-  return (l.tg==r.tg) && (*l.ga == *r.ga);
+  bool ret = (l.tg==r.tg);
+  if(!ret) return false;
+  for (auto 
+  (l.ga == *r.ga);
 }
-bool operator!=(TypeParams& l,TypeParams& r) { return !(l == r); }
 
 size_t TypeParamsHasher::operator()(const TypeParams& tgp) const {
     size_t hash = 0;
     hash_combine(hash,tgp.tg);
+    for (auto argmap : tgp.genargs) {
+    hash_combine(hash,it.first);
+    Arg* arg = it.second;
+    switch(arg->kind) {
+      case ASTRING : {
+        string arg_s = ((ArgString*) arg)->str;
+        hash_combine(hash,arg_s);
+        cout << "HERE";
+        break;
+      }
+      case AINT : {
+        int arg_i = ((ArgInt*) arg)->i;
+        hash_combine(hash,arg_i);
+        break;
+      }
+      case ATYPE : {
+        Type* arg_t = ((ArgType*) arg)->t;
+        hash_combine(hash,arg_t);
+        break;
+      }
+      default : 
+        assert(false);
+    }
+  }
+ 
+    
+    
     hash_combine(hash,*(tgp.ga));
     return hash;
 }
@@ -80,7 +138,7 @@ Type* TypeCache::newRecord(RecordParams params) {
   }
 }
 
-Type* TypeCache::newTypeGenInst(TypeGen* tgd, Args* args) {
+Type* TypeCache::newTypeGenInst(TypeGen* tgd, Args args) {
   TypeParams params(tgd,args);
   auto it = TypeGenCache.find(params);
   if (it != TypeGenCache.end()) {

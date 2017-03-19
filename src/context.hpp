@@ -67,7 +67,7 @@ class Context {
     Type* BitOut();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
-    Type* TypeGenInst(TypeGen* tgd, Args* args);
+    Type* TypeGenInst(TypeGen* tgd, Args args);
 
     RecordParams* newRecordParams();
     Params* newParams();
@@ -81,7 +81,6 @@ class Context {
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
 
-    Args* args(unordered_map<string,Arg*> args);   
     Type* Flip(Type* t);
 
 };
