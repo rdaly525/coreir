@@ -59,6 +59,7 @@ class Context {
     Namespace* newNamespace(string name);
     bool hasNamespace(string name) { return libs.count(name) > 0; }
     Namespace* getNamespace(string s);
+    map<string,Namespace*> getNamespaces() {return libs;}
 
     Type* Any();
     Type* BitIn();

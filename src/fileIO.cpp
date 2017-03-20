@@ -48,15 +48,13 @@ Module* loadModule(Context* c, string filename, bool* err) {
       string nsname = jnsmap.first;
       json jns = jnsmap.second;
       Namespace* ns;
-      if (c->hasNamespace(nsname) ) ns = c->getNamespace(topnsname);
-      else ns = c->newNamespace(topnsname);
+      if (c->hasNamespace(nsname) ) ns = c->getNamespace(nsname);
+      else ns = c->newNamespace(nsname);
       //Load Modules
       for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
         //Figure out type;
         string jmodname = jmodmap.first;
         json jmod = jmodmap.second;
-        //cout << "FOR mod: " << jmodname << endl;
-        //cout << std::setw(1) << jmod;
         Type* t = json2Type(c,jmod.at("type"));
         Params configparams = json2Params(c,jmod.at("configparams"));
         Module* m = ns->newModuleDecl(jmodname,t,configparams);
@@ -216,9 +214,10 @@ void saveModule(Module* m, string filename, bool* err) {
   //TODO I should gather only the dependent modules
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
-  //for (auto ns: namespaces) jnamespaces[ns->getName()] = ns->toJson();
-  j["namespaces"]["_G"] = m->getContext()->getGlobal()->toJson();
-  file << std::setw(3) << j;
+  for (auto nsmap: c->getNamespaces()) {
+    j["namespaces"][nsmap.first] = nsmap.second->toJson();
+  }
+  file << std::setw(2) << j;
   return;
 }
 
