@@ -211,9 +211,9 @@ class Instance : public Wireable {
     //Convinience functions
     bool isGen() { return instRef->isKind(GEN);}
     bool hasDef() { return instRef->hasDef(); }
-    void replace(Instantiable* instRef, Args* config) {
-      this->instRef = instRef;
-      this->config = config;
+    void replace(Instantiable* _instRef, Args* _config) {
+      this->instRef = _instRef;
+      this->config = _config;
     }
 };
 
