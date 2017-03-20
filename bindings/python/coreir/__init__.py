@@ -163,7 +163,7 @@ coreir_lib.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.
 coreir_lib.COREModuleDefGetInstances.restype = ct.POINTER(COREInstance_p)
 
 coreir_lib.COREGetInstRefName.argtypes = [COREInstance_p]
-coreir_lib.COREGetInstRefName.restype = ct.POINTER(ct.c_char)
+coreir_lib.COREGetInstRefName.restype = ct.c_char_p
 
 # coreir_lib.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
 # coreir_lib.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection_p)
