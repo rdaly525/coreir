@@ -15,10 +15,9 @@ namespace CoreIR {
 
 struct GenCacheParams {
   Generator* g;
-  Args* ga;
-  GenCacheParams(Generator* g, Args* ga) : g(g), ga(ga) {}
+  Args ga;
+  GenCacheParams(Generator* g, Args ga) : g(g), ga(ga) {}
   friend bool operator==(const GenCacheParams & l,const GenCacheParams & r);
-  friend bool operator!=(const GenCacheParams & l,const GenCacheParams & r);
 
 };
 
@@ -63,7 +62,7 @@ class Namespace {
     bool hasModule(string mname) { return mList.count(mname) > 0; }
     bool hasInstantiable(string iname) { return mList.count(iname) > 0 || gList.count(iname) > 0; }
     
-    Module* runGenerator(Generator* g, Args* ga);
+    Module* runGenerator(Generator* g, Args ga);
     json toJson();
     void print();
 };

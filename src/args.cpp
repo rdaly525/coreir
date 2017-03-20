@@ -6,18 +6,6 @@
 #include "error.hpp"
 #include "context.hpp"
 
-
-//TODO might need to be const to make faster
-//Also might be better represented virtually and overloade equals/< for each Arg
-//Should do a hashing function with unordered map instead
-
-//struct ArgHasher {
-//  std::size_t operator()(const Args& ga) const {
-//    
-//  }
-//}
-
-
 namespace CoreIR {
 
 bool ArgInt::operator==(const Arg& r) const {
@@ -27,40 +15,72 @@ bool ArgInt::operator==(const Arg& r) const {
 
 bool ArgString::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;
-  return this->str == static_cast<const ArgString&>(r).str
+  return this->str == static_cast<const ArgString&>(r).str;
 }
 
 bool ArgType::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;
-  return this->t == static_cast<const ArgType&>(r).t
+  return this->t == static_cast<const ArgType&>(r).t;
+}
+
+bool operator==(const Args& l, const Args& r) {
+  if (l.size() != r.size() ) return false;
+  for (auto largmap : l) {
+    auto rargmap = r.find(largmap.first);
+    if (rargmap == r.end() ) return false;
+    if (!(*(rargmap->second) == *(largmap.second))) return false;
+  }
+  return true;
 }
 
 bool checkParams(Args args, Params params) {
   if (args.size() != params.size()) return false;
   for (auto parammap : params) {
-    auto arg = args.find(params.first);
+    auto arg = args.find(parammap.first);
     if (arg == args.end()) return false;
-    if (!arg.second->isKind(params.second) ) return false;
+    if (!arg->second->isKind(parammap.second) ) return false;
   }
   return true;
 }
 
 
-
-//Arg* Args::operator[](const string s) const {
-//  auto elem = args.find(s);
-//  if (elem == args.end() ) {
-//    Error e;
-//    e.message("Cannot find field \"" + s + "\" In Args");
-//    e.fatal();
-//    c->error(e);
-//  }
-//  return elem->second;
-//}
-
-
-
 }//CoreIR namespace
+
+using namespace CoreIR;
+
+//TODO sketchy because I am overloading a version of unordered_map
+size_t std::hash<Args>::operator() (const Args& args) const {
+  
+  size_t ret = 0;
+  //Need to combine these in an order independent way, so just xor
+  for (auto it : args) {
+    size_t hash = 0;
+    hash_combine(hash,it.first);
+    Arg* arg = it.second;
+    switch(arg->kind) {
+      case ASTRING : {
+        string arg_s = ((ArgString*) arg)->str;
+        hash_combine(hash,arg_s);
+        break;
+      }
+      case AINT : {
+        int arg_i = ((ArgInt*) arg)->i;
+        hash_combine(hash,arg_i);
+        break;
+      }
+      case ATYPE : {
+        Type* arg_t = ((ArgType*) arg)->t;
+        hash_combine(hash,arg_t);
+        break;
+      }
+      default : 
+        assert(false);
+    }
+    ret ^= hash;
+  }
+  return ret;
+}
+
 
 
 using namespace CoreIR;

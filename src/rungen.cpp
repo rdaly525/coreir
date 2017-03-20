@@ -71,7 +71,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
       }
       else {
 
-        Args* gargs = inst->getArgs();
+        Args gargs = inst->getArgs();
         Module* mNew = c->getGlobal()->runGenerator(g,gargs);
         
         // TODO might not need to insert already cached things
@@ -79,7 +79,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
         runQueue.insert(mNew);
         
         //Create new instance and add to map
-        newDef->addInstance(instname, mNew,nullptr);
+        newDef->addInstance(instname, mNew);
       }
     }
   }

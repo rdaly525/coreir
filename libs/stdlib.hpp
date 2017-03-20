@@ -5,8 +5,8 @@
 
 using namespace CoreIR;
 
-Type* binop_type(Context* c, Args* args, Params kinds) {
-  int n = c->arg2Int((*args)["width"]);
+Type* binop_type(Context* c, Args args, Params kinds) {
+  int n = c->arg2Int(args.at("width"));
   Type* narray = c->Array(n,c->BitOut());
   return c->Record({
       {"in0",c->Flip(narray)},
@@ -15,8 +15,8 @@ Type* binop_type(Context* c, Args* args, Params kinds) {
   });
 }
 
-Module* add2(Context* c, Type* t, Args* args, Params argkinds) {
-  int n = c->arg2Int((*args)["width"]);
+Module* add2(Context* c, Type* t, Args args, Params params) {
+  int n = c->arg2Int(args.at("width"));
   Module* m = c->getGlobal()->newModuleDecl("add2_"+to_string(n),t);
   string verilog = "Verilog NYI add2";
   //VModule vm(m);

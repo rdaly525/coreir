@@ -4,7 +4,7 @@
 #include "stdlib.h"
 
 void print(char* a) {
-  printf(a); printf("\n"); fflush(stdout);
+  printf("%s",a); printf("\n"); fflush(stdout);
 }
 
 int main() {
@@ -45,7 +45,7 @@ int main() {
   cargs[0] = COREInt2Arg(c,13);
   cargs[1] = COREInt2Arg(c,13);
   print("J5");
-  void* configargs = CORENewMap(c,ckeys,cargs,2,STR2ARG_MAP);
+  void* config = CORENewMap(c,ckeys,cargs,2,STR2ARG_MAP);
   
   print("J6");
 

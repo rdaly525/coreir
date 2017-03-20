@@ -35,28 +35,6 @@
                               "self",
                               [
                                  "in",
-                                 "2"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add01",
-                              [
-                                 "in0"
-                              ]
-                           ]
-                        },
-                        null
-                     ],
-                     [
-                        {
-                           "metadata": null,
-                           "path": [
-                              "self",
-                              [
-                                 "in",
                                  "0"
                               ]
                            ]
@@ -76,6 +54,27 @@
                         {
                            "metadata": null,
                            "path": [
+                              "add01",
+                              [
+                                 "out"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add1",
+                              [
+                                 "in1"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
+                           "path": [
                               "add00",
                               [
                                  "out"
@@ -86,6 +85,50 @@
                            "metadata": null,
                            "path": [
                               "add1",
+                              [
+                                 "in0"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "3"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add01",
+                              [
+                                 "in1"
+                              ]
+                           ]
+                        },
+                        null
+                     ],
+                     [
+                        {
+                           "metadata": null,
+                           "path": [
+                              "self",
+                              [
+                                 "in",
+                                 "2"
+                              ]
+                           ]
+                        },
+                        {
+                           "metadata": null,
+                           "path": [
+                              "add01",
                               [
                                  "in0"
                               ]
@@ -114,56 +157,13 @@
                            ]
                         },
                         null
-                     ],
-                     [
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add01",
-                              [
-                                 "out"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add1",
-                              [
-                                 "in1"
-                              ]
-                           ]
-                        },
-                        null
-                     ],
-                     [
-                        {
-                           "metadata": null,
-                           "path": [
-                              "self",
-                              [
-                                 "in",
-                                 "3"
-                              ]
-                           ]
-                        },
-                        {
-                           "metadata": null,
-                           "path": [
-                              "add01",
-                              [
-                                 "in1"
-                              ]
-                           ]
-                        },
-                        null
                      ]
                   ],
                   "implementations": null,
                   "instances": {
                      "add00": {
-                        "args": null,
                         "config": null,
+                        "genargs": null,
                         "instref": [
                            "_G",
                            "add2_32"
@@ -171,8 +171,8 @@
                         "metadata": null
                      },
                      "add01": {
-                        "args": null,
                         "config": null,
+                        "genargs": null,
                         "instref": [
                            "_G",
                            "add2_32"
@@ -180,8 +180,8 @@
                         "metadata": null
                      },
                      "add1": {
-                        "args": null,
                         "config": null,
+                        "genargs": null,
                         "instref": [
                            "_G",
                            "add2_32"

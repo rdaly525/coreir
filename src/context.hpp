@@ -23,10 +23,11 @@ class Context {
  
   //Memory management
   TypeCache* cache;
-  vector<Arg*> genargList;
-  vector<Args*> genargsList;
+  
+  vector<Arg*> argList;
+  //vector<Args*> genargsList;
   vector<RecordParams*> recordParamsList;
-  vector<Params*> genparamsList;
+  vector<Params*> paramsList;
   vector<Instance**> instanceArrays;
   // vector<Connection*> connectionArrays;
   vector<Wireable**> wireableArrays;
@@ -43,13 +44,7 @@ class Context {
     }
     bool haserror() { return errors.size()>0; }
     void checkerrors() { if (haserror()) die(); }
-    void die() { 
-      printerrors();
-      delete this; // sketch but okay if exits I guess
-      cout << "I AM DYING!" << endl;
-      delete cache;
-      exit(1);
-    }
+    void die();
     void printerrors() { 
       for (auto err : errors) cout << "ERROR: " << err.toString() << endl << endl;
     }

@@ -101,6 +101,12 @@ namespace std {
       return h1 ^ (h2<<1);
     }
   };
+
+  template <>
+  struct hash<CoreIR::Args> {
+    size_t operator() (const CoreIR::Args& args) const;
+  };
+
 }
 
 

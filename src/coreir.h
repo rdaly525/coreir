@@ -15,7 +15,7 @@ typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
 typedef struct COREArg COREArg;
 
-typedef enum {STR2TYPE_ORDEREDMAP=0,STR2ARG_MAP=1,STR2PARAM_MAP=2,STR_VEC=3} COREMapKind;
+typedef enum {STR2TYPE_ORDEREDMAP=0,STR2ARG_MAP=1,STR2PARAM_MAP=2} COREMapKind;
 
 //keys and values will be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
@@ -45,9 +45,6 @@ extern COREType* CORERecord(COREContext* c, void* recordparams);
 ////Create Params
 //extern COREParams* CORENewParams(COREContext* c);
 //extern void COREParamsAddField(COREParams* genparams, char* name, int genparam);
-
-////Create Args
-extern COREArgs* CORENewArgs(COREContext* c,void* args);
 
 //Create specific Arg
 extern COREArg* COREInt2Arg(COREContext* c,int i);

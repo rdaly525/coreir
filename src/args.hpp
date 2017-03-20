@@ -25,64 +25,45 @@ struct Arg {
   virtual ~Arg() {}
   Param kind;
   Arg(Param kind) : kind(kind) {}
-  bool isKind(Param k) { return kind==k; }
-  virtual bool operator==(const Arg& r) const=0 {
-    return r->isKind(kind);
+  bool isKind(Param k) const { return kind==k; }
+  virtual bool operator==(const Arg& r) const {
+    return r.isKind(kind);
   }
-  virtual json toJson();
+  virtual json toJson()=0;
+  friend bool operator==(const Args& l, const Args& r);
 };
 
 struct ArgInt : Arg {
   int i;
   ArgInt(int i) : Arg(AINT), i(i) {}
-  bool operator==(const Arg r) const;
+  bool operator==(const Arg& r) const;
   json toJson();
 };
 
 struct ArgString : Arg {
   string str;
   ArgString(string str) : Arg(ASTRING), str(str) {}
-  bool operator==(const Arg r) const;
+  bool operator==(const Arg& r) const;
   json toJson();
 };
 
 struct ArgType : Arg {
   Type* t;
   ArgType(Type* t) : Arg(ATYPE), t(t) {}
-  bool operator==(const Arg r) const;
+  bool operator==(const Arg& r) const;
   json toJson();
 };
-
 
 //class Instantiable;
 //struct ArgInst : Arg {
 //  Instantiable* i;
-//  ArgInst(Instantiable* i) : Arg(GINST), i(i) {}
+//  ArgInst(Instantiable* i) : Arg(AINST), i(i) {}
 //};
+
 
 bool checkParams(Args args, Params params);
 
-//bool operator==(const Args& l, const Args& r) {
-//    if (l.size() != r.size()) return false;
-//    for (auto field : args) {
-//      auto rfield = r.args.find(field.first);
-//      if(rfield == r.args.end()) return false;
-//      if (!ArgEq(field.second,rfield->second)) return false;
-//    }
-//    return true;
-//  }
-//};
-
 }//CoreIR namespace
-
-
-//namespace std {
-//  template<>
-//  struct hash<CoreIR::Args> {
-//    size_t operator() (const CoreIR::Args& p) const;
-//  };
-//}
-
 
 
 #endif //GENARGS_HPP_
