@@ -141,6 +141,7 @@ class ModuleDef {
     Metadata getMetadata() { return metadata;}
     Instance* addInstance(string,Generator*,Args genargs, Args config=Args());
     Instance* addInstance(string,Module*,Args config=Args());
+    Module* getModule() { return module; }
     Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);

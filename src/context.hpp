@@ -31,6 +31,7 @@ class Context {
   vector<Instance**> instanceArrays;
   // vector<Connection*> connectionArrays;
   vector<Wireable**> wireableArrays;
+  vector<const char**> constStringArrays;
 
   public :
     Context();
@@ -68,6 +69,7 @@ class Context {
     Instance** newInstanceArray(int size);
     // Connection* newConnectionArray(int size);
     Wireable** newWireableArray(int size);
+    const char** newConstStringArray(int size);
 
     Arg* int2Arg(int i);
     Arg* string2Arg(string s);

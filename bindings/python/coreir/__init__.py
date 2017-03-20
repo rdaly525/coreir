@@ -2,7 +2,7 @@ from ctypes import cdll
 import ctypes as ct
 import platform
 import os
-
+from collections import namedtuple
 
 def load_shared_lib():
     _system = platform.system()
@@ -44,31 +44,10 @@ class COREModuleDef(ct.Structure):
 
 COREModuleDef_p = ct.POINTER(COREModuleDef)
 
-class CORERecordParam(ct.Structure):
-    pass
-
-CORERecordParam_p = ct.POINTER(CORERecordParam)
-
-class COREParams(ct.Structure):
-  pass
-
-COREParams_p = ct.POINTER(COREParams)
-
-class COREArgs(ct.Structure):
-  pass
-
-COREArgs_p = ct.POINTER(COREArgs)
-
 class COREArg(ct.Structure):
   pass
 
 COREArg_p = ct.POINTER(COREArg)
-
-
-class COREInstance(ct.Structure):
-    pass
-
-COREInstance_p = ct.POINTER(COREInstance)
 
 class COREInterface(ct.Structure):
     pass
@@ -80,6 +59,11 @@ class COREWireable(ct.Structure):
 
 COREWireable_p = ct.POINTER(COREWireable)
 
+class COREInstance(COREWireable):
+    pass
+
+COREInstance_p = ct.POINTER(COREInstance)
+
 class CORESelect(COREWireable):
     pass
 
@@ -90,8 +74,16 @@ class COREConnection(ct.Structure):
 
 COREConnection_p = ct.POINTER(COREConnection)
 
+COREContainerKind = ct.c_int
+COREContainerKind_STR2TYPE_ORDEREDMAP = COREContainerKind(0)
+COREContainerKind_STR2ARG_MAP = COREContainerKind(1)
+COREContainerKind_STR2PARAM_MAP = COREContainerKind(2)
+COREContainerKind_STRVEC = COREContainerKind(3)
 
 coreir_lib = load_shared_lib()
+
+coreir_lib.CORENewMap.argtypes = [COREContext_p, ct.c_void_p, ct.c_void_p, ct.c_uint32, COREContainerKind]
+coreir_lib.CORENewMap.restype = ct.c_void_p
 
 coreir_lib.CORENewContext.restype = COREContext_p
 
@@ -107,27 +99,8 @@ coreir_lib.COREBitOut.restype = COREType_p
 coreir_lib.COREArray.argtypes = [COREContext_p, ct.c_uint32, COREType_p]
 coreir_lib.COREArray.restype = COREType_p
 
-coreir_lib.CORENewRecordParam.argtypes = [COREContext_p]
-coreir_lib.CORENewRecordParam.restype = CORERecordParam_p
-
-coreir_lib.CORERecordParamAddField.argtypes = [CORERecordParam_p, ct.c_char_p, COREType_p]
-
-coreir_lib.CORERecord.argtypes = [COREContext_p, CORERecordParam_p]
+coreir_lib.CORERecord.argtypes = [COREContext_p, ct.c_void_p]
 coreir_lib.CORERecord.restype = COREType_p
-
-#GenParams and Args
-coreir_lib.CORENewParams.argtypes = [COREContext_p]
-coreir_lib.CORENewParams.restype = COREParams_p
-
-coreir_lib.COREParamsAddField.argtypes = [COREParams_p, ct.c_char_p, ct.c_int]
-
-coreir_lib.CORENewArgs.argtypes = [COREContext_p]
-coreir_lib.CORENewArgs.restype = COREArgs_p
-
-coreir_lib.COREArgsAddField.argtypes = [COREArgs_p, ct.c_char_p, COREArg_p]
-
-coreir_lib.COREGInt.argtypes = [COREContext_p,ct.c_int]
-coreir_lib.COREGInt.restype = COREArg_p
 
 coreir_lib.COREPrintType.argtypes = [COREType_p, ]
 
@@ -183,11 +156,20 @@ coreir_lib.COREConnectionGetSecond.restype = COREWireable_p
 coreir_lib.COREWireableGetConnectedWireables.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREWireableGetConnectedWireables.restype = ct.POINTER(COREWireable_p)
 
+coreir_lib.COREWireableGetModuleDef.argtypes = [COREWireable_p]
+coreir_lib.COREWireableGetModuleDef.restype = COREModuleDef_p
+
 coreir_lib.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
 coreir_lib.COREWireableSelect.restype = CORESelect_p
 
+coreir_lib.COREWireableGetAncestors.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREWireableGetAncestors.restype = ct.POINTER(ct.c_char_p)
+
 coreir_lib.COREModuleDefSelect.argtypes = [COREModuleDef_p, ct.c_char_p]
 coreir_lib.COREModuleDefSelect.restype = CORESelect_p
+
+coreir_lib.COREModuleDefGetModule.argtypes = [COREModuleDef_p]
+coreir_lib.COREModuleDefGetModule.restype = COREModule_p
 
 # coreir_lib.CORESelectGetParent.argtypes = [CORESelect_p]
 # coreir_lib.CORESelectGetParent.restype = COREWireable_p
@@ -200,18 +182,19 @@ GTYPE=2
 class CoreIRType(object):
     def __init__(self, ptr):
         self.ptr = ptr
-class GenParams(CoreIRType):
+
+class Params(CoreIRType):
     def __init__(self,ptr,fields):
-        print("in GenParams!")
-        super(GenParams,self).__init__(ptr)
+        print("in Params!")
+        super(Params,self).__init__(ptr)
         self.fields = fields
 
     def __getitem__(self,key):
         return self.fields[key]
 
-class GenArgs(CoreIRType):
+class Args(CoreIRType):
     def __init__(self,ptr,genparams,fields):
-        super(GenArgs,self).__init__(ptr)
+        super(Args,self).__init__(ptr)
         self.genparams = genparams
         self.fields = fields
 
@@ -226,8 +209,19 @@ class Wireable(CoreIRType):
         result = coreir_lib.COREWireableGetConnectedWireables(self.ptr, ct.byref(size))
         return [Wireable(result[i]) for i in range(size.value)]
 
+    def get_ancestors(self):
+        size = ct.c_int()
+        result = coreir_lib.COREWireableGetAncestors(self.ptr, ct.byref(size))
+        return [result[i].decode() for i in range(size.value)]
+
     def select(self, field):
         return Select(coreir_lib.COREWireableSelect(self.ptr, str.encode(field)))
+
+    def get_module_def(self):
+        return ModuleDef(coreir_lib.COREWireableGetModuleDef(self.ptr))
+
+    def get_module(self):
+        return self.get_module_def().get_module()
 
 
 class Select(Wireable):
@@ -266,6 +260,9 @@ class ModuleDef(CoreIRType):
 
     def get_interface(self):
         return Interface(coreir_lib.COREModuleDefGetInterface(self.ptr))
+
+    def get_module(self):
+        return Module(coreir_lib.COREModuleDefGetModule(self.ptr))
 
     def get_instances(self):
         size = ct.c_int()
@@ -312,8 +309,8 @@ class Namespace(CoreIRType):
   def Module(self, name, typ,cparams=None):
     assert isinstance(typ,Type)
     if cparams==None:
-      cparams = GenParams(COREParams_p(),None)
-    assert isinstance(cparams,GenParams)
+      cparams = Params(COREParams_p(),None)
+    assert isinstance(cparams,Params)
     return Module(
       coreir_lib.CORENewModule(self.ptr, ct.c_char_p(str.encode(name)), typ.ptr,cparams.ptr))
 
@@ -345,23 +342,22 @@ class Context:
         if fields==None:
             return GenParams(COREParams_p(),None)
 
-        gen_params = coreir_lib.CORENewParams(self.context)
-        for key, value in fields.items():
-            assert value >= 0 and value < 3
-            coreir_lib.COREParamsAddField(gen_params, str.encode(key), ct.c_int(value))
-        return GenParams(gen_params,fields)
+        keys = (ct.c_char_p * len(fields))(*(str.encode(key) for key in fields.keys()))
+        values = (ct.c_int * len(fields))(*(value for value in fields.values()))
+        gen_params = coreir_lib.CORENewMap(self.context, ct.cast(keys,
+            ct.c_void_p), ct.cast(values, ct.c_void_p), len(fields),
+            COREContainerKind_STR2ARG_MAP)
+        return GenParams(gen_params, COREParams),fields)
   
     #TODO this will generate the Args, but if fields is None, return null thing
     def newGenArgs(self,genparams,fields):
         assert isinstance(genparams,GenParams)
-        gen_args = coreir_lib.CORENewArgs(self.context)
-        for key, value in fields.items():
-            #TODO only works for ints right now
-            assert genparams[key]==GINT
-            #Should check against genparams
-            gint = coreir_lib.COREGInt(self.context,ct.c_int(value))
-            coreir_lib.COREArgsAddField(gen_args,str.encode(key),gint)
-        return GenArgs(gen_args,genparams,fields)
+        keys = (ct.c_char_p * len(fields))(*(str.encode(key) for key in fields.keys()))
+        values = (ct.c_int * len(fields))(*(value for value in fields.values()))
+        gen_args = coreir_lib.CORENewMap(self.context, ct.cast(keys,
+            ct.c_void_p), ct.cast(values, ct.c_void_p), len(fields),
+            COREContainerKind_STR2ARG_MAP)
+        return GenArgs(ct.cast(gen_args, COREArgs),genparams,fields)
 
     def load_from_file(self, file_name):
         err = ct.c_bool(False)
@@ -371,9 +367,16 @@ class Context:
         return Module(m)
  
     def Record(self, fields):
-        record_params = coreir_lib.CORENewRecordParam(self.context)
+        keys = []
+        values = []
         for key, value in fields.items():
-            coreir_lib.CORERecordParamAddField(record_params, str.encode(key), value.ptr)
+            keys.append(str.encode(key))
+            values.append(value.ptr)
+        keys   = (ct.c_char_p * len(fields))(*keys)
+        values = (COREType_p * len(fields))(*values)
+        record_params = coreir_lib.CORENewMap(self.context, ct.cast(keys,
+            ct.c_void_p), ct.cast(values, ct.c_void_p), len(fields),
+            COREContainerKind_STR2TYPE_ORDEREDMAP)
         return Type(coreir_lib.CORERecord(self.context, record_params))
 
     def __del__(self):

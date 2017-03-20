@@ -15,7 +15,11 @@ typedef struct CORESelect CORESelect;
 typedef struct COREWireable COREWireable;
 typedef struct COREArg COREArg;
 
-typedef enum {STR2TYPE_ORDEREDMAP=0,STR2ARG_MAP=1,STR2PARAM_MAP=2} COREMapKind;
+typedef enum {
+    STR2TYPE_ORDEREDMAP = 0,
+    STR2ARG_MAP         = 1,
+    STR2PARAM_MAP       = 2
+} COREMapKind;
 
 //keys and values will be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
@@ -89,6 +93,8 @@ extern COREWireable* COREConnectionGetSecond(COREConnection* connection);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
 extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
-// extern COREWirePath* COREWireableGetWirePath(COREWireable* w);
+extern COREModuleDef* COREWireableGetModuleDef(COREWireable* w);
+extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
+extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors);
 
 extern void COREPrintErrors(COREContext* c);
