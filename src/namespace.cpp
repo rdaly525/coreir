@@ -9,18 +9,14 @@ using namespace std;
 namespace CoreIR {
 
 bool operator==(const GenCacheParams & l,const GenCacheParams & r) {
-  return (*l.g==*r.g) && (*l.ga==*r.ga);
-}
-
-bool operator!=(const GenCacheParams & l,const GenCacheParams & r) {
-  return !(l==r);
+  return (*l.g==*r.g) && (l.ga==r.ga);
 }
 
 size_t GenCacheParamsHasher::operator()(const GenCacheParams& gcp) const {
   size_t hash = 0;
   hash_combine(hash,gcp.g->getNamespace()->getName());
   hash_combine(hash,gcp.g->getName());
-  hash_combine(hash,*gcp.ga);
+  //hash_combine(hash,gcp.ga);
   return hash;
 }
   
@@ -114,7 +110,7 @@ void Namespace::print() {
   cout << endl;
 }
 
-Module* Namespace::runGenerator(Generator* g, Args* ga) {
+Module* Namespace::runGenerator(Generator* g, Args ga) {
   GenCacheParams gcp(g,ga);
   auto it = genCache.find(gcp);
   if (it != genCache.end()) return it->second;

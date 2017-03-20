@@ -15,10 +15,10 @@ Context::Context() : maxErrors(3) {
 // Order of this matters
 Context::~Context() {
   
-  for (auto it : genargsList) delete it;
-  for (auto it : genargList) delete it;
+  //for (auto it : genargsList) delete it;
+  for (auto it : argList) delete it;
   for (auto it : recordParamsList) delete it;
-  for (auto it : genparamsList) delete it;
+  for (auto it : paramsList) delete it;
   for (auto it : libs) delete it.second;
   for (auto it : instanceArrays) free(it);
   // for (auto it : connectionArrays) free(it);
@@ -28,6 +28,12 @@ Context::~Context() {
   delete cache;
 }
 
+void Context::die() {
+  printerrors();
+  cout << "I AM DYING!" << endl;
+  delete this; // sketch but okay if exits I guess
+  exit(1);
+}
 
 
 Namespace* Context::newNamespace(string name) { 
@@ -108,7 +114,7 @@ RecordParams* Context::newRecordParams() {
 }
 Params* Context::newParams() {
   Params* gp = new Params();
-  genparamsList.push_back(gp);
+  paramsList.push_back(gp);
   return gp;
 }
 
@@ -138,23 +144,17 @@ Wireable** Context::newWireableArray(int size) {
 
 Arg* Context::int2Arg(int i) { 
   Arg* ga = new ArgInt(i); 
-  genargList.push_back(ga);
+  argList.push_back(ga);
   return ga;
 }
 Arg* Context::string2Arg(string s) { 
   Arg* ga = new ArgString(s); 
-  genargList.push_back(ga);
+  argList.push_back(ga);
   return ga;
 }
 Arg* Context::type2Arg(Type* t) { 
   Arg* ga = new ArgType(t); 
-  genargList.push_back(ga);
-  return ga;
-}
-
-Args* Context::args(unordered_map<string,Arg*> args) {
-  Args* ga = new Args(this,args);
-  genargsList.push_back(ga);
+  argList.push_back(ga);
   return ga;
 }
 

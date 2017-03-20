@@ -16,7 +16,7 @@ typedef struct COREWireable COREWireable;
 typedef struct COREArg COREArg;
 
 typedef enum {
-    STR2TYPE_MAP = 0,
+    STR2TYPE_ORDEREDMAP = 0,
     STR2ARG_MAP = 1,
     STR2PARAM_MAP = 2
 } COREContainerKind;
@@ -49,9 +49,6 @@ extern COREType* CORERecord(COREContext* c, void* recordparams);
 ////Create Params
 //extern COREParams* CORENewParams(COREContext* c);
 //extern void COREParamsAddField(COREParams* genparams, char* name, int genparam);
-
-////Create Args
-extern COREArgs* CORENewArgs(COREContext* c,void* args);
 
 //Create specific Arg
 extern const char* COREArg2Str(COREArg* a);

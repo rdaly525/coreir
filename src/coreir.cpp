@@ -60,11 +60,6 @@ extern "C" {
     free(values);
     return ret;
   }
-  COREArgs* CORENewArgs(COREContext* c,void* args) {
-    Context* c = rcast<Context*>(COREContext*);
-    unordered_map<string,Arg*>* as = (unordered_map<string,Arg*>*) as;
-    return rcast<COREA
-  }
   
   COREContext* CORENewContext() {
     return rcast<COREContext*>(newContext());
@@ -138,7 +133,7 @@ extern "C" {
   }
   
   COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config) {
-    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),rcast<Args*>(config)));
+    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
   }
 
   void COREModuleAddDef(COREModule* module, COREModuleDef* module_def) {

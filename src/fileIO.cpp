@@ -16,7 +16,7 @@ typedef unordered_map<string,json> jsonmap;
 using json = nlohmann::json;
 
 Type* json2Type(Context* c, json jt);
-Args* json2Args(Context* c, Params p, json j);
+Args json2Args(Context* c, Params p, json j);
 Params json2Params(Context* c, json j);
 
 Instantiable* getSymbol(Context* c, string nsname, string iname);
@@ -84,9 +84,9 @@ Module* loadModule(Context* c, string filename, bool* err) {
         // This function can throw an error
         Instantiable* instRef = getSymbol(c,jinstRef.at(0),jinstRef.at(1));
         
-        Args* config = json2Args(c,instRef->getConfigParams(),jinst.at("config"));
+        Args config = json2Args(c,instRef->getConfigParams(),jinst.at("config"));
         //Assume that if there are args, it is a generator
-        if (jinst.at("args").is_null()) { // This is a module
+        if (jinst.at("genargs").is_null()) { // This is a module
           assert(instRef->isKind(MOD));
           mdef->addInstance(instname,(Module*) instRef,config);
         }
@@ -152,9 +152,10 @@ Params json2Params(Context* c, json j) {
   return g;
 }
 
-Args* json2Args(Context* c, Params genparams, json j) {
-  if (j.is_null()) return nullptr;
-  Args* gargs = c->args(unordered_map<string,Arg*>());
+Args json2Args(Context* c, Params genparams, json j) {
+  Args gargs = Args();
+  if (j.is_null()) return gargs;
+
   //TODO this following code should make sure there are the same number of key-value pairs
   for (auto pmap : genparams) {
     string key = pmap.first;
@@ -166,7 +167,7 @@ Args* json2Args(Context* c, Params genparams, json j) {
       case ATYPE : g = c->type2Arg(json2Type(c,j.at(key))); break;
       default :  throw std::runtime_error(Param2Str(kind) + "is not a type!");
     }
-    gargs->addField(key,g);
+    gargs[key] = g;
   }
   return gargs;
 }
@@ -223,9 +224,9 @@ void saveModule(Module* m, string filename, bool* err) {
 
 
 
-json params2Json(Params gp);
-json wireable2Json(Wireable* w);
-
+json Args2Json(Args args);
+json Params2Json(Params gp);
+json Wireable2Json(Wireable* w);
 
 json Type::toJson() { 
   return json::array({TypeKind2Str(kind)});
@@ -252,7 +253,7 @@ json Namespace::toJson() {
 
 json Instantiable::toJson() {
   return {
-    {"configparams",params2Json(configparams)},
+    {"configparams",Params2Json(configparams)},
     {"metadata",metadata.toJson()}
   };
 }
@@ -266,7 +267,7 @@ json Module::toJson() {
 
 json Generator::toJson() {
   json j = Instantiable::toJson();
-  j["genparams"] = params2Json(genparams);
+  j["genparams"] = Params2Json(genparams);
   j["typegen"] = "NYI";
   return j;
 }
@@ -289,10 +290,10 @@ json ModuleDef::toJson() {
 }
 
 json Connection::toJson() {
-  return json::array({wireable2Json(first), wireable2Json(second), metadata.toJson()});
+  return json::array({Wireable2Json(first), Wireable2Json(second), metadata.toJson()});
 }
 
-json wireable2Json(Wireable* w) {
+json Wireable2Json(Wireable* w) {
   json j;
   json jpath = json::array();
   WirePath path = w->getPath();
@@ -305,33 +306,31 @@ json wireable2Json(Wireable* w) {
 json Instance::toJson() {
   json j;
   j["instref"] = json::array({instRef->getNamespace()->getName(),instRef->getName()});
-  j["args"] = this->isGen() ? genargs->toJson() : json();
-  j["config"] = this->hasConfig() ? this->getConfig()->toJson() : json();
+  j["genargs"] = this->isGen() ? Args2Json(genargs) : json();
+  j["config"] = this->hasConfig() ? Args2Json(this->getConfig()) : json();
   j["metadata"] = metadata.toJson();
   return j;
 }
 
 json Metadata::toJson() {
   return json(); // TODO
-  //if (metadata.size()==0) return {};
   json j;
   for (auto it : metadata) j[it.first] = it.second;
   return j;
 }
 
-//Args
-json params2Json(Params gp) {
+json Params2Json(Params gp) {
   json j = {};
   for (auto it : gp) j[it.first] = Param2Str(it.second);
   return j;
 }
 
-json Args::toJson() {
-  this->print();
+json Args2Json(Args args) {
   json j;
   for (auto it : args) j[it.first] = it.second->toJson();
   return j;
 }
+
 json ArgString::toJson() { return str; }
 json ArgInt::toJson() { return i; }
 json ArgType::toJson() { return t->toJson(); }

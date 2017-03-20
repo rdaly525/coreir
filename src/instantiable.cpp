@@ -126,7 +126,7 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
 }
 
 Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
-  Instance* inst = new Instance(this,instname,m,m->getType(),nullptr,config);
+  Instance* inst = new Instance(this,instname,m,m->getType(),Args(),config);
   instances[instname] = inst;
   return inst;
 }

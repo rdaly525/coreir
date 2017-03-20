@@ -2,79 +2,23 @@
 #define TYPECACHE_CPP_
 
 #include "typecache.hpp"
+#include "args.hpp"
 
 using namespace std;
 
 namespace CoreIR {
 
-//TODO sketchy
-size_t std::hash<Args>::operator() (const Args& genargs) const {
-  size_t hash = 0;
-  for (auto it : genargs) {
-    hash_combine(hash,it.first);
-    Arg* arg = it.second;
-    switch(arg->kind) {
-      case ASTRING : {
-        string arg_s = ((ArgString*) arg)->str;
-        hash_combine(hash,arg_s);
-        break;
-      }
-      case AINT : {
-        int arg_i = ((ArgInt*) arg)->i;
-        hash_combine(hash,arg_i);
-        break;
-      }
-      case ATYPE : {
-        Type* arg_t = ((ArgType*) arg)->t;
-        hash_combine(hash,arg_t);
-        break;
-      }
-      default : 
-        assert(false);
-    }
-  }
-  return hash;
-}
 
-
-bool operator==(const TypeParams& l,const TypeParams& r) {
-  bool ret = (l.tg==r.tg);
+bool TypeParamsEqFn::operator()(const TypeParams& l,const TypeParams& r) const {
+  bool ret = (l.typegen==r.typegen);
   if(!ret) return false;
-  for (auto 
-  (l.ga == *r.ga);
+  return (l.genargs == r.genargs);
 }
 
 size_t TypeParamsHasher::operator()(const TypeParams& tgp) const {
     size_t hash = 0;
-    hash_combine(hash,tgp.tg);
-    for (auto argmap : tgp.genargs) {
-    hash_combine(hash,it.first);
-    Arg* arg = it.second;
-    switch(arg->kind) {
-      case ASTRING : {
-        string arg_s = ((ArgString*) arg)->str;
-        hash_combine(hash,arg_s);
-        cout << "HERE";
-        break;
-      }
-      case AINT : {
-        int arg_i = ((ArgInt*) arg)->i;
-        hash_combine(hash,arg_i);
-        break;
-      }
-      case ATYPE : {
-        Type* arg_t = ((ArgType*) arg)->t;
-        hash_combine(hash,arg_t);
-        break;
-      }
-      default : 
-        assert(false);
-    }
-  }
- 
-    
-    
-    hash_combine(hash,*(tgp.ga));
+    hash_combine(hash,tgp.typegen);
+    hash_combine(hash,tgp.genargs);
     return hash;
 }
 
