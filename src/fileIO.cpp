@@ -190,6 +190,9 @@ Type* json2Type(Context* c, json jt) {
       rargs.push_back({it[0].get<string>(),json2Type(c,it[1])});
     return c->Record(rargs);
   }
+  else if (kind == "Any") {
+    return c->Any();
+  }
   else {
     cout << "ERROR NYI!: " << args[0].get<string>() << endl;
     assert(false);
