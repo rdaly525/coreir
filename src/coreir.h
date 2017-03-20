@@ -61,6 +61,9 @@ extern void CORESaveModule(COREModule* module, char* filename, bool* err);
 
 extern CORENamespace* COREGetGlobal(COREContext* c);
 
+
+extern const char* COREGetInstRefName(COREInstance* iref);
+
 //Errors:
 //  Invalid arg: Module name already exists
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, COREParams* configparams);

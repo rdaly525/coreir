@@ -19,6 +19,13 @@ extern "C" {
   void COREDeleteContext(COREContext* c) {
     deleteContext(rcast<Context*>(c));
   }
+  
+  const char* COREGetInstRefName(COREInstance* iref) {
+    string name = rcast<Instance*>(iref)->getInstRef()->getName();
+    return name.c_str();
+  }
+  
+  
   COREType* COREAny(COREContext* c) {
     return rcast<COREType*>(rcast<Context*>(c)->Any());
   }
