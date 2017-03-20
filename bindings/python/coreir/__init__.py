@@ -94,6 +94,8 @@ coreir_lib = load_shared_lib()
 
 coreir_lib.CORENewContext.restype = COREContext_p
 
+coreir_lib.COREPrintErrors.argtypes = [COREContext_p]
+
 coreir_lib.COREAny.argtypes = [COREContext_p]
 coreir_lib.COREAny.restype = COREType_p
 
@@ -345,6 +347,9 @@ class Context:
         self.context = coreir_lib.CORENewContext()
         self.G = Namespace(coreir_lib.COREGetGlobal(self.context))
     
+    def print_errors(self):
+        coreir_lib.COREPrintErrors(self.context)
+
     def GetG(self):
       return Namespace(coreir_lib.COREGetGlobal(self.context))
     
@@ -390,7 +395,9 @@ class Context:
         err = ct.c_bool(False)
         m = coreir_lib.CORELoadModule(
                 self.context, ct.c_char_p(str.encode(file_name)),ct.byref(err))
-        assert not err.value
+        if (err.value):
+           self.print_errors()
+
         return Module(m)
  
     def Record(self, fields):
