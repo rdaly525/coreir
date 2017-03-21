@@ -76,7 +76,6 @@ class Context {
     // Connection* newConnectionArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
-
     Type* Flip(Type* t);
 
 };

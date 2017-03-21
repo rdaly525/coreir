@@ -23,7 +23,6 @@ typedef enum {
 
 //keys and values will not be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
-//void* COREMapAt(void* container,void* key,COREContainerKind kind, bool* err);
 
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;

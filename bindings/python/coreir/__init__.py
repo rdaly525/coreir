@@ -3,7 +3,6 @@ import ctypes as ct
 import platform
 import os
 from collections import namedtuple
-import sys
 
 def load_shared_lib():
     _system = platform.system()
@@ -81,6 +80,7 @@ COREMapKind_STR2ARG_MAP = COREMapKind(2)
 coreir_lib = load_shared_lib()
 
 coreir_lib.CORENewMap.argtypes = [COREContext_p, ct.c_void_p, ct.c_void_p, ct.c_uint32, COREMapKind]
+
 coreir_lib.CORENewMap.restype = ct.c_void_p
 
 coreir_lib.CORENewContext.restype = COREContext_p
@@ -383,8 +383,6 @@ class Context:
         return Type(coreir_lib.CORERecord(self.context, record_params),self)
 
     def newParams(self, fields={}):
- 
-
         keys = (ct.c_char_p * len(fields))(*(str.encode(key) for key in fields.keys()))
         values = (ct.c_int * len(fields))(*(value for value in fields.values()))
         gen_params = coreir_lib.CORENewMap(self.context, ct.cast(keys,
@@ -417,8 +415,6 @@ class Context:
            self.print_errors()
 
         return Module(m,self)
- 
 
     def __del__(self):
         coreir_lib.COREDeleteContext(self.context)
-

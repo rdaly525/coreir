@@ -1,5 +1,5 @@
-#ifndef GENARGS_HPP_
-#define GENARGS_HPP_
+#ifndef ARGS_HPP_
+#define ARGS_HPP_
 
 
 #include "types.hpp"
@@ -71,4 +71,4 @@ bool checkParams(Args args, Params params);
 }//CoreIR namespace
 
 
-#endif //GENARGS_HPP_
+#endif //ARGS_HPP_

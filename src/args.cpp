@@ -1,5 +1,5 @@
-#ifndef GENARGS_CPP_
-#define GENARGS_CPP_
+#ifndef ARGS_CPP_
+#define ARGS_CPP_
 
 #include "args.hpp"
 #include "common.hpp"
@@ -84,6 +84,4 @@ size_t std::hash<Args>::operator() (const Args& args) const {
   return ret;
 }
 
-using namespace CoreIR;
-
-#endif //GENARGS_CPP
+#endif //ARGS_CPP_
