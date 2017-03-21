@@ -71,19 +71,15 @@ class Context {
     RecordParams* newRecordParams();
     Params* newParams();
     
+    Arg* int2Arg(int i);
+    Arg* string2Arg(string s);
+    Arg* type2Arg(Type* t);
+
     Instance** newInstanceArray(int size);
     // Connection* newConnectionArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
 
-    Arg* int2Arg(int i);
-    Arg* string2Arg(string s);
-    Arg* type2Arg(Type* t);
-    
-    int arg2Int(Arg* g);
-    string arg2String(Arg* g);
-    Type* arg2Type(Arg* g);
-    
     Args* args(unordered_map<string,Arg*> args);   
     Type* Flip(Type* t);
 

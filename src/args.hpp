@@ -26,6 +26,10 @@ struct Arg {
   Param kind;
   Arg(Param kind) : kind(kind) {}
   bool isKind(Param k) { return kind==k; }
+  int arg2Int();
+  string arg2String();
+  Type* arg2Type();
+  
   virtual json toJson()=0;
 };
 

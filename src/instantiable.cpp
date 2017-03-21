@@ -223,6 +223,13 @@ string Interface::toString() const{
 string Instance::toString() const {
   return instname;
 }
+
+Arg* Instance::getConfigValue(string s) { 
+  return (*config)[s];
+}
+
+
+
 string Select::toString() const {
   string ret = parent->toString(); 
   if (isNumber(selStr)) return ret + "[" + selStr + "]";

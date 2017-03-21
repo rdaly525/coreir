@@ -135,16 +135,6 @@ Wireable** Context::newWireableArray(int size) {
   wireableArrays.push_back(arr);
   return arr;
 }
-    Arg* int2Arg(int i);
-    Arg* string2Arg(string s);
-    Arg* type2Arg(Type* t);
-    
-    int arg2Int(Arg* g);
-    string arg2String(Arg* g);
-    Type* arg2Type(Arg* g);
-    
-    Args* args(unordered_map<string,Arg*> args=unordered_map<string,Arg*>());   
-    Args* configArgs(unordered_map<string,Arg*> args=unordered_map<string,Arg*>());   
 
 Arg* Context::int2Arg(int i) { 
   Arg* ga = new GenInt(i); 
@@ -161,9 +151,6 @@ Arg* Context::type2Arg(Type* t) {
   genargList.push_back(ga);
   return ga;
 }
-int Context::arg2Int(Arg* g) { return ((GenInt*) g)->i; }
-string Context::arg2String(Arg* g) { return ((GenString*) g)->str; }
-Type* Context::arg2Type(Arg* g) { return ((GenType*) g)->t; }
 
 Args* Context::args(unordered_map<string,Arg*> args) {
   Args* ga = new Args(this,args);

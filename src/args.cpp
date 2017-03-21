@@ -20,6 +20,10 @@
 
 namespace CoreIR {
 
+int Arg::arg2Int() { return ((GenInt*) this)->i; }
+string Arg::arg2String() { return ((GenString*) this)->str; }
+Type* Arg::arg2Type() { return ((GenType*) this)->t; }
+
 Arg* Args::operator[](const string s) const {
   auto elem = args.find(s);
   if (elem == args.end() ) {

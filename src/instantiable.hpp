@@ -206,6 +206,7 @@ class Instance : public Wireable {
     string getInstname() { return instname; }
     Args* getArgs() {return genargs;}
     Args* getConfig() {return config;}
+    Arg* getConfigValue(string s);
     bool hasConfig() {return !!config;}
     //void replace(Instantiable* newRef) { instRef = newRef;}
     //Convinience functions

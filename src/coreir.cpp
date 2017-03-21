@@ -24,7 +24,15 @@ extern "C" {
     string name = rcast<Instance*>(iref)->getInstRef()->getName();
     return name.c_str();
   }
-  
+
+  COREArg* COREGetConfigValue(COREInstance* i, char* s) {
+    string str(s);
+    return rcast<COREArg*>(rcast<Instance*>(i)->getConfigValue(str));
+  }
+  const char* COREArg2Str(COREArg* a) {
+    string s = rcast<Arg*>(a)->arg2String();
+    return s.c_str();
+  }
   
   COREType* COREAny(COREContext* c) {
     return rcast<COREType*>(rcast<Context*>(c)->Any());

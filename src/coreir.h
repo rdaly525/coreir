@@ -48,7 +48,7 @@ extern void COREArgsAddField(COREArgs* genargs, char* name, COREArg* genarg);
 
 //Create specific Arg
 extern COREArg* COREGInt(COREContext* c,int i);
-
+extern const char* COREArg2Str(COREArg* a);
 
 extern void COREPrintType(COREType* t);
 
@@ -78,6 +78,7 @@ void COREModuleAddDef(COREModule* module, COREModuleDef* module_def);
 //  Invalid arg: instance name already exists
 extern COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, COREArgs* config);
 extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
+extern COREArg* COREGetConfigValue(COREInstance* i, char* s); 
 
 //Errors:
 //  Wire Error;

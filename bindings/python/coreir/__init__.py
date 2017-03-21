@@ -165,6 +165,12 @@ coreir_lib.COREModuleDefGetInstances.restype = ct.POINTER(COREInstance_p)
 coreir_lib.COREGetInstRefName.argtypes = [COREInstance_p]
 coreir_lib.COREGetInstRefName.restype = ct.c_char_p
 
+coreir_lib.COREGetConfigValue.argtypes = [COREInstance_p,ct.c_char_p]
+coreir_lib.COREGetConfigValue.restype = COREArg_p;
+
+coreir_lib.COREArg2Str.argtypes = [COREArg_p]
+coreir_lib.COREArg2Str.restype = ct.c_char_p;
+
 # coreir_lib.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
 # coreir_lib.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection_p)
 
@@ -284,6 +290,10 @@ class Instance(Wireable):
     def module_name(self):
         name = coreir_lib.COREGetInstRefName(self.ptr)
         return name.decode()
+
+    def get_config_value(self,key):
+        arg = coreir_lib.COREGetConfigValue(self.ptr,str.encode(key))
+        return (coreir_lib.COREArg2Str(arg)).decode()
 
 class ModuleDef(CoreIRType):
     def add_module_instance(self, name, module, config=None):
