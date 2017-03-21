@@ -8,9 +8,9 @@
 
 namespace CoreIR {
 
-int Arg::arg2Int() { return ((GenInt*) this)->i; }
-string Arg::arg2String() { return ((GenString*) this)->str; }
-Type* Arg::arg2Type() { return ((GenType*) this)->t; }
+int Arg::arg2Int() { return ((ArgInt*) this)->i; }
+string Arg::arg2String() { return ((ArgString*) this)->str; }
+Type* Arg::arg2Type() { return ((ArgType*) this)->t; }
 
 bool ArgInt::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;

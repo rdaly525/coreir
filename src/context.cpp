@@ -112,10 +112,17 @@ RecordParams* Context::newRecordParams() {
   recordParamsList.push_back(record_param);
   return record_param;
 }
+
 Params* Context::newParams() {
-  Params* gp = new Params();
-  paramsList.push_back(gp);
-  return gp;
+  Params* params = new Params();
+  paramsList.push_back(params);
+  return params;
+}
+
+Args* Context::newArgs() {
+  Args* args = new Args();
+  argsList.push_back(args);
+  return args;
 }
 
 Instance** Context::newInstanceArray(int size) {
@@ -147,7 +154,7 @@ Arg* Context::int2Arg(int i) {
   argList.push_back(ga);
   return ga;
 }
-Arg* Context::string2Arg(string s) { 
+Arg* Context::str2Arg(string s) { 
   Arg* ga = new ArgString(s); 
   argList.push_back(ga);
   return ga;

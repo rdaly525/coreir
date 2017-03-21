@@ -163,7 +163,7 @@ Args json2Args(Context* c, Params genparams, json j) {
     Arg* g;
     switch(kind) {
       case AINT : g = c->int2Arg(j.at(key).get<int>()); break;
-      case ASTRING : g = c->string2Arg(j.at(key).get<string>()); break;
+      case ASTRING : g = c->str2Arg(j.at(key).get<string>()); break;
       case ATYPE : g = c->type2Arg(json2Type(c,j.at(key))); break;
       default :  throw std::runtime_error(Param2Str(kind) + "is not a type!");
     }

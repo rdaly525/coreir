@@ -10,9 +10,6 @@ using namespace std;
 
 namespace CoreIR {
 
-//RecordParams defined in types.hpp
-//typedef std::pair<TypeGen*,Args*> TypeParams;
-
 struct TypeParams {
   TypeGen* typegen;
   Args genargs;

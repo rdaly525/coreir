@@ -25,7 +25,7 @@ struct Arg {
   virtual ~Arg() {}
   Param kind;
   Arg(Param kind) : kind(kind) {}
-  bool isKind(Param k) { return kind==k; }
+  bool isKind(Param k) const { return kind==k; }
   
   int arg2Int();
   string arg2String();

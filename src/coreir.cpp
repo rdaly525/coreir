@@ -21,11 +21,11 @@ extern "C" {
       case(STR2TYPE_ORDEREDMAP) : {
         char** skeys = (char**) keys;
         Type** types = (Type**) values;
-        vector<myPair<string,Type*>>* tmap = new vector<myPair<string,Type*>>(); //TODO let context memory manage this
+        RecordParams* tmap = c->newRecordParams(); 
         for (u32 i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
           Type* t = types[i];
-          tmap->emplace_back(s,t);
+          tmap->push_back({s,t});
         }
         ret = (void*) tmap;
         break;
@@ -33,7 +33,7 @@ extern "C" {
       case (STR2ARG_MAP) : {
         char** skeys = (char**) keys;
         Arg** args = (Arg**) values;
-        unordered_map<string,Arg*>* amap = new unordered_map<string,Arg*>();
+        Args* amap = c->newArgs();
         for (u32 i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
           Arg* a = (Arg*) args[i];
@@ -45,7 +45,7 @@ extern "C" {
       case (STR2PARAM_MAP) : {
         char** skeys = (char**) keys;
         Param* params = (Param*) values;
-        unordered_map<string,Param>* pmap = new unordered_map<string,Param>();
+        Params* pmap = c->newParams();
         for (u32 i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
           Param p = params[i];
@@ -56,8 +56,6 @@ extern "C" {
       }
       default : { cout << "BAD KIND " << kind << endl; c->die(); ret = nullptr;}
     }
-    free(keys);
-    free(values);
     return ret;
   }
   
@@ -77,8 +75,23 @@ extern "C" {
     string str(s);
     return rcast<COREArg*>(rcast<Instance*>(i)->getConfigValue(str));
   }
-  const char* COREArg2Str(COREArg* a) {
-    string s = rcast<Arg*>(a)->arg2String();
+  
+  int COREArg2Int(COREArg* a, bool* err) {
+    Arg* arg = rcast<Arg*>(a);
+    if (!arg->isKind(AINT)) {
+      *err = true;
+      return 0;
+    }
+    return arg->arg2Int();
+  }
+  
+  const char* COREArg2Str(COREArg* a, bool* err) {
+    Arg* arg = rcast<Arg*>(a);
+    if (!arg->isKind(ASTRING)) {
+      *err = true;
+      return "";
+    }
+    string s = arg->arg2String();
     return s.c_str();
   }
   
@@ -167,6 +180,11 @@ extern "C" {
   //Create Arg for int
   COREArg* COREInt2Arg(COREContext* c,int i) {
     Arg* ga = rcast<Context*>(c)->int2Arg(i);
+    return rcast<COREArg*>(ga);
+  }
+  
+  COREArg* COREStr2Arg(COREContext* c,char* str) {
+    Arg* ga = rcast<Context*>(c)->str2Arg(string(str));
     return rcast<COREArg*>(ga);
   }
 

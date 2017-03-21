@@ -25,7 +25,7 @@ class Context {
   TypeCache* cache;
   
   vector<Arg*> argList;
-  //vector<Args*> genargsList;
+  vector<Args*> argsList;
   vector<RecordParams*> recordParamsList;
   vector<Params*> paramsList;
   vector<Instance**> instanceArrays;
@@ -66,9 +66,10 @@ class Context {
 
     RecordParams* newRecordParams();
     Params* newParams();
+    Args* newArgs();
     
     Arg* int2Arg(int i);
-    Arg* string2Arg(string s);
+    Arg* str2Arg(string s);
     Arg* type2Arg(Type* t);
 
     Instance** newInstanceArray(int size);

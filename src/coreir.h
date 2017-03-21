@@ -17,11 +17,11 @@ typedef struct COREArg COREArg;
 
 typedef enum {
     STR2TYPE_ORDEREDMAP = 0,
-    STR2ARG_MAP = 1,
-    STR2PARAM_MAP = 2
-} COREContainerKind;
+    STR2PARAM_MAP = 1,
+    STR2ARG_MAP = 2
+} COREMapKind;
 
-//keys and values will be freed
+//keys and values will not be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
 //void* COREMapAt(void* container,void* key,COREContainerKind kind, bool* err);
 
@@ -40,19 +40,11 @@ extern COREType* COREBitOut(COREContext* CORE);
 extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
 extern COREType* CORERecord(COREContext* c, void* recordparams);
 
-
-////Record Params
-//extern CORERecordParam* CORENewRecordParam(COREContext* c);
-////Check Errors
-//extern void CORERecordParamAddField(CORERecordParam* record_param, char* name, COREType* type);
-
-////Create Params
-//extern COREParams* CORENewParams(COREContext* c);
-//extern void COREParamsAddField(COREParams* genparams, char* name, int genparam);
-
 //Create specific Arg
-extern const char* COREArg2Str(COREArg* a);
+extern const char* COREArg2Str(COREArg* a, bool* err);
+extern int COREArg2Int(COREArg* a, bool* err);
 extern COREArg* COREInt2Arg(COREContext* c,int i);
+extern COREArg* COREStr2Arg(COREContext* c,char* str);
 
 extern void COREPrintType(COREType* t);
 

@@ -5,7 +5,6 @@
 
 using namespace CoreIR;
 
-<<<<<<< aa4242255ae29fd5af3a7bee7acf07402d0a205e
 Type* binop_type(Context* c, Args args, Params params) {
   int n = args.at("width")->arg2Int();
   Type* narray = c->Array(n,c->BitOut());

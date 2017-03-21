@@ -225,7 +225,7 @@ string Instance::toString() const {
 }
 
 Arg* Instance::getConfigValue(string s) { 
-  return (*config)[s];
+  return config.at(s);
 }
 
 
