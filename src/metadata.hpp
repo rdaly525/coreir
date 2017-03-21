@@ -11,11 +11,12 @@ using namespace std;
 namespace CoreIR {
 struct Metadata {
   unordered_map<string,string> metadata;
-  Metadata() { metadata["_testing"] = "metadata";}
+  Metadata() {}
   Metadata(string file,uint line) {
     metadata["file"] = file;
     metadata["line"] = to_string(line); // TODO
   }
+  bool empty() {return metadata.empty();}
   json toJson();
 };
 

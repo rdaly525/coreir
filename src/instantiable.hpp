@@ -207,7 +207,7 @@ class Instance : public Wireable {
     Arg* getConfigValue(string s);
     Args getArgs() {return genargs;}
     Args getConfig() {return config;}
-    bool hasConfig() {return config.size()>0;}
+    bool hasConfig() {return !config.empty();}
     //void replace(Instantiable* newRef) { instRef = newRef;}
     //Convinience functions
     bool isGen() { return instRef->isKind(GEN);}

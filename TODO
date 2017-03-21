@@ -32,18 +32,14 @@ Lenny TODO
 //////////////////////////////
 Ross TODO
 
-Have an interface for reading the config from the file
-
 Reader/Writer
   Reader Does not do any generators yet.
   Writer Does not do any typegen stuff yet.
-
 
 Metadata
   Augment function calls/constructors to use metadata
 
 Get Verilog codegen working again
-
 
 Think about renaming TypeGen and TypeGenInst to NamedType
 Have Type associated with TypeGenInst which is like a cache

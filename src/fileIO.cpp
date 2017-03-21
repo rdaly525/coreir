@@ -51,14 +51,20 @@ Module* loadModule(Context* c, string filename, bool* err) {
       if (c->hasNamespace(nsname) ) ns = c->getNamespace(nsname);
       else ns = c->newNamespace(nsname);
       //Load Modules
-      for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
-        //Figure out type;
-        string jmodname = jmodmap.first;
-        json jmod = jmodmap.second;
-        Type* t = json2Type(c,jmod.at("type"));
-        Params configparams = json2Params(c,jmod.at("configparams"));
-        Module* m = ns->newModuleDecl(jmodname,t,configparams);
-        modqueue.push_back({m,jmod});
+      if (jns.count("modules")) {
+        for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
+          //Figure out type;
+          string jmodname = jmodmap.first;
+          json jmod = jmodmap.second;
+          Type* t = json2Type(c,jmod.at("type"));
+          
+          Params configparams;
+          if (jmod.count("configparams")) {
+            configparams = json2Params(c,jmod.at("configparams"));
+          }
+          Module* m = ns->newModuleDecl(jmodname,t,configparams);
+          modqueue.push_back({m,jmod});
+        }
       }
       //TODO Load Generators
     }
@@ -68,47 +74,50 @@ Module* loadModule(Context* c, string filename, bool* err) {
       Module* m = mq.first;
       json jmod = mq.second;
       // TODO Module metadata
-      json jdef = jmod.at("def");
-      if (jdef.is_null()) {
-        continue;
-      }
+      if (!jmod.count("def")) continue;
       
+      json jdef = jmod.at("def");
       ModuleDef* mdef = m->newModuleDef();
       // TODO ModuleDef metadata
       // TODO moduledef implementations
-      for (auto jinstmap : jdef.at("instances").get<jsonmap>()) {
-        string instname = jinstmap.first;
-        json jinst = jinstmap.second;
-        json jinstRef = jinst.at("instref");
-        
-        // This function can throw an error
-        Instantiable* instRef = getSymbol(c,jinstRef.at(0),jinstRef.at(1));
-        
-        Args config = json2Args(c,instRef->getConfigParams(),jinst.at("config"));
-        //Assume that if there are args, it is a generator
-        if (jinst.at("genargs").is_null()) { // This is a module
-          assert(instRef->isKind(MOD));
-          mdef->addInstance(instname,(Module*) instRef,config);
-        }
-        else { // This is a generator
-          cout << "NYI Generator instances: " << instname << endl;
-          assert(instRef->isKind(GEN));
-          assert(false);
-        }
-      } // End Instances
+      if (jdef.count("instances")) {
+        for (auto jinstmap : jdef.at("instances").get<jsonmap>()) {
+          string instname = jinstmap.first;
+          json jinst = jinstmap.second;
+          json jinstRef = jinst.at("instref");
+          
+          // This function can throw an error
+          Instantiable* instRef = getSymbol(c,jinstRef.at(0),jinstRef.at(1));
+          
+          Args config;
+          if (jinst.count("config")) {
+            config = json2Args(c,instRef->getConfigParams(),jinst.at("config"));
+          }
+
+          //Assume that if there are genargs, it is a generator
+          if (jinst.count("genargs")) { // This is a generator
+            cout << "NYI Generator instances: " << instname << endl;
+            assert(instRef->isKind(GEN));
+            assert(false);
+          }
+          else { // This is a module
+            assert(instRef->isKind(MOD));
+            mdef->addInstance(instname,(Module*) instRef,config);
+          }
+        } // End Instances
+      }
       //Connections
-      if (!jdef.at("connections").is_null()) {
+      if (jdef.count("connections")) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
           //TODO connection metadata
-          json wA = jcon[0].get<jsonmap>();
-          json wB = jcon[1].get<jsonmap>();
-          json jpairA = wA.at("path").get<vector<json>>();
-          json jpairB = wB.at("path").get<vector<json>>();
-
-          //std::pair<string,json> jpair = wA.path.get<std::pair<string,json>>();
-          //WirePath path = {jpair.first,jpair.second.get<vector<string>>()};
-          WirePath pathA = {jpairA[0].get<string>(),jpairA[1].get<vector<string>>()};
-          WirePath pathB = {jpairB[0].get<string>(),jpairB[1].get<vector<string>>()};
+          vector<string> wA = jcon[0].get<vector<string>>();
+          vector<string> wB = jcon[1].get<vector<string>>();
+          string instA = wA[0];
+          string instB = wB[0];
+          wA.erase(wA.begin());
+          wB.erase(wB.begin());
+          WirePath pathA = {instA,wA};
+          WirePath pathB = {instB,wB};
           mdef->wire(pathA,pathB);
         }
       }
@@ -153,8 +162,7 @@ Params json2Params(Context* c, json j) {
 }
 
 Args json2Args(Context* c, Params genparams, json j) {
-  Args gargs = Args();
-  if (j.is_null()) return gargs;
+  Args gargs; 
 
   //TODO this following code should make sure there are the same number of key-value pairs
   for (auto pmap : genparams) {
@@ -165,7 +173,7 @@ Args json2Args(Context* c, Params genparams, json j) {
       case AINT : g = c->int2Arg(j.at(key).get<int>()); break;
       case ASTRING : g = c->str2Arg(j.at(key).get<string>()); break;
       case ATYPE : g = c->type2Arg(json2Type(c,j.at(key))); break;
-      default :  throw std::runtime_error(Param2Str(kind) + "is not a type!");
+      default :  throw std::runtime_error(Param2Str(kind) + "is not a valid arg param!");
     }
     gargs[key] = g;
   }
@@ -173,29 +181,37 @@ Args json2Args(Context* c, Params genparams, json j) {
 }
 
 Type* json2Type(Context* c, json jt) {
-  vector<json> args =jt.get<vector<json>>();
-  string kind = args[0].get<string>();
-  if (kind == "BitIn") return c->BitIn();
-  else if (kind == "BitOut") return c->BitOut();
-  else if (kind == "Array") {
-    uint n = args[1].get<uint>();
-    Type* t = json2Type(c,args[2]);
-    return c->Array(n,t);
+  if (jt.type() == json::value_t::string) {
+    //Will be bitIn or BitOut
+    string kind = jt.get<string>();
+    if (kind == "BitIn") return c->BitIn();
+    else if (kind == "BitOut") return c->BitOut();
+    else throw std::runtime_error(kind + " is not a type!");
   }
-  else if (kind == "Record") {
-    vector<myPair<string,Type*>> rargs;
-    for (auto it : args[1].get<vector<vector<json>>>())
-      
-      rargs.push_back({it[0].get<string>(),json2Type(c,it[1])});
-    return c->Record(rargs);
+  else if (jt.type() == json::value_t::array) {
+    vector<json> args = jt.get<vector<json>>();
+    string kind = args[0].get<string>();
+    if (kind == "Array") {
+      uint n = args[1].get<uint>();
+      Type* t = json2Type(c,args[2]);
+      return c->Array(n,t);
+    }
+    else if (kind == "Record") {
+      vector<myPair<string,Type*>> rargs;
+      for (auto it : args[1].get<vector<vector<json>>>())
+        
+        rargs.push_back({it[0].get<string>(),json2Type(c,it[1])});
+      return c->Record(rargs);
+    }
+    else if (kind == "Any") {
+      return c->Any();
+    }
+    else {
+      cout << "ERROR NYI!: " << args[0].get<string>() << endl;
+      assert(false);
+    }
   }
-  else if (kind == "Any") {
-    return c->Any();
-  }
-  else {
-    cout << "ERROR NYI!: " << args[0].get<string>() << endl;
-    assert(false);
-  }
+  else throw std::runtime_error("Error parsing Type");
   return c->Any();
 }
 
@@ -229,7 +245,7 @@ json Params2Json(Params gp);
 json Wireable2Json(Wireable* w);
 
 json Type::toJson() { 
-  return json::array({TypeKind2Str(kind)});
+  return TypeKind2Str(kind);
 }
 json ArrayType::toJson() {
   return json::array({TypeKind2Str(kind),len,elemType->toJson()});
@@ -241,27 +257,37 @@ json RecordType::toJson() {
 }
 
 json Namespace::toJson() {
-  json jmods;
-  json jgens;
-  for (auto m : mList) jmods[m.first] = m.second->toJson();
-  for (auto g : gList) jgens[g.first] = g.second->toJson();
-  return {
-    {"modules",jmods},
-    {"generators",jgens}
-  };
+  json j;
+  if (!mList.empty()) {
+    json jmods;
+    for (auto m : mList) jmods[m.first] = m.second->toJson();
+    j["modules"] = jmods;
+  }
+  if (!gList.empty()) {
+    json jgens;
+    for (auto g : gList) jgens[g.first] = g.second->toJson();
+    j["generators"] = jgens;
+  }
+  return j;
 }
 
 json Instantiable::toJson() {
-  return {
-    {"configparams",Params2Json(configparams)},
-    {"metadata",metadata.toJson()}
-  };
+  json j;
+  if (!configparams.empty()) {
+    j["configparams"] = Params2Json(configparams);
+  }
+  if (!metadata.empty()) {
+    j["metadata"] = metadata.toJson();
+  }
+  return j;
 }
 
 json Module::toJson() {
   json j = Instantiable::toJson();
   j["type"] = type->toJson();
-  j["def"] = hasDef() ? getDef()->toJson() : json();
+  if (this->hasDef()) {
+    j["def"] = this->getDef()->toJson();
+  }
   return j;
 }
 
@@ -274,46 +300,61 @@ json Generator::toJson() {
 
 json ModuleDef::toJson() {
   json j;
-  j["metadata"] = metadata.toJson();
-  j["implementations"] = implementations.toJson();
-  json jinsts;
-  for ( auto instmap : instances) {
-    jinsts[instmap.first] = instmap.second->toJson();
+  if (!metadata.empty()) {
+    j["metadata"] = metadata.toJson();
   }
-  j["instances"] = jinsts;
-  json jcons;
-  for (auto connection : connections) {
-    jcons.push_back(connection.toJson());
+  if (!implementations.empty()) {
+    j["implementations"] = implementations.toJson();
   }
-  j["connections"] = jcons;
+  if (!instances.empty()) {
+    json jinsts;
+    for ( auto instmap : instances) {
+      jinsts[instmap.first] = instmap.second->toJson();
+    }
+    j["instances"] = jinsts;
+  }
+  if (!connections.empty()) {
+    json jcons;
+    for (auto connection : connections) {
+      jcons.push_back(connection.toJson());
+    }
+    j["connections"] = jcons;
+  }
   return j;
 }
 
 json Connection::toJson() {
-  return json::array({Wireable2Json(first), Wireable2Json(second), metadata.toJson()});
+  json j = json::array({Wireable2Json(first), Wireable2Json(second)});
+  if (!metadata.empty()) {
+    j.push_back(metadata.toJson());
+  }
+  return j;
 }
 
 json Wireable2Json(Wireable* w) {
-  json j;
-  json jpath = json::array();
   WirePath path = w->getPath();
-  for (auto str : path.second) jpath.push_back(str);
-  j["metadata"] = w->getMetadata().toJson();
-  j["path"] = json::array({path.first,jpath});
+  json j = json::array({path.first});
+  for (auto str : path.second) j.push_back(str);
   return j;
 }
 
 json Instance::toJson() {
   json j;
   j["instref"] = json::array({instRef->getNamespace()->getName(),instRef->getName()});
-  j["genargs"] = this->isGen() ? Args2Json(genargs) : json();
-  j["config"] = this->hasConfig() ? Args2Json(this->getConfig()) : json();
-  j["metadata"] = metadata.toJson();
+  if (this->isGen()) {
+    assert(!genargs.empty());
+    j["genargs"] = Args2Json(genargs);
+  }
+  if (this->hasConfig()) {
+    j["config"] = Args2Json(this->getConfig());
+  }
+  if (!metadata.empty()) {
+    j["metadata"] = metadata.toJson();
+  }
   return j;
 }
 
 json Metadata::toJson() {
-  return json(); // TODO
   json j;
   for (auto it : metadata) j[it.first] = it.second;
   return j;
