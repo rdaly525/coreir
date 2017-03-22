@@ -259,7 +259,7 @@ class Instance(Wireable):
     
     def module_name(self):
         name = coreir_lib.COREGetInstRefName(self.ptr)
-        return str.decode(name)
+        return name.decode()
 
     def get_config_value(self,key):
         arg = coreir_lib.COREGetConfigValue(self.ptr,str.encode(key))
@@ -267,7 +267,7 @@ class Instance(Wireable):
         err = ct.c_bool(False)
         v = coreir_lib.COREArg2Str(arg,ct.byref(err))
         if err.value==False:
-          return str.decode(v)
+          return v.decode()
 
         err = ct.c_bool(False)
         v = coreir_lib.COREArg2Int(arg,ct.byref(err))
