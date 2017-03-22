@@ -267,13 +267,13 @@ class Instance(Wireable):
         err = ct.c_bool(False)
         v = coreir_lib.COREArg2Str(arg,ct.byref(err))
         if err.value==False:
-          return v
+          return str.decode(v)
 
         err = ct.c_bool(False)
         v = coreir_lib.COREArg2Int(arg,ct.byref(err))
         if err.value==False:
           print(type(v))
-          return v
+          return str.decode(v)
 
         assert(False,"NYI!")
 
