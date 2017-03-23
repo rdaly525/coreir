@@ -272,9 +272,8 @@ class Instance(Wireable):
         err = ct.c_bool(False)
         v = coreir_lib.COREArg2Int(arg,ct.byref(err))
         if err.value==False:
-          print(type(v))
           return v
-
+        
         assert(False,"NYI!")
 
 class ModuleDef(CoreIRType):

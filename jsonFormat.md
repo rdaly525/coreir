@@ -13,16 +13,16 @@ any key followed by a ? means it is optional
 
 Namespace={
   "namedtypes"? : NamedType[]
-  "namedtypegenerators"? :NamedTypeGenerators[]
+  "namedtypegenerators"? :NamedTypeGenerator[]
   "modules"? :{<modulename>:Module,...},
   "generators"? :{<genname>:Generator, ...}
 }
 
-Type = "BitIn" | "BitOut" | ["Array", <N>, Type] | ["Record", [<key>, Type][]}] | ["NamedType", NamedTypeReference, Args]
+Type = "BitIn" | "BitOut" | ["Array", <N>, Type] | ["Record", [<key>, Type][]}] | ["Named", NamedReference, Args]
 
-NamedTypeReference=[<namespaceName>,<typeName>]
+NamedReference=[<namespaceName>,<typeName>]
 NamedType = {"typename":<name>, "flippedtypename":<name>,"type":Type}
-NamedTypeGenerators={"typename":<name>, "flippedtypename":<name>,"genParameter":Parameter}
+NamedTypeGenerator={"typename":<name>, "flippedtypename":<name>,"genParameter":Parameter}
 
 Module = {"type":Type, "configparams"?:Parameter, "metadata"?:Metadata, "def"?:ModuleDef}
 
@@ -45,7 +45,7 @@ Wireable = [<topname>,<a>,<b>,...]
 Parameters = {<key>:ParameterType,...}
 ParameterType = "String" | "Int" | "Type" | //NYI "Uint" | "Instantiatable"
 
-Args = null | {<key>:ArgsValue}
+Args = {<key>:ArgsValue}
 ArgsValue = <String> | <Number> | Type | //NYI InstantiatableReference
 
 Metadata={<key>:MetadataValue,...}

@@ -1,12 +1,12 @@
 [![Build Status](https://travis-ci.org/rdaly525/coreir.svg?branch=master)](https://travis-ci.org/rdaly525/coreir)
 
 
-##Tested Compatable compilers:
+##Tested Compatable compilers:  
   gcc 4.9  
-  Apple LLVM version 8.0.0 (clang-800.0.42.1)
+  Apple LLVM version 8.0.0 (clang-800.0.42.1)  
 
 
-#TODO Add in the APIs
+#TODO Add in the APIs  
 
 ## Algebraic structure of IR
 ```
