@@ -60,31 +60,55 @@ class BitOutType : public Type {
     string toString(void) const {return "BitOut";}
 };
 
-struct TypeGen {
-  string libname;
+struct Named {
+  Namespace* ns;
   string name;
-  TypeGen* flipped;
-  Params genparams;
-  TypeGenFun fun;
-  bool funflip;
-  TypeGen(string libname, string name, Params genparams, TypeGenFun fun, bool funflip) : libname(libname), name(name), genparams(genparams), fun(fun), funflip(funflip) { 
-    if (!fun) {
-      cout << "Warning: TypeGen linking NYI" << endl;
-    }
-  }
+  Type* raw;
+  Named(Namespace* ns, string name, Type* raw) : ns(ns), name(name), raw(raw) {}
   void setFlipped(TypeGen* _flipped) {
     flipped = _flipped;
   }
+};
+
+struct NamedGen : Named {
+  Params genparams;
+  TypeGenFun fun;
+  bool funflip;
+  TypeGen(Namespace* ns, string name, Params genparams, TypeGenFun fun, bool funflip) : Named(ns,name), name(name), genparams(genparams), fun(fun), funflip(funflip) { 
+
   string toString() {
     return name + Params2Str(genparams);
   }
-};
+
+}
+
+setNamedFlipped("clk","clkIn");
+
+Type* clk = ns->getNamedType("clk");
+Type* clk ns->new
+
+NamedType
+  Namespace
+  string name
+  Type* raw;
+
+NamedGenType
+  Namespace
+  string name
+  
+  Params genparams
+  function genfun
+  bool flipped;
+
+  Args genargs
+  Type* raw;
 
 
 // TODO check argtypes are actually the same as genparams
-class TypeGenType : public Type {
+class NamedType : public Type {
   protected :
-    TypeGen* def;
+    Named* def;
+    Type* raw;
     Args genargs;
   public :
     TypeGenType(TypeGen* def, Args genargs);
