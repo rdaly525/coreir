@@ -29,15 +29,50 @@ Module* add2(Context* c, Type* t, Args args) {
 Namespace* getStdlib(Context* c) {
   
   Namespace* stdlib = c->newNamespace("stdlib");
+ 
+  /////////////////////////////////
+  // Stdlib Types
+  /////////////////////////////////
+  Params widthparam = Params({{"width",AINT}});
+
+  //Single bit types
+  stdlib->newNamedType("clk","clkIn",c->BitOut());
+  stdlib->newNamedType("rst","rstIn",c->BitOut());
   
-  //Add bop typegen to library
-  stdlib->newNamedType("binop","binop_F",TypeGen({{"width",AINT}},binop_type,false));
+  //Array types
+  TypeGen arrtypegen(
+    widthparam,
+    [](Context* c, Args args) {
+      return c->Array(args.at("width")->arg2Int(),c->BitOut());
+    }
+  );
+ 
+  stdlib->newNamedType("int","intIn",arrtypegen);
+  stdlib->newNamedType("uint","uintIn",arrtypegen);
+  
+  //Common Function types
+  TypeGen boptypegen(
+    widthparam,
+    [](Context* c, Args args) {
+      Type* arr = c->Array(args.at("width")->arg2Int(),c->BitOut());
+      return c->Record({{"in0",c->Flip(arr)},{"in1",c->Flip(arr)},{"out",arr}});
+    }
+  );
+  stdlib->newNamedType("binop","binopFlipped",boptypegen);
+  
+  /////////////////////////////////
+  // Stdlib primitives
+  /////////////////////////////////
   
   //declare new add2 generator
-  Generator* g = stdlib->newGeneratorDecl("add2",{{"width",AINT}},stdlib->getTypeGen("binop"));
+  Generator* g = stdlib->newGeneratorDecl("add2",widthparam,stdlib->getTypeGen("binop"));
   g->addDef(add2);
-  
-  //Type* binop16 = binop_type(c,c->genArgs({{"width",c->int2Arg(16)}}),{{"width",AINT}});
+
+
+
+
+
+  //TODO Hack to get rid of
   Type* binop16 = c->Record({
       {"in0",c->Array(16,c->BitIn())},
       {"in1",c->Array(16,c->BitIn())},
