@@ -44,11 +44,19 @@ Namespace* getStdlib(Context* c) {
       {"out",c->Array(16,c->BitOut())}
   });
   
+  Type* outType = c->Record({
+    {"out",c->Array(16,c->BitOut())}
+  });
+
+  Type* inType = c->Record({
+    {"in",c->Array(16,c->BitIn())}
+  });
+
   stdlib->newModuleDecl("add2_16",binop16);
   stdlib->newModuleDecl("mult2_16",binop16);
-  stdlib->newModuleDecl("const_16",c->Array(16,c->BitOut()),{{"value",AINT}});
-  stdlib->newModuleDecl("GPI_16",c->Array(16,c->BitOut()));
-  stdlib->newModuleDecl("GPO_16",c->Array(16,c->BitIn()));
+  stdlib->newModuleDecl("const_16",outType,{{"value",AINT}});
+  stdlib->newModuleDecl("GPI_16",outType);
+  stdlib->newModuleDecl("GPO_16",inType);
   return stdlib;
 }
 
