@@ -1,3 +1,8 @@
 #!/bin/sh
 set -x #echo on
-for file in build/*; do $file; done
+echo "$1"
+if [[ -n $1 &&  "$1" -eq '-memcheck' ]]; then
+  for file in build/*; do valgrind --error-exitcode=1 $file; done
+else
+  for file in build/*; do $file; done
+fi

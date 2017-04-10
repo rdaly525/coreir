@@ -21,8 +21,8 @@ Namespace={
 Type = "BitIn" | "BitOut" | ["Array", <N>, Type] | ["Record", [<key>, Type][]}] | ["Named", NamedReference, Args]
 
 NamedReference=[<namespaceName>,<typeName>]
-NamedType = {"typename":<name>, "flippedtypename":<name>,"type":Type}
-NamedTypeGenerator={"typename":<name>, "flippedtypename":<name>,"genParameter":Parameter}
+NamedType = {"name":<name>, "flippedname":<name>,"type":Type}
+NamedTypeGenerator={"name":<name>, "flippedname":<name>,"genparams":Parameter}
 
 Module = {"type":Type, "configparams"?:Parameter, "metadata"?:Metadata, "def"?:ModuleDef}
 
