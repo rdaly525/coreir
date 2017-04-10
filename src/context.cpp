@@ -104,7 +104,6 @@ Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::BitOut() { return cache->newBitOut(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::TypeGenInst(TypeGen* tgd, Args args) { return cache->newTypeGenInst(tgd,args); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 RecordParams* Context::newRecordParams() {

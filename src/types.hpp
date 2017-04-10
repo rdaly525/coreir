@@ -60,37 +60,18 @@ class BitOutType : public Type {
     string toString(void) const {return "BitOut";}
 };
 
-struct TypeGen {
-  string libname;
-  string name;
-  TypeGen* flipped;
-  Params genparams;
-  TypeGenFun fun;
-  bool funflip;
-  TypeGen(string libname, string name, Params genparams, TypeGenFun fun, bool funflip) : libname(libname), name(name), genparams(genparams), fun(fun), funflip(funflip) { 
-    if (!fun) {
-      cout << "Warning: TypeGen linking NYI" << endl;
-    }
-  }
-  void setFlipped(TypeGen* _flipped) {
-    flipped = _flipped;
-  }
-  string toString() {
-    return name + Params2Str(genparams);
-  }
-};
-
-
-// TODO check argtypes are actually the same as genparams
-class TypeGenType : public Type {
+class NamedType : public Type {
   protected :
-    TypeGen* def;
+    Namespace* ns;
+    string name;
+    
+    Type* raw;
+
+    TypeGen typegen;
     Args genargs;
   public :
-    TypeGenType(TypeGen* def, Args genargs);
-    TypeGen* getDef() { return def;}
-    Args getArgs() { return genargs;}
-    string toString(void) const { return def->name; }
+    NamedType(Namespace* ns, string name, Type* raw, TypeGen typegen, Args genargs);
+    string toString(void) const { return name; } //TODO
     //json toJson(); TODO
     bool sel(Context* c, string sel, Type** ret, Error* e);
 

@@ -16,60 +16,124 @@ size_t GenCacheParamsHasher::operator()(const GenCacheParams& gcp) const {
   size_t hash = 0;
   hash_combine(hash,gcp.g->getNamespace()->getName());
   hash_combine(hash,gcp.g->getName());
-  //hash_combine(hash,gcp.ga);
+  return hash;
+}
+
+bool operator==(const NamedCacheParams& l,const NamedCacheParams& r) {
+  return (l.name==r.name) && (l.args==r.args);
+}
+
+size_t NamedCacheParamsHasher::operator()(const NamedCacheParams& ncp) const {
+  size_t hash = 0;
+  hash_combine(hash,ncp.name);
+  hash_combine(hash,ncp.args);
   return hash;
 }
   
 Namespace::~Namespace() {
-  for(auto m : mList) delete m.second;
-  for(auto g : gList) delete g.second;
-  for(auto t : tList) delete t.second;
-
-  // Delete genCache;
-  //for(auto g : genCache) delete g.second;
+  for(auto m : moduleList) delete m.second;
+  for(auto g : generatorList) delete g.second;
+  for(auto n : namedCache) delete n.second;
 }
 
-TypeGen* Namespace::newTypeGen(string name, string nameFlipped, Params kinds, TypeGenFun fun) {
-      assert(!hasTypeGen(name));
-      assert(!hasTypeGen(nameFlipped));
-      TypeGen* t = new TypeGen(name,name,kinds,fun,false);
-      TypeGen* tf = new TypeGen(name,nameFlipped,kinds,fun,true);
-      t->setFlipped(tf);
-      tf->setFlipped(t);
-      tList.emplace(name,t);
-      tList.emplace(nameFlipped,tf);
-      return t;
-    }
+void Namespace::newNamedType(string name, string nameFlip, Type* raw) {
+  //Make sure the name and its flip are different
+  assert(name != nameFlip);
+  //Verify this name and the flipped name do not exist yet
+  assert(!typeGenList.count(name) && !typeGenList.count(nameFlip));
+  NamedCacheParams ncp(name,Args());
+  NamedCacheParams ncpFlip(nameFlip,Args());
+  assert(!namedCache.count(ncp) && !namedCache.count(ncpFlip) );
+  
+  //Create two new NamedTypes
+  NamedType* named = new NamedType(this,name,raw,TypeGen(),Args());
+  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped(),TypeGen(),Args());
+  named->setFlipped(namedFlip);
+  namedFlip->setFlipped(named);
+  namedCache.emplace(ncp,named);
+  namedCache.emplace(ncpFlip,namedFlip);
+}
 
-//TODO deal with name conflicts
-//bool Context::registerLib(Namespace* lib) {
-//  string name = lib->getName();
-//  if (libs.find(name) != libs.end()) {
-//    Error e;
-//    e.message("Namespace already exists!");
-//    e.message("  Namespace: " + name);
-//    error(e);
-//    return true;
-//  }
-//  libs.emplace(name,lib);
-//  return false;
-//}
+void Namespace::newNamedType(string name, string nameFlip, TypeGen typegen) {
+  //Make sure the name and its flip are different
+  assert(name != nameFlip);
+  //Verify this name and the flipped name do not exist yet
+  assert(!typeGenList.count(name) && !typeGenList.count(nameFlip));
+  
+  //Create flipped typegen
+  TypeGen typegenFlip(typegen.params,typegen.fun,!typegen.flipped);
+  
+  //Add typegens into list
+  typeGenList[name] = {typegen,nameFlip};
+  typeGenList[nameFlip] = {typegenFlip,name};
+}
 
-Generator* Namespace::newGeneratorDecl(string name, Params kinds, TypeGen* tg) {
+//This has to be found. Error if not found
+NamedType* Namespace::getNamedType(string name) {
+  NamedCacheParams ncp(name,Args());
+  auto found = namedCache.find(ncp);
+  assert(found != namedCache.end());
+  return found->second;
+}
+
+//Make sure the name is found in the typeGenCache. Error otherwise
+//Then create a new entry in NamedCache if it does not exist
+NamedType* Namespace::getNamedType(string name, Args genargs) {
+  NamedCacheParams ncp(name,genargs);
+  auto namedFound = namedCache.find(ncp);
+  if (namedFound != namedCache.end() ) {
+    return namedFound->second;
+  }
+  
+  //Not found. Verify that name exists in TypeGenList
+  auto tgenFound = typeGenList.find(name);
+  assert(tgenFound != typeGenList.end());
+  TypeGen tgen = tgenFound->second.first;
+  string nameFlip = tgenFound->second.second;
+  assert(typeGenList.count(nameFlip)>0);
+  TypeGen tgenFlip = typeGenList.find(nameFlip)->second.first;
+  NamedCacheParams ncpFlip(nameFlip,genargs);
+
+  //TODO for now just run the generator.
+  Type* raw = tgen.fun(this->c,genargs);
+  if (tgen.flipped) {
+    raw = raw->getFlipped();
+  }
+
+  //Create two new named entries
+  NamedType* named = new NamedType(this,name,raw,tgen,genargs);
+  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped(),tgenFlip,genargs);
+  named->setFlipped(namedFlip);
+  namedFlip->setFlipped(named);
+  namedCache[ncp] = named;
+  namedCache[ncpFlip] = namedFlip;
+
+  return named;
+}
+
+TypeGen Namespace::getTypeGen(string name) {
+  auto found = typeGenList.find(name);
+  assert(found != typeGenList.end());
+  return found->second.first;
+}
+
+
+
+Generator* Namespace::newGeneratorDecl(string name, Params kinds, TypeGen tg) {
   Generator* g = new Generator(this,name,kinds,tg);
-  gList.emplace(name,g);
+  generatorList.emplace(name,g);
   return g;
 }
 
 Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
   Module* m = new Module(this,name,t, configparams);
-  mList.emplace(name,m);
+  moduleList.emplace(name,m);
   return m;
 }
 
 Generator* Namespace::getGenerator(string gname) {
-  auto it = gList.find(gname);
-  if (it != gList.end()) return it->second;
+  auto it = generatorList.find(gname);
+  if (it != generatorList.end()) return it->second;
   Error e;
   e.message("Could not find Generator in namespace!");
   e.message("  Generator: " + gname);
@@ -79,8 +143,8 @@ Generator* Namespace::getGenerator(string gname) {
   return nullptr;
 }
 Module* Namespace::getModule(string mname) {
-  auto it = mList.find(mname);
-  if (it != mList.end()) return it->second;
+  auto it = moduleList.find(mname);
+  if (it != moduleList.end()) return it->second;
   Error e;
   e.message("Could not find Module in namespace!");
   e.message("  Module: " + mname);
@@ -91,8 +155,8 @@ Module* Namespace::getModule(string mname) {
 }
 
 Instantiable* Namespace::getInstantiable(string iname) {
-  if (mList.count(iname) > 0) return mList.at(iname);
-  if (gList.count(iname) > 0) return gList.at(iname);
+  if (moduleList.count(iname) > 0) return moduleList.at(iname);
+  if (generatorList.count(iname) > 0) return generatorList.at(iname);
   Error e;
   e.message("Could not find Instance in library!");
   e.message("  Instance: " + iname);
@@ -106,22 +170,22 @@ Instantiable* Namespace::getInstantiable(string iname) {
 void Namespace::print() {
   cout << "Namespace: " << name << endl;
   cout << "  Generators:" << endl;
-  for (auto it : gList) cout << "    " << it.second->toString() << endl;
+  for (auto it : generatorList) cout << "    " << it.second->toString() << endl;
   cout << endl;
 }
 
-Module* Namespace::runGenerator(Generator* g, Args ga) {
-  GenCacheParams gcp(g,ga);
+Module* Namespace::runGenerator(Generator* g, Args genargs) {
+  GenCacheParams gcp(g,genargs);
   auto it = genCache.find(gcp);
   if (it != genCache.end()) return it->second;
   cout << "Did not find in cache. Actualy running generator" << endl;
-  TypeGen* tg = g->getTypeGen();
+  TypeGen tg = g->getTypeGen();
   
   //Run the typegen first
-  Type* type = tg->fun(c,ga,tg->genparams);
+  Type* type = tg.fun(c,genargs);
   
   //Run the generator
-  Module* mNew= g->getDef()(c,type,ga,tg->genparams);
+  Module* mNew= g->getDef()(c,type,genargs);
   genCache.emplace(gcp,mNew);
   return mNew;
 }

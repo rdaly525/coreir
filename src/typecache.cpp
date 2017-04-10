@@ -8,20 +8,6 @@ using namespace std;
 
 namespace CoreIR {
 
-
-bool TypeParamsEqFn::operator()(const TypeParams& l,const TypeParams& r) const {
-  bool ret = (l.typegen==r.typegen);
-  if(!ret) return false;
-  return (l.genargs == r.genargs);
-}
-
-size_t TypeParamsHasher::operator()(const TypeParams& tgp) const {
-    size_t hash = 0;
-    hash_combine(hash,tgp.typegen);
-    hash_combine(hash,tgp.genargs);
-    return hash;
-}
-
 TypeCache::TypeCache(Context* c) : c(c) {
   bitI = new BitInType();
   bitO = new BitOutType();
@@ -34,7 +20,6 @@ TypeCache::TypeCache(Context* c) : c(c) {
 TypeCache::~TypeCache() {
   for (auto it : RecordCache) delete it.second;
   for (auto it : ArrayCache) delete it.second;
-  for (auto it : TypeGenCache) delete it.second;
   delete bitI;
   delete bitO;
   delete any;
@@ -79,24 +64,6 @@ Type* TypeCache::newRecord(RecordParams params) {
     RecordCache.emplace(params,r);
     RecordCache.emplace(paramsF,rf);
     return r;
-  }
-}
-
-Type* TypeCache::newTypeGenInst(TypeGen* tgd, Args args) {
-  TypeParams params(tgd,args);
-  auto it = TypeGenCache.find(params);
-  if (it != TypeGenCache.end()) {
-    return it->second;
-  }
-  else {
-    Type* t = new TypeGenType(tgd,args);
-    Type* tf = new TypeGenType(tgd->flipped,args);
-    t->setFlipped(tf);
-    tf->setFlipped(t);
-    TypeGenCache.emplace(params,t);
-    TypeParams paramsF(tgd->flipped,args);
-    TypeGenCache.emplace(paramsF,tf);
-    return t;
   }
 }
 
