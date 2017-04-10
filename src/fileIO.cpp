@@ -36,7 +36,6 @@ Module* loadModule(Context* c, string filename, bool* err) {
   file >> j;
   Module* mod = nullptr;
 
-  //TODO add in a JSON parse exception
   try {
     string topnsname = j.at("top").at(0);
     string topmodname = j.at("top").at(1);
@@ -66,7 +65,12 @@ Module* loadModule(Context* c, string filename, bool* err) {
           modqueue.push_back({m,jmod});
         }
       }
-      //TODO Load Generators
+      if (jns.count("generators")) {
+        //TODO Load Generators
+        
+
+
+      }
     }
 
     //Now do all the ModuleDefinitions
@@ -106,6 +110,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           }
         } // End Instances
       }
+
       //Connections
       if (jdef.count("connections")) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
@@ -256,14 +261,14 @@ json RecordType::toJson() {
 
 json Namespace::toJson() {
   json j;
-  if (!mList.empty()) {
+  if (!moduleList.empty()) {
     json jmods;
-    for (auto m : mList) jmods[m.first] = m.second->toJson();
+    for (auto m : moduleList) jmods[m.first] = m.second->toJson();
     j["modules"] = jmods;
   }
-  if (!gList.empty()) {
+  if (!generatorList.empty()) {
     json jgens;
-    for (auto g : gList) jgens[g.first] = g.second->toJson();
+    for (auto g : generatorList) jgens[g.first] = g.second->toJson();
     j["generators"] = jgens;
   }
   return j;
@@ -292,7 +297,7 @@ json Module::toJson() {
 json Generator::toJson() {
   json j = Instantiable::toJson();
   j["genparams"] = Params2Json(genparams);
-  j["typegen"] = "NYI";
+  j["typegen"] = "TODO";
   return j;
 }
 

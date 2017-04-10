@@ -55,15 +55,15 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), genfun(nullptr) {
+Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), genfun(nullptr) {
   //Verify that genparams are the same
-  assert(genparams == typegen->genparams);
+  assert(genparams == typegen.params);
 }
 
 string Generator::toString() const {
   string ret = "Generator: " + name;
   ret = ret + "\n    Params: " + Params2Str(genparams);
-  ret = ret + "\n    TypeGen: " + typegen->toString();
+  ret = ret + "\n    TypeGen: TODO";// + typegen->toString();
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;
 }
@@ -116,9 +116,10 @@ void ModuleDef::print(void) {
 }
 
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
+  assert(instances.count(instname)==0);
   //Should this type be resolved? Just create a typeGenInst for now
   Context* c = gen->getContext();
-  Type* type = c->TypeGenInst(gen->getTypeGen(),genargs);
+  Type* type = gen->getTypeGen().fun(c,genargs);
   
   Instance* inst = new Instance(this,instname,gen,type,genargs,config);
   instances[instname] = inst;

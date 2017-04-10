@@ -10,22 +10,6 @@ using namespace std;
 
 namespace CoreIR {
 
-struct TypeParams {
-  TypeGen* typegen;
-  Args genargs;
-  TypeParams(TypeGen* typegen, Args genargs) : typegen(typegen), genargs(genargs) {}
-  friend bool operator==(const TypeParams & l,const TypeParams & r);
-};
-
-struct TypeParamsHasher {
-  size_t operator()(const TypeParams& tgp) const;
-};
-
-struct TypeParamsEqFn {
-  bool operator() (const TypeParams& l, const TypeParams& r) const;
-};
-
-
 struct RecordParamsHasher {
   size_t operator()(const RecordParams& rp) const {
     size_t hash = 0;
@@ -50,7 +34,6 @@ class TypeCache {
   Type* any;
   unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
   unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
-  unordered_map<TypeParams,Type*,TypeParamsHasher,TypeParamsEqFn> TypeGenCache;
   
   public :
     TypeCache(Context* c); 
@@ -60,7 +43,6 @@ class TypeCache {
     Type* newBitOut() { return bitO; }
     Type* newArray(uint32_t len, Type* t);
     Type* newRecord(RecordParams params);
-    Type* newTypeGenInst(TypeGen* tgd, Args args);
 };
 
 }//CoreIR namespace
