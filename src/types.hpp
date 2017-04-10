@@ -60,61 +60,18 @@ class BitOutType : public Type {
     string toString(void) const {return "BitOut";}
 };
 
-struct Named {
-  Namespace* ns;
-  string name;
-  Type* raw;
-  Named(Namespace* ns, string name, Type* raw) : ns(ns), name(name), raw(raw) {}
-  void setFlipped(TypeGen* _flipped) {
-    flipped = _flipped;
-  }
-};
-
-struct NamedGen : Named {
-  Params genparams;
-  TypeGenFun fun;
-  bool funflip;
-  TypeGen(Namespace* ns, string name, Params genparams, TypeGenFun fun, bool funflip) : Named(ns,name), name(name), genparams(genparams), fun(fun), funflip(funflip) { 
-
-  string toString() {
-    return name + Params2Str(genparams);
-  }
-
-}
-
-setNamedFlipped("clk","clkIn");
-
-Type* clk = ns->getNamedType("clk");
-Type* clk ns->new
-
-NamedType
-  Namespace
-  string name
-  Type* raw;
-
-NamedGenType
-  Namespace
-  string name
-  
-  Params genparams
-  function genfun
-  bool flipped;
-
-  Args genargs
-  Type* raw;
-
-
-// TODO check argtypes are actually the same as genparams
 class NamedType : public Type {
   protected :
-    Named* def;
+    Namespace* ns;
+    string name;
+    
     Type* raw;
+
+    TypeGen typegen;
     Args genargs;
   public :
-    TypeGenType(TypeGen* def, Args genargs);
-    TypeGen* getDef() { return def;}
-    Args getArgs() { return genargs;}
-    string toString(void) const { return def->name; }
+    NamedType(Namespace* ns, string name, Type* raw, TypeGen typegen, Args genargs);
+    string toString(void) const { return name; } //TODO
     //json toJson(); TODO
     bool sel(Context* c, string sel, Type** ret, Error* e);
 
