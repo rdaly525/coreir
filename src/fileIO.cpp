@@ -261,14 +261,14 @@ json RecordType::toJson() {
 
 json Namespace::toJson() {
   json j;
-  if (!mList.empty()) {
+  if (!moduleList.empty()) {
     json jmods;
-    for (auto m : mList) jmods[m.first] = m.second->toJson();
+    for (auto m : moduleList) jmods[m.first] = m.second->toJson();
     j["modules"] = jmods;
   }
-  if (!gList.empty()) {
+  if (!generatorList.empty()) {
     json jgens;
-    for (auto g : gList) jgens[g.first] = g.second->toJson();
+    for (auto g : generatorList) jgens[g.first] = g.second->toJson();
     j["generators"] = jgens;
   }
   return j;
@@ -297,7 +297,7 @@ json Module::toJson() {
 json Generator::toJson() {
   json j = Instantiable::toJson();
   j["genparams"] = Params2Json(genparams);
-  j["typegen"] = typegen;
+  j["typegen"] = "TODO";
   return j;
 }
 
