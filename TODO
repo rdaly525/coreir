@@ -1,11 +1,5 @@
 Known Bugs
  
-Changing Args to unordered_map
-TODO
-
-
-
-
 
   ID: 2
   Description:
@@ -31,6 +25,8 @@ Lenny TODO
 
 //////////////////////////////
 Ross TODO
+
+Write a pass that returns a dependency list
 
 Reader/Writer
   Reader Does not do any generators yet.
