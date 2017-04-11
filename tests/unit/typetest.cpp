@@ -7,6 +7,7 @@ int main() {
   Context* c = newContext();
   Namespace* g = c->getGlobal();
 
+  // Basic invarients of Any and BitIn
   assert(c->Any() == c->Any() );
   assert(c->Any() == c->Flip(c->Any()) );
 
@@ -16,46 +17,46 @@ int main() {
 
 
 
-  // Test out TypeGens
-  g->newTypeGen("int", "intIn", {{"w",AINT}}, NULL);
-  //g->newTypeGen("intIn", "int", {GINT}, NULL);
-  TypeGen* td1 = g->getTypeGen("int");
-  TypeGen* td2 = g->getTypeGen("intIn");
+  // Test out Named Types
+  g->newNamedType("int16","intIn16",c->Array(16,c->BitOut()));
+  assert(g->getNamedType("int16") == c->Flip(g->getNamedType("intIn16")));
 
-  assert(td1 == td2->flipped);
+  auto intTypeFun = [](Context* c, Args args) {
+    int n = args.at("w")->arg2Int();
+    return c->Array(n,c->BitOut());
+  };
 
-  //TODO check a bunch more permutations
-  //Check TypeGen
-  Args ga1 = {{"w",c->int2Arg(3)}};
-  Args ga2 = {{"w",c->int2Arg(3)}};
-  Args ga3 = {{"w",c->int2Arg(4)}};
-  Args ga4 = {{"w",c->int2Arg(2)}};
+  TypeGen typegen({{"w",AINT}},intTypeFun,false);
+  g->newNamedType("int", "intIn",typegen);
+
+  Args ga1 = {{"w",c->int2Arg(16)}};
+  Args ga2 = {{"w",c->int2Arg(16)}};
+  Args ga3 = {{"w",c->int2Arg(17)}};
   
-  assert(c->TypeGenInst(td1, ga1) == c->TypeGenInst(td1,ga2));
-  assert(c->TypeGenInst(td1, ga1) != c->TypeGenInst(td1,ga3));
-  assert(c->TypeGenInst(td1, ga1) != c->TypeGenInst(td1,ga4));
-  assert(c->TypeGenInst(td1, ga3) != c->TypeGenInst(td1,ga4));
+  assert(g->getNamedType("int",ga1) == g->getNamedType("int",ga2));
+  assert(g->getNamedType("int",ga1) != g->getNamedType("int",ga3));
+  assert(g->getNamedType("int",ga1) == c->Flip(g->getNamedType("intIn",ga2)));
+  assert(g->getNamedType("int",ga1) != c->Flip(g->getNamedType("intIn",ga3)));
   
-  assert(c->TypeGenInst(td1, ga1) == c->Flip(c->TypeGenInst(td2,ga1)));
-  
-  Type* Int = c->TypeGenInst(td1,ga1);
+  Type* Inta = g->getNamedType("int16");
+  Type* Intb = g->getNamedType("int",ga1);
   vector<Type*> ts = {
     c->BitIn(),
     c->BitOut(),
     c->Array(5,c->BitIn()),
     c->Array(6,c->Array(7,c->BitOut())),
     c->Record({{"a",c->BitIn()},{"b",c->Array(8,c->BitOut())}}),
-    c->TypeGenInst(td1, ga1),
-    c->Record({{"r",c->Flip(Int)},{"v",Int},{"d",c->Array(16,Int)}})
+    Inta,
+    Intb,
+    c->Record({{"r",c->Flip(Inta)},{"v",Intb},{"d",c->Array(16,Inta)}})
   };
   for (auto t: ts) {
     assert(t == c->Flip(c->Flip(t)));
     assert(c->Array(5,t) == c->Array(5,t));
     assert(c->Array(5,t) != c->Array(6,t));
     assert(c->Flip(c->Array(7,t)) == c->Array(7,c->Flip(t)) );
-
     assert(c->Record({{"c",t}}) == c->Record({{"c",t}}) );
-    //TODO more
+    t->print();
   }
   deleteContext(c);
 

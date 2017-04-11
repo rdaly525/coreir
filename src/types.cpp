@@ -30,15 +30,18 @@ string RecordType::toString(void) const {
   }
   return ret;
 }
-TypeGenType::TypeGenType(TypeGen* def, Args genargs) : Type(TYPEGEN), def(def), genargs(genargs) {
-  assert(checkParams(genargs,def->genparams));
+
+NamedType::NamedType(Namespace* ns, string name, Type* raw, TypeGen typegen, Args genargs) : Type(NAMED) ,ns(ns), name(name), raw(raw), typegen(typegen), genargs(genargs) {
+  //Check parameters here.
+  assert(checkParams(genargs,typegen.params));
+}
+
+//TODO How to deal with select? For now just do a normal select off of raw
+bool NamedType::sel(Context* c, string sel, Type** ret, Error* e) {
+  return raw->sel(c,sel,ret,e);
 }
 
 bool AnyType::sel(Context* c, string sel, Type** ret, Error* e) {
-  *ret = c->Any();
-  return false;
-}
-bool TypeGenType::sel(Context* c, string sel, Type** ret, Error* e) {
   *ret = c->Any();
   return false;
 }

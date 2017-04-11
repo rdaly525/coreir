@@ -11,7 +11,7 @@ using namespace std;
 typedef uint32_t uint;
 namespace CoreIR {
 
-typedef enum {BITIN, BITOUT,ARRAY,RECORD,ANY,TYPEGEN} TypeKind;
+typedef enum {BITIN, BITOUT,ARRAY,RECORD,NAMED,ANY} TypeKind;
 typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
 
 typedef enum {MOD,GEN} InstantiableKind;
@@ -42,9 +42,14 @@ struct myPair {
 };
 
 class Type;
-class Module;
-typedef Type* (*TypeGenFun)(Context* c, Args args, Params genparams);
-struct TypeGen;
+class NamedType;
+typedef Type* (*TypeGenFun)(Context* c, Args args);
+struct TypeGen {
+  Params params;
+  TypeGenFun fun;
+  bool flipped;
+  TypeGen(Params params=Params(), TypeGenFun fun=nullptr, bool flipped=false) : params(params), fun(fun), flipped(flipped) {}
+};
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
 class TypeCache;
@@ -53,11 +58,11 @@ struct Metadata;
 
 //instantiable.hpp
 class Instantiable;
-class ModuleDef;
 class Generator;
-typedef Module* (*genFun)(Context*,Type*,Args,Params);
+class Module;
+class ModuleDef;
+typedef Module* (*genFun)(Context*,Type*,Args);
 
-class Wireable;
 class SelCache;
 class Wireable;
 class Interface;
