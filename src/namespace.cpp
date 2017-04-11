@@ -174,18 +174,20 @@ void Namespace::print() {
   cout << endl;
 }
 
-Module* Namespace::runGenerator(Generator* g, Args genargs) {
+Module* Namespace::runGenerator(Generator* g, Args genargs, Type* t) {
   GenCacheParams gcp(g,genargs);
   auto it = genCache.find(gcp);
   if (it != genCache.end()) return it->second;
   cout << "Did not find in cache. Actualy running generator" << endl;
-  TypeGen tg = g->getTypeGen();
   
-  //Run the typegen first
-  Type* type = tg.fun(c,genargs);
-  
-  //Run the generator
-  Module* mNew= g->getDef()(c,type,genargs);
+  // Make new module TODO how to pass configs
+  string mNewName = "TODO" + to_string(rand());
+  Module* mNew = this->newModuleDecl(mNewName,t);
+  if (g->getDef()) {
+    ModuleDef* mdef = mNew->newModuleDef();
+    g->getDef()(mdef,c,t,genargs);
+    mNew->addDef(mdef);
+  }
   genCache.emplace(gcp,mNew);
   return mNew;
 }

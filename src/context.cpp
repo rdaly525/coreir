@@ -65,14 +65,14 @@ bool Context::linkLib(Namespace* defns, Namespace* declns) {
     Generator* gdef = (it.second);
     string gdefname = gdef->getName();
     assert(it.first == gdefname);
-    genFun gdeffun = gdef->getDef();
+    ModuleDefGenFun gdeffun = gdef->getDef();
     Generator* gdecl = declns->getGenerator(gdefname);
     
     //If def is not found in decl,
     //  make e.message?
     if (haserror() ) return true;
     
-    genFun gdeclfun = gdecl->getDef();
+    ModuleDefGenFun gdeclfun = gdecl->getDef();
 
     //case def is found in decl, but def is a decl
     //  Do nothing? Warning? Add it?

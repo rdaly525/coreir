@@ -61,7 +61,7 @@ class Instantiable;
 class Generator;
 class Module;
 class ModuleDef;
-typedef Module* (*genFun)(Context*,Type*,Args);
+typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
 
 class SelCache;
 class Wireable;

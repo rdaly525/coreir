@@ -26,7 +26,11 @@ Lenny TODO
 //////////////////////////////
 Ross TODO
 
+Make sure I can include coreir.hpp instead of context.hpp
 Check if I can just convert myPair to inherit from std::pair
+Maybe do Typechecking based on moduleDef, and always call when you add the definition to the module
+
+Maybe do flatten on instances within a moduleDef. 
 
 
 Reader/Writer
@@ -44,11 +48,13 @@ Have Type associated with TypeGenInst which is like a cache
 When instantiating generators, if the typegen function exists, run it
 and cache the type in the typegenInst. Does this mean I need a 'strip' function?
 
-When Generating Modules, prepend lib name in front of module name
+Generate unique name for generated modules
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
 
 change makefile to work with Clang
+
+Change Error handling to do something like LLVM where they return an Error type that you can derefence to get the return value. 
 
 Add stream operator to Error so I can do
   Error e;

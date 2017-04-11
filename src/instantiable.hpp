@@ -60,15 +60,15 @@ std::ostream& operator<<(ostream& os, const Instantiable&);
 class Generator : public Instantiable {
   Params genparams;
   TypeGen typegen;
-  genFun genfun;
+  ModuleDefGenFun genfun;
   public :
     Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams=Params());
     bool hasDef() const { return !!genfun; }
     string toString() const;
     json toJson();
     TypeGen getTypeGen() { return typegen;}
-    genFun getDef() { return genfun;}
-    void addDef(genFun fun) { genfun = fun;}
+    ModuleDefGenFun getDef() { return genfun;}
+    void addDef(ModuleDefGenFun fun) { genfun = fun;}
     //genargs_t getGentypes(void) {return gentypes;}
     //genfun_t getGenfun(void) {return genfun;}
 };

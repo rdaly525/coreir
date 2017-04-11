@@ -72,7 +72,7 @@ class Namespace {
     bool hasModule(string mname) { return moduleList.count(mname) > 0; }
     bool hasInstantiable(string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
     
-    Module* runGenerator(Generator* g, Args ga);
+    Module* runGenerator(Generator* g, Args ga, Type* t);
     json toJson();
     void print();
 };
