@@ -415,8 +415,8 @@ json Generator::toJson() {
   return j;
 }
 
-json Connection2Json(Connection* con) {
-  return json::array({Wireable2Json(con->first), Wireable2Json(con->second)});
+json Connection2Json(Connection con) {
+  return json::array({Wireable2Json(con.first), Wireable2Json(con.second)});
 }
 
 json ModuleDef::toJson() {

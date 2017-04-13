@@ -1,3 +1,5 @@
+#ifndef COREIR_H_
+#define COREIR_H_
 //This is for the C API
 #include <stdint.h>
 #include <stdbool.h>
@@ -24,7 +26,11 @@ typedef enum {
 //keys and values will not be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
 
-typedef struct COREConnection COREConnection;
+typedef struct COREConnection  {
+    COREWireable* first;
+    COREWireable* second;
+} COREConnection;
+
 typedef struct COREWirePath COREWirePath;
 
 
@@ -82,9 +88,7 @@ extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWi
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
 extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, u32* numInstances);
-// extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
-extern COREWireable* COREConnectionGetFirst(COREConnection* connection);
-extern COREWireable* COREConnectionGetSecond(COREConnection* connection);
+extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
 extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
@@ -93,3 +97,4 @@ extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
 extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors);
 
 extern void COREPrintErrors(COREContext* c);
+#endif //COREIR_H_

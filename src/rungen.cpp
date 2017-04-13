@@ -86,7 +86,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
 
   //Add all the connections to the new module def
   for (auto connection : mdef->getConnections() ) {
-    newDef->wire(connection->first->getPath(),connection->second->getPath());
+    newDef->wire(connection.first->getPath(),connection.second->getPath());
   }
   
   //Replace the module definition with this new one

@@ -95,7 +95,7 @@ class ModuleDef {
     Module* module;
     Interface* interface; 
     unordered_map<string,Instance*> instances;
-    unordered_set<Connection*> connections;
+    unordered_set<Connection> connections;
     SelCache* cache;
     Metadata metadata;
     Metadata implementations; // TODO maybe have this just be inhereted moduledef classes
@@ -105,7 +105,7 @@ class ModuleDef {
     ~ModuleDef();
     //SelCache* getCache(void) { return cache;}
     unordered_map<string,Instance*> getInstances(void) { return instances;}
-    unordered_set<Connection*> getConnections(void) { return connections; }
+    unordered_set<Connection> getConnections(void) { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     Context* getContext() { return module->getContext(); }

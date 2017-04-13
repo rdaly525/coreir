@@ -99,7 +99,7 @@ void ModuleDef::print(void) {
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
-    cout << "      " << *(connection->first) << " <=> " << *(connection->second) << endl ;
+    cout << "      " << *(connection.first) << " <=> " << *(connection.second) << endl ;
   }
   cout << endl;
 }
@@ -147,7 +147,7 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   
   //minmax gauranees an ordering
   auto sorted = std::minmax(a,b);
-  Connection* connect = new Connection(sorted.first,sorted.second);
+  Connection connect(sorted.first,sorted.second);
   if (!connections.count(connect)) {
     
     //Update 'a' and 'b'
