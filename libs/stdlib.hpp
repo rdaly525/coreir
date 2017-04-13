@@ -21,25 +21,21 @@ Namespace* getStdlib(Context* c) {
   stdlib->newNamedType("rst","rstIn",c->BitOut());
   
   //Array types
-  TypeGen arrtypegen(
-    widthparam,
-    [](Context* c, Args args) {
-      return c->Array(args.at("width")->arg2Int(),c->BitOut());
-    }
-  );
- 
-  stdlib->newNamedType("int","intIn",arrtypegen);
-  stdlib->newNamedType("uint","uintIn",arrtypegen);
+  auto arrfun = [](Context* c, Args args) {
+    return c->Array(args.at("width")->arg2Int(),c->BitOut());
+  };
+  stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
+  stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
   
   //Common Function types
-  TypeGen boptypegen(
+  stdlib->newTypeGen(
+    "binop",
     widthparam,
     [](Context* c, Args args) {
       Type* arr = c->Array(args.at("width")->arg2Int(),c->BitOut());
       return c->Record({{"in0",c->Flip(arr)},{"in1",c->Flip(arr)},{"out",arr}});
     }
   );
-  stdlib->newNamedType("binop","binopFlipped",boptypegen);
   
   /////////////////////////////////
   // Stdlib primitives

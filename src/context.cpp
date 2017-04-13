@@ -105,7 +105,17 @@ Type* Context::BitOut() { return cache->newBitOut(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
+Type* Context::Named(string ns, string name) {
+  return this->getNamespace(ns)->getNamedType(name);
+}
 
+Type* Context::Named(string ns, string name, Args args) {
+  return this->getNamespace(ns)->getNamedType(name,args);
+}
+
+TypeGen Context::getTypeGen(string ns, string name) {
+  return this->getNamespace(ns)->getTypeGen(name);
+}
 RecordParams* Context::newRecordParams() {
   RecordParams* record_param = new RecordParams();
   recordParamsList.push_back(record_param);

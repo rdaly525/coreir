@@ -72,7 +72,9 @@ class NamedType : public Type {
   public :
     NamedType(Namespace* ns, string name, Type* raw, TypeGen typegen, Args genargs);
     string toString(void) const { return name; } //TODO
-    //json toJson(); TODO
+    string getName() {return name;}
+    Type* getRaw() {return raw;}
+    json toJson();
     bool sel(Context* c, string sel, Type** ret, Error* e);
 
 };
@@ -85,7 +87,6 @@ class ArrayType : public Type {
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
     string toString(void) const { 
-      //return TypeKind2Str(this->kind) + "<" + elemType->toString() + ">[" + to_string(len) + "]";
       return elemType->toString() + "[" + to_string(len) + "]";
     };
     json toJson();

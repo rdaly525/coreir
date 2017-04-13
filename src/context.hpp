@@ -62,7 +62,9 @@ class Context {
     Type* BitOut();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
-    Type* TypeGenInst(TypeGen* tgd, Args args);
+    Type* Named(string ns, string name);
+    Type* Named(string ns, string name, Args args);
+    TypeGen getTypeGen(string ns, string name);
 
     RecordParams* newRecordParams();
     Params* newParams();

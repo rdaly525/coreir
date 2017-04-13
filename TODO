@@ -1,5 +1,35 @@
+General Ideas
+
+For the compilers Have a set of graph editing operations
+First is basically replace moduleDef with new moduleDef
+
+//Fundemental
+AddNode
+DeleteNode(Deletes dangling wires)
+AddWire
+DeleteWire
+Change NodeType (also provide mappings from old wirepaths to new wirepaths)
+  //This should default to the same wirepaths if matching.
+Change NodeModuleRef
+Run Generator
+Change genargs
+Change configargs
+
+//Helpers
+splitedge(edge), Adds a node on an edge between the nodes
+
+
+Maybe do Typechecking based on moduleDef, and always call when you add the definition to the module
+
+Maybe do flatten on instances within a moduleDef. 
+
+Have ArgNull type
+Maybe have default args somehow? That would be nice
+Have the Args be references rather than pointers. Can construct normally on stack without helper functions
+
+Change Error handling to do something like LLVM where they return an Error type that you can derefence to get the return value. 
+
 Known Bugs
- 
 
   ID: 2
   Description:
@@ -26,12 +56,11 @@ Lenny TODO
 //////////////////////////////
 Ross TODO
 
+
+Change hash/eq functors to use std::function
+
 Make sure I can include coreir.hpp instead of context.hpp
 Check if I can just convert myPair to inherit from std::pair
-Maybe do Typechecking based on moduleDef, and always call when you add the definition to the module
-
-Maybe do flatten on instances within a moduleDef. 
-
 
 Reader/Writer
   Reader Does not do any generators yet.
@@ -52,9 +81,9 @@ Generate unique name for generated modules
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
 
-change makefile to work with Clang
+Test out weird Named cases for loading json
 
-Change Error handling to do something like LLVM where they return an Error type that you can derefence to get the return value. 
+change makefile to work with Clang
 
 Add stream operator to Error so I can do
   Error e;

@@ -13,16 +13,16 @@ any key followed by a ? means it is optional
 
 Namespace={
   "namedtypes"? : NamedType[]
-  "namedtypegenerators"? :NamedTypeGenerator[]
+  "namedtypegens"? :NamedTypeGen[]
   "modules"? :{<modulename>:Module,...},
   "generators"? :{<genname>:Generator, ...}
 }
 
-Type = "BitIn" | "BitOut" | ["Array", <N>, Type] | ["Record", [<key>, Type][]}] | ["Named", NamedReference, Args]
+Type = "BitIn" | "BitOut" | ["Array", <N>, Type] | ["Record", [<key>, Type][]] | ["Named",NamedRef, Args?]
 
-NamedReference=[<namespaceName>,<typeName>]
-NamedType = {"name":<name>, "flippedname":<name>,"type":Type}
-NamedTypeGenerator={"name":<name>, "flippedname":<name>,"genparams":Parameter}
+NamedRef = [<namespaceName>, <typeName>]
+NamedType = {"name":<name>, "flippedname":<name>,"rawtype":Type}
+NamedTypeGen={"name":<name>, "flippedname"?:<name>,"genparams":Parameter}
 
 Module = {"type":Type, "configparams"?:Parameter, "metadata"?:Metadata, "def"?:ModuleDef}
 
@@ -31,7 +31,7 @@ ModuleDef = {"metadata"?:Metadata,
 "instances"?: {<instname>:Instance,...}
 "connections"?: Connection[]}
 
-Generator = {"configparameters"?:Parameters,"genparameters":Parameters, "typegen":NamedTypeReference, "metadata"?:Metadata}
+Generator = {"configparams"?:Parameters,"genparams":Parameters, "typegen":NamedRef, "metadata"?:Metadata}
 
 Instance = {"instref":InstantiatableReference, "genargs"?:Args, "config"?:Args, "metadata"?:Metadata}
 
