@@ -158,8 +158,12 @@ def test_module_def_get_connections():
     seen = []
     for conn in connections:
         pair = (get_pointer_addr(conn.first.ptr), get_pointer_addr(conn.second.ptr))
-        assert pair in expected_conns and pair not in seen  # Should be in expected, shouldn't see it twice
+        reverse_pair = (pair[1], pair[0])
+        # Should be in expected, shouldn't see it twice
+        assert (pair in expected_conns or reverse_pair in expected_conns) and \
+               pair not in seen
         seen.append(pair)
+    assert len(seen) == len(expected_conns)
 
 #if __name__ == "__main__":
 #  main()
