@@ -18,8 +18,8 @@ before_install:
   - pip install -e bindings/python
 
 script:
-  - cd tests/unit
-  - ./run -memcheck
+  - cd tests
+  - ./run 
   - pytest  # Test python bindings
 
 compiler:
