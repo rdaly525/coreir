@@ -69,8 +69,7 @@ class Generator : public Instantiable {
     TypeGen getTypeGen() { return typegen;}
     ModuleDefGenFun getDef() { return genfun;}
     void addDef(ModuleDefGenFun fun) { genfun = fun;}
-    //genargs_t getGentypes(void) {return gentypes;}
-    //genfun_t getGenfun(void) {return genfun;}
+    Params getGenparams() {return genparams;}
 };
 
 class Module : public Instantiable {

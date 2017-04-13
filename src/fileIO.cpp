@@ -17,7 +17,7 @@ using json = nlohmann::json;
 
 Type* json2Type(Context* c, json jt);
 Args json2Args(Context* c, Params p, json j);
-Params json2Params(Context* c, json j);
+Params json2Params(json j);
 
 Instantiable* getSymbol(Context* c, string nsname, string iname);
 
@@ -40,8 +40,13 @@ Module* loadModule(Context* c, string filename, bool* err) {
     string topnsname = j.at("top").at(0);
     string topmodname = j.at("top").at(1);
     
-    //First load all the module declarations
-    vector<std::pair<Module*,json>> modqueue;
+    //There are the following dependencies moduleDefs->(all modules)->(all types)
+    //Therefore first load all namedtypes and typegens
+    //Then Load all Modules and Generators
+    //Then Load all ModuleDefs
+
+    vector<std::pair<Namespace*,json>> nsqueue;
+
     //Get or create namespace
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
@@ -49,27 +54,87 @@ Module* loadModule(Context* c, string filename, bool* err) {
       Namespace* ns;
       if (c->hasNamespace(nsname) ) ns = c->getNamespace(nsname);
       else ns = c->newNamespace(nsname);
+      
+      //TODO test out weird cases like Named(libA,Named(libB,Named(libA)))
+      if (jns.count("namedtypes")) {
+        for (auto jntype : jns.at("namedtypes").get<vector<json>>()) {
+          string name = jntype.at("name");
+          string nameFlip = jntype.at("flippedname");
+          Type* raw = json2Type(c,jntype.at("rawtype"));
+          if (ns->hasNamedType(name)) {
+            //Verify it also has nameflip
+            NamedType* namedtype = ns->getNamedType(name);
+            assert(raw==namedtype->getRaw());
+            assert(c->Flip(namedtype) == ns->getNamedType(nameFlip));
+          }
+          else {
+            ns->newNamedType(name,nameFlip,raw);
+          }
+        }
+      }
+      //For namedtypegens I cannot really construct these without the typegenfunction. Therefore I will just verify that they exist
+      if (jns.count("namedtypegens")) {
+        for (auto jntypegen : jns.at("namedtypegens").get<vector<json>>()) {
+          string name = jntypegen.at("name");
+          Params genparams = json2Params(jntypegen.at("genparams"));
+          if (!ns->hasTypeGen(name)) {
+            throw std::runtime_error("Missing namedtypegen symbol: " + ns->getName() + "." + name);
+          }
+            
+          TypeGen typegen = ns->getTypeGen(name);
+          assert(typegen.params == genparams);
+          assert(!typegen.flipped);
+          if (jntypegen.count("flippedname")) {
+            string nameFlip = jntypegen.at("flippedname");
+            typegen = ns->getTypeGen(nameFlip);
+            assert(typegen.params == genparams);
+            assert(typegen.flipped);
+          }
+        }
+      }
+      nsqueue.push_back({ns,jns});
+    }
+    vector<std::pair<Module*,json>> modqueue;
+    for (auto nsq : nsqueue) {
+      Namespace* ns = nsq.first;
+      json jns = nsq.second;
       //Load Modules
       if (jns.count("modules")) {
         for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
           //Figure out type;
           string jmodname = jmodmap.first;
+          //TODO for now if it already exists, just skip
+          if (ns->hasModule(jmodname)) {
+            continue;
+          }
+          
           json jmod = jmodmap.second;
           Type* t = json2Type(c,jmod.at("type"));
           
           Params configparams;
           if (jmod.count("configparams")) {
-            configparams = json2Params(c,jmod.at("configparams"));
+            configparams = json2Params(jmod.at("configparams"));
           }
           Module* m = ns->newModuleDecl(jmodname,t,configparams);
           modqueue.push_back({m,jmod});
         }
       }
       if (jns.count("generators")) {
-        //TODO Load Generators
-        
+        for (auto jgenmap : jns.at("generators").get<jsonmap>()) {
+          string jgenname = jgenmap.first;
+          //TODO for now, if it has a module already, just skip
+          if (ns->hasGenerator(jgenname)) {
+            continue;
+          }
 
-
+          json jgen = jgenmap.second;
+          Params genparams = json2Params(jgen.at("genparams"));
+          vector<string> tgenref = jgen.at("typegen").get<vector<string>>();
+          TypeGen typegen = c->getTypeGen(tgenref[0],tgenref[1]);
+          assert(genparams == typegen.params);
+          //TODO generator config stuff
+          ns->newGeneratorDecl(jgenname,genparams,typegen);
+        }
       }
     }
 
@@ -77,13 +142,10 @@ Module* loadModule(Context* c, string filename, bool* err) {
     for (auto mq : modqueue) {
       Module* m = mq.first;
       json jmod = mq.second;
-      // TODO Module metadata
       if (!jmod.count("def")) continue;
       
       json jdef = jmod.at("def");
       ModuleDef* mdef = m->newModuleDef();
-      // TODO ModuleDef metadata
-      // TODO moduledef implementations
       if (jdef.count("instances")) {
         for (auto jinstmap : jdef.at("instances").get<jsonmap>()) {
           string instname = jinstmap.first;
@@ -100,9 +162,10 @@ Module* loadModule(Context* c, string filename, bool* err) {
 
           //Assume that if there are genargs, it is a generator
           if (jinst.count("genargs")) { // This is a generator
-            cout << "NYI Generator instances: " << instname << endl;
+            Generator* gref = (Generator*) instRef;
+            Args genargs = json2Args(c,gref->getGenparams(),jinst.at("genargs"));
             assert(instRef->isKind(GEN));
-            assert(false);
+            mdef->addInstance(instname,gref,genargs,config);
           }
           else { // This is a module
             assert(instRef->isKind(MOD));
@@ -114,7 +177,6 @@ Module* loadModule(Context* c, string filename, bool* err) {
       //Connections
       if (jdef.count("connections")) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
-          //TODO connection metadata
           vector<string> wA = jcon[0].get<vector<string>>();
           vector<string> wB = jcon[1].get<vector<string>>();
           string instA = wA[0];
@@ -157,7 +219,7 @@ Instantiable* getSymbol(Context* c, string nsname, string iname) {
   return nullptr;
 }
 
-Params json2Params(Context* c, json j) {
+Params json2Params(json j) {
   Params g;
   if (j.is_null()) return g;
   for (auto jmap : j.get<jsonmap>()) {
@@ -209,6 +271,16 @@ Type* json2Type(Context* c, json jt) {
         rargs.push_back({it[0].get<string>(),json2Type(c,it[1])});
       return c->Record(rargs);
     }
+    else if (kind == "Named") {
+      string nsname = args[1].get<string>();
+      string name = args[2].get<string>();
+      if (args.size()==4) { //Has args
+        Params genparams = c->getNamespace(nsname)->getTypeGen(name).params;
+        Args genargs = json2Args(c,genparams,args[3]);
+        return c->Named(nsname,name,genargs);
+      }
+      return c->Named(nsname,name);
+    }
     else {
       cout << "ERROR NYI!: " << args[0].get<string>() << endl;
       assert(false);
@@ -241,8 +313,6 @@ void saveModule(Module* m, string filename, bool* err) {
   return;
 }
 
-
-
 json Args2Json(Args args);
 json Params2Json(Params gp);
 json Wireable2Json(Wireable* w);
@@ -259,6 +329,16 @@ json RecordType::toJson() {
   return json::array({TypeKind2Str(kind),jfields});
 }
 
+json NamedType::toJson() {
+  json j;
+  j.push_back("Named");
+  //j.push_back(json::array({ns->getName(),name}));
+  j.push_back(ns->getName());
+  j.push_back(name);
+  j.push_back(Args2Json(genargs));
+  return j;
+}
+
 json Namespace::toJson() {
   json j;
   if (!moduleList.empty()) {
@@ -270,6 +350,39 @@ json Namespace::toJson() {
     json jgens;
     for (auto g : generatorList) jgens[g.first] = g.second->toJson();
     j["generators"] = jgens;
+  }
+  if (!namedTypeNameMap.empty()) {
+    json jntypes;
+    for (auto nPair : namedTypeNameMap) {
+      string n = nPair.first;
+      string nFlip = nPair.second;
+      NamedType* nt = namedTypeList.at(n);
+      Type* raw = nt->getRaw();
+      json jntype = {
+        {"name",n},
+        {"flippedname",nFlip},
+        {"rawtype", raw->toJson()}
+      };
+      jntypes.push_back(jntype);
+    }
+    j["namedtypes"] = jntypes;
+  }
+  if (!typeGenNameMap.empty()) {
+    json jntypegens;
+    for (auto nPair : typeGenNameMap) {
+      string n = nPair.first;
+      string nFlip = nPair.second;
+      TypeGen tg = typeGenList.at(n);
+      json jntypegen = {
+        {"name",n},
+        {"genparams", Params2Json(tg.params)}
+      };
+      if (nFlip != "") {
+        jntypegen["flippedname"] = nFlip;
+      }
+      jntypegens.push_back(jntypegen);
+    }
+    j["namedtypegens"] = jntypegens;
   }
   return j;
 }
@@ -297,7 +410,8 @@ json Module::toJson() {
 json Generator::toJson() {
   json j = Instantiable::toJson();
   j["genparams"] = Params2Json(genparams);
-  j["typegen"] = "TODO";
+  //You need to add namespace back to typegen (ugh)
+  j["typegen"] = json::array({typegen.ns->getName(),typegen.name});
   return j;
 }
 

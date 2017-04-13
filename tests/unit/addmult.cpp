@@ -20,6 +20,9 @@ int main() {
 
   Namespace* stdlib = getStdlib(c);
   
+  //Declare a brand new generator for some reason
+  c->getGlobal()->newGeneratorDecl("fakeAdd",{{"width",AINT}},stdlib->getTypeGen("binop"));
+ 
   int constC = 3;
 
   //Type of module 
@@ -57,13 +60,16 @@ int main() {
 
   //Save to Json
   cout << "Saving 2 json" << endl;
-  saveModule(addmult,"addmult.json",&err);
+  saveModule(addmult,"_addmult.json",&err);
   if(err) c->die();
-
-  cout << "Loading json" << endl;
-  Module* m = loadModule(c,"addmult.json",&err);
-  if(err) c->die();
-
   deleteContext(c);
+
+  c = newContext();
+  getStdlib(c);
+  cout << "Loading json" << endl;
+  loadModule(c,"_addmult.json",&err);
+  if(err) c->die();
+  c->getGlobal()->print();
+
   return 0;
 }

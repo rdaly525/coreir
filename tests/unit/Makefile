@@ -48,6 +48,7 @@ all: $(EXES)
 
 clean:
 	rm -rf build/*
+	rm _*.json
 
 build/%: build/%.o ../../build/coreir.a
 	make -C $(SRCDIR)
