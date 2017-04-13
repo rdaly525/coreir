@@ -109,7 +109,7 @@ bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked) {
   bool err = false;
   // Check for type compatability of every connection
   for (auto connection : mdef->getConnections() ) {
-    err |= checkTypes(connection.first,connection.second);
+    err |= checkTypes(connection->first,connection->second);
   }
   //Check if an input is connected to multiple outputs
   vector<Wireable*> work;

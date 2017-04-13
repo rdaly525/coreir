@@ -29,7 +29,7 @@ class Context {
   vector<RecordParams*> recordParamsList;
   vector<Params*> paramsList;
   vector<Instance**> instanceArrays;
-  // vector<Connection*> connectionArrays;
+  vector<Connection**> connectionArrays;
   vector<Wireable**> wireableArrays;
   vector<const char**> constStringArrays;
 
@@ -75,7 +75,7 @@ class Context {
     Arg* type2Arg(Type* t);
 
     Instance** newInstanceArray(int size);
-    // Connection* newConnectionArray(int size);
+    Connection** newConnectionArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
     Type* Flip(Type* t);

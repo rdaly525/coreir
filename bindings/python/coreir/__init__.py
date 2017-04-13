@@ -152,8 +152,8 @@ coreir_lib.COREInt2Arg.restype = COREArg_p
 coreir_lib.COREStr2Arg.argtypes = [COREContext_p,ct.c_char_p]
 coreir_lib.COREStr2Arg.restype = COREArg_p
 
-# coreir_lib.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
-# coreir_lib.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection_p)
+coreir_lib.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection_p)
 
 coreir_lib.COREModuleDefWire.argtypes = [COREModuleDef_p, COREWireable_p, COREWireable_p]
 
@@ -295,10 +295,10 @@ class ModuleDef(CoreIRType):
         result = coreir_lib.COREModuleDefGetInstances(self.ptr, ct.byref(size))
         return [Instance(result[i],self.context) for i in range(size.value)]
 
-    # def get_connections(self):
-    #     size = ct.c_int()
-    #     result = coreir_lib.COREModuleDefGetConnections(self.ptr, ct.byref(size))
-    #     return [Connection(result[i]) for i in range(size.value)]
+    def get_connections(self):
+        size = ct.c_int()
+        result = coreir_lib.COREModuleDefGetConnections(self.ptr, ct.byref(size))
+        return [Connection(result[i], self.context) for i in range(size.value)]
 
     def wire(self, a, b):
         coreir_lib.COREModuleDefWire(self.ptr, a.ptr, b.ptr)

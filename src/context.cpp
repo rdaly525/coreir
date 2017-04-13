@@ -140,11 +140,11 @@ Instance** Context::newInstanceArray(int size) {
   return arr;
 }
 
-// Connection* Context::newConnectionArray(int size) {
-//   Connection* arr = (Connection*) malloc(sizeof(Connection) * size);
-//   connectionArrays.push_back(arr);
-//   return arr;
-// }
+Connection** Context::newConnectionArray(int size) {
+  Connection** arr = (Connection**) malloc(sizeof(Connection*) * size);
+  connectionArrays.push_back(arr);
+  return arr;
+}
 
 const char** Context::newConstStringArray(int size) {
     const char** arr = (const char**) malloc(sizeof(const char*) * size);
