@@ -20,13 +20,6 @@
 using json = nlohmann::json;
 using namespace std;
 
-namespace std {
-  template<>
-  struct hash<CoreIR::Connection> {
-    size_t operator() (const CoreIR::Connection& c) const;
-  };
-}
-
 namespace CoreIR {
 
 class Instantiable {
@@ -94,24 +87,6 @@ class Module : public Instantiable {
     void print(void);
     //TODO turn this into metadata
     void addVerilog(string _v) {verilog = _v;}
-};
-
-struct Connection {
-  Wireable* first;
-  Wireable* second;
-  Metadata metadata;
-  Connection(const Connection& c) : first(c.first), second(c.second), metadata(c.metadata) {}
-  Connection(Wireable* a, Wireable* b) : first(a), second(b) {
-    if (b>a) {
-      first = b;
-      second = a;
-    }
-  }
-  //Metadata getMetadata() { return metadata;}
-  friend bool operator==(const Connection& l,const Connection& r) {
-    return l.first==r.first && l.second==r.second;
-  }
-  json toJson();
 };
 
 class ModuleDef {

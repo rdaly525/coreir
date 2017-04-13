@@ -75,7 +75,7 @@ class Instance;
 class Select;
 
 typedef std::pair<string,vector<string>> WirePath;
-struct Connection;
+typedef myPair<Wireable*,Wireable*> Connection;
 
 
 

@@ -10,17 +10,6 @@
 
 using namespace std;
 
-
-size_t std::hash<CoreIR::Connection>::operator() (const CoreIR::Connection& c) const {
-  size_t hash;
-  hash_combine(hash,c.first);
-  hash_combine(hash,c.second);
-  return hash;
-}
-
-
-
-
 namespace CoreIR {
 ///////////////////////////////////////////////////////////
 //-------------------- Instantiable ---------------------//
@@ -155,14 +144,20 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
 
   // TODO should I type check here at all?
   //checkWiring(a,b);
-  //Update 'a' and 'b'
-  a->addConnectedWireable(b);
-  b->addConnectedWireable(a);
   
-  Connection connect(a,b);
-  //Insert into set of wireings 
   //minmax gauranees an ordering
-  connections.insert(connect);
+  auto sorted = std::minmax(a,b);
+  Connection connect(sorted.first,sorted.second);
+  if (!connections.count(connect)) {
+    
+    //Update 'a' and 'b'
+    a->addConnectedWireable(b);
+    b->addConnectedWireable(a);
+    connections.insert(connect);
+  }
+  else {
+    cout << "ALREADY ADDED CONNECTION!" << endl;
+  }
 }
 
 void ModuleDef::wire(WirePath pathA, WirePath pathB) {

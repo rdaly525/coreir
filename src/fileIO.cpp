@@ -415,6 +415,10 @@ json Generator::toJson() {
   return j;
 }
 
+json Connection2Json(Connection con) {
+  return json::array({Wireable2Json(con.first), Wireable2Json(con.second)});
+}
+
 json ModuleDef::toJson() {
   json j;
   if (!metadata.empty()) {
@@ -432,18 +436,10 @@ json ModuleDef::toJson() {
   }
   if (!connections.empty()) {
     json jcons;
-    for (auto connection : connections) {
-      jcons.push_back(connection.toJson());
+    for (auto con : connections) {
+      jcons.push_back(Connection2Json(con));
     }
     j["connections"] = jcons;
-  }
-  return j;
-}
-
-json Connection::toJson() {
-  json j = json::array({Wireable2Json(first), Wireable2Json(second)});
-  if (!metadata.empty()) {
-    j.push_back(metadata.toJson());
   }
   return j;
 }
