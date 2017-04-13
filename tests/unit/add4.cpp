@@ -43,6 +43,9 @@ int main() {
     def->wire(self->sel("in")->sel(1),add_00->sel("in1"));
     def->wire(self->sel("in")->sel(2),add_01->sel("in0"));
     def->wire(self->sel("in")->sel(3),add_01->sel("in1"));
+    
+    //def->wire(self->sel("in")->sel(3),add_01->sel("in1"));
+    //def->wire(add_01->sel("in1"),self->sel("in")->sel(3));
 
     def->wire(add_00->sel("out"),add_1->sel("in0"));
     def->wire(add_01->sel("out"),add_1->sel("in1"));

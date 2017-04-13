@@ -19,7 +19,7 @@ before_install:
 
 script:
   - cd tests
-  - ./run
+  - ./run 
   - pytest  # Test python bindings
 
 compiler:
