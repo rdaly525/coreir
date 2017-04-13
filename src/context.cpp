@@ -65,14 +65,14 @@ bool Context::linkLib(Namespace* defns, Namespace* declns) {
     Generator* gdef = (it.second);
     string gdefname = gdef->getName();
     assert(it.first == gdefname);
-    genFun gdeffun = gdef->getDef();
+    ModuleDefGenFun gdeffun = gdef->getDef();
     Generator* gdecl = declns->getGenerator(gdefname);
     
     //If def is not found in decl,
     //  make e.message?
     if (haserror() ) return true;
     
-    genFun gdeclfun = gdecl->getDef();
+    ModuleDefGenFun gdeclfun = gdecl->getDef();
 
     //case def is found in decl, but def is a decl
     //  Do nothing? Warning? Add it?
@@ -105,7 +105,17 @@ Type* Context::BitOut() { return cache->newBitOut(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
+Type* Context::Named(string ns, string name) {
+  return this->getNamespace(ns)->getNamedType(name);
+}
 
+Type* Context::Named(string ns, string name, Args args) {
+  return this->getNamespace(ns)->getNamedType(name,args);
+}
+
+TypeGen Context::getTypeGen(string ns, string name) {
+  return this->getNamespace(ns)->getTypeGen(name);
+}
 RecordParams* Context::newRecordParams() {
   RecordParams* record_param = new RecordParams();
   recordParamsList.push_back(record_param);

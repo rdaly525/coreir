@@ -25,6 +25,7 @@ int main() {
   Generator* add2 = stdlib->getGenerator("add2");
   assert(add2);
   
+
   // Define Add4 Module
   Type* add4Type = c->Record({
       {"in",c->Array(4,c->Array(n,c->BitIn()))},
@@ -39,10 +40,12 @@ int main() {
     Wireable* add_1 = def->addInstance("add1",add2,{{"width",c->int2Arg(n)}});
     
     def->wire(self->sel("in")->sel(0),add_00->sel("in0"));
-    //def->wire(self->sel("in")->sel(1)->sel(3),add_00->sel("in0")->sel(3));
     def->wire(self->sel("in")->sel(1),add_00->sel("in1"));
     def->wire(self->sel("in")->sel(2),add_01->sel("in0"));
     def->wire(self->sel("in")->sel(3),add_01->sel("in1"));
+    
+    //def->wire(self->sel("in")->sel(3),add_01->sel("in1"));
+    //def->wire(add_01->sel("in1"),self->sel("in")->sel(3));
 
     def->wire(add_00->sel("out"),add_1->sel("in0"));
     def->wire(add_01->sel("out"),add_1->sel("in1"));
@@ -52,13 +55,26 @@ int main() {
   cout << "Checkign Errors 1" << endl;
   c->checkerrors();
   add4_n->print();
-
+  
   bool err = false;
-  
-  
   cout << "Typechecking!" << endl;
   typecheck(c,add4_n,&err);
   if (err) c->die();
+
+  cout << "Checking saving and loading pregen" << endl;
+  saveModule(add4_n, "_add4.json",&err);
+  if (err) {
+    cout << "Could not save to json!!" << endl;
+    c->die();
+  }
+  
+  Module* m = loadModule(c,"_add4.json", &err);
+  if(err) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+  m->print();
+  
   
   // Link v1 of library
   //cout << "Linking stdlib!" << endl;
@@ -73,15 +89,20 @@ int main() {
   typecheck(c,add4_n,&err);
   if(err) c->die();
  
-  
-  saveModule(add4_n, "_add4.json",&err);
+  cout << "Checking saving and loading postgen" << endl;
+  saveModule(add4_n, "_add4Gen.json",&err);
   if (err) {
     cout << "Could not save to json!!" << endl;
-    deleteContext(c);
-    return 1;
+    c->die();
   }
   
-  
+  m = loadModule(c,"_add4Gen.json", &err);
+  if(err) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+  m->print();
+
   deleteContext(c);
   
   return 0;

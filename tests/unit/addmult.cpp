@@ -20,6 +20,9 @@ int main() {
 
   Namespace* stdlib = getStdlib(c);
   
+  //Declare a brand new generator for some reason
+  c->getGlobal()->newGeneratorDecl("fakeAdd",{{"width",AINT}},stdlib->getTypeGen("binop"));
+ 
   int constC = 3;
 
   //Type of module 
@@ -41,7 +44,7 @@ int main() {
     Wireable* multinst = def->addInstance("multinst",mult2_16);
     Wireable* constinst = def->addInstance("const3",const_16,{{"value",c->int2Arg(constC)}});
     def->wire(self->sel("in0"),addinst->sel("in0"));
-    def->wire(constinst,addinst->sel("in1"));
+    def->wire(constinst->sel("out"),addinst->sel("in1"));
     def->wire(self->sel("in1"),multinst->sel("in0"));
     def->wire(addinst->sel("out"),multinst->sel("in1"));
 
@@ -57,13 +60,16 @@ int main() {
 
   //Save to Json
   cout << "Saving 2 json" << endl;
-  saveModule(addmult,"addmult.json",&err);
+  saveModule(addmult,"_addmult.json",&err);
   if(err) c->die();
-
-  cout << "Loading json" << endl;
-  Module* m = loadModule(c,"addmult.json",&err);
-  if(err) c->die();
-
   deleteContext(c);
+
+  c = newContext();
+  getStdlib(c);
+  cout << "Loading json" << endl;
+  loadModule(c,"_addmult.json",&err);
+  if(err) c->die();
+  c->getGlobal()->print();
+
   return 0;
 }

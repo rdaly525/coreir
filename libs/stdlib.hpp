@@ -3,28 +3,9 @@
 
 #include "context.hpp"
 
+//#include "stdlib_defaults.hpp"
+
 using namespace CoreIR;
-
-Type* binop_type(Context* c, Args args) {
-  int n = args.at("width")->arg2Int();
-  Type* narray = c->Array(n,c->BitOut());
-  return c->Record({
-      {"in0",c->Flip(narray)},
-      {"in1",c->Flip(narray)},
-      {"out",narray}
-  });
-}
-
-Module* add2(Context* c, Type* t, Args args) {
-  int width = args.at("width")->arg2Int();
-  Module* m = c->getGlobal()->newModuleDecl("add2_"+to_string(width),t);
-  string verilog = "Verilog NYI add2";
-  //VModule vm(m);
-  //vm.addstmt(VAssign("out","in0 + in1"));
-  //m->addVerilog(vm.toString());
-  m->addVerilog(verilog);
-  return m;
-}
 
 Namespace* getStdlib(Context* c) {
   
@@ -40,37 +21,28 @@ Namespace* getStdlib(Context* c) {
   stdlib->newNamedType("rst","rstIn",c->BitOut());
   
   //Array types
-  TypeGen arrtypegen(
-    widthparam,
-    [](Context* c, Args args) {
-      return c->Array(args.at("width")->arg2Int(),c->BitOut());
-    }
-  );
- 
-  stdlib->newNamedType("int","intIn",arrtypegen);
-  stdlib->newNamedType("uint","uintIn",arrtypegen);
+  auto arrfun = [](Context* c, Args args) {
+    return c->Array(args.at("width")->arg2Int(),c->BitOut());
+  };
+  stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
+  stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
   
   //Common Function types
-  TypeGen boptypegen(
+  stdlib->newTypeGen(
+    "binop",
     widthparam,
     [](Context* c, Args args) {
       Type* arr = c->Array(args.at("width")->arg2Int(),c->BitOut());
       return c->Record({{"in0",c->Flip(arr)},{"in1",c->Flip(arr)},{"out",arr}});
     }
   );
-  stdlib->newNamedType("binop","binopFlipped",boptypegen);
   
   /////////////////////////////////
   // Stdlib primitives
   /////////////////////////////////
   
   //declare new add2 generator
-  Generator* g = stdlib->newGeneratorDecl("add2",widthparam,stdlib->getTypeGen("binop"));
-  g->addDef(add2);
-
-
-
-
+  stdlib->newGeneratorDecl("add2",widthparam,stdlib->getTypeGen("binop"));
 
   //TODO Hack to get rid of
   Type* binop16 = c->Record({

@@ -1,6 +1,7 @@
 #ifndef ENUMS_HPP_
 #define ENUMS_HPP_
 
+
 #include <stdint.h>
 #include <iostream>
 #include <vector>
@@ -45,10 +46,14 @@ class Type;
 class NamedType;
 typedef Type* (*TypeGenFun)(Context* c, Args args);
 struct TypeGen {
+  Namespace* ns;
+  string name;
   Params params;
   TypeGenFun fun;
   bool flipped;
-  TypeGen(Params params=Params(), TypeGenFun fun=nullptr, bool flipped=false) : params(params), fun(fun), flipped(flipped) {}
+  TypeGen(Namespace* ns, string name, Params params, TypeGenFun fun, bool flipped=false) : ns(ns), name(name), params(params), fun(fun), flipped(flipped) {}
+  TypeGen() : ns(nullptr), name(""), params(Params()), fun(nullptr), flipped(false) {} // TODO this is hacky. should find different solution
+  Type* run(Context* c, Args args);
 };
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
@@ -61,7 +66,7 @@ class Instantiable;
 class Generator;
 class Module;
 class ModuleDef;
-typedef Module* (*genFun)(Context*,Type*,Args);
+typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
 
 class SelCache;
 class Wireable;
@@ -70,7 +75,7 @@ class Instance;
 class Select;
 
 typedef std::pair<string,vector<string>> WirePath;
-struct Connection;
+typedef myPair<Wireable*,Wireable*> Connection;
 
 
 

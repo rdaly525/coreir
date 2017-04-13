@@ -72,7 +72,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
       else {
 
         Args gargs = inst->getArgs();
-        Module* mNew = c->getGlobal()->runGenerator(g,gargs);
+        Module* mNew = c->getGlobal()->runGenerator(g,gargs,inst->getType());
         
         // TODO might not need to insert already cached things
         //Add Output of generator to runQueue

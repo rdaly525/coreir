@@ -43,11 +43,18 @@ class Namespace {
 
   unordered_map<string,Module*> moduleList;
   unordered_map<string,Generator*> generatorList;
-  unordered_map<NamedCacheParams,NamedType*,NamedCacheParamsHasher> namedCache;
   
-  //TODO slightly hacky
+  //Lists the named type without args
+  unordered_map<string,NamedType*> namedTypeList;
+  
+  //Caches the NamedTypes with args
+  unordered_map<NamedCacheParams,NamedType*,NamedCacheParamsHasher> namedTypeGenCache;
   //Mapping name to typegen and nameFlip
-  unordered_map<string,std::pair<TypeGen,string>> typeGenList;
+  unordered_map<string,TypeGen> typeGenList;
+
+  //Save the unflipped names for json file
+  unordered_map<string,string> namedTypeNameMap;
+  unordered_map<string,string> typeGenNameMap;
 
   public :
     Namespace(Context* c, string name) : c(c), name(name) {}
@@ -57,22 +64,26 @@ class Namespace {
     unordered_map<string,Module*> getModules() { return moduleList;}
     unordered_map<string,Generator*> getGenerators() { return generatorList;}
 
-    void newNamedType(string name, string nameFlip, Type* raw);
-    void newNamedType(string name, string nameFlip, TypeGen typegen);
+    NamedType* newNamedType(string name, string nameFlip, Type* raw);
+    void newNominalTypeGen(string name, string nameFlip,Params genparams, TypeGenFun fun);
+    void newTypeGen(string name, Params genparams, TypeGenFun fun);
+    bool hasNamedType(string name);
     NamedType* getNamedType(string name);
     NamedType* getNamedType(string name, Args genargs);
     TypeGen getTypeGen(string name);
+    bool hasTypeGen(string name) {return typeGenList.count(name)>0;}
 
-    Generator* newGeneratorDecl(string name, Params kinds, TypeGen tg);
+    Generator* newGeneratorDecl(string name, Params genparams, TypeGen typegen);
     Module* newModuleDecl(string name, Type* t,Params configparams=Params());
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);
     Instantiable* getInstantiable(string name);
     bool hasModule(string mname) { return moduleList.count(mname) > 0; }
+    bool hasGenerator(string iname) { return generatorList.count(iname) > 0; }
     bool hasInstantiable(string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
     
-    Module* runGenerator(Generator* g, Args ga);
+    Module* runGenerator(Generator* g, Args ga, Type* t);
     json toJson();
     void print();
 };

@@ -26,8 +26,7 @@ int main() {
     return c->Array(n,c->BitOut());
   };
 
-  TypeGen typegen({{"w",AINT}},intTypeFun,false);
-  g->newNamedType("int", "intIn",typegen);
+  g->newNominalTypeGen("int", "intIn",{{"w",AINT}},intTypeFun);
 
   Args ga1 = {{"w",c->int2Arg(16)}};
   Args ga2 = {{"w",c->int2Arg(16)}};
