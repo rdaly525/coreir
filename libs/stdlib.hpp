@@ -16,6 +16,7 @@ Namespace* getStdlib(Context* c) {
   /////////////////////////////////
   Params widthparam = Params({{"width",AINT}});
 
+  /*
   //Single bit types
   stdlib->newNamedType("clk","clkIn",c->BitOut());
   stdlib->newNamedType("rst","rstIn",c->BitOut());
@@ -43,7 +44,7 @@ Namespace* getStdlib(Context* c) {
   
   //declare new add2 generator
   stdlib->newGeneratorDecl("add2",widthparam,stdlib->getTypeGen("binop"));
-
+  */
   //TODO Hack to get rid of
   Type* binop16 = c->Record({
       {"in0",c->Array(16,c->BitIn())},
