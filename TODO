@@ -1,3 +1,80 @@
+LLVM Compiler passes
+Module (Set of functions)
+
+List of passes I want to do
+Compute Verilog: Modules -> Verilog
+Requires?
+Looping over every Module in the minimized dag
+
+VerilogPass : Module Pass
+  map<string,string> Mod2Verilog
+  bool runonModule(Module m) {
+    if (namespace==stdlib) {
+
+    }
+    else if
+
+  }
+  string instance2verilog
+
+Run Generators Pass
+RunAllGenerators : Module Pass
+  
+
+Inline Pass
+
+
+Add Clock enable pass
+ClockEn : ComputeDAG
+  runOnModule(Module m) {
+    foreach instance {
+      if instance has clk
+        if has clk en
+          add And gate
+          Wire output of And to instance.clken
+        if no clk en
+          instance -> instance with clken
+      Wire self.clken -> inst.clken
+    }
+  }
+
+OR
+
+ClockEN : ComputeDag
+  string clken
+  runOnModule(Module m) {
+    foreach instance with clock
+      replace instRef with clkEnGen(instRef)
+      Wire m.clken to inst.clken
+    }
+  }
+}
+
+clkEnGen(ModuleDef def, Module mref,Type tref) {
+  
+
+}
+
+
+
+Add4 -> G(Add2)
+
+Types of passes:
+
+Module Pass
+Runs over the modules in arbitrary order
+bool runPass(Module m)
+
+computeDAG
+Run over Modules in DAG sorted order, bottom up
+
+Instance Pass
+Run over all instances in all DAGs in any order.
+Is this useful?
+
+
+
+
 General Ideas
 
 For the compilers Have a set of graph editing operations
@@ -31,12 +108,6 @@ Change Error handling to do something like LLVM where they return an Error type 
 
 Known Bugs
 
-  ID: 2
-  Description:
-    Valgrind complains of unitialized values on ModuleDef.wire() (specifically connections.insert)
-    Probably has something to do with copy constructor semantics. does not cause noticeable failures... yet
-  Person: Ross
-
 Lenny TODO
   Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
 
@@ -58,17 +129,7 @@ Change hash/eq functors to use std::function
 Make sure I can include coreir.hpp instead of context.hpp
 Check if I can just convert myPair to inherit from std::pair
 
-Reader/Writer
-  Reader Does not do any generators yet.
-  Writer Does not do any typegen stuff yet.
-
-Metadata
-  Augment function calls/constructors to use metadata
-
 Get Verilog codegen working again
-
-Think about renaming TypeGen and TypeGenInst to NamedType
-Have Type associated with TypeGenInst which is like a cache
 
 When instantiating generators, if the typegen function exists, run it
 and cache the type in the typegenInst. Does this mean I need a 'strip' function?
@@ -77,12 +138,12 @@ Generate unique name for generated modules
 Make sure you cannot create two namespaces of the same name
 Make sure you cannot create two Instantiables of the same name
 
-Test out weird Named cases for loading json
+Test out weird Named cases for loading json: Named(libA,Named(libB,Named(libC)))
 
 change makefile to work with Clang
 
-Add stream operator to Error so I can do
-  Error e;
-  e << "blah" << type << blah
+Metadata
+  Augment function calls/constructors to use metadata
 
 Should check for cases of modules instantiated in its own module. We dont want module "recursion"
+This should be thought of as a DAG of module hierarchy. Generators can be cyclic, but Modules cannot be

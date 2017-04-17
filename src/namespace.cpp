@@ -209,7 +209,7 @@ Module* Namespace::runGenerator(Generator* g, Args genargs, Type* t) {
   cout << "Did not find in cache. Actualy running generator" << endl;
   
   // Make new module TODO how to pass configs
-  string mNewName = "TODO" + to_string(rand());
+  string mNewName = g->getName() + to_string(rand());
   Module* mNew = this->newModuleDecl(mNewName,t);
   if (g->getDef()) {
     ModuleDef* mdef = mNew->newModuleDef();

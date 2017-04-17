@@ -5,9 +5,6 @@
   gcc 4.9  
   Apple LLVM version 8.0.0 (clang-800.0.42.1)  
 
-
-#TODO Add in the APIs  
-
 ## Algebraic structure of IR
 ```
 Params(string* kinds)
@@ -15,7 +12,6 @@ Name(string libname, string name)
 
 Arg = string
        | int
-       | float
        | Type
        | Instantiable
 
@@ -25,19 +21,17 @@ Type = BitIn | BitOut
      | Array(number len, Type elemType)
      | Record( Vector((string field,Type fieldType)) args) //Ordered
      | TypeGenInst(TypeGen tg, Args args)
-     | Named(Name name, Type type)
+     | Named(Name name, Type type) | Named(name,TypeGen tg, Args args)
      | Any
  
-TypeGen(Name name, Params kinds, bool flipped, function? fun)
-
-MetaData(string data, (string key, MetaData m)*)
+TypeGen(Namespace Name name, Params genparams, bool flipped, function? fun)
 
 Instantiable = Module(Name name, Type t, MetaData m, ModuleDef? def)
-             | Generator(Name name, Type t, MetaData m, Params kinds, function? fun)
+             | Generator(Name name, TypeGen tg, Params genparams, function? fun)
 
 //List of modules
 
-ModuleDef(Wire* wires)
+ModuleDef(Connection* connections)
 Wire(Wireable a, Wireable b)
 GeneratorDef(function :: Args -> Module)
 
