@@ -3,6 +3,14 @@
 CORECONFIG ?= g++
 CXX ?= g++
 
+ifeq ($(CORECONFIG),g++)
+CXX = g++
+endif
+
+ifeq ($(CORECONFIG),g++-4.9)
+CXX = g++-4.9
+endif
+
 CXXFLAGS = -std=c++11  -Wall  -fPIC 
 
 ifdef COREDEBUG
