@@ -1,12 +1,13 @@
 CORECONFIG ?= g++
-CXX ?= g++
 
 ifeq ($(CORECONFIG),g++)
 CXX = g++
+CC = gcc
 endif
 
 ifeq ($(CORECONFIG),g++-4.9)
 CXX = g++-4.9
+CC = gcc-4.9
 endif
 
 CXXFLAGS = -std=c++11  -Wall  -fPIC 
