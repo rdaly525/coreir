@@ -1,0 +1,11 @@
+#!/bin/sh
+make -C src clean;
+make -C tests clean
+make -C src;
+make -C src ../build/coreir.dylib;
+make -C tests
+pip install -e bindings/python
+pip3 install -e bindings/python
+cd tests
+./run;
+pytest;

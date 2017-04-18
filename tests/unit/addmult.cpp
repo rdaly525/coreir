@@ -21,14 +21,12 @@ int main() {
   Namespace* stdlib = getStdlib(c);
   
   //Declare a brand new generator for some reason
-  c->getGlobal()->newGeneratorDecl("fakeAdd",{{"width",AINT}},stdlib->getTypeGen("binop"));
  
   int constC = 3;
 
   //Type of module 
   Type* addmultType = c->Record({
-    {"in0",c->Array(16,c->BitIn())},
-    {"in1",c->Array(16,c->BitIn())},
+    {"in",c->Array(16,c->BitIn())},
     {"out",c->Array(16,c->BitOut())}
   });
  
@@ -36,16 +34,15 @@ int main() {
   Module* add2_16 = stdlib->getModule("add2_16");
   Module* mult2_16 = stdlib->getModule("mult2_16");
   Module* const_16 = stdlib->getModule("const_16");
-
   Module* addmult = c->getGlobal()->newModuleDecl("addmult",addmultType);
   ModuleDef* def = addmult->newModuleDef();
     Wireable* self = def->sel("self");
     Wireable* addinst = def->addInstance("addinst",add2_16);
     Wireable* multinst = def->addInstance("multinst",mult2_16);
     Wireable* constinst = def->addInstance("const3",const_16,{{"value",c->int2Arg(constC)}});
-    def->wire(self->sel("in0"),addinst->sel("in0"));
+    def->wire(self->sel("in"),addinst->sel("in0"));
     def->wire(constinst->sel("out"),addinst->sel("in1"));
-    def->wire(self->sel("in1"),multinst->sel("in0"));
+    def->wire(constinst->sel("out"),multinst->sel("in0"));
     def->wire(addinst->sel("out"),multinst->sel("in1"));
 
   addmult->addDef(def);
@@ -67,9 +64,11 @@ int main() {
   c = newContext();
   getStdlib(c);
   cout << "Loading json" << endl;
-  loadModule(c,"_addmult.json",&err);
+  Module* m = loadModule(c,"_addmult.json",&err);
   if(err) c->die();
+  cout << "Saving json again" << endl;
+  saveModule(m,"_addmult2.json",&err);
   c->getGlobal()->print();
-
+  deleteContext(c);
   return 0;
 }

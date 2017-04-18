@@ -207,27 +207,22 @@ extern "C" {
     return rcast<COREInstance**>(arr);
   }
 
-  // COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
-  //   ModuleDef* module_def = rcast<ModuleDef*>(m);
-  //   unordered_set<Connection> connection_set = module_def->getConnections();
-  //   Context* context = module_def->getContext();
-  //   int size = connection_set.size();
-  //   *numConnections = size;
-  //   Connection* arr = context->newConnectionArray(size);
-  //   int count = 0;
-  //   for (auto it : connection_set) {
-  //     memcpy(&arr[count], &it, sizeof(Connection));
-  //     count++;
-  //   }
-  //   return rcast<COREConnection*>(arr);
-  // }
-
-  COREWireable* COREConnectionGetFirst(COREConnection* connection) {
-    return rcast<COREWireable*>(rcast<Connection*>(connection)->first);
-  }
-
-  COREWireable* COREConnectionGetSecond(COREConnection* connection) {
-    return rcast<COREWireable*>(rcast<Connection*>(connection)->second);
+  COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
+    ModuleDef* module_def = rcast<ModuleDef*>(m);
+    unordered_set<Connection> connection_set = module_def->getConnections();
+    Context* context = module_def->getContext();
+    int size = connection_set.size();
+    *numConnections = size;
+    COREConnection* arr = context->newCOREConnectionArray(size);
+    int count = 0;
+    for (auto it : connection_set) {
+      arr[count] = (COREConnection) {
+          .first  = rcast<COREWireable*>(it.first), 
+          .second = rcast<COREWireable*>(it.second)
+      };
+      count++;
+    }
+    return rcast<COREConnection*>(arr);
   }
 
   COREWireable** COREWireableGetConnectedWireables(COREWireable* w, int* numWireables) {
