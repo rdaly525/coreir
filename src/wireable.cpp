@@ -60,6 +60,12 @@ Arg* Instance::getConfigValue(string s) {
 
 bool Instance::isGen() { return instRef->isKind(GEN);}
 bool Instance::hasDef() { return instRef->hasDef(); }
+void Instance::replace(Instantiable* _instRef, Args _config) {
+  this->moduledef->getModule()->logInstanceDel(instRef->getNamespace()->getName(),instRef->getName());
+  this->instRef = _instRef;
+  this->config = _config;
+  this->moduledef->getModule()->logInstanceAdd(_instRef->getNamespace()->getName(),_instRef->getName());
+}
 
 
 string Select::toString() const {

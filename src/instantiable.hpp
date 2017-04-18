@@ -64,10 +64,38 @@ class Generator : public Instantiable {
     Params getGenparams() {return genparams;}
 };
 
+class InstanceDAG {
+  //Provides a mapping from {ns,name} to counts of that instance
+  unordered_map<myPair<string,string>,uint> insts;
+  public:
+    InstanceDAG() {}
+    void insert(string ns, string name) {
+      insts[{ns,name}] +=1;
+      cout << "D Insert: " << ns << "." << name << " " << insts.count({ns,name}) << endl;
+    }
+    void remove(string ns, string name) {
+      if (insts.count({ns,name}) <=1) {
+        insts.erase({ns,name});
+      }
+      else {
+        insts[{ns,name}] -=1 ;
+      }
+      cout << "D Remove: " << ns << "." << name << " " << insts.count({ns,name}) << endl;
+    }
+    vector<myPair<string,string>> get() {
+      vector<myPair<string,string>> keys;
+      for (auto k : insts) keys.push_back(k.first);
+      return keys;
+    }
+};
+
+
 class Module : public Instantiable {
   Type* type;
   ModuleDef* def;
   string verilog;
+  
+  InstanceDAG instanceDAG;
   
   //Memory Management
   vector<ModuleDef*> mdefList;
@@ -83,9 +111,19 @@ class Module : public Instantiable {
     void addDef(ModuleDef* _def) { assert(!def); def = _def;}
     void replaceDef(ModuleDef* _def) { def = _def;}
     ModuleDef* newModuleDef();
+    void logInstanceAdd(string ns, string name) {
+      instanceDAG.insert(ns,name);
+    }
+    vector<myPair<string,string>> getInstanceDAG() { return instanceDAG.get();}
+    void logInstanceDel(string ns, string name) {
+      instanceDAG.remove(ns,name);
+    }
     void print(void);
+    
+    
     //TODO turn this into metadata
     void addVerilog(string _v) {verilog = _v;}
+    
 };
 
 //void* allocateFromType(Type* t);

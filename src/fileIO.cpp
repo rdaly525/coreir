@@ -303,12 +303,35 @@ void saveModule(Module* m, string filename, bool* err) {
     return;
   }
 
-  //TODO I should gather only the dependent modules
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
-  for (auto nsmap: c->getNamespaces()) {
-    j["namespaces"][nsmap.first] = nsmap.second->toJson();
+  
+  //Generate a list of all dependencies by traversing instanceDAG
+  unordered_set<string> depNamespaces;
+  
+  //Add self
+  depNamespaces.insert(m->getNamespace()->getName());
+  
+  std::function<void(Module*)> traverse = [&depNamespaces,&c,&traverse](Module* m)->void {
+    cout << "R Module: " << m->getName() << endl;
+    for (auto i : m->getInstanceDAG()) {
+      cout << "  DAG: " << m->getName() << "." << i.first<<"."<<i.second<<endl;
+      depNamespaces.insert(i.first);
+      Instantiable* iref = c->getNamespace(i.first)->getInstantiable(i.second);
+      if (iref->isKind(MOD)) {
+        traverse((Module*) iref);
+      }
+    }
+  };
+  traverse(m);
+  for (auto nsname : depNamespaces) {
+    cout << "writing namespaces!" << endl;
+    j["namespaces"][nsname] = c->getNamespace(nsname)->toJson();
   }
+
+  //for (auto nsmap: c->getNamespaces()) {
+  //  j["namespaces"][nsmap.first] = nsmap.second->toJson();
+  //}
   file << std::setw(2) << j;
   return;
 }
