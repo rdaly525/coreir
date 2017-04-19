@@ -73,7 +73,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
         }
       }
       //For namedtypegens I cannot really construct these without the typegenfunction. Therefore I will just verify that they exist
-      if (jns.count("namedtypegens")) {
+      //TODO Hack to fix flowfix
+      if (0 && jns.count("namedtypegens")) {
         for (auto jntypegen : jns.at("namedtypegens").get<vector<json>>()) {
           string name = jntypegen.at("name");
           Params genparams = json2Params(jntypegen.at("genparams"));
@@ -119,7 +120,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           modqueue.push_back({m,jmod});
         }
       }
-      if (jns.count("generators")) {
+      if (0 && jns.count("generators")) {
         for (auto jgenmap : jns.at("generators").get<jsonmap>()) {
           string jgenname = jgenmap.first;
           //TODO for now, if it has a module already, just skip
@@ -290,6 +291,32 @@ Type* json2Type(Context* c, json jt) {
   return c->Any();
 }
 
+/*
+template<class T>
+class DAGnode {
+  //Provides a mapping from {ns,name} to counts of that instance
+  unordered_map<T,uint> insts;
+  public:
+    InstanceDAG() {}
+    void insert(T key) {
+      insts[key] +=1;
+    }
+    void remove(T key) {
+      if (insts.count(key) <=1) {
+        insts.erase(key);
+      }
+      else {
+        insts[key] -=1 ;
+      }
+    }
+    vector<T> get() {
+      vector<T> keys;
+      for (auto k : insts) keys.push_back(k.first);
+      return keys;
+    }
+};
+*/
+
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
   Context* c = m->getContext();
@@ -306,32 +333,38 @@ void saveModule(Module* m, string filename, bool* err) {
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
   
+  //TODO finish this code
+  /*
   //Generate a list of all dependencies by traversing instanceDAG
-  unordered_set<string> depNamespaces;
+  unordered_set<SymbolRef> insts;
+  unordered_set<SymbolRef> named;
   
-  //Add self
-  depNamespaces.insert(m->getNamespace()->getName());
-  
-  std::function<void(Module*)> traverse = [&depNamespaces,&c,&traverse](Module* m)->void {
-    cout << "R Module: " << m->getName() << endl;
-    for (auto i : m->getInstanceDAG()) {
-      cout << "  DAG: " << m->getName() << "." << i.first<<"."<<i.second<<endl;
-      depNamespaces.insert(i.first);
-      Instantiable* iref = c->getNamespace(i.first)->getInstantiable(i.second);
+  insts.insert(SymbolRef(m->getNamespace()->getName(),m->getName()));
+  std::function<void(Module*)> traverse = [&insts,&named,&c,&traverse](Module* m)->void {
+    for (auto i : m->getDef()->getInstances()) {
+      Instantiable* iref = i.second->getInstRef();
+      insts.insert(iref->getNamespace()->getName(),iref->getName());
       if (iref->isKind(MOD)) {
         traverse((Module*) iref);
+      }
+      Type* type = i.second->getType();
+      if (type->isKind(NAMED)) {
+        NamedType* namedtype = (NamedType*) type;
+        named.insert(SymbolRef(namedtype->getNamespace()->getName(),namedtype->getName()));
       }
     }
   };
   traverse(m);
+  
   for (auto nsname : depNamespaces) {
     cout << "writing namespaces!" << endl;
     j["namespaces"][nsname] = c->getNamespace(nsname)->toJson();
   }
+  */
 
-  //for (auto nsmap: c->getNamespaces()) {
-  //  j["namespaces"][nsmap.first] = nsmap.second->toJson();
-  //}
+  for (auto nsmap: c->getNamespaces()) {
+    j["namespaces"][nsmap.first] = nsmap.second->toJson();
+  }
   file << std::setw(2) << j;
   return;
 }
@@ -389,7 +422,7 @@ json Namespace::toJson() {
       jntypes.push_back(jntype);
     }
     j["namedtypes"] = jntypes;
-  }
+  } 
   if (!typeGenNameMap.empty()) {
     json jntypegens;
     for (auto nPair : typeGenNameMap) {
