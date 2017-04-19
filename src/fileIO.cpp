@@ -73,7 +73,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
         }
       }
       //For namedtypegens I cannot really construct these without the typegenfunction. Therefore I will just verify that they exist
-      if (jns.count("namedtypegens")) {
+      //TODO hack for fixing the flow for now.
+      if (0 && jns.count("namedtypegens")) {
         for (auto jntypegen : jns.at("namedtypegens").get<vector<json>>()) {
           string name = jntypegen.at("name");
           Params genparams = json2Params(jntypegen.at("genparams"));
@@ -119,7 +120,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
           modqueue.push_back({m,jmod});
         }
       }
-      if (jns.count("generators")) {
+      //TODO hack for fixing the flow for now.
+      if (0 && jns.count("generators")) {
         for (auto jgenmap : jns.at("generators").get<jsonmap>()) {
           string jgenname = jgenmap.first;
           //TODO for now, if it has a module already, just skip
