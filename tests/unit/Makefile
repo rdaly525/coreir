@@ -10,8 +10,6 @@ CXX = g++-4.9
 CC = gcc-4.9
 endif
 
-
-
 CXXFLAGS = -std=c++11  -Wall  -fPIC 
 CFLAGS = -Wall -fPIC
 
@@ -48,7 +46,7 @@ all: $(EXES)
 
 clean:
 	rm -rf build/*
-	rm _*.json
+	rm -f _*.json
 
 build/%: build/%.o ../../build/coreir.a
 	make -C $(SRCDIR)
