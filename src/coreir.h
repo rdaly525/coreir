@@ -26,10 +26,7 @@ typedef enum {
 //keys and values will not be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
 
-typedef struct COREConnection  {
-    COREWireable* first;
-    COREWireable* second;
-} COREConnection;
+typedef struct COREConnection COREConnection;
 
 typedef struct COREWirePath COREWirePath;
 
@@ -88,7 +85,9 @@ extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWi
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
 extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, u32* numInstances);
-extern COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
+extern COREConnection** COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
+extern COREWireable* COREConnectionGetFirst(COREConnection* c);
+extern COREWireable* COREConnectionGetSecond(COREConnection* c);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
 extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);

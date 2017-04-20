@@ -1,7 +1,6 @@
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_
 
-#include "coreir.h"
 #include "namespace.hpp"
 #include "typecache.hpp"
 #include "types.hpp"
@@ -30,7 +29,8 @@ class Context {
   vector<RecordParams*> recordParamsList;
   vector<Params*> paramsList;
   vector<Instance**> instanceArrays;
-  vector<COREConnection*> COREconnectionArrays;
+  vector<Connection*> connectionArrays;
+  vector<Connection**> connectionPtrArrays;
   vector<Wireable**> wireableArrays;
   vector<const char**> constStringArrays;
 
@@ -76,7 +76,8 @@ class Context {
     Arg* type2Arg(Type* t);
 
     Instance** newInstanceArray(int size);
-    COREConnection* newCOREConnectionArray(int size);
+    Connection* newConnectionArray(int size);
+    Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
     Type* Flip(Type* t);

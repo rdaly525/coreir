@@ -207,22 +207,29 @@ extern "C" {
     return rcast<COREInstance**>(arr);
   }
 
-  COREConnection* COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
+  COREConnection** COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
     ModuleDef* module_def = rcast<ModuleDef*>(m);
     unordered_set<Connection> connection_set = module_def->getConnections();
     Context* context = module_def->getContext();
     int size = connection_set.size();
     *numConnections = size;
-    COREConnection* arr = context->newCOREConnectionArray(size);
+    Connection* conns = context->newConnectionArray(size);
+    Connection** arr = context->newConnectionPtrArray(size);
     int count = 0;
     for (auto it : connection_set) {
-      arr[count] = (COREConnection) {
-          .first  = rcast<COREWireable*>(it.first), 
-          .second = rcast<COREWireable*>(it.second)
-      };
+      conns[count] = it;
+      arr[count] = &conns[count];
       count++;
     }
-    return rcast<COREConnection*>(arr);
+    return rcast<COREConnection**>(arr);
+  }
+
+  COREWireable* COREConnectionGetFirst(COREConnection* c) {
+    return rcast<COREWireable*>(rcast<Connection*>(c)->first);
+  }
+
+  COREWireable* COREConnectionGetSecond(COREConnection* c) {
+    return rcast<COREWireable*>(rcast<Connection*>(c)->second);
   }
 
   COREWireable** COREWireableGetConnectedWireables(COREWireable* w, int* numWireables) {
