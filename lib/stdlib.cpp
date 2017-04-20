@@ -1,10 +1,10 @@
-#include "context.hpp"
 
-//#include "stdlib_defaults.hpp"
+#include "stdlib.hpp"
+#include "coreir.h"
 
 using namespace CoreIR;
 
-Namespace* getStdlib(Context* c) {
+Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   
   Namespace* stdlib = c->newNamespace("stdlib");
  

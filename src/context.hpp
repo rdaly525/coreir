@@ -1,13 +1,13 @@
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_
 
-#include "coreir.h"
 #include "namespace.hpp"
 #include "typecache.hpp"
 #include "types.hpp"
 #include "error.hpp"
-#include <string>
 #include "common.hpp"
+
+#include <string>
 #include <unordered_set>
 #include <vector>
 

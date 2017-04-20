@@ -1,5 +1,20 @@
 #ifndef COREIR_H_
 #define COREIR_H_
+
+
+
+typedef struct COREWireable COREWireable;
+typedef struct COREConnection  {
+    COREWireable* first;
+    COREWireable* second;
+} COREConnection;
+
+
+#if defined(__cplusplus)
+#include <../src/context.hpp>
+#else
+
+
 //This is for the C API
 #include <stdint.h>
 #include <stdbool.h>
@@ -14,7 +29,6 @@ typedef struct COREModuleDef COREModuleDef;
 typedef struct COREInstance COREInstance;
 typedef struct COREInterface COREInterface;
 typedef struct CORESelect CORESelect;
-typedef struct COREWireable COREWireable;
 typedef struct COREArg COREArg;
 
 typedef enum {
@@ -26,10 +40,6 @@ typedef enum {
 //keys and values will not be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
 
-typedef struct COREConnection  {
-    COREWireable* first;
-    COREWireable* second;
-} COREConnection;
 
 typedef struct COREWirePath COREWirePath;
 
@@ -97,4 +107,6 @@ extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
 extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors);
 
 extern void COREPrintErrors(COREContext* c);
+
+#endif //__cplusplus
 #endif //COREIR_H_

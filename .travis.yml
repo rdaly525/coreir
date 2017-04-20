@@ -10,7 +10,7 @@ addons:
       - g++-4.9
 
 before_install:
-  - export CORECONFIG="g++-4.9";
+  - export COREIRCONFIG="g++-4.9";
   - make -C src
   - make -C src ../build/coreir.so  # For bindings tests
   - make -C tests
