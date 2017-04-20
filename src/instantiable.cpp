@@ -125,7 +125,7 @@ Instance* ModuleDef::addInstance(Instance* i) {
   if( i->getInstRef()->isKind(MOD)) 
     return addInstance(i->getInstname(),(Module*) i->getInstRef(),i->getConfig());
   else 
-    return addInstance(i->getInstname(),(Generator*) i->getInstRef(),i->getConfig(),i->getArgs());
+    return addInstance(i->getInstname(),(Generator*) i->getInstRef(),i->getArgs(),i->getConfig());
 }
 
 
