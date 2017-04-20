@@ -1,7 +1,6 @@
 #ifndef CONTEXT_HPP_
 #define CONTEXT_HPP_
 
-#include "coreir.h"
 #include "namespace.hpp"
 #include "typecache.hpp"
 #include "types.hpp"
