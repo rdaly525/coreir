@@ -1,5 +1,6 @@
 #!/bin/sh
 make -C src clean;
+make -C libs clean;
 make -C tests clean
 make -C src;
 make -C src ../build/coreir.dylib;
