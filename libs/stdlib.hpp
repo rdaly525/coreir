@@ -1,3 +1,6 @@
+#ifndef STDLIB_HPP_
+#define STDLIB_HPP_
+
 #include "context.hpp"
 
 //#include "stdlib_defaults.hpp"
@@ -13,6 +16,7 @@ Namespace* getStdlib(Context* c) {
   /////////////////////////////////
   Params widthparam = Params({{"width",AINT}});
 
+  /*
   //Single bit types
   stdlib->newNamedType("clk","clkIn",c->BitOut());
   stdlib->newNamedType("rst","rstIn",c->BitOut());
@@ -24,6 +28,7 @@ Namespace* getStdlib(Context* c) {
   stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
   stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
   
+  */
   //Common Function types
   stdlib->newTypeGen(
     "binop",
@@ -33,14 +38,13 @@ Namespace* getStdlib(Context* c) {
       return c->Record({{"in0",c->Flip(arr)},{"in1",c->Flip(arr)},{"out",arr}});
     }
   );
-  
   /////////////////////////////////
   // Stdlib primitives
   /////////////////////////////////
   
   //declare new add2 generator
+  
   stdlib->newGeneratorDecl("add2",widthparam,stdlib->getTypeGen("binop"));
-
   //TODO Hack to get rid of
   Type* binop16 = c->Record({
       {"in0",c->Array(16,c->BitIn())},
@@ -64,4 +68,4 @@ Namespace* getStdlib(Context* c) {
   return stdlib;
 }
 
-
+#endif //STDLIB_HPP_
