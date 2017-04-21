@@ -41,7 +41,7 @@ build/passes.dylib: build/typecheck.o build/rungen.o
 
 build/passes.so: build/typecheck.o build/rungen.o
 	$(CXX) -shared $(LPATH) -lcoreir -o $@ $^
-	cp $@ $(BIN)/lib$*.so
+	cp $@ $(BIN)/libpasses.so
 
 build/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

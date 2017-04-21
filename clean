@@ -1,5 +1,0 @@
-#!/bin/sh
-rm bin/*
-make -C src clean
-make -C lib clean
-make -C tests clean
