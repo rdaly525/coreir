@@ -1,6 +1,3 @@
-#ifndef TYPECACHE_CPP_
-#define TYPECACHE_CPP_
-
 #include "typecache.hpp"
 #include "args.hpp"
 
@@ -68,6 +65,3 @@ Type* TypeCache::newRecord(RecordParams params) {
 }
 
 }//CoreIR namespace
-
-
-#endif //TYPECACHE_CPP_

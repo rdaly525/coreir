@@ -1,7 +1,3 @@
-#ifndef NAMESPACE_CPP_
-#define NAMESPACE_CPP_
-
-
 #include "namespace.hpp"
 
 using namespace std;
@@ -231,6 +227,3 @@ Module* Namespace::runGenerator(Generator* g, Args genargs, Type* t) {
 }
 
 }//CoreIR namespace
-
-
-#endif // NAMESPACE_CPP_

@@ -1,6 +1,3 @@
-#ifndef HELPERS_CPP_
-#define HELPERS_CPP_
-
 #include "common.hpp"
 #include <cassert>
 
@@ -66,5 +63,3 @@ string wireableKind2Str(WireableKind wb) {
 }
 
 } //CoreIR namespace
-
-#endif //HELPERS_CPP_

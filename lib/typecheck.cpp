@@ -1,6 +1,3 @@
-#ifndef TYPECHECK_CPP_
-#define TYPECHECK_CPP_
-
 #include "typecheck.hpp"
 
 using namespace std;
@@ -135,5 +132,3 @@ bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked) {
 }
 
 }//CoreIR namespace
-
-#endif //TYPECHECK_CPP_

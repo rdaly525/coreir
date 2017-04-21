@@ -1,6 +1,3 @@
-#ifndef RUNGEN_CPP_
-#define RUNGEN_CPP_
-
 #include "rungen.hpp"
 
 using namespace std;
@@ -102,5 +99,3 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
 }
 
 }//CoreIR namespace
-
-#endif //COMPILER_CPP_

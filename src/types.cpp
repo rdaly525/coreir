@@ -1,6 +1,3 @@
-#ifndef TYPES_CPP_
-#define TYPES_CPP_
-
 #include "types.hpp"
 
 namespace CoreIR {
@@ -82,5 +79,3 @@ bool RecordType::sel(Context* c, string sel, Type** ret, Error* e) {
 }
 
 }//CoreIR namespace
-
-#endif //TYPES_CPP_

@@ -1,4 +1,3 @@
-
 #include "coreir.h"
 #include "coreir-lib/stdlib.hpp"
 
@@ -63,5 +62,3 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   stdlib->newModuleDecl("GPO_16",inType);
   return stdlib;
 }
-
-

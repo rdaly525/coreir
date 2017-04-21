@@ -1,5 +1,3 @@
-
-
 #include "coreir-c.h"
 #include "coreir.h"
 

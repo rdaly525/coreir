@@ -1,6 +1,3 @@
-#ifndef MODULEDEF_CPP_
-#define MODULEDEF_CPP_
-
 #include "moduledef.hpp"
 
 using namespace std;
@@ -125,4 +122,3 @@ Wireable* ModuleDef::sel(string s) {
 
 
 } //coreir namespace
-#endif //MODULEDEF_CPP_

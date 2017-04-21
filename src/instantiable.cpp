@@ -1,6 +1,3 @@
-#ifndef INSTANTIABLE_CPP_
-#define INSTANTIABLE_CPP_
-
 #include <cassert>
 #include <vector>
 #include <set>
@@ -73,5 +70,3 @@ void Module::print(void) {
 }
 
 }//CoreIR namespace
-
-#endif //COREIR_CPP_

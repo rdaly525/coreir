@@ -1,6 +1,3 @@
-#ifndef CONTEXT_CPP_
-#define CONTEXT_CPP_
-
 #include "context.hpp"
 
 using namespace std;
@@ -192,5 +189,3 @@ void deleteContext(Context* m) {
 
 
 } //CoreIR namespace
-
-#endif //CONTEXT_CPP_

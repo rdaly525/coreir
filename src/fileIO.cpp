@@ -1,6 +1,3 @@
-#ifndef FILEIO_CPP_
-#define FILEIO_CPP_
-
 #include "json.hpp"
 #include <iostream>
 #include <fstream>
@@ -547,5 +544,3 @@ json ArgInt::toJson() { return i; }
 json ArgType::toJson() { return t->toJson(); }
 
 }//CoreIR namespace
-
-#endif //FILEIO_CPP_

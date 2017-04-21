@@ -1,6 +1,3 @@
-#ifndef WIREABLE_CPP_
-#define WIREABLE_CPP_
-
 #include "wireable.hpp"
 
 using namespace std;
@@ -102,5 +99,3 @@ Select* SelCache::newSelect(ModuleDef* context, Wireable* parent, string selStr,
 }
 
 } //CoreIR namesapce
-
-#endif //WIREABLE_CPP
