@@ -20,7 +20,8 @@ endif
 BIN = ../../bin
 INCS = -I../../include -I.
 LPATH = -L$(BIN)
-LIBS = -lcoreir-c
+#TODO Hacky to include coreir lib. Maybe I should generate coreir-c statically including all of coreir
+LIBS = -lcoreir-c -lcoreir
 SRCFILES = $(wildcard *.c)
 OBJS = $(patsubst %.c,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.c,build/%,$(SRCFILES))
@@ -38,7 +39,7 @@ clean:
 	rm -f _*.json
 
 build/%: build/%.o 
-	$(CXX) $(CXXFLAGS) $(INCS) $(LPATH) $(LIBS) -o $@ $< 
+	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
 
 build/%.o: %.c
 	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<

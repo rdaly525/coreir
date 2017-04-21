@@ -34,7 +34,7 @@ clean:
 	rm -f _*.json
 
 build/%: build/%.o 
-	$(CXX) $(CXXFLAGS) $(INCS) $(LPATH) $(LIBS) -o $@ $< 
+	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
 
 build/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

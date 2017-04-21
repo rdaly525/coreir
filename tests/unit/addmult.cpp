@@ -4,15 +4,6 @@
 
 using namespace CoreIR;
 
-
-// Create the following circuit
-//
-//       in1
-//           \
-// in0 - Add - Mult - out
-//     / 
-//   C 
-
 int main() {
   Context* c = newContext();
 
