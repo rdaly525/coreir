@@ -1,6 +1,6 @@
 
-#include "stdlib.hpp"
 #include "coreir.h"
+#include "coreir-lib/stdlib.hpp"
 
 using namespace CoreIR;
 

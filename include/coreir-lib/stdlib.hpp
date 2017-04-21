@@ -3,8 +3,7 @@
 
 #include "coreir.h"
 
-namespace CoreIR {
-  Namespace* CoreIRLoadLibrary_stdlib(Context* c);
-}
+using namespace CoreIR;
+Namespace* CoreIRLoadLibrary_stdlib(Context* c);
 
 #endif //STDLIB_HPP_

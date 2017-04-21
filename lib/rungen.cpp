@@ -1,9 +1,7 @@
-#ifndef COMPILER_CPP_
-#define COMPILER_CPP_
+#ifndef RUNGEN_CPP_
+#define RUNGEN_CPP_
 
-#include "common.hpp"
-#include "passes.hpp"
-#include  <unordered_set>
+#include "rungen.hpp"
 
 using namespace std;
    

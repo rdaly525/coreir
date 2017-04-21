@@ -1,9 +1,7 @@
 #ifndef TYPECHECK_CPP_
 #define TYPECHECK_CPP_
 
-#include "common.hpp"
-#include "passes.hpp"
-#include <unordered_set>
+#include "typecheck.hpp"
 
 using namespace std;
    

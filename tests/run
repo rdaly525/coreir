@@ -1,3 +1,4 @@
 #!/bin/sh
 #cd unit; ./run -memcheck
-cd unit; ./run
+cd unit; ./run; cd -
+cd unit-c; ./run; cd -

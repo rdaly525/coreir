@@ -1,5 +1,6 @@
-#include "coreir.h"
+#include "coreir-c.h"
 #include "assert.h"
+
 #include "stdio.h"
 #include "stdlib.h"
 

@@ -1,8 +1,6 @@
-
-#include "context.hpp"
-#include "stdlib.hpp"
-#include "passes.hpp"
-
+#include "coreir.h"
+#include "coreir-lib/stdlib.hpp"
+#include "coreir-pass/passes.hpp"
 
 using namespace CoreIR;
 
@@ -18,7 +16,7 @@ using namespace CoreIR;
 int main() {
   Context* c = newContext();
 
-  Namespace* stdlib = getStdlib(c);
+  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
   
   //Declare a brand new generator for some reason
  
@@ -62,7 +60,7 @@ int main() {
   deleteContext(c);
 
   c = newContext();
-  getStdlib(c);
+  CoreIRLoadLibrary_stdlib(c); 
   cout << "Loading json" << endl;
   Module* m = loadModule(c,"_addmult.json",&err);
   if(err) c->die();

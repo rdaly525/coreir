@@ -1,12 +1,12 @@
 #ifndef NAMESPACE_HPP_
 #define NAMESPACE_HPP_
 
-#include <string>
-#include <map>
 #include "types.hpp" // For NamedType
 #include "instantiable.hpp"
 #include "common.hpp"
 #include "json.hpp"
+#include <string>
+#include <map>
 
 using json = nlohmann::json;
 using namespace std;
