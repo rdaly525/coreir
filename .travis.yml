@@ -12,15 +12,12 @@ addons:
 before_install:
   - export COREIRCONFIG="g++-4.9";
   - export LD_LIBRARY_PATH=`pwd`/bin:$LD_LIBRARY_PATH
-  - make -C src build/coreir.so  # For bindings tests
-  - make -C lib so #will build all shared libraries
-  - make -C tests
+  - make install
   - pip install pytest
   - pip install -e bindings/python
 
 script:
-  - cd tests
-  - ./run 
+  - make test
   - pytest  # Test python bindings
 
 compiler:
