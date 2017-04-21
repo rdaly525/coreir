@@ -1,13 +1,8 @@
 #!/bin/sh
-rm bin/*
-make -C src clean;
-make -C lib clean;
-make -C tests clean
-make -C src;
+./clean
 make -C src build/coreir.dylib;
-make -C lib
-make -C tests/unit
-make -C tests/unit-c
+make -C lib dylib
+make -C tests
 pip install -e bindings/python
 pip3 install -e bindings/python
 cd tests
