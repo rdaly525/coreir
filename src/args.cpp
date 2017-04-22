@@ -35,11 +35,11 @@ bool operator==(const Args& l, const Args& r) {
 }
 
 bool checkParams(Args args, Params params) {
-  if (args.size() != params.size()) return false;
+  if (args.size() < params.size()) return false;
   for (auto parammap : params) {
     auto arg = args.find(parammap.first);
     if (arg == args.end()) return false;
-    if (!arg->second->isKind(parammap.second) ) return false;
+    if (!arg->second->isKind(parammap.second)) return false;
   }
   return true;
 }

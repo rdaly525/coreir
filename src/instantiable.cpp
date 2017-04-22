@@ -42,8 +42,12 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
 }
 
 Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), genfun(nullptr) {
-  //Verify that genparams are the same
-  assert(genparams == typegen.params);
+  //Verify that genparams are a superset of typegen params
+  for (auto const &type_param : typegen.params) {
+	  auto const &gen_param = genparams.find(type_param.first);
+	  assert(gen_param != genparams.end());
+	  assert(gen_param->second == type_param.second);
+  }
 }
 
 string Generator::toString() const {
