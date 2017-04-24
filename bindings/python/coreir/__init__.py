@@ -15,7 +15,7 @@ def load_shared_lib():
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    return cdll.LoadLibrary('{}/../../../build/coreir.{}'.format(dir_path, shared_lib_ext))
+    return cdll.LoadLibrary('{}/../../../bin/libcoreir-c.{}'.format(dir_path, shared_lib_ext))
 
 class COREContext(ct.Structure):
     pass
@@ -80,7 +80,6 @@ COREMapKind_STR2ARG_MAP = COREMapKind(2)
 coreir_lib = load_shared_lib()
 
 coreir_lib.CORENewMap.argtypes = [COREContext_p, ct.c_void_p, ct.c_void_p, ct.c_uint32, COREMapKind]
-
 coreir_lib.CORENewMap.restype = ct.c_void_p
 
 coreir_lib.CORENewContext.restype = COREContext_p
