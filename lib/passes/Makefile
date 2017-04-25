@@ -37,11 +37,11 @@ clean:
 
 build/passes.dylib: build/typecheck.o build/rungen.o
 	$(CXX) -install_name "@loader_path/libpasses.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
-	cp $@ $(BIN)/libpasses.dylib
+	cp $@ $(BIN)/libcoreir-passes.dylib
 
 build/passes.so: build/typecheck.o build/rungen.o
 	$(CXX) -shared $(LPATH) -lcoreir -o $@ $^
-	cp $@ $(BIN)/libpasses.so
+	cp $@ $(BIN)/libcoreir-passes.so
 
 build/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<
