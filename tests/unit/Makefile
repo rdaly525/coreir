@@ -19,15 +19,12 @@ endif
 BIN = ../../bin
 INCS = -I../../include -I.
 LPATH = -L$(BIN)
-LIBS = -lcoreir -lcoreir-stdlib -lcoreir-passes
+LIBS =  -lcoreir-stdlib -lcoreir-passes -lcoreir
 SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
 
 all: $(EXES)
-
-coreir:
-	make -C ../../src
 
 clean:
 	rm -rf build/*

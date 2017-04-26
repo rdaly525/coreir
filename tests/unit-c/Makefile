@@ -26,13 +26,7 @@ SRCFILES = $(wildcard *.c)
 OBJS = $(patsubst %.c,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.c,build/%,$(SRCFILES))
 
-
 all: $(EXES)
-
-coreir:
-	echo $(SRCFILES)
-	echo $(EXES)
-	make -C ../../src
 
 clean:
 	rm -rf build/*
