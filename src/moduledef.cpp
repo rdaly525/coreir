@@ -51,18 +51,12 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
   Instance* inst = new Instance(this,instname,gen,type,genargs,config);
   instances[instname] = inst;
   
-  //Log the instance for use in the instance graph
-  module->logInstanceAdd(gen->getNamespace()->getName(),gen->getName());
-  
   return inst;
 }
 
 Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   Instance* inst = new Instance(this,instname,m,m->getType(),Args(),config);
   instances[instname] = inst;
-  
-  //Log the instance
-  module->logInstanceAdd(m->getNamespace()->getName(),m->getName());
   
   return inst;
 }

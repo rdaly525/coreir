@@ -189,7 +189,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
       }
       
       //Add Def back in
-      m->addDef(mdef);
+      m->setDef(mdef);
     } //End Module loop
     
     //Reference Top

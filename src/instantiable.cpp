@@ -41,9 +41,18 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), genfun(nullptr) {
+Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
   //Verify that genparams are the same
   assert(genparams == typegen.params);
+}
+
+Generator::~Generator() {
+  if (def) {
+    delete def;
+  }
+}
+void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
+  this->def = new GeneratorDefFromFun(this,fun);
 }
 
 string Generator::toString() const {

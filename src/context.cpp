@@ -53,9 +53,10 @@ Namespace* Context::getNamespace(string name) {
   return it->second;
 }
 
+/* TODO This is not even used in the repo yet. Should write a test for it
 // This tries to link all the definitions of def namespace to declarations of decl namespace
 // This will clobber declns
-bool Context::linkLib(Namespace* defns, Namespace* declns) {
+bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
   if (haserror()) {
     return true;
   }
@@ -63,7 +64,7 @@ bool Context::linkLib(Namespace* defns, Namespace* declns) {
     Generator* gdef = (it.second);
     string gdefname = gdef->getName();
     assert(it.first == gdefname);
-    ModuleDefGenFun gdeffun = gdef->getDef();
+    GeneratorDef* gdef = gdef->getDef();
     Generator* gdecl = declns->getGenerator(gdefname);
     
     //If def is not found in decl,
@@ -96,6 +97,7 @@ bool Context::linkLib(Namespace* defns, Namespace* declns) {
   //TODO do modules as well
   return false;
 }
+*/
 
 Type* Context::Any() { return cache->newAny(); }
 Type* Context::BitIn() { return cache->newBitIn(); }

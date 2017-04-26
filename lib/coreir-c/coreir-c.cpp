@@ -145,8 +145,9 @@ extern "C" {
     return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
   }
 
+  //TODO change name to 'setDef'
   void COREModuleAddDef(COREModule* module, COREModuleDef* module_def) {
-    rcast<Module*>(module)->addDef(rcast<ModuleDef*>(module_def));
+    rcast<Module*>(module)->setDef(rcast<ModuleDef*>(module_def));
   }
 
   void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {

@@ -219,8 +219,8 @@ Module* Namespace::runGenerator(Generator* g, Args genargs, Type* t) {
   Module* mNew = this->newModuleDecl(mNewName,t);
   if (g->getDef()) {
     ModuleDef* mdef = mNew->newModuleDef();
-    g->getDef()(mdef,c,t,genargs);
-    mNew->addDef(mdef);
+    g->getDef()->run(mdef,c,t,genargs);
+    mNew->setDef(mdef);
   }
   genCache.emplace(gcp,mNew);
   return mNew;
