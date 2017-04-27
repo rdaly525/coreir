@@ -1,5 +1,16 @@
-#include "coreir.h"
-#include "coreir-lib/stdlib.hpp"
+#include "coreir-lib/stdlib.h"
+#include "coreir-c/ctypes.h"
+
+
+//TODO Macrofy
+extern "C" {
+  CORENamespace* CORELoadLibrary_stdlib(COREContext* c) {
+    return reinterpret_cast<CORENamespace*>(CoreIRLoadLibrary_stdlib(reinterpret_cast<CoreIR::Context*>(c)));
+  }
+}
+
+
+//TODO Maybe also macrofy the name of the c++ function? Not sure
 
 using namespace CoreIR;
 

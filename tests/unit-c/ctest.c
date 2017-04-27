@@ -1,4 +1,5 @@
-#include "coreir-c.h"
+#include "coreir-c/coreir.h"
+#include "coreir-lib/stdlib.h"
 #include "assert.h"
 
 #include "stdio.h"
@@ -10,6 +11,7 @@ void print(char* a) {
 
 int main() {
   COREContext* c = CORENewContext();
+  CORELoadLibrary_stdlib(c);
   bool err = false;
   
   char** rkeys = malloc(2*sizeof(char*));

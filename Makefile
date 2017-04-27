@@ -13,7 +13,7 @@ installosx:
 	make -C lib dylib
 
 clean:
-	rm bin/*
+	rm -rf bin/*
 	make -C src clean
 	make -C lib clean
 	make -C tests clean

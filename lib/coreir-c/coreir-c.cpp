@@ -1,4 +1,4 @@
-#include "coreir-c.h"
+#include "coreir-c/coreir.h"
 #include "coreir.h"
 
 namespace CoreIR {
