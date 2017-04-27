@@ -1,4 +1,5 @@
 #include "types.hpp"
+#include "typegen.hpp"
 
 namespace CoreIR {
 
@@ -28,9 +29,12 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Namespace* ns, string name, Type* raw, TypeGen typegen, Args genargs) : Type(NAMED) ,ns(ns), name(name), raw(raw), typegen(typegen), genargs(genargs) {
-  //Check parameters here.
-  assert(checkArgs(genargs,typegen.params));
+NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(NAMED) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
+  //Check arguments here.
+  assert(checkArgs(genargs,typegen->getParams()));
+
+  //Run the typegen
+  raw = typegen->getType(genargs);
 }
 
 //TODO How to deal with select? For now just do a normal select off of raw

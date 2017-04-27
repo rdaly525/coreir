@@ -8,11 +8,6 @@
 using namespace std;
 namespace CoreIR {
 
-Type* TypeGen::run(Context* c, Args args) {
-  assert(checkArgs(args,params));
-  Type* ran = this->fun(c,args);
-  return flipped ? c->Flip(ran) : ran;
-}
 bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
 }

@@ -69,7 +69,7 @@ class Instance : public Wireable {
     //Convinience functions
     bool isGen();
     bool hasDef();
-    void replace(Instantiable* _instRef, Args _config);
+    void replace(Instantiable* instRef, Args config);
 };
 
 class Select : public Wireable {
