@@ -310,26 +310,14 @@ class CoreIR
 
 ## Libraries
 A coreir library `NAME` defines a C++ function `CoreIRLoadLibrary_NAME` that
-instantiates and populates a `Namespace` object.  For our examples, we will
-assume `NAME` is `stdlib`.
+instantiates and populates a `Namespace` object.  Here is an example defining a
+library named **stdlib**.
 
+We begin with a header file that declares both the C++ and C interfaces.
+CoreIR provides macros (defined in `coreir-macros.h`) for convenience.
+**NOTE:** The use of the `ifdef` guard for C++ is required.
 ```cpp
-Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
-  Namespace* stdlib = c->newNamespace("stdlib");
-  stdlib->newNamedType("clk","clkIn",c->BitOut());
-  return stdlib;
-}
-```
-
-The library should wrap this function with a C compatible version using
-a macro provided in `"coreir-macros.h"`.
-```cpp
-COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(stdlib);
-```
-
-The library must also define a header file that declares both the C++ and C
-interfaces. **NOTE:** The use of the `ifdef` guard for C++ is required.
-```cpp
+// coreir-stdlib.h
 #ifndef COREIR_STDLIB_H_
 #define COREIR_STDLIB_H_
 
@@ -346,3 +334,21 @@ COREIR_GEN_C_API_DECLARATION_FOR_LIBRARY(stdlib);
 
 #endif //COREIR_STDLIB_HPP_
 ```
+
+Next we define `CoreIRLoadLibrary_stdlib`
+```cpp
+// coreir-stdlib.cpp
+#include <coreir-stdlib.h>
+Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
+  Namespace* stdlib = c->newNamespace("stdlib");
+  stdlib->newNamedType("clk","clkIn",c->BitOut());
+  return stdlib;
+}
+```
+
+Finally, the library must wrap this function with a C compatible version using
+the macro `COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY`.
+```cpp
+COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(stdlib);
+```
+
