@@ -4,7 +4,9 @@
 #include "context.hpp"
 #include "instantiable.hpp"
 #include "namespace.hpp"
+#include "typegen.hpp"
 #include <unordered_map>
+
 
 namespace CoreIR {
 
@@ -79,14 +81,14 @@ Module* loadModule(Context* c, string filename, bool* err) {
             throw std::runtime_error("Missing namedtypegen symbol: " + ns->getName() + "." + name);
           }
             
-          TypeGen typegen = ns->getTypeGen(name);
-          assert(typegen.params == genparams);
-          assert(!typegen.flipped);
+          TypeGen* typegen = ns->getTypeGen(name);
+          assert(typegen->getParams() == genparams);
+          assert(!typegen->isFlipped());
           if (jntypegen.count("flippedname")) {
             string nameFlip = jntypegen.at("flippedname");
             typegen = ns->getTypeGen(nameFlip);
-            assert(typegen.params == genparams);
-            assert(typegen.flipped);
+            assert(typegen->getParams() == genparams);
+            assert(typegen->isFlipped());
           }
         }
       }
@@ -129,8 +131,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
           json jgen = jgenmap.second;
           Params genparams = json2Params(jgen.at("genparams"));
           vector<string> tgenref = jgen.at("typegen").get<vector<string>>();
-          TypeGen typegen = c->getTypeGen(tgenref[0],tgenref[1]);
-          assert(genparams == typegen.params);
+          TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
+          assert(genparams == typegen->getParams());
           //TODO generator config stuff
           ns->newGeneratorDecl(jgenname,genparams,typegen);
         }
@@ -274,7 +276,7 @@ Type* json2Type(Context* c, json jt) {
       string nsname = args[1].get<string>();
       string name = args[2].get<string>();
       if (args.size()==4) { //Has args
-        Params genparams = c->getNamespace(nsname)->getTypeGen(name).params;
+        Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
         Args genargs = json2Args(c,genparams,args[3]);
         return c->Named(nsname,name,genargs);
       }
@@ -289,31 +291,6 @@ Type* json2Type(Context* c, json jt) {
   return c->Any();
 }
 
-/*
-template<class T>
-class DAGnode {
-  //Provides a mapping from {ns,name} to counts of that instance
-  unordered_map<T,uint> insts;
-  public:
-    InstanceDAG() {}
-    void insert(T key) {
-      insts[key] +=1;
-    }
-    void remove(T key) {
-      if (insts.count(key) <=1) {
-        insts.erase(key);
-      }
-      else {
-        insts[key] -=1 ;
-      }
-    }
-    vector<T> get() {
-      vector<T> keys;
-      for (auto k : insts) keys.push_back(k.first);
-      return keys;
-    }
-};
-*/
 
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
@@ -331,34 +308,6 @@ void saveModule(Module* m, string filename, bool* err) {
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
   
-  //TODO finish this code
-  /*
-  //Generate a list of all dependencies by traversing instanceDAG
-  unordered_set<SymbolRef> insts;
-  unordered_set<SymbolRef> named;
-  
-  insts.insert(SymbolRef(m->getNamespace()->getName(),m->getName()));
-  std::function<void(Module*)> traverse = [&insts,&named,&c,&traverse](Module* m)->void {
-    for (auto i : m->getDef()->getInstances()) {
-      Instantiable* iref = i.second->getInstRef();
-      insts.insert(iref->getNamespace()->getName(),iref->getName());
-      if (iref->isKind(MOD)) {
-        traverse((Module*) iref);
-      }
-      Type* type = i.second->getType();
-      if (type->isKind(NAMED)) {
-        NamedType* namedtype = (NamedType*) type;
-        named.insert(SymbolRef(namedtype->getNamespace()->getName(),namedtype->getName()));
-      }
-    }
-  };
-  traverse(m);
-  
-  for (auto nsname : depNamespaces) {
-    cout << "writing namespaces!" << endl;
-    j["namespaces"][nsname] = c->getNamespace(nsname)->toJson();
-  }
-  */
 
   for (auto nsmap: c->getNamespaces()) {
     j["namespaces"][nsmap.first] = nsmap.second->toJson();
@@ -426,10 +375,10 @@ json Namespace::toJson() {
     for (auto nPair : typeGenNameMap) {
       string n = nPair.first;
       string nFlip = nPair.second;
-      TypeGen tg = typeGenList.at(n);
+      TypeGen* tg = typeGenList.at(n);
       json jntypegen = {
         {"name",n},
-        {"genparams", Params2Json(tg.params)}
+        {"genparams", Params2Json(tg->getParams())}
       };
       if (nFlip != "") {
         jntypegen["flippedname"] = nFlip;
@@ -465,7 +414,7 @@ json Generator::toJson() {
   json j = Instantiable::toJson();
   j["genparams"] = Params2Json(genparams);
   //You need to add namespace back to typegen (ugh)
-  j["typegen"] = json::array({typegen.ns->getName(),typegen.name});
+  j["typegen"] = json::array({typegen->getNamespace()->getName(),typegen->getName()});
   return j;
 }
 

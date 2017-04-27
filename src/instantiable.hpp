@@ -52,19 +52,21 @@ std::ostream& operator<<(ostream& os, const Instantiable&);
 
 class Generator : public Instantiable {
   Params genparams;
-  TypeGen typegen;
+  TypeGen* typegen;
   
   //This is memory managed
   GeneratorDef* def;
   
   public :
-    Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams=Params());
+    Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams=Params());
     ~Generator();
     string toString() const;
     json toJson();
-    TypeGen getTypeGen() const { return typegen;}
+    TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}
+    
+    //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
     void setGeneratorDefFromFun(ModuleDefGenFun fun);
     Params getGenparams() {return genparams;}

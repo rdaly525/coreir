@@ -49,8 +49,9 @@ class Namespace {
   
   //Caches the NamedTypes with args
   unordered_map<NamedCacheParams,NamedType*,NamedCacheParamsHasher> namedTypeGenCache;
-  //Mapping name to typegen and nameFlip
-  unordered_map<string,TypeGen> typeGenList;
+  
+  //Mapping name to typegen 
+  unordered_map<string,TypeGen*> typeGenList;
 
   //Save the unflipped names for json file
   unordered_map<string,string> namedTypeNameMap;
@@ -70,10 +71,10 @@ class Namespace {
     bool hasNamedType(string name);
     NamedType* getNamedType(string name);
     NamedType* getNamedType(string name, Args genargs);
-    TypeGen getTypeGen(string name);
+    TypeGen* getTypeGen(string name);
     bool hasTypeGen(string name) {return typeGenList.count(name)>0;}
 
-    Generator* newGeneratorDecl(string name, Params genparams, TypeGen typegen);
+    Generator* newGeneratorDecl(string name, Params genparams, TypeGen* typegen);
     Module* newModuleDecl(string name, Type* t,Params configparams=Params());
 
     Generator* getGenerator(string gname);

@@ -113,7 +113,7 @@ Type* Context::Named(string ns, string name, Args args) {
   return this->getNamespace(ns)->getNamedType(name,args);
 }
 
-TypeGen Context::getTypeGen(string ns, string name) {
+TypeGen* Context::getTypeGen(string ns, string name) {
   return this->getNamespace(ns)->getTypeGen(name);
 }
 RecordParams* Context::newRecordParams() {

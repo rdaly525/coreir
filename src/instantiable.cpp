@@ -3,6 +3,7 @@
 #include <set>
 
 #include "instantiable.hpp"
+#include "typegen.hpp"
 
 using namespace std;
 
@@ -41,9 +42,9 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
+Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
   //Verify that genparams are the same
-  assert(genparams == typegen.params);
+  assert(genparams == typegen->getParams());
 }
 
 Generator::~Generator() {

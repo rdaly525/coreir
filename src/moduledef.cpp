@@ -1,4 +1,6 @@
+
 #include "moduledef.hpp"
+#include "typegen.hpp"
 
 using namespace std;
 
@@ -44,9 +46,9 @@ Type* ModuleDef::getType() {return module->getType();}
 
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
   assert(instances.count(instname)==0);
-  //Should this type be resolved? Just create a typeGenInst for now
-  Context* c = gen->getContext();
-  Type* type = gen->getTypeGen().fun(c,genargs);
+  
+  //TODO Should this type be resolved? Just always get the type for now
+  Type* type = gen->getTypeGen()->getType(genargs);
   
   Instance* inst = new Instance(this,instname,gen,type,genargs,config);
   instances[instname] = inst;
