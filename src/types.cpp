@@ -30,7 +30,7 @@ string RecordType::toString(void) const {
 
 NamedType::NamedType(Namespace* ns, string name, Type* raw, TypeGen typegen, Args genargs) : Type(NAMED) ,ns(ns), name(name), raw(raw), typegen(typegen), genargs(genargs) {
   //Check parameters here.
-  assert(checkParams(genargs,typegen.params));
+  assert(checkArgs(genargs,typegen.params));
 }
 
 //TODO How to deal with select? For now just do a normal select off of raw

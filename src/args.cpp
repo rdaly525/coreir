@@ -34,7 +34,7 @@ bool operator==(const Args& l, const Args& r) {
   return true;
 }
 
-bool checkParams(Args args, Params params) {
+bool checkArgs(Args args, Params params) {
   if (args.size() < params.size()) return false;
   for (auto parammap : params) {
     auto arg = args.find(parammap.first);
