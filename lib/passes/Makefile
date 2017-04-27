@@ -1,5 +1,3 @@
-.SUFFIXES:
-
 COREIRCONFIG ?= g++
 CXX ?= g++
 
@@ -36,7 +34,7 @@ clean:
 	rm -rf build/*
 
 build/passes.dylib: build/typecheck.o build/rungen.o
-	$(CXX) -install_name "@loader_path/libcoreir-passes.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
+	$(CXX) -install_name "@rpath/libcoreir-passes.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
 	cp $@ $(BIN)/libcoreir-passes.dylib
 
 build/passes.so: build/typecheck.o build/rungen.o
