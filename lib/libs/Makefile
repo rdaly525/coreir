@@ -34,7 +34,7 @@ clean:
 	rm -rf build/*
 
 build/%.so: build/%.o
-	$(CXX) -shared $(LPATH) -lcoreir -o $@ $^
+	$(CXX) -shared $(LPATH)-o $@ $^ -lcoreir 
 	cp $@ $(BIN)/libcoreir-$*.so
 
 build/%.dylib: build/%.o
