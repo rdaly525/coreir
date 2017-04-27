@@ -335,7 +335,7 @@ library named **stdlib**.
    #endif //COREIR_STDLIB_HPP_
    ```
 
-2) Next we define `CoreIRLoadLibrary_stdlib`
+2) Next we define `CoreIRLoadLibrary_stdlib` with the interface `Namespace* CoreIRLoadLibrary_{{NAME}}(Context* c)`
    ```cpp
    // coreir-stdlib.cpp
    #include <coreir-stdlib.h>
