@@ -10,7 +10,6 @@
 ###If you are using a Linux environment:  
   To Install:  
   
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/bin  
     make install
   
   To verify coreir build
@@ -20,7 +19,6 @@
 ###If you are using an OSX environment
   To Install:
     
-    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir>/bin
     make installosx
 
   To verify coreir build
@@ -50,9 +48,10 @@ int main(...) {
 
 ```
 #Makefile example
-INCS = <Path_to_coreir>/include
-LPATH = <Path_to_coreir>/bin
-LIBS =  -lcoreir-stdlib -lcoreir-passes -lcoreir
+COREIR = <Path_to_coreir>
+INCS = $COREIR/include
+LPATH = $COREIR/bin
+LIBS =  -Wl,-rpath,$COREIR/bin -lcoreir-passes -lcoreir
 executable: main.o 
 	$(CXX) $(CXXFLAGS) $(INCS) -o executable main.o $(LPATH) $(LIBS) 
 

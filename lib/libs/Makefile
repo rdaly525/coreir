@@ -38,7 +38,7 @@ build/%.so: build/%.o
 	cp $@ $(BIN)/libcoreir-$*.so
 
 build/%.dylib: build/%.o
-	$(CXX) -install_name "@loader_path/libcoreir-$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
+	$(CXX) -install_name "@rpath/libcoreir-$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
 	cp $@ $(BIN)/libcoreir-$*.dylib
 
 build/%.o: %.cpp $(DEPS)

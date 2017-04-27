@@ -19,7 +19,7 @@ endif
 BIN = ../../bin
 INCS = -I../../include -I.
 LPATH = -L$(BIN)
-LIBS =  -lcoreir-stdlib -lcoreir-passes -lcoreir
+LIBS =  -Wl,-rpath,$(BIN) -lcoreir-stdlib -lcoreir-passes -lcoreir
 SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
