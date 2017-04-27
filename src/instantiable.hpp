@@ -13,6 +13,7 @@
 #include "json.hpp"
 
 #include "moduledef.hpp"
+#include "generatordef.hpp"
 
 #include "metadata.hpp"
 
@@ -51,51 +52,29 @@ std::ostream& operator<<(ostream& os, const Instantiable&);
 
 class Generator : public Instantiable {
   Params genparams;
-  TypeGen typegen;
-  ModuleDefGenFun genfun;
+  TypeGen* typegen;
+  
+  //This is memory managed
+  GeneratorDef* def;
+  
   public :
-    Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams=Params());
-    bool hasDef() const { return !!genfun; }
+    Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams=Params());
+    ~Generator();
     string toString() const;
     json toJson();
-    TypeGen getTypeGen() { return typegen;}
-    ModuleDefGenFun getDef() { return genfun;}
-    void addDef(ModuleDefGenFun fun) { genfun = fun;}
+    TypeGen* getTypeGen() const { return typegen;}
+    bool hasDef() const { return !!def; }
+    GeneratorDef* getDef() const {return def;}
+    
+    //This will transfer memory management of def to this Generator
+    void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
+    void setGeneratorDefFromFun(ModuleDefGenFun fun);
     Params getGenparams() {return genparams;}
 };
-
-class InstanceDAG {
-  //Provides a mapping from {ns,name} to counts of that instance
-  unordered_map<myPair<string,string>,uint> insts;
-  public:
-    InstanceDAG() {}
-    void insert(string ns, string name) {
-      insts[{ns,name}] +=1;
-      cout << "D Insert: " << ns << "." << name << " " << insts.count({ns,name}) << endl;
-    }
-    void remove(string ns, string name) {
-      if (insts.count({ns,name}) <=1) {
-        insts.erase({ns,name});
-      }
-      else {
-        insts[{ns,name}] -=1 ;
-      }
-      cout << "D Remove: " << ns << "." << name << " " << insts.count({ns,name}) << endl;
-    }
-    vector<myPair<string,string>> get() {
-      vector<myPair<string,string>> keys;
-      for (auto k : insts) keys.push_back(k.first);
-      return keys;
-    }
-};
-
 
 class Module : public Instantiable {
   Type* type;
   ModuleDef* def;
-  string verilog;
-  
-  InstanceDAG instanceDAG;
   
   //Memory Management
   vector<ModuleDef*> mdefList;
@@ -104,30 +83,16 @@ class Module : public Instantiable {
     Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(MOD,ns,name,configparams), type(type), def(nullptr) {}
     ~Module();
     bool hasDef() const { return !!def; }
-    ModuleDef* getDef() { return def; } // TODO should probably throw error if does not exist
+    ModuleDef* getDef() const { return def; } // TODO should probably throw error if does not exist
+    void setDef(ModuleDef* def) { this->def = def;}
+    ModuleDef* newModuleDef();
+    
     string toString() const;
     json toJson();
     Type* getType() { return type;}
-    void addDef(ModuleDef* _def) { assert(!def); def = _def;}
-    void replaceDef(ModuleDef* _def) { def = _def;}
-    ModuleDef* newModuleDef();
-    void logInstanceAdd(string ns, string name) {
-      instanceDAG.insert(ns,name);
-    }
-    vector<myPair<string,string>> getInstanceDAG() { return instanceDAG.get();}
-    void logInstanceDel(string ns, string name) {
-      instanceDAG.remove(ns,name);
-    }
+    
     void print(void);
-    
-    
-    //TODO turn this into metadata
-    void addVerilog(string _v) {verilog = _v;}
-    
 };
-
-//void* allocateFromType(Type* t);
-//void deallocateFromType(Type* t, void* d);
 
 
 // Compiling functions.
@@ -143,16 +108,6 @@ void resolveDecls(Context* c, ModuleDef* m);
 
 //Only runs the moduleGens
 void runGenerators(Context* c, ModuleDef* m);
-
-
-// This 'typechecks' everything
-  //   Verifies all selects are valid
-  //   Verifies all connections are valid. type <==> FLIP(type)
-  //   Verifies inputs are only connected once
-
-//typedef map<ModuleDef*,TypedModuleDef*> typechecked_t;
-//typechecked_t* typecheck(Context* c, ModuleDef* m);
-
 
 // This verifies that there are no unconnected wires
 //void validate(TypedModuleDef* tm);

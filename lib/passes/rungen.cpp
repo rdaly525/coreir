@@ -85,7 +85,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
   }
   
   //Replace the module definition with this new one
-  m->replaceDef(newDef);
+  m->setDef(newDef);
   ran->insert(m);
 
   //recurively run through the runQueue

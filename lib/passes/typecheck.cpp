@@ -7,6 +7,11 @@ namespace CoreIR {
 bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked);
 
 
+// This 'typechecks' everything
+  //   Verifies all selects are valid
+  //   Verifies all connections are valid. type <==> FLIP(type)
+  //   Verifies inputs are only connected once
+
 void typecheck(Context* c, Module* m, bool* err) {
   cout << "Typechecking" << endl;
   unordered_set<Module*> checked;
