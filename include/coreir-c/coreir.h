@@ -73,6 +73,7 @@ extern COREModuleDef* COREWireableGetModuleDef(COREWireable* w);
 extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
 extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors);
 extern void COREPrintErrors(COREContext* c);
+extern const char* CORENamespaceGetName(CORENamespace* n);
 
 
 #endif //COREIR_C_H_

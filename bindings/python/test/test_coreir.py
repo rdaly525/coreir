@@ -8,6 +8,11 @@ def assert_pointers_equal(ptr1, ptr2):
     assert get_pointer_addr(ptr1) == get_pointer_addr(ptr2)
 
 
+def test_load_library():
+    c = coreir.Context()
+    stdlib = c.load_library("stdlib")
+    assert stdlib.name == "stdlib"
+
 def test_save_module():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
