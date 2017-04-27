@@ -1,15 +1,15 @@
 #ifndef STDLIB_H_
 #define STDLIB_H_
 
-//TODO Macrofy
+#include "coreir-macros.h"
+#include "coreir-c/ctypes.h"
 
 #ifdef __cplusplus
 #include "coreir.h"
-CoreIR::Namespace* CoreIRLoadLibrary_stdlib(CoreIR::Context* c);
-#else
-#include "coreir-c/coreir.h"
-extern CORENamespace* CORELoadLibrary_stdlib(COREContext* c);
+COREIR_GEN_CPP_API_DECLARATION_FOR_LIBRARY(stdlib);
 #endif
+
+COREIR_GEN_C_API_DECLARATION_FOR_LIBRARY(stdlib);
 
 
 #endif //STDLIB_HPP_
