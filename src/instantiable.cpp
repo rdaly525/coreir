@@ -42,15 +42,6 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-<<<<<<< Updated upstream
-Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
-  //Verify that genparams are a superset of typegen params
-  for (auto const &type_param : typegen.params) {
-    auto const &gen_param = genparams.find(type_param.first);
-    assert(gen_param != genparams.end());
-    assert(gen_param->second == type_param.second);
-  }
-=======
 Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
@@ -59,7 +50,6 @@ Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typege
     assert(gen_param->second == type_param.second && "Param type mismatch");
   }
 }
->>>>>>> Stashed changes
 
 Generator::~Generator() {
   if (def) {
