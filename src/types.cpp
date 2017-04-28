@@ -30,8 +30,8 @@ string RecordType::toString(void) const {
 }
 
 NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(NAMED) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
-  //Check parameters here.
-  assert(checkParams(genargs,typegen->getParams()));
+  //Check args here.
+  assert(checkArgs(genargs,typegen->getParams()));
 
   //Run the typegen
   raw = typegen->getType(genargs);

@@ -66,7 +66,7 @@ struct ArgType : Arg {
 //};
 
 
-bool checkParams(Args args, Params params);
+bool checkArgs(Args args, Params params);
 
 }//CoreIR namespace
 

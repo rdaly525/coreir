@@ -43,8 +43,12 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
 }
 
 Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
-  //Verify that genparams are the same
-  assert(genparams == typegen->getParams());
+  //Verify that typegen params are a subset of genparams
+  for (auto const &type_param : typegen->getParams()) {
+    auto const &gen_param = genparams.find(type_param.first);
+    assert(gen_param != genparams.end() && "Param not found");
+    assert(gen_param->second == type_param.second && "Param type mismatch");
+  }
 }
 
 Generator::~Generator() {
@@ -52,6 +56,7 @@ Generator::~Generator() {
     delete def;
   }
 }
+
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
   this->def = new GeneratorDefFromFun(this,fun);
 }
