@@ -17,7 +17,7 @@ class TypeGen {
     virtual ~TypeGen() {}
     virtual Type* createType(Context* c, Args args) = 0;
     Type* getType(Args args) {
-      assert(checkArgs(args,params) && "Argument types do not match params!");
+      assert(checkParams(args,params) && "Argument types do not match params!");
       Type* t = createType(ns->getContext(),args);
       return flipped ? t->getFlipped() : t;
     }
