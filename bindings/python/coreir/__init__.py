@@ -12,8 +12,10 @@ def load_shared_lib(suffix):
         shared_lib_ext = "dylib"
     else:
         raise NotImplementedError(_system)
-    path = os.path.join(os.environ["COREIRHOME"], "bin", "libcoreir-{}.{}".format(suffix, shared_lib_ext))
-    return cdll.LoadLibrary(path)
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    return cdll.LoadLibrary('{}/../../../bin/libcoreir-{}.{}'.format(dir_path, suffix, shared_lib_ext))
 
 class COREContext(ct.Structure):
     pass
