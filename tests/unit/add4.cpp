@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.hpp"
+#include "coreir-lib/stdlib.h"
 #include "coreir-pass/passes.hpp"
 
 using namespace CoreIR;
@@ -44,7 +44,7 @@ int main() {
     def->wire(add_01->sel("out"),add_1->sel("in1"));
 
     def->wire(add_1->sel("out"),self->sel("out"));
-  add4_n->addDef(def);
+  add4_n->setDef(def);
   cout << "Checkign Errors 1" << endl;
   c->checkerrors();
   add4_n->print();

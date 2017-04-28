@@ -67,10 +67,11 @@ class NamedType : public Type {
     
     Type* raw;
 
-    TypeGen typegen;
+    TypeGen* typegen;
     Args genargs;
   public :
-    NamedType(Namespace* ns, string name, Type* raw, TypeGen typegen, Args genargs);
+    NamedType(Namespace* ns, string name, Type* raw) : Type(NAMED), ns(ns), name(name), raw(raw), typegen(nullptr) {}
+    NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs);
     string toString(void) const { return name; } //TODO
     string getName() {return name;}
     Type* getRaw() {return raw;}

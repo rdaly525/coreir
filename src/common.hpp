@@ -43,18 +43,9 @@ struct myPair {
 };
 
 class Type;
+class TypeGen;
 class NamedType;
 typedef Type* (*TypeGenFun)(Context* c, Args args);
-struct TypeGen {
-  Namespace* ns;
-  string name;
-  Params params;
-  TypeGenFun fun;
-  bool flipped;
-  TypeGen(Namespace* ns, string name, Params params, TypeGenFun fun, bool flipped=false) : ns(ns), name(name), params(params), fun(fun), flipped(flipped) {}
-  TypeGen() : ns(nullptr), name(""), params(Params()), fun(nullptr), flipped(false) {} // TODO this is hacky. should find different solution
-  Type* run(Context* c, Args args);
-};
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
 class TypeCache;
@@ -78,8 +69,6 @@ typedef std::pair<string,vector<string>> WirePath;
 typedef myPair<Wireable*,Wireable*> Connection;
 
 
-
-
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
 template <class T> 
@@ -95,7 +84,6 @@ string Param2Str(Param);
 string Params2Str(Params);
 string wireableKind2Str(WireableKind wb);
 Param Str2Param(string s);
-
 
 
 } //CoreIR namespace
