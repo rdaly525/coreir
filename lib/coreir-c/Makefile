@@ -1,6 +1,3 @@
-.SUFFIXES:
-
-
 COREIRCONFIG ?= g++
 CXX ?= g++
 
@@ -41,7 +38,7 @@ build/%.so: build/%.o
 	cp $@ $(BIN)/lib$*.so
 
 build/%.dylib: build/%.o
-	$(CXX) -install_name "@loader_path/lib$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
+	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
 	cp $@ $(BIN)/lib$*.dylib
 
 build/%.o: %.cpp $(DEPS)

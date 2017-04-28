@@ -21,7 +21,7 @@ BIN = ../../bin
 INCS = -I../../include -I.
 LPATH = -L$(BIN)
 #TODO Hacky to include coreir lib. Maybe I should generate coreir-c statically including all of coreir
-LIBS = -lcoreir-c -lcoreir
+LIBS = -Wl,-rpath,$(BIN) -lcoreir-c -lcoreir
 SRCFILES = $(wildcard *.c)
 OBJS = $(patsubst %.c,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.c,build/%,$(SRCFILES))
