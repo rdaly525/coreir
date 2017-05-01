@@ -1,6 +1,3 @@
-#ifndef ARGS_CPP_
-#define ARGS_CPP_
-
 #include "args.hpp"
 #include "common.hpp"
 #include "error.hpp"
@@ -83,5 +80,3 @@ size_t std::hash<Args>::operator() (const Args& args) const {
   }
   return ret;
 }
-
-#endif //ARGS_CPP_

@@ -1,24 +1,13 @@
-
-#include "context.hpp"
-#include "stdlib.hpp"
-#include "passes.hpp"
-
+#include "coreir.h"
+#include "coreir-lib/stdlib.h"
+#include "coreir-pass/passes.hpp"
 
 using namespace CoreIR;
-
-
-// Create the following circuit
-//
-//       in1
-//           \
-// in0 - Add - Mult - out
-//     / 
-//   C 
 
 int main() {
   Context* c = newContext();
 
-  Namespace* stdlib = getStdlib(c);
+  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
   
   //Declare a brand new generator for some reason
  
@@ -45,7 +34,7 @@ int main() {
     def->wire(constinst->sel("out"),multinst->sel("in0"));
     def->wire(addinst->sel("out"),multinst->sel("in1"));
 
-  addmult->addDef(def);
+  addmult->setDef(def);
 
   addmult->print();
   
@@ -62,7 +51,7 @@ int main() {
   deleteContext(c);
 
   c = newContext();
-  getStdlib(c);
+  CoreIRLoadLibrary_stdlib(c); 
   cout << "Loading json" << endl;
   Module* m = loadModule(c,"_addmult.json",&err);
   if(err) c->die();

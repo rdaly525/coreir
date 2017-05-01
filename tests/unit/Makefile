@@ -1,63 +1,37 @@
-CORECONFIG ?= g++
+.SUFFIXES:
+COREIRCONFIG ?= g++
+CXX ?= g++
 
-ifeq ($(CORECONFIG),g++)
+ifeq ($(COREIRCONFIG),g++)
 CXX = g++
-CC = gcc
 endif
 
-ifeq ($(CORECONFIG),g++-4.9)
+ifeq ($(COREIRCONFIG),g++-4.9)
 CXX = g++-4.9
-CC = gcc-4.9
 endif
 
-CXXFLAGS = -std=c++11  -Wall  -fPIC 
-CFLAGS = -Wall -fPIC
-
+CXXFLAGS = -std=c++11  -Wall  -fPIC
 
 ifdef COREDEBUG
-CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
+CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
-
-DEPS = 
-
-SRCDIR = ../../src
-LIBSDIR = ../../libs
-
-INCS = -I$(SRCDIR) -I$(LIBSDIR)
-LIBS = -L$(SRCDIR) -L$(LIBSDIR)
-
-SRCFILES = $(wildcard [^_]*.c*)
+BIN = ../../bin
+INCS = -I../../include -I.
+LPATH = -L$(BIN)
+LIBS =  -Wl,-rpath,$(BIN) -lcoreir-stdlib -lcoreir-passes -lcoreir
+SRCFILES = $(wildcard *.cpp)
+OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
-EXES += $(patsubst %.c,build/%,$(SRCFILES))
-
-.SUFFIXES:
 
 all: $(EXES)
-
-#all: 
-#	make -C $(SRCDIR)
-#	make cpptest.run
-#	make ctest.run
-#	make build/add4
-#	make build/jsontest
-#	make gentest.run
-#	make typetest.run
 
 clean:
 	rm -rf build/*
 	rm -f _*.json
 
-build/%: build/%.o ../../build/coreir.a
-	make -C $(SRCDIR)
-	$(CXX) $(CXXFLAGS) $(INCS)  -o $@ $< ../../build/coreir.a
+build/%: build/%.o 
+	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
 
 build/%.o: %.cpp
-	make -C $(SRCDIR)
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<
-
-build/%.o: %.c
-	make -C $(SRCDIR)
-	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<
-
-#.PHONY: $(SRCDIR)/coreir.a

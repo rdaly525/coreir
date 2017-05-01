@@ -4,7 +4,7 @@ import platform
 import os
 from collections import namedtuple
 
-def load_shared_lib():
+def load_shared_lib(suffix):
     _system = platform.system()
     if _system == "Linux":
         shared_lib_ext = "so"
@@ -15,7 +15,7 @@ def load_shared_lib():
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    return cdll.LoadLibrary('{}/../../../build/coreir.{}'.format(dir_path, shared_lib_ext))
+    return cdll.LoadLibrary('{}/../../../bin/libcoreir-{}.{}'.format(dir_path, suffix, shared_lib_ext))
 
 class COREContext(ct.Structure):
     pass
@@ -77,10 +77,9 @@ COREMapKind_STR2TYPE_ORDEREDMAP = COREMapKind(0)
 COREMapKind_STR2PARAM_MAP = COREMapKind(1)
 COREMapKind_STR2ARG_MAP = COREMapKind(2)
 
-coreir_lib = load_shared_lib()
+coreir_lib = load_shared_lib("c")
 
 coreir_lib.CORENewMap.argtypes = [COREContext_p, ct.c_void_p, ct.c_void_p, ct.c_uint32, COREMapKind]
-
 coreir_lib.CORENewMap.restype = ct.c_void_p
 
 coreir_lib.CORENewContext.restype = COREContext_p
@@ -188,6 +187,9 @@ coreir_lib.COREModuleDefSelect.restype = CORESelect_p
 
 coreir_lib.COREModuleDefGetModule.argtypes = [COREModuleDef_p]
 coreir_lib.COREModuleDefGetModule.restype = COREModule_p
+
+coreir_lib.CORENamespaceGetName.argtypes = [CORENamespace_p]
+coreir_lib.CORENamespaceGetName.restype = ct.c_char_p
 
 # coreir_lib.CORESelectGetParent.argtypes = [CORESelect_p]
 # coreir_lib.CORESelectGetParent.restype = COREWireable_p
@@ -332,19 +334,29 @@ class Module(CoreIRType):
         coreir_lib.COREPrintModule(self.ptr)
 
 class Namespace(CoreIRType):
-  def new_module(self, name, typ,cparams=None):
-    assert isinstance(typ,Type)
-    if cparams==None:
-      cparams = self.context.newParams()
-    assert isinstance(cparams,Params)
-    return Module(
-      coreir_lib.CORENewModule(self.ptr, ct.c_char_p(str.encode(name)), typ.ptr,cparams.ptr),self.context)
+    @property
+    def name(self):
+        return coreir_lib.CORENamespaceGetName(self.ptr).decode()
+
+    def new_module(self, name, typ,cparams=None):
+        assert isinstance(typ,Type)
+        if cparams==None:
+            cparams = self.context.newParams()
+        assert isinstance(cparams,Params)
+        return Module(coreir_lib.CORENewModule(self.ptr, 
+                                               ct.c_char_p(str.encode(name)), 
+                                               typ.ptr,
+                                               cparams.ptr),
+                      self.context)
+
 
 class Context:
     AINT=0
     ASTRING=1
     ATYPE=2
     def __init__(self):
+        # FIXME: Rename this to ptr or context_ptr to be consistent with other
+        #        API objects
         self.context = coreir_lib.CORENewContext()
         self.G = Namespace(coreir_lib.COREGetGlobal(self.context),self)
     
@@ -414,6 +426,13 @@ class Context:
            self.print_errors()
 
         return Module(m,self)
+
+    def load_library(self, name):
+        lib = load_shared_lib(name)
+        func = getattr(lib,"CORELoadLibrary_{}".format(name))
+        func.argtypes = [COREContext_p]
+        func.restype = CORENamespace_p
+        return Namespace(func(self.context), self)
 
     def __del__(self):
         coreir_lib.COREDeleteContext(self.context)

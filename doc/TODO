@@ -1,0 +1,149 @@
+LLVM Compiler passes
+Module (Set of functions)
+
+List of passes I want to do
+Compute Verilog: Modules -> Verilog
+Requires?
+Looping over every Module in the minimized dag
+
+VerilogPass : Module Pass
+  map<string,string> Mod2Verilog
+  bool runonModule(Module m) {
+    if (namespace==stdlib) {
+
+    }
+    else if
+
+  }
+  string instance2verilog
+
+Run Generators Pass
+RunAllGenerators : Module Pass
+  
+
+Inline Pass
+
+
+Add Clock enable pass
+ClockEn : ComputeDAG
+  runOnModule(Module m) {
+    foreach instance {
+      if instance has clk
+        if has clk en
+          add And gate
+          Wire output of And to instance.clken
+        if no clk en
+          instance -> instance with clken
+      Wire self.clken -> inst.clken
+    }
+  }
+
+OR
+
+ClockEN : ComputeDag
+  string clken
+  runOnModule(Module m) {
+    foreach instance with clock
+      replace instRef with clkEnGen(instRef)
+      Wire m.clken to inst.clken
+    }
+  }
+}
+
+clkEnGen(ModuleDef def, Module mref,Type tref) {
+  
+
+}
+
+
+
+Add4 -> G(Add2)
+
+Types of passes:
+
+Module Pass
+Runs over the modules in arbitrary order
+bool runPass(Module m)
+
+computeDAG
+Run over Modules in DAG sorted order, bottom up
+
+Instance Pass
+Run over all instances in all DAGs in any order.
+Is this useful?
+
+
+
+
+General Ideas
+
+For the compilers Have a set of graph editing operations
+First is basically replace moduleDef with new moduleDef
+
+//Fundemental
+AddNode
+DeleteNode(Deletes dangling wires)
+AddWire
+DeleteWire
+Change NodeType (also provide mappings from old wirepaths to new wirepaths)
+  //This should default to the same wirepaths if matching.
+Change NodeModuleRef
+Run Generator
+Change genargs
+Change configargs
+
+//Helpers
+splitedge(edge), Adds a node on an edge between the nodes
+
+
+Maybe do Typechecking based on moduleDef, and always call when you add the definition to the module
+
+Maybe do flatten on instances within a moduleDef. 
+
+Have ArgNull type
+Maybe have default args somehow? That would be nice
+Have the Args be references rather than pointers. Can construct normally on stack without helper functions
+
+Change Error handling to do something like LLVM where they return an Error type that you can derefence to get the return value. 
+
+Known Bugs
+
+Lenny TODO
+  Maybe other python convenience functions for traversing the graph. We need to make sure that Caleb can use these functions.
+
+  We need to figure out how to nicely pass errors to python
+  Right now I store all errors in the context.
+  I can check if I have an error with c.hasError(), and print with c.printErrors()
+  Right now I was thinking of just passing an err Bool* to check, and if you want the error message, you call c->printErrors(). 
+  I could definitely be persuaded on a different way. 
+
+  (Lower priority)
+  I want to have file names and line numbers for the C/Python API. This might be a tad annoying to add them back to all the C function calls, but I think there is a way in python to dynamically get this info. Alternatively we could just concatinate the linenumbers to the error message within python
+
+//////////////////////////////
+Ross TODO
+
+
+Change hash/eq functors to use std::function
+
+Make sure I can include coreir.hpp instead of context.hpp
+Check if I can just convert myPair to inherit from std::pair
+
+Get Verilog codegen working again
+
+When instantiating generators, if the typegen function exists, run it
+and cache the type in the typegenInst. Does this mean I need a 'strip' function?
+
+Generate unique name for generated modules
+Make sure you cannot create two namespaces of the same name
+Make sure you cannot create two Instantiables of the same name
+
+Test out weird Named cases for loading json: Named(libA,Named(libB,Named(libC)))
+
+change makefile to work with Clang
+
+Metadata
+  Augment function calls/constructors to use metadata
+
+Should check for cases of modules instantiated in its own module. We dont want module "recursion"
+This should be thought of as a DAG of module hierarchy. Generators can be cyclic, but Modules cannot be

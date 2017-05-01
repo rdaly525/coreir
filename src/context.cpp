@@ -1,6 +1,3 @@
-#ifndef CONTEXT_CPP_
-#define CONTEXT_CPP_
-
 #include "context.hpp"
 
 using namespace std;
@@ -56,9 +53,10 @@ Namespace* Context::getNamespace(string name) {
   return it->second;
 }
 
+/* TODO This is not even used in the repo yet. Should write a test for it
 // This tries to link all the definitions of def namespace to declarations of decl namespace
 // This will clobber declns
-bool Context::linkLib(Namespace* defns, Namespace* declns) {
+bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
   if (haserror()) {
     return true;
   }
@@ -66,7 +64,7 @@ bool Context::linkLib(Namespace* defns, Namespace* declns) {
     Generator* gdef = (it.second);
     string gdefname = gdef->getName();
     assert(it.first == gdefname);
-    ModuleDefGenFun gdeffun = gdef->getDef();
+    GeneratorDef* gdef = gdef->getDef();
     Generator* gdecl = declns->getGenerator(gdefname);
     
     //If def is not found in decl,
@@ -99,6 +97,7 @@ bool Context::linkLib(Namespace* defns, Namespace* declns) {
   //TODO do modules as well
   return false;
 }
+*/
 
 Type* Context::Any() { return cache->newAny(); }
 Type* Context::BitIn() { return cache->newBitIn(); }
@@ -114,7 +113,7 @@ Type* Context::Named(string ns, string name, Args args) {
   return this->getNamespace(ns)->getNamedType(name,args);
 }
 
-TypeGen Context::getTypeGen(string ns, string name) {
+TypeGen* Context::getTypeGen(string ns, string name) {
   return this->getNamespace(ns)->getTypeGen(name);
 }
 RecordParams* Context::newRecordParams() {
@@ -192,5 +191,3 @@ void deleteContext(Context* m) {
 
 
 } //CoreIR namespace
-
-#endif //CONTEXT_CPP_

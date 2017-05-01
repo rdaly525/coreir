@@ -1,4 +1,4 @@
-build/*
-tests/unit/build/*
 *~
+**/_*.json
+*.pyc
 \#*\#

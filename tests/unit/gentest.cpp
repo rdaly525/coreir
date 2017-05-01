@@ -1,4 +1,4 @@
-#include "context.hpp"
+#include "coreir.h"
 #include <cassert>
 
 using namespace CoreIR;

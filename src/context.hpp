@@ -5,8 +5,9 @@
 #include "typecache.hpp"
 #include "types.hpp"
 #include "error.hpp"
-#include <string>
 #include "common.hpp"
+
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -65,7 +66,7 @@ class Context {
     Type* Record(RecordParams rp);
     Type* Named(string ns, string name);
     Type* Named(string ns, string name, Args args);
-    TypeGen getTypeGen(string ns, string name);
+    TypeGen* getTypeGen(string ns, string name);
 
     RecordParams* newRecordParams();
     Params* newParams();

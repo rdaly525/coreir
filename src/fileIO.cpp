@@ -1,13 +1,12 @@
-#ifndef FILEIO_CPP_
-#define FILEIO_CPP_
-
 #include "json.hpp"
 #include <iostream>
 #include <fstream>
 #include "context.hpp"
 #include "instantiable.hpp"
 #include "namespace.hpp"
+#include "typegen.hpp"
 #include <unordered_map>
+
 
 namespace CoreIR {
 
@@ -82,14 +81,14 @@ Module* loadModule(Context* c, string filename, bool* err) {
             throw std::runtime_error("Missing namedtypegen symbol: " + ns->getName() + "." + name);
           }
             
-          TypeGen typegen = ns->getTypeGen(name);
-          assert(typegen.params == genparams);
-          assert(!typegen.flipped);
+          TypeGen* typegen = ns->getTypeGen(name);
+          assert(typegen->getParams() == genparams);
+          assert(!typegen->isFlipped());
           if (jntypegen.count("flippedname")) {
             string nameFlip = jntypegen.at("flippedname");
             typegen = ns->getTypeGen(nameFlip);
-            assert(typegen.params == genparams);
-            assert(typegen.flipped);
+            assert(typegen->getParams() == genparams);
+            assert(typegen->isFlipped());
           }
         }
       }
@@ -132,8 +131,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
           json jgen = jgenmap.second;
           Params genparams = json2Params(jgen.at("genparams"));
           vector<string> tgenref = jgen.at("typegen").get<vector<string>>();
-          TypeGen typegen = c->getTypeGen(tgenref[0],tgenref[1]);
-          assert(genparams == typegen.params);
+          TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
+          assert(genparams == typegen->getParams());
           //TODO generator config stuff
           ns->newGeneratorDecl(jgenname,genparams,typegen);
         }
@@ -192,7 +191,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
       }
       
       //Add Def back in
-      m->addDef(mdef);
+      m->setDef(mdef);
     } //End Module loop
     
     //Reference Top
@@ -277,7 +276,7 @@ Type* json2Type(Context* c, json jt) {
       string nsname = args[1].get<string>();
       string name = args[2].get<string>();
       if (args.size()==4) { //Has args
-        Params genparams = c->getNamespace(nsname)->getTypeGen(name).params;
+        Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
         Args genargs = json2Args(c,genparams,args[3]);
         return c->Named(nsname,name,genargs);
       }
@@ -292,6 +291,7 @@ Type* json2Type(Context* c, json jt) {
   return c->Any();
 }
 
+
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
   Context* c = m->getContext();
@@ -305,9 +305,10 @@ void saveModule(Module* m, string filename, bool* err) {
     return;
   }
 
-  //TODO I should gather only the dependent modules
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
+  
+
   for (auto nsmap: c->getNamespaces()) {
     j["namespaces"][nsmap.first] = nsmap.second->toJson();
   }
@@ -368,16 +369,16 @@ json Namespace::toJson() {
       jntypes.push_back(jntype);
     }
     j["namedtypes"] = jntypes;
-  }
+  } 
   if (!typeGenNameMap.empty()) {
     json jntypegens;
     for (auto nPair : typeGenNameMap) {
       string n = nPair.first;
       string nFlip = nPair.second;
-      TypeGen tg = typeGenList.at(n);
+      TypeGen* tg = typeGenList.at(n);
       json jntypegen = {
         {"name",n},
-        {"genparams", Params2Json(tg.params)}
+        {"genparams", Params2Json(tg->getParams())}
       };
       if (nFlip != "") {
         jntypegen["flippedname"] = nFlip;
@@ -413,7 +414,7 @@ json Generator::toJson() {
   json j = Instantiable::toJson();
   j["genparams"] = Params2Json(genparams);
   //You need to add namespace back to typegen (ugh)
-  j["typegen"] = json::array({typegen.ns->getName(),typegen.name});
+  j["typegen"] = json::array({typegen->getNamespace()->getName(),typegen->getName()});
   return j;
 }
 
@@ -492,5 +493,3 @@ json ArgInt::toJson() { return i; }
 json ArgType::toJson() { return t->toJson(); }
 
 }//CoreIR namespace
-
-#endif //FILEIO_CPP_

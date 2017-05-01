@@ -1,3 +1,8 @@
 #!/bin/sh
 #cd unit; ./run -memcheck
-cd unit; ./run
+set -e
+cd unit; ./run; cd -
+cd unit-c; ./run; cd -
+GREEN='\033[0;32m'
+NC='\033[0m'
+echo "${GREEN} PASSED ALL TESTS!${NC}"

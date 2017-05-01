@@ -1,13 +1,11 @@
-.SUFFIXES:
-
-CORECONFIG ?= g++
+COREIRCONFIG ?= g++
 CXX ?= g++
 
-ifeq ($(CORECONFIG),g++)
+ifeq ($(COREIRCONFIG),g++)
 CXX = g++
 endif
 
-ifeq ($(CORECONFIG),g++-4.9)
+ifeq ($(COREIRCONFIG),g++-4.9)
 CXX = g++-4.9
 endif
 
@@ -17,31 +15,25 @@ ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
 endif
 
-INCS = -I../libs -I.
-DEPS = common.hpp types.hpp typecache.hpp context.hpp instantiable.hpp 
-SRCFILES = $(wildcard *.cpp)
-OBJS = $(patsubst %.cpp,../build/%.o,$(SRCFILES))
-LIBFILES = $(wildcard ../libs/*.cpp)
-LIBOBJS = $(patsubst ../libs/%.cpp,../build/%.o,$(LIBFILES))
 
-all: ../build/coreir.a $(OBJS) $(LIBOBJS)
-echo:
-	echo $(CXX)
+BIN = ../bin
+INCS = -I../include -I.
+DEPS = context.hpp
+SRCFILES = $(wildcard *.cpp)
+OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
+
+all: build/coreir.dylib build/coreir.so
 
 clean:
-	rm -rf ../build/*
+	rm -rf build/*
 
-../build/coreir.a: $(OBJS) $(LIBOBJS)
-	ar rcs $@ $^
-
-../build/coreir.so: $(OBJS) $(LIBOBJS)
+build/%.so: $(OBJS)
 	$(CXX) -shared -o $@ $^
+	cp $@ $(BIN)/lib$*.so
 
-../build/coreir.dylib: $(OBJS) $(LIBOBJS)
-	$(CXX) -dynamiclib -o $@ $^
+build/%.dylib: $(OBJS)
+	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^
+	cp $@ $(BIN)/lib$*.dylib
 
-../build/%.o: %.cpp $(DEPS)
-	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<
-
-../build/%.o: ../libs/%.cpp $(DEPS)
+build/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

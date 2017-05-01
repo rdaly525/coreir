@@ -1,13 +1,6 @@
-#include "context.hpp"
-//#include "toFile.hpp"
-
-//#include <fstream>
-
-// Libraries
-#include "stdlib.hpp"
-
-//Compiler Passes
-#include "passes.hpp"
+#include "coreir.h"
+#include "coreir-lib/stdlib.h"
+#include "coreir-pass/passes.hpp"
 
 using namespace CoreIR;
 
@@ -19,8 +12,8 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = getStdlib(c);
-
+  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+  
   //Declare add2 Generator
   Generator* add2 = stdlib->getGenerator("add2");
   assert(add2);
@@ -51,7 +44,7 @@ int main() {
     def->wire(add_01->sel("out"),add_1->sel("in1"));
 
     def->wire(add_1->sel("out"),self->sel("out"));
-  add4_n->addDef(def);
+  add4_n->setDef(def);
   cout << "Checkign Errors 1" << endl;
   c->checkerrors();
   add4_n->print();

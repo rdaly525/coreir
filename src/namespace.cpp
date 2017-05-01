@@ -1,8 +1,5 @@
-#ifndef NAMESPACE_CPP_
-#define NAMESPACE_CPP_
-
-
 #include "namespace.hpp"
+#include "typegen.hpp"
 
 using namespace std;
 
@@ -35,6 +32,7 @@ Namespace::~Namespace() {
   for (auto g : generatorList) delete g.second;
   for (auto n : namedTypeList) delete n.second;
   for (auto n : namedTypeGenCache) delete n.second;
+  for (auto tg : typeGenList) delete tg.second;
 }
 
 NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
@@ -48,8 +46,8 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   namedTypeNameMap[name] = nameFlip;
 
   //Create two new NamedTypes
-  NamedType* named = new NamedType(this,name,raw,TypeGen(),Args());
-  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped(),TypeGen(),Args());
+  NamedType* named = new NamedType(this,name,raw);
+  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped());
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeList[name] = named;
@@ -57,6 +55,7 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   return named;
 }
 
+//TODO
 void Namespace::newNominalTypeGen(string name, string nameFlip, Params genparams, TypeGenFun fun) {
   //Make sure the name and its flip are different
   assert(name != nameFlip);
@@ -68,8 +67,8 @@ void Namespace::newNominalTypeGen(string name, string nameFlip, Params genparams
   typeGenNameMap[name] = nameFlip;
 
   //Create the TypeGens
-  TypeGen typegen(this,name,genparams,fun,false);
-  TypeGen typegenFlip(this,nameFlip,genparams,fun,true);
+  TypeGen* typegen = new TypeGenFromFun(this,name,genparams,fun,false);
+  TypeGen* typegenFlip = new TypeGenFromFun(this,nameFlip,genparams,fun,true);
   
   //Add typegens into list
   typeGenList[name] = typegen;
@@ -108,17 +107,14 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
     e.fatal();
     c->error(e);
   }
-  TypeGen tgen = typeGenList.at(name);
+  TypeGen* tgen = typeGenList.at(name);
   string nameFlip = typeGenNameMap.at(name);
-  TypeGen tgenFlip = typeGenList.at(nameFlip);
+  TypeGen* tgenFlip = typeGenList.at(nameFlip);
   NamedCacheParams ncpFlip(nameFlip,genargs);
 
-  //TODO for now just run the generator.
-  Type* raw = tgen.run(this->c,genargs);
-
   //Create two new named entries
-  NamedType* named = new NamedType(this,name,raw,tgen,genargs);
-  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped(),tgenFlip,genargs);
+  NamedType* named = new NamedType(this,name,tgen,genargs);
+  NamedType* namedFlip = new NamedType(this,nameFlip,tgenFlip,genargs);
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeGenCache[ncp] = named;
@@ -130,7 +126,7 @@ void Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   assert(namedTypeList.count(name)==0);
   assert(typeGenList.count(name)==0);
   
-  TypeGen typegen(this,name,genparams,fun);
+  TypeGen* typegen = new TypeGenFromFun(this,name,genparams,fun);
   
   //Add name to typeGenNameMap
   typeGenNameMap[name] = "";
@@ -139,17 +135,17 @@ void Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
 }
 
 //TODO deal with at errors
-TypeGen Namespace::getTypeGen(string name) {
+TypeGen* Namespace::getTypeGen(string name) {
   cout << "TypeGen name:" << name << endl;
   assert(typeGenList.count(name)>0);
-  TypeGen ret = typeGenList.at(name);
-  assert(ret.name==name);
+  TypeGen* ret = typeGenList.at(name);
+  assert(ret->getName()==name);
   return ret;
 }
 
 
 
-Generator* Namespace::newGeneratorDecl(string name, Params genparams, TypeGen typegen) {
+Generator* Namespace::newGeneratorDecl(string name, Params genparams, TypeGen* typegen) {
   //Make sure module does not already exist as a module or generator
   assert(moduleList.count(name)==0);
   assert(generatorList.count(name)==0);
@@ -219,18 +215,15 @@ Module* Namespace::runGenerator(Generator* g, Args genargs, Type* t) {
   cout << "Did not find in cache. Actualy running generator" << endl;
   
   // Make new module TODO how to pass configs
-  string mNewName = "TODO" + to_string(rand());
+  string mNewName = g->getName() + to_string(rand());
   Module* mNew = this->newModuleDecl(mNewName,t);
   if (g->getDef()) {
     ModuleDef* mdef = mNew->newModuleDef();
-    g->getDef()(mdef,c,t,genargs);
-    mNew->addDef(mdef);
+    g->getDef()->createModuleDef(mdef,c,t,genargs);
+    mNew->setDef(mdef);
   }
   genCache.emplace(gcp,mNew);
   return mNew;
 }
 
 }//CoreIR namespace
-
-
-#endif // NAMESPACE_CPP_
