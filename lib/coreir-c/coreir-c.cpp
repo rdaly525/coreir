@@ -1,4 +1,4 @@
-#include "coreir-c.h"
+#include "coreir-c/coreir.h"
 #include "coreir.h"
 
 namespace CoreIR {
@@ -272,5 +272,9 @@ extern "C" {
     }
     return arr;
   }
-}
+
+  const char* CORENamespaceGetName(CORENamespace* n) {
+    return rcast<Namespace*>(n)->getName().c_str();
+  }
+}//extern "C"
 }//CoreIR namespace

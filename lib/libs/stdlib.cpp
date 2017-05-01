@@ -1,5 +1,9 @@
-#include "coreir.h"
-#include "coreir-lib/stdlib.hpp"
+#include "coreir-lib/stdlib.h"
+
+COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(stdlib);
+
+
+//TODO Maybe also macrofy the name of the c++ function? Not sure
 
 using namespace CoreIR;
 
