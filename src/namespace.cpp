@@ -35,8 +35,8 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   namedTypeNameMap[name] = nameFlip;
 
   //Create two new NamedTypes
-  NamedType* named = new NamedType(this,name,raw);
-  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped());
+  NamedType* named = new NamedType(c,this,name,raw);
+  NamedType* namedFlip = new NamedType(c,this,nameFlip,raw->getFlipped());
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeList[name] = named;
@@ -102,8 +102,8 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
   NamedCacheParams ncpFlip(nameFlip,genargs);
 
   //Create two new named entries
-  NamedType* named = new NamedType(this,name,tgen,genargs);
-  NamedType* namedFlip = new NamedType(this,nameFlip,tgenFlip,genargs);
+  NamedType* named = new NamedType(c,this,name,tgen,genargs);
+  NamedType* namedFlip = new NamedType(c,this,nameFlip,tgenFlip,genargs);
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeGenCache[ncp] = named;

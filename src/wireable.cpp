@@ -13,7 +13,7 @@ Select* Wireable::sel(string selStr) {
   Context* c = getContext();
   Type* ret = c->Any();
   Error e;
-  bool error = type->sel(c,selStr,&ret,&e);
+  bool error = type->sel(selStr,&ret,&e);
   if (error) {
     e.message("  Wire: " + toString());
     //e.fatal();
