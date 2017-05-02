@@ -6,11 +6,12 @@
 #include "common.hpp"
 #include <cassert>
 #include "json.hpp"
+#include "casting/casting.hpp"
 
 using json = nlohmann::json;
 using namespace std;
 
-//struct Params {
+//class Params {
 //  unordered_map<string,Param> dict;
 //  Params(unordered_map<string,Param> dict) : dict(dict) {}
 //  Param operator[](const string& key) {
@@ -21,46 +22,60 @@ using namespace std;
 
 namespace CoreIR {
 
-struct Arg {
-  virtual ~Arg() {}
+class Arg {
   Param kind;
-  Arg(Param kind) : kind(kind) {}
-  bool isKind(Param k) const { return kind==k; }
+  public:
+    virtual ~Arg() {}
+    Arg(Param kind) : kind(kind) {}
+    Param getKind() const { return kind;}
+
+    template<typename T>
+    typename T::type get() {
+      return cast<T>(this)->get();
+    }
   
-  int arg2Int();
-  string arg2String();
-  Type* arg2Type();
-  
-  virtual json toJson()=0;
-  virtual bool operator==(const Arg& r) const {
-    return r.isKind(kind);
-  }
+    virtual json toJson()=0;
+    virtual bool operator==(const Arg& r) const {
+      return r.getKind() == this->kind;
+    }
   friend bool operator==(const Args& l, const Args& r);
 };
 
-struct ArgInt : Arg {
+class ArgInt : public Arg {
   int i;
-  ArgInt(int i) : Arg(AINT), i(i) {}
-  bool operator==(const Arg& r) const;
-  json toJson();
+  public :
+    typedef int type;
+    ArgInt(int i) : Arg(AINT), i(i) {}
+    static bool classof(const Arg* arg) {return arg->getKind()==AINT;}
+    type get() { return i;}
+    bool operator==(const Arg& r) const;
+    json toJson();
 };
 
-struct ArgString : Arg {
+class ArgString : public Arg {
   string str;
-  ArgString(string str) : Arg(ASTRING), str(str) {}
-  bool operator==(const Arg& r) const;
-  json toJson();
+  public :
+    typedef string type;
+    ArgString(string str) : Arg(ASTRING), str(str) {}
+    static bool classof(const Arg* arg) {return arg->getKind()==ASTRING;}
+    bool operator==(const Arg& r) const;
+    json toJson();
+    type get() { return str;}
 };
 
-struct ArgType : Arg {
+class ArgType : public Arg {
   Type* t;
-  ArgType(Type* t) : Arg(ATYPE), t(t) {}
-  bool operator==(const Arg& r) const;
-  json toJson();
+  public : 
+    typedef Type* type;
+    ArgType(Type* t) : Arg(ATYPE), t(t) {}
+    static bool classof(const Arg* arg) {return arg->getKind()==ATYPE;}
+    bool operator==(const Arg& r) const;
+    json toJson();
+    type get() { return t;}
 };
 
 //class Instantiable;
-//struct ArgInst : Arg {
+//class ArgInst : Arg {
 //  Instantiable* i;
 //  ArgInst(Instantiable* i) : Arg(AINST), i(i) {}
 //};

@@ -39,8 +39,8 @@ class TypeCache {
     TypeCache(Context* c); 
     ~TypeCache();
     Type* newAny() { return any; }
-    Type* newBitIn() { return bitI; }
     Type* newBit() { return bitO; }
+    Type* newBitIn() { return bitI; }
     Type* newArray(uint32_t len, Type* t);
     Type* newRecord(RecordParams params);
 };

@@ -6,6 +6,7 @@
 #include "types.hpp"
 #include "error.hpp"
 #include "common.hpp"
+#include "casting/casting.hpp"
 
 #include <string>
 #include <unordered_set>
@@ -59,9 +60,10 @@ class Context {
     Namespace* getNamespace(string s);
     map<string,Namespace*> getNamespaces() {return libs;}
 
+    //Factory functions for types
     Type* Any();
-    Type* BitIn();
     Type* Bit();
+    Type* BitIn();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
     Type* Named(string ns, string name);
@@ -76,9 +78,10 @@ class Context {
     Params* newParams();
     Args* newArgs();
     
-    Arg* int2Arg(int i);
-    Arg* str2Arg(string s);
-    Arg* type2Arg(Type* t);
+    //Factory functions for args
+    Arg* argInt(int i);
+    Arg* argString(string s);
+    Arg* argType(Type* t);
 
     Instance** newInstanceArray(int size);
     Connection* newConnectionArray(int size);

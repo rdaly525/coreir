@@ -30,25 +30,32 @@ Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 WirePath Wireable::getPath() {
   Wireable* top = this;
   vector<string> path;
-  while(top->isKind(SEL)) {
-    Select* s = (Select*) top;
+  while(auto s = dyn_cast<Select>(top)) {
     path.insert(path.begin(), s->getSelStr());
     top = s->getParent();
   }
-  if (top->isKind(IFACE)) return {"self",path};
-  string instname = ((Instance*) top)->getInstname();
+  if (isa<Interface>(top)) return {"self",path};
+  string instname = cast<Instance>(top)->getInstname();
   return {instname, path};
 }
 
 Context* Wireable::getContext() { return moduledef->getContext();}
+string Wireable::wireableKind2Str(WireableKind wb) {
+  switch(wb) {
+    case WK_Interface: return "Interface";
+    case WK_Instance: return "Instance";
+    case WK_Select: return "Select";
+  }
+  assert(false);
+}
 
-Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(INST,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false), generatorRef(nullptr) {
+Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false), generatorRef(nullptr) {
   assert(moduleRef && "Module is null");
   //TODO checkif instname is unique
   this->type = moduleRef->getType();
 }
 
-Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(INST,context,nullptr), instname(instname), configargs(configargs), isgen(true), generatorRef(generatorRef), genargs(genargs) {
+Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), configargs(configargs), isgen(true), generatorRef(generatorRef), genargs(genargs) {
   assert(generatorRef && "Generator is null!");
   this->moduleRef = generatorRef->getModule(genargs);
   this->type = moduleRef->getType();

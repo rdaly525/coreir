@@ -33,7 +33,7 @@ ModuleDef = {"metadata"?:Metadata,
 
 Generator = {"configparams"?:Parameters,"genparams":Parameters, "typegen":NamedRef, "metadata"?:Metadata}
 
-Instance = {"instref":InstantiatableReference, "genargs"?:Args, "config"?:Args, "metadata"?:Metadata}
+Instance = {"moduleref"?:InstantiatableReference, "generatorref"?:InstantiableReference, "genargs"?:Args, "configargs"?:Args, "metadata"?:Metadata}
 
 InstantiatableReference = ["namespacename","InstantiatableName"]
 

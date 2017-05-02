@@ -100,8 +100,8 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 */
 
 Type* Context::Any() { return cache->newAny(); }
-Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::Bit() { return cache->newBit(); }
+Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
@@ -174,17 +174,17 @@ Wireable** Context::newWireableArray(int size) {
   return arr;
 }
 
-Arg* Context::int2Arg(int i) { 
+Arg* Context::argInt(int i) { 
   Arg* ga = new ArgInt(i); 
   argList.push_back(ga);
   return ga;
 }
-Arg* Context::str2Arg(string s) { 
+Arg* Context::argString(string s) { 
   Arg* ga = new ArgString(s); 
   argList.push_back(ga);
   return ga;
 }
-Arg* Context::type2Arg(Type* t) { 
+Arg* Context::argType(Type* t) { 
   Arg* ga = new ArgType(t); 
   argList.push_back(ga);
   return ga;

@@ -31,7 +31,7 @@ bool checkTypes(Wireable* a, Wireable* b) {
   //  an inout is connected to an input (good!)
   //  an inout is connected to an output (bad!)
   
-  if (ta->isKind(ANY) || tb->isKind(ANY)) return false;
+  if (isa<AnyType>(ta) || isa<AnyType>(tb)) return false;
   if (ta == c->Flip(tb) ) return false;
   
   Error e;
@@ -129,12 +129,6 @@ bool typecheckRec(Context* c, Module* m, unordered_set<Module*>* checked) {
   for (auto instmap : mdef->getInstances() ) {
     Module* modRef = instmap.second->getModuleRef();
     err |= typecheckRec(c,modRef,checked);
-    
-    //TODO delete this
-    //Instantiable* instRef = instmap.second->getInstRef();
-    //if (instRef->isKind(MOD)) {
-    //  err |= typecheckRec(c,instRef->toModule(),checked);
-    //}
   }
   checked->insert(m);
   return err;

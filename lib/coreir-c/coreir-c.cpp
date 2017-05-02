@@ -76,20 +76,20 @@ extern "C" {
   
   int COREArg2Int(COREArg* a, bool* err) {
     Arg* arg = rcast<Arg*>(a);
-    if (!arg->isKind(AINT)) {
+    if (!isa<ArgInt>(arg)) {
       *err = true;
       return 0;
     }
-    return arg->arg2Int();
+    return arg->get<ArgInt>();
   }
   
   const char* COREArg2Str(COREArg* a, bool* err) {
     Arg* arg = rcast<Arg*>(a);
-    if (!arg->isKind(ASTRING)) {
+    if (!isa<ArgString>(arg)) {
       *err = true;
       return "";
     }
-    string s = arg->arg2String();
+    string s = arg->get<ArgString>();
     return s.c_str();
   }
   
@@ -178,12 +178,12 @@ extern "C" {
 
   //Create Arg for int
   COREArg* COREInt2Arg(COREContext* c,int i) {
-    Arg* ga = rcast<Context*>(c)->int2Arg(i);
+    Arg* ga = rcast<Context*>(c)->argInt(i);
     return rcast<COREArg*>(ga);
   }
   
   COREArg* COREStr2Arg(COREContext* c,char* str) {
-    Arg* ga = rcast<Context*>(c)->str2Arg(string(str));
+    Arg* ga = rcast<Context*>(c)->argString(string(str));
     return rcast<COREArg*>(ga);
   }
 

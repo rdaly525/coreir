@@ -12,16 +12,6 @@ bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
 }
 
-string TypeKind2Str(TypeKind t) {
-  switch(t) {
-    case ANY : return "Any";
-    case BITIN : return "BitIn";
-    case BIT : return "Bit";
-    case ARRAY : return "Array";
-    case RECORD : return "Record";
-    default : return "NYI";
-  }
-}
 
 string Param2Str(Param genparam) {
   switch(genparam) {
@@ -47,14 +37,5 @@ string Params2Str(Params genparams) {
   return ret + ")";
 }
 
-//TODO probably a better way of doing this with fancy macros
-string wireableKind2Str(WireableKind wb) {
-  switch(wb) {
-    case IFACE: return "Interface";
-    case INST: return "Instance";
-    case SEL: return "Select";
-  }
-  assert(false);
-}
 
 } //CoreIR namespace
