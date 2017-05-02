@@ -1,6 +1,35 @@
 General Ideas
+  
+
+Restructure for coreir to be more similar to LLVM
+
+Named
+  string name
+
+Symbol : Value
+  Namespace* ns
+
+Instantiable : Symbol
+  Configparams params
+
+Module : Instantiable
+  
+Generator : Instantiable
+
+Wireable : Value
+
+Instance : Wireable
+  configArgs
+
+GenInstance : Instance
+
+NamedType : Symboal : Type
+
+GenNamedType : NamedType
+
 LLVM Compiler passes
 Module (Set of functions)
+  
 
 List of passes I want to do
 Compute Verilog: Modules -> Verilog

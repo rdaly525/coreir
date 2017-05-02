@@ -31,7 +31,7 @@ void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
-    cout << "      " << inst.first << " : " << inst.second->getInstRef()->getName() << endl;
+    cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
@@ -47,27 +47,24 @@ Type* ModuleDef::getType() {return module->getType();}
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
   assert(instances.count(instname)==0);
   
-  //TODO Should this type be resolved? Just always get the type for now
-  Type* type = gen->getTypeGen()->getType(genargs);
-  
-  Instance* inst = new Instance(this,instname,gen,type,genargs,config);
+  Instance* inst = new Instance(this,instname,gen,genargs,config);
   instances[instname] = inst;
   
   return inst;
 }
 
 Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
-  Instance* inst = new Instance(this,instname,m,m->getType(),Args(),config);
+  Instance* inst = new Instance(this,instname,m,config);
   instances[instname] = inst;
   
   return inst;
 }
 
 Instance* ModuleDef::addInstance(Instance* i) {
-  if( i->getInstRef()->isKind(MOD)) 
-    return addInstance(i->getInstname(),(Module*) i->getInstRef(),i->getConfig());
+  if( i->isGen()) 
+    return addInstance(i->getInstname(),i->getGeneratorRef(),i->getGenargs(),i->getConfigArgs());
   else 
-    return addInstance(i->getInstname(),(Generator*) i->getInstRef(),i->getConfig(),i->getArgs());
+    return addInstance(i->getInstname(),i->getModuleRef(),i->getConfigArgs());
 }
 
 

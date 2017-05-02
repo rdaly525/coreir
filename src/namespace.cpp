@@ -5,17 +5,6 @@ using namespace std;
 
 namespace CoreIR {
 
-bool operator==(const GenCacheParams & l,const GenCacheParams & r) {
-  return (*l.g==*r.g) && (l.ga==r.ga);
-}
-
-size_t GenCacheParamsHasher::operator()(const GenCacheParams& gcp) const {
-  size_t hash = 0;
-  hash_combine(hash,gcp.g->getNamespace()->getName());
-  hash_combine(hash,gcp.g->getName());
-  return hash;
-}
-
 bool operator==(const NamedCacheParams& l,const NamedCacheParams& r) {
   return (l.name==r.name) && (l.args==r.args);
 }
@@ -206,24 +195,6 @@ void Namespace::print() {
   cout << "  Generators:" << endl;
   for (auto it : generatorList) cout << "    " << it.second->toString() << endl;
   cout << endl;
-}
-
-Module* Namespace::runGenerator(Generator* g, Args genargs, Type* t) {
-  GenCacheParams gcp(g,genargs);
-  auto it = genCache.find(gcp);
-  if (it != genCache.end()) return it->second;
-  cout << "Did not find in cache. Actualy running generator" << endl;
-  
-  // Make new module TODO how to pass configs
-  string mNewName = g->getName() + to_string(rand());
-  Module* mNew = this->newModuleDecl(mNewName,t);
-  if (g->getDef()) {
-    ModuleDef* mdef = mNew->newModuleDef();
-    g->getDef()->createModuleDef(mdef,c,t,genargs);
-    mNew->setDef(mdef);
-  }
-  genCache.emplace(gcp,mNew);
-  return mNew;
 }
 
 }//CoreIR namespace

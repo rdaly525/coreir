@@ -42,6 +42,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
+
 Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
@@ -57,7 +58,41 @@ Generator::~Generator() {
   }
 }
 
+void checkArgsAreParams(Args args, Params params) {
+  assert(args.size() == params.size() && "Args and params are not the same!");
+  for (auto const &param : params) {
+    auto const &arg = args.find(param.first);
+    assert(arg != args.end() && "Arg Not found");
+    assert(arg->second->isKind(param.second) && "Param type mismatch");
+  }
+}
+
+Module* Generator::getModule(Args args) {
+  //Check cache
+  auto cached = genCache.find(args);
+  if (cached != genCache.end() ) {
+    return cached->second;
+  }
+  
+  checkArgsAreParams(args,genparams);
+  Type* type = typegen->getType(args);
+  Module* m = ns->newModuleDecl(name + "_NYI_UNIQUIFY",type,configparams);
+  genCache[args] = m;
+  return m;
+}
+
+//TODO maybe cache the results of this?
+void Generator::setModuleDef(Module* m, Args args) {
+  assert(def && "Cannot add ModuleDef if there is no generatorDef!");
+
+  checkArgsAreParams(args,genparams);
+  ModuleDef* mdef = m->newModuleDef();
+  def->createModuleDef(mdef,this->getContext(),m->getType(),args); 
+  m->setDef(mdef);
+}
+
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
+  assert(!def && "Do you want to overwrite the def?");
   this->def = new GeneratorDefFromFun(this,fun);
 }
 

@@ -456,13 +456,13 @@ json Wireable2Json(Wireable* w) {
 
 json Instance::toJson() {
   json j;
-  j["instref"] = json::array({instRef->getNamespace()->getName(),instRef->getName()});
+  j["instref"] = json::array({moduleRef->getNamespace()->getName(),moduleRef->getName()});
   if (this->isGen()) {
     assert(!genargs.empty());
     j["genargs"] = Args2Json(genargs);
   }
-  if (this->hasConfig()) {
-    j["config"] = Args2Json(this->getConfig());
+  if (this->hasConfigArgs()) {
+    j["config"] = Args2Json(this->getConfigArgs());
   }
   if (!metadata.empty()) {
     j["metadata"] = metadata.toJson();

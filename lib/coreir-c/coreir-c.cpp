@@ -62,14 +62,16 @@ extern "C" {
     deleteContext(rcast<Context*>(c));
   }
   
+  //TODO change the name of this function
   const char* COREGetInstRefName(COREInstance* iref) {
-    string name = rcast<Instance*>(iref)->getInstRef()->getName();
+    string name = rcast<Instance*>(iref)->getModuleRef()->getName();
     return name.c_str();
   }
 
+  //TODO change the name to Arg
   COREArg* COREGetConfigValue(COREInstance* i, char* s) {
     string str(s);
-    return rcast<COREArg*>(rcast<Instance*>(i)->getConfigValue(str));
+    return rcast<COREArg*>(rcast<Instance*>(i)->getConfigArg(str));
   }
   
   int COREArg2Int(COREArg* a, bool* err) {
