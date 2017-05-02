@@ -18,7 +18,7 @@ Namespace={
   "generators"? :{<genname>:Generator, ...}
 }
 
-Type = "BitIn" | "BitOut" | ["Array", <N>, Type] | ["Record", [<key>, Type][]] | ["Named",NamedRef, Args?]
+Type = "BitIn" | "Bit" | ["Array", <N>, Type] | ["Record", [<key>, Type][]] | ["Named",NamedRef, Args?]
 
 NamedRef = [<namespaceName>, <typeName>]
 NamedType = {"name":<name>, "flippedname":<name>,"rawtype":Type}

@@ -16,7 +16,7 @@ string TypeKind2Str(TypeKind t) {
   switch(t) {
     case ANY : return "Any";
     case BITIN : return "BitIn";
-    case BITOUT : return "BitOut";
+    case BIT : return "Bit";
     case ARRAY : return "Array";
     case RECORD : return "Record";
     default : return "NYI";

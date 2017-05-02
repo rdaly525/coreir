@@ -40,7 +40,7 @@ class TypeCache {
     ~TypeCache();
     Type* newAny() { return any; }
     Type* newBitIn() { return bitI; }
-    Type* newBitOut() { return bitO; }
+    Type* newBit() { return bitO; }
     Type* newArray(uint32_t len, Type* t);
     Type* newRecord(RecordParams params);
 };

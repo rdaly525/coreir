@@ -17,12 +17,12 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   Params widthparam = Params({{"width",AINT}});
 
   //Single bit types
-  stdlib->newNamedType("clk","clkIn",c->BitOut());
-  stdlib->newNamedType("rst","rstIn",c->BitOut());
+  stdlib->newNamedType("clk","clkIn",c->Bit());
+  stdlib->newNamedType("rst","rstIn",c->Bit());
   
   //Array types
   auto arrfun = [](Context* c, Args args) {
-    return c->Array(args.at("width")->arg2Int(),c->BitOut());
+    return c->Array(args.at("width")->arg2Int(),c->Bit());
   };
   stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
   stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
@@ -32,7 +32,7 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
     "binop",
     widthparam,
     [](Context* c, Args args) {
-      Type* arr = c->Array(args.at("width")->arg2Int(),c->BitOut());
+      Type* arr = c->Array(args.at("width")->arg2Int(),c->Bit());
       return c->Record({{"in0",c->Flip(arr)},{"in1",c->Flip(arr)},{"out",arr}});
     }
   );
@@ -48,11 +48,11 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   Type* binop16 = c->Record({
       {"in0",c->Array(16,c->BitIn())},
       {"in1",c->Array(16,c->BitIn())},
-      {"out",c->Array(16,c->BitOut())}
+      {"out",c->Array(16,c->Bit())}
   });
   
   Type* outType = c->Record({
-    {"out",c->Array(16,c->BitOut())}
+    {"out",c->Array(16,c->Bit())}
   });
 
   Type* inType = c->Record({

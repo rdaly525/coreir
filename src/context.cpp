@@ -101,7 +101,7 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 
 Type* Context::Any() { return cache->newAny(); }
 Type* Context::BitIn() { return cache->newBitIn(); }
-Type* Context::BitOut() { return cache->newBitOut(); }
+Type* Context::Bit() { return cache->newBit(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
@@ -116,6 +116,16 @@ Type* Context::Named(string ns, string name, Args args) {
 TypeGen* Context::getTypeGen(string ns, string name) {
   return this->getNamespace(ns)->getTypeGen(name);
 }
+
+Type* Context::In(Type* t) {
+  assert(0 && "TODO NYI");
+}
+
+Type* Context::Out(Type* t) {
+  assert(0 && "TODO NYI");
+}
+
+
 RecordParams* Context::newRecordParams() {
   RecordParams* record_param = new RecordParams();
   recordParamsList.push_back(record_param);

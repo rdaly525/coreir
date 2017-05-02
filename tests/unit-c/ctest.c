@@ -19,7 +19,7 @@ int main() {
   rkeys[1] = "out";
   COREType** rvalues = malloc(2*sizeof(COREType*));
   rvalues[0] = COREBitIn(c);
-  rvalues[1] = COREBitOut(c);
+  rvalues[1] = COREBit(c);
 
   void* recordparams = CORENewMap(c,rkeys,rvalues,2,STR2TYPE_ORDEREDMAP);
 

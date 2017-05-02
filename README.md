@@ -91,7 +91,7 @@ library named **stdlib**.
    #include <coreir-stdlib.h>
    Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
      Namespace* stdlib = c->newNamespace("stdlib");
-     stdlib->newNamedType("clk","clkIn",c->BitOut());
+     stdlib->newNamedType("clk","clkIn",c->Bit());
      return stdlib;
    }
    ```

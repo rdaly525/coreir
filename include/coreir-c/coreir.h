@@ -16,7 +16,7 @@ extern void COREDeleteContext(COREContext*);
 //Type COREonstructors
 extern COREType* COREAny(COREContext* CORE);
 extern COREType* COREBitIn(COREContext* CORE);
-extern COREType* COREBitOut(COREContext* CORE);
+extern COREType* COREBit(COREContext* CORE);
 extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
 extern COREType* CORERecord(COREContext* c, void* recordparams);
 

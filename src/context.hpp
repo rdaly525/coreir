@@ -61,11 +61,15 @@ class Context {
 
     Type* Any();
     Type* BitIn();
-    Type* BitOut();
+    Type* Bit();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
     Type* Named(string ns, string name);
     Type* Named(string ns, string name, Args args);
+    Type* Flip(Type* t);
+    Type* In(Type* t);
+    Type* Out(Type* t);
+
     TypeGen* getTypeGen(string ns, string name);
 
     RecordParams* newRecordParams();
@@ -81,7 +85,6 @@ class Context {
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
-    Type* Flip(Type* t);
 
 };
 

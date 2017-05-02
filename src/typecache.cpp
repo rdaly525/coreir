@@ -7,7 +7,7 @@ namespace CoreIR {
 
 TypeCache::TypeCache(Context* c) : c(c) {
   bitI = new BitInType();
-  bitO = new BitOutType();
+  bitO = new BitType();
   bitI->setFlipped(bitO);
   bitO->setFlipped(bitI);
   any = new AnyType();
