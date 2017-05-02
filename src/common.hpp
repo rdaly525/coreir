@@ -1,5 +1,5 @@
-#ifndef ENUMS_HPP_
-#define ENUMS_HPP_
+#ifndef COMMON_HPP_
+#define COMMON_HPP_
 
 
 #include <stdint.h>
@@ -13,8 +13,6 @@ typedef uint32_t uint;
 namespace CoreIR {
 
 typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
-
-typedef enum {IFACE,INST,SEL} WireableKind;
 
 //other
 class Namespace;
@@ -79,7 +77,6 @@ inline void hash_combine(size_t& seed, const T& v) {
 bool isNumber(string s);
 string Param2Str(Param);
 string Params2Str(Params);
-string wireableKind2Str(WireableKind wb);
 Param Str2Param(string s);
 
 
@@ -104,13 +101,4 @@ namespace std {
 
 }
 
-
-//TypedWire* castTypedWire(Wire* w);
-//Type* wireable2Type(Wireable* w);
-
-//template <typename T>
-//T safecast(void* obj,string err="Cannot cast!");
-
-
-
-#endif //ENUMS_HPP_
+#endif //COMMON_HPP_

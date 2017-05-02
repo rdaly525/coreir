@@ -37,14 +37,5 @@ string Params2Str(Params genparams) {
   return ret + ")";
 }
 
-//TODO probably a better way of doing this with fancy macros
-string wireableKind2Str(WireableKind wb) {
-  switch(wb) {
-    case IFACE: return "Interface";
-    case INST: return "Instance";
-    case SEL: return "Select";
-  }
-  assert(false);
-}
 
 } //CoreIR namespace

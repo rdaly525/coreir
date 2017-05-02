@@ -9,6 +9,9 @@ using namespace std;
 namespace CoreIR {
 
 class Wireable {
+  public:
+    enum WireableKind {WK_Interface,WK_Instance,WK_Select};
+
   protected :
     WireableKind kind;
     ModuleDef* moduledef; // ModuleDef which it is contained in 
@@ -26,8 +29,7 @@ class Wireable {
     Metadata getMetadata() { return metadata;}
     ModuleDef* getModuleDef() { return moduledef;}
     Context* getContext();
-    bool isKind(WireableKind e) { return e==kind;}
-    WireableKind getKind() { return kind; }
+    WireableKind getKind() const { return kind; }
     Type* getType() { return type;}
     void addConnectedWireable(Wireable* w) { connected.insert(w); }
     
@@ -38,14 +40,15 @@ class Wireable {
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,{a,b,0}}
     WirePath getPath();
-
+    string wireableKind2Str(WireableKind wb);
 };
 
 ostream& operator<<(ostream&, const Wireable&);
 
 class Interface : public Wireable {
   public :
-    Interface(ModuleDef* context,Type* type) : Wireable(IFACE,context,type) {};
+    Interface(ModuleDef* context,Type* type) : Wireable(WK_Interface,context,type) {};
+    static bool classof(const Wireable* w) {return w->getKind()==WK_Interface;}
     string toString() const;
 };
 
@@ -62,6 +65,7 @@ class Instance : public Wireable {
   public :
     Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs=Args());
     Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs=Args());
+    static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     string toString() const;
     json toJson();
     Module* getModuleRef() {return moduleRef;}
@@ -83,7 +87,8 @@ class Select : public Wireable {
     Wireable* parent;
     string selStr;
   public :
-    Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(SEL,context,type), parent(parent), selStr(selStr) {}
+    Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(WK_Select,context,type), parent(parent), selStr(selStr) {}
+    static bool classof(const Wireable* w) {return w->getKind()==WK_Select;}
     string toString() const;
     Wireable* getParent() { return parent; }
     string getSelStr() { return selStr; }

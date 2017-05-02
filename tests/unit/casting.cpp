@@ -93,6 +93,33 @@ int main() {
     assert(!dyn_cast<Module>(mi));
   }
 
+  //Test casting of Wireables
+  {
+    Namespace* g = c->getGlobal();
+    Module* m = g->newModuleDecl("B",c->Any());
+    ModuleDef* def = m->newModuleDef();
+    Wireable* iface = def->sel("self");
+    assert(isa<Interface>(iface));
+    Interface* iface_ = cast<Interface>(iface);
+    assert(dyn_cast<Wireable>(iface_));
+    assert(dyn_cast<Interface>(iface));
+    assert(!dyn_cast<Select>(iface));
+
+    Wireable* inst = def->addInstance("i0",m);
+    assert(isa<Instance>(inst));
+    Instance* inst_ = cast<Instance>(inst);
+    assert(dyn_cast<Wireable>(inst_));
+    assert(dyn_cast<Instance>(inst));
+    assert(!dyn_cast<Interface>(inst));
+    
+    Wireable* sel = inst->sel(5);
+    assert(isa<Select>(sel));
+    Select* sel_ = cast<Select>(sel);
+    assert(dyn_cast<Wireable>(sel_));
+    assert(dyn_cast<Select>(sel));
+    assert(!dyn_cast<Instance>(sel));
+  }
+
   deleteContext(c);
 
 }
