@@ -6,6 +6,7 @@
 #include "types.hpp"
 #include "error.hpp"
 #include "common.hpp"
+#include "casting/casting.hpp"
 
 #include <string>
 #include <unordered_set>
@@ -60,8 +61,8 @@ class Context {
     map<string,Namespace*> getNamespaces() {return libs;}
 
     Type* Any();
-    Type* BitIn();
     Type* Bit();
+    Type* BitIn();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
     Type* Named(string ns, string name);

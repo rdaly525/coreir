@@ -12,7 +12,6 @@ using namespace std;
 typedef uint32_t uint;
 namespace CoreIR {
 
-typedef enum {BITIN, BIT,ARRAY,RECORD,NAMED,ANY} TypeKind;
 typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
 
 typedef enum {MOD,GEN} InstantiableKind;
@@ -79,7 +78,6 @@ inline void hash_combine(size_t& seed, const T& v) {
 
 //These are defined in helpers
 bool isNumber(string s);
-string TypeKind2Str(TypeKind t);
 string Param2Str(Param);
 string Params2Str(Params);
 string wireableKind2Str(WireableKind wb);

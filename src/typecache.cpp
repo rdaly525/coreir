@@ -6,8 +6,8 @@ using namespace std;
 namespace CoreIR {
 
 TypeCache::TypeCache(Context* c) : c(c) {
-  bitI = new BitInType();
   bitO = new BitType();
+  bitI = new BitInType();
   bitI->setFlipped(bitO);
   bitO->setFlipped(bitI);
   any = new AnyType();

@@ -12,6 +12,18 @@ bool Type::sel(Context* c,string sel, Type** ret, Error* e) {
   return true;
 }
 
+string Type::TypeKind2Str(TypeKind t) {
+  switch(t) {
+    case TK_Any : return "Any";
+    case TK_Bit : return "Bit";
+    case TK_BitIn : return "BitIn";
+    case TK_Array : return "Array";
+    case TK_Record : return "Record";
+    case TK_Named : return "Named";
+    default : return "NYI";
+  }
+}
+
 std::ostream& operator<<(ostream& os, const Type& t) {
   os << t.toString();
   return os;
@@ -29,7 +41,7 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(NAMED) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(TK_Named) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
   //Check args here.
   assert(checkArgs(genargs,typegen->getParams()));
 
