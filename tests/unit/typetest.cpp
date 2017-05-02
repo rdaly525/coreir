@@ -42,7 +42,7 @@ int main() {
     c->BitIn(),
     c->Bit(),
     c->Array(5,c->BitIn()),
-    c->Array(6,c->Array(7,c->Bit())),
+    c->Array(6,c->Bit())->Arr(5)->Arr(3)->Arr(2),
     c->Record({{"a",c->BitIn()},{"b",c->Array(8,c->Bit())}}),
     Inta,
     Intb,

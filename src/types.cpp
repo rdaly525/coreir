@@ -5,7 +5,7 @@ namespace CoreIR {
 
 void Type::print(void) { cout << "Type: " << (*this) << endl; }
 
-bool Type::sel(Context* c,string sel, Type** ret, Error* e) {
+bool Type::sel(string sel, Type** ret, Error* e) {
   *ret = c->Any(); 
   e->message("Cant select from this type!");
   e->message("  Type: " + toString());
@@ -22,6 +22,10 @@ string Type::TypeKind2Str(TypeKind t) {
     case TK_Named : return "Named";
     default : return "NYI";
   }
+}
+
+Type* Type::Arr(uint i) {
+  return c->Array(i,this);
 }
 
 std::ostream& operator<<(ostream& os, const Type& t) {
@@ -41,7 +45,7 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(TK_Named) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(TK_Named,c) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
   //Check args here.
   assert(checkArgs(genargs,typegen->getParams()));
 
@@ -50,16 +54,16 @@ NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs)
 }
 
 //TODO How to deal with select? For now just do a normal select off of raw
-bool NamedType::sel(Context* c, string sel, Type** ret, Error* e) {
-  return raw->sel(c,sel,ret,e);
+bool NamedType::sel(string sel, Type** ret, Error* e) {
+  return raw->sel(sel,ret,e);
 }
 
-bool AnyType::sel(Context* c, string sel, Type** ret, Error* e) {
+bool AnyType::sel(string sel, Type** ret, Error* e) {
   *ret = c->Any();
   return false;
 }
 
-bool ArrayType::sel(Context* c, string sel, Type** ret, Error* e) {
+bool ArrayType::sel(string sel, Type** ret, Error* e) {
   *ret = c->Any();
   if (!isNumber(sel)) {
     e->message("Idx into Array needs to be a number");
@@ -80,7 +84,7 @@ bool ArrayType::sel(Context* c, string sel, Type** ret, Error* e) {
 }
  
 // TODO should this actually return Any if it is missing?
-bool RecordType::sel(Context* c, string sel, Type** ret, Error* e) {
+bool RecordType::sel(string sel, Type** ret, Error* e) {
   *ret = c->Any();
   auto it = record.find(sel);
   if (it != record.end()) {
