@@ -1,7 +1,6 @@
 #ifndef INSTANTIABLE_HPP_
 #define INSTANTIABLE_HPP_
 
-
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -36,6 +35,7 @@ class Instantiable {
     virtual string toString() const =0;
     bool isKind(InstantiableKind k) const { return kind==k;}
     InstantiableKind getKind() const { return kind;}
+    //TODO comment these out
     Module* toModule();
     Generator* toGenerator();
     Context* getContext();
@@ -49,11 +49,11 @@ class Instantiable {
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
 
-
 class Generator : public Instantiable {
   Params genparams;
   TypeGen* typegen;
   
+  unordered_map<Args,Module*> genCache;
   //This is memory managed
   GeneratorDef* def;
   
@@ -65,6 +65,12 @@ class Generator : public Instantiable {
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}
+    
+    //This will create a blank module (will run typegen) if not cached
+    Module* getModule(Args args);
+    
+    //This will actually run the generator
+    void setModuleDef(Module* m, Args args);
     
     //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
@@ -83,7 +89,7 @@ class Module : public Instantiable {
     Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(MOD,ns,name,configparams), type(type), def(nullptr) {}
     ~Module();
     bool hasDef() const { return !!def; }
-    ModuleDef* getDef() const { return def; } // TODO should probably throw error if does not exist
+    ModuleDef* getDef() const { return def; } 
     void setDef(ModuleDef* def) { this->def = def;}
     ModuleDef* newModuleDef();
     
@@ -98,16 +104,11 @@ class Module : public Instantiable {
 // Compiling functions.
 // resolve, typecheck, and validate will throw errors (for now)
 
-// For now, these functions mutate m. TODO (bad compiler practice probably)
-
 // This is the resolves the Decls and runs the moduleGens
-void resolve(Context* c, ModuleDef* m);
+//void resolve(Context* c, ModuleDef* m);
 
 //Only resolves the Decls
-void resolveDecls(Context* c, ModuleDef* m);
-
-//Only runs the moduleGens
-void runGenerators(Context* c, ModuleDef* m);
+//void resolveDecls(Context* c, ModuleDef* m);
 
 // This verifies that there are no unconnected wires
 //void validate(TypedModuleDef* tm);
@@ -117,7 +118,7 @@ void runGenerators(Context* c, ModuleDef* m);
 
 // Convieniance that runs resolve, typecheck and validate
 // and catches errors;
-void compile(Context* c, ModuleDef* m, fstream* f);
+//void compile(Context* c, ModuleDef* m, fstream* f);
 
 }//CoreIR namespace
 

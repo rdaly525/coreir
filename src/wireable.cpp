@@ -42,6 +42,17 @@ WirePath Wireable::getPath() {
 
 Context* Wireable::getContext() { return moduledef->getContext();}
 
+Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(INST,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false), generatorRef(nullptr) {
+  assert(moduleRef && "Module is null");
+  //TODO checkif instname is unique
+  this->type = moduleRef->getType();
+}
+
+Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(INST,context,nullptr), instname(instname), configargs(configargs), isgen(true), generatorRef(generatorRef), genargs(genargs) {
+  assert(generatorRef && "Generator is null!");
+  this->moduleRef = generatorRef->getModule(genargs);
+  this->type = moduleRef->getType();
+}
 
 string Interface::toString() const{
   return "self";
@@ -51,17 +62,25 @@ string Instance::toString() const {
   return instname;
 }
 
-Arg* Instance::getConfigValue(string s) { 
-  return config.at(s);
+//TODO this could throw an error. Bad!
+Arg* Instance::getConfigArg(string s) { 
+  return configargs.at(s);
 }
 
-bool Instance::isGen() { return instRef->isKind(GEN);}
-bool Instance::hasDef() { return instRef->hasDef(); }
-void Instance::replace(Instantiable* instRef, Args config) {
-  this->instRef = instRef;
-  this->config = config;
-}
+void Instance::runGenerator() {
+  assert(generatorRef && "Not a Generator Instance!");
+  
+  //If we have already run the generator, do not run again
+  if (moduleRef->hasDef()) return;
 
+  //TODO should this be the default behavior?
+  //If there is no generatorDef, then just do nothing
+  if (!generatorRef->hasDef()) return;
+  
+  //Actually run the generator
+  generatorRef->setModuleDef(moduleRef, genargs);
+  assert(moduleRef->hasDef());
+}
 
 string Select::toString() const {
   string ret = parent->toString(); 

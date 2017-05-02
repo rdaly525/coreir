@@ -13,6 +13,7 @@ class Wireable {
     WireableKind kind;
     ModuleDef* moduledef; // ModuleDef which it is contained in 
     Type* type;
+
     unordered_set<Wireable*> connected; 
     unordered_map<string,Wireable*> selects;
     Metadata metadata;
@@ -48,28 +49,33 @@ class Interface : public Wireable {
     string toString() const;
 };
 
-//TODO potentially separate out moduleGen instances and module instances
 class Instance : public Wireable {
   string instname;
-  Instantiable* instRef;
+  Module* moduleRef;
+  
+  Args configargs;
+  
+  bool isgen;
+  Generator* generatorRef;
   Args genargs;
-  Args config;
   
   public :
-    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, Args genargs, Args config)  : Wireable(INST,context,type), instname(instname), instRef(instRef),genargs(genargs), config(config) {}
+    Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs=Args());
+    Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs=Args());
     string toString() const;
     json toJson();
-    Instantiable* getInstRef() {return instRef;}
+    Module* getModuleRef() {return moduleRef;}
     string getInstname() { return instname; }
-    Arg* getConfigValue(string s);
-    Args getArgs() {return genargs;}
-    Args getConfig() {return config;}
-    bool hasConfig() {return !config.empty();}
+    Arg* getConfigArg(string s);
+    Args getConfigArgs() {return configargs;}
+    bool hasConfigArgs() {return !configargs.empty();}
     
     //Convinience functions
-    bool isGen();
-    bool hasDef();
-    void replace(Instantiable* instRef, Args config);
+    bool isGen() { return isgen;}
+    Generator* getGeneratorRef() { return generatorRef;}
+    Args getGenargs() {return genargs;}
+    void runGenerator();
+    //void replace(Instantiable* instRef, Args config);
 };
 
 class Select : public Wireable {

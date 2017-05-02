@@ -67,14 +67,19 @@ class NamedType : public Type {
     
     Type* raw;
 
+    bool isgen;
     TypeGen* typegen;
     Args genargs;
   public :
-    NamedType(Namespace* ns, string name, Type* raw) : Type(NAMED), ns(ns), name(name), raw(raw), typegen(nullptr) {}
+    NamedType(Namespace* ns, string name, Type* raw) : Type(NAMED), ns(ns), name(name), raw(raw), isgen(false), typegen(nullptr) {}
     NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs);
-    string toString(void) const { return name; } //TODO
+    string toString(void) const { return name; } //TODO add generator
     string getName() {return name;}
     Type* getRaw() {return raw;}
+    bool isGen() { return isgen;}
+    TypeGen* getTypegen() { return typegen;}
+    Args getGenargs() {return genargs;}
+    
     json toJson();
     bool sel(Context* c, string sel, Type** ret, Error* e);
 

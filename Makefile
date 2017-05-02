@@ -13,7 +13,16 @@ installosx:
 	make -C lib dylib
 
 clean:
-	rm bin/*
+	rm -rf bin/*
 	make -C src clean
 	make -C lib clean
 	make -C tests clean
+
+travis:
+	make clean
+	make installosx
+	make test
+	pip install -e bindings/python
+	pip3 install -e bindings/python
+	cd tests
+	pytest;
