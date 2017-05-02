@@ -12,7 +12,7 @@ using namespace std;
 typedef uint32_t uint;
 namespace CoreIR {
 
-typedef enum {BITIN, BITOUT,ARRAY,RECORD,NAMED,ANY} TypeKind;
+typedef enum {BITIN, BIT,ARRAY,RECORD,NAMED,ANY} TypeKind;
 typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
 
 typedef enum {MOD,GEN} InstantiableKind;

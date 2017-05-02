@@ -99,8 +99,8 @@ extern "C" {
   COREType* COREBitIn(COREContext* c) {
     return rcast<COREType*>(rcast<Context*>(c)->BitIn());
   }
-  COREType* COREBitOut(COREContext* c) {
-    return rcast<COREType*>(rcast<Context*>(c)->BitOut());
+  COREType* COREBit(COREContext* c) {
+    return rcast<COREType*>(rcast<Context*>(c)->Bit());
   }
   COREType* COREArray(COREContext* c,u32 len, COREType* elemType) {
     return rcast<COREType*>(rcast<Context*>(c)->Array(len,rcast<Type*>(elemType)));

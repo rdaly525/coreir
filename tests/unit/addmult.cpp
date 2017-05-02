@@ -16,7 +16,7 @@ int main() {
   //Type of module 
   Type* addmultType = c->Record({
     {"in",c->Array(16,c->BitIn())},
-    {"out",c->Array(16,c->BitOut())}
+    {"out",c->Array(16,c->Bit())}
   });
  
   //These will eventually be generators where you can pass in '16'

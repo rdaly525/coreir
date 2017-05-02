@@ -54,10 +54,10 @@ class BitInType : public Type {
     bool hasInput() { return true;}
 };
 
-class BitOutType : public Type {
+class BitType : public Type {
   public :
-    BitOutType() : Type(BITOUT) {}
-    string toString(void) const {return "BitOut";}
+    BitType() : Type(BIT) {}
+    string toString(void) const {return "Bit";}
 };
 
 class NamedType : public Type {

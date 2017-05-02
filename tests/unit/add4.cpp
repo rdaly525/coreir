@@ -22,7 +22,7 @@ int main() {
   // Define Add4 Module
   Type* add4Type = c->Record({
       {"in",c->Array(4,c->Array(n,c->BitIn()))},
-      {"out",c->Array(n,c->BitOut())}
+      {"out",c->Array(n,c->Bit())}
   });
 
   Module* add4_n = g->newModuleDecl("Add4",add4Type);

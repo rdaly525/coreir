@@ -250,10 +250,10 @@ Args json2Args(Context* c, Params genparams, json j) {
 
 Type* json2Type(Context* c, json jt) {
   if (jt.type() == json::value_t::string) {
-    //Will be bitIn or BitOut
+    //Will be bitIn or Bit
     string kind = jt.get<string>();
     if (kind == "BitIn") return c->BitIn();
-    else if (kind == "BitOut") return c->BitOut();
+    else if (kind == "Bit") return c->Bit();
     else if (kind == "Any") return c->Any();
     else throw std::runtime_error(kind + " is not a type!");
   }

@@ -15,7 +15,7 @@ def test_load_library():
 
 def test_save_module():
     c = coreir.Context()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
     module = c.G.new_module("multiply_by_2", module_typ)
     module.print_()
     module_def = module.new_definition()
@@ -24,7 +24,7 @@ def test_save_module():
         c.Record({
             "in1": c.Array(8, c.BitIn()),
             "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.BitOut())
+            "out": c.Array(9, c.Bit())
         }),
         configparams
     )
@@ -53,14 +53,14 @@ def test_save_module():
 
 def test_module_def_get_instances():
     c = coreir.Context()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
     module = c.G.new_module("multiply_by_2", module_typ)
     module_def = module.new_definition()
     add8 = c.G.new_module("add8",
         c.Record({
             "in1": c.Array(8, c.BitIn()),
             "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.BitOut())
+            "out": c.Array(9, c.Bit())
         })
     )
     add8_inst_1 = module_def.add_module_instance("adder1", add8)
@@ -77,7 +77,7 @@ def test_module_def_get_instances():
 
 def test_module_def_select():
     c = coreir.Context()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
     module = c.G.new_module("multiply_by_2", module_typ)
     # module.print()
     module_def = module.new_definition()
@@ -85,7 +85,7 @@ def test_module_def_select():
         c.Record({
             "in1": c.Array(8, c.BitIn()),
             "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.BitOut())
+            "out": c.Array(9, c.Bit())
         })
     )
     interface = module_def.get_interface()
@@ -96,7 +96,7 @@ def test_module_def_select():
 
 def test_wireable():
     c = coreir.Context()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
     module = c.G.new_module("multiply_by_2", module_typ)
     # module.print()
     module_def = module.new_definition()
@@ -104,7 +104,7 @@ def test_wireable():
         c.Record({
             "in1": c.Array(8, c.BitIn()),
             "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.BitOut())
+            "out": c.Array(9, c.Bit())
         })
     )
     add8_inst = module_def.add_module_instance("adder", add8)
@@ -128,7 +128,7 @@ def test_wireable():
 
 def test_module_def_get_connections():
     c = coreir.Context()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
     module = c.G.new_module("multiply_by_2", module_typ)
     # module.print()
     module_def = module.new_definition()
@@ -136,7 +136,7 @@ def test_module_def_get_connections():
         c.Record({
             "in1": c.Array(8, c.BitIn()),
             "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.BitOut())
+            "out": c.Array(9, c.Bit())
         })
     )
     add8_inst = module_def.add_module_instance("adder", add8)
@@ -178,13 +178,13 @@ def test_module_def_get_connections():
 #     # any = c.Any()
 #     # any.print()
 #     # c.BitIn().print()
-#     # c.BitOut().print()
+#     # c.Bit().print()
 #     # c.Array(3, c.BitIn()).print()
 # 
 #     # c.Array(3, c.Array(4, c.BitIn())).print()
 # 
 #     # c.ModuleFromFile("test").print()
-#     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.BitOut())})
+#     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
 #     module = c.G.new_module("multiply_by_2", module_typ)
 #     module.print()
 #     module_def = module.new_definition()
@@ -192,7 +192,7 @@ def test_module_def_get_connections():
 #         c.Record({
 #             "in1": c.Array(8, c.BitIn()),
 #             "in2": c.Array(8, c.BitIn()),
-#             "out": c.Array(9, c.BitOut())
+#             "out": c.Array(9, c.Bit())
 #         })
 #     )
 #     add8_inst = module_def.add_module_instance("adder", add8)

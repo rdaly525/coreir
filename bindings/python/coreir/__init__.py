@@ -92,8 +92,8 @@ coreir_lib.COREAny.restype = COREType_p
 coreir_lib.COREBitIn.argtypes = [COREContext_p]
 coreir_lib.COREBitIn.restype = COREType_p
 
-coreir_lib.COREBitOut.argtypes = [COREContext_p]
-coreir_lib.COREBitOut.restype = COREType_p
+coreir_lib.COREBit.argtypes = [COREContext_p]
+coreir_lib.COREBit.restype = COREType_p
 
 coreir_lib.COREArray.argtypes = [COREContext_p, ct.c_uint32, COREType_p]
 coreir_lib.COREArray.restype = COREType_p
@@ -372,8 +372,8 @@ class Context:
     def BitIn(self):
         return Type(coreir_lib.COREBitIn(self.context),self)
 
-    def BitOut(self):
-        return Type(coreir_lib.COREBitOut(self.context),self)
+    def Bit(self):
+        return Type(coreir_lib.COREBit(self.context),self)
 
     def Array(self, length, typ):
         assert isinstance(typ, Type)
