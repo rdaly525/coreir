@@ -63,7 +63,7 @@ void checkArgsAreParams(Args args, Params params) {
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
     assert(arg != args.end() && "Arg Not found");
-    assert(arg->second->isKind(param.second) && "Param type mismatch");
+    assert(arg->second->getKind() == param.second && "Param type mismatch");
   }
 }
 

@@ -23,7 +23,7 @@ int main() {
   Module* mod = g->newModuleDecl("mod",mType);
   ModuleDef* def = mod->newModuleDef();
     Wireable* self = def->sel("self");
-    Wireable* i0 = def->addInstance("c0",const16,{{"width",c->int2Arg(16)}});
+    Wireable* i0 = def->addInstance("c0",const16,{{"width",c->argInt(16)}});
     def->wire(i0->sel("out"),self->sel("out"));
     def->wire(i0->sel("out"),self->sel("out"));
     def->wire(self->sel("out"),i0->sel("out"));

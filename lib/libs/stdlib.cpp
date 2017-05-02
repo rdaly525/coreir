@@ -22,7 +22,7 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   
   //Array types
   auto arrfun = [](Context* c, Args args) {
-    return c->Array(args.at("width")->arg2Int(),c->Bit());
+    return c->Array(args.at("width")->get<ArgInt>(),c->Bit());
   };
   stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
   stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
@@ -32,7 +32,7 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
     "binop",
     widthparam,
     [](Context* c, Args args) {
-      Type* arr = c->Array(args.at("width")->arg2Int(),c->Bit());
+      Type* arr = c->Array(args.at("width")->get<ArgInt>(),c->Bit());
       return c->Record({{"in0",c->Flip(arr)},{"in1",c->Flip(arr)},{"out",arr}});
     }
   );

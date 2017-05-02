@@ -28,7 +28,7 @@ int main() {
     Wireable* self = def->sel("self");
     Wireable* addinst = def->addInstance("addinst",add2_16);
     Wireable* multinst = def->addInstance("multinst",mult2_16);
-    Wireable* constinst = def->addInstance("const3",const_16,{{"value",c->int2Arg(constC)}});
+    Wireable* constinst = def->addInstance("const3",const_16,{{"value",c->argInt(constC)}});
     def->wire(self->sel("in"),addinst->sel("in0"));
     def->wire(constinst->sel("out"),addinst->sel("in1"));
     def->wire(constinst->sel("out"),multinst->sel("in0"));

@@ -11,63 +11,66 @@ int main() {
     Type* t = c->Any();
     assert(isa<AnyType>(t));
     AnyType* at = cast<AnyType>(t);
-    at->print();
-    if (auto dt = dyn_cast<Type>(at)) {
-      assert(1);
-      dt->print();
-    }
-    if (auto dt = dyn_cast<AnyType>(t)) {
-      assert(1);
-      dt->print();
-    }
-    if (auto dt = dyn_cast<BitType>(t)) {
-      assert(0);
-      dt->print();
-    }
+    assert(dyn_cast<Type>(at));
+    assert(dyn_cast<AnyType>(t));
+    assert(!dyn_cast<BitType>(t));
   }
   
   //Bit
   {
     Type* t = c->Bit();
-    t->print();
     assert(isa<BitType>(t));
     BitType* at = cast<BitType>(t);
-    at->print();
-    if (auto dt = dyn_cast<Type>(at)) {
-      assert(1);
-      dt->print();
-    }
-    if (auto dt = dyn_cast<BitType>(t)) {
-      assert(1);
-      dt->print();
-    }
-    if (auto dt = dyn_cast<RecordType>(t)) {
-      assert(0);
-      dt->print();
-    }
+    assert(dyn_cast<Type>(at));
+    assert(dyn_cast<BitType>(t));
+    assert(!dyn_cast<RecordType>(t));
   }
   
   //Array
   {
     Type* t = c->Array(5,c->Array(3,c->BitIn()));
-    t->print();
     assert(isa<ArrayType>(t));
     ArrayType* at = cast<ArrayType>(t);
-    at->print();
-    if (auto dt = dyn_cast<Type>(at)) {
-      assert(1);
-      dt->print();
-    }
-    if (auto dt = dyn_cast<ArrayType>(t)) {
-      assert(1);
-      dt->print();
-    }
-    if (auto dt = dyn_cast<RecordType>(t)) {
-      assert(0);
-      dt->print();
-    }
+    assert(dyn_cast<Type>(at));
+    assert(dyn_cast<ArrayType>(t));
+    assert(!dyn_cast<RecordType>(t));
   }
   
+
+  //Test casting of ArgInt
+  {
+    Arg* a = c->argInt(5);
+    assert(isa<ArgInt>(a));
+    assert(a->get<ArgInt>()==5);
+    ArgInt* ac = cast<ArgInt>(a);
+    assert(dyn_cast<Arg>(ac));
+    assert(dyn_cast<ArgInt>(a));
+    assert(!dyn_cast<ArgString>(a));
+  }
+  
+  //Test casting of ArgString
+  {
+    Arg* a = c->argString("Ross");
+    assert(isa<ArgString>(a));
+    assert(a->get<ArgString>()=="Ross");
+    ArgString* ac = cast<ArgString>(a);
+    assert(dyn_cast<Arg>(ac));
+    assert(dyn_cast<ArgString>(a));
+    assert(!dyn_cast<ArgType>(a));
+  }
+  
+  //Test casting of ArgType
+  {
+    Arg* a = c->argType(c->BitIn());
+    assert(isa<ArgType>(a));
+    assert(a->get<ArgType>()==c->BitIn());
+    ArgType* ac = cast<ArgType>(a);
+    assert(dyn_cast<Arg>(ac));
+    assert(dyn_cast<ArgType>(a));
+    assert(!dyn_cast<ArgInt>(a));
+  }
+
+
   deleteContext(c);
 
 }

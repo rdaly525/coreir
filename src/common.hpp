@@ -21,10 +21,10 @@ typedef enum {IFACE,INST,SEL} WireableKind;
 class Namespace;
 class Context;
 struct Error;
-struct Arg;
-struct ArgInt;
-struct ArgString;
-struct ArgType;
+class Arg;
+class ArgInt;
+class ArgString;
+class ArgType;
 typedef unordered_map<string,Param> Params;
 typedef unordered_map<string,Arg*> Args;
 

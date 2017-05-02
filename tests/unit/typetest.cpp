@@ -22,15 +22,15 @@ int main() {
   assert(g->getNamedType("int16") == c->Flip(g->getNamedType("intIn16")));
 
   auto intTypeFun = [](Context* c, Args args) {
-    int n = args.at("w")->arg2Int();
+    int n = args.at("w")->get<ArgInt>();
     return c->Array(n,c->Bit());
   };
 
   g->newNominalTypeGen("int", "intIn",{{"w",AINT}},intTypeFun);
 
-  Args ga1 = {{"w",c->int2Arg(16)}};
-  Args ga2 = {{"w",c->int2Arg(16)}};
-  Args ga3 = {{"w",c->int2Arg(17)}};
+  Args ga1 = {{"w",c->argInt(16)}};
+  Args ga2 = {{"w",c->argInt(16)}};
+  Args ga3 = {{"w",c->argInt(17)}};
   
   assert(g->getNamedType("int",ga1) == g->getNamedType("int",ga2));
   assert(g->getNamedType("int",ga1) != g->getNamedType("int",ga3));

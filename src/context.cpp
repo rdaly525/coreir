@@ -174,17 +174,17 @@ Wireable** Context::newWireableArray(int size) {
   return arr;
 }
 
-Arg* Context::int2Arg(int i) { 
+Arg* Context::argInt(int i) { 
   Arg* ga = new ArgInt(i); 
   argList.push_back(ga);
   return ga;
 }
-Arg* Context::str2Arg(string s) { 
+Arg* Context::argString(string s) { 
   Arg* ga = new ArgString(s); 
   argList.push_back(ga);
   return ga;
 }
-Arg* Context::type2Arg(Type* t) { 
+Arg* Context::argType(Type* t) { 
   Arg* ga = new ArgType(t); 
   argList.push_back(ga);
   return ga;
