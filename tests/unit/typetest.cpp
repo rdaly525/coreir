@@ -16,7 +16,6 @@ int main() {
   assert(c->BitIn() == c->Flip(c->Bit()));
 
 
-
   // Test out Named Types
   g->newNamedType("int16","intIn16",c->Array(16,c->Bit()));
   assert(g->getNamedType("int16") == c->Flip(g->getNamedType("intIn16")));
