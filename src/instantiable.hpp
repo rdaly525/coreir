@@ -22,6 +22,8 @@ using namespace std;
 namespace CoreIR {
 
 class Instantiable {
+  public :
+    enum InstantiableKind {IK_Module,IK_Generator};
   protected:
     InstantiableKind kind;
     Namespace* ns;
@@ -31,13 +33,13 @@ class Instantiable {
   public :
     Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : kind(kind), ns(ns), name(name), configparams(configparams) {}
     virtual ~Instantiable() {}
+    
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
     bool isKind(InstantiableKind k) const { return kind==k;}
     InstantiableKind getKind() const { return kind;}
+    
     //TODO comment these out
-    Module* toModule();
-    Generator* toGenerator();
     Context* getContext();
     Params getConfigParams() { return configparams;}
     Metadata getMetadata() { return metadata;}
@@ -60,6 +62,7 @@ class Generator : public Instantiable {
   public :
     Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams=Params());
     ~Generator();
+    static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
     string toString() const;
     json toJson();
     TypeGen* getTypeGen() const { return typegen;}
@@ -86,8 +89,9 @@ class Module : public Instantiable {
   vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(MOD,ns,name,configparams), type(type), def(nullptr) {}
+    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type), def(nullptr) {}
     ~Module();
+    static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() const { return def; } 
     void setDef(ModuleDef* def) { this->def = def;}

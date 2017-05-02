@@ -1,4 +1,5 @@
 #include "coreir.h"
+#include "coreir-lib/stdlib.h"
 #include <cassert>
 
 using namespace CoreIR;
@@ -70,6 +71,27 @@ int main() {
     assert(!dyn_cast<ArgInt>(a));
   }
 
+  //Test casting of Module
+  {
+    Namespace* g = c->getGlobal();
+    Instantiable* m = g->newModuleDecl("A",c->Any());
+    assert(isa<Module>(m));
+    Module* mi = cast<Module>(m);
+    assert(dyn_cast<Instantiable>(m));
+    assert(dyn_cast<Module>(mi));
+    assert(!dyn_cast<Generator>(mi));
+  }
+  
+  //Test casting of Generator
+  {
+    Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+    Instantiable* m = stdlib->getGenerator("add2");
+    assert(isa<Generator>(m));
+    Generator* mi = cast<Generator>(m);
+    assert(dyn_cast<Instantiable>(m));
+    assert(dyn_cast<Generator>(mi));
+    assert(!dyn_cast<Module>(mi));
+  }
 
   deleteContext(c);
 

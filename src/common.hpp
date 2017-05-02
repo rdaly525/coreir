@@ -14,7 +14,6 @@ namespace CoreIR {
 
 typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
 
-typedef enum {MOD,GEN} InstantiableKind;
 typedef enum {IFACE,INST,SEL} WireableKind;
 
 //other
