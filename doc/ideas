@@ -1,5 +1,39 @@
 General Ideas
-  
+ 
+
+
+Simple Inst Pass
+Given a moduledecl 'from' and 'to' with the same interface,
+Replace all instances of 'from' to 'to'. This is wonderful for mapping
+
+
+Pattern Matching Pass
+Given 
+  module definition (called pattern) which contains instances and connections representing the 'pattern',
+  A replacement module called replacement with the same high level interface as pattern,
+  and inst name from pattern, to start doing the graph pattern matching
+
+Do the following
+  Search each instance in each module to check if it matches the instance from the pattern module.
+  If it matches, then recusively check if the rest of pattern matches.
+
+  If the entire thing matches, then do the complicated replacement of replacing that pattern with the other pattern
+  (also optionally inline it)
+
+
+
+
+
+
+Random idea, implement a generator which takes a module, and an instance, and inlines that instance. 
+
+
+
+
+
+
+
+
 
 Restructure for coreir to be more similar to LLVM
 
