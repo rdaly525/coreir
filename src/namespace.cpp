@@ -134,12 +134,12 @@ TypeGen* Namespace::getTypeGen(string name) {
 
 
 
-Generator* Namespace::newGeneratorDecl(string name, Params genparams, TypeGen* typegen) {
+Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams) {
   //Make sure module does not already exist as a module or generator
   assert(moduleList.count(name)==0);
   assert(generatorList.count(name)==0);
   
-  Generator* g = new Generator(this,name,genparams,typegen);
+  Generator* g = new Generator(this,name,typegen,genparams,configparams);
   generatorList.emplace(name,g);
   return g;
 }

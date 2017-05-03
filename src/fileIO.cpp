@@ -134,8 +134,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           vector<string> tgenref = jgen.at("typegen").get<vector<string>>();
           TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
           assert(genparams == typegen->getParams());
-          //TODO generator config stuff
-          ns->newGeneratorDecl(jgenname,genparams,typegen);
+          ns->newGeneratorDecl(jgenname,typegen,genparams);
         }
       }
     }

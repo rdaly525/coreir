@@ -42,7 +42,7 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   /////////////////////////////////
   
   //declare new add2 generator
-  stdlib->newGeneratorDecl("add2",widthparam,stdlib->getTypeGen("binop"));
+  stdlib->newGeneratorDecl("add2",stdlib->getTypeGen("binop"),widthparam);
 
   //TODO Hack to get rid of
   Type* binop16 = c->Record({

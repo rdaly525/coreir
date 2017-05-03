@@ -52,15 +52,15 @@ class Instantiable {
 std::ostream& operator<<(ostream& os, const Instantiable&);
 
 class Generator : public Instantiable {
-  Params genparams;
   TypeGen* typegen;
+  Params genparams;
   
   unordered_map<Args,Module*> genCache;
   //This is memory managed
   GeneratorDef* def;
   
   public :
-    Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams=Params());
+    Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams);
     ~Generator();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
     string toString() const;

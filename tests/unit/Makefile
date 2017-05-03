@@ -20,7 +20,7 @@ BIN = ../../bin
 INCS = -I../../include -I.
 LPATH = -L$(BIN)
 LIBS =  -Wl,-rpath,$(BIN) -lcoreir-stdlib -lcoreir-passes -lcoreir
-SRCFILES = $(wildcard *.cpp)
+SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
 
