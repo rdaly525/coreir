@@ -77,9 +77,11 @@ inline void hash_combine(size_t& seed, const T& v) {
 bool isNumber(string s);
 string Param2Str(Param);
 string Params2Str(Params);
+string Args2Str(Args);
 Param Str2Param(string s);
 vector<std::string> splitString(const string &s, char delim);
 bool hasChar(const std::string s, char c);
+
 
 
 } //CoreIR namespace

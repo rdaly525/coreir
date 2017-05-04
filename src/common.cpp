@@ -41,6 +41,14 @@ string Params2Str(Params genparams) {
   return ret + ")";
 }
 
+string Args2Str(Args args) {
+  string s = "(";
+  for (auto it : args) {
+    s = s + it.first + ":"+it.second->toString()+",";
+  }
+  return s + ")";
+}
+
 std::vector<std::string> splitString(const std::string &s, char delim) {
     std::vector<std::string> elems;
     std::stringstream ss;
