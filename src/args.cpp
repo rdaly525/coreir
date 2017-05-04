@@ -23,6 +23,7 @@ bool ArgType::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;
   return this->t == static_cast<const ArgType&>(r).t;
 }
+string ArgType::toString() const { return t->toString();}
 
 bool operator==(const Args& l, const Args& r) {
   if (l.size() != r.size() ) return false;

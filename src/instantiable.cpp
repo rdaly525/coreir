@@ -36,6 +36,8 @@ Generator::~Generator() {
   if (def) {
     delete def;
   }
+  //Delete all the Generated Modules
+  for (auto m : genCache) delete m.second;
 }
 
 void checkArgsAreParams(Args args, Params params) {
@@ -49,6 +51,7 @@ void checkArgsAreParams(Args args, Params params) {
 
 Module* Generator::getModule(Args args) {
   //Check cache
+  cout << "Getting from " << name << Args2Str(args) << endl;
   auto cached = genCache.find(args);
   if (cached != genCache.end() ) {
     return cached->second;
@@ -56,7 +59,7 @@ Module* Generator::getModule(Args args) {
   
   checkArgsAreParams(args,genparams);
   Type* type = typegen->getType(args);
-  Module* m = ns->newModuleDecl(name + getContext()->getUnique(),type,configparams);
+  Module* m = new Module(ns,name + getContext()->getUnique(),type,configparams);
   genCache[args] = m;
   return m;
 }

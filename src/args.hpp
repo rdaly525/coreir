@@ -28,6 +28,7 @@ class Arg {
     virtual ~Arg() {}
     Arg(Param kind) : kind(kind) {}
     Param getKind() const { return kind;}
+    virtual string toString() const = 0;
 
     template<typename T>
     typename T::type get() {
@@ -47,6 +48,7 @@ class ArgInt : public Arg {
     typedef int type;
     ArgInt(int i) : Arg(AINT), i(i) {}
     static bool classof(const Arg* arg) {return arg->getKind()==AINT;}
+    string toString() const {return to_string(i);}
     type get() { return i;}
     bool operator==(const Arg& r) const;
     json toJson();
@@ -58,6 +60,7 @@ class ArgString : public Arg {
     typedef string type;
     ArgString(string str) : Arg(ASTRING), str(str) {}
     static bool classof(const Arg* arg) {return arg->getKind()==ASTRING;}
+    string toString() const { return str;}
     bool operator==(const Arg& r) const;
     json toJson();
     type get() { return str;}
@@ -69,6 +72,7 @@ class ArgType : public Arg {
     typedef Type* type;
     ArgType(Type* t) : Arg(ATYPE), t(t) {}
     static bool classof(const Arg* arg) {return arg->getKind()==ATYPE;}
+    string toString() const;
     bool operator==(const Arg& r) const;
     json toJson();
     type get() { return t;}

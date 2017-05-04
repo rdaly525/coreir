@@ -78,6 +78,7 @@ int main() {
 
   COREDeleteContext(c);
   c = CORENewContext(c);
+  CORELoadLibrary_stdlib(c);
   m = CORELoadModule(c,"_simple.json",&err);
   if (err) {
     COREPrintErrors(c);
