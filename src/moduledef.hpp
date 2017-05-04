@@ -49,8 +49,10 @@ class ModuleDef {
     Instance* addInstance(Instance* i); //copys info about i
     Interface* getInterface(void) {return interface;}
     Wireable* sel(string s);
+    Wireable* sel(SelectPath path);
     void wire(Wireable* a, Wireable* b);
-    void wire(WirePath a, WirePath b);
+    void wire(SelectPath pathA, SelectPath pathB);
+    void wire(string pathA, string pathB);
     json toJson();
     
 };

@@ -36,10 +36,9 @@ class Wireable {
     Select* sel(string);
     Select* sel(uint);
   
-    // Convinience function
     // if this wireable is from add3inst.a.b[0], then this will look like
-    // {add3inst,{a,b,0}}
-    WirePath getPath();
+    // {add3inst,a,b,0}
+    SelectPath getSelectPath();
     string wireableKind2Str(WireableKind wb);
 };
 
