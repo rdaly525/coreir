@@ -56,7 +56,7 @@ Module* Generator::getModule(Args args) {
   
   checkArgsAreParams(args,genparams);
   Type* type = typegen->getType(args);
-  Module* m = ns->newModuleDecl(name + "_NYI_UNIQUIFY",type,configparams);
+  Module* m = ns->newModuleDecl(name + getContext()->getUnique(),type,configparams);
   genCache[args] = m;
   return m;
 }

@@ -23,6 +23,10 @@ class Context {
   uint maxErrors;
   vector<Error> errors;
  
+  //Unique int
+  uint unique=0;
+
+
   //Memory management
   TypeCache* cache;
   
@@ -82,6 +86,12 @@ class Context {
     Arg* argInt(int i);
     Arg* argString(string s);
     Arg* argType(Type* t);
+
+    //Unique
+    string getUnique() {
+      return to_string(unique++);
+    }
+
 
     Instance** newInstanceArray(int size);
     Connection* newConnectionArray(int size);
