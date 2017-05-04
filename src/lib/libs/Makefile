@@ -21,8 +21,8 @@ INCS = -I$(HOME)/include -I.
 SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 
-DYLIBS = build/stdlib.dylib
-SOLIBS = build/stdlib.so
+DYLIBS = $(patsubst %.cpp,build/%.dylib,$(SRCFILES))
+SOLIBS = $(patsubst %.cpp,build/%.so,$(SRCFILES))
 
 all: $(DYLIBS) $(SOLIBS)
 
