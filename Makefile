@@ -12,20 +12,20 @@ pytest:
 
 install:
 	make -C src build/coreir.so
-	make -C lib so
+	make -C src/lib so
 
-installosx:
+osx:
 	make -C src build/coreir.dylib
-	make -C lib dylib
+	make -C src/lib dylib
 
 clean:
-	rm -rf bin/*
+	rm -rf lib/*
 	make -C src clean
-	make -C lib clean
+	make -C src/lib clean
 	make -C tests clean
 
 travis:
 	make clean
-	make installosx
+	make osx
 	make test
 	make pytest

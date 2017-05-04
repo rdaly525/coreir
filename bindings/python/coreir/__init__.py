@@ -15,7 +15,7 @@ def load_shared_lib(suffix):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    return cdll.LoadLibrary('{}/../../../bin/libcoreir-{}.{}'.format(dir_path, suffix, shared_lib_ext))
+    return cdll.LoadLibrary('{}/../../../lib/libcoreir-{}.{}'.format(dir_path, suffix, shared_lib_ext))
 
 class COREContext(ct.Structure):
     pass
