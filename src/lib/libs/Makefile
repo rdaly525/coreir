@@ -15,9 +15,9 @@ ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
-BIN = ../../bin
-LPATH = -L$(BIN)
-INCS = -I../../include -I.
+HOME = ../../..
+LPATH = -L$(HOME)/lib
+INCS = -I$(HOME)/include -I.
 SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 
@@ -35,11 +35,11 @@ clean:
 
 build/%.so: build/%.o
 	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir 
-	cp $@ $(BIN)/libcoreir-$*.so
+	cp $@ $(HOME)/lib/libcoreir-$*.so
 
 build/%.dylib: build/%.o
 	$(CXX) -install_name "@rpath/libcoreir-$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
-	cp $@ $(BIN)/libcoreir-$*.dylib
+	cp $@ $(HOME)/lib/libcoreir-$*.dylib
 
 build/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

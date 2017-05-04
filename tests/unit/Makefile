@@ -16,10 +16,11 @@ ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
-BIN = ../../bin
-INCS = -I../../include -I.
-LPATH = -L$(BIN)
-LIBS =  -Wl,-rpath,$(BIN) -lcoreir-stdlib -lcoreir-passes -lcoreir
+
+HOME = ../..
+INCS = -I$(HOME)/include -I.
+LPATH = -L$(HOME)/lib
+LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir-stdlib -lcoreir-passes -lcoreir
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
