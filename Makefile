@@ -3,6 +3,12 @@ all:
 test:
 	make -C tests
 	cd tests; ./run
+	
+pytest:
+	pip install -e bindings/python
+	pip3 install -e bindings/python
+	cd tests
+	pytest;
 
 install:
 	make -C src build/coreir.so
@@ -22,7 +28,4 @@ travis:
 	make clean
 	make installosx
 	make test
-	pip install -e bindings/python
-	pip3 install -e bindings/python
-	cd tests
-	pytest;
+	make pytest

@@ -27,16 +27,20 @@ Select* Wireable::sel(string selStr) {
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
-WirePath Wireable::getPath() {
+SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
   vector<string> path;
   while(auto s = dyn_cast<Select>(top)) {
     path.insert(path.begin(), s->getSelStr());
     top = s->getParent();
   }
-  if (isa<Interface>(top)) return {"self",path};
-  string instname = cast<Instance>(top)->getInstname();
-  return {instname, path};
+  if (isa<Interface>(top)) 
+    path.insert(path.begin(), "self");
+  else { //This should be an instance
+    string instname = cast<Instance>(top)->getInstname();
+    path.insert(path.begin(), instname);
+  }
+  return path;
 }
 
 Context* Wireable::getContext() { return moduledef->getContext();}

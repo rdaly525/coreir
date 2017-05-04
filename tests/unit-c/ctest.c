@@ -35,7 +35,6 @@ int main() {
   void* cp = CORENewMap(c,cpkeys,cpparams,2,STR2PARAM_MAP);
 
   COREModule* lut4 = CORENewModule(ns,"LUT4",lut4type,cp);
-  
 
   COREModule* m = CORENewModule(ns,"Main",COREBitIn(c),NULL);
 
@@ -49,11 +48,19 @@ int main() {
   cargs[1] = COREInt2Arg(c,13);
 
   void* config = CORENewMap(c,ckeys,cargs,2,STR2ARG_MAP);
-  
 
-
-
-  COREModuleDefAddModuleInstance(mdef, "ctop",lut4,config);
+  COREInstance* inst = COREModuleDefAddModuleInstance(mdef, "ctop",lut4,config);
+  (void) inst;
+  //TODO once the C api is changed
+  /*
+  COREWireable* sel1 = COREInstanceSelect(inst,"in");
+  COREWireable* sel2 = COREWireableSelect(sel1,"4");
+  int num_selects
+  const char** selpath = COREWireableGetSelectPath(sel2, &num_selects);
+  assert(num_selects==2);
+  assert(strcmp(selpath[0],"in")==0);
+  assert(strcmp(selpath[1],"4")==0);
+  */
 
   COREModuleAddDef(m,mdef);
 

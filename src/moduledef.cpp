@@ -1,6 +1,7 @@
 
 #include "moduledef.hpp"
 #include "typegen.hpp"
+#include <iterator>
 
 using namespace std;
 
@@ -99,18 +100,31 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   }
 }
 
-void ModuleDef::wire(WirePath pathA, WirePath pathB) {
-  Wireable* curA = this->sel(pathA.first);
-  Wireable* curB = this->sel(pathB.first);
-  for (auto str : pathA.second) curA = curA->sel(str);
-  for (auto str : pathB.second) curB = curB->sel(str);
-  this->wire(curA,curB);
+void ModuleDef::wire(SelectPath pathA, SelectPath pathB) {
+  this->wire(this->sel(pathA),this->sel(pathB));
 }
 
+void ModuleDef::wire(string pathA, string pathB) {
+  this->wire(this->sel(pathA),this->sel(pathB));
+}
 
+//Can pass in either a single instance name
+//Or pass in a '.' deleminated string
 Wireable* ModuleDef::sel(string s) { 
+  if (hasChar(s,'.')) {
+    SelectPath path = splitString(s,'.');
+    return this->sel(path);
+  }
   if (s=="self") return interface;
   else return instances[s]; 
+}
+
+Wireable* ModuleDef::sel(SelectPath path) {
+  Wireable* cur = this->sel(path[0]);
+  for (auto it = std::next(path.begin()); it != path.end(); ++it) {
+    cur = cur->sel(*it);
+  }
+  return cur;
 }
 
 

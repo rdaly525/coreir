@@ -184,14 +184,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
       //Connections
       if (jdef.count("connections")) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
-          vector<string> wA = jcon[0].get<vector<string>>();
-          vector<string> wB = jcon[1].get<vector<string>>();
-          string instA = wA[0];
-          string instB = wB[0];
-          wA.erase(wA.begin());
-          wB.erase(wB.begin());
-          WirePath pathA = {instA,wA};
-          WirePath pathB = {instB,wB};
+          vector<string> pathA = jcon[0].get<vector<string>>();
+          vector<string> pathB = jcon[1].get<vector<string>>();
           mdef->wire(pathA,pathB);
         }
       }
@@ -461,9 +455,9 @@ json ModuleDef::toJson() {
 }
 
 json Wireable2Json(Wireable* w) {
-  WirePath path = w->getPath();
-  json j = json::array({path.first});
-  for (auto str : path.second) j.push_back(str);
+  json j;
+  SelectPath path = w->getSelectPath();
+  for (auto str : path) j.push_back(str);
   return j;
 }
 

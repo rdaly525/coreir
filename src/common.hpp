@@ -61,7 +61,7 @@ class Interface;
 class Instance;
 class Select;
 
-typedef std::pair<string,vector<string>> WirePath;
+typedef vector<string> SelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 
 
@@ -78,6 +78,8 @@ bool isNumber(string s);
 string Param2Str(Param);
 string Params2Str(Params);
 Param Str2Param(string s);
+vector<std::string> splitString(const string &s, char delim);
+bool hasChar(const std::string s, char c);
 
 
 } //CoreIR namespace
