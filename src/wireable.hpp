@@ -79,7 +79,11 @@ class Instance : public Wireable {
     Generator* getGeneratorRef() { return generatorRef;}
     Args getGenargs() {return genargs;}
     void runGenerator();
-    //void replace(Instantiable* instRef, Args config);
+    void replace(Module* moduleRef, Args configargs) {
+      //TODO should I remove the generator and generator args? 
+      this->moduleRef = moduleRef;
+      this->configargs = configargs;
+    }
 };
 
 class Select : public Wireable {
