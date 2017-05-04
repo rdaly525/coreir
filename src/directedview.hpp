@@ -1,5 +1,5 @@
-#ifndef DVIEW_HPP_
-#define DVIEW_HPP_
+#ifndef DIRECTEDVIEW_HPP_
+#define DIRECTEDVIEW_HPP_
 
 #include "common.hpp"
 
@@ -40,7 +40,6 @@ class DirectedModule {
     DirectedConnections getConnections() { return connections;}
     DirectedInstances getInstances() { return insts;}
     Module* operator->() {return m;}
-    
 };
 
 
@@ -55,7 +54,7 @@ class DirectedInstance {
   DirectedConnections outputs;
 
   public:
-    DirectedInstance(Instance* i);
+    DirectedInstance(Instance* i, DirectedConnections inputs, DirectedConnections outputs);
     DirectedConnections getInputs() {return inputs;}
     DirectedConnections getOutputs() {return outputs;}
     Instance* operator->() {return i;}
@@ -64,4 +63,4 @@ class DirectedInstance {
 
 }//CoreIR
 
-#endif
+#endif //DIRECTEDVIEW_HPP_
