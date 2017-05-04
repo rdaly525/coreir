@@ -116,7 +116,10 @@ Wireable* ModuleDef::sel(string s) {
     return this->sel(path);
   }
   if (s=="self") return interface;
-  else return instances[s]; 
+  else {
+    assert(instances.count(s) && "Cannot find instance!");
+    return instances[s]; 
+  }
 }
 
 Wireable* ModuleDef::sel(SelectPath path) {
