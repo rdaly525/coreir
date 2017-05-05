@@ -300,6 +300,7 @@ Type* json2Type(Context* c, json jt) {
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
   Context* c = m->getContext();
+  assert(m->getNamespace() == c->getGlobal() && "Only supports global for now");
   std::ofstream file(filename);
   if (!file.is_open()) {
     *err =true;
@@ -313,10 +314,8 @@ void saveModule(Module* m, string filename, bool* err) {
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
   
-
-  for (auto nsmap: c->getNamespaces()) {
-    j["namespaces"][nsmap.first] = nsmap.second->toJson();
-  }
+  //Only do the global for now
+  j["namespaces"][m->getNamespace()->getName()] = m->getNamespace()->toJson();
   file << std::setw(2) << j;
   return;
 }

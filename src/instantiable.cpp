@@ -50,8 +50,8 @@ void checkArgsAreParams(Args args, Params params) {
 }
 
 Module* Generator::getModule(Args args) {
+  
   //Check cache
-  cout << "Getting from " << name << Args2Str(args) << endl;
   auto cached = genCache.find(args);
   if (cached != genCache.end() ) {
     return cached->second;

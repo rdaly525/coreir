@@ -125,7 +125,6 @@ void Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
 
 //TODO deal with at errors
 TypeGen* Namespace::getTypeGen(string name) {
-  cout << "TypeGen name:" << name << endl;
   assert(typeGenList.count(name)>0);
   TypeGen* ret = typeGenList.at(name);
   assert(ret->getName()==name);
