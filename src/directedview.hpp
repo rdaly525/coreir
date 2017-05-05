@@ -13,7 +13,7 @@ typedef std::vector<DirectedConnection> DirectedConnections;
 typedef std::vector<DirectedInstance> DirectedInstances;
 
 class DirectedConnection {
-  Connection& c;
+  Connection c;
 
   SelectPath src;
   SelectPath snk;
@@ -34,11 +34,16 @@ class DirectedModule {
   //Unordered list of all instances
   DirectedInstances insts;
   
+  DirectedConnections inputs;
+  DirectedConnections outputs;
+
   public:
     DirectedModule(Module* m);
     Wireable* sel(SelectPath path);
     DirectedConnections getConnections() { return connections;}
     DirectedInstances getInstances() { return insts;}
+    DirectedConnections getInputs() { return inputs;}
+    DirectedConnections getOutputs() { return outputs;}
     Module* operator->() {return m;}
 };
 

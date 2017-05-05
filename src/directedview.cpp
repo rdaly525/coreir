@@ -40,6 +40,8 @@ DirectedModule::DirectedModule(Module* m) : m(m) {
     string selstr = inst.first;
     insts.push_back(DirectedInstance(inst.second,ins[selstr],outs[selstr]));
   }
+  inputs = outs["self"];
+  outputs = ins["self"];
 }
 
 Wireable* DirectedModule::sel(SelectPath path) {
