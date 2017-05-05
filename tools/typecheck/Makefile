@@ -10,5 +10,5 @@ CXXFLAGS = -std=c++11  -Wall  -fPIC
 all: ../build/typecheck
 
 ../build/typecheck: typecheck.cpp
-	make -C ../../src
+	$(MAKE) -C ../../src
 	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< ../../build/coreir.a

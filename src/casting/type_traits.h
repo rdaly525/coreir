@@ -12,8 +12,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_SUPPORT_TYPE_TRAITS_H
-#define LLVM_SUPPORT_TYPE_TRAITS_H
+#ifndef COREIR_SUPPORT_TYPE_TRAITS_H
+#define COREIR_SUPPORT_TYPE_TRAITS_H
 
 #include <type_traits>
 #include <utility>
