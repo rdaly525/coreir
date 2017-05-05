@@ -1,9 +1,9 @@
 all:
 
 test:
-	make -C tests
+	$(MAKE) -C tests
 	cd tests; ./run
-	
+
 pytest:
 	pip install -e bindings/python
 	pip3 install -e bindings/python
@@ -11,21 +11,21 @@ pytest:
 	pytest;
 
 install:
-	make -C src build/coreir.so
-	make -C src/lib so
+	$(MAKE) -C src build/coreir.so
+	$(MAKE) -C src/lib so
 
 osx:
-	make -C src build/coreir.dylib
-	make -C src/lib dylib
+	$(MAKE) -C src build/coreir.dylib
+	$(MAKE) -C src/lib dylib
 
 clean:
 	rm -rf lib/*
-	make -C src clean
-	make -C src/lib clean
-	make -C tests clean
+	$(MAKE) -C src clean
+	$(MAKE) -C src/lib clean
+	$(MAKE) -C tests clean
 
 travis:
-	make clean
-	make osx
-	make test
-	make pytest
+	$(MAKE) clean
+	$(MAKE) osx
+	$(MAKE) test
+	$(MAKE) pytest
