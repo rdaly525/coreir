@@ -33,7 +33,7 @@ int main() {
     def->wire({string("self"),string("out")},{string("i0"),string("out")});
   mod->setDef(def);
   
-  //Verify that the number of connections is only 3. 
+  //Verify that the number of connections is only 1. 
   assert(def->getConnections().size() == 1);
 
   deleteContext(c);
