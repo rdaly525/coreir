@@ -15,7 +15,7 @@ def load_shared_lib(suffix):
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    return cdll.LoadLibrary('{}/../../../bin/libcoreir-{}.{}'.format(dir_path, suffix, shared_lib_ext))
+    return cdll.LoadLibrary('{}/../../../lib/libcoreir-{}.{}'.format(dir_path, suffix, shared_lib_ext))
 
 class COREContext(ct.Structure):
     pass
@@ -179,8 +179,8 @@ coreir_lib.COREWireableGetModuleDef.restype = COREModuleDef_p
 coreir_lib.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
 coreir_lib.COREWireableSelect.restype = CORESelect_p
 
-coreir_lib.COREWireableGetAncestors.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
-coreir_lib.COREWireableGetAncestors.restype = ct.POINTER(ct.c_char_p)
+coreir_lib.COREWireableGetSelectPath.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREWireableGetSelectPath.restype = ct.POINTER(ct.c_char_p)
 
 coreir_lib.COREModuleDefSelect.argtypes = [COREModuleDef_p, ct.c_char_p]
 coreir_lib.COREModuleDefSelect.restype = CORESelect_p
@@ -218,9 +218,9 @@ class Wireable(CoreIRType):
         result = coreir_lib.COREWireableGetConnectedWireables(self.ptr, ct.byref(size))
         return [Wireable(result[i],self.context) for i in range(size.value)]
 
-    def get_ancestors(self):
+    def get_selectpath(self):
         size = ct.c_int()
-        result = coreir_lib.COREWireableGetAncestors(self.ptr, ct.byref(size))
+        result = coreir_lib.COREWireableGetSelectPath(self.ptr, ct.byref(size))
         return [result[i].decode() for i in range(size.value)]
 
     def select(self, field):

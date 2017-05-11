@@ -12,7 +12,7 @@ using namespace std;
 typedef uint32_t uint;
 namespace CoreIR {
 
-typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
+typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
 
 //other
 class Namespace;
@@ -22,6 +22,7 @@ class Arg;
 class ArgInt;
 class ArgString;
 class ArgType;
+class ArgBool;
 typedef unordered_map<string,Param> Params;
 typedef unordered_map<string,Arg*> Args;
 
@@ -61,7 +62,7 @@ class Interface;
 class Instance;
 class Select;
 
-typedef std::pair<string,vector<string>> WirePath;
+typedef vector<string> SelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 
 
@@ -77,7 +78,11 @@ inline void hash_combine(size_t& seed, const T& v) {
 bool isNumber(string s);
 string Param2Str(Param);
 string Params2Str(Params);
+string Args2Str(Args);
 Param Str2Param(string s);
+vector<std::string> splitString(const string &s, char delim);
+bool hasChar(const std::string s, char c);
+
 
 
 } //CoreIR namespace

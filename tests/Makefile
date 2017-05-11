@@ -1,9 +1,11 @@
 
 
 all:
-	make -C unit
-	make -C unit-c
+	$(MAKE) -C unit
+	$(MAKE) -C unit-c
+	$(MAKE) -C cgra
 
 clean:
-	make -C unit clean
-	make -C unit-c clean
+	$(MAKE) -C unit clean
+	$(MAKE) -C unit-c clean
+	$(MAKE) -C cgra clean

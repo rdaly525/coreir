@@ -73,8 +73,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
         }
       }
       //For namedtypegens I cannot really construct these without the typegenfunction. Therefore I will just verify that they exist
-      //TODO hack for fixing the flow for now.
-      if (0 && jns.count("namedtypegens")) {
+      if (jns.count("namedtypegens")) {
         for (auto jntypegen : jns.at("namedtypegens").get<vector<json>>()) {
           string name = jntypegen.at("name");
           Params genparams = json2Params(jntypegen.at("genparams"));
@@ -120,8 +119,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           modqueue.push_back({m,jmod});
         }
       }
-      //TODO hack for fixing the flow for now.
-      if (0 && jns.count("generators")) {
+      if (jns.count("generators")) {
         for (auto jgenmap : jns.at("generators").get<jsonmap>()) {
           string jgenname = jgenmap.first;
           //TODO for now, if it has a module already, just skip
@@ -134,8 +132,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           vector<string> tgenref = jgen.at("typegen").get<vector<string>>();
           TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
           assert(genparams == typegen->getParams());
-          //TODO generator config stuff
-          ns->newGeneratorDecl(jgenname,genparams,typegen);
+          ns->newGeneratorDecl(jgenname,typegen,genparams);
         }
       }
     }
@@ -185,14 +182,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
       //Connections
       if (jdef.count("connections")) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
-          vector<string> wA = jcon[0].get<vector<string>>();
-          vector<string> wB = jcon[1].get<vector<string>>();
-          string instA = wA[0];
-          string instB = wB[0];
-          wA.erase(wA.begin());
-          wB.erase(wB.begin());
-          WirePath pathA = {instA,wA};
-          WirePath pathB = {instB,wB};
+          vector<string> pathA = jcon[0].get<vector<string>>();
+          vector<string> pathB = jcon[1].get<vector<string>>();
           mdef->wire(pathA,pathB);
         }
       }
@@ -309,6 +300,7 @@ Type* json2Type(Context* c, json jt) {
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
   Context* c = m->getContext();
+  assert(m->getNamespace() == c->getGlobal() && "Only supports global for now");
   std::ofstream file(filename);
   if (!file.is_open()) {
     *err =true;
@@ -322,10 +314,8 @@ void saveModule(Module* m, string filename, bool* err) {
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
   
-
-  for (auto nsmap: c->getNamespaces()) {
-    j["namespaces"][nsmap.first] = nsmap.second->toJson();
-  }
+  //Only do the global for now
+  j["namespaces"][m->getNamespace()->getName()] = m->getNamespace()->toJson();
   file << std::setw(2) << j;
   return;
 }
@@ -462,9 +452,9 @@ json ModuleDef::toJson() {
 }
 
 json Wireable2Json(Wireable* w) {
-  WirePath path = w->getPath();
-  json j = json::array({path.first});
-  for (auto str : path.second) j.push_back(str);
+  json j;
+  SelectPath path = w->getSelectPath();
+  for (auto str : path) j.push_back(str);
   return j;
 }
 

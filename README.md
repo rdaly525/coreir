@@ -50,8 +50,8 @@ int main(...) {
 #Makefile example
 COREIR = <Path_to_coreir>
 INCS = $COREIR/include
-LPATH = $COREIR/bin
-LIBS =  -Wl,-rpath,$COREIR/bin -lcoreir-passes -lcoreir
+LPATH = $COREIR/lib
+LIBS =  -Wl,-rpath,$COREIR/lib -lcoreir-passes -lcoreir
 executable: main.o 
 	$(CXX) $(CXXFLAGS) $(INCS) -o executable main.o $(LPATH) $(LIBS) 
 

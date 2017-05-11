@@ -120,7 +120,7 @@ def test_wireable():
     actual = [get_pointer_addr(wireable.ptr) for wireable in _input.get_connected_wireables()]
     assert get_pointer_addr(add8_in1.ptr) in actual
     assert get_pointer_addr(add8_in2.ptr) in actual
-    for expected, actual in zip(['adder', 'out'], add8_out.get_ancestors()):
+    for expected, actual in zip(['adder', 'out'], add8_out.get_selectpath()):
         assert expected == actual
 
     wireable = module_def.select("self")

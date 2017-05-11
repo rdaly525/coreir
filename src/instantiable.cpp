@@ -23,7 +23,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
+Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams), def(nullptr) {
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);
@@ -36,6 +36,8 @@ Generator::~Generator() {
   if (def) {
     delete def;
   }
+  //Delete all the Generated Modules
+  for (auto m : genCache) delete m.second;
 }
 
 void checkArgsAreParams(Args args, Params params) {
@@ -48,6 +50,7 @@ void checkArgsAreParams(Args args, Params params) {
 }
 
 Module* Generator::getModule(Args args) {
+  
   //Check cache
   auto cached = genCache.find(args);
   if (cached != genCache.end() ) {
@@ -56,7 +59,7 @@ Module* Generator::getModule(Args args) {
   
   checkArgsAreParams(args,genparams);
   Type* type = typegen->getType(args);
-  Module* m = ns->newModuleDecl(name + "_NYI_UNIQUIFY",type,configparams);
+  Module* m = new Module(ns,name + getContext()->getUnique(),type,configparams);
   genCache[args] = m;
   return m;
 }
@@ -88,6 +91,22 @@ Module::~Module() {
   
   for (auto md : mdefList) delete md;
 }
+
+ModuleDef* Module::newModuleDef() {
+  
+  ModuleDef* md = new ModuleDef(this);
+  mdefList.push_back(md);
+  return md;
+}
+
+void Module::setDef(ModuleDef* def, bool validate) {
+  if (validate) {
+    if (def->validate()) {
+      cout << "Error Validating def" << endl;
+      this->getContext()->die();
+    }
+  }
+  this->def = def;}
 
 string Module::toString() const {
   return "Module: " + name + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");

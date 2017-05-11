@@ -54,14 +54,14 @@ class Namespace {
 
     NamedType* newNamedType(string name, string nameFlip, Type* raw);
     void newNominalTypeGen(string name, string nameFlip,Params genparams, TypeGenFun fun);
-    void newTypeGen(string name, Params genparams, TypeGenFun fun);
+    TypeGen* newTypeGen(string name, Params genparams, TypeGenFun fun);
     bool hasNamedType(string name);
     NamedType* getNamedType(string name);
     NamedType* getNamedType(string name, Args genargs);
     TypeGen* getTypeGen(string name);
     bool hasTypeGen(string name) {return typeGenList.count(name)>0;}
 
-    Generator* newGeneratorDecl(string name, Params genparams, TypeGen* typegen);
+    Generator* newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams=Params());
     Module* newModuleDecl(string name, Type* t,Params configparams=Params());
 
     Generator* getGenerator(string gname);

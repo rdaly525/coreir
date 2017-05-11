@@ -10,18 +10,18 @@ ifeq ($(COREIRCONFIG),g++-4.9)
 CXX = g++-4.9
 endif
 
-CXXFLAGS = -std=c++11  -Wall  -fPIC
+CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror
 CFLAGS = -Wall -fPIC
 
 ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
-BIN = ../../bin
-INCS = -I../../include -I.
-LPATH = -L$(BIN)
+HOME = ../..
+INCS = -I$(HOME)/include -I.
+LPATH = -L$(HOME)/lib
 #TODO Hacky to include coreir lib. Maybe I should generate coreir-c statically including all of coreir
-LIBS = -Wl,-rpath,$(BIN) -lcoreir-stdlib -lcoreir-c -lcoreir
+LIBS = -Wl,-rpath,$(HOME)/lib -lcoreir-stdlib -lcoreir-c -lcoreir
 SRCFILES = $(wildcard *.c)
 OBJS = $(patsubst %.c,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.c,build/%,$(SRCFILES))

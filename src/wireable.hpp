@@ -36,10 +36,9 @@ class Wireable {
     Select* sel(string);
     Select* sel(uint);
   
-    // Convinience function
     // if this wireable is from add3inst.a.b[0], then this will look like
-    // {add3inst,{a,b,0}}
-    WirePath getPath();
+    // {add3inst,a,b,0}
+    SelectPath getSelectPath();
     string wireableKind2Str(WireableKind wb);
 };
 
@@ -79,7 +78,11 @@ class Instance : public Wireable {
     Generator* getGeneratorRef() { return generatorRef;}
     Args getGenargs() {return genargs;}
     void runGenerator();
-    //void replace(Instantiable* instRef, Args config);
+    void replace(Module* moduleRef, Args configargs) {
+      //TODO should I remove the generator and generator args? 
+      this->moduleRef = moduleRef;
+      this->configargs = configargs;
+    }
 };
 
 class Select : public Wireable {
