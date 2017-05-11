@@ -12,7 +12,7 @@ using namespace std;
 typedef uint32_t uint;
 namespace CoreIR {
 
-typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
+typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
 
 //other
 class Namespace;
@@ -22,6 +22,7 @@ class Arg;
 class ArgInt;
 class ArgString;
 class ArgType;
+class ArgBool;
 typedef unordered_map<string,Param> Params;
 typedef unordered_map<string,Arg*> Args;
 

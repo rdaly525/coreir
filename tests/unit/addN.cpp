@@ -38,7 +38,7 @@ int main() {
     assert(N!=1);
 
     Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
-    Generator* add2 = stdlib->getGenerator("add2");
+    Generator* add2 = stdlib->getGenerator("add");
     Generator* addN = c->getGlobal()->getGenerator("addN");
     
     Arg* aWidth = c->argInt(width);
@@ -47,8 +47,8 @@ int main() {
     def->wire("inst.out","self.out");
     
     if (N == 2) {
-      def->wire("self.in.0","inst.in0");
-      def->wire("self.in.1","inst.in1");
+      def->wire("self.in.0","inst.in.0");
+      def->wire("self.in.1","inst.in.1");
     }
     else {
       //Connect half instances
@@ -59,8 +59,8 @@ int main() {
         def->wire({"self","in",to_string(i)},{"addN_0","in",to_string(i)});
         def->wire({"self","in",to_string(i+N/2)},{"addN_1","in",to_string(i)});
       }
-      def->wire("addN_0.out","inst.in0");
-      def->wire("addN_1.out","inst.in1");
+      def->wire("addN_0.out","inst.in.0");
+      def->wire("addN_1.out","inst.in.1");
     }
   });
   
@@ -76,7 +76,7 @@ int main() {
   ModuleDef* def = add12->newModuleDef();
     def->addInstance("add8_upper",addN,{{"width",c->argInt(13)},{"N",c->argInt(8)}});
     def->addInstance("add4_lower",addN,{{"width",c->argInt(13)},{"N",c->argInt(4)}});
-    def->addInstance("add2_join",stdlib->getGenerator("add2"),{{"width",c->argInt(13)}});
+    def->addInstance("add2_join",stdlib->getGenerator("add"),{{"width",c->argInt(13)}});
     def->wire("self.in8","add8_upper.in");
     def->wire("self.in4","add4_lower.in");
     def->wire("add8_upper.out","add2_join.in0");
