@@ -41,11 +41,6 @@ int main() {
   Top->print();
   
   bool err = false;
- 
-  //Do typechecking
-  typecheck(c,Top,&err);
-  if(err) c->die();
-
   //Save to Json
   cout << "Saving 2 json" << endl;
   saveModule(Top,"_mapped_memexample.json",&err);
@@ -56,11 +51,8 @@ int main() {
   CoreIRLoadLibrary_cgralib(c);
   Module* m = loadModule(c,"_mapped_memexample.json",&err);
   if(err) c->die();
-  
-  //Do typechecking
-  typecheck(c,m,&err);
-  if(err) c->die();
-  
+  m->print();  
+
   deleteContext(c);
   return 0;
 }

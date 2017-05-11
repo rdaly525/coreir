@@ -39,7 +39,6 @@ class Instantiable {
     bool isKind(InstantiableKind k) const { return kind==k;}
     InstantiableKind getKind() const { return kind;}
     
-    //TODO comment these out
     Context* getContext();
     Params getConfigParams() { return configparams;}
     Metadata getMetadata() { return metadata;}
@@ -94,7 +93,10 @@ class Module : public Instantiable {
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() const { return def; } 
-    void setDef(ModuleDef* def) { this->def = def;}
+    
+    //This will validate def
+    void setDef(ModuleDef* def, bool validate=true);
+    
     ModuleDef* newModuleDef();
     
     string toString() const;

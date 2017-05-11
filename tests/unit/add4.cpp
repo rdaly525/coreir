@@ -45,15 +45,9 @@ int main() {
 
     def->wire(add_1->sel("out"),self->sel("out"));
   add4_n->setDef(def);
-  cout << "Checkign Errors 1" << endl;
-  c->checkerrors();
   add4_n->print();
   
   bool err = false;
-  cout << "Typechecking!" << endl;
-  typecheck(c,add4_n,&err);
-  if (err) c->die();
-
   cout << "Checking saving and loading pregen" << endl;
   saveModule(add4_n, "_add4.json",&err);
   if (err) {
@@ -77,11 +71,8 @@ int main() {
   
   rungenerators(c,add4_n,&err);
   if (err) c->die();
-  
   add4_n->print();
-  typecheck(c,add4_n,&err);
-  if(err) c->die();
- 
+  
   cout << "Checking saving and loading postgen" << endl;
   saveModule(add4_n, "_add4Gen.json",&err);
   if (err) {

@@ -53,6 +53,21 @@ class ModuleDef {
     void wire(Wireable* a, Wireable* b);
     void wire(SelectPath pathA, SelectPath pathB);
     void wire(string pathA, string pathB);
+    void wire(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB) {
+      wire(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
+    }
+    void wire(std::initializer_list<std::string> pA, std::initializer_list<string> pB) {
+      wire(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
+    }
+
+    // This 'typechecks' everything
+    //   Verifies all selects are valid
+    //   Verifies all connections are valid. type <==> FLIP(type)
+    //   Verifies inputs are only connected once
+    //TODO Does not check if Everything (even inputs) is connected
+    // Returns true if there is an error
+    bool validate();
+    
     json toJson();
     
 };

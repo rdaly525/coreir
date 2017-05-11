@@ -92,6 +92,22 @@ Module::~Module() {
   for (auto md : mdefList) delete md;
 }
 
+ModuleDef* Module::newModuleDef() {
+  
+  ModuleDef* md = new ModuleDef(this);
+  mdefList.push_back(md);
+  return md;
+}
+
+void Module::setDef(ModuleDef* def, bool validate) {
+  if (validate) {
+    if (def->validate()) {
+      cout << "Error Validating def" << endl;
+      this->getContext()->die();
+    }
+  }
+  this->def = def;}
+
 string Module::toString() const {
   return "Module: " + name + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
 }
