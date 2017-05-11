@@ -44,6 +44,8 @@ DirectedModule::DirectedModule(Module* m) : m(m) {
   outputs = ins["self"];
 }
 
+Context* DirectedModule::getContext() { return m->getContext(); }
+
 Wireable* DirectedModule::sel(SelectPath path) {
   return m->getDef()->sel(path);
 }

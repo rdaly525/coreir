@@ -44,6 +44,7 @@ class DirectedModule {
     DirectedInstances getInstances() { return insts;}
     DirectedConnections getInputs() { return inputs;}
     DirectedConnections getOutputs() { return outputs;}
+    Context* getContext();
     Module* operator->() {return m;}
 };
 

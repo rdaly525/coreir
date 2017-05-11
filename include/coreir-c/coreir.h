@@ -75,5 +75,16 @@ extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors
 extern void COREPrintErrors(COREContext* c);
 extern const char* CORENamespaceGetName(CORENamespace* n);
 
+// BEGIN : directedview
+extern CORESelectPath COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);
+extern CORESelectPath COREDirectedConnectionGetSnk(COREDirectedConnection* directed_connection);
+
+extern COREDirectedModule* CORENewDirectedModule(COREModule* m);
+extern COREWireable* COREDirectedModuleSel(COREDirectedModule* directed_module, CORESelectPath path);
+extern COREDirectedConnection** COREDirectedModuleGetConnections(COREDirectedModule* directed_module);
+extern COREDirectedInstance** COREDirectedModuleGetInstances(COREDirectedModule* directed_module);
+extern COREDirectedConnection** COREDirectedModuleGetInputs(COREDirectedModule* directed_module);
+extern COREDirectedConnection** COREDirectedModuleGetOutputs(COREDirectedModule* directed_module);
+// END   : directedview
 
 #endif //COREIR_C_H_

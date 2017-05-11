@@ -15,6 +15,7 @@
 #include "generatordef.hpp"
 
 #include "metadata.hpp"
+#include "directedview.hpp"
 
 using json = nlohmann::json;
 using namespace std;
@@ -87,6 +88,7 @@ class Module : public Instantiable {
   
   //Memory Management
   vector<ModuleDef*> mdefList;
+  vector<DirectedModule*> directedModuleList;
 
   public :
     Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type), def(nullptr) {}
@@ -96,6 +98,7 @@ class Module : public Instantiable {
     ModuleDef* getDef() const { return def; } 
     void setDef(ModuleDef* def) { this->def = def;}
     ModuleDef* newModuleDef();
+    DirectedModule* newDirectedView();
     
     string toString() const;
     json toJson();
