@@ -448,7 +448,7 @@ class COREDirectedModule(ct.Structure):
 
 COREDirectedModule_p = ct.POINTER(COREModule)
 
-coreir_lib.COREDirectedModuleSel.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_char_p()), ct.c_int]
+coreir_lib.COREDirectedModuleSel.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_char_p), ct.c_int]
 coreir_lib.COREDirectedModuleSel.restype = COREWireable_p
 
 coreir_lib.COREDirectedModuleGetInstances.argtypes = [COREDirectedModule_p, ct.byref(ct.c_int)]
