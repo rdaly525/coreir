@@ -451,19 +451,19 @@ COREDirectedModule_p = ct.POINTER(COREModule)
 coreir_lib.COREDirectedModuleSel.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_char_p), ct.c_int]
 coreir_lib.COREDirectedModuleSel.restype = COREWireable_p
 
-coreir_lib.COREDirectedModuleGetInstances.argtypes = [COREDirectedModule_p, ct.byref(ct.c_int)]
+coreir_lib.COREDirectedModuleGetInstances.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedModuleGetInstances.restype = ct.POINTER(COREDirectedConnection_p)
 
-coreir_lib.COREDirectedModuleGetInputs.argtypes = [COREDirectedModule_p, ct.byref(ct.c_int)]
+coreir_lib.COREDirectedModuleGetInputs.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedModuleGetInputs.restype = ct.POINTER(COREDirectedConnection_p)
 
-coreir_lib.COREDirectedModuleGetOutputs.argtypes = [COREDirectedModule_p, ct.byref(ct.c_int)]
+coreir_lib.COREDirectedModuleGetOutputs.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedModuleGetOutputs.restype = ct.POINTER(COREDirectedConnection_p)
 
-coreir_lib.COREDirectedConnectionGetSrc.argtypes = [COREDirectedConnection_p, ct.byref(ct.c_int)]
+coreir_lib.COREDirectedConnectionGetSrc.argtypes = [COREDirectedConnection_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedConnectionGetSrc.restype = ct.POINTER(ct.c_char_p)
 
-coreir_lib.COREDirectedConnectionGetSnk.argtypes = [COREDirectedConnection_p, ct.byref(ct.c_int)]
+coreir_lib.COREDirectedConnectionGetSnk.argtypes = [COREDirectedConnection_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedConnectionGetSnk.restype = ct.POINTER(ct.c_char_p)
 
 
