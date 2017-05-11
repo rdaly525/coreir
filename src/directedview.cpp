@@ -26,6 +26,12 @@ DirectedConnection::DirectedConnection(Connection& c) : c(c) {
   }
 }
 
+Context* DirectedConnection::getContext() {
+    // assumes the parent connection has wireables with the same context
+    assert(c.first->getContext() == c.second->getContext());
+    return c.first->getContext();
+}
+
 DirectedModule::DirectedModule(Module* m) : m(m) {
   assert(m->hasDef() && "Does not have def!");
   std::map<string,DirectedConnections> ins;

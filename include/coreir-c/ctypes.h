@@ -15,7 +15,6 @@ typedef struct COREWireable COREWireable;
 typedef struct COREInstance COREInstance;
 typedef struct COREInterface COREInterface;
 typedef struct CORESelect CORESelect;
-typedef struct CORESelectPath CORESelectPath;
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;
 typedef struct COREArg COREArg;

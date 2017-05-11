@@ -21,6 +21,7 @@ class DirectedConnection {
     DirectedConnection(Connection& c);
     SelectPath getSrc() { return src;}
     SelectPath getSnk() { return snk;}
+    Context* getContext();
     Connection operator->() {return c;}
 };
 
