@@ -13,7 +13,7 @@ int main() {
   
   Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
   
-  Module* const16 = stdlib->getModule("const_16");
+  Module* const16 = stdlib->getGenerator("const")->getModule({{"width",c->argInt(16)}});
  
   // Define Module Type
   Type* mType = c->Record({

@@ -42,6 +42,18 @@ class Arg {
   friend bool operator==(const Args& l, const Args& r);
 };
 
+class ArgBool : public Arg {
+  int b;
+  public :
+    typedef bool type;
+    ArgBool(bool b) : Arg(ABOOL), b(b) {}
+    static bool classof(const Arg* arg) {return arg->getKind()==ABOOL;}
+    string toString() const {return b ? "True" : "False";}
+    type get() { return b;}
+    bool operator==(const Arg& r) const;
+    json toJson();
+};
+
 class ArgInt : public Arg {
   int i;
   public :

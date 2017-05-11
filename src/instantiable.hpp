@@ -69,6 +69,7 @@ class Generator : public Instantiable {
     GeneratorDef* getDef() const {return def;}
     
     //This will create a blank module (will run typegen) if not cached
+    //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Args args);
     
     //This will actually run the generator

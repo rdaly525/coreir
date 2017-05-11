@@ -1,5 +1,9 @@
 #include "coreir-lib/stdlib.h"
 
+//#include "_stdlib_convert.cpp"
+//#include "_stdlib_bitwise.cpp"
+#include "_stdlib_state.cpp"
+
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(stdlib);
 
 using namespace CoreIR;
@@ -18,48 +22,63 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   stdlib->newNamedType("rst","rstIn",c->Bit());
   
   //Array types
-  auto arrfun = [](Context* c, Args args) {
-    return c->Array(args.at("width")->get<ArgInt>(),c->Bit());
-  };
-  stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
-  stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
+  //stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
+  //stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
   
   //Common Function types
   stdlib->newTypeGen(
     "binop",
     widthparam,
     [](Context* c, Args args) {
-      Type* arr = c->Array(args.at("width")->get<ArgInt>(),c->Bit());
-      return c->Record({{"in0",c->Flip(arr)},{"in1",c->Flip(arr)},{"out",arr}});
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)->Arr(2)},
+        {"out",c->Bit()->Arr(width)}
+      });
     }
   );
-  
+
   /////////////////////////////////
-  // Stdlib primitives
+  // Stdlib convert primitives
+  //   slice,concat,cast,strip
   /////////////////////////////////
-  
-  //declare new add2 generator
-  stdlib->newGeneratorDecl("add2",stdlib->getTypeGen("binop"),widthparam);
+  //TODO 
+  //stdlib_convert(c,stdlib);
 
-  //TODO Hack to get rid of
-  Type* binop16 = c->Record({
-      {"in0",c->Array(16,c->BitIn())},
-      {"in1",c->Array(16,c->BitIn())},
-      {"out",c->Array(16,c->Bit())}
-  });
-  
-  Type* outType = c->Record({
-    {"out",c->Array(16,c->Bit())}
-  });
+  /////////////////////////////////
+  // Stdlib bitwise primitives
+  //   not,and,or,xor,andr,orr,xorr,shift
+  /////////////////////////////////
+  //TODO
+  //stdlib_bitwise(c,stdlib);
 
-  Type* inType = c->Record({
-    {"in",c->Array(16,c->BitIn())}
-  });
+  /////////////////////////////////
+  // Stdlib Arithmetic primitives
+  //   dshift,add,sub,mul,div,lt,leq,gt,geq,eq,neq,neg
+  /////////////////////////////////
+  stdlib->newGeneratorDecl("add",stdlib->getTypeGen("binop"),widthparam);
+  stdlib->newGeneratorDecl("mul",stdlib->getTypeGen("binop"),widthparam);
 
-  stdlib->newModuleDecl("add2_16",binop16);
-  stdlib->newModuleDecl("mult2_16",binop16);
-  stdlib->newModuleDecl("const_16",outType,{{"value",AINT}});
-  stdlib->newModuleDecl("GPI_16",outType);
-  stdlib->newModuleDecl("GPO_16",inType);
+
+  /////////////////////////////////
+  // Stdlib stateful primitives
+  //   reg, ram, rom
+  /////////////////////////////////
+  stdlib_state(c,stdlib);
+
+
+  //Add Const
+  stdlib->newTypeGen(
+    "out", 
+    widthparam,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+  stdlib->newGeneratorDecl("const",stdlib->getTypeGen("out"),widthparam);
+
   return stdlib;
 }

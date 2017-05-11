@@ -54,7 +54,7 @@ class Namespace {
 
     NamedType* newNamedType(string name, string nameFlip, Type* raw);
     void newNominalTypeGen(string name, string nameFlip,Params genparams, TypeGenFun fun);
-    void newTypeGen(string name, Params genparams, TypeGenFun fun);
+    TypeGen* newTypeGen(string name, Params genparams, TypeGenFun fun);
     bool hasNamedType(string name);
     NamedType* getNamedType(string name);
     NamedType* getNamedType(string name, Args genargs);
