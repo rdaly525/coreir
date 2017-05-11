@@ -8,12 +8,6 @@ using namespace std;
 namespace CoreIR {
 
 
-ModuleDef* Module::newModuleDef() {
-  
-  ModuleDef* md = new ModuleDef(this);
-  mdefList.push_back(md);
-  return md;
-}
 
 ModuleDef::ModuleDef(Module* module) : module(module) {
   interface = new Interface(this,module->getContext()->Flip(module->getType()));

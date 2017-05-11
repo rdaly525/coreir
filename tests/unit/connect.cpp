@@ -19,7 +19,7 @@ int main() {
   Type* mType = c->Record({
       {"out",c->Array(16,c->Bit())}
   });
-
+    
   Module* mod = g->newModuleDecl("mod",mType);
   ModuleDef* def = mod->newModuleDef();
     Wireable* self = def->sel("self");
@@ -27,16 +27,14 @@ int main() {
     def->wire(i0->sel("out"),self->sel("out"));
     def->wire(i0->sel("out"),self->sel("out"));
     def->wire(self->sel("out"),i0->sel("out"));
-    //Also check other wiring format
-    def->wire(self->sel("out")->sel(0),i0->sel("out")->sel(2));
-    def->wire("self.out.2","i0.out.4");
-  
+    //Also check other wiring syntax 
+    def->wire("self.out","i0.out");
+    def->wire({"self","out"},{"i0","out"});
+    def->wire({string("self"),string("out")},{string("i0"),string("out")});
   mod->setDef(def);
-  cout << "Checkign Errors 1" << endl;
-  c->checkerrors();
   
   //Verify that the number of connections is only 3. 
-  assert(def->getConnections().size() == 3);
+  assert(def->getConnections().size() == 1);
 
   deleteContext(c);
   

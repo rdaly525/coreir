@@ -39,11 +39,6 @@ int main() {
   addmult->print();
   
   bool err = false;
- 
-  //Do typechecking
-  typecheck(c,addmult,&err);
-  if(err) c->die();
-
   //Save to Json
   cout << "Saving 2 json" << endl;
   saveModule(addmult,"_addmult.json",&err);

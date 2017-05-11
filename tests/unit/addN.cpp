@@ -83,15 +83,9 @@ int main() {
     def->wire("add4_lower.out","add2_join.in1");
     def->wire("add2_join.out","self.out");
   add12->setDef(def);
-
-  c->checkerrors();
   add12->print();
   
   bool err = false;
-  cout << "Typechecking!" << endl;
-  typecheck(c,add12,&err);
-  if (err) c->die();
-
   cout << "Checking saving and loading pregen" << endl;
   saveModule(add12, "_add12.json",&err);
   if (err) {
@@ -110,9 +104,6 @@ int main() {
   if (err) c->die();
   add12->print();
   
-  typecheck(c,add12,&err);
-  if(err) c->die();
- 
   cout << "Checking saving and loading postgen" << endl;
   saveModule(add12, "_add12Gen.json",&err);
   if (err) {
