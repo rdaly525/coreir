@@ -15,12 +15,12 @@ typedef std::vector<DirectedInstance> DirectedInstances;
 class DirectedConnection {
   Connection c;
 
-  SelectPath src;
-  SelectPath snk;
+  Wireable* src;
+  Wireable* snk;
   public:
     DirectedConnection(Connection& c);
-    SelectPath getSrc() { return src;}
-    SelectPath getSnk() { return snk;}
+    SelectPath getSrc();
+    SelectPath getSnk();
     Context* getContext();
     Connection operator->() {return c;}
 };

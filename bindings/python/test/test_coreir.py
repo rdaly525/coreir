@@ -170,9 +170,37 @@ def test_module_def_get_connections():
         seen.append(pair)
     assert len(seen) == len(expected_conns)
 
-#if __name__ == "__main__":
-#  main()
+def test_directed_module():
+    c = coreir.Context()
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
+    module = c.G.new_module("multiply_by_4", module_typ)
+    # module.print()
+    module_def = module.new_definition()
+    add8 = c.G.new_module("add8",
+        c.Record({
+            "in1": c.Array(8, c.BitIn()),
+            "in2": c.Array(8, c.BitIn()),
+            "out": c.Array(9, c.Bit())
+        })
+    )
+    add8_inst1 = module_def.add_module_instance("adder1", add8)
+    add8_inst2 = module_def.add_module_instance("adder2", add8)
+    add8_inst3 = module_def.add_module_instance("adder3", add8)
+    interface = module_def.get_interface()
+    _input = interface.select("input")
+    for adder in [add8_inst1, add8_inst2]:
+        module_def.wire(_input, adder.select("in1"))
+        module_def.wire(_input, adder.select("in2"))
+    module_def.wire(add8_inst1.select("out"), add8_inst3.select("in1"))
+    module_def.wire(add8_inst2.select("out"), add8_inst3.select("in2"))
+    module_def.wire(add8_inst3.select("out"), interface.select("output"))
+    module.add_definition(module_def)
+    directed_module = module.new_directed_view()
+    for input in directed_module.get_inputs():
+        print(input.source)
 
+if __name__ == "__main__":
+    test_directed_module()
 # def test():
 #     c = coreir.Context()
 #     # any = c.Any()

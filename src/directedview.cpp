@@ -16,21 +16,23 @@ DirectedConnection::DirectedConnection(Connection& c) : c(c) {
   assert(!tb->isUnknown() && !tb->isMixed());
   if (ta->isInput()) {
     assert(tb->isOutput());
-    src = wb->getSelectPath();
-    snk = wa->getSelectPath();
+    src = wb;
+    snk = wa;
   }
   else {
     assert(ta->isOutput() && tb->isInput());
-    src = wa->getSelectPath();
-    snk = wb->getSelectPath();
+    src = wa;
+    snk = wb;
   }
 }
 
 Context* DirectedConnection::getContext() {
     // assumes the parent connection has wireables with the same context
-    assert(c.first->getContext() == c.second->getContext());
+    assert(&c.first->getContext() == &c.second->getContext());
     return c.first->getContext();
 }
+SelectPath DirectedConnection::getSrc() { return src->getSelectPath();}
+SelectPath DirectedConnection::getSnk() { return snk->getSelectPath();}
 
 DirectedModule::DirectedModule(Module* m) : m(m) {
   assert(m->hasDef() && "Does not have def!");
