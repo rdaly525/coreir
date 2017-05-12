@@ -465,6 +465,9 @@ coreir_lib.COREDirectedModuleGetInputs.restype = ct.POINTER(COREDirectedConnecti
 coreir_lib.COREDirectedModuleGetOutputs.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedModuleGetOutputs.restype = ct.POINTER(COREDirectedConnection_p)
 
+coreir_lib.COREDirectedModuleGetConnections.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREDirectedModuleGetConnections.restype = ct.POINTER(COREDirectedConnection_p)
+
 coreir_lib.COREDirectedConnectionGetSrc.argtypes = [COREDirectedConnection_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedConnectionGetSrc.restype = ct.POINTER(ct.c_char_p)
 

@@ -215,6 +215,21 @@ def test_directed_module():
 
     assert get_pointer_addr(directed_module.sel(["adder3", "out"]).ptr) == get_pointer_addr(add8_inst3.select("out").ptr)
 
+    expected = [
+        (['adder3', 'out'], ['self', 'output']),
+        (['adder2', 'out'], ['adder3', 'in2']),
+        (['adder1', 'out'], ['adder3', 'in1']),
+        (['self', 'input'], ['adder1', 'in1']),
+        (['self', 'input'], ['adder2', 'in1']),
+        (['self', 'input'], ['adder1', 'in2']),
+        (['self', 'input'], ['adder2', 'in2'])
+    ]
+    for directed_connection in directed_module.get_connections():
+        actual = (directed_connection.source, directed_connection.sink)
+        assert actual in expected
+        expected.remove(actual)
+    assert len(expected) == 0
+
 
 if __name__ == "__main__":
     test_directed_module()
