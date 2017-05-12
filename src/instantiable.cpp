@@ -27,8 +27,8 @@ Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparam
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);
-    assert(gen_param != genparams.end() && "Param not found");
-    assert(gen_param->second == type_param.second && "Param type mismatch");
+    ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
+    ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
   }
 }
 
@@ -41,11 +41,11 @@ Generator::~Generator() {
 }
 
 void checkArgsAreParams(Args args, Params params) {
-  assert(args.size() == params.size() && "Args and params are not the same!");
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams:" );
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    assert(arg != args.end() && "Arg Not found");
-    assert(arg->second->getKind() == param.second && "Param type mismatch");
+    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
   }
 }
 

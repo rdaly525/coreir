@@ -14,7 +14,7 @@ using namespace std;
 #define ASSERT(C,MSG) \
   if (!(C)) { \
     cout << MSG << endl; \
-    assert(0); \
+    exit(1); \
   }
 
 
