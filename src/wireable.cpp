@@ -93,6 +93,25 @@ void Instance::runGenerator() {
   assert(moduleRef->hasDef());
 }
 
+
+//TODO should I remove the generator and generator args? 
+void Instance::replace(Module* moduleRef, Args configargs) {
+  assert(moduleRef && "ModuleRef is null!");
+  this->moduleRef = moduleRef;
+  this->configargs = configargs;
+}
+
+//TODO this is probably super unsafe and will leak memory
+void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
+  assert(generatorRef && "Generator is null!");
+  this->generatorRef = generatorRef;
+  this->genargs = genargs;
+  this->moduleRef = generatorRef->getModule(genargs);
+  this->type = moduleRef->getType();
+  this->configargs = configargs;
+}
+
+
 string Select::toString() const {
   string ret = parent->toString(); 
   if (isNumber(selStr)) return ret + "[" + selStr + "]";
