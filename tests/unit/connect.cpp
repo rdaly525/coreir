@@ -32,9 +32,26 @@ int main() {
     def->connect({"self","out"},{"i0","out"});
     def->connect({string("self"),string("out")},{string("i0"),string("out")});
   mod->setDef(def);
-  
+ 
   //Verify that the number of connections is only 1. 
   assert(def->getConnections().size() == 1);
+
+  //Delete that connection and verify that it is 0
+  def->disconnect(i0->sel("out"),self->sel("out"));
+  def->validate();
+  assert(def->getConnections().size() == 0);
+  mod->print();
+
+  def->connect("self.out","i0.out");
+  def->validate();
+  assert(def->getConnections().size() == 1);
+  mod->print();
+
+  def->removeInstance("i0");
+  def->validate();
+  assert(def->getConnections().size() == 0);
+  assert(def->getInstances().size() == 0);
+  mod->print();
 
   deleteContext(c);
   
