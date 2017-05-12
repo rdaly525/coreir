@@ -28,7 +28,7 @@ DirectedConnection::DirectedConnection(Connection& c) : c(c) {
 
 Context* DirectedConnection::getContext() {
     // assumes the parent connection has wireables with the same context
-    assert(&c.first->getContext() == &c.second->getContext());
+    assert(c.first->getContext() == c.second->getContext());
     return c.first->getContext();
 }
 SelectPath DirectedConnection::getSrc() { return src->getSelectPath();}
