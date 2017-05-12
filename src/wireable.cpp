@@ -29,7 +29,7 @@ Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
 SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
-  vector<string> path;
+  SelectPath path;
   while(auto s = dyn_cast<Select>(top)) {
     path.insert(path.begin(), s->getSelStr());
     top = s->getParent();

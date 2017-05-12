@@ -286,13 +286,13 @@ extern "C" {
       DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
       SelectPath path = conn->getSrc();
       Context* c = conn->getContext();
-      // int size = path.size();
-      // *path_len = size;
-      // const char** arr = c->newConstStringArray(size);
-      // for (int i = 0; i < size; i ++) {
-      //     arr[i] = path[i].c_str();
-      // }
-      // return arr;
+      int size = path.size();
+      *path_len = size;
+      const char** arr = c->newConstStringArray(size);
+      for (int i = 0; i < size; i ++) {
+          arr[i] = path[i].c_str();
+      }
+      return arr;
   }
 
   const char** COREDirectedConnectionGetSnk(COREDirectedConnection* directed_connection, int* path_len) {
@@ -361,7 +361,8 @@ extern "C" {
       DirectedConnection** ptr_arr = module->getContext()->newDirectedConnectionPtrArray(size);
       int i = 0;
       for (auto input : inputs) {
-          ptr_arr[i] = &input;
+          arr[i] = input;
+          ptr_arr[i] = &arr[i];
           i++;
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
@@ -380,7 +381,7 @@ extern "C" {
           ptr_arr[i] = &arr[i];
           i++;
       }
-      return rcast<COREDirectedConnection**>(arr);
+      return rcast<COREDirectedConnection**>(ptr_arr);
   }
 
 }//extern "C"

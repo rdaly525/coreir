@@ -196,8 +196,23 @@ def test_directed_module():
     module_def.wire(add8_inst3.select("out"), interface.select("output"))
     module.add_definition(module_def)
     directed_module = module.new_directed_view()
+
+    # check inputs
+    expected = [["adder1", "in1"], ["adder1", "in2"], ["adder2", "in1"], ["adder2", "in2"]]
     for input in directed_module.get_inputs():
-        print(input.source)
+        assert input.source == ["self", "input"]
+        assert input.sink in expected, "Unexpected sink {}".format(input.sink)
+        expected.remove(input.sink)
+    assert len(expected) == 0, "Did not find {}".format(expected)
+
+    # check outputs
+    expected = [["adder3", "out"]]
+    for output in directed_module.get_outputs():
+        assert output.sink == ["self", "output"]
+        assert output.source in expected, "Unexpected source {}".format(input.sink)
+        expected.remove(output.source)
+    assert len(expected) == 0, "Did not find {}".format(expected)
+
 
 if __name__ == "__main__":
     test_directed_module()
