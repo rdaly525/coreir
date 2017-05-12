@@ -111,7 +111,7 @@ Wireable* ModuleDef::sel(string s) {
   }
   if (s=="self") return interface;
   else {
-    assert(instances.count(s) && "Cannot find instance!");
+    ASSERT(instances.count(s),"Cannot find instance " + s);
     return instances[s]; 
   }
 }

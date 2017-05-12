@@ -300,7 +300,7 @@ Type* json2Type(Context* c, json jt) {
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
   Context* c = m->getContext();
-  assert(m->getNamespace() == c->getGlobal() && "Only supports global for now");
+  ASSERT(m->getNamespace() == c->getGlobal(),"Only supports global for now");
   std::ofstream file(filename);
   if (!file.is_open()) {
     *err =true;

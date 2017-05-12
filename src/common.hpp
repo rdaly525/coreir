@@ -6,8 +6,17 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <cassert>
 
 using namespace std;
+
+
+#define ASSERT(C,MSG) \
+  if (!(C)) { \
+    cout << MSG << endl; \
+    exit(1); \
+  }
+
 
 typedef uint32_t uint;
 namespace CoreIR {
