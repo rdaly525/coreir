@@ -213,6 +213,8 @@ def test_directed_module():
         expected.remove(output.source)
     assert len(expected) == 0, "Did not find {}".format(expected)
 
+    assert get_pointer_addr(directed_module.sel(["adder3", "out"]).ptr) == get_pointer_addr(add8_inst3.select("out").ptr)
+
 
 if __name__ == "__main__":
     test_directed_module()

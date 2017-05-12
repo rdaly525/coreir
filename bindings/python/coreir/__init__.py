@@ -487,10 +487,10 @@ class DirectedConnection(CoreIRType):
 
 class DirectedModule(CoreIRType):
     def sel(self, path):
-        arr = ct.POINTER(ct.c_char_p()) * len(path);
+        arr = (ct.c_char_p * len(path))();
         for i, item in enumerate(path):
             arr[i] = item.encode()
-        return Wireable(coreir_lib.COREDirectedModuleSel(arr, len(path)), self.context)
+        return Wireable(coreir_lib.COREDirectedModuleSel(self.ptr, arr, len(path)), self.context)
 
     def get_connections(self):
         num_connections = ct.c_int()
