@@ -50,17 +50,18 @@ string Wireable::wireableKind2Str(WireableKind wb) {
     case WK_Instance: return "Instance";
     case WK_Select: return "Select";
   }
-  assert(false);
+  ASSERT(false,"Unknown WireableKind: " + to_string(wb));
 }
 
 Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false), generatorRef(nullptr) {
-  assert(moduleRef && "Module is null");
+  ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
+  
   //TODO checkif instname is unique
   this->type = moduleRef->getType();
 }
 
 Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), configargs(configargs), isgen(true), generatorRef(generatorRef), genargs(genargs) {
-  assert(generatorRef && "Generator is null!");
+  ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
   this->moduleRef = generatorRef->getModule(genargs);
   this->type = moduleRef->getType();
 }
@@ -79,7 +80,7 @@ Arg* Instance::getConfigArg(string s) {
 }
 
 void Instance::runGenerator() {
-  assert(generatorRef && "Not a Generator Instance!");
+  ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
   
   //If we have already run the generator, do not run again
   if (moduleRef->hasDef()) return;
@@ -96,14 +97,14 @@ void Instance::runGenerator() {
 
 //TODO should I remove the generator and generator args? 
 void Instance::replace(Module* moduleRef, Args configargs) {
-  assert(moduleRef && "ModuleRef is null!");
+  ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
   this->moduleRef = moduleRef;
   this->configargs = configargs;
 }
 
 //TODO this is probably super unsafe and will leak memory
 void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
-  assert(generatorRef && "Generator is null!");
+  ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
   this->generatorRef = generatorRef;
   this->genargs = genargs;
   this->moduleRef = generatorRef->getModule(genargs);

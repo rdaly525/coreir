@@ -44,8 +44,8 @@ void checkArgsAreParams(Args args, Params params) {
   ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams:" );
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    assert(arg != args.end() && "Arg Not found");
-    assert(arg->second->getKind() == param.second && "Param type mismatch");
+    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
   }
 }
 

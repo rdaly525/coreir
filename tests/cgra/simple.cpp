@@ -23,7 +23,7 @@ int main() {
   ModuleDef* def = addmult->newModuleDef();
     def->addInstance("ai",Add,w16);
     def->addInstance("mi",Mul,w16);
-    def->addInstance("ci",Const,{{"width",c->argInt(16)}},{{"value",c->argInt(140)}});
+    def->addInstance("ci",Const,w16,{{"value",c->argInt(140)}});
     
     def->wire("self.in","ai.in.0");
     def->wire("ci.out","ai.in.1");
