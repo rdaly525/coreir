@@ -39,6 +39,29 @@ Context* ModuleDef::getContext() { return module->getContext(); }
 string ModuleDef::getName() {return module->getName();}
 Type* ModuleDef::getType() {return module->getType();}
 
+//Can pass in either a single instance name
+//Or pass in a '.' deleminated string
+Wireable* ModuleDef::sel(string s) { 
+  if (hasChar(s,'.')) {
+    SelectPath path = splitString(s,'.');
+    return this->sel(path);
+  }
+  if (s=="self") return interface;
+  else {
+    ASSERT(instances.count(s),"Cannot find instance " + s);
+    return instances[s]; 
+  }
+}
+
+Wireable* ModuleDef::sel(SelectPath path) {
+  Wireable* cur = this->sel(path[0]);
+  for (auto it = std::next(path.begin()); it != path.end(); ++it) {
+    cur = cur->sel(*it);
+  }
+  return cur;
+}
+
+
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
   assert(instances.count(instname)==0);
   
@@ -63,7 +86,7 @@ Instance* ModuleDef::addInstance(Instance* i) {
 }
 
 
-void ModuleDef::wire(Wireable* a, Wireable* b) {
+void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
   Context* c = getContext();
   if (a->getModuleDef()!=this || b->getModuleDef() != this) {
@@ -94,35 +117,62 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   }
 }
 
-void ModuleDef::wire(SelectPath pathA, SelectPath pathB) {
-  this->wire(this->sel(pathA),this->sel(pathB));
+void ModuleDef::connect(SelectPath pathA, SelectPath pathB) {
+  this->connect(this->sel(pathA),this->sel(pathB));
 }
 
-void ModuleDef::wire(string pathA, string pathB) {
-  this->wire(this->sel(pathA),this->sel(pathB));
+void ModuleDef::connect(string pathA, string pathB) {
+  this->connect(this->sel(pathA),this->sel(pathB));
+}
+void ModuleDef::connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB) {
+  connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
+}
+void ModuleDef::connect(std::initializer_list<std::string> pA, std::initializer_list<string> pB) {
+  connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
 }
 
-//Can pass in either a single instance name
-//Or pass in a '.' deleminated string
-Wireable* ModuleDef::sel(string s) { 
-  if (hasChar(s,'.')) {
-    SelectPath path = splitString(s,'.');
-    return this->sel(path);
+//This will remove all connections from a specific wireable
+void ModuleDef::disconnect(Wireable* w) {
+  for (auto wc : w->getConnectedWireables()) {
+    this->disconnect(w,wc);
   }
-  if (s=="self") return interface;
-  else {
-    ASSERT(instances.count(s),"Cannot find instance " + s);
-    return instances[s]; 
-  }
 }
 
-Wireable* ModuleDef::sel(SelectPath path) {
-  Wireable* cur = this->sel(path[0]);
-  for (auto it = std::next(path.begin()); it != path.end(); ++it) {
-    cur = cur->sel(*it);
+void ModuleDef::disconnect(Wireable* a, Wireable* b) {
+  //First check if this exists in the list of connections
+  auto sorted = std::minmax(a,b);
+  Connection connect(sorted.first,sorted.second);
+  if (connections.count(connect)==0) {
+    cout << "Connection does not exist! Not removing" << endl;
+    return;
   }
-  return cur;
+  
+  //remove reference from a and 
+  a->removeConnectedWireable(b);
+  b->removeConnectedWireable(a);
+
+  //Delete connection from list
+  connections.erase(connect);
 }
 
+void disconnectAllWireables(ModuleDef* m, Wireable* w) {
+  for (auto sels : w->getSelects()) {
+    disconnectAllWireables(m,sels.second);
+  }
+  m->disconnect(w);
+}
+
+void ModuleDef::removeInstance(string iname) {
+  //First verify that instance exists
+  ASSERT(instances.count(iname), "Instance " + iname + " does not exist");
+  Instance* inst = instances.at(iname);
+  
+  //First remove all the connections from this instance
+  disconnectAllWireables(this,inst);
+
+  //Now remove this instance
+  instances.erase(iname);
+
+}
 
 } //coreir namespace

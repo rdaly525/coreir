@@ -25,11 +25,11 @@ int main() {
     def->addInstance("mi",Mul,w16);
     def->addInstance("ci",Const,w16,{{"value",c->argInt(140)}});
     
-    def->wire("self.in","ai.in.0");
-    def->wire("ci.out","ai.in.1");
-    def->wire("ci.out","mi.in.0");
-    def->wire("ai.out","mi.in.1");
-    def->wire("mi.out","self.out");
+    def->connect("self.in","ai.in.0");
+    def->connect("ci.out","ai.in.1");
+    def->connect("ci.out","mi.in.0");
+    def->connect("ai.out","mi.in.1");
+    def->connect("mi.out","self.out");
   addmult->setDef(def);
 
   addmult->print();

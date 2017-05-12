@@ -160,7 +160,7 @@ coreir_lib.COREConnectionGetFirst.restype = COREWireable_p
 coreir_lib.COREConnectionGetSecond.argtypes = [COREConnection_p]
 coreir_lib.COREConnectionGetSecond.restype = COREWireable_p
 
-coreir_lib.COREModuleDefWire.argtypes = [COREModuleDef_p, COREWireable_p, COREWireable_p]
+coreir_lib.COREModuleDefConnect.argtypes = [COREModuleDef_p, COREWireable_p, COREWireable_p]
 
 coreir_lib.COREInterfaceSelect.argtypes = [COREInterface_p, ct.c_char_p]
 coreir_lib.COREInterfaceSelect.restype = CORESelect_p
@@ -302,8 +302,8 @@ class ModuleDef(CoreIRType):
         result = coreir_lib.COREModuleDefGetConnections(self.ptr, ct.byref(size))
         return [Connection(result[i], self.context) for i in range(size.value)]
 
-    def wire(self, a, b):
-        coreir_lib.COREModuleDefWire(self.ptr, a.ptr, b.ptr)
+    def connect(self, a, b):
+        coreir_lib.COREModuleDefConnect(self.ptr, a.ptr, b.ptr)
 
     def select(self, field):
         return Wireable(coreir_lib.COREModuleDefSelect(self.ptr, str.encode(field)),self.context)

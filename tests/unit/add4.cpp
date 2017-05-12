@@ -32,18 +32,18 @@ int main() {
     Wireable* add_01 = def->addInstance("add01",add2,{{"width",c->argInt(n)}});
     Wireable* add_1 = def->addInstance("add1",add2,{{"width",c->argInt(n)}});
     
-    def->wire(self->sel("in")->sel(0),add_00->sel("in")->sel(0));
-    def->wire(self->sel("in")->sel(1),add_00->sel("in")->sel(1));
-    def->wire(self->sel("in")->sel(2),add_01->sel("in")->sel(0));
-    def->wire(self->sel("in")->sel(3),add_01->sel("in")->sel(1));
+    def->connect(self->sel("in")->sel(0),add_00->sel("in")->sel(0));
+    def->connect(self->sel("in")->sel(1),add_00->sel("in")->sel(1));
+    def->connect(self->sel("in")->sel(2),add_01->sel("in")->sel(0));
+    def->connect(self->sel("in")->sel(3),add_01->sel("in")->sel(1));
     
-    //def->wire(self->sel("in")->sel(3),add_01->sel("in1"));
-    //def->wire(add_01->sel("in1"),self->sel("in")->sel(3));
+    //def->connect(self->sel("in")->sel(3),add_01->sel("in1"));
+    //def->connect(add_01->sel("in1"),self->sel("in")->sel(3));
 
-    def->wire(add_00->sel("out"),add_1->sel("in")->sel(0));
-    def->wire(add_01->sel("out"),add_1->sel("in")->sel(1));
+    def->connect(add_00->sel("out"),add_1->sel("in")->sel(0));
+    def->connect(add_01->sel("out"),add_1->sel("in")->sel(1));
 
-    def->wire(add_1->sel("out"),self->sel("out"));
+    def->connect(add_1->sel("out"),self->sel("out"));
   add4_n->setDef(def);
   add4_n->print();
   

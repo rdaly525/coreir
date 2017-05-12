@@ -44,11 +44,11 @@ int main() {
     Arg* aWidth = c->argInt(width);
     
     def->addInstance("inst",add2,{{"width",aWidth}});
-    def->wire("inst.out","self.out");
+    def->connect("inst.out","self.out");
     
     if (N == 2) {
-      def->wire("self.in.0","inst.in.0");
-      def->wire("self.in.1","inst.in.1");
+      def->connect("self.in.0","inst.in.0");
+      def->connect("self.in.1","inst.in.1");
     }
     else {
       //Connect half instances
@@ -56,11 +56,11 @@ int main() {
       def->addInstance("addN_0",addN,{{"width",aWidth},{"N",aN2}});
       def->addInstance("addN_1",addN,{{"width",aWidth},{"N",aN2}});
       for (uint i=0; i<N/2; ++i) {
-        def->wire({"self","in",to_string(i)},{"addN_0","in",to_string(i)});
-        def->wire({"self","in",to_string(i+N/2)},{"addN_1","in",to_string(i)});
+        def->connect({"self","in",to_string(i)},{"addN_0","in",to_string(i)});
+        def->connect({"self","in",to_string(i+N/2)},{"addN_1","in",to_string(i)});
       }
-      def->wire("addN_0.out","inst.in.0");
-      def->wire("addN_1.out","inst.in.1");
+      def->connect("addN_0.out","inst.in.0");
+      def->connect("addN_1.out","inst.in.1");
     }
   });
   
@@ -77,11 +77,11 @@ int main() {
     def->addInstance("add8_upper",addN,{{"width",c->argInt(13)},{"N",c->argInt(8)}});
     def->addInstance("add4_lower",addN,{{"width",c->argInt(13)},{"N",c->argInt(4)}});
     def->addInstance("add2_join",stdlib->getGenerator("add"),{{"width",c->argInt(13)}});
-    def->wire("self.in8","add8_upper.in");
-    def->wire("self.in4","add4_lower.in");
-    def->wire("add8_upper.out","add2_join.in0");
-    def->wire("add4_lower.out","add2_join.in1");
-    def->wire("add2_join.out","self.out");
+    def->connect("self.in8","add8_upper.in");
+    def->connect("self.in4","add4_lower.in");
+    def->connect("add8_upper.out","add2_join.in0");
+    def->connect("add4_lower.out","add2_join.in1");
+    def->connect("add2_join.out","self.out");
   add12->setDef(def);
   add12->print();
   

@@ -28,14 +28,14 @@ int main() {
     def->addInstance("r4",Reg,w16);
     def->addInstance("io1",IO,w16,{{"mode",c->argString("o")}});
     
-    def->wire("io0.out","r0.in");
-    def->wire("c0.out","p0.data.in.0");
-    def->wire("r0.out","p0.data.in.1");
-    def->wire("p0.data.out","r1.in");
-    def->wire("r1.out","r2.in");
-    def->wire("r2.out","r3.in");
-    def->wire("r3.out","r4.in");
-    def->wire("r4.out","io1.in");
+    def->connect("io0.out","r0.in");
+    def->connect("c0.out","p0.data.in.0");
+    def->connect("r0.out","p0.data.in.1");
+    def->connect("p0.data.out","r1.in");
+    def->connect("r1.out","r2.in");
+    def->connect("r2.out","r3.in");
+    def->connect("r3.out","r4.in");
+    def->connect("r4.out","io1.in");
   Top->setDef(def);
   
   Top->print();

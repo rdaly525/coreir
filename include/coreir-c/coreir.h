@@ -59,7 +59,7 @@ extern COREArg* COREGetConfigValue(COREInstance* i, char* s);
 //Errors:
 //  Wire Error;
 //  Typechecking errors
-extern void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
+extern void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
 extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
 extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, u32* numInstances);
