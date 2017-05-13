@@ -26,6 +26,7 @@ class Wireable {
     virtual string toString() const=0;
     unordered_set<Wireable*> getConnectedWireables() { return connected;}
     unordered_map<string,Wireable*> getSelects() { return selects;}
+    bool hasSel(string selstr) {return selects.count(selstr) >0;}
     Metadata getMetadata() { return metadata;}
     ModuleDef* getModuleDef() { return moduledef;}
     Context* getContext();
