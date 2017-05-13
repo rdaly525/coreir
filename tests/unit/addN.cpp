@@ -1,6 +1,6 @@
 #include "coreir.h"
 #include "coreir-lib/stdlib.h"
-#include "coreir-pass/passes.hpp"
+#include "coreir-pass/passes.h"
 
 
 using namespace CoreIR;
@@ -103,7 +103,12 @@ int main() {
   rungenerators(c,add12,&err);
   if (err) c->die();
   add12->print();
-  
+ 
+  cout << "Flattening everything" << endl;
+  flatten(c,add12,&err);
+  add12->print();
+  add12->getDef()->validate();
+
   cout << "Checking saving and loading postgen" << endl;
   saveModule(add12, "_add12Gen.json",&err);
   if (err) {
