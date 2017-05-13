@@ -1,22 +1,22 @@
 
 
 all:
-	make -C coreir-c
-	make -C passes
-	make -C libs
+	$(MAKE) -C coreir-c
+	$(MAKE) -C passes
+	$(MAKE) -C libs
 
 so:
-	make -C coreir-c so
-	make -C passes so
-	make -C libs so
+	$(MAKE) -C coreir-c so
+	$(MAKE) -C passes so
+	$(MAKE) -C libs so
 
 dylib:
-	make -C coreir-c dylib
-	make -C passes dylib
-	make -C libs dylib
+	$(MAKE) -C coreir-c dylib
+	$(MAKE) -C passes dylib
+	$(MAKE) -C libs dylib
 
 
 clean:
-	make -C coreir-c clean
-	make -C passes clean
-	make -C libs clean
+	$(MAKE) -C coreir-c clean
+	$(MAKE) -C passes clean
+	$(MAKE) -C libs clean

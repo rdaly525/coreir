@@ -23,12 +23,12 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams), def(nullptr) {
+Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams) {
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);
-    assert(gen_param != genparams.end() && "Param not found");
-    assert(gen_param->second == type_param.second && "Param type mismatch");
+    ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
+    ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
   }
 }
 
@@ -41,17 +41,17 @@ Generator::~Generator() {
 }
 
 void checkArgsAreParams(Args args, Params params) {
-  assert(args.size() == params.size() && "Args and params are not the same!");
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams:" );
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    assert(arg != args.end() && "Arg Not found");
-    assert(arg->second->getKind() == param.second && "Param type mismatch");
+    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
   }
 }
 
 Module* Generator::getModule(Args args) {
+  
   //Check cache
-  cout << "Getting from " << name << Args2Str(args) << endl;
   auto cached = genCache.find(args);
   if (cached != genCache.end() ) {
     return cached->second;
@@ -88,14 +88,37 @@ string Generator::toString() const {
 }
 
 DirectedModule* Module::newDirectedModule() {
+  if (!directedModule) {
     directedModule = new DirectedModule(this);
-    return directedModule;
+  }
+  return directedModule;
 }
 
 Module::~Module() {
   
   for (auto md : mdefList) delete md;
   delete directedModule;
+}
+
+ModuleDef* Module::newModuleDef() {
+  
+  ModuleDef* md = new ModuleDef(this);
+  mdefList.push_back(md);
+  return md;
+}
+
+void Module::setDef(ModuleDef* def, bool validate) {
+  if (validate) {
+    if (def->validate()) {
+      cout << "Error Validating def" << endl;
+      this->getContext()->die();
+    }
+  }
+  this->def = def;
+  //Directed View is not valid anymore
+  if (this->directedModule) {
+    delete this->directedModule;
+  }
 }
 
 string Module::toString() const {
@@ -107,11 +130,5 @@ void Module::print(void) {
   if(def) def->print();
 
 }
-
-void Module::setDef(ModuleDef* def) {
-    delete this->directedModule;
-    this->directedModule = nullptr;
-    this->def = def;
-};
 
 }//CoreIR namespace

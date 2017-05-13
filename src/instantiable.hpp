@@ -40,7 +40,6 @@ class Instantiable {
     bool isKind(InstantiableKind k) const { return kind==k;}
     InstantiableKind getKind() const { return kind;}
     
-    //TODO comment these out
     Context* getContext();
     Params getConfigParams() { return configparams;}
     Metadata getMetadata() { return metadata;}
@@ -56,9 +55,9 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   Params genparams;
   
-  unordered_map<Args,Module*> genCache;
   //This is memory managed
-  GeneratorDef* def;
+  unordered_map<Args,Module*> genCache;
+  GeneratorDef* def = nullptr;
   
   public :
     Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams);
@@ -71,6 +70,7 @@ class Generator : public Instantiable {
     GeneratorDef* getDef() const {return def;}
     
     //This will create a blank module (will run typegen) if not cached
+    //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Args args);
     
     //This will actually run the generator
@@ -84,19 +84,23 @@ class Generator : public Instantiable {
 
 class Module : public Instantiable {
   Type* type;
-  ModuleDef* def;
+  ModuleDef* def = nullptr;
+  
+  //the directedModule View
+  DirectedModule* directedModule = nullptr;
   
   //Memory Management
   vector<ModuleDef*> mdefList;
-  DirectedModule* directedModule;
 
   public :
-    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type), def(nullptr), directedModule(nullptr) {}
+    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() const { return def; } 
-    void setDef(ModuleDef* def);
+    //This will validate def
+    void setDef(ModuleDef* def, bool validate=true);
+   
     ModuleDef* newModuleDef();
     DirectedModule* newDirectedModule();
     

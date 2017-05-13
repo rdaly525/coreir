@@ -6,7 +6,7 @@ using namespace CoreIR;
 
 Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   
-  Namespace* cgralib = c->newNamespace("cgra");
+  Namespace* cgralib = c->newNamespace("cgralib");
   
   //Unary op declaration
   Params widthParams = {{"width",AINT}};

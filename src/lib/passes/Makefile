@@ -33,11 +33,11 @@ dylib: $(DYLIBS)
 clean:
 	rm -rf build/*
 
-build/passes.dylib: build/typecheck.o build/rungen.o
+build/passes.dylib: build/rungen.o
 	$(CXX) -install_name "@rpath/libcoreir-passes.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
 	cp $@ $(HOME)/lib/libcoreir-passes.dylib
 
-build/passes.so: build/typecheck.o build/rungen.o
+build/passes.so: build/rungen.o
 	$(CXX) -shared $(LPATH) -lcoreir -o $@ $^
 	cp $@ $(HOME)/lib/libcoreir-passes.so
 

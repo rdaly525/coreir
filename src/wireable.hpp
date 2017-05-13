@@ -58,7 +58,7 @@ class Instance : public Wireable {
   Args configargs;
   
   bool isgen;
-  Generator* generatorRef;
+  Generator* generatorRef = nullptr;
   Args genargs;
   
   public :
@@ -78,11 +78,8 @@ class Instance : public Wireable {
     Generator* getGeneratorRef() { return generatorRef;}
     Args getGenargs() {return genargs;}
     void runGenerator();
-    void replace(Module* moduleRef, Args configargs) {
-      //TODO should I remove the generator and generator args? 
-      this->moduleRef = moduleRef;
-      this->configargs = configargs;
-    }
+    void replace(Module* moduleRef, Args configargs=Args());
+    void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
 };
 
 class Select : public Wireable {

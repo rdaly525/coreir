@@ -85,7 +85,7 @@ int main() {
   //Test casting of Generator
   {
     Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
-    Instantiable* m = stdlib->getGenerator("add2");
+    Instantiable* m = stdlib->getGenerator("add");
     assert(isa<Generator>(m));
     Generator* mi = cast<Generator>(m);
     assert(dyn_cast<Instantiable>(m));

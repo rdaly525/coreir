@@ -111,7 +111,7 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
 
   return named;
 }
-void Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
+TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   assert(namedTypeList.count(name)==0);
   assert(typeGenList.count(name)==0);
   
@@ -121,11 +121,11 @@ void Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   typeGenNameMap[name] = "";
   
   typeGenList[name] = typegen;
+  return typegen;
 }
 
 //TODO deal with at errors
 TypeGen* Namespace::getTypeGen(string name) {
-  cout << "TypeGen name:" << name << endl;
   assert(typeGenList.count(name)>0);
   TypeGen* ret = typeGenList.at(name);
   assert(ret->getName()==name);

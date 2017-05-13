@@ -18,7 +18,7 @@ endif
 HOME = ../../..
 LPATH = -L$(HOME)/lib
 INCS = -I$(HOME)/include -I.
-SRCFILES = $(wildcard *.cpp)
+SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 
 DYLIBS = $(patsubst %.cpp,build/%.dylib,$(SRCFILES))

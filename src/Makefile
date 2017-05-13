@@ -18,7 +18,7 @@ endif
 
 INCS = -I../include -I.
 DEPS = context.hpp
-SRCFILES = $(wildcard *.cpp)
+SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 
 all: build/coreir.dylib build/coreir.so
