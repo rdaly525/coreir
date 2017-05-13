@@ -37,18 +37,18 @@ int main() {
     assert((N & (N-1)) == 0); //Check if power of 2
     assert(N!=1);
 
-    Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+    Namespace* stdlib = c->getNamespace("stdlib");
     Generator* add2 = stdlib->getGenerator("add");
     Generator* addN = c->getGlobal()->getGenerator("addN");
     
     Arg* aWidth = c->argInt(width);
     
-    def->addInstance("inst",add2,{{"width",aWidth}});
-    def->connect("inst.out","self.out");
+    def->addInstance("join",add2,{{"width",aWidth}});
+    def->connect("join.out","self.out");
     
     if (N == 2) {
-      def->connect("self.in.0","inst.in.0");
-      def->connect("self.in.1","inst.in.1");
+      def->connect("self.in.0","join.in.0");
+      def->connect("self.in.1","join.in.1");
     }
     else {
       //Connect half instances
@@ -59,8 +59,8 @@ int main() {
         def->connect({"self","in",to_string(i)},{"addN_0","in",to_string(i)});
         def->connect({"self","in",to_string(i+N/2)},{"addN_1","in",to_string(i)});
       }
-      def->connect("addN_0.out","inst.in.0");
-      def->connect("addN_1.out","inst.in.1");
+      def->connect("addN_0.out","join.in.0");
+      def->connect("addN_1.out","join.in.1");
     }
   });
   
@@ -79,8 +79,8 @@ int main() {
     def->addInstance("add2_join",stdlib->getGenerator("add"),{{"width",c->argInt(13)}});
     def->connect("self.in8","add8_upper.in");
     def->connect("self.in4","add4_lower.in");
-    def->connect("add8_upper.out","add2_join.in0");
-    def->connect("add4_lower.out","add2_join.in1");
+    def->connect("add8_upper.out","add2_join.in.0");
+    def->connect("add4_lower.out","add2_join.in.1");
     def->connect("add2_join.out","self.out");
   add12->setDef(def);
   add12->print();

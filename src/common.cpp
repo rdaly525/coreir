@@ -42,10 +42,17 @@ string Params2Str(Params genparams) {
 
 string Args2Str(Args args) {
   string s = "(";
-  for (auto it : args) {
-    s = s + it.first + ":"+it.second->toString()+",";
+  for (auto it=args.begin(); it!=args.end(); ++it) {
+    s = s + (it==args.begin() ? "" : ",") + it->first + ":"+it->second->toString();
   }
   return s + ")";
+}
+string SelectPath2Str(SelectPath s) {
+  string ret = "";
+  for (auto it=s.begin(); it!=s.end(); ++it) {
+    ret = ret + (it==s.begin() ? "" : ".") + *it;
+  }
+  return ret;
 }
 
 std::vector<std::string> splitString(const std::string &s, char delim) {

@@ -89,6 +89,7 @@ string Param2Str(Param);
 string Params2Str(Params);
 string Args2Str(Args);
 Param Str2Param(string s);
+string SelectPath2Str(SelectPath s);
 vector<std::string> splitString(const string &s, char delim);
 bool hasChar(const std::string s, char c);
 

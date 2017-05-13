@@ -146,7 +146,7 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   auto sorted = std::minmax(a,b);
   Connection connect(sorted.first,sorted.second);
   if (connections.count(connect)==0) {
-    cout << "Connection does not exist! Not removing" << endl;
+    assert("Connection does not exist! Not removing");
     return;
   }
   

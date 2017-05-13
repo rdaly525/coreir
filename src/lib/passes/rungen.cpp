@@ -40,7 +40,7 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
     err |= rungeneratorsRec(c,inst->getModuleRef(),ran);
     
     //Test inlining
-    //inst->inlineModule();
+    inst->inlineModule();
   }
   ran->insert(m);
   return err;
