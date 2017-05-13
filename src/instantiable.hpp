@@ -88,15 +88,15 @@ class Module : public Instantiable {
   
   //Memory Management
   vector<ModuleDef*> mdefList;
-  vector<DirectedModule*> directedModuleList;
+  DirectedModule* directedModule;
 
   public :
-    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type), def(nullptr) {}
+    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type), def(nullptr), directedModule(nullptr) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() const { return def; } 
-    void setDef(ModuleDef* def) { this->def = def;}
+    void setDef(ModuleDef* def);
     ModuleDef* newModuleDef();
     DirectedModule* newDirectedModule();
     

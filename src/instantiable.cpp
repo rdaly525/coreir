@@ -88,15 +88,14 @@ string Generator::toString() const {
 }
 
 DirectedModule* Module::newDirectedModule() {
-    DirectedModule* directed_module = new DirectedModule(this);
-    directedModuleList.push_back(directed_module);
-    return directed_module;
+    directedModule = new DirectedModule(this);
+    return directedModule;
 }
 
 Module::~Module() {
   
   for (auto md : mdefList) delete md;
-  for (auto directedModule : directedModuleList) delete directedModule;
+  delete directedModule;
 }
 
 string Module::toString() const {
@@ -108,5 +107,11 @@ void Module::print(void) {
   if(def) def->print();
 
 }
+
+void Module::setDef(ModuleDef* def) {
+    delete this->directedModule;
+    this->directedModule = nullptr;
+    this->def = def;
+};
 
 }//CoreIR namespace
