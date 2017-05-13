@@ -143,8 +143,8 @@ coreir_lib.COREModuleDefGetInterface.restype = COREInterface_p
 coreir_lib.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREModuleDefGetInstances.restype = ct.POINTER(COREInstance_p)
 
-coreir_lib.COREModuleNewDirectedView.argtypes = [COREModule_p]
-coreir_lib.COREModuleNewDirectedView.restype = COREDirectedModule_p
+coreir_lib.COREModuleNewDirectedModule.argtypes = [COREModule_p]
+coreir_lib.COREModuleNewDirectedModule.restype = COREDirectedModule_p
 
 coreir_lib.COREGetInstRefName.argtypes = [COREInstance_p]
 coreir_lib.COREGetInstRefName.restype = ct.c_char_p
@@ -329,8 +329,8 @@ class Module(CoreIRType):
     def new_definition(self):
         return ModuleDef(coreir_lib.COREModuleNewDef(self.ptr),self.context)
 
-    def new_directed_view(self):
-        return DirectedModule(coreir_lib.COREModuleNewDirectedView(self.ptr), self.context)
+    def new_directed_module(self):
+        return DirectedModule(coreir_lib.COREModuleNewDirectedModule(self.ptr), self.context)
 
     def get_definition(self):
         return ModuleDef(coreir_lib.COREModuleGetDef(self.ptr),self.context)

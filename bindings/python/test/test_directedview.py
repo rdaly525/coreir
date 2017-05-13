@@ -28,7 +28,7 @@ def test_directed_module():
     module_def.wire(add8_inst2.select("out"), add8_inst3.select("in2"))
     module_def.wire(add8_inst3.select("out"), interface.select("output"))
     module.add_definition(module_def)
-    directed_module = module.new_directed_view()
+    directed_module = module.new_directed_module()
 
     # check inputs
     expected = [["adder1", "in1"], ["adder1", "in2"], ["adder2", "in1"], ["adder2", "in2"]]

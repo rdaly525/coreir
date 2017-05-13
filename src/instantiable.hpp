@@ -98,7 +98,7 @@ class Module : public Instantiable {
     ModuleDef* getDef() const { return def; } 
     void setDef(ModuleDef* def) { this->def = def;}
     ModuleDef* newModuleDef();
-    DirectedModule* newDirectedView();
+    DirectedModule* newDirectedModule();
     
     string toString() const;
     json toJson();

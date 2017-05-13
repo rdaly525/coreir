@@ -87,7 +87,7 @@ string Generator::toString() const {
   return ret;
 }
 
-DirectedModule* Module::newDirectedView() {
+DirectedModule* Module::newDirectedModule() {
     DirectedModule* directed_module = new DirectedModule(this);
     directedModuleList.push_back(directed_module);
     return directed_module;

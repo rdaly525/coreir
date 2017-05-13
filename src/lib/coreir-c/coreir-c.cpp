@@ -152,8 +152,8 @@ extern "C" {
     rcast<Module*>(module)->setDef(rcast<ModuleDef*>(module_def));
   }
 
-  COREDirectedModule* COREModuleNewDirectedView(COREModule* module) {
-      return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedView());
+  COREDirectedModule* COREModuleNewDirectedModule(COREModule* module) {
+      return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedModule());
   }
 
   void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
@@ -309,7 +309,7 @@ extern "C" {
   }
 
   COREDirectedModule* CORENewDirectedModule(COREModule* module) {
-      return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedView());
+      return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedModule());
   }
 
   COREWireable* COREDirectedModuleSel(COREDirectedModule* directed_module, const char** path, int path_len) {
