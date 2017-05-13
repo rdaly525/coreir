@@ -124,7 +124,7 @@ coreir_lib.COREGetGlobal.restype = CORENamespace_p
 coreir_lib.CORENewModule.argtypes = [CORENamespace_p, ct.c_char_p, COREType_p, ct.c_void_p]
 coreir_lib.CORENewModule.restype = COREModule_p
 
-coreir_lib.COREModuleAddDef.argtypes = [COREModule_p, COREModuleDef_p]
+coreir_lib.COREModuleSetDef.argtypes = [COREModule_p, COREModuleDef_p]
 
 coreir_lib.COREPrintModule.argtypes = [COREModule_p]
 
@@ -143,8 +143,8 @@ coreir_lib.COREModuleDefGetInterface.restype = COREInterface_p
 coreir_lib.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREModuleDefGetInstances.restype = ct.POINTER(COREInstance_p)
 
-coreir_lib.COREModuleNewDirectedModule.argtypes = [COREModule_p]
-coreir_lib.COREModuleNewDirectedModule.restype = COREDirectedModule_p
+coreir_lib.COREModuleGetDirectedModule.argtypes = [COREModule_p]
+coreir_lib.COREModuleGetDirectedModule.restype = COREDirectedModule_p
 
 coreir_lib.COREGetInstRefName.argtypes = [COREInstance_p]
 coreir_lib.COREGetInstRefName.restype = ct.c_char_p
@@ -329,15 +329,15 @@ class Module(CoreIRType):
     def new_definition(self):
         return ModuleDef(coreir_lib.COREModuleNewDef(self.ptr),self.context)
 
-    def new_directed_module(self):
-        return DirectedModule(coreir_lib.COREModuleNewDirectedModule(self.ptr), self.context)
+    def get_directed_module(self):
+        return DirectedModule(coreir_lib.COREModuleGetDirectedModule(self.ptr), self.context)
 
     def get_definition(self):
         return ModuleDef(coreir_lib.COREModuleGetDef(self.ptr),self.context)
 
-    def add_definition(self, definition):
+    def set_definition(self, definition):
         assert isinstance(definition, ModuleDef)
-        coreir_lib.COREModuleAddDef(self.ptr, definition.ptr)
+        coreir_lib.COREModuleSetDef(self.ptr, definition.ptr)
 
     def save_to_file(self, file_name):
         err = ct.c_bool(False)

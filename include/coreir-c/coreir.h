@@ -47,9 +47,9 @@ extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, 
 
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
-extern COREModuleDef* COREModuleGetDefs(COREModule* m);
-void COREModuleAddDef(COREModule* module, COREModuleDef* module_def);
-extern COREDirectedModule* COREModuleNewDirectedModule(COREModule* module);
+//extern COREModuleDef* COREModuleGetDef(COREModule* m);
+void COREModuleSetDef(COREModule* module, COREModuleDef* module_def);
+extern COREDirectedModule* COREModuleGetDirectedModule(COREModule* module);
 
 //Errors:
 //  Invalid arg: instance name already exists

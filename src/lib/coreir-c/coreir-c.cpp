@@ -147,12 +147,11 @@ extern "C" {
     return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
   }
 
-  //TODO change name to 'setDef'
-  void COREModuleAddDef(COREModule* module, COREModuleDef* module_def) {
+  void COREModuleSetDef(COREModule* module, COREModuleDef* module_def) {
     rcast<Module*>(module)->setDef(rcast<ModuleDef*>(module_def));
   }
 
-  COREDirectedModule* COREModuleNewDirectedModule(COREModule* module) {
+  COREDirectedModule* COREModuleGetDirectedModule(COREModule* module) {
       return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedModule());
   }
 

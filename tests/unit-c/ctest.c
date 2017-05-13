@@ -62,7 +62,7 @@ int main() {
   assert(strcmp(selpath[1],"4")==0);
   */
 
-  COREModuleAddDef(m,mdef);
+  COREModuleSetDef(m,mdef);
 
   COREPrintModule(m);
 
