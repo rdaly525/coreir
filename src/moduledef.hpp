@@ -51,7 +51,7 @@ class ModuleDef {
     //API for adding an instance of either a module or generator
     Instance* addInstance(string,Generator*,Args genargs, Args config=Args());
     Instance* addInstance(string,Module*,Args config=Args());
-    Instance* addInstance(Instance* i); //copys info about i
+    Instance* addInstance(Instance* i,string iname=""); //copys info about i
 
     //API for connecting two instances together
     void connect(Wireable* a, Wireable* b);

@@ -78,11 +78,14 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   return inst;
 }
 
-Instance* ModuleDef::addInstance(Instance* i) {
+Instance* ModuleDef::addInstance(Instance* i,string iname) {
+  if (iname=="") {
+    iname = i->getInstname();
+  }
   if( i->isGen()) 
-    return addInstance(i->getInstname(),i->getGeneratorRef(),i->getGenargs(),i->getConfigArgs());
+    return addInstance(iname,i->getGeneratorRef(),i->getGenargs(),i->getConfigArgs());
   else 
-    return addInstance(i->getInstname(),i->getModuleRef(),i->getConfigArgs());
+    return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
 }
 
 
