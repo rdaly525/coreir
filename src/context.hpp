@@ -7,6 +7,7 @@
 #include "error.hpp"
 #include "common.hpp"
 #include "casting/casting.hpp"
+#include "directedview.hpp"
 
 #include <string>
 #include <unordered_set>
@@ -39,6 +40,10 @@ class Context {
   vector<Connection**> connectionPtrArrays;
   vector<Wireable**> wireableArrays;
   vector<const char**> constStringArrays;
+  vector<DirectedConnection*> directedConnectionArrays;
+  vector<DirectedConnection**> directedConnectionPtrArrays;
+  vector<DirectedInstance*> directedInstanceArrays;
+  vector<DirectedInstance**> directedInstancePtrArrays;
 
   public :
     Context();
@@ -98,6 +103,11 @@ class Context {
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
+    DirectedConnection* newDirectedConnectionArray(int size);
+    DirectedConnection** newDirectedConnectionPtrArray(int size);
+    DirectedInstance* newDirectedInstanceArray(int size);
+    DirectedInstance** newDirectedInstancePtrArray(int size);
+
 
 };
 

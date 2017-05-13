@@ -15,12 +15,13 @@ typedef std::vector<DirectedInstance> DirectedInstances;
 class DirectedConnection {
   Connection c;
 
-  SelectPath src;
-  SelectPath snk;
+  Wireable* src;
+  Wireable* snk;
   public:
     DirectedConnection(Connection& c);
-    SelectPath getSrc() { return src;}
-    SelectPath getSnk() { return snk;}
+    SelectPath getSrc();
+    SelectPath getSnk();
+    Context* getContext();
     Connection operator->() {return c;}
 };
 
@@ -44,6 +45,7 @@ class DirectedModule {
     DirectedInstances getInstances() { return insts;}
     DirectedConnections getInputs() { return inputs;}
     DirectedConnections getOutputs() { return outputs;}
+    Context* getContext();
     Module* operator->() {return m;}
 };
 

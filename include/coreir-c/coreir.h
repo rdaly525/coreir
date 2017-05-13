@@ -49,6 +49,7 @@ extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
 extern COREModuleDef* COREModuleGetDefs(COREModule* m);
 void COREModuleAddDef(COREModule* module, COREModuleDef* module_def);
+extern COREDirectedModule* COREModuleNewDirectedModule(COREModule* module);
 
 //Errors:
 //  Invalid arg: instance name already exists
@@ -75,5 +76,16 @@ extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors
 extern void COREPrintErrors(COREContext* c);
 extern const char* CORENamespaceGetName(CORENamespace* n);
 
+// BEGIN : directedview
+extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);
+extern const char** COREDirectedConnectionGetSnk(COREDirectedConnection* directed_connection);
+
+extern COREDirectedModule* CORENewDirectedModule(COREModule* m);
+extern COREWireable* COREDirectedModuleSel(COREDirectedModule* directed_module, const char** path);
+extern COREDirectedConnection** COREDirectedModuleGetConnections(COREDirectedModule* directed_module, int* num_connections);
+extern COREDirectedInstance** COREDirectedModuleGetInstances(COREDirectedModule* directed_module, int* num_instances);
+extern COREDirectedConnection** COREDirectedModuleGetInputs(COREDirectedModule* directed_module, int* num_connections);
+extern COREDirectedConnection** COREDirectedModuleGetOutputs(COREDirectedModule* directed_module, int* num_connections);
+// END   : directedview
 
 #endif //COREIR_C_H_

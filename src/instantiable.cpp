@@ -87,9 +87,15 @@ string Generator::toString() const {
   return ret;
 }
 
+DirectedModule* Module::newDirectedModule() {
+    directedModule = new DirectedModule(this);
+    return directedModule;
+}
+
 Module::~Module() {
   
   for (auto md : mdefList) delete md;
+  delete directedModule;
 }
 
 string Module::toString() const {
@@ -101,5 +107,11 @@ void Module::print(void) {
   if(def) def->print();
 
 }
+
+void Module::setDef(ModuleDef* def) {
+    delete this->directedModule;
+    this->directedModule = nullptr;
+    this->def = def;
+};
 
 }//CoreIR namespace

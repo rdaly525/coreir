@@ -152,6 +152,10 @@ extern "C" {
     rcast<Module*>(module)->setDef(rcast<ModuleDef*>(module_def));
   }
 
+  COREDirectedModule* COREModuleNewDirectedModule(COREModule* module) {
+      return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedModule());
+  }
+
   void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
     rcast<ModuleDef*>(module_def)->wire(rcast<Wireable*>(a), rcast<Wireable*>(b));
   }
@@ -277,5 +281,108 @@ extern "C" {
   const char* CORENamespaceGetName(CORENamespace* n) {
     return rcast<Namespace*>(n)->getName().c_str();
   }
+
+  const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection, int* path_len) {
+      DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
+      SelectPath path = conn->getSrc();
+      Context* c = conn->getContext();
+      int size = path.size();
+      *path_len = size;
+      const char** arr = c->newConstStringArray(size);
+      for (int i = 0; i < size; i ++) {
+          arr[i] = path[i].c_str();
+      }
+      return arr;
+  }
+
+  const char** COREDirectedConnectionGetSnk(COREDirectedConnection* directed_connection, int* path_len) {
+      DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
+      SelectPath path = conn->getSnk();
+      Context* c = conn->getContext();
+      int size = path.size();
+      *path_len = size;
+      const char** arr = c->newConstStringArray(size);
+      for (int i = 0; i < size; i ++) {
+          arr[i] = path[i].c_str();
+      }
+      return arr;
+  }
+
+  COREDirectedModule* CORENewDirectedModule(COREModule* module) {
+      return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedModule());
+  }
+
+  COREWireable* COREDirectedModuleSel(COREDirectedModule* directed_module, const char** path, int path_len) {
+      SelectPath select_path;
+      for (int i = 0; i < path_len; i++) {
+          select_path.push_back(std::string(path[i]));
+      }
+      return rcast<COREWireable*>(rcast<DirectedModule*>(directed_module)->sel(select_path));
+  }
+
+  COREDirectedConnection** COREDirectedModuleGetConnections(COREDirectedModule* directed_module, int* num_connections) {
+      DirectedModule* module = rcast<DirectedModule*>(directed_module);
+      DirectedConnections directed_connections = module->getConnections();
+      int size = directed_connections.size();
+      *num_connections = size;
+      DirectedConnection* arr = module->getContext()->newDirectedConnectionArray(size);
+      DirectedConnection** ptr_arr = module->getContext()->newDirectedConnectionPtrArray(size);
+      int i = 0;
+      for (auto directed_connection : directed_connections) {
+          arr[i] = directed_connection;
+          ptr_arr[i] = &arr[i];
+          i++;
+      }
+      return rcast<COREDirectedConnection**>(ptr_arr);
+  }
+  
+  COREDirectedInstance** COREDirectedModuleGetInstances(COREDirectedModule* directed_module, int* num_instances) { 
+      DirectedModule* module = rcast<DirectedModule*>(directed_module);
+      DirectedInstances directed_instances = module->getInstances();
+      int size = directed_instances.size();
+      *num_instances = size;
+      DirectedInstance* arr = module->getContext()->newDirectedInstanceArray(size);
+      DirectedInstance** ptr_arr = module->getContext()->newDirectedInstancePtrArray(size);
+      int i = 0;
+      for (auto directed_instance : directed_instances) {
+          arr[i] = directed_instance;
+          ptr_arr[i] = &arr[i];
+          i++;
+      }
+      return rcast<COREDirectedInstance**>(ptr_arr);
+  }
+
+  COREDirectedConnection** COREDirectedModuleGetInputs(COREDirectedModule* directed_module, int* num_connections) {
+      DirectedModule* module = rcast<DirectedModule*>(directed_module);
+      DirectedConnections inputs = module->getInputs();
+      int size = inputs.size();
+      *num_connections = size;
+      DirectedConnection* arr = module->getContext()->newDirectedConnectionArray(size);
+      DirectedConnection** ptr_arr = module->getContext()->newDirectedConnectionPtrArray(size);
+      int i = 0;
+      for (auto input : inputs) {
+          arr[i] = input;
+          ptr_arr[i] = &arr[i];
+          i++;
+      }
+      return rcast<COREDirectedConnection**>(ptr_arr);
+  }
+
+  COREDirectedConnection** COREDirectedModuleGetOutputs(COREDirectedModule* directed_module, int* num_connections) {
+      DirectedModule* module = rcast<DirectedModule*>(directed_module);
+      DirectedConnections outputs = module->getOutputs();
+      int size = outputs.size();
+      *num_connections = size;
+      DirectedConnection* arr = module->getContext()->newDirectedConnectionArray(size);
+      DirectedConnection** ptr_arr = module->getContext()->newDirectedConnectionPtrArray(size);
+      int i = 0;
+      for (auto output : outputs) {
+          arr[i] = output;
+          ptr_arr[i] = &arr[i];
+          i++;
+      }
+      return rcast<COREDirectedConnection**>(ptr_arr);
+  }
+
 }//extern "C"
 }//CoreIR namespace
