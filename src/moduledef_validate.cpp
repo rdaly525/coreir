@@ -40,7 +40,7 @@ bool checkInputConnected(Wireable* w, Error* e) {
     return true;
   }
   bool err = false;
-  for (auto it : w->getChildren()) {
+  for (auto it : w->getSelects()) {
     err |= checkInputConnected(it.second,e);
   }
   return err;
@@ -60,13 +60,13 @@ bool checkInputOutputs(Wireable* w, Error* e) {
     return true;
   }
   else if (numwires==0 ) {
-    for ( auto it : w->getChildren()) {
+    for ( auto it : w->getSelects()) {
       err |= checkInputOutputs(it.second,e);
     }
   }
   else if (numwires==1) {
     // Check if any children is an input and connected
-    for ( auto it : w->getChildren()) {
+    for ( auto it : w->getSelects()) {
       if(checkInputConnected(it.second,e)) {
         err = true;
         for (auto other : w->getConnectedWireables() )
@@ -109,5 +109,8 @@ bool ModuleDef::validate() {
   }
   return err;
 }
+
+
+
 
 }//CoreIR namespace

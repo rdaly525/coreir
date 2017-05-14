@@ -155,8 +155,8 @@ extern "C" {
       return rcast<COREDirectedModule*>(rcast<Module*>(module)->newDirectedModule());
   }
 
-  void COREModuleDefWire(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
-    rcast<ModuleDef*>(module_def)->wire(rcast<Wireable*>(a), rcast<Wireable*>(b));
+  void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
+    rcast<ModuleDef*>(module_def)->connect(rcast<Wireable*>(a), rcast<Wireable*>(b));
   }
 
   COREInterface* COREModuleDefGetInterface(COREModuleDef* module_def) {

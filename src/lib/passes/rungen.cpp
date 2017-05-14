@@ -1,4 +1,5 @@
-#include "rungen.hpp"
+
+#include "coreir-pass/passes.h"
 
 using namespace std;
    
@@ -38,6 +39,9 @@ bool rungeneratorsRec(Context* c, Module* m, unordered_set<Module*>* ran) {
 
     //run recursively on the module instance
     err |= rungeneratorsRec(c,inst->getModuleRef(),ran);
+    
+    //Test inlining
+    //inst->inlineModule();
   }
   ran->insert(m);
   return err;

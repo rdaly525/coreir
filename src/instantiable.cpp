@@ -51,7 +51,6 @@ void checkArgsAreParams(Args args, Params params) {
 
 Module* Generator::getModule(Args args) {
   
-  //Check cache
   auto cached = genCache.find(args);
   if (cached != genCache.end() ) {
     return cached->second;

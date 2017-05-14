@@ -15,8 +15,8 @@ Select* Wireable::sel(string selStr) {
   Error e;
   bool error = type->sel(selStr,&ret,&e);
   if (error) {
-    e.message("  Wire: " + toString());
-    //e.fatal();
+    e.message("  Wireable: " + toString());
+    e.fatal();
     getContext()->error(e);
   }
   Select* select = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);

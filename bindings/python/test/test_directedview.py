@@ -22,11 +22,11 @@ def test_directed_module():
     interface = module_def.get_interface()
     _input = interface.select("input")
     for adder in [add8_inst1, add8_inst2]:
-        module_def.wire(_input, adder.select("in1"))
-        module_def.wire(_input, adder.select("in2"))
-    module_def.wire(add8_inst1.select("out"), add8_inst3.select("in1"))
-    module_def.wire(add8_inst2.select("out"), add8_inst3.select("in2"))
-    module_def.wire(add8_inst3.select("out"), interface.select("output"))
+        module_def.connect(_input, adder.select("in1"))
+        module_def.connect(_input, adder.select("in2"))
+    module_def.connect(add8_inst1.select("out"), add8_inst3.select("in1"))
+    module_def.connect(add8_inst2.select("out"), add8_inst3.select("in2"))
+    module_def.connect(add8_inst3.select("out"), interface.select("output"))
     module.set_definition(module_def)
     directed_module = module.get_directed_module()
     # check inputs
