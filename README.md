@@ -19,7 +19,7 @@
 ###If you are using an OSX environment
   To Install:
     
-    make installosx
+    make osx
 
   To verify coreir build
     
@@ -36,7 +36,7 @@
 #include "coreir-libs/stdlib.hpp"
 
 //Optionally include compiler passes
-#include "coreir-passes/passes.hpp"
+#include "coreir-passes/passes.h"
 
 
 
