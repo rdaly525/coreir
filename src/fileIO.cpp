@@ -184,7 +184,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
           vector<string> pathA = jcon[0].get<vector<string>>();
           vector<string> pathB = jcon[1].get<vector<string>>();
-          mdef->wire(pathA,pathB);
+          mdef->connect(pathA,pathB);
         }
       }
       
