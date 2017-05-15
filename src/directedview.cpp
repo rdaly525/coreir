@@ -67,3 +67,5 @@ Wireable* DirectedModule::sel(SelectPath path) {
   DirectedConnections outputs;
 
 DirectedInstance::DirectedInstance(Instance* i, DirectedConnections inputs, DirectedConnections outputs) : i(i), inputs(inputs), outputs(outputs) {}
+
+Context* DirectedInstance::getContext() { return i->getContext(); }

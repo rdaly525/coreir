@@ -64,6 +64,7 @@ class DirectedInstance {
     DirectedInstance(Instance* i, DirectedConnections inputs, DirectedConnections outputs);
     DirectedConnections getInputs() {return inputs;}
     DirectedConnections getOutputs() {return outputs;}
+    Context* getContext();
     Instance* operator->() {return i;}
 
 };

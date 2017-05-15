@@ -72,6 +72,11 @@ class COREConnection(ct.Structure):
 
 COREConnection_p = ct.POINTER(COREConnection)
 
+class COREDirectedInstance(ct.Structure):
+    pass
+
+COREDirectedInstance_p = ct.POINTER(COREDirectedInstance)
+
 class COREDirectedConnection(ct.Structure):
     pass
 
@@ -457,7 +462,7 @@ coreir_lib.COREDirectedModuleSel.argtypes = [COREDirectedModule_p, ct.POINTER(ct
 coreir_lib.COREDirectedModuleSel.restype = COREWireable_p
 
 coreir_lib.COREDirectedModuleGetInstances.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
-coreir_lib.COREDirectedModuleGetInstances.restype = ct.POINTER(COREDirectedConnection_p)
+coreir_lib.COREDirectedModuleGetInstances.restype = ct.POINTER(COREDirectedInstance_p)
 
 coreir_lib.COREDirectedModuleGetInputs.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedModuleGetInputs.restype = ct.POINTER(COREDirectedConnection_p)
@@ -473,6 +478,25 @@ coreir_lib.COREDirectedConnectionGetSrc.restype = ct.POINTER(ct.c_char_p)
 
 coreir_lib.COREDirectedConnectionGetSnk.argtypes = [COREDirectedConnection_p, ct.POINTER(ct.c_int)]
 coreir_lib.COREDirectedConnectionGetSnk.restype = ct.POINTER(ct.c_char_p)
+
+coreir_lib.COREDirectedInstanceGetInputs.argtypes = [COREDirectedInstance_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREDirectedInstanceGetInputs.restype = ct.POINTER(COREDirectedConnection_p)
+
+coreir_lib.COREDirectedInstanceGetOutputs.argtypes = [COREDirectedInstance_p, ct.POINTER(ct.c_int)]
+coreir_lib.COREDirectedInstanceGetOutputs.restype = ct.POINTER(COREDirectedConnection_p)
+
+
+class DirectedInstance(CoreIRType):
+    def get_inputs(self):
+        num_connections = ct.c_int()
+        result = coreir_lib.COREDirectedInstanceGetInputs(self.ptr, ct.byref(num_connections))
+        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+
+    def get_outputs(self):
+        num_connections = ct.c_int()
+        result = coreir_lib.COREDirectedInstanceGetOutputs(self.ptr, ct.byref(num_connections))
+        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+
 
 
 class DirectedConnection(CoreIRType):
@@ -509,3 +533,8 @@ class DirectedModule(CoreIRType):
         num_connections = ct.c_int()
         result = coreir_lib.COREDirectedModuleGetOutputs(self.ptr, ct.byref(num_connections))
         return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+
+    def get_instances(self):
+        num_instances = ct.c_int()
+        result = coreir_lib.COREDirectedModuleGetInstances(self.ptr, ct.byref(num_instances))
+        return [DirectedInstance(result[i], self.context) for i in range(num_instances.value)]

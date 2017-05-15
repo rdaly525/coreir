@@ -383,5 +383,37 @@ extern "C" {
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
 
+  COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstance* directed_instance, int* num_connections) {
+      DirectedInstance* instance = rcast<DirectedInstance*>(directed_instance);
+      DirectedConnections inputs = instance->getInputs();
+      int size = inputs.size();
+      *num_connections = size;
+      DirectedConnection* arr = instance->getContext()->newDirectedConnectionArray(size);
+      DirectedConnection** ptr_arr = instance->getContext()->newDirectedConnectionPtrArray(size);
+      int i = 0;
+      for (auto input : inputs) {
+          arr[i] = input;
+          ptr_arr[i] = &arr[i];
+          i++;
+      }
+      return rcast<COREDirectedConnection**>(ptr_arr);
+  }
+
+  COREDirectedConnection** COREDirectedInstanceGetOutputs(COREDirectedInstance* directed_instance, int* num_connections) {
+      DirectedInstance* instance = rcast<DirectedInstance*>(directed_instance);
+      DirectedConnections outputs = instance->getOutputs();
+      int size = outputs.size();
+      *num_connections = size;
+      DirectedConnection* arr = instance->getContext()->newDirectedConnectionArray(size);
+      DirectedConnection** ptr_arr = instance->getContext()->newDirectedConnectionPtrArray(size);
+      int i = 0;
+      for (auto output : outputs) {
+          arr[i] = output;
+          ptr_arr[i] = &arr[i];
+          i++;
+      }
+      return rcast<COREDirectedConnection**>(ptr_arr);
+  }
+
 }//extern "C"
 }//CoreIR namespace
