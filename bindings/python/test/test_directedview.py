@@ -5,7 +5,7 @@ from test_utils import get_pointer_addr
 
 def test_directed_module():
     c = coreir.Context()
-    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
+    module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(8, c.Bit())})
     module = c.G.new_module("multiply_by_4", module_typ)
     # module.print()
     module_def = module.new_definition()
@@ -13,7 +13,7 @@ def test_directed_module():
         c.Record({
             "in1": c.Array(8, c.BitIn()),
             "in2": c.Array(8, c.BitIn()),
-            "out": c.Array(9, c.Bit())
+            "out": c.Array(8, c.Bit())
         })
     )
     add8_inst1 = module_def.add_module_instance("adder1", add8)
