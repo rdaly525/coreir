@@ -105,6 +105,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           string jmodname = jmodmap.first;
           //TODO for now if it already exists, just skip
           if (ns->hasModule(jmodname)) {
+            //TODO confirm that is has the same everything like genparams 
             continue;
           }
           
@@ -124,6 +125,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           string jgenname = jgenmap.first;
           //TODO for now, if it has a module already, just skip
           if (ns->hasGenerator(jgenname)) {
+            //TODO confirm that it has the same everything like genparams and configparams
             continue;
           }
 
@@ -472,7 +474,7 @@ json Instance::toJson() {
     j["moduleref"] = json::array({moduleRef->getNamespace()->getName(),moduleRef->getName()});
   }
   if (this->hasConfigArgs()) {
-    j["config"] = Args2Json(this->getConfigArgs());
+    j["configargs"] = Args2Json(this->getConfigArgs());
   }
   if (!metadata.empty()) {
     j["metadata"] = metadata.toJson();
