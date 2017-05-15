@@ -76,6 +76,7 @@ string Instance::toString() const {
 
 //TODO this could throw an error. Bad!
 Arg* Instance::getConfigArg(string s) { 
+  ASSERT(configargs.count(s)>0, "Configargs does not contain field: " + s);
   return configargs.at(s);
 }
 
