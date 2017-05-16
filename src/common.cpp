@@ -55,6 +55,17 @@ string SelectPath2Str(SelectPath s) {
   return ret;
 }
 
+void checkArgsAreParams(Args args, Params params) {
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams: " + Params2Str(params));
+  for (auto const &param : params) {
+    auto const &arg = args.find(param.first);
+    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
+  }
+}
+
+
+
 std::vector<std::string> splitString(const std::string &s, char delim) {
     std::vector<std::string> elems;
     std::stringstream ss;

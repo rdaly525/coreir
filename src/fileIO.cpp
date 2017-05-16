@@ -172,7 +172,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           else if (jinst.count("genargs") && jinst.count("generatorref")) { // This is a generator
             json jgenRef = jinst.at("generatorref");
             Generator* genRef = getGenSymbol(c,jgenRef.at(0),jgenRef.at(1));
-            Args genargs = json2Args(c,genRef->getGenparams(),jinst.at("genargs"));
+            Args genargs = json2Args(c,genRef->getGenParams(),jinst.at("genargs"));
             Args configargs;
             if (jinst.count("configargs")) {
               configargs = json2Args(c,genRef->getConfigParams(),jinst.at("configargs"));

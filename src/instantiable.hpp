@@ -78,7 +78,7 @@ class Generator : public Instantiable {
     //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
     void setGeneratorDefFromFun(ModuleDefGenFun fun);
-    Params getGenparams() {return genparams;}
+    Params getGenParams() {return genparams;}
 };
 
 class Module : public Instantiable {
