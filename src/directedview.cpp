@@ -39,17 +39,22 @@ DirectedModule::DirectedModule(Module* m) : m(m) {
   std::map<string,DirectedConnections> ins;
   std::map<string,DirectedConnections> outs;
   for (auto con : m->getDef()->getConnections()) {
-    DirectedConnection dcon(con);
+    DirectedConnection* dcon = new DirectedConnection(con);
     connections.push_back(dcon);
-    ins[dcon.getSnk()[0]].push_back(dcon);
-    outs[dcon.getSrc()[0]].push_back(dcon);
+    ins[dcon->getSnk()[0]].push_back(dcon);
+    outs[dcon->getSrc()[0]].push_back(dcon);
   }
   for (auto inst : m->getDef()->getInstances()) {
     string selstr = inst.first;
-    insts.push_back(DirectedInstance(inst.second,ins[selstr],outs[selstr]));
+    insts.push_back(new DirectedInstance(inst.second,ins[selstr],outs[selstr]));
   }
   inputs = outs["self"];
   outputs = ins["self"];
+}
+
+DirectedModule::~DirectedModule() {
+    for (auto it : connections) delete it;
+    for (auto it : insts) delete it;
 }
 
 Context* DirectedModule::getContext() { return m->getContext(); }

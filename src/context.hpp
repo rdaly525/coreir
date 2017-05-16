@@ -42,7 +42,6 @@ class Context {
   vector<const char**> constStringArrays;
   vector<DirectedConnection*> directedConnectionArrays;
   vector<DirectedConnection**> directedConnectionPtrArrays;
-  vector<DirectedInstance*> directedInstanceArrays;
   vector<DirectedInstance**> directedInstancePtrArrays;
 
   public :
@@ -103,9 +102,7 @@ class Context {
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
-    DirectedConnection* newDirectedConnectionArray(int size);
     DirectedConnection** newDirectedConnectionPtrArray(int size);
-    DirectedInstance* newDirectedInstanceArray(int size);
     DirectedInstance** newDirectedInstancePtrArray(int size);
 
 

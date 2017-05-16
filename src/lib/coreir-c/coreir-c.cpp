@@ -324,12 +324,10 @@ extern "C" {
       DirectedConnections directed_connections = module->getConnections();
       int size = directed_connections.size();
       *num_connections = size;
-      DirectedConnection* arr = module->getContext()->newDirectedConnectionArray(size);
       DirectedConnection** ptr_arr = module->getContext()->newDirectedConnectionPtrArray(size);
       int i = 0;
       for (auto directed_connection : directed_connections) {
-          arr[i] = directed_connection;
-          ptr_arr[i] = &arr[i];
+          ptr_arr[i] = directed_connection;
           i++;
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
@@ -340,12 +338,10 @@ extern "C" {
       DirectedInstances directed_instances = module->getInstances();
       int size = directed_instances.size();
       *num_instances = size;
-      DirectedInstance* arr = module->getContext()->newDirectedInstanceArray(size);
       DirectedInstance** ptr_arr = module->getContext()->newDirectedInstancePtrArray(size);
       int i = 0;
       for (auto directed_instance : directed_instances) {
-          arr[i] = directed_instance;
-          ptr_arr[i] = &arr[i];
+          ptr_arr[i] = directed_instance;
           i++;
       }
       return rcast<COREDirectedInstance**>(ptr_arr);
@@ -356,12 +352,10 @@ extern "C" {
       DirectedConnections inputs = module->getInputs();
       int size = inputs.size();
       *num_connections = size;
-      DirectedConnection* arr = module->getContext()->newDirectedConnectionArray(size);
       DirectedConnection** ptr_arr = module->getContext()->newDirectedConnectionPtrArray(size);
       int i = 0;
       for (auto input : inputs) {
-          arr[i] = input;
-          ptr_arr[i] = &arr[i];
+          ptr_arr[i] = input;
           i++;
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
@@ -372,12 +366,10 @@ extern "C" {
       DirectedConnections outputs = module->getOutputs();
       int size = outputs.size();
       *num_connections = size;
-      DirectedConnection* arr = module->getContext()->newDirectedConnectionArray(size);
       DirectedConnection** ptr_arr = module->getContext()->newDirectedConnectionPtrArray(size);
       int i = 0;
       for (auto output : outputs) {
-          arr[i] = output;
-          ptr_arr[i] = &arr[i];
+          ptr_arr[i] = output;
           i++;
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
@@ -388,12 +380,10 @@ extern "C" {
       DirectedConnections inputs = instance->getInputs();
       int size = inputs.size();
       *num_connections = size;
-      DirectedConnection* arr = instance->getContext()->newDirectedConnectionArray(size);
       DirectedConnection** ptr_arr = instance->getContext()->newDirectedConnectionPtrArray(size);
       int i = 0;
       for (auto input : inputs) {
-          arr[i] = input;
-          ptr_arr[i] = &arr[i];
+          ptr_arr[i] = input;
           i++;
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
@@ -404,12 +394,10 @@ extern "C" {
       DirectedConnections outputs = instance->getOutputs();
       int size = outputs.size();
       *num_connections = size;
-      DirectedConnection* arr = instance->getContext()->newDirectedConnectionArray(size);
       DirectedConnection** ptr_arr = instance->getContext()->newDirectedConnectionPtrArray(size);
       int i = 0;
       for (auto output : outputs) {
-          arr[i] = output;
-          ptr_arr[i] = &arr[i];
+          ptr_arr[i] = output;
           i++;
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
