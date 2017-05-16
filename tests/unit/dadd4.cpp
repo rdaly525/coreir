@@ -53,7 +53,7 @@ int main() {
   DirectedModule* dm  = add4_n->newDirectedModule();
   cout << "Directed connectins" << endl;
   for (auto c : dm->getConnections()) {
-    cout << selprint(c.getSrc()) << " -> " << selprint(c.getSnk()) << endl;
+    cout << selprint(c->getSrc()) << " -> " << selprint(c->getSnk()) << endl;
   }
  
   deleteContext(c);
