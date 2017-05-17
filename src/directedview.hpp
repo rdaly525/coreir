@@ -9,8 +9,8 @@ namespace CoreIR {
 class DirectedConnection;
 class DirectedModule;
 class DirectedInstance;
-typedef std::vector<DirectedConnection> DirectedConnections;
-typedef std::vector<DirectedInstance> DirectedInstances;
+typedef std::vector<DirectedConnection*> DirectedConnections;
+typedef std::vector<DirectedInstance*> DirectedInstances;
 
 class DirectedConnection {
   Connection c;
@@ -47,6 +47,7 @@ class DirectedModule {
     DirectedConnections getOutputs() { return outputs;}
     Context* getContext();
     Module* operator->() {return m;}
+    ~DirectedModule();
 };
 
 
@@ -64,6 +65,7 @@ class DirectedInstance {
     DirectedInstance(Instance* i, DirectedConnections inputs, DirectedConnections outputs);
     DirectedConnections getInputs() {return inputs;}
     DirectedConnections getOutputs() {return outputs;}
+    Context* getContext();
     Instance* operator->() {return i;}
 
 };

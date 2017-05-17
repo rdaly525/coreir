@@ -7,7 +7,6 @@ def test_directed_module():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(8, c.Bit())})
     module = c.G.new_module("multiply_by_4", module_typ)
-    # module.print()
     module_def = module.new_definition()
     add8 = c.G.new_module("add8",
         c.Record({
@@ -61,6 +60,17 @@ def test_directed_module():
         assert actual in expected
         expected.remove(actual)
     assert len(expected) == 0
+
+    # check instances
+    for instance in directed_module.get_instances():
+        for input in instance.get_inputs():
+            assert input.source in [["self", "input"], ["adder1", "out"], ["adder2", "out"]]
+            assert input.sink[0] in ["adder1", "adder2", "adder3"]
+            assert input.sink[1] in ["in1", "in2"]
+        for output in instance.get_outputs():
+            assert output.source[0] in ["adder1", "adder2", "adder3"]
+            assert output.source[1] == "out"
+            assert output.sink in [["self", "output"], ["adder3", "in1"], ["adder3", "in2"]]
 
 
 if __name__ == "__main__":

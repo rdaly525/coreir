@@ -23,9 +23,7 @@ Context::~Context() {
   for (auto it : wireableArrays) free(it);
   for (auto it : constStringArrays) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
-  for (auto it : directedConnectionArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
-  for (auto it : directedInstanceArrays) free(it);
  
   delete cache;
 }
@@ -178,21 +176,9 @@ Wireable** Context::newWireableArray(int size) {
   return arr;
 }
 
-DirectedConnection* Context::newDirectedConnectionArray(int size) {
-    DirectedConnection* arr = (DirectedConnection*) malloc(sizeof(DirectedConnection) * size);
-    directedConnectionArrays.push_back(arr);
-    return arr;
-}
-
 DirectedConnection** Context::newDirectedConnectionPtrArray(int size) {
     DirectedConnection** arr = (DirectedConnection**) malloc(sizeof(DirectedConnection*) * size);
     directedConnectionPtrArrays.push_back(arr);
-    return arr;
-}
-
-DirectedInstance* Context::newDirectedInstanceArray(int size) {
-    DirectedInstance* arr = (DirectedInstance*) malloc(sizeof(DirectedInstance) * size);
-    directedInstanceArrays.push_back(arr);
     return arr;
 }
 
