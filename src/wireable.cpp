@@ -29,7 +29,7 @@ Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
 SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
-  vector<string> path;
+  SelectPath path;
   while(auto s = dyn_cast<Select>(top)) {
     path.insert(path.begin(), s->getSelStr());
     top = s->getParent();
@@ -53,7 +53,7 @@ string Wireable::wireableKind2Str(WireableKind wb) {
   ASSERT(false,"Unknown WireableKind: " + to_string(wb));
 }
 
-Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false), generatorRef(nullptr) {
+Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //Check if configargs is the same as expected by ModuleRef
  checkArgsAreParams(configargs,moduleRef->getConfigParams());

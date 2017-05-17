@@ -15,6 +15,7 @@
 #include "generatordef.hpp"
 
 #include "metadata.hpp"
+#include "directedview.hpp"
 
 using json = nlohmann::json;
 using namespace std;
@@ -54,9 +55,9 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   Params genparams;
   
-  unordered_map<Args,Module*> genCache;
   //This is memory managed
-  GeneratorDef* def;
+  unordered_map<Args,Module*> genCache;
+  GeneratorDef* def = nullptr;
   
   public :
     Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams);
@@ -83,22 +84,25 @@ class Generator : public Instantiable {
 
 class Module : public Instantiable {
   Type* type;
-  ModuleDef* def;
+  ModuleDef* def = nullptr;
+  
+  //the directedModule View
+  DirectedModule* directedModule = nullptr;
   
   //Memory Management
   vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type), def(nullptr) {}
+    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() const { return def; } 
-    
     //This will validate def
     void setDef(ModuleDef* def, bool validate=true);
-    
+   
     ModuleDef* newModuleDef();
+    DirectedModule* newDirectedModule();
     
     string toString() const;
     json toJson();

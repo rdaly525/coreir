@@ -63,7 +63,7 @@ class Instance : public Wireable {
   Args configargs;
   
   bool isgen;
-  Generator* generatorRef;
+  Generator* generatorRef = nullptr;
   Args genargs;
   
   public :

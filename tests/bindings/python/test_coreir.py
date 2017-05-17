@@ -1,11 +1,5 @@
 import coreir
-import ctypes as ct
-
-def get_pointer_addr(ptr):
-    return ct.cast(ptr, ct.c_void_p).value
-
-def assert_pointers_equal(ptr1, ptr2):
-    assert get_pointer_addr(ptr1) == get_pointer_addr(ptr2)
+from test_utils import get_pointer_addr, assert_pointers_equal
 
 
 def test_load_library():
@@ -40,7 +34,7 @@ def test_save_module():
     module_def.connect(_input, add8_in1)
     module_def.connect(_input, add8_in2)
     module_def.connect(output, add8_out)
-    module.add_definition(module_def)
+    module.set_definition(module_def)
     module.print_()
     module.save_to_file("python_test_output.json")
     mod = c.load_from_file("python_test_output.json")
@@ -169,9 +163,6 @@ def test_module_def_get_connections():
                pair not in seen
         seen.append(pair)
     assert len(seen) == len(expected_conns)
-
-#if __name__ == "__main__":
-#  main()
 
 # def test():
 #     c = coreir.Context()
