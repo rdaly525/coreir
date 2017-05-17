@@ -88,6 +88,9 @@ bool isNumber(string s);
 string Param2Str(Param);
 string Params2Str(Params);
 string Args2Str(Args);
+//Will call assertions
+void checkArgsAreParams(Args args, Params params);
+
 Param Str2Param(string s);
 string SelectPath2Str(SelectPath s);
 vector<std::string> splitString(const string &s, char delim);

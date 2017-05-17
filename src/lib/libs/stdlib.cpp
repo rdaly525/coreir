@@ -78,7 +78,7 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
       });
     }
   );
-  stdlib->newGeneratorDecl("const",stdlib->getTypeGen("out"),widthparam);
+  stdlib->newGeneratorDecl("const",stdlib->getTypeGen("out"),widthparam,{{"value",AINT}});
 
   return stdlib;
 }

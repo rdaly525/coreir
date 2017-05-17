@@ -55,6 +55,8 @@ string Wireable::wireableKind2Str(WireableKind wb) {
 
 Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
+  //Check if configargs is the same as expected by ModuleRef
+ checkArgsAreParams(configargs,moduleRef->getConfigParams());
   
   //TODO checkif instname is unique
   this->type = moduleRef->getType();
@@ -64,6 +66,9 @@ Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef,
   ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
   this->moduleRef = generatorRef->getModule(genargs);
   this->type = moduleRef->getType();
+  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkArgsAreParams(genargs,generatorRef->getGenParams());
+  
 }
 
 string Interface::toString() const{
@@ -76,6 +81,7 @@ string Instance::toString() const {
 
 //TODO this could throw an error. Bad!
 Arg* Instance::getConfigArg(string s) { 
+  ASSERT(configargs.count(s)>0, "Configargs does not contain field: " + s);
   return configargs.at(s);
 }
 
@@ -100,6 +106,7 @@ void Instance::replace(Module* moduleRef, Args configargs) {
   ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
   this->moduleRef = moduleRef;
   this->configargs = configargs;
+  checkArgsAreParams(configargs,moduleRef->getConfigParams());
 }
 
 //TODO this is probably super unsafe and will leak memory
@@ -110,6 +117,10 @@ void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
   this->moduleRef = generatorRef->getModule(genargs);
   this->type = moduleRef->getType();
   this->configargs = configargs;
+
+  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkArgsAreParams(genargs,generatorRef->getGenParams());
+
 }
 
 

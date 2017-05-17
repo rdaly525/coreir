@@ -105,6 +105,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           string jmodname = jmodmap.first;
           //TODO for now if it already exists, just skip
           if (ns->hasModule(jmodname)) {
+            //TODO confirm that is has the same everything like genparams 
             continue;
           }
           
@@ -124,6 +125,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           string jgenname = jgenmap.first;
           //TODO for now, if it has a module already, just skip
           if (ns->hasGenerator(jgenname)) {
+            //TODO confirm that it has the same everything like genparams and configparams
             continue;
           }
 
@@ -132,7 +134,11 @@ Module* loadModule(Context* c, string filename, bool* err) {
           vector<string> tgenref = jgen.at("typegen").get<vector<string>>();
           TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
           assert(genparams == typegen->getParams());
-          ns->newGeneratorDecl(jgenname,typegen,genparams);
+          Params configparams;
+          if (jgen.count("configparams")) {
+            configparams = json2Params(jgen.at("configparams"));
+          }
+          ns->newGeneratorDecl(jgenname,typegen,genparams,configparams);
         }
       }
     }
@@ -166,7 +172,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           else if (jinst.count("genargs") && jinst.count("generatorref")) { // This is a generator
             json jgenRef = jinst.at("generatorref");
             Generator* genRef = getGenSymbol(c,jgenRef.at(0),jgenRef.at(1));
-            Args genargs = json2Args(c,genRef->getGenparams(),jinst.at("genargs"));
+            Args genargs = json2Args(c,genRef->getGenParams(),jinst.at("genargs"));
             Args configargs;
             if (jinst.count("configargs")) {
               configargs = json2Args(c,genRef->getConfigParams(),jinst.at("configargs"));
@@ -468,7 +474,7 @@ json Instance::toJson() {
     j["moduleref"] = json::array({moduleRef->getNamespace()->getName(),moduleRef->getName()});
   }
   if (this->hasConfigArgs()) {
-    j["config"] = Args2Json(this->getConfigArgs());
+    j["configargs"] = Args2Json(this->getConfigArgs());
   }
   if (!metadata.empty()) {
     j["metadata"] = metadata.toJson();
