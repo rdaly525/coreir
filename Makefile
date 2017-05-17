@@ -1,4 +1,12 @@
-all:
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S), Linux)
+TARGET = so
+endif
+ifeq ($(UNAME_S), Darwin)
+TARGET = dylib
+endif
+
+all: clean install test pytest
 
 .PHONY: test
 test: install
@@ -18,13 +26,9 @@ py: install
 
 .PHONY: install
 install:
-	$(MAKE) -C src build/coreir.so
-	$(MAKE) -C src/lib so
+	$(MAKE) -C src build/coreir.$(TARGET)
+	$(MAKE) -C src/lib $(TARGET)
 
-.PHONY: osx
-osx:
-	$(MAKE) -C src build/coreir.dylib
-	$(MAKE) -C src/lib dylib
 
 .PHONY: clean
 clean:
@@ -34,4 +38,4 @@ clean:
 	$(MAKE) -C tests clean
 
 .PHONY: travis
-travis: clean osx test pytest 
+travis: clean install test pytest 
