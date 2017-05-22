@@ -10,12 +10,14 @@ COREWireable_p = ct.POINTER(COREWireable)
 
 
 class Wireable(CoreIRType):
-    def get_connected_wireables(self):
+    @property
+    def connected_wireables(self):
         size = ct.c_int()
         result = libcoreir_c.COREWireableGetConnectedWireables(self.ptr, ct.byref(size))
         return [Wireable(result[i],self.context) for i in range(size.value)]
 
-    def get_selectpath(self):
+    @property
+    def selectpath(self):
         size = ct.c_int()
         result = libcoreir_c.COREWireableGetSelectPath(self.ptr, ct.byref(size))
         return [result[i].decode() for i in range(size.value)]
@@ -23,11 +25,13 @@ class Wireable(CoreIRType):
     def select(self, field):
         return Select(libcoreir_c.COREWireableSelect(self.ptr, str.encode(field)),self.context)
 
-    def get_module_def(self):
+    @property
+    def module_def(self):
         return coreir.module.ModuleDef(libcoreir_c.COREWireableGetModuleDef(self.ptr),self.context)
 
-    def get_module(self):
-        return self.get_module_def().get_module()
+    @property
+    def module(self):
+        return self.module_def.module
 
 
 class CORESelect(COREWireable):
