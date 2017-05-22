@@ -24,18 +24,23 @@ class ModuleDef(CoreIRType):
         assert isinstance(config,Args)
         return Instance(libcoreir_c.COREModuleDefAddModuleInstance(self.ptr, str.encode(name), module.ptr,config.ptr),self.context)
 
-    def get_interface(self):
+    @property
+    def interface(self):
         return Interface(libcoreir_c.COREModuleDefGetInterface(self.ptr),self.context)
 
-    def get_module(self):
+    @property
+    def module(self):
+        # TODO: Probably a better name for this function?
         return Module(libcoreir_c.COREModuleDefGetModule(self.ptr),self.context)
 
-    def get_instances(self):
+    @property
+    def instances(self):
         size = ct.c_int()
         result = libcoreir_c.COREModuleDefGetInstances(self.ptr, ct.byref(size))
         return [Instance(result[i],self.context) for i in range(size.value)]
 
-    def get_connections(self):
+    @property
+    def connections(self):
         size = ct.c_int()
         result = libcoreir_c.COREModuleDefGetConnections(self.ptr, ct.byref(size))
         return [coreir.wireable.Connection(result[i], self.context) for i in range(size.value)]
@@ -54,13 +59,16 @@ class Module(CoreIRType):
     def new_definition(self):
         return ModuleDef(libcoreir_c.COREModuleNewDef(self.ptr),self.context)
 
-    def get_directed_module(self):
+    @property
+    def directed_module(self):
         return DirectedModule(libcoreir_c.COREModuleGetDirectedModule(self.ptr), self.context)
 
-    def get_definition(self):
+    @property
+    def definition(self):
         return ModuleDef(libcoreir_c.COREModuleGetDef(self.ptr),self.context)
 
-    def set_definition(self, definition):
+    @definition.setter
+    def definition(self, definition):
         assert isinstance(definition, ModuleDef)
         libcoreir_c.COREModuleSetDef(self.ptr, definition.ptr)
 
@@ -91,12 +99,14 @@ class COREDirectedModule(ct.Structure):
 COREDirectedModule_p = ct.POINTER(COREDirectedModule)
 
 class DirectedInstance(CoreIRType):
-    def get_inputs(self):
+    @property
+    def inputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedInstanceGetInputs(self.ptr, ct.byref(num_connections))
         return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
 
-    def get_outputs(self):
+    @property
+    def outputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedInstanceGetOutputs(self.ptr, ct.byref(num_connections))
         return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
@@ -123,22 +133,26 @@ class DirectedModule(CoreIRType):
             arr[i] = item.encode()
         return coreir.wireable.Wireable(libcoreir_c.COREDirectedModuleSel(self.ptr, arr, len(path)), self.context)
 
-    def get_connections(self):
+    @property
+    def connections(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetConnections(self.ptr, ct.byref(num_connections))
         return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
 
-    def get_inputs(self):
+    @property
+    def inputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetInputs(self.ptr, ct.byref(num_connections))
         return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
 
-    def get_outputs(self):
+    @property
+    def outputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetOutputs(self.ptr, ct.byref(num_connections))
         return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
 
-    def get_instances(self):
+    @property
+    def instances(self):
         num_instances = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetInstances(self.ptr, ct.byref(num_instances))
         return [DirectedInstance(result[i], self.context) for i in range(num_instances.value)]

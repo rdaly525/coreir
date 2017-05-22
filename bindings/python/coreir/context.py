@@ -27,9 +27,6 @@ class Context:
     
     def print_errors(self):
         libcoreir_c.COREPrintErrors(self.context)
-
-    def GetG(self):
-        return self.G
     
     def Any(self):
         return Type(libcoreir_c.COREAny(self.context),self)
