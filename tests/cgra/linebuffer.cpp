@@ -146,6 +146,8 @@ int main() {
   rungenerators(c,lb33,&err);
   if (err) c->die();
   lb33->print();
+  Instance* i = cast<Instance>(lb33->getDef()->sel("lb33_inst"));
+  i->getModuleRef()->print();
 
   cout << "Flattening everything" << endl;
   flatten(c,lb33,&err);

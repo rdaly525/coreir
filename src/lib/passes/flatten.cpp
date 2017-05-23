@@ -13,8 +13,8 @@ void flatten(Context* c, Module* m, bool* err) {
   while (inlined) {
     inlined = false;
     for (auto instmap : def->getInstances()) {
-      //Only inline things in global
-      if (instmap.second->getModuleRef()->getNamespace()->getName() == "_G") {
+      //Only inline things that have defs
+      if (instmap.second->getModuleRef()->hasDef()) {
         instmap.second->inlineModule();
         inlined = true;
       }
