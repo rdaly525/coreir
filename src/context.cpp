@@ -18,10 +18,12 @@ Context::~Context() {
   for (auto it : paramsList) delete it;
   for (auto it : libs) delete it.second;
   for (auto it : instanceArrays) free(it);
-  for (auto it : connectionArrays) free(it);
   for (auto it : connectionPtrArrays) free(it);
+  for (auto it : connectionArrays) free(it);
   for (auto it : wireableArrays) free(it);
   for (auto it : constStringArrays) free(it);
+  for (auto it : directedConnectionPtrArrays) free(it);
+  for (auto it : directedInstancePtrArrays) free(it);
  
   delete cache;
 }
@@ -100,8 +102,8 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 */
 
 Type* Context::Any() { return cache->newAny(); }
+Type* Context::Bit() { return cache->newBit(); }
 Type* Context::BitIn() { return cache->newBitIn(); }
-Type* Context::BitOut() { return cache->newBitOut(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
 Type* Context::Flip(Type* t) { return t->getFlipped();}
@@ -116,6 +118,16 @@ Type* Context::Named(string ns, string name, Args args) {
 TypeGen* Context::getTypeGen(string ns, string name) {
   return this->getNamespace(ns)->getTypeGen(name);
 }
+
+Type* Context::In(Type* t) {
+  assert(0 && "TODO NYI");
+}
+
+Type* Context::Out(Type* t) {
+  assert(0 && "TODO NYI");
+}
+
+
 RecordParams* Context::newRecordParams() {
   RecordParams* record_param = new RecordParams();
   recordParamsList.push_back(record_param);
@@ -164,17 +176,29 @@ Wireable** Context::newWireableArray(int size) {
   return arr;
 }
 
-Arg* Context::int2Arg(int i) { 
+DirectedConnection** Context::newDirectedConnectionPtrArray(int size) {
+    DirectedConnection** arr = (DirectedConnection**) malloc(sizeof(DirectedConnection*) * size);
+    directedConnectionPtrArrays.push_back(arr);
+    return arr;
+}
+
+DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
+    DirectedInstance** arr = (DirectedInstance**) malloc(sizeof(DirectedInstance*) * size);
+    directedInstancePtrArrays.push_back(arr);
+    return arr;
+}
+
+Arg* Context::argInt(int i) { 
   Arg* ga = new ArgInt(i); 
   argList.push_back(ga);
   return ga;
 }
-Arg* Context::str2Arg(string s) { 
+Arg* Context::argString(string s) { 
   Arg* ga = new ArgString(s); 
   argList.push_back(ga);
   return ga;
 }
-Arg* Context::type2Arg(Type* t) { 
+Arg* Context::argType(Type* t) { 
   Arg* ga = new ArgType(t); 
   argList.push_back(ga);
   return ga;

@@ -18,7 +18,8 @@ Type* json2Type(Context* c, json jt);
 Args json2Args(Context* c, Params p, json j);
 Params json2Params(json j);
 
-Instantiable* getSymbol(Context* c, string nsname, string iname);
+Module* getModSymbol(Context* c, string nsname, string iname);
+Generator* getGenSymbol(Context* c, string nsname, string iname);
 
 Module* loadModule(Context* c, string filename, bool* err) {
   std::fstream file;
@@ -72,8 +73,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
         }
       }
       //For namedtypegens I cannot really construct these without the typegenfunction. Therefore I will just verify that they exist
-      //TODO hack for fixing the flow for now.
-      if (0 && jns.count("namedtypegens")) {
+      if (jns.count("namedtypegens")) {
         for (auto jntypegen : jns.at("namedtypegens").get<vector<json>>()) {
           string name = jntypegen.at("name");
           Params genparams = json2Params(jntypegen.at("genparams"));
@@ -105,6 +105,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
           string jmodname = jmodmap.first;
           //TODO for now if it already exists, just skip
           if (ns->hasModule(jmodname)) {
+            //TODO confirm that is has the same everything like genparams 
             continue;
           }
           
@@ -119,12 +120,12 @@ Module* loadModule(Context* c, string filename, bool* err) {
           modqueue.push_back({m,jmod});
         }
       }
-      //TODO hack for fixing the flow for now.
-      if (0 && jns.count("generators")) {
+      if (jns.count("generators")) {
         for (auto jgenmap : jns.at("generators").get<jsonmap>()) {
           string jgenname = jgenmap.first;
           //TODO for now, if it has a module already, just skip
           if (ns->hasGenerator(jgenname)) {
+            //TODO confirm that it has the same everything like genparams and configparams
             continue;
           }
 
@@ -133,8 +134,11 @@ Module* loadModule(Context* c, string filename, bool* err) {
           vector<string> tgenref = jgen.at("typegen").get<vector<string>>();
           TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
           assert(genparams == typegen->getParams());
-          //TODO generator config stuff
-          ns->newGeneratorDecl(jgenname,genparams,typegen);
+          Params configparams;
+          if (jgen.count("configparams")) {
+            configparams = json2Params(jgen.at("configparams"));
+          }
+          ns->newGeneratorDecl(jgenname,typegen,genparams,configparams);
         }
       }
     }
@@ -151,26 +155,32 @@ Module* loadModule(Context* c, string filename, bool* err) {
         for (auto jinstmap : jdef.at("instances").get<jsonmap>()) {
           string instname = jinstmap.first;
           json jinst = jinstmap.second;
-          json jinstRef = jinst.at("instref");
           
           // This function can throw an error
-          Instantiable* instRef = getSymbol(c,jinstRef.at(0),jinstRef.at(1));
           
-          Args config;
-          if (jinst.count("config")) {
-            config = json2Args(c,instRef->getConfigParams(),jinst.at("config"));
+          if (jinst.count("moduleref")) {
+            assert(jinst.count("generatorref")==0);
+            assert(jinst.count("genargs")==0);
+            json jmodRef = jinst.at("moduleref");
+            Module* modRef = getModSymbol(c,jmodRef.at(0),jmodRef.at(1));
+            Args configargs;
+            if (jinst.count("configargs")) {
+              configargs = json2Args(c,modRef->getConfigParams(),jinst.at("configargs"));
+            }
+            mdef->addInstance(instname,modRef,configargs);
           }
-
-          //Assume that if there are genargs, it is a generator
-          if (jinst.count("genargs")) { // This is a generator
-            Generator* gref = (Generator*) instRef;
-            Args genargs = json2Args(c,gref->getGenparams(),jinst.at("genargs"));
-            assert(instRef->isKind(GEN));
-            mdef->addInstance(instname,gref,genargs,config);
+          else if (jinst.count("genargs") && jinst.count("generatorref")) { // This is a generator
+            json jgenRef = jinst.at("generatorref");
+            Generator* genRef = getGenSymbol(c,jgenRef.at(0),jgenRef.at(1));
+            Args genargs = json2Args(c,genRef->getGenParams(),jinst.at("genargs"));
+            Args configargs;
+            if (jinst.count("configargs")) {
+              configargs = json2Args(c,genRef->getConfigParams(),jinst.at("configargs"));
+            }
+            mdef->addInstance(instname,genRef,genargs,configargs);
           }
-          else { // This is a module
-            assert(instRef->isKind(MOD));
-            mdef->addInstance(instname,(Module*) instRef,config);
+          else {
+            assert(0);
           }
         } // End Instances
       }
@@ -178,15 +188,9 @@ Module* loadModule(Context* c, string filename, bool* err) {
       //Connections
       if (jdef.count("connections")) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
-          vector<string> wA = jcon[0].get<vector<string>>();
-          vector<string> wB = jcon[1].get<vector<string>>();
-          string instA = wA[0];
-          string instB = wB[0];
-          wA.erase(wA.begin());
-          wB.erase(wB.begin());
-          WirePath pathA = {instA,wA};
-          WirePath pathB = {instB,wB};
-          mdef->wire(pathA,pathB);
+          vector<string> pathA = jcon[0].get<vector<string>>();
+          vector<string> pathB = jcon[1].get<vector<string>>();
+          mdef->connect(pathA,pathB);
         }
       }
       
@@ -195,9 +199,7 @@ Module* loadModule(Context* c, string filename, bool* err) {
     } //End Module loop
     
     //Reference Top
-    Instantiable* topInst = getSymbol(c,topnsname,topmodname);
-    assert(topInst->isKind(MOD));
-    mod = (Module*) topInst;
+    mod = getModSymbol(c,topnsname,topmodname);
   
   } catch(std::exception& exc) {
     *err = true;
@@ -209,15 +211,24 @@ Module* loadModule(Context* c, string filename, bool* err) {
   return mod;
 }
 
-Instantiable* getSymbol(Context* c, string nsname, string iname) {
+Module* getModSymbol(Context* c, string nsname, string iname) {
   if (c->hasNamespace(nsname)) {
-    if (c->getNamespace(nsname)->hasInstantiable(iname)) {
-      return c->getNamespace(nsname)->getInstantiable(iname);
+    if (c->getNamespace(nsname)->hasModule(iname)) {
+      return c->getNamespace(nsname)->getModule(iname);
     }
   }
   string msg = "Missing Symbol: " + nsname + "." + iname;
   throw std::runtime_error(msg);
-  return nullptr;
+}
+
+Generator* getGenSymbol(Context* c, string nsname, string iname) {
+  if (c->hasNamespace(nsname)) {
+    if (c->getNamespace(nsname)->hasGenerator(iname)) {
+      return c->getNamespace(nsname)->getGenerator(iname);
+    }
+  }
+  string msg = "Missing Symbol: " + nsname + "." + iname;
+  throw std::runtime_error(msg);
 }
 
 Params json2Params(json j) {
@@ -238,9 +249,9 @@ Args json2Args(Context* c, Params genparams, json j) {
     Param kind = pmap.second;
     Arg* g;
     switch(kind) {
-      case AINT : g = c->int2Arg(j.at(key).get<int>()); break;
-      case ASTRING : g = c->str2Arg(j.at(key).get<string>()); break;
-      case ATYPE : g = c->type2Arg(json2Type(c,j.at(key))); break;
+      case AINT : g = c->argInt(j.at(key).get<int>()); break;
+      case ASTRING : g = c->argString(j.at(key).get<string>()); break;
+      case ATYPE : g = c->argType(json2Type(c,j.at(key))); break;
       default :  throw std::runtime_error(Param2Str(kind) + "is not a valid arg param!");
     }
     gargs[key] = g;
@@ -250,10 +261,10 @@ Args json2Args(Context* c, Params genparams, json j) {
 
 Type* json2Type(Context* c, json jt) {
   if (jt.type() == json::value_t::string) {
-    //Will be bitIn or BitOut
+    //Will be bitIn or Bit
     string kind = jt.get<string>();
     if (kind == "BitIn") return c->BitIn();
-    else if (kind == "BitOut") return c->BitOut();
+    else if (kind == "Bit") return c->Bit();
     else if (kind == "Any") return c->Any();
     else throw std::runtime_error(kind + " is not a type!");
   }
@@ -295,6 +306,7 @@ Type* json2Type(Context* c, json jt) {
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
   Context* c = m->getContext();
+  ASSERT(m->getNamespace() == c->getGlobal(),"Only supports global for now");
   std::ofstream file(filename);
   if (!file.is_open()) {
     *err =true;
@@ -308,10 +320,8 @@ void saveModule(Module* m, string filename, bool* err) {
   json j;
   j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
   
-
-  for (auto nsmap: c->getNamespaces()) {
-    j["namespaces"][nsmap.first] = nsmap.second->toJson();
-  }
+  //Only do the global for now
+  j["namespaces"][m->getNamespace()->getName()] = m->getNamespace()->toJson();
   file << std::setw(2) << j;
   return;
 }
@@ -448,21 +458,23 @@ json ModuleDef::toJson() {
 }
 
 json Wireable2Json(Wireable* w) {
-  WirePath path = w->getPath();
-  json j = json::array({path.first});
-  for (auto str : path.second) j.push_back(str);
+  json j;
+  SelectPath path = w->getSelectPath();
+  for (auto str : path) j.push_back(str);
   return j;
 }
 
 json Instance::toJson() {
   json j;
-  j["instref"] = json::array({instRef->getNamespace()->getName(),instRef->getName()});
   if (this->isGen()) {
-    assert(!genargs.empty());
     j["genargs"] = Args2Json(genargs);
+    j["generatorref"] = json::array({generatorRef->getNamespace()->getName(),generatorRef->getName()});
   }
-  if (this->hasConfig()) {
-    j["config"] = Args2Json(this->getConfig());
+  else {
+    j["moduleref"] = json::array({moduleRef->getNamespace()->getName(),moduleRef->getName()});
+  }
+  if (this->hasConfigArgs()) {
+    j["configargs"] = Args2Json(this->getConfigArgs());
   }
   if (!metadata.empty()) {
     j["metadata"] = metadata.toJson();

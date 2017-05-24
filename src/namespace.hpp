@@ -13,22 +13,11 @@ using namespace std;
 
 namespace CoreIR {
 
-struct GenCacheParams {
-  Generator* g;
-  Args ga;
-  GenCacheParams(Generator* g, Args ga) : g(g), ga(ga) {}
-  friend bool operator==(const GenCacheParams & l,const GenCacheParams & r);
-};
-
-struct GenCacheParamsHasher {
-  size_t operator()(const GenCacheParams& gcp) const;
-};
-
 struct NamedCacheParams {
   string name;
   Args args;
   NamedCacheParams(string name, Args args) : name(name), args(args) {}
-  friend bool operator==(const GenCacheParams & l,const GenCacheParams & r);
+  friend bool operator==(const NamedCacheParams & l,const NamedCacheParams & r);
 };
 
 struct NamedCacheParamsHasher {
@@ -38,8 +27,6 @@ struct NamedCacheParamsHasher {
 class Namespace {
   Context* c;
   string name;
-
-  unordered_map<GenCacheParams,Module*,GenCacheParamsHasher> genCache;
 
   unordered_map<string,Module*> moduleList;
   unordered_map<string,Generator*> generatorList;
@@ -67,14 +54,14 @@ class Namespace {
 
     NamedType* newNamedType(string name, string nameFlip, Type* raw);
     void newNominalTypeGen(string name, string nameFlip,Params genparams, TypeGenFun fun);
-    void newTypeGen(string name, Params genparams, TypeGenFun fun);
+    TypeGen* newTypeGen(string name, Params genparams, TypeGenFun fun);
     bool hasNamedType(string name);
     NamedType* getNamedType(string name);
     NamedType* getNamedType(string name, Args genargs);
     TypeGen* getTypeGen(string name);
     bool hasTypeGen(string name) {return typeGenList.count(name)>0;}
 
-    Generator* newGeneratorDecl(string name, Params genparams, TypeGen* typegen);
+    Generator* newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams=Params());
     Module* newModuleDecl(string name, Type* t,Params configparams=Params());
 
     Generator* getGenerator(string gname);
@@ -84,7 +71,6 @@ class Namespace {
     bool hasGenerator(string iname) { return generatorList.count(iname) > 0; }
     bool hasInstantiable(string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
     
-    Module* runGenerator(Generator* g, Args ga, Type* t);
     json toJson();
     void print();
 };

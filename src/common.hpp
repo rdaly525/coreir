@@ -1,31 +1,37 @@
-#ifndef ENUMS_HPP_
-#define ENUMS_HPP_
+#ifndef COMMON_HPP_
+#define COMMON_HPP_
 
 
 #include <stdint.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <cassert>
 
 using namespace std;
+
+
+#define ASSERT(C,MSG) \
+  if (!(C)) { \
+    cout << MSG << endl; \
+    exit(1); \
+  }
+
 
 typedef uint32_t uint;
 namespace CoreIR {
 
-typedef enum {BITIN, BITOUT,ARRAY,RECORD,NAMED,ANY} TypeKind;
-typedef enum {AINT=0,ASTRING=1,ATYPE=2} Param;
-
-typedef enum {MOD,GEN} InstantiableKind;
-typedef enum {IFACE,INST,SEL} WireableKind;
+typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
 
 //other
 class Namespace;
 class Context;
 struct Error;
-struct Arg;
-struct ArgInt;
-struct ArgString;
-struct ArgType;
+class Arg;
+class ArgInt;
+class ArgString;
+class ArgType;
+class ArgBool;
 typedef unordered_map<string,Param> Params;
 typedef unordered_map<string,Arg*> Args;
 
@@ -65,7 +71,7 @@ class Interface;
 class Instance;
 class Select;
 
-typedef std::pair<string,vector<string>> WirePath;
+typedef vector<string> SelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 
 
@@ -79,11 +85,17 @@ inline void hash_combine(size_t& seed, const T& v) {
 
 //These are defined in helpers
 bool isNumber(string s);
-string TypeKind2Str(TypeKind t);
 string Param2Str(Param);
 string Params2Str(Params);
-string wireableKind2Str(WireableKind wb);
+string Args2Str(Args);
+//Will call assertions
+void checkArgsAreParams(Args args, Params params);
+
 Param Str2Param(string s);
+string SelectPath2Str(SelectPath s);
+vector<std::string> splitString(const string &s, char delim);
+bool hasChar(const std::string s, char c);
+
 
 
 } //CoreIR namespace
@@ -107,13 +119,4 @@ namespace std {
 
 }
 
-
-//TypedWire* castTypedWire(Wire* w);
-//Type* wireable2Type(Wireable* w);
-
-//template <typename T>
-//T safecast(void* obj,string err="Cannot cast!");
-
-
-
-#endif //ENUMS_HPP_
+#endif //COMMON_HPP_

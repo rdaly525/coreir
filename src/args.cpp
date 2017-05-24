@@ -5,9 +5,9 @@
 
 namespace CoreIR {
 
-int Arg::arg2Int() { return ((ArgInt*) this)->i; }
-string Arg::arg2String() { return ((ArgString*) this)->str; }
-Type* Arg::arg2Type() { return ((ArgType*) this)->t; }
+//int Arg::arg2Int() { return ((ArgInt*) this)->i; }
+//string Arg::arg2String() { return ((ArgString*) this)->str; }
+//Type* Arg::arg2Type() { return ((ArgType*) this)->t; }
 
 bool ArgInt::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;
@@ -23,6 +23,7 @@ bool ArgType::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;
   return this->t == static_cast<const ArgType&>(r).t;
 }
+string ArgType::toString() const { return t->toString();}
 
 bool operator==(const Args& l, const Args& r) {
   if (l.size() != r.size() ) return false;
@@ -34,12 +35,12 @@ bool operator==(const Args& l, const Args& r) {
   return true;
 }
 
-bool checkParams(Args args, Params params) {
+bool checkArgs(Args args, Params params) {
   if (args.size() != params.size()) return false;
   for (auto parammap : params) {
     auto arg = args.find(parammap.first);
     if (arg == args.end()) return false;
-    if (!arg->second->isKind(parammap.second) ) return false;
+    if (arg->second->getKind() != parammap.second) return false;
   }
   return true;
 }
@@ -57,19 +58,19 @@ size_t std::hash<Args>::operator() (const Args& args) const {
     size_t hash = 0;
     hash_combine(hash,it.first);
     Arg* arg = it.second;
-    switch(arg->kind) {
+    switch(arg->getKind()) {
       case ASTRING : {
-        string arg_s = ((ArgString*) arg)->str;
+        string arg_s = arg->get<ArgString>();
         hash_combine(hash,arg_s);
         break;
       }
       case AINT : {
-        int arg_i = ((ArgInt*) arg)->i;
+        int arg_i = arg->get<ArgInt>();
         hash_combine(hash,arg_i);
         break;
       }
       case ATYPE : {
-        Type* arg_t = ((ArgType*) arg)->t;
+        Type* arg_t = arg->get<ArgType>();
         hash_combine(hash,arg_t);
         break;
       }

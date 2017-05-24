@@ -13,10 +13,10 @@ Select* Wireable::sel(string selStr) {
   Context* c = getContext();
   Type* ret = c->Any();
   Error e;
-  bool error = type->sel(c,selStr,&ret,&e);
+  bool error = type->sel(selStr,&ret,&e);
   if (error) {
-    e.message("  Wire: " + toString());
-    //e.fatal();
+    e.message("  Wireable: " + toString());
+    e.fatal();
     getContext()->error(e);
   }
   Select* select = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
@@ -27,21 +27,49 @@ Select* Wireable::sel(string selStr) {
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
-WirePath Wireable::getPath() {
+SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
-  vector<string> path;
-  while(top->isKind(SEL)) {
-    Select* s = (Select*) top;
+  SelectPath path;
+  while(auto s = dyn_cast<Select>(top)) {
     path.insert(path.begin(), s->getSelStr());
     top = s->getParent();
   }
-  if (top->isKind(IFACE)) return {"self",path};
-  string instname = ((Instance*) top)->getInstname();
-  return {instname, path};
+  if (isa<Interface>(top)) 
+    path.insert(path.begin(), "self");
+  else { //This should be an instance
+    string instname = cast<Instance>(top)->getInstname();
+    path.insert(path.begin(), instname);
+  }
+  return path;
 }
 
 Context* Wireable::getContext() { return moduledef->getContext();}
+string Wireable::wireableKind2Str(WireableKind wb) {
+  switch(wb) {
+    case WK_Interface: return "Interface";
+    case WK_Instance: return "Instance";
+    case WK_Select: return "Select";
+  }
+  ASSERT(false,"Unknown WireableKind: " + to_string(wb));
+}
 
+Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false) {
+  ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
+  //Check if configargs is the same as expected by ModuleRef
+ checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  
+  //TODO checkif instname is unique
+  this->type = moduleRef->getType();
+}
+
+Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), configargs(configargs), isgen(true), generatorRef(generatorRef), genargs(genargs) {
+  ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
+  this->moduleRef = generatorRef->getModule(genargs);
+  this->type = moduleRef->getType();
+  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkArgsAreParams(genargs,generatorRef->getGenParams());
+  
+}
 
 string Interface::toString() const{
   return "self";
@@ -51,15 +79,48 @@ string Instance::toString() const {
   return instname;
 }
 
-Arg* Instance::getConfigValue(string s) { 
-  return config.at(s);
+//TODO this could throw an error. Bad!
+Arg* Instance::getConfigArg(string s) { 
+  ASSERT(configargs.count(s)>0, "Configargs does not contain field: " + s);
+  return configargs.at(s);
 }
 
-bool Instance::isGen() { return instRef->isKind(GEN);}
-bool Instance::hasDef() { return instRef->hasDef(); }
-void Instance::replace(Instantiable* instRef, Args config) {
-  this->instRef = instRef;
-  this->config = config;
+void Instance::runGenerator() {
+  ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
+  
+  //If we have already run the generator, do not run again
+  if (moduleRef->hasDef()) return;
+
+  //TODO should this be the default behavior?
+  //If there is no generatorDef, then just do nothing
+  if (!generatorRef->hasDef()) return;
+  
+  //Actually run the generator
+  generatorRef->setModuleDef(moduleRef, genargs);
+  assert(moduleRef->hasDef());
+}
+
+
+//TODO should I remove the generator and generator args? 
+void Instance::replace(Module* moduleRef, Args configargs) {
+  ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
+  this->moduleRef = moduleRef;
+  this->configargs = configargs;
+  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+}
+
+//TODO this is probably super unsafe and will leak memory
+void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
+  ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
+  this->generatorRef = generatorRef;
+  this->genargs = genargs;
+  this->moduleRef = generatorRef->getModule(genargs);
+  this->type = moduleRef->getType();
+  this->configargs = configargs;
+
+  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkArgsAreParams(genargs,generatorRef->getGenParams());
+
 }
 
 

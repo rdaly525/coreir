@@ -20,44 +20,68 @@ using namespace std;
 
 namespace CoreIR {
 
+class NamedType;
 class Type {
+  public :
+    enum TypeKind {TK_Bit, TK_BitIn,TK_Array,TK_Record,TK_Named,TK_Any};
+    enum DirKind {DK_In,DK_Out,DK_Mixed,DK_Unknown};
   protected :
     TypeKind kind;
+
+    //Mixed means mixed of in and out, Unknown means unknown
+    DirKind dir;
+    
+    Context* c;
     Type* flipped;
   public :
-    Type(TypeKind kind) : kind(kind) {}
+    Type(TypeKind kind,DirKind dir, Context* c) : kind(kind), dir(dir), c(c) {}
     virtual ~Type() {}
-    bool isKind(TypeKind k) {return k==kind;}
-    TypeKind getKind() {return kind;}
+    TypeKind getKind() const {return kind;}
+    DirKind getDir() const {return dir;}
     void setFlipped(Type* f) { flipped = f;}
     Type* getFlipped() { return flipped;}
     virtual string toString(void) const =0;
-    virtual bool sel(Context* c,string sel, Type** ret, Error* e);
-    virtual bool hasInput() { return false;}
+    virtual bool sel(string sel, Type** ret, Error* e);
     virtual json toJson();
     void print(void);
+    static string TypeKind2Str(TypeKind t);
+    
+    //"sugar" for making arrays
+    Type* Arr(uint i);
+    
+    bool isInput() const { return dir==DK_In;}
+    bool isOutput() const { return dir==DK_Out; }
+    bool isMixed() const { return dir==DK_Mixed; }
+    bool isUnknown() const { return dir==DK_Unknown; }
+    bool hasInput() const { return isInput() || isMixed(); }
+
+
 };
 
 std::ostream& operator<<(ostream& os, const Type& t);
 
 class AnyType : public Type {
   public :
-    AnyType() : Type(ANY) {}
+    AnyType(Context* c) : Type(TK_Any,DK_Unknown,c) {}
+    static bool classof(const Type* t) {return t->getKind()==TK_Any;}
     string toString(void) const {return "Any";}
-    bool sel(Context* c, string sel, Type** ret, Error* e);
+    
+    bool sel(string sel, Type** ret, Error* e);
+};
+
+class BitType : public Type {
+  public :
+    BitType(Context* c) : Type(TK_Bit,DK_Out,c) {}
+    static bool classof(const Type* t) {return t->getKind()==TK_Bit;}
+    string toString(void) const {return "Bit";}
 };
 
 class BitInType : public Type {
   public :
-    BitInType() : Type(BITIN) {}
+    BitInType(Context* c) : Type(TK_BitIn,DK_In,c) {}
+    static bool classof(const Type* t) {return t->getKind()==TK_BitIn;}
+    
     string toString(void) const {return "BitIn";}
-    bool hasInput() { return true;}
-};
-
-class BitOutType : public Type {
-  public :
-    BitOutType() : Type(BITOUT) {}
-    string toString(void) const {return "BitOut";}
 };
 
 class NamedType : public Type {
@@ -67,16 +91,22 @@ class NamedType : public Type {
     
     Type* raw;
 
-    TypeGen* typegen;
+    bool isgen=false;
+    TypeGen* typegen=nullptr;
     Args genargs;
   public :
-    NamedType(Namespace* ns, string name, Type* raw) : Type(NAMED), ns(ns), name(name), raw(raw), typegen(nullptr) {}
-    NamedType(Namespace* ns, string name, TypeGen* typegen, Args genargs);
-    string toString(void) const { return name; } //TODO
+    NamedType(Context* c, Namespace* ns, string name, Type* raw) : Type(TK_Named,raw->getDir(),c), ns(ns), name(name), raw(raw) {}
+    NamedType(Context* c, Namespace* ns, string name, TypeGen* typegen, Args genargs);
+    static bool classof(const Type* t) {return t->getKind()==TK_Named;}
+    string toString(void) const { return name; } //TODO add generator
     string getName() {return name;}
     Type* getRaw() {return raw;}
+    bool isGen() { return isgen;}
+    TypeGen* getTypegen() { return typegen;}
+    Args getGenargs() {return genargs;}
+    
     json toJson();
-    bool sel(Context* c, string sel, Type** ret, Error* e);
+    bool sel(string sel, Type** ret, Error* e);
 
 };
 
@@ -84,15 +114,15 @@ class ArrayType : public Type {
   Type* elemType;
   uint len;
   public :
-    ArrayType(Type *elemType, uint len) : Type(ARRAY), elemType(elemType), len(len) {}
+    ArrayType(Context* c,Type *elemType, uint len) : Type(TK_Array,elemType->getDir(),c), elemType(elemType), len(len) {}
+    static bool classof(const Type* t) {return t->getKind()==TK_Array;}
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
     string toString(void) const { 
       return elemType->toString() + "[" + to_string(len) + "]";
     };
     json toJson();
-    bool sel(Context* c, string sel, Type** ret, Error* e);
-    bool hasInput() {return elemType->hasInput();}
+    bool sel(string sel, Type** ret, Error* e);
 
 };
 
@@ -101,33 +131,15 @@ class RecordType : public Type {
   unordered_map<string,Type*> record;
   vector<string> _order;
   public :
-    RecordType(RecordParams _record) : Type(RECORD) {
-      for(auto field : _record) {
-        if(isNumber(field.first)) {
-          cout << "Cannot have number as record field" << endl;
-          exit(0);
-        }
-        record.emplace(field.first,field.second);
-        _order.push_back(field.first);
-      }
-    }
-    RecordType() : Type(RECORD) {}
-    void addItem(string s, Type* t) {
-      _order.push_back(s);
-      record.emplace(s,t);
-    }
+    RecordType(Context* c, RecordParams _record);
+    RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
+    void addItem(string s, Type* t);
+    static bool classof(const Type* t) {return t->getKind()==TK_Record;}
     vector<string> getOrder() { return _order;}
     unordered_map<string,Type*> getRecord() { return record;}
     string toString(void) const;
     json toJson();
-    bool sel(Context* c, string sel, Type** ret, Error* e);
-    bool hasInput() {
-      for ( auto it : record ) {
-        if (it.second->hasInput()) return true;
-      }
-      return false;
-    }
-
+    bool sel(string sel, Type** ret, Error* e);
 };
 
 }//CoreIR namespace

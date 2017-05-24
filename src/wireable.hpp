@@ -9,10 +9,14 @@ using namespace std;
 namespace CoreIR {
 
 class Wireable {
+  public:
+    enum WireableKind {WK_Interface,WK_Instance,WK_Select};
+
   protected :
     WireableKind kind;
     ModuleDef* moduledef; // ModuleDef which it is contained in 
     Type* type;
+
     unordered_set<Wireable*> connected; 
     unordered_map<string,Wireable*> selects;
     Metadata metadata;
@@ -21,55 +25,67 @@ class Wireable {
     virtual ~Wireable() {}
     virtual string toString() const=0;
     unordered_set<Wireable*> getConnectedWireables() { return connected;}
-    unordered_map<string,Wireable*> getChildren() { return selects;}
+    unordered_map<string,Wireable*> getSelects() { return selects;}
+    bool hasSel(string selstr) {return selects.count(selstr) >0;}
     Metadata getMetadata() { return metadata;}
     ModuleDef* getModuleDef() { return moduledef;}
     Context* getContext();
-    bool isKind(WireableKind e) { return e==kind;}
-    WireableKind getKind() { return kind; }
+    WireableKind getKind() const { return kind; }
     Type* getType() { return type;}
     void addConnectedWireable(Wireable* w) { connected.insert(w); }
+    void removeConnectedWireable(Wireable* w) {
+      assert(connected.count(w) > 0);
+      connected.erase(w);
+    }
     
     Select* sel(string);
     Select* sel(uint);
   
-    // Convinience function
     // if this wireable is from add3inst.a.b[0], then this will look like
-    // {add3inst,{a,b,0}}
-    WirePath getPath();
-
+    // {add3inst,a,b,0}
+    SelectPath getSelectPath();
+    string wireableKind2Str(WireableKind wb);
 };
 
 ostream& operator<<(ostream&, const Wireable&);
 
 class Interface : public Wireable {
   public :
-    Interface(ModuleDef* context,Type* type) : Wireable(IFACE,context,type) {};
+    Interface(ModuleDef* context,Type* type) : Wireable(WK_Interface,context,type) {};
+    static bool classof(const Wireable* w) {return w->getKind()==WK_Interface;}
     string toString() const;
 };
 
-//TODO potentially separate out moduleGen instances and module instances
 class Instance : public Wireable {
   string instname;
-  Instantiable* instRef;
+  Module* moduleRef;
+  
+  Args configargs;
+  
+  bool isgen;
+  Generator* generatorRef = nullptr;
   Args genargs;
-  Args config;
   
   public :
-    Instance(ModuleDef* context, string instname, Instantiable* instRef,Type* type, Args genargs, Args config)  : Wireable(INST,context,type), instname(instname), instRef(instRef),genargs(genargs), config(config) {}
+    Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs=Args());
+    Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs=Args());
+    static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     string toString() const;
     json toJson();
-    Instantiable* getInstRef() {return instRef;}
+    Module* getModuleRef() {return moduleRef;}
     string getInstname() { return instname; }
-    Arg* getConfigValue(string s);
-    Args getArgs() {return genargs;}
-    Args getConfig() {return config;}
-    bool hasConfig() {return !config.empty();}
+    Arg* getConfigArg(string s);
+    Args getConfigArgs() {return configargs;}
+    bool hasConfigArgs() {return !configargs.empty();}
     
     //Convinience functions
-    bool isGen();
-    bool hasDef();
-    void replace(Instantiable* instRef, Args config);
+    bool isGen() { return isgen;}
+    Generator* getGeneratorRef() { return generatorRef;}
+    Args getGenargs() {return genargs;}
+    void runGenerator();
+    void inlineModule();
+    void replace(Module* moduleRef, Args configargs=Args());
+    void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
 };
 
 class Select : public Wireable {
@@ -77,7 +93,8 @@ class Select : public Wireable {
     Wireable* parent;
     string selStr;
   public :
-    Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(SEL,context,type), parent(parent), selStr(selStr) {}
+    Select(ModuleDef* context, Wireable* parent, string selStr, Type* type) : Wireable(WK_Select,context,type), parent(parent), selStr(selStr) {}
+    static bool classof(const Wireable* w) {return w->getKind()==WK_Select;}
     string toString() const;
     Wireable* getParent() { return parent; }
     string getSelStr() { return selStr; }

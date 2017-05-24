@@ -1,5 +1,8 @@
 #include "common.hpp"
-#include <cassert>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <iterator>
 
 //#include "coreir.hpp"
 //#include "typedcoreir.hpp"
@@ -12,16 +15,6 @@ bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
 }
 
-string TypeKind2Str(TypeKind t) {
-  switch(t) {
-    case ANY : return "Any";
-    case BITIN : return "BitIn";
-    case BITOUT : return "BitOut";
-    case ARRAY : return "Array";
-    case RECORD : return "Record";
-    default : return "NYI";
-  }
-}
 
 string Param2Str(Param genparam) {
   switch(genparam) {
@@ -47,14 +40,46 @@ string Params2Str(Params genparams) {
   return ret + ")";
 }
 
-//TODO probably a better way of doing this with fancy macros
-string wireableKind2Str(WireableKind wb) {
-  switch(wb) {
-    case IFACE: return "Interface";
-    case INST: return "Instance";
-    case SEL: return "Select";
+string Args2Str(Args args) {
+  string s = "(";
+  for (auto it=args.begin(); it!=args.end(); ++it) {
+    s = s + (it==args.begin() ? "" : ",") + it->first + ":"+it->second->toString();
   }
-  assert(false);
+  return s + ")";
 }
+string SelectPath2Str(SelectPath s) {
+  string ret = "";
+  for (auto it=s.begin(); it!=s.end(); ++it) {
+    ret = ret + (it==s.begin() ? "" : ".") + *it;
+  }
+  return ret;
+}
+
+void checkArgsAreParams(Args args, Params params) {
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams: " + Params2Str(params));
+  for (auto const &param : params) {
+    auto const &arg = args.find(param.first);
+    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
+  }
+}
+
+
+
+std::vector<std::string> splitString(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    std::stringstream ss;
+    ss.str(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+      elems.push_back(item);
+    }
+    return elems;
+}
+
+bool hasChar(const std::string s, char c) {
+  return s.find_first_of(c) !=string::npos;
+}
+
 
 } //CoreIR namespace

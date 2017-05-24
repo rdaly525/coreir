@@ -1,6 +1,58 @@
 General Ideas
+ 
+
+Ideas for Simple generator language
+
+Basically keep using the same Args.
+But add Arguemnt manipulation nodes like 
+  ASelect(Args,"strname")
+  ABinOp(op,Arg,Arg), there is a question what some of these operations would mean for certain types. Or maybe you cannot manipulate the types in question.
+  AUnaryOp(op,Arg)
+  ATernary(op,ArgBool,Arg,Arg)
+  There could also maybe be a type to get the args from a passed in Module
+  AGroup(list("label",Arg))
+  I think these can just be the same type as Arg, which means I can
+  pass through the values dynamically into genArgs and configArgs of other Generators
+
+  I think that a key insight would be to have an input argument to generators be a ArgBool which tells whether it exists or not.
+
+  This means that on introspection, I can dynamically tell whether The instance exists or not. Also for edges
+
+Maybe there should also be an AOpaque(Args,Args(*fun)(Args args, Void* userdata))
+
+If this is the case, then is there really a difference between a Module and a Generator?
+
+
+
+Restructure for coreir to be more similar to LLVM
+
+Named
+  string name
+
+Symbol : Value
+  Namespace* ns
+
+Instantiable : Symbol
+  Configparams params
+
+Module : Instantiable
+  
+Generator : Instantiable
+
+Wireable : Value
+
+Instance : Wireable
+  configArgs
+
+GenInstance : Instance
+
+NamedType : Symboal : Type
+
+GenNamedType : NamedType
+
 LLVM Compiler passes
 Module (Set of functions)
+  
 
 List of passes I want to do
 Compute Verilog: Modules -> Verilog

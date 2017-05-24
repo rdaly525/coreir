@@ -6,6 +6,8 @@
 #include "types.hpp"
 #include "error.hpp"
 #include "common.hpp"
+#include "casting/casting.hpp"
+#include "directedview.hpp"
 
 #include <string>
 #include <unordered_set>
@@ -22,6 +24,10 @@ class Context {
   uint maxErrors;
   vector<Error> errors;
  
+  //Unique int
+  uint unique=0;
+
+
   //Memory management
   TypeCache* cache;
   
@@ -34,6 +40,9 @@ class Context {
   vector<Connection**> connectionPtrArrays;
   vector<Wireable**> wireableArrays;
   vector<const char**> constStringArrays;
+  vector<DirectedConnection*> directedConnectionArrays;
+  vector<DirectedConnection**> directedConnectionPtrArrays;
+  vector<DirectedInstance**> directedInstancePtrArrays;
 
   public :
     Context();
@@ -59,29 +68,43 @@ class Context {
     Namespace* getNamespace(string s);
     map<string,Namespace*> getNamespaces() {return libs;}
 
+    //Factory functions for types
     Type* Any();
+    Type* Bit();
     Type* BitIn();
-    Type* BitOut();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
     Type* Named(string ns, string name);
     Type* Named(string ns, string name, Args args);
+    Type* Flip(Type* t);
+    Type* In(Type* t);
+    Type* Out(Type* t);
+
     TypeGen* getTypeGen(string ns, string name);
 
     RecordParams* newRecordParams();
     Params* newParams();
     Args* newArgs();
     
-    Arg* int2Arg(int i);
-    Arg* str2Arg(string s);
-    Arg* type2Arg(Type* t);
+    //Factory functions for args
+    Arg* argInt(int i);
+    Arg* argString(string s);
+    Arg* argType(Type* t);
+
+    //Unique
+    string getUnique() {
+      return "_U" + to_string(unique++);
+    }
+
 
     Instance** newInstanceArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
-    Type* Flip(Type* t);
+    DirectedConnection** newDirectedConnectionPtrArray(int size);
+    DirectedInstance** newDirectedInstancePtrArray(int size);
+
 
 };
 

@@ -12,25 +12,24 @@ int main() {
   assert(c->Any() == c->Flip(c->Any()) );
 
   assert(c->BitIn() == c->BitIn());
-  assert(c->BitOut() == c->BitOut());
-  assert(c->BitIn() == c->Flip(c->BitOut()));
-
+  assert(c->Bit() == c->Bit());
+  assert(c->BitIn() == c->Flip(c->Bit()));
 
 
   // Test out Named Types
-  g->newNamedType("int16","intIn16",c->Array(16,c->BitOut()));
+  g->newNamedType("int16","intIn16",c->Array(16,c->Bit()));
   assert(g->getNamedType("int16") == c->Flip(g->getNamedType("intIn16")));
 
   auto intTypeFun = [](Context* c, Args args) {
-    int n = args.at("w")->arg2Int();
-    return c->Array(n,c->BitOut());
+    int n = args.at("w")->get<ArgInt>();
+    return c->Array(n,c->Bit());
   };
 
   g->newNominalTypeGen("int", "intIn",{{"w",AINT}},intTypeFun);
 
-  Args ga1 = {{"w",c->int2Arg(16)}};
-  Args ga2 = {{"w",c->int2Arg(16)}};
-  Args ga3 = {{"w",c->int2Arg(17)}};
+  Args ga1 = {{"w",c->argInt(16)}};
+  Args ga2 = {{"w",c->argInt(16)}};
+  Args ga3 = {{"w",c->argInt(17)}};
   
   assert(g->getNamedType("int",ga1) == g->getNamedType("int",ga2));
   assert(g->getNamedType("int",ga1) != g->getNamedType("int",ga3));
@@ -41,10 +40,10 @@ int main() {
   Type* Intb = g->getNamedType("int",ga1);
   vector<Type*> ts = {
     c->BitIn(),
-    c->BitOut(),
+    c->Bit(),
     c->Array(5,c->BitIn()),
-    c->Array(6,c->Array(7,c->BitOut())),
-    c->Record({{"a",c->BitIn()},{"b",c->Array(8,c->BitOut())}}),
+    c->Array(6,c->Bit())->Arr(5)->Arr(3)->Arr(2),
+    c->Record({{"a",c->BitIn()},{"b",c->Array(8,c->Bit())}}),
     Inta,
     Intb,
     c->Record({{"r",c->Flip(Inta)},{"v",Intb},{"d",c->Array(16,Inta)}})

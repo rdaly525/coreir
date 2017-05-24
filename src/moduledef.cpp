@@ -1,18 +1,13 @@
 
 #include "moduledef.hpp"
 #include "typegen.hpp"
+#include <iterator>
 
 using namespace std;
 
 namespace CoreIR {
 
 
-ModuleDef* Module::newModuleDef() {
-  
-  ModuleDef* md = new ModuleDef(this);
-  mdefList.push_back(md);
-  return md;
-}
 
 ModuleDef::ModuleDef(Module* module) : module(module) {
   interface = new Interface(this,module->getContext()->Flip(module->getType()));
@@ -31,7 +26,7 @@ void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
-    cout << "      " << inst.first << " : " << inst.second->getInstRef()->getName() << endl;
+    cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
@@ -44,34 +39,57 @@ Context* ModuleDef::getContext() { return module->getContext(); }
 string ModuleDef::getName() {return module->getName();}
 Type* ModuleDef::getType() {return module->getType();}
 
+//Can pass in either a single instance name
+//Or pass in a '.' deleminated string
+Wireable* ModuleDef::sel(string s) { 
+  if (hasChar(s,'.')) {
+    SelectPath path = splitString(s,'.');
+    return this->sel(path);
+  }
+  if (s=="self") return interface;
+  else {
+    ASSERT(instances.count(s),"Cannot find instance " + s);
+    return instances[s]; 
+  }
+}
+
+Wireable* ModuleDef::sel(SelectPath path) {
+  Wireable* cur = this->sel(path[0]);
+  for (auto it = std::next(path.begin()); it != path.end(); ++it) {
+    cur = cur->sel(*it);
+  }
+  return cur;
+}
+
+
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
   assert(instances.count(instname)==0);
   
-  //TODO Should this type be resolved? Just always get the type for now
-  Type* type = gen->getTypeGen()->getType(genargs);
-  
-  Instance* inst = new Instance(this,instname,gen,type,genargs,config);
+  Instance* inst = new Instance(this,instname,gen,genargs,config);
   instances[instname] = inst;
   
   return inst;
 }
 
 Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
-  Instance* inst = new Instance(this,instname,m,m->getType(),Args(),config);
+  Instance* inst = new Instance(this,instname,m,config);
   instances[instname] = inst;
   
   return inst;
 }
 
-Instance* ModuleDef::addInstance(Instance* i) {
-  if( i->getInstRef()->isKind(MOD)) 
-    return addInstance(i->getInstname(),(Module*) i->getInstRef(),i->getConfig());
+Instance* ModuleDef::addInstance(Instance* i,string iname) {
+  if (iname=="") {
+    iname = i->getInstname();
+  }
+  if( i->isGen()) 
+    return addInstance(iname,i->getGeneratorRef(),i->getGenargs(),i->getConfigArgs());
   else 
-    return addInstance(i->getInstname(),(Generator*) i->getInstRef(),i->getConfig(),i->getArgs());
+    return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
 }
 
 
-void ModuleDef::wire(Wireable* a, Wireable* b) {
+void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
   Context* c = getContext();
   if (a->getModuleDef()!=this || b->getModuleDef() != this) {
@@ -102,19 +120,62 @@ void ModuleDef::wire(Wireable* a, Wireable* b) {
   }
 }
 
-void ModuleDef::wire(WirePath pathA, WirePath pathB) {
-  Wireable* curA = this->sel(pathA.first);
-  Wireable* curB = this->sel(pathB.first);
-  for (auto str : pathA.second) curA = curA->sel(str);
-  for (auto str : pathB.second) curB = curB->sel(str);
-  this->wire(curA,curB);
+void ModuleDef::connect(SelectPath pathA, SelectPath pathB) {
+  this->connect(this->sel(pathA),this->sel(pathB));
 }
 
-
-Wireable* ModuleDef::sel(string s) { 
-  if (s=="self") return interface;
-  else return instances[s]; 
+void ModuleDef::connect(string pathA, string pathB) {
+  this->connect(this->sel(pathA),this->sel(pathB));
+}
+void ModuleDef::connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB) {
+  connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
+}
+void ModuleDef::connect(std::initializer_list<std::string> pA, std::initializer_list<string> pB) {
+  connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
 }
 
+//This will remove all connections from a specific wireable
+void ModuleDef::disconnect(Wireable* w) {
+  for (auto wc : w->getConnectedWireables()) {
+    this->disconnect(w,wc);
+  }
+}
+
+void ModuleDef::disconnect(Wireable* a, Wireable* b) {
+  //First check if this exists in the list of connections
+  auto sorted = std::minmax(a,b);
+  Connection connect(sorted.first,sorted.second);
+  if (connections.count(connect)==0) {
+    assert("Connection does not exist! Not removing");
+    return;
+  }
+  
+  //remove reference from a and 
+  a->removeConnectedWireable(b);
+  b->removeConnectedWireable(a);
+
+  //Delete connection from list
+  connections.erase(connect);
+}
+
+void disconnectAllWireables(ModuleDef* m, Wireable* w) {
+  for (auto sels : w->getSelects()) {
+    disconnectAllWireables(m,sels.second);
+  }
+  m->disconnect(w);
+}
+
+void ModuleDef::removeInstance(string iname) {
+  //First verify that instance exists
+  ASSERT(instances.count(iname), "Instance " + iname + " does not exist");
+  Instance* inst = instances.at(iname);
+  
+  //First remove all the connections from this instance
+  disconnectAllWireables(this,inst);
+
+  //Now remove this instance
+  instances.erase(iname);
+
+}
 
 } //coreir namespace

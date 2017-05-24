@@ -6,11 +6,11 @@ using namespace std;
 namespace CoreIR {
 
 TypeCache::TypeCache(Context* c) : c(c) {
-  bitI = new BitInType();
-  bitO = new BitOutType();
+  bitO = new BitType(c);
+  bitI = new BitInType(c);
   bitI->setFlipped(bitO);
   bitO->setFlipped(bitI);
-  any = new AnyType();
+  any = new AnyType(c);
   any->setFlipped(any);
 }
 
@@ -30,8 +30,8 @@ Type* TypeCache::newArray(uint len, Type* t) {
     return it->second;
   } 
   else {
-    Type* a = new ArrayType(t,len);
-    Type* af = new ArrayType(c->Flip(t),len);
+    Type* a = new ArrayType(c,t,len);
+    Type* af = new ArrayType(c,c->Flip(t),len);
     a->setFlipped(af);
     af->setFlipped(a);
     ArrayCache.emplace(params,a);
@@ -47,14 +47,14 @@ Type* TypeCache::newRecord(RecordParams params) {
     return it->second;
   } 
   else {
-    Type* r = new RecordType(params);
+    Type* r = new RecordType(c,params);
     
     // Create params for flipped
     RecordParams paramsF;
     for (auto p : params) {
       paramsF.push_back({p.first,c->Flip(p.second)});
     }
-    Type* rf = new RecordType(paramsF);
+    Type* rf = new RecordType(c,paramsF);
     r->setFlipped(rf);
     rf->setFlipped(r);
 

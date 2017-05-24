@@ -19,7 +19,7 @@
 ###If you are using an OSX environment
   To Install:
     
-    make installosx
+    make osx
 
   To verify coreir build
     
@@ -36,7 +36,7 @@
 #include "coreir-libs/stdlib.hpp"
 
 //Optionally include compiler passes
-#include "coreir-passes/passes.hpp"
+#include "coreir-passes/passes.h"
 
 
 
@@ -50,8 +50,8 @@ int main(...) {
 #Makefile example
 COREIR = <Path_to_coreir>
 INCS = $COREIR/include
-LPATH = $COREIR/bin
-LIBS =  -Wl,-rpath,$COREIR/bin -lcoreir-passes -lcoreir
+LPATH = $COREIR/lib
+LIBS =  -Wl,-rpath,$COREIR/lib -lcoreir-passes -lcoreir
 executable: main.o 
 	$(CXX) $(CXXFLAGS) $(INCS) -o executable main.o $(LPATH) $(LIBS) 
 
@@ -91,7 +91,7 @@ library named **stdlib**.
    #include <coreir-stdlib.h>
    Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
      Namespace* stdlib = c->newNamespace("stdlib");
-     stdlib->newNamedType("clk","clkIn",c->BitOut());
+     stdlib->newNamedType("clk","clkIn",c->Bit());
      return stdlib;
    }
    ```

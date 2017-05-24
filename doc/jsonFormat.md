@@ -18,7 +18,7 @@ Namespace={
   "generators"? :{<genname>:Generator, ...}
 }
 
-Type = "BitIn" | "BitOut" | ["Array", <N>, Type] | ["Record", [<key>, Type][]] | ["Named",NamedRef, Args?]
+Type = "BitIn" | "Bit" | ["Array", <N>, Type] | ["Record", [<key>, Type][]] | ["Named",NamedRef, Args?]
 
 NamedRef = [<namespaceName>, <typeName>]
 NamedType = {"name":<name>, "flippedname":<name>,"rawtype":Type}
@@ -33,7 +33,7 @@ ModuleDef = {"metadata"?:Metadata,
 
 Generator = {"configparams"?:Parameters,"genparams":Parameters, "typegen":NamedRef, "metadata"?:Metadata}
 
-Instance = {"instref":InstantiatableReference, "genargs"?:Args, "config"?:Args, "metadata"?:Metadata}
+Instance = {"moduleref"?:InstantiatableReference, "generatorref"?:InstantiableReference, "genargs"?:Args, "configargs"?:Args, "metadata"?:Metadata}
 
 InstantiatableReference = ["namespacename","InstantiatableName"]
 

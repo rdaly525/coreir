@@ -5,17 +5,6 @@ using namespace std;
 
 namespace CoreIR {
 
-bool operator==(const GenCacheParams & l,const GenCacheParams & r) {
-  return (*l.g==*r.g) && (l.ga==r.ga);
-}
-
-size_t GenCacheParamsHasher::operator()(const GenCacheParams& gcp) const {
-  size_t hash = 0;
-  hash_combine(hash,gcp.g->getNamespace()->getName());
-  hash_combine(hash,gcp.g->getName());
-  return hash;
-}
-
 bool operator==(const NamedCacheParams& l,const NamedCacheParams& r) {
   return (l.name==r.name) && (l.args==r.args);
 }
@@ -46,8 +35,8 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   namedTypeNameMap[name] = nameFlip;
 
   //Create two new NamedTypes
-  NamedType* named = new NamedType(this,name,raw);
-  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped());
+  NamedType* named = new NamedType(c,this,name,raw);
+  NamedType* namedFlip = new NamedType(c,this,nameFlip,raw->getFlipped());
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeList[name] = named;
@@ -113,8 +102,8 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
   NamedCacheParams ncpFlip(nameFlip,genargs);
 
   //Create two new named entries
-  NamedType* named = new NamedType(this,name,tgen,genargs);
-  NamedType* namedFlip = new NamedType(this,nameFlip,tgenFlip,genargs);
+  NamedType* named = new NamedType(c,this,name,tgen,genargs);
+  NamedType* namedFlip = new NamedType(c,this,nameFlip,tgenFlip,genargs);
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeGenCache[ncp] = named;
@@ -122,7 +111,7 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
 
   return named;
 }
-void Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
+TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   assert(namedTypeList.count(name)==0);
   assert(typeGenList.count(name)==0);
   
@@ -132,11 +121,11 @@ void Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   typeGenNameMap[name] = "";
   
   typeGenList[name] = typegen;
+  return typegen;
 }
 
 //TODO deal with at errors
 TypeGen* Namespace::getTypeGen(string name) {
-  cout << "TypeGen name:" << name << endl;
   assert(typeGenList.count(name)>0);
   TypeGen* ret = typeGenList.at(name);
   assert(ret->getName()==name);
@@ -145,12 +134,12 @@ TypeGen* Namespace::getTypeGen(string name) {
 
 
 
-Generator* Namespace::newGeneratorDecl(string name, Params genparams, TypeGen* typegen) {
+Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams) {
   //Make sure module does not already exist as a module or generator
   assert(moduleList.count(name)==0);
   assert(generatorList.count(name)==0);
   
-  Generator* g = new Generator(this,name,genparams,typegen);
+  Generator* g = new Generator(this,name,typegen,genparams,configparams);
   generatorList.emplace(name,g);
   return g;
 }
@@ -206,24 +195,6 @@ void Namespace::print() {
   cout << "  Generators:" << endl;
   for (auto it : generatorList) cout << "    " << it.second->toString() << endl;
   cout << endl;
-}
-
-Module* Namespace::runGenerator(Generator* g, Args genargs, Type* t) {
-  GenCacheParams gcp(g,genargs);
-  auto it = genCache.find(gcp);
-  if (it != genCache.end()) return it->second;
-  cout << "Did not find in cache. Actualy running generator" << endl;
-  
-  // Make new module TODO how to pass configs
-  string mNewName = g->getName() + to_string(rand());
-  Module* mNew = this->newModuleDecl(mNewName,t);
-  if (g->getDef()) {
-    ModuleDef* mdef = mNew->newModuleDef();
-    g->getDef()->createModuleDef(mdef,c,t,genargs);
-    mNew->setDef(mdef);
-  }
-  genCache.emplace(gcp,mNew);
-  return mNew;
 }
 
 }//CoreIR namespace

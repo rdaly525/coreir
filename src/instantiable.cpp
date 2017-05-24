@@ -18,41 +18,55 @@ bool operator==(const Instantiable & l,const Instantiable & r) {
   return l.isKind(r.getKind()) && (l.getName()==r.getName()) && (l.getNamespace()->getName() == r.getNamespace()->getName());
 }
 
-Module* Instantiable::toModule() {
-  if (isKind(MOD)) return (Module*) this;
-  Error e;
-  e.message("Cannot convert to a Module!!");
-  e.message("  " + toString());
-  e.fatal();
-  getContext()->error(e);
-  return nullptr;
-}
-Generator* Instantiable::toGenerator() {
-  if (isKind(GEN)) return (Generator*) this;
-  Error e;
-  e.message("Cannot convert to a Generator!!");
-  e.message("  " + toString());
-  e.fatal();
-  getContext()->error(e);
-  return nullptr;
-}
-
 ostream& operator<<(ostream& os, const Instantiable& i) {
   os << i.toString();
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,Params genparams, TypeGen* typegen, Params configparams) : Instantiable(GEN,ns,name,configparams), genparams(genparams), typegen(typegen), def(nullptr) {
-  //Verify that genparams are the same
-  assert(genparams == typegen->getParams());
+Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams) {
+  //Verify that typegen params are a subset of genparams
+  for (auto const &type_param : typegen->getParams()) {
+    auto const &gen_param = genparams.find(type_param.first);
+    ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
+    ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
+  }
 }
 
 Generator::~Generator() {
   if (def) {
     delete def;
   }
+  //Delete all the Generated Modules
+  for (auto m : genCache) delete m.second;
 }
+
+
+Module* Generator::getModule(Args args) {
+  
+  auto cached = genCache.find(args);
+  if (cached != genCache.end() ) {
+    return cached->second;
+  }
+  
+  checkArgsAreParams(args,genparams);
+  Type* type = typegen->getType(args);
+  Module* m = new Module(ns,name + getContext()->getUnique(),type,configparams);
+  genCache[args] = m;
+  return m;
+}
+
+//TODO maybe cache the results of this?
+void Generator::setModuleDef(Module* m, Args args) {
+  assert(def && "Cannot add ModuleDef if there is no generatorDef!");
+
+  checkArgsAreParams(args,genparams);
+  ModuleDef* mdef = m->newModuleDef();
+  def->createModuleDef(mdef,this->getContext(),m->getType(),args); 
+  m->setDef(mdef);
+}
+
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
+  assert(!def && "Do you want to overwrite the def?");
   this->def = new GeneratorDefFromFun(this,fun);
 }
 
@@ -64,9 +78,38 @@ string Generator::toString() const {
   return ret;
 }
 
+DirectedModule* Module::newDirectedModule() {
+  if (!directedModule) {
+    directedModule = new DirectedModule(this);
+  }
+  return directedModule;
+}
+
 Module::~Module() {
   
   for (auto md : mdefList) delete md;
+  delete directedModule;
+}
+
+ModuleDef* Module::newModuleDef() {
+  
+  ModuleDef* md = new ModuleDef(this);
+  mdefList.push_back(md);
+  return md;
+}
+
+void Module::setDef(ModuleDef* def, bool validate) {
+  if (validate) {
+    if (def->validate()) {
+      cout << "Error Validating def" << endl;
+      this->getContext()->die();
+    }
+  }
+  this->def = def;
+  //Directed View is not valid anymore
+  if (this->directedModule) {
+    delete this->directedModule;
+  }
 }
 
 string Module::toString() const {
