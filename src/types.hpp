@@ -23,7 +23,7 @@ namespace CoreIR {
 class NamedType;
 class Type {
   public :
-    enum TypeKind {TK_Bit, TK_BitIn,TK_Array,TK_Record,TK_Named,TK_Any};
+    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4,TK_Any=5};
     enum DirKind {DK_In,DK_Out,DK_Mixed,DK_Unknown};
   protected :
     TypeKind kind;
@@ -54,7 +54,6 @@ class Type {
     bool isMixed() const { return dir==DK_Mixed; }
     bool isUnknown() const { return dir==DK_Unknown; }
     bool hasInput() const { return isInput() || isMixed(); }
-
 
 };
 

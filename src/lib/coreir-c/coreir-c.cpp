@@ -1,16 +1,13 @@
 #include "coreir-c/coreir.h"
 #include "coreir.h"
+#include "common-c.hpp"
 
 namespace CoreIR {
-template <class T1, class T2>
-T1 rcast(T2 in) {
-  return reinterpret_cast<T1>(in);
 
-}
 
 extern "C" {
 
-  void* CORENewMap(COREContext* cc, void* keys, void* values, u32 len, COREMapKind kind) {
+  void* CORENewMap(COREContext* cc, void* keys, void* values, uint len, COREMapKind kind) {
     Context* c = rcast<Context*>(cc);
     void* ret;
     switch(kind) {
@@ -18,7 +15,7 @@ extern "C" {
         char** skeys = (char**) keys;
         Type** types = (Type**) values;
         RecordParams* tmap = c->newRecordParams(); 
-        for (u32 i=0; i<len; ++i) {
+        for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
           Type* t = types[i];
           tmap->push_back({s,t});
@@ -30,7 +27,7 @@ extern "C" {
         char** skeys = (char**) keys;
         Arg** args = (Arg**) values;
         Args* amap = c->newArgs();
-        for (u32 i=0; i<len; ++i) {
+        for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
           Arg* a = (Arg*) args[i];
           amap->emplace(s,a);
@@ -42,7 +39,7 @@ extern "C" {
         char** skeys = (char**) keys;
         Param* params = (Param*) values;
         Params* pmap = c->newParams();
-        for (u32 i=0; i<len; ++i) {
+        for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
           Param p = params[i];
           pmap->emplace(s,p);
@@ -63,55 +60,17 @@ extern "C" {
   }
   
   //TODO change the name of this function
-  const char* COREGetInstRefName(COREInstance* iref) {
+  const char* COREGetInstRefName(COREWireable* iref) {
     string name = rcast<Instance*>(iref)->getModuleRef()->getName();
     return name.c_str();
   }
 
   //TODO change the name to Arg
-  COREArg* COREGetConfigValue(COREInstance* i, char* s) {
+  COREArg* COREGetConfigValue(COREWireable* i, char* s) {
     string str(s);
     return rcast<COREArg*>(rcast<Instance*>(i)->getConfigArg(str));
   }
   
-  int COREArg2Int(COREArg* a, bool* err) {
-    Arg* arg = rcast<Arg*>(a);
-    if (!isa<ArgInt>(arg)) {
-      *err = true;
-      return 0;
-    }
-    return arg->get<ArgInt>();
-  }
-  
-  const char* COREArg2Str(COREArg* a, bool* err) {
-    Arg* arg = rcast<Arg*>(a);
-    if (!isa<ArgString>(arg)) {
-      *err = true;
-      return "";
-    }
-    string s = arg->get<ArgString>();
-    return s.c_str();
-  }
-  
-  COREType* COREAny(COREContext* c) {
-    return rcast<COREType*>(rcast<Context*>(c)->Any());
-  }
-  COREType* COREBitIn(COREContext* c) {
-    return rcast<COREType*>(rcast<Context*>(c)->BitIn());
-  }
-  COREType* COREBit(COREContext* c) {
-    return rcast<COREType*>(rcast<Context*>(c)->Bit());
-  }
-  COREType* COREArray(COREContext* c,u32 len, COREType* elemType) {
-    return rcast<COREType*>(rcast<Context*>(c)->Array(len,rcast<Type*>(elemType)));
-  }
-  COREType* CORERecord(COREContext* context, void* record_param) {
-    return rcast<COREType*>(rcast<Context*>(context)->Record(*rcast<RecordParams*>(record_param)));
-  }
-  //COREType* COREArray(u32 len, COREType* elemType); 
-  void COREPrintType(COREType* t) {
-    rcast<Type*>(t)->print();
-  }
   
   COREModule* CORELoadModule(COREContext* c, char* filename, bool* err) {
     string file(filename);
@@ -143,8 +102,8 @@ extern "C" {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->getDef());
   }
   
-  COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config) {
-    return rcast<COREInstance*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
+  COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
   }
 
   void COREModuleSetDef(COREModule* module, COREModuleDef* module_def) {
@@ -159,16 +118,8 @@ extern "C" {
     rcast<ModuleDef*>(module_def)->connect(rcast<Wireable*>(a), rcast<Wireable*>(b));
   }
 
-  COREInterface* COREModuleDefGetInterface(COREModuleDef* module_def) {
-    return rcast<COREInterface*>(rcast<ModuleDef*>(module_def)->getInterface());
-  }
-
-  CORESelect* COREInstanceSelect(COREInstance* instance, char* field) {
-    return rcast<CORESelect*>(rcast<Instance*>(instance)->sel(string(field)));
-  }
-
-  CORESelect* COREInterfaceSelect(COREInterface* interface, char* field) {
-    return rcast<CORESelect*>(rcast<Interface*>(interface)->sel(string(field)));
+  COREWireable* COREModuleDefGetInterface(COREModuleDef* module_def) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInterface());
   }
 
   void COREPrintModule(COREModule* m) {
@@ -179,22 +130,12 @@ extern "C" {
     rcast<ModuleDef*>(module_def)->print();
   }
 
-  //Create Arg for int
-  COREArg* COREInt2Arg(COREContext* c,int i) {
-    Arg* ga = rcast<Context*>(c)->argInt(i);
-    return rcast<COREArg*>(ga);
-  }
-  
-  COREArg* COREStr2Arg(COREContext* c,char* str) {
-    Arg* ga = rcast<Context*>(c)->argString(string(str));
-    return rcast<COREArg*>(ga);
-  }
 
   void COREPrintErrors(COREContext* c) {
     rcast<Context*>(c)->printerrors();
   }
 
-  COREInstance** COREModuleDefGetInstances(COREModuleDef* m, u32* numInstances) {
+  COREWireable** COREModuleDefGetInstances(COREModuleDef* m, uint* numInstances) {
     ModuleDef* module_def = rcast<ModuleDef*>(m);
     unordered_map<string,Instance*> instance_set = module_def->getInstances();
     Context* context = module_def->getContext();
@@ -206,7 +147,7 @@ extern "C" {
       arr[count] = it.second;
       count++;
     }
-    return rcast<COREInstance**>(arr);
+    return rcast<COREWireable**>(arr);
   }
 
   COREConnection** COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
@@ -249,8 +190,8 @@ extern "C" {
     return rcast<COREWireable**>(arr);
   }
 
-  CORESelect* COREWireableSelect(COREWireable* w, char* name) {
-    return rcast<CORESelect*>(rcast<Wireable*>(w)->sel(string(name)));
+  COREWireable* COREWireableSelect(COREWireable* w, char* sel) {
+    return rcast<COREWireable*>(rcast<Wireable*>(w)->sel(string(sel)));
   }
 
   COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name) {
