@@ -18,6 +18,9 @@ typedef struct CORESelect CORESelect;
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;
 typedef struct COREArg COREArg;
+typedef struct COREDirectedConnection COREDirectedConnection;
+typedef struct COREDirectedModule COREDirectedModule;
+typedef struct COREDirectedInstance COREDirectedInstance;
 
 typedef enum {
     STR2TYPE_ORDEREDMAP = 0,

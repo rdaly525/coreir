@@ -23,7 +23,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams), def(nullptr) {
+Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams) {
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);
@@ -40,18 +40,9 @@ Generator::~Generator() {
   for (auto m : genCache) delete m.second;
 }
 
-void checkArgsAreParams(Args args, Params params) {
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams:" );
-  for (auto const &param : params) {
-    auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
-    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
-  }
-}
 
 Module* Generator::getModule(Args args) {
   
-  //Check cache
   auto cached = genCache.find(args);
   if (cached != genCache.end() ) {
     return cached->second;
@@ -87,9 +78,17 @@ string Generator::toString() const {
   return ret;
 }
 
+DirectedModule* Module::newDirectedModule() {
+  if (!directedModule) {
+    directedModule = new DirectedModule(this);
+  }
+  return directedModule;
+}
+
 Module::~Module() {
   
   for (auto md : mdefList) delete md;
+  delete directedModule;
 }
 
 ModuleDef* Module::newModuleDef() {
@@ -106,7 +105,12 @@ void Module::setDef(ModuleDef* def, bool validate) {
       this->getContext()->die();
     }
   }
-  this->def = def;}
+  this->def = def;
+  //Directed View is not valid anymore
+  if (this->directedModule) {
+    delete this->directedModule;
+  }
+}
 
 string Module::toString() const {
   return "Module: " + name + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");

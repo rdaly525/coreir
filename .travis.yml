@@ -18,7 +18,7 @@ before_install:
 
 script:
   - make test
-  - pytest  # Test python bindings
+  - pytest -s  # Test python bindings
 
 compiler:
   - gcc

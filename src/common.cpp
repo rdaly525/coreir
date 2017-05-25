@@ -42,11 +42,29 @@ string Params2Str(Params genparams) {
 
 string Args2Str(Args args) {
   string s = "(";
-  for (auto it : args) {
-    s = s + it.first + ":"+it.second->toString()+",";
+  for (auto it=args.begin(); it!=args.end(); ++it) {
+    s = s + (it==args.begin() ? "" : ",") + it->first + ":"+it->second->toString();
   }
   return s + ")";
 }
+string SelectPath2Str(SelectPath s) {
+  string ret = "";
+  for (auto it=s.begin(); it!=s.end(); ++it) {
+    ret = ret + (it==s.begin() ? "" : ".") + *it;
+  }
+  return ret;
+}
+
+void checkArgsAreParams(Args args, Params params) {
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams: " + Params2Str(params));
+  for (auto const &param : params) {
+    auto const &arg = args.find(param.first);
+    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
+  }
+}
+
+
 
 std::vector<std::string> splitString(const std::string &s, char delim) {
     std::vector<std::string> elems;

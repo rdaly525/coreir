@@ -58,20 +58,14 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};
   cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Args args) {
     uint width = args.at("width")->get<ArgInt>();
-    //TODO for simplicity just make the address width 16 as well
     return c->Record({
-      {"read",c->Record({
-        {"data",c->Bit()->Arr(width)},
-        {"addr",c->BitIn()->Arr(width)},
-        {"en",c->BitIn()},
-        {"empty",c->Bit()}
-      })},
-      {"write",c->Record({
-        {"data",c->BitIn()->Arr(width)},
-        {"addr",c->BitIn()->Arr(width)},
-        {"en",c->BitIn()},
-        {"full",c->Bit()}
-      })}
+      {"addr", c->BitIn()->Arr(width)},
+      {"rdata", c->Bit()->Arr(width)},
+      {"ren", c->BitIn()},
+      {"empty", c->Bit()},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"full", c->Bit()}
     });
   });
   cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams,modeParams);

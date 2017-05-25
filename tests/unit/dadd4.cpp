@@ -18,7 +18,6 @@ int main() {
   Generator* add2 = stdlib->getGenerator("add");
   assert(add2);
   
-
   // Define Add4 Module
   Type* add4Type = c->Record({
       {"in",c->Array(4,c->Array(n,c->BitIn()))},
@@ -36,9 +35,6 @@ int main() {
     def->connect(self->sel("in")->sel(1),add_00->sel("in")->sel(1));
     def->connect(self->sel("in")->sel(2),add_01->sel("in")->sel(0));
     def->connect(self->sel("in")->sel(3),add_01->sel("in")->sel(1));
-    
-    //def->connect(self->sel("in")->sel(3),add_01->sel("in1"));
-    //def->connect(add_01->sel("in1"),self->sel("in")->sel(3));
 
     def->connect(add_00->sel("out"),add_1->sel("in")->sel(0));
     def->connect(add_01->sel("out"),add_1->sel("in")->sel(1));
@@ -47,46 +43,19 @@ int main() {
   add4_n->setDef(def);
   add4_n->print();
   
-  bool err = false;
-  cout << "Checking saving and loading pregen" << endl;
-  saveModule(add4_n, "_add4.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  Module* m = loadModule(c,"_add4.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  m->print();
-  
-  
-  // Link v1 of library
-  //cout << "Linking stdlib!" << endl;
-  //Namespace* stdlib_v1 = getStdlib_v1(c);
-  //cout << "Linking!";
-  //c->linkLib(stdlib_v1, stdlib);
-  
-  rungenerators(c,add4_n,&err);
-  if (err) c->die();
-  add4_n->print();
-  
-  cout << "Checking saving and loading postgen" << endl;
-  saveModule(add4_n, "_add4Gen.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  m = loadModule(c,"_add4Gen.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  m->print();
+  auto selprint = [](SelectPath path) {
+    string s = "";
+    for (auto i : path) s = s + i + ".";
+    return s;
+  };
 
+  //TODO add more tests
+  DirectedModule* dm  = add4_n->newDirectedModule();
+  cout << "Directed connectins" << endl;
+  for (auto c : dm->getConnections()) {
+    cout << selprint(c->getSrc()) << " -> " << selprint(c->getSnk()) << endl;
+  }
+ 
   deleteContext(c);
   
   return 0;

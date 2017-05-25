@@ -1,11 +1,5 @@
 import coreir
-import ctypes as ct
-
-def get_pointer_addr(ptr):
-    return ct.cast(ptr, ct.c_void_p).value
-
-def assert_pointers_equal(ptr1, ptr2):
-    assert get_pointer_addr(ptr1) == get_pointer_addr(ptr2)
+from test_utils import get_pointer_addr, assert_pointers_equal
 
 
 def test_load_library():
@@ -37,10 +31,10 @@ def test_save_module():
     interface = module_def.get_interface()
     _input = interface.select("input")
     output = interface.select("output")
-    module_def.wire(_input, add8_in1)
-    module_def.wire(_input, add8_in2)
-    module_def.wire(output, add8_out)
-    module.add_definition(module_def)
+    module_def.connect(_input, add8_in1)
+    module_def.connect(_input, add8_in2)
+    module_def.connect(output, add8_out)
+    module.set_definition(module_def)
     module.print_()
     module.save_to_file("python_test_output.json")
     mod = c.load_from_file("python_test_output.json")
@@ -114,9 +108,9 @@ def test_wireable():
     interface = module_def.get_interface()
     _input = interface.select("input")
     output = interface.select("output")
-    module_def.wire(_input, add8_in1)
-    module_def.wire(_input, add8_in2)
-    module_def.wire(output, add8_out)
+    module_def.connect(_input, add8_in1)
+    module_def.connect(_input, add8_in2)
+    module_def.connect(output, add8_out)
     actual = [get_pointer_addr(wireable.ptr) for wireable in _input.get_connected_wireables()]
     assert get_pointer_addr(add8_in1.ptr) in actual
     assert get_pointer_addr(add8_in2.ptr) in actual
@@ -146,9 +140,9 @@ def test_module_def_get_connections():
     interface = module_def.get_interface()
     _input = interface.select("input")
     output = interface.select("output")
-    module_def.wire(_input, add8_in1)
-    module_def.wire(_input, add8_in2)
-    module_def.wire(output, add8_out)
+    module_def.connect(_input, add8_in1)
+    module_def.connect(_input, add8_in2)
+    module_def.connect(output, add8_out)
     input_ptr = get_pointer_addr(_input.ptr)
     add8_in1_ptr = get_pointer_addr(add8_in1.ptr)
     add8_in2_ptr = get_pointer_addr(add8_in2.ptr)
@@ -169,9 +163,6 @@ def test_module_def_get_connections():
                pair not in seen
         seen.append(pair)
     assert len(seen) == len(expected_conns)
-
-#if __name__ == "__main__":
-#  main()
 
 # def test():
 #     c = coreir.Context()
@@ -202,8 +193,8 @@ def test_module_def_get_connections():
 #     interface = module_def.get_interface()
 #     _input = interface.select("input")
 #     output = interface.select("output")
-#     module_def.wire(_input, add8_in1)
-#     module_def.wire(_input, add8_in2)
-#     module_def.wire(output, add8_out)
+#     module_def.connect(_input, add8_in1)
+#     module_def.connect(_input, add8_in2)
+#     module_def.connect(output, add8_out)
 #     module.add_definition(module_def)
 #     module.print()

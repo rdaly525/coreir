@@ -25,13 +25,18 @@ class Wireable {
     virtual ~Wireable() {}
     virtual string toString() const=0;
     unordered_set<Wireable*> getConnectedWireables() { return connected;}
-    unordered_map<string,Wireable*> getChildren() { return selects;}
+    unordered_map<string,Wireable*> getSelects() { return selects;}
+    bool hasSel(string selstr) {return selects.count(selstr) >0;}
     Metadata getMetadata() { return metadata;}
     ModuleDef* getModuleDef() { return moduledef;}
     Context* getContext();
     WireableKind getKind() const { return kind; }
     Type* getType() { return type;}
     void addConnectedWireable(Wireable* w) { connected.insert(w); }
+    void removeConnectedWireable(Wireable* w) {
+      assert(connected.count(w) > 0);
+      connected.erase(w);
+    }
     
     Select* sel(string);
     Select* sel(uint);
@@ -58,7 +63,7 @@ class Instance : public Wireable {
   Args configargs;
   
   bool isgen;
-  Generator* generatorRef;
+  Generator* generatorRef = nullptr;
   Args genargs;
   
   public :
@@ -78,6 +83,7 @@ class Instance : public Wireable {
     Generator* getGeneratorRef() { return generatorRef;}
     Args getGenargs() {return genargs;}
     void runGenerator();
+    void inlineModule();
     void replace(Module* moduleRef, Args configargs=Args());
     void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
 };
