@@ -28,6 +28,14 @@ Context::~Context() {
   delete cache;
 }
 
+void Context::print() {
+  cout << "Context: " << endl;
+  for (auto ns : getNamespaces()) {
+    ns.second->print();
+  }
+  cout << "EndContext" << endl;
+}
+
 void Context::die() {
   printerrors();
   cout << "I AM DYING!" << endl;

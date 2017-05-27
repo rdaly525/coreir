@@ -39,6 +39,23 @@ Context* ModuleDef::getContext() { return module->getContext(); }
 string ModuleDef::getName() {return module->getName();}
 Type* ModuleDef::getType() {return module->getType();}
 
+ModuleDef* ModuleDef::copy() {
+  Module* m = this->getModule();
+  ModuleDef* def = m->newModuleDef();
+  for (auto inst : this->getInstances()) {
+    def->addInstance(inst.second);
+  }
+
+  for (auto con: this->getConnections()) {
+    SelectPath a = con.first->getSelectPath();  
+    SelectPath b = con.second->getSelectPath();
+    def->connect(a,b);
+  }
+  return def;
+}
+
+
+
 //Can pass in either a single instance name
 //Or pass in a '.' deleminated string
 Wireable* ModuleDef::sel(string s) { 
@@ -67,13 +84,19 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
   
   Instance* inst = new Instance(this,instname,gen,genargs,config);
   instances[instname] = inst;
-  
+
+  //Add to instanceMap
+  instanceMap[gen].insert(inst);
+
   return inst;
 }
 
 Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   Instance* inst = new Instance(this,instname,m,config);
   instances[instname] = inst;
+  
+  //Add to instanceMap
+  instanceMap[m].insert(inst);
   
   return inst;
 }
@@ -164,6 +187,9 @@ void disconnectAllWireables(ModuleDef* m, Wireable* w) {
   }
   m->disconnect(w);
 }
+void ModuleDef::removeInstance(Instance* inst) {
+  removeInstance(inst->getInstname());
+}
 
 void ModuleDef::removeInstance(string iname) {
   //First verify that instance exists
@@ -175,6 +201,18 @@ void ModuleDef::removeInstance(string iname) {
 
   //Now remove this instance
   instances.erase(iname);
+  
+  //Remove this from the instanceMap
+  Instantiable* i;
+  if (inst->isGen()) {
+    i = inst->getGeneratorRef();
+  }
+  else {
+    i = inst->getModuleRef();
+  }
+  assert(instanceMap.count(i)>0);
+  assert(instanceMap[i].count(inst)>0);
+  instanceMap[i].erase(inst);
 
 }
 

@@ -16,11 +16,7 @@ class TypeGen {
     TypeGen(Namespace* ns, string name, Params params, bool flipped=false) : ns(ns), name(name), params(params), flipped(flipped) {}
     virtual ~TypeGen() {}
     virtual Type* createType(Context* c, Args args) = 0;
-    Type* getType(Args args) {
-      assert(checkArgs(args,params));
-      Type* t = createType(ns->getContext(),args);
-      return flipped ? t->getFlipped() : t;
-    }
+    Type* getType(Args args);
     Namespace* getNamespace() const {return ns;}
     string getName() const {return name;}
     Params getParams() const {return params;}

@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir-lib/cgralib.h"
+#include "coreir-lib/stdlib.h"
 #include "coreir-pass/passes.h"
 
 
@@ -13,7 +14,8 @@ int main() {
   
   //Put linebuffer in the cgra namespace
   Namespace* g = CoreIRLoadLibrary_cgralib(c);
-  
+  CoreIRLoadLibrary_stdlib(c);
+
   //Declare a TypeGenerator (in global) for linebuffer
   g->newTypeGen(
     "linebuffer_type", //name for the typegen

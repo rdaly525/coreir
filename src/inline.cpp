@@ -1,136 +1,160 @@
-
 #include "wireable.hpp"
 
 using namespace CoreIR;
 
 
-// This helper will connact everything from w to inw. 
-// spDelta is the SelectPath delta to get from w to inw
-void connectAll_inwsel(ModuleDef* def, string inlinePrefix, Wireable* w, SelectPath spDelta, Wireable* inw) {
+// This helper will connact everything from wa to wb with a spDelta. 
+// spDelta is the SelectPath delta to get from wa to wb
+void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireable* wb) {
   //cout << "w:" << w->toString() << endl;
   //cout << "spDelta:" << SelectPath2Str(spDelta) << endl;
   //cout << "inw:" << inw->toString() << endl << endl;
   
-  for (auto wOther : w->getConnectedWireables() ) {
-    for (auto inwOther : inw->getConnectedWireables() ) {
-      SelectPath inwOtherSPath = inwOther->getSelectPath();
-      inwOtherSPath[0] = inlinePrefix + "$" + inwOtherSPath[0];
-      SelectPath wOtherSPath = wOther->getSelectPath();
-      //concatenate the spDelta
-      wOtherSPath.insert(wOtherSPath.end(),spDelta.begin(),spDelta.end());
-      def->connect(wOtherSPath,inwOtherSPath);
+  for (auto waCon : wa->getConnectedWireables() ) {
+    for (auto wbCon : wb->getConnectedWireables() ) { //was inw
+      SelectPath wbConSPath = wbCon->getSelectPath();
+      SelectPath waConSPath = waCon->getSelectPath();
+      //concatenate the spDelta into wa
+      waConSPath.insert(waConSPath.end(),spDelta.begin(),spDelta.end());
+      def->connect(waConSPath,wbConSPath);
       //cout << "Hconnecting: " << SelectPath2Str(wOtherSPath) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;
     }
   }
 
-  //Traverse up the w
-  if (auto ws = dyn_cast<Select>(w)) {
+  //Traverse up the wa keeping wb constant
+  if (auto was = dyn_cast<Select>(wa)) {
     SelectPath tu = spDelta;
-    assert(ws->getParent());
-    tu.insert(tu.begin(),ws->getSelStr());
-    connectAll_inwsel(def,inlinePrefix,ws->getParent(),tu,inw);
+    assert(was->getParent());
+    tu.insert(tu.begin(),was->getSelStr());
+    connectOffsetLevel(def,was->getParent(),tu,wb);
   }
 
-  //Traverse down the inw
-  for (auto inwselmap : inw->getSelects()) {
+  //Traverse down the wb keeping wa constant
+  for (auto wbselmap : wb->getSelects()) {
     SelectPath td = spDelta;
-    td.push_back(inwselmap.first);
-    connectAll_inwsel(def,inlinePrefix,w,td,inwselmap.second);
+    td.push_back(wbselmap.first);
+    connectOffsetLevel(def,wa,td,wbselmap.second);
   }
 }
 
-// This helper will connact everything from inw to w 
-// spDelta is the SelectPath delta to get from inw to w
-void connectAll_wsel(ModuleDef* def, string inlinePrefix, Wireable* w, SelectPath spDelta, Wireable* inw) {
-  //cout << "w:" << w->toString() << endl;
-  //cout << "spDelta:" << SelectPath2Str(spDelta) << endl;
-  //cout << "inw:" << inw->toString() << endl << endl;
-  for (auto wOther : w->getConnectedWireables() ) {
-    for (auto inwOther : inw->getConnectedWireables() ) {
-      SelectPath inwOtherSPath = inwOther->getSelectPath();
-      inwOtherSPath[0] = inlinePrefix + "$" + inwOtherSPath[0];
-      SelectPath wOtherSPath = wOther->getSelectPath();
-      //concatenate the spDelta
-      inwOtherSPath.insert(inwOtherSPath.end(),spDelta.begin(),spDelta.end());
-      def->connect(wOtherSPath,inwOtherSPath);
-      //cout << "Hconnecting: " << SelectPath2Str(wOtherSPath) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;
-    }
-  }
-
-  //Traverse up the inw
-  if (auto inws = dyn_cast<Select>(inw)) {
-    SelectPath tu = spDelta;
-    tu.insert(tu.begin(),inws->getSelStr());
-    connectAll_wsel(def,inlinePrefix,w,tu,inws->getParent());
-  }
-
-  //Traverse down the w
-  for (auto wselmap : w->getSelects()) {
-    SelectPath td = spDelta;
-    td.push_back(wselmap.first);
-    connectAll_wsel(def,inlinePrefix,wselmap.second,td,inw);
-  }
-}
-
-//This helper will connect a single select layer at the inline interface boundary
-void connectBoundary(ModuleDef* def, string inlinePrefix, Wireable* w, Wireable* inw) {
-  auto wSelects = w->getSelects();
-  auto inwSelects = inw->getSelects();
+//This helper will connect a single select layer of the passthrough.
+void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
+  
+  //wa should be the flip type of wb
+  assert(wa->getType()==wb->getType()->getFlipped());
+  
+  auto waSelects = wa->getSelects();
+  auto wbSelects = wb->getSelects();
   
   //Sort into the three sets of the vendiagram
-  unordered_set<string> wOnly;
-  unordered_set<string> inwOnly;
+  unordered_set<string> waOnly;
+  unordered_set<string> wbOnly;
   unordered_set<string> both;
-  for (auto wsel : wSelects) {
-    if (inwSelects.count(wsel.first)>0) {
-      both.insert(wsel.first);
+  for (auto waSelmap : waSelects) {
+    if (wbSelects.count(waSelmap.first)>0) {
+      both.insert(waSelmap.first);
     }
     else {
-      wOnly.insert(wsel.first);
+      waOnly.insert(waSelmap.first);
     }
   }
-  for (auto inwsel : inwSelects) {
-    if (both.count(inwsel.first) == 0) {
-      inwOnly.insert(inwsel.first);
+  for (auto wbSelmap : wbSelects) {
+    if (both.count(wbSelmap.first) == 0) {
+      wbOnly.insert(wbSelmap.first);
     }
   }
-  //auto setprint = [](unordered_set<string> s, string n) {
-  //  cout << n << ": {";
-  //  for (auto str : s) cout << str << ", ";
-  //  cout << "}\n";
-  //};
-  //cout << w->toString() << endl;
-  //setprint(wOnly, "wOnly");
-  //setprint(inwOnly, "inwOnly");
-  //setprint(both, "both");
 
   //Basic set theory assertion
-  assert(wOnly.size() + inwOnly.size() + 2*both.size() == wSelects.size() + inwSelects.size());
+  assert(waOnly.size() + wbOnly.size() + 2*both.size() == waSelects.size() + wbSelects.size());
 
   //Traverse another level for both
   for (auto selstr : both ) {
-    connectBoundary(def, inlinePrefix, wSelects[selstr],inwSelects[selstr]);
+    connectSameLevel(def,waSelects[selstr],wbSelects[selstr]);
   }
   
-  //Connect all the subselects of inwOnly
-  for (auto selstr : inwOnly) {
-    connectAll_inwsel(def,inlinePrefix,w, {selstr}, inwSelects[selstr]);
+  //TODO check bug here first
+  //Connect wb to all the subselects of waOnly
+  for (auto selstr : waOnly) {
+    connectOffsetLevel(def,wb, {selstr}, waSelects[selstr]);
   }
 
-  //Connect all the subselects of wOnly
-  for (auto selstr : wOnly) {
-    connectAll_wsel(def,inlinePrefix,wSelects[selstr], {selstr}, inw);
+  //Connect wa to all the subselects of wbOnly
+  for (auto selstr : wbOnly) {
+    connectOffsetLevel(def,wa, {selstr}, wbSelects[selstr]);
   }
 
   //Now connect all N^2 possible connections for this level
-  for (auto wOther : w->getConnectedWireables() ) {
-    for (auto inwOther : inw->getConnectedWireables() ) {
-      SelectPath inwOtherSPath = inwOther->getSelectPath();
-      inwOtherSPath[0] = inlinePrefix + "$" + inwOtherSPath[0];
-      def->connect(wOther->getSelectPath(),inwOtherSPath);
+  for (auto waCon : wa->getConnectedWireables() ) {
+    for (auto wbCon : wb->getConnectedWireables() ) {
+      def->connect(waCon,wbCon);
       //cout << "connecting: " << SelectPath2Str(wOther->getSelectPath()) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;
     }
   }
+}
+
+//addPassthrough will create a passthrough Module for Wireable w with name <name>
+  //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
+  // There will be one connection connecting w to name.in, and all the connections
+  // that originally connected to w connecting to name.out which has the same type as w
+Instance* addPassthrough(Context* c, Wireable* w,string instname) {
+  
+  //First verify if I can actually place a passthrough here
+  //This means that there can be nothing higher in the select path tha is connected
+  Wireable* wcheck = w;
+  while (Select* wchecksel = dyn_cast<Select>(wcheck)) {
+    Wireable* wcheck = wchecksel->getParent();
+    ASSERT(wcheck->getConnectedWireables().size()==0,"Cannot add a passthrough to a wireable with connected selparents");
+  }
+  
+  ModuleDef* def = w->getModuleDef();
+  Type* wtype = w->getType();
+  
+  //Add actual passthrough instance
+  Instance* pt = def->addInstance(instname,c->getNamespace("stdlib")->getGenerator("passthrough"),{{"type",c->argType(wtype)}});
+  
+  cout << "Adding passthrough to Wireable: " << w->toString() << endl;
+  w->getModuleDef()->print();
+
+  //Connect all the original connections to the passthrough.
+  std::function<void(Wireable*)> swapConnections;
+  swapConnections = [instname,def,&swapConnections](Wireable* curw) ->void {
+    SelectPath curSP = curw->getSelectPath();
+    curSP[0] = instname;
+    curSP.insert(curSP.begin()+1,"out");
+    cout << "{\n" <<"curSP: " << SelectPath2Str(curSP) << endl;
+    for (auto conw : curw->getConnectedWireables()) {
+      SelectPath conSP = conw->getSelectPath();
+      cout << "conSP: " << SelectPath2Str(conSP) << endl;
+      def->connect(curSP,conSP);
+      def->disconnect(curw,conw);
+    }
+    cout << "}\n";
+    for (auto selmap : curw->getSelects()) {
+      swapConnections(selmap.second);
+    }
+  };
+  swapConnections(w);
+  
+  
+  //Connect the passthrough back to w
+  def->connect(w,pt->sel("in"));
+  
+  cout << "Transformed to" << endl;
+  w->getModuleDef()->print();
+
+  return pt;
+}
+
+//This will inline an instance of a passthrough
+void inlinePassthrough(Instance* i) {
+  
+  ModuleDef* def = i->getModuleDef();
+
+  //This will recursively connect all the wires together
+  connectSameLevel(def, i->sel("in"),i->sel("out"));
+
+  //Now delete this instance
+  def->removeInstance(i);
 }
 
 
@@ -139,16 +163,31 @@ void Instance::inlineModule() {
   Instance* inst = this;
   ModuleDef* def = inst->getModuleDef();
   Module* modInline = inst->getModuleRef();
+  
+  //Special case for a passthrough
+  if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
+    inlinePassthrough(this);
+    return;
+  }
+
   if (!modInline->hasDef()) {
     cout << "Cannot inline a module with no definition!: " << modInline->getName() << endl;
     return;
   }
-  ModuleDef* defInline = modInline->getDef();
+  
+  //I will be inlining defInline into def
+  //Making a copy because i want to modify it first without modifying all of the ones
+  ModuleDef* defInline = modInline->getDef()->copy();
+  Context* c = this->getContext();
+
+  //Add a passthrough Module to quarentine 'self'
+  cout << "H1";
+  addPassthrough(c,defInline->getInterface(),"_insidePT");
+  cout << "H2";
+
   string inlinePrefix = inst->getInstname();
 
-  //I will be inlining defInline into def
-
-  //First add all the instances of defInline into def. And add them to a map
+  //First add all the instances of defInline into def with a new name
   for (auto instmap : defInline->getInstances()) {
     string iname = inlinePrefix + "$" + instmap.first;
     def->addInstance(instmap.second,iname);
@@ -167,13 +206,27 @@ void Instance::inlineModule() {
       def->connect(pA,pB);
     }
   }
+  
+  //Create t3e Passthrough to quarentene the instance itself
+  Instance* outsidePT = addPassthrough(c,inst,"_outsidePT");
 
-  //Now connect All the hard ones at the boundary
-  connectBoundary(def, inlinePrefix, inst, defInline->getInterface());
+  //Connect the two passthrough buffers together ('in' ports are facing the boundary)
+  def->connect("_outsidePT.in",inlinePrefix + "$" + "_insidePT.in");
 
-  //Now remove the instance (which should remove all the previous connections)
-  def->removeInstance(inst->getInstname());
+  //Now remove the instance (which will remove all the previous connections)
+  def->removeInstance(inst);
+  
+  //Now inline both of the passthroughs which should remove both inlines
+  cout << "H1";
+  outsidePT->inlineModule();
+  cout << "H2";
+  
+  cast<Instance>(def->sel(inlinePrefix + "$" + "_insidePT"))->inlineModule();
+  cout << "H3";
 
   //typecheck the module
   def->validate();
 }
+
+
+  

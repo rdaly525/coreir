@@ -97,7 +97,7 @@ class ArgType : public Arg {
 //};
 
 
-bool checkArgs(Args args, Params params);
+//bool checkArgs(Args args, Params params);
 
 }//CoreIR namespace
 

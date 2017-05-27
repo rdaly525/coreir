@@ -4,6 +4,7 @@
 #include "namespace.hpp"
 #include "typecache.hpp"
 #include "types.hpp"
+#include "typegen.hpp"
 #include "error.hpp"
 #include "common.hpp"
 #include "casting/casting.hpp"
@@ -60,7 +61,8 @@ class Context {
     void printerrors() { 
       for (auto err : errors) cout << "ERROR: " << err.toString() << endl << endl;
     }
-    
+    void print();
+
     bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(string name);

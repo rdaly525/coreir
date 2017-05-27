@@ -38,7 +38,7 @@ clean:
 	$(MAKE) -C tests clean
 
 .PHONY: travis
-travis: clean install test pytest 
+travis: 
 	$(MAKE) clean
 	$(MAKE) install
 	$(MAKE) test
