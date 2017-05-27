@@ -6,6 +6,7 @@ ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
 endif
 
+jeff: install
 all: clean install test pytest
 
 .PHONY: test
