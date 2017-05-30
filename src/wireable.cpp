@@ -26,6 +26,13 @@ Select* Wireable::sel(string selStr) {
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
+Select* Wireable::sel(SelectPath path) {
+  Wireable* ret = this;
+  for (auto selstr : path) ret = ret->sel(selstr);
+  return cast<Select>(ret);
+}
+
+
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
 SelectPath Wireable::getSelectPath() {
   Wireable* top = this;

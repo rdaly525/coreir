@@ -12,10 +12,11 @@ void flatten(Context* c, Module* m, bool* err) {
   bool inlined = true;
   while (inlined) {
     inlined = false;
+    //TODO Not sure why this is not segfaulting
     for (auto instmap : def->getInstances()) {
       //Only inline things that have defs
       if (instmap.second->getModuleRef()->hasDef()) {
-        instmap.second->inlineModule();
+        inlineInstance(instmap.second);
         inlined = true;
       }
     }

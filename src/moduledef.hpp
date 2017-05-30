@@ -31,10 +31,12 @@ class ModuleDef {
     Metadata implementations; // TODO maybe have this just be inhereted moduledef classes
     SelCache* getCache() { return cache;}
     
-    //Map from Instantiables to a list of instances
+  public:
     typedef unordered_map<Instantiable*,unordered_set<Instance*>> InstanceMapType;
+  protected:
+    //Map from Instantiables to a list of instances
     InstanceMapType instanceMap;
-
+  
   public :
     ModuleDef(Module* m);
     ~ModuleDef();

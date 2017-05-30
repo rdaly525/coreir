@@ -116,6 +116,14 @@ void saveModule(Module* c, string filename, bool* err);
 Context* newContext();
 void deleteContext(Context* m);
 
+//addPassthrough will create a passthrough Module for Wireable w with name <name>
+  //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
+  // There will be one connection connecting w to name.in, and all the connections
+  // that originally connected to w connecting to name.out which has the same type as w
+Instance* addPassthrough(Context* c, Wireable* w,string instname);
+
+
+
 } //CoreIR namespace
 
 #endif //CONTEXT_HPP_

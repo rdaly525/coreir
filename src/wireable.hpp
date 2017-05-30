@@ -40,6 +40,7 @@ class Wireable {
     
     Select* sel(string);
     Select* sel(uint);
+    Select* sel(SelectPath);
   
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,a,b,0}
@@ -84,7 +85,6 @@ class Instance : public Wireable {
     Args getGenargs() {return genargs;}
     
     void runGenerator();
-    void inlineModule();
     void replace(Module* moduleRef, Args configargs=Args());
     void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
 };

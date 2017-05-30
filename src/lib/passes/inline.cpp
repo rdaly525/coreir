@@ -1,7 +1,7 @@
-#include "wireable.hpp"
+#include "coreir-pass/passes.h"
 
-using namespace CoreIR;
 
+namespace CoreIR {
 
 // This helper will connact everything from wa to wb with a spDelta. 
 // spDelta is the SelectPath delta to get from wa to wb
@@ -112,23 +112,17 @@ Instance* addPassthrough(Context* c, Wireable* w,string instname) {
   //Add actual passthrough instance
   Instance* pt = def->addInstance(instname,c->getNamespace("stdlib")->getGenerator("passthrough"),{{"type",c->argType(wtype)}});
   
-  cout << "Adding passthrough to Wireable: " << w->toString() << endl;
-  w->getModuleDef()->print();
-
   //Connect all the original connections to the passthrough.
   std::function<void(Wireable*)> swapConnections;
   swapConnections = [instname,def,&swapConnections](Wireable* curw) ->void {
     SelectPath curSP = curw->getSelectPath();
     curSP[0] = instname;
     curSP.insert(curSP.begin()+1,"out");
-    cout << "{\n" <<"curSP: " << SelectPath2Str(curSP) << endl;
     for (auto conw : curw->getConnectedWireables()) {
       SelectPath conSP = conw->getSelectPath();
-      cout << "conSP: " << SelectPath2Str(conSP) << endl;
       def->connect(curSP,conSP);
       def->disconnect(curw,conw);
     }
-    cout << "}\n";
     for (auto selmap : curw->getSelects()) {
       swapConnections(selmap.second);
     }
@@ -139,7 +133,6 @@ Instance* addPassthrough(Context* c, Wireable* w,string instname) {
   //Connect the passthrough back to w
   def->connect(w,pt->sel("in"));
   
-  cout << "Transformed to" << endl;
   w->getModuleDef()->print();
 
   return pt;
@@ -159,14 +152,13 @@ void inlinePassthrough(Instance* i) {
 
 
 //This will modify the moduledef to inline the instance
-void Instance::inlineModule() {
-  Instance* inst = this;
+void inlineInstance(Instance* inst) {
   ModuleDef* def = inst->getModuleDef();
   Module* modInline = inst->getModuleRef();
   
   //Special case for a passthrough
   if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
-    inlinePassthrough(this);
+    inlinePassthrough(inst);
     return;
   }
 
@@ -178,7 +170,7 @@ void Instance::inlineModule() {
   //I will be inlining defInline into def
   //Making a copy because i want to modify it first without modifying all of the ones
   ModuleDef* defInline = modInline->getDef()->copy();
-  Context* c = this->getContext();
+  Context* c = modInline->getContext();
 
   //Add a passthrough Module to quarentine 'self'
   cout << "H1";
@@ -218,15 +210,15 @@ void Instance::inlineModule() {
   
   //Now inline both of the passthroughs which should remove both inlines
   cout << "H1";
-  outsidePT->inlineModule();
+  inlineInstance(outsidePT);
   cout << "H2";
   
-  cast<Instance>(def->sel(inlinePrefix + "$" + "_insidePT"))->inlineModule();
+  inlineInstance(cast<Instance>(def->sel(inlinePrefix + "$" + "_insidePT")));
   cout << "H3";
 
   //typecheck the module
   def->validate();
 }
 
-
+}
   

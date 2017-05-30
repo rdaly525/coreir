@@ -62,7 +62,7 @@ int main() {
     }
     def->connect(inst->sel("out"),def->getInterface()->sel("out"));
     inst->runGenerator();
-    inst->inlineModule();
+    inlineInstance(inst);
   add->setDef(def);
   add->print();
   deleteContext(c);
