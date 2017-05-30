@@ -306,7 +306,7 @@ bool endsWith(const string &str, const string &suffix) {
   return ((str.size() >= suffix.size()) &&
             (str.compare(str.size()-suffix.size(), suffix.size(), suffix) == 0));
 }
-
+  /*
 string instStr(Wireable* wire) {
   Select* child;
   Wireable* parent = wire;
@@ -317,6 +317,14 @@ string instStr(Wireable* wire) {
   }
 
   return parent->toString() == "self" ? child->toString() : parent->toString();
+}
+  */
+string instStr(SelectPath wire) {
+  if (wire[0] == "self") {
+    return wire[0] + "." + wire[1];
+  } else {
+    return wire[0];
+  }
 }
 
 bool isSource(Wireable* wire) {
@@ -344,23 +352,33 @@ void ModuleToDot(Module* m, std::ofstream& stream, bool* err) {
   stream << "digraph Diagram {" << endl
          << "node [shape=box];" << endl;
 
-  ModuleDef* mDef = m->getDef();
-  if (!mDef->getInstances().empty()) {
-    for (auto instpair : mDef->getInstances()) {
+  DirectedModule* dMod = m->newDirectedModule();
+  if (!dMod->getInstances().empty()) {
+    for (auto inst : dMod->getInstances()) {
       stream << "\"" 
-             << instpair.first
+             << (*inst)->getInstname()
              << "\"; ";
     }
     stream << endl;
     
-    if (!mDef->getConnections().empty()) {
-      for (auto conpair : mDef->getConnections()) {
-        bool firstIsSource = isSource(conpair.first);
-        string source = firstIsSource ? instStr(conpair.first) : instStr(conpair.second);
-        string sink = firstIsSource ? instStr(conpair.second) : instStr(conpair.first);
-        stream << "\"" << source << "\""
-               << "->" 
-               << "\"" << sink << "\"; ";
+    if (!dMod->getConnections().empty()) {
+      for (auto con : dMod->getConnections()) {
+//        bool firstIsSource = isSource(conpair.first);
+//        string source = firstIsSource ? instStr(conpair.first) : instStr(conpair.second);
+//        string sink = firstIsSource ? instStr(conpair.second) : instStr(conpair.first);
+        //string source = con->getSrc()
+        string src = instStr(con->getSrc());
+        string sink = instStr(con->getSnk());
+        //assert(src.size() == 1);
+        //assert(sink.size() == 1);
+
+        stream << "\""
+               << src
+               << "\"";
+        stream << "->" ;
+        stream << "\""
+               << sink
+               << "\"; ";
       }
       stream << endl;
     }
