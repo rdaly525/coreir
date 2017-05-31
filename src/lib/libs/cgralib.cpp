@@ -111,13 +111,13 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
 
     // create the inital register chain
     std::string reg_prefix = "reg_";
-    for (uint j = 0; j < stencil_width; ++j) {
+    for (uint j = 1; j < stencil_width; ++j) {
 
       std::string reg_name = reg_prefix + "0_" + std::to_string(j);
       def->addInstance(reg_name, Reg, {{"width",aBitwidth}});
       
       // connect the input
-      if (j == 0) {
+      if (j == 1) {
 	def->connect({"self","in"}, {reg_name, "in"});
       } else {
 	std::string prev_reg = reg_prefix + "0_" + std::to_string(j-1);
@@ -142,12 +142,12 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
 
     // connect together the remaining stencil registers
     for (uint i = 1; i < stencil_height; ++i) {
-      for (uint j = 0; j < stencil_width; ++j) {
+      for (uint j = 1; j < stencil_width; ++j) {
 	std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
 	def->addInstance(reg_name, Reg, {{"width",aBitwidth}});
 	
 	// connect the input
-	if (j == 0) {
+	if (j == 1) {
 	  std::string mem_name = mem_prefix + std::to_string(i);
 	  def->connect({mem_name, "rdata"}, {reg_name, "in"});
 	} else {
@@ -160,8 +160,19 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     // connect the stencil outputs
     for (uint i = 0; i < stencil_height; ++i) {
       for (uint j = 0; j < stencil_width; ++j) {
-	std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
-	def->connect({reg_name, "out"}, {"self","out",std::to_string(i),std::to_string(j)});
+        if (j == 0) {
+          // the first column comes from input/mem
+          if (i == 0) {
+            //def->connect({"self","in"}, {"self","out",std::to_string(i),std::to_string(j)});
+          } else {
+            std::string mem_name = mem_prefix + std::to_string(i);
+            def->connect({mem_name, "rdata"}, {"self","out",std::to_string(i),std::to_string(j)});
+          }
+        } else {
+          // rest come from registers
+          std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
+          def->connect({reg_name, "out"}, {"self","out",std::to_string(i),std::to_string(j)});
+        }
       }
     }    
 
