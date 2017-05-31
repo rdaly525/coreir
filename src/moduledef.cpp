@@ -10,6 +10,7 @@ namespace CoreIR {
 
 
 ModuleDef::ModuleDef(Module* module) : module(module) {
+  module->getType()->print();
   interface = new Interface(this,module->getContext()->Flip(module->getType()));
   cache = new SelCache();
 }

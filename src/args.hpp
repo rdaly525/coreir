@@ -43,7 +43,7 @@ class Arg {
 };
 
 class ArgBool : public Arg {
-  int b;
+  bool b;
   public :
     typedef bool type;
     ArgBool(bool b) : Arg(ABOOL), b(b) {}

@@ -168,7 +168,7 @@ void inlineInstance(Instance* inst) {
   }
   
   //I will be inlining defInline into def
-  //Making a copy because i want to modify it first without modifying all of the ones
+  //Making a copy because i want to modify it first without modifying all of the other instnaces of modInline
   ModuleDef* defInline = modInline->getDef()->copy();
   Context* c = modInline->getContext();
 
@@ -177,11 +177,11 @@ void inlineInstance(Instance* inst) {
   addPassthrough(c,defInline->getInterface(),"_insidePT");
   cout << "H2";
 
-  string inlinePrefix = inst->getInstname();
+  string inlinePrefix = inst->getInstname() + "$";
 
   //First add all the instances of defInline into def with a new name
   for (auto instmap : defInline->getInstances()) {
-    string iname = inlinePrefix + "$" + instmap.first;
+    string iname = inlinePrefix + instmap.first;
     def->addInstance(instmap.second,iname);
   }
   
@@ -193,8 +193,8 @@ void inlineInstance(Instance* inst) {
     //Easy case: when neither are connect to self
     if (pA[0] != "self" && pB[0] != "self") {
       //Create the correct names and connect
-      pA[0] = inlinePrefix + "$" + pA[0];
-      pB[0] = inlinePrefix + "$" + pB[0];
+      pA[0] = inlinePrefix + pA[0];
+      pB[0] = inlinePrefix + pB[0];
       def->connect(pA,pB);
     }
   }
@@ -203,17 +203,17 @@ void inlineInstance(Instance* inst) {
   Instance* outsidePT = addPassthrough(c,inst,"_outsidePT");
 
   //Connect the two passthrough buffers together ('in' ports are facing the boundary)
-  def->connect("_outsidePT.in",inlinePrefix + "$" + "_insidePT.in");
+  def->connect("_outsidePT.in",inlinePrefix + "_insidePT.in");
 
   //Now remove the instance (which will remove all the previous connections)
   def->removeInstance(inst);
   
-  //Now inline both of the passthroughs which should remove both inlines
+  //Now inline both of the passthroughs
   cout << "H1";
   inlineInstance(outsidePT);
   cout << "H2";
   
-  inlineInstance(cast<Instance>(def->sel(inlinePrefix + "$" + "_insidePT")));
+  inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
   cout << "H3";
 
   //typecheck the module

@@ -148,10 +148,19 @@ Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
   //Make sure module does not already exist as a module or generator
   assert(moduleList.count(name)==0);
   assert(generatorList.count(name)==0);
-
   Module* m = new Module(this,name,t, configparams);
   moduleList[name] = m;
   return m;
+}
+
+void Namespace::addModule(Module* m) {
+  ASSERT(m->getLinkageKind()==Instantiable::LK_Generated,"Cannot add Namespace module to another namespace!");
+  string name = m->getName();
+  assert(moduleList.count(name)==0);
+  assert(generatorList.count(name)==0);
+  m->setNamespace(this);
+  m->setLinkageKind(Instantiable::LK_Namespace);
+  moduleList[name] = m;
 }
 
 Generator* Namespace::getGenerator(string gname) {

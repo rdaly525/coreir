@@ -25,27 +25,31 @@ namespace CoreIR {
 class Instantiable {
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
+    enum LinkageKind {LK_Namespace, LK_Generated};
   protected:
     InstantiableKind kind;
     Namespace* ns;
     string name;
     Metadata metadata;
     Params configparams;
+    LinkageKind linkageKind;
   public :
-    Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : kind(kind), ns(ns), name(name), configparams(configparams) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
     virtual ~Instantiable() {}
     
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
     bool isKind(InstantiableKind k) const { return kind==k;}
     InstantiableKind getKind() const { return kind;}
-    
+    void setLinkageKind(LinkageKind k) { linkageKind = k;}
+    LinkageKind getLinkageKind() { return linkageKind; }
     Context* getContext();
     Params getConfigParams() { return configparams;}
     Metadata getMetadata() { return metadata;}
     string getName() const { return name;}
     virtual json toJson()=0;
     Namespace* getNamespace() const { return ns;}
+    void setNamespace(Namespace* ns) {this->ns = ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
 };
 
@@ -73,6 +77,7 @@ class Generator : public Instantiable {
     //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Args args);
     
+
     //This will actually run the generator
     void setModuleDef(Module* m, Args args);
     
@@ -102,6 +107,10 @@ class Module : public Instantiable {
     void setDef(ModuleDef* def, bool validate=true);
    
     ModuleDef* newModuleDef();
+    
+    //Will return a clone of this module
+    Module* copy(string name);
+    
     DirectedModule* newDirectedModule();
     
     string toString() const;

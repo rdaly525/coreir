@@ -196,6 +196,11 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     return arr;
 }
 
+Arg* Context::argBool(bool b) { 
+  Arg* ga = new ArgBool(b); 
+  argList.push_back(ga);
+  return ga;
+}
 Arg* Context::argInt(int i) { 
   Arg* ga = new ArgInt(i); 
   argList.push_back(ga);

@@ -5,9 +5,10 @@
 
 namespace CoreIR {
 
-//int Arg::arg2Int() { return ((ArgInt*) this)->i; }
-//string Arg::arg2String() { return ((ArgString*) this)->str; }
-//Type* Arg::arg2Type() { return ((ArgType*) this)->t; }
+bool ArgBool::operator==(const Arg& r) const {
+  if (!Arg::operator==(r)) return false;
+  return this->b == static_cast<const ArgBool&>(r).b;
+}
 
 bool ArgInt::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;
@@ -62,6 +63,11 @@ size_t std::hash<Args>::operator() (const Args& args) const {
       case ASTRING : {
         string arg_s = arg->get<ArgString>();
         hash_combine(hash,arg_s);
+        break;
+      }
+      case ABOOL : {
+        bool arg_b = arg->get<ArgBool>();
+        hash_combine(hash,arg_b);
         break;
       }
       case AINT : {

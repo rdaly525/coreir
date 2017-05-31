@@ -76,7 +76,7 @@ class Instance : public Wireable {
     Module* getModuleRef() {return moduleRef;}
     string getInstname() { return instname; }
     Arg* getConfigArg(string s);
-    Args getConfigArgs() {return configargs;}
+    Args getConfigArgs() const {return configargs;}
     bool hasConfigArgs() {return !configargs.empty();}
     
     //Convinience functions

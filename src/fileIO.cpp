@@ -322,6 +322,8 @@ void saveModule(Module* m, string filename, bool* err) {
   
   //Only do the global for now
   j["namespaces"][m->getNamespace()->getName()] = m->getNamespace()->toJson();
+  //j["namespaces"]["cgralib"] = c->getNamespace("cgralib")->toJson();
+  
   file << std::setw(2) << j;
   return;
 }
@@ -502,6 +504,7 @@ json Args2Json(Args args) {
 
 json ArgString::toJson() { return str; }
 json ArgInt::toJson() { return i; }
+json ArgBool::toJson() { return b; }
 json ArgType::toJson() { return t->toJson(); }
 
 }//CoreIR namespace

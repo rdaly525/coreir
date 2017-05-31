@@ -4,6 +4,7 @@ namespace CoreIR {
 
 bool matchAndReplace(Module* container, Module* pattern, Module* replacement, Args configargs) {
   std::function<Args(const Instance*)> get = [&configargs](const Instance* matched) {
+    cout << "HERE!!" << Args2Str(configargs) << endl;
     return configargs;
   };
   return matchAndReplace(container,pattern,replacement,get);
@@ -50,6 +51,8 @@ bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std
     if (!(cinst->getGenargs() == pgenargs)) {
       continue;
     }
+    cout << "Found match: " << cinst->toString();
+    
     //TODO Assuming that the connections are correct
     matches.push_back(cinst);
     Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement,getConfigargs(cinst));

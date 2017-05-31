@@ -36,8 +36,12 @@ Generator::~Generator() {
   if (def) {
     delete def;
   }
-  //Delete all the Generated Modules
-  for (auto m : genCache) delete m.second;
+  //Delete all the Generated Modules only if they are Generated and not Namespace
+  for (auto m : genCache) {
+    if (m.second->getLinkageKind()==Instantiable::LK_Generated) { 
+      delete m.second;
+    }
+  }
 }
 
 
@@ -51,6 +55,7 @@ Module* Generator::getModule(Args args) {
   checkArgsAreParams(args,genparams);
   Type* type = typegen->getType(args);
   Module* m = new Module(ns,name + getContext()->getUnique(),type,configparams);
+  m->setLinkageKind(Instantiable::LK_Generated);
   genCache[args] = m;
   return m;
 }

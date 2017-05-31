@@ -31,6 +31,7 @@ class Namespace {
   unordered_map<string,Module*> moduleList;
   unordered_map<string,Generator*> generatorList;
   
+  
   //Lists the named type without args
   unordered_map<string,NamedType*> namedTypeList;
   
@@ -63,6 +64,7 @@ class Namespace {
 
     Generator* newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams=Params());
     Module* newModuleDecl(string name, Type* t,Params configparams=Params());
+    void addModule(Module* m);
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);
