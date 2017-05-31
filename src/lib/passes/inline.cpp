@@ -173,9 +173,7 @@ void inlineInstance(Instance* inst) {
   Context* c = modInline->getContext();
 
   //Add a passthrough Module to quarentine 'self'
-  cout << "H1";
   addPassthrough(c,defInline->getInterface(),"_insidePT");
-  cout << "H2";
 
   string inlinePrefix = inst->getInstname() + "$";
 
@@ -209,12 +207,9 @@ void inlineInstance(Instance* inst) {
   def->removeInstance(inst);
   
   //Now inline both of the passthroughs
-  cout << "H1";
   inlineInstance(outsidePT);
-  cout << "H2";
   
   inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
-  cout << "H3";
 
   //typecheck the module
   def->validate();

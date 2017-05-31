@@ -4,7 +4,6 @@ namespace CoreIR {
 
 bool matchAndReplace(Module* container, Module* pattern, Module* replacement, Args configargs) {
   std::function<Args(const Instance*)> get = [&configargs](const Instance* matched) {
-    cout << "HERE!!" << Args2Str(configargs) << endl;
     return configargs;
   };
   return matchAndReplace(container,pattern,replacement,get);
@@ -51,7 +50,6 @@ bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std
     if (!(cinst->getGenargs() == pgenargs)) {
       continue;
     }
-    cout << "Found match: " << cinst->toString();
     
     //TODO Assuming that the connections are correct
     matches.push_back(cinst);
@@ -59,8 +57,6 @@ bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std
     string cbufName = "_cbuf"+c->getUnique();
     passthroughToInline.push_back(cbufName);
     addPassthrough(c,cinst,cbufName);
-    cout << "AFter adding passthrough" << endl;
-    container->print();
     //TODO These connections could be preprocessed
     for (auto con : pdef->getConnections()) {
       
@@ -87,23 +83,17 @@ bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std
       cdef->connect(rpath,cpath);
     }
   }
-  cout << "After adding all the connections" << endl;
-  container->print();
 
   bool found = matches.size() > 0;
   //Now delete all the matched instances
   for (auto inst : matches) {
     cdef->removeInstance(inst);
   }
-  cout << "After removing matched instances" << endl;
-  container->print();
  
   //Now inline all the passthrough Modules
   for (auto selstr : passthroughToInline) {
     inlineInstance(cast<Instance>(cdef->sel(selstr)));
   }
-  cout << "After flattening passthroughs instances" << endl;
-  container->print();
   
   cdef->validate();
   return found;
