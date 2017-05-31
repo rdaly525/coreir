@@ -164,6 +164,10 @@ def test_module_def_connections():
         seen.append(pair)
     assert len(seen) == len(expected_conns)
 
+if __name__ == "__main__":
+    test_save_module()
+
+
 # def test():
 #     c = coreir.Context()
 #     # any = c.Any()

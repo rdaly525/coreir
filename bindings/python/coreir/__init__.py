@@ -8,7 +8,7 @@ from coreir.module import COREModule, COREModule_p, COREModuleDef, COREModuleDef
         COREDirectedInstance_p, COREDirectedConnection_p, COREDirectedModule_p
 from coreir.namespace import CORENamespace, CORENamespace_p
 from coreir.type import COREType, COREType_p, CoreIRType, Params, Args, COREArg, COREArg_p, Type
-from coreir.wireable import COREInstance_p, COREWireable_p, CORESelect_p, COREInterface_p
+from coreir.wireable import COREWireable_p
 from collections import namedtuple
 
 class COREConnection(ct.Structure):
@@ -62,34 +62,37 @@ libcoreir_c.COREModuleGetDef.argtypes = [COREModule_p]
 libcoreir_c.COREModuleGetDef.restype = COREModuleDef_p
 
 libcoreir_c.COREModuleDefAddModuleInstance.argtypes = [COREModuleDef_p, ct.c_char_p, COREModule_p, ct.c_void_p]
-libcoreir_c.COREModuleDefAddModuleInstance.restype = COREInstance_p
+libcoreir_c.COREModuleDefAddModuleInstance.restype = COREWireable_p
 
 libcoreir_c.COREModuleDefGetInterface.argtypes = [COREModuleDef_p]
-libcoreir_c.COREModuleDefGetInterface.restype = COREInterface_p
+libcoreir_c.COREModuleDefGetInterface.restype = COREWireable_p
 
-libcoreir_c.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
-libcoreir_c.COREModuleDefGetInstances.restype = ct.POINTER(COREInstance_p)
+libcoreir_c.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_uint)]
+libcoreir_c.COREModuleDefGetInstances.restype = ct.POINTER(COREWireable_p)
 
 libcoreir_c.COREModuleGetDirectedModule.argtypes = [COREModule_p]
 libcoreir_c.COREModuleGetDirectedModule.restype = COREDirectedModule_p
 
-libcoreir_c.COREGetInstRefName.argtypes = [COREInstance_p]
+libcoreir_c.COREGetInstRefName.argtypes = [COREWireable_p]
 libcoreir_c.COREGetInstRefName.restype = ct.c_char_p
 
-libcoreir_c.COREGetConfigValue.argtypes = [COREInstance_p,ct.c_char_p]
+libcoreir_c.COREGetConfigValue.argtypes = [COREWireable_p,ct.c_char_p]
 libcoreir_c.COREGetConfigValue.restype = COREArg_p;
 
-libcoreir_c.COREArg2Str.argtypes = [COREArg_p]
-libcoreir_c.COREArg2Str.restype = ct.c_char_p
+libcoreir_c.COREGetArgKind.argtypes = [COREArg_p]
+libcoreir_c.COREGetArgKind.restype = ct.c_int
 
-libcoreir_c.COREArg2Int.argtypes = [COREArg_p]
-libcoreir_c.COREArg2Int.restype = ct.c_int
+libcoreir_c.COREArgStringGet.argtypes = [COREArg_p]
+libcoreir_c.COREArgStringGet.restype = ct.c_char_p
 
-libcoreir_c.COREInt2Arg.argtypes = [COREContext_p,ct.c_int]
-libcoreir_c.COREInt2Arg.restype = COREArg_p
+libcoreir_c.COREArgIntGet.argtypes = [COREArg_p]
+libcoreir_c.COREArgIntGet.restype = ct.c_int
 
-libcoreir_c.COREStr2Arg.argtypes = [COREContext_p,ct.c_char_p]
-libcoreir_c.COREStr2Arg.restype = COREArg_p
+libcoreir_c.COREArgInt.argtypes = [COREContext_p,ct.c_int]
+libcoreir_c.COREArgInt.restype = COREArg_p
+
+libcoreir_c.COREArgString.argtypes = [COREContext_p,ct.c_char_p]
+libcoreir_c.COREArgString.restype = COREArg_p
 
 libcoreir_c.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
 libcoreir_c.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection_p)
@@ -102,12 +105,6 @@ libcoreir_c.COREConnectionGetSecond.restype = COREWireable_p
 
 libcoreir_c.COREModuleDefConnect.argtypes = [COREModuleDef_p, COREWireable_p, COREWireable_p]
 
-libcoreir_c.COREInterfaceSelect.argtypes = [COREInterface_p, ct.c_char_p]
-libcoreir_c.COREInterfaceSelect.restype = CORESelect_p
-
-libcoreir_c.COREInstanceSelect.argtypes = [COREInstance_p, ct.c_char_p]
-libcoreir_c.COREInstanceSelect.restype = CORESelect_p
-
 libcoreir_c.COREPrintModuleDef.argtypes = [COREModuleDef_p]
 
 libcoreir_c.COREWireableGetConnectedWireables.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
@@ -117,13 +114,13 @@ libcoreir_c.COREWireableGetModuleDef.argtypes = [COREWireable_p]
 libcoreir_c.COREWireableGetModuleDef.restype = COREModuleDef_p
 
 libcoreir_c.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
-libcoreir_c.COREWireableSelect.restype = CORESelect_p
+libcoreir_c.COREWireableSelect.restype = COREWireable_p
 
 libcoreir_c.COREWireableGetSelectPath.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
 libcoreir_c.COREWireableGetSelectPath.restype = ct.POINTER(ct.c_char_p)
 
 libcoreir_c.COREModuleDefSelect.argtypes = [COREModuleDef_p, ct.c_char_p]
-libcoreir_c.COREModuleDefSelect.restype = CORESelect_p
+libcoreir_c.COREModuleDefSelect.restype = COREWireable_p
 
 libcoreir_c.COREModuleDefGetModule.argtypes = [COREModuleDef_p]
 libcoreir_c.COREModuleDefGetModule.restype = COREModule_p
@@ -131,13 +128,13 @@ libcoreir_c.COREModuleDefGetModule.restype = COREModule_p
 libcoreir_c.CORENamespaceGetName.argtypes = [CORENamespace_p]
 libcoreir_c.CORENamespaceGetName.restype = ct.c_char_p
 
-# libcoreir_c.CORESelectGetParent.argtypes = [CORESelect_p]
+# libcoreir_c.CORESelectGetParent.argtypes = [COREWireable_p]
 # libcoreir_c.CORESelectGetParent.restype = COREWireable_p
 
 libcoreir_c.COREDirectedModuleSel.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_char_p), ct.c_int]
 libcoreir_c.COREDirectedModuleSel.restype = COREWireable_p
 
-libcoreir_c.COREDirectedModuleGetInstances.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
+libcoreir_c.COREDirectedModuleGetInstances.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_uint)]
 libcoreir_c.COREDirectedModuleGetInstances.restype = ct.POINTER(COREDirectedInstance_p)
 
 libcoreir_c.COREDirectedModuleGetInputs.argtypes = [COREDirectedModule_p, ct.POINTER(ct.c_int)]
