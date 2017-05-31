@@ -34,12 +34,6 @@ class Wireable(CoreIRType):
         return self.module_def.module
 
 
-class CORESelect(COREWireable):
-    pass
-
-CORESelect_p = ct.POINTER(CORESelect)
-
-
 class Select(Wireable):
     pass
     # @property
@@ -47,44 +41,25 @@ class Select(Wireable):
     #     return Wireable(libcoreir_c.CORESelectGetParent(self.ptr))
 
 
-class COREInstance(COREWireable):
-    pass
-
-COREInstance_p = ct.POINTER(COREInstance)
-
-
 class Instance(Wireable):
-    def select(self, field):
-        return Select(libcoreir_c.COREInstanceSelect(self.ptr, str.encode(field)),self.context)
-    
     def module_name(self):
         name = libcoreir_c.COREGetInstRefName(self.ptr)
         return name.decode()
 
     def get_config_value(self,key):
         arg = libcoreir_c.COREGetConfigValue(self.ptr,str.encode(key))
-        #TODO this shoud be done better
-        err = ct.c_bool(False)
-        v = libcoreir_c.COREArg2Str(arg,ct.byref(err))
-        if err.value==False:
-          return v.decode()
-
-        err = ct.c_bool(False)
-        v = libcoreir_c.COREArg2Int(arg,ct.byref(err))
-        if err.value==False:
-          return v
+        type = libcoreir_c.COREGetArgKind(arg)
+        # type enum values defined in include/coreir-c/coreir-args.h
+        if type == 0:
+            return libcoreir_c.COREArgIntGet(arg)
+        elif type == 1:
+            return libcoreir_c.COREArgStringGet(arg).decode()
         
         raise NotImplementedError
 
-class COREInterface(COREWireable):
-    pass
-
-COREInterface_p = ct.POINTER(COREInterface)
-
 
 class Interface(Wireable):
-    def select(self, field):
-        return Select(libcoreir_c.COREInterfaceSelect(self.ptr, str.encode(field)),self.context)
+    pass
 
 
 class Connection(CoreIRType):

@@ -67,9 +67,9 @@ class Context:
         args = []
         for v in fields.values():
           if type(v) is int:
-            args.append(libcoreir_c.COREInt2Arg(self.context,ct.c_int(v)))
+            args.append(libcoreir_c.COREArgInt(self.context,ct.c_int(v)))
           elif type(v) is str:
-            args.append(libcoreir_c.COREStr2Arg(self.context,ct.c_char_p(str.encode(v))))
+            args.append(libcoreir_c.COREArgString(self.context,ct.c_char_p(str.encode(v))))
           else:
             assert(False,"NYI!")
 

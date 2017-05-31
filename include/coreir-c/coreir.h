@@ -1,49 +1,36 @@
 #ifndef COREIR_C_H_
 #define COREIR_C_H_
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "ctypes.h"
 
-#include "../coreir-c/ctypes.h" 
+typedef unsigned int uint;
+typedef int COREBool;
+
+// API for types
+#include "coreir-types.h"
+
+//API for Args
+#include "coreir-args.h"
 
 //keys and values will not be freed
-void* CORENewMap(COREContext* c, void* keys, void* values, u32 len, COREMapKind kind);
+void* CORENewMap(COREContext* c, void* keys, void* values, uint len, COREMapKind kind);
 
 //Context COREreater/deleters
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
 
-//Type COREonstructors
-extern COREType* COREAny(COREContext* CORE);
-extern COREType* COREBitIn(COREContext* CORE);
-extern COREType* COREBit(COREContext* CORE);
-extern COREType* COREArray(COREContext* CORE, u32 len, COREType* elemType);
-extern COREType* CORERecord(COREContext* c, void* recordparams);
 
-//Create specific Arg
-extern const char* COREArg2Str(COREArg* a, bool* err);
-extern int COREArg2Int(COREArg* a, bool* err);
-extern COREArg* COREInt2Arg(COREContext* c,int i);
-extern COREArg* COREStr2Arg(COREContext* c,char* str);
-
-extern void COREPrintType(COREType* t);
+extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
 
 //Errors:
-extern COREModule* CORELoadModule(COREContext* c, char* filename, bool* err);
-
-//Errors:
-//  Cannot open file for writing
-extern void CORESaveModule(COREModule* module, char* filename, bool* err);
-
+//Cannot open file for reading/writing
+extern void CORESaveModule(COREModule* module, char* filename, COREBool* err);
 extern CORENamespace* COREGetGlobal(COREContext* c);
-
-
-extern const char* COREGetInstRefName(COREInstance* iref);
+extern const char* COREGetInstRefName(COREWireable* iref);
 
 //Errors:
 //  Invalid arg: Module name already exists
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams);
-
 
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
@@ -53,26 +40,24 @@ extern COREDirectedModule* COREModuleGetDirectedModule(COREModule* module);
 
 //Errors:
 //  Invalid arg: instance name already exists
-extern COREInstance* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config); //config will be Args*
-extern COREInterface* COREModuleDefGetInterface(COREModuleDef* m);
-extern COREArg* COREGetConfigValue(COREInstance* i, char* s); 
+extern COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config); //config will be Args*
+extern COREWireable* COREModuleDefGetInterface(COREModuleDef* m);
+extern COREArg* COREGetConfigValue(COREWireable* i, char* s); 
 
 //Errors:
 //  Wire Error;
 //  Typechecking errors
 extern void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
-extern CORESelect* COREInstanceSelect(COREInstance* instance, char* field);
-extern CORESelect* COREInterfaceSelect(COREInterface* interface, char* field);
-extern COREInstance** COREModuleDefGetInstances(COREModuleDef* m, u32* numInstances);
+extern COREWireable* COREWireableSelect(COREWireable* w, char* sel);
+extern COREWireable** COREModuleDefGetInstances(COREModuleDef* m, uint* numInstances);
 extern COREConnection** COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
 extern COREWireable* COREConnectionGetFirst(COREConnection* c);
 extern COREWireable* COREConnectionGetSecond(COREConnection* c);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
-extern CORESelect* COREWireableSelect(COREWireable* w, char* name);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
 extern COREModuleDef* COREWireableGetModuleDef(COREWireable* w);
 extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
-extern const char** COREWireableGetAncestors(COREWireable* w, int* num_ancestors);
+extern const char** COREWireableGetSelectPath(COREWireable* w, int* num_selects);
 extern void COREPrintErrors(COREContext* c);
 extern const char* CORENamespaceGetName(CORENamespace* n);
 

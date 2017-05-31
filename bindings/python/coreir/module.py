@@ -35,7 +35,7 @@ class ModuleDef(CoreIRType):
 
     @property
     def instances(self):
-        size = ct.c_int()
+        size = ct.c_uint()
         result = libcoreir_c.COREModuleDefGetInstances(self.ptr, ct.byref(size))
         return [Instance(result[i],self.context) for i in range(size.value)]
 
@@ -153,6 +153,6 @@ class DirectedModule(CoreIRType):
 
     @property
     def instances(self):
-        num_instances = ct.c_int()
+        num_instances = ct.c_uint()
         result = libcoreir_c.COREDirectedModuleGetInstances(self.ptr, ct.byref(num_instances))
         return [DirectedInstance(result[i], self.context) for i in range(num_instances.value)]
