@@ -18,7 +18,7 @@ def test_directed_module():
     add8_inst1 = module_def.add_module_instance("adder1", add8)
     add8_inst2 = module_def.add_module_instance("adder2", add8)
     add8_inst3 = module_def.add_module_instance("adder3", add8)
-    interface = module_def.get_interface()
+    interface = module_def.interface
     _input = interface.select("input")
     for adder in [add8_inst1, add8_inst2]:
         module_def.connect(_input, adder.select("in1"))
@@ -26,11 +26,11 @@ def test_directed_module():
     module_def.connect(add8_inst1.select("out"), add8_inst3.select("in1"))
     module_def.connect(add8_inst2.select("out"), add8_inst3.select("in2"))
     module_def.connect(add8_inst3.select("out"), interface.select("output"))
-    module.set_definition(module_def)
-    directed_module = module.get_directed_module()
+    module.definition = module_def
+    directed_module = module.directed_module
     # check inputs
     expected = [["adder1", "in1"], ["adder1", "in2"], ["adder2", "in1"], ["adder2", "in2"]]
-    for input in directed_module.get_inputs():
+    for input in directed_module.inputs:
         assert input.source == ["self", "input"]
         assert input.sink in expected, "Unexpected sink {}".format(input.sink)
         expected.remove(input.sink)
@@ -38,7 +38,7 @@ def test_directed_module():
 
     # check outputs
     expected = [["adder3", "out"]]
-    for output in directed_module.get_outputs():
+    for output in directed_module.outputs:
         assert output.sink == ["self", "output"]
         assert output.source in expected, "Unexpected source {}".format(input.sink)
         expected.remove(output.source)
@@ -55,19 +55,19 @@ def test_directed_module():
         (['self', 'input'], ['adder1', 'in2']),
         (['self', 'input'], ['adder2', 'in2'])
     ]
-    for directed_connection in directed_module.get_connections():
+    for directed_connection in directed_module.connections:
         actual = (directed_connection.source, directed_connection.sink)
         assert actual in expected
         expected.remove(actual)
     assert len(expected) == 0
 
     # check instances
-    for instance in directed_module.get_instances():
-        for input in instance.get_inputs():
+    for instance in directed_module.instances:
+        for input in instance.inputs:
             assert input.source in [["self", "input"], ["adder1", "out"], ["adder2", "out"]]
             assert input.sink[0] in ["adder1", "adder2", "adder3"]
             assert input.sink[1] in ["in1", "in2"]
-        for output in instance.get_outputs():
+        for output in instance.outputs:
             assert output.source[0] in ["adder1", "adder2", "adder3"]
             assert output.source[1] == "out"
             assert output.sink in [["self", "output"], ["adder3", "in1"], ["adder3", "in2"]]
