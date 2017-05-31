@@ -302,9 +302,95 @@ Type* json2Type(Context* c, json jt) {
   return c->Any();
 }
 
+bool endsWith(const string &str, const string &suffix) {
+  return ((str.size() >= suffix.size()) &&
+            (str.compare(str.size()-suffix.size(), suffix.size(), suffix) == 0));
+}
+  /*
+string instStr(Wireable* wire) {
+  Select* child;
+  Wireable* parent = wire;
+
+  while (isa<Select>(parent)) {
+    child = cast<Select>(parent);
+    parent = child->getParent();
+  }
+
+  return parent->toString() == "self" ? child->toString() : parent->toString();
+}
+  */
+string instStr(SelectPath wire) {
+  if (wire[0] == "self") {
+    return wire[0] + "." + wire[1];
+  } else {
+    return wire[0];
+  }
+}
+
+bool isSource(Wireable* wire) {
+  Select* child;
+  Wireable* parent = wire;
+
+  while (isa<Select>(parent)) {
+    child = cast<Select>(parent);
+    parent = child->getParent();
+  }
+
+  return parent->toString() == "self" ? child->getSelStr() != "out" 
+    : (child ? child->getSelStr() == "out" : false);
+}
+
+void ModuleToDot(Module* m, std::ofstream& stream, bool* err) {
+  if (!m->hasDef()) {
+    *err = true;
+    Error e;
+    e.message("Module " + m->getName() + " is not defined, so cannot be saved to dot file");
+    //c->error(e);
+    return;
+  }
+
+  stream << "digraph Diagram {" << endl
+         << "node [shape=box];" << endl;
+
+  DirectedModule* dMod = m->newDirectedModule();
+  if (!dMod->getInstances().empty()) {
+    for (auto inst : dMod->getInstances()) {
+      stream << "\"" 
+             << (*inst)->getInstname()
+             << "\"; ";
+    }
+    stream << endl;
+    
+    if (!dMod->getConnections().empty()) {
+      for (auto con : dMod->getConnections()) {
+//        bool firstIsSource = isSource(conpair.first);
+//        string source = firstIsSource ? instStr(conpair.first) : instStr(conpair.second);
+//        string sink = firstIsSource ? instStr(conpair.second) : instStr(conpair.first);
+        //string source = con->getSrc()
+        string src = instStr(con->getSrc());
+        string sink = instStr(con->getSnk());
+        //assert(src.size() == 1);
+        //assert(sink.size() == 1);
+
+        stream << "\""
+               << src
+               << "\"";
+        stream << "->" ;
+        stream << "\""
+               << sink
+               << "\"; ";
+      }
+      stream << endl;
+    }
+  }
+
+  stream << "}" << endl;
+  
+}
 
 //true cannot open file
 void saveModule(Module* m, string filename, bool* err) {
+
   Context* c = m->getContext();
   ASSERT(m->getNamespace() == c->getGlobal(),"Only supports global for now");
   std::ofstream file(filename);
@@ -317,15 +403,27 @@ void saveModule(Module* m, string filename, bool* err) {
     return;
   }
 
-  json j;
-  j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
-  
-  //Only do the global for now
-  j["namespaces"][m->getNamespace()->getName()] = m->getNamespace()->toJson();
-  //j["namespaces"]["cgralib"] = c->getNamespace("cgralib")->toJson();
-  
-  file << std::setw(2) << j;
-  return;
+  if (endsWith(filename, ".json")) {
+    // create a json file
+    json j;
+    j["top"] = json::array({m->getNamespace()->getName(),m->getName()});
+    
+    //Only do the global for now
+    j["namespaces"][m->getNamespace()->getName()] = m->getNamespace()->toJson();
+    file << std::setw(2) << j;
+    return;
+  } else if (endsWith(filename, ".txt")) {
+    // create a txt dot file for use with graphviz
+    ModuleToDot(m, file, err);
+    return;
+  } else {
+    *err = true;
+    Error e;
+    e.message("Could not save module, because did not recognize the extension: " + filename);
+    e.fatal();
+    c->error(e);
+    return;
+  }
 }
 
 json Args2Json(Args args);

@@ -12,7 +12,7 @@ void print(char* a) {
 int main() {
   COREContext* c = CORENewContext();
   CORELoadLibrary_stdlib(c);
-  bool err = false;
+  COREBool err = false;
   
   char** rkeys = malloc(2*sizeof(char*));
   rkeys[0] = "in";
@@ -44,12 +44,12 @@ int main() {
   ckeys[0] = "in";
   ckeys[1] = "out";
   COREArg** cargs = malloc(2*sizeof(COREArg*));
-  cargs[0] = COREInt2Arg(c,13);
-  cargs[1] = COREInt2Arg(c,13);
+  cargs[0] = COREArgInt(c,13);
+  cargs[1] = COREArgInt(c,13);
 
   void* config = CORENewMap(c,ckeys,cargs,2,STR2ARG_MAP);
 
-  COREInstance* inst = COREModuleDefAddModuleInstance(mdef, "ctop",lut4,config);
+  COREWireable* inst = COREModuleDefAddModuleInstance(mdef, "ctop",lut4,config);
   (void) inst;
   //TODO once the C api is changed
   /*

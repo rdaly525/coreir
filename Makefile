@@ -6,7 +6,7 @@ ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
 endif
 
-all: install test pytest
+all: install test
 
 .PHONY: test
 test: install
@@ -33,6 +33,7 @@ install:
 .PHONY: clean
 clean:
 	rm -rf lib/*
+	-rm _*json
 	$(MAKE) -C src clean
 	$(MAKE) -C src/lib clean
 	$(MAKE) -C tests clean

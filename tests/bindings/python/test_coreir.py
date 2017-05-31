@@ -28,24 +28,24 @@ def test_save_module():
     add8_in1 = add8_inst.select("in1")
     add8_in2 = add8_inst.select("in2")
     add8_out = add8_inst.select("out")
-    interface = module_def.get_interface()
+    interface = module_def.interface
     _input = interface.select("input")
     output = interface.select("output")
     module_def.connect(_input, add8_in1)
     module_def.connect(_input, add8_in2)
     module_def.connect(output, add8_out)
-    module.set_definition(module_def)
+    module.definition = module_def
     module.print_()
-    module.save_to_file("python_test_output.json")
-    mod = c.load_from_file("python_test_output.json")
-    mod_def = mod.get_definition()
+    module.save_to_file("_python_test_output.json")
+    mod = c.load_from_file("_python_test_output.json")
+    mod_def = mod.definition
     print("=====================")
     mod_def.print_()
     module_def.print_()
     print("=====================")
 
 
-def test_module_def_get_instances():
+def test_module_def_instances():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
     module = c.G.new_module("multiply_by_2", module_typ)
@@ -59,15 +59,15 @@ def test_module_def_get_instances():
     )
     add8_inst_1 = module_def.add_module_instance("adder1", add8)
     add8_inst_2 = module_def.add_module_instance("adder2", add8)
-    instances = module_def.get_instances()
+    instances = module_def.instances
     pointers_actual = [get_pointer_addr(inst.ptr) for inst in instances]
     pointers_expected = [get_pointer_addr(inst.ptr) for inst in [add8_inst_1, add8_inst_2]]
     for pointer in pointers_actual:
         assert pointer in pointers_expected
         pointers_expected.remove(pointer)
 
-    assert_pointers_equal(instances[0].get_module_def().ptr, module_def.ptr)
-    assert_pointers_equal(instances[0].get_module().ptr, module.ptr)
+    assert_pointers_equal(instances[0].module_def.ptr, module_def.ptr)
+    assert_pointers_equal(instances[0].module.ptr, module.ptr)
 
 def test_module_def_select():
     c = coreir.Context()
@@ -82,7 +82,7 @@ def test_module_def_select():
             "out": c.Array(9, c.Bit())
         })
     )
-    interface = module_def.get_interface()
+    interface = module_def.interface
     assert get_pointer_addr(interface.ptr) == get_pointer_addr(module_def.select("self").ptr)
     add8_inst = module_def.add_module_instance("adder", add8)
     add8_inst_select = module_def.select("adder")
@@ -105,22 +105,22 @@ def test_wireable():
     add8_in1 = add8_inst.select("in1")
     add8_in2 = add8_inst.select("in2")
     add8_out = add8_inst.select("out")
-    interface = module_def.get_interface()
+    interface = module_def.interface
     _input = interface.select("input")
     output = interface.select("output")
     module_def.connect(_input, add8_in1)
     module_def.connect(_input, add8_in2)
     module_def.connect(output, add8_out)
-    actual = [get_pointer_addr(wireable.ptr) for wireable in _input.get_connected_wireables()]
+    actual = [get_pointer_addr(wireable.ptr) for wireable in _input.connected_wireables]
     assert get_pointer_addr(add8_in1.ptr) in actual
     assert get_pointer_addr(add8_in2.ptr) in actual
-    for expected, actual in zip(['adder', 'out'], add8_out.get_selectpath()):
+    for expected, actual in zip(['adder', 'out'], add8_out.selectpath):
         assert expected == actual
 
     wireable = module_def.select("self")
     assert get_pointer_addr(wireable.select("input").ptr) == get_pointer_addr(_input.ptr)
 
-def test_module_def_get_connections():
+def test_module_def_connections():
     c = coreir.Context()
     module_typ = c.Record({"input": c.Array(8, c.BitIn()), "output": c.Array(9, c.Bit())})
     module = c.G.new_module("multiply_by_2", module_typ)
@@ -137,7 +137,7 @@ def test_module_def_get_connections():
     add8_in1 = add8_inst.select("in1")
     add8_in2 = add8_inst.select("in2")
     add8_out = add8_inst.select("out")
-    interface = module_def.get_interface()
+    interface = module_def.interface
     _input = interface.select("input")
     output = interface.select("output")
     module_def.connect(_input, add8_in1)
@@ -153,7 +153,7 @@ def test_module_def_get_connections():
         (add8_in2_ptr, input_ptr),
         (add8_out_ptr, output_ptr)
     ]
-    connections = module_def.get_connections()
+    connections = module_def.connections
     seen = []
     for conn in connections:
         pair = (get_pointer_addr(conn.first.ptr), get_pointer_addr(conn.second.ptr))
@@ -163,6 +163,10 @@ def test_module_def_get_connections():
                pair not in seen
         seen.append(pair)
     assert len(seen) == len(expected_conns)
+
+if __name__ == "__main__":
+    test_save_module()
+
 
 # def test():
 #     c = coreir.Context()
