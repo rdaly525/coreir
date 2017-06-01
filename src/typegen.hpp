@@ -22,7 +22,7 @@ class TypeGen {
       return flipped ? t->getFlipped() : t;
     }
     Namespace* getNamespace() const {return ns;}
-    string getName() const {return name;}
+    const string& getName() const {return name;}
     Params getParams() const {return params;}
     bool isFlipped() const { return flipped;}
 };

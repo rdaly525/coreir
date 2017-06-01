@@ -69,7 +69,7 @@ class ArgInt : public Arg {
 class ArgString : public Arg {
   string str;
   public :
-    typedef string type;
+    typedef const string& type;
     ArgString(string str) : Arg(ASTRING), str(str) {}
     static bool classof(const Arg* arg) {return arg->getKind()==ASTRING;}
     string toString() const { return str;}

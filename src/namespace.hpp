@@ -47,7 +47,7 @@ class Namespace {
   public :
     Namespace(Context* c, string name) : c(c), name(name) {}
     ~Namespace();
-    string getName() { return name;}
+    const string& getName() { return name;}
     Context* getContext() { return c;}
     unordered_map<string,Module*> getModules() { return moduleList;}
     unordered_map<string,Generator*> getGenerators() { return generatorList;}

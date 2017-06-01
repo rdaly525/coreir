@@ -39,7 +39,7 @@ class ModuleDef {
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     Context* getContext();
-    string getName();
+    const string& getName();
     Type* getType();
     Metadata getMetadata() { return metadata;}
     Module* getModule() { return module; }
