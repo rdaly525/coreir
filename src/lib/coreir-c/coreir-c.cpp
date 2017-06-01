@@ -61,7 +61,7 @@ extern "C" {
   
   //TODO change the name of this function
   const char* COREGetInstRefName(COREWireable* iref) {
-    string name = rcast<Instance*>(iref)->getModuleRef()->getName();
+    const string& name = rcast<Instance*>(iref)->getModuleRef()->getName();
     return name.c_str();
   }
 

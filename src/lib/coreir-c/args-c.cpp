@@ -22,7 +22,7 @@ extern "C" {
   const char* COREArgStringGet(COREArg* a) {
     Arg* arg = rcast<Arg*>(a);
     //Get will assert if wrong arg kind
-    string s = arg->get<ArgString>();
+    const string& s = arg->get<ArgString>();
     return s.c_str();
   }
   

@@ -43,7 +43,8 @@ class Instantiable {
     Context* getContext();
     Params getConfigParams() { return configparams;}
     Metadata getMetadata() { return metadata;}
-    string getName() const { return name;}
+    const string& getName() const { return name;}
+    //string getName() const { return name;}
     virtual json toJson()=0;
     Namespace* getNamespace() const { return ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
