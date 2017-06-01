@@ -91,7 +91,7 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
       uint width = args.at("width")->get<ArgInt>();
       return c->Record({
         {"in",c->Record({
-          {"data",c->BitIn()->Arr(width)},
+          {"data",c->BitIn()->Arr(width)->Arr(2)},
           {"bit",c->BitIn()}
         })},
         {"out",c->Bit()->Arr(width)}
