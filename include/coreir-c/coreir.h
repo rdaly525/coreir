@@ -60,6 +60,7 @@ extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
 extern const char** COREWireableGetSelectPath(COREWireable* w, int* num_selects);
 extern void COREPrintErrors(COREContext* c);
 extern const char* CORENamespaceGetName(CORENamespace* n);
+extern COREType* COREWireableGetType(COREWireable* wireable);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);

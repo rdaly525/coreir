@@ -10,4 +10,4 @@ def test_array_len():
         len(bit_type)
         assert False, "Calling len on a non array type should throw an exception"
     except Exception as e:
-        assert str(e) == "`len` called on a non Array Type (BitIn)"
+        assert str(e) == "`len` called on a BitIn"
