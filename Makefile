@@ -33,9 +33,17 @@ install:
 .PHONY: clean
 clean:
 	rm -rf lib/*
+	-rm _*json
 	$(MAKE) -C src clean
 	$(MAKE) -C src/lib clean
 	$(MAKE) -C tests clean
 
 .PHONY: travis
-travis: clean install test pytest 
+travis: 
+	$(MAKE) clean
+	$(MAKE) install
+	$(MAKE) test
+	$(MAKE) py
+	$(MAKE) pytest
+	
+	

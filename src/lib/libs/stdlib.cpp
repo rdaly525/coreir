@@ -44,7 +44,24 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   /////////////////////////////////
   //TODO 
   //stdlib_convert(c,stdlib);
-
+  
+  //This defines a passthrough module. It is basically a nop that just passes the signal through
+  Params passthroughParams({
+    {"type",ATYPE},
+  });
+  TypeGen* passthroughTG = stdlib->newTypeGen(
+    "passthrough",
+    passthroughParams,
+    [](Context* c, Args args) {
+      Type* t = args.at("type")->get<ArgType>();
+      return c->Record({
+        {"in",t->getFlipped()},
+        {"out",t}
+      });
+    }
+  );
+  stdlib->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
+  
   /////////////////////////////////
   // Stdlib bitwise primitives
   //   not,and,or,xor,andr,orr,xorr,shift

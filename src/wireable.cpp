@@ -7,6 +7,7 @@ using namespace std;
 ///////////////////////////////////////////////////////////
 
 
+
 namespace CoreIR {
 
 Select* Wireable::sel(string selStr) {
@@ -25,6 +26,13 @@ Select* Wireable::sel(string selStr) {
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
+
+Select* Wireable::sel(SelectPath path) {
+  Wireable* ret = this;
+  for (auto selstr : path) ret = ret->sel(selstr);
+  return cast<Select>(ret);
+}
+
 
 // TODO This might be slow due to insert on a vector. Maybe use Deque?
 SelectPath Wireable::getSelectPath() {
@@ -100,9 +108,9 @@ void Instance::runGenerator() {
   assert(moduleRef->hasDef());
 }
 
-
-//TODO should I remove the generator and generator args? 
 void Instance::replace(Module* moduleRef, Args configargs) {
+  ASSERT(!this->isGen(),"NYI, Cannot replace a generator instance with a module isntance")
+  ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
   ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
   this->moduleRef = moduleRef;
   this->configargs = configargs;
@@ -112,6 +120,9 @@ void Instance::replace(Module* moduleRef, Args configargs) {
 //TODO this is probably super unsafe and will leak memory
 void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
   ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
+  ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
+  ASSERT(this->getType() == generatorRef->getModule(genargs)->getType(),"NYI, Cannot replace with a different type");
+
   this->generatorRef = generatorRef;
   this->genargs = genargs;
   this->moduleRef = generatorRef->getModule(genargs);

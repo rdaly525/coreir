@@ -30,7 +30,13 @@ class ModuleDef {
     Metadata metadata;
     Metadata implementations; // TODO maybe have this just be inhereted moduledef classes
     SelCache* getCache() { return cache;}
-
+    
+  public:
+    typedef unordered_map<Instantiable*,unordered_set<Instance*>> InstanceMapType;
+  protected:
+    //Map from Instantiables to a list of instances
+    InstanceMapType instanceMap;
+  
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
@@ -38,6 +44,9 @@ class ModuleDef {
     unordered_set<Connection> getConnections(void) { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
+    
+    //Return a shalow copy of this ModuleDef.
+    ModuleDef* copy();
     Context* getContext();
     const string& getName();
     Type* getType();
@@ -45,6 +54,9 @@ class ModuleDef {
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
     
+    InstanceMapType getInstanceMap() { return instanceMap;}
+    
+
     Wireable* sel(string s);
     Wireable* sel(SelectPath path);
     
@@ -70,6 +82,7 @@ class ModuleDef {
     //API for deleting an instance
     //This will also delete all connections from all connected things
     void removeInstance(string inst);
+    void removeInstance(Instance* inst);
 
 
     // This 'typechecks' everything
