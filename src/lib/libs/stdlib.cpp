@@ -98,6 +98,17 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
       });
     }
   );
+  
+  /////////////////////////////////
+  // Stdlib bitwise primitives
+  //   not,and,or,xor,andr,orr,xorr,shl,lshr,ashr,dshl,dlshr,dashr
+  /////////////////////////////////
+  //stdlib_bitwise(c,stdlib);
+
+  /////////////////////////////////
+  // Stdlib Arithmetic primitives
+  //   add,sub,mul,div,lt,leq,gt,geq,eq,neq,neg
+  /////////////////////////////////
 
   //Lazy way:
   unordered_map<string,vector<string>> opmap({
@@ -126,17 +137,30 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   }
 
 
-
   /////////////////////////////////
-  // Stdlib bitwise primitives
-  //   not,and,or,xor,andr,orr,xorr,shl,lshr,ashr,dshl,dlshr,dashr
+  // Stdlib convert primitives
+  //   slice,concat,cast,strip
   /////////////////////////////////
-  //stdlib_bitwise(c,stdlib);
-
-  /////////////////////////////////
-  // Stdlib Arithmetic primitives
-  //   add,sub,mul,div,lt,leq,gt,geq,eq,neq,neg
-  /////////////////////////////////
+  //TODO 
+  //stdlib_convert(c,stdlib);
+  
+  //This defines a passthrough module. It is basically a nop that just passes the signal through
+  Params passthroughParams({
+    {"type",ATYPE},
+  });
+  TypeGen* passthroughTG = stdlib->newTypeGen(
+    "passthrough",
+    passthroughParams,
+    [](Context* c, Args args) {
+      Type* t = args.at("type")->get<ArgType>();
+      return c->Record({
+        {"in",t->getFlipped()},
+        {"out",t}
+      });
+    }
+  );
+  stdlib->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
+  
 
   /////////////////////////////////
   // Stdlib stateful primitives

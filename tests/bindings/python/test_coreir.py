@@ -36,8 +36,8 @@ def test_save_module():
     module_def.connect(output, add8_out)
     module.definition = module_def
     module.print_()
-    module.save_to_file("python_test_output.json")
-    mod = c.load_from_file("python_test_output.json")
+    module.save_to_file("_python_test_output.json")
+    mod = c.load_from_file("_python_test_output.json")
     mod_def = mod.definition
     print("=====================")
     mod_def.print_()

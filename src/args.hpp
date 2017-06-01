@@ -43,7 +43,7 @@ class Arg {
 };
 
 class ArgBool : public Arg {
-  int b;
+  bool b;
   public :
     typedef bool type;
     ArgBool(bool b) : Arg(ABOOL), b(b) {}
@@ -97,7 +97,7 @@ class ArgType : public Arg {
 //};
 
 
-bool checkArgs(Args args, Params params);
+//bool checkArgs(Args args, Params params);
 
 }//CoreIR namespace
 

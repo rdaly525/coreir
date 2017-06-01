@@ -602,6 +602,7 @@ json Args2Json(Args args) {
 
 json ArgString::toJson() { return str; }
 json ArgInt::toJson() { return i; }
+json ArgBool::toJson() { return b; }
 json ArgType::toJson() { return t->toJson(); }
 
 }//CoreIR namespace
