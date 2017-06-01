@@ -163,7 +163,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
         if (j == 0) {
           // the first column comes from input/mem
           if (i == 0) {
-            //def->connect({"self","in"}, {"self","out",std::to_string(i),std::to_string(j)});
+            def->connect({"self","in"}, {"self","out",std::to_string(i),std::to_string(j)});
           } else {
             std::string mem_name = mem_prefix + std::to_string(i);
             def->connect({mem_name, "rdata"}, {"self","out",std::to_string(i),std::to_string(j)});
