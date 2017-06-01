@@ -5,7 +5,7 @@
 
 using namespace CoreIR;
 
-inline void stdlib_state(Context* c, Namespace* stdlib) {
+void stdlib_state(Context* c, Namespace* stdlib) {
   
   //Template
   /* Name: 
