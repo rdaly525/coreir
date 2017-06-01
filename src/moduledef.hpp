@@ -48,7 +48,7 @@ class ModuleDef {
     //Return a shalow copy of this ModuleDef.
     ModuleDef* copy();
     Context* getContext();
-    string getName();
+    const string& getName();
     Type* getType();
     Metadata getMetadata() { return metadata;}
     Module* getModule() { return module; }

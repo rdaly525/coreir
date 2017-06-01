@@ -37,7 +37,7 @@ void ModuleDef::print(void) {
 }
 
 Context* ModuleDef::getContext() { return module->getContext(); }
-string ModuleDef::getName() {return module->getName();}
+const string& ModuleDef::getName() {return module->getName();}
 Type* ModuleDef::getType() {return module->getType();}
 
 ModuleDef* ModuleDef::copy() {
