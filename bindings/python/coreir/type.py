@@ -22,16 +22,20 @@ class Type(CoreIRType):
     def print_(self):  # _ because print is a keyword in py2
         libcoreir_c.COREPrintType(self.ptr)
 
-    def __len__(self):
+    @property
+    def kind(self):
         # TypeKind enum defined in src/types.hpp
         kind = libcoreir_c.COREGetTypeKind(self.ptr)
-        if kind != 2:  # Not a TK_Array
-            type_name = {
-                0: "Bit",
-                1: "BitIn",
-                3: "Record",
-                4: "Named",
-                5: "Any"
-            }[kind]
-            raise Exception("`len` called on a non Array Type ({})".format(type_name))
+        return {
+            0: "Bit",
+            1: "BitIn",
+            2: "Array",
+            3: "Record",
+            4: "Named",
+            5: "Any"
+        }[kind]
+
+    def __len__(self):
+        if self.kind != "Array":  # Not a TK_Array
+            raise Exception("`len` called on a {}".format(self.kind))
         return libcoreir_c.COREArrayTypeGetLen(self.ptr)

@@ -1,6 +1,7 @@
 import ctypes as ct
 from coreir.base import CoreIRType
 from coreir.lib import libcoreir_c
+from coreir.type import Type
 import coreir.module
 
 class COREWireable(ct.Structure):
@@ -32,6 +33,10 @@ class Wireable(CoreIRType):
     @property
     def module(self):
         return self.module_def.module
+
+    @property
+    def type(self):
+        return Type(libcoreir_c.COREWireableGetType(self.ptr), self.context)
 
 
 class Select(Wireable):
