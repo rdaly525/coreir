@@ -18,7 +18,10 @@ extern "C" {
     Type* t = rcast<Type*>(type);
     return rcast<COREType*>(t->getFlipped());
   }
-
+  uint CORETypeGetSize(COREType* type) {
+    return rcast<Type*>(type)->getSize();
+  }
+  
   void COREPrintType(COREType* t) {
     rcast<Type*>(t)->print();
   }

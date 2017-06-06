@@ -21,6 +21,10 @@ class Args(CoreIRType):
 class Type(CoreIRType):
     def print_(self):  # _ because print is a keyword in py2
         libcoreir_c.COREPrintType(self.ptr)
+    
+    @property
+    def size(self):
+        return libcoreir_c.CORETypeGetSize(self.ptr)
 
     @property
     def kind(self):

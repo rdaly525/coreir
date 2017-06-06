@@ -135,5 +135,12 @@ bool RecordType::sel(string sel, Type** ret, Error* e) {
   return true;
 
 }
+uint RecordType::getSize() const {
+  uint size = 0;
+  for (auto field : record) {
+    size += field.second->getSize();
+  }
+  return size;
+}
 
 }//CoreIR namespace
