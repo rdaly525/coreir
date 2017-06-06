@@ -17,6 +17,7 @@ extern CORETypeKind COREGetTypeKind(COREType* type);
 
 //Get the flipped version of the type
 extern COREType* COREFlip(COREType* type);
+extern uint CORETypeGetSize(COREType* type);
 
 //print type to stdout
 extern void COREPrintType(COREType* t);

@@ -167,3 +167,5 @@ libcoreir_c.COREArrayTypeGetLen.restype = ct.c_uint
 libcoreir_c.COREGetTypeKind.argtypes = [COREType_p]
 libcoreir_c.COREGetTypeKind.restype = ct.c_int # CORETypeKind is an enum
 
+libcoreir_c.CORETypeGetSize.argtypes = [COREType_p]
+libcoreir_c.CORETypeGetSize.restype = ct.c_uint
