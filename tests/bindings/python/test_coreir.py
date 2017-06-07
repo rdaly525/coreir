@@ -23,7 +23,7 @@ def test_save_module():
         configparams
     )
     add8_inst = module_def.add_module_instance("adder", add8,c.newArgs({"init":5}))
-    print(add8_inst.module_name())
+    assert add8_inst.module_name == "add8"
     print(add8_inst.get_config_value("init"))
     add8_in1 = add8_inst.select("in1")
     add8_in2 = add8_inst.select("in2")
