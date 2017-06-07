@@ -47,6 +47,7 @@ class Select(Wireable):
 
 
 class Instance(Wireable):
+    @property
     def module_name(self):
         name = libcoreir_c.COREGetInstRefName(self.ptr)
         return name.decode()
