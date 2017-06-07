@@ -72,6 +72,7 @@ class Instance;
 class Select;
 
 typedef vector<string> SelectPath;
+typedef vector<std::reference_wrapper<const string>> ConstSelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 
 

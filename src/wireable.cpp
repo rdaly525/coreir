@@ -10,6 +10,8 @@ using namespace std;
 
 namespace CoreIR {
 
+const string Interface::instname = "self";
+
 Select* Wireable::sel(string selStr) {
   Context* c = getContext();
   Type* ret = c->Any();
@@ -31,6 +33,28 @@ Select* Wireable::sel(SelectPath path) {
   Wireable* ret = this;
   for (auto selstr : path) ret = ret->sel(selstr);
   return cast<Select>(ret);
+}
+
+
+ConstSelectPath Wireable::getConstSelectPath() {
+  Wireable* top = this;
+  ConstSelectPath path;
+  while(auto s = dyn_cast<Select>(top)) {
+    path.insert(path.begin(), s->getSelStr());
+    top = s->getParent();
+  }
+  if (auto iface = dyn_cast<Interface>(top)) {
+    const string& instname = iface->getInstname();
+    path.insert(path.begin(), instname);
+  }
+  else if (auto inst = dyn_cast<Instance>(top)) { 
+    const string& instname = inst->getInstname();
+    path.insert(path.begin(), instname);
+  }
+  else {
+    ASSERT(0,"Cannot be here")
+  }
+  return path;
 }
 
 

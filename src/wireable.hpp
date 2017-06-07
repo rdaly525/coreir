@@ -45,20 +45,23 @@ class Wireable {
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,a,b,0}
     SelectPath getSelectPath();
+    ConstSelectPath getConstSelectPath();
     string wireableKind2Str(WireableKind wb);
 };
 
 ostream& operator<<(ostream&, const Wireable&);
 
 class Interface : public Wireable {
+  static const string instname;
   public :
     Interface(ModuleDef* context,Type* type) : Wireable(WK_Interface,context,type) {};
     static bool classof(const Wireable* w) {return w->getKind()==WK_Interface;}
     string toString() const;
+    const string& getInstname() { return instname; }
 };
 
 class Instance : public Wireable {
-  string instname;
+  const string instname;
   Module* moduleRef;
   
   Args configargs;
@@ -74,7 +77,7 @@ class Instance : public Wireable {
     string toString() const;
     json toJson();
     Module* getModuleRef() {return moduleRef;}
-    string getInstname() { return instname; }
+    const string& getInstname() { return instname; }
     Arg* getConfigArg(string s);
     Args getConfigArgs() const {return configargs;}
     bool hasConfigArgs() {return !configargs.empty();}
@@ -98,7 +101,7 @@ class Select : public Wireable {
     static bool classof(const Wireable* w) {return w->getKind()==WK_Select;}
     string toString() const;
     Wireable* getParent() { return parent; }
-    string getSelStr() { return selStr; }
+    const string& getSelStr() { return selStr; }
 };
 
 

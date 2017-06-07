@@ -211,13 +211,13 @@ extern "C" {
   }
 
   const char** COREWireableGetSelectPath(COREWireable* w, int* num_selects) {
-    SelectPath path = rcast<Wireable*>(w)->getSelectPath();
+    ConstSelectPath path = rcast<Wireable*>(w)->getConstSelectPath();
     Context* c = rcast<Wireable*>(w)->getContext();
     int size = path.size();
     *num_selects = size;
     const char** arr = c->newConstStringArray(size);
     for (int i = 0; i < size; i++) {
-      arr[i] = path[i].c_str();
+      arr[i] = path[i].get().c_str();
     }
     return arr;
   }
