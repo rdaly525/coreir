@@ -211,13 +211,13 @@ extern "C" {
   }
 
   const char** COREWireableGetSelectPath(COREWireable* w, int* num_selects) {
-    SelectPath path = rcast<Wireable*>(w)->getSelectPath();
+    ConstSelectPath path = rcast<Wireable*>(w)->getConstSelectPath();
     Context* c = rcast<Wireable*>(w)->getContext();
     int size = path.size();
     *num_selects = size;
     const char** arr = c->newConstStringArray(size);
     for (int i = 0; i < size; i++) {
-      arr[i] = path[i].c_str();
+      arr[i] = path[i].get().c_str();
     }
     return arr;
   }
@@ -228,26 +228,26 @@ extern "C" {
 
   const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection, int* path_len) {
       DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
-      SelectPath path = conn->getSrc();
+      ConstSelectPath path = conn->getConstSrc();
       Context* c = conn->getContext();
       int size = path.size();
       *path_len = size;
       const char** arr = c->newConstStringArray(size);
       for (int i = 0; i < size; i ++) {
-          arr[i] = path[i].c_str();
+          arr[i] = path[i].get().c_str();
       }
       return arr;
   }
 
   const char** COREDirectedConnectionGetSnk(COREDirectedConnection* directed_connection, int* path_len) {
       DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
-      SelectPath path = conn->getSnk();
+      ConstSelectPath path = conn->getConstSnk();
       Context* c = conn->getContext();
       int size = path.size();
       *path_len = size;
       const char** arr = c->newConstStringArray(size);
       for (int i = 0; i < size; i ++) {
-          arr[i] = path[i].c_str();
+          arr[i] = path[i].get().c_str();
       }
       return arr;
   }
