@@ -14,7 +14,7 @@ using namespace std;
 #define ASSERT(C,MSG) \
   if (!(C)) { \
     cout << MSG << endl; \
-    exit(1); \
+    assert(C); \
   }
 
 
@@ -72,6 +72,7 @@ class Instance;
 class Select;
 
 typedef vector<string> SelectPath;
+typedef vector<std::reference_wrapper<const string>> ConstSelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 
 

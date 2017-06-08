@@ -23,7 +23,7 @@ namespace CoreIR {
 class NamedType;
 class Type {
   public :
-    enum TypeKind {TK_Bit, TK_BitIn,TK_Array,TK_Record,TK_Named,TK_Any};
+    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4,TK_Any=5};
     enum DirKind {DK_In,DK_Out,DK_Mixed,DK_Unknown};
   protected :
     TypeKind kind;
@@ -42,6 +42,7 @@ class Type {
     Type* getFlipped() { return flipped;}
     virtual string toString(void) const =0;
     virtual bool sel(string sel, Type** ret, Error* e);
+    virtual uint getSize() const=0;
     virtual json toJson();
     void print(void);
     static string TypeKind2Str(TypeKind t);
@@ -55,7 +56,6 @@ class Type {
     bool isUnknown() const { return dir==DK_Unknown; }
     bool hasInput() const { return isInput() || isMixed(); }
 
-
 };
 
 std::ostream& operator<<(ostream& os, const Type& t);
@@ -67,6 +67,7 @@ class AnyType : public Type {
     string toString(void) const {return "Any";}
     
     bool sel(string sel, Type** ret, Error* e);
+    uint getSize() const { return 0;}
 };
 
 class BitType : public Type {
@@ -74,6 +75,7 @@ class BitType : public Type {
     BitType(Context* c) : Type(TK_Bit,DK_Out,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Bit;}
     string toString(void) const {return "Bit";}
+    uint getSize() const { return 1;}
 };
 
 class BitInType : public Type {
@@ -82,6 +84,7 @@ class BitInType : public Type {
     static bool classof(const Type* t) {return t->getKind()==TK_BitIn;}
     
     string toString(void) const {return "BitIn";}
+    uint getSize() const { return 1;}
 };
 
 class NamedType : public Type {
@@ -104,10 +107,10 @@ class NamedType : public Type {
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}
     Args getGenargs() {return genargs;}
+    uint getSize() const { return raw->getSize();}
     
     json toJson();
     bool sel(string sel, Type** ret, Error* e);
-
 };
 
 class ArrayType : public Type {
@@ -123,6 +126,7 @@ class ArrayType : public Type {
     };
     json toJson();
     bool sel(string sel, Type** ret, Error* e);
+    uint getSize() const { return len * elemType->getSize();}
 
 };
 
@@ -140,6 +144,7 @@ class RecordType : public Type {
     string toString(void) const;
     json toJson();
     bool sel(string sel, Type** ret, Error* e);
+    uint getSize() const;
 };
 
 }//CoreIR namespace

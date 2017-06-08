@@ -4,6 +4,7 @@
 #include "namespace.hpp"
 #include "typecache.hpp"
 #include "types.hpp"
+#include "typegen.hpp"
 #include "error.hpp"
 #include "common.hpp"
 #include "casting/casting.hpp"
@@ -60,7 +61,8 @@ class Context {
     void printerrors() { 
       for (auto err : errors) cout << "ERROR: " << err.toString() << endl << endl;
     }
-    
+    void print();
+
     bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(string name);
@@ -87,6 +89,7 @@ class Context {
     Args* newArgs();
     
     //Factory functions for args
+    Arg* argBool(bool b);
     Arg* argInt(int i);
     Arg* argString(string s);
     Arg* argType(Type* t);
@@ -113,6 +116,14 @@ void saveModule(Module* c, string filename, bool* err);
 
 Context* newContext();
 void deleteContext(Context* m);
+
+//addPassthrough will create a passthrough Module for Wireable w with name <name>
+  //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
+  // There will be one connection connecting w to name.in, and all the connections
+  // that originally connected to w connecting to name.out which has the same type as w
+Instance* addPassthrough(Context* c, Wireable* w,string instname);
+
+
 
 } //CoreIR namespace
 

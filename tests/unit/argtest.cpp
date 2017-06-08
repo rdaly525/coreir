@@ -12,10 +12,10 @@ int main() {
   Args g3 = {{"c",c->argInt(5)},{"b",c->argString("ross")}};
   Args g4 = {{"a",c->argInt(5)},{"b",c->argString("ross")},{"c",c->argType(c->BitIn())}};
   assert(g1 == g2);
-  assert(checkArgs(g1,{{"a",AINT},{"b",ASTRING}}));
+  checkArgsAreParams(g1,{{"a",AINT},{"b",ASTRING}});
   assert(g1 != g3);
   assert(g1 != g4);
-  assert(checkArgs(g4,{{"a",AINT},{"b",ASTRING},{"c",ATYPE}}));
+  checkArgsAreParams(g4,{{"a",AINT},{"b",ASTRING},{"c",ATYPE}});
   deleteContext(c);
   return 0;
 }

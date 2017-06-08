@@ -43,7 +43,7 @@ class Arg {
 };
 
 class ArgBool : public Arg {
-  int b;
+  bool b;
   public :
     typedef bool type;
     ArgBool(bool b) : Arg(ABOOL), b(b) {}
@@ -69,7 +69,7 @@ class ArgInt : public Arg {
 class ArgString : public Arg {
   string str;
   public :
-    typedef string type;
+    typedef const string& type;
     ArgString(string str) : Arg(ASTRING), str(str) {}
     static bool classof(const Arg* arg) {return arg->getKind()==ASTRING;}
     string toString() const { return str;}
@@ -97,7 +97,7 @@ class ArgType : public Arg {
 //};
 
 
-bool checkArgs(Args args, Params params);
+//bool checkArgs(Args args, Params params);
 
 }//CoreIR namespace
 

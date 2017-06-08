@@ -6,4 +6,4 @@ cd unit-c; ./run; cd -
 cd cgra; ./run; cd -
 GREEN='\033[0;32m'
 NC='\033[0m'
-echo "${GREEN} PASSED ALL TESTS!${NC}"
+echo -e "${GREEN} PASSED ALL TESTS!${NC}"

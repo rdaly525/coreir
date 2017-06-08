@@ -1,8 +1,9 @@
 #include "coreir-lib/stdlib.h"
 
-//#include "_stdlib_convert.cpp"
 //#include "_stdlib_bitwise.cpp"
+//#include "_stdlib_arithmetic.cpp"
 #include "_stdlib_state.cpp"
+//#include "_stdlib_convert.cpp"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(stdlib);
 
@@ -15,20 +16,20 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   /////////////////////////////////
   // Stdlib Types
   /////////////////////////////////
-  Params widthparam = Params({{"width",AINT}});
+  Params widthparams = Params({{"width",AINT}});
 
   //Single bit types
   stdlib->newNamedType("clk","clkIn",c->Bit());
   stdlib->newNamedType("rst","rstIn",c->Bit());
   
   //Array types
-  //stdlib->newNominalTypeGen("int","intIn",widthparam,arrfun);
-  //stdlib->newNominalTypeGen("uint","uintIn",widthparam,arrfun);
+  //stdlib->newNominalTypeGen("int","intIn",widthparams,arrfun);
+  //stdlib->newNominalTypeGen("uint","uintIn",widthparams,arrfun);
   
   //Common Function types
   stdlib->newTypeGen(
-    "binop",
-    widthparam,
+    "binary",
+    widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       return c->Record({
@@ -37,6 +38,104 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
       });
     }
   );
+  stdlib->newTypeGen(
+    "unary",
+    widthparams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+  stdlib->newTypeGen(
+    "binaryReduce",
+    widthparams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)->Arr(2)},
+        {"out",c->Bit()}
+      });
+    }
+  );
+  stdlib->newTypeGen(
+    "unaryReduce",
+    widthparams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)},
+        {"out",c->Bit()}
+      });
+    }
+  );
+  //For repeat
+  stdlib->newTypeGen(
+    "unaryExpand",
+    widthparams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"in",c->BitIn()},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+  //For mux
+  stdlib->newTypeGen(
+    "ternary",
+    widthparams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"in",c->Record({
+          {"data",c->BitIn()->Arr(width)->Arr(2)},
+          {"bit",c->BitIn()}
+        })},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+  
+  /////////////////////////////////
+  // Stdlib bitwise primitives
+  //   not,and,or,xor,andr,orr,xorr,shl,lshr,ashr,dshl,dlshr,dashr
+  /////////////////////////////////
+  //stdlib_bitwise(c,stdlib);
+
+  /////////////////////////////////
+  // Stdlib Arithmetic primitives
+  //   add,sub,mul,div,lt,leq,gt,geq,eq,neq,neg
+  /////////////////////////////////
+
+  //Lazy way:
+  unordered_map<string,vector<string>> opmap({
+    {"unary",{"not","neg"}},
+    {"unaryReduce",{"andr","orr","xorr"}},
+    {"binary",{
+      "and","or","xor",
+      "dshl","dlshr","dashr",
+      "add","sub","mul",
+      "udiv","urem",
+      "sdiv","srem","smod"
+    }},
+    {"binaryReduce",{"eq",
+      "slt","sgt","sle","sge",
+      "ult","ugt","ule","uge"
+    }},
+    {"ternary",{"mux"}},
+  });
+  
+  //Add all the generators (with widthparams)
+  for (auto tmap : opmap) {
+    TypeGen* tg = stdlib->getTypeGen(tmap.first);
+    for (auto op : tmap.second) {
+      stdlib->newGeneratorDecl(op,tg,widthparams);
+    }
+  }
+
 
   /////////////////////////////////
   // Stdlib convert primitives
@@ -44,33 +143,34 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   /////////////////////////////////
   //TODO 
   //stdlib_convert(c,stdlib);
-
-  /////////////////////////////////
-  // Stdlib bitwise primitives
-  //   not,and,or,xor,andr,orr,xorr,shift
-  /////////////////////////////////
-  //TODO
-  //stdlib_bitwise(c,stdlib);
-
-  /////////////////////////////////
-  // Stdlib Arithmetic primitives
-  //   dshift,add,sub,mul,div,lt,leq,gt,geq,eq,neq,neg
-  /////////////////////////////////
-  stdlib->newGeneratorDecl("add",stdlib->getTypeGen("binop"),widthparam);
-  stdlib->newGeneratorDecl("mul",stdlib->getTypeGen("binop"),widthparam);
-
+  
+  //This defines a passthrough module. It is basically a nop that just passes the signal through
+  Params passthroughParams({
+    {"type",ATYPE},
+  });
+  TypeGen* passthroughTG = stdlib->newTypeGen(
+    "passthrough",
+    passthroughParams,
+    [](Context* c, Args args) {
+      Type* t = args.at("type")->get<ArgType>();
+      return c->Record({
+        {"in",t->getFlipped()},
+        {"out",t}
+      });
+    }
+  );
+  stdlib->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
+  
 
   /////////////////////////////////
   // Stdlib stateful primitives
   //   reg, ram, rom
   /////////////////////////////////
   stdlib_state(c,stdlib);
-
-
   //Add Const
   stdlib->newTypeGen(
     "out", 
-    widthparam,
+    widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       return c->Record({
@@ -78,7 +178,14 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
       });
     }
   );
-  stdlib->newGeneratorDecl("const",stdlib->getTypeGen("out"),widthparam,{{"value",AINT}});
+  stdlib->newGeneratorDecl("const",stdlib->getTypeGen("out"),widthparams,{{"value",AINT}});
+  
+  /////////////////////////////////
+  // Stdlib convert primitives
+  //   slice,concat,cast,strip
+  /////////////////////////////////
+  //TODO 
+  //stdlib_convert(c,stdlib);
 
   return stdlib;
 }

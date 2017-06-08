@@ -33,6 +33,8 @@ Context* DirectedConnection::getContext() {
 }
 SelectPath DirectedConnection::getSrc() { return src->getSelectPath();}
 SelectPath DirectedConnection::getSnk() { return snk->getSelectPath();}
+ConstSelectPath DirectedConnection::getConstSrc() { return src->getConstSelectPath();}
+ConstSelectPath DirectedConnection::getConstSnk() { return snk->getConstSelectPath();}
 
 DirectedModule::DirectedModule(Module* m) : m(m) {
   assert(m->hasDef() && "Does not have def!");

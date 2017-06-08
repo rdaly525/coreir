@@ -33,11 +33,11 @@ dylib: $(DYLIBS)
 clean:
 	rm -rf build/*
 
-build/%.so: build/%.o
+build/%.so: $(OBJS)
 	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir
 	cp $@ $(HOME)/lib/lib$*.so
 
-build/%.dylib: build/%.o
+build/%.dylib: $(OBJS)
 	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
 	cp $@ $(HOME)/lib/lib$*.dylib
 

@@ -31,6 +31,7 @@ class Namespace {
   unordered_map<string,Module*> moduleList;
   unordered_map<string,Generator*> generatorList;
   
+  
   //Lists the named type without args
   unordered_map<string,NamedType*> namedTypeList;
   
@@ -47,7 +48,7 @@ class Namespace {
   public :
     Namespace(Context* c, string name) : c(c), name(name) {}
     ~Namespace();
-    string getName() { return name;}
+    const string& getName() { return name;}
     Context* getContext() { return c;}
     unordered_map<string,Module*> getModules() { return moduleList;}
     unordered_map<string,Generator*> getGenerators() { return generatorList;}
@@ -63,6 +64,7 @@ class Namespace {
 
     Generator* newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams=Params());
     Module* newModuleDecl(string name, Type* t,Params configparams=Params());
+    void addModule(Module* m);
 
     Generator* getGenerator(string gname);
     Module* getModule(string mname);
