@@ -348,5 +348,23 @@ extern "C" {
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
 
+  void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg*** args, int* num_args) {
+      Instance* instance = rcast<Instance*>(core_instance);
+      Args genArgs = instance->getGenargs();
+      int size = genArgs.size();
+      Context* context = instance->getContext();
+      *names = context->newStringArray(size);
+      *args  = (COREArg**) context->newArgPtrArray(size);
+      *num_args = size;
+      int count = 0;
+      for (std::pair<std::string, Arg*> element : genArgs) {
+          std::size_t name_length = element.first.size();
+          (*names)[count] = context->newStringBuffer(name_length + 1);
+          memcpy((*names)[count], element.first.c_str(), name_length + 1);
+          (*args)[count] = rcast<COREArg*>(element.second);
+          count++;
+      }
+  }
+
 }//extern "C"
 }//CoreIR namespace

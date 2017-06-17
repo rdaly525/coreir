@@ -34,6 +34,7 @@ class Context {
   
   vector<Arg*> argList;
   vector<Args*> argsList;
+  vector<Arg**> argPtrArrays;
   vector<RecordParams*> recordParamsList;
   vector<Params*> paramsList;
   vector<Instance**> instanceArrays;
@@ -41,6 +42,8 @@ class Context {
   vector<Connection**> connectionPtrArrays;
   vector<Wireable**> wireableArrays;
   vector<const char**> constStringArrays;
+  vector<char**> stringArrays;
+  vector<char*> stringBuffers;
   vector<DirectedConnection*> directedConnectionArrays;
   vector<DirectedConnection**> directedConnectionPtrArrays;
   vector<DirectedInstance**> directedInstancePtrArrays;
@@ -100,11 +103,14 @@ class Context {
     }
 
 
+    Arg** newArgPtrArray(int size);
     Instance** newInstanceArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);
     const char** newConstStringArray(int size);
+    char** newStringArray(int size);
+    char* newStringBuffer(int size);
     DirectedConnection** newDirectedConnectionPtrArray(int size);
     DirectedInstance** newDirectedInstancePtrArray(int size);
 

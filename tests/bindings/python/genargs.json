@@ -1,0 +1,200 @@
+{
+  "namespaces": {
+    "_G": {
+      "modules": {
+        "Top": {
+          "def": {
+            "connections": [
+              [
+                [
+                  "r4",
+                  "out"
+                ],
+                [
+                  "io1",
+                  "in"
+                ]
+              ],
+              [
+                [
+                  "r3",
+                  "out"
+                ],
+                [
+                  "r4",
+                  "in"
+                ]
+              ],
+              [
+                [
+                  "c0",
+                  "out"
+                ],
+                [
+                  "p0",
+                  "data",
+                  "in",
+                  "0"
+                ]
+              ],
+              [
+                [
+                  "p0",
+                  "data",
+                  "out"
+                ],
+                [
+                  "r1",
+                  "in"
+                ]
+              ],
+              [
+                [
+                  "r0",
+                  "out"
+                ],
+                [
+                  "p0",
+                  "data",
+                  "in",
+                  "1"
+                ]
+              ],
+              [
+                [
+                  "r2",
+                  "out"
+                ],
+                [
+                  "r3",
+                  "in"
+                ]
+              ],
+              [
+                [
+                  "r1",
+                  "out"
+                ],
+                [
+                  "r2",
+                  "in"
+                ]
+              ],
+              [
+                [
+                  "io0",
+                  "out"
+                ],
+                [
+                  "r0",
+                  "in"
+                ]
+              ]
+            ],
+            "instances": {
+              "c0": {
+                "configargs": {
+                  "value": 795
+                },
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "Const"
+                ]
+              },
+              "io0": {
+                "configargs": {
+                  "mode": "i"
+                },
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "IO"
+                ]
+              },
+              "io1": {
+                "configargs": {
+                  "mode": "o"
+                },
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "IO"
+                ]
+              },
+              "p0": {
+                "configargs": {
+                  "op": "add"
+                },
+                "genargs": {
+                  "numin": 2,
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "PE"
+                ]
+              },
+              "r0": {
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "Reg"
+                ]
+              },
+              "r1": {
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "Reg"
+                ]
+              },
+              "r2": {
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "Reg"
+                ]
+              },
+              "r3": {
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "Reg"
+                ]
+              },
+              "r4": {
+                "genargs": {
+                  "width": 16
+                },
+                "generatorref": [
+                  "cgralib",
+                  "Reg"
+                ]
+              }
+            }
+          },
+          "type": "Any"
+        }
+      }
+    }
+  },
+  "top": [
+    "_G",
+    "Top"
+  ]
+}
