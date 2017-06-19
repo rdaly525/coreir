@@ -15,6 +15,17 @@ class COREArg(ct.Structure):
 
 COREArg_p = ct.POINTER(COREArg)
 
+class Arg(CoreIRType):
+    @property
+    def value(self):
+        type = libcoreir_c.COREGetArgKind(self.ptr)
+        # type enum values defined in include/coreir-c/coreir-args.h
+        if type == 0:
+            return libcoreir_c.COREArgIntGet(self.ptr)
+        elif type == 1:
+            return libcoreir_c.COREArgStringGet(self.ptr).decode()
+        raise NotImplementedError()
+
 class Args(CoreIRType):
     pass
 

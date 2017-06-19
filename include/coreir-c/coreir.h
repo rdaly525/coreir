@@ -76,4 +76,6 @@ extern COREDirectedConnection** COREDirectedInstanceGetOutputs(COREDirectedInsta
 extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstance* directed_instance, int* num_connections);
 // END   : directedview
 
+void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg** args, int* num_args);
+
 #endif //COREIR_C_H_
