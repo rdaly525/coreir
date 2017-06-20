@@ -10,7 +10,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   
   //Unary op declaration
   Params widthParams = {{"width",AINT}};
-  cgralib->newTypeGen("UnaryType",widthParams,[](Context* c, Args args) {
+  cgralib->newTypeGen("unary",widthParams,[](Context* c, Args args) { 
     uint width = args.at("width")->get<ArgInt>();
     return c->Record({
       {"in",c->BitIn()->Arr(width)},
@@ -48,11 +48,11 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   cgralib->newGeneratorDecl("Const",cgralib->getTypeGen("SrcType"),widthParams,valueParams);
 
   //Reg declaration
-  cgralib->newGeneratorDecl("Reg",cgralib->getTypeGen("UnaryType"),widthParams);
+  cgralib->newGeneratorDecl("Reg",cgralib->getTypeGen("unary"),widthParams);
 
   //IO Declaration
   Params modeParams = {{"mode",ASTRING}};
-  cgralib->newGeneratorDecl("IO",cgralib->getTypeGen("UnaryType"),widthParams,modeParams);
+  cgralib->newGeneratorDecl("IO",cgralib->getTypeGen("unary"),widthParams,modeParams);
 
   //Mem declaration
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};
