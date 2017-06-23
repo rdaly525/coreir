@@ -129,7 +129,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     std::string mem_prefix = "mem_";
     for (uint i = 1; i < stencil_height; ++i) {
       std::string mem_name = mem_prefix + std::to_string(i);
-      def->addInstance(mem_name,Mem,{{"width",aBitwidth},{"depth",aImageWidth}},{{"mode",c->argString("o")}});
+      def->addInstance(mem_name,Mem,{{"width",aBitwidth},{"depth",aImageWidth}},{{"mode",c->argString("linebuffer")}});
 
       // connect the input
       if (i == 1) {
