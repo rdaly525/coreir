@@ -11,7 +11,7 @@ void flatten(CoreIR::Context* c, CoreIR::Module* m, bool* err);
 //Inlines the instance
 void inlineInstance(Instance*);
 
-Instance* addPassthrough(Context* c, Wireable* w,string instname);
+Instance* addPassthrough(Wireable* w,string instname);
 
 
 //Container: the module that will be modified.

@@ -52,7 +52,7 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
     Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement,this->getConfigArgs(cinst));
     string cbufName = "_cbuf"+c->getUnique();
     passthroughToInline.push_back(cbufName);
-    addPassthrough(c,cinst,cbufName);
+    addPassthrough(cinst,cbufName);
     //TODO These connections could be preprocessed
     for (auto con : pdef->getConnections()) {
       
