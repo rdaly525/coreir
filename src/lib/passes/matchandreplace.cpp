@@ -1,16 +1,12 @@
+#include "coreir.h"
 #include "coreir-pass/passes.h"
+#include "matchandreplace.hpp"
 
-namespace CoreIR {
-
-bool matchAndReplace(Module* container, Module* pattern, Module* replacement, Args configargs) {
-  std::function<Args(const Instance*)> get = [&configargs](const Instance* matched) {
-    return configargs;
-  };
-  return matchAndReplace(container,pattern,replacement,get);
-}
+using namespace CoreIR;
+ 
+bool MatchAndReplacePass::runOnModule(Module* m) {
   
-bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std::function<Args(const Instance*)> getConfigargs) {
-
+  Module* container = m;
   //Checking for valid inputs
   
   //pattern module interface must be the same as the replacement interface
@@ -53,7 +49,7 @@ bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std
     
     //TODO Assuming that the connections are correct
     matches.push_back(cinst);
-    Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement,getConfigargs(cinst));
+    Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement,this->getConfigArgs(cinst));
     string cbufName = "_cbuf"+c->getUnique();
     passthroughToInline.push_back(cbufName);
     addPassthrough(c,cinst,cbufName);
@@ -97,6 +93,4 @@ bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std
   
   cdef->validate();
   return found;
-}
-
 }
