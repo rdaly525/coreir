@@ -47,6 +47,7 @@ class Wireable {
     SelectPath getSelectPath();
     ConstSelectPath getConstSelectPath();
     string wireableKind2Str(WireableKind wb);
+    LocalConnections getLocalConnections();
 };
 
 ostream& operator<<(ostream&, const Wireable&);

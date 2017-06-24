@@ -114,22 +114,15 @@ Instance* addPassthrough(Wireable* w,string instname) {
   Instance* pt = def->addInstance(instname,c->getNamespace("stdlib")->getGenerator("passthrough"),{{"type",c->argType(wtype)}});
   
   //Connect all the original connections to the passthrough.
-  std::function<void(Wireable*)> swapConnections;
-  swapConnections = [instname,def,&swapConnections](Wireable* curw) ->void {
-    SelectPath curSP = curw->getSelectPath();
-    curSP[0] = instname;
-    curSP.insert(curSP.begin()+1,"out");
-    for (auto conw : curw->getConnectedWireables()) {
-      SelectPath conSP = conw->getSelectPath();
-      def->connect(curSP,conSP);
-      def->disconnect(curw,conw);
-    }
-    for (auto selmap : curw->getSelects()) {
-      swapConnections(selmap.second);
-    }
-  };
-  swapConnections(w);
-  
+  LocalConnections cons = w->getLocalConnections();
+  for (auto con : cons) {
+    SelectPath curPath = con.first->getSelectPath();
+    curPath[0] = instname;
+    curPath.insert(curPath.begin()+1,"out");
+    SelectPath otherPath = con.second->getSelectPath();
+    def->connect(curPath,otherPath);
+    def->disconnect(con.first,con.second);
+  }
   
   //Connect the passthrough back to w
   def->connect(w,pt->sel("in"));

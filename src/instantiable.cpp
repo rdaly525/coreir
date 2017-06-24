@@ -103,16 +103,14 @@ ModuleDef* Module::newModuleDef() {
   return md;
 }
 
-bool Module::isEqual(Module* m) {
-  Module* m0 = this;
-  
+bool Module::isEqual(Module* m0, Module* m1, bool checkConfig, bool checkInstNames,bool checkModuleNames) {
   //Check for the same configparams
-  if (m0->getConfigParams() != m->getConfigParams()) {
+  if (checkConfig && (m0->getConfigParams() != m1->getConfigParams())) {
     return false;
   }
 
   //Check if it is of the same type
-  if (m0->getType() != m->getType()) {
+  if (m0->getType() != m1->getType()) {
     return false;
   }
   
@@ -133,14 +131,14 @@ bool Module::isEqual(Module* m) {
 
   //for now as an approximate thing, just check that number of instances and number of connections are the same
   uint m0InstSize = m0->getDef()->getInstances().size();
-  uint mInstSize = m->getDef()->getInstances().size();
-  if (m0InstSize != mInstSize) {
+  uint m1InstSize = m1->getDef()->getInstances().size();
+  if (m0InstSize != m1InstSize) {
     return false;
   }
 
   uint m0ConSize = m0->getDef()->getConnections().size();
-  uint mConSize = m->getDef()->getConnections().size();
-  if (m0ConSize != mConSize) {
+  uint m1ConSize = m1->getDef()->getConnections().size();
+  if (m0ConSize != m1ConSize) {
     return false;
   }
   return true;

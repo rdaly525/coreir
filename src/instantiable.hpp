@@ -111,7 +111,7 @@ class Module : public Instantiable {
     
     //check for equal graphs, types, genargs, configargs
     //Does not check instance names
-    bool isEqual(Module* m);
+    static bool isEqual(Module* m0, Module* m1, bool checkConfig=false, bool checkInstNames=false,bool checkInstantiableNames=false);
     
     DirectedModule* newDirectedModule();
     

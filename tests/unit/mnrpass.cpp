@@ -27,13 +27,13 @@ int main() {
     def->connect("c0.out","s0.in.0");
     def->connect("c1.out","s0.in.1");
     def->connect("s0.out","s1.in.0");
-    def->connect("s0.out","s1.in.1");
+    def->connect("c1.out","s1.in.1");
     def->connect("s1.out","m0.in.0");
     def->connect("s0.out","m0.in.1");
   ms->setDef(def);
   ms->print();
   
-  // Define same random module with adds instead of subs
+  // Define same random module with adds instead of subs and operands switched
   Module* ma = g->newModuleDecl("SNRTestAdd",c->Any());
   def = ma->newModuleDef();
     def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(5)}});
@@ -41,10 +41,10 @@ int main() {
     def->addInstance("a0",sl->getGenerator("add"),wargs);
     def->addInstance("a1",sl->getGenerator("add"),wargs);
     def->addInstance("m0",sl->getGenerator("mul"),wargs);
-    def->connect("c0.out","a0.in.0");
-    def->connect("c1.out","a0.in.1");
-    def->connect("a0.out","a1.in.0");
+    def->connect("c0.out","a0.in.1");
+    def->connect("c1.out","a0.in.0");
     def->connect("a0.out","a1.in.1");
+    def->connect("c1.out","a1.in.0");
     def->connect("a1.out","m0.in.0");
     def->connect("a0.out","m0.in.1");
   ma->setDef(def);
@@ -62,7 +62,9 @@ int main() {
   Module* patternSub = patns->newModuleDecl("sub",subType);
   ModuleDef* pdef = patternSub->newModuleDef();
     pdef->addInstance("inst",sl->getGenerator("sub"),wargs);
-    pdef->connect("self","inst");
+    pdef->connect("self.in.0","inst.in.1");
+    pdef->connect("self.in.1","inst.in.0");
+    pdef->connect("self.out","inst.out");
   patternSub->setDef(pdef);
 
   MatchAndReplacePass* pSub2Add = new MatchAndReplacePass(
@@ -75,6 +77,7 @@ int main() {
   pm->run();
   cout << "Printing the (hompefully) modified graph" << endl;
   ms->print();
+  assert(Module::isEqual(ma,ms));
 
   deleteContext(c);
   

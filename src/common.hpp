@@ -74,7 +74,8 @@ class Select;
 typedef vector<string> SelectPath;
 typedef vector<std::reference_wrapper<const string>> ConstSelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
-
+//This is meant to be in relation to an instance. First wireable of the pair is of that instance.
+typedef vector<std::pair<Wireable*,Wireable*>> LocalConnections;
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
