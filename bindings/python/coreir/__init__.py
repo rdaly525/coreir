@@ -169,3 +169,6 @@ libcoreir_c.COREGetTypeKind.restype = ct.c_int # CORETypeKind is an enum
 
 libcoreir_c.CORETypeGetSize.argtypes = [COREType_p]
 libcoreir_c.CORETypeGetSize.restype = ct.c_uint
+
+libcoreir_c.COREInstanceGetGenArgs.argtypes = [COREWireable_p, ct.POINTER(ct.POINTER(ct.c_char_p)), ct.POINTER(ct.POINTER(COREArg_p)), ct.POINTER(ct.c_int)]
+libcoreir_c.COREInstanceGetGenArgs.restype = None

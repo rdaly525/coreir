@@ -14,6 +14,7 @@ Context::~Context() {
   
   //for (auto it : genargsList) delete it;
   for (auto it : argList) delete it;
+  for (auto it : argPtrArrays) free(it);
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
   for (auto it : libs) delete it.second;
@@ -22,6 +23,8 @@ Context::~Context() {
   for (auto it : connectionArrays) free(it);
   for (auto it : wireableArrays) free(it);
   for (auto it : constStringArrays) free(it);
+  for (auto it : stringArrays) free(it);
+  for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
  
@@ -154,6 +157,12 @@ Args* Context::newArgs() {
   return args;
 }
 
+Arg** Context::newArgPtrArray(int size) {
+    Arg** arr = (Arg**) malloc(sizeof(Arg*) * size);
+    argPtrArrays.push_back(arr);
+    return arr;
+}
+
 Instance** Context::newInstanceArray(int size) {
   Instance** arr = (Instance**) malloc(sizeof(Instance*) * size);
   instanceArrays.push_back(arr);
@@ -175,6 +184,18 @@ Connection** Context::newConnectionPtrArray(int size) {
 const char** Context::newConstStringArray(int size) {
     const char** arr = (const char**) malloc(sizeof(const char*) * size);
     constStringArrays.push_back(arr);
+    return arr;
+}
+
+char** Context::newStringArray(int size) {
+    char** arr = (char**) malloc(sizeof(char*) * size);
+    stringArrays.push_back(arr);
+    return arr;
+}
+
+char* Context::newStringBuffer(int size) {
+    char* arr = (char*) malloc(sizeof(char) * size);
+    stringBuffers.push_back(arr);
     return arr;
 }
 

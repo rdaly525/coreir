@@ -1,7 +1,7 @@
 import ctypes as ct
 from coreir.base import CoreIRType
 from coreir.lib import libcoreir_c
-from coreir.type import Type
+from coreir.type import Type, COREArg_p, Arg
 import coreir.module
 
 class COREWireable(ct.Structure):
@@ -52,7 +52,7 @@ class Instance(Wireable):
         name = libcoreir_c.COREGetInstRefName(self.ptr)
         return name.decode()
 
-    def get_config_value(self,key):
+    def get_config_value(self, key):
         arg = libcoreir_c.COREGetConfigValue(self.ptr,str.encode(key))
         type = libcoreir_c.COREGetArgKind(arg)
         # type enum values defined in include/coreir-c/coreir-args.h
@@ -62,6 +62,18 @@ class Instance(Wireable):
             return libcoreir_c.COREArgStringGet(arg).decode()
         
         raise NotImplementedError
+
+    @property
+    def generator_args(self):
+        num_args = ct.c_int()
+        names = ct.POINTER(ct.c_char_p)()
+        args = ct.POINTER(COREArg_p)()
+        libcoreir_c.COREInstanceGetGenArgs(self.ptr, ct.byref(names), ct.byref(args), ct.byref(num_args))
+        ret = {}
+        for i in range(num_args.value):
+            ret[names[i].decode()] = Arg(args[i], self.context)
+        return ret
+
 
 
 class Interface(Wireable):
