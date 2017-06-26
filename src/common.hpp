@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <vector>
+#include <deque>
 #include <unordered_map>
 #include <cassert>
 
@@ -71,7 +72,7 @@ class Interface;
 class Instance;
 class Select;
 
-typedef vector<string> SelectPath;
+typedef deque<string> SelectPath;
 typedef vector<std::reference_wrapper<const string>> ConstSelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 
@@ -94,7 +95,7 @@ void checkArgsAreParams(Args args, Params params);
 
 Param Str2Param(string s);
 string SelectPath2Str(SelectPath s);
-vector<std::string> splitString(const string &s, char delim);
+SelectPath splitString(const string &s, char delim);
 bool hasChar(const std::string s, char c);
 
 
