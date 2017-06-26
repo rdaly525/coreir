@@ -25,7 +25,7 @@ void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireab
   if (auto was = dyn_cast<Select>(wa)) {
     SelectPath tu = spDelta;
     assert(was->getParent());
-    tu.insert(tu.begin(),was->getSelStr());
+    tu.push_front(was->getSelStr());
     connectOffsetLevel(def,was->getParent(),tu,wb);
   }
 
@@ -113,12 +113,11 @@ Instance* addPassthrough(Wireable* w,string instname) {
   //Add actual passthrough instance
   Instance* pt = def->addInstance(instname,c->getNamespace("stdlib")->getGenerator("passthrough"),{{"type",c->argType(wtype)}});
   
-  //Connect all the original connections to the passthrough.
   LocalConnections cons = w->getLocalConnections();
   for (auto con : cons) {
     SelectPath curPath = con.first->getSelectPath();
-    curPath[0] = instname;
-    curPath.insert(curPath.begin()+1,"out");
+    curPath[0] = "out";
+    curPath.push_front(instname);
     SelectPath otherPath = con.second->getSelectPath();
     def->connect(curPath,otherPath);
     def->disconnect(con.first,con.second);

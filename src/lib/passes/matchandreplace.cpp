@@ -125,7 +125,7 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
       //update the paths to be consistent 
       rpath[0] = rinst->getInstname();
       cpath[0] = "in";
-      cpath.insert(cpath.begin(),cbufName);
+      cpath.push_front(cbufName);
       cdef->connect(rpath,cpath);
     }
   }
