@@ -67,8 +67,14 @@ libcoreir_c.COREModuleDefAddModuleInstance.restype = COREWireable_p
 libcoreir_c.COREModuleDefGetInterface.argtypes = [COREModuleDef_p]
 libcoreir_c.COREModuleDefGetInterface.restype = COREWireable_p
 
-libcoreir_c.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_uint)]
-libcoreir_c.COREModuleDefGetInstances.restype = ct.POINTER(COREWireable_p)
+libcoreir_c.COREModuleDefInstancesGetFirst.argtypes = [COREModuleDef_p]
+libcoreir_c.COREModuleDefInstancesGetFirst.restype = COREWireable_p
+
+libcoreir_c.COREModuleDefInstancesGetLast.argtypes = [COREModuleDef_p]
+libcoreir_c.COREModuleDefInstancesGetLast.restype = COREWireable_p
+
+libcoreir_c.COREModuleDefInstancesGetNext.argtypes = [COREModuleDef_p, COREWireable_p]
+libcoreir_c.COREModuleDefInstancesGetNext.restype = COREWireable_p
 
 libcoreir_c.COREModuleGetDirectedModule.argtypes = [COREModule_p]
 libcoreir_c.COREModuleGetDirectedModule.restype = COREDirectedModule_p

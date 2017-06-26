@@ -135,19 +135,16 @@ extern "C" {
     rcast<Context*>(c)->printerrors();
   }
 
-  COREWireable** COREModuleDefGetInstances(COREModuleDef* m, uint* numInstances) {
-    ModuleDef* module_def = rcast<ModuleDef*>(m);
-    unordered_map<string,Instance*> instance_set = module_def->getInstances();
-    Context* context = module_def->getContext();
-    int size = instance_set.size();
-    *numInstances = size;
-    Instance** arr = context->newInstanceArray(size);
-    int count = 0;
-    for (auto it : instance_set) {
-      arr[count] = it.second;
-      count++;
-    }
-    return rcast<COREWireable**>(arr);
+  COREWireable* COREModuleDefInstancesGetFirst(COREModuleDef* module_def) {
+      return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterFirst());
+  }
+
+  COREWireable* COREModuleDefInstancesGetLast(COREModuleDef* module_def) {
+      return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterLast());
+  }
+
+  COREWireable* COREModuleDefInstancesGetNext(COREModuleDef* module_def, COREWireable* curr) {
+      return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterNext(rcast<Instance*>(curr)));
   }
 
   COREConnection** COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {

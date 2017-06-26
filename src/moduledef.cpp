@@ -9,7 +9,7 @@ namespace CoreIR {
 
 
 
-ModuleDef::ModuleDef(Module* module) : module(module) {
+ModuleDef::ModuleDef(Module* module) : module(module), instancesIterFirst(nullptr), instancesIterLast(nullptr) {
   interface = new Interface(this,module->getContext()->Flip(module->getType()));
   cache = new SelCache();
 }
@@ -78,6 +78,63 @@ Wireable* ModuleDef::sel(SelectPath path) {
   return cur;
 }
 
+void ModuleDef::appendInstanceToIter(Instance* instance) {
+    if (instancesIterFirst == nullptr) {
+        assert(this->instancesIterLast == nullptr);
+        // Sets `instance` to the current first and last pointer of the
+        // iterator and sets the prev and next pointers to be null
+        this->instancesIterFirst = instance;
+        this->instancesIterLast = instance;
+        this->instancesIterNextMap[instance] = nullptr;
+        this->instancesIterPrevMap[instance] = nullptr;
+    } else {
+        assert(this->instancesIterLast != nullptr);
+        Instance* currLast = this->instancesIterLast;
+        // Updates the current last instance's next to point to the new instance,
+        assert(this->instancesIterNextMap[currLast] == nullptr);  // current last shouldn't have a next
+        this->instancesIterNextMap[currLast] = instance;
+        // Sets the new instance's prev to point the current last instance,
+        this->instancesIterPrevMap[instance] = currLast;
+        // Sets the new instance's next to be null
+        this->instancesIterNextMap[instance] = nullptr;
+        // Sets the current last instance to be the new instance
+        this->instancesIterLast = instance;
+    }
+}
+
+void ModuleDef::removeInstanceFromIter(Instance* instance) {
+    assert(this->instancesIterNextMap.count(instance) == 1);
+    assert(this->instancesIterPrevMap.count(instance) == 1);
+    // Because we set prev and next to be nullptr for the first and last, we
+    // can assume the prev and next exist or are null
+    Instance *next = this->instancesIterNextMap[instance];
+    Instance *prev = this->instancesIterPrevMap[instance];
+    // Update pointers to skip instance
+    this->instancesIterNextMap[prev] = next;
+    this->instancesIterPrevMap[next] = prev;
+    if (instance == this->instancesIterLast) {
+        // The new last is this instance's prev
+        this->instancesIterLast = prev;
+    } else if (instance == this->instancesIterFirst) {
+        // The new first is the this instance's next
+        this->instancesIterFirst = next;
+    }
+}
+
+Instance* ModuleDef::getInstancesIterFirst() {
+    ASSERT(instancesIterFirst != nullptr, "isntancesIterFirst is null"); // TOOD: Should be an error?
+    return instancesIterFirst;
+}
+
+Instance* ModuleDef::getInstancesIterLast() {
+    ASSERT(instancesIterLast != nullptr, "isntancesIterFirst is null") // TOOD: Should be an error?
+    return instancesIterLast;
+}
+Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
+    ASSERT(this->instancesIterNextMap.count(instance) == 1, "instance not in iter") // TOOD: Should be an error?
+    return this->instancesIterNextMap[instance];
+}
+
 
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
   assert(instances.count(instname)==0);
@@ -88,6 +145,8 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
   //Add to instanceMap
   instanceMap[gen].insert(inst);
 
+  appendInstanceToIter(inst);
+
   return inst;
 }
 
@@ -97,6 +156,8 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   
   //Add to instanceMap
   instanceMap[m].insert(inst);
+
+  appendInstanceToIter(inst);
   
   return inst;
 }
@@ -213,6 +274,8 @@ void ModuleDef::removeInstance(string iname) {
   assert(instanceMap.count(i)>0);
   assert(instanceMap[i].count(inst)>0);
   instanceMap[i].erase(inst);
+
+  removeInstanceFromIter(inst);
 
 }
 
