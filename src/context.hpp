@@ -37,7 +37,6 @@ class Context {
   vector<Arg**> argPtrArrays;
   vector<RecordParams*> recordParamsList;
   vector<Params*> paramsList;
-  vector<Instance**> instanceArrays;
   vector<Connection*> connectionArrays;
   vector<Connection**> connectionPtrArrays;
   vector<Wireable**> wireableArrays;
@@ -104,7 +103,6 @@ class Context {
 
 
     Arg** newArgPtrArray(int size);
-    Instance** newInstanceArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);

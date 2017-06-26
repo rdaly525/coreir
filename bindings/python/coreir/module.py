@@ -35,9 +35,16 @@ class ModuleDef(CoreIRType):
 
     @property
     def instances(self):
-        size = ct.c_uint()
-        result = libcoreir_c.COREModuleDefGetInstances(self.ptr, ct.byref(size))
-        return [Instance(result[i],self.context) for i in range(size.value)]
+        result = []
+        curr = libcoreir_c.COREModuleDefInstancesGetFirst(self.ptr)
+        last = libcoreir_c.COREModuleDefInstancesGetLast(self.ptr)
+        def get_pointer_addr(ptr):
+            return ct.cast(ptr, ct.c_void_p).value
+        while get_pointer_addr(curr) != get_pointer_addr(last):
+            result.append(Instance(curr, self.context))
+            curr = libcoreir_c.COREModuleDefInstancesGetNext(self.ptr, curr)
+        result.append(Instance(curr, self.context))
+        return result
 
     @property
     def connections(self):

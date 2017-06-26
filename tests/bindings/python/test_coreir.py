@@ -65,6 +65,7 @@ def test_module_def_instances():
     for pointer in pointers_actual:
         assert pointer in pointers_expected
         pointers_expected.remove(pointer)
+    assert not len(pointers_expected), "Missing pointers {}".format(pointers_expected)
 
     assert_pointers_equal(instances[0].module_def.ptr, module_def.ptr)
     assert_pointers_equal(instances[0].module.ptr, module.ptr)
