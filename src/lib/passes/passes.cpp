@@ -28,4 +28,3 @@ PassManager::~PassManager() {
 }
 
 Pass::~Pass() {}
-ModulePass::~ModulePass() {}

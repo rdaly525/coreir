@@ -2,8 +2,58 @@
 #include "coreir-pass/passes.h"
 #include "matchandreplace.hpp"
 
+#include <algorithm>
+
 using namespace CoreIR;
- 
+
+using namespace std;
+
+void MatchAndReplacePass::verifyOpts(Opts opts) {
+  ASSERT( (opts.configargs.size() > 0) && (opts.getConfigArgs) == false,"Cannot provide configargs and getConfigArgs at the same time")
+  if (opts.instanceKey.size() > 0) {
+    auto key = opts.instanceKey;
+    //Verify that each instance is a unique instance of pattern.
+    ASSERT(key.size()==patern->getInstances().size(),"InstanceKey must contain each instance from pattern")
+    for (auto instmap : pattern->getInstances()) {
+      if (find(key.begin(),key.end(),instmap.first) == key.end()) {
+        ASSERT(false, "InstanceKey must contain each instance from pattern");
+      }
+    }
+  }
+
+  //TODO potentally more checks
+}
+
+//This should load instanceKey, inCons, exCons
+bool MatchAndReplacePass::preprocessPattern() {
+  
+  //Just load it in whatever order if it is 0
+  if (instanceKey.size()==0) {
+    for (auto instmap : pattern->getInstances()) {
+      instanceKey.push_back(instmap.first);
+    }
+  }
+
+  //create a backwards map from str -> uint for key
+  unordered_map<string,uint> reverseKey;
+  for (uint=0; i<instanceKey.size(); ++i) {
+    reverseKey[instanceKey[i]] = i;
+  }
+
+  //Load InternalConnections structure
+  for (uint i=0; i<instanceKey.size(); ++i) {
+    unordered_map<SelectPath,vector<pair<SelectPath,uint>>> exConsi;
+    LocalConnections lcons = pattern->sel(instanceKey[i]])->getLocalConnections();
+    for (auto vcon : lcons) {
+      SelectPath pathLocal = vcon.first->getSelectPath();
+      SelectPath pathConnected = vcon.second->getSelectPath();
+    }
+  }
+
+
+}
+
+
 bool MatchAndReplacePass::runOnModule(Module* m) {
   
   Module* container = m;

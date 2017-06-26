@@ -13,6 +13,7 @@ Step 1: Analyze pattern (can be done at pass creation time)
   Allow passing in a callback function that takes in vector<const Instances> and returns a boolean for if it matches.
     This could be used to check for values of configArgs and such
   Create an association between all instances and the internal connections (not touching the pattern edge)
+    (Try not to duplicate the connections)
     This should probably look something like 
       0: [ selpath0: [(selpathI, <i>),(selpathJ, <J>)], selpath0:[(selpathK, <K>)], ... ]
       1: [ selpath->selpath, 0),  ...]
@@ -24,7 +25,7 @@ Step 1: Analyze pattern (can be done at pass creation time)
   
 Step 2: Search for pattern (during passing running):
   1: Verify all instances (and their counts) within the pattern exist within the current module.
-  2: allocate a Vector of N instances. vector<Instance*> v(N)
+  2: allocate a Vector of N instances. vector<Instance*> v(N) which will contain matching pattern
   3: start at the first instance of type 0. 
     Go through all select paths for 0.
       verify that number of select paths are correct

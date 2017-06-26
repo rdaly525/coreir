@@ -46,7 +46,7 @@ class PassManager {
 class Pass {
   
   public:
-    enum PassKind {PK_Module};
+    enum PassKind {PK_Module, PK_InstanceDAG};
   private:
     PassKind kind;
   public:
@@ -58,15 +58,16 @@ class Pass {
 class ModulePass : public Pass {
   public:
     explicit ModulePass() : Pass(PK_Module) {}
-    virtual ~ModulePass() = 0;
     static bool classof(const Pass* p) {return p->getKind()==PK_Module;}
     virtual bool runOnModule(Module* m) = 0;
 
 };
 
-
-
-
+class InstanceDAGPass : public Pass {
+  public:
+    explicit InstanceDAGPass() : Pass(PK_InstanceDAG) {}
+    static bool classof(const Pass* p) {return p->getKind()==PK_InstanceDAG;}
+    virtual bool runOnModule(Module* m) = 0;
 
 }
 #endif //PASSES_HPP_

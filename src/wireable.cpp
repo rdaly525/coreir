@@ -101,7 +101,13 @@ LocalConnections Wireable::getLocalConnections() {
   return cons;
 }
 
-
+Wireable* Wireable::getTopParent() {
+  Wireable* top = this;
+  while (auto wsel = dyn_cast<Select>(top)) {
+    top = wsel->getParent();
+  }
+  return top;
+}
 
 
 
@@ -213,5 +219,6 @@ Select* SelCache::newSelect(ModuleDef* context, Wireable* parent, string selStr,
     return s;
   }
 }
+
 
 } //CoreIR namesapce
