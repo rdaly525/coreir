@@ -25,7 +25,7 @@ void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireab
   if (auto was = dyn_cast<Select>(wa)) {
     SelectPath tu = spDelta;
     assert(was->getParent());
-    tu.insert(tu.begin(),was->getSelStr());
+    tu.push_front(was->getSelStr());
     connectOffsetLevel(def,was->getParent(),tu,wb);
   }
 
@@ -116,8 +116,8 @@ Instance* addPassthrough(Context* c, Wireable* w,string instname) {
   std::function<void(Wireable*)> swapConnections;
   swapConnections = [instname,def,&swapConnections](Wireable* curw) ->void {
     SelectPath curSP = curw->getSelectPath();
-    curSP[0] = instname;
-    curSP.insert(curSP.begin()+1,"out");
+    curSP[0] = "out";
+    curSP.push_front(instname);
     for (auto conw : curw->getConnectedWireables()) {
       SelectPath conSP = conw->getSelectPath();
       def->connect(curSP,conSP);
