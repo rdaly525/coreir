@@ -57,20 +57,18 @@ ConstSelectPath Wireable::getConstSelectPath() {
   return path;
 }
 
-
-// TODO This might be slow due to insert on a vector. Maybe use Deque?
 SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
   SelectPath path;
   while(auto s = dyn_cast<Select>(top)) {
-    path.insert(path.begin(), s->getSelStr());
+    path.push_front(s->getSelStr());
     top = s->getParent();
   }
   if (isa<Interface>(top)) 
-    path.insert(path.begin(), "self");
+    path.push_front("self");
   else { //This should be an instance
     string instname = cast<Instance>(top)->getInstname();
-    path.insert(path.begin(), instname);
+    path.push_front(instname);
   }
   return path;
 }

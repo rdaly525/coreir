@@ -188,8 +188,8 @@ Module* loadModule(Context* c, string filename, bool* err) {
       //Connections
       if (jdef.count("connections")) {
         for (auto jcon : jdef.at("connections").get<vector<vector<json>>>()) {
-          vector<string> pathA = jcon[0].get<vector<string>>();
-          vector<string> pathB = jcon[1].get<vector<string>>();
+          SelectPath pathA = jcon[0].get<SelectPath>();
+          SelectPath pathB = jcon[1].get<SelectPath>();
           mdef->connect(pathA,pathB);
         }
       }
