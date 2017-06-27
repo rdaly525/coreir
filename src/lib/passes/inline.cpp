@@ -72,7 +72,7 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
     connectSameLevel(def,waSelects[selstr],wbSelects[selstr]);
   }
   
-  //TODO check bug here first
+  //TODO check any bugs here first
   //Connect wb to all the subselects of waOnly
   for (auto selstr : waOnly) {
     connectOffsetLevel(def,wb, {selstr}, waSelects[selstr]);

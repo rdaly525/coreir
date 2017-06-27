@@ -27,6 +27,7 @@ Step 2: Search for pattern (during passing running):
   1: Verify all instances (and their counts) within the pattern exist within the current module.
   2: allocate a Vector of N instances. vector<Instance*> v(N) which will contain matching pattern
   3: start at the first instance of type 0. 
+    check if the types are the same 
     Go through all select paths for 0.
       verify that number of select paths are correct
       verify that the other select path exists. Also label the instance as the correct number. push on set.

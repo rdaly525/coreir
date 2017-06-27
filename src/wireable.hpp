@@ -87,6 +87,10 @@ class Instance : public Wireable {
     //Convinience functions
     bool isGen() { return isgen;}
     Generator* getGeneratorRef() { return generatorRef;}
+    Instantiable* getInstantiableRef() { 
+      if (isgen) return generatorRef;
+      else return moduleRef;
+    }
     Args getGenargs() {return genargs;}
     
     void runGenerator();

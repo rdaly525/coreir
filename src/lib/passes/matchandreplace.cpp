@@ -82,6 +82,19 @@ void MatchAndReplacePass::preprocessPattern() {
 
 }
 
+Wireable* selWithCheck(Wireable* w, SelectPath path, bool* error) {
+  if (path.size()==0) {
+    return w;
+  }
+  string sel = path[0];
+  if (!w->hasSel(sel)) {
+    *error = true;
+    return nullptr;
+  }
+  path.pop_front();
+  return selWithCheck(w->sel(sel),path,error);
+}
+
 
 bool MatchAndReplacePass::runOnModule(Module* m) {
   
@@ -104,71 +117,187 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
     if (!cinstMap.count(pi.first)) return false;
   }
   
+  //Cache of used instances (for matches)
+  unordered_set<Instance*> usedInstances;
+
   //Keep track of matched instances. This should correspond to instanceKey
-  vector<Instance*> matched;
+  vector<Instance*> matchedInstances(instanceKey.size());
 
-  //The only instance
-  Instantiable* pi = pdef->getInstanceMap().begin()->first;
-  Instance* pinst = *pdef->getInstanceMap()[pi].begin();
+  ////set of all matches to delete. 
+  //vector<Instance*> matchesToDelete;
   
-  //Can only deal with generators
-  ASSERT(pinst->isGen(),"NYI Cannot do patterns of non generators");
-  Args pgenargs = pinst->getGenargs();
+  //Keep list of passthrough instances to inline
+  vector<Instance*> passthroughsToInline;
   
-  //Keep list of matching instances to delete afterwards
-  std::vector<Instance*> matches;
-  std::vector<string> passthroughToInline;
+  //Final return value
+  bool found = false;
 
-  for (auto cinst : cinstMap[pi]) {
-    //Check if the genargs are the same
-    if (!(cinst->getGenargs() == pgenargs)) {
+  //always start with key0 
+  Instance* pfirst = cast<Instance>(pdef->sel(instanceKey[0]));
+  Instantiable* pfirstKind = pfirst->getInstantiableRef();
+
+  for (auto cinst : cinstMap[pfirstKind]) {
+    
+    //Work queue. {idx,potential matching instance}
+    std::queue<std::pair<uint,Instance*>> work;
+    
+    //Keep track of the number of successful instances
+    uint numCompleted;
+    
+    //Keep track of instances completed or on queue
+    unordered_set<uint> accountedFor;
+
+    work.push({0,cinst});
+    while (!work.empty()) {
+      uint idx = work.front().first;
+      Instance* minst = work.front().second;
+      Instance* pinst = cast<Instance>(pdef->sel(instanceKey[idx]));
+      
+      //If mnist is already used, break.
+      if (usedInstances.count(mnist)>0) {
+        break;
+      }
+
+      //Check if the types are the same
+      if (minst->getType() != pinst->getType() ) {
+        break;
+      }
+
+      //Check if all internal paths are correct.
+      bool pathsCorrect = true;
+      for (auto lcons : this->inCons[idx]) {
+        SelectPath localPath = lcons.first;
+        SelectPath otherPath = lcons.second[0].first;
+        uint otherIdx = lcons.second[0].second;
+
+        //Get local Wireable, and check if it exists
+        bool error = false;
+        Wireable* localW = selWithCheck(minst,localPath,&error);
+        if (error) {
+          pathsCorrect = false;
+          break;
+        }
+        
+        //Check if the fanout is exactly the same
+        ASSERT(lcons.second.size()==1,"NYI fanout"); //TODO handle fanout
+        if (localW->getConnectedWireables().size() != lcons.second.size() ) {
+          pathsCorrect = false;
+          break;
+        }
+        
+        Wireable* otherW = local->getConnectedWireables()[0];
+        Wireable* otherTopW = otherW->getTopParent();
+        
+        Instance* otherInst;
+        if (!(otherInst = dyn_cast<Instance>(otherTopW))) {
+          pathsCorrect = false;
+          break;
+        }
+
+        //check if otherInst is the correct Module Type
+        if (pdef->sel(instanceKey[otherIdx])->getInstantiableRef() != otherInst->getInstantiableRef()) {
+          pathsCorrect = false;
+          break;
+        }
+        
+        //Check to see if the other path exists
+        Wireable* otherWCheck = selWithCheck(otherInst,otherPath,&error);
+        if (error) {
+          pathsCorrect = false;
+          break;
+        }
+
+        //Check if it is the same as the connected path
+        if (otherW != otherWCheck) {
+          pathsCorrect = false;
+          break;
+        }
+
+
+        //Add other instance to queue if not there
+        if (accountedFor.count(otherIdx)==0) {
+          work.push({otherIdx,otherInst});
+        }
+      }// End connections check
+
+      //Found correct connection  
+      if (pathsCorrect) {
+        matchedInstances[idx] = mnist;
+        numCompleted++;
+      }
+      
+    }// End work queue
+
+    //Checking if it completely matched
+    if (numCompleted != instanceKey.size()) {
       continue;
     }
     
-    //TODO Assuming that the connections are correct
-    matches.push_back(cinst);
-    //TODO this is origianl. Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement,this->getConfigArgs(cinst));
-    Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement);
-    string cbufName = "_cbuf"+c->getUnique();
-    passthroughToInline.push_back(cbufName);
-    addPassthrough(cinst,cbufName);
-    //TODO These connections could be preprocessed
-    for (auto con : pdef->getConnections()) {
+    //If user defined match function exists, check that.
+    if (this->checkMatching) {
+      if (!this->checkMatching(matchedInstances)) {
+        continue;
+      }
+    }
+
+    //Here I know I have a match in matchedInstances
+    found = true;
+
+    //Next steps are actually doing the replacement
+    
+    //TODO do I need to remove all internal connections first?
+ 
+    //Add the replacement pattern (finally!!)
+    string rName = replacement->getInstname()+c->getUnique();
+    Args rConfigargs;
+    if (this->getConfigArgs) {
+      rConfigargs = this->getConfigArgs(matchedInstances);
+    }
+    else if (this->configargs.size()>1) {
+      rConfigargs = this->configargs;
+    }
+    Instance* rinst = cdef->addInstance(rName,replacement,rConfigargs);
+    
+    //For each matched instance...
+    for (uint i=0; i<instanceKey.size()) {
+      Instance* minst = matchedInstances[i];
+      assert(usedInstances.count(minst)==0);
+      usedInstances.insert(minst);
+
+      //Make a passthrough for the instance
+      string ptName = "_pt" + c->getUnique();
+      Instance* pt = addPassthrough(minst,ptName);
+      passthroughsToInline.push_back(pt);
       
-      //Get and sort the paths
-      SelectPath apath = con.first->getSelectPath();
-      SelectPath bpath = con.second->getSelectPath();
-      SelectPath rpath, cpath;
-      assert(apath[0] == "self" || bpath[0] == "self");
-      if (apath[0] == "self") {
-        rpath = apath;
-        cpath = bpath;
+      //Use external connections to connect to replacement
+      for (auto excon : exCons[i]) {
+        SelectPath localPath = excon.first;
+        SelectPath replacePath = excon.second;
+        
+        //ptName."in".localpath
+        localPath.push_front("in");
+        localPath.push_front(ptName);
+  
+        //rName.replacePath
+        replacePath.push_front(rName);
+        
+        //Add the connection back to the cdef
+        cdef->connect(localPath,replacePath);
       }
-      else if(bpath[0] == "self") {
-        rpath = bpath;
-        cpath = apath;
-      }
-      else {
-        assert(0);
-      }
-      //update the paths to be consistent 
-      rpath[0] = rinst->getInstname();
-      cpath[0] = "in";
-      cpath.push_front(cbufName);
-      cdef->connect(rpath,cpath);
+
     }
   }
 
-  bool found = matches.size() > 0;
   //Now delete all the matched instances
-  for (auto inst : matches) {
+  for (auto inst : usedInstances) {
     cdef->removeInstance(inst);
   }
  
   //Now inline all the passthrough Modules
-  for (auto selstr : passthroughToInline) {
+  for (auto selstr : passthroughsToInline) {
     inlineInstance(cast<Instance>(cdef->sel(selstr)));
   }
+  //TODO check if this should have removed any stray internal wires
   
   cdef->validate();
   return found;
