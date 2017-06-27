@@ -81,7 +81,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
       uint bitwidth = args.at("bitwidth")->get<ArgInt>();
       return c->Record({
 	  {"in",c->BitIn()->Arr(bitwidth)},
-	  {"out",c->Bit()->Arr(bitwidth)->Arr(stencil_height)->Arr(stencil_width)}
+	  {"out",c->Bit()->Arr(bitwidth)->Arr(stencil_width)->Arr(stencil_height)}
       });
     }
   );
@@ -98,7 +98,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     uint image_width = args.at("image_width")->get<ArgInt>();
     uint bitwidth = args.at("bitwidth")->get<ArgInt>();
     assert((bitwidth & (bitwidth-1)) == 0); //Check if power of 2
-    assert(stencil_height > 1);
+    assert(stencil_height > 0);
     assert(stencil_width > 0);
     assert(image_width > stencil_width);
     assert(bitwidth > 0);
