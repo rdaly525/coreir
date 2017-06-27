@@ -4,8 +4,8 @@ namespace CoreIR {
 
 class MatchAndReplacePass : public ModulePass {
   public:
-    typedef std::function<Args(const std::vector<Instance*>)> ConfigArgFun;
-    typedef std::function<bool(const std::vector<Instance*>) MatchingCheckFun;
+    typedef std::function<Args(const std::vector<Instance*>&)> ConfigArgFun;
+    typedef std::function<bool(const std::vector<Instance*>&)> MatchingCheckFun;
     typedef struct {
       Args configargs = Args(); //used if replacement is always a constant configargs
       std::vector<std::string> instanceKey; //Used for reference in following two functions
@@ -27,10 +27,10 @@ class MatchAndReplacePass : public ModulePass {
     //pattern data structures
     std::vector<std::string> instanceKey;
     //TODO explain this data type
-    typedef std::vector<std::unordered_map<SelectPath,std::vector<std::pair<SelectPath,uint>>>> InternalConnections
+    typedef std::vector<std::unordered_map<SelectPath,std::vector<std::pair<SelectPath,uint>>>> InternalConnections;
     InternalConnections inCons;
     //TODO explain this too
-    typedef std::vector<std::vector<LocalConnections>> ExternalConnections;
+    typedef std::vector<std::vector<std::pair<SelectPath,SelectPath>>> ExternalConnections;
     ExternalConnections exCons;
     void preprocessPattern();
     
@@ -39,8 +39,9 @@ class MatchAndReplacePass : public ModulePass {
 
 
   public:
-    explicit MatchAndReplacePass(Module* pattern, Module* replacement, Opts opts=Opts()) : ModulePass(), pattern(pattern), replacement(replacement), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs()), checkMatching(opts.checkMatching()), instanceKey(opts.instanceKey) {
-      this->verifyOpts();
+    explicit MatchAndReplacePass(Module* pattern, Module* replacement, Opts opts=Opts()) : ModulePass(), pattern(pattern), replacement(replacement), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
+      this->verifyOpts(opts);
+      this->preprocessPattern();
     }
     bool runOnModule(Module* m);
 

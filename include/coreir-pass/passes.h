@@ -69,5 +69,9 @@ class InstanceDAGPass : public Pass {
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceDAG;}
     virtual bool runOnModule(Module* m) = 0;
 
+};
+
 }
+
+
 #endif //PASSES_HPP_

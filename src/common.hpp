@@ -119,6 +119,18 @@ namespace std {
   struct hash<CoreIR::Args> {
     size_t operator() (const CoreIR::Args& args) const;
   };
+  
+  template <>
+  struct hash<CoreIR::SelectPath> {
+    size_t operator() (const CoreIR::SelectPath& path) const {
+      size_t h = 0;
+      for (auto str : path) {
+        auto hstr = std::hash<std::string>{}(str);
+        h = (h<<1) ^ hstr;
+      }
+      return h;
+    }
+  };
 
 }
 

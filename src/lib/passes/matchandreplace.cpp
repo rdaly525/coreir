@@ -9,53 +9,83 @@ using namespace CoreIR;
 using namespace std;
 
 void MatchAndReplacePass::verifyOpts(Opts opts) {
-  ASSERT( (opts.configargs.size() > 0) && (opts.getConfigArgs) == false,"Cannot provide configargs and getConfigArgs at the same time")
+  
+  //Verify that pattern and replace have the same exact type.
+  ASSERT(pattern->getType() == replacement->getType(),"Pattern and Replace need the same type");
+  ASSERT(pattern->hasDef(),"pattern needs to have a definition!");
+
+  ASSERT( ((opts.configargs.size() > 0) && (!!opts.getConfigArgs)) == false,"Cannot provide configargs and getConfigArgs at the same time")
   if (opts.instanceKey.size() > 0) {
     auto key = opts.instanceKey;
     //Verify that each instance is a unique instance of pattern.
-    ASSERT(key.size()==patern->getInstances().size(),"InstanceKey must contain each instance from pattern")
-    for (auto instmap : pattern->getInstances()) {
+    ASSERT(key.size()==pattern->getDef()->getInstances().size(),"InstanceKey must contain each instance from pattern")
+    for (auto instmap : pattern->getDef()->getInstances()) {
       if (find(key.begin(),key.end(),instmap.first) == key.end()) {
         ASSERT(false, "InstanceKey must contain each instance from pattern");
       }
     }
   }
 
-  //TODO potentally more checks
 }
 
 //This should load instanceKey, inCons, exCons
-bool MatchAndReplacePass::preprocessPattern() {
-  
+void MatchAndReplacePass::preprocessPattern() {
+  cout << "NEW PATTERN" << endl;
+  ModuleDef* pdef = pattern->getDef();
   //Just load it in whatever order if it is 0
   if (instanceKey.size()==0) {
-    for (auto instmap : pattern->getInstances()) {
+    for (auto instmap : pdef->getInstances()) {
       instanceKey.push_back(instmap.first);
     }
   }
 
   //create a backwards map from str -> uint for key
   unordered_map<string,uint> reverseKey;
-  for (uint=0; i<instanceKey.size(); ++i) {
+  for (uint i=0; i<instanceKey.size(); ++i) {
     reverseKey[instanceKey[i]] = i;
   }
 
-  //Load InternalConnections structure
+  //Initialize Internal/ExternalConnections
   for (uint i=0; i<instanceKey.size(); ++i) {
-    unordered_map<SelectPath,vector<pair<SelectPath,uint>>> exConsi;
-    LocalConnections lcons = pattern->sel(instanceKey[i]])->getLocalConnections();
-    for (auto vcon : lcons) {
-      SelectPath pathLocal = vcon.first->getSelectPath();
-      SelectPath pathConnected = vcon.second->getSelectPath();
-    }
+    this->inCons.push_back(unordered_map<SelectPath,vector<std::pair<SelectPath,uint>>>());
+    this->exCons.push_back(vector<std::pair<SelectPath,SelectPath>>());
   }
 
+  //Temporary cache so no double internal edges.
+  //{keyIdx,{path_for_keyidx,connectedpath}}
+  unordered_set<myPair<uint,myPair<SelectPath,SelectPath>>> inConCache;
+
+  //Load InternalConnections structure and ExternalConnections structure
+  for (uint i=0; i<instanceKey.size(); ++i) {
+    unordered_map<SelectPath,vector<pair<SelectPath,uint>>> exConsi;
+    LocalConnections lcons = pdef->sel(instanceKey[i])->getLocalConnections();
+    for (auto vcon : lcons) {
+      SelectPath pathLocal = vcon.first->getSelectPath();
+      pathLocal.pop_front();
+      SelectPath pathConnected = vcon.second->getSelectPath();
+      string conInst = pathConnected[0];
+      pathConnected.pop_front();
+      if (conInst=="self") { //This is an external connection
+        this->exCons[i].push_back({pathLocal,pathConnected});
+      }
+      else { //This is an internal connection
+        assert(reverseKey.count(conInst)==1);
+        uint conIdx = reverseKey[conInst];
+        if (inConCache.count({conIdx,{pathConnected,pathLocal}}) > 0) {
+          continue;
+        }
+        this->inCons[i][pathLocal].push_back({pathConnected,conIdx});
+        inConCache.insert({i,{pathLocal,pathConnected}});
+      }
+    }
+  }
 
 }
 
 
 bool MatchAndReplacePass::runOnModule(Module* m) {
   
+  Context* c = container->getContext();
   Module* container = m;
   //Checking for valid inputs
   
@@ -69,15 +99,13 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
   ModuleDef* cdef = container->getDef();
   ModuleDef::InstanceMapType cinstMap = cdef->getInstanceMap();
 
-  //If this module contains none of the pattern modules, I will never find a match, so just return
+  //If this module contains none of the any of the pattern modules, I will never find a match, so just return
   for (auto pi : pdef->getInstanceMap()) {
     if (!cinstMap.count(pi.first)) return false;
   }
-
-  //Start with only the pattern being a single thing
-  ASSERT(pdef->getInstances().size()==1,"NYI patterns with multiple instances");
   
-  Context* c = container->getContext();
+  //Keep track of matched instances. This should correspond to instanceKey
+  vector<Instance*> matched;
 
   //The only instance
   Instantiable* pi = pdef->getInstanceMap().begin()->first;
@@ -99,7 +127,8 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
     
     //TODO Assuming that the connections are correct
     matches.push_back(cinst);
-    Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement,this->getConfigArgs(cinst));
+    //TODO this is origianl. Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement,this->getConfigArgs(cinst));
+    Instance* rinst = cdef->addInstance(cinst->getInstname()+c->getUnique(),replacement);
     string cbufName = "_cbuf"+c->getUnique();
     passthroughToInline.push_back(cbufName);
     addPassthrough(cinst,cbufName);

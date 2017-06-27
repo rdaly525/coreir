@@ -73,6 +73,23 @@ int main() {
   );
   pm->addPass(pSub2Add,0);
   
+  //match const -> add.in.1  change to neg
+  Type* cType = sl->getTypeGen("unary")->getType(wargs);
+  Module* patternC = patns->newModuleDecl("cpat",cType);
+  pdef = patternC->newModuleDef();
+    pdef->addInstance("a0",sl->getGenerator("add"),wargs);
+    pdef->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(31)}});
+    pdef->connect("self.in","a0.in.0");
+    pdef->connect("c0.out","a0.in.1");
+    pdef->connect("self.out","a0.out");
+  patternC->setDef(pdef);
+
+  MatchAndReplacePass* pC = new MatchAndReplacePass(
+      patternC,
+      sl->getGenerator("neg")->getModule(wargs)
+  );
+  pm->addPass(pC,1);
+  
   cout << "Running all the passes!" << endl;
   pm->run();
   cout << "Printing the (hompefully) modified graph" << endl;
