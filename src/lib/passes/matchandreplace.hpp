@@ -8,6 +8,7 @@ class MatchAndReplacePass : public ModulePass {
     typedef std::function<bool(const std::vector<Instance*>&)> MatchingCheckFun;
     typedef struct {
       Args configargs = Args(); //used if replacement is always a constant configargs
+      Args genargs = Args(); // Used if replacement is a generator
       std::vector<std::string> instanceKey; //Used for reference in following two functions
       MatchingCheckFun checkMatching = nullptr; //Checks if a matching pattern is really matching
       ConfigArgFun getConfigArgs = nullptr; //Calculates the configars based off the matching pattern
@@ -15,10 +16,11 @@ class MatchAndReplacePass : public ModulePass {
       
   private:
     Module* pattern;
-    Module* replacement;
+    Instantiable* replacement;
     
     void verifyOpts(Opts opts);
     
+    Args genargs;
     Args configargs;
     ConfigArgFun getConfigArgs; //Can be null
     MatchingCheckFun checkMatching; //can be null
@@ -39,7 +41,7 @@ class MatchAndReplacePass : public ModulePass {
 
 
   public:
-    explicit MatchAndReplacePass(Module* pattern, Module* replacement, Opts opts=Opts()) : ModulePass(), pattern(pattern), replacement(replacement), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
+    explicit MatchAndReplacePass(Module* pattern, Instantiable* replacement, Opts opts=Opts()) : ModulePass(), pattern(pattern), replacement(replacement), genargs(opts.genargs), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
       this->verifyOpts(opts);
       this->preprocessPattern();
     }

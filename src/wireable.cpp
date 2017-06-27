@@ -143,6 +143,11 @@ Arg* Instance::getConfigArg(string s) {
   return configargs.at(s);
 }
 
+Instantiable* Instance::getInstantiableRef() { 
+  if (isgen) return generatorRef;
+  else return moduleRef;
+}
+
 void Instance::runGenerator() {
   ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
   

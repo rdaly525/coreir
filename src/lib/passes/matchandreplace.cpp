@@ -3,6 +3,7 @@
 #include "matchandreplace.hpp"
 
 #include <algorithm>
+#include <queue>
 
 using namespace CoreIR;
 
@@ -11,9 +12,20 @@ using namespace std;
 void MatchAndReplacePass::verifyOpts(Opts opts) {
   
   //Verify that pattern and replace have the same exact type.
-  ASSERT(pattern->getType() == replacement->getType(),"Pattern and Replace need the same type");
+  Type* rType;
+  if (auto rGen = dyn_cast<Generator>(replacement)) {
+    rType = rGen->getTypeGen()->getType(genargs);
+  }
+  else {
+    rType = cast<Module>(replacement)->getType();
+  }
+  ASSERT(pattern->getType() == rType,"Pattern and Replace need the same type");
+  
   ASSERT(pattern->hasDef(),"pattern needs to have a definition!");
 
+  if (opts.genargs.size()>0) {
+    ASSERT(isa<Generator>(replacement),"replacement needs to be a gen if it is a generator");
+  }
   ASSERT( ((opts.configargs.size() > 0) && (!!opts.getConfigArgs)) == false,"Cannot provide configargs and getConfigArgs at the same time")
   if (opts.instanceKey.size() > 0) {
     auto key = opts.instanceKey;
@@ -98,23 +110,20 @@ Wireable* selWithCheck(Wireable* w, SelectPath path, bool* error) {
 
 bool MatchAndReplacePass::runOnModule(Module* m) {
   
-  Context* c = container->getContext();
   Module* container = m;
-  //Checking for valid inputs
+  Context* c = container->getContext();
   
-  //pattern module interface must be the same as the replacement interface
-  ASSERT(pattern->getType() == replacement->getType(),"Pattern type != replacement type!\n" + pattern->getType()->toString() + "\n" + replacement->getType()->toString());
-  
-  //configargs shoud be the same as replacement params
-  //checkArgsAreParams(configargs, replacement->getConfigParams());
- 
   ModuleDef* pdef = pattern->getDef();
   ModuleDef* cdef = container->getDef();
   ModuleDef::InstanceMapType cinstMap = cdef->getInstanceMap();
 
   //If this module contains none of the any of the pattern modules, I will never find a match, so just return
   for (auto pi : pdef->getInstanceMap()) {
-    if (!cinstMap.count(pi.first)) return false;
+    //pi.first->print();
+    if (!cinstMap.count(pi.first)) {
+      cout << "Crap, no matches!" << endl;
+      return false;
+    }
   }
   
   //Cache of used instances (for matches)
@@ -142,19 +151,19 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
     std::queue<std::pair<uint,Instance*>> work;
     
     //Keep track of the number of successful instances
-    uint numCompleted;
+    uint numCompleted = 0;
     
     //Keep track of instances completed or on queue
     unordered_set<uint> accountedFor;
-
     work.push({0,cinst});
     while (!work.empty()) {
       uint idx = work.front().first;
       Instance* minst = work.front().second;
       Instance* pinst = cast<Instance>(pdef->sel(instanceKey[idx]));
-      
+      work.pop();
+
       //If mnist is already used, break.
-      if (usedInstances.count(mnist)>0) {
+      if (usedInstances.count(minst)>0) {
         break;
       }
 
@@ -185,7 +194,7 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
           break;
         }
         
-        Wireable* otherW = local->getConnectedWireables()[0];
+        Wireable* otherW = *localW->getConnectedWireables().begin();
         Wireable* otherTopW = otherW->getTopParent();
         
         Instance* otherInst;
@@ -195,7 +204,8 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
         }
 
         //check if otherInst is the correct Module Type
-        if (pdef->sel(instanceKey[otherIdx])->getInstantiableRef() != otherInst->getInstantiableRef()) {
+        Instance* pInst = cast<Instance>(pdef->sel(instanceKey[otherIdx]));
+        if (pInst->getInstantiableRef() != otherInst->getInstantiableRef()) {
           pathsCorrect = false;
           break;
         }
@@ -222,7 +232,7 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
 
       //Found correct connection  
       if (pathsCorrect) {
-        matchedInstances[idx] = mnist;
+        matchedInstances[idx] = minst;
         numCompleted++;
       }
       
@@ -247,8 +257,8 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
     
     //TODO do I need to remove all internal connections first?
  
-    //Add the replacement pattern (finally!!)
-    string rName = replacement->getInstname()+c->getUnique();
+    //Add the replacement pattern
+    string rName = replacement->getName()+c->getUnique();
     Args rConfigargs;
     if (this->getConfigArgs) {
       rConfigargs = this->getConfigArgs(matchedInstances);
@@ -256,10 +266,14 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
     else if (this->configargs.size()>1) {
       rConfigargs = this->configargs;
     }
-    Instance* rinst = cdef->addInstance(rName,replacement,rConfigargs);
-    
+    if (isa<Generator>(replacement)) {
+      cdef->addInstance(rName,cast<Generator>(replacement),this->genargs,rConfigargs);
+    }
+    else {
+      cdef->addInstance(rName,cast<Module>(replacement),rConfigargs);
+    }
     //For each matched instance...
-    for (uint i=0; i<instanceKey.size()) {
+    for (uint i=0; i<instanceKey.size(); ++i) {
       Instance* minst = matchedInstances[i];
       assert(usedInstances.count(minst)==0);
       usedInstances.insert(minst);
@@ -294,8 +308,8 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
   }
  
   //Now inline all the passthrough Modules
-  for (auto selstr : passthroughsToInline) {
-    inlineInstance(cast<Instance>(cdef->sel(selstr)));
+  for (auto pt : passthroughsToInline) {
+    inlineInstance(pt);
   }
   //TODO check if this should have removed any stray internal wires
   
