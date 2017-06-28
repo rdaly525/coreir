@@ -26,21 +26,16 @@ class ModulePass;
 class Pass;
 class PassManager {
   Namespace* ns;
-  std::map<uint,vector<ModulePass*>> modulePassMap;
+  std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
   public:
     explicit PassManager(Namespace* ns) : ns(ns) {}
     ~PassManager();
     //This will memory manage pass.
-    void addPass(Pass* p, uint ordering) {
-      if (auto mp = dyn_cast<ModulePass>(p)) {
-        modulePassMap[ordering].push_back(mp);
-      }
-      else {
-        ASSERT(0,"pass type NYI")
-      }
-    }
+    void addPass(Pass* p, uint ordering);
     //Returns if graph was modified
     bool run();
+  private:
+    bool runModulePass(vector<Pass*>& passes);
 };
 
 class Pass {
