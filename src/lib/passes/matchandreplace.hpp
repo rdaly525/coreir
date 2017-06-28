@@ -6,13 +6,14 @@ class MatchAndReplacePass : public ModulePass {
   public:
     typedef std::function<Args(const std::vector<Instance*>&)> ConfigArgFun;
     typedef std::function<bool(const std::vector<Instance*>&)> MatchingCheckFun;
-    typedef struct {
+    struct Opts {
       Args configargs = Args(); //used if replacement is always a constant configargs
       Args genargs = Args(); // Used if replacement is a generator
       std::vector<std::string> instanceKey; //Used for reference in following two functions
       MatchingCheckFun checkMatching = nullptr; //Checks if a matching pattern is really matching
       ConfigArgFun getConfigArgs = nullptr; //Calculates the configars based off the matching pattern
-    } Opts;
+      Opts() {}
+    };
       
   private:
     Module* pattern;
