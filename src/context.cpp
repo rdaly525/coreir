@@ -18,7 +18,6 @@ Context::~Context() {
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
   for (auto it : libs) delete it.second;
-  for (auto it : instanceArrays) free(it);
   for (auto it : connectionPtrArrays) free(it);
   for (auto it : connectionArrays) free(it);
   for (auto it : wireableArrays) free(it);
@@ -161,12 +160,6 @@ Arg** Context::newArgPtrArray(int size) {
     Arg** arr = (Arg**) malloc(sizeof(Arg*) * size);
     argPtrArrays.push_back(arr);
     return arr;
-}
-
-Instance** Context::newInstanceArray(int size) {
-  Instance** arr = (Instance**) malloc(sizeof(Instance*) * size);
-  instanceArrays.push_back(arr);
-  return arr;
 }
 
 Connection* Context::newConnectionArray(int size) {

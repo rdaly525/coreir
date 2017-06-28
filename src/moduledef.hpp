@@ -30,6 +30,14 @@ class ModuleDef {
     Metadata metadata;
     Metadata implementations; // TODO maybe have this just be inhereted moduledef classes
     SelCache* getCache() { return cache;}
+
+    // Instances Iterator Internal Fields/API
+    Instance* instancesIterFirst;
+    Instance* instancesIterLast;
+    unordered_map<Instance*,Instance*> instancesIterNextMap;
+    unordered_map<Instance*,Instance*> instancesIterPrevMap;
+    void appendInstanceToIter(Instance* instance);
+    void removeInstanceFromIter(Instance* instance);
     
   public:
     typedef unordered_map<Instantiable*,unordered_set<Instance*>> InstanceMapType;
@@ -64,6 +72,11 @@ class ModuleDef {
     Instance* addInstance(string,Generator*,Args genargs, Args config=Args());
     Instance* addInstance(string,Module*,Args config=Args());
     Instance* addInstance(Instance* i,string iname=""); //copys info about i
+
+    // API for iterating over instances
+    Instance* getInstancesIterFirst();
+    Instance* getInstancesIterLast();
+    Instance* getInstancesIterNext(Instance* instance);
 
     //API for connecting two instances together
     void connect(Wireable* a, Wireable* b);
