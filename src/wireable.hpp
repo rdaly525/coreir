@@ -47,6 +47,8 @@ class Wireable {
     SelectPath getSelectPath();
     ConstSelectPath getConstSelectPath();
     string wireableKind2Str(WireableKind wb);
+    LocalConnections getLocalConnections();
+    Wireable* getTopParent();
 };
 
 ostream& operator<<(ostream&, const Wireable&);
@@ -85,6 +87,7 @@ class Instance : public Wireable {
     //Convinience functions
     bool isGen() { return isgen;}
     Generator* getGeneratorRef() { return generatorRef;}
+    Instantiable* getInstantiableRef();
     Args getGenargs() {return genargs;}
     
     void runGenerator();

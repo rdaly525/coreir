@@ -103,6 +103,48 @@ ModuleDef* Module::newModuleDef() {
   return md;
 }
 
+bool Module::isEqual(Module* m0, Module* m1, bool checkConfig, bool checkInstNames,bool checkModuleNames) {
+  //Check for the same configparams
+  if (checkConfig && (m0->getConfigParams() != m1->getConfigParams())) {
+    return false;
+  }
+
+  //Check if it is of the same type
+  if (m0->getType() != m1->getType()) {
+    return false;
+  }
+  
+  //workqueue
+  //while workqueue not done:
+  //  instance,instance= pop
+  //  get all wireables, wireables pairs.
+  //  place all the connected instances in queue (if not in done set)
+  //  remove first element of select paths for each pair.
+  //  add to a map from SelectPath to SelectPath (for both pairs)
+  //  check equality of the maps. 
+  //  or something like that
+  //check if all instances have:
+  //  same type
+  //  same genargs
+  //  same configargs
+
+
+  //for now as an approximate thing, just check that number of instances and number of connections are the same
+  uint m0InstSize = m0->getDef()->getInstances().size();
+  uint m1InstSize = m1->getDef()->getInstances().size();
+  if (m0InstSize != m1InstSize) {
+    return false;
+  }
+
+  uint m0ConSize = m0->getDef()->getConnections().size();
+  uint m1ConSize = m1->getDef()->getConnections().size();
+  if (m0ConSize != m1ConSize) {
+    return false;
+  }
+  return true;
+
+}
+
 void Module::setDef(ModuleDef* def, bool validate) {
   if (validate) {
     if (def->validate()) {

@@ -83,6 +83,34 @@ string Wireable::wireableKind2Str(WireableKind wb) {
   ASSERT(false,"Unknown WireableKind: " + to_string(wb));
 }
 
+LocalConnections Wireable::getLocalConnections() {
+  LocalConnections cons;
+  std::function<void(Wireable*)> traverse;
+  traverse = [&cons,&traverse](Wireable* curw) ->void {
+    for (auto other : curw->getConnectedWireables()) {
+      cons.push_back({curw,other});
+    }
+    for (auto sels : curw->getSelects()) {
+      traverse(sels.second);
+    }
+  };
+
+  traverse(this);
+  return cons;
+}
+
+Wireable* Wireable::getTopParent() {
+  Wireable* top = this;
+  while (auto wsel = dyn_cast<Select>(top)) {
+    top = wsel->getParent();
+  }
+  return top;
+}
+
+
+
+
+
 Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //Check if configargs is the same as expected by ModuleRef
@@ -113,6 +141,11 @@ string Instance::toString() const {
 Arg* Instance::getConfigArg(string s) { 
   ASSERT(configargs.count(s)>0, "Configargs does not contain field: " + s);
   return configargs.at(s);
+}
+
+Instantiable* Instance::getInstantiableRef() { 
+  if (isgen) return generatorRef;
+  else return moduleRef;
 }
 
 void Instance::runGenerator() {
@@ -189,5 +222,6 @@ Select* SelCache::newSelect(ModuleDef* context, Wireable* parent, string selStr,
     return s;
   }
 }
+
 
 } //CoreIR namesapce

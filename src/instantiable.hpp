@@ -109,8 +109,9 @@ class Module : public Instantiable {
    
     ModuleDef* newModuleDef();
     
-    //Will return a clone of this module
-    Module* copy(string name);
+    //check for equal graphs, types, genargs, configargs
+    //Does not check instance names
+    static bool isEqual(Module* m0, Module* m1, bool checkConfig=false, bool checkInstNames=false,bool checkInstantiableNames=false);
     
     DirectedModule* newDirectedModule();
     

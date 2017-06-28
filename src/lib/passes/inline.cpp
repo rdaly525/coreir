@@ -72,7 +72,7 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
     connectSameLevel(def,waSelects[selstr],wbSelects[selstr]);
   }
   
-  //TODO check bug here first
+  //TODO check any bugs here first
   //Connect wb to all the subselects of waOnly
   for (auto selstr : waOnly) {
     connectOffsetLevel(def,wb, {selstr}, waSelects[selstr]);
@@ -96,10 +96,11 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
   // that originally connected to w connecting to name.out which has the same type as w
-Instance* addPassthrough(Context* c, Wireable* w,string instname) {
+Instance* addPassthrough(Wireable* w,string instname) {
   
   //First verify if I can actually place a passthrough here
   //This means that there can be nothing higher in the select path tha is connected
+  Context* c = w->getContext();
   Wireable* wcheck = w;
   while (Select* wchecksel = dyn_cast<Select>(wcheck)) {
     Wireable* wcheck = wchecksel->getParent();
@@ -112,28 +113,18 @@ Instance* addPassthrough(Context* c, Wireable* w,string instname) {
   //Add actual passthrough instance
   Instance* pt = def->addInstance(instname,c->getNamespace("stdlib")->getGenerator("passthrough"),{{"type",c->argType(wtype)}});
   
-  //Connect all the original connections to the passthrough.
-  std::function<void(Wireable*)> swapConnections;
-  swapConnections = [instname,def,&swapConnections](Wireable* curw) ->void {
-    SelectPath curSP = curw->getSelectPath();
-    curSP[0] = "out";
-    curSP.push_front(instname);
-    for (auto conw : curw->getConnectedWireables()) {
-      SelectPath conSP = conw->getSelectPath();
-      def->connect(curSP,conSP);
-      def->disconnect(curw,conw);
-    }
-    for (auto selmap : curw->getSelects()) {
-      swapConnections(selmap.second);
-    }
-  };
-  swapConnections(w);
-  
+  LocalConnections cons = w->getLocalConnections();
+  for (auto con : cons) {
+    SelectPath curPath = con.first->getSelectPath();
+    curPath[0] = "out";
+    curPath.push_front(instname);
+    SelectPath otherPath = con.second->getSelectPath();
+    def->connect(curPath,otherPath);
+    def->disconnect(con.first,con.second);
+  }
   
   //Connect the passthrough back to w
   def->connect(w,pt->sel("in"));
-  
-  w->getModuleDef()->print();
 
   return pt;
 }
@@ -170,10 +161,9 @@ void inlineInstance(Instance* inst) {
   //I will be inlining defInline into def
   //Making a copy because i want to modify it first without modifying all of the other instnaces of modInline
   ModuleDef* defInline = modInline->getDef()->copy();
-  Context* c = modInline->getContext();
 
   //Add a passthrough Module to quarentine 'self'
-  addPassthrough(c,defInline->getInterface(),"_insidePT");
+  addPassthrough(defInline->getInterface(),"_insidePT");
 
   string inlinePrefix = inst->getInstname() + "$";
 
@@ -198,7 +188,7 @@ void inlineInstance(Instance* inst) {
   }
   
   //Create t3e Passthrough to quarentene the instance itself
-  Instance* outsidePT = addPassthrough(c,inst,"_outsidePT");
+  Instance* outsidePT = addPassthrough(inst,"_outsidePT");
 
   //Connect the two passthrough buffers together ('in' ports are facing the boundary)
   def->connect("_outsidePT.in",inlinePrefix + "_insidePT.in");

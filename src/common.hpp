@@ -75,7 +75,8 @@ class Select;
 typedef deque<string> SelectPath;
 typedef vector<std::reference_wrapper<const string>> ConstSelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
-
+//This is meant to be in relation to an instance. First wireable of the pair is of that instance.
+typedef vector<std::pair<Wireable*,Wireable*>> LocalConnections;
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
@@ -117,6 +118,18 @@ namespace std {
   template <>
   struct hash<CoreIR::Args> {
     size_t operator() (const CoreIR::Args& args) const;
+  };
+  
+  template <>
+  struct hash<CoreIR::SelectPath> {
+    size_t operator() (const CoreIR::SelectPath& path) const {
+      size_t h = 0;
+      for (auto str : path) {
+        auto hstr = std::hash<std::string>{}(str);
+        h = (h<<1) ^ hstr;
+      }
+      return h;
+    }
   };
 
 }
