@@ -67,7 +67,7 @@ class InstanceConfigLazyDict:
 
 class Instance(Wireable):
     def __init__(self, ptr, context):
-        super().__init__(ptr, context)
+        super(Instance, self).__init__(ptr, context)
         self.config = InstanceConfigLazyDict(self)
 
     @property
