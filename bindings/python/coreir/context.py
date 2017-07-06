@@ -71,7 +71,7 @@ class Context:
           elif type(v) is str:
             args.append(libcoreir_c.COREArgString(self.context,ct.c_char_p(str.encode(v))))
           else:
-              raise NotImplementedError()
+            raise NotImplementedError()
 
         keys = (ct.c_char_p * len(fields))(*(str.encode(key) for key in fields.keys()))
         values = (COREArg_p * len(fields))(*(arg for arg in args))
