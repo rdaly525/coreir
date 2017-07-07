@@ -27,18 +27,19 @@ class MatchAndReplacePass : public ModulePass {
     MatchingCheckFun checkMatching; //can be null
 
     //Step 1 stuff
+    
     //pattern data structures
     std::vector<std::string> instanceKey;
+    
     //TODO explain this data type
     typedef std::vector<std::unordered_map<SelectPath,std::vector<std::pair<SelectPath,uint>>>> InternalConnections;
     InternalConnections inCons;
+    
     //TODO explain this too
     typedef std::vector<std::vector<std::pair<SelectPath,SelectPath>>> ExternalConnections;
     ExternalConnections exCons;
-    void preprocessPattern();
     
-    //Step 2 stuff
-
+    void preprocessPattern();
 
 
   public:

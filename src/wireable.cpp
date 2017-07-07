@@ -148,19 +148,20 @@ Instantiable* Instance::getInstantiableRef() {
   else return moduleRef;
 }
 
-void Instance::runGenerator() {
+bool Instance::runGenerator() {
   ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
   
   //If we have already run the generator, do not run again
-  if (moduleRef->hasDef()) return;
+  if (moduleRef->hasDef()) return false;
 
   //TODO should this be the default behavior?
   //If there is no generatorDef, then just do nothing
-  if (!generatorRef->hasDef()) return;
+  if (!generatorRef->hasDef()) return false;
   
   //Actually run the generator
   generatorRef->setModuleDef(moduleRef, genargs);
   assert(moduleRef->hasDef());
+  return true;
 }
 
 void Instance::replace(Module* moduleRef, Args configargs) {

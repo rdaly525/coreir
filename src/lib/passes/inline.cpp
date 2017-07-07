@@ -148,6 +148,7 @@ void inlineInstance(Instance* inst) {
   Module* modInline = inst->getModuleRef();
   
   //Special case for a passthrough
+  //TODO should have a better check for passthrough than string compare
   if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
     inlinePassthrough(inst);
     return;

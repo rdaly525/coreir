@@ -90,7 +90,9 @@ class Instance : public Wireable {
     Instantiable* getInstantiableRef();
     Args getGenargs() {return genargs;}
     
-    void runGenerator();
+    //Returns if it actually ran the generator
+    bool runGenerator();
+
     void replace(Module* moduleRef, Args configargs=Args());
     void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
 };

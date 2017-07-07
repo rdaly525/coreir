@@ -23,6 +23,22 @@ bool PassManager::runModulePass(vector<Pass*>& passes) {
   
 }
 
+queue<Module*
+void constructInstanceDAG(Namespace* ns, InstanceDAGMap& idm) {
+  for (auto m : ns->getModules()) {
+    idm[m] = new DAGNode(m);
+  }
+}
+
+bool PassManager::runInstanceDAGPass(InstaneDAGPass* pass) {
+  //First construct the instance DAG
+  InstanceDAGMap idm;
+  
+
+}
+
+
+
 
 bool PassManager::run() {
   //For now I have to do only the modules.

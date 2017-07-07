@@ -14,18 +14,20 @@ void inlineInstance(Instance*);
 Instance* addPassthrough(Wireable* w,string instname);
 
 
-//Container: the module that will be modified.
-//pattern: the module defines the interface and instances that it will match
-//replacement: The Generator that will replace the pattern that was found
-//Returns if it modified container (Found a match)
-//TODO turn this into a real pass
-//bool matchAndReplace(Module* container, Module* pattern, Module* replacement, Args configargs=Args());
-//bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std::function<Args(const Instance*)> getConfigargs);
 
 class ModulePass;
 class Pass;
+
+struct DAGNode {
+  Module* m;
+  vector<DAGNode*> usedBy;
+  vector<DAGNode*> uses;
+  explicit DAGNode(Module* m) : m(m) {}
+}
+
 class PassManager {
   Namespace* ns;
+  typedef std::unordered_map<Module*,DAGNode*> InstanceDAGMap;
   std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
   public:
     explicit PassManager(Namespace* ns) : ns(ns) {}
@@ -50,6 +52,8 @@ class Pass {
     PassKind getKind() const {return kind;}
 };
 
+//Loops through all the modules within the namespace
+//You can edit the current module but not any other module!
 class ModulePass : public Pass {
   public:
     explicit ModulePass() : Pass(PK_Module) {}
@@ -58,12 +62,14 @@ class ModulePass : public Pass {
 
 };
 
+//Loops through the InstanceDAG from bottom up. Instane DAG is analogous to CallGraph in LLVM. 
+//If the Instance is linked in from a different namespace or is a generator instance, then it will run runOnInstanceNode
 class InstanceDAGPass : public Pass {
   public:
     explicit InstanceDAGPass() : Pass(PK_InstanceDAG) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceDAG;}
     virtual bool runOnModule(Module* m) = 0;
-
+    virtual bool runOnInstanceNode(Instance* i) = 0;
 };
 
 }
