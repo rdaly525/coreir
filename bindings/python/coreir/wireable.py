@@ -46,22 +46,34 @@ class Select(Wireable):
     #     return Wireable(libcoreir_c.CORESelectGetParent(self.ptr))
 
 
+class InstanceConfigLazyDict:
+    """
+    Lazy object that implements the ``instance.config[key]`` interface. Instead
+    of building the dictionary explicitly for every call to config, we wait for
+    the indexing function to be called and use the
+    ``libcoreir_c.COREGetConfigValue`` API
+    """
+    def __init__(self, parent_instance):
+        self.parent_instance = parent_instance
+
+    def __getitem__(self, key):
+        return Arg(libcoreir_c.COREGetConfigValue(self.parent_instance.ptr,
+                                                  str.encode(key)),
+                   self.parent_instance.context)
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError()
+
+
 class Instance(Wireable):
+    def __init__(self, ptr, context):
+        super(Instance, self).__init__(ptr, context)
+        self.config = InstanceConfigLazyDict(self)
+
     @property
     def module_name(self):
         name = libcoreir_c.COREGetInstRefName(self.ptr)
         return name.decode()
-
-    def get_config_value(self, key):
-        arg = libcoreir_c.COREGetConfigValue(self.ptr,str.encode(key))
-        type = libcoreir_c.COREGetArgKind(arg)
-        # type enum values defined in include/coreir-c/coreir-args.h
-        if type == 0:
-            return libcoreir_c.COREArgIntGet(arg)
-        elif type == 1:
-            return libcoreir_c.COREArgStringGet(arg).decode()
-        
-        raise NotImplementedError
 
     @property
     def generator_args(self):
