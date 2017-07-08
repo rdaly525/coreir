@@ -8,13 +8,9 @@ using namespace CoreIR;
 
 void checker(Module* m) {
   ModuleDef* def = m->getDef();
-  cout << "H1\n";
   Wireable* w = def->sel("i0");
-  cout << "H1\n";
   cout << w->toString() << endl;
-  cout << "H1\n";
   Instance* i0 = cast<Instance>(def->sel("i0"));
-  cout << "H1\n";
   cout << i0->toString() << endl;
   assert(i0->getGenArgs().count("ga") && i0->getGenArgs().at("ga")->get<ArgInt>()==6);
   assert(i0->getGenArgs().count("gb") && i0->getGenArgs().at("gb")->get<ArgInt>()==7);
