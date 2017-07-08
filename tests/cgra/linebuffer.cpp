@@ -26,9 +26,12 @@ int main() {
 
   Module* lb33 = c->getGlobal()->newModuleDecl("lb33", lb33Type);
   ModuleDef* def = lb33->newModuleDef();
-    def->addInstance("lb33_inst", linebuffer, {{"bitwidth",c->argInt(16)},
-	  {"stencil_width",c->argInt(3)},{"stencil_height",c->argInt(3)},
-					   {"image_width",c->argInt(512)}});
+    def->addInstance("lb33_inst", linebuffer, {
+      {"bitwidth",c->argInt(16)},
+	    {"stencil_width",c->argInt(3)},
+      {"stencil_height",c->argInt(3)},
+			{"image_width",c->argInt(512)}
+    });
     def->connect("self.in", "lb33_inst.in");
     def->connect("self.out", "lb33_inst.out");
   lb33->setDef(def);

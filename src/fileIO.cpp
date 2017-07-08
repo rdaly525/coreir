@@ -21,6 +21,15 @@ Params json2Params(json j);
 Module* getModSymbol(Context* c, string nsname, string iname);
 Generator* getGenSymbol(Context* c, string nsname, string iname);
 
+//Helper function for when args is a subset of params
+Params extractParams(Args args, Params params) {
+  Params ret;
+  for (auto arg : args) {
+    ret[arg.first] = params.at(arg.first);
+  }
+  return ret;
+}
+
 Module* loadModule(Context* c, string filename, bool* err) {
   std::fstream file;
   file.open(filename);
@@ -117,6 +126,9 @@ Module* loadModule(Context* c, string filename, bool* err) {
             configparams = json2Params(jmod.at("configparams"));
           }
           Module* m = ns->newModuleDecl(jmodname,t,configparams);
+          if (jmod.count("defaultconfigargs")) {
+            m->setDefaultConfigArgs(json2Args(c,configparams,jmod.at("defaultconfigargs")));
+          }
           modqueue.push_back({m,jmod});
         }
       }
@@ -138,7 +150,13 @@ Module* loadModule(Context* c, string filename, bool* err) {
           if (jgen.count("configparams")) {
             configparams = json2Params(jgen.at("configparams"));
           }
-          ns->newGeneratorDecl(jgenname,typegen,genparams,configparams);
+          Generator* g = ns->newGeneratorDecl(jgenname,typegen,genparams,configparams);
+          if (jgen.count("defaultconfigargs")) {
+            g->setDefaultConfigArgs(json2Args(c,configparams,jgen.at("defaultconfigargs")));
+          }
+          if (jgen.count("defaultgenargs")) {
+            g->setDefaultGenArgs(json2Args(c,genparams,jgen.at("defaultgenargs")));
+          }
         }
       }
     }
@@ -240,15 +258,20 @@ Params json2Params(json j) {
   return g;
 }
 
+
+//loop over what j has and verify it is in genparams
 Args json2Args(Context* c, Params genparams, json j) {
   Args gargs; 
 
-  //TODO this following code should make sure there are the same number of key-value pairs
-  for (auto pmap : genparams) {
-    string key = pmap.first;
-    Param kind = pmap.second;
+  for (auto jmap : j.get<jsonmap>()) {
+    string key = jmap.first;
+    if (!genparams.count(key)) {
+      throw std::runtime_error(key + " does not exist in params!");
+    }
+    Param kind = genparams.at(key);
     Arg* g;
     switch(kind) {
+      case ABOOL : g = c->argBool(j.at(key).get<bool>()); break;
       case AINT : g = c->argInt(j.at(key).get<int>()); break;
       case ASTRING : g = c->argString(j.at(key).get<string>()); break;
       case ATYPE : g = c->argType(json2Type(c,j.at(key))); break;
@@ -508,6 +531,9 @@ json Instantiable::toJson() {
   if (!metadata.empty()) {
     j["metadata"] = metadata.toJson();
   }
+  if (!defaultConfigArgs.empty()) {
+    j["defaultconfigargs"] = Args2Json(defaultConfigArgs);
+  }
   return j;
 }
 
@@ -523,6 +549,11 @@ json Module::toJson() {
 json Generator::toJson() {
   json j = Instantiable::toJson();
   j["genparams"] = Params2Json(genparams);
+    cout << "AM I HERE0??" << endl;
+  if (!defaultGenArgs.empty()) {
+    cout << "AM I HERE1??" << endl;
+    j["defaultgenargs"] = Args2Json(defaultGenArgs);
+  }
   //You need to add namespace back to typegen (ugh)
   j["typegen"] = json::array({typegen->getNamespace()->getName(),typegen->getName()});
   return j;

@@ -91,7 +91,6 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
 					      cgralib->getTypeGen("linebuffer_type"),
 					      {{"stencil_width",AINT},{"stencil_height",AINT},
 					       {"image_width",AINT},{"bitwidth",AINT}});
-  
   linebuffer->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
     uint stencil_width  = args.at("stencil_width")->get<ArgInt>();
     uint stencil_height  = args.at("stencil_height")->get<ArgInt>();
@@ -177,6 +176,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     }    
 
   });
+  
 
   return cgralib;
 }

@@ -88,7 +88,7 @@ class Instance : public Wireable {
     bool isGen() { return isgen;}
     Generator* getGeneratorRef() { return generatorRef;}
     Instantiable* getInstantiableRef();
-    Args getGenargs() {return genargs;}
+    Args getGenArgs() {return genargs;}
     
     void runGenerator();
     void replace(Module* moduleRef, Args configargs=Args());
