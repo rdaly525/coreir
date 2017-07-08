@@ -21,15 +21,6 @@ Params json2Params(json j);
 Module* getModSymbol(Context* c, string nsname, string iname);
 Generator* getGenSymbol(Context* c, string nsname, string iname);
 
-//Helper function for when args is a subset of params
-Params extractParams(Args args, Params params) {
-  Params ret;
-  for (auto arg : args) {
-    ret[arg.first] = params.at(arg.first);
-  }
-  return ret;
-}
-
 Module* loadModule(Context* c, string filename, bool* err) {
   std::fstream file;
   file.open(filename);
