@@ -540,9 +540,7 @@ json Module::toJson() {
 json Generator::toJson() {
   json j = Instantiable::toJson();
   j["genparams"] = Params2Json(genparams);
-    cout << "AM I HERE0??" << endl;
   if (!defaultGenArgs.empty()) {
-    cout << "AM I HERE1??" << endl;
     j["defaultgenargs"] = Args2Json(defaultGenArgs);
   }
   //You need to add namespace back to typegen (ugh)
