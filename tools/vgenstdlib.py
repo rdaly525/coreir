@@ -96,42 +96,22 @@ if __name__ == "__main__":
 
   with open("stdlib.v","w") as f:
     
-    f.write("//unary ops\n")
-    for op, exp in ops["unary"].iteritems():
-      v = vmodule(op.capitalize())
-      v.add_param("WIDTH",16)
-      v.add_input("in","WIDTH")
-      v.add_output("out","WIDTH")
-      v.add_body("  assign out = %s;" % exp)
-      f.write(v.to_string())
-    
-    f.write("//unaryReduce ops\n")
-    for op, exp in ops["unaryReduce"].iteritems():
-      v = vmodule(op.capitalize())
-      v.add_param("WIDTH",16)
-      v.add_input("in","WIDTH")
-      v.add_output("out",1)
-      v.add_body("  assign out = %s;" % exp)
-      f.write(v.to_string())
-    
-    f.write("//binary ops\n")
-    for op, exp in ops["binary"].iteritems():
-      v = vmodule(op.capitalize())
-      v.add_param("WIDTH",16)
-      v.add_input("in0","WIDTH")
-      v.add_input("in1","WIDTH")
-      v.add_output("out","WIDTH")
-      v.add_body("  assign out = %s;" % exp)
-      f.write(v.to_string())
-    
-    f.write("//binaryReduce ops\n")
-    for op, exp in ops["binaryReduce"].iteritems():
-      v = vmodule(op.capitalize())
-      v.add_param("WIDTH",16)
-      v.add_input("in","WIDTH")
-      v.add_output("out",1)
-      v.add_body("  assign out = %s;" % exp)
-      f.write(v.to_string())
+    for t in ["unary","unaryReduce","binary","binaryReduce"]:
+      f.write("//%s ops\n" % t)
+      for op, exp in ops[t].iteritems():
+        v = vmodule("coreir_"+op)
+        v.add_param("WIDTH",16)
+        if (t.find("unary")>=0):
+          v.add_input("in","WIDTH")
+        else:
+          v.add_input("in0","WIDTH")
+          v.add_input("in1","WIDTH")
+        if (t.find("Reduce")>=0):
+          v.add_output("out",1)
+        else:
+          v.add_output("out","WIDTH")
+        v.add_body("  assign out = %s;" % exp)
+        f.write(v.to_string())
     
     #Do the mux
     f.write("//ternary op\n")
@@ -141,7 +121,7 @@ if __name__ == "__main__":
     v.add_input("d1","WIDTH")
     v.add_input("sel",1)
     v.add_output("out","WIDTH")
-    v.add_body("  assign out = sel ? d0 : d1;")
+    v.add_body("  assign out = sel ? d1 : d0;")
     f.write(v.to_string())
 
     #Now do the registers
@@ -159,11 +139,10 @@ if __name__ == "__main__":
     #en = bit 3
     def rexpr(clr,en):
       expr = "D"
-      pen = "D"
       if (clr):
-        pen = "(clr ? INIT : D)"
+        expr = "(clr ? INIT : D)"
       if (en):
-        expr = "en ? %s : r" % pen
+        expr = "en ? %s : r" % expr
       return expr
     for i in range(16):
       posedge = (i>>0) & 1
