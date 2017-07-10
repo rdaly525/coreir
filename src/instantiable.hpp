@@ -32,6 +32,7 @@ class Instantiable {
     string name;
     Metadata metadata;
     Params configparams;
+    Args defaultConfigArgs;
     LinkageKind linkageKind;
   public :
     Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
@@ -52,6 +53,9 @@ class Instantiable {
     Namespace* getNamespace() const { return ns;}
     void setNamespace(Namespace* ns) {this->ns = ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
+    
+    void setDefaultConfigArgs(Args defaultConfigArgs);
+    Args getDefaultConfigArgs() { return defaultConfigArgs;}
 };
 
 std::ostream& operator<<(ostream& os, const Instantiable&);
@@ -59,7 +63,7 @@ std::ostream& operator<<(ostream& os, const Instantiable&);
 class Generator : public Instantiable {
   TypeGen* typegen;
   Params genparams;
-  
+  Args defaultGenArgs; 
   //This is memory managed
   unordered_map<Args,Module*> genCache;
   GeneratorDef* def = nullptr;
@@ -86,6 +90,10 @@ class Generator : public Instantiable {
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
     void setGeneratorDefFromFun(ModuleDefGenFun fun);
     Params getGenParams() {return genparams;}
+
+    void setDefaultGenArgs(Args defaultGenfigargs);
+    Args getDefaultGenArgs() { return defaultGenArgs;}
+
 };
 
 class Module : public Instantiable {

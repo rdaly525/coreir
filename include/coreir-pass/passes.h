@@ -20,7 +20,7 @@ Instance* addPassthrough(Wireable* w,string instname);
 //Returns if it modified container (Found a match)
 //TODO turn this into a real pass
 //bool matchAndReplace(Module* container, Module* pattern, Module* replacement, Args configargs=Args());
-//bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std::function<Args(const Instance*)> getConfigargs);
+//bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std::function<Args(const Instance*)> getConfigArgs);
 
 class ModulePass;
 class Pass;

@@ -14,6 +14,15 @@ namespace CoreIR {
 ///////////////////////////////////////////////////////////
 Context* Instantiable::getContext() { return ns->getContext();}
 
+void Instantiable::setDefaultConfigArgs(Args defaultConfigArgs) {
+  //Check to make sure each arg is in the config params
+  for (auto argmap : defaultConfigArgs) {
+    ASSERT(configparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist!")
+  }
+  this->defaultConfigArgs = defaultConfigArgs;
+}
+
+
 bool operator==(const Instantiable & l,const Instantiable & r) {
   return l.isKind(r.getKind()) && (l.getName()==r.getName()) && (l.getNamespace()->getName() == r.getNamespace()->getName());
 }
@@ -73,6 +82,14 @@ void Generator::setModuleDef(Module* m, Args args) {
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
   assert(!def && "Do you want to overwrite the def?");
   this->def = new GeneratorDefFromFun(this,fun);
+}
+
+void Generator::setDefaultGenArgs(Args defaultGenArgs) {
+  //Check to make sure each arg is in the config params
+  for (auto argmap : defaultGenArgs) {
+    ASSERT(genparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist!")
+  }
+  this->defaultGenArgs = defaultGenArgs;
 }
 
 string Generator::toString() const {

@@ -347,7 +347,7 @@ extern "C" {
 
   void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg*** args, int* num_args) {
       Instance* instance = rcast<Instance*>(core_instance);
-      Args genArgs = instance->getGenargs();
+      Args genArgs = instance->getGenArgs();
       int size = genArgs.size();
       Context* context = instance->getContext();
       *names = context->newStringArray(size);

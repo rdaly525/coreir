@@ -259,18 +259,18 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
  
     //Add the replacement pattern
     string rName = replacement->getName()+c->getUnique();
-    Args rConfigargs;
+    Args rConfigArgs;
     if (this->getConfigArgs) {
-      rConfigargs = this->getConfigArgs(matchedInstances);
+      rConfigArgs = this->getConfigArgs(matchedInstances);
     }
     else if (this->configargs.size()>1) {
-      rConfigargs = this->configargs;
+      rConfigArgs = this->configargs;
     }
     if (isa<Generator>(replacement)) {
-      cdef->addInstance(rName,cast<Generator>(replacement),this->genargs,rConfigargs);
+      cdef->addInstance(rName,cast<Generator>(replacement),this->genargs,rConfigArgs);
     }
     else {
-      cdef->addInstance(rName,cast<Module>(replacement),rConfigargs);
+      cdef->addInstance(rName,cast<Module>(replacement),rConfigArgs);
     }
     //For each matched instance...
     for (uint i=0; i<instanceKey.size(); ++i) {
