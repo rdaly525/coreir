@@ -122,7 +122,7 @@ class DirectedInstance(CoreIRType):
 
 class DirectedConnection(CoreIRType):
     def __init__(self, ptr, context, parent):
-        super().__init__(ptr, context)
+        super(DirectedConnection, self).__init__(ptr, context)
         self.parent = parent
 
     @property
