@@ -150,19 +150,20 @@ def test_module_def_connections():
     add8_out_ptr = get_pointer_addr(add8_out.ptr)
     output_ptr = get_pointer_addr(output.ptr)
     expected_conns = [
-        (add8_in1_ptr, input_ptr),
-        (add8_in2_ptr, input_ptr),
-        (add8_out_ptr, output_ptr)
+        (add8_in1_ptr, input_ptr, 8),
+        (add8_in2_ptr, input_ptr, 8),
+        (add8_out_ptr, output_ptr, 9)
     ]
     connections = module_def.connections
     seen = []
     for conn in connections:
-        pair = (get_pointer_addr(conn.first.ptr), get_pointer_addr(conn.second.ptr))
-        reverse_pair = (pair[1], pair[0])
+        conn_info = (get_pointer_addr(conn.first.ptr), get_pointer_addr(conn.second.ptr), conn.size)
+        reverse_conn_info = (conn_info[1], conn_info[0], conn.size)
         # Should be in expected, shouldn't see it twice
-        assert (pair in expected_conns or reverse_pair in expected_conns) and \
-               pair not in seen
-        seen.append(pair)
+        assert (conn_info in expected_conns or reverse_conn_info in expected_conns) and \
+               conn_info not in seen
+        seen.append(conn_info)
+
     assert len(seen) == len(expected_conns)
 
 if __name__ == "__main__":

@@ -110,17 +110,26 @@ class DirectedInstance(CoreIRType):
     def inputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedInstanceGetInputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def outputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedInstanceGetOutputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
 
 
 class DirectedConnection(CoreIRType):
+    def __init__(self, ptr, context, parent):
+        super().__init__(ptr, context)
+        self.parent = parent
+
+    @property
+    def size(self):
+        assert self.parent.sel(self.source).type.size == self.parent.sel(self.sink).type.size
+        return self.parent.sel(self.source).type.size 
+
     @property
     def source(self):
         size = ct.c_int()
@@ -144,19 +153,19 @@ class DirectedModule(CoreIRType):
     def connections(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetConnections(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def inputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetInputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def outputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetOutputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def instances(self):

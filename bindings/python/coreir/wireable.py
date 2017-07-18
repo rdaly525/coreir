@@ -94,6 +94,11 @@ class Interface(Wireable):
 
 class Connection(CoreIRType):
     @property
+    def size(self):
+        assert self.first.type.size == self.second.type.size
+        return self.first.type.size
+
+    @property
     def first(self):
         return Wireable(libcoreir_c.COREConnectionGetFirst(self.ptr), self.context)
 
