@@ -31,7 +31,7 @@ int main() {
   def->connect("mi.out","self.out");
   addmult->setDef(def);
   std::stringstream buffer;
-  std::cout.rdbuf(buffer.rdbuf());
+  std::streambuf* prevcoutbuf = std::cout.rdbuf(buffer.rdbuf());
   addmult->print();
   std::string text = buffer.str();
   int result = text.compare( 
@@ -50,4 +50,8 @@ int main() {
 "      ci.out <=> ai.in[1]"
 "      self.in <=> ai.in[0]");
   if (!result) { exit(1); }
+  
+  
+  // Restore original buffer before exiting
+  std::cout.rdbuf(prevcoutbuf);
 }
