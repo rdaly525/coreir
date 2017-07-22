@@ -2,6 +2,10 @@
 #include "coreir-lib/stdlib.h"
 #include "coreir-pass/passes.h"
 
+#include <string>   // std::string
+#include <iostream> // std::cout
+#include <sstream>  // std::stringstream
+
 using namespace CoreIR;
 
 int main() {
@@ -49,9 +53,14 @@ int main() {
 "      mi.out <=> self.out"
 "      ci.out <=> ai.in[1]"
 "      self.in <=> ai.in[0]");
-  if (!result) { exit(1); }
-  
-  
+
+
   // Restore original buffer before exiting
   std::cout.rdbuf(prevcoutbuf);
+  if (!result) {
+      std::cout << "Failed" << std::endl;
+      std::exit(1);
+  }
+  std::cout << "Success" << std::endl;
+  std::exit(0);
 }
