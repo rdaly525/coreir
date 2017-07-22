@@ -13,6 +13,7 @@ typedef struct COREWireable COREWireable;
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;
 typedef struct COREArg COREArg;
+typedef struct COREInstantiable COREInstantiable;
 
 typedef struct COREDirectedConnection COREDirectedConnection;
 typedef struct COREDirectedModule COREDirectedModule;
