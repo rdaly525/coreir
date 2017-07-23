@@ -227,6 +227,14 @@ extern "C" {
       return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getInstantiable(std::string(name)));
   }
 
+  COREInstantiable* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name) {
+      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getGenerator(std::string(name)));
+  }
+
+  COREInstantiable* CORENamespaceGetModule(CORENamespace* _namespace, const char* name) {
+      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
+  }
+
   const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection, int* path_len) {
       DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
       ConstSelectPath path = conn->getConstSrc();

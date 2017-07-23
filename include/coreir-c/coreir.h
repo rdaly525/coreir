@@ -32,6 +32,8 @@ extern const char* COREGetInstRefName(COREWireable* iref);
 //  Invalid arg: Module name already exists
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams);
 extern COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name);
+extern COREInstantiable* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name);
+extern COREInstantiable* CORENamespaceGetModule(CORENamespace* _namespace, const char* name);
 
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
