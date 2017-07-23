@@ -106,6 +106,10 @@ extern "C" {
     return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
   }
 
+  COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* config) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Generator*>(generator), *rcast<Args*>(genargs), *rcast<Args*>(config)));
+  }
+
   void COREModuleSetDef(COREModule* module, COREModuleDef* module_def) {
     rcast<Module*>(module)->setDef(rcast<ModuleDef*>(module_def));
   }
