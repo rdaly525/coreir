@@ -8,3 +8,4 @@ def test_get_name():
     assert stdlib.name == "stdlib"
     add_instantiable = stdlib.instantiables["add"]
     assert add_instantiable.name == "add"
+    assert add_instantiable.kind == Generator

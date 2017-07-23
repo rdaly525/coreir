@@ -82,5 +82,6 @@ extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstan
 void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg** args, int* num_args);
 
 extern const char* COREInstantiableGetName(COREInstantiable* instantiable);
+extern int COREInstantiableGetKind(COREInstantiable* instantiable);
 
 #endif //COREIR_C_H_

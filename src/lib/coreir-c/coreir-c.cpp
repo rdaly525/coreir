@@ -371,6 +371,10 @@ extern "C" {
       return rcast<Instantiable*>(instantiable)->getName().c_str();
   }
 
+  int COREInstantiableGetKind(COREInstantiable* instantiable) {
+      return rcast<Instantiable*>(instantiable)->getKind();
+  }
+
 
 }//extern "C"
 }//CoreIR namespace

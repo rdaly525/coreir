@@ -185,3 +185,6 @@ libcoreir_c.CORENamespaceGetInstantiable.restype = COREInstantiable_p
 
 libcoreir_c.COREInstantiableGetName.argtypes = [COREInstantiable_p]
 libcoreir_c.COREInstantiableGetName.restype = ct.c_char_p
+
+libcoreir_c.COREInstantiableGetKind.argtypes = [COREInstantiable_p]
+libcoreir_c.COREInstantiableGetKind.restype = ct.c_int
