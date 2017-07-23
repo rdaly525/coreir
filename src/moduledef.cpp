@@ -177,6 +177,16 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
     return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
 }
 
+Instance* ModuleDef::addInstance(string instname, Instantiable* instantiable, Args genargs, Args config) {
+    if (instantiable->isKind(instantiable->IK_Module)) {
+        return addInstance(instname, dynamic_cast<Module*>(instantiable), genargs, config);
+    } else if (instantiable->isKind(instantiable->IK_Generator)) {
+        return addInstance(instname, dynamic_cast<Generator*>(instantiable), genargs, config);
+    } else {
+        assert(false);  // Should we raise an error? Is this even possible to reach?
+    }
+}
+
 
 void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context

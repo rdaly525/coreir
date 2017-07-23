@@ -71,6 +71,7 @@ class ModuleDef {
     //API for adding an instance of either a module or generator
     Instance* addInstance(string,Generator*,Args genargs, Args config=Args());
     Instance* addInstance(string,Module*,Args config=Args());
+    Instance* addInstance(string,Instantiable*,Args genargs, Args config=Args());
     Instance* addInstance(Instance* i,string iname=""); //copys info about i
 
     // API for iterating over instances
