@@ -6,6 +6,7 @@ from coreir.lib import load_shared_lib, libcoreir_c
 from coreir.context import COREContext, COREContext_p, Context, COREMapKind, COREMapKind_STR2ARG_MAP, COREMapKind_STR2PARAM_MAP, COREMapKind_STR2ARG_MAP
 from coreir.module import COREModule, COREModule_p, COREModuleDef, COREModuleDef_p, ModuleDef, Module, \
         COREDirectedInstance_p, COREDirectedConnection_p, COREDirectedModule_p
+from coreir.instantiable import COREInstantiable_p
 from coreir.namespace import CORENamespace, CORENamespace_p
 from coreir.type import COREType, COREType_p, CoreIRType, Params, Args, COREArg, COREArg_p, Type
 from coreir.wireable import COREWireable_p
@@ -178,3 +179,9 @@ libcoreir_c.CORETypeGetSize.restype = ct.c_uint
 
 libcoreir_c.COREInstanceGetGenArgs.argtypes = [COREWireable_p, ct.POINTER(ct.POINTER(ct.c_char_p)), ct.POINTER(ct.POINTER(COREArg_p)), ct.POINTER(ct.c_int)]
 libcoreir_c.COREInstanceGetGenArgs.restype = None
+
+libcoreir_c.CORENamespaceGetInstantiable.argtypes = [CORENamespace_p, ct.c_char_p]
+libcoreir_c.CORENamespaceGetInstantiable.restype = COREInstantiable_p
+
+libcoreir_c.COREInstantiableGetName.argtypes = [COREInstantiable_p]
+libcoreir_c.COREInstantiableGetName.restype = ct.c_char_p

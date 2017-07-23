@@ -2,6 +2,7 @@ import ctypes as ct
 from coreir.base import CoreIRType
 from coreir.lib import libcoreir_c
 from coreir.type import Type, COREArg_p, Arg
+from coreir.util import LazyDict
 import coreir.module
 
 class COREWireable(ct.Structure):
@@ -46,29 +47,10 @@ class Select(Wireable):
     #     return Wireable(libcoreir_c.CORESelectGetParent(self.ptr))
 
 
-class InstanceConfigLazyDict:
-    """
-    Lazy object that implements the ``instance.config[key]`` interface. Instead
-    of building the dictionary explicitly for every call to config, we wait for
-    the indexing function to be called and use the
-    ``libcoreir_c.COREGetConfigValue`` API
-    """
-    def __init__(self, parent_instance):
-        self.parent_instance = parent_instance
-
-    def __getitem__(self, key):
-        return Arg(libcoreir_c.COREGetConfigValue(self.parent_instance.ptr,
-                                                  str.encode(key)),
-                   self.parent_instance.context)
-
-    def __setitem__(self, key, value):
-        raise NotImplementedError()
-
-
 class Instance(Wireable):
     def __init__(self, ptr, context):
         super(Instance, self).__init__(ptr, context)
-        self.config = InstanceConfigLazyDict(self)
+        self.config = LazyDict(self, Arg, libcoreir_c.COREGetConfigValue)
 
     @property
     def module_name(self):
