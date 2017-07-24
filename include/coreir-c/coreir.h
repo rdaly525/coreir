@@ -44,6 +44,8 @@ extern COREDirectedModule* COREModuleGetDirectedModule(COREModule* module);
 //Errors:
 //  Invalid arg: instance name already exists
 extern COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config); //config will be Args*
+extern COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* config);
+
 extern COREWireable* COREModuleDefGetInterface(COREModuleDef* m);
 extern COREArg* COREGetConfigValue(COREWireable* i, char* s); 
 
