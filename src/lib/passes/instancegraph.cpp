@@ -21,7 +21,7 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
   }
   cout << "}" << endl;
   node->mark = 2;
-  sortedNodes.push_back(node);
+  sortedNodes.push_front(node);
 }
 
 void InstanceGraph::construct(Namespace* ns) {
@@ -61,6 +61,11 @@ void InstanceGraph::construct(Namespace* ns) {
     sortVisit(imap.second);
   }
   cout << "size" << sortedNodes.size() << endl;
+  uint i = 0;
+  for (auto node : sortedNodes) {
+    cout << i++ << endl;
+    cout << node->getInstantiable()->toString() << endl;
+  }
 }
 
 

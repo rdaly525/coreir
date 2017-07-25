@@ -116,25 +116,38 @@ Wireable* Wireable::getTopParent() {
 }
 
 
+//merge a1 into a0 
+void mergeArgs(Args& a0, Args a1) {
+  for (auto arg : a1) {
+    if (a0.count(arg.first)==0) {
+      a0.insert(arg);
+    }
+  }
+}
 
 
-
-Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), configargs(configargs), isgen(false) {
+Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
+  //First merge default args
+  mergeArgs(configargs,moduleRef->getDefaultConfigArgs());
   //Check if configargs is the same as expected by ModuleRef
- checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  this->configargs = configargs;
   
   //TODO checkif instname is unique
   this->type = moduleRef->getType();
 }
 
-Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), configargs(configargs), isgen(true), generatorRef(generatorRef), genargs(genargs) {
+Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), isgen(true), generatorRef(generatorRef) {
   ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
+  mergeArgs(genargs,generatorRef->getDefaultGenArgs());
+  checkArgsAreParams(genargs,generatorRef->getGenParams());
+  this->genargs = genargs;
   this->moduleRef = generatorRef->getModule(genargs);
   this->type = moduleRef->getType();
+  mergeArgs(configargs,generatorRef->getDefaultConfigArgs());
   checkArgsAreParams(configargs,moduleRef->getConfigParams());
-  checkArgsAreParams(genargs,generatorRef->getGenParams());
-  
+  this->configargs = configargs;
 }
 
 string Interface::toString() const{
@@ -147,7 +160,7 @@ string Instance::toString() const {
 
 //TODO this could throw an error. Bad!
 Arg* Instance::getConfigArg(string s) { 
-  ASSERT(configargs.count(s)>0, "Configargs does not contain field: " + s);
+  ASSERT(configargs.count(s)>0, "ConfigArgs does not contain field: " + s);
   return configargs.at(s);
 }
 
@@ -158,8 +171,6 @@ Instantiable* Instance::getInstantiableRef() {
 
 bool Instance::runGenerator() {
   ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
-  cout << "Running Gen?" << toString() << endl;
-  cout << "isGen? " << isGen() << endl;
   //If we have already run the generator, do not run again
   if (moduleRef->hasDef()) return false;
 

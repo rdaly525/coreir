@@ -222,6 +222,10 @@ extern "C" {
   const char* CORENamespaceGetName(CORENamespace* n) {
     return rcast<Namespace*>(n)->getName().c_str();
   }
+  
+  COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name) {
+      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getInstantiable(std::string(name)));
+  }
 
   const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection, int* path_len) {
       DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
@@ -347,7 +351,7 @@ extern "C" {
 
   void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg*** args, int* num_args) {
       Instance* instance = rcast<Instance*>(core_instance);
-      Args genArgs = instance->getGenargs();
+      Args genArgs = instance->getGenArgs();
       int size = genArgs.size();
       Context* context = instance->getContext();
       *names = context->newStringArray(size);
@@ -362,6 +366,11 @@ extern "C" {
           count++;
       }
   }
+
+  const char* COREInstantiableGetName(COREInstantiable* instantiable) {
+      return rcast<Instantiable*>(instantiable)->getName().c_str();
+  }
+
 
 }//extern "C"
 }//CoreIR namespace

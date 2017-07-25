@@ -95,13 +95,14 @@ int main() {
     cout << "Could not save to json!!" << endl;
     c->die();
   }
-  
+  cout << "loading" << endl;
   loadModule(c,"_add12.json", &err);
   if(err) {
     cout << "Could not Load from json!!" << endl;
     c->die();
   }
   
+  cout << "New passmanager" << endl;
   PassManager* pm = new PassManager(g);
   
   cout << "Running Generators" << endl;

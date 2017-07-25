@@ -106,7 +106,7 @@ class NamedType : public Type {
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}
-    Args getGenargs() {return genargs;}
+    Args getGenArgs() {return genargs;}
     uint getSize() const { return raw->getSize();}
     
     json toJson();

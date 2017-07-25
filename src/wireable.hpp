@@ -91,10 +91,10 @@ class Instance : public Wireable {
     bool hasConfigArgs() {return !configargs.empty();}
     
     //Convinience functions
-    bool isGen() { return isgen;}
+    bool isGen() const { return isgen;}
     Generator* getGeneratorRef() { return generatorRef;}
     Instantiable* getInstantiableRef();
-    Args getGenargs() {return genargs;}
+    Args getGenArgs() {return genargs;}
     
     //Returns if it actually ran the generator
     bool runGenerator();

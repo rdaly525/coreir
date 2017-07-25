@@ -24,14 +24,14 @@ NamedRef = [<namespaceName>, <typeName>]
 NamedType = {"name":<name>, "flippedname":<name>,"rawtype":Type}
 NamedTypeGen={"name":<name>, "flippedname"?:<name>,"genparams":Parameter}
 
-Module = {"type":Type, "configparams"?:Parameter, "metadata"?:Metadata, "def"?:ModuleDef}
+Module = {"type":Type, "configparams"?:Parameter, "defaultconfigargs"?:Args "metadata"?:Metadata, "def"?:ModuleDef}
 
 ModuleDef = {"metadata"?:Metadata,
 "implementations"?:Metadata,
 "instances"?: {<instname>:Instance,...}
 "connections"?: Connection[]}
 
-Generator = {"configparams"?:Parameters,"genparams":Parameters, "typegen":NamedRef, "metadata"?:Metadata}
+Generator = {"configparams"?:Parameters, "defaultconfigargs"?:Args, "genparams":Parameters, "defaultgenargs"?:Args, "typegen":NamedRef, "metadata"?:Metadata}
 
 Instance = {"moduleref"?:InstantiatableReference, "generatorref"?:InstantiableReference, "genargs"?:Args, "configargs"?:Args, "metadata"?:Metadata}
 

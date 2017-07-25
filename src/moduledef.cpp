@@ -26,7 +26,12 @@ void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
-    cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
+    if (inst.second->isGen()) {
+      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Args2Str(inst.second->getGenArgs()) << endl;
+    }
+    else {
+      cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
+    }
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
@@ -138,7 +143,7 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
   assert(instances.count(instname)==0);
-  
+
   Instance* inst = new Instance(this,instname,gen,genargs,config);
   instances[instname] = inst;
 
@@ -167,7 +172,7 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
     iname = i->getInstname();
   }
   if( i->isGen()) 
-    return addInstance(iname,i->getGeneratorRef(),i->getGenargs(),i->getConfigArgs());
+    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getConfigArgs());
   else 
     return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
 }

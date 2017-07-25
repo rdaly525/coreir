@@ -47,16 +47,16 @@ def test_directed_module():
     assert get_pointer_addr(directed_module.sel(["adder3", "out"]).ptr) == get_pointer_addr(add8_inst3.select("out").ptr)
 
     expected = [
-        (['adder3', 'out'], ['self', 'output']),
-        (['adder2', 'out'], ['adder3', 'in2']),
-        (['adder1', 'out'], ['adder3', 'in1']),
-        (['self', 'input'], ['adder1', 'in1']),
-        (['self', 'input'], ['adder2', 'in1']),
-        (['self', 'input'], ['adder1', 'in2']),
-        (['self', 'input'], ['adder2', 'in2'])
+        (['adder3', 'out'], ['self', 'output'], 8),
+        (['adder2', 'out'], ['adder3', 'in2'], 8),
+        (['adder1', 'out'], ['adder3', 'in1'], 8),
+        (['self', 'input'], ['adder1', 'in1'], 8),
+        (['self', 'input'], ['adder2', 'in1'], 8),
+        (['self', 'input'], ['adder1', 'in2'], 8),
+        (['self', 'input'], ['adder2', 'in2'], 8)
     ]
     for directed_connection in directed_module.connections:
-        actual = (directed_connection.source, directed_connection.sink)
+        actual = (directed_connection.source, directed_connection.sink, directed_connection.size)
         assert actual in expected
         expected.remove(actual)
     assert len(expected) == 0

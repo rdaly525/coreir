@@ -2,6 +2,7 @@ import ctypes as ct
 from coreir.base import CoreIRType
 from coreir.lib import libcoreir_c
 from coreir.type import Type, COREArg_p, Arg
+from coreir.util import LazyDict
 import coreir.module
 
 class COREWireable(ct.Structure):
@@ -47,21 +48,14 @@ class Select(Wireable):
 
 
 class Instance(Wireable):
+    def __init__(self, ptr, context):
+        super(Instance, self).__init__(ptr, context)
+        self.config = LazyDict(self, Arg, libcoreir_c.COREGetConfigValue)
+
     @property
     def module_name(self):
         name = libcoreir_c.COREGetInstRefName(self.ptr)
         return name.decode()
-
-    def get_config_value(self, key):
-        arg = libcoreir_c.COREGetConfigValue(self.ptr,str.encode(key))
-        type = libcoreir_c.COREGetArgKind(arg)
-        # type enum values defined in include/coreir-c/coreir-args.h
-        if type == 0:
-            return libcoreir_c.COREArgIntGet(arg)
-        elif type == 1:
-            return libcoreir_c.COREArgStringGet(arg).decode()
-        
-        raise NotImplementedError
 
     @property
     def generator_args(self):
@@ -81,6 +75,11 @@ class Interface(Wireable):
 
 
 class Connection(CoreIRType):
+    @property
+    def size(self):
+        assert self.first.type.size == self.second.type.size
+        return self.first.type.size
+
     @property
     def first(self):
         return Wireable(libcoreir_c.COREConnectionGetFirst(self.ptr), self.context)

@@ -2,6 +2,7 @@
 #define INSTANCEGRAPH_HPP_
 
 #include "coreir.h"
+#include "list"
 
 namespace CoreIR {
 
@@ -9,12 +10,12 @@ class InstanceGraphNode;
 class InstanceGraph {
   std::unordered_map<Instantiable*,InstanceGraphNode*> nodeMap;
   //std::unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
-  std::vector<InstanceGraphNode*> sortedNodes;
+  std::list<InstanceGraphNode*> sortedNodes;
   public :
     InstanceGraph() {}
     ~InstanceGraph() {this->clear();}
     void construct(Namespace* ns);
-    std::vector<InstanceGraphNode*> getSortedNodes() { return sortedNodes;}
+    std::list<InstanceGraphNode*> getSortedNodes() { return sortedNodes;}
     void clear();
     void sortVisit(InstanceGraphNode* node);
 

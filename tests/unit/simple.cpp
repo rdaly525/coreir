@@ -14,7 +14,6 @@ int main() {
     {"in",c->Array(16,c->BitIn())},
     {"out",c->Array(16,c->Bit())}
   });
- 
   Args w16({{"width",c->argInt(16)}});
   Generator* Add = stdlib->getGenerator("add");
   Generator* Mul = stdlib->getGenerator("mul");

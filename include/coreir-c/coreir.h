@@ -31,6 +31,7 @@ extern const char* COREGetInstRefName(COREWireable* iref);
 //Errors:
 //  Invalid arg: Module name already exists
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams);
+extern COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name);
 
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
@@ -79,5 +80,7 @@ extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstan
 // END   : directedview
 
 void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg** args, int* num_args);
+
+extern const char* COREInstantiableGetName(COREInstantiable* instantiable);
 
 #endif //COREIR_C_H_
