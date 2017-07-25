@@ -12,8 +12,9 @@ class FlattenAllPass : public InstanceGraphPass {
     bool runOnInstanceGraphNode(InstanceGraphNode& node) {
       cout << "Working on Node!" << node.getInstantiable()->getName() << endl;
       bool changed = false;
-      for (auto insts : node.getInstanceList()) {
-        changed |= inlineInstance(insts);
+      for (auto inst : node.getInstanceList()) {
+        cout << "Inlining: " << inst->getInstname() << endl;
+        changed |= inlineInstance(inst);
       }
       return changed;
     }

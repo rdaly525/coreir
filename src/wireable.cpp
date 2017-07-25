@@ -158,7 +158,8 @@ Instantiable* Instance::getInstantiableRef() {
 
 bool Instance::runGenerator() {
   ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
-  
+  cout << "Running Gen?" << toString() << endl;
+  cout << "isGen? " << isGen() << endl;
   //If we have already run the generator, do not run again
   if (moduleRef->hasDef()) return false;
 
@@ -169,6 +170,10 @@ bool Instance::runGenerator() {
   //Actually run the generator
   generatorRef->setModuleDef(moduleRef, genargs);
   assert(moduleRef->hasDef());
+
+  isgen = false;
+  getModuleDef()->getModule()->getNamespace()->addModule(moduleRef);
+  cout << "Running Generator " << this->toString() << endl;
   return true;
 }
 

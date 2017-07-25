@@ -5,7 +5,7 @@
 
 namespace CoreIR {
 
-void rungenerators(CoreIR::Context* c, CoreIR::Module* m, bool* err);
+//void rungenerators(CoreIR::Context* c, CoreIR::Module* m, bool* err);
 void flatten(CoreIR::Context* c, CoreIR::Module* m, bool* err);
 
 //Inlines the instance
@@ -16,13 +16,22 @@ Instance* addPassthrough(Wireable* w,string instname);
 class Pass {
   
   public:
-    enum PassKind {PK_Module, PK_InstanceGraph};
+    enum PassKind {PK_Namespace, PK_Module, PK_InstanceGraph};
   private:
     PassKind kind;
   public:
     explicit Pass(PassKind kind) : kind(kind) {}
     virtual ~Pass() = 0;
     PassKind getKind() const {return kind;}
+};
+
+//You can do whatever you want here
+class NamespacePass : public Pass {
+  public:
+    explicit NamespacePass() : Pass(PK_Namespace) {}
+    static bool classof(const Pass* p) {return p->getKind()==PK_Namespace;}
+    virtual bool runOnNamespace(Namespace* n) = 0;
+
 };
 
 //Loops through all the modules within the namespace

@@ -13,18 +13,18 @@ class PassManager {
   //TODO Ad hoc, Find better system
   //Even better, construct this using a pass that is dependent
   InstanceGraph instanceGraph;
+  bool instanceGraphStale = true;
 
   std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
   public:
-    explicit PassManager(Namespace* ns) : ns(ns) {
-      instanceGraph.construct(ns);
-    }
+    explicit PassManager(Namespace* ns) : ns(ns) {}
     ~PassManager();
     //This will memory manage pass.
     void addPass(Pass* p, uint ordering);
     //Returns if graph was modified
     bool run();
   private:
+    bool runNamespacePass(vector<Pass*>& passes);
     bool runModulePass(vector<Pass*>& passes);
     bool runInstanceGraphPass(vector<Pass*>& passes);
 };

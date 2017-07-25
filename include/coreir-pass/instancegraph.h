@@ -8,12 +8,15 @@ namespace CoreIR {
 class InstanceGraphNode;
 class InstanceGraph {
   std::unordered_map<Instantiable*,InstanceGraphNode*> nodeMap;
-  std::unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
+  //std::unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
   std::vector<InstanceGraphNode*> sortedNodes;
   public :
     InstanceGraph() {}
+    ~InstanceGraph() {this->clear();}
     void construct(Namespace* ns);
     std::vector<InstanceGraphNode*> getSortedNodes() { return sortedNodes;}
+    void clear();
+    void sortVisit(InstanceGraphNode* node);
 
 };
 
@@ -39,7 +42,13 @@ class InstanceGraphNode {
     //void detachFromRecord(string label);
 
   private:
-    void addInstance(Instance* i) { instanceList.push_back(i);}
+    std::vector<InstanceGraphNode*> ignList;
+    int mark=0; //unmarked=0, temp=1,perm=2
+    void addInstance(Instance* i, InstanceGraphNode* ign) { 
+      instanceList.push_back(i);
+      ignList.push_back(ign);
+    }
+
   friend class InstanceGraph;
 };
 

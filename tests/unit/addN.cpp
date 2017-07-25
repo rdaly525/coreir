@@ -102,15 +102,17 @@ int main() {
     c->die();
   }
   
+  PassManager* pm = new PassManager(g);
+  
   cout << "Running Generators" << endl;
-  rungenerators(c,add12,&err);
-  if (err) c->die();
-  add12->print();
+  pm->addPass(new RunAllGeneratorsPass(),0);
+  //rungenerators(c,add12,&err);
+  //if (err) c->die();
+  //add12->print();
  
 
   cout << "Flattening everything" << endl;
-  PassManager* pm = new PassManager(g);
-  pm->addPass(new FlattenAllPass(),0);
+  pm->addPass(new FlattenAllPass(),1);
   pm->run();
 
   //flatten(c,add12,&err);

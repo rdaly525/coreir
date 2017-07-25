@@ -1,5 +1,7 @@
 General Ideas
  
+getAnalysisPass
+
 
 Simple Inst Pass
 Given a moduledecl 'from' and 'to' with the same interface,
