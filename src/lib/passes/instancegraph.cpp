@@ -9,9 +9,6 @@ void InstanceGraph::clear() {
 }
 
 void InstanceGraph::sortVisit(InstanceGraphNode* node) {
-  cout << "{" << endl;
-  cout << node->mark << endl;
-  cout << node->getInstantiable()->toString() << endl;
   if (node->mark==2) return;
   ASSERT(node->mark!=1,"SOMEHOW not a DAG");
   node->mark = 1;
@@ -19,22 +16,17 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
     cout << node->getInstantiable()->getName() << "->" << nextnode->getInstantiable()->getName() << endl;
     sortVisit(nextnode);
   }
-  cout << "}" << endl;
   node->mark = 2;
   sortedNodes.push_front(node);
 }
 
 void InstanceGraph::construct(Namespace* ns) {
-  cout << "INIT\n";
-  cout << sortedNodes.size() << endl;
-  cout << nodeMap.size() << endl;
   //Contains all external nodes referenced
   //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
   
   //Create all Nodes first
   for (auto imap : ns->getModules()) {
     nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
-    cout << "MOds: " << imap.first << endl;
   }
   for (auto imap : ns->getGenerators()) {
     nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
@@ -55,16 +47,8 @@ void InstanceGraph::construct(Namespace* ns) {
     }
   }
 
-
-  //TODO sort this 
   for (auto imap : nodeMap) {
     sortVisit(imap.second);
-  }
-  cout << "size" << sortedNodes.size() << endl;
-  uint i = 0;
-  for (auto node : sortedNodes) {
-    cout << i++ << endl;
-    cout << node->getInstantiable()->toString() << endl;
   }
 }
 

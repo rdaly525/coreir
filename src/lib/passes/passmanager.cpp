@@ -4,11 +4,9 @@
 using namespace CoreIR;
 
 void PassManager::addPass(Pass* p, uint ordering) {
-  cout << "PP" << instanceGraph.getSortedNodes().size() << endl;
   if (passOrdering.count(ordering)==0) {
     passOrdering[ordering] = unordered_map<uint,vector<Pass*>>();
   }
-  cout << "Adding a pass" << p->getKind() << endl;
   passOrdering[ordering][p->getKind()].push_back(p);
 }
 
@@ -47,25 +45,27 @@ bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
   }
   
   bool modified = false;
-  cout << "s" << passes.size() << endl;
   for (auto igpass : passes) {
     assert(isa<InstanceGraphPass>(igpass));
     
-    cout << "P3P" << instanceGraph.getSortedNodes().size() << endl;
     for (auto node : this->instanceGraph.getSortedNodes()) {
-      cout << "HERE!" << endl;
       modified |= cast<InstanceGraphPass>(igpass)->runOnInstanceGraphNode(*node);
     }
   }
   return modified;
 }
 
+std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
+//This will clear all the passes
+void PassManager::clear() {
+  this->~PassManager();
+  passOrdering.clear();
+}
+
 bool PassManager::run() {
   //For now I have to do only the modules.
   bool modified = false;
   for (auto passOrders : passOrdering) {
-    uint idx = passOrders.first;
-    cout << "OrderIdx " << idx << endl;
     //Do modulePasses first
     if (passOrders.second.count(Pass::PK_Namespace)>0) {
       modified |= runNamespacePass(passOrders.second[Pass::PK_Namespace]);
@@ -76,11 +76,10 @@ bool PassManager::run() {
     if (passOrders.second.count(Pass::PK_InstanceGraph)>0) {
       modified |= runInstanceGraphPass(passOrders.second[Pass::PK_InstanceGraph]);
     }
-
-  
   }
   return modified;
 }
+
 
 
 PassManager::~PassManager() {

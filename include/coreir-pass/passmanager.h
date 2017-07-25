@@ -21,8 +21,11 @@ class PassManager {
     ~PassManager();
     //This will memory manage pass.
     void addPass(Pass* p, uint ordering);
+    
     //Returns if graph was modified
+    //Will also remove all the passes that were run
     bool run();
+    void clear();
   private:
     bool runNamespacePass(vector<Pass*>& passes);
     bool runModulePass(vector<Pass*>& passes);

@@ -62,7 +62,7 @@ class ModuleDef {
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
     
-    InstanceMapType getInstanceMap() { return instanceMap;}
+    InstanceMapType getInstanceMap();
     
 
     Wireable* sel(string s);
