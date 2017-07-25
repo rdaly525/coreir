@@ -2,6 +2,9 @@
 #include "coreir-lib/stdlib.h"
 #include "coreir-pass/passes.h"
 
+#include "coreir-pass/passmanager.h"
+#include "coreir-pass/common.h"
+
 
 using namespace CoreIR;
 
@@ -104,8 +107,13 @@ int main() {
   if (err) c->die();
   add12->print();
  
+
   cout << "Flattening everything" << endl;
-  flatten(c,add12,&err);
+  PassManager* pm = new PassManager(g);
+  pm->addPass(new FlattenAllPass(),0);
+  pm->run();
+
+  //flatten(c,add12,&err);
   add12->print();
   add12->getDef()->validate();
 

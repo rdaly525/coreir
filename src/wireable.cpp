@@ -57,6 +57,14 @@ ConstSelectPath Wireable::getConstSelectPath() {
   return path;
 }
 
+void Wireable::connect(Wireable* w) {
+  this->getModuleDef()->connect(this,w);
+}
+
+void Wireable::disconnect() {
+  this->getModuleDef()->disconnect(this);
+}
+
 SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
   SelectPath path;

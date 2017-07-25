@@ -42,6 +42,12 @@ class Wireable {
     Select* sel(uint);
     Select* sel(SelectPath);
   
+    //Connect this to w
+    void connect(Wireable* w);
+
+    //Disconnect everything from this wireable
+    void disconnect();
+
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,a,b,0}
     SelectPath getSelectPath();
@@ -95,6 +101,8 @@ class Instance : public Wireable {
 
     void replace(Module* moduleRef, Args configargs=Args());
     void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
+  
+  friend class InstanceGraphNode;
 };
 
 class Select : public Wireable {
