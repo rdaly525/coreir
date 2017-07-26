@@ -1,4 +1,7 @@
-#include "coreir-pass/passes.h"
+#ifndef MATCHANDREPLACE_HPP_
+#define MATCHANDREPLACE_HPP_
+
+#include "coreir.h"
 
 namespace CoreIR {
 
@@ -52,3 +55,5 @@ class MatchAndReplacePass : public ModulePass {
 };
 
 }
+
+#endif

@@ -1,6 +1,5 @@
 #include "coreir.h"
 #include "coreir-lib/cgralib.h"
-#include "coreir-pass/passes.h"
 
 using namespace CoreIR;
 

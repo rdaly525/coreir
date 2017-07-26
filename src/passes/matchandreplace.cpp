@@ -1,6 +1,5 @@
 #include "coreir.h"
-#include "coreir-pass/passes.h"
-#include "coreir-pass/matchandreplace.h"
+#include "coreir-passes/matchandreplace.hpp"
 
 #include <algorithm>
 #include <queue>

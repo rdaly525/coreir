@@ -1,29 +1,11 @@
-#ifndef RUNALLGENERATORSPASS_HPP_
-#define RUNALLGENERATORSPASS_HPP_
-
 #include "coreir.h"
-#include "coreir-pass/passes.h"
+#include "coreir-passes/runallgeneratorspass.hpp"
 
 using namespace CoreIR;
 
+
 // This will recusrively run all the generators and replace module definitions
 // For every instance, if it is a generator, it 
-bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran);
-
-class RunAllGeneratorsPass : public NamespacePass {
-  public :
-    RunAllGeneratorsPass() : NamespacePass() {}
-    bool runOnNamespace(Namespace* ns) {
-      //Keep list of modules to be added
-      unordered_set<Module*> ran;
-      bool changed = false;
-      for (auto mmap : ns->getModules()) {
-        changed |= rungeneratorsRec(mmap.second,ran);
-      }
-      return changed;
-    }
-};
-
 bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran) {
   
   //If I already checked module, then just return
@@ -54,4 +36,13 @@ bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran) {
   return changed;
 }
 
-#endif
+bool RunAllGeneratorsPass::runOnNamespace(Namespace* ns) {
+  //Keep list of modules to be added
+  unordered_set<Module*> ran;
+  bool changed = false;
+  for (auto mmap : ns->getModules()) {
+    changed |= rungeneratorsRec(mmap.second,ran);
+  }
+  return changed;
+}
+

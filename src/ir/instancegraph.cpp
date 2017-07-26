@@ -1,4 +1,4 @@
-#include "coreir-pass/instancegraph.h"
+#include "instancegraph.h"
 
 using namespace CoreIR;
 
