@@ -143,19 +143,20 @@ void inlinePassthrough(Instance* i) {
 
 
 //This will modify the moduledef to inline the instance
-void inlineInstance(Instance* inst) {
+bool inlineInstance(Instance* inst) {
   ModuleDef* def = inst->getModuleDef();
   Module* modInline = inst->getModuleRef();
   
   //Special case for a passthrough
+  //TODO should have a better check for passthrough than string compare
   if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
     inlinePassthrough(inst);
-    return;
+    return true;
   }
 
   if (!modInline->hasDef()) {
     cout << "Cannot inline a module with no definition!: " << modInline->getName() << endl;
-    return;
+    return false;
   }
   
   //I will be inlining defInline into def
@@ -203,6 +204,7 @@ void inlineInstance(Instance* inst) {
 
   //typecheck the module
   def->validate();
+  return true;
 }
 
 }

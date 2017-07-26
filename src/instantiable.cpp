@@ -69,9 +69,8 @@ Module* Generator::getModule(Args args) {
   return m;
 }
 
-//TODO maybe cache the results of this?
 void Generator::setModuleDef(Module* m, Args args) {
-  assert(def && "Cannot add ModuleDef if there is no generatorDef!");
+  ASSERT(def,"Cannot add ModuleDef if there is no generatorDef!");
 
   checkArgsAreParams(args,genparams);
   ModuleDef* mdef = m->newModuleDef();
@@ -80,7 +79,7 @@ void Generator::setModuleDef(Module* m, Args args) {
 }
 
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
-  assert(!def && "Do you want to overwrite the def?");
+  ASSERT(!def,"Do you really want to overwrite the def? No.");
   this->def = new GeneratorDefFromFun(this,fun);
 }
 

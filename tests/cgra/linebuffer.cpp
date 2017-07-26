@@ -1,7 +1,10 @@
 #include "coreir.h"
 #include "coreir-lib/cgralib.h"
 #include "coreir-lib/stdlib.h"
+
 #include "coreir-pass/passes.h"
+#include "coreir-pass/passmanager.h"
+#include "coreir-pass/common.h"
 
 
 using namespace CoreIR;
@@ -51,15 +54,18 @@ int main() {
     c->die();
   }
   
+  PassManager* pm = new PassManager(c->getGlobal());
+  
   cout << "Running Generators" << endl;
-  rungenerators(c,lb33,&err);
-  if (err) c->die();
-  lb33->print();
+  pm->addPass(new RunAllGeneratorsPass(),0);
+  pm->run();
+
   Instance* i = cast<Instance>(lb33->getDef()->sel("lb33_inst"));
   i->getModuleRef()->print();
-
+  
   cout << "Flattening everything" << endl;
-  flatten(c,lb33,&err);
+  pm->addPass(new FlattenAllPass(),1);
+  pm->run();
   lb33->print();
   lb33->getDef()->validate();
   

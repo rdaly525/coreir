@@ -5,43 +5,18 @@
 
 namespace CoreIR {
 
-void rungenerators(CoreIR::Context* c, CoreIR::Module* m, bool* err);
+//void rungenerators(CoreIR::Context* c, CoreIR::Module* m, bool* err);
 void flatten(CoreIR::Context* c, CoreIR::Module* m, bool* err);
 
 //Inlines the instance
-void inlineInstance(Instance*);
+bool inlineInstance(Instance*);
 
 Instance* addPassthrough(Wireable* w,string instname);
-
-
-//Container: the module that will be modified.
-//pattern: the module defines the interface and instances that it will match
-//replacement: The Generator that will replace the pattern that was found
-//Returns if it modified container (Found a match)
-//TODO turn this into a real pass
-//bool matchAndReplace(Module* container, Module* pattern, Module* replacement, Args configargs=Args());
-//bool matchAndReplace(Module* container, Module* pattern, Module* replacement,std::function<Args(const Instance*)> getConfigArgs);
-
-class ModulePass;
-class Pass;
-class PassManager {
-  Namespace* ns;
-  std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
-  public:
-    explicit PassManager(Namespace* ns) : ns(ns) {}
-    ~PassManager();
-    //This will memory manage pass.
-    void addPass(Pass* p, uint ordering);
-    //Returns if graph was modified
-    bool run();
-  private:
-    bool runModulePass(vector<Pass*>& passes);
-};
 
 class Pass {
   
   public:
-    enum PassKind {PK_Module, PK_InstanceDAG};
+    enum PassKind {PK_Namespace, PK_Module, PK_InstanceGraph};
   private:
     PassKind kind;
   public:
@@ -50,6 +25,17 @@ class Pass {
     PassKind getKind() const {return kind;}
 };
 
+//You can do whatever you want here
+class NamespacePass : public Pass {
+  public:
+    explicit NamespacePass() : Pass(PK_Namespace) {}
+    static bool classof(const Pass* p) {return p->getKind()==PK_Namespace;}
+    virtual bool runOnNamespace(Namespace* n) = 0;
+
+};
+
+//Loops through all the modules within the namespace
+//You can edit the current module but not any other module!
 class ModulePass : public Pass {
   public:
     explicit ModulePass() : Pass(PK_Module) {}
@@ -58,12 +44,16 @@ class ModulePass : public Pass {
 
 };
 
-class InstanceDAGPass : public Pass {
+class InstanceGraphNode;
+//Loops through the InstanceDAG from bottom up. Instane DAG is analogous to CallGraph in LLVM. 
+//If the Instance is linked in from a different namespace or is a generator instance, then it will run runOnInstanceNode
+//Not allowed 
+class InstanceGraphPass : public Pass {
   public:
-    explicit InstanceDAGPass() : Pass(PK_InstanceDAG) {}
-    static bool classof(const Pass* p) {return p->getKind()==PK_InstanceDAG;}
-    virtual bool runOnModule(Module* m) = 0;
-
+    
+    explicit InstanceGraphPass() : Pass(PK_InstanceGraph) {}
+    static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
+    virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
 };
 
 }

@@ -57,6 +57,14 @@ ConstSelectPath Wireable::getConstSelectPath() {
   return path;
 }
 
+void Wireable::connect(Wireable* w) {
+  this->getModuleDef()->connect(this,w);
+}
+
+void Wireable::disconnect() {
+  this->getModuleDef()->disconnect(this);
+}
+
 SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
   SelectPath path;
@@ -107,6 +115,19 @@ Wireable* Wireable::getTopParent() {
   return top;
 }
 
+//TODO Check here first for segfaults
+void Wireable::removeUnusedSelects() {
+  if (Select* s = dyn_cast<Select>(this)) {
+    for (auto wsel : s->getSelects()) {
+      wsel.second->removeUnusedSelects();
+    }
+    if (s->getSelects().size()) return;
+    if (s->getConnectedWireables().size()) return;
+    
+    //WARNING this will commit suicide
+    moduledef->getCache()->eraseSelect(s);
+  }
+}
 
 //merge a1 into a0 
 void mergeArgs(Args& a0, Args a1) {
@@ -161,19 +182,23 @@ Instantiable* Instance::getInstantiableRef() {
   else return moduleRef;
 }
 
-void Instance::runGenerator() {
+bool Instance::runGenerator() {
   ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
-  
   //If we have already run the generator, do not run again
-  if (moduleRef->hasDef()) return;
+  if (moduleRef->hasDef()) return false;
 
   //TODO should this be the default behavior?
   //If there is no generatorDef, then just do nothing
-  if (!generatorRef->hasDef()) return;
+  if (!generatorRef->hasDef()) return false;
   
   //Actually run the generator
   generatorRef->setModuleDef(moduleRef, genargs);
   assert(moduleRef->hasDef());
+
+  isgen = false;
+  getModuleDef()->getModule()->getNamespace()->addModule(moduleRef);
+  cout << "Running Generator " << this->toString() << endl;
+  return true;
 }
 
 void Instance::replace(Module* moduleRef, Args configargs) {
@@ -236,5 +261,11 @@ Select* SelCache::newSelect(ModuleDef* context, Wireable* parent, string selStr,
   }
 }
 
+void SelCache::eraseSelect(Select* s) {
+  SelectParamType params = {s->getParent(),s->getSelStr()};
+  assert(cache.find(params) != cache.end());
+  cache.erase(params);
+
+}
 
 } //CoreIR namesapce

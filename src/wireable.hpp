@@ -8,6 +8,8 @@ using namespace std;
 
 namespace CoreIR {
 
+class InstanceGraphNode;
+
 class Wireable {
   public:
     enum WireableKind {WK_Interface,WK_Instance,WK_Select};
@@ -42,6 +44,12 @@ class Wireable {
     Select* sel(uint);
     Select* sel(SelectPath);
   
+    //Connect this to w
+    void connect(Wireable* w);
+
+    //Disconnect everything from this wireable
+    void disconnect();
+
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,a,b,0}
     SelectPath getSelectPath();
@@ -49,6 +57,13 @@ class Wireable {
     string wireableKind2Str(WireableKind wb);
     LocalConnections getLocalConnections();
     Wireable* getTopParent();
+  protected :
+    //This should be used very carefully. Could make things inconsistent
+    friend class InstanceGraphNode;
+    void setType(Type* t) {
+      type = t;
+    }
+    void removeUnusedSelects();
 };
 
 ostream& operator<<(ostream&, const Wireable&);
@@ -85,14 +100,18 @@ class Instance : public Wireable {
     bool hasConfigArgs() {return !configargs.empty();}
     
     //Convinience functions
-    bool isGen() { return isgen;}
+    bool isGen() const { return isgen;}
     Generator* getGeneratorRef() { return generatorRef;}
     Instantiable* getInstantiableRef();
     Args getGenArgs() {return genargs;}
     
-    void runGenerator();
+    //Returns if it actually ran the generator
+    bool runGenerator();
+
     void replace(Module* moduleRef, Args configargs=Args());
     void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
+  
+  friend class InstanceGraphNode;
 };
 
 class Select : public Wireable {
@@ -115,6 +134,8 @@ class SelCache {
     SelCache() {};
     ~SelCache();
     Select* newSelect(ModuleDef* context, Wireable* parent, string selStr,Type* t);
+    //Warning this will delete s
+    void eraseSelect(Select* s);
 };
 
 
