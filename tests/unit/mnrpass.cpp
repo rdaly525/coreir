@@ -1,8 +1,6 @@
 #include "coreir.h"
 #include "coreir-lib/stdlib.h"
-#include "coreir-pass/passes.h"
-#include "coreir-pass/passmanager.h"
-#include "coreir-pass/common.h"
+#include "coreir-passes/common.h"
 
 using namespace CoreIR;
 

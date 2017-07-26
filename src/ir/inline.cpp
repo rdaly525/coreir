@@ -1,5 +1,5 @@
-#include "coreir-pass/passes.h"
 
+#include "coreir.h"
 
 namespace CoreIR {
 

@@ -1,7 +1,11 @@
 
-#include "coreir-pass/passmanager.h"
+#include "passmanager.h"
 
 using namespace CoreIR;
+
+PassManager::PassManager(Namespace* ns) : ns(ns) {
+  this->instanceGraph = new InstanceGraph();
+}
 
 void PassManager::addPass(Pass* p, uint ordering) {
   if (passOrdering.count(ordering)==0) {
@@ -40,15 +44,15 @@ bool PassManager::runModulePass(vector<Pass*>& passes) {
 bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
   
   if (this->instanceGraphStale) {
-    instanceGraph.clear();
-    instanceGraph.construct(ns);
+    instanceGraph->clear();
+    instanceGraph->construct(ns);
   }
   
   bool modified = false;
   for (auto igpass : passes) {
     assert(isa<InstanceGraphPass>(igpass));
     
-    for (auto node : this->instanceGraph.getSortedNodes()) {
+    for (auto node : this->instanceGraph->getSortedNodes()) {
       modified |= cast<InstanceGraphPass>(igpass)->runOnInstanceGraphNode(*node);
     }
   }

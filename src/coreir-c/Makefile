@@ -15,14 +15,14 @@ ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
-HOME = ../../..
+HOME = ../..
 LPATH = -L$(HOME)/lib
 INCS = -I$(HOME)/include -I.
-SRCFILES = $(wildcard [^_]*.cpp)
+SRCFILES = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 
-DYLIBS = $(patsubst %.cpp,build/%.dylib,$(SRCFILES))
-SOLIBS = $(patsubst %.cpp,build/%.so,$(SRCFILES))
+DYLIBS = build/coreir-c.dylib
+SOLIBS = build/coreir-c.so
 
 all: $(DYLIBS) $(SOLIBS)
 
@@ -33,13 +33,13 @@ dylib: $(DYLIBS)
 clean:
 	rm -rf build/*
 
-build/%.so: build/%.o
-	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir 
-	cp $@ $(HOME)/lib/libcoreir-$*.so
+build/%.so: $(OBJS)
+	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir
+	cp $@ $(HOME)/lib/lib$*.so
 
-build/%.dylib: build/%.o
-	$(CXX) -install_name "@rpath/libcoreir-$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
-	cp $@ $(HOME)/lib/libcoreir-$*.dylib
+build/%.dylib: $(OBJS)
+	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
+	cp $@ $(HOME)/lib/lib$*.dylib
 
 build/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

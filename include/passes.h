@@ -6,12 +6,8 @@
 namespace CoreIR {
 
 //void rungenerators(CoreIR::Context* c, CoreIR::Module* m, bool* err);
-void flatten(CoreIR::Context* c, CoreIR::Module* m, bool* err);
+//void flatten(CoreIR::Context* c, CoreIR::Module* m, bool* err);
 
-//Inlines the instance
-bool inlineInstance(Instance*);
-
-Instance* addPassthrough(Wireable* w,string instname);
 
 class Pass {
   
