@@ -81,6 +81,10 @@ if __name__ == "__main__":
       #"srem":"$signed(in0) % $signed(in1)", 
       #"smod":"$signed(in0) % $signed(in1)", #TODO definitely wrong
     },
+    "static_shift": {
+        "lshr": "in >> SHIFTBITS",
+        "shl": "in << SHIFTBITS",
+    },
     "binaryReduce":{
       "eq":"in0 == in1",
       "slt":"$signed(in0) < $signed(in1)",
@@ -96,13 +100,16 @@ if __name__ == "__main__":
 
   with open("stdlib.v","w") as f:
     
-    for t in ["unary","unaryReduce","binary","binaryReduce"]:
+    for t in ["unary","unaryReduce","binary","static_shift","binaryReduce"]:
       f.write("//%s ops\n" % t)
       for op, exp in ops[t].iteritems():
         v = vmodule("coreir_"+op)
         v.add_param("WIDTH",16)
         if (t.find("unary")>=0):
           v.add_input("in","WIDTH")
+        elif t == "static_shift":
+          v.add_input("in","WIDTH")
+          v.add_param("SHIFTBITS", 1)
         else:
           v.add_input("in0","WIDTH")
           v.add_input("in1","WIDTH")
