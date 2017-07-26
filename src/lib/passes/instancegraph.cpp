@@ -13,7 +13,6 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
   ASSERT(node->mark!=1,"SOMEHOW not a DAG");
   node->mark = 1;
   for (auto nextnode : node->ignList) {
-    cout << node->getInstantiable()->getName() << "->" << nextnode->getInstantiable()->getName() << endl;
     sortVisit(nextnode);
   }
   node->mark = 2;
