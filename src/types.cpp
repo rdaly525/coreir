@@ -104,21 +104,27 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
   }
 }
 
-void RecordType::addItem(string s, Type* t) {
-  bool first = _order.empty();
-  _order.push_back(s);
-  record.emplace(s,t);
-  DirKind tDir = t->getDir();
-  //This logic is a bit sketch. Should probably test this a lot
-  if (first) {
-    dir = tDir;
+Type* RecordType::appendField(string label, Type* t) {
+  ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
+  
+  //TODO this was annoying to write. I should fix up the whole myPair thing
+  RecordParams newParams({myPair<string,Type*>(label,t)});
+  for (auto rparam : this->getRecord()) {
+    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
   }
-  else if (dir==DK_Unknown || tDir==DK_Unknown) {
-    dir = DK_Unknown;
+  return c->Record(newParams);
+}
+
+Type* RecordType::detachField(string label) {
+  ASSERT(this->getRecord().count(label)==1,"Cannot detach" + label + " from type: " + this->toString());
+  
+  //TODO this was annoying to write. I should fix up the whole myPair thing
+  RecordParams newParams;
+  for (auto rparam : this->getRecord()) {
+    if (rparam.first == label) continue;
+    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
   }
-  else if (dir==DK_Mixed || tDir==DK_Mixed || dir !=tDir) {
-    dir = DK_Mixed;
-  }
+  return c->Record(newParams);
 }
 
 // TODO should this actually return Any if it is missing?

@@ -115,6 +115,19 @@ Wireable* Wireable::getTopParent() {
   return top;
 }
 
+//TODO Check here first for segfaults
+void Wireable::removeUnusedSelects() {
+  if (Select* s = dyn_cast<Select>(this)) {
+    for (auto wsel : s->getSelects()) {
+      wsel.second->removeUnusedSelects();
+    }
+    if (s->getSelects().size()) return;
+    if (s->getConnectedWireables().size()) return;
+    
+    //WARNING this will commit suicide
+    moduledef->getCache()->eraseSelect(s);
+  }
+}
 
 //merge a1 into a0 
 void mergeArgs(Args& a0, Args a1) {
@@ -248,5 +261,11 @@ Select* SelCache::newSelect(ModuleDef* context, Wireable* parent, string selStr,
   }
 }
 
+void SelCache::eraseSelect(Select* s) {
+  SelectParamType params = {s->getParent(),s->getSelStr()};
+  assert(cache.find(params) != cache.end());
+  cache.erase(params);
+
+}
 
 } //CoreIR namesapce

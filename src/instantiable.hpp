@@ -128,6 +128,12 @@ class Module : public Instantiable {
     Type* getType() { return type;}
     
     void print(void);
+  private :
+    //This should be used very carefully. Could make things inconsistent
+    friend class InstanceGraphNode;
+    void setType(Type* t) {
+      type = t;
+    }
 };
 
 

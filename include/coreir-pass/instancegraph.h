@@ -29,18 +29,20 @@ class InstanceGraphNode {
   bool external;
   public:
     InstanceGraphNode(Instantiable* i,bool external) : i(i), external(external) {}
+    //Returns a list of instances that instantiate THIS instantiable (Kind of like a Use-def
     InstanceList getInstanceList() { return instanceList;}
+    //Get the instantiable (module or generator that this refers to)
     Instantiable* getInstantiable() { return i;}
 
     bool isExternal() {return external;}
 
-    //TODO probably unstable with generators
-    //Add a port to this node
-    //void appendToRecord(string label,Type* t);
+    //Add a new field (port) to this node
+    //Only works with Modules. 
+    void appendField(string label,Type* t);
     
     //Remove port from this instance
-    //Will disconnect anything connected to this port both in the module and externally
-    //void detachFromRecord(string label);
+    //Will disconnect anything connected to this port both in the module and all instances
+    void detachField(string label);
 
   private:
     std::vector<InstanceGraphNode*> ignList;

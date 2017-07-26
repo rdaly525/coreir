@@ -38,8 +38,6 @@ class Type {
     virtual ~Type() {}
     TypeKind getKind() const {return kind;}
     DirKind getDir() const {return dir;}
-    void setFlipped(Type* f) { flipped = f;}
-    Type* getFlipped() { return flipped;}
     virtual string toString(void) const =0;
     virtual bool sel(string sel, Type** ret, Error* e);
     virtual uint getSize() const=0;
@@ -49,12 +47,20 @@ class Type {
     
     //"sugar" for making arrays
     Type* Arr(uint i);
+    //Getting the flipped version
+    Type* getFlipped() { return flipped;}
     
     bool isInput() const { return dir==DK_In;}
     bool isOutput() const { return dir==DK_Out; }
     bool isMixed() const { return dir==DK_Mixed; }
     bool isUnknown() const { return dir==DK_Unknown; }
     bool hasInput() const { return isInput() || isMixed(); }
+
+  private :
+    friend class TypeCache;
+    friend class Namespace;
+    void setFlipped(Type* f) { flipped = f;}
+
 
 };
 
@@ -137,7 +143,6 @@ class RecordType : public Type {
   public :
     RecordType(Context* c, RecordParams _record);
     RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
-    void addItem(string s, Type* t);
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
     vector<string> getOrder() { return _order;}
     unordered_map<string,Type*> getRecord() { return record;}
@@ -145,6 +150,11 @@ class RecordType : public Type {
     json toJson();
     bool sel(string sel, Type** ret, Error* e);
     uint getSize() const;
+    
+    //nice functions for creating a new type with or without a field
+    Type* appendField(string label, Type* t); 
+    Type* detachField(string label);
+
 };
 
 }//CoreIR namespace

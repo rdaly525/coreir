@@ -8,6 +8,8 @@ using namespace std;
 
 namespace CoreIR {
 
+class InstanceGraphNode;
+
 class Wireable {
   public:
     enum WireableKind {WK_Interface,WK_Instance,WK_Select};
@@ -55,6 +57,13 @@ class Wireable {
     string wireableKind2Str(WireableKind wb);
     LocalConnections getLocalConnections();
     Wireable* getTopParent();
+  protected :
+    //This should be used very carefully. Could make things inconsistent
+    friend class InstanceGraphNode;
+    void setType(Type* t) {
+      type = t;
+    }
+    void removeUnusedSelects();
 };
 
 ostream& operator<<(ostream&, const Wireable&);
@@ -125,6 +134,8 @@ class SelCache {
     SelCache() {};
     ~SelCache();
     Select* newSelect(ModuleDef* context, Wireable* parent, string selStr,Type* t);
+    //Warning this will delete s
+    void eraseSelect(Select* s);
 };
 
 

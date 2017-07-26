@@ -12,6 +12,7 @@ class PassManager {
   
   //TODO Ad hoc, Find better system
   //Even better, construct this using a pass that is dependent
+  //Need to add Analysys passes that can be used as dependencies
   InstanceGraph instanceGraph;
   bool instanceGraphStale = true;
 
