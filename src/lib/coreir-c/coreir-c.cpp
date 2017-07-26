@@ -106,6 +106,10 @@ extern "C" {
     return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
   }
 
+  COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* config) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Generator*>(generator), *rcast<Args*>(genargs), *rcast<Args*>(config)));
+  }
+
   void COREModuleSetDef(COREModule* module, COREModuleDef* module_def) {
     rcast<Module*>(module)->setDef(rcast<ModuleDef*>(module_def));
   }
@@ -225,6 +229,14 @@ extern "C" {
   
   COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name) {
       return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getInstantiable(std::string(name)));
+  }
+
+  COREInstantiable* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name) {
+      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getGenerator(std::string(name)));
+  }
+
+  COREInstantiable* CORENamespaceGetModule(CORENamespace* _namespace, const char* name) {
+      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
   }
 
   const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection, int* path_len) {
@@ -369,6 +381,10 @@ extern "C" {
 
   const char* COREInstantiableGetName(COREInstantiable* instantiable) {
       return rcast<Instantiable*>(instantiable)->getName().c_str();
+  }
+
+  int COREInstantiableGetKind(COREInstantiable* instantiable) {
+      return rcast<Instantiable*>(instantiable)->getKind();
   }
 
 

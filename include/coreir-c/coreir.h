@@ -32,6 +32,8 @@ extern const char* COREGetInstRefName(COREWireable* iref);
 //  Invalid arg: Module name already exists
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams);
 extern COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name);
+extern COREInstantiable* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name);
+extern COREInstantiable* CORENamespaceGetModule(CORENamespace* _namespace, const char* name);
 
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
@@ -42,6 +44,8 @@ extern COREDirectedModule* COREModuleGetDirectedModule(COREModule* module);
 //Errors:
 //  Invalid arg: instance name already exists
 extern COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config); //config will be Args*
+extern COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* config);
+
 extern COREWireable* COREModuleDefGetInterface(COREModuleDef* m);
 extern COREArg* COREGetConfigValue(COREWireable* i, char* s); 
 
@@ -82,5 +86,6 @@ extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstan
 void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg** args, int* num_args);
 
 extern const char* COREInstantiableGetName(COREInstantiable* instantiable);
+extern int COREInstantiableGetKind(COREInstantiable* instantiable);
 
 #endif //COREIR_C_H_
