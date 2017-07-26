@@ -59,7 +59,6 @@ bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
   return modified;
 }
 
-std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
 //This will clear all the passes
 void PassManager::clear() {
   this->~PassManager();
