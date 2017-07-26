@@ -74,8 +74,8 @@ if __name__ == "__main__":
       "dashr":"$signed(in0) >>> in1", #Could be buggy
       "add":"in0 + in1",
       "sub":"in0 - in1",
-      #"mul":"in0 * in1",
-      #"udiv":"in0 / in1",
+      "mul":"in0 * in1",
+      "udiv":"in0 / in1",
       #"urem":"in0 % in1",
       #"sdiv":"$signed(in0) / $signed(in1)", #Could be buggy
       #"srem":"$signed(in0) % $signed(in1)", 
@@ -84,6 +84,7 @@ if __name__ == "__main__":
     "static_shift": {
         "lshr": "in >> SHIFTBITS",
         "shl": "in << SHIFTBITS",
+        "ashr": "in >>> SHIFTBITS"
     },
     "binaryReduce":{
       "eq":"in0 == in1",
@@ -93,7 +94,7 @@ if __name__ == "__main__":
       "sge":"$signed(in0) >= $signed(in1)",
       "ult":"in0 < in1",
       "ugt":"in0 > in1",
-      "ult":"in0 <= in1",
+      "ule":"in0 <= in1",
       "uge":"in0 >= in1"
     }
   }
