@@ -13,3 +13,16 @@ class Instantiable(CoreIRType):
     @property
     def name(self):
         return libcoreir_c.COREInstantiableGetName(self.ptr).decode()
+
+    @property
+    def kind(self):
+        kind = libcoreir_c.COREInstantiableGetKind(self.ptr)
+        if kind == 0:
+            return Module
+        elif kind == 1:
+            return Generator
+        raise NotImplementedError()
+
+
+class Generator(Instantiable):
+    pass

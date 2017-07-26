@@ -24,6 +24,13 @@ class ModuleDef(CoreIRType):
         assert isinstance(config,Args)
         return Instance(libcoreir_c.COREModuleDefAddModuleInstance(self.ptr, str.encode(name), module.ptr,config.ptr),self.context)
 
+    def add_generator_instance(self, name, generator, genargs, config=None):
+        if config is None:
+            config = self.context.newArgs()
+        assert isinstance(genargs, Args)
+        assert isinstance(config, Args)
+        return Instance(libcoreir_c.COREModuleDefAddGeneratorInstance(self.ptr, str.encode(name), generator.ptr, genargs.ptr, config.ptr), self.context)
+
     @property
     def interface(self):
         return Interface(libcoreir_c.COREModuleDefGetInterface(self.ptr),self.context)
