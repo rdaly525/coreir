@@ -160,18 +160,22 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     // connect the stencil outputs
     for (uint i = 0; i < stencil_height; ++i) {
       for (uint j = 0; j < stencil_width; ++j) {
+        // delays correspond to earlier pixels
+        uint iflip = (stencil_height - 1) - i;
+        uint jflip = (stencil_width - 1) - j;
+
         if (j == 0) {
           // the first column comes from input/mem
           if (i == 0) {
-            def->connect({"self","in"}, {"self","out",std::to_string(i),std::to_string(j)});
+            def->connect({"self","in"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
           } else {
             std::string mem_name = mem_prefix + std::to_string(i);
-            def->connect({mem_name, "rdata"}, {"self","out",std::to_string(i),std::to_string(j)});
+            def->connect({mem_name, "rdata"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
           }
         } else {
           // rest come from registers
           std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
-          def->connect({reg_name, "out"}, {"self","out",std::to_string(i),std::to_string(j)});
+          def->connect({reg_name, "out"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
         }
       }
     }    
