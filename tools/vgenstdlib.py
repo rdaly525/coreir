@@ -77,14 +77,14 @@ if __name__ == "__main__":
       "mul":"in0 * in1",
       "udiv":"in0 / in1",
       #"urem":"in0 % in1",
-      #"sdiv":"$signed(in0) / $signed(in1)", #Could be buggy
+      "sdiv":"$signed(in0) / $signed(in1)", #Could be buggy
       #"srem":"$signed(in0) % $signed(in1)", 
       #"smod":"$signed(in0) % $signed(in1)", #TODO definitely wrong
     },
     "static_shift": {
         "lshr": "in >> SHIFTBITS",
         "shl": "in << SHIFTBITS",
-        "ashr": "in >>> SHIFTBITS"
+        "ashr": "$signed(in) >>> SHIFTBITS"
     },
     "binaryReduce":{
       "eq":"in0 == in1",
