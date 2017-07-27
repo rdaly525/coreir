@@ -21,6 +21,7 @@ bool PassManager::runNamespacePass(vector<Pass*>& passes) {
   for (auto npass : passes) {
     assert(isa<NamespacePass>(npass));
     modified |= cast<NamespacePass>(npass)->runOnNamespace(this->ns);
+    npass->print();
   }
   instanceGraphStale = modified;
   return modified;
@@ -34,6 +35,7 @@ bool PassManager::runModulePass(vector<Pass*>& passes) {
     for (auto mpass : passes) {
       assert(isa<ModulePass>(mpass));
       modified |= cast<ModulePass>(mpass)->runOnModule(m);
+      mpass->print();
     }
   }
   return modified;
@@ -54,6 +56,7 @@ bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
     
     for (auto node : this->instanceGraph->getSortedNodes()) {
       modified |= cast<InstanceGraphPass>(igpass)->runOnInstanceGraphNode(*node);
+      igpass->print();
     }
   }
   return modified;

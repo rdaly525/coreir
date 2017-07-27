@@ -223,6 +223,20 @@ void ModuleDef::connect(std::initializer_list<const char*> pA, std::initializer_
 void ModuleDef::connect(std::initializer_list<std::string> pA, std::initializer_list<string> pB) {
   connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
 }
+bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {
+  auto sorted = std::minmax(a,b);
+  Connection con(sorted.first,sorted.second);
+  return connections.count(con) > 0;
+}
+
+Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
+  auto sorted = std::minmax(a,b);
+  Connection con(sorted.first,sorted.second);
+  if (connections.count(con) > 0) {
+    return *connections.find(con);
+  }
+  return con;
+}
 
 //This will remove all connections from a specific wireable
 void ModuleDef::disconnect(Wireable* w) {

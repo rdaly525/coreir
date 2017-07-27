@@ -103,10 +103,12 @@ int main() {
   PassManager* pm = new PassManager(g);
   
   cout << "Running Generators" << endl;
+  
   pm->addPass(new RunAllGeneratorsPass(),0);
+  pm->addPass(new FlattenConnections(),1);
 
   cout << "Flattening everything" << endl;
-  pm->addPass(new FlattenAllPass(),1);
+  //pm->addPass(new FlattenAllPass(),2);
   pm->run();
 
   add12->print();

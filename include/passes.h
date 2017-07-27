@@ -19,6 +19,7 @@ class Pass {
     explicit Pass(PassKind kind) : kind(kind) {}
     virtual ~Pass() = 0;
     PassKind getKind() const {return kind;}
+    virtual void print() = 0;
 };
 
 //You can do whatever you want here
@@ -27,7 +28,7 @@ class NamespacePass : public Pass {
     explicit NamespacePass() : Pass(PK_Namespace) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Namespace;}
     virtual bool runOnNamespace(Namespace* n) = 0;
-
+    virtual void print() { cout << "This is a Namespace Pass" << endl;}
 };
 
 //Loops through all the modules within the namespace
@@ -37,6 +38,7 @@ class ModulePass : public Pass {
     explicit ModulePass() : Pass(PK_Module) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Module;}
     virtual bool runOnModule(Module* m) = 0;
+    virtual void print() { cout << "This is a Module Pass" << endl;}
 
 };
 
@@ -50,6 +52,7 @@ class InstanceGraphPass : public Pass {
     explicit InstanceGraphPass() : Pass(PK_InstanceGraph) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
+    virtual void print() { cout << "This is an InstanceGraph Pass" << endl;}
 };
 
 }
