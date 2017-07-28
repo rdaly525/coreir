@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "coreir-lib/stdlib.h"
-#include "coreir-pass/passes.h"
+
+#include "coreir-passes/common.h"
 
 
 using namespace CoreIR;
@@ -92,20 +93,22 @@ int main() {
     cout << "Could not save to json!!" << endl;
     c->die();
   }
-  
+  cout << "loading" << endl;
   loadModule(c,"_add12.json", &err);
   if(err) {
     cout << "Could not Load from json!!" << endl;
     c->die();
   }
   
+  PassManager* pm = new PassManager(g);
+  
   cout << "Running Generators" << endl;
-  rungenerators(c,add12,&err);
-  if (err) c->die();
-  add12->print();
- 
+  pm->addPass(new RunAllGeneratorsPass(),0);
+
   cout << "Flattening everything" << endl;
-  flatten(c,add12,&err);
+  pm->addPass(new FlattenAllPass(),1);
+  pm->run();
+
   add12->print();
   add12->getDef()->validate();
 

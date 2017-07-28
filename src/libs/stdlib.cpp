@@ -28,27 +28,32 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   
   //Common Function types
   stdlib->newTypeGen(
-    "binary",
-    widthparams,
-    [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
-      return c->Record({
-        {"in",c->BitIn()->Arr(width)->Arr(2)},
-        {"out",c->Bit()->Arr(width)}
-      });
-    }
-  );
-  stdlib->newTypeGen(
     "unary",
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
+      Type* ptype = c->Bit()->Arr(width);
+      if (width==1) ptype = c->Bit();
       return c->Record({
-        {"in",c->BitIn()->Arr(width)},
-        {"out",c->Bit()->Arr(width)}
+        {"in",c->Flip(ptype)},
+        {"out",ptype}
       });
     }
   );
+  stdlib->newTypeGen(
+    "binary",
+    widthparams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      Type* ptype = c->Bit()->Arr(width);
+      if (width==1) ptype = c->Bit();
+      return c->Record({
+        {"in",c->Flip(ptype)->Arr(2)},
+        {"out",ptype}
+      });
+    }
+  );
+  //TODO should I change the width=1 -> bit for the reduces too?
   stdlib->newTypeGen(
     "binaryReduce",
     widthparams,
@@ -89,12 +94,12 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
+      Type* ptype = c->Bit()->Arr(width);
+      if (width==1) ptype = c->Bit();
       return c->Record({
-        {"in",c->Record({
-          {"data",c->BitIn()->Arr(width)->Arr(2)},
-          {"bit",c->BitIn()}
-        })},
-        {"out",c->Bit()->Arr(width)}
+        {"in",c->Flip(ptype)},
+        {"sel",c->BitIn()},
+        {"out",ptype}
       });
     }
   );

@@ -15,7 +15,7 @@ ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
-HOME = ../../..
+HOME = ../..
 LPATH = -L$(HOME)/lib
 INCS = -I$(HOME)/include -I.
 SRCFILES = $(wildcard [^_]*.cpp)

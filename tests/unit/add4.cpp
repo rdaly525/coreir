@@ -1,6 +1,6 @@
 #include "coreir.h"
 #include "coreir-lib/stdlib.h"
-#include "coreir-pass/passes.h"
+//#include "coreir-pass/passes.h"
 
 using namespace CoreIR;
 
@@ -69,9 +69,9 @@ int main() {
   //cout << "Linking!";
   //c->linkLib(stdlib_v1, stdlib);
   
-  rungenerators(c,add4_n,&err);
-  if (err) c->die();
-  add4_n->print();
+  //rungenerators(c,add4_n,&err);
+  //if (err) c->die();
+  //add4_n->print();
   
   cout << "Checking saving and loading postgen" << endl;
   saveModule(add4_n, "_add4Gen.json",&err);

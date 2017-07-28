@@ -59,7 +59,14 @@ ModuleDef* ModuleDef::copy() {
   return def;
 }
 
-
+ModuleDef::InstanceMapType ModuleDef::getInstanceMap() {
+  ModuleDef::InstanceMapType imap;
+  for (auto instmap : this->getInstances()) {
+    Instantiable* i = instmap.second->getInstantiableRef();
+    imap[i].insert(instmap.second);
+  }
+  return imap;
+}
 
 //Can pass in either a single instance name
 //Or pass in a '.' deleminated string
@@ -147,9 +154,6 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
   Instance* inst = new Instance(this,instname,gen,genargs,config);
   instances[instname] = inst;
 
-  //Add to instanceMap
-  instanceMap[gen].insert(inst);
-
   appendInstanceToIter(inst);
 
   return inst;
@@ -159,9 +163,6 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   Instance* inst = new Instance(this,instname,m,config);
   instances[instname] = inst;
   
-  //Add to instanceMap
-  instanceMap[m].insert(inst);
-
   appendInstanceToIter(inst);
   
   return inst;
@@ -268,18 +269,6 @@ void ModuleDef::removeInstance(string iname) {
   //Now remove this instance
   instances.erase(iname);
   
-  //Remove this from the instanceMap
-  Instantiable* i;
-  if (inst->isGen()) {
-    i = inst->getGeneratorRef();
-  }
-  else {
-    i = inst->getModuleRef();
-  }
-  assert(instanceMap.count(i)>0);
-  assert(instanceMap[i].count(inst)>0);
-  instanceMap[i].erase(inst);
-
   removeInstanceFromIter(inst);
 
 }

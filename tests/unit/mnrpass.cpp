@@ -1,7 +1,6 @@
 #include "coreir.h"
 #include "coreir-lib/stdlib.h"
-#include "coreir-pass/passes.h"
-#include "coreir-pass/common.h"
+#include "coreir-passes/common.h"
 
 using namespace CoreIR;
 
@@ -99,7 +98,7 @@ int main() {
   
   cout << "Running all the passes!" << endl;
   pm->run();
-  cout << "Printing the (hompefully) modified graph" << endl;
+  cout << "Printing the (hopefully) modified graph" << endl;
   ms->print();
   
   //TODO finish isEqual function.

@@ -26,8 +26,7 @@ py: install
 
 .PHONY: install
 install:
-	$(MAKE) -C src build/coreir.$(TARGET)
-	$(MAKE) -C src/lib $(TARGET)
+	$(MAKE) -C src $(TARGET)
 
 
 .PHONY: clean
@@ -35,7 +34,6 @@ clean:
 	rm -rf lib/*
 	-rm _*json
 	$(MAKE) -C src clean
-	$(MAKE) -C src/lib clean
 	$(MAKE) -C tests clean
 
 .PHONY: travis

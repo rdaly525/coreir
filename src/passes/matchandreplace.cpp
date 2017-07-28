@@ -1,6 +1,5 @@
 #include "coreir.h"
-#include "coreir-pass/passes.h"
-#include "coreir-pass/matchandreplace.h"
+#include "coreir-passes/matchandreplace.hpp"
 
 #include <algorithm>
 #include <queue>
@@ -24,7 +23,7 @@ void MatchAndReplacePass::verifyOpts(Opts opts) {
   ASSERT(pattern->hasDef(),"pattern needs to have a definition!");
 
   if (opts.genargs.size()>0) {
-    ASSERT(isa<Generator>(replacement),"replacement needs to be a gen if it is a generator");
+    ASSERT(isa<Generator>(replacement),"replacement needs to be a generator if you have genargs");
   }
   ASSERT( ((opts.configargs.size() > 0) && (!!opts.getConfigArgs)) == false,"Cannot provide configargs and getConfigArgs at the same time")
   if (opts.instanceKey.size() > 0) {
@@ -64,12 +63,11 @@ void MatchAndReplacePass::preprocessPattern() {
   }
 
   //Temporary cache so no double internal edges.
-  //{keyIdx,{path_for_keyidx,connectedpath}}
+  //{keyIdx,{path_for_keyIdx,connectedpath}}
   unordered_set<myPair<uint,myPair<SelectPath,SelectPath>>> inConCache;
 
   //Load InternalConnections structure and ExternalConnections structure
   for (uint i=0; i<instanceKey.size(); ++i) {
-    unordered_map<SelectPath,vector<pair<SelectPath,uint>>> exConsi;
     LocalConnections lcons = pdef->sel(instanceKey[i])->getLocalConnections();
     for (auto vcon : lcons) {
       SelectPath pathLocal = vcon.first->getSelectPath();
@@ -117,7 +115,7 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
   ModuleDef* cdef = container->getDef();
   ModuleDef::InstanceMapType cinstMap = cdef->getInstanceMap();
 
-  //If this module contains none of the any of the pattern modules, I will never find a match, so just return
+  //If this module contains none of the any of the pattern instances, I will never find a match, so just return
   for (auto pi : pdef->getInstanceMap()) {
     //pi.first->print();
     if (!cinstMap.count(pi.first)) {
@@ -132,9 +130,6 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
   //Keep track of matched instances. This should correspond to instanceKey
   vector<Instance*> matchedInstances(instanceKey.size());
 
-  ////set of all matches to delete. 
-  //vector<Instance*> matchesToDelete;
-  
   //Keep list of passthrough instances to inline
   vector<Instance*> passthroughsToInline;
   
@@ -162,7 +157,7 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
       Instance* pinst = cast<Instance>(pdef->sel(instanceKey[idx]));
       work.pop();
 
-      //If mnist is already used, break.
+      //If minst is already used, break.
       if (usedInstances.count(minst)>0) {
         break;
       }
@@ -176,7 +171,7 @@ bool MatchAndReplacePass::runOnModule(Module* m) {
       bool pathsCorrect = true;
       for (auto lcons : this->inCons[idx]) {
         SelectPath localPath = lcons.first;
-        SelectPath otherPath = lcons.second[0].first;
+        SelectPath otherPath = lcons.second[0].first; //0 because no NYI fanout
         uint otherIdx = lcons.second[0].second;
 
         //Get local Wireable, and check if it exists
