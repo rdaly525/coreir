@@ -202,7 +202,8 @@ Instantiable* Namespace::getInstantiable(string iname) {
 void Namespace::print() {
   cout << "Namespace: " << name << endl;
   cout << "  Generators:" << endl;
-  for (auto it : generatorList) cout << "    " << it.second->toString() << endl;
+  for (auto it : generatorList) it.second->print();
+  for (auto it : moduleList) it.second->print();
   cout << endl;
 }
 

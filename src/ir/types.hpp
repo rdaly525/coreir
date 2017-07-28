@@ -56,6 +56,8 @@ class Type {
     bool isUnknown() const { return dir==DK_Unknown; }
     bool hasInput() const { return isInput() || isMixed(); }
 
+    bool isBaseType();
+
   private :
     friend class TypeCache;
     friend class Namespace;

@@ -40,6 +40,7 @@ class Instantiable {
     
     virtual bool hasDef() const=0;
     virtual string toString() const =0;
+    virtual void print(void) = 0;
     bool isKind(InstantiableKind k) const { return kind==k;}
     InstantiableKind getKind() const { return kind;}
     void setLinkageKind(LinkageKind k) { linkageKind = k;}
@@ -73,6 +74,7 @@ class Generator : public Instantiable {
     ~Generator();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
     string toString() const;
+    void print(void);
     json toJson();
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }

@@ -99,6 +99,10 @@ string Generator::toString() const {
   return ret;
 }
 
+void Generator::print(void) {
+  cout << toString() << endl;
+}
+
 DirectedModule* Module::newDirectedModule() {
   if (!directedModule) {
     directedModule = new DirectedModule(this);

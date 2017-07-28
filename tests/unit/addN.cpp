@@ -2,6 +2,7 @@
 #include "coreir-lib/stdlib.h"
 
 #include "coreir-passes/common.h"
+#include "coreir-passes/firrtl.hpp"
 
 
 using namespace CoreIR;
@@ -104,29 +105,29 @@ int main() {
   
   cout << "Running Generators" << endl;
   
-  pm->addPass(new RunAllGeneratorsPass(),0);
-  pm->addPass(new FlattenConnections(),1);
-
-  cout << "Flattening everything" << endl;
+  pm->addPass(new RunAllGeneratorsPass(),1);
+  pm->addPass(new PrintPass(),2);
   //pm->addPass(new FlattenAllPass(),2);
+  //pm->addPass(new FlattenConnections(),1);
+  pm->addPass(new Firrtl(),5);
   pm->run();
 
-  add12->print();
-  add12->getDef()->validate();
+  //add12->print();
+  //add12->getDef()->validate();
 
-  cout << "Checking saving and loading postgen" << endl;
-  saveModule(add12, "_add12Gen.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  Module* m = loadModule(c,"_add12Gen.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  m->print();
+  //cout << "Checking saving and loading postgen" << endl;
+  //saveModule(add12, "_add12Gen.json",&err);
+  //if (err) {
+  //  cout << "Could not save to json!!" << endl;
+  //  c->die();
+  //}
+  //
+  //Module* m = loadModule(c,"_add12Gen.json", &err);
+  //if(err) {
+  //  cout << "Could not Load from json!!" << endl;
+  //  c->die();
+  //}
+  //m->print();
 
   deleteContext(c);
 }

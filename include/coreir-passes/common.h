@@ -7,5 +7,6 @@
 
 #include "flattenconnections.hpp"
 
+#include "printpass.hpp"
 
 #endif //PASSES_HPP_

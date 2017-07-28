@@ -34,8 +34,7 @@ Param Str2Param(string s) {
 string Params2Str(Params genparams) {
   string ret = "(";
   for (auto it=genparams.begin(); it!=genparams.end(); ++it) {
-    
-    ret = ret + it->first + ": " + Param2Str(it->second) + ((it==genparams.begin()) ? "" : ",");
+    ret = ret + (it==genparams.begin() ? "" : ",") + it->first + ":"+Param2Str(it->second);
   }
   return ret + ")";
 }
@@ -47,12 +46,8 @@ string Args2Str(Args args) {
   }
   return s + ")";
 }
-string SelectPath2Str(SelectPath s) {
-  string ret = "";
-  for (auto it=s.begin(); it!=s.end(); ++it) {
-    ret = ret + (it==s.begin() ? "" : ".") + *it;
-  }
-  return ret;
+string SelectPath2Str(SelectPath path) {
+  return join(path.begin(),path.end(),string("."));
 }
 
 void checkArgsAreParams(Args args, Params params) {
@@ -80,6 +75,15 @@ SelectPath splitString(const std::string &s, char delim) {
 bool hasChar(const std::string s, char c) {
   return s.find_first_of(c) !=string::npos;
 }
+
+//template<typename container>
+//string joinString(const container arr, string del) {
+//  string ret = "";
+//  for (auto it=arr.begin(); it!=arr.end(); ++it) {
+//    ret = ret + (it==arr.begin() ? "" : del) + *it;
+//  }
+//  return ret;
+//}
 
 
 } //CoreIR namespace

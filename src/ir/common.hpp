@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 #include <unordered_map>
+#include <unordered_set>
 #include <cassert>
 
 using namespace std;
@@ -95,10 +96,61 @@ string Args2Str(Args);
 void checkArgsAreParams(Args args, Params params);
 
 Param Str2Param(string s);
-string SelectPath2Str(SelectPath s);
+string SelectPath2Str(SelectPath path);
 SelectPath splitString(const string &s, char delim);
 bool hasChar(const std::string s, char c);
 
+
+
+
+
+
+template <class T, class A>
+T join(const A &begin, const A &end, const T &t) {
+  T result;
+  for (A it=begin; it!=end; it++) {
+    if (!result.empty())
+      result.append(t);
+    result.append(*it);
+  }
+  return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//template<typename container>
+//std::string joinString(const container arr, std::string del);
+
+static unordered_map<std::string,unordered_set<std::string>> opmap({
+  {"unary",{"not","neg"}},
+  {"unaryReduce",{"andr","orr","xorr"}},
+  {"binary",{
+    "and","or","xor",
+    "dshl","dlshr","dashr",
+    "add","sub","mul",
+    "udiv","urem",
+    "sdiv","srem","smod"
+  }},
+  {"binaryReduce",{"eq",
+    "slt","sgt","sle","sge",
+    "ult","ugt","ule","uge"
+  }},
+  {"ternary",{"mux"}},
+});
 
 
 } //CoreIR namespace
