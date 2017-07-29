@@ -195,8 +195,8 @@ bool Instance::runGenerator() {
   generatorRef->setModuleDef(moduleRef, genargs);
   assert(moduleRef->hasDef());
 
-  isgen = false;
-  getModuleDef()->getModule()->getNamespace()->addModule(moduleRef);
+  //isgen = false;
+  //getModuleDef()->getModule()->getNamespace()->addModule(moduleRef);
   cout << "Running Generator " << this->toString() << endl;
   return true;
 }

@@ -21,7 +21,10 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 void InstanceGraph::construct(Namespace* ns) {
-  cout << "CONSTRUCT!" << endl;
+  cout << "Clearing first" << endl;
+  this->clear();
+  cout << "now constructing" << endl;
+  
   //Contains all external nodes referenced
   //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
   
@@ -50,6 +53,10 @@ void InstanceGraph::construct(Namespace* ns) {
 
   for (auto imap : nodeMap) {
     sortVisit(imap.second);
+  }
+  cout << "Finished Constructing" << endl;
+  for (auto node : sortedNodes) {
+    node->getInstantiable()->print();
   }
 }
 

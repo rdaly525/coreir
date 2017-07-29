@@ -106,7 +106,8 @@ int main() {
   cout << "Running Generators" << endl;
   
   pm->addPass(new RunAllGeneratorsPass(),1);
-  pm->addPass(new PrintPass(),2);
+  //pm->addPass(new PrintPass(),2);
+  //pm->addPass(new PrintPass(),3);
   //pm->addPass(new FlattenAllPass(),2);
   //pm->addPass(new FlattenConnections(),1);
   pm->addPass(new Firrtl(),5);
