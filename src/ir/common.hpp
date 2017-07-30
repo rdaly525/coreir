@@ -99,6 +99,22 @@ string SelectPath2Str(SelectPath s);
 SelectPath splitString(const string &s, char delim);
 bool hasChar(const std::string s, char c);
 
+template<class valTy>
+struct Val2Arg;
+
+#define VAL2ARG_SPECIALIZE(valtype,argtype) \
+template<> \
+struct Val2Arg<valtype> { \
+  typedef argtype type; \
+};
+
+VAL2ARG_SPECIALIZE(bool,ArgBool*);
+VAL2ARG_SPECIALIZE(int,ArgInt*);
+VAL2ARG_SPECIALIZE(std::string,ArgString*);
+VAL2ARG_SPECIALIZE(CoreIR::Type*,ArgType*);
+
+#undef VAL2ARG_SPECIALIZE
+
 
 
 } //CoreIR namespace
@@ -133,5 +149,9 @@ namespace std {
   };
 
 }
+
+
+
+
 
 #endif //COMMON_HPP_

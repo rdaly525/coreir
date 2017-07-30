@@ -11,6 +11,8 @@
 #include "passes.h"
 #include "instancegraph.h"
 
+#include "../src/ir/typegenlang/typegenlang.hpp"
+#include "../src/ir/typegenlang/common.hpp"
 
 namespace CoreIR {
 //extra helper functions
