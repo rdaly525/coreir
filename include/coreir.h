@@ -13,6 +13,7 @@
 
 #include "../src/ir/typegenlang/typegenlang.hpp"
 #include "../src/ir/typegenlang/common.hpp"
+#include "../src/ir/typegenlang/vtype.hpp"
 
 namespace CoreIR {
 //extra helper functions

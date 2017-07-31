@@ -108,10 +108,10 @@ struct Val2Arg<valtype> { \
   typedef argtype type; \
 };
 
-VAL2ARG_SPECIALIZE(bool,ArgBool*);
-VAL2ARG_SPECIALIZE(int,ArgInt*);
-VAL2ARG_SPECIALIZE(std::string,ArgString*);
-VAL2ARG_SPECIALIZE(CoreIR::Type*,ArgType*);
+VAL2ARG_SPECIALIZE(bool,ArgBool);
+VAL2ARG_SPECIALIZE(int,ArgInt);
+VAL2ARG_SPECIALIZE(std::string,ArgString);
+VAL2ARG_SPECIALIZE(CoreIR::Type*,ArgType);
 
 #undef VAL2ARG_SPECIALIZE
 
