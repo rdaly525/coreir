@@ -22,7 +22,7 @@ Select* Wireable::sel(string selStr) {
     e.fatal();
     getContext()->error(e);
   }
-  Select* select = moduledef->getCache()->newSelect(moduledef,this,selStr,ret);
+  Select* select = container->getCache()->newSelect(container,this,selStr,ret);
   selects.emplace(selStr,select);
   return select;
 }
@@ -58,11 +58,11 @@ ConstSelectPath Wireable::getConstSelectPath() {
 }
 
 void Wireable::connect(Wireable* w) {
-  this->getModuleDef()->connect(this,w);
+  this->getContainer()->connect(this,w);
 }
 
 void Wireable::disconnect() {
-  this->getModuleDef()->disconnect(this);
+  this->getContainer()->disconnect(this);
 }
 
 SelectPath Wireable::getSelectPath() {
@@ -81,7 +81,7 @@ SelectPath Wireable::getSelectPath() {
   return path;
 }
 
-Context* Wireable::getContext() { return moduledef->getContext();}
+Context* Wireable::getContext() { return container->getContext();}
 string Wireable::wireableKind2Str(WireableKind wb) {
   switch(wb) {
     case WK_Interface: return "Interface";
@@ -125,7 +125,7 @@ void Wireable::removeUnusedSelects() {
     if (s->getConnectedWireables().size()) return;
     
     //WARNING this will commit suicide
-    moduledef->getCache()->eraseSelect(s);
+    container->getCache()->eraseSelect(s);
   }
 }
 
@@ -139,7 +139,7 @@ void mergeArgs(Args& a0, Args a1) {
 }
 
 
-Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
+Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //First merge default args
   mergeArgs(configargs,moduleRef->getDefaultConfigArgs());
@@ -151,15 +151,14 @@ Instance::Instance(ModuleDef* context, string instname, Module* moduleRef, Args 
   this->type = moduleRef->getType();
 }
 
-Instance::Instance(ModuleDef* context, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,context,nullptr), instname(instname), isgen(true), generatorRef(generatorRef) {
+Instance::Instance(ModuleDef* container, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), isgen(true), generatorRef(generatorRef) {
   ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
   mergeArgs(genargs,generatorRef->getDefaultGenArgs());
   checkArgsAreParams(genargs,generatorRef->getGenParams());
   this->genargs = genargs;
-  this->moduleRef = generatorRef->getModule(genargs);
-  this->type = moduleRef->getType();
+  this->type = generatorRef->getTypeGen()->getType(genargs);
   mergeArgs(configargs,generatorRef->getDefaultConfigArgs());
-  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkArgsAreParams(configargs,generatorRef->getConfigParams());
   this->configargs = configargs;
 }
 
@@ -185,19 +184,19 @@ Instantiable* Instance::getInstantiableRef() {
 bool Instance::runGenerator() {
   ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
   //If we have already run the generator, do not run again
-  if (moduleRef->hasDef()) return false;
+  if (moduleRef) return false;
 
   //TODO should this be the default behavior?
   //If there is no generatorDef, then just do nothing
   if (!generatorRef->hasDef()) return false;
   
   //Actually run the generator
-  generatorRef->setModuleDef(moduleRef, genargs);
+  this->moduleRef = generatorRef->getModule(genargs);
   assert(moduleRef->hasDef());
-
-  //isgen = false;
-  //getModuleDef()->getModule()->getNamespace()->addModule(moduleRef);
-  cout << "Running Generator " << this->toString() << endl;
+  
+  //Change this instance to a Module
+  isgen = false;
+  wasgen = true;
   return true;
 }
 
@@ -211,18 +210,19 @@ void Instance::replace(Module* moduleRef, Args configargs) {
 }
 
 //TODO this is probably super unsafe and will leak memory
+//TODO I do not think this deals with default args
 void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
   ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
   ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
-  ASSERT(this->getType() == generatorRef->getModule(genargs)->getType(),"NYI, Cannot replace with a different type");
-
+  
   this->generatorRef = generatorRef;
   this->genargs = genargs;
-  this->moduleRef = generatorRef->getModule(genargs);
-  this->type = moduleRef->getType();
+  Type* newType = generatorRef->getTypeGen()->getType(genargs);
+  ASSERT(this->getType() == newType,"NYI, Cannot replace with a different type");
+
   this->configargs = configargs;
 
-  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkArgsAreParams(configargs,generatorRef->getConfigParams());
   checkArgsAreParams(genargs,generatorRef->getGenParams());
 
 }

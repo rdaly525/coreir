@@ -6,14 +6,13 @@ using namespace CoreIR;
 
 // This will recusrively run all the generators and replace module definitions
 // For every instance, if it is a generator, it 
-bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran) {
-  
+bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran, unordered_set<Module*>& toRelease) {
+  assert(m);
   //If I already checked module, then just return
   if (ran.count(m) > 0) return false;
   
   //If no definition, just return
   if (!m->hasDef()) {
-    ran.insert(m);
     return false; 
   }
 
@@ -26,11 +25,16 @@ bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran) {
     
     //If it is a generator, just run the generator
     if (inst->isGen()) {
-      changed |= inst->runGenerator();
+      if (inst->runGenerator()) {
+        assert(!inst->isGen());
+        assert(inst->wasGen());
+        toRelease.insert(inst->getModuleRef());
+        //run recursively on the module instance
+        rungeneratorsRec(inst->getModuleRef(),ran,toRelease);
+        changed = true;
+      }
     }
 
-    //run recursively on the module instance
-    changed |= rungeneratorsRec(inst->getModuleRef(),ran);
   }
   ran.insert(m);
   return changed;
@@ -39,10 +43,18 @@ bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran) {
 bool RunAllGeneratorsPass::runOnNamespace(Namespace* ns) {
   //Keep list of modules to be added
   unordered_set<Module*> ran;
+  unordered_set<Module*> toRelease;
   bool changed = false;
   for (auto mmap : ns->getModules()) {
-    changed |= rungeneratorsRec(mmap.second,ran);
+    changed |= rungeneratorsRec(mmap.second,ran,toRelease);
   }
+
+  //Now that all generators have run. Change module linking type for those
+  //newly created instances to be namespace
+  for (auto m : toRelease) {
+    ns->addModule(m);
+  }
+
   return changed;
 }
 

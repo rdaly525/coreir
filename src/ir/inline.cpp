@@ -107,7 +107,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
     ASSERT(wcheck->getConnectedWireables().size()==0,"Cannot add a passthrough to a wireable with connected selparents");
   }
   
-  ModuleDef* def = w->getModuleDef();
+  ModuleDef* def = w->getContainer();
   Type* wtype = w->getType();
   
   //Add actual passthrough instance
@@ -132,7 +132,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
 //This will inline an instance of a passthrough
 void inlinePassthrough(Instance* i) {
   
-  ModuleDef* def = i->getModuleDef();
+  ModuleDef* def = i->getContainer();
 
   //This will recursively connect all the wires together
   connectSameLevel(def, i->sel("in"),i->sel("out"));
@@ -144,15 +144,18 @@ void inlinePassthrough(Instance* i) {
 
 //This will modify the moduledef to inline the instance
 bool inlineInstance(Instance* inst) {
-  ModuleDef* def = inst->getModuleDef();
-  Module* modInline = inst->getModuleRef();
-  
   //Special case for a passthrough
   //TODO should have a better check for passthrough than string compare
   if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
     inlinePassthrough(inst);
     return true;
   }
+  if (inst->isGen()) {
+    return false;
+  }
+  ModuleDef* def = inst->getContainer();
+  Module* modInline = inst->getModuleRef();
+  assert(modInline);
 
   if (!modInline->hasDef()) {
     cout << "Cannot inline a module with no definition!: " << modInline->getName() << endl;

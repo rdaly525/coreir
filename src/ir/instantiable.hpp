@@ -25,7 +25,7 @@ namespace CoreIR {
 class Instantiable {
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
-    enum LinkageKind {LK_Namespace, LK_Generated};
+    enum LinkageKind {LK_Namespace=0, LK_Generated=1};
   protected:
     InstantiableKind kind;
     Namespace* ns;
@@ -65,6 +65,7 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   Params genparams;
   Args defaultGenArgs; 
+
   //This is memory managed
   unordered_map<Args,Module*> genCache;
   GeneratorDef* def = nullptr;
@@ -80,13 +81,9 @@ class Generator : public Instantiable {
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}
     
-    //This will create a blank module (will run typegen) if not cached
+    //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Args args);
-    
-
-    //This will actually run the generator
-    void setModuleDef(Module* m, Args args);
     
     //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}

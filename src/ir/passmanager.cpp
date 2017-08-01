@@ -56,8 +56,8 @@ bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
     assert(isa<InstanceGraphPass>(igpass));
     for (auto node : this->instanceGraph->getSortedNodes()) {
       modified |= cast<InstanceGraphPass>(igpass)->runOnInstanceGraphNode(*node);
-      igpass->print();
     }
+    igpass->print();
   }
   return modified;
 }

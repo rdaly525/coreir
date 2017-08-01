@@ -182,12 +182,12 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
 void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
   Context* c = getContext();
-  if (a->getModuleDef()!=this || b->getModuleDef() != this) {
+  if (a->getContainer()!=this || b->getContainer() != this) {
     Error e;
     e.message("connections can only occur within the same module");
     e.message("  This ModuleDef: " + module->getName());
-    e.message("  ModuleDef of " + a->toString() + ": " + a->getModuleDef()->getName());
-    e.message("  ModuleDef of " + b->toString() + ": " + b->getModuleDef()->getName());
+    e.message("  ModuleDef of " + a->toString() + ": " + a->getContainer()->getName());
+    e.message("  ModuleDef of " + b->toString() + ": " + b->getContainer()->getName());
     c->error(e);
     return;
   }
