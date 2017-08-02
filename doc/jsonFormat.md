@@ -1,7 +1,7 @@
-###How to read this:
-Anything in <> should be filled in by user
-Anything not in quotes is a json format defined below
-any key followed by a ? means it is optional
+###How to read this:  
+Anything in <> should be filled in by user  
+Anything not in quotes is a json format defined below  
+any key followed by a ? means it is optional  
 
 ```
 //What is in the json file
@@ -27,7 +27,6 @@ NamedTypeGen={"name":<name>, "flippedname"?:<name>,"genparams":Parameter}
 Module = {"type":Type, "configparams"?:Parameter, "defaultconfigargs"?:Args "metadata"?:Metadata, "def"?:ModuleDef}
 
 ModuleDef = {"metadata"?:Metadata,
-"implementations"?:Metadata,
 "instances"?: {<instname>:Instance,...}
 "connections"?: Connection[]}
 
@@ -39,15 +38,18 @@ InstantiatableReference = ["namespacename","InstantiatableName"]
 
 Connection = [Wireable, Wireable, Metadata?]
 
-Wireable = [<topname>,<a>,<b>,...]
-     accesses topname.a.b. If "topname" is "self" then this is the module's interface.
+//Will change to 
+//Wireable = [<instname1.a.b>,<instname2.c.d>]
+Wireable = [<instname>,<a>,<b>,...]
+     //accesses instname.a.b If "instname" is "self" then this is the module's interface.
+     //Note: a,b can be digits representing an index. 
 
 Parameters = {<key>:ParameterType,...}
-ParameterType = "String" | "Int" | "Type" | //NYI "Uint" | "Instantiatable"
+ParameterType = "Bool" | "Uint" | "Int" | "String" | "Type" | //NYI "Instantiatable"
 
 Args = {<key>:ArgsValue}
-ArgsValue = <String> | <Number> | Type | //NYI InstantiatableReference
+ArgsValue = <Bool> | <Number> | <string> | Type | //NYI InstantiatableReference
 
 Metadata={<key>:MetadataValue,...}
-MetadataValue = <String> | <Number> (becomes double)
+MetadataValue = <String> | <Number> (becomes double) | //NYI other structures
 ```
