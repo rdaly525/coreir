@@ -232,10 +232,9 @@ bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {
 Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
   auto sorted = std::minmax(a,b);
   Connection con(sorted.first,sorted.second);
-  if (connections.count(con) > 0) {
-    return *connections.find(con);
-  }
-  return con;
+  ASSERT(connections.count(con)>0,"Could not find connection!");
+  
+  return *connections.find(con);
 }
 
 //This will remove all connections from a specific wireable
