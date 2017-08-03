@@ -66,16 +66,16 @@ Module* Generator::getModule(Args args) {
   Module* m = new Module(ns,name + getContext()->getUnique(),type,configparams);
   m->setLinkageKind(Instantiable::LK_Generated);
   genCache[args] = m;
+  
+  //TODO I am not sure what the default behavior should be
+  //for not having a def
+  //Run the generator if it has the def
+  if (this->hasDef()) {
+    ModuleDef* mdef = m->newModuleDef();
+    def->createModuleDef(mdef,this->getContext(),type,args); 
+    m->setDef(mdef);
+  }
   return m;
-}
-
-void Generator::setModuleDef(Module* m, Args args) {
-  ASSERT(def,"Cannot add ModuleDef if there is no generatorDef!");
-
-  checkArgsAreParams(args,genparams);
-  ModuleDef* mdef = m->newModuleDef();
-  def->createModuleDef(mdef,this->getContext(),m->getType(),args); 
-  m->setDef(mdef);
 }
 
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
@@ -97,6 +97,10 @@ string Generator::toString() const {
   ret = ret + "\n    TypeGen: TODO";// + typegen->toString();
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;
+}
+
+void Generator::print(void) {
+  cout << toString() << endl;
 }
 
 DirectedModule* Module::newDirectedModule() {

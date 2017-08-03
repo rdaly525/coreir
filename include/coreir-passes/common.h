@@ -5,4 +5,8 @@
 #include "flattenallpass.hpp"
 #include "runallgeneratorspass.hpp"
 
+#include "flattenconnections.hpp"
+
+#include "printpass.hpp"
+
 #endif //PASSES_HPP_

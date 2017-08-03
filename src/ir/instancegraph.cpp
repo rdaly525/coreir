@@ -9,7 +9,9 @@ void InstanceGraph::clear() {
 }
 
 void InstanceGraph::sortVisit(InstanceGraphNode* node) {
-  if (node->mark==2) return;
+  if (node->mark==2) {
+    return;
+  }
   ASSERT(node->mark!=1,"SOMEHOW not a DAG");
   node->mark = 1;
   for (auto nextnode : node->ignList) {
@@ -20,6 +22,8 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 void InstanceGraph::construct(Namespace* ns) {
+  this->clear();
+  
   //Contains all external nodes referenced
   //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
   
@@ -32,17 +36,25 @@ void InstanceGraph::construct(Namespace* ns) {
   }
   
   //populate all the nodes with pointers to the instances
+  unordered_map<Instantiable*,InstanceGraphNode*> nodeMap2;
   for (auto nodemap : nodeMap) {
+    nodeMap2.insert(nodemap);
+  }
+  for (auto nodemap : nodeMap2) {
     if (isa<Generator>(nodemap.first) || !nodemap.first->hasDef()) continue;
     ModuleDef* mdef = cast<Module>(nodemap.first)->getDef();
     for (auto instmap : mdef->getInstances()) {
       Instantiable* icheck = instmap.second->getInstantiableRef();
+      InstanceGraphNode* node;
       if (nodeMap.count(icheck)==0) {
-        auto node = new InstanceGraphNode(icheck,true);
+        node = new InstanceGraphNode(icheck,true);
         nodeMap[icheck] = node;
-        //externalNodeMap[icheck] = node;
       }
-      nodeMap[icheck]->addInstance(instmap.second,nodemap.second);
+      else {
+        node = nodeMap[icheck];
+      }
+      
+      node->addInstance(instmap.second,nodemap.second);
     }
   }
 
@@ -78,9 +90,6 @@ void InstanceGraphNode::appendField(string label,Type* t) {
     inst->setType(newType);
   }
 }
-
-
-
 
 void disconnectAll(Wireable* w) {
   for (auto sw : w->getSelects()) {

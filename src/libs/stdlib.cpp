@@ -116,22 +116,6 @@ Namespace* CoreIRLoadLibrary_stdlib(Context* c) {
   /////////////////////////////////
 
   //Lazy way:
-  unordered_map<string,vector<string>> opmap({
-    {"unary",{"not","neg"}},
-    {"unaryReduce",{"andr","orr","xorr"}},
-    {"binary",{
-      "and","or","xor",
-      "dshl","dlshr","dashr",
-      "add","sub","mul",
-      "udiv","urem",
-      "sdiv","srem","smod"
-    }},
-    {"binaryReduce",{"eq",
-      "slt","sgt","sle","sge",
-      "ult","ugt","ule","uge"
-    }},
-    {"ternary",{"mux"}},
-  });
   
   //Add all the generators (with widthparams)
   for (auto tmap : opmap) {

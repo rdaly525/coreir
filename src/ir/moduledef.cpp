@@ -182,12 +182,12 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
 void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
   Context* c = getContext();
-  if (a->getModuleDef()!=this || b->getModuleDef() != this) {
+  if (a->getContainer()!=this || b->getContainer() != this) {
     Error e;
     e.message("connections can only occur within the same module");
     e.message("  This ModuleDef: " + module->getName());
-    e.message("  ModuleDef of " + a->toString() + ": " + a->getModuleDef()->getName());
-    e.message("  ModuleDef of " + b->toString() + ": " + b->getModuleDef()->getName());
+    e.message("  ModuleDef of " + a->toString() + ": " + a->getContainer()->getName());
+    e.message("  ModuleDef of " + b->toString() + ": " + b->getContainer()->getName());
     c->error(e);
     return;
   }
@@ -222,6 +222,19 @@ void ModuleDef::connect(std::initializer_list<const char*> pA, std::initializer_
 }
 void ModuleDef::connect(std::initializer_list<std::string> pA, std::initializer_list<string> pB) {
   connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
+}
+bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {
+  auto sorted = std::minmax(a,b);
+  Connection con(sorted.first,sorted.second);
+  return connections.count(con) > 0;
+}
+
+Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
+  auto sorted = std::minmax(a,b);
+  Connection con(sorted.first,sorted.second);
+  ASSERT(connections.count(con)>0,"Could not find connection!");
+  
+  return *connections.find(con);
 }
 
 //This will remove all connections from a specific wireable

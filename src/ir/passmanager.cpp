@@ -21,8 +21,11 @@ bool PassManager::runNamespacePass(vector<Pass*>& passes) {
   for (auto npass : passes) {
     assert(isa<NamespacePass>(npass));
     modified |= cast<NamespacePass>(npass)->runOnNamespace(this->ns);
+    npass->print();
   }
-  instanceGraphStale = modified;
+  if (modified) {
+    instanceGraphStale = true;
+  }
   return modified;
 }
 
@@ -34,6 +37,7 @@ bool PassManager::runModulePass(vector<Pass*>& passes) {
     for (auto mpass : passes) {
       assert(isa<ModulePass>(mpass));
       modified |= cast<ModulePass>(mpass)->runOnModule(m);
+      mpass->print();
     }
   }
   return modified;
@@ -44,17 +48,16 @@ bool PassManager::runModulePass(vector<Pass*>& passes) {
 bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
   
   if (this->instanceGraphStale) {
-    instanceGraph->clear();
     instanceGraph->construct(ns);
   }
   
   bool modified = false;
   for (auto igpass : passes) {
     assert(isa<InstanceGraphPass>(igpass));
-    
     for (auto node : this->instanceGraph->getSortedNodes()) {
       modified |= cast<InstanceGraphPass>(igpass)->runOnInstanceGraphNode(*node);
     }
+    igpass->print();
   }
   return modified;
 }
@@ -79,6 +82,7 @@ bool PassManager::run() {
     if (passOrders.second.count(Pass::PK_InstanceGraph)>0) {
       modified |= runInstanceGraphPass(passOrders.second[Pass::PK_InstanceGraph]);
     }
+    cout << "Finished Running " << passOrders.first << endl;
   }
   return modified;
 }

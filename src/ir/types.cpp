@@ -28,6 +28,8 @@ Type* Type::Arr(uint i) {
   return c->Array(i,this);
 }
 
+bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
+
 std::ostream& operator<<(ostream& os, const Type& t) {
   os << t.toString();
   return os;

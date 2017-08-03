@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "coreir-lib/stdlib.h"
-//#include "coreir-pass/passes.h"
+#include "coreir-passes/common.h"
+#include "coreir-passes/firrtl.hpp"
 
 using namespace CoreIR;
 
@@ -63,6 +64,11 @@ int main() {
   m->print();
   
   
+  PassManager* pm = new PassManager(g);
+  pm->addPass(new PrintPass(),2);
+  pm->addPass(new Firrtl(),5);
+  pm->addPass(new Firrtl(),6);
+  pm->run();
   // Link v1 of library
   //cout << "Linking stdlib!" << endl;
   //Namespace* stdlib_v1 = getStdlib_v1(c);

@@ -85,6 +85,9 @@ class ModuleDef {
     void connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB);
     void connect(std::initializer_list<std::string> pA, std::initializer_list<string> pB);
     
+    bool hasConnection(Wireable* a, Wireable* b);
+    Connection getConnection(Wireable* a, Wireable* b);
+
     //API for deleting a connection.
     //This will also delete the references from the wireable
     void disconnect(Wireable* a, Wireable* b);

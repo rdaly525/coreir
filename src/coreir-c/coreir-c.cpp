@@ -204,7 +204,7 @@ extern "C" {
   }
 
   COREModuleDef* COREWireableGetModuleDef(COREWireable* w) {
-    return rcast<COREModuleDef*>(rcast<Wireable*>(w)->getModuleDef());
+    return rcast<COREModuleDef*>(rcast<Wireable*>(w)->getContainer());
   }
 
   COREModule* COREModuleDefGetModule(COREModuleDef* m) {
