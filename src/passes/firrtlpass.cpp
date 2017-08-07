@@ -1,5 +1,7 @@
 #include "coreir.h"
 #include "coreir-passes/firrtl.hpp"
+#include <iostream>
+#include <fstream>
 
 using namespace CoreIR;
 
@@ -52,10 +54,10 @@ string FModule::type2firrtl(Type* t) {
       }
     }
     else {
-      //for (auto rec : rt->getRecord()) {
+      //for (auto rec : rt->getRecord()) 
       //  string pre = "";
       //  if (rec.first
-      ASSERT(0,"NYI")
+      ASSERT(0,"NYI");
     }
     return join(sels.begin(),sels.end(),string(", "));
   }
@@ -149,11 +151,13 @@ bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
 }
 
 //FOR now just output in print
-void Firrtl::print() {
-  cout << "Circuit MyCircuit : " << endl;
+bool Firrtl::runFinalize() {
+  std::fstream file("fcircuit.firrtl",std::ostream::out);
+  file << "Circuit MyCircuit : " << endl;
   for (auto smod : fmods) {
-    cout << smod << endl;
+    file << smod << endl;
   }
+  return false;
 }
 
 
