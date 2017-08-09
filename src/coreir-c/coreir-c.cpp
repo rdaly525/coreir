@@ -71,16 +71,25 @@ extern "C" {
     return rcast<COREArg*>(rcast<Instance*>(i)->getConfigArg(str));
   }
   
-  
+
+
+  //TODO update C api
+  //This can return nullptr
+  //bool loadFromFile(Context* c, string filename,Module** top);
   COREModule* CORELoadModule(COREContext* c, char* filename, bool* err) {
     string file(filename);
-    COREModule* m = rcast<COREModule*>(loadModule(rcast<Context*>(c),file,err));
-    return m;
+    Module* top = nullptr;
+    bool correct = loadFromFile(rcast<Context*>(c),file,&top);
+    *err = !correct;
+    return rcast<COREModule*>(top);
   }
   
+  //bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
   void CORESaveModule(COREModule* module, char* filename, bool* err) {
     string file(filename);
-    saveModule(rcast<Module*>(module),file,err);
+    Module* top = rcast<Module*>(module);
+    bool correct = saveToFile(top->getNamespace(),file,top);
+    *err = !correct;
     return;
   }
 

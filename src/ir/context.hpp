@@ -115,9 +115,21 @@ class Context {
 
 };
 
-Module* loadModule(Context* c, string filename, bool* err);
-void saveModule(Module* c, string filename, bool* err);
+//Module* loadModule(Context* c, string filename, bool* err);
+//void saveModule(Module* c, string filename, bool* err);
 
+//This will load the namespaces in the file into the context
+//If there is a labeled "top", it will be returned in top (if it is not null)
+//if no "top" in file, *top == nullptr
+bool loadFromFile(Context* c, string filename,Module** top=nullptr);
+
+//Save namespace to a file with optional "top" module
+bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
+
+//Save a module to a dot file (for viewing in graphviz)
+bool saveToDot(Module* m, string filename);
+  
+  
 Context* newContext();
 void deleteContext(Context* m);
 

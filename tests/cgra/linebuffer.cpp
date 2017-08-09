@@ -38,20 +38,6 @@ int main() {
   lb33->setDef(def);
   lb33->print();
 
-  bool err = false;
-  cout << "Checking saving and loading pregen" << endl;
-  saveModule(lb33, "_lb33.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  loadModule(c,"_lb33.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  
   PassManager* pm = new PassManager(c->getGlobal());
   
   cout << "Running Generators" << endl;
@@ -67,20 +53,5 @@ int main() {
   lb33->print();
   lb33->getDef()->validate();
   
-  cout << "Checking saving and loading postgen" << endl;
-  saveModule(lb33, "_lb33Gen.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  Module* m = loadModule(c,"_lb33Gen.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  m->print();
-
-
   deleteContext(c);
 }

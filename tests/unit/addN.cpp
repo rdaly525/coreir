@@ -87,24 +87,7 @@ int main() {
   add12->setDef(def);
   add12->print();
   
-  bool err = false;
-  cout << "Checking saving and loading pregen" << endl;
-  saveModule(add12, "_add12.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  cout << "loading" << endl;
-  loadModule(c,"_add12.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  
   PassManager* pm = new PassManager(g);
-  
-  cout << "Running Generators" << endl;
-  
   pm->addPass(new RunAllGeneratorsPass(),1);
   //pm->addPass(new PrintPass(),2);
   //pm->addPass(new PrintPass(),3);
@@ -112,23 +95,6 @@ int main() {
   //pm->addPass(new FlattenConnections(),1);
   pm->addPass(new Firrtl(),5);
   pm->run();
-
-  //add12->print();
-  //add12->getDef()->validate();
-
-  //cout << "Checking saving and loading postgen" << endl;
-  //saveModule(add12, "_add12Gen.json",&err);
-  //if (err) {
-  //  cout << "Could not save to json!!" << endl;
-  //  c->die();
-  //}
-  //
-  //Module* m = loadModule(c,"_add12Gen.json", &err);
-  //if(err) {
-  //  cout << "Could not Load from json!!" << endl;
-  //  c->die();
-  //}
-  //m->print();
-
+  
   deleteContext(c);
 }
