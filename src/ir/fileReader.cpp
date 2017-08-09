@@ -29,6 +29,13 @@ SelectPath getRef(string s) {
   return p;
 }
 
+//This will verify that json contains ONLY list of possible things
+void checkJson(json j, unordered_set<string> opts) {
+  for (auto opt : j.get<jsonmap>()) {
+    ASSERT(opts.count(opt.first),"Cannot put " + opt.first + " here in json file");
+  }
+}
+
 bool loadFromFile(Context* c, string filename,Module** top) {
   std::fstream file;
   file.open(filename);
@@ -51,10 +58,12 @@ bool loadFromFile(Context* c, string filename,Module** top) {
 
     vector<std::pair<Namespace*,json>> nsqueue;
 
+    checkJson(j,{"top","namespaces"});
     //Get or create namespace
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
       json jns = jnsmap.second;
+      checkJson(jns,{"namedtypes","namedtypegens","modules","generators"});
       Namespace* ns;
       if (c->hasNamespace(nsname) ) ns = c->getNamespace(nsname);
       else ns = c->newNamespace(nsname);
@@ -62,6 +71,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       //TODO test out weird cases like Named(libA,Named(libB,Named(libA)))
       if (jns.count("namedtypes")) {
         for (auto jntype : jns.at("namedtypes").get<jsonmap>()) {
+          checkJson(jntype.second,{"flippedname","rawtype"});
           string name = jntype.first;
           string nameFlip = jntype.second.at("flippedname");
           Type* raw = json2Type(c,jntype.second.at("rawtype"));
@@ -79,6 +89,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       //For namedtypegens I cannot really construct these without the typegenfunction. Therefore I will just verify that they exist
       if (jns.count("namedtypegens")) {
         for (auto jntypegen : jns.at("namedtypegens").get<jsonmap>()) {
+          checkJson(jntypegen.second,{"genparams","flippedname"});
           string name = jntypegen.first;
           Params genparams = json2Params(jntypegen.second.at("genparams"));
           if (!ns->hasTypeGen(name)) {
@@ -116,6 +127,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           
           json jmod = jmodmap.second;
+          checkJson(jmod,{"type","configparams","defaultconfigargs","instances","connections"});
           Type* t = json2Type(c,jmod.at("type"));
           
           Params configparams;
@@ -139,6 +151,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
 
           json jgen = jgenmap.second;
+          checkJson(jgen,{"typegen","genparams","defaultgenargs","configparams","defaultconfigargs"});
           Params genparams = json2Params(jgen.at("genparams"));
           auto tgenref = getRef(jgen.at("typegen").get<string>());
           TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
@@ -168,7 +181,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
         for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
           string instname = jinstmap.first;
           json jinst = jinstmap.second;
-          
+          checkJson(jinst,{"modref","genref","genargs","configargs"});
           // This function can throw an error
           if (jinst.count("modref")) {
             assert(jinst.count("genref")==0);

@@ -80,6 +80,7 @@ extern "C" {
     string file(filename);
     Module* top = nullptr;
     bool correct = loadFromFile(rcast<Context*>(c),file,&top);
+    ASSERT(top,"No top in file" + string(filename));
     *err = !correct;
     return rcast<COREModule*>(top);
   }
