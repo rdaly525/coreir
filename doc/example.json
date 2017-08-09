@@ -1,0 +1,49 @@
+{
+  "top": "_G.Add12",
+  "namespaces": {
+    "_G": {
+      "namedtypegens": {
+        "addN_type": {
+          "genparams": {"width":"int", "N":"int"},
+          "flipname": "addN_typeFlip"
+        }
+      },
+      "generators": {
+        "addN": {
+          "typegen": "_G.addN_type",
+          "genparams": {"width":"int", "N":"int"}
+        }
+      },
+      "modules": {
+        "Add12": {
+          "type": ["Record",{
+            "in8": ["Array",8,["Array",13,"BitIn"]],
+            "in4": ["Array",4,["Array",13,"BitIn"]],
+            "out": ["Array",13,"Bit"]
+          }],
+          "instances": {
+            "add2_join": {
+              "genref": "stdlib.add",
+              "genargs": {"width": 13}
+            },
+            "add4_lower": {
+              "genref": "_G.addN",
+              "genargs": {"width": 13, "N": 4}
+            },
+            "add8_upper": {
+              "genref": "_G.addN",
+              "genargs": {"width": 13, "N": 8}
+            }
+          },
+          "connections": [
+            ["add2_join.out","self.out"],
+            ["add8_upper.out","add2_join.in.0"],
+            ["self.in4","add4_lower.in"],
+            ["add4_lower.out","add2_join.in.1"],
+            ["self.in8","add8_upper.in"]
+          ]
+        }
+      }
+    }
+  }
+},
