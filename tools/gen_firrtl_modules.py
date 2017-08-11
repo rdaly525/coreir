@@ -33,7 +33,7 @@ ops = {
         "urem"  : "mod(in0, in1)",
         "sdiv"  : "asUInt(div(asSInt(in0), asSInt(in1)))",
         "srem"  : "asUInt(mod(asSInt(in0), asSInt(in1)))", 
-        # "smod"  : "$signed(in0) % $signed(in1)", #TODO definitely wrong
+        # "smod"  : "$signed(in0) % $signed(in1)", # TODO not sure if this should be mod? Verilog version doesn't implement it
         "eq"  : "eq(in0, in1)",
         "slt" : "asUInt(lt(asSInt(in0),  asSInt(in1)))",
         "sgt" : "asUInt(gt(asSInt(in0),  asSInt(in1)))",
