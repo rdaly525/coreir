@@ -8,7 +8,7 @@
     input in   : UInt
     output out : UInt
 
-    assign out <= neg(in)
+    assign out <= asUInt(neg(in))
 
   module coreir_andr :
     input in   : UInt
