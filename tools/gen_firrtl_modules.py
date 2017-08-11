@@ -14,7 +14,7 @@ source = Source()
 ops = {
     "unary": {
         "not" : "not(in)",
-        "neg" : "neg(in)",
+        "neg" : "asUInt(neg(in))",  # `neg` works on UInts, so we don't need to interpret the input
         "andr" : "andr(in)",
         "orr"  : "orr(in)",
         "xorr" : "xorr(in)"
