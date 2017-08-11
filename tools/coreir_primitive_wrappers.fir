@@ -61,14 +61,14 @@
     input in1  : UInt
     output out : UInt
 
-    assign out <= dshl(in0, in1)
+    assign out <= dshr(in0, in1)
 
   module coreir_dashr :
     input in0  : UInt
     input in1  : UInt
     output out : UInt
 
-    assign out <= dshl(asSInt(in0), in1)
+    assign out <= asUInt(dshr(asSInt(in0), in1))
 
   module coreir_add :
     input in0  : UInt
@@ -110,14 +110,14 @@
     input in1  : UInt
     output out : UInt
 
-    assign out <= div(asSInt(in0), asSInt(in1))
+    assign out <= asUInt(div(asSInt(in0), asSInt(in1)))
 
   module coreir_srem :
     input in0  : UInt
     input in1  : UInt
     output out : UInt
 
-    assign out <= mod(asSInt(in0), asSInt(in1))
+    assign out <= asUInt(mod(asSInt(in0), asSInt(in1)))
 
   module coreir_eq :
     input in0  : UInt
@@ -131,28 +131,28 @@
     input in1  : UInt
     output out : UInt
 
-    assign out <= lt(asSInt(in0),  asSInt(in1))
+    assign out <= asUInt(lt(asSInt(in0),  asSInt(in1)))
 
   module coreir_sgt :
     input in0  : UInt
     input in1  : UInt
     output out : UInt
 
-    assign out <= gt(asSInt(in0),  asSInt(in1))
+    assign out <= asUInt(gt(asSInt(in0),  asSInt(in1)))
 
   module coreir_sle :
     input in0  : UInt
     input in1  : UInt
     output out : UInt
 
-    assign out <= leq(asSInt(in0), asSInt(in1))
+    assign out <= asUInt(leq(asSInt(in0), asSInt(in1)))
 
   module coreir_sge :
     input in0  : UInt
     input in1  : UInt
     output out : UInt
 
-    assign out <= gte(asSInt(in0), asSInt(in1))
+    assign out <= asUInt(gte(asSInt(in0), asSInt(in1)))
 
   module coreir_ult :
     input in0  : UInt
