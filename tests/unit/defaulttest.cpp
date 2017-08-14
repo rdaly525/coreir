@@ -55,31 +55,6 @@ int main() {
  
   //run assertion checks
   checker(tester);
-
-//Save to Json
-  bool err = false;
-  cout << "Saving 2 json" << endl;
-  saveModule(tester,"_defaulttest.json",&err);
-  if(err) c->die();
-  deleteContext(c);
-
-  c = newContext();
-  //Need to reload this function
-  c->getGlobal()->newTypeGen(
-    "default_type", //name for the typegen
-    {{"ga",AINT},{"gb",AINT}}, //generater parameters
-    [](Context* c, Args args) { //Function to compute type
-      return c->Any();
-    }
-  );
-  
-  cout << "Loading json" << endl;
-  Module* m = loadModule(c,"_defaulttest.json",&err);
-  if(err) c->die();
-  m->print();
-
-  //Run assertion checks again after loading
-  checker(m);
   
   deleteContext(c);
 }
