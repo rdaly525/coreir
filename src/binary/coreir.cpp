@@ -51,7 +51,6 @@ int main(int argc, char *argv[]) {
   if (!loadFromFile(c,infileName,&top)) {
     c->die();
   }
-  cout << "Loaded succesffully" << endl;
   //if (userTop) {
   //  auto tref = splitString(topRef,".");
   //  ASSERT(c->hasNamespace(tref[0]),"Missing top : " + topRef);
@@ -72,17 +71,16 @@ int main(int argc, char *argv[]) {
     pm->run();
     fpass->writeToFile(outfileName);
   }
-  //Get Namespace
-  //Namespace* ns = top->getNamespace();
-  ////Write out to a file
-  //if (outExt == "json") {
-  //  if (!saveToFile(ns,outfileName,top)) {
-  //    c->die();
-  //  }
-  //}
-  //else {
-  //  cout << "NYI" << endl;
-  //}
+  else if (outExt=="json") {
+    Namespace* ns = top->getNamespace();
+    //Write out to a file
+    if (!saveToFile(ns,outfileName,top)) {
+      c->die();
+    }
+  }
+  else {
+    cout << "NYI" << endl;
+  }
     
   return 0;
 }

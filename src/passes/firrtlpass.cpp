@@ -54,9 +54,6 @@ string FModule::type2firrtl(Type* t) {
       }
     }
     else {
-      //for (auto rec : rt->getRecord()) 
-      //  string pre = "";
-      //  if (rec.first
       ASSERT(0,"NYI");
     }
     return join(sels.begin(),sels.end(),string(", "));
@@ -141,6 +138,7 @@ bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
     for (auto instmap : def->getInstances()) {
       string mname = nameMap[instmap.second->getInstantiableRef()];
       string iname = instmap.second->getInstname();
+      //TODO Deal with consts, regs, shift
       fm->addStmt("inst " + iname + " of " + mname);
     }
     //Then add all connections
