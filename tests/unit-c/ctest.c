@@ -66,7 +66,6 @@ int main() {
 
   COREPrintModule(m);
 
-
   CORESaveModule(m,"_simple.json",&err);
   if (err) {
     COREPrintErrors(c);

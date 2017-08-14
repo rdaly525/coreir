@@ -7,7 +7,7 @@
 
 using namespace CoreIR;
 
-
+//TODO add in Default args
 int main() {
   
   // New context
@@ -87,14 +87,38 @@ int main() {
   add12->setDef(def);
   add12->print();
   
-  PassManager* pm = new PassManager(g);
-  pm->addPass(new RunAllGeneratorsPass(),1);
-  //pm->addPass(new PrintPass(),2);
-  //pm->addPass(new PrintPass(),3);
-  //pm->addPass(new FlattenAllPass(),2);
-  //pm->addPass(new FlattenConnections(),1);
-  pm->addPass(new Firrtl(),5);
-  pm->run();
+  cout << "Checking saving and loading pregen" << endl;
+  if (!saveToFile(g, "_add12.json",add12)) {
+    cout << "Could not save to json!!" << endl;
+    c->die();
+  }
+  cout << "loading" << endl;
+  if (!loadFromFile(c,"_add12.json")) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
   
+  //PassManager* pm = new PassManager(g);
+  //pm->addPass(new RunAllGeneratorsPass(),1);
+  //pm->addPass(new FlattenAllPass(),2);
+  //pm->run();
+
+  add12->print();
+  add12->getDef()->validate();
+
+  cout << "Checking saving and loading postgen" << endl;
+  if (!saveToFile(g, "_add12Gen.json",add12)) {
+    cout << "Could not save to json!!" << endl;
+    c->die();
+  }
+  
+  Module* m = nullptr;
+  if (!loadFromFile(c,"_add12Gen.json", &m)) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+  ASSERT(m, "Could not load top: add12");
+  m->print();
+
   deleteContext(c);
 }

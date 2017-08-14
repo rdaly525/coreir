@@ -100,11 +100,6 @@ string SelectPath2Str(SelectPath path);
 SelectPath splitString(const string &s, char delim);
 bool hasChar(const std::string s, char c);
 
-
-
-
-
-
 template <class T, class A>
 T join(const A &begin, const A &end, const T &t) {
   T result;
@@ -115,22 +110,6 @@ T join(const A &begin, const A &end, const T &t) {
   }
   return result;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //template<typename container>
 //std::string joinString(const container arr, std::string del);
