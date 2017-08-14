@@ -38,19 +38,6 @@ int main() {
   
   Top->print();
   
-  bool err = false;
-  //Save to Json
-  cout << "Saving 2 json" << endl;
-  saveModule(Top,"_mapped_memexample.json",&err);
-  if(err) c->die();
-  deleteContext(c);
-  
-  c = newContext();
-  CoreIRLoadLibrary_cgralib(c);
-  Module* m = loadModule(c,"_mapped_memexample.json",&err);
-  if(err) c->die();
-  m->print();  
-
   deleteContext(c);
   return 0;
 }

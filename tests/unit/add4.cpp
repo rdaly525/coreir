@@ -48,51 +48,12 @@ int main() {
   add4_n->setDef(def);
   add4_n->print();
   
-  bool err = false;
-  cout << "Checking saving and loading pregen" << endl;
-  saveModule(add4_n, "_add4.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  Module* m = loadModule(c,"_add4.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  m->print();
-  
-  
   PassManager* pm = new PassManager(g);
   pm->addPass(new PrintPass(),2);
   pm->addPass(new Firrtl(),5);
   pm->addPass(new Firrtl(),6);
   pm->run();
-  // Link v1 of library
-  //cout << "Linking stdlib!" << endl;
-  //Namespace* stdlib_v1 = getStdlib_v1(c);
-  //cout << "Linking!";
-  //c->linkLib(stdlib_v1, stdlib);
   
-  //rungenerators(c,add4_n,&err);
-  //if (err) c->die();
-  //add4_n->print();
-  
-  cout << "Checking saving and loading postgen" << endl;
-  saveModule(add4_n, "_add4Gen.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  m = loadModule(c,"_add4Gen.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  m->print();
-
   deleteContext(c);
   
   return 0;

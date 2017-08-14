@@ -32,20 +32,6 @@ int main() {
 
   addmult->print();
   
-  bool err = false;
-  //Save to Json
-  cout << "Saving 2 json" << endl;
-  saveModule(addmult,"_simple.json",&err);
-  if(err) c->die();
-  deleteContext(c);
-
-  c = newContext();
-  CoreIRLoadLibrary_stdlib(c); 
-  cout << "Loading json" << endl;
-  Module* m = loadModule(c,"_simple.json",&err);
-  if(err) c->die();
-  m->print();
-
   deleteContext(c);
   return 0;
 }
