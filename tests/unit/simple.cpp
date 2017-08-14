@@ -1,12 +1,11 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
 
 using namespace CoreIR;
 
 int main() {
   Context* c = newContext();
 
-  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+  Namespace* stdlib = c->getNamespace("stdlib");
  
   //Type of module 
   Type* addmultType = c->Record({

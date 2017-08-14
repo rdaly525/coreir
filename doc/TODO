@@ -1,3 +1,16 @@
+//TODO for hackathon
+
+Easy way to implement passes
+Any way to add dependent passes?
+Need to register passes in the pass manager (use dyload?)
+
+Easy way to implement tests (or create numerous tests)
+
+
+
+
+
+
 LLVM Compiler passes
 Module (Set of functions)
 

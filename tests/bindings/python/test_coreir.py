@@ -1,11 +1,11 @@
 import coreir
 from test_utils import get_pointer_addr, assert_pointers_equal
 
-
-def test_load_library():
-    c = coreir.Context()
-    stdlib = c.load_library("stdlib")
-    assert stdlib.name == "stdlib"
+#TODO, do this with cgralib instead
+#def test_load_library():
+#    c = coreir.Context()
+#    stdlib = c.load_library("stdlib")
+#    assert stdlib.name == "stdlib"
 
 def test_save_module():
     c = coreir.Context()

@@ -11,29 +11,28 @@ CXX = g++-4.9
 endif
 
 CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror
-CFLAGS = -Wall -fPIC
 
 ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
+
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 LPATH = -L$(HOME)/lib
-#TODO Hacky to include coreir lib. Maybe I should generate coreir-c statically including all of coreir
-LIBS = -Wl,-rpath,$(HOME)/lib -lcoreir-c -lcoreir
-SRCFILES = $(wildcard *.c)
-OBJS = $(patsubst %.c,build/%.o,$(SRCFILES))
-EXES = $(patsubst %.c,build/%,$(SRCFILES))
+LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir-passes -lcoreir
+SRCFILES = $(wildcard [^_]*.cpp)
+OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
+EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
 
 all: $(EXES)
 
 clean:
 	rm -rf build/*
-	rm -f _*.json
 
 build/%: build/%.o 
 	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
+	cp $@ $(HOME)/bin
 
-build/%.o: %.c
-	$(CC) $(CFLAGS) $(INCS) -c -o $@ $<
+build/%.o: %.cpp
+	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

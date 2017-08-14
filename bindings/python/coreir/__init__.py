@@ -49,6 +49,9 @@ libcoreir_c.CORESaveModule.argtypes = [COREModule_p, ct.c_char_p, ct.POINTER(ct.
 libcoreir_c.COREGetGlobal.argtypes = [COREContext_p]
 libcoreir_c.COREGetGlobal.restype = CORENamespace_p
 
+libcoreir_c.COREGetNamespace.argtypes = [COREContext_p, ct.c_char_p]
+libcoreir_c.COREGetNamespace.restype = CORENamespace_p
+
 libcoreir_c.CORENewModule.argtypes = [CORENamespace_p, ct.c_char_p, COREType_p, ct.c_void_p]
 libcoreir_c.CORENewModule.restype = COREModule_p
 

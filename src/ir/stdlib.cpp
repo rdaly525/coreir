@@ -1,4 +1,4 @@
-#include "coreir-lib/stdlib.h"
+#include "stdlib.hpp"
 
 //#include "_stdlib_bitwise.cpp"
 //#include "_stdlib_arithmetic.cpp"
