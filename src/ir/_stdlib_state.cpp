@@ -52,6 +52,7 @@ void stdlib_state(Context* c, Namespace* stdlib) {
   });
   Params regConfigParams({{"init",AINT}});
   TypeGen* regTypeGen = stdlib->newTypeGen("regType",regGenParams,regFun);
-  stdlib->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
-
+  auto reg = stdlib->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
+  reg->setDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
+  reg->setDefaultConfigArgs({{"init",c->argInt(0)}});
 }

@@ -90,6 +90,9 @@ void stdlib2firrtl(Instantiable* i,FModule& fm) {
   else if (i->getName()=="reg") {
     ASSERT(0,"NYI");
   }
+  else if (i->getName()=="const") {
+    ASSERT(0,"NYI");
+  }
   else if (opmap["binary"].count(i->getName()) 
      || opmap["binaryReduce"].count(i->getName())) {
       fm.addStmt("out <= " + op2firrtl(i->getName()) + "(in[0],in[1])");

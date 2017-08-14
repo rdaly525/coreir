@@ -96,8 +96,11 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
     e.fatal();
     c->error(e);
   }
+  ASSERT(typeGenList.count(name),"Missing " + name);
   TypeGen* tgen = typeGenList.at(name);
+  ASSERT(typeGenNameMap.count(name),"Missing " + name);
   string nameFlip = typeGenNameMap.at(name);
+  ASSERT(typeGenList.count(nameFlip),"Missing " + name);
   TypeGen* tgenFlip = typeGenList.at(nameFlip);
   NamedCacheParams ncpFlip(nameFlip,genargs);
 
