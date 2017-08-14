@@ -32,7 +32,7 @@ SelectPath getRef(string s) {
 //This will verify that json contains ONLY list of possible things
 void checkJson(json j, unordered_set<string> opts) {
   for (auto opt : j.get<jsonmap>()) {
-    ASSERT(opts.count(opt.first),"Cannot put " + opt.first + " here in json file");
+    ASSERT(opts.count(opt.first),"Cannot put \"" + opt.first + "\" here in json file");
   }
 }
 
@@ -47,10 +47,9 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     return false;
   }
   json j;
-  file >> j;
 
   try {
-
+    file >> j;
     //There are the following dependencies moduleDefs->(all modules)->(all types)
     //Therefore first load all namedtypes and typegens
     //Then Load all Modules and Generators

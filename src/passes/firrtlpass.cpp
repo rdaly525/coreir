@@ -150,14 +150,12 @@ bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-//FOR now just output in print
-bool Firrtl::runFinalize() {
-  std::fstream file("fcircuit.firrtl",std::ostream::out);
+void Firrtl::writeToFile(string filename) {
+  std::fstream file(filename,std::ostream::out);
   file << "Circuit MyCircuit : " << endl;
   for (auto smod : fmods) {
     file << smod << endl;
   }
-  return false;
 }
 
 

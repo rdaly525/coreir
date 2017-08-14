@@ -16,9 +16,9 @@ dylib:
 	$(MAKE) -C passes dylib
 	$(MAKE) -C libs dylib
 
-
 clean:
 	$(MAKE) -C ir clean
 	$(MAKE) -C coreir-c clean
 	$(MAKE) -C passes clean
 	$(MAKE) -C libs clean
+	$(MAKE) -C binary clean

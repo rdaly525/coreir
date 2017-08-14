@@ -11,7 +11,7 @@ class Firrtl : public InstanceGraphPass {
   public :
     Firrtl() : InstanceGraphPass() {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node);
-    bool runFinalize();
+    void writeToFile(string file);
 };
 
 #endif

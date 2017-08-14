@@ -1,6 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
-
 
 using namespace CoreIR;
 

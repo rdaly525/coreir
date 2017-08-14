@@ -1,4 +1,5 @@
 #include "context.hpp"
+#include "stdlib.hpp"
 
 using namespace std;
 
@@ -7,6 +8,8 @@ namespace CoreIR {
 Context::Context() : maxErrors(3) {
   global = newNamespace("_G");
   cache = new TypeCache(this);
+  //Automatically load stdlib
+  CoreIRLoadLibrary_stdlib(this);
 }
 
 // Order of this matters

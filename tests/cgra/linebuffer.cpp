@@ -1,6 +1,5 @@
 #include "coreir.h"
 #include "coreir-lib/cgralib.h"
-#include "coreir-lib/stdlib.h"
 
 #include "coreir-passes/common.h"
 
@@ -12,7 +11,6 @@ int main() {
   
   // New context
   Context* c = newContext();
-  CoreIRLoadLibrary_stdlib(c);
   
   //Find linebuffer in the cgra namespace
   Namespace* cgralib = CoreIRLoadLibrary_cgralib(c);

@@ -1,6 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
-
 
 using namespace CoreIR;
 
@@ -51,7 +49,6 @@ int main() {
   });
  
   Type* t = g->getTypeGen("add4_type")->getType({{"width",c->argInt(13)}});
-  CoreIRLoadLibrary_stdlib(c);
   
   Module* add = g->newModuleDecl("Add",t);
   ModuleDef* def = add->newModuleDef();
