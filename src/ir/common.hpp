@@ -73,11 +73,20 @@ class Interface;
 class Instance;
 class Select;
 
-typedef deque<string> SelectPath;
+//typedef deque<string> SelectPath;
+
+typedef deque<std::string> SelectPath;
 typedef vector<std::reference_wrapper<const string>> ConstSelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 //This is meant to be in relation to an instance. First wireable of the pair is of that instance.
 typedef vector<std::pair<Wireable*,Wireable*>> LocalConnections;
+
+class ConnectionComp {
+  public:
+    static bool SPComp(const SelectPath& l, const SelectPath& r);
+    bool operator() (const Connection& l, const Connection& r);
+};
+
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
@@ -142,7 +151,7 @@ namespace std {
     size_t operator() (const CoreIR::myPair<T1,T2>& p) const {
       auto h1 = std::hash<T1>{}(p.first);
       auto h2 = std::hash<T2>{}(p.second);
-      return h1 ^ (h2<<1);
+      return h1 ^ (h2*3);
     }
   };
 

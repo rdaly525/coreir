@@ -6,7 +6,8 @@
 #include "namespace.hpp"
 #include "typegen.hpp"
 #include <unordered_map>
-
+#include <algorithm>
+#include <set>
 
 namespace CoreIR {
 
@@ -159,7 +160,7 @@ json ArrayType::toJson() {
 }
 json RecordType::toJson() {
   json jfields;
-  for (auto selmap : record) jfields[selmap.first] = selmap.second->toJson();
+  for (auto sel : _order) jfields[sel] = record[sel]->toJson();
   return json::array({TypeKind2Str(kind),jfields});
 }
 
@@ -275,15 +276,14 @@ json ModuleDef::toJson() {
   }
   if (!connections.empty()) {
     json jcons;
-    for (auto con : connections) {
+    std::set<Connection,ConnectionComp> sortedSet(connections.begin(),connections.end());
+    for (auto con : sortedSet) {
       jcons.push_back(Connection2Json(con));
     }
     j["connections"] = jcons;
   }
   return j;
 }
-
-
 
 json Instance::toJson() {
   json j;
