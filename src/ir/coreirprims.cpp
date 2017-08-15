@@ -9,7 +9,7 @@ COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(coreirprims);
 
 using namespace CoreIR;
 
-void coreirprims_convert(Context* c, Namespace* stdlib) {
+void coreirprims_convert(Context* c, Namespace* coreirprims) {
 
 
   /* Name: slice
@@ -24,22 +24,25 @@ void coreirprims_convert(Context* c, Namespace* stdlib) {
    *    start < stop <= arrtype.len
    */
   Params sliceParams({
-    {"width",AUINT},
-    {"lo",AUINT},
-    {"hi",AUINT}
+    {"width",AINT},
+    {"lo",AINT},
+    {"hi",AINT}
   });
-  auto sliceFun = [](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgUint>();
-    uint lo = args.at("lo")->get<ArgUint>();
-    uint hi = args.at("hi")->get<ArgUint>();
-    ASSERT(lo < hi && hi<=width,"Bad slice args!");
-    return c->Record({
-      {"in",c->BitIn()->Arr(width)},
-      {"out",c->Bit()->Arr(hi-lo+1)}
-    });
-  };
-  TypeGen sliceTypeGen(sliceParams,sliceFun);
-  stdlib->newGeneratorDecl("slice",sliceParams,sliceTypeGen);
+  auto sliceTypeGen = coreirprims->newTypeGen(
+    "sliceTypeFun",
+    sliceParams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      uint lo = args.at("lo")->get<ArgInt>();
+      uint hi = args.at("hi")->get<ArgInt>();
+      ASSERT(lo < hi && hi<=width,"Bad slice args!");
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)},
+        {"out",c->Bit()->Arr(hi-lo+1)}
+      });
+    }
+  );
+  coreirprims->newGeneratorDecl("slice",sliceTypeGen,sliceParams);
 
   /* Name: concat
    * GenParams: 
@@ -53,20 +56,23 @@ void coreirprims_convert(Context* c, Namespace* stdlib) {
    *    larrtype.elemtype == rarrtype.elemtype
    */
   Params concatParams({
-    {"lwidth",AUINT},
-    {"rwidth",AUINT}
+    {"lwidth",AINT},
+    {"rwidth",AINT}
   });
-  auto concatFun = [](Context* c, Args args) { 
-    uint lwidth = args.at("lwidth")->get<ArgUint>();
-    uint rwidth = args.at("rwidth")->get<ArgUint>();
-    return c->Record({
-      {"inl",c->BitIn()->Arr(lwidth)},
-      {"inr",c->BitIn()->Arr(rwidth)},
-      {"out",c->Bit()->Arr(lwidth+rwidth)}
-    });
-  };
-  TypeGen concatTypeGen(concatParams,concatFun);
-  stdlib->newGeneratorDecl("concat",concatParams,concatTypeGen);
+  auto concatTypeGen = coreirprims->newTypeGen(
+    "concatTypeFun",
+    concatParams,
+    [](Context* c, Args args) {
+      uint lwidth = args.at("lwidth")->get<ArgInt>();
+      uint rwidth = args.at("rwidth")->get<ArgInt>();
+      return c->Record({
+        {"inl",c->BitIn()->Arr(lwidth)},
+        {"inr",c->BitIn()->Arr(rwidth)},
+        {"out",c->Bit()->Arr(lwidth+rwidth)}
+      });
+    }
+  );
+  coreirprims->newGeneratorDecl("concat",concatTypeGen,concatParams);
 
   /* Name: strip
    * GenParams: 
@@ -142,12 +148,12 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return c->Record(r);
   };
   Params regGenParams({
-    {"width",AUINT},
+    {"width",AINT},
     {"en",ABOOL},
     {"clr",ABOOL},
     {"rst",ABOOL}
   });
-  Params regConfigParams({{"init",AUINT}});
+  Params regConfigParams({{"init",AINT}});
   TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
   auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
   reg->setDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
@@ -161,7 +167,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   /////////////////////////////////
   // Stdlib Types
   /////////////////////////////////
-  Params widthparams = Params({{"width",AUINT}});
+  Params widthparams = Params({{"width",AINT}});
 
   //Single bit types
   coreirprims->newNamedType("clk","clkIn",c->Bit());
@@ -320,7 +326,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       });
     }
   );
-  coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AUINT}});
+  coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
   
   /////////////////////////////////
   // Stdlib convert primitives
