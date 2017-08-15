@@ -11,7 +11,26 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
                                    {"I2", c->BitIn()},
                                    {"I3", c->BitIn()},
                                    {"O",  c->Bit()}});
-    Params SB_LUT4Params({{"INIT", AINT}});
+    Params SB_LUT4Params({{"LUT_INIT", AINT}});
     ice40->newModuleDecl("SB_LUT4", SB_LUT4Type, SB_LUT4Params);
+
+    Type* SB_CARRYType = c->Record({{"I0", c->BitIn()},
+                                    {"I1", c->BitIn()},
+                                    {"CI", c->BitIn()},
+                                    {"CO", c->BitIn()},
+                                    {"O",  c->Bit()}});
+    ice40->newModuleDecl("SB_CARRY", SB_CARRYType);
+
+    Type* SB_DFFType = c->Record({{"C", c->BitIn()},
+                                  {"D", c->BitIn()},
+                                  {"Q", c->Bit()}});
+    ice40->newModuleDecl("SB_DFF", SB_DFFType);
+
+    Type* SB_DFFEType = c->Record({{"C", c->BitIn()},
+                                   {"D", c->BitIn()},
+                                   {"E", c->BitIn()},
+                                   {"Q", c->Bit()}});
+    ice40->newModuleDecl("SB_DFFE", SB_DFFType);
+
     return ice40;
 }
