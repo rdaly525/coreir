@@ -10,7 +10,7 @@ int main() {
   Namespace* g = c->getGlobal();
   Namespace* prj = c->newNamespace("prj");
   
-  Namespace* sl = c->getNamespace("stdlib");
+  Namespace* sl = c->getNamespace("coreir");
 
   Args wargs({{"width",c->argInt(19)}});
   

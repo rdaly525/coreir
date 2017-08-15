@@ -10,10 +10,10 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = c->getNamespace("stdlib");
+  Namespace* coreir = c->getNamespace("coreir");
   
   //Declare add2 Generator
-  Generator* add2 = stdlib->getGenerator("add");
+  Generator* add2 = coreir->getGenerator("add");
   assert(add2);
   
   // Define Add4 Module

@@ -30,8 +30,8 @@ int main() {
   add4->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
     uint n = args.at("width")->get<ArgInt>();
     
-    Namespace* stdlib = c->getNamespace("stdlib");
-    auto add2 = stdlib->getGenerator("add");
+    Namespace* coreir = c->getNamespace("coreir");
+    auto add2 = coreir->getGenerator("add");
     Wireable* self = def->sel("self");
     Wireable* add_00 = def->addInstance("add00",add2,{{"width",c->argInt(n)}});
     Wireable* add_01 = def->addInstance("add01",add2,{{"width",c->argInt(n)}});

@@ -5,7 +5,7 @@ using namespace CoreIR;
 int main() {
   Context* c = newContext();
 
-  Namespace* stdlib = c->getNamespace("stdlib");
+  Namespace* coreir = c->getNamespace("coreir");
  
   //Type of module 
   Type* addmultType = c->Record({
@@ -13,9 +13,9 @@ int main() {
     {"out",c->Array(16,c->Bit())}
   });
   Args w16({{"width",c->argInt(16)}});
-  Generator* Add = stdlib->getGenerator("add");
-  Generator* Mul = stdlib->getGenerator("mul");
-  Generator* Const = stdlib->getGenerator("const");
+  Generator* Add = coreir->getGenerator("add");
+  Generator* Mul = coreir->getGenerator("mul");
+  Generator* Const = coreir->getGenerator("const");
   Module* addmult = c->getGlobal()->newModuleDecl("addmult",addmultType);
   ModuleDef* def = addmult->newModuleDef();
     def->addInstance("ai",Add,w16);

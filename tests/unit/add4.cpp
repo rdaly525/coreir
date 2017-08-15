@@ -12,12 +12,7 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = c->getNamespace("stdlib");
-  
-  //Declare add2 Generator
-  Generator* add2 = stdlib->getGenerator("add");
-  assert(add2);
-  
+  Generator* add2 = c->getGenerator("coreir.add");
 
   // Define Add4 Module
   Type* add4Type = c->Record({

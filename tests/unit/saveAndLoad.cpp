@@ -38,8 +38,8 @@ int main() {
     assert((N & (N-1)) == 0); //Check if power of 2
     assert(N!=1);
 
-    Namespace* stdlib = c->getNamespace("stdlib");
-    Generator* add2 = stdlib->getGenerator("add");
+    Namespace* coreir = c->getNamespace("coreir");
+    Generator* add2 = coreir->getGenerator("add");
     Generator* addN = c->getGlobal()->getGenerator("addN");
     
     Arg* aWidth = c->argInt(width);
@@ -72,12 +72,12 @@ int main() {
     {"out",c->Bit()->Arr(13)}
   });
 
-  Namespace* stdlib = c->getNamespace("stdlib");
+  Namespace* coreir = c->getNamespace("coreir");
   Module* add12 = g->newModuleDecl("Add12",add12Type);
   ModuleDef* def = add12->newModuleDef();
     def->addInstance("add8_upper",addN,{{"width",c->argInt(13)},{"N",c->argInt(8)}});
     def->addInstance("add4_lower",addN,{{"width",c->argInt(13)},{"N",c->argInt(4)}});
-    def->addInstance("add2_join",stdlib->getGenerator("add"),{{"width",c->argInt(13)}});
+    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",c->argInt(13)}});
     def->connect("self.in8","add8_upper.in");
     def->connect("self.in4","add4_lower.in");
     def->connect("add8_upper.out","add2_join.in.0");
