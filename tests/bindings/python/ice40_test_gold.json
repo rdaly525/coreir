@@ -1,0 +1,52 @@
+{
+  "namespaces": {
+    "_G": {
+      "modules": {
+        "test_module": {
+          "connections": [
+            [
+              "self.I.3",
+              "lut0.I3"
+            ],
+            [
+              "self.I.2",
+              "lut0.I2"
+            ],
+            [
+              "self.I.1",
+              "lut0.I1"
+            ],
+            [
+              "self.I.0",
+              "lut0.I0"
+            ],
+            [
+              "self.O",
+              "lut0.O"
+            ]
+          ],
+          "instances": {
+            "lut0": {
+              "configargs": {
+                "LUT_INIT": 34952
+              },
+              "modref": "ice40.SB_LUT4"
+            }
+          },
+          "type": [
+            "Record",
+            {
+              "I": [
+                "Array",
+                4,
+                "BitIn"
+              ],
+              "O": "Bit"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "top": "_G.test_module"
+}

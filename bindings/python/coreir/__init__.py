@@ -193,7 +193,7 @@ libcoreir_c.CORENamespaceGetGenerator.argtypes = [CORENamespace_p, ct.c_char_p]
 libcoreir_c.CORENamespaceGetGenerator.restype = COREInstantiable_p
 
 libcoreir_c.CORENamespaceGetModule.argtypes = [CORENamespace_p, ct.c_char_p]
-libcoreir_c.CORENamespaceGetModule.restype = COREInstantiable_p
+libcoreir_c.CORENamespaceGetModule.restype = COREModule_p
 
 libcoreir_c.COREInstantiableGetName.argtypes = [COREInstantiable_p]
 libcoreir_c.COREInstantiableGetName.restype = ct.c_char_p
