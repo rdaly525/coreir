@@ -2,7 +2,7 @@ import coreir
 import test_utils
 
 
-def test_get_name():
+def test_coreir():
     context = coreir.Context()
     assert context.G.name == "_G"
     coreir_stdlib = context.get_namespace("coreir")
@@ -20,3 +20,11 @@ def test_get_name():
     module_def = module.new_definition()
     add8_inst = module_def.add_generator_instance("add8_inst", add_generator, context.newArgs({"width":8}))
     assert add8_inst.generator_args["width"].value == 8
+
+
+def test_ice40():
+    context = coreir.Context()
+    coreir_ice40 = context.load_library("ice40")
+    sb_lut4 = coreir_ice40.modules["SB_LUT4"]
+    # assert sb_lut4.name == "SB_LUT4"
+    # assert sb_lut4.type.kind == "Record"
