@@ -53,7 +53,3 @@ def test_ice40():
     with open(os.path.join(dir_path, "ice40_test.json")) as actual:
         with open(os.path.join(dir_path, "ice40_test_gold.json")) as gold:
             assert actual.read() == gold.read()
-        
-
-    # assert sb_lut4.name == "SB_LUT4"
-    # assert sb_lut4.type.kind == "Record"
