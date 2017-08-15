@@ -9,6 +9,99 @@ COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(coreirprims);
 
 using namespace CoreIR;
 
+void coreirprims_convert(Context* c, Namespace* stdlib) {
+
+
+  /* Name: slice
+   * GenParams: 
+   *    lo: UINT, The start index of the slice
+   *    hi: UINT, The stop index of the slice non-inclusive
+   *    arrtype: TYPE, the array type of the input.
+   * Type: In(arrtype) -> Out(arrtype.elemtype)[hi-lo+1]
+   * Fun: out = in[lo:hi]
+   * Argchecks: 
+   *    arrtype.isKind(ARRAY)
+   *    start < stop <= arrtype.len
+   */
+  Params sliceParams({
+    {"width",AUINT},
+    {"lo",AUINT},
+    {"hi",AUINT}
+  });
+  auto sliceFun = [](Context* c, Args args) {
+    uint width = args.at("width")->get<ArgUint>();
+    uint lo = args.at("lo")->get<ArgUint>();
+    uint hi = args.at("hi")->get<ArgUint>();
+    ASSERT(lo < hi && hi<=width,"Bad slice args!");
+    return c->Record({
+      {"in",c->BitIn()->Arr(width)},
+      {"out",c->Bit()->Arr(hi-lo+1)}
+    });
+  };
+  TypeGen sliceTypeGen(sliceParams,sliceFun);
+  stdlib->newGeneratorDecl("slice",sliceParams,sliceTypeGen);
+
+  /* Name: concat
+   * GenParams: 
+   *    larrtype: TYPE, the left array
+   *    rarrtype: TYPE, the right array
+   * Type: In(larrtype) -> In(rarrtype) -> Out(larrtype.elemtype)[larrtype.len+rarrtype.len]
+   * Fun: out = concat(in[0],in[1])
+   * Argchecks: 
+   *    larrtype.isKind(ARRAY)
+   *    rarrtype.isKind(ARRAY)
+   *    larrtype.elemtype == rarrtype.elemtype
+   */
+  Params concatParams({
+    {"lwidth",AUINT},
+    {"rwidth",AUINT}
+  });
+  auto concatFun = [](Context* c, Args args) { 
+    uint lwidth = args.at("lwidth")->get<ArgUint>();
+    uint rwidth = args.at("rwidth")->get<ArgUint>();
+    return c->Record({
+      {"inl",c->BitIn()->Arr(lwidth)},
+      {"inr",c->BitIn()->Arr(rwidth)},
+      {"out",c->Bit()->Arr(lwidth+rwidth)}
+    });
+  };
+  TypeGen concatTypeGen(concatParams,concatFun);
+  stdlib->newGeneratorDecl("concat",concatParams,concatTypeGen);
+
+  /* Name: strip
+   * GenParams: 
+   *    namedtype: TYPE, the type you want to strip
+   * Type: namedtype -> namedtype.raw
+   * Fun: out = in
+   * Argchecks: 
+   *    namedtype.isKind(NAMED)
+   */
+  //Params stripParams({
+  //  {"namedtype",TYPE}
+  //});
+  //auto stripFun = [](Context* c, Args args) { return c->Any(); } //TODO
+  //TypeGen stripTypeGen(stripParams,stripFun);
+  //stdlib->newGeneratorDecl("strip",stripParams,stripTypeGen);
+
+  /* Name: cast
+   * GenParams: 
+   *    intype: TYPE, precast type
+   *    outtype: TYPE, postcast type
+   * Type: intype -> outype
+   * Fun: out = (outtype) in
+   * Argchecks: 
+   *    intype.structure == outtype.structure
+   */
+  //Params castParams({
+  //  {"intype",TYPE},
+  //  {"outtype",TYPE}
+  //});
+  //auto castFun = [](Context* c, Args args) { return c->Any(); } //TODO
+  //TypeGen castTypeGen(castParams,castFun);
+  //stdlib->newGeneratorDecl("cast",castParams,castTypeGen);
+
+}
+
 void coreirprims_state(Context* c, Namespace* coreirprims) {
   
   //Template
@@ -49,12 +142,12 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return c->Record(r);
   };
   Params regGenParams({
-    {"width",AINT},
+    {"width",AUINT},
     {"en",ABOOL},
     {"clr",ABOOL},
     {"rst",ABOOL}
   });
-  Params regConfigParams({{"init",AINT}});
+  Params regConfigParams({{"init",AUINT}});
   TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
   auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
   reg->setDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
@@ -68,7 +161,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   /////////////////////////////////
   // Stdlib Types
   /////////////////////////////////
-  Params widthparams = Params({{"width",AINT}});
+  Params widthparams = Params({{"width",AUINT}});
 
   //Single bit types
   coreirprims->newNamedType("clk","clkIn",c->Bit());
@@ -227,14 +320,13 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       });
     }
   );
-  coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
+  coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AUINT}});
   
   /////////////////////////////////
   // Stdlib convert primitives
   //   slice,concat,cast,strip
   /////////////////////////////////
-  //TODO 
-  //coreirprims_convert(c,coreirprims);
+  coreirprims_convert(c,coreirprims);
 
   return coreirprims;
 }
