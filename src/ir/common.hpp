@@ -59,7 +59,6 @@ typedef myPair<uint,Type*> ArrayParams ;
 class TypeCache;
 struct Metadata;
 
-
 //instantiable.hpp
 class Instantiable;
 class Generator;

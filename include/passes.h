@@ -5,27 +5,29 @@
 
 namespace CoreIR {
 
-//void rungenerators(CoreIR::Context* c, CoreIR::Module* m, bool* err);
-//void flatten(CoreIR::Context* c, CoreIR::Module* m, bool* err);
-
-
 class Pass {
   
   public:
     enum PassKind {PK_Namespace, PK_Module, PK_InstanceGraph};
   private:
     PassKind kind;
+    //Used as the unique identifier for the pass
+    std::string name;
+    std::string description;
+    //Whether this is an analysis pass
+    std::string isAnalysis;
   public:
-    explicit Pass(PassKind kind) : kind(kind) {}
+    explicit Pass(PassKind kind,std::string name, std::string description, bool isAnalysis) : kind(kind), name(name), description(description), isAnalysis  {}
     virtual ~Pass() = 0;
     PassKind getKind() const {return kind;}
-    virtual bool runFinalize() = 0;
+    virtual void setAnalysisInfo() {}
+    void addDependency(string name);
 };
 
 //You can do whatever you want here
 class NamespacePass : public Pass {
   public:
-    explicit NamespacePass() : Pass(PK_Namespace) {}
+    explicit NamespacePass(std::string name, std::string description, bool isAnalysis) : Pass(PK_Namespace,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Namespace;}
     virtual bool runOnNamespace(Namespace* n) = 0;
     virtual bool runFinalize() {return false;}
@@ -35,7 +37,7 @@ class NamespacePass : public Pass {
 //You can edit the current module but not any other module!
 class ModulePass : public Pass {
   public:
-    explicit ModulePass() : Pass(PK_Module) {}
+    explicit ModulePass(std::string name, std::string description, bool isAnalysis) : Pass(PK_Module,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Module;}
     virtual bool runOnModule(Module* m) = 0;
     virtual bool runFinalize() {return false;}
@@ -49,7 +51,7 @@ class InstanceGraphNode;
 class InstanceGraphPass : public Pass {
   public:
     
-    explicit InstanceGraphPass() : Pass(PK_InstanceGraph) {}
+    explicit InstanceGraphPass(std::string name, std::string description, bool isAnalysis) : Pass(PK_InstanceGraph,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
     virtual bool runFinalize() {return false;}

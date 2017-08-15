@@ -15,7 +15,6 @@ bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
 }
 
-
 string Param2Str(Param genparam) {
   switch(genparam) {
     case AINT : return "int";
