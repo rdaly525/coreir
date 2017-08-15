@@ -100,7 +100,8 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       Type* ptype = c->Bit()->Arr(width);
       if (width==1) ptype = c->Bit();
       return c->Record({
-        {"in",c->Flip(ptype)->Arr(2)},
+        {"in0",c->Flip(ptype)},
+        {"in1",c->Flip(ptype)},
         {"out",ptype}
       });
     }
@@ -111,8 +112,11 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
+      Type* ptype = c->Bit()->Arr(width);
+      if (width==1) ptype = c->Bit();
       return c->Record({
-        {"in",c->BitIn()->Arr(width)->Arr(2)},
+        {"in0",c->Flip(ptype)},
+        {"in1",c->Flip(ptype)},
         {"out",c->Bit()}
       });
     }
@@ -122,24 +126,27 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
+      Type* ptype = c->Bit()->Arr(width);
+      if (width==1) ptype = c->Bit();
       return c->Record({
-        {"in",c->BitIn()->Arr(width)},
-        {"out",c->Bit()}
+        {"in",c->Flip(ptype)},
+        {"out",ptype}
       });
     }
   );
-  //For repeat
-  coreirprims->newTypeGen(
-    "unaryExpand",
-    widthparams,
-    [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
-      return c->Record({
-        {"in",c->BitIn()},
-        {"out",c->Bit()->Arr(width)}
-      });
-    }
-  );
+  
+  ////For repeat
+  //coreirprims->newTypeGen(
+  //  "unaryExpand",
+  //  widthparams,
+  //  [](Context* c, Args args) {
+  //    uint width = args.at("width")->get<ArgInt>();
+  //    return c->Record({
+  //      {"in",c->BitIn()},
+  //      {"out",c->Bit()->Arr(width)}
+  //    });
+  //  }
+  //);
   //For mux
   coreirprims->newTypeGen(
     "ternary",
@@ -149,7 +156,8 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       Type* ptype = c->Bit()->Arr(width);
       if (width==1) ptype = c->Bit();
       return c->Record({
-        {"in",c->Flip(ptype)},
+        {"in0",c->Flip(ptype)},
+        {"in1",c->Flip(ptype)},
         {"sel",c->BitIn()},
         {"out",ptype}
       });
