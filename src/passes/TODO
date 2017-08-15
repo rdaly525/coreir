@@ -1,0 +1,17 @@
+Have all passes take in
+
+Pass(string name, string description, bool isAnalysis)
+virtual ~Pass()
+class MyPass : Pass
+
+
+
+
+//Turn into Macros
+extern "C" Pass* registerPass() {
+  return new MyPass;
+}
+
+extern "C" void deletePass(Pass* p) {
+  delete p;
+}
