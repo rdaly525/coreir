@@ -28,6 +28,10 @@ py: install
 install:
 	$(MAKE) -C src $(TARGET)
 
+.PHONY: bin
+bin:
+	$(MAKE) -C src/binary -B
+
 
 .PHONY: clean
 clean:

@@ -1,5 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
 
 using namespace CoreIR;
 
@@ -10,7 +9,7 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+  Namespace* stdlib = c->getNamespace("stdlib");
   
   Module* const16 = stdlib->getGenerator("const")->getModule({{"width",c->argInt(16)}});
  

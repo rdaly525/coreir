@@ -1,5 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
 #include "coreir-passes/common.h"
 #include "coreir-passes/firrtl.hpp"
 
@@ -13,7 +12,7 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+  Namespace* stdlib = c->getNamespace("stdlib");
   
   //Declare add2 Generator
   Generator* add2 = stdlib->getGenerator("add");

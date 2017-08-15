@@ -97,7 +97,11 @@ extern "C" {
   CORENamespace* COREGetGlobal(COREContext* c) {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());
   }
-
+  
+  CORENamespace* COREGetNamespace(COREContext* c, char* name) {
+    return rcast<CORENamespace*>(rcast<Context*>(c)->getNamespace(std::string(name)));
+  }
+  
   COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams) {
     Params g;
     if (configparams) g =*rcast<Params*>(configparams) ;

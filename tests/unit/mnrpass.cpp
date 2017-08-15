@@ -1,5 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
 #include "coreir-passes/common.h"
 
 using namespace CoreIR;
@@ -11,7 +10,7 @@ int main() {
   Namespace* g = c->getGlobal();
   Namespace* prj = c->newNamespace("prj");
   
-  Namespace* sl = CoreIRLoadLibrary_stdlib(c);
+  Namespace* sl = c->getNamespace("stdlib");
 
   Args wargs({{"width",c->argInt(19)}});
   

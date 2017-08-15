@@ -1,5 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
 
 #include "coreir-passes/common.h"
 #include "coreir-passes/firrtl.hpp"
@@ -73,7 +72,7 @@ int main() {
     {"out",c->Bit()->Arr(13)}
   });
 
-  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+  Namespace* stdlib = c->getNamespace("stdlib");
   Module* add12 = g->newModuleDecl("Add12",add12Type);
   ModuleDef* def = add12->newModuleDef();
     def->addInstance("add8_upper",addN,{{"width",c->argInt(13)},{"N",c->argInt(8)}});

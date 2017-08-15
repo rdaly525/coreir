@@ -26,6 +26,7 @@ extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err)
 //Cannot open file for reading/writing
 extern void CORESaveModule(COREModule* module, char* filename, COREBool* err);
 extern CORENamespace* COREGetGlobal(COREContext* c);
+extern CORENamespace* COREGetNamespace(COREContext* c, char* name);
 extern const char* COREGetInstRefName(COREWireable* iref);
 
 //Errors:

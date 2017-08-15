@@ -1,5 +1,7 @@
 #include "coreir.h"
 #include "coreir-passes/firrtl.hpp"
+#include <iostream>
+#include <fstream>
 
 using namespace CoreIR;
 
@@ -52,10 +54,7 @@ string FModule::type2firrtl(Type* t) {
       }
     }
     else {
-      //for (auto rec : rt->getRecord()) {
-      //  string pre = "";
-      //  if (rec.first
-      ASSERT(0,"NYI")
+      ASSERT(0,"NYI");
     }
     return join(sels.begin(),sels.end(),string(", "));
   }
@@ -86,6 +85,9 @@ void stdlib2firrtl(Instantiable* i,FModule& fm) {
     fm.addStmt("out <= mux(sel,in[0],in[1])");
   }
   else if (i->getName()=="reg") {
+    ASSERT(0,"NYI");
+  }
+  else if (i->getName()=="const") {
     ASSERT(0,"NYI");
   }
   else if (opmap["binary"].count(i->getName()) 
@@ -136,6 +138,7 @@ bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
     for (auto instmap : def->getInstances()) {
       string mname = nameMap[instmap.second->getInstantiableRef()];
       string iname = instmap.second->getInstname();
+      //TODO Deal with consts, regs, shift
       fm->addStmt("inst " + iname + " of " + mname);
     }
     //Then add all connections
@@ -148,11 +151,11 @@ bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-//FOR now just output in print
-void Firrtl::print() {
-  cout << "Circuit MyCircuit : " << endl;
+void Firrtl::writeToFile(string filename) {
+  std::fstream file(filename,std::ostream::out);
+  file << "Circuit MyCircuit : " << endl;
   for (auto smod : fmods) {
-    cout << smod << endl;
+    file << smod << endl;
   }
 }
 
