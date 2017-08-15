@@ -9,9 +9,9 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = c->getNamespace("stdlib");
+  Namespace* coreir = c->getNamespace("coreir");
   
-  Module* const16 = stdlib->getGenerator("const")->getModule({{"width",c->argInt(16)}});
+  Module* const16 = coreir->getGenerator("const")->getModule({{"width",c->argInt(16)}});
  
   // Define Module Type
   Type* mType = c->Record({

@@ -10,10 +10,10 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = c->getNamespace("stdlib");
+  Namespace* coreir = c->getNamespace("coreir");
   
   //Declare add2 Generator
-  Generator* add2 = stdlib->getGenerator("add");
+  Generator* add2 = coreir->getGenerator("add");
   assert(add2);
   
   // Define Add4 Module
@@ -29,13 +29,13 @@ int main() {
     Wireable* add_01 = def->addInstance("add01",add2,{{"width",c->argInt(n)}});
     Wireable* add_1 = def->addInstance("add1",add2,{{"width",c->argInt(n)}});
     
-    def->connect(self->sel("in")->sel(0),add_00->sel("in")->sel(0));
-    def->connect(self->sel("in")->sel(1),add_00->sel("in")->sel(1));
-    def->connect(self->sel("in")->sel(2),add_01->sel("in")->sel(0));
-    def->connect(self->sel("in")->sel(3),add_01->sel("in")->sel(1));
+    def->connect(self->sel("in")->sel(0),add_00->sel("in0"));
+    def->connect(self->sel("in")->sel(1),add_00->sel("in1"));
+    def->connect(self->sel("in")->sel(2),add_01->sel("in0"));
+    def->connect(self->sel("in")->sel(3),add_01->sel("in1"));
 
-    def->connect(add_00->sel("out"),add_1->sel("in")->sel(0));
-    def->connect(add_01->sel("out"),add_1->sel("in")->sel(1));
+    def->connect(add_00->sel("out"),add_1->sel("in0"));
+    def->connect(add_01->sel("out"),add_1->sel("in1"));
 
     def->connect(add_1->sel("out"),self->sel("out"));
   add4_n->setDef(def);

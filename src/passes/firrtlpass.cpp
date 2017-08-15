@@ -80,7 +80,7 @@ string op2firrtl(string op) {
   return op;
 }
 
-void stdlib2firrtl(Instantiable* i,FModule& fm) {
+void coreir2firrtl(Instantiable* i,FModule& fm) {
   if (i->getName()=="mux") {
     fm.addStmt("out <= mux(sel,in[0],in[1])");
   }
@@ -105,7 +105,7 @@ void stdlib2firrtl(Instantiable* i,FModule& fm) {
 bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   auto i = node.getInstantiable();
   string name = i->getName();
-  bool isStdlib = i->getNamespace()->getName() == "stdlib";
+  bool isStdlib = i->getNamespace()->getName() == "coreir";
   if (!isStdlib && isa<Generator>(i)) {
     if (node.getInstanceList().size()>0) {
       ASSERT(0,"Cannot deal with Instantiated generators");
@@ -121,11 +121,11 @@ bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   nameMap[i] = name;
   FModule* fm;
   if (isStdlib) {
-    //This ugliness is getting an example of a type for stdlib generator
+    //This ugliness is getting an example of a type for coreir generator
     //The 5 does not matter because I am throwing away widths anyways
     Type* t = cast<Generator>(i)->getTypeGen()->createType(i->getContext(),{{"width",i->getContext()->argInt(5)}});
     fm = new FModule(name,t,true);
-    stdlib2firrtl(i,*fm);
+    coreir2firrtl(i,*fm);
   }
   else {
     //General case.

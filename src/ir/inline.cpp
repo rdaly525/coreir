@@ -111,7 +111,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
   Type* wtype = w->getType();
   
   //Add actual passthrough instance
-  Instance* pt = def->addInstance(instname,c->getNamespace("stdlib")->getGenerator("passthrough"),{{"type",c->argType(wtype)}});
+  Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",c->argType(wtype)}});
   
   LocalConnections cons = w->getLocalConnections();
   for (auto con : cons) {
