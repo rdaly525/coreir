@@ -83,7 +83,7 @@ typedef vector<std::pair<Wireable*,Wireable*>> LocalConnections;
 
 class ConnectionComp {
   public:
-    bool SPComp(const SelectPath& l, const SelectPath& r);
+    static bool SPComp(const SelectPath& l, const SelectPath& r);
     bool operator() (const Connection& l, const Connection& r);
 };
 
