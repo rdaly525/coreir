@@ -178,6 +178,14 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
     return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
 }
 
+Connection newConnection(Wireable* a, Wireable* b) {
+  if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
+    return Connection(a,b);
+  }
+  else {
+    return Connection(b,a);
+  }
+}
 
 void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
@@ -195,9 +203,7 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
   // TODO should I type check here at all?
   //checkWiring(a,b);
   
-  //minmax gauranees an ordering
-  auto sorted = std::minmax(a,b);
-  Connection connect(sorted.first,sorted.second);
+  Connection connect = newConnection(a,b);
   if (!connections.count(connect)) {
     
     //Update 'a' and 'b'
@@ -224,14 +230,12 @@ void ModuleDef::connect(std::initializer_list<std::string> pA, std::initializer_
   connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
 }
 bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {
-  auto sorted = std::minmax(a,b);
-  Connection con(sorted.first,sorted.second);
+  Connection con = newConnection(a,b);
   return connections.count(con) > 0;
 }
 
 Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
-  auto sorted = std::minmax(a,b);
-  Connection con(sorted.first,sorted.second);
+  Connection con = newConnection(a,b);
   ASSERT(connections.count(con)>0,"Could not find connection!");
   
   return *connections.find(con);
@@ -246,8 +250,7 @@ void ModuleDef::disconnect(Wireable* w) {
 
 void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   //First check if this exists in the list of connections
-  auto sorted = std::minmax(a,b);
-  Connection connect(sorted.first,sorted.second);
+  Connection connect = newConnection(a,b);
   if (connections.count(connect)==0) {
     assert("Connection does not exist! Not removing");
     return;
