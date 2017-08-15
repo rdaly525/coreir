@@ -83,8 +83,8 @@ int main() {
   
   //Test casting of Generator
   {
-    Namespace* stdlib = c->getNamespace("stdlib");
-    Instantiable* m = stdlib->getGenerator("add");
+    Namespace* coreir = c->getNamespace("coreir");
+    Instantiable* m = coreir->getGenerator("add");
     assert(isa<Generator>(m));
     Generator* mi = cast<Generator>(m);
     assert(dyn_cast<Instantiable>(m));

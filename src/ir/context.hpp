@@ -65,11 +65,14 @@ class Context {
     }
     void print();
 
-    bool linkLib(Namespace* defns, Namespace* declns);
+    //bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(string name);
     bool hasNamespace(string name) { return libs.count(name) > 0; }
     Namespace* getNamespace(string s);
+    Namespace* getCoreirPrims() {return getNamespace("coreir");}
+    Module* getModule(string ref);
+    Generator* getGenerator(string ref);
     map<string,Namespace*> getNamespaces() {return libs;}
 
     //Factory functions for types

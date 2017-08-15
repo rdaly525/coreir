@@ -10,7 +10,7 @@ int main() {
   Namespace* g = c->getGlobal();
   Namespace* prj = c->newNamespace("prj");
   
-  Namespace* sl = c->getNamespace("stdlib");
+  Namespace* sl = c->getNamespace("coreir");
 
   Args wargs({{"width",c->argInt(19)}});
   
@@ -23,12 +23,12 @@ int main() {
     def->addInstance("s0",sl->getGenerator("sub"),wargs);
     def->addInstance("s1",sl->getGenerator("sub"),wargs);
     def->addInstance("m0",sl->getGenerator("mul"),wargs);
-    def->connect("c0.out","s0.in.0");
-    def->connect("c1.out","s0.in.1");
-    def->connect("s0.out","s1.in.0");
-    def->connect("c2.out","s1.in.1");
-    def->connect("s1.out","m0.in.0");
-    def->connect("s0.out","m0.in.1");
+    def->connect("c0.out","s0.in0");
+    def->connect("c1.out","s0.in1");
+    def->connect("s0.out","s1.in0");
+    def->connect("c2.out","s1.in1");
+    def->connect("s1.out","m0.in0");
+    def->connect("s0.out","m0.in1");
   ms->setDef(def);
   ms->print();
   
@@ -41,12 +41,12 @@ int main() {
     def->addInstance("a0",sl->getGenerator("add"),wargs);
     def->addInstance("a1",sl->getGenerator("add"),wargs);
     def->addInstance("m0",sl->getGenerator("mul"),wargs);
-    def->connect("c0.out","a0.in.1");
-    def->connect("c1.out","a0.in.0");
-    def->connect("a0.out","a1.in.1");
-    def->connect("c2.out","a1.in.0");
-    def->connect("a1.out","m0.in.0");
-    def->connect("a0.out","m0.in.1");
+    def->connect("c0.out","a0.in1");
+    def->connect("c1.out","a0.in0");
+    def->connect("a0.out","a1.in1");
+    def->connect("c2.out","a1.in0");
+    def->connect("a1.out","m0.in0");
+    def->connect("a0.out","m0.in1");
   ma->setDef(def);
   ma->print();
 
@@ -62,8 +62,8 @@ int main() {
   Module* patternSub = patns->newModuleDecl("sub",subType);
   ModuleDef* pdef = patternSub->newModuleDef();
     pdef->addInstance("inst",sl->getGenerator("sub"),wargs);
-    pdef->connect("self.in.0","inst.in.1");
-    pdef->connect("self.in.1","inst.in.0");
+    pdef->connect("self.in0","inst.in1");
+    pdef->connect("self.in1","inst.in0");
     pdef->connect("self.out","inst.out");
   patternSub->setDef(pdef);
 
@@ -76,14 +76,14 @@ int main() {
   );
   pm->addPass(pSub2Add,0);
   
-  //match const -> add.in.1  change to neg
+  //match const -> add.in1  change to neg
   Type* cType = sl->getTypeGen("unary")->getType(wargs);
   Module* patternC = patns->newModuleDecl("cpat",cType);
   pdef = patternC->newModuleDef();
     pdef->addInstance("a0",sl->getGenerator("add"),wargs);
     pdef->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(31)}});
-    pdef->connect("self.in","a0.in.1");
-    pdef->connect("c0.out","a0.in.0");
+    pdef->connect("self.in","a0.in1");
+    pdef->connect("c0.out","a0.in0");
     pdef->connect("self.out","a0.out");
   patternC->setDef(pdef);
 

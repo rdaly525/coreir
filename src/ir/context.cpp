@@ -1,5 +1,5 @@
 #include "context.hpp"
-#include "stdlib.hpp"
+#include "coreirprims.hpp"
 
 using namespace std;
 
@@ -9,7 +9,7 @@ Context::Context() : maxErrors(3) {
   global = newNamespace("_G");
   cache = new TypeCache(this);
   //Automatically load stdlib
-  CoreIRLoadLibrary_stdlib(this);
+  CoreIRLoadLibrary_coreirprims(this);
 }
 
 // Order of this matters
@@ -67,7 +67,22 @@ Namespace* Context::getNamespace(string name) {
   }
   return it->second;
 }
-
+Module* Context::getModule(string ref) {
+  auto refsplit = splitString(ref,'.');
+  ASSERT(refsplit.size()==2,ref + " is not in form <namespace>.<module>");
+  ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
+  Namespace* ns = getNamespace(refsplit[0]);
+  ASSERT(ns->hasModule(refsplit[1]),"Missing module: " + ref);
+  return ns->getModule(refsplit[1]);
+}
+Generator* Context::getGenerator(string ref) {
+  auto refsplit = splitString(ref,'.');
+  ASSERT(refsplit.size()==2,ref + " is not in form <namespace>.<module>");
+  ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
+  Namespace* ns = getNamespace(refsplit[0]);
+  ASSERT(ns->hasGenerator(refsplit[1]),"Missing module: " + ref);
+  return ns->getGenerator(refsplit[1]);
+}
 /* TODO This is not even used in the repo yet. Should write a test for it
 // This tries to link all the definitions of def namespace to declarations of decl namespace
 // This will clobber declns

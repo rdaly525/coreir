@@ -30,20 +30,20 @@ int main() {
   add4->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
     uint n = args.at("width")->get<ArgInt>();
     
-    Namespace* stdlib = c->getNamespace("stdlib");
-    auto add2 = stdlib->getGenerator("add");
+    Namespace* coreir = c->getNamespace("coreir");
+    auto add2 = coreir->getGenerator("add");
     Wireable* self = def->sel("self");
     Wireable* add_00 = def->addInstance("add00",add2,{{"width",c->argInt(n)}});
     Wireable* add_01 = def->addInstance("add01",add2,{{"width",c->argInt(n)}});
     Wireable* add_1 = def->addInstance("add1",add2,{{"width",c->argInt(n)}});
     
-    def->connect(self->sel("in")->sel(0),add_00->sel("in")->sel(0));
-    def->connect(self->sel("in")->sel(1),add_00->sel("in")->sel(1));
-    def->connect(self->sel("in")->sel(2),add_01->sel("in")->sel(0));
-    def->connect(self->sel("in")->sel(3),add_01->sel("in")->sel(1));
+    def->connect(self->sel("in")->sel(0),add_00->sel("in0"));
+    def->connect(self->sel("in")->sel(1),add_00->sel("in1"));
+    def->connect(self->sel("in")->sel(2),add_01->sel("in0"));
+    def->connect(self->sel("in")->sel(3),add_01->sel("in1"));
 
-    def->connect(add_00->sel("out"),add_1->sel("in")->sel(0));
-    def->connect(add_01->sel("out"),add_1->sel("in")->sel(1));
+    def->connect(add_00->sel("out"),add_1->sel("in0"));
+    def->connect(add_01->sel("out"),add_1->sel("in1"));
 
     def->connect(add_1->sel("out"),self->sel("out"));
   });
