@@ -22,6 +22,9 @@ libcoreir_c.CORENewMap.restype = ct.c_void_p
 
 libcoreir_c.CORENewContext.restype = COREContext_p
 
+libcoreir_c.COREContextNamed.argtypes = [COREContext_p, ct.c_char_p, ct.c_char_p]
+libcoreir_c.COREContextNamed.restype = COREType_p
+
 libcoreir_c.COREPrintErrors.argtypes = [COREContext_p]
 
 libcoreir_c.COREAny.argtypes = [COREContext_p]

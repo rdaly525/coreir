@@ -102,3 +102,8 @@ class Context:
 
     def __del__(self):
         libcoreir_c.COREDeleteContext(self.context)
+
+    def get_named_typed(self, namespace, type_name):
+        return Type(
+            libcoreir_c.COREContextNamed(self.context, str.encode(namespace), str.encode(type_name)),
+            self)
