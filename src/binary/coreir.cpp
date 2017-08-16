@@ -52,10 +52,12 @@ int main(int argc, char *argv[]) {
   Context* c = newContext();
   
   //Load external passes
+  std::map<std::string,std::pair<void*,Pass*>> openPassHandles;
   if (options.count("e")) {
     vector<string> libs = splitString<vector<string>>(options["e"].as<string>(),',');
     //Open all the libs
     for (auto lib : libs) {
+      ASSERT(openPassHandles.count(lib)==0,"Cannot REopen " + lib);
       void* libHandle = dlopen(lib.c_str(),RTLD_LAZY);
       ASSERT(libHandle,"Cannot open file: " + lib);
       dlerror();
@@ -68,14 +70,12 @@ int main(int argc, char *argv[]) {
       }
       Pass* p = registerPass();
       ASSERT(p,"P is null");
-      cout << p->getName() << endl;
+      openPassHandles[lib] = {libHandle,p};
       c->addPass(p);
-      cout << "ACtually added pass!!" << endl;
-      dlclose(libHandle);
     }
   }
   
-
+  //dlclose(libHandle);
 
   //Load input
   Module* top;
@@ -118,6 +118,18 @@ int main(int argc, char *argv[]) {
   else {
     cout << "NYI" << endl;
   }
-    
+   
+
+  //Close all the open libs
+  for (auto handle : openPassHandles) {
+    //Load the registerpass
+    delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
+    const char* dlsym_error = dlerror();
+    if (dlsym_error) {
+      cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
+      return 1;
+    }
+    deletePass(handle.second.second);
+  }
   return 0;
 }
