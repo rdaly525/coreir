@@ -1,12 +1,12 @@
 #include "coreir.h"
 #include "cxxopts.hpp"
 
-#include "coreir-passes/firrtl.hpp"
+//#include "coreir-passes/firrtl.hpp"
 
 using namespace CoreIR;
 
 string getExt(string s) {
-  auto split = splitString(s,'.');
+  auto split = splitString<vector<string>>(s,'.');
   ASSERT(split.size()==2,"File needs extention: " + s);
   return split[1];
 }
@@ -17,6 +17,7 @@ int main(int argc, char *argv[]) {
   options.add_options()
     ("i,input","input: <file>.json",cxxopts::value<std::string>())
     ("o,output","output: <file>.<json|txt|firrtl|v>",cxxopts::value<std::string>())
+    ("p,passes","passes: '<pass0>,<pass1>,<pass2>,...'",cxxopts::value<std::string>())
     ;
   //Do the parsing of the arguments
   options.parse(argc,argv);
@@ -45,6 +46,7 @@ int main(int argc, char *argv[]) {
   cout << "in: " << infileName << endl;
   cout << "out: " << outfileName << endl;
 
+
   //Load input
   Context* c = newContext();
   Module* top;
@@ -62,14 +64,20 @@ int main(int argc, char *argv[]) {
   //  top = uTop;
   //}
 
+  //Load passes
+  if (options.count("p")) {
+    string plist = options["p"].as<string>();
+    vector<string> porder = splitString<vector<string>>(plist,',');
+    bool modified = c->runPasses(porder);
+    cout << "Modified?: " << modified << endl;
+  }
 
-  PassManager* pm = new PassManager(c->getGlobal());
-  
   if (outExt=="firrtl") {
-    Firrtl* fpass = new Firrtl();
-    pm->addPass(fpass,5);
-    pm->run();
-    fpass->writeToFile(outfileName);
+    ASSERT(0,"NYI");
+    //Firrtl* fpass = new Firrtl();
+    //pm->addPass(fpass,5);
+    //pm->run();
+    //fpass->writeToFile(outfileName);
   }
   else if (outExt=="json") {
     Namespace* ns = top->getNamespace();

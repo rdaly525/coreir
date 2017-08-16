@@ -18,10 +18,12 @@ using namespace std;
 
 namespace CoreIR {
 
+class PassManager;
 class Context {
   Namespace* global;
   map<string,Namespace*> libs;
-  
+  PassManager* pm;
+
   uint maxErrors;
   vector<Error> errors;
  
@@ -74,6 +76,8 @@ class Context {
     Module* getModule(string ref);
     Generator* getGenerator(string ref);
     map<string,Namespace*> getNamespaces() {return libs;}
+    bool runPasses(vector<string> order);
+
 
     //Factory functions for types
     Type* Any();
@@ -103,6 +107,8 @@ class Context {
     string getUnique() {
       return "_U" + to_string(unique++);
     }
+
+    
 
 
     Arg** newArgPtrArray(int size);

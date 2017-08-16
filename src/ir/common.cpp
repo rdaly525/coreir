@@ -60,16 +60,6 @@ void checkArgsAreParams(Args args, Params params) {
 
 
 
-SelectPath splitString(const std::string &s, char delim) {
-    SelectPath elems;
-    stringstream ss;
-    ss.str(s);
-    string item;
-    while (std::getline(ss, item, delim)) {
-      elems.push_back(item);
-    }
-    return elems;
-}
 
 bool hasChar(const std::string s, char c) {
   return s.find_first_of(c) !=string::npos;

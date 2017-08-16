@@ -7,16 +7,19 @@ namespace CoreIR {
 namespace Passes {
 
 class HelloA : public NamespacePass {
-  std::string str;
+  std::string str = "DEADBEEF";
   public :
-    HelloA() : NamespacePass("helloa","Hello analysis",true) {}
-    bool runOnNamespace(Namespace* ns);
+    static std::string ID;
+    
+    HelloA() : NamespacePass(ID,"Hello analysis",true) {}
+    bool runOnNamespace(Namespace* ns) override;
+    void releaseMemory() override {
+      str = "DEAD";
+    }
     string getString() { return str;}
 };
 
-Pass* registerHelloA() {
-  return new HelloA;
-}
+Pass* registerHelloA();
 
 }
 }

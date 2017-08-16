@@ -8,12 +8,17 @@ namespace Passes {
 
 class HelloT : public NamespacePass {
   public :
-    HelloT() : NamespacePass("hellot","Hello Transform") {}
-    bool runOnNamespace(Namespace* ns);
-    void setAnalysisInfo() {
+    static std::string ID;
+    
+    HelloT() : NamespacePass(ID,"Hello Transform") {}
+    bool runOnNamespace(Namespace* ns) override;
+    void setAnalysisInfo() override {
       addDependency("helloa");
     }
 };
+
+Pass* registerHelloT();
+
 }
 }
 

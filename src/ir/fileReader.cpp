@@ -24,7 +24,7 @@ Generator* getGenSymbol(Context* c, string nsname, string iname);
 
 
 SelectPath getRef(string s) {
-  auto p = splitString(s,'.');
+  auto p = splitString<SelectPath>(s,'.');
   ASSERT(p.size()==2,s + " is not a valid Ref");
   return p;
 }
