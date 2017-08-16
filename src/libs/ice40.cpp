@@ -17,7 +17,7 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
     Type* SB_CARRYType = c->Record({{"I0", c->BitIn()},
                                     {"I1", c->BitIn()},
                                     {"CI", c->BitIn()},
-                                    {"CO", c->BitIn()},
+                                    {"CO", c->Bit()},
                                     {"O",  c->Bit()}});
     ice40->newModuleDecl("SB_CARRY", SB_CARRYType);
 
@@ -30,7 +30,7 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
                                    {"D", c->BitIn()},
                                    {"E", c->BitIn()},
                                    {"Q", c->Bit()}});
-    ice40->newModuleDecl("SB_DFFE", SB_DFFType);
+    ice40->newModuleDecl("SB_DFFE", SB_DFFEType);
 
     return ice40;
 }
