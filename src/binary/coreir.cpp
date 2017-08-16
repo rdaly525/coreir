@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "cxxopts.hpp"
+#include <dlfcn.h>
 
 //#include "coreir-passes/firrtl.hpp"
 
@@ -18,6 +19,8 @@ int main(int argc, char *argv[]) {
     ("i,input","input: <file>.json",cxxopts::value<std::string>())
     ("o,output","output: <file>.<json|txt|firrtl|v>",cxxopts::value<std::string>())
     ("p,passes","passes: '<pass0>,<pass1>,<pass2>,...'",cxxopts::value<std::string>())
+    ("e,load_passes","load_passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
+    ("l,load_libs","load_libs: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ;
   //Do the parsing of the arguments
   options.parse(argc,argv);
@@ -46,9 +49,35 @@ int main(int argc, char *argv[]) {
   cout << "in: " << infileName << endl;
   cout << "out: " << outfileName << endl;
 
+  Context* c = newContext();
+  
+  //Load external passes
+  if (options.count("e")) {
+    vector<string> libs = splitString<vector<string>>(options["e"].as<string>(),',');
+    //Open all the libs
+    for (auto lib : libs) {
+      void* libHandle = dlopen(lib.c_str(),RTLD_LAZY);
+      ASSERT(libHandle,"Cannot open file: " + lib);
+      dlerror();
+      //Load the registerpass
+      register_pass_t* registerPass = (register_pass_t*) dlsym(libHandle,"registerPass");
+      const char* dlsym_error = dlerror();
+      if (dlsym_error) {
+        cout << "ERROR: Cannot load symbol registerPass: " << dlsym_error << endl;
+        return 1;
+      }
+      Pass* p = registerPass();
+      ASSERT(p,"P is null");
+      cout << p->getName() << endl;
+      c->addPass(p);
+      cout << "ACtually added pass!!" << endl;
+      dlclose(libHandle);
+    }
+  }
+  
+
 
   //Load input
-  Context* c = newContext();
   Module* top;
   if (!loadFromFile(c,infileName,&top)) {
     c->die();

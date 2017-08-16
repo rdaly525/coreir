@@ -29,7 +29,15 @@ void PassManager::addPass(Pass* p) {
 
 //Only do Global for now TODO
 bool PassManager::runNamespacePass(Pass* pass) {
-  return cast<NamespacePass>(pass)->runOnNamespace(this->c->getGlobal());
+  assert(pass);
+  cout << "Running Pass! " << pass->getName() << endl;
+  auto nspass = cast<NamespacePass>(pass);
+  cout << "N: " << nspass->getName() << endl;
+  Namespace* ns = this->c->getGlobal();
+  cout << "global exists" << ns->getName() << endl;
+  nspass->nstest();
+  cout << "after test" << endl;
+  return nspass->runOnNamespace(ns);
 }
   
 //bool PassManager::runNamespacePass(vector<Pass*>& passes) {

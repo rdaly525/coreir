@@ -1,7 +1,7 @@
 
 #include "coreir.h"
-#include "coreir-passes/transform/hellot.hpp"
-#include "coreir-passes/analysis/helloa.hpp"
+#include "coreir-passes/transform/hellot.h"
+#include "coreir-passes/analysis/helloa.h"
 
 using namespace CoreIR;
 

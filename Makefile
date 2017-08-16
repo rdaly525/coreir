@@ -6,7 +6,7 @@ ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
 endif
 
-all: install test
+all: install epass bin
 
 .PHONY: test
 test: install
@@ -32,13 +32,18 @@ install:
 bin:
 	$(MAKE) -C src/binary -B
 
+.PHONY: epass
+epass:
+	$(MAKE) -C epasses -B
 
 .PHONY: clean
 clean:
 	rm -rf lib/*
+	rm -rf bin/*
 	-rm _*json
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
+	$(MAKE) -C epasses clean
 
 .PHONY: travis
 travis: 

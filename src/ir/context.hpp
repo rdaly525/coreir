@@ -19,6 +19,7 @@ using namespace std;
 namespace CoreIR {
 
 class PassManager;
+class Pass;
 class Context {
   Namespace* global;
   map<string,Namespace*> libs;
@@ -76,6 +77,7 @@ class Context {
     Module* getModule(string ref);
     Generator* getGenerator(string ref);
     map<string,Namespace*> getNamespaces() {return libs;}
+    void addPass(Pass* p);
     bool runPasses(vector<string> order);
 
 

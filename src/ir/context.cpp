@@ -86,8 +86,14 @@ Generator* Context::getGenerator(string ref) {
 }
 
 
+void Context::addPass(Pass* p) {
+  assert(pm);
+  p->addPassManager(pm);
+  pm->addPass(p);
+}
 
 bool Context::runPasses(vector<string> order) {
+  assert(pm);
   return pm->run(order);
 }
 /* TODO This is not even used in the repo yet. Should write a test for it

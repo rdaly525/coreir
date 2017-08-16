@@ -10,10 +10,10 @@
 //#include "printpass.hpp"
 
 //Analysis passes
-#include "analysis/helloa.hpp"
+#include "analysis/helloa.h"
 
 //Transform passes
-#include "transform/hellot.hpp"
+#include "transform/hellot.h"
 
 
 namespace CoreIR {

@@ -29,7 +29,7 @@ class Pass {
     virtual void setAnalysisInfo() {}
     void addDependency(string name) { dependencies.push_back(name);}
     Context* getContext();
-
+    std::string getName() { return name;}
     template<typename T>
     T* getAnalysisPass() {
       return (T*) getAnalysisBody(T::ID);
@@ -38,7 +38,11 @@ class Pass {
     Pass* getAnalysisBody(std::string ID);
     void addPassManager(PassManager* pm) { this->pm = pm;}
     friend class PassManager;
+    friend class Context;
 };
+
+typedef Pass* register_pass_t();
+typedef void delete_pass_t(Pass*);
 
 //You can do whatever you want here
 class NamespacePass : public Pass {
@@ -49,6 +53,7 @@ class NamespacePass : public Pass {
     virtual bool runOnNamespace(Namespace* n) = 0;
     virtual void setAnalysisInfo() override {}
     virtual void print() {}
+    void nstest() {cout << "in NamespacePass" << endl;}
 };
 
 //Loops through all the modules within the namespace
