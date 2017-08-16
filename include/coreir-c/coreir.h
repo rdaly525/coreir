@@ -18,6 +18,7 @@ void* CORENewMap(COREContext* c, void* keys, void* values, uint len, COREMapKind
 //Context COREreater/deleters
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
+extern COREType* COREContextNamedType(COREContext* context, const char* namespace_, const char* type_name);
 
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);

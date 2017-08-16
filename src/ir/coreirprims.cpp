@@ -139,8 +139,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     assert(!(clr && rst));
 
     RecordParams r({
-        {"in",c->BitIn()->Arr(width)},
-        {"out",c->Bit()->Arr(width)}
+        {"in" , c->BitIn()->Arr(width)},
+        {"clk", c->Named("coreir", "clkIn")},
+        {"out", c->Bit()->Arr(width)}
     });
     if (en) r.push_back({"en",c->BitIn()});
     if (clr) r.push_back({"clr",c->BitIn()});
