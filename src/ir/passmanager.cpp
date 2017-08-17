@@ -52,12 +52,13 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
   
   //Get the analysis pass which constructs the instancegraph
   auto cig = static_cast<Passes::ConstructInstanceGraph*>(this->getAnalysisPass("constructInstanceGraph"));
-  bool modified = false;
+  bool ret = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
   for (auto node : cig->getInstanceGraph()->getSortedNodes()) {
-    modified |= igpass->runOnInstanceGraphNode(*node);
+    bool modified = igpass->runOnInstanceGraphNode(*node);
+    ret |= modified;
   }
-  return modified;
+  return ret;
 }
 
 bool PassManager::runPass(Pass* p) {
