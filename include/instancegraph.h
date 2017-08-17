@@ -13,10 +13,10 @@ class InstanceGraph {
   std::list<InstanceGraphNode*> sortedNodes;
   public :
     InstanceGraph() {}
-    ~InstanceGraph() {this->clear();}
+    ~InstanceGraph() {this->releaseMemory();}
     void construct(Namespace* ns);
     std::list<InstanceGraphNode*> getSortedNodes() { return sortedNodes;}
-    void clear();
+    void releaseMemory();
     void sortVisit(InstanceGraphNode* node);
 
 };

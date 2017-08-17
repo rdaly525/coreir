@@ -9,29 +9,43 @@ namespace CoreIR {
 
 class InstanceGraph;
 class PassManager {
-  Namespace* ns;
+  Context* c;
   
   //TODO Ad hoc, Find better system
   //Even better, construct this using a pass that is dependent
   //Need to add Analysys passes that can be used as dependencies
-  InstanceGraph* instanceGraph;
-  bool instanceGraphStale = true;
+  //InstanceGraph* instanceGraph;
+  //bool instanceGraphStale = true;
 
-  std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
+  //std::map<uint,unordered_map<uint,vector<Pass*>>> passOrdering;
+  //Data structure for storing passes
+  std::unordered_map<string,Pass*> passMap;
+
+  //Name to isValid
+  std::unordered_map<string,bool> analysisPasses;
+  
   public:
-    explicit PassManager(Namespace* ns);
+    typedef vector<std::string> PassOrder;
+    explicit PassManager(Context* c);
     ~PassManager();
     //This will memory manage pass.
-    void addPass(Pass* p, uint ordering);
+    void addPass(Pass* p);
     
     //Returns if graph was modified
     //Will also remove all the passes that were run
-    bool run();
-    void clear();
+    bool run(PassOrder order);
+
+    Pass* getAnalysisPass(std::string ID) {
+      assert(passMap.count(ID));
+      return passMap[ID];
+    }
+
   private:
-    bool runNamespacePass(vector<Pass*>& passes);
-    bool runModulePass(vector<Pass*>& passes);
-    bool runInstanceGraphPass(vector<Pass*>& passes);
+    friend class Pass;
+    bool runPass(Pass* p);
+    bool runNamespacePass(Pass* p);
+    bool runModulePass(Pass* p);
+    bool runInstanceGraphPass(Pass* p);
 };
 
 }

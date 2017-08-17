@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/runallgeneratorspass.hpp"
+#include "coreir-passes/transform/rungenerators.h"
 
 using namespace CoreIR;
 
@@ -40,7 +40,8 @@ bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran, unordered_set<Modu
   return changed;
 }
 
-bool RunAllGeneratorsPass::runOnNamespace(Namespace* ns) {
+string Passes::RunGenerators::ID = "rungenerators";
+bool Passes::RunGenerators::runOnNamespace(Namespace* ns) {
   //Keep list of modules to be added
   unordered_set<Module*> ran;
   unordered_set<Module*> toRelease;

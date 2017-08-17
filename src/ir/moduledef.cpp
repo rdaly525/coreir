@@ -72,7 +72,7 @@ ModuleDef::InstanceMapType ModuleDef::getInstanceMap() {
 //Or pass in a '.' deleminated string
 Wireable* ModuleDef::sel(string s) { 
   if (hasChar(s,'.')) {
-    SelectPath path = splitString(s,'.');
+    SelectPath path = splitString<SelectPath>(s,'.');
     return this->sel(path);
   }
   if (s=="self") return interface;

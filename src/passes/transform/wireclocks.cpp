@@ -1,9 +1,9 @@
 #include "coreir.h"
-#include "coreir-passes/wireclockpass.hpp"
+#include "coreir-passes/transform/wireclocks.h"
 
 using namespace CoreIR;
 
-bool WireClockPass::runOnModule(Module* module) {
+bool Passes::WireClocks::runOnModule(Module* module) {
     ASSERT(module->hasDef(), "WireClockPass can only be run on a module with a definition");
 
     ModuleDef* definition = module->getDef();

@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/common.h"
+#include "coreir-passes/transform/wireclocks.h"
 
 using namespace CoreIR;
 
@@ -11,17 +11,16 @@ int main() {
     Type* clockInType = context->Named("coreir", "clkIn");
 
     Module* shift_register = nullptr;
-    if (!loadFromFile(context, "_shift_register_unwired_clock.json", &shift_register)) {
+    if (!loadFromFile(context, "circuits/shift_register_unwired_clock.json", &shift_register)) {
         context->printerrors();
         return 1;
     }
     shift_register->print();
 
-    PassManager* passManager = new PassManager(global);
-    WireClockPass* wireClock = new WireClockPass(clockInType);
-    passManager->addPass(wireClock, 0);
+    Passes::WireClocks* wireClock = new Passes::WireClocks("wireclocks",clockInType);
+    context->addPass(wireClock);
 
-    passManager->run();
+    context->runPasses({"wireclocks"});
     saveToFile(global, "_shift_register_wired_clock.json", shift_register);
 
     deleteContext(context);

@@ -1,9 +1,5 @@
 #include "coreir.h"
 
-#include "coreir-passes/common.h"
-#include "coreir-passes/firrtl.hpp"
-
-
 using namespace CoreIR;
 
 //TODO add in Default args
