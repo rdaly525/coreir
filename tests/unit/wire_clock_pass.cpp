@@ -15,15 +15,18 @@ int main() {
         context->printerrors();
         return 1;
     }
-    shift_register->print();
+    // shift_register->print();
+    ModuleDef* definition = shift_register->getDef();
+    Wireable* topClock = definition->sel("self.CLK");
 
     PassManager* passManager = new PassManager(global);
     WireClockPass* wireClock = new WireClockPass(clockInType);
     passManager->addPass(wireClock, 0);
 
+    for (auto instance : definition->getInstances()) {
+        ASSERT(!definition->hasConnection(topClock, instance.second->sel("clk")), "Wire Clock Pass: Initial module definition should not have clocks wired.");
+    }
     passManager->run();
-    ModuleDef* definition = shift_register->getDef();
-    Wireable* topClock = definition->sel("self.CLK");
     for (auto instance : definition->getInstances()) {
         ASSERT(definition->hasConnection(topClock, instance.second->sel("clk")), "Wire Clock Pass Test Failed, not all clocks wired up.");
     }
