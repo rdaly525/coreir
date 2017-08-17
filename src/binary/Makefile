@@ -20,7 +20,7 @@ endif
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir
+LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -ldl
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
