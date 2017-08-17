@@ -8,5 +8,6 @@
 #include "flattenconnections.hpp"
 
 #include "printpass.hpp"
+#include "wireclockpass.hpp"
 
 #endif //PASSES_HPP_

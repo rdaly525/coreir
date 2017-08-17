@@ -318,11 +318,13 @@ Type* json2Type(Context* c, json jt) {
       return c->Record(rargs);
     }
     else if (kind == "Named") {
-      string nsname = args[1].get<string>();
-      string name = args[2].get<string>();
-      if (args.size()==4) { //Has args
+      SelectPath info = splitString(args[1].get<string>(), '.');
+      ASSERT(info.size() == 2, "NamedType has more than one .");
+      std::string nsname = info[0];
+      std::string name   = info[1];
+      if (args.size()==3) { //Has args
         Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
-        Args genargs = json2Args(c,genparams,args[3]);
+        Args genargs = json2Args(c,genparams,args[2]);
         return c->Named(nsname,name,genargs);
       }
       return c->Named(nsname,name);
