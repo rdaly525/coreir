@@ -22,7 +22,11 @@ int main() {
     passManager->addPass(wireClock, 0);
 
     passManager->run();
-    saveToFile(global, "_shift_register_wired_clock.json", shift_register);
+    ModuleDef* definition = shift_register->getDef();
+    Wireable* topClock = definition->sel("self.CLK");
+    for (auto instance : definition->getInstances()) {
+        ASSERT(definition->hasConnection(topClock, instance.second->sel("clk")), "Wire Clock Pass Test Failed, not all clocks wired up.");
+    }
 
     deleteContext(context);
     return 0;
