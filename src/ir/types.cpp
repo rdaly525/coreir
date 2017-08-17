@@ -88,6 +88,7 @@ bool ArrayType::sel(string sel, Type** ret, Error* e) {
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
+  cout << "RHERE!" << endl;
   unordered_set<uint> dirs; // Slight hack because it is not easy to hash enums
   for(auto field : _record) {
     assert(!isNumber(field.first) && "Cannot have number as record field");
@@ -95,7 +96,7 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
     _order.push_back(field.first);
     dirs.insert(field.second->getDir());
   }
-  if (dirs.count(DK_Unknown)) {
+  if (dirs.count(DK_Unknown) || dirs.size()==0) {
     dir = DK_Unknown;
   }
   else if (dirs.size() > 1) {

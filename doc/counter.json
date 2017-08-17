@@ -4,7 +4,9 @@
     "_G": {
       "modules": {
         "counters": {
-          "type": "Any",
+          "type": ["Record", 
+            {"clk": ["Named", "coreir.clkIn"]
+          }],
           "instances": {
             "c0": {"modref": "_G.counter"},
             "c1": {"modref": "_G.counter"}

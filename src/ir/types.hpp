@@ -146,7 +146,7 @@ class RecordType : public Type {
     RecordType(Context* c, RecordParams _record);
     RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
-    vector<string> getOrder() { return _order;}
+    vector<string> getFields() { return _order;}
     unordered_map<string,Type*> getRecord() { return record;}
     string toString(void) const;
     json toJson();

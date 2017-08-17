@@ -249,19 +249,18 @@ void ModuleDef::disconnect(Wireable* w) {
 }
 
 void ModuleDef::disconnect(Wireable* a, Wireable* b) {
-  //First check if this exists in the list of connections
   Connection connect = newConnection(a,b);
-  if (connections.count(connect)==0) {
-    assert("Connection does not exist! Not removing");
-    return;
-  }
+  this->disconnect(connect);
+}
+void ModuleDef::disconnect(Connection con) {
+  ASSERT(connections.count(con),"Cannot delete connection that is not connected!");
   
-  //remove reference from a and 
-  a->removeConnectedWireable(b);
-  b->removeConnectedWireable(a);
+  //remove references
+  con.first->removeConnectedWireable(con.second);
+  con.second->removeConnectedWireable(con.first);
 
   //Delete connection from list
-  connections.erase(connect);
+  connections.erase(con);
 }
 
 void disconnectAllWireables(ModuleDef* m, Wireable* w) {

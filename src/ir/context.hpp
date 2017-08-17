@@ -151,7 +151,7 @@ void deleteContext(Context* m);
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
   // that originally connected to w connecting to name.out which has the same type as w
-Instance* addPassthrough(Context* c, Wireable* w,string instname);
+Instance* addPassthrough(Wireable* w,string instname);
 
 
 

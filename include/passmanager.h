@@ -4,6 +4,7 @@
 #include "coreir.h"
 #include "passes.h"
 #include "instancegraph.h"
+#include <stack>
 
 namespace CoreIR {
 
@@ -41,6 +42,8 @@ class PassManager {
     }
 
   private:
+    void pushAllDependencies(string oname,stack<string> &work);
+
     friend class Pass;
     bool runPass(Pass* p);
     bool runNamespacePass(Pass* p);

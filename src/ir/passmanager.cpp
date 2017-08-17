@@ -21,6 +21,7 @@ PassManager::PassManager(Context* c) : c(c) {
 }
 
 void PassManager::addPass(Pass* p) {
+  cout << "adding Pass: " + p->getName() << endl;
   ASSERT(passMap.count(p->name) == 0,"Cannot add duplicate \"" + p->name + "\" pass");
   passMap[p->name] = p;
   if (p->isAnalysis) {
@@ -75,16 +76,22 @@ bool PassManager::runPass(Pass* p) {
   ASSERT(0,"NYI");
 }
 
+//TODO should check for circular dependencies
+void PassManager::pushAllDependencies(string oname,stack<string> &work) {
+  ASSERT(passMap.count(oname),"Can not run pass \"" + oname + "\" because it was never loaded!");
+  work.push(oname);
+  for (auto it = passMap[oname]->dependencies.rbegin(); it!=passMap[oname]->dependencies.rend(); ++it) {
+    ASSERT(analysisPasses.count(*it),"Dependency \"" + *it + "\" for \"" + oname + "\" cannot be a transform pass");
+    pushAllDependencies(*it,work);
+  }  
+}
+
 bool PassManager::run(PassOrder order) {
   bool ret = false;
-  stack<string> work;
+  //Execute each in order (and the respective dependencies) independently
   for (auto oname : order) {
-    ASSERT(passMap.count(oname),"Can not run pass \"" + oname + "\" because it was never loaded!");
-    work.push(oname);
-    for (auto it = passMap[oname]->dependencies.rbegin(); it!=passMap[oname]->dependencies.rend(); ++it) {
-      ASSERT(analysisPasses.count(*it),"Dependency \"" + *it + "\" for \"" + oname + "\" is not an analysis!");
-      work.push(*it);
-    }
+    stack<string> work;
+    pushAllDependencies(oname,work);
     //Actually run the passes now
     while (!work.empty()) {
       string pname = work.top(); work.pop();

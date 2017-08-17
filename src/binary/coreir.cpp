@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "coreir-passes/analysis/firrtl.h"
+#include "coreir-passes/analysis/verilog.h"
 
 using namespace CoreIR;
 
@@ -84,7 +85,7 @@ int main(int argc, char *argv[]) {
     c->die();
   }
   //if (userTop) {
-  //  auto tref = splitString(topRef,".");
+  //  auto tref = splitString<vector<string>>(topRef,".");
   //  ASSERT(c->hasNamespace(tref[0]),"Missing top : " + topRef);
   //  ASSERT(c->getNamespace(tref[0])->hasModule(tref[1]),"Missing top : " + topRef);
   //  Module* uTop = c->getNamespace(tref[0])->getModule(tref[1]);
@@ -98,14 +99,23 @@ int main(int argc, char *argv[]) {
   if (options.count("p")) {
     string plist = options["p"].as<string>();
     vector<string> porder = splitString<vector<string>>(plist,',');
-    if (outExt=="fir") porder.push_back("firrtl");
-    //if (outExt=="json") porder.push_back("createJson");
     bool modified = c->runPasses(porder);
     cout << "Modified?: " << modified << endl;
   }
+  
 
 
-  if (outExt=="fir") {
+
+  //Output to correct format
+  if (outExt=="json") {
+    Namespace* ns = top->getNamespace();
+    //Write out to a file
+    if (!saveToFile(ns,outfileName,top)) {
+      c->die();
+    }
+  }
+  else if (outExt=="fir") {
+    c->runPasses({"firrtl"});
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
@@ -113,12 +123,12 @@ int main(int argc, char *argv[]) {
     std::ofstream file(outfileName);
     fpass->writeToStream(file);
   }
-  else if (outExt=="json") {
-    Namespace* ns = top->getNamespace();
-    //Write out to a file
-    if (!saveToFile(ns,outfileName,top)) {
-      c->die();
-    }
+  else if (outExt=="v") {
+    c->runPasses({"removebulkconnections","flattentypes","verilog"});
+    auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
+    
+    std::ofstream file(outfileName);
+    vpass->writeToStream(file);
   }
   else {
     cout << "NYI" << endl;
