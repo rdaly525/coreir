@@ -23,12 +23,19 @@ int main() {
     WireClockPass* wireClock = new WireClockPass(clockInType);
     passManager->addPass(wireClock, 0);
 
+    // First check that clocks aren't wired
     for (auto instance : definition->getInstances()) {
-        ASSERT(!definition->hasConnection(topClock, instance.second->sel("clk")), "Wire Clock Pass: Initial module definition should not have clocks wired.");
+        ASSERT(!definition->hasConnection(topClock, instance.second->sel("clk")), 
+               "Wire Clock Pass: Initial module definition should not have clocks wired.");
     }
+
+    // Run the pass
     passManager->run();
+
+    // Check that the clocks are now wired
     for (auto instance : definition->getInstances()) {
-        ASSERT(definition->hasConnection(topClock, instance.second->sel("clk")), "Wire Clock Pass Test Failed, not all clocks wired up.");
+        ASSERT(definition->hasConnection(topClock, instance.second->sel("clk")), 
+               "Wire Clock Pass Test Failed, not all clocks wired up.");
     }
 
     deleteContext(context);
