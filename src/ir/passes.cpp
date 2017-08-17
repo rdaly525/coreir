@@ -2,13 +2,10 @@
 #include "passes.h"
 
 using namespace CoreIR;
-Pass* Pass::getAnalysisBody(std::string ID) {
-  assert(pm);
-  ASSERT(std::find(dependencies.begin(),dependencies.end(),ID)!=dependencies.end(),ID + " not declared as a dependency for " + name);
-  assert(pm->passMap.count(ID));
-  return pm->passMap[ID];
-}
 
+Pass* Pass::getAnalysisOutside(std::string ID) {
+  return pm->getAnalysisPass(ID);
+}
 Context* Pass::getContext() {
   assert(pm);
   return pm->c;

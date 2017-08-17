@@ -12,8 +12,3 @@ bool Passes::HelloT::runOnNamespace(Namespace* ns) {
   cout << "Dependent pass is: " << dp->getString() << endl;
   return false;
 }
-
-Pass* Passes::registerHelloT() {
-  return new HelloT;
-}
-

@@ -6,17 +6,14 @@
 namespace CoreIR {
 namespace Passes {
 
-class WireClockPass : public ModulePass {
+class WireClocks : public ModulePass {
   private :
     Type* clockType; 
   public :
     static std::string ID;
-    WireClockPass(Type* clockType) : ModulePass(ID,"Wire any module with clocktype"), clockType(clockType) {}
+    WireClocks(Type* clockType) : ModulePass(ID,"Wire any module with clocktype"), clockType(clockType) {}
     bool runOnModule(Module* m);
 };
-
-//Pass* registeWireClockPass();
-
 
 }
 }

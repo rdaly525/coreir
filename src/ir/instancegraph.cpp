@@ -2,7 +2,7 @@
 
 using namespace CoreIR;
 
-void InstanceGraph::clear() {
+void InstanceGraph::releaseMemory() {
   nodeMap.clear();
   for (auto ign : sortedNodes) delete ign;
   sortedNodes.clear();
@@ -22,7 +22,6 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 void InstanceGraph::construct(Namespace* ns) {
-  this->clear();
   
   //Contains all external nodes referenced
   //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;

@@ -19,8 +19,6 @@ class HelloA : public NamespacePass {
     string getString() { return str;}
 };
 
-Pass* registerHelloA();
-
 }
 }
 #endif

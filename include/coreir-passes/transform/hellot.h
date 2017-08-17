@@ -17,8 +17,6 @@ class HelloT : public NamespacePass {
     }
 };
 
-Pass* registerHelloT();
-
 }
 }
 

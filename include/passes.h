@@ -1,11 +1,10 @@
 #ifndef PASSES_HPP_
 #define PASSES_HPP_
 
+#include "passmanager.h"
 #include "coreir.h"
 
 namespace CoreIR {
-
-class PassManager;
 
 class Pass {
   
@@ -32,10 +31,12 @@ class Pass {
     std::string getName() { return name;}
     template<typename T>
     T* getAnalysisPass() {
-      return (T*) getAnalysisBody(T::ID);
+      assert(pm);
+      ASSERT(std::find(dependencies.begin(),dependencies.end(),T::ID)!=dependencies.end(),T::ID + " not declared as a dependency for " + name);
+      return (T*) getAnalysisOutside(T::ID);
     }
   private:
-    Pass* getAnalysisBody(std::string ID);
+    Pass* getAnalysisOutside(std::string ID);
     void addPassManager(PassManager* pm) { this->pm = pm;}
     friend class PassManager;
     friend class Context;
@@ -49,11 +50,10 @@ class NamespacePass : public Pass {
   public:
     explicit NamespacePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Namespace,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Namespace;}
-    virtual void releaseMemory() override {}
     virtual bool runOnNamespace(Namespace* n) = 0;
+    virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
     virtual void print() {}
-    void nstest() {cout << "in NamespacePass" << endl;}
 };
 
 //Loops through all the modules within the namespace
@@ -63,6 +63,8 @@ class ModulePass : public Pass {
     explicit ModulePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Module,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Module;}
     virtual bool runOnModule(Module* m) = 0;
+    virtual void releaseMemory() override {}
+    virtual void setAnalysisInfo() override {}
     virtual void print() {}
 
 };
@@ -74,9 +76,13 @@ class InstanceGraphNode;
 class InstanceGraphPass : public Pass {
   public:
     
-    explicit InstanceGraphPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_InstanceGraph,name,description,isAnalysis) {}
+    explicit InstanceGraphPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_InstanceGraph,name,description,isAnalysis) {
+      addDependency("constructInstanceGraph");
+    }
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
+    virtual void releaseMemory() override {}
+    virtual void setAnalysisInfo() override {}
     virtual void print() {}
 };
 

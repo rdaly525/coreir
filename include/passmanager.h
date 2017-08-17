@@ -34,14 +34,18 @@ class PassManager {
     //Returns if graph was modified
     //Will also remove all the passes that were run
     bool run(PassOrder order);
+
+    Pass* getAnalysisPass(std::string ID) {
+      assert(passMap.count(ID));
+      return passMap[ID];
+    }
+
   private:
     friend class Pass;
     bool runPass(Pass* p);
     bool runNamespacePass(Pass* p);
     bool runModulePass(Pass* p);
-    //bool runNamespacePass(vector<Pass*>& passes);
-    //bool runModulePass(vector<Pass*>& passes);
-    //bool runInstanceGraphPass(vector<Pass*>& passes);
+    bool runInstanceGraphPass(Pass* p);
 };
 
 }

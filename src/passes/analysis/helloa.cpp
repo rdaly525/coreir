@@ -9,8 +9,3 @@ bool Passes::HelloA::runOnNamespace(Namespace* ns) {
   this->str = "ALIVEBEEF";
   return false;
 }
-
-Pass* Passes::registerHelloA() {
-  return new HelloA;
-}
-

@@ -15,7 +15,7 @@ using namespace std;
 
 #define ASSERT(C,MSG) \
   if (!(C)) { \
-    cout << "ERROR: " << MSG << endl; \
+    cout << "ERROR: " << MSG << endl << endl; \
     assert(C); \
   }
 

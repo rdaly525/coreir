@@ -1,0 +1,50 @@
+{
+  "top": "_G.counters",
+  "namespaces": {
+    "_G": {
+      "modules": {
+        "counters": {
+          "type": "Any",
+          "instances": {
+            "c0": {"modref": "_G.counter"},
+            "c1": {"modref": "_G.counter"}
+          },
+          "connections": [
+            ["c0.out.4","c1.en"],
+            ["c1.out.8","c0.en"]
+          ]
+        },
+        "counter": {
+          "type": ["Record",{
+            "clk": ["Named", "coreir.clkIn"],
+            "en": "BitIn",
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "c1": {
+              "genref": "coreir.const",
+              "genargs": {"width":16},
+              "configargs": {"value":1}
+            },
+            "r": {
+              "genref": "coreir.reg",
+              "genargs": {"width":16,"en":true}
+            },
+            "a": {
+              "genref": "coreir.add",
+              "genargs": {"width":16}
+            }
+          },
+          "connections": [
+            ["c1.out","a.in0"],
+            ["r.out","a.in1"],
+            ["a.out","r.in"],
+            ["r.out","self.out"]
+          ]
+        }
+      }
+    }
+  }
+}
+
+

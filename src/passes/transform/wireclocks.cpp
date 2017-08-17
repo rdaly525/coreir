@@ -1,10 +1,10 @@
 #include "coreir.h"
-#include "coreir-passes/transform/wireclockpass.h"
+#include "coreir-passes/transform/wireclocks.h"
 
 using namespace CoreIR;
 
-std::string Passes::WireClockPass::ID = "wireclockpass";
-bool Passes::WireClockPass::runOnModule(Module* module) {
+std::string Passes::WireClocks::ID = "wireclocks";
+bool Passes::WireClocks::runOnModule(Module* module) {
     ASSERT(module->hasDef(), "WireClockPass can only be run on a module with a definition");
 
     ModuleDef* definition = module->getDef();
@@ -35,8 +35,3 @@ bool Passes::WireClockPass::runOnModule(Module* module) {
     }
     return clockWired;
 }
-
-//Pass* Passes::registerWireClockPass() {
-//  return new HelloT;
-//}
-

@@ -3,6 +3,9 @@
 #include "coreir-passes/common.h"
 #include <stack>
 
+#include "coreir-passes/analysis/constructinstancegraph.h"
+
+
 
 using namespace CoreIR;
 
@@ -45,23 +48,17 @@ bool PassManager::runModulePass(Pass* pass) {
 }
 
 
-////Does not do pipelineing
-//bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
-//  
-//  if (this->instanceGraphStale) {
-//    instanceGraph->construct(ns);
-//  }
-//  
-//  bool modified = false;
-//  for (auto igpass : passes) {
-//    assert(isa<InstanceGraphPass>(igpass));
-//    for (auto node : this->instanceGraph->getSortedNodes()) {
-//      modified |= cast<InstanceGraphPass>(igpass)->runOnInstanceGraphNode(*node);
-//    }
-//    modified |= igpass->runFinalize();
-//  }
-//  return modified;
-//}
+bool PassManager::runInstanceGraphPass(Pass* pass) {
+  
+  //Get the analysis pass which constructs the instancegraph
+  auto cig = static_cast<Passes::ConstructInstanceGraph*>(this->getAnalysisPass("constructInstanceGraph"));
+  bool modified = false;
+  InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
+  for (auto node : cig->getInstanceGraph()->getSortedNodes()) {
+    modified |= igpass->runOnInstanceGraphNode(*node);
+  }
+  return modified;
+}
 
 bool PassManager::runPass(Pass* p) {
   switch(p->getKind()) {
@@ -69,6 +66,8 @@ bool PassManager::runPass(Pass* p) {
       return runNamespacePass(p);
     case Pass::PK_Module:
       return runModulePass(p);
+    case Pass::PK_InstanceGraph:
+      return runInstanceGraphPass(p);
     default:
       break;
   }
@@ -79,7 +78,7 @@ bool PassManager::run(PassOrder order) {
   bool ret = false;
   stack<string> work;
   for (auto oname : order) {
-    ASSERT(passMap.count(oname),"Did not load pass: " + oname);
+    ASSERT(passMap.count(oname),"Can not run pass \"" + oname + "\" because it was never loaded!");
     work.push(oname);
     for (auto it = passMap[oname]->dependencies.rbegin(); it!=passMap[oname]->dependencies.rend(); ++it) {
       ASSERT(analysisPasses.count(*it),"Dependency \"" + *it + "\" for \"" + oname + "\" is not an analysis!");
