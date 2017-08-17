@@ -146,9 +146,9 @@ if __name__ == "__main__":
     #clr = bit 2
     #en = bit 3
     def rexpr(clr,en):
-      expr = "D"
+      expr = "in"
       if (clr):
-        expr = "(clr ? INIT : D)"
+        expr = "(clr ? INIT : in)"
       if (en):
         expr = "en ? %s : r" % expr
       return expr
@@ -170,7 +170,7 @@ if __name__ == "__main__":
       else:
         body += "    r <= %s;\n" % rexpr(clr,en)
       body += "  end\n"
-      body += "  assign Q = r;"
+      body += "  assign out = r;"
       name = "Reg_" + ("P" if posedge else "N")
       if (rst):
         name += "R"
@@ -182,9 +182,9 @@ if __name__ == "__main__":
       v.add_param("WIDTH",16)
       if (rst or clr):
         v.add_param("INIT",0)
-      v.add_input("D","WIDTH")
+      v.add_input("in","WIDTH")
       v.add_input("clk",1)
-      v.add_output("Q","WIDTH")
+      v.add_output("out","WIDTH")
       if (rst):
         v.add_input("rst",1)
       if (clr):

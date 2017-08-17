@@ -38,6 +38,7 @@ class PassManager {
     friend class Pass;
     bool runPass(Pass* p);
     bool runNamespacePass(Pass* p);
+    bool runModulePass(Pass* p);
     //bool runNamespacePass(vector<Pass*>& passes);
     //bool runModulePass(vector<Pass*>& passes);
     //bool runInstanceGraphPass(vector<Pass*>& passes);

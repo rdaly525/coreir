@@ -89,7 +89,6 @@ class Module(CoreIRType):
     def save_to_file(self, file_name):
         err = ct.c_bool(False)
         assert (err.value ==False)
-        print("Trying to save to file!\n")
         libcoreir_c.CORESaveModule(self.ptr, str.encode(file_name),ct.byref(err))
         assert(err.value==False)
 

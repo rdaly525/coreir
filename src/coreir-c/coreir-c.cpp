@@ -58,6 +58,10 @@ extern "C" {
   void COREDeleteContext(COREContext* c) {
     deleteContext(rcast<Context*>(c));
   }
+
+  COREType* COREContextNamed(COREContext* context, const char* namespace_, const char* type_name) {
+      return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_), std::string(type_name)));
+  }
   
   //TODO change the name of this function
   const char* COREGetInstRefName(COREWireable* iref) {
@@ -400,6 +404,8 @@ extern "C" {
   int COREInstantiableGetKind(COREInstantiable* instantiable) {
       return rcast<Instantiable*>(instantiable)->getKind();
   }
+
+
 
 
 }//extern "C"

@@ -32,38 +32,19 @@ bool PassManager::runNamespacePass(Pass* pass) {
   assert(pass);
   return cast<NamespacePass>(pass)->runOnNamespace(this->c->getGlobal());
 }
-  
-//bool PassManager::runNamespacePass(vector<Pass*>& passes) {
-//  bool modified = false;
-//  for (auto npass : passes) {
-//    assert(isa<NamespacePass>(npass));
-//    modified |= cast<NamespacePass>(npass)->runOnNamespace(this->ns);
-//    modified |= npass->runFinalize();
-//  }
-//  if (modified) {
-//    instanceGraphStale = true;
-//  }
-//  return modified;
-//}
+
+//Only do Global for now TODO
+bool PassManager::runModulePass(Pass* pass) {
+  bool modified = false;
+  ModulePass* mpass = cast<ModulePass>(pass);
+  for (auto modmap : c->getGlobal()->getModules()) {
+    Module* m = modmap.second;
+    modified |= mpass->runOnModule(m);
+  }
+  return modified;
+}
 
 
-////This does do pipelineing
-//bool PassManager::runModulePass(vector<Pass*>& passes) {
-//  bool modified = false;
-//  for (auto modmap : ns->getModules()) {
-//    Module* m = modmap.second;
-//    for (auto mpass : passes) {
-//      assert(isa<ModulePass>(mpass));
-//      modified |= cast<ModulePass>(mpass)->runOnModule(m);
-//    }
-//  }
-//  for (auto mpass : passes) {
-//    modified |= mpass->runFinalize();
-//  }
-//  return modified;
-//}
-//
-//
 ////Does not do pipelineing
 //bool PassManager::runInstanceGraphPass(vector<Pass*>& passes) {
 //  
@@ -81,6 +62,18 @@ bool PassManager::runNamespacePass(Pass* pass) {
 //  }
 //  return modified;
 //}
+
+bool PassManager::runPass(Pass* p) {
+  switch(p->getKind()) {
+    case Pass::PK_Namespace:
+      return runNamespacePass(p);
+    case Pass::PK_Module:
+      return runModulePass(p);
+    default:
+      break;
+  }
+  ASSERT(0,"NYI");
+}
 
 bool PassManager::run(PassOrder order) {
   bool ret = false;
@@ -124,15 +117,7 @@ bool PassManager::run(PassOrder order) {
   return ret;
 }
 
-bool PassManager::runPass(Pass* p) {
-  switch(p->getKind()) {
-    case Pass::PK_Namespace:
-      return runNamespacePass(p);
-    default:
-      break;
-  }
-  ASSERT(0,"NYI");
-}
+
   
 PassManager::~PassManager() {
   for (auto p : passMap) {

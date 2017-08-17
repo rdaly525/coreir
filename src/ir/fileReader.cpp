@@ -23,8 +23,8 @@ Module* getModSymbol(Context* c, string ref);
 Generator* getGenSymbol(Context* c, string nsname, string iname);
 
 
-SelectPath getRef(string s) {
-  auto p = splitString<SelectPath>(s,'.');
+vector<string> getRef(string s) {
+  auto p = splitString<vector<string>>(s,'.');
   ASSERT(p.size()==2,s + " is not a valid Ref");
   return p;
 }
@@ -318,11 +318,12 @@ Type* json2Type(Context* c, json jt) {
       return c->Record(rargs);
     }
     else if (kind == "Named") {
-      string nsname = args[1].get<string>();
-      string name = args[2].get<string>();
-      if (args.size()==4) { //Has args
+      vector<string> info = getRef(args[1].get<string>());
+      std::string nsname = info[0];
+      std::string name   = info[1];
+      if (args.size()==3) { //Has args
         Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
-        Args genargs = json2Args(c,genparams,args[3]);
+        Args genargs = json2Args(c,genparams,args[2]);
         return c->Named(nsname,name,genargs);
       }
       return c->Named(nsname,name);

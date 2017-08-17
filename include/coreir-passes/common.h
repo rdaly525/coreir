@@ -4,24 +4,25 @@
 //#include "matchandreplace.hpp"
 //#include "flattenallpass.hpp"
 //#include "runallgeneratorspass.hpp"
-//
 //#include "flattenconnections.hpp"
-//
 //#include "printpass.hpp"
+//#include "wireclockpass.hpp"
 
 //Analysis passes
 #include "analysis/helloa.h"
 
 //Transform passes
 #include "transform/hellot.h"
+#include "transform/wireclockpass.h"
 
+
+#define ADDPASS(name) \
+  pm.addPass(Passes::register ## name());
 
 namespace CoreIR {
   void initializePasses(PassManager& pm) {
-    pm.addPass(Passes::registerHelloA());
-
-
-    pm.addPass(Passes::registerHelloT());
+    ADDPASS(HelloA)
+    ADDPASS(HelloT)
   }
 }
 

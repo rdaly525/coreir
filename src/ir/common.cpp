@@ -15,6 +15,20 @@ bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
 }
 
+bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
+  if (l.size() != r.size()) {
+    return l.size() > r.size();
+  }
+  for (uint i=0; i<l.size(); ++i) {
+    if (l[i] != r[i]) return l[i] > r[i];
+  }
+  return true;
+}
+bool ConnectionComp::operator() (const Connection& l, const Connection& r) {
+  if (l.first!=r.first) return SPComp(l.first->getSelectPath(),r.first->getSelectPath());
+  return SPComp(l.second->getSelectPath(),r.second->getSelectPath());
+}
+
 string Param2Str(Param genparam) {
   switch(genparam) {
     case AINT : return "int";

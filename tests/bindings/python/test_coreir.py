@@ -166,6 +166,11 @@ def test_module_def_connections():
 
     assert len(seen) == len(expected_conns)
 
+def test_context():
+    context = coreir.Context()
+    _type = context.get_named_typed("coreir", "clkIn")
+    assert _type.kind == "Named"
+
 if __name__ == "__main__":
     test_save_module()
 
