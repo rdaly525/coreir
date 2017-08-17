@@ -72,7 +72,7 @@ bool Namespace::hasNamedType(string name) {
 //This has to be found. Error if not found
 NamedType* Namespace::getNamedType(string name) {
   auto found = namedTypeList.find(name);
-  assert(found != namedTypeList.end());
+  ASSERT(found != namedTypeList.end(),"Cannot find " + name);
   return found->second;
 }
 

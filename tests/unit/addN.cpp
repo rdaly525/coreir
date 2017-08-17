@@ -1,9 +1,5 @@
 #include "coreir.h"
 
-#include "coreir-passes/common.h"
-#include "coreir-passes/firrtl.hpp"
-
-
 using namespace CoreIR;
 
 
@@ -86,14 +82,8 @@ int main() {
   add12->setDef(def);
   add12->print();
   
-  PassManager* pm = new PassManager(g);
-  pm->addPass(new RunAllGeneratorsPass(),1);
-  //pm->addPass(new PrintPass(),2);
-  //pm->addPass(new PrintPass(),3);
-  //pm->addPass(new FlattenAllPass(),2);
-  //pm->addPass(new FlattenConnections(),1);
-  pm->addPass(new Firrtl(),5);
-  pm->run();
-  
+  c->runPasses({"rungenerators","flatten"});
+  add12->print();
+
   deleteContext(c);
 }

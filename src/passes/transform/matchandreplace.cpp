@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/matchandreplace.hpp"
+#include "coreir-passes/transform/matchandreplace.h"
 
 #include <algorithm>
 #include <queue>
@@ -8,7 +8,7 @@ using namespace CoreIR;
 
 using namespace std;
 
-void MatchAndReplacePass::verifyOpts(Opts opts) {
+void Passes::MatchAndReplace::verifyOpts(Opts opts) {
   
   //Verify that pattern and replace have the same exact type.
   Type* rType;
@@ -40,7 +40,7 @@ void MatchAndReplacePass::verifyOpts(Opts opts) {
 }
 
 //This should load instanceKey, inCons, exCons
-void MatchAndReplacePass::preprocessPattern() {
+void Passes::MatchAndReplace::preprocessPattern() {
   cout << "NEW PATTERN" << endl;
   ModuleDef* pdef = pattern->getDef();
   //Just load it in whatever order if it is 0
@@ -106,7 +106,7 @@ Wireable* selWithCheck(Wireable* w, SelectPath path, bool* error) {
 }
 
 
-bool MatchAndReplacePass::runOnModule(Module* m) {
+bool Passes::MatchAndReplace::runOnModule(Module* m) {
   
   Module* container = m;
   Context* c = container->getContext();

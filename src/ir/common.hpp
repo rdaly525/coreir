@@ -3,19 +3,19 @@
 
 
 #include <stdint.h>
-#include <iostream>
 #include <vector>
 #include <deque>
 #include <unordered_map>
 #include <unordered_set>
 #include <cassert>
+#include <sstream>
 
 using namespace std;
 
 
 #define ASSERT(C,MSG) \
   if (!(C)) { \
-    cout << MSG << endl; \
+    cout << "ERROR: " << MSG << endl << endl; \
     assert(C); \
   }
 
@@ -58,7 +58,6 @@ typedef vector<myPair<string,Type*>> RecordParams ;
 typedef myPair<uint,Type*> ArrayParams ;
 class TypeCache;
 struct Metadata;
-
 
 //instantiable.hpp
 class Instantiable;
@@ -106,9 +105,20 @@ void checkArgsAreParams(Args args, Params params);
 
 Param Str2Param(string s);
 string SelectPath2Str(SelectPath path);
-SelectPath splitString(const string &s, char delim);
+
 bool hasChar(const std::string s, char c);
 
+template<typename BackInserter>
+BackInserter splitString(const std::string &s, char delim) {
+    BackInserter elems;
+    stringstream ss;
+    ss.str(s);
+    string item;
+    while (std::getline(ss, item, delim)) {
+      elems.push_back(item);
+    }
+    return elems;
+}
 template <class T, class A>
 T join(const A &begin, const A &end, const T &t) {
   T result;

@@ -1,10 +1,7 @@
 #include "coreir.h"
-#include "coreir-passes/firrtl.hpp"
-#include <iostream>
-#include <fstream>
+#include "coreir-passes/analysis/firrtl.h"
 
 using namespace CoreIR;
-
 
 struct FModule {
   string name;
@@ -102,7 +99,8 @@ void coreir2firrtl(Instantiable* i,FModule& fm) {
   }
 }
 
-bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
+string Passes::Firrtl::ID = "firrtl";
+bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   auto i = node.getInstantiable();
   string name = i->getName();
   bool isStdlib = i->getNamespace()->getName() == "coreir";
@@ -151,11 +149,10 @@ bool Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-void Firrtl::writeToFile(string filename) {
-  std::fstream file(filename,std::ostream::out);
-  file << "Circuit MyCircuit : " << endl;
+void Passes::Firrtl::writeToStream(std::ostream& os) {
+  os << "Circuit MyCircuit : " << endl;
   for (auto smod : fmods) {
-    file << smod << endl;
+    os << smod << endl;
   }
 }
 

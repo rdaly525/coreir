@@ -36,18 +36,14 @@ int main() {
   lb33->setDef(def);
   lb33->print();
 
-  PassManager* pm = new PassManager(c->getGlobal());
-  
   cout << "Running Generators" << endl;
-  pm->addPass(new RunAllGeneratorsPass(),0);
-  pm->run();
+  c->runPasses({"rungenerators"});
 
   Instance* i = cast<Instance>(lb33->getDef()->sel("lb33_inst"));
   i->getModuleRef()->print();
   
   cout << "Flattening everything" << endl;
-  pm->addPass(new FlattenAllPass(),1);
-  pm->run();
+  c->runPasses({"flatten"});
   lb33->print();
   lb33->getDef()->validate();
   

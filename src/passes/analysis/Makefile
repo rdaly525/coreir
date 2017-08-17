@@ -1,4 +1,3 @@
-.SUFFIXES:
 COREIRCONFIG ?= g++
 CXX ?= g++
 
@@ -10,29 +9,22 @@ ifeq ($(COREIRCONFIG),g++-4.9)
 CXX = g++-4.9
 endif
 
-CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror
+CXXFLAGS = -std=c++11  -Wall  -fPIC
 
 ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
 endif
 
-
-HOME = ../..
-INCS = -I$(HOME)/include -I.
+HOME = ../../..
 LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -ldl
+INCS = -I$(HOME)/include -I.
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
-EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
 
-all: $(EXES)
+all: $(OBJS)
 
 clean:
 	rm -rf build/*
 
-build/%: build/%.o 
-	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
-	cp $@ $(HOME)/bin
-
-build/%.o: %.cpp
+build/%.o: %.cpp $(DEPS)
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

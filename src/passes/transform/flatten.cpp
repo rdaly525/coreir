@@ -1,9 +1,10 @@
 #include "coreir.h"
-#include "coreir-passes/flattenallpass.hpp"
+#include "coreir-passes/transform/flatten.h"
 
 using namespace CoreIR;
 
-bool FlattenAllPass::runOnInstanceGraphNode(InstanceGraphNode& node) {
+string Passes::Flatten::ID = "flatten";
+bool Passes::Flatten::runOnInstanceGraphNode(InstanceGraphNode& node) {
   bool changed = false;
   for (auto inst : node.getInstanceList()) {
     changed |= inlineInstance(inst);

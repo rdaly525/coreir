@@ -1,7 +1,8 @@
 #include "coreir.h"
-#include "coreir-passes/common.h"
+#include "coreir-passes/transform/matchandreplace.h"
 
 using namespace CoreIR;
+using MatchAndReplace = Passes::MatchAndReplace;
 
 int main() {
   // New context
@@ -51,8 +52,6 @@ int main() {
   ma->print();
 
   //Now try to do a search and replace on ms to replace all subs with adds
-  
-  PassManager* pm = new PassManager(prj);
 
   //Create all the search and replace patterns. 
   Namespace* patns = c->newNamespace("mapperpatterns");
@@ -67,14 +66,14 @@ int main() {
     pdef->connect("self.out","inst.out");
   patternSub->setDef(pdef);
 
-  MatchAndReplacePass::Opts opts;
+  MatchAndReplace::Opts opts;
   opts.genargs = wargs;
-  MatchAndReplacePass* pSub2Add = new MatchAndReplacePass(
+  MatchAndReplace* pSub2Add = new MatchAndReplace("sub2add",
       patternSub,
       sl->getGenerator("add"),
       opts
   );
-  pm->addPass(pSub2Add,0);
+  c->addPass(pSub2Add);
   
   //match const -> add.in1  change to neg
   Type* cType = sl->getTypeGen("unary")->getType(wargs);
@@ -87,16 +86,16 @@ int main() {
     pdef->connect("self.out","a0.out");
   patternC->setDef(pdef);
 
-  MatchAndReplacePass* pC = new MatchAndReplacePass(
+  MatchAndReplace* pC = new MatchAndReplace("pC",
       patternC,
       sl->getGenerator("neg"),
       opts
   );
   //(void) pC;
-  pm->addPass(pC,1);
+  c->addPass(pC);
   
   cout << "Running all the passes!" << endl;
-  pm->run();
+  c->runPasses({"sub2add","pC"});
   cout << "Printing the (hopefully) modified graph" << endl;
   ms->print();
   
