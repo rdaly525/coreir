@@ -9,6 +9,7 @@
 //Transform passes
 #include "transform/hellot.h"
 #include "transform/flatten.h"
+#include "transform/rungenerators.h"
 
 
 //TODO Macrofy this
@@ -22,6 +23,7 @@ namespace CoreIR {
     //Transform
     pm.addPass(new Passes::HelloT());
     pm.addPass(new Passes::Flatten());
+    pm.addPass(new Passes::RunGenerators());
   }
 }
 
