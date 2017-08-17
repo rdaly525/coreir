@@ -48,7 +48,7 @@ class MatchAndReplace : public ModulePass {
 
 
   public:
-    explicit MatchAndReplace(Module* pattern, Instantiable* replacement, Opts opts=Opts()) : ModulePass("matchandreplace","Matches a module and replaces it"), pattern(pattern), replacement(replacement), genargs(opts.genargs), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
+    explicit MatchAndReplace(string name, Module* pattern, Instantiable* replacement, Opts opts=Opts()) : ModulePass(name,"Matches a module and replaces it"), pattern(pattern), replacement(replacement), genargs(opts.genargs), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
       this->verifyOpts(opts);
       this->preprocessPattern();
     }

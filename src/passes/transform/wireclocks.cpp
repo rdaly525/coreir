@@ -3,7 +3,6 @@
 
 using namespace CoreIR;
 
-std::string Passes::WireClocks::ID = "wireclocks";
 bool Passes::WireClocks::runOnModule(Module* module) {
     ASSERT(module->hasDef(), "WireClockPass can only be run on a module with a definition");
 

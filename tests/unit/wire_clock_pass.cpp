@@ -17,7 +17,7 @@ int main() {
     }
     shift_register->print();
 
-    Passes::WireClocks* wireClock = new Passes::WireClocks(clockInType);
+    Passes::WireClocks* wireClock = new Passes::WireClocks("wireclocks",clockInType);
     context->addPass(wireClock);
 
     context->runPasses({"wireclocks"});
