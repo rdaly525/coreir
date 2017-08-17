@@ -80,6 +80,9 @@ class Context {
     void addPass(Pass* p);
     bool runPasses(vector<string> order);
 
+    //TODO figure out a way to hide this (binary/coreir needs it)
+    //Do not use unless you really have to.
+    PassManager* getPassManager() { return pm;}
 
     //Factory functions for types
     Type* Any();

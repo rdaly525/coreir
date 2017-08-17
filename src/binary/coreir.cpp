@@ -1,8 +1,9 @@
 #include "coreir.h"
 #include "cxxopts.hpp"
 #include <dlfcn.h>
+#include <fstream>
 
-//#include "coreir-passes/firrtl.hpp"
+#include "coreir-passes/analysis/firrtl.h"
 
 using namespace CoreIR;
 
@@ -43,7 +44,7 @@ int main(int argc, char *argv[]) {
   string outExt = getExt(outfileName);
   ASSERT(outExt == "json" 
       || outExt == "txt"
-      || outExt == "firrtl"
+      || outExt == "fir"
       || outExt == "v", "Cannot support out extention: " + outExt);
 
   cout << "in: " << infileName << endl;
@@ -75,7 +76,7 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  //dlclose(libHandle);
+  //TODO Load libraries
 
   //Load input
   Module* top;
@@ -93,20 +94,24 @@ int main(int argc, char *argv[]) {
   //  top = uTop;
   //}
 
-  //Load passes
+  //Load and run passes
   if (options.count("p")) {
     string plist = options["p"].as<string>();
     vector<string> porder = splitString<vector<string>>(plist,',');
+    if (outExt=="fir") porder.push_back("firrtl");
+    //if (outExt=="json") porder.push_back("createJson");
     bool modified = c->runPasses(porder);
     cout << "Modified?: " << modified << endl;
   }
 
-  if (outExt=="firrtl") {
-    ASSERT(0,"NYI");
-    //Firrtl* fpass = new Firrtl();
-    //pm->addPass(fpass,5);
-    //pm->run();
-    //fpass->writeToFile(outfileName);
+
+  if (outExt=="fir") {
+    //Get the analysis pass
+    auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
+    
+    //Create file here.
+    std::ofstream file(outfileName);
+    fpass->writeToStream(file);
   }
   else if (outExt=="json") {
     Namespace* ns = top->getNamespace();

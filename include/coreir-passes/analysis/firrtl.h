@@ -2,16 +2,22 @@
 #define FIRRTL_HPP_
 
 #include "coreir.h"
+#include <ostream>
 
 using namespace CoreIR;
+namespace CoreIR {
+namespace Passes {
 
 class Firrtl : public InstanceGraphPass {
   unordered_map<Instantiable*,string> nameMap;
   vector<string> fmods;
   public :
-    Firrtl() : InstanceGraphPass() {}
+    static std::string ID;
+    Firrtl() : InstanceGraphPass(ID,"Creates Firrtl representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node);
-    void writeToFile(string file);
+    void writeToStream(std::ostream& os);
 };
 
+}
+}
 #endif
