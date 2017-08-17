@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir-passes/transform/wireclocks.h"
+#include "coreir-passes/transform/liftclockports.h"
 
 using namespace CoreIR;
 
@@ -17,19 +18,15 @@ int main() {
     }
     // shift_register->print();
     ModuleDef* definition = shift_register->getDef();
-    Wireable* topClock = definition->sel("self.CLK");
 
+    Passes::LiftClockPorts* liftClockPorts = new Passes::LiftClockPorts("liftclockports",clockInType);
     Passes::WireClocks* wireClock = new Passes::WireClocks("wireclocks",clockInType);
+    context->addPass(liftClockPorts);
     context->addPass(wireClock);
 
-    // First check that clocks aren't wired
-    for (auto instance : definition->getInstances()) {
-        ASSERT(!definition->hasConnection(topClock, instance.second->sel("clk")), 
-               "Wire Clock Pass: Initial module definition should not have clocks wired.");
-    }
-
     // Run the pass
-    context->runPasses({"wireclocks"});
+    context->runPasses({"liftclockports", "wireclocks"});
+    Wireable* topClock = definition->sel("self.clk");
 
     // Check that the clocks are now wired
     for (auto instance : definition->getInstances()) {

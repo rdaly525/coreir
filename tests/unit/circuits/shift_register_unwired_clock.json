@@ -78,10 +78,6 @@
           "type": [
             "Record",
             {
-              "CLK": [
-                "Named",
-                "coreir.clkIn"
-              ],
               "I": [
                 "Array",
                 4,
