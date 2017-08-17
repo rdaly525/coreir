@@ -4,9 +4,11 @@
 #include "coreir.h"
 
 namespace CoreIR {
+namespace Passes {
 
-class MatchAndReplacePass : public ModulePass {
+class MatchAndReplace : public ModulePass {
   public:
+    
     typedef std::function<Args(const std::vector<Instance*>&)> ConfigArgFun;
     typedef std::function<bool(const std::vector<Instance*>&)> MatchingCheckFun;
     struct Opts {
@@ -46,7 +48,7 @@ class MatchAndReplacePass : public ModulePass {
 
 
   public:
-    explicit MatchAndReplacePass(Module* pattern, Instantiable* replacement, Opts opts=Opts()) : ModulePass(), pattern(pattern), replacement(replacement), genargs(opts.genargs), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
+    explicit MatchAndReplace(Module* pattern, Instantiable* replacement, Opts opts=Opts()) : ModulePass("matchandreplace","Matches a module and replaces it"), pattern(pattern), replacement(replacement), genargs(opts.genargs), configargs(opts.configargs), getConfigArgs(opts.getConfigArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
       this->verifyOpts(opts);
       this->preprocessPattern();
     }
@@ -54,6 +56,7 @@ class MatchAndReplacePass : public ModulePass {
 
 };
 
+}
 }
 
 #endif
