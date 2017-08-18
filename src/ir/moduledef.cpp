@@ -133,17 +133,9 @@ void ModuleDef::removeInstanceFromIter(Instance* instance) {
     }
 }
 
-Instance* ModuleDef::getInstancesIterFirst() {
-    ASSERT(instancesIterFirst != nullptr, "isntancesIterFirst is null"); // TOOD: Should be an error?
-    return instancesIterFirst;
-}
-
-Instance* ModuleDef::getInstancesIterLast() {
-    ASSERT(instancesIterLast != nullptr, "isntancesIterFirst is null") // TOOD: Should be an error?
-    return instancesIterLast;
-}
 Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
-    ASSERT(this->instancesIterNextMap.count(instance) == 1, "instance not in iter") // TOOD: Should be an error?
+    ASSERT(instance, "Cannot get next of IterEnd");
+    ASSERT(this->instancesIterNextMap.count(instance) == 1, "DEBUG ME: instance not in iter") // TOOD: Should be an error?
     return this->instancesIterNextMap[instance];
 }
 

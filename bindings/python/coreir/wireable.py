@@ -52,9 +52,10 @@ class Instance(Wireable):
         super(Instance, self).__init__(ptr, context)
         self.config = LazyDict(self, Arg, libcoreir_c.COREGetConfigValue)
 
+    #TODO This is actually getting the instanitable which could be a generator
     @property
     def module_name(self):
-        name = libcoreir_c.COREGetInstRefName(self.ptr)
+        name = libcoreir_c.COREGetInstantiableRefName(self.ptr)
         return name.decode()
 
     @property

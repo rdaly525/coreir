@@ -32,8 +32,8 @@ class ModuleDef {
     SelCache* getCache() { return cache;}
 
     // Instances Iterator Internal Fields/API
-    Instance* instancesIterFirst;
-    Instance* instancesIterLast;
+    Instance* instancesIterFirst = nullptr;
+    Instance* instancesIterLast = nullptr;
     unordered_map<Instance*,Instance*> instancesIterNextMap;
     unordered_map<Instance*,Instance*> instancesIterPrevMap;
     void appendInstanceToIter(Instance* instance);
@@ -74,8 +74,8 @@ class ModuleDef {
     Instance* addInstance(Instance* i,string iname=""); //copys info about i
 
     // API for iterating over instances
-    Instance* getInstancesIterFirst();
-    Instance* getInstancesIterLast();
+    Instance* getInstancesIterBegin() { return instancesIterFirst;}
+    Instance* getInstancesIterEnd() { return nullptr;}
     Instance* getInstancesIterNext(Instance* instance);
 
     //API for connecting two instances together

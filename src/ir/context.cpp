@@ -5,7 +5,7 @@ using namespace std;
 
 namespace CoreIR {
 
-Context::Context() : maxErrors(3) {
+Context::Context() : maxErrors(8) {
   global = newNamespace("_G");
   cache = new TypeCache(this);
   //Automatically load stdlib

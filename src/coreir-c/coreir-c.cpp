@@ -63,9 +63,8 @@ extern "C" {
       return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_), std::string(type_name)));
   }
   
-  //TODO change the name of this function
-  const char* COREGetInstRefName(COREWireable* iref) {
-    const string& name = rcast<Instance*>(iref)->getModuleRef()->getName();
+  const char* COREGetInstantiableRefName(COREWireable* iref) {
+    const string& name = rcast<Instance*>(iref)->getInstantiableRef()->getName();
     return name.c_str();
   }
 
@@ -83,8 +82,14 @@ extern "C" {
   COREModule* CORELoadModule(COREContext* c, char* filename, bool* err) {
     string file(filename);
     Module* top = nullptr;
-    bool correct = loadFromFile(rcast<Context*>(c),file,&top);
-    ASSERT(top,"No top in file" + string(filename));
+    Context* context = rcast<Context*>(c);
+    bool correct = loadFromFile(context,file,&top);
+    if (!top) {
+      Error e;
+      e.message("No top in file :" + string(filename));
+      context->error(e);
+      *err = true;
+    }
     *err = !correct;
     return rcast<COREModule*>(top);
   }
@@ -157,15 +162,15 @@ extern "C" {
     rcast<Context*>(c)->printerrors();
   }
 
-  COREWireable* COREModuleDefInstancesGetFirst(COREModuleDef* module_def) {
-      return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterFirst());
+  COREWireable* COREModuleDefInstancesIterBegin(COREModuleDef* module_def) {
+      return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterBegin());
   }
 
-  COREWireable* COREModuleDefInstancesGetLast(COREModuleDef* module_def) {
-      return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterLast());
+  COREWireable* COREModuleDefInstancesIterEnd(COREModuleDef* module_def) {
+      return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterEnd());
   }
 
-  COREWireable* COREModuleDefInstancesGetNext(COREModuleDef* module_def, COREWireable* curr) {
+  COREWireable* COREModuleDefInstancesIterNext(COREModuleDef* module_def, COREWireable* curr) {
       return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInstancesIterNext(rcast<Instance*>(curr)));
   }
 

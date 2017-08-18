@@ -77,20 +77,20 @@ libcoreir_c.COREModuleDefAddGeneratorInstance.restype = COREWireable_p
 libcoreir_c.COREModuleDefGetInterface.argtypes = [COREModuleDef_p]
 libcoreir_c.COREModuleDefGetInterface.restype = COREWireable_p
 
-libcoreir_c.COREModuleDefInstancesGetFirst.argtypes = [COREModuleDef_p]
-libcoreir_c.COREModuleDefInstancesGetFirst.restype = COREWireable_p
+libcoreir_c.COREModuleDefInstancesIterBegin.argtypes = [COREModuleDef_p]
+libcoreir_c.COREModuleDefInstancesIterBegin.restype = COREWireable_p
 
-libcoreir_c.COREModuleDefInstancesGetLast.argtypes = [COREModuleDef_p]
-libcoreir_c.COREModuleDefInstancesGetLast.restype = COREWireable_p
+libcoreir_c.COREModuleDefInstancesIterEnd.argtypes = [COREModuleDef_p]
+libcoreir_c.COREModuleDefInstancesIterEnd.restype = COREWireable_p
 
-libcoreir_c.COREModuleDefInstancesGetNext.argtypes = [COREModuleDef_p, COREWireable_p]
-libcoreir_c.COREModuleDefInstancesGetNext.restype = COREWireable_p
+libcoreir_c.COREModuleDefInstancesIterNext.argtypes = [COREModuleDef_p, COREWireable_p]
+libcoreir_c.COREModuleDefInstancesIterNext.restype = COREWireable_p
 
 libcoreir_c.COREModuleGetDirectedModule.argtypes = [COREModule_p]
 libcoreir_c.COREModuleGetDirectedModule.restype = COREDirectedModule_p
 
-libcoreir_c.COREGetInstRefName.argtypes = [COREWireable_p]
-libcoreir_c.COREGetInstRefName.restype = ct.c_char_p
+libcoreir_c.COREGetInstantiableRefName.argtypes = [COREWireable_p]
+libcoreir_c.COREGetInstantiableRefName.restype = ct.c_char_p
 
 libcoreir_c.COREGetConfigValue.argtypes = [COREWireable_p,ct.c_char_p]
 libcoreir_c.COREGetConfigValue.restype = COREArg_p;

@@ -7,6 +7,7 @@ def test_genargs():
     cgra = context.load_library("cgralib")
     mod = context.load_from_file(os.path.join(os.path.dirname(os.path.realpath(__file__)), "genargs.json"))
     for instance in mod.definition.instances:
+        print instance.module_name
         for name, arg in instance.generator_args.items():
             if name == "width":
                 assert arg.value == 16

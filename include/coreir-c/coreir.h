@@ -28,7 +28,7 @@ extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err)
 extern void CORESaveModule(COREModule* module, char* filename, COREBool* err);
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern CORENamespace* COREGetNamespace(COREContext* c, char* name);
-extern const char* COREGetInstRefName(COREWireable* iref);
+extern const char* COREGetInstantiableRefName(COREWireable* iref);
 
 //Errors:
 //  Invalid arg: Module name already exists
@@ -56,9 +56,9 @@ extern COREArg* COREGetConfigValue(COREWireable* i, char* s);
 //  Typechecking errors
 extern void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern COREWireable* COREWireableSelect(COREWireable* w, char* sel);
-extern COREWireable* COREModuleDefInstancesGetFirst(COREModuleDef* module_def);
-extern COREWireable* COREModuleDefInstancesGetLast(COREModuleDef* module_def);
-extern COREWireable* COREModuleDefInstancesGetNext(COREModuleDef* module_def, COREWireable* curr);
+extern COREWireable* COREModuleDefInstancesIterBegin(COREModuleDef* module_def);
+extern COREWireable* COREModuleDefInstancesIterEnd(COREModuleDef* module_def);
+extern COREWireable* COREModuleDefInstancesIterNext(COREModuleDef* module_def, COREWireable* curr);
 extern COREConnection** COREModuleDefGetConnections(COREModuleDef* m, int* numWires);
 extern COREWireable* COREConnectionGetFirst(COREConnection* c);
 extern COREWireable* COREConnectionGetSecond(COREConnection* c);
