@@ -55,5 +55,38 @@ int main() {
     cout << "Could not save to json!!" << endl;
     c->die();
   }
+
+  Module* m = loadModule(c, "_mul4.json", &err);
+  if (err) {
+    cout << "Could not load from json!!" << endl;
+    c->die();
+  }
+
+  m->print();
+
+  rungenerators(c, mul4_n, &err);
+  if (err) {
+    cout << "Error when calling rungenerators" << endl;
+    c->die();
+  }
+  mul4_n->print();
+
+  cout << "Checking saving and loading postgen" << endl;
+  saveModule(mul4_n, "_mul4Gen.json",&err);
+  if (err) {
+    cout << "Could not save to json!!" << endl;
+    c->die();
+  }
+  
+  m = loadModule(c,"_mul4Gen.json", &err);
+  if(err) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+  m->print();
+
+  deleteContext(c);
+  
+  return 0;
   
 }
