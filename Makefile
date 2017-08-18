@@ -41,6 +41,7 @@ clean:
 	rm -rf lib/*
 	rm -rf bin/*
 	-rm _*json
+	-rm _*fir
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C epasses clean

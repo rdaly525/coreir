@@ -110,6 +110,7 @@ class NamedType : public Type {
     NamedType(Context* c, Namespace* ns, string name, TypeGen* typegen, Args genargs);
     static bool classof(const Type* t) {return t->getKind()==TK_Named;}
     string toString(void) const { return name; } //TODO add generator
+    Namespace* getNamespace() {return ns;}
     string getName() {return name;}
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
@@ -146,7 +147,7 @@ class RecordType : public Type {
     RecordType(Context* c, RecordParams _record);
     RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
-    vector<string> getOrder() { return _order;}
+    vector<string> getFields() { return _order;}
     unordered_map<string,Type*> getRecord() { return record;}
     string toString(void) const;
     json toJson();

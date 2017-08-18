@@ -86,6 +86,9 @@ class ConnectionComp {
     bool operator() (const Connection& l, const Connection& r);
 };
 
+//TODO Ugly hack to create a sorted connection. Should make my own connection class
+Connection connectionCtor(Wireable* a, Wireable* b);
+
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
@@ -100,11 +103,12 @@ bool isNumber(string s);
 string Param2Str(Param);
 string Params2Str(Params);
 string Args2Str(Args);
+string SelectPath2Str(SelectPath path);
+string Connection2Str(Connection con);
+Param Str2Param(string s);
+
 //Will call assertions
 void checkArgsAreParams(Args args, Params params);
-
-Param Str2Param(string s);
-string SelectPath2Str(SelectPath path);
 
 bool hasChar(const std::string s, char c);
 

@@ -29,6 +29,16 @@ bool ConnectionComp::operator() (const Connection& l, const Connection& r) {
   return SPComp(l.second->getSelectPath(),r.second->getSelectPath());
 }
 
+Connection connectionCtor(Wireable* a, Wireable* b) {
+  if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
+    return Connection(a,b);
+  }
+  else {
+    return Connection(b,a);
+  }
+}
+
+
 string Param2Str(Param genparam) {
   switch(genparam) {
     case AINT : return "int";
@@ -61,6 +71,10 @@ string Args2Str(Args args) {
 }
 string SelectPath2Str(SelectPath path) {
   return join(path.begin(),path.end(),string("."));
+}
+
+string Connection2Str(Connection con) {
+  return con.first->toString() + " <=> " + con.second->toString();
 }
 
 void checkArgsAreParams(Args args, Params params) {

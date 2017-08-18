@@ -92,11 +92,17 @@ string Wireable::wireableKind2Str(WireableKind wb) {
 }
 
 LocalConnections Wireable::getLocalConnections() {
+  //For the annoying case where connections connect bact to self
+  unordered_set<Connection> uniqueCons;
   LocalConnections cons;
   std::function<void(Wireable*)> traverse;
-  traverse = [&cons,&traverse](Wireable* curw) ->void {
+  traverse = [&cons,&traverse,&uniqueCons](Wireable* curw) ->void {
     for (auto other : curw->getConnectedWireables()) {
-      cons.push_back({curw,other});
+      auto check = connectionCtor(curw,other);
+      if (uniqueCons.count(check)==0) {
+        cons.push_back({curw,other});
+        uniqueCons.insert(check);
+      }
     }
     for (auto sels : curw->getSelects()) {
       traverse(sels.second);

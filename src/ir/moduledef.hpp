@@ -53,7 +53,7 @@ class ModuleDef {
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     
-    //Return a shalow copy of this ModuleDef.
+    //Return a shallow copy of this ModuleDef.
     ModuleDef* copy();
     Context* getContext();
     const string& getName();
@@ -89,7 +89,7 @@ class ModuleDef {
     Connection getConnection(Wireable* a, Wireable* b);
 
     //API for deleting a connection.
-    //This will also delete the references from the wireable
+    void disconnect(Connection con);
     void disconnect(Wireable* a, Wireable* b);
     
     //This will disconnect everything the wireable is connected to
