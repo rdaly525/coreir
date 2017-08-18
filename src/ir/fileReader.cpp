@@ -22,17 +22,19 @@ Module* getModSymbol(Context* c, string nsname, string iname);
 Module* getModSymbol(Context* c, string ref);
 Generator* getGenSymbol(Context* c, string nsname, string iname);
 
+#define ASSERTTHROW(cond,msg) \
+  if (!(cond)) throw std::runtime_error(msg)
 
 vector<string> getRef(string s) {
   auto p = splitString<vector<string>>(s,'.');
-  ASSERT(p.size()==2,s + " is not a valid Ref");
+  ASSERTTHROW(p.size()==2,s + " is not a valid Ref");
   return p;
 }
 
 //This will verify that json contains ONLY list of possible things
 void checkJson(json j, unordered_set<string> opts) {
   for (auto opt : j.get<jsonmap>()) {
-    ASSERT(opts.count(opt.first),"Cannot put \"" + opt.first + "\" here in json file");
+    ASSERTTHROW(opts.count(opt.first),"Cannot put \"" + opt.first + "\" here in json file");
   }
 }
 
@@ -42,7 +44,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
   if (!file.is_open()) {
     Error e;
     e.message("Cannot open file " + filename);
-    e.fatal();
     c->error(e);
     return false;
   }
@@ -203,7 +204,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             mdef->addInstance(instname,genRef,genargs,configargs);
           }
           else {
-            ASSERT(0,"Bad Instance. Need (modref || (genref && genargs))");
+            ASSERTTHROW(0,"Bad Instance. Need (modref || (genref && genargs))");
           }
         } // End Instances
       }
@@ -211,7 +212,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       //Connections
       if (jmod.count("connections")) {
         for (auto jcon : jmod.at("connections").get<vector<vector<string>>>()) {
-          ASSERT(jcon.size()==2,"Connection invalid");
+          ASSERTTHROW(jcon.size()==2,"Connection invalid");
           mdef->connect(jcon[0],jcon[1]);
         }
       }
@@ -337,5 +338,7 @@ Type* json2Type(Context* c, json jt) {
   else throw std::runtime_error("Error parsing Type");
   return c->Any();
 }
+
+#undef ASSERTTHROW
 
 }//CoreIR namespace
