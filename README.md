@@ -102,5 +102,5 @@ library named **stdlib**.
    COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(stdlib);
    ```
 
-To find a full working example see [lib/libs/stdlib.cpp](lib/libs/stdlib.cpp) and
+To find a full working example see [src/lib/libs/stdlib.cpp](src/lib/libs/stdlib.cpp) and
 [include/coreir-lib/stdlib.h](include/coreir-lib/stdlib.h).
