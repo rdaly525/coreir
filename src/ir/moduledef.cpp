@@ -35,7 +35,7 @@ void ModuleDef::print(void) {
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
-    cout << "      " << *(connection.first) << " <=> " << *(connection.second) << endl ;
+    cout << "      " << Connection2Str(connection) << endl;
   }
   cout << endl;
 }
@@ -178,15 +178,6 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
     return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
 }
 
-Connection newConnection(Wireable* a, Wireable* b) {
-  if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
-    return Connection(a,b);
-  }
-  else {
-    return Connection(b,a);
-  }
-}
-
 void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
   Context* c = getContext();
@@ -203,7 +194,7 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
   // TODO should I type check here at all?
   //checkWiring(a,b);
   
-  Connection connect = newConnection(a,b);
+  Connection connect = connectionCtor(a,b);
   if (!connections.count(connect)) {
     
     //Update 'a' and 'b'
@@ -230,12 +221,12 @@ void ModuleDef::connect(std::initializer_list<std::string> pA, std::initializer_
   connect(SelectPath(pA.begin(),pA.end()),SelectPath(pB.begin(),pB.end()));
 }
 bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {
-  Connection con = newConnection(a,b);
+  Connection con = connectionCtor(a,b);
   return connections.count(con) > 0;
 }
 
 Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
-  Connection con = newConnection(a,b);
+  Connection con = connectionCtor(a,b);
   ASSERT(connections.count(con)>0,"Could not find connection!");
   
   return *connections.find(con);
@@ -249,7 +240,7 @@ void ModuleDef::disconnect(Wireable* w) {
 }
 
 void ModuleDef::disconnect(Wireable* a, Wireable* b) {
-  Connection connect = newConnection(a,b);
+  Connection connect = connectionCtor(a,b);
   this->disconnect(connect);
 }
 void ModuleDef::disconnect(Connection con) {

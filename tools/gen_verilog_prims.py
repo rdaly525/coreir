@@ -99,7 +99,7 @@ if __name__ == "__main__":
     }
   }
 
-  with open("stdlib.v","w") as f:
+  with open("coreir_prims.v","w") as f:
     
     for t in ["unary","unaryReduce","binary","static_shift","binaryReduce"]:
       f.write("//%s ops\n" % t)
