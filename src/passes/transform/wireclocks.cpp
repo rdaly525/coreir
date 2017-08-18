@@ -8,7 +8,7 @@ bool Passes::WireClocks::runOnModule(Module* module) {
 
     ModuleDef* definition = module->getDef();
 
-    RecordType* type = (RecordType*) definition->getType();  // FIXME: Can I assume this is always a RecordType
+    RecordType* type = cast<RecordType>(definition->getType());  // FIXME: Can I assume this is always a RecordType
     string clkInName;
     for (auto field : type->getRecord()) {
         if (field.second == this->clockType) {
@@ -22,7 +22,7 @@ bool Passes::WireClocks::runOnModule(Module* module) {
 
     bool clockWired = false;
     for (auto instance : definition->getInstances()) {
-        RecordType* instanceType = (RecordType*) instance.second->getType();
+        RecordType* instanceType = cast<RecordType>(instance.second->getType());
         for (auto field : instanceType->getRecord()) {
             std::cout << field.first << std::endl;
             if (field.second == this->clockType) {

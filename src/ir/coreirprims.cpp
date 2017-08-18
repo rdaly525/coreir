@@ -38,7 +38,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
       ASSERT(lo < hi && hi<=width,"Bad slice args!");
       return c->Record({
         {"in",c->BitIn()->Arr(width)},
-        {"out",c->Bit()->Arr(hi-lo+1)}
+        {"out",c->Bit()->Arr(hi-lo)}
       });
     }
   );
@@ -316,6 +316,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //   reg, ram, rom
   /////////////////////////////////
   coreirprims_state(c,coreirprims);
+  
   //Add Const
   coreirprims->newTypeGen(
     "out", 
@@ -329,6 +330,19 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   );
   coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
   
+  //Add Term
+  coreirprims->newTypeGen(
+    "in", 
+    widthparams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<ArgInt>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)}
+      });
+    }
+  );
+  coreirprims->newGeneratorDecl("term",coreirprims->getTypeGen("in"),widthparams);
+
   /////////////////////////////////
   // Stdlib convert primitives
   //   slice,concat,cast,strip

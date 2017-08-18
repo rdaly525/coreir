@@ -29,9 +29,9 @@ class PassManager {
     typedef vector<std::string> PassOrder;
     explicit PassManager(Context* c);
     ~PassManager();
+    Context* getContext() { return c;}
     //This will memory manage pass.
     void addPass(Pass* p);
-    
     //Returns if graph was modified
     //Will also remove all the passes that were run
     bool run(PassOrder order);

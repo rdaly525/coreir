@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir-passes/transform/wireclocks.h"
+#include "coreir-passes/transform/liftclockports.h"
 
 using namespace CoreIR;
 
@@ -15,12 +16,23 @@ int main() {
         context->printerrors();
         return 1;
     }
-    shift_register->print();
+    // shift_register->print();
+    ModuleDef* definition = shift_register->getDef();
 
+    Passes::LiftClockPorts* liftClockPorts = new Passes::LiftClockPorts("liftclockports",clockInType);
     Passes::WireClocks* wireClock = new Passes::WireClocks("wireclocks",clockInType);
+    context->addPass(liftClockPorts);
     context->addPass(wireClock);
 
-    context->runPasses({"wireclocks"});
+    // Run the pass
+    context->runPasses({"liftclockports", "wireclocks"});
+    Wireable* topClock = definition->sel("self.clk");
+
+    // Check that the clocks are now wired
+    for (auto instance : definition->getInstances()) {
+        ASSERT(definition->hasConnection(topClock, instance.second->sel("clk")), 
+               "Wire Clock Pass Test Failed, not all clocks wired up.");
+    }
     saveToFile(global, "_shift_register_wired_clock.json", shift_register);
 
     deleteContext(context);
