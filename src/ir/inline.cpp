@@ -3,7 +3,7 @@
 
 namespace CoreIR {
 
-// This helper will connact everything from wa to wb with a spDelta. 
+// This helper will connect everything from wa to wb with a spDelta. 
 // spDelta is the SelectPath delta to get from wa to wb
 void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireable* wb) {
   //cout << "w:" << w->toString() << endl;

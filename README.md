@@ -1,13 +1,13 @@
 [![Build Status](https://travis-ci.org/rdaly525/coreir.svg?branch=master)](https://travis-ci.org/rdaly525/coreir)
 
 
-##Tested Compatable compilers:  
+## Tested Compatable compilers:  
   gcc 4.9  
   Apple LLVM version 8.0.0 (clang-800.0.42.1)  
 
 ## How to Install CoreIR
 
-###If you are using a Linux environment:  
+### If you are using a Linux environment:  
   To Install:  
   
     make install
@@ -16,7 +16,7 @@
     
     make test
   
-###If you are using an OSX environment
+### If you are using an OSX environment
   To Install:
     
     make osx
@@ -102,6 +102,5 @@ library named **stdlib**.
    COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(stdlib);
    ```
 
-To find a full working example see [lib/libs/stdlib.cpp](lib/libs/stdlib.cpp) and
+To find a full working example see [src/lib/libs/stdlib.cpp](src/lib/libs/stdlib.cpp) and
 [include/coreir-lib/stdlib.h](include/coreir-lib/stdlib.h).
-=======
