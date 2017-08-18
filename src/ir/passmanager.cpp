@@ -118,12 +118,12 @@ bool PassManager::run(PassOrder order,string nsname) {
         analysisPasses[pname] = true;
       }
       else if (modified) { //Not analysis
-        //Run Verifier pass
-        this->runPass(passMap["verify"]);
         //If it modified, need to conservatly invalidate all analysis passes
         for (auto amap : analysisPasses) {
           analysisPasses[amap.first] = false;
         }
+        //Run Verifier pass
+        this->runPass(passMap["verify"]);
         analysisPasses["verify"] = true;
       }
       ret |= modified;
