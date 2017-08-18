@@ -4,6 +4,7 @@
 #include <fstream>
 
 #include "coreir-passes/analysis/firrtl.h"
+#include "coreir-passes/analysis/coreirjson.h"
 #include "coreir-passes/analysis/verilog.h"
 
 using namespace CoreIR;
@@ -119,6 +120,7 @@ int main(int argc, char *argv[]) {
   if (!loadFromFile(c,infileName,&top)) {
     c->die();
   }
+  string topRef = top->getNamespace()->getName() + "." + top->getName();
   //if (userTop) {
   //  auto tref = splitString<vector<string>>(topRef,".");
   //  ASSERT(c->hasNamespace(tref[0]),"Missing top : " + topRef);
@@ -143,11 +145,12 @@ int main(int argc, char *argv[]) {
 
   //Output to correct format
   if (outExt=="json") {
-    Namespace* ns = top->getNamespace();
-    //Write out to a file
-    if (!saveToFile(ns,outfileName,top)) {
-      c->die();
-    }
+    c->runPasses({"coreirjson"});
+    auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
+    
+    //Create file here.
+    std::ofstream file(outfileName);
+    jpass->writeToStream(file,topRef);
   }
   else if (outExt=="fir") {
     c->runPasses({"firrtl"});

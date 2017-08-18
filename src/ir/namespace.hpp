@@ -57,6 +57,9 @@ class Namespace {
     void newNominalTypeGen(string name, string nameFlip,Params genparams, TypeGenFun fun);
     TypeGen* newTypeGen(string name, Params genparams, TypeGenFun fun);
     bool hasNamedType(string name);
+    
+    //Only returns named types without args
+    unordered_map<string,NamedType*> getNamedTypes() { return namedTypeList;}
     NamedType* getNamedType(string name);
     NamedType* getNamedType(string name, Args genargs);
     TypeGen* getTypeGen(string name);

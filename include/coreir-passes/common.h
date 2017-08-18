@@ -6,6 +6,7 @@
 #include "analysis/constructinstancegraph.h"
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
+#include "analysis/coreirjson.h"
 #include "analysis/verify.h"
 #include "analysis/strongverify.h"
 
@@ -27,6 +28,7 @@ namespace CoreIR {
     pm.addPass(new Passes::HelloA());
     pm.addPass(new Passes::ConstructInstanceGraph());
     pm.addPass(new Passes::Firrtl());
+    pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());
     pm.addPass(new Passes::Verify());
     pm.addPass(new Passes::StrongVerify());
