@@ -24,7 +24,6 @@ bool Passes::WireClocks::runOnModule(Module* module) {
     for (auto instance : definition->getInstances()) {
         RecordType* instanceType = cast<RecordType>(instance.second->getType());
         for (auto field : instanceType->getRecord()) {
-            std::cout << field.first << std::endl;
             if (field.second == this->clockType) {
                 definition->connect(interfaceClock, instance.second->sel(field.first));
                 clockWired = true;

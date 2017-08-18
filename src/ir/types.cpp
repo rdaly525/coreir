@@ -88,7 +88,6 @@ bool ArrayType::sel(string sel, Type** ret, Error* e) {
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
-  cout << "RHERE!" << endl;
   unordered_set<uint> dirs; // Slight hack because it is not easy to hash enums
   for(auto field : _record) {
     assert(!isNumber(field.first) && "Cannot have number as record field");

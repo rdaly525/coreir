@@ -145,7 +145,7 @@ bool saveToDot(Module* m, string filename);
   
   
 Context* newContext();
-void deleteContext(Context* m);
+void deleteContext(Context* c);
 
 //addPassthrough will create a passthrough Module for Wireable w with name <name>
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}

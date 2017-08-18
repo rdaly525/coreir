@@ -21,7 +21,6 @@ PassManager::PassManager(Context* c) : c(c) {
 }
 
 void PassManager::addPass(Pass* p) {
-  cout << "adding Pass: " + p->getName() << endl;
   ASSERT(passMap.count(p->name) == 0,"Cannot add duplicate \"" + p->name + "\" pass");
   passMap[p->name] = p;
   if (p->isAnalysis) {
@@ -31,17 +30,17 @@ void PassManager::addPass(Pass* p) {
   p->setAnalysisInfo();
 }
 
-//Only do Global for now TODO
+//TODO Only do Specified Namespace for now
 bool PassManager::runNamespacePass(Pass* pass) {
   assert(pass);
-  return cast<NamespacePass>(pass)->runOnNamespace(this->c->getGlobal());
+  return cast<NamespacePass>(pass)->runOnNamespace(this->ns);
 }
 
-//Only do Global for now TODO
+//TODO only do specified Namespace for now
 bool PassManager::runModulePass(Pass* pass) {
   bool modified = false;
   ModulePass* mpass = cast<ModulePass>(pass);
-  for (auto modmap : c->getGlobal()->getModules()) {
+  for (auto modmap : this->ns->getModules()) {
     Module* m = modmap.second;
     modified |= mpass->runOnModule(m);
   }
@@ -63,6 +62,9 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
 }
 
 bool PassManager::runPass(Pass* p) {
+  if (verbose) {
+    cout << "Running Pass: " << p->getName() << endl;
+  }
   switch(p->getKind()) {
     case Pass::PK_Namespace:
       return runNamespacePass(p);
@@ -73,6 +75,7 @@ bool PassManager::runPass(Pass* p) {
     default:
       break;
   }
+  passLog.push_back(p->getName());
   ASSERT(0,"NYI");
 }
 
@@ -86,7 +89,10 @@ void PassManager::pushAllDependencies(string oname,stack<string> &work) {
   }  
 }
 
-bool PassManager::run(PassOrder order) {
+bool PassManager::run(PassOrder order,string nsname) {
+  ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
+  this->ns = c->getNamespace(nsname);
+  ASSERT(passMap.count("verify"),"Missing verifier pass");
   bool ret = false;
   //Execute each in order (and the respective dependencies) independently
   for (auto oname : order) {
@@ -112,16 +118,38 @@ bool PassManager::run(PassOrder order) {
         analysisPasses[pname] = true;
       }
       else if (modified) { //Not analysis
+        //Run Verifier pass
+        this->runPass(passMap["verify"]);
         //If it modified, need to conservatly invalidate all analysis passes
         for (auto amap : analysisPasses) {
           analysisPasses[amap.first] = false;
         }
+        analysisPasses["verify"] = true;
       }
       ret |= modified;
 
     }
   }
   return ret;
+}
+
+void PassManager::printLog() {
+  cout << "Ran the following passes:" << endl;
+  for (auto p : passLog) {
+    cout << "  " << p << endl;
+  }
+}
+void PassManager::printPassChoices() {
+  cout << "Analysis Passes" << endl;
+  for (auto ap : analysisPasses) {
+    cout << "  " << ap.first << endl; 
+  }
+  cout << endl << "Transform Passes" << endl;
+  for (auto p : passMap) {
+    if (analysisPasses.count(p.first)==0) {
+      cout << "  " << p.first << endl;
+    }
+  }
 }
 
 

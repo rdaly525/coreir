@@ -313,12 +313,9 @@ Type* json2Type(Context* c, json jt) {
     }
     else if (kind == "Record") {
       vector<myPair<string,Type*>> rargs;
-      cout << "HERE!" << endl;
       for (auto it : args[1].get<jsonmap>()) {
-        cout << "HERE1!" << endl;
         rargs.push_back({it.first,json2Type(c,it.second)});
       }
-      cout << "HERE2!" << endl;
       return c->Record(rargs);
     }
     else if (kind == "Named") {
