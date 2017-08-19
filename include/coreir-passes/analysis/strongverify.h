@@ -12,7 +12,7 @@ class StrongVerify : public ModulePass {
     static std::string ID;
     StrongVerify() : ModulePass(ID,"Strong Verification",true) {}
     void setAnalysisInfo() override {
-      addDependency("verify");
+      addDependency("weakverify");
     }
     bool runOnModule(Module* m) override;
 };

@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/verify.h"
+#include "coreir-passes/analysis/weakverify.h"
 
 using namespace CoreIR;
 
@@ -81,8 +81,8 @@ bool checkInputOutputs(Wireable* w, Error* e) {
 
 }
 
-string Passes::Verify::ID = "verify";
-bool Passes::Verify::runOnModule(Module* m) {
+string Passes::WeakVerify::ID = "weakverify";
+bool Passes::WeakVerify::runOnModule(Module* m) {
   if (!m->hasDef()) return false;
   ModuleDef* mdef = m->getDef();
   Context* c = this->getContext();

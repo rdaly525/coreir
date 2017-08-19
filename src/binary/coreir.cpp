@@ -11,8 +11,8 @@ using namespace CoreIR;
 
 string getExt(string s) {
   auto split = splitString<vector<string>>(s,'.');
-  ASSERT(split.size()==2,"File needs extention: " + s);
-  return split[1];
+  ASSERT(split.size()>=2,"File needs extention: " + s);
+  return split[split.size()-1];
 }
 
 typedef std::map<std::string,std::pair<void*,Pass*>> PassHandle_t;
@@ -90,30 +90,25 @@ int main(int argc, char *argv[]) {
   }
 
   ASSERT(options.count("i"),"No input specified")
-  ASSERT(options.count("o"),"No output specified")
-  string infileName;
-  string outfileName;
-  try {
-    infileName = options["i"].as<string>();
-    outfileName = options["o"].as<string>();
-  //string topRef = a.get<string>("top");
-  //bool userTop = topRef != "";
-  } catch(cxxopts::option_requires_argument_exception& exc) {
-    cout << exc.what() << endl;
-    exit(1);
-  }
+  string infileName = options["i"].as<string>();
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");
-  string outExt = getExt(outfileName);
-  ASSERT(outExt == "json" 
-      || outExt == "txt"
-      || outExt == "fir"
-      || outExt == "v", "Cannot support out extention: " + outExt);
-
-  cout << "in: " << infileName << endl;
-  cout << "out: " << outfileName << endl;
-
   
+  std::ostream* sout = &std::cout;
+  std::ofstream fout;
+  string outExt = "json";
+  if (options.count("o")) {
+    string outfileName = options["o"].as<string>();
+    outExt = getExt(outfileName);
+    cout << "ext: " << outExt << endl;
+    ASSERT(outExt == "json" 
+        || outExt == "txt"
+        || outExt == "fir"
+        || outExt == "v", "Cannot support out extention: " + outExt);
+    fout.open(outfileName);
+    ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
+    sout = &fout;
+  }
 
   //Load input
   Module* top;
@@ -147,10 +142,7 @@ int main(int argc, char *argv[]) {
   if (outExt=="json") {
     c->runPasses({"coreirjson"});
     auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
-    
-    //Create file here.
-    std::ofstream file(outfileName);
-    jpass->writeToStream(file,topRef);
+    jpass->writeToStream(*sout,topRef);
   }
   else if (outExt=="fir") {
     c->runPasses({"firrtl"});
@@ -158,15 +150,13 @@ int main(int argc, char *argv[]) {
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
     //Create file here.
-    std::ofstream file(outfileName);
-    fpass->writeToStream(file);
+    fpass->writeToStream(*sout);
   }
   else if (outExt=="v") {
     c->runPasses({"removebulkconnections","flattentypes","verilog"});
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
-    std::ofstream file(outfileName);
-    vpass->writeToStream(file);
+    vpass->writeToStream(*sout);
   }
   else {
     cout << "NYI" << endl;

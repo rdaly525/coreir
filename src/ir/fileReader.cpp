@@ -222,7 +222,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     } //End Module loop
 
     //If top exists return it
-    if (j.count("top")) cout << "TOP: " << j["top"].get<string>() << endl;
     if (top && j.count("top")) {
       *top = getModSymbol(c,j["top"].get<string>());
     }

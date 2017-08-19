@@ -6,11 +6,11 @@
 namespace CoreIR {
 namespace Passes {
 
-//This will Verify that all modules 
-class Verify : public ModulePass {
+  //TODO description
+class WeakVerify : public ModulePass {
   public :
     static std::string ID;
-    Verify() : ModulePass(ID,"Verification",true) {}
+    WeakVerify() : ModulePass(ID,"Verifies no multiple outputs to inputs",true) {}
     bool runOnModule(Module* m) override;
 };
 

@@ -97,7 +97,7 @@ void PassManager::pushAllDependencies(string oname,stack<string> &work) {
 
 bool PassManager::run(PassOrder order,vector<string> nsnames) {
   this->nss.clear();
-  ASSERT(passMap.count("verify"),"Missing verifier pass");
+  ASSERT(passMap.count("weakverify"),"Missing weak verifier pass");
   for (auto nsname : nsnames) {
     ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
     this->nss.push_back(c->getNamespace(nsname));
@@ -132,8 +132,8 @@ bool PassManager::run(PassOrder order,vector<string> nsnames) {
           analysisPasses[amap.first] = false;
         }
         //Run Verifier pass
-        this->runPass(passMap["verify"]);
-        analysisPasses["verify"] = true;
+        this->runPass(passMap["weakverify"]);
+        analysisPasses["weakverify"] = true;
       }
       ret |= modified;
 

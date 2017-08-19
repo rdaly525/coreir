@@ -15,6 +15,11 @@ class Verilog : public InstanceGraphPass {
     static std::string ID;
     Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+    void setAnalysisInfo() override {
+      addDependency("strongverify");
+      addDependency("verifyflattenedtypes");
+    }
+    
     void writeToStream(std::ostream& os);
 };
 
