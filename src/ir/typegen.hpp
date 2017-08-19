@@ -10,7 +10,6 @@ class TypeGen {
   string name;
   Params params;
   bool flipped;
-  
   //TODO maybe cache the types based off the args
   public:
     TypeGen(Namespace* ns, string name, Params params, bool flipped=false) : ns(ns), name(name), params(params), flipped(flipped) {}

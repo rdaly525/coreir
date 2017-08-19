@@ -66,6 +66,10 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   Params genparams;
   Args defaultGenArgs; 
+  public:
+    typedef std::string (*NameGen_t)(Args);
+  private:
+    NameGen_t nameGen;
 
   //This is memory managed
   unordered_map<Args,Module*> genCache;
@@ -81,6 +85,13 @@ class Generator : public Instantiable {
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}
+    std::string getName(Args args=Args()) {
+      if (!nameGen || args.size()==0) return Instantiable::getName();
+      for (auto argmap : args) {
+        ASSERT(genparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist in " + Params2Str(genparams))
+      }
+      return nameGen(args);
+    }
     
     //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace

@@ -14,7 +14,10 @@ class Firrtl : public InstanceGraphPass {
   public :
     static std::string ID;
     Firrtl() : InstanceGraphPass(ID,"Creates Firrtl representation of IR",true) {}
-    bool runOnInstanceGraphNode(InstanceGraphNode& node);
+    bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+    void setAnalysisInfo() override {
+      addDependency("strongverify");
+    }
     void writeToStream(std::ostream& os);
 };
 
