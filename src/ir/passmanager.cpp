@@ -33,16 +33,22 @@ void PassManager::addPass(Pass* p) {
 //TODO Only do Specified Namespace for now
 bool PassManager::runNamespacePass(Pass* pass) {
   assert(pass);
-  return cast<NamespacePass>(pass)->runOnNamespace(this->ns);
+  bool modified = false;
+  for (auto ns : this->nss) {
+    modified |= cast<NamespacePass>(pass)->runOnNamespace(ns);
+  }
+  return modified;
 }
 
 //TODO only do specified Namespace for now
 bool PassManager::runModulePass(Pass* pass) {
   bool modified = false;
   ModulePass* mpass = cast<ModulePass>(pass);
-  for (auto modmap : this->ns->getModules()) {
-    Module* m = modmap.second;
-    modified |= mpass->runOnModule(m);
+  for (auto ns : this->nss) {
+    for (auto modmap : ns->getModules()) {
+      Module* m = modmap.second;
+      modified |= mpass->runOnModule(m);
+    }
   }
   return modified;
 }
@@ -89,10 +95,13 @@ void PassManager::pushAllDependencies(string oname,stack<string> &work) {
   }  
 }
 
-bool PassManager::run(PassOrder order,string nsname) {
-  ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
-  this->ns = c->getNamespace(nsname);
+bool PassManager::run(PassOrder order,vector<string> nsnames) {
+  this->nss.clear();
   ASSERT(passMap.count("verify"),"Missing verifier pass");
+  for (auto nsname : nsnames) {
+    ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
+    this->nss.push_back(c->getNamespace(nsname));
+  }
   bool ret = false;
   //Execute each in order (and the respective dependencies) independently
   for (auto oname : order) {

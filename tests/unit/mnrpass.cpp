@@ -95,7 +95,7 @@ int main() {
   c->addPass(pC);
   
   cout << "Running all the passes!" << endl;
-  c->runPasses({"sub2add","pC"});
+  c->runPasses({"sub2add","pC"},{"_G","mapperpatterns"});
   cout << "Printing the (hopefully) modified graph" << endl;
   ms->print();
   

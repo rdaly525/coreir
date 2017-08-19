@@ -39,12 +39,6 @@ class ModuleDef {
     void appendInstanceToIter(Instance* instance);
     void removeInstanceFromIter(Instance* instance);
     
-  public:
-    typedef unordered_map<Instantiable*,unordered_set<Instance*>> InstanceMapType;
-  protected:
-    //Map from Instantiables to a list of instances
-    InstanceMapType instanceMap;
-  
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
@@ -61,9 +55,6 @@ class ModuleDef {
     Metadata getMetadata() { return metadata;}
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
-    
-    InstanceMapType getInstanceMap();
-    
 
     Wireable* sel(string s);
     Wireable* sel(SelectPath path);

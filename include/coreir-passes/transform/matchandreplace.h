@@ -52,7 +52,10 @@ class MatchAndReplace : public ModulePass {
       this->verifyOpts(opts);
       this->preprocessPattern();
     }
-    bool runOnModule(Module* m);
+    void setAnalysisInfo() override {
+      addDependency("createinstancemap");
+    }
+    bool runOnModule(Module* m) override;
 
 };
 

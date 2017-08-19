@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir-passes/transform/matchandreplace.h"
+#include "coreir-passes/analysis/createinstancemap.h"
 
 #include <algorithm>
 #include <queue>
@@ -41,7 +42,6 @@ void Passes::MatchAndReplace::verifyOpts(Opts opts) {
 
 //This should load instanceKey, inCons, exCons
 void Passes::MatchAndReplace::preprocessPattern() {
-  cout << "NEW PATTERN" << endl;
   ModuleDef* pdef = pattern->getDef();
   //Just load it in whatever order if it is 0
   if (instanceKey.size()==0) {
@@ -109,17 +109,20 @@ Wireable* selWithCheck(Wireable* w, SelectPath path, bool* error) {
 bool Passes::MatchAndReplace::runOnModule(Module* m) {
   
   Module* container = m;
-  Context* c = container->getContext();
-  
+  Context* c = this->getContext();
+  //Skip any declarations and things not in Global
+  if (!m->hasDef()) return false;
+  if (m->getNamespace() != c->getNamespace("_G")) return false;
+
   ModuleDef* pdef = pattern->getDef();
   ModuleDef* cdef = container->getDef();
-  ModuleDef::InstanceMapType cinstMap = cdef->getInstanceMap();
+  auto cinstMap = getAnalysisPass<Passes::CreateInstanceMap>()->getInstanceMap(container);
+  auto pinstMap = getAnalysisPass<Passes::CreateInstanceMap>()->getInstanceMap(pattern);
 
   //If this module contains none of the any of the pattern instances, I will never find a match, so just return
-  for (auto pi : pdef->getInstanceMap()) {
+  for (auto pi : pinstMap) {
     //pi.first->print();
     if (!cinstMap.count(pi.first)) {
-      cout << "Crap, no matches!" << endl;
       return false;
     }
   }
@@ -258,13 +261,16 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
     if (this->getConfigArgs) {
       rConfigArgs = this->getConfigArgs(matchedInstances);
     }
-    else if (this->configargs.size()>1) {
+    else if (this->configargs.size()>0) {
       rConfigArgs = this->configargs;
     }
     if (isa<Generator>(replacement)) {
+
       cdef->addInstance(rName,cast<Generator>(replacement),this->genargs,rConfigArgs);
     }
     else {
+      container->print();
+      pattern->print();
       cdef->addInstance(rName,cast<Module>(replacement),rConfigArgs);
     }
     //For each matched instance...

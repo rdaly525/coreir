@@ -59,15 +59,6 @@ ModuleDef* ModuleDef::copy() {
   return def;
 }
 
-ModuleDef::InstanceMapType ModuleDef::getInstanceMap() {
-  ModuleDef::InstanceMapType imap;
-  for (auto instmap : this->getInstances()) {
-    Instantiable* i = instmap.second->getInstantiableRef();
-    imap[i].insert(instmap.second);
-  }
-  return imap;
-}
-
 //Can pass in either a single instance name
 //Or pass in a '.' deleminated string
 Wireable* ModuleDef::sel(string s) { 

@@ -230,7 +230,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       if (width==1) ptype = c->Bit();
       return c->Record({
         {"in",c->Flip(ptype)},
-        {"out",ptype}
+        {"out",c->Bit()}
       });
     }
   );

@@ -63,7 +63,7 @@ class Array {
 
 string Params2Json(Params gp) {
   Dict j;
-  for (auto it : gp) j.add(it.first,Param2Str(it.second));
+  for (auto it : gp) j.add(it.first,quote(Param2Str(it.second)));
   return j.toString();
 }
 

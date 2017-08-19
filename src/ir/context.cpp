@@ -92,9 +92,9 @@ void Context::addPass(Pass* p) {
   pm->addPass(p);
 }
 
-bool Context::runPasses(vector<string> order) {
+bool Context::runPasses(vector<string> order, vector<string> namespaces) {
   assert(pm);
-  return pm->run(order);
+  return pm->run(order,namespaces);
 }
 /* TODO This is not even used in the repo yet. Should write a test for it
 // This tries to link all the definitions of def namespace to declarations of decl namespace

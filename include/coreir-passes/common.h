@@ -9,6 +9,7 @@
 #include "analysis/coreirjson.h"
 #include "analysis/verify.h"
 #include "analysis/strongverify.h"
+#include "analysis/createinstancemap.h"
 
 //Transform passes
 #include "transform/hellot.h"
@@ -27,6 +28,7 @@ namespace CoreIR {
     //Analysis
     pm.addPass(new Passes::HelloA());
     pm.addPass(new Passes::ConstructInstanceGraph());
+    pm.addPass(new Passes::CreateInstanceMap());
     pm.addPass(new Passes::Firrtl());
     pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());

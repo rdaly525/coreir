@@ -20,7 +20,7 @@ bool checkTypes(Wireable* a, Wireable* b) {
   if (ta == c->Flip(tb) ) return false;
   
   Error e;
-  e.message("Cannot wire together");
+  e.message(a->getContainer()->getName() + ": Cannot wire together");
   e.message("  " + a->toString() + " : " + a->getType()->toString());
   e.message("  " + b->toString() + " : " + b->getType()->toString());
   c->error(e);

@@ -78,7 +78,7 @@ class Context {
     Generator* getGenerator(string ref);
     map<string,Namespace*> getNamespaces() {return libs;}
     void addPass(Pass* p);
-    bool runPasses(vector<string> order);
+    bool runPasses(vector<string> order,vector<string> namespaces = {"_G"});
 
     //TODO figure out a way to hide this (binary/coreir needs it)
     //Do not use unless you really have to.
