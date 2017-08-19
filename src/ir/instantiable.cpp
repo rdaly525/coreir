@@ -21,7 +21,9 @@ void Instantiable::setDefaultConfigArgs(Args defaultConfigArgs) {
   }
   this->defaultConfigArgs = defaultConfigArgs;
 }
-
+string Instantiable::getRefName() const {
+  return this->ns->getName() + "." + this->name;
+}
 
 bool operator==(const Instantiable & l,const Instantiable & r) {
   return l.isKind(r.getKind()) && (l.getName()==r.getName()) && (l.getNamespace()->getName() == r.getNamespace()->getName());

@@ -62,7 +62,6 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   if (auto mod = dyn_cast<Module>(i)) {
     isGenOrNoDef |= !mod->hasDef();
   }
-  cout << i->getName() << " " << isGenOrNoDef << endl;
   if (isGenOrNoDef) {
     for (auto inst : node.getInstanceList()) {
       for (auto record : cast<RecordType>(inst->getType())->getRecord()) {
@@ -85,7 +84,6 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   vector<std::pair<string,Type*>> newports;
   unordered_set<string> verifyUnique;
   for (auto portpair : ports) {
-    cout << "D: " << SelectPath2Str(portpair.first) << endl;
     string newport = join(portpair.first.begin(),portpair.first.end(),string("_"));
     ASSERT(verifyUnique.count(newport)==0,"NYI: Name clashes");
     newports.push_back({newport,portpair.second});

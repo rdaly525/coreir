@@ -49,6 +49,7 @@ class Instantiable {
     Params getConfigParams() { return configparams;}
     Metadata getMetadata() { return metadata;}
     const string& getName() const { return name;}
+    string getRefName() const;
     //string getName() const { return name;}
     virtual json toJson()=0;
     Namespace* getNamespace() const { return ns;}

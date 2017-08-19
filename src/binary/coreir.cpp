@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     ("h,help","help")
     ("v,verbose","Set verbose")
     ("i,input","input file: <file>.json",cxxopts::value<std::string>())
-    ("o,output","output file: <file>.<json|txt|firrtl|v>",cxxopts::value<std::string>())
+    ("o,output","output file: <file>.<json|fir|v|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass0>,<pass1>,<pass2>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
@@ -81,6 +81,7 @@ int main(int argc, char *argv[]) {
   if (options.count("h") || argc_copy==1) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
+    cout << endl;
     shutdown(c,openPassHandles);
     return 0;
   }
@@ -100,7 +101,6 @@ int main(int argc, char *argv[]) {
   if (options.count("o")) {
     string outfileName = options["o"].as<string>();
     outExt = getExt(outfileName);
-    cout << "ext: " << outExt << endl;
     ASSERT(outExt == "json" 
         || outExt == "txt"
         || outExt == "fir"
@@ -115,7 +115,8 @@ int main(int argc, char *argv[]) {
   if (!loadFromFile(c,infileName,&top)) {
     c->die();
   }
-  string topRef = top->getNamespace()->getName() + "." + top->getName();
+  string topRef = "";
+  if (top) topRef = top->getRefName();
   //if (userTop) {
   //  auto tref = splitString<vector<string>>(topRef,".");
   //  ASSERT(c->hasNamespace(tref[0]),"Missing top : " + topRef);
@@ -128,11 +129,11 @@ int main(int argc, char *argv[]) {
   //}
 
   //Load and run passes
+  bool modified = false;
   if (options.count("p")) {
     string plist = options["p"].as<string>();
     vector<string> porder = splitString<vector<string>>(plist,',');
-    bool modified = c->runPasses(porder);
-    cout << "Modified?: " << (modified?"Yes":"No") << endl;
+    modified = c->runPasses(porder);
   }
   
 
@@ -161,7 +162,7 @@ int main(int argc, char *argv[]) {
   else {
     cout << "NYI" << endl;
   }
-   
+  cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
 
   //Close all the open libs
   for (auto handle : openPassHandles) {
