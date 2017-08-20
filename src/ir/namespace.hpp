@@ -65,6 +65,7 @@ class Namespace {
     TypeGen* getTypeGen(string name);
     bool hasTypeGen(string name) {return typeGenList.count(name)>0;}
 
+    
     Generator* newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams=Params());
     Module* newModuleDecl(string name, Type* t,Params configparams=Params());
     void addModule(Module* m);

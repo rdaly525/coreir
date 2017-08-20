@@ -42,7 +42,10 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
       });
     }
   );
-  coreirprims->newGeneratorDecl("slice",sliceTypeGen,sliceParams);
+  auto slice = coreirprims->newGeneratorDecl("slice",sliceTypeGen,sliceParams);
+  json jverilog;
+  jverilog["parameters"] = {"width","lo","hi"};
+  slice->getMetaData()["verilog"] = jverilog;
 
   /* Name: concat
    * GenParams: 
@@ -72,7 +75,9 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
       });
     }
   );
-  coreirprims->newGeneratorDecl("concat",concatTypeGen,concatParams);
+  auto concat = coreirprims->newGeneratorDecl("concat",concatTypeGen,concatParams);
+  jverilog["parameters"] = {"lwidth","rwidth"};
+  concat->getMetaData()["verilog"] = jverilog;
 
   /* Name: strip
    * GenParams: 
@@ -156,9 +161,28 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   });
   Params regConfigParams({{"init",AINT}});
   TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
+
   auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
   reg->setDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
   reg->setDefaultConfigArgs({{"init",c->argInt(0)}});
+  
+  json jverilog;
+  jverilog["parameters"] = {"width","init"};
+  reg->getMetaData()["verilog"] = jverilog;
+
+  //Set nameGen function
+  auto regNameGen = [](Args args) {
+    string name = "reg_P";
+    bool rst = args["rst"]->get<ArgBool>();
+    bool clr = args["clr"]->get<ArgBool>();
+    bool en = args["en"]->get<ArgBool>();
+    if (rst) name += "R";
+    if (clr) name += "C";
+    if (en) name += "E";
+    return name;
+  };
+  reg->setNameGen(regNameGen);
+
 }
 
 Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
@@ -275,13 +299,16 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //   add,sub,mul,div,lt,leq,gt,geq,eq,neq,neg
   /////////////////////////////////
 
+
+  json jverilog;
+  jverilog["parameters"] = {"width"};
   //Lazy way:
-  
   //Add all the generators (with widthparams)
   for (auto tmap : opmap) {
     TypeGen* tg = coreirprims->getTypeGen(tmap.first);
     for (auto op : tmap.second) {
-      coreirprims->newGeneratorDecl(op,tg,widthparams);
+      Generator* g = coreirprims->newGeneratorDecl(op,tg,widthparams);
+      g->getMetaData()["verilog"] = jverilog;
     }
   }
 
@@ -328,8 +355,10 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       });
     }
   );
-  coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
-  
+  auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
+  jverilog["parameters"] = {"width","value"};
+  Const->getMetaData()["verilog"] = jverilog;
+
   //Add Term
   coreirprims->newTypeGen(
     "in", 

@@ -195,6 +195,9 @@ string Module2Json(Module* m) {
       j.add("connections",Connections2Json(cons));
     }
   }
+  if (m->hasMetaData()) {
+    j.add("metadata",toString(m->getMetaData()));
+  }
   return j.toMultiString();
 }
 
@@ -205,6 +208,9 @@ json Generator2Json(Generator* g) {
   j.add("genparams",Params2Json(g->getGenParams()));
   if (!g->getDefaultGenArgs().empty()) {
     j.add("defaultgenargs",Args2Json(g->getDefaultGenArgs()));
+  }
+  if (g->hasMetaData()) {
+    j.add("metadata",toString(g->getMetaData()));
   }
   return j.toMultiString();
 }

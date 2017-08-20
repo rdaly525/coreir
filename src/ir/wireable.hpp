@@ -10,7 +10,7 @@ namespace CoreIR {
 
 class InstanceGraphNode;
 
-class Wireable {
+class Wireable : public MetaData {
   public:
     enum WireableKind {WK_Interface,WK_Instance,WK_Select};
 
@@ -21,15 +21,13 @@ class Wireable {
 
     unordered_set<Wireable*> connected; 
     unordered_map<string,Wireable*> selects;
-    Metadata metadata;
   public :
-    Wireable(WireableKind kind, ModuleDef* container, Type* type) : kind(kind),  container(container), type(type) {}
+    Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
     virtual ~Wireable() {}
     virtual string toString() const=0;
     unordered_set<Wireable*> getConnectedWireables() { return connected;}
     unordered_map<string,Wireable*> getSelects() { return selects;}
     bool hasSel(string selstr) {return selects.count(selstr) >0;}
-    Metadata getMetadata() { return metadata;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();
     WireableKind getKind() const { return kind; }

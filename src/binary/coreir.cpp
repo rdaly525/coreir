@@ -17,19 +17,22 @@ string getExt(string s) {
 
 typedef std::map<std::string,std::pair<void*,Pass*>> PassHandle_t;
 
-void shutdown(Context* c,PassHandle_t openPassHandles) {
+bool shutdown(Context* c,PassHandle_t openPassHandles) {
+  bool err = false;
   //Close all the open passes
   for (auto handle : openPassHandles) {
     //Load the registerpass
     delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
     const char* dlsym_error = dlerror();
     if (dlsym_error) {
+      err = true;
       cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
       continue;
     }
     deletePass(handle.second.second);
   }
   deleteContext(c);
+  return true;
 }
 
 
@@ -42,9 +45,10 @@ int main(int argc, char *argv[]) {
     ("v,verbose","Set verbose")
     ("i,input","input file: <file>.json",cxxopts::value<std::string>())
     ("o,output","output file: <file>.<json|fir|v|dot>",cxxopts::value<std::string>())
-    ("p,passes","Run passes in order: '<pass0>,<pass1>,<pass2>,...'",cxxopts::value<std::string>())
+    ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
+    ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("_G"))
     ;
   
   //Do the parsing of the arguments
@@ -82,7 +86,7 @@ int main(int argc, char *argv[]) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
     cout << endl;
-    shutdown(c,openPassHandles);
+    if (!shutdown(c,openPassHandles) ) return 1;
     return 0;
   }
   
@@ -117,16 +121,6 @@ int main(int argc, char *argv[]) {
   }
   string topRef = "";
   if (top) topRef = top->getRefName();
-  //if (userTop) {
-  //  auto tref = splitString<vector<string>>(topRef,".");
-  //  ASSERT(c->hasNamespace(tref[0]),"Missing top : " + topRef);
-  //  ASSERT(c->getNamespace(tref[0])->hasModule(tref[1]),"Missing top : " + topRef);
-  //  Module* uTop = c->getNamespace(tref[0])->getModule(tref[1]);
-  //  if (uTop != top) {
-  //    cout << "WARNING: Overriding top="+uTop->getNamespace()->getName() + "." + uTop->getName() + " with top=" + topRef;
-  //  }
-  //  top = uTop;
-  //}
 
   //Load and run passes
   bool modified = false;
@@ -136,12 +130,11 @@ int main(int argc, char *argv[]) {
     modified = c->runPasses(porder);
   }
   
-
-
+  vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
 
   //Output to correct format
   if (outExt=="json") {
-    c->runPasses({"coreirjson"});
+    c->runPasses({"coreirjson"},namespaces);
     auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
     jpass->writeToStream(*sout,topRef);
   }
@@ -154,7 +147,7 @@ int main(int argc, char *argv[]) {
     fpass->writeToStream(*sout);
   }
   else if (outExt=="v") {
-    c->runPasses({"removebulkconnections","flattentypes","verilog"});
+    modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
     vpass->writeToStream(*sout);
@@ -164,16 +157,7 @@ int main(int argc, char *argv[]) {
   }
   cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
 
-  //Close all the open libs
-  for (auto handle : openPassHandles) {
-    //Load the registerpass
-    delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
-    const char* dlsym_error = dlerror();
-    if (dlsym_error) {
-      cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
-      return 1;
-    }
-    deletePass(handle.second.second);
-  }
+  //Shutdown
+  if (!shutdown(c,openPassHandles) ) return 1;
   return 0;
 }

@@ -31,6 +31,7 @@ string VModule::toString() {
 
 string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
+  Instantiable* iref = inst->getInstantiableRef();
   if (this->gen) {
     ASSERT(inst->isGen(),"DEBUG ME:");
   }
@@ -54,9 +55,20 @@ string VModule::toInstanceString(Instance* inst) {
     args[amap.first] = amap.second;
   }
   o << tab << mname << " ";
+  vector<string> params;
+  const json& jmeta = iref->getMetaData();
+  if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
+    params = jmeta["verilog"]["parameters"].get<vector<string>>();
+  }
+  else {
+    for (auto amap : args) {
+      params.push_back(amap.first);
+    }
+  }
   vector<string> paramstrs;
-  for (auto amap : args) {
-    string astr = "." + amap.first + "(" + amap.second->toString() + ")";
+  for (auto param : params) {
+    ASSERT(args.count(param),"Missing parameter " + param + " from " + Args2Str(args));
+    string astr = "." + param + "(" + args[param]->toString() + ")";
     paramstrs.push_back(astr);
   }
   if (paramstrs.size()) {

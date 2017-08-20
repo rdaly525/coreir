@@ -171,7 +171,7 @@ if __name__ == "__main__":
         body += "    r <= %s;\n" % rexpr(clr,en)
       body += "  end\n"
       body += "  assign out = r;"
-      name = "Reg_" + ("P" if posedge else "N")
+      name = "reg_" + ("P" if posedge else "N")
       if (rst):
         name += "R"
       if (clr):

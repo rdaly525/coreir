@@ -22,7 +22,7 @@ using namespace std;
 
 namespace CoreIR {
 
-class Instantiable {
+class Instantiable : public MetaData {
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
     enum LinkageKind {LK_Namespace=0, LK_Generated=1};
@@ -30,12 +30,11 @@ class Instantiable {
     InstantiableKind kind;
     Namespace* ns;
     string name;
-    Metadata metadata;
     Params configparams;
     Args defaultConfigArgs;
     LinkageKind linkageKind;
   public :
-    Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : MetaData(), kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
     virtual ~Instantiable() {}
     
     virtual bool hasDef() const=0;
@@ -47,7 +46,6 @@ class Instantiable {
     LinkageKind getLinkageKind() { return linkageKind; }
     Context* getContext();
     Params getConfigParams() { return configparams;}
-    Metadata getMetadata() { return metadata;}
     const string& getName() const { return name;}
     string getRefName() const;
     //string getName() const { return name;}
@@ -66,17 +64,14 @@ class Generator : public Instantiable {
   TypeGen* typegen;
   Params genparams;
   Args defaultGenArgs; 
-  public:
-    typedef std::string (*NameGen_t)(Args);
-  private:
-    NameGen_t nameGen=nullptr;
+  NameGen_t nameGen=nullptr;
 
   //This is memory managed
   unordered_map<Args,Module*> genCache;
   GeneratorDef* def = nullptr;
   
   public :
-    Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams,NameGen_t nameGen=nullptr);
+    Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams);
     ~Generator();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
     string toString() const;
@@ -101,6 +96,9 @@ class Generator : public Instantiable {
 
     void setDefaultGenArgs(Args defaultGenfigargs);
     Args getDefaultGenArgs() { return defaultGenArgs;}
+  
+    void setNameGen(NameGen_t ng) {nameGen = ng;}
+
 
 };
 

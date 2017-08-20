@@ -38,6 +38,7 @@ typedef unordered_map<string,Param> Params;
 typedef unordered_map<string,Arg*> Args;
 
 
+//TODO this is a hack solution that should be fixed
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
 // Use myPair for hashing
 template<class T1, class T2>
@@ -55,9 +56,10 @@ class TypeGen;
 class NamedType;
 typedef Type* (*TypeGenFun)(Context* c, Args args);
 typedef vector<myPair<string,Type*>> RecordParams ;
+typedef std::string (*NameGen_t)(Args);
 typedef myPair<uint,Type*> ArrayParams ;
 class TypeCache;
-struct Metadata;
+class MetaData;
 
 //instantiable.hpp
 class Instantiable;
@@ -111,6 +113,13 @@ Param Str2Param(string s);
 void checkArgsAreParams(Args args, Params params);
 
 bool hasChar(const std::string s, char c);
+
+
+template<class T> std::string toString(const T& t) {
+  ostringstream stream;
+  stream << t;
+  return stream.str();
+}
 
 template<typename BackInserter>
 BackInserter splitString(const std::string &s, char delim) {
