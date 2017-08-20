@@ -31,26 +31,28 @@ string VModule::toString() {
 
 string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
-  Args args = inst->getConfigArgs();
-  if (inst->isGen()) {
-    for (auto amap : inst->getGenArgs()) {
-      ASSERT(args.count(amap.first)==0,"NYI: aliasing config/args");
-      args[amap.first] = amap.second;
-    }
+  if (this->gen) {
+    ASSERT(inst->isGen(),"DEBUG ME:");
   }
   ostringstream o;
   string tab = "  ";
   string mname;
   unordered_map<string,VWire> iports;
+  Args args;
   if (gen) {
+    args = inst->getGenArgs();
+    Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
     mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
-    Type2Ports(gen->getTypeGen()->getType(args),iports);
   }
   else {
     mname = modname;
     iports = ports;
   }
 
+  for (auto amap : inst->getConfigArgs()) {
+    ASSERT(args.count(amap.first)==0,"NYI Alisaaed config/genargs");
+    args[amap.first] = amap.second;
+  }
   o << tab << mname << " ";
   vector<string> paramstrs;
   for (auto amap : args) {

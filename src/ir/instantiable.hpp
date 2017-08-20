@@ -69,14 +69,14 @@ class Generator : public Instantiable {
   public:
     typedef std::string (*NameGen_t)(Args);
   private:
-    NameGen_t nameGen;
+    NameGen_t nameGen=nullptr;
 
   //This is memory managed
   unordered_map<Args,Module*> genCache;
   GeneratorDef* def = nullptr;
   
   public :
-    Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams);
+    Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams,NameGen_t nameGen=nullptr);
     ~Generator();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
     string toString() const;
@@ -87,9 +87,6 @@ class Generator : public Instantiable {
     GeneratorDef* getDef() const {return def;}
     std::string getName(Args args=Args()) {
       if (!nameGen || args.size()==0) return Instantiable::getName();
-      for (auto argmap : args) {
-        ASSERT(genparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist in " + Params2Str(genparams))
-      }
       return nameGen(args);
     }
     

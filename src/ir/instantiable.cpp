@@ -34,7 +34,7 @@ ostream& operator<<(ostream& os, const Instantiable& i) {
   return os;
 }
 
-Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams) {
+Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams,NameGen_t nameGen) : Instantiable(IK_Generator,ns,name,configparams), typegen(typegen), genparams(genparams), nameGen(nameGen) {
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);

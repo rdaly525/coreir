@@ -44,7 +44,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     string iname = imap.first;
     Instance* inst = imap.second;
     Instantiable* iref = imap.second->getInstantiableRef();
-    vmod->addStmt("  //Wire declarations for {" + iref->getName() + "}." + imap.first);
+    vmod->addStmt("  //Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       vmod->addStmt(VWireDec(VWire(iname+"_"+rmap.first,rmap.second)));
     }
