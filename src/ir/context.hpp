@@ -76,9 +76,10 @@ class Context {
     Namespace* getCoreirPrims() {return getNamespace("coreir");}
     Module* getModule(string ref);
     Generator* getGenerator(string ref);
+    Instantiable* getInstantiable(string ref);
     map<string,Namespace*> getNamespaces() {return libs;}
     void addPass(Pass* p);
-    bool runPasses(vector<string> order,vector<string> namespaces= vector<string>({"_G"}));
+    bool runPasses(vector<string> order,vector<string> namespaces= vector<string>({"global"}));
 
     //TODO figure out a way to hide this (binary/coreir needs it)
     //Do not use unless you really have to.
@@ -90,13 +91,14 @@ class Context {
     Type* BitIn();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
-    Type* Named(string ns, string name);
-    Type* Named(string ns, string name, Args args);
+    Type* Named(string nameref);
+    Type* Named(string nameref, Args args);
+
     Type* Flip(Type* t);
     Type* In(Type* t);
     Type* Out(Type* t);
 
-    TypeGen* getTypeGen(string ns, string name);
+    TypeGen* getTypeGen(string nameref);
 
     RecordParams* newRecordParams();
     Params* newParams();
