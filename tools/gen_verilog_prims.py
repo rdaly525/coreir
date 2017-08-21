@@ -105,31 +105,70 @@ if __name__ == "__main__":
       f.write("//%s ops\n" % t)
       for op, exp in ops[t].iteritems():
         v = vmodule("coreir_"+op)
-        v.add_param("WIDTH",16)
+        v.add_param("width",16)
         if (t.find("unary")>=0):
-          v.add_input("in","WIDTH")
+          v.add_input("in","width")
         elif t == "static_shift":
-          v.add_input("in","WIDTH")
+          v.add_input("in","width")
           v.add_param("SHIFTBITS", 1)
         else:
-          v.add_input("in0","WIDTH")
-          v.add_input("in1","WIDTH")
+          v.add_input("in0","width")
+          v.add_input("in1","width")
         if (t.find("Reduce")>=0):
           v.add_output("out",1)
         else:
-          v.add_output("out","WIDTH")
+          v.add_output("out","width")
         v.add_body("  assign out = %s;" % exp)
         f.write(v.to_string())
     
     #Do the mux
     f.write("//ternary op\n")
-    v = vmodule("Mux")
-    v.add_param("WIDTH",16)
-    v.add_input("d0","WIDTH")
-    v.add_input("d1","WIDTH")
+    v = vmodule("coreir_mux")
+    v.add_param("width",16)
+    v.add_input("in0","width")
+    v.add_input("in1","width")
     v.add_input("sel",1)
-    v.add_output("out","WIDTH")
-    v.add_body("  assign out = sel ? d1 : d0;")
+    v.add_output("out","width")
+    v.add_body("  assign out = sel ? in1 : in0;")
+    f.write(v.to_string())
+
+    #Do Slice
+    f.write("//slice op\n")
+    v = vmodule("coreir_slice")
+    v.add_param("width",16)
+    v.add_param("lo",0)
+    v.add_param("hi",16)
+    v.add_input("in","width")
+    v.add_output("out","(hi-lo)")
+    v.add_body("  assign out = in[hi-1:lo];")
+    f.write(v.to_string())
+    
+    #Do concat
+    f.write("//concat op\n")
+    v = vmodule("coreir_concat")
+    v.add_param("width0",16)
+    v.add_param("width1",16)
+    v.add_input("in0","width0")
+    v.add_input("in1","width1")
+    v.add_output("out","(width0+width1)")
+    v.add_body("  assign out = {in0,in1};")
+    f.write(v.to_string())
+
+    #Do the Const
+    f.write("//Const op\n")
+    v = vmodule("coreir_const")
+    v.add_param("width",16)
+    v.add_param("value",0)
+    v.add_output("out","width")
+    v.add_body("  assign out = value;")
+    f.write(v.to_string())
+    
+    #Do the term
+    f.write("//term op\n")
+    v = vmodule("coreir_term")
+    v.add_param("width",16)
+    v.add_input("in","width")
+    v.add_body("  ")
     f.write(v.to_string())
 
     #Now do the registers
@@ -148,7 +187,7 @@ if __name__ == "__main__":
     def rexpr(clr,en):
       expr = "in"
       if (clr):
-        expr = "(clr ? INIT : in)"
+        expr = "(clr ? init : in)"
       if (en):
         expr = "en ? %s : r" % expr
       return expr
@@ -159,32 +198,32 @@ if __name__ == "__main__":
       en = (i>>3) & 1
       if (rst and clr):
         continue
-      body = "  reg [WIDTH-1:0] r;\n"
+      body = "  reg [width-1:0] r;\n"
       body += "  always @(%s clk" % ("posedge" if posedge else "negedge")
       if (rst):
         body += ", negedge rst"
       body += ") begin\n"
       if (rst):
-        body += "    if (!rst) r <= INIT;\n"
+        body += "    if (!rst) r <= init;\n"
         body += "    else r <= %s;\n" % rexpr(clr,en)
       else:
         body += "    r <= %s;\n" % rexpr(clr,en)
       body += "  end\n"
       body += "  assign out = r;"
-      name = "Reg_" + ("P" if posedge else "N")
+      name = "reg_" + ("P" if posedge else "N")
       if (rst):
         name += "R"
       if (clr):
         name += "C"
       if (en):
         name += "E"
-      v = vmodule(name)
-      v.add_param("WIDTH",16)
-      if (rst or clr):
-        v.add_param("INIT",0)
-      v.add_input("in","WIDTH")
+      v = vmodule("coreir_"+name)
+      v.add_param("width",16)
+      #if (rst or clr):
+      v.add_param("init",0)
+      v.add_input("in","width")
       v.add_input("clk",1)
-      v.add_output("out","WIDTH")
+      v.add_output("out","width")
       if (rst):
         v.add_input("rst",1)
       if (clr):

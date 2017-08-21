@@ -82,10 +82,10 @@ void coreir2firrtl(Instantiable* i,FModule& fm) {
     fm.addStmt("out <= mux(sel,in[0],in[1])");
   }
   else if (i->getName()=="reg") {
-    ASSERT(0,"NYI");
+    ASSERT(0,"NYI Registers");
   }
   else if (i->getName()=="const") {
-    ASSERT(0,"NYI");
+    ASSERT(0,"NYI Constants");
   }
   else if (opmap["binary"].count(i->getName()) 
      || opmap["binaryReduce"].count(i->getName())) {

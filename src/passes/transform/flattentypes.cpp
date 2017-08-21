@@ -17,24 +17,27 @@ bool isBitOrArrOfBits(Type* t) {
 }
 
 //Gets all the ports that are not the top level
-void getPortList(Type* t, SelectPath cur,vector<std::pair<SelectPath,Type*>>& ports) {
+void getPortList(Type* t, SelectPath cur,vector<std::pair<SelectPath,Type*>>& ports,vector<string>& uports) {
   if (isBitOrArrOfBits(t)) {
     if (cur.size()>1) {
       ports.push_back({cur,t});
+    }
+    else {
+      uports.push_back({cur[0]});
     }
   }
   else if (auto at = dyn_cast<ArrayType>(t)) {
     for (uint i=0; i<at->getLen(); ++i) {
       SelectPath next = cur;
       next.push_back(to_string(i));
-      getPortList(at->getElemType(),next,ports);
+      getPortList(at->getElemType(),next,ports,uports);
     }
   }
   else if (auto rt = dyn_cast<RecordType>(t)) {
     for (auto record : rt->getRecord()) {
       SelectPath next = cur;
       next.push_back(record.first);
-      getPortList(record.second,next,ports);
+      getPortList(record.second,next,ports,uports);
     }
   }
   else {
@@ -62,7 +65,6 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   if (auto mod = dyn_cast<Module>(i)) {
     isGenOrNoDef |= !mod->hasDef();
   }
-  cout << i->getName() << " " << isGenOrNoDef << endl;
   if (isGenOrNoDef) {
     for (auto inst : node.getInstanceList()) {
       for (auto record : cast<RecordType>(inst->getType())->getRecord()) {
@@ -79,13 +81,16 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //Get a list of all the correct ports necessary. 
   vector<std::pair<SelectPath,Type*>> ports;
-  getPortList(mod->getType(),{},ports);
-  
+  vector<string> unchanged;
+  getPortList(mod->getType(),{},ports,unchanged);
+
+  //Early out if no new ports
+  if (ports.size()==0) return false;
+
   //Create a list of new names for the ports
   vector<std::pair<string,Type*>> newports;
   unordered_set<string> verifyUnique;
   for (auto portpair : ports) {
-    cout << "D: " << SelectPath2Str(portpair.first) << endl;
     string newport = join(portpair.first.begin(),portpair.first.end(),string("_"));
     ASSERT(verifyUnique.count(newport)==0,"NYI: Name clashes");
     newports.push_back({newport,portpair.second});
@@ -115,6 +120,10 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     //connect all old ports of passtrhough to new ports of wireable
     for (uint i=0; i<ports.size(); ++i) {
       def->connect(pt->sel("in")->sel(ports[i].first), w->sel(newports[i].first));
+    }
+    //reconnect all unchanged ports
+    for (auto p : unchanged) {
+      def->connect(pt->sel("in")->sel(p),w->sel(p));
     }
 
     //inline the passthrough

@@ -13,7 +13,6 @@
 #include "json.hpp"
 
 #include "wireable.hpp"
-#include "metadata.hpp"
 
 using namespace std;
 
@@ -27,8 +26,6 @@ class ModuleDef {
     unordered_map<string,Instance*> instances;
     unordered_set<Connection> connections;
     SelCache* cache;
-    Metadata metadata;
-    Metadata implementations; // TODO maybe have this just be inhereted moduledef classes
     SelCache* getCache() { return cache;}
 
     // Instances Iterator Internal Fields/API
@@ -52,7 +49,6 @@ class ModuleDef {
     Context* getContext();
     const string& getName();
     Type* getType();
-    Metadata getMetadata() { return metadata;}
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 

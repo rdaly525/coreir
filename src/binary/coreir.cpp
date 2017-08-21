@@ -11,25 +11,28 @@ using namespace CoreIR;
 
 string getExt(string s) {
   auto split = splitString<vector<string>>(s,'.');
-  ASSERT(split.size()==2,"File needs extention: " + s);
-  return split[1];
+  ASSERT(split.size()>=2,"File needs extention: " + s);
+  return split[split.size()-1];
 }
 
 typedef std::map<std::string,std::pair<void*,Pass*>> PassHandle_t;
 
-void shutdown(Context* c,PassHandle_t openPassHandles) {
+bool shutdown(Context* c,PassHandle_t openPassHandles) {
+  bool err = false;
   //Close all the open passes
   for (auto handle : openPassHandles) {
     //Load the registerpass
     delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
     const char* dlsym_error = dlerror();
     if (dlsym_error) {
+      err = true;
       cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
       continue;
     }
     deletePass(handle.second.second);
   }
   deleteContext(c);
+  return true;
 }
 
 
@@ -41,10 +44,11 @@ int main(int argc, char *argv[]) {
     ("h,help","help")
     ("v,verbose","Set verbose")
     ("i,input","input file: <file>.json",cxxopts::value<std::string>())
-    ("o,output","output file: <file>.<json|txt|firrtl|v>",cxxopts::value<std::string>())
-    ("p,passes","Run passes in order: '<pass0>,<pass1>,<pass2>,...'",cxxopts::value<std::string>())
+    ("o,output","output file: <file>.<json|fir|v|dot>",cxxopts::value<std::string>())
+    ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
+    ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("_G"))
     ;
   
   //Do the parsing of the arguments
@@ -81,7 +85,8 @@ int main(int argc, char *argv[]) {
   if (options.count("h") || argc_copy==1) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
-    shutdown(c,openPassHandles);
+    cout << endl;
+    if (!shutdown(c,openPassHandles) ) return 1;
     return 0;
   }
   
@@ -90,67 +95,48 @@ int main(int argc, char *argv[]) {
   }
 
   ASSERT(options.count("i"),"No input specified")
-  ASSERT(options.count("o"),"No output specified")
-  string infileName;
-  string outfileName;
-  try {
-    infileName = options["i"].as<string>();
-    outfileName = options["o"].as<string>();
-  //string topRef = a.get<string>("top");
-  //bool userTop = topRef != "";
-  } catch(cxxopts::option_requires_argument_exception& exc) {
-    cout << exc.what() << endl;
-    exit(1);
-  }
+  string infileName = options["i"].as<string>();
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");
-  string outExt = getExt(outfileName);
-  ASSERT(outExt == "json" 
-      || outExt == "txt"
-      || outExt == "fir"
-      || outExt == "v", "Cannot support out extention: " + outExt);
-
-  cout << "in: " << infileName << endl;
-  cout << "out: " << outfileName << endl;
-
   
+  std::ostream* sout = &std::cout;
+  std::ofstream fout;
+  string outExt = "json";
+  if (options.count("o")) {
+    string outfileName = options["o"].as<string>();
+    outExt = getExt(outfileName);
+    ASSERT(outExt == "json" 
+        || outExt == "txt"
+        || outExt == "fir"
+        || outExt == "v", "Cannot support out extention: " + outExt);
+    fout.open(outfileName);
+    ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
+    sout = &fout;
+  }
 
   //Load input
   Module* top;
   if (!loadFromFile(c,infileName,&top)) {
     c->die();
   }
-  string topRef = top->getNamespace()->getName() + "." + top->getName();
-  //if (userTop) {
-  //  auto tref = splitString<vector<string>>(topRef,".");
-  //  ASSERT(c->hasNamespace(tref[0]),"Missing top : " + topRef);
-  //  ASSERT(c->getNamespace(tref[0])->hasModule(tref[1]),"Missing top : " + topRef);
-  //  Module* uTop = c->getNamespace(tref[0])->getModule(tref[1]);
-  //  if (uTop != top) {
-  //    cout << "WARNING: Overriding top="+uTop->getNamespace()->getName() + "." + uTop->getName() + " with top=" + topRef;
-  //  }
-  //  top = uTop;
-  //}
+  string topRef = "";
+  if (top) topRef = top->getRefName();
 
   //Load and run passes
+  bool modified = false;
   if (options.count("p")) {
     string plist = options["p"].as<string>();
     vector<string> porder = splitString<vector<string>>(plist,',');
-    bool modified = c->runPasses(porder);
-    cout << "Modified?: " << (modified?"Yes":"No") << endl;
+    modified = c->runPasses(porder);
   }
   
-
-
+  vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
 
   //Output to correct format
   if (outExt=="json") {
-    c->runPasses({"coreirjson"});
+    c->runPasses({"coreirjson"},namespaces);
     auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
-    
-    //Create file here.
-    std::ofstream file(outfileName);
-    jpass->writeToStream(file,topRef);
+    jpass->writeToStream(*sout,topRef);
   }
   else if (outExt=="fir") {
     c->runPasses({"firrtl"});
@@ -158,31 +144,20 @@ int main(int argc, char *argv[]) {
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
     //Create file here.
-    std::ofstream file(outfileName);
-    fpass->writeToStream(file);
+    fpass->writeToStream(*sout);
   }
   else if (outExt=="v") {
-    c->runPasses({"removebulkconnections","flattentypes","verilog"});
+    modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
-    std::ofstream file(outfileName);
-    vpass->writeToStream(file);
+    vpass->writeToStream(*sout);
   }
   else {
     cout << "NYI" << endl;
   }
-   
+  cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
 
-  //Close all the open libs
-  for (auto handle : openPassHandles) {
-    //Load the registerpass
-    delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
-    const char* dlsym_error = dlerror();
-    if (dlsym_error) {
-      cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
-      return 1;
-    }
-    deletePass(handle.second.second);
-  }
+  //Shutdown
+  if (!shutdown(c,openPassHandles) ) return 1;
   return 0;
 }

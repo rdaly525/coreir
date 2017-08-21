@@ -138,6 +138,9 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           if (jmod.count("defaultconfigargs")) {
             m->setDefaultConfigArgs(json2Args(c,configparams,jmod.at("defaultconfigargs")));
           }
+          if (jmod.count("metadata")) {
+            m->setMetaData(jmod["metadata"]);
+          }
           modqueue.push_back({m,jmod});
         }
       }
@@ -166,6 +169,9 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           if (jgen.count("defaultgenargs")) {
             g->setDefaultGenArgs(json2Args(c,genparams,jgen.at("defaultgenargs")));
+          }
+          if (jgen.count("metadata")) {
+            g->setMetaData(jgen["metadata"]);
           }
         }
       }
@@ -222,7 +228,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     } //End Module loop
 
     //If top exists return it
-    if (j.count("top")) cout << "TOP: " << j["top"].get<string>() << endl;
     if (top && j.count("top")) {
       *top = getModSymbol(c,j["top"].get<string>());
     }

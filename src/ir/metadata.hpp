@@ -9,15 +9,17 @@ using json = nlohmann::json;
 using namespace std;
 
 namespace CoreIR {
-struct Metadata {
-  unordered_map<string,string> metadata;
-  Metadata() {}
-  Metadata(string file,uint line) {
-    metadata["file"] = file;
-    metadata["line"] = to_string(line); // TODO
-  }
-  bool empty() {return metadata.empty();}
-  json toJson();
+class MetaData {
+  json metadata;
+  public:
+    MetaData() {}
+    //Metadata(string file,uint line) {
+    //  metadata["file"] = file;
+    //  metadata["line"] = to_string(line);
+    //}
+    json& getMetaData() {return metadata;}
+    bool hasMetaData() {return !metadata.empty();}
+    void setMetaData(json j) {metadata = j;}
 };
 
 }//CoreIR namespace

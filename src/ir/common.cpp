@@ -41,11 +41,13 @@ Connection connectionCtor(Wireable* a, Wireable* b) {
 
 string Param2Str(Param genparam) {
   switch(genparam) {
+    case ABOOL : return "bool";
     case AINT : return "int";
     case ASTRING : return "string";
     case ATYPE : return "type";
-    default : return "NYI";
+    default : break;
   }
+  ASSERT(0,"NYI Param=" + to_string(genparam));
 }
 Param Str2Param(string s) {
   if (s=="int") return AINT;

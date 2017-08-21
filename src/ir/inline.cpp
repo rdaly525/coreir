@@ -115,7 +115,6 @@ Instance* addPassthrough(Wireable* w,string instname) {
   
   LocalConnections cons = w->getLocalConnections();
   for (auto con : cons) {
-    cout << "  " << Connection2Str(Connection(con.first,con.second)) << endl;
     SelectPath curPath = con.first->getSelectPath();
     curPath[0] = "out";
     curPath.push_front(instname);

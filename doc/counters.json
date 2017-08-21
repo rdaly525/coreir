@@ -1,5 +1,4 @@
 {
-  "top": "_G.counters",
   "namespaces": {
     "_G": {
       "modules": {
@@ -19,7 +18,7 @@
             },
             "cat": {
               "genref": "coreir.concat",
-              "genargs": {"lwidth":8, "rwidth":8}
+              "genargs": {"width0":8, "width1":8}
             },
             "neg": {
               "genref": "coreir.neg",
@@ -35,8 +34,8 @@
             ["count1.out.8","count0.en"],
             ["count0.out","slice0.in"],
             ["count1.out","slice1.in"],
-            ["slice0.out","cat.inl"],
-            ["slice1.out","cat.inr"],
+            ["slice0.out","cat.in0"],
+            ["slice1.out","cat.in1"],
             ["cat.out","neg.in"],
             ["neg.out","term.in"]
           ]

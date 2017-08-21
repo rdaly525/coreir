@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <set>
+#include "coreir-passes/analysis/coreirjson.h"
 
 namespace CoreIR {
 
@@ -117,8 +118,33 @@ bool saveToDot(Module* m, string filename) {
   return true;
 }
 
+
+bool saveToFilePretty(Namespace* ns, string filename,Module* top) {
+  Context* c = ns->getContext();
+  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file")
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  
+  c->runPasses({"coreirjson"},{ns->getName()});
+  auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
+  string topRef = "";
+  if (top) {
+    topRef = top->getNamespace()->getName() + "." + top->getName();
+  }
+  jpass->writeToStream(file,topRef);
+  return false;
+
+}
+
 //false cannot open file
 bool saveToFile(Namespace* ns, string filename,Module* top) {
+  
 
   Context* c = ns->getContext();
   std::ofstream file(filename);
@@ -129,8 +155,13 @@ bool saveToFile(Namespace* ns, string filename,Module* top) {
     c->error(e);
     return false;
   }
-
-  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file")
+  if (!endsWith(filename, ".json")) {
+    Error e;
+    e.message(filename + "Needs to be a json file");
+    e.fatal();
+    c->error(e);
+    return false;
+  } 
   // create a json file
   json j;
 
@@ -140,7 +171,13 @@ bool saveToFile(Namespace* ns, string filename,Module* top) {
   
   if (top) {
     //for now make sure that top exists in namespace
-    ASSERT(top->getNamespace()->getName() == ns->getName(),"Top module is not in namespace " + ns->getName());
+    if (top->getNamespace() != ns || !ns->hasInstantiable(top->getName())) {
+      Error e;
+      e.message("Top module does not exit: " + top->getNamespace()->getName() + "." + top->getName());
+      e.fatal();
+      c->error(e);
+      return false;
+    }
     j["top"] = top->getNamespace()->getName() + "." + top->getName();
   }
   file << std::setw(2) << j;
