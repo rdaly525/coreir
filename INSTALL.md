@@ -16,9 +16,10 @@ Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.b
     `cd <path_to_coreir>`
     `make install`
 
-### Install standalone binary
-    `make bin`
-
 ### To verify coreir build
     
     `make test`
+
+### Install standalone binary
+
+    `make coreir`
