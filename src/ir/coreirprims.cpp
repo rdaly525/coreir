@@ -59,24 +59,24 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
    *    larrtype.elemtype == rarrtype.elemtype
    */
   Params concatParams({
-    {"lwidth",AINT},
-    {"rwidth",AINT}
+    {"width0",AINT},
+    {"width1",AINT}
   });
   auto concatTypeGen = coreirprims->newTypeGen(
     "concatTypeFun",
     concatParams,
     [](Context* c, Args args) {
-      uint lwidth = args.at("lwidth")->get<ArgInt>();
-      uint rwidth = args.at("rwidth")->get<ArgInt>();
+      uint width0 = args.at("width0")->get<ArgInt>();
+      uint width1 = args.at("width1")->get<ArgInt>();
       return c->Record({
-        {"inl",c->BitIn()->Arr(lwidth)},
-        {"inr",c->BitIn()->Arr(rwidth)},
-        {"out",c->Bit()->Arr(lwidth+rwidth)}
+        {"in0",c->BitIn()->Arr(width0)},
+        {"in1",c->BitIn()->Arr(width1)},
+        {"out",c->Bit()->Arr(width0+width1)}
       });
     }
   );
   auto concat = coreirprims->newGeneratorDecl("concat",concatTypeGen,concatParams);
-  jverilog["parameters"] = {"lwidth","rwidth"};
+  jverilog["parameters"] = {"width0","width1"};
   concat->getMetaData()["verilog"] = jverilog;
 
   /* Name: strip
