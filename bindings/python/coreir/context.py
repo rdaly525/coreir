@@ -96,5 +96,14 @@ class Context:
         func.restype = CORENamespace_p
         return Namespace(func(self.context), self)
 
+    def get_namespace(self,name):
+      ns = libcoreir_c.COREGetNamespace(self.context,ct.c_char_p(str.encode(name)))
+      return Namespace(ns,self)
+
     def __del__(self):
         libcoreir_c.COREDeleteContext(self.context)
+
+    def get_named_typed(self, namespace, type_name):
+        return Type(
+            libcoreir_c.COREContextNamed(self.context, str.encode(namespace), str.encode(type_name)),
+            self)

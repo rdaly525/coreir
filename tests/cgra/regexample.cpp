@@ -1,6 +1,5 @@
 #include "coreir.h"
 #include "coreir-lib/cgralib.h"
-#include "coreir-pass/passes.h"
 
 using namespace CoreIR;
 
@@ -39,19 +38,6 @@ int main() {
   Top->setDef(def);
   
   Top->print();
-  
-  bool err = false;
-  //Save to Json
-  cout << "Saving 2 json" << endl;
-  saveModule(Top,"_mapped_regexample.json",&err);
-  if(err) c->die();
-  deleteContext(c);
-  cout << "H7\n";
-  c = newContext();
-  CoreIRLoadLibrary_cgralib(c);
-  Module* m = loadModule(c,"_mapped_regexample.json",&err);
-  if(err) c->die();
-  m->print();
 
   deleteContext(c);
   return 0;

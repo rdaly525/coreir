@@ -1,7 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
-#include "coreir-pass/passes.h"
-
 
 using namespace CoreIR;
 
@@ -37,8 +34,8 @@ int main() {
     assert((N & (N-1)) == 0); //Check if power of 2
     assert(N!=1);
 
-    Namespace* stdlib = c->getNamespace("stdlib");
-    Generator* add2 = stdlib->getGenerator("add");
+    Namespace* coreir = c->getNamespace("coreir");
+    Generator* add2 = coreir->getGenerator("add");
     Generator* addN = c->getGlobal()->getGenerator("addN");
     
     Arg* aWidth = c->argInt(width);
@@ -47,8 +44,8 @@ int main() {
     def->connect("join.out","self.out");
     
     if (N == 2) {
-      def->connect("self.in.0","join.in.0");
-      def->connect("self.in.1","join.in.1");
+      def->connect("self.in.0","join.in0");
+      def->connect("self.in.1","join.in1");
     }
     else {
       //Connect half instances
@@ -59,8 +56,8 @@ int main() {
         def->connect({"self","in",to_string(i)},{"addN_0","in",to_string(i)});
         def->connect({"self","in",to_string(i+N/2)},{"addN_1","in",to_string(i)});
       }
-      def->connect("addN_0.out","join.in.0");
-      def->connect("addN_1.out","join.in.1");
+      def->connect("addN_0.out","join.in0");
+      def->connect("addN_1.out","join.in1");
     }
   });
   
@@ -71,57 +68,22 @@ int main() {
     {"out",c->Bit()->Arr(13)}
   });
 
-  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+  Namespace* coreir = c->getNamespace("coreir");
   Module* add12 = g->newModuleDecl("Add12",add12Type);
   ModuleDef* def = add12->newModuleDef();
     def->addInstance("add8_upper",addN,{{"width",c->argInt(13)},{"N",c->argInt(8)}});
     def->addInstance("add4_lower",addN,{{"width",c->argInt(13)},{"N",c->argInt(4)}});
-    def->addInstance("add2_join",stdlib->getGenerator("add"),{{"width",c->argInt(13)}});
+    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",c->argInt(13)}});
     def->connect("self.in8","add8_upper.in");
     def->connect("self.in4","add4_lower.in");
-    def->connect("add8_upper.out","add2_join.in.0");
-    def->connect("add4_lower.out","add2_join.in.1");
+    def->connect("add8_upper.out","add2_join.in0");
+    def->connect("add4_lower.out","add2_join.in1");
     def->connect("add2_join.out","self.out");
   add12->setDef(def);
   add12->print();
   
-  bool err = false;
-  cout << "Checking saving and loading pregen" << endl;
-  saveModule(add12, "_add12.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  loadModule(c,"_add12.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  
-  cout << "Running Generators" << endl;
-  rungenerators(c,add12,&err);
-  if (err) c->die();
+  c->runPasses({"rungenerators","flatten"});
   add12->print();
- 
-  cout << "Flattening everything" << endl;
-  flatten(c,add12,&err);
-  add12->print();
-  add12->getDef()->validate();
-
-  cout << "Checking saving and loading postgen" << endl;
-  saveModule(add12, "_add12Gen.json",&err);
-  if (err) {
-    cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-  
-  Module* m = loadModule(c,"_add12Gen.json", &err);
-  if(err) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
-  m->print();
 
   deleteContext(c);
 }

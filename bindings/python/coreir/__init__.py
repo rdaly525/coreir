@@ -4,8 +4,9 @@ import platform
 import os
 from coreir.lib import load_shared_lib, libcoreir_c
 from coreir.context import COREContext, COREContext_p, Context, COREMapKind, COREMapKind_STR2ARG_MAP, COREMapKind_STR2PARAM_MAP, COREMapKind_STR2ARG_MAP
-from coreir.module import COREModule, COREModule_p, COREModuleDef, COREModuleDef_p, ModuleDef, Module, \
+from coreir.module import Module, COREModule, COREModule_p, COREModuleDef, COREModuleDef_p, ModuleDef, Module, \
         COREDirectedInstance_p, COREDirectedConnection_p, COREDirectedModule_p
+from coreir.instantiable import Instantiable, COREInstantiable_p, Generator
 from coreir.namespace import CORENamespace, CORENamespace_p
 from coreir.type import COREType, COREType_p, CoreIRType, Params, Args, COREArg, COREArg_p, Type
 from coreir.wireable import COREWireable_p
@@ -20,6 +21,9 @@ libcoreir_c.CORENewMap.argtypes = [COREContext_p, ct.c_void_p, ct.c_void_p, ct.c
 libcoreir_c.CORENewMap.restype = ct.c_void_p
 
 libcoreir_c.CORENewContext.restype = COREContext_p
+
+libcoreir_c.COREContextNamed.argtypes = [COREContext_p, ct.c_char_p, ct.c_char_p]
+libcoreir_c.COREContextNamed.restype = COREType_p
 
 libcoreir_c.COREPrintErrors.argtypes = [COREContext_p]
 
@@ -48,6 +52,9 @@ libcoreir_c.CORESaveModule.argtypes = [COREModule_p, ct.c_char_p, ct.POINTER(ct.
 libcoreir_c.COREGetGlobal.argtypes = [COREContext_p]
 libcoreir_c.COREGetGlobal.restype = CORENamespace_p
 
+libcoreir_c.COREGetNamespace.argtypes = [COREContext_p, ct.c_char_p]
+libcoreir_c.COREGetNamespace.restype = CORENamespace_p
+
 libcoreir_c.CORENewModule.argtypes = [CORENamespace_p, ct.c_char_p, COREType_p, ct.c_void_p]
 libcoreir_c.CORENewModule.restype = COREModule_p
 
@@ -64,17 +71,26 @@ libcoreir_c.COREModuleGetDef.restype = COREModuleDef_p
 libcoreir_c.COREModuleDefAddModuleInstance.argtypes = [COREModuleDef_p, ct.c_char_p, COREModule_p, ct.c_void_p]
 libcoreir_c.COREModuleDefAddModuleInstance.restype = COREWireable_p
 
+libcoreir_c.COREModuleDefAddGeneratorInstance.argtypes = [COREModuleDef_p, ct.c_char_p, COREInstantiable_p, ct.c_void_p, ct.c_void_p]
+libcoreir_c.COREModuleDefAddGeneratorInstance.restype = COREWireable_p
+
 libcoreir_c.COREModuleDefGetInterface.argtypes = [COREModuleDef_p]
 libcoreir_c.COREModuleDefGetInterface.restype = COREWireable_p
 
-libcoreir_c.COREModuleDefGetInstances.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_uint)]
-libcoreir_c.COREModuleDefGetInstances.restype = ct.POINTER(COREWireable_p)
+libcoreir_c.COREModuleDefInstancesIterBegin.argtypes = [COREModuleDef_p]
+libcoreir_c.COREModuleDefInstancesIterBegin.restype = COREWireable_p
+
+libcoreir_c.COREModuleDefInstancesIterEnd.argtypes = [COREModuleDef_p]
+libcoreir_c.COREModuleDefInstancesIterEnd.restype = COREWireable_p
+
+libcoreir_c.COREModuleDefInstancesIterNext.argtypes = [COREModuleDef_p, COREWireable_p]
+libcoreir_c.COREModuleDefInstancesIterNext.restype = COREWireable_p
 
 libcoreir_c.COREModuleGetDirectedModule.argtypes = [COREModule_p]
 libcoreir_c.COREModuleGetDirectedModule.restype = COREDirectedModule_p
 
-libcoreir_c.COREGetInstRefName.argtypes = [COREWireable_p]
-libcoreir_c.COREGetInstRefName.restype = ct.c_char_p
+libcoreir_c.COREGetInstantiableRefName.argtypes = [COREWireable_p]
+libcoreir_c.COREGetInstantiableRefName.restype = ct.c_char_p
 
 libcoreir_c.COREGetConfigValue.argtypes = [COREWireable_p,ct.c_char_p]
 libcoreir_c.COREGetConfigValue.restype = COREArg_p;
@@ -172,3 +188,18 @@ libcoreir_c.CORETypeGetSize.restype = ct.c_uint
 
 libcoreir_c.COREInstanceGetGenArgs.argtypes = [COREWireable_p, ct.POINTER(ct.POINTER(ct.c_char_p)), ct.POINTER(ct.POINTER(COREArg_p)), ct.POINTER(ct.c_int)]
 libcoreir_c.COREInstanceGetGenArgs.restype = None
+
+libcoreir_c.CORENamespaceGetInstantiable.argtypes = [CORENamespace_p, ct.c_char_p]
+libcoreir_c.CORENamespaceGetInstantiable.restype = COREInstantiable_p
+
+libcoreir_c.CORENamespaceGetGenerator.argtypes = [CORENamespace_p, ct.c_char_p]
+libcoreir_c.CORENamespaceGetGenerator.restype = COREInstantiable_p
+
+libcoreir_c.CORENamespaceGetModule.argtypes = [CORENamespace_p, ct.c_char_p]
+libcoreir_c.CORENamespaceGetModule.restype = COREModule_p
+
+libcoreir_c.COREInstantiableGetName.argtypes = [COREInstantiable_p]
+libcoreir_c.COREInstantiableGetName.restype = ct.c_char_p
+
+libcoreir_c.COREInstantiableGetKind.argtypes = [COREInstantiable_p]
+libcoreir_c.COREInstantiableGetKind.restype = ct.c_int

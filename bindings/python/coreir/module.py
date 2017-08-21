@@ -24,6 +24,13 @@ class ModuleDef(CoreIRType):
         assert isinstance(config,Args)
         return Instance(libcoreir_c.COREModuleDefAddModuleInstance(self.ptr, str.encode(name), module.ptr,config.ptr),self.context)
 
+    def add_generator_instance(self, name, generator, genargs, config=None):
+        if config is None:
+            config = self.context.newArgs()
+        assert isinstance(genargs, Args)
+        assert isinstance(config, Args)
+        return Instance(libcoreir_c.COREModuleDefAddGeneratorInstance(self.ptr, str.encode(name), generator.ptr, genargs.ptr, config.ptr), self.context)
+
     @property
     def interface(self):
         return Interface(libcoreir_c.COREModuleDefGetInterface(self.ptr),self.context)
@@ -35,9 +42,15 @@ class ModuleDef(CoreIRType):
 
     @property
     def instances(self):
-        size = ct.c_uint()
-        result = libcoreir_c.COREModuleDefGetInstances(self.ptr, ct.byref(size))
-        return [Instance(result[i],self.context) for i in range(size.value)]
+        result = []
+        curr= libcoreir_c.COREModuleDefInstancesIterBegin(self.ptr)
+        end = libcoreir_c.COREModuleDefInstancesIterEnd(self.ptr)
+        def get_pointer_addr(ptr):
+            return ct.cast(ptr, ct.c_void_p).value
+        while get_pointer_addr(curr) != get_pointer_addr(end):
+            result.append(Instance(curr, self.context))
+            curr = libcoreir_c.COREModuleDefInstancesIterNext(self.ptr, curr)
+        return result
 
     @property
     def connections(self):
@@ -75,7 +88,6 @@ class Module(CoreIRType):
     def save_to_file(self, file_name):
         err = ct.c_bool(False)
         assert (err.value ==False)
-        print("Trying to save to file!\n")
         libcoreir_c.CORESaveModule(self.ptr, str.encode(file_name),ct.byref(err))
         assert(err.value==False)
 
@@ -103,17 +115,26 @@ class DirectedInstance(CoreIRType):
     def inputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedInstanceGetInputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def outputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedInstanceGetOutputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
 
 
 class DirectedConnection(CoreIRType):
+    def __init__(self, ptr, context, parent):
+        super(DirectedConnection, self).__init__(ptr, context)
+        self.parent = parent
+
+    @property
+    def size(self):
+        assert self.parent.sel(self.source).type.size == self.parent.sel(self.sink).type.size
+        return self.parent.sel(self.source).type.size 
+
     @property
     def source(self):
         size = ct.c_int()
@@ -137,19 +158,19 @@ class DirectedModule(CoreIRType):
     def connections(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetConnections(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def inputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetInputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def outputs(self):
         num_connections = ct.c_int()
         result = libcoreir_c.COREDirectedModuleGetOutputs(self.ptr, ct.byref(num_connections))
-        return [DirectedConnection(result[i], self.context) for i in range(num_connections.value)]
+        return [DirectedConnection(result[i], self.context, self) for i in range(num_connections.value)]
 
     @property
     def instances(self):

@@ -1,5 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
 #include <cassert>
 
 using namespace CoreIR;
@@ -84,8 +83,8 @@ int main() {
   
   //Test casting of Generator
   {
-    Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
-    Instantiable* m = stdlib->getGenerator("add");
+    Namespace* coreir = c->getNamespace("coreir");
+    Instantiable* m = coreir->getGenerator("add");
     assert(isa<Generator>(m));
     Generator* mi = cast<Generator>(m);
     assert(dyn_cast<Instantiable>(m));

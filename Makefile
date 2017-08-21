@@ -6,7 +6,7 @@ ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
 endif
 
-all: install test
+all: install bin epass
 
 .PHONY: test
 test: install
@@ -26,17 +26,26 @@ py: install
 
 .PHONY: install
 install:
-	$(MAKE) -C src build/coreir.$(TARGET)
-	$(MAKE) -C src/lib $(TARGET)
+	$(MAKE) -C src $(TARGET)
 
+.PHONY: bin
+bin: install
+	$(MAKE) -C src/binary -B
+
+.PHONY: epass
+epass: install
+	$(MAKE) -C epasses -B $(TARGET)
 
 .PHONY: clean
 clean:
 	rm -rf lib/*
+	rm -rf bin/*
 	-rm _*json
+	-rm _*fir
+	-rm _*v
 	$(MAKE) -C src clean
-	$(MAKE) -C src/lib clean
 	$(MAKE) -C tests clean
+	$(MAKE) -C epasses clean
 
 .PHONY: travis
 travis: 

@@ -1,29 +1,23 @@
 [![Build Status](https://travis-ci.org/rdaly525/coreir.svg?branch=master)](https://travis-ci.org/rdaly525/coreir)
 
-
 ## Tested Compatable compilers:  
   gcc 4.9  
   Apple LLVM version 8.0.0 (clang-800.0.42.1)  
 
-## How to Install CoreIR
+## How to Install from source
+If you are using osx:
+include `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir>/lib` in your bashrc/.profile 
 
-### If you are using a Linux environment:  
-  To Install:  
-  
-    make install
-  
-  To verify coreir build
+If you are using linux:
+include `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` in your bashrc/.profile 
+
+ To Install:
     
-    make test
-  
-### If you are using an OSX environment
-  To Install:
-    
-    make osx
+    `make install`
 
   To verify coreir build
     
-    make test
+    `make install`
 
 ## How to use coreIR in your C++ project
 ```
@@ -32,31 +26,12 @@
 //include all coreir functions
 #include "coreir.h"
 
-//Optionally include stdlib
-#include "coreir-libs/stdlib.hpp"
-
-//Optionally include compiler passes
-#include "coreir-passes/passes.h"
-
-
 
 int main(...) {
 ...
 }
 
 ```
-
-```
-#Makefile example
-COREIR = <Path_to_coreir>
-INCS = $COREIR/include
-LPATH = $COREIR/lib
-LIBS =  -Wl,-rpath,$COREIR/lib -lcoreir-passes -lcoreir
-executable: main.o 
-	$(CXX) $(CXXFLAGS) $(INCS) -o executable main.o $(LPATH) $(LIBS) 
-
-```
-
 
 ## Libraries
 A coreir library `NAME` defines a C++ function `CoreIRLoadLibrary_NAME` that

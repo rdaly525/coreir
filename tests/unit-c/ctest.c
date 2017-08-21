@@ -1,5 +1,4 @@
 #include "coreir-c/coreir.h"
-#include "coreir-lib/stdlib.h"
 #include "assert.h"
 
 #include "stdio.h"
@@ -11,7 +10,6 @@ void print(char* a) {
 
 int main() {
   COREContext* c = CORENewContext();
-  CORELoadLibrary_stdlib(c);
   COREBool err = false;
   
   char** rkeys = malloc(2*sizeof(char*));
@@ -66,7 +64,6 @@ int main() {
 
   COREPrintModule(m);
 
-
   CORESaveModule(m,"_simple.json",&err);
   if (err) {
     COREPrintErrors(c);
@@ -78,7 +75,6 @@ int main() {
 
   COREDeleteContext(c);
   c = CORENewContext(c);
-  CORELoadLibrary_stdlib(c);
   m = CORELoadModule(c,"_simple.json",&err);
   if (err) {
     COREPrintErrors(c);

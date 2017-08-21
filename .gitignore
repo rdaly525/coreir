@@ -2,4 +2,4 @@
 **/_*.json
 *.pyc
 \#*\#
-bin/
+tests/bindings/python/ice40_test.json

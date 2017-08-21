@@ -1,6 +1,4 @@
 #include "coreir.h"
-#include "coreir-lib/stdlib.h"
-#include "coreir-pass/passes.h"
 
 using namespace CoreIR;
 
@@ -11,9 +9,9 @@ int main() {
   
   Namespace* g = c->getGlobal();
   
-  Namespace* stdlib = CoreIRLoadLibrary_stdlib(c);
+  Namespace* coreir = c->getNamespace("coreir");
   
-  Module* const16 = stdlib->getGenerator("const")->getModule({{"width",c->argInt(16)}});
+  Module* const16 = coreir->getGenerator("const")->getModule({{"width",c->argInt(16)}});
  
   // Define Module Type
   Type* mType = c->Record({

@@ -1,9 +1,53 @@
 General Ideas
  
+getAnalysisPass
+
 
 Simple Inst Pass
 Given a moduledecl 'from' and 'to' with the same interface,
 Replace all instances of 'from' to 'to'. This is wonderful for mapping
+
+
+Patter Matching Pass steps
+Step 1: Analyze pattern (can be done at pass creation time)
+  Bonus: verify the graph is connected.
+  Have 1:1 mapping between 0:numInstances-1 -> list of instances in pattern
+  Allow passing in a callback function that takes in vector<const Instances> and returns a boolean for if it matches.
+    This could be used to check for values of configArgs and such
+  Create an association between all instances and the internal connections (not touching the pattern edge)
+    (Try not to duplicate the connections)
+    This should probably look something like 
+      0: [ selpath0: [(selpathI, <i>),(selpathJ, <J>)], selpath0:[(selpathK, <K>)], ... ]
+      1: [ selpath->selpath, 0),  ...]
+      ...
+  All the patterns that touch the pattern edge should also be
+      0: [selpath->selpath, selpath->selpath, ...]
+      1: [selpath->selpath, ...]
+      ...
+  
+Step 2: Search for pattern (during passing running):
+  1: Verify all instances (and their counts) within the pattern exist within the current module.
+  2: allocate a Vector of N instances. vector<Instance*> v(N) which will contain matching pattern
+  3: start at the first instance of type 0. 
+    check if the types are the same 
+    Go through all select paths for 0.
+      verify that number of select paths are correct
+      verify that the other select path exists. Also label the instance as the correct number. push on set.
+    pop from set, repeat.
+    If either of the verify's fail, then move on to the next instance of type 0
+    if all numbers exist and are confirmed At this point I should have a vector of matching Instances corresponding to the correct index numbers.
+      if Custom checking function exists, then run that. Go back to 2.3 if it fails. Go to 3 if it passes
+Step 3:
+  Should have matching vector and also list of pattern edge connections
+  Go through all internal connections and remove them all.
+  go through every matching instance and make a passthrough for it.
+  remove all the matching instances.
+  Add instance of replacement pattern
+  for every pattern edge connections, connect from the "in" of the corresponding passthrough to the edge part of the instance.
+  inline the passthroughs.
+  Bam matched the module, go back to step 2.3
+
+
 
 
 Pattern Matching Pass
