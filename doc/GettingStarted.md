@@ -1,5 +1,3 @@
-##TODO
-
 ## How to use coreIR in your C++ project
 ```
 //(in main.cpp)
