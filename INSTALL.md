@@ -4,25 +4,32 @@
   gcc 4.9  
   Apple LLVM version 8.0.0 (clang-800.0.42.1)  
 
-## How to Install CoreIR
- To Install:
+## How to Install from source
+### If you are using osx:  
+Add `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile`
+
+### If you are using linux:  
+Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile` 
+
+### To Install:
     
-    make install
+    `cd <path_to_coreir>`
+    `make install`
 
-  To verify build
+### Install standalone binary
+    `make bin`
+
+### To verify coreir build
     
-    make install
+    `make test`
 
-## How to use coreIR in your C++ project
-```
-//(in main.cpp)
+## How to Install Python Bindings
 
-//include all coreir functions
-#include "coreir.h"
+### To Install: 
 
-
-int main(...) {
-...
-}
-
-```
+    `cd <path_to_coreir>`
+    `make py`
+  
+### To verify python bindings
+    
+    `make pytest`

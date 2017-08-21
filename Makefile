@@ -28,13 +28,9 @@ py: install
 install:
 	$(MAKE) -C src $(TARGET)
 
-.PHONY: bin
-bin: install
+.PHONY: coreir
+coreir: install
 	$(MAKE) -C src/binary -B
-
-.PHONY: epass
-epass: install
-	$(MAKE) -C epasses -B $(TARGET)
 
 .PHONY: clean
 clean:
@@ -45,7 +41,6 @@ clean:
 	-rm _*v
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
-	$(MAKE) -C epasses clean
 
 .PHONY: travis
 travis: 
@@ -54,5 +49,3 @@ travis:
 	$(MAKE) test
 	$(MAKE) py
 	$(MAKE) pytest
-	
-	
