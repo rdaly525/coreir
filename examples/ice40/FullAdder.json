@@ -1,11 +1,11 @@
 {
   "namespaces": {
-    "_G": {
+    "global": {
       "modules": {
         "FullAdder": {
           "connections": [
             [
-              "const_inst0.out.0",
+              "const_inst0.out",
               "inst0.I3"
             ],
             [
@@ -73,58 +73,7 @@
           ]
         }
       }
-    },
-    "ice40": {
-      "modules": {
-        "SB_CARRY": {
-          "type": [
-            "Record",
-            {
-              "CI": "BitIn",
-              "CO": "Bit",
-              "I0": "BitIn",
-              "I1": "BitIn"
-            }
-          ]
-        },
-        "SB_DFF": {
-          "type": [
-            "Record",
-            {
-              "C": "BitIn",
-              "D": "BitIn",
-              "Q": "Bit"
-            }
-          ]
-        },
-        "SB_DFFE": {
-          "type": [
-            "Record",
-            {
-              "C": "BitIn",
-              "D": "BitIn",
-              "E": "BitIn",
-              "Q": "Bit"
-            }
-          ]
-        },
-        "SB_LUT4": {
-          "configparams": {
-            "LUT_INIT": "int"
-          },
-          "type": [
-            "Record",
-            {
-              "I0": "BitIn",
-              "I1": "BitIn",
-              "I2": "BitIn",
-              "I3": "BitIn",
-              "O": "Bit"
-            }
-          ]
-        }
-      }
     }
   },
-  "top": "_G.FullAdder"
+  "top": "global.FullAdder"
 }
