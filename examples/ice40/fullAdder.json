@@ -31,6 +31,14 @@
             [
               "self.CIN",
               "inst0.I2"
+            ],
+            [
+              "self.O",
+              "inst0.O"
+            ],
+            [
+              "self.COUT",
+              "inst1.CO"
             ]
           ],
           "instances": {
@@ -60,6 +68,57 @@
               "COUT": "Bit",
               "I0": "BitIn",
               "I1": "BitIn",
+              "O": "Bit"
+            }
+          ]
+        }
+      }
+    },
+    "ice40": {
+      "modules": {
+        "SB_CARRY": {
+          "type": [
+            "Record",
+            {
+              "CI": "BitIn",
+              "CO": "Bit",
+              "I0": "BitIn",
+              "I1": "BitIn"
+            }
+          ]
+        },
+        "SB_DFF": {
+          "type": [
+            "Record",
+            {
+              "C": "BitIn",
+              "D": "BitIn",
+              "Q": "Bit"
+            }
+          ]
+        },
+        "SB_DFFE": {
+          "type": [
+            "Record",
+            {
+              "C": "BitIn",
+              "D": "BitIn",
+              "E": "BitIn",
+              "Q": "Bit"
+            }
+          ]
+        },
+        "SB_LUT4": {
+          "configparams": {
+            "LUT_INIT": "int"
+          },
+          "type": [
+            "Record",
+            {
+              "I0": "BitIn",
+              "I1": "BitIn",
+              "I2": "BitIn",
+              "I3": "BitIn",
               "O": "Bit"
             }
           ]
