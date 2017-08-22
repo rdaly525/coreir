@@ -6,6 +6,7 @@
 #include "coreir-passes/analysis/firrtl.h"
 #include "coreir-passes/analysis/coreirjson.h"
 #include "coreir-passes/analysis/verilog.h"
+#include "coreir-passes/analysis/smtlib2.h"
 
 using namespace CoreIR;
 
@@ -148,6 +149,7 @@ int main(int argc, char *argv[]) {
     ASSERT(outExt == "json" 
         || outExt == "txt"
         || outExt == "fir"
+        || outExt == "smt2"
         || outExt == "v", "Cannot support out extention: " + outExt);
     fout.open(outfileName);
     ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
@@ -189,6 +191,12 @@ int main(int argc, char *argv[]) {
   else if (outExt=="v") {
     modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
+    
+    vpass->writeToStream(*sout);
+  }
+  else if (outExt=="smt2") {
+    modified |= c->runPasses({"removebulkconnections","flattentypes","smtlib2"});
+    auto vpass = static_cast<Passes::SmtLib2*>(c->getPassManager()->getAnalysisPass("smtlib2"));
     
     vpass->writeToStream(*sout);
   }
