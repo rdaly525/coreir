@@ -42,3 +42,6 @@
   `doc/WritingPasses.md`
   `doc/LibraryGuide.md`
   `doc/JsonSpec.md`
+
+## SMT2 Generation
+./bin/coreir -i examples/counters.json -o test.smt2 -p 'liftclockports-coreir,wireclocks-coreir,smtlib2'
