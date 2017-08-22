@@ -45,7 +45,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   auto slice = coreirprims->newGeneratorDecl("slice",sliceTypeGen,sliceParams);
   json jverilog;
   jverilog["parameters"] = {"width","lo","hi"};
-  jverilog["prefix"] = {"coreir_"};
+  jverilog["prefix"] = "coreir_";
   slice->getMetaData()["verilog"] = jverilog;
 
   /* Name: concat
@@ -78,7 +78,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   );
   auto concat = coreirprims->newGeneratorDecl("concat",concatTypeGen,concatParams);
   jverilog["parameters"] = {"width0","width1"};
-  jverilog["prefix"] = {"coreir_"};
+  jverilog["prefix"] = "coreir_";
   concat->getMetaData()["verilog"] = jverilog;
 
   /* Name: strip
@@ -172,7 +172,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   
   json jverilog;
   jverilog["parameters"] = {"width","init"};
-  jverilog["prefix"] = {"coreir_"};
+  jverilog["prefix"] = "coreir_";
   reg->getMetaData()["verilog"] = jverilog;
 
   //Set nameGen function
@@ -307,7 +307,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
 
   json jverilog;
   jverilog["parameters"] = {"width"};
-  jverilog["prefix"] = {"coreir_"};
+  jverilog["prefix"] = "coreir_";
   //Lazy way:
   //Add all the generators (with widthparams)
   for (auto tmap : opmap) {
@@ -366,7 +366,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   );
   auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
   jverilog["parameters"] = {"width","value"};
-  jverilog["prefix"] = {"coreir_"};
+  jverilog["prefix"] = "coreir_";
   Const->getMetaData()["verilog"] = jverilog;
 
   //Add Term
