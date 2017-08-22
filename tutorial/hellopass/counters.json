@@ -1,0 +1,86 @@
+{"top":"global.counterTestBench",
+"namespaces":{
+  "global":{
+    "modules":{
+      "counterTestBench":{
+        "type":["Record",{
+          
+        }],
+        "instances":{
+          "c0":{
+            "modref":"global.counter_U0"
+          },
+          "c1":{
+            "modref":"global.counter_U1"
+          }
+        },
+        "connections":[
+          ["c0.out.16","c1.en"]
+        ]
+      },
+      "counter_U0":{
+        "type":["Record",{
+          "en":"BitIn",
+          "out":["Array",17,"Bit"],
+          "clk":["Named","coreir.clkIn"]
+        }],
+        "instances":{
+          "ai":{
+            "genref":"coreir.add",
+            "genargs":{"width":17}
+          },
+          "ci":{
+            "genref":"coreir.const",
+            "genargs":{"width":17},
+            "configargs":{"value":1}
+          },
+          "ri":{
+            "genref":"coreir.reg",
+            "genargs":{"clr":false, "en":true, "width":17, "rst":false},
+            "configargs":{"init":0}
+          }
+        },
+        "connections":[
+          ["self.out","ri.out"],
+          ["self.en","ri.en"],
+          ["self.clk","ri.clk"],
+          ["ri.out","ai.in1"],
+          ["ri.in","ai.out"],
+          ["ci.out","ai.in0"]
+        ]
+      },
+      "counter_U1":{
+        "type":["Record",{
+          "en":"BitIn",
+          "out":["Array",23,"Bit"],
+          "clk":["Named","coreir.clkIn"]
+        }],
+        "instances":{
+          "ai":{
+            "genref":"coreir.add",
+            "genargs":{"width":23}
+          },
+          "ci":{
+            "genref":"coreir.const",
+            "genargs":{"width":23},
+            "configargs":{"value":1}
+          },
+          "ri":{
+            "genref":"coreir.reg",
+            "genargs":{"clr":false, "en":true, "width":23, "rst":false},
+            "configargs":{"init":0}
+          }
+        },
+        "connections":[
+          ["self.out","ri.out"],
+          ["self.en","ri.en"],
+          ["self.clk","ri.clk"],
+          ["ri.out","ai.in1"],
+          ["ri.in","ai.out"],
+          ["ci.out","ai.in0"]
+        ]
+      }
+    }
+  }
+}
+}
