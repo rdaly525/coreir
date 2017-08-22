@@ -66,13 +66,21 @@ class VModule {
       Type2Ports(t,ports);
     }
     VModule(Module* m) : VModule(m->getName(),m->getType()) {
-      if (!m->hasDef()) modname = m->getNamespace()->getName() + "_" + m->getName();
+      const json& jmeta = m->getMetaData();
+      if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
+        modname = jmeta["verilog"]["prefix"].get<string>() + m->getName();
+      }
+
       this->addparams(m->getConfigParams());
       for (auto amap : m->getDefaultConfigArgs()) {
         paramDefaults[amap.first] = amap.second->toString();
       }
     }
-    VModule(Generator* g) : modname(g->getNamespace()->getName()+"_"+g->getName()), gen(g) {
+    VModule(Generator* g) : modname(g->getName()), gen(g) {
+      const json& jmeta = g->getMetaData();
+      if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
+        modname = jmeta["verilog"]["prefix"].get<string>() + g->getName();
+      }
       this->addparams(g->getGenParams());
       this->addparams(g->getConfigParams());
     }

@@ -45,6 +45,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   auto slice = coreirprims->newGeneratorDecl("slice",sliceTypeGen,sliceParams);
   json jverilog;
   jverilog["parameters"] = {"width","lo","hi"};
+  jverilog["prefix"] = {"coreir_"};
   slice->getMetaData()["verilog"] = jverilog;
 
   /* Name: concat
@@ -77,6 +78,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   );
   auto concat = coreirprims->newGeneratorDecl("concat",concatTypeGen,concatParams);
   jverilog["parameters"] = {"width0","width1"};
+  jverilog["prefix"] = {"coreir_"};
   concat->getMetaData()["verilog"] = jverilog;
 
   /* Name: strip
@@ -142,11 +144,13 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     bool clr = args.at("clr")->get<ArgBool>();
     bool rst = args.at("rst")->get<ArgBool>();
     assert(!(clr && rst));
+    Type* ptype = c->Bit()->Arr(width);
+    if (width==1) ptype = c->Bit();
 
     RecordParams r({
-        {"in" , c->BitIn()->Arr(width)},
+        {"in" , ptype->getFlipped()},
         {"clk", c->Named("coreir.clkIn")},
-        {"out", c->Bit()->Arr(width)}
+        {"out", ptype}
     });
     if (en) r.push_back({"en",c->BitIn()});
     if (clr) r.push_back({"clr",c->BitIn()});
@@ -168,6 +172,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   
   json jverilog;
   jverilog["parameters"] = {"width","init"};
+  jverilog["prefix"] = {"coreir_"};
   reg->getMetaData()["verilog"] = jverilog;
 
   //Set nameGen function
@@ -302,6 +307,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
 
   json jverilog;
   jverilog["parameters"] = {"width"};
+  jverilog["prefix"] = {"coreir_"};
   //Lazy way:
   //Add all the generators (with widthparams)
   for (auto tmap : opmap) {
@@ -350,13 +356,17 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
+      Type* ptype = c->Bit()->Arr(width);
+      if (width==1) ptype = c->Bit();
+
       return c->Record({
-        {"out",c->Bit()->Arr(width)}
+        {"out",ptype}
       });
     }
   );
   auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
   jverilog["parameters"] = {"width","value"};
+  jverilog["prefix"] = {"coreir_"};
   Const->getMetaData()["verilog"] = jverilog;
 
   //Add Term
@@ -365,8 +375,10 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
+      Type* ptype = c->Bit()->Arr(width);
+      if (width==1) ptype = c->Bit();
       return c->Record({
-        {"in",c->BitIn()->Arr(width)}
+        {"in",ptype->getFlipped()}
       });
     }
   );
