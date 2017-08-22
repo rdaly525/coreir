@@ -6,14 +6,14 @@ using namespace CoreIR;
 
 namespace {
 
-string SMTWireDec(SMTWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
+string SmtBVVarDec(SmtBVVar w) { return "(declare-fun " + w.getName() + " () (_ BitVec " + w.dimstr() + "))"; }
 
 
 string SMTAssign(Connection con) {
   Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
   Wireable* right = left==con.first ? con.second : con.first;
-  SMTWire vleft(left);
-  SMTWire vright(right);
+  SmtBVVar vleft(left);
+  SmtBVVar vright(right);
   return "  (= " + vleft.getName() + " " + vright.getName() + ")";
 }
 
@@ -46,7 +46,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Instantiable* iref = imap.second->getInstantiableRef();
     vmod->addStmt("  //Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      vmod->addStmt(SMTWireDec(SMTWire(iname+"_"+rmap.first,rmap.second)));
+      vmod->addStmt(SmtBVVarDec(SmtBVVar(iname+"_"+rmap.first,rmap.second)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     vmod->addStmt(modMap[iref]->toInstanceString(inst));

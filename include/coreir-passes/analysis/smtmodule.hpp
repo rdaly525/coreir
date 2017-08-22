@@ -18,13 +18,13 @@
 
 using namespace CoreIR; //TODO get rid of this
 
-class SMTWire {
+class SmtBVVar {
   string name;
   unsigned dim;
   Type::DirKind dir;
   public :
-    SMTWire(string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
-    SMTWire(Wireable* w) : SMTWire("",w->getType()) {
+    SmtBVVar(string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
+    SmtBVVar(Wireable* w) : SmtBVVar("",w->getType()) {
       SelectPath sp = w->getSelectPath();
       if (sp.size()==3) {
         ASSERT(dim==1 && !isNumber(sp[1]) && isNumber(sp[2]),"DEBUG ME:");
@@ -41,11 +41,8 @@ class SMTWire {
         name = sp[0]+ "_" + name;
       }
     }
-    SMTWire(string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
-    string dimstr() {
-      if (dim==1) return "";
-      return "["+to_string(dim-1)+":0]";
-    }
+    SmtBVVar(string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
+    string dimstr() {return to_string(dim);}
     string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
     string getName() { return name;}
 };
@@ -53,7 +50,7 @@ class SMTWire {
 
 class SMTModule {
   string modname;
-  unordered_map<string,SMTWire> ports;
+  unordered_map<string,SmtBVVar> ports;
   unordered_set<string> params;
   unordered_map<string,string> paramDefaults;
 
@@ -91,9 +88,9 @@ class SMTModule {
     string toString();
     string toInstanceString(Instance* inst);
   private :
-    void Type2Ports(Type* t,unordered_map<string,SMTWire>& ports) {
+    void Type2Ports(Type* t,unordered_map<string,SmtBVVar>& ports) {
       for (auto rmap : cast<RecordType>(t)->getRecord()) {
-        ports.emplace(rmap.first,SMTWire(rmap.first,rmap.second));
+        ports.emplace(rmap.first,SmtBVVar(rmap.first,rmap.second));
       }
     }
     void addparams(Params ps) { 

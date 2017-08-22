@@ -7,12 +7,10 @@ string SMTModule::toString() {
   vector<string> pdecs;
   for (auto pmap : ports) {
     auto port = pmap.second;
-    pdecs.push_back(port.dirstr() + " " + port.dimstr() + " " + port.getName());
+    pdecs.push_back(port.getName() + " () " + "(_ BitVec " + port.dimstr() + ")");
   }
   ostringstream o;
   string tab = "  ";
-  //Module declaration
-  o << endl << "module " << modname << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
 
   //Param declaraions
   for (auto p : params) {
@@ -25,7 +23,6 @@ string SMTModule::toString() {
   o << endl;
   
   for (auto s : stmts) o << s << endl;
-  o << endl << "endmodule //" << modname;
   return o.str();
 }
 
@@ -38,7 +35,7 @@ string SMTModule::toInstanceString(Instance* inst) {
   ostringstream o;
   string tab = "  ";
   string mname;
-  unordered_map<string,SMTWire> iports;
+  unordered_map<string,SmtBVVar> iports;
   Args args;
   if (gen) {
     args = inst->getGenArgs();
