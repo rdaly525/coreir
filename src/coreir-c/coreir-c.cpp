@@ -60,7 +60,7 @@ extern "C" {
   }
 
   COREType* COREContextNamed(COREContext* context, const char* namespace_, const char* type_name) {
-      return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_), std::string(type_name)));
+      return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_)+"."+std::string(type_name)));
   }
   
   const char* COREGetInstantiableRefName(COREWireable* iref) {

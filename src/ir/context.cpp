@@ -6,9 +6,9 @@ using namespace std;
 namespace CoreIR {
 
 Context::Context() : maxErrors(8) {
-  global = newNamespace("_G");
+  global = newNamespace("global");
   cache = new TypeCache(this);
-  //Automatically load stdlib
+  //Automatically load coreir
   CoreIRLoadLibrary_coreirprims(this);
   pm = new PassManager(this);
 }
@@ -68,23 +68,30 @@ Namespace* Context::getNamespace(string name) {
   }
   return it->second;
 }
+
 Module* Context::getModule(string ref) {
-  vector<string> refsplit = splitString<vector<string>>(ref,'.');
-  ASSERT(refsplit.size()==2,ref + " is not in form <namespace>.<module>");
+  vector<string> refsplit = splitRef(ref);
   ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
   Namespace* ns = getNamespace(refsplit[0]);
   ASSERT(ns->hasModule(refsplit[1]),"Missing module: " + ref);
   return ns->getModule(refsplit[1]);
 }
+
 Generator* Context::getGenerator(string ref) {
-  vector<string> refsplit = splitString<vector<string>>(ref,'.');
-  ASSERT(refsplit.size()==2,ref + " is not in form <namespace>.<module>");
+  vector<string> refsplit = splitRef(ref);
   ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
   Namespace* ns = getNamespace(refsplit[0]);
   ASSERT(ns->hasGenerator(refsplit[1]),"Missing module: " + ref);
   return ns->getGenerator(refsplit[1]);
 }
 
+Instantiable* Context::getInstantiable(string ref) {
+  vector<string> refsplit = splitRef(ref);
+  ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
+  Namespace* ns = getNamespace(refsplit[0]);
+  ASSERT(ns->hasInstantiable(refsplit[1]),"Missing Instantiable: " + ref);
+  return ns->getInstantiable(refsplit[1]);
+}
 
 void Context::addPass(Pass* p) {
   assert(pm);
@@ -147,18 +154,21 @@ Type* Context::Bit() { return cache->newBit(); }
 Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
 Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
+Type* Context::Named(string nameref) {
+  vector<string> split = splitRef(nameref);
+  ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
+  ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
+  return this->getNamespace(split[0])->getNamedType(split[1]);
+}
+
+Type* Context::Named(string nameref,Args args) {
+  vector<string> split = splitRef(nameref);
+  ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
+  ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
+  return this->getNamespace(split[0])->getNamedType(split[1],args);
+}
+
 Type* Context::Flip(Type* t) { return t->getFlipped();}
-Type* Context::Named(string ns, string name) {
-  return this->getNamespace(ns)->getNamedType(name);
-}
-
-Type* Context::Named(string ns, string name, Args args) {
-  return this->getNamespace(ns)->getNamedType(name,args);
-}
-
-TypeGen* Context::getTypeGen(string ns, string name) {
-  return this->getNamespace(ns)->getTypeGen(name);
-}
 
 Type* Context::In(Type* t) {
   assert(0 && "TODO NYI");
@@ -168,6 +178,12 @@ Type* Context::Out(Type* t) {
   assert(0 && "TODO NYI");
 }
 
+TypeGen* Context::getTypeGen(string nameref) {
+  vector<string> split = splitRef(nameref);
+  ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
+  ASSERT(this->getNamespace(split[0])->hasTypeGen(split[1]),"Missing TypeGen + " + nameref);
+  return this->getNamespace(split[0])->getTypeGen(split[1]);
+}
 
 RecordParams* Context::newRecordParams() {
   RecordParams* record_param = new RecordParams();

@@ -1,6 +1,6 @@
 {
   "namespaces": {
-    "_G": {
+    "global": {
       "modules": {
         "test_module": {
           "connections": [
@@ -48,5 +48,5 @@
       }
     }
   },
-  "top": "_G.test_module"
+  "top": "global.test_module"
 }

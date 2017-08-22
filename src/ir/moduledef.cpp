@@ -151,6 +151,18 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   return inst;
 }
 
+Instance* ModuleDef::addInstance(string instname,string iref,Args genOrConfigargs, Args configargs) {
+  vector<string> split = splitRef(iref);
+  Instantiable* ref = this->getContext()->getInstantiable(iref);
+  if (auto g = dyn_cast<Generator>(ref)) {
+    return this->addInstance(instname,g,genOrConfigargs,configargs);
+  }
+  else {
+    auto m = cast<Module>(ref);
+    return this->addInstance(instname,m,genOrConfigargs);
+  }
+}
+
 Instance* ModuleDef::addInstance(Instance* i,string iname) {
   if (iname=="") {
     iname = i->getInstname();

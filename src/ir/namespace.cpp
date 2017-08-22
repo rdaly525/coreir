@@ -64,9 +64,8 @@ void Namespace::newNominalTypeGen(string name, string nameFlip, Params genparams
   typeGenList[nameFlip] = typegenFlip;
 }
 
-//TODO does not tell me which kind
 bool Namespace::hasNamedType(string name) {
-  return typeGenNameMap.count(name) > 0 || namedTypeNameMap.count(name) > 0;
+  return namedTypeList.count(name) > 0;
 }
 
 //This has to be found. Error if not found

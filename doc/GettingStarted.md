@@ -1,4 +1,9 @@
-## How to use coreIR in your C++ project
+# Getting Started
+This guide should be a gentle introduction into CoreIR. We will build up an example module from scratch. 
+
+## Setup
+Create 
+
 ```
 //(in main.cpp)
 

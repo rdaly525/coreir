@@ -157,7 +157,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           checkJson(jgen,{"typegen","genparams","defaultgenargs","configparams","defaultconfigargs"});
           Params genparams = json2Params(jgen.at("genparams"));
           auto tgenref = getRef(jgen.at("typegen").get<string>());
-          TypeGen* typegen = c->getTypeGen(tgenref[0],tgenref[1]);
+          TypeGen* typegen = c->getTypeGen(jgen.at("typegen").get<string>());
           assert(genparams == typegen->getParams());
           Params configparams;
           if (jgen.count("configparams")) {
@@ -332,9 +332,9 @@ Type* json2Type(Context* c, json jt) {
       if (args.size()==3) { //Has args
         Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
         Args genargs = json2Args(c,genparams,args[2]);
-        return c->Named(nsname,name,genargs);
+        return c->Named(nsname+"."+name,genargs);
       }
-      return c->Named(nsname,name);
+      return c->Named(nsname+"."+name);
     }
     else {
       cout << "ERROR NYI!: " << args[0].get<string>() << endl;

@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
-    ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("_G"))
+    ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
     ;
   
   //Do the parsing of the arguments

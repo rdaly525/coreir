@@ -27,7 +27,7 @@ Usage:
   -l, --load_libs arg    load external libs:
                          '<path1.so>,<path2.so>,<path3.so>,...'
   -n, --namespaces arg   namespaces to output:
-                         '<namespace1>,<namespace2>,<namespace3>,...' (default: _G)
+                         '<namespace1>,<namespace2>,<namespace3>,...' (default: global)
 
 
 Analysis Passes

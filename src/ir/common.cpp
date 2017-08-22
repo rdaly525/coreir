@@ -89,7 +89,11 @@ void checkArgsAreParams(Args args, Params params) {
 }
 
 
-
+vector<string> splitRef(string s) {
+  auto p = splitString<vector<string>>(s,'.');
+  ASSERT(p.size()==2,s + " is not a valid Ref");
+  return p;
+}
 
 bool hasChar(const std::string s, char c) {
   return s.find_first_of(c) !=string::npos;
