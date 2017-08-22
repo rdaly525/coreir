@@ -50,6 +50,7 @@ string Param2Str(Param genparam) {
   ASSERT(0,"NYI Param=" + to_string(genparam));
 }
 Param Str2Param(string s) {
+  if (s=="bool") return ABOOL;
   if (s=="int") return AINT;
   if (s=="string") return ASTRING;
   if (s=="type") return ATYPE;
