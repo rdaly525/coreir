@@ -124,6 +124,423 @@
           ]
         }
       }
+    },
+    "coreir": {
+      "generators": {
+        "add": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "and": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "andr": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "unaryReduce"
+          ]
+        },
+        "concat": {
+          "genparams": {
+            "width0": "int",
+            "width1": "int"
+          },
+          "typegen": [
+            "coreir",
+            "concatTypeFun"
+          ]
+        },
+        "const": {
+          "configparams": {
+            "value": "int"
+          },
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "out"
+          ]
+        },
+        "dashr": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "dlshr": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "dshl": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "eq": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "mul": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "mux": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "ternary"
+          ]
+        },
+        "neg": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "unary"
+          ]
+        },
+        "not": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "unary"
+          ]
+        },
+        "or": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "orr": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "unaryReduce"
+          ]
+        },
+        "passthrough": {
+          "genparams": {
+            "type": "type"
+          },
+          "typegen": [
+            "coreir",
+            "passthrough"
+          ]
+        },
+        "reg": {
+          "configparams": {
+            "init": "int"
+          },
+          "defaultconfigargs": {
+            "init": 0
+          },
+          "defaultgenargs": {
+            "clr": false,
+            "en": false,
+            "rst": false
+          },
+          "genparams": {
+            "clr": "bool",
+            "en": "bool",
+            "rst": "bool",
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "regType"
+          ]
+        },
+        "sdiv": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "sge": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "sgt": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "sle": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "slice": {
+          "genparams": {
+            "hi": "int",
+            "lo": "int",
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "sliceTypeFun"
+          ]
+        },
+        "slt": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "smod": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "srem": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "sub": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "term": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "in"
+          ]
+        },
+        "udiv": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "uge": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "ugt": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "ule": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "ult": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binaryReduce"
+          ]
+        },
+        "urem": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "xor": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "binary"
+          ]
+        },
+        "xorr": {
+          "genparams": {
+            "width": "int"
+          },
+          "typegen": [
+            "coreir",
+            "unaryReduce"
+          ]
+        }
+      },
+      "modules": {
+        "Top": {
+          "type": "Any"
+        }
+      },
+      "namedtypegens": {
+        "binary": {
+          "genparams": {
+            "width": "int"
+          }
+        },
+        "binaryReduce": {
+          "genparams": {
+            "width": "int"
+          }
+        },
+        "concatTypeFun": {
+          "genparams": {
+            "width0": "int",
+            "width1": "int"
+          }
+        },
+        "in": {
+          "genparams": {
+            "width": "int"
+          }
+        },
+        "out": {
+          "genparams": {
+            "width": "int"
+          }
+        },
+        "passthrough": {
+          "genparams": {
+            "type": "type"
+          }
+        },
+        "regType": {
+          "genparams": {
+            "clr": "bool",
+            "en": "bool",
+            "rst": "bool",
+            "width": "int"
+          }
+        },
+        "sliceTypeFun": {
+          "genparams": {
+            "hi": "int",
+            "lo": "int",
+            "width": "int"
+          }
+        },
+        "ternary": {
+          "genparams": {
+            "width": "int"
+          }
+        },
+        "unary": {
+          "genparams": {
+            "width": "int"
+          }
+        },
+        "unaryReduce": {
+          "genparams": {
+            "width": "int"
+          }
+        }
+      },
+      "namedtypes": {
+        "clk": {
+          "flippedname": "clkIn",
+          "rawtype": "Bit"
+        },
+        "rst": {
+          "flippedname": "rstIn",
+          "rawtype": "Bit"
+        }
+      }
     }
   },
   "top": "_G.FullAdder"
