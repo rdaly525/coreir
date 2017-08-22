@@ -46,7 +46,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Instantiable* iref = imap.second->getInstantiableRef();
     smod->addStmt("  ; Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      smod->addStmt(SMTWireDec(SMTWire(iname+"_"+rmap.first,rmap.second)));
+      smod->addStmt(SmtBVVarDec(SmtBVVar(iname+"_"+rmap.first,rmap.second)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     smod->addStmt(modMap[iref]->toInstanceString(inst));
