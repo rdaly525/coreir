@@ -76,9 +76,10 @@ class Context {
     Namespace* getCoreirPrims() {return getNamespace("coreir");}
     Module* getModule(string ref);
     Generator* getGenerator(string ref);
+    Instantiable* getInstantiable(string ref);
     map<string,Namespace*> getNamespaces() {return libs;}
     void addPass(Pass* p);
-    bool runPasses(vector<string> order,vector<string> namespaces= vector<string>({"_G"}));
+    bool runPasses(vector<string> order,vector<string> namespaces= vector<string>({"global"}));
 
     //TODO figure out a way to hide this (binary/coreir needs it)
     //Do not use unless you really have to.
@@ -90,13 +91,14 @@ class Context {
     Type* BitIn();
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp);
-    Type* Named(string ns, string name);
-    Type* Named(string ns, string name, Args args);
+    Type* Named(string nameref);
+    Type* Named(string nameref, Args args);
+
     Type* Flip(Type* t);
     Type* In(Type* t);
     Type* Out(Type* t);
 
-    TypeGen* getTypeGen(string ns, string name);
+    TypeGen* getTypeGen(string nameref);
 
     RecordParams* newRecordParams();
     Params* newParams();
@@ -129,8 +131,9 @@ class Context {
 
 };
 
-//Module* loadModule(Context* c, string filename, bool* err);
-//void saveModule(Module* c, string filename, bool* err);
+Context* newContext();
+void deleteContext(Context* c);
+
 
 //This will load the namespaces in the file into the context
 //If there is a labeled "top", it will be returned in top (if it is not null)
@@ -144,15 +147,14 @@ bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
 bool saveToDot(Module* m, string filename);
   
   
-Context* newContext();
-void deleteContext(Context* c);
-
 //addPassthrough will create a passthrough Module for Wireable w with name <name>
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
   // that originally connected to w connecting to name.out which has the same type as w
 Instance* addPassthrough(Wireable* w,string instname);
 
+
+typedef Namespace* LoadLibrary_t(Context*);
 
 
 } //CoreIR namespace

@@ -31,7 +31,7 @@ class PassManager {
 
     //Runs all passes in order over namespaces
     //Returns if graph was modified
-    bool run(PassOrder order, vector<string> namespaceName={"_G"});
+    bool run(PassOrder order, vector<string> namespaceName={"global"});
 
     void setVerbosity(bool v) { verbose = v;}
     void printLog();

@@ -56,9 +56,14 @@ class ModuleDef {
     Wireable* sel(SelectPath path);
     
     //API for adding an instance of either a module or generator
-    Instance* addInstance(string,Generator*,Args genargs, Args config=Args());
-    Instance* addInstance(string,Module*,Args config=Args());
-    Instance* addInstance(Instance* i,string iname=""); //copys info about i
+    Instance* addInstance(string instname,Generator* genref,Args genargs, Args config=Args());
+    Instance* addInstance(string instname,Module* modref,Args config=Args());
+    
+    //Add instance using an Instantiable ref string
+    Instance* addInstance(string instname,string iref,Args genOrConfigargs=Args(), Args configargs=Args());
+    
+    //copys info about i
+    Instance* addInstance(Instance* i,string iname="");
 
     // API for iterating over instances
     Instance* getInstancesIterBegin() { return instancesIterFirst;}

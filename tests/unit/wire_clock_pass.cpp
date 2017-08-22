@@ -9,7 +9,7 @@ int main() {
     Namespace* global = context->getGlobal();
     // Namespace* prims = context->getNamespace("coreir");
     // Type* clockType = context->Named("coreir", "clk");
-    Type* clockInType = context->Named("coreir", "clkIn");
+    Type* clockInType = context->Named("coreir.clkIn");
 
     Module* shift_register = nullptr;
     if (!loadFromFile(context, "circuits/shift_register_unwired_clock.json", &shift_register)) {

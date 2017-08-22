@@ -33,3 +33,5 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
 
     return ice40;
 }
+
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(ice40)

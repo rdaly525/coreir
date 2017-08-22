@@ -1,7 +1,7 @@
 {
-  "top": "_G.add4",
+  "top": "global.add4",
   "namespaces": {
-    "_G": {
+    "global": {
       "modules": {
         "add4": {
           "type": ["Record",{

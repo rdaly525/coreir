@@ -43,8 +43,8 @@ namespace CoreIR {
     pm.addPass(new Passes::RunGenerators());
     pm.addPass(new Passes::FlattenTypes());
     pm.addPass(new Passes::RemoveBulkConnections());
-    pm.addPass(new Passes::LiftClockPorts("liftclockports-coreir",c->Named("coreir","clkIn")));
-    pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir","clkIn")));
+    pm.addPass(new Passes::LiftClockPorts("liftclockports-coreir",c->Named("coreir.clkIn")));
+    pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
   }
 }
 

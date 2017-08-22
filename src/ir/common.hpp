@@ -15,7 +15,7 @@ using namespace std;
 
 #define ASSERT(C,MSG) \
   if (!(C)) { \
-    cout << "ERROR: " << MSG << endl << endl; \
+    std::cout << "ERROR: " << MSG << endl << endl; \
     assert(C); \
   }
 
@@ -142,6 +142,8 @@ T join(const A &begin, const A &end, const T &t) {
   }
   return result;
 }
+
+vector<string> splitRef(string s);
 
 //template<typename container>
 //std::string joinString(const container arr, std::string del);
