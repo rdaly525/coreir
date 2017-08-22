@@ -60,10 +60,11 @@ library named **cgralib**.
       return ice40;
     }
     ```
-
+3) Next, the library must wrap this function with an API capable of being dynamically loaded from bin/coreir using the macro: `COREIR_GEN_EXTERNAL_API_FOR_LIBRARY`
 3) Finally, the library must wrap this function with a C compatible version using the macro `COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY`.
 
    ```cpp
+   COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(ice40)
    COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(ice40);
    ```
 

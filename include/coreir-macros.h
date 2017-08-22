@@ -15,3 +15,8 @@
 #else
 #define COREIR_GEN_C_API_DECLARATION_FOR_LIBRARY(NAME) CORENamespace* CORELoadLibrary_ ## NAME(COREContext* c)
 #endif
+
+#define COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(NAME) extern "C" CoreIR::Namespace* ExternalLoadLibrary_ ## NAME(CoreIR::Context* c) { \
+  return CoreIRLoadLibrary_ ## NAME(c); \
+}
+
