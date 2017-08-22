@@ -6,8 +6,10 @@ using namespace CoreIR;
 
 namespace {
 
+string NEXT_PF = "_N";
+string getNext(string var) {return var + NEXT_PF; }
+  
 string SmtBVVarDec(SmtBVVar w) { return "(declare-fun " + w.getName() + " () (_ BitVec " + w.dimstr() + "))"; }
-
 
 string SMTAssign(Connection con) {
   Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
@@ -16,7 +18,18 @@ string SMTAssign(Connection con) {
   SmtBVVar vright(right);
   return "  (= " + vleft.getName() + " " + vright.getName() + ")";
 }
+ 
+string SMTAnd(SmtBVVar in1, SmtBVVar in2, SmtBVVar out) {
+  string current = "(assert (= (bvand " + in1.getName() + " " + in2.getName() + ") " + out.getName() + "))";
+  string next = "(assert (= (bvand " + getNext(in1.getName()) + " " + getNext(in2.getName()) + ") " + getNext(out.getName()) + "))";
+  return current + next;
+}
 
+string SMTOr(SmtBVVar in1, SmtBVVar in2, SmtBVVar out) {
+  string current = "(assert (= (bvor " + in1.getName() + " " + in2.getName() + ") " + out.getName() + "))";
+  string next = "(assert (= (bvor " + getNext(in1.getName()) + " " + getNext(in2.getName()) + ") " + getNext(out.getName()) + "))";
+  return current + next;
+}
 }
 
 std::string Passes::SmtLib2::ID = "smtlib2";
