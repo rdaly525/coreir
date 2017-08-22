@@ -29,6 +29,8 @@ class Pass {
     void addDependency(string name) { dependencies.push_back(name);}
     Context* getContext();
     std::string getName() { return name;}
+    virtual void print() {}
+    
     template<typename T>
     T* getAnalysisPass() {
       assert(pm);
@@ -53,7 +55,7 @@ class NamespacePass : public Pass {
     virtual bool runOnNamespace(Namespace* n) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
-    virtual void print() {}
+    virtual void print() override {}
 };
 
 //Loops through all the modules within the namespace
@@ -65,7 +67,7 @@ class ModulePass : public Pass {
     virtual bool runOnModule(Module* m) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
-    virtual void print() {}
+    virtual void print() override {}
 
 };
 
@@ -83,7 +85,7 @@ class InstanceGraphPass : public Pass {
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
-    virtual void print() {}
+    virtual void print() override {}
 };
 
 }

@@ -6,7 +6,7 @@ ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
 endif
 
-all: install bin epass
+all: install coreir
 
 .PHONY: test
 test: install

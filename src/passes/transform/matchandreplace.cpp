@@ -112,7 +112,7 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
   Context* c = this->getContext();
   //Skip any declarations and things not in Global
   if (!m->hasDef()) return false;
-  if (m->getNamespace() != c->getNamespace("_G")) return false;
+  if (m->getNamespace() != c->getNamespace("global")) return false;
 
   ModuleDef* pdef = pattern->getDef();
   ModuleDef* cdef = container->getDef();

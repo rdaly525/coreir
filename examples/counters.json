@@ -1,13 +1,13 @@
 {
   "namespaces": {
-    "_G": {
+    "global": {
       "modules": {
         "counters": {
           "type": ["Record",{
           }],
           "instances": {
-            "count0": {"modref": "_G.counter"},
-            "count1": {"modref": "_G.counter"},
+            "count0": {"modref": "global.counter"},
+            "count1": {"modref": "global.counter"},
             "slice0": {
               "genref": "coreir.slice",
               "genargs": {"width":16, "lo":0,"hi":8}

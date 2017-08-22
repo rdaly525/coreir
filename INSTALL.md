@@ -23,3 +23,15 @@ Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.b
 ### Install standalone binary
 
     `make coreir`
+
+## How to Install Python Bindings
+
+### To Install: 
+
+    `cd <path_to_coreir>`
+    `make py`
+  
+### To verify python bindings
+    
+    `make pytest`
+

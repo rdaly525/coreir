@@ -17,8 +17,7 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
     Type* SB_CARRYType = c->Record({{"I0", c->BitIn()},
                                     {"I1", c->BitIn()},
                                     {"CI", c->BitIn()},
-                                    {"CO", c->Bit()},
-                                    {"O",  c->Bit()}});
+                                    {"CO",  c->Bit()}});
     ice40->newModuleDecl("SB_CARRY", SB_CARRYType);
 
     Type* SB_DFFType = c->Record({{"C", c->BitIn()},
@@ -34,3 +33,5 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
 
     return ice40;
 }
+
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(ice40)

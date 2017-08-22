@@ -6,7 +6,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 
 def test_coreir():
     context = coreir.Context()
-    assert context.G.name == "_G"
+    assert context.G.name == "global"
     coreir_stdlib = context.get_namespace("coreir")
     assert coreir_stdlib.name == "coreir"
     add_instantiable = coreir_stdlib.instantiables["add"]

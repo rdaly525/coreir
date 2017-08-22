@@ -1,6 +1,6 @@
 {
   "namespaces": {
-    "_G": {
+    "global": {
       "modules": {
         "Top": {
           "connections": [
@@ -87,5 +87,5 @@
       }
     }
   },
-  "top": "_G.Top"
+  "top": "global.Top"
 }

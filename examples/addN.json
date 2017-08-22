@@ -1,7 +1,7 @@
 {
-  "top": "_G.Add12",
+  "top": "global.Add12",
   "namespaces": {
-    "_G": {
+    "global": {
       "namedtypegens": {
         "addN_type": {
           "genparams": {"width":"int", "N":"int"},
@@ -10,7 +10,7 @@
       },
       "generators": {
         "addN": {
-          "typegen": "_G.addN_type",
+          "typegen": "global.addN_type",
           "genparams": {"width":"int", "N":"int"}
         }
       },
@@ -23,15 +23,15 @@
           }],
           "instances": {
             "add2_join": {
-              "genref": "stdlib.add",
+              "genref": "coreir.add",
               "genargs": {"width": 13}
             },
             "add4_lower": {
-              "genref": "_G.addN",
+              "genref": "global.addN",
               "genargs": {"width": 13, "N": 4}
             },
             "add8_upper": {
-              "genref": "_G.addN",
+              "genref": "global.addN",
               "genargs": {"width": 13, "N": 8}
             }
           },
