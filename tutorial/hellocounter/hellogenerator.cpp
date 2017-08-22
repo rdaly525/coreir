@@ -13,7 +13,7 @@ int main() {
   Params counterParams({{"width",AINT}}); //"Arg Int". I know, its bad
   //Other param types: ABOOL,ASTRING,ATYPE
 
-  //Instead of defining a type, now we need to define a type Generator
+  //Instead of defining a type, now we need to define a type Generator. This allows CoreIR to statically type check all connections.
   TypeGen* counterTypeGen = g->newTypeGen(
     "CounterTypeGen", //name of typegen
     counterParams, //Params required for typegen

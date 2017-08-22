@@ -131,8 +131,9 @@ class Context {
 
 };
 
-//Module* loadModule(Context* c, string filename, bool* err);
-//void saveModule(Module* c, string filename, bool* err);
+Context* newContext();
+void deleteContext(Context* c);
+
 
 //This will load the namespaces in the file into the context
 //If there is a labeled "top", it will be returned in top (if it is not null)
@@ -146,9 +147,6 @@ bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
 bool saveToDot(Module* m, string filename);
   
   
-Context* newContext();
-void deleteContext(Context* c);
-
 //addPassthrough will create a passthrough Module for Wireable w with name <name>
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
