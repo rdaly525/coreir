@@ -30,8 +30,8 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
   Module* m = cast<Module>(i);
-  SMTModule* vmod = new SMTModule(m);
-  modMap[i] = vmod;
+  SMTModule* smod = new SMTModule(m);
+  modMap[i] = smod;
   if (!m->hasDef()) {
     this->external.insert(i);
     return false;
@@ -44,17 +44,17 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     string iname = imap.first;
     Instance* inst = imap.second;
     Instantiable* iref = imap.second->getInstantiableRef();
-    vmod->addStmt("  //Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
+    smod->addStmt("  ; Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      vmod->addStmt(SMTWireDec(SMTWire(iname+"_"+rmap.first,rmap.second)));
+      smod->addStmt(SMTWireDec(SMTWire(iname+"_"+rmap.first,rmap.second)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
-    vmod->addStmt(modMap[iref]->toInstanceString(inst));
+    smod->addStmt(modMap[iref]->toInstanceString(inst));
   }
 
-  vmod->addStmt("  //All the connections");
+  smod->addStmt("  ; All the connections");
   for (auto con : def->getConnections()) {
-    vmod->addStmt(SMTAssign(con));
+    smod->addStmt(SMTAssign(con));
   }
   
   return false;
