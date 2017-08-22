@@ -70,6 +70,8 @@ class Context:
             args.append(libcoreir_c.COREArgInt(self.context,ct.c_int(v)))
           elif type(v) is str:
             args.append(libcoreir_c.COREArgString(self.context,ct.c_char_p(str.encode(v))))
+          elif type(v) is bool:
+            args.append(libcoreir_c.COREArgBool(self.context,v))
           else:
             raise NotImplementedError()
 
@@ -103,7 +105,7 @@ class Context:
     def __del__(self):
         libcoreir_c.COREDeleteContext(self.context)
 
-    def get_named_typed(self, namespace, type_name):
+    def get_named_type(self, namespace, type_name):
         return Type(
             libcoreir_c.COREContextNamed(self.context, str.encode(namespace), str.encode(type_name)),
             self)
