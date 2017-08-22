@@ -141,7 +141,9 @@ void deleteContext(Context* c);
 bool loadFromFile(Context* c, string filename,Module** top=nullptr);
 
 //Save namespace to a file with optional "top" module
-bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
+bool saveToFile(Namespace* ns, string filename,Module* top=nullptr); //This will go away
+bool saveToFilePretty(Namespace* ns, string filename,Module* top=nullptr);
+
 
 //Save a module to a dot file (for viewing in graphviz)
 bool saveToDot(Module* m, string filename);

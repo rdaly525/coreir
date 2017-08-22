@@ -61,7 +61,9 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
   bool ret = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
   for (auto node : cig->getInstanceGraph()->getSortedNodes()) {
+    cout << "running pass " << node->getInstantiable()->getName() << endl;
     bool modified = igpass->runOnInstanceGraphNode(*node);
+    cout << "finished running pass " << node->getInstantiable()->getName() << endl;
     ret |= modified;
   }
   return ret;
@@ -71,22 +73,30 @@ bool PassManager::runPass(Pass* p) {
   if (verbose) {
     cout << "Running Pass: " << p->getName() << endl;
   }
+  bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Namespace:
-      return runNamespacePass(p);
-    case Pass::PK_Module:
-      return runModulePass(p);
-    case Pass::PK_InstanceGraph:
-      return runInstanceGraphPass(p);
-    default:
+      modified = runNamespacePass(p);
       break;
+    case Pass::PK_Module:
+      modified = runModulePass(p);
+      break;
+    case Pass::PK_InstanceGraph:
+      modified = runInstanceGraphPass(p);
+      break;
+    default:
+      ASSERT(0,"NYI!");
+  }
+  if (verbose) {
+    p->print();
   }
   passLog.push_back(p->getName());
-  ASSERT(0,"NYI");
+  return modified;
 }
 
 //TODO should check for circular dependencies
 void PassManager::pushAllDependencies(string oname,stack<string> &work) {
+  cout << oname << endl;
   ASSERT(passMap.count(oname),"Can not run pass \"" + oname + "\" because it was never loaded!");
   work.push(oname);
   for (auto it = passMap[oname]->dependencies.rbegin(); it!=passMap[oname]->dependencies.rend(); ++it) {

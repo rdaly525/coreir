@@ -203,7 +203,7 @@ string Module2Json(Module* m) {
 
 json Generator2Json(Generator* g) {
   Dict j(6);
-  j.add("typegen",g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName());
+  j.add("typegen",quote(g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName()));
   Instantiable2Json(g,j);
   j.add("genparams",Params2Json(g->getGenParams()));
   if (!g->getDefaultGenArgs().empty()) {

@@ -17,6 +17,7 @@ string getExt(string s) {
 
 typedef std::map<std::string,std::pair<void*,Pass*>> PassHandle_t;
 
+//Returns success
 bool shutdown(Context* c,PassHandle_t openPassHandles) {
   bool err = false;
   //Close all the open passes
@@ -32,7 +33,7 @@ bool shutdown(Context* c,PassHandle_t openPassHandles) {
     deletePass(handle.second.second);
   }
   deleteContext(c);
-  return true;
+  return !error;
 }
 
 

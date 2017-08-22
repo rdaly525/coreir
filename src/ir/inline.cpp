@@ -102,11 +102,11 @@ Instance* addPassthrough(Wireable* w,string instname) {
   //This means that there can be nothing higher in the select path tha is connected
   Context* c = w->getContext();
   Wireable* wcheck = w;
+  //TODO this is really buggy. Test passing in a select
   while (Select* wchecksel = dyn_cast<Select>(wcheck)) {
     Wireable* wcheck = wchecksel->getParent();
     ASSERT(wcheck->getConnectedWireables().size()==0,"Cannot add a passthrough to a wireable with connected selparents");
   }
-  
   ModuleDef* def = w->getContainer();
   Type* wtype = w->getType();
   

@@ -15,3 +15,11 @@
 #else
 #define COREIR_GEN_C_API_DECLARATION_FOR_LIBRARY(NAME) CORENamespace* CORELoadLibrary_ ## NAME(COREContext* c)
 #endif
+
+#define COREIR_GEN_EXTERNAL_PASS(NAME) extern "C" CoreIR::Pass* registerPass() { \
+  return new NAME(); \
+} \
+extern "C" void deletePass(CoreIR::Pass* p) { \
+  delete p; \
+} \
+

@@ -5,7 +5,7 @@ using namespace CoreIR;
 int main() {
 
   Context* c = newContext();
-  Namespace* g = c->getGlobal();
+  Namespace* global = c->getGlobal();
 
   //Now lets make our counter as a generator.
   //We want our Generator to be able to take in the parameter width.
@@ -14,7 +14,7 @@ int main() {
   //Other param types: ABOOL,ASTRING,ATYPE
 
   //Instead of defining a type, now we need to define a type Generator. This allows CoreIR to statically type check all connections.
-  TypeGen* counterTypeGen = g->newTypeGen(
+  TypeGen* counterTypeGen = global->newTypeGen(
     "CounterTypeGen", //name of typegen
     counterParams, //Params required for typegen
     [](Context* c, Args args) { //lambda for generating the type
@@ -27,11 +27,11 @@ int main() {
       });
     } //end lambda
   ); //end newTypeGen
-  ASSERT(g->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
+  ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
 
 
   //Now lets create a generator declaration for our counter
-  Generator* counter = g->newGeneratorDecl("counter",counterTypeGen,counterParams);
+  Generator* counter = global->newGeneratorDecl("counter",counterTypeGen,counterParams);
   //The third argument is the counter parameters. This needs to be a superset of the parameters for the typegen.
   
   //Now lets define our generator function. I am going to use a lambda again, but you could pass in
@@ -61,7 +61,7 @@ int main() {
   }); //end lambda, end function
 
   //Now lets test this by instancing a few counters.
-  Module* tb = g->newModuleDecl("counterTestBench",c->Record({})); //empty record means no ports
+  Module* tb = global->newModuleDecl("counterTestBench",c->Record({})); //empty record means no ports
   ModuleDef* tbdef = tb->newModuleDef();
     
     tbdef->addInstance("c0","global.counter",{{"width",c->argInt(17)}});
@@ -121,6 +121,10 @@ int main() {
   else {
     ASSERT(0,"Modules should always have a record type!");
   }
+  
+  //Now lets actually save this to a real file.
+  //Specify the namespace to save (global), the filename, and an optional "top" module
+  saveToFilePretty(global,"counters.json",tb);
 
   //Always remember to delete your context!
   deleteContext(c);
