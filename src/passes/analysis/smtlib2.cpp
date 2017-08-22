@@ -9,12 +9,12 @@ namespace {
 string SMTWireDec(SMTWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
 
 
-string VAssign(Connection con) {
+string SMTAssign(Connection con) {
   Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
   Wireable* right = left==con.first ? con.second : con.first;
   SMTWire vleft(left);
   SMTWire vright(right);
-  return "  (= " + vleft.getName() + " = " + vright.getName() + ")";
+  return "  (= " + vleft.getName() + " " + vright.getName() + ")";
 }
 
 }
@@ -54,7 +54,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   vmod->addStmt("  //All the connections");
   for (auto con : def->getConnections()) {
-    vmod->addStmt(VAssign(con));
+    vmod->addStmt(SMTAssign(con));
   }
   
   return false;
