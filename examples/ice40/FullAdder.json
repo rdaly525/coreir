@@ -1,0 +1,79 @@
+{
+  "namespaces": {
+    "global": {
+      "modules": {
+        "FullAdder": {
+          "connections": [
+            [
+              "const_inst0.out",
+              "inst0.I3"
+            ],
+            [
+              "self.I1",
+              "inst1.I1"
+            ],
+            [
+              "self.I1",
+              "inst0.I1"
+            ],
+            [
+              "self.I0",
+              "inst1.I0"
+            ],
+            [
+              "self.I0",
+              "inst0.I0"
+            ],
+            [
+              "self.CIN",
+              "inst1.CI"
+            ],
+            [
+              "self.CIN",
+              "inst0.I2"
+            ],
+            [
+              "self.O",
+              "inst0.O"
+            ],
+            [
+              "self.COUT",
+              "inst1.CO"
+            ]
+          ],
+          "instances": {
+            "const_inst0": {
+              "configargs": {
+                "value": 0
+              },
+              "genargs": {
+                "width": 1
+              },
+              "genref": "coreir.const"
+            },
+            "inst0": {
+              "configargs": {
+                "LUT_INIT": 38550
+              },
+              "modref": "ice40.SB_LUT4"
+            },
+            "inst1": {
+              "modref": "ice40.SB_CARRY"
+            }
+          },
+          "type": [
+            "Record",
+            {
+              "CIN": "BitIn",
+              "COUT": "Bit",
+              "I0": "BitIn",
+              "I1": "BitIn",
+              "O": "Bit"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "top": "global.FullAdder"
+}

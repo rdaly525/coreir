@@ -156,6 +156,8 @@ bool saveToDot(Module* m, string filename);
 Instance* addPassthrough(Wireable* w,string instname);
 
 
+typedef Namespace* LoadLibrary_t(Context*);
+
 
 } //CoreIR namespace
 

@@ -184,3 +184,6 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
 
   return cgralib;
 }
+
+
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(cgralib)

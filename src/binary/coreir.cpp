@@ -15,10 +15,9 @@ string getExt(string s) {
   return split[split.size()-1];
 }
 
-typedef std::map<std::string,std::pair<void*,Pass*>> PassHandle_t;
-
-//Returns success
-bool shutdown(Context* c,PassHandle_t openPassHandles) {
+typedef std::map<std::string,std::pair<void*,Pass*>> OpenPassHandles_t;
+typedef std::map<std::string,std::pair<void*,Namespace*>> OpenLibHandles_t;
+bool shutdown(Context* c,OpenPassHandles_t openPassHandles, OpenLibHandles_t openLibHandles) {
   bool err = false;
   //Close all the open passes
   for (auto handle : openPassHandles) {
@@ -32,6 +31,17 @@ bool shutdown(Context* c,PassHandle_t openPassHandles) {
     }
     deletePass(handle.second.second);
   }
+  //for (auto handle : openLibHandles) {
+  //  //Load the registerpass
+  //  delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
+  //  const char* dlsym_error = dlerror();
+  //  if (dlsym_error) {
+  //    err = true;
+  //    cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
+  //    continue;
+  //  }
+  //  deletePass(handle.second.second);
+  //}
   deleteContext(c);
   return !error;
 }
@@ -48,16 +58,19 @@ int main(int argc, char *argv[]) {
     ("o,output","output file: <file>.<json|fir|v|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
-    ("l,load_libs","external libs: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
+    ("l,load_libs","external libs: '<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",cxxopts::value<std::string>())
     ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
     ;
   
   //Do the parsing of the arguments
   options.parse(argc,argv);
   
+  OpenPassHandles_t openPassHandles;
+  OpenLibHandles_t openLibHandles;
+  
+  
   Context* c = newContext();
   //Load external passes
-  std::map<std::string,std::pair<void*,Pass*>> openPassHandles;
   if (options.count("e")) {
     vector<string> libs = splitString<vector<string>>(options["e"].as<string>(),',');
     //Open all the libs
@@ -71,7 +84,7 @@ int main(int argc, char *argv[]) {
       const char* dlsym_error = dlerror();
       if (dlsym_error) {
         cout << "ERROR: Cannot load symbol registerPass: " << dlsym_error << endl;
-        shutdown(c,openPassHandles);
+        shutdown(c,openPassHandles,openLibHandles);
         return 1;
       }
       Pass* p = registerPass();
@@ -81,13 +94,39 @@ int main(int argc, char *argv[]) {
     }
   }
   
-  //TODO Load libraries
+  if (options.count("l")) {
+    vector<string> files = splitString<vector<string>>(options["l"].as<string>(),',');
+    for (auto file : files) {
+      vector<string> f1parse = splitString<vector<string>>(file,'/');
+      string libfile = f1parse[f1parse.size()-1];
+      vector<string> f2parse = splitRef(libfile);
+      ASSERT(f2parse[1]=="so" || f2parse[1]=="dylib","Bad file: " + file);
+      string libname = f2parse[0].substr(10,f2parse[0].length()-10);
+
+      ASSERT(openLibHandles.count(file)==0,"Cannot REopen " + file);
+      void* libHandle = dlopen(file.c_str(),RTLD_LAZY);
+      ASSERT(libHandle,"Cannot open file: " + file);
+      dlerror();
+      //Load the Libraries
+      string funname = "ExternalLoadLibrary_"+libname;
+      LoadLibrary_t* loadLib = (LoadLibrary_t*) dlsym(libHandle,funname.c_str());
+      const char* dlsym_error = dlerror();
+      if (dlsym_error) {
+        cout << "ERROR: Cannot load symbol " << funname << ": " << dlsym_error << endl;
+        shutdown(c,openPassHandles,openLibHandles);
+        return 1;
+      }
+      Namespace* ns = loadLib(c);
+      ASSERT(ns,"NS is null in file " + file);
+      openLibHandles[file] = {libHandle,ns};
+    }
+  }
   
   if (options.count("h") || argc_copy==1) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
     cout << endl;
-    if (!shutdown(c,openPassHandles) ) return 1;
+    if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
     return 0;
   }
   
@@ -159,6 +198,6 @@ int main(int argc, char *argv[]) {
   cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
 
   //Shutdown
-  if (!shutdown(c,openPassHandles) ) return 1;
+  if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
   return 0;
 }
