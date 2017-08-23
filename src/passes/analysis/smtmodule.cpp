@@ -98,7 +98,7 @@ string SMTModule::toInstanceString(Instance* inst) {
   }
   else if (mname == "coreir_term"); // do nothing in terminate case
   else {
-    o << "Unmatched: " << mname << endl;
+    o << "!!! UNMATCHED: " << mname << " !!!" << endl;
     //    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
   }
               
