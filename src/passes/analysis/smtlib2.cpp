@@ -40,15 +40,15 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
       smod->addStmt(";; START module declaration for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      smod->addVarDec(SmtBVVarDec(SmtBVVar(iname+"_"+rmap.first,rmap.second)));
-      smod->addVarDec(SmtBVVarDec(SmtBVVar(SMTgetNext(iname+"_"+rmap.first),rmap.second)));
+      SmtBVVar var = SmtBVVar(iname+"_"+rmap.first,rmap.second);
+      smod->addVarDec(SmtBVVarDec(var));
+      smod->addVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     smod->addStmt(modMap[iref]->toInstanceString(inst));
     if (no_ops.count(imap.first) == 0 ) {
       smod->addStmt(";; END module declaration\n");
     }
-    
   }
 
   smod->addStmt(";; START connections definition");

@@ -11,6 +11,7 @@ namespace CoreIR {
     typedef std::pair<string, SmtBVVar> named_var;
     
     string SMTgetNext(string var);
+    SmtBVVar SmtBVVarGetNext(SmtBVVar var);    
     string getSMTbits(unsigned, int);
     string SMTAssign(Connection con);
     string SMTAnd(named_var in1, named_var in2, named_var out);

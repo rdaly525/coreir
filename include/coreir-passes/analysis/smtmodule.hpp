@@ -55,6 +55,7 @@ class SmtBVVar {
     string dimstr() {return to_string(dim);}
     string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
     string getName() { return name;}
+    string setName(string name) { return this->name = name;}
 };
 
 
