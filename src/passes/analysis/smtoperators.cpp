@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/smtoperators.hpp"
+#include <bitset>
 
 using namespace CoreIR;
 
@@ -10,6 +11,11 @@ namespace CoreIR {
     string NL = "\n";
   
     string SMTgetNext(string var) {return var + NEXT_PF; }
+
+    string getSMTbits(unsigned width, int x) {
+      bitset<numeric_limits<int>::digits> b(x);
+      return "0bin" + b.to_string().substr(numeric_limits<int>::digits - width);
+    }
 
     string unary_op(string op, string in, string out) {
       return "(assert (= (" + op + " " + in + ") " + out + "))";

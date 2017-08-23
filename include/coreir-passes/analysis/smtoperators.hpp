@@ -10,6 +10,7 @@ namespace CoreIR {
   namespace Passes {
 
     string SMTgetNext(string var);
+    string getSMTbits(unsigned, int);
     string SMTAssign(Connection con);
     string SMTAnd(string in1, string in2, string out);
     string SMTOr(string in1, string in2, string out);
