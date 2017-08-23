@@ -86,17 +86,17 @@ string SMTModule::toInstanceString(Instance* inst) {
 
   bool matched = false;
   if (mname == "coreir_neg") {o << SMTNot(portstrs.at(0), portstrs.at(1)); matched = true;}
-  if (mname == "coreir_const") {o << SMTConst(portstrs.at(0)); matched = true;}
-
+  if (mname == "coreir_const") {o << SMTConst(portstrs.at(0), "0x0"); matched = true;}
+  if (mname == "coreir_add") {o << SMTAdd(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
+  if (mname == "coreir_reg_PE") {o << SMTRegPE(portstrs.at(0), portstrs.at(1), portstrs.at(2), portstrs.at(3)); matched = true;}
+  if (mname == "counter") {o << SMTCounter(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
+  if (mname == "coreir_concat") {o << SMTConcat(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
+  
   if (!matched) {
     o << "Unmatched: " << mname << endl;
     o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
   }
               
-  //  assert(matched);
-  
-  //  o << mname << "(\n" << tab << tab << portstrs.at(0) << "\n  );" << endl;
-  
   return o.str();
 }
 
