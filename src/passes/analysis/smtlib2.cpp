@@ -7,7 +7,16 @@ using namespace CoreIR;
 namespace {
 
 string NEXT_PF = "_N";
+  
 string getNext(string var) {return var + NEXT_PF; }
+  
+string unary_op(string op, string in, string out) {
+  return "(assert (= (" + op + " " + in + ") " + out + "))";
+}
+  
+string binary_op(string op, string in1, string in2, string out) {
+  return "(assert (= (" + op + " " + in1 + " " + in2 + ") " + out + "))";
+}
   
 string SmtBVVarDec(SmtBVVar w) { return "(declare-fun " + w.getName() + " () (_ BitVec " + w.dimstr() + "))"; }
 
@@ -21,25 +30,28 @@ string SMTAssign(Connection con) {
  
 string SMTAnd(SmtBVVar in1, SmtBVVar in2, SmtBVVar out) {
   // (in1 & in2 = out) & (in1' & in2' = out')
-  string current = "(assert (= (bvand " + in1.getName() + " " + in2.getName() + ") " + out.getName() + "))";
-  string next = "(assert (= (bvand " + getNext(in1.getName()) + " " + getNext(in2.getName()) + ") " + getNext(out.getName()) + "))";
+  string op = "bvand";
+  string current = binary_op(op, in1.getName(), in2.getName(), out.getName());
+  string next = binary_op(op, getNext(in1.getName()), getNext(in2.getName()), getNext(out.getName()));
   return current + next;
 }
 
 string SMTOr(SmtBVVar in1, SmtBVVar in2, SmtBVVar out) {
   // (in1 | in2 = out) & (in1' | in2' = out')
-  string current = "(assert (= (bvor " + in1.getName() + " " + in2.getName() + ") " + out.getName() + "))";
-  string next = "(assert (= (bvor " + getNext(in1.getName()) + " " + getNext(in2.getName()) + ") " + getNext(out.getName()) + "))";
+  string op = "bvor";
+  string current = binary_op(op, in1.getName(), in2.getName(), out.getName());
+  string next = binary_op(op, getNext(in1.getName()), getNext(in2.getName()), getNext(out.getName()));
   return current + next;
 }
 
 string SMTNot(SmtBVVar in, SmtBVVar out) {
   // (!in = out) & (!in' = out')
-  string current = "(assert (= (bvnot " + in.getName() + ") " + out.getName() + "))";
-  string next = "(assert (= (bvnot " + getNext(in.getName()) + ") " + getNext(out.getName()) + "))";
+  string op = "bvnot";
+  string current = unary_op("op", in.getName(), out.getName());
+  string next = unary_op("op", getNext(in.getName()), getNext(out.getName()));
   return current + next;
 }
-  
+
 string SMTReg(SmtBVVar in, SmtBVVar clk, SmtBVVar out) {
   // (!clk & clk') -> (out' = in)
   return "(assert (=> ((bvand (bvnot " + clk.getName() + ") " + getNext(clk.getName()) + ")) (= " + getNext(out.getName()) + " " + in.getName() + ")))";
