@@ -14,7 +14,7 @@ namespace CoreIR {
 
     string getSMTbits(unsigned width, int x) {
       bitset<numeric_limits<int>::digits> b(x);
-      return "0bin" + b.to_string().substr(numeric_limits<int>::digits - width);
+      return "#b" + b.to_string().substr(numeric_limits<int>::digits - width);
     }
 
     string assert_op(string expr) {
