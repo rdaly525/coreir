@@ -96,9 +96,6 @@ class SMTModule {
     }
     void addStmt(string stmt) { stmts.push_back(stmt); }
     void addVarDec(string vd) { vardecs.push_back(vd); }
-    string toCommentString() {
-      return "//Module: " + modname + " defined externally";
-    }
     string toString();
     string toVarDecString();
     string toInstanceString(Instance* inst);

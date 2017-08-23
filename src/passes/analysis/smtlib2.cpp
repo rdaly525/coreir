@@ -62,11 +62,6 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
 void Passes::SmtLib2::writeToStream(std::ostream& os) {
 
-  for (auto ext : external) {
-    os << modMap[ext]->toCommentString() << endl;
-  }
-  os << endl;
-
   // Print variable declarations
   os << ";; Variable declarations" << endl;
   for (auto mmap : modMap) {
