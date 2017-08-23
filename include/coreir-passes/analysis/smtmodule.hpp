@@ -65,6 +65,7 @@ class SMTModule {
     }
     SMTModule(Module* m) : SMTModule(m->getName(),m->getType()) {
       const json& jmeta = m->getMetaData();
+      // still using verilog prefixes -- should be okay
       if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
         modname = jmeta["verilog"]["prefix"].get<string>() + m->getName();
       }

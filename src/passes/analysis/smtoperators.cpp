@@ -77,9 +77,8 @@ namespace CoreIR {
 
     string SMTConst(string out, string val) {
       string comment = ";; SMTConst (out, val) = (" + out + ", " + val + ")";
-      string op = "=";
-      string current = unary_op_eqass(op, val, out);
-      string next = unary_op_eqass(op, val, SMTgetNext(out));
+      string current = "(= " + out + " " + val + ")";
+      string next = "(= " + SMTgetNext(out) + " " + val + ")";
       return comment + NL + current + NL + next;
     }
 
