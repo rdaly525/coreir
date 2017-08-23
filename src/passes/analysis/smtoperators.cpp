@@ -43,80 +43,92 @@ namespace CoreIR {
     string SMTAnd(string in1, string in2, string out) {
       // INIT: TRUE
       // TRANS: ((in1 & in2) = out) & ((in1' & in2') = out')
+      string comment = ";; SMTAnd (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "bvand";
       string current = binary_op_eqass(op, in1, in2, out);
       string next = binary_op_eqass(op, SMTgetNext(in1), SMTgetNext(in2), SMTgetNext(out));
-      return current + NL + next;
+      return comment + NL + current + NL + next;
     }
 
     string SMTOr(string in1, string in2, string out) {
       // INIT: TRUE
       // TRANS: ((in1 | in2) = out) & ((in1' | in2') = out')
+      string comment = ";; SMTOr (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "bvor";
       string current = binary_op_eqass(op, in1, in2, out);
       string next = binary_op_eqass(op, SMTgetNext(in1), SMTgetNext(in2), SMTgetNext(out));
-      return current + NL + next;
+      return comment + NL + current + NL + next;
     }
 
     string SMTNot(string in, string out) {
       // INIT: TRUE
       // TRANS: (!in = out) & (!in' = out')
+      string comment = ";; SMTNot (in, out) = (" + in + ", " + out + ")";
       string op = "bvnot";
       string current = unary_op_eqass(op, in, out);
       string next = unary_op_eqass(op, SMTgetNext(in), SMTgetNext(out));
-      return current + NL + next;
+      return comment + NL + current + NL + next;
     }
 
     string SMTConst(string out, string val) {
+      string comment = ";; SMTConst (out, val) = (" + out + ", " + val + ")";
       string op = "=";
       string current = unary_op_eqass(op, val, out);
       string next = unary_op_eqass(op, val, SMTgetNext(out));
-      return current + NL + next;
+      return comment + NL + current + NL + next;
     }
 
     string SMTAdd(string in1, string in2, string out) {
       // INIT: TRUE
       // TRANS: ((in1 + in2) = out) & ((in1' + in2') = out')
+      string comment = ";; SMTAdd (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "bvadd";
       string current = binary_op_eqass(op, in1, in2, out);
       string next = binary_op_eqass(op, SMTgetNext(in1), SMTgetNext(in2), SMTgetNext(out));
-      return current + NL + next;
+      return comment + NL + current + NL + next;
     }
 
     string SMTConcat(string in1, string in2, string out) {
       // INIT: TRUE
       // TRANS: ((in1 concat in2) = out) & ((in1' concat in2') = out')
+      string comment = ";; SMTConcat (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "concat";
       string current = binary_op_eqass(op, in1, in2, out);
       string next = binary_op_eqass(op, SMTgetNext(in1), SMTgetNext(in2), SMTgetNext(out));
-      return current + NL + next;
+      return comment + NL + current + NL + next;
     }
 
     string SMTReg(string in, string clk, string out) {
       // INIT: TRUE
       // TRANS: (!clk & clk') -> (out' = in)
+      string comment = ";; SMTReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
       return "(assert (=> ((bvand (bvnot " + clk + ") " + SMTgetNext(clk) + ")) (= " + SMTgetNext(out) + " " + in + ")))";
     }
     
     string SMTRegPE(string in, string clk, string out, string en) {
       // INIT: TRUE
       // TRANS: (en & !clk & clk') -> (out' = in)
-      return "(assert (=> ((bvand " + en + " (bvand (bvnot " + clk + ") " + SMTgetNext(clk) + "))) (= " + SMTgetNext(out) + " " + in + ")))";
+      string comment = ";; SMTRegPE (in, clk, out, en) = (" + in + ", " + clk + ", " + out + ", " + en + ")";
+      string trans = "(assert (=> ((bvand " + en + " (bvand (bvnot " + clk + ") " + SMTgetNext(clk) + "))) (= " + SMTgetNext(out) + " " + in + ")))";
+      return comment + NL + trans;
     }
 
     string SMTCounter(string clk, string en, string out) {
       // INIT: TRUE
       // TRANS: (en & !clk & clk') -> (out' = out+1)
-      return "(assert (=> ((bvand " + en + "(bvand (bvnot " + clk + ") " + SMTgetNext(clk) + "))) (= " + SMTgetNext(out) + " (bvadd " + out + " 0x1))))";
+      string comment = ";; SMTCounter (clk, en, out) = (" + clk + ", " + en + ", " + out + ")";
+      string trans = "(assert (=> ((bvand " + en + "(bvand (bvnot " + clk + ") " + SMTgetNext(clk) + "))) (= " + SMTgetNext(out) + " (bvadd " + out + " 0x1))))";
+      return comment + NL + trans;
     }
 
     string SMTSlice(string in, string out, string low, string high) {
       // INIT: TRUE
       // TRANS: (_ extract high low) in out) & (_ extract high low) in' out')
+      string comment = ";; SMTSlice (in, out, low, high) = (" + in + ", " + out + ", " + low + ", " + high + ")";
       string op = "(_ extract " + high + " " + low + ")";
       string current = unary_op_eqass(op, in, out);
       string next = unary_op_eqass(op, SMTgetNext(in), SMTgetNext(out));
-      return current + NL + next;
+      return comment + NL + current + NL + next;
     }
     
   }
