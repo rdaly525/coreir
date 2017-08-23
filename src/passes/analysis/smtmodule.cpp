@@ -84,18 +84,20 @@ string SMTModule::toInstanceString(Instance* inst) {
     portstrs.push_back(pstr);
   }
 
-  bool matched = false;
-  if (mname == "coreir_neg") {o << SMTNot(portstrs.at(0), portstrs.at(1)); matched = true;}
-  if (mname == "coreir_const") {
+  if (mname == "coreir_neg") {o << SMTNot(portstrs.at(0), portstrs.at(1));}
+  else if (mname == "coreir_const") {
     o << SMTConst(portstrs.at(0), getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
-    matched = true;
   }
-  if (mname == "coreir_add") {o << SMTAdd(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
-  if (mname == "coreir_reg_PE") {o << SMTRegPE(portstrs.at(0), portstrs.at(1), portstrs.at(2), portstrs.at(3)); matched = true;}
-  if (mname == "counter") {o << SMTCounter(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
-  if (mname == "coreir_concat") {o << SMTConcat(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
-  
-  if (!matched) {
+  else if (mname == "coreir_add") {o << SMTAdd(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
+  else if (mname == "coreir_reg_PE") {o << SMTRegPE(portstrs.at(0), portstrs.at(1), portstrs.at(2), portstrs.at(3));}
+  else if (mname == "counter") {o << SMTCounter(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
+  else if (mname == "coreir_concat") {o << SMTConcat(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
+  else if (mname == "coreir_slice") {
+    o << SMTSlice(portstrs.at(0), portstrs.at(1),
+		  args["lo"]->toString(), args["hi"]->toString()) << endl;
+  }
+  else if (mname == "coreir_term"); // do nothing in terminate case
+  else {
     o << "Unmatched: " << mname << endl;
     //    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
   }

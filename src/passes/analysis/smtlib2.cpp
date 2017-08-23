@@ -35,7 +35,10 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     string iname = imap.first;
     Instance* inst = imap.second;
     Instantiable* iref = imap.second->getInstantiableRef();
-    smod->addStmt("  ; Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
+    // do not add comment for no ops
+    if (no_ops.count(imap.first) == 0 ) {
+      smod->addStmt("  ; Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
+    }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       smod->addVarDec(SmtBVVarDec(SmtBVVar(iname+"_"+rmap.first,rmap.second)));
       smod->addVarDec(SmtBVVarDec(SmtBVVar(SMTgetNext(iname+"_"+rmap.first),rmap.second)));

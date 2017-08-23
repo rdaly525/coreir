@@ -26,9 +26,14 @@ class SmtBVVar {
     SmtBVVar(string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
     SmtBVVar(Wireable* w) : SmtBVVar("",w->getType()) {
       SelectPath sp = w->getSelectPath();
+      bool need_extract = false;
+      string idx;
       if (sp.size()==3) {
         ASSERT(dim==1 && !isNumber(sp[1]) && isNumber(sp[2]),"DEBUG ME:");
-        name = sp[1]+"["+sp[2]+"]";
+	// extract the necessary dimension
+	need_extract = true;
+	idx = sp[2];
+        name = sp[1];
       }
       else if (sp.size()==2) {
         ASSERT(!isNumber(sp[1]),"DEBUG ME:");
@@ -37,8 +42,13 @@ class SmtBVVar {
       else {
         assert(0);
       }
+
       if (sp[0] != "self") {
         name = sp[0]+ "_" + name;
+      }
+
+      if (need_extract){
+	name = "((_ extract " + idx + " " + idx + ") " + name + ")";
       }
     }
     SmtBVVar(string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
