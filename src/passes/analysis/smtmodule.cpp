@@ -97,6 +97,7 @@ string SMTModule::toInstanceString(Instance* inst) {
     o << SMTSlice(portstrs.at(0), portstrs.at(1),
 		  args["lo"]->toString(), args["hi"]->toString()) << endl;
   }
+  else if (mname == "coreir_term"); // do nothing in terminate case
   else {
     o << "Unmatched: " << mname << endl;
     o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
