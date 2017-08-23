@@ -63,7 +63,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 void Passes::SmtLib2::writeToStream(std::ostream& os) {
 
   os << "(set-logic QF_BV)" << endl;
-
+  
   // Print variable declarations
   os << ";; Variable declarations" << endl;
   for (auto mmap : modMap) {
