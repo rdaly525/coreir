@@ -68,6 +68,7 @@ class SMTModule {
   
   vector<string> stmts;
   vector<string> vardecs;
+  vector<string> nexvardecs;
   public:
     SMTModule(string modname, Type* t) {
       this->modname = modname;
@@ -96,11 +97,13 @@ class SMTModule {
     }
     void addStmt(string stmt) { stmts.push_back(stmt); }
     void addVarDec(string vd) { vardecs.push_back(vd); }
+    void addNexVarDec(string vd) { nexvardecs.push_back(vd); }
     string toCommentString() {
       return "//Module: " + modname + " defined externally";
     }
     string toString();
     string toVarDecString();
+    string toNexVarDecString();
     string toInstanceString(Instance* inst);
   private :
     void Type2Ports(Type* t,unordered_map<string,SmtBVVar>& ports) {
