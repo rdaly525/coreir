@@ -12,7 +12,7 @@ string SmtBVVarDec(SmtBVVar w) { return "(declare-fun " + w.getName() + " () (_ 
 
 std::string Passes::SmtLib2::ID = "smtlib2";
 bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
-  
+
   //Create a new SMTmodule for this node
   Instantiable* i = node.getInstantiable();
   if (auto g = dyn_cast<Generator>(i)) {
@@ -29,7 +29,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
 
   ModuleDef* def = m->getDef();
-  
+
   string tab = "  ";
   for (auto imap : def->getInstances()) {
     string iname = imap.first;
@@ -37,8 +37,8 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Instantiable* iref = imap.second->getInstantiableRef();
     smod->addStmt("  ; Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      smod->addStmt(SmtBVVarDec(SmtBVVar(iname+"_"+rmap.first,rmap.second)));
-      smod->addStmt(SmtBVVarDec(SmtBVVar(SMTgetNext(iname+"_"+rmap.first),rmap.second)));
+      smod->addVarDec(SmtBVVarDec(SmtBVVar(iname+"_"+rmap.first,rmap.second)));
+      smod->addVarDec(SmtBVVarDec(SmtBVVar(SMTgetNext(iname+"_"+rmap.first),rmap.second)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     smod->addStmt(modMap[iref]->toInstanceString(inst));
@@ -48,18 +48,25 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto con : def->getConnections()) {
     smod->addStmt(SMTAssign(con));
   }
-  
+
   return false;
 }
 
 void Passes::SmtLib2::writeToStream(std::ostream& os) {
-  
+
   for (auto ext : external) {
     os << modMap[ext]->toCommentString() << endl;
   }
   os << endl;
+
+  // Print variable declarations
+  os << ";; Variable declarations" << endl;
   for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0) { 
+    os << mmap.second->toVarDecString() << endl;
+  }
+
+  for (auto mmap : modMap) {
+    if (external.count(mmap.first)==0) {
       os << mmap.second->toString() << endl;
     }
   }

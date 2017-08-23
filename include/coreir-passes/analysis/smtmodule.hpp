@@ -57,6 +57,7 @@ class SMTModule {
   Generator* gen = nullptr;
   
   vector<string> stmts;
+  vector<string> vardecs;
   public:
     SMTModule(string modname, Type* t) {
       this->modname = modname;
@@ -82,10 +83,12 @@ class SMTModule {
       this->addparams(g->getConfigParams());
     }
     void addStmt(string stmt) { stmts.push_back(stmt); }
+    void addVarDec(string vd) { vardecs.push_back(vd); }
     string toCommentString() {
       return "//Module: " + modname + " defined externally";
     }
     string toString();
+    string toVarDecString();
     string toInstanceString(Instance* inst);
   private :
     void Type2Ports(Type* t,unordered_map<string,SmtBVVar>& ports) {

@@ -30,6 +30,12 @@ string SMTModule::toString() {
   return o.str();
 }
 
+string SMTModule::toVarDecString() {
+  ostringstream o;
+  for (auto vd : vardecs) o << vd << endl;
+  return o.str();
+}
+
 string SMTModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Instantiable* iref = inst->getInstantiableRef();
