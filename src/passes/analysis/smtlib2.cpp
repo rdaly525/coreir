@@ -20,16 +20,33 @@ string SMTAssign(Connection con) {
 }
  
 string SMTAnd(SmtBVVar in1, SmtBVVar in2, SmtBVVar out) {
+  // (in1 & in2 = out) & (in1' & in2' = out')
   string current = "(assert (= (bvand " + in1.getName() + " " + in2.getName() + ") " + out.getName() + "))";
   string next = "(assert (= (bvand " + getNext(in1.getName()) + " " + getNext(in2.getName()) + ") " + getNext(out.getName()) + "))";
   return current + next;
 }
 
 string SMTOr(SmtBVVar in1, SmtBVVar in2, SmtBVVar out) {
+  // (in1 | in2 = out) & (in1' | in2' = out')
   string current = "(assert (= (bvor " + in1.getName() + " " + in2.getName() + ") " + out.getName() + "))";
   string next = "(assert (= (bvor " + getNext(in1.getName()) + " " + getNext(in2.getName()) + ") " + getNext(out.getName()) + "))";
   return current + next;
 }
+
+string SMTNot(SmtBVVar in, SmtBVVar out) {
+  // (!in = out) & (!in' = out')
+  string current = "(assert (= (bvnot " + in.getName() + ") " + out.getName() + "))";
+  string next = "(assert (= (bvnot " + getNext(in.getName()) + ") " + getNext(out.getName()) + "))";
+  return current + next;
+}
+  
+string SMTReg(SmtBVVar in, SmtBVVar clk, SmtBVVar out) {
+  // (!clk & clk') -> (out' = in)
+  return "(assert (=> ((bvand (bvnot " + clk.getName() + ") " + getNext(clk.getName()) + ")) (= " + getNext(out.getName()) + " " + in.getName() + ")))";
+}
+
+
+  
 }
 
 std::string Passes::SmtLib2::ID = "smtlib2";
