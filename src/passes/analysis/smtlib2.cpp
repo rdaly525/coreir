@@ -42,7 +42,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmtBVVar var = SmtBVVar(iname+"_"+rmap.first,rmap.second);
       smod->addVarDec(SmtBVVarDec(var));
-      smod->addVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
+      smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     smod->addStmt(modMap[iref]->toInstanceString(inst));
@@ -62,10 +62,21 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
 void Passes::SmtLib2::writeToStream(std::ostream& os) {
 
+  os << "(set-logic QF_BV)" << endl;
+  
   // Print variable declarations
   os << ";; Variable declarations" << endl;
   for (auto mmap : modMap) {
-    os << mmap.second->toVarDecString() << endl;
+    if (external.count(mmap.first)==0) {
+      os << mmap.second->toVarDecString() << endl;
+    }
+  }
+
+  os << ";; Next Variable declarations" << endl;
+  for (auto mmap : modMap) {
+    if (external.count(mmap.first)==0) {
+      os << mmap.second->toNexVarDecString() << endl;
+    }
   }
 
   for (auto mmap : modMap) {
