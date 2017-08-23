@@ -41,7 +41,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmtBVVar var = SmtBVVar(iname+"_"+rmap.first,rmap.second);
-      smod->addVarDec(SmtBVVarDec(var));
+      smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
       smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
