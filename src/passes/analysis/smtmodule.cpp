@@ -63,7 +63,6 @@ string SMTModule::toInstanceString(Instance* inst) {
   }
   vector<string> params;
   const json& jmeta = iref->getMetaData();
-  // still using verilog prefixes -- should be okay
   if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
     params = jmeta["verilog"]["parameters"].get<vector<string>>();
   }
@@ -79,27 +78,26 @@ string SMTModule::toInstanceString(Instance* inst) {
     paramstrs.push_back(astr);
   }
   //Assume names are <instname>_port
-  vector<string> portstrs;
+  vector<std::pair <string, SmtBVVar>> portstrs;
   for (auto port : iports) {
-    string pstr = instname+"_"+ port.first;
+    std::pair<string, SmtBVVar> pstr = std::make_pair(instname, port.second);
     portstrs.push_back(pstr);
   }
 
-  if (mname == "coreir_neg") {o << SMTNot(portstrs.at(0), portstrs.at(1));}
-  else if (mname == "coreir_const") {
+  bool matched = false;
+  if (mname == "coreir_neg") {o << SMTNot(portstrs.at(0), portstrs.at(1)); matched = true;}
+  if (mname == "coreir_const") {
     o << SMTConst(portstrs.at(0), getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
+    matched = true;
   }
-  else if (mname == "coreir_add") {o << SMTAdd(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
-  else if (mname == "coreir_reg_PE") {o << SMTRegPE(portstrs.at(0), portstrs.at(1), portstrs.at(2), portstrs.at(3));}
-  else if (mname == "counter") {o << SMTCounter(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
-  else if (mname == "coreir_concat") {o << SMTConcat(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
-  else if (mname == "coreir_slice") {
-    o << SMTSlice(portstrs.at(0), portstrs.at(1),
-		  args["lo"]->toString(), args["hi"]->toString()) << endl;
-  }
-  else {
+  if (mname == "coreir_add") {o << SMTAdd(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
+  if (mname == "coreir_reg_PE") {o << SMTRegPE(portstrs.at(0), portstrs.at(1), portstrs.at(2), portstrs.at(3)); matched = true;}
+  if (mname == "counter") {o << SMTCounter(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
+  if (mname == "coreir_concat") {o << SMTConcat(portstrs.at(0), portstrs.at(1), portstrs.at(2)); matched = true;}
+  
+  if (!matched) {
     o << "Unmatched: " << mname << endl;
-    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
+    //    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
   }
               
   return o.str();

@@ -8,19 +8,21 @@
 using namespace CoreIR;
 namespace CoreIR {
   namespace Passes {
+    typedef std::pair<string, SmtBVVar> named_var;
+    
     string SMTgetNext(string var);
     string getSMTbits(unsigned, int);
     string SMTAssign(Connection con);
-    string SMTAnd(string in1, string in2, string out);
-    string SMTOr(string in1, string in2, string out);
-    string SMTNot(string in, string out);
-    string SMTConst(string out, string val);
-    string SMTAdd(string in1, string in2, string out);
-    string SMTConcat(string in1, string in2, string out);
-    string SMTReg(string in, string clk, string out);
-    string SMTRegPE(string in, string clk, string out, string en);
-    string SMTCounter(string clk, string en, string out);
-    string SMTSlice(string in, string out, string low, string high);    
+    string SMTAnd(named_var in1, named_var in2, named_var out);
+    string SMTOr(named_var in1, named_var in2, named_var out);
+    string SMTNot(named_var in, named_var out);
+    string SMTConst(named_var out, string val);
+    string SMTAdd(named_var in1, named_var in2, named_var out);
+    string SMTConcat(named_var in1, named_var in2, named_var out);
+    string SMTReg(named_var in, named_var clk, named_var out);    
+    string SMTRegPE(named_var in, named_var clk, named_var out, named_var en);
+    string SMTCounter(named_var clk, named_var en, named_var out);
+    string SMTSlice(named_var in, named_var out, string low, string high);
   }
 }
 #endif
