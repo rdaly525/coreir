@@ -18,7 +18,7 @@ namespace CoreIR {
     }
 
     string assert_op(string expr) {
-      return "(assert "+ expr + "))";
+      return "(assert "+ expr + ")";
     }
 
     string unary_op_eqass(string op, string in, string out) {
@@ -90,8 +90,8 @@ namespace CoreIR {
     string SMTConst(named_var out_p, string val) {
       string out = var_name(out_p);
       string comment = ";; SMTConst (out, val) = (" + out + ", " + val + ")";
-      string current = "(= " + out + " " + val + ")";
-      string next = "(= " + SMTgetNext(out) + " " + val + ")";
+      string current = assert_op("(= " + out + " " + val + ")");
+      string next = assert_op("(= " + SMTgetNext(out) + " " + val + ")");
       return comment + NL + current + NL + next;
     }
 
@@ -128,7 +128,7 @@ namespace CoreIR {
       string clk = var_name(clk_p);
       string out = var_name(out_p);      
       string comment = ";; SMTReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
-      return "(assert (=> ((bvand (bvnot " + clk + ") " + SMTgetNext(clk) + ")) (= " + SMTgetNext(out) + " " + in + ")))";
+      return "(assert (=> (bvand (bvnot " + clk + ") " + SMTgetNext(clk) + ") (= " + SMTgetNext(out) + " " + in + ")))";
     }
     
     string SMTRegPE(named_var in_p, named_var clk_p, named_var out_p, named_var en_p) {
@@ -139,7 +139,7 @@ namespace CoreIR {
       string out = var_name(out_p);      
       string en = var_name(en_p);
       string comment = ";; SMTRegPE (in, clk, out, en) = (" + in + ", " + clk + ", " + out + ", " + en + ")";
-      string trans = "(assert (=> ((bvand " + en + " (bvand (bvnot " + clk + ") " + SMTgetNext(clk) + "))) (= " + SMTgetNext(out) + " " + in + ")))";
+      string trans = "(assert (=> (bvand " + en + " (bvand (bvnot " + clk + ") " + SMTgetNext(clk) + ")) (= " + SMTgetNext(out) + " " + in + ")))";
       return comment + NL + trans;
     }
 
