@@ -54,8 +54,12 @@ namespace CoreIR {
       Wireable* right = left==con.first ? con.second : con.first;
       SmtBVVar vleft(left);
       SmtBVVar vright(right);
-      string curr = assert_op(binary_op("=", SMTgetCurr(vleft.getName()), SMTgetCurr(vright.getName())));
-      string next = assert_op(binary_op("=", SMTgetNext(vleft.getName()), SMTgetNext(vright.getName())));
+      SmtBVVar vleft_c = SmtBVVarGetCurr(vleft);
+      SmtBVVar vright_c = SmtBVVarGetCurr(vleft);
+      SmtBVVar vleft_n = SmtBVVarGetNext(vleft);
+      SmtBVVar vright_n = SmtBVVarGetNext(vleft);
+      string curr = assert_op(binary_op("=", vleft_c.getName(), vright_c.getName()));
+      string next = assert_op(binary_op("=", vleft_n.getName(), vright_n.getName()));
       return curr + NL + next;
     }
 
@@ -142,7 +146,7 @@ namespace CoreIR {
       string clk = getVarName(clk_p);
       string out = getVarName(out_p);      
       string comment = ";; SMTReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
-      return "(assert (=> (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + ")))";
+      return "(assert (=> (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + ")))";
     }
     
     string SMTRegPE(named_var in_p, named_var clk_p, named_var out_p, named_var en_p) {
@@ -153,7 +157,7 @@ namespace CoreIR {
       string out = getVarName(out_p);      
       string en = getVarName(en_p);
       string comment = ";; SMTRegPE (in, clk, out, en) = (" + in + ", " + clk + ", " + out + ", " + en + ")";
-      string trans = "(assert (=> (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + ")))";
+      string trans = "(assert (=> (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + ")))";
       return comment + NL + trans;
     }
 
@@ -165,7 +169,7 @@ namespace CoreIR {
       string en = getVarName(en_p);
       string one = getSMTbits(stoi(out_p.second.dimstr()), 1);
       string comment = ";; SMTCounter (clk, en, out) = (" + clk + ", " + en + ", " + out + ")";
-      string trans = "(assert (=> ((bvand " + en + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + "))) (= " + SMTgetNext(out) + " (bvadd " + SMTgetCurr(out) + " " + one + "))))";
+      string trans = "(assert (=> (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " (bvadd " + SMTgetCurr(out) + " " + one + "))))";
       return comment + NL + trans;
     }
  

@@ -99,8 +99,10 @@ string SMTModule::toInstanceString(Instance* inst) {
   else if (mname == "counter") {o << SMTCounter(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
   else if (mname == "coreir_concat") {o << SMTConcat(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
   else if (mname == "coreir_slice") {
+    int lo = stoi(args["lo"]->toString());
+    int hi = stoi(args["hi"]->toString())-1;
     o << SMTSlice(portstrs.at(0), portstrs.at(1),
-		  args["lo"]->toString(), args["hi"]->toString()) << endl;
+		  std::to_string(lo), std::to_string(hi)) << endl;
   }
   else if (mname == "coreir_term"); // do nothing in terminate case
   else {
