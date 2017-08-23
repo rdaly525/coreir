@@ -1,7 +1,11 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/smtmodule.hpp"
+#include "coreir-passes/analysis/smtoperators.hpp"
 
 using namespace CoreIR;
+using namespace Passes;
+
+typedef void (*voidFunctionType)(void);
 
 string SMTModule::toString() {
   vector<string> pdecs;
@@ -51,7 +55,6 @@ string SMTModule::toInstanceString(Instance* inst) {
     ASSERT(args.count(amap.first)==0,"NYI Alisaaed config/genargs");
     args[amap.first] = amap.second;
   }
-  o << tab << mname << " ";
   vector<string> params;
   const json& jmeta = iref->getMetaData();
   if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
@@ -68,16 +71,26 @@ string SMTModule::toInstanceString(Instance* inst) {
     string astr = "." + param + "(" + args[param]->toString() + ")";
     paramstrs.push_back(astr);
   }
-  if (paramstrs.size()) {
-    o << "#(" << join(paramstrs.begin(),paramstrs.end(),string(",")) << ") ";
-  }
   //Assume names are <instname>_port
   vector<string> portstrs;
   for (auto port : iports) {
-    string pstr = "."+port.first+"(" + instname+"_"+ port.first+")";
+    string pstr = instname+"_"+ port.first;
     portstrs.push_back(pstr);
   }
-  o << instname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
+
+  bool matched = false;
+  if (mname == "coreir_neg") {o << SMTNot(portstrs.at(0), portstrs.at(1)); matched = true;}
+  if (mname == "coreir_const") {o << SMTConst(portstrs.at(0)); matched = true;}
+
+  if (!matched) {
+    o << "Unmatched: " << mname << endl;
+    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
+  }
+              
+  //  assert(matched);
+  
+  //  o << mname << "(\n" << tab << tab << portstrs.at(0) << "\n  );" << endl;
+  
   return o.str();
 }
 

@@ -7,15 +7,16 @@
 
 using namespace CoreIR;
 namespace CoreIR {
-namespace Passes {
+  namespace Passes {
 
-  string SMTgetNext(string var);
-  string SMTAssign(Connection con);
-  string SMTAnd(SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
-  string SMTOr(SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
-  string SMTNot(SmtBVVar in, SmtBVVar out);
-  string SMTReg(SmtBVVar in, SmtBVVar clk, SmtBVVar out);
+    string SMTgetNext(string var);
+    string SMTAssign(Connection con);
+    string SMTAnd(string in1, string in2, string out);
+    string SMTOr(string in1, string in2, string out);
+    string SMTNot(string in, string out);
+    string SMTReg(string in, string clk, string out);
+    string SMTConst(string out);
 
-}
+  }
 }
 #endif
