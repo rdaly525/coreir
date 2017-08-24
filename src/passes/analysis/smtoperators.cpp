@@ -23,6 +23,10 @@ namespace CoreIR {
       var.setName(SMTgetCurr(var.getName()));
       return var;
     }
+
+    string SmtBVVarDec(SmtBVVar w) {
+      return "(declare-fun " + w.getName() + " () (_ BitVec " + w.dimstr() + "))";
+    }
     
     string getSMTbits(unsigned width, int x) {
       bitset<numeric_limits<int>::digits> b(x);
@@ -49,11 +53,7 @@ namespace CoreIR {
       return "(" + op + " " + in1 + " " + in2 + ")";
     }
     
-    string SMTAssign(Connection con) {
-      Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
-      Wireable* right = left==con.first ? con.second : con.first;
-      SmtBVVar vleft(left);
-      SmtBVVar vright(right);
+    string SMTAssign(SmtBVVar vleft, SmtBVVar vright) {
       SmtBVVar vleft_c = SmtBVVarGetCurr(vleft);
       SmtBVVar vright_c = SmtBVVarGetCurr(vright);
       SmtBVVar vleft_n = SmtBVVarGetNext(vleft);
@@ -64,7 +64,7 @@ namespace CoreIR {
     }
 
     string getVarName(named_var var) {
-      return var.first+"_"+ var.second.getName();
+      return (var.first == "" ? "" : var.first + "_") + var.second.getName();
     }
     
     string SMTAnd(named_var in1_p, named_var in2_p, named_var out_p) {
@@ -183,6 +183,15 @@ namespace CoreIR {
       string curr = unary_op_eqass(op, SMTgetCurr(in), SMTgetCurr(out));
       string next = unary_op_eqass(op, SMTgetNext(in), SMTgetNext(out));
       return comment + NL + curr + NL + next;
+    }
+
+    string SMTClock(named_var clk_p) {
+      // INIT: TRUE
+      // TRANS: (!clk & clk')
+      string clk = getVarName(clk_p);
+      string comment = ";; SMTClock (clk) = (" + clk + ")";
+      string trans = "(assert (= " + SMTgetCurr(clk) + " (bvnot " + SMTgetNext(clk) + ")))";
+      return comment + NL + trans;
     }
     
   }

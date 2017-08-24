@@ -10,12 +10,13 @@ namespace CoreIR {
   namespace Passes {
     typedef std::pair<string, SmtBVVar> named_var;
     
+    string SmtBVVarDec(SmtBVVar w);
     string SMTgetCurr(string var);
     string SMTgetNext(string var);
     SmtBVVar SmtBVVarGetNext(SmtBVVar var);    
     SmtBVVar SmtBVVarGetCurr(SmtBVVar var);    
     string getSMTbits(unsigned, int);
-    string SMTAssign(Connection con);
+    string SMTAssign(SmtBVVar vleft, SmtBVVar vright);
     string SMTAnd(named_var in1, named_var in2, named_var out);
     string SMTOr(named_var in1, named_var in2, named_var out);
     string SMTNot(named_var in, named_var out);
@@ -26,6 +27,7 @@ namespace CoreIR {
     string SMTRegPE(named_var in, named_var clk, named_var out, named_var en);
     string SMTCounter(named_var clk, named_var en, named_var out);
     string SMTSlice(named_var in, named_var out, string low, string high);
+    string SMTClock(named_var clk_p);
   }
 }
 #endif

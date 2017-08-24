@@ -46,11 +46,10 @@ class SmtBVVar {
       if (sp[0] != "self") {
         name = sp[0]+ "_" + name;
       }
-
-      // if (need_extract){
-      //   name = "((_ extract " + idx + " " + idx + ") " + name + ")";
-      // }
     }
+  bool operator==(const SmtBVVar &other) const
+  { return (name.compare(other.name) == 0);
+  }  
     SmtBVVar(string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
     string dimstr() {return to_string(dim);}
     string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }

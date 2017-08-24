@@ -7,7 +7,22 @@ using namespace CoreIR;
 using namespace Passes;
 
 namespace {
-string SmtBVVarDec(SmtBVVar w) { return "(declare-fun " + w.getName() + " () (_ BitVec " + w.dimstr() + "))"; }
+
+  string CLOCK = "clk";
+  
+  std::vector<string> check_interface_variable(std::vector<string> variables, SmtBVVar var, SMTModule* smod) {
+  if ( find(variables.begin(), variables.end(), var.getName()) == variables.end() ) {
+      variables.push_back(var.getName());
+      smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
+      smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
+      // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
+      if (var.getName().find(CLOCK) != string::npos) {
+        smod->addStmt(SMTClock(std::make_pair("", var)));
+      }
+    }
+  return variables;
+  }
+
 }
 
 std::string Passes::SmtLib2::ID = "smtlib2";
@@ -30,6 +45,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   ModuleDef* def = m->getDef();
 
+  static std::vector<string> variables; 
   string tab = "  ";
   for (auto imap : def->getInstances()) {
     string iname = imap.first;
@@ -41,6 +57,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmtBVVar var = SmtBVVar(iname+"_"+rmap.first,rmap.second);
+      variables.push_back(var.getName());
       smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
       smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
     }
@@ -53,7 +70,15 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   smod->addStmt(";; START connections definition");
   for (auto con : def->getConnections()) {
-    smod->addStmt(SMTAssign(con));
+    Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
+    Wireable* right = left==con.first ? con.second : con.first;
+    SmtBVVar vleft(left);
+    SmtBVVar vright(right);
+
+    variables = check_interface_variable(variables, vleft, smod);
+    variables = check_interface_variable(variables, vright, smod);
+    
+    smod->addStmt(SMTAssign(vleft, vright));
   }
   smod->addStmt(";; END connections definition\n");
 
