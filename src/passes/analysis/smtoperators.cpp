@@ -58,8 +58,8 @@ namespace CoreIR {
       SmtBVVar vright_c = SmtBVVarGetCurr(vright);
       SmtBVVar vleft_n = SmtBVVarGetNext(vleft);
       SmtBVVar vright_n = SmtBVVarGetNext(vright);
-      string curr = assert_op(binary_op("=", vleft_c.getName(), vright_c.getName()));
-      string next = assert_op(binary_op("=", vleft_n.getName(), vright_n.getName()));
+      string curr = assert_op(binary_op("=", vleft_c.getExtractName(), vright_c.getExtractName()));
+      string next = assert_op(binary_op("=", vleft_n.getExtractName(), vright_n.getExtractName()));
       return curr + NL + next;
     }
 

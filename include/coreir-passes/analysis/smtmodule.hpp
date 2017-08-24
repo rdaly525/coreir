@@ -21,13 +21,13 @@ using namespace CoreIR; //TODO get rid of this
 class SmtBVVar {
   string name;
   unsigned dim;
+  string idx;
+  bool need_extract = false;
   Type::DirKind dir;
   public :
     SmtBVVar(string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
     SmtBVVar(Wireable* w) : SmtBVVar("",w->getType()) {
       SelectPath sp = w->getSelectPath();
-      bool need_extract = false;
-      string idx;
       if (sp.size()==3) {
         ASSERT(dim==1 && !isNumber(sp[1]) && isNumber(sp[2]),"DEBUG ME:");
 	// extract the necessary dimension
@@ -47,13 +47,14 @@ class SmtBVVar {
         name = sp[0]+ "_" + name;
       }
 
-      if (need_extract){
-	name = "((_ extract " + idx + " " + idx + ") " + name + ")";
-      }
+      // if (need_extract){
+      //   name = "((_ extract " + idx + " " + idx + ") " + name + ")";
+      // }
     }
     SmtBVVar(string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
     string dimstr() {return to_string(dim);}
     string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
+    string getExtractName() { return need_extract ? "((_ extract " + idx + " " + idx + ") " + name + ")" : name;}
     string getName() { return name;}
     string setName(string name) { return this->name = name;}
 };
