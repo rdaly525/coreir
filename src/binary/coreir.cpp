@@ -43,7 +43,7 @@ bool shutdown(Context* c,OpenPassHandles_t openPassHandles, OpenLibHandles_t ope
   //  deletePass(handle.second.second);
   //}
   deleteContext(c);
-  return !error;
+  return !err;
 }
 
 
