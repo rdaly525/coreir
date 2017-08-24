@@ -17,7 +17,9 @@ namespace {
       smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
       // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
+        smod->addStmt(";; START module declaration for signal '" + var.getName());
         smod->addStmt(SMTClock(std::make_pair("", var)));
+        smod->addStmt(";; END module declaration\n");
       }
     }
   return variables;

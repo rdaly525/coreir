@@ -141,35 +141,42 @@ namespace CoreIR {
 
     string SMTReg(named_var in_p, named_var clk_p, named_var out_p) {
       // INIT: TRUE
-      // TRANS: (!clk & clk') -> (out' = in)
+      // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
       string in = getVarName(in_p);
       string clk = getVarName(clk_p);
       string out = getVarName(out_p);      
       string comment = ";; SMTReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
-      return "(assert (=> (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + ")))";
+      string trans_1 = "(=> (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + "))";
+      string trans_2 = "(=> (not (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
+      string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
+      return comment + NL + trans;
     }
     
     string SMTRegPE(named_var in_p, named_var clk_p, named_var out_p, named_var en_p) {
       // INIT: TRUE
-      // TRANS: (en & !clk & clk') -> (out' = in)
+      // TRANS: ((en & !clk & clk') -> (out' = in)) & (!(en & !clk & clk') -> (out' = out))
       string in = getVarName(in_p);
       string clk = getVarName(clk_p);
       string out = getVarName(out_p);      
       string en = getVarName(en_p);
       string comment = ";; SMTRegPE (in, clk, out, en) = (" + in + ", " + clk + ", " + out + ", " + en + ")";
-      string trans = "(assert (=> (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + ")))";
+      string trans_1 = "(=> (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + "))";
+      string trans_2 = "(=> (not (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
+      string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
       return comment + NL + trans;
     }
 
     string SMTCounter(named_var clk_p, named_var en_p, named_var out_p) {
       // INIT: TRUE
-      // TRANS: (en & !clk & clk') -> (out' = out+1)
+      // TRANS: ((en & !clk & clk') -> (out' = out+1)) & (!(en & !clk & clk') -> (out' = out))
       string clk = getVarName(clk_p);
       string out = getVarName(out_p);      
       string en = getVarName(en_p);
       string one = getSMTbits(stoi(out_p.second.dimstr()), 1);
       string comment = ";; SMTCounter (clk, en, out) = (" + clk + ", " + en + ", " + out + ")";
-      string trans = "(assert (=> (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " (bvadd " + SMTgetCurr(out) + " " + one + "))))";
+      string trans_1 = "(=> (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " (bvadd " + SMTgetCurr(out) + " " + one + ")))";
+      string trans_2 = "(=> (not (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
+      string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
       return comment + NL + trans;
     }
  
