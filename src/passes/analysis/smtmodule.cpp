@@ -2,6 +2,7 @@
 #include "coreir-passes/analysis/smtmodule.hpp"
 #include "coreir-passes/analysis/smtoperators.hpp"
 
+#include <iostream>
 using namespace CoreIR;
 using namespace Passes;
 
@@ -84,24 +85,28 @@ string SMTModule::toInstanceString(Instance* inst) {
     paramstrs.push_back(astr);
   }
   //Assume names are <instname>_port
-  vector<std::pair <string, SmtBVVar>> portstrs;
+  unordered_map<string, std::pair <string, SmtBVVar>> portstrs;
   for (auto port : iports) {
-    std::pair<string, SmtBVVar> pstr = std::make_pair(instname, port.second);
-    portstrs.push_back(pstr);
+    pair<string, SmtBVVar> pstr = std::make_pair(instname, port.second);
+    portstrs.emplace(port.first, pstr);
   }
 
-  if (mname == "coreir_neg") {o << SMTNot(portstrs.at(0), portstrs.at(1));}
-  else if (mname == "coreir_const") {
-    o << SMTConst(portstrs.at(0), getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
-  }
-  else if (mname == "coreir_add") {o << SMTAdd(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
-  else if (mname == "coreir_reg_PE") {o << SMTRegPE(portstrs.at(0), portstrs.at(1), portstrs.at(2), portstrs.at(3));}
-  else if (mname == "counter") {o << SMTCounter(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
-  else if (mname == "coreir_concat") {o << SMTConcat(portstrs.at(0), portstrs.at(1), portstrs.at(2));}
+  if (mname == "coreir_neg")
+    o << SMTNot(portstrs.find("in")->second, portstrs.find("out")->second);
+  else if (mname == "coreir_const")
+    o << SMTConst(portstrs.find("out")->second, getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
+  else if (mname == "coreir_add")
+    o << SMTAdd(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
+  else if (mname == "coreir_reg_PE")
+    o << SMTRegPE(portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
+  else if (mname == "counter")
+    o << SMTCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
+  else if (mname == "coreir_concat")
+    o << SMTConcat(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
   else if (mname == "coreir_slice") {
     int lo = stoi(args["lo"]->toString());
     int hi = stoi(args["hi"]->toString())-1;
-    o << SMTSlice(portstrs.at(0), portstrs.at(1),
+    o << SMTSlice(portstrs.find("in")->second, portstrs.find("out")->second,
 		  std::to_string(lo), std::to_string(hi)) << endl;
   }
   else if (mname == "coreir_term"); // do nothing in terminate case
