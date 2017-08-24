@@ -38,6 +38,12 @@ extern "C" {
     return rcast<COREArg*>(ga);
   }
 
+  //Create Arg for Bool
+  COREArg* COREArgBool(COREContext* c, bool val) {
+    Arg* ga = rcast<Context*>(c)->argBool(val);
+    return rcast<COREArg*>(ga);
+  }
+
 }
 
 }
