@@ -56,6 +56,7 @@ extern COREArg* COREGetConfigValue(COREWireable* i, char* s);
 //  Typechecking errors
 extern void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern COREWireable* COREWireableSelect(COREWireable* w, char* sel);
+extern COREBool COREWireableCanSelect(COREWireable* w, char* sel);
 extern COREWireable* COREModuleDefInstancesIterBegin(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterEnd(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterNext(COREModuleDef* module_def, COREWireable* curr);

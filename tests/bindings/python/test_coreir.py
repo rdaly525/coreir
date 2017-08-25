@@ -31,6 +31,12 @@ def test_save_module():
     interface = module_def.interface
     _input = interface.select("input")
     output = interface.select("output")
+    try:
+        interface.select("BadSelect")
+        assert(False)
+    except Exception:
+        pass
+    
     module_def.connect(_input, add8_in1)
     module_def.connect(_input, add8_in2)
     module_def.connect(output, add8_out)

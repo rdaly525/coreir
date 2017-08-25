@@ -41,6 +41,8 @@ class Wireable : public MetaData {
     Select* sel(string);
     Select* sel(uint);
     Select* sel(SelectPath);
+    
+    bool canSel(string);
   
     //Connect this to w
     void connect(Wireable* w);

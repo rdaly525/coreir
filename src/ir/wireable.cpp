@@ -36,6 +36,11 @@ Select* Wireable::sel(SelectPath path) {
 }
 
 
+
+bool Wireable::canSel(string selstr) {
+  return type->canSel(selstr);
+}
+
 ConstSelectPath Wireable::getConstSelectPath() {
   Wireable* top = this;
   ConstSelectPath path;
