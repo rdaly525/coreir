@@ -1,7 +1,7 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/smtmodule.hpp"
-#include "coreir-passes/analysis/smtoperators.hpp"
-#include "coreir-passes/analysis/smtlib2.h"
+#include "coreir-passes/analysis/vmtmodule.hpp"
+#include "coreir-passes/analysis/vmtoperators.hpp"
+#include "coreir-passes/analysis/vmt.h"
 
 using namespace CoreIR;
 using namespace Passes;
@@ -10,16 +10,16 @@ namespace {
 
   string CLOCK = "clk";
   
-  std::vector<string> check_interface_variable(std::vector<string> variables, SmtBVVar var, SMTModule* smod) {
+  std::vector<string> check_interface_variable(std::vector<string> variables, VmtBVVar var, VMTModule* smod) {
   if ( find(variables.begin(), variables.end(), var.getName()) == variables.end() ) {
       variables.push_back(var.getName());
-      smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
-      smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
-      smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
+      smod->addVarDec(VmtBVVarDec(VmtBVVarGetCurr(var)));
+      smod->addNextVarDec(VmtBVVarDec(VmtBVVarGetNext(var)));
+      smod->addInitVarDec(VmtBVVarDec(VmtBVVarGetInit(var)));
       // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
         smod->addStmt(";; START module declaration for signal '" + var.getName());
-        smod->addStmt(SMTClock(var));
+        smod->addStmt(VMTClock(std::make_pair("", var)));
         smod->addStmt(";; END module declaration\n");
       }
     }
@@ -28,18 +28,18 @@ namespace {
 
 }
 
-std::string Passes::SmtLib2::ID = "smtlib2";
-bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
+std::string Passes::VMT::ID = "vmt";
+bool Passes::VMT::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
-  //Create a new SMTmodule for this node
+  //Create a new VMTmodule for this node
   Instantiable* i = node.getInstantiable();
   if (auto g = dyn_cast<Generator>(i)) {
-    this->modMap[i] = new SMTModule(g);
+    this->modMap[i] = new VMTModule(g);
     this->external.insert(i);
     return false;
   }
   Module* m = cast<Module>(i);
-  SMTModule* smod = new SMTModule(m);
+  VMTModule* smod = new VMTModule(m);
   modMap[i] = smod;
   if (!m->hasDef()) {
     this->external.insert(i);
@@ -49,6 +49,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   ModuleDef* def = m->getDef();
 
   static std::vector<string> variables; 
+  string tab = "  ";
   for (auto imap : def->getInstances()) {
     string iname = imap.first;
     Instance* inst = imap.second;
@@ -58,12 +59,11 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
       smod->addStmt(";; START module declaration for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      SmtBVVar var = SmtBVVar(iname, rmap.first, rmap.second);
-      smod->addPort(var);
+      VmtBVVar var = VmtBVVar(iname+"_"+rmap.first,rmap.second);
       variables.push_back(var.getName());
-      smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
-      smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
-      smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
+      smod->addVarDec(VmtBVVarDec(VmtBVVarGetCurr(var)));
+      smod->addNextVarDec(VmtBVVarDec(VmtBVVarGetNext(var)));
+      smod->addInitVarDec(VmtBVVarDec(VmtBVVarGetInit(var)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     smod->addStmt(modMap[iref]->toInstanceString(inst));
@@ -76,20 +76,20 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto con : def->getConnections()) {
     Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
     Wireable* right = left==con.first ? con.second : con.first;
-    SmtBVVar vleft(left);
-    SmtBVVar vright(right);
+    VmtBVVar vleft(left);
+    VmtBVVar vright(right);
 
     variables = check_interface_variable(variables, vleft, smod);
     variables = check_interface_variable(variables, vright, smod);
     
-    smod->addStmt(SMTAssign(vleft, vright));
+    smod->addStmt(VMTAssign(vleft, vright));
   }
   smod->addStmt(";; END connections definition\n");
 
   return false;
 }
 
-void Passes::SmtLib2::writeToStream(std::ostream& os) {
+void Passes::VMT::writeToStream(std::ostream& os) {
 
   os << "(set-logic QF_BV)" << endl;
   

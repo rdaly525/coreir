@@ -4,16 +4,46 @@
 
 using namespace CoreIR;
 
+namespace {
+  string INIT_PF = "__AT0";
+  string CURR_PF = "__CURR__";
+  string NEXT_PF = "__NEXT__";
+  string NL = "\n";
+
+
+  string assert_op(string expr) {
+    return "(assert "+ expr + ")";
+  }
+
+  string unary_op_eqass(string op, string in, string out) {
+    return assert_op("(= (" + op + " " + in + ") " + out + ")");
+  }
+
+  string binary_op_eqass(string op, string in1, string in2, string out) {
+    return assert_op("(= (" + op + " " + in1 + " " + in2 + ") " + out + ")");
+  }
+
+  string unary_op(string op, string in) {
+    return "(" + op + " " + in + ")";
+  }
+
+  string binary_op(string op, string in1, string in2) {
+    return "(" + op + " " + in1 + " " + in2 + ")";
+  }
+}
+
 namespace CoreIR {
   namespace Passes {
 
-    string CURR_PF = "__CURR__";
-    string NEXT_PF = "__NEXT__";
-    string NL = "\n";
-  
+    string SMTgetInit(string var) {return var + INIT_PF; }
     string SMTgetCurr(string var) {return var + CURR_PF; }
     string SMTgetNext(string var) {return var + NEXT_PF; }
-    
+
+    SmtBVVar SmtBVVarGetInit(SmtBVVar var) {
+      var.setName(SMTgetInit(var.getName()));
+      return var;
+    }
+
     SmtBVVar SmtBVVarGetNext(SmtBVVar var) {
       var.setName(SMTgetNext(var.getName()));
       return var;
@@ -27,32 +57,12 @@ namespace CoreIR {
     string SmtBVVarDec(SmtBVVar w) {
       return "(declare-fun " + w.getName() + " () (_ BitVec " + w.dimstr() + "))";
     }
-    
+
     string getSMTbits(unsigned width, int x) {
       bitset<numeric_limits<int>::digits> b(x);
       return "#b" + b.to_string().substr(numeric_limits<int>::digits - width);
     }
 
-    string assert_op(string expr) {
-      return "(assert "+ expr + ")";
-    }
-
-    string unary_op_eqass(string op, string in, string out) {
-      return assert_op("(= (" + op + " " + in + ") " + out + ")");
-    }
-    
-    string binary_op_eqass(string op, string in1, string in2, string out) {
-      return assert_op("(= (" + op + " " + in1 + " " + in2 + ") " + out + ")");
-    }
-
-    string unary_op(string op, string in) {
-      return "(" + op + " " + in + ")";
-    }
-
-    string binary_op(string op, string in1, string in2) {
-      return "(" + op + " " + in1 + " " + in2 + ")";
-    }
-    
     string SMTAssign(SmtBVVar vleft, SmtBVVar vright) {
       SmtBVVar vleft_c = SmtBVVarGetCurr(vleft);
       SmtBVVar vright_c = SmtBVVarGetCurr(vright);
@@ -62,7 +72,7 @@ namespace CoreIR {
       string next = assert_op(binary_op("=", vleft_n.getExtractName(), vright_n.getExtractName()));
       return curr + NL + next;
     }
-    
+
     string SMTAnd(SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       // INIT: TRUE
       // TRANS: ((in1 & in2) = out) & ((in1' & in2') = out')
@@ -136,51 +146,58 @@ namespace CoreIR {
     }
 
     string SMTReg(SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p) {
-      // INIT: TRUE
+      // INIT: out = 0
       // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
       string in = in_p.getName();
       string clk = clk_p.getName();
-      string out = out_p.getName();      
+      string out = out_p.getName();
       string comment = ";; SMTReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
+      string zero = getSMTbits(stoi(out_p.dimstr()), 0);
+      string init = assert_op("(= "+SMTgetInit(out)+" "+zero+")");
       string trans_1 = "(=> (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + "))";
       string trans_2 = "(=> (not (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
       string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
-      return comment + NL + trans;
+      return comment + NL + init + NL + trans;
     }
-    
+
     string SMTRegPE(SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p, SmtBVVar en_p) {
-      // INIT: TRUE
+      // INIT: out = 0
       // TRANS: ((en & !clk & clk') -> (out' = in)) & (!(en & !clk & clk') -> (out' = out))
       string in = in_p.getName();
       string clk = clk_p.getName();
-      string out = out_p.getName();      
+      string out = out_p.getName();
       string en = en_p.getName();
       string comment = ";; SMTRegPE (in, clk, out, en) = (" + in + ", " + clk + ", " + out + ", " + en + ")";
+      string zero = getSMTbits(stoi(out_p.dimstr()), 0);
+      string init = assert_op("(= "+SMTgetInit(out)+" "+zero+")");
       string trans_1 = "(=> (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + "))";
       string trans_2 = "(=> (not (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
       string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
-      return comment + NL + trans;
+      return comment + NL + init + NL + trans;
     }
 
+
     string SMTCounter(SmtBVVar clk_p, SmtBVVar en_p, SmtBVVar out_p) {
-      // INIT: TRUE
+      // INIT: out = 0
       // TRANS: ((en & !clk & clk') -> (out' = out+1)) & (!(en & !clk & clk') -> (out' = out))
       string clk = clk_p.getName();
-      string out = out_p.getName();      
+      string out = out_p.getName();
       string en = en_p.getName();
       string one = getSMTbits(stoi(out_p.dimstr()), 1);
       string comment = ";; SMTCounter (clk, en, out) = (" + clk + ", " + en + ", " + out + ")";
+      string zero = getSMTbits(stoi(out_p.dimstr()), 0);
+      string init = assert_op("(= "+SMTgetInit(out)+" "+zero+")");
       string trans_1 = "(=> (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " (bvadd " + SMTgetCurr(out) + " " + one + ")))";
       string trans_2 = "(=> (not (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
       string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
-      return comment + NL + trans;
+      return comment + NL + init + NL + trans;
     }
- 
+
     string SMTSlice(SmtBVVar in_p, SmtBVVar out_p, string low, string high) {
       // INIT: TRUE
       // TRANS: (_ extract high low) in out) & (_ extract high low) in' out')
       string in = in_p.getName();
-      string out = out_p.getName();      
+      string out = out_p.getName();
       string comment = ";; SMTSlice (in, out, low, high) = (" + in + ", " + out + ", " + low + ", " + high + ")";
       string op = "(_ extract " + high + " " + low + ")";
       string curr = unary_op_eqass(op, SMTgetCurr(in), SMTgetCurr(out));
@@ -189,13 +206,14 @@ namespace CoreIR {
     }
 
     string SMTClock(SmtBVVar clk_p) {
-      // INIT: TRUE
+      // INIT: clk = 0
       // TRANS: (!clk & clk')
       string clk = clk_p.getName();
       string comment = ";; SMTClock (clk) = (" + clk + ")";
-      string trans = "(assert (= " + SMTgetCurr(clk) + " (bvnot " + SMTgetNext(clk) + ")))";
-      return comment + NL + trans;
+      string init = assert_op("(= #b0 "+SMTgetInit(clk)+")");
+      string trans = assert_op("(= " + SMTgetCurr(clk) + " (bvnot " + SMTgetNext(clk) + "))");
+      return comment + NL + init + NL + trans;
     }
-    
+
   }
 }

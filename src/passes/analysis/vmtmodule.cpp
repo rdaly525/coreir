@@ -1,6 +1,6 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/smtmodule.hpp"
-#include "coreir-passes/analysis/smtoperators.hpp"
+#include "coreir-passes/analysis/vmtmodule.hpp"
+#include "coreir-passes/analysis/vmtoperators.hpp"
 
 #include <iostream>
 using namespace CoreIR;
@@ -8,7 +8,12 @@ using namespace Passes;
 
 typedef void (*voidFunctionType)(void);
 
-string SMTModule::toString() {
+string VMTModule::toString() {
+  vector<string> pdecs;
+  for (auto pmap : ports) {
+    auto port = pmap.second;
+    pdecs.push_back(port.getName() + " () " + "(_ BitVec " + port.dimstr() + ")");
+  }
   ostringstream o;
   string tab = "  ";
 
@@ -26,25 +31,25 @@ string SMTModule::toString() {
   return o.str();
 }
 
-string SMTModule::toVarDecString() {
+string VMTModule::toVarDecString() {
   ostringstream o;
   for (auto vd : vardecs) o << vd << endl;
   return o.str();
 }
 
-string SMTModule::toNextVarDecString() {
+string VMTModule::toNextVarDecString() {
   ostringstream o;
   for (auto vd : nextvardecs) o << vd << endl;
   return o.str();
 }
 
-string SMTModule::toInitVarDecString() {
+string VMTModule::toInitVarDecString() {
   ostringstream o;
   for (auto vd : initvardecs) o << vd << endl;
   return o.str();
 }
 
-string SMTModule::toInstanceString(Instance* inst) {
+string VMTModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Instantiable* iref = inst->getInstantiableRef();
   if (this->gen) {
@@ -53,14 +58,16 @@ string SMTModule::toInstanceString(Instance* inst) {
   ostringstream o;
   string tab = "  ";
   string mname;
+  unordered_map<string,VmtBVVar> iports;
   Args args;
   if (gen) {
     args = inst->getGenArgs();
-    addPortsFromGen(inst);
+    Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
     mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
   }
   else {
     mname = modname;
+    iports = ports;
   }
 
   for (auto amap : inst->getConfigArgs()) {
@@ -84,27 +91,28 @@ string SMTModule::toInstanceString(Instance* inst) {
     paramstrs.push_back(astr);
   }
   //Assume names are <instname>_port
-  unordered_map<string, SmtBVVar> portstrs;
-  for (auto port : ports) {
-    portstrs.emplace(port.getPortName(), port);
+  unordered_map<string, std::pair <string, VmtBVVar>> portstrs;
+  for (auto port : iports) {
+    pair<string, VmtBVVar> pstr = std::make_pair(instname, port.second);
+    portstrs.emplace(port.first, pstr);
   }
 
   if (mname == "coreir_neg")
-    o << SMTNot(portstrs.find("in")->second, portstrs.find("out")->second);
+    o << VMTNot(portstrs.find("in")->second, portstrs.find("out")->second);
   else if (mname == "coreir_const")
-    o << SMTConst(portstrs.find("out")->second, getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
+    o << VMTConst(portstrs.find("out")->second, getVMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
   else if (mname == "coreir_add")
-    o << SMTAdd(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
+    o << VMTAdd(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
   else if (mname == "coreir_reg_PE")
-    o << SMTRegPE(portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
+    o << VMTRegPE(portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
   else if (mname == "counter")
-    o << SMTCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
+    o << VMTCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
   else if (mname == "coreir_concat")
-    o << SMTConcat(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
+    o << VMTConcat(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
   else if (mname == "coreir_slice") {
     int lo = stoi(args["lo"]->toString());
     int hi = stoi(args["hi"]->toString())-1;
-    o << SMTSlice(portstrs.find("in")->second, portstrs.find("out")->second,
+    o << VMTSlice(portstrs.find("in")->second, portstrs.find("out")->second,
 		  std::to_string(lo), std::to_string(hi)) << endl;
   }
   else if (mname == "coreir_term"); // do nothing in terminate case
