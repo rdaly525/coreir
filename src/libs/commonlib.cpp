@@ -17,51 +17,14 @@ uint num_bits(uint N) {
 Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   
   Namespace* commonlib = c->newNamespace("commonlib");
+  Namespace* coreirprims = c->getNamespace("coreir");
  
   /////////////////////////////////
   // Commonlib Types
   /////////////////////////////////
   
   Params widthparams = Params({{"width",AINT}});
-
-  //Single bit types
-  commonlib->newNamedType("clk","clkIn",c->Bit());
-  commonlib->newNamedType("rst","rstIn",c->Bit());
-  
-  commonlib->newTypeGen(
-    "binary",
-    widthparams,
-    [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
-      Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
-      return c->Record({
-        {"in0",c->Flip(ptype)},
-        {"in1",c->Flip(ptype)},
-        {"out",ptype}
-      });
-    }
-  );
-  commonlib->newTypeGen(
-    "binaryReduce",
-    widthparams,
-    [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
-      Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
-      return c->Record({
-        {"in0",c->Flip(ptype)},
-        {"in1",c->Flip(ptype)},
-        {"out",c->Bit()}
-      });
-    }
-  );
-  
-  /////////////////////////////////
-  // Commonlib bitwise primitives
-  //   
-  /////////////////////////////////
-  //commonlib_bitwise(c,commonlib);
+  // TypeGens defined in coreirprims
 
   /////////////////////////////////
   // Commonlib Arithmetic primitives
@@ -77,7 +40,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   
   //Add all the generators (with widthparams)
   for (auto tmap : opmap) {
-    TypeGen* tg = commonlib->getTypeGen(tmap.first);
+    TypeGen* tg = coreirprims->getTypeGen(tmap.first);
     for (auto op : tmap.second) {
       commonlib->newGeneratorDecl(op,tg,widthparams);
     }
@@ -86,7 +49,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   // definition of not equal     //
   /////////////////////////////////
-  Generator* notEqual = commonlib->newGeneratorDecl("neq",commonlib->getTypeGen("binaryReduce"),{{"width",AINT}});
+  Generator* notEqual = commonlib->newGeneratorDecl("neq",coreirprims->getTypeGen("binaryReduce"),{{"width",AINT}});
 
   notEqual->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args args) {
     uint width = args.at("width")->get<ArgInt>();
