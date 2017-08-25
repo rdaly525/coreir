@@ -145,7 +145,6 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     bool rst = args.at("rst")->get<ArgBool>();
     assert(!(clr && rst));
     Type* ptype = c->Bit()->Arr(width);
-    if (width==0) ptype = c->Bit();
 
     RecordParams r({
         {"in" , ptype->getFlipped()},
@@ -187,7 +186,38 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return name;
   };
   reg->setNameGen(regNameGen);
+  
 
+  auto bitRegFun = [](Context* c, Args args) { 
+    bool en = args.at("en")->get<ArgBool>();
+    bool clr = args.at("clr")->get<ArgBool>();
+    bool rst = args.at("rst")->get<ArgBool>();
+    assert(!(clr && rst));
+    Type* ptype = c->Bit();
+
+    RecordParams r({
+        {"in" , ptype->getFlipped()},
+        {"clk", c->Named("coreir.clkIn")},
+        {"out", ptype}
+    });
+    if (en) r.push_back({"en",c->BitIn()});
+    if (clr) r.push_back({"clr",c->BitIn()});
+    if (rst) r.push_back({"rst",c->BitIn()});
+    return c->Record(r);
+  };
+  Params bitRegGenParams({
+    {"en",ABOOL},
+    {"clr",ABOOL},
+    {"rst",ABOOL}
+  });
+  TypeGen* bitRegTypeGen = coreirprims->newTypeGen("regType",bitRegGenParams,bitRegFun);
+  auto bitreg = coreirprims->newGeneratorDecl("bitreg",bitRegTypeGen,bitRegGenParams,regConfigParams);
+  bitreg->setDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
+  bitreg->setDefaultConfigArgs({{"init",c->argInt(0)}});
+  
+  jverilog["parameters"] = {"init"};
+  jverilog["prefix"] = "coreir_";
+  bitreg->getMetaData()["verilog"] = jverilog;
 
   Params memGenParams({{"width",AINT},{"depth",AINT}});
   auto memFun = [](Context* c, Args args) { 
@@ -240,7 +270,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in",c->Flip(ptype)},
         {"out",ptype}
@@ -253,7 +282,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -268,7 +296,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -282,7 +309,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in",c->Flip(ptype)},
         {"out",c->Bit()}
@@ -309,7 +335,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -344,6 +369,23 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     }
   }
 
+  //Do The
+  Type* bitBinaryType = c->Record({
+    {"in0",c->BitIn()},
+    {"in1",c->BitIn()},
+    {"out",c->Bit()}
+  });
+  Type* bitUnaryType = c->Record({
+    {"in",c->BitIn()},
+    {"out",c->Bit()}
+  });
+
+  //1 bit gen
+  vector<string> bitops = {"and","or","xor"};
+  for (auto op : bitops) {
+    coreirprims->newModuleDecl("bit" + op, bitBinaryType);
+  }
+  coreirprims->newModuleDecl("bitnot",bitUnaryType);
 
   /////////////////////////////////
   // Stdlib convert primitives
@@ -383,7 +425,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==0) ptype = c->Bit();
 
       return c->Record({
         {"out",ptype}
@@ -395,6 +436,9 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   jverilog["prefix"] = "coreir_";
   Const->getMetaData()["verilog"] = jverilog;
 
+  //Add bit version
+  coreirprims->newModuleDecl("bitconst",c->Record({{"out",c->Bit()}}));
+
   //Add Term
   coreirprims->newTypeGen(
     "in", 
@@ -402,7 +446,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in",ptype->getFlipped()}
       });
@@ -410,6 +453,8 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   );
   coreirprims->newGeneratorDecl("term",coreirprims->getTypeGen("in"),widthparams);
 
+  coreirprims->newModuleDecl("bitterm",c->Record({{"in",c->BitIn()}}));
+  
   /////////////////////////////////
   // Stdlib convert primitives
   //   slice,concat,cast,strip
