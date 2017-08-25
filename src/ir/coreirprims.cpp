@@ -210,7 +210,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     {"clr",ABOOL},
     {"rst",ABOOL}
   });
-  TypeGen* bitRegTypeGen = coreirprims->newTypeGen("regType",bitRegGenParams,bitRegFun);
+  TypeGen* bitRegTypeGen = coreirprims->newTypeGen("bitRegType",bitRegGenParams,bitRegFun);
   auto bitreg = coreirprims->newGeneratorDecl("bitreg",bitRegTypeGen,bitRegGenParams,regConfigParams);
   bitreg->setDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
   bitreg->setDefaultConfigArgs({{"init",c->argInt(0)}});
