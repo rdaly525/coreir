@@ -110,6 +110,9 @@ libcoreir_c.COREArgInt.restype = COREArg_p
 libcoreir_c.COREArgString.argtypes = [COREContext_p,ct.c_char_p]
 libcoreir_c.COREArgString.restype = COREArg_p
 
+libcoreir_c.COREArgBool.argtypes = [COREContext_p, ct.c_bool]
+libcoreir_c.COREArgBool.restype = COREArg_p
+
 libcoreir_c.COREModuleDefGetConnections.argtypes = [COREModuleDef_p, ct.POINTER(ct.c_int)]
 libcoreir_c.COREModuleDefGetConnections.restype = ct.POINTER(COREConnection_p)
 
