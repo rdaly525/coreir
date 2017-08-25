@@ -102,6 +102,7 @@ inline void hash_combine(size_t& seed, const T& v) {
 
 //These are defined in helpers
 bool isNumber(string s);
+bool isPower2(uint n);
 string Param2Str(Param);
 string Params2Str(Params);
 string Args2Str(Args);

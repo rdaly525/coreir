@@ -145,7 +145,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     bool rst = args.at("rst")->get<ArgBool>();
     assert(!(clr && rst));
     Type* ptype = c->Bit()->Arr(width);
-    if (width==1) ptype = c->Bit();
+    if (width==0) ptype = c->Bit();
 
     RecordParams r({
         {"in" , ptype->getFlipped()},
@@ -177,7 +177,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
 
   //Set nameGen function
   auto regNameGen = [](Args args) {
-    string name = "reg_P";
+    string name = "reg_P"; //TODO Should we do negedge?
     bool rst = args["rst"]->get<ArgBool>();
     bool clr = args["clr"]->get<ArgBool>();
     bool en = args["en"]->get<ArgBool>();
@@ -187,6 +187,32 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return name;
   };
   reg->setNameGen(regNameGen);
+
+
+  Params memGenParams({{"width",AINT},{"depth",AINT}});
+  auto memFun = [](Context* c, Args args) { 
+    uint width = args.at("width")->get<ArgInt>();
+    uint depth = args.at("depth")->get<ArgInt>();
+    ASSERT(isPower2(width),"width needs to be a power of 2: " + to_string(width));
+    ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth));
+    uint awidth = uint(std::log2(depth));
+    return c->Record({
+      {"wclk",c->Named("coreir.clkIn")},
+      {"wen",c->BitIn()},
+      {"wdata",c->BitIn()->Arr(width)},
+      {"waddr",c->BitIn()->Arr(awidth)},
+      {"rclk",c->Named("coreir.clkIn")},
+      {"ren",c->BitIn()},
+      {"rdata",c->Bit()->Arr(width)},
+      {"raddr",c->BitIn()->Arr(awidth)}
+    });
+  };
+  TypeGen* memTypeGen = coreirprims->newTypeGen("memType",memGenParams,memFun);
+  auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams);
+  jverilog["parameters"] = {"width","init"};
+  jverilog["prefix"] = "coreir_";
+  mem->getMetaData()["verilog"] = jverilog;
+
 
 }
 
@@ -214,7 +240,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
+      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in",c->Flip(ptype)},
         {"out",ptype}
@@ -227,7 +253,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
+      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -242,7 +268,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
+      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -256,7 +282,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
+      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in",c->Flip(ptype)},
         {"out",c->Bit()}
@@ -283,7 +309,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
+      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -357,7 +383,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
+      if (width==0) ptype = c->Bit();
 
       return c->Record({
         {"out",ptype}
@@ -376,7 +402,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
+      if (width==0) ptype = c->Bit();
       return c->Record({
         {"in",ptype->getFlipped()}
       });

@@ -138,8 +138,8 @@ TypeGen* Namespace::getTypeGen(string name) {
 
 Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams) {
   //Make sure module does not already exist as a module or generator
-  assert(moduleList.count(name)==0);
-  assert(generatorList.count(name)==0);
+  ASSERT(moduleList.count(name)==0,"Already added " + name);
+  ASSERT(generatorList.count(name)==0,"Already added " + name);
   
   Generator* g = new Generator(this,name,typegen,genparams,configparams);
   generatorList.emplace(name,g);
