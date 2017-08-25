@@ -4,13 +4,36 @@
 
 using namespace CoreIR;
 
+namespace {
+  string INIT_PF = "__AT0";
+  string CURR_PF = "__CURR__";
+  string NEXT_PF = "__NEXT__";
+  string NL = "\n";
+
+
+  string assert_op(string expr) {
+    return "(assert "+ expr + ")";
+  }
+
+  string unary_op_eqass(string op, string in, string out) {
+    return assert_op("(= (" + op + " " + in + ") " + out + ")");
+  }
+    
+  string binary_op_eqass(string op, string in1, string in2, string out) {
+    return assert_op("(= (" + op + " " + in1 + " " + in2 + ") " + out + ")");
+  }
+
+  string unary_op(string op, string in) {
+    return "(" + op + " " + in + ")";
+  }
+
+  string binary_op(string op, string in1, string in2) {
+    return "(" + op + " " + in1 + " " + in2 + ")";
+  }
+}
+
 namespace CoreIR {
   namespace Passes {
-
-    string INIT_PF = "__AT0";
-    string CURR_PF = "__CURR__";
-    string NEXT_PF = "__NEXT__";
-    string NL = "\n";
   
     string SMTgetInit(string var) {return var + INIT_PF; }
     string SMTgetCurr(string var) {return var + CURR_PF; }
@@ -38,26 +61,6 @@ namespace CoreIR {
     string getSMTbits(unsigned width, int x) {
       bitset<numeric_limits<int>::digits> b(x);
       return "#b" + b.to_string().substr(numeric_limits<int>::digits - width);
-    }
-
-    string assert_op(string expr) {
-      return "(assert "+ expr + ")";
-    }
-
-    string unary_op_eqass(string op, string in, string out) {
-      return assert_op("(= (" + op + " " + in + ") " + out + ")");
-    }
-    
-    string binary_op_eqass(string op, string in1, string in2, string out) {
-      return assert_op("(= (" + op + " " + in1 + " " + in2 + ") " + out + ")");
-    }
-
-    string unary_op(string op, string in) {
-      return "(" + op + " " + in + ")";
-    }
-
-    string binary_op(string op, string in1, string in2) {
-      return "(" + op + " " + in1 + " " + in2 + ")";
     }
     
     string SMTAssign(SmtBVVar vleft, SmtBVVar vright) {
