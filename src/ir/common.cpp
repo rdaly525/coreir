@@ -15,7 +15,7 @@ bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
 }
 bool isPower2(uint n) {
-  return n & (n-1);
+  return (n & (n-1))==0;
 }
 
 bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
