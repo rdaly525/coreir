@@ -18,7 +18,7 @@ namespace {
       // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
         smod->addStmt(";; START module declaration for signal '" + var.getName());
-        smod->addStmt(SMTClock(std::make_pair("", var)));
+        smod->addStmt(SMTClock(var));
         smod->addStmt(";; END module declaration\n");
       }
     }
@@ -48,9 +48,9 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   ModuleDef* def = m->getDef();
 
   static std::vector<string> variables; 
-  string tab = "  ";
   for (auto imap : def->getInstances()) {
     string iname = imap.first;
+    cout << "iname=" << iname << endl;
     Instance* inst = imap.second;
     Instantiable* iref = imap.second->getInstantiableRef();
     // do not add comment for no ops
@@ -58,7 +58,9 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
       smod->addStmt(";; START module declaration for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      SmtBVVar var = SmtBVVar(iname+"_"+rmap.first,rmap.second);
+      cout << "SMTBVVar(" + iname+"_"+rmap.first + ")" << endl;
+      SmtBVVar var = SmtBVVar(iname, rmap.first, rmap.second);
+      smod->addPort(var);
       variables.push_back(var.getName());
       smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
       smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));

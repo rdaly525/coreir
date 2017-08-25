@@ -9,11 +9,6 @@ using namespace Passes;
 typedef void (*voidFunctionType)(void);
 
 string SMTModule::toString() {
-  vector<string> pdecs;
-  for (auto pmap : ports) {
-    auto port = pmap.second;
-    pdecs.push_back(port.getName() + " () " + "(_ BitVec " + port.dimstr() + ")");
-  }
   ostringstream o;
   string tab = "  ";
 
@@ -52,16 +47,17 @@ string SMTModule::toInstanceString(Instance* inst) {
   ostringstream o;
   string tab = "  ";
   string mname;
-  unordered_map<string,SmtBVVar> iports;
   Args args;
   if (gen) {
+    cout << "it's a generator!" << endl;
     args = inst->getGenArgs();
-    Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
+    addPortsFromGen(inst);
     mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
+    cout << mname << endl;
   }
   else {
+    cout << "it's a module!" << endl;
     mname = modname;
-    iports = ports;
   }
 
   for (auto amap : inst->getConfigArgs()) {
@@ -85,10 +81,13 @@ string SMTModule::toInstanceString(Instance* inst) {
     paramstrs.push_back(astr);
   }
   //Assume names are <instname>_port
-  unordered_map<string, std::pair <string, SmtBVVar>> portstrs;
-  for (auto port : iports) {
-    pair<string, SmtBVVar> pstr = std::make_pair(instname, port.second);
-    portstrs.emplace(port.first, pstr);
+  unordered_map<string, SmtBVVar> portstrs;
+  cout << "populating porstrs with mname = " << mname << endl;
+  cout << "ports.size() = " << ports.size() << endl;
+  for (auto port : ports) {
+    cout << port.getPortName() << endl;
+    cout << port.getName() << endl;
+    portstrs.emplace(port.getPortName(), port);
   }
 
   if (mname == "coreir_neg")
