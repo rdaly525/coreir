@@ -37,9 +37,15 @@ string SMTModule::toVarDecString() {
   return o.str();
 }
 
-string SMTModule::toNexVarDecString() {
+string SMTModule::toNextVarDecString() {
   ostringstream o;
-  for (auto vd : nexvardecs) o << vd << endl;
+  for (auto vd : nextvardecs) o << vd << endl;
+  return o.str();
+}
+
+string SMTModule::toInitVarDecString() {
+  ostringstream o;
+  for (auto vd : initvardecs) o << vd << endl;
   return o.str();
 }
 

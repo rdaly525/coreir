@@ -13,6 +13,7 @@ namespace CoreIR {
     string SmtBVVarDec(SmtBVVar w);
     string SMTgetCurr(string var);
     string SMTgetNext(string var);
+    SmtBVVar SmtBVVarGetInit(SmtBVVar var);    
     SmtBVVar SmtBVVarGetNext(SmtBVVar var);    
     SmtBVVar SmtBVVarGetCurr(SmtBVVar var);    
     string getSMTbits(unsigned, int);

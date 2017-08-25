@@ -14,7 +14,8 @@ namespace {
   if ( find(variables.begin(), variables.end(), var.getName()) == variables.end() ) {
       variables.push_back(var.getName());
       smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
-      smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
+      smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
+      smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
       // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
         smod->addStmt(";; START module declaration for signal '" + var.getName());
@@ -61,7 +62,8 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
       SmtBVVar var = SmtBVVar(iname+"_"+rmap.first,rmap.second);
       variables.push_back(var.getName());
       smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
-      smod->addNexVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
+      smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
+      smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     smod->addStmt(modMap[iref]->toInstanceString(inst));
@@ -92,6 +94,14 @@ void Passes::SmtLib2::writeToStream(std::ostream& os) {
   os << "(set-logic QF_BV)" << endl;
   
   // Print variable declarations
+
+  os << ";; Init Variable declarations" << endl;
+  for (auto mmap : modMap) {
+    if (external.count(mmap.first)==0) {
+      os << mmap.second->toInitVarDecString() << endl;
+    }
+  }
+  
   os << ";; Variable declarations" << endl;
   for (auto mmap : modMap) {
     if (external.count(mmap.first)==0) {
@@ -102,7 +112,7 @@ void Passes::SmtLib2::writeToStream(std::ostream& os) {
   os << ";; Next Variable declarations" << endl;
   for (auto mmap : modMap) {
     if (external.count(mmap.first)==0) {
-      os << mmap.second->toNexVarDecString() << endl;
+      os << mmap.second->toNextVarDecString() << endl;
     }
   }
 
