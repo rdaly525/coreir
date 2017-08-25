@@ -91,7 +91,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   notEqual->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args args) {
     uint width = args.at("width")->get<ArgInt>();
 
-    Namespace* coreirprims = c->newNamespace("coreir");
+    Namespace* coreirprims = c->getNamespace("coreir");
     Generator* equal = coreirprims->getGenerator("eq");
     Generator* logicalNot = coreirprims->getGenerator("not");
     
