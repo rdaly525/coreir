@@ -136,7 +136,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     uint N = args.at("N")->get<ArgInt>();
     assert(N>0);
 
-    Namespace* stdlib = c->newNamespace("coreir");
+    Namespace* stdlib = c->getNamespace("coreir");
     Namespace* commonlib = c->getNamespace("commonlib");
     Generator* mux2 = stdlib->getGenerator("mux");
     Generator* passthrough = stdlib->getGenerator("passthrough");
@@ -151,8 +151,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance("join",mux2,{{"width",aWidth}});
       def->connect("join.out","self.out");
 
-      def->connect("self.in0","join.in0");
-      def->connect("self.in1","join.in1");
+      def->connect("self.in.data.0","join.in0");
+      def->connect("self.in.data.1","join.in1");
       def->connect("self.in.sel.0", "join.sel");
     }
     else {
@@ -163,7 +163,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
       uint Nlargehalf = 1 << (Nbits-1);
       uint Nsmallhalf = N - Nlargehalf;
-      def->connect({"self","in","sel",to_string(Nbits-1)},{"join","in","bit"});
+      def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
 
       cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
       Arg* aNlarge = c->argInt(Nlargehalf);
@@ -177,8 +177,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       for (uint i=0; i<Nsmallhalf; ++i) {
         def->connect({"self","in","data",to_string(i+Nlargehalf)},{"muxN_1","in","data",to_string(i)});
       }
-      def->connect("muxN_0.out","join.in.data.0");
-      def->connect("muxN_1.out","join.in.data.1");
+      def->connect("muxN_0.out","join.in0");
+      def->connect("muxN_1.out","join.in1");
     }
 
   });
