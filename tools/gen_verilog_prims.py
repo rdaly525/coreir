@@ -115,7 +115,7 @@ if __name__ == "__main__":
           v.add_input("in0","width")
           v.add_input("in1","width")
         if (t.find("Reduce")>=0):
-          v.add_output("out",1)
+          v.add_output("out")
         else:
           v.add_output("out","width")
         v.add_body("  assign out = %s;" % exp)
@@ -263,14 +263,14 @@ if __name__ == "__main__":
       #if (rst or clr):
       v.add_param("init",0)
       v.add_input("in","width")
-      v.add_input("clk",1)
+      v.add_input("clk")
       v.add_output("out","width")
       if (rst):
-        v.add_input("rst",1)
+        v.add_input("rst")
       if (clr):
-        v.add_input("clr",1)
+        v.add_input("clr")
       if (en):
-        v.add_input("en",1)
+        v.add_input("en")
 
       v.add_body(body)
       f.write(v.to_string())
