@@ -8,9 +8,9 @@ int main() {
   // New context
   Context* c = newContext();
   
-  //Find linebuffer in the common namespace
+  //Find muxn in the common namespace
   Namespace* commonlib = CoreIRLoadLibrary_commonlib(c);
-  Generator* linebuffer = commonlib->getGenerator("muxn");
+  Generator* muxn = commonlib->getGenerator("muxn");
 
   // Define muxN Module
   uint N = 10;
@@ -25,7 +25,7 @@ int main() {
 
   Module* muxN = c->getGlobal()->newModuleDecl("mux_n", muxNType);
   ModuleDef* def = muxN->newModuleDef();
-    def->addInstance("muxN_inst", linebuffer, 
+    def->addInstance("muxN_inst", muxn, 
                      {{"width",c->argInt(16)},{"N",c->argInt(N)}});
     def->connect("self.in", "muxN_inst.in");
     def->connect("self.out", "muxN_inst.out");
