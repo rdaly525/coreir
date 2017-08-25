@@ -28,8 +28,8 @@ namespace {
 
 }
 
-std::string Passes::VmtLib2::ID = "vmtlib2";
-bool Passes::VmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
+std::string Passes::VMT::ID = "vmt";
+bool Passes::VMT::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   //Create a new VMTmodule for this node
   Instantiable* i = node.getInstantiable();
@@ -89,7 +89,7 @@ bool Passes::VmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-void Passes::VmtLib2::writeToStream(std::ostream& os) {
+void Passes::VMT::writeToStream(std::ostream& os) {
 
   os << "(set-logic QF_BV)" << endl;
   
