@@ -218,6 +218,10 @@ extern "C" {
     return rcast<COREWireable*>(rcast<Wireable*>(w)->sel(string(sel)));
   }
 
+  COREBool COREWireableCanSelect(COREWireable* w, char* sel) {
+    return rcast<Wireable*>(w)->canSel(string(sel));
+  }
+
   COREType* COREWireableGetType(COREWireable* wireable) {
     return rcast<COREType*>(rcast<Wireable*>(wireable)->getType());
   }

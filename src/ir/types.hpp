@@ -40,6 +40,7 @@ class Type {
     DirKind getDir() const {return dir;}
     virtual string toString(void) const =0;
     virtual bool sel(string sel, Type** ret, Error* e);
+    bool canSel(string sel);
     virtual uint getSize() const=0;
     virtual json toJson();
     void print(void);
