@@ -375,17 +375,27 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     {"in1",c->BitIn()},
     {"out",c->Bit()}
   });
+  Type* bitTernaryType = c->Record({
+    {"in0",c->BitIn()},
+    {"in1",c->BitIn()},
+    {"sel",c->BitIn()},
+    {"out",c->Bit()}
+  });
   Type* bitUnaryType = c->Record({
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });
 
   //1 bit gen
+  json bverilog;
+  bverilog["prefix"] = "coreir_";
   vector<string> bitops = {"and","or","xor"};
   for (auto op : bitops) {
-    coreirprims->newModuleDecl("bit" + op, bitBinaryType);
+    coreirprims->newModuleDecl("bit" + op, bitBinaryType)->getMetaData()["verilog"] = bverilog;
   }
-  coreirprims->newModuleDecl("bitnot",bitUnaryType);
+  coreirprims->newModuleDecl("bitnot",bitUnaryType)->getMetaData()["verilog"] = bverilog;
+  coreirprims->newModuleDecl("bitmux",bitTernaryType)->getMetaData()["verilog"] = bverilog;
+
 
   /////////////////////////////////
   // Stdlib convert primitives
