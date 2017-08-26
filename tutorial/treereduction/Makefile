@@ -20,7 +20,7 @@ endif
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir
+LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreir-commonlib -lcoreir-cgralib
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = build/reductiontree
@@ -44,7 +44,7 @@ build/%.o: %.cpp
 
 
 build/%.so: build/%.o
-	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir 
+	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir -lcoreir-commonlib
 	cp $@ $(HOME)/lib/$*.so
 
 build/%.dylib: build/%.o

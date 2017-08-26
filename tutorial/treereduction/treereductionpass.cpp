@@ -1,4 +1,5 @@
 #include "coreir.h"
+#include "coreir-lib/commonlib.h"
 #include "treereductionpass.hpp"
 
 //For convenient macros to create the registerPass and deletePass functions
@@ -9,6 +10,7 @@ using namespace CoreIR;
 //Do not forget to set this static variable!!
 string TreeReductionPass::ID = "treereductionpass";
 
+// return a vector of the input wireables for a reduction tree ending at given instance 
 vector<Wireable*> TreeReductionPass::collectInputs(Instance* head) {
   vector<Wireable*> inputs;
   string opName = getOpName(head);
@@ -34,8 +36,31 @@ vector<Wireable*> TreeReductionPass::collectInputs(Instance* head) {
   return inputs;
 }
 
+// return a vector of the instances in a reduction tree ending at given instance
+vector<Instance*> TreeReductionPass::collectInsts(Instance* head) {
+  vector<Instance*> insts;
+  string opName = getOpName(head);
+  insts.push_back(head);
+
+  // check in0 branch
+  Instance* in0_inst = getSelectedInst(head, "in0");
+  if (opName == getOpName(in0_inst)) {
+    vector<Instance*> in0_insts = collectInsts(in0_inst);
+    insts.insert(insts.end(), in0_insts.begin(), in0_insts.end());
+  }
+
+  // check in1 branch
+  Instance* in1_inst = getSelectedInst(head, "in1");
+  if (opName == getOpName(in1_inst)) {
+    vector<Instance*> in1_insts = collectInsts(in1_inst);
+    insts.insert(insts.end(), in1_insts.begin(), in1_insts.end());
+  }
+
+  return insts;
+}
+
 bool TreeReductionPass::runOnModule(Module* m) {
-  //Context* c = this->getContext();
+  Context* c = this->getContext();
   
   // early out if module is undefined
   if (!m->hasDef()) return false;
@@ -62,33 +87,79 @@ bool TreeReductionPass::runOnModule(Module* m) {
   }
 
   //Loop through all instances and replace with a tree implementation
+  Namespace* commonlib = CoreIRLoadLibrary_commonlib(c);
+  Generator* opN = commonlib->getGenerator("opn");
   for (auto headInst : treeHeads) {
 
-    // found boundary interface for reduction tree
+    // find boundary interface for reduction tree
     vector<Wireable*> inputs = collectInputs(headInst);
-    cout << headInst->toString() << " has the inputs:" << endl;
-    for (auto inst : inputs) {
-      cout << " " << inst->toString();
-    }
+    auto insts = collectInsts(headInst);
+//    cout << headInst->toString() << " has the inputs:" << endl;
+//    for (auto inst : inputs) {
+//      cout << " " << inst->toString();
+//    }
+//    cout << endl;
 
     // create tree version
-    // create passthroughs
+    string opName = getOpName(headInst);
+    auto arg_op = c->argString("coreir." + opName);
+
+    auto arg_N = c->argInt(inputs.size());
+
+    Type* out_type = headInst->sel("out")->getType();
+    assert(out_type->getKind() == Type::TypeKind::TK_Array);
+    auto arg_width = c->argInt(static_cast<ArrayType*>(out_type)->getLen());
+
+    string tree_name = headInst->getInstname() + "_tree";
+
+    Instance* tree = def->addInstance(tree_name, opN,
+                                      {{"width",arg_width},{"N",arg_N},{"operator",arg_op}}
+                                      );
+    targetSubgraphs.push_back(tree);
+
+    // create passthroughs along interface of reduction tree
+    Instance* pt_out = addPassthrough(headInst->sel("out"), headInst->toString() + "_pt");
+    headInst->disconnect();
+    Wireable* pt_out_wire = pt_out->sel("in");
+
+    vector<Wireable*> pt_inputs;
+    for (auto input : inputs) {
+      Instance* pt = addPassthrough(input, input->toString() + "_pt");
+      input->disconnect();
+      pt_inputs.push_back(pt->sel("in"));
+    }
+
     // remove old instances
+    cout << headInst->toString() << " has the insts:" << endl;
+    for (auto inst : insts) {
+      cout << " " << inst->toString();
+      def->removeInstance(inst);
+    }
+    cout << endl;
+
     // wire up new tree version
+    def->connect(pt_out_wire, tree->sel("out"));
+    for (uint j=0; j<pt_inputs.size(); ++j) {
+      Wireable* pt_in = pt_inputs[j];
+      def->connect(pt_in, tree->sel("in")->sel(j));
+    }
   }
 
   //Add this current module to the user datastructure we defined before
   if (getTotalSubgraphs() > 0 ) {
-    cout << "found some stuff" << endl;
+    return true;
+  } else {
+    return false;
   }
-  return false;
 }
 
+// return string for operator used in given instance
 string TreeReductionPass::getOpName(Instance* i) {
   std::string opName = i->getInstantiableRef()->getName();
   return opName;
 }
 
+// return the instance that is connected to given instance select
 Instance* TreeReductionPass::getSelectedInst(Instance* i, string sel) {
   if (!i->hasSel(sel)) {
     return NULL;
@@ -126,7 +197,6 @@ bool TreeReductionPass::isAssocSubgraph(Instance* i) {
   // cout << "  " << opName << "  connected to " << parentOpName << endl;
 
   if (parentOpName == opName) {
-    cout << "  " << i->toString() << " is not the parent" << endl;
     return false;
   } else {
     return true;
