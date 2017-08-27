@@ -43,8 +43,8 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     });
   });
   Generator* PE = cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams,PEConfigParams);
-  PE->setDefaultGenArgs({{"width",c->argInt(16)},{"numdataports",c->argInt(2)},{"numbitports",c->argInt(3)}});
-  PE->setDefaultConfigArgs({
+  PE->addDefaultGenArgs({{"width",c->argInt(16)},{"numdataports",c->argInt(2)},{"numbitports",c->argInt(3)}});
+  PE->addDefaultConfigArgs({
       {"LUT_init",c->argInt(0)},
       {"data0_mode",c->argString("BYPASS")},
       {"data1_mode",c->argString("BYPASS")},
@@ -70,8 +70,8 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     });
   });
   Generator* DataPE = cgralib->newGeneratorDecl("DataPE",cgralib->getTypeGen("DataPEType"),DataPEGenParams,DataPEConfigParams);
-  DataPE->setDefaultGenArgs({{"width",c->argInt(16)},{"numdataports",c->argInt(2)}});
-  DataPE->setDefaultConfigArgs({
+  DataPE->addDefaultGenArgs({{"width",c->argInt(16)},{"numdataports",c->argInt(2)}});
+  DataPE->addDefaultConfigArgs({
       {"data0_mode",c->argString("BYPASS")},
       {"data1_mode",c->argString("BYPASS")}
   });
@@ -94,8 +94,8 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     });
   });
   Generator* BitPE = cgralib->newGeneratorDecl("BitPE",cgralib->getTypeGen("BitPEType"),BitPEGenParams,BitPEConfigParams);
-  BitPE->setDefaultGenArgs({{"numbitports",c->argInt(2)}});
-  BitPE->setDefaultConfigArgs({
+  BitPE->addDefaultGenArgs({{"numbitports",c->argInt(2)}});
+  BitPE->addDefaultConfigArgs({
     {"bit0_mode",c->argString("BYPASS")}
   });
 

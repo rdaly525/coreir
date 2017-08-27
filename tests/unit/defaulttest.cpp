@@ -41,8 +41,8 @@ int main() {
 
   Generator* d = g->newGeneratorDecl("defaults",g->getTypeGen("default_type"),{{"ga",AINT},{"gb",AINT}},{{"ca",AINT},{"cb",AINT}});
   //Set defaults for ga and ca
-  d->setDefaultGenArgs({{"ga",c->argInt(5)}});
-  d->setDefaultConfigArgs({{"ca",c->argInt(10)}});
+  d->addDefaultGenArgs({{"ga",c->argInt(5)}});
+  d->addDefaultConfigArgs({{"ca",c->argInt(10)}});
 
   Module* tester = g->newModuleDecl("Tester",c->Any());
   ModuleDef* def = tester->newModuleDef();

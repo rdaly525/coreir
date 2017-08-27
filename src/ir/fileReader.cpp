@@ -136,7 +136,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           Module* m = ns->newModuleDecl(jmodname,t,configparams);
           if (jmod.count("defaultconfigargs")) {
-            m->setDefaultConfigArgs(json2Args(c,configparams,jmod.at("defaultconfigargs")));
+            m->addDefaultConfigArgs(json2Args(c,configparams,jmod.at("defaultconfigargs")));
           }
           if (jmod.count("metadata")) {
             m->setMetaData(jmod["metadata"]);
@@ -165,10 +165,10 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           Generator* g = ns->newGeneratorDecl(jgenname,typegen,genparams,configparams);
           if (jgen.count("defaultconfigargs")) {
-            g->setDefaultConfigArgs(json2Args(c,configparams,jgen.at("defaultconfigargs")));
+            g->addDefaultConfigArgs(json2Args(c,configparams,jgen.at("defaultconfigargs")));
           }
           if (jgen.count("defaultgenargs")) {
-            g->setDefaultGenArgs(json2Args(c,genparams,jgen.at("defaultgenargs")));
+            g->addDefaultGenArgs(json2Args(c,genparams,jgen.at("defaultgenargs")));
           }
           if (jgen.count("metadata")) {
             g->setMetaData(jgen["metadata"]);

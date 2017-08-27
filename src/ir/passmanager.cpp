@@ -29,6 +29,12 @@ void PassManager::addPass(Pass* p) {
   }
   //Setting the dependencies and such
   p->setAnalysisInfo();
+
+  //Little hacky
+  if (auto ivp = dyn_cast<InstanceVisitorPass>(p)) {
+    ivp->setVisitorInfo();
+  }
+
 }
 
 bool PassManager::runNamespacePass(Pass* pass) {
@@ -56,15 +62,21 @@ bool PassManager::runModulePass(Pass* pass) {
 
 //Only runs on Instances
 bool PassManager::runInstancePass(Pass* pass) {
-  bool modified = false;
-  InstancePass* ipass = cast<InstancePass>(pass);
+  //Load up list of instances in case the pass changes the list
+  //Turn this into a pass
+  vector<Instance*> insts;
   for (auto ns : this->nss) {
     for (auto modmap : ns->getModules()) {
       if (!modmap.second->hasDef()) continue;
       for (auto instmap : modmap.second->getDef()->getInstances()) {
-        modified |= ipass->runOnInstance(instmap.second);
+        insts.push_back(instmap.second);
       }
     }
+  }
+  InstancePass* ipass = cast<InstancePass>(pass);
+  bool modified = false;
+  for (auto inst : insts) {
+    modified |= ipass->runOnInstance(inst);
   }
   return modified;
 }
@@ -76,6 +88,7 @@ bool PassManager::runInstanceVisitorPass(Pass* pass) {
   bool modified = false;
   InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
   for (auto imap : cfim->getFullInstanceMap()) {
+    cout << "VISITOR: " << imap.first->getRefName() << endl;
     modified |= ivpass->runOnInstances(imap.first,imap.second);
   }
   return modified;
