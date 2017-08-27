@@ -17,10 +17,10 @@ int main() {
   Module* Top = c->getGlobal()->newModuleDecl("Top",c->Any());
   ModuleDef* def = Top->newModuleDef();
     def->addInstance("io0",IO,w16,{{"mode",c->argString("i")}});
-    def->addInstance("p0",PE,{{"width",c->argInt(16)},{"numin",c->argInt(2)}},{{"op",c->argString("add")}});
+    def->addInstance("p0",PE,{{"width",c->argInt(16)}},{{"op",c->argString("add")}});
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};
     def->addInstance("m0",Mem,{{"width",c->argInt(16)},{"depth",c->argInt(512)}},{{"mode",c->argString("o")}});
-    def->addInstance("p1",PE,{{"width",c->argInt(16)},{"numin",c->argInt(2)}},{{"op",c->argString("mult")}});
+    def->addInstance("p1",PE,{{"width",c->argInt(16)}},{{"op",c->argString("mult")}});
     def->addInstance("io1",IO,w16,{{"mode",c->argString("o")}});
     
     def->connect("io0.out","p0.data.in.0");

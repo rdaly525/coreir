@@ -19,36 +19,85 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   });
 
   //PE declaration
-  Params PEGenParams = {{"width",AINT},{"numin",AINT}};
-  Params opParams = {{"op",ASTRING}};
+  Params PEGenParams = {{"width",AINT},{"numbitports",AINT},{"numdataports",AINT}};
+  Params PEConfigParams({
+    {"op",ASTRING},
+    {"LUT_init",AINT},
+    {"data0_mode",ASTRING},
+    {"data1_mode",ASTRING},
+    {"bit0_mode",ASTRING}
+  });
   cgralib->newTypeGen("PEType",PEGenParams,[](Context* c, Args args) {
     uint width = args.at("width")->get<ArgInt>();
-    uint numin = args.at("numin")->get<ArgInt>();
+    uint numdataports = args.at("numdataports")->get<ArgInt>();
+    uint numbitports = args.at("numbitports")->get<ArgInt>();
     return c->Record({
       {"data",c->Record({
-        {"in",c->BitIn()->Arr(width)->Arr(numin)},
+        {"in",c->BitIn()->Arr(width)->Arr(numdataports)},
         {"out",c->Bit()->Arr(width)}
       })},
       {"bit",c->Record({
-        {"in",c->BitIn()->Arr(numin)},
+        {"in",c->BitIn()->Arr(numbitports)},
         {"out",c->Bit()}
       })}
     });
   });
-  cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams,opParams);
+  Generator* PE = cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams,PEConfigParams);
+  PE->setDefaultGenArgs({{"width",c->argInt(16)},{"numdataports",c->argInt(2)},{"numbitports",c->argInt(3)}});
+  PE->setDefaultConfigArgs({
+      {"LUT_init",c->argInt(0)},
+      {"data0_mode",c->argString("BYPASS")},
+      {"data1_mode",c->argString("BYPASS")},
+      {"bit0_mode",c->argString("BYPASS")}
+  });
 
-  //Const Declaration
-  Params valueParams = {{"value",AINT}};
-  cgralib->newTypeGen("SrcType",widthParams,[](Context* c, Args args) {
+  //DataPE declaration
+  Params DataPEGenParams = {{"width",AINT},{"numdataports",AINT}};
+  Params DataPEConfigParams({
+    {"op",ASTRING},
+    {"data0_mode",ASTRING},
+    {"data1_mode",ASTRING}
+  });
+
+  cgralib->newTypeGen("DataPEType",DataPEGenParams,[](Context* c, Args args) {
     uint width = args.at("width")->get<ArgInt>();
+    uint numdataports = args.at("numdataports")->get<ArgInt>();
     return c->Record({
-      {"out",c->Bit()->Arr(width)}
+      {"data",c->Record({
+        {"in",c->BitIn()->Arr(width)->Arr(numdataports)},
+        {"out",c->Bit()->Arr(width)}
+      })}
     });
   });
-  cgralib->newGeneratorDecl("Const",cgralib->getTypeGen("SrcType"),widthParams,valueParams);
+  Generator* DataPE = cgralib->newGeneratorDecl("DataPE",cgralib->getTypeGen("DataPEType"),DataPEGenParams,DataPEConfigParams);
+  DataPE->setDefaultGenArgs({{"width",c->argInt(16)},{"numdataports",c->argInt(2)}});
+  DataPE->setDefaultConfigArgs({
+      {"data0_mode",c->argString("BYPASS")},
+      {"data1_mode",c->argString("BYPASS")}
+  });
+  
+  //BitPE declaration
+  Params BitPEGenParams = {{"numbitports",AINT}};
+  Params BitPEConfigParams({
+    {"LUT_init",AINT},
+    {"bit0_mode",ASTRING},
+    {"bit1_mode",ASTRING}
+  });
 
-  //Reg declaration
-  cgralib->newGeneratorDecl("Reg",cgralib->getTypeGen("unary"),widthParams);
+  cgralib->newTypeGen("BitPEType",BitPEGenParams,[](Context* c, Args args) {
+    uint numbitports = args.at("numbitports")->get<ArgInt>();
+    return c->Record({
+      {"bit",c->Record({
+        {"in",c->BitIn()->Arr(numbitports)},
+        {"out",c->Bit()}
+      })}
+    });
+  });
+  Generator* BitPE = cgralib->newGeneratorDecl("BitPE",cgralib->getTypeGen("BitPEType"),BitPEGenParams,BitPEConfigParams);
+  BitPE->setDefaultGenArgs({{"numbitports",c->argInt(2)}});
+  BitPE->setDefaultConfigArgs({
+    {"bit0_mode",c->argString("BYPASS")}
+  });
 
   //IO Declaration
   Params modeParams = {{"mode",ASTRING}};
