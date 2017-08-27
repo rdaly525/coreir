@@ -3,7 +3,8 @@
 #include "coreir-passes/common.h"
 #include <stack>
 
-#include "coreir-passes/analysis/constructinstancegraph.h"
+#include "coreir-passes/analysis/createinstancegraph.h"
+#include "coreir-passes/analysis/createfullinstancemap.h"
 
 
 
@@ -30,9 +31,7 @@ void PassManager::addPass(Pass* p) {
   p->setAnalysisInfo();
 }
 
-//TODO Only do Specified Namespace for now
 bool PassManager::runNamespacePass(Pass* pass) {
-  assert(pass);
   bool modified = false;
   for (auto ns : this->nss) {
     modified |= cast<NamespacePass>(pass)->runOnNamespace(ns);
@@ -40,31 +39,58 @@ bool PassManager::runNamespacePass(Pass* pass) {
   return modified;
 }
 
-//TODO only do specified Namespace for now
+//Only runs on modules with definitions
 bool PassManager::runModulePass(Pass* pass) {
   bool modified = false;
   ModulePass* mpass = cast<ModulePass>(pass);
   for (auto ns : this->nss) {
     for (auto modmap : ns->getModules()) {
       Module* m = modmap.second;
-      modified |= mpass->runOnModule(m);
+      if (m->hasDef()) {
+        modified |= mpass->runOnModule(m);
+      }
     }
   }
   return modified;
 }
 
+//Only runs on Instances
+bool PassManager::runInstancePass(Pass* pass) {
+  bool modified = false;
+  InstancePass* ipass = cast<InstancePass>(pass);
+  for (auto ns : this->nss) {
+    for (auto modmap : ns->getModules()) {
+      if (!modmap.second->hasDef()) continue;
+      for (auto instmap : modmap.second->getDef()->getInstances()) {
+        modified |= ipass->runOnInstance(instmap.second);
+      }
+    }
+  }
+  return modified;
+}
+
+bool PassManager::runInstanceVisitorPass(Pass* pass) {
+  
+  //Get the analysis pass which constructs the instancegraph
+  auto cfim = static_cast<Passes::CreateFullInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
+  bool modified = false;
+  InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
+  for (auto imap : cfim->getFullInstanceMap()) {
+    modified |= ivpass->runOnInstances(imap.first,imap.second);
+  }
+  return modified;
+}
 
 bool PassManager::runInstanceGraphPass(Pass* pass) {
   
   //Get the analysis pass which constructs the instancegraph
-  auto cig = static_cast<Passes::ConstructInstanceGraph*>(this->getAnalysisPass("constructInstanceGraph"));
-  bool ret = false;
+  auto cig = static_cast<Passes::CreateInstanceGraph*>(this->getAnalysisPass("createinstancegraph"));
+  bool modified = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
   for (auto node : cig->getInstanceGraph()->getSortedNodes()) {
-    bool modified = igpass->runOnInstanceGraphNode(*node);
-    ret |= modified;
+    modified |= igpass->runOnInstanceGraphNode(*node);
   }
-  return ret;
+  return modified;
 }
 
 bool PassManager::runPass(Pass* p) {
@@ -78,6 +104,12 @@ bool PassManager::runPass(Pass* p) {
       break;
     case Pass::PK_Module:
       modified = runModulePass(p);
+      break;
+    case Pass::PK_Instance:
+      modified = runInstancePass(p);
+      break;
+    case Pass::PK_InstanceVisitor:
+      modified = runInstanceVisitorPass(p);
       break;
     case Pass::PK_InstanceGraph:
       modified = runInstanceGraphPass(p);
@@ -98,6 +130,7 @@ void PassManager::pushAllDependencies(string oname,stack<string> &work) {
   ASSERT(passMap.count(oname),"Can not run pass \"" + oname + "\" because it was never loaded!");
   work.push(oname);
   for (auto it = passMap[oname]->dependencies.rbegin(); it!=passMap[oname]->dependencies.rend(); ++it) {
+    ASSERT(passMap.count(*it),"Dependency " + *it + " for " + oname + " Was never loaded!");
     ASSERT(analysisPasses.count(*it),"Dependency \"" + *it + "\" for \"" + oname + "\" cannot be a transform pass");
     pushAllDependencies(*it,work);
   }  

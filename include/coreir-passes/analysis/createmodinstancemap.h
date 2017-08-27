@@ -1,12 +1,12 @@
-#ifndef CREATEINSTANCEMAP_HPP_
-#define CREATEINSTANCEMAP_HPP_
+#ifndef CREATEMODINSTANCEMAP_HPP_
+#define CREATEMODINSTANCEMAP_HPP_
 
 #include "coreir.h"
 
 namespace CoreIR {
 namespace Passes {
 
-class CreateInstanceMap : public ModulePass {
+class CreateModInstanceMap : public ModulePass {
   public:
     //Map from Instantiables to a list of instances
     typedef unordered_map<Instantiable*,unordered_set<Instance*>> InstanceMapType;
@@ -14,7 +14,7 @@ class CreateInstanceMap : public ModulePass {
     unordered_map<Module*,InstanceMapType> modInstanceMap;
   public :
     static std::string ID;
-    CreateInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
+    CreateModInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
     bool runOnModule(Module* ns) override;
     void releaseMemory() override {
       modInstanceMap.clear();

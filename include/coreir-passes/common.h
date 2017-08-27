@@ -3,14 +3,15 @@
 
 //Analysis passes
 #include "analysis/hellomodule.h"
-#include "analysis/constructinstancegraph.h"
+#include "analysis/createinstancegraph.h"
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
 #include "analysis/coreirjson.h"
 #include "analysis/weakverify.h"
 #include "analysis/strongverify.h"
 #include "analysis/verifyflattenedtypes.h"
-#include "analysis/createinstancemap.h"
+#include "analysis/createmodinstancemap.h"
+#include "analysis/createfullinstancemap.h"
 
 //Transform passes
 #include "transform/flatten.h"
@@ -27,8 +28,9 @@ namespace CoreIR {
     Context* c = pm.getContext();
     //Analysis
     pm.addPass(new Passes::HelloModule());
-    pm.addPass(new Passes::ConstructInstanceGraph());
-    pm.addPass(new Passes::CreateInstanceMap());
+    pm.addPass(new Passes::CreateInstanceGraph());
+    pm.addPass(new Passes::CreateModInstanceMap());
+    pm.addPass(new Passes::CreateFullInstanceMap());
     pm.addPass(new Passes::Firrtl());
     pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());
