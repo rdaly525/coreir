@@ -80,6 +80,12 @@ Wireable* ModuleDef::sel(SelectPath path) {
   }
   return cur;
 }
+Wireable* ModuleDef::sel(std::initializer_list<const char*> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
+Wireable* ModuleDef::sel(std::initializer_list<std::string> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
 
 void ModuleDef::appendInstanceToIter(Instance* instance) {
     if (instancesIterFirst == nullptr) {

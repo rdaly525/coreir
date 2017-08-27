@@ -88,7 +88,6 @@ bool PassManager::runInstanceVisitorPass(Pass* pass) {
   bool modified = false;
   InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
   for (auto imap : cfim->getFullInstanceMap()) {
-    cout << "VISITOR: " << imap.first->getRefName() << endl;
     modified |= ivpass->runOnInstances(imap.first,imap.second);
   }
   return modified;
