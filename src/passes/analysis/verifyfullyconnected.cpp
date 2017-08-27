@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/strongverify.h"
+#include "coreir-passes/analysis/verifyfullyconnected.h"
 
 using namespace CoreIR;
 
@@ -42,8 +42,8 @@ bool checkIfFullyConnected(Wireable* w,Error& e) {
 
 }
 
-string Passes::StrongVerify::ID = "strongverify";
-bool Passes::StrongVerify::runOnModule(Module* m) {
+string Passes::VerifyFullyConnected::ID = "verifyfullyconnected";
+bool Passes::VerifyFullyConnected::runOnModule(Module* m) {
   //Check if all ports are connected for everything
   if (!m->hasDef()) return false;
   Context* c = this->getContext();

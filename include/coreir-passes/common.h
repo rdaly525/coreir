@@ -7,8 +7,8 @@
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
 #include "analysis/coreirjson.h"
-#include "analysis/weakverify.h"
-#include "analysis/strongverify.h"
+#include "analysis/verifyfullyconnected.h"
+#include "analysis/verifyinputconnections.h"
 #include "analysis/verifyflattenedtypes.h"
 #include "analysis/createmodinstancemap.h"
 #include "analysis/createfullinstancemap.h"
@@ -34,8 +34,8 @@ namespace CoreIR {
     pm.addPass(new Passes::Firrtl());
     pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());
-    pm.addPass(new Passes::WeakVerify());
-    pm.addPass(new Passes::StrongVerify());
+    pm.addPass(new Passes::VerifyInputConnections());
+    pm.addPass(new Passes::VerifyFullyConnected());
     pm.addPass(new Passes::VerifyFlattenedTypes());
     
     //Transform
