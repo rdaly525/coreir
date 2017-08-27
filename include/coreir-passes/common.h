@@ -35,7 +35,8 @@ namespace CoreIR {
     pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());
     pm.addPass(new Passes::VerifyInputConnections());
-    pm.addPass(new Passes::VerifyFullyConnected());
+    pm.addPass(new Passes::VerifyFullyConnected(true));
+    pm.addPass(new Passes::VerifyFullyConnected(false));
     pm.addPass(new Passes::VerifyFlattenedTypes());
     
     //Transform

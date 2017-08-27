@@ -52,8 +52,12 @@ struct myPair {
 };
 
 class Type;
-class TypeGen;
+class BitType;
+class BitInType;
+class ArrayType;
+class RecordType;
 class NamedType;
+class TypeGen;
 typedef Type* (*TypeGenFun)(Context* c, Args args);
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef std::string (*NameGen_t)(Args);
