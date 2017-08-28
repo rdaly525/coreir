@@ -7,7 +7,6 @@
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
 #include "analysis/smtlib2.h"
-#include "analysis/vmt.h"
 #include "analysis/coreirjson.h"
 #include "analysis/weakverify.h"
 #include "analysis/strongverify.h"
@@ -35,7 +34,6 @@ namespace CoreIR {
     pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());
     pm.addPass(new Passes::SmtLib2());
-    pm.addPass(new Passes::VMT());
     pm.addPass(new Passes::WeakVerify());
     pm.addPass(new Passes::StrongVerify());
     pm.addPass(new Passes::VerifyFlattenedTypes());
