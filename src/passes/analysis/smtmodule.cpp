@@ -57,7 +57,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   if (gen) {
     args = inst->getGenArgs();
     addPortsFromGen(inst);
-    mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
+    mname = gen->getNamespace()->getName() + SEP + gen->getName(args);
   }
   else {
     mname = modname;
@@ -89,27 +89,27 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     portstrs.emplace(port.getPortName(), port);
   }
 
-  string context = path+ "_";
+  string context = path+ SEP;
   
-  if (mname == "coreir_neg")
+  if (mname == "coreir"+SEP+"neg")
     o << SMTNot(context, portstrs.find("in")->second, portstrs.find("out")->second);
-  else if (mname == "coreir_const")
+  else if (mname == "coreir"+SEP+"const")
     o << SMTConst(context, portstrs.find("out")->second, getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
-  else if (mname == "coreir_add")
+  else if (mname == "coreir"+SEP+"add")
     o << SMTAdd(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
-  else if (mname == "coreir_reg_PE")
+  else if (mname == "coreir"+SEP+"reg_PE")
     o << SMTRegPE(context, portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
   // else if (mname == "counter")
   //   o << SMTCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
-  else if (mname == "coreir_concat")
+  else if (mname == "coreir"+SEP+"concat")
     o << SMTConcat(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
-  else if (mname == "coreir_slice") {
+  else if (mname == "coreir"+SEP+"slice") {
     int lo = stoi(args["lo"]->toString());
     int hi = stoi(args["hi"]->toString())-1;
     o << SMTSlice(context, portstrs.find("in")->second, portstrs.find("out")->second,
 		  std::to_string(lo), std::to_string(hi)) << endl;
   }
-  else if (mname == "coreir_term"); // do nothing in terminate case
+  else if (mname == "coreir"+SEP+"term"); // do nothing in terminate case
   else {
     o << "!!! UNMATCHED: " << mname << " !!!" << endl;
     //    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;

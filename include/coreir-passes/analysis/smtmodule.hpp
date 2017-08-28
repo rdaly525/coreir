@@ -18,6 +18,8 @@
 
 using namespace CoreIR; //TODO get rid of this
 
+static const string SEP = "$";
+
 class SmtBVVar {
   string instname = "";
   string portname;
@@ -30,7 +32,7 @@ class SmtBVVar {
   public :
     SmtBVVar(string instname, string field,Type* t) :
       instname(instname), portname(field), dim(t->getSize()), dir(t->getDir())     {
-      name = (instname == "" ? "" : instname + "_") + portname;
+      name = (instname == "" ? "" : instname + SEP) + portname;
       fullname = field+name;
     }
     SmtBVVar(Wireable* w) : SmtBVVar("","",w->getType()) {
@@ -54,7 +56,7 @@ class SmtBVVar {
 	instname = sp[0];
       }
 
-      name = (instname == "" ? "" : instname + "_") + portname;
+      name = (instname == "" ? "" : instname + SEP) + portname;
       fullname = name;
     }
   bool operator==(const SmtBVVar &other) const
