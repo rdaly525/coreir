@@ -24,12 +24,14 @@ class SmtBVVar {
   string name;
   unsigned dim;
   string idx;
+  string fullname = "";
   bool need_extract = false;
   Type::DirKind dir;
   public :
     SmtBVVar(string instname, string field,Type* t) :
       instname(instname), portname(field), dim(t->getSize()), dir(t->getDir())     {
       name = (instname == "" ? "" : instname + "_") + portname;
+      fullname = field+name;
     }
     SmtBVVar(Wireable* w) : SmtBVVar("","",w->getType()) {
       SelectPath sp = w->getSelectPath();
@@ -53,6 +55,7 @@ class SmtBVVar {
       }
 
       name = (instname == "" ? "" : instname + "_") + portname;
+      fullname = name;
     }
   bool operator==(const SmtBVVar &other) const
   { return (name.compare(other.name) == 0);
@@ -63,6 +66,7 @@ class SmtBVVar {
     string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
     string getExtractName() { return need_extract ? "((_ extract " + idx + " " + idx + ") " + getName() + ")" : getName();}
     string getName() { return name;}
+    string getFullName() { return fullname;}
     string setName(string name) { return this->name = name;}
     string getPortName() {return portname;}
 };
@@ -121,7 +125,7 @@ class SMTModule {
     string toVarDecString();
     string toNextVarDecString();
     string toInitVarDecString();
-    string toInstanceString(Instance* inst);
+    string toInstanceString(Instance* inst, string path);
   private :
     // void Type2Ports(Type* t,unordered_map<string,SmtBVVar>& ports) {
     //   for (auto rmap : cast<RecordType>(t)->getRecord()) {

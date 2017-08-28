@@ -44,7 +44,7 @@ string SMTModule::toInitVarDecString() {
   return o.str();
 }
 
-string SMTModule::toInstanceString(Instance* inst) {
+string SMTModule::toInstanceString(Instance* inst, string path) {
   string instname = inst->getInstname();
   Instantiable* iref = inst->getInstantiableRef();
   if (this->gen) {
@@ -89,22 +89,24 @@ string SMTModule::toInstanceString(Instance* inst) {
     portstrs.emplace(port.getPortName(), port);
   }
 
+  string context = path+ "_";
+  
   if (mname == "coreir_neg")
-    o << SMTNot(portstrs.find("in")->second, portstrs.find("out")->second);
+    o << SMTNot(context, portstrs.find("in")->second, portstrs.find("out")->second);
   else if (mname == "coreir_const")
-    o << SMTConst(portstrs.find("out")->second, getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
+    o << SMTConst(context, portstrs.find("out")->second, getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
   else if (mname == "coreir_add")
-    o << SMTAdd(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
+    o << SMTAdd(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
   else if (mname == "coreir_reg_PE")
-    o << SMTRegPE(portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
-  else if (mname == "counter")
-    o << SMTCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
+    o << SMTRegPE(context, portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
+  // else if (mname == "counter")
+  //   o << SMTCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
   else if (mname == "coreir_concat")
-    o << SMTConcat(portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
+    o << SMTConcat(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
   else if (mname == "coreir_slice") {
     int lo = stoi(args["lo"]->toString());
     int hi = stoi(args["hi"]->toString())-1;
-    o << SMTSlice(portstrs.find("in")->second, portstrs.find("out")->second,
+    o << SMTSlice(context, portstrs.find("in")->second, portstrs.find("out")->second,
 		  std::to_string(lo), std::to_string(hi)) << endl;
   }
   else if (mname == "coreir_term"); // do nothing in terminate case

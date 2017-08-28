@@ -19,7 +19,7 @@ namespace {
       // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
         smod->addStmt(";; START module declaration for signal '" + var.getName());
-        smod->addStmt(SMTClock(var));
+        smod->addStmt(SMTClock("", var));
         smod->addStmt(";; END module declaration\n");
       }
     }
@@ -66,7 +66,7 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
       smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
-    smod->addStmt(modMap[iref]->toInstanceString(inst));
+    smod->addStmt(modMap[iref]->toInstanceString(inst, imap.first));
     if (no_ops.count(imap.first) == 0 ) {
       smod->addStmt(";; END module declaration\n");
     }
