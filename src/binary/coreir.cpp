@@ -151,7 +151,7 @@ int main(int argc, char *argv[]) {
         || outExt == "txt"
         || outExt == "fir"
         || outExt == "smt2"
-        || outExt == "vmt"
+        || outExt == "smv"
         || outExt == "v", "Cannot support out extention: " + outExt);
     fout.open(outfileName);
     ASSERT(fout.is_open(),"Cannot open file: " + outfileName);

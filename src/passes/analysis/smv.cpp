@@ -14,13 +14,11 @@ namespace {
   if ( find(variables.begin(), variables.end(), var.getName()) == variables.end() ) {
       variables.push_back(var.getName());
       smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
-      smod->addNextVarDec(SmvBVVarDec(SmvBVVarGetNext(var)));
-      smod->addInitVarDec(SmvBVVarDec(SmvBVVarGetInit(var)));
-      // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
+      // smod->addStmt("-- ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
-        smod->addStmt(";; START module declaration for signal '" + var.getName());
+        smod->addStmt("-- START module declaration for signal '" + var.getName());
         smod->addStmt(SMVClock("", var));
-        smod->addStmt(";; END module declaration\n");
+        smod->addStmt("-- END module declaration\n");
       }
     }
   return variables;
@@ -55,24 +53,22 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Instantiable* iref = imap.second->getInstantiableRef();
     // do not add comment for no ops
     if (no_ops.count(imap.first) == 0 ) {
-      smod->addStmt(";; START module declaration for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
+      smod->addStmt("-- START module declaration for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmvBVVar var = SmvBVVar(iname, rmap.first, rmap.second);
       smod->addPort(var);
       variables.push_back(var.getName());
       smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
-      smod->addNextVarDec(SmvBVVarDec(SmvBVVarGetNext(var)));
-      smod->addInitVarDec(SmvBVVarDec(SmvBVVarGetInit(var)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
     smod->addStmt(modMap[iref]->toInstanceString(inst, imap.first));
     if (no_ops.count(imap.first) == 0 ) {
-      smod->addStmt(";; END module declaration\n");
+      smod->addStmt("-- END module declaration\n");
     }
   }
 
-  smod->addStmt(";; START connections definition");
+  smod->addStmt("-- START connections definition");
   for (auto con : def->getConnections()) {
     Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
     Wireable* right = left==con.first ? con.second : con.first;
@@ -84,35 +80,21 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     
     smod->addStmt(SMVAssign(vleft, vright));
   }
-  smod->addStmt(";; END connections definition\n");
+  smod->addStmt("-- END connections definition\n");
 
   return false;
 }
 
 void Passes::SMV::writeToStream(std::ostream& os) {
 
-  os << "(set-logic QF_BV)" << endl;
+  os << "MODULE main" << endl;
   
   // Print variable declarations
-
-  os << ";; Init Variable declarations" << endl;
-  for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0) {
-      os << mmap.second->toInitVarDecString() << endl;
-    }
-  }
   
-  os << ";; Variable declarations" << endl;
+  os << "-- Variable declarations" << endl;
   for (auto mmap : modMap) {
     if (external.count(mmap.first)==0) {
       os << mmap.second->toVarDecString() << endl;
-    }
-  }
-
-  os << ";; Next Variable declarations" << endl;
-  for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0) {
-      os << mmap.second->toNextVarDecString() << endl;
     }
   }
 
