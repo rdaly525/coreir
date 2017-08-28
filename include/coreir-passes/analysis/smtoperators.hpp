@@ -8,7 +8,8 @@
 using namespace CoreIR;
 namespace CoreIR {
   namespace Passes {
-
+    typedef std::pair<string, SmtBVVar> named_var;
+    
     string SmtBVVarDec(SmtBVVar w);
     string SMTgetCurr(string var);
     string SMTgetNext(string var);

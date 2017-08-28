@@ -176,7 +176,6 @@ namespace CoreIR {
       return comment + NL + init + NL + trans;
     }
 
-
     string SMTCounter(string context, SmtBVVar clk_p, SmtBVVar en_p, SmtBVVar out_p) {
       // INIT: out = 0
       // TRANS: ((en & !clk & clk') -> (out' = out+1)) & (!(en & !clk & clk') -> (out' = out))
