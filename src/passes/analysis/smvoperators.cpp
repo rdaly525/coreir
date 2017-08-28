@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/smvoperators.hpp"
 #include <bitset>
+#include <algorithm>
 
 using namespace CoreIR;
 
@@ -40,6 +41,24 @@ namespace {
     return "INVAR"+ NL + invar + ";";
   }
   
+  void findAndReplaceAll(std::string & data, std::string toSearch, std::string replaceStr)
+  {
+    size_t pos = data.find(toSearch);
+    while( pos != std::string::npos)
+      {
+        data.replace(pos, toSearch.size(), replaceStr);
+        pos =data.find(toSearch, pos + toSearch.size());
+      }
+  }
+  	
+  string format_string(string input, unordered_map<string, string> replace_map) {
+    string output = input;
+    for (auto pippo : replace_map) {
+      findAndReplaceAll(output, pippo.first, pippo.second);
+    }
+    return output;
+  }
+  
 }
 
 namespace CoreIR {
@@ -59,7 +78,6 @@ namespace CoreIR {
     }
 
     string SmvBVVarDec(SmvBVVar w) {
-      //      return "(declare-fun " + w.getName() + " () (_ BitVec " + w.dimstr() + "))";
       return "VAR " + w.getName() + ": word[" + w.dimstr() + "];";
     }
 
@@ -78,33 +96,44 @@ namespace CoreIR {
       return get_invar(curr);
     }
 
-    string SMVAnd(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
-      // INIT: TRUE
-      // TRANS: ((in1 & in2) = out) & ((in1' & in2') = out')
+    string SMVBop(string context, string opname, string op, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
+      // INVAR: (in1 <op> in2) = out
       string in1 = in1_p.getPortName();
       string in2 = in2_p.getPortName();
       string out = out_p.getPortName();
-      string comment = "-- SMVAnd (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
-      string op = "&";
+      string comment = "-- SMV" + opname + " (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string curr = binary_op_eq(op, SMVgetCurr(context, in1), SMVgetCurr(context, in2), SMVgetCurr(context, out));
       return comment + NL + get_invar(curr);
+    }
+
+    string SMVAnd(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
+      return SMVBop(context, "And", "&", in1_p, in2_p, out_p);
     }
 
     string SMVOr(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
-      // INIT: TRUE
-      // TRANS: ((in1 | in2) = out) & ((in1' | in2') = out')
-      string in1 = in1_p.getPortName();
-      string in2 = in2_p.getPortName();
-      string out = out_p.getPortName();
-      string comment = "-- SMVOr (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
-      string op = "|";
-      string curr = binary_op_eq(op, SMVgetCurr(context, in1), SMVgetCurr(context, in2), SMVgetCurr(context, out));
-      return comment + NL + get_invar(curr);
+      return SMVBop(context, "Or", "|", in1_p, in2_p, out_p);
     }
 
+    string SMVAdd(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
+      return SMVBop(context, "Add", "+", in1_p, in2_p, out_p);
+    }
+
+    string SMVConcat(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
+      return SMVBop(context, "Concat", "::", in1_p, in2_p, out_p);
+    }
+
+    string SMVSlice(string context, SmvBVVar in_p, SmvBVVar out_p, string low, string high) {
+      // INVAR: (in[high:low] = out)
+      string in = in_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = "-- SMVSlice (in, out, low, high) = (" + in + ", " + out + ", " + low + ", " + high + ")";
+      string op = "[" + high + ":" + low + "]";
+      string curr = SMVgetCurr(context, in) + op + "=" + SMVgetCurr(context, out);
+      return comment + NL + get_invar(curr);
+    }
+    
     string SMVNot(string context, SmvBVVar in_p, SmvBVVar out_p) {
-      // INIT: TRUE
-      // TRANS: (!in = out) & (!in' = out')
+      // INVAR: (!in = out)
       string in = in_p.getPortName();
       string out = out_p.getPortName();
       string comment = "-- SMVNot (in, out) = (" + in + ", " + out + ")";
@@ -114,33 +143,10 @@ namespace CoreIR {
     }
 
     string SMVConst(string context, SmvBVVar out_p, string val) {
+      // INVAR: (out = val)
       string out = out_p.getPortName();
       string comment = "-- SMVConst (out, val) = (" + out + ", " + val + ")";
       string curr = binary_op("=", SMVgetCurr(context, out), val);
-      return comment + NL + get_invar(curr);
-    }
-
-    string SMVAdd(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
-      // INIT: TRUE
-      // TRANS: ((in1 + in2) = out) & ((in1' + in2') = out')
-      string in1 = in1_p.getPortName();
-      string in2 = in2_p.getPortName();
-      string out = out_p.getPortName();
-      string comment = "-- SMVAdd (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
-      string op = "+";
-      string curr = binary_op_eq(op, SMVgetCurr(context, in1), SMVgetCurr(context, in2), SMVgetCurr(context, out));
-      return comment + NL + get_invar(curr);
-    }
-
-    string SMVConcat(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
-      // INIT: TRUE
-      // TRANS: ((in1 concat in2) = out) & ((in1' concat in2') = out')
-      string in1 = in1_p.getPortName();
-      string in2 = in2_p.getPortName();
-      string out = out_p.getPortName();
-      string comment = "-- SMVConcat (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
-      string op = "::";
-      string curr = binary_op_eq(op, SMVgetCurr(context, in1), SMVgetCurr(context, in2), SMVgetCurr(context, out));
       return comment + NL + get_invar(curr);
     }
 
@@ -151,11 +157,18 @@ namespace CoreIR {
       string clk = clk_p.getPortName();
       string out = out_p.getPortName();
       string comment = "-- SMVReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
-      string zero = getSMVbits(stoi(out_p.dimstr()), 0);
-      string init = binary_op("=", SMVgetCurr(context, out), zero);
-      string trans_1 = "(((!"+SMVgetCurr(context, clk)+" & next("+SMVgetCurr(context, clk)+")) = 0ud1_1) -> (next("+SMVgetCurr(context, out)+") = "+SMVgetCurr(context, in)+"))";
-      string trans_2 = "((!(!"+SMVgetCurr(context, clk)+" & next("+SMVgetCurr(context, clk)+")) = 0ud1_1) -> (next("+SMVgetCurr(context, out)+") = "+SMVgetCurr(context, out)+"))";
-      string trans = binary_op("&", trans_1, trans_2);
+      
+      unordered_map<string, string> replace_map;
+      replace_map.emplace("{clk}", SMVgetCurr(context, clk));
+      replace_map.emplace("{out}", SMVgetCurr(context, out));
+      replace_map.emplace("{in}", SMVgetCurr(context, in));
+      replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
+      
+      string trans = "((!{clk} & next({clk})) -> (next({out}) = {in})) & (!(!{clk} & next({clk})) -> (next({out}) = {out}))";
+      string init = "{out} = {zero}";
+      
+      trans = format_string(trans, replace_map);      
+      init = format_string(init, replace_map);      
       return comment + NL + get_init(init) + NL + get_trans(trans);
     }
 
@@ -167,23 +180,20 @@ namespace CoreIR {
       string out = out_p.getPortName();
       string en = en_p.getPortName();
       string comment = "-- SMVRegPE (in, clk, out, en) = (" + in + ", " + clk + ", " + out + ", " + en + ")";
-      string zero = getSMVbits(stoi(out_p.dimstr()), 0);
-      string init = binary_op("=", SMVgetCurr(context, out), zero);
-      string trans_1 = "((("+SMVgetCurr(context, en)+" & !"+SMVgetCurr(context, clk)+" & next("+SMVgetCurr(context, clk)+")) = 0ud1_1) -> (next("+SMVgetCurr(context, out)+") = "+SMVgetCurr(context, in)+"))";
-      string trans_2 = "((!("+SMVgetCurr(context, en)+" & !"+SMVgetCurr(context, clk)+" & next("+SMVgetCurr(context, clk)+")) = 0ud1_1) -> (next("+SMVgetCurr(context, out)+") = "+SMVgetCurr(context, out)+"))";
-      string trans = binary_op("&", trans_1, trans_2);
+      
+      unordered_map<string, string> replace_map;
+      replace_map.emplace("{en}", SMVgetCurr(context, en));
+      replace_map.emplace("{clk}", SMVgetCurr(context, clk));
+      replace_map.emplace("{out}", SMVgetCurr(context, out));
+      replace_map.emplace("{in}", SMVgetCurr(context, in));
+      replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
+      
+      string trans = "(({en} & !{clk} & next({clk})) -> (next({out}) = {in})) & (!({en} & !{clk} & next({clk})) -> (next({out}) = {out}))";
+      string init = "{out} = {zero}";
+      
+      trans = format_string(trans, replace_map);      
+      init = format_string(init, replace_map);      
       return comment + NL + get_init(init) + NL + get_trans(trans);
-    }
-
-    string SMVSlice(string context, SmvBVVar in_p, SmvBVVar out_p, string low, string high) {
-      // INIT: TRUE
-      // TRANS: (_ extract high low) in out) & (_ extract high low) in' out')
-      string in = in_p.getPortName();
-      string out = out_p.getPortName();
-      string comment = "-- SMVSlice (in, out, low, high) = (" + in + ", " + out + ", " + low + ", " + high + ")";
-      string op = "[" + high + ":" + low + "]";
-      string curr = SMVgetCurr(context, in) + op + "=" + SMVgetCurr(context, out);
-      return comment + NL + get_invar(curr);
     }
 
     string SMVClock(string context, SmvBVVar clk_p) {
