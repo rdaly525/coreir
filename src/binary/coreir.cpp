@@ -7,6 +7,7 @@
 #include "coreir-passes/analysis/coreirjson.h"
 #include "coreir-passes/analysis/verilog.h"
 #include "coreir-passes/analysis/smtlib2.h"
+#include "coreir-passes/analysis/smv.h"
 
 using namespace CoreIR;
 
@@ -198,6 +199,12 @@ int main(int argc, char *argv[]) {
   else if (outExt=="smt2") {
     modified |= c->runPasses({"removebulkconnections","flattentypes","smtlib2"});
     auto vpass = static_cast<Passes::SmtLib2*>(c->getPassManager()->getAnalysisPass("smtlib2"));
+    
+    vpass->writeToStream(*sout);
+  }
+  else if (outExt=="smv") {
+    modified |= c->runPasses({"removebulkconnections","flattentypes","smv"});
+    auto vpass = static_cast<Passes::SMV*>(c->getPassManager()->getAnalysisPass("smv"));
     
     vpass->writeToStream(*sout);
   }
