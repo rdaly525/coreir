@@ -11,6 +11,7 @@
 #include "analysis/coreirjson.h"
 #include "analysis/weakverify.h"
 #include "analysis/strongverify.h"
+#include "analysis/verifyflatcoreirprims.h"
 #include "analysis/verifyflattenedtypes.h"
 #include "analysis/createinstancemap.h"
 
@@ -38,8 +39,9 @@ namespace CoreIR {
     pm.addPass(new Passes::SMV());
     pm.addPass(new Passes::WeakVerify());
     pm.addPass(new Passes::StrongVerify());
+		pm.addPass(new Passes::VerifyFlatCoreirPrims());
     pm.addPass(new Passes::VerifyFlattenedTypes());
-    
+
     //Transform
     pm.addPass(new Passes::Flatten());
     pm.addPass(new Passes::RunGenerators());
