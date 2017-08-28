@@ -73,12 +73,16 @@ namespace CoreIR {
       return curr + NL + next;
     }
 
-    string SMTAnd(SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+    string getVarName(named_var var) {
+      return (var.first == "" ? "" : var.first + "_") + var.second.getName();
+    }
+    
+    string SMTAnd(named_var in1_p, named_var in2_p, named_var out_p) {
       // INIT: TRUE
       // TRANS: ((in1 & in2) = out) & ((in1' & in2') = out')
-      string in1 = in1_p.getName();
-      string in2 = in2_p.getName();
-      string out = out_p.getName();
+      string in1 = getVarName(in1_p);
+      string in2 = getVarName(in2_p);
+      string out = getVarName(out_p);
       string comment = ";; SMTAnd (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "bvand";
       string curr = binary_op_eqass(op, SMTgetCurr(in1), SMTgetCurr(in2), SMTgetCurr(out));
@@ -86,12 +90,12 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
-    string SMTOr(SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+    string SMTOr(named_var in1_p, named_var in2_p, named_var out_p) {
       // INIT: TRUE
       // TRANS: ((in1 | in2) = out) & ((in1' | in2') = out')
-      string in1 = in1_p.getName();
-      string in2 = in2_p.getName();
-      string out = out_p.getName();
+      string in1 = getVarName(in1_p);
+      string in2 = getVarName(in2_p);
+      string out = getVarName(out_p);
       string comment = ";; SMTOr (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "bvor";
       string curr = binary_op_eqass(op, SMTgetCurr(in1), SMTgetCurr(in2), SMTgetCurr(out));
@@ -99,11 +103,11 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
-    string SMTNot(SmtBVVar in_p, SmtBVVar out_p) {
+    string SMTNot(named_var in_p, named_var out_p) {
       // INIT: TRUE
       // TRANS: (!in = out) & (!in' = out')
-      string in = in_p.getName();
-      string out = out_p.getName();
+      string in = getVarName(in_p);
+      string out = getVarName(out_p);
       string comment = ";; SMTNot (in, out) = (" + in + ", " + out + ")";
       string op = "bvnot";
       string curr = unary_op_eqass(op, SMTgetCurr(in), SMTgetCurr(out));
@@ -111,20 +115,20 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
-    string SMTConst(SmtBVVar out_p, string val) {
-      string out = out_p.getName();
+    string SMTConst(named_var out_p, string val) {
+      string out = getVarName(out_p);
       string comment = ";; SMTConst (out, val) = (" + out + ", " + val + ")";
       string curr = assert_op("(= " + SMTgetCurr(out) + " " + val + ")");
       string next = assert_op("(= " + SMTgetNext(out) + " " + val + ")");
       return comment + NL + curr + NL + next;
     }
 
-    string SMTAdd(SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+    string SMTAdd(named_var in1_p, named_var in2_p, named_var out_p) {
       // INIT: TRUE
       // TRANS: ((in1 + in2) = out) & ((in1' + in2') = out')
-      string in1 = in1_p.getName();
-      string in2 = in2_p.getName();
-      string out = out_p.getName();
+      string in1 = getVarName(in1_p);
+      string in2 = getVarName(in2_p);
+      string out = getVarName(out_p);
       string comment = ";; SMTAdd (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "bvadd";
       string curr = binary_op_eqass(op, SMTgetCurr(in1), SMTgetCurr(in2), SMTgetCurr(out));
@@ -132,12 +136,12 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
-    string SMTConcat(SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+    string SMTConcat(named_var in1_p, named_var in2_p, named_var out_p) {
       // INIT: TRUE
       // TRANS: ((in1 concat in2) = out) & ((in1' concat in2') = out')
-      string in1 = in1_p.getName();
-      string in2 = in2_p.getName();
-      string out = out_p.getName();
+      string in1 = getVarName(in1_p);
+      string in2 = getVarName(in2_p);
+      string out = getVarName(out_p);
       string comment = ";; SMTConcat (in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
       string op = "concat";
       string curr = binary_op_eqass(op, SMTgetCurr(in1), SMTgetCurr(in2), SMTgetCurr(out));
@@ -145,30 +149,30 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
-    string SMTReg(SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p) {
-      // INIT: out = 0
+    string SMTReg(named_var in_p, named_var clk_p, named_var out_p) {
+      // INIT: TRUE
       // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
-      string in = in_p.getName();
-      string clk = clk_p.getName();
-      string out = out_p.getName();
+      string in = getVarName(in_p);
+      string clk = getVarName(clk_p);
+      string out = getVarName(out_p);      
       string comment = ";; SMTReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
-      string zero = getSMTbits(stoi(out_p.dimstr()), 0);
+      string zero = getSMTbits(stoi(out_p.second.dimstr()), 0);
       string init = assert_op("(= "+SMTgetInit(out)+" "+zero+")");
       string trans_1 = "(=> (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + "))";
       string trans_2 = "(=> (not (= (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ") #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
       string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
       return comment + NL + init + NL + trans;
     }
-
-    string SMTRegPE(SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p, SmtBVVar en_p) {
-      // INIT: out = 0
+    
+    string SMTRegPE(named_var in_p, named_var clk_p, named_var out_p, named_var en_p) {
+      // INIT: TRUE
       // TRANS: ((en & !clk & clk') -> (out' = in)) & (!(en & !clk & clk') -> (out' = out))
-      string in = in_p.getName();
-      string clk = clk_p.getName();
-      string out = out_p.getName();
-      string en = en_p.getName();
+      string in = getVarName(in_p);
+      string clk = getVarName(clk_p);
+      string out = getVarName(out_p);      
+      string en = getVarName(en_p);
       string comment = ";; SMTRegPE (in, clk, out, en) = (" + in + ", " + clk + ", " + out + ", " + en + ")";
-      string zero = getSMTbits(stoi(out_p.dimstr()), 0);
+      string zero = getSMTbits(stoi(out_p.second.dimstr()), 0);
       string init = assert_op("(= "+SMTgetInit(out)+" "+zero+")");
       string trans_1 = "(=> (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " " + SMTgetCurr(in) + "))";
       string trans_2 = "(=> (not (= (bvand " + SMTgetCurr(en) + " (bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
@@ -176,28 +180,27 @@ namespace CoreIR {
       return comment + NL + init + NL + trans;
     }
 
-
-    string SMTCounter(SmtBVVar clk_p, SmtBVVar en_p, SmtBVVar out_p) {
-      // INIT: out = 0
+    string SMTCounter(named_var clk_p, named_var en_p, named_var out_p) {
+      // INIT: TRUE
       // TRANS: ((en & !clk & clk') -> (out' = out+1)) & (!(en & !clk & clk') -> (out' = out))
-      string clk = clk_p.getName();
-      string out = out_p.getName();
-      string en = en_p.getName();
-      string one = getSMTbits(stoi(out_p.dimstr()), 1);
+      string clk = getVarName(clk_p);
+      string out = getVarName(out_p);      
+      string en = getVarName(en_p);
+      string one = getSMTbits(stoi(out_p.second.dimstr()), 1);
       string comment = ";; SMTCounter (clk, en, out) = (" + clk + ", " + en + ", " + out + ")";
-      string zero = getSMTbits(stoi(out_p.dimstr()), 0);
+      string zero = getSMTbits(stoi(out_p.second.dimstr()), 0);
       string init = assert_op("(= "+SMTgetInit(out)+" "+zero+")");
       string trans_1 = "(=> (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1) (= " + SMTgetNext(out) + " (bvadd " + SMTgetCurr(out) + " " + one + ")))";
       string trans_2 = "(=> (not (= (bvand " + SMTgetCurr(en) + "(bvand (bvnot " + SMTgetCurr(clk) + ") " + SMTgetNext(clk) + ")) #b1)) (= " + SMTgetNext(out) + " " + SMTgetCurr(out) + "))";
       string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
       return comment + NL + init + NL + trans;
     }
-
-    string SMTSlice(SmtBVVar in_p, SmtBVVar out_p, string low, string high) {
+ 
+    string SMTSlice(named_var in_p, named_var out_p, string low, string high) {
       // INIT: TRUE
       // TRANS: (_ extract high low) in out) & (_ extract high low) in' out')
-      string in = in_p.getName();
-      string out = out_p.getName();
+      string in = getVarName(in_p);
+      string out = getVarName(out_p);      
       string comment = ";; SMTSlice (in, out, low, high) = (" + in + ", " + out + ", " + low + ", " + high + ")";
       string op = "(_ extract " + high + " " + low + ")";
       string curr = unary_op_eqass(op, SMTgetCurr(in), SMTgetCurr(out));
@@ -205,10 +208,10 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
-    string SMTClock(SmtBVVar clk_p) {
-      // INIT: clk = 0
+    string SMTClock(named_var clk_p) {
+      // INIT: TRUE
       // TRANS: (!clk & clk')
-      string clk = clk_p.getName();
+      string clk = getVarName(clk_p);
       string comment = ";; SMTClock (clk) = (" + clk + ")";
       string init = assert_op("(= #b0 "+SMTgetInit(clk)+")");
       string trans = assert_op("(= " + SMTgetCurr(clk) + " (bvnot " + SMTgetNext(clk) + "))");

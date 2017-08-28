@@ -9,6 +9,11 @@ using namespace Passes;
 typedef void (*voidFunctionType)(void);
 
 string SMTModule::toString() {
+  vector<string> pdecs;
+  for (auto pmap : ports) {
+    auto port = pmap.second;
+    pdecs.push_back(port.getName() + " () " + "(_ BitVec " + port.dimstr() + ")");
+  }
   ostringstream o;
   string tab = "  ";
 
@@ -53,14 +58,16 @@ string SMTModule::toInstanceString(Instance* inst) {
   ostringstream o;
   string tab = "  ";
   string mname;
+  unordered_map<string,SmtBVVar> iports;
   Args args;
   if (gen) {
     args = inst->getGenArgs();
-    addPortsFromGen(inst);
+    Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
     mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
   }
   else {
     mname = modname;
+    iports = ports;
   }
 
   for (auto amap : inst->getConfigArgs()) {
@@ -84,9 +91,10 @@ string SMTModule::toInstanceString(Instance* inst) {
     paramstrs.push_back(astr);
   }
   //Assume names are <instname>_port
-  unordered_map<string, SmtBVVar> portstrs;
-  for (auto port : ports) {
-    portstrs.emplace(port.getPortName(), port);
+  unordered_map<string, std::pair <string, SmtBVVar>> portstrs;
+  for (auto port : iports) {
+    pair<string, SmtBVVar> pstr = std::make_pair(instname, port.second);
+    portstrs.emplace(port.first, pstr);
   }
 
   if (mname == "coreir_neg")
