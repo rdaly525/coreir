@@ -23,7 +23,7 @@ class SmtLib2 : public InstanceGraphPass {
     void setAnalysisInfo() override {
       addDependency("strongverify");
       addDependency("verifyflattenedtypes");
-      //      addDependency("verifyflatten");
+			addDependency("verifyflatcoreirprims");
     }
     
     void writeToStream(std::ostream& os);
