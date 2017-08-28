@@ -39,6 +39,15 @@ VAR count1$a$out: word[16];
 VAR count1$a$in1: word[16];
 VAR count1$a$in0: word[16];
 
+INVARSPEC
+out != 0ud16_10;
+
+DEFINE
+  b_clk := clk = 0ud1_1;
+  b_en := en = 0ud1_1;
+
+INVARSPEC
+  (!b_clk & next(b_clk) & b_en) -> (next(out) = (out + 0ud16_1));
 
 -- START module declaration for instance 'c1' (Module const)
 -- SMVConst (out, val) = (out, 0ud16_1)
