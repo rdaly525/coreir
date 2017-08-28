@@ -164,7 +164,7 @@ namespace CoreIR {
       replace_map.emplace("{in}", SMVgetCurr(context, in));
       replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
       
-      string trans = "((!{clk} & next({clk})) -> (next({out}) = {in})) & (!(!{clk} & next({clk})) -> (next({out}) = {out}))";
+      string trans = "(((!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & ((!(!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
       string init = "{out} = {zero}";
       
       trans = format_string(trans, replace_map);      
@@ -188,7 +188,7 @@ namespace CoreIR {
       replace_map.emplace("{in}", SMVgetCurr(context, in));
       replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
       
-      string trans = "(({en} & !{clk} & next({clk})) -> (next({out}) = {in})) & (!({en} & !{clk} & next({clk})) -> (next({out}) = {out}))";
+      string trans = "((({en} & !{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & ((!({en} & !{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
       string init = "{out} = {zero}";
       
       trans = format_string(trans, replace_map);      
