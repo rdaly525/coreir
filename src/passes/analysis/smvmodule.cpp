@@ -69,6 +69,24 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   }
   vector<string> params;
   const json& jmeta = iref->getMetaData();
+  // json& jprop = iref->getProperty();
+
+  // unordered_map<string, PropDef> properties;
+  // if (jprop.size()) {
+  //   //    cout << "PROPERTY: " << jprop << endl;
+  //   for (int i=0; i<jprop.size(); i++) {
+  //     string propname = jprop[0][0];
+  //     PropType ptype = jprop[0][1] == "invar" ? invarspec : ltlspec;
+  //     string propval = jprop[0][2];
+  //     PropDef prop = make_pair(ptype, propval);
+  //     properties.emplace(propname, prop);
+  //   }
+  // }
+
+  // for (auto property : properties) {
+  //   cout << property.first << " " << property.second.first << " " << property.second.second << endl;
+  // }
+  
   if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
     params = jmeta["verilog"]["parameters"].get<vector<string>>();
   }

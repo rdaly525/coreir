@@ -1,6 +1,5 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/smvmodule.hpp"
-#include "coreir-passes/analysis/smvoperators.hpp"
 #include "coreir-passes/analysis/smv.h"
 
 using namespace CoreIR;
@@ -68,6 +67,18 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     }
   }
 
+  json& jprop = m->getProperty();
+
+  if (jprop.size()) {
+    for (int i=0; i<jprop.size(); i++) {
+      string propname = jprop[i][0];
+      PropType ptype = jprop[i][1] == "invar" ? invarspec : ltlspec;
+      string propval = jprop[i][2];
+      PropDef prop = make_pair(ptype, propval);
+      properties.emplace(propname, prop);
+    }
+  }
+
   smod->addStmt("-- START connections definition");
   for (auto con : def->getConnections()) {
     Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
@@ -104,5 +115,8 @@ void Passes::SMV::writeToStream(std::ostream& os) {
     }
   }
 
+  for (auto property : properties) {
+    os << SMVProperty(property.first, property.second.first, property.second.second) << endl;
+  }
 
 }

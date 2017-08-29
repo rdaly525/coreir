@@ -9,6 +9,13 @@ using namespace CoreIR;
 namespace CoreIR {
   namespace Passes {
     typedef std::pair<string, SmvBVVar> named_var;
+    typedef enum e_PropType
+      {
+        invarspec,
+        ltlspec
+      } PropType;
+
+    typedef pair<PropType, string> PropDef;
     
     string SmvBVVarDec(SmvBVVar w);
     string SMVgetCurr(string var);
@@ -27,6 +34,8 @@ namespace CoreIR {
     string SMVRegPE(string context, SmvBVVar in, SmvBVVar clk, SmvBVVar out, SmvBVVar en);
     string SMVSlice(string context, SmvBVVar in, SmvBVVar out, int low, int high);
     string SMVClock(string context, SmvBVVar clk_p);
+
+    string SMVProperty(string name, PropType type, string value);
   }
 }
 #endif

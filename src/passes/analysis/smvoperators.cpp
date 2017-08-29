@@ -208,5 +208,9 @@ namespace CoreIR {
       return comment + NL + get_init(init) + NL + get_trans(trans);
     }
 
+    string SMVProperty(string name, PropType type, string value) {
+      string ptype = type == invarspec ? "INVARSPEC" : "LTLSPEC";
+      return ptype + " NAME\n" + name + " := " + value + ";";
+    }
   }
 }

@@ -15,6 +15,7 @@
 #include "generatordef.hpp"
 
 #include "metadata.hpp"
+#include "property.hpp"
 #include "directedview.hpp"
 
 using json = nlohmann::json;
@@ -22,7 +23,7 @@ using namespace std;
 
 namespace CoreIR {
 
-class Instantiable : public MetaData {
+  class Instantiable : public MetaData, public Property {
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
     enum LinkageKind {LK_Namespace=0, LK_Generated=1};

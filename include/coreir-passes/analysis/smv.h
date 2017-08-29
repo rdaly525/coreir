@@ -6,13 +6,14 @@
 #include <string>
 #include <set>
 #include "smvmodule.hpp"
+#include "smvoperators.hpp"
 
-using namespace CoreIR;
 namespace CoreIR {
 namespace Passes {
 
 class SMV : public InstanceGraphPass {
   unordered_map<Instantiable*,SMVModule*> modMap;
+  unordered_map<string, PropDef> properties;
   unordered_set<Instantiable*> external;
   // operators ignored by smv translation
   set<string> no_ops = {"term"};

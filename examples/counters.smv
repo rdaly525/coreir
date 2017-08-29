@@ -1,17 +1,5 @@
 MODULE main
 -- Variable declarations
-VAR c1$out: word[16];
-VAR a$out: word[16];
-VAR a$in1: word[16];
-VAR a$in0: word[16];
-VAR r$en: word[1];
-VAR r$out: word[16];
-VAR r$clk: word[1];
-VAR r$in: word[16];
-VAR clk: word[1];
-VAR en: word[1];
-VAR out: word[16];
-
 VAR count1$c1$out: word[16];
 VAR slice1$out: word[8];
 VAR slice1$in: word[16];
@@ -39,26 +27,144 @@ VAR count1$a$out: word[16];
 VAR count1$a$in1: word[16];
 VAR count1$a$in0: word[16];
 
-INVARSPEC
-out != 0ud16_10;
+VAR c1$out: word[16];
+VAR a$out: word[16];
+VAR a$in1: word[16];
+VAR a$in0: word[16];
+VAR r$en: word[1];
+VAR r$out: word[16];
+VAR r$clk: word[1];
+VAR r$in: word[16];
+VAR clk: word[1];
+VAR en: word[1];
+VAR out: word[16];
 
-DEFINE
-  b_clk := clk = 0ud1_1;
-  b_en := en = 0ud1_1;
 
-INVARSPEC
-  (!b_clk & next(b_clk) & b_en) -> (next(out) = (out + 0ud16_1));
+-- START module declaration for instance 'count1$c1' (Module const)
+-- SMVConst (out, val) = (out, 0ud16_1)
+INVAR
+(count1$c1$out = 0ud16_1);
+
+-- END module declaration
+
+-- START module declaration for instance 'slice1' (Module slice)
+-- SMVSlice (in, out, low, high) = (in, out, 8, 15)
+INVAR
+slice1$in[15:8]=slice1$out;
+
+-- END module declaration
+
+-- START module declaration for instance 'count0$r' (Module reg)
+-- SMVRegPE (in, clk, out, en) = (in, clk, out, en)
+INIT
+count0$r$out = 0ud16_0;
+TRANS
+(((count0$r$en & !count0$r$clk & next(count0$r$clk)) = 0ud1_1) -> (next(count0$r$out) = count0$r$in)) & ((!(count0$r$en & !count0$r$clk & next(count0$r$clk)) = 0ud1_1) -> (next(count0$r$out) = count0$r$out));
+
+-- END module declaration
+
+
+
+-- START module declaration for instance 'cat' (Module concat)
+-- SMVConcat (in1, in2, out) = (in0, in1, out)
+INVAR
+((cat$in0 :: cat$in1) = cat$out);
+
+-- END module declaration
+
+-- START module declaration for instance 'count0$c1' (Module const)
+-- SMVConst (out, val) = (out, 0ud16_1)
+INVAR
+(count0$c1$out = 0ud16_1);
+
+-- END module declaration
+
+-- START module declaration for instance 'neg' (Module neg)
+-- SMVNot (in, out) = (in, out)
+INVAR
+((! neg$in) = neg$out);
+
+-- END module declaration
+
+-- START module declaration for instance 'count0$a' (Module add)
+-- SMVAdd (in1, in2, out) = (in0, in1, out)
+INVAR
+((count0$a$in0 + count0$a$in1) = count0$a$out);
+
+-- END module declaration
+
+-- START module declaration for instance 'slice0' (Module slice)
+-- SMVSlice (in, out, low, high) = (in, out, 0, 7)
+INVAR
+slice0$in[7:0]=slice0$out;
+
+-- END module declaration
+
+-- START module declaration for instance 'count1$r' (Module reg)
+-- SMVRegPE (in, clk, out, en) = (in, clk, out, en)
+INIT
+count1$r$out = 0ud16_0;
+TRANS
+(((count1$r$en & !count1$r$clk & next(count1$r$clk)) = 0ud1_1) -> (next(count1$r$out) = count1$r$in)) & ((!(count1$r$en & !count1$r$clk & next(count1$r$clk)) = 0ud1_1) -> (next(count1$r$out) = count1$r$out));
+
+-- END module declaration
+
+-- START module declaration for instance 'count1$a' (Module add)
+-- SMVAdd (in1, in2, out) = (in0, in1, out)
+INVAR
+((count1$a$in0 + count1$a$in1) = count1$a$out);
+
+-- END module declaration
+
+-- START connections definition
+INVAR
+(slice0$in = count0$r$out);
+INVAR
+(count0$r$clk = clk);
+INVAR
+(cat$in1 = slice1$out);
+INVAR
+(count0$a$in1 = count0$r$out);
+INVAR
+(neg$in = cat$out);
+INVAR
+(cat$in0 = slice0$out);
+INVAR
+(count1$a$in1 = count1$r$out);
+INVAR
+(count1$a$in0 = count1$c1$out);
+INVAR
+(count1$r$in = count1$a$out);
+INVAR
+(slice1$in = count1$r$out);
+INVAR
+(term$in = neg$out);
+INVAR
+(count0$r$in = count0$a$out);
+INVAR
+(count1$r$en = (count0$r$out[4:4]));
+INVAR
+(count0$r$en = (count1$r$out[8:8]));
+INVAR
+(count1$r$clk = clk);
+INVAR
+(count0$a$in0 = count0$c1$out);
+-- END connections definition
+
+
 
 -- START module declaration for instance 'c1' (Module const)
 -- SMVConst (out, val) = (out, 0ud16_1)
 INVAR
 (c1$out = 0ud16_1);
+
 -- END module declaration
 
 -- START module declaration for instance 'a' (Module add)
 -- SMVAdd (in1, in2, out) = (in0, in1, out)
 INVAR
 ((a$in0 + a$in1) = a$out);
+
 -- END module declaration
 
 -- START module declaration for instance 'r' (Module reg)
@@ -67,6 +173,7 @@ INIT
 r$out = 0ud16_0;
 TRANS
 (((r$en & !r$clk & next(r$clk)) = 0ud1_1) -> (next(r$out) = r$in)) & ((!(r$en & !r$clk & next(r$clk)) = 0ud1_1) -> (next(r$out) = r$out));
+
 -- END module declaration
 
 -- START connections definition
@@ -85,115 +192,15 @@ INVAR
 INVAR
 (a$in1 = r$out);
 INVAR
-(r$en = en);
-INVAR
 (r$in = a$out);
+INVAR
+(r$en = en);
 INVAR
 (out = r$out);
 -- END connections definition
 
 
-
--- START module declaration for instance 'count1$c1' (Module const)
--- SMVConst (out, val) = (out, 0ud16_1)
-INVAR
-(count1$c1$out = 0ud16_1);
--- END module declaration
-
--- START module declaration for instance 'slice1' (Module slice)
--- SMVSlice (in, out, low, high) = (in, out, 8, 15)
-INVAR
-slice1$in[15:8]=slice1$out;
-
--- END module declaration
-
--- START module declaration for instance 'count0$r' (Module reg)
--- SMVRegPE (in, clk, out, en) = (in, clk, out, en)
-INIT
-count0$r$out = 0ud16_0;
-TRANS
-(((count0$r$en & !count0$r$clk & next(count0$r$clk)) = 0ud1_1) -> (next(count0$r$out) = count0$r$in)) & ((!(count0$r$en & !count0$r$clk & next(count0$r$clk)) = 0ud1_1) -> (next(count0$r$out) = count0$r$out));
--- END module declaration
-
-
--- START module declaration for instance 'cat' (Module concat)
--- SMVConcat (in1, in2, out) = (in0, in1, out)
-INVAR
-((cat$in0 :: cat$in1) = cat$out);
--- END module declaration
-
--- START module declaration for instance 'count0$c1' (Module const)
--- SMVConst (out, val) = (out, 0ud16_1)
-INVAR
-(count0$c1$out = 0ud16_1);
--- END module declaration
-
--- START module declaration for instance 'neg' (Module neg)
--- SMVNot (in, out) = (in, out)
-INVAR
-((! neg$in) = neg$out);
--- END module declaration
-
--- START module declaration for instance 'count0$a' (Module add)
--- SMVAdd (in1, in2, out) = (in0, in1, out)
-INVAR
-((count0$a$in0 + count0$a$in1) = count0$a$out);
--- END module declaration
-
--- START module declaration for instance 'slice0' (Module slice)
--- SMVSlice (in, out, low, high) = (in, out, 0, 7)
-INVAR
-slice0$in[7:0]=slice0$out;
-
--- END module declaration
-
--- START module declaration for instance 'count1$r' (Module reg)
--- SMVRegPE (in, clk, out, en) = (in, clk, out, en)
-INIT
-count1$r$out = 0ud16_0;
-TRANS
-(((count1$r$en & !count1$r$clk & next(count1$r$clk)) = 0ud1_1) -> (next(count1$r$out) = count1$r$in)) & ((!(count1$r$en & !count1$r$clk & next(count1$r$clk)) = 0ud1_1) -> (next(count1$r$out) = count1$r$out));
--- END module declaration
-
--- START module declaration for instance 'count1$a' (Module add)
--- SMVAdd (in1, in2, out) = (in0, in1, out)
-INVAR
-((count1$a$in0 + count1$a$in1) = count1$a$out);
--- END module declaration
-
--- START connections definition
-INVAR
-(slice0$in = count0$r$out);
-INVAR
-(count1$r$en = (count0$r$out[4:4]));
-INVAR
-(count0$r$en = (count1$r$out[8:8]));
-INVAR
-(count0$r$clk = clk);
-INVAR
-(cat$in1 = slice1$out);
-INVAR
-(slice1$in = count1$r$out);
-INVAR
-(term$in = neg$out);
-INVAR
-(count1$a$in0 = count1$c1$out);
-INVAR
-(count1$a$in1 = count1$r$out);
-INVAR
-(cat$in0 = slice0$out);
-INVAR
-(count0$a$in0 = count0$c1$out);
-INVAR
-(count1$r$in = count1$a$out);
-INVAR
-(count0$r$in = count0$a$out);
-INVAR
-(count0$a$in1 = count0$r$out);
-INVAR
-(neg$in = cat$out);
-INVAR
-(count1$r$clk = clk);
--- END connections definition
-
-
+INVARSPEC NAME
+out_plus_1 := (!(clk = 0ud1_1) & next((clk = 0ud1_1)) & (en = 0ud1_1)) -> (next(out) = (out + 0ud16_1));
+INVARSPEC NAME
+exec_to_30 := out != 0ud16_10;
