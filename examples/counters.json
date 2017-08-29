@@ -6,7 +6,7 @@
           "type": ["Record",{
           }],
             "properties": [["exec_to_30","invar","out != 0ud16_10"],
-                           ["out_plus_1","invar","(!(clk = 0ud1_1) & next((clk = 0ud1_1)) & (en = 0ud1_1)) -> (next(out) = (out + 0ud16_1))"]],
+                           ["out_plus_1","invar","(!B(clk) & next(B(clk)) & B(en)) -> (next(out) = (out + 0ud16_1))"]],
             "instances": {
             "count0": {"modref": "global.counter"},
             "count1": {"modref": "global.counter"},

@@ -15,7 +15,7 @@ namespace {
       smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
       // smod->addStmt("-- ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
-        smod->addStmt("-- START module declaration for signal '" + var.getName());
+        smod->addStmt("-- START module declaration for signal '" + var.getName() + "'");
         smod->addStmt(SMVClock("", var));
         smod->addStmt("-- END module declaration\n");
       }
@@ -98,6 +98,8 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
 void Passes::SMV::writeToStream(std::ostream& os) {
 
+  os << "#define B(bv) (bv = 0ud1_1)" << endl;
+  
   os << "MODULE main" << endl;
   
   // Print variable declarations

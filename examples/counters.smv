@@ -1,3 +1,4 @@
+#define B(bv) (bv = 0ud1_1)
 MODULE main
 -- Variable declarations
 VAR count1$c1$out: word[16];
@@ -120,33 +121,33 @@ INVAR
 INVAR
 (slice0$in = count0$r$out);
 INVAR
+(count1$r$en = (count0$r$out[4:4]));
+INVAR
 (count0$r$clk = clk);
 INVAR
-(cat$in1 = slice1$out);
-INVAR
-(count0$a$in1 = count0$r$out);
-INVAR
-(neg$in = cat$out);
+(count1$r$clk = clk);
 INVAR
 (cat$in0 = slice0$out);
 INVAR
-(count1$a$in1 = count1$r$out);
-INVAR
-(count1$a$in0 = count1$c1$out);
+(term$in = neg$out);
 INVAR
 (count1$r$in = count1$a$out);
 INVAR
-(slice1$in = count1$r$out);
+(count1$a$in0 = count1$c1$out);
 INVAR
-(term$in = neg$out);
+(count1$a$in1 = count1$r$out);
+INVAR
+(cat$in1 = slice1$out);
 INVAR
 (count0$r$in = count0$a$out);
 INVAR
-(count1$r$en = (count0$r$out[4:4]));
+(neg$in = cat$out);
+INVAR
+(slice1$in = count1$r$out);
 INVAR
 (count0$r$en = (count1$r$out[8:8]));
 INVAR
-(count1$r$clk = clk);
+(count0$a$in1 = count0$r$out);
 INVAR
 (count0$a$in0 = count0$c1$out);
 -- END connections definition
@@ -177,7 +178,7 @@ TRANS
 -- END module declaration
 
 -- START connections definition
--- START module declaration for signal 'clk
+-- START module declaration for signal 'clk'
 -- SMVClock (clk) = (clk)
 INIT
 (0ud1_0 = clk);
@@ -192,15 +193,15 @@ INVAR
 INVAR
 (a$in1 = r$out);
 INVAR
-(r$in = a$out);
-INVAR
 (r$en = en);
+INVAR
+(r$in = a$out);
 INVAR
 (out = r$out);
 -- END connections definition
 
 
 INVARSPEC NAME
-out_plus_1 := (!(clk = 0ud1_1) & next((clk = 0ud1_1)) & (en = 0ud1_1)) -> (next(out) = (out + 0ud16_1));
+out_plus_1 := (!B(clk) & next(B(clk)) & B(en)) -> (next(out) = (out + 0ud16_1));
 INVARSPEC NAME
 exec_to_30 := out != 0ud16_10;
