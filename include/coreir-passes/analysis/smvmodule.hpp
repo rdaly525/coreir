@@ -30,6 +30,7 @@ class SmvBVVar {
   bool need_extract = false;
   Type::DirKind dir;
   public :
+  SmvBVVar() = default;
     SmvBVVar(string instname, string field,Type* t) :
       instname(instname), portname(field), dim(t->getSize()), dir(t->getDir())     {
       name = (instname == "" ? "" : instname + SEP_SMV) + portname;

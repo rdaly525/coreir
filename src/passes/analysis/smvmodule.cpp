@@ -89,32 +89,78 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
     portstrs.emplace(port.getPortName(), port);
   }
 
-  string context = path+ SEP_SMV;
+  string context = path+SEP_SMV;
+  string pre = "coreir"+SEP_SMV;
+
+  enum operation {neg_op = 1,
+                  const_op,
+                  add_op,
+                  and_op,
+                  or_op,
+                  reg_op,
+                  regPE_op,
+                  concat_op,
+                  slice_op,
+                  term_op};
+
+  unordered_map<string, operation> opmap;
+
+  opmap.emplace(pre+"neg", neg_op);
+  opmap.emplace(pre+"const", const_op);
+  opmap.emplace(pre+"add", add_op);
+  opmap.emplace(pre+"and", and_op);
+  opmap.emplace(pre+"or", or_op);
+  opmap.emplace(pre+"reg", reg_op);
+  opmap.emplace(pre+"reg_PE", regPE_op);
+  opmap.emplace(pre+"concat", concat_op);
+  opmap.emplace(pre+"slice", slice_op);
+  opmap.emplace(pre+"term", term_op);
+
+#define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
   
-  if (mname == "coreir"+SEP_SMV+"neg")
-    o << SMVNot(context, portstrs.find("in")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP_SMV+"const")
-    o << SMVConst(context, portstrs.find("out")->second, getSMVbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
-  else if (mname == "coreir"+SEP_SMV+"add")
-    o << SMVAdd(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP_SMV+"reg_PE")
-    o << SMVRegPE(context, portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
-  // else if (mname == "counter")
-  //   o << SMVCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP_SMV+"concat")
-    o << SMVConcat(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP_SMV+"slice") {
-    int lo = stoi(args["lo"]->toString());
-    int hi = stoi(args["hi"]->toString())-1;
-    o << SMVSlice(context, portstrs.find("in")->second, portstrs.find("out")->second,
-		  std::to_string(lo), std::to_string(hi)) << endl;
+  SmvBVVar out; var_assign(out, "out");
+  SmvBVVar in; var_assign(in, "in");
+  SmvBVVar in0; var_assign(in0, "in0");
+  SmvBVVar in1; var_assign(in1, "in1");
+  SmvBVVar clk; var_assign(clk, "clk");
+  SmvBVVar en; var_assign(en, "en");
+  
+  switch (opmap[mname]) {
+  case term_op:
+    break;
+  case neg_op:
+    o << SMVNot(context, in, out);
+    break;
+  case add_op:
+    o << SMVAdd(context, in0, in1, out);
+    break;
+  case and_op:
+    o << SMVAnd(context, in0, in1, out);
+    break;
+  case or_op:
+    o << SMVOr(context, in0, in1, out);
+    break;
+  case concat_op:
+    o << SMVConcat(context, in0, in1, out);
+    break;
+  case regPE_op:
+    o << SMVRegPE(context, in, clk, out, en);
+    break;
+  case const_op:
+    int width; width = stoi(args["width"]->toString());
+    int value; value = stoi(args["value"]->toString());
+    o << SMVConst(context, out, getSMVbits(width, value));
+    break;
+  case slice_op:
+    int lo; lo = stoi(args["lo"]->toString());
+    int hi; hi = stoi(args["hi"]->toString());
+    o << SMVSlice(context, in, out, lo, hi-1);
+    break;
+  default:
+    o << "!!! UNMATCHED: " << mname << " !!!";
   }
-  else if (mname == "coreir"+SEP_SMV+"term"); // do nothing in terminate case
-  else {
-    o << "!!! UNMATCHED: " << mname << " !!!" << endl;
-    //    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
-  }
-              
+  
+  o << endl;
   return o.str();
 }
 

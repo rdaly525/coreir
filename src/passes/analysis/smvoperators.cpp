@@ -122,10 +122,12 @@ namespace CoreIR {
       return SMVBop(context, "Concat", "::", in1_p, in2_p, out_p);
     }
 
-    string SMVSlice(string context, SmvBVVar in_p, SmvBVVar out_p, string low, string high) {
+    string SMVSlice(string context, SmvBVVar in_p, SmvBVVar out_p, int low_p, int high_p) {
       // INVAR: (in[high:low] = out)
       string in = in_p.getPortName();
       string out = out_p.getPortName();
+      string low = to_string(low_p);
+      string high = to_string(high_p);
       string comment = "-- SMVSlice (in, out, low, high) = (" + in + ", " + out + ", " + low + ", " + high + ")";
       string op = "[" + high + ":" + low + "]";
       string curr = SMVgetCurr(context, in) + op + "=" + SMVgetCurr(context, out);
