@@ -1,0 +1,7 @@
+set on_failure_script_quits 1
+go_msat
+check_invar_ic3 -i
+show_traces -v
+show_property
+quit
+
