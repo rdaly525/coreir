@@ -57,7 +57,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   if (gen) {
     args = inst->getGenArgs();
     addPortsFromGen(inst);
-    mname = gen->getNamespace()->getName() + SEP_SMV + gen->getName(args);
+    mname = gen->getNamespace()->getName() + SEP + gen->getName(args);
   }
   else {
     mname = modname;
@@ -89,8 +89,8 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
     portstrs.emplace(port.getPortName(), port);
   }
 
-  string context = path+SEP_SMV;
-  string pre = "coreir"+SEP_SMV;
+  string context = path+SEP;
+  string pre = "coreir"+SEP;
 
   enum operation {neg_op = 1,
                   const_op,

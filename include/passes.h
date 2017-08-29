@@ -6,6 +6,8 @@
 
 namespace CoreIR {
 
+static const string SEP = "$";
+
 class Pass {
   
   public:

@@ -1,4 +1,3 @@
-
 #include "coreir.h"
 
 namespace CoreIR {
@@ -169,7 +168,7 @@ bool inlineInstance(Instance* inst) {
   //Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(),"_insidePT");
 
-  string inlinePrefix = inst->getInstname() + "$";
+  string inlinePrefix = inst->getInstname() + SEP;
 
   //First add all the instances of defInline into def with a new name
   for (auto instmap : defInline->getInstances()) {

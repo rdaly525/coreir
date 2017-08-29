@@ -89,32 +89,77 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     portstrs.emplace(port.getPortName(), port);
   }
 
-  string context = path+ SEP;
+  string context = path+SEP;
+  string pre = "coreir"+SEP;
+
+  enum operation {neg_op = 1,
+                  const_op,
+                  add_op,
+                  and_op,
+                  or_op,
+                  reg_op,
+                  regPE_op,
+                  concat_op,
+                  slice_op,
+                  term_op};
+
+  unordered_map<string, operation> opmap;
+
+  opmap.emplace(pre+"neg", neg_op);
+  opmap.emplace(pre+"const", const_op);
+  opmap.emplace(pre+"add", add_op);
+  opmap.emplace(pre+"and", and_op);
+  opmap.emplace(pre+"or", or_op);
+  opmap.emplace(pre+"reg", reg_op);
+  opmap.emplace(pre+"reg_PE", regPE_op);
+  opmap.emplace(pre+"concat", concat_op);
+  opmap.emplace(pre+"slice", slice_op);
+  opmap.emplace(pre+"term", term_op);
+
+#define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
   
-  if (mname == "coreir"+SEP+"neg")
-    o << SMTNot(context, portstrs.find("in")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP+"const")
-    o << SMTConst(context, portstrs.find("out")->second, getSMTbits(stoi(args["width"]->toString()), stoi(args["value"]->toString())));
-  else if (mname == "coreir"+SEP+"add")
-    o << SMTAdd(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP+"reg_PE")
-    o << SMTRegPE(context, portstrs.find("in")->second, portstrs.find("clk")->second, portstrs.find("out")->second, portstrs.find("en")->second);
-  // else if (mname == "counter")
-  //   o << SMTCounter(portstrs.find("clk")->second, portstrs.find("en")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP+"concat")
-    o << SMTConcat(context, portstrs.find("in0")->second, portstrs.find("in1")->second, portstrs.find("out")->second);
-  else if (mname == "coreir"+SEP+"slice") {
-    int lo = stoi(args["lo"]->toString());
-    int hi = stoi(args["hi"]->toString())-1;
-    o << SMTSlice(context, portstrs.find("in")->second, portstrs.find("out")->second,
-		  std::to_string(lo), std::to_string(hi)) << endl;
+  SmtBVVar out; var_assign(out, "out");
+  SmtBVVar in; var_assign(in, "in");
+  SmtBVVar in0; var_assign(in0, "in0");
+  SmtBVVar in1; var_assign(in1, "in1");
+  SmtBVVar clk; var_assign(clk, "clk");
+  SmtBVVar en; var_assign(en, "en");
+  
+  switch (opmap[mname]) {
+  case term_op:
+    break;
+  case neg_op:
+    o << SMTNot(context, in, out);
+    break;
+  case add_op:
+    o << SMTAdd(context, in0, in1, out);
+    break;
+  case and_op:
+    o << SMTAnd(context, in0, in1, out);
+    break;
+  case or_op:
+    o << SMTOr(context, in0, in1, out);
+    break;
+  case concat_op:
+    o << SMTConcat(context, in0, in1, out);
+    break;
+  case regPE_op:
+    o << SMTRegPE(context, in, clk, out, en);
+    break;
+  case const_op:
+    int width; width = stoi(args["width"]->toString());
+    int value; value = stoi(args["value"]->toString());
+    o << SMTConst(context, out, getSMTbits(width, value));
+    break;
+  case slice_op:
+    int lo; lo = stoi(args["lo"]->toString());
+    int hi; hi = stoi(args["hi"]->toString());
+    o << SMTSlice(context, in, out, lo, hi-1);
+    break;
+  default:
+    o << "!!! UNMATCHED: " << mname << " !!!";
   }
-  else if (mname == "coreir"+SEP+"term"); // do nothing in terminate case
-  else {
-    o << "!!! UNMATCHED: " << mname << " !!!" << endl;
-    //    o << mname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
-  }
-              
+  
+  o << endl;
   return o.str();
 }
-

@@ -112,7 +112,9 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
     
-    string SMTSlice(string context, SmtBVVar in_p, SmtBVVar out_p, string low, string high) {
+    string SMTSlice(string context, SmtBVVar in_p, SmtBVVar out_p, int low_p, int high_p) {
+      string low = to_string(low_p);
+      string high = to_string(high_p);      
       string op = "(_ extract " + high + " " + low + ")";
       return SMTUop(context, "Slice", op, in_p, out_p);
     }
