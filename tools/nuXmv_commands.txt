@@ -1,6 +1,7 @@
 set on_failure_script_quits 1
 go_msat
 check_invar_ic3 -i
+msat_check_ltlspec_sbmc_inc -k 60 -c
 show_traces -v
 show_property
 quit

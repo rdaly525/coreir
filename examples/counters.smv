@@ -121,35 +121,35 @@ INVAR
 INVAR
 (slice0$in = count0$r$out);
 INVAR
-(count1$r$en = (count0$r$out[4:4]));
-INVAR
 (count0$r$clk = clk);
-INVAR
-(count1$r$clk = clk);
-INVAR
-(cat$in0 = slice0$out);
-INVAR
-(term$in = neg$out);
-INVAR
-(count1$r$in = count1$a$out);
-INVAR
-(count1$a$in0 = count1$c1$out);
-INVAR
-(count1$a$in1 = count1$r$out);
-INVAR
-(cat$in1 = slice1$out);
-INVAR
-(count0$r$in = count0$a$out);
-INVAR
-(neg$in = cat$out);
-INVAR
-(slice1$in = count1$r$out);
 INVAR
 (count0$r$en = (count1$r$out[8:8]));
 INVAR
-(count0$a$in1 = count0$r$out);
+(cat$in0 = slice0$out);
+INVAR
+(count1$a$in1 = count1$r$out);
+INVAR
+(count1$r$en = (count0$r$out[4:4]));
+INVAR
+(count1$r$in = count1$a$out);
+INVAR
+(slice1$in = count1$r$out);
+INVAR
+(count1$a$in0 = count1$c1$out);
+INVAR
+(term$in = neg$out);
+INVAR
+(count1$r$clk = clk);
 INVAR
 (count0$a$in0 = count0$c1$out);
+INVAR
+(count0$r$in = count0$a$out);
+INVAR
+(count0$a$in1 = count0$r$out);
+INVAR
+(cat$in1 = slice1$out);
+INVAR
+(neg$in = cat$out);
 -- END connections definition
 
 
@@ -178,6 +178,10 @@ TRANS
 -- END module declaration
 
 -- START connections definition
+INVAR
+(a$in0 = c1$out);
+INVAR
+(r$in = a$out);
 -- START module declaration for signal 'clk'
 -- SMVClock (clk) = (clk)
 INIT
@@ -189,18 +193,16 @@ TRANS
 INVAR
 (r$clk = clk);
 INVAR
-(a$in0 = c1$out);
-INVAR
-(a$in1 = r$out);
-INVAR
 (r$en = en);
 INVAR
-(r$in = a$out);
+(a$in1 = r$out);
 INVAR
 (out = r$out);
 -- END connections definition
 
 
+LTLSPEC NAME
+reset := F((!B(clk) & next(B(clk)) & B(en)) -> (next(out) = (0ud16_0)));
 INVARSPEC NAME
 out_plus_1 := (!B(clk) & next(B(clk)) & B(en)) -> (next(out) = (out + 0ud16_1));
 INVARSPEC NAME
