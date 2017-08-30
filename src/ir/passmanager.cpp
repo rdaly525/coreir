@@ -138,7 +138,6 @@ bool PassManager::runPass(Pass* p) {
 
 //TODO should check for circular dependencies
 void PassManager::pushAllDependencies(string oname,stack<string> &work) {
-  cout << oname << endl;
   ASSERT(passMap.count(oname),"Can not run pass \"" + oname + "\" because it was never loaded!");
   work.push(oname);
   for (auto it = passMap[oname]->dependencies.rbegin(); it!=passMap[oname]->dependencies.rend(); ++it) {

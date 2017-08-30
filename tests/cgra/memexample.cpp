@@ -27,12 +27,12 @@ int main() {
     def->connect("io0.out","m0.wdata");
     def->connect("p0.data.out","m0.addr");
     def->connect("p0.bit.out","m0.wen");
-    def->connect("m0.full","p0.bit.in.0");
+    def->connect("m0.almost_full","p0.bit.in.0");
 
     def->connect("m0.rdata","io1.in");
     def->connect("m0.rdata","p1.data.in.0");
     def->connect("p1.bit.out","m0.ren");
-    def->connect("m0.empty","p1.bit.in.0");
+    def->connect("m0.valid","p1.bit.in.0");
 
   Top->setDef(def);
   

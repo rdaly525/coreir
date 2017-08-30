@@ -8,7 +8,7 @@ namespace Passes {
 
 //This will Verify that all modules have No unconnected ports
 class VerifyFullyConnected : public ModulePass {
-  bool checkClkRst;
+  bool checkClkRst=true;
   public :
     static std::string ID;
     VerifyFullyConnected(bool checkClkRst = true) : ModulePass(ID + (checkClkRst ? "" : "-noclkrst"),"Strong Verification",true), checkClkRst(checkClkRst) {}

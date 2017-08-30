@@ -24,8 +24,13 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     {"op",ASTRING},
     {"LUT_init",AINT},
     {"data0_mode",ASTRING},
+    {"data0_init",AINT},
     {"data1_mode",ASTRING},
-    {"bit0_mode",ASTRING}
+    {"data1_init",AINT},
+    {"bit0_mode",ASTRING},
+    {"bit0_init",AINT},
+    {"bit1_mode",ASTRING},
+    {"bit2_mode",ASTRING}
   });
   cgralib->newTypeGen("PEType",PEGenParams,[](Context* c, Args args) {
     uint width = args.at("width")->get<ArgInt>();
@@ -47,8 +52,13 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   PE->addDefaultConfigArgs({
       {"LUT_init",c->argInt(0)},
       {"data0_mode",c->argString("BYPASS")},
+      {"data0_init",c->argInt(0)},
       {"data1_mode",c->argString("BYPASS")},
-      {"bit0_mode",c->argString("BYPASS")}
+      {"data1_init",c->argInt(0)},
+      {"bit0_mode",c->argString("BYPASS")},
+      {"bit0_init",c->argInt(0)},
+      {"bit1_mode",c->argString("BYPASS")},
+      {"bit2_mode",c->argString("BYPASS")}
   });
 
   //DataPE declaration
@@ -56,7 +66,9 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   Params DataPEConfigParams({
     {"op",ASTRING},
     {"data0_mode",ASTRING},
-    {"data1_mode",ASTRING}
+    {"data0_init",AINT},
+    {"data1_mode",ASTRING},
+    {"data1_init",AINT}
   });
 
   cgralib->newTypeGen("DataPEType",DataPEGenParams,[](Context* c, Args args) {
@@ -73,7 +85,9 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   DataPE->addDefaultGenArgs({{"width",c->argInt(16)},{"numdataports",c->argInt(2)}});
   DataPE->addDefaultConfigArgs({
       {"data0_mode",c->argString("BYPASS")},
-      {"data1_mode",c->argString("BYPASS")}
+      {"data0_init",c->argInt(0)},
+      {"data1_mode",c->argString("BYPASS")},
+      {"data1_init",c->argInt(0)}
   });
   
   //BitPE declaration
@@ -81,7 +95,9 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   Params BitPEConfigParams({
     {"LUT_init",AINT},
     {"bit0_mode",ASTRING},
-    {"bit1_mode",ASTRING}
+    {"bit0_init",AINT},
+    {"bit1_mode",ASTRING},
+    {"bit2_mode",ASTRING}
   });
 
   cgralib->newTypeGen("BitPEType",BitPEGenParams,[](Context* c, Args args) {
@@ -94,9 +110,12 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     });
   });
   Generator* BitPE = cgralib->newGeneratorDecl("BitPE",cgralib->getTypeGen("BitPEType"),BitPEGenParams,BitPEConfigParams);
-  BitPE->addDefaultGenArgs({{"numbitports",c->argInt(2)}});
+  BitPE->addDefaultGenArgs({{"numbitports",c->argInt(3)}});
   BitPE->addDefaultConfigArgs({
-    {"bit0_mode",c->argString("BYPASS")}
+    {"bit0_mode",c->argString("BYPASS")},
+    {"bit0_init",c->argInt(0)},
+    {"bit1_mode",c->argString("BYPASS")},
+    {"bit2_mode",c->argString("BYPASS")}
   });
 
   //IO Declaration
@@ -105,20 +124,33 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
 
   //Mem declaration
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};
+  Params MemConfigParams = {
+    {"mode",ASTRING},
+    {"fifo_depth",AINT},
+    {"almost_full_cnt",AINT}
+  };
   cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Args args) {
     uint width = args.at("width")->get<ArgInt>();
     return c->Record({
       {"addr", c->BitIn()->Arr(width)},
-      {"rdata", c->Bit()->Arr(width)},
-      {"ren", c->BitIn()},
-      {"empty", c->Bit()},
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
-      {"full", c->Bit()}
+      {"rdata", c->Bit()->Arr(width)},
+      {"ren", c->BitIn()},
+      {"valid", c->Bit()},
+      {"almost_full", c->Bit()}
     });
   });
-  cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams,modeParams);
+  Generator* Mem = cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams,MemConfigParams);
+  Mem->addDefaultGenArgs({{"width",c->argInt(16)},{"depth",c->argInt(1024)}});
+  Mem->addDefaultConfigArgs({
+    {"fifo_depth",c->argInt(1024)},
+    {"almost_full_cnt",c->argInt(0)}
+  });
 
+
+
+  //Linebuffer
   //Declare a TypeGenerator (in global) for linebuffer
   cgralib->newTypeGen(
     "linebuffer_type", //name for the typegen
