@@ -1,13 +1,13 @@
 {
   "namespaces": {
     "global": {
+      "properties": [["exec_to_30","invar","out != 0ud16_10"],
+                     ["out_plus_1","invar","(!B(clk) & next(B(clk)) & B(en)) -> (next(out) = (out + 0ud16_1))"],
+                     ["reset","ltl","F((!B(clk) & next(B(clk)) & B(en)) -> (next(out) = 0ud16_0))"]],
       "modules": {
         "counters": {
           "type": ["Record",{
           }],
-            "properties": [["exec_to_30","invar","out != 0ud16_10"],
-                           ["out_plus_1","invar","(!B(clk) & next(B(clk)) & B(en)) -> (next(out) = (out + 0ud16_1))"],
-                           ["reset","ltl","F((!B(clk) & next(B(clk)) & B(en)) -> (next(out) = (0ud16_0)))"]],
             "instances": {
             "count0": {"modref": "global.counter"},
             "count1": {"modref": "global.counter"},

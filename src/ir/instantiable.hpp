@@ -23,7 +23,7 @@ using namespace std;
 
 namespace CoreIR {
 
-  class Instantiable : public MetaData, public Property {
+  class Instantiable : public MetaData{
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
     enum LinkageKind {LK_Namespace=0, LK_Generated=1};

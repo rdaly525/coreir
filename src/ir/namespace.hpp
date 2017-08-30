@@ -5,6 +5,7 @@
 #include "instantiable.hpp"
 #include "common.hpp"
 #include "json.hpp"
+#include "property.hpp"
 #include <string>
 #include <map>
 
@@ -45,6 +46,8 @@ class Namespace {
   unordered_map<string,string> namedTypeNameMap;
   unordered_map<string,string> typeGenNameMap;
 
+  Property property;
+  
   public :
     Namespace(Context* c, string name) : c(c), name(name) {}
     ~Namespace();
@@ -76,7 +79,10 @@ class Namespace {
     bool hasModule(string mname) { return moduleList.count(mname) > 0; }
     bool hasGenerator(string iname) { return generatorList.count(iname) > 0; }
     bool hasInstantiable(string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
-    
+
+    void setProperty(json j) {property.setJson(j);}
+    Property getProperty() {return property;}
+  
     json toJson();
     void print();
 };

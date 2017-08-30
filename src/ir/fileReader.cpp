@@ -63,7 +63,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
       json jns = jnsmap.second;
-      checkJson(jns,{"namedtypes","namedtypegens","modules","generators"});
+      checkJson(jns,{"namedtypes","namedtypegens","modules","generators","properties"});
       Namespace* ns;
       if (c->hasNamespace(nsname) ) ns = c->getNamespace(nsname);
       else ns = c->newNamespace(nsname);
@@ -115,6 +115,9 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     for (auto nsq : nsqueue) {
       Namespace* ns = nsq.first;
       json jns = nsq.second;
+      if (jns.count("properties")) {
+        ns->setProperty(jns["properties"]);
+      }          
       //Load Modules
       if (jns.count("modules")) {
         for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
@@ -127,7 +130,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           
           json jmod = jmodmap.second;
-          checkJson(jmod,{"type","configparams","defaultconfigargs","instances","connections","properties"});
+          checkJson(jmod,{"type","configparams","defaultconfigargs","instances","connections"});
           Type* t = json2Type(c,jmod.at("type"));
           
           Params configparams;
@@ -141,9 +144,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           if (jmod.count("metadata")) {
             m->setMetaData(jmod["metadata"]);
           }
-          if (jmod.count("properties")) {
-            m->setProperty(jmod["properties"]);
-          }          
           modqueue.push_back({m,jmod});
         }
       }
@@ -196,7 +196,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             assert(jinst.count("genref")==0);
             assert(jinst.count("genargs")==0);
             Module* modRef = getModSymbol(c,jinst.at("modref").get<string>());
-            modRef->setProperty(m->getProperty());
             Args configargs;
             if (jinst.count("configargs")) {
               configargs = json2Args(c,modRef->getConfigParams(),jinst.at("configargs"));
@@ -211,7 +210,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             if (jinst.count("configargs")) {
               configargs = json2Args(c,genRef->getConfigParams(),jinst.at("configargs"));
             }
-            genRef->setProperty(m->getProperty());
             mdef->addInstance(instname,genRef,genargs,configargs);
           }
           else {

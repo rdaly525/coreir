@@ -43,6 +43,17 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
 
+  json jprop = i->getNamespace()->getProperty().getJson();
+  if (jprop.size()) {
+    for (int i=0; i<jprop.size(); i++) {
+      string propname = jprop[i][0];
+      PropType ptype = jprop[i][1] == "invar" ? invarspec : ltlspec;
+      string propval = jprop[i][2];
+      PropDef prop = make_pair(ptype, propval);
+      properties.emplace(propname, prop);
+    }
+  }
+  
   ModuleDef* def = m->getDef();
 
   static std::vector<string> variables; 
@@ -64,18 +75,6 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     smod->addStmt(modMap[iref]->toInstanceString(inst, imap.first));
     if (no_ops.count(imap.first) == 0 ) {
       smod->addStmt("-- END module declaration\n");
-    }
-  }
-
-  json& jprop = m->getProperty();
-
-  if (jprop.size()) {
-    for (int i=0; i<jprop.size(); i++) {
-      string propname = jprop[i][0];
-      PropType ptype = jprop[i][1] == "invar" ? invarspec : ltlspec;
-      string propval = jprop[i][2];
-      PropDef prop = make_pair(ptype, propval);
-      properties.emplace(propname, prop);
     }
   }
 
