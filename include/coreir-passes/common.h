@@ -20,7 +20,6 @@
 #include "transform/liftclockports.h"
 #include "transform/wireclocks.h"
 
-
 //TODO Macrofy this
 namespace CoreIR {
   void initializePasses(PassManager& pm) {

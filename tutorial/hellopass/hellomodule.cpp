@@ -30,7 +30,7 @@ bool HelloModule::runOnModule(Module* m) {
   Instantiable* coreir_reg = c->getGenerator("coreir.reg");
 
   
-  //Define our vecotr of instances
+  //Define our vector of instances
   vector<Instance*> regInsts;
   //Loop through all the instances 
   for (auto instmap : def->getInstances()) {
