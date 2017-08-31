@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-lib/commonlib.h"
+//#include "coreir-lib/commonlib.h"
 #include "coreir-passes/transform/treereduction.h"
 
 //For convenient macros to create the registerPass and deletePass functions
@@ -212,4 +212,4 @@ void Passes::TreeReduction::print() {
 }
 
 //This is the macro that will define the registerPass and deletePass functions for you.
-COREIR_GEN_EXTERNAL_PASS(Passes::TreeReduction);
+//COREIR_GEN_EXTERNAL_PASS(Passes::TreeReduction);

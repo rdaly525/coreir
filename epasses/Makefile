@@ -33,6 +33,14 @@ dylib: $(DYLIBS)
 clean:
 	rm -rf build/*
 
+build/treereduction.so: build/treereduction.so
+	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir -lcoreir-commonlib
+	cp $@ $(HOME)/lib/treereduction.so
+
+build/treereduction.dylib: build/treereduction.o
+	$(CXX) -install_name "@rpath/treereduction.dylib" -dynamiclib $(LPATH) -lcoreir -lcoreir-commonlib -o $@ $^
+	cp $@ $(HOME)/lib/treereduction.dylib
+
 build/%.so: build/%.o
 	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir 
 	cp $@ $(HOME)/lib/$*.so
