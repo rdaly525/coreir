@@ -19,7 +19,7 @@
 #include "transform/removebulkconnections.h"
 #include "transform/liftclockports.h"
 #include "transform/wireclocks.h"
-
+#include "transform/treereduction.h"
 
 //TODO Macrofy this
 namespace CoreIR {
@@ -43,6 +43,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveBulkConnections());
     pm.addPass(new Passes::LiftClockPorts("liftclockports-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
+    pm.addPass(new Passes::TreeReduction());
   }
 }
 

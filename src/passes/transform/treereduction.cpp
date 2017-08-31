@@ -1,6 +1,6 @@
 #include "coreir.h"
 #include "coreir-lib/commonlib.h"
-#include "treereductionpass.hpp"
+#include "coreir-passes/transform/treereduction.h"
 
 //For convenient macros to create the registerPass and deletePass functions
 #include "coreir-macros.h"
@@ -8,10 +8,10 @@
 using namespace CoreIR;
 
 //Do not forget to set this static variable!!
-string TreeReductionPass::ID = "treereductionpass";
+string Passes::TreeReduction::ID = "treereduction";
 
 // return a vector of the input wireables for a reduction tree ending at given instance 
-vector<Wireable*> TreeReductionPass::collectInputs(Instance* head) {
+vector<Wireable*> Passes::TreeReduction::collectInputs(Instance* head) {
   vector<Wireable*> inputs;
   string opName = getOpName(head);
 
@@ -37,7 +37,7 @@ vector<Wireable*> TreeReductionPass::collectInputs(Instance* head) {
 }
 
 // return a vector of the instances in a reduction tree ending at given instance
-vector<Instance*> TreeReductionPass::collectInsts(Instance* head) {
+vector<Instance*> Passes::TreeReduction::collectInsts(Instance* head) {
   vector<Instance*> insts;
   string opName = getOpName(head);
   insts.push_back(head);
@@ -59,7 +59,7 @@ vector<Instance*> TreeReductionPass::collectInsts(Instance* head) {
   return insts;
 }
 
-bool TreeReductionPass::runOnModule(Module* m) {
+bool Passes::TreeReduction::runOnModule(Module* m) {
   Context* c = this->getContext();
   
   // early out if module is undefined
@@ -80,7 +80,7 @@ bool TreeReductionPass::runOnModule(Module* m) {
       Instance* in1Inst = getSelectedInst(inst, "in1");
       if ((in0Inst != NULL && getOpName(in0Inst) == opName) ||
           (in1Inst != NULL && getOpName(in1Inst) == opName)) {
-        cout << "found inst to replace" << endl;
+        //cout << "found inst to replace" << endl;
         treeHeads.push_back(inst);
       }
     }
@@ -130,12 +130,12 @@ bool TreeReductionPass::runOnModule(Module* m) {
     }
 
     // remove old instances
-    cout << headInst->toString() << " has the insts:" << endl;
+    //cout << headInst->toString() << " has the insts:" << endl;
     for (auto inst : insts) {
-      cout << " " << inst->toString();
+      //cout << " " << inst->toString();
       def->removeInstance(inst);
     }
-    cout << endl;
+    //cout << endl;
 
     // wire up new tree version
     def->connect(pt_out_wire, tree->sel("out"));
@@ -154,13 +154,13 @@ bool TreeReductionPass::runOnModule(Module* m) {
 }
 
 // return string for operator used in given instance
-string TreeReductionPass::getOpName(Instance* i) {
+string Passes::TreeReduction::getOpName(Instance* i) {
   std::string opName = i->getInstantiableRef()->getName();
   return opName;
 }
 
 // return the instance that is connected to given instance select
-Instance* TreeReductionPass::getSelectedInst(Instance* i, string sel) {
+Instance* Passes::TreeReduction::getSelectedInst(Instance* i, string sel) {
   if (!i->hasSel(sel)) {
     return NULL;
   }
@@ -186,7 +186,7 @@ Instance* TreeReductionPass::getSelectedInst(Instance* i, string sel) {
 }
 
 // identify if this is the top of a series of the same operator
-bool TreeReductionPass::isAssocSubgraph(Instance* i) {
+bool Passes::TreeReduction::isAssocSubgraph(Instance* i) {
   Instance* parentInst = getSelectedInst(i, "out");
   if (parentInst == NULL) { return true; }
 
@@ -203,13 +203,13 @@ bool TreeReductionPass::isAssocSubgraph(Instance* i) {
   }
 }
 
-int TreeReductionPass::getTotalSubgraphs() {
+int Passes::TreeReduction::getTotalSubgraphs() {
   return targetSubgraphs.size();
 }
 
-void TreeReductionPass::print() {
-  cout << "This is a test" << endl;
+void Passes::TreeReduction::print() {
+  cout << "Replaced " << getTotalSubgraphs() << " subgraphs into reduction trees" << endl;
 }
 
 //This is the macro that will define the registerPass and deletePass functions for you.
-COREIR_GEN_EXTERNAL_PASS(TreeReductionPass);
+COREIR_GEN_EXTERNAL_PASS(Passes::TreeReduction);
