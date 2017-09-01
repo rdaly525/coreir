@@ -17,3 +17,4 @@ extern COREArg* COREArgString(COREContext* c,char* str);
 //Arg Getter functions will assert on wrong arg type
 extern int COREArgIntGet(COREArg* a);
 extern const char* COREArgStringGet(COREArg* a);
+extern bool COREArgBoolGet(COREArg* a);

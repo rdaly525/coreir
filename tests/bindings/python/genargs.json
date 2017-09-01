@@ -46,7 +46,7 @@
                 "op": "add"
               },
               "genargs": {
-                "numin": 2,
+                "numdataports": 2,
                 "width": 16
               },
               "genref": "cgralib.PE"

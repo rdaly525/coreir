@@ -44,6 +44,12 @@ extern "C" {
     return rcast<COREArg*>(ga);
   }
 
+  bool COREArgBoolGet(COREArg* a) {
+    Arg* arg = rcast<Arg*>(a);
+    //Get will assert if wrong arg kind
+    return arg->get<ArgBool>();
+  }
+
 }
 
 }
