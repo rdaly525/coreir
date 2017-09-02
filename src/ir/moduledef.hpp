@@ -52,8 +52,14 @@ class ModuleDef {
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 
+    //Can select using string (inst.port.subport)
     Wireable* sel(string s);
+    //Or using a select Path
     Wireable* sel(SelectPath path);
+
+    //Ignore these
+    Wireable* sel(std::initializer_list<const char*> path);
+    Wireable* sel(std::initializer_list<std::string> path);
     
     //API for adding an instance of either a module or generator
     Instance* addInstance(string instname,Generator* genref,Args genargs, Args config=Args());

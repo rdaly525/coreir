@@ -60,7 +60,7 @@ class Array {
 };
 
 
-
+//Ordere these in order as well
 string Params2Json(Params gp) {
   Dict j;
   for (auto it : gp) j.add(it.first,quote(Param2Str(it.second)));
@@ -86,6 +86,7 @@ string Arg2Json(Arg* a) {
   }
 }
 
+//TODO order these
 string Args2Json(Args args) {
   Dict j;
   for (auto it : args) j.add(it.first,Arg2Json(it.second));

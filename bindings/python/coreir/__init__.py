@@ -104,6 +104,9 @@ libcoreir_c.COREArgStringGet.restype = ct.c_char_p
 libcoreir_c.COREArgIntGet.argtypes = [COREArg_p]
 libcoreir_c.COREArgIntGet.restype = ct.c_int
 
+libcoreir_c.COREArgBoolGet.argtypes = [COREArg_p]
+libcoreir_c.COREArgBoolGet.restype = ct.c_bool
+
 libcoreir_c.COREArgInt.argtypes = [COREContext_p,ct.c_int]
 libcoreir_c.COREArgInt.restype = COREArg_p
 

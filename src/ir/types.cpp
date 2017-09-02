@@ -65,7 +65,7 @@ NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Ar
   raw = typegen->getType(genargs);
   dir = raw->getDir();
 }
-
+string NamedType::getRefName() {return ns->getName() + "." + name;}
 //TODO How to deal with select? For now just do a normal select off of raw
 bool NamedType::sel(string sel, Type** ret, Error* e) {
   return raw->sel(sel,ret,e);

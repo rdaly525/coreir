@@ -35,6 +35,13 @@ Select* Wireable::sel(SelectPath path) {
   return cast<Select>(ret);
 }
 
+Select* Wireable::sel(std::initializer_list<const char*> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
+Select* Wireable::sel(std::initializer_list<std::string> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
+
 
 
 bool Wireable::canSel(string selstr) {

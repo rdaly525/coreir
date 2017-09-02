@@ -113,6 +113,7 @@ class NamedType : public Type {
     string toString(void) const { return name; } //TODO add generator
     Namespace* getNamespace() {return ns;}
     string getName() {return name;}
+    string getRefName();
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}

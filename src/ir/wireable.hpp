@@ -42,6 +42,10 @@ class Wireable : public MetaData {
     Select* sel(uint);
     Select* sel(SelectPath);
     
+    //Ignore These
+    Select* sel(std::initializer_list<const char*> path);
+    Select* sel(std::initializer_list<std::string> path);
+  
     bool canSel(string);
   
     //Connect this to w

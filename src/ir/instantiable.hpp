@@ -54,7 +54,8 @@ class Instantiable : public MetaData {
     void setNamespace(Namespace* ns) {this->ns = ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
     
-    void setDefaultConfigArgs(Args defaultConfigArgs);
+    //This will add (and override) defaultConfigArgs
+    void addDefaultConfigArgs(Args defaultConfigArgs);
     Args getDefaultConfigArgs() { return defaultConfigArgs;}
 };
 
@@ -94,7 +95,8 @@ class Generator : public Instantiable {
     void setGeneratorDefFromFun(ModuleDefGenFun fun);
     Params getGenParams() {return genparams;}
 
-    void setDefaultGenArgs(Args defaultGenfigargs);
+    //This will add (and override) default args
+    void addDefaultGenArgs(Args defaultGenfigargs);
     Args getDefaultGenArgs() { return defaultGenArgs;}
   
     void setNameGen(NameGen_t ng) {nameGen = ng;}

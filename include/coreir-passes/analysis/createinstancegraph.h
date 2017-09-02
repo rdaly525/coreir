@@ -1,5 +1,5 @@
-#ifndef CONSTRUCTINSTANCEGRAPH_HPP_
-#define CONSTRUCTINSTANCEGRAPH_HPP_
+#ifndef CREATEINSTANCEGRAPH_HPP_
+#define CREATEINSTANCEGRAPH_HPP_
 
 #include "coreir.h"
 #include "instancegraph.h"
@@ -7,14 +7,14 @@
 namespace CoreIR {
 namespace Passes {
 
-class ConstructInstanceGraph : public NamespacePass {
+class CreateInstanceGraph : public NamespacePass {
   InstanceGraph* ig = nullptr;
   public :
     static std::string ID;
-    ConstructInstanceGraph() : NamespacePass(ID,"Constructs the InstanceGraph",true) {
+    CreateInstanceGraph() : NamespacePass(ID,"Creates the InstanceGraph",true) {
       ig = new InstanceGraph;
     }
-    ~ConstructInstanceGraph() { delete ig;}
+    ~CreateInstanceGraph() { delete ig;}
     bool runOnNamespace(Namespace* ns) override;
     void releaseMemory() override;
     InstanceGraph* getInstanceGraph() { return ig;}
