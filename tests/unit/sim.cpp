@@ -303,23 +303,29 @@ namespace CoreIR {
       cout << str << endl;
 
       string outFile = "./gencode/add63.c";
-      std::ofstream out(outFile);
-      out << str;
-      out.close();
-
-      string runCmd = "clang " + outFile + " ./gencode/test_add63.c";
-      int s = system(runCmd.c_str());
-
-      cout << "Command result = " << s << endl;
+      int s = compileCodeAndRun(str,
+				outFile,
+				"./gencode/test_add63.c");
 
       REQUIRE(s == 0);
 
-      string runTest = "./a.out";
-      s = system(runTest.c_str());
+      // std::ofstream out(outFile);
+      // out << str;
+      // out.close();
 
-      cout << "Test result = " << s << endl;
+      // string runCmd = "clang " + outFile + " ./gencode/test_add63.c";
+      // int s = system(runCmd.c_str());
 
-      REQUIRE(s == 0);
+      // cout << "Command result = " << s << endl;
+
+      // REQUIRE(s == 0);
+
+      // string runTest = "./a.out";
+      // s = system(runTest.c_str());
+
+      // cout << "Test result = " << s << endl;
+
+      // REQUIRE(s == 0);
 
     }
 
@@ -362,23 +368,29 @@ namespace CoreIR {
       cout << str << endl;
 
       string outFile = "./gencode/neg2.c";
-      std::ofstream out(outFile);
-      out << str;
-      out.close();
-
-      string runCmd = "clang " + outFile + " ./gencode/test_neg2.c";
-      int s = system(runCmd.c_str());
-
-      cout << "Command result = " << s << endl;
+      int s = compileCodeAndRun(str,
+				outFile,
+				"./gencode/test_neg2.c");
 
       REQUIRE(s == 0);
 
-      string runTest = "./a.out";
-      s = system(runTest.c_str());
+      // std::ofstream out(outFile);
+      // out << str;
+      // out.close();
 
-      cout << "2 bit not Test result = " << s << endl;
+      // string runCmd = "clang " + outFile + " ./gencode/test_neg2.c";
+      // int s = system(runCmd.c_str());
 
-      REQUIRE(s == 0);
+      // cout << "Command result = " << s << endl;
+
+      // REQUIRE(s == 0);
+
+      // string runTest = "./a.out";
+      // s = system(runTest.c_str());
+
+      // cout << "2 bit not Test result = " << s << endl;
+
+      // REQUIRE(s == 0);
       
     }
     
@@ -699,25 +711,32 @@ namespace CoreIR {
 
       SECTION("Compile and run") {      
 	string outFile = "./gencode/reg5.c";
-	std::ofstream out(outFile);
-	out << str;
-	out.close();
 
-
-	string runCmd = "clang " + outFile + " gencode/test_reg5.c";
-	int s = system(runCmd.c_str());
-
-	cout << "Command result = " << s << endl;
+	int s = compileCodeAndRun(str,
+				  outFile,
+				  "gencode/test_reg5.c");
 
 	REQUIRE(s == 0);
 
+	// std::ofstream out(outFile);
+	// out << str;
+	// out.close();
 
-	string runTest = "./a.out";
-	s = system(runTest.c_str());
 
-	cout << "Test result = " << s << endl;
+	// string runCmd = "clang " + outFile + " gencode/test_reg5.c";
+	// int s = system(runCmd.c_str());
 
-	REQUIRE(s == 0);
+	// cout << "Command result = " << s << endl;
+
+	// REQUIRE(s == 0);
+
+
+	// string runTest = "./a.out";
+	// s = system(runTest.c_str());
+
+	// cout << "Test result = " << s << endl;
+
+	// REQUIRE(s == 0);
       }
 
     }
@@ -775,25 +794,32 @@ namespace CoreIR {
 
       SECTION("Compile and run") {      
 	string outFile = "./gencode/counter.c";
-	std::ofstream out(outFile);
-	out << str;
-	out.close();
 
-
-	string runCmd = "clang " + outFile + " gencode/test_counter.c";
-	int s = system(runCmd.c_str());
-
-	cout << "Command result = " << s << endl;
+	int s = compileCodeAndRun(str,
+				  outFile,
+				  "./gencode/test_counter.c");
 
 	REQUIRE(s == 0);
 
+	// std::ofstream out(outFile);
+	// out << str;
+	// out.close();
 
-	string runTest = "./a.out";
-	s = system(runTest.c_str());
 
-	cout << "Test result = " << s << endl;
+	// string runCmd = "clang " + outFile + " gencode/test_counter.c";
+	// int s = system(runCmd.c_str());
 
-	REQUIRE(s == 0);
+	// cout << "Command result = " << s << endl;
+
+	// REQUIRE(s == 0);
+
+
+	// string runTest = "./a.out";
+	// s = system(runTest.c_str());
+
+	// cout << "Test result = " << s << endl;
+
+	// REQUIRE(s == 0);
       }
       
     }
