@@ -42,12 +42,13 @@ int compileCodeAndRun(const std::string& code,
 
   cout << "Command result = " << s << endl;
 
-  string runTest = "./a.out";
-  int r = system(runTest.c_str());
+  return s;
+  // string runTest = "./a.out";
+  // int r = system(runTest.c_str());
 
-  cout << "Test result = " << r << endl;
+  // cout << "Test result = " << r << endl;
 
-  return s || r;
+  // return s || r;
 }  
 
 namespace CoreIR {
