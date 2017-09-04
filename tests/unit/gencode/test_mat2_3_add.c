@@ -5,9 +5,6 @@
 #include "mat2_3_add.h"
 
 int main() {
-  /* uint64_t** A = (uint64_t**) malloc(sizeof(uint64_t)*6); */
-  /* uint64_t** B = (uint64_t**) malloc(sizeof(uint64_t)*6); */
-  /* uint64_t** C = (uint64_t**) malloc(sizeof(uint64_t)*6); */
 
   uint64_t A[2][3];
   A[0][0] = 13;
@@ -40,9 +37,9 @@ int main() {
 
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 3; j++) {
-      printf("C[%d][%d] = %llu\n", i, j, C[i][j]);
+      printf("C[%d][%d] = %lu\n", i, j, C[i][j]);
       uint64_t expected = A[i][j] + B[i][j];
-      printf("Expected[%d][%d] = %llu\n", i, j, C[i][j]);      
+      printf("Expected[%d][%d] = %lu\n", i, j, C[i][j]);      
       if (expected != C[i][j]) {
 	return 1;
       }

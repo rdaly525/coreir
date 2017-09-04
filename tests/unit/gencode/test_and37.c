@@ -18,8 +18,8 @@ int main() {
   // NOTE: This 37th and 60th bits should be masked away by the simulator
   uint64_t expected = one << 36;
   
-  printf("and out  = %llu\n", out);
-  printf("expected = %llu\n", expected);
+  printf("and out  = %lu\n", out);
+  printf("expected = %lu\n", expected);
 
   if (expected == out) {
     return 0;
