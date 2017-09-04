@@ -135,9 +135,9 @@ namespace CoreIR {
 	REQUIRE(numVertices(g) == 5);
       }
       
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, add4_n);
+      auto str = printCode(topoOrder, g, add4_n);
       int s = compileCode(str, "./gencode/add4.c");
 
       cout << "Command result = " << s << endl;
@@ -184,9 +184,9 @@ namespace CoreIR {
 	REQUIRE(numVertices(g) == 5);
       }
       
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, sub4_n);
+      auto str = printCode(topoOrder, g, sub4_n);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -236,9 +236,9 @@ namespace CoreIR {
 	REQUIRE(numVertices(g) == 3);
       }
       
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, mul_n);
+      auto str = printCode(topoOrder, g, mul_n);
       cout << "CODE STRING" << endl;
       cout << str << endl;
       int s = compileCode(str, "./gencode/mul2.c");
@@ -282,16 +282,18 @@ namespace CoreIR {
       	REQUIRE(numVertices(g) == 3);
       }
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, andM);
+      auto str = printCode(topoOrder, g, andM);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
       string outFile = "./gencode/and37.c";
 
-      int s = compileCodeAndRun(str,
-				"./gencode/and37.c",
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				andM,
+				"./gencode/and37",
 				"./gencode/test_and37.c");
 
       cout << "Test result = " << s << endl;
@@ -333,14 +335,16 @@ namespace CoreIR {
       	REQUIRE(numVertices(g) == 3);
       }
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, addM);
+      auto str = printCode(topoOrder, g, addM);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      string outFile = "./gencode/add63.c";
-      int s = compileCodeAndRun(str,
+      string outFile = "./gencode/add63";
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				addM,
 				outFile,
 				"./gencode/test_add63.c");
 
@@ -398,14 +402,16 @@ namespace CoreIR {
       NGraph g;
       buildOrderedGraph(neg_n, g);
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, neg_n);
+      auto str = printCode(topoOrder, g, neg_n);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      string outFile = "./gencode/neg2.c";
-      int s = compileCodeAndRun(str,
+      string outFile = "./gencode/neg2";
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				neg_n,
 				outFile,
 				"./gencode/test_neg2.c");
 
@@ -467,9 +473,9 @@ namespace CoreIR {
       	REQUIRE(numVertices(g) == 3);
       }
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, neg_n);
+      auto str = printCode(topoOrder, g, neg_n);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -519,9 +525,9 @@ namespace CoreIR {
 	REQUIRE(numVertices(g) == 4);
       }
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, neg_n);
+      auto str = printCode(topoOrder, g, neg_n);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -573,15 +579,17 @@ namespace CoreIR {
       NGraph g;
       buildOrderedGraph(addM, g);
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topo_order, g, addM);
+      auto str = printCode(topoOrder, g, addM);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
       string outFile = "./gencode/mat2_3_add.c";
-      int s = compileCodeAndRun(str,
-				"./gencode/mat2_3_add.c",
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				addM,
+				"./gencode/mat2_3_add",
 				"./gencode/test_mat2_3_add.c");
 
       REQUIRE(s == 0);
@@ -616,10 +624,10 @@ namespace CoreIR {
       NGraph g;
       buildOrderedGraph(eqM, g);
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
 
-      auto str = printCode(topo_order, g, eqM);
+      auto str = printCode(topoOrder, g, eqM);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -655,14 +663,17 @@ namespace CoreIR {
       NGraph g;
       buildOrderedGraph(sleM, g);
 
-      deque<vdisc> topo_order = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
 
-      auto str = printCode(topo_order, g, sleM);
+      auto str = printCode(topoOrder, g, sleM);
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      int s = compileCodeAndRun(str, "./gencode/sle7.c", "./gencode/test_sle7.c");
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				sleM,
+				"./gencode/sle7", "./gencode/test_sle7.c");
       REQUIRE(s == 0);
 
     }
@@ -747,9 +758,11 @@ namespace CoreIR {
       cout << str << endl;
 
       SECTION("Compile and run") {      
-	string outFile = "./gencode/reg5.c";
+	string outFile = "./gencode/reg5";
 
-	int s = compileCodeAndRun(str,
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  rg,
 				  outFile,
 				  "gencode/test_reg5.c");
 
