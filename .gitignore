@@ -3,3 +3,8 @@
 *.pyc
 \#*\#
 tests/bindings/python/ice40_test.json
+
+#
+tests/unit/*.o
+tests/unit/a.out
+tests/unit/gencode/*.c
