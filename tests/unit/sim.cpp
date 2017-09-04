@@ -350,24 +350,6 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
 
-      // std::ofstream out(outFile);
-      // out << str;
-      // out.close();
-
-      // string runCmd = "clang " + outFile + " ./gencode/test_add63.c";
-      // int s = system(runCmd.c_str());
-
-      // cout << "Command result = " << s << endl;
-
-      // REQUIRE(s == 0);
-
-      // string runTest = "./a.out";
-      // s = system(runTest.c_str());
-
-      // cout << "Test result = " << s << endl;
-
-      // REQUIRE(s == 0);
-
     }
 
     SECTION("One 2 bit not") {
@@ -417,23 +399,6 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
 
-      // std::ofstream out(outFile);
-      // out << str;
-      // out.close();
-
-      // string runCmd = "clang " + outFile + " ./gencode/test_neg2.c";
-      // int s = system(runCmd.c_str());
-
-      // cout << "Command result = " << s << endl;
-
-      // REQUIRE(s == 0);
-
-      // string runTest = "./a.out";
-      // s = system(runTest.c_str());
-
-      // cout << "2 bit not Test result = " << s << endl;
-
-      // REQUIRE(s == 0);
       
     }
     
@@ -768,25 +733,6 @@ namespace CoreIR {
 
 	REQUIRE(s == 0);
 
-	// std::ofstream out(outFile);
-	// out << str;
-	// out.close();
-
-
-	// string runCmd = "clang " + outFile + " gencode/test_reg5.c";
-	// int s = system(runCmd.c_str());
-
-	// cout << "Command result = " << s << endl;
-
-	// REQUIRE(s == 0);
-
-
-	// string runTest = "./a.out";
-	// s = system(runTest.c_str());
-
-	// cout << "Test result = " << s << endl;
-
-	// REQUIRE(s == 0);
       }
 
     }
