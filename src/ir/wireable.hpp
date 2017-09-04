@@ -20,13 +20,15 @@ class Wireable : public MetaData {
     Type* type;
 
     unordered_set<Wireable*> connected; 
-    unordered_map<string,Wireable*> selects;
+    
+    //This manages the memory for the selects
+    unordered_map<string,Select*> selects;
   public :
     Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
-    virtual ~Wireable() {}
+    virtual ~Wireable();
     virtual string toString() const=0;
     unordered_set<Wireable*> getConnectedWireables() { return connected;}
-    unordered_map<string,Wireable*> getSelects() { return selects;}
+    unordered_map<string,Select*> getSelects() { return selects;}
     bool hasSel(string selstr) {return selects.count(selstr) >0;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();
@@ -53,6 +55,7 @@ class Wireable : public MetaData {
 
     //Disconnect everything from this wireable
     void disconnect();
+    void disconnectAll();
 
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,a,b,0}
@@ -61,13 +64,17 @@ class Wireable : public MetaData {
     string wireableKind2Str(WireableKind wb);
     LocalConnections getLocalConnections();
     Wireable* getTopParent();
+
+    //removes the select from this wireble.
+    void removeSel(string selStr);
+
+
   protected :
     //This should be used very carefully. Could make things inconsistent
     friend class InstanceGraphNode;
     void setType(Type* t) {
       type = t;
     }
-    void removeUnusedSelects();
 };
 
 ostream& operator<<(ostream&, const Wireable&);
@@ -139,19 +146,6 @@ class Select : public Wireable {
     Wireable* getParent() { return parent; }
     const string& getSelStr() { return selStr; }
 };
-
-
-typedef std::pair<Wireable*, string> SelectParamType;
-class SelCache {
-  map<SelectParamType,Select*> cache;
-  public :
-    SelCache() {};
-    ~SelCache();
-    Select* newSelect(ModuleDef* container, Wireable* parent, string selStr,Type* t);
-    //Warning this will delete s
-    void eraseSelect(Select* s);
-};
-
 
 }//CoreIR namespace
 

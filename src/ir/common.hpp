@@ -72,7 +72,6 @@ class Module;
 class ModuleDef;
 typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
 
-class SelCache;
 class Wireable;
 class Interface;
 class Instance;
