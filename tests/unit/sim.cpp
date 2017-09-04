@@ -30,32 +30,39 @@ int compileCode(const std::string& code, const std::string& outFile) {
 
 }
 
-int compileCodeAndRun(const std::deque<vdisc>& topoOrder,
-		      NGraph& g,
-		      Module* mod,
-		      const std::string& outFile,
-		      const std::string& harnessFile) {
+void writeFiles(const std::deque<vdisc>& topoOrder,
+		NGraph& g,
+		Module* mod,
+		const std::string& codeFile,
+		const std::string& hFile) {
   string codeStr = printCode(topoOrder, g, mod);
   string hStr = printDecl(mod);
-
-  string codeFile = outFile + ".c";
-  
 
   std::ofstream out(codeFile);
   out << codeStr;
   out.close();
 
-  string hFile = outFile + ".h";
   std::ofstream outH(hFile);
   outH << hStr;
   outH.close();
 
+}
+
+int compileCodeAndRun(const std::deque<vdisc>& topoOrder,
+		      NGraph& g,
+		      Module* mod,
+		      const std::string& outFile,
+		      const std::string& harnessFile) {
+
+  string hFile = outFile + ".h";
+  string codeFile = outFile + ".c";
+
+  writeFiles(topoOrder, g, mod, codeFile, hFile);
+  
   string runCmd = "clang " + codeFile + " " + harnessFile;
   int s = system(runCmd.c_str());
 
   cout << "Command result = " << s << endl;
-
-  //return s;
 
   string runTest = "./a.out";
   int r = system(runTest.c_str());
