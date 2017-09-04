@@ -35,7 +35,34 @@ int compileCodeAndRun(const std::deque<vdisc>& topoOrder,
 		      Module* mod,
 		      const std::string& outFile,
 		      const std::string& harnessFile) {
-  return 0;
+  string codeStr = printCode(topoOrder, g, mod);
+  string hStr = printDecl(mod);
+
+  string codeFile = outFile + ".c";
+  
+
+  std::ofstream out(codeFile);
+  out << codeStr;
+  out.close();
+
+  string hFile = outFile + ".h";
+  std::ofstream outH(hFile);
+  outH << hStr;
+  outH.close();
+
+  string runCmd = "clang " + codeFile + " " + harnessFile;
+  int s = system(runCmd.c_str());
+
+  cout << "Command result = " << s << endl;
+
+  //return s;
+
+  string runTest = "./a.out";
+  int r = system(runTest.c_str());
+
+  cout << "Test result = " << r << endl;
+
+  return s || r;
 }
 
 int compileCodeAndRun(const std::string& code,
@@ -803,7 +830,7 @@ namespace CoreIR {
       cout << str << endl;
 
       SECTION("Compile and run") {      
-	string outFile = "./gencode/counter.c";
+	string outFile = "./gencode/counter";
 
 	int s = compileCodeAndRun(topoOrder,
 				  g,

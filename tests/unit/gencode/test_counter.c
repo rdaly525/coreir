@@ -15,7 +15,8 @@ int main() {
 
   for (int i = 0; i < 20; i++) {
     self_clk = i % 2;
-    simulate(self_en, self_out_ptr, self_clk, self_clk_last, ri_old_value, &ri_new_value);
+    //simulate(self_en, self_out_ptr, self_clk, self_clk_last, ri_old_value, &ri_new_value);
+    simulate(self_out_ptr, ri_old_value, &ri_new_value, self_clk, self_clk_last, self_en);
 
     // Copy old values to new values
     self_clk_last = self_clk;
