@@ -13,6 +13,8 @@ int main() {
   // 1 << 6 is the smallest possible 7 bit 2s complement number
   uint8_t expected = 1;
 
+  printf("expected as long = %hhu\n", expected);
+
   uint8_t r = 10;
   simulate(a, &r);
 
