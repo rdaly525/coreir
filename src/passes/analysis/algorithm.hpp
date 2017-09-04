@@ -726,6 +726,11 @@ namespace CoreIR {
     std::sort(begin(e), end(e), [f](const T& l, const T& r) { return f(l) > f(r); });
   }
 
+  template<typename T>
+  void sort(std::vector<T>& e) {
+    std::sort(std::begin(e), std::end(e));
+  }
+
   template<typename A, typename B>
   bool contains_key(const A& a, const std::unordered_map<A, B>& m) {
     auto f = m.find(a);

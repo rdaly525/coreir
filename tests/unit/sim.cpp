@@ -30,6 +30,14 @@ int compileCode(const std::string& code, const std::string& outFile) {
 
 }
 
+int compileCodeAndRun(const std::deque<vdisc>& topoOrder,
+		      NGraph& g,
+		      Module* mod,
+		      const std::string& outFile,
+		      const std::string& harnessFile) {
+  return 0;
+}
+
 int compileCodeAndRun(const std::string& code,
 		      const std::string& outFile,
 		      const std::string& harnessFile) {
@@ -797,31 +805,14 @@ namespace CoreIR {
       SECTION("Compile and run") {      
 	string outFile = "./gencode/counter.c";
 
-	int s = compileCodeAndRun(str,
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  counter,
 				  outFile,
 				  "./gencode/test_counter.c");
 
 	REQUIRE(s == 0);
 
-	// std::ofstream out(outFile);
-	// out << str;
-	// out.close();
-
-
-	// string runCmd = "clang " + outFile + " gencode/test_counter.c";
-	// int s = system(runCmd.c_str());
-
-	// cout << "Command result = " << s << endl;
-
-	// REQUIRE(s == 0);
-
-
-	// string runTest = "./a.out";
-	// s = system(runTest.c_str());
-
-	// cout << "Test result = " << s << endl;
-
-	// REQUIRE(s == 0);
       }
       
     }

@@ -695,9 +695,9 @@ namespace CoreIR {
 
     return false;
 
-  } 
-  string printSimArguments(Module& mod) {
+  }
 
+  std::vector<string> sortedSimArgumentList(Module& mod) {
     Type* tp = mod.getType();
 
     //cout << "module type = " << tp->toString() << endl;
@@ -736,11 +736,33 @@ namespace CoreIR {
 	declStrs.push_back(cTypeString(*itp) + "* " + regName + "_new_value");
       }
     }
-    
+
+    sort(declStrs);
+
+    return declStrs;
+  }
+
+  string printSimArguments(Module& mod) {
+
+    auto declStrs = sortedSimArgumentList(mod);
     // Print out declstrings
     string res = commaSepList(declStrs);
 
     return res;
+  }
+
+  string printDecl(CoreIR::Module* mod) {
+    string code = "";
+    code += "#include <stdint.h>\n";
+    code += "#include <stdio.h>\n";
+    code += "#include <stdlib.h>\n";
+    code += "void simulate( ";
+
+    code += printSimArguments(*mod);
+
+    code += + " );";
+
+    return code;
   }
 
   string printCode(const std::deque<vdisc>& topoOrder,

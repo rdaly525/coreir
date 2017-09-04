@@ -10,4 +10,6 @@ namespace CoreIR {
 			NGraph& g,
 			CoreIR::Module* mod);
 
+  string printDecl(CoreIR::Module* mod);
+
 }
