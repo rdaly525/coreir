@@ -4,7 +4,8 @@
 \#*\#
 tests/bindings/python/ice40_test.json
 
-#
+# Simulator unit test files
 tests/unit/*.o
 tests/unit/a.out
 tests/unit/gencode/*.c
+tests/unit/gencode/*.h
