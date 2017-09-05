@@ -49,7 +49,7 @@ namespace CoreIR {
 			const std::string& harnessFile) {
 
     string hFile = outFile + ".h";
-    string codeFile = outFile + ".c";
+    string codeFile = outFile + ".cpp";
 
     writeFiles(topoOrder, g, mod, codeFile, hFile);
   

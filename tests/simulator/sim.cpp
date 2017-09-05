@@ -66,7 +66,7 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(g);
 
       auto str = printCode(topoOrder, g, add4_n);
-      int s = compileCode(str, "./gencode/add4.c");
+      int s = compileCode(str, "./gencode/add4.cpp");
 
       cout << "Command result = " << s << endl;
 
@@ -118,7 +118,7 @@ namespace CoreIR {
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      string outFile = "./gencode/sub4.c";
+      string outFile = "./gencode/sub4.cpp";
       std::ofstream out(outFile);
       out << str;
       out.close();
@@ -169,7 +169,7 @@ namespace CoreIR {
       auto str = printCode(topoOrder, g, mul_n);
       cout << "CODE STRING" << endl;
       cout << str << endl;
-      int s = compileCode(str, "./gencode/mul2.c");
+      int s = compileCode(str, "./gencode/mul2.cpp");
 
       cout << "Command result = " << s << endl;
 
@@ -216,13 +216,13 @@ namespace CoreIR {
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      string outFile = "./gencode/and37.c";
+      string outFile = "./gencode/and37.cpp";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				andM,
 				"./gencode/and37",
-				"./gencode/test_and37.c");
+				"./gencode/test_and37.cpp");
 
       cout << "Test result = " << s << endl;
 
@@ -274,7 +274,7 @@ namespace CoreIR {
 				g,
 				addM,
 				outFile,
-				"./gencode/test_add63.c");
+				"./gencode/test_add63.cpp");
 
       REQUIRE(s == 0);
 
@@ -323,7 +323,7 @@ namespace CoreIR {
 				g,
 				neg_n,
 				outFile,
-				"./gencode/test_neg2.c");
+				"./gencode/test_neg2.cpp");
 
       REQUIRE(s == 0);
 
@@ -372,7 +372,7 @@ namespace CoreIR {
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      int s = compileCode(str, "./gencode/neg16.c");
+      int s = compileCode(str, "./gencode/neg16.cpp");
 
       cout << "Command result = " << s << endl;
 
@@ -424,7 +424,7 @@ namespace CoreIR {
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      int s = compileCode(str, "./gencode/two_negs.c");
+      int s = compileCode(str, "./gencode/two_negs.cpp");
 
       cout << "Command result = " << s << endl;
 
@@ -478,12 +478,12 @@ namespace CoreIR {
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      string outFile = "./gencode/mat2_3_add.c";
+      string outFile = "./gencode/mat2_3_add.cpp";
       int s = compileCodeAndRun(topoOrder,
 				g,
 				addM,
 				"./gencode/mat2_3_add",
-				"./gencode/test_mat2_3_add.c");
+				"./gencode/test_mat2_3_add.cpp");
 
       REQUIRE(s == 0);
     }
@@ -524,7 +524,7 @@ namespace CoreIR {
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      compileCode(str, "./gencode/eq54.c");
+      compileCode(str, "./gencode/eq54.cpp");
     }
 
     SECTION("sle on 7 bits") {
@@ -566,7 +566,7 @@ namespace CoreIR {
       int s = compileCodeAndRun(topoOrder,
 				g,
 				sleM,
-				"./gencode/sle7", "./gencode/test_sle7.c");
+				"./gencode/sle7", "./gencode/test_sle7.cpp");
       REQUIRE(s == 0);
 
     }
@@ -657,7 +657,7 @@ namespace CoreIR {
 				  g,
 				  rg,
 				  outFile,
-				  "gencode/test_reg5.c");
+				  "gencode/test_reg5.cpp");
 
 	REQUIRE(s == 0);
 
@@ -723,7 +723,7 @@ namespace CoreIR {
 				  g,
 				  counter,
 				  outFile,
-				  "./gencode/test_counter.c");
+				  "./gencode/test_counter.cpp");
 
 	REQUIRE(s == 0);
 
@@ -795,7 +795,7 @@ namespace CoreIR {
       cout << str << endl;
 
       SECTION("Compile and run") {      
-	string outFile = "./gencode/register_chain.c";
+	string outFile = "./gencode/register_chain.cpp";
 	int s = compileCode(str, outFile);
 
 	REQUIRE(s == 0);
@@ -847,7 +847,7 @@ namespace CoreIR {
       cout << str << endl;
       
       SECTION("Compile and run") {
-	string outFile = "./gencode/register_no_enable.c";
+	string outFile = "./gencode/register_no_enable.cpp";
 	int s = compileCode(str, outFile);
 
 	REQUIRE(s == 0);
@@ -908,7 +908,7 @@ namespace CoreIR {
       cout << str << endl;
       
       SECTION("Compile and run") {
-	string outFile = "./gencode/clock_array.c";
+	string outFile = "./gencode/clock_array.cpp";
 	int s = compileCode(str, outFile);
 
 	REQUIRE(s == 0);

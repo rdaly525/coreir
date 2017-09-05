@@ -708,7 +708,7 @@ namespace CoreIR {
       Type* tp = name_type_pair.second;
 
       if (tp->isInput()) {
-	if (!underlyingTypeIsClkIn(*tp)) { //(!isClkIn(*tp)) {
+	if (!underlyingTypeIsClkIn(*tp)) {
 	  declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
 	} else {
 	  declStrs.push_back(cArrayTypeDecl(*tp, + " self_" + name_type_pair.first));
