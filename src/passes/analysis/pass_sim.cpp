@@ -2,6 +2,7 @@
 
 #include "coreir-passes/analysis/pass_sim.h"
 #include "sim.hpp"
+#include "output.hpp"
 
 //This is For a convenient macro to create the registerPass and deletePass functions
 #include "coreir-macros.h"

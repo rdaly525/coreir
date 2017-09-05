@@ -1,7 +1,5 @@
 #include "coreir.h"
 
-#include "../../../src/passes/analysis/output.hpp"
-
 using namespace CoreIR;
 
 class SimModule : public ModulePass {
