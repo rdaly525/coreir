@@ -13,4 +13,3 @@ tests/simulator/*.o
 tests/simulator/a.out
 tests/simulator/gencode/*.c
 tests/simulator/gencode/*.h
-tests/simulator/build
