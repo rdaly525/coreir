@@ -12,4 +12,5 @@ tests/unit/gencode
 tests/simulator/*.o
 tests/simulator/a.out
 tests/simulator/gencode/*.c
+tests/simulator/gencode/*.cpp
 tests/simulator/gencode/*.h
