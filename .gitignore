@@ -7,5 +7,9 @@ tests/bindings/python/ice40_test.json
 # Simulator unit test files
 tests/unit/*.o
 tests/unit/a.out
-tests/unit/gencode/*.c
-tests/unit/gencode/*.h
+tests/unit/gencode
+
+tests/simulator/*.o
+tests/simulator/a.out
+tests/simulator/gencode/*.c
+tests/simulator/gencode/*.h
