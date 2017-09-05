@@ -10,3 +10,4 @@ clean:
 	$(MAKE) -C unit clean
 	$(MAKE) -C unit-c clean
 	$(MAKE) -C cgra clean
+	$(MAKE) -C simulator clean
