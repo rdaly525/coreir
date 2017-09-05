@@ -700,8 +700,6 @@ namespace CoreIR {
   std::vector<string> sortedSimArgumentList(Module& mod) {
     Type* tp = mod.getType();
 
-    //cout << "module type = " << tp->toString() << endl;
-
     assert(tp->getKind() == Type::TK_Record);
 
     RecordType* modRec = static_cast<RecordType*>(tp);

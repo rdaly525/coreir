@@ -20,10 +20,6 @@ bool SimModule::runOnModule(Module* m) {
 
   auto topoOrder = topologicalSort(g);
 
-  string codeStr = printCode(topoOrder, g, m);
-  // cout << "SIMULATION CODE" << endl;
-  // cout << codeStr << endl;
-
   string n = "sim_" + m->getName();
 
   writeFiles(topoOrder, g, m, n + ".cpp", n + ".h");
