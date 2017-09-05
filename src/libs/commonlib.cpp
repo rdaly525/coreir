@@ -324,6 +324,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (uint i = 1; i < stencil_height; ++i) {
       std::string mem_name = mem_prefix + std::to_string(i);
       def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aImageWidth}});
+      
+      //Add const 1 and term for wen, valid
+      string constname = "const1"+c->getUnique();
+      string termname = "term"+c->getUnique();
+      def->addInstance(constname,"coreir.bitconst",{{"value",c->argInt(1)}});
+      def->addInstance(termname,"coreir.bitterm");
+      def->connect({constname,"out"},{mem_name,"wen"});
+      def->connect({mem_name,"valid"},{termname,"in"});
 
       // connect the input
       if (i == 1) {
@@ -385,3 +393,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   return commonlib;
 }
+
+
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(commonlib)

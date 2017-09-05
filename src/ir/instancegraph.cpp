@@ -90,34 +90,26 @@ void InstanceGraphNode::appendField(string label,Type* t) {
   }
 }
 
-void disconnectAll(Wireable* w) {
-  for (auto sw : w->getSelects()) {
-    disconnectAll(sw.second);
-  }
-  w->disconnect();
-}
 void InstanceGraphNode::detachField(string label) {
   auto i = getInstantiable();
-  if (isa<Generator>(i)) {
-    ASSERT(0,"NYI Handling changing generator types");
-  }
+  ASSERT(!isa<Generator>(i),"NYI Handling changing generator types");
   Module* m = cast<Module>(i);
+  ASSERT(m->hasDef(),"NYI Handling changing types for module declaration");
   RecordType* mtype = cast<RecordType>(m->getType());
   
   //Will assert if field does not exist
   Type* newType = mtype->detachField(label);
   
   //Remove anything connected to the module def interface
-  if (m->hasDef()) {
-    Interface* iface = m->getDef()->getInterface();
-    disconnectAll(iface->sel(label));
-    iface->sel(label)->removeUnusedSelects();
-  }
+  Interface* iface = m->getDef()->getInterface();
+  iface->sel(label)->disconnectAll();
+  iface->removeSel(label);
   
   //Remove anything connected to all the isntances
   for (auto inst : getInstanceList()) {
-    disconnectAll(inst->sel(label));
-    inst->sel(label)->removeUnusedSelects();
+    inst->sel(label)->disconnectAll();
+
+    inst->removeSel(label);
   }
 
   //First change the Module Type
