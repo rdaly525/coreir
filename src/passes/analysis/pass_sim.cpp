@@ -17,11 +17,15 @@ bool SimModule::runOnModule(Module* m) {
   NGraph g;
   buildOrderedGraph(m, g);
 
-  auto topOrder = topologicalSort(g);
+  auto topoOrder = topologicalSort(g);
 
-  string codeStr = printCode(topOrder, g, m);
-  cout << "SIMULATION CODE" << endl;
-  cout << codeStr << endl;
+  string codeStr = printCode(topoOrder, g, m);
+  // cout << "SIMULATION CODE" << endl;
+  // cout << codeStr << endl;
+
+  string n = "sim_" + m->getName();
+
+  writeFiles(topoOrder, g, m, n + ".cpp", n + ".h");
   
   return false;
 }
