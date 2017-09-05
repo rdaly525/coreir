@@ -4,6 +4,7 @@ all:
 	$(MAKE) -C unit
 	$(MAKE) -C unit-c
 	$(MAKE) -C cgra
+	$(MAKE) -C simulator
 
 clean:
 	$(MAKE) -C unit clean
