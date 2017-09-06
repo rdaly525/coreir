@@ -121,6 +121,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   //IO Declaration
   Params modeParams = {{"mode",ASTRING}};
   cgralib->newGeneratorDecl("IO",cgralib->getTypeGen("unary"),widthParams,modeParams);
+  cgralib->newModuleDecl("bitIO",c->Record({{"in",c->BitIn()},{"out",c->Bit()}}),modeParams);
 
   //Mem declaration
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};

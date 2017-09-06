@@ -25,9 +25,7 @@ class ModuleDef {
     Interface* interface; 
     unordered_map<string,Instance*> instances;
     unordered_set<Connection> connections;
-    SelCache* cache;
-    SelCache* getCache() { return cache;}
-
+    
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;
     Instance* instancesIterLast = nullptr;

@@ -447,7 +447,10 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   Const->getMetaData()["verilog"] = jverilog;
 
   //Add bit version
-  coreirprims->newModuleDecl("bitconst",c->Record({{"out",c->Bit()}}));
+  auto bitconst = coreirprims->newModuleDecl("bitconst",c->Record({{"out",c->Bit()}}),{{"value",AINT}});
+  jverilog["parameters"] = {"value"};
+  jverilog["prefix"] = "coreir_";
+  bitconst->getMetaData()["verilog"] = jverilog;
 
   //Add Term
   coreirprims->newTypeGen(
