@@ -1,5 +1,3 @@
-//#define CATCH_CONFIG_MAIN
-
 #include "catch.hpp"
 
 #include "coreir.h"
@@ -40,7 +38,7 @@ namespace CoreIR {
 
       Wireable* self = def->sel("self");
 
-      for (int i = 0; i < numInputs - 1; i++) {
+      for (uint i = 0; i < numInputs - 1; i++) {
 	Wireable* op;
 	if ((i % 2) == 0) {
 	  op =
@@ -72,7 +70,6 @@ namespace CoreIR {
       cout << "Command result = " << s << endl;
 
       REQUIRE(s == 0);
-      
       
     }
 
