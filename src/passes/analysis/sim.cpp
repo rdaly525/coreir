@@ -711,11 +711,12 @@ namespace CoreIR {
 	if (!underlyingTypeIsClkIn(*tp)) {
 	  declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
 	} else {
-	  declStrs.push_back(cArrayTypeDecl(*tp, + " self_" + name_type_pair.first));
-	  declStrs.push_back(cArrayTypeDecl(*tp, + " self_" + name_type_pair.first + "_last"));
+	  declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
+	  declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first + "_last"));
 	}
       } else {
 	assert(tp->isOutput());
+
 	declStrs.push_back(cArrayTypeDecl(*tp, "(*self_" + name_type_pair.first + "_ptr)"));
       }
     }
@@ -730,8 +731,12 @@ namespace CoreIR {
 
 	string regName = is->getInstname();
 
-	declStrs.push_back(cTypeString(*itp) + " " + regName + "_old_value");
-	declStrs.push_back(cTypeString(*itp) + "* " + regName + "_new_value");
+	// declStrs.push_back(cTypeString(*itp) + " " + regName + "_old_value");
+	// declStrs.push_back(cTypeString(*itp) + "* " + regName + "_new_value");
+
+	declStrs.push_back(cArrayTypeDecl(*itp, " " + regName + "_old_value"));
+	declStrs.push_back(cArrayTypeDecl(*itp, "* " + regName + "_new_value"));
+
       }
     }
 
