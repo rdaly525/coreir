@@ -339,6 +339,21 @@ namespace CoreIR {
 
   }
 
+  WireNode findArg(string argName, std::vector<Conn>& ins) {
+    for (auto& conn : ins) {
+      WireNode arg = conn.first;
+      WireNode placement = conn.second;
+      string selName = toSelect(placement.getWire())->getSelStr();
+      if (selName == argName) {
+	return arg;
+      }
+    }
+
+    cout << "Error: Could not find argument: " << argName << endl;
+
+    assert(false);
+  }
+
   string printMux(Instance* inst, const vdisc vd, const NGraph& g) {
     assert(isMux(*inst));
 
@@ -356,35 +371,12 @@ namespace CoreIR {
 
     assert(ins.size() == 3);
 
-    return cVar(*sl) + ";\n";
-
-    //return cVar(*sl) + " = " + " ;\n";
-
-    // string s = "*" + rName + "_new_value = ";
-    // WireNode clk;
-    // WireNode en;
-    // WireNode add;
-
-    // for (auto& conn : ins) {
-    //   WireNode arg = conn.first;
-    //   WireNode placement = conn.second;
-    //   string selName = toSelect(placement.getWire())->getSelStr();
-    //   if (selName == "en") {
-    // 	en = arg;
-    //   } else if (selName == "clk") {
-    // 	clk = arg;
-    //   } else {
-    // 	add = arg;
-    //   }
-    // }
-
-    // string oldValName = rName + "_old_value";
-
-    // s += "(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
-    //   cVar(en) + ") ? " +
-    //   cVar(add) + " : " + oldValName + ";\n";
-
-    // return s;
+    WireNode sel = findArg("sel", ins);
+    WireNode i0 = findArg("in0", ins);
+    WireNode i1 = findArg("in1", ins);
+    
+    // TODO: Replace with assign function that considers types eventually
+    return cVar(*sl) + " = " + parens(cVar(sel) + " ? " + cVar(i1) + " : " + cVar(i0)) + " ;\n";
     
   }
 
