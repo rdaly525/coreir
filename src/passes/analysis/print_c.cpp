@@ -28,5 +28,66 @@ namespace CoreIR {
     return cv;
   }
 
+  std::string getOpString(Instance& inst) {
+    string genRefName = inst.getGeneratorRef()->getName();
+
+    if (genRefName == "add") {
+      return " + ";
+    } else if (genRefName == "sub") {
+      return " - ";
+    } else if (genRefName == "mul") {
+      return " * ";
+    } else if (genRefName == "and") {
+      return " & ";
+    } else if (genRefName == "or") {
+      return " | ";
+    } else if (genRefName == "xor") {
+      return " ^ ";
+    } else if (genRefName == "not") {
+      return "~";
+    } else if (genRefName == "eq") {
+      return " == ";
+    } else if ((genRefName == "sge") || (genRefName == "uge")) {
+      return " >= ";
+    } else if ((genRefName == "sle") || (genRefName == "ule")) {
+      return " <= ";
+    } else if ((genRefName == "sgt") || (genRefName == "ugt")) {
+      return " > ";
+    } else if ((genRefName == "slt") || (genRefName == "ult")) {
+      return " < ";
+    }
+
+    assert(false);
+
+  }
+
+  string signedCTypeString(Type& tp) {
+    assert(isPrimitiveType(tp));
+
+    uint w = containerTypeWidth(tp);
+
+    if (w == 8) {
+      return "int8_t";
+    }
+
+    if (w == 16) {
+      return "int16_t";
+    }
+
+    if (w == 32) {
+      return "int32_t";
+    }
+
+    if (w == 64) {
+      return "int64_t";
+    }
+    
+    assert(false);
+  }
+
+  string lastMask(const uint startWidth, const uint endWidth) {
+    return parens(bitMaskString(startWidth) + " << " + to_string(endWidth - startWidth));
+  }
+
   
 }

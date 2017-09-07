@@ -39,4 +39,10 @@ namespace CoreIR {
   }
 
 
+  std::string getOpString(Instance& inst);
+
+  std::string signedCTypeString(Type& tp);
+
+  std::string lastMask(const uint startWidth, const uint endWidth);
+
 }
