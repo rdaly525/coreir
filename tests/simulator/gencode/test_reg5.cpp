@@ -17,7 +17,7 @@ int main() {
     clk = i % 2;
 
     //simulate(en, &out, a, clk, clk_last, r_old, &r_new);
-    simulate(r_old, a, clk, clk_last, en, &out, &r_new);
+    simulate(r_old, a, clk, clk_last, en, &r_new, &out); //, &r_new);
 
     printf("New register value = %c\n", r_new);
     

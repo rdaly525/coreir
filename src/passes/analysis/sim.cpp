@@ -735,7 +735,7 @@ namespace CoreIR {
 	// declStrs.push_back(cTypeString(*itp) + "* " + regName + "_new_value");
 
 	declStrs.push_back(cArrayTypeDecl(*itp, " " + regName + "_old_value"));
-	declStrs.push_back(cArrayTypeDecl(*itp, "* " + regName + "_new_value"));
+	declStrs.push_back(cArrayTypeDecl(*itp, "(*" + regName + "_new_value)"));
 
       }
     }
