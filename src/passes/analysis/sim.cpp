@@ -332,6 +332,72 @@ namespace CoreIR {
       return res;
   }
 
+  bool isMux(Instance& inst) {
+
+    string genRefName = inst.getGeneratorRef()->getName();
+    return genRefName == "mux";
+
+  }
+
+  string printMux(Instance* inst, const vdisc vd, const NGraph& g) {
+    assert(isMux(*inst));
+
+    auto outSel = getOutputSelects(inst);
+
+    assert(outSel.size() == 1);
+    Select* sl = toSelect((*(begin(outSel))).second);
+
+    assert(isInstance(sl->getParent()));
+
+    Instance* r = toInstance(sl->getParent());
+    string rName = r->getInstname();
+
+    auto ins = getInputConnections(vd, g);
+
+    assert(ins.size() == 3);
+
+    return cVar(*sl) + ";\n";
+
+    //return cVar(*sl) + " = " + " ;\n";
+
+    // string s = "*" + rName + "_new_value = ";
+    // WireNode clk;
+    // WireNode en;
+    // WireNode add;
+
+    // for (auto& conn : ins) {
+    //   WireNode arg = conn.first;
+    //   WireNode placement = conn.second;
+    //   string selName = toSelect(placement.getWire())->getSelStr();
+    //   if (selName == "en") {
+    // 	en = arg;
+    //   } else if (selName == "clk") {
+    // 	clk = arg;
+    //   } else {
+    // 	add = arg;
+    //   }
+    // }
+
+    // string oldValName = rName + "_old_value";
+
+    // s += "(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
+    //   cVar(en) + ") ? " +
+    //   cVar(add) + " : " + oldValName + ";\n";
+
+    // return s;
+    
+  }
+
+  string printTernop(Instance* inst, const vdisc vd, const NGraph& g) {
+    assert(getInputs(vd, g).size() == 3);
+
+    if (isMux(*inst)) {
+      return printMux(inst, vd, g);
+    }
+
+    assert(false);
+  }
+
   string printBinop(Instance* inst, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 2);
 
@@ -474,6 +540,10 @@ namespace CoreIR {
     
     if (isRegisterInstance(inst)) {
       return printRegister(wd, vd, g);
+    }
+
+    if (ins.size() == 3) {
+      return printTernop(inst, vd, g);
     }
 
     if (ins.size() == 2) {

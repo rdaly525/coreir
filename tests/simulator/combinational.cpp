@@ -121,16 +121,6 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
       
-      // std::ofstream out(outFile);
-      // out << str;
-      // out.close();
-
-      // string runCmd = "clang -c " + outFile;
-      // int s = system(runCmd.c_str());
-
-      // cout << "Command result = " << s << endl;
-
-      // REQUIRE(s == 0);
     }
 
     SECTION("Multiply 8 bits") {
@@ -571,6 +561,49 @@ namespace CoreIR {
 				"./gencode/sle7", "./gencode/test_sle7.cpp");
       REQUIRE(s == 0);
 
+    }
+
+    SECTION("Multiplexer test") {
+      uint n = 8;
+  
+      Type* muxType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"sel", c->BitIn()},
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* muxM = g->newModuleDecl("muxM", muxType);
+      ModuleDef* def = muxM->newModuleDef();
+
+      Generator* mux = c->getGenerator("coreir.mux");
+
+      Wireable* self = def->sel("self");
+      Wireable* mux0 = def->addInstance("mux0", mux, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "mux0.in0");
+      def->connect("self.A.1", "mux0.in1");
+      def->connect("self.sel", "mux0.sel");
+      def->connect(mux0->sel("out"), self->sel("out"));
+
+      muxM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(muxM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+
+      auto str = printCode(topoOrder, g, muxM);
+      cout << "CODE STRING" << endl;
+      cout << str << endl;
+
+      int s = compileCode(str, "./gencode/mux8.cpp");
+
+      REQUIRE(s == 0);
+      
     }
     
     deleteContext(c);
