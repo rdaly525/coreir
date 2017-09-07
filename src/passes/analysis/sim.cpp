@@ -360,6 +360,7 @@ namespace CoreIR {
     auto outSel = getOutputSelects(inst);
 
     assert(outSel.size() == 1);
+
     Select* sl = toSelect((*(begin(outSel))).second);
 
     assert(isInstance(sl->getParent()));
@@ -376,7 +377,7 @@ namespace CoreIR {
     WireNode i1 = findArg("in1", ins);
     
     // TODO: Replace with assign function that considers types eventually
-    return cVar(*sl) + " = " + parens(cVar(sel) + " ? " + cVar(i1) + " : " + cVar(i0)) + " ;\n";
+    return cVar(*sl) + " = " + ite(cVar(sel), cVar(i1), cVar(i0)) + ";\n";
     
   }
 
@@ -458,10 +459,15 @@ namespace CoreIR {
 
     string oldValName = rName + "_old_value";
 
-    s += "(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
-      cVar(en) + ") ? " +
-      cVar(add) + " : " + oldValName + ";\n";
+    // s += "(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
+    //   cVar(en) + ") ? " +
+    //   cVar(add) + " : " + oldValName + ";\n";
 
+    s += ite("(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
+	     cVar(en) + ")",
+	     cVar(add),
+	     oldValName) + ";\n";
+    
     return s;
   }
 

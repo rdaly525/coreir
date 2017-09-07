@@ -32,4 +32,11 @@ namespace CoreIR {
 
   std::string cVar(const WireNode& w, const std::string& suffix);
 
+  static inline std::string ite(const std::string& condition,
+		  const std::string& trueRes,
+		  const std::string& falseRes) {
+    return parens(condition + " ? " + trueRes + " : " + falseRes);
+  }
+
+
 }
