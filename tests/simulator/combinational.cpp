@@ -595,14 +595,23 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
+      string outFile = "gencode/mux8";
 
-      auto str = printCode(topoOrder, g, muxM);
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
-      int s = compileCode(str, "./gencode/mux8.cpp");
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				muxM,
+				outFile,
+				"gencode/test_mux8.cpp");
 
       REQUIRE(s == 0);
+      
+      // auto str = printCode(topoOrder, g, muxM);
+      // cout << "CODE STRING" << endl;
+      // cout << str << endl;
+
+      // int s = compileCode(str, "./gencode/mux8.cpp");
+
+      // REQUIRE(s == 0);
       
     }
     
