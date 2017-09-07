@@ -605,13 +605,48 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
       
-      // auto str = printCode(topoOrder, g, muxM);
-      // cout << "CODE STRING" << endl;
-      // cout << str << endl;
+    }
 
-      // int s = compileCode(str, "./gencode/mux8.cpp");
+    SECTION("32 bit dshl test") {
+      uint n = 32;
+  
+      Type* dshlType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"sel", c->BitIn()},
+	    {"out", c->Array(n, c->Bit()) }
+	});
 
-      // REQUIRE(s == 0);
+      Module* dshlM = g->newModuleDecl("dshlM", dshlType);
+      ModuleDef* def = dshlM->newModuleDef();
+
+      Generator* dshl = c->getGenerator("coreir.dshl");
+
+      Wireable* self = def->sel("self");
+      Wireable* dshl0 = def->addInstance("dshl0", dshl, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "dshl0.in0");
+      def->connect("self.A.1", "dshl0.in1");
+      def->connect(dshl0->sel("out"), self->sel("out"));
+
+      dshlM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(dshlM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/dshl32";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				dshlM,
+				outFile,
+				"gencode/test_dshl32.cpp");
+
+      REQUIRE(s == 0);
       
     }
     
