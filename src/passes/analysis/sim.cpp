@@ -215,12 +215,16 @@ namespace CoreIR {
 
 	assert(containWidth > tw);
 
-	uint diff = containWidth - tw;
-	string diffStr = parens(to_string(diff) + " + " + cVar(arg2));
+	//uint diff = containWidth - tw;
+	//string diffStr = parens(to_string(diff) + " + " + cVar(arg2));
 
-	string mask = parens(bitMaskString(diffStr) + " << " + to_string(tw - 1));
+	string mask =
+	  parens(bitMaskString(cVar(arg2)) + " << " + parens(to_string(tw) + " - " + cVar(arg2)));
 
-	compString = parens(mask + " | " + parens(compString));
+	string signBitSet =
+	  parens("0x01 & " + parens(cVar(arg1) +  " >> " + parens(to_string(tw - 1))));
+
+	compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
       }
 
       res += maskResult(*(outPair.second->getType()), compString) + ";\n";
