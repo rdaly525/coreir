@@ -57,6 +57,8 @@ namespace CoreIR {
       return " < ";
     } else if (genRefName == "dshl") {
       return " << ";
+    } else if (genRefName == "dashr") {
+      return " >> ";
     }
 
     assert(false);

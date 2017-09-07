@@ -648,6 +648,48 @@ namespace CoreIR {
       REQUIRE(s == 0);
       
     }
+
+    SECTION("60 bit dashr test") {
+      uint n = 60;
+  
+      Type* dashrType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* dashrM = g->newModuleDecl("dashrM", dashrType);
+      ModuleDef* def = dashrM->newModuleDef();
+
+      Generator* dashr = c->getGenerator("coreir.dashr");
+
+      Wireable* self = def->sel("self");
+      Wireable* dashr0 = def->addInstance("dashr0", dashr, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "dashr0.in0");
+      def->connect("self.A.1", "dashr0.in1");
+      def->connect(dashr0->sel("out"), self->sel("out"));
+
+      dashrM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(dashrM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/dashr60";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				dashrM,
+				outFile,
+				"gencode/test_dashr60.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
     
     deleteContext(c);
 
