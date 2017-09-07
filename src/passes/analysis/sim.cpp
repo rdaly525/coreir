@@ -137,6 +137,12 @@ namespace CoreIR {
     return res;
   }
 
+  bool isShiftOp(Instance& inst) {
+    string genRefName = inst.getGeneratorRef()->getName();
+    vector<string> bitwiseOps{"dshl", "dlshr", "dashr"};
+    return elem(genRefName, bitwiseOps);
+  }
+
   bool isBitwiseOp(Instance& inst) {
     string genRefName = inst.getGeneratorRef()->getName();
     vector<string> bitwiseOps{"not", "and", "or", "xor"};
@@ -331,7 +337,10 @@ namespace CoreIR {
   string printBinop(Instance* inst, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 2);
 
-    if (isBitwiseOp(*inst) || isSignInvariantOp(*inst) || isUnsignedCmp(*inst)) {
+    if (isBitwiseOp(*inst) ||
+	isSignInvariantOp(*inst) ||
+	isUnsignedCmp(*inst) ||
+	isShiftOp(*inst)) {
       return printOpThenMaskBinop(inst, vd, g);
     }
 

@@ -612,7 +612,6 @@ namespace CoreIR {
   
       Type* dshlType = c->Record({
 	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
-	    {"sel", c->BitIn()},
 	    {"out", c->Array(n, c->Bit()) }
 	});
 
