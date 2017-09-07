@@ -510,6 +510,18 @@ namespace CoreIR {
   }
 
   std::string cArrayTypeDecl(Type& t, const std::string& varName) {
+    if (isClkIn(t) || isNamedType(t, "clk")) {
+      return "uint8_t " + varName;
+    }
+
+    if (t.getKind() == Type::TK_BitIn) {
+      return "uint8_t " + varName;
+    }
+
+    if (t.getKind() == Type::TK_Bit) {
+      return "uint8_t " + varName;
+    }
+
     if (isBitArrayOfLengthLEQ(t, 8)) {
       return "uint8_t " + varName;
     }
@@ -541,11 +553,8 @@ namespace CoreIR {
       return cArrayTypeDecl(underlying, varName + "[ " + std::to_string(tArr.getLen()) + " ]");
     }
 
-    if (!isArray(t)) {
-      return cTypeString(t) + " " + varName;
-    }
+    cout << "ERROR: Unsupported type = " << t.toString() << endl;    
 
-    
     assert(false);
 
   }
@@ -626,17 +635,17 @@ namespace CoreIR {
 	  if (!arrayAccess(in)) {
 
 	    if (!wd.isSequential) {
-	      //str += cTypeString(*(in->getType())) + " " + cVar(*in) + ";\n";
+
 	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
 
 	    } else {
 	      if (wd.isReceiver) {
 		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
-		//str += cTypeString(*(in->getType())) + " " + cVar(*in) + "_receiver;\n";
+
 	      } else {
 		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
-		//str += cTypeString(*(in->getType())) + " " + cVar(*in) + "_source;\n";
+
 	      }
 	    }
 	  }

@@ -78,47 +78,47 @@ namespace CoreIR {
   }
 
   
-  std::string cTypeString(Type& t) {
-    if (isBitArrayOfLengthLEQ(t, 8)) {
-      return "uint8_t";
-    }
+  // std::string cTypeString(Type& t) {
+  //   if (isBitArrayOfLengthLEQ(t, 8)) {
+  //     return "uint8_t";
+  //   }
 
-    if (isBitArrayOfLengthLEQ(t, 16)) {
-      return "uint16_t";
-    }
+  //   if (isBitArrayOfLengthLEQ(t, 16)) {
+  //     return "uint16_t";
+  //   }
     
-    if (isBitArrayOfLengthLEQ(t, 32)) {
-      return "uint32_t";
-    }
+  //   if (isBitArrayOfLengthLEQ(t, 32)) {
+  //     return "uint32_t";
+  //   }
 
-    if (isBitArrayOfLengthLEQ(t, 64)) {
-      return "uint64_t";
-    }
+  //   if (isBitArrayOfLengthLEQ(t, 64)) {
+  //     return "uint64_t";
+  //   }
     
-    if (isArray(t)) {
-      ArrayType& tArr = static_cast<ArrayType&>(t);
-      Type& underlying = *(tArr.getElemType());
+  //   if (isArray(t)) {
+  //     ArrayType& tArr = static_cast<ArrayType&>(t);
+  //     Type& underlying = *(tArr.getElemType());
 
-      return cTypeString(underlying) + "*";
-    }
+  //     return cTypeString(underlying) + "*";
+  //   }
 
-    if (t.getKind() == Type::TK_BitIn) {
-      return "uint8_t";
-    }
+  //   if (t.getKind() == Type::TK_BitIn) {
+  //     return "uint8_t";
+  //   }
 
-    if (t.getKind() == Type::TK_Bit) {
-      return "uint8_t";
-    }
+  //   if (t.getKind() == Type::TK_Bit) {
+  //     return "uint8_t";
+  //   }
 
-    if (isClkIn(t) || isNamedType(t, "clk")) {
-      return "uint8_t";
-    }
+  //   if (isClkIn(t) || isNamedType(t, "clk")) {
+  //     return "uint8_t";
+  //   }
 
-    cout << "ERROR: Unsupported type = " << t.toString() << endl;
+  //   cout << "ERROR: Unsupported type = " << t.toString() << endl;
 
-    assert(false);
+  //   assert(false);
 
-  }
+  // }
 
 
   unordered_map<string, Wireable*>
