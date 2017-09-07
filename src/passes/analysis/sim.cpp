@@ -690,7 +690,7 @@ namespace CoreIR {
       Wireable* w = wd.getWire();
 
       //auto inSelects = getInputSelects(w);
-      for (auto inSel : w->getSelects()) { //inSelects) {
+      for (auto inSel : getOutputSelects(w)) { //w->getSelects()) { //inSelects) {
 	Select* in = toSelect(inSel.second);
 
 	if (!fromSelfInterface(in)) {
