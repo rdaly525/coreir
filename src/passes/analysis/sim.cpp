@@ -280,7 +280,9 @@ namespace CoreIR {
 
     string resClause = lastMask(startWidth, extWidth) + " : 0";
 
-    string res = parens(mask + " | " + parens(testClause + " ? " + resClause));
+    string res = parens(mask + " | " +
+			ite(testClause, lastMask(startWidth, extWidth), "0"));
+
     return res;
   }
 
@@ -459,10 +461,6 @@ namespace CoreIR {
 
     string oldValName = rName + "_old_value";
 
-    // s += "(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
-    //   cVar(en) + ") ? " +
-    //   cVar(add) + " : " + oldValName + ";\n";
-
     s += ite("(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
 	     cVar(en) + ")",
 	     cVar(add),
@@ -503,7 +501,10 @@ namespace CoreIR {
     }
 
     string oldValName = rName + "_old_value";
-    s += "((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) ? " + cVar(add) + " : " + oldValName + ";\n";
+
+    s += ite("((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1))",
+	     cVar(add),
+	     oldValName) + ";\n";
 
     return s;
   }
