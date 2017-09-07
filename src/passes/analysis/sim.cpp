@@ -137,6 +137,11 @@ namespace CoreIR {
     return res;
   }
 
+  bool isDASHR(Instance& inst) {
+    string genRefName = inst.getGeneratorRef()->getName();
+    return genRefName == "dashr";
+  }
+
   bool isShiftOp(Instance& inst) {
     string genRefName = inst.getGeneratorRef()->getName();
     vector<string> bitwiseOps{"dshl", "dlshr", "dashr"};
@@ -201,8 +206,24 @@ namespace CoreIR {
 
       string opString = getOpString(*inst);
 
-      res += maskResult(*(outPair.second->getType()),
-			cVar(arg1) + opString + cVar(arg2)) + ";\n";
+      string compString = cVar(arg1) + opString + cVar(arg2);
+
+      // And not standard width
+      if (isDASHR(*inst)) {
+	uint tw = typeWidth(*(arg1.getWire()->getType()));
+	uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
+
+	assert(containWidth > tw);
+
+	uint diff = containWidth - tw;
+	string diffStr = parens(to_string(diff) + " + " + cVar(arg2));
+
+	string mask = parens(bitMaskString(diffStr) + " << " + to_string(tw - 1));
+
+	compString = parens(mask + " | " + parens(compString));
+      }
+
+      res += maskResult(*(outPair.second->getType()), compString) + ";\n";
       res += "\n";
 
       return res;

@@ -14,6 +14,10 @@ namespace CoreIR {
     return parens(parens("1ULL << " + to_string(w)) + " - 1");    
   }
 
+  static inline string bitMaskString(const std::string& w) {
+    return parens(parens("1ULL << " + w) + " - 1");
+  }
+  
   static inline string bitMaskString(CoreIR::Type& tp) {
     uint w = typeWidth(tp);
     return bitMaskString(w);
