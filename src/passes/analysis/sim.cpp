@@ -17,11 +17,7 @@ namespace CoreIR {
 
     assert(mod->hasDef());
 
-    //cout << "Building connections" << endl;
-
     for (auto& connection : mod->getDef()->getConnections()) {
-
-      //cout << "Connection = " << (connection.first)->toString() << " " << (connection.second)->toString() << endl;
 
       assert(connectionIsOrdered(connection));
 
@@ -783,8 +779,8 @@ namespace CoreIR {
   string printDecl(CoreIR::Module* mod) {
     string code = "";
     code += "#include <stdint.h>\n";
-    code += "#include <stdio.h>\n";
-    code += "#include <stdlib.h>\n";
+    code += "#include <cstdio>\n";
+
     code += "void simulate( ";
 
     code += printSimArguments(*mod);
@@ -801,8 +797,8 @@ namespace CoreIR {
     string code = "";
 
     code += "#include <stdint.h>\n";
-    code += "#include <stdio.h>\n";
-    code += "#include <stdlib.h>\n";
+    code += "#include <cstdio>\n";
+
     code += "void simulate( ";
 
     code += printSimArguments(*mod);
