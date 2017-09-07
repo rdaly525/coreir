@@ -104,6 +104,7 @@ namespace CoreIR {
   
   std::string cTypeString(CoreIR::Type& t);
 
+  bool isBitArray(CoreIR::Type& t);
   bool isBitArrayOfLength(CoreIR::Type& t, const uint len);
   bool isBitArrayOfLengthLEQ(CoreIR::Type& t, const uint len);
   bool isPrimitiveType(CoreIR::Type& t);

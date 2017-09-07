@@ -4,6 +4,21 @@ using namespace CoreIR;
 
 namespace CoreIR {
 
+  bool isBitArray(Type& t) {
+    if (t.getKind() != Type::TK_Array) {
+      return false;
+    }
+
+    ArrayType& tArr = static_cast<ArrayType&>(t);
+
+    Type::TypeKind elemKind = (tArr.getElemType())->getKind();
+    if ((elemKind == Type::TK_Bit || elemKind == Type::TK_BitIn)) {
+      return true;
+    }
+
+    return false;
+  }
+
   bool isBitArrayOfLength(Type& t, const uint len) {
     if (t.getKind() != Type::TK_Array) {
       return false;

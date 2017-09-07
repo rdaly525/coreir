@@ -525,6 +525,14 @@ namespace CoreIR {
     if (isBitArrayOfLengthLEQ(t, 64)) {
       return "uint64_t " + varName;
     }
+
+    if (isBitArray(t)) {
+      ArrayType& arrTp = toArray(t);
+      int arrLen = arrTp.getLen();
+      int bitLength = (arrLen / 8) + 1 - (arrLen % 8 == 0);
+
+      return "uint8_t " + varName + "[ " + to_string(bitLength) + " ]";
+    }
     
     if (isArray(t)) {
       ArrayType& tArr = static_cast<ArrayType&>(t);
@@ -618,12 +626,17 @@ namespace CoreIR {
 	  if (!arrayAccess(in)) {
 
 	    if (!wd.isSequential) {
-	      str += cTypeString(*(in->getType())) + " " + cVar(*in) + ";\n";
+	      //str += cTypeString(*(in->getType())) + " " + cVar(*in) + ";\n";
+	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
+
+
 	    } else {
 	      if (wd.isReceiver) {
-		str += cTypeString(*(in->getType())) + " " + cVar(*in) + "_receiver;\n";
+		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
+		//str += cTypeString(*(in->getType())) + " " + cVar(*in) + "_receiver;\n";
 	      } else {
-		str += cTypeString(*(in->getType())) + " " + cVar(*in) + "_source;\n";
+		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
+		//str += cTypeString(*(in->getType())) + " " + cVar(*in) + "_source;\n";
 	      }
 	    }
 	  }
@@ -730,9 +743,6 @@ namespace CoreIR {
 	Type* itp = in->getType();
 
 	string regName = is->getInstname();
-
-	// declStrs.push_back(cTypeString(*itp) + " " + regName + "_old_value");
-	// declStrs.push_back(cTypeString(*itp) + "* " + regName + "_new_value");
 
 	declStrs.push_back(cArrayTypeDecl(*itp, " " + regName + "_old_value"));
 	declStrs.push_back(cArrayTypeDecl(*itp, "(*" + regName + "_new_value)"));
