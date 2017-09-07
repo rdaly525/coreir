@@ -836,14 +836,10 @@ namespace CoreIR {
 
     }
 
-    //cout << "Adding edges" << endl;
-
     // Add edges to the graph
     for (Conn conn : ord_conns) {
       addConnection(imap, conn, g);
     }
-
-    //cout << "Done adding edges" << endl;
 
   }
 
