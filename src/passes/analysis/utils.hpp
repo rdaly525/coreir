@@ -45,7 +45,10 @@ namespace CoreIR {
 
     //cout << "genRef is null ? " << (genRef == nullptr) << endl;
 
-    assert(genRef != nullptr);
+    if (genRef == nullptr) {
+      std::cout << "ERROR: genRef is null for " << fst->toString() << std::endl;
+      assert(genRef != nullptr);
+    }
 
     string genRefName = genRef->getName();
 
