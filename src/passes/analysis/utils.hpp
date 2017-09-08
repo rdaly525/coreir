@@ -47,7 +47,16 @@ namespace CoreIR {
 
     if (genRef == nullptr) {
       std::cout << "ERROR: genRef is null for " << fst->toString() << std::endl;
-      assert(genRef != nullptr);
+
+      Module* modRef = inst->getModuleRef();
+
+      std::cout << "Module ref is null ? " << (modRef == nullptr) << std::endl;
+
+      assert(modRef != nullptr);
+
+      cout << "Module ref name = " << modRef->getName() << endl;      
+
+      return modRef->getName() == "reg";
     }
 
     string genRefName = genRef->getName();
