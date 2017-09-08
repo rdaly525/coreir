@@ -690,6 +690,38 @@ namespace CoreIR {
       REQUIRE(s == 0);
       
     }
+
+    SECTION("Circuit with module references") {
+
+      cout << "loading" << endl;
+      if (!loadFromFile(c, "main.json")) {
+	cout << "Could not Load from json!!" << endl;
+	c->die();
+      }
+
+      cout << "Loaded" << endl;
+
+      Module* mainMod = c->getModule("global.main");
+
+      
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(mainMod, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/dashr60";
+
+      auto str = printCode(topoOrder, g, mainMod);
+      int s = compileCode(str, "./gencode/mainMod.cpp");
+
+      cout << "Command result = " << s << endl;
+
+      REQUIRE(s == 0);
+      
+    }
     
     deleteContext(c);
 
