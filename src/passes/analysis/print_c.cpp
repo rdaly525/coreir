@@ -29,7 +29,7 @@ namespace CoreIR {
   }
 
   std::string getOpString(Instance& inst) {
-    string genRefName = inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst); //inst.getGeneratorRef()->getName();
 
     if (genRefName == "add") {
       return " + ";
@@ -37,11 +37,11 @@ namespace CoreIR {
       return " - ";
     } else if (genRefName == "mul") {
       return " * ";
-    } else if (genRefName == "and") {
+    } else if ((genRefName == "and") || (genRefName == "bitand")) {
       return " & ";
     } else if (genRefName == "or") {
       return " | ";
-    } else if (genRefName == "xor") {
+    } else if ((genRefName == "xor") || (genRefName == "bitxor")) {
       return " ^ ";
     } else if (genRefName == "not") {
       return "~";
@@ -60,6 +60,8 @@ namespace CoreIR {
     } else if (genRefName == "dashr") {
       return " >> ";
     }
+
+    cout << "ERROR: Unsupported op name = " << genRefName << endl;
 
     assert(false);
 

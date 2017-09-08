@@ -138,41 +138,36 @@ namespace CoreIR {
   }
 
   bool isDASHR(Instance& inst) {
-    string genRefName = getInstanceName(inst); //getGeneratorRef(inst)->getName(); //inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst);
     return genRefName == "dashr";
   }
 
   bool isShiftOp(Instance& inst) {
-    //string genRefName = inst.getGeneratorRef()->getName();
-    string genRefName = getInstanceName(inst);//getGeneratorRef(inst)->getName(); //inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst);
     vector<string> bitwiseOps{"dshl", "dlshr", "dashr"};
     return elem(genRefName, bitwiseOps);
   }
 
   bool isBitwiseOp(Instance& inst) {
-    //string genRefName = inst.getGeneratorRef()->getName();
-    string genRefName = getInstanceName(inst); //getGeneratorRef(inst)->getName(); //inst.getGeneratorRef()->getName();
-    vector<string> bitwiseOps{"not", "and", "or", "xor"};
+    string genRefName = getInstanceName(inst);
+    vector<string> bitwiseOps{"not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
     return elem(genRefName, bitwiseOps);
   }
 
   bool isSignInvariantOp(Instance& inst) {
-    //string genRefName = inst.getGeneratorRef()->getName();
-    string genRefName = getInstanceName(inst); //getGeneratorRef(inst)->getName(); //inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst);
     vector<string> siOps{"add", "sub", "mul", "eq"};
     return elem(genRefName, siOps);
   }
 
   bool isUnsignedCmp(Instance& inst) {
-    //string genRefName = inst.getGeneratorRef()->getName();
-    string genRefName = getInstanceName(inst); //getGeneratorRef(inst)->getName(); //inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst);
     vector<string> siOps{"ult", "ugt", "ule", "uge"};
     return elem(genRefName, siOps);
   }
 
   bool isSignedCmp(Instance& inst) {
-    //string genRefName = inst.getGeneratorRef()->getName();
-    string genRefName = getInstanceName(inst); //getGeneratorRef(inst)->getName(); //inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst);
     vector<string> siOps{"slt", "sgt", "sle", "sge"};
     return elem(genRefName, siOps);
   }
@@ -307,8 +302,8 @@ namespace CoreIR {
 
   bool isMux(Instance& inst) {
 
-    //string genRefName = inst.getGeneratorRef()->getName();
-    string genRefName = getInstanceName(inst); //getGeneratorRef(inst)->getName(); //inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst);
+
     return genRefName == "mux";
 
   }

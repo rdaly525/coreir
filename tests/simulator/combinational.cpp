@@ -710,16 +710,16 @@ namespace CoreIR {
       NGraph g;
       buildOrderedGraph(mainMod, g);
 
-      // deque<vdisc> topoOrder = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(g);
 
-      // string outFile = "gencode/dashr60";
+      string outFile = "gencode/dashr60";
 
-      // auto str = printCode(topoOrder, g, mainMod);
-      // int s = compileCode(str, "./gencode/mainMod.cpp");
+      auto str = printCode(topoOrder, g, mainMod);
+      int s = compileCode(str, "./gencode/mainMod.cpp");
 
-      // cout << "Command result = " << s << endl;
+      cout << "Command result = " << s << endl;
 
-      // REQUIRE(s == 0);
+      REQUIRE(s == 0);
       
     }
     
