@@ -19,7 +19,7 @@ HOME = ../..
 INCS = -I$(HOME)/include -I.
 DEPS = context.hpp
 SRCFILES = $(wildcard [^_]*.cpp)
-OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o)
+OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o) 
 
 DYLIBS = build/coreir.dylib
 SOLIBS = build/coreir.so
