@@ -267,7 +267,9 @@ namespace CoreIR {
 
     if (isInstance(w1)) {
       Instance* inst = toInstance(w1);
-      string genRefName = inst->getGeneratorRef()->getName();
+      string genRefName = getInstanceName(*inst); //getGeneratorRef(*inst)->getName();
+
+      //->getGeneratorRef()->getName();
 
       if (genRefName == "reg") {
 	WireNode wOutput{w1, true, false};

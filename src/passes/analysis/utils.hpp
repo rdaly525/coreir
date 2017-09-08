@@ -169,4 +169,28 @@ namespace CoreIR {
 
   std::string getOpName(CoreIR::Instance& inst);
 
+  static inline
+  std::string getInstanceName(Instance& w) {
+    auto g = w.getGeneratorRef();
+
+    if (g == nullptr) {
+      auto m = w.getModuleRef();
+
+      assert(m != nullptr);
+
+      return m->getName();
+    }
+
+    return g->getName();
+  }
+
+  static inline Generator* getGeneratorRef(Instance& w) {
+    auto g = w.getGeneratorRef();
+
+    assert(g != nullptr);
+
+    return g;
+  }
+
+  
 }
