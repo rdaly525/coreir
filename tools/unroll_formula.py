@@ -1,74 +1,134 @@
 import sys
+import argparse
 
 
-usage = "Usage: %s smt2file k-steps > 0"%sys.argv[0]
+class Config(object):
+    input_file = None
+    k = None
+    simple = None
+    eqlist = None
 
-if len(sys.argv) < 3:
-    print(usage)
-    exit(0)
+    def __init__(self):
+        self.input_file = None
+        self.k = 10
+        self.simple = False
+        self.eqlist = ""
 
-k = int(sys.argv[2])
-simple = False
-if len(sys.argv) > 3:
-    simple = True if sys.argv[3] == "-s" else False
+def generate_unrolling(config):
 
-model = ""
-with open(sys.argv[1]) as f:
-    model = f.read()
+    with open(config.input_file) as f:
+        model = f.read()
 
-setvals = []
-init_vars = []
-curr_vars = []
-next_vars = []
-trans = []
-variables = []
+    simple = config.simple
+    k = config.k
+    eqlist = config.eqlist.split(",")
 
-DFUN = "declare-fun"
-CURR = "__CURR__"
-NEXT = "__NEXT__"
-INIT = "__AT0"
+    setvals = []
+    init_vars = []
+    curr_vars = []
+    next_vars = []
+    trans = []
+    variables = []
 
-for line in model.split("\n"):
-    if ("declare-fun" in line):
-        if (CURR in line):
-            curr_vars.append(line)
-            var = line[line.find(DFUN)+len(DFUN)+1:line.find(")")-2]
-            variables.append(var)
-        if (NEXT in line):
-            next_vars.append(line)
-        if (INIT in line):
-            init_vars.append(line)
-    elif ("set" in line):
-        setvals.append(line)
-    else:
-        trans.append(line)
+    DFUN = "declare-fun"
+    CURR = "__CURR__"
+    NEXT = "__NEXT__"
+    INIT = "__AT0"
+    COMM = ";;"
 
-def at(time):
-    return "__AT%s"%time
+    for line in model.split("\n"):
+        if COMM in line:
+            continue
+        if line == "":
+            continue
+        if ("declare-fun" in line):
+            if (CURR in line):
+                curr_vars.append(line)
+                var = line[line.find(DFUN)+len(DFUN)+1:line.find(")")-2]
+                variables.append(var)
+            if (NEXT in line):
+                next_vars.append(line)
+            if (INIT in line):
+                init_vars.append(line)
+        elif ("set" in line):
+            setvals.append(line)
+        else:
+            trans.append(line)
 
-# time 0
+    def at(time):
+        return "__AT%s"%time
 
-print("\n".join(setvals))
-print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TIME 0 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;")
-print("\n".join([x.replace(CURR, at(0)) for x in curr_vars]))
-print("\n".join([x.replace(NEXT, at(1)) for x in next_vars]))
-print("\n".join([x.replace(CURR, at(0)).replace(NEXT, at(1)) for x in trans]))
+    def curr(var):
+        return "%s%s"%(var, CURR)
 
-for t in xrange(k-1):
-    print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TIME %s ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"%(t+1))
-    if simple:
-        print(";; START simple path conditions ;;")
-        for i in xrange(t+1):
-            varconds = ["(= %s %s)"%(x.replace(CURR, at(t+1)), x.replace(CURR, at(i))) for x in variables]
-            cond = None
-            for varcond in varconds:
-                if cond is None:
-                    cond = varcond
-                else:
-                    cond = "(and " + varcond + " " + cond + ")"
-            print("(assert (not %s))"%cond)
-        print(";; END simple path conditions ;;")
-    print("\n".join([x.replace(NEXT, at(t+2)) for x in next_vars]))
-    print("\n".join([x.replace(CURR, at(t+1)).replace(NEXT, at(t+2)) for x in trans]))
+    def next(var):
+        return "%s%s"%(var, NEXT)
+
+    eqass = []
+    for eq in eqlist:
+        aval = curr(eq.split("=")[0])
+        bval = eq.split("=")[1]
+        eqass.append("(= %s %s)"%(aval, bval))
+
+    trans += ["(assert %s)"%x for x in eqass]
+
+
+    # time 0
+
+    print("\n".join(setvals))
+    print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TIME 0 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;")
+    print("\n".join([x.replace(CURR, at(0)) for x in curr_vars]))
+    print("\n".join([x.replace(NEXT, at(1)) for x in next_vars]))
+    print("\n".join([x.replace(CURR, at(0)).replace(NEXT, at(1)) for x in trans]))
+
+    for t in xrange(k-1):
+        print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TIME %s ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"%(t+1))
+        if simple:
+            print(";; START simple path conditions ;;")
+            for i in xrange(t+1):
+                varconds = ["(= %s %s)"%(x.replace(CURR, at(t+1)), x.replace(CURR, at(i))) for x in variables]
+                cond = None
+                for varcond in varconds:
+                    if cond is None:
+                        cond = varcond
+                    else:
+                        cond = "(and " + varcond + " " + cond + ")"
+                print("(assert (not %s))"%cond)
+            print(";; END simple path conditions ;;")
+        print("\n".join([x.replace(NEXT, at(t+2)) for x in next_vars]))
+        print("\n".join([x.replace(CURR, at(t+1)).replace(NEXT, at(t+2)) for x in trans]))
+
+    print("(check-sat)")
+
+    return 0
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='BMC-like unrolling of an smtlib2 formula generated by CoreIR.')
+
+    parser.set_defaults(input_file=None)
+    parser.add_argument('-i', '--input_file', metavar='input_file', type=str, required=True,
+                       help='input file')
     
-print("(check-sat)")
+    parser.set_defaults(number=10)
+    parser.add_argument('-k', metavar='number', type=int, required=True,
+                       help='length of the unrolling')
+
+    parser.set_defaults(eqlist=None)
+    parser.add_argument('-e', '--eqlist', metavar='eqlist', type=str, required=False,
+                        help='list of variables equalities e.g., \"var1=value1,var2=value2\"')
+
+    parser.set_defaults(simple=False)
+    parser.add_argument('-s', '--simple-path', dest='simple', action='store_true',
+                       help='add simple path condition')
+    
+    args = parser.parse_args()
+
+    config = Config()
+    
+    config.input_file = args.input_file
+    config.k = args.k
+    config.simple = args.simple
+    config.eqlist = args.eqlist
+
+    sys.exit(generate_unrolling(config))
