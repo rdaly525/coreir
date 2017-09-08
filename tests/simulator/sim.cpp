@@ -6,9 +6,9 @@
 #include "coreir-passes/analysis/pass_sim.h"
 #include "coreir-passes/transform/rungenerators.h"
 
-#include "../src/passes/analysis/output.hpp"
-#include "../src/passes/analysis/sim.hpp"
-#include "../src/passes/analysis/utils.hpp"
+#include "../src/simulator/output.hpp"
+#include "../src/simulator/sim.hpp"
+#include "../src/simulator/utils.hpp"
 
 #include <iostream>
 
