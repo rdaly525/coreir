@@ -77,10 +77,14 @@ namespace CoreIR {
 
       SECTION("Generating random inputs") {
 	string randIns =
-	  randomSimInputString(manyOps);
+	  randomSimInputHarness(manyOps);
 
 	cout << "RANDOM INPUTS" << endl;
 	cout << randIns << endl;
+
+	int s = compileCode(randIns, "./gencode/inputString.cpp");
+
+	REQUIRE(s == 0);
       }
       
     }

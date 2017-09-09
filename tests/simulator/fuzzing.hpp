@@ -6,4 +6,6 @@ namespace CoreIR {
 
   std::string randomSimInputString(Module* mod);
 
+  std::string randomSimInputHarness(Module* mod);
+
 }
