@@ -121,7 +121,7 @@ namespace CoreIR {
 
   std::string commaSepList(std::vector<std::string>& declStrs) {
     std::string res = "";
-    for (int i = 0; i < declStrs.size(); i++) {
+    for (uint i = 0; i < declStrs.size(); i++) {
       res += declStrs[i];
       if (i < declStrs.size() - 1) {
 	res += ", ";

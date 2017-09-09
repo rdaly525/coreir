@@ -691,6 +691,48 @@ namespace CoreIR {
       
     }
 
+    SECTION("5 bit dlshr test") {
+      uint n = 5;
+  
+      Type* dlshrType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* dlshrM = g->newModuleDecl("dlshrM", dlshrType);
+      ModuleDef* def = dlshrM->newModuleDef();
+
+      Generator* dlshr = c->getGenerator("coreir.dlshr");
+
+      Wireable* self = def->sel("self");
+      Wireable* dlshr0 = def->addInstance("dlshr0", dlshr, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "dlshr0.in0");
+      def->connect("self.A.1", "dlshr0.in1");
+      def->connect(dlshr0->sel("out"), self->sel("out"));
+
+      dlshrM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(dlshrM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/dlshr5";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				dlshrM,
+				outFile,
+				"gencode/test_dlshr5.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
+    
     SECTION("Circuit with module references") {
 
       cout << "loading" << endl;
@@ -711,8 +753,6 @@ namespace CoreIR {
       buildOrderedGraph(mainMod, g);
 
       deque<vdisc> topoOrder = topologicalSort(g);
-
-      string outFile = "gencode/dashr60";
 
       auto str = printCode(topoOrder, g, mainMod);
       int s = compileCode(str, "./gencode/mainMod.cpp");
