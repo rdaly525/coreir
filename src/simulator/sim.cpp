@@ -819,7 +819,7 @@ namespace CoreIR {
     auto decls = sortedSimArgumentPairs(mod);
     vector<string> declStrs;
     for (auto declPair :  decls) {
-      
+      declStrs.push_back(cArrayTypeDecl(*(declPair.first), declPair.second));
     }
 
     sort(declStrs);

@@ -11,7 +11,7 @@ namespace CoreIR {
 
   static inline string bitMaskString(uint w) {
     assert(w > 0);
-    return parens(parens("1ULL << " + to_string(w)) + " - 1");    
+    return parens(parens("1ULL << " + to_string(w)) + " - 1");
   }
 
   static inline string bitMaskString(const std::string& w) {
