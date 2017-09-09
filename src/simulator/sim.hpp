@@ -12,4 +12,7 @@ namespace CoreIR {
 
   string printDecl(CoreIR::Module* mod);
 
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  sortedSimArgumentPairs(Module& mod);
+
 }

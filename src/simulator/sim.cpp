@@ -758,6 +758,81 @@ namespace CoreIR {
   }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
+  sortedSimRegisterPairs(Module& mod) {
+
+    Type* tp = mod.getType();
+
+    assert(tp->getKind() == Type::TK_Record);
+
+    //RecordType* modRec = static_cast<RecordType*>(tp);
+    vector<pair<Type*, string>> declStrs;
+    
+    // Add register inputs
+    for (auto& inst : mod.getDef()->getInstances()) {
+      if (isRegisterInstance(inst.second)) {
+	Instance* is = inst.second;
+
+	Select* in = is->sel("in");
+	Type* itp = in->getType();
+
+	string regName = is->getInstname();
+
+	declStrs.push_back({itp, " " + regName + "_old_value"});
+	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
+	
+      }
+    }
+
+    return declStrs;
+    
+  }
+  
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  sortedSimInputPairs(Module& mod) {
+
+    Type* tp = mod.getType();
+
+    assert(tp->getKind() == Type::TK_Record);
+
+    RecordType* modRec = static_cast<RecordType*>(tp);
+    vector<pair<Type*, string>> declStrs;
+
+    for (auto& name_type_pair : modRec->getRecord()) {
+      Type* tp = name_type_pair.second;
+
+      if (tp->isInput()) {
+	if (!underlyingTypeIsClkIn(*tp)) {
+	  declStrs.push_back({tp, " self_" + name_type_pair.first});
+	} else {
+	  declStrs.push_back({tp, " self_" + name_type_pair.first});
+	  declStrs.push_back({tp, " self_" + name_type_pair.first + "_last"});
+
+	}
+      }
+    }
+
+    // Add register inputs
+    concat(declStrs, sortedSimRegisterPairs(mod));
+    // for (auto& inst : mod.getDef()->getInstances()) {
+    //   if (isRegisterInstance(inst.second)) {
+    // 	Instance* is = inst.second;
+
+    // 	Select* in = is->sel("in");
+    // 	Type* itp = in->getType();
+
+    // 	string regName = is->getInstname();
+
+    // 	declStrs.push_back({itp, " " + regName + "_old_value"});
+    // 	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
+	
+    //   }
+    // }
+
+    return declStrs;
+
+  }
+  
+  std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod) {
 
     Type* tp = mod.getType();
@@ -773,11 +848,7 @@ namespace CoreIR {
       if (tp->isInput()) {
 	if (!underlyingTypeIsClkIn(*tp)) {
 	  declStrs.push_back({tp, " self_" + name_type_pair.first});
-	  //declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
 	} else {
-	  //declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
-	  //declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first + "_last"));
-
 	  declStrs.push_back({tp, " self_" + name_type_pair.first});
 	  declStrs.push_back({tp, " self_" + name_type_pair.first + "_last"});
 
@@ -785,30 +856,27 @@ namespace CoreIR {
       } else {
 	assert(tp->isOutput());
 
-	//declStrs.push_back(cArrayTypeDecl(*tp, "(*self_" + name_type_pair.first + "_ptr)"));
-
 	declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
       }
     }
 
     // Add register inputs
-    for (auto& inst : mod.getDef()->getInstances()) {
-      if (isRegisterInstance(inst.second)) {
-	Instance* is = inst.second;
+    concat(declStrs, sortedSimRegisterPairs(mod));
 
-	Select* in = is->sel("in");
-	Type* itp = in->getType();
+    // for (auto& inst : mod.getDef()->getInstances()) {
+    //   if (isRegisterInstance(inst.second)) {
+    // 	Instance* is = inst.second;
 
-	string regName = is->getInstname();
+    // 	Select* in = is->sel("in");
+    // 	Type* itp = in->getType();
 
-	// declStrs.push_back(cArrayTypeDecl(*itp, " " + regName + "_old_value"));
-	// declStrs.push_back(cArrayTypeDecl(*itp, "(*" + regName + "_new_value)"));
+    // 	string regName = is->getInstname();
 
-	declStrs.push_back({itp, " " + regName + "_old_value"});
-	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
+    // 	declStrs.push_back({itp, " " + regName + "_old_value"});
+    // 	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
 	
-      }
-    }
+    //   }
+    // }
 
     return declStrs;
     
