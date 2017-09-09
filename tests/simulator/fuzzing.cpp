@@ -54,16 +54,25 @@ namespace CoreIR {
     return res;
   }
 
+  std::string declareInputs(Module& mod) {
+    string res;
+
+    auto args = simInputs(mod);
+
+    for (auto& arg : args) {
+      res += ln(cArrayTypeDecl(*(arg.first), arg.second));
+    }
+
+    return res;
+  }
+
   std::string randomSimInputHarness(Module* mod) {
     string res = "#include <stdint.h>\n";
     res += "#include <iostream>\n\n";
     res += "int main() {\n";
 
-    auto args = simInputs(*mod);
+    res += declareInputs(*mod);
 
-    for (auto& arg : args) {
-      res += ln(cArrayTypeDecl(*(arg.first), arg.second));
-    }
     
     res += randomSimInputString(mod);
     res += "}\n";

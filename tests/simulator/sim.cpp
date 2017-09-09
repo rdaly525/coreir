@@ -19,12 +19,12 @@ namespace CoreIR {
 
   bool splitNodeEdgesCorrect(const NGraph& g) {
 
-    cout << "Edges" << endl;
+    //cout << "Edges" << endl;
 
     for (auto& ed : g.getEdges()) {
       Conn c = getConn(g, ed);
 
-      cout << (c.first).toString() << " ---> " << (c.second).toString() << endl;
+      //cout << (c.first).toString() << " ---> " << (c.second).toString() << endl;
 
       // Either the first edge is not a register or it is not a receiver
       Wireable* fstParent = toSelect(*(c.first.getWire())).getParent();

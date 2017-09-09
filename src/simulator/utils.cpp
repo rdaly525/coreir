@@ -104,7 +104,7 @@ namespace CoreIR {
   }
 
   bool recordTypeHasField(const std::string& fieldName, Type* t) {
-    cout << "Target type = " << t->toString() << endl;
+    //cout << "Target type = " << t->toString() << endl;
     assert(t->getKind() == Type::TK_Record);
 
     RecordType* rt = static_cast<RecordType*>(t);
