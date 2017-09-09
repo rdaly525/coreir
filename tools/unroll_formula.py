@@ -1,7 +1,6 @@
 import sys
 import argparse
 
-
 class Config(object):
     input_file = None
     k = None
@@ -15,13 +14,12 @@ class Config(object):
         self.eqlist = ""
 
 def generate_unrolling(config):
-
     with open(config.input_file) as f:
         model = f.read()
 
     simple = config.simple
     k = config.k
-    eqlist = config.eqlist.split(",")
+    eqlist = config.eqlist.split(",") if config.eqlist is not None else []
 
     setvals = []
     init_vars = []
