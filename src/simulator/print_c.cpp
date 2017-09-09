@@ -95,5 +95,91 @@ namespace CoreIR {
     return parens(bitMaskString(startWidth) + " << " + to_string(endWidth - startWidth));
   }
 
+
+  std::string cPrimitiveTypeString(Type& t) {
+    assert(isPrimitiveType(t));
+
+    if (isClkIn(t) || isNamedType(t, "clk")) {
+      return "uint8_t " ;
+    }
+
+    if (t.getKind() == Type::TK_BitIn) {
+      return "uint8_t " ;
+    }
+
+    if (t.getKind() == Type::TK_Bit) {
+      return "uint8_t " ;
+    }
+
+    if (isBitArrayOfLengthLEQ(t, 8)) {
+      return "uint8_t " ;
+    }
+
+    if (isBitArrayOfLengthLEQ(t, 16)) {
+      return "uint16_t " ;
+    }
+    
+    if (isBitArrayOfLengthLEQ(t, 32)) {
+      return "uint32_t " ;
+    }
+
+    if (isBitArrayOfLengthLEQ(t, 64)) {
+      return "uint64_t " ;
+    }
+
+    assert(false);
+
+  }
+
+  std::string cArrayTypeDecl(Type& t, const std::string& varName) {
+
+    if (isClkIn(t) || isNamedType(t, "clk")) {
+      return "uint8_t " + varName;
+    }
+
+    if (t.getKind() == Type::TK_BitIn) {
+      return "uint8_t " + varName;
+    }
+
+    if (t.getKind() == Type::TK_Bit) {
+      return "uint8_t " + varName;
+    }
+
+    if (isBitArrayOfLengthLEQ(t, 8)) {
+      return "uint8_t " + varName;
+    }
+
+    if (isBitArrayOfLengthLEQ(t, 16)) {
+      return "uint16_t " + varName;
+    }
+    
+    if (isBitArrayOfLengthLEQ(t, 32)) {
+      return "uint32_t " + varName;
+    }
+
+    if (isBitArrayOfLengthLEQ(t, 64)) {
+      return "uint64_t " + varName;
+    }
+
+    if (isBitArray(t)) {
+      ArrayType& arrTp = toArray(t);
+      int arrLen = arrTp.getLen();
+      int bitLength = (arrLen / 8) + 1 - (arrLen % 8 == 0);
+
+      return "uint8_t " + varName + "[ " + to_string(bitLength) + " ]";
+    }
+    
+    if (isArray(t)) {
+      ArrayType& tArr = static_cast<ArrayType&>(t);
+      Type& underlying = *(tArr.getElemType());
+
+      return cArrayTypeDecl(underlying, varName + "[ " + std::to_string(tArr.getLen()) + " ]");
+    }
+
+    cout << "ERROR: Unsupported type = " << t.toString() << endl;    
+
+    assert(false);
+
+  }
   
 }

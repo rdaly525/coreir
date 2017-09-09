@@ -5,12 +5,23 @@
 
 namespace CoreIR {
 
-  std::string randomInputString(CoreIR::Type& tp, const std::string& var) {
-    return var;
-  }
-
   std::string ln(const std::string& s) {
     return s + ";\n";
+  }
+
+  std::string primitiveRandomInputString(CoreIR::Type& t, const std::string& var) {
+    assert(isPrimitiveType(t));
+
+    return ln(cPrimitiveTypeString(t) + " " + var + " = rand()");
+  }
+
+  std::string randomInputString(CoreIR::Type& tp, const std::string& var) {
+    if (isPrimitiveType(tp)) {
+      return primitiveRandomInputString(tp, var);
+    }
+
+    return "var!!;";
+      //assert(false);
   }
 
   std::string randomSimInputString(Module* mod) {
@@ -18,7 +29,7 @@ namespace CoreIR {
 
     string res = "";
     for (auto& arg : args) {
-      res += ln(randomInputString(*(arg.first), arg.second));
+      res += randomInputString(*(arg.first), arg.second);
     }
 
     return res;

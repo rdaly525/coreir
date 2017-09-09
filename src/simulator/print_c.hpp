@@ -49,4 +49,8 @@ namespace CoreIR {
 
   std::string lastMask(const uint startWidth, const uint endWidth);
 
+  std::string cArrayTypeDecl(CoreIR::Type& t, const std::string& varName);
+
+  std::string cPrimitiveTypeString(CoreIR::Type& t);
+
 }
