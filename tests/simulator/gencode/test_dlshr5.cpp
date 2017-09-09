@@ -16,8 +16,8 @@ int main () {
 
   uint8_t expected = 1 << 1;
 
-  cout << "expected = " << bitset<8>(expected) << endl;
-  cout << "res      = " << bitset<8>(res) << endl;
+  cout << "dlshr5 expected = " << bitset<8>(expected) << endl;
+  cout << "dlshr5 res      = " << bitset<8>(res) << endl;
 
   if (res == expected) {
     return 0;
