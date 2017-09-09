@@ -757,27 +757,37 @@ namespace CoreIR {
 
   }
 
-  std::vector<string> sortedSimArgumentList(Module& mod) {
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  sortedSimArgumentPairs(Module& mod) {
+
     Type* tp = mod.getType();
 
     assert(tp->getKind() == Type::TK_Record);
 
     RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<string> declStrs;
+    vector<pair<Type*, string>> declStrs;
+
     for (auto& name_type_pair : modRec->getRecord()) {
       Type* tp = name_type_pair.second;
 
       if (tp->isInput()) {
 	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
+	  declStrs.push_back({tp, " self_" + name_type_pair.first});
+	  //declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
 	} else {
-	  declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
-	  declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first + "_last"));
+	  //declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first));
+	  //declStrs.push_back(cArrayTypeDecl(*tp, " self_" + name_type_pair.first + "_last"));
+
+	  declStrs.push_back({tp, " self_" + name_type_pair.first});
+	  declStrs.push_back({tp, " self_" + name_type_pair.first + "_last"});
+
 	}
       } else {
 	assert(tp->isOutput());
 
-	declStrs.push_back(cArrayTypeDecl(*tp, "(*self_" + name_type_pair.first + "_ptr)"));
+	//declStrs.push_back(cArrayTypeDecl(*tp, "(*self_" + name_type_pair.first + "_ptr)"));
+
+	declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
       }
     }
 
@@ -791,10 +801,25 @@ namespace CoreIR {
 
 	string regName = is->getInstname();
 
-	declStrs.push_back(cArrayTypeDecl(*itp, " " + regName + "_old_value"));
-	declStrs.push_back(cArrayTypeDecl(*itp, "(*" + regName + "_new_value)"));
+	// declStrs.push_back(cArrayTypeDecl(*itp, " " + regName + "_old_value"));
+	// declStrs.push_back(cArrayTypeDecl(*itp, "(*" + regName + "_new_value)"));
 
+	declStrs.push_back({itp, " " + regName + "_old_value"});
+	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
+	
       }
+    }
+
+    return declStrs;
+    
+  }
+
+  std::vector<string> sortedSimArgumentList(Module& mod) {
+
+    auto decls = sortedSimArgumentPairs(mod);
+    vector<string> declStrs;
+    for (auto declPair :  decls) {
+      
     }
 
     sort(declStrs);

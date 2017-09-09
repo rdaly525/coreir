@@ -1,5 +1,7 @@
 #include "catch.hpp"
 
+#include "fuzzing.hpp"
+
 #include "coreir.h"
 #include "coreir-passes/analysis/pass_sim.h"
 #include "coreir-passes/transform/rungenerators.h"
@@ -56,20 +58,30 @@ namespace CoreIR {
 
       manyOps->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      SECTION("Compiling code") {
+	RunGenerators rg;
+	rg.runOnNamespace(g);
 
-      NGraph g;
-      buildOrderedGraph(manyOps, g);
+	NGraph g;
+	buildOrderedGraph(manyOps, g);
       
-      deque<vdisc> topoOrder = topologicalSort(g);
+	deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, manyOps);
-      int s = compileCode(str, "./gencode/manyops.cpp");
+	auto str = printCode(topoOrder, g, manyOps);
+	int s = compileCode(str, "./gencode/manyops.cpp");
 
-      cout << "Command result = " << s << endl;
+	cout << "Command result = " << s << endl;
 
-      REQUIRE(s == 0);
+	REQUIRE(s == 0);
+      }
+
+      SECTION("Generating random inputs") {
+	string randIns =
+	  randomSimInputString(manyOps);
+
+	cout << "RANDOM INPUTS" << endl;
+	cout << randIns << endl;
+      }
       
     }
 

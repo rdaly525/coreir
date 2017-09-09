@@ -29,7 +29,7 @@ namespace CoreIR {
   }
 
   std::string getOpString(Instance& inst) {
-    string genRefName = getInstanceName(inst); //inst.getGeneratorRef()->getName();
+    string genRefName = getInstanceName(inst);
 
     if (genRefName == "add") {
       return " + ";
