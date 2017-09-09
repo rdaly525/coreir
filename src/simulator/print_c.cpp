@@ -100,31 +100,31 @@ namespace CoreIR {
     assert(isPrimitiveType(t));
 
     if (isClkIn(t) || isNamedType(t, "clk")) {
-      return "uint8_t " ;
+      return "uint8_t" ;
     }
 
     if (t.getKind() == Type::TK_BitIn) {
-      return "uint8_t " ;
+      return "uint8_t" ;
     }
 
     if (t.getKind() == Type::TK_Bit) {
-      return "uint8_t " ;
+      return "uint8_t" ;
     }
 
     if (isBitArrayOfLengthLEQ(t, 8)) {
-      return "uint8_t " ;
+      return "uint8_t" ;
     }
 
     if (isBitArrayOfLengthLEQ(t, 16)) {
-      return "uint16_t " ;
+      return "uint16_t" ;
     }
     
     if (isBitArrayOfLengthLEQ(t, 32)) {
-      return "uint32_t " ;
+      return "uint32_t" ;
     }
 
     if (isBitArrayOfLengthLEQ(t, 64)) {
-      return "uint64_t " ;
+      return "uint64_t" ;
     }
 
     assert(false);

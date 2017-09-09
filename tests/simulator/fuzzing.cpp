@@ -3,6 +3,8 @@
 #include "../src/simulator/sim.hpp"
 #include "../src/simulator/print_c.hpp"
 
+#include <cstdlib>
+
 namespace CoreIR {
 
   std::string ln(const std::string& s) {
@@ -12,7 +14,9 @@ namespace CoreIR {
   std::string primitiveRandomInputString(CoreIR::Type& t, const std::string& var) {
     assert(isPrimitiveType(t));
 
-    return ln(cPrimitiveTypeString(t) + " " + var + " = rand()");
+    string val = to_string(rand() % 100);
+
+    return ln(var + " = " + val); //ln(cPrimitiveTypeString(t) + " " + var + " = rand()");
   }
 
   std::string randomInputString(CoreIR::Type& tp, const std::string& var) {
@@ -20,7 +24,22 @@ namespace CoreIR {
       return primitiveRandomInputString(tp, var);
     }
 
-    return "var!!;";
+    if (isArray(tp)) {
+
+      ArrayType& tArr = static_cast<ArrayType&>(tp);
+      Type& underlying = *(tArr.getElemType());
+
+      string res = "";
+      for (uint i = 0; i < tArr.getLen(); i++) {
+	res += randomInputString(underlying, var + "[ " + to_string(i) + " ]");
+      }
+
+      //cArrayTypeDecl(underlying, varName + "[ " + std::to_string(tArr.getLen()) + " ]");
+      return res;
+      
+    }
+
+    assert(false);
       //assert(false);
   }
 
