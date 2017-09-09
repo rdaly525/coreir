@@ -758,7 +758,7 @@ namespace CoreIR {
   }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
-  sortedSimRegisterPairs(Module& mod) {
+  simRegisterInputs(Module& mod) {
 
     Type* tp = mod.getType();
 
@@ -788,7 +788,7 @@ namespace CoreIR {
   }
   
   std::vector<std::pair<CoreIR::Type*, std::string> >
-  sortedSimInputPairs(Module& mod) {
+  simInputs(Module& mod) {
 
     Type* tp = mod.getType();
 
@@ -812,21 +812,7 @@ namespace CoreIR {
     }
 
     // Add register inputs
-    concat(declStrs, sortedSimRegisterPairs(mod));
-    // for (auto& inst : mod.getDef()->getInstances()) {
-    //   if (isRegisterInstance(inst.second)) {
-    // 	Instance* is = inst.second;
-
-    // 	Select* in = is->sel("in");
-    // 	Type* itp = in->getType();
-
-    // 	string regName = is->getInstname();
-
-    // 	declStrs.push_back({itp, " " + regName + "_old_value"});
-    // 	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
-	
-    //   }
-    // }
+    concat(declStrs, simRegisterInputs(mod));
 
     return declStrs;
 
@@ -861,22 +847,7 @@ namespace CoreIR {
     }
 
     // Add register inputs
-    concat(declStrs, sortedSimRegisterPairs(mod));
-
-    // for (auto& inst : mod.getDef()->getInstances()) {
-    //   if (isRegisterInstance(inst.second)) {
-    // 	Instance* is = inst.second;
-
-    // 	Select* in = is->sel("in");
-    // 	Type* itp = in->getType();
-
-    // 	string regName = is->getInstname();
-
-    // 	declStrs.push_back({itp, " " + regName + "_old_value"});
-    // 	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
-	
-    //   }
-    // }
+    concat(declStrs, simRegisterInputs(mod));
 
     return declStrs;
     

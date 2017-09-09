@@ -14,7 +14,7 @@ namespace CoreIR {
   }
 
   std::string randomSimInputString(Module* mod) {
-    auto args = sortedSimArgumentPairs(*mod);
+    auto args = simInputs(*mod);
 
     string res = "";
     for (auto& arg : args) {
