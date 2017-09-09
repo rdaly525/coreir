@@ -16,7 +16,7 @@ namespace CoreIR {
 
     string val = to_string(rand() % 100);
 
-    return ln(var + " = " + val); //ln(cPrimitiveTypeString(t) + " " + var + " = rand()");
+    return ln(var + " = " + val);
   }
 
   std::string randomInputString(CoreIR::Type& tp, const std::string& var) {
