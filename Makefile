@@ -2,7 +2,7 @@
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 TARGET = so
-prefix=/usr/lib
+prefix=/usr
 endif
 ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
