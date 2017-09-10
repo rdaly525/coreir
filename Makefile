@@ -1,11 +1,12 @@
-prefix=/usr/local
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 TARGET = so
+prefix=/usr/lib
 endif
 ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
+prefix=/usr/local
 endif
 
 all: install coreir
