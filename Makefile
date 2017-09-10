@@ -11,7 +11,7 @@ endif
 all: install coreir
 
 .PHONY: test
-test: install
+test: build
 	$(MAKE) -C tests
 	cd tests; ./run
 
