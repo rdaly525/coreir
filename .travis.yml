@@ -13,12 +13,9 @@ before_install:
   - export COREIRCONFIG="g++-4.9";
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   - make -j2 install
-  - pip install pytest
-  - pip install -e bindings/python
 
 script:
   - make test
-  - pytest -s  # Test python bindings
 
 compiler:
   - gcc
