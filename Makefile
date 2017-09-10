@@ -26,9 +26,12 @@ py: install
 	pip3 install -e bindings/python
 
 
-.PHONY: install
-install:
+.PHONY: build
+build:
 	$(MAKE) -C src $(TARGET)
+
+.PHONY: install
+install: build coreir
 	install bin/coreir $(prefix)/bin
 	install lib/* $(prefix)/lib
 	install -d $(prefix)/include/coreir-c
@@ -44,7 +47,7 @@ install:
 	install include/coreir-passes/transform/* $(prefix)/include/coreir-passes/transform
 
 .PHONY: coreir
-coreir: install
+coreir: build
 	$(MAKE) -C src/binary -B
 
 .PHONY: clean
