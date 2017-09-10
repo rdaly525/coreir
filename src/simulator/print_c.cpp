@@ -96,7 +96,7 @@ namespace CoreIR {
   }
 
   string lastMask(const uint startWidth, const uint endWidth) {
-    return parens(bitMaskString(startWidth) + " << " + to_string(endWidth - startWidth));
+    return parens(bitMaskString(endWidth - startWidth) + " << " + to_string(startWidth));
   }
 
 
