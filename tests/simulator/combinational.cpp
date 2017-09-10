@@ -815,6 +815,48 @@ namespace CoreIR {
       REQUIRE(s == 0);
       
     }
+
+    SECTION("Signed 5 bit remainder") {
+      uint n = 5;
+  
+      Type* sremType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* sremM = g->newModuleDecl("sremM", sremType);
+      ModuleDef* def = sremM->newModuleDef();
+
+      Generator* srem = c->getGenerator("coreir.srem");
+
+      Wireable* self = def->sel("self");
+      Wireable* srem0 = def->addInstance("srem0", srem, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "srem0.in0");
+      def->connect("self.A.1", "srem0.in1");
+      def->connect(srem0->sel("out"), self->sel("out"));
+
+      sremM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(sremM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/srem5";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				sremM,
+				outFile,
+				"gencode/test_srem5.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
     
     SECTION("Circuit with module references") {
 

@@ -148,6 +148,12 @@ namespace CoreIR {
     return elem(genRefName, bitwiseOps);
   }
 
+  bool isSDivOrRem(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> bitwiseOps{"sdiv", "srem"};
+    return elem(genRefName, bitwiseOps);
+  }
+  
   bool isUDivOrRem(Instance& inst) {
     string genRefName = getInstanceName(inst);
     vector<string> bitwiseOps{"udiv", "urem"};
@@ -377,7 +383,8 @@ namespace CoreIR {
       return printOpThenMaskBinop(inst, vd, g);
     }
 
-    if (isSignedCmp(*inst)) {
+    if (isSignedCmp(*inst) ||
+	isSDivOrRem(*inst)) {
       return printSEThenOpThenMaskBinop(inst, vd, g);
     }
 
