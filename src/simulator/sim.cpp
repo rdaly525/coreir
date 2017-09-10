@@ -256,10 +256,6 @@ namespace CoreIR {
     string mask = parens(arg + " & " + bitMaskString(startWidth));
     string testClause = parens(arg + " & " + parens("1ULL << " + to_string(startWidth - 1)));
 
-    //string resClause = lastMask(startWidth, extWidth) + " : 0";
-
-    //string resClause = lastMask(extWidth, startWidth) + " : 0";
-
     string res = parens(mask + " | " +
 			ite(testClause, lastMask(startWidth, extWidth), "0"));
 
