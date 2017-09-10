@@ -857,6 +857,48 @@ namespace CoreIR {
       REQUIRE(s == 0);
       
     }
+
+    SECTION("Signed 5 bit remainder") {
+      uint n = 5;
+  
+      Type* sdivType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* sdivM = g->newModuleDecl("sdivM", sdivType);
+      ModuleDef* def = sdivM->newModuleDef();
+
+      Generator* sdiv = c->getGenerator("coreir.sdiv");
+
+      Wireable* self = def->sel("self");
+      Wireable* sdiv0 = def->addInstance("sdiv0", sdiv, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "sdiv0.in0");
+      def->connect("self.A.1", "sdiv0.in1");
+      def->connect(sdiv0->sel("out"), self->sel("out"));
+
+      sdivM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(sdivM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/sdiv5";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				sdivM,
+				outFile,
+				"gencode/test_sdiv5.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
     
     SECTION("Circuit with module references") {
 
