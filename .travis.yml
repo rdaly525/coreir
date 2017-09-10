@@ -10,12 +10,13 @@ addons:
       - g++-4.9
 
 before_install:
-  - pip install --upgrade pip setuptools
+  - pip install --user requests[security]
+  - pip install --user --upgrade pip setuptools
   - export COREIRCONFIG="g++-4.9";
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   - sudo make -j 2 install
-  - pip install pytest
-  - pip install -e bindings/python
+  - pip install --user pytest
+  - pip install --user -e bindings/python
 
 script:
   - make test
