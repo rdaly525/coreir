@@ -1,13 +1,13 @@
 #ifndef PASSES_HPP_
 #define PASSES_HPP_
 
-#include "passmanager.h"
+#include "coreir-passmanager.h"
 #include "coreir.h"
 
 namespace CoreIR {
 
 class Pass {
-  
+
   public:
     enum PassKind {PK_Namespace, PK_Module, PK_Instance, PK_InstanceVisitor, PK_InstanceGraph};
   private:
@@ -23,14 +23,14 @@ class Pass {
     explicit Pass(PassKind kind,std::string name, std::string description, bool isAnalysis) : kind(kind), name(name), description(description), isAnalysis(isAnalysis) {}
     virtual ~Pass() = 0;
     PassKind getKind() const {return kind;}
-    
+
     virtual void releaseMemory() {}
     virtual void setAnalysisInfo() {}
     void addDependency(string name) { dependencies.push_back(name);}
     Context* getContext();
     std::string getName() { return name;}
     virtual void print() {}
-    
+
     template<typename T>
     T* getAnalysisPass() {
       assert(pm);
@@ -107,12 +107,12 @@ class InstanceVisitorPass : public Pass {
 
 
 class InstanceGraphNode;
-//Loops through the InstanceDAG from bottom up. Instane DAG is analogous to CallGraph in LLVM. 
+//Loops through the InstanceDAG from bottom up. Instane DAG is analogous to CallGraph in LLVM.
 //If the Instance is linked in from a different namespace or is a generator instance, then it will run runOnInstanceNode
-//Not allowed 
+//Not allowed
 class InstanceGraphPass : public Pass {
   public:
-    
+
     explicit InstanceGraphPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_InstanceGraph,name,description,isAnalysis) {
       addDependency("createinstancegraph");
     }

@@ -1,4 +1,4 @@
-#include "instancegraph.h"
+#include "coreir-instancegraph.h"
 
 using namespace CoreIR;
 
@@ -22,10 +22,10 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 void InstanceGraph::construct(Namespace* ns) {
-  
+
   //Contains all external nodes referenced
   //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
-  
+
   //Create all Nodes first
   for (auto imap : ns->getModules()) {
     nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
@@ -33,7 +33,7 @@ void InstanceGraph::construct(Namespace* ns) {
   for (auto imap : ns->getGenerators()) {
     nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
   }
-  
+
   //populate all the nodes with pointers to the instances
   unordered_map<Instantiable*,InstanceGraphNode*> nodeMap2;
   for (auto nodemap : nodeMap) {
@@ -52,7 +52,7 @@ void InstanceGraph::construct(Namespace* ns) {
       else {
         node = nodeMap[icheck];
       }
-      
+
       node->addInstance(instmap.second,nodemap.second);
     }
   }
@@ -73,9 +73,9 @@ void InstanceGraphNode::appendField(string label,Type* t) {
 
   //appendField will assert if the field already exists
   Type* newType = mtype->appendField(label,t);
-  
+
   //Do not have to check any connections because I am adding a new field
-  
+
   //First change the Module Type
   m->setType(newType);
 
@@ -96,15 +96,15 @@ void InstanceGraphNode::detachField(string label) {
   Module* m = cast<Module>(i);
   ASSERT(m->hasDef(),"NYI Handling changing types for module declaration");
   RecordType* mtype = cast<RecordType>(m->getType());
-  
+
   //Will assert if field does not exist
   Type* newType = mtype->detachField(label);
-  
+
   //Remove anything connected to the module def interface
   Interface* iface = m->getDef()->getInterface();
   iface->sel(label)->disconnectAll();
   iface->removeSel(label);
-  
+
   //Remove anything connected to all the isntances
   for (auto inst : getInstanceList()) {
     inst->sel(label)->disconnectAll();

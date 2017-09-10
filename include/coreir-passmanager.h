@@ -2,8 +2,8 @@
 #define PASSMANAGER_HPP_
 
 #include "coreir.h"
-#include "passes.h"
-#include "instancegraph.h"
+#include "coreir-passes.h"
+#include "coreir-instancegraph.h"
 #include <stack>
 
 namespace CoreIR {
@@ -11,14 +11,14 @@ namespace CoreIR {
 class InstanceGraph;
 class PassManager {
   Context* c;
-  vector<Namespace*> nss; 
+  vector<Namespace*> nss;
 
   //Data structure for storing passes
   std::unordered_map<string,Pass*> passMap;
 
   //Name to isValid
   std::unordered_map<string,bool> analysisPasses;
-  
+
   vector<string> passLog;
   bool verbose = false;
   public:
@@ -26,7 +26,7 @@ class PassManager {
     explicit PassManager(Context* c);
     ~PassManager();
     Context* getContext() { return c;}
-    
+
     void addPass(Pass* p);
 
     //Runs all passes in order over namespaces

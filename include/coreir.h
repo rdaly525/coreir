@@ -7,9 +7,9 @@
 //Also should create coreir/ to put all these files in to be consistent
 #include "../src/ir/context.hpp"
 #include "../src/ir/directedview.hpp"
-#include "passmanager.h"
-#include "passes.h"
-#include "instancegraph.h"
+#include "coreir-passmanager.h"
+#include "coreir-passes.h"
+#include "coreir-instancegraph.h"
 
 
 namespace CoreIR {
