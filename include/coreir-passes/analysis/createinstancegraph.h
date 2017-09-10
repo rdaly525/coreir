@@ -2,7 +2,7 @@
 #define CREATEINSTANCEGRAPH_HPP_
 
 #include "coreir.h"
-#include "instancegraph.h"
+#include "coreir-instancegraph.h"
 
 namespace CoreIR {
 namespace Passes {
@@ -23,4 +23,4 @@ class CreateInstanceGraph : public NamespacePass {
 }
 }
 
-#endif 
+#endif
