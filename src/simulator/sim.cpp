@@ -148,6 +148,12 @@ namespace CoreIR {
     return elem(genRefName, bitwiseOps);
   }
 
+  bool isUDivOrRem(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> bitwiseOps{"udiv", "urem"};
+    return elem(genRefName, bitwiseOps);
+  }
+
   bool isBitwiseOp(Instance& inst) {
     string genRefName = getInstanceName(inst);
     vector<string> bitwiseOps{"not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
@@ -366,7 +372,8 @@ namespace CoreIR {
     if (isBitwiseOp(*inst) ||
 	isSignInvariantOp(*inst) ||
 	isUnsignedCmp(*inst) ||
-	isShiftOp(*inst)) {
+	isShiftOp(*inst) ||
+	isUDivOrRem(*inst)) {
       return printOpThenMaskBinop(inst, vd, g);
     }
 

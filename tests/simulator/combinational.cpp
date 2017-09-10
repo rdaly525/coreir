@@ -730,6 +730,47 @@ namespace CoreIR {
 				"gencode/test_dlshr5.cpp");
 
       REQUIRE(s == 0);
+    }
+
+    SECTION("Unsigned 27 bit division") {
+      uint n = 5;
+  
+      Type* udivType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* udivM = g->newModuleDecl("udivM", udivType);
+      ModuleDef* def = udivM->newModuleDef();
+
+      Generator* udiv = c->getGenerator("coreir.udiv");
+
+      Wireable* self = def->sel("self");
+      Wireable* udiv0 = def->addInstance("udiv0", udiv, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "udiv0.in0");
+      def->connect("self.A.1", "udiv0.in1");
+      def->connect(udiv0->sel("out"), self->sel("out"));
+
+      udivM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(udivM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/udiv27";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				udivM,
+				outFile,
+				"gencode/test_udiv27.cpp");
+
+      REQUIRE(s == 0);
       
     }
     
@@ -762,7 +803,7 @@ namespace CoreIR {
       REQUIRE(s == 0);
       
     }
-    
+
     deleteContext(c);
 
   }
