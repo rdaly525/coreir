@@ -733,7 +733,7 @@ namespace CoreIR {
     }
 
     SECTION("Unsigned 27 bit division") {
-      uint n = 5;
+      uint n = 27;
   
       Type* udivType = c->Record({
 	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
@@ -769,6 +769,48 @@ namespace CoreIR {
 				udivM,
 				outFile,
 				"gencode/test_udiv27.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
+
+    SECTION("Unsigned 13 bit remainder") {
+      uint n = 13;
+  
+      Type* uremType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* uremM = g->newModuleDecl("uremM", uremType);
+      ModuleDef* def = uremM->newModuleDef();
+
+      Generator* urem = c->getGenerator("coreir.urem");
+
+      Wireable* self = def->sel("self");
+      Wireable* urem0 = def->addInstance("urem0", urem, {{"width", c->argInt(n)}});
+
+      def->connect("self.A.0", "urem0.in0");
+      def->connect("self.A.1", "urem0.in1");
+      def->connect(urem0->sel("out"), self->sel("out"));
+
+      uremM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(uremM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "gencode/urem13";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				uremM,
+				outFile,
+				"gencode/test_urem13.cpp");
 
       REQUIRE(s == 0);
       

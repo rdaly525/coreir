@@ -61,6 +61,8 @@ namespace CoreIR {
       return " >> ";
     } else if ((genRefName == "udiv") || (genRefName == "sdiv")) {
       return " / ";
+    } else if ((genRefName == "urem") || (genRefName == "srem")) {
+      return " % ";
     }
 
     cout << "ERROR: Unsupported op name = " << genRefName << endl;
