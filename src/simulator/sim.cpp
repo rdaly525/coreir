@@ -739,7 +739,7 @@ namespace CoreIR {
 
 	string regName = is->getInstname();
 
-	declStrs.push_back({itp, " " + regName + "_old_value"});
+	declStrs.push_back({itp, regName + "_old_value"});
 	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
 	
       }
@@ -764,10 +764,10 @@ namespace CoreIR {
 
       if (tp->isInput()) {
 	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, " self_" + name_type_pair.first});
+	  declStrs.push_back({tp, "self_" + name_type_pair.first});
 	} else {
-	  declStrs.push_back({tp, " self_" + name_type_pair.first});
-	  declStrs.push_back({tp, " self_" + name_type_pair.first + "_last"});
+	  declStrs.push_back({tp, "self_" + name_type_pair.first});
+	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
 
 	}
       }
@@ -795,10 +795,10 @@ namespace CoreIR {
 
       if (tp->isInput()) {
 	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, " self_" + name_type_pair.first});
+	  declStrs.push_back({tp, "self_" + name_type_pair.first});
 	} else {
-	  declStrs.push_back({tp, " self_" + name_type_pair.first});
-	  declStrs.push_back({tp, " self_" + name_type_pair.first + "_last"});
+	  declStrs.push_back({tp, "self_" + name_type_pair.first});
+	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
 
 	}
       } else {

@@ -66,15 +66,50 @@ namespace CoreIR {
     return res;
   }
 
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  simOutputVarDecls(Module& mod) {
+    Type* tp = mod.getType();
+
+    assert(tp->getKind() == Type::TK_Record);
+
+    RecordType* modRec = static_cast<RecordType*>(tp);
+    vector<pair<Type*, string>> declStrs;
+
+    for (auto& name_type_pair : modRec->getRecord()) {
+      Type* tp = name_type_pair.second;
+
+      if (!tp->isInput()) {
+	assert(tp->isOutput());
+
+	declStrs.push_back({tp, name_type_pair.first});
+      }
+    }
+
+    return declStrs;
+  }
+  
+  std::string declareOutputs(Module& mod) {
+    string res;
+
+    auto args = simOutputVarDecls(mod);
+
+    for (auto& arg : args) {
+      res += ln(cArrayTypeDecl(*(arg.first), arg.second));
+    }
+
+    return res;
+  }
+  
   std::string randomSimInputHarness(Module* mod) {
     string res = "#include <stdint.h>\n";
     res += "#include <iostream>\n\n";
     res += "int main() {\n";
 
     res += declareInputs(*mod);
+    res += declareOutputs(*mod);
 
-    
     res += randomSimInputString(mod);
+
     res += "}\n";
 
     return res;
