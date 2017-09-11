@@ -12,7 +12,7 @@ int main () {
 
   uint8_t res;
 
-  simulate(A, &res);
+  simulate(&res, A);
 
   uint8_t expected = 1 << 1;
 

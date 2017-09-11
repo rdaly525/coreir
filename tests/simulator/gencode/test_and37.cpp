@@ -12,7 +12,7 @@ int main() {
 
   uint64_t out;
 
-  simulate(ins, &out);
+  simulate(&out, ins);
 
   // NOTE: This 37th and 60th bits should be masked away by the simulator
   uint64_t expected = one << 36;

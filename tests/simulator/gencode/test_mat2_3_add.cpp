@@ -32,7 +32,7 @@ int main() {
 
   printf("About to simulate\n");
 
-  simulate(A, B, &C);
+  simulate(&C, A, B);
 
   for (int i = 0; i < 2; i++) {
     for (int j = 0; j < 3; j++) {

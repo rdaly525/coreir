@@ -8,7 +8,7 @@ int main() {
   uint8_t expected = 1 << 1;
 
   printf("Neg2 before simulating\n");
-  simulate(a, &res);
+  simulate(&res, a);
 
   printf("2 bit not expected = %c\n", expected);
   printf("2 bit not result   = %c\n", res);

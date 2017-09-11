@@ -12,8 +12,8 @@ int main() {
   uint8_t sel_0 = 0;
   uint8_t sel_1 = 1;
 
-  simulate(A, sel_0, &out_0);
-  simulate(A, sel_1, &out_1);
+  simulate(&out_0, A, sel_0);
+  simulate(&out_1, A, sel_1);
 
 
   printf("out_0 = %hhu\n", out_0);
