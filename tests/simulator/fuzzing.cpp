@@ -1,7 +1,12 @@
 #include "fuzzing.hpp"
 
+#include "../src/simulator/algorithm.hpp"
 #include "../src/simulator/sim.hpp"
 #include "../src/simulator/print_c.hpp"
+#include "../src/simulator/output.hpp"
+
+#include <fstream>
+#include <iostream>
 
 #include <cstdlib>
 
@@ -99,9 +104,30 @@ namespace CoreIR {
 
     return res;
   }
+
+  std::string callSimulate(Module& mod) {
+    vector<string> args;
+
+    for (auto& arg : simOutputVarDecls(mod)) {
+      args.push_back("&" + arg.second);
+    }
+
+    vector<pair<Type*, string> > decls = simInputs(mod);
+
+    sort_lt(decls, [](const pair<Type*, string>& tpp) {
+	return tpp.second;
+      });
+
+    for (auto& arg : decls) {
+      args.push_back(arg.second);
+    }
+
+    return ln("simulate( " + commaSepList(args) + " )");
+  }
   
   std::string randomSimInputHarness(Module* mod) {
     string res = "#include <stdint.h>\n";
+    res += "#include \"many_ops.h\"\n\n";
     res += "#include <iostream>\n\n";
     res += "int main() {\n";
 
@@ -110,9 +136,42 @@ namespace CoreIR {
 
     res += randomSimInputString(mod);
 
+    res += callSimulate(*mod);
+
     res += "}\n";
 
     return res;
   }
 
+  int generateHarnessAndRun(const std::deque<vdisc>& topoOrder,
+			    NGraph& g,
+			    Module* mod,
+			    const std::string& outFileBase,
+			    const std::string& harnessFile) {
+
+    string hFile = outFileBase + ".h";
+    string codeFile = outFileBase + ".cpp";
+
+    writeFiles(topoOrder, g, mod, codeFile, hFile);
+
+    std::string harnessCode = randomSimInputHarness(mod);
+    std::ofstream out(harnessFile);
+    out << harnessCode;
+    out.close();
+    
+    string runCmd = "clang++ " + codeFile + " " + harnessFile;
+    int s = system(runCmd.c_str());
+
+    cout << "Command result = " << s << endl;
+
+    string runTest = "./a.out";
+    int r = system(runTest.c_str());
+
+    cout << "Test result = " << r << endl;
+
+    return s || r;
+
+    return 0;
+  }
+  
 }

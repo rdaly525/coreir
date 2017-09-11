@@ -820,7 +820,6 @@ namespace CoreIR {
     auto decls = sortedSimArgumentPairs(mod);
 
     sort_lt(decls, [](const pair<Type*, string>& tpp) {
-	//return 0;
 	return tpp.second;
       });
 

@@ -67,22 +67,17 @@ namespace CoreIR {
       
 	deque<vdisc> topoOrder = topologicalSort(g);
 
-	auto str = printCode(topoOrder, g, manyOps);
-	int s = compileCode(str, "./gencode/manyops.cpp");
-
-	cout << "Command result = " << s << endl;
-
-	REQUIRE(s == 0);
-      }
-
-      SECTION("Generating random inputs") {
 	string randIns =
 	  randomSimInputHarness(manyOps);
 
 	cout << "RANDOM INPUTS" << endl;
 	cout << randIns << endl;
 
-	int s = compileCode(randIns, "./gencode/inputString.cpp");
+	int s =
+	  generateHarnessAndRun(topoOrder, g, manyOps,
+				"./gencode/many_ops",
+				"./gencode/auto_harness_many_ops.cpp");
+	//compileCode(randIns, "./gencode/inputString.cpp");
 
 	REQUIRE(s == 0);
       }
