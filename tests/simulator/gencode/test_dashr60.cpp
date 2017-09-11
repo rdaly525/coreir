@@ -25,7 +25,7 @@ int main() {
   uint64_t expected2 = (1ULL << 53);
   uint64_t res2 = 23;
 
-  simulate(A2, &res2);
+  simulate(&res2, A2);
 
   cout << "Expected2 = " << std::bitset<64>(expected2) << endl;
   cout << "Result2   = " << std::bitset<64>(res2) << endl;
