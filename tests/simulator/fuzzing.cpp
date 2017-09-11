@@ -122,13 +122,19 @@ namespace CoreIR {
       args.push_back(arg.second);
     }
 
-    return ln("simulate( " + commaSepList(args) + " )");
+    string res = ln("std::clock_t    start");
+    res += ln("start = std::clock()");
+    res += ln("simulate( " + commaSepList(args) + " )");
+    res += ln("std::cout << \"Time: \" << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << \" ms\" << std::endl");
+
+    return res;
   }
   
   std::string randomSimInputHarness(Module* mod) {
     string res = "#include <stdint.h>\n";
-    res += "#include \"many_ops.h\"\n\n";
+    res += "#include <ctime>\n";
     res += "#include <iostream>\n\n";
+    res += "#include \"many_ops.h\"\n\n";
     res += "int main() {\n";
 
     res += declareInputs(*mod);

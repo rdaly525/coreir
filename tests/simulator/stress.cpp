@@ -22,7 +22,7 @@ namespace CoreIR {
     Namespace* g = c->getGlobal();
 
     SECTION("Many logical operations in parallel") {
-      uint n = 32;
+      uint n = 31;
       uint numInputs = 100;
   
       Generator* and2 = c->getGenerator("coreir.and");
@@ -70,14 +70,10 @@ namespace CoreIR {
 	string randIns =
 	  randomSimInputHarness(manyOps);
 
-	cout << "RANDOM INPUTS" << endl;
-	cout << randIns << endl;
-
 	int s =
 	  generateHarnessAndRun(topoOrder, g, manyOps,
 				"./gencode/many_ops",
 				"./gencode/auto_harness_many_ops.cpp");
-	//compileCode(randIns, "./gencode/inputString.cpp");
 
 	REQUIRE(s == 0);
       }
