@@ -87,5 +87,5 @@ namespace CoreIR {
 
     return s || r;
   }  
-  
+
 }
