@@ -23,7 +23,7 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 31;
-      uint numInputs = 100;
+      uint numInputs = 3000;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
@@ -62,21 +62,31 @@ namespace CoreIR {
 	RunGenerators rg;
 	rg.runOnNamespace(g);
 
-	NGraph g;
-	buildOrderedGraph(manyOps, g);
+	cout << "About to build graph" << endl;
+
+	NGraph gr;
+	buildOrderedGraph(manyOps, gr);
+
+	cout << "Built ordered graph" << endl;
       
-	deque<vdisc> topoOrder = topologicalSort(g);
+	deque<vdisc> topoOrder = topologicalSort(gr);
+
+	cout << "Topologically sorted" << endl;
 
 	string randIns =
 	  randomSimInputHarness(manyOps);
 
+	cout << "Generating harness" << endl;
+
 	int s =
-	  generateHarnessAndRun(topoOrder, g, manyOps,
+	  generateHarnessAndRun(topoOrder, gr, manyOps,
 				"./gencode/many_ops",
 				"./gencode/auto_harness_many_ops.cpp");
 
 	REQUIRE(s == 0);
       }
+
+      saveToFile(g, "manyOps.json");
       
     }
 

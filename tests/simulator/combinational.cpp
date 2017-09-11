@@ -54,19 +54,21 @@ namespace CoreIR {
       RunGenerators rg;
       rg.runOnNamespace(g);
 
-      NGraph g;
-      buildOrderedGraph(add4_n, g);
+      NGraph gr;
+      buildOrderedGraph(add4_n, gr);
 
       SECTION("Checking graph size") {
-	REQUIRE(numVertices(g) == 5);
+	REQUIRE(numVertices(gr) == 5);
       }
       
-      deque<vdisc> topoOrder = topologicalSort(g);
+      deque<vdisc> topoOrder = topologicalSort(gr);
 
-      auto str = printCode(topoOrder, g, add4_n);
+      auto str = printCode(topoOrder, gr, add4_n);
       int s = compileCode(str, "./gencode/add4.cpp");
 
       cout << "Command result = " << s << endl;
+
+      saveToFile(g, "add4.json");
 
       REQUIRE(s == 0);
 

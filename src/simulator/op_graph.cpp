@@ -140,7 +140,8 @@ namespace CoreIR {
 
     vector<vdisc> s = vertsWithNoIncomingEdge(g);
 
-    vector<edisc> deleted_edges;
+    //vector<edisc> deleted_edges;
+    unordered_set<edisc> deleted_edges;
 
     while (s.size() > 0) {
       vdisc vd = s.back();
@@ -150,7 +151,8 @@ namespace CoreIR {
       
       for (auto ed : g.outEdges(vd)) {
 
-	deleted_edges.push_back(ed);
+	//deleted_edges.push_back(ed);
+	deleted_edges.insert(ed);
 	
 	vdisc src = g.source(ed);
 	vdisc dest = g.target(ed);

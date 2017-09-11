@@ -164,7 +164,9 @@ namespace CoreIR {
     std::ofstream out(harnessFile);
     out << harnessCode;
     out.close();
-    
+
+    cout << "Done generating harness" << endl;
+
     string runCmd = "clang++ " + codeFile + " " + harnessFile;
     int s = system(runCmd.c_str());
 
