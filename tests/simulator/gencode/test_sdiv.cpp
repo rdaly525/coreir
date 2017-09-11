@@ -15,7 +15,7 @@ int main() {
 
   uint8_t res = 234;
 
-  simulate(A, &res);
+  simulate(&res, A);
 
   cout << "sdiv expected = " << bitset<8>(expected) << endl;
   cout << "sdiv res      = " << bitset<8>(res) << endl;

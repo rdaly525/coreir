@@ -8,7 +8,7 @@ int main() {
   uint16_t res = 345;
   uint16_t expected = 2;
 
-  simulate(A, &res);
+  simulate(&res, A);
 
   if (res == expected) {
     return 0;

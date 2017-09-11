@@ -12,7 +12,7 @@ int main() {
   uint32_t expected = 5;
   uint32_t res = 30;
 
-  simulate(A, &res);
+  simulate(&res, A);
 
   cout << "udiv expected = " << expected << endl;
   cout << "udiv res      = " << res << endl;

@@ -15,10 +15,10 @@ int main() {
 
   uint8_t res = 234;
 
-  simulate(A, &res);
+  simulate(&res, A);
 
-  cout << "sdiv expected = " << bitset<8>(expected) << endl;
-  cout << "sdiv res      = " << bitset<8>(res) << endl;
+  cout << "srem expected = " << bitset<8>(expected) << endl;
+  cout << "srem res      = " << bitset<8>(res) << endl;
 
   if (expected == res) {
     return 0;

@@ -818,12 +818,16 @@ namespace CoreIR {
   std::vector<string> sortedSimArgumentList(Module& mod) {
 
     auto decls = sortedSimArgumentPairs(mod);
+
+    sort_lt(decls, [](const pair<Type*, string>& tpp) {
+	//return 0;
+	return tpp.second;
+      });
+
     vector<string> declStrs;
     for (auto declPair :  decls) {
       declStrs.push_back(cArrayTypeDecl(*(declPair.first), declPair.second));
     }
-
-    sort(declStrs);
 
     return declStrs;
   }

@@ -858,7 +858,7 @@ namespace CoreIR {
       
     }
 
-    SECTION("Signed 5 bit remainder") {
+    SECTION("Signed 5 bit division") {
       uint n = 5;
   
       Type* sdivType = c->Record({
