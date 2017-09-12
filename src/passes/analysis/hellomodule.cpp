@@ -6,10 +6,7 @@
  */
 
 #include "coreir.h"
-#include "coreir-passes/analysis/hellomodule.h"
-
-//This is For a convenient macro to create the registerPass and deletePass functions
-#include "coreir-macros.h"
+#include "coreir/passes/analysis/hellomodule.h"
 
 using namespace CoreIR;
 

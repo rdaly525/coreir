@@ -2,7 +2,7 @@
 #define INSTANCEGRAPH_HPP_
 
 #include "coreir.h"
-#include "list"
+#include <list>
 
 namespace CoreIR {
 

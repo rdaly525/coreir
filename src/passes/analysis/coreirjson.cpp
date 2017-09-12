@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/coreirjson.h"
+#include "coreir/passes/analysis/coreirjson.h"
 #include <set>
 #include <map>
 

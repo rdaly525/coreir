@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/transform/rungenerators.h"
+#include "coreir/passes/transform/rungenerators.h"
 
 using namespace CoreIR;
 

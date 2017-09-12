@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/createinstancegraph.h"
+#include "coreir/passes/analysis/createinstancegraph.h"
 
 using namespace CoreIR;
 

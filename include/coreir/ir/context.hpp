@@ -1,20 +1,12 @@
-#ifndef CONTEXT_HPP_
-#define CONTEXT_HPP_
+#ifndef _COREIR_CONTEXT_HPP_
+#define _COREIR_CONTEXT_HPP_
 
-#include "namespace.hpp"
-#include "typecache.hpp"
-#include "types.hpp"
-#include "typegen.hpp"
-#include "error.hpp"
-#include "common.hpp"
-#include "casting/casting.hpp"
-#include "directedview.hpp"
+
+
 
 #include <string>
 #include <unordered_set>
 #include <vector>
-
-using namespace std;
 
 namespace CoreIR {
 
@@ -149,15 +141,18 @@ bool saveToFilePretty(Namespace* ns, string filename,Module* top=nullptr);
 bool saveToDot(Module* m, string filename);
   
   
-//addPassthrough will create a passthrough Module for Wireable w with name <name>
+//addPassthrough will instance a passthrough Module for Wireable w with name <name>
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
   // that originally connected to w connecting to name.out which has the same type as w
+  // You can think of this as adding a wire
 Instance* addPassthrough(Wireable* w,string instname);
+//Inline the instance. returns whetehr it actually inlined the instance
+bool inlineInstance(Instance*);
 
 
 typedef Namespace* LoadLibrary_t(Context*);
-
+namespace CoreIR {
 
 } //CoreIR namespace
 

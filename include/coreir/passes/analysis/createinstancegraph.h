@@ -2,7 +2,7 @@
 #define CREATEINSTANCEGRAPH_HPP_
 
 #include "coreir.h"
-#include "coreir-instancegraph.h"
+#include "coreir/ir/instancegraph.h"
 
 namespace CoreIR {
 namespace Passes {

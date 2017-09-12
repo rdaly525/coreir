@@ -51,31 +51,16 @@ struct myPair {
   }
 };
 
-class Type;
-class BitType;
-class BitInType;
-class ArrayType;
-class RecordType;
-class NamedType;
-class TypeGen;
+typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
 typedef Type* (*TypeGenFun)(Context* c, Args args);
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef std::string (*NameGen_t)(Args);
 typedef myPair<uint,Type*> ArrayParams ;
-class TypeCache;
-class MetaData;
 
-//instantiable.hpp
-class Instantiable;
-class Generator;
-class Module;
-class ModuleDef;
-typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
+typedef deque<std::string> SelectPath;
+typedef vector<std::reference_wrapper<const string>> ConstSelectPath;
+typedef myPair<Wireable*,Wireable*> Connection;
 
-class Wireable;
-class Interface;
-class Instance;
-class Select;
 
 //typedef deque<string> SelectPath;
 

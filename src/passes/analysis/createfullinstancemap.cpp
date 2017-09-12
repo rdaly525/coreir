@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/createfullinstancemap.h"
+#include "coreir/passes/analysis/createfullinstancemap.h"
 
 using namespace CoreIR;
 

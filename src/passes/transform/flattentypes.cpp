@@ -1,6 +1,6 @@
 
 #include "coreir.h"
-#include "coreir-passes/transform/flattentypes.h"
+#include "coreir/passes/transform/flattentypes.h"
 #include <set>
 
 using namespace CoreIR;

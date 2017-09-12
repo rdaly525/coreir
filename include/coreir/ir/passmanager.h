@@ -2,9 +2,9 @@
 #define PASSMANAGER_HPP_
 
 #include "coreir.h"
-#include "coreir-passes.h"
-#include "coreir-instancegraph.h"
+#include "passes.h"
 #include <stack>
+//#include "instancegraph.h"
 
 namespace CoreIR {
 

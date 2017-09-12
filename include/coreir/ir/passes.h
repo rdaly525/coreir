@@ -1,8 +1,8 @@
 #ifndef PASSES_HPP_
 #define PASSES_HPP_
 
-#include "coreir-passmanager.h"
 #include "coreir.h"
+#include "passmanager.h"
 
 namespace CoreIR {
 

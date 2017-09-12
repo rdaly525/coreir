@@ -1,10 +1,5 @@
 #include "coreirprims.hpp"
 
-//#include "_coreirprims_bitwise.cpp"
-//#include "_coreirprims_arithmetic.cpp"
-//#include "_coreirprims_state.cpp"
-//#include "_coreirprims_convert.cpp"
-
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(coreirprims);
 
 using namespace CoreIR;

@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/transform/wireclocks.h"
+#include "coreir/passes/transform/wireclocks.h"
 
 using namespace CoreIR;
 
