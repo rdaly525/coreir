@@ -15,5 +15,8 @@ tests/simulator/gencode/*.c
 tests/simulator/gencode/*.cpp
 tests/simulator/gencode/*.h
 
+tests/simulator/obj_dir/
+tests/simulator/*.json
+tests/simulator/*.v
 
 a.out
