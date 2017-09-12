@@ -116,7 +116,7 @@ namespace CoreIR {
       out.close();      
       
       // Run verilator on the resulting file
-      string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc manyOps.v --exe ./gencode/manyOpMain.cpp --top-module manyOps";
+      string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc " + verilogFile + " --exe ./gencode/manyOpMain.cpp --top-module " + modName;
 
 
       s = system(compileVerilator.c_str());
@@ -124,12 +124,14 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
 
-      string compileCpp = "make -C obj_dir -j -f VmanyOps.mk VmanyOps";
+      string mkFile = "V" + modName + ".mk";
+      string exeFile = "V" + modName;
+      string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile; //" VmanyOps";
       s = system(compileCpp.c_str());
 
       REQUIRE(s == 0);
 
-      string runObj = "./obj_dir/VmanyOps";
+      string runObj = "./obj_dir/" + exeFile;
       s = system(runObj.c_str());
 
       REQUIRE(s == 0);
