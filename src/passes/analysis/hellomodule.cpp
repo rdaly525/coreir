@@ -11,6 +11,7 @@
 //This is For a convenient macro to create the registerPass and deletePass functions
 #include "coreir-macros.h"
 
+using namespace std;
 using namespace CoreIR;
 
 

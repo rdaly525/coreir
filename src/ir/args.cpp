@@ -1,9 +1,13 @@
 #include "args.hpp"
-#include "common.hpp"
-#include "error.hpp"
-#include "context.hpp"
+#include "types.hpp"
+
+using namespace std;
 
 namespace CoreIR {
+
+bool Arg::operator==(const Arg& r) const {
+  return r.getKind() == this->kind;
+}
 
 bool ArgBool::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;

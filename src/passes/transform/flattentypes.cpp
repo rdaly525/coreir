@@ -3,6 +3,7 @@
 #include "coreir-passes/transform/flattentypes.h"
 #include <set>
 
+using namespace std;
 using namespace CoreIR;
 namespace {
 inline bool isBit(Type* t) {

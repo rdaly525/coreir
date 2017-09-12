@@ -9,9 +9,9 @@ namespace Passes {
 class CreateModInstanceMap : public ModulePass {
   public:
     //Map from Instantiables to a list of instances
-    typedef unordered_map<Instantiable*,unordered_set<Instance*>> InstanceMapType;
+    typedef std::unordered_map<Instantiable*,std::unordered_set<Instance*>> InstanceMapType;
   private:
-    unordered_map<Module*,InstanceMapType> modInstanceMap;
+    std::unordered_map<Module*,InstanceMapType> modInstanceMap;
   public :
     static std::string ID;
     CreateModInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}

@@ -2,6 +2,7 @@
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(commonlib);
 
+using namespace std;
 using namespace CoreIR;
 
 uint num_bits(uint N) {

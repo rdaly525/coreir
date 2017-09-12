@@ -26,7 +26,7 @@ class HelloModule : public ModulePass {
   
   //Lets define some custom data structure.
   //This will keep a map from modules to a list of its register instances
-  unordered_map<Instantiable*,vector<Instance*>> registerMap;
+  std::unordered_map<Instantiable*,std::vector<Instance*>> registerMap;
 
   public:
     //The static keyword is important here!

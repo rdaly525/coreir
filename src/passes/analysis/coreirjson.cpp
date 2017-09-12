@@ -4,6 +4,7 @@
 #include <map>
 
 using namespace CoreIR;
+using namespace std;
 namespace {
 typedef vector<std::pair<string,string>> VStringPair;
 

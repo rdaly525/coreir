@@ -1,18 +1,22 @@
 #include "json.hpp"
-#include <iostream>
 #include <fstream>
 #include "context.hpp"
-#include "instantiable.hpp"
 #include "namespace.hpp"
+#include "types.hpp"
 #include "typegen.hpp"
-#include <unordered_map>
+#include "common.hpp"
+#include "error.hpp"
+#include "instantiable.hpp"
+#include "moduledef.hpp"
+#include "wireable.hpp"
 
+using namespace std;
 
 namespace CoreIR {
 
+using json = nlohmann::json;
 typedef unordered_map<string,json> jsonmap;
 
-using json = nlohmann::json;
 
 Type* json2Type(Context* c, json jt);
 Args json2Args(Context* c, Params p, json j);

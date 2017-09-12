@@ -4,13 +4,12 @@
 #include "coreir.h"
 #include <ostream>
 
-using namespace CoreIR;
 namespace CoreIR {
 namespace Passes {
 
 class Firrtl : public InstanceGraphPass {
-  unordered_map<Instantiable*,string> nameMap;
-  vector<string> fmods;
+  std::unordered_map<Instantiable*,std::string> nameMap;
+  std::vector<std::string> fmods;
   public :
     static std::string ID;
     Firrtl() : InstanceGraphPass(ID,"Creates Firrtl representation of IR",true) {}

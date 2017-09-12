@@ -1,12 +1,8 @@
 #include "common.hpp"
-#include <string>
-#include <sstream>
-#include <vector>
-#include <iterator>
-
-//#include "coreir.hpp"
-//#include "typedcoreir.hpp"
+#include "wireable.hpp"
 #include "args.hpp"
+//#include <sstream>
+//#include <iterator>
 
 using namespace std;
 namespace CoreIR {
@@ -102,15 +98,5 @@ vector<string> splitRef(string s) {
 bool hasChar(const std::string s, char c) {
   return s.find_first_of(c) !=string::npos;
 }
-
-//template<typename container>
-//string joinString(const container arr, string del) {
-//  string ret = "";
-//  for (auto it=arr.begin(); it!=arr.end(); ++it) {
-//    ret = ret + (it==arr.begin() ? "" : del) + *it;
-//  }
-//  return ret;
-//}
-
 
 } //CoreIR namespace

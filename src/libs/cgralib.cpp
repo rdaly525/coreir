@@ -2,6 +2,7 @@
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(cgralib);
 
+using namespace std;
 using namespace CoreIR;
 
 Namespace* CoreIRLoadLibrary_cgralib(Context* c) {

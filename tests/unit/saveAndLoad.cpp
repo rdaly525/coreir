@@ -1,5 +1,6 @@
 #include "coreir.h"
 
+using namespace std;
 using namespace CoreIR;
 
 //TODO add in Default args

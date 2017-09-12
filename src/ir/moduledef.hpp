@@ -1,20 +1,11 @@
-#ifndef MODULEDEF_HPP_
-#define MODULEDEF_HPP_
+#ifndef COREIR_MODULEDEF_HPP_
+#define COREIR_MODULEDEF_HPP_
 
 
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-#include "common.hpp"
+#include "fwd_declare.hpp"
 #include "context.hpp"
-#include "types.hpp"
-#include "args.hpp"
-#include "json.hpp"
-
+#include "instantiable.hpp"
 #include "wireable.hpp"
-
-using namespace std;
 
 namespace CoreIR {
 
@@ -23,35 +14,35 @@ class ModuleDef {
   protected:
     Module* module;
     Interface* interface; 
-    unordered_map<string,Instance*> instances;
-    unordered_set<Connection> connections;
+    std::unordered_map<std::string,Instance*> instances;
+    std::unordered_set<Connection> connections;
     
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;
     Instance* instancesIterLast = nullptr;
-    unordered_map<Instance*,Instance*> instancesIterNextMap;
-    unordered_map<Instance*,Instance*> instancesIterPrevMap;
+    std::unordered_map<Instance*,Instance*> instancesIterNextMap;
+    std::unordered_map<Instance*,Instance*> instancesIterPrevMap;
     void appendInstanceToIter(Instance* instance);
     void removeInstanceFromIter(Instance* instance);
     
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
-    unordered_map<string,Instance*> getInstances(void) { return instances;}
-    unordered_set<Connection> getConnections(void) { return connections; }
+    std::unordered_map<std::string,Instance*> getInstances(void) { return instances;}
+    std::unordered_set<Connection> getConnections(void) { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     
     //Return a shallow copy of this ModuleDef.
     ModuleDef* copy();
     Context* getContext();
-    const string& getName();
+    const std::string& getName();
     Type* getType();
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 
-    //Can select using string (inst.port.subport)
-    Wireable* sel(string s);
+    //Can select using std::string (inst.port.subport)
+    Wireable* sel(std::string s);
     //Or using a select Path
     Wireable* sel(SelectPath path);
 
@@ -60,14 +51,14 @@ class ModuleDef {
     Wireable* sel(std::initializer_list<std::string> path);
     
     //API for adding an instance of either a module or generator
-    Instance* addInstance(string instname,Generator* genref,Args genargs, Args config=Args());
-    Instance* addInstance(string instname,Module* modref,Args config=Args());
+    Instance* addInstance(std::string instname,Generator* genref,Args genargs, Args config=Args());
+    Instance* addInstance(std::string instname,Module* modref,Args config=Args());
     
-    //Add instance using an Instantiable ref string
-    Instance* addInstance(string instname,string iref,Args genOrConfigargs=Args(), Args configargs=Args());
+    //Add instance using an Instantiable ref std::string
+    Instance* addInstance(std::string instname,std::string iref,Args genOrConfigargs=Args(), Args configargs=Args());
     
     //copys info about i
-    Instance* addInstance(Instance* i,string iname="");
+    Instance* addInstance(Instance* i,std::string iname="");
 
     // API for iterating over instances
     Instance* getInstancesIterBegin() { return instancesIterFirst;}
@@ -77,9 +68,9 @@ class ModuleDef {
     //API for connecting two instances together
     void connect(Wireable* a, Wireable* b);
     void connect(SelectPath pathA, SelectPath pathB);
-    void connect(string pathA, string pathB); //dot notation a.b.c, e.f.g
+    void connect(std::string pathA, std::string pathB); //dot notation a.b.c, e.f.g
     void connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB);
-    void connect(std::initializer_list<std::string> pA, std::initializer_list<string> pB);
+    void connect(std::initializer_list<std::string> pA, std::initializer_list<std::string> pB);
     
     bool hasConnection(Wireable* a, Wireable* b);
     Connection getConnection(Wireable* a, Wireable* b);
@@ -93,7 +84,7 @@ class ModuleDef {
 
     //API for deleting an instance
     //This will also delete all connections from all connected things
-    void removeInstance(string inst);
+    void removeInstance(std::string inst);
     void removeInstance(Instance* inst);
 
 
@@ -104,9 +95,6 @@ class ModuleDef {
     //TODO Does not check if Everything (even inputs) is connected
     // Returns true if there is an error
     bool validate();
-    
-    json toJson();
-    
 };
 
 }//CoreIR namespace

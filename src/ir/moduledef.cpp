@@ -1,7 +1,10 @@
-
 #include "moduledef.hpp"
+#include "casting/casting.hpp"
+#include "common.hpp"
 #include "typegen.hpp"
+#include "error.hpp"
 #include <iterator>
+
 
 using namespace std;
 

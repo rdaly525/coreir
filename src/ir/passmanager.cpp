@@ -8,6 +8,7 @@
 
 
 
+using namespace std;
 using namespace CoreIR;
 
 PassManager::PassManager(Context* c) : c(c) {

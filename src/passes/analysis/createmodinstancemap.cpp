@@ -2,6 +2,7 @@
 #include "coreir-passes/analysis/createmodinstancemap.h"
 
 using namespace CoreIR;
+using namespace std;
 
 std::string Passes::CreateModInstanceMap::ID = "createmodinstancemap";
 bool Passes::CreateModInstanceMap::runOnModule(Module* m) {

@@ -1,17 +1,16 @@
-#ifndef VERILOG_HPP_
-#define VERILOG_HPP_
+#ifndef COREIR_VERILOG_HPP_
+#define COREIR_VERILOG_HPP_
 
 #include "coreir.h"
 #include <ostream>
 #include "vmodule.hpp"
 
-using namespace CoreIR;
 namespace CoreIR {
 namespace Passes {
 
 class Verilog : public InstanceGraphPass {
-  unordered_map<Instantiable*,VModule*> modMap;
-  unordered_set<Instantiable*> external;
+  std::unordered_map<Instantiable*,VModule*> modMap;
+  std::unordered_set<Instantiable*> external;
   public :
     static std::string ID;
     Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}

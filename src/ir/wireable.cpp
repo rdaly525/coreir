@@ -1,12 +1,18 @@
 #include "wireable.hpp"
+#include "common.hpp"
+#include "casting/casting.hpp"
+#include "context.hpp"
+#include "instantiable.hpp"
+#include "moduledef.hpp"
+#include "error.hpp"
+#include "types.hpp"
+#include "typegen.hpp"
 
 using namespace std;
 
 ///////////////////////////////////////////////////////////
 //----------------------- Wireables ----------------------//
 ///////////////////////////////////////////////////////////
-
-
 
 namespace CoreIR {
 

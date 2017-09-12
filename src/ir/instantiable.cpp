@@ -1,9 +1,12 @@
-#include <cassert>
-#include <vector>
-#include <set>
-
 #include "instantiable.hpp"
+#include "common.hpp"
+#include "context.hpp"
+#include "namespace.hpp"
+#include "moduledef.hpp"
+#include "types.hpp"
 #include "typegen.hpp"
+#include "generatordef.hpp"
+#include "directedview.hpp"
 
 using namespace std;
 

@@ -4,6 +4,7 @@
 #include "coreir-passes/common.h"
 
 
+using namespace std;
 using namespace CoreIR;
 
 

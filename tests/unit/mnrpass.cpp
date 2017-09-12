@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "coreir-passes/transform/matchandreplace.h"
 
+using namespace std;
 using namespace CoreIR;
 using MatchAndReplace = Passes::MatchAndReplace;
 

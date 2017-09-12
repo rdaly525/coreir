@@ -1,24 +1,9 @@
-#ifndef INSTANTIABLE_HPP_
-#define INSTANTIABLE_HPP_
+#ifndef COREIR_INSTANTIABLE_HPP_
+#define COREIR_INSTANTIABLE_HPP_
 
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
 
-#include "common.hpp"
-#include "context.hpp"
-#include "types.hpp"
-#include "args.hpp"
-#include "json.hpp"
-
-#include "moduledef.hpp"
-#include "generatordef.hpp"
-
+#include "fwd_declare.hpp"
 #include "metadata.hpp"
-#include "directedview.hpp"
-
-using json = nlohmann::json;
-using namespace std;
 
 namespace CoreIR {
 
@@ -29,16 +14,16 @@ class Instantiable : public MetaData {
   protected:
     InstantiableKind kind;
     Namespace* ns;
-    string name;
+    std::string name;
     Params configparams;
     Args defaultConfigArgs;
     LinkageKind linkageKind;
   public :
-    Instantiable(InstantiableKind kind, Namespace* ns, string name, Params configparams) : MetaData(), kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, std::string name, Params configparams) : MetaData(), kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
     virtual ~Instantiable() {}
     
     virtual bool hasDef() const=0;
-    virtual string toString() const =0;
+    virtual std::string toString() const =0;
     virtual void print(void) = 0;
     bool isKind(InstantiableKind k) const { return kind==k;}
     InstantiableKind getKind() const { return kind;}
@@ -46,10 +31,9 @@ class Instantiable : public MetaData {
     LinkageKind getLinkageKind() { return linkageKind; }
     Context* getContext();
     Params getConfigParams() { return configparams;}
-    const string& getName() const { return name;}
-    string getRefName() const;
+    const std::string& getName() const { return name;}
+    std::string getRefName() const;
     //string getName() const { return name;}
-    virtual json toJson()=0;
     Namespace* getNamespace() const { return ns;}
     void setNamespace(Namespace* ns) {this->ns = ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
@@ -59,7 +43,7 @@ class Instantiable : public MetaData {
     Args getDefaultConfigArgs() { return defaultConfigArgs;}
 };
 
-std::ostream& operator<<(ostream& os, const Instantiable&);
+std::ostream& operator<<(std::ostream& os, const Instantiable&);
 
 class Generator : public Instantiable {
   TypeGen* typegen;
@@ -68,16 +52,15 @@ class Generator : public Instantiable {
   NameGen_t nameGen=nullptr;
 
   //This is memory managed
-  unordered_map<Args,Module*> genCache;
+  std::unordered_map<Args,Module*> genCache;
   GeneratorDef* def = nullptr;
   
   public :
-    Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams, Params configparams);
+    Generator(Namespace* ns,std::string name,TypeGen* typegen, Params genparams, Params configparams);
     ~Generator();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
-    string toString() const;
+    std::string toString() const;
     void print(void);
-    json toJson();
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}
@@ -112,10 +95,10 @@ class Module : public Instantiable {
   DirectedModule* directedModule = nullptr;
   
   //Memory Management
-  vector<ModuleDef*> mdefList;
+  std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type) {}
+    Module(Namespace* ns,std::string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
@@ -131,8 +114,7 @@ class Module : public Instantiable {
     
     DirectedModule* newDirectedModule();
     
-    string toString() const;
-    json toJson();
+    std::string toString() const;
     Type* getType() { return type;}
     
     void print(void);

@@ -1,5 +1,12 @@
 #include "types.hpp"
+#include "casting/casting.hpp"
+#include "context.hpp"
+#include "namespace.hpp"
+#include "common.hpp"
+#include "error.hpp"
 #include "typegen.hpp"
+
+using namespace std;
 
 namespace CoreIR {
 

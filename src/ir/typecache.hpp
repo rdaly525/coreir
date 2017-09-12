@@ -1,12 +1,8 @@
-#ifndef TYPECACHE_HPP_
-#define TYPECACHE_HPP_
+#ifndef COREIR_TYPECACHE_HPP_
+#define COREIR_TYPECACHE_HPP_
 
-#include <unordered_map>
-#include "types.hpp"
-#include "common.hpp"
-#include "context.hpp"
 
-using namespace std;
+#include "fwd_declare.hpp"
 
 namespace CoreIR {
 
@@ -20,20 +16,13 @@ struct RecordParamsHasher {
   }
 };
 
-//struct ArrayParamsHasher {
-//  size_t operator()(const ArrayParams& rp) const {
-//     
-//  }
-//};
-
-class Context;
 class TypeCache {
   Context* c;
   Type* bitI;
   Type* bitO;
   Type* any;
-  unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
-  unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
+  std::unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
+  std::unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
   
   public :
     TypeCache(Context* c); 

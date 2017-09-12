@@ -1,5 +1,6 @@
 #include "instancegraph.h"
 
+using namespace std;
 using namespace CoreIR;
 
 void InstanceGraph::releaseMemory() {

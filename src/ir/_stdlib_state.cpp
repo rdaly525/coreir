@@ -3,6 +3,7 @@
 //   reg, ram, rom
 /////////////////////////////////
 
+using namespace std;
 using namespace CoreIR;
 
 void stdlib_state(Context* c, Namespace* stdlib) {

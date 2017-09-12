@@ -1,22 +1,14 @@
-#ifndef NAMESPACE_HPP_
-#define NAMESPACE_HPP_
+#ifndef COREIR_NAMESPACE_HPP_
+#define COREIR_NAMESPACE_HPP_
 
-#include "types.hpp" // For NamedType
-#include "instantiable.hpp"
-#include "common.hpp"
-#include "json.hpp"
-#include <string>
-#include <map>
-
-using json = nlohmann::json;
-using namespace std;
+#include "fwd_declare.hpp"
 
 namespace CoreIR {
 
 struct NamedCacheParams {
-  string name;
+  std::string name;
   Args args;
-  NamedCacheParams(string name, Args args) : name(name), args(args) {}
+  NamedCacheParams(std::string name, Args args) : name(name), args(args) {}
   friend bool operator==(const NamedCacheParams & l,const NamedCacheParams & r);
 };
 
@@ -26,62 +18,59 @@ struct NamedCacheParamsHasher {
 
 class Namespace {
   Context* c;
-  string name;
+  std::string name;
 
-  unordered_map<string,Module*> moduleList;
-  unordered_map<string,Generator*> generatorList;
+  std::unordered_map<std::string,Module*> moduleList;
+  std::unordered_map<std::string,Generator*> generatorList;
   
   
   //Lists the named type without args
-  unordered_map<string,NamedType*> namedTypeList;
+  std::unordered_map<std::string,NamedType*> namedTypeList;
   
   //Caches the NamedTypes with args
-  unordered_map<NamedCacheParams,NamedType*,NamedCacheParamsHasher> namedTypeGenCache;
+  std::unordered_map<NamedCacheParams,NamedType*,NamedCacheParamsHasher> namedTypeGenCache;
   
   //Mapping name to typegen 
-  unordered_map<string,TypeGen*> typeGenList;
+  std::unordered_map<std::string,TypeGen*> typeGenList;
 
   //Save the unflipped names for json file
-  unordered_map<string,string> namedTypeNameMap;
-  unordered_map<string,string> typeGenNameMap;
+  std::unordered_map<std::string,std::string> namedTypeNameMap;
+  std::unordered_map<std::string,std::string> typeGenNameMap;
 
   public :
-    Namespace(Context* c, string name) : c(c), name(name) {}
+    Namespace(Context* c, std::string name) : c(c), name(name) {}
     ~Namespace();
-    const string& getName() { return name;}
+    const std::string& getName() { return name;}
     Context* getContext() { return c;}
-    unordered_map<string,Module*> getModules() { return moduleList;}
-    unordered_map<string,Generator*> getGenerators() { return generatorList;}
+    std::unordered_map<std::string,Module*> getModules() { return moduleList;}
+    std::unordered_map<std::string,Generator*> getGenerators() { return generatorList;}
 
-    NamedType* newNamedType(string name, string nameFlip, Type* raw);
-    void newNominalTypeGen(string name, string nameFlip,Params genparams, TypeGenFun fun);
-    TypeGen* newTypeGen(string name, Params genparams, TypeGenFun fun);
-    bool hasNamedType(string name);
+    NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);
+    void newNominalTypeGen(std::string name, std::string nameFlip,Params genparams, TypeGenFun fun);
+    TypeGen* newTypeGen(std::string name, Params genparams, TypeGenFun fun);
+    bool hasNamedType(std::string name);
     
     //Only returns named types without args
-    unordered_map<string,NamedType*> getNamedTypes() { return namedTypeList;}
-    NamedType* getNamedType(string name);
-    NamedType* getNamedType(string name, Args genargs);
-    TypeGen* getTypeGen(string name);
-    bool hasTypeGen(string name) {return typeGenList.count(name)>0;}
+    std::unordered_map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
+    NamedType* getNamedType(std::string name);
+    NamedType* getNamedType(std::string name, Args genargs);
+    TypeGen* getTypeGen(std::string name);
+    bool hasTypeGen(std::string name) {return typeGenList.count(name)>0;}
 
     
-    Generator* newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams=Params());
-    Module* newModuleDecl(string name, Type* t,Params configparams=Params());
+    Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams, Params configparams=Params());
+    Module* newModuleDecl(std::string name, Type* t,Params configparams=Params());
     void addModule(Module* m);
 
-    Generator* getGenerator(string gname);
-    Module* getModule(string mname);
-    Instantiable* getInstantiable(string name);
-    bool hasModule(string mname) { return moduleList.count(mname) > 0; }
-    bool hasGenerator(string iname) { return generatorList.count(iname) > 0; }
-    bool hasInstantiable(string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
+    Generator* getGenerator(std::string gname);
+    Module* getModule(std::string mname);
+    Instantiable* getInstantiable(std::string name);
+    bool hasModule(std::string mname) { return moduleList.count(mname) > 0; }
+    bool hasGenerator(std::string iname) { return generatorList.count(iname) > 0; }
+    bool hasInstantiable(std::string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
     
-    json toJson();
     void print();
 };
-
-Namespace* newNamespace(Context* c,string name);
 
 }//CoreIR namespace
 

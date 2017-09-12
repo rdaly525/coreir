@@ -1,5 +1,7 @@
-#ifndef GENERATORDEF_HPP_
-#define GENERATORDEF_HPP_
+#ifndef COREIR_GENERATORDEF_HPP_
+#define COREIR_GENERATORDEF_HPP_
+
+#include "fwd_declare.hpp"
 
 namespace CoreIR {
 class GeneratorDef {

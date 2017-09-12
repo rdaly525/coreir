@@ -1,5 +1,6 @@
 #include "context.hpp"
 #include "coreirprims.hpp"
+#include "typecache.hpp"
 
 using namespace std;
 
@@ -40,6 +41,14 @@ void Context::print() {
     ns.second->print();
   }
   cout << "EndContext" << endl;
+}
+
+void Context::error(Error& e) { 
+  errors.push_back(e.msg);
+  if (e.isfatal || errors.size() >= maxErrors) die();
+}
+void Context::printerrors() { 
+  for (auto err : errors) cout << "ERROR: " << err << endl << endl;
 }
 
 void Context::die() {

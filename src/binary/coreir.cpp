@@ -7,6 +7,7 @@
 #include "coreir-passes/analysis/coreirjson.h"
 #include "coreir-passes/analysis/verilog.h"
 
+using namespace std;
 using namespace CoreIR;
 
 string getExt(string s) {

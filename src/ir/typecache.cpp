@@ -1,5 +1,8 @@
 #include "typecache.hpp"
+#include "context.hpp"
+#include "namespace.hpp"
 #include "args.hpp"
+#include "types.hpp"
 
 using namespace std;
 

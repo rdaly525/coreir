@@ -1,11 +1,8 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/verifyfullyconnected.h"
 
+using namespace std;
 using namespace CoreIR;
-
-//        Error e;
-//        e.message(
-//        c->error(e);
 
 bool Passes::VerifyFullyConnected::checkIfFullyConnected(Wireable* w,Error& e) {
   Context* c = this->getContext();

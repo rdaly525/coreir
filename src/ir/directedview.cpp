@@ -1,7 +1,11 @@
 
 #include "directedview.hpp"
+#include "types.hpp"
 #include "wireable.hpp"
+#include "instantiable.hpp"
+#include "moduledef.hpp"
 
+using namespace std;
 using namespace CoreIR;
 
 DirectedConnection::DirectedConnection(Connection& c) : c(c) {

@@ -1,6 +1,7 @@
 
 #include "coreir.h"
 
+using namespace std;
 namespace CoreIR {
 
 // This helper will connect everything from wa to wb with a spDelta. 

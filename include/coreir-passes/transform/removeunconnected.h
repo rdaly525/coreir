@@ -8,7 +8,7 @@ namespace Passes {
 
 class RemoveUnconnected : public InstancePass {
   public :
-    static string ID;
+    static std::string ID;
     RemoveUnconnected() : InstancePass(ID,"Removes unconnected Instances") {}
     bool runOnInstance(Instance* i) override;
 };

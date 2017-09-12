@@ -1,26 +1,10 @@
-#ifndef TYPES_HPP_
-#define TYPES_HPP_
+#ifndef COREIR_TYPES_HPP_
+#define COREIR_TYPES_HPP_
 
-
-#include <iostream>
-#include <string>
-#include <unordered_map>
-#include <vector>
-#include <cassert>
-
-#include "common.hpp"
-#include "args.hpp"
-#include "context.hpp"
-#include "error.hpp"
-#include "json.hpp"
-
-using json = nlohmann::json;
-
-using namespace std;
+#include "fwd_declare.hpp"
 
 namespace CoreIR {
 
-class NamedType;
 class Type {
   public :
     enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4,TK_Any=5};
@@ -38,13 +22,12 @@ class Type {
     virtual ~Type() {}
     TypeKind getKind() const {return kind;}
     DirKind getDir() const {return dir;}
-    virtual string toString(void) const =0;
-    virtual bool sel(string sel, Type** ret, Error* e);
-    bool canSel(string sel);
+    virtual std::string toString(void) const =0;
+    virtual bool sel(std::string sel, Type** ret, Error* e);
+    bool canSel(std::string sel);
     virtual uint getSize() const=0;
-    virtual json toJson();
     void print(void);
-    static string TypeKind2Str(TypeKind t);
+    static std::string TypeKind2Str(TypeKind t);
     
     //"sugar" for making arrays
     Type* Arr(uint i);
@@ -67,15 +50,15 @@ class Type {
 
 };
 
-std::ostream& operator<<(ostream& os, const Type& t);
+std::ostream& operator<<(std::ostream& os, const Type& t);
 
 class AnyType : public Type {
   public :
     AnyType(Context* c) : Type(TK_Any,DK_Unknown,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Any;}
-    string toString(void) const {return "Any";}
+    std::string toString(void) const {return "Any";}
     
-    bool sel(string sel, Type** ret, Error* e);
+    bool sel(std::string sel, Type** ret, Error* e);
     uint getSize() const { return 0;}
 };
 
@@ -83,7 +66,7 @@ class BitType : public Type {
   public :
     BitType(Context* c) : Type(TK_Bit,DK_Out,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Bit;}
-    string toString(void) const {return "Bit";}
+    std::string toString(void) const {return "Bit";}
     uint getSize() const { return 1;}
 };
 
@@ -92,14 +75,14 @@ class BitInType : public Type {
     BitInType(Context* c) : Type(TK_BitIn,DK_In,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_BitIn;}
     
-    string toString(void) const {return "BitIn";}
+    std::string toString(void) const {return "BitIn";}
     uint getSize() const { return 1;}
 };
 
 class NamedType : public Type {
   protected :
     Namespace* ns;
-    string name;
+    std::string name;
     
     Type* raw;
 
@@ -107,21 +90,20 @@ class NamedType : public Type {
     TypeGen* typegen=nullptr;
     Args genargs;
   public :
-    NamedType(Context* c, Namespace* ns, string name, Type* raw) : Type(TK_Named,raw->getDir(),c), ns(ns), name(name), raw(raw) {}
-    NamedType(Context* c, Namespace* ns, string name, TypeGen* typegen, Args genargs);
+    NamedType(Context* c, Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),c), ns(ns), name(name), raw(raw) {}
+    NamedType(Context* c, Namespace* ns, std::string name, TypeGen* typegen, Args genargs);
     static bool classof(const Type* t) {return t->getKind()==TK_Named;}
-    string toString(void) const { return name; } //TODO add generator
+    std::string toString(void) const { return name; } //TODO add generator
     Namespace* getNamespace() {return ns;}
-    string getName() {return name;}
-    string getRefName();
+    std::string getName() {return name;}
+    std::string getRefName();
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}
     Args getGenArgs() {return genargs;}
     uint getSize() const { return raw->getSize();}
     
-    json toJson();
-    bool sel(string sel, Type** ret, Error* e);
+    bool sel(std::string sel, Type** ret, Error* e);
 };
 
 class ArrayType : public Type {
@@ -132,33 +114,31 @@ class ArrayType : public Type {
     static bool classof(const Type* t) {return t->getKind()==TK_Array;}
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
-    string toString(void) const { 
-      return elemType->toString() + "[" + to_string(len) + "]";
+    std::string toString(void) const { 
+      return elemType->toString() + "[" + std::to_string(len) + "]";
     };
-    json toJson();
-    bool sel(string sel, Type** ret, Error* e);
+    bool sel(std::string sel, Type** ret, Error* e);
     uint getSize() const { return len * elemType->getSize();}
 
 };
 
 
 class RecordType : public Type {
-  unordered_map<string,Type*> record;
-  vector<string> _order;
+  std::unordered_map<std::string,Type*> record;
+  std::vector<std::string> _order;
   public :
     RecordType(Context* c, RecordParams _record);
     RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
-    vector<string> getFields() { return _order;}
-    unordered_map<string,Type*> getRecord() { return record;}
-    string toString(void) const;
-    json toJson();
-    bool sel(string sel, Type** ret, Error* e);
+    std::vector<std::string> getFields() { return _order;}
+    std::unordered_map<std::string,Type*> getRecord() { return record;}
+    std::string toString(void) const;
+    bool sel(std::string sel, Type** ret, Error* e);
     uint getSize() const;
     
     //nice functions for creating a new type with or without a field
-    Type* appendField(string label, Type* t); 
-    Type* detachField(string label);
+    Type* appendField(std::string label, Type* t); 
+    Type* detachField(std::string label);
 
 };
 

@@ -1,10 +1,8 @@
-#ifndef WIREABLE_HPP_
-#define WIREABLE_HPP_
+#ifndef COREIR_WIREABLE_HPP_
+#define COREIR_WIREABLE_HPP_
 
+#include "fwd_declare.hpp"
 #include "metadata.hpp"
-#include "context.hpp"
-
-using namespace std;
 
 namespace CoreIR {
 
@@ -19,17 +17,17 @@ class Wireable : public MetaData {
     ModuleDef* container; // ModuleDef which it is contained in 
     Type* type;
 
-    unordered_set<Wireable*> connected; 
+    std::unordered_set<Wireable*> connected; 
     
     //This manages the memory for the selects
-    unordered_map<string,Select*> selects;
+    std::unordered_map<std::string,Select*> selects;
   public :
     Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
     virtual ~Wireable();
-    virtual string toString() const=0;
-    unordered_set<Wireable*> getConnectedWireables() { return connected;}
-    unordered_map<string,Select*> getSelects() { return selects;}
-    bool hasSel(string selstr) {return selects.count(selstr) >0;}
+    virtual std::string toString() const=0;
+    std::unordered_set<Wireable*> getConnectedWireables() { return connected;}
+    std::unordered_map<std::string,Select*> getSelects() { return selects;}
+    bool hasSel(std::string selstr) {return selects.count(selstr) >0;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();
     WireableKind getKind() const { return kind; }
@@ -40,7 +38,7 @@ class Wireable : public MetaData {
       connected.erase(w);
     }
     
-    Select* sel(string);
+    Select* sel(std::string);
     Select* sel(uint);
     Select* sel(SelectPath);
     
@@ -48,7 +46,7 @@ class Wireable : public MetaData {
     Select* sel(std::initializer_list<const char*> path);
     Select* sel(std::initializer_list<std::string> path);
   
-    bool canSel(string);
+    bool canSel(std::string);
   
     //Connect this to w
     void connect(Wireable* w);
@@ -61,12 +59,12 @@ class Wireable : public MetaData {
     // {add3inst,a,b,0}
     SelectPath getSelectPath();
     ConstSelectPath getConstSelectPath();
-    string wireableKind2Str(WireableKind wb);
+    std::string wireableKind2Str(WireableKind wb);
     LocalConnections getLocalConnections();
     Wireable* getTopParent();
 
     //removes the select from this wireble.
-    void removeSel(string selStr);
+    void removeSel(std::string selStr);
 
 
   protected :
@@ -77,19 +75,19 @@ class Wireable : public MetaData {
     }
 };
 
-ostream& operator<<(ostream&, const Wireable&);
+std::ostream& operator<<(std::ostream&, const Wireable&);
 
 class Interface : public Wireable {
-  static const string instname;
+  static const std::string instname;
   public :
     Interface(ModuleDef* container,Type* type) : Wireable(WK_Interface,container,type) {};
     static bool classof(const Wireable* w) {return w->getKind()==WK_Interface;}
-    string toString() const;
-    const string& getInstname() { return instname; }
+    std::string toString() const;
+    const std::string& getInstname() { return instname; }
 };
 
 class Instance : public Wireable {
-  const string instname;
+  const std::string instname;
   Module* moduleRef = nullptr;
   
   Args configargs;
@@ -100,14 +98,14 @@ class Instance : public Wireable {
   Args genargs;
   
   public :
-    Instance(ModuleDef* container, string instname, Module* moduleRef, Args configargs=Args());
-    Instance(ModuleDef* container, string instname, Generator* generatorRef, Args genargs, Args configargs=Args());
+    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Args configargs=Args());
+    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Args genargs, Args configargs=Args());
     static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
-    string toString() const;
+    std::string toString() const;
     json toJson();
     Module* getModuleRef() {return moduleRef;}
-    const string& getInstname() { return instname; }
-    Arg* getConfigArg(string s);
+    const std::string& getInstname() { return instname; }
+    Arg* getConfigArg(std::string s);
     Args getConfigArgs() const {return configargs;}
     bool hasConfigArgs() {return !configargs.empty();}
     
@@ -138,13 +136,13 @@ class Instance : public Wireable {
 class Select : public Wireable {
   protected :
     Wireable* parent;
-    string selStr;
+    std::string selStr;
   public :
-    Select(ModuleDef* container, Wireable* parent, string selStr, Type* type) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr) {}
+    Select(ModuleDef* container, Wireable* parent, std::string selStr, Type* type) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr) {}
     static bool classof(const Wireable* w) {return w->getKind()==WK_Select;}
-    string toString() const;
+    std::string toString() const;
     Wireable* getParent() { return parent; }
-    const string& getSelStr() { return selStr; }
+    const std::string& getSelStr() { return selStr; }
 };
 
 }//CoreIR namespace

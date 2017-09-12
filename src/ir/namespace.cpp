@@ -1,5 +1,10 @@
 #include "namespace.hpp"
+#include "common.hpp"
+#include "context.hpp"
+#include "types.hpp"
 #include "typegen.hpp"
+#include "instantiable.hpp"
+#include "error.hpp"
 
 using namespace std;
 
@@ -84,9 +89,8 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
   if (namedFound != namedTypeGenCache.end() ) {
     return namedFound->second;
   }
-  
+  cout << "named type: " << name << " not found:" << Args2Str(genargs) << endl;
   //Not found. Verify that name exists in TypeGenList
-  //TODO deal with the 'at' error possiblities
   if (typeGenList.count(name)==0 || typeGenNameMap.count(name)==0) {
     Error e;
     e.message("Could not Named Type!");

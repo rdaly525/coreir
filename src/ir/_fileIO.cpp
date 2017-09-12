@@ -7,6 +7,7 @@
 #include "typegen.hpp"
 #include <unordered_map>
 
+using namespace std;
 
 namespace CoreIR {
 

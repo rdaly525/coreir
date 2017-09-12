@@ -1,5 +1,6 @@
-#ifndef ERROR_HPP_
-#define ERROR_HPP_
+#ifndef COREIR_ERROR_HPP_
+#define COREIR_ERROR_HPP_
+
 #include <sstream>
 #include <string>
 
@@ -7,16 +8,11 @@ namespace CoreIR {
 
 struct Error {
   
-  bool isfatal;
-  string msg;
-  Error() {isfatal = false;}
+  bool isfatal = false;
+  std::string msg;
+  Error() {}
   void fatal() { isfatal = true;}
-  void message(string s) { msg = msg + s + "\n"; }
-  string toString() { return msg; }
-  //friend void operator<<(Error e, std::ostream& s) {
-  //  std::ostringstream os;
-  //  e.msg += s.str();
-  //}
+  void message(std::string s) { msg = msg + s + "\n"; }
 };
 
 }//CoreIR namespace

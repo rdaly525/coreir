@@ -1,29 +1,32 @@
-#ifndef VMODULE_HPP_
-#define VMODULE_HPP_
+#ifndef COREIR_VMODULE_HPP_
+#define COREIR_VMODULE_HPP_
 
 
 //What I need to represent
 //
-//Wire(string name, int bits)
+//Wire(std::string name, int bits)
 //
-//ModuleDec((Wire w,string dir)* puts,stmt* stmsts)
-//Stmt = string
+//ModuleDec((Wire w,std::string dir)* puts,stmt* stmsts)
+//Stmt = std::string
 //     | WireDec(Wire w)
-//     | Assigns(string left, string right)
-//     | Instance(string modname,(Wire l, Wire r)*)
+//     | Assigns(std::string left, std::string right)
+//     | Instance(std::string modname,(Wire l, Wire r)*)
 //
-//Expr = string
+//Expr = std::string
 //     | Wire
 
 
-using namespace CoreIR; //TODO get rid of this
+#include "coreir.h"
+
+namespace CoreIR {
+namespace Passes {
 
 class VWire {
-  string name;
+  std::string name;
   unsigned dim;
   Type::DirKind dir;
   public :
-    VWire(string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
+    VWire(std::string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
     VWire(Wireable* w) : VWire("",w->getType()) {
       SelectPath sp = w->getSelectPath();
       if (sp.size()==3) {
@@ -41,34 +44,34 @@ class VWire {
         name = sp[0]+ "_" + name;
       }
     }
-    VWire(string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
-    string dimstr() {
+    VWire(std::string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
+    std::string dimstr() {
       if (dim==1) return "";
-      return "["+to_string(dim-1)+":0]";
+      return "["+std::to_string(dim-1)+":0]";
     }
-    string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
-    string getName() { return name;}
+    std::string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
+    std::string getName() { return name;}
 };
 
 
 class VModule {
-  string modname;
-  unordered_map<string,VWire> ports;
-  unordered_set<string> params;
-  unordered_map<string,string> paramDefaults;
+  std::string modname;
+  std::unordered_map<std::string,VWire> ports;
+  std::unordered_set<std::string> params;
+  std::unordered_map<std::string,std::string> paramDefaults;
 
   Generator* gen = nullptr;
   
-  vector<string> stmts;
+  std::vector<std::string> stmts;
   public:
-    VModule(string modname, Type* t) {
+    VModule(std::string modname, Type* t) {
       this->modname = modname;
       Type2Ports(t,ports);
     }
     VModule(Module* m) : VModule(m->getName(),m->getType()) {
       const json& jmeta = m->getMetaData();
       if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
-        modname = jmeta["verilog"]["prefix"].get<string>() + m->getName();
+        modname = jmeta["verilog"]["prefix"].get<std::string>() + m->getName();
       }
 
       this->addparams(m->getConfigParams());
@@ -79,19 +82,19 @@ class VModule {
     VModule(Generator* g) : modname(g->getName()), gen(g) {
       const json& jmeta = g->getMetaData();
       if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
-        modname = jmeta["verilog"]["prefix"].get<string>() + g->getName();
+        modname = jmeta["verilog"]["prefix"].get<std::string>() + g->getName();
       }
       this->addparams(g->getGenParams());
       this->addparams(g->getConfigParams());
     }
-    void addStmt(string stmt) { stmts.push_back(stmt); }
-    string toCommentString() {
+    void addStmt(std::string stmt) { stmts.push_back(stmt); }
+    std::string toCommentString() {
       return "//Module: " + modname + " defined externally";
     }
-    string toString();
-    string toInstanceString(Instance* inst);
+    std::string toString();
+    std::string toInstanceString(Instance* inst);
   private :
-    void Type2Ports(Type* t,unordered_map<string,VWire>& ports) {
+    void Type2Ports(Type* t,std::unordered_map<std::string,VWire>& ports) {
       for (auto rmap : cast<RecordType>(t)->getRecord()) {
         ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       }
@@ -103,5 +106,8 @@ class VModule {
       }
     }
 };
+
+}
+}
 
 #endif

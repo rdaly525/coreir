@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "coreir-passes/transform/rungenerators.h"
 
+using namespace std;
 using namespace CoreIR;
 
 

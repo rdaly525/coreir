@@ -11,18 +11,18 @@ namespace CoreIR {
 class InstanceGraph;
 class PassManager {
   Context* c;
-  vector<Namespace*> nss; 
+  std::vector<Namespace*> nss; 
 
   //Data structure for storing passes
-  std::unordered_map<string,Pass*> passMap;
+  std::unordered_map<std::string,Pass*> passMap;
 
   //Name to isValid
-  std::unordered_map<string,bool> analysisPasses;
+  std::unordered_map<std::string,bool> analysisPasses;
   
-  vector<string> passLog;
+  std::vector<std::string> passLog;
   bool verbose = false;
   public:
-    typedef vector<std::string> PassOrder;
+    typedef std::vector<std::string> PassOrder;
     explicit PassManager(Context* c);
     ~PassManager();
     Context* getContext() { return c;}
@@ -31,7 +31,7 @@ class PassManager {
 
     //Runs all passes in order over namespaces
     //Returns if graph was modified
-    bool run(PassOrder order, vector<string> namespaceName={"global"});
+    bool run(PassOrder order, std::vector<std::string> namespaceName={"global"});
 
     void setVerbosity(bool v) { verbose = v;}
     void printLog();
@@ -43,7 +43,7 @@ class PassManager {
     }
 
   private:
-    void pushAllDependencies(string oname,stack<string> &work);
+    void pushAllDependencies(std::string oname,std::stack<std::string> &work);
 
     friend class Pass;
     bool runPass(Pass* p);

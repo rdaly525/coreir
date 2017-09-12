@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/verifyflattenedtypes.h"
 
+using namespace std;
 using namespace CoreIR;
 
 namespace {

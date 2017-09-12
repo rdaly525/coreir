@@ -38,11 +38,11 @@ class InstanceGraphNode {
 
     //Add a new field (port) to this node
     //Only works with Modules. 
-    void appendField(string label,Type* t);
+    void appendField(std::string label,Type* t);
     
     //Remove port from this instance
     //Will disconnect anything connected to this port both in the module and all instances
-    void detachField(string label);
+    void detachField(std::string label);
 
   private:
     std::vector<InstanceGraphNode*> ignList;

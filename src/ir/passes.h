@@ -1,8 +1,7 @@
-#ifndef PASSES_HPP_
-#define PASSES_HPP_
+#ifndef COREIR_PASSES_HPP_
+#define COREIR_PASSES_HPP_
 
-#include "passmanager.h"
-#include "coreir.h"
+#include "fwd_declare.hpp"
 
 namespace CoreIR {
 
@@ -17,7 +16,7 @@ class Pass {
     std::string description;
     //Whether this is an isAnalysis pass
     bool isAnalysis;
-    std::vector<string> dependencies;
+    std::vector<std::string> dependencies;
     PassManager* pm;
   public:
     explicit Pass(PassKind kind,std::string name, std::string description, bool isAnalysis) : kind(kind), name(name), description(description), isAnalysis(isAnalysis) {}
@@ -26,7 +25,7 @@ class Pass {
     
     virtual void releaseMemory() {}
     virtual void setAnalysisInfo() {}
-    void addDependency(string name) { dependencies.push_back(name);}
+    void addDependency(std::string name) { dependencies.push_back(name);}
     Context* getContext();
     std::string getName() { return name;}
     virtual void print() {}
@@ -96,13 +95,10 @@ class InstanceVisitorPass : public Pass {
     virtual void print() override {}
     virtual void setVisitorInfo() = 0;
     typedef bool (*InstanceVisitor_t)(Instance*);
-    void addVisitorFunction(Instantiable* i,InstanceVisitor_t fun) {
-      ASSERT(visitorMap.count(i)==0,"Already added Function for " + i->getRefName());
-      visitorMap[i] = fun;
-    }
-    bool runOnInstances(Instantiable* i, unordered_set<Instance*>& instances);
+    void addVisitorFunction(Instantiable* i,InstanceVisitor_t fun);
+    bool runOnInstances(Instantiable* i, std::unordered_set<Instance*>& instances);
   private:
-    unordered_map<Instantiable*,InstanceVisitor_t> visitorMap;
+    std::unordered_map<Instantiable*,InstanceVisitor_t> visitorMap;
 };
 
 

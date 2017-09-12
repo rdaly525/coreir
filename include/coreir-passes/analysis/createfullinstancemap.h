@@ -8,7 +8,7 @@ namespace Passes {
 
 class CreateFullInstanceMap : public ModulePass {
   //Map from Instantiables to a list of instances
-  unordered_map<Instantiable*,unordered_set<Instance*>> instanceMap;
+  std::unordered_map<Instantiable*,std::unordered_set<Instance*>> instanceMap;
   public :
     static std::string ID;
     CreateFullInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
@@ -19,11 +19,11 @@ class CreateFullInstanceMap : public ModulePass {
     bool hasInstances(Instantiable* i) {
       return instanceMap.count(i) > 0;
     }
-    unordered_set<Instance*> getInstances(Instantiable* i) {
+    std::unordered_set<Instance*> getInstances(Instantiable* i) {
       ASSERT(this->hasInstances(i),i->getRefName() + " has no instances!");
       return instanceMap[i];
     }
-    unordered_map<Instantiable*,unordered_set<Instance*>>& getFullInstanceMap() {
+    std::unordered_map<Instantiable*,std::unordered_set<Instance*>>& getFullInstanceMap() {
       return instanceMap;
     }
 };

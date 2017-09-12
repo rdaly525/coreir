@@ -2,6 +2,8 @@
 #include "coreir-passes/analysis/vmodule.hpp"
 
 using namespace CoreIR;
+using namespace CoreIR::Passes;
+using namespace std;
 
 string VModule::toString() {
   vector<string> pdecs;
