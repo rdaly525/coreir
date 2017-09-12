@@ -107,7 +107,8 @@ namespace CoreIR {
 
       // Building verilog example
 
-      string modName = "manyOps";
+      string modName = manyOps->getName(); //"manyOps";
+
       string jsonFile = modName + ".json";
       string verilogFile = modName + ".v";
 
@@ -119,27 +120,21 @@ namespace CoreIR {
 	"../../bin/coreir -i " + jsonFile + " " + " -o " + verilogFile;
       int s = system(runCmd.c_str());
 
-      REQUIRE(s == 0);
-
       appendStdLib(verilogFile);
       
       // Run verilator on the resulting file
-      string mainFileLoc = "./gencode/manyOpMain.cpp";
+      string mainFileLoc = "./gencode/manyOpsMain.cpp";
       string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc " + verilogFile + " --exe " + mainFileLoc + " --top-module " + modName;
 
-      s = system(compileVerilator.c_str());
-
-      REQUIRE(s == 0);
+      s = s || system(compileVerilator.c_str());
 
       string mkFile = "V" + modName + ".mk";
       string exeFile = "V" + modName;
       string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile;
-      s = system(compileCpp.c_str());
-
-      REQUIRE(s == 0);
+      s = s || system(compileCpp.c_str());
 
       string runObj = "./obj_dir/" + exeFile;
-      s = system(runObj.c_str());
+      s = s || system(runObj.c_str());
 
       REQUIRE(s == 0);
 
