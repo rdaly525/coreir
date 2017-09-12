@@ -184,65 +184,74 @@ namespace CoreIR {
     return elem(genRefName, siOps);
   }
   
-  string printOpThenMaskBinop(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printOpThenMaskBinop(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    Instance* inst = toInstance(wd.getWire());
 
-      auto outSelects = getOutputSelects(inst);
+    auto outSelects = getOutputSelects(inst);
 
-      assert(outSelects.size() == 1);
+    assert(outSelects.size() == 1);
 
-      string res = "";
+    string res = "";
 
-      pair<string, Wireable*> outPair = *std::begin(outSelects);
-      res += inst->getInstname() + "_" + outPair.first + " = ";
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    res += inst->getInstname() + "_" + outPair.first + " = ";
 
-      auto inConns = getInputConnections(vd, g);
+    auto inConns = getInputConnections(vd, g);
 
-      assert(inConns.size() == 2);
+    assert(inConns.size() == 2);
 
-      WireNode arg1;
-      WireNode arg2;
+    WireNode arg1;
+    WireNode arg2;
 
-      auto dest = inConns[0].second.getWire();
-      assert(isSelect(dest));
+    auto dest = inConns[0].second.getWire();
+    assert(isSelect(dest));
 
-      Select* destSel = toSelect(dest);
-      assert(destSel->getParent() == inst);
+    Select* destSel = toSelect(dest);
+    assert(destSel->getParent() == inst);
 
-      if (destSel->getSelStr() == "in0") {
-	arg1 = inConns[0].first;
-	arg2 = inConns[1].first;
-      } else {
-	arg1 = inConns[1].first;
-	arg2 = inConns[0].first;
-      }
+    if (destSel->getSelStr() == "in0") {
+      arg1 = inConns[0].first;
+      arg2 = inConns[1].first;
+    } else {
+      arg1 = inConns[1].first;
+      arg2 = inConns[0].first;
+    }
 
-      string opString = getOpString(*inst);
+    string opString = getOpString(*inst);
 
-      string compString = cVar(arg1) + opString + cVar(arg2);
+    string compString = cVar(arg1) + opString + cVar(arg2);
 
-      // And not standard width
-      if (isDASHR(*inst)) {
-	uint tw = typeWidth(*(arg1.getWire()->getType()));
-	uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
+    // And not standard width
+    if (isDASHR(*inst)) {
+      uint tw = typeWidth(*(arg1.getWire()->getType()));
+      uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
 
-	assert(containWidth > tw);
+      assert(containWidth > tw);
 
-	//uint diff = containWidth - tw;
-	//string diffStr = parens(to_string(diff) + " + " + cVar(arg2));
+      //uint diff = containWidth - tw;
+      //string diffStr = parens(to_string(diff) + " + " + cVar(arg2));
 
-	string mask =
-	  parens(bitMaskString(cVar(arg2)) + " << " + parens(to_string(tw) + " - " + cVar(arg2)));
+      string mask =
+	parens(bitMaskString(cVar(arg2)) + " << " + parens(to_string(tw) + " - " + cVar(arg2)));
 
-	string signBitSet =
-	  parens("0x01 & " + parens(cVar(arg1) +  " >> " + parens(to_string(tw - 1))));
+      string signBitSet =
+	parens("0x01 & " + parens(cVar(arg1) +  " >> " + parens(to_string(tw - 1))));
 
-	compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
-      }
+      compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
+    }
 
+    assert(wd.highBitsAreDirty());
+    assert(!!(wd.highBitsAreDirty()));
+
+    if (wd.highBitsAreDirty()) {
       res += maskResult(*(outPair.second->getType()), compString) + ";\n";
-      res += "\n";
+    } else {
+      //res += compString + ";\n";
+      //maskResult(*(outPair.second->getType()), compString) + ";\n";
+    }
+    res += "\n";
 
-      return res;
+    return res;
   }
 
   string castToSigned(Type& tp, const std::string& expr) {
@@ -370,15 +379,17 @@ namespace CoreIR {
     assert(false);
   }
 
-  string printBinop(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 2);
+
+    Instance* inst = toInstance(wd.getWire());
 
     if (isBitwiseOp(*inst) ||
 	isSignInvariantOp(*inst) ||
 	isUnsignedCmp(*inst) ||
 	isShiftOp(*inst) ||
 	isUDivOrRem(*inst)) {
-      return printOpThenMaskBinop(inst, vd, g);
+      return printOpThenMaskBinop(wd, vd, g);
     }
 
     if (isSignedCmp(*inst) ||
@@ -528,7 +539,7 @@ namespace CoreIR {
     }
 
     if (ins.size() == 2) {
-      return printBinop(inst, vd, g);
+      return printBinop(wd, vd, g);
     }
 
     if (ins.size() == 1) {

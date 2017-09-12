@@ -15,18 +15,22 @@ namespace CoreIR {
     bool isReceiver;
 
     WireNode() :
-      highBitsDirty(false), wire(nullptr), isSequential(false), isReceiver(false) {}
+      highBitsDirty(true), wire(nullptr), isSequential(false), isReceiver(false) {}
 
     WireNode(CoreIR::Wireable* wire_,
 	     const bool isSequential_,
 	     const bool isReceiver_) :
       // TODO: Change to true when benchmarking is done
-      highBitsDirty(false),
+      highBitsDirty(true),
       wire(wire_),
       isSequential(isSequential_),
       isReceiver(isReceiver_) {}
     
     CoreIR::Wireable* getWire() const { return wire; }
+
+    bool highBitsAreDirty() const { return highBitsDirty; }
+
+    void setHighBitsDirty(const bool val) { highBitsDirty = val; }
 
     bool operator==(const WireNode& other) const {
       return (wire == other.wire) &&
