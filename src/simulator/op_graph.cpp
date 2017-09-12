@@ -222,7 +222,7 @@ namespace CoreIR {
 
     vdisc c1_disc;
     if (isRegisterInstance(p1)) {
-      auto c1_disc_it = imap.find({p1, true, false});
+      auto c1_disc_it = imap.find(outputNode(p1)); //{p1, true, false});
 
       assert(c1_disc_it != imap.end());
 
@@ -231,7 +231,7 @@ namespace CoreIR {
     } else {
       assert(!isRegisterInstance(p1));
 
-      auto c1_disc_it = imap.find({p1, false, false});
+      auto c1_disc_it = imap.find(combNode(p1));//{p1, false, false});
 
       assert(c1_disc_it != imap.end());
 
@@ -242,7 +242,7 @@ namespace CoreIR {
 
     vdisc c2_disc;
     if (isRegisterInstance(p2)) {
-      auto c2_disc_it = imap.find({p2, true, true});
+      auto c2_disc_it = imap.find(receiverNode(p2));//{p2, true, true});
 
       assert(c2_disc_it != imap.end());
 
@@ -250,7 +250,7 @@ namespace CoreIR {
     } else {
       assert(!isRegisterInstance(p2));
 
-      auto c2_disc_it = imap.find({p2, false, false});
+      auto c2_disc_it = imap.find(combNode(p2)); //{p2, false, false});
 
       assert(c2_disc_it != imap.end());
 
@@ -272,8 +272,8 @@ namespace CoreIR {
       string genRefName = getInstanceName(*inst);
 
       if (genRefName == "reg") {
-	WireNode wOutput{w1, true, false};
-	WireNode wInput{w1, true, true};
+	WireNode wOutput = outputNode(w1);//{w1, true, false};
+	WireNode wInput = receiverNode(w1); //{w1, true, true};
 
 	if (imap.find(wOutput) == end(imap)) {
 	  cout << "Adding register output" << endl;
