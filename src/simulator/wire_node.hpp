@@ -5,12 +5,23 @@
 namespace CoreIR {
 
   class WireNode {
+  protected:
+    //bool highBitsDirty;
+
   public:
     CoreIR::Wireable* wire;
 
     bool isSequential;
     bool isReceiver;
 
+    WireNode() :
+      wire(nullptr), isSequential(false), isReceiver(false) {}
+
+    WireNode(CoreIR::Wireable* wire_,
+	     const bool isSequential_,
+	     const bool isReceiver_) :
+      wire(wire_), isSequential(isSequential_), isReceiver(isReceiver_) {}
+    
     CoreIR::Wireable* getWire() const { return wire; }
 
     bool operator==(const WireNode& other) const {
