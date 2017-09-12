@@ -125,6 +125,12 @@ namespace CoreIR {
       s = system(compileCpp.c_str());
 
       REQUIRE(s == 0);
+
+      string runObj = "./obj_dir/VmanyOps";
+      s = system(runObj.c_str());
+
+      REQUIRE(s == 0);
+
     }
 
     deleteContext(c);
