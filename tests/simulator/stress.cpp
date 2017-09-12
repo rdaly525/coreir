@@ -1,5 +1,9 @@
 #include "catch.hpp"
 
+#include <fstream>
+#include <string>
+#include <iostream>
+
 #include "fuzzing.hpp"
 
 #include "coreir.h"
@@ -23,7 +27,7 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 31;
-      uint numInputs = 3000;
+      uint numInputs = 100;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
@@ -86,7 +90,35 @@ namespace CoreIR {
 	REQUIRE(s == 0);
       }
 
-      saveToFile(g, "manyOps.json");
+      // Building verilog example
+
+      string jsonFile = "manyOps.json";
+      // Save to json
+      saveToFile(g, jsonFile);
+
+      // Use coreir to build json into
+      string runCmd = "../../bin/coreir -i manyOps.json -o manyOps.v";
+      int s = system(runCmd.c_str());
+
+      REQUIRE(s == 0);
+
+      std::ifstream t("manyOps.v");
+      std::string str((std::istreambuf_iterator<char>(t)),
+		      std::istreambuf_iterator<char>());
+
+      str = "`include \"stdlib.v\"\n" + str;
+
+      std::ofstream out("manyOps.v");
+      out << str;
+      out.close();      
+      
+      // Run verilator on the resulting file
+      string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc manyOps.v --exe manyOpMain.cpp --top-module manyOps";
+
+      s = system(compileVerilator.c_str());
+
+      REQUIRE(s == 0);
+
       
     }
 
