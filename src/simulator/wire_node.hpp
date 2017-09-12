@@ -37,15 +37,15 @@ namespace CoreIR {
   };
 
   static inline WireNode combNode(CoreIR::Wireable* wire) {
-    return {wire, false, false};
+    return WireNode(wire, false, false);
   }
 
   static inline WireNode receiverNode(CoreIR::Wireable* wire) {
-    return {wire, true, true};
+    return WireNode(wire, true, true);
   }
 
   static inline WireNode outputNode(CoreIR::Wireable* wire) {
-    return {wire, true, false};
+    return WireNode(wire, true, false);
   }
   
 }

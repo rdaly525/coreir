@@ -292,7 +292,7 @@ namespace CoreIR {
     }
 
     if (imap.find(combNode(w1)) == end(imap)) {
-
+      //{w1, false, false}) == end(imap)) {
       WireNode w = combNode(w1); 
       vdisc v1 = g.addVertex(w);
       imap.insert({w, v1});
