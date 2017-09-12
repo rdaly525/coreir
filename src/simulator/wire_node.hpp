@@ -6,7 +6,7 @@ namespace CoreIR {
 
   class WireNode {
   protected:
-    //bool highBitsDirty;
+    bool highBitsDirty;
 
   public:
     CoreIR::Wireable* wire;
@@ -15,12 +15,16 @@ namespace CoreIR {
     bool isReceiver;
 
     WireNode() :
-      wire(nullptr), isSequential(false), isReceiver(false) {}
+      highBitsDirty(false), wire(nullptr), isSequential(false), isReceiver(false) {}
 
     WireNode(CoreIR::Wireable* wire_,
 	     const bool isSequential_,
 	     const bool isReceiver_) :
-      wire(wire_), isSequential(isSequential_), isReceiver(isReceiver_) {}
+      // TODO: Change to true when benchmarking is done
+      highBitsDirty(false),
+      wire(wire_),
+      isSequential(isSequential_),
+      isReceiver(isReceiver_) {}
     
     CoreIR::Wireable* getWire() const { return wire; }
 
