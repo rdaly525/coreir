@@ -92,17 +92,20 @@ namespace CoreIR {
 
       // Building verilog example
 
-      string jsonFile = "manyOps.json";
+      string modName = "manyOps";
+      string jsonFile = modName + ".json";
+      string verilogFile = modName + ".v";
       // Save to json
       saveToFile(g, jsonFile);
 
       // Use coreir to build json into
-      string runCmd = "../../bin/coreir -i manyOps.json -o manyOps.v";
+      string runCmd =
+	"../../bin/coreir -i " + jsonFile + " " + " -o " + verilogFile;
       int s = system(runCmd.c_str());
 
       REQUIRE(s == 0);
 
-      std::ifstream t("manyOps.v");
+      std::ifstream t(verilogFile);
       std::string str((std::istreambuf_iterator<char>(t)),
 		      std::istreambuf_iterator<char>());
 
