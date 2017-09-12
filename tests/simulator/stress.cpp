@@ -19,7 +19,22 @@
 using namespace CoreIR;
 using namespace CoreIR::Passes;
 
+
 namespace CoreIR {
+
+  void appendStdLib(const std::string& verilogFile) {
+
+    std::ifstream t(verilogFile);
+    std::string str((std::istreambuf_iterator<char>(t)),
+		    std::istreambuf_iterator<char>());
+
+    str = "`include \"stdlib.v\"\n" + str;
+
+    std::ofstream out(verilogFile);
+    out << str;
+    out.close();      
+    
+  }
 
   TEST_CASE("Large circuits for testing") {
     Context* c = newContext();
@@ -95,6 +110,7 @@ namespace CoreIR {
       string modName = "manyOps";
       string jsonFile = modName + ".json";
       string verilogFile = modName + ".v";
+
       // Save to json
       saveToFile(g, jsonFile);
 
@@ -105,28 +121,19 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
 
-      std::ifstream t(verilogFile);
-      std::string str((std::istreambuf_iterator<char>(t)),
-		      std::istreambuf_iterator<char>());
-
-      str = "`include \"stdlib.v\"\n" + str;
-
-      std::ofstream out("manyOps.v");
-      out << str;
-      out.close();      
+      appendStdLib(verilogFile);
       
       // Run verilator on the resulting file
-      string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc " + verilogFile + " --exe ./gencode/manyOpMain.cpp --top-module " + modName;
-
+      string mainFileLoc = "./gencode/manyOpMain.cpp";
+      string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc " + verilogFile + " --exe " + mainFileLoc + " --top-module " + modName;
 
       s = system(compileVerilator.c_str());
-
 
       REQUIRE(s == 0);
 
       string mkFile = "V" + modName + ".mk";
       string exeFile = "V" + modName;
-      string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile; //" VmanyOps";
+      string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile;
       s = system(compileCpp.c_str());
 
       REQUIRE(s == 0);
