@@ -113,13 +113,18 @@ namespace CoreIR {
       out.close();      
       
       // Run verilator on the resulting file
-      string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc manyOps.v --exe manyOpMain.cpp --top-module manyOps";
+      string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc manyOps.v --exe ./gencode/manyOpMain.cpp --top-module manyOps";
+
 
       s = system(compileVerilator.c_str());
 
+
       REQUIRE(s == 0);
 
-      
+      string compileCpp = "make -C obj_dir -j -f VmanyOps.mk VmanyOps";
+      s = system(compileCpp.c_str());
+
+      REQUIRE(s == 0);
     }
 
     deleteContext(c);
