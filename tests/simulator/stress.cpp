@@ -43,27 +43,37 @@ namespace CoreIR {
     string jsonFile = modName + ".json";
     string verilogFile = modName + ".v";
 
-    // Save to json
+    // Save namespace to json
     saveToFile(g, jsonFile);
 
-    // Use coreir to build json into
+    // Use coreir to compile json into verilog
     string runCmd =
       "../../bin/coreir -i " + jsonFile + " " + " -o " + verilogFile;
     int s = system(runCmd.c_str());
 
     appendStdLib(verilogFile);
-      
+
+    // Auto generating main file
+    string mainFileLoc = "./gencode/" + modName + "Main.cpp";
+    string mainStr = "#include <iostream>\n\nusing namespace std;\nint main() {\n\ncout << \"HELLO WORLD!!\" << endl;\n}\n";
+    
+    std::ofstream out(mainFileLoc);
+    out << mainStr;
+    out.close();      
+
     // Run verilator on the resulting file
-    string mainFileLoc = "./gencode/manyOpsMain.cpp";
-    string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc " + verilogFile + " --exe " + mainFileLoc + " --top-module " + modName;
+    string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc " +
+      verilogFile + " --exe " + mainFileLoc + " --top-module " + modName;
 
     s = s || system(compileVerilator.c_str());
 
+    // Build the resulting C++ code
     string mkFile = "V" + modName + ".mk";
     string exeFile = "V" + modName;
     string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile;
     s = s || system(compileCpp.c_str());
 
+    // Run the resulting executable
     string runObj = "./obj_dir/" + exeFile;
     s = s || system(runObj.c_str());
 
