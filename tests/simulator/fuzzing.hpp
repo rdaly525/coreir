@@ -6,8 +6,8 @@
 namespace CoreIR {
 
   int generateHarnessAndRun(const std::deque<vdisc>& topoOrder,
-			    NGraph& g,
-			    Module* mod,
+			    CoreIR::NGraph& g,
+			    CoreIR::Module* mod,
 			    const std::string& outFileBase,
 			    const std::string& harnessFile);
   
@@ -15,4 +15,7 @@ namespace CoreIR {
 
   std::string randomSimInputHarness(Module* mod);
 
+  int buildVerilator(CoreIR::Module* m,
+		     CoreIR::Namespace* g);
+  
 }

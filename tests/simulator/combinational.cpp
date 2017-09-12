@@ -4,6 +4,8 @@
 #include "coreir-passes/analysis/pass_sim.h"
 #include "coreir-passes/transform/rungenerators.h"
 
+#include "fuzzing.hpp"
+
 #include "../src/simulator/output.hpp"
 #include "../src/simulator/sim.hpp"
 #include "../src/simulator/utils.hpp"
@@ -72,6 +74,11 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
 
+      // Building verilog example
+      s = buildVerilator(add4_n, g);
+
+      REQUIRE(s == 0);
+      
     }
 
     SECTION("64 bit subtract") {

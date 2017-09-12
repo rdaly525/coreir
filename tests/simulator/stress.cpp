@@ -22,71 +22,13 @@ using namespace CoreIR::Passes;
 
 namespace CoreIR {
 
-  void appendStdLib(const std::string& verilogFile) {
-
-    std::ifstream t(verilogFile);
-    std::string str((std::istreambuf_iterator<char>(t)),
-		    std::istreambuf_iterator<char>());
-
-    str = "`include \"stdlib.v\"\n" + str;
-
-    std::ofstream out(verilogFile);
-    out << str;
-    out.close();      
-    
-  }
-
-  int buildVerilator(Module* m,
-		     Namespace* g) {
-    string modName = m->getName();
-
-    string jsonFile = modName + ".json";
-    string verilogFile = modName + ".v";
-
-    // Save namespace to json
-    saveToFile(g, jsonFile);
-
-    // Use coreir to compile json into verilog
-    string runCmd =
-      "../../bin/coreir -i " + jsonFile + " " + " -o " + verilogFile;
-    int s = system(runCmd.c_str());
-
-    appendStdLib(verilogFile);
-
-    // Auto generating main file
-    string mainFileLoc = "./gencode/" + modName + "Main.cpp";
-    string mainStr = "#include <iostream>\n\nusing namespace std;\nint main() {\n\ncout << \"HELLO WORLD!!\" << endl;\n}\n";
-    
-    std::ofstream out(mainFileLoc);
-    out << mainStr;
-    out.close();      
-
-    // Run verilator on the resulting file
-    string compileVerilator = "verilator -O3 -Wall -Wno-DECLFILENAME --cc " +
-      verilogFile + " --exe " + mainFileLoc + " --top-module " + modName;
-
-    s = s || system(compileVerilator.c_str());
-
-    // Build the resulting C++ code
-    string mkFile = "V" + modName + ".mk";
-    string exeFile = "V" + modName;
-    string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile;
-    s = s || system(compileCpp.c_str());
-
-    // Run the resulting executable
-    string runObj = "./obj_dir/" + exeFile;
-    s = s || system(runObj.c_str());
-
-    return s;
-  }
-
   TEST_CASE("Large circuits for testing") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
 
     SECTION("Many logical operations in parallel") {
       uint n = 31;
-      uint numInputs = 100;
+      uint numInputs = 3000;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
