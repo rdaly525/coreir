@@ -1,8 +1,8 @@
-#include "typecache.hpp"
-#include "context.hpp"
-#include "namespace.hpp"
-#include "args.hpp"
-#include "types.hpp"
+#include "coreir/ir/typecache.hpp"
+#include "coreir/ir/context.hpp"
+#include "coreir/ir/namespace.hpp"
+#include "coreir/ir/args.hpp"
+#include "coreir/ir/types.hpp"
 
 using namespace std;
 

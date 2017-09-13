@@ -1,7 +1,7 @@
 #ifndef COREIR_ICE40LIB_H_
 #define COREIR_ICE40LIB_H_
 
-#include "coreir-macros.h"
+#include "coreir/common-macros.h"
 #include "coreir-c/ctypes.h"
 
 #ifdef __cplusplus

@@ -1,7 +1,7 @@
 #ifndef COREIR_CGRALIB_H_
 #define COREIR_CGRALIB_H_
 
-#include "coreir-macros.h"
+#include "coreir/common-macros.h"
 #include "coreir-c/ctypes.h"
 
 #ifdef __cplusplus

@@ -1,4 +1,4 @@
-#include "coreir-lib/commonlib.h"
+#include "coreir/libs/commonlib.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(commonlib);
 

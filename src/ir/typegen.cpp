@@ -1,7 +1,7 @@
-#include "typegen.hpp"
-#include "namespace.hpp"
-#include "common.hpp"
-#include "types.hpp"
+#include "coreir/ir/typegen.hpp"
+#include "coreir/ir/namespace.hpp"
+#include "coreir/ir/common.hpp"
+#include "coreir/ir/types.hpp"
 
 using namespace std;
 

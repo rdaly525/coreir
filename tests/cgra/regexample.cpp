@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-lib/cgralib.h"
+#include "coreir/libs/cgralib.h"
 
 using namespace std;
 using namespace CoreIR;

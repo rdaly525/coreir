@@ -61,6 +61,8 @@ class Interface;
 class Instance;
 class Select;
 
+class Pass;
+class PassManager;
 
 typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
 

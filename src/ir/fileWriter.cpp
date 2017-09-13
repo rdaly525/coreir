@@ -1,13 +1,13 @@
-#include "json.hpp"
 #include <fstream>
-#include "context.hpp"
-#include "instantiable.hpp"
-#include "namespace.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/json.hpp"
+#include "coreir/ir/context.hpp"
+#include "coreir/ir/instantiable.hpp"
+#include "coreir/ir/namespace.hpp"
+#include "coreir/ir/typegen.hpp"
 #include <unordered_map>
 #include <algorithm>
 #include <set>
-#include "coreir-passes/analysis/coreirjson.h"
+#include "coreir/passes/analysis/coreirjson.h"
 
 using namespace std;
 namespace CoreIR {

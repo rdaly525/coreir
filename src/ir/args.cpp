@@ -1,6 +1,6 @@
-#include "args.hpp"
-#include "types.hpp"
-#include "common.hpp"
+#include "coreir/ir/args.hpp"
+#include "coreir/ir/types.hpp"
+#include "coreir/ir/common.hpp"
 
 using namespace std;
 

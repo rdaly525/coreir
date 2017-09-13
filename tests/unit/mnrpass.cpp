@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/transform/matchandreplace.h"
+#include "coreir/passes/transform/matchandreplace.h"
 
 using namespace std;
 using namespace CoreIR;
