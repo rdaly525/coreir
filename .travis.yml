@@ -18,7 +18,7 @@ before_install:
 
 script:
   - make test
-  - make installtest
+  - sudo make installtest
   - pytest -s  # Test python bindings
 
 compiler:
