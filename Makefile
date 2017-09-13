@@ -21,7 +21,7 @@ pytest: py
 	cd tests
 	pytest;
 
-installtest: install
+installtest:
 	$(MAKE) -C tests/install
 	cd tests/install; ./run
 
@@ -83,8 +83,14 @@ clean:
 
 .PHONY: travis
 travis:
+	export COREIR=
+	export DYLD_LIBRARY_PATH=
 	$(MAKE) clean
-	$(MAKE) install
+	sudo $(MAKE) install
+	$(MAKE) installtest
+	sudo $(MAKE) uninstall
+	export COREIR=/Users/rdaly/coreir
+	export DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:$$COREIR/lib
 	$(MAKE) test
-	$(MAKE) py
+	sudo $(MAKE) install
 	$(MAKE) pytest

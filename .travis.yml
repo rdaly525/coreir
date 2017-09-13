@@ -20,7 +20,8 @@ script:
   - sudo make uninstall
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   - make test
-#  - pytest -s  # Test python bindings
+  - sudo make install
+  - pytest -s  # Test python bindings
 
 compiler:
   - gcc
