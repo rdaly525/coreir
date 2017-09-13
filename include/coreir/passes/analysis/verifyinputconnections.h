@@ -8,9 +8,10 @@ namespace Passes {
 
 //Verifies that All input connections are driven by exactly one source
 class VerifyInputConnections : public ModulePass {
+  bool checkClkRst=true;
   public :
     static std::string ID;
-    VerifyInputConnections() : ModulePass(ID,"Verifies no multiple outputs to inputs",true) {}
+    VerifyInputConnections(bool checkClkRst=true) : ModulePass(ID,"Verifies no multiple outputs to inputs",true) {}
     bool runOnModule(Module* m) override;
 };
 

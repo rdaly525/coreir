@@ -7,7 +7,7 @@
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
 #include "analysis/coreirjson.h"
-#include "analysis/verifyfullyconnected.h"
+#include "analysis/verifyconnectivity.h"
 #include "analysis/verifyinputconnections.h"
 #include "analysis/verifyflattenedtypes.h"
 #include "analysis/createmodinstancemap.h"
@@ -36,8 +36,10 @@ namespace CoreIR {
     pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());
     pm.addPass(new Passes::VerifyInputConnections());
-    pm.addPass(new Passes::VerifyFullyConnected(true));
-    pm.addPass(new Passes::VerifyFullyConnected(false));
+    pm.addPass(new Passes::VerifyConnectivity(true,true));
+    pm.addPass(new Passes::VerifyConnectivity(true,false));
+    pm.addPass(new Passes::VerifyConnectivity(false,true));
+    pm.addPass(new Passes::VerifyConnectivity(false,false));
     pm.addPass(new Passes::VerifyFlattenedTypes());
     
     //Transform
