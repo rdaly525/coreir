@@ -48,7 +48,8 @@ install: build coreir
 	install -d $(prefix)/include/coreir/passes/transform
 	install include/coreir.h $(prefix)/include
 	install include/coreir-c/* $(prefix)/include/coreir-c
-	install include/coreir/ir/*.h* $(prefix)/include/coreir/ir
+	install include/coreir/*.h $(prefix)/include/coreir
+	install include/coreir/ir/*.h $(prefix)/include/coreir/ir
 	install include/coreir/ir/casting/* $(prefix)/include/coreir/ir/casting
 	install include/coreir/libs/* $(prefix)/include/coreir/libs
 	install include/coreir/passes/*.h $(prefix)/include/coreir/passes
@@ -63,9 +64,6 @@ uninstall:
 	-rm $(prefix)/include/coreir.h
 	-rm -r $(prefix)/include/coreir
 	-rm -r $(prefix)/include/coreir-c
-
-
-
 
 .PHONY: coreir
 coreir: build
