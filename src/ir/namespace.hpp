@@ -5,17 +5,6 @@
 
 namespace CoreIR {
 
-struct NamedCacheParams {
-  std::string name;
-  Args args;
-  NamedCacheParams(std::string name, Args args) : name(name), args(args) {}
-  friend bool operator==(const NamedCacheParams & l,const NamedCacheParams & r);
-};
-
-struct NamedCacheParamsHasher {
-  size_t operator()(const NamedCacheParams& n) const;
-};
-
 class Namespace {
   Context* c;
   std::string name;
@@ -23,12 +12,11 @@ class Namespace {
   std::unordered_map<std::string,Module*> moduleList;
   std::unordered_map<std::string,Generator*> generatorList;
   
-  
   //Lists the named type without args
   std::unordered_map<std::string,NamedType*> namedTypeList;
   
   //Caches the NamedTypes with args
-  std::unordered_map<NamedCacheParams,NamedType*,NamedCacheParamsHasher> namedTypeGenCache;
+  std::unordered_map<std::string,std::unordered_map<Args,NamedType*>> namedTypeGenCache;
   
   //Mapping name to typegen 
   std::unordered_map<std::string,TypeGen*> typeGenList;

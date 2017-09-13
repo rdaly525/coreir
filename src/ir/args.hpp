@@ -68,6 +68,8 @@ class ArgType : public Arg {
     type get() { return t;}
 };
 
+bool operator==(const Args& l, const Args& r);
+
 //class Instantiable;
 //class ArgInst : Arg {
 //  Instantiable* i;

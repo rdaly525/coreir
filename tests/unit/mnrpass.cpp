@@ -17,7 +17,7 @@ int main() {
   Args wargs({{"width",c->argInt(19)}});
   
   // Define random module with subs
-  Module* ms = prj->newModuleDecl("SNRTestSub",c->Any());
+  Module* ms = prj->newModuleDecl("SNRTestSub",c->Record());
   ModuleDef* def = ms->newModuleDef();
     def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(5)}});
     def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",c->argInt(5)}});
@@ -35,7 +35,7 @@ int main() {
   ms->print();
   
   // Define same random module with adds instead of subs and operands switched
-  Module* ma = g->newModuleDecl("SNRTestAdd",c->Any());
+  Module* ma = g->newModuleDecl("SNRTestAdd",c->Record());
   def = ma->newModuleDef();
     def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(0)}});
     def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",c->argInt(1)}});

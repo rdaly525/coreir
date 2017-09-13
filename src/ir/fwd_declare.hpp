@@ -66,7 +66,7 @@ typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
 
 typedef std::unordered_map<std::string,Param> Params;
 typedef std::unordered_map<std::string,Arg*> Args;
-
+bool operator==(const Args& l, const Args& r);
 
 //TODO this is a hack solution that should be fixed
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
@@ -116,7 +116,7 @@ namespace std {
     size_t operator() (const CoreIR::myPair<T1,T2>& p) const {
       auto h1 = std::hash<T1>{}(p.first);
       auto h2 = std::hash<T2>{}(p.second);
-      return h1 ^ (h2*3);
+      return h1 ^ (h2<<1);
     }
   };
 

@@ -27,11 +27,12 @@ int main() {
   };
 
   g->newNominalTypeGen("int", "intIn",{{"w",AINT}},intTypeFun);
-
   Args ga1 = {{"w",c->argInt(16)}};
   Args ga2 = {{"w",c->argInt(16)}};
   Args ga3 = {{"w",c->argInt(17)}};
   
+  ASSERT(ga1 == ga2,"Equality is bad");
+  ASSERT(ga1 != ga3,"not equalit is bad");
   assert(g->getNamedType("int",ga1) == g->getNamedType("int",ga2));
   assert(g->getNamedType("int",ga1) != g->getNamedType("int",ga3));
   assert(g->getNamedType("int",ga1) == c->Flip(g->getNamedType("intIn",ga2)));

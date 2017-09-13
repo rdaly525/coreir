@@ -12,7 +12,7 @@ int main() {
   //Createing a pretty expansive example for caleb
   Args w16 = {{"width",c->argInt(16)}};
   
-  Module* Top = c->getGlobal()->newModuleDecl("Top",c->Any());
+  Module* Top = c->getGlobal()->newModuleDecl("Top",c->Record());
   ModuleDef* def = Top->newModuleDef();
     def->addInstance("io0","cgralib.IO",w16,{{"mode",c->argString("i")}});
     def->addInstance("r0","coreir.reg",w16);

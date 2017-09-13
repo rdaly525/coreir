@@ -95,7 +95,7 @@ string Args2Json(Args args) {
 }
 
 string TopType2Json(Type* t) {
-  ASSERT(isa<RecordType>(t),"Can only do Record Types for top level");
+  ASSERT(isa<RecordType>(t),"Expecting Record type but got " + t->toString());
   Array a;
   a.add(quote("Record"));
   auto rt = cast<RecordType>(t);

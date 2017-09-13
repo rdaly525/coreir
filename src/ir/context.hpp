@@ -71,7 +71,7 @@ class Context {
     Type* Bit();
     Type* BitIn();
     Type* Array(uint n, Type* t);
-    Type* Record(RecordParams rp);
+    Type* Record(RecordParams rp=RecordParams());
     Type* Named(std::string nameref);
     Type* Named(std::string nameref, Args args);
 

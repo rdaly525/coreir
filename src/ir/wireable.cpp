@@ -193,6 +193,7 @@ Instance::Instance(ModuleDef* container, string instname, Generator* generatorRe
   checkArgsAreParams(genargs,generatorRef->getGenParams());
   this->genargs = genargs;
   this->type = generatorRef->getTypeGen()->getType(genargs);
+  ASSERT(isa<RecordType>(this->type),"Generated type needs to be a record but is: " + this->type->toString());
   mergeArgs(configargs,generatorRef->getDefaultConfigArgs());
   checkArgsAreParams(configargs,generatorRef->getConfigParams());
   this->configargs = configargs;

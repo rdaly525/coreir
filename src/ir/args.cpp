@@ -1,5 +1,6 @@
 #include "args.hpp"
 #include "types.hpp"
+#include "common.hpp"
 
 using namespace std;
 
@@ -56,7 +57,6 @@ using namespace CoreIR;
 
 //TODO sketchy because I am overloading a version of unordered_map
 size_t std::hash<Args>::operator() (const Args& args) const {
-  
   size_t ret = 0;
   //Need to combine these in an order independent way, so just xor
   for (auto it : args) {

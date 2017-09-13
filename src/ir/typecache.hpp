@@ -1,7 +1,6 @@
 #ifndef COREIR_TYPECACHE_HPP_
 #define COREIR_TYPECACHE_HPP_
 
-
 #include "fwd_declare.hpp"
 
 namespace CoreIR {

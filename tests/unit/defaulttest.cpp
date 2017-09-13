@@ -35,7 +35,7 @@ int main() {
     "default_type", //name for the typegen
     {{"ga",AINT},{"gb",AINT}}, //generater parameters
     [](Context* c, Args args) { //Function to compute type
-      return c->Any();
+      return c->Record();
     }
   );
 
@@ -45,7 +45,7 @@ int main() {
   d->addDefaultGenArgs({{"ga",c->argInt(5)}});
   d->addDefaultConfigArgs({{"ca",c->argInt(10)}});
 
-  Module* tester = g->newModuleDecl("Tester",c->Any());
+  Module* tester = g->newModuleDecl("Tester",c->Record());
   ModuleDef* def = tester->newModuleDef();
     def->addInstance("i0",d,{{"ga",c->argInt(6)},{"gb",c->argInt(7)}},{{"ca",c->argInt(11)},{"cb",c->argInt(12)}});
     def->addInstance("i1",d,{{"gb",c->argInt(7)}},{{"cb",c->argInt(12)}});

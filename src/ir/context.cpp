@@ -18,8 +18,6 @@ Context::Context() : maxErrors(8) {
 Context::~Context() {
   
   //for (auto it : genargsList) delete it;
-  for (auto it : argList) delete it;
-  for (auto it : argPtrArrays) free(it);
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
   for (auto it : libs) delete it.second;
@@ -31,7 +29,9 @@ Context::~Context() {
   for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
- 
+  for (auto it : argList) delete it;
+  for (auto it : argPtrArrays) free(it);
+
   delete cache;
 }
 

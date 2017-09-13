@@ -74,7 +74,7 @@ int main() {
   //Test casting of Module
   {
     Namespace* g = c->getGlobal();
-    Instantiable* m = g->newModuleDecl("A",c->Any());
+    Instantiable* m = g->newModuleDecl("A",c->Record());
     assert(isa<Module>(m));
     Module* mi = cast<Module>(m);
     assert(dyn_cast<Instantiable>(m));
@@ -96,7 +96,7 @@ int main() {
   //Test casting of Wireables
   {
     Namespace* g = c->getGlobal();
-    Module* m = g->newModuleDecl("B",c->Any());
+    Module* m = g->newModuleDecl("B",c->Record({{"in",c->Bit()}}));
     ModuleDef* def = m->newModuleDef();
     Wireable* iface = def->sel("self");
     assert(isa<Interface>(iface));
@@ -112,7 +112,7 @@ int main() {
     assert(dyn_cast<Instance>(inst));
     assert(!dyn_cast<Interface>(inst));
     
-    Wireable* sel = inst->sel(5);
+    Wireable* sel = inst->sel("in");
     assert(isa<Select>(sel));
     Select* sel_ = cast<Select>(sel);
     assert(dyn_cast<Wireable>(sel_));
