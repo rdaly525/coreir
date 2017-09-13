@@ -1,4 +1,4 @@
-#include "coreir-c/coreir.h"
+#include "coreir.h"
 #include "assert.h"
 
 #include "stdio.h"

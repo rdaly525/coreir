@@ -22,8 +22,7 @@
 
 #else //C header
 
-//#include "coreir-c/coreir.h"
-//#include "fuck.h"
+#include "coreir-c/coreir.h"
 
 #endif
 
