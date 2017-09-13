@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/vmodule.hpp"
+#include "coreir/passes/analysis/vmodule.hpp"
 
 using namespace CoreIR;
 using namespace CoreIR::Passes;

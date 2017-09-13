@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "passes.h"
+#include "coreir-passes.h"
 
 using namespace std;
 using namespace CoreIR;

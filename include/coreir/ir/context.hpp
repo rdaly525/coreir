@@ -1,5 +1,5 @@
-#ifndef CONTEXT_HPP_
-#define CONTEXT_HPP_
+#ifndef COREIR_CONTEXT_HPP_
+#define COREIR_CONTEXT_HPP_
 
 #include "fwd_declare.hpp"
 
@@ -130,15 +130,15 @@ bool saveToFilePretty(Namespace* ns, std::string filename,Module* top=nullptr);
 bool saveToDot(Module* m, std::string filename);
   
   
-//addPassthrough will create a passthrough Module for Wireable w with name <name>
+//addPassthrough will instance a passthrough Module for Wireable w with name <name>
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
   // that originally connected to w connecting to name.out which has the same type as w
 Instance* addPassthrough(Wireable* w,std::string instname);
+bool inlineInstance(Instance*);
 
 
 typedef Namespace* LoadLibrary_t(Context*);
-
 
 } //CoreIR namespace
 

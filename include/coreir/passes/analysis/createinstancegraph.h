@@ -22,4 +22,4 @@ class CreateInstanceGraph : public NamespacePass {
 }
 }
 
-#endif 
+#endif
