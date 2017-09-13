@@ -12,16 +12,12 @@ addons:
 before_install:
   - export COREIRCONFIG="g++-4.9";
   - sudo make -j 2 install
-  - pip install --user pytest
-  - pip install --user -e bindings/python
 
 script:
   - make installtest
   - sudo make uninstall
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   - make test
-  - sudo make install
-  - pytest -s  # Test python bindings
 
 compiler:
   - gcc
