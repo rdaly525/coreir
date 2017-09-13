@@ -21,7 +21,7 @@
               "genargs": {
                 "width": 16
               },
-              "genref": "cgralib.Const"
+              "genref": "coreir.const"
             },
             "io0": {
               "configargs": {
@@ -46,7 +46,7 @@
                 "op": "add"
               },
               "genargs": {
-                "numin": 2,
+                "numdataports": 2,
                 "width": 16
               },
               "genref": "cgralib.PE"
@@ -55,31 +55,31 @@
               "genargs": {
                 "width": 16
               },
-              "genref":"cgralib.Reg"
+              "genref":"coreir.reg"
             },
             "r1": {
               "genargs": {
                 "width": 16
               },
-              "genref": "cgralib.Reg"
+              "genref": "coreir.reg"
             },
             "r2": {
               "genargs": {
                 "width": 16
               },
-              "genref":"cgralib.Reg"
+              "genref":"coreir.reg"
             },
             "r3": {
               "genargs": {
                 "width": 16
               },
-              "genref": "cgralib.Reg"
+              "genref": "coreir.reg"
             },
             "r4": {
               "genargs": {
                 "width": 16
               },
-              "genref": "cgralib.Reg"
+              "genref": "coreir.reg"
             }
           },
           "type": "Any"

@@ -24,6 +24,8 @@ class Arg(CoreIRType):
             return libcoreir_c.COREArgIntGet(self.ptr)
         elif type == 1:
             return libcoreir_c.COREArgStringGet(self.ptr).decode()
+        elif type == 3:
+            return libcoreir_c.COREArgBoolGet(self.ptr)
         raise NotImplementedError()
 
 class Args(CoreIRType):

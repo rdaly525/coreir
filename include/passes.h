@@ -9,7 +9,7 @@ namespace CoreIR {
 class Pass {
   
   public:
-    enum PassKind {PK_Namespace, PK_Module, PK_InstanceGraph};
+    enum PassKind {PK_Namespace, PK_Module, PK_Instance, PK_InstanceVisitor, PK_InstanceGraph};
   private:
     PassKind kind;
     //Used as the unique identifier for the pass
@@ -58,7 +58,7 @@ class NamespacePass : public Pass {
     virtual void print() override {}
 };
 
-//Loops through all the modules within the namespace
+//Loops through all the modules (with defs) within the namespace
 //You can edit the current module but not any other module!
 class ModulePass : public Pass {
   public:
@@ -71,6 +71,41 @@ class ModulePass : public Pass {
 
 };
 
+//Loops through all instances of all modules
+//You can edit the current moduleDef Container
+class InstancePass : public Pass {
+  public:
+    explicit InstancePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Instance,name,description,isAnalysis) {}
+    static bool classof(const Pass* p) {return p->getKind()==PK_Instance;}
+    virtual bool runOnInstance(Instance* i) = 0;
+    virtual void releaseMemory() override {}
+    virtual void setAnalysisInfo() override {}
+    virtual void print() override {}
+};
+
+//Run visitor patterns on specific types of instances
+//You can edit the current moduleDef Container
+class InstanceVisitorPass : public Pass {
+  public:
+    explicit InstanceVisitorPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_InstanceVisitor,name,description,isAnalysis) {
+      addDependency("createfullinstancemap");
+    }
+    static bool classof(const Pass* p) {return p->getKind()==PK_InstanceVisitor;}
+    virtual void releaseMemory() override {}
+    virtual void setAnalysisInfo() override {}
+    virtual void print() override {}
+    virtual void setVisitorInfo() = 0;
+    typedef bool (*InstanceVisitor_t)(Instance*);
+    void addVisitorFunction(Instantiable* i,InstanceVisitor_t fun) {
+      ASSERT(visitorMap.count(i)==0,"Already added Function for " + i->getRefName());
+      visitorMap[i] = fun;
+    }
+    bool runOnInstances(Instantiable* i, unordered_set<Instance*>& instances);
+  private:
+    unordered_map<Instantiable*,InstanceVisitor_t> visitorMap;
+};
+
+
 class InstanceGraphNode;
 //Loops through the InstanceDAG from bottom up. Instane DAG is analogous to CallGraph in LLVM. 
 //If the Instance is linked in from a different namespace or is a generator instance, then it will run runOnInstanceNode
@@ -79,7 +114,7 @@ class InstanceGraphPass : public Pass {
   public:
     
     explicit InstanceGraphPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_InstanceGraph,name,description,isAnalysis) {
-      addDependency("constructInstanceGraph");
+      addDependency("createinstancegraph");
     }
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;

@@ -14,12 +14,12 @@ namespace CoreIR {
 ///////////////////////////////////////////////////////////
 Context* Instantiable::getContext() { return ns->getContext();}
 
-void Instantiable::setDefaultConfigArgs(Args defaultConfigArgs) {
+void Instantiable::addDefaultConfigArgs(Args defaultConfigArgs) {
   //Check to make sure each arg is in the config params
   for (auto argmap : defaultConfigArgs) {
-    ASSERT(configparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist!")
+    ASSERT(configparams.count(argmap.first)>0,"Cannot set default config arg. Param " + argmap.first + " Does not exist!")
+    this->defaultConfigArgs[argmap.first] = argmap.second;
   }
-  this->defaultConfigArgs = defaultConfigArgs;
 }
 string Instantiable::getRefName() const {
   return this->ns->getName() + "." + this->name;
@@ -85,12 +85,12 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
   this->def = new GeneratorDefFromFun(this,fun);
 }
 
-void Generator::setDefaultGenArgs(Args defaultGenArgs) {
+void Generator::addDefaultGenArgs(Args defaultGenArgs) {
   //Check to make sure each arg is in the config params
   for (auto argmap : defaultGenArgs) {
-    ASSERT(genparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist!")
+    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!")
+    this->defaultGenArgs[argmap.first] = argmap.second;
   }
-  this->defaultGenArgs = defaultGenArgs;
 }
 
 string Generator::toString() const {

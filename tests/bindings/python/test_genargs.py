@@ -10,10 +10,17 @@ def test_genargs():
         for name, arg in instance.generator_args.items():
             if name == "width":
                 assert arg.value == 16
-            elif name == "numin":
+            elif name == "numdataports":
+                assert instance.module_name == "PE"
                 assert arg.value == 2
+            elif name == "numbitports":
+                assert instance.module_name == "PE"
+                assert arg.value == 3
+            elif name in {"en", "clr", "rst"}:
+                assert instance.module_name == "reg"
+                assert arg.value == False
             else:
-                assert False, "Should not reach this statement"
+                assert False, "Should not reach this statement, {}".format(name)
 
 
 if __name__ == "__main__":

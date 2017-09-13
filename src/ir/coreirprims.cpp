@@ -145,7 +145,6 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     bool rst = args.at("rst")->get<ArgBool>();
     assert(!(clr && rst));
     Type* ptype = c->Bit()->Arr(width);
-    if (width==1) ptype = c->Bit();
 
     RecordParams r({
         {"in" , ptype->getFlipped()},
@@ -167,8 +166,8 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
 
   auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
-  reg->setDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
-  reg->setDefaultConfigArgs({{"init",c->argInt(0)}});
+  reg->addDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
+  reg->addDefaultConfigArgs({{"init",c->argInt(0)}});
   
   json jverilog;
   jverilog["parameters"] = {"width","init"};
@@ -177,7 +176,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
 
   //Set nameGen function
   auto regNameGen = [](Args args) {
-    string name = "reg_P";
+    string name = "reg_P"; //TODO Should we do negedge?
     bool rst = args["rst"]->get<ArgBool>();
     bool clr = args["clr"]->get<ArgBool>();
     bool en = args["en"]->get<ArgBool>();
@@ -187,6 +186,63 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return name;
   };
   reg->setNameGen(regNameGen);
+  
+
+  auto bitRegFun = [](Context* c, Args args) { 
+    bool en = args.at("en")->get<ArgBool>();
+    bool clr = args.at("clr")->get<ArgBool>();
+    bool rst = args.at("rst")->get<ArgBool>();
+    assert(!(clr && rst));
+    Type* ptype = c->Bit();
+
+    RecordParams r({
+        {"in" , ptype->getFlipped()},
+        {"clk", c->Named("coreir.clkIn")},
+        {"out", ptype}
+    });
+    if (en) r.push_back({"en",c->BitIn()});
+    if (clr) r.push_back({"clr",c->BitIn()});
+    if (rst) r.push_back({"rst",c->BitIn()});
+    return c->Record(r);
+  };
+  Params bitRegGenParams({
+    {"en",ABOOL},
+    {"clr",ABOOL},
+    {"rst",ABOOL}
+  });
+  TypeGen* bitRegTypeGen = coreirprims->newTypeGen("bitRegType",bitRegGenParams,bitRegFun);
+  auto bitreg = coreirprims->newGeneratorDecl("bitreg",bitRegTypeGen,bitRegGenParams,regConfigParams);
+  bitreg->addDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
+  bitreg->addDefaultConfigArgs({{"init",c->argInt(0)}});
+  
+  jverilog["parameters"] = {"init"};
+  jverilog["prefix"] = "coreir_";
+  bitreg->getMetaData()["verilog"] = jverilog;
+
+  Params memGenParams({{"width",AINT},{"depth",AINT}});
+  auto memFun = [](Context* c, Args args) { 
+    uint width = args.at("width")->get<ArgInt>();
+    uint depth = args.at("depth")->get<ArgInt>();
+    ASSERT(isPower2(width),"width needs to be a power of 2: " + to_string(width));
+    ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth));
+    uint awidth = uint(std::log2(depth));
+    return c->Record({
+      {"wclk",c->Named("coreir.clkIn")},
+      {"wen",c->BitIn()},
+      {"wdata",c->BitIn()->Arr(width)},
+      {"waddr",c->BitIn()->Arr(awidth)},
+      {"rclk",c->Named("coreir.clkIn")},
+      {"ren",c->BitIn()},
+      {"rdata",c->Bit()->Arr(width)},
+      {"raddr",c->BitIn()->Arr(awidth)}
+    });
+  };
+  TypeGen* memTypeGen = coreirprims->newTypeGen("memType",memGenParams,memFun);
+  auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams);
+  jverilog["parameters"] = {"width","init"};
+  jverilog["prefix"] = "coreir_";
+  mem->getMetaData()["verilog"] = jverilog;
+
 
 }
 
@@ -214,7 +270,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
       return c->Record({
         {"in",c->Flip(ptype)},
         {"out",ptype}
@@ -227,7 +282,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -242,7 +296,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -256,7 +309,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
       return c->Record({
         {"in",c->Flip(ptype)},
         {"out",c->Bit()}
@@ -283,7 +335,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
       return c->Record({
         {"in0",c->Flip(ptype)},
         {"in1",c->Flip(ptype)},
@@ -317,6 +368,33 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       g->getMetaData()["verilog"] = jverilog;
     }
   }
+
+  //Do The
+  Type* bitBinaryType = c->Record({
+    {"in0",c->BitIn()},
+    {"in1",c->BitIn()},
+    {"out",c->Bit()}
+  });
+  Type* bitTernaryType = c->Record({
+    {"in0",c->BitIn()},
+    {"in1",c->BitIn()},
+    {"sel",c->BitIn()},
+    {"out",c->Bit()}
+  });
+  Type* bitUnaryType = c->Record({
+    {"in",c->BitIn()},
+    {"out",c->Bit()}
+  });
+
+  //1 bit gen
+  json bverilog;
+  bverilog["prefix"] = "coreir_";
+  vector<string> bitops = {"and","or","xor"};
+  for (auto op : bitops) {
+    coreirprims->newModuleDecl("bit" + op, bitBinaryType)->getMetaData()["verilog"] = bverilog;
+  }
+  coreirprims->newModuleDecl("bitnot",bitUnaryType)->getMetaData()["verilog"] = bverilog;
+  coreirprims->newModuleDecl("bitmux",bitTernaryType)->getMetaData()["verilog"] = bverilog;
 
 
   /////////////////////////////////
@@ -357,7 +435,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
 
       return c->Record({
         {"out",ptype}
@@ -369,6 +446,12 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   jverilog["prefix"] = "coreir_";
   Const->getMetaData()["verilog"] = jverilog;
 
+  //Add bit version
+  auto bitconst = coreirprims->newModuleDecl("bitconst",c->Record({{"out",c->Bit()}}),{{"value",AINT}});
+  jverilog["parameters"] = {"value"};
+  jverilog["prefix"] = "coreir_";
+  bitconst->getMetaData()["verilog"] = jverilog;
+
   //Add Term
   coreirprims->newTypeGen(
     "in", 
@@ -376,7 +459,6 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     [](Context* c, Args args) {
       uint width = args.at("width")->get<ArgInt>();
       Type* ptype = c->Bit()->Arr(width);
-      if (width==1) ptype = c->Bit();
       return c->Record({
         {"in",ptype->getFlipped()}
       });
@@ -384,6 +466,8 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   );
   coreirprims->newGeneratorDecl("term",coreirprims->getTypeGen("in"),widthparams);
 
+  coreirprims->newModuleDecl("bitterm",c->Record({{"in",c->BitIn()}}));
+  
   /////////////////////////////////
   // Stdlib convert primitives
   //   slice,concat,cast,strip

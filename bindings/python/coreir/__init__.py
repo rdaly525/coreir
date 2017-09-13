@@ -104,6 +104,9 @@ libcoreir_c.COREArgStringGet.restype = ct.c_char_p
 libcoreir_c.COREArgIntGet.argtypes = [COREArg_p]
 libcoreir_c.COREArgIntGet.restype = ct.c_int
 
+libcoreir_c.COREArgBoolGet.argtypes = [COREArg_p]
+libcoreir_c.COREArgBoolGet.restype = ct.c_bool
+
 libcoreir_c.COREArgInt.argtypes = [COREContext_p,ct.c_int]
 libcoreir_c.COREArgInt.restype = COREArg_p
 
@@ -134,6 +137,9 @@ libcoreir_c.COREWireableGetModuleDef.restype = COREModuleDef_p
 
 libcoreir_c.COREWireableSelect.argtypes = [COREWireable_p, ct.c_char_p]
 libcoreir_c.COREWireableSelect.restype = COREWireable_p
+
+libcoreir_c.COREWireableCanSelect.argtypes = [COREWireable_p, ct.c_char_p]
+libcoreir_c.COREWireableCanSelect.restype = ct.c_bool
 
 libcoreir_c.COREWireableGetSelectPath.argtypes = [COREWireable_p, ct.POINTER(ct.c_int)]
 libcoreir_c.COREWireableGetSelectPath.restype = ct.POINTER(ct.c_char_p)

@@ -12,7 +12,17 @@ namespace CoreIR {
 
 const string Interface::instname = "self";
 
+Wireable::~Wireable() {
+  for (auto selmap : selects) {
+    delete selmap.second;
+  }
+}
+
 Select* Wireable::sel(string selStr) {
+  if (selects.count(selStr)) {
+    return selects[selStr];
+  }
+  //Create new select
   Context* c = getContext();
   Type* ret = c->Any();
   Error e;
@@ -22,8 +32,9 @@ Select* Wireable::sel(string selStr) {
     e.fatal();
     getContext()->error(e);
   }
-  Select* select = container->getCache()->newSelect(container,this,selStr,ret);
-  selects.emplace(selStr,select);
+  
+  Select* select = new Select(this->getContainer(),this,selStr, ret);
+  selects[selStr] = select;
   return select;
 }
 
@@ -35,6 +46,18 @@ Select* Wireable::sel(SelectPath path) {
   return cast<Select>(ret);
 }
 
+Select* Wireable::sel(std::initializer_list<const char*> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
+Select* Wireable::sel(std::initializer_list<std::string> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
+
+
+
+bool Wireable::canSel(string selstr) {
+  return type->canSel(selstr);
+}
 
 ConstSelectPath Wireable::getConstSelectPath() {
   Wireable* top = this;
@@ -64,6 +87,21 @@ void Wireable::connect(Wireable* w) {
 void Wireable::disconnect() {
   this->getContainer()->disconnect(this);
 }
+
+void Wireable::disconnectAll() {
+  for (auto sels : this->getSelects()) {
+    sels.second->disconnectAll();
+  }
+  this->disconnect();
+}
+
+void Wireable::removeSel(string selStr) {
+  ASSERT(selects.count(selStr),"Cannot remove " + selStr + "Because it does not exist!");
+  Select* s = selects[selStr];
+  selects.erase(selStr);
+  delete s;
+}
+
 
 SelectPath Wireable::getSelectPath() {
   Wireable* top = this;
@@ -119,20 +157,6 @@ Wireable* Wireable::getTopParent() {
     top = wsel->getParent();
   }
   return top;
-}
-
-//TODO Check here first for segfaults
-void Wireable::removeUnusedSelects() {
-  if (Select* s = dyn_cast<Select>(this)) {
-    for (auto wsel : s->getSelects()) {
-      wsel.second->removeUnusedSelects();
-    }
-    if (s->getSelects().size()) return;
-    if (s->getConnectedWireables().size()) return;
-    
-    //WARNING this will commit suicide
-    container->getCache()->eraseSelect(s);
-  }
 }
 
 //merge a1 into a0 
@@ -243,35 +267,6 @@ string Select::toString() const {
 std::ostream& operator<<(ostream& os, const Wireable& i) {
   os << i.toString();
   return os;
-}
-
-///////////////////////////////////////////////////////////
-//-------------------- SelCache --------------------//
-///////////////////////////////////////////////////////////
-
-SelCache::~SelCache() {
-  for (auto sel : cache) delete sel.second;
-}
-
-Select* SelCache::newSelect(ModuleDef* context, Wireable* parent, string selStr, Type* type) {
-  SelectParamType params = {parent,selStr};
-  auto it = cache.find(params);
-  if (it != cache.end()) {
-    assert(it->second->getType() == type);
-    return it->second;
-  } 
-  else {
-    Select* s = new Select(context,parent,selStr, type);
-    cache.emplace(params,s);
-    return s;
-  }
-}
-
-void SelCache::eraseSelect(Select* s) {
-  SelectParamType params = {s->getParent(),s->getSelStr()};
-  assert(cache.find(params) != cache.end());
-  cache.erase(params);
-
 }
 
 } //CoreIR namesapce

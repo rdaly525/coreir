@@ -40,6 +40,7 @@ class Type {
     DirKind getDir() const {return dir;}
     virtual string toString(void) const =0;
     virtual bool sel(string sel, Type** ret, Error* e);
+    bool canSel(string sel);
     virtual uint getSize() const=0;
     virtual json toJson();
     void print(void);
@@ -112,6 +113,7 @@ class NamedType : public Type {
     string toString(void) const { return name; } //TODO add generator
     Namespace* getNamespace() {return ns;}
     string getName() {return name;}
+    string getRefName();
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}

@@ -102,6 +102,9 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     node.appendField(newportpair.first,newportpair.second);
   }
 
+  //TODO use definition of instance itsefl
+
+
   //Now the fun part.
   //Get a list of interface + instances
   vector<Wireable*> work;
@@ -111,19 +114,21 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
   
   for (auto w : work) {
+    ModuleDef* wdef = w->getContainer();
+    
     //Add passtrhough to isolate the ports
     auto pt = addPassthrough(w,"_pt" + this->getContext()->getUnique());
     
     //disconnect passthrough from wireable
-    def->disconnect(pt->sel("in"),w);
+    wdef->disconnect(pt->sel("in"),w);
 
     //connect all old ports of passtrhough to new ports of wireable
     for (uint i=0; i<ports.size(); ++i) {
-      def->connect(pt->sel("in")->sel(ports[i].first), w->sel(newports[i].first));
+      wdef->connect(pt->sel("in")->sel(ports[i].first), w->sel(newports[i].first));
     }
     //reconnect all unchanged ports
     for (auto p : unchanged) {
-      def->connect(pt->sel("in")->sel(p),w->sel(p));
+      wdef->connect(pt->sel("in")->sel(p),w->sel(p));
     }
 
     //inline the passthrough

@@ -1,6 +1,6 @@
 #include "coreir.h"
 #include "coreir-passes/transform/matchandreplace.h"
-#include "coreir-passes/analysis/createinstancemap.h"
+#include "coreir-passes/analysis/createmodinstancemap.h"
 
 #include <algorithm>
 #include <queue>
@@ -116,8 +116,8 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
 
   ModuleDef* pdef = pattern->getDef();
   ModuleDef* cdef = container->getDef();
-  auto cinstMap = getAnalysisPass<Passes::CreateInstanceMap>()->getInstanceMap(container);
-  auto pinstMap = getAnalysisPass<Passes::CreateInstanceMap>()->getInstanceMap(pattern);
+  auto cinstMap = getAnalysisPass<Passes::CreateModInstanceMap>()->getInstanceMap(container);
+  auto pinstMap = getAnalysisPass<Passes::CreateModInstanceMap>()->getInstanceMap(pattern);
 
   //If this module contains none of the any of the pattern instances, I will never find a match, so just return
   for (auto pi : pinstMap) {

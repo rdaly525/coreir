@@ -52,8 +52,12 @@ struct myPair {
 };
 
 class Type;
-class TypeGen;
+class BitType;
+class BitInType;
+class ArrayType;
+class RecordType;
 class NamedType;
+class TypeGen;
 typedef Type* (*TypeGenFun)(Context* c, Args args);
 typedef vector<myPair<string,Type*>> RecordParams ;
 typedef std::string (*NameGen_t)(Args);
@@ -68,7 +72,6 @@ class Module;
 class ModuleDef;
 typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
 
-class SelCache;
 class Wireable;
 class Interface;
 class Instance;
@@ -102,6 +105,7 @@ inline void hash_combine(size_t& seed, const T& v) {
 
 //These are defined in helpers
 bool isNumber(string s);
+bool isPower2(uint n);
 string Param2Str(Param);
 string Params2Str(Params);
 string Args2Str(Args);

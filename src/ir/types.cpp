@@ -29,7 +29,17 @@ Type* Type::Arr(uint i) {
 }
 
 bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
-
+bool Type::canSel(string selstr) {
+  if (auto rt = dyn_cast<RecordType>(this)) {
+    return rt->getRecord().count(selstr);
+  }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
+    if (!isNumber(selstr)) return false;
+    uint i = std::stoi(selstr,nullptr,0);
+    return i < at->getLen(); 
+  }
+  return false;
+}
 std::ostream& operator<<(ostream& os, const Type& t) {
   os << t.toString();
   return os;
@@ -55,7 +65,7 @@ NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Ar
   raw = typegen->getType(genargs);
   dir = raw->getDir();
 }
-
+string NamedType::getRefName() {return ns->getName() + "." + name;}
 //TODO How to deal with select? For now just do a normal select off of raw
 bool NamedType::sel(string sel, Type** ret, Error* e) {
   return raw->sel(sel,ret,e);
