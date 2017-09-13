@@ -1,6 +1,6 @@
 
 /*
- * Make sure you start at hellomodule.hpp before this one.
+ * Make sure you start at hellomodule.h before this one.
  *
  * This is just filling out some function definitions
  */

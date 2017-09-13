@@ -1,7 +1,7 @@
 #ifndef COREIR_DIRECTEDVIEW_HPP_
 #define COREIR_DIRECTEDVIEW_HPP_
 
-#include "fwd_declare.hpp"
+#include "fwd_declare.h"
 
 //This is so that you can view a module graph as an instance view
 namespace CoreIR {

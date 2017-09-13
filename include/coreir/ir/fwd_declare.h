@@ -48,7 +48,7 @@ class ArgType;
 
 class MetaData;
 
-//instantiable.hpp
+//instantiable.h
 class Instantiable;
 class Generator;
 class Module;

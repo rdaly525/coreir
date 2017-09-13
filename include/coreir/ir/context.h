@@ -1,7 +1,7 @@
 #ifndef COREIR_CONTEXT_HPP_
 #define COREIR_CONTEXT_HPP_
 
-#include "fwd_declare.hpp"
+#include "fwd_declare.h"
 
 namespace CoreIR {
 

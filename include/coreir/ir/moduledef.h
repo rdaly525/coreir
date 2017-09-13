@@ -2,10 +2,10 @@
 #define COREIR_MODULEDEF_HPP_
 
 
-#include "fwd_declare.hpp"
-#include "context.hpp"
-#include "instantiable.hpp"
-#include "wireable.hpp"
+#include "fwd_declare.h"
+#include "context.h"
+#include "instantiable.h"
+#include "wireable.h"
 
 namespace CoreIR {
 

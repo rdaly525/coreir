@@ -1,14 +1,14 @@
 #include <fstream>
-#include "coreir/ir/json.hpp"
-#include "coreir/ir/context.hpp"
-#include "coreir/ir/namespace.hpp"
-#include "coreir/ir/types.hpp"
-#include "coreir/ir/typegen.hpp"
-#include "coreir/ir/common.hpp"
-#include "coreir/ir/error.hpp"
-#include "coreir/ir/instantiable.hpp"
-#include "coreir/ir/moduledef.hpp"
-#include "coreir/ir/wireable.hpp"
+#include "coreir/ir/json.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/error.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/wireable.h"
 
 using namespace std;
 

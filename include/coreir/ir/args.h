@@ -2,8 +2,8 @@
 #define COREIR_ARGS_HPP_
 
 
-#include "fwd_declare.hpp"
-#include "casting/casting.hpp"
+#include "fwd_declare.h"
+#include "casting/casting.h"
 
 namespace CoreIR {
 

@@ -1,8 +1,8 @@
 #ifndef METADATA_HPP_
 #define METADATA_HPP_
 
-#include "fwd_declare.hpp"
-#include "json.hpp"
+#include "fwd_declare.h"
+#include "json.h"
 
 using json = nlohmann::json;
 

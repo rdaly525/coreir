@@ -1,9 +1,9 @@
 
-#include "coreir/ir/directedview.hpp"
-#include "coreir/ir/types.hpp"
-#include "coreir/ir/wireable.hpp"
-#include "coreir/ir/instantiable.hpp"
-#include "coreir/ir/moduledef.hpp"
+#include "coreir/ir/directedview.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/wireable.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/moduledef.h"
 
 using namespace std;
 using namespace CoreIR;

@@ -1,9 +1,9 @@
 #include <fstream>
-#include "coreir/ir/json.hpp"
-#include "coreir/ir/context.hpp"
-#include "coreir/ir/instantiable.hpp"
-#include "coreir/ir/namespace.hpp"
-#include "coreir/ir/typegen.hpp"
+#include "coreir/ir/json.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/typegen.h"
 #include <unordered_map>
 #include <algorithm>
 #include <set>

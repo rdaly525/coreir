@@ -1,10 +1,10 @@
-#include "coreir/ir/types.hpp"
-#include "coreir/ir/casting/casting.hpp"
-#include "coreir/ir/context.hpp"
-#include "coreir/ir/namespace.hpp"
-#include "coreir/ir/common.hpp"
-#include "coreir/ir/error.hpp"
-#include "coreir/ir/typegen.hpp"
+#include "coreir/ir/types.h"
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/error.h"
+#include "coreir/ir/typegen.h"
 
 using namespace std;
 

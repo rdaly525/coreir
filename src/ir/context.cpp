@@ -1,5 +1,5 @@
-#include "coreir/ir/context.hpp"
-#include "coreir/ir/typecache.hpp"
+#include "coreir/ir/context.h"
+#include "coreir/ir/typecache.h"
 #include "coreir/ir/passmanager.h"
 
 
@@ -14,7 +14,7 @@ namespace CoreIR {
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
   cache = new TypeCache(this);
-  //Automatically load coreir //defined in coreirprims.hpp
+  //Automatically load coreir //defined in coreirprims.h
   CoreIRLoadLibrary_coreirprims(this);
   pm = new PassManager(this);
 }

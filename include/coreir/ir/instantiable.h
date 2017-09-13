@@ -2,8 +2,8 @@
 #define COREIR_INSTANTIABLE_HPP_
 
 
-#include "fwd_declare.hpp"
-#include "metadata.hpp"
+#include "fwd_declare.h"
+#include "metadata.h"
 
 namespace CoreIR {
 

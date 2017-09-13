@@ -3,7 +3,7 @@
 
 #include "coreir.h"
 #include <ostream>
-#include "vmodule.hpp"
+#include "vmodule.h"
 
 namespace CoreIR {
 namespace Passes {
