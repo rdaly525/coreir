@@ -21,6 +21,10 @@ pytest: py
 	cd tests
 	pytest;
 
+installtest: install
+	$(MAKE) -C tests/install
+	cd tests/install; ./run
+
 .PHONY: py
 py: install
 	pip install -e bindings/python
@@ -37,15 +41,18 @@ install: build coreir
 	install lib/libcoreir.$(TARGET) $(prefix)/lib
 	install lib/libcoreir-* $(prefix)/lib
 	install -d $(prefix)/include/coreir-c
+	install -d $(prefix)/include/coreir/ir/casting
 	install -d $(prefix)/include/coreir/libs
 	install -d $(prefix)/include/coreir/passes/analysis
 	install -d $(prefix)/include/coreir/passes/transform
 	install include/coreir.h $(prefix)/include
 	install include/coreir-c/* $(prefix)/include/coreir-c
+	install include/coreir/ir/*.h* $(prefix)/include/coreir/ir
+	install include/coreir/ir/casting/* $(prefix)/include/coreir/ir/casting
 	install include/coreir/libs/* $(prefix)/include/coreir/libs
 	install include/coreir/passes/*.h $(prefix)/include/coreir/passes
 	install include/coreir/passes/analysis/* $(prefix)/include/coreir/passes/analysis
-	install include/coreir-passes/transform/* $(prefix)/include/coreir/passes/transform
+	install include/coreir/passes/transform/* $(prefix)/include/coreir/passes/transform
 
 .PHONY: uninstall
 uninstall:
@@ -56,9 +63,12 @@ uninstall:
 	-rm -r $(prefix)/include/coreir
 	-rm -r $(prefix)/include/coreir-c
 
+
+
+
 .PHONY: coreir
 coreir: build
-	$(MAKE) -C src/binary -B
+	$(MAKE) -C src/binary
 
 .PHONY: clean
 clean:
@@ -69,6 +79,7 @@ clean:
 	-rm _*v
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
+	$(MAKE) -C tests/install clean
 
 .PHONY: travis
 travis:
