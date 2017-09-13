@@ -12,7 +12,9 @@ class InstanceGraph;
 class PassManager {
   Context* c;
   std::vector<Namespace*> nss; 
-
+  
+  Module* top;
+  
   //Data structure for storing passes
   std::unordered_map<std::string,Pass*> passMap;
 
@@ -27,6 +29,9 @@ class PassManager {
     ~PassManager();
     Context* getContext() { return c;}
     
+    //Sets the top module
+    void setTop(std::string topRef);
+
     void addPass(Pass* p);
 
     //Runs all passes in order over namespaces
