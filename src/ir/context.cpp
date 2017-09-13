@@ -1,14 +1,20 @@
-#include "context.hpp"
-#include "coreirprims.hpp"
+#include "coreir/ir/context.h"
+#include "coreir/ir/typecache.h"
+#include "coreir/ir/passmanager.h"
+
 
 using namespace std;
 
+
+
 namespace CoreIR {
+
+#include "coreirprims.hpp"
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
   cache = new TypeCache(this);
-  //Automatically load coreir
+  //Automatically load coreir //defined in coreirprims.h
   CoreIRLoadLibrary_coreirprims(this);
   pm = new PassManager(this);
 }
@@ -17,8 +23,6 @@ Context::Context() : maxErrors(8) {
 Context::~Context() {
   
   //for (auto it : genargsList) delete it;
-  for (auto it : argList) delete it;
-  for (auto it : argPtrArrays) free(it);
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
   for (auto it : libs) delete it.second;
@@ -30,7 +34,9 @@ Context::~Context() {
   for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
- 
+  for (auto it : argList) delete it;
+  for (auto it : argPtrArrays) free(it);
+
   delete cache;
 }
 
@@ -40,6 +46,14 @@ void Context::print() {
     ns.second->print();
   }
   cout << "EndContext" << endl;
+}
+
+void Context::error(Error& e) { 
+  errors.push_back(e.msg);
+  if (e.isfatal || errors.size() >= maxErrors) die();
+}
+void Context::printerrors() { 
+  for (auto err : errors) cout << "ERROR: " << err << endl << endl;
 }
 
 void Context::die() {

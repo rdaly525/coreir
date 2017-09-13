@@ -1,7 +1,8 @@
-#include "coreir-lib/ice40.h"
+#include "coreir/libs/ice40.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(ice40);
 
+using namespace std;
 using namespace CoreIR;
 
 Namespace* CoreIRLoadLibrary_ice40(Context* c) {

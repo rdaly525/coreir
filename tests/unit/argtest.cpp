@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include <cassert>
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {

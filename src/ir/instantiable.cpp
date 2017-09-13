@@ -1,9 +1,12 @@
-#include <cassert>
-#include <vector>
-#include <set>
-
-#include "instantiable.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/generatordef.h"
+#include "coreir/ir/directedview.h"
 
 using namespace std;
 

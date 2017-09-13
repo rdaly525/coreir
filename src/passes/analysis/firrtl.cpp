@@ -1,6 +1,7 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/firrtl.h"
+#include "coreir/passes/analysis/firrtl.h"
 
+using namespace std;
 using namespace CoreIR;
 
 struct FModule {
