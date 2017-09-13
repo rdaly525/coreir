@@ -1,6 +1,7 @@
 #include "coreir.h"
-#include "coreir-lib/commonlib.h"
+#include "coreir/libs/commonlib.h"
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {

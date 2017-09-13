@@ -82,7 +82,7 @@
               "genref": "coreir.reg"
             }
           },
-          "type": "Any"
+          "type": ["Record",{}]
         }
       }
     }

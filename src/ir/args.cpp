@@ -1,9 +1,14 @@
-#include "args.hpp"
-#include "common.hpp"
-#include "error.hpp"
-#include "context.hpp"
+#include "coreir/ir/args.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/common.h"
+
+using namespace std;
 
 namespace CoreIR {
+
+bool Arg::operator==(const Arg& r) const {
+  return r.getKind() == this->kind;
+}
 
 bool ArgBool::operator==(const Arg& r) const {
   if (!Arg::operator==(r)) return false;
@@ -52,7 +57,6 @@ using namespace CoreIR;
 
 //TODO sketchy because I am overloading a version of unordered_map
 size_t std::hash<Args>::operator() (const Args& args) const {
-  
   size_t ret = 0;
   //Need to combine these in an order independent way, so just xor
   for (auto it : args) {

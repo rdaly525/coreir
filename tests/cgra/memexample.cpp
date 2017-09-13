@@ -1,6 +1,7 @@
 #include "coreir.h"
-#include "coreir-lib/cgralib.h"
+#include "coreir/libs/cgralib.h"
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {
@@ -14,7 +15,7 @@ int main() {
   Generator* PE = cgralib->getGenerator("PE");
   Generator* IO = cgralib->getGenerator("IO");
   Generator* Mem = cgralib->getGenerator("Mem");
-  Module* Top = c->getGlobal()->newModuleDecl("Top",c->Any());
+  Module* Top = c->getGlobal()->newModuleDecl("Top",c->Record());
   ModuleDef* def = Top->newModuleDef();
     def->addInstance("io0",IO,w16,{{"mode",c->argString("i")}});
     def->addInstance("p0",PE,{{"width",c->argInt(16)}},{{"op",c->argString("add")}});

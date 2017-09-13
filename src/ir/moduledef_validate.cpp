@@ -1,6 +1,8 @@
 
-#include "moduledef.hpp"
-//#include "common.hpp"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/error.h"
 
 using namespace std;
 
