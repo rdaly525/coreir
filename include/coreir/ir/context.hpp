@@ -137,8 +137,9 @@ bool saveToDot(Module* m, std::string filename);
 Instance* addPassthrough(Wireable* w,std::string instname);
 bool inlineInstance(Instance*);
 
-
 typedef Namespace* LoadLibrary_t(Context*);
+
+Namespace* CoreIRLoadLibrary_coreirprims(Context* c);
 
 } //CoreIR namespace
 

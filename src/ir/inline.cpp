@@ -1,5 +1,9 @@
 
-#include "coreir.h"
+#include "coreir/ir/casting/casting.hpp"
+#include "coreir/ir/context.hpp"
+#include "coreir/ir/wireable.hpp"
+#include "coreir/ir/moduledef.hpp"
+#include "coreir/ir/types.hpp"
 
 using namespace std;
 namespace CoreIR {

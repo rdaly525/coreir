@@ -1,6 +1,6 @@
-#include "common.hpp"
-#include "wireable.hpp"
-#include "args.hpp"
+#include "coreir/ir/common.hpp"
+#include "coreir/ir/wireable.hpp"
+#include "coreir/ir/args.hpp"
 //#include <sstream>
 //#include <iterator>
 

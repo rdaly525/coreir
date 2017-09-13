@@ -1,10 +1,10 @@
 
-#include "coreir-passmanager.h"
-#include "coreir-passes/common.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/passes/common.h"
 #include <stack>
 
-#include "coreir-passes/analysis/createinstancegraph.h"
-#include "coreir-passes/analysis/createfullinstancemap.h"
+#include "coreir/passes/analysis/createinstancegraph.h"
+#include "coreir/passes/analysis/createfullinstancemap.h"
 
 
 

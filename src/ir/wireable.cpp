@@ -1,12 +1,12 @@
-#include "wireable.hpp"
-#include "common.hpp"
-#include "casting/casting.hpp"
-#include "context.hpp"
-#include "instantiable.hpp"
-#include "moduledef.hpp"
-#include "error.hpp"
-#include "types.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/wireable.hpp"
+#include "coreir/ir/common.hpp"
+#include "coreir/ir/casting/casting.hpp"
+#include "coreir/ir/context.hpp"
+#include "coreir/ir/instantiable.hpp"
+#include "coreir/ir/moduledef.hpp"
+#include "coreir/ir/error.hpp"
+#include "coreir/ir/types.hpp"
+#include "coreir/ir/typegen.hpp"
 
 using namespace std;
 

@@ -1,7 +1,4 @@
-#include "coreirprims.hpp"
-
-using namespace std;
-using namespace CoreIR;
+//This file is just included in context.cpp
 
 void coreirprims_convert(Context* c, Namespace* coreirprims) {
 

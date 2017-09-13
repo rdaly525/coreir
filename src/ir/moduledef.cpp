@@ -1,8 +1,8 @@
-#include "moduledef.hpp"
-#include "casting/casting.hpp"
-#include "common.hpp"
-#include "typegen.hpp"
-#include "error.hpp"
+#include "coreir/ir/moduledef.hpp"
+#include "coreir/ir/casting/casting.hpp"
+#include "coreir/ir/common.hpp"
+#include "coreir/ir/typegen.hpp"
+#include "coreir/ir/error.hpp"
 #include <iterator>
 
 

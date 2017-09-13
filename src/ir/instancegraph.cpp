@@ -1,4 +1,4 @@
-#include "coreir-instancegraph.h"
+#include "coreir/ir/instancegraph.h"
 
 using namespace std;
 using namespace CoreIR;

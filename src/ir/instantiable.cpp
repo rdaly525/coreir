@@ -1,12 +1,12 @@
-#include "instantiable.hpp"
-#include "common.hpp"
-#include "context.hpp"
-#include "namespace.hpp"
-#include "moduledef.hpp"
-#include "types.hpp"
-#include "typegen.hpp"
-#include "generatordef.hpp"
-#include "directedview.hpp"
+#include "coreir/ir/instantiable.hpp"
+#include "coreir/ir/common.hpp"
+#include "coreir/ir/context.hpp"
+#include "coreir/ir/namespace.hpp"
+#include "coreir/ir/moduledef.hpp"
+#include "coreir/ir/types.hpp"
+#include "coreir/ir/typegen.hpp"
+#include "coreir/ir/generatordef.hpp"
+#include "coreir/ir/directedview.hpp"
 
 using namespace std;
 

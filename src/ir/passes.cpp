@@ -1,5 +1,6 @@
-#include "coreir.h"
-#include "coreir-passes.h"
+#include "coreir/ir/passes.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/ir/instantiable.hpp"
 
 using namespace std;
 using namespace CoreIR;

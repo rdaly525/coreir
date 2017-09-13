@@ -1,11 +1,11 @@
-#include "namespace.hpp"
-#include "casting/casting.hpp"
-#include "common.hpp"
-#include "context.hpp"
-#include "types.hpp"
-#include "typegen.hpp"
-#include "instantiable.hpp"
-#include "error.hpp"
+#include "coreir/ir/namespace.hpp"
+#include "coreir/ir/casting/casting.hpp"
+#include "coreir/ir/common.hpp"
+#include "coreir/ir/context.hpp"
+#include "coreir/ir/types.hpp"
+#include "coreir/ir/typegen.hpp"
+#include "coreir/ir/instantiable.hpp"
+#include "coreir/ir/error.hpp"
 
 using namespace std;
 

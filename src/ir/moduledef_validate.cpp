@@ -1,8 +1,8 @@
 
-#include "moduledef.hpp"
-#include "casting/casting.hpp"
-#include "types.hpp"
-#include "error.hpp"
+#include "coreir/ir/moduledef.hpp"
+#include "coreir/ir/casting/casting.hpp"
+#include "coreir/ir/types.hpp"
+#include "coreir/ir/error.hpp"
 
 using namespace std;
 
