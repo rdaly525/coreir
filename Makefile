@@ -26,7 +26,7 @@ installtest: install
 	cd tests/install; ./run
 
 .PHONY: py
-py: install
+py: build
 	pip install -e bindings/python
 	pip3 install -e bindings/python
 
