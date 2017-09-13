@@ -8,6 +8,9 @@
 #include "generatordef.hpp"
 #include "directedview.hpp"
 
+//Nasty bug where this contains the overloaded == for Args
+#include "args.hpp"
+
 using namespace std;
 
 namespace CoreIR {

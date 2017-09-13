@@ -6,6 +6,9 @@
 #include "instantiable.hpp"
 #include "error.hpp"
 
+//Nasty bug where this contains the overloaded == for Args
+#include "args.hpp"
+
 using namespace std;
 
 namespace CoreIR {
