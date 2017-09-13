@@ -26,7 +26,6 @@ namespace CoreIR {
     WireNode(CoreIR::Wireable* wire_,
 	     const bool isSequential_,
 	     const bool isReceiver_) :
-      // TODO: Change to true when benchmarking is done
       highBitsDirty(true),
       wire(wire_),
       isSequential(isSequential_),
