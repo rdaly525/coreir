@@ -82,7 +82,7 @@
             ["a.out","a2.in0"],
             ["cc.out","a2.in1"],
             ["c2.out","cc.in0"],
-            ["a.out.8","cc.in1.0"],
+            ["a.out.6","cc.in1.0"],
             ["a2.out","r.in"],
             ["r.out","self.out"],
             ["self.en","r.en"]
