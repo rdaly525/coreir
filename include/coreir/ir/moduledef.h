@@ -14,7 +14,7 @@ class ModuleDef {
   protected:
     Module* module;
     Interface* interface; 
-    std::unordered_map<std::string,Instance*> instances;
+    std::map<std::string,Instance*> instances;
     std::unordered_set<Connection> connections;
     
     // Instances Iterator Internal Fields/API
@@ -28,7 +28,7 @@ class ModuleDef {
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
-    std::unordered_map<std::string,Instance*> getInstances(void) { return instances;}
+    std::map<std::string,Instance*> getInstances(void) { return instances;}
     std::unordered_set<Connection> getConnections(void) { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);

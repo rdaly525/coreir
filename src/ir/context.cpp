@@ -25,7 +25,7 @@ Context::~Context() {
   //for (auto it : genargsList) delete it;
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
-  for (auto it : libs) delete it.second;
+  for (auto it : namespaces) delete it.second;
   for (auto it : connectionPtrArrays) free(it);
   for (auto it : connectionArrays) free(it);
   for (auto it : wireableArrays) free(it);
@@ -66,13 +66,13 @@ void Context::die() {
 
 Namespace* Context::newNamespace(string name) { 
   Namespace* n = new Namespace(this,name);
-  libs.emplace(name,n);
+  namespaces.emplace(name,n);
   return n;
 }
 
 Namespace* Context::getNamespace(string name) {
-  auto it = libs.find(name);
-  if (it == libs.end()) {
+  auto it = namespaces.find(name);
+  if (it == namespaces.end()) {
     Error e;
     e.message("Could Not Find Namespace");
     e.message("  Namespace : " + name);
