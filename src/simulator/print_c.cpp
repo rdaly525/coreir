@@ -15,6 +15,23 @@ namespace CoreIR {
     return cv;
   }
 
+  std::string cVar(const std::string& prefix,
+		   const WireNode& w,
+		   const std::string& suffix) {
+    string cv = cVar(prefix, *(w.getWire()), suffix);
+
+    if (w.isSequential) {
+      if (w.isReceiver) {
+	return cv += "_receiver";
+      } else {
+	return cv += "_source";
+      }
+
+    }
+
+    return cv;
+  }
+  
   std::string cVar(const WireNode& w, const std::string& suffix) {
     string cv = cVar(*(w.getWire()), suffix);
     if (w.isSequential) {

@@ -699,25 +699,40 @@ namespace CoreIR {
       } else {
 
 	if (inst->getType()->isInput()) {
-	  cout << inst->toString() << ", WITH TYPE " << inst->getType()->toString() << " IS NOT AN INSTANCE " << endl;
-	  // If not an instance copy the input values
-	  auto inConns = getInputConnections(vd, g);
-      
-	  for (auto inConn : inConns) {
-	    str += cVar(*(inConn.second.getWire())) + " = " + cVar(inConn.first) + ";\n";
-	  }
-	}
+	  // return copyTypeFromInternal(tp,
+	  // 				"(*self_" + field_name + "_ptr)",
+	  // 				"self_" + field_name);
 
+
+	  cout << inst->toString() << ", WITH TYPE " << inst->getType()->toString() << " IS NOT AN INSTANCE " << endl;
+
+	  auto inConns = getInputConnections(vd, g);
+
+	  // assert(inConns.size() == 1);
+
+	  // auto inConn = *std::begin(inConns);
+
+	  // copyTypeFromInternal(inst->getType(),
+	  // 		       "(*self_" + cVar(*inst) + "_ptr)",
+	  // 		       cVar(inConn.first));
+	  // 		       //"self_" + field_name);
+
+	  // If not an instance copy the input values
+	  for (auto inConn : inConns) {
+
+	    str += cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + cVar(inConn.first) + ";\n";
+	  }
+
+	}
       }
-	
     }
 
     // Copy outputs over to corresponding output pointers
-    str += "\n// Copy results to output parameters\n";
-    for (auto& name_type_pair : outputs(mod)) {
-      Type* tp = name_type_pair.second;
-      str += copyTypeFromInternal(tp, name_type_pair.first);
-    }
+    // str += "\n// Copy results to output parameters\n";
+    // for (auto& name_type_pair : outputs(mod)) {
+    //   Type* tp = name_type_pair.second;
+    //   str += copyTypeFromInternal(tp, name_type_pair.first);
+    // }
 
     return str;
   }

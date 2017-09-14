@@ -93,6 +93,26 @@ namespace CoreIR {
       return w.toString() + suffix;
     }
   }
+
+  static inline std::string cVar(const std::string& prefix,
+				 CoreIR::Wireable& w,
+				 const std::string& suffix) {
+
+    if (isSelect(w)) {
+      CoreIR::Select& s = toSelect(w);
+      if (CoreIR::isNumber(s.getSelStr())) {
+
+	return cVar(prefix, *(s.getParent()), suffix) + "[" + s.getSelStr() + "]";
+
+      } else {
+
+	return prefix + cVar(*(s.getParent())) + "_" + s.getSelStr() + suffix;
+      }
+    } else {
+
+      return prefix + w.toString() + suffix;
+    }
+  }
   
   static inline bool isNamedType(CoreIR::Type& t, const std::string& name) {
     if (t.getKind() != CoreIR::Type::TK_Named) {
