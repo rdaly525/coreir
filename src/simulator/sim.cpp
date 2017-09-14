@@ -194,7 +194,8 @@ namespace CoreIR {
     string res = "";
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
-    res += inst->getInstname() + "_" + outPair.first + " = ";
+    //res += inst->getInstname() + "_" + outPair.first + " = ";
+    res += cVar(*(outPair.second)) + " = ";
 
     auto inConns = getInputConnections(vd, g);
 
