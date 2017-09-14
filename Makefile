@@ -80,4 +80,3 @@ travis:
 	export COREIR=/Users/rdaly/coreir
 	export DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:$$COREIR/lib
 	$(MAKE) test
-	sudo $(MAKE) install
