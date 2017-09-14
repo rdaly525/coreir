@@ -63,8 +63,6 @@ namespace CoreIR {
 
     assert(foundValue);
 
-    //res += " = " + argStr + "; // printConstant \n";
-
     return argStr;
   }
   
@@ -455,25 +453,10 @@ namespace CoreIR {
     string res = cVar(*(outPair.second));
 
     return ln(res + " = " + opResultStr(wd, vd, g));
-    // if (ins.size() == 3) {
-    //   return ln(res + " = " + printTernop(inst, vd, g));
-    // }
+  }
 
-    // if (ins.size() == 2) {
-    //   return ln(res + " = " + printBinop(wd, vd, g));
-    // }
-
-    // if (ins.size() == 1) {
-    //   return ln(res + " = " + printUnop(inst, vd, g));
-    // }
-
-    // if (ins.size() == 0) {
-
-    //   return ln(res + " = " + printConstant(inst, vd, g));
-    // }
-
-    // cout << "Unsupported instance = " << inst->toString() << endl;
-    // assert(false);
+  string printOpValue(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    
   }
 
   bool fromSelfInterface(Select* w) {
@@ -624,7 +607,7 @@ namespace CoreIR {
 	  // If not an instance copy the input values
 	  for (auto inConn : inConns) {
 
-	    str += cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + cVar(inConn.first) + ";\n";
+	    str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + cVar(inConn.first));
 	  }
 
 	}
