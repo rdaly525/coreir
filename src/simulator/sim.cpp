@@ -335,10 +335,12 @@ namespace CoreIR {
 
     string oldValName = rName + "_old_value";
 
+    
+
     s += ite("(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
 	     cVar(en) + ")",
-	     cVar(add),
-	     //opResultStr(add, g.getOpNodeDisc(extractSource(add.getWire())), g),
+	     //cVar(add),
+	     opResultStr(combNode(extractSource(toSelect(add.getWire()))), g.getOpNodeDisc(extractSource(toSelect(add.getWire()))), g),
 	     oldValName) + ";\n";
     
     return s;
