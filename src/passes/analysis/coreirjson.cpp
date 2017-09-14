@@ -87,7 +87,6 @@ string Arg2Json(Arg* a) {
   }
 }
 
-//TODO order these
 string Args2Json(Args args) {
   Dict j;
   for (auto it : args) j.add(it.first,Arg2Json(it.second));
@@ -135,7 +134,7 @@ string Type2Json(Type* t) {
   return a.toString();
 }
 
-string Instances2Json(unordered_map<string,Instance*>& insts) {
+string Instances2Json(map<string,Instance*>& insts) {
   Dict jis(8);
   //TODO maybe keep an insertion order for all the instances/Modules/Generators/Namespaces
   for (auto imap : insts) {

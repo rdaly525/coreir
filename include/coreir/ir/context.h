@@ -9,7 +9,7 @@ class PassManager;
 class Pass;
 class Context {
   Namespace* global;
-  std::unordered_map<std::string,Namespace*> libs;
+  std::map<std::string,Namespace*> namespaces;
   PassManager* pm;
 
   uint maxErrors;
@@ -52,13 +52,13 @@ class Context {
     //bool linkLib(Namespace* defns, Namespace* declns);
     
     Namespace* newNamespace(std::string name);
-    bool hasNamespace(std::string name) { return libs.count(name) > 0; }
+    bool hasNamespace(std::string name) { return namespaces.count(name) > 0; }
     Namespace* getNamespace(std::string s);
     Namespace* getCoreirPrims() {return getNamespace("coreir");}
     Module* getModule(std::string ref);
     Generator* getGenerator(std::string ref);
     Instantiable* getInstantiable(std::string ref);
-    std::unordered_map<std::string,Namespace*> getNamespaces() {return libs;}
+    std::map<std::string,Namespace*> getNamespaces() {return namespaces;}
     void addPass(Pass* p);
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
 
