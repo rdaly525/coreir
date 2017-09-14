@@ -79,7 +79,8 @@ namespace CoreIR {
     string res = "";
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
-    res += inst->getInstname() + "_" + outPair.first + " = ";
+
+    res += cVar(*(outPair.second)) + " = ";
 
     auto inConns = getInputConnections(vd, g);
 
@@ -132,7 +133,8 @@ namespace CoreIR {
     assert(foundValue);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
-    res += inst->getInstname() + "_" + outPair.first + " = " + argStr + ";\n";
+
+    res += cVar(*(outPair.second)) + " = " + argStr + ";\n";
 
     return res;
   }
@@ -194,7 +196,7 @@ namespace CoreIR {
     string res = "";
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
-    //res += inst->getInstname() + "_" + outPair.first + " = ";
+
     res += cVar(*(outPair.second)) + " = ";
 
     auto inConns = getInputConnections(vd, g);
@@ -281,7 +283,7 @@ namespace CoreIR {
       string res = "";
 
       pair<string, Wireable*> outPair = *std::begin(outSelects);
-      res += inst->getInstname() + "_" + outPair.first + " = ";
+      res += cVar(*(outPair.second)) + " = ";
 
       auto inConns = getInputConnections(vd, g);
 
