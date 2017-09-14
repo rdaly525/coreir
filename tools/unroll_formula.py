@@ -79,11 +79,11 @@ def generate_unrolling(config):
     print("\n".join([x.replace(NEXT, at(1)) for x in next_vars]))
     print("\n".join([x.replace(CURR, at(0)).replace(NEXT, at(1)) for x in trans]))
 
-    for t in xrange(k-1):
+    for t in range(k-1):
         print(";;;;;;;;;;;;;;;;;;;;;;;;;;;;;; TIME %s ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;"%(t+1))
         if simple:
             print(";; START simple path conditions ;;")
-            for i in xrange(t+1):
+            for i in range(t+1):
                 varconds = ["(= %s %s)"%(x.replace(CURR, at(t+1)), x.replace(CURR, at(i))) for x in variables]
                 cond = None
                 for varcond in varconds:
