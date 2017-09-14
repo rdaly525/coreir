@@ -17,11 +17,7 @@ namespace CoreIR {
 
     assert(outSelects.size() == 1);
 
-    // string res = "";
-
     pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // res += cVar(*(outPair.second)) + " = ";
 
     auto inConns = getInputConnections(vd, g);
 
@@ -45,18 +41,10 @@ namespace CoreIR {
       res += opString + cVar(*arg);
     }
 
-    //res += "; //printUnop \n\n";
-
     return res;
   }
 
   string printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-    // string res = cVar(*(outPair.second));
 
     bool foundValue = false;
 
@@ -91,7 +79,7 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    res += cVar(*(outPair.second)) + " = ";
+    //res += cVar(*(outPair.second)) + " = ";
 
     auto inConns = getInputConnections(vd, g);
 
@@ -141,12 +129,12 @@ namespace CoreIR {
     assert(!!(wd.highBitsAreDirty()));
 
     if (wd.highBitsAreDirty()) {
-      res += maskResult(*(outPair.second->getType()), compString) + ";\n";
+      res += maskResult(*(outPair.second->getType()), compString); // + ";\n";
     } else {
       //res += compString + ";\n";
       //maskResult(*(outPair.second->getType()), compString) + ";\n";
     }
-    res += "\n";
+    //res += "\n";
 
     return res;
   }
@@ -174,10 +162,7 @@ namespace CoreIR {
 
       assert(outSelects.size() == 1);
 
-      string res = "";
-
       pair<string, Wireable*> outPair = *std::begin(outSelects);
-      res += cVar(*(outPair.second)) + " = ";
 
       auto inConns = getInputConnections(vd, g);
 
@@ -205,13 +190,10 @@ namespace CoreIR {
       Type& arg1Tp = *((arg1.getWire())->getType());
       Type& arg2Tp = *((arg2.getWire())->getType());
 
-      res += maskResult(*(outPair.second->getType()),
-			castToSigned(arg1Tp, seString(arg1Tp, cVar(arg1))) +
-			opString +
-			castToSigned(arg2Tp, seString(arg2Tp, cVar(arg2)))) +
-	";\n";
-
-      res += "\n";
+      string res = maskResult(*(outPair.second->getType()),
+			      castToSigned(arg1Tp, seString(arg1Tp, cVar(arg1))) +
+			      opString +
+			      castToSigned(arg2Tp, seString(arg2Tp, cVar(arg2))));
 
       return res;
   }
@@ -443,12 +425,11 @@ namespace CoreIR {
     }
 
     if (ins.size() == 2) {
-      return printBinop(wd, vd, g);
+      return ln(res + " = " + printBinop(wd, vd, g));
     }
 
     if (ins.size() == 1) {
       return ln(res + " = " + printUnop(inst, vd, g));
-      //return printUnop(inst, vd, g);
     }
 
     if (ins.size() == 0) {
