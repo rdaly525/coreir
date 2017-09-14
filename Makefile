@@ -16,21 +16,10 @@ test: build
 	$(MAKE) -C tests
 	cd tests; ./run
 
-.PHONY: pytest
-pytest: py
-	cd tests
-	pytest;
-
 installtest:
 	$(MAKE) -C tests/install
 	cd tests/install; ./run
 	coreir -i examples/counters.json -p flatten
-
-.PHONY: py
-py: build
-	pip install -e bindings/python
-	pip3 install -e bindings/python
-
 
 .PHONY: build
 build:
@@ -92,4 +81,3 @@ travis:
 	export DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:$$COREIR/lib
 	$(MAKE) test
 	sudo $(MAKE) install
-	$(MAKE) pytest
