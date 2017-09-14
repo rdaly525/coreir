@@ -12,6 +12,9 @@ using namespace CoreIR::Passes;
 
 namespace CoreIR {
 
+  // wd is an instance node
+  string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g);
+
   string printUnop(Instance* inst, const vdisc vd, const NGraph& g) {
     auto outSelects = getOutputSelects(inst);
 
@@ -335,6 +338,7 @@ namespace CoreIR {
     s += ite("(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
 	     cVar(en) + ")",
 	     cVar(add),
+	     //opResultStr(add, g.getOpNodeDisc(extractSource(add.getWire())), g),
 	     oldValName) + ";\n";
     
     return s;
@@ -455,6 +459,16 @@ namespace CoreIR {
     return ln(res + " = " + opResultStr(wd, vd, g));
   }
 
+  bool isCombinationalInstance(const WireNode& wd) {
+    assert(isInstance(wd.getWire()));
+
+    if (isRegisterInstance(wd.getWire())) {
+      return false;
+    }
+
+    return true;
+  }
+
   string printOpResultStr(const WireNode& wd, const NGraph& g) {
     assert(isSelect(wd.getWire()));
 
@@ -464,7 +478,7 @@ namespace CoreIR {
 
     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
 
-    cout << "Source of " << wd.getWire()->toString() << " is " << sourceInstance->toString() << endl;
+    //cout << "Source of " << wd.getWire()->toString() << " is " << sourceInstance->toString() << endl;
 
     if (isSelect(sourceInstance)) {
       return cVar(wd);
@@ -622,7 +636,11 @@ namespace CoreIR {
       Wireable* inst = wd.getWire();
 
       if (isInstance(inst)) {
-	str += printOp(wd, vd, g);
+
+	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
+	  str += printOp(wd, vd, g);
+	}
+
       } else {
 
 	if (inst->getType()->isInput()) {
