@@ -455,8 +455,32 @@ namespace CoreIR {
     return ln(res + " = " + opResultStr(wd, vd, g));
   }
 
-  string printOpValue(const WireNode& wd, const vdisc vd, const NGraph& g) {
-    
+  string printOpResultStr(const WireNode& wd, const NGraph& g) {
+    assert(isSelect(wd.getWire()));
+
+    if (isRegisterInstance(extractSource(toSelect(wd.getWire())))) {
+      return cVar(wd);
+    }
+
+    Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
+
+    cout << "Source of " << wd.getWire()->toString() << " is " << sourceInstance->toString() << endl;
+
+    if (isSelect(sourceInstance)) {
+      return cVar(wd);
+    }
+
+    assert(g.containsOpNode(sourceInstance));
+
+    vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
+
+    // TODO: Should really check whether or not there is one connection using
+    // the given variable
+    if (g.getOutputConnections(opNodeD).size() == 1) {
+      return cVar(wd);
+    }
+
+    assert(false);
   }
 
   bool fromSelfInterface(Select* w) {
@@ -607,7 +631,9 @@ namespace CoreIR {
 	  // If not an instance copy the input values
 	  for (auto inConn : inConns) {
 
-	    str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + cVar(inConn.first));
+	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + cVar(inConn.first));
+	    
+	    str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));//cVar(inConn.first));
 	  }
 
 	}

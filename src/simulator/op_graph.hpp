@@ -113,6 +113,30 @@ namespace CoreIR {
     std::vector<vdisc> getVerts() const {
       return verts;
     }
+
+    bool containsOpNode(CoreIR::Wireable* w) const {
+      WireNode wn = combNode(w);
+
+      for (auto& vpair : vertNames) {
+	if (vpair.second == wn) {
+	  return true;
+	}
+      }
+
+      return false;
+    }
+
+    vdisc getOpNodeDisc(CoreIR::Wireable* w) const {
+      WireNode wn = combNode(w);
+
+      for (auto& vpair : vertNames) {
+	if (vpair.second == wn) {
+	  return vpair.first;
+	}
+      }
+
+      assert(false);
+    }
     
     int numVertices() const;
     vector<vdisc> vertsWithNoIncomingEdge() const;
