@@ -224,16 +224,16 @@ namespace CoreIR {
   string printMux(Instance* inst, const vdisc vd, const NGraph& g) {
     assert(isMux(*inst));
 
-    auto outSel = getOutputSelects(inst);
+    // auto outSel = getOutputSelects(inst);
 
-    assert(outSel.size() == 1);
+    // assert(outSel.size() == 1);
 
-    Select* sl = toSelect((*(begin(outSel))).second);
+    // Select* sl = toSelect((*(begin(outSel))).second);
 
-    assert(isInstance(sl->getParent()));
+    // assert(isInstance(sl->getParent()));
 
-    Instance* r = toInstance(sl->getParent());
-    string rName = r->getInstname();
+    // Instance* r = toInstance(sl->getParent());
+    // string rName = r->getInstname();
 
     auto ins = getInputConnections(vd, g);
 
@@ -244,7 +244,8 @@ namespace CoreIR {
     WireNode i1 = findArg("in1", ins);
     
     // TODO: Replace with assign function that considers types eventually
-    return cVar(*sl) + " = " + ite(cVar(sel), cVar(i1), cVar(i0)) + ";\n";
+    //return cVar(*sl) + " = " + ite(cVar(sel), cVar(i1), cVar(i0)) + ";\n";
+    return ite(cVar(sel), cVar(i1), cVar(i0));
     
   }
 
@@ -421,7 +422,8 @@ namespace CoreIR {
     string res = cVar(*(outPair.second));
     
     if (ins.size() == 3) {
-      return printTernop(inst, vd, g);
+      //return printTernop(inst, vd, g);
+      return ln(res + " = " + printTernop(inst, vd, g));
     }
 
     if (ins.size() == 2) {
