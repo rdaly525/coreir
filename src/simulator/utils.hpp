@@ -2,6 +2,8 @@
 
 #include "coreir.h"
 
+#include "algorithm.hpp"
+
 namespace CoreIR {
 
   static inline bool isSelect(CoreIR::Wireable* fst) {

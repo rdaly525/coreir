@@ -422,7 +422,6 @@ namespace CoreIR {
     string res = cVar(*(outPair.second));
     
     if (ins.size() == 3) {
-      //return printTernop(inst, vd, g);
       return ln(res + " = " + printTernop(inst, vd, g));
     }
 
