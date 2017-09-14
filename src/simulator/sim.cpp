@@ -103,7 +103,7 @@ namespace CoreIR {
       res += opString + cVar(*arg);
     }
 
-    res += ";\n\n";
+    res += "; //printUnop \n\n";
 
     return res;
   }
@@ -134,7 +134,7 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    res += cVar(*(outPair.second)) + " = " + argStr + ";\n";
+    res += cVar(*(outPair.second)) + " = " + argStr + "; // printConstant \n";
 
     return res;
   }
@@ -604,7 +604,7 @@ namespace CoreIR {
 			      const std::string& toName,
 			      const std::string& fromName) {
     if (isPrimitiveType(*tp)) {
-      return toName + " = " + fromName + ";\n";
+      return toName + " = " + fromName + "; // copyTypeFromInternal\n";
     }
 
     if (isArray(*tp)) {
@@ -698,11 +698,14 @@ namespace CoreIR {
 	str += printOp(wd, vd, g);
       } else {
 
-	// If not an instance copy the input values
-	auto inConns = getInputConnections(vd, g);
+	if (inst->getType()->isInput()) {
+	  cout << inst->toString() << ", WITH TYPE " << inst->getType()->toString() << " IS NOT AN INSTANCE " << endl;
+	  // If not an instance copy the input values
+	  auto inConns = getInputConnections(vd, g);
       
-	for (auto inConn : inConns) {
-	  str += cVar(*(inConn.second.getWire())) + " = " + cVar(inConn.first) + ";\n";
+	  for (auto inConn : inConns) {
+	    str += cVar(*(inConn.second.getWire())) + " = " + cVar(inConn.first) + ";\n";
+	  }
 	}
 
       }
