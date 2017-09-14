@@ -212,5 +212,51 @@ namespace CoreIR {
     return g;
   }
 
+  static inline bool isDASHR(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    return genRefName == "dashr";
+  }
+
+  static inline bool isShiftOp(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> bitwiseOps{"dshl", "dlshr", "dashr"};
+    return elem(genRefName, bitwiseOps);
+  }
+
+  static inline bool isSDivOrRem(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> bitwiseOps{"sdiv", "srem"};
+    return elem(genRefName, bitwiseOps);
+  }
+  
+  static inline bool isUDivOrRem(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> bitwiseOps{"udiv", "urem"};
+    return elem(genRefName, bitwiseOps);
+  }
+
+  static inline bool isBitwiseOp(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> bitwiseOps{"not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
+    return elem(genRefName, bitwiseOps);
+  }
+
+  static inline bool isSignInvariantOp(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> siOps{"add", "sub", "mul", "eq"};
+    return elem(genRefName, siOps);
+  }
+
+  static inline bool isUnsignedCmp(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> siOps{"ult", "ugt", "ule", "uge"};
+    return elem(genRefName, siOps);
+  }
+
+  static inline bool isSignedCmp(Instance& inst) {
+    string genRefName = getInstanceName(inst);
+    vector<string> siOps{"slt", "sgt", "sle", "sge"};
+    return elem(genRefName, siOps);
+  }
   
 }

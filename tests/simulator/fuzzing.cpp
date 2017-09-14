@@ -12,10 +12,6 @@
 
 namespace CoreIR {
 
-  std::string ln(const std::string& s) {
-    return s + ";\n";
-  }
-
   std::string primitiveRandomInputString(CoreIR::Type& t, const std::string& var) {
     assert(isPrimitiveType(t));
 

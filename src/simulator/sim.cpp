@@ -50,11 +50,12 @@ namespace CoreIR {
   }
 
   string printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
-    auto outSelects = getOutputSelects(inst);
+    // auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    // assert(outSelects.size() == 1);
 
-    string res = "";
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+    // string res = cVar(*(outPair.second));
 
     bool foundValue = false;
 
@@ -73,58 +74,9 @@ namespace CoreIR {
 
     assert(foundValue);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    //res += " = " + argStr + "; // printConstant \n";
 
-    res += cVar(*(outPair.second)) + " = " + argStr + "; // printConstant \n";
-
-    return res;
-  }
-
-  bool isDASHR(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    return genRefName == "dashr";
-  }
-
-  bool isShiftOp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"dshl", "dlshr", "dashr"};
-    return elem(genRefName, bitwiseOps);
-  }
-
-  bool isSDivOrRem(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"sdiv", "srem"};
-    return elem(genRefName, bitwiseOps);
-  }
-  
-  bool isUDivOrRem(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"udiv", "urem"};
-    return elem(genRefName, bitwiseOps);
-  }
-
-  bool isBitwiseOp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
-    return elem(genRefName, bitwiseOps);
-  }
-
-  bool isSignInvariantOp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> siOps{"add", "sub", "mul", "eq"};
-    return elem(genRefName, siOps);
-  }
-
-  bool isUnsignedCmp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> siOps{"ult", "ugt", "ule", "uge"};
-    return elem(genRefName, siOps);
-  }
-
-  bool isSignedCmp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> siOps{"slt", "sgt", "sle", "sge"};
-    return elem(genRefName, siOps);
+    return argStr;
   }
   
   string printOpThenMaskBinop(const WireNode& wd, const vdisc vd, const NGraph& g) {
@@ -491,7 +443,14 @@ namespace CoreIR {
     }
 
     if (ins.size() == 0) {
-      return printConstant(inst, vd, g);
+      auto outSelects = getOutputSelects(inst);
+
+      assert(outSelects.size() == 1);
+
+      pair<string, Wireable*> outPair = *std::begin(outSelects);
+      string res = cVar(*(outPair.second));
+
+      return ln(res + " = " + printConstant(inst, vd, g));
     }
 
     cout << "Unsupported instance = " << inst->toString() << endl;
