@@ -300,4 +300,63 @@ namespace CoreIR {
 
   }
 
+  vector<Conn> buildOrderedConnections(Module* mod) {
+    vector<Conn> conns;
+
+    assert(mod->hasDef());
+
+    for (auto& connection : mod->getDef()->getConnections()) {
+
+      assert(connectionIsOrdered(connection));
+
+
+      Wireable* fst = connection.first;
+      Wireable* snd = connection.second;
+
+      assert(isSelect(fst));
+      assert(isSelect(snd));
+
+      Wireable* fst_p = toSelect(*fst).getParent();
+      Wireable* snd_p = toSelect(*snd).getParent();
+
+      Select* fst_select = static_cast<Select*>(fst);
+
+      Type* fst_tp = fst_select->getType();
+
+      WireNode w_fst{fst, false, false};
+      WireNode w_snd{snd, false, false};
+
+      if (fst_tp->isInput()) {
+
+	if (isRegisterInstance(fst_p)) {
+	  w_fst = {fst, true, true};
+	}
+
+	if (isRegisterInstance(snd_p)) {
+	  w_snd = {snd, true, false};
+	}
+
+	
+	conns.push_back({w_snd, w_fst});
+      } else {
+
+	if (isRegisterInstance(fst_p)) {
+	  w_fst = {fst, true, false};
+	}
+
+	if (isRegisterInstance(snd_p)) {
+	  w_snd = {snd, true, true};
+	}
+
+	conns.push_back({w_fst, w_snd});
+      }
+
+    }
+
+    assert(conns.size() == mod->getDef()->getConnections().size());
+
+    return conns;
+  
+  }
+  
 }

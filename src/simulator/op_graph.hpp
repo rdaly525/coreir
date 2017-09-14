@@ -144,4 +144,6 @@ namespace CoreIR {
 			  unordered_map<WireNode, vdisc>& imap,
 			  NGraph& g);
 
+  vector<Conn> buildOrderedConnections(Module* mod);
+
 }
