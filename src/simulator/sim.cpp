@@ -405,7 +405,40 @@ namespace CoreIR {
       }
     }
   }
-  
+
+  string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    Instance* inst = toInstance(wd.getWire());
+    auto ins = getInputs(vd, g);
+    
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    string res = cVar(*(outPair.second));
+    
+    if (ins.size() == 3) {
+      return printTernop(inst, vd, g);
+    }
+
+    if (ins.size() == 2) {
+      return printBinop(wd, vd, g);
+    }
+
+    if (ins.size() == 1) {
+      return printUnop(inst, vd, g);
+    }
+
+    if (ins.size() == 0) {
+
+      return printConstant(inst, vd, g);
+    }
+
+    cout << "Unsupported instance = " << inst->toString() << endl;
+    assert(false);
+    
+  }
+
   string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
@@ -420,26 +453,27 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
     string res = cVar(*(outPair.second));
-    
-    if (ins.size() == 3) {
-      return ln(res + " = " + printTernop(inst, vd, g));
-    }
 
-    if (ins.size() == 2) {
-      return ln(res + " = " + printBinop(wd, vd, g));
-    }
+    return ln(res + " = " + opResultStr(wd, vd, g));
+    // if (ins.size() == 3) {
+    //   return ln(res + " = " + printTernop(inst, vd, g));
+    // }
 
-    if (ins.size() == 1) {
-      return ln(res + " = " + printUnop(inst, vd, g));
-    }
+    // if (ins.size() == 2) {
+    //   return ln(res + " = " + printBinop(wd, vd, g));
+    // }
 
-    if (ins.size() == 0) {
+    // if (ins.size() == 1) {
+    //   return ln(res + " = " + printUnop(inst, vd, g));
+    // }
 
-      return ln(res + " = " + printConstant(inst, vd, g));
-    }
+    // if (ins.size() == 0) {
 
-    cout << "Unsupported instance = " << inst->toString() << endl;
-    assert(false);
+    //   return ln(res + " = " + printConstant(inst, vd, g));
+    // }
+
+    // cout << "Unsupported instance = " << inst->toString() << endl;
+    // assert(false);
   }
 
   bool fromSelfInterface(Select* w) {
