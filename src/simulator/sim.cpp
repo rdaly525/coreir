@@ -339,8 +339,8 @@ namespace CoreIR {
 
     s += ite("(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
 	     cVar(en) + ")",
-	     //cVar(add),
-	     opResultStr(combNode(extractSource(toSelect(add.getWire()))), g.getOpNodeDisc(extractSource(toSelect(add.getWire()))), g),
+	     cVar(add),
+	     //opResultStr(combNode(extractSource(toSelect(add.getWire()))), g.getOpNodeDisc(extractSource(toSelect(add.getWire()))), g),
 	     oldValName) + ";\n";
     
     return s;
@@ -411,6 +411,11 @@ namespace CoreIR {
   }
 
   string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g) {
+
+    if (!isInstance(wd.getWire())) {
+      return cVar(wd);
+    }
+
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
     
@@ -639,9 +644,9 @@ namespace CoreIR {
 
       if (isInstance(inst)) {
 
-	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
+	//if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
 	  str += printOp(wd, vd, g);
-	}
+	  //}
 
       } else {
 
