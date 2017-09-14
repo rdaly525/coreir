@@ -17,11 +17,11 @@ namespace CoreIR {
 
     assert(outSelects.size() == 1);
 
-    string res = "";
+    // string res = "";
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    res += cVar(*(outPair.second)) + " = ";
+    // res += cVar(*(outPair.second)) + " = ";
 
     auto inConns = getInputConnections(vd, g);
 
@@ -38,13 +38,14 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
+    string res = "";
     if (opString == "~") {
       res += maskResult(*((outPair.second)->getType()), opString + cVar(*arg));
     } else {
       res += opString + cVar(*arg);
     }
 
-    res += "; //printUnop \n\n";
+    //res += "; //printUnop \n\n";
 
     return res;
   }
@@ -430,6 +431,13 @@ namespace CoreIR {
       return printRegister(wd, vd, g);
     }
 
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    string res = cVar(*(outPair.second));
+    
     if (ins.size() == 3) {
       return printTernop(inst, vd, g);
     }
@@ -439,16 +447,11 @@ namespace CoreIR {
     }
 
     if (ins.size() == 1) {
-      return printUnop(inst, vd, g);
+      return ln(res + " = " + printUnop(inst, vd, g));
+      //return printUnop(inst, vd, g);
     }
 
     if (ins.size() == 0) {
-      auto outSelects = getOutputSelects(inst);
-
-      assert(outSelects.size() == 1);
-
-      pair<string, Wireable*> outPair = *std::begin(outSelects);
-      string res = cVar(*(outPair.second));
 
       return ln(res + " = " + printConstant(inst, vd, g));
     }
