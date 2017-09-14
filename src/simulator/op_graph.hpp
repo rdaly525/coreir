@@ -146,4 +146,6 @@ namespace CoreIR {
 
   vector<Conn> buildOrderedConnections(Module* mod);
 
+  void buildOrderedGraph(Module* mod, NGraph& g);
+
 }

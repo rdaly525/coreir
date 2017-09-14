@@ -827,35 +827,5 @@ namespace CoreIR {
     return code;
   }
 
-  void buildOrderedGraph(Module* mod, NGraph& g) {
-
-    //cout << "Building ordered conns" << endl;
-
-    auto ord_conns = buildOrderedConnections(mod);
-
-    //cout << "Built ordered connections" << endl;
-
-    // Add vertexes for all instances in the graph
-    unordered_map<WireNode, vdisc> imap;
-
-    for (auto& conn : ord_conns) {
-
-      Select* sel1 = toSelect(conn.first.getWire());
-      Select* sel2 = toSelect(conn.second.getWire());
-
-      Wireable* w1 = extractSource(sel1);
-      Wireable* w2 = extractSource(sel2);
-
-      addWireableToGraph(w1, imap, g);
-      addWireableToGraph(w2, imap, g);
-
-    }
-
-    // Add edges to the graph
-    for (Conn conn : ord_conns) {
-      addConnection(imap, conn, g);
-    }
-
-  }
 
 }
