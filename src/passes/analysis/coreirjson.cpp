@@ -88,10 +88,8 @@ string Arg2Json(Arg* a) {
 }
 
 string Args2Json(Args args) {
-  map<string,Arg*> sorted;
-  for (auto it : args) sorted[it.first] = it.second;
   Dict j;
-  for (auto it : sorted) j.add(it.first,Arg2Json(it.second));
+  for (auto it : args) j.add(it.first,Arg2Json(it.second));
   return j.toString();
 }
 
