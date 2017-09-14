@@ -477,7 +477,8 @@ namespace CoreIR {
     // TODO: Should really check whether or not there is one connection using
     // the given variable
     if (g.getOutputConnections(opNodeD).size() == 1) {
-      return cVar(wd);
+      //return cVar(wd);
+      return opResultStr(combNode(sourceInstance), opNodeD, g);
     }
 
     assert(false);
