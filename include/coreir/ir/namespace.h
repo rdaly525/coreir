@@ -9,17 +9,17 @@ class Namespace {
   Context* c;
   std::string name;
 
-  std::unordered_map<std::string,Module*> moduleList;
-  std::unordered_map<std::string,Generator*> generatorList;
+  std::map<std::string,Module*> moduleList;
+  std::map<std::string,Generator*> generatorList;
   
   //Lists the named type without args
-  std::unordered_map<std::string,NamedType*> namedTypeList;
+  std::map<std::string,NamedType*> namedTypeList;
+  
+  //Mapping name to typegen 
+  std::map<std::string,TypeGen*> typeGenList;
   
   //Caches the NamedTypes with args
   std::unordered_map<std::string,std::unordered_map<Args,NamedType*>> namedTypeGenCache;
-  
-  //Mapping name to typegen 
-  std::unordered_map<std::string,TypeGen*> typeGenList;
 
   //Save the unflipped names for json file
   std::unordered_map<std::string,std::string> namedTypeNameMap;
@@ -30,8 +30,8 @@ class Namespace {
     ~Namespace();
     const std::string& getName() { return name;}
     Context* getContext() { return c;}
-    std::unordered_map<std::string,Module*> getModules() { return moduleList;}
-    std::unordered_map<std::string,Generator*> getGenerators() { return generatorList;}
+    std::map<std::string,Module*> getModules() { return moduleList;}
+    std::map<std::string,Generator*> getGenerators() { return generatorList;}
 
     NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);
     void newNominalTypeGen(std::string name, std::string nameFlip,Params genparams, TypeGenFun fun);
@@ -39,7 +39,7 @@ class Namespace {
     bool hasNamedType(std::string name);
     
     //Only returns named types without args
-    std::unordered_map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
+    std::map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
     NamedType* getNamedType(std::string name);
     NamedType* getNamedType(std::string name, Args genargs);
     TypeGen* getTypeGen(std::string name);
