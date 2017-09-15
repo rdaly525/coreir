@@ -283,7 +283,7 @@ namespace CoreIR {
 
     auto ins = getInputConnections(vd, g);
 
-    assert(ins.size() == 3);
+    assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
     string s = "*" + rName + "_new_value = ";
     WireNode clk = findArg("clk", ins);
@@ -294,8 +294,10 @@ namespace CoreIR {
     string condition =
       parens(cVar(clk, "_last") + " == 0") + " && " + parens(cVar(clk) + " == 1");
 
-    WireNode en = findArg("en", ins);
-    condition += " && " + cVar(en);
+    if (hasEnable(wd.getWire())) {
+      WireNode en = findArg("en", ins);
+      condition += " && " + cVar(en);
+    }
 
     //"((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && ";
 
@@ -357,11 +359,13 @@ namespace CoreIR {
     if (!wd.isReceiver) {
       return cVar(*s) + varSuffix(wd) + " = " + rName + "_old_value" + " ;\n";
     } else {
-      if (hasEnable(wd.getWire())) {
-	return enableRegReceiver(wd, vd, g);
-      } else {
-	return noEnableRegReceiver(wd, vd, g);
-      }
+      return enableRegReceiver(wd, vd, g);
+
+      // if (hasEnable(wd.getWire())) {
+      // 	return enableRegReceiver(wd, vd, g);
+      // } else {
+      // 	return noEnableRegReceiver(wd, vd, g);
+      // }
     }
   }
 
