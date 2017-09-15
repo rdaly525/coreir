@@ -153,7 +153,7 @@ string Instances2Json(map<string,Instance*>& insts) {
     }
     jis.add(iname,j.toMultiString());
   }
-  return jis.toMultiString(true);
+  return jis.toMultiString();
 }
 
 string Connections2Json(unordered_set<Connection>& cons) {
@@ -222,12 +222,12 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   if (!ns->getModules().empty()) {
     Dict jmod(4);
     for (auto m : ns->getModules()) jmod.add(m.first,Module2Json(m.second));
-    jns.add("modules",jmod.toMultiString(true));
+    jns.add("modules",jmod.toMultiString());
   }
   if (!ns->getGenerators().empty()) {
     Dict jgen(4);
     for (auto g : ns->getGenerators()) jgen.add(g.first,Generator2Json(g.second));
-    jns.add("generators",jgen.toMultiString(true));
+    jns.add("generators",jgen.toMultiString());
   }
   //if (!namedTypeNameMap.empty()) {
   //  ASSERT(0,"NYI");
@@ -277,7 +277,7 @@ void Passes::CoreIRJson::writeToStream(std::ostream& os,string topRef) {
   for (auto nmap : nsMap) {
     jn.add(nmap.first,nmap.second);
   }
-  os << quote("namespaces") << ":" << jn.toMultiString(true);
+  os << quote("namespaces") << ":" << jn.toMultiString();
   os << endl << "}";
 }
 

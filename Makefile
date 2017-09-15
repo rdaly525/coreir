@@ -74,10 +74,11 @@ travis:
 	export COREIR=
 	export DYLD_LIBRARY_PATH=
 	$(MAKE) clean
+	-sudo $(MAKE) uninstall
+	$(MAKE) build
 	sudo $(MAKE) install
 	$(MAKE) installtest
 	sudo $(MAKE) uninstall
 	export COREIR=/Users/rdaly/coreir
 	export DYLD_LIBRARY_PATH=$$DYLD_LIBRARY_PATH:$$COREIR/lib
 	$(MAKE) test
-	sudo $(MAKE) install
