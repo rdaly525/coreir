@@ -81,6 +81,55 @@ namespace CoreIR {
       
     }
 
+    SECTION("6 bit signed remainder 4 operations") {
+      uint n = 6;
+  
+      Generator* srem2 = c->getGenerator("coreir.srem");
+
+      // Define Srem4 Module
+      Type* srem4Type = c->Record({
+	  {"in",c->Array(3, c->Array(n,c->BitIn()))},
+	    {"out",c->Array(n, c->Bit())}
+	});
+
+      Module* srem4_n = g->newModuleDecl("Srem4", srem4Type);
+      ModuleDef* def = srem4_n->newModuleDef();
+      Wireable* self = def->sel("self");
+      Wireable* srem_00 = def->addInstance("srem00", srem2, {{"width",c->argInt(n)}});
+      Wireable* srem_01 = def->addInstance("srem01", srem2, {{"width",c->argInt(n)}});
+      Wireable* srem_1 = def->addInstance("srem1", srem2, {{"width",c->argInt(n)}});
+
+      def->connect(self->sel("in")->sel(0),srem_00->sel("in0"));
+      def->connect(self->sel("in")->sel(1),srem_00->sel("in1"));
+
+      def->connect(self->sel("in")->sel(2),srem_01->sel("in0"));
+      def->connect(srem_00->sel("out"), srem_01->sel("in1"));
+
+      def->connect(srem_00->sel("out"),srem_1->sel("in0"));
+      def->connect(srem_01->sel("out"),srem_1->sel("in1"));
+
+      def->connect(srem_1->sel("out"),self->sel("out"));
+      srem4_n->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph gr;
+      buildOrderedGraph(srem4_n, gr);
+      
+      deque<vdisc> topoOrder = topologicalSort(gr);
+
+      //auto str = printCode(topoOrder, gr, srem4_n);
+      int s = compileCodeAndRun(topoOrder,
+				gr,
+				srem4_n,
+				"./gencode/srem4",
+				"./gencode/test_srem4.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
+    
     SECTION("64 bit subtract") {
       uint n = 64;
   

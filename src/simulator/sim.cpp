@@ -107,8 +107,8 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    //string compString = cVar(arg1) + opString + cVar(arg2);
-    string compString = parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g)); //cVar(arg1) + opString + cVar(arg2);
+    string compString =
+      parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g));
 
     // And not standard width
     if (isDASHR(*inst)) {
@@ -190,10 +190,13 @@ namespace CoreIR {
       Type& arg1Tp = *((arg1.getWire())->getType());
       Type& arg2Tp = *((arg2.getWire())->getType());
 
+      string rs1 = printOpResultStr(arg1, g);
+      string rs2 = printOpResultStr(arg2, g);
+
       string res = maskResult(*(outPair.second->getType()),
-			      castToSigned(arg1Tp, seString(arg1Tp, cVar(arg1))) +
+			      castToSigned(arg1Tp, seString(arg1Tp, rs1)) + //cVar(arg1))) +
 			      opString +
-			      castToSigned(arg2Tp, seString(arg2Tp, cVar(arg2))));
+			      castToSigned(arg2Tp, seString(arg2Tp, rs2))); //cVar(arg2))));
 
       return res;
   }
@@ -423,7 +426,8 @@ namespace CoreIR {
       return opResultStr(combNode(sourceInstance), opNodeD, g);
     }
 
-    assert(false);
+    return cVar(wd);
+    //assert(false);
   }
 
   bool fromSelfInterface(Select* w) {
