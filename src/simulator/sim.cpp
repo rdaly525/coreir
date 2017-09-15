@@ -12,6 +12,8 @@ using namespace CoreIR::Passes;
 
 namespace CoreIR {
 
+  string printOpResultStr(const WireNode& wd, const NGraph& g);
+
   // wd is an instance node
   string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g);
 
@@ -105,7 +107,8 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string compString = cVar(arg1) + opString + cVar(arg2);
+    //string compString = cVar(arg1) + opString + cVar(arg2);
+    string compString = parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g)); //cVar(arg1) + opString + cVar(arg2);
 
     // And not standard width
     if (isDASHR(*inst)) {
@@ -299,8 +302,10 @@ namespace CoreIR {
       condition += " && " + cVar(en);
     }
 
+    //printOpResultStr(inConn.first, g));//cVar(inConn.first));
+
     s += ite(parens(condition),
-	     cVar(add),
+	     printOpResultStr(add, g), //cVar(add),
 	     oldValName) + ";\n";
     
     return s;
@@ -560,9 +565,9 @@ namespace CoreIR {
 
       if (isInstance(inst)) {
 
-	//if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
+	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
 	  str += printOp(wd, vd, g);
-	  //}
+	}
 
       } else {
 
@@ -574,7 +579,7 @@ namespace CoreIR {
 	  for (auto inConn : inConns) {
 
 	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + cVar(inConn.first));
-	    
+
 	    str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));//cVar(inConn.first));
 	  }
 
