@@ -299,47 +299,10 @@ namespace CoreIR {
       condition += " && " + cVar(en);
     }
 
-    //"((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && ";
-
-    s += ite(parens(condition),
-	       //"(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
-	       //cVar(en) + ")",
-	     cVar(add),
-	     oldValName) + ";\n";
-    
-    return s;
-  }
-
-  string noEnableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g) {
-
-    auto outSel = getOutputSelects(wd.getWire());
-
-    assert(outSel.size() == 1);
-    Select* sl = toSelect((*(begin(outSel))).second);
-
-    assert(isInstance(sl->getParent()));
-
-    Instance* r = toInstance(sl->getParent());
-    string rName = r->getInstname();
-
-    auto ins = getInputConnections(vd, g);
-
-    assert(ins.size() == 2);
-
-    string s = "*" + rName + "_new_value = ";
-
-    WireNode clk = findArg("clk", ins);
-    WireNode add = findArg("in", ins);
-
-    string oldValName = rName + "_old_value";
-
-    string condition =
-      parens(cVar(clk, "_last") + " == 0") + " && " + parens(cVar(clk) + " == 1");
-    
     s += ite(parens(condition),
 	     cVar(add),
 	     oldValName) + ";\n";
-
+    
     return s;
   }
 
@@ -360,12 +323,6 @@ namespace CoreIR {
       return cVar(*s) + varSuffix(wd) + " = " + rName + "_old_value" + " ;\n";
     } else {
       return enableRegReceiver(wd, vd, g);
-
-      // if (hasEnable(wd.getWire())) {
-      // 	return enableRegReceiver(wd, vd, g);
-      // } else {
-      // 	return noEnableRegReceiver(wd, vd, g);
-      // }
     }
   }
 
