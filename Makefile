@@ -74,6 +74,8 @@ travis:
 	export COREIR=
 	export DYLD_LIBRARY_PATH=
 	$(MAKE) clean
+	-sudo $(MAKE) uninstall
+	$(MAKE) build
 	sudo $(MAKE) install
 	$(MAKE) installtest
 	sudo $(MAKE) uninstall

@@ -1,19 +1,20 @@
 #include "coreir.h"
-#include "coreir/passes/analysis/verifyfullyconnected.h"
+#include "coreir/passes/analysis/verifyconnectivity.h"
 
 using namespace std;
 using namespace CoreIR;
 
-bool Passes::VerifyFullyConnected::checkIfFullyConnected(Wireable* w,Error& e) {
+bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
+  if (this->onlyInputs && w->getType()->isOutput()) {
+    return true;
+  }
+
   Context* c = this->getContext();
   if (w->getConnectedWireables().size()>0) return true;
   if (auto nt = dyn_cast<NamedType>(w->getType())) {
-    if (!this->checkClkRst && (
-      nt == c->Named("coreir.clk") ||
-      nt == c->Named("coreir.clkIn") ||
-      nt == c->Named("coreir.rst") ||
-      nt == c->Named("coreir.rstIn")
-    )) {
+    bool crin = nt == c->Named("coreir.clkIn") || nt == c->Named("coreir.rstIn");
+    bool crout = nt == c->Named("coreir.clk") || nt == c->Named("coreir.rst");
+    if (!this->checkClkRst && (crin || (!this->onlyInputs && crout))) {
       return true;
     }
     e.message("{"+w->getContainer()->getName() + "}." + w->toString()+" Is not fully connected (N)");
@@ -51,10 +52,9 @@ bool Passes::VerifyFullyConnected::checkIfFullyConnected(Wireable* w,Error& e) {
   }
 }
 
-string Passes::VerifyFullyConnected::ID = "verifyfullyconnected";
-bool Passes::VerifyFullyConnected::runOnModule(Module* m) {
+string Passes::VerifyConnectivity::ID = "verifyconnectivity";
+bool Passes::VerifyConnectivity::runOnModule(Module* m) {
   //Check if all ports are connected for everything
-  if (!m->hasDef()) return false;
   Context* c = this->getContext();
   ModuleDef* def = m->getDef();
   
