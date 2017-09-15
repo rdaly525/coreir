@@ -51,6 +51,7 @@ namespace CoreIR {
     void addEdgeLabel(const edisc ed, const Conn& conn) {
 
       edgeNames[ed] = conn;
+
     }
 
     vdisc target(const edisc ed)  const {
@@ -79,6 +80,7 @@ namespace CoreIR {
     }
 
     vdisc addVertex(const WireNode& w) {
+      assert(w.isOpNode());
 
       vdisc v = nextVertexDisc();
       verts.push_back(v);
@@ -171,5 +173,7 @@ namespace CoreIR {
   vector<Conn> buildOrderedConnections(Module* mod);
 
   void buildOrderedGraph(Module* mod, NGraph& g);
+
+  WireNode findArg(string argName, std::vector<Conn>& ins);
 
 }

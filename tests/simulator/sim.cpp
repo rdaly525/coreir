@@ -170,6 +170,19 @@ namespace CoreIR {
 	REQUIRE(s == 0);
 
       }
+
+      SECTION("Compile and run single cycle test") {      
+	string outFile = "./gencode/counter";
+
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  counter,
+				  outFile,
+				  "./gencode/test_counter_one_cycle.cpp");
+
+	REQUIRE(s == 0);
+
+      }
       
     }
 

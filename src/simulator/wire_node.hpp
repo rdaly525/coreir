@@ -2,6 +2,8 @@
 
 #include "coreir.h"
 
+#include "utils.hpp"
+
 namespace CoreIR {
 
   class WireNode {
@@ -30,6 +32,24 @@ namespace CoreIR {
       wire(wire_),
       isSequential(isSequential_),
       isReceiver(isReceiver_) {}
+
+    bool isOpNode() const {
+      if (!isSelect(getWire())) {
+	assert(isInstance(getWire()));
+	return true;
+      }
+
+      assert(isSelect(getWire()));
+
+      auto sel = toSelect(getWire());
+      Wireable* p = sel->getParent();
+
+      if (fromSelf(sel) && (!isSelect(p))) {
+	return true;
+      }
+
+      return false;
+    }
 
     WireNode& operator=(const WireNode& other) {
       if (&other == this) {

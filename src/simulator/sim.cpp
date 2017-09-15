@@ -114,9 +114,6 @@ namespace CoreIR {
 
       assert(containWidth > tw);
 
-      //uint diff = containWidth - tw;
-      //string diffStr = parens(to_string(diff) + " + " + cVar(arg2));
-
       string mask =
 	parens(bitMaskString(cVar(arg2)) + " << " + parens(to_string(tw) + " - " + cVar(arg2)));
 
@@ -130,12 +127,11 @@ namespace CoreIR {
     assert(!!(wd.highBitsAreDirty()));
 
     if (wd.highBitsAreDirty()) {
-      res += maskResult(*(outPair.second->getType()), compString); // + ";\n";
+      res += maskResult(*(outPair.second->getType()), compString);
     } else {
-      //res += compString + ";\n";
-      //maskResult(*(outPair.second->getType()), compString) + ";\n";
+      //res += compString
+      //maskResult(*(outPair.second->getType()), compString)
     }
-    //res += "\n";
 
     return res;
   }
@@ -207,34 +203,8 @@ namespace CoreIR {
 
   }
 
-  WireNode findArg(string argName, std::vector<Conn>& ins) {
-    for (auto& conn : ins) {
-      WireNode arg = conn.first;
-      WireNode placement = conn.second;
-      string selName = toSelect(placement.getWire())->getSelStr();
-      if (selName == argName) {
-	return arg;
-      }
-    }
-
-    cout << "Error: Could not find argument: " << argName << endl;
-
-    assert(false);
-  }
-
   string printMux(Instance* inst, const vdisc vd, const NGraph& g) {
     assert(isMux(*inst));
-
-    // auto outSel = getOutputSelects(inst);
-
-    // assert(outSel.size() == 1);
-
-    // Select* sl = toSelect((*(begin(outSel))).second);
-
-    // assert(isInstance(sl->getParent()));
-
-    // Instance* r = toInstance(sl->getParent());
-    // string rName = r->getInstname();
 
     auto ins = getInputConnections(vd, g);
 
@@ -244,8 +214,6 @@ namespace CoreIR {
     WireNode i0 = findArg("in0", ins);
     WireNode i1 = findArg("in1", ins);
     
-    // TODO: Replace with assign function that considers types eventually
-    //return cVar(*sl) + " = " + ite(cVar(sel), cVar(i1), cVar(i0)) + ";\n";
     return ite(cVar(sel), cVar(i1), cVar(i0));
     
   }
@@ -299,6 +267,8 @@ namespace CoreIR {
     return recordTypeHasField("en", w->getType());
   }
 
+	     //opResultStr(combNode(extractSource(toSelect(add.getWire()))), g.getOpNodeDisc(extractSource(toSelect(add.getWire()))), g),
+  
   string enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g) {
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -316,31 +286,23 @@ namespace CoreIR {
     assert(ins.size() == 3);
 
     string s = "*" + rName + "_new_value = ";
-    WireNode clk;
-    WireNode en;
-    WireNode add;
-
-    for (auto& conn : ins) {
-      WireNode arg = conn.first;
-      WireNode placement = conn.second;
-      string selName = toSelect(placement.getWire())->getSelStr();
-      if (selName == "en") {
-	en = arg;
-      } else if (selName == "clk") {
-	clk = arg;
-      } else {
-	add = arg;
-      }
-    }
+    WireNode clk = findArg("clk", ins);
+    WireNode add = findArg("in", ins);
 
     string oldValName = rName + "_old_value";
 
-    
+    string condition =
+      parens(cVar(clk, "_last") + " == 0") + " && " + parens(cVar(clk) + " == 1");
 
-    s += ite("(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
-	     cVar(en) + ")",
+    WireNode en = findArg("en", ins);
+    condition += " && " + cVar(en);
+
+    //"((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && ";
+
+    s += ite(parens(condition),
+	       //"(((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1)) && " +
+	       //cVar(en) + ")",
 	     cVar(add),
-	     //opResultStr(combNode(extractSource(toSelect(add.getWire()))), g.getOpNodeDisc(extractSource(toSelect(add.getWire()))), g),
 	     oldValName) + ";\n";
     
     return s;
@@ -363,23 +325,16 @@ namespace CoreIR {
     assert(ins.size() == 2);
 
     string s = "*" + rName + "_new_value = ";
-    WireNode clk;
-    WireNode add;
 
-    for (auto& conn : ins) {
-      WireNode arg = conn.first;
-      WireNode placement = conn.second;
-      string selName = toSelect(placement.getWire())->getSelStr();
-      if (selName == "clk") {
-	clk = arg;
-      } else {
-	add = arg;
-      }
-    }
+    WireNode clk = findArg("clk", ins);
+    WireNode add = findArg("in", ins);
 
     string oldValName = rName + "_old_value";
 
-    s += ite("((" + cVar(clk, "_last") + " == 0) && (" + cVar(clk) + " == 1))",
+    string condition =
+      parens(cVar(clk, "_last") + " == 0") + " && " + parens(cVar(clk) + " == 1");
+    
+    s += ite(parens(condition),
 	     cVar(add),
 	     oldValName) + ";\n";
 

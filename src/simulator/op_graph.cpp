@@ -13,7 +13,7 @@ namespace CoreIR {
       return sel;
     }
 
-    // Base case for non self connections
+    // Base case for non self connections.
     if (!isSelect(p)) {
       return p;
     }
@@ -222,7 +222,7 @@ namespace CoreIR {
 
     vdisc c1_disc;
     if (isRegisterInstance(p1)) {
-      auto c1_disc_it = imap.find(outputNode(p1)); //{p1, true, false});
+      auto c1_disc_it = imap.find(outputNode(p1));
 
       assert(c1_disc_it != imap.end());
 
@@ -231,7 +231,7 @@ namespace CoreIR {
     } else {
       assert(!isRegisterInstance(p1));
 
-      auto c1_disc_it = imap.find(combNode(p1));//{p1, false, false});
+      auto c1_disc_it = imap.find(combNode(p1));
 
       assert(c1_disc_it != imap.end());
 
@@ -242,7 +242,7 @@ namespace CoreIR {
 
     vdisc c2_disc;
     if (isRegisterInstance(p2)) {
-      auto c2_disc_it = imap.find(receiverNode(p2));//{p2, true, true});
+      auto c2_disc_it = imap.find(receiverNode(p2));
 
       assert(c2_disc_it != imap.end());
 
@@ -250,7 +250,7 @@ namespace CoreIR {
     } else {
       assert(!isRegisterInstance(p2));
 
-      auto c2_disc_it = imap.find(combNode(p2)); //{p2, false, false});
+      auto c2_disc_it = imap.find(combNode(p2));
 
       assert(c2_disc_it != imap.end());
 
@@ -292,8 +292,8 @@ namespace CoreIR {
     }
 
     if (imap.find(combNode(w1)) == end(imap)) {
+      WireNode w = combNode(w1);
 
-      WireNode w = combNode(w1); 
       vdisc v1 = g.addVertex(w);
       imap.insert({w, v1});
     }
@@ -365,8 +365,6 @@ namespace CoreIR {
 
     auto ord_conns = buildOrderedConnections(mod);
 
-    //cout << "Built ordered connections" << endl;
-
     // Add vertexes for all instances in the graph
     unordered_map<WireNode, vdisc> imap;
 
@@ -389,5 +387,20 @@ namespace CoreIR {
     }
 
   }
-  
+
+  WireNode findArg(string argName, std::vector<Conn>& ins) {
+    for (auto& conn : ins) {
+      WireNode arg = conn.first;
+      WireNode placement = conn.second;
+      string selName = toSelect(placement.getWire())->getSelStr();
+      if (selName == argName) {
+	return arg;
+      }
+    }
+
+    cout << "Error: Could not find argument: " << argName << endl;
+
+    assert(false);
+  }
+
 }
