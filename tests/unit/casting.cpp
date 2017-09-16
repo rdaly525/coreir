@@ -7,16 +7,6 @@ using namespace CoreIR;
 int main() {
   Context* c = newContext();
   
-  //Any
-  {
-    Type* t = c->Any();
-    assert(isa<AnyType>(t));
-    AnyType* at = cast<AnyType>(t);
-    assert(dyn_cast<Type>(at));
-    assert(dyn_cast<AnyType>(t));
-    assert(!dyn_cast<BitType>(t));
-  }
-  
   //Bit
   {
     Type* t = c->Bit();

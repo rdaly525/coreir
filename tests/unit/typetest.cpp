@@ -8,10 +8,7 @@ int main() {
   Context* c = newContext();
   Namespace* g = c->getGlobal();
 
-  // Basic invarients of Any and BitIn
-  assert(c->Any() == c->Any() );
-  assert(c->Any() == c->Flip(c->Any()) );
-
+  // Basic invarients of Bit/BitIn
   assert(c->BitIn() == c->BitIn());
   assert(c->Bit() == c->Bit());
   assert(c->BitIn() == c->Flip(c->Bit()));

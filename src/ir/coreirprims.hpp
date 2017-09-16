@@ -83,7 +83,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   //Params stripParams({
   //  {"namedtype",TYPE}
   //});
-  //auto stripFun = [](Context* c, Args args) { return c->Any(); } //TODO
+  //auto stripFun = [](Context* c, Args args) { return c; } //TODO
   //TypeGen stripTypeGen(stripParams,stripFun);
   //stdlib->newGeneratorDecl("strip",stripParams,stripTypeGen);
 
@@ -100,7 +100,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   //  {"intype",TYPE},
   //  {"outtype",TYPE}
   //});
-  //auto castFun = [](Context* c, Args args) { return c->Any(); } //TODO
+  //auto castFun = [](Context* c, Args args) { return ; } //TODO
   //TypeGen castTypeGen(castParams,castFun);
   //stdlib->newGeneratorDecl("cast",castParams,castTypeGen);
 

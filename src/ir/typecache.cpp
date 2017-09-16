@@ -13,8 +13,6 @@ TypeCache::TypeCache(Context* c) : c(c) {
   bitI = new BitInType(c);
   bitI->setFlipped(bitO);
   bitO->setFlipped(bitI);
-  any = new AnyType(c);
-  any->setFlipped(any);
 }
 
 TypeCache::~TypeCache() {
@@ -22,7 +20,6 @@ TypeCache::~TypeCache() {
   for (auto it : ArrayCache) delete it.second;
   delete bitI;
   delete bitO;
-  delete any;
 }
 
 

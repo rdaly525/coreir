@@ -16,7 +16,6 @@ bool checkTypes(Wireable* a, Wireable* b) {
   //  an inout is connected to an input (good!)
   //  an inout is connected to an output (bad!)
   
-  if (isa<AnyType>(ta) || isa<AnyType>(tb)) return false;
   if (ta == c->Flip(tb) ) return false;
   
   Error e;

@@ -163,7 +163,6 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 }
 */
 
-Type* Context::Any() { return cache->newAny(); }
 Type* Context::Bit() { return cache->newBit(); }
 Type* Context::BitIn() { return cache->newBitIn(); }
 Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
