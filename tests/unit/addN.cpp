@@ -17,8 +17,8 @@ int main() {
     "addN_type", //name for the typegen
     {{"width",AINT},{"N",AINT}}, //generater parameters
     [](Context* c, Args args) { //Function to compute type
-      uint width = args.at("width")->get<ArgInt>();
-      uint N = args.at("N")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
+      uint N = args.at("N")->get<int>();
       return c->Record({
         {"in",c->BitIn()->Arr(width)->Arr(N)},
         {"out",c->Bit()->Arr(width)}
@@ -30,8 +30,8 @@ int main() {
   Generator* addN = g->newGeneratorDecl("addN",g->getTypeGen("addN_type"),{{"width",AINT},{"N",AINT}});
   
   addN->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
-    uint N = args.at("N")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
+    uint N = args.at("N")->get<int>();
     assert((N & (N-1)) == 0); //Check if power of 2
     assert(N!=1);
 

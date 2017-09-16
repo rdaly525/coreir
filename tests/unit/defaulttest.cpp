@@ -10,16 +10,16 @@ void checker(Module* m) {
   cout << w->toString() << endl;
   Instance* i0 = cast<Instance>(def->sel("i0"));
   cout << i0->toString() << endl;
-  assert(i0->getGenArgs().count("ga") && i0->getGenArgs().at("ga")->get<ArgInt>()==6);
-  assert(i0->getGenArgs().count("gb") && i0->getGenArgs().at("gb")->get<ArgInt>()==7);
-  assert(i0->getConfigArgs().count("ca") && i0->getConfigArgs().at("ca")->get<ArgInt>()==11);
-  assert(i0->getConfigArgs().count("cb") && i0->getConfigArgs().at("cb")->get<ArgInt>()==12);
+  assert(i0->getGenArgs().count("ga") && i0->getGenArgs().at("ga")->get<int>()==6);
+  assert(i0->getGenArgs().count("gb") && i0->getGenArgs().at("gb")->get<int>()==7);
+  assert(i0->getConfigArgs().count("ca") && i0->getConfigArgs().at("ca")->get<int>()==11);
+  assert(i0->getConfigArgs().count("cb") && i0->getConfigArgs().at("cb")->get<int>()==12);
   
   Instance* i1 = cast<Instance>(def->sel("i1"));
-  assert(i1->getGenArgs().count("ga") && i1->getGenArgs().at("ga")->get<ArgInt>()==5);
-  assert(i1->getGenArgs().count("gb") && i1->getGenArgs().at("gb")->get<ArgInt>()==7);
-  assert(i1->getConfigArgs().count("ca") && i1->getConfigArgs().at("ca")->get<ArgInt>()==10);
-  assert(i1->getConfigArgs().count("cb") && i1->getConfigArgs().at("cb")->get<ArgInt>()==12);
+  assert(i1->getGenArgs().count("ga") && i1->getGenArgs().at("ga")->get<int>()==5);
+  assert(i1->getGenArgs().count("gb") && i1->getGenArgs().at("gb")->get<int>()==7);
+  assert(i1->getConfigArgs().count("ca") && i1->getConfigArgs().at("ca")->get<int>()==10);
+  assert(i1->getConfigArgs().count("cb") && i1->getConfigArgs().at("cb")->get<int>()==12);
 }
 
 int main() {

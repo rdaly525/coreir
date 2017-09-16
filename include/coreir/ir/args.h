@@ -7,6 +7,22 @@
 
 namespace CoreIR {
 
+template<class valTy>
+struct Val2Arg;
+
+#define VAL2ARG_SPECIALIZE(valtype,argtype) \
+template<> \
+struct Val2Arg<valtype> { \
+  typedef argtype type; \
+};
+
+VAL2ARG_SPECIALIZE(bool,ArgBool);
+VAL2ARG_SPECIALIZE(int,ArgInt);
+VAL2ARG_SPECIALIZE(std::string,ArgString);
+VAL2ARG_SPECIALIZE(CoreIR::Type*,ArgType);
+
+#undef VAL2ARG_SPECIALIZE
+
 class Arg {
   Param kind;
   public:
@@ -16,8 +32,8 @@ class Arg {
     virtual std::string toString() const = 0;
 
     template<typename T>
-    typename T::type get() {
-      return cast<T>(this)->get();
+    T get() {
+      return cast<typename Val2Arg<T>::type>(this)->get();
     }
   
     virtual bool operator==(const Arg& r) const;

@@ -26,13 +26,23 @@ int main() {
     assert(dyn_cast<ArrayType>(t));
     assert(!dyn_cast<RecordType>(t));
   }
-  
 
+  //Test casting of ArgBool
+  {
+    Arg* a = c->argBool(false);
+    assert(isa<ArgBool>(a));
+    assert(a->get<bool>()==false);
+    ArgBool* ac = cast<ArgBool>(a);
+    assert(dyn_cast<Arg>(ac));
+    assert(dyn_cast<ArgBool>(a));
+    assert(!dyn_cast<ArgString>(a));
+  }
+  
   //Test casting of ArgInt
   {
     Arg* a = c->argInt(5);
     assert(isa<ArgInt>(a));
-    assert(a->get<ArgInt>()==5);
+    assert(a->get<int>()==5);
     ArgInt* ac = cast<ArgInt>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgInt>(a));
@@ -43,7 +53,7 @@ int main() {
   {
     Arg* a = c->argString("Ross");
     assert(isa<ArgString>(a));
-    assert(a->get<ArgString>()=="Ross");
+    assert(a->get<string>()=="Ross");
     ArgString* ac = cast<ArgString>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgString>(a));
@@ -54,7 +64,7 @@ int main() {
   {
     Arg* a = c->argType(c->BitIn());
     assert(isa<ArgType>(a));
-    assert(a->get<ArgType>()==c->BitIn());
+    assert(a->get<Type*>()==c->BitIn());
     ArgType* ac = cast<ArgType>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgType>(a));

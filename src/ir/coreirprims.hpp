@@ -23,9 +23,9 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
     "sliceTypeFun",
     sliceParams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
-      uint lo = args.at("lo")->get<ArgInt>();
-      uint hi = args.at("hi")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
+      uint lo = args.at("lo")->get<int>();
+      uint hi = args.at("hi")->get<int>();
       ASSERT(lo < hi && hi<=width,"Bad slice args!");
       return c->Record({
         {"in",c->BitIn()->Arr(width)},
@@ -58,8 +58,8 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
     "concatTypeFun",
     concatParams,
     [](Context* c, Args args) {
-      uint width0 = args.at("width0")->get<ArgInt>();
-      uint width1 = args.at("width1")->get<ArgInt>();
+      uint width0 = args.at("width0")->get<int>();
+      uint width1 = args.at("width1")->get<int>();
       return c->Record({
         {"in0",c->BitIn()->Arr(width0)},
         {"in1",c->BitIn()->Arr(width1)},
@@ -130,10 +130,10 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
    * Argchecks: 
    */
   auto regFun = [](Context* c, Args args) { 
-    uint width = args.at("width")->get<ArgInt>();
-    bool en = args.at("en")->get<ArgBool>();
-    bool clr = args.at("clr")->get<ArgBool>();
-    bool rst = args.at("rst")->get<ArgBool>();
+    uint width = args.at("width")->get<int>();
+    bool en = args.at("en")->get<bool>();
+    bool clr = args.at("clr")->get<bool>();
+    bool rst = args.at("rst")->get<bool>();
     assert(!(clr && rst));
     Type* ptype = c->Bit()->Arr(width);
 
@@ -168,9 +168,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   //Set nameGen function
   auto regNameGen = [](Args args) {
     string name = "reg_P"; //TODO Should we do negedge?
-    bool rst = args["rst"]->get<ArgBool>();
-    bool clr = args["clr"]->get<ArgBool>();
-    bool en = args["en"]->get<ArgBool>();
+    bool rst = args["rst"]->get<bool>();
+    bool clr = args["clr"]->get<bool>();
+    bool en = args["en"]->get<bool>();
     if (rst) name += "R";
     if (clr) name += "C";
     if (en) name += "E";
@@ -180,9 +180,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   
 
   auto bitRegFun = [](Context* c, Args args) { 
-    bool en = args.at("en")->get<ArgBool>();
-    bool clr = args.at("clr")->get<ArgBool>();
-    bool rst = args.at("rst")->get<ArgBool>();
+    bool en = args.at("en")->get<bool>();
+    bool clr = args.at("clr")->get<bool>();
+    bool rst = args.at("rst")->get<bool>();
     assert(!(clr && rst));
     Type* ptype = c->Bit();
 
@@ -212,8 +212,8 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
 
   Params memGenParams({{"width",AINT},{"depth",AINT}});
   auto memFun = [](Context* c, Args args) { 
-    uint width = args.at("width")->get<ArgInt>();
-    uint depth = args.at("depth")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
+    uint depth = args.at("depth")->get<int>();
     ASSERT(isPower2(width),"width needs to be a power of 2: " + to_string(width));
     ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth));
     uint awidth = uint(std::log2(depth));
@@ -259,7 +259,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "unary",
     widthparams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in",c->Flip(ptype)},
@@ -271,7 +271,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "binary",
     widthparams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in0",c->Flip(ptype)},
@@ -285,7 +285,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "binaryReduce",
     widthparams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in0",c->Flip(ptype)},
@@ -298,7 +298,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "unaryReduce",
     widthparams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in",c->Flip(ptype)},
@@ -312,7 +312,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //  "unaryExpand",
   //  widthparams,
   //  [](Context* c, Args args) {
-  //    uint width = args.at("width")->get<ArgInt>();
+  //    uint width = args.at("width")->get<int>();
   //    return c->Record({
   //      {"in",c->BitIn()},
   //      {"out",c->Bit()->Arr(width)}
@@ -324,7 +324,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "ternary",
     widthparams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in0",c->Flip(ptype)},
@@ -403,7 +403,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "passthrough",
     passthroughParams,
     [](Context* c, Args args) {
-      Type* t = args.at("type")->get<ArgType>();
+      Type* t = args.at("type")->get<Type*>();
       return c->Record({
         {"in",t->getFlipped()},
         {"out",t}
@@ -424,7 +424,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "out", 
     widthparams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
 
       return c->Record({
@@ -448,7 +448,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "in", 
     widthparams,
     [](Context* c, Args args) {
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in",ptype->getFlipped()}

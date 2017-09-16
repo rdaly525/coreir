@@ -19,7 +19,7 @@ int main() {
   assert(g->getNamedType("int16") == c->Flip(g->getNamedType("intIn16")));
 
   auto intTypeFun = [](Context* c, Args args) {
-    int n = args.at("w")->get<ArgInt>();
+    int n = args.at("w")->get<int>();
     return c->Array(n,c->Bit());
   };
 

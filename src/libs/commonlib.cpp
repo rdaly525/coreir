@@ -32,8 +32,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     "muxN_type", //name for the typegen
     {{"width",AINT},{"N",AINT}}, //generater parameters
     [](Context* c, Args args) { //Function to compute type
-      uint width = args.at("width")->get<ArgInt>();
-      uint N = args.at("N")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
+      uint N = args.at("N")->get<int>();
       return c->Record({
         {"in",c->Record({
               {"data",c->BitIn()->Arr(width)->Arr(N)},
@@ -49,8 +49,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     "opN_type", //name for the typegen
     {{"width",AINT},{"N",AINT},{"operator",ASTRING}}, //generater parameters
     [](Context* c, Args args) { //Function to compute type
-      uint width = args.at("width")->get<ArgInt>();
-      uint N = args.at("N")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
+      uint N = args.at("N")->get<int>();
       return c->Record({
         {"in",c->BitIn()->Arr(width)->Arr(N)},
         {"out",c->Bit()->Arr(width)}
@@ -85,7 +85,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* notEqual = commonlib->newGeneratorDecl("neq",coreirprims->getTypeGen("binaryReduce"),{{"width",AINT}});
 
   notEqual->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
 
     Namespace* coreirprims = c->getNamespace("coreir");
     Generator* equal = coreirprims->getGenerator("eq");
@@ -111,8 +111,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* muxN = commonlib->newGeneratorDecl("muxn",commonlib->getTypeGen("muxN_type"),{{"width",AINT},{"N",AINT}});
   
   muxN->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
-    uint N = args.at("N")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
+    uint N = args.at("N")->get<int>();
     assert(N>0);
 
     Namespace* stdlib = c->getNamespace("coreir");
@@ -169,9 +169,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* opN = commonlib->newGeneratorDecl("opn",commonlib->getTypeGen("opN_type"),{{"width",AINT},{"N",AINT},{"operator",ASTRING}});
   
   opN->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
-    uint N = args.at("N")->get<ArgInt>();
-    std::string op2 = args.at("operator")->get<ArgString>();
+    uint width = args.at("width")->get<int>();
+    uint N = args.at("N")->get<int>();
+    std::string op2 = args.at("operator")->get<string>();
     assert(N>0);
 
     Namespace* commonlib = c->getNamespace("commonlib");
@@ -222,7 +222,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   //Add a LUTN
   Params lutNParams({{"N",AINT}});
   commonlib->newTypeGen("lutNType",lutNParams,[](Context* c, Args args) { 
-    uint N = args.at("N")->get<ArgInt>();
+    uint N = args.at("N")->get<int>();
     ASSERT(N<=5,"NYI due to init bit length");
     return c->Record({
       {"in",c->BitIn()->Arr(N)},
@@ -236,7 +236,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};
   //Linebuffer Memory. Use this for memory in linebuffer mode
   commonlib->newTypeGen("LinebufferMemType",MemGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
     return c->Record({
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
@@ -249,7 +249,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   
   //Fifo Memory. Use this for memory in Fifo mode
   commonlib->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
     return c->Record({
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
@@ -270,10 +270,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     "linebuffer_type", //name for the typegen
     {{"stencil_width",AINT},{"stencil_height",AINT},{"image_width",AINT},{"bitwidth",AINT}}, //generater parameters
     [](Context* c, Args args) { //Function to compute type
-      uint stencil_width  = args.at("stencil_width")->get<ArgInt>();
-      uint stencil_height  = args.at("stencil_height")->get<ArgInt>();
-      //uint image_width = args.at("image_width")->get<ArgInt>();
-      uint bitwidth = args.at("bitwidth")->get<ArgInt>();
+      uint stencil_width  = args.at("stencil_width")->get<int>();
+      uint stencil_height  = args.at("stencil_height")->get<int>();
+      //uint image_width = args.at("image_width")->get<int>();
+      uint bitwidth = args.at("bitwidth")->get<int>();
       return c->Record({
         {"in",c->BitIn()->Arr(bitwidth)},
         {"out",c->Bit()->Arr(bitwidth)->Arr(stencil_width)->Arr(stencil_height)}
@@ -291,10 +291,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   );
   linebuffer->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
-    uint stencil_width  = args.at("stencil_width")->get<ArgInt>();
-    uint stencil_height  = args.at("stencil_height")->get<ArgInt>();
-    uint image_width = args.at("image_width")->get<ArgInt>();
-    uint bitwidth = args.at("bitwidth")->get<ArgInt>();
+    uint stencil_width  = args.at("stencil_width")->get<int>();
+    uint stencil_height  = args.at("stencil_height")->get<int>();
+    uint image_width = args.at("image_width")->get<int>();
+    uint bitwidth = args.at("bitwidth")->get<int>();
     assert((bitwidth & (bitwidth-1)) == 0); //Check if power of 2
     assert(stencil_height > 0);
     assert(stencil_width > 0);
