@@ -89,12 +89,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     Namespace* coreirprims = c->getNamespace("coreir");
     Generator* equal = coreirprims->getGenerator("eq");
-    Generator* logicalNot = coreirprims->getGenerator("not");
+    Module* logicalNot = coreirprims->getModule("bitnot");
     
     // create necessary hardware
     Arg* aWidth = c->argInt(width);
     def->addInstance("equal",equal,{{"width",aWidth}});
-    def->addInstance("not",logicalNot,{{"width",c->argInt(1)}});
+    def->addInstance("not",logicalNot);
 
     // connect hardware
     def->connect("self.in0","equal.in0");
@@ -114,53 +114,52 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     uint width = args.at("width")->get<int>();
     uint N = args.at("N")->get<int>();
     assert(N>0);
-
-    Namespace* stdlib = c->getNamespace("coreir");
-    Namespace* commonlib = c->getNamespace("commonlib");
-    Generator* mux2 = stdlib->getGenerator("mux");
-    Generator* passthrough = stdlib->getGenerator("passthrough");
-    Generator* muxN = commonlib->getGenerator("muxn");
+      Namespace* stdlib = c->getNamespace("coreir");
+      Namespace* commonlib = c->getNamespace("commonlib");
+      Generator* mux2 = stdlib->getGenerator("mux");
+      Generator* passthrough = stdlib->getGenerator("passthrough");
+      Generator* muxN = commonlib->getGenerator("muxn");
     
-    Arg* aWidth = c->argInt(width);
+      Arg* aWidth = c->argInt(width);
     
-    if (N == 1) {
-      def->addInstance("passthrough",passthrough,{{"type",c->argType(c->BitIn()->Arr(width))}});
-    }
-    else if (N == 2) {
-      def->addInstance("join",mux2,{{"width",aWidth}});
-      def->connect("join.out","self.out");
-
-      def->connect("self.in.data.0","join.in0");
-      def->connect("self.in.data.1","join.in1");
-      def->connect("self.in.sel.0", "join.sel");
-    }
-    else {
-      def->addInstance("join",mux2,{{"width",aWidth}});
-      def->connect("join.out","self.out");
-
-      //Connect half instances
-      uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
-      uint Nlargehalf = 1 << (Nbits-1);
-      uint Nsmallhalf = N - Nlargehalf;
-      def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
-
-      cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
-      Arg* aNlarge = c->argInt(Nlargehalf);
-      Arg* aNsmall = c->argInt(Nsmallhalf);
-
-      def->addInstance("muxN_0",muxN,{{"width",aWidth},{"N",aNlarge}});
-      def->addInstance("muxN_1",muxN,{{"width",aWidth},{"N",aNsmall}});
-      for (uint i=0; i<Nlargehalf; ++i) {
-        def->connect({"self","in","data",to_string(i)},{"muxN_0","in","data",to_string(i)});
+      if (N == 1) {
+        def->addInstance("passthrough",passthrough,{{"type",c->argType(c->BitIn()->Arr(width))}});
       }
-      for (uint i=0; i<Nsmallhalf; ++i) {
-        def->connect({"self","in","data",to_string(i+Nlargehalf)},{"muxN_1","in","data",to_string(i)});
-      }
-      def->connect("muxN_0.out","join.in0");
-      def->connect("muxN_1.out","join.in1");
-    }
+      else if (N == 2) {
+        def->addInstance("join",mux2,{{"width",aWidth}});
+        def->connect("join.out","self.out");
 
-  });
+        def->connect("self.in.data.0","join.in0");
+        def->connect("self.in.data.1","join.in1");
+        def->connect("self.in.sel.0", "join.sel");
+      }
+      else {
+        def->addInstance("join",mux2,{{"width",aWidth}});
+        def->connect("join.out","self.out");
+
+        //Connect half instances
+        uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
+        uint Nlargehalf = 1 << (Nbits-1);
+        uint Nsmallhalf = N - Nlargehalf;
+        def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
+
+        cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
+        Arg* aNlarge = c->argInt(Nlargehalf);
+        Arg* aNsmall = c->argInt(Nsmallhalf);
+
+        def->addInstance("muxN_0",muxN,{{"width",aWidth},{"N",aNlarge}});
+        def->addInstance("muxN_1",muxN,{{"width",aWidth},{"N",aNsmall}});
+        for (uint i=0; i<Nlargehalf; ++i) {
+          def->connect({"self","in","data",to_string(i)},{"muxN_0","in","data",to_string(i)});
+        }
+        for (uint i=0; i<Nsmallhalf; ++i) {
+          def->connect({"self","in","data",to_string(i+Nlargehalf)},{"muxN_1","in","data",to_string(i)});
+        }
+        def->connect("muxN_0.out","join.in0");
+        def->connect("muxN_1.out","join.in1");
+      }
+
+    });
 
   /////////////////////////////////
   // opN definition             //
@@ -216,8 +215,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
 
   });
-
-
 
   //Add a LUTN
   Params lutNParams({{"N",AINT}});
@@ -303,6 +300,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     Arg* aBitwidth = c->argInt(bitwidth);
     Arg* aImageWidth = c->argInt(image_width);
+    Namespace* coreirprims = c->getNamespace("coreir");
 
     // create the inital register chain
     std::string reg_prefix = "reg_";
@@ -325,14 +323,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (uint i = 1; i < stencil_height; ++i) {
       std::string mem_name = mem_prefix + std::to_string(i);
       def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aImageWidth}});
-      
-      //Add const 1 and term for wen, valid
-      string constname = "const1"+c->getUnique();
-      string termname = "term"+c->getUnique();
-      def->addInstance(constname,"coreir.bitconst",{{"value",c->argInt(1)}});
-      def->addInstance(termname,"coreir.bitterm");
-      def->connect({constname,"out"},{mem_name,"wen"});
-      def->connect({mem_name,"valid"},{termname,"in"});
+      def->addInstance(mem_name+"_valid_term", coreirprims->getModule("bitterm"));
+      def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
+      def->addInstance(mem_name+"_wen", coreirprims->getModule("bitconst"), {{"value",c->argInt(1)}});
+      def->connect({mem_name,"wen"},{mem_name+"_wen", "out"});
 
       // connect the input
       if (i == 1) {
@@ -385,15 +379,82 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   });
 
+  /////////////////////////////////
+  // counter definition          //
+  /////////////////////////////////
 
+  // counter follows a for loop of format:
+  //   for ( int i = $min ; $min < $max ; i += $inc )
+  // input:  "valid", when to start counting
+  // output: "i", the count
 
+  // counter type
+  commonlib->newTypeGen(
+    "counter_type", //name for the typegen
+    {{"width",AINT},{"min",AINT},{"max",AINT},{"inc",AINT}}, //generater parameters
+    [](Context* c, Args args) { //Function to compute type
+      uint width = args.at("width")->get<int>();
+      return c->Record({
+        {"en",c->BitIn()},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
 
+  Generator* counter = commonlib->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),{{"width",AINT},{"min",AINT},{"max",AINT},{"inc",AINT}});
+  
+  counter->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args args) {
+    uint width = args.at("width")->get<int>();
+    uint max = args.at("max")->get<int>();
+    uint min = args.at("min")->get<int>();
+    uint inc = args.at("inc")->get<int>();
+    assert(width>0);
+    assert(max>min);
 
+    // get generators
+    Namespace* coreirprims = c->getNamespace("coreir");
+    Module* and_mod = coreirprims->getModule("bitand");
+    //Generator* mux_gen = coreirprims->getGenerator("mux");
+    Generator* ult_gen = coreirprims->getGenerator("ult");
+    Generator* add_gen = coreirprims->getGenerator("add");
+    Generator* reg_gen = coreirprims->getGenerator("reg");
+    Generator* const_gen = coreirprims->getGenerator("const");
+    
+    // create hardware
+    Arg* aBitwidth = c->argInt(width);
+    Arg* aReset = c->argInt(min);
+    def->addInstance("count", reg_gen, {{"width",aBitwidth},{"clr",c->argBool(true)},{"en",c->argBool(true)}},
+                     {{"init",aReset}});
 
+    //def->addInstance("min", const_gen, {{"width",aBitwidth}}, {{"value",c->argInt(min)}});
+    def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",c->argInt(max)}});
+    def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",c->argInt(inc)}});
+    def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
+    def->addInstance("add", add_gen, {{"width",aBitwidth}});
+    def->addInstance("and", and_mod);
+    //    def->addInstance("mux", mux_gen, {{"width",aBitwidth}});
+    
+    // wire up modules
+    // clear if count+inc > max
+    def->connect("count.out","self.out");
+    def->connect("count.out","add.in0");
+    def->connect("inc.out","add.in1");
+
+    def->connect("self.en","count.en");
+    def->connect("add.out","count.in");
+
+    def->connect("add.out","ult.in1");
+    def->connect("max.out","ult.in0");
+    def->connect("ult.out","count.clr");
+    //    def->connect("ult.out","and.in.0");
+    //    def->connect("self.en","and.in.1");
+
+    //    def->connect("add.out","mux.in.data.1");
+    //    def->connect("min.out","mux.in.data.0");
+    //    def->connect("mux.out","count.in");
+
+  });
 
 
   return commonlib;
 }
-
-
-COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(commonlib)
