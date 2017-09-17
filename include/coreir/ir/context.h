@@ -67,7 +67,6 @@ class Context {
     PassManager* getPassManager() { return pm;}
 
     //Factory functions for types
-    Type* Any();
     Type* Bit();
     Type* BitIn();
     Type* Array(uint n, Type* t);

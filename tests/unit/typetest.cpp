@@ -8,10 +8,7 @@ int main() {
   Context* c = newContext();
   Namespace* g = c->getGlobal();
 
-  // Basic invarients of Any and BitIn
-  assert(c->Any() == c->Any() );
-  assert(c->Any() == c->Flip(c->Any()) );
-
+  // Basic invarients of Bit/BitIn
   assert(c->BitIn() == c->BitIn());
   assert(c->Bit() == c->Bit());
   assert(c->BitIn() == c->Flip(c->Bit()));
@@ -22,7 +19,7 @@ int main() {
   assert(g->getNamedType("int16") == c->Flip(g->getNamedType("intIn16")));
 
   auto intTypeFun = [](Context* c, Args args) {
-    int n = args.at("w")->get<ArgInt>();
+    int n = args.at("w")->get<int>();
     return c->Array(n,c->Bit());
   };
 

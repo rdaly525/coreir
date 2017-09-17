@@ -65,22 +65,22 @@ size_t std::hash<Args>::operator() (const Args& args) const {
     Arg* arg = it.second;
     switch(arg->getKind()) {
       case ASTRING : {
-        string arg_s = arg->get<ArgString>();
+        string arg_s = arg->get<string>();
         hash_combine(hash,arg_s);
         break;
       }
       case ABOOL : {
-        bool arg_b = arg->get<ArgBool>();
+        bool arg_b = arg->get<bool>();
         hash_combine(hash,arg_b);
         break;
       }
       case AINT : {
-        int arg_i = arg->get<ArgInt>();
+        int arg_i = arg->get<int>();
         hash_combine(hash,arg_i);
         break;
       }
       case ATYPE : {
-        Type* arg_t = arg->get<ArgType>();
+        Type* arg_t = arg->get<Type*>();
         hash_combine(hash,arg_t);
         break;
       }

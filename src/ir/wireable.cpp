@@ -28,18 +28,9 @@ Select* Wireable::sel(string selStr) {
   if (selects.count(selStr)) {
     return selects[selStr];
   }
-  //Create new select
-  Context* c = getContext();
-  Type* ret = c->Any();
-  Error e;
-  bool error = type->sel(selStr,&ret,&e);
-  if (error) {
-    e.message("  Wireable: " + toString());
-    e.fatal();
-    getContext()->error(e);
-  }
-  
-  Select* select = new Select(this->getContainer(),this,selStr, ret);
+  ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
+   
+  Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
   selects[selStr] = select;
   return select;
 }

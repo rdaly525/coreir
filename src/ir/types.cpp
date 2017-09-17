@@ -12,16 +12,8 @@ namespace CoreIR {
 
 void Type::print(void) { cout << "Type: " << (*this) << endl; }
 
-bool Type::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any(); 
-  e->message("Cant select from this type!");
-  e->message("  Type: " + toString());
-  return true;
-}
-
 string Type::TypeKind2Str(TypeKind t) {
   switch(t) {
-    case TK_Any : return "Any";
     case TK_Bit : return "Bit";
     case TK_BitIn : return "BitIn";
     case TK_Array : return "Array";
@@ -36,6 +28,21 @@ Type* Type::Arr(uint i) {
 }
 
 bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
+
+Type* Type::sel(string selstr) {
+  if (auto rt = dyn_cast<RecordType>(this)) {
+    ASSERT(rt->getRecord().count(selstr),"Bad Select!");
+    return rt->getRecord()[selstr];
+  }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
+    ASSERT(isNumber(selstr),selstr + " needs to be a number!");
+    uint i = std::stoi(selstr,nullptr,0);
+    ASSERT(i < at->getLen(),"Bad Select!");
+    return at->getElemType();
+  }
+  ASSERT(0,"Bad Select");
+}
+
 bool Type::canSel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
     return rt->getRecord().count(selstr);
@@ -73,35 +80,6 @@ NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Ar
   dir = raw->getDir();
 }
 string NamedType::getRefName() {return ns->getName() + "." + name;}
-//TODO How to deal with select? For now just do a normal select off of raw
-bool NamedType::sel(string sel, Type** ret, Error* e) {
-  return raw->sel(sel,ret,e);
-}
-
-bool AnyType::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any();
-  return false;
-}
-
-bool ArrayType::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any();
-  if (!isNumber(sel)) {
-    e->message("Idx into Array needs to be a number");
-    e->message("  Idx: '" + sel + "'");
-    e->message("  Type: " + toString());
-    return true;
-  }
-  uint i = stoi(sel);
-  if(i >= len ) {
-    e->message("Index out of bounds for Array");
-    e->message("  Required range: [0," + to_string(len-1) + "]");
-    e->message("  Idx: " + sel);
-    e->message("  Type: " + toString());
-    return true;
-  }
-  *ret = elemType;
-  return false;
-}
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
@@ -146,20 +124,6 @@ Type* RecordType::detachField(string label) {
   return c->Record(newParams);
 }
 
-// TODO should this actually return Any if it is missing?
-bool RecordType::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any();
-  auto it = record.find(sel);
-  if (it != record.end()) {
-    *ret = it->second;
-    return false;
-  } 
-  e->message("Bad select field for Record");
-  e->message("  Sel: '" + sel + "'");
-  e->message("  Type: " + toString());
-  return true;
-
-}
 uint RecordType::getSize() const {
   uint size = 0;
   for (auto field : record) {

@@ -311,7 +311,6 @@ Type* json2Type(Context* c, json jt) {
     string kind = jt.get<string>();
     if (kind == "BitIn") return c->BitIn();
     else if (kind == "Bit") return c->Bit();
-    else if (kind == "Any") return c->Any();
     else throw std::runtime_error(kind + " is not a type!");
   }
   else if (jt.type() == json::value_t::array) {
@@ -346,7 +345,6 @@ Type* json2Type(Context* c, json jt) {
     }
   }
   else throw std::runtime_error("Error parsing Type");
-  return c->Any();
 }
 
 #undef ASSERTTHROW

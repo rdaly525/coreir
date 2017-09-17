@@ -4,7 +4,6 @@ typedef enum {
   COREArrayTypeKind=2,
   CORERecordTypeKind=3,
   CORENamedTypeKind=4,
-  COREAnyTypeKind=5,
 } CORETypeKind;
 
 //TODO deal with getDir and Direction enum
@@ -23,7 +22,6 @@ extern uint CORETypeGetSize(COREType* type);
 extern void COREPrintType(COREType* t);
 
 //Type constructors
-extern COREType* COREAny(COREContext* CORE);
 extern COREType* COREBitIn(COREContext* CORE);
 extern COREType* COREBit(COREContext* CORE);
 extern COREType* COREArray(COREContext* CORE, uint len, COREType* elemType);

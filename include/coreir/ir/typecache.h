@@ -19,14 +19,12 @@ class TypeCache {
   Context* c;
   Type* bitI;
   Type* bitO;
-  Type* any;
   std::unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
   std::unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
   
   public :
     TypeCache(Context* c); 
     ~TypeCache();
-    Type* newAny() { return any; }
     Type* newBit() { return bitO; }
     Type* newBitIn() { return bitI; }
     Type* newArray(uint32_t len, Type* t);
