@@ -126,12 +126,7 @@ namespace CoreIR {
     assert(wd.highBitsAreDirty());
     assert(!!(wd.highBitsAreDirty()));
 
-    if (wd.highBitsAreDirty()) {
-      res += maskResult(*(outPair.second->getType()), compString);
-    } else {
-      //res += compString
-      //maskResult(*(outPair.second->getType()), compString)
-    }
+    res += maskResult(*(outPair.second->getType()), compString);
 
     return res;
   }
@@ -218,8 +213,9 @@ namespace CoreIR {
     WireNode i0 = findArg("in0", ins);
     WireNode i1 = findArg("in1", ins);
     
-    return ite(printOpResultStr(sel, g), printOpResultStr(i1, g), printOpResultStr(i0, g)); //ite(cVar(sel), cVar(i1), cVar(i0));
-    
+    return ite(printOpResultStr(sel, g),
+	       printOpResultStr(i1, g),
+	       printOpResultStr(i0, g));
   }
 
   string printTernop(Instance* inst, const vdisc vd, const NGraph& g) {
@@ -271,8 +267,6 @@ namespace CoreIR {
     return recordTypeHasField("en", w->getType());
   }
 
-	     //opResultStr(combNode(extractSource(toSelect(add.getWire()))), g.getOpNodeDisc(extractSource(toSelect(add.getWire()))), g),
-  
   string enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g) {
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -305,10 +299,8 @@ namespace CoreIR {
       condition += " && " + printOpResultStr(en, g);
     }
 
-    //printOpResultStr(inConn.first, g));//cVar(inConn.first));
-
     s += ite(parens(condition),
-	     printOpResultStr(add, g), //cVar(add),
+	     printOpResultStr(add, g),
 	     oldValName) + ";\n";
     
     return s;
@@ -408,8 +400,6 @@ namespace CoreIR {
     }
 
     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
-
-    //cout << "Source of " << wd.getWire()->toString() << " is " << sourceInstance->toString() << endl;
 
     // Is this the correct way to check if the value is an input?
     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
@@ -752,14 +742,6 @@ namespace CoreIR {
 
     return def;
 
-    //   string mask = parens(arg + " & " + bitMaskString(startWidth));
-    // string testClause = parens(arg + " & " + parens("1ULL << " + to_string(startWidth - 1)));
-
-    // string res = parens(mask + " | " +
-    // 			ite(testClause, lastMask(startWidth, extWidth), "0"));
-
-    // return res;
-    
   }
 
   string printDecl(CoreIR::Module* mod) {

@@ -177,4 +177,7 @@ namespace CoreIR {
 
   WireNode findArg(std::string argName, std::vector<Conn>& ins);
 
+  void eliminateMasks(const NGraph& g);
+  int numMasksNeeded(const NGraph& g);
+
 }

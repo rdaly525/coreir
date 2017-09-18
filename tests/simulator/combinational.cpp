@@ -63,22 +63,30 @@ namespace CoreIR {
       SECTION("Checking graph size") {
 	REQUIRE(numVertices(gr) == 5);
       }
-      
-      deque<vdisc> topoOrder = topologicalSort(gr);
 
-      auto str = printCode(topoOrder, gr, add4_n);
-      int s = compileCode(str, "./gencode/add4.cpp");
+      SECTION("Checking mask elimination") {
+	eliminateMasks(gr);
 
-      cout << "Command result = " << s << endl;
+	REQUIRE(numMasksNeeded(gr) == 0);
+      }
 
-      saveToFile(g, "add4.json");
+      SECTION("Sorting and compiling code") {
+	deque<vdisc> topoOrder = topologicalSort(gr);
 
-      REQUIRE(s == 0);
+	auto str = printCode(topoOrder, gr, add4_n);
+	int s = compileCode(str, "./gencode/add4.cpp");
 
-      // Building verilog example
-      s = buildVerilator(add4_n, g);
+	cout << "Command result = " << s << endl;
 
-      REQUIRE(s == 0);
+	saveToFile(g, "add4.json");
+
+	REQUIRE(s == 0);
+
+	// Building verilog example
+	s = buildVerilator(add4_n, g);
+
+	REQUIRE(s == 0);
+      }
       
     }
 

@@ -405,4 +405,11 @@ namespace CoreIR {
     assert(false);
   }
 
+  void eliminateMasks(const NGraph& g) {
+  }
+
+  int numMasksNeeded(const NGraph& g) {
+    return 0;
+  }
+
 }
