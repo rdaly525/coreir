@@ -1,6 +1,8 @@
-#include "coreir.h"
-#include "passes.h"
+#include "coreir/ir/passes.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/ir/instantiable.h"
 
+using namespace std;
 using namespace CoreIR;
 
 Pass* Pass::getAnalysisOutside(std::string ID) {
@@ -20,3 +22,10 @@ bool InstanceVisitorPass::runOnInstances(Instantiable* i, unordered_set<Instance
   }
   return modified;
 }
+
+
+void InstanceVisitorPass::addVisitorFunction(Instantiable* i,InstanceVisitor_t fun) {
+  ASSERT(visitorMap.count(i)==0,"Already added Function for " + i->getRefName());
+  visitorMap[i] = fun;
+}
+

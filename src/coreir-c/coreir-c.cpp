@@ -2,6 +2,7 @@
 #include "coreir.h"
 #include "common-c.hpp"
 
+using namespace std;
 namespace CoreIR {
 
 

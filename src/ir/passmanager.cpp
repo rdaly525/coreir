@@ -1,24 +1,37 @@
 
-#include "passmanager.h"
-#include "coreir-passes/common.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/passes/common.h"
 #include <stack>
 
-#include "coreir-passes/analysis/createinstancegraph.h"
-#include "coreir-passes/analysis/createfullinstancemap.h"
+#include "coreir/passes/analysis/createinstancegraph.h"
+#include "coreir/passes/analysis/createfullinstancemap.h"
 
 
 
+using namespace std;
 using namespace CoreIR;
+
 
 PassManager::PassManager(Context* c) : c(c) {
   initializePasses(*this);
   
+
   //Give all the passes access to passmanager
   for (auto pmap : passMap) {
     pmap.second->addPassManager(this);
   }
-  
+
   //this->instanceGraph = new InstanceGraph();
+}
+
+void PassManager::setTop(string topRef) {
+  auto topsplit = splitString<vector<string>>(topRef,'.');
+  ASSERT(topsplit.size()==2,topRef + " is not a valid top!");
+  ASSERT(c->hasNamespace(topsplit[0]),"Missing namespace " + topsplit[0]);
+  Namespace* topns = c->getNamespace(topsplit[0]);
+  ASSERT(topns->hasModule(topsplit[1]),"Missing module " + topRef);
+  this->top = topns->getModule(topsplit[1]);
+  ASSERT(this->top->hasDef(),topRef + " has no def!");
 }
 
 void PassManager::addPass(Pass* p) {
@@ -82,7 +95,7 @@ bool PassManager::runInstancePass(Pass* pass) {
 }
 
 bool PassManager::runInstanceVisitorPass(Pass* pass) {
-  
+
   //Get the analysis pass which constructs the instancegraph
   auto cfim = static_cast<Passes::CreateFullInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
   bool modified = false;
@@ -94,7 +107,7 @@ bool PassManager::runInstanceVisitorPass(Pass* pass) {
 }
 
 bool PassManager::runInstanceGraphPass(Pass* pass) {
-  
+
   //Get the analysis pass which constructs the instancegraph
   auto cig = static_cast<Passes::CreateInstanceGraph*>(this->getAnalysisPass("createinstancegraph"));
   bool modified = false;
@@ -144,7 +157,7 @@ void PassManager::pushAllDependencies(string oname,stack<string> &work) {
     ASSERT(passMap.count(*it),"Dependency " + *it + " for " + oname + " Was never loaded!");
     ASSERT(analysisPasses.count(*it),"Dependency \"" + *it + "\" for \"" + oname + "\" cannot be a transform pass");
     pushAllDependencies(*it,work);
-  }  
+  }
 }
 
 bool PassManager::run(PassOrder order,vector<string> nsnames) {
@@ -164,13 +177,13 @@ bool PassManager::run(PassOrder order,vector<string> nsnames) {
       string pname = work.top(); work.pop();
       bool anal = analysisPasses.count(pname) > 0;
       Pass* p = passMap[pname];
-      
+
       //If it is an analysis and is not stale, do not run!
       if (anal && analysisPasses[pname]) {
         continue;
       }
       else if (anal) { //is analysis and needs to be run
-        p->releaseMemory(); //clear data structures  
+        p->releaseMemory(); //clear data structures
       }
       //Run it!
       bool modified = this->runPass(p);
@@ -203,7 +216,7 @@ void PassManager::printLog() {
 void PassManager::printPassChoices() {
   cout << "Analysis Passes" << endl;
   for (auto ap : analysisPasses) {
-    cout << "  " << ap.first << endl; 
+    cout << "  " << ap.first << endl;
   }
   cout << endl << "Transform Passes" << endl;
   for (auto p : passMap) {
@@ -214,7 +227,7 @@ void PassManager::printPassChoices() {
 }
 
 
-  
+
 PassManager::~PassManager() {
   for (auto p : passMap) {
     delete p.second;

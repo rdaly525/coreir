@@ -1,9 +1,10 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/coreirjson.h"
+#include "coreir/passes/analysis/coreirjson.h"
 #include <set>
 #include <map>
 
 using namespace CoreIR;
+using namespace std;
 namespace {
 typedef vector<std::pair<string,string>> VStringPair;
 
@@ -86,7 +87,6 @@ string Arg2Json(Arg* a) {
   }
 }
 
-//TODO order these
 string Args2Json(Args args) {
   Dict j;
   for (auto it : args) j.add(it.first,Arg2Json(it.second));
@@ -94,7 +94,7 @@ string Args2Json(Args args) {
 }
 
 string TopType2Json(Type* t) {
-  ASSERT(isa<RecordType>(t),"Can only do Record Types for top level");
+  ASSERT(isa<RecordType>(t),"Expecting Record type but got " + t->toString());
   Array a;
   a.add(quote("Record"));
   auto rt = cast<RecordType>(t);
@@ -134,7 +134,7 @@ string Type2Json(Type* t) {
   return a.toString();
 }
 
-string Instances2Json(unordered_map<string,Instance*>& insts) {
+string Instances2Json(map<string,Instance*>& insts) {
   Dict jis(8);
   //TODO maybe keep an insertion order for all the instances/Modules/Generators/Namespaces
   for (auto imap : insts) {
@@ -153,7 +153,7 @@ string Instances2Json(unordered_map<string,Instance*>& insts) {
     }
     jis.add(iname,j.toMultiString());
   }
-  return jis.toMultiString(true);
+  return jis.toMultiString();
 }
 
 string Connections2Json(unordered_set<Connection>& cons) {
@@ -222,12 +222,12 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   if (!ns->getModules().empty()) {
     Dict jmod(4);
     for (auto m : ns->getModules()) jmod.add(m.first,Module2Json(m.second));
-    jns.add("modules",jmod.toMultiString(true));
+    jns.add("modules",jmod.toMultiString());
   }
   if (!ns->getGenerators().empty()) {
     Dict jgen(4);
     for (auto g : ns->getGenerators()) jgen.add(g.first,Generator2Json(g.second));
-    jns.add("generators",jgen.toMultiString(true));
+    jns.add("generators",jgen.toMultiString());
   }
   //if (!namedTypeNameMap.empty()) {
   //  ASSERT(0,"NYI");
@@ -277,7 +277,7 @@ void Passes::CoreIRJson::writeToStream(std::ostream& os,string topRef) {
   for (auto nmap : nsMap) {
     jn.add(nmap.first,nmap.second);
   }
-  os << quote("namespaces") << ":" << jn.toMultiString(true);
+  os << quote("namespaces") << ":" << jn.toMultiString();
   os << endl << "}";
 }
 

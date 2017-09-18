@@ -1,6 +1,7 @@
 #include "coreir.h"
-#include "coreir-passes/transform/liftclockports.h"
+#include "coreir/passes/transform/liftclockports.h"
 
+using namespace std;
 using namespace CoreIR;
 
 bool Passes::LiftClockPorts::runOnInstanceGraphNode(InstanceGraphNode& node) {

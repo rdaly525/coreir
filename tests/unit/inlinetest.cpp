@@ -1,5 +1,6 @@
 #include "coreir.h"
 
+using namespace std;
 using namespace CoreIR;
 
 
@@ -16,7 +17,7 @@ int main() {
     "add4_type", //name for the typegen
     {{"width",AINT}}, //generater parameters
     [](Context* c, Args args) { //Function to compute type
-      uint width = args.at("width")->get<ArgInt>();
+      uint width = args.at("width")->get<int>();
       return c->Record({
         {"in",c->BitIn()->Arr(width)->Arr(4)},
         {"out",c->Bit()->Arr(width)}
@@ -28,7 +29,7 @@ int main() {
   Generator* add4 = g->newGeneratorDecl("add4",g->getTypeGen("add4_type"),{{"width",AINT}});
   
   add4->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
-    uint n = args.at("width")->get<ArgInt>();
+    uint n = args.at("width")->get<int>();
     
     Namespace* coreir = c->getNamespace("coreir");
     auto add2 = coreir->getGenerator("add");

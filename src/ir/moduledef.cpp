@@ -1,7 +1,10 @@
-
-#include "moduledef.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/error.h"
 #include <iterator>
+
 
 using namespace std;
 

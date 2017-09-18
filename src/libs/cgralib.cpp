@@ -1,7 +1,8 @@
-#include "coreir-lib/cgralib.h"
+#include "coreir/libs/cgralib.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(cgralib);
 
+using namespace std;
 using namespace CoreIR;
 
 Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
@@ -11,7 +12,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   //Unary op declaration
   Params widthParams = {{"width",AINT}};
   cgralib->newTypeGen("unary",widthParams,[](Context* c, Args args) { 
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
     return c->Record({
       {"in",c->BitIn()->Arr(width)},
       {"out",c->Bit()->Arr(width)},
@@ -33,9 +34,9 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     {"bit2_mode",ASTRING}
   });
   cgralib->newTypeGen("PEType",PEGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
-    uint numdataports = args.at("numdataports")->get<ArgInt>();
-    uint numbitports = args.at("numbitports")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
+    uint numdataports = args.at("numdataports")->get<int>();
+    uint numbitports = args.at("numbitports")->get<int>();
     return c->Record({
       {"data",c->Record({
         {"in",c->BitIn()->Arr(width)->Arr(numdataports)},
@@ -72,8 +73,8 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   });
 
   cgralib->newTypeGen("DataPEType",DataPEGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
-    uint numdataports = args.at("numdataports")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
+    uint numdataports = args.at("numdataports")->get<int>();
     return c->Record({
       {"data",c->Record({
         {"in",c->BitIn()->Arr(width)->Arr(numdataports)},
@@ -101,7 +102,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   });
 
   cgralib->newTypeGen("BitPEType",BitPEGenParams,[](Context* c, Args args) {
-    uint numbitports = args.at("numbitports")->get<ArgInt>();
+    uint numbitports = args.at("numbitports")->get<int>();
     return c->Record({
       {"bit",c->Record({
         {"in",c->BitIn()->Arr(numbitports)},
@@ -131,7 +132,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     {"almost_full_cnt",AINT}
   };
   cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
     return c->Record({
       {"addr", c->BitIn()->Arr(width)},
       {"wdata", c->BitIn()->Arr(width)},

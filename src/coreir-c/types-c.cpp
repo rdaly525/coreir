@@ -26,9 +26,6 @@ extern "C" {
     rcast<Type*>(t)->print();
   }
 
-  COREType* COREAny(COREContext* c) {
-    return rcast<COREType*>(rcast<Context*>(c)->Any());
-  }
   COREType* COREBitIn(COREContext* c) {
     return rcast<COREType*>(rcast<Context*>(c)->BitIn());
   }

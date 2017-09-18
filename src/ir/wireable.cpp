@@ -1,12 +1,18 @@
-#include "wireable.hpp"
+#include "coreir/ir/wireable.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/error.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
 
 using namespace std;
 
 ///////////////////////////////////////////////////////////
 //----------------------- Wireables ----------------------//
 ///////////////////////////////////////////////////////////
-
-
 
 namespace CoreIR {
 
@@ -22,18 +28,9 @@ Select* Wireable::sel(string selStr) {
   if (selects.count(selStr)) {
     return selects[selStr];
   }
-  //Create new select
-  Context* c = getContext();
-  Type* ret = c->Any();
-  Error e;
-  bool error = type->sel(selStr,&ret,&e);
-  if (error) {
-    e.message("  Wireable: " + toString());
-    e.fatal();
-    getContext()->error(e);
-  }
-  
-  Select* select = new Select(this->getContainer(),this,selStr, ret);
+  ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
+   
+  Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
   selects[selStr] = select;
   return select;
 }
@@ -187,6 +184,7 @@ Instance::Instance(ModuleDef* container, string instname, Generator* generatorRe
   checkArgsAreParams(genargs,generatorRef->getGenParams());
   this->genargs = genargs;
   this->type = generatorRef->getTypeGen()->getType(genargs);
+  ASSERT(isa<RecordType>(this->type),"Generated type needs to be a record but is: " + this->type->toString());
   mergeArgs(configargs,generatorRef->getDefaultConfigArgs());
   checkArgsAreParams(configargs,generatorRef->getConfigParams());
   this->configargs = configargs;

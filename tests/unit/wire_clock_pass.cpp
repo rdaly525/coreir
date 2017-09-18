@@ -1,7 +1,8 @@
 #include "coreir.h"
-#include "coreir-passes/transform/wireclocks.h"
-#include "coreir-passes/transform/liftclockports.h"
+#include "coreir/passes/transform/wireclocks.h"
+#include "coreir/passes/transform/liftclockports.h"
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {

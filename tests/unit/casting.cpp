@@ -1,20 +1,11 @@
 #include "coreir.h"
 #include <cassert>
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {
   Context* c = newContext();
-  
-  //Any
-  {
-    Type* t = c->Any();
-    assert(isa<AnyType>(t));
-    AnyType* at = cast<AnyType>(t);
-    assert(dyn_cast<Type>(at));
-    assert(dyn_cast<AnyType>(t));
-    assert(!dyn_cast<BitType>(t));
-  }
   
   //Bit
   {
@@ -35,13 +26,23 @@ int main() {
     assert(dyn_cast<ArrayType>(t));
     assert(!dyn_cast<RecordType>(t));
   }
-  
 
+  //Test casting of ArgBool
+  {
+    Arg* a = c->argBool(false);
+    assert(isa<ArgBool>(a));
+    assert(a->get<bool>()==false);
+    ArgBool* ac = cast<ArgBool>(a);
+    assert(dyn_cast<Arg>(ac));
+    assert(dyn_cast<ArgBool>(a));
+    assert(!dyn_cast<ArgString>(a));
+  }
+  
   //Test casting of ArgInt
   {
     Arg* a = c->argInt(5);
     assert(isa<ArgInt>(a));
-    assert(a->get<ArgInt>()==5);
+    assert(a->get<int>()==5);
     ArgInt* ac = cast<ArgInt>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgInt>(a));
@@ -52,7 +53,7 @@ int main() {
   {
     Arg* a = c->argString("Ross");
     assert(isa<ArgString>(a));
-    assert(a->get<ArgString>()=="Ross");
+    assert(a->get<string>()=="Ross");
     ArgString* ac = cast<ArgString>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgString>(a));
@@ -63,7 +64,7 @@ int main() {
   {
     Arg* a = c->argType(c->BitIn());
     assert(isa<ArgType>(a));
-    assert(a->get<ArgType>()==c->BitIn());
+    assert(a->get<Type*>()==c->BitIn());
     ArgType* ac = cast<ArgType>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgType>(a));
@@ -73,7 +74,7 @@ int main() {
   //Test casting of Module
   {
     Namespace* g = c->getGlobal();
-    Instantiable* m = g->newModuleDecl("A",c->Any());
+    Instantiable* m = g->newModuleDecl("A",c->Record());
     assert(isa<Module>(m));
     Module* mi = cast<Module>(m);
     assert(dyn_cast<Instantiable>(m));
@@ -95,7 +96,7 @@ int main() {
   //Test casting of Wireables
   {
     Namespace* g = c->getGlobal();
-    Module* m = g->newModuleDecl("B",c->Any());
+    Module* m = g->newModuleDecl("B",c->Record({{"in",c->Bit()}}));
     ModuleDef* def = m->newModuleDef();
     Wireable* iface = def->sel("self");
     assert(isa<Interface>(iface));
@@ -111,7 +112,7 @@ int main() {
     assert(dyn_cast<Instance>(inst));
     assert(!dyn_cast<Interface>(inst));
     
-    Wireable* sel = inst->sel(5);
+    Wireable* sel = inst->sel("in");
     assert(isa<Select>(sel));
     Select* sel_ = cast<Select>(sel);
     assert(dyn_cast<Wireable>(sel_));

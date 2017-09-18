@@ -1,18 +1,22 @@
-#include "json.hpp"
-#include <iostream>
 #include <fstream>
-#include "context.hpp"
-#include "instantiable.hpp"
-#include "namespace.hpp"
-#include "typegen.hpp"
-#include <unordered_map>
+#include "coreir/ir/json.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/error.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/wireable.h"
 
+using namespace std;
 
 namespace CoreIR {
 
+using json = nlohmann::json;
 typedef unordered_map<string,json> jsonmap;
 
-using json = nlohmann::json;
 
 Type* json2Type(Context* c, json jt);
 Args json2Args(Context* c, Params p, json j);
@@ -307,7 +311,6 @@ Type* json2Type(Context* c, json jt) {
     string kind = jt.get<string>();
     if (kind == "BitIn") return c->BitIn();
     else if (kind == "Bit") return c->Bit();
-    else if (kind == "Any") return c->Any();
     else throw std::runtime_error(kind + " is not a type!");
   }
   else if (jt.type() == json::value_t::array) {
@@ -342,7 +345,6 @@ Type* json2Type(Context* c, json jt) {
     }
   }
   else throw std::runtime_error("Error parsing Type");
-  return c->Any();
 }
 
 #undef ASSERTTHROW

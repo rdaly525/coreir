@@ -1,6 +1,7 @@
 #include "coreir.h"
-#include "coreir-passes/transform/wireclocks.h"
+#include "coreir/passes/transform/wireclocks.h"
 
+using namespace std;
 using namespace CoreIR;
 
 bool Passes::WireClocks::runOnModule(Module* module) {

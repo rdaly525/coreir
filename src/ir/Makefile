@@ -17,7 +17,6 @@ endif
 
 HOME = ../..
 INCS = -I$(HOME)/include -I.
-DEPS = context.hpp
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o) $(wildcard ../simulator/build/*.o)
 
@@ -41,5 +40,5 @@ build/%.dylib: $(OBJS)
 	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^
 	cp $@ $(HOME)/lib/lib$*.dylib
 
-build/%.o: %.cpp $(DEPS)
+build/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

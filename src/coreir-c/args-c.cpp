@@ -3,6 +3,7 @@
 
 #include "common-c.hpp"
 
+using namespace std;
 namespace CoreIR {
 
 
@@ -16,13 +17,13 @@ extern "C" {
   int COREArgIntGet(COREArg* a) {
     Arg* arg = rcast<Arg*>(a);
     //Get will assert if wrong arg kind
-    return arg->get<ArgInt>();
+    return arg->get<int>();
   }
   
   const char* COREArgStringGet(COREArg* a) {
     Arg* arg = rcast<Arg*>(a);
     //Get will assert if wrong arg kind
-    const string& s = arg->get<ArgString>();
+    const string& s = arg->get<string>();
     return s.c_str();
   }
   
@@ -47,7 +48,7 @@ extern "C" {
   bool COREArgBoolGet(COREArg* a) {
     Arg* arg = rcast<Arg*>(a);
     //Get will assert if wrong arg kind
-    return arg->get<ArgBool>();
+    return arg->get<bool>();
   }
 
 }
