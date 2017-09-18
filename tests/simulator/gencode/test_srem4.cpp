@@ -7,9 +7,9 @@ using namespace std;
 
 int main() {
   uint8_t A[3];
-  A[0] = 3;
-  A[1] = 2;
-  A[2] = -27;
+  A[0] = 19;
+  A[1] = 4;
+  A[2] = -7;
 
   // -15 % 2 == -1
   uint8_t expected = 0b11111;

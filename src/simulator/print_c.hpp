@@ -51,6 +51,8 @@ namespace CoreIR {
 
   std::string signedCTypeString(Type& tp);
 
+  string lastMask(const std::string& startWidth, const std::string& endWidth);
+
   std::string lastMask(const uint startWidth, const uint endWidth);
 
   std::string cArrayTypeDecl(CoreIR::Type& t, const std::string& varName);

@@ -116,6 +116,10 @@ namespace CoreIR {
     return parens(bitMaskString(endWidth - startWidth) + " << " + to_string(startWidth));
   }
 
+  string lastMask(const std::string& startWidth, const std::string& endWidth) {
+    return parens(bitMaskString(parens(endWidth + " - " + startWidth)) + " << " + startWidth);
+  }
+  
 
   std::string cPrimitiveTypeString(Type& t) {
     assert(isPrimitiveType(t));

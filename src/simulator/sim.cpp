@@ -143,17 +143,18 @@ namespace CoreIR {
     return parens(parens(signedCTypeString(tp)) + " " + expr);
   }
 
+  
+
   string seString(Type& tp, const std::string& arg) {
+
+
     uint startWidth = typeWidth(tp);
     uint extWidth = containerTypeWidth(tp);
 
-    string mask = parens(arg + " & " + bitMaskString(startWidth));
-    string testClause = parens(arg + " & " + parens("1ULL << " + to_string(startWidth - 1)));
+    return "SIGN_EXTEND( " + to_string(startWidth) + ", " +
+      to_string(extWidth) + ", " +
+      arg + " )";
 
-    string res = parens(mask + " | " +
-			ite(testClause, lastMask(startWidth, extWidth), "0"));
-
-    return res;
   }
 
   string
@@ -411,7 +412,8 @@ namespace CoreIR {
 
     //cout << "Source of " << wd.getWire()->toString() << " is " << sourceInstance->toString() << endl;
 
-    if (isSelect(sourceInstance)) {
+    // Is this the correct way to check if the value is an input?
+    if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
       return cVar(wd);
     }
 
@@ -420,14 +422,12 @@ namespace CoreIR {
     vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
 
     // TODO: Should really check whether or not there is one connection using
-    // the given variable
+    // the given variable, this is slightly too conservative
     if (g.getOutputConnections(opNodeD).size() == 1) {
-      //return cVar(wd);
       return opResultStr(combNode(sourceInstance), opNodeD, g);
     }
 
     return cVar(wd);
-    //assert(false);
   }
 
   bool fromSelfInterface(Select* w) {
@@ -729,6 +729,34 @@ namespace CoreIR {
     return res;
   }
 
+  string seMacroDef() {
+    string arg = "(x)";
+    string startWidth = "(start)";
+    string extWidth = "(end)";
+
+    string def = "#define SIGN_EXTEND(start, end, x) ";
+    string mask = parens(arg + " & " + bitMaskString(startWidth));
+
+    string testClause = parens(arg + " & " + parens("1ULL << " +
+						    parens(startWidth + " - 1")));
+
+    string res = parens(mask + " | " +
+			ite(testClause, lastMask(startWidth, extWidth), "0"));
+    
+    def += res + "\n";
+
+    return def;
+
+    //   string mask = parens(arg + " & " + bitMaskString(startWidth));
+    // string testClause = parens(arg + " & " + parens("1ULL << " + to_string(startWidth - 1)));
+
+    // string res = parens(mask + " | " +
+    // 			ite(testClause, lastMask(startWidth, extWidth), "0"));
+
+    // return res;
+    
+  }
+
   string printDecl(CoreIR::Module* mod) {
     string code = "";
     code += "#include <stdint.h>\n";
@@ -751,6 +779,8 @@ namespace CoreIR {
 
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n";
+
+    code += seMacroDef();
 
     code += "void simulate( ";
 

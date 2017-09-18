@@ -81,7 +81,7 @@ namespace CoreIR {
       
     }
 
-    SECTION("6 bit signed remainder 4 operations") {
+    SECTION("6 bit signed remainder 3 operations") {
       uint n = 6;
   
       Generator* srem2 = c->getGenerator("coreir.srem");

@@ -13,6 +13,8 @@ int main() {
   uint64_t expected1 = (1ULL << 59) | (1ULL << 58) | (1ULL << 57) | (1ULL << 56);
   uint64_t res1 = 34;
 
+  cout << "About to simulate dashr" << endl;
+
   simulate(&res1, A1);
 
   cout << "Expected1 = " << std::bitset<64>(expected1) << endl;
