@@ -29,8 +29,7 @@ namespace CoreIR {
     assert(inConns.size() == 1);
 
     Conn cn = (*std::begin(inConns));
-    //Wireable* arg = cn.first.getWire();
-    
+
     Wireable* dest = inConns[0].second.getWire();
     assert(isSelect(dest));
 
@@ -41,13 +40,7 @@ namespace CoreIR {
 
     string res = "";
 
-    res += maskResult(*((outPair.second)->getType()), opString + printOpResultStr(cn.first, g));//cVar(*arg));
-
-    // if (opString == "~") {
-    //   res += maskResult(*((outPair.second)->getType()), opString + cVar(*arg));
-    // } else {
-    //   res += opString + cVar(*arg);
-    // }
+    res += maskResult(*((outPair.second)->getType()), opString + printOpResultStr(cn.first, g));
 
     return res;
   }
@@ -85,8 +78,6 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    //res += cVar(*(outPair.second)) + " = ";
-
     auto inConns = getInputConnections(vd, g);
 
     assert(inConns.size() == 2);
@@ -121,10 +112,12 @@ namespace CoreIR {
       assert(containWidth > tw);
 
       string mask =
-	parens(bitMaskString(cVar(arg2)) + " << " + parens(to_string(tw) + " - " + cVar(arg2)));
+	//parens(bitMaskString(cVar(arg2)) + " << " + parens(to_string(tw) + " - " + cVar(arg2)));
+	parens(bitMaskString(printOpResultStr(arg2, g)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g)));
 
       string signBitSet =
-	parens("0x01 & " + parens(cVar(arg1) +  " >> " + parens(to_string(tw - 1))));
+	//parens("0x01 & " + parens(cVar(arg1) +  " >> " + parens(to_string(tw - 1))));
+	parens("0x01 & " + parens(printOpResultStr(arg1, g) +  " >> " + parens(to_string(tw - 1))));
 
       compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
     }
@@ -198,9 +191,9 @@ namespace CoreIR {
       string rs2 = printOpResultStr(arg2, g);
 
       string res = maskResult(*(outPair.second->getType()),
-			      castToSigned(arg1Tp, seString(arg1Tp, rs1)) + //cVar(arg1))) +
+			      castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
 			      opString +
-			      castToSigned(arg2Tp, seString(arg2Tp, rs2))); //cVar(arg2))));
+			      castToSigned(arg2Tp, seString(arg2Tp, rs2)));
 
       return res;
   }
@@ -224,7 +217,7 @@ namespace CoreIR {
     WireNode i0 = findArg("in0", ins);
     WireNode i1 = findArg("in1", ins);
     
-    return ite(cVar(sel), cVar(i1), cVar(i0));
+    return ite(printOpResultStr(sel, g), printOpResultStr(i1, g), printOpResultStr(i0, g)); //ite(cVar(sel), cVar(i1), cVar(i0));
     
   }
 
@@ -301,12 +294,14 @@ namespace CoreIR {
 
     string oldValName = rName + "_old_value";
 
+    // Need to handle the case where clock is not actually directly from an input
+    // clock variable
     string condition =
       parens(cVar(clk, "_last") + " == 0") + " && " + parens(cVar(clk) + " == 1");
 
     if (hasEnable(wd.getWire())) {
       WireNode en = findArg("en", ins);
-      condition += " && " + cVar(en);
+      condition += " && " + printOpResultStr(en, g);
     }
 
     //printOpResultStr(inConn.first, g));//cVar(inConn.first));
