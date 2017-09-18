@@ -1,7 +1,7 @@
 #include "sim.hpp"
 
-#include "coreir-passes/transform/flatten.h"
-#include "coreir-passes/transform/rungenerators.h"
+#include "coreir/passes/transform/flatten.h"
+#include "coreir/passes/transform/rungenerators.h"
 
 #include "algorithm.hpp"
 #include "print_c.hpp"

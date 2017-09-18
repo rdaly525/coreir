@@ -5,9 +5,10 @@
 #include "../../simulator/output.hpp"
 
 //This is For a convenient macro to create the registerPass and deletePass functions
-#include "coreir-macros.h"
+#include "coreir/common-macros.h"
 
 using namespace CoreIR;
+using namespace std;
 
 //Do not forget to set this static variable!!
 string SimModule::ID = "simpass";

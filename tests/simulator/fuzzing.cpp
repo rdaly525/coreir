@@ -10,6 +10,8 @@
 
 #include <cstdlib>
 
+using namespace std;
+
 namespace CoreIR {
 
   std::string primitiveRandomInputString(CoreIR::Type& t, const std::string& var) {
