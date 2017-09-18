@@ -23,12 +23,18 @@ namespace CoreIR {
     return bitMaskString(w);
   }
 
+  static inline std::string maskResultStr(const uint w,
+					  const std::string& expr) {
+    return "MASK( " + to_string(w) + ", " + expr + " )";
+  }
+
   static inline string maskResult(CoreIR::Type& tp, const std::string& expr) {
     if (standardWidth(tp)) {
       return expr;
     }
 
-    return parens( bitMaskString(tp) +  " & " + parens(expr));
+    return maskResultStr(typeWidth(tp), expr);
+    //return parens( bitMaskString(tp) +  " & " + parens(expr));
   }
   
 

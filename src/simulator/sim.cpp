@@ -725,6 +725,14 @@ namespace CoreIR {
     return res;
   }
 
+  string maskMacroDef() {
+    string expr = "(expr)";
+    string width = "(width)";
+
+    
+    return "#define MASK(width, expr) " + parens( bitMaskString(width) +  " & " + parens(expr)) + "\n\n";
+  }
+
   string seMacroDef() {
     string arg = "(x)";
     string startWidth = "(start)";
@@ -739,7 +747,7 @@ namespace CoreIR {
     string res = parens(mask + " | " +
 			ite(testClause, lastMask(startWidth, extWidth), "0"));
     
-    def += res + "\n";
+    def += res + "\n\n";
 
     return def;
 
@@ -756,7 +764,7 @@ namespace CoreIR {
   string printDecl(CoreIR::Module* mod) {
     string code = "";
     code += "#include <stdint.h>\n";
-    code += "#include <cstdio>\n";
+    code += "#include <cstdio>\n\n";
 
     code += "void simulate( ";
 
@@ -774,9 +782,11 @@ namespace CoreIR {
     string code = "";
 
     code += "#include <stdint.h>\n";
-    code += "#include <cstdio>\n";
+    code += "#include <cstdio>\n\n";
 
     code += seMacroDef();
+    code += maskMacroDef();
+    
 
     code += "void simulate( ";
 
