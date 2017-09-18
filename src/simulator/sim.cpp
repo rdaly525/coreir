@@ -787,7 +787,6 @@ namespace CoreIR {
     code += seMacroDef();
     code += maskMacroDef();
     
-
     code += "void simulate( ";
 
     code += printSimArguments(*mod);
