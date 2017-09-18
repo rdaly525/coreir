@@ -29,7 +29,7 @@ namespace CoreIR {
     assert(inConns.size() == 1);
 
     Conn cn = (*std::begin(inConns));
-    Wireable* arg = cn.first.getWire();
+    //Wireable* arg = cn.first.getWire();
     
     Wireable* dest = inConns[0].second.getWire();
     assert(isSelect(dest));
@@ -40,11 +40,14 @@ namespace CoreIR {
     string opString = getOpString(*inst);
 
     string res = "";
-    if (opString == "~") {
-      res += maskResult(*((outPair.second)->getType()), opString + cVar(*arg));
-    } else {
-      res += opString + cVar(*arg);
-    }
+
+    res += maskResult(*((outPair.second)->getType()), opString + printOpResultStr(cn.first, g));//cVar(*arg));
+
+    // if (opString == "~") {
+    //   res += maskResult(*((outPair.second)->getType()), opString + cVar(*arg));
+    // } else {
+    //   res += opString + cVar(*arg);
+    // }
 
     return res;
   }
@@ -582,9 +585,7 @@ namespace CoreIR {
 	  // If not an instance copy the input values
 	  for (auto inConn : inConns) {
 
-	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + cVar(inConn.first));
-
-	    str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));//cVar(inConn.first));
+	    str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
 	  }
 
 	}
