@@ -1,6 +1,7 @@
 #include "utils.hpp"
 
 using namespace CoreIR;
+using namespace std;
 
 namespace CoreIR {
 

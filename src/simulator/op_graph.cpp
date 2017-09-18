@@ -3,6 +3,8 @@
 #include "algorithm.hpp"
 #include "utils.hpp"
 
+using namespace std;
+
 namespace CoreIR {
 
   Wireable* extractSource(Select* sel) {

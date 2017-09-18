@@ -141,7 +141,8 @@ namespace CoreIR {
     }
     
     int numVertices() const;
-    vector<vdisc> vertsWithNoIncomingEdge() const;
+
+    std::vector<vdisc> vertsWithNoIncomingEdge() const;
     std::vector<Conn> getInputConnections(const vdisc vd) const;
     std::vector<Conn> getOutputConnections(const vdisc vd) const;
     std::vector<CoreIR::Wireable*> getInputs(const vdisc vd) const;
@@ -162,18 +163,18 @@ namespace CoreIR {
 
   std::vector<Conn> getOutputConnections(const vdisc vd, const NGraph& g);
 
-  void addConnection(unordered_map<WireNode, vdisc>& imap,
+  void addConnection(std::unordered_map<WireNode, vdisc>& imap,
 		     Conn& conn,
 		     NGraph& g);
   
   void addWireableToGraph(CoreIR::Wireable* w1,
-			  unordered_map<WireNode, vdisc>& imap,
+			  std::unordered_map<WireNode, vdisc>& imap,
 			  NGraph& g);
 
-  vector<Conn> buildOrderedConnections(Module* mod);
+  std::vector<Conn> buildOrderedConnections(Module* mod);
 
   void buildOrderedGraph(Module* mod, NGraph& g);
 
-  WireNode findArg(string argName, std::vector<Conn>& ins);
+  WireNode findArg(std::string argName, std::vector<Conn>& ins);
 
 }

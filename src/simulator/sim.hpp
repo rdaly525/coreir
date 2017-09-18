@@ -10,12 +10,12 @@ namespace CoreIR {
 			NGraph& g,
 			CoreIR::Module* mod);
 
-  string printDecl(CoreIR::Module* mod);
+  std::string printDecl(CoreIR::Module* mod);
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
-  simArguments(Module& mod);
+  simArguments(CoreIR::Module& mod);
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
-  simInputs(Module& mod);
+  simInputs(CoreIR::Module& mod);
   
 }

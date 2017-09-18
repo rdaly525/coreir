@@ -9,6 +9,7 @@
 
 using namespace CoreIR;
 using namespace CoreIR::Passes;
+using namespace std;
 
 namespace CoreIR {
 

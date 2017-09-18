@@ -5,30 +5,30 @@
 
 namespace CoreIR {
 
-  static inline string parens(const std::string& expr) {
+  static inline std::string parens(const std::string& expr) {
     return "(" + expr + ")";
   }
 
-  static inline string bitMaskString(uint w) {
+  static inline std::string bitMaskString(uint w) {
     assert(w > 0);
-    return parens(parens("1ULL << " + to_string(w)) + " - 1");
+    return parens(parens("1ULL << " + std::to_string(w)) + " - 1");
   }
 
-  static inline string bitMaskString(const std::string& w) {
+  static inline std::string bitMaskString(const std::string& w) {
     return parens(parens("1ULL << " + w) + " - 1");
   }
   
-  static inline string bitMaskString(CoreIR::Type& tp) {
+  static inline std::string bitMaskString(CoreIR::Type& tp) {
     uint w = typeWidth(tp);
     return bitMaskString(w);
   }
 
   static inline std::string maskResultStr(const uint w,
 					  const std::string& expr) {
-    return "MASK( " + to_string(w) + ", " + expr + " )";
+    return "MASK( " + std::to_string(w) + ", " + expr + " )";
   }
 
-  static inline string maskResult(CoreIR::Type& tp, const std::string& expr) {
+  static inline std::string maskResult(CoreIR::Type& tp, const std::string& expr) {
     if (standardWidth(tp)) {
       return expr;
     }
@@ -57,7 +57,7 @@ namespace CoreIR {
 
   std::string signedCTypeString(Type& tp);
 
-  string lastMask(const std::string& startWidth, const std::string& endWidth);
+  std::string lastMask(const std::string& startWidth, const std::string& endWidth);
 
   std::string lastMask(const uint startWidth, const uint endWidth);
 

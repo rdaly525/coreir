@@ -61,7 +61,7 @@ namespace CoreIR {
       return modRef->getName() == "reg";
     }
 
-    string genRefName = genRef->getName();
+    std::string genRefName = genRef->getName();
 
     return genRefName == "reg";
   }
@@ -80,7 +80,7 @@ namespace CoreIR {
   }
 
   static inline std::string cVar(CoreIR::Wireable& w, const std::string& suffix) {
-    cout << "cvar for " << w.toString() << " with suffix = " << suffix << endl;
+    //cout << "cvar for " << w.toString() << " with suffix = " << suffix << endl;
     if (isSelect(w)) {
       CoreIR::Select& s = toSelect(w);
       if (CoreIR::isNumber(s.getSelStr())) {
@@ -141,10 +141,10 @@ namespace CoreIR {
   bool isBitArrayOfLengthLEQ(CoreIR::Type& t, const uint len);
   bool isPrimitiveType(CoreIR::Type& t);
 
-  unordered_map<string, CoreIR::Wireable*>
+  std::unordered_map<std::string, CoreIR::Wireable*>
   getOutputSelects(CoreIR::Wireable* inst);
 
-  unordered_map<string, CoreIR::Wireable*>
+  std::unordered_map<std::string, CoreIR::Wireable*>
   getInputSelects(CoreIR::Wireable* inst);
 
   bool recordTypeHasField(const std::string& fieldName, CoreIR::Type* t);
@@ -215,49 +215,49 @@ namespace CoreIR {
   }
 
   static inline bool isDASHR(Instance& inst) {
-    string genRefName = getInstanceName(inst);
+    std::string genRefName = getInstanceName(inst);
     return genRefName == "dashr";
   }
 
   static inline bool isShiftOp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"dshl", "dlshr", "dashr"};
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> bitwiseOps{"dshl", "dlshr", "dashr"};
     return elem(genRefName, bitwiseOps);
   }
 
   static inline bool isSDivOrRem(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"sdiv", "srem"};
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> bitwiseOps{"sdiv", "srem"};
     return elem(genRefName, bitwiseOps);
   }
   
   static inline bool isUDivOrRem(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"udiv", "urem"};
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> bitwiseOps{"udiv", "urem"};
     return elem(genRefName, bitwiseOps);
   }
 
   static inline bool isBitwiseOp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> bitwiseOps{"not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> bitwiseOps{"not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
     return elem(genRefName, bitwiseOps);
   }
 
   static inline bool isSignInvariantOp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> siOps{"add", "sub", "mul", "eq"};
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> siOps{"add", "sub", "mul", "eq"};
     return elem(genRefName, siOps);
   }
 
   static inline bool isUnsignedCmp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> siOps{"ult", "ugt", "ule", "uge"};
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> siOps{"ult", "ugt", "ule", "uge"};
     return elem(genRefName, siOps);
   }
 
   static inline bool isSignedCmp(Instance& inst) {
-    string genRefName = getInstanceName(inst);
-    vector<string> siOps{"slt", "sgt", "sle", "sge"};
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> siOps{"slt", "sgt", "sle", "sge"};
     return elem(genRefName, siOps);
   }
   

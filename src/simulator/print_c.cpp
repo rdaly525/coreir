@@ -1,5 +1,7 @@
 #include "print_c.hpp"
 
+using namespace std;
+
 namespace CoreIR {
 
   std::string cVar(const WireNode& w) {
