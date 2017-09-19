@@ -221,18 +221,6 @@ namespace CoreIR {
     assert(false);
   }
 
-  string varSuffix(const WireNode& wd) {
-    if (wd.isSequential) {
-      if (wd.isReceiver) {
-	return "_receiver";
-      } else {
-	return "_source";
-      }
-    }
-
-    return "";
-  }
-
   bool hasEnable(Wireable* w) {
     assert(isRegisterInstance(w));
 
