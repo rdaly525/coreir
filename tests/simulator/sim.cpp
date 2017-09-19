@@ -27,8 +27,11 @@ namespace CoreIR {
     for (auto& ed : g.getEdges()) {
       Conn c = getConn(g, ed);
 
-      vdisc source = g.getSource(c);
-      vdisc target = g.getTarget(c);
+      vdisc source = g.source(ed);
+      vdisc target = g.target(ed);
+
+      WireNode sourceNode = g.getNode(source);
+      WireNode targetNode = g.getNode(target);
 
       //cout << (c.first).toString() << " ---> " << (c.second).toString() << endl;
 
@@ -36,14 +39,14 @@ namespace CoreIR {
       Wireable* fstParent = g.getNode(source).getWire(); //toSelect(*(c.first.getWire())).getParent();
 
       bool notRec = !isRegisterInstance(fstParent) ||
-      	(c.first.isSequential && !(c.first.isReceiver));
+      	(sourceNode.isSequential && !(sourceNode.isReceiver));
 
       if (!notRec) { return false; }
 
       // Either the second edge is not a register or it is a reciver
       Wireable* sndParent = g.getNode(target).getWire(); //toSelect(*(c.second.getWire())).getParent();
       bool isRec = !isRegisterInstance(sndParent) ||
-      	(c.second.isSequential && c.second.isReceiver);
+      	(targetNode.isSequential && targetNode.isReceiver);
 
       if (!isRec) { return false; }
     }
