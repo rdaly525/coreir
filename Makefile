@@ -2,11 +2,11 @@
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 TARGET = so
-prefix=/usr
+prefix?=/usr
 endif
 ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
-prefix=/usr/local
+prefix?=/usr/local
 endif
 
 all: build coreir
