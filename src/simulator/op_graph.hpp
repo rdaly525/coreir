@@ -4,7 +4,20 @@
 
 namespace CoreIR {
 
-  typedef WireNode WireableNode;
+  class InstanceValue {
+  protected:
+    CoreIR::Select* wire;
+
+  public:
+
+    InstanceValue() : wire(nullptr) {}
+
+    InstanceValue(Select* wire_) : wire(wire_) {}
+
+    CoreIR::Select* getWire() const { return wire; }
+  };
+
+  typedef InstanceValue WireableNode;
 
   typedef std::pair<WireableNode, WireableNode> Conn;
 
@@ -175,7 +188,7 @@ namespace CoreIR {
 
   void buildOrderedGraph(Module* mod, NGraph& g);
 
-  WireNode findArg(std::string argName, std::vector<Conn>& ins);
+  InstanceValue findArg(std::string argName, std::vector<Conn>& ins);
 
   void eliminateMasks(const std::deque<vdisc>& topoOrder,
 		      const NGraph& g);

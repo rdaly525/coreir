@@ -1,6 +1,6 @@
 #pragma once
 
-#include "wire_node.hpp"
+#include "op_graph.hpp"
 #include "utils.hpp"
 
 namespace CoreIR {
@@ -38,12 +38,12 @@ namespace CoreIR {
   }
   
 
-  std::string cVar(const WireNode& w);
+  std::string cVar(const InstanceValue& w);
 
-  std::string cVar(const WireNode& w, const std::string& suffix);
+  std::string cVar(const InstanceValue& w, const std::string& suffix);
 
   std::string cVar(const std::string& prefix,
-		   const WireNode& w,
+		   const InstanceValue& w,
 		   const std::string& suffix);
 
   static inline std::string ite(const std::string& condition,

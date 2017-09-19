@@ -4,46 +4,46 @@ using namespace std;
 
 namespace CoreIR {
 
-  std::string cVar(const WireNode& w) {
+  std::string cVar(const InstanceValue& w) {
     string cv = cVar(*(w.getWire()));
-    if (w.isSequential) {
-      if (w.isReceiver) {
-	return cv += "_receiver";
-      } else {
-	return cv += "_source";
-      }
+    // if (w.isSequential) {
+    //   if (w.isReceiver) {
+    // 	return cv += "_receiver";
+    //   } else {
+    // 	return cv += "_source";
+    //   }
 
-    }
+    // }
     return cv;
   }
 
   std::string cVar(const std::string& prefix,
-		   const WireNode& w,
+		   const InstanceValue& w,
 		   const std::string& suffix) {
     string cv = cVar(prefix, *(w.getWire()), suffix);
 
-    if (w.isSequential) {
-      if (w.isReceiver) {
-	return cv += "_receiver";
-      } else {
-	return cv += "_source";
-      }
+    // if (w.isSequential) {
+    //   if (w.isReceiver) {
+    // 	return cv += "_receiver";
+    //   } else {
+    // 	return cv += "_source";
+    //   }
 
-    }
+    // }
 
     return cv;
   }
   
-  std::string cVar(const WireNode& w, const std::string& suffix) {
+  std::string cVar(const InstanceValue& w, const std::string& suffix) {
     string cv = cVar(*(w.getWire()), suffix);
-    if (w.isSequential) {
-      if (w.isReceiver) {
-	return cv += "_receiver";
-      } else {
-	return cv += "_source";
-      }
+    // if (w.isSequential) {
+    //   if (w.isReceiver) {
+    // 	return cv += "_receiver";
+    //   } else {
+    // 	return cv += "_source";
+    //   }
 
-    }
+    // }
     return cv;
   }
 

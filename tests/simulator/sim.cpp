@@ -20,29 +20,31 @@ namespace CoreIR {
 
   bool splitNodeEdgesCorrect(const NGraph& g) {
 
+    //assert(false);
+
     //cout << "Edges" << endl;
 
-    for (auto& ed : g.getEdges()) {
-      Conn c = getConn(g, ed);
+    // for (auto& ed : g.getEdges()) {
+    //   Conn c = getConn(g, ed);
 
-      //cout << (c.first).toString() << " ---> " << (c.second).toString() << endl;
+    //   //cout << (c.first).toString() << " ---> " << (c.second).toString() << endl;
 
-      // Either the first edge is not a register or it is not a receiver
-      Wireable* fstParent = toSelect(*(c.first.getWire())).getParent();
-      bool notRec = !isRegisterInstance(fstParent) ||
-	(c.first.isSequential && !(c.first.isReceiver));
+    //   // Either the first edge is not a register or it is not a receiver
+    //   Wireable* fstParent = toSelect(*(c.first.getWire())).getParent();
+    //   bool notRec = !isRegisterInstance(fstParent) ||
+    //   	(c.first.isSequential && !(c.first.isReceiver));
 
-      if (!notRec) { return false; }
+    //   if (!notRec) { return false; }
 
-      // Either the second edge is not a register or it is a reciver
-      Wireable* sndParent = toSelect(*(c.second.getWire())).getParent();
-      bool isRec = !isRegisterInstance(sndParent) ||
-	(c.second.isSequential && c.second.isReceiver);
+    //   // Either the second edge is not a register or it is a reciver
+    //   Wireable* sndParent = toSelect(*(c.second.getWire())).getParent();
+    //   bool isRec = !isRegisterInstance(sndParent) ||
+    //   	(c.second.isSequential && c.second.isReceiver);
 
-      if (!isRec) { return false; }
-    }
+    //   if (!isRec) { return false; }
+    // }
 
-    return true;
+    return false;
 
   }
 

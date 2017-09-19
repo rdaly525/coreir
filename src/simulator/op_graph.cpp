@@ -327,30 +327,30 @@ namespace CoreIR {
 
       Type* fst_tp = fst_select->getType();
 
-      WireNode w_fst{fst, false, false};
-      WireNode w_snd{snd, false, false};
+      InstanceValue w_fst(toSelect(fst)); //, false, false};
+      InstanceValue w_snd(toSelect(snd)); //, {snd, false, false};
 
       if (fst_tp->isInput()) {
 
-	if (isRegisterInstance(fst_p)) {
-	  w_fst = {fst, true, true};
-	}
+	// if (isRegisterInstance(fst_p)) {
+	//   w_fst = {fst, true, true};
+	// }
 
-	if (isRegisterInstance(snd_p)) {
-	  w_snd = {snd, true, false};
-	}
+	// if (isRegisterInstance(snd_p)) {
+	//   w_snd = {snd, true, false};
+	// }
 
 	
 	conns.push_back({w_snd, w_fst});
       } else {
 
-	if (isRegisterInstance(fst_p)) {
-	  w_fst = {fst, true, false};
-	}
+	// if (isRegisterInstance(fst_p)) {
+	//   w_fst = {fst, true, false};
+	// }
 
-	if (isRegisterInstance(snd_p)) {
-	  w_snd = {snd, true, true};
-	}
+	// if (isRegisterInstance(snd_p)) {
+	//   w_snd = {snd, true, true};
+	// }
 
 	conns.push_back({w_fst, w_snd});
       }
@@ -392,10 +392,10 @@ namespace CoreIR {
 
   }
 
-  WireNode findArg(string argName, std::vector<Conn>& ins) {
+  InstanceValue findArg(string argName, std::vector<Conn>& ins) {
     for (auto& conn : ins) {
-      WireNode arg = conn.first;
-      WireNode placement = conn.second;
+      InstanceValue arg = conn.first;
+      InstanceValue placement = conn.second;
       string selName = toSelect(placement.getWire())->getSelStr();
       if (selName == argName) {
 	return arg;

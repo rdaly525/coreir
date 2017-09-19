@@ -13,7 +13,7 @@ using namespace std;
 
 namespace CoreIR {
 
-  string printOpResultStr(const WireNode& wd, const NGraph& g);
+  string printOpResultStr(const InstanceValue& wd, const NGraph& g);
 
   // wd is an instance node
   string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g);
@@ -83,8 +83,8 @@ namespace CoreIR {
 
     assert(inConns.size() == 2);
 
-    WireNode arg1;
-    WireNode arg2;
+    InstanceValue arg1;
+    InstanceValue arg2;
 
     auto dest = inConns[0].second.getWire();
     assert(isSelect(dest));
@@ -161,8 +161,8 @@ namespace CoreIR {
 
       assert(inConns.size() == 2);
 
-      WireNode arg1;
-      WireNode arg2;
+      InstanceValue arg1;
+      InstanceValue arg2;
 
       auto dest = inConns[0].second.getWire();
       assert(isSelect(dest));
@@ -209,9 +209,9 @@ namespace CoreIR {
 
     assert(ins.size() == 3);
 
-    WireNode sel = findArg("sel", ins);
-    WireNode i0 = findArg("in0", ins);
-    WireNode i1 = findArg("in1", ins);
+    InstanceValue sel = findArg("sel", ins);
+    InstanceValue i0 = findArg("in0", ins);
+    InstanceValue i1 = findArg("in1", ins);
     
     return ite(printOpResultStr(sel, g),
 	       printOpResultStr(i1, g),
@@ -284,8 +284,8 @@ namespace CoreIR {
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
     string s = "*" + rName + "_new_value = ";
-    WireNode clk = findArg("clk", ins);
-    WireNode add = findArg("in", ins);
+    InstanceValue clk = findArg("clk", ins);
+    InstanceValue add = findArg("in", ins);
 
     string oldValName = rName + "_old_value";
 
@@ -295,7 +295,7 @@ namespace CoreIR {
       parens(cVar(clk, "_last") + " == 0") + " && " + parens(cVar(clk) + " == 1");
 
     if (hasEnable(wd.getWire())) {
-      WireNode en = findArg("en", ins);
+      InstanceValue en = findArg("en", ins);
       condition += " && " + printOpResultStr(en, g);
     }
 
@@ -328,9 +328,9 @@ namespace CoreIR {
 
   string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g) {
 
-    if (!isInstance(wd.getWire())) {
-      return cVar(wd);
-    }
+    // if (!isInstance(wd.getWire())) {
+    //   return cVar(wd);
+    // }
 
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
@@ -392,7 +392,7 @@ namespace CoreIR {
     return true;
   }
 
-  string printOpResultStr(const WireNode& wd, const NGraph& g) {
+  string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
     assert(isSelect(wd.getWire()));
 
     if (isRegisterInstance(extractSource(toSelect(wd.getWire())))) {
