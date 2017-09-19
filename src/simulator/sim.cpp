@@ -83,22 +83,8 @@ namespace CoreIR {
 
     assert(inConns.size() == 2);
 
-    InstanceValue arg1;
-    InstanceValue arg2;
-
-    auto dest = inConns[0].second.getWire();
-    assert(isSelect(dest));
-
-    Select* destSel = toSelect(dest);
-    assert(destSel->getParent() == inst);
-
-    if (destSel->getSelStr() == "in0") {
-      arg1 = inConns[0].first;
-      arg2 = inConns[1].first;
-    } else {
-      arg1 = inConns[1].first;
-      arg2 = inConns[0].first;
-    }
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
 
     string opString = getOpString(*inst);
 
@@ -161,22 +147,8 @@ namespace CoreIR {
 
       assert(inConns.size() == 2);
 
-      InstanceValue arg1;
-      InstanceValue arg2;
-
-      auto dest = inConns[0].second.getWire();
-      assert(isSelect(dest));
-
-      Select* destSel = toSelect(dest);
-      assert(destSel->getParent() == inst);
-
-      if (destSel->getSelStr() == "in0") {
-	arg1 = inConns[0].first;
-	arg2 = inConns[1].first;
-      } else {
-	arg1 = inConns[1].first;
-	arg2 = inConns[0].first;
-      }
+      InstanceValue arg1 = findArg("in0", inConns);
+      InstanceValue arg2 = findArg("in1", inConns);
 
       string opString = getOpString(*inst);
 
