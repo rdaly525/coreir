@@ -93,8 +93,10 @@ namespace CoreIR {
 	getConn(in_edge_desc);
 
       assert(isSelect(edge_conn.second.getWire()));
+
       Select* sel = static_cast<Select*>(edge_conn.second.getWire());
-      assert(sel->getParent() == w);
+
+      assert(extractSource(sel) == w); //->getParent() == w);
 
       inputs.push_back(edge_conn.first.getWire());
       
@@ -405,11 +407,25 @@ namespace CoreIR {
     assert(false);
   }
 
-  void eliminateMasks(const NGraph& g) {
+  void eliminateMasks(const std::deque<vdisc>& topoOrder,
+		      const NGraph& g) {
+    
   }
 
   int numMasksNeeded(const NGraph& g) {
-    return 0;
+    int numMasks = 0;
+
+    for (auto& vd : g.getVerts()) {
+
+      for (auto& conn : g.getInputConnections(vd)) {
+	if (g.getNode(vd).highBitsAreDirty()) {
+	  numMasks++;
+	}
+      }
+
+    }
+
+    return numMasks;
   }
 
 }

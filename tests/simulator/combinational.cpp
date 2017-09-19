@@ -59,20 +59,19 @@ namespace CoreIR {
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
+      deque<vdisc> topoOrder = topologicalSort(gr);
 
       SECTION("Checking graph size") {
 	REQUIRE(numVertices(gr) == 5);
       }
 
       SECTION("Checking mask elimination") {
-	eliminateMasks(gr);
+	eliminateMasks(topoOrder, gr);
 
 	REQUIRE(numMasksNeeded(gr) == 0);
       }
 
       SECTION("Sorting and compiling code") {
-	deque<vdisc> topoOrder = topologicalSort(gr);
-
 	auto str = printCode(topoOrder, gr, add4_n);
 	int s = compileCode(str, "./gencode/add4.cpp");
 
@@ -368,23 +367,31 @@ namespace CoreIR {
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
       
-      NGraph g;
-      buildOrderedGraph(neg_n, g);
+      NGraph gr;
+      buildOrderedGraph(neg_n, gr);
+      deque<vdisc> topoOrder = topologicalSort(gr);
 
-      deque<vdisc> topoOrder = topologicalSort(g);
+      SECTION("Checking mask elimination") {
+	eliminateMasks(topoOrder, gr);
 
-      auto str = printCode(topoOrder, g, neg_n);
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
+	REQUIRE(numMasksNeeded(gr) == 1);
+      }
 
-      string outFile = "./gencode/neg2";
-      int s = compileCodeAndRun(topoOrder,
-				g,
-				neg_n,
-				outFile,
-				"./gencode/test_neg2.cpp");
+      SECTION("Compiling code") {
+	auto str = printCode(topoOrder, gr, neg_n);
+	cout << "CODE STRING" << endl;
+	cout << str << endl;
 
-      REQUIRE(s == 0);
+	string outFile = "./gencode/neg2";
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  neg_n,
+				  outFile,
+				  "./gencode/test_neg2.cpp");
+
+	REQUIRE(s == 0);
+
+      }
 
       
     }
