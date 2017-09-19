@@ -157,8 +157,8 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
 
   auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
-  reg->addDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
-  reg->addDefaultConfigArgs({{"init",c->argInt(0)}});
+  reg->addDefaultGenArgs({{"en",Const(false)},{"clr",Const(false)},{"rst",Const(false)}});
+  reg->addDefaultConfigArgs({{"init",Const(0)}});
   
   json jverilog;
   jverilog["parameters"] = {"width","init"};
@@ -203,8 +203,8 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   });
   TypeGen* bitRegTypeGen = coreirprims->newTypeGen("bitRegType",bitRegGenParams,bitRegFun);
   auto bitreg = coreirprims->newGeneratorDecl("bitreg",bitRegTypeGen,bitRegGenParams,regConfigParams);
-  bitreg->addDefaultGenArgs({{"en",c->argBool(false)},{"clr",c->argBool(false)},{"rst",c->argBool(false)}});
-  bitreg->addDefaultConfigArgs({{"init",c->argInt(0)}});
+  bitreg->addDefaultGenArgs({{"en",Const(false)},{"clr",Const(false)},{"rst",Const(false)}});
+  bitreg->addDefaultConfigArgs({{"init",Const(0)}});
   
   jverilog["parameters"] = {"init"};
   jverilog["prefix"] = "coreir_";

@@ -21,7 +21,7 @@ int main() {
   Module* add15 = c->getGlobal()->newModuleDecl("add15", add15Type);
   ModuleDef* def = add15->newModuleDef();
     def->addInstance("add15", opN, 
-                     {{"width",c->argInt(16)},{"N",c->argInt(15)},{"operator",c->argString("coreir.add")}}
+                     {{"width",Const(16)},{"N",Const(15)},{"operator",Const("coreir.add")}}
                      );
     def->connect("self.in", "add15.in");
     def->connect("self.out", "add15.out");

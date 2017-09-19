@@ -26,11 +26,11 @@ extern "C" {
       }
       case (STR2ARG_MAP) : {
         char** skeys = (char**) keys;
-        Arg** args = (Arg**) values;
+        void** args = (void**) values;
         Args* amap = c->newArgs();
         for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
-          Arg* a = (Arg*) args[i];
+          ArgPtr a = c->getSavedArg(args[i]);
           amap->emplace(s,a);
         }
         ret = (void*) amap;
@@ -65,14 +65,16 @@ extern "C" {
   }
   
   const char* COREGetInstantiableRefName(COREWireable* iref) {
-    const string& name = rcast<Instance*>(iref)->getInstantiableRef()->getName();
+    const string& name = cast<Instance>(rcast<Wireable*>(iref))->getInstantiableRef()->getName();
     return name.c_str();
   }
 
   //TODO change the name to Arg
   COREArg* COREGetConfigValue(COREWireable* i, char* s) {
     string str(s);
-    return rcast<COREArg*>(rcast<Instance*>(i)->getConfigArg(str));
+    Args configargs =cast<Instance>(rcast<Wireable*>(i))->getConfigArgs();
+    ASSERT(configargs.count(str)>0, "ConfigArgs does not contain field: " + str);
+    return rcast<COREArg*>(configargs[str].get());
   }
   
 
@@ -398,11 +400,11 @@ extern "C" {
       *args  = (COREArg**) context->newArgPtrArray(size);
       *num_args = size;
       int count = 0;
-      for (std::pair<std::string, Arg*> element : genArgs) {
+      for (auto element : genArgs) {
           std::size_t name_length = element.first.size();
           (*names)[count] = context->newStringBuffer(name_length + 1);
           memcpy((*names)[count], element.first.c_str(), name_length + 1);
-          (*args)[count] = rcast<COREArg*>(element.second);
+          (*args)[count] = rcast<COREArg*>(element.second.get());
           count++;
       }
   }

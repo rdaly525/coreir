@@ -23,6 +23,7 @@
 
 #include "type_traits.h"
 #include <cassert>
+#include <vector>
 
 namespace CoreIR {
 
@@ -39,6 +40,14 @@ template<typename From> struct simplify_type {
 
   // An accessor to get the real value...
   static SimpleType &getSimplifiedValue(From &Val) { return Val; }
+};
+
+
+template<typename From> struct simplify_type<std::shared_ptr<From>> {
+  typedef From SimpleType;
+
+  static SimpleType &getSimplifiedValue(std::shared_ptr<From>& Val) {return *Val;}
+
 };
 
 template<typename From> struct simplify_type<const From> {
@@ -157,6 +166,10 @@ template<class To, class From> struct cast_retty_impl<To, From*> {
   typedef To* ret_type;         // Pointer arg case, return Ty*
 };
 
+//template<class To, class From> struct cast_retty_impl<To, std::shared_ptr<From>> {
+//  typedef std::shared_ptr<To> ret_type;         // Pointer arg case, return Ty*
+//};
+
 template<class To, class From> struct cast_retty_impl<To, const From*> {
   typedef const To* ret_type;   // Constant pointer arg case, return const Ty*
 };
@@ -171,7 +184,7 @@ struct cast_retty_wrap {
   // When the simplified type and the from type are not the same, use the type
   // simplifier to reduce the type, then reuse cast_retty_impl to get the
   // resultant type.
-  typedef typename cast_retty<To, SimpleFrom>::ret_type ret_type;
+  typedef typename std::shared_ptr<To> ret_type;
 };
 
 template<class To, class FromTy>
@@ -189,12 +202,22 @@ struct cast_retty {
 // Ensure the non-simple values are converted using the simplify_type template
 // that may be specialized by smart pointers...
 //
+//template<class To, class From, class SimpleFrom> struct cast_convert_val {
+//  // This is not a simple type, use the template to simplify it...
+//  static typename cast_retty<To, From>::ret_type doit(From &Val) {
+//    return cast_convert_val<To, SimpleFrom,
+//      typename simplify_type<SimpleFrom>::SimpleType>::doit(
+//                          simplify_type<From>::getSimplifiedValue(Val));
+//  }
+//};
+
 template<class To, class From, class SimpleFrom> struct cast_convert_val {
   // This is not a simple type, use the template to simplify it...
   static typename cast_retty<To, From>::ret_type doit(From &Val) {
-    return cast_convert_val<To, SimpleFrom,
-      typename simplify_type<SimpleFrom>::SimpleType>::doit(
-                          simplify_type<From>::getSimplifiedValue(Val));
+    return std::dynamic_pointer_cast<To>(Val);
+//    return cast_convert_val<To, SimpleFrom,
+//      typename simplify_type<SimpleFrom>::SimpleType>::doit(
+//                          simplify_type<From>::getSimplifiedValue(Val));
   }
 };
 

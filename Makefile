@@ -22,6 +22,8 @@ ifeq ($(COREIRCONFIG),g++-4.9)
 CXX = g++-4.9
 endif
 
+CXX=clang++
+
 CFLAGS = -Wall -fPIC
 CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror
 
