@@ -2,12 +2,36 @@
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S), Linux)
 TARGET = so
-prefix=/usr
+prefix?=/usr
 endif
 ifeq ($(UNAME_S), Darwin)
 TARGET = dylib
-prefix=/usr/local
+prefix?=/usr/local
 endif
+
+
+COREIRCONFIG ?= g++
+CXX ?= g++
+
+
+ifeq ($(COREIRCONFIG),g++)
+CXX = g++
+endif
+
+ifeq ($(COREIRCONFIG),g++-4.9)
+CXX = g++-4.9
+endif
+
+CFLAGS = -Wall -fPIC
+CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror
+
+ifdef COREDEBUG
+CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
+endif
+
+export CXX
+export CFLAGS
+export CXXFLAGS
 
 all: build coreir
 
