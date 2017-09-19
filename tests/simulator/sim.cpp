@@ -24,25 +24,29 @@ namespace CoreIR {
 
     //cout << "Edges" << endl;
 
-    // for (auto& ed : g.getEdges()) {
-    //   Conn c = getConn(g, ed);
+    for (auto& ed : g.getEdges()) {
+      Conn c = getConn(g, ed);
 
-    //   //cout << (c.first).toString() << " ---> " << (c.second).toString() << endl;
+      vdisc source = g.getSource(c);
+      vdisc target = g.getTarget(c);
 
-    //   // Either the first edge is not a register or it is not a receiver
-    //   Wireable* fstParent = toSelect(*(c.first.getWire())).getParent();
-    //   bool notRec = !isRegisterInstance(fstParent) ||
-    //   	(c.first.isSequential && !(c.first.isReceiver));
+      //cout << (c.first).toString() << " ---> " << (c.second).toString() << endl;
 
-    //   if (!notRec) { return false; }
+      // Either the first edge is not a register or it is not a receiver
+      Wireable* fstParent = g.getNode(source).getWire(); //toSelect(*(c.first.getWire())).getParent();
 
-    //   // Either the second edge is not a register or it is a reciver
-    //   Wireable* sndParent = toSelect(*(c.second.getWire())).getParent();
-    //   bool isRec = !isRegisterInstance(sndParent) ||
-    //   	(c.second.isSequential && c.second.isReceiver);
+      bool notRec = !isRegisterInstance(fstParent) ||
+      	(c.first.isSequential && !(c.first.isReceiver));
 
-    //   if (!isRec) { return false; }
-    // }
+      if (!notRec) { return false; }
+
+      // Either the second edge is not a register or it is a reciver
+      Wireable* sndParent = g.getNode(target).getWire(); //toSelect(*(c.second.getWire())).getParent();
+      bool isRec = !isRegisterInstance(sndParent) ||
+      	(c.second.isSequential && c.second.isReceiver);
+
+      if (!isRec) { return false; }
+    }
 
     return true;
 
