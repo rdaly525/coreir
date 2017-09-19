@@ -44,7 +44,7 @@ namespace CoreIR {
     //   if (!isRec) { return false; }
     // }
 
-    return false;
+    return true;
 
   }
 
