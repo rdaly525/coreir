@@ -29,6 +29,10 @@ ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
 endif
 
+export CXX
+export CFLAGS
+export CXXFLAGS
+
 all: build coreir
 
 .PHONY: test
