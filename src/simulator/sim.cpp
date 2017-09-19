@@ -320,7 +320,8 @@ namespace CoreIR {
     string rName = r->getInstname();
 
     if (!wd.isReceiver) {
-      return cVar(*s) + varSuffix(wd) + " = " + rName + "_old_value" + " ;\n";
+      //return cVar(*s) + varSuffix(wd) + " = " + rName + "_old_value" + " ;\n";
+      return cVar(*s) + " = " + rName + "_old_value" + " ; // Register print \n";
     } else {
       return enableRegReceiver(wd, vd, g);
     }
@@ -517,10 +518,11 @@ namespace CoreIR {
 
 	    } else {
 	      if (wd.isReceiver) {
-		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
+	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
+		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
 	      } else {
-		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
+	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
 
 	      }
 	    }
