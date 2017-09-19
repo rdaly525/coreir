@@ -68,7 +68,7 @@ namespace CoreIR {
       SECTION("Checking mask elimination") {
 	eliminateMasks(topoOrder, gr);
 
-	//REQUIRE(numMasksNeeded(gr) == 0);
+	REQUIRE(numMasksNeeded(gr) == 0);
       }
 
       SECTION("Sorting and compiling code") {
@@ -374,7 +374,7 @@ namespace CoreIR {
       SECTION("Checking mask elimination") {
 	eliminateMasks(topoOrder, gr);
 
-	//REQUIRE(numMasksNeeded(gr) == 1);
+	REQUIRE(numMasksNeeded(gr) == 1);
       }
 
       SECTION("Compiling code") {

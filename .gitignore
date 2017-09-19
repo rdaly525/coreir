@@ -20,3 +20,10 @@ tests/simulator/*.json
 tests/simulator/*.v
 
 a.out
+
+.DS_Store
+bindings/
+mops.v
+test.v
+tests/.DS_Store
+tests/simulator/.DS_Store
