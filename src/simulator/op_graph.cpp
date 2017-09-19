@@ -417,7 +417,17 @@ namespace CoreIR {
 
     for (auto& vd : g.getVerts()) {
 
-      for (auto& conn : g.getInputConnections(vd)) {
+      for (auto& conn : g.getOutputConnections(vd)) {
+
+	// WireNode& in = conn.first;
+	// WireNode& out = conn.second;
+
+	// WireNode sourceNode = g.getSourceNode(in);
+
+	// if (g.getInptuConnectsion(sourceNode)) {
+	  
+	// }
+
 	if (g.getNode(vd).highBitsAreDirty()) {
 	  numMasks++;
 	}

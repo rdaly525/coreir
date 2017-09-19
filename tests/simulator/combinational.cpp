@@ -65,11 +65,11 @@ namespace CoreIR {
 	REQUIRE(numVertices(gr) == 5);
       }
 
-      SECTION("Checking mask elimination") {
-	eliminateMasks(topoOrder, gr);
+      // SECTION("Checking mask elimination") {
+      // 	eliminateMasks(topoOrder, gr);
 
-	REQUIRE(numMasksNeeded(gr) == 0);
-      }
+      // 	REQUIRE(numMasksNeeded(gr) == 0);
+      // }
 
       SECTION("Sorting and compiling code") {
 	auto str = printCode(topoOrder, gr, add4_n);
@@ -371,11 +371,11 @@ namespace CoreIR {
       buildOrderedGraph(neg_n, gr);
       deque<vdisc> topoOrder = topologicalSort(gr);
 
-      SECTION("Checking mask elimination") {
-	eliminateMasks(topoOrder, gr);
+      // SECTION("Checking mask elimination") {
+      // 	eliminateMasks(topoOrder, gr);
 
-	REQUIRE(numMasksNeeded(gr) == 1);
-      }
+      // 	REQUIRE(numMasksNeeded(gr) == 1);
+      // }
 
       SECTION("Compiling code") {
 	auto str = printCode(topoOrder, gr, neg_n);

@@ -139,7 +139,7 @@ namespace CoreIR {
 
       assert(false);
     }
-    
+
     int numVertices() const;
 
     std::vector<vdisc> vertsWithNoIncomingEdge() const;
