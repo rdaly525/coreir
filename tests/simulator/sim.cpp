@@ -25,8 +25,6 @@ namespace CoreIR {
     //cout << "Edges" << endl;
 
     for (auto& ed : g.getEdges()) {
-      Conn c = getConn(g, ed);
-
       vdisc source = g.source(ed);
       vdisc target = g.target(ed);
 
