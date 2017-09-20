@@ -282,7 +282,7 @@ namespace CoreIR {
       
     }
 
-    SECTION("One 37 bit logical and") {
+    SECTION("One 37 bit and") {
       uint n = 37;
 
       Generator* andG = c->getGenerator("coreir.and");
@@ -317,11 +317,11 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      SECTION("Checking mask elimination") {
-      	eliminateMasks(topoOrder, g);
+      //SECTION("Checking mask elimination") {
+      eliminateMasks(topoOrder, g);
 
-      	REQUIRE(numMasksNeeded(g) == 0);
-      }
+      REQUIRE(numMasksNeeded(g) == 0);
+	//}
 
       SECTION("Compiling code") {
 	auto str = printCode(topoOrder, g, andM);

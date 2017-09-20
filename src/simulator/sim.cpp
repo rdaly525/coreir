@@ -105,20 +105,20 @@ namespace CoreIR {
       assert(containWidth > tw);
 
       string mask =
-	//parens(bitMaskString(cVar(arg2)) + " << " + parens(to_string(tw) + " - " + cVar(arg2)));
 	parens(bitMaskString(printOpResultStr(arg2, g)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g)));
 
       string signBitSet =
-	//parens("0x01 & " + parens(cVar(arg1) +  " >> " + parens(to_string(tw - 1))));
 	parens("0x01 & " + parens(printOpResultStr(arg1, g) +  " >> " + parens(to_string(tw - 1))));
 
       compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
     }
 
-    assert(wd.highBitsAreDirty());
-    assert(!!(wd.highBitsAreDirty()));
-
-    res += maskResult(*(outPair.second->getType()), compString);
+    // Check if this output needs a mask
+    if (g.getOutputConnections(vd)[0].first.needsMask()) {
+      res += maskResult(*(outPair.second->getType()), compString);
+    } else {
+      res += compString; //maskResult(*(outPair.second->getType()), compString);
+    }
 
     return res;
   }

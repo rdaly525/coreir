@@ -7,8 +7,8 @@ int main() {
   uint64_t one = 1;
 
   uint64_t ins[2];
-  ins[0] = (one << 36) | (one << 37) | (one << 60);
-  ins[1] = (one << 36) | (one << 37) | (one << 60);
+  ins[0] = (one << 36); // | (one << 37) | (one << 60);
+  ins[1] = (one << 36) | (one << 2); /// | (one << 37) | (one << 60);
 
   uint64_t out;
 
