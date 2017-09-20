@@ -23,7 +23,7 @@
 
 #include "type_traits.h"
 #include <cassert>
-#include <vector>
+#include <memory>
 
 namespace CoreIR {
 
