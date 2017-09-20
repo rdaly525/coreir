@@ -39,7 +39,7 @@ int main() {
     Generator* add2 = coreir->getGenerator("add");
     Generator* addN = c->getGlobal()->getGenerator("addN");
     
-    Arg* aWidth = c->argInt(width);
+    ArgPtr aWidth = Const(width);
     
     def->addInstance("join",add2,{{"width",aWidth}});
     def->connect("join.out","self.out");
@@ -50,7 +50,7 @@ int main() {
     }
     else {
       //Connect half instances
-      Arg* aN2 = c->argInt(N/2);
+      ArgPtr aN2 = Const(N/2);
       def->addInstance("addN_0",addN,{{"width",aWidth},{"N",aN2}});
       def->addInstance("addN_1",addN,{{"width",aWidth},{"N",aN2}});
       for (uint i=0; i<N/2; ++i) {
@@ -72,9 +72,9 @@ int main() {
   Namespace* coreir = c->getNamespace("coreir");
   Module* add12 = g->newModuleDecl("Add12",add12Type);
   ModuleDef* def = add12->newModuleDef();
-    def->addInstance("add8_upper",addN,{{"width",c->argInt(13)},{"N",c->argInt(8)}});
-    def->addInstance("add4_lower",addN,{{"width",c->argInt(13)},{"N",c->argInt(4)}});
-    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",c->argInt(13)}});
+    def->addInstance("add8_upper",addN,{{"width",Const(13)},{"N",Const(8)}});
+    def->addInstance("add4_lower",addN,{{"width",Const(13)},{"N",Const(4)}});
+    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",Const(13)}});
     def->connect("self.in8","add8_upper.in");
     def->connect("self.in4","add4_lower.in");
     def->connect("add8_upper.out","add2_join.in0");

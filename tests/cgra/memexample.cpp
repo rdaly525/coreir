@@ -10,19 +10,19 @@ int main() {
   Namespace* cgralib = CoreIRLoadLibrary_cgralib(c);
  
   //Createing a pretty expansive example for caleb
-  Args w16 = {{"width",c->argInt(16)}};
+  Args w16 = {{"width",Const(16)}};
   
   Generator* PE = cgralib->getGenerator("PE");
   Generator* IO = cgralib->getGenerator("IO");
   Generator* Mem = cgralib->getGenerator("Mem");
   Module* Top = c->getGlobal()->newModuleDecl("Top",c->Record());
   ModuleDef* def = Top->newModuleDef();
-    def->addInstance("io0",IO,w16,{{"mode",c->argString("i")}});
-    def->addInstance("p0",PE,{{"width",c->argInt(16)}},{{"op",c->argString("add")}});
+    def->addInstance("io0",IO,w16,{{"mode",Const("i")}});
+    def->addInstance("p0",PE,{{"width",Const(16)}},{{"op",Const("add")}});
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};
-    def->addInstance("m0",Mem,{{"width",c->argInt(16)},{"depth",c->argInt(512)}},{{"mode",c->argString("o")}});
-    def->addInstance("p1",PE,{{"width",c->argInt(16)}},{{"op",c->argString("mult")}});
-    def->addInstance("io1",IO,w16,{{"mode",c->argString("o")}});
+    def->addInstance("m0",Mem,{{"width",Const(16)},{"depth",Const(512)}},{{"mode",Const("o")}});
+    def->addInstance("p1",PE,{{"width",Const(16)}},{{"op",Const("mult")}});
+    def->addInstance("io1",IO,w16,{{"mode",Const("o")}});
     
     def->connect("io0.out","p0.data.in.0");
     def->connect("io0.out","m0.wdata");

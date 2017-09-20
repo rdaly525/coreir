@@ -42,13 +42,13 @@ int main() {
 
   Generator* d = g->newGeneratorDecl("defaults",g->getTypeGen("default_type"),{{"ga",AINT},{"gb",AINT}},{{"ca",AINT},{"cb",AINT}});
   //Set defaults for ga and ca
-  d->addDefaultGenArgs({{"ga",c->argInt(5)}});
-  d->addDefaultConfigArgs({{"ca",c->argInt(10)}});
+  d->addDefaultGenArgs({{"ga",Const(5)}});
+  d->addDefaultConfigArgs({{"ca",Const(10)}});
 
   Module* tester = g->newModuleDecl("Tester",c->Record());
   ModuleDef* def = tester->newModuleDef();
-    def->addInstance("i0",d,{{"ga",c->argInt(6)},{"gb",c->argInt(7)}},{{"ca",c->argInt(11)},{"cb",c->argInt(12)}});
-    def->addInstance("i1",d,{{"gb",c->argInt(7)}},{{"cb",c->argInt(12)}});
+    def->addInstance("i0",d,{{"ga",Const(6)},{"gb",Const(7)}},{{"ca",Const(11)},{"cb",Const(12)}});
+    def->addInstance("i1",d,{{"gb",Const(7)}},{{"cb",Const(12)}});
   tester->setDef(def);
   tester->print();
  

@@ -104,9 +104,8 @@ class Instance : public Wireable {
     std::string toString() const;
     json toJson();
     Module* getModuleRef() {return moduleRef;}
-    const std::string& getInstname() { return instname; }
-    Arg* getConfigArg(std::string s);
-    Args getConfigArgs() const {return configargs;}
+    const std::string& getInstname() const { return instname; }
+    const Args& getConfigArgs() const {return configargs;}
     bool hasConfigArgs() {return !configargs.empty();}
     
     //isGen means it is currently an instance of a generator
@@ -118,7 +117,7 @@ class Instance : public Wireable {
     bool wasGen() const { return wasgen;}
     Generator* getGeneratorRef() { return generatorRef;}
     Instantiable* getInstantiableRef();
-    Args getGenArgs() {return genargs;}
+    const Args& getGenArgs() const {return genargs;}
     
     //Returns if it actually ran the generator
     //Runs the generator and changes instance label to Module

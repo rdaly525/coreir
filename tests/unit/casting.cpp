@@ -29,10 +29,10 @@ int main() {
 
   //Test casting of ArgBool
   {
-    Arg* a = c->argBool(false);
+    ArgPtr a = Const(false);
     assert(isa<ArgBool>(a));
     assert(a->get<bool>()==false);
-    ArgBool* ac = cast<ArgBool>(a);
+    shared_ptr<ArgBool> ac = cast<ArgBool>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgBool>(a));
     assert(!dyn_cast<ArgString>(a));
@@ -40,10 +40,10 @@ int main() {
   
   //Test casting of ArgInt
   {
-    Arg* a = c->argInt(5);
+    ArgPtr a = Const(5);
     assert(isa<ArgInt>(a));
     assert(a->get<int>()==5);
-    ArgInt* ac = cast<ArgInt>(a);
+    shared_ptr<ArgInt> ac = cast<ArgInt>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgInt>(a));
     assert(!dyn_cast<ArgString>(a));
@@ -51,10 +51,10 @@ int main() {
   
   //Test casting of ArgString
   {
-    Arg* a = c->argString("Ross");
+    ArgPtr a = Const("Ross");
     assert(isa<ArgString>(a));
     assert(a->get<string>()=="Ross");
-    ArgString* ac = cast<ArgString>(a);
+    shared_ptr<ArgString> ac = cast<ArgString>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgString>(a));
     assert(!dyn_cast<ArgType>(a));
@@ -62,10 +62,10 @@ int main() {
   
   //Test casting of ArgType
   {
-    Arg* a = c->argType(c->BitIn());
+    ArgPtr a = Const(c->BitIn());
     assert(isa<ArgType>(a));
     assert(a->get<Type*>()==c->BitIn());
-    ArgType* ac = cast<ArgType>(a);
+    shared_ptr<ArgType> ac = cast<ArgType>(a);
     assert(dyn_cast<Arg>(ac));
     assert(dyn_cast<ArgType>(a));
     assert(!dyn_cast<ArgInt>(a));

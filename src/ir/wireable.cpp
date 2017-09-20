@@ -198,12 +198,6 @@ string Instance::toString() const {
   return instname;
 }
 
-//TODO this could throw an error. Bad!
-Arg* Instance::getConfigArg(string s) { 
-  ASSERT(configargs.count(s)>0, "ConfigArgs does not contain field: " + s);
-  return configargs.at(s);
-}
-
 Instantiable* Instance::getInstantiableRef() { 
   if (isgen) return generatorRef;
   else return moduleRef;
