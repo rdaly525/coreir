@@ -49,10 +49,10 @@ namespace CoreIR {
 	Wireable* op;
 	if ((i % 2) == 0) {
 	  op =
-	    def->addInstance("and_" + to_string(i), and2, {{"width", c->argInt(n)}});
+	    def->addInstance("and_" + to_string(i), and2, {{"width", Const(n)}});
 	} else {
 	  op =
-	    def->addInstance("or_" + to_string(i), or2, {{"width", c->argInt(n)}});
+	    def->addInstance("or_" + to_string(i), or2, {{"width", Const(n)}});
 	}
 
 	def->connect(self->sel("in")->sel(i), op->sel("in0"));

@@ -71,7 +71,7 @@ namespace CoreIR {
 
       ModuleDef* def = rg->newModuleDef();
 
-      def->addInstance("r", "coreir.reg", {{"width", c->argInt(n)}, {"en", c->argBool(true)}});
+      def->addInstance("r", "coreir.reg", {{"width", Const(n)}, {"en", Const(true)}});
 
       def->connect("self.en", "r.en");
       def->connect("self.clk", "r.clk");
@@ -127,12 +127,12 @@ namespace CoreIR {
       Module* counter = c->getGlobal()->newModuleDecl("counter",CounterType); //use getGlobalFunction
       ModuleDef* def = counter->newModuleDef();
 
-      Args wArg({{"width",c->argInt(16)}});
+      Args wArg({{"width", Const(16)}});
       def->addInstance("ai","coreir.add",wArg); // using <namespace>.<module> notation 
-      def->addInstance("ci","coreir.const",wArg,{{"value",c->argInt(1)}});
+      def->addInstance("ci","coreir.const",wArg,{{"value", Const(1)}});
 
       //Reg has default arguments. en/clr/rst are False by default. Init is also 0 by default
-      def->addInstance("ri","coreir.reg",{{"width",c->argInt(16)},{"en",c->argBool(true)}});
+      def->addInstance("ri","coreir.reg",{{"width", Const(16)},{"en", Const(true)}});
     
       //Connections
       def->connect("self.clk","ri.clk");
@@ -206,12 +206,12 @@ namespace CoreIR {
 
       Module* regChain = c->getGlobal()->newModuleDecl("regChain", regChainType);
       ModuleDef* def = regChain->newModuleDef();
-      Args wArg({{"width",c->argInt(16)}});
+      Args wArg({{"width", Const(16)}});
 
       def->addInstance("ai", "coreir.add", wArg);
-      def->addInstance("r0","coreir.reg",{{"width",c->argInt(16)},{"en",c->argBool(true)}});
-      def->addInstance("r1","coreir.reg",{{"width",c->argInt(16)},{"en",c->argBool(true)}});
-      def->addInstance("r2","coreir.reg",{{"width",c->argInt(16)},{"en",c->argBool(true)}});
+      def->addInstance("r0","coreir.reg",{{"width", Const(16)},{"en", Const(true)}});
+      def->addInstance("r1","coreir.reg",{{"width", Const(16)},{"en", Const(true)}});
+      def->addInstance("r2","coreir.reg",{{"width", Const(16)},{"en", Const(true)}});
     
       //Connections
       def->connect("self.clk", "r0.clk");
@@ -278,7 +278,7 @@ namespace CoreIR {
       Module* regChain = c->getGlobal()->newModuleDecl("regChain", regChainType);
       ModuleDef* def = regChain->newModuleDef();
 
-      def->addInstance("r0","coreir.reg",{{"width",c->argInt(8)},{"en",c->argBool(false)}});
+      def->addInstance("r0","coreir.reg",{{"width", Const(8)},{"en", Const(false)}});
     
       //Connections
       def->connect("self.clk", "r0.clk");
@@ -336,8 +336,8 @@ namespace CoreIR {
 	string rName = "r" + to_string(i);
 	Wireable* r = def->addInstance(rName,
 				       "coreir.reg",
-				       {{"width",c->argInt(n)},
-					   {"en",c->argBool(false)}});
+				       {{"width", Const(n)},
+					   {"en", Const(false)}});
 
 	def->connect(self->sel("clkArr")->sel(i), r->sel("clk"));
 	def->connect(self->sel("a")->sel(i), r->sel("in"));
