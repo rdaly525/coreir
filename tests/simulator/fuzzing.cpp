@@ -37,13 +37,11 @@ namespace CoreIR {
 	res += randomInputString(underlying, var + "[ " + to_string(i) + " ]");
       }
 
-      //cArrayTypeDecl(underlying, varName + "[ " + std::to_string(tArr.getLen()) + " ]");
       return res;
       
     }
 
     assert(false);
-      //assert(false);
   }
 
   std::string randomSimInputString(Module* mod) {

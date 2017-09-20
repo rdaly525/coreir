@@ -91,12 +91,12 @@ namespace CoreIR {
 	REQUIRE(s == 0);
       }
 
-      // SECTION("Building verilog") {
-      // 	// Building verilog example
-      // 	int s = buildVerilator(manyOps, g);
+      SECTION("Building verilog") {
+      	// Building verilog example
+      	int s = buildVerilator(manyOps, g);
 
-      // 	REQUIRE(s == 0);
-      // }
+      	REQUIRE(s == 0);
+      }
 
     }
 
