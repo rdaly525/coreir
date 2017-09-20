@@ -277,7 +277,7 @@ namespace CoreIR {
       SECTION("Checking mask elimination") {
       	eliminateMasks(topoOrder, g);
 
-      	REQUIRE(numMasksNeeded(g) == 2);
+      	REQUIRE(numMasksNeeded(g) == 1);
       }
       
     }

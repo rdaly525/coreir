@@ -8,20 +8,20 @@ namespace CoreIR {
   protected:
     CoreIR::Select* wire;
 
-    bool highBitsDirty;
+    bool mustMask;
 
   public:
 
-    InstanceValue() : wire(nullptr), highBitsDirty(true) {}
+    InstanceValue() : wire(nullptr), mustMask(true) {}
 
-    InstanceValue(Select* wire_) : wire(wire_), highBitsDirty(true) {}
+    InstanceValue(Select* wire_) : wire(wire_), mustMask(true) {}
 
     CoreIR::Select* getWire() const { return wire; }
 
-    bool highBitsAreDirty() const { return highBitsDirty; }
+    bool needsMask() const { return mustMask; }
 
-    void setHighBitsDirty(const bool val) {
-      highBitsDirty = val;
+    void setNeedsMask(const bool val) {
+      mustMask = val;
     }
   };
 

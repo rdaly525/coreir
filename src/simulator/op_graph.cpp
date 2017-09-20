@@ -416,7 +416,7 @@ namespace CoreIR {
 
     Conn cleanConn;
     cleanConn.first = c.first;
-    cleanConn.first.setHighBitsDirty(false);
+    cleanConn.first.setNeedsMask(false);
     cleanConn.second = c.second;
     g.addEdgeLabel(ed, cleanConn);
   }
@@ -424,7 +424,7 @@ namespace CoreIR {
   bool inputsAreClean(const vdisc vd,
 		      const NGraph& g) {
     for (auto& conn : g.getInputConnections(vd)) {
-      if (conn.first.highBitsAreDirty()) {
+      if (conn.first.needsMask()) {
 	return false;
       }
     }
@@ -446,8 +446,7 @@ namespace CoreIR {
 	Instance* inst = toInstance(opNode.getWire());
 	string name = getOpName(*inst);
 
-	if (inputsAreClean(vd, g) &&
-	    ((name == "and") || (name == "or") || (name == "xor"))) {
+	if ((name == "and") || (name == "or") || (name == "xor")) {
 	  for (auto& ed : g.outEdges(vd)) {
 	    setEdgeClean(ed, g);
 	  }
@@ -481,7 +480,7 @@ namespace CoreIR {
 	  if (!elem(conn.first.getWire(), alreadyCounted)) {
 	    InstanceValue& in = conn.first;
 
-	    if (in.highBitsAreDirty()) {
+	    if (in.needsMask()) {
 	      numMasks++;
 	    }
 
