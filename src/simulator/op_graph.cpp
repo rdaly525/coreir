@@ -410,6 +410,28 @@ namespace CoreIR {
     assert(false);
   }
 
+  void setEdgeClean(const edisc ed,
+		    NGraph& g) {
+    Conn c = g.getConn(ed);
+
+    Conn cleanConn;
+    cleanConn.first = c.first;
+    cleanConn.first.setHighBitsDirty(false);
+    cleanConn.second = c.second;
+    g.addEdgeLabel(ed, cleanConn);
+  }
+
+  bool inputsAreClean(const vdisc vd,
+		      const NGraph& g) {
+    for (auto& conn : g.getInputConnections(vd)) {
+      if (conn.first.highBitsAreDirty()) {
+	return false;
+      }
+    }
+
+    return true;
+  }
+
   void eliminateMasks(const std::deque<vdisc>& topoOrder,
 		      NGraph& g) {
     for (auto& vd : topoOrder) {
@@ -418,28 +440,16 @@ namespace CoreIR {
       // Outputs from an input are all clean
       if (!isInstance(opNode.getWire())) {
 	for (auto& ed : g.outEdges(vd)) {
-	  Conn c = g.getConn(ed);
-
-	  Conn cleanConn;
-	  cleanConn.first = c.first;
-	  cleanConn.first.setHighBitsDirty(false);
-	  cleanConn.second = c.second;
-	  g.addEdgeLabel(ed, cleanConn);
+	  setEdgeClean(ed, g);
 	}
       } else {
 	Instance* inst = toInstance(opNode.getWire());
 	string name = getOpName(*inst);
 
-	if ((name == "and") || (name == "or") || (name == "xor")) {
+	if (inputsAreClean(vd, g) &&
+	    ((name == "and") || (name == "or") || (name == "xor"))) {
 	  for (auto& ed : g.outEdges(vd)) {
-	    Conn c = g.getConn(ed);
-
-	    Conn cleanConn;
-	    cleanConn.first = c.first;
-	    cleanConn.first.setHighBitsDirty(false);
-	    cleanConn.second = c.second;
-	    g.addEdgeLabel(ed, cleanConn);
-
+	    setEdgeClean(ed, g);
 	  }
 	}
       }

@@ -235,6 +235,53 @@ namespace CoreIR {
 
     }
 
+    SECTION("And then add, mask removal test") {
+      uint n = 50;
+
+      Generator* andG = c->getGenerator("coreir.and");
+      Generator* addG = c->getGenerator("coreir.add");
+
+      Type* cType = c->Record({
+	  {"a", c->Array(n, c->BitIn())},
+	    {"b", c->Array(n, c->BitIn())},
+	      {"c", c->Array(n, c->BitIn())},
+		{"out", c->Array(n, c->Bit())}
+	});
+
+      Module* cM = g->newModuleDecl("addAnd", cType);
+      ModuleDef* def = cM->newModuleDef();
+
+      Wireable* self = def->sel("self");
+      Wireable* and0 = def->addInstance("and0", andG, {{"width", c->argInt(n)}});
+      Wireable* add0 = def->addInstance("add0", addG, {{"width", c->argInt(n)}});
+
+
+      def->connect(self->sel("a"), add0->sel("in0"));
+      def->connect(self->sel("b"), add0->sel("in1"));
+
+      def->connect(add0->sel("out"), and0->sel("in0"));
+      def->connect(self->sel("c"), and0->sel("in1"));
+
+      def->connect(and0->sel("out"), self->sel("out"));
+
+      cM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(cM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      SECTION("Checking mask elimination") {
+      	eliminateMasks(topoOrder, g);
+
+      	REQUIRE(numMasksNeeded(g) == 2);
+      }
+      
+    }
+
     SECTION("One 37 bit logical and") {
       uint n = 37;
 
