@@ -86,24 +86,10 @@ class ArgType : public Arg {
 
 bool operator==(const Args& l, const Args& r);
 
-//Factory functions for args
-//template<typename convertFrom,typename convertTo>
-//ArgPtr Const_impl(std::enable_if<std::is_convertible<convertFrom,convertTo>::value,convertFrom>::type val) {
-//  return make_shared<convertTo>(val);
-//}
-
-//bool
-//int
-//unsigned int
-//string
-//..
+//The following defines the function
+//ArgPtr Const(T val);
 //
-//Const(true)
-//Const(5)
-//Const(-5)
-//Const("literal")
-
-
+//You can use Const to create a new Arg
 
 template<typename T> 
 ArgPtr Const_impl(T val);
