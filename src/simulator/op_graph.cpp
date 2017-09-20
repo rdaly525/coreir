@@ -432,6 +432,7 @@ namespace CoreIR {
 
       WireNode opNode = g.getNode(vd);
 
+      // Inputs do not need to be masked
       if (!isInstance(opNode.getWire())) {
 	vector<Select*> alreadyCounted;
 	for (auto& conn : g.getOutputConnections(vd)) {
@@ -439,21 +440,13 @@ namespace CoreIR {
 	  if (!elem(conn.first.getWire(), alreadyCounted)) {
 	    InstanceValue& in = conn.first;
 
-	    if (g.getNode(vd).highBitsAreDirty()) {
+	    if (in.highBitsAreDirty()) {
 	      numMasks++;
 	    }
 
 	    alreadyCounted.push_back(in.getWire());
 
 	  }
-	  // InstanceValue& in = conn.first;
-	  // InstanceValue& out = conn.second;
-
-
-	  // WireNode sourceNode = g.getSourceNode(in);
-
-	  // if (g.getInptuConnectsion(sourceNode)) {
-	  // }
 
 	}
       }

@@ -8,13 +8,21 @@ namespace CoreIR {
   protected:
     CoreIR::Select* wire;
 
+    bool highBitsDirty;
+
   public:
 
-    InstanceValue() : wire(nullptr) {}
+    InstanceValue() : wire(nullptr), highBitsDirty(true) {}
 
-    InstanceValue(Select* wire_) : wire(wire_) {}
+    InstanceValue(Select* wire_) : wire(wire_), highBitsDirty(true) {}
 
     CoreIR::Select* getWire() const { return wire; }
+
+    bool highBitsAreDirty() const { return highBitsDirty; }
+
+    void setHighBitsDirty(const bool val) {
+      highBitsDirty = val;
+    }
   };
 
   typedef InstanceValue WireableNode;
