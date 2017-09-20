@@ -31,46 +31,6 @@ ArgPtr Const_impl<Type*>(Type* val) {
   return Const_impl2<Type*>(val);   
 }
 
-//template<>
-//ArgPtr Const_impl<int>(int val) {
-//  return std::make_shared<ArgInt>(val);
-//}
-//
-//template<>
-//ArgPtr Const_impl<std::string>(std::string val) {
-//  return std::make_shared<ArgString>(val);
-//}
-//
-//template<>
-//ArgPtr Const_impl<Type*>(Type* val) {
-//  return std::make_shared<ArgType>(val);
-//}
-
-
-//ArgPtr Const(bool val) {
-//  return std::make_shared<ArgBool>(val);
-//}
-//
-//ArgPtr Const(unsigned int val) {
-//  return Const((int)val);
-//}
-//
-//ArgPtr Const(int val) {
-//  return std::make_shared<ArgInt>(val);
-//}
-//
-//ArgPtr Const(std::string val) {
-//  return std::make_shared<ArgString>(val);
-//}
-//
-//ArgPtr Const(const char* val) {
-//  return Const(std::string(val));
-//}
-//
-//ArgPtr Const(Type* val) {
-//  return std::make_shared<ArgType>(val);
-//}
-
 bool Arg::operator==(const Arg& r) const {
   return r.getKind() == this->kind;
 }
@@ -105,25 +65,6 @@ bool operator==(const Args& l, const Args& r) {
   }
   return true;
 }
-
-//bool checkArgs(Args args, Params params) {
-//  if (args.size() != params.size()) return false;
-//  for (auto parammap : params) {
-//    auto arg = args.find(parammap.first);
-//    if (arg == args.end()) return false;
-//    if (arg->second->getKind() != parammap.second) return false;
-//  }
-//  return true;
-//}
-//template<typename T>
-//ArgPtr Const(T val) {
-//  return make_shared<typename Val2Arg<T>::type>(val);
-//}
-//
-//template ArgPtr Const<bool>(bool);
-//template ArgPtr Const<int>(int);
-//template ArgPtr Const<std::string>(std::string);
-//template ArgPtr Const<Type*>(Type*);
 
 }//CoreIR namespace
 
