@@ -201,8 +201,11 @@ namespace CoreIR {
 	getConn(out_edge_desc);
 
       assert(isSelect(edge_conn.first.getWire()));
+
       Select* sel = static_cast<Select*>(edge_conn.first.getWire());
-      assert(sel->getParent() == w);
+
+      assert(extractSource(sel) == w);
+      //assert(sel->getParent() == w);
 
       outConns.push_back(edge_conn);
       

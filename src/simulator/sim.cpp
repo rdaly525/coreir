@@ -280,7 +280,6 @@ namespace CoreIR {
     string rName = r->getInstname();
 
     if (!wd.isReceiver) {
-      //return cVar(*s) + varSuffix(wd) + " = " + rName + "_old_value" + " ;\n";
       return cVar(*s) + " = " + rName + "_old_value" + " ; // Register print \n";
     } else {
       return enableRegReceiver(wd, vd, g);
@@ -288,10 +287,6 @@ namespace CoreIR {
   }
 
   string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g) {
-
-    // if (!isInstance(wd.getWire())) {
-    //   return cVar(wd);
-    // }
 
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
@@ -421,40 +416,6 @@ namespace CoreIR {
 
     return outs;
     
-  }
-
-  string copyTypeFromInternal(Type* tp,
-			      const std::string& toName,
-			      const std::string& fromName) {
-    if (isPrimitiveType(*tp)) {
-      return toName + " = " + fromName + "; // copyTypeFromInternal\n";
-    }
-
-    if (isArray(*tp)) {
-      ArrayType* arr = static_cast<ArrayType*>(tp);
-
-      string res = "";
-      for (uint i = 0; i < arr->getLen(); i++) {
-	string acc = "[ " + std::to_string(i) + " ]";
-	string accName = toName + acc;
-	string accFrom = fromName + acc;
-	res += copyTypeFromInternal(arr->getElemType(), accName, accFrom) + "\n";
-      }
-
-      return res;
-    }
-
-    cout << "Failed for type = " << tp->toString() << endl;
-    cout << "         toName = " << toName << endl;
-    cout << "       fromName = " << fromName << endl;
-    assert(false);
-  }  
-
-  string copyTypeFromInternal(Type* tp,
-			      const std::string& field_name) {
-    return copyTypeFromInternal(tp,
-				"(*self_" + field_name + "_ptr)",
-				"self_" + field_name);
   }
 
   string printInternalVariables(const std::deque<vdisc>& topo_order,
