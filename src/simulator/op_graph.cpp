@@ -447,6 +447,7 @@ namespace CoreIR {
 	string name = getOpName(*inst);
 
 	if ((name == "and") || (name == "or") || (name == "xor") ||
+	    (name == "bitand") || (name == "bitand") ||
 	    isUnsignedCmp(*inst) || isSignedCmp(*inst)) {
 	  for (auto& ed : g.outEdges(vd)) {
 	    setEdgeClean(ed, g);
