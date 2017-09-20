@@ -21,7 +21,7 @@ class Context {
   //Memory management
   TypeCache* cache;
   
-  std::vector<Arg*> argList;
+  std::unordered_map<void*,ArgPtr> argList;
   std::vector<Args*> argsList;
   std::vector<Arg**> argPtrArrays;
   std::vector<RecordParams*> recordParamsList;
@@ -83,21 +83,20 @@ class Context {
     RecordParams* newRecordParams();
     Params* newParams();
     Args* newArgs();
-    
-    //Factory functions for args
-    Arg* argBool(bool b);
-    Arg* argInt(int i);
-    Arg* argString(std::string s);
-    Arg* argType(Type* t);
 
     //Unique
     std::string getUnique() {
       return "_U" + std::to_string(unique++);
     }
 
+     
+    // C API memory management
+
+    //Saves 
+    void* saveArg(ArgPtr arg);
+    ArgPtr getSavedArg(void*);
     
-
-
+    
     Arg** newArgPtrArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);

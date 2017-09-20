@@ -24,9 +24,9 @@ int main() {
   };
 
   g->newNominalTypeGen("int", "intIn",{{"w",AINT}},intTypeFun);
-  Args ga1 = {{"w",c->argInt(16)}};
-  Args ga2 = {{"w",c->argInt(16)}};
-  Args ga3 = {{"w",c->argInt(17)}};
+  Args ga1 = {{"w",Const(16)}};
+  Args ga2 = {{"w",Const(16)}};
+  Args ga3 = {{"w",Const(17)}};
   
   ASSERT(ga1 == ga2,"Equality is bad");
   ASSERT(ga1 != ga3,"not equalit is bad");

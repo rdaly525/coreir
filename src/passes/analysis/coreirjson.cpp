@@ -69,7 +69,7 @@ string Params2Json(Params gp) {
 }
 
 string Type2Json(Type* t);
-string Arg2Json(Arg* a) {
+string Arg2Json(shared_ptr<Arg> a) {
   if (auto ab = dyn_cast<ArgBool>(a)) {
     return ab->get() ? "true" : "false";
   }

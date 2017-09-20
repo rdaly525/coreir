@@ -84,7 +84,7 @@ void checkArgsAreParams(Args args, Params params) {
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
     ASSERT(arg != args.end(), "Arg Not found: " + param.first );
-    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first + " (" + Param2Str(arg->second->getKind())+ " vs " + Param2Str(param.second)+")");
   }
 }
 

@@ -6,6 +6,31 @@ using namespace std;
 
 namespace CoreIR {
 
+template<typename T>
+ArgPtr Const_impl2(T val) {
+  return std::make_shared<typename Val2Arg<T>::type>(val);
+}
+
+template<>
+ArgPtr Const_impl<bool>(bool val) {
+  return Const_impl2<bool>(val);   
+}
+
+template<>
+ArgPtr Const_impl<int>(int val) {
+  return Const_impl2<int>(val);   
+}
+
+template<>
+ArgPtr Const_impl<std::string>(std::string val) {
+  return Const_impl2<std::string>(val);   
+}
+
+template<>
+ArgPtr Const_impl<Type*>(Type* val) {
+  return Const_impl2<Type*>(val);   
+}
+
 bool Arg::operator==(const Arg& r) const {
   return r.getKind() == this->kind;
 }
@@ -41,16 +66,6 @@ bool operator==(const Args& l, const Args& r) {
   return true;
 }
 
-//bool checkArgs(Args args, Params params) {
-//  if (args.size() != params.size()) return false;
-//  for (auto parammap : params) {
-//    auto arg = args.find(parammap.first);
-//    if (arg == args.end()) return false;
-//    if (arg->second->getKind() != parammap.second) return false;
-//  }
-//  return true;
-//}
-
 }//CoreIR namespace
 
 using namespace CoreIR;
@@ -62,7 +77,7 @@ size_t std::hash<Args>::operator() (const Args& args) const {
   for (auto it : args) {
     size_t hash = 0;
     hash_combine(hash,it.first);
-    Arg* arg = it.second;
+    auto arg = it.second;
     switch(arg->getKind()) {
       case ASTRING : {
         string arg_s = arg->get<string>();

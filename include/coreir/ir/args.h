@@ -86,14 +86,46 @@ class ArgType : public Arg {
 
 bool operator==(const Args& l, const Args& r);
 
-//class Instantiable;
-//class ArgInst : Arg {
-//  Instantiable* i;
-//  ArgInst(Instantiable* i) : Arg(AINST), i(i) {}
-//};
+//The following defines the function
+//ArgPtr Const(T val);
+//
+//You can use Const to create a new Arg
 
+template<typename T> 
+ArgPtr Const_impl(T val);
 
-//bool checkArgs(Args args, Params params);
+template<>
+ArgPtr Const_impl<bool>(bool val);
+template<>
+ArgPtr Const_impl<int>(int val);
+template<>
+ArgPtr Const_impl<std::string>(std::string val);
+template<>
+ArgPtr Const_impl<Type*>(Type* val);
+
+template<typename T>
+typename std::enable_if<std::is_same<T,bool>::value,ArgPtr>::type
+Const(T val) {
+  return Const_impl<bool>(val);
+}
+
+template<typename T>
+inline typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,ArgPtr>::type
+Const(T val) {
+  return Const_impl<int>(val);
+}
+
+template<typename T>
+inline typename std::enable_if<std::is_convertible<T,std::string>::value,ArgPtr>::type
+Const(T val) {
+  return Const_impl<std::string>(val);
+}
+
+template<typename T>
+inline typename std::enable_if<std::is_convertible<T,Type*>::value,ArgPtr>::type
+Const(T val) {
+  return Const_impl<Type*>(val);
+}
 
 }//CoreIR namespace
 

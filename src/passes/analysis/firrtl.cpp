@@ -122,7 +122,7 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   if (isStdlib) {
     //This ugliness is getting an example of a type for coreir generator
     //The 5 does not matter because I am throwing away widths anyways
-    Type* t = cast<Generator>(i)->getTypeGen()->createType(i->getContext(),{{"width",i->getContext()->argInt(5)}});
+    Type* t = cast<Generator>(i)->getTypeGen()->createType(i->getContext(),{{"width",Const(5)}});
     fm = new FModule(name,t,true);
     coreir2firrtl(i,*fm);
   }
