@@ -227,7 +227,13 @@ namespace CoreIR {
     string mkFile = "V" + modName + ".mk";
     string exeFile = "V" + modName;
     string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile;
+
+    cout << "Verilator compile command = " << compileVerilator << endl;    
+    cout << "Compile command = " << compileCpp << endl;
+
     s = s || system(compileCpp.c_str());
+
+    cout << "DONE COMPILING" << endl;
 
     // Run the resulting executable
     string runObj = "./obj_dir/" + exeFile;
