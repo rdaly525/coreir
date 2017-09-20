@@ -54,7 +54,7 @@ namespace CoreIR {
     for (auto& arg : inst->getConfigArgs()) {
       if (arg.first == "value") {
 	foundValue = true;
-	Arg* valArg = arg.second; //.get();
+	Arg* valArg = arg.second.get(); //.get();
 
 	assert(valArg->getKind() == AINT);
 
