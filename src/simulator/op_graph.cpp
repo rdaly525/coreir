@@ -323,8 +323,8 @@ namespace CoreIR {
       assert(isSelect(fst));
       assert(isSelect(snd));
 
-      Wireable* fst_p = toSelect(*fst).getParent();
-      Wireable* snd_p = toSelect(*snd).getParent();
+      // Wireable* fst_p = toSelect(*fst).getParent();
+      // Wireable* snd_p = toSelect(*snd).getParent();
 
       Select* fst_select = static_cast<Select*>(fst);
 
@@ -415,24 +415,46 @@ namespace CoreIR {
     
   }
 
+  bool inputsNeedMasks(const WireNode& opNode) {
+    Wireable* w = opNode.getWire();
+
+    if (!isInstance(w)) {
+      return false;
+    }
+
+    return true;
+  }
+
   int numMasksNeeded(const NGraph& g) {
     int numMasks = 0;
 
     for (auto& vd : g.getVerts()) {
 
-      for (auto& conn : g.getOutputConnections(vd)) {
+      WireNode opNode = g.getNode(vd);
 
-	// WireNode& in = conn.first;
-	// WireNode& out = conn.second;
+      if (!isInstance(opNode.getWire())) {
+	vector<Select*> alreadyCounted;
+	for (auto& conn : g.getOutputConnections(vd)) {
 
-	// WireNode sourceNode = g.getSourceNode(in);
+	  if (!elem(conn.first.getWire(), alreadyCounted)) {
+	    InstanceValue& in = conn.first;
 
-	// if (g.getInptuConnectsion(sourceNode)) {
-	  
-	// }
+	    if (g.getNode(vd).highBitsAreDirty()) {
+	      numMasks++;
+	    }
 
-	if (g.getNode(vd).highBitsAreDirty()) {
-	  numMasks++;
+	    alreadyCounted.push_back(in.getWire());
+
+	  }
+	  // InstanceValue& in = conn.first;
+	  // InstanceValue& out = conn.second;
+
+
+	  // WireNode sourceNode = g.getSourceNode(in);
+
+	  // if (g.getInptuConnectsion(sourceNode)) {
+	  // }
+
 	}
       }
 
