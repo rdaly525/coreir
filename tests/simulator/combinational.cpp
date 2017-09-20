@@ -68,7 +68,7 @@ namespace CoreIR {
       SECTION("Checking mask elimination") {
       	eliminateMasks(topoOrder, gr);
 
-      	REQUIRE(numMasksNeeded(gr) == 0);
+      	REQUIRE(numMasksNeeded(gr) == 3);
       }
 
       SECTION("Sorting and compiling code") {
@@ -270,21 +270,29 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, andM);
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
+      SECTION("Checking mask elimination") {
+      	eliminateMasks(topoOrder, g);
 
-      string outFile = "./gencode/and37.cpp";
+      	REQUIRE(numMasksNeeded(g) == 0);
+      }
 
-      int s = compileCodeAndRun(topoOrder,
-				g,
-				andM,
-				"./gencode/and37",
-				"./gencode/test_and37.cpp");
+      SECTION("Compiling code") {
+	auto str = printCode(topoOrder, g, andM);
+	cout << "CODE STRING" << endl;
+	cout << str << endl;
 
-      cout << "Test result = " << s << endl;
+	string outFile = "./gencode/and37.cpp";
 
-      REQUIRE(s == 0);
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  andM,
+				  "./gencode/and37",
+				  "./gencode/test_and37.cpp");
+
+	cout << "Test result = " << s << endl;
+
+	REQUIRE(s == 0);
+      }
       
     }
 
@@ -372,7 +380,7 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(gr);
 
       SECTION("Checking mask elimination") {
-      	eliminateMasks(topoOrder, gr);
+      	eliminateMasks(topoOrder, gr); // Set highBitsDirty
 
       	REQUIRE(numMasksNeeded(gr) == 1);
       }

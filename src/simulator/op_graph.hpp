@@ -199,7 +199,7 @@ namespace CoreIR {
   InstanceValue findArg(std::string argName, std::vector<Conn>& ins);
 
   void eliminateMasks(const std::deque<vdisc>& topoOrder,
-		      const NGraph& g);
+		      NGraph& g);
 
   int numMasksNeeded(const NGraph& g);
 

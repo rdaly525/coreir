@@ -411,8 +411,39 @@ namespace CoreIR {
   }
 
   void eliminateMasks(const std::deque<vdisc>& topoOrder,
-		      const NGraph& g) {
-    
+		      NGraph& g) {
+    for (auto& vd : topoOrder) {
+      WireNode opNode = g.getNode(vd);
+
+      // Outputs from an input are all clean
+      if (!isInstance(opNode.getWire())) {
+	for (auto& ed : g.outEdges(vd)) {
+	  Conn c = g.getConn(ed);
+
+	  Conn cleanConn;
+	  cleanConn.first = c.first;
+	  cleanConn.first.setHighBitsDirty(false);
+	  cleanConn.second = c.second;
+	  g.addEdgeLabel(ed, cleanConn);
+	}
+      } else {
+	Instance* inst = toInstance(opNode.getWire());
+	string name = getOpName(*inst);
+
+	if ((name == "and") || (name == "or") || (name == "xor")) {
+	  for (auto& ed : g.outEdges(vd)) {
+	    Conn c = g.getConn(ed);
+
+	    Conn cleanConn;
+	    cleanConn.first = c.first;
+	    cleanConn.first.setHighBitsDirty(false);
+	    cleanConn.second = c.second;
+	    g.addEdgeLabel(ed, cleanConn);
+
+	  }
+	}
+      }
+    }
   }
 
   bool inputsNeedMasks(const WireNode& opNode) {
@@ -433,7 +464,7 @@ namespace CoreIR {
       WireNode opNode = g.getNode(vd);
 
       // Inputs do not need to be masked
-      if (!isInstance(opNode.getWire())) {
+      if (isInstance(opNode.getWire())) {
 	vector<Select*> alreadyCounted;
 	for (auto& conn : g.getOutputConnections(vd)) {
 
