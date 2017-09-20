@@ -5,6 +5,9 @@
 #include "../src/simulator/print_c.hpp"
 #include "../src/simulator/output.hpp"
 
+#include <limits.h>
+#include <unistd.h>
+
 #include <fstream>
 #include <iostream>
 
@@ -228,6 +231,11 @@ namespace CoreIR {
     string exeFile = "V" + modName;
     string compileCpp = "make -C obj_dir -j -f " + mkFile + " " + exeFile;
 
+    char result[ PATH_MAX ];
+    ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
+    string res = std::string( result, (count > 0) ? count : 0 );
+
+    cout << "Exe dir = " << res << endl;
     cout << "Verilator compile command = " << compileVerilator << endl;    
     cout << "Compile command = " << compileCpp << endl;
 
