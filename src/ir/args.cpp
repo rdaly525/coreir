@@ -6,6 +6,47 @@ using namespace std;
 
 namespace CoreIR {
 
+template<typename T>
+ArgPtr Const_impl2(T val) {
+  return std::make_shared<typename Val2Arg<T>::type>(val);
+}
+
+template<>
+ArgPtr Const_impl<bool>(bool val) {
+  return Const_impl2<bool>(val);   
+}
+
+template<>
+ArgPtr Const_impl<int>(int val) {
+  return Const_impl2<int>(val);   
+}
+
+template<>
+ArgPtr Const_impl<std::string>(std::string val) {
+  return Const_impl2<std::string>(val);   
+}
+
+template<>
+ArgPtr Const_impl<Type*>(Type* val) {
+  return Const_impl2<Type*>(val);   
+}
+
+//template<>
+//ArgPtr Const_impl<int>(int val) {
+//  return std::make_shared<ArgInt>(val);
+//}
+//
+//template<>
+//ArgPtr Const_impl<std::string>(std::string val) {
+//  return std::make_shared<ArgString>(val);
+//}
+//
+//template<>
+//ArgPtr Const_impl<Type*>(Type* val) {
+//  return std::make_shared<ArgType>(val);
+//}
+
+
 //ArgPtr Const(bool val) {
 //  return std::make_shared<ArgBool>(val);
 //}

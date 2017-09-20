@@ -109,135 +109,37 @@ template<typename T>
 ArgPtr Const_impl(T val);
 
 template<>
-ArgPtr Const_impl<bool>(bool val) {
-  return std::make_shared<ArgBool>(val);
-}
-
+ArgPtr Const_impl<bool>(bool val);
 template<>
-ArgPtr Const_impl<int>(int val) {
-  return std::make_shared<ArgInt>(val);
-}
-
+ArgPtr Const_impl<int>(int val);
 template<>
-ArgPtr Const_impl<std::string>(std::string val) {
-  return std::make_shared<ArgString>(val);
-}
-
+ArgPtr Const_impl<std::string>(std::string val);
 template<>
-ArgPtr Const_impl<Type*>(Type* val) {
-  return std::make_shared<ArgType>(val);
-}
+ArgPtr Const_impl<Type*>(Type* val);
 
 template<typename T>
-struct always_false : std::false_type {};
-
-template<typename T>
-ArgPtr Const(T val) {
-  static_assert(always_false<T>::value,"Must Specialize");
-}
-
-template<>
-ArgPtr Const<bool>(bool val) {
+typename std::enable_if<std::is_same<T,bool>::value,ArgPtr>::type
+Const(T val) {
   return Const_impl<bool>(val);
 }
 
-//template<typename T,typename std::enable_if<std::is_same<T,bool>::value,int>::type=0>
-//ArgPtr Const(T val) {
-//  return Const_impl<bool>(val);
-//}
-
-template<typename T,typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,int>::type=0>
-ArgPtr Const(T val) {
+template<typename T>
+inline typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,ArgPtr>::type
+Const(T val) {
   return Const_impl<int>(val);
 }
 
-//template<>
-//ArgPtr Const<const char*>(const char* val) {
-//  return Const(std::string(val));
-//}
+template<typename T>
+inline typename std::enable_if<std::is_convertible<T,std::string>::value,ArgPtr>::type
+Const(T val) {
+  return Const_impl<std::string>(val);
+}
 
-
-//ArgPtr Const(bool val);
-//ArgPtr Const(int val);
-//ArgPtr Const(unsigned int val);
-//ArgPtr Const(std::string val);
-//ArgPtr Const(const char* val) ;
-//ArgPtr Const(Type* val);
-  
-//
-//template<typename T, typename ConvertT>
-//ArgPtr Const_impl(T val) {
-//  return std::make_shared<typename Val2Arg<ConvertT>::type>(val);
-//}
-//
-//template<typename T, typename ConvertT>
-//ArgPtr Const(T val);
-//
-//template<> 
-//ArgPtr Const<bool,bool>(bool val) {
-//  return Const_impl<bool,bool>(val);
-//}
-//
-//template<typename T,typename std::enable_if<std::is_convertible<T,int>::value,int>::type=0>
-//ArgPtr Const<T,int>(T val) {
-//  return Const_impl<T,int>(val);
-//}
-//
-//template<typename T,typename std::enable_if<std::is_convertible<T,std::string>::value,int>::type=0>
-//ArgPtr Const<T,std::string>(T val) {
-//  return Const_impl<T,std::string>(val);
-//}
-//
-
-
-//
-//template<typename T>
-//ArgPtr Const(T val) {
-//  return Const_impl<T,T>(val);
-//}
-//
-//template<T>
-//ArgPtr Const(T val) {
-//  return Const_impl
-
-//template<typename T, ConverT, typename std::enable_if<std::is_same<T,bool>::value,int>::type=0>
-//ArgPtr Const(T val);
-//
-//template<>
-//ArgPtr Const<bool>(bool val) {
-//  return std::make_shared<ArgBool>(val);
-//}
-//
-//template<typename T,typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,int>::type=0>
-//ArgPtr Const(T val) {
-//  return std::make_shared<ArgInt>(val);
-//}
-
-//template<typename T,typename std::enable_if<std::is_convertible<T,std::string>::value,int>::type=0>
-//ArgPtr Const(T val) {
-//  return std::make_shared<ArgString>(val);
-//}
-//
-//template<typename T,typename std::enable_if<std::is_convertible<T,Type*>::value,int>::type=0>
-//ArgPtr Const(T val) {
-//  return std::make_shared<ArgType>(val);
-//}
-
-
-
-//std::shared_ptr<Arg> Const(bool b) ;
-//std::shared_ptr<Arg> Const(int i);
-//std::shared_ptr<Arg> Const(std::string s);
-//std::shared_ptr<Arg> Const(Type* t);
-
-//class Instantiable;
-//class ArgInst : Arg {
-//  Instantiable* i;
-//  ArgInst(Instantiable* i) : Arg(AINST), i(i) {}
-//};
-
-
-//bool checkArgs(Args args, Params params);
+template<typename T>
+inline typename std::enable_if<std::is_convertible<T,Type*>::value,ArgPtr>::type
+Const(T val) {
+  return Const_impl<Type*>(val);
+}
 
 }//CoreIR namespace
 
