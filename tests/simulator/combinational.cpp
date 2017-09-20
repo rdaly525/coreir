@@ -317,11 +317,9 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      //SECTION("Checking mask elimination") {
       eliminateMasks(topoOrder, g);
 
       REQUIRE(numMasksNeeded(g) == 0);
-	//}
 
       SECTION("Compiling code") {
 	auto str = printCode(topoOrder, g, andM);
@@ -678,6 +676,9 @@ namespace CoreIR {
       buildOrderedGraph(sleM, g);
 
       deque<vdisc> topoOrder = topologicalSort(g);
+      eliminateMasks(topoOrder, g);
+
+      REQUIRE(numMasksNeeded(g) == 0);
 
 
       auto str = printCode(topoOrder, g, sleM);

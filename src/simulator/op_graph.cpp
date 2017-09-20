@@ -446,7 +446,8 @@ namespace CoreIR {
 	Instance* inst = toInstance(opNode.getWire());
 	string name = getOpName(*inst);
 
-	if ((name == "and") || (name == "or") || (name == "xor")) {
+	if ((name == "and") || (name == "or") || (name == "xor") ||
+	    isUnsignedCmp(*inst) || isSignedCmp(*inst)) {
 	  for (auto& ed : g.outEdges(vd)) {
 	    setEdgeClean(ed, g);
 	  }

@@ -164,11 +164,17 @@ namespace CoreIR {
       string rs1 = printOpResultStr(arg1, g);
       string rs2 = printOpResultStr(arg2, g);
 
-      string res = maskResult(*(outPair.second->getType()),
-			      castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
-			      opString +
-			      castToSigned(arg2Tp, seString(arg2Tp, rs2)));
+      string opStr = castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
+	opString +
+	castToSigned(arg2Tp, seString(arg2Tp, rs2));
 
+      string res;
+      if (g.getOutputConnections(vd)[0].first.needsMask()) {
+	res += maskResult(*(outPair.second->getType()), opStr);
+      } else {
+	res += opStr; //maskResult(*(outPair.second->getType()), compString);
+      }
+      
       return res;
   }
 
