@@ -71,21 +71,29 @@ namespace CoreIR {
       	REQUIRE(numMasksNeeded(gr) == 3);
       }
 
-      SECTION("Sorting and compiling code") {
-	auto str = printCode(topoOrder, gr, add4_n, "add4.h");
-	int s = compileCode(str, "./gencode/add4.cpp");
-
-	cout << "Command result = " << s << endl;
+      SECTION("Compile and run") {
+	int s = compileCode(topoOrder, gr, add4_n, "./gencode/", "add4");
 
 	saveToFile(g, "add4.json");
 
 	REQUIRE(s == 0);
-
-	// // Building verilog example
-	// s = buildVerilator(add4_n, g);
-
-	// REQUIRE(s == 0);
       }
+      
+      // SECTION("Sorting and compiling code") {
+      // 	auto str = printCode(topoOrder, gr, add4_n, "add4.h");
+      // 	int s = compileCode(str, "./gencode/add4.cpp");
+
+      // 	cout << "Command result = " << s << endl;
+
+
+
+      // 	REQUIRE(s == 0);
+
+      // 	// // Building verilog example
+      // 	// s = buildVerilator(add4_n, g);
+
+      // 	// REQUIRE(s == 0);
+      // }
       
     }
 
@@ -638,7 +646,6 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-
       auto str = printCode(topoOrder, g, eqM, "eq54.h");
       cout << "CODE STRING" << endl;
       cout << str << endl;
@@ -1051,12 +1058,11 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, mainMod, "mainMod.h");
-      int s = compileCode(str, "./gencode/mainMod.cpp");
+      SECTION("Compile and run") {
+	int s = compileCode(topoOrder, g, mainMod, "./gencode/", "mainMod");
+	REQUIRE(s == 0);
+      }
 
-      cout << "Command result = " << s << endl;
-
-      REQUIRE(s == 0);
     }
 
     deleteContext(c);

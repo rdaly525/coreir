@@ -255,16 +255,9 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
 
-      auto str = printCode(topoOrder, g, regChain, "register_chain.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
-      SECTION("Compile and run") {      
-	string outFile = "./gencode/register_chain.cpp";
-	int s = compileCode(str, outFile);
-
+      SECTION("Compile and run") {
+	int s = compileCode(topoOrder, g, regChain, "./gencode/", "register_chain");
 	REQUIRE(s == 0);
-
       }
       
     }
@@ -303,20 +296,12 @@ namespace CoreIR {
       	REQUIRE(numVertices(g) == 5);
       }
 
-
-
       cout << "About to topological sort" << endl;
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
 
-      auto str = printCode(topoOrder, g, regChain, "register_no_enable.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-      
       SECTION("Compile and run") {
-	string outFile = "./gencode/register_no_enable.cpp";
-	int s = compileCode(str, outFile);
-
+	int s = compileCode(topoOrder, g, regChain, "./gencode/", "register_no_enable");
 	REQUIRE(s == 0);
       }
     }
@@ -424,15 +409,8 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      // auto str = printCode(topoOrder, g, clkArr, "clock_array.h");
-      // cout << "CODE STRING" << endl;
-      // cout << str << endl;
-      
       SECTION("Compile and run") {
-	// string outFile = "./gencode/clock_array.cpp";
-	// int s = compileCode(str, outFile);
-
-	int s = compileCode(topoOrder, g, clkArr, "./gencode/", "clock_array"); //, "clock_array.h");
+	int s = compileCode(topoOrder, g, clkArr, "./gencode/", "clock_array");
 	REQUIRE(s == 0);
       }
       
