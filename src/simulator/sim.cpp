@@ -303,12 +303,12 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
     
-    auto outSelects = getOutputSelects(inst);
+    // auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    // assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-    string res = cVar(*(outPair.second));
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+    // string res = cVar(*(outPair.second));
     
     if (ins.size() == 3) {
       return printTernop(inst, vd, g);
@@ -683,7 +683,9 @@ namespace CoreIR {
     string code = "";
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
+    code += "#include \"bit_vector.h\"\n\n";
 
+    code += "using namespace bsim;\n\n";
     code += "void simulate( ";
 
     code += printSimArguments(*mod);
@@ -701,6 +703,9 @@ namespace CoreIR {
 
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
+    code += "#include \"bit_vector.h\"\n\n";
+
+    code += "using namespace bsim;\n\n";    
 
     code += seMacroDef();
     code += maskMacroDef();

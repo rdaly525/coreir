@@ -15,7 +15,7 @@ namespace CoreIR {
     out.close();
 
 
-    string runCmd = "clang++ -c " + outFile;
+    string runCmd = "clang++ -std=c++11 -c " + outFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -53,7 +53,7 @@ namespace CoreIR {
 
     writeFiles(topoOrder, g, mod, codeFile, hFile);
   
-    string runCmd = "clang++ " + codeFile + " " + harnessFile;
+    string runCmd = "clang++ -std=c++11 " + codeFile + " " + harnessFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -73,7 +73,7 @@ namespace CoreIR {
     out << code;
     out.close();
 
-    string runCmd = "clang++ " + outFile + " " + harnessFile;
+    string runCmd = "clang++ -std=c++11 " + outFile + " " + harnessFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;

@@ -269,16 +269,18 @@ namespace CoreIR {
 
     SECTION("Register without enable") {
 
+      int n = 8;
+
       Type* regChainType = c->Record({
-	  {"a", c->BitIn()->Arr(8)},
-	    {"cout",c->Bit()->Arr(8)},
+	  {"a", c->BitIn()->Arr(n)},
+	    {"cout",c->Bit()->Arr(n)},
 	      {"clk",c->Named("coreir.clkIn")},
 		});
 
       Module* regChain = c->getGlobal()->newModuleDecl("regChain", regChainType);
       ModuleDef* def = regChain->newModuleDef();
 
-      def->addInstance("r0","coreir.reg",{{"width", Const(8)},{"en", Const(false)}});
+      def->addInstance("r0","coreir.reg",{{"width", Const(n)},{"en", Const(false)}});
     
       //Connections
       def->connect("self.clk", "r0.clk");
@@ -317,6 +319,58 @@ namespace CoreIR {
       }
     }
 
+    SECTION("Long (103 bit) Register without enable") {
+
+      int n = 103;
+
+      Type* regChainType = c->Record({
+	  {"a", c->BitIn()->Arr(n)},
+	    {"cout",c->Bit()->Arr(n)},
+	      {"clk",c->Named("coreir.clkIn")},
+		});
+
+      Module* regChain = c->getGlobal()->newModuleDecl("regChain", regChainType);
+      ModuleDef* def = regChain->newModuleDef();
+
+      def->addInstance("r0","coreir.reg",{{"width", Const(n)},{"en", Const(false)}});
+    
+      //Connections
+      def->connect("self.clk", "r0.clk");
+      def->connect("self.a", "r0.in");
+      def->connect("r0.out","self.cout");
+
+      regChain->setDef(def);
+  
+      RunGenerators rg;
+      rg.runOnNamespace(c->getGlobal());
+
+      NGraph g;
+      buildOrderedGraph(regChain, g);
+
+      SECTION("Checking number of vertices") {
+	REQUIRE(splitNodeEdgesCorrect(g));	
+
+      	REQUIRE(numVertices(g) == 5);
+      }
+
+
+
+      cout << "About to topological sort" << endl;
+      deque<vdisc> topoOrder = topologicalSort(g);
+      cout << "Done topological sorting" << endl;
+
+      auto str = printCode(topoOrder, g, regChain);
+      cout << "CODE STRING" << endl;
+      cout << str << endl;
+      
+      SECTION("Compile and run") {
+	string outFile = "./gencode/long_register_no_enable.cpp";
+	int s = compileCode(str, outFile);
+
+	REQUIRE(s == 0);
+      }
+    }
+    
     SECTION("Clock array") {
       uint n = 16;
       uint nRegs = 3;

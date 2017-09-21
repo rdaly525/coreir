@@ -27,3 +27,4 @@ mops.v
 test.v
 tests/.DS_Store
 tests/simulator/.DS_Store
+tests/simulator/gencode/*.o

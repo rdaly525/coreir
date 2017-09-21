@@ -193,7 +193,8 @@ namespace CoreIR {
       int arrLen = arrTp.getLen();
       int bitLength = (arrLen / 8) + 1 - (arrLen % 8 == 0);
 
-      return "uint8_t " + varName + "[ " + to_string(bitLength) + " ]";
+      //return "uint8_t " + varName + "[ " + to_string(bitLength) + " ]";
+      return "bit_vector< " + to_string(bitLength) + " > " + varName;
     }
     
     if (isArray(t)) {

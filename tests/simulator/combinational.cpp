@@ -1057,7 +1057,6 @@ namespace CoreIR {
       cout << "Command result = " << s << endl;
 
       REQUIRE(s == 0);
-      
     }
 
     deleteContext(c);

@@ -166,7 +166,7 @@ namespace CoreIR {
 
     cout << "Done generating harness" << endl;
 
-    string runCmd = "clang++ " + codeFile + " " + harnessFile;
+    string runCmd = "clang++ -std=c++11 " + codeFile + " " + harnessFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -177,8 +177,6 @@ namespace CoreIR {
     cout << "Test result = " << r << endl;
 
     return s || r;
-
-    return 0;
   }
 
   void appendStdLib(const std::string& verilogFile) {
