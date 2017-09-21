@@ -13,7 +13,7 @@ namespace CoreIR {
   void writeBitVectorLib() {
     string libText = blib();
 
-    std::ofstream("bit_vector.h");
+    std::ofstream out("./gencode/bit_vector.h");
     out << libText;
     out.close();
   }
@@ -40,8 +40,6 @@ namespace CoreIR {
 		  const std::string& codeFile,
 		  const std::string& hFile) {
 
-    writeBitVectorLib();
-    
     string codeStr = printCode(topoOrder, g, mod);
     string hStr = printDecl(mod);
 
@@ -60,6 +58,8 @@ namespace CoreIR {
 			Module* mod,
 			const std::string& outFile,
 			const std::string& harnessFile) {
+
+    writeBitVectorLib();    
 
     string hFile = outFile + ".h";
     string codeFile = outFile + ".cpp";
@@ -82,6 +82,9 @@ namespace CoreIR {
   int compileCodeAndRun(const std::string& code,
 			const std::string& outFile,
 			const std::string& harnessFile) {
+
+    writeBitVectorLib();
+    
     std::ofstream out(outFile);
     out << code;
     out.close();
