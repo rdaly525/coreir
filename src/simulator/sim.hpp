@@ -4,13 +4,13 @@
 
 namespace CoreIR {
 
-  //void buildOrderedGraph(CoreIR::Module* mod, NGraph& g);
-
   std::string printCode(const std::deque<vdisc>& topoOrder,
 			NGraph& g,
-			CoreIR::Module* mod);
+			CoreIR::Module* mod,
+			const std::string& baseName);
 
-  std::string printDecl(CoreIR::Module* mod);
+  std::string printDecl(CoreIR::Module* mod,
+			const std::string& baseName);
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   simArguments(CoreIR::Module& mod);

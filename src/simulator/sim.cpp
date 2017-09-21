@@ -679,7 +679,9 @@ namespace CoreIR {
 
   }
 
-  string printDecl(CoreIR::Module* mod) {
+  // Note: Dont actually need baseName here
+  string printDecl(CoreIR::Module* mod,
+		   const std::string& baseName) {
     string code = "";
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
@@ -697,12 +699,14 @@ namespace CoreIR {
 
   string printCode(const std::deque<vdisc>& topoOrder,
 		   NGraph& g,
-		   CoreIR::Module* mod) {
+		   CoreIR::Module* mod,
+		   const std::string& baseName) {
 
     string code = "";
 
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
+    code += "#include \"" + baseName + ".h\"\n";
     code += "#include \"bit_vector.h\"\n\n";
 
     code += "using namespace bsim;\n\n";    

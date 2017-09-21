@@ -98,7 +98,7 @@ namespace CoreIR {
 
       REQUIRE(splitNodeEdgesCorrect(g));
 
-      auto str = printCode(topoOrder, g, rg);
+      auto str = printCode(topoOrder, g, rg, "reg5.h");
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -164,7 +164,7 @@ namespace CoreIR {
 
       REQUIRE(splitNodeEdgesCorrect(g));
 
-      auto str = printCode(topoOrder, g, counter);
+      auto str = printCode(topoOrder, g, counter, "counter.h");
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -255,7 +255,7 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
 
-      auto str = printCode(topoOrder, g, regChain);
+      auto str = printCode(topoOrder, g, regChain, "register_chain.h");
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -309,7 +309,7 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
 
-      auto str = printCode(topoOrder, g, regChain);
+      auto str = printCode(topoOrder, g, regChain, "register_no_enable.h");
       cout << "CODE STRING" << endl;
       cout << str << endl;
       
@@ -359,7 +359,7 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
 
-      auto str = printCode(topoOrder, g, regChain);
+      auto str = printCode(topoOrder, g, regChain, "long_register_no_enable.h");
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
@@ -419,7 +419,7 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, clkArr);
+      auto str = printCode(topoOrder, g, clkArr, "clock_array.h");
       cout << "CODE STRING" << endl;
       cout << str << endl;
       

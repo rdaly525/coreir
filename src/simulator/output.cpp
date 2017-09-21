@@ -40,8 +40,8 @@ namespace CoreIR {
 		  const std::string& codeFile,
 		  const std::string& hFile) {
 
-    string codeStr = printCode(topoOrder, g, mod);
-    string hStr = printDecl(mod);
+    string codeStr = printCode(topoOrder, g, mod, hFile);
+    string hStr = printDecl(mod, hFile);
 
     std::ofstream out(codeFile);
     out << codeStr;
