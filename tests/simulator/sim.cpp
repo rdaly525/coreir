@@ -103,13 +103,14 @@ namespace CoreIR {
       cout << str << endl;
 
       SECTION("Compile and run") {      
-	string outFile = "./gencode/reg5";
+	string outFile = "reg5";
 
 	int s = compileCodeAndRun(topoOrder,
 				  g,
 				  rg,
+				  "./gencode/",
 				  outFile,
-				  "gencode/test_reg5.cpp");
+				  "test_reg5.cpp");
 
 	REQUIRE(s == 0);
 
@@ -169,26 +170,28 @@ namespace CoreIR {
       cout << str << endl;
 
       SECTION("Compile and run") {      
-	string outFile = "./gencode/counter";
+	string outFile = "counter";
 
 	int s = compileCodeAndRun(topoOrder,
 				  g,
 				  counter,
+				  "./gencode/",
 				  outFile,
-				  "./gencode/test_counter.cpp");
+				  "test_counter.cpp");
 
 	REQUIRE(s == 0);
 
       }
 
       SECTION("Compile and run single cycle test") {      
-	string outFile = "./gencode/counter";
+	string outFile = "counter";
 
 	int s = compileCodeAndRun(topoOrder,
 				  g,
 				  counter,
+				  "./gencode/",
 				  outFile,
-				  "./gencode/test_counter_one_cycle.cpp");
+				  "test_counter_one_cycle.cpp");
 
 	REQUIRE(s == 0);
 

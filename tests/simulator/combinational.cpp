@@ -123,8 +123,9 @@ namespace CoreIR {
       int s = compileCodeAndRun(topoOrder,
 				gr,
 				srem4_n,
-				"./gencode/srem4",
-				"./gencode/test_srem4.cpp");
+				"./gencode/",
+				"srem4",
+				"test_srem4.cpp");
 
       REQUIRE(s == 0);
       
@@ -314,8 +315,9 @@ namespace CoreIR {
 	int s = compileCodeAndRun(topoOrder,
 				  g,
 				  andM,
-				  "./gencode/and37",
-				  "./gencode/test_and37.cpp");
+				  "./gencode/",
+				  "and37",
+				  "test_and37.cpp");
 
 	cout << "Test result = " << s << endl;
 
@@ -363,12 +365,13 @@ namespace CoreIR {
       cout << "CODE STRING" << endl;
       cout << str << endl;
 
-      string outFile = "./gencode/add63";
+      string outFile = "add63";
       int s = compileCodeAndRun(topoOrder,
 				g,
 				addM,
+				"./gencode/",
 				outFile,
-				"./gencode/test_add63.cpp");
+				"test_add63.cpp");
 
       REQUIRE(s == 0);
 
@@ -418,12 +421,13 @@ namespace CoreIR {
 	cout << "CODE STRING" << endl;
 	cout << str << endl;
 
-	string outFile = "./gencode/neg2";
+	string outFile = "neg2";
 	int s = compileCodeAndRun(topoOrder,
 				  gr,
 				  neg_n,
+				  "./gencode/",
 				  outFile,
-				  "./gencode/test_neg2.cpp");
+				  "test_neg2.cpp");
 
 	REQUIRE(s == 0);
 
@@ -571,8 +575,9 @@ namespace CoreIR {
       int s = compileCodeAndRun(topoOrder,
 				g,
 				addM,
-				"./gencode/mat2_3_add",
-				"./gencode/test_mat2_3_add.cpp");
+				"./gencode/",
+				"mat2_3_add",
+				"test_mat2_3_add.cpp");
 
       REQUIRE(s == 0);
     }
@@ -654,7 +659,9 @@ namespace CoreIR {
       int s = compileCodeAndRun(topoOrder,
 				g,
 				sleM,
-				"./gencode/sle7", "./gencode/test_sle7.cpp");
+				"./gencode/",
+				"sle7",
+				"test_sle7.cpp");
       REQUIRE(s == 0);
 
     }
@@ -691,13 +698,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/mux8";
+      string outFile = "mux8";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				muxM,
+				"./gencode/",
 				outFile,
-				"gencode/test_mux8.cpp");
+				"test_mux8.cpp");
 
       REQUIRE(s == 0);
       
@@ -733,13 +741,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/dshl32";
+      string outFile = "dshl32";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				dshlM,
+				"./gencode/",
 				outFile,
-				"gencode/test_dshl32.cpp");
+				"test_dshl32.cpp");
 
       REQUIRE(s == 0);
       
@@ -775,13 +784,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/dashr60";
+      string outFile = "dashr60";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				dashrM,
+				"./gencode/",
 				outFile,
-				"gencode/test_dashr60.cpp");
+				"test_dashr60.cpp");
 
       REQUIRE(s == 0);
       
@@ -817,13 +827,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/dlshr5";
+      string outFile = "dlshr5";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				dlshrM,
+				"./gencode/",
 				outFile,
-				"gencode/test_dlshr5.cpp");
+				"test_dlshr5.cpp");
 
       REQUIRE(s == 0);
     }
@@ -858,13 +869,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/udiv27";
+      string outFile = "udiv27";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				udivM,
+				"./gencode/",
 				outFile,
-				"gencode/test_udiv27.cpp");
+				"test_udiv27.cpp");
 
       REQUIRE(s == 0);
       
@@ -900,13 +912,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/urem13";
+      string outFile = "urem13";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				uremM,
+				"./gencode/",
 				outFile,
-				"gencode/test_urem13.cpp");
+				"test_urem13.cpp");
 
       REQUIRE(s == 0);
       
@@ -942,13 +955,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/srem5";
+      string outFile = "srem5";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				sremM,
+				"./gencode/",
 				outFile,
-				"gencode/test_srem5.cpp");
+				"test_srem5.cpp");
 
       REQUIRE(s == 0);
       
@@ -984,13 +998,14 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      string outFile = "gencode/sdiv5";
+      string outFile = "sdiv5";
 
       int s = compileCodeAndRun(topoOrder,
 				g,
 				sdivM,
+				"./gencode/",
 				outFile,
-				"gencode/test_sdiv5.cpp");
+				"test_sdiv5.cpp");
 
       REQUIRE(s == 0);
       

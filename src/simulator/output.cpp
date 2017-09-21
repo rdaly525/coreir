@@ -101,17 +101,33 @@ namespace CoreIR {
   int compileCodeAndRun(const std::deque<vdisc>& topoOrder,
 			NGraph& g,
 			Module* mod,
-			const std::string& outFile,
+			const std::string& outDir,
+			const std::string& baseFileName,
 			const std::string& harnessFile) {
+
+    // writeBitVectorLib();    
+
+    // string hFile = outFile + ".h";
+    // string codeFile = outFile + ".cpp";
+
+    // writeFiles(topoOrder, g, mod, "", codeFile, hFile);
+  
+    // string runCmd = "clang++ -std=c++11 " + codeFile + " " + harnessFile;
+    // int s = system(runCmd.c_str());
+
+    // cout << "Command result = " << s << endl;
 
     writeBitVectorLib();    
 
-    string hFile = outFile + ".h";
-    string codeFile = outFile + ".cpp";
+    string hFile = baseFileName + ".h";
+    string codeFile = baseFileName + ".cpp";
 
-    writeFiles(topoOrder, g, mod, "", codeFile, hFile);
-  
-    string runCmd = "clang++ -std=c++11 " + codeFile + " " + harnessFile;
+    writeFiles(topoOrder, g, mod, outDir, codeFile, hFile);
+
+    string codeFilePath = outDir + codeFile;
+
+    string harnessFilePath = outDir + harnessFile;
+    string runCmd = "clang++ -std=c++11 " + codeFilePath + " " + harnessFilePath;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
