@@ -73,7 +73,7 @@ namespace CoreIR {
 	buildOrderedGraph(manyOps, gr);
 
 	cout << "Built ordered graph" << endl;
-      
+
 	deque<vdisc> topoOrder = topologicalSort(gr);
 
 	cout << "Topologically sorted" << endl;

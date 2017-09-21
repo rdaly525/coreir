@@ -424,14 +424,15 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, clkArr, "clock_array.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
+      // auto str = printCode(topoOrder, g, clkArr, "clock_array.h");
+      // cout << "CODE STRING" << endl;
+      // cout << str << endl;
       
       SECTION("Compile and run") {
-	string outFile = "./gencode/clock_array.cpp";
-	int s = compileCode(str, outFile);
+	// string outFile = "./gencode/clock_array.cpp";
+	// int s = compileCode(str, outFile);
 
+	int s = compileCode(topoOrder, g, clkArr, "./gencode/", "clock_array"); //, "clock_array.h");
 	REQUIRE(s == 0);
       }
       
