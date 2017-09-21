@@ -687,7 +687,7 @@ namespace CoreIR {
       res += "\t" + dstr + ";\n";
     }
     
-    res += "\n};\n\n";
+    res += "};\n\n";
 
     return res;
   }  
