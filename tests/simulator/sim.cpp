@@ -10,6 +10,8 @@
 #include "../src/simulator/sim.hpp"
 #include "../src/simulator/utils.hpp"
 
+#include "fuzzing.hpp"
+
 #include <iostream>
 
 using namespace CoreIR;
@@ -353,8 +355,6 @@ namespace CoreIR {
       	REQUIRE(numVertices(g) == 5);
       }
 
-
-
       cout << "About to topological sort" << endl;
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
@@ -362,7 +362,7 @@ namespace CoreIR {
       auto str = printCode(topoOrder, g, regChain);
       cout << "CODE STRING" << endl;
       cout << str << endl;
-      
+
       SECTION("Compile and run") {
 	string outFile = "./gencode/long_register_no_enable.cpp";
 	int s = compileCode(str, outFile);
@@ -370,7 +370,7 @@ namespace CoreIR {
 	REQUIRE(s == 0);
       }
     }
-    
+
     SECTION("Clock array") {
       uint n = 16;
       uint nRegs = 3;
@@ -400,7 +400,6 @@ namespace CoreIR {
       }
 
       clkArr->setDef(def);
-
 
       RunGenerators rg;
       rg.runOnNamespace(c->getGlobal());
