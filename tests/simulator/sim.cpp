@@ -359,13 +359,18 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
 
-      auto str = printCode(topoOrder, g, regChain, "long_register_no_enable.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
+      // auto str = printCode(topoOrder, g, regChain, "long_register_no_enable.h");
+      // cout << "CODE STRING" << endl;
+      // cout << str << endl;
 
-      SECTION("Compile and run") {
-	string outFile = "./gencode/long_register_no_enable.cpp";
-	int s = compileCode(str, outFile);
+      SECTION("Compile code") {
+	//string outFile = "./gencode/long_register_no_enable.cpp";
+	int s =
+	  compileCode(topoOrder,
+		      g,
+		      regChain,
+		      "./gencode/",
+		      "long_register_no_enable"); //compileCode(str, outFile);
 
 	REQUIRE(s == 0);
       }

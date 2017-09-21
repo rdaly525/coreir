@@ -85,7 +85,8 @@ namespace CoreIR {
 
 	int s =
 	  generateHarnessAndRun(topoOrder, gr, manyOps,
-				"./gencode/many_ops",
+				"./gencode/",
+				"many_ops",
 				"./gencode/auto_harness_many_ops.cpp");
 
 	REQUIRE(s == 0);

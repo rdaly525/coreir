@@ -25,6 +25,19 @@ namespace CoreIR {
 			const std::string& outFile,
 			const std::string& harnessFile);
   
+  int compileCode(const std::deque<vdisc>& topoOrder,
+		  NGraph& g,
+		  Module* mod,
+		  const std::string& outDir,
+		  const std::string& baseFileName);
+
+  void writeFiles(const std::deque<vdisc>& topoOrder,
+		  NGraph& g,
+		  Module* mod,
+		  const std::string& codePath,
+		  const std::string& codeFile,
+		  const std::string& hFile);
+  
 }
 
 #endif

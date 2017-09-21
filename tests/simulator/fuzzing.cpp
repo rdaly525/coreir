@@ -151,13 +151,14 @@ namespace CoreIR {
   int generateHarnessAndRun(const std::deque<vdisc>& topoOrder,
 			    NGraph& g,
 			    Module* mod,
+			    const std::string& codeDir,
 			    const std::string& outFileBase,
 			    const std::string& harnessFile) {
 
     string hFile = outFileBase + ".h";
     string codeFile = outFileBase + ".cpp";
 
-    writeFiles(topoOrder, g, mod, codeFile, hFile);
+    writeFiles(topoOrder, g, mod, codeDir, codeFile, hFile);
 
     std::string harnessCode = randomSimInputHarness(mod);
     std::ofstream out(harnessFile);
@@ -166,7 +167,8 @@ namespace CoreIR {
 
     cout << "Done generating harness" << endl;
 
-    string runCmd = "clang++ -std=c++11 " + codeFile + " " + harnessFile;
+    string codeFilePath = codeDir + codeFile;
+    string runCmd = "clang++ -std=c++11 " + codeFilePath + " " + harnessFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;

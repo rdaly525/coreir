@@ -706,7 +706,7 @@ namespace CoreIR {
 
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
-    code += "#include \"" + baseName + ".h\"\n";
+    code += "#include \"" + baseName + "\"\n";
     code += "#include \"bit_vector.h\"\n\n";
 
     code += "using namespace bsim;\n\n";    
