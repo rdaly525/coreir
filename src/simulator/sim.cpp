@@ -679,6 +679,19 @@ namespace CoreIR {
 
   }
 
+  std::string printEvalStruct(CoreIR::Module* mod) {
+    string res = "struct eval {\n";
+
+    auto declStrs = sortedSimArgumentList(*mod);
+    for (auto& dstr : declStrs) {
+      res += "\t" + dstr + ";\n";
+    }
+    
+    res += "\n};\n\n";
+
+    return res;
+  }  
+
   // Note: Dont actually need baseName here
   string printDecl(CoreIR::Module* mod,
 		   const std::string& baseName) {
@@ -688,6 +701,8 @@ namespace CoreIR {
     code += "#include \"bit_vector.h\"\n\n";
 
     code += "using namespace bsim;\n\n";
+
+    code += printEvalStruct(mod);
     code += "void simulate( ";
 
     code += printSimArguments(*mod);
