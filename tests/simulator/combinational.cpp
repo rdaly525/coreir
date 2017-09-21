@@ -79,22 +79,6 @@ namespace CoreIR {
 	REQUIRE(s == 0);
       }
       
-      // SECTION("Sorting and compiling code") {
-      // 	auto str = printCode(topoOrder, gr, add4_n, "add4.h");
-      // 	int s = compileCode(str, "./gencode/add4.cpp");
-
-      // 	cout << "Command result = " << s << endl;
-
-
-
-      // 	REQUIRE(s == 0);
-
-      // 	// // Building verilog example
-      // 	// s = buildVerilator(add4_n, g);
-
-      // 	// REQUIRE(s == 0);
-      // }
-      
     }
 
     SECTION("6 bit signed remainder 3 operations") {
@@ -186,14 +170,11 @@ namespace CoreIR {
       
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, sub4_n, "sub4.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
+      SECTION("Compile and run") {
+	int s = compileCode(topoOrder, g, sub4_n, "./gencode/", "sub4");
 
-      string outFile = "./gencode/sub4.cpp";      
-      int s = compileCode(str, outFile);
-
-      REQUIRE(s == 0);
+	REQUIRE(s == 0);
+      }
       
     }
 
@@ -232,13 +213,7 @@ namespace CoreIR {
       
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, mul_n, "mul2.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-      int s = compileCode(str, "./gencode/mul2.cpp");
-
-      cout << "Command result = " << s << endl;
-
+      int s = compileCode(topoOrder, g, mul_n, "./gencode/", "mul2");
       REQUIRE(s == 0);
 
     }
@@ -495,15 +470,9 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, neg_n, "neg16.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
-      int s = compileCode(str, "./gencode/neg16.cpp");
-
-      cout << "Command result = " << s << endl;
-
+      int s = compileCode(topoOrder, g, neg_n, "./gencode/", "neg16");
       REQUIRE(s == 0);
+      
     }
     
     SECTION("Two 16 bit nots") {
@@ -547,14 +516,7 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, neg_n, "two_negs.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
-      int s = compileCode(str, "./gencode/two_negs.cpp");
-
-      cout << "Command result = " << s << endl;
-
+      int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs");
       REQUIRE(s == 0);
       
     }
@@ -646,11 +608,8 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, eqM, "eq54.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
-      compileCode(str, "./gencode/eq54.cpp");
+      int s = compileCode(topoOrder, g, eqM, "./gencode/", "eq54");
+      REQUIRE(s == 0);
     }
 
     SECTION("sle on 7 bits") {
