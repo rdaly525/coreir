@@ -4,16 +4,26 @@
 #include <iostream>
 
 #include "sim.hpp"
+#include "bsim_lib.hpp"
 
 using namespace std;
 
 namespace CoreIR {
 
+  void writeBitVectorLib() {
+    string libText = blib();
+
+    std::ofstream("bit_vector.h");
+    out << libText;
+    out.close();
+  }
+
   int compileCode(const std::string& code, const std::string& outFile) {
+
+    writeBitVectorLib();
     std::ofstream out(outFile);
     out << code;
     out.close();
-
 
     string runCmd = "clang++ -std=c++11 -c " + outFile;
     int s = system(runCmd.c_str());
@@ -29,6 +39,9 @@ namespace CoreIR {
 		  Module* mod,
 		  const std::string& codeFile,
 		  const std::string& hFile) {
+
+    writeBitVectorLib();
+    
     string codeStr = printCode(topoOrder, g, mod);
     string hStr = printDecl(mod);
 
