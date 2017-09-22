@@ -91,13 +91,13 @@ namespace CoreIR {
       }
     } else {
 
-      if (w.toString() == "self") {
-	return "(state->" + w.toString() + ")";
-      } else {
-	return w.toString();
-      }
+      // if (w.toString() == "self") {
+      // 	return "(state->" + w.toString() + ")";
+      // } else {
+      // 	return w.toString();
+      // }
 
-      //return w.toString();
+      return w.toString();
     }
   }
 
@@ -114,13 +114,13 @@ namespace CoreIR {
       }
     } else {
 
-      if (w.toString() == "self") {
-	return "(state->" + w.toString() + suffix + ")";
-      } else {
-	return w.toString() + suffix;
-      }
+      // if (w.toString() == "self") {
+      // 	return "(state->" + w.toString() + suffix + ")";
+      // } else {
+      // 	return w.toString() + suffix;
+      // }
       
-      //return w.toString() + suffix;
+      return w.toString() + suffix;
     }
   }
 
@@ -140,11 +140,13 @@ namespace CoreIR {
       }
     } else {
 
-      if (w.toString() == "self") {      
-	return "(state->" + prefix + w.toString() + suffix + ")";
-      } else {
-	return prefix + w.toString() + suffix;
-      }
+      // if (w.toString() == "self") {
+      // 	return "(state->" + prefix + w.toString() + suffix + ")";
+      // } else {
+      // 	return prefix + w.toString() + suffix;
+      // }
+
+      return prefix + w.toString() + suffix;
     }
   }
   

@@ -371,7 +371,7 @@ namespace CoreIR {
 
     // Is this the correct way to check if the value is an input?
     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
-      return cVar(wd);
+      return cVar("(state->", wd, ")");
     }
 
     assert(g.containsOpNode(sourceInstance));
@@ -508,7 +508,7 @@ namespace CoreIR {
 
 	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
 
-	    str += ln(cVar(*(inConn.second.getWire())) + " = " + printOpResultStr(inConn.first, g));
+	    str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
 	  }
 
 	}
