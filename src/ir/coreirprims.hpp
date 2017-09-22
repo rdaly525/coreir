@@ -4,13 +4,13 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
 
 
   /* Name: slice
-   * GenParams: 
+   * GenParams:
    *    lo: UINT, The start index of the slice
    *    hi: UINT, The stop index of the slice non-inclusive
    *    arrtype: TYPE, the array type of the input.
    * Type: In(arrtype) -> Out(arrtype.elemtype)[hi-lo+1]
    * Fun: out = in[lo:hi]
-   * Argchecks: 
+   * Argchecks:
    *    arrtype.isKind(ARRAY)
    *    start < stop <= arrtype.len
    */
@@ -40,12 +40,12 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   slice->getMetaData()["verilog"] = jverilog;
 
   /* Name: concat
-   * GenParams: 
+   * GenParams:
    *    larrtype: TYPE, the left array
    *    rarrtype: TYPE, the right array
    * Type: In(larrtype) -> In(rarrtype) -> Out(larrtype.elemtype)[larrtype.len+rarrtype.len]
    * Fun: out = concat(in[0],in[1])
-   * Argchecks: 
+   * Argchecks:
    *    larrtype.isKind(ARRAY)
    *    rarrtype.isKind(ARRAY)
    *    larrtype.elemtype == rarrtype.elemtype
@@ -73,11 +73,11 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   concat->getMetaData()["verilog"] = jverilog;
 
   /* Name: strip
-   * GenParams: 
+   * GenParams:
    *    namedtype: TYPE, the type you want to strip
    * Type: namedtype -> namedtype.raw
    * Fun: out = in
-   * Argchecks: 
+   * Argchecks:
    *    namedtype.isKind(NAMED)
    */
   //Params stripParams({
@@ -88,12 +88,12 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   //stdlib->newGeneratorDecl("strip",stripParams,stripTypeGen);
 
   /* Name: cast
-   * GenParams: 
+   * GenParams:
    *    intype: TYPE, precast type
    *    outtype: TYPE, postcast type
    * Type: intype -> outype
    * Fun: out = (outtype) in
-   * Argchecks: 
+   * Argchecks:
    *    intype.structure == outtype.structure
    */
   //Params castParams({
@@ -107,18 +107,18 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
 }
 
 void coreirprims_state(Context* c, Namespace* coreirprims) {
-  
+
   //Template
-  /* Name: 
-   * GenParams: 
+  /* Name:
+   * GenParams:
    *    <Argname>: <Argtype>, <description>
-   * Type: 
-   * Fun: 
-   * Argchecks: 
+   * Type:
+   * Fun:
+   * Argchecks:
    */
-   
+
   /* Name: reg
-   * GenParams: 
+   * GenParams:
    *    regType: TYPE, Type of register
    *    en: BOOL, has enable?
    *    clr: BOOL, has clr port
@@ -127,9 +127,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
    *    resetval: UINT, value at reset
    * Type: {'in':regType
    * Fun: out <= (rst|clr) ? resetval : en ? in : out;
-   * Argchecks: 
+   * Argchecks:
    */
-  auto regFun = [](Context* c, Args args) { 
+  auto regFun = [](Context* c, Args args) {
     uint width = args.at("width")->get<int>();
     bool en = args.at("en")->get<bool>();
     bool clr = args.at("clr")->get<bool>();
@@ -159,7 +159,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
   reg->addDefaultGenArgs({{"en",Const(false)},{"clr",Const(false)},{"rst",Const(false)}});
   reg->addDefaultConfigArgs({{"init",Const(0)}});
-  
+
   json jverilog;
   jverilog["parameters"] = {"width","init"};
   jverilog["prefix"] = "coreir_";
@@ -177,9 +177,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return name;
   };
   reg->setNameGen(regNameGen);
-  
 
-  auto bitRegFun = [](Context* c, Args args) { 
+
+  auto bitRegFun = [](Context* c, Args args) {
     bool en = args.at("en")->get<bool>();
     bool clr = args.at("clr")->get<bool>();
     bool rst = args.at("rst")->get<bool>();
@@ -205,13 +205,13 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   auto bitreg = coreirprims->newGeneratorDecl("bitreg",bitRegTypeGen,bitRegGenParams,regConfigParams);
   bitreg->addDefaultGenArgs({{"en",Const(false)},{"clr",Const(false)},{"rst",Const(false)}});
   bitreg->addDefaultConfigArgs({{"init",Const(0)}});
-  
+
   jverilog["parameters"] = {"init"};
   jverilog["prefix"] = "coreir_";
   bitreg->getMetaData()["verilog"] = jverilog;
 
   Params memGenParams({{"width",AINT},{"depth",AINT}});
-  auto memFun = [](Context* c, Args args) { 
+  auto memFun = [](Context* c, Args args) {
     uint width = args.at("width")->get<int>();
     uint depth = args.at("depth")->get<int>();
     ASSERT(isPower2(width),"width needs to be a power of 2: " + to_string(width));
@@ -238,9 +238,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
 }
 
 Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
-  
+
   Namespace* coreirprims = c->newNamespace("coreir");
- 
+
   /////////////////////////////////
   // Stdlib Types
   /////////////////////////////////
@@ -249,11 +249,11 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //Single bit types
   coreirprims->newNamedType("clk","clkIn",c->Bit());
   coreirprims->newNamedType("rst","rstIn",c->Bit());
-  
+
   //Array types
   //coreirprims->newNominalTypeGen("int","intIn",widthparams,arrfun);
   //coreirprims->newNominalTypeGen("uint","uintIn",widthparams,arrfun);
-  
+
   //Common Function types
   coreirprims->newTypeGen(
     "unary",
@@ -306,7 +306,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       });
     }
   );
-  
+
   ////For repeat
   //coreirprims->newTypeGen(
   //  "unaryExpand",
@@ -334,7 +334,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       });
     }
   );
-  
+
   /////////////////////////////////
   // Stdlib bitwise primitives
   //   not,and,or,xor,andr,orr,xorr,shl,lshr,ashr,dshl,dlshr,dashr
@@ -358,6 +358,45 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       Generator* g = coreirprims->newGeneratorDecl(op,tg,widthparams);
       g->getMetaData()["verilog"] = jverilog;
     }
+  }
+  Params binaryCarryParams = Params(
+    {
+      {"width",AINT},
+      {"has_cout",ABOOL},
+      {"has_cin",ABOOL}
+    }
+  );
+  coreirprims->newTypeGen(
+    "binaryCarry",
+    binaryCarryParams,
+    [](Context* c, Args args) {
+      uint width = args.at("width")->get<int>();
+      bool has_cout = args.at("has_cout")->get<bool>();
+      bool has_cin  = args.at("has_cin")->get<bool>();
+      Type* ptype = c->Bit()->Arr(width);
+      RecordParams recordParams({
+        {"in0",c->Flip(ptype)},
+        {"in1",c->Flip(ptype)},
+        {"out",ptype},
+      });
+      if (has_cout) recordParams.push_back({"cout", c->Bit()});
+      if (has_cin) recordParams.push_back({"cin", c->BitIn()});
+      return c->Record(recordParams);
+    }
+  );
+  TypeGen* binaryCarryTypeGen = coreirprims->getTypeGen("binaryCarry");
+  for (auto op : {"add", "sub"}) {
+      Generator* genDecl = coreirprims->newGeneratorDecl(
+        op, binaryCarryTypeGen, binaryCarryParams
+      );
+      genDecl->addDefaultGenArgs(
+        {{"has_cout", Const(false)},
+         {"has_cin", Const(false)}}
+      );
+      json binaryCarryVerilog;
+      binaryCarryVerilog["parameters"] = {"width"};
+      binaryCarryVerilog["prefix"] = "coreir_";
+      genDecl->getMetaData()["verilog"] = binaryCarryVerilog;
   }
 
   //Do The
@@ -392,9 +431,9 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   // Stdlib convert primitives
   //   slice,concat,cast,strip
   /////////////////////////////////
-  //TODO 
+  //TODO
   //coreirprims_convert(c,coreirprims);
-  
+
   //This defines a passthrough module. It is basically a nop that just passes the signal through
   Params passthroughParams({
     {"type",ATYPE},
@@ -411,17 +450,17 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     }
   );
   coreirprims->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
-  
+
 
   /////////////////////////////////
   // Stdlib stateful primitives
   //   reg, ram, rom
   /////////////////////////////////
   coreirprims_state(c,coreirprims);
-  
+
   //Add Const
   coreirprims->newTypeGen(
-    "out", 
+    "out",
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<int>();
@@ -445,7 +484,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
 
   //Add Term
   coreirprims->newTypeGen(
-    "in", 
+    "in",
     widthparams,
     [](Context* c, Args args) {
       uint width = args.at("width")->get<int>();
@@ -458,7 +497,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newGeneratorDecl("term",coreirprims->getTypeGen("in"),widthparams);
 
   coreirprims->newModuleDecl("bitterm",c->Record({{"in",c->BitIn()}}));
-  
+
   /////////////////////////////////
   // Stdlib convert primitives
   //   slice,concat,cast,strip

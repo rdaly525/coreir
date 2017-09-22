@@ -14,7 +14,7 @@ clean:
 	rm -rf build/*
 
 build/%: build/%.o 
-	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
+	$(CXX) $(LDFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
 	cp $@ $(HOME)/bin
 
 build/%.o: %.cpp
