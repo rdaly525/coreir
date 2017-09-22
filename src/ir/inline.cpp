@@ -91,6 +91,25 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
   }
 }
 
+namespace {
+void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to, unordered_set<Wireable*>& completed) {
+  for (auto other : from->getConnectedWireables()) {
+    if (completed.count(other)==0) {
+      def->connect(to,other);
+    }
+  }
+  for (auto other : from->getConnectedWireables()) {
+    if (completed.count(other)==0) {
+      def->disconnect(from,other);
+      completed.insert(other);
+    }
+  }
+  for (auto sels : from->getSelects()) {
+    PTTraverse(def,sels.second,to->sel(sels.first),completed);
+  }
+}
+}
+
 //addPassthrough will create a passthrough Module for Wireable w with name <name>
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
@@ -101,9 +120,8 @@ Instance* addPassthrough(Wireable* w,string instname) {
   //This means that there can be nothing higher in the select path tha is connected
   Context* c = w->getContext();
   Wireable* wcheck = w;
-  //TODO this is really buggy. Test passing in a select
   while (Select* wchecksel = dyn_cast<Select>(wcheck)) {
-    Wireable* wcheck = wchecksel->getParent();
+    wcheck = wchecksel->getParent();
     ASSERT(wcheck->getConnectedWireables().size()==0,"Cannot add a passthrough to a wireable with connected selparents");
   }
   ModuleDef* def = w->getContainer();
@@ -112,15 +130,8 @@ Instance* addPassthrough(Wireable* w,string instname) {
   //Add actual passthrough instance
   Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",c->argType(wtype)}});
   
-  LocalConnections cons = w->getLocalConnections();
-  for (auto con : cons) {
-    SelectPath curPath = con.first->getSelectPath();
-    curPath[0] = "out";
-    curPath.push_front(instname);
-    SelectPath otherPath = con.second->getSelectPath();
-    def->connect(curPath,otherPath);
-    def->disconnect(con.first,con.second);
-  }
+  unordered_set<Wireable*> completed;
+  PTTraverse(def,w,pt->sel("out"),completed);
   
   //Connect the passthrough back to w
   def->connect(w,pt->sel("in"));
@@ -167,6 +178,7 @@ bool inlineInstance(Instance* inst) {
 
   //Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(),"_insidePT");
+  
 
   string inlinePrefix = inst->getInstname() + SEP;
 
