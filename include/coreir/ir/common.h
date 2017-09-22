@@ -69,7 +69,7 @@ static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
   {"unaryReduce",{"andr","orr","xorr"}},
   {"binary",{
     "and","or","xor",
-    "dshl","dlshr","dashr",
+    "shl","lshr","ashr",
     "mul",
     "udiv","urem",
     "sdiv","srem","smod"
