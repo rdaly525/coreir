@@ -13,16 +13,26 @@ int main() {
 
   uint8_t expected = 8;
 
+  circuit_state state;
+  state.self_en = en;
+  state.self_a = a;
+  state.self_clk = clk;
+  state.self_clk_last = clk_last;
+  state.r_old_value = r_old;
+  state.r_new_value = &r_new;
+
   for (int i = 1; i < 4; i++) {
-    clk = i % 2;
+    state.self_clk = i % 2;
 
     //simulate(en, &out, a, clk, clk_last, r_old, &r_new);
-    simulate(&r_new, &out, r_old, a, clk, clk_last, en); //, &r_new);
+    //simulate(&r_new, &out, r_old, a, clk, clk_last, en); //, &r_new);
+
+    simulate(&state);
 
     printf("New register value = %c\n", r_new);
     
-    clk_last = clk;
-    r_old = r_new;
+    state.self_clk_last = state.self_clk;
+    state.r_old_value = *(state.r_new_value);
   }
 
   printf("Expected       = %c\n", expected);
