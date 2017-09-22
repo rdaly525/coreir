@@ -15,17 +15,18 @@ int main() {
   circuit_state state;
   state.self_en = self_en;
   state.self_clk = self_clk;
-  state.ri_old_value = 0;
+  state.self_clk_last = self_clk_last;
+  state.ri_old_value = ri_old_value;
   state.ri_new_value = &ri_new_value;
   state.self_out = self_out;
   
   //simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
   simulate(&state);
 
-  printf("output = %hu\n", self_out);
+  printf("output = %hu\n", state.self_out);
   printf("new_register value = %hu\n", ri_new_value);
   
-  if ((*(state.ri_new_value) != 5) || (self_out != 5)) {
+  if ((*(state.ri_new_value) != 5) || (state.self_out != 5)) {
     return 1;
   }
 
@@ -38,7 +39,7 @@ int main() {
   printf("output = %hu\n", self_out);
   printf("new_register value = %hu\n", ri_new_value);
 
-  if ((ri_new_value != 5) || (self_out != 5)) {
+  if ((*(state.ri_new_value) != 5) || (state.self_out != 5)) {
     return 1;
   }
   
