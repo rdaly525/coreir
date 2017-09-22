@@ -6,21 +6,25 @@
 using namespace std;
 
 int main() {
-  uint8_t A[2];
-  A[0] = (1 << 4) + 1;
-  A[1] = 2;
+  circuit_state state;
+  //  uint8_t A[2];
+  state.self_A[0] = (1 << 4) + 1;
+  state.self_A[1] = 2;
 
   // -15 / 2 == -7
   uint8_t expected = 0b11001;
 
-  uint8_t res = 234;
+  //uint8_t res = 234;
+  state.self_out = 234;
 
-  simulate(&res, A);
+  //simulate(&res, A);
+
+  simulate(&state);
 
   cout << "sdiv expected = " << bitset<8>(expected) << endl;
-  cout << "sdiv res      = " << bitset<8>(res) << endl;
+  //cout << "sdiv res      = " << bitset<8>(res) << endl;
 
-  if (expected == res) {
+  if (expected == state.self_out) {
     return 0;
   }
 
