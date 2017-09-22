@@ -105,25 +105,25 @@ namespace CoreIR {
   }
 
   std::string callSimulate(Module& mod) {
-    vector<string> args;
+    // vector<string> args;
 
-    for (auto& arg : simOutputVarDecls(mod)) {
-      args.push_back("&" + arg.second);
-    }
+    // for (auto& arg : simOutputVarDecls(mod)) {
+    //   args.push_back("&" + arg.second);
+    // }
 
-    vector<pair<Type*, string> > decls = simInputs(mod);
+    // vector<pair<Type*, string> > decls = simInputs(mod);
 
-    sort_lt(decls, [](const pair<Type*, string>& tpp) {
-	return tpp.second;
-      });
+    // sort_lt(decls, [](const pair<Type*, string>& tpp) {
+    // 	return tpp.second;
+    //   });
 
-    for (auto& arg : decls) {
-      args.push_back(arg.second);
-    }
+    // for (auto& arg : decls) {
+    //   args.push_back(arg.second);
+    // }
 
     string res = ln("std::clock_t    start");
     res += ln("start = std::clock()");
-    res += ln("simulate( " + commaSepList(args) + " )");
+    res += ln("simulate( &state )");
     res += ln("std::cout << \"Time: \" << (std::clock() - start) / (double)(CLOCKS_PER_SEC / 1000) << \" ms\" << std::endl");
 
     return res;
@@ -136,10 +136,11 @@ namespace CoreIR {
     res += "#include \"many_ops.h\"\n\n";
     res += "int main() {\n";
 
-    res += declareInputs(*mod);
-    res += declareOutputs(*mod);
+    res += ln("circuit_state state");
+    // res += declareInputs(*mod);
+    // res += declareOutputs(*mod);
 
-    res += randomSimInputString(mod);
+    // res += randomSimInputString(mod);
 
     res += callSimulate(*mod);
 
