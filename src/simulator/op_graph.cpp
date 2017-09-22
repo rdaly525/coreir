@@ -263,11 +263,10 @@ namespace CoreIR {
 
       c2_disc = (*c2_disc_it).second;
     }
-      
+
     edisc ed = g.addEdge(c1_disc, c2_disc);
 
     g.addEdgeLabel(ed, conn);
-    
   }
 
   void addWireableToGraph(Wireable* w1,

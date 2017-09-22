@@ -506,7 +506,9 @@ namespace CoreIR {
 	  // If not an instance copy the input values
 	  for (auto inConn : inConns) {
 
-	    str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
+	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
+
+	    str += ln(cVar(*(inConn.second.getWire())) + " = " + printOpResultStr(inConn.first, g));
 	  }
 
 	}
@@ -615,7 +617,9 @@ namespace CoreIR {
       } else {
 	assert(tp->isOutput());
 
-	declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
+	declStrs.push_back({tp, "self_" + name_type_pair.first});
+	
+	//declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
       }
     }
 
@@ -680,7 +684,7 @@ namespace CoreIR {
   }
 
   std::string printEvalStruct(CoreIR::Module* mod) {
-    string res = "struct eval {\n";
+    string res = "struct circuit_state {\n";
 
     auto declStrs = sortedSimArgumentList(*mod);
     for (auto& dstr : declStrs) {
