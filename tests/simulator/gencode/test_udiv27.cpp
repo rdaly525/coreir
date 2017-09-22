@@ -5,19 +5,24 @@
 using namespace std;
 
 int main() {
-  uint32_t A[2];
-  A[0] = 25;
-  A[1] = 5;
+
+  circuit_state state;
+  //uint32_t A[2];
+  state.self_A[0] = 25;
+  state.self_A[1] = 5;
 
   uint32_t expected = 5;
-  uint32_t res = 30;
+  //uint32_t res = 30;
+  state.self_out = 30;
 
-  simulate(&res, A);
+  //simulate(&res, A);
 
-  cout << "udiv expected = " << expected << endl;
-  cout << "udiv res      = " << res << endl;
+  simulate(&state);
 
-  if (expected == res) {
+  // cout << "udiv expected = " << expected << endl;
+  // cout << "udiv res      = " << res << endl;
+
+  if (expected == state.self_out) {
     return 0;
   }
 

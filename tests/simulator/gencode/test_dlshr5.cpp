@@ -6,20 +6,22 @@
 using namespace std;
 
 int main () {
-  uint8_t A[2];
-  A[0] = 1 << 4;
-  A[1] = 3;
+  circuit_state state;
+  state.self_A[0] = 1 << 4;
+  state.self_A[1] = 3;
 
-  uint8_t res;
+  //uint8_t res;
 
-  simulate(&res, A);
+  //simulate(&res, A);
+
+  simulate(&state);
 
   uint8_t expected = 1 << 1;
 
   cout << "dlshr5 expected = " << bitset<8>(expected) << endl;
-  cout << "dlshr5 res      = " << bitset<8>(res) << endl;
+  //cout << "dlshr5 res      = " << bitset<8>(res) << endl;
 
-  if (res == expected) {
+  if (state.self_out == expected) {
     return 0;
   }
 
