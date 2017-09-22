@@ -12,18 +12,28 @@ int main() {
 
   uint16_t ri_new_value = 1;
 
-  simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
+  circuit_state state;
+  state.self_en = self_en;
+  state.self_clk = self_clk;
+  state.ri_old_value = 0;
+  state.ri_new_value = &ri_new_value;
+  state.self_out = self_out;
+  
+  //simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
+  simulate(&state);
 
   printf("output = %hu\n", self_out);
   printf("new_register value = %hu\n", ri_new_value);
   
-  if ((ri_new_value != 5) || (self_out != 5)) {
+  if ((*(state.ri_new_value) != 5) || (self_out != 5)) {
     return 1;
   }
 
-  self_clk = 1;
-  self_en = 0;
-  simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
+  state.self_clk = 1;
+  state.self_en = 0;
+  simulate(&state);
+
+  //simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
 
   printf("output = %hu\n", self_out);
   printf("new_register value = %hu\n", ri_new_value);

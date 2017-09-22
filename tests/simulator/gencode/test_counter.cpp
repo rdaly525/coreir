@@ -13,12 +13,23 @@ int main() {
   uint16_t ri_new_value = 0;
 
   for (int i = 0; i < 20; i++) {
+
     self_clk = i % 2;
-    simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
+    
+    circuit_state state;
+    state.self_en = self_en;
+    state.self_clk = self_clk;
+    state.ri_old_value = 0;
+    state.ri_new_value = &ri_new_value;
+    state.self_out = self_out;
+
+    //simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
+
+    simulate(&state);
 
     // Copy old values to new values
-    self_clk_last = self_clk;
-    ri_old_value = ri_new_value;
+    state.self_clk_last = state.self_clk;
+    state.ri_old_value = *(state.ri_new_value);
   }
 
   printf("output = %hu\n", self_out);
