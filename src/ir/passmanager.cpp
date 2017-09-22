@@ -61,9 +61,7 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
   bool ret = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
   for (auto node : cig->getInstanceGraph()->getSortedNodes()) {
-    cout << "running pass " << node->getInstantiable()->getName() << endl;
     bool modified = igpass->runOnInstanceGraphNode(*node);
-    cout << "finished running pass " << node->getInstantiable()->getName() << endl;
     ret |= modified;
   }
   return ret;
