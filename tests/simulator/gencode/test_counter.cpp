@@ -12,16 +12,17 @@ int main() {
 
   uint16_t ri_new_value = 0;
 
+  circuit_state state;
+  state.self_en = self_en;
+  state.self_clk = self_clk;
+  state.self_clk_last = 1;
+  state.ri_old_value = 0;
+  state.ri_new_value = &ri_new_value;
+  state.self_out = self_out;
+  
   for (int i = 0; i < 20; i++) {
 
-    self_clk = i % 2;
-    
-    circuit_state state;
-    state.self_en = self_en;
-    state.self_clk = self_clk;
-    state.ri_old_value = 0;
-    state.ri_new_value = &ri_new_value;
-    state.self_out = self_out;
+    state.self_clk = i % 2;
 
     //simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
 
@@ -32,10 +33,10 @@ int main() {
     state.ri_old_value = *(state.ri_new_value);
   }
 
-  printf("output = %hu\n", self_out);
+  printf("output = %hu\n", state.self_out);
   printf("new_register value = %hu\n", ri_new_value);
   
-  if ((ri_new_value != 10) || (self_out != 9)) {
+  if ((*(state.ri_new_value) != 10) || (state.self_out != 9)) {
 
     return 1;
   }
