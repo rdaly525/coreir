@@ -10,6 +10,11 @@ namespace CoreIR {
     return fst->getKind() == CoreIR::Wireable::WK_Select;
   }
 
+  static inline CoreIR::Select* toSelect(CoreIR::Wireable* w) {
+    assert(isSelect(w));
+    return static_cast<CoreIR::Select*>(w);
+  }
+
   static inline bool isSelect(const CoreIR::Wireable& fst) {
     return fst.getKind() == CoreIR::Wireable::WK_Select;
   }
@@ -19,6 +24,16 @@ namespace CoreIR {
     return static_cast<CoreIR::Select&>(fst);
   }
 
+  static inline bool fromSelf(CoreIR::Select* w) {
+    CoreIR::Wireable* parent = w->getParent();
+    if (isSelect(parent)) {
+      return fromSelf(toSelect(parent));
+    }
+
+    return parent->toString() == "self";
+  }
+
+  
   static inline bool isInstance(CoreIR::Wireable* fst) {
     return fst->getKind() == CoreIR::Wireable::WK_Instance;
   }
@@ -75,7 +90,14 @@ namespace CoreIR {
 	return cVar(*(s.getParent())) + "_" + s.getSelStr();
       }
     } else {
-      return w.toString();
+
+      if (w.toString() == "self") {
+	return "(state->" + w.toString() + ")";
+      } else {
+	return w.toString();
+      }
+
+      //return w.toString();
     }
   }
 
@@ -84,15 +106,21 @@ namespace CoreIR {
     if (isSelect(w)) {
       CoreIR::Select& s = toSelect(w);
       if (CoreIR::isNumber(s.getSelStr())) {
-	//cout << "select is number" << endl;
+
 	return cVar(*(s.getParent()), suffix) + "[" + s.getSelStr() + "]";
       } else {
-	//cout << "Select is not number" << endl;
+
 	return cVar(*(s.getParent())) + "_" + s.getSelStr() + suffix;
       }
     } else {
-      //cout << "Not a select" << endl;
-      return w.toString() + suffix;
+
+      if (w.toString() == "self") {
+	return "(state->" + w.toString() + suffix + ")";
+      } else {
+	return w.toString() + suffix;
+      }
+      
+      //return w.toString() + suffix;
     }
   }
 
@@ -112,7 +140,11 @@ namespace CoreIR {
       }
     } else {
 
-      return prefix + w.toString() + suffix;
+      if (w.toString() == "self") {      
+	return "(state->" + prefix + w.toString() + suffix + ")";
+      } else {
+	return prefix + w.toString() + suffix;
+      }
     }
   }
   
@@ -158,20 +190,6 @@ namespace CoreIR {
     std::string ss = s->getSelStr();
 
     return ss + " " + s->getType()->toString();
-  }
-
-  static inline CoreIR::Select* toSelect(CoreIR::Wireable* w) {
-    assert(isSelect(w));
-    return static_cast<CoreIR::Select*>(w);
-  }
-
-  static inline bool fromSelf(CoreIR::Select* w) {
-    CoreIR::Wireable* parent = w->getParent();
-    if (isSelect(parent)) {
-      return fromSelf(toSelect(parent));
-    }
-
-    return parent->toString() == "self";
   }
 
   uint typeWidth(CoreIR::Type& tp);

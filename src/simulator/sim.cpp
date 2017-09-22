@@ -707,9 +707,9 @@ namespace CoreIR {
     code += "using namespace bsim;\n\n";
 
     code += printEvalStruct(mod);
-    code += "void simulate( ";
+    code += "void simulate( circuit_state* state ";
 
-    code += printSimArguments(*mod);
+    //code += printSimArguments(*mod);
 
     code += + " );";
 
@@ -730,11 +730,17 @@ namespace CoreIR {
     code += seMacroDef();
     code += maskMacroDef();
     
-    code += "void simulate( ";
+    //code += "void simulate( ";
 
-    code += printSimArguments(*mod);
+    code += "void simulate( circuit_state* state ) {\n";
 
-    code += + " ) {\n";
+    //code += printSimArguments(*mod);
+
+    //code += + " );";
+    
+    //code += printSimArguments(*mod);
+
+    //code += + " ) {\n";
 
     code += printSimFunctionBody(topoOrder, g, *mod);
 
