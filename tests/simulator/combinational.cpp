@@ -722,7 +722,7 @@ namespace CoreIR {
       Module* dshlM = g->newModuleDecl("dshlM", dshlType);
       ModuleDef* def = dshlM->newModuleDef();
 
-      Generator* dshl = c->getGenerator("coreir.dshl");
+      Generator* dshl = c->getGenerator("coreir.shl");
 
       Wireable* self = def->sel("self");
       Wireable* dshl0 = def->addInstance("dshl0", dshl, {{"width", Const(n)}});
@@ -765,7 +765,7 @@ namespace CoreIR {
       Module* dashrM = g->newModuleDecl("dashrM", dashrType);
       ModuleDef* def = dashrM->newModuleDef();
 
-      Generator* dashr = c->getGenerator("coreir.dashr");
+      Generator* dashr = c->getGenerator("coreir.ashr");
 
       Wireable* self = def->sel("self");
       Wireable* dashr0 = def->addInstance("dashr0", dashr, {{"width", Const(n)}});
@@ -808,7 +808,7 @@ namespace CoreIR {
       Module* dlshrM = g->newModuleDecl("dlshrM", dlshrType);
       ModuleDef* def = dlshrM->newModuleDef();
 
-      Generator* dlshr = c->getGenerator("coreir.dlshr");
+      Generator* dlshr = c->getGenerator("coreir.lshr");
 
       Wireable* self = def->sel("self");
       Wireable* dlshr0 = def->addInstance("dlshr0", dlshr, {{"width", Const(n)}});

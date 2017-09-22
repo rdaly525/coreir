@@ -233,6 +233,7 @@ namespace CoreIR {
     assert(false);
   }
 
+  // getInstantiableRef 
   bool hasEnable(Wireable* w) {
     assert(isRegisterInstance(w));
 

@@ -236,12 +236,12 @@ namespace CoreIR {
 
   static inline bool isDASHR(Instance& inst) {
     std::string genRefName = getInstanceName(inst);
-    return genRefName == "dashr";
+    return genRefName == "ashr";
   }
 
   static inline bool isShiftOp(Instance& inst) {
     std::string genRefName = getInstanceName(inst);
-    std::vector<std::string> bitwiseOps{"dshl", "dlshr", "dashr"};
+    std::vector<std::string> bitwiseOps{"shl", "lshr", "ashr"};
     return elem(genRefName, bitwiseOps);
   }
 

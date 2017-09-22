@@ -74,9 +74,9 @@ namespace CoreIR {
       return " > ";
     } else if ((genRefName == "slt") || (genRefName == "ult")) {
       return " < ";
-    } else if (genRefName == "dshl") {
+    } else if (genRefName == "shl") {
       return " << ";
-    } else if ((genRefName == "dashr") || (genRefName == "dlshr")) {
+    } else if ((genRefName == "ashr") || (genRefName == "lshr")) {
       return " >> ";
     } else if ((genRefName == "udiv") || (genRefName == "sdiv")) {
       return " / ";
@@ -194,7 +194,7 @@ namespace CoreIR {
       int bitLength = (arrLen / 8) + 1 - (arrLen % 8 == 0);
 
       //return "uint8_t " + varName + "[ " + to_string(bitLength) + " ]";
-      return "bit_vector< " + to_string(bitLength) + " > " + varName;
+      return "bit_vector< " + to_string(arrLen) + " > " + varName;
     }
     
     if (isArray(t)) {
