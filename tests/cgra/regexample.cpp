@@ -17,7 +17,7 @@ int main() {
     def->addInstance("io0","cgralib.IO",w16,{{"mode",Const("i")}});
     def->addInstance("r0","coreir.reg",w16);
     def->addInstance("c0","coreir.const",w16,{{"value",Const(795)}});
-    def->addInstance("p0","cgralib.PE",{{"width",Const(16)}},{{"op",Const("add")}});
+    def->addInstance("p0","cgralib.PE",Args(),{{"op_kind",Const("combined")},{"alu_op",Const("add")}});
     def->addInstance("r1","coreir.reg",w16);
     def->addInstance("r2","coreir.reg",w16);
     def->addInstance("r3","coreir.reg",w16);
