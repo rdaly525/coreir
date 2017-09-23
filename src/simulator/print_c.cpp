@@ -6,14 +6,7 @@ namespace CoreIR {
 
   std::string cVar(const InstanceValue& w) {
     string cv = cVar(*(w.getWire()));
-    // if (w.isSequential) {
-    //   if (w.isReceiver) {
-    // 	return cv += "_receiver";
-    //   } else {
-    // 	return cv += "_source";
-    //   }
 
-    // }
     return cv;
   }
 
@@ -22,28 +15,12 @@ namespace CoreIR {
 		   const std::string& suffix) {
     string cv = cVar(prefix, *(w.getWire()), suffix);
 
-    // if (w.isSequential) {
-    //   if (w.isReceiver) {
-    // 	return cv += "_receiver";
-    //   } else {
-    // 	return cv += "_source";
-    //   }
-
-    // }
-
     return cv;
   }
   
   std::string cVar(const InstanceValue& w, const std::string& suffix) {
     string cv = cVar(*(w.getWire()), suffix);
-    // if (w.isSequential) {
-    //   if (w.isReceiver) {
-    // 	return cv += "_receiver";
-    //   } else {
-    // 	return cv += "_source";
-    //   }
 
-    // }
     return cv;
   }
 
@@ -191,7 +168,7 @@ namespace CoreIR {
     if (isBitArray(t)) {
       ArrayType& arrTp = toArray(t);
       int arrLen = arrTp.getLen();
-      int bitLength = (arrLen / 8) + 1 - (arrLen % 8 == 0);
+      //int bitLength = (arrLen / 8) + 1 - (arrLen % 8 == 0);
 
       //return "uint8_t " + varName + "[ " + to_string(bitLength) + " ]";
       return "bit_vector< " + to_string(arrLen) + " > " + varName;
