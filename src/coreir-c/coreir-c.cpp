@@ -15,7 +15,7 @@ extern "C" {
       case(STR2TYPE_ORDEREDMAP) : {
         char** skeys = (char**) keys;
         Type** types = (Type**) values;
-        RecordParams* tmap = c->newRecordParams(); 
+        RecordParams* tmap = c->newRecordParams();
         for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
           Type* t = types[i];
@@ -52,7 +52,7 @@ extern "C" {
     }
     return ret;
   }
-  
+
   COREContext* CORENewContext() {
     return rcast<COREContext*>(newContext());
   }
@@ -63,7 +63,7 @@ extern "C" {
   COREType* COREContextNamed(COREContext* context, const char* namespace_, const char* type_name) {
       return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_)+"."+std::string(type_name)));
   }
-  
+
   const char* COREGetInstantiableRefName(COREWireable* iref) {
     const string& name = cast<Instance>(rcast<Wireable*>(iref))->getInstantiableRef()->getName();
     return name.c_str();
@@ -76,7 +76,13 @@ extern "C" {
     ASSERT(configargs.count(str)>0, "ConfigArgs does not contain field: " + str);
     return rcast<COREArg*>(configargs[str].get());
   }
-  
+
+  bool COREHasConfigValue(COREWireable* i, char* s) {
+    string str(s);
+    Args configargs =cast<Instance>(rcast<Wireable*>(i))->getConfigArgs();
+    return configargs.count(str) > 0;
+  }
+
 
 
   //TODO update C api
@@ -96,7 +102,7 @@ extern "C" {
     *err = !correct;
     return rcast<COREModule*>(top);
   }
-  
+
   //bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
   void CORESaveModule(COREModule* module, char* filename, bool* err) {
     string file(filename);
@@ -109,11 +115,11 @@ extern "C" {
   CORENamespace* COREGetGlobal(COREContext* c) {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getGlobal());
   }
-  
+
   CORENamespace* COREGetNamespace(COREContext* c, char* name) {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getNamespace(std::string(name)));
   }
-  
+
   COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams) {
     Params g;
     if (configparams) g =*rcast<Params*>(configparams) ;
@@ -127,7 +133,7 @@ extern "C" {
   COREModuleDef* COREModuleGetDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->getDef());
   }
-  
+
   COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config) {
     return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
   }
@@ -256,17 +262,42 @@ extern "C" {
   const char* CORENamespaceGetName(CORENamespace* n) {
     return rcast<Namespace*>(n)->getName().c_str();
   }
-  
+
   COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name) {
       return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getInstantiable(std::string(name)));
+  }
+
+  bool CORENamespaceHasInstantiable(CORENamespace* _namespace, const char* name) {
+      std::map<std::string,Generator*> generators =
+          rcast<Namespace*>(_namespace)->getGenerators();
+      auto generator_it = generators.find(name);
+      if (generator_it != generators.end()) return true;
+      std::map<std::string,Module*> modules =
+          rcast<Namespace*>(_namespace)->getModules();
+      auto module_it = modules.find(name);
+      return module_it != modules.end();
   }
 
   COREInstantiable* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name) {
       return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getGenerator(std::string(name)));
   }
 
+  bool CORENamespaceHasGenerator(CORENamespace* _namespace, const char* name) {
+      std::map<std::string,Generator*> generators =
+          rcast<Namespace*>(_namespace)->getGenerators();
+      auto it = generators.find(name);
+      return it != generators.end();
+  }
+
   COREInstantiable* CORENamespaceGetModule(CORENamespace* _namespace, const char* name) {
       return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
+  }
+
+  bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name) {
+      std::map<std::string,Module*> modules =
+          rcast<Namespace*>(_namespace)->getModules();
+      auto it = modules.find(name);
+      return it != modules.end();
   }
 
   const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection, int* path_len) {
@@ -320,8 +351,8 @@ extern "C" {
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
-  
-  COREDirectedInstance** COREDirectedModuleGetInstances(COREDirectedModule* directed_module, int* num_instances) { 
+
+  COREDirectedInstance** COREDirectedModuleGetInstances(COREDirectedModule* directed_module, int* num_instances) {
       DirectedModule* module = rcast<DirectedModule*>(directed_module);
       DirectedInstances directed_instances = module->getInstances();
       int size = directed_instances.size();
