@@ -16,4 +16,6 @@ class SimModule : public ModulePass {
   void print() override;
 
 
+  // Add custom function to help with file output to output to stream
+  // and move this to coreir/passes IGNORE FOR NOW
 };
