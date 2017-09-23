@@ -256,7 +256,8 @@ namespace CoreIR {
 
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
-    string s = "*(state->" + rName + "_new_value) = ";
+    //string s = "*(state->" + rName + "_new_value) = ";
+    string s = "state->" + rName + "_new_value = ";
     InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
 
@@ -555,7 +556,8 @@ namespace CoreIR {
 	string regName = is->getInstname();
 
 	declStrs.push_back({itp, regName + "_old_value"});
-	declStrs.push_back({itp, "(*" + regName + "_new_value)"});
+	//declStrs.push_back({itp, "(*" + regName + "_new_value)"});
+	declStrs.push_back({itp, regName + "_new_value"});
 	
       }
     }
