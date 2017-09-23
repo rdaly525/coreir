@@ -7,6 +7,10 @@
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
 
+#include "../simulator/output.hpp"
+#include "../simulator/sim.hpp"
+#include "../simulator/utils.hpp"
+
 using namespace std;
 using namespace CoreIR;
 
@@ -61,29 +65,6 @@ int main(int argc, char *argv[]) {
   
   
   Context* c = newContext();
-  // //Load external passes
-  // if (options.count("e")) {
-  //   vector<string> libs = splitString<vector<string>>(options["e"].as<string>(),',');
-  //   //Open all the libs
-  //   for (auto lib : libs) {
-  //     ASSERT(openPassHandles.count(lib)==0,"Cannot REopen " + lib);
-  //     void* libHandle = dlopen(lib.c_str(),RTLD_LAZY);
-  //     ASSERT(libHandle,"Cannot open file: " + lib);
-  //     dlerror();
-  //     //Load the registerpass
-  //     register_pass_t* registerPass = (register_pass_t*) dlsym(libHandle,"registerPass");
-  //     const char* dlsym_error = dlerror();
-  //     if (dlsym_error) {
-  //       cout << "ERROR: Cannot load symbol registerPass: " << dlsym_error << endl;
-  //       shutdown(c,openPassHandles,openLibHandles);
-  //       return 1;
-  //     }
-  //     Pass* p = registerPass();
-  //     ASSERT(p,"P is null");
-  //     openPassHandles[lib] = {libHandle,p};
-  //     c->addPass(p);
-  //   }
-  // }
   
   if (options.count("l")) {
     vector<string> files = splitString<vector<string>>(options["l"].as<string>(),',');
@@ -153,6 +134,10 @@ int main(int argc, char *argv[]) {
   string topRef = "";
   if (top) topRef = top->getRefName();
 
+  NGraph gr;
+  buildOrderedGraph(top, gr);
+  deque<vdisc> topoOrder = topologicalSort(gr);
+  
   //Load and run passes
   bool modified = false;
   if (options.count("p")) {
@@ -162,31 +147,6 @@ int main(int argc, char *argv[]) {
   }
   
   vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
-
-  //Output to correct format
-  if (outExt=="json") {
-    c->runPasses({"coreirjson"},namespaces);
-    auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
-    jpass->writeToStream(*sout,topRef);
-  }
-  else if (outExt=="fir") {
-    c->runPasses({"firrtl"});
-    //Get the analysis pass
-    auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
-    
-    //Create file here.
-    fpass->writeToStream(*sout);
-  }
-  else if (outExt=="v") {
-    modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
-    auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
-    
-    vpass->writeToStream(*sout);
-  }
-  else {
-    cout << "NYI" << endl;
-  }
-  cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
 
   //Shutdown
   if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
