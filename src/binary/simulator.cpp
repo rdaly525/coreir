@@ -22,26 +22,6 @@ string getExt(string s) {
 
 typedef std::map<std::string,std::pair<void*,Pass*>> OpenPassHandles_t;
 typedef std::map<std::string,std::pair<void*,Namespace*>> OpenLibHandles_t;
-bool shutdown(Context* c,OpenPassHandles_t openPassHandles, OpenLibHandles_t openLibHandles) {
-  bool err = false;
-  //Close all the open passes
-  for (auto handle : openPassHandles) {
-    //Load the registerpass
-    delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
-    const char* dlsym_error = dlerror();
-    if (dlsym_error) {
-      err = true;
-      cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
-      continue;
-    }
-    deletePass(handle.second.second);
-  }
-
-  deleteContext(c);
-  return !err;
-}
-
-
 
 int main(int argc, char *argv[]) {
   //int argc_copy = argc;
@@ -66,66 +46,11 @@ int main(int argc, char *argv[]) {
   
   Context* c = newContext();
   
-  // if (options.count("l")) {
-  //   vector<string> files = splitString<vector<string>>(options["l"].as<string>(),',');
-  //   for (auto file : files) {
-  //     vector<string> f1parse = splitString<vector<string>>(file,'/');
-  //     string libfile = f1parse[f1parse.size()-1];
-  //     vector<string> f2parse = splitRef(libfile);
-  //     ASSERT(f2parse[1]=="so" || f2parse[1]=="dylib","Bad file: " + file);
-  //     string libname = f2parse[0].substr(10,f2parse[0].length()-10);
-
-  //     ASSERT(openLibHandles.count(file)==0,"Cannot REopen " + file);
-  //     void* libHandle = dlopen(file.c_str(),RTLD_LAZY);
-  //     ASSERT(libHandle,"Cannot open file: " + file);
-  //     dlerror();
-  //     //Load the Libraries
-  //     string funname = "ExternalLoadLibrary_"+libname;
-  //     LoadLibrary_t* loadLib = (LoadLibrary_t*) dlsym(libHandle,funname.c_str());
-  //     const char* dlsym_error = dlerror();
-  //     if (dlsym_error) {
-  //       cout << "ERROR: Cannot load symbol " << funname << ": " << dlsym_error << endl;
-  //       shutdown(c,openPassHandles,openLibHandles);
-  //       return 1;
-  //     }
-  //     Namespace* ns = loadLib(c);
-  //     ASSERT(ns,"NS is null in file " + file);
-  //     openLibHandles[file] = {libHandle,ns};
-  //   }
-  // }
-  
-  // if (options.count("h") || argc_copy==1) {
-  //   cout << options.help() << endl << endl;
-  //   c->getPassManager()->printPassChoices();
-  //   cout << endl;
-  //   if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
-  //   return 0;
-  // }
-  
-  // if (options.count("v")) {
-  //   c->getPassManager()->setVerbosity(options["v"].as<bool>());
-  // }
-
   ASSERT(options.count("i"),"No input specified")
   string infileName = options["i"].as<string>();
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");
   
-  // std::ostream* sout = &std::cout;
-  // std::ofstream fout;
-  // string outExt = "json";
-  // if (options.count("o")) {
-  //   string outfileName = options["o"].as<string>();
-  //   outExt = getExt(outfileName);
-  //   ASSERT(outExt == "json" 
-  //       || outExt == "txt"
-  //       || outExt == "fir"
-  //       || outExt == "v", "Cannot support out extention: " + outExt);
-  //   fout.open(outfileName);
-  //   ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
-  //   sout = &fout;
-  // }
-
   //Load input
   Module* top;
   if (!loadFromFile(c,infileName,&top)) {
@@ -144,18 +69,5 @@ int main(int argc, char *argv[]) {
 
   writeFiles(topoOrder, gr, top, codePath, codeFile, hFile);
   
-  
-  // //Load and run passes
-  // bool modified = false;
-  // if (options.count("p")) {
-  //   string plist = options["p"].as<string>();
-  //   vector<string> porder = splitString<vector<string>>(plist,',');
-  //   modified = c->runPasses(porder);
-  // }
-  
-  //vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
-
-  //Shutdown
-  if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
   return 0;
 }
