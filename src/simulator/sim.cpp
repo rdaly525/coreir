@@ -556,7 +556,6 @@ namespace CoreIR {
 	string regName = is->getInstname();
 
 	declStrs.push_back({itp, regName + "_old_value"});
-	//declStrs.push_back({itp, "(*" + regName + "_new_value)"});
 	declStrs.push_back({itp, regName + "_new_value"});
 	
       }

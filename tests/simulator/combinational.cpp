@@ -1010,6 +1010,47 @@ namespace CoreIR {
       REQUIRE(s == 0);
       
     }
+
+    SECTION("38 bit orr") {
+      uint n = 38;
+  
+      Type* orrType = c->Record({
+	  {"A",    c->Array(n, c->BitIn()) },
+	    {"out", c->Bit() }
+	});
+
+      Module* orrM = g->newModuleDecl("orrM", orrType);
+      ModuleDef* def = orrM->newModuleDef();
+
+      Generator* orr = c->getGenerator("coreir.orr");
+
+      Wireable* self = def->sel("self");
+      Wireable* orr0 = def->addInstance("orr0", orr, {{"width", Const(n)}});
+
+      def->connect("self.A", "orr0.in");
+      def->connect(orr0->sel("out"), self->sel("out"));
+
+      orrM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(orrM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "orr38";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				orrM,
+				"./gencode/",
+				outFile,
+				"test_orr38.cpp");
+
+      REQUIRE(s == 0);
+    }
     
     SECTION("Circuit with module references") {
 
