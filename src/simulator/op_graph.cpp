@@ -282,13 +282,11 @@ namespace CoreIR {
 	WireNode wInput = receiverNode(w1); //{w1, true, true};
 
 	if (imap.find(wOutput) == end(imap)) {
-	  cout << "Adding register output" << endl;
 	  auto v1 = g.addVertex(wOutput);
 	  imap.insert({wOutput, v1});
 	}
 
 	if (imap.find(wInput) == end(imap)) {
-	  cout << "Adding register input" << endl;
 	  auto v1 = g.addVertex(wInput);
 	  imap.insert({wInput, v1});
 	}
@@ -344,8 +342,6 @@ namespace CoreIR {
   }
 
   void buildOrderedGraph(Module* mod, NGraph& g) {
-
-    //cout << "Building ordered conns" << endl;
 
     auto ord_conns = buildOrderedConnections(mod);
 

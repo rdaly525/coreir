@@ -47,7 +47,6 @@ namespace CoreIR {
 
       uint w = typeWidth(*(cn.first.getWire()->getType()));
       val = parens(printOpResultStr(cn.first, g) + " == " + bitMaskString(w));
-      
 
     }
 
@@ -92,12 +91,6 @@ namespace CoreIR {
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inConns = getInputConnections(vd, g);
-
-    // cout << "Input connections" << endl;
-    // for (auto& conn : inConns) {
-    //   cout << "first  = " << conn.first.getWire()->toString() << endl;
-    //   cout << "second = " << conn.second.getWire()->toString() << endl;
-    // }
 
     assert(inConns.size() == 2);
 
