@@ -43,6 +43,7 @@ Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparam
     auto const &gen_param = genparams.find(type_param.first);
     ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
     ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
+    ASSERT(gen_param->second == type_param.second,"Param type mismatch for: " + gen_param->first + " (" + Param2Str(gen_param->second)+ " vs " + Param2Str(type_param.second)+")");
   }
 }
 

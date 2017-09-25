@@ -9,6 +9,7 @@
 #include "coreir/ir/instantiable.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/args.h"
 
 using namespace std;
 
@@ -292,12 +293,12 @@ Args json2Args(Context* c, Params genparams, json j) {
       throw std::runtime_error(key + " does not exist in params!");
     }
     Param kind = genparams.at(key);
-    Arg* g;
+    shared_ptr<Arg> g;
     switch(kind) {
-      case ABOOL : g = c->argBool(j.at(key).get<bool>()); break;
-      case AINT : g = c->argInt(j.at(key).get<int>()); break;
-      case ASTRING : g = c->argString(j.at(key).get<string>()); break;
-      case ATYPE : g = c->argType(json2Type(c,j.at(key))); break;
+      case ABOOL : g = Const(j.at(key).get<bool>()); break;
+      case AINT : g = Const(j.at(key).get<int>()); break;
+      case ASTRING : g = Const(j.at(key).get<string>()); break;
+      case ATYPE : g = Const(json2Type(c,j.at(key))); break;
       default :  throw std::runtime_error(Param2Str(kind) + "is not a valid arg param!");
     }
     gargs[key] = g;

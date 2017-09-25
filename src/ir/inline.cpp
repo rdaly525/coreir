@@ -4,6 +4,7 @@
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/types.h"
+#include "coreir/ir/args.h"
 
 using namespace std;
 namespace CoreIR {
@@ -134,7 +135,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
   Type* wtype = w->getType();
   
   //Add actual passthrough instance
-  Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",c->argType(wtype)}});
+  Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",Const(wtype)}});
   
   unordered_set<Wireable*> completed;
   PTTraverse(def,w,pt->sel("out"),completed);

@@ -14,14 +14,14 @@ int main() {
   
   Namespace* sl = c->getNamespace("coreir");
 
-  Args wargs({{"width",c->argInt(19)}});
+  Args wargs({{"width",Const(19)}});
   
   // Define random module with subs
   Module* ms = prj->newModuleDecl("SNRTestSub",c->Record());
   ModuleDef* def = ms->newModuleDef();
-    def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(5)}});
-    def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",c->argInt(5)}});
-    def->addInstance("c2",sl->getGenerator("const"),wargs,{{"value",c->argInt(2)}});
+    def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",Const(5)}});
+    def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",Const(5)}});
+    def->addInstance("c2",sl->getGenerator("const"),wargs,{{"value",Const(2)}});
     def->addInstance("s0",sl->getGenerator("sub"),wargs);
     def->addInstance("s1",sl->getGenerator("sub"),wargs);
     def->addInstance("m0",sl->getGenerator("mul"),wargs);
@@ -37,9 +37,9 @@ int main() {
   // Define same random module with adds instead of subs and operands switched
   Module* ma = g->newModuleDecl("SNRTestAdd",c->Record());
   def = ma->newModuleDef();
-    def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(0)}});
-    def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",c->argInt(1)}});
-    def->addInstance("c2",sl->getGenerator("const"),wargs,{{"value",c->argInt(2)}});
+    def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",Const(0)}});
+    def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",Const(1)}});
+    def->addInstance("c2",sl->getGenerator("const"),wargs,{{"value",Const(2)}});
     def->addInstance("a0",sl->getGenerator("add"),wargs);
     def->addInstance("a1",sl->getGenerator("add"),wargs);
     def->addInstance("m0",sl->getGenerator("mul"),wargs);
@@ -81,7 +81,7 @@ int main() {
   Module* patternC = patns->newModuleDecl("cpat",cType);
   pdef = patternC->newModuleDef();
     pdef->addInstance("a0",sl->getGenerator("add"),wargs);
-    pdef->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",c->argInt(31)}});
+    pdef->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",Const(31)}});
     pdef->connect("self.in","a0.in1");
     pdef->connect("c0.out","a0.in0");
     pdef->connect("self.out","a0.out");

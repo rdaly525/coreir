@@ -29,7 +29,7 @@ Select* Wireable::sel(string selStr) {
     return selects[selStr];
   }
   ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
-   
+
   Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
   selects[selStr] = select;
   return select;
@@ -67,7 +67,7 @@ ConstSelectPath Wireable::getConstSelectPath() {
     const string& instname = iface->getInstname();
     path.insert(path.begin(), instname);
   }
-  else if (auto inst = dyn_cast<Instance>(top)) { 
+  else if (auto inst = dyn_cast<Instance>(top)) {
     const string& instname = inst->getInstname();
     path.insert(path.begin(), instname);
   }
@@ -107,7 +107,7 @@ SelectPath Wireable::getSelectPath() {
     path.push_front(s->getSelStr());
     top = s->getParent();
   }
-  if (isa<Interface>(top)) 
+  if (isa<Interface>(top))
     path.push_front("self");
   else { //This should be an instance
     string instname = cast<Instance>(top)->getInstname();
@@ -156,15 +156,6 @@ Wireable* Wireable::getTopParent() {
   return top;
 }
 
-//merge a1 into a0 
-void mergeArgs(Args& a0, Args a1) {
-  for (auto arg : a1) {
-    if (a0.count(arg.first)==0) {
-      a0.insert(arg);
-    }
-  }
-}
-
 
 Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
@@ -173,7 +164,7 @@ Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Arg
   //Check if configargs is the same as expected by ModuleRef
   checkArgsAreParams(configargs,moduleRef->getConfigParams());
   this->configargs = configargs;
-  
+
   //TODO checkif instname is unique
   this->type = moduleRef->getType();
 }
@@ -198,13 +189,7 @@ string Instance::toString() const {
   return instname;
 }
 
-//TODO this could throw an error. Bad!
-Arg* Instance::getConfigArg(string s) { 
-  ASSERT(configargs.count(s)>0, "ConfigArgs does not contain field: " + s);
-  return configargs.at(s);
-}
-
-Instantiable* Instance::getInstantiableRef() { 
+Instantiable* Instance::getInstantiableRef() {
   if (isgen) return generatorRef;
   else return moduleRef;
 }
@@ -217,11 +202,11 @@ bool Instance::runGenerator() {
   //TODO should this be the default behavior?
   //If there is no generatorDef, then just do nothing
   if (!generatorRef->hasDef()) return false;
-  
+
   //Actually run the generator
   this->moduleRef = generatorRef->getModule(genargs);
   assert(moduleRef->hasDef());
-  
+
   //Change this instance to a Module
   isgen = false;
   wasgen = true;
@@ -242,7 +227,7 @@ void Instance::replace(Module* moduleRef, Args configargs) {
 void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
   ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
   ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
-  
+
   this->generatorRef = generatorRef;
   this->genargs = genargs;
   Type* newType = generatorRef->getTypeGen()->getType(genargs);
@@ -257,7 +242,7 @@ void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
 
 
 string Select::toString() const {
-  string ret = parent->toString(); 
+  string ret = parent->toString();
   if (isNumber(selStr)) return ret + "[" + selStr + "]";
   return ret + "." + selStr;
 }

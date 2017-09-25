@@ -53,7 +53,7 @@ Param Str2Param(string s) {
   if (s=="int") return AINT;
   if (s=="string") return ASTRING;
   if (s=="type") return ATYPE;
-  throw std::runtime_error("Cannot convert " + s + " to Param"); 
+  throw std::runtime_error("Cannot convert " + s + " to Param");
 }
 
 string Params2Str(Params genparams) {
@@ -84,7 +84,7 @@ void checkArgsAreParams(Args args, Params params) {
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
     ASSERT(arg != args.end(), "Arg Not found: " + param.first );
-    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first + " (" + Param2Str(arg->second->getKind())+ " vs " + Param2Str(param.second)+")");
   }
 }
 
@@ -97,6 +97,15 @@ vector<string> splitRef(string s) {
 
 bool hasChar(const std::string s, char c) {
   return s.find_first_of(c) !=string::npos;
+}
+
+//merge a1 into a0
+void mergeArgs(Args& a0, Args a1) {
+  for (auto arg : a1) {
+    if (a0.count(arg.first)==0) {
+      a0.insert(arg);
+    }
+  }
 }
 
 } //CoreIR namespace

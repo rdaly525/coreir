@@ -69,8 +69,8 @@ static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
   {"unaryReduce",{"andr","orr","xorr"}},
   {"binary",{
     "and","or","xor",
-    "dshl","dlshr","dashr",
-    "add","sub","mul",
+    "shl","lshr","ashr",
+    "mul",
     "udiv","urem",
     "sdiv","srem","smod"
   }},
@@ -80,6 +80,8 @@ static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
   }},
   {"ternary",{"mux"}},
 });
+
+void mergeArgs(Args& a0, Args a1);
 
 }
 

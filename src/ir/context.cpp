@@ -34,7 +34,6 @@ Context::~Context() {
   for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
-  for (auto it : argList) delete it;
   for (auto it : argPtrArrays) free(it);
 
   delete cache;
@@ -270,25 +269,15 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     return arr;
 }
 
-Arg* Context::argBool(bool b) { 
-  Arg* ga = new ArgBool(b); 
-  argList.push_back(ga);
-  return ga;
+void* Context::saveArg(shared_ptr<Arg> arg) { 
+  void* key = arg.get();
+  argList[key] = arg;
+  return key;
 }
-Arg* Context::argInt(int i) { 
-  Arg* ga = new ArgInt(i); 
-  argList.push_back(ga);
-  return ga;
-}
-Arg* Context::argString(string s) { 
-  Arg* ga = new ArgString(s); 
-  argList.push_back(ga);
-  return ga;
-}
-Arg* Context::argType(Type* t) { 
-  Arg* ga = new ArgType(t); 
-  argList.push_back(ga);
-  return ga;
+
+ArgPtr Context::getSavedArg(void* arg) {
+  ASSERT(argList.count(arg),"Missing Arg!");
+  return argList[arg];
 }
 
 Context* newContext() {

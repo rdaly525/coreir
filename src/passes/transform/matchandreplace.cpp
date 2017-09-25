@@ -10,7 +10,7 @@ using namespace CoreIR;
 using namespace std;
 
 void Passes::MatchAndReplace::verifyOpts(Opts opts) {
-  
+
   //Verify that pattern and replace have the same exact type.
   Type* rType;
   if (auto rGen = dyn_cast<Generator>(replacement)) {
@@ -20,7 +20,7 @@ void Passes::MatchAndReplace::verifyOpts(Opts opts) {
     rType = cast<Module>(replacement)->getType();
   }
   ASSERT(pattern->getType() == rType,"Pattern and Replace need the same type");
-  
+
   ASSERT(pattern->hasDef(),"pattern needs to have a definition!");
 
   if (opts.genargs.size()>0) {
@@ -107,7 +107,7 @@ Wireable* selWithCheck(Wireable* w, SelectPath path, bool* error) {
 
 
 bool Passes::MatchAndReplace::runOnModule(Module* m) {
-  
+
   Module* container = m;
   Context* c = this->getContext();
   //Skip any declarations and things not in Global
@@ -126,7 +126,7 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
       return false;
     }
   }
-  
+
   //Cache of used instances (for matches)
   unordered_set<Instance*> usedInstances;
 
@@ -135,22 +135,22 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
 
   //Keep list of passthrough instances to inline
   vector<Instance*> passthroughsToInline;
-  
+
   //Final return value
   bool found = false;
 
-  //always start with key0 
+  //always start with key0
   Instance* pfirst = cast<Instance>(pdef->sel(instanceKey[0]));
   Instantiable* pfirstKind = pfirst->getInstantiableRef();
 
   for (auto cinst : cinstMap[pfirstKind]) {
-    
+
     //Work queue. {idx,potential matching instance}
     std::queue<std::pair<uint,Instance*>> work;
-    
+
     //Keep track of the number of successful instances
     uint numCompleted = 0;
-    
+
     //Keep track of instances completed or on queue
     unordered_set<uint> accountedFor;
     work.push({0,cinst});
@@ -184,17 +184,17 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
           pathsCorrect = false;
           break;
         }
-        
+
         //Check if the fanout is exactly the same
         ASSERT(lcons.second.size()==1,"NYI fanout"); //TODO handle fanout
         if (localW->getConnectedWireables().size() != lcons.second.size() ) {
           pathsCorrect = false;
           break;
         }
-        
+
         Wireable* otherW = *localW->getConnectedWireables().begin();
         Wireable* otherTopW = otherW->getTopParent();
-        
+
         Instance* otherInst;
         if (!(otherInst = dyn_cast<Instance>(otherTopW))) {
           pathsCorrect = false;
@@ -207,7 +207,7 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
           pathsCorrect = false;
           break;
         }
-        
+
         //Check to see if the other path exists
         Wireable* otherWCheck = selWithCheck(otherInst,otherPath,&error);
         if (error) {
@@ -228,19 +228,19 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
         }
       }// End connections check
 
-      //Found correct connection  
+      //Found correct connection
       if (pathsCorrect) {
         matchedInstances[idx] = minst;
         numCompleted++;
       }
-      
+
     }// End work queue
 
     //Checking if it completely matched
     if (numCompleted != instanceKey.size()) {
       continue;
     }
-    
+
     //If user defined match function exists, check that.
     if (this->checkMatching) {
       if (!this->checkMatching(matchedInstances)) {
@@ -252,9 +252,9 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
     found = true;
 
     //Next steps are actually doing the replacement
-    
+
     //TODO do I need to remove all internal connections first?
- 
+
     //Add the replacement pattern
     string rName = replacement->getName()+c->getUnique();
     Args rConfigArgs;
@@ -283,19 +283,19 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
       string ptName = "_pt" + c->getUnique();
       Instance* pt = addPassthrough(minst,ptName);
       passthroughsToInline.push_back(pt);
-      
+
       //Use external connections to connect to replacement
       for (auto excon : exCons[i]) {
         SelectPath localPath = excon.first;
         SelectPath replacePath = excon.second;
-        
+
         //ptName."in".localpath
         localPath.push_front("in");
         localPath.push_front(ptName);
-  
+
         //rName.replacePath
         replacePath.push_front(rName);
-        
+
         //Add the connection back to the cdef
         cdef->connect(localPath,replacePath);
       }
@@ -307,13 +307,13 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
   for (auto inst : usedInstances) {
     cdef->removeInstance(inst);
   }
- 
+
   //Now inline all the passthrough Modules
   for (auto pt : passthroughsToInline) {
     inlineInstance(pt);
   }
   //TODO check if this should have removed any stray internal wires
-  
+
   cdef->validate();
   return found;
 }

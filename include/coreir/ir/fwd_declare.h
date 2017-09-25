@@ -7,6 +7,7 @@
 #include <map>
 #include <unordered_map>
 #include <unordered_set>
+#include <memory>
 #include <cassert>
 #include <sstream>
 #include <iostream>
@@ -68,7 +69,8 @@ class PassManager;
 typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
 
 typedef std::map<std::string,Param> Params;
-typedef std::map<std::string,Arg*> Args;
+typedef std::shared_ptr<Arg> ArgPtr;
+typedef std::map<std::string,ArgPtr> Args;
 bool operator==(const Args& l, const Args& r);
 
 //TODO this is a hack solution that should be fixed
