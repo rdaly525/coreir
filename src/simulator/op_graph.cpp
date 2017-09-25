@@ -120,7 +120,8 @@ namespace CoreIR {
 
     for (auto v : getVerts()) {
 
-      if (getInputConnections(v).size() == 0) {
+      //if (getInputConnections(v).size() == 0) {
+      if (inEdges(v).size() == 0) {
 	vs.push_back(v);
       }
     }
@@ -278,18 +279,21 @@ namespace CoreIR {
       string genRefName = getInstanceName(*inst);
 
       if (genRefName == "reg") {
-	WireNode wOutput = outputNode(w1);//{w1, true, false};
-	WireNode wInput = receiverNode(w1); //{w1, true, true};
+	WireNode wOutput = outputNode(w1);
+	WireNode wInput = receiverNode(w1);
 
+	vdisc v1, v2;
 	if (imap.find(wOutput) == end(imap)) {
-	  auto v1 = g.addVertex(wOutput);
+	  v1 = g.addVertex(wOutput);
 	  imap.insert({wOutput, v1});
 	}
 
 	if (imap.find(wInput) == end(imap)) {
-	  auto v1 = g.addVertex(wInput);
-	  imap.insert({wInput, v1});
+	  v2 = g.addVertex(wInput);
+	  imap.insert({wInput, v2});
 	}
+
+	g.addEdge(v2, v1);
 
 	return;
       }
