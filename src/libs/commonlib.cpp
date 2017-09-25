@@ -459,3 +459,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   return commonlib;
 }
+
+
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(commonlib)
