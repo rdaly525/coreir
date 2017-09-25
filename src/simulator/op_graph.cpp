@@ -313,7 +313,7 @@ namespace CoreIR {
 	}
 
 	if (setV1 && setV2) {
-	  g.addEdge(v2, v1);
+	  g.addEdge(v1, v2);
 	}
 
 	return;
