@@ -18,28 +18,20 @@ int main() {
   state.self_a = a;
   state.self_clk = clk;
   state.self_clk_last = clk_last;
-  //state.r_old_value = r_old;
-  //state.r_new_value = 0; //&r_new;
   state.r = r_old;
 
   for (int i = 1; i < 4; i++) {
     state.self_clk = i % 2;
 
-    //simulate(en, &out, a, clk, clk_last, r_old, &r_new);
-    //simulate(&r_new, &out, r_old, a, clk, clk_last, en); //, &r_new);
-
     simulate(&state);
 
-    //printf("New register value = %c\n", state.r_new_value); //r_new);
     printf("New register value = %c\n", state.r);
     
     state.self_clk_last = state.self_clk;
-    //state.r_old_value = state.r_new_value;
   }
 
   printf("Expected       = %c\n", expected);
   
-  //if (expected == state.r_new_value) {
   if (expected == state.r) {
     return 0;
   } else {
