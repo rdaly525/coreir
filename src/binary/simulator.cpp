@@ -67,6 +67,7 @@ int main(int argc, char *argv[]) {
   string codeFile = top->getName() + "_sim.cpp";
   string hFile = top->getName() + "_sim.h";
 
+  writeBitVectorLib(codePath + "bit_vector.h");
   writeFiles(topoOrder, gr, top, codePath, codeFile, hFile);
   
   return 0;

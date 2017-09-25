@@ -21,12 +21,8 @@ namespace CoreIR {
 			const std::string& outDir,
 			const std::string& baseFileName,
 			const std::string& harnessFile);
-  
-  // int compileCodeAndRun(const std::deque<vdisc>& topoOrder,
-  // 			NGraph& g,
-  // 			Module* mod,
-  // 			const std::string& outFile,
-  // 			const std::string& harnessFile);
+
+  void writeBitVectorLib(const std::string& path);  
 
   int compileCodeAndRun(const std::string& code,
 			const std::string& outFile,

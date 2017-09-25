@@ -10,12 +10,16 @@ using namespace std;
 
 namespace CoreIR {
 
-  void writeBitVectorLib() {
+  void writeBitVectorLib(const std::string& path) {
     string libText = blib();
 
-    std::ofstream out("./gencode/bit_vector.h");
+    std::ofstream out(path);
     out << libText;
     out.close();
+  }
+  
+  void writeBitVectorLib() {
+    writeBitVectorLib("./gencode/bit_vector.h");
   }
 
   int compileCode(const std::string& code, const std::string& outFile) {
