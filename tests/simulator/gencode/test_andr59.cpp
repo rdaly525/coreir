@@ -2,7 +2,7 @@
 
 int main() {
   circuit_state state;
-  state.self_A = 0xffffffffffffffff;
+  state.self_A = ((1ULL << 59) - 1);
   state.self_out = 0;
 
   simulate(&state);

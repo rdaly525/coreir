@@ -41,10 +41,14 @@ namespace CoreIR {
 
     string val;
 
-    if (val != "andr") {
+    if (opString != "andr") {
       val = opString + printOpResultStr(cn.first, g);
     } else {
-      assert(false);
+
+      uint w = typeWidth(*(cn.first.getWire()->getType()));
+      val = parens(printOpResultStr(cn.first, g) + " == " + bitMaskString(w));
+      
+
     }
 
     string res =
