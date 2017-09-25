@@ -35,6 +35,10 @@ namespace CoreIR {
     return g.getInputConnections(vd);
   }
 
+  bool NGraph::hasLabel(const edisc ed) const {
+    return edgeNames.find(ed) != std::end(edgeNames);
+  }
+
   std::vector<Conn> NGraph::getInputConnections(const vdisc vd) const {
     vector<Conn> inConss;
 
@@ -42,16 +46,18 @@ namespace CoreIR {
 
     for (auto out_edge_desc : inEdges(vd)) {
 
-      Conn edge_conn =
-	getConn(out_edge_desc);
+      if (hasLabel(out_edge_desc)) {
+	Conn edge_conn =
+	  getConn(out_edge_desc);
 
-      assert(isSelect(edge_conn.second.getWire()));
+	assert(isSelect(edge_conn.second.getWire()));
 
-      CoreIR::Select* sel = static_cast<Select*>(edge_conn.second.getWire());
+	CoreIR::Select* sel = static_cast<Select*>(edge_conn.second.getWire());
 
-      assert(extractSource(sel) == w);
+	assert(extractSource(sel) == w);
 
-      inConss.push_back(edge_conn);
+	inConss.push_back(edge_conn);
+      }
     }
   
     return inConss;

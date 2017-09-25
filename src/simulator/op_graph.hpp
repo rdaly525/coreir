@@ -61,6 +61,8 @@ namespace CoreIR {
       return (*eit).second;
     }
 
+    bool hasLabel(const edisc ed) const;
+
     vdisc source(const edisc ed)  const {
       auto eit = edgeVals.find(ed);
 

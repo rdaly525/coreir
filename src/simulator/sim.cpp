@@ -348,7 +348,10 @@ namespace CoreIR {
 
   string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
-    auto ins = getInputs(vd, g);
+
+    cout << "Instance name = " << getInstanceName(*inst) << endl;
+
+    //auto ins = getInputs(vd, g);
     
     if (isRegisterInstance(inst)) {
       return printRegister(wd, vd, g);
