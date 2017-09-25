@@ -39,9 +39,17 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string res = "";
+    string val;
 
-    res += maskResult(*((outPair.second)->getType()), opString + printOpResultStr(cn.first, g));
+    if (val != "andr") {
+      val = opString + printOpResultStr(cn.first, g);
+    } else {
+      assert(false);
+    }
+
+    string res =
+      maskResult(*((outPair.second)->getType()),
+		 val);
 
     return res;
   }

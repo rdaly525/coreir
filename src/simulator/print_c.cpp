@@ -61,6 +61,8 @@ namespace CoreIR {
       return " % ";
     } else if ((genRefName == "orr")) {
       return "!!";
+    } else if (genRefName == "andr") {
+      return "andr";
     }
 
     cout << "ERROR: Unsupported op name = " << genRefName << endl;

@@ -1051,6 +1051,47 @@ namespace CoreIR {
 
       REQUIRE(s == 0);
     }
+
+    SECTION("59 bit andr") {
+      uint n = 59;
+  
+      Type* andrType = c->Record({
+	  {"A",    c->Array(n, c->BitIn()) },
+	    {"out", c->Bit() }
+	});
+
+      Module* andrM = g->newModuleDecl("andrM", andrType);
+      ModuleDef* def = andrM->newModuleDef();
+
+      Generator* andr = c->getGenerator("coreir.andr");
+
+      Wireable* self = def->sel("self");
+      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const(n)}});
+
+      def->connect("self.A", "andr0.in");
+      def->connect(andr0->sel("out"), self->sel("out"));
+
+      andrM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(andrM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "andr59";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				andrM,
+				"./gencode/",
+				outFile,
+				"test_andr59.cpp");
+
+      REQUIRE(s == 0);
+    }
     
     SECTION("Circuit with module references") {
 
