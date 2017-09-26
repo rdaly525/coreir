@@ -467,16 +467,6 @@ namespace CoreIR {
 
 
 	    }
-	    // else {
-	    //   if (wd.isReceiver) {
-	    // 	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
-	    // 	str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
-
-	    //   } else {
-	    // 	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
-
-	    //   }
-	    // }
 	  }
 	}
       }
@@ -492,13 +482,6 @@ namespace CoreIR {
     // Declare all variables
     str += "\n// Variable declarations\n";
 
-    // str += "\n// Outputs\n";
-
-    // for (auto& name_type_pair : outputs(mod)) {
-    //   Type* tp = name_type_pair.second;
-    //   str += cArrayTypeDecl(*tp, "self_" + name_type_pair.first) + ";\n";
-    // }
-  
     str += "\n// Internal variables\n";
     str += printInternalVariables(topo_order, g, mod);
 
