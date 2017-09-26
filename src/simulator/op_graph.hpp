@@ -43,7 +43,6 @@ namespace CoreIR {
 
 
   public:
-    
     WireNode getNode(const vdisc vd) const {
       auto vit = vertNames.find(vd);
 

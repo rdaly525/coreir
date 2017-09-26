@@ -734,7 +734,7 @@ namespace CoreIR {
   typedef NGraph ThreadGraph;
 
   int numThreads(const ThreadGraph& g) {
-    return 1;
+    return g.numVertices();
   }
 
   ThreadGraph buildThreadGraph(const NGraph& opG) {
@@ -771,16 +771,21 @@ namespace CoreIR {
 
     }
 
-    vector<int> unPrintedThreads;
-    for (int i = 0; i < numThreads(tg); i++) {
-      unPrintedThreads.push_back(i);
-    }
-    vector<int> unJoinedThreads = unPrintedThreads;
+    vector<vdisc> unPrintedThreads = tg.getVerts();
+    vector<vdisc> unJoinedThreads = unPrintedThreads;
 
     code += "void simulate( circuit_state* state ) {\n";
-    
+
     for (auto i : unPrintedThreads) {
       string iStr = to_string(i);
+
+      // Join threads that this thread depends on
+      for (auto depEdge : tg.inEdges(i)) {
+	vdisc se = tg.source(depEdge);
+	code += ln("simulate_" + to_string(se) + "_thread.join()");
+	remove(se, unJoinedThreads);
+	
+      }
       code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
     }
 
@@ -789,7 +794,6 @@ namespace CoreIR {
       string iStr = to_string(i);
       code += ln("simulate_" + iStr + "_thread.join()");
     }
-
 
     code += "}\n";
 
