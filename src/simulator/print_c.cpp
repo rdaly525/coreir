@@ -8,42 +8,13 @@ namespace CoreIR {
     if (isSelect(w)) {
       CoreIR::Select& s = toSelect(w);
       if (CoreIR::isNumber(s.getSelStr())) {
-	return cVar(*(s.getParent())) + "[" + s.getSelStr() + "]";
+    	return cVar(*(s.getParent())) + "[" + s.getSelStr() + "]";
       } else {
-	return cVar(*(s.getParent())) + "_" + s.getSelStr();
+    	return cVar(*(s.getParent())) + "_" + s.getSelStr();
       }
     } else {
-
-      // if (w.toString() == "self") {
-      // 	return "(state->" + w.toString() + ")";
-      // } else {
-      // 	return w.toString();
-      // }
 
       return w.toString();
-    }
-  }
-
-  static inline std::string cVar(CoreIR::Wireable& w, const std::string& suffix) {
-    //cout << "cvar for " << w.toString() << " with suffix = " << suffix << endl;
-    if (isSelect(w)) {
-      CoreIR::Select& s = toSelect(w);
-      if (CoreIR::isNumber(s.getSelStr())) {
-
-	return cVar(*(s.getParent()), suffix) + "[" + s.getSelStr() + "]";
-      } else {
-
-	return cVar(*(s.getParent())) + "_" + s.getSelStr() + suffix;
-      }
-    } else {
-
-      // if (w.toString() == "self") {
-      // 	return "(state->" + w.toString() + suffix + ")";
-      // } else {
-      // 	return w.toString() + suffix;
-      // }
-      
-      return w.toString() + suffix;
     }
   }
 
@@ -63,17 +34,14 @@ namespace CoreIR {
       }
     } else {
 
-      // if (w.toString() == "self") {
-      // 	return "(state->" + prefix + w.toString() + suffix + ")";
-      // } else {
-      // 	return prefix + w.toString() + suffix;
-      // }
-
       return prefix + w.toString() + suffix;
     }
   }
   
-  
+  static inline std::string cVar(CoreIR::Wireable& w, const std::string& suffix) {
+    return cVar("", w, suffix);
+  }
+
   std::string cVar(const InstanceValue& w) {
     string cv = cVar(*(w.getWire()));
 
