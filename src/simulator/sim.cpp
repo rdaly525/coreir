@@ -733,7 +733,7 @@ namespace CoreIR {
 
   typedef NGraph ThreadGraph;
 
-  int numThreads(const NGraph& g) {
+  int numThreads(const ThreadGraph& g) {
     return 1;
   }
 
@@ -762,7 +762,7 @@ namespace CoreIR {
 
     ThreadGraph tg = buildThreadGraph(g);
 
-    for (int i = 0; i < numThreads(g); i++) {
+    for (int i = 0; i < numThreads(tg); i++) {
       code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
 
       code += printSimFunctionBody(topoOrder, g, *mod);
@@ -772,7 +772,7 @@ namespace CoreIR {
     }
 
     vector<int> unPrintedThreads;
-    for (int i = 0; i < numThreads(g); i++) {
+    for (int i = 0; i < numThreads(tg); i++) {
       unPrintedThreads.push_back(i);
     }
     vector<int> unJoinedThreads = unPrintedThreads;
