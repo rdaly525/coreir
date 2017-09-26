@@ -235,6 +235,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     //If top exists return it
     if (top && j.count("top")) {
       *top = getModSymbol(c,j["top"].get<string>());
+      c->setTop(*top);
     }
     else if (top) {
       *top = nullptr;
