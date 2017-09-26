@@ -121,7 +121,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       Namespace* ns = nsq.first;
       json jns = nsq.second;
       if (jns.count("properties")) {
-        ns->setProperty(jns["properties"]);
+        //        ns->setProperty(jns["properties"]);
       }          
       //Load Modules
       if (jns.count("modules")) {
