@@ -46,6 +46,14 @@ namespace CoreIR {
 		   const InstanceValue& w,
 		   const std::string& suffix);
 
+  std::string cVar(CoreIR::Wireable& w);
+
+  std::string cVar(const std::string& prefix,
+		   CoreIR::Wireable& w,
+		   const std::string& suffix);
+
+  std::string cVar(CoreIR::Wireable& w, const std::string& suffix);
+
   static inline std::string ite(const std::string& condition,
 		  const std::string& trueRes,
 		  const std::string& falseRes) {

@@ -4,7 +4,7 @@ using namespace std;
 
 namespace CoreIR {
 
-  static inline std::string cVar(CoreIR::Wireable& w) {
+  std::string cVar(CoreIR::Wireable& w) {
     if (isSelect(w)) {
       CoreIR::Select& s = toSelect(w);
       if (CoreIR::isNumber(s.getSelStr())) {
@@ -18,9 +18,9 @@ namespace CoreIR {
     }
   }
 
-  static inline std::string cVar(const std::string& prefix,
-				 CoreIR::Wireable& w,
-				 const std::string& suffix) {
+  std::string cVar(const std::string& prefix,
+		   CoreIR::Wireable& w,
+		   const std::string& suffix) {
 
     if (isSelect(w)) {
       CoreIR::Select& s = toSelect(w);
@@ -38,7 +38,7 @@ namespace CoreIR {
     }
   }
   
-  static inline std::string cVar(CoreIR::Wireable& w, const std::string& suffix) {
+  std::string cVar(CoreIR::Wireable& w, const std::string& suffix) {
     return cVar("", w, suffix);
   }
 
