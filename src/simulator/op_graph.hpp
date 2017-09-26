@@ -110,6 +110,12 @@ namespace CoreIR {
       return v;
     }
 
+    void addVertex(const vdisc v) {
+      assert(!elem(v, verts));
+
+      verts.push_back(v);
+    }
+
     vdisc addVertex() {
       vdisc v = nextVertexDisc();
       verts.push_back(v);

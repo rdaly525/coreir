@@ -740,7 +740,12 @@ namespace CoreIR {
   ThreadGraph buildThreadGraph(const NGraph& opG) {
     ThreadGraph tg;
 
-    tg.addVertex();
+    for (auto& v : opG.getVerts()) {
+      int threadNo = opG.getNode(v).getThreadNo();
+      if (!elem(threadNo, tg.getVerts())) {
+	tg.addVertex( threadNo );
+      }
+    }
 
     return tg;
   }
