@@ -737,6 +737,14 @@ namespace CoreIR {
     return 1;
   }
 
+  ThreadGraph buildThreadGraph(const NGraph& opG) {
+    ThreadGraph tg;
+
+    tg.addVertex(combNode(nullptr));
+
+    return tg;
+  }
+
   string printCode(const std::deque<vdisc>& topoOrder,
 		   NGraph& g,
 		   CoreIR::Module* mod,
@@ -751,6 +759,8 @@ namespace CoreIR {
 
     code += seMacroDef();
     code += maskMacroDef();
+
+    ThreadGraph tg = buildThreadGraph(g);
 
     for (int i = 0; i < numThreads(g); i++) {
       code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
