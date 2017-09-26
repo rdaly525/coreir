@@ -746,10 +746,15 @@ namespace CoreIR {
     code += seMacroDef();
     code += maskMacroDef();
     
-    code += "void simulate( circuit_state* state ) {\n";
+    code += "void simulate_1( circuit_state* state ) {\n";
 
     code += printSimFunctionBody(topoOrder, g, *mod);
 
+    code += "}\n\n";
+
+    code += "void simulate( circuit_state* state ) {\n";
+    code += ln("std::thread simulate_1_thread( simulate_1, state )");
+    code += ln("simulate_1_thread.join()");
     code += "}\n";
 
     return code;
