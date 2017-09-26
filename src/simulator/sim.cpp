@@ -731,6 +731,12 @@ namespace CoreIR {
     return code;
   }
 
+  typedef NGraph ThreadGraph;
+
+  int numThreads(const NGraph& g) {
+    return 1;
+  }
+
   string printCode(const std::deque<vdisc>& topoOrder,
 		   NGraph& g,
 		   CoreIR::Module* mod,
@@ -741,20 +747,40 @@ namespace CoreIR {
     code += "#include \"" + baseName + "\"\n";
     code += "#include <thread>\n\n";
 
-    code += "using namespace bsim;\n\n";    
+    code += "using namespace bsim;\n\n";
 
     code += seMacroDef();
     code += maskMacroDef();
-    
-    code += "void simulate_1( circuit_state* state ) {\n";
 
-    code += printSimFunctionBody(topoOrder, g, *mod);
+    for (int i = 0; i < numThreads(g); i++) {
+      code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
 
-    code += "}\n\n";
+      code += printSimFunctionBody(topoOrder, g, *mod);
+
+      code += "}\n\n";
+
+    }
+
+    vector<int> unPrintedThreads;
+    for (int i = 0; i < numThreads(g); i++) {
+      unPrintedThreads.push_back(i);
+    }
+    vector<int> unJoinedThreads = unPrintedThreads;
 
     code += "void simulate( circuit_state* state ) {\n";
-    code += ln("std::thread simulate_1_thread( simulate_1, state )");
-    code += ln("simulate_1_thread.join()");
+    
+    for (auto i : unPrintedThreads) {
+      string iStr = to_string(i);
+      code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
+    }
+
+    // Join all remaining threads before simulate function ends
+    for (auto i : unJoinedThreads) {
+      string iStr = to_string(i);
+      code += ln("simulate_" + iStr + "_thread.join()");
+    }
+
+
     code += "}\n";
 
     return code;
