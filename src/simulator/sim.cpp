@@ -776,8 +776,11 @@ namespace CoreIR {
 
     }
 
-    vector<vdisc> unPrintedThreads = tg.getVerts();
-    vector<vdisc> unJoinedThreads = unPrintedThreads;
+    deque<vdisc> unPrintedThreads = topologicalSort(tg); //.getVerts();
+    vector<vdisc> unJoinedThreads;
+    for (auto& vd : unPrintedThreads) {
+      unJoinedThreads.push_back(vd);
+    }
 
     code += "void simulate( circuit_state* state ) {\n";
 
