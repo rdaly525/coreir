@@ -212,28 +212,24 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
 
   Params memGenParams({{"width",AINT},{"depth",AINT}});
   auto memFun = [](Context* c, Args args) {
-    uint width = args.at("width")->get<int>();
-    uint depth = args.at("depth")->get<int>();
-    ASSERT(isPower2(width),"width needs to be a power of 2: " + to_string(width));
+    int width = args.at("width")->get<int>();
+    int depth = args.at("depth")->get<int>();
     ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth));
-    uint awidth = uint(std::log2(depth));
+    int awidth = uint(std::log2(depth));
     return c->Record({
-      {"wclk",c->Named("coreir.clkIn")},
-      {"wen",c->BitIn()},
+      {"clk",c->Named("coreir.clkIn")},
       {"wdata",c->BitIn()->Arr(width)},
       {"waddr",c->BitIn()->Arr(awidth)},
-      {"rclk",c->Named("coreir.clkIn")},
-      {"ren",c->BitIn()},
+      {"wen",c->BitIn()},
       {"rdata",c->Bit()->Arr(width)},
       {"raddr",c->BitIn()->Arr(awidth)}
     });
   };
   TypeGen* memTypeGen = coreirprims->newTypeGen("memType",memGenParams,memFun);
-  auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams);
+  auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams,{{"init",ASTRING}}); //TODO change string to actual bit vector
   jverilog["parameters"] = {"width","init"};
   jverilog["prefix"] = "coreir_";
   mem->getMetaData()["verilog"] = jverilog;
-
 
 }
 
