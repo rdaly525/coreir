@@ -159,14 +159,18 @@ int main(int argc, char *argv[]) {
     ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
     sout = &fout;
   }
-
+  
   //Load input
   Module* top;
+  string topRef = "";
   if (!loadFromFile(c,infileName,&top)) {
     c->die();
   }
-  string topRef = "";
   if (top) topRef = top->getRefName();
+  if (options.count("t")) {
+    topRef = options["t"].as<string>();
+    c->setTop(topRef);
+  }
 
   //Load and run passes
   bool modified = false;
