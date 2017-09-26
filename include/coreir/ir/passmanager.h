@@ -13,8 +13,6 @@ class PassManager {
   Context* c;
   std::vector<Namespace*> nss; 
   
-  Module* top=nullptr;
-  
   //Data structure for storing passes
   std::unordered_map<std::string,Pass*> passMap;
 
@@ -29,11 +27,6 @@ class PassManager {
     ~PassManager();
     Context* getContext() { return c;}
     
-    //Sets the top module
-    void setTop(std::string topRef);
-    bool hasTop() { return !!top;}
-    bool getTop() { return top;}
-
     void addPass(Pass* p);
 
     //Runs all passes in order over namespaces

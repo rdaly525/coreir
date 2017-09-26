@@ -24,15 +24,6 @@ PassManager::PassManager(Context* c) : c(c) {
   //this->instanceGraph = new InstanceGraph();
 }
 
-void PassManager::setTop(string topRef) {
-  auto topsplit = splitString<vector<string>>(topRef,'.');
-  ASSERT(topsplit.size()==2,topRef + " is not a valid top!");
-  ASSERT(c->hasNamespace(topsplit[0]),"Missing namespace " + topsplit[0]);
-  Namespace* topns = c->getNamespace(topsplit[0]);
-  ASSERT(topns->hasModule(topsplit[1]),"Missing module " + topRef);
-  this->top = topns->getModule(topsplit[1]);
-  ASSERT(this->top->hasDef(),topRef + " has no def!");
-}
 
 void PassManager::addPass(Pass* p) {
   ASSERT(passMap.count(p->name) == 0,"Cannot add duplicate \"" + p->name + "\" pass");
