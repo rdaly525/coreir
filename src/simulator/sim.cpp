@@ -740,7 +740,7 @@ namespace CoreIR {
   ThreadGraph buildThreadGraph(const NGraph& opG) {
     ThreadGraph tg;
 
-    tg.addVertex(combNode(nullptr));
+    tg.addVertex();
 
     return tg;
   }

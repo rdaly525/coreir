@@ -111,6 +111,12 @@ namespace CoreIR {
       return v;
     }
 
+    vdisc addVertex() {
+      vdisc v = nextVertexDisc();
+      verts.push_back(v);
+      return v;
+    }
+    
     std::vector<edisc> outEdges(const vdisc vd) const {
       std::vector<edisc> eds;
       for (auto& e : edges) {
