@@ -63,6 +63,7 @@ int main(int argc, char *argv[]) {
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",cxxopts::value<std::string>())
     ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
+    ("t,top","top: <namespace>.<modulename>",cxxopts::value<std::string>())
     ;
   
   //Do the parsing of the arguments
