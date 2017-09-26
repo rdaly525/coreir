@@ -70,6 +70,11 @@ namespace CoreIR {
       return (*eit).second.first;
     }
 
+    void addVertLabel(const vdisc vd, const WireNode& wd) {
+      vertNames.erase(vd);
+      vertNames[vd] = wd;
+    }
+
     void addEdgeLabel(const edisc ed, const Conn& conn) {
 
       edgeNames[ed] = conn;

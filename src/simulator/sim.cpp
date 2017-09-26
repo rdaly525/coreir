@@ -465,7 +465,6 @@ namespace CoreIR {
 
 	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
-
 	    }
 	  }
 	}
@@ -726,8 +725,11 @@ namespace CoreIR {
 
     for (auto& v : opG.getVerts()) {
       int threadNo = opG.getNode(v).getThreadNo();
+      cout << "ThreadNo = " << threadNo << endl;
       if (!elem(threadNo, tg.getVerts())) {
 	tg.addVertex( threadNo );
+
+	cout << "Added " << threadNo << endl;
       }
     }
 
@@ -751,7 +753,7 @@ namespace CoreIR {
 
     ThreadGraph tg = buildThreadGraph(g);
 
-    for (int i = 0; i < numThreads(tg); i++) {
+    for (auto& i : tg.getVerts()) {
       code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
 
       code += printSimFunctionBody(topoOrder, g, *mod);
