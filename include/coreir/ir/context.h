@@ -95,7 +95,7 @@ class Context {
     void setTop(std::string topRef);
     void setTop(Module* top);
     bool hasTop() { return !!top;}
-    bool getTop() { return top;}
+    Module* getTop() { return top;}
 
      
     // C API memory management
