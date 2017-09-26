@@ -739,6 +739,7 @@ namespace CoreIR {
     string code = "";
 
     code += "#include \"" + baseName + "\"\n";
+    code += "#include <thread>\n\n";
 
     code += "using namespace bsim;\n\n";    
 
