@@ -461,21 +461,22 @@ namespace CoreIR {
 	if (!fromSelfInterface(in)) {
 	  if (!arrayAccess(in)) {
 
-	    if (!wd.isSequential) {
+	    if (!wd.isSequential || wd.isReceiver) {
 
 	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
 
-	    } else {
-	      if (wd.isReceiver) {
-	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
-		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
-
-	      } else {
-	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
-
-	      }
 	    }
+	    // else {
+	    //   if (wd.isReceiver) {
+	    // 	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
+	    // 	str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
+
+	    //   } else {
+	    // 	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
+
+	    //   }
+	    // }
 	  }
 	}
       }
@@ -776,7 +777,7 @@ namespace CoreIR {
 
     }
 
-    deque<vdisc> unPrintedThreads = topologicalSort(tg); //.getVerts();
+    deque<vdisc> unPrintedThreads = topologicalSort(tg);
     vector<vdisc> unJoinedThreads;
     for (auto& vd : unPrintedThreads) {
       unJoinedThreads.push_back(vd);
@@ -792,7 +793,6 @@ namespace CoreIR {
 	vdisc se = tg.source(depEdge);
 	code += ln("simulate_" + to_string(se) + "_thread.join()");
 	remove(se, unJoinedThreads);
-	
       }
       code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
     }
