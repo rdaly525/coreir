@@ -1,4 +1,4 @@
-#include "coreir-c/coreir.h"
+#include "coreir.h"
 #include "assert.h"
 
 #include "stdio.h"
@@ -34,7 +34,7 @@ int main() {
 
   COREModule* lut4 = CORENewModule(ns,"LUT4",lut4type,cp);
 
-  COREModule* m = CORENewModule(ns,"Main",COREBitIn(c),NULL);
+  COREModule* m = CORENewModule(ns,"Main",CORERecord(c,CORENewMap(c,NULL,NULL,0,STR2TYPE_ORDEREDMAP)),NULL);
 
   COREModuleDef* mdef = COREModuleNewDef(m);
 

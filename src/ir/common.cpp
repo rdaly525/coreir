@@ -1,18 +1,17 @@
-#include "common.hpp"
-#include <string>
-#include <sstream>
-#include <vector>
-#include <iterator>
-
-//#include "coreir.hpp"
-//#include "typedcoreir.hpp"
-#include "args.hpp"
+#include "coreir/ir/common.h"
+#include "coreir/ir/wireable.h"
+#include "coreir/ir/args.h"
+//#include <sstream>
+//#include <iterator>
 
 using namespace std;
 namespace CoreIR {
 
 bool isNumber(string s) {
   return s.find_first_not_of("0123456789")==string::npos;
+}
+bool isPower2(uint n) {
+  return (n & (n-1))==0;
 }
 
 bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
@@ -54,7 +53,7 @@ Param Str2Param(string s) {
   if (s=="int") return AINT;
   if (s=="string") return ASTRING;
   if (s=="type") return ATYPE;
-  throw std::runtime_error("Cannot convert " + s + " to Param"); 
+  throw std::runtime_error("Cannot convert " + s + " to Param");
 }
 
 string Params2Str(Params genparams) {
@@ -85,7 +84,7 @@ void checkArgsAreParams(Args args, Params params) {
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
     ASSERT(arg != args.end(), "Arg Not found: " + param.first );
-    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first);
+    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first + " (" + Param2Str(arg->second->getKind())+ " vs " + Param2Str(param.second)+")");
   }
 }
 
@@ -100,14 +99,13 @@ bool hasChar(const std::string s, char c) {
   return s.find_first_of(c) !=string::npos;
 }
 
-//template<typename container>
-//string joinString(const container arr, string del) {
-//  string ret = "";
-//  for (auto it=arr.begin(); it!=arr.end(); ++it) {
-//    ret = ret + (it==arr.begin() ? "" : del) + *it;
-//  }
-//  return ret;
-//}
-
+//merge a1 into a0
+void mergeArgs(Args& a0, Args a1) {
+  for (auto arg : a1) {
+    if (a0.count(arg.first)==0) {
+      a0.insert(arg);
+    }
+  }
+}
 
 } //CoreIR namespace

@@ -36,6 +36,9 @@ extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, 
 extern COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name);
 extern COREInstantiable* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name);
 extern COREInstantiable* CORENamespaceGetModule(CORENamespace* _namespace, const char* name);
+extern bool CORENamespaceHasInstantiable(CORENamespace* _namespace, const char* name);
+extern bool CORENamespaceHasGenerator(CORENamespace* _namespace, const char* name);
+extern bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name);
 
 extern void COREPrintModule(COREModule* m);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
@@ -49,13 +52,15 @@ extern COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, c
 extern COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* config);
 
 extern COREWireable* COREModuleDefGetInterface(COREModuleDef* m);
-extern COREArg* COREGetConfigValue(COREWireable* i, char* s); 
+extern COREArg* COREGetConfigValue(COREWireable* i, char* s);
+extern bool COREHasConfigValue(COREWireable* i, char* s);
 
 //Errors:
 //  Wire Error;
 //  Typechecking errors
 extern void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
 extern COREWireable* COREWireableSelect(COREWireable* w, char* sel);
+extern COREBool COREWireableCanSelect(COREWireable* w, char* sel);
 extern COREWireable* COREModuleDefInstancesIterBegin(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterEnd(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterNext(COREModuleDef* module_def, COREWireable* curr);

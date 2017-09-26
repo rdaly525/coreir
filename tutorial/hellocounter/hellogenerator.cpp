@@ -19,7 +19,7 @@ int main() {
     counterParams, //Params required for typegen
     [](Context* c, Args args) { //lambda for generating the type
       Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
-      uint width = widthArg->get<ArgInt>(); //get function to extract the arg value.
+      uint width = widthArg->get<int>(); //get function to extract the arg value.
       return c->Record({
         {"en",c->BitIn()}, 
         {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
@@ -42,7 +42,7 @@ int main() {
     //Args args: The arguments supplied to the instance of the counter.
     
     //Similar to the typegen, lets extract the width;
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
       
     //Now just define the counter with with all the '16's replaced by 'width'
     Args wArg({{"width",c->argInt(width)}});

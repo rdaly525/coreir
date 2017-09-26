@@ -1,7 +1,8 @@
-#include "coreir-lib/cgralib.h"
+#include "coreir/libs/cgralib.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(cgralib);
 
+using namespace std;
 using namespace CoreIR;
 
 Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
@@ -11,176 +12,142 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   //Unary op declaration
   Params widthParams = {{"width",AINT}};
   cgralib->newTypeGen("unary",widthParams,[](Context* c, Args args) { 
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
     return c->Record({
       {"in",c->BitIn()->Arr(width)},
       {"out",c->Bit()->Arr(width)},
     });
   });
-
+  
   //PE declaration
-  Params PEGenParams = {{"width",AINT},{"numin",AINT}};
-  Params opParams = {{"op",ASTRING}};
+  Params PEGenParams = {{"width",AINT},{"numbitports",AINT},{"numdataports",AINT}};
+  Params PEConfigParams({
+    {"op_kind",ASTRING}, //bit,data,combined
+    {"alu_op",ASTRING}, //add,sub,shl,etc
+    {"lut_value",AINT}, //LUT for the optype=Bit (or combined)
+    {"data0_mode",ASTRING},//TODO
+    {"data0_value",AINT}, //Value for constant
+    {"data1_mode",ASTRING},
+    {"data1_value",AINT},
+    {"bit0_mode",ASTRING},
+    {"bit0_value",ABOOL},
+  });
   cgralib->newTypeGen("PEType",PEGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
-    uint numin = args.at("numin")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
+    uint numdataports = args.at("numdataports")->get<int>();
+    uint numbitports = args.at("numbitports")->get<int>();
     return c->Record({
       {"data",c->Record({
-        {"in",c->BitIn()->Arr(width)->Arr(numin)},
+        {"in",c->BitIn()->Arr(width)->Arr(numdataports)},
         {"out",c->Bit()->Arr(width)}
       })},
       {"bit",c->Record({
-        {"in",c->BitIn()->Arr(numin)},
+        {"in",c->BitIn()->Arr(numbitports)},
         {"out",c->Bit()}
       })}
     });
   });
-  cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams,opParams);
+  Generator* PE = cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams,PEConfigParams);
+  PE->addDefaultGenArgs({{"width",Const(16)},{"numdataports",Const(2)},{"numbitports",Const(3)}});
+  PE->addDefaultConfigArgs({
+      {"alu_op",Const("nop")}, 
+      {"lut_value",Const(0)},
+      {"data0_mode",Const("BYPASS")},
+      {"data0_value",Const(0)},
+      {"data1_mode",Const("BYPASS")},
+      {"data1_value",Const(0)},
+      {"bit0_mode",Const("BYPASS")},
+      {"bit0_value",Const(false)},
+  });
 
-  //Const Declaration
-  Params valueParams = {{"value",AINT}};
-  cgralib->newTypeGen("SrcType",widthParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
+/*
+  //DataPE declaration
+  Params DataPEGenParams = {{"width",AINT},{"numdataports",AINT}};
+  Params DataPEConfigParams({
+    {"op",ASTRING},
+    {"data0_mode",ASTRING},
+    {"data0_value",AINT},
+    {"data1_mode",ASTRING},
+    {"data1_value",AINT}
+  });
+
+  cgralib->newTypeGen("DataPEType",DataPEGenParams,[](Context* c, Args args) {
+    uint width = args.at("width")->get<int>();
+    uint numdataports = args.at("numdataports")->get<int>();
     return c->Record({
-      {"out",c->Bit()->Arr(width)}
+      {"data",c->Record({
+        {"in",c->BitIn()->Arr(width)->Arr(numdataports)},
+        {"out",c->Bit()->Arr(width)}
+      })}
     });
   });
-  cgralib->newGeneratorDecl("Const",cgralib->getTypeGen("SrcType"),widthParams,valueParams);
+  Generator* DataPE = cgralib->newGeneratorDecl("DataPE",cgralib->getTypeGen("DataPEType"),DataPEGenParams,DataPEConfigParams);
+  DataPE->addDefaultGenArgs({{"width",Const(16)},{"numdataports",Const(2)}});
+  DataPE->addDefaultConfigArgs({
+      {"data0_mode",Const("BYPASS")},
+      {"data0_value",Const(0)},
+      {"data1_mode",Const("BYPASS")},
+      {"data1_value",Const(0)}
+  });
+  
+  //BitPE declaration
+  Params BitPEGenParams = {{"numbitports",AINT}};
+  Params BitPEConfigParams({
+    {"LUT_value",AINT},
+    {"bit0_mode",ASTRING},
+    {"bit0_value",ABOOL},
+  });
 
-  //Reg declaration
-  cgralib->newGeneratorDecl("Reg",cgralib->getTypeGen("unary"),widthParams);
+  cgralib->newTypeGen("BitPEType",BitPEGenParams,[](Context* c, Args args) {
+    uint numbitports = args.at("numbitports")->get<int>();
+    return c->Record({
+      {"bit",c->Record({
+        {"in",c->BitIn()->Arr(numbitports)},
+        {"out",c->Bit()}
+      })}
+    });
+  });
+  Generator* BitPE = cgralib->newGeneratorDecl("BitPE",cgralib->getTypeGen("BitPEType"),BitPEGenParams,BitPEConfigParams);
+  BitPE->addDefaultGenArgs({{"numbitports",Const(3)}});
+  BitPE->addDefaultConfigArgs({
+    {"bit0_mode",Const("BYPASS")},
+    {"bit0_value",Const(0)}, //TODO this is an error should be bool
+  });
+
+*/
+
 
   //IO Declaration
   Params modeParams = {{"mode",ASTRING}};
   cgralib->newGeneratorDecl("IO",cgralib->getTypeGen("unary"),widthParams,modeParams);
+  cgralib->newModuleDecl("BitIO",c->Record({{"in",c->BitIn()},{"out",c->Bit()}}),modeParams);
 
   //Mem declaration
   Params MemGenParams = {{"width",AINT},{"depth",AINT}};
+  Params MemConfigParams = {
+    {"mode",ASTRING},
+    {"fifo_depth",AINT},
+    {"almost_full_cnt",AINT}
+  };
   cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<ArgInt>();
+    uint width = args.at("width")->get<int>();
     return c->Record({
-      {"addr", c->BitIn()->Arr(width)},
-      {"rdata", c->Bit()->Arr(width)},
-      {"ren", c->BitIn()},
-      {"empty", c->Bit()},
+      {"waddr", c->BitIn()->Arr(width)},
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
-      {"full", c->Bit()}
+      {"raddr", c->BitIn()->Arr(width)},
+      {"rdata", c->Bit()->Arr(width)},
+      {"ren", c->BitIn()},
+      {"almost_full", c->Bit()},
+      {"valid", c->Bit()}
     });
   });
-  cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams,modeParams);
-
-  //Declare a TypeGenerator (in global) for linebuffer
-  cgralib->newTypeGen(
-    "linebuffer_type", //name for the typegen
-    {{"stencil_width",AINT},{"stencil_height",AINT},{"image_width",AINT},{"bitwidth",AINT}}, //generater parameters
-    [](Context* c, Args args) { //Function to compute type
-      uint stencil_width  = args.at("stencil_width")->get<ArgInt>();
-      uint stencil_height  = args.at("stencil_height")->get<ArgInt>();
-      //uint image_width = args.at("image_width")->get<ArgInt>();
-      uint bitwidth = args.at("bitwidth")->get<ArgInt>();
-      return c->Record({
-	  {"in",c->BitIn()->Arr(bitwidth)},
-	  {"out",c->Bit()->Arr(bitwidth)->Arr(stencil_width)->Arr(stencil_height)}
-      });
-    }
-  );
-
-
-  Generator* linebuffer = cgralib->newGeneratorDecl("Linebuffer",
-					      cgralib->getTypeGen("linebuffer_type"),
-					      {{"stencil_width",AINT},{"stencil_height",AINT},
-					       {"image_width",AINT},{"bitwidth",AINT}});
-  linebuffer->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
-    uint stencil_width  = args.at("stencil_width")->get<ArgInt>();
-    uint stencil_height  = args.at("stencil_height")->get<ArgInt>();
-    uint image_width = args.at("image_width")->get<ArgInt>();
-    uint bitwidth = args.at("bitwidth")->get<ArgInt>();
-    assert((bitwidth & (bitwidth-1)) == 0); //Check if power of 2
-    assert(stencil_height > 0);
-    assert(stencil_width > 0);
-    assert(image_width > stencil_width);
-    assert(bitwidth > 0);
-
-    Namespace* cgralib = CoreIRLoadLibrary_cgralib(c);
-    Generator* Mem = cgralib->getGenerator("Mem");
-    Generator* Reg = cgralib->getGenerator("Reg");
-    Arg* aBitwidth = c->argInt(bitwidth);
-    Arg* aImageWidth = c->argInt(image_width);
-
-    // create the inital register chain
-    std::string reg_prefix = "reg_";
-    for (uint j = 1; j < stencil_width; ++j) {
-
-      std::string reg_name = reg_prefix + "0_" + std::to_string(j);
-      def->addInstance(reg_name, Reg, {{"width",aBitwidth}});
-      
-      // connect the input
-      if (j == 1) {
-	def->connect({"self","in"}, {reg_name, "in"});
-      } else {
-	std::string prev_reg = reg_prefix + "0_" + std::to_string(j-1);
-	def->connect({prev_reg, "out"}, {reg_name, "in"});
-      }
-    }
-
-    // connect together the memory lines
-    std::string mem_prefix = "mem_";
-    for (uint i = 1; i < stencil_height; ++i) {
-      std::string mem_name = mem_prefix + std::to_string(i);
-      def->addInstance(mem_name,Mem,{{"width",aBitwidth},{"depth",aImageWidth}},{{"mode",c->argString("linebuffer")}});
-
-      // connect the input
-      if (i == 1) {
-	def->connect({"self","in"}, {mem_name, "wdata"});
-      } else {
-	std::string prev_mem = mem_prefix + std::to_string(i-1);
-	def->connect({prev_mem, "rdata"}, {mem_name, "wdata"});
-      }
-    }
-
-    // connect together the remaining stencil registers
-    for (uint i = 1; i < stencil_height; ++i) {
-      for (uint j = 1; j < stencil_width; ++j) {
-	std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
-	def->addInstance(reg_name, Reg, {{"width",aBitwidth}});
-	
-	// connect the input
-	if (j == 1) {
-	  std::string mem_name = mem_prefix + std::to_string(i);
-	  def->connect({mem_name, "rdata"}, {reg_name, "in"});
-	} else {
-	  std::string prev_reg = reg_prefix + std::to_string(i) + "_" + std::to_string(j-1);
-	  def->connect({prev_reg, "out"}, {reg_name, "in"});
-	}
-      }
-    }
-
-    // connect the stencil outputs
-    for (uint i = 0; i < stencil_height; ++i) {
-      for (uint j = 0; j < stencil_width; ++j) {
-        // delays correspond to earlier pixels
-        uint iflip = (stencil_height - 1) - i;
-        uint jflip = (stencil_width - 1) - j;
-
-        if (j == 0) {
-          // the first column comes from input/mem
-          if (i == 0) {
-            def->connect({"self","in"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
-          } else {
-            std::string mem_name = mem_prefix + std::to_string(i);
-            def->connect({mem_name, "rdata"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
-          }
-        } else {
-          // rest come from registers
-          std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
-          def->connect({reg_name, "out"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
-        }
-      }
-    }    
-
+  Generator* Mem = cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams,MemConfigParams);
+  Mem->addDefaultGenArgs({{"width",Const(16)},{"depth",Const(1024)}});
+  Mem->addDefaultConfigArgs({
+    {"fifo_depth",Const(1024)},
+    {"almost_full_cnt",Const(0)}
   });
-  
 
   return cgralib;
 }

@@ -1,26 +1,25 @@
-#include "namespace.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/error.h"
 
 using namespace std;
 
 namespace CoreIR {
 
-bool operator==(const NamedCacheParams& l,const NamedCacheParams& r) {
-  return (l.name==r.name) && (l.args==r.args);
-}
-
-size_t NamedCacheParamsHasher::operator()(const NamedCacheParams& ncp) const {
-  size_t hash = 0;
-  hash_combine(hash,ncp.name);
-  hash_combine(hash,ncp.args);
-  return hash;
-}
-  
 Namespace::~Namespace() {
   for (auto m : moduleList) delete m.second;
   for (auto g : generatorList) delete g.second;
   for (auto n : namedTypeList) delete n.second;
-  for (auto n : namedTypeGenCache) delete n.second;
+  for (auto nmap : namedTypeGenCache) {
+    for (auto n : nmap.second) {
+      delete n.second;
+    }
+  }
   for (auto tg : typeGenList) delete tg.second;
 }
 
@@ -54,6 +53,7 @@ void Namespace::newNominalTypeGen(string name, string nameFlip, Params genparams
  
   //Add name to typeGenNameMap
   typeGenNameMap[name] = nameFlip;
+  typeGenNameMap[nameFlip] = name;
 
   //Create the TypeGens
   TypeGen* typegen = new TypeGenFromFun(this,name,genparams,fun,false);
@@ -79,37 +79,29 @@ NamedType* Namespace::getNamedType(string name) {
 //Make sure the name is found in the typeGenCache. Error otherwise
 //Then create a new entry in NamedCache if it does not exist
 NamedType* Namespace::getNamedType(string name, Args genargs) {
-  NamedCacheParams ncp(name,genargs);
-  auto namedFound = namedTypeGenCache.find(ncp);
-  if (namedFound != namedTypeGenCache.end() ) {
-    return namedFound->second;
+  ASSERT(typeGenList.count(name),this->name + "." + name + " was never defined");
+  assert(typeGenNameMap.count(name));
+
+  if (namedTypeGenCache[name].count(genargs)) {
+    return namedTypeGenCache[name][genargs];
   }
-  
+  //Not found in cache. Create the entry
   //Not found. Verify that name exists in TypeGenList
-  //TODO deal with the 'at' error possiblities
-  if (typeGenList.count(name)==0 || typeGenNameMap.count(name)==0) {
-    Error e;
-    e.message("Could not Named Type!");
-    e.message("  Namespace: " + this->name);
-    e.message("  name: " + name);
-    e.fatal();
-    c->error(e);
-  }
-  ASSERT(typeGenList.count(name),"Missing " + name);
-  TypeGen* tgen = typeGenList.at(name);
-  ASSERT(typeGenNameMap.count(name),"Missing " + name);
+  TypeGen* tgen = typeGenList[name];
+  assert(typeGenNameMap.count(name));
   string nameFlip = typeGenNameMap.at(name);
-  ASSERT(typeGenList.count(nameFlip),"Missing " + name);
+  assert(typeGenList.count(nameFlip));
   TypeGen* tgenFlip = typeGenList.at(nameFlip);
-  NamedCacheParams ncpFlip(nameFlip,genargs);
 
   //Create two new named entries
   NamedType* named = new NamedType(c,this,name,tgen,genargs);
   NamedType* namedFlip = new NamedType(c,this,nameFlip,tgenFlip,genargs);
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
-  namedTypeGenCache[ncp] = named;
-  namedTypeGenCache[ncpFlip] = namedFlip;
+  namedTypeGenCache[name][genargs] = named;
+  namedTypeGenCache[nameFlip][genargs] = namedFlip;
+  ASSERT(namedTypeGenCache.count(name),"Bad name missing");
+  ASSERT(namedTypeGenCache[name].count(genargs),"Bad args missing");
 
   return named;
 }
@@ -138,8 +130,8 @@ TypeGen* Namespace::getTypeGen(string name) {
 
 Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams) {
   //Make sure module does not already exist as a module or generator
-  assert(moduleList.count(name)==0);
-  assert(generatorList.count(name)==0);
+  ASSERT(moduleList.count(name)==0,"Already added " + name);
+  ASSERT(generatorList.count(name)==0,"Already added " + name);
   
   Generator* g = new Generator(this,name,typegen,genparams,configparams);
   generatorList.emplace(name,g);
@@ -148,8 +140,9 @@ Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genp
 
 Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
   //Make sure module does not already exist as a module or generator
-  assert(moduleList.count(name)==0);
-  assert(generatorList.count(name)==0);
+  ASSERT(moduleList.count(name)==0, name + " already exists in " + this->name);
+  ASSERT(generatorList.count(name)==0, name + " already exists in " + this->name);
+  ASSERT(isa<RecordType>(t),"Module type needs to be a record but is: " + t->toString());
   Module* m = new Module(this,name,t, configparams);
   moduleList[name] = m;
   return m;
@@ -192,8 +185,8 @@ Instantiable* Namespace::getInstantiable(string iname) {
   if (moduleList.count(iname) > 0) return moduleList.at(iname);
   if (generatorList.count(iname) > 0) return generatorList.at(iname);
   Error e;
-  e.message("Could not find Instance in library!");
-  e.message("  Instance: " + iname);
+  e.message("Could not find Instantiable in library!");
+  e.message("  Instantiable: " + iname);
   e.message("  Namespace: " + name);
   e.fatal();
   c->error(e);

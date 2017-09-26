@@ -1,25 +1,7 @@
-COREIRCONFIG ?= g++
-CXX ?= g++
-
-ifeq ($(COREIRCONFIG),g++)
-CXX = g++
-endif
-
-ifeq ($(COREIRCONFIG),g++-4.9)
-CXX = g++-4.9
-endif
-
-CXXFLAGS = -std=c++11  -Wall  -fPIC 
-
-ifdef COREDEBUG
-CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
-endif
-
 HOME = ../..
 INCS = -I$(HOME)/include -I.
-DEPS = context.hpp
 SRCFILES = $(wildcard [^_]*.cpp)
-OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o)
+OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o) $(wildcard ../simulator/build/*.o)
 
 DYLIBS = build/coreir.dylib
 SOLIBS = build/coreir.so
@@ -41,5 +23,5 @@ build/%.dylib: $(OBJS)
 	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^
 	cp $@ $(HOME)/lib/lib$*.dylib
 
-build/%.o: %.cpp $(DEPS)
+build/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<

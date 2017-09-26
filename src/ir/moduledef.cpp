@@ -1,24 +1,23 @@
-
-#include "moduledef.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/error.h"
 #include <iterator>
+
 
 using namespace std;
 
 namespace CoreIR {
 
-
-
 ModuleDef::ModuleDef(Module* module) : module(module), instancesIterFirst(nullptr), instancesIterLast(nullptr) {
   interface = new Interface(this,module->getContext()->Flip(module->getType()));
-  cache = new SelCache();
 }
 
 ModuleDef::~ModuleDef() {
   //Delete interface, instances, cache
   delete interface;
   for(auto inst : instances) delete inst.second;
-  delete cache;
 }
 
 
@@ -79,6 +78,12 @@ Wireable* ModuleDef::sel(SelectPath path) {
     cur = cur->sel(*it);
   }
   return cur;
+}
+Wireable* ModuleDef::sel(std::initializer_list<const char*> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
+Wireable* ModuleDef::sel(std::initializer_list<std::string> path) {
+  return sel(SelectPath(path.begin(),path.end()));
 }
 
 void ModuleDef::appendInstanceToIter(Instance* instance) {
@@ -239,7 +244,7 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   this->disconnect(connect);
 }
 void ModuleDef::disconnect(Connection con) {
-  ASSERT(connections.count(con),"Cannot delete connection that is not connected!");
+  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + Connection2Str(con));
   
   //remove references
   con.first->removeConnectedWireable(con.second);
@@ -249,12 +254,7 @@ void ModuleDef::disconnect(Connection con) {
   connections.erase(con);
 }
 
-void disconnectAllWireables(ModuleDef* m, Wireable* w) {
-  for (auto sels : w->getSelects()) {
-    disconnectAllWireables(m,sels.second);
-  }
-  m->disconnect(w);
-}
+
 void ModuleDef::removeInstance(Instance* inst) {
   removeInstance(inst->getInstname());
 }
@@ -265,7 +265,16 @@ void ModuleDef::removeInstance(string iname) {
   Instance* inst = instances.at(iname);
   
   //First remove all the connections from this instance
-  disconnectAllWireables(this,inst);
+  inst->disconnectAll();
+
+  //remove the wireable (WILL free pointer)
+  vector<string> sels;
+  for (auto selmap : inst->getSelects()) {
+    sels.push_back(selmap.first);
+  }
+  for (auto sel : sels) {
+    inst->removeSel(sel);
+  }
 
   //Now remove this instance
   instances.erase(iname);

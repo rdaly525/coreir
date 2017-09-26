@@ -1,21 +1,4 @@
 .SUFFIXES:
-COREIRCONFIG ?= g++
-CXX ?= g++
-
-ifeq ($(COREIRCONFIG),g++)
-CXX = g++
-endif
-
-ifeq ($(COREIRCONFIG),g++-4.9)
-CXX = g++-4.9
-endif
-
-CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror
-
-ifdef COREDEBUG
-CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
-endif
-
 
 HOME = ../..
 INCS = -I$(HOME)/include -I.
@@ -31,7 +14,7 @@ clean:
 	rm -rf build/*
 
 build/%: build/%.o 
-	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
+	$(CXX) $(LDFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
 	cp $@ $(HOME)/bin
 
 build/%.o: %.cpp

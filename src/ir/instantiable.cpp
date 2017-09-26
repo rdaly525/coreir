@@ -1,9 +1,12 @@
-#include <cassert>
-#include <vector>
-#include <set>
-
-#include "instantiable.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/generatordef.h"
+#include "coreir/ir/directedview.h"
 
 using namespace std;
 
@@ -14,12 +17,12 @@ namespace CoreIR {
 ///////////////////////////////////////////////////////////
 Context* Instantiable::getContext() { return ns->getContext();}
 
-void Instantiable::setDefaultConfigArgs(Args defaultConfigArgs) {
+void Instantiable::addDefaultConfigArgs(Args defaultConfigArgs) {
   //Check to make sure each arg is in the config params
   for (auto argmap : defaultConfigArgs) {
-    ASSERT(configparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist!")
+    ASSERT(configparams.count(argmap.first)>0,"Cannot set default config arg. Param " + argmap.first + " Does not exist!")
+    this->defaultConfigArgs[argmap.first] = argmap.second;
   }
-  this->defaultConfigArgs = defaultConfigArgs;
 }
 string Instantiable::getRefName() const {
   return this->ns->getName() + "." + this->name;
@@ -40,6 +43,7 @@ Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparam
     auto const &gen_param = genparams.find(type_param.first);
     ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
     ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
+    ASSERT(gen_param->second == type_param.second,"Param type mismatch for: " + gen_param->first + " (" + Param2Str(gen_param->second)+ " vs " + Param2Str(type_param.second)+")");
   }
 }
 
@@ -85,12 +89,12 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
   this->def = new GeneratorDefFromFun(this,fun);
 }
 
-void Generator::setDefaultGenArgs(Args defaultGenArgs) {
+void Generator::addDefaultGenArgs(Args defaultGenArgs) {
   //Check to make sure each arg is in the config params
   for (auto argmap : defaultGenArgs) {
-    ASSERT(genparams.count(argmap.first)>0,"Arg " + argmap.first + " Does not exist!")
+    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!")
+    this->defaultGenArgs[argmap.first] = argmap.second;
   }
-  this->defaultGenArgs = defaultGenArgs;
 }
 
 string Generator::toString() const {

@@ -1,18 +1,23 @@
-#include "json.hpp"
-#include <iostream>
 #include <fstream>
-#include "context.hpp"
-#include "instantiable.hpp"
-#include "namespace.hpp"
-#include "typegen.hpp"
-#include <unordered_map>
+#include "coreir/ir/json.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/error.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/wireable.h"
+#include "coreir/ir/args.h"
 
+using namespace std;
 
 namespace CoreIR {
 
+using json = nlohmann::json;
 typedef unordered_map<string,json> jsonmap;
 
-using json = nlohmann::json;
 
 Type* json2Type(Context* c, json jt);
 Args json2Args(Context* c, Params p, json j);
@@ -139,7 +144,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           Module* m = ns->newModuleDecl(jmodname,t,configparams);
           if (jmod.count("defaultconfigargs")) {
-            m->setDefaultConfigArgs(json2Args(c,configparams,jmod.at("defaultconfigargs")));
+            m->addDefaultConfigArgs(json2Args(c,configparams,jmod.at("defaultconfigargs")));
           }
           if (jmod.count("metadata")) {
             m->setMetaData(jmod["metadata"]);
@@ -168,10 +173,10 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           Generator* g = ns->newGeneratorDecl(jgenname,typegen,genparams,configparams);
           if (jgen.count("defaultconfigargs")) {
-            g->setDefaultConfigArgs(json2Args(c,configparams,jgen.at("defaultconfigargs")));
+            g->addDefaultConfigArgs(json2Args(c,configparams,jgen.at("defaultconfigargs")));
           }
           if (jgen.count("defaultgenargs")) {
-            g->setDefaultGenArgs(json2Args(c,genparams,jgen.at("defaultgenargs")));
+            g->addDefaultGenArgs(json2Args(c,genparams,jgen.at("defaultgenargs")));
           }
           if (jgen.count("metadata")) {
             g->setMetaData(jgen["metadata"]);
@@ -291,12 +296,12 @@ Args json2Args(Context* c, Params genparams, json j) {
       throw std::runtime_error(key + " does not exist in params!");
     }
     Param kind = genparams.at(key);
-    Arg* g;
+    shared_ptr<Arg> g;
     switch(kind) {
-      case ABOOL : g = c->argBool(j.at(key).get<bool>()); break;
-      case AINT : g = c->argInt(j.at(key).get<int>()); break;
-      case ASTRING : g = c->argString(j.at(key).get<string>()); break;
-      case ATYPE : g = c->argType(json2Type(c,j.at(key))); break;
+      case ABOOL : g = Const(j.at(key).get<bool>()); break;
+      case AINT : g = Const(j.at(key).get<int>()); break;
+      case ASTRING : g = Const(j.at(key).get<string>()); break;
+      case ATYPE : g = Const(json2Type(c,j.at(key))); break;
       default :  throw std::runtime_error(Param2Str(kind) + "is not a valid arg param!");
     }
     gargs[key] = g;
@@ -310,7 +315,6 @@ Type* json2Type(Context* c, json jt) {
     string kind = jt.get<string>();
     if (kind == "BitIn") return c->BitIn();
     else if (kind == "Bit") return c->Bit();
-    else if (kind == "Any") return c->Any();
     else throw std::runtime_error(kind + " is not a type!");
   }
   else if (jt.type() == json::value_t::array) {
@@ -345,7 +349,6 @@ Type* json2Type(Context* c, json jt) {
     }
   }
   else throw std::runtime_error("Error parsing Type");
-  return c->Any();
 }
 
 #undef ASSERTTHROW

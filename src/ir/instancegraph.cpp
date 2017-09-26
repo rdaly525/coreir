@@ -1,5 +1,6 @@
-#include "instancegraph.h"
+#include "coreir/ir/instancegraph.h"
 
+using namespace std;
 using namespace CoreIR;
 
 void InstanceGraph::releaseMemory() {
@@ -22,10 +23,10 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 void InstanceGraph::construct(Namespace* ns) {
-  
+
   //Contains all external nodes referenced
   //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
-  
+
   //Create all Nodes first
   for (auto imap : ns->getModules()) {
     nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
@@ -33,7 +34,7 @@ void InstanceGraph::construct(Namespace* ns) {
   for (auto imap : ns->getGenerators()) {
     nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
   }
-  
+
   //populate all the nodes with pointers to the instances
   unordered_map<Instantiable*,InstanceGraphNode*> nodeMap2;
   for (auto nodemap : nodeMap) {
@@ -52,7 +53,7 @@ void InstanceGraph::construct(Namespace* ns) {
       else {
         node = nodeMap[icheck];
       }
-      
+
       node->addInstance(instmap.second,nodemap.second);
     }
   }
@@ -73,9 +74,9 @@ void InstanceGraphNode::appendField(string label,Type* t) {
 
   //appendField will assert if the field already exists
   Type* newType = mtype->appendField(label,t);
-  
+
   //Do not have to check any connections because I am adding a new field
-  
+
   //First change the Module Type
   m->setType(newType);
 
@@ -90,34 +91,26 @@ void InstanceGraphNode::appendField(string label,Type* t) {
   }
 }
 
-void disconnectAll(Wireable* w) {
-  for (auto sw : w->getSelects()) {
-    disconnectAll(sw.second);
-  }
-  w->disconnect();
-}
 void InstanceGraphNode::detachField(string label) {
   auto i = getInstantiable();
-  if (isa<Generator>(i)) {
-    ASSERT(0,"NYI Handling changing generator types");
-  }
+  ASSERT(!isa<Generator>(i),"NYI Handling changing generator types");
   Module* m = cast<Module>(i);
+  ASSERT(m->hasDef(),"NYI Handling changing types for module declaration");
   RecordType* mtype = cast<RecordType>(m->getType());
-  
+
   //Will assert if field does not exist
   Type* newType = mtype->detachField(label);
-  
+
   //Remove anything connected to the module def interface
-  if (m->hasDef()) {
-    Interface* iface = m->getDef()->getInterface();
-    disconnectAll(iface->sel(label));
-    iface->sel(label)->removeUnusedSelects();
-  }
-  
+  Interface* iface = m->getDef()->getInterface();
+  iface->sel(label)->disconnectAll();
+  iface->removeSel(label);
+
   //Remove anything connected to all the isntances
   for (auto inst : getInstanceList()) {
-    disconnectAll(inst->sel(label));
-    inst->sel(label)->removeUnusedSelects();
+    inst->sel(label)->disconnectAll();
+
+    inst->removeSel(label);
   }
 
   //First change the Module Type

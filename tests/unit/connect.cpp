@@ -1,5 +1,6 @@
 #include "coreir.h"
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {
@@ -11,7 +12,7 @@ int main() {
   
   Namespace* coreir = c->getNamespace("coreir");
   
-  Module* const16 = coreir->getGenerator("const")->getModule({{"width",c->argInt(16)}});
+  Module* const16 = coreir->getGenerator("const")->getModule({{"width",Const(16)}});
  
   // Define Module Type
   Type* mType = c->Record({
@@ -21,7 +22,7 @@ int main() {
   Module* mod = g->newModuleDecl("mod",mType);
   ModuleDef* def = mod->newModuleDef();
     Wireable* self = def->sel("self");
-    Wireable* i0 = def->addInstance("i0",const16,{{"value",c->argInt(23)}});
+    Wireable* i0 = def->addInstance("i0",const16,{{"value",Const(23)}});
     def->connect(i0->sel("out"),self->sel("out"));
     def->connect(i0->sel("out"),self->sel("out"));
     def->connect(self->sel("out"),i0->sel("out"));

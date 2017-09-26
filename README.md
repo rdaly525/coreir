@@ -31,7 +31,6 @@
 /doc
 /examples
 /tools
-/bindings
 //TODO quick description of each folder
 ```
 
