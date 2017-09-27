@@ -97,6 +97,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
                   add_op,
                   and_op,
                   or_op,
+                  bitreg_op,
                   reg_op,
                   regPE_op,
                   concat_op,
@@ -110,6 +111,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"add", add_op);
   opmap.emplace(pre+"and", and_op);
   opmap.emplace(pre+"or", or_op);
+  opmap.emplace(pre+"bitreg", bitreg_op);
   opmap.emplace(pre+"reg", reg_op);
   opmap.emplace(pre+"reg_PE", regPE_op);
   opmap.emplace(pre+"concat", concat_op);
@@ -142,6 +144,12 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     break;
   case concat_op:
     o << SMTConcat(context, in0, in1, out);
+    break;
+  case bitreg_op:
+    o << SMTBitReg(context, in, clk, out);
+    break;
+  case reg_op:
+    o << SMTReg(context, in, clk, out);
     break;
   case regPE_op:
     o << SMTRegPE(context, in, clk, out, en);

@@ -127,6 +127,21 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
+    string SMTBitReg(string context, SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p) {
+      // INIT: out = 0
+      // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
+      string in = in_p.getPortName();
+      string clk = clk_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMTBitReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
+      string zero = getSMTbits(stoi(out_p.dimstr()), 0);
+      string init = assert_op("(= "+SMTgetInit(context, out)+" "+zero+")");
+      string trans_1 = "(=> (= (bvand (bvnot " + SMTgetCurr(context, clk) + ") " + SMTgetNext(context, clk) + ") #b1) (= " + SMTgetNext(context, out) + " " + SMTgetCurr(context, in) + "))";
+      string trans_2 = "(=> (not (= (bvand (bvnot " + SMTgetCurr(context, clk) + ") " + SMTgetNext(context, clk) + ") #b1)) (= " + SMTgetNext(context, out) + " " + SMTgetCurr(context, out) + "))";
+      string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
+      return comment + NL + init + NL + trans;
+    }
+    
     string SMTReg(string context, SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p) {
       // INIT: out = 0
       // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))

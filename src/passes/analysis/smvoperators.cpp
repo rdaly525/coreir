@@ -59,8 +59,8 @@ namespace {
 namespace CoreIR {
   namespace Passes {
 
-    string SMVgetCurr(string context, string var) {return context + var; }
-    string SMVgetNext(string context, string var) {return "next(" + context + var + ")"; }
+    string SMVgetCurr(string context, string var) {return "\"" + context + var + "\""; }
+    string SMVgetNext(string context, string var) {return "next(" + SMVgetCurr(context, var) + ")"; }
 
     SmvBVVar SmvBVVarGetNext(SmvBVVar var) {
       var.setName(SMVgetNext("", var.getName()));
@@ -147,6 +147,28 @@ namespace CoreIR {
       return comment + NL + get_invar(curr);
     }
 
+    string SMVBitReg(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p) {
+      // INIT: out = 0
+      // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
+      string in = in_p.getPortName();
+      string clk = clk_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = "-- SMVBitReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
+      
+      unordered_map<string, string> replace_map;
+      replace_map.emplace("{clk}", SMVgetCurr(context, clk));
+      replace_map.emplace("{out}", SMVgetCurr(context, out));
+      replace_map.emplace("{in}", SMVgetCurr(context, in));
+      replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
+      
+      string trans = "(((!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & ((!(!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
+      string init = "{out} = {zero}";
+      
+      trans = format_string(trans, replace_map);      
+      init = format_string(init, replace_map);      
+      return comment + NL + get_init(init) + NL + get_trans(trans);
+    }
+    
     string SMVReg(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p) {
       // INIT: out = 0
       // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
