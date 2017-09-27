@@ -78,10 +78,10 @@ class NamedType : public Type {
 
     bool isgen=false;
     TypeGen* typegen=nullptr;
-    Args genargs;
+    Values genargs;
   public :
     NamedType(Context* c, Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),c), ns(ns), name(name), raw(raw) {}
-    NamedType(Context* c, Namespace* ns, std::string name, TypeGen* typegen, Args genargs);
+    NamedType(Context* c, Namespace* ns, std::string name, TypeGen* typegen, Values genargs);
     static bool classof(const Type* t) {return t->getKind()==TK_Named;}
     std::string toString(void) const { return name; } //TODO add generator
     Namespace* getNamespace() {return ns;}
@@ -90,7 +90,7 @@ class NamedType : public Type {
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}
-    Args getGenArgs() {return genargs;}
+    Values getGenArgs() {return genargs;}
     uint getSize() const { return raw->getSize();}
 };
 

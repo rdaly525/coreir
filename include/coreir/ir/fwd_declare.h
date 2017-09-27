@@ -42,11 +42,10 @@ class TypeGen;
 
 class TypeCache;
 
+class Value;
 class Arg;
-class ArgBool;
-class ArgInt;
-class ArgString;
-class ArgType;
+class Const;
+
 
 class MetaData;
 
@@ -66,12 +65,17 @@ class Select;
 class Pass;
 class PassManager;
 
-typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
+typedef enum {ABOOL=0,AINT=1,ASTRING=2,ATYPE=3} Param;
+
+typedef std::shared_ptr<Value> ValuePtr;
+typedef std::shared_ptr<Arg> ArgPtr;
+typedef std::shared_ptr<Const> ConstPtr;
+typedef std::map<std::string,ConstPtr> Consts;
+typedef std::map<std::string,ValuePtr> Values;
 
 typedef std::map<std::string,Param> Params;
-typedef std::shared_ptr<Arg> ArgPtr;
-typedef std::map<std::string,ArgPtr> Args;
-bool operator==(const Args& l, const Args& r);
+
+bool operator==(const Values& l, const Values& r);
 
 //TODO this is a hack solution that should be fixed
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
@@ -86,12 +90,12 @@ struct myPair {
   }
 };
 
-typedef Type* (*TypeGenFun)(Context* c, Args args);
+typedef Type* (*TypeGenFun)(Context* c, Values args);
 typedef std::vector<myPair<std::string,Type*>> RecordParams ;
-typedef std::string (*NameGen_t)(Args);
+typedef std::string (*NameGen_t)(Values);
 typedef myPair<uint,Type*> ArrayParams ;
 
-typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
+typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Values);
 
 typedef std::deque<std::string> SelectPath;
 typedef std::vector<std::reference_wrapper<const std::string>> ConstSelectPath;
@@ -126,8 +130,8 @@ namespace std {
   };
 
   template <>
-  struct hash<CoreIR::Args> {
-    size_t operator() (const CoreIR::Args& args) const;
+  struct hash<CoreIR::Values> {
+    size_t operator() (const CoreIR::Values& args) const;
   };
   
   template <>

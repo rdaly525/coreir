@@ -78,7 +78,7 @@ NamedType* Namespace::getNamedType(string name) {
 //Check if cached in namedTypeGenCache
 //Make sure the name is found in the typeGenCache. Error otherwise
 //Then create a new entry in NamedCache if it does not exist
-NamedType* Namespace::getNamedType(string name, Args genargs) {
+NamedType* Namespace::getNamedType(string name, Values genargs) {
   ASSERT(typeGenList.count(name),this->name + "." + name + " was never defined");
   assert(typeGenNameMap.count(name));
 

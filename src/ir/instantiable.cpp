@@ -17,7 +17,7 @@ namespace CoreIR {
 ///////////////////////////////////////////////////////////
 Context* Instantiable::getContext() { return ns->getContext();}
 
-void Instantiable::addDefaultConfigArgs(Args defaultConfigArgs) {
+void Instantiable::addDefaultConfigArgs(Values defaultConfigArgs) {
   //Check to make sure each arg is in the config params
   for (auto argmap : defaultConfigArgs) {
     ASSERT(configparams.count(argmap.first)>0,"Cannot set default config arg. Param " + argmap.first + " Does not exist!")
@@ -60,7 +60,7 @@ Generator::~Generator() {
 }
 
 
-Module* Generator::getModule(Args args) {
+Module* Generator::getModule(Values args) {
   
   auto cached = genCache.find(args);
   if (cached != genCache.end() ) {
@@ -89,7 +89,7 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
   this->def = new GeneratorDefFromFun(this,fun);
 }
 
-void Generator::addDefaultGenArgs(Args defaultGenArgs) {
+void Generator::addDefaultGenArgs(Values defaultGenArgs) {
   //Check to make sure each arg is in the config params
   for (auto argmap : defaultGenArgs) {
     ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!")

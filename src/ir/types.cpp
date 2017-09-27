@@ -71,9 +71,9 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(TK_Named,DK_Mixed,c) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,c) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
   //Check args here.
-  checkArgsAreParams(genargs,typegen->getParams());
+  checkValuesAreParams(genargs,typegen->getParams());
 
   //Run the typegen
   raw = typegen->getType(genargs);

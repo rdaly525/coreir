@@ -157,12 +157,12 @@ Wireable* Wireable::getTopParent() {
 }
 
 
-Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
+Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Values configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //First merge default args
-  mergeArgs(configargs,moduleRef->getDefaultConfigArgs());
+  mergeValues(configargs,moduleRef->getDefaultConfigArgs());
   //Check if configargs is the same as expected by ModuleRef
-  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkValuesAreParams(configargs,moduleRef->getConfigParams());
   this->configargs = configargs;
 
   //TODO checkif instname is unique
@@ -171,13 +171,13 @@ Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Arg
 
 Instance::Instance(ModuleDef* container, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), isgen(true), generatorRef(generatorRef) {
   ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
-  mergeArgs(genargs,generatorRef->getDefaultGenArgs());
-  checkArgsAreParams(genargs,generatorRef->getGenParams());
+  mergeValues(genargs,generatorRef->getDefaultGenArgs());
+  checkValuesAreParams(genargs,generatorRef->getGenParams());
   this->genargs = genargs;
   this->type = generatorRef->getTypeGen()->getType(genargs);
   ASSERT(isa<RecordType>(this->type),"Generated type needs to be a record but is: " + this->type->toString());
-  mergeArgs(configargs,generatorRef->getDefaultConfigArgs());
-  checkArgsAreParams(configargs,generatorRef->getConfigParams());
+  mergeValues(configargs,generatorRef->getDefaultConfigArgs());
+  checkValuesAreParams(configargs,generatorRef->getConfigParams());
   this->configargs = configargs;
 }
 
@@ -213,18 +213,18 @@ bool Instance::runGenerator() {
   return true;
 }
 
-void Instance::replace(Module* moduleRef, Args configargs) {
+void Instance::replace(Module* moduleRef, Values configargs) {
   ASSERT(!this->isGen(),"NYI, Cannot replace a generator instance with a module isntance")
   ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
   ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
   this->moduleRef = moduleRef;
   this->configargs = configargs;
-  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  checkValuesAreParams(configargs,moduleRef->getConfigParams());
 }
 
 //TODO this is probably super unsafe and will leak memory
 //TODO I do not think this deals with default args
-void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
+void Instance::replace(Generator* generatorRef, Values genargs, Values configargs) {
   ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
   ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
 
@@ -235,8 +235,8 @@ void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
 
   this->configargs = configargs;
 
-  checkArgsAreParams(configargs,generatorRef->getConfigParams());
-  checkArgsAreParams(genargs,generatorRef->getGenParams());
+  checkValuesAreParams(configargs,generatorRef->getConfigParams());
+  checkValuesAreParams(genargs,generatorRef->getGenParams());
 
 }
 

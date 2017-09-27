@@ -34,7 +34,7 @@ Context::~Context() {
   for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
-  for (auto it : argPtrArrays) free(it);
+  for (auto it : valuePtrArrays) free(it);
 
   delete cache;
 }
@@ -173,7 +173,7 @@ Type* Context::Named(string nameref) {
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
-Type* Context::Named(string nameref,Args args) {
+Type* Context::Named(string nameref,Values args) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
@@ -224,15 +224,15 @@ Params* Context::newParams() {
   return params;
 }
 
-Args* Context::newArgs() {
-  Args* args = new Args();
-  argsList.push_back(args);
-  return args;
+Values* Context::newValues() {
+  Values* vals = new Values();
+  valuesList.push_back(vals);
+  return vals;
 }
 
-Arg** Context::newArgPtrArray(int size) {
-    Arg** arr = (Arg**) malloc(sizeof(Arg*) * size);
-    argPtrArrays.push_back(arr);
+Value** Context::newValuePtrArray(int size) {
+    Value** arr = (Value**) malloc(sizeof(Value*) * size);
+    valuePtrArrays.push_back(arr);
     return arr;
 }
 
@@ -284,15 +284,15 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     return arr;
 }
 
-void* Context::saveArg(shared_ptr<Arg> arg) { 
-  void* key = arg.get();
-  argList[key] = arg;
+void* Context::saveValue(ValuePtr value) { 
+  void* key = value.get();
+  valueList[key] = value;
   return key;
 }
 
-ArgPtr Context::getSavedArg(void* arg) {
-  ASSERT(argList.count(arg),"Missing Arg!");
-  return argList[arg];
+ValuePtr Context::getSavedValue(void* value) {
+  ASSERT(valueList.count(value),"Missing Value!");
+  return valueList[value];
 }
 
 Context* newContext() {

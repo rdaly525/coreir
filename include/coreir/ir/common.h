@@ -20,13 +20,13 @@ bool isNumber(std::string s);
 bool isPower2(uint n);
 std::string Param2Str(Param);
 std::string Params2Str(Params);
-std::string Args2Str(Args);
+std::string Values2Str(Values);
 std::string SelectPath2Str(SelectPath path);
 std::string Connection2Str(Connection con);
 Param Str2Param(std::string s);
 
 //Will call assertions
-void checkArgsAreParams(Args args, Params params);
+void checkValuesAreParams(Values args, Params params);
 
 bool hasChar(const std::string s, char c);
 
@@ -61,9 +61,6 @@ T join(const A &begin, const A &end, const T &t) {
 
 std::vector<std::string> splitRef(std::string s);
 
-//template<typename container>
-//std::string joinString(const container arr, std::string del);
-
 static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
   {"unary",{"not","neg"}},
   {"unaryReduce",{"andr","orr","xorr"}},
@@ -81,7 +78,7 @@ static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
   {"ternary",{"mux"}},
 });
 
-void mergeArgs(Args& a0, Args a1);
+void mergeValues(Values& v0, Values v1);
 
 }
 

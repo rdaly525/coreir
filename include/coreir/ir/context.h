@@ -23,9 +23,9 @@ class Context {
   //Memory management
   TypeCache* cache;
   
-  std::unordered_map<void*,ArgPtr> argList;
-  std::vector<Args*> argsList;
-  std::vector<Arg**> argPtrArrays;
+  std::unordered_map<void*,ValuePtr> valueList;
+  std::vector<Values*> valuesList;
+  std::vector<Value**> valuePtrArrays;
   std::vector<RecordParams*> recordParamsList;
   std::vector<Params*> paramsList;
   std::vector<Connection*> connectionArrays;
@@ -74,7 +74,7 @@ class Context {
     Type* Array(uint n, Type* t);
     Type* Record(RecordParams rp=RecordParams());
     Type* Named(std::string nameref);
-    Type* Named(std::string nameref, Args args);
+    Type* Named(std::string nameref, Values args);
 
     Type* Flip(Type* t);
     Type* In(Type* t);
@@ -84,7 +84,7 @@ class Context {
 
     RecordParams* newRecordParams();
     Params* newParams();
-    Args* newArgs();
+    Values* newValues();
 
     //Unique
     std::string getUnique() {
@@ -101,11 +101,11 @@ class Context {
     // C API memory management
 
     //Saves 
-    void* saveArg(ArgPtr arg);
-    ArgPtr getSavedArg(void*);
+    void* saveValue(ValuePtr val);
+    ValuePtr getSavedValue(void*);
     
     
-    Arg** newArgPtrArray(int size);
+    Value** newValuePtrArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);

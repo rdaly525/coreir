@@ -90,22 +90,22 @@ class Instance : public Wireable {
   const std::string instname;
   Module* moduleRef = nullptr;
   
-  Args configargs;
+  Values configargs;
   
   bool isgen;
   bool wasgen = false;
   Generator* generatorRef = nullptr;
-  Args genargs;
+  Values genargs;
   
   public :
-    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Args configargs=Args());
-    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Args genargs, Args configargs=Args());
+    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values configargs=Values());
+    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Values genargs, Values configargs=Values());
     static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     std::string toString() const;
     json toJson();
     Module* getModuleRef() {return moduleRef;}
     const std::string& getInstname() const { return instname; }
-    const Args& getConfigArgs() const {return configargs;}
+    const Values& getConfigArgs() const {return configargs;}
     bool hasConfigArgs() {return !configargs.empty();}
     
     //isGen means it is currently an instance of a generator
@@ -117,7 +117,7 @@ class Instance : public Wireable {
     bool wasGen() const { return wasgen;}
     Generator* getGeneratorRef() { return generatorRef;}
     Instantiable* getInstantiableRef();
-    const Args& getGenArgs() const {return genargs;}
+    const Values& getGenArgs() const {return genargs;}
     
     //Returns if it actually ran the generator
     //Runs the generator and changes instance label to Module
@@ -126,8 +126,8 @@ class Instance : public Wireable {
     //Call namespace.addModule(m) to move from generator to namespace
     bool runGenerator();
 
-    void replace(Module* moduleRef, Args configargs=Args());
-    void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
+    void replace(Module* moduleRef, Values configargs=Values());
+    void replace(Generator* generatorRef, Values genargs, Values configargs=Values());
   
   friend class InstanceGraphNode;
 };

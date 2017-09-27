@@ -16,7 +16,7 @@ class Instantiable : public MetaData {
     Namespace* ns;
     std::string name;
     Params configparams;
-    Args defaultConfigArgs;
+    Values defaultConfigArgs;
     LinkageKind linkageKind;
   public :
     Instantiable(InstantiableKind kind, Namespace* ns, std::string name, Params configparams) : MetaData(), kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
@@ -39,8 +39,8 @@ class Instantiable : public MetaData {
     friend bool operator==(const Instantiable & l,const Instantiable & r);
     
     //This will add (and override) defaultConfigArgs
-    void addDefaultConfigArgs(Args defaultConfigArgs);
-    Args getDefaultConfigArgs() { return defaultConfigArgs;}
+    void addDefaultConfigArgs(Values defaultConfigArgs);
+    Values getDefaultConfigArgs() { return defaultConfigArgs;}
 };
 
 std::ostream& operator<<(std::ostream& os, const Instantiable&);
@@ -48,11 +48,11 @@ std::ostream& operator<<(std::ostream& os, const Instantiable&);
 class Generator : public Instantiable {
   TypeGen* typegen;
   Params genparams;
-  Args defaultGenArgs; 
+  Values defaultGenArgs; 
   NameGen_t nameGen=nullptr;
 
   //This is memory managed
-  std::unordered_map<Args,Module*> genCache;
+  std::unordered_map<Values,Module*> genCache;
   GeneratorDef* def = nullptr;
   
   public :
@@ -64,14 +64,14 @@ class Generator : public Instantiable {
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}
-    std::string getName(Args args=Args()) {
+    std::string getName(Values args=Values()) {
       if (!nameGen || args.size()==0) return Instantiable::getName();
       return nameGen(args);
     }
     
     //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace
-    Module* getModule(Args args);
+    Module* getModule(Values args);
     
     //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
@@ -79,8 +79,8 @@ class Generator : public Instantiable {
     Params getGenParams() {return genparams;}
 
     //This will add (and override) default args
-    void addDefaultGenArgs(Args defaultGenfigargs);
-    Args getDefaultGenArgs() { return defaultGenArgs;}
+    void addDefaultGenArgs(Values defaultGenfigargs);
+    Values getDefaultGenArgs() { return defaultGenArgs;}
   
     void setNameGen(NameGen_t ng) {nameGen = ng;}
 

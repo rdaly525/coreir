@@ -92,16 +92,16 @@ bool operator==(const Args& l, const Args& r);
 //You can use Const to create a new Arg
 
 template<typename T> 
-ArgPtr Const_impl(T val);
+ConstPtr Const_impl(T val);
 
 template<>
-ArgPtr Const_impl<bool>(bool val);
+ConstPtr Const_impl<bool>(bool val);
 template<>
-ArgPtr Const_impl<int>(int val);
+ConstPtr Const_impl<int>(int val);
 template<>
-ArgPtr Const_impl<std::string>(std::string val);
+ConstPtr Const_impl<std::string>(std::string val);
 template<>
-ArgPtr Const_impl<Type*>(Type* val);
+ConstPtr Const_impl<Type*>(Type* val);
 
 template<typename T>
 typename std::enable_if<std::is_same<T,bool>::value,ArgPtr>::type

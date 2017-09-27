@@ -6,7 +6,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
-#include "coreir/ir/args.h"
+#include "coreir/ir/value.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/typegen.h"
 #include "coreir/ir/instantiable.h"

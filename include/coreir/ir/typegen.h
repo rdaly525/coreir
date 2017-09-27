@@ -14,8 +14,8 @@ class TypeGen {
   public:
     TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : ns(ns), name(name), params(params), flipped(flipped) {}
     virtual ~TypeGen() {}
-    virtual Type* createType(Context* c, Args args) = 0;
-    Type* getType(Args args);
+    virtual Type* createType(Context* c, Values args) = 0;
+    Type* getType(Values args);
     Namespace* getNamespace() const {return ns;}
     const std::string& getName() const {return name;}
     Params getParams() const {return params;}
@@ -28,7 +28,7 @@ class TypeGenFromFun : public TypeGen {
   
   public:
     TypeGenFromFun(Namespace* ns, std::string name, Params params, TypeGenFun fun, bool flipped=false) : TypeGen(ns,name,params,flipped), fun(fun) {}
-    Type* createType(Context* c, Args args) {
+    Type* createType(Context* c, Values args) {
       return fun(c,args);
     }
 };

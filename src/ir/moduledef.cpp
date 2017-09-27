@@ -26,7 +26,7 @@ void ModuleDef::print(void) {
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
     if (inst.second->isGen()) {
-      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Args2Str(inst.second->getGenArgs()) << endl;
+      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(inst.second->getGenArgs()) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
@@ -136,7 +136,7 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 }
 
 
-Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
+Instance* ModuleDef::addInstance(string instname,Generator* gen, Values genargs,Values config) {
   assert(instances.count(instname)==0);
 
   Instance* inst = new Instance(this,instname,gen,genargs,config);
@@ -147,7 +147,7 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
+Instance* ModuleDef::addInstance(string instname,Module* m,Values config) {
   Instance* inst = new Instance(this,instname,m,config);
   instances[instname] = inst;
   
@@ -156,7 +156,7 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,string iref,Args genOrConfigargs, Args configargs) {
+Instance* ModuleDef::addInstance(string instname,string iref,Values genOrConfigargs, Values configargs) {
   vector<string> split = splitRef(iref);
   Instantiable* ref = this->getContext()->getInstantiable(iref);
   if (auto g = dyn_cast<Generator>(ref)) {

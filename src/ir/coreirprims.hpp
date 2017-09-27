@@ -52,7 +52,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
    */
   Params concatParams({
     {"width0",AINT},
-    {"width1",AINT}
+    {"width1",AINT(Var("width0"))}
   });
   auto concatTypeGen = coreirprims->newTypeGen(
     "concatTypeFun",
@@ -67,6 +67,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
       });
     }
   );
+  
   auto concat = coreirprims->newGeneratorDecl("concat",concatTypeGen,concatParams);
   jverilog["parameters"] = {"width0","width1"};
   jverilog["prefix"] = "coreir_";
