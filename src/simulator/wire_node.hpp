@@ -70,6 +70,7 @@ namespace CoreIR {
       wire = other.wire;
       isSequential = other.isSequential;
       isReceiver = other.isReceiver;
+      threadNumber = other.threadNumber;
 
       return *this;
     }

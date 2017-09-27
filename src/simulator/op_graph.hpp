@@ -72,7 +72,12 @@ namespace CoreIR {
 
     void addVertLabel(const vdisc vd, const WireNode& wd) {
       vertNames.erase(vd);
+
+      std::cout << "thread number in add label = " << wd.getThreadNo() << std::endl;
       vertNames[vd] = wd;
+
+      std::cout << "thread number after label = " << vertNames[vd].getThreadNo() << std::endl;
+
     }
 
     void addEdgeLabel(const edisc ed, const Conn& conn) {
