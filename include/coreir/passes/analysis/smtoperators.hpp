@@ -2,10 +2,11 @@
 #define SMTOPERATORS_HPP_
 
 #include "coreir.h"
-#include "coreir-passes/analysis/smtmodule.hpp"
+#include "coreir/passes/analysis/smtmodule.hpp"
 #include <ostream>
 
 using namespace CoreIR;
+using namespace std;
 namespace CoreIR {
   namespace Passes {
     typedef std::pair<string, SmtBVVar> named_var;

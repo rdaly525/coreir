@@ -1,6 +1,6 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/smtmodule.hpp"
-#include "coreir-passes/analysis/smtoperators.hpp"
+#include "coreir/passes/analysis/smtmodule.hpp"
+#include "coreir/passes/analysis/smtoperators.hpp"
 
 #include <iostream>
 using namespace CoreIR;

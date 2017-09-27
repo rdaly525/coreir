@@ -6,10 +6,10 @@
 #include "analysis/createinstancegraph.h"
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
-#include "analysis/smtlib2.h"
-#include "analysis/smv.h"
+#include "coreir/passes/analysis/smtlib2.h"
+#include "coreir/passes/analysis/smv.h"
+#include "coreir/passes/analysis/verifyflatcoreirprims.h"
 #include "analysis/coreirjson.h"
-#include "analysis/verifyflatcoreirprims.h"
 #include "analysis/verifyconnectivity.h"
 #include "analysis/verifyinputconnections.h"
 #include "analysis/verifyflattenedtypes.h"
@@ -40,7 +40,7 @@ namespace CoreIR {
     pm.addPass(new Passes::Verilog());
     pm.addPass(new Passes::SmtLib2());
     pm.addPass(new Passes::SMV());
-		pm.addPass(new Passes::VerifyFlatCoreirPrims());
+    pm.addPass(new Passes::VerifyFlatCoreirPrims());
     pm.addPass(new Passes::VerifyInputConnections());
     pm.addPass(new Passes::VerifyConnectivity(true,true));
     pm.addPass(new Passes::VerifyConnectivity(true,false));

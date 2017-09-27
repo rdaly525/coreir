@@ -17,6 +17,7 @@
 
 
 using namespace CoreIR; //TODO get rid of this
+using namespace std;
 
 class SmvBVVar {
   string instname = "";

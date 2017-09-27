@@ -3,8 +3,8 @@
 #include <dlfcn.h>
 #include <fstream>
 
-#include "coreir-passes/analysis/smtlib2.h"
-#include "coreir-passes/analysis/smv.h"
+#include "coreir/passes/analysis/smtlib2.h"
+#include "coreir/passes/analysis/smv.h"
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"

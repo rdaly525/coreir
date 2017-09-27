@@ -2,10 +2,11 @@
 #define SMVOPERATORS_HPP_
 
 #include "coreir.h"
-#include "coreir-passes/analysis/smvmodule.hpp"
+#include "coreir/passes/analysis/smvmodule.hpp"
 #include <ostream>
 
 using namespace CoreIR;
+using namespace std;
 namespace CoreIR {
   namespace Passes {
     typedef std::pair<string, SmvBVVar> named_var;

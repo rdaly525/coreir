@@ -3,7 +3,7 @@
 #include "catch.hpp"
 
 #include "coreir.h"
-#include "coreir-passes/analysis/pass_sim.h"
+#include "coreir/passes/analysis/pass_sim.h"
 #include "coreir/passes/transform/rungenerators.h"
 
 #include "../src/simulator/output.hpp"

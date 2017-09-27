@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/smtoperators.hpp"
+#include "coreir/passes/analysis/smtoperators.hpp"
 #include <bitset>
 
 using namespace CoreIR;
@@ -21,10 +21,6 @@ namespace {
 
   string binary_op_eqass(string op, string in1, string in2, string out) {
     return assert_op("(= (" + op + " " + in1 + " " + in2 + ") " + out + ")");
-  }
-
-  string unary_op(string op, string in) {
-    return "(" + op + " " + in + ")";
   }
 
   string binary_op(string op, string in1, string in2) {

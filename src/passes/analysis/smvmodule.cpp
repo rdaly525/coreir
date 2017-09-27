@@ -1,10 +1,11 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/smvmodule.hpp"
-#include "coreir-passes/analysis/smvoperators.hpp"
+#include "coreir/passes/analysis/smvmodule.hpp"
+#include "coreir/passes/analysis/smvoperators.hpp"
 
 #include <iostream>
 using namespace CoreIR;
 using namespace Passes;
+using namespace std;
 
 typedef void (*voidFunctionType)(void);
 

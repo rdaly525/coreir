@@ -21,7 +21,7 @@ class SmtLib2 : public InstanceGraphPass {
     SmtLib2() : InstanceGraphPass(ID,"Creates SmtLib2 representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
-      addDependency("strongverify");
+      addDependency("verifyconnectivity");
       addDependency("verifyflattenedtypes");
       addDependency("verifyflatcoreirprims");
     }

@@ -68,7 +68,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
       json jns = jnsmap.second;
-      checkJson(jns,{"namedtypes","namedtypegens","modules","generators","properties"});
+      checkJson(jns,{"namedtypes","namedtypegens","modules","generators"});
       Namespace* ns;
       if (c->hasNamespace(nsname) ) ns = c->getNamespace(nsname);
       else ns = c->newNamespace(nsname);
@@ -120,9 +120,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     for (auto nsq : nsqueue) {
       Namespace* ns = nsq.first;
       json jns = nsq.second;
-      if (jns.count("properties")) {
-        //        ns->setProperty(jns["properties"]);
-      }          
       //Load Modules
       if (jns.count("modules")) {
         for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
@@ -135,7 +132,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           
           json jmod = jmodmap.second;
-          checkJson(jmod,{"type","configparams","defaultconfigargs","instances","connections"});
+          checkJson(jmod,{"type","configparams","defaultconfigargs","instances","connections","metadata"});
           Type* t = json2Type(c,jmod.at("type"));
           
           Params configparams;

@@ -5,6 +5,7 @@
 
 namespace CoreIR {
 
+using namespace std;
 static const string SEP = "$";
 
 class Pass {

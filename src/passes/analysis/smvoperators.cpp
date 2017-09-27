@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/smvoperators.hpp"
+#include "coreir/passes/analysis/smvoperators.hpp"
 #include <bitset>
 #include <algorithm>
 
@@ -7,11 +7,6 @@ using namespace CoreIR;
 
 namespace {
   string NL = "\n";
-
-
-  string assert_op(string expr) {
-    return "(assert "+ expr + ")";
-  }
 
   string unary_op(string op, string in) {
     return "(" + op + " " + in + ")";

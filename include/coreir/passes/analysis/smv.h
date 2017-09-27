@@ -11,7 +11,7 @@
 namespace CoreIR {
 namespace Passes {
 
-class SMV : public InstanceGraphPass {
+  class SMV : public InstanceGraphPass { // ModulePass
   unordered_map<Instantiable*,SMVModule*> modMap;
   unordered_map<string, PropDef> properties;
   unordered_set<Instantiable*> external;
@@ -20,9 +20,9 @@ class SMV : public InstanceGraphPass {
   public :
     static std::string ID;
     SMV() : InstanceGraphPass(ID,"Creates SMV representation of IR",true) {}
-    bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+    bool runOnInstanceGraphNode(InstanceGraphNode& node) override; // runOnModule(Module* module)
     void setAnalysisInfo() override {
-      addDependency("strongverify");
+      addDependency("verifyconnectivity");
       addDependency("verifyflattenedtypes");
       //      addDependency("verifyflatten");
     }

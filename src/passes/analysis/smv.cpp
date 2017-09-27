@@ -1,6 +1,6 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/smvmodule.hpp"
-#include "coreir-passes/analysis/smv.h"
+#include "coreir/passes/analysis/smvmodule.hpp"
+#include "coreir/passes/analysis/smv.h"
 
 using namespace CoreIR;
 using namespace Passes;
@@ -25,6 +25,11 @@ namespace {
 
 }
 
+// bool Passes::SMV::runOnModule(Module* module) {
+//   if (module != getContext()->getTop()) return false;
+// }
+
+
 std::string Passes::SMV::ID = "smv";
 bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
@@ -43,14 +48,17 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
 
-  json jprop = i->getNamespace()->getProperty().getJson();
-  if (jprop.size()) {
-    for (int i=0; i<jprop.size(); i++) {
-      string propname = jprop[i][0];
-      PropType ptype = jprop[i][1] == "invar" ? invarspec : ltlspec;
-      string propval = jprop[i][2];
-      PropDef prop = make_pair(ptype, propval);
-      properties.emplace(propname, prop);
+  if (this->getContext()->hasTop() &&
+      this->getContext()->getTop()->getMetaData().count("properties") > 0) {
+    json jprop = this->getContext()->getTop()->getMetaData()["properties"];
+    if (jprop.size()) {
+      for (uint i=0; i<jprop.size(); i++) {
+        string propname = jprop[i][0];
+        PropType ptype = jprop[i][1] == "invar" ? invarspec : ltlspec;
+        string propval = jprop[i][2];
+        PropDef prop = make_pair(ptype, propval);
+        properties.emplace(propname, prop);
+      }
     }
   }
   
@@ -84,7 +92,7 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Wireable* right = left==con.first ? con.second : con.first;
     SmvBVVar vleft(left);
     SmvBVVar vright(right);
-
+    
     variables = check_interface_variable(variables, vleft, smod);
     variables = check_interface_variable(variables, vright, smod);
     
