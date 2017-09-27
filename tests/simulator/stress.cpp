@@ -25,13 +25,14 @@ namespace CoreIR {
   void setThreadNumbers(NGraph& gr) {
     for (auto& v : gr.getVerts()) {
       WireNode w = gr.getNode(v);
-      w.setThreadNo(12);
 
-      cout << "w   thread number = " << w.getThreadNo() << endl;
+      if (isGraphInput(w)) {
+	w.setThreadNo(0);
+      } else {
+	w.setThreadNo(13);
+      }
 
       gr.addVertLabel(v, w);
-
-      cout << "New thread number = " << gr.getNode(v).getThreadNo() << endl;
     }
   }
 

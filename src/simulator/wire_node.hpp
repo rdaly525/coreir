@@ -104,7 +104,8 @@ namespace CoreIR {
   static inline WireNode outputNode(CoreIR::Wireable* wire) {
     return WireNode(wire, true, false);
   }
-  
+
+  bool isGraphInput(const WireNode& w);
 }
 
 namespace std {
