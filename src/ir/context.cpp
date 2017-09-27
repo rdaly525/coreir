@@ -190,6 +190,21 @@ Type* Context::Out(Type* t) {
   assert(0 && "TODO NYI");
 }
 
+void Context::setTop(Module* top) {
+  ASSERT(top && top->hasDef(), top->toString() + " has no def!");
+  this->top = top;
+}
+void Context::setTop(string topRef) {
+  auto topsplit = splitString<vector<string>>(topRef,'.');
+  ASSERT(topsplit.size()==2,topRef + " is not a valid top!");
+  ASSERT(this->hasNamespace(topsplit[0]),"Missing namespace " + topsplit[0]);
+  Namespace* topns = this->getNamespace(topsplit[0]);
+  ASSERT(topns->hasModule(topsplit[1]),"Missing module " + topRef);
+  this->top = topns->getModule(topsplit[1]);
+  ASSERT(this->top->hasDef(),topRef + " has no def!");
+}
+
+
 TypeGen* Context::getTypeGen(string nameref) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);

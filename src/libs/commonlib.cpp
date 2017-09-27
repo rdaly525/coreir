@@ -235,6 +235,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   commonlib->newTypeGen("LinebufferMemType",MemGenParams,[](Context* c, Args args) {
     uint width = args.at("width")->get<int>();
     return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
       {"rdata", c->Bit()->Arr(width)},
@@ -243,11 +244,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
   Generator* lbMem = commonlib->newGeneratorDecl("LinebufferMem",commonlib->getTypeGen("LinebufferMemType"),MemGenParams);
   lbMem->addDefaultGenArgs({{"width",Const(16)},{"depth",Const(1024)}});
-  
+
   //Fifo Memory. Use this for memory in Fifo mode
   commonlib->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Args args) {
     uint width = args.at("width")->get<int>();
     return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
       {"rdata", c->Bit()->Arr(width)},
@@ -259,7 +261,59 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* fifoMem = commonlib->newGeneratorDecl("FifoMem",commonlib->getTypeGen("FifoMemType"),MemGenParams,{{"almost_full_cnt",AINT}});
   fifoMem->addDefaultGenArgs({{"width",Const(16)},{"depth",Const(1024)}});
 
-  //TODO RAM
+  commonlib->newTypeGen("RamType",MemGenParams,[](Context* c, Args args) {
+    uint width = args.at("width")->get<int>();
+    uint depth = args.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"waddr", c->BitIn()->Arr(awidth)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(awidth)},
+      {"ren", c->BitIn()},
+    });
+  });
+  Generator* ram = commonlib->newGeneratorDecl("Ram",commonlib->getTypeGen("RamType"),MemGenParams);
+  ram->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args genargs) {
+    def->addInstance("mem","coreir.mem",genargs);
+    def->addInstance("readreg","coreir.reg",{{"width",genargs["width"]},{"has_en",Const(true)}});
+    def->connect("self.clk","readreg.clk");
+    def->connect("self.clk","mem.clk");
+    def->connect("self.wdata","mem.wdata");
+    def->connect("self.waddr","mem.waddr");
+    def->connect("self.wen","mem.wen");
+    def->connect("mem.rdata","readreg.in");
+    def->connect("self.rdata","readreg.out");
+    def->connect("self.raddr","mem.raddr");
+    def->connect("self.ren","readreg.en");
+  });
+
+  ////TODO add bitvector initialization
+  //commonlib->newTypeGen("RomType",MemGenParams,[](Context* c, Args args) {
+  //  uint width = args.at("width")->get<int>();
+  //  uint depth = args.at("depth")->get<int>();
+  //  uint awidth = (uint) ceil(log2(depth));
+  //  return c->Record({
+  //    {"clk", c->Named("coreir.clkIn")},
+  //    {"rdata", c->Bit()->Arr(width)},
+  //    {"raddr", c->BitIn()->Arr(awidth)},
+  //    {"ren", c->BitIn()},
+  //  });
+  //});
+  //Generator* rom = commonlib->newGeneratorDecl("Rom",commonlib->getTypeGen("RomType"),MemGenParams);
+  //rom->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args genargs) {
+  //  def->addInstance("mem","coreir.mem",genargs,TODO Init);
+  //  def->wire("self.clk","mem.clk");
+  //  def->wire("self.wdata","mem.wdata");
+  //  def->wire("self.waddr","mem.waddr");
+  //  def->wire("self.wen","mem.wen");
+  //  def->wire("mem.rdata","readreg.in");
+  //  def->wire("self.rdata","readreg.out");
+  //  def->wire("self.raddr","mem.raddr");
+  //  def->wire("self.ren","readreg.en");
+  //}
 
   //Linebuffer
   //Declare a TypeGenerator (in global) for linebuffer
