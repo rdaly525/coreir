@@ -74,9 +74,12 @@ namespace CoreIR {
       vertNames.erase(vd);
 
       std::cout << "thread number in add label = " << wd.getThreadNo() << std::endl;
-      vertNames[vd] = wd;
+
+      //vertNames[vd] = wd;
+      vertNames.insert({vd, wd});
 
       std::cout << "thread number after label = " << vertNames[vd].getThreadNo() << std::endl;
+      std::cout << "thread number after label with node = " << getNode(vd).getThreadNo() << std::endl;
 
     }
 

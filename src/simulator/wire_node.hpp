@@ -23,7 +23,7 @@ namespace CoreIR {
 
     WireNode(const WireNode& other) :
       highBitsDirty(other.highBitsDirty),
-      threadNumber(0),
+      threadNumber(other.threadNumber),
       wire(other.wire),
       isSequential(other.isSequential),
       isReceiver(other.isReceiver) {}
