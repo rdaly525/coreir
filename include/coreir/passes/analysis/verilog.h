@@ -16,7 +16,7 @@ class Verilog : public InstanceGraphPass {
     Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
-      addDependency("verifyconnectivity");
+      addDependency("verifyconnectivity-onlyinputs"); //Should change back to check all connections
       addDependency("verifyflattenedtypes");
     }
     

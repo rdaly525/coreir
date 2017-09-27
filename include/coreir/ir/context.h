@@ -15,6 +15,8 @@ class Context {
   uint maxErrors;
   std::vector<std::string> errors;
  
+  Module* top = nullptr;
+
   //Unique int
   uint unique=0;
 
@@ -88,6 +90,12 @@ class Context {
     std::string getUnique() {
       return "_U" + std::to_string(unique++);
     }
+   
+    //Sets the top module
+    void setTop(std::string topRef);
+    void setTop(Module* top);
+    bool hasTop() { return !!top;}
+    Module* getTop() { return top;}
 
      
     // C API memory management

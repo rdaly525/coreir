@@ -322,31 +322,23 @@ if __name__ == "__main__":
     v = vmodule("coreir_mem")
     v.add_param("width",16)
     v.add_param("depth",1024)
-    v.add_input("rclk")
-    v.add_input("ren")
-    v.add_output("rdata","width")
-    v.add_input("raddr","$clog2(depth)")
-    v.add_input("wclk")
-    v.add_input("wen")
+    v.add_input("clk")
     v.add_input("wdata","width")
     v.add_input("waddr","$clog2(depth)")
+    v.add_input("wen")
+    v.add_output("rdata","width")
+    v.add_input("raddr","$clog2(depth)")
     v.add_body("""
 reg [width-1:0] data[depth-1:0];
-reg [width-1:0] outreg;
 
-always @(posedge wclk) begin
+always @(posedge clk) begin
   if (wen) begin
     data[waddr] <= wdata;
   end
 end
 
-always @(posedge rclk) begin
-  if (ren) begin
-    outreg <= data[raddr];
-  end
-end
+assign rdata = data[raddr];
 
-assign rdata = outreg;
 //Initialize to X
 integer i;
 initial begin
