@@ -25,28 +25,33 @@ bool operator==(const Values& l, const Values& r) {
 
 
 template<typename T>
-ArgPtr Const_impl2(T val) {
-  return std::make_shared<typename Val2Arg<T>::type>(val);
+ConstPtr Const_impl2(ValueType* type,T val) {
+  return Underlying2ValueType<T>::make(type,val);
 }
 
 template<>
-ArgPtr Const_impl<bool>(bool val) {
-  return Const_impl2<bool>(val);   
+ConstPtr Const_impl<bool>(Contex* c,bool val) {
+  return Const_impl2<bool>(c->Bool(),val);   
 }
 
 template<>
-ArgPtr Const_impl<int>(int val) {
-  return Const_impl2<int>(val);   
+ConstPtr Const_impl<int>(Contex* c,int val) {
+  return Const_impl2<int>(c->Int(),val);   
 }
 
 template<>
-ArgPtr Const_impl<std::string>(std::string val) {
-  return Const_impl2<std::string>(val);   
+ConstPtr Const_impl<BitVector>(Contex* c,BitVector val) {
+  return Const_impl2<BitVector>(c->BitVector(val->getWidth()),val);   
 }
 
 template<>
-ArgPtr Const_impl<Type*>(Type* val) {
-  return Const_impl2<Type*>(val);   
+ConstPtr Const_impl<std::string>(Contex* c,std::string val) {
+  return Const_impl2<std::string>(c->String(),val);   
+}
+
+template<>
+ConstPtr Const_impl<Type*>(Contex* c,Type* val) {
+  return Const_impl2<Type*>(c->CoreIRType(),val);   
 }
 
 

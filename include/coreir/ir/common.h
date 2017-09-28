@@ -28,6 +28,15 @@ void checkValuesAreParams(Values args, Params params);
 
 bool hasChar(const std::string s, char c);
 
+//Used for casting Values, Consts, Args
+template<typename To,typename FromMap>
+std::map<std::string,std::shared_ptr<To>> castMap (FromMap fm) {
+  std::map<std::string,std::shared_ptr<To>> tomap;
+  for (auto fpair : fm) {
+    tomap[fpair.first] = cast<To>(fpair.second);
+  }
+  return tomap;
+}
 
 template<class T> std::string toString(const T& t) {
   std::ostringstream stream;

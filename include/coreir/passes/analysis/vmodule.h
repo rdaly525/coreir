@@ -74,8 +74,8 @@ class VModule {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + m->getName();
       }
 
-      this->addparams(m->getConfigParams());
-      for (auto amap : m->getDefaultConfigArgs()) {
+      this->addparams(m->getModParams());
+      for (auto amap : m->getDefaultModArgs()) {
         paramDefaults[amap.first] = amap.second->toString();
       }
     }
@@ -85,7 +85,7 @@ class VModule {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + g->getName();
       }
       this->addparams(g->getGenParams());
-      this->addparams(g->getConfigParams());
+      this->addparams(g->getModParams());
     }
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
     std::string toCommentString() {

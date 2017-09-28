@@ -8,7 +8,7 @@
 
 namespace CoreIR {
 
-class Instantiable : public MetaData : public RefName {
+class Instantiable : public MetaData, public RefName {
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
     enum LinkageKind {LK_Namespace=0, LK_Generated=1};
@@ -17,7 +17,7 @@ class Instantiable : public MetaData : public RefName {
     
     LinkageKind linkageKind;
   public :
-    Instantiable(InstantiableKind kind, Namespace* ns, std::string name) : MetaData(), RefName(ns,name), kind(kind), ns(ns), name(name), linkageKind(LK_Namespace) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, std::string name) : MetaData(), RefName(ns,name), kind(kind), linkageKind(LK_Namespace) {}
     virtual ~Instantiable() {}
     InstantiableKind getKind() const { return kind;}
     
@@ -36,8 +36,6 @@ std::ostream& operator<<(std::ostream& os, const Instantiable&);
 
 class Generator : public Instantiable {
   public : 
-    typedef std::string (*NameGen)(Consts);
-    typedef std::pair<Params,Consts> (*ModuleParamsGen)(Context*,Consts);
   
   private :
   
@@ -48,8 +46,9 @@ class Generator : public Instantiable {
     
     //TODO add moduleparamGen
     
-    NameGen nameGen=nullptr;
-    ModParamsGen modParamsGen=nullptr;
+    NameGenFun nameGen=nullptr;
+    ModParamsGenFun modParamsGen=nullptr;
+    Params defaultModParams;
 
     //This is memory managed
     std::unordered_map<Consts,Module*> genCache;
@@ -59,7 +58,7 @@ class Generator : public Instantiable {
     Generator(Namespace* ns,std::string name,TypeGen* typegen, Params genparams);
     ~Generator();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
-    std::string toString() const;
+    std::string toString() const override;
     void print(void) override;
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
@@ -76,10 +75,11 @@ class Generator : public Instantiable {
 
     //This will add (and override) default args
     void addDefaultGenArgs(Values defaultGenfigargs);
-    Values getDefaultGenArgs() { return defaultGenArgs;}
+    Consts getDefaultGenArgs() { return defaultGenArgs;}
   
-    void setNameGen(NameGen ng) {nameGen = ng;}
-    void setModuleParams(ModParamsGen mpg) {modParamsGen = mpg;}
+    void setNameGen(NameGenFun ng) {nameGen = ng;}
+    void setModuleParams(ModParamsGenFun mpg) {modParamsGen = mpg;}
+    void setDefaultModParams(Params modparams) {defaultModParams = modParams;}
 
 };
 
@@ -87,7 +87,7 @@ class Module : public Instantiable {
   Type* type;
   ModuleDef* def = nullptr;
   
-  Params modparams;
+  const Params modparams;
   Consts defaultModArgs;
 
   //std::map<std::string,Arg*> moduleargs;
@@ -99,7 +99,7 @@ class Module : public Instantiable {
   std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,std::string name, Type* type,Params modparams) : Instantiable(IK_Module,ns,name,modparams), type(type) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams) : Instantiable(IK_Module,ns,name), type(type), modparams(modparams) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
@@ -109,17 +109,19 @@ class Module : public Instantiable {
    
     ModuleDef* newModuleDef();
     
+    const Params& getModParams() const { return modparams;}
+
     //TODO move this
     DirectedModule* newDirectedModule();
     
-    std::string toString() const;
+    std::string toString() const override;
     Type* getType() { return type;}
     
     void print(void) override;
 
     //This will add (and override) defaultModArgs
-    void addDefaultModuleArgs(Consts defaultModArgs);
-    Values& getDefaultModuleArgs() const { return defaultModArgs;}
+    void addDefaultModArgs(Consts defaultModArgs);
+    Consts& getDefaultModArgs() { return defaultModArgs;}
 
   private :
     //This should be used very carefully. Could make things inconsistent

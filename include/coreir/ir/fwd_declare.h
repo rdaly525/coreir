@@ -47,6 +47,17 @@ class Value;
 class Arg;
 class Const;
 
+template<class T>
+class TemplatedConst;
+
+using ConstBool = TemplatedConst<bool>;
+using ConstInt = TemplatedConst<int>;
+using ConstBitVector = TemplatedConst<int>;
+using ConstString = TemplatedConst<std::string>;
+using ConstCoreIRType = TemplatedConst<Type*>;
+
+
+
 //valuetype.h
 class ValueType;
 class BoolType;
@@ -77,7 +88,7 @@ class PassManager;
 namespace bsim {
   class dynamic_bit_vector;
 }
-typedef bsim::dynamic_bit_vector bit_vector;
+typedef bsim::dynamic_bit_vector BitVector;
 
 
 typedef std::shared_ptr<Value> ValuePtr;
@@ -90,6 +101,15 @@ typedef std::map<std::string,Arg*> Args;
 typedef std::map<std::string,ValueType*> Params;
 
 bool operator==(const Values& l, const Values& r);
+
+
+//Function prototypes for APIs
+typedef Type* (*TypeGenFun)(Context* c, Consts genargs);
+typedef std::string (*NameGenFun)(Consts);
+typedef std::pair<Params,Consts> (*ModParamsGenFun)(Context*,Consts);
+typedef void (*ModuleDefGenFun)(ModuleDef*,Consts genargs);
+
+
 
 //TODO this is a hack solution that should be fixed
 // This is so I do not overload the std::hash<std::pair<T1,T2>> class.
@@ -140,6 +160,11 @@ namespace std {
   template <>
   struct hash<CoreIR::Values> {
     size_t operator() (const CoreIR::Values& args) const;
+  };
+  
+  template <>
+  struct hash<CoreIR::Consts> {
+    size_t operator() (const CoreIR::Consts& args) const;
   };
   
   template <>

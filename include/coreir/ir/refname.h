@@ -14,7 +14,7 @@ class RefName {
     const std::string& getName() const { return name;}
     std::string getRefName() const;
 
-}
+};
 
 }
 #endif

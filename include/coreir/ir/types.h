@@ -70,7 +70,7 @@ class BitInType : public Type {
     uint getSize() const { return 1;}
 };
 
-class NamedType : public Type : public RefName {
+class NamedType : public Type, public RefName {
   protected :
     
     Type* raw;

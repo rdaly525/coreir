@@ -15,7 +15,6 @@ class GeneratorDef {
 
 class GeneratorDefFromFun : public GeneratorDef {
   public:
-    typedef void (*ModuleDefGenFun)(ModuleDef*,Consts genargs);
     GeneratorDefFromFun(Generator* g, ModuleDefGenFun moduledefgenfun) : GeneratorDef(g), moduledefgenfun(moduledefgenfun) {}
     void createModuleDef(ModuleDef* mdef, Consts genargs) explicit {
       moduledefgenfun(mdef,genargs);

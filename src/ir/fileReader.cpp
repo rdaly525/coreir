@@ -23,12 +23,13 @@ Type* json2Type(Context* c, json jt);
 Args json2Args(Context* c, Params p, json j);
 Params json2Params(json j);
 
-Param Str2Param(string s) {
-  if (s=="bool") return ABOOL;
-  if (s=="int") return AINT;
-  if (s=="string") return ASTRING;
-  if (s=="type") return ATYPE;
-  throw std::runtime_error("Cannot convert " + s + " to Param");
+ValueType* json2Value(Context* c,json j) {
+  assert(0);
+  //if (s=="bool") return ABOOL;
+  //if (s=="int") return AINT;
+  //if (s=="string") return ASTRING;
+  //if (s=="type") return ATYPE;
+  //throw std::runtime_error("Cannot convert " + s + " to Param");
 }
 
 

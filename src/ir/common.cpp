@@ -69,16 +69,9 @@ void checkValuesAreParams(Values args, Params params) {
   }
 }
 
-Values castConsts2Values(Consts cs) {
-  Values vs;
-  for (auto cmap : cs) vs[cmap.first] = cmap.second;
-  return vs;
-}
-
 void checkValuesAreParams(Consts args, Params params) {
-  checkValuesAreParams(castConsts2Values(args),params);
+  checkValuesAreParams(castMap<Value>(args),params);
 }
-
 
 vector<string> splitRef(string s) {
   auto p = splitString<vector<string>>(s,'.');

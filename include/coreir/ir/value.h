@@ -8,13 +8,31 @@
 
 namespace CoreIR {
 
+template<class valTy>
+struct Underlying2ValueType;
+
+#define U2V_SPECIALIZE(utype,vtype) \
+template<> \
+struct Underlying2ValueType<utype> { \
+  typedef vtype type; \
+};
+
+U2V_SPECIALIZE(bool,ConstBool);
+U2V_SPECIALIZE(int,ConstInt);
+U2V_SPECIALIZE(BitVector,ConstBitVector);
+U2V_SPECIALIZE(std::string,ConstString);
+U2V_SPECIALIZE(CoreIR::Type*,ConstCoreIRType);
+
+#undef U2V_SPECIALIZE
+
 class Value {
   public:
     enum ValueKind {
       VK_ConstBool=0,
       VK_ConstInt=1,
+      VK_ConstBitVector=1,
       VK_ConstString=2,
-      VK_ConstType=3,
+      VK_ConstCoreIRType=3,
       VK_ConstEnd=4,
       VK_Arg=5,
       VK_CPPLambda=6
@@ -59,16 +77,22 @@ class Arg : public Value {
 //};
 
 template<typename T> 
-ConstPtr Const_impl(T val);
+ConstPtr Const_impl(Context* c,T val);
 
 template<>
-ConstPtr Const_impl<bool>(bool val);
+ConstPtr Const_impl<bool>(Context* c,bool val);
+
 template<>
-ConstPtr Const_impl<int>(int val);
+ConstPtr Const_impl<int>(Context* c,int val);
+
 template<>
-ConstPtr Const_impl<std::string>(std::string val);
+ConstPtr Const_impl<BitVector>(Context* c,BitVector val);
+
 template<>
-ConstPtr Const_impl<Type*>(Type* val);
+ConstPtr Const_impl<std::string>(Context* c,std::string val);
+
+template<>
+ConstPtr Const_impl<Type*>(Context* c,Type* val);
 
 
 class Const : public Value {
@@ -82,29 +106,34 @@ class Const : public Value {
     template<typename T>
     static inline typename std::enable_if<std::is_same<T,bool>::value,ConstPtr>::type
     make(Context* c,T val) {
-      return Const_impl<bool>(val);
+      return Const_impl<bool>(c,val);
     }
 
     template<typename T>
     static inline typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,ConstPtr>::type
     make(Context* c,T val) {
-      return Const_impl<int>(IntType::make(c,val));
+      return Const_impl<int>(c,val);
     }
+
+    template<typename T>
+    static inline typename std::enable_if<std::is_same<T,BitVector>::value,ConstPtr>::type
+    make (Context* c,T val) {
+      return Const_impl<BitVector>(c,val);
+    }
+    
     template<typename T>
     static inline typename std::enable_if<std::is_convertible<T,std::string>::value,ConstPtr>::type
     make (Context* c,T val) {
-      return Const_impl<std::string>(val);
+      return Const_impl<std::string>(c,val);
     }
-
-    //TODO make for bit_vector
 
     template<typename T>
     static inline typename std::enable_if<std::is_convertible<T,Type*>::value,ConstPtr>::type
     make(Context* c,T val) {
-      return Const_impl<Type*>(val);
+      return Const_impl<Type*>(c,val);
     }
 
-    virtual std::string toString() const = 0;
+    virtual std::string toString() const override = 0;
 
     //template<typename T>
     //T get() {
@@ -114,25 +143,21 @@ class Const : public Value {
 
 };
 
+//Create a map from underlying types (bool,int,etc) to Value::ValueKind
 template<class valTy>
-struct Val2Const;
+struct Underlying2Kind;
 
-template<>
-struct Val2Const<bool> {
-  const static Value::ValueKind kind = Value::VK_ConstBool;
+#define U2K_SPECIALIZE(utype,vkind) \
+template<> \
+struct Underlying2Kind<utype> { \
+  static const Value::ValueKind kind = Value::vkind; \
 };
 
-template<>
-struct Val2Const<int> { 
-  const static Value::ValueKind kind = Value::VK_ConstInt;
-};
-
-template<>
-struct Val2Const<std::string> {
-  const static Value::ValueKind kind = Value::VK_ConstString;
-};
-
-//VAL2TYPEDCONST_SPECIALIZE(CoreIR::Type*,VK_TypeConst);
+U2K_SPECIALIZE(bool,VK_ConstBool)
+U2K_SPECIALIZE(int,VK_ConstInt)
+U2K_SPECIALIZE(BitVector,VK_ConstBitVector)
+U2K_SPECIALIZE(std::string,VK_ConstString)
+U2K_SPECIALIZE(Type*,VK_ConstCoreIRType)
 
 //T should be bool,int,string,Type
 template<typename T>
@@ -140,22 +165,23 @@ class TemplatedConst : public Const {
   T value;
   public :
     //typedef T type;
-    TemplatedConst(ValueType* type, T value) : Const(Val2Const<T>::kind), value(value) {}
-    static bool classof(const Value* v) {return v->getKind()==Val2Const<T>::kind;}
-    virtual std::string toString() const {
-      ostream
+    TemplatedConst(ValueType* type, T value) : Const(Underlying2Kind<T>::kind), value(value) {}
+    static bool classof(const Value* v) {return v->getKind()==Underlying2Kind<T>::kind;}
+    static std::shared_ptr<TemplatedConst<T>> make(ValueType* type, T value) {
+      return std::make_shared<TemplatedConst<T>>(type,value);
+    }
+    
+    std::string toString() const override {
+      return "NYI";
     }
     T get() { return value;}
     bool operator==(const Value& r) const {
       assert(0);
       return false; // TODO
     }
+
 };
 
-using ConstBool = TemplatedConst<bool>;
-using ConstInt = TemplatedConst<int>;
-using ConstString = TemplatedConst<std::string>;
-using ConstType = TemplatedConst<Type*>;
 
 }
 

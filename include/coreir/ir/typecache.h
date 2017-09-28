@@ -24,7 +24,7 @@ class TypeCache {
   std::unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
   std::unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
   
-  BoolType* boolType
+  BoolType* boolType;
   IntType* intType;
   std::unordered_map<int,BitVectorType*> BitVectorCache;
   StringType* stringType;

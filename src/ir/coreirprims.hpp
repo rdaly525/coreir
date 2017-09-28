@@ -15,9 +15,9 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
    *    start < stop <= arrtype.len
    */
   Params sliceParams({
-    {"width",AINT},
-    {"lo",AINT},
-    {"hi",AINT}
+    {"width",c->Int()},
+    {"lo",c->Int()},
+    {"hi",c->Int()}
   });
   auto sliceTypeGen = coreirprims->newTypeGen(
     "sliceTypeFun",
@@ -51,8 +51,8 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
    *    larrtype.elemtype == rarrtype.elemtype
    */
   Params concatParams({
-    {"width0",AINT},
-    {"width1",AINT(Var("width0"))}
+    {"width0",c->Int()},
+    {"width1",c->Int()(Var("width0"))}
   });
   auto concatTypeGen = coreirprims->newTypeGen(
     "concatTypeFun",
@@ -164,12 +164,12 @@ setModParams([](Context* c,Consts genargs) {
 
 
   Params regGenParams({
-    {"width",AINT},
+    {"width",c->Int()},
     {"en",ABOOL},
     {"clr",ABOOL},
     {"rst",ABOOL}
   });
-  Params regConfigParams({{"init",AINT}});
+  Params regConfigParams({{"init",c->Int()}});
   TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
 
   auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
@@ -226,7 +226,7 @@ setModParams([](Context* c,Consts genargs) {
   jverilog["prefix"] = "coreir_";
   bitreg->getMetaData()["verilog"] = jverilog;
 
-  Params memGenParams({{"width",AINT},{"depth",AINT}});
+  Params memGenParams({{"width",c->Int()},{"depth",c->Int()}});
   auto memFun = [](Context* c, Args args) {
     int width = args.at("width")->get<int>();
     int depth = args.at("depth")->get<int>();
@@ -256,7 +256,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   /////////////////////////////////
   // Stdlib Types
   /////////////////////////////////
-  Params widthparams = Params({{"width",AINT}});
+  Params widthparams = Params({{"width",c->Int()}});
 
   //Single bit types
   coreirprims->newNamedType("clk","clkIn",c->Bit());
@@ -373,7 +373,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   }
   Params binaryCarryParams = Params(
     {
-      {"width",AINT},
+      {"width",c->Int()},
       {"has_cout",ABOOL},
       {"has_cin",ABOOL}
     }
@@ -448,7 +448,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
 
   //This defines a passthrough module. It is basically a nop that just passes the signal through
   Params passthroughParams({
-    {"type",ATYPE},
+    {"type",c->CoreIRType()},
   });
   TypeGen* passthroughTG = coreirprims->newTypeGen(
     "passthrough",
@@ -483,13 +483,13 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       });
     }
   );
-  auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",AINT}});
+  auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",c->Int()}});
   jverilog["parameters"] = {"width","value"};
   jverilog["prefix"] = "coreir_";
   Const->getMetaData()["verilog"] = jverilog;
 
   //Add bit version
-  auto bitconst = coreirprims->newModuleDecl("bitconst",c->Record({{"out",c->Bit()}}),{{"value",AINT}});
+  auto bitconst = coreirprims->newModuleDecl("bitconst",c->Record({{"out",c->Bit()}}),{{"value",c->Int()}});
   jverilog["parameters"] = {"value"};
   jverilog["prefix"] = "coreir_";
   bitconst->getMetaData()["verilog"] = jverilog;

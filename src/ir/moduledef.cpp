@@ -157,19 +157,19 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Values modargs) {
   return inst;
 }
 
-Consts castValues2Consts(Values vs) {
-  Consts cs;
-  for (auto vmap : vs) {
-    ASSERT(isa<Const>(vmap.second),Value2Str(vmap.second) + " needs to be a const!");
-    cs[vmap.first] = cast<Const>(vmap.second);
-  }
-}
+//Consts castValues2Consts(Values vs) {
+//  Consts cs;
+//  for (auto vmap : vs) {
+//    ASSERT(isa<Const>(vmap.second),Value2Str(vmap.second) + " needs to be a const!");
+//    cs[vmap.first] = cast<Const>(vmap.second);
+//  }
+//}
 
 Instance* ModuleDef::addInstance(string instname,string iref,Values genOrModargs, Values modargs) {
   vector<string> split = splitRef(iref);
   Instantiable* ref = this->getContext()->getInstantiable(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
-    return this->addInstance(instname,g,castValues2Consts(genOrModargs),modargs);
+    return this->addInstance(instname,g,castMap<Value>(genOrModargs),modargs);
   }
   else {
     auto m = cast<Module>(ref);
