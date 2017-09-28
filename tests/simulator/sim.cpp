@@ -437,18 +437,15 @@ namespace CoreIR {
       Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
       ModuleDef* def = memory->newModuleDef();
 
-      //def->addInstance("m0","coreir.mem");
-
-      
-
       def->addInstance("m0",
       		       "coreir.mem",
 		       {{"width", Const(width)},{"depth", Const(depth)}},
 		       {{"init", Const("0")}});
 
-      //{{"width", Const(width)},{"depth", Const(depth)}, {"init", Const("0000000000000000")}});
+      def->connect("self.clk", "m0.clk");
+      
 
-      //memory->setDef(def);
+      memory->setDef(def);
       
     }
     
