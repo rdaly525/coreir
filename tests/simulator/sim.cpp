@@ -421,7 +421,7 @@ namespace CoreIR {
 
     SECTION("Memory primitive") {
       uint width = 16;
-      uint depth = 2048;
+      uint depth = 2;
       uint index = 11;
 
       Type* memoryType = c->Record({
@@ -433,17 +433,22 @@ namespace CoreIR {
 		    {"read_addr", c->BitIn()->Arr(index)}
 	});
 
-      Module* memory = c->getGlobal()->newModuleDecl("memory", memoryType);
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
       ModuleDef* def = memory->newModuleDef();
 
-      def->addInstance("m0","coreir.mem"); //,{{"width", Const(width)},{"depth", Const(depth)}});
+      //def->addInstance("m0","coreir.mem");
 
-      //Connections
-      //def->connect("self.clk", "r0.clk");
-      //def->connect("self.a", "r0.in");
-      //def->connect("r0.out","self.cout");
+      
 
-      memory->setDef(def);
+      def->addInstance("m0",
+      		       "coreir.mem",
+		       {{"width", Const(width)},{"depth", Const(depth)}},
+		       {{"init", Const("0")}});
+
+      //{{"width", Const(width)},{"depth", Const(depth)}, {"init", Const("0000000000000000")}});
+
+      //memory->setDef(def);
       
     }
     
