@@ -1,5 +1,8 @@
 #include "memory.h"
 
+#include <iostream>
+#include <bitset>
+
 using namespace std;
 
 int main() {
@@ -14,9 +17,20 @@ int main() {
 
   simulate(&state);
 
-  if (state.self_read_data == 5) {
-    return 0;
+  if (state.self_read_data != 5) {
+    return 1;
   }
 
-  return 1;
+  state.self_write_addr = 1;
+  state.self_write_data = 10;
+
+  simulate(&state);
+
+  cout << "Write test" << endl;
+  
+  if (state.m0[1] != 10) {
+    return 1;
+  }
+
+  return 0;
 }

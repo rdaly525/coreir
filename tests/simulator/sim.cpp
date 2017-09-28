@@ -127,8 +127,6 @@ namespace CoreIR {
 				  "memory",
 				  "test_memory.cpp");
 
-      	//int s = compileCode(topoOrder, g, memory, "./gencode/", "memory");
-
       	REQUIRE(s == 0);
       }
       
