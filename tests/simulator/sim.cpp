@@ -436,8 +436,8 @@ namespace CoreIR {
       Module* memory = c->getGlobal()->newModuleDecl("memory", memoryType);
       ModuleDef* def = memory->newModuleDef();
 
-      //def->addInstance("r0","coreir.reg",{{"width", Const(n)},{"en", Const(false)}});
-    
+      def->addInstance("m0","coreir.mem"); //,{{"width", Const(width)},{"depth", Const(depth)}});
+
       //Connections
       //def->connect("self.clk", "r0.clk");
       //def->connect("self.a", "r0.in");
