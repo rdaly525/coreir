@@ -349,7 +349,7 @@ namespace CoreIR {
   string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g) {
     assert(wd.isSequential);
 
-    auto ins = getInputConnections(vd, g);    
+    //auto ins = getInputConnections(vd, g);    
 
     auto outSel = getOutputSelects(wd.getWire());
     
@@ -361,10 +361,11 @@ namespace CoreIR {
     Instance* r = toInstance(s->getParent());
 
     if (!wd.isReceiver) {
-      InstanceValue en = findArg("raddr", ins);
+      //InstanceValue en = findArg("raddr", ins);
+      // TODO: Remove manual call to self_read_addr
       return ln(cVar(*s) + " = " +
 		parens(cVar("(state->", *r, ")") +
-		       "[ " + cVar("(state->", en, ")") + " ]"));
+		       "[ " + "(state->self_read_addr)" + " ]"));
     } else {
       return "";
     }
