@@ -372,40 +372,54 @@ namespace CoreIR {
 
       InstanceValue waddr = findArg("waddr", ins);
       InstanceValue wdata = findArg("wdata", ins);
-      InstanceValue wclk = findArg("clk", ins);
+      InstanceValue clk = findArg("clk", ins);
       InstanceValue wen = findArg("wen", ins);
 
-      return ln(cVar("(state->", *r, ")") +
-		"[ " + printOpResultStr(waddr, g) + " ] = " +
-		printOpResultStr(wdata, g));
-    }
+      string condition =
+	parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
 
-    }
+      condition += " && " + printOpResultStr(wen, g);
 
-    string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
-      Instance* inst = toInstance(wd.getWire());
+      string oldValueName = cVar("(state->", *r, ")") + "[ " + printOpResultStr(waddr, g) + " ]";
 
-      cout << "Instance name = " << getInstanceName(*inst) << endl;
+      string s = oldValueName + " = ";
+      s += ite(parens(condition),
+	       printOpResultStr(wdata, g),
+	       oldValueName);
 
-      //auto ins = getInputs(vd, g);
+      return ln(s);
+      
+      // return ln(cVar("(state->", *r, ")") +
+		
+      // 		printOpResultStr(wdata, g));
     
-      if (isRegisterInstance(inst)) {
-	return printRegister(wd, vd, g);
-      }
-
-      if (isMemoryInstance(inst)) {
-	return printMemory(wd, vd, g);
-      }
-
-      auto outSelects = getOutputSelects(inst);
-
-      assert(outSelects.size() == 1);
-
-      pair<string, Wireable*> outPair = *std::begin(outSelects);
-      string res = cVar(*(outPair.second));
-
-      return ln(res + " = " + opResultStr(wd, vd, g));
     }
+  }
+
+  string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    Instance* inst = toInstance(wd.getWire());
+
+    cout << "Instance name = " << getInstanceName(*inst) << endl;
+
+    //auto ins = getInputs(vd, g);
+    
+    if (isRegisterInstance(inst)) {
+      return printRegister(wd, vd, g);
+    }
+
+    if (isMemoryInstance(inst)) {
+      return printMemory(wd, vd, g);
+    }
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    string res = cVar(*(outPair.second));
+
+    return ln(res + " = " + opResultStr(wd, vd, g));
+  }
 
     bool isCombinationalInstance(const WireNode& wd) {
       assert(isInstance(wd.getWire()));
