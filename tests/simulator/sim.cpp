@@ -418,6 +418,34 @@ namespace CoreIR {
       }
       
     }
+
+    SECTION("Memory primitive") {
+      uint width = 16;
+      uint depth = 2048;
+      uint index = 11;
+
+      Type* memoryType = c->Record({
+	  {"clk", c->Named("coreir.clkIn")},
+	    {"write_data", c->BitIn()->Arr(width)},
+	      {"write_addr", c->BitIn()->Arr(index)},
+		{"write_en", c->BitIn()},
+		  {"read_data", c->Bit()->Arr(width)},
+		    {"read_addr", c->BitIn()->Arr(index)}
+	});
+
+      Module* memory = c->getGlobal()->newModuleDecl("memory", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      //def->addInstance("r0","coreir.reg",{{"width", Const(n)},{"en", Const(false)}});
+    
+      //Connections
+      //def->connect("self.clk", "r0.clk");
+      //def->connect("self.a", "r0.in");
+      //def->connect("r0.out","self.cout");
+
+      memory->setDef(def);
+      
+    }
     
     deleteContext(c);
 
