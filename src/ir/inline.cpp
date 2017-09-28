@@ -4,7 +4,7 @@
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/types.h"
-#include "coreir/ir/args.h"
+#include "coreir/ir/value.h"
 
 using namespace std;
 namespace CoreIR {

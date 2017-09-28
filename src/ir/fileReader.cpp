@@ -9,7 +9,7 @@
 #include "coreir/ir/instantiable.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
-#include "coreir/ir/args.h"
+#include "coreir/ir/value.h"
 
 using namespace std;
 
@@ -22,6 +22,15 @@ typedef unordered_map<string,json> jsonmap;
 Type* json2Type(Context* c, json jt);
 Args json2Args(Context* c, Params p, json j);
 Params json2Params(json j);
+
+Param Str2Param(string s) {
+  if (s=="bool") return ABOOL;
+  if (s=="int") return AINT;
+  if (s=="string") return ASTRING;
+  if (s=="type") return ATYPE;
+  throw std::runtime_error("Cannot convert " + s + " to Param");
+}
+
 
 Module* getModSymbol(Context* c, string nsname, string iname);
 Module* getModSymbol(Context* c, string ref);

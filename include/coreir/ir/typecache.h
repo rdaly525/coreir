@@ -15,20 +15,38 @@ struct RecordParamsHasher {
   }
 };
 
+
+//This stores Types and VTypes
 class TypeCache {
   Context* c;
-  Type* bitI;
-  Type* bitO;
+  BitInType* bitI;
+  BitType* bitO;
   std::unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
   std::unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
   
+  BoolType* boolType
+  IntType* intType;
+  std::unordered_map<int,BitVectorType*> BitVectorCache;
+  StringType* stringType;
+  CoreIRType* coreIRType;
+
   public :
     TypeCache(Context* c); 
     ~TypeCache();
-    Type* newBit() { return bitO; }
-    Type* newBitIn() { return bitI; }
-    Type* newArray(uint32_t len, Type* t);
-    Type* newRecord(RecordParams params);
+    
+    //Types
+    BitType* getBit() { return bitO; }
+    BitInType* getBitIn() { return bitI; }
+    ArrayType* getArray(uint32_t len, Type* t);
+    RecordType* getRecord(RecordParams params);
+
+    //ValueTypes
+    BoolType* getBool() { return boolType;}
+    IntType* getInt() { return intType;}
+    BitVectorType* getBitVector(int width);
+    StringType* getString() { return stringType;}
+    CoreIRType* getCoreIRType() { return coreIRType;}
+
 };
 
 }//CoreIR namespace

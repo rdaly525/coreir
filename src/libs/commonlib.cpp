@@ -84,7 +84,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   Generator* notEqual = commonlib->newGeneratorDecl("neq",coreirprims->getTypeGen("binaryReduce"),{{"width",AINT}});
 
-  notEqual->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args args) {
+  notEqual->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Args genargs) {
     uint width = args.at("width")->get<int>();
 
     Namespace* coreirprims = c->getNamespace("coreir");

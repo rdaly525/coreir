@@ -136,10 +136,10 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 }
 
 
-Instance* ModuleDef::addInstance(string instname,Generator* gen, Values genargs,Values config) {
-  assert(instances.count(instname)==0);
+Instance* ModuleDef::addInstance(string instname,Generator* gen, Consts genargs,Values modargs) {
+  ASSERT(instances.count(instname)==0,instname + " already an instance");
 
-  Instance* inst = new Instance(this,instname,gen,genargs,config);
+  Instance* inst = new Instance(this,instname,gen,genargs,modargs);
   instances[instname] = inst;
 
   appendInstanceToIter(inst);
@@ -147,8 +147,9 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Values genargs,
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,Module* m,Values config) {
-  Instance* inst = new Instance(this,instname,m,config);
+Instance* ModuleDef::addInstance(string instname,Module* m,Values modargs) {
+  ASSERT(instances.count(instname)==0,instname + " already an instance");
+  Instance* inst = new Instance(this,instname,m,modargs);
   instances[instname] = inst;
   
   appendInstanceToIter(inst);
@@ -156,15 +157,23 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Values config) {
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,string iref,Values genOrConfigargs, Values configargs) {
+Consts castValues2Consts(Values vs) {
+  Consts cs;
+  for (auto vmap : vs) {
+    ASSERT(isa<Const>(vmap.second),Value2Str(vmap.second) + " needs to be a const!");
+    cs[vmap.first] = cast<Const>(vmap.second);
+  }
+}
+
+Instance* ModuleDef::addInstance(string instname,string iref,Values genOrModargs, Values modargs) {
   vector<string> split = splitRef(iref);
   Instantiable* ref = this->getContext()->getInstantiable(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
-    return this->addInstance(instname,g,genOrConfigargs,configargs);
+    return this->addInstance(instname,g,castValues2Consts(genOrModargs),modargs);
   }
   else {
     auto m = cast<Module>(ref);
-    return this->addInstance(instname,m,genOrConfigargs);
+    return this->addInstance(instname,m,genOrModargs);
   }
 }
 
@@ -173,9 +182,9 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
     iname = i->getInstname();
   }
   if( i->isGen()) 
-    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getConfigArgs());
+    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getModArgs());
   else 
-    return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
+    return addInstance(iname,i->getModuleRef(),i->getModArgs());
 }
 
 void ModuleDef::connect(Wireable* a, Wireable* b) {

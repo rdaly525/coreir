@@ -71,7 +71,7 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,c) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,c), RefName(ns,name), typegen(typegen), genargs(genargs) {
   //Check args here.
   checkValuesAreParams(genargs,typegen->getParams());
 
@@ -79,7 +79,6 @@ NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Va
   raw = typegen->getType(genargs);
   dir = raw->getDir();
 }
-string NamedType::getRefName() {return ns->getName() + "." + name;}
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {

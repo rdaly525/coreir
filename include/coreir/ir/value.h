@@ -3,6 +3,9 @@
 
 #include "fwd_declare.h"
 
+//TODO this is a hack. MOve template definitions to cpp
+#include "valuetype.h"
+
 namespace CoreIR {
 
 class Value {
@@ -20,9 +23,10 @@ class Value {
     ValueKind kind;
     ValueType* vtype;
   public :
-    Value(ValueType* vtype, ValueKind kind) : vtype(vtype), kind(kind) {}
+    Value(ValueType* vtype, ValueKind kind) : kind(kind), vtype(vtype) {}
     ValueKind getKind() const {return kind;}
     ValueType* getValueType() const {return vtype;}
+    virtual std::string toString() const = 0;
 };
 
 class Arg : public Value {
@@ -30,11 +34,12 @@ class Arg : public Value {
   public :
     Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg) {}
     static bool classof(const Value* v) {return v->getKind()==VK_Arg;}
-    static ArgPtr make(ValueType* type, std::string field) {
-      return std::make_shared<Arg>(type,field);
+    static ArgPtr make(ValueType* vtype, std::string field) {
+      return std::make_shared<Arg>(vtype,field);
     }
     std::string getField() { return field;}
     bool operator==(const Value& r) const;
+    std::string toString() const { return "Arg(" + field + ")";}
 };
 
 //class CPPLambda : public Value {
@@ -83,14 +88,15 @@ class Const : public Value {
     template<typename T>
     static inline typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,ConstPtr>::type
     make(Context* c,T val) {
-      return Const_impl<int>(IntType::make(c,val);
+      return Const_impl<int>(IntType::make(c,val));
     }
-
     template<typename T>
     static inline typename std::enable_if<std::is_convertible<T,std::string>::value,ConstPtr>::type
     make (Context* c,T val) {
       return Const_impl<std::string>(val);
     }
+
+    //TODO make for bit_vector
 
     template<typename T>
     static inline typename std::enable_if<std::is_convertible<T,Type*>::value,ConstPtr>::type
@@ -98,7 +104,7 @@ class Const : public Value {
       return Const_impl<Type*>(val);
     }
 
-    //virtual std::string toString() const = 0;
+    virtual std::string toString() const = 0;
 
     //template<typename T>
     //T get() {
@@ -109,21 +115,21 @@ class Const : public Value {
 };
 
 template<class valTy>
-struct Val2TemplatedConst;
+struct Val2Const;
 
 template<>
-struct Val2TemplatedConst<bool> {
-  const static Value::ValueKind kind = Value::VK_Bool;
+struct Val2Const<bool> {
+  const static Value::ValueKind kind = Value::VK_ConstBool;
 };
 
 template<>
-struct Val2TemplatedConst<int> { //TODO Should change to a big int lib
-  const static Value::ValueKind kind = Value::VK_Int;
+struct Val2Const<int> { 
+  const static Value::ValueKind kind = Value::VK_ConstInt;
 };
 
 template<>
-struct Val2TemplatedConst<std::string> {
-  const static Value::ValueKind kind = Value::VK_String;
+struct Val2Const<std::string> {
+  const static Value::ValueKind kind = Value::VK_ConstString;
 };
 
 //VAL2TYPEDCONST_SPECIALIZE(CoreIR::Type*,VK_TypeConst);
@@ -134,9 +140,11 @@ class TemplatedConst : public Const {
   T value;
   public :
     //typedef T type;
-    TemplatedConst(ValueType* type, T value) : Const(Val2TemplatedConst<T>::kind), value(value) {}
-    static bool classof(const Value* v) {return v->getKind()==Val2TemplatedConst<T>::kind;}
-    //std::string toString() const {return b ? "True" : "False";}
+    TemplatedConst(ValueType* type, T value) : Const(Val2Const<T>::kind), value(value) {}
+    static bool classof(const Value* v) {return v->getKind()==Val2Const<T>::kind;}
+    virtual std::string toString() const {
+      ostream
+    }
     T get() { return value;}
     bool operator==(const Value& r) const {
       assert(0);

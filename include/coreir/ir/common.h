@@ -18,12 +18,10 @@ Connection connectionCtor(Wireable* a, Wireable* b);
 //These are defined in helpers
 bool isNumber(std::string s);
 bool isPower2(uint n);
-std::string Param2Str(Param);
 std::string Params2Str(Params);
 std::string Values2Str(Values);
 std::string SelectPath2Str(SelectPath path);
 std::string Connection2Str(Connection con);
-Param Str2Param(std::string s);
 
 //Will call assertions
 void checkValuesAreParams(Values args, Params params);

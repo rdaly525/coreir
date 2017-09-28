@@ -30,7 +30,7 @@ class DirectedConnection;
 class DirectedInstance;
 class DirectedModule;
 
-//Types
+//Types : types.h
 class Type;
 class BitType;
 class BitInType;
@@ -42,9 +42,18 @@ class TypeGen;
 
 class TypeCache;
 
+//value.h
 class Value;
 class Arg;
 class Const;
+
+//valuetype.h
+class ValueType;
+class BoolType;
+class IntType;
+class BitVectorType;
+class StringType;
+class CoreIRType;
 
 
 class MetaData;
@@ -65,15 +74,20 @@ class Select;
 class Pass;
 class PassManager;
 
-typedef enum {ABOOL=0,AINT=1,ASTRING=2,ATYPE=3} Param;
+namespace bsim {
+  class dynamic_bit_vector;
+}
+typedef bsim::dynamic_bit_vector bit_vector;
+
 
 typedef std::shared_ptr<Value> ValuePtr;
 typedef std::shared_ptr<Arg> ArgPtr;
 typedef std::shared_ptr<Const> ConstPtr;
 typedef std::map<std::string,ConstPtr> Consts;
 typedef std::map<std::string,ValuePtr> Values;
+typedef std::map<std::string,Arg*> Args;
 
-typedef std::map<std::string,Param> Params;
+typedef std::map<std::string,ValueType*> Params;
 
 bool operator==(const Values& l, const Values& r);
 
@@ -90,20 +104,14 @@ struct myPair {
   }
 };
 
-typedef Type* (*TypeGenFun)(Context* c, Values args);
 typedef std::vector<myPair<std::string,Type*>> RecordParams ;
-typedef std::string (*NameGen_t)(Values);
 typedef myPair<uint,Type*> ArrayParams ;
-
-typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Values);
 
 typedef std::deque<std::string> SelectPath;
 typedef std::vector<std::reference_wrapper<const std::string>> ConstSelectPath;
 typedef myPair<Wireable*,Wireable*> Connection;
 //This is meant to be in relation to an instance. First wireable of the pair is of that instance.
 typedef std::vector<std::pair<Wireable*,Wireable*>> LocalConnections;
-
-
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online

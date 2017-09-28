@@ -148,6 +148,21 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     if (rst) r.push_back({"rst",c->BitIn()});
     return c->Record(r);
   };
+
+  /*
+setModParams([](Context* c,Consts genargs) {
+  Params modparams;
+  Consts defaultargs;
+  if (genargs.at("rst")->get<bool>()) {
+    int width = genargs.at("width")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    defaultargs["init"] = Const::make(c,bit_vector(width,0))
+  }
+  return Params();
+}
+*/
+
+
   Params regGenParams({
     {"width",AINT},
     {"en",ABOOL},

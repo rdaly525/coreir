@@ -45,9 +45,8 @@ class Namespace {
     TypeGen* getTypeGen(std::string name);
     bool hasTypeGen(std::string name) {return typeGenList.count(name)>0;}
 
-    
-    Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams, Params configparams=Params());
-    Module* newModuleDecl(std::string name, Type* t,Params configparams=Params());
+    Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams);
+    Module* newModuleDecl(std::string name, Type* t,Params moduleparams=Params());
     void addModule(Module* m);
 
     Generator* getGenerator(std::string gname);

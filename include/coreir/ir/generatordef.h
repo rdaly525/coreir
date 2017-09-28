@@ -10,17 +10,19 @@ class GeneratorDef {
   public: 
     GeneratorDef(Generator* g) : g(g) {}
     virtual ~GeneratorDef() {}
-    virtual void createModuleDef(ModuleDef*,Context*, Type*, Args) = 0;
+    virtual void createModuleDef(ModuleDef*,Consts) = 0;
 };
 
 class GeneratorDefFromFun : public GeneratorDef {
+  public:
+    typedef void (*ModuleDefGenFun)(ModuleDef*,Consts genargs);
+    GeneratorDefFromFun(Generator* g, ModuleDefGenFun moduledefgenfun) : GeneratorDef(g), moduledefgenfun(moduledefgenfun) {}
+    void createModuleDef(ModuleDef* mdef, Consts genargs) explicit {
+      moduledefgenfun(mdef,genargs);
+    }
   protected:
     ModuleDefGenFun moduledefgenfun;
-  public:
-    GeneratorDefFromFun(Generator* g, ModuleDefGenFun moduledefgenfun) : GeneratorDef(g), moduledefgenfun(moduledefgenfun) {}
-    void createModuleDef(ModuleDef* mdef, Context* c, Type* t, Args args) {
-      moduledefgenfun(mdef,c,t,args);
-    }
+
 };
 
 } //CoreIR namespace

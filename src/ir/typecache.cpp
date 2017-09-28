@@ -1,8 +1,8 @@
 #include "coreir/ir/typecache.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
-#include "coreir/ir/args.h"
 #include "coreir/ir/types.h"
+#include "coreir/ir/valuetype.h"
 
 using namespace std;
 
@@ -23,14 +23,14 @@ TypeCache::~TypeCache() {
 }
 
 
-Type* TypeCache::newArray(uint len, Type* t) {
+ArrayType* TypeCache::getArray(uint len, Type* t) {
   ArrayParams params(len,t);
   auto it = ArrayCache.find(params);
   if (it != ArrayCache.end()) {
     return it->second;
   } 
   else {
-    Type* a = new ArrayType(c,t,len);
+    ArrayType* a = new ArrayType(c,t,len);
     Type* af = new ArrayType(c,c->Flip(t),len);
     a->setFlipped(af);
     af->setFlipped(a);
@@ -41,13 +41,13 @@ Type* TypeCache::newArray(uint len, Type* t) {
   }
 }
 
-Type* TypeCache::newRecord(RecordParams params) {
+RecordType* TypeCache::getRecord(RecordParams params) {
   auto it = RecordCache.find(params);
   if (it != RecordCache.end()) {
     return it->second;
   } 
   else {
-    Type* r = new RecordType(c,params);
+    RecordType* r = new RecordType(c,params);
     
     // Create params for flipped
     RecordParams paramsF;
@@ -62,6 +62,13 @@ Type* TypeCache::newRecord(RecordParams params) {
     RecordCache.emplace(paramsF,rf);
     return r;
   }
+}
+
+BitVectorType* getBitVector(int width) {
+  if (BitVectorCache.count(width)) return BitVectorCache[width];
+  BitVectorType* bv = new BitVectorType(width);
+  bitVectorCache.emplace(width,bv);
+  return bv;
 }
 
 }//CoreIR namespace

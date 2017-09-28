@@ -1,6 +1,6 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/wireable.h"
-#include "coreir/ir/args.h"
+#include "coreir/ir/value.h"
 //#include <sstream>
 //#include <iterator>
 
@@ -37,34 +37,15 @@ Connection connectionCtor(Wireable* a, Wireable* b) {
   }
 }
 
-
-string Param2Str(Param genparam) {
-  switch(genparam) {
-    case ABOOL : return "bool";
-    case AINT : return "int";
-    case ASTRING : return "string";
-    case ATYPE : return "type";
-    default : break;
-  }
-  ASSERT(0,"NYI Param=" + to_string(genparam));
-}
-Param Str2Param(string s) {
-  if (s=="bool") return ABOOL;
-  if (s=="int") return AINT;
-  if (s=="string") return ASTRING;
-  if (s=="type") return ATYPE;
-  throw std::runtime_error("Cannot convert " + s + " to Param");
-}
-
 string Params2Str(Params genparams) {
   string ret = "(";
   for (auto it=genparams.begin(); it!=genparams.end(); ++it) {
-    ret = ret + (it==genparams.begin() ? "" : ",") + it->first + ":"+Param2Str(it->second);
+    ret = ret + (it==genparams.begin() ? "" : ",") + it->first + ":"+it->second->toString();
   }
   return ret + ")";
 }
 
-string Args2Str(Args args) {
+string Values2Str(Values args) {
   string s = "(";
   for (auto it=args.begin(); it!=args.end(); ++it) {
     s = s + (it==args.begin() ? "" : ",") + it->first + ":"+it->second->toString();
@@ -79,13 +60,23 @@ string Connection2Str(Connection con) {
   return con.first->toString() + " <=> " + con.second->toString();
 }
 
-void checkArgsAreParams(Args args, Params params) {
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams: " + Params2Str(params));
+void checkValuesAreParams(Values args, Params params) {
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args) + "\nParams: " + Params2Str(params));
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
     ASSERT(arg != args.end(), "Arg Not found: " + param.first );
-    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first + " (" + Param2Str(arg->second->getKind())+ " vs " + Param2Str(param.second)+")");
+    ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
   }
+}
+
+Values castConsts2Values(Consts cs) {
+  Values vs;
+  for (auto cmap : cs) vs[cmap.first] = cmap.second;
+  return vs;
+}
+
+void checkValuesAreParams(Consts args, Params params) {
+  checkValuesAreParams(castConsts2Values(args),params);
 }
 
 
@@ -100,7 +91,7 @@ bool hasChar(const std::string s, char c) {
 }
 
 //merge a1 into a0
-void mergeArgs(Args& a0, Args a1) {
+void mergeValues(Values& a0, Values a1) {
   for (auto arg : a1) {
     if (a0.count(arg.first)==0) {
       a0.insert(arg);

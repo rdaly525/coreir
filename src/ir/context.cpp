@@ -162,11 +162,11 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 }
 */
 
-Type* Context::Bit() { return cache->newBit(); }
-Type* Context::BitIn() { return cache->newBitIn(); }
-Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
-Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::Named(string nameref) {
+BitType* Context::Bit() { return typecache->newBit(); }
+BitInType* Context::BitIn() { return typecache->newBitIn(); }
+ArrayType* Context::Array(uint n, Type* t) { return typecache->newArray(n,t);}
+RecordType* Context::Record(RecordParams rp) { return typecache->newRecord(rp); }
+NamedType* Context::Named(string nameref) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
@@ -189,6 +189,12 @@ Type* Context::In(Type* t) {
 Type* Context::Out(Type* t) {
   assert(0 && "TODO NYI");
 }
+
+BoolType* Context::Bool() { return BoolType::make(this);}
+IntType* Context::Int(){ return IntType::make(this);}
+BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
+StringType* Context::String() { return StringType::make(this);}
+CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
   ASSERT(top && top->hasDef(), top->toString() + " has no def!");

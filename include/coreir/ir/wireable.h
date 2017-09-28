@@ -90,7 +90,7 @@ class Instance : public Wireable {
   const std::string instname;
   Module* moduleRef = nullptr;
   
-  Values configargs;
+  Values modargs;
   
   bool isgen;
   bool wasgen = false;
@@ -98,15 +98,15 @@ class Instance : public Wireable {
   Values genargs;
   
   public :
-    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values configargs=Values());
-    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Values genargs, Values configargs=Values());
+    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs=Values());
+    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Consts genargs, Values modargs=Values());
     static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     std::string toString() const;
     json toJson();
     Module* getModuleRef() {return moduleRef;}
     const std::string& getInstname() const { return instname; }
-    const Values& getConfigArgs() const {return configargs;}
-    bool hasConfigArgs() {return !configargs.empty();}
+    const Values& getModArgs() const {return modargs;}
+    bool hasModArgs() {return !modargs.empty();}
     
     //isGen means it is currently an instance of a generator
     //(Generator has NOT been run)
@@ -126,8 +126,8 @@ class Instance : public Wireable {
     //Call namespace.addModule(m) to move from generator to namespace
     bool runGenerator();
 
-    void replace(Module* moduleRef, Values configargs=Values());
-    void replace(Generator* generatorRef, Values genargs, Values configargs=Values());
+    void replace(Module* moduleRef, Values modargs=Values());
+    void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
   
   friend class InstanceGraphNode;
 };

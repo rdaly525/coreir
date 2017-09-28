@@ -50,12 +50,13 @@ class ModuleDef {
     Wireable* sel(std::initializer_list<const char*> path);
     Wireable* sel(std::initializer_list<std::string> path);
     
+
     //API for adding an instance of either a module or generator
-    Instance* addInstance(std::string instname,Generator* genref,Values genargs, Values config=Values());
-    Instance* addInstance(std::string instname,Module* modref,Values config=Values());
+    Instance* addInstance(std::string instname,Generator* genref,Consts genargs, Values modargs=Values());
+    Instance* addInstance(std::string instname,Module* modref,Values modargs=Values());
     
     //Add instance using an Instantiable ref std::string
-    Instance* addInstance(std::string instname,std::string iref,Values genOrConfigargs=Values(), Values configargs=Values());
+    Instance* addInstance(std::string instname,std::string iref,Values genOrModargs=Values(), Values modargs=Values());
     
     //copys info about i
     Instance* addInstance(Instance* i,std::string iname="");
