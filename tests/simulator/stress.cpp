@@ -26,15 +26,19 @@ namespace CoreIR {
     for (auto& v : gr.getVerts()) {
       WireNode w = gr.getNode(v);
 
-      // if (isGraphInput(w)) {
-      // 	w.setThreadNo(0);
-      // } else {
-      // 	w.setThreadNo(13);
-      // }
+      if (isGraphInput(w)) {
+	cout << "Input = " << w.getWire()->toString() << endl;
+      	w.setThreadNo(0);
+      } else {
+      	w.setThreadNo(13);
+      }
 
-      w.setThreadNo(13);
+      //w.setThreadNo(13);
 
+      //cout << "Thread number before setting = " << gr.getNode(v).getThreadNo() << endl;
       gr.addVertLabel(v, w);
+
+      //cout << "Thread number after setting  = " << gr.getNode(v).getThreadNo() << endl;
     }
   }
 
@@ -94,7 +98,7 @@ namespace CoreIR {
 	for (auto& v : gr.getVerts()) {
 	  int tNo = gr.getNode(v).getThreadNo();
 	  cout << "Thread number = " << tNo << endl;
-	  assert(tNo == 13);
+	  //assert(tNo == 13);
 	}
 
 	cout << "Built ordered graph" << endl;

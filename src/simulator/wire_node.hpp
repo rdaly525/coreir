@@ -106,6 +106,8 @@ namespace CoreIR {
   }
 
   bool isGraphInput(const WireNode& w);
+  bool isGraphOutput(const WireNode& w);
+
 }
 
 namespace std {
