@@ -374,6 +374,11 @@ namespace CoreIR {
       return false;
     }
 
+    if (isMemoryInstance(wd.getWire())) {
+      cout << "Found memory instance" << endl;
+      return false;
+    }
+
     return true;
   }
 
@@ -491,13 +496,6 @@ namespace CoreIR {
     // Declare all variables
     str += "\n// Variable declarations\n";
 
-    // str += "\n// Outputs\n";
-
-    // for (auto& name_type_pair : outputs(mod)) {
-    //   Type* tp = name_type_pair.second;
-    //   str += cArrayTypeDecl(*tp, "self_" + name_type_pair.first) + ";\n";
-    // }
-  
     str += "\n// Internal variables\n";
     str += printInternalVariables(topo_order, g, mod);
 
