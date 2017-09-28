@@ -346,6 +346,10 @@ namespace CoreIR {
     
   }
 
+  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    return "";
+  }
+
   string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 
@@ -355,6 +359,10 @@ namespace CoreIR {
     
     if (isRegisterInstance(inst)) {
       return printRegister(wd, vd, g);
+    }
+
+    if (isMemoryInstance(inst)) {
+      return printMemory(wd, vd, g);
     }
 
     auto outSelects = getOutputSelects(inst);
@@ -385,7 +393,9 @@ namespace CoreIR {
   string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
     assert(isSelect(wd.getWire()));
 
-    if (isRegisterInstance(extractSource(toSelect(wd.getWire())))) {
+    Wireable* src = extractSource(toSelect(wd.getWire()));
+
+    if (isRegisterInstance(src) || isMemoryInstance(src)) {
       return cVar(wd);
     }
 
