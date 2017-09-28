@@ -463,14 +463,14 @@ namespace CoreIR {
 	REQUIRE(numVertices(g) == 8);
       }
       
-      cout << "Done building graph" << endl;
+      // cout << "Done building graph" << endl;
 
-      deque<vdisc> topoOrder = topologicalSort(g);
+      // deque<vdisc> topoOrder = topologicalSort(g);
 
-      SECTION("Compile and run") {
-      	int s = compileCode(topoOrder, g, memory, "./gencode/", "memory");
-      	REQUIRE(s == 0);
-      }
+      // SECTION("Compile and run") {
+      // 	int s = compileCode(topoOrder, g, memory, "./gencode/", "memory");
+      // 	REQUIRE(s == 0);
+      // }
       
     }
     
