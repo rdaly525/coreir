@@ -5,12 +5,11 @@ using namespace std;
 using namespace CoreIR;
 
 bool Passes::WireClocks::runOnModule(Module* module) {
-    ASSERT(module->hasDef(), "WireClockPass can only be run on a module with a definition");
 
     ModuleDef* definition = module->getDef();
 
     RecordType* type = cast<RecordType>(definition->getType());  // FIXME: Can I assume this is always a RecordType
-    string clkInName;
+    string clkInName="";
     for (auto field : type->getRecord()) {
         if (field.second == this->clockType) {
             ASSERT(clkInName.empty(), "Found multiple inputs with the same clock type in wireclockpass");
@@ -18,6 +17,7 @@ bool Passes::WireClocks::runOnModule(Module* module) {
             break;
         }
     }
+    if (clkInName=="") return false;
     Interface* interface = definition->getInterface();
     Wireable* interfaceClock = interface->sel(clkInName);
 
