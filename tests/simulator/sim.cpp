@@ -102,6 +102,18 @@ namespace CoreIR {
       SECTION("Checking graph size") {
 	REQUIRE(numVertices(g) == 8);
       }
+
+      SECTION("Source mem node in operation graph gets raddr as an input") {
+	for (auto& vd : g.getVerts()) {
+	  WireNode w = g.getNode(vd);
+
+	  if (w.isSequential && !w.isReceiver) {
+	    auto ins = getInputConnections(vd, g);
+
+	    REQUIRE(ins.size() == 1);
+	  }
+	}
+      }
       
       cout << "Done building graph" << endl;
 
