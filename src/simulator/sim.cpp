@@ -347,7 +347,28 @@ namespace CoreIR {
   }
 
   string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g) {
-    return "";
+    assert(wd.isSequential);
+
+    auto ins = getInputConnections(vd, g);    
+
+    auto outSel = getOutputSelects(wd.getWire());
+    
+    assert(outSel.size() == 1);
+    Select* s = toSelect((*(begin(outSel))).second);
+    
+    assert(isInstance(s->getParent()));
+
+    Instance* r = toInstance(s->getParent());
+
+    if (!wd.isReceiver) {
+      InstanceValue en = findArg("raddr", ins);
+      return ln(cVar(*s) + " = " +
+		parens(cVar("(state->", *r, ")") +
+		       "[ " + cVar("(state->", en, ")") + " ]"));
+    } else {
+      return "";
+    }
+
   }
 
   string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
@@ -564,7 +585,15 @@ namespace CoreIR {
     // Add register inputs
     for (auto& inst : mod.getDef()->getInstances()) {
       if (isMemoryInstance(inst.second)) {
+	cout << "Adding memory instance" << endl;
 	Instance* is = inst.second;
+
+	Context* c = mod.getDef()->getContext();
+
+	uint width = 16;
+	uint depth = 2;
+	Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
+	declStrs.push_back({elemType, is->toString()});
 
 	// Select* in = is->sel("in");
 	// Type* itp = in->getType();
@@ -574,7 +603,7 @@ namespace CoreIR {
 	// declStrs.push_back({itp, regName + "_old_value"});
 	// declStrs.push_back({itp, regName + "_new_value"});
 
-	//declStrs.push_back({itp, cVar(*is)});
+
 	
       }
     }
@@ -612,39 +641,6 @@ namespace CoreIR {
   }
   
   std::vector<std::pair<CoreIR::Type*, std::string> >
-  simInputs(Module& mod) {
-
-    Type* tp = mod.getType();
-
-    assert(tp->getKind() == Type::TK_Record);
-
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<pair<Type*, string>> declStrs;
-
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
-
-      if (tp->isInput()) {
-	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	} else {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
-
-	}
-      }
-    }
-
-    // Add register inputs
-    concat(declStrs, simRegisterInputs(mod));
-    // Add memory inputs
-    concat(declStrs, simMemoryInputs(mod));
-
-    return declStrs;
-
-  }
-  
-  std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod) {
 
     Type* tp = mod.getType();
@@ -676,6 +672,9 @@ namespace CoreIR {
 
     // Add register inputs
     concat(declStrs, simRegisterInputs(mod));
+    // Add memory inputs
+    concat(declStrs, simMemoryInputs(mod));
+    
 
     return declStrs;
     
