@@ -187,7 +187,7 @@ bool inlineInstance(Instance* inst) {
   addPassthrough(defInline->getInterface(),"_insidePT");
   
 
-  string inlinePrefix = inst->getInstname() + "$";
+  string inlinePrefix = inst->getInstname() + SEP;
 
   //First add all the instances of defInline into def with a new name
   for (auto instmap : defInline->getInstances()) {

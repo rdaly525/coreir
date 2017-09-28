@@ -7,6 +7,11 @@
 
 namespace CoreIR {
 
+  using namespace std;
+
+  // Separator character for instance flattening 
+  static const string SEP = "$";
+  
   class Instantiable : public MetaData{
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
