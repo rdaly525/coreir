@@ -9,10 +9,9 @@ namespace CoreIR {
   class WireNode {
   protected:
     bool highBitsDirty;
-
-  public:
     CoreIR::Wireable* wire;
 
+  public:
     bool isSequential;
     bool isReceiver;
 
