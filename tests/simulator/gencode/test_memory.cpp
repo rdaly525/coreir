@@ -51,5 +51,15 @@ int main() {
     return 1;
   }
 
+  state.self_write_en = 0;
+  state.self_clk_last = 0;
+  state.self_clk = 1;
+  state.self_write_data = 5;
+  state.self_write_addr = 0;
+
+  if (state.m0[0] != 32) {
+    return 1;
+  }
+  
   return 0;
 }
