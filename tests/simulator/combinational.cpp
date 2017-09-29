@@ -26,7 +26,26 @@ namespace CoreIR {
     Namespace* g = c->getGlobal();
 
     SECTION("Load add with cin / cout from json") {
-      
+      if (!loadFromFile(c, "test_add_cin_two.json")) {
+	cout << "Could not Load from json!!" << endl;
+	c->die();
+      }
+
+      Module* m = c->getModule("global.Add4_cin");
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph gr;
+      buildOrderedGraph(m, gr);
+      deque<vdisc> topoOrder = topologicalSort(gr);
+
+      SECTION("Compile and run") {
+	int s = compileCode(topoOrder, gr, m, "./gencode/", "add_cin_two");
+
+	REQUIRE(s == 0);
+      }
+
     }
 	       
 

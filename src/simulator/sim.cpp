@@ -13,6 +13,7 @@ using namespace std;
 
 namespace CoreIR {
 
+  string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
   string printOpResultStr(const InstanceValue& wd, const NGraph& g);
 
   // wd is an instance node
@@ -207,11 +208,30 @@ namespace CoreIR {
 	       printOpResultStr(i0, g));
   }
 
-  string printTernop(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printAddOrSub(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    auto ins = getInputs(vd, g);
+
+    // No CIN or COUT
+    if (ins.size() == 2) {
+      return printBinop(wd, vd, g);
+    }
+
+    assert(ins.size() == 3);
+
+    assert(false);
+  }
+
+  string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 3);
 
+    Instance* inst = toInstance(wd.getWire());
     if (isMux(*inst)) {
       return printMux(inst, vd, g);
+    }
+
+    if (isAddOrSub(*inst)) {
+      // Add and subtract need special treatment because of cin and cout flags
+      return printAddOrSub(wd, vd, g);
     }
 
     assert(false);
@@ -317,15 +337,8 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
     
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-    // string res = cVar(*(outPair.second));
-    
     if (ins.size() == 3) {
-      return printTernop(inst, vd, g);
+      return printTernop(wd, vd, g);
     }
 
     if (ins.size() == 2) {
