@@ -59,6 +59,79 @@ namespace CoreIR {
 
     Context* c = newContext();
 
+    SECTION("Memory primitive") {
+      uint width = 16;
+      uint depth = 2;
+      uint index = 1;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+      	    {"write_data", c->BitIn()->Arr(width)},
+      	      {"write_addr", c->BitIn()->Arr(index)},
+      		{"write_en", c->BitIn()},
+      		  {"read_data", c->Bit()->Arr(width)},
+      		    {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      def->addInstance("m0",
+      		       "coreir.mem",
+      		       {{"width", Const(width)},{"depth", Const(depth)}},
+      		       {{"init", Const("0")}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.write_en", "m0.wen");
+      def->connect("self.write_data", "m0.wdata");
+      def->connect("self.write_addr", "m0.waddr");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+
+      memory->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(c->getGlobal());
+
+      cout << "Building graph" << endl;
+
+      NGraph g;
+      buildOrderedGraph(memory, g);
+
+      SECTION("Checking graph size") {
+	REQUIRE(numVertices(g) == 8);
+      }
+
+      SECTION("Source mem node in operation graph gets raddr as an input") {
+	for (auto& vd : g.getVerts()) {
+	  WireNode w = g.getNode(vd);
+
+	  if (w.isSequential && !w.isReceiver) {
+	    auto ins = getInputConnections(vd, g);
+
+	    REQUIRE(ins.size() == 1);
+	  }
+	}
+      }
+      
+      cout << "Done building graph" << endl;
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      SECTION("Compile and run") {
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  memory,
+				  "./gencode/",
+				  "memory",
+				  "test_memory.cpp");
+
+      	REQUIRE(s == 0);
+      }
+      
+    }
+    
     SECTION("Non standard width register") {
       uint n = 5;
 
@@ -418,6 +491,7 @@ namespace CoreIR {
       }
       
     }
+
     
     deleteContext(c);
 

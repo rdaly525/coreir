@@ -78,7 +78,6 @@ namespace CoreIR {
 
 	REQUIRE(s == 0);
       }
-      
     }
 
     SECTION("6 bit signed remainder 3 operations") {
