@@ -58,7 +58,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   if (gen) {
     args = inst->getGenArgs();
     addPortsFromGen(inst);
-    mname = gen->getNamespace()->getName() + SEP + gen->getName(args);
+    mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
   }
   else {
     mname = modname;
@@ -70,23 +70,6 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   }
   vector<string> params;
   const json& jmeta = iref->getMetaData();
-  // json& jprop = iref->getProperty();
-
-  // unordered_map<string, PropDef> properties;
-  // if (jprop.size()) {
-  //   //    cout << "PROPERTY: " << jprop << endl;
-  //   for (int i=0; i<jprop.size(); i++) {
-  //     string propname = jprop[0][0];
-  //     PropType ptype = jprop[0][1] == "invar" ? invarspec : ltlspec;
-  //     string propval = jprop[0][2];
-  //     PropDef prop = make_pair(ptype, propval);
-  //     properties.emplace(propname, prop);
-  //   }
-  // }
-
-  // for (auto property : properties) {
-  //   cout << property.first << " " << property.second.first << " " << property.second.second << endl;
-  // }
   
   if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
     params = jmeta["verilog"]["parameters"].get<vector<string>>();
@@ -109,14 +92,14 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   }
 
   string context = path+SEP;
-  string pre = "coreir"+SEP;
+  string pre = "coreir_";
 
   enum operation {neg_op = 1,
                   const_op,
                   add_op,
                   and_op,
                   or_op,
-                  bitreg_op,
+                  xor_op,
                   reg_op,
                   regPE_op,
                   concat_op,
@@ -127,10 +110,15 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
 
   opmap.emplace(pre+"neg", neg_op);
   opmap.emplace(pre+"const", const_op);
+  opmap.emplace(pre+"bitconst", const_op);
   opmap.emplace(pre+"add", add_op);
   opmap.emplace(pre+"and", and_op);
+  opmap.emplace(pre+"bitand", and_op);
   opmap.emplace(pre+"or", or_op);
-  opmap.emplace(pre+"bitreg", bitreg_op);
+  opmap.emplace(pre+"bitor", or_op);
+  opmap.emplace(pre+"xor", xor_op);
+  opmap.emplace(pre+"bitxor", xor_op);
+  opmap.emplace(pre+"bitreg", reg_op);
   opmap.emplace(pre+"reg", reg_op);
   opmap.emplace(pre+"reg_PE", regPE_op);
   opmap.emplace(pre+"concat", concat_op);
@@ -161,11 +149,11 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   case or_op:
     o << SMVOr(context, in0, in1, out);
     break;
+  case xor_op:
+    o << SMVXor(context, in0, in1, out);
+    break;
   case concat_op:
     o << SMVConcat(context, in0, in1, out);
-    break;
-  case bitreg_op:
-    o << SMVBitReg(context, in, clk, out);
     break;
   case reg_op:
     o << SMVReg(context, in, clk, out);
@@ -174,7 +162,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
     o << SMVRegPE(context, in, clk, out, en);
     break;
   case const_op:
-    int width; width = stoi(args["width"]->toString());
+    int width; width = args["width"] ? stoi(args["width"]->toString()) : 1;
     int value; value = stoi(args["value"]->toString());
     o << SMVConst(context, out, getSMVbits(width, value));
     break;

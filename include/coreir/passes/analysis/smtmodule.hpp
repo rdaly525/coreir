@@ -89,11 +89,11 @@ class SMTModule {
 public:
   // Don't support this constructor unless needed
   // Deprecating Type2Ports
-  // SMTModule(string modname, Type* t) {
-  //   this->modname = modname;
-  //   Type2Ports(t);
-  // }
-  SMTModule(Module* m) {
+  SMTModule(string modname, Type* t) {
+    this->modname = modname;
+    Type2Ports(t, ports);
+  }
+  SMTModule(Module* m) : SMTModule(m->getName(),m->getType()) {
     this->modname = m->getName();
     const json& jmeta = m->getMetaData();
     // still using verilog prefixes -- should be okay
@@ -129,11 +129,11 @@ public:
   string toInitVarDecString();
   string toInstanceString(Instance* inst, string path);
 private :
-  // void Type2Ports(Type* t,unordered_map<string,SmtBVVar>& ports) {
-  //   for (auto rmap : cast<RecordType>(t)->getRecord()) {
-  //     ports.emplace(rmap.first,SmtBVVar("",rmap.first,rmap.second));
-  //   }
-  //  }
+  void Type2Ports(Type* t,vector<SmtBVVar>& ports) {
+    for (auto rmap : cast<RecordType>(t)->getRecord()) {
+      ports.push_back(SmtBVVar("",rmap.first,rmap.second));
+    }
+  }
   void addPortsFromGen(Instance* inst) {
     Type* t = gen->getTypeGen()->getType(inst->getGenArgs());
     for (auto rmap : cast<RecordType>(t)->getRecord()) {

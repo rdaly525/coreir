@@ -30,7 +30,7 @@ class SmvBVVar {
   Type::DirKind dir;
 public :
   SmvBVVar() = default;
-  SmvBVVar(string instname, string field,Type* t) :
+  SmvBVVar(string instname, string field, Type* t) :
     instname(instname), portname(field), dim(t->getSize()), dir(t->getDir())     {
     name = (instname == "" ? "" : instname + SEP) + portname;
     fullname = field+name;
@@ -63,7 +63,7 @@ public :
   { return (name.compare(other.name) == 0);
   }  
   SmvBVVar(string instname, string portname, unsigned dim, Type::DirKind dir) :
-    instname(instname), portname(portname), dim(dim), dir(dir) {}
+    instname(instname), portname(portname), dim(dim), dir(dir) { }
   string dimstr() {return to_string(dim);}
   string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
   string getExtractName() { return need_extract ? "(" + getName() + "["+idx+":"+idx+"])" : getName();}
@@ -89,11 +89,11 @@ class SMVModule {
 public:
   // Don't support this constructor unless needed
   // Deprecating Type2Ports
-  // SMVModule(string modname, Type* t) {
-  //   this->modname = modname;
-  //   Type2Ports(t);
-  // }
-  SMVModule(Module* m) {
+  SMVModule(string modname, Type* t) {
+    this->modname = modname;
+    Type2Ports(t, ports);
+  }
+  SMVModule(Module* m) : SMVModule(m->getName(),m->getType()) {
     this->modname = m->getName();
     const json& jmeta = m->getMetaData();
     // still using verilog prefixes -- should be okay
@@ -129,11 +129,11 @@ public:
   string toInitVarDecString();
   string toInstanceString(Instance* inst, string path);
 private :
-  // void Type2Ports(Type* t,unordered_map<string,SmvBVVar>& ports) {
-  //   for (auto rmap : cast<RecordType>(t)->getRecord()) {
-  //     ports.emplace(rmap.first,SmvBVVar("",rmap.first,rmap.second));
-  //   }
-  //  }
+  void Type2Ports(Type* t,vector<SmvBVVar>& ports) {
+    for (auto rmap : cast<RecordType>(t)->getRecord()) {
+      ports.push_back(SmvBVVar("",rmap.first,rmap.second));
+    }
+  }
   void addPortsFromGen(Instance* inst) {
     Type* t = gen->getTypeGen()->getType(inst->getGenArgs());
     for (auto rmap : cast<RecordType>(t)->getRecord()) {

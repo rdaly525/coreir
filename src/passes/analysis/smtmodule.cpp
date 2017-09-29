@@ -57,12 +57,12 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   if (gen) {
     args = inst->getGenArgs();
     addPortsFromGen(inst);
-    mname = gen->getNamespace()->getName() + SEP + gen->getName(args);
+    mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
   }
   else {
     mname = modname;
   }
-
+  
   for (auto amap : inst->getConfigArgs()) {
     ASSERT(args.count(amap.first)==0,"NYI Alisaaed config/genargs");
     args[amap.first] = amap.second;
@@ -90,14 +90,14 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   }
 
   string context = path+SEP;
-  string pre = "coreir"+SEP;
+  string pre = "coreir_";
 
   enum operation {neg_op = 1,
                   const_op,
                   add_op,
                   and_op,
                   or_op,
-                  bitreg_op,
+                  xor_op,
                   reg_op,
                   regPE_op,
                   concat_op,
@@ -107,11 +107,16 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   unordered_map<string, operation> opmap;
 
   opmap.emplace(pre+"neg", neg_op);
+  opmap.emplace(pre+"bitconst", const_op);
   opmap.emplace(pre+"const", const_op);
   opmap.emplace(pre+"add", add_op);
+  opmap.emplace(pre+"bitand", and_op);
   opmap.emplace(pre+"and", and_op);
+  opmap.emplace(pre+"bitor", or_op);
   opmap.emplace(pre+"or", or_op);
-  opmap.emplace(pre+"bitreg", bitreg_op);
+  opmap.emplace(pre+"bitxor", xor_op);
+  opmap.emplace(pre+"xor", xor_op);
+  opmap.emplace(pre+"bitreg", reg_op);
   opmap.emplace(pre+"reg", reg_op);
   opmap.emplace(pre+"reg_PE", regPE_op);
   opmap.emplace(pre+"concat", concat_op);
@@ -142,11 +147,11 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   case or_op:
     o << SMTOr(context, in0, in1, out);
     break;
+  case xor_op:
+    o << SMTXor(context, in0, in1, out);
+    break;
   case concat_op:
     o << SMTConcat(context, in0, in1, out);
-    break;
-  case bitreg_op:
-    o << SMTBitReg(context, in, clk, out);
     break;
   case reg_op:
     o << SMTReg(context, in, clk, out);
@@ -155,7 +160,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     o << SMTRegPE(context, in, clk, out, en);
     break;
   case const_op:
-    int width; width = stoi(args["width"]->toString());
+    int width; width = args["width"] ? stoi(args["width"]->toString()) : 1;
     int value; value = stoi(args["value"]->toString());
     o << SMTConst(context, out, getSMTbits(width, value));
     break;

@@ -48,8 +48,8 @@ namespace {
   	
   string format_string(string input, unordered_map<string, string> replace_map) {
     string output = input;
-    for (auto pippo : replace_map) {
-      findAndReplaceAll(output, pippo.first, pippo.second);
+    for (auto replace : replace_map) {
+      findAndReplaceAll(output, replace.first, replace.second);
     }
     return output;
   }
@@ -74,6 +74,7 @@ namespace CoreIR {
 
     string SmvBVVarDec(SmvBVVar w) {
       return "VAR " + w.getName() + ": word[" + w.dimstr() + "];";
+      
     }
 
     string getSMVbits(unsigned width, int x) {
@@ -109,6 +110,10 @@ namespace CoreIR {
       return SMVBop(context, "Or", "|", in1_p, in2_p, out_p);
     }
 
+    string SMVXor(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
+      return SMVBop(context, "Xor", "xor", in1_p, in2_p, out_p);
+    }
+    
     string SMVAdd(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
       return SMVBop(context, "Add", "+", in1_p, in2_p, out_p);
     }
@@ -147,28 +152,6 @@ namespace CoreIR {
       return comment + NL + get_invar(curr);
     }
 
-    string SMVBitReg(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p) {
-      // INIT: out = 0
-      // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
-      string in = in_p.getPortName();
-      string clk = clk_p.getPortName();
-      string out = out_p.getPortName();
-      string comment = "-- SMVBitReg (in, clk, out) = (" + in + ", " + clk + ", " + out + ")";
-      
-      unordered_map<string, string> replace_map;
-      replace_map.emplace("{clk}", SMVgetCurr(context, clk));
-      replace_map.emplace("{out}", SMVgetCurr(context, out));
-      replace_map.emplace("{in}", SMVgetCurr(context, in));
-      replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
-      
-      string trans = "(((!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & ((!(!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
-      string init = "{out} = {zero}";
-      
-      trans = format_string(trans, replace_map);      
-      init = format_string(init, replace_map);      
-      return comment + NL + get_init(init) + NL + get_trans(trans);
-    }
-    
     string SMVReg(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p) {
       // INIT: out = 0
       // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))

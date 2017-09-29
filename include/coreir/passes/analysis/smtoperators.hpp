@@ -21,11 +21,11 @@ namespace CoreIR {
     string SMTAssign(SmtBVVar vleft, SmtBVVar vright);
     string SMTAnd(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTOr(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
+    string SMTXor(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTNot(string context, SmtBVVar in, SmtBVVar out);
     string SMTConst(string context, SmtBVVar out, string val);
     string SMTAdd(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTConcat(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
-    string SMTBitReg(string context, SmtBVVar in, SmtBVVar clk, SmtBVVar out);
     string SMTReg(string context, SmtBVVar in, SmtBVVar clk, SmtBVVar out);
     string SMTRegPE(string context, SmtBVVar in, SmtBVVar clk, SmtBVVar out, SmtBVVar en);
     string SMTCounter(string context, SmtBVVar clk, SmtBVVar en, SmtBVVar out);

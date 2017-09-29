@@ -76,13 +76,30 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto con : def->getConnections()) {
     Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
     Wireable* right = left==con.first ? con.second : con.first;
-    SmtBVVar vleft(left);
-    SmtBVVar vright(right);
 
+    SmtBVVar vleft, vright;
+    
+    if (isNumber(left->getSelectPath().back())) {
+      auto lsel = dyn_cast<Select>(left)->getParent();
+      vleft = SmtBVVar(lsel);
+    } else {
+      vleft = SmtBVVar(left);
+    }
+
+    if (isNumber(right->getSelectPath().back())) {
+      auto rsel = dyn_cast<Select>(right)->getParent();
+      vright = SmtBVVar(rsel);
+    } else {
+      vright = SmtBVVar(right);
+    }
+    
     variables = check_interface_variable(variables, vleft, smod);
     variables = check_interface_variable(variables, vright, smod);
+
+    SmtBVVar lleft(left);
+    SmtBVVar lright(right);
     
-    smod->addStmt(SMTAssign(vleft, vright));
+    smod->addStmt(SMTAssign(lleft, lright));
   }
   smod->addStmt(";; END connections definition\n");
 

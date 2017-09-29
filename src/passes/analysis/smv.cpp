@@ -13,7 +13,7 @@ namespace {
   if ( find(variables.begin(), variables.end(), var.getName()) == variables.end() ) {
       variables.push_back(var.getName());
       smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
-      // smod->addStmt("-- ADDING missing variable: " +var.getName()+"\n");
+      //      smod->addStmt("-- ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
         smod->addStmt("-- START module declaration for signal '" + var.getName() + "'");
         smod->addStmt(SMVClock("", var));
@@ -90,13 +90,30 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto con : def->getConnections()) {
     Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
     Wireable* right = left==con.first ? con.second : con.first;
-    SmvBVVar vleft(left);
-    SmvBVVar vright(right);
+
+    SmvBVVar vleft, vright;
+    
+    if (isNumber(left->getSelectPath().back())) {
+      auto lsel = dyn_cast<Select>(left)->getParent();
+      vleft = SmvBVVar(lsel);
+    } else {
+      vleft = SmvBVVar(left);
+    }
+
+    if (isNumber(right->getSelectPath().back())) {
+      auto rsel = dyn_cast<Select>(right)->getParent();
+      vright = SmvBVVar(rsel);
+    } else {
+      vright = SmvBVVar(right);
+    }
     
     variables = check_interface_variable(variables, vleft, smod);
     variables = check_interface_variable(variables, vright, smod);
+
+    SmvBVVar lleft(left);
+    SmvBVVar lright(right);
     
-    smod->addStmt(SMVAssign(vleft, vright));
+    smod->addStmt(SMVAssign(lleft, lright));
   }
   smod->addStmt("-- END connections definition\n");
 
