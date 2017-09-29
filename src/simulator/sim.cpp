@@ -293,13 +293,16 @@ namespace CoreIR {
       parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
 
     // Check if this output needs a mask
+    // TODO: This code is wrong and needs to be fixed
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
-      res += maskResult(*(outPair.second->getType()), compString);
+      res += maskResult(*(resultSelect->getType()), compString);
     } else {
       res += compString;
     }
 
-    return ln(res);
+    // TODO: Correct this code as well
+    string carryString = cVar(*coutSelect) + " = 1";
+    return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
 
   }
   
