@@ -122,7 +122,7 @@ namespace CoreIR {
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
       res += maskResult(*(outPair.second->getType()), compString);
     } else {
-      res += compString; //maskResult(*(outPair.second->getType()), compString);
+      res += compString;
     }
 
     return res;
