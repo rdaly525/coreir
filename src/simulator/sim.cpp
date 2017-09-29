@@ -247,6 +247,62 @@ namespace CoreIR {
 
   }
 
+  CoreIR::Wireable*
+  findSelect(const std::string& selName,
+	     const std::unordered_map<std::string, CoreIR::Wireable*> selects) {
+    for (auto& sel : selects) {
+      if (sel.first == selName) {
+	return sel.second;
+      }
+    }
+
+    cout << "Could not find select with name = " << selName << endl;
+    assert(false);
+  }
+
+  // NOTE: This function prints the full assignment of values
+  string printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    auto ins = getInputs(vd, g);
+
+    assert(ins.size() == 3);
+    
+    Instance* inst = toInstance(wd.getWire());
+    auto outSelects = getOutputSelects(inst);
+
+    assert((outSelects.size() == 2));
+
+    Wireable* resultSelect = findSelect("out", outSelects);
+    Wireable* coutSelect = findSelect("cout", outSelects);
+
+    string res = "";
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, g);
+
+    // Either it is a binop or there is a cin
+    assert((inConns.size() == 2) || (inConns.size() == 3));
+
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
+    InstanceValue carry = findArg("cin", inConns);
+
+    string opString = getOpString(*inst);
+
+    string compString =
+      parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
+
+    // Check if this output needs a mask
+    if (g.getOutputConnections(vd)[0].first.needsMask()) {
+      res += maskResult(*(outPair.second->getType()), compString);
+    } else {
+      res += compString;
+    }
+
+    return ln(res);
+
+  }
+  
   string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 3);
 
@@ -435,7 +491,7 @@ namespace CoreIR {
     }
   }
 
-  string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printInstance(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 
     cout << "Instance name = " << getInstanceName(*inst) << endl;
@@ -452,12 +508,18 @@ namespace CoreIR {
 
     auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    if (outSelects.size() == 1) {
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-    string res = cVar(*(outPair.second));
+      pair<string, Wireable*> outPair = *std::begin(outSelects);
+      string res = cVar(*(outPair.second));
 
-    return ln(res + " = " + opResultStr(wd, vd, g));
+      return ln(res + " = " + opResultStr(wd, vd, g));
+    } else {
+      assert(outSelects.size() == 2);
+      assert(isAddOrSub(*inst));
+
+      return printAddOrSubCIN_COUT(wd, vd, g);
+    }
   }
 
   bool isCombinationalInstance(const WireNode& wd) {
@@ -604,7 +666,7 @@ namespace CoreIR {
       if (isInstance(inst)) {
 
 	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
-	  str += printOp(wd, vd, g);
+	  str += printInstance(wd, vd, g);
 	}
 
       } else {
