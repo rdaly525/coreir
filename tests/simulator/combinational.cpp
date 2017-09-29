@@ -18,8 +18,32 @@ using namespace std;
 
 namespace CoreIR {
 
+  void colorAdd4Tree(NGraph& g) {
+    for (auto& vd : g.getVerts()) {
+      WireNode wd = g.getNode(vd);
+
+
+      Wireable* w = wd.getWire();
+      cout << "VD " << vd << " = " << w->toString() << endl;
+
+      if (isSelect(w)) {
+	string ss = toSelect(w)->getSelStr();
+
+	if (ss == "in0" || ss == "in1") {
+	  wd.setThreadNo(0);
+	} else if (ss == "in2" || ss == "in3") {
+	  wd.setThreadNo(1);
+	} else if (ss == "out") {
+	  wd.setThreadNo(2);
+	}
+      }
+
+      g.addVertLabel(vd, wd);
+    }
+  }
+
   // Problem: Need to handle nodes that represent arrays
-  void colorConnectedComponents(ThreadGraph& g) {
+  void colorConnectedComponents(NGraph& g) {
     vector<vdisc> inVerts = vertsWithNoIncomingEdge(g);
 
     cout << "inVerts size = " << inVerts.size() << endl;
@@ -113,6 +137,20 @@ namespace CoreIR {
 	saveToFile(g, "add4.json");
 
 	REQUIRE(s == 0);
+      }
+
+      SECTION("Compile multithreaded code") {
+	colorAdd4Tree(gr);
+	deque<vdisc> topoOrder = topologicalSort(gr);
+
+	for (auto& vd : topoOrder) {
+	  WireNode wd = gr.getNode(vd);
+	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+	}
+
+	int s = compileCode(topoOrder, gr, add4_n, "./gencode/", "add4_parallel");
+	REQUIRE(s == 0);
+	
       }
 
     }
