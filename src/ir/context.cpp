@@ -1,6 +1,7 @@
 #include "coreir/ir/context.h"
 #include "coreir/ir/typecache.h"
 #include "coreir/ir/passmanager.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 
 
 using namespace std;
@@ -13,7 +14,7 @@ namespace CoreIR {
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
-  cache = new TypeCache(this);
+  typecache = new TypeCache(this);
   //Automatically load coreir //defined in coreirprims.h
   CoreIRLoadLibrary_coreirprims(this);
   pm = new PassManager(this);
@@ -36,7 +37,7 @@ Context::~Context() {
   for (auto it : directedInstancePtrArrays) free(it);
   for (auto it : valuePtrArrays) free(it);
 
-  delete cache;
+  delete typecache;
 }
 
 void Context::print() {
@@ -162,10 +163,10 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 }
 */
 
-BitType* Context::Bit() { return typecache->newBit(); }
-BitInType* Context::BitIn() { return typecache->newBitIn(); }
-ArrayType* Context::Array(uint n, Type* t) { return typecache->newArray(n,t);}
-RecordType* Context::Record(RecordParams rp) { return typecache->newRecord(rp); }
+BitType* Context::Bit() { return typecache->getBit(); }
+BitInType* Context::BitIn() { return typecache->getBitIn(); }
+ArrayType* Context::Array(uint n, Type* t) { return typecache->getArray(n,t);}
+RecordType* Context::Record(RecordParams rp) { return typecache->getRecord(rp); }
 NamedType* Context::Named(string nameref) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
@@ -173,7 +174,7 @@ NamedType* Context::Named(string nameref) {
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
-Type* Context::Named(string nameref,Values args) {
+NamedType* Context::Named(string nameref,Consts args) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);

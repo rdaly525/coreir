@@ -20,6 +20,11 @@
 
 typedef uint32_t uint;
 
+namespace bsim {
+  class dynamic_bit_vector;
+}
+typedef bsim::dynamic_bit_vector BitVector;
+
 namespace CoreIR {
 
 class Context;
@@ -85,10 +90,6 @@ class Select;
 class Pass;
 class PassManager;
 
-namespace bsim {
-  class dynamic_bit_vector;
-}
-typedef bsim::dynamic_bit_vector BitVector;
 
 
 typedef std::shared_ptr<Value> ValuePtr;
@@ -104,9 +105,9 @@ bool operator==(const Values& l, const Values& r);
 
 
 //Function prototypes for APIs
-typedef Type* (*TypeGenFun)(Context* c, Consts genargs);
+typedef std::function<Type*(Context* c, Consts genargs)> TypeGenFun;
 typedef std::string (*NameGenFun)(Consts);
-typedef std::pair<Params,Consts> (*ModParamsGenFun)(Context*,Consts);
+typedef std::function<std::pair<Params,Consts>(Context*,Consts)> ModParamsGenFun;
 typedef void (*ModuleDefGenFun)(ModuleDef*,Consts genargs);
 
 

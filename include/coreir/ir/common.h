@@ -3,6 +3,9 @@
 
 #include "fwd_declare.h"
 
+//TODO stupid hack
+#include "casting/casting.h"
+
 namespace CoreIR {
 
 class ConnectionComp {
@@ -55,6 +58,7 @@ BackInserter splitString(const std::string &s, char delim) {
     }
     return elems;
 }
+
 template <class T, class A>
 T join(const A &begin, const A &end, const T &t) {
   T result;
@@ -86,6 +90,7 @@ static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
 });
 
 void mergeValues(Values& v0, Values v1);
+void mergeConsts(Consts& v0, Consts v1);
 
 }
 

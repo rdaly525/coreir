@@ -44,11 +44,8 @@ class Generator : public Instantiable {
     Params genparams;
     Consts defaultGenArgs; 
     
-    //TODO add moduleparamGen
-    
     NameGenFun nameGen=nullptr;
     ModParamsGenFun modParamsGen=nullptr;
-    Params defaultModParams;
 
     //This is memory managed
     std::unordered_map<Consts,Module*> genCache;
@@ -78,9 +75,20 @@ class Generator : public Instantiable {
     Consts getDefaultGenArgs() { return defaultGenArgs;}
   
     void setNameGen(NameGenFun ng) {nameGen = ng;}
-    void setModuleParams(ModParamsGenFun mpg) {modParamsGen = mpg;}
-    void setDefaultModParams(Params modparams) {defaultModParams = modParams;}
-
+    void setModParamsGen(ModParamsGenFun mpg) {modParamsGen = mpg;}
+    void setModParamsGen(Params modparams,Consts defaultModArgs) {
+      this->modParamsGen = [modparams,defaultModArgs](Context* c,Consts genargs) mutable -> std::pair<Params,Consts> {
+        return {modparams,defaultModArgs}; 
+      };
+    }
+    std::pair<Params,Consts> getModParams(Consts genargs) {
+      if (modParamsGen) {
+        return modParamsGen(getContext(),genargs);
+      }
+      else {
+        return {Params(),Consts()};
+      }
+    }
 };
 
 class Module : public Instantiable {

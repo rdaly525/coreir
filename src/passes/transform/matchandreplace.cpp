@@ -26,7 +26,7 @@ void Passes::MatchAndReplace::verifyOpts(Opts opts) {
   if (opts.genargs.size()>0) {
     ASSERT(isa<Generator>(replacement),"replacement needs to be a generator if you have genargs");
   }
-  ASSERT( ((opts.configargs.size() > 0) && (!!opts.getConfigArgs)) == false,"Cannot provide configargs and getConfigArgs at the same time")
+  ASSERT( ((opts.modargs.size() > 0) && (!!opts.getModArgs)) == false,"Cannot provide modargs and getModArgs at the same time")
   if (opts.instanceKey.size() > 0) {
     auto key = opts.instanceKey;
     //Verify that each instance is a unique instance of pattern.
@@ -257,21 +257,21 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
 
     //Add the replacement pattern
     string rName = replacement->getName()+c->getUnique();
-    Args rConfigArgs;
-    if (this->getConfigArgs) {
-      rConfigArgs = this->getConfigArgs(matchedInstances);
+    Values rModArgs;
+    if (this->getModArgs) {
+      rModArgs = this->getModArgs(matchedInstances);
     }
-    else if (this->configargs.size()>0) {
-      rConfigArgs = this->configargs;
+    else if (this->modargs.size()>0) {
+      rModArgs = this->modargs;
     }
     if (isa<Generator>(replacement)) {
 
-      cdef->addInstance(rName,cast<Generator>(replacement),this->genargs,rConfigArgs);
+      cdef->addInstance(rName,cast<Generator>(replacement),this->genargs,rModArgs);
     }
     else {
       container->print();
       pattern->print();
-      cdef->addInstance(rName,cast<Module>(replacement),rConfigArgs);
+      cdef->addInstance(rName,cast<Module>(replacement),rModArgs);
     }
     //For each matched instance...
     for (uint i=0; i<instanceKey.size(); ++i) {

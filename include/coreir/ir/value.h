@@ -135,11 +135,10 @@ class Const : public Value {
 
     virtual std::string toString() const override = 0;
 
-    //template<typename T>
-    //T get() {
-    //  
-    //  return cast<typename Val2Arg<T>::type>(this)->get();
-    //}
+    template<typename T>
+    T get() {
+      return cast<typename Underlying2ValueType<T>::type>(this)->get();
+    }
 
 };
 

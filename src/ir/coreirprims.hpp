@@ -22,7 +22,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   auto sliceTypeGen = coreirprims->newTypeGen(
     "sliceTypeFun",
     sliceParams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       uint lo = args.at("lo")->get<int>();
       uint hi = args.at("hi")->get<int>();
@@ -52,12 +52,12 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
    */
   Params concatParams({
     {"width0",c->Int()},
-    {"width1",c->Int()(Var("width0"))}
+    {"width1",c->Int()}
   });
   auto concatTypeGen = coreirprims->newTypeGen(
     "concatTypeFun",
     concatParams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width0 = args.at("width0")->get<int>();
       uint width1 = args.at("width1")->get<int>();
       return c->Record({
@@ -84,7 +84,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   //Params stripParams({
   //  {"namedtype",TYPE}
   //});
-  //auto stripFun = [](Context* c, Args args) { return c; } //TODO
+  //auto stripFun = [](Context* c, Consts args) { return c; } //TODO
   //TypeGen stripTypeGen(stripParams,stripFun);
   //stdlib->newGeneratorDecl("strip",stripParams,stripTypeGen);
 
@@ -101,7 +101,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   //  {"intype",TYPE},
   //  {"outtype",TYPE}
   //});
-  //auto castFun = [](Context* c, Args args) { return ; } //TODO
+  //auto castFun = [](Context* c, Consts args) { return ; } //TODO
   //TypeGen castTypeGen(castParams,castFun);
   //stdlib->newGeneratorDecl("cast",castParams,castTypeGen);
 
@@ -124,13 +124,13 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
    *    en: BOOL, has enable?
    *    clr: BOOL, has clr port
    *    rst: BOOL, has asynchronous reset
-   * ConfigParams
+   * ModParams
    *    resetval: UINT, value at reset
    * Type: {'in':regType
    * Fun: out <= (rst|clr) ? resetval : en ? in : out;
    * Argchecks:
    */
-  auto regFun = [](Context* c, Args args) {
+  auto regFun = [](Context* c, Consts args) {
     uint width = args.at("width")->get<int>();
     bool en = args.at("en")->get<bool>();
     bool clr = args.at("clr")->get<bool>();
@@ -149,40 +149,19 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return c->Record(r);
   };
 
-  /*
-setModParams([](Context* c,Consts genargs) {
-  Params modparams;
-  Consts defaultargs;
-  if (genargs.at("rst")->get<bool>()) {
-    int width = genargs.at("width")->get<int>();
-    modparams["init"] = BitVectorType::make(c,width);
-    defaultargs["init"] = Const::make(c,bit_vector(width,0))
-  }
-  return Params();
-}
-*/
-
-
-  Params regGenParams({
-    {"width",c->Int()},
-    {"en",ABOOL},
-    {"clr",ABOOL},
-    {"rst",ABOOL}
-  });
-  Params regConfigParams({{"init",c->Int()}});
-  TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
-
-  auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams,regConfigParams);
-  reg->addDefaultGenArgs({{"en",Const(false)},{"clr",Const(false)},{"rst",Const(false)}});
-  reg->addDefaultConfigArgs({{"init",Const(0)}});
-
-  json jverilog;
-  jverilog["parameters"] = {"width","init"};
-  jverilog["prefix"] = "coreir_";
-  reg->getMetaData()["verilog"] = jverilog;
+  auto regModParamFun = [](Context* c,Consts genargs) -> std::pair<Params,Consts> {
+    Params modparams;
+    Consts defaultargs;
+    if (genargs.at("rst")->get<bool>()) {
+      int width = genargs.at("width")->get<int>();
+      modparams["init"] = BitVectorType::make(c,width);
+      defaultargs["init"] = Const::make(c,BitVector(width,0));
+    }
+    return {modparams,defaultargs};
+  };
 
   //Set nameGen function
-  auto regNameGen = [](Args args) {
+  auto regNameGen = [](Consts args) {
     string name = "reg_P"; //TODO Should we do negedge?
     bool rst = args["rst"]->get<bool>();
     bool clr = args["clr"]->get<bool>();
@@ -192,10 +171,28 @@ setModParams([](Context* c,Consts genargs) {
     if (en) name += "E";
     return name;
   };
+
+  Params regGenParams({
+    {"width",c->Int()},
+    {"en",c->Bool()},
+    {"clr",c->Bool()},
+    {"rst",c->Bool()}
+  });
+  TypeGen* regTypeGen = coreirprims->newTypeGen("regType",regGenParams,regFun);
+
+  auto reg = coreirprims->newGeneratorDecl("reg",regTypeGen,regGenParams);
+  reg->setModParamsGen(regModParamFun);
+  reg->addDefaultGenArgs({{"en",Const::make(c,false)},{"clr",Const::make(c,false)},{"rst",Const::make(c,false)}});
+
+  json jverilog;
+  jverilog["parameters"] = {"width","init"};
+  jverilog["prefix"] = "coreir_";
+  reg->getMetaData()["verilog"] = jverilog;
+
   reg->setNameGen(regNameGen);
 
 
-  auto bitRegFun = [](Context* c, Args args) {
+  auto bitRegFun = [](Context* c, Consts args) {
     bool en = args.at("en")->get<bool>();
     bool clr = args.at("clr")->get<bool>();
     bool rst = args.at("rst")->get<bool>();
@@ -213,23 +210,24 @@ setModParams([](Context* c,Consts genargs) {
     return c->Record(r);
   };
   Params bitRegGenParams({
-    {"en",ABOOL},
-    {"clr",ABOOL},
-    {"rst",ABOOL}
+    {"en",c->Bool()},
+    {"clr",c->Bool()},
+    {"rst",c->Bool()}
   });
   TypeGen* bitRegTypeGen = coreirprims->newTypeGen("bitRegType",bitRegGenParams,bitRegFun);
-  auto bitreg = coreirprims->newGeneratorDecl("bitreg",bitRegTypeGen,bitRegGenParams,regConfigParams);
-  bitreg->addDefaultGenArgs({{"en",Const(false)},{"clr",Const(false)},{"rst",Const(false)}});
-  bitreg->addDefaultConfigArgs({{"init",Const(0)}});
+  auto bitreg = coreirprims->newGeneratorDecl("bitreg",bitRegTypeGen,bitRegGenParams);
+  bitreg->addDefaultGenArgs({{"en",Const::make(c,false)},{"clr",Const::make(c,false)},{"rst",Const::make(c,false)}});
+  bitreg->setModParamsGen({{"init",c->Bool()}},{{"init",Const::make(c,false)}});
 
   jverilog["parameters"] = {"init"};
   jverilog["prefix"] = "coreir_";
   bitreg->getMetaData()["verilog"] = jverilog;
 
-  Params memGenParams({{"width",c->Int()},{"depth",c->Int()}});
-  auto memFun = [](Context* c, Args args) {
-    int width = args.at("width")->get<int>();
-    int depth = args.at("depth")->get<int>();
+  //Memory
+  Params memGenParams({{"width",c->Int()},{"depth",c->Int()},{"has_init",c->Bool()}});
+  auto memFun = [](Context* c, Consts genargs) {
+    int width = genargs.at("width")->get<int>();
+    int depth = genargs.at("depth")->get<int>();
     ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth));
     int awidth = uint(std::log2(depth));
     return c->Record({
@@ -241,8 +239,23 @@ setModParams([](Context* c,Consts genargs) {
       {"raddr",c->BitIn()->Arr(awidth)}
     });
   };
+  
+  auto memModParamFun = [](Context* c,Consts genargs) -> std::pair<Params,Consts> {
+    Params modparams;
+    Consts defaultargs;
+    bool has_init = genargs.at("has_init")->get<bool>();
+    if (has_init) {
+      int width = genargs.at("width")->get<int>();
+      int depth = genargs.at("depth")->get<int>();
+      modparams["init"] = BitVectorType::make(c,width*depth);
+    }
+    return {modparams,defaultargs};
+  };
+
+
   TypeGen* memTypeGen = coreirprims->newTypeGen("memType",memGenParams,memFun);
-  auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams,{{"init",ASTRING}}); //TODO change string to actual bit vector
+  auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams); 
+  mem->setModParamsGen(memModParamFun);
   jverilog["parameters"] = {"width","init"};
   jverilog["prefix"] = "coreir_";
   mem->getMetaData()["verilog"] = jverilog;
@@ -270,7 +283,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "unary",
     widthparams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -282,7 +295,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "binary",
     widthparams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -296,7 +309,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "binaryReduce",
     widthparams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -309,7 +322,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "unaryReduce",
     widthparams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -323,7 +336,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //coreirprims->newTypeGen(
   //  "unaryExpand",
   //  widthparams,
-  //  [](Context* c, Args args) {
+  //  [](Context* c, Consts args) {
   //    uint width = args.at("width")->get<int>();
   //    return c->Record({
   //      {"in",c->BitIn()},
@@ -335,7 +348,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "ternary",
     widthparams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -374,14 +387,14 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   Params binaryCarryParams = Params(
     {
       {"width",c->Int()},
-      {"has_cout",ABOOL},
-      {"has_cin",ABOOL}
+      {"has_cout",c->Bool()},
+      {"has_cin",c->Bool()}
     }
   );
   coreirprims->newTypeGen(
     "binaryCarry",
     binaryCarryParams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       bool has_cout = args.at("has_cout")->get<bool>();
       bool has_cin  = args.at("has_cin")->get<bool>();
@@ -402,8 +415,8 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
         op, binaryCarryTypeGen, binaryCarryParams
       );
       genDecl->addDefaultGenArgs(
-        {{"has_cout", Const(false)},
-         {"has_cin", Const(false)}}
+        {{"has_cout", Const::make(c,false)},
+         {"has_cin", Const::make(c,false)}}
       );
       json binaryCarryVerilog;
       binaryCarryVerilog["parameters"] = {"width"};
@@ -453,7 +466,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   TypeGen* passthroughTG = coreirprims->newTypeGen(
     "passthrough",
     passthroughParams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       Type* t = args.at("type")->get<Type*>();
       return c->Record({
         {"in",t->getFlipped()},
@@ -474,7 +487,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "out",
     widthparams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
 
@@ -483,7 +496,17 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
       });
     }
   );
-  auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams,{{"value",c->Int()}});
+
+  auto constModParamFun = [](Context* c,Consts genargs) -> std::pair<Params,Consts> {
+    bool width = genargs.at("width")->get<int>();
+    Params modparams;
+    modparams["init"] = BitVectorType::make(c,width);
+    return {modparams,Consts()};
+  };
+
+  auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams);
+  Const->setModParamsGen(constModParamFun);
+
   jverilog["parameters"] = {"width","value"};
   jverilog["prefix"] = "coreir_";
   Const->getMetaData()["verilog"] = jverilog;
@@ -498,7 +521,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "in",
     widthparams,
-    [](Context* c, Args args) {
+    [](Context* c, Consts args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({

@@ -41,7 +41,7 @@ class Namespace {
     //Only returns named types without args
     std::map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
     NamedType* getNamedType(std::string name);
-    NamedType* getNamedType(std::string name, Values genargs);
+    NamedType* getNamedType(std::string name, Consts genargs);
     TypeGen* getTypeGen(std::string name);
     bool hasTypeGen(std::string name) {return typeGenList.count(name)>0;}
 

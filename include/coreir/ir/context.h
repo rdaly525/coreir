@@ -78,7 +78,7 @@ class Context {
     ArrayType* Array(uint n, Type* t);
     RecordType* Record(RecordParams rp=RecordParams());
     NamedType* Named(std::string nameref);
-    NamedType* Named(std::string nameref, Values args);
+    NamedType* Named(std::string nameref, Consts args);
 
 
     //Factory functions for ValueTypes

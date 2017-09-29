@@ -95,7 +95,7 @@ class Instance : public Wireable {
   bool isgen;
   bool wasgen = false;
   Generator* generatorRef = nullptr;
-  Values genargs;
+  Consts genargs;
   
   public :
     Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs=Values());
@@ -117,7 +117,7 @@ class Instance : public Wireable {
     bool wasGen() const { return wasgen;}
     Generator* getGeneratorRef() { return generatorRef;}
     Instantiable* getInstantiableRef();
-    const Values& getGenArgs() const {return genargs;}
+    Consts getGenArgs() {return genargs;}
     
     //Returns if it actually ran the generator
     //Runs the generator and changes instance label to Module
