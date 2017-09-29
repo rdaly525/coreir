@@ -542,7 +542,8 @@ namespace CoreIR {
 
   string printSimFunctionBody(const std::deque<vdisc>& topo_order,
 			      NGraph& g,
-			      Module& mod) {
+			      Module& mod,
+			      const int threadNo) {
     string str = "";
     // Declare all variables
     str += "\n// Variable declarations\n";
@@ -555,32 +556,31 @@ namespace CoreIR {
     for (auto& vd : topo_order) {
 
       WireNode wd = getNode(g, vd);
-      Wireable* inst = wd.getWire();
-      //=======
-      // str += "\n// Internal variables\n";
-      // str += printInternalVariables(topo_order, g, mod);
-      //>>>>>>> multithreading
 
-      if (isInstance(inst)) {
+      if (wd.getThreadNo() == threadNo) {
+	Wireable* inst = wd.getWire();
 
-	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
-	  str += printOp(wd, vd, g);
-	}
+	if (isInstance(inst)) {
 
-      } else {
-
-	if (inst->getType()->isInput()) {
-
-	  auto inConns = getInputConnections(vd, g);
-
-	  // If not an instance copy the input values
-	  for (auto inConn : inConns) {
-
-	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
-
-	    str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+	  if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
+	    str += printOp(wd, vd, g);
 	  }
 
+	} else {
+
+	  if (inst->getType()->isInput()) {
+
+	    auto inConns = getInputConnections(vd, g);
+
+	    // If not an instance copy the input values
+	    for (auto inConn : inConns) {
+
+	      //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
+
+	      str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+	    }
+
+	  }
 	}
       }
     }
@@ -826,7 +826,7 @@ namespace CoreIR {
     for (auto& i : tg.getVerts()) {
       code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
 
-      code += printSimFunctionBody(topoOrder, g, *mod);
+      code += printSimFunctionBody(topoOrder, g, *mod, i);
 
       code += "}\n\n";
 

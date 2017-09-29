@@ -40,8 +40,8 @@ namespace CoreIR {
 
 	s.pop_back();
 
-	for (auto ed : g.inEdges(vd)) {
-	  vdisc input = g.source(ed);
+	for (auto ed : g.outEdges(vd)) {
+	  vdisc input = g.target(ed);
 	  s.push_back(input);
 	}
       
@@ -565,6 +565,11 @@ namespace CoreIR {
       SECTION("Printing multithreaded code") {
 	colorConnectedComponents(g);
 	deque<vdisc> topoOrder = topologicalSort(g);
+
+	for (auto& vd : topoOrder) {
+	  WireNode wd = g.getNode(vd);
+	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+	}
 
 	int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs_parallel");
 	REQUIRE(s == 0);
