@@ -107,7 +107,7 @@ class Module : public Instantiable {
   std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,std::string name, Type* type,Params modparams) : Instantiable(IK_Module,ns,name), type(type), modparams(modparams) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams=Params()) : Instantiable(IK_Module,ns,name), type(type), modparams(modparams) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }

@@ -26,7 +26,7 @@ bool operator==(const Values& l, const Values& r) {
 
 template<typename T>
 ConstPtr Const_impl2(ValueType* type,T val) {
-  return Underlying2ValueType<T>::make(type,val);
+  return Underlying2ValueType<T>::type::make(type,val);
 }
 
 template<>
@@ -54,7 +54,19 @@ ConstPtr Const_impl<Type*>(Context* c,Type* val) {
   return Const_impl2<Type*>(c->CoreIRType(),val);   
 }
 
+#define TSTAMP(utype) \
+//template<> \
+//TemplatedConst<utype>::TemplatedConst(ValueType* type, utype value) : Const(type,Underlying2Kind<utype>::kind), value(value) {} \
+//template<> \
+//bool TemplatedConst<utype>::classof(const Value* v) {return v->getKind()==Underlying2Kind<utype>::kind;}
 
+TSTAMP(bool)
+TSTAMP(int)
+TSTAMP(BitVector)
+TSTAMP(std::string)
+TSTAMP(Type*)
+
+#undef TSTAMP
 
 
 

@@ -135,7 +135,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
   Type* wtype = w->getType();
   
   //Add actual passthrough instance
-  Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",Const(wtype)}});
+  Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",Const::make(c,wtype)}});
   
   unordered_set<Wireable*> completed;
   PTTraverse(def,w,pt->sel("out"),completed);

@@ -64,9 +64,9 @@ RecordType* TypeCache::getRecord(RecordParams params) {
   }
 }
 
-BitVectorType* getBitVector(int width) {
-  if (BitVectorCache.count(width)) return BitVectorCache[width];
-  BitVectorType* bv = new BitVectorType(width);
+BitVectorType* TypeCache::getBitVector(int width) {
+  if (bitVectorCache.count(width)) return bitVectorCache[width];
+  BitVectorType* bv = new BitVectorType(c,width);
   bitVectorCache.emplace(width,bv);
   return bv;
 }

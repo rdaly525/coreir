@@ -9,7 +9,7 @@ string RefName::getRefName() const {
 }
 
 Context* RefName::getContext() {
-  return c;
+  return ns->getContext();
 }
 
 }

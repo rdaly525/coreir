@@ -2,6 +2,7 @@
 #define COREIR_TYPEGEN_HPP_
 
 #include "fwd_declare.h"
+#include "refname.h"
 
 namespace CoreIR {
 

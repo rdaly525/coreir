@@ -3,11 +3,29 @@
 
 #include "fwd_declare.h"
 #include "casting/casting.h"
+#include "dynamic_bit_vector.h"
 
 //TODO this is a hack. MOve template definitions to cpp
 #include "valuetype.h"
 
 namespace CoreIR {
+
+template<class valTy>
+struct Underlying2ValueType;
+
+#define U2V_SPECIALIZE(utype,vtype) \
+template<> \
+struct Underlying2ValueType<utype> { \
+  typedef vtype type; \
+};
+
+U2V_SPECIALIZE(bool,ConstBool);
+U2V_SPECIALIZE(int,ConstInt);
+U2V_SPECIALIZE(BitVector,ConstBitVector);
+U2V_SPECIALIZE(std::string,ConstString);
+U2V_SPECIALIZE(CoreIR::Type*,ConstCoreIRType);
+
+#undef U2V_SPECIALIZE
 
 class Value {
   public:
@@ -33,6 +51,26 @@ class Value {
   friend bool operator==(const Values& l, const Values& r);
 };
 
+//Create a map from underlying types (bool,int,etc) to Value::ValueKind
+template<class valTy>
+struct Underlying2Kind;
+
+#define U2K_SPECIALIZE(utype,vkind) \
+template<> \
+struct Underlying2Kind<utype> { \
+  static const Value::ValueKind kind = Value::vkind; \
+};
+
+U2K_SPECIALIZE(bool,VK_ConstBool)
+U2K_SPECIALIZE(int,VK_ConstInt)
+U2K_SPECIALIZE(BitVector,VK_ConstBitVector)
+U2K_SPECIALIZE(std::string,VK_ConstString)
+U2K_SPECIALIZE(Type*,VK_ConstCoreIRType)
+
+#undef U2K_SPECIALIZE
+}
+
+namespace CoreIR {
 class Arg : public Value {
   std::string field;
   public :
@@ -125,13 +163,14 @@ class Const : public Value {
 
 };
 
+
 //T should be bool,BitVector,int,string,Type
 template<typename T>
 class TemplatedConst : public Const {
   T value;
   public :
     //typedef T type;
-    TemplatedConst(ValueType* type, T value) : Const(Underlying2Kind<T>::kind), value(value) {}
+    TemplatedConst(ValueType* type, T value) : Const(type,Underlying2Kind<T>::kind), value(value) {}
     static bool classof(const Value* v) {return v->getKind()==Underlying2Kind<T>::kind;}
     static std::shared_ptr<TemplatedConst<T>> make(ValueType* type, T value) {
       return std::make_shared<TemplatedConst<T>>(type,value);

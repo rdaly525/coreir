@@ -30,6 +30,7 @@ namespace CoreIR {
 class Context;
 struct Error;
 class Namespace;
+class RefName;
 
 class DirectedConnection;
 class DirectedInstance;

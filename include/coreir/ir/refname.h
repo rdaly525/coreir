@@ -1,6 +1,8 @@
 #ifndef COREIR_REFNAME_HPP_
 #define COREIR_REFNAME_HPP_
 
+#include "fwd_declare.h"
+
 namespace CoreIR {
 //Class is used as a generic class for holding namespace+name combo
 class RefName {

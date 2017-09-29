@@ -7,6 +7,8 @@
 #include "coreir/ir/typegen.h"
 #include "coreir/ir/generatordef.h"
 #include "coreir/ir/directedview.h"
+#include "coreir/ir/valuetype.h"
+#include "coreir/ir/value.h"
 
 using namespace std;
 
@@ -31,7 +33,7 @@ Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparam
     auto const &gen_param = genparams.find(type_param.first);
     ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
     ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
-    ASSERT(gen_param->second == type_param.second,"Param type mismatch for: " + gen_param->first + " (" + Param2Str(gen_param->second)+ " vs " + Param2Str(type_param.second)+")");
+    ASSERT(gen_param->second == type_param.second,"Param type mismatch for: " + gen_param->first + " (" + gen_param->second->toString()+ " vs " + type_param.second->toString()+")");
   }
 }
 
@@ -54,20 +56,20 @@ Module* Generator::getModule(Consts genargs) {
     return genCache[genargs];
   }
   
-  checkArgsAreParams(genargs,genparams);
-  Type* type = typegen->getType(args);
+  checkValuesAreParams(castMap<Value>(genargs),genparams);
+  Type* type = typegen->getType(genargs);
   string modname;
   if (nameGen) {
     modname = nameGen(genargs);
   }
   else {
-    modname = this->name + getContext()->getUnique()
+    modname = this->name + getContext()->getUnique(); //TODO
   }
   Module* m;
   if (modParamsGen) {
-    std::pair<Params,Consts> pc = modParamsGen(c,genargs);
+    std::pair<Params,Consts> pc = modParamsGen(getContext(),genargs);
     m = new Module(ns,modname,type,pc.first);
-    m.setDefaultModArgs(pc.second);
+    m->addDefaultModArgs(pc.second);
   }
   else {
      m = new Module(ns,modname,type);
@@ -131,7 +133,7 @@ ModuleDef* Module::newModuleDef() {
   return md;
 }
 
-void Module::addDefaultModuleArgs(Consts defaultModArgs) {
+void Module::addDefaultModArgs(Consts defaultModArgs) {
   //Check to make sure each arg is in the mod params
   for (auto argmap : defaultModArgs) {
     ASSERT(modparams.count(argmap.first),"Cannot set default module arg. Param " + argmap.first + " Does not exist!")

@@ -3,6 +3,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/typegen.h"
 #include "coreir/ir/error.h"
+#include "coreir/ir/value.h"
 #include <iterator>
 
 
@@ -26,7 +27,7 @@ void ModuleDef::print(void) {
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
     if (inst.second->isGen()) {
-      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(inst.second->getGenArgs()) << endl;
+      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(castMap<Value>(inst.second->getGenArgs())) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
@@ -169,7 +170,7 @@ Instance* ModuleDef::addInstance(string instname,string iref,Values genOrModargs
   vector<string> split = splitRef(iref);
   Instantiable* ref = this->getContext()->getInstantiable(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
-    return this->addInstance(instname,g,castMap<Value>(genOrModargs),modargs);
+    return this->addInstance(instname,g,castMap<Const>(genOrModargs),modargs);
   }
   else {
     auto m = cast<Module>(ref);

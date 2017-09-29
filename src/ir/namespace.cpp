@@ -34,8 +34,8 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   namedTypeNameMap[name] = nameFlip;
 
   //Create two new NamedTypes
-  NamedType* named = new NamedType(c,this,name,raw);
-  NamedType* namedFlip = new NamedType(c,this,nameFlip,raw->getFlipped());
+  NamedType* named = new NamedType(this,name,raw);
+  NamedType* namedFlip = new NamedType(this,nameFlip,raw->getFlipped());
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeList[name] = named;
@@ -78,7 +78,7 @@ NamedType* Namespace::getNamedType(string name) {
 //Check if cached in namedTypeGenCache
 //Make sure the name is found in the typeGenCache. Error otherwise
 //Then create a new entry in NamedCache if it does not exist
-NamedType* Namespace::getNamedType(string name, Values genargs) {
+NamedType* Namespace::getNamedType(string name, Consts genargs) {
   ASSERT(typeGenList.count(name),this->name + "." + name + " was never defined");
   assert(typeGenNameMap.count(name));
 
@@ -94,8 +94,8 @@ NamedType* Namespace::getNamedType(string name, Values genargs) {
   TypeGen* tgenFlip = typeGenList.at(nameFlip);
 
   //Create two new named entries
-  NamedType* named = new NamedType(c,this,name,tgen,genargs);
-  NamedType* namedFlip = new NamedType(c,this,nameFlip,tgenFlip,genargs);
+  NamedType* named = new NamedType(this,name,tgen,genargs);
+  NamedType* namedFlip = new NamedType(this,nameFlip,tgenFlip,genargs);
   named->setFlipped(namedFlip);
   namedFlip->setFlipped(named);
   namedTypeGenCache[name][genargs] = named;
@@ -128,12 +128,12 @@ TypeGen* Namespace::getTypeGen(string name) {
 
 
 
-Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genparams, Params configparams) {
+Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genparams) {
   //Make sure module does not already exist as a module or generator
   ASSERT(moduleList.count(name)==0,"Already added " + name);
   ASSERT(generatorList.count(name)==0,"Already added " + name);
   
-  Generator* g = new Generator(this,name,typegen,genparams,configparams);
+  Generator* g = new Generator(this,name,typegen,genparams);
   generatorList.emplace(name,g);
   return g;
 }
