@@ -346,6 +346,56 @@ namespace CoreIR {
     
   }
 
+  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    assert(wd.isSequential);
+
+    auto outSel = getOutputSelects(wd.getWire());
+    
+    assert(outSel.size() == 1);
+    Select* s = toSelect((*(begin(outSel))).second);
+    
+    assert(isInstance(s->getParent()));
+
+    Instance* r = toInstance(s->getParent());
+
+    auto ins = getInputConnections(vd, g);
+    
+    if (!wd.isReceiver) {
+      assert(ins.size() == 1);
+
+      InstanceValue raddr = findArg("raddr", ins);
+      return ln(cVar(*s) + " = " +
+		parens(cVar("(state->", *r, ")") +
+		       "[ " + printOpResultStr(raddr, g) + " ]"));
+    } else {
+      assert(ins.size() == 4);
+
+      InstanceValue waddr = findArg("waddr", ins);
+      InstanceValue wdata = findArg("wdata", ins);
+      InstanceValue clk = findArg("clk", ins);
+      InstanceValue wen = findArg("wen", ins);
+
+      string condition =
+	parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
+
+      condition += " && " + printOpResultStr(wen, g);
+
+      string oldValueName = cVar("(state->", *r, ")") + "[ " + printOpResultStr(waddr, g) + " ]";
+
+      string s = oldValueName + " = ";
+      s += ite(parens(condition),
+	       printOpResultStr(wdata, g),
+	       oldValueName);
+
+      return ln(s);
+      
+      // return ln(cVar("(state->", *r, ")") +
+		
+      // 		printOpResultStr(wdata, g));
+    
+    }
+  }
+
   string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 
@@ -355,6 +405,10 @@ namespace CoreIR {
     
     if (isRegisterInstance(inst)) {
       return printRegister(wd, vd, g);
+    }
+
+    if (isMemoryInstance(inst)) {
+      return printMemory(wd, vd, g);
     }
 
     auto outSelects = getOutputSelects(inst);
@@ -367,392 +421,394 @@ namespace CoreIR {
     return ln(res + " = " + opResultStr(wd, vd, g));
   }
 
-  bool isCombinationalInstance(const WireNode& wd) {
-    assert(isInstance(wd.getWire()));
+    bool isCombinationalInstance(const WireNode& wd) {
+      assert(isInstance(wd.getWire()));
 
-    if (isRegisterInstance(wd.getWire())) {
-      return false;
+      if (isRegisterInstance(wd.getWire())) {
+	return false;
+      }
+
+      if (isMemoryInstance(wd.getWire())) {
+	cout << "Found memory instance" << endl;
+	return false;
+      }
+
+      return true;
     }
 
-    return true;
-  }
+    string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
+      assert(isSelect(wd.getWire()));
 
-  string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
-    assert(isSelect(wd.getWire()));
+      Wireable* src = extractSource(toSelect(wd.getWire()));
 
-    if (isRegisterInstance(extractSource(toSelect(wd.getWire())))) {
+      if (isRegisterInstance(src) || isMemoryInstance(src)) {
+	return cVar(wd);
+      }
+
+      Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
+
+      // Is this the correct way to check if the value is an input?
+      if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
+	return cVar("(state->", wd, ")");
+      }
+
+      assert(g.containsOpNode(sourceInstance));
+
+      vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
+
+      // TODO: Should really check whether or not there is one connection using
+      // the given variable, this is slightly too conservative
+      if (g.getOutputConnections(opNodeD).size() == 1) {
+	return opResultStr(combNode(sourceInstance), opNodeD, g);
+      }
+
       return cVar(wd);
     }
 
-    Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
-
-    // Is this the correct way to check if the value is an input?
-    if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
-      return cVar("(state->", wd, ")");
-    }
-
-    assert(g.containsOpNode(sourceInstance));
-
-    vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
-
-    // TODO: Should really check whether or not there is one connection using
-    // the given variable, this is slightly too conservative
-    if (g.getOutputConnections(opNodeD).size() == 1) {
-      return opResultStr(combNode(sourceInstance), opNodeD, g);
-    }
-
-    return cVar(wd);
-  }
-
-  bool fromSelfInterface(Select* w) {
-    if (!fromSelf(w)) {
-      return false;
-    }
-
-    Wireable* parent = w->getParent();
-    if (isInterface(parent)) {
-      return true;
-    } else if (isInstance(parent)) {
-      return false;
-    }
-
-    assert(isSelect(parent));
-
-    return fromSelf(toSelect(parent));
-  }
-
-  bool arrayAccess(Select* in) {
-    return isNumber(in->getSelStr());
-  }
-
-  std::unordered_map<string, Type*>
-  outputs(Module& mod) {
-    Type* tp = mod.getType();
-
-    assert(tp->getKind() == Type::TK_Record);
-
-    unordered_map<string, Type*> outs;
-
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<string> declStrs;
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
-
-      if (tp->isOutput()) {
-	outs.insert(name_type_pair);
+    bool fromSelfInterface(Select* w) {
+      if (!fromSelf(w)) {
+	return false;
       }
+
+      Wireable* parent = w->getParent();
+      if (isInterface(parent)) {
+	return true;
+      } else if (isInstance(parent)) {
+	return false;
+      }
+
+      assert(isSelect(parent));
+
+      return fromSelf(toSelect(parent));
     }
 
-    return outs;
+    bool arrayAccess(Select* in) {
+      return isNumber(in->getSelStr());
+    }
+
+    std::unordered_map<string, Type*>
+      outputs(Module& mod) {
+      Type* tp = mod.getType();
+
+      assert(tp->getKind() == Type::TK_Record);
+
+      unordered_map<string, Type*> outs;
+
+      RecordType* modRec = static_cast<RecordType*>(tp);
+      vector<string> declStrs;
+      for (auto& name_type_pair : modRec->getRecord()) {
+	Type* tp = name_type_pair.second;
+
+	if (tp->isOutput()) {
+	  outs.insert(name_type_pair);
+	}
+      }
+
+      return outs;
     
-  }
+    }
 
-  string printInternalVariables(const std::deque<vdisc>& topo_order,
-				NGraph& g,
-				Module& mod) {
-    string str = "";
-    for (auto& vd : topo_order) {
-      WireNode wd = getNode( g, vd);
-      Wireable* w = wd.getWire();
+    string printInternalVariables(const std::deque<vdisc>& topo_order,
+				  NGraph& g,
+				  Module& mod) {
+      string str = "";
+      for (auto& vd : topo_order) {
+	WireNode wd = getNode( g, vd);
+	Wireable* w = wd.getWire();
 
-      for (auto inSel : getOutputSelects(w)) {
-	Select* in = toSelect(inSel.second);
+	for (auto inSel : getOutputSelects(w)) {
+	  Select* in = toSelect(inSel.second);
 
-	if (!fromSelfInterface(in)) {
-	  if (!arrayAccess(in)) {
+	  if (!fromSelfInterface(in)) {
+	    if (!arrayAccess(in)) {
 
-	    if (!wd.isSequential) {
+	      if (!wd.isSequential) {
 
-	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
-
-
-	    } else {
-	      if (wd.isReceiver) {
-	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
 		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
-	      } else {
-	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
 
+	      } else {
+		if (wd.isReceiver) {
+		  //str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
+		  str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
+
+		} else {
+		  //str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
+
+		}
 	      }
 	    }
 	  }
 	}
       }
+
+      return str;
     }
 
-    return str;
-  }
+    string printSimFunctionBody(const std::deque<vdisc>& topo_order,
+				NGraph& g,
+				Module& mod) {
+      string str = "";
+      // Declare all variables
+      str += "\n// Variable declarations\n";
 
-  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
-			      NGraph& g,
-			      Module& mod) {
-    string str = "";
-    // Declare all variables
-    str += "\n// Variable declarations\n";
+      str += "\n// Internal variables\n";
+      str += printInternalVariables(topo_order, g, mod);
 
-    // str += "\n// Outputs\n";
+      // Print out operations in topological order
+      str += "\n// Simulation code\n";
+      for (auto& vd : topo_order) {
 
-    // for (auto& name_type_pair : outputs(mod)) {
-    //   Type* tp = name_type_pair.second;
-    //   str += cArrayTypeDecl(*tp, "self_" + name_type_pair.first) + ";\n";
-    // }
-  
-    str += "\n// Internal variables\n";
-    str += printInternalVariables(topo_order, g, mod);
+	WireNode wd = getNode(g, vd);
+	Wireable* inst = wd.getWire();
 
-    // Print out operations in topological order
-    str += "\n// Simulation code\n";
-    for (auto& vd : topo_order) {
+	if (isInstance(inst)) {
 
-      WireNode wd = getNode(g, vd);
-      Wireable* inst = wd.getWire();
-
-      if (isInstance(inst)) {
-
-	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
-	  str += printOp(wd, vd, g);
-	}
-
-      } else {
-
-	if (inst->getType()->isInput()) {
-
-	  auto inConns = getInputConnections(vd, g);
-
-	  // If not an instance copy the input values
-	  for (auto inConn : inConns) {
-
-	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
-
-	    str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+	  if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
+	    str += printOp(wd, vd, g);
 	  }
 
-	}
-      }
-    }
-
-    return str;
-  }
-
-  bool underlyingTypeIsClkIn(Type& tp) {
-    if (isClkIn(tp)) {
-      return true;
-    }
-
-    if (isArray(tp)) {
-      ArrayType& tarr = toArray(tp);
-      return underlyingTypeIsClkIn(*(tarr.getElemType()));
-    }
-
-    return false;
-
-  }
-
-  std::vector<std::pair<CoreIR::Type*, std::string> >
-  simRegisterInputs(Module& mod) {
-
-    Type* tp = mod.getType();
-
-    assert(tp->getKind() == Type::TK_Record);
-
-    //RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<pair<Type*, string>> declStrs;
-    
-    // Add register inputs
-    for (auto& inst : mod.getDef()->getInstances()) {
-      if (isRegisterInstance(inst.second)) {
-	Instance* is = inst.second;
-
-	Select* in = is->sel("in");
-	Type* itp = in->getType();
-
-	string regName = is->getInstname();
-
-	// declStrs.push_back({itp, regName + "_old_value"});
-	// declStrs.push_back({itp, regName + "_new_value"});
-
-	declStrs.push_back({itp, cVar(*is)});
-	
-      }
-    }
-
-    return declStrs;
-    
-  }
-  
-  std::vector<std::pair<CoreIR::Type*, std::string> >
-  simInputs(Module& mod) {
-
-    Type* tp = mod.getType();
-
-    assert(tp->getKind() == Type::TK_Record);
-
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<pair<Type*, string>> declStrs;
-
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
-
-      if (tp->isInput()) {
-	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
 	} else {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
 
+	  if (inst->getType()->isInput()) {
+
+	    auto inConns = getInputConnections(vd, g);
+
+	    // If not an instance copy the input values
+	    for (auto inConn : inConns) {
+
+	      //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
+
+	      str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+	    }
+
+	  }
 	}
       }
+
+      return str;
     }
 
-    // Add register inputs
-    concat(declStrs, simRegisterInputs(mod));
+    bool underlyingTypeIsClkIn(Type& tp) {
+      if (isClkIn(tp)) {
+	return true;
+      }
 
-    return declStrs;
+      if (isArray(tp)) {
+	ArrayType& tarr = toArray(tp);
+	return underlyingTypeIsClkIn(*(tarr.getElemType()));
+      }
 
-  }
-  
-  std::vector<std::pair<CoreIR::Type*, std::string> >
-  sortedSimArgumentPairs(Module& mod) {
+      return false;
 
-    Type* tp = mod.getType();
+    }
 
-    assert(tp->getKind() == Type::TK_Record);
+    std::vector<std::pair<CoreIR::Type*, std::string> >
+      simMemoryInputs(Module& mod) {
+      vector<pair<Type*, string>> declStrs;
+    
+      // Add register inputs
+      for (auto& inst : mod.getDef()->getInstances()) {
+	if (isMemoryInstance(inst.second)) {
+	  cout << "Adding memory instance" << endl;
+	  Instance* is = inst.second;
 
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<pair<Type*, string>> declStrs;
+	  Context* c = mod.getDef()->getContext();
 
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
+	  uint width = 16;
+	  uint depth = 2;
+	  Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
+	  declStrs.push_back({elemType, is->toString()});
 
-      if (tp->isInput()) {
-	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	} else {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
+	  // Select* in = is->sel("in");
+	  // Type* itp = in->getType();
 
-	}
-      } else {
-	assert(tp->isOutput());
+	  //string regName = is->getInstname();
 
-	declStrs.push_back({tp, "self_" + name_type_pair.first});
+	  // declStrs.push_back({itp, regName + "_old_value"});
+	  // declStrs.push_back({itp, regName + "_new_value"});
+
+
 	
-	//declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
+	}
       }
+
+      return declStrs;
+    }  
+
+    std::vector<std::pair<CoreIR::Type*, std::string> >
+      simRegisterInputs(Module& mod) {
+
+      // Type* tp = mod.getType();
+
+      // assert(tp->getKind() == Type::TK_Record);
+
+      //RecordType* modRec = static_cast<RecordType*>(tp);
+      vector<pair<Type*, string>> declStrs;
+    
+      // Add register inputs
+      for (auto& inst : mod.getDef()->getInstances()) {
+	if (isRegisterInstance(inst.second)) {
+	  Instance* is = inst.second;
+
+	  Select* in = is->sel("in");
+	  Type* itp = in->getType();
+
+	  string regName = is->getInstname();
+
+	  declStrs.push_back({itp, cVar(*is)});
+	
+	}
+      }
+
+      return declStrs;
+    
+    }
+  
+    std::vector<std::pair<CoreIR::Type*, std::string> >
+      sortedSimArgumentPairs(Module& mod) {
+
+      Type* tp = mod.getType();
+
+      assert(tp->getKind() == Type::TK_Record);
+
+      RecordType* modRec = static_cast<RecordType*>(tp);
+      vector<pair<Type*, string>> declStrs;
+
+      for (auto& name_type_pair : modRec->getRecord()) {
+	Type* tp = name_type_pair.second;
+
+	if (tp->isInput()) {
+	  if (!underlyingTypeIsClkIn(*tp)) {
+	    declStrs.push_back({tp, "self_" + name_type_pair.first});
+	  } else {
+	    declStrs.push_back({tp, "self_" + name_type_pair.first});
+	    declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
+
+	  }
+	} else {
+	  assert(tp->isOutput());
+
+	  declStrs.push_back({tp, "self_" + name_type_pair.first});
+	
+	  //declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
+	}
+      }
+
+      // Add register inputs
+      concat(declStrs, simRegisterInputs(mod));
+      // Add memory inputs
+      concat(declStrs, simMemoryInputs(mod));
+    
+
+      return declStrs;
+    
     }
 
-    // Add register inputs
-    concat(declStrs, simRegisterInputs(mod));
+    std::vector<string> sortedSimArgumentList(Module& mod) {
 
-    return declStrs;
-    
-  }
+      auto decls = sortedSimArgumentPairs(mod);
 
-  std::vector<string> sortedSimArgumentList(Module& mod) {
+      sort_lt(decls, [](const pair<Type*, string>& tpp) {
+	  return tpp.second;
+	});
 
-    auto decls = sortedSimArgumentPairs(mod);
+      vector<string> declStrs;
+      for (auto declPair :  decls) {
+	declStrs.push_back(cArrayTypeDecl(*(declPair.first), declPair.second));
+      }
 
-    sort_lt(decls, [](const pair<Type*, string>& tpp) {
-	return tpp.second;
-      });
-
-    vector<string> declStrs;
-    for (auto declPair :  decls) {
-      declStrs.push_back(cArrayTypeDecl(*(declPair.first), declPair.second));
+      return declStrs;
     }
 
-    return declStrs;
-  }
+    string printSimArguments(Module& mod) {
 
-  string printSimArguments(Module& mod) {
+      auto declStrs = sortedSimArgumentList(mod);
+      // Print out declstrings
+      string res = commaSepList(declStrs);
 
-    auto declStrs = sortedSimArgumentList(mod);
-    // Print out declstrings
-    string res = commaSepList(declStrs);
-
-    return res;
-  }
-
-  string maskMacroDef() {
-    string expr = "(expr)";
-    string width = "(width)";
-
-    
-    return "#define MASK(width, expr) " + parens( bitMaskString(width) +  " & " + parens(expr)) + "\n\n";
-  }
-
-  string seMacroDef() {
-    string arg = "(x)";
-    string startWidth = "(start)";
-    string extWidth = "(end)";
-
-    string def = "#define SIGN_EXTEND(start, end, x) ";
-    string mask = parens(arg + " & " + bitMaskString(startWidth));
-
-    string testClause = parens(arg + " & " + parens("1ULL << " +
-						    parens(startWidth + " - 1")));
-
-    string res = parens(mask + " | " +
-			ite(testClause, lastMask(startWidth, extWidth), "0"));
-    
-    def += res + "\n\n";
-
-    return def;
-
-  }
-
-  std::string printEvalStruct(CoreIR::Module* mod) {
-    string res = "struct circuit_state {\n";
-
-    auto declStrs = sortedSimArgumentList(*mod);
-    for (auto& dstr : declStrs) {
-      res += "\t" + dstr + ";\n";
+      return res;
     }
+
+    string maskMacroDef() {
+      string expr = "(expr)";
+      string width = "(width)";
+
     
-    res += "};\n\n";
+      return "#define MASK(width, expr) " + parens( bitMaskString(width) +  " & " + parens(expr)) + "\n\n";
+    }
 
-    return res;
-  }  
+    string seMacroDef() {
+      string arg = "(x)";
+      string startWidth = "(start)";
+      string extWidth = "(end)";
 
-  // Note: Dont actually need baseName here
-  string printDecl(CoreIR::Module* mod,
-		   const std::string& baseName) {
-    string code = "";
-    code += "#include <stdint.h>\n";
-    code += "#include <cstdio>\n\n";
-    code += "#include \"bit_vector.h\"\n\n";
+      string def = "#define SIGN_EXTEND(start, end, x) ";
+      string mask = parens(arg + " & " + bitMaskString(startWidth));
 
-    code += "using namespace bsim;\n\n";
+      string testClause = parens(arg + " & " + parens("1ULL << " +
+						      parens(startWidth + " - 1")));
 
-    code += printEvalStruct(mod);
-    code += "void simulate( circuit_state* state );\n";
-
-    return code;
-  }
-
-  string printCode(const std::deque<vdisc>& topoOrder,
-		   NGraph& g,
-		   CoreIR::Module* mod,
-		   const std::string& baseName) {
-
-    string code = "";
-
-    code += "#include \"" + baseName + "\"\n";
-
-    code += "using namespace bsim;\n\n";    
-
-    code += seMacroDef();
-    code += maskMacroDef();
+      string res = parens(mask + " | " +
+			  ite(testClause, lastMask(startWidth, extWidth), "0"));
     
-    code += "void simulate( circuit_state* state ) {\n";
+      def += res + "\n\n";
 
-    code += printSimFunctionBody(topoOrder, g, *mod);
+      return def;
 
-    code += "}\n";
+    }
 
-    return code;
+    std::string printEvalStruct(CoreIR::Module* mod) {
+      string res = "struct circuit_state {\n";
+
+      auto declStrs = sortedSimArgumentList(*mod);
+      for (auto& dstr : declStrs) {
+	res += "\t" + dstr + ";\n";
+      }
+    
+      res += "};\n\n";
+
+      return res;
+    }  
+
+    // Note: Dont actually need baseName here
+    string printDecl(CoreIR::Module* mod,
+		     const std::string& baseName) {
+      string code = "";
+      code += "#include <stdint.h>\n";
+      code += "#include <cstdio>\n\n";
+      code += "#include \"bit_vector.h\"\n\n";
+
+      code += "using namespace bsim;\n\n";
+
+      code += printEvalStruct(mod);
+      code += "void simulate( circuit_state* state );\n";
+
+      return code;
+    }
+
+    string printCode(const std::deque<vdisc>& topoOrder,
+		     NGraph& g,
+		     CoreIR::Module* mod,
+		     const std::string& baseName) {
+
+      string code = "";
+
+      code += "#include \"" + baseName + "\"\n";
+
+      code += "using namespace bsim;\n\n";    
+
+      code += seMacroDef();
+      code += maskMacroDef();
+    
+      code += "void simulate( circuit_state* state ) {\n";
+
+      code += printSimFunctionBody(topoOrder, g, *mod);
+
+      code += "}\n";
+
+      return code;
+    }
+
+
   }
-
-
-}

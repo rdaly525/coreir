@@ -48,7 +48,7 @@ namespace CoreIR {
   }
 
   std::string randomSimInputString(Module* mod) {
-    auto args = simInputs(*mod);
+    auto args = sortedSimArgumentPairs(*mod);
 
     string res = "";
     for (auto& arg : args) {
@@ -61,7 +61,7 @@ namespace CoreIR {
   std::string declareInputs(Module& mod) {
     string res;
 
-    auto args = simInputs(mod);
+    auto args = sortedSimArgumentPairs(mod); //simInputs(mod);
 
     for (auto& arg : args) {
       res += ln(cArrayTypeDecl(*(arg.first), arg.second));
