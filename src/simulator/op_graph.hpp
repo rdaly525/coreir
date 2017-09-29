@@ -43,7 +43,6 @@ namespace CoreIR {
 
 
   public:
-    
     WireNode getNode(const vdisc vd) const {
       auto vit = vertNames.find(vd);
 
@@ -69,6 +68,13 @@ namespace CoreIR {
       assert(eit != std::end(edgeVals));
 
       return (*eit).second.first;
+    }
+
+    void addVertLabel(const vdisc vd, const WireNode& wd) {
+      vertNames.erase(vd);
+
+      vertNames.insert({vd, wd});
+
     }
 
     void addEdgeLabel(const edisc ed, const Conn& conn) {
@@ -111,6 +117,18 @@ namespace CoreIR {
       return v;
     }
 
+    void addVertex(const vdisc v) {
+      assert(!elem(v, verts));
+
+      verts.push_back(v);
+    }
+
+    vdisc addVertex() {
+      vdisc v = nextVertexDisc();
+      verts.push_back(v);
+      return v;
+    }
+    
     std::vector<edisc> outEdges(const vdisc vd) const {
       std::vector<edisc> eds;
       for (auto& e : edges) {

@@ -9,6 +9,9 @@ namespace CoreIR {
   class WireNode {
   protected:
     bool highBitsDirty;
+    int threadNumber;
+
+  public:
     CoreIR::Wireable* wire;
 
   public:
@@ -16,10 +19,11 @@ namespace CoreIR {
     bool isReceiver;
 
     WireNode() :
-      highBitsDirty(true), wire(nullptr), isSequential(false), isReceiver(false) {}
+      highBitsDirty(true), threadNumber(0), wire(nullptr), isSequential(false), isReceiver(false) {}
 
     WireNode(const WireNode& other) :
       highBitsDirty(other.highBitsDirty),
+      threadNumber(other.threadNumber),
       wire(other.wire),
       isSequential(other.isSequential),
       isReceiver(other.isReceiver) {}
@@ -28,9 +32,16 @@ namespace CoreIR {
 	     const bool isSequential_,
 	     const bool isReceiver_) :
       highBitsDirty(true),
+      threadNumber(0),
       wire(wire_),
       isSequential(isSequential_),
       isReceiver(isReceiver_) {}
+
+    int getThreadNo() const { return threadNumber; }
+
+    void setThreadNo(const int i) {
+      threadNumber = i;
+    }
 
     bool isOpNode() const {
       if (!isSelect(getWire())) {
@@ -59,6 +70,7 @@ namespace CoreIR {
       wire = other.wire;
       isSequential = other.isSequential;
       isReceiver = other.isReceiver;
+      threadNumber = other.threadNumber;
 
       return *this;
     }

@@ -516,12 +516,17 @@ namespace CoreIR {
 	WireNode wd = getNode( g, vd);
 	Wireable* w = wd.getWire();
 
+	//<<<<<<< HEAD
 	for (auto inSel : getOutputSelects(w)) {
 	  Select* in = toSelect(inSel.second);
+	  //=======
+	  //if (!wd.isSequential || wd.isReceiver) {
+	      //>>>>>>> multithreading
 
 	  if (!fromSelfInterface(in)) {
 	    if (!arrayAccess(in)) {
 
+	      //<<<<<<< HEAD
 	      if (!wd.isSequential) {
 
 		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
@@ -537,6 +542,8 @@ namespace CoreIR {
 
 		}
 	      }
+// =======
+// >>>>>>> multithreading
 	    }
 	  }
 	}
@@ -555,12 +562,17 @@ namespace CoreIR {
       str += "\n// Internal variables\n";
       str += printInternalVariables(topo_order, g, mod);
 
+      //<<<<<<< HEAD
       // Print out operations in topological order
       str += "\n// Simulation code\n";
       for (auto& vd : topo_order) {
 
 	WireNode wd = getNode(g, vd);
 	Wireable* inst = wd.getWire();
+	//=======
+    // str += "\n// Internal variables\n";
+    // str += printInternalVariables(topo_order, g, mod);
+    //>>>>>>> multithreading
 
 	if (isInstance(inst)) {
 
@@ -787,28 +799,104 @@ namespace CoreIR {
       return code;
     }
 
-    string printCode(const std::deque<vdisc>& topoOrder,
-		     NGraph& g,
-		     CoreIR::Module* mod,
-		     const std::string& baseName) {
+// <<<<<<< HEAD
+//     string printCode(const std::deque<vdisc>& topoOrder,
+// 		     NGraph& g,
+// 		     CoreIR::Module* mod,
+// 		     const std::string& baseName) {
+// =======
+    typedef NGraph ThreadGraph;
+
+    int numThreads(const ThreadGraph& g) {
+    return g.numVertices();
+  }
+
+  ThreadGraph buildThreadGraph(const NGraph& opG) {
+    ThreadGraph tg;
+
+    for (auto& v : opG.getVerts()) {
+      int threadNo = opG.getNode(v).getThreadNo();
+      cout << "ThreadNo = " << threadNo << endl;
+      if (!elem(threadNo, tg.getVerts())) {
+	tg.addVertex( threadNo );
+
+	cout << "Added " << threadNo << endl;
+      }
+    }
+
+    return tg;
+  }
+
+  string printCode(const std::deque<vdisc>& topoOrder,
+		   NGraph& g,
+		   CoreIR::Module* mod,
+		   const std::string& baseName) {
+    //>>>>>>> multithreading
 
       string code = "";
 
-      code += "#include \"" + baseName + "\"\n";
+// <<<<<<< HEAD
+//       code += "#include \"" + baseName + "\"\n";
 
-      code += "using namespace bsim;\n\n";    
+//       code += "using namespace bsim;\n\n";    
 
-      code += seMacroDef();
-      code += maskMacroDef();
+//       code += seMacroDef();
+//       code += maskMacroDef();
     
-      code += "void simulate( circuit_state* state ) {\n";
+//       code += "void simulate( circuit_state* state ) {\n";
+
+//       code += printSimFunctionBody(topoOrder, g, *mod);
+// =======
+    code += "#include \"" + baseName + "\"\n";
+    code += "#include <thread>\n\n";
+
+    code += "using namespace bsim;\n\n";
+
+    code += seMacroDef();
+    code += maskMacroDef();
+
+    ThreadGraph tg = buildThreadGraph(g);
+
+    for (auto& i : tg.getVerts()) {
+      code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
 
       code += printSimFunctionBody(topoOrder, g, *mod);
+
+      code += "}\n\n";
+
+    }
+
+    deque<vdisc> unPrintedThreads = topologicalSort(tg);
+    vector<vdisc> unJoinedThreads;
+    for (auto& vd : unPrintedThreads) {
+      unJoinedThreads.push_back(vd);
+    }
+
+    code += "void simulate( circuit_state* state ) {\n";
+
+    for (auto i : unPrintedThreads) {
+      string iStr = to_string(i);
+
+      // Join threads that this thread depends on
+      for (auto depEdge : tg.inEdges(i)) {
+	vdisc se = tg.source(depEdge);
+	code += ln("simulate_" + to_string(se) + "_thread.join()");
+	remove(se, unJoinedThreads);
+      }
+      code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
+    }
+
+    // Join all remaining threads before simulate function ends
+    for (auto i : unJoinedThreads) {
+      string iStr = to_string(i);
+      code += ln("simulate_" + iStr + "_thread.join()");
+    }
+    //>>>>>>> multithreading
 
       code += "}\n";
 
       return code;
-    }
-
-
   }
+
+
+}

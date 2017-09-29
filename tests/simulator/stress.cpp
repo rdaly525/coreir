@@ -22,6 +22,26 @@ using namespace std;
 
 namespace CoreIR {
 
+  void setThreadNumbers(NGraph& gr) {
+    for (auto& v : gr.getVerts()) {
+      WireNode w = gr.getNode(v);
+
+      if (isGraphInput(w)) {
+	cout << "Input = " << w.getWire()->toString() << endl;
+      	w.setThreadNo(0);
+      } else {
+      	w.setThreadNo(13);
+      }
+
+      //w.setThreadNo(13);
+
+      //cout << "Thread number before setting = " << gr.getNode(v).getThreadNo() << endl;
+      gr.addVertLabel(v, w);
+
+      //cout << "Thread number after setting  = " << gr.getNode(v).getThreadNo() << endl;
+    }
+  }
+
   TEST_CASE("Large circuits for testing") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
@@ -72,8 +92,16 @@ namespace CoreIR {
 	NGraph gr;
 	buildOrderedGraph(manyOps, gr);
 
-	cout << "Built ordered graph" << endl;
+	setThreadNumbers(gr);
 
+	cout << "VERT thread nos" << endl;
+	for (auto& v : gr.getVerts()) {
+	  int tNo = gr.getNode(v).getThreadNo();
+	  cout << "Thread number = " << tNo << endl;
+	  //assert(tNo == 13);
+	}
+
+	cout << "Built ordered graph" << endl;
 	deque<vdisc> topoOrder = topologicalSort(gr);
 
 	cout << "Topologically sorted" << endl;
@@ -91,13 +119,6 @@ namespace CoreIR {
 
 	REQUIRE(s == 0);
       }
-
-      // SECTION("Building verilog") {
-      // 	// Building verilog example
-      // 	int s = buildVerilator(manyOps, g);
-
-      // 	REQUIRE(s == 0);
-      // }
 
     }
 
