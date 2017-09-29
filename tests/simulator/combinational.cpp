@@ -34,7 +34,19 @@ namespace CoreIR {
 	} else if (ss == "in2" || ss == "in3") {
 	  wd.setThreadNo(1);
 	} else if (ss == "out") {
+	  wd.setThreadNo(3);
+	} else {
+	  assert(false);
+	}
+      } else {
+	if (w->toString() == "add00") {
+	  wd.setThreadNo(0);
+	} else if (w->toString() == "add01") {
+	  wd.setThreadNo(1);
+	} else if (w->toString() == "add1") {
 	  wd.setThreadNo(2);
+	} else {
+	  assert(false);
 	}
       }
 
@@ -83,6 +95,9 @@ namespace CoreIR {
     Namespace* g = c->getGlobal();
     
     SECTION("32 bit add 4") {
+
+      cout << "32 bit add 4" << endl;
+
       uint n = 32;
   
       Generator* add2 = c->getGenerator("coreir.add");
@@ -140,6 +155,7 @@ namespace CoreIR {
       }
 
       SECTION("Compile multithreaded code") {
+	cout << "32 bit add 4 multithreaded" << endl;
 	colorAdd4Tree(gr);
 	deque<vdisc> topoOrder = topologicalSort(gr);
 

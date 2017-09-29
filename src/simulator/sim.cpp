@@ -790,19 +790,66 @@ namespace CoreIR {
     return g.numVertices();
   }
 
+  bool connectionFromTo(const vdisc sourceThread,
+			const vdisc destThread,
+			const NGraph& opG,
+			unordered_map<vdisc, vector<vdisc> >& threadComps) {
+    vector<vdisc> sourceNodes = threadComps[sourceThread];
+    vector<vdisc> destNodes = threadComps[destThread];
+
+    for (auto& sn : sourceNodes) {
+      for (auto& dn : destNodes) {
+	return opG.connected(sn, dn);
+      }
+    }
+    
+    return false;
+  }
+
   ThreadGraph buildThreadGraph(const NGraph& opG) {
     ThreadGraph tg;
 
+    unordered_map<vdisc, vector<vdisc> > threadComps;
+    
     for (auto& v : opG.getVerts()) {
       int threadNo = opG.getNode(v).getThreadNo();
+
       cout << "ThreadNo = " << threadNo << endl;
+
       if (!elem(threadNo, tg.getVerts())) {
+
 	tg.addVertex( threadNo );
 
 	cout << "Added " << threadNo << endl;
+      } 
+
+      map_insert(threadComps, threadNo, v);
+
+    }
+
+    // Add edges to graph
+    vector<vdisc> threadVerts = tg.getVerts();
+    for (int i = 0; i < threadVerts.size(); i++) {
+      for (int j = 0; j < threadVerts.size(); j++) {
+	if (i != j) {
+	  vdisc sourceThread = threadVerts[i];
+	  vdisc destThread = threadVerts[j];
+
+	  if (connectionFromTo(sourceThread, destThread, opG, threadComps)) {
+	    cout << "Adding edge from " << sourceThread << " to " << destThread << endl;
+	    tg.addEdge(sourceThread, destThread);
+	  }
+	}
+	
       }
     }
 
+    cout << "# of verts = " << tg.getVerts().size() << endl;
+    cout << "# of edges = " << tg.getEdges().size() << endl;
+    for (auto& ed : tg.getEdges()) {
+      cout << "edge " << ed << " = " << tg.source(ed) << " --> " << tg.target(ed) << endl;
+    }
+      
     return tg;
   }
 

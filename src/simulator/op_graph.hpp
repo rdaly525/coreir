@@ -169,6 +169,16 @@ namespace CoreIR {
       return false;
     }
 
+    bool connected(const vdisc source, const vdisc dest) const {
+      for (auto& ed : outEdges(source)) {
+	if (target(ed) == dest) {
+	  return true;
+	}
+      }
+
+      return false;
+    }
+
     vdisc getOpNodeDisc(CoreIR::Wireable* w) const {
       WireNode wn = combNode(w);
 
