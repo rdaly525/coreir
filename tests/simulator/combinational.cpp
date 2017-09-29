@@ -49,47 +49,47 @@ namespace CoreIR {
     }
 	       
 
-    SECTION("31 bit add with carry") {
-      uint n = 31;
+    // SECTION("31 bit add with carry") {
+    //   uint n = 31;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+    //   Generator* add2 = c->getGenerator("coreir.add");
 
-      // Define Add4 Module
-      Type* add4Type = c->Record({
-	  {"in",c->Array(4,c->Array(n,c->BitIn()))},
-	    {"out",c->Array(n,c->Bit())},
-	      {"cin", c->BitIn()},
-		{"cout", c->Bit()}
-	});
+    //   // Define Add4 Module
+    //   Type* add4Type = c->Record({
+    // 	  {"in",c->Array(4,c->Array(n,c->BitIn()))},
+    // 	    {"out",c->Array(n,c->Bit())},
+    // 	      {"cin", c->BitIn()},
+    // 		{"cout", c->Bit()}
+    // 	});
 
-      Module* add4_n = g->newModuleDecl("Add4",add4Type);
-      ModuleDef* def = add4_n->newModuleDef();
-      Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+    //   Module* add4_n = g->newModuleDecl("Add4",add4Type);
+    //   ModuleDef* def = add4_n->newModuleDef();
+    //   Wireable* self = def->sel("self");
+    //   Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
     
-      def->connect(self->sel("in")->sel(0), add0->sel("in0"));
-      def->connect(self->sel("in")->sel(1), add0->sel("in1"));
-      def->connect(self->sel("cin"), add0->sel("cin"));
-      def->connect(add0->sel("out"), self->sel("out"));
-      def->connect(add0->sel("cout"), self->sel("cout"));
-      add4_n->setDef(def);
+    //   def->connect(self->sel("in")->sel(0), add0->sel("in0"));
+    //   def->connect(self->sel("in")->sel(1), add0->sel("in1"));
+    //   def->connect(self->sel("cin"), add0->sel("cin"));
+    //   def->connect(add0->sel("out"), self->sel("out"));
+    //   def->connect(add0->sel("cout"), self->sel("cout"));
+    //   add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+    //   RunGenerators rg;
+    //   rg.runOnNamespace(g);
 
-      NGraph gr;
-      buildOrderedGraph(add4_n, gr);
-      deque<vdisc> topoOrder = topologicalSort(gr);
+    //   NGraph gr;
+    //   buildOrderedGraph(add4_n, gr);
+    //   deque<vdisc> topoOrder = topologicalSort(gr);
 
-      SECTION("Compile and run") {
-	int s = compileCode(topoOrder, gr, add4_n, "./gencode/", "add_carry");
+    //   SECTION("Compile and run") {
+    // 	int s = compileCode(topoOrder, gr, add4_n, "./gencode/", "add_carry");
 
-	saveToFile(g, "add4.json");
+    // 	saveToFile(g, "add4.json");
 
-	REQUIRE(s == 0);
-      }
+    // 	REQUIRE(s == 0);
+    //   }
 
-    }
+    // }
     
     SECTION("32 bit add 4") {
       uint n = 32;
