@@ -2,40 +2,24 @@
 #define COREIR_VALUE_HPP_
 
 #include "fwd_declare.h"
+#include "casting/casting.h"
 
 //TODO this is a hack. MOve template definitions to cpp
 #include "valuetype.h"
 
 namespace CoreIR {
 
-template<class valTy>
-struct Underlying2ValueType;
-
-#define U2V_SPECIALIZE(utype,vtype) \
-template<> \
-struct Underlying2ValueType<utype> { \
-  typedef vtype type; \
-};
-
-U2V_SPECIALIZE(bool,ConstBool);
-U2V_SPECIALIZE(int,ConstInt);
-U2V_SPECIALIZE(BitVector,ConstBitVector);
-U2V_SPECIALIZE(std::string,ConstString);
-U2V_SPECIALIZE(CoreIR::Type*,ConstCoreIRType);
-
-#undef U2V_SPECIALIZE
-
 class Value {
   public:
     enum ValueKind {
       VK_ConstBool=0,
       VK_ConstInt=1,
-      VK_ConstBitVector=1,
-      VK_ConstString=2,
-      VK_ConstCoreIRType=3,
-      VK_ConstEnd=4,
-      VK_Arg=5,
-      VK_CPPLambda=6
+      VK_ConstBitVector=2,
+      VK_ConstString=3,
+      VK_ConstCoreIRType=4,
+      VK_ConstEnd=5,
+      VK_Arg=6,
+      VK_CPPLambda=7
     };
   private :
     ValueKind kind;
@@ -45,6 +29,8 @@ class Value {
     ValueKind getKind() const {return kind;}
     ValueType* getValueType() const {return vtype;}
     virtual std::string toString() const = 0;
+    virtual bool operator==(const Value& r) const;
+  friend bool operator==(const Values& l, const Values& r);
 };
 
 class Arg : public Value {
@@ -79,20 +65,17 @@ class Arg : public Value {
 template<typename T> 
 ConstPtr Const_impl(Context* c,T val);
 
-template<>
-ConstPtr Const_impl<bool>(Context* c,bool val);
+#define TSTAMP(utype) \
+template<> \
+ConstPtr Const_impl<utype>(Context* c,utype val);
 
-template<>
-ConstPtr Const_impl<int>(Context* c,int val);
+TSTAMP(bool)
+TSTAMP(int)
+TSTAMP(BitVector)
+TSTAMP(std::string)
+TSTAMP(Type*)
 
-template<>
-ConstPtr Const_impl<BitVector>(Context* c,BitVector val);
-
-template<>
-ConstPtr Const_impl<std::string>(Context* c,std::string val);
-
-template<>
-ConstPtr Const_impl<Type*>(Context* c,Type* val);
+#undef TSTAMP
 
 
 class Const : public Value {
@@ -142,23 +125,7 @@ class Const : public Value {
 
 };
 
-//Create a map from underlying types (bool,int,etc) to Value::ValueKind
-template<class valTy>
-struct Underlying2Kind;
-
-#define U2K_SPECIALIZE(utype,vkind) \
-template<> \
-struct Underlying2Kind<utype> { \
-  static const Value::ValueKind kind = Value::vkind; \
-};
-
-U2K_SPECIALIZE(bool,VK_ConstBool)
-U2K_SPECIALIZE(int,VK_ConstInt)
-U2K_SPECIALIZE(BitVector,VK_ConstBitVector)
-U2K_SPECIALIZE(std::string,VK_ConstString)
-U2K_SPECIALIZE(Type*,VK_ConstCoreIRType)
-
-//T should be bool,int,string,Type
+//T should be bool,BitVector,int,string,Type
 template<typename T>
 class TemplatedConst : public Const {
   T value;
@@ -174,11 +141,6 @@ class TemplatedConst : public Const {
       return "NYI";
     }
     T get() { return value;}
-    bool operator==(const Value& r) const {
-      assert(0);
-      return false; // TODO
-    }
-
 };
 
 

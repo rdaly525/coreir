@@ -1,3 +1,7 @@
+
+CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror -ferror-limit=5
+
+
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 SRCFILES = $(wildcard [^_]*.cpp)

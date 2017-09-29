@@ -55,11 +55,11 @@ class Const;
 template<class T>
 class TemplatedConst;
 
-using ConstBool = TemplatedConst<bool>;
-using ConstInt = TemplatedConst<int>;
-using ConstBitVector = TemplatedConst<int>;
-using ConstString = TemplatedConst<std::string>;
-using ConstCoreIRType = TemplatedConst<Type*>;
+typedef TemplatedConst<bool> ConstBool;
+typedef TemplatedConst<int> ConstInt;
+typedef TemplatedConst<BitVector> ConstBitVector;
+typedef TemplatedConst<std::string> ConstString;
+typedef TemplatedConst<Type*> ConstCoreIRType;
 
 
 

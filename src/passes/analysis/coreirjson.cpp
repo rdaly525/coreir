@@ -81,13 +81,14 @@ string Params2Json(Params gp) {
 string Type2Json(Type* t);
 string Value2Json(ValuePtr v) {
   Array ret;
-  ret.add(ValueType2Json(v->getValueType()));
   if (auto a = dyn_cast<Arg>(v)) {
     ret.add(quote("Arg"));
+    ret.add(ValueType2Json(v->getValueType()));
     ret.add(quote(a->getField()));
   }
   else if (auto c = dyn_cast<Const>(v)) {
     ret.add(quote("Const"));
+    ret.add(ValueType2Json(v->getValueType()));
     if (auto cb = dyn_cast<ConstBool>(c)) {
       ret.add(cb->get() ? "true" : "false");
     }
