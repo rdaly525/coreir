@@ -292,16 +292,13 @@ namespace CoreIR {
     string compString =
       parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
 
-    // Check if this output needs a mask
-    // TODO: This code is wrong and needs to be fixed
-    if (g.getOutputConnections(vd)[0].first.needsMask()) {
-      res += maskResult(*(resultSelect->getType()), compString);
-    } else {
-      res += compString;
-    }
+    Type& tp = *(resultSelect->getType());
+    res += maskResult(tp, compString);
 
-    // TODO: Correct this code as well
-    string carryString = cVar(*coutSelect) + " = 1";
+    // This does not actually handle the case where the underlying types are the
+    // a fixed architecture width
+    string carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+    string carryString = cVar(*coutSelect) + " = " + carryRes;
     return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
 
   }
