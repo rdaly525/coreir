@@ -786,9 +786,6 @@ namespace CoreIR {
     return code;
   }
 
-
-  typedef NGraph ThreadGraph;
-
   int numThreads(const ThreadGraph& g) {
     return g.numVertices();
   }

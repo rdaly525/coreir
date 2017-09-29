@@ -4,6 +4,10 @@
 
 namespace CoreIR {
 
+  typedef NGraph ThreadGraph;
+
+  int numThreads(const ThreadGraph& g);
+
   std::string printCode(const std::deque<vdisc>& topoOrder,
 			NGraph& g,
 			CoreIR::Module* mod,
@@ -14,11 +18,5 @@ namespace CoreIR {
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod);
-  
-  // std::vector<std::pair<CoreIR::Type*, std::string> >
-  // simArguments(CoreIR::Module& mod);
-
-  // std::vector<std::pair<CoreIR::Type*, std::string> >
-  // simInputs(CoreIR::Module& mod);
   
 }

@@ -18,6 +18,39 @@ using namespace std;
 
 namespace CoreIR {
 
+  // Problem: Need to handle nodes that represent arrays
+  void colorConnectedComponents(ThreadGraph& g) {
+    vector<vdisc> inVerts = vertsWithNoIncomingEdge(g);
+
+    cout << "inVerts size = " << inVerts.size() << endl;
+
+    int currentThread = 0;
+
+    for (auto& inVert : inVerts) {
+
+      vector<vdisc> s{inVert};
+
+      while (s.size() > 0) {
+	vdisc vd = s.back();
+
+	WireNode w = g.getNode(vd);
+	w.setThreadNo(currentThread);
+
+	g.addVertLabel(vd, w);
+
+	s.pop_back();
+
+	for (auto ed : g.inEdges(vd)) {
+	  vdisc input = g.source(ed);
+	  s.push_back(input);
+	}
+      
+      }
+
+      currentThread++;
+    }
+  }
+
   TEST_CASE("Combinational logic simulation") {
 
     // New context
@@ -32,8 +65,11 @@ namespace CoreIR {
 
       // Define Add4 Module
       Type* add4Type = c->Record({
-	  {"in",c->Array(4,c->Array(n,c->BitIn()))},
-	    {"out",c->Array(n,c->Bit())}
+	  {"in0",c->Array(n,c->BitIn())},
+	    {"in1",c->Array(n,c->BitIn())},
+	      {"in2",c->Array(n,c->BitIn())},
+		{"in3",c->Array(n,c->BitIn())},
+		  {"out",c->Array(n,c->Bit())}
 	});
 
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
@@ -43,10 +79,10 @@ namespace CoreIR {
       Wireable* add_01 = def->addInstance("add01",add2,{{"width", Const(n)}});
       Wireable* add_1 = def->addInstance("add1",add2,{{"width", Const(n)}});
     
-      def->connect(self->sel("in")->sel(0),add_00->sel("in0"));
-      def->connect(self->sel("in")->sel(1),add_00->sel("in1"));
-      def->connect(self->sel("in")->sel(2),add_01->sel("in0"));
-      def->connect(self->sel("in")->sel(3),add_01->sel("in1"));
+      def->connect(self->sel("in0"), add_00->sel("in0"));
+      def->connect(self->sel("in1"), add_00->sel("in1"));
+      def->connect(self->sel("in2"), add_01->sel("in0"));
+      def->connect(self->sel("in3"), add_01->sel("in1"));
 
       def->connect(add_00->sel("out"),add_1->sel("in0"));
       def->connect(add_01->sel("out"),add_1->sel("in1"));
@@ -62,7 +98,7 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(gr);
 
       SECTION("Checking graph size") {
-	REQUIRE(numVertices(gr) == 5);
+	REQUIRE(numVertices(gr) == 8);
       }
 
       SECTION("Checking mask elimination") {
@@ -78,6 +114,7 @@ namespace CoreIR {
 
 	REQUIRE(s == 0);
       }
+
     }
 
     SECTION("6 bit signed remainder 3 operations") {
@@ -484,8 +521,10 @@ namespace CoreIR {
       Generator* neg = c->getGenerator("coreir.not");
 
       Type* neg2Type = c->Record({
-	  {"in",    c->Array(2, c->Array(n,c->BitIn()))},
-	    {"out", c->Array(2, c->Array(n,c->Bit()))}
+	  {"in0",    c->Array(n,c->BitIn())},
+	    {"in1",    c->Array(n,c->BitIn())},
+	      {"out0", c->Array(n,c->Bit())},
+		{"out1", c->Array(n,c->Bit())},
 	});
 
       Module* neg_n = g->newModuleDecl("two_negs", neg2Type);
@@ -496,11 +535,11 @@ namespace CoreIR {
       Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const(n)}});
       Wireable* neg1 = def->addInstance("neg1", neg, {{"width", Const(n)}});
 
-      def->connect(self->sel("in")->sel(0), neg0->sel("in"));
-      def->connect(self->sel("in")->sel(1), neg1->sel("in"));
+      def->connect(self->sel("in0"), neg0->sel("in"));
+      def->connect(self->sel("in1"), neg1->sel("in"));
 
-      def->connect(neg0->sel("out"), self->sel("out")->sel(0));
-      def->connect(neg1->sel("out"), self->sel("out")->sel(1));
+      def->connect(neg0->sel("out"), self->sel("out0"));
+      def->connect(neg1->sel("out"), self->sel("out1"));
 
       neg_n->setDef(def);
 
@@ -514,13 +553,24 @@ namespace CoreIR {
       buildOrderedGraph(neg_n, g);
 
       SECTION("Checking graph size") {
-	REQUIRE(numVertices(g) == 4);
+	REQUIRE(numVertices(g) == 6);
       }
 
-      deque<vdisc> topoOrder = topologicalSort(g);
+      SECTION("Printing single threaded code") {
+	deque<vdisc> topoOrder = topologicalSort(g);
+	int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs");
+	REQUIRE(s == 0);
+      }
 
-      int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs");
-      REQUIRE(s == 0);
+      SECTION("Printing multithreaded code") {
+	colorConnectedComponents(g);
+	deque<vdisc> topoOrder = topologicalSort(g);
+
+	int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs_parallel");
+	REQUIRE(s == 0);
+	
+      }
+
       
     }
 

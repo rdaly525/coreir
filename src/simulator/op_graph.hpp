@@ -223,4 +223,6 @@ namespace CoreIR {
 
   int numMasksNeeded(const NGraph& g);
 
+  std::vector<vdisc> vertsWithNoIncomingEdge(const NGraph& g);
+
 }
