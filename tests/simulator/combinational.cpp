@@ -56,7 +56,7 @@ namespace CoreIR {
 
       // Define Add4 Module
       Type* add4Type = c->Record({
-    	  {"in",c->Array(4,c->Array(n,c->BitIn()))},
+    	  {"in",c->Array(2,c->Array(n,c->BitIn()))},
     	    {"out",c->Array(n,c->Bit())},
     	      {"cin", c->BitIn()},
     		{"cout", c->Bit()}
@@ -82,9 +82,12 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(gr);
 
       SECTION("Compile and run") {
-    	int s = compileCode(topoOrder, gr, add4_n, "./gencode/", "add_carry");
-
-    	saveToFile(g, "add4.json");
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  add4_n,
+				  "./gencode/",
+				  "add_cin_cout",
+				  "test_add_cin_cout.cpp");
 
     	REQUIRE(s == 0);
       }
