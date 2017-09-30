@@ -267,6 +267,7 @@ namespace CoreIR {
     string test2 = parens(sumString + " < " + in1Str);
     return parens(test1 + " || " + test2);
   }
+
   // NOTE: This function prints the full assignment of values
   string printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
     auto ins = getInputs(vd, g);
@@ -300,7 +301,6 @@ namespace CoreIR {
     string in1Str = printOpResultStr(arg2, g);
     string carryStr = printOpResultStr(carry, g);
     string sumStr = parens(in0Str + opString + in1Str);
-    
 
     string compString =
       parens(sumStr + " + " + carryStr);
@@ -311,11 +311,17 @@ namespace CoreIR {
 
     // This does not actually handle the case where the underlying types are the
     // a fixed architecture width
-    //string carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+    string carryRes;
+    if (standardWidth(tp)) {
+      string firstOverflow = checkSumOverflowStr(in0Str, in1Str);
+      string secondOverflow = checkSumOverflowStr(sumStr, carryStr);
+      carryRes = parens(firstOverflow + " || " + secondOverflow);
+    } else {
 
-    string firstOverflow = checkSumOverflowStr(in0Str, in1Str);
-    string secondOverflow = checkSumOverflowStr(sumStr, carryStr);
-    string carryRes = parens(firstOverflow + " || " + secondOverflow);
+      carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+
+    }
+
     string carryString = cVar(*coutSelect) + " = " + carryRes;
 
     return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
