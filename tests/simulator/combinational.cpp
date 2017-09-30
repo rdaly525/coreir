@@ -856,11 +856,6 @@ namespace CoreIR {
 
       REQUIRE(numMasksNeeded(g) == 0);
 
-
-      auto str = printCode(topoOrder, g, ugtM, "ugt16.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
       int s = compileCodeAndRun(topoOrder,
 				g,
 				ugtM,
