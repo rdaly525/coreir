@@ -328,6 +328,61 @@ namespace CoreIR {
 
   }
 
+  // NOTE: This function prints the full assignment of values
+  string printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    auto ins = getInputs(vd, g);
+
+    assert(ins.size() == 2);
+    
+    Instance* inst = toInstance(wd.getWire());
+    auto outSelects = getOutputSelects(inst);
+
+    assert((outSelects.size() == 2));
+
+    Wireable* resultSelect = findSelect("out", outSelects);
+    Wireable* coutSelect = findSelect("cout", outSelects);
+
+    string res = "";
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, g);
+
+    // Either it is a binop or there is a cin
+    assert((inConns.size() == 2) || (inConns.size() == 3));
+
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
+
+    string opString = getOpString(*inst);
+
+    string in0Str = printOpResultStr(arg1, g);
+    string in1Str = printOpResultStr(arg2, g);
+    string sumStr = parens(in0Str + opString + in1Str);
+
+    string compString = sumStr;
+
+    Type& tp = *(resultSelect->getType());
+    res += maskResult(tp, compString);
+
+    // This does not actually handle the case where the underlying types are the
+    // a fixed architecture width
+    string carryRes;
+    if (standardWidth(tp)) {
+      string firstOverflow = checkSumOverflowStr(in0Str, in1Str);
+      carryRes = parens(firstOverflow);
+    } else {
+
+      carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+
+    }
+
+    string carryString = cVar(*coutSelect) + " = " + carryRes;
+
+    return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
+
+  }
+  
   string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 3);
 
@@ -543,7 +598,17 @@ namespace CoreIR {
       assert(outSelects.size() == 2);
       assert(isAddOrSub(*inst));
 
-      return printAddOrSubCIN_COUT(wd, vd, g);
+      auto ins = getInputs(vd, g);
+
+      if (ins.size() == 3) {
+      
+	return printAddOrSubCIN_COUT(wd, vd, g);
+      } else {
+	assert(ins.size() == 2);
+
+	return printAddOrSubCOUT(wd, vd, g);
+	
+      }
     }
   }
 
