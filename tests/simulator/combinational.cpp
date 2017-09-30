@@ -822,6 +822,55 @@ namespace CoreIR {
 
     }
 
+    SECTION("gt on 16 bits") {
+      uint n = 16;
+  
+      Generator* ugt = c->getGenerator("coreir.ugt");
+
+      Type* ugtType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Bit() }
+	});
+
+      Module* ugtM = g->newModuleDecl("ugt_test", ugtType);
+
+      ModuleDef* def = ugtM->newModuleDef();
+
+      Wireable* self = def->sel("self");
+      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const(n)}});
+
+      def->connect("self.A.0", "ugt0.in0");
+      def->connect("self.A.1", "ugt0.in1");
+      def->connect(ugt0->sel("out"), self->sel("out"));
+
+      ugtM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(ugtM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+      eliminateMasks(topoOrder, g);
+
+      REQUIRE(numMasksNeeded(g) == 0);
+
+
+      auto str = printCode(topoOrder, g, ugtM, "ugt16.h");
+      cout << "CODE STRING" << endl;
+      cout << str << endl;
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				ugtM,
+				"./gencode/",
+				"ugt16",
+				"test_ugt16.cpp");
+      REQUIRE(s == 0);
+
+    }
+    
     SECTION("Multiplexer test") {
       uint n = 8;
   
