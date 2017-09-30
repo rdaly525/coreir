@@ -133,6 +133,10 @@ namespace CoreIR {
     return parens(parens(signedCTypeString(tp)) + " " + expr);
   }
 
+  string castToUnSigned(Type& tp, const std::string& expr) {
+    return parens(parens(unSignedCTypeString(tp)) + " " + expr);
+  }
+  
   
 
   string seString(Type& tp, const std::string& arg) {
@@ -178,7 +182,7 @@ namespace CoreIR {
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
       res += maskResult(*(outPair.second->getType()), opStr);
     } else {
-      res += opStr; //maskResult(*(outPair.second->getType()), compString);
+      res += opStr;
     }
       
     return res;
@@ -260,9 +264,13 @@ namespace CoreIR {
     assert(false);
   }
 
-  string checkSumOverflowStr(const std::string& in0Str,
-			     const std::string& in1Str) {
-    string sumString = parens(in0Str + " + " + in1Str);
+  string checkSumOverflowStr(Type& tp,
+			     const std::string& in0StrNC,
+			     const std::string& in1StrNC) {
+    string in0Str = castToUnSigned(tp, in0StrNC);
+    string in1Str = castToUnSigned(tp, in0StrNC);
+
+    string sumString = castToUnSigned(tp, parens(in0StrNC + " + " + in1StrNC));
     string test1 = parens(sumString + " < " + in0Str);
     string test2 = parens(sumString + " < " + in1Str);
     return parens(test1 + " || " + test2);
@@ -304,7 +312,6 @@ namespace CoreIR {
 
     string compString =
       parens(sumStr + " + " + carryStr);
-      //parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
 
     Type& tp = *(resultSelect->getType());
     res += maskResult(tp, compString);
@@ -313,8 +320,8 @@ namespace CoreIR {
     // a fixed architecture width
     string carryRes;
     if (standardWidth(tp)) {
-      string firstOverflow = checkSumOverflowStr(in0Str, in1Str);
-      string secondOverflow = checkSumOverflowStr(sumStr, carryStr);
+      string firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
+      string secondOverflow = checkSumOverflowStr(tp, sumStr, carryStr);
       carryRes = parens(firstOverflow + " || " + secondOverflow);
     } else {
 
@@ -369,7 +376,7 @@ namespace CoreIR {
     // a fixed architecture width
     string carryRes;
     if (standardWidth(tp)) {
-      string firstOverflow = checkSumOverflowStr(in0Str, in1Str);
+      string firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
       carryRes = parens(firstOverflow);
     } else {
 
