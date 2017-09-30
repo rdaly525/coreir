@@ -260,6 +260,13 @@ namespace CoreIR {
     assert(false);
   }
 
+  string checkSumOverflowStr(const std::string& in0Str,
+			     const std::string& in1Str) {
+    string sumString = parens(in0Str + " + " + in1Str);
+    string test1 = parens(sumString + " < " + in0Str);
+    string test2 = parens(sumString + " < " + in1Str);
+    return parens(test1 + " || " + test2);
+  }
   // NOTE: This function prints the full assignment of values
   string printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
     auto ins = getInputs(vd, g);
@@ -289,20 +296,32 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
+    string in0Str = printOpResultStr(arg1, g);
+    string in1Str = printOpResultStr(arg2, g);
+    string carryStr = printOpResultStr(carry, g);
+    string sumStr = parens(in0Str + opString + in1Str);
+    
+
     string compString =
-      parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
+      parens(sumStr + " + " + carryStr);
+      //parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
 
     Type& tp = *(resultSelect->getType());
     res += maskResult(tp, compString);
 
     // This does not actually handle the case where the underlying types are the
     // a fixed architecture width
-    string carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+    //string carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+
+    string firstOverflow = checkSumOverflowStr(in0Str, in1Str);
+    string secondOverflow = checkSumOverflowStr(sumStr, carryStr);
+    string carryRes = parens(firstOverflow + " || " + secondOverflow);
     string carryString = cVar(*coutSelect) + " = " + carryRes;
+
     return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
 
   }
-  
+
   string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 3);
 
