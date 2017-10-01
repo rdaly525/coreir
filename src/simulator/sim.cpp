@@ -436,6 +436,19 @@ namespace CoreIR {
     return true;
   }
 
+  bool isThreadShared(const vdisc v, const NGraph& g) {
+    int threadNo = g.getNode(v).getThreadNo();
+
+    for (auto& conn : g.outEdges(v)) {
+      vdisc dest = g.target(conn);
+      if (g.getNode(dest).getThreadNo() != threadNo) {
+	return true;
+      }
+    }
+
+    return false;
+  }
+
   string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
     assert(isSelect(wd.getWire()));
 
@@ -452,6 +465,10 @@ namespace CoreIR {
       return cVar("(state->", wd, ")");
     }
 
+    if (isThreadShared(g.getOpNodeDisc(sourceInstance), g)) {
+      return cVar("(state->", wd, ")");
+    }
+    
     assert(g.containsOpNode(sourceInstance));
 
     vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
