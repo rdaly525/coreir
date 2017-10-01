@@ -579,7 +579,9 @@ namespace CoreIR {
 
 	if (isInstance(inst)) {
 
-	  if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
+	  if (!isCombinationalInstance(wd) ||
+	      (g.getOutputConnections(vd).size() > 1) ||
+	      (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
 	    str += printOp(wd, vd, g);
 	  }
 

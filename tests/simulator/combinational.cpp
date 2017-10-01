@@ -172,7 +172,12 @@ namespace CoreIR {
 	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
 	}
 
-	int s = compileCode(topoOrder, gr, add4_n, "./gencode/", "add4_parallel");
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  add4_n,
+				  "./gencode/",
+				  "add4_parallel",
+				  "test_add4_parallel.cpp");
 	REQUIRE(s == 0);
 	
       }
