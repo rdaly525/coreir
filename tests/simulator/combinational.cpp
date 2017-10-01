@@ -157,6 +157,14 @@ namespace CoreIR {
       SECTION("Compile multithreaded code") {
 	cout << "32 bit add 4 multithreaded" << endl;
 	colorAdd4Tree(gr);
+
+	SECTION("Checking thread graph properties") {
+	  ThreadGraph tg = buildThreadGraph(gr);
+
+	  REQUIRE(tg.getVerts().size() == 4);
+	  REQUIRE(tg.getEdges().size() == 3);
+	}
+
 	deque<vdisc> topoOrder = topologicalSort(gr);
 
 	for (auto& vd : topoOrder) {

@@ -18,5 +18,7 @@ namespace CoreIR {
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod);
-  
+
+  ThreadGraph buildThreadGraph(const NGraph& opG);
+
 }

@@ -575,8 +575,6 @@ namespace CoreIR {
 	    // If not an instance copy the input values
 	    for (auto inConn : inConns) {
 
-	      //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
-
 	      str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
 	    }
 
@@ -825,6 +823,14 @@ namespace CoreIR {
 
       map_insert(threadComps, threadNo, v);
 
+    }
+
+    cout << "Thread components" << endl;
+    for (auto& ent : threadComps) {
+      cout << "thread number " << ent.first << " contains" << endl;
+      for (auto& vd : ent.second) {
+	cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
+      }
     }
 
     // Add edges to graph
