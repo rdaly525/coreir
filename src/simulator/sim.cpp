@@ -681,6 +681,32 @@ namespace CoreIR {
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   threadSharedVariableDecls(const NGraph& g) {
+    vector<pair<Type*, string>> declStrs;
+
+    for (auto& vd : g.getVerts()) {
+      WireNode wd = getNode( g, vd);
+      Wireable* w = wd.getWire();
+
+      if (isThreadShared(vd, g)) {
+	for (auto inSel : getOutputSelects(w)) {
+	  Select* in = toSelect(inSel.second);
+
+	  if (!fromSelfInterface(in)) {
+	    if (!arrayAccess(in)) {
+
+	      if (!wd.isSequential) {
+
+		declStrs.push_back({in->getType(), cVar(*in)});
+		//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
+
+	      }
+	    }
+	  }
+	}
+      }
+    }
+
+    return declStrs;
   }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
@@ -723,10 +749,13 @@ namespace CoreIR {
     
   }
 
-  std::vector<string> sortedSimArgumentList(Module& mod) {
+  std::vector<string> sortedSimArgumentList(Module& mod,
+					    const NGraph& g) {
 
     auto decls = sortedSimArgumentPairs(mod);
 
+    concat(decls, threadSharedVariableDecls(g));
+    
     sort_lt(decls, [](const pair<Type*, string>& tpp) {
 	return tpp.second;
       });
@@ -739,14 +768,14 @@ namespace CoreIR {
     return declStrs;
   }
 
-  string printSimArguments(Module& mod) {
+  // string printSimArguments(Module& mod) {
 
-    auto declStrs = sortedSimArgumentList(mod);
-    // Print out declstrings
-    string res = commaSepList(declStrs);
+  //   auto declStrs = sortedSimArgumentList(mod);
+  //   // Print out declstrings
+  //   string res = commaSepList(declStrs);
 
-    return res;
-  }
+  //   return res;
+  // }
 
   string maskMacroDef() {
     string expr = "(expr)";
@@ -780,8 +809,7 @@ namespace CoreIR {
 			      const NGraph& g) {
     string res = "struct circuit_state {\n";
 
-    auto declStrs = sortedSimArgumentList(*mod);
-    concat(declStrs, threadSharedVariableDecls(g));
+    auto declStrs = sortedSimArgumentList(*mod, g);
     for (auto& dstr : declStrs) {
       res += "\t" + dstr + ";\n";
     }
@@ -850,24 +878,24 @@ namespace CoreIR {
 
     }
 
-    cout << "Thread components" << endl;
-    for (auto& ent : threadComps) {
-      cout << "thread number " << ent.first << " contains" << endl;
-      for (auto& vd : ent.second) {
-    	cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
-      }
-    }
+    // cout << "Thread components" << endl;
+    // for (auto& ent : threadComps) {
+    //   cout << "thread number " << ent.first << " contains" << endl;
+    //   for (auto& vd : ent.second) {
+    // 	cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
+    //   }
+    // }
 
-    cout << "Operation graph edges" << endl;
-    for (auto& ed : opG.getEdges()) {
-      cout << "edge " << ed << " = " << opG.source(ed) << " --> " << opG.target(ed) << endl;
-    }
+    // cout << "Operation graph edges" << endl;
+    // for (auto& ed : opG.getEdges()) {
+    //   cout << "edge " << ed << " = " << opG.source(ed) << " --> " << opG.target(ed) << endl;
+    // }
 
-    for (auto& src : opG.getVerts()) {
-      for (auto& dest : opG.getVerts()) {
-	cout << src << " connected to " << dest << " ? " << opG.connected(src, dest) << endl;
-      }
-    }
+    // for (auto& src : opG.getVerts()) {
+    //   for (auto& dest : opG.getVerts()) {
+    // 	cout << src << " connected to " << dest << " ? " << opG.connected(src, dest) << endl;
+    //   }
+    // }
 
     cout << endl;
 

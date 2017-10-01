@@ -46,7 +46,7 @@ namespace CoreIR {
 		  const std::string& hFile) {
 
     string codeStr = printCode(topoOrder, g, mod, hFile);
-    string hStr = printDecl(mod, hFile);
+    string hStr = printDecl(mod, g);
 
     string codeFilePath = codePath + codeFile;
     string hFilePath = codePath + hFile;
@@ -68,7 +68,7 @@ namespace CoreIR {
 		  const std::string& hFile) {
 
     string codeStr = printCode(topoOrder, g, mod, hFile);
-    string hStr = printDecl(mod, hFile);
+    string hStr = printDecl(mod, g);
 
     std::ofstream out(codeFile);
     out << codeStr;
