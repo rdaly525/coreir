@@ -122,8 +122,13 @@ namespace std {
       using std::string;
 
       return ((hash<CoreIR::Wireable*>()(k.getWire())) ^
-	      hash<bool>()(k.isSequential) ^
-	      hash<bool>()(k.isReceiver));
+	      (hash<bool>()(k.isSequential) << 1) ^
+	      (hash<bool>()(k.isReceiver) << 2) ^
+	      (hash<bool>()(k.highBitsAreDirty()) << 3) ^
+	      (hash<bool>()(k.getThreadNo()) << 4));
+
+      //int threadNumber;
+
     }
   };
 
