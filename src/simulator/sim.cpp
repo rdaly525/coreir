@@ -829,9 +829,16 @@ namespace CoreIR {
     for (auto& ent : threadComps) {
       cout << "thread number " << ent.first << " contains" << endl;
       for (auto& vd : ent.second) {
-	cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
+    	cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
       }
     }
+
+    cout << "Operation graph edges" << endl;
+    for (auto& ed : opG.getEdges()) {
+      cout << "edge " << ed << " = " << opG.source(ed) << " --> " << opG.target(ed) << endl;
+    }
+
+    cout << endl;
 
     // Add edges to graph
     vector<vdisc> threadVerts = tg.getVerts();
