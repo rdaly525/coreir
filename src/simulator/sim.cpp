@@ -416,7 +416,12 @@ namespace CoreIR {
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
-    string res = cVar(*(outPair.second));
+    string res;
+    if (!isThreadShared(vd, g)) {
+      res = cVar(*(outPair.second));
+    } else {
+      res = cVar("(state->", *(outPair.second), ")");
+    }
 
     return ln(res + " = " + opResultStr(wd, vd, g));
   }
@@ -434,19 +439,6 @@ namespace CoreIR {
     }
 
     return true;
-  }
-
-  bool isThreadShared(const vdisc v, const NGraph& g) {
-    int threadNo = g.getNode(v).getThreadNo();
-
-    for (auto& conn : g.outEdges(v)) {
-      vdisc dest = g.target(conn);
-      if (g.getNode(dest).getThreadNo() != threadNo) {
-	return true;
-      }
-    }
-
-    return false;
   }
 
   string printOpResultStr(const InstanceValue& wd, const NGraph& g) {

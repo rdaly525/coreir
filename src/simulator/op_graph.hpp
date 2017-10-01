@@ -235,4 +235,5 @@ namespace CoreIR {
 
   std::vector<vdisc> vertsWithNoIncomingEdge(const NGraph& g);
 
+  bool isThreadShared(const vdisc v, const NGraph& g);
 }

@@ -510,4 +510,18 @@ namespace CoreIR {
     return numMasks;
   }
 
+  bool isThreadShared(const vdisc v, const NGraph& g) {
+    int threadNo = g.getNode(v).getThreadNo();
+
+    for (auto& conn : g.outEdges(v)) {
+      vdisc dest = g.target(conn);
+      if (g.getNode(dest).getThreadNo() != threadNo) {
+	return true;
+      }
+    }
+
+    return false;
+  }
+
+  
 }
