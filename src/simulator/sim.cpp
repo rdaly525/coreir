@@ -527,7 +527,7 @@ namespace CoreIR {
 
   string printInternalVariables(const std::deque<vdisc>& topo_order,
 				NGraph& g,
-				Module& mod) {
+				Module&) {
     string str = "";
     for (auto& vd : topo_order) {
       WireNode wd = getNode( g, vd);
@@ -678,7 +678,11 @@ namespace CoreIR {
     return declStrs;
     
   }
-  
+
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  threadSharedVariableDecls(const NGraph& g) {
+  }
+
   std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod) {
 
@@ -772,10 +776,12 @@ namespace CoreIR {
 
   }
 
-  std::string printEvalStruct(CoreIR::Module* mod) {
+  std::string printEvalStruct(CoreIR::Module* mod,
+			      const NGraph& g) {
     string res = "struct circuit_state {\n";
 
     auto declStrs = sortedSimArgumentList(*mod);
+    concat(declStrs, threadSharedVariableDecls(g));
     for (auto& dstr : declStrs) {
       res += "\t" + dstr + ";\n";
     }
@@ -787,7 +793,7 @@ namespace CoreIR {
 
   // Note: Dont actually need baseName here
   string printDecl(CoreIR::Module* mod,
-		   const std::string& baseName) {
+		   const NGraph& g) {
     string code = "";
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
@@ -795,7 +801,7 @@ namespace CoreIR {
 
     code += "using namespace bsim;\n\n";
 
-    code += printEvalStruct(mod);
+    code += printEvalStruct(mod, g);
     code += "void simulate( circuit_state* state );\n";
 
     return code;

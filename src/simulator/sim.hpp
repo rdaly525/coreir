@@ -14,7 +14,7 @@ namespace CoreIR {
 			const std::string& baseName);
 
   std::string printDecl(CoreIR::Module* mod,
-			const std::string& baseName);
+			const NGraph& g);
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod);
