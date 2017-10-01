@@ -797,7 +797,9 @@ namespace CoreIR {
 
     for (auto& sn : sourceNodes) {
       for (auto& dn : destNodes) {
-	return opG.connected(sn, dn);
+	if (opG.connected(sn, dn)) {
+	  return true;
+	}
       }
     }
     
@@ -836,6 +838,12 @@ namespace CoreIR {
     cout << "Operation graph edges" << endl;
     for (auto& ed : opG.getEdges()) {
       cout << "edge " << ed << " = " << opG.source(ed) << " --> " << opG.target(ed) << endl;
+    }
+
+    for (auto& src : opG.getVerts()) {
+      for (auto& dest : opG.getVerts()) {
+	cout << src << " connected to " << dest << " ? " << opG.connected(src, dest) << endl;
+      }
     }
 
     cout << endl;
