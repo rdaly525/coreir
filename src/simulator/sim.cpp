@@ -631,7 +631,6 @@ namespace CoreIR {
     if (isRegisterInstance(wd.getWire())) {
       return false;
     }
-      //<<<<<<< HEAD
     if (isMemoryInstance(wd.getWire())) {
       cout << "Found memory instance" << endl;
       return false;
@@ -657,41 +656,10 @@ namespace CoreIR {
     }
 
     if (isThreadShared(g.getOpNodeDisc(sourceInstance), g)) {
-// =======
-//   bool isCombinationalInstance(const WireNode& wd) {
-//     assert(isInstance(wd.getWire()));
-
-//     if (isRegisterInstance(wd.getWire())) {
-//       return false;
-//     }
-
-//     if (isMemoryInstance(wd.getWire())) {
-//       cout << "Found memory instance" << endl;
-//       return false;
-//     }
-
-//     return true;
-//   }
-
-//   string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
-//     assert(isSelect(wd.getWire()));
-
-//     Wireable* src = extractSource(toSelect(wd.getWire()));
-
-//     if (isRegisterInstance(src) || isMemoryInstance(src)) {
-//       return cVar(wd);
-//     }
-
-//     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
-
-//     // Is this the correct way to check if the value is an input?
-//     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
-// >>>>>>> upstream/dev
       return cVar("(state->", wd, ")");
     }
     assert(g.containsOpNode(sourceInstance));
 
-    //<<<<<<< HEAD
     vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
 
     // TODO: Should really check whether or not there is one connection using
@@ -700,18 +668,6 @@ namespace CoreIR {
       return opResultStr(combNode(sourceInstance), opNodeD, g);
     }
 
-    //=======
-//     assert(g.containsOpNode(sourceInstance));
-
-//     vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
-
-//     // TODO: Should really check whether or not there is one connection using
-//     // the given variable, this is slightly too conservative
-//     if (g.getOutputConnections(opNodeD).size() == 1) {
-//       return opResultStr(combNode(sourceInstance), opNodeD, g);
-//     }
-
-// >>>>>>> upstream/dev
     return cVar(wd);
   }
 
@@ -1086,7 +1042,6 @@ namespace CoreIR {
     
   }
 
-<<<<<<< HEAD
   std::vector<string> sortedSimArgumentList(Module& mod,
 					    const NGraph& g) {
 
@@ -1094,12 +1049,6 @@ namespace CoreIR {
 
     concat(decls, threadSharedVariableDecls(g));
     
-=======
-  std::vector<string> sortedSimArgumentList(Module& mod) {
-
-    auto decls = sortedSimArgumentPairs(mod);
-
->>>>>>> upstream/dev
     sort_lt(decls, [](const pair<Type*, string>& tpp) {
 	return tpp.second;
       });
@@ -1112,27 +1061,6 @@ namespace CoreIR {
     return declStrs;
   }
 
-// <<<<<<< HEAD
-//   // string printSimArguments(Module& mod) {
-
-//   //   auto declStrs = sortedSimArgumentList(mod);
-//   //   // Print out declstrings
-//   //   string res = commaSepList(declStrs);
-
-//   //   return res;
-//   // }
-
-// =======
-//   string printSimArguments(Module& mod) {
-
-//     auto declStrs = sortedSimArgumentList(mod);
-//     // Print out declstrings
-//     string res = commaSepList(declStrs);
-
-//     return res;
-//   }
-
-// >>>>>>> upstream/dev
   string maskMacroDef() {
     string expr = "(expr)";
     string width = "(width)";
@@ -1156,7 +1084,6 @@ namespace CoreIR {
 			ite(testClause, lastMask(startWidth, extWidth), "0"));
     
     def += res + "\n\n";
-<<<<<<< HEAD
 
     return def;
 
@@ -1307,64 +1234,6 @@ namespace CoreIR {
       code += "}\n\n";
 
     }
-=======
-
-    return def;
-
-  }
-
-  std::string printEvalStruct(CoreIR::Module* mod) {
-    string res = "struct circuit_state {\n";
-
-    auto declStrs = sortedSimArgumentList(*mod);
-    for (auto& dstr : declStrs) {
-      res += "\t" + dstr + ";\n";
-    }
-    
-    res += "};\n\n";
-
-    return res;
-  }  
-
-  // Note: Dont actually need baseName here
-  string printDecl(CoreIR::Module* mod,
-		   const std::string& baseName) {
-    string code = "";
-    code += "#include <stdint.h>\n";
-    code += "#include <cstdio>\n\n";
-    code += "#include \"bit_vector.h\"\n\n";
-
-    code += "using namespace bsim;\n\n";
-
-    code += printEvalStruct(mod);
-    code += "void simulate( circuit_state* state );\n";
-
-    return code;
-  }
-
-  string printCode(const std::deque<vdisc>& topoOrder,
-		   NGraph& g,
-		   CoreIR::Module* mod,
-		   const std::string& baseName) {
-
-    string code = "";
-
-    code += "#include \"" + baseName + "\"\n";
-
-    code += "using namespace bsim;\n\n";    
-
-    code += seMacroDef();
-    code += maskMacroDef();
-    
-    code += "void simulate( circuit_state* state ) {\n";
-
-    code += printSimFunctionBody(topoOrder, g, *mod);
-
-    code += "}\n";
-
-    return code;
-  }
->>>>>>> upstream/dev
 
     deque<vdisc> unPrintedThreads = topologicalSort(tg);
     vector<vdisc> unJoinedThreads;
