@@ -222,6 +222,12 @@ namespace CoreIR {
     return elem(genRefName, siOps);
   }
 
+  static inline bool isAddOrSub(Instance& inst) {
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> siOps{"add", "sub"};
+    return elem(genRefName, siOps);
+  }
+  
   static inline bool isUnsignedCmp(Instance& inst) {
     std::string genRefName = getInstanceName(inst);
     std::vector<std::string> siOps{"ult", "ugt", "ule", "uge"};

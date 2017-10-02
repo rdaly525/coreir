@@ -109,6 +109,31 @@ namespace CoreIR {
 
   }
 
+  std::string unSignedCTypeString(Type& tp) {
+    assert(isPrimitiveType(tp));
+
+    uint w = containerTypeWidth(tp);
+
+    if (w == 8) {
+      return "uint8_t";
+    }
+
+    if (w == 16) {
+      return "uint16_t";
+    }
+
+    if (w == 32) {
+      return "uint32_t";
+    }
+
+    if (w == 64) {
+      return "uint64_t";
+    }
+    
+    assert(false);
+
+  }
+
   string signedCTypeString(Type& tp) {
     assert(isPrimitiveType(tp));
 
