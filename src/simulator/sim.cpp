@@ -611,13 +611,6 @@ namespace CoreIR {
       assert(outSelects.size() == 2);
       assert(isAddOrSub(*inst));
 
-<<<<<<< HEAD
-  bool isCombinationalInstance(const WireNode& wd) {
-    assert(isInstance(wd.getWire()));
-
-    if (isRegisterInstance(wd.getWire())) {
-      return false;
-=======
       auto ins = getInputs(vd, g);
 
       if (ins.size() == 3) {
@@ -629,11 +622,16 @@ namespace CoreIR {
 	return printAddOrSubCOUT(wd, vd, g);
 	
       }
->>>>>>> upstream/dev
     }
   }
 
-<<<<<<< HEAD
+  bool isCombinationalInstance(const WireNode& wd) {
+    assert(isInstance(wd.getWire()));
+
+    if (isRegisterInstance(wd.getWire())) {
+      return false;
+    }
+      //<<<<<<< HEAD
     if (isMemoryInstance(wd.getWire())) {
       cout << "Found memory instance" << endl;
       return false;
@@ -659,42 +657,41 @@ namespace CoreIR {
     }
 
     if (isThreadShared(g.getOpNodeDisc(sourceInstance), g)) {
-=======
-  bool isCombinationalInstance(const WireNode& wd) {
-    assert(isInstance(wd.getWire()));
+// =======
+//   bool isCombinationalInstance(const WireNode& wd) {
+//     assert(isInstance(wd.getWire()));
 
-    if (isRegisterInstance(wd.getWire())) {
-      return false;
-    }
+//     if (isRegisterInstance(wd.getWire())) {
+//       return false;
+//     }
 
-    if (isMemoryInstance(wd.getWire())) {
-      cout << "Found memory instance" << endl;
-      return false;
-    }
+//     if (isMemoryInstance(wd.getWire())) {
+//       cout << "Found memory instance" << endl;
+//       return false;
+//     }
 
-    return true;
-  }
+//     return true;
+//   }
 
-  string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
-    assert(isSelect(wd.getWire()));
+//   string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
+//     assert(isSelect(wd.getWire()));
 
-    Wireable* src = extractSource(toSelect(wd.getWire()));
+//     Wireable* src = extractSource(toSelect(wd.getWire()));
 
-    if (isRegisterInstance(src) || isMemoryInstance(src)) {
-      return cVar(wd);
-    }
+//     if (isRegisterInstance(src) || isMemoryInstance(src)) {
+//       return cVar(wd);
+//     }
 
-    Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
+//     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
 
-    // Is this the correct way to check if the value is an input?
-    if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
->>>>>>> upstream/dev
+//     // Is this the correct way to check if the value is an input?
+//     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
+// >>>>>>> upstream/dev
       return cVar("(state->", wd, ")");
     }
-    
     assert(g.containsOpNode(sourceInstance));
 
-<<<<<<< HEAD
+    //<<<<<<< HEAD
     vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
 
     // TODO: Should really check whether or not there is one connection using
@@ -703,18 +700,18 @@ namespace CoreIR {
       return opResultStr(combNode(sourceInstance), opNodeD, g);
     }
 
-=======
-    assert(g.containsOpNode(sourceInstance));
+    //=======
+//     assert(g.containsOpNode(sourceInstance));
 
-    vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
+//     vdisc opNodeD = g.getOpNodeDisc(sourceInstance);
 
-    // TODO: Should really check whether or not there is one connection using
-    // the given variable, this is slightly too conservative
-    if (g.getOutputConnections(opNodeD).size() == 1) {
-      return opResultStr(combNode(sourceInstance), opNodeD, g);
-    }
+//     // TODO: Should really check whether or not there is one connection using
+//     // the given variable, this is slightly too conservative
+//     if (g.getOutputConnections(opNodeD).size() == 1) {
+//       return opResultStr(combNode(sourceInstance), opNodeD, g);
+//     }
 
->>>>>>> upstream/dev
+// >>>>>>> upstream/dev
     return cVar(wd);
   }
 
@@ -1115,27 +1112,27 @@ namespace CoreIR {
     return declStrs;
   }
 
-<<<<<<< HEAD
-  // string printSimArguments(Module& mod) {
+// <<<<<<< HEAD
+//   // string printSimArguments(Module& mod) {
 
-  //   auto declStrs = sortedSimArgumentList(mod);
-  //   // Print out declstrings
-  //   string res = commaSepList(declStrs);
+//   //   auto declStrs = sortedSimArgumentList(mod);
+//   //   // Print out declstrings
+//   //   string res = commaSepList(declStrs);
 
-  //   return res;
-  // }
+//   //   return res;
+//   // }
 
-=======
-  string printSimArguments(Module& mod) {
+// =======
+//   string printSimArguments(Module& mod) {
 
-    auto declStrs = sortedSimArgumentList(mod);
-    // Print out declstrings
-    string res = commaSepList(declStrs);
+//     auto declStrs = sortedSimArgumentList(mod);
+//     // Print out declstrings
+//     string res = commaSepList(declStrs);
 
-    return res;
-  }
+//     return res;
+//   }
 
->>>>>>> upstream/dev
+// >>>>>>> upstream/dev
   string maskMacroDef() {
     string expr = "(expr)";
     string width = "(width)";
