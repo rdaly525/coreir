@@ -597,31 +597,19 @@ namespace CoreIR {
 
     if (outSelects.size() == 1) {
 
-<<<<<<< HEAD
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-    string res;
-    if (!isThreadShared(vd, g)) {
-      res = cVar(*(outPair.second));
-    } else {
-      res = cVar("(state->", *(outPair.second), ")");
-    }
-=======
       pair<string, Wireable*> outPair = *std::begin(outSelects);
-      string res = cVar(*(outPair.second));
->>>>>>> upstream/dev
+      string res;
+      if (!isThreadShared(vd, g)) {
+	res = cVar(*(outPair.second));
+      } else {
+	res = cVar("(state->", *(outPair.second), ")");
+      }
 
       return ln(res + " = " + opResultStr(wd, vd, g));
     } else {
       assert(outSelects.size() == 2);
       assert(isAddOrSub(*inst));
 
-<<<<<<< HEAD
-  bool isCombinationalInstance(const WireNode& wd) {
-    assert(isInstance(wd.getWire()));
-
-    if (isRegisterInstance(wd.getWire())) {
-      return false;
-=======
       auto ins = getInputs(vd, g);
 
       if (ins.size() == 3) {
@@ -633,11 +621,16 @@ namespace CoreIR {
 	return printAddOrSubCOUT(wd, vd, g);
 	
       }
->>>>>>> upstream/dev
     }
   }
 
-<<<<<<< HEAD
+  bool isCombinationalInstance(const WireNode& wd) {
+    assert(isInstance(wd.getWire()));
+
+    if (isRegisterInstance(wd.getWire())) {
+      return false;
+    }
+
     if (isMemoryInstance(wd.getWire())) {
       cout << "Found memory instance" << endl;
       return false;
