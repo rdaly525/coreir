@@ -5,6 +5,7 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
@@ -113,25 +114,24 @@ typedef void (*ModuleDefGenFun)(ModuleDef*,Consts genargs);
 
 
 
-//TODO this is a hack solution that should be fixed
-// This is so I do not overload the std::hash<std::pair<T1,T2>> class.
-// Use myPair for hashing
-template<class T1, class T2>
-struct myPair {
-  T1 first;
-  T2 second;
-  myPair(T1 first, T2 second) : first(first), second(second) {}
-  friend bool operator==(const myPair& l,const myPair& r) {
-    return l.first==r.first && l.second==r.second;
-  }
-};
+////TODO this is a hack solution that should be fixed
+//// This is so I do not overload the std::hash<std::pair<T1,T2>> class.
+//// Use myPair for hashing
+//template<class T1, class T2>
+//struct myPair {
+//  T1 first;
+//  T2 second;
+//  myPair(T1 first, T2 second) : first(first), second(second) {}
+//  friend bool operator==(const myPair& l,const myPair& r) {
+//    return l.first==r.first && l.second==r.second;
+//  }
+//};
 
-typedef std::vector<myPair<std::string,Type*>> RecordParams ;
-typedef myPair<uint,Type*> ArrayParams ;
+typedef std::vector<std::pair<std::string,Type*>> RecordParams ;
 
 typedef std::deque<std::string> SelectPath;
 typedef std::vector<std::reference_wrapper<const std::string>> ConstSelectPath;
-typedef myPair<Wireable*,Wireable*> Connection;
+typedef std::pair<Wireable*,Wireable*> Connection;
 //This is meant to be in relation to an instance. First wireable of the pair is of that instance.
 typedef std::vector<std::pair<Wireable*,Wireable*>> LocalConnections;
 
@@ -148,16 +148,16 @@ inline void hash_combine(size_t& seed, const T& v) {
 } //CoreIR namespace
 
 namespace std {
-  //slow
-  template <class T1, class T2>
-  struct hash<CoreIR::myPair<T1,T2>> {
-    //template <class T1, class T2>
-    size_t operator() (const CoreIR::myPair<T1,T2>& p) const {
-      auto h1 = std::hash<T1>{}(p.first);
-      auto h2 = std::hash<T2>{}(p.second);
-      return h1 ^ (h2<<1);
-    }
-  };
+  ////slow
+  //template <class T1, class T2>
+  //struct hash<CoreIR::myPair<T1,T2>> {
+  //  //template <class T1, class T2>
+  //  size_t operator() (const CoreIR::myPair<T1,T2>& p) const {
+  //    auto h1 = std::hash<T1>{}(p.first);
+  //    auto h2 = std::hash<T2>{}(p.second);
+  //    return h1 ^ (h2<<1);
+  //  }
+  //};
 
   template <>
   struct hash<CoreIR::Values> {
@@ -174,8 +174,7 @@ namespace std {
     size_t operator() (const CoreIR::SelectPath& path) const {
       size_t h = 0;
       for (auto str : path) {
-        auto hstr = std::hash<std::string>{}(str);
-        h = (h<<1) ^ hstr;
+        CoreIR::hash_combine(h,str);
       }
       return h;
     }

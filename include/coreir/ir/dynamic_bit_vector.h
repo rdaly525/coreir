@@ -47,8 +47,11 @@ namespace bsim {
       }
     }
 
-    dynamic_bit_vector(const int N, const int val) {
-      //*((int*) (&bits)) = val;
+    dynamic_bit_vector(const int N_, const int val) : N(N_) {
+      bits.resize(NUM_BYTES(N));
+      unsigned char tmp_bits[NUM_BYTES(N)];
+      *((int*) (&tmp_bits)) = val;
+      for (int i=0; i<N; ++i) bits[i] = tmp_bits[i];
     }
 
     // dynamic_bit_vector(const bv_uint64 val) {
@@ -119,28 +122,30 @@ namespace bsim {
 
     template<typename ConvType>
     ConvType to_type() const {
-      return *((ConvType*) (&bits));
+      unsigned char bits_tmp[N];
+      for (int i=0; i<NUM_BYTES(N); ++i) bits_tmp[i] = bits[i];
+      return *((ConvType*) (&bits_tmp));
     }
 
-    inline bv_uint64 as_native_int32() const {
-      return *((bv_sint32*) (&bits));
-    }
-    
-    inline bv_uint64 as_native_uint64() const {
-      return *((bv_uint64*) (&bits));
-    }
+    //inline bv_uint64 as_native_int32() const {
+    //  return *((bv_sint32*) (&bits));
+    //}
+    //
+    //inline bv_uint64 as_native_uint64() const {
+    //  return *((bv_uint64*) (&bits));
+    //}
 
-    inline bv_uint32 as_native_uint32() const {
-      return *((bv_uint32*) (&bits));
-    }
+    //inline bv_uint32 as_native_uint32() const {
+    //  return *((bv_uint32*) (&bits));
+    //}
 
-    inline bv_uint16 as_native_uint16() const {
-      return *((bv_uint16*) (&bits));
-    }
+    //inline bv_uint16 as_native_uint16() const {
+    //  return *((bv_uint16*) (&bits));
+    //}
 
-    inline bv_uint8 as_native_uint8() const {
-      return *((bv_uint8*) (&bits));
-    }
+    //inline bv_uint8 as_native_uint8() const {
+    //  return *((bv_uint8*) (&bits));
+    //}
 
     inline int bitLength() const {
       return N;
@@ -718,29 +723,28 @@ namespace bsim {
   //   return !(a == b);
   // }
   
-  // template<int N>
-  // static inline bool operator>(const unsigned_int<N>& a,
-  // 			       const unsigned_int<N>& b) {
-  //   for (int i = N - 1; i >= 0; i--) {
-  //     if (a.get(i) > b.get(i)) {
-  // 	return true;
-  //     }
+  static inline bool operator>(const dynamic_bit_vector& a,
+  			       const dynamic_bit_vector& b) {
+    int N = a.bitLength();
+    for (int i = N - 1; i >= 0; i--) {
+      if (a.get(i) > b.get(i)) {
+  	return true;
+      }
 
-  //     if (a.get(i) < b.get(i)) {
-  // 	return false;
-  //     }
-  //   }
+      if (a.get(i) < b.get(i)) {
+  	return false;
+      }
+    }
 
-  //   return false;
-  // }
+    return false;
+  }
 
-  // template<int N>
-  // static inline bool operator<(const unsigned_int<N>& a,
-  // 			       const unsigned_int<N>& b) {
-  //   if (a == b) { return false; }
+  static inline bool operator<(const dynamic_bit_vector& a,
+  			       const dynamic_bit_vector& b) {
+    if (a == b) { return false; }
 
-  //   return !(a > b);
-  // }
+    return !(a > b);
+  }
 
   // template<int N>
   // static inline bool operator<=(const unsigned_int<N>& a,

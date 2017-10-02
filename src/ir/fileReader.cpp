@@ -24,7 +24,7 @@ Type* json2Type(Context* c, json jt);
 Values json2Values(Context* c, json j);
 ValuePtr json2Value(Context* c, json j);
 ValueType* json2ValueType(Context* c,json j);
-Params json2Params(json j);
+Params json2Params(Context* c,json j);
 
 Module* getModSymbol(Context* c, string nsname, string iname);
 Module* getModSymbol(Context* c, string ref);
@@ -99,7 +99,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
         for (auto jntypegen : jns.at("namedtypegens").get<jsonmap>()) {
           checkJson(jntypegen.second,{"genparams","flippedname"});
           string name = jntypegen.first;
-          Params genparams = json2Params(jntypegen.second.at("genparams"));
+          Params genparams = json2Params(c,jntypegen.second.at("genparams"));
           if (!ns->hasTypeGen(name)) {
             throw std::runtime_error("Missing namedtypegen symbol: " + ns->getName() + "." + name);
           }
@@ -140,7 +140,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           
           Params modparams;
           if (jmod.count("modparams")) {
-            modparams = json2Params(jmod.at("modparams"));
+            modparams = json2Params(c,jmod.at("modparams"));
           }
           Module* m = ns->newModuleDecl(jmodname,t,modparams);
           if (jmod.count("defaultmodargs")) {
@@ -163,7 +163,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
 
           json jgen = jgenmap.second;
           checkJson(jgen,{"typegen","genparams","defaultgenargs"});
-          Params genparams = json2Params(jgen.at("genparams"));
+          Params genparams = json2Params(c,jgen.at("genparams"));
           auto tgenref = getRef(jgen.at("typegen").get<string>());
           TypeGen* typegen = c->getTypeGen(jgen.at("typegen").get<string>());
           assert(genparams == typegen->getParams());
@@ -353,11 +353,11 @@ Type* json2Type(Context* c, json jt) {
       return c->Array(n,t);
     }
     else if (kind == "Record") {
-      vector<myPair<string,Type*>> rargs;
+      RecordParams rparams;
       for (auto it : args[1].get<jsonmap>()) {
-        rargs.push_back({it.first,json2Type(c,it.second)});
+        rparams.push_back({it.first,json2Type(c,it.second)});
       }
-      return c->Record(rargs);
+      return c->Record(rparams);
     }
     else if (kind == "Named") {
       vector<string> info = getRef(args[1].get<string>());

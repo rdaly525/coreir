@@ -2,6 +2,7 @@
 #define COREIR_NAMESPACE_HPP_
 
 #include "fwd_declare.h"
+#include "common.h"
 
 namespace CoreIR {
 
@@ -19,7 +20,7 @@ class Namespace {
   std::map<std::string,TypeGen*> typeGenList;
   
   //Caches the NamedTypes with args
-  std::unordered_map<std::string,std::unordered_map<Consts,NamedType*>> namedTypeGenCache;
+  std::unordered_map<std::string,std::map<Consts,NamedType*,ConstsComp>> namedTypeGenCache;
 
   //Save the unflipped names for json file
   std::unordered_map<std::string,std::string> namedTypeNameMap;

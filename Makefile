@@ -35,6 +35,10 @@ export CXXFLAGS
 
 all: build coreir
 
+simple:
+	$(MAKE) -C tests/unit build/simple
+	./tests/unit/build/simple
+
 .PHONY: test
 test: build
 	$(MAKE) -C tests

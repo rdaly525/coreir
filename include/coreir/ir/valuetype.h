@@ -21,6 +21,7 @@ class ValueType {
     ValueType(Context* c,ValueTypeKind kind) : kind(kind), c(c) {}
     ValueTypeKind getKind() const {return kind;}
     std::string toString();
+    Context* getContext() {return c;}
 };
 
 class BoolType : public ValueType {

@@ -395,7 +395,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "binaryCarry",
     binaryCarryParams,
     [](Context* c, Consts args) {
-      uint width = args.at("width")->get<int>();
+      int width = args.at("width")->get<int>();
       bool has_cout = args.at("has_cout")->get<bool>();
       bool has_cin  = args.at("has_cin")->get<bool>();
       Type* ptype = c->Bit()->Arr(width);
@@ -498,9 +498,9 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   );
 
   auto constModParamFun = [](Context* c,Consts genargs) -> std::pair<Params,Consts> {
-    bool width = genargs.at("width")->get<int>();
+    int width = genargs.at("width")->get<int>();
     Params modparams;
-    modparams["init"] = BitVectorType::make(c,width);
+    modparams["value"] = BitVectorType::make(c,width);
     return {modparams,Consts()};
   };
 

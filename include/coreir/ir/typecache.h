@@ -9,7 +9,10 @@ struct RecordParamsHasher {
   size_t operator()(const RecordParams& rp) const {
     size_t hash = 0;
     for (auto it : rp) {
-      hash_combine(hash,it);
+      size_t h = 0;
+      hash_combine(h,it.first);
+      hash_combine(h,it.second);
+      hash ^= h;
     }
     return hash;
   }
@@ -21,7 +24,7 @@ class TypeCache {
   Context* c;
   BitInType* bitI;
   BitType* bitO;
-  std::unordered_map<ArrayParams,ArrayType*> ArrayCache; //Hasher is just the hash<myPair> definied in common
+  std::unordered_map<Type*,std::unordered_map<int,ArrayType*>> ArrayCache;
   std::unordered_map<RecordParams,RecordType*,RecordParamsHasher> RecordCache;
   
   BoolType* boolType;

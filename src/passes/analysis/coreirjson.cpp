@@ -183,10 +183,9 @@ string Instances2Json(map<string,Instance*>& insts) {
   return jis.toMultiString();
 }
 
-string Connections2Json(unordered_set<Connection>& cons) {
-  std::set<Connection,ConnectionComp> sortedSet(cons.begin(),cons.end());
+string Connections2Json(Connections& cons) {
   Array a(8);
-  for (auto con : sortedSet) {
+  for (auto con : cons) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
     string sa = join(pa.begin(),pa.end(),string("."));

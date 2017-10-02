@@ -5,6 +5,7 @@
 #include "fwd_declare.h"
 #include "metadata.h"
 #include "refname.h"
+#include "common.h"
 
 namespace CoreIR {
 
@@ -48,7 +49,7 @@ class Generator : public Instantiable {
     ModParamsGenFun modParamsGen=nullptr;
 
     //This is memory managed
-    std::unordered_map<Consts,Module*> genCache;
+    std::map<Consts,Module*,ConstsComp> genCache;
     GeneratorDef* def = nullptr;
   
   public :

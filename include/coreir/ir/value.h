@@ -41,13 +41,23 @@ class Value {
     };
   private :
     ValueKind kind;
+  protected :
     ValueType* vtype;
   public :
     Value(ValueType* vtype, ValueKind kind) : kind(kind), vtype(vtype) {}
     ValueKind getKind() const {return kind;}
     ValueType* getValueType() const {return vtype;}
     virtual std::string toString() const = 0;
-    virtual bool operator==(const Value& r) const;
+    
+    template<typename T>
+    const T& get() const {
+      return cast<typename Underlying2ValueType<T>::type>(this)->get();
+    }
+
+    virtual bool operator==(const Value& r) const = 0;
+    virtual bool operator<(const Value& r) const = 0;
+    bool operator!=(const Value& r) const {return !Value::operator==(r);}
+    //TODO do the other ones
   friend bool operator==(const Values& l, const Values& r);
 };
 
@@ -72,16 +82,17 @@ U2K_SPECIALIZE(Type*,VK_ConstCoreIRType)
 
 namespace CoreIR {
 class Arg : public Value {
-  std::string field;
+  const std::string field;
   public :
-    Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg) {}
+    Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
     static bool classof(const Value* v) {return v->getKind()==VK_Arg;}
     static ArgPtr make(ValueType* vtype, std::string field) {
       return std::make_shared<Arg>(vtype,field);
     }
-    std::string getField() { return field;}
+    const std::string& getField() const { return field;}
     bool operator==(const Value& r) const;
-    std::string toString() const { return "Arg(" + field + ")";}
+    bool operator<(const Value& r) const;
+  std::string toString() const { return "Arg(" + field + ")";}
 };
 
 //class CPPLambda : public Value {
@@ -120,6 +131,11 @@ class Const : public Value {
   protected :
     Const(ValueType* vtype, ValueKind kind) : Value(vtype,kind) {}
   public : 
+    virtual bool operator==(const Value& r) const override = 0;
+    virtual bool operator<(const Value& r) const override = 0;
+
+
+
     static bool classof(const Value* v) {
       return v->getKind() < VK_ConstEnd;
     }
@@ -139,9 +155,15 @@ class Const : public Value {
     template<typename T>
     static inline typename std::enable_if<std::is_same<T,BitVector>::value,ConstPtr>::type
     make (Context* c,T val) {
+      std::cout << "here!" << std::endl;
+      std::cout << "bw" << val.bitLength() << std::endl;
       return Const_impl<BitVector>(c,val);
     }
     
+    static inline ConstPtr make(Context* c,int width, uint64_t val) {
+      return Const_impl<BitVector>(c,BitVector(width,val));
+    }
+ 
     template<typename T>
     static inline typename std::enable_if<std::is_convertible<T,std::string>::value,ConstPtr>::type
     make (Context* c,T val) {
@@ -156,10 +178,10 @@ class Const : public Value {
 
     virtual std::string toString() const override = 0;
 
-    template<typename T>
-    T get() {
-      return cast<typename Underlying2ValueType<T>::type>(this)->get();
-    }
+    //template<typename T>
+    //const T& get() const {
+    //  return cast<typename Underlying2ValueType<T>::type>(this)->get();
+    //}
 
 };
 
@@ -167,22 +189,34 @@ class Const : public Value {
 //T should be bool,BitVector,int,string,Type
 template<typename T>
 class TemplatedConst : public Const {
-  T value;
+  const T value;
   public :
     //typedef T type;
-    TemplatedConst(ValueType* type, T value) : Const(type,Underlying2Kind<T>::kind), value(value) {}
+    TemplatedConst(ValueType* type, T value) : Const(type,Underlying2Kind<T>::kind), value(value) {}    
+    bool operator==(const Value& r) const override;
+    bool operator<(const Value& r) const override;
+
     static bool classof(const Value* v) {return v->getKind()==Underlying2Kind<T>::kind;}
     static std::shared_ptr<TemplatedConst<T>> make(ValueType* type, T value) {
       return std::make_shared<TemplatedConst<T>>(type,value);
     }
     
-    std::string toString() const override {
-      return "NYI";
-    }
-    T get() { return value;}
+    std::string toString() const override;
+    const T& get() const { return value;}
 };
 
-
 }
+
+//namespace std {
+//  size_t hash<CoreIR::Values>::operator() (const CoreIR::Values& vs) const {
+//    return 5;
+//  }
+//  size_t hash<CoreIR::Consts>::operator() (const CoreIR::Consts& cs) const {
+//    return 5;
+//  }
+//  
+//
+//}
+
 
 #endif

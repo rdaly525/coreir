@@ -23,7 +23,7 @@ bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
   }
   return true;
 }
-bool ConnectionComp::operator() (const Connection& l, const Connection& r) {
+bool ConnectionComp::operator() (const Connection& l, const Connection& r) const {
   if (l.first!=r.first) return SPComp(l.first->getSelectPath(),r.first->getSelectPath());
   return SPComp(l.second->getSelectPath(),r.second->getSelectPath());
 }
@@ -85,6 +85,15 @@ bool hasChar(const std::string s, char c) {
 
 //merge a1 into a0
 void mergeValues(Values& a0, Values a1) {
+  for (auto arg : a1) {
+    if (a0.count(arg.first)==0) {
+      a0.insert(arg);
+    }
+  }
+}
+
+//merge a1 into a0
+void mergeConsts(Consts& a0, Consts a1) {
   for (auto arg : a1) {
     if (a0.count(arg.first)==0) {
       a0.insert(arg);

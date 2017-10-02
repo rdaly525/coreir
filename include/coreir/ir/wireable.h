@@ -127,7 +127,7 @@ class Instance : public Wireable {
     bool runGenerator();
 
     void replace(Module* moduleRef, Values modargs=Values());
-    void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
+    void replace(Generator* generatorRef, Consts genargs, Values modargs=Values());
   
   friend class InstanceGraphNode;
 };

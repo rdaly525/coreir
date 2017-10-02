@@ -13,30 +13,40 @@ TypeCache::TypeCache(Context* c) : c(c) {
   bitI = new BitInType(c);
   bitI->setFlipped(bitO);
   bitO->setFlipped(bitI);
+
+  boolType = new BoolType(c);
+  intType = new IntType(c);
+  stringType = new StringType(c);
+  coreIRType = new CoreIRType(c);
+
 }
 
 TypeCache::~TypeCache() {
   for (auto it : RecordCache) delete it.second;
-  for (auto it : ArrayCache) delete it.second;
+  
+  //TODO this is a little sketch because the first key is the thing you are deleting...
+  for (auto tpair : ArrayCache) {
+    for (auto ttpair : tpair.second) {
+      delete ttpair.second;
+    }
+  }
   delete bitI;
   delete bitO;
 }
 
 
 ArrayType* TypeCache::getArray(uint len, Type* t) {
-  ArrayParams params(len,t);
-  auto it = ArrayCache.find(params);
-  if (it != ArrayCache.end()) {
-    return it->second;
+  auto lenmap = ArrayCache[t];
+  if (lenmap.count(len)) {
+    return lenmap[len];
   } 
   else {
     ArrayType* a = new ArrayType(c,t,len);
-    Type* af = new ArrayType(c,c->Flip(t),len);
+    ArrayType* af = new ArrayType(c,c->Flip(t),len);
     a->setFlipped(af);
     af->setFlipped(a);
-    ArrayCache.emplace(params,a);
-    ArrayParams paramsF(len,c->Flip(t));
-    ArrayCache.emplace(paramsF,af);
+    lenmap[len] = a;
+    ArrayCache[c->Flip(t)][len] = af;
     return a;
   }
 }
@@ -54,7 +64,7 @@ RecordType* TypeCache::getRecord(RecordParams params) {
     for (auto p : params) {
       paramsF.push_back({p.first,c->Flip(p.second)});
     }
-    Type* rf = new RecordType(c,paramsF);
+    RecordType* rf = new RecordType(c,paramsF);
     r->setFlipped(rf);
     rf->setFlipped(r);
 

@@ -5,6 +5,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/error.h"
 #include "coreir/ir/typegen.h"
+#include "coreir/ir/value.h"
 
 using namespace std;
 
@@ -104,10 +105,9 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
 Type* RecordType::appendField(string label, Type* t) {
   ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
   
-  //TODO this was annoying to write. I should fix up the whole myPair thing
-  RecordParams newParams({myPair<string,Type*>(label,t)});
+  RecordParams newParams({{label,t}});
   for (auto rparam : this->getRecord()) {
-    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
+    newParams.push_back({rparam.first,rparam.second});
   }
   return c->Record(newParams);
 }
@@ -115,11 +115,10 @@ Type* RecordType::appendField(string label, Type* t) {
 Type* RecordType::detachField(string label) {
   ASSERT(this->getRecord().count(label)==1,"Cannot detach" + label + " from type: " + this->toString());
   
-  //TODO this was annoying to write. I should fix up the whole myPair thing
   RecordParams newParams;
   for (auto rparam : this->getRecord()) {
     if (rparam.first == label) continue;
-    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
+    newParams.push_back({rparam.first,rparam.second});
   }
   return c->Record(newParams);
 }
