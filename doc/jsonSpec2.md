@@ -68,7 +68,9 @@ ValueType = "Bool"
           | "Int"
           | ["BitVector" <N>]
           | "String"
-          | "CoreIRType"
+          | "Type"
+          | "Module"
+          | "Generator"
 
 Params = {<field>:ValueType,...}
 
