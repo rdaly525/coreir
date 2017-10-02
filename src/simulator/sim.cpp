@@ -697,7 +697,6 @@ namespace CoreIR {
     Type* tp = mod.getType();
 
     assert(tp->getKind() == Type::TK_Record);
-<<<<<<< HEAD
 
     unordered_map<string, Type*> outs;
 
@@ -728,62 +727,15 @@ namespace CoreIR {
 
 	if (!fromSelfInterface(in)) {
 	  if (!arrayAccess(in)) {
-=======
-
-    unordered_map<string, Type*> outs;
-
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<string> declStrs;
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
-
-      if (tp->isOutput()) {
-	outs.insert(name_type_pair);
-      }
-    }
-
-    return outs;
-    
-  }
-
-  string printInternalVariables(const std::deque<vdisc>& topo_order,
-				NGraph& g,
-				Module& mod) {
-    string str = "";
-    for (auto& vd : topo_order) {
-      WireNode wd = getNode( g, vd);
-      Wireable* w = wd.getWire();
-
-      for (auto inSel : getOutputSelects(w)) {
-	Select* in = toSelect(inSel.second);
-
-	if (!fromSelfInterface(in)) {
-	  if (!arrayAccess(in)) {
 
 	    if (!wd.isSequential) {
 
-	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
->>>>>>> upstream/dev
-
-	    if (!wd.isSequential) {
-
-<<<<<<< HEAD
 	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
 
 	    } else {
 	      if (wd.isReceiver) {
 		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
-=======
-	    } else {
-	      if (wd.isReceiver) {
-		//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
-		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
-
-	      } else {
-		//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
-
->>>>>>> upstream/dev
 	      }
 	    }
 	  }
@@ -793,7 +745,6 @@ namespace CoreIR {
 
     return str;
   }
-      //<<<<<<< HEAD
 
   string printSimFunctionBody(const std::deque<vdisc>& topo_order,
 			      NGraph& g,
@@ -814,38 +765,14 @@ namespace CoreIR {
 
       if (wd.getThreadNo() == threadNo) {
 	Wireable* inst = wd.getWire();
-	//=======
 
-//   string printSimFunctionBody(const std::deque<vdisc>& topo_order,
-// 			      NGraph& g,
-// 			      Module& mod) {
-//     string str = "";
-//     // Declare all variables
-//     str += "\n// Variable declarations\n";
+	WireNode wd = getNode(g, vd);
+	Wireable* inst = wd.getWire();
 
-//     str += "\n// Internal variables\n";
-//     str += printInternalVariables(topo_order, g, mod);
-
-//     // Print out operations in topological order
-//     str += "\n// Simulation code\n";
-//     for (auto& vd : topo_order) {
-// >>>>>>> upstream/dev
-
-      WireNode wd = getNode(g, vd);
-      Wireable* inst = wd.getWire();
-
-      //<<<<<<< HEAD
-	  if (!isCombinationalInstance(wd) ||
-	      (g.getOutputConnections(vd).size() > 1) ||
-	      (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
-	    str += printOp(wd, vd, g);
-	  }
-	  //=======
-//       if (isInstance(inst)) {
-// >>>>>>> upstream/dev
-
-	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
-	  str += printInstance(wd, vd, g);
+	if (!isCombinationalInstance(wd) ||
+	    (g.getOutputConnections(vd).size() > 1) ||
+	    (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
+	  str += printOp(wd, vd, g);
 	}
 
       } else {
@@ -942,7 +869,6 @@ namespace CoreIR {
     return declStrs;
     
   }
-<<<<<<< HEAD
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   threadSharedVariableDecls(const NGraph& g) {
@@ -992,27 +918,6 @@ namespace CoreIR {
 	  declStrs.push_back({tp, "self_" + name_type_pair.first});
 	} else {
 	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-=======
-  
-  std::vector<std::pair<CoreIR::Type*, std::string> >
-  sortedSimArgumentPairs(Module& mod) {
-
-    Type* tp = mod.getType();
-
-    assert(tp->getKind() == Type::TK_Record);
-
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<pair<Type*, string>> declStrs;
-
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
-
-      if (tp->isInput()) {
-	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	} else {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
->>>>>>> upstream/dev
 	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
 
 	}
