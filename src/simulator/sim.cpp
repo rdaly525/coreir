@@ -182,11 +182,7 @@ namespace CoreIR {
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
       res += maskResult(*(outPair.second->getType()), opStr);
     } else {
-<<<<<<< HEAD
-      res += opStr; //maskResult(*(outPair.second->getType()), compString);
-=======
       res += opStr;
->>>>>>> upstream/dev
     }
       
     return res;
@@ -1383,7 +1379,6 @@ namespace CoreIR {
       unJoinedThreads.push_back(vd);
     }
 
-<<<<<<< HEAD
     code += "void simulate( circuit_state* state ) {\n";
 
     for (auto i : unPrintedThreads) {
@@ -1409,7 +1404,4 @@ namespace CoreIR {
     return code;
   }
 
-
-=======
->>>>>>> upstream/dev
 }
