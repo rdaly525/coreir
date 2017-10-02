@@ -761,32 +761,34 @@ namespace CoreIR {
     str += "\n// Simulation code\n";
     for (auto& vd : topo_order) {
 
+
       WireNode wd = getNode(g, vd);
 
-      if (wd.getThreadNo() == threadNo) {
+      if (wd.getThreadNo() == threadNo) {      
+
 	Wireable* inst = wd.getWire();
 
-	WireNode wd = getNode(g, vd);
-	Wireable* inst = wd.getWire();
+	if (isInstance(inst)) {	
 
-	if (!isCombinationalInstance(wd) ||
-	    (g.getOutputConnections(vd).size() > 1) ||
-	    (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
-	  str += printOp(wd, vd, g);
-	}
-
-      } else {
-
-	if (inst->getType()->isInput()) {
-
-	  auto inConns = getInputConnections(vd, g);
-
-	  // If not an instance copy the input values
-	  for (auto inConn : inConns) {
-
-	    str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+	  if (!isCombinationalInstance(wd) ||
+	      (g.getOutputConnections(vd).size() > 1) ||
+	      (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
+	    str += printInstance(wd, vd, g);
 	  }
 
+	} else {
+
+	  if (inst->getType()->isInput()) {
+
+	    auto inConns = getInputConnections(vd, g);
+
+	    // If not an instance copy the input values
+	    for (auto inConn : inConns) {
+
+	      str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+	    }
+
+	  }
 	}
       }
     }
