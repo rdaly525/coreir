@@ -793,7 +793,7 @@ namespace CoreIR {
 
     return str;
   }
-<<<<<<< HEAD
+      //<<<<<<< HEAD
 
   string printSimFunctionBody(const std::deque<vdisc>& topo_order,
 			      NGraph& g,
@@ -814,35 +814,35 @@ namespace CoreIR {
 
       if (wd.getThreadNo() == threadNo) {
 	Wireable* inst = wd.getWire();
-=======
+	//=======
 
-  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
-			      NGraph& g,
-			      Module& mod) {
-    string str = "";
-    // Declare all variables
-    str += "\n// Variable declarations\n";
+//   string printSimFunctionBody(const std::deque<vdisc>& topo_order,
+// 			      NGraph& g,
+// 			      Module& mod) {
+//     string str = "";
+//     // Declare all variables
+//     str += "\n// Variable declarations\n";
 
-    str += "\n// Internal variables\n";
-    str += printInternalVariables(topo_order, g, mod);
+//     str += "\n// Internal variables\n";
+//     str += printInternalVariables(topo_order, g, mod);
 
-    // Print out operations in topological order
-    str += "\n// Simulation code\n";
-    for (auto& vd : topo_order) {
->>>>>>> upstream/dev
+//     // Print out operations in topological order
+//     str += "\n// Simulation code\n";
+//     for (auto& vd : topo_order) {
+// >>>>>>> upstream/dev
 
       WireNode wd = getNode(g, vd);
       Wireable* inst = wd.getWire();
 
-<<<<<<< HEAD
+      //<<<<<<< HEAD
 	  if (!isCombinationalInstance(wd) ||
 	      (g.getOutputConnections(vd).size() > 1) ||
 	      (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
 	    str += printOp(wd, vd, g);
 	  }
-=======
-      if (isInstance(inst)) {
->>>>>>> upstream/dev
+	  //=======
+//       if (isInstance(inst)) {
+// >>>>>>> upstream/dev
 
 	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
 	  str += printInstance(wd, vd, g);
@@ -854,15 +854,8 @@ namespace CoreIR {
 
 	  auto inConns = getInputConnections(vd, g);
 
-<<<<<<< HEAD
-	      str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
-	    }
-=======
 	  // If not an instance copy the input values
 	  for (auto inConn : inConns) {
-
-	    //str += ln(cVar("(*", *(inConn.second.getWire()), "_ptr)") + " = " + printOpResultStr(inConn.first, g));
->>>>>>> upstream/dev
 
 	    str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
 	  }
