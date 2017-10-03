@@ -69,14 +69,23 @@ ValueType = "Bool"
           | ["BitVector" <N>]
           | "String"
           | "Type"
-          | "Module"
-          | "Generator"
+          | "Module" (Values -> Void)
+          | "Generator" (Values -> Module
+          | "TypeGen" (Values ->Type
 
 Params = {<field>:ValueType,...}
 
 Arg = [ValueType, "Arg",<field>]
 Const = [ValueType, "Const", <Val>]
 Consts = {<field>:Const,...}
+
+Const = GlobalValue
+      | ConstantData
+
+GlobalValue = Module
+            | Generator
+            | TypeGen
+
 
 Value = Arg
       | Const

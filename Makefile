@@ -39,6 +39,11 @@ simple:
 	$(MAKE) -C tests/unit build/simple
 	./tests/unit/build/simple
 
+.PHONY : unit
+unit:
+	$(MAKE) -C tests/unit
+	cd tests/unit; ./run
+
 .PHONY: test
 test: build
 	$(MAKE) -C tests
