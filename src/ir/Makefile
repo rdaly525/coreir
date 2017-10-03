@@ -1,5 +1,5 @@
 HOME = ../..
-INCS = -I$(HOME)/include -I.
+INCS = -I$(HOME)/include -I. -I /Users/lenny/miniconda3/include/python3.6m
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o) $(wildcard ../simulator/build/*.o)
 
@@ -20,7 +20,7 @@ build/%.so: $(OBJS)
 	cp $@ $(HOME)/lib/lib$*.so
 
 build/%.dylib: $(OBJS)
-	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^
+	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^ -lpython -L /Users/lenny/miniconda3/lib
 	cp $@ $(HOME)/lib/lib$*.dylib
 
 build/%.o: %.cpp

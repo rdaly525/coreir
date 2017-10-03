@@ -4,6 +4,7 @@
 #include "coreir/ir/context.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/typegen.h"
+#include "coreir/ir/typegen-python.h"
 #include "coreir/ir/instantiable.h"
 #include "coreir/ir/error.h"
 
@@ -105,6 +106,20 @@ NamedType* Namespace::getNamedType(string name, Args genargs) {
 
   return named;
 }
+
+TypeGen* Namespace::newTypeGen(string name, Params genparams, std::string moduleName, std::string functionName) {
+  assert(namedTypeList.count(name)==0);
+  assert(typeGenList.count(name)==0);
+  
+  TypeGen* typegen = new TypeGenFromPython(this,name,genparams,moduleName,functionName);
+  
+  //Add name to typeGenNameMap
+  typeGenNameMap[name] = "";
+  
+  typeGenList[name] = typegen;
+  return typegen;
+}
+
 TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   assert(namedTypeList.count(name)==0);
   assert(typeGenList.count(name)==0);
