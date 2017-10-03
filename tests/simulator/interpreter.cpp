@@ -64,9 +64,13 @@ namespace CoreIR {
       rg.runOnNamespace(g);
 
       NGraph gr;
-      buildOrderedGraph(m, gr);
+      buildOrderedGraph(add4_n, gr);
       deque<vdisc> topoOrder = topologicalSort(gr);
 
+      // How to initialize and track values in the interpreter?
+      // I think the right way would be to set select values
+      SimulatorState state;
+      state.setValue(self->sel("in0"), BitVec(32));
     }
   }
 
