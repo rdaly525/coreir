@@ -26,15 +26,15 @@ namespace CoreIR {
   
     Namespace* g = c->getGlobal();
 
-    SECTION("Add 4") {
-      cout << "32 bit add 4" << endl;
+    SECTION("And 4") {
+      cout << "32 bit and 4" << endl;
 
       uint n = 32;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+      Generator* and2 = c->getGenerator("coreir.and");
 
-      // Define Add4 Module
-      Type* add4Type = c->Record({
+      // Define And4 Module
+      Type* and4Type = c->Record({
 	  {"in0",c->Array(n,c->BitIn())},
 	    {"in1",c->Array(n,c->BitIn())},
 	      {"in2",c->Array(n,c->BitIn())},
@@ -42,36 +42,32 @@ namespace CoreIR {
 		  {"out",c->Array(n,c->Bit())}
 	});
 
-      Module* add4_n = g->newModuleDecl("Add4",add4Type);
-      ModuleDef* def = add4_n->newModuleDef();
+      Module* and4_n = g->newModuleDecl("And4",and4Type);
+      ModuleDef* def = and4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add_00 = def->addInstance("add00",add2,{{"width", Const(n)}});
-      Wireable* add_01 = def->addInstance("add01",add2,{{"width", Const(n)}});
-      Wireable* add_1 = def->addInstance("add1",add2,{{"width", Const(n)}});
+      Wireable* and_00 = def->addInstance("and00",and2,{{"width", Const(n)}});
+      Wireable* and_01 = def->addInstance("and01",and2,{{"width", Const(n)}});
+      Wireable* and_1 = def->addInstance("and1",and2,{{"width", Const(n)}});
     
-      def->connect(self->sel("in0"), add_00->sel("in0"));
-      def->connect(self->sel("in1"), add_00->sel("in1"));
-      def->connect(self->sel("in2"), add_01->sel("in0"));
-      def->connect(self->sel("in3"), add_01->sel("in1"));
+      def->connect(self->sel("in0"), and_00->sel("in0"));
+      def->connect(self->sel("in1"), and_00->sel("in1"));
+      def->connect(self->sel("in2"), and_01->sel("in0"));
+      def->connect(self->sel("in3"), and_01->sel("in1"));
 
-      def->connect(add_00->sel("out"),add_1->sel("in0"));
-      def->connect(add_01->sel("out"),add_1->sel("in1"));
+      def->connect(and_00->sel("out"),and_1->sel("in0"));
+      def->connect(and_01->sel("out"),and_1->sel("in1"));
 
-      def->connect(add_1->sel("out"),self->sel("out"));
-      add4_n->setDef(def);
+      def->connect(and_1->sel("out"),self->sel("out"));
+      and4_n->setDef(def);
 
       RunGenerators rg;
       rg.runOnNamespace(g);
-
-      NGraph gr;
-      buildOrderedGraph(add4_n, gr);
-      deque<vdisc> topoOrder = topologicalSort(gr);
 
       // How to initialize and track values in the interpreter?
       // I think the right way would be to set select values, but
       // that does not deal with registers and memory that need
       // intermediate values
-      SimulatorState state;
+      SimulatorState state(and4_n);
       state.setValue(self->sel("in0"), BitVec(n, 20));
       state.setValue(self->sel("in1"), BitVec(n, 0));
       state.setValue(self->sel("in2"), BitVec(n, 9));
@@ -79,7 +75,7 @@ namespace CoreIR {
 
       state.execute();
 
-      BitVec bv(n, 20 + 0 + 9 + 31);
+      BitVec bv(n, 20 & 0 & 9 & 31);
       REQUIRE(state.getValue(self->sel("out")) == bv);
     }
   }
