@@ -68,9 +68,19 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(gr);
 
       // How to initialize and track values in the interpreter?
-      // I think the right way would be to set select values
+      // I think the right way would be to set select values, but
+      // that does not deal with registers and memory that need
+      // intermediate values
       SimulatorState state;
-      state.setValue(self->sel("in0"), BitVec(32));
+      state.setValue(self->sel("in0"), BitVec(n, 20));
+      state.setValue(self->sel("in1"), BitVec(n, 0));
+      state.setValue(self->sel("in2"), BitVec(n, 9));
+      state.setValue(self->sel("in3"), BitVec(n, 31));
+
+      state.execute();
+
+      BitVec bv(n, 20 + 0 + 9 + 31);
+      REQUIRE(state.getValue(self->sel("out")) == bv);
     }
   }
 

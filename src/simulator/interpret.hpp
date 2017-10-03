@@ -13,5 +13,10 @@ namespace CoreIR {
 
     void setValue(CoreIR::Select* sel, const BitVec& bv);
 
+    BitVec getValue(CoreIR::Select* sel);
+
+    void execute();
+
   };
+
 }
