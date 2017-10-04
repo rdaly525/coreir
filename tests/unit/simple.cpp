@@ -17,7 +17,6 @@ int main() {
     def->addInstance("ai","coreir.add",w16);
     def->addInstance("mi","coreir.mul",w16);
     def->addInstance("ci","coreir.const",w16,{{"value",Const::make(c,BitVector(16,140))}});
-    
 
     def->connect("self.in","ai.in0");
     def->connect("ci.out","ai.in1");
@@ -27,6 +26,7 @@ int main() {
   addmult->setDef(def);
 
   addmult->print();
+  cout << addmult->toString() << endl;
   
   deleteContext(c);
   return 0;
