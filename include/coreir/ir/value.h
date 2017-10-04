@@ -86,9 +86,6 @@ class Arg : public Value {
   public :
     Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
     static bool classof(const Value* v) {return v->getKind()==VK_Arg;}
-    static ArgPtr make(ValueType* vtype, std::string field) {
-      return std::make_shared<Arg>(vtype,field);
-    }
     const std::string& getField() const { return field;}
     bool operator==(const Value& r) const;
     bool operator<(const Value& r) const;

@@ -92,14 +92,7 @@ class Select;
 class Pass;
 class PassManager;
 
-
-
-typedef std::shared_ptr<Value> ValuePtr;
-typedef std::shared_ptr<Arg> ArgPtr;
-typedef std::shared_ptr<Const> ConstPtr;
-//typedef std::map<std::string,ConstPtr> Values;
-typedef std::map<std::string,ValuePtr> Values;
-
+typedef std::map<std::string,Value*> Values;
 typedef std::map<std::string,ValueType*> Params;
 
 bool operator==(const Values& l, const Values& r);
@@ -110,21 +103,6 @@ typedef std::function<Type*(Context* c, Values genargs)> TypeGenFun;
 typedef std::string (*NameGenFun)(Values);
 typedef std::function<std::pair<Params,Values>(Context*,Values)> ModParamsGenFun;
 typedef void (*ModuleDefGenFun)(Context* c,Values genargs,ModuleDef*);
-
-
-
-////TODO this is a hack solution that should be fixed
-//// This is so I do not overload the std::hash<std::pair<T1,T2>> class.
-//// Use myPair for hashing
-//template<class T1, class T2>
-//struct myPair {
-//  T1 first;
-//  T2 second;
-//  myPair(T1 first, T2 second) : first(first), second(second) {}
-//  friend bool operator==(const myPair& l,const myPair& r) {
-//    return l.first==r.first && l.second==r.second;
-//  }
-//};
 
 typedef std::vector<std::pair<std::string,Type*>> RecordParams ;
 

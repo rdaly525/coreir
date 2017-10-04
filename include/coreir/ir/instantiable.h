@@ -92,7 +92,21 @@ class Generator : public Instantiable {
     }
 };
 
-class Module : public Instantiable {
+class Args {
+  std::map<std::string,Arg*> args;
+  public :
+    Args(Params params) {
+      for (auto ppair : params) {
+        assert(args.count(ppair.first)==0);
+        args[ppair.first] = new Arg(ppair.second,ppair.first);
+      }
+    }
+    Arg* public getArg(std::string field) {
+      ASSERT(args.count(field)==0,"Missing arg: " + field);
+    }
+}
+
+class Module : public Instantiable : public Args {
   Type* type;
   ModuleDef* def = nullptr;
   
@@ -108,7 +122,7 @@ class Module : public Instantiable {
   std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,std::string name, Type* type,Params modparams=Params()) : Instantiable(IK_Module,ns,name), type(type), modparams(modparams) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams=Params()) : Instantiable(IK_Module,ns,name), : Args(modparams), type(type), modparams(modparams) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
