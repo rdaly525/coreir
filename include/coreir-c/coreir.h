@@ -20,6 +20,12 @@ extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
 extern COREType* COREContextNamedType(COREContext* context, const char* namespace_, const char* type_name);
 
+extern COREValueType* COREContextBool(COREContext* context);
+extern COREValueType* COREContextInt(COREContext* context);
+extern COREValueType* COREContextBitVector(COREContext* context);
+extern COREValueType* COREContextString(COREContext* context);
+extern COREValueType* COREContextString(COREContext* context);
+
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
 
