@@ -36,16 +36,15 @@ TypeCache::~TypeCache() {
 
 
 ArrayType* TypeCache::getArray(uint len, Type* t) {
-  auto lenmap = ArrayCache[t];
-  if (lenmap.count(len)) {
-    return lenmap[len];
+  if (ArrayCache.count(t) && ArrayCache[t].count(len)) {
+    return ArrayCache[t][len];
   } 
   else {
     ArrayType* a = new ArrayType(c,t,len);
     ArrayType* af = new ArrayType(c,c->Flip(t),len);
     a->setFlipped(af);
     af->setFlipped(a);
-    lenmap[len] = a;
+    ArrayCache[t][len] = a;
     ArrayCache[c->Flip(t)][len] = af;
     return a;
   }

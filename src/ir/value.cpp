@@ -34,7 +34,7 @@ bool TemplatedConst<utype>::operator==(const Value& r) const { \
 } \
 template<> \
 bool TemplatedConst<utype>::operator<(const Value& r) const { \
-  if (Value::operator==(r)) return Value::operator<(r); \
+  if (!Value::operator==(r)) return Value::operator<(r); \
   return this->get() < static_cast<const TemplatedConst<utype>&>(r).get(); \
 } \
 
@@ -63,7 +63,8 @@ bool ValuesComp::operator() (const Values& l, const Values& r) const {
   auto itr = r.begin();
   for ( ; itl!=l.end(); ++itl, ++itr) {
     if (itl->first != itr->first) return itl->first < itr->first;
-    if (itl->second != itr->second) return itl->second < itr->second;
+    if (itl->second != itr->second) return *(itl->second) < *(itr->second);
+    //if (itl->second != itr->second) return (itl->second) < (itr->second);
   }
   return false;
 }

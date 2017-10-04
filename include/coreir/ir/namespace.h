@@ -20,11 +20,11 @@ class Namespace {
   std::map<std::string,TypeGen*> typeGenList;
   
   //Caches the NamedTypes with args
-  std::unordered_map<std::string,std::map<Values,NamedType*,ValuesComp>> namedTypeGenCache;
+  std::map<std::string,std::map<Values,NamedType*,ValuesComp>> namedTypeGenCache;
 
   //Save the unflipped names for json file
-  std::unordered_map<std::string,std::string> namedTypeNameMap;
-  std::unordered_map<std::string,std::string> typeGenNameMap;
+  std::map<std::string,std::string> namedTypeNameMap;
+  std::map<std::string,std::string> typeGenNameMap;
 
   public :
     Namespace(Context* c, std::string name) : c(c), name(name) {}

@@ -309,9 +309,10 @@ Params json2Params(Context* c,json j) {
 ValuePtr json2Value(Context* c, json j) {
   auto jlist = j.get<vector<json>>();
   string vkind = jlist[0].get<string>();
-  ValueType* vtype = json2ValueType(c,jlist[1]);
-  json jval = jlist[2];
+  ValueType* vtype = json2ValueType(c,vkind);
+  json jval = jlist[1];
   if (vkind=="Arg") {
+    ASSERT(0,"NYI");
     return Arg::make(vtype,jlist[2].get<string>());
   }
   ASSERT(vkind=="Const","NYI " + vkind);

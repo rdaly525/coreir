@@ -16,12 +16,12 @@ bool isPower2(uint n) {
 
 bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
   if (l.size() != r.size()) {
-    return l.size() > r.size();
+    return l.size() < r.size();
   }
   for (uint i=0; i<l.size(); ++i) {
-    if (l[i] != r[i]) return l[i] > r[i];
+    if (l[i] != r[i]) return l[i] < r[i];
   }
-  return true;
+  return false;
 }
 bool ConnectionComp::operator() (const Connection& l, const Connection& r) const {
   if (l.first!=r.first) return SPComp(l.first->getSelectPath(),r.first->getSelectPath());

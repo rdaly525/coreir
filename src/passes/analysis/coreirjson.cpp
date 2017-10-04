@@ -74,7 +74,7 @@ string ValueType2Json(ValueType* vt) {
 //Ordere these in order as well
 string Params2Json(Params gp) {
   Dict j;
-  for (auto it : gp) j.add(it.first,quote(ValueType2Json(it.second)));
+  for (auto it : gp) j.add(it.first,ValueType2Json(it.second));
   return j.toString();
 }
 
@@ -87,7 +87,6 @@ string Value2Json(ValuePtr v) {
     ret.add(quote(a->getField()));
   }
   else if (auto c = dyn_cast<Const>(v)) {
-    ret.add(quote("Const"));
     ret.add(ValueType2Json(v->getValueType()));
     if (auto cb = dyn_cast<ConstBool>(c)) {
       ret.add(cb->get() ? "true" : "false");
