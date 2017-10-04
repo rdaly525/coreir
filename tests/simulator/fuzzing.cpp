@@ -48,26 +48,28 @@ namespace CoreIR {
   }
 
   std::string randomSimInputString(Module* mod) {
-    auto args = simInputs(*mod);
+    assert(false);
+    // auto args = simInputs(*mod);
 
-    string res = "";
-    for (auto& arg : args) {
-      res += randomInputString(*(arg.first), arg.second);
-    }
+    // string res = "";
+    // for (auto& arg : args) {
+    //   res += randomInputString(*(arg.first), arg.second);
+    // }
 
-    return res;
+    // return res;
   }
 
   std::string declareInputs(Module& mod) {
-    string res;
+    assert(false);
+    // string res;
 
-    auto args = simInputs(mod);
+    // auto args = simInputs(mod);
 
-    for (auto& arg : args) {
-      res += ln(cArrayTypeDecl(*(arg.first), arg.second));
-    }
+    // for (auto& arg : args) {
+    //   res += ln(cArrayTypeDecl(*(arg.first), arg.second));
+    // }
 
-    return res;
+    // return res;
   }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
