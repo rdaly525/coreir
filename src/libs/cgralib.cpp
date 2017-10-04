@@ -9,30 +9,11 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   
   Namespace* cgralib = c->newNamespace("cgralib");
   
-  //Unary op declaration
-  Params widthParams = {{"width",AINT}};
-  cgralib->newTypeGen("unary",widthParams,[](Context* c, Args args) { 
-    uint width = args.at("width")->get<int>();
-    return c->Record({
-      {"in",c->BitIn()->Arr(width)},
-      {"out",c->Bit()->Arr(width)},
-    });
-  });
   
   //PE declaration
-  Params PEGenParams = {{"width",AINT},{"numbitports",AINT},{"numdataports",AINT}};
-  Params PEConfigParams({
-    {"op_kind",ASTRING}, //bit,data,combined
-    {"alu_op",ASTRING}, //add,sub,shl,etc
-    {"lut_value",AINT}, //LUT for the optype=Bit (or combined)
-    {"data0_mode",ASTRING},//TODO
-    {"data0_value",AINT}, //Value for constant
-    {"data1_mode",ASTRING},
-    {"data1_value",AINT},
-    {"bit0_mode",ASTRING},
-    {"bit0_value",ABOOL},
-  });
-  cgralib->newTypeGen("PEType",PEGenParams,[](Context* c, Args args) {
+  Params PEGenParams = {{"op_kind",c->String()},{"width",c->Int()},{"numbitports",c->Int()},{"numdataports",c->Int()}};
+  
+  cgralib->newTypeGen("PEType",PEGenParams,[](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     uint numdataports = args.at("numdataports")->get<int>();
     uint numbitports = args.at("numbitports")->get<int>();
@@ -47,89 +28,78 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
       })}
     });
   });
-  Generator* PE = cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams,PEConfigParams);
-  PE->addDefaultGenArgs({{"width",Const(16)},{"numdataports",Const(2)},{"numbitports",Const(3)}});
-  PE->addDefaultConfigArgs({
-      {"alu_op",Const("nop")}, 
-      {"lut_value",Const(0)},
-      {"data0_mode",Const("BYPASS")},
-      {"data0_value",Const(0)},
-      {"data1_mode",Const("BYPASS")},
-      {"data1_value",Const(0)},
-      {"bit0_mode",Const("BYPASS")},
-      {"bit0_value",Const(false)},
-  });
-
-/*
-  //DataPE declaration
-  Params DataPEGenParams = {{"width",AINT},{"numdataports",AINT}};
-  Params DataPEConfigParams({
-    {"op",ASTRING},
-    {"data0_mode",ASTRING},
-    {"data0_value",AINT},
-    {"data1_mode",ASTRING},
-    {"data1_value",AINT}
-  });
-
-  cgralib->newTypeGen("DataPEType",DataPEGenParams,[](Context* c, Args args) {
-    uint width = args.at("width")->get<int>();
-    uint numdataports = args.at("numdataports")->get<int>();
-    return c->Record({
-      {"data",c->Record({
-        {"in",c->BitIn()->Arr(width)->Arr(numdataports)},
-        {"out",c->Bit()->Arr(width)}
-      })}
-    });
-  });
-  Generator* DataPE = cgralib->newGeneratorDecl("DataPE",cgralib->getTypeGen("DataPEType"),DataPEGenParams,DataPEConfigParams);
-  DataPE->addDefaultGenArgs({{"width",Const(16)},{"numdataports",Const(2)}});
-  DataPE->addDefaultConfigArgs({
-      {"data0_mode",Const("BYPASS")},
-      {"data0_value",Const(0)},
-      {"data1_mode",Const("BYPASS")},
-      {"data1_value",Const(0)}
-  });
+ 
+  //Generates the mod params and the default mod args
+  auto PEModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params p; //params
+    Values d; //defaults
+    string op_kind = genargs.at("op_kind")->get<string>();
+    int numbitports = genargs.at("numbitports")->get<int>();
+    int numdataports = genargs.at("numdataports")->get<int>();
+    int width = genargs.at("width")->get<int>();
+    if (op_kind == "data" || op_kind == "combined") {
+      p["alu_op"] = c->String();
+      for (int i=0; i<numbitports; ++i) {
+        string mode = "data"+to_string(i)+"_mode";
+        p[mode] = c->String();
+        d[mode] = Const::make(c,"BYPASS");
+        string value = "data"+to_string(i)+"_value";
+        p[value] = c->BitVector(width);
+        d[mode] = Const::make(c,BitVector(width,0));
+      }
+    }
+    if (op_kind == "bit" || op_kind == "combined") {
+      p["lut_value"] = c->BitVector(1<<numbitports);
+      for (int i=0; i<numbitports; ++i) {
+        string mode = "bit"+to_string(i)+"_mode";
+        p[mode] = c->String();
+        d[mode] = Const::make(c,"BYPASS");
+        string value = "bit"+to_string(i)+"_value";
+        p[value] = c->Bool();
+        d[mode] = Const::make(c,false);
+      }
+    }
+    return {modparams,defaultargs};
+  };
+ 
+//Will produce something like this for combined
+//    {"alu_op",c->String()}, //add,sub,shl,etc
+//    {"lut_value",c->BitVector(8)}, //LUT for the optype=Bit (or combined)
+//    {"data0_mode",c->String()},//TODO
+//    {"data0_value",c->Int()}, //Value for constant
+//    {"data1_mode",c->String()},
+//    {"data1_value",c->Int()},
+//    {"bit0_mode",c->String()},
+//    {"bit0_value",c->Bool()},
   
-  //BitPE declaration
-  Params BitPEGenParams = {{"numbitports",AINT}};
-  Params BitPEConfigParams({
-    {"LUT_value",AINT},
-    {"bit0_mode",ASTRING},
-    {"bit0_value",ABOOL},
-  });
+  
+  Generator* PE = cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams);
+  PE->addDefaultGenArgs({{"width",Const::make(c,16)},{"numdataports",Const::make(c,2)},{"numbitports",Const::make(c,3)}});
+  reg->setModParamsGen(PEModParamFun);
 
-  cgralib->newTypeGen("BitPEType",BitPEGenParams,[](Context* c, Args args) {
-    uint numbitports = args.at("numbitports")->get<int>();
+  //Unary op declaration
+  Params widthParams = {{"width",c->Int()}};
+  cgralib->newTypeGen("unary",widthParams,[](Context* c, Values args) { 
+    uint width = args.at("width")->get<int>();
     return c->Record({
-      {"bit",c->Record({
-        {"in",c->BitIn()->Arr(numbitports)},
-        {"out",c->Bit()}
-      })}
+      {"in",c->BitIn()->Arr(width)},
+      {"out",c->Bit()->Arr(width)},
     });
   });
-  Generator* BitPE = cgralib->newGeneratorDecl("BitPE",cgralib->getTypeGen("BitPEType"),BitPEGenParams,BitPEConfigParams);
-  BitPE->addDefaultGenArgs({{"numbitports",Const(3)}});
-  BitPE->addDefaultConfigArgs({
-    {"bit0_mode",Const("BYPASS")},
-    {"bit0_value",Const(0)}, //TODO this is an error should be bool
-  });
-
-*/
-
 
   //IO Declaration
-  Params modeParams = {{"mode",ASTRING}};
+  Params modeParams = {{"mode",c->String()}};
   cgralib->newGeneratorDecl("IO",cgralib->getTypeGen("unary"),widthParams,modeParams);
   cgralib->newModuleDecl("BitIO",c->Record({{"in",c->BitIn()},{"out",c->Bit()}}),modeParams);
 
   //Mem declaration
-  Params MemGenParams = {{"width",AINT},{"depth",AINT}};
+  Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   Params MemConfigParams = {
-    {"mode",ASTRING},
-    {"fifo_depth",AINT},
-    {"almost_full_cnt",AINT}
+    {"mode",c->String()},
+    {"fifo_depth",c->Int()},
+    {"almost_full_cnt",c->Int()}
   };
-  cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Args args) {
+  cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     return c->Record({
       {"waddr", c->BitIn()->Arr(width)},
@@ -143,10 +113,10 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     });
   });
   Generator* Mem = cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams,MemConfigParams);
-  Mem->addDefaultGenArgs({{"width",Const(16)},{"depth",Const(1024)}});
+  Mem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
   Mem->addDefaultConfigArgs({
-    {"fifo_depth",Const(1024)},
-    {"almost_full_cnt",Const(0)}
+    {"fifo_depth",Const::make(c,1024)},
+    {"almost_full_cnt",Const::make(c,0)}
   });
 
   return cgralib;
