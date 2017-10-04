@@ -45,18 +45,19 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
         d[mode] = Const::make(c,"BYPASS");
         string value = "data"+to_string(i)+"_value";
         p[value] = c->BitVector(width);
-        d[mode] = Const::make(c,BitVector(width,0));
+        d[value] = Const::make(c,BitVector(width,0));
       }
     }
     if (op_kind == "bit" || op_kind == "combined") {
       p["lut_value"] = c->BitVector(1<<numbitports);
+      d["lut_value"] = Const::make(c,1<<numbitports,0);
       for (int i=0; i<numdataports; ++i) {
         string mode = "bit"+to_string(i)+"_mode";
         p[mode] = c->String();
         d[mode] = Const::make(c,"BYPASS");
         string value = "bit"+to_string(i)+"_value";
         p[value] = c->Bool();
-        d[mode] = Const::make(c,false);
+        d[value] = Const::make(c,false);
       }
     }
     return {p,d};

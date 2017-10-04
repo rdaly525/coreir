@@ -27,8 +27,8 @@ typedef std::set<Connection,ConnectionComp> Connections;
 //These are defined in helpers
 bool isNumber(std::string s);
 bool isPower2(uint n);
-std::string Params2Str(Params);
-std::string Values2Str(Values);
+std::string Params2Str(Params,bool multi=false);
+std::string Values2Str(Values,bool multi=false);
 std::string SelectPath2Str(SelectPath path);
 std::string Connection2Str(Connection con);
 

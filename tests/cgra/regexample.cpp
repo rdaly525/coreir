@@ -16,7 +16,7 @@ int main() {
   ModuleDef* def = Top->newModuleDef();
     def->addInstance("io0","cgralib.IO",w16,{{"mode",Const::make(c,"i")}});
     def->addInstance("r0","coreir.reg",w16);
-    def->addInstance("c0","coreir.const",w16,{{"value",Const::make(c,795)}});
+    def->addInstance("c0","coreir.const",w16,{{"value",Const::make(c,16,795)}});
     def->addInstance("p0","cgralib.PE",{{"op_kind",Const::make(c,"combined")}},{{"alu_op",Const::make(c,"add")}});
     def->addInstance("r1","coreir.reg",w16);
     def->addInstance("r2","coreir.reg",w16);

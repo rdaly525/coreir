@@ -37,21 +37,26 @@ Connection connectionCtor(Wireable* a, Wireable* b) {
   }
 }
 
-string Params2Str(Params genparams) {
+string Params2Str(Params genparams, bool multi) {
   string ret = "(";
-  for (auto it=genparams.begin(); it!=genparams.end(); ++it) {
-    ret = ret + (it==genparams.begin() ? "" : ",") + it->first + ":"+it->second->toString();
+  vector<string> plist;
+  for (auto gpair : genparams) {
+    plist.push_back(gpair.first + ":" + gpair.second->toString());
   }
-  return ret + ")";
+  string sep = multi ? ",\n  " : ", ";
+  return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
 
-string Values2Str(Values args) {
-  string s = "(";
-  for (auto it=args.begin(); it!=args.end(); ++it) {
-    s = s + (it==args.begin() ? "" : ",") + it->first + ":"+it->second->toString();
+string Values2Str(Values vals, bool multi) {
+  string ret = "(";
+  vector<string> plist;
+  for (auto vpair : vals) {
+    plist.push_back(vpair.first + ":" + vpair.second->toString());
   }
-  return s + ")";
+  string sep = multi ? ",\n  " : ", ";
+  return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
+
 string SelectPath2Str(SelectPath path) {
   return join(path.begin(),path.end(),string("."));
 }
@@ -61,7 +66,8 @@ string Connection2Str(Connection con) {
 }
 
 void checkValuesAreParams(Values args, Params params) {
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args) + "\nParams: " + Params2Str(params));
+  bool multi = args.size() > 4 || params.size() > 4;
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args,multi) + "\nParams: " + Params2Str(params,multi));
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
     ASSERT(arg != args.end(), "Arg Not found: " + param.first );

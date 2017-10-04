@@ -315,7 +315,6 @@ ValuePtr json2Value(Context* c, json j) {
     ASSERT(0,"NYI");
     return Arg::make(vtype,jlist[2].get<string>());
   }
-  ASSERT(vkind=="Const","NYI " + vkind);
   switch(vtype->getKind()) {
     case Value::VK_ConstBool : return ConstBool::make(vtype,jval.get<bool>());
     case Value::VK_ConstInt : return ConstInt::make(vtype,jval.get<int>());

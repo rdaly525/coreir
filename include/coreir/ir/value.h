@@ -155,8 +155,6 @@ class Const : public Value {
     template<typename T>
     static inline typename std::enable_if<std::is_same<T,BitVector>::value,ConstPtr>::type
     make (Context* c,T val) {
-      std::cout << "here!" << std::endl;
-      std::cout << "bw" << val.bitLength() << std::endl;
       return Const_impl<BitVector>(c,val);
     }
     
