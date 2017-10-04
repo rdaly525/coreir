@@ -1,37 +1,22 @@
-//#include "coreir.h"
+#include "coreir.h"
+#include <cassert>
 
-#include "../../include/coreir/ir/value.h"
-
-using namespace CoreIR;
 using namespace std;
+using namespace CoreIR;
 
 int main() {
-  
-  ValuePtr a = Arg::make("bob");
-  ValuePtr c = Const::make("bob");
+  Context* c = newContext();
 
-
-  //shared_ptr<Expr> cb = new ConstBool(true);
-  //cout << isa<Expr>(cb) << endl;
-  //cout << isa<ConstBool>(cb) << endl;
-  //cout << cast<ConstBool>(cb)->get() << endl;
-
-  
-  ////shared_ptr<Const> sc = shared_ptr<Const>(new IConst(5));
-  ////assert(isa<Const>(sc));
-  //shared_ptr<Expr> a = cast<Expr>(sc);
-  //cout << a->eval<int>() << endl;
-  //shared_ptr<IConst> ic = cast<IConst>(sc);
-  //ic->bar();
-  //shared_ptr<IConst> dc = dyn_cast<IConst>(sc);
-  //dc->bar();
-  //cout << "ROSS" << endl;
-  ////shared_ptr<IConst> b = cast<IConst>(sc);
-  //sc->foo();
- 
-  //
-  //sc->foo();
-  
-
+  // TODO should test a bunch of other permutations
+  Values g1 = {{"a",Const::make(c,5)},{"b",Const::make(c,"ross")}};
+  Values g2 = {{"a",Const::make(c,5)},{"b",Const::make(c,"ross")}};
+  Values g3 = {{"c",Const::make(c,5)},{"b",Const::make(c,"ross")}};
+  Values g4 = {{"a",Const::make(c,5)},{"b",Const::make(c,"ross")},{"c",Const::make(c,c->BitIn())}};
+  assert(g1 == g2);
+  checkValuesAreParams(g1,{{"a",c->Int()},{"b",c->String()}});
+  assert(g1 != g3);
+  assert(g1 != g4);
+  checkValuesAreParams(g4,{{"a",c->Int()},{"b",c->String()},{"c",c->CoreIRType()}});
+  deleteContext(c);
   return 0;
 }

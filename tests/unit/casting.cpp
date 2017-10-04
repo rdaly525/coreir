@@ -27,48 +27,48 @@ int main() {
     assert(!dyn_cast<RecordType>(t));
   }
 
-  //Test casting of ArgBool
+  //Test casting of ConstBool
   {
-    ArgPtr a = Const(false);
-    assert(isa<ArgBool>(a));
+    ConstPtr a = Const::make(c,false);
+    assert(isa<ConstBool>(a));
     assert(a->get<bool>()==false);
-    shared_ptr<ArgBool> ac = cast<ArgBool>(a);
-    assert(dyn_cast<Arg>(ac));
-    assert(dyn_cast<ArgBool>(a));
-    assert(!dyn_cast<ArgString>(a));
+    shared_ptr<ConstBool> ac = cast<ConstBool>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstBool>(a));
+    assert(!dyn_cast<ConstString>(a));
   }
   
-  //Test casting of ArgInt
+  //Test casting of ConstInt
   {
-    ArgPtr a = Const(5);
-    assert(isa<ArgInt>(a));
+    ConstPtr a = Const::make(c,5);
+    assert(isa<ConstInt>(a));
     assert(a->get<int>()==5);
-    shared_ptr<ArgInt> ac = cast<ArgInt>(a);
-    assert(dyn_cast<Arg>(ac));
-    assert(dyn_cast<ArgInt>(a));
-    assert(!dyn_cast<ArgString>(a));
+    shared_ptr<ConstInt> ac = cast<ConstInt>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstInt>(a));
+    assert(!dyn_cast<ConstString>(a));
   }
   
-  //Test casting of ArgString
+  //Test casting of ConstString
   {
-    ArgPtr a = Const("Ross");
-    assert(isa<ArgString>(a));
+    ConstPtr a = Const::make(c,"Ross");
+    assert(isa<ConstString>(a));
     assert(a->get<string>()=="Ross");
-    shared_ptr<ArgString> ac = cast<ArgString>(a);
-    assert(dyn_cast<Arg>(ac));
-    assert(dyn_cast<ArgString>(a));
-    assert(!dyn_cast<ArgType>(a));
+    shared_ptr<ConstString> ac = cast<ConstString>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstString>(a));
+    assert(!dyn_cast<ConstCoreIRType>(a));
   }
   
-  //Test casting of ArgType
+  //Test casting of ConstCoreIRType
   {
-    ArgPtr a = Const(c->BitIn());
-    assert(isa<ArgType>(a));
+    ConstPtr a = Const::make(c,c->BitIn());
+    assert(isa<ConstCoreIRType>(a));
     assert(a->get<Type*>()==c->BitIn());
-    shared_ptr<ArgType> ac = cast<ArgType>(a);
-    assert(dyn_cast<Arg>(ac));
-    assert(dyn_cast<ArgType>(a));
-    assert(!dyn_cast<ArgInt>(a));
+    shared_ptr<ConstCoreIRType> ac = cast<ConstCoreIRType>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstCoreIRType>(a));
+    assert(!dyn_cast<ConstInt>(a));
   }
 
   //Test casting of Module

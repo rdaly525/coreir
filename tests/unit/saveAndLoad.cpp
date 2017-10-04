@@ -15,8 +15,8 @@ int main() {
   //Declare a TypeGenerator (in global) for addN
   g->newTypeGen(
     "addN_type", //name for the typegen
-    {{"width",AINT},{"N",AINT}}, //generater parameters
-    [](Context* c, Args args) { //Function to compute type
+    {{"width",c->Int()},{"N",c->Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
       uint width = args.at("width")->get<int>();
       uint N = args.at("N")->get<int>();
       return c->Record({
@@ -27,9 +27,9 @@ int main() {
   );
 
 
-  Generator* addN = g->newGeneratorDecl("addN",g->getTypeGen("addN_type"),{{"width",AINT},{"N",AINT}});
+  Generator* addN = g->newGeneratorDecl("addN",g->getTypeGen("addN_type"),{{"width",c->Int()},{"N",c->Int()}});
   
-  addN->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
+  addN->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     uint width = args.at("width")->get<int>();
     uint N = args.at("N")->get<int>();
     assert((N & (N-1)) == 0); //Check if power of 2
@@ -39,7 +39,7 @@ int main() {
     Generator* add2 = coreir->getGenerator("add");
     Generator* addN = c->getGlobal()->getGenerator("addN");
     
-    ArgPtr aWidth = Const(width);
+    ConstPtr aWidth = Const::make(c,width);
     
     def->addInstance("join",add2,{{"width",aWidth}});
     def->connect("join.out","self.out");
@@ -50,7 +50,7 @@ int main() {
     }
     else {
       //Connect half instances
-      ArgPtr aN2 = Const(N/2);
+      ConstPtr aN2 = Const::make(c,N/2);
       def->addInstance("addN_0",addN,{{"width",aWidth},{"N",aN2}});
       def->addInstance("addN_1",addN,{{"width",aWidth},{"N",aN2}});
       for (uint i=0; i<N/2; ++i) {
@@ -72,9 +72,9 @@ int main() {
   Namespace* coreir = c->getNamespace("coreir");
   Module* add12 = g->newModuleDecl("Add12",add12Type);
   ModuleDef* def = add12->newModuleDef();
-    def->addInstance("add8_upper",addN,{{"width",Const(13)},{"N",Const(8)}});
-    def->addInstance("add4_lower",addN,{{"width",Const(13)},{"N",Const(4)}});
-    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",Const(13)}});
+    def->addInstance("add8_upper",addN,{{"width",Const::make(c,13)},{"N",Const::make(c,8)}});
+    def->addInstance("add4_lower",addN,{{"width",Const::make(c,13)},{"N",Const::make(c,4)}});
+    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",Const::make(c,13)}});
     def->connect("self.in8","add8_upper.in");
     def->connect("self.in4","add4_lower.in");
     def->connect("add8_upper.out","add2_join.in0");
