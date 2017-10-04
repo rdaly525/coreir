@@ -109,7 +109,7 @@ bool operator==(const Values& l, const Values& r);
 typedef std::function<Type*(Context* c, Values genargs)> TypeGenFun;
 typedef std::string (*NameGenFun)(Values);
 typedef std::function<std::pair<Params,Values>(Context*,Values)> ModParamsGenFun;
-typedef void (*ModuleDefGenFun)(ModuleDef*,Values genargs);
+typedef void (*ModuleDefGenFun)(Context* c,Values genargs,ModuleDef*);
 
 
 

@@ -77,7 +77,7 @@ class Generator : public Instantiable {
   
     void setNameGen(NameGenFun ng) {nameGen = ng;}
     void setModParamsGen(ModParamsGenFun mpg) {modParamsGen = mpg;}
-    void setModParamsGen(Params modparams,Values defaultModArgs) {
+    void setModParamsGen(Params modparams,Values defaultModArgs=Values()) {
       this->modParamsGen = [modparams,defaultModArgs](Context* c,Values genargs) mutable -> std::pair<Params,Values> {
         return {modparams,defaultModArgs}; 
       };

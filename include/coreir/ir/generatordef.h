@@ -19,7 +19,7 @@ class GeneratorDefFromFun : public GeneratorDef {
     GeneratorDefFromFun(Generator* g, ModuleDefGenFun moduledefgenfun) : GeneratorDef(g), moduledefgenfun(moduledefgenfun) {}
     void createModuleDef(ModuleDef* mdef, Values genargs) override {
       checkValuesAreConst(genargs);
-      moduledefgenfun(mdef,genargs);
+      moduledefgenfun(g->getContext(),genargs,mdef);
     }
   protected:
     ModuleDefGenFun moduledefgenfun;

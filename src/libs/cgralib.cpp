@@ -50,7 +50,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     }
     if (op_kind == "bit" || op_kind == "combined") {
       p["lut_value"] = c->BitVector(1<<numbitports);
-      for (int i=0; i<numbitports; ++i) {
+      for (int i=0; i<numdataports; ++i) {
         string mode = "bit"+to_string(i)+"_mode";
         p[mode] = c->String();
         d[mode] = Const::make(c,"BYPASS");
@@ -59,7 +59,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
         d[mode] = Const::make(c,false);
       }
     }
-    return {modparams,defaultargs};
+    return {p,d};
   };
  
 //Will produce something like this for combined
@@ -75,7 +75,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   
   Generator* PE = cgralib->newGeneratorDecl("PE",cgralib->getTypeGen("PEType"),PEGenParams);
   PE->addDefaultGenArgs({{"width",Const::make(c,16)},{"numdataports",Const::make(c,2)},{"numbitports",Const::make(c,3)}});
-  reg->setModParamsGen(PEModParamFun);
+  PE->setModParamsGen(PEModParamFun);
 
   //Unary op declaration
   Params widthParams = {{"width",c->Int()}};
@@ -89,12 +89,13 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
 
   //IO Declaration
   Params modeParams = {{"mode",c->String()}};
-  cgralib->newGeneratorDecl("IO",cgralib->getTypeGen("unary"),widthParams,modeParams);
+  Generator* IO = cgralib->newGeneratorDecl("IO",cgralib->getTypeGen("unary"),widthParams);
+  IO->setModParamsGen(modeParams);
   cgralib->newModuleDecl("BitIO",c->Record({{"in",c->BitIn()},{"out",c->Bit()}}),modeParams);
-
+  
   //Mem declaration
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
-  Params MemConfigParams = {
+  Params MemModParams = {
     {"mode",c->String()},
     {"fifo_depth",c->Int()},
     {"almost_full_cnt",c->Int()}
@@ -112,12 +113,20 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
       {"valid", c->Bit()}
     });
   });
-  Generator* Mem = cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams,MemConfigParams);
+  auto MemModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params p; //params
+    Values d; //defaults
+    p["mode"] = c->String();
+    p["fifo_depth"] = c->Int();
+    d["fifo_depth"] = Const::make(c,1024);
+    p["almost_full_cnt"] = c->Int();
+    d["almost_full_cnt"] = Const::make(c,0);
+    return {p,d};
+  };
+
+  Generator* Mem = cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams);
   Mem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
-  Mem->addDefaultConfigArgs({
-    {"fifo_depth",Const::make(c,1024)},
-    {"almost_full_cnt",Const::make(c,0)}
-  });
+  Mem->setModParamsGen(MemModParamFun);
 
   return cgralib;
 }
