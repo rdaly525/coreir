@@ -76,8 +76,70 @@ namespace CoreIR {
       state.execute();
 
       BitVec bv(n, 20 & 0 & 9 & 31);
-      REQUIRE(state.getValue(self->sel("out")) == bv);
+
+      cout << "BV     = " << bv << endl;
+      cout << "output = " << state.getBitVec(self->sel("out")) << endl;
+
+      REQUIRE(state.getBitVec(self->sel("out")) == bv);
     }
+
+    SECTION("Or 4") {
+      cout << "23 bit or 4" << endl;
+
+      uint n = 23;
+  
+      Generator* or2 = c->getGenerator("coreir.or");
+
+      // Define Or4 Module
+      Type* or4Type = c->Record({
+	  {"in0",c->Array(n,c->BitIn())},
+	    {"in1",c->Array(n,c->BitIn())},
+	      {"in2",c->Array(n,c->BitIn())},
+		{"in3",c->Array(n,c->BitIn())},
+		  {"out",c->Array(n,c->Bit())}
+	});
+
+      Module* or4_n = g->newModuleDecl("Or4",or4Type);
+      ModuleDef* def = or4_n->newModuleDef();
+      Wireable* self = def->sel("self");
+      Wireable* or_00 = def->addInstance("or00",or2,{{"width", Const(n)}});
+      Wireable* or_01 = def->addInstance("or01",or2,{{"width", Const(n)}});
+      Wireable* or_1 = def->addInstance("or1",or2,{{"width", Const(n)}});
+    
+      def->connect(self->sel("in0"), or_00->sel("in0"));
+      def->connect(self->sel("in1"), or_00->sel("in1"));
+      def->connect(self->sel("in2"), or_01->sel("in0"));
+      def->connect(self->sel("in3"), or_01->sel("in1"));
+
+      def->connect(or_00->sel("out"),or_1->sel("in0"));
+      def->connect(or_01->sel("out"),or_1->sel("in1"));
+
+      def->connect(or_1->sel("out"),self->sel("out"));
+      or4_n->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      // How to initialize or track values in the interpreter?
+      // I think the right way would be to set select values, but
+      // that does not deal with registers or memory that need
+      // intermediate values
+      SimulatorState state(or4_n);
+      state.setValue(self->sel("in0"), BitVec(n, 20));
+      state.setValue(self->sel("in1"), BitVec(n, 0));
+      state.setValue(self->sel("in2"), BitVec(n, 9));
+      state.setValue(self->sel("in3"), BitVec(n, 31));
+
+      state.execute();
+
+      BitVec bv(n, 20 | 0 | 9 | 31);
+
+      cout << "BV     = " << bv << endl;
+      cout << "output = " << state.getBitVec(self->sel("out")) << endl;
+
+      REQUIRE(state.getBitVec(self->sel("out")) == bv);
+    }
+
   }
 
 }

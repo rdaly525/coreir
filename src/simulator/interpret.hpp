@@ -35,9 +35,11 @@ namespace CoreIR {
 
     void setValue(CoreIR::Select* sel, const BitVec& bv);
 
-    BitVec getValue(CoreIR::Select* sel);
+    SimValue* getValue(CoreIR::Select* sel);
+    BitVec getBitVec(CoreIR::Select* sel);
 
     void updateOutput(const vdisc vd);
+    void updateOrNode(const vdisc vd);
     void updateAndNode(const vdisc vd);
     void updateNodeValues(const vdisc vd);
     void execute();
