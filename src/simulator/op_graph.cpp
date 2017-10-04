@@ -344,7 +344,6 @@ namespace CoreIR {
 
       assert(connectionIsOrdered(connection));
 
-
       Wireable* fst = connection.first;
       Wireable* snd = connection.second;
 

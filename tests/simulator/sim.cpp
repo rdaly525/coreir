@@ -131,8 +131,8 @@ namespace CoreIR {
       ModuleDef* def = counter->newModuleDef();
 
       Values wArg({{"width", Const::make(c,16)}});
-      def->addInstance("ai","coreir.add",wArg); // using <namespace>.<module> notation 
-      def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,1)}});
+      def->addInstance("ai","coreir.add",wArg); // using <namespace>.<module> notation
+      def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,BitVector(16, 1))}});
 
       //Reg has default arguments. en/clr/rst are False by default. Init is also 0 by default
       def->addInstance("ri","coreir.reg",{{"width", Const::make(c,16)},{"en", Const::make(c,true)}});

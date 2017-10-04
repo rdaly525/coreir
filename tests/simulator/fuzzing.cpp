@@ -60,16 +60,16 @@ namespace CoreIR {
   }
 
   std::string declareInputs(Module& mod) {
-    assert(false);
-    // string res;
+    //    assert(false);
+    string res;
 
-    // auto args = simInputs(mod);
+    auto args = simInputs(mod);
 
-    // for (auto& arg : args) {
-    //   res += ln(cArrayTypeDecl(*(arg.first), arg.second));
-    // }
+    for (auto& arg : args) {
+      res += ln(cArrayTypeDecl(*(arg.first), arg.second));
+    }
 
-    // return res;
+    return res;
   }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
