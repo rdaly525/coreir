@@ -20,4 +20,4 @@ extern COREValue* COREValueBitVector(COREContext* c, int width, uint64_t val);
 extern bool COREValueBoolGet(COREValue* a);
 extern int COREValueIntGet(COREValue* a);
 extern const char* COREValueStringGet(COREValue* a);
-extern void COREValueBitVector(COREValue* a, int* width, uint64_t* val);
+extern void COREValueBitVectorGet(COREValue* a, int* width, uint64_t* val);
