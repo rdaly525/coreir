@@ -92,7 +92,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Module* logicalNot = coreirprims->getModule("bitnot");
     
     // create necessary hardware
-    ConstPtr aWidth = Const::make(c,width);
+    Const* aWidth = Const::make(c,width);
     def->addInstance("equal",equal,{{"width",aWidth}});
     def->addInstance("not",logicalNot);
 
@@ -120,7 +120,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       Generator* passthrough = stdlib->getGenerator("passthrough");
       Generator* muxN = commonlib->getGenerator("muxn");
     
-      ConstPtr aWidth = Const::make(c,width);
+      Const* aWidth = Const::make(c,width);
     
       if (N == 1) {
         def->addInstance("passthrough",passthrough,{{"type",Const::make(c,c->BitIn()->Arr(width))}});
@@ -144,8 +144,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
 
         cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
-        ConstPtr aNlarge = Const::make(c,Nlargehalf);
-        ConstPtr aNsmall = Const::make(c,Nsmallhalf);
+        Const* aNlarge = Const::make(c,Nlargehalf);
+        Const* aNsmall = Const::make(c,Nsmallhalf);
 
         def->addInstance("muxN_0",muxN,{{"width",aWidth},{"N",aNlarge}});
         def->addInstance("muxN_1",muxN,{{"width",aWidth},{"N",aNsmall}});
@@ -176,8 +176,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Namespace* commonlib = c->getNamespace("commonlib");
     Generator* opN = commonlib->getGenerator("opn");
     
-    ConstPtr aWidth = Const::make(c,width);
-    ConstPtr aOperator = Const::make(c,op2);
+    Const* aWidth = Const::make(c,width);
+    Const* aOperator = Const::make(c,op2);
     
     if (N == 1) {
       def->addInstance("passthrough","coreir.passthrough",{{"type",Const::make(c,c->BitIn()->Arr(width))}});
@@ -199,8 +199,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint Nsmallhalf = N - Nlargehalf;
 
       cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
-      ConstPtr aNlarge = Const::make(c,Nlargehalf);
-      ConstPtr aNsmall = Const::make(c,Nsmallhalf);
+      Const* aNlarge = Const::make(c,Nlargehalf);
+      Const* aNsmall = Const::make(c,Nsmallhalf);
 
       def->addInstance("opN_0",opN,{{"width",aWidth},{"N",aNlarge},{"operator",aOperator}});
       def->addInstance("opN_1",opN,{{"width",aWidth},{"N",aNsmall},{"operator",aOperator}});
@@ -359,9 +359,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     assert(image_width > stencil_width);
     assert(bitwidth > 0);
 
-    ConstPtr aBitwidth = Const::make(c,bitwidth);
+    Const* aBitwidth = Const::make(c,bitwidth);
     assert(isa<ConstInt>(aBitwidth));
-    ConstPtr aImageWidth = Const::make(c,image_width);
+    Const* aImageWidth = Const::make(c,image_width);
     Namespace* coreirprims = c->getNamespace("coreir");
 
     // create the inital register chain
@@ -483,8 +483,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Generator* const_gen = coreirprims->getGenerator("const");
     
     // create hardware
-    ConstPtr aBitwidth = Const::make(c,width);
-    ConstPtr aReset = Const::make(c,min);
+    Const* aBitwidth = Const::make(c,width);
+    Const* aReset = Const::make(c,min);
     def->addInstance("count", reg_gen, {{"width",aBitwidth},{"clr",Const::make(c,true)},{"en",Const::make(c,true)}},
                      {{"init",aReset}});
 

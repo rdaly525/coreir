@@ -45,6 +45,7 @@ class Value {
     ValueType* vtype;
   public :
     Value(ValueType* vtype, ValueKind kind) : kind(kind), vtype(vtype) {}
+    virtual ~Value() {}
     ValueKind getKind() const {return kind;}
     ValueType* getValueType() const {return vtype;}
     virtual std::string toString() const = 0;
@@ -109,11 +110,11 @@ class Arg : public Value {
 //};
 
 template<typename T> 
-ConstPtr Const_impl(Context* c,T val);
+Const* Const_impl(Context* c,T val);
 
 #define TSTAMP(utype) \
 template<> \
-ConstPtr Const_impl<utype>(Context* c,utype val);
+Const* Const_impl<utype>(Context* c,utype val);
 
 TSTAMP(bool)
 TSTAMP(int)
@@ -138,35 +139,35 @@ class Const : public Value {
     }
     
     template<typename T>
-    static inline typename std::enable_if<std::is_same<T,bool>::value,ConstPtr>::type
+    static inline typename std::enable_if<std::is_same<T,bool>::value,Const*>::type
     make(Context* c,T val) {
       return Const_impl<bool>(c,val);
     }
 
     template<typename T>
-    static inline typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,ConstPtr>::type
+    static inline typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,Const*>::type
     make(Context* c,T val) {
       return Const_impl<int>(c,val);
     }
 
     template<typename T>
-    static inline typename std::enable_if<std::is_same<T,BitVector>::value,ConstPtr>::type
+    static inline typename std::enable_if<std::is_same<T,BitVector>::value,Const*>::type
     make (Context* c,T val) {
       return Const_impl<BitVector>(c,val);
     }
     
-    static inline ConstPtr make(Context* c,int width, uint64_t val) {
+    static inline Const* make(Context* c,int width, uint64_t val) {
       return Const_impl<BitVector>(c,BitVector(width,val));
     }
  
     template<typename T>
-    static inline typename std::enable_if<std::is_convertible<T,std::string>::value,ConstPtr>::type
+    static inline typename std::enable_if<std::is_convertible<T,std::string>::value,Const*>::type
     make (Context* c,T val) {
       return Const_impl<std::string>(c,val);
     }
 
     template<typename T>
-    static inline typename std::enable_if<std::is_convertible<T,Type*>::value,ConstPtr>::type
+    static inline typename std::enable_if<std::is_convertible<T,Type*>::value,Const*>::type
     make(Context* c,T val) {
       return Const_impl<Type*>(c,val);
     }
@@ -187,14 +188,14 @@ class TemplatedConst : public Const {
   const T value;
   public :
     //typedef T type;
-    TemplatedConst(ValueType* type, T value) : Const(type,Underlying2Kind<T>::kind), value(value) {}    
+    TemplatedConst(ValueType* type, T value) : Const(type,Underlying2Kind<T>::kind), value(value) {} //TODO should I check for the typekind matching?
     bool operator==(const Value& r) const override;
     bool operator<(const Value& r) const override;
 
     static bool classof(const Value* v) {return v->getKind()==Underlying2Kind<T>::kind;}
-    static std::shared_ptr<TemplatedConst<T>> make(ValueType* type, T value) {
-      return std::make_shared<TemplatedConst<T>>(type,value);
-    }
+    //static std::shared_ptr<TemplatedConst<T>> make(ValueType* type, T value) {
+    //  return std::make_shared<TemplatedConst<T>>(type,value);
+    //}
     
     std::string toString() const override;
     const T& get() const { return value;}

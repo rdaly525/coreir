@@ -48,6 +48,7 @@ class NamedType;
 class TypeGen;
 
 class TypeCache;
+class ValueCache;
 
 //value.h
 class Value;

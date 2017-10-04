@@ -49,9 +49,7 @@ namespace bsim {
 
     dynamic_bit_vector(const int N_, const int val) : N(N_) {
       bits.resize(NUM_BYTES(N));
-      unsigned char tmp_bits[NUM_BYTES(N)];
-      *((int*) (&tmp_bits)) = val;
-      for (int i=0; i<N; ++i) bits[i] = tmp_bits[i];
+      *((int*) (&(bits[0]))) = val;
     }
 
     // dynamic_bit_vector(const bv_uint64 val) {
@@ -66,9 +64,9 @@ namespace bsim {
     //   *((bv_uint16*)(&bits)) = val;
     // }
 
-    // dynamic_bit_vector(const bv_uint8 val) {
-    //   *((bv_uint8*)(&bits)) = val;
-    // }
+    dynamic_bit_vector(const bv_uint8 val) {
+      *((bv_uint8*)(&bits)) = val;
+    }
     
     dynamic_bit_vector(const dynamic_bit_vector& other) {
       bits.resize(other.bits.size());
@@ -83,9 +81,13 @@ namespace bsim {
     	return *this;
       }
 
+      N = other.bitLength();
+      bits.resize(N);
+
       for (int i = 0; i < N; i++) {
     	set(i, other.get(i));
       }
+
 
       return *this;
     }
@@ -122,30 +124,28 @@ namespace bsim {
 
     template<typename ConvType>
     ConvType to_type() const {
-      unsigned char bits_tmp[N];
-      for (int i=0; i<NUM_BYTES(N); ++i) bits_tmp[i] = bits[i];
-      return *((ConvType*) (&bits_tmp));
+      return *((ConvType*) (&(bits[0])));
     }
 
-    //inline bv_uint64 as_native_int32() const {
-    //  return *((bv_sint32*) (&bits));
-    //}
-    //
-    //inline bv_uint64 as_native_uint64() const {
-    //  return *((bv_uint64*) (&bits));
-    //}
+    inline bv_uint64 as_native_int32() const {
+      return *((bv_sint32*) (&bits));
+    }
+    
+    inline bv_uint64 as_native_uint64() const {
+      return *((bv_uint64*) (&bits));
+    }
 
-    //inline bv_uint32 as_native_uint32() const {
-    //  return *((bv_uint32*) (&bits));
-    //}
+    inline bv_uint32 as_native_uint32() const {
+      return *((bv_uint32*) (&bits));
+    }
 
-    //inline bv_uint16 as_native_uint16() const {
-    //  return *((bv_uint16*) (&bits));
-    //}
+    inline bv_uint16 as_native_uint16() const {
+      return *((bv_uint16*) (&bits));
+    }
 
-    //inline bv_uint8 as_native_uint8() const {
-    //  return *((bv_uint8*) (&bits));
-    //}
+    inline bv_uint8 as_native_uint8() const {
+      return *((bv_uint8*) (&bits));
+    }
 
     inline int bitLength() const {
       return N;
@@ -699,11 +699,10 @@ namespace bsim {
     return dynamic_bit_vector_operations::lxor(a, b);
   }
 
-  // template<int N>
-  // static inline bool operator!=(const dynamic_bit_vector<N>& a,
-  // 				const dynamic_bit_vector<N>& b) {
-  //   return !a.equals(b);
-  // }
+  static inline bool operator!=(const dynamic_bit_vector& a,
+  				const dynamic_bit_vector& b) {
+    return !a.equals(b);
+  }
 
   // template<int N>
   // static inline bool operator==(const unsigned_int<N>& a,

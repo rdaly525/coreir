@@ -1,6 +1,7 @@
 #include "coreir/ir/context.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/valuecache.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/dynamic_bit_vector.h"
 
@@ -69,34 +70,29 @@ bool ValuesComp::operator() (const Values& l, const Values& r) const {
   return false;
 }
 
-template<typename T>
-ConstPtr Const_impl2(ValueType* type,T val) {
-  return Underlying2ValueType<T>::type::make(type,val);
+template<>
+Const* Const_impl<bool>(Context* c,bool val) {
+  return c->valuecache->getBool(val);
+}
+//TODO HERE replace bool with correct tyeps
+template<>
+Const* Const_impl<int>(Context* c,int val) {
+  return c->valuecache->getInt(val);
 }
 
 template<>
-ConstPtr Const_impl<bool>(Context* c,bool val) {
-  return ConstBool::make(c->Bool(),val);   
+Const* Const_impl<BitVector>(Context* c,BitVector val) {
+  return c->valuecache->getBitVector(val);
 }
 
 template<>
-ConstPtr Const_impl<int>(Context* c,int val) {
-  return Const_impl2<int>(c->Int(),val);   
+Const* Const_impl<string>(Context* c,string val) {
+  return c->valuecache->getString(val);
 }
 
 template<>
-ConstPtr Const_impl<BitVector>(Context* c,BitVector val) {
-  return Const_impl2<BitVector>(c->BitVector(val.bitLength()),val);   
-}
-
-template<>
-ConstPtr Const_impl<std::string>(Context* c,std::string val) {
-  return Const_impl2<std::string>(c->String(),val);   
-}
-
-template<>
-ConstPtr Const_impl<Type*>(Context* c,Type* val) {
-  return Const_impl2<Type*>(c->CoreIRType(),val);   
+Const* Const_impl<Type*>(Context* c,Type* val) {
+  return c->valuecache->getType(val);
 }
 
 

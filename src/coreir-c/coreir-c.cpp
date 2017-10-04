@@ -14,7 +14,7 @@ extern "C" {
     switch(kind) {
       case(STR2TYPE_ORDEREDMAP) : {
         char** skeys = (char**) keys;
-        Type** types = (Type**) values;
+        Type** types = (Type**) values; // TODO Sketch, this is doing an implicit rcast
         RecordParams* tmap = c->newRecordParams();
         for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
@@ -26,11 +26,11 @@ extern "C" {
       }
       case (STR2VALUE_MAP) : {
         char** skeys = (char**) keys;
-        void** args = (void**) values;
+        Value** args = (Value**) values;
         Values* amap = c->newValues();
         for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
-          ValuePtr a = c->getSavedValue(args[i]);
+          Value* a = args[i];
           amap->emplace(s,a);
         }
         ret = (void*) amap;
@@ -68,12 +68,11 @@ extern "C" {
     return name.c_str();
   }
 
-  //TODO change the name to Arg
   COREValue* COREGetModArg(COREWireable* i, char* s) {
     string str(s);
     Values modargs =cast<Instance>(rcast<Wireable*>(i))->getModArgs();
     ASSERT(modargs.count(str)>0, "ModArgs does not contain field: " + str);
-    return rcast<COREValue*>(modargs[str].get());
+    return rcast<COREValue*>(modargs[str]);
   }
 
   bool COREHasModArg(COREWireable* i, char* s) {
@@ -427,14 +426,14 @@ extern "C" {
       int size = genValues.size();
       Context* context = instance->getContext();
       *names = context->newStringArray(size);
-      *args  = (COREValue**) context->newValuePtrArray(size);
+      *args  = (COREValue**) context->newValueArray(size);
       *num_args = size;
       int count = 0;
       for (auto element : genValues) {
           std::size_t name_length = element.first.size();
           (*names)[count] = context->newStringBuffer(name_length + 1);
           memcpy((*names)[count], element.first.c_str(), name_length + 1);
-          (*args)[count] = rcast<COREValue*>(element.second.get());
+          (*args)[count] = rcast<COREValue*>(element.second);
           count++;
       }
   }

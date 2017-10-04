@@ -29,10 +29,10 @@ int main() {
 
   //Test casting of ConstBool
   {
-    ConstPtr a = Const::make(c,false);
+    Const* a = Const::make(c,false);
     assert(isa<ConstBool>(a));
     assert(a->get<bool>()==false);
-    shared_ptr<ConstBool> ac = cast<ConstBool>(a);
+    ConstBool* ac = cast<ConstBool>(a);
     assert(dyn_cast<Const>(ac));
     assert(dyn_cast<ConstBool>(a));
     assert(!dyn_cast<ConstString>(a));
@@ -40,10 +40,10 @@ int main() {
   
   //Test casting of ConstInt
   {
-    ConstPtr a = Const::make(c,5);
+    Const* a = Const::make(c,5);
     assert(isa<ConstInt>(a));
     assert(a->get<int>()==5);
-    shared_ptr<ConstInt> ac = cast<ConstInt>(a);
+    ConstInt* ac = cast<ConstInt>(a);
     assert(dyn_cast<Const>(ac));
     assert(dyn_cast<ConstInt>(a));
     assert(!dyn_cast<ConstString>(a));
@@ -51,10 +51,10 @@ int main() {
   
   //Test casting of ConstString
   {
-    ConstPtr a = Const::make(c,"Ross");
+    Const* a = Const::make(c,"Ross");
     assert(isa<ConstString>(a));
     assert(a->get<string>()=="Ross");
-    shared_ptr<ConstString> ac = cast<ConstString>(a);
+    ConstString* ac = cast<ConstString>(a);
     assert(dyn_cast<Const>(ac));
     assert(dyn_cast<ConstString>(a));
     assert(!dyn_cast<ConstCoreIRType>(a));
@@ -62,10 +62,10 @@ int main() {
   
   //Test casting of ConstCoreIRType
   {
-    ConstPtr a = Const::make(c,c->BitIn());
+    Const* a = Const::make(c,c->BitIn());
     assert(isa<ConstCoreIRType>(a));
     assert(a->get<Type*>()==c->BitIn());
-    shared_ptr<ConstCoreIRType> ac = cast<ConstCoreIRType>(a);
+    ConstCoreIRType* ac = cast<ConstCoreIRType>(a);
     assert(dyn_cast<Const>(ac));
     assert(dyn_cast<ConstCoreIRType>(a));
     assert(!dyn_cast<ConstInt>(a));

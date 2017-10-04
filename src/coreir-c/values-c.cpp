@@ -36,25 +36,22 @@ extern "C" {
   //Create Arg for Bool
   COREValue* COREValueBool(COREContext* cc, COREBool val) {
     Context* c = rcast<Context*>(cc);
-    ConstPtr ga = Const::make(c,val);
-    void* raw = c->saveValue(ga);
-    return rcast<COREValue*>(raw);
+    Value* ga = Const::make(c,val);
+    return rcast<COREValue*>(ga);
   }
   
   //Create Value for int
   COREValue* COREValueInt(COREContext* cc,int i) {
     Context* c = rcast<Context*>(cc);
-    ConstPtr ga = Const::make(c,i);
-    void* raw = c->saveValue(ga);
-    return rcast<COREValue*>(raw);
+    Value* ga = Const::make(c,i);
+    return rcast<COREValue*>(ga);
   }
   
   //Create Arg for String
   COREValue* COREValueString(COREContext* cc,char* str) {
     Context* c = rcast<Context*>(cc);
-    ConstPtr ga = Const::make(c,string(str));
-    void* raw = c->saveValue(ga);
-    return rcast<COREValue*>(raw);
+    Value* ga = Const::make(c,string(str));
+    return rcast<COREValue*>(ga);
   }
 
 }

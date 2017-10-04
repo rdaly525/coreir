@@ -1,5 +1,6 @@
 #include "coreir/ir/context.h"
 #include "coreir/ir/typecache.h"
+#include "coreir/ir/valuecache.h"
 #include "coreir/ir/passmanager.h"
 #include "coreir/ir/dynamic_bit_vector.h"
 
@@ -15,6 +16,7 @@ namespace CoreIR {
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
   typecache = new TypeCache(this);
+  valuecache = new ValueCache(this);
   //Automatically load coreir //defined in coreirprims.h
   CoreIRLoadLibrary_coreirprims(this);
   pm = new PassManager(this);
@@ -38,6 +40,7 @@ Context::~Context() {
   for (auto it : valuePtrArrays) free(it);
 
   delete typecache;
+  delete valuecache;
 }
 
 void Context::print() {
@@ -238,7 +241,7 @@ Values* Context::newValues() {
   return vals;
 }
 
-Value** Context::newValuePtrArray(int size) {
+Value** Context::newValueArray(int size) {
     Value** arr = (Value**) malloc(sizeof(Value*) * size);
     valuePtrArrays.push_back(arr);
     return arr;
@@ -292,16 +295,6 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     return arr;
 }
 
-void* Context::saveValue(ValuePtr value) { 
-  void* key = value.get();
-  valueList[key] = value;
-  return key;
-}
-
-ValuePtr Context::getSavedValue(void* value) {
-  ASSERT(valueList.count(value),"Missing Value!");
-  return valueList[value];
-}
 
 Context* newContext() {
   Context* m = new Context();

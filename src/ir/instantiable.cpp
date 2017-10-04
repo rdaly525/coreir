@@ -21,6 +21,15 @@ namespace CoreIR {
 //bool operator==(const Instantiable & l,const Instantiable & r) {
 //  return l.isKind(r.getKind()) && (l.getName()==r.getName()) && (l.getNamespace()->getName() == r.getNamespace()->getName());
 //}
+Args::Args(Params params) {
+  for (auto ppair : params) {
+    assert(args.count(ppair.first)==0);
+    args[ppair.first] = new Arg(ppair.second,ppair.first);
+  }
+}
+Args::~Args() {
+  for (auto apair : args) delete apair.second;
+}
 
 ostream& operator<<(ostream& os, const Instantiable& i) {
   os << i.toString();

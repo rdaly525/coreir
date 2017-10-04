@@ -22,7 +22,7 @@ typedef map<string,json> jsonmap;
 
 Type* json2Type(Context* c, json jt);
 Values json2Values(Context* c, json j);
-ValuePtr json2Value(Context* c, json j);
+Value* json2Value(Context* c, json j);
 ValueType* json2ValueType(Context* c,json j);
 Params json2Params(Context* c,json j);
 
@@ -306,21 +306,21 @@ Params json2Params(Context* c,json j) {
   return g;
 }
 
-ValuePtr json2Value(Context* c, json j) {
+Value* json2Value(Context* c, json j) {
   auto jlist = j.get<vector<json>>();
   string vkind = jlist[0].get<string>();
   ValueType* vtype = json2ValueType(c,vkind);
   json jval = jlist[1];
   if (vkind=="Arg") {
     ASSERT(0,"NYI");
-    return Arg::make(vtype,jlist[2].get<string>());
+    return nullptr;
   }
   switch(vtype->getKind()) {
-    case Value::VK_ConstBool : return ConstBool::make(vtype,jval.get<bool>());
-    case Value::VK_ConstInt : return ConstInt::make(vtype,jval.get<int>());
-    case Value::VK_ConstBitVector : return ConstBitVector::make(vtype,BitVector(cast<BitVectorType>(vtype)->getWidth(),jval.get<string>()));
-    case Value::VK_ConstString : return ConstString::make(vtype,jval.get<string>());
-    case Value::VK_ConstCoreIRType : return ConstCoreIRType::make(vtype,json2Type(c,jval));
+    case Value::VK_ConstBool : return Const::make(c,jval.get<bool>());
+    case Value::VK_ConstInt : return Const::make(c,jval.get<int>());
+    case Value::VK_ConstBitVector : return Const::make(c,BitVector(cast<BitVectorType>(vtype)->getWidth(),jval.get<string>()));
+    case Value::VK_ConstString : return Const::make(c,jval.get<string>());
+    case Value::VK_ConstCoreIRType : return Const::make(c,json2Type(c,jval));
     default : ASSERT(0,"Cannot have a Const of type" + vtype->toString());
   }
 }

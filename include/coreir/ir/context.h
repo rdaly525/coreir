@@ -22,12 +22,13 @@ class Context {
 
   public :
     //Used for caching the types
+    ValueCache* valuecache;
     TypeCache* typecache;
   
   private :
     
     //Memory management
-    std::unordered_map<void*,ValuePtr> valueList;
+    std::unordered_map<void*,Value*> valueList;
     std::vector<Values*> valuesList;
     std::vector<Value**> valuePtrArrays;
     std::vector<RecordParams*> recordParamsList;
@@ -113,11 +114,11 @@ class Context {
     // C API memory management
 
     //Saves 
-    void* saveValue(ValuePtr val);
-    ValuePtr getSavedValue(void*);
+    void* saveValue(Value* val);
+    Value* getSavedValue(void*);
     
     
-    Value** newValuePtrArray(int size);
+    Value** newValueArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);

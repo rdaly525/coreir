@@ -79,7 +79,7 @@ string Params2Json(Params gp) {
 }
 
 string Type2Json(Type* t);
-string Value2Json(ValuePtr v) {
+string Value2Json(Value* v) {
   Array ret;
   if (auto a = dyn_cast<Arg>(v)) {
     ret.add(quote("Arg"));

@@ -39,7 +39,7 @@ int main() {
     Generator* add2 = coreir->getGenerator("add");
     Generator* addN = c->getGlobal()->getGenerator("addN");
     
-    ConstPtr aWidth = Const::make(c,width);
+    Const* aWidth = Const::make(c,width);
     
     def->addInstance("join",add2,{{"width",aWidth}});
     def->connect("join.out","self.out");
@@ -50,7 +50,7 @@ int main() {
     }
     else {
       //Connect half instances
-      ConstPtr aN2 = Const::make(c,N/2);
+      Const* aN2 = Const::make(c,N/2);
       def->addInstance("addN_0",addN,{{"width",aWidth},{"N",aN2}});
       def->addInstance("addN_1",addN,{{"width",aWidth},{"N",aN2}});
       for (uint i=0; i<N/2; ++i) {
