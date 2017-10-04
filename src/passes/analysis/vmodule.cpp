@@ -46,7 +46,7 @@ string VModule::toInstanceString(Instance* inst) {
   unordered_map<string,VWire> iports;
   Values args;
   if (gen) {
-    args = castMap<Value>(inst->getGenArgs());
+    args = inst->getGenArgs();
     Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
     mname = gen->getNamespace()->getName() + "_" + modname; //TODO bug
   }

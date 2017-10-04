@@ -50,13 +50,13 @@ Generator::~Generator() {
 }
 
 //This is the tough one
-Module* Generator::getModule(Consts genargs) {
+Module* Generator::getModule(Values genargs) {
   
   if (genCache.count(genargs)) {
     return genCache[genargs];
   }
   
-  checkValuesAreParams(castMap<Value>(genargs),genparams);
+  checkValuesAreParams(genargs,genparams);
   Type* type = typegen->getType(genargs);
   string modname;
   if (nameGen) {
@@ -67,7 +67,7 @@ Module* Generator::getModule(Consts genargs) {
   }
   Module* m;
   if (modParamsGen) {
-    std::pair<Params,Consts> pc = modParamsGen(getContext(),genargs);
+    std::pair<Params,Values> pc = modParamsGen(getContext(),genargs);
     m = new Module(ns,modname,type,pc.first);
     m->addDefaultModArgs(pc.second);
   }
@@ -93,7 +93,7 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
   this->def = new GeneratorDefFromFun(this,fun);
 }
 
-void Generator::addDefaultGenArgs(Consts defaultGenArgs) {
+void Generator::addDefaultGenArgs(Values defaultGenArgs) {
   //Check to make sure each arg is in the gen params
   for (auto argmap : defaultGenArgs) {
     ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!")
@@ -133,7 +133,7 @@ ModuleDef* Module::newModuleDef() {
   return md;
 }
 
-void Module::addDefaultModArgs(Consts defaultModArgs) {
+void Module::addDefaultModArgs(Values defaultModArgs) {
   //Check to make sure each arg is in the mod params
   for (auto argmap : defaultModArgs) {
     ASSERT(modparams.count(argmap.first),"Cannot set default module arg. Param " + argmap.first + " Does not exist!")

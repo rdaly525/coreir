@@ -97,9 +97,8 @@ class PassManager;
 typedef std::shared_ptr<Value> ValuePtr;
 typedef std::shared_ptr<Arg> ArgPtr;
 typedef std::shared_ptr<Const> ConstPtr;
-typedef std::map<std::string,ConstPtr> Consts;
+//typedef std::map<std::string,ConstPtr> Values;
 typedef std::map<std::string,ValuePtr> Values;
-typedef std::map<std::string,Arg*> Args;
 
 typedef std::map<std::string,ValueType*> Params;
 
@@ -107,10 +106,10 @@ bool operator==(const Values& l, const Values& r);
 
 
 //Function prototypes for APIs
-typedef std::function<Type*(Context* c, Consts genargs)> TypeGenFun;
-typedef std::string (*NameGenFun)(Consts);
-typedef std::function<std::pair<Params,Consts>(Context*,Consts)> ModParamsGenFun;
-typedef void (*ModuleDefGenFun)(ModuleDef*,Consts genargs);
+typedef std::function<Type*(Context* c, Values genargs)> TypeGenFun;
+typedef std::string (*NameGenFun)(Values);
+typedef std::function<std::pair<Params,Values>(Context*,Values)> ModParamsGenFun;
+typedef void (*ModuleDefGenFun)(ModuleDef*,Values genargs);
 
 
 
@@ -162,11 +161,6 @@ namespace std {
   template <>
   struct hash<CoreIR::Values> {
     size_t operator() (const CoreIR::Values& args) const;
-  };
-  
-  template <>
-  struct hash<CoreIR::Consts> {
-    size_t operator() (const CoreIR::Consts& args) const;
   };
   
   template <>

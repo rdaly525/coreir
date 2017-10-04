@@ -95,11 +95,11 @@ class Instance : public Wireable {
   bool isgen;
   bool wasgen = false;
   Generator* generatorRef = nullptr;
-  Consts genargs;
+  Values genargs;
   
   public :
     Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs=Values());
-    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Consts genargs, Values modargs=Values());
+    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Values genargs, Values modargs=Values());
     static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     std::string toString() const;
     json toJson();
@@ -117,7 +117,7 @@ class Instance : public Wireable {
     bool wasGen() const { return wasgen;}
     Generator* getGeneratorRef() { return generatorRef;}
     Instantiable* getInstantiableRef();
-    Consts getGenArgs() {return genargs;}
+    Values getGenArgs() {return genargs;}
     
     //Returns if it actually ran the generator
     //Runs the generator and changes instance label to Module
@@ -127,7 +127,7 @@ class Instance : public Wireable {
     bool runGenerator();
 
     void replace(Module* moduleRef, Values modargs=Values());
-    void replace(Generator* generatorRef, Consts genargs, Values modargs=Values());
+    void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
   
   friend class InstanceGraphNode;
 };

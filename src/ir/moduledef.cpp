@@ -27,7 +27,7 @@ void ModuleDef::print(void) {
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
     if (inst.second->isGen()) {
-      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(castMap<Value>(inst.second->getGenArgs())) << endl;
+      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(inst.second->getGenArgs()) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
@@ -137,7 +137,7 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 }
 
 
-Instance* ModuleDef::addInstance(string instname,Generator* gen, Consts genargs,Values modargs) {
+Instance* ModuleDef::addInstance(string instname,Generator* gen, Values genargs,Values modargs) {
   ASSERT(instances.count(instname)==0,instname + " already an instance");
 
   Instance* inst = new Instance(this,instname,gen,genargs,modargs);
@@ -158,19 +158,11 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Values modargs) {
   return inst;
 }
 
-//Consts castValues2Consts(Values vs) {
-//  Consts cs;
-//  for (auto vmap : vs) {
-//    ASSERT(isa<Const>(vmap.second),Value2Str(vmap.second) + " needs to be a const!");
-//    cs[vmap.first] = cast<Const>(vmap.second);
-//  }
-//}
-
 Instance* ModuleDef::addInstance(string instname,string iref,Values genOrModargs, Values modargs) {
   vector<string> split = splitRef(iref);
   Instantiable* ref = this->getContext()->getInstantiable(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
-    return this->addInstance(instname,g,castMap<Const>(genOrModargs),modargs);
+    return this->addInstance(instname,g,genOrModargs,modargs);
   }
   else {
     auto m = cast<Module>(ref);

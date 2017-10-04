@@ -20,7 +20,7 @@ class Namespace {
   std::map<std::string,TypeGen*> typeGenList;
   
   //Caches the NamedTypes with args
-  std::unordered_map<std::string,std::map<Consts,NamedType*,ConstsComp>> namedTypeGenCache;
+  std::unordered_map<std::string,std::map<Values,NamedType*,ValuesComp>> namedTypeGenCache;
 
   //Save the unflipped names for json file
   std::unordered_map<std::string,std::string> namedTypeNameMap;
@@ -42,7 +42,7 @@ class Namespace {
     //Only returns named types without args
     std::map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
     NamedType* getNamedType(std::string name);
-    NamedType* getNamedType(std::string name, Consts genargs);
+    NamedType* getNamedType(std::string name, Values genargs);
     TypeGen* getTypeGen(std::string name);
     bool hasTypeGen(std::string name) {return typeGenList.count(name)>0;}
 

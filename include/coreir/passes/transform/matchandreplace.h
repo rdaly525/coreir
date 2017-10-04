@@ -13,7 +13,7 @@ class MatchAndReplace : public ModulePass {
     typedef std::function<bool(const std::vector<Instance*>&)> MatchingCheckFun;
     struct Opts {
       Values modargs = Values(); //used if replacement is always a constant modargs
-      Consts genargs = Consts(); // Used if replacement is a generator
+      Values genargs = Values(); // Used if replacement is a generator
       std::vector<std::string> instanceKey; //Used for reference in following two functions
       MatchingCheckFun checkMatching = nullptr; //Checks if a matching pattern is really matching
       ModArgFun getModArgs = nullptr; //Calculates the modars based off the matching pattern
@@ -26,7 +26,7 @@ class MatchAndReplace : public ModulePass {
 
     void verifyOpts(Opts opts);
 
-    Consts genargs;
+    Values genargs;
     Values modargs;
     ModArgFun getModArgs; //Can be null
     MatchingCheckFun checkMatching; //can be null
@@ -49,7 +49,7 @@ class MatchAndReplace : public ModulePass {
 
   public:
     explicit MatchAndReplace(std::string name, Module* pattern, Instantiable* replacement, Opts opts=Opts()) : ModulePass(name,"Matches a module and replaces it"), pattern(pattern), replacement(replacement), genargs(opts.genargs), modargs(opts.modargs), getModArgs(opts.getModArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
-      mergeConsts(genargs, dyn_cast<Generator>(replacement)->getDefaultGenArgs());
+      mergeValues(genargs, dyn_cast<Generator>(replacement)->getDefaultGenArgs());
       this->verifyOpts(opts);
       this->preprocessPattern();
     }

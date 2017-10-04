@@ -69,9 +69,12 @@ void checkValuesAreParams(Values args, Params params) {
   }
 }
 
-void checkValuesAreParams(Consts args, Params params) {
-  checkValuesAreParams(castMap<Value>(args),params);
+void checkValuesAreConst(Values vs) {
+  for (auto v : vs) {
+    ASSERT(isa<Const>(v.second),v.first + " Needs to be a const!");
+  }
 }
+
 
 vector<string> splitRef(string s) {
   auto p = splitString<vector<string>>(s,'.');
@@ -85,15 +88,6 @@ bool hasChar(const std::string s, char c) {
 
 //merge a1 into a0
 void mergeValues(Values& a0, Values a1) {
-  for (auto arg : a1) {
-    if (a0.count(arg.first)==0) {
-      a0.insert(arg);
-    }
-  }
-}
-
-//merge a1 into a0
-void mergeConsts(Consts& a0, Consts a1) {
   for (auto arg : a1) {
     if (a0.count(arg.first)==0) {
       a0.insert(arg);

@@ -2,6 +2,7 @@
 #define COREIR_GENERATORDEF_HPP_
 
 #include "fwd_declare.h"
+#include "common.h"
 
 namespace CoreIR {
 class GeneratorDef {
@@ -10,13 +11,14 @@ class GeneratorDef {
   public: 
     GeneratorDef(Generator* g) : g(g) {}
     virtual ~GeneratorDef() {}
-    virtual void createModuleDef(ModuleDef*,Consts) = 0;
+    virtual void createModuleDef(ModuleDef*,Values) = 0;
 };
 
 class GeneratorDefFromFun : public GeneratorDef {
   public:
     GeneratorDefFromFun(Generator* g, ModuleDefGenFun moduledefgenfun) : GeneratorDef(g), moduledefgenfun(moduledefgenfun) {}
-    void createModuleDef(ModuleDef* mdef, Consts genargs) override {
+    void createModuleDef(ModuleDef* mdef, Values genargs) override {
+      checkValuesAreConst(genargs);
       moduledefgenfun(mdef,genargs);
     }
   protected:

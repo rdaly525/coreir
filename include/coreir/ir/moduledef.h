@@ -63,7 +63,7 @@ class ModuleDef {
     
 
     //API for adding an instance of either a module or generator
-    Instance* addInstance(std::string instname,Generator* genref,Consts genargs, Values modargs=Values());
+    Instance* addInstance(std::string instname,Generator* genref,Values genargs, Values modargs=Values());
     Instance* addInstance(std::string instname,Module* modref,Values modargs=Values());
     
     //Add instance using an Instantiable ref std::string

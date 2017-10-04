@@ -13,8 +13,8 @@ class TypeGen : public RefName {
   public:
     TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : RefName(ns,name), params(params), flipped(flipped) {}
     virtual ~TypeGen() {}
-    virtual Type* createType(Context* c, Consts args) = 0;
-    Type* getType(Consts genargs); //TODO change this to a functor
+    virtual Type* createType(Context* c, Values args) = 0;
+    Type* getType(Values genargs); //TODO change this to a functor
     Params getParams() const {return params;}
     bool isFlipped() const { return flipped;}
 };
@@ -23,7 +23,7 @@ class TypeGen : public RefName {
 class TypeGenFromFun : public TypeGen {
   public :
     TypeGenFromFun(Namespace* ns, std::string name, Params params, TypeGenFun fun, bool flipped=false) : TypeGen(ns,name,params,flipped), fun(fun) {}
-    Type* createType(Context* c, Consts genargs) override {
+    Type* createType(Context* c, Values genargs) override {
       return fun(c,genargs);
     }
   private :

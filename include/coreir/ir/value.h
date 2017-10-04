@@ -206,17 +206,4 @@ class TemplatedConst : public Const {
 };
 
 }
-
-//namespace std {
-//  size_t hash<CoreIR::Values>::operator() (const CoreIR::Values& vs) const {
-//    return 5;
-//  }
-//  size_t hash<CoreIR::Consts>::operator() (const CoreIR::Consts& cs) const {
-//    return 5;
-//  }
-//  
-//
-//}
-
-
 #endif

@@ -19,13 +19,6 @@ class ValuesComp {
     bool operator() (const Values& l, const Values& r) const;
 };
 
-class ConstsComp {
-  public:
-    bool operator() (const Consts& l, const Consts& r) const;
-};
-
-
-
 //TODO Ugly hack to create a sorted connection. Should make my own connection class
 Connection connectionCtor(Wireable* a, Wireable* b);
 
@@ -39,20 +32,23 @@ std::string Values2Str(Values);
 std::string SelectPath2Str(SelectPath path);
 std::string Connection2Str(Connection con);
 
-//Will call assertions
+//Checks that the values are of the correct names and types
 void checkValuesAreParams(Values args, Params params);
+
+//Checks that all the values are actually constants
+void checkValuesAreConst(Values vs);
 
 bool hasChar(const std::string s, char c);
 
-//Used for casting Values, Consts, Args
-template<typename To,typename FromMap>
-std::map<std::string,std::shared_ptr<To>> castMap (FromMap fm) {
-  std::map<std::string,std::shared_ptr<To>> tomap;
-  for (auto fpair : fm) {
-    tomap[fpair.first] = cast<To>(fpair.second);
-  }
-  return tomap;
-}
+////Used for casting Values, Consts, Args
+//template<typename To,typename FromMap>
+//std::map<std::string,std::shared_ptr<To>> castMap (FromMap fm) {
+//  std::map<std::string,std::shared_ptr<To>> tomap;
+//  for (auto fpair : fm) {
+//    tomap[fpair.first] = cast<To>(fpair.second);
+//  }
+//  return tomap;
+//}
 
 template<class T> std::string toString(const T& t) {
   std::ostringstream stream;
@@ -103,7 +99,6 @@ static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
 });
 
 void mergeValues(Values& v0, Values v1);
-void mergeConsts(Consts& v0, Consts v1);
 
 }
 

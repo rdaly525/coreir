@@ -43,13 +43,13 @@ class Generator : public Instantiable {
     TypeGen* typegen;
     
     Params genparams;
-    Consts defaultGenArgs; 
+    Values defaultGenArgs; 
     
     NameGenFun nameGen=nullptr;
     ModParamsGenFun modParamsGen=nullptr;
 
     //This is memory managed
-    std::map<Consts,Module*,ConstsComp> genCache;
+    std::map<Values,Module*,ValuesComp> genCache;
     GeneratorDef* def = nullptr;
   
   public :
@@ -64,7 +64,7 @@ class Generator : public Instantiable {
     
     //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace
-    Module* getModule(Consts genargs);
+    Module* getModule(Values genargs);
     
     //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
@@ -72,22 +72,22 @@ class Generator : public Instantiable {
     Params getGenParams() {return genparams;}
 
     //This will add (and override) default args
-    void addDefaultGenArgs(Consts defaultGenfigargs);
-    Consts getDefaultGenArgs() { return defaultGenArgs;}
+    void addDefaultGenArgs(Values defaultGenfigargs);
+    Values getDefaultGenArgs() { return defaultGenArgs;}
   
     void setNameGen(NameGenFun ng) {nameGen = ng;}
     void setModParamsGen(ModParamsGenFun mpg) {modParamsGen = mpg;}
-    void setModParamsGen(Params modparams,Consts defaultModArgs) {
-      this->modParamsGen = [modparams,defaultModArgs](Context* c,Consts genargs) mutable -> std::pair<Params,Consts> {
+    void setModParamsGen(Params modparams,Values defaultModArgs) {
+      this->modParamsGen = [modparams,defaultModArgs](Context* c,Values genargs) mutable -> std::pair<Params,Values> {
         return {modparams,defaultModArgs}; 
       };
     }
-    std::pair<Params,Consts> getModParams(Consts genargs) {
+    std::pair<Params,Values> getModParams(Values genargs) {
       if (modParamsGen) {
         return modParamsGen(getContext(),genargs);
       }
       else {
-        return {Params(),Consts()};
+        return {Params(),Values()};
       }
     }
 };
@@ -97,7 +97,7 @@ class Module : public Instantiable {
   ModuleDef* def = nullptr;
   
   const Params modparams;
-  Consts defaultModArgs;
+  Values defaultModArgs;
 
   //std::map<std::string,Arg*> moduleargs;
 
@@ -129,8 +129,8 @@ class Module : public Instantiable {
     void print(void) override;
 
     //This will add (and override) defaultModArgs
-    void addDefaultModArgs(Consts defaultModArgs);
-    Consts& getDefaultModArgs() { return defaultModArgs;}
+    void addDefaultModArgs(Values defaultModArgs);
+    Values& getDefaultModArgs() { return defaultModArgs;}
 
   private :
     //This should be used very carefully. Could make things inconsistent

@@ -144,7 +144,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           Module* m = ns->newModuleDecl(jmodname,t,modparams);
           if (jmod.count("defaultmodargs")) {
-            m->addDefaultModArgs(castMap<Const>(json2Values(c,jmod.at("defaultmodargs"))));
+            m->addDefaultModArgs(json2Values(c,jmod.at("defaultmodargs")));
           }
           if (jmod.count("metadata")) {
             m->setMetaData(jmod["metadata"]);
@@ -173,7 +173,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           //  g->addDefaultModArgs(json2Values(c,modparams,jgen.at("defaultmodargs")));
           //}
           if (jgen.count("defaultgenargs")) {
-            g->addDefaultGenArgs(castMap<Const>(json2Values(c,jgen.at("defaultgenargs"))));
+            g->addDefaultGenArgs(json2Values(c,jgen.at("defaultgenargs")));
           }
           if (jgen.count("metadata")) {
             g->setMetaData(jgen["metadata"]);
@@ -207,7 +207,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           else if (jinst.count("genargs") && jinst.count("genref")) { // This is a generator
             auto gref = getRef(jinst.at("genref").get<string>());
             Generator* genRef = getGenSymbol(c,gref[0],gref[1]);
-            Consts genargs = castMap<Const>(json2Values(c,jinst.at("genargs")));
+            Values genargs = json2Values(c,jinst.at("genargs"));
             Values modargs;
             if (jinst.count("modargs")) {
               modargs = json2Values(c,jinst.at("modargs"));
@@ -365,7 +365,7 @@ Type* json2Type(Context* c, json jt) {
       std::string name   = info[1];
       if (args.size()==3) { //Has args
         Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
-        Consts genargs = castMap<Const>(json2Values(c,args[2]));
+        Values genargs = json2Values(c,args[2]);
         return c->Named(nsname+"."+name,genargs);
       }
       return c->Named(nsname+"."+name);

@@ -57,10 +57,6 @@ bool operator==(const Values& l, const Values& r) {
   return true;
 }
 
-bool operator==(const Consts& l, const Consts& r) {
-  return castMap<Value>(l) == castMap<Value>(r);
-}
-
 bool ValuesComp::operator() (const Values& l, const Values& r) const {
   if (l.size() != r.size()) return l.size() < r.size();
   auto itl = l.begin();
@@ -70,11 +66,6 @@ bool ValuesComp::operator() (const Values& l, const Values& r) const {
     if (itl->second != itr->second) return itl->second < itr->second;
   }
   return false;
-}
-
-bool ConstsComp::operator() (const Consts& l, const Consts& r) const {
-  ValuesComp vc;
-  return vc(castMap<Value>(l),castMap<Value>(r));
 }
 
 template<typename T>

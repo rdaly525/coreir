@@ -22,7 +22,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   auto sliceTypeGen = coreirprims->newTypeGen(
     "sliceTypeFun",
     sliceParams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       uint lo = args.at("lo")->get<int>();
       uint hi = args.at("hi")->get<int>();
@@ -57,7 +57,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   auto concatTypeGen = coreirprims->newTypeGen(
     "concatTypeFun",
     concatParams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width0 = args.at("width0")->get<int>();
       uint width1 = args.at("width1")->get<int>();
       return c->Record({
@@ -84,7 +84,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   //Params stripParams({
   //  {"namedtype",TYPE}
   //});
-  //auto stripFun = [](Context* c, Consts args) { return c; } //TODO
+  //auto stripFun = [](Context* c, Values args) { return c; } //TODO
   //TypeGen stripTypeGen(stripParams,stripFun);
   //stdlib->newGeneratorDecl("strip",stripParams,stripTypeGen);
 
@@ -101,7 +101,7 @@ void coreirprims_convert(Context* c, Namespace* coreirprims) {
   //  {"intype",TYPE},
   //  {"outtype",TYPE}
   //});
-  //auto castFun = [](Context* c, Consts args) { return ; } //TODO
+  //auto castFun = [](Context* c, Values args) { return ; } //TODO
   //TypeGen castTypeGen(castParams,castFun);
   //stdlib->newGeneratorDecl("cast",castParams,castTypeGen);
 
@@ -130,7 +130,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
    * Fun: out <= (rst|clr) ? resetval : en ? in : out;
    * Argchecks:
    */
-  auto regFun = [](Context* c, Consts args) {
+  auto regFun = [](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     bool en = args.at("en")->get<bool>();
     bool clr = args.at("clr")->get<bool>();
@@ -149,9 +149,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     return c->Record(r);
   };
 
-  auto regModParamFun = [](Context* c,Consts genargs) -> std::pair<Params,Consts> {
+  auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
-    Consts defaultargs;
+    Values defaultargs;
     if (genargs.at("rst")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
@@ -161,7 +161,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   };
 
   //Set nameGen function
-  auto regNameGen = [](Consts args) {
+  auto regNameGen = [](Values args) {
     string name = "reg_P"; //TODO Should we do negedge?
     bool rst = args["rst"]->get<bool>();
     bool clr = args["clr"]->get<bool>();
@@ -192,7 +192,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   reg->setNameGen(regNameGen);
 
 
-  auto bitRegFun = [](Context* c, Consts args) {
+  auto bitRegFun = [](Context* c, Values args) {
     bool en = args.at("en")->get<bool>();
     bool clr = args.at("clr")->get<bool>();
     bool rst = args.at("rst")->get<bool>();
@@ -225,7 +225,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
 
   //Memory
   Params memGenParams({{"width",c->Int()},{"depth",c->Int()},{"has_init",c->Bool()}});
-  auto memFun = [](Context* c, Consts genargs) {
+  auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
     ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth));
@@ -240,9 +240,9 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
     });
   };
   
-  auto memModParamFun = [](Context* c,Consts genargs) -> std::pair<Params,Consts> {
+  auto memModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
-    Consts defaultargs;
+    Values defaultargs;
     bool has_init = genargs.at("has_init")->get<bool>();
     if (has_init) {
       int width = genargs.at("width")->get<int>();
@@ -283,7 +283,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "unary",
     widthparams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -295,7 +295,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "binary",
     widthparams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -309,7 +309,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "binaryReduce",
     widthparams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -322,7 +322,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "unaryReduce",
     widthparams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -336,7 +336,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //coreirprims->newTypeGen(
   //  "unaryExpand",
   //  widthparams,
-  //  [](Context* c, Consts args) {
+  //  [](Context* c, Values args) {
   //    uint width = args.at("width")->get<int>();
   //    return c->Record({
   //      {"in",c->BitIn()},
@@ -348,7 +348,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "ternary",
     widthparams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
@@ -394,7 +394,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "binaryCarry",
     binaryCarryParams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       int width = args.at("width")->get<int>();
       bool has_cout = args.at("has_cout")->get<bool>();
       bool has_cin  = args.at("has_cin")->get<bool>();
@@ -466,7 +466,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   TypeGen* passthroughTG = coreirprims->newTypeGen(
     "passthrough",
     passthroughParams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       Type* t = args.at("type")->get<Type*>();
       return c->Record({
         {"in",t->getFlipped()},
@@ -487,7 +487,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "out",
     widthparams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
 
@@ -497,11 +497,11 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     }
   );
 
-  auto constModParamFun = [](Context* c,Consts genargs) -> std::pair<Params,Consts> {
+  auto constModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     int width = genargs.at("width")->get<int>();
     Params modparams;
     modparams["value"] = BitVectorType::make(c,width);
-    return {modparams,Consts()};
+    return {modparams,Values()};
   };
 
   auto Const = coreirprims->newGeneratorDecl("const",coreirprims->getTypeGen("out"),widthparams);
@@ -521,7 +521,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   coreirprims->newTypeGen(
     "in",
     widthparams,
-    [](Context* c, Consts args) {
+    [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({

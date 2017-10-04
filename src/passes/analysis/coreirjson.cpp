@@ -170,7 +170,7 @@ string Instances2Json(map<string,Instance*>& insts) {
     Dict j(10);
     if (i->isGen()) {
       j.add("genref",quote(i->getGeneratorRef()->getNamespace()->getName() + "." + i->getGeneratorRef()->getName()));
-      j.add("genargs",Values2Json(castMap<Value>(i->getGenArgs())));
+      j.add("genargs",Values2Json(i->getGenArgs()));
     }
     else {
       j.add("modref",quote(i->getModuleRef()->getNamespace()->getName() + "." + i->getModuleRef()->getName()));
@@ -205,7 +205,7 @@ string Module2Json(Module* m) {
     j.add("modparams",Params2Json(m->getModParams()));
   }
   if (!m->getDefaultModArgs().empty()) {
-    j.add("defaultmodargs",Values2Json(castMap<Value>(m->getDefaultModArgs())));
+    j.add("defaultmodargs",Values2Json(m->getDefaultModArgs()));
   }
   if (m->hasDef()) {
     ModuleDef* def = m->getDef();
@@ -229,7 +229,7 @@ json Generator2Json(Generator* g) {
   j.add("typegen",quote(g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName()));
   j.add("genparams",Params2Json(g->getGenParams()));
   if (!g->getDefaultGenArgs().empty()) {
-    j.add("defaultgenargs",Values2Json(castMap<Value>(g->getDefaultGenArgs())));
+    j.add("defaultgenargs",Values2Json(g->getDefaultGenArgs()));
   }
   if (g->hasMetaData()) {
     j.add("metadata",toString(g->getMetaData()));

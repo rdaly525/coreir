@@ -103,7 +103,7 @@ class VModule {
         params.insert(p.first); 
       }
     }
-    void addDefaults(Consts ds) { 
+    void addDefaults(Values ds) { 
       for (auto dpair : ds) {
         ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
         paramDefaults[dpair.first] = dpair.second->toString();
