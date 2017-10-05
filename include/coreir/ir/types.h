@@ -2,6 +2,7 @@
 #define COREIR_TYPES_HPP_
 
 #include "fwd_declare.h"
+#include "refname.h"
 
 namespace CoreIR {
 
@@ -69,28 +70,23 @@ class BitInType : public Type {
     uint getSize() const { return 1;}
 };
 
-class NamedType : public Type {
+class NamedType : public Type, public RefName {
   protected :
-    Namespace* ns;
-    std::string name;
     
     Type* raw;
 
     bool isgen=false;
     TypeGen* typegen=nullptr;
-    Args genargs;
+    Values genargs;
   public :
-    NamedType(Context* c, Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),c), ns(ns), name(name), raw(raw) {}
-    NamedType(Context* c, Namespace* ns, std::string name, TypeGen* typegen, Args genargs);
+    NamedType(Namespace* ns, std::string name, Type* raw);
+    NamedType(Namespace* ns, std::string name, TypeGen* typegen, Values genargs);
     static bool classof(const Type* t) {return t->getKind()==TK_Named;}
-    std::string toString(void) const { return name; } //TODO add generator
-    Namespace* getNamespace() {return ns;}
-    std::string getName() {return name;}
-    std::string getRefName();
+    std::string toString(void) const { return this->getRefName(); } //TODO add generator
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}
-    Args getGenArgs() {return genargs;}
+    Values getGenArgs() {return genargs;}
     uint getSize() const { return raw->getSize();}
 };
 

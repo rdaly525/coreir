@@ -34,6 +34,11 @@ Module = {
   "type":Type,
   "modparams"?:Parameter,
   "defaultmodargs"?:Consts,
+  
+  //For if these were generated from a generator
+  "genargs"?: genargs,
+  "genref"?: NamedRef,
+
   "instances"?:{<instname>:Instance,...},
   "connections"?: Connection[]
 }
@@ -45,8 +50,6 @@ Generator = {
 }
 
 Instance = {
-  "genref"?:NamedRef,
-  "genargs"?:Consts,
   "modref"?:NamedRef,
   "modargs"?:Values
 }
@@ -65,16 +68,27 @@ ValueType = "Bool"
           | "Int"
           | ["BitVector" <N>]
           | "String"
-          | "CoreIRType"
+          | "Type"
+          | "Module" (Values -> Void)
+          | "Generator" (Values -> Module
+          | "TypeGen" (Values ->Type
 
 Params = {<field>:ValueType,...}
 
-Arg = [ValueType, "Arg", <field>]
-Const = [ValueType, <Val>]
+Arg = [ValueType, "Arg",<field>]
+Const = [ValueType, "Const", <Val>]
+Consts = {<field>:Const,...}
+
+Const = GlobalValue
+      | ConstantData
+
+GlobalValue = Module
+            | Generator
+            | TypeGen
+
 
 Value = Arg
       | Const
 
-Values = {<field>:Value,...}
 
 ```

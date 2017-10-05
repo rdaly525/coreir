@@ -1,6 +1,8 @@
 #include "coreir/ir/context.h"
 #include "coreir/ir/typecache.h"
+#include "coreir/ir/valuecache.h"
 #include "coreir/ir/passmanager.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 
 
 using namespace std;
@@ -13,7 +15,8 @@ namespace CoreIR {
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
-  cache = new TypeCache(this);
+  typecache = new TypeCache(this);
+  valuecache = new ValueCache(this);
   //Automatically load coreir //defined in coreirprims.h
   CoreIRLoadLibrary_coreirprims(this);
   pm = new PassManager(this);
@@ -34,9 +37,10 @@ Context::~Context() {
   for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
-  for (auto it : argPtrArrays) free(it);
+  for (auto it : valuePtrArrays) free(it);
 
-  delete cache;
+  delete typecache;
+  delete valuecache;
 }
 
 void Context::print() {
@@ -162,18 +166,19 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 }
 */
 
-Type* Context::Bit() { return cache->newBit(); }
-Type* Context::BitIn() { return cache->newBitIn(); }
-Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
-Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::Named(string nameref) {
+BitType* Context::Bit() { return typecache->getBit(); }
+BitInType* Context::BitIn() { return typecache->getBitIn(); }
+ArrayType* Context::Array(uint n, Type* t) { return typecache->getArray(n,t);}
+RecordType* Context::Record(RecordParams rp) { return typecache->getRecord(rp); }
+NamedType* Context::Named(string nameref) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
-Type* Context::Named(string nameref,Args args) {
+NamedType* Context::Named(string nameref,Values args) {
+  checkValuesAreConst(args);
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
@@ -189,6 +194,12 @@ Type* Context::In(Type* t) {
 Type* Context::Out(Type* t) {
   assert(0 && "TODO NYI");
 }
+
+BoolType* Context::Bool() { return BoolType::make(this);}
+IntType* Context::Int(){ return IntType::make(this);}
+BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
+StringType* Context::String() { return StringType::make(this);}
+//CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
   ASSERT(top && top->hasDef(), top->toString() + " has no def!");
@@ -224,15 +235,15 @@ Params* Context::newParams() {
   return params;
 }
 
-Args* Context::newArgs() {
-  Args* args = new Args();
-  argsList.push_back(args);
-  return args;
+Values* Context::newValues() {
+  Values* vals = new Values();
+  valuesList.push_back(vals);
+  return vals;
 }
 
-Arg** Context::newArgPtrArray(int size) {
-    Arg** arr = (Arg**) malloc(sizeof(Arg*) * size);
-    argPtrArrays.push_back(arr);
+Value** Context::newValueArray(int size) {
+    Value** arr = (Value**) malloc(sizeof(Value*) * size);
+    valuePtrArrays.push_back(arr);
     return arr;
 }
 
@@ -284,16 +295,6 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     return arr;
 }
 
-void* Context::saveArg(shared_ptr<Arg> arg) { 
-  void* key = arg.get();
-  argList[key] = arg;
-  return key;
-}
-
-ArgPtr Context::getSavedArg(void* arg) {
-  ASSERT(argList.count(arg),"Missing Arg!");
-  return argList[arg];
-}
 
 Context* newContext() {
   Context* m = new Context();

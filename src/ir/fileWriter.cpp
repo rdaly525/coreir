@@ -119,7 +119,6 @@ bool saveToDot(Module* m, string filename) {
   return true;
 }
 
-
 bool saveToFile(Namespace* ns, string filename,Module* top) {
   Context* c = ns->getContext();
   ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file")

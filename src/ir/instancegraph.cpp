@@ -41,7 +41,9 @@ void InstanceGraph::construct(Namespace* ns) {
     nodeMap2.insert(nodemap);
   }
   for (auto nodemap : nodeMap2) {
-    if (isa<Generator>(nodemap.first) || !nodemap.first->hasDef()) continue;
+    if (isa<Generator>(nodemap.first)) continue;
+    Module* m = cast<Module>(nodemap.first);
+    if (!m->hasDef()) continue;
     ModuleDef* mdef = cast<Module>(nodemap.first)->getDef();
     for (auto instmap : mdef->getInstances()) {
       Instantiable* icheck = instmap.second->getInstantiableRef();
