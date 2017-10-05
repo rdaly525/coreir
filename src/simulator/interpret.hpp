@@ -25,15 +25,17 @@ namespace CoreIR {
   };
 
   class SimulatorState {
+    CoreIR::Module* mod;
     NGraph gr;
     std::unordered_map<CoreIR::Select*, SimValue*> valMap;
     std::deque<vdisc> topoOrder;    
 
   public:
 
-    SimulatorState(CoreIR::Module* mod);
+    SimulatorState(CoreIR::Module* mod_);
 
     void setValue(CoreIR::Select* sel, const BitVec& bv);
+    void setValue(const std::string& name, const BitVec& bv);
     void setClock(CoreIR::Select* sel,
 		  const unsigned char clk_last,
 		  const unsigned char clk);

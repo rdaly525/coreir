@@ -5,7 +5,7 @@ using namespace std;
 
 namespace CoreIR {
 
-  SimulatorState::SimulatorState(CoreIR::Module* mod) {
+  SimulatorState::SimulatorState(CoreIR::Module* mod_) : mod(mod_) {
     buildOrderedGraph(mod, gr);
     topoOrder = topologicalSort(gr);
   }
@@ -13,6 +13,15 @@ namespace CoreIR {
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
     BitVector* b = new BitVector(bv);
     valMap[sel] = b;
+  }
+
+  
+  void SimulatorState::setValue(const std::string& name, const BitVec& bv) {
+    ModuleDef* def = mod->getDef();
+    Wireable* w = def->sel(name);
+    Select* s = toSelect(w);
+
+    setValue(s, bv);
   }
 
   // NOTE: Actually implement by checking types

@@ -127,7 +127,8 @@ namespace CoreIR {
       // that does not deal with registers or memory that need
       // intermediate values
       SimulatorState state(or4_n);
-      state.setValue(self->sel("in0"), BitVec(n, 20));
+      //state.setValue(self->sel("in0"), BitVec(n, 20));
+      state.setValue("self.in0", BitVec(n, 20));
       state.setValue(self->sel("in1"), BitVec(n, 0));
       state.setValue(self->sel("in2"), BitVec(n, 9));
       state.setValue(self->sel("in3"), BitVec(n, 31));
@@ -178,7 +179,7 @@ namespace CoreIR {
 
       SimulatorState state(counter);
       state.setClock(self->sel("clk"), 0, 1);
-      state.setValue(self->sel("en"), BitVec(1, 1));
+      state.setValue("self.en", BitVec(1, 1));
       
 
     }
