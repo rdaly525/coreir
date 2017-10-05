@@ -44,7 +44,10 @@ namespace CoreIR {
 
 	  pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-	  valMap[toSelect(outPair.second)] = new BitVector(BitVec(3, argInt));
+	  Select* outSel = toSelect(outPair.second);
+	  ArrayType& arrTp = toArray(*(outSel->getType()));
+
+	  valMap[outSel] = new BitVector(BitVec(arrTp.getLen(), argInt));
 	}
       }
     }
