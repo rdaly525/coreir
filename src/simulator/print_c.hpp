@@ -64,6 +64,7 @@ namespace CoreIR {
   std::string getOpString(Instance& inst);
 
   std::string signedCTypeString(Type& tp);
+  std::string unSignedCTypeString(Type& tp);
 
   std::string lastMask(const std::string& startWidth, const std::string& endWidth);
 

@@ -1,0 +1,28 @@
+{"top":"global.Add4_cin",
+ "namespaces":{
+     "global":{
+	 "modules":{
+	     "Add4_cin":{
+		 "type":["Record",{
+		     "I0":["Array",4,"BitIn"],
+		     "I1":["Array",4,"BitIn"],
+		     "O":["Array",4,"Bit"],
+		     "CIN":"BitIn"
+		 }],
+		 "instances":{
+		     "inst0":{
+			 "genref":"coreir.add",
+			 "genargs":{"has_cin":true, "has_cout":false, "width":4}
+		     }
+		 },
+		 "connections":[
+		     ["self.O","inst0.out"],
+		     ["self.I1","inst0.in1"],
+		     ["self.I0","inst0.in0"],
+		     ["self.CIN","inst0.cin"]
+		 ]
+	     }
+	 }
+     }
+ }
+}
