@@ -36,7 +36,7 @@ namespace bsim {
     }
 
     dynamic_bit_vector(const int N_, const std::string& str) : N(N_) {
-      assert(str.size() == N);
+      assert(((unsigned)str.size()) == ((unsigned)N));
 
       bits.resize(NUM_BYTES(N));
 
