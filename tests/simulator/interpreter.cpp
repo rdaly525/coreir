@@ -230,6 +230,36 @@ namespace CoreIR {
       
     }
 
+    SECTION("Increment circuit") {
+      uint width = 3;
+
+      Type* incTestType =
+	c->Record({{"incIn", c->Array(width, c->BitIn())},
+	      {"incOut", c->Array(width, c->Bit())}});
+
+      Module* incTest = g->newModuleDecl("incMod", incTestType);
+      ModuleDef* def = incTest->newModuleDef();
+      
+      Args wArg({{"width", Const(width)}});
+      def->addInstance("ai","coreir.add",wArg);
+      def->addInstance("ci","coreir.const",wArg,{{"value", Const(1)}});
+    
+      def->connect("ci.out","ai.in0");
+      def->connect("self.incIn","ai.in1");
+      def->connect("ai.out","self.incOut");
+
+      incTest->setDef(def);
+
+      SimulatorState state(incTest);
+      state.setValue("self.incIn", BitVec(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.incOut") == BitVec(width, 1));
+      
+      
+    }
+
   }
 
 }

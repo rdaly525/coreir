@@ -78,6 +78,9 @@ namespace CoreIR {
     BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
     BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
 
+    assert(s1 != nullptr);
+    assert(s2 != nullptr);
+    
     BitVec sum = s1->getBits() & s2->getBits();
 
     SimValue* oldVal = valMap[toSelect(outPair.second)];
@@ -106,6 +109,9 @@ namespace CoreIR {
 
     BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
     BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
+
+    assert(s1 != nullptr);
+    assert(s2 != nullptr);
 
     BitVec sum = add_general_width_bv(s1->getBits(), s2->getBits());
 
@@ -136,6 +142,9 @@ namespace CoreIR {
     BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
     BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
 
+    assert(s1 != nullptr);
+    assert(s2 != nullptr);
+    
     BitVec sum = s1->getBits() | s2->getBits();
 
     SimValue* oldVal = valMap[toSelect(outPair.second)];
@@ -163,6 +172,8 @@ namespace CoreIR {
 
     BitVector* s = static_cast<BitVector*>(valMap[arg.getWire()]);
 
+    assert(s != nullptr);
+
     SimValue* oldVal = valMap[inst];
     delete oldVal;
 
@@ -186,14 +197,19 @@ namespace CoreIR {
 
     string opName = getOpName(*toInstance(wd.getWire()));
     if (opName == "and") {
-      return updateAndNode(vd);
+      updateAndNode(vd);
+      return;
     } else if (opName == "or") {
-      return updateOrNode(vd);
+      updateOrNode(vd);
+      return;
     } else if (opName == "add") {
-      return updateAddNode(vd);
+      updateAddNode(vd);
+      return;
+    } else if (opName == "const") {
+      return;
     }
 
-    cout << "Unsupported node " << wd.getWire()->toString() << endl;
+    cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
     assert(false);
   }
 
