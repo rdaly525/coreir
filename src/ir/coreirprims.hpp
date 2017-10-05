@@ -461,7 +461,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
 
   //This defines a passthrough module. It is basically a nop that just passes the signal through
   Params passthroughParams({
-    {"type",c->CoreIRType()},
+    {"type",CoreIRType::make(c)},
   });
   TypeGen* passthroughTG = coreirprims->newTypeGen(
     "passthrough",

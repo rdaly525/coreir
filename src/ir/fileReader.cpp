@@ -290,7 +290,7 @@ ValueType* json2ValueType(Context* c,json j) {
     return c->String();
   }
   else if(vs=="CoreIRType") {
-    return c->CoreIRType();
+    return CoreIRType::make(c);
   }
   else {
     ASSERT(0,vs + " is not a ValueType");

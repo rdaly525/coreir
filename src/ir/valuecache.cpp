@@ -53,7 +53,7 @@ ConstString* ValueCache::getString(string val) {
 
 ConstCoreIRType* ValueCache::getType(Type* val) {
   if (typeCache.count(val) ) return typeCache[val];
-  auto v = new ConstCoreIRType(c->CoreIRType(),val);
+  auto v = new ConstCoreIRType(CoreIRType::make(c),val);
   typeCache[val] = v;
   return v;
 }
