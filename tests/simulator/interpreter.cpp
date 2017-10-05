@@ -142,6 +142,47 @@ namespace CoreIR {
       REQUIRE(state.getBitVec(self->sel("outval")) == bv);
     }
 
+    SECTION("Counter") {
+      Type* CounterType = c->Record({
+	  {"en",c->BitIn()}, 
+	    {"out",c->Bit()->Arr(16)}, //Convenient Arr Type Constructor
+	      {"clk",c->Named("coreir.clkIn")}, //Named Ref constructor 
+		});
+
+      //Now lets create a module declaration. Declarations are specified separately from the definition
+      Module* counter = c->getGlobal()->newModuleDecl("counter",CounterType); //use getGlobalFunction
+      ModuleDef* def = counter->newModuleDef();
+
+      Args wArg({{"width", Const(16)}});
+      def->addInstance("ai","coreir.add",wArg); // using <namespace>.<module> notation 
+      def->addInstance("ci","coreir.const",wArg,{{"value", Const(1)}});
+
+      //Reg has default arguments. en/clr/rst are False by default. Init is also 0 by default
+      def->addInstance("ri","coreir.reg",{{"width", Const(16)},{"en", Const(true)}});
+    
+      //Connections
+      def->connect("self.clk","ri.clk");
+      def->connect("self.en","ri.en");
+      def->connect("ci.out","ai.in0");
+      def->connect("ai.out","ri.in");
+      def->connect("ri.out","ai.in1");
+      def->connect("ri.out","self.out");
+
+      counter->setDef(def);
+      counter->print();
+  
+      RunGenerators rg;
+      rg.runOnNamespace(c->getGlobal());
+
+      Wireable* self = def->sel("self");      
+
+      SimulatorState state(counter);
+      state.setClock(self->sel("clk"), 0, 1);
+      state.setValue(self->sel("en"), BitVec(1, 1));
+      
+
+    }
+
   }
 
 }

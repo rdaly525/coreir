@@ -34,6 +34,9 @@ namespace CoreIR {
     SimulatorState(CoreIR::Module* mod);
 
     void setValue(CoreIR::Select* sel, const BitVec& bv);
+    void setClock(CoreIR::Select* sel,
+		  const unsigned char clk_last,
+		  const unsigned char clk);
 
     SimValue* getValue(CoreIR::Select* sel);
     BitVec getBitVec(CoreIR::Select* sel);

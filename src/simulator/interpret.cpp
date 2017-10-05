@@ -151,6 +151,11 @@ namespace CoreIR {
     }
   }
 
+  void SimulatorState::setClock(CoreIR::Select* sel,
+				const unsigned char clk_last,
+				const unsigned char clk) {
+  }
+  
   SimulatorState::~SimulatorState() {
     for (auto& val : valMap) {
       delete val.second;
