@@ -11,11 +11,10 @@ namespace CoreIR {
 
     // Set constants
     for (auto& vd : gr.getVerts()) {
-      auto ins = getInputs(vd, gr);
-
       WireNode wd = gr.getNode(vd);
 
       if (isInstance(wd.getWire())) {
+
 	Instance* inst = toInstance(wd.getWire());
 	string opName = getOpName(*inst);
 
