@@ -8,6 +8,28 @@ namespace CoreIR {
   SimulatorState::SimulatorState(CoreIR::Module* mod_) : mod(mod_) {
     buildOrderedGraph(mod, gr);
     topoOrder = topologicalSort(gr);
+
+    // Set constants
+    for (auto& vd : gr.getVerts()) {
+      auto ins = getInputs(vd, gr);
+
+      WireNode wd = gr.getNode(vd);
+
+      if (isInstance(wd.getWire())) {
+	Instance* inst = toInstance(wd.getWire());
+	string opName = getOpName(*inst);
+
+	if (opName == "const") {
+	  auto outSelects = getOutputSelects(inst);
+
+	  assert(outSelects.size() == 1);
+
+	  pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+	  valMap[toSelect(outPair.second)] = new BitVector(BitVec(3, 0));
+	}
+      }
+    }
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
