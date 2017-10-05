@@ -62,12 +62,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   // Commonlib Arithmetic primitives
   //   umin,smin,umax,smax
+  //   absd
   /////////////////////////////////
 
   //Lazy way:
   unordered_map<string,vector<string>> opmap({
     {"binary",{
-     "umin","smin","umax","smax"
+      "umin","smin","umax","smax","absd"
     }},
   });
   
@@ -476,7 +477,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // get generators
     Namespace* coreirprims = c->getNamespace("coreir");
     Module* and_mod = coreirprims->getModule("bitand");
-    //Generator* mux_gen = coreirprims->getGenerator("mux");
     Generator* ult_gen = coreirprims->getGenerator("ult");
     Generator* add_gen = coreirprims->getGenerator("add");
     Generator* reg_gen = coreirprims->getGenerator("reg");
@@ -488,13 +488,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("count", reg_gen, {{"width",aBitwidth},{"clr",Const::make(c,true)},{"en",Const::make(c,true)}},
                      {{"init",aReset}});
 
-    //def->addInstance("min", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,min)}});
     def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,max)}});
     def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,inc)}});
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     def->addInstance("and", and_mod);
-    //    def->addInstance("mux", mux_gen, {{"width",aBitwidth}});
     
     // wire up modules
     // clear if count+inc > max
@@ -508,15 +506,100 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("add.out","ult.in1");
     def->connect("max.out","ult.in0");
     def->connect("ult.out","count.clr");
-    //    def->connect("ult.out","and.in.0");
-    //    def->connect("self.en","and.in.1");
-
-    //    def->connect("add.out","mux.in.data.1");
-    //    def->connect("min.out","mux.in.data.0");
-    //    def->connect("mux.out","count.in");
 
   });
 
+  /////////////////////////////////
+  // serializer definition       //
+  /////////////////////////////////
+
+  // on count==0, read in all input values.
+  // on every cycle, input<n> is outputted where n=count
+
+  // serializer type
+  commonlib->newTypeGen(
+    "serializer_type", //name for the typegen
+    {{"width",Int()},{"rate",Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
+      uint width = args.at("width")->get<int>();
+      uint rate  = args.at("rate")->get<int>();
+      return c->Record({
+        {"en",c->BitIn()},
+        {"count",c->Bit()->Arr(width)},
+        {"in",c->BitIn()->Arr(width)->Arr(rate)},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+
+  Generator* serializer = commonlib->newGeneratorDecl("serializer",commonlib->getTypeGen("serializer_type"),{{"width",AINT},{"rate",AINT}});
+  
+  serializer->setGeneratorDefFromFun([](ModuleDef* def, Context* c, Type* t, Values args) {
+    uint width = args.at("width")->get<int>();
+    uint rate  = args.at("rate")->get<int>();
+    assert(width>0);
+    assert(rate>1);
+
+    // get generators
+    Namespace* coreirprims = c->getNamespace("coreir");
+    Generator* const_gen = coreirprims->getGenerator("const");
+    Generator* eq_gen = coreirprims->getGenerator("eq");
+    
+    // create hardware
+    ArgPtr aBitwidth = Const::make(c,width);
+    def->addInstance("counter", "commonlib.counter",
+                     {{"width",aBitwidth},{"min",Const::make(c,0)},{"max",Const::make(c,rate)},{"inc",Const::make(c,1)}});
+    def->addInstance("muxn", "commonlib.muxn",
+                     {{"width",aBitwidth},{"N",Const::make(c,rate)}});
+    def->addInstance("equal", eq_gen,
+                     {{"width",aBitwidth}});
+    def->addInstance("zero", const_gen,
+                     {{"width",aBitwidth}},{{"value",Const::make(c,0)}});
+
+    // all but input0 are stored in registers
+    for (uint i=1; i<rate; ++i) {
+      std::string reg_name = "reg_" + std::to_string(i);
+      def->addInstance(reg_name, "coreir.reg",
+                       {{"width",aBitwidth},{"en",Const::make(c,true)}});
+    }
+
+    // wire up modules
+    def->connect("self.en","counter.en");
+    def->connect("counter.out","self.count");
+    def->connect("counter.out","muxn.in.sel");
+
+    def->connect("zero.out","equal.in0");
+    def->connect("counter.out","equal.in1");
+    
+
+    // wire up inputs to regs and mux
+    for (uint i=0; i<rate; ++i) {
+      std::string idx = std::to_string(i);
+      if (i==0) {
+        def->connect("self.in.0", "muxn.in.data.0");
+      } else {
+        std::string reg_name = "reg_"+idx;
+        def->connect("self.in."+idx, reg_name+".in");
+        def->connect(reg_name+".out", "muxn.in.data."+idx);
+
+        // connect reg enables
+        def->connect(reg_name+".en", "equal.out");
+      }
+    }
+    
+    def->connect("muxn.out","self.out");
+
+  });
+
+
+  /////////////////////////////////
+  // decoder definition          //
+  /////////////////////////////////
+
+  // on count==0, read in all input values.
+  // on every cycle, input<n> is outputted where n=count
+
+  // Not yet implemented
 
   return commonlib;
 }
