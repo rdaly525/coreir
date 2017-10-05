@@ -180,8 +180,54 @@ namespace CoreIR {
       SimulatorState state(counter);
       state.setClock(self->sel("clk"), 0, 1);
       state.setValue("self.en", BitVec(1, 1));
-      
+    }
 
+    SECTION("Test bit vector addition") {
+      cout << "23 bit or 4" << endl;
+
+      uint n = 76;
+  
+      Generator* add2 = c->getGenerator("coreir.add");
+
+      // Define Add2 Module
+      Type* add2Type = c->Record({
+	  {"in0",c->Array(n,c->BitIn())},
+	    {"in1",c->Array(n,c->BitIn())},
+	      {"outval",c->Array(n,c->Bit())}
+	});
+
+      Module* add2_n = g->newModuleDecl("Add2",add2Type);
+      ModuleDef* def = add2_n->newModuleDef();
+      Wireable* self = def->sel("self");
+      Wireable* or_00 = def->addInstance("or00",add2,{{"width", Const(n)}});
+
+      def->connect(self->sel("in0"), or_00->sel("in0"));
+      def->connect(self->sel("in1"), or_00->sel("in1"));
+      def->connect(or_00->sel("out"), self->sel("outval"));
+
+      add2_n->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      // How to initialize or track values in the interpreter?
+      // I think the right way would be to set select values, but
+      // that does not deal with registers or memory that need
+      // intermediate values
+      SimulatorState state(add2_n);
+      //state.setValue(self->sel("in0"), BitVec(n, 20));
+      state.setValue("self.in0", BitVec(n, 20));
+      state.setValue("self.in1", BitVec(n, 1234));
+
+      state.execute();
+
+      BitVec bv(n, 20 + 1234);
+
+      cout << "BV     = " << bv << endl;
+      cout << "output = " << state.getBitVec(self->sel("outval")) << endl;
+
+      REQUIRE(state.getBitVec(self->sel("outval")) == bv);
+      
     }
 
   }

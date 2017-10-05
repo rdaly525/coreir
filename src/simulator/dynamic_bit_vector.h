@@ -47,8 +47,7 @@ namespace bsim {
       }
     }
 
-    dynamic_bit_vector(const int N_, const int val) {
-      N = N_;
+    dynamic_bit_vector(const int N_, const int val) : N(N_) {
       bits.resize(NUM_BYTES(N));
       *((int*) (&(bits[0]))) = val;
     }
@@ -65,9 +64,9 @@ namespace bsim {
     //   *((bv_uint16*)(&bits)) = val;
     // }
 
-    // dynamic_bit_vector(const bv_uint8 val) {
-    //   *((bv_uint8*)(&bits)) = val;
-    // }
+    dynamic_bit_vector(const bv_uint8 val) {
+      *((bv_uint8*)(&bits)) = val;
+    }
     
     dynamic_bit_vector(const dynamic_bit_vector& other) {
       bits.resize(other.bits.size());
@@ -82,9 +81,13 @@ namespace bsim {
     	return *this;
       }
 
+      N = other.bitLength();
+      bits.resize(N);
+
       for (int i = 0; i < N; i++) {
     	set(i, other.get(i));
       }
+
 
       return *this;
     }
@@ -319,6 +322,29 @@ namespace bsim {
     
   // };
 
+  static inline
+  dynamic_bit_vector
+  add_general_width_bv(const dynamic_bit_vector& a,
+  		       const dynamic_bit_vector& b) {
+
+    dynamic_bit_vector res(a.bitLength());
+    unsigned char carry = 0;
+    for (int i = 0; i < a.bitLength(); i++) {
+      unsigned char sum = a.get(i) + b.get(i) + carry;
+
+      carry = 0;
+
+      unsigned char z_i = sum & 0x01; //sum % 2;
+      res.set(i, z_i);
+      if (sum >= 2) {
+  	carry = 1;
+      }
+
+    }
+
+    return res;
+  }
+  
   // template<int Width>
   // static inline
   // dynamic_bit_vector<Width>
