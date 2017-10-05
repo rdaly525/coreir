@@ -80,7 +80,7 @@ extern "C" {
   }
 
   COREValueType* COREContextCoreIRType(COREContext* context) {
-      return rcast<COREValueType*>(rcast<Context*>(context)->CoreIRType());
+      return rcast<COREValueType*>(CoreIRType::make(rcast<Context*>(context)));
   }
 
   const char* COREGetInstantiableRefName(COREWireable* iref) {
