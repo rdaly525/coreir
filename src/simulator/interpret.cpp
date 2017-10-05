@@ -108,7 +108,8 @@ namespace CoreIR {
 
     assert(inConns.size() == 1);
 
-    InstanceValue arg = findArg("out", inConns);
+    Conn inConn = *std::begin(inConns);
+    InstanceValue arg = inConn.first;
 
     BitVector* s = static_cast<BitVector*>(valMap[arg.getWire()]);
 

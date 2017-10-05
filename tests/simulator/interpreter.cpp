@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_MAIN
+
 #include "catch.hpp"
 
 #include "coreir.h"
@@ -96,7 +98,7 @@ namespace CoreIR {
 	    {"in1",c->Array(n,c->BitIn())},
 	      {"in2",c->Array(n,c->BitIn())},
 		{"in3",c->Array(n,c->BitIn())},
-		  {"out",c->Array(n,c->Bit())}
+		  {"outval",c->Array(n,c->Bit())}
 	});
 
       Module* or4_n = g->newModuleDecl("Or4",or4Type);
@@ -111,10 +113,10 @@ namespace CoreIR {
       def->connect(self->sel("in2"), or_01->sel("in0"));
       def->connect(self->sel("in3"), or_01->sel("in1"));
 
-      def->connect(or_00->sel("out"),or_1->sel("in0"));
-      def->connect(or_01->sel("out"),or_1->sel("in1"));
+      def->connect(or_00->sel("out"), or_1->sel("in0"));
+      def->connect(or_01->sel("out"), or_1->sel("in1"));
 
-      def->connect(or_1->sel("out"),self->sel("out"));
+      def->connect(or_1->sel("out"), self->sel("outval"));
       or4_n->setDef(def);
 
       RunGenerators rg;
@@ -135,9 +137,9 @@ namespace CoreIR {
       BitVec bv(n, 20 | 0 | 9 | 31);
 
       cout << "BV     = " << bv << endl;
-      cout << "output = " << state.getBitVec(self->sel("out")) << endl;
+      cout << "output = " << state.getBitVec(self->sel("outval")) << endl;
 
-      REQUIRE(state.getBitVec(self->sel("out")) == bv);
+      REQUIRE(state.getBitVec(self->sel("outval")) == bv);
     }
 
   }
