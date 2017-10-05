@@ -308,13 +308,9 @@ Params json2Params(Context* c,json j) {
 
 Value* json2Value(Context* c, json j) {
   auto jlist = j.get<vector<json>>();
-  string vkind = jlist[0].get<string>();
-  ValueType* vtype = json2ValueType(c,vkind);
+  ValueType* vtype = json2ValueType(c,jlist[0]);
   json jval = jlist[1];
-  if (vkind=="Arg") {
-    ASSERT(0,"NYI");
-    return nullptr;
-  }
+  ASSERT(jlist.size()==2,"NYI");
   switch(vtype->getKind()) {
     case Value::VK_ConstBool : return Const::make(c,jval.get<bool>());
     case Value::VK_ConstInt : return Const::make(c,jval.get<int>());

@@ -36,14 +36,17 @@ namespace bsim {
     }
 
     dynamic_bit_vector(const int N_, const std::string& str) : N(N_) {
-      assert(str.size() == N);
-
+      int len = str.size();
+      assert(len <= N);
+      
       bits.resize(NUM_BYTES(N));
-
-      for (int i = N - 1; i >= 0; i--) {
-	unsigned char val = (str[i] == '0') ? 0 : 1;
-	int ind = N - i - 1;
-	set(ind, val);
+      for (int i = len - 1; i >= 0; i--) {
+        unsigned char val = (str[i] == '0') ? 0 : 1;
+        int ind = len - i - 1;
+        set(ind, val);
+      }
+      for (int i = N-1; i>=len; i--) {
+        set(i,0);
       }
     }
 
