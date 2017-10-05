@@ -20,13 +20,31 @@ namespace CoreIR {
 	string opName = getOpName(*inst);
 
 	if (opName == "const") {
+	  bool foundValue = false;
+
+	  int argInt = 0;
+	  for (auto& arg : inst->getConfigArgs()) {
+	    if (arg.first == "value") {
+	      foundValue = true;
+	      Arg* valArg = arg.second.get(); //.get();
+
+	      assert(valArg->getKind() == AINT);
+
+	      ArgInt* valInt = static_cast<ArgInt*>(valArg);
+	      argInt = valInt->get();
+	    }
+	  }
+
+	  assert(foundValue);
+
+
 	  auto outSelects = getOutputSelects(inst);
 
 	  assert(outSelects.size() == 1);
 
 	  pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-	  valMap[toSelect(outPair.second)] = new BitVector(BitVec(3, 0));
+	  valMap[toSelect(outPair.second)] = new BitVector(BitVec(3, argInt));
 	}
       }
     }
