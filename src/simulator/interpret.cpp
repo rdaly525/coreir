@@ -397,9 +397,12 @@ namespace CoreIR {
     SimValue* oldVal = valMap[toSelect(outPair.second)];
     delete oldVal;
 
+    BitVec newRData = getMemory(inst->toString(), raddrBits);
+    cout << "newRData = " << newRData << endl;
+
     valMap[toSelect(outPair.second)] =
-      new BitVector(BitVec(23, 45564));
-      //new BitVector(getMemory(inst->toString(), raddrBits));
+      //new BitVector(BitVec(23, 45564));
+      new BitVector(newRData);
     
   }
 
@@ -415,7 +418,7 @@ namespace CoreIR {
     assert(inConns.size() == 4);
 
     InstanceValue waddrV = findArg("waddr", inConns);
-    InstanceValue wdataV = findArg("waddr", inConns);
+    InstanceValue wdataV = findArg("wdata", inConns);
     InstanceValue clkArg = findArg("clk", inConns);
     InstanceValue enArg = findArg("wen", inConns);
 
@@ -436,6 +439,7 @@ namespace CoreIR {
     if ((clkVal->lastValue() == 0) &&
     	(clkVal->value() == 1) &&
 	(enBit == BitVec(1, 1))) {
+      cout << "Setting location " << waddrBits << " to value " << wdata->getBits() << endl;
       setMemory(inst->toString(), waddrBits, wdata->getBits());
     }
 
@@ -510,6 +514,15 @@ namespace CoreIR {
       updateNodeValues(vd);
     }
 
+    for (auto& vd : topoOrder) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
+	updateMemoryOutput(vd);
+      }
+
+    }
+    
     // Update circuit state
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
@@ -520,8 +533,6 @@ namespace CoreIR {
       if (isMemoryInstance(wd.getWire())) {
 	if (wd.isReceiver) {
 	  updateMemoryValue(vd);
-	} else {
-	  updateMemoryOutput(vd);
 	}
       }
 
@@ -560,7 +571,5 @@ namespace CoreIR {
       delete val.second;
     }
   }
-
-
 
 }
