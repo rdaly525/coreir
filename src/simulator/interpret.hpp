@@ -76,6 +76,7 @@ namespace CoreIR {
 
     SimulatorState(CoreIR::Module* mod_);
 
+    void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
     void setMemoryDefaults();
 

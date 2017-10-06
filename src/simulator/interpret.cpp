@@ -353,7 +353,7 @@ namespace CoreIR {
     assert(false);
   }
 
-  void SimulatorState::updateMemoryValue(const vdisc vd) {
+  void SimulatorState::updateMemoryOutput(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -365,6 +365,39 @@ namespace CoreIR {
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 1);
+
+    InstanceValue raddrV = findArg("raddr", inConns);
+
+    BitVector* raddr = static_cast<BitVector*>(valMap[raddrV.getWire()]);
+
+    assert(raddr != nullptr);
+
+    BitVec raddrBits = raddr->getBits();
+
+    SimValue* oldVal = valMap[toSelect(outPair.second)];
+    delete oldVal;
+
+    valMap[toSelect(outPair.second)] =
+      new BitVector(getMemory(inst->toString(), raddrBits));
+    
+  }
+
+  void SimulatorState::updateMemoryValue(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    cout << "Updating memory " << inst->toString() << endl;
+
+    //auto outSelects = getOutputSelects(inst);
+
+    //assert(outSelects.size() == 1);
+
+    //pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inConns = getInputConnections(vd, gr);
 
@@ -473,8 +506,12 @@ namespace CoreIR {
 	updateRegisterValue(vd);
       }
 
-      if (isMemoryInstance(wd.getWire()) && wd.isReceiver) {
-	updateMemoryValue(vd);
+      if (isMemoryInstance(wd.getWire())) {
+	if (wd.isReceiver) {
+	  updateMemoryValue(vd);
+	} else {
+	  updateMemoryOutput(vd);
+	}
       }
 
     }
