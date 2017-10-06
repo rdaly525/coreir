@@ -12,9 +12,31 @@ namespace CoreIR {
     return static_cast<ClockValue*>(val);
   }
 
-  SimulatorState::SimulatorState(CoreIR::Module* mod_) : mod(mod_) {
-    buildOrderedGraph(mod, gr);
-    topoOrder = topologicalSort(gr);
+  
+  void SimulatorState::setMemoryDefaults() {
+    // Set constants
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isMemoryInstance(wd.getWire())) {
+	Instance* inst = toInstance(wd.getWire());
+	cout << "Found memory = " << inst->toString() << endl;
+
+	// Set memory state to default value
+	SimMemory freshMem;
+	memories[inst->toString()] = freshMem;
+
+	// TODO: Actually set argument parameters
+	uint width = 16;
+
+	// Set memory output port to default
+	valMap[inst->sel("rdata")] = new BitVector(BitVec(width, 0));
+	
+      }
+    }
+  }
+
+  void SimulatorState::setConstantDefaults() {
 
     // Set constants
     for (auto& vd : gr.getVerts()) {
@@ -57,6 +79,16 @@ namespace CoreIR {
 	}
       }
     }
+
+  }
+
+  SimulatorState::SimulatorState(CoreIR::Module* mod_) : mod(mod_) {
+    buildOrderedGraph(mod, gr);
+    topoOrder = topologicalSort(gr);
+
+    // Set initial state of the circuit
+    setConstantDefaults();
+    setMemoryDefaults();
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
@@ -321,6 +353,55 @@ namespace CoreIR {
     assert(false);
   }
 
+  void SimulatorState::updateMemoryValue(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    cout << "Updating memory " << inst->toString() << endl;
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 4);
+
+    InstanceValue waddrV = findArg("waddr", inConns);
+    InstanceValue wdataV = findArg("waddr", inConns);
+    InstanceValue clkArg = findArg("clk", inConns);
+    InstanceValue enArg = findArg("wen", inConns);
+
+
+    BitVector* waddr = static_cast<BitVector*>(valMap[waddrV.getWire()]);
+    BitVector* wdata = static_cast<BitVector*>(valMap[wdataV.getWire()]);
+    BitVector* wen = static_cast<BitVector*>(valMap[enArg.getWire()]);
+    ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
+
+    assert(waddr != nullptr);
+    assert(wdata != nullptr);
+    assert(wen != nullptr);
+    assert(clkVal != nullptr);
+
+    BitVec waddrBits = waddr->getBits();
+    BitVec enBit = wen->getBits();
+
+    if ((clkVal->lastValue() == 0) &&
+    	(clkVal->value() == 1) &&
+	(enBit == BitVec(1, 1))) {
+      setMemory(inst->toString(), waddrBits, wdata->getBits());
+    }
+
+  }
+
+  BitVec SimulatorState::getMemory(const std::string& name,
+				   const BitVec& addr) {
+    return memories[name].getAddr(addr);
+  }
+
   void SimulatorState::updateRegisterValue(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -385,11 +466,17 @@ namespace CoreIR {
       updateNodeValues(vd);
     }
 
+    // Update circuit state
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
 	updateRegisterValue(vd);
       }
+
+      if (isMemoryInstance(wd.getWire()) && wd.isReceiver) {
+	updateMemoryValue(vd);
+      }
+
     }
   }
 

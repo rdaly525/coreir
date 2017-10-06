@@ -14,6 +14,23 @@ namespace CoreIR {
     SIM_VALUE_CLK
   };
 
+  class SimMemory {
+  protected:
+    std::map<BitVec, BitVec> values;
+
+  public:
+
+    BitVec getAddr(const BitVec& bv) const {
+      auto it = values.find(bv);
+
+      if (it == std::end(values)) {
+	return BitVec(1, 0);
+      }
+
+      return it->second;
+    }
+  };
+
   class SimValue {
   public:
     virtual ~SimValue() {}
@@ -51,11 +68,16 @@ namespace CoreIR {
     CoreIR::Module* mod;
     NGraph gr;
     std::unordered_map<CoreIR::Select*, SimValue*> valMap;
-    std::deque<vdisc> topoOrder;    
+    std::deque<vdisc> topoOrder;
+
+    std::unordered_map<std::string, SimMemory> memories;
 
   public:
 
     SimulatorState(CoreIR::Module* mod_);
+
+    void setConstantDefaults();
+    void setMemoryDefaults();
 
     void setValue(CoreIR::Select* sel, const BitVec& bv);
     void setValue(const std::string& name, const BitVec& bv);
@@ -72,6 +94,9 @@ namespace CoreIR {
 		   const BitVec& addr,
 		   const BitVec& data);
 
+    BitVec getMemory(const std::string& name,
+		     const BitVec& addr);
+	    
     SimValue* getValue(const std::string& name);
     SimValue* getValue(CoreIR::Select* sel);
     BitVec getBitVec(CoreIR::Select* sel);
@@ -80,6 +105,7 @@ namespace CoreIR {
 
     void updateMuxNode(const vdisc vd);
     void updateRegisterValue(const vdisc vd);
+    void updateMemoryValue(const vdisc vd);
     void updateAddNode(const vdisc vd);
     void updateOutput(const vdisc vd);
     void updateOrNode(const vdisc vd);

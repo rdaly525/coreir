@@ -461,6 +461,10 @@ namespace CoreIR {
       state.setMemory("m0", BitVec(index, 2), BitVec(width, 2));
       state.setMemory("m0", BitVec(index, 3), BitVec(width, 3));
 
+      SECTION("Setting memory manually") {
+	REQUIRE(state.getMemory("m0", BitVec(index, 2)) == BitVec(width, 2));
+      }
+
       SECTION("Write to address zero") {
 	state.setClock("self.clk", 0, 1);
 	state.setValue("self.write_en", BitVec(1, 1));
@@ -470,11 +474,11 @@ namespace CoreIR {
 
 	state.execute();
 
-	REQUIRE(state.getBitVec("self.read_data") == BitVec(1, 0));
+	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
 
 	state.execute();
 
-	REQUIRE(state.getBitVec("self.read_data") == BitVec(1, 23));
+	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
 	
       }
 
