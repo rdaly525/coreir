@@ -6,6 +6,12 @@ using namespace std;
 
 namespace CoreIR {
 
+  ClockValue* toClock(SimValue* val) {
+    assert(val->getType() == SIM_VALUE_CLK);
+
+    return static_cast<ClockValue*>(val);
+  }
+
   SimulatorState::SimulatorState(CoreIR::Module* mod_) : mod(mod_) {
     buildOrderedGraph(mod, gr);
     topoOrder = topologicalSort(gr);
@@ -78,6 +84,14 @@ namespace CoreIR {
     Select* sel = toSelect(w);
 
     return getBitVec(sel);
+  }
+
+  SimValue* SimulatorState::getValue(const std::string& name) {
+    ModuleDef* def = mod->getDef();
+    Wireable* w = def->sel(name);
+    Select* sel = toSelect(w);
+
+    return getValue(sel);
   }
 
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
@@ -258,9 +272,75 @@ namespace CoreIR {
     assert(false);
   }
 
+  void SimulatorState::updateRegisterValue(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    cout << "Updating register " << inst->toString() << endl;
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() >= 2);
+
+    InstanceValue arg1 = findArg("in", inConns);
+    InstanceValue clkArg = findArg("clk", inConns);
+
+    BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
+    ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
+
+    assert(s1 != nullptr);
+    assert(clkVal != nullptr);
+
+    if ((clkVal->lastValue() == 0) &&
+	(clkVal->value() == 1)) {
+
+      cout << "Clock set correctly" << endl;
+
+      if (inConns.size() == 2) {
+	SimValue* oldVal = valMap[toSelect(outPair.second)];
+	delete oldVal;
+
+	valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
+      } else {
+	assert(inConns.size() == 3);
+
+	InstanceValue enArg = findArg("en", inConns);	
+
+	BitVector* enBit = static_cast<BitVector*>(valMap[enArg.getWire()]);
+
+	assert(enBit != nullptr);
+
+	if (enBit->getBits() == BitVec(1, 1)) {
+	  SimValue* oldVal = valMap[toSelect(outPair.second)];
+	  delete oldVal;
+
+	  valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
+	}
+	
+	// cout << "# of input connections = " << inConns.size() << endl;
+	// assert(false);
+      }
+    }
+
+  }
+
   void SimulatorState::execute() {
     for (auto& vd : topoOrder) {
       updateNodeValues(vd);
+    }
+
+    for (auto& vd : topoOrder) {
+      WireNode wd = gr.getNode(vd);
+      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+	updateRegisterValue(vd);
+      }
     }
   }
 
@@ -277,8 +357,12 @@ namespace CoreIR {
   }
   
   void SimulatorState::setClock(CoreIR::Select* sel,
-				const unsigned char clk_last,
+				const unsigned char clkLast,
 				const unsigned char clk) {
+    SimValue* lv = valMap[sel];
+    delete lv;
+
+    valMap[sel] = new ClockValue(clkLast, clk);
   }
   
   SimulatorState::~SimulatorState() {

@@ -215,23 +215,73 @@ namespace CoreIR {
       inlineInstance(def->getInstances()["counter"]);
 
       SimulatorState state(counterTest);
-      state.setValue("counter$ri.out", BitVec(pcWidth, 400));
-      state.setValue("self.en", BitVec(1, 1));
-      state.setClock("self.clk", 0, 1);
 
-      state.execute();
+      SECTION("Count from zero, enable set") {
 
-      REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+	state.setValue("self.en", BitVec(1, 1));
+	state.setClock("self.clk", 0, 1);
 
-      state.setValue("counter$ri.out", BitVec(pcWidth, 400));
-      state.setValue("self.en", BitVec(1, 1));
-      state.setClock("self.clk", 0, 1);
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
+
+      }
+
+      SECTION("Counting with clock changes, enable set") {
+
+	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+	state.setValue("self.en", BitVec(1, 1));
+	state.setClock("self.clk", 0, 1);
   
-      state.execute();
+	state.execute();
 
-      cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-      REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 24));
+	SECTION("Value is 400 after first tick at 400") {
+	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+	}
+
+	state.setClock("self.clk", 1, 0);
+
+	state.execute();
+
+	ClockValue* clkVal = toClock(state.getValue("self.clk"));
+
+	cout << "last clock = " << (int) clkVal->lastValue() << endl;
+	cout << "curr clock = " << (int) clkVal->value() << endl;
+
+	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+
+	SECTION("Value is 401 after second tick") {
+	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+	}
+
+	state.setClock("self.clk", 0, 1);
+
+	state.execute();
+
+	SECTION("Value is still 401") {
+	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+	}
+
+	state.setClock("self.clk", 1, 0);
+
+	state.execute();
+
+	SECTION("Value is now 402") {
+	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 402));
+	}
+	
+      }
 
       state.setValue("counter$ri.out", BitVec(pcWidth, 400));
       state.setValue("self.en", BitVec(1, 1));

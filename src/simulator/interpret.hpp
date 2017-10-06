@@ -9,9 +9,16 @@ namespace CoreIR {
 
   typedef bsim::dynamic_bit_vector BitVec;
 
+  enum SimValueType {
+    SIM_VALUE_BV,
+    SIM_VALUE_CLK
+  };
+
   class SimValue {
   public:
-    ~SimValue() {}
+    virtual ~SimValue() {}
+
+    virtual SimValueType getType() const = 0;
   };
 
   class BitVector : public SimValue {
@@ -22,6 +29,22 @@ namespace CoreIR {
     BitVector(const BitVec& bv_) : bv(bv_) {}
 
     BitVec getBits() const { return bv; }
+
+    virtual SimValueType getType() const { return SIM_VALUE_BV; }
+  };
+
+  class ClockValue : public SimValue {
+  protected:
+    unsigned char lastVal, val;
+
+  public:
+    ClockValue(const unsigned char lastVal_,
+	       const unsigned char val_) : lastVal(lastVal_), val(val_) {}
+
+    unsigned char value() const { return val; }
+    unsigned char lastValue() const { return lastVal; }
+
+    virtual SimValueType getType() const { return SIM_VALUE_CLK; }
   };
 
   class SimulatorState {
@@ -44,12 +67,14 @@ namespace CoreIR {
   void setClock(const std::string& name,
 		const unsigned char clk_last,
 		const unsigned char clk);
-    
+
+    SimValue* getValue(const std::string& name);
     SimValue* getValue(CoreIR::Select* sel);
     BitVec getBitVec(CoreIR::Select* sel);
 
     BitVec getBitVec(const std::string& str);
 
+    void updateRegisterValue(const vdisc vd);
     void updateAddNode(const vdisc vd);
     void updateOutput(const vdisc vd);
     void updateOrNode(const vdisc vd);
@@ -59,5 +84,7 @@ namespace CoreIR {
 
     ~SimulatorState();
   };
+
+  ClockValue* toClock(SimValue* val);
 
 }
