@@ -20,11 +20,9 @@ class TypeGenFromPython : public TypeGen {
     Type* createType(Context* c, Values values) {
       Type* type_ptr = NULL;
       Py_Initialize();
-      PyObject *py_coreir_module = PyImport_ImportModule("coreir");
       PyObject *py_module = PyImport_ImportModule(moduleName.c_str());
       if (py_module != NULL) {
         Py_INCREF(py_module);
-        Py_INCREF(py_coreir_module);
         PyObject *py_typeGenFunc = PyObject_GetAttrString(py_module, functionName.c_str());
         if (py_typeGenFunc && PyCallable_Check(py_typeGenFunc)) {
           Py_INCREF(py_typeGenFunc);
@@ -41,14 +39,19 @@ class TypeGenFromPython : public TypeGen {
           }
           PyObject* value_object = PyObject_CallFunction(py_typeGenFunc, "llli",
                   (void *) c, (void *) names, (void *) values_ptrs, size);
-          if (PyErr_Occurred()) PyErr_Print();
-          type_ptr = (Type *) PyLong_AsVoidPtr(value_object);
+          if (!value_object) {
+            if (PyErr_Occurred()) PyErr_Print();
+            std::cerr << "Error calling typegen function " << functionName << std::endl;
+          } else {
+            type_ptr = (Type *) PyLong_AsVoidPtr(value_object);
+            Py_DECREF(value_object);
+          }
+          Py_DECREF(py_typeGenFunc);
         } else {
           if (PyErr_Occurred()) PyErr_Print();
           std::cerr << "Cannot find function " << functionName << std::endl;
         }
         Py_DECREF(py_module);
-        Py_DECREF(py_coreir_module);
       } else {
         PyErr_Print();
         std::cerr << "Failed to load " << moduleName << std::endl;
