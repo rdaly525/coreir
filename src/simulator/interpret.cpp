@@ -513,9 +513,6 @@ namespace CoreIR {
   }
 
   void SimulatorState::execute() {
-    for (auto& vd : topoOrder) {
-      updateNodeValues(vd);
-    }
 
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
@@ -526,6 +523,10 @@ namespace CoreIR {
 
     }
     
+    for (auto& vd : topoOrder) {
+      updateNodeValues(vd);
+    }
+
     // Update circuit state
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
