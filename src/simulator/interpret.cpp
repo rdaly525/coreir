@@ -7,6 +7,7 @@ using namespace std;
 namespace CoreIR {
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
+    values.erase(bv);
     values.insert({bv, val});
   }
 
@@ -566,7 +567,7 @@ namespace CoreIR {
 				 const BitVec& addr,
 				 const BitVec& data) {
 
-    cout << "Before set" << endl;
+    cout << "Before seting " << name << "[ " << addr << " ] to " << data << endl;
     for (auto& memPair : memories[name]) {
       cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
     }
@@ -574,6 +575,7 @@ namespace CoreIR {
     //memories[name].setAddr(addr, data);
     SimMemory& mem = (memories.find(name))->second;
     mem.setAddr(addr, data);
+    //mem.setAddr(BitVec(12, 234), BitVec(16, 32423542));
 
     cout << "After set" << endl;
 
