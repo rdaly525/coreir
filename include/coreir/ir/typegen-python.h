@@ -20,6 +20,9 @@ class TypeGenFromPython : public TypeGen {
     Type* createType(Context* c, Values values) {
       Type* type_ptr = NULL;
       Py_Initialize();
+      // Add cwd to path (not added by default when using the embedded
+      // interpreter)
+      PyRun_SimpleString( "import sys\nsys.path.append(\".\")\n" );
       PyObject *py_module = PyImport_ImportModule(moduleName.c_str());
       if (py_module != NULL) {
         Py_INCREF(py_module);
@@ -59,6 +62,7 @@ class TypeGenFromPython : public TypeGen {
       }
 
       Py_Finalize();
+
       // FIXME: Can we free char** names and Value** values_ptrs because
       // they are no longer used since the interpreter's been finalized?
       // Currently they will be cleaned up eventually by the context, but
