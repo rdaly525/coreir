@@ -69,6 +69,12 @@ namespace CoreIR {
     unsigned char value() const { return val; }
     unsigned char lastValue() const { return lastVal; }
 
+    void flip() {
+      unsigned char tmp = lastVal;
+      lastVal = val;
+      val = tmp;
+    }
+
     virtual SimValueType getType() const { return SIM_VALUE_CLK; }
   };
 
@@ -80,11 +86,21 @@ namespace CoreIR {
 
     std::unordered_map<std::string, SimMemory> memories;
 
+    std::vector<std::pair<std::string, BitVec> > watchPoints;
+
+    CoreIR::Select* mainClock;
+
   public:
 
     SimulatorState(CoreIR::Module* mod_);
 
+    bool hitWatchPoint() const;
+
     void setMainClock(const std::string& val);
+
+    CoreIR::Select* findSelect(const std::string& name) const;
+
+    void stepClock(CoreIR::Select* clkSelect);
 
     void setWatchPoint(const std::string& val,
 		       const BitVec& bv);
@@ -111,12 +127,14 @@ namespace CoreIR {
 
     BitVec getMemory(const std::string& name,
 		     const BitVec& addr);
-	    
-    SimValue* getValue(const std::string& name);
-    SimValue* getValue(CoreIR::Select* sel);
-    BitVec getBitVec(CoreIR::Select* sel);
 
-    BitVec getBitVec(const std::string& str);
+    bool isSet(const std::string& selStr) const;
+	    
+    SimValue* getValue(const std::string& name) const;
+    SimValue* getValue(CoreIR::Select* sel) const;
+    BitVec getBitVec(CoreIR::Select* sel) const;
+
+    BitVec getBitVec(const std::string& str) const;
 
     void updateMuxNode(const vdisc vd);
     void updateRegisterValue(const vdisc vd);

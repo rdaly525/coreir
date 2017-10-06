@@ -126,18 +126,55 @@ namespace CoreIR {
   }
 
   void SimulatorState::setMainClock(const std::string& val) {
-    
+    Select* s = findSelect(val);
+    mainClock = s;
   }
 
   void SimulatorState::setWatchPoint(const std::string& val,
 				     const BitVec& bv) {
+    watchPoints.push_back({val, bv});
+  }
+
+  bool SimulatorState::isSet(const std::string& selStr) const {
+    Select* s = findSelect(selStr);
+
+    if (valMap.find(s) == std::end(valMap)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  bool SimulatorState::hitWatchPoint() const {
+    for (auto& wp : watchPoints) {
+      string selStr = wp.first;
+      BitVec val = wp.second;
+
+      if (isSet(selStr)) {
+	if (getBitVec(selStr) == val) {
+	  return true;
+	}
+      }
+    }
+
+    return false;
+  }
+
+  void SimulatorState::stepClock(CoreIR::Select* clkSelect) {
+    ClockValue* clkVal = toClock(valMap[clkSelect]);
+    clkVal->flip();
   }
   
   void SimulatorState::run() {
-    
+    while (!hitWatchPoint()) {
+      execute();
+      stepClock(mainClock);
+    }
   }
 
-  SimulatorState::SimulatorState(CoreIR::Module* mod_) : mod(mod_) {
+  SimulatorState::SimulatorState(CoreIR::Module* mod_) :
+    mod(mod_), mainClock(nullptr) {
+
     buildOrderedGraph(mod, gr);
     topoOrder = topologicalSort(gr);
 
@@ -150,6 +187,14 @@ namespace CoreIR {
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
     BitVector* b = new BitVector(bv);
     valMap[sel] = b;
+  }
+
+  CoreIR::Select* SimulatorState::findSelect(const std::string& name) const {
+    ModuleDef* def = mod->getDef();
+    Wireable* w = def->sel(name);
+    Select* s = toSelect(w);
+
+    return s;
   }
 
   
@@ -166,7 +211,7 @@ namespace CoreIR {
     return true;
   }
 
-  BitVec SimulatorState::getBitVec(const std::string& str) {
+  BitVec SimulatorState::getBitVec(const std::string& str) const {
     ModuleDef* def = mod->getDef();
     Wireable* w = def->sel(str);
     Select* sel = toSelect(w);
@@ -174,7 +219,7 @@ namespace CoreIR {
     return getBitVec(sel);
   }
 
-  SimValue* SimulatorState::getValue(const std::string& name) {
+  SimValue* SimulatorState::getValue(const std::string& name) const {
     ModuleDef* def = mod->getDef();
     Wireable* w = def->sel(name);
     Select* sel = toSelect(w);
@@ -182,7 +227,7 @@ namespace CoreIR {
     return getValue(sel);
   }
 
-  BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
+  BitVec SimulatorState::getBitVec(CoreIR::Select* sel) const {
 
     SimValue* v = getValue(sel);
 
@@ -191,7 +236,7 @@ namespace CoreIR {
     return static_cast<BitVector*>(v)->getBits();
   }
 
-  SimValue* SimulatorState::getValue(CoreIR::Select* sel) {
+  SimValue* SimulatorState::getValue(CoreIR::Select* sel) const {
     auto it = valMap.find(sel);
 
     if (it == std::end(valMap)) {
