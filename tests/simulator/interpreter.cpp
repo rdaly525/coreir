@@ -472,26 +472,28 @@ namespace CoreIR {
 	REQUIRE(state.getMemory("m0", BitVec(index, 3)) == BitVec(width, 23));
       }
 
-      // SECTION("Write to address zero") {
-      // 	state.setClock("self.clk", 0, 1);
-      // 	state.setValue("self.write_en", BitVec(1, 1));
-      // 	state.setValue("self.write_addr", BitVec(index, 0));
-      // 	state.setValue("self.write_data", BitVec(width, 23));
-      // 	state.setValue("self.read_addr", BitVec(index, 0));
+      SECTION("Write to address zero") {
+      	state.setClock("self.clk", 0, 1);
+      	state.setValue("self.write_en", BitVec(1, 1));
+      	state.setValue("self.write_addr", BitVec(index, 0));
+      	state.setValue("self.write_data", BitVec(width, 23));
+      	state.setValue("self.read_addr", BitVec(index, 0));
 
-      // 	state.execute();
+      	state.execute();
 
-      // 	//REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
 
-      // 	state.execute();
+      	state.execute();
 
-      // 	//REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+      	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
 
-      // 	state.execute();
+      	state.execute();
 
-      // 	cout << "read data later = " << state.getBitVec("self.read_data") << endl;
+      	cout << "read data later = " << state.getBitVec("self.read_data") << endl;
+
+	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
 	
-      // }
+      }
 
       
       
