@@ -1,4 +1,5 @@
 #include "interpret.hpp"
+
 #include "sim.hpp"
 
 using namespace std;
@@ -248,6 +249,8 @@ namespace CoreIR {
       updateAddNode(vd);
       return;
     } else if (opName == "const") {
+      return;
+    } else if (opName == "reg") {
       return;
     }
 

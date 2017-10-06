@@ -21,6 +21,49 @@ using namespace std;
 
 namespace CoreIR {
 
+  void addCounter(Context* c, Namespace* global) {
+
+    Params counterParams({{"width",AINT}});
+
+    TypeGen* counterTypeGen = global->newTypeGen(
+						 "CounterTypeGen", //name of typegen
+						 counterParams, //Params required for typegen
+						 [](Context* c, Args args) { //lambda for generating the type
+						   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
+						   uint width = args.at("width")->get<int>(); //widthArg->get<int>(); //get function to extract the arg value.
+						   return c->Record({
+						       {"en",c->BitIn()}, 
+							 {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
+							   {"clk",c->Named("coreir.clkIn")},
+							     });
+						 } //end lambda
+						 ); //end newTypeGen
+    ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
+
+
+    Generator* counter = global->newGeneratorDecl("counter",counterTypeGen,counterParams);
+
+    counter->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
+
+	uint width = args.at("width")->get<int>();
+      
+	Args wArg({{"width", Const(width)}});
+	def->addInstance("ai","coreir.add",wArg);
+	def->addInstance("ci","coreir.const",wArg,{{"value", Const(1)}});
+
+	def->addInstance("ri","coreir.reg",{{"width", Const(width)},{"en", Const(true)}});
+    
+
+	def->connect("self.clk","ri.clk");
+	def->connect("self.en","ri.en");
+	def->connect("ci.out","ai.in0");
+	def->connect("ai.out","ri.in");
+	def->connect("ri.out","ai.in1");
+	def->connect("ri.out","self.out");
+      }); //end lambda, end function
+  
+  }
+  
   TEST_CASE("Interpret simulator graphs") {
 
     // New context
@@ -144,42 +187,62 @@ namespace CoreIR {
     }
 
     SECTION("Counter") {
-      Type* CounterType = c->Record({
-      	  {"en",c->BitIn()}, 
-      	    {"out",c->Bit()->Arr(16)}, //Convenient Arr Type Constructor
-      	      {"clk",c->Named("coreir.clkIn")}, //Named Ref constructor 
-      		});
 
-      //Now lets create a module declaration. Declarations are specified separately from the definition
-      Module* counter = c->getGlobal()->newModuleDecl("counter",CounterType); //use getGlobalFunction
-      ModuleDef* def = counter->newModuleDef();
+      addCounter(c, g);
 
-      Args wArg({{"width", Const(16)}});
-      def->addInstance("ai","coreir.add",wArg); // using <namespace>.<module> notation 
-      def->addInstance("ci","coreir.const",wArg,{{"value", Const(1)}});
+      uint pcWidth = 17;
+      Type* counterTestType =
+	c->Record({
+	    {"en", c->BitIn()},
+	      {"clk", c->Named("coreir.clkIn")},
+		{"counterOut", c->Array(pcWidth, c->Bit())}});
 
-      //Reg has default arguments. en/clr/rst are False by default. Init is also 0 by default
-      def->addInstance("ri","coreir.reg",{{"width", Const(16)},{"en", Const(true)}});
-    
-      //Connections
-      def->connect("self.clk","ri.clk");
-      def->connect("self.en","ri.en");
-      def->connect("ci.out","ai.in0");
-      def->connect("ai.out","ri.in");
-      def->connect("ri.out","ai.in1");
-      def->connect("ri.out","self.out");
+      Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
+      ModuleDef* def = counterTest->newModuleDef();
 
-      counter->setDef(def);
-      counter->print();
-  
+      def->addInstance("counter", "global.counter", {{"width", Const(pcWidth)}});
+
+      def->connect("self.en", "counter.en");
+      def->connect("self.clk", "counter.clk");
+      def->connect("counter.out", "self.counterOut");
+
+      counterTest->setDef(def);
+
       RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+      rg.runOnNamespace(g);
 
-      Wireable* self = def->sel("self");      
+      // Inline increment
+      inlineInstance(def->getInstances()["counter"]);
 
-      SimulatorState state(counter);
-      state.setClock(self->sel("clk"), 0, 1);
+      SimulatorState state(counterTest);
+      state.setValue("counter$ri.out", BitVec(pcWidth, 400));
       state.setValue("self.en", BitVec(1, 1));
+      state.setClock("self.clk", 0, 1);
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+
+      state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+      state.setValue("self.en", BitVec(1, 1));
+      state.setClock("self.clk", 0, 1);
+  
+      state.execute();
+
+      cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+
+      REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 24));
+
+      state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+      state.setValue("self.en", BitVec(1, 1));
+      state.setClock("self.clk", 1, 0);
+  
+      state.execute();
+
+      cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+
+      REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+
     }
 
     SECTION("Test bit vector addition") {
