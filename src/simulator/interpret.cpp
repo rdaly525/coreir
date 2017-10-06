@@ -398,7 +398,7 @@ namespace CoreIR {
     delete oldVal;
 
     BitVec newRData = getMemory(inst->toString(), raddrBits);
-    cout << "newRData = " << newRData << endl;
+    cout << "rdata is now value at addr " << raddrBits << " = " << newRData << endl;
 
     valMap[toSelect(outPair.second)] =
       //new BitVector(BitVec(23, 45564));
@@ -441,6 +441,8 @@ namespace CoreIR {
 	(enBit == BitVec(1, 1))) {
       cout << "Setting location " << waddrBits << " to value " << wdata->getBits() << endl;
       setMemory(inst->toString(), waddrBits, wdata->getBits());
+
+      assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
     }
 
   }
@@ -563,7 +565,21 @@ namespace CoreIR {
   void SimulatorState::setMemory(const std::string& name,
 				 const BitVec& addr,
 				 const BitVec& data) {
-    memories[name].setAddr(addr, data);
+
+    cout << "Before set" << endl;
+    for (auto& memPair : memories[name]) {
+      cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
+    }
+
+    //memories[name].setAddr(addr, data);
+    SimMemory& mem = (memories.find(name))->second;
+    mem.setAddr(addr, data);
+
+    cout << "After set" << endl;
+
+    for (auto& memPair : memories[name]) {
+      cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
+    }
   }
   
   SimulatorState::~SimulatorState() {

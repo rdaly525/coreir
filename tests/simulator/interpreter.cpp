@@ -468,9 +468,9 @@ namespace CoreIR {
       SECTION("Write to address zero") {
 	state.setClock("self.clk", 0, 1);
 	state.setValue("self.write_en", BitVec(1, 1));
-	state.setValue("self.write_addr", BitVec(1, 0));
+	state.setValue("self.write_addr", BitVec(index, 0));
 	state.setValue("self.write_data", BitVec(width, 23));
-	state.setValue("self.read_addr", BitVec(1, 0));
+	state.setValue("self.read_addr", BitVec(index, 0));
 
 	state.execute();
 

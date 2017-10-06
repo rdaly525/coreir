@@ -20,6 +20,14 @@ namespace CoreIR {
 
   public:
 
+    std::map<BitVec, BitVec>::const_iterator begin() const {
+      return std::begin(values);
+    }
+
+    std::map<BitVec, BitVec>::const_iterator end() const {
+      return std::end(values);
+    }
+
     BitVec getAddr(const BitVec& bv) const;
     void setAddr(const BitVec& bv, const BitVec& val);
   };
