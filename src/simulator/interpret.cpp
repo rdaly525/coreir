@@ -261,6 +261,18 @@ namespace CoreIR {
     }
   }
 
+  void SimulatorState::setClock(const std::string& name,
+				const unsigned char clk_last,
+				const unsigned char clk) {
+
+    ModuleDef* def = mod->getDef();
+    Wireable* w = def->sel(name);
+    Select* s = toSelect(w);
+
+    setClock(s, clk_last, clk);
+
+  }
+  
   void SimulatorState::setClock(CoreIR::Select* sel,
 				const unsigned char clk_last,
 				const unsigned char clk) {

@@ -36,10 +36,15 @@ namespace CoreIR {
 
     void setValue(CoreIR::Select* sel, const BitVec& bv);
     void setValue(const std::string& name, const BitVec& bv);
+
     void setClock(CoreIR::Select* sel,
 		  const unsigned char clk_last,
 		  const unsigned char clk);
 
+  void setClock(const std::string& name,
+		const unsigned char clk_last,
+		const unsigned char clk);
+    
     SimValue* getValue(CoreIR::Select* sel);
     BitVec getBitVec(CoreIR::Select* sel);
 
