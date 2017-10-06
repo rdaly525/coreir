@@ -110,7 +110,7 @@ NamedType* Namespace::getNamedType(string name, Values genargs) {
 }
 
 #ifdef COREIR_INCLUDE_PYTHON_TYPEGEN
-TypeGen* Namespace::newTypeGen(string name, Params genparams, std::string moduleName, std::string functionName) {
+TypeGen* Namespace::newTypeGenFromPython(string name, Params genparams, std::string moduleName, std::string functionName) {
   assert(namedTypeList.count(name)==0);
   assert(typeGenList.count(name)==0);
   

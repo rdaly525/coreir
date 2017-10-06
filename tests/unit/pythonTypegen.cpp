@@ -13,7 +13,7 @@ int main() {
   Namespace* g = c->getGlobal();
   
   //Declare a TypeGenerator (in global) for addN
-  g->newTypeGen(
+  g->newTypeGenFromPython(
     "addN_type", //name for the typegen
     {{"width", c->Int()},{"N", c->Int()}}, //generater parameters
     "add",
