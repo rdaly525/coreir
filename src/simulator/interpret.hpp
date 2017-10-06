@@ -84,6 +84,11 @@ namespace CoreIR {
 
     SimulatorState(CoreIR::Module* mod_);
 
+    void setMainClock(const std::string& val);
+
+    void setWatchPoint(const std::string& val,
+		       const BitVec& bv);
+
     void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
     void setRegisterDefaults();
@@ -122,6 +127,9 @@ namespace CoreIR {
     void updateAndNode(const vdisc vd);
     void updateNodeValues(const vdisc vd);
     void execute();
+
+    
+    void run();
 
     ~SimulatorState();
   };

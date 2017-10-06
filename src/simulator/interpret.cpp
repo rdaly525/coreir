@@ -125,6 +125,18 @@ namespace CoreIR {
 
   }
 
+  void SimulatorState::setMainClock(const std::string& val) {
+    
+  }
+
+  void SimulatorState::setWatchPoint(const std::string& val,
+				     const BitVec& bv) {
+  }
+  
+  void SimulatorState::run() {
+    
+  }
+
   SimulatorState::SimulatorState(CoreIR::Module* mod_) : mod(mod_) {
     buildOrderedGraph(mod, gr);
     topoOrder = topologicalSort(gr);

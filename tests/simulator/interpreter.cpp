@@ -297,6 +297,19 @@ namespace CoreIR {
 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
       }
 
+      SECTION("Setting watchpoint") {
+	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+	state.setClock("self.clk", 1, 0);
+	state.setValue("self.en", BitVec(1, 1));
+
+	state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
+	state.setMainClock("self.clk");
+
+	state.run();
+
+	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
+      }
+
     }
 
     SECTION("Test bit vector addition") {
