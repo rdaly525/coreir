@@ -343,6 +343,53 @@ namespace CoreIR {
       
     }
 
+    SECTION("Multiplexer") {
+      uint width = 30;
+
+      Type* muxType =
+	c->Record({
+	    {"in0", c->Array(width, c->BitIn())},
+	      {"in1", c->Array(width, c->BitIn())},
+		{"sel", c->BitIn()},
+		  {"out", c->Array(width, c->Bit())}
+	  });
+
+      Module* muxTest = g->newModuleDecl("muxTest", muxType);
+      ModuleDef* def = muxTest->newModuleDef();
+
+      Wireable* mux = def->addInstance("m0", "coreir.mux", {{"width", Const(width)}});
+
+      def->connect("self.in0", "m0.in0");
+      def->connect("self.in1", "m0.in1");
+      def->connect("self.sel", "m0.sel");
+      def->connect("m0.out", "self.out");
+
+      muxTest->setDef(def);
+
+      SECTION("Select input 1") {
+	SimulatorState state(muxTest);
+	state.setValue("self.in0", BitVec(width, 1234123));
+	state.setValue("self.in1", BitVec(width, 987));
+	state.setValue("self.sel", BitVec(1, 1));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.out") == BitVec(width, 987));
+      }
+
+      SECTION("Select input 0") {
+	SimulatorState state(muxTest);
+	state.setValue("self.in0", BitVec(width, 1234123));
+	state.setValue("self.in1", BitVec(width, 987));
+	state.setValue("self.sel", BitVec(1, 0));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.out") == BitVec(width, 1234123));
+      }
+      
+    }
+
     SECTION("Increment circuit") {
       uint width = 3;
 

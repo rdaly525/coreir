@@ -74,6 +74,7 @@ namespace CoreIR {
 
     BitVec getBitVec(const std::string& str);
 
+    void updateMuxNode(const vdisc vd);
     void updateRegisterValue(const vdisc vd);
     void updateAddNode(const vdisc vd);
     void updateOutput(const vdisc vd);
