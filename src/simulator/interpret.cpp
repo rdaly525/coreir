@@ -7,11 +7,17 @@ using namespace std;
 namespace CoreIR {
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
+    assert(bv.bitLength() == log2(depth));
+    assert(val.bitLength() == width);
+
     values.erase(bv);
     values.insert({bv, val});
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
+
+    assert(bv.bitLength() == log2(depth));
+
     auto it = values.find(bv);
 
     

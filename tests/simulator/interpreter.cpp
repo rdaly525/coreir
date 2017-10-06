@@ -470,7 +470,6 @@ namespace CoreIR {
 
       SECTION("Setting memory manually") {
 	REQUIRE(state.getMemory("m0", BitVec(index, 2)) == BitVec(width, 2));
-
       }
 
       SECTION("Re-setting memory manually") {
