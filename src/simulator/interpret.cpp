@@ -6,6 +6,22 @@ using namespace std;
 
 namespace CoreIR {
 
+  void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
+    values.insert({bv, val});
+  }
+
+  BitVec SimMemory::getAddr(const BitVec& bv) const {
+    auto it = values.find(bv);
+
+    if (it == std::end(values)) {
+      cout << "Could not find " << bv << endl;
+      assert(false);
+      //return BitVec(1, 0);
+    }
+
+    return it->second;
+  }
+  
   ClockValue* toClock(SimValue* val) {
     assert(val->getType() == SIM_VALUE_CLK);
 
@@ -536,6 +552,7 @@ namespace CoreIR {
   void SimulatorState::setMemory(const std::string& name,
 				 const BitVec& addr,
 				 const BitVec& data) {
+    memories[name].setAddr(addr, data);
   }
   
   SimulatorState::~SimulatorState() {

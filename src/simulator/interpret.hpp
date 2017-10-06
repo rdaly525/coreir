@@ -20,16 +20,8 @@ namespace CoreIR {
 
   public:
 
-    BitVec getAddr(const BitVec& bv) const {
-      auto it = values.find(bv);
-
-      if (it == std::end(values)) {
-	//assert(false);
-	return BitVec(1, 0);
-      }
-
-      return it->second;
-    }
+    BitVec getAddr(const BitVec& bv) const;
+    void setAddr(const BitVec& bv, const BitVec& val);
   };
 
   class SimValue {
