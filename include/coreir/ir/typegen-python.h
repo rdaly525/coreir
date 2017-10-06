@@ -56,6 +56,10 @@ class TypeGenFromPython : public TypeGen {
       }
 
       Py_Finalize();
+      // FIXME: Can we free char** names and Value** values_ptrs because
+      // they are no longer used since the interpreter's been finalized?
+      // Currently they will be cleaned up eventually by the context, but
+      // if we can free here that should reduce memory consumption
       return type_ptr;
     }
   
