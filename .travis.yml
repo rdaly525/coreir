@@ -10,7 +10,7 @@ addons:
       - g++-4.9
 
 before_install:
-  - git clone -b configs git@github.com:leonardt/pycoreir.git
+  - git clone -b configs https://github.com/leonardt/pycoreir
   - pip install -e pycoreir
   - export COREIRCONFIG="g++-4.9";
   - sudo make -j 2 install COREIR_INCLUDE_PYTHON_TYPEGEN=1
