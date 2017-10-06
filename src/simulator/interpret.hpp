@@ -86,6 +86,7 @@ namespace CoreIR {
 
     void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
+    void setRegisterDefaults();
     void setMemoryDefaults();
 
     void setValue(CoreIR::Select* sel, const BitVec& bv);

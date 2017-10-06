@@ -214,6 +214,10 @@ namespace CoreIR {
 
       SimulatorState state(counterTest);
 
+      SECTION("Test regiser defaults") {
+	REQUIRE(state.getBitVec("counter$ri.out") == BitVec(pcWidth, 0));
+      }
+
       SECTION("Count from zero, enable set") {
 
 	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
@@ -281,15 +285,17 @@ namespace CoreIR {
 	
       }
 
-      state.setValue("counter$ri.out", BitVec(pcWidth, 400));
-      state.setValue("self.en", BitVec(1, 1));
-      state.setClock("self.clk", 1, 0);
+      SECTION("Enable on") {
+	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+	state.setValue("self.en", BitVec(1, 1));
+	state.setClock("self.clk", 1, 0);
   
-      state.execute();
+	state.execute();
 
-      cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-      REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+      }
 
     }
 

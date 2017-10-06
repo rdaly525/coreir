@@ -35,9 +35,27 @@ namespace CoreIR {
     return static_cast<ClockValue*>(val);
   }
 
-  
+  void SimulatorState::setRegisterDefaults() {
+
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isRegisterInstance(wd.getWire())) {
+	Instance* inst = toInstance(wd.getWire());
+
+	Args args = inst->getGenArgs();
+	uint width = (args["width"])->get<int>();
+
+	// Set memory output port to default
+	valMap[inst->sel("out")] = new BitVector(BitVec(width, 0));
+	
+      }
+    }
+
+  }
+
   void SimulatorState::setMemoryDefaults() {
-    // Set constants
+
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
 
@@ -114,6 +132,7 @@ namespace CoreIR {
     // Set initial state of the circuit
     setConstantDefaults();
     setMemoryDefaults();
+    setRegisterDefaults();
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
