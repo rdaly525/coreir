@@ -64,22 +64,22 @@ int main() {
     {"out",c->Bit()->Arr(13)}
   });
 
-  // Namespace* coreir = c->getNamespace("coreir");
+  Namespace* coreir = c->getNamespace("coreir");
   Module* add12 = g->newModuleDecl("Add12",add12Type);
   ModuleDef* def = add12->newModuleDef();
     def->addInstance("add8_upper",addN,{{"width",Const::make(c,13)},{"N",Const::make(c,8)}});
-    // def->addInstance("add4_lower",addN,{{"width",Const::make(c,13)},{"N",Const::make(c,4)}});
-    // def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",Const::make(c,13)}});
-    // def->connect("self.in8","add8_upper.in");
-    // def->connect("self.in4","add4_lower.in");
-    // def->connect("add8_upper.out","add2_join.in0");
-    // def->connect("add4_lower.out","add2_join.in1");
-    // def->connect("add2_join.out","self.out");
+    def->addInstance("add4_lower",addN,{{"width",Const::make(c,13)},{"N",Const::make(c,4)}});
+    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",Const::make(c,13)}});
+    def->connect("self.in8","add8_upper.in");
+    def->connect("self.in4","add4_lower.in");
+    def->connect("add8_upper.out","add2_join.in0");
+    def->connect("add4_lower.out","add2_join.in1");
+    def->connect("add2_join.out","self.out");
   add12->setDef(def);
   add12->print();
-  // 
-  // c->runPasses({"rungenerators","flatten"});
-  // add12->print();
+  
+  c->runPasses({"rungenerators","flatten"});
+  add12->print();
 
-  // deleteContext(c);
+  deleteContext(c);
 }
