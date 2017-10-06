@@ -310,6 +310,8 @@ namespace CoreIR {
       return;
     } else if (opName == "reg") {
       return;
+    } else if (opName == "mem") {
+      return;
     } else if (opName == "mux") {
       updateMuxNode(vd);
       return;
@@ -411,11 +413,18 @@ namespace CoreIR {
 
     valMap[sel] = new ClockValue(clkLast, clk);
   }
+
+  void SimulatorState::setMemory(const std::string& name,
+				 const BitVec& addr,
+				 const BitVec& data) {
+  }
   
   SimulatorState::~SimulatorState() {
     for (auto& val : valMap) {
       delete val.second;
     }
   }
+
+
 
 }

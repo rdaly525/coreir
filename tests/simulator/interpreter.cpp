@@ -420,6 +420,68 @@ namespace CoreIR {
       
     }
 
+    SECTION("Memory") {
+      uint width = 16;
+      uint depth = 4;
+      uint index = 2;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+      	    {"write_data", c->BitIn()->Arr(width)},
+      	      {"write_addr", c->BitIn()->Arr(index)},
+      		{"write_en", c->BitIn()},
+      		  {"read_data", c->Bit()->Arr(width)},
+      		    {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      def->addInstance("m0",
+      		       "coreir.mem",
+      		       {{"width", Const(width)},{"depth", Const(depth)}},
+      		       {{"init", Const("0")}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.write_en", "m0.wen");
+      def->connect("self.write_data", "m0.wdata");
+      def->connect("self.write_addr", "m0.waddr");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+
+      memory->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(c->getGlobal());
+
+      SimulatorState state(memory);
+      state.setMemory("m0", BitVec(index, 0), BitVec(width, 0));
+      state.setMemory("m0", BitVec(index, 1), BitVec(width, 1));
+      state.setMemory("m0", BitVec(index, 2), BitVec(width, 2));
+      state.setMemory("m0", BitVec(index, 3), BitVec(width, 3));
+
+      SECTION("Write to address zero") {
+	state.setClock("self.clk", 0, 1);
+	state.setValue("self.write_en", BitVec(1, 1));
+	state.setValue("self.write_addr", BitVec(1, 0));
+	state.setValue("self.write_data", BitVec(width, 23));
+	state.setValue("self.read_addr", BitVec(1, 0));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.read_data") == BitVec(1, 0));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.read_data") == BitVec(1, 23));
+	
+      }
+
+      
+      
+    }
+
   }
 
 }

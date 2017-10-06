@@ -64,9 +64,13 @@ namespace CoreIR {
 		  const unsigned char clk_last,
 		  const unsigned char clk);
 
-  void setClock(const std::string& name,
-		const unsigned char clk_last,
-		const unsigned char clk);
+    void setClock(const std::string& name,
+		  const unsigned char clk_last,
+		  const unsigned char clk);
+
+    void setMemory(const std::string& name,
+		   const BitVec& addr,
+		   const BitVec& data);
 
     SimValue* getValue(const std::string& name);
     SimValue* getValue(CoreIR::Select* sel);
