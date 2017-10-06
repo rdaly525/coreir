@@ -24,6 +24,7 @@ namespace CoreIR {
       auto it = values.find(bv);
 
       if (it == std::end(values)) {
+	//assert(false);
 	return BitVec(1, 0);
       }
 

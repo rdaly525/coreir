@@ -382,7 +382,8 @@ namespace CoreIR {
     delete oldVal;
 
     valMap[toSelect(outPair.second)] =
-      new BitVector(getMemory(inst->toString(), raddrBits));
+      new BitVector(BitVec(23, 45564));
+      //new BitVector(getMemory(inst->toString(), raddrBits));
     
   }
 
@@ -392,12 +393,6 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
 
     cout << "Updating memory " << inst->toString() << endl;
-
-    //auto outSelects = getOutputSelects(inst);
-
-    //assert(outSelects.size() == 1);
-
-    //pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inConns = getInputConnections(vd, gr);
 
