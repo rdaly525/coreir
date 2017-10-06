@@ -1,5 +1,3 @@
-#define CATCH_CONFIG_MAIN
-
 #include "catch.hpp"
 
 #include "coreir.h"
@@ -421,7 +419,7 @@ namespace CoreIR {
     }
 
     SECTION("Memory") {
-      uint width = 16;
+      uint width = 20;
       uint depth = 4;
       uint index = 2;
 
@@ -456,6 +454,15 @@ namespace CoreIR {
       rg.runOnNamespace(c->getGlobal());
 
       SimulatorState state(memory);
+
+      SECTION("Memory default is zero") {
+	REQUIRE(state.getMemory("m0", BitVec(index, 0)) == BitVec(width, 0));
+      }
+
+      SECTION("rdata default is zero") {
+	REQUIRE(state.getBitVec("m0.rdata") == BitVec(width, 0));
+      }
+      
       state.setMemory("m0", BitVec(index, 0), BitVec(width, 0));
       state.setMemory("m0", BitVec(index, 1), BitVec(width, 1));
       state.setMemory("m0", BitVec(index, 2), BitVec(width, 2));

@@ -14,10 +14,10 @@ namespace CoreIR {
   BitVec SimMemory::getAddr(const BitVec& bv) const {
     auto it = values.find(bv);
 
+    
     if (it == std::end(values)) {
       cout << "Could not find " << bv << endl;
-      assert(false);
-      //return BitVec(1, 0);
+      return BitVec(width, 0);
     }
 
     return it->second;
@@ -39,12 +39,14 @@ namespace CoreIR {
 	Instance* inst = toInstance(wd.getWire());
 	cout << "Found memory = " << inst->toString() << endl;
 
-	// Set memory state to default value
-	SimMemory freshMem;
-	memories[inst->toString()] = freshMem;
+	Args args = inst->getGenArgs();
+	uint width = (args["width"])->get<int>();
+	uint depth = (args["depth"])->get<int>();
+	
 
-	// TODO: Actually set argument parameters
-	uint width = 16;
+	// Set memory state to default value
+	SimMemory freshMem(width, depth);
+	memories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
 	valMap[inst->sel("rdata")] = new BitVector(BitVec(width, 0));
@@ -450,7 +452,11 @@ namespace CoreIR {
 
   BitVec SimulatorState::getMemory(const std::string& name,
 				   const BitVec& addr) {
-    return memories[name].getAddr(addr);
+    auto it = memories.find(name);
+
+    assert(it != std::end(memories));
+
+    return (it->second).getAddr(addr);
   }
 
   void SimulatorState::updateRegisterValue(const vdisc vd) {
@@ -569,18 +575,26 @@ namespace CoreIR {
 				 const BitVec& data) {
 
     cout << "Before seting " << name << "[ " << addr << " ] to " << data << endl;
-    for (auto& memPair : memories[name]) {
+
+    auto it = memories.find(name);
+
+    assert(it != std::end(memories));
+
+    for (auto& memPair : (it->second)) {
       cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
     }
 
     //memories[name].setAddr(addr, data);
     SimMemory& mem = (memories.find(name))->second;
     mem.setAddr(addr, data);
-    //mem.setAddr(BitVec(12, 234), BitVec(16, 32423542));
 
     cout << "After set" << endl;
 
-    for (auto& memPair : memories[name]) {
+    it = memories.find(name);
+
+    assert(it != std::end(memories));
+    
+    for (auto& memPair : (it->second)) {
       cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
     }
   }

@@ -18,7 +18,14 @@ namespace CoreIR {
   protected:
     std::map<BitVec, BitVec> values;
 
+    uint width;
+    uint depth;
+
   public:
+
+    SimMemory(const uint width_, const uint depth_) :
+      width(width_), depth(depth_)
+    {}
 
     std::map<BitVec, BitVec>::const_iterator begin() const {
       return std::begin(values);
