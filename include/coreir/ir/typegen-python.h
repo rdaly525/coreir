@@ -17,7 +17,7 @@ class TypeGenFromPython : public TypeGen {
         TypeGen(ns,name,params,flipped), moduleName(moduleName),
         functionName(functionName) {}
 
-    Type* createType(Context* c, Args args) {
+    Type* createType(Context* c, Values values) {
       Py_Initialize();
       PyObject *py_coreir_module = PyImport_ImportModule("coreir");
       PyObject *py_module = PyImport_ImportModule(moduleName.c_str());
@@ -37,25 +37,21 @@ class TypeGenFromPython : public TypeGen {
           Py_XINCREF(py_coreir_context_pointer);
           PyObject* py_coreir_type_module = PyObject_GetAttrString(py_coreir_module, "type");
           Py_XINCREF(py_coreir_type_module);
-          PyObject* py_coreir_args_pointer = PyObject_GetAttrString(py_coreir_type_module, "COREArgs");
-          Py_XINCREF(py_coreir_args_pointer);
-          PyObject* py_coreir_args_class = PyObject_GetAttrString(py_coreir_type_module, "Args");
-          Py_XINCREF(py_coreir_args_class);
-
-          // PyObject* args_pointer = Py_BuildValue("l", &args);
-          // PyObject* args_pointer_object = PyObject_CallObject(py_coreir_args_class, args_pointer);
-          // Py_DECREF(args_pointer);
-
-          // PyObject* args_object_args = Py_BuildValue("o", args_pointer_object);
-          // PyObject* args_object =
-          //     PyObject_CallObject(py_coreir_args_class, args_object_args);
-          // Py_DECREF(args_object_args);
-
-          // PyObject* context_pointer = Py_BuildValue("l", &c);
-          // PyObject* context_pointer_object =
-          //     PyObject_CallObject(py_coreir_context_pointer,
-          //             context_pointer);
-          // Py_DECREF(context_pointer);
+          int size = values.size();
+          char** names = c->newStringArray(size);
+          Value** values_ptrs = c->newValueArray(size);
+          int count = 0;
+          for (auto element : values) {
+              std::size_t name_length = element.first.size();
+              names[count] = c->newStringBuffer(name_length + 1);
+              memcpy(names[count], element.first.c_str(), name_length + 1);
+              values_ptrs[count] = element.second;
+              count++;
+          }
+          PyObject* value_object = PyObject_CallFunction(py_typeGenFunc, "llli",
+                  &c, (void *) names, (void *) values_ptrs, size);
+          if (PyErr_Occurred()) PyErr_Print();
+          std::cout << value_object << std::endl;
 
           // PyObject* context_object_args = Py_BuildValue("o", context_pointer_object);
           // PyObject* context_object =
@@ -89,6 +85,8 @@ class TypeGenFromPython : public TypeGen {
       }
 
       Py_Finalize();
+      std::cout << "Reached end of typegen" << std::endl;
+      std::exit(1);
       return NULL;
     }
   
