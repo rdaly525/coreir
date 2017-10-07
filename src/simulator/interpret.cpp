@@ -301,9 +301,12 @@ namespace CoreIR {
     InstanceValue arg1 = findArg("in0", inConns);
     InstanceValue arg2 = findArg("in1", inConns);
 
-    BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
+    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
+    // BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
 
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
+    
     assert(s1 != nullptr);
     assert(s2 != nullptr);
 
@@ -334,8 +337,12 @@ namespace CoreIR {
     InstanceValue arg2 = findArg("in1", inConns);
     InstanceValue sel = findArg("sel", inConns);
 
-    BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
+    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
+    // BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
+
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
+    
     BitVector* selB = static_cast<BitVector*>(valMap[sel.getWire()]);
 
     assert(s1 != nullptr);
@@ -377,9 +384,12 @@ namespace CoreIR {
     InstanceValue arg1 = findArg("in0", inConns);
     InstanceValue arg2 = findArg("in1", inConns);
 
-    BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
+    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
+    // BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
 
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
+    
     assert(s1 != nullptr);
     assert(s2 != nullptr);
     
