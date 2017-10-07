@@ -245,8 +245,7 @@ namespace CoreIR {
     auto it = valMap.find(sel);
 
     if (it == std::end(valMap)) {
-      cout << "Could not find select = " << sel->toString() << endl;
-      assert(false);
+      return nullptr;
     }
 
     return (*it).second;
@@ -281,10 +280,12 @@ namespace CoreIR {
     
     BitVec sum = s1->getBits() & s2->getBits();
 
-    SimValue* oldVal = valMap[toSelect(outPair.second)];
+    SimValue* oldVal = getValue(toSelect(outPair.second)); //valMap[toSelect(outPair.second)];
+    //SimValue* oldVal = valMap[toSelect(outPair.second)];
     delete oldVal;
 
-    valMap[toSelect(outPair.second)] = new BitVector(sum);
+    //valMap[toSelect(outPair.second)] = new BitVector(sum);
+    setValue(toSelect(outPair.second), new BitVector(sum));
   }
 
   void SimulatorState::updateAddNode(const vdisc vd) {
