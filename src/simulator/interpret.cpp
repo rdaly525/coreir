@@ -51,7 +51,8 @@ namespace CoreIR {
 	uint width = (args["width"])->get<int>();
 
 	// Set memory output port to default
-	valMap[inst->sel("out")] = new BitVector(BitVec(width, 0));
+	//valMap[inst->sel("out")] = new BitVector(BitVec(width, 0));
+	setValue(inst->sel("out"), new BitVector(BitVec(width, 0)));
 	
       }
     }
@@ -77,7 +78,7 @@ namespace CoreIR {
 	memories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
-	valMap[inst->sel("rdata")] = new BitVector(BitVec(width, 0));
+	setValue(inst->sel("rdata"), new BitVector(BitVec(width, 0)));
 	
       }
     }
@@ -121,8 +122,8 @@ namespace CoreIR {
 
 	  Select* outSel = toSelect(outPair.second);
 	  ArrayType& arrTp = toArray(*(outSel->getType()));
-
-	  valMap[outSel] = new BitVector(BitVec(arrTp.getLen(), argInt));
+	  
+	  setValue(outSel, new BitVector(BitVec(arrTp.getLen(), argInt)));
 	}
       }
     }
@@ -165,7 +166,7 @@ namespace CoreIR {
   }
 
   void SimulatorState::stepClock(CoreIR::Select* clkSelect) {
-    ClockValue* clkVal = toClock(valMap[clkSelect]);
+    ClockValue* clkVal = toClock(getValue(clkSelect));
     clkVal->flip();
   }
   
@@ -683,6 +684,14 @@ namespace CoreIR {
     for (auto& memPair : (it->second)) {
       cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
     }
+  }
+
+  bool SimulatorState::valMapContains(CoreIR::Select* sel) const {
+    return valMap.find(sel) != std::end(valMap);
+  }
+
+  void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
+    valMap[sel] = val;
   }
   
   SimulatorState::~SimulatorState() {

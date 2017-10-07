@@ -80,19 +80,21 @@ namespace CoreIR {
 
   class SimulatorState {
     CoreIR::Module* mod;
-    NGraph gr;
-    std::unordered_map<CoreIR::Select*, SimValue*> valMap;
-    std::deque<vdisc> topoOrder;
 
+    NGraph gr;
+    std::deque<vdisc> topoOrder;
+    std::vector<std::pair<std::string, BitVec> > watchPoints;
+    CoreIR::Select* mainClock;
+
+    std::unordered_map<CoreIR::Select*, SimValue*> valMap;
     std::unordered_map<std::string, SimMemory> memories;
 
-    std::vector<std::pair<std::string, BitVec> > watchPoints;
-
-    CoreIR::Select* mainClock;
 
   public:
 
     SimulatorState(CoreIR::Module* mod_);
+
+    bool valMapContains(CoreIR::Select* sel) const;
 
     bool hitWatchPoint() const;
 
@@ -112,6 +114,7 @@ namespace CoreIR {
     void setRegisterDefaults();
     void setMemoryDefaults();
 
+    void setValue(CoreIR::Select* sel, SimValue* val);
     void setValue(CoreIR::Select* sel, const BitVec& bv);
     void setValue(const std::string& name, const BitVec& bv);
 
