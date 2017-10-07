@@ -84,6 +84,7 @@ string Arg2Json(shared_ptr<Arg> a) {
   }
   else {
     ASSERT(0,"NYI");
+    return NULL;
   }
 }
 
