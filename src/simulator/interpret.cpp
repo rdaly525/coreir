@@ -35,6 +35,10 @@ namespace CoreIR {
     return static_cast<ClockValue*>(val);
   }
 
+  void SimulatorState::rewind(const int halfCycles) {
+    
+  }
+
   void SimulatorState::setRegisterDefaults() {
 
     for (auto& vd : gr.getVerts()) {

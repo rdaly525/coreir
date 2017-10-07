@@ -307,7 +307,15 @@ namespace CoreIR {
 
 	state.run();
 
-	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
+	SECTION("Stop at watchpoint") {
+	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
+	}
+
+	// Should rewind rewind 1 clock cycle or one half clock?
+	SECTION("Rewinding state to an earlier point") {
+	  state.rewind(1);
+	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
+	}
       }
 
     }
