@@ -269,9 +269,6 @@ namespace CoreIR {
     InstanceValue arg1 = findArg("in0", inConns);
     InstanceValue arg2 = findArg("in1", inConns);
 
-    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    // BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
-
     BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
     BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
     
@@ -280,11 +277,9 @@ namespace CoreIR {
     
     BitVec sum = s1->getBits() & s2->getBits();
 
-    SimValue* oldVal = getValue(toSelect(outPair.second)); //valMap[toSelect(outPair.second)];
-    //SimValue* oldVal = valMap[toSelect(outPair.second)];
+    SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
-    //valMap[toSelect(outPair.second)] = new BitVector(sum);
     setValue(toSelect(outPair.second), new BitVector(sum));
   }
 
