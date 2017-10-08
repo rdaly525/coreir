@@ -69,6 +69,49 @@ namespace CoreIR {
   
     Namespace* g = c->getGlobal();
 
+    SECTION("andr") {
+      uint n = 11;
+
+      Generator* andr = c->getGenerator("coreir.andr");
+      Type* andrNType = c->Record({
+	  {"in", c->Array(n, c->BitIn())},
+	    {"out", c->Bit()}
+	});
+
+      Module* andrN = g->newModuleDecl("andrN", andrNType);
+      ModuleDef* def = andrN->newModuleDef();
+
+      Wireable* self = def->sel("self");
+      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const(n)}});
+    
+      def->connect(self->sel("in"), andr0->sel("in"));
+      def->connect(andr0->sel("out"),self->sel("out"));
+
+      andrN->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      SimulatorState state(andrN);
+
+      SECTION("Bitvector that is all ones") {
+	state.setValue("self.in", BitVec(n, "11111111111"));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.out") == BitVec(1, 1));
+      }
+
+      SECTION("Bitvector that is not all ones") {
+	state.setValue("self.in", BitVec(n, "11011101111"));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.out") == BitVec(1, 0));
+      }
+      
+    }
+
     SECTION("And 4") {
       cout << "32 bit and 4" << endl;
 

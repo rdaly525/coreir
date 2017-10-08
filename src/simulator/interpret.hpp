@@ -155,6 +155,8 @@ namespace CoreIR {
     void updateRegisterValue(const vdisc vd);
     void updateMemoryValue(const vdisc vd);
     void updateAddNode(const vdisc vd);
+
+    void updateAndrNode(const vdisc vd);
     void updateOutput(const vdisc vd);
     void updateOrNode(const vdisc vd);
     void updateAndNode(const vdisc vd);

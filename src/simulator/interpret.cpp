@@ -271,6 +271,39 @@ namespace CoreIR {
     return (*it).second;
   }
 
+  void SimulatorState::updateAndrNode(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 1);
+
+    InstanceValue arg1 = findArg("in", inConns);
+
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    
+    assert(s1 != nullptr);
+    
+    BitVec res(1, 1);
+    BitVec sB = s1->getBits();
+    for (int i = 0; i < sB.bitLength(); i++) {
+      if (sB.get(i) != 1) {
+	res = BitVec(1, 0);
+	break;
+      }
+    }
+
+    setValue(toSelect(outPair.second), new BitVector(res));
+  }
+
   void SimulatorState::updateAndNode(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -302,7 +335,7 @@ namespace CoreIR {
 
     setValue(toSelect(outPair.second), new BitVector(sum));
   }
-
+  
   void SimulatorState::updateAddNode(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -459,6 +492,9 @@ namespace CoreIR {
       return;
     } else if (opName == "or") {
       updateOrNode(vd);
+      return;
+    } else if (opName == "andr") {
+      updateAndrNode(vd);
       return;
     } else if (opName == "add") {
       updateAddNode(vd);
