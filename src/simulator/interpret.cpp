@@ -51,7 +51,6 @@ namespace CoreIR {
 	uint width = (args["width"])->get<int>();
 
 	// Set memory output port to default
-	//valMap[inst->sel("out")] = new BitVector(BitVec(width, 0));
 	setValue(inst->sel("out"), new BitVector(BitVec(width, 0)));
 	
       }
@@ -301,9 +300,6 @@ namespace CoreIR {
     InstanceValue arg1 = findArg("in0", inConns);
     InstanceValue arg2 = findArg("in1", inConns);
 
-    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    // BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
-
     BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
     BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
     
@@ -312,7 +308,8 @@ namespace CoreIR {
 
     BitVec sum = add_general_width_bv(s1->getBits(), s2->getBits());
 
-    SimValue* oldVal = valMap[toSelect(outPair.second)];
+    //SimValue* oldVal = valMap[toSelect(outPair.second)];
+    SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
     valMap[toSelect(outPair.second)] = new BitVector(sum);
@@ -358,7 +355,8 @@ namespace CoreIR {
       sum = s2->getBits();
     }
 
-    SimValue* oldVal = valMap[toSelect(outPair.second)];
+    //SimValue* oldVal = valMap[toSelect(outPair.second)];
+    SimValue* oldVal = getValue(toSelect(outPair.second));
     // Is this delete always safe?
     delete oldVal;
 
@@ -395,8 +393,8 @@ namespace CoreIR {
     
     BitVec sum = s1->getBits() | s2->getBits();
 
-    SimValue* oldVal = valMap[toSelect(outPair.second)];
-    // Is this delete always safe?
+    //SimValue* oldVal = valMap[toSelect(outPair.second)];
+    SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
     valMap[toSelect(outPair.second)] = new BitVector(sum);
@@ -422,7 +420,8 @@ namespace CoreIR {
 
     assert(s != nullptr);
 
-    SimValue* oldVal = valMap[inst];
+    //SimValue* oldVal = valMap[inst];
+    SimValue* oldVal = getValue(inst);
     delete oldVal;
 
     valMap[inst] = new BitVector(s->getBits());
@@ -493,7 +492,8 @@ namespace CoreIR {
 
     BitVec raddrBits = raddr->getBits();
 
-    SimValue* oldVal = valMap[toSelect(outPair.second)];
+    //SimValue* oldVal = valMap[toSelect(outPair.second)];
+    SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
     BitVec newRData = getMemory(inst->toString(), raddrBits);
@@ -587,7 +587,8 @@ namespace CoreIR {
       cout << "Clock set correctly" << endl;
 
       if (inConns.size() == 2) {
-	SimValue* oldVal = valMap[toSelect(outPair.second)];
+	//SimValue* oldVal = valMap[toSelect(outPair.second)];
+	SimValue* oldVal = getValue(toSelect(outPair.second));
 	delete oldVal;
 
 	valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
@@ -601,7 +602,8 @@ namespace CoreIR {
 	assert(enBit != nullptr);
 
 	if (enBit->getBits() == BitVec(1, 1)) {
-	  SimValue* oldVal = valMap[toSelect(outPair.second)];
+	  //SimValue* oldVal = valMap[toSelect(outPair.second)];
+	  SimValue* oldVal = getValue(toSelect(outPair.second));
 	  delete oldVal;
 
 	  valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
