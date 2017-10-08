@@ -74,7 +74,7 @@ namespace CoreIR {
 
 	// Set memory state to default value
 	SimMemory freshMem(width, depth);
-	circState.memories.insert({inst->toString(), freshMem});
+	circStates[stateIndex].memories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
 	setValue(inst->sel("rdata"), new BitVector(BitVec(width, 0)));
@@ -183,14 +183,20 @@ namespace CoreIR {
     topoOrder = topologicalSort(gr);
 
     // Set initial state of the circuit
+    CircuitState init;
+    circStates = {init};
+    stateIndex = 0;
+
     setConstantDefaults();
     setMemoryDefaults();
     setRegisterDefaults();
+
+
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
     BitVector* b = new BitVector(bv);
-    circState.valMap[sel] = b;
+    circStates[stateIndex].valMap[sel] = b;
   }
 
   CoreIR::Select* SimulatorState::findSelect(const std::string& name) const {
@@ -241,9 +247,9 @@ namespace CoreIR {
   }
 
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) const {
-    auto it = circState.valMap.find(sel);
+    auto it = circStates[stateIndex].valMap.find(sel);
 
-    if (it == std::end(circState.valMap)) {
+    if (it == std::end(circStates[stateIndex].valMap)) {
       return nullptr;
     }
 
@@ -535,9 +541,9 @@ namespace CoreIR {
 
   BitVec SimulatorState::getMemory(const std::string& name,
 				   const BitVec& addr) {
-    auto it = circState.memories.find(name);
+    auto it = circStates[stateIndex].memories.find(name);
 
-    assert(it != std::end(circState.memories));
+    assert(it != std::end(circStates[stateIndex].memories));
 
     return (it->second).getAddr(addr);
   }
@@ -647,10 +653,10 @@ namespace CoreIR {
   void SimulatorState::setClock(CoreIR::Select* sel,
 				const unsigned char clkLast,
 				const unsigned char clk) {
-    SimValue* lv = circState.valMap[sel];
+    SimValue* lv = circStates[stateIndex].valMap[sel];
     delete lv;
 
-    circState.valMap[sel] = new ClockValue(clkLast, clk);
+    circStates[stateIndex].valMap[sel] = new ClockValue(clkLast, clk);
   }
 
   void SimulatorState::setMemory(const std::string& name,
@@ -659,15 +665,15 @@ namespace CoreIR {
 
     // cout << "Before seting " << name << "[ " << addr << " ] to " << data << endl;
 
-    // auto it = circState.memories.find(name);
+    // auto it = circStates[stateIndex].memories.find(name);
 
-    // assert(it != std::end(circState.memories));
+    // assert(it != std::end(circStates[stateIndex].memories));
 
     // for (auto& memPair : (it->second)) {
     //   cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
     // }
 
-    SimMemory& mem = (circState.memories.find(name))->second;
+    SimMemory& mem = (circStates[stateIndex].memories.find(name))->second;
     mem.setAddr(addr, data);
 
     // cout << "After set" << endl;
@@ -682,15 +688,15 @@ namespace CoreIR {
   }
 
   bool SimulatorState::valMapContains(CoreIR::Select* sel) const {
-    return circState.valMap.find(sel) != std::end(circState.valMap);
+    return circStates[stateIndex].valMap.find(sel) != std::end(circStates[stateIndex].valMap);
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
-    circState.valMap[sel] = val;
+    circStates[stateIndex].valMap[sel] = val;
   }
   
   SimulatorState::~SimulatorState() {
-    for (auto& val : circState.valMap) {
+    for (auto& val : circStates[stateIndex].valMap) {
       delete val.second;
     }
   }

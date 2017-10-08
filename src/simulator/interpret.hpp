@@ -93,7 +93,8 @@ namespace CoreIR {
     std::vector<std::pair<std::string, BitVec> > watchPoints;
     CoreIR::Select* mainClock;
 
-    CircuitState circState;
+    std::vector<CircuitState> circStates;
+    int stateIndex;
 
   public:
 
