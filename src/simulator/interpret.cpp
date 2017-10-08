@@ -35,8 +35,14 @@ namespace CoreIR {
     return static_cast<ClockValue*>(val);
   }
 
-  void SimulatorState::rewind(const int halfCycles) {
-    stateIndex = stateIndex - halfCycles;
+  bool SimulatorState::rewind(const int halfCycles) {
+    int newStateIndex = stateIndex - halfCycles;
+    if (newStateIndex >= 0) {
+      stateIndex = newStateIndex;
+      return true;
+    }
+
+    return false;
   }
 
   void SimulatorState::setRegisterDefaults() {
@@ -676,28 +682,9 @@ namespace CoreIR {
 				 const BitVec& addr,
 				 const BitVec& data) {
 
-    // cout << "Before seting " << name << "[ " << addr << " ] to " << data << endl;
-
-    // auto it = circStates[stateIndex].memories.find(name);
-
-    // assert(it != std::end(circStates[stateIndex].memories));
-
-    // for (auto& memPair : (it->second)) {
-    //   cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
-    // }
-
     SimMemory& mem = (circStates[stateIndex].memories.find(name))->second;
     mem.setAddr(addr, data);
 
-    // cout << "After set" << endl;
-
-    // it = memories.find(name);
-
-    // assert(it != std::end(memories));
-    
-    // for (auto& memPair : (it->second)) {
-    //   cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
-    // }
   }
 
   bool SimulatorState::valMapContains(CoreIR::Select* sel) const {

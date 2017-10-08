@@ -328,13 +328,20 @@ namespace CoreIR {
 	}
 
 	// Should rewind rewind 1 clock cycle or one half clock?
-	SECTION("Rewinding state to an earlier point") {
+	SECTION("Rewinding state by 1 clock cycle") {
 
 	  cout << "state index before rewind = " << state.getStateIndex() << endl;
 	  state.rewind(2);
 	  cout << "state index after rewind  = " << state.getStateIndex() << endl;
 
 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
+	}
+
+	SECTION("Rewinding to before the start of the simulation is an error") {
+
+	  bool rewind = state.rewind(22);
+
+	  REQUIRE(!rewind);
 	}
       }
 
