@@ -74,7 +74,7 @@ namespace CoreIR {
 
 	// Set memory state to default value
 	SimMemory freshMem(width, depth);
-	memories.insert({inst->toString(), freshMem});
+	circState.memories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
 	setValue(inst->sel("rdata"), new BitVector(BitVec(width, 0)));
@@ -190,7 +190,7 @@ namespace CoreIR {
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
     BitVector* b = new BitVector(bv);
-    valMap[sel] = b;
+    circState.valMap[sel] = b;
   }
 
   CoreIR::Select* SimulatorState::findSelect(const std::string& name) const {
@@ -241,9 +241,9 @@ namespace CoreIR {
   }
 
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) const {
-    auto it = valMap.find(sel);
+    auto it = circState.valMap.find(sel);
 
-    if (it == std::end(valMap)) {
+    if (it == std::end(circState.valMap)) {
       return nullptr;
     }
 
@@ -312,7 +312,6 @@ namespace CoreIR {
     delete oldVal;
 
     setValue(toSelect(outPair.second), new BitVector(sum));
-    //valMap[toSelect(outPair.second)] = new BitVector(sum);
   }
 
   void SimulatorState::updateMuxNode(const vdisc vd) {
@@ -337,7 +336,6 @@ namespace CoreIR {
     BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
     BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
     
-    //BitVector* selB = static_cast<BitVector*>(valMap[sel.getWire()]);
     BitVector* selB = static_cast<BitVector*>(getValue(sel.getWire()));
 
     assert(s1 != nullptr);
@@ -390,7 +388,6 @@ namespace CoreIR {
     SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
-    //valMap[toSelect(outPair.second)] = new BitVector(sum);
     setValue(toSelect(outPair.second), new BitVector(sum));
   }
   
@@ -410,7 +407,6 @@ namespace CoreIR {
     Conn inConn = *std::begin(inConns);
     InstanceValue arg = inConn.first;
 
-    //BitVector* s = static_cast<BitVector*>(valMap[arg.getWire()]);
     BitVector* s = static_cast<BitVector*>(getValue(arg.getWire()));
 
     assert(s != nullptr);
@@ -418,7 +414,6 @@ namespace CoreIR {
     SimValue* oldVal = getValue(inst);
     delete oldVal;
 
-    //valMap[inst] = new BitVector(s->getBits());
     setValue(inst, new BitVector(s->getBits()));
     
   }
@@ -481,7 +476,6 @@ namespace CoreIR {
 
     InstanceValue raddrV = findArg("raddr", inConns);
 
-    //BitVector* raddr = static_cast<BitVector*>(valMap[raddrV.getWire()]);
     BitVector* raddr = static_cast<BitVector*>(getValue(raddrV.getWire()));
 
     assert(raddr != nullptr);
@@ -493,10 +487,6 @@ namespace CoreIR {
 
     BitVec newRData = getMemory(inst->toString(), raddrBits);
     cout << "rdata is now value at addr " << raddrBits << " = " << newRData << endl;
-
-    // valMap[toSelect(outPair.second)] =
-    //   //new BitVector(BitVec(23, 45564));
-    //   new BitVector(newRData);
 
     setValue(toSelect(outPair.second), new BitVector(newRData));
     
@@ -518,11 +508,6 @@ namespace CoreIR {
     InstanceValue clkArg = findArg("clk", inConns);
     InstanceValue enArg = findArg("wen", inConns);
 
-
-    // BitVector* waddr = static_cast<BitVector*>(valMap[waddrV.getWire()]);
-    // BitVector* wdata = static_cast<BitVector*>(valMap[wdataV.getWire()]);
-    // BitVector* wen = static_cast<BitVector*>(valMap[enArg.getWire()]);
-    // ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
 
     BitVector* waddr = static_cast<BitVector*>(getValue(waddrV.getWire()));
     BitVector* wdata = static_cast<BitVector*>(getValue(wdataV.getWire()));
@@ -550,9 +535,9 @@ namespace CoreIR {
 
   BitVec SimulatorState::getMemory(const std::string& name,
 				   const BitVec& addr) {
-    auto it = memories.find(name);
+    auto it = circState.memories.find(name);
 
-    assert(it != std::end(memories));
+    assert(it != std::end(circState.memories));
 
     return (it->second).getAddr(addr);
   }
@@ -577,9 +562,6 @@ namespace CoreIR {
     InstanceValue arg1 = findArg("in", inConns);
     InstanceValue clkArg = findArg("clk", inConns);
 
-    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    // ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
-
     BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
@@ -595,14 +577,12 @@ namespace CoreIR {
 	SimValue* oldVal = getValue(toSelect(outPair.second));
 	delete oldVal;
 
-	//valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
 	setValue(toSelect(outPair.second), new BitVector(s1->getBits()));
       } else {
 	assert(inConns.size() == 3);
 
 	InstanceValue enArg = findArg("en", inConns);	
 
-	//BitVector* enBit = static_cast<BitVector*>(valMap[enArg.getWire()]);
 	BitVector* enBit = static_cast<BitVector*>(getValue(enArg.getWire()));
 
 	assert(enBit != nullptr);
@@ -611,7 +591,6 @@ namespace CoreIR {
 	  SimValue* oldVal = getValue(toSelect(outPair.second));
 	  delete oldVal;
 
-	  //valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
 	  setValue(toSelect(outPair.second), new BitVector(s1->getBits()));
 	}
 	
@@ -668,51 +647,50 @@ namespace CoreIR {
   void SimulatorState::setClock(CoreIR::Select* sel,
 				const unsigned char clkLast,
 				const unsigned char clk) {
-    SimValue* lv = valMap[sel];
+    SimValue* lv = circState.valMap[sel];
     delete lv;
 
-    valMap[sel] = new ClockValue(clkLast, clk);
+    circState.valMap[sel] = new ClockValue(clkLast, clk);
   }
 
   void SimulatorState::setMemory(const std::string& name,
 				 const BitVec& addr,
 				 const BitVec& data) {
 
-    cout << "Before seting " << name << "[ " << addr << " ] to " << data << endl;
+    // cout << "Before seting " << name << "[ " << addr << " ] to " << data << endl;
 
-    auto it = memories.find(name);
+    // auto it = circState.memories.find(name);
 
-    assert(it != std::end(memories));
+    // assert(it != std::end(circState.memories));
 
-    for (auto& memPair : (it->second)) {
-      cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
-    }
+    // for (auto& memPair : (it->second)) {
+    //   cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
+    // }
 
-    //memories[name].setAddr(addr, data);
-    SimMemory& mem = (memories.find(name))->second;
+    SimMemory& mem = (circState.memories.find(name))->second;
     mem.setAddr(addr, data);
 
-    cout << "After set" << endl;
+    // cout << "After set" << endl;
 
-    it = memories.find(name);
+    // it = memories.find(name);
 
-    assert(it != std::end(memories));
+    // assert(it != std::end(memories));
     
-    for (auto& memPair : (it->second)) {
-      cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
-    }
+    // for (auto& memPair : (it->second)) {
+    //   cout << "addr = " << memPair.first << " -> " << memPair.second << endl;
+    // }
   }
 
   bool SimulatorState::valMapContains(CoreIR::Select* sel) const {
-    return valMap.find(sel) != std::end(valMap);
+    return circState.valMap.find(sel) != std::end(circState.valMap);
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
-    valMap[sel] = val;
+    circState.valMap[sel] = val;
   }
   
   SimulatorState::~SimulatorState() {
-    for (auto& val : valMap) {
+    for (auto& val : circState.valMap) {
       delete val.second;
     }
   }

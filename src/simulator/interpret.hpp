@@ -78,6 +78,13 @@ namespace CoreIR {
     virtual SimValueType getType() const { return SIM_VALUE_CLK; }
   };
 
+  class CircuitState {
+  public:
+    std::unordered_map<CoreIR::Select*, SimValue*> valMap;
+    std::unordered_map<std::string, SimMemory> memories;
+
+  };
+
   class SimulatorState {
     CoreIR::Module* mod;
 
@@ -86,9 +93,7 @@ namespace CoreIR {
     std::vector<std::pair<std::string, BitVec> > watchPoints;
     CoreIR::Select* mainClock;
 
-    std::unordered_map<CoreIR::Select*, SimValue*> valMap;
-    std::unordered_map<std::string, SimMemory> memories;
-
+    CircuitState circState;
 
   public:
 
