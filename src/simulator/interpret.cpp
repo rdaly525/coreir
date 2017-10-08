@@ -36,7 +36,7 @@ namespace CoreIR {
   }
 
   void SimulatorState::rewind(const int halfCycles) {
-    
+    stateIndex = stateIndex - halfCycles;
   }
 
   void SimulatorState::setRegisterDefaults() {
@@ -608,6 +608,10 @@ namespace CoreIR {
   }
 
   void SimulatorState::execute() {
+
+    CircuitState next = circStates[stateIndex];
+    circStates.push_back(next);
+    stateIndex++;
 
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);

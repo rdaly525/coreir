@@ -313,7 +313,7 @@ namespace CoreIR {
 
 	// Should rewind rewind 1 clock cycle or one half clock?
 	SECTION("Rewinding state to an earlier point") {
-	  state.rewind(1);
+	  state.rewind(4);
 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
 	}
       }
