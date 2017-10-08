@@ -633,6 +633,40 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.out") == BitVec(outLen, "110"));
     }
 
+    SECTION("Concat") {
+      uint inLen0 = 3;
+      uint inLen1 = 5;
+      uint outLen = inLen0 + inLen1;
+
+      Type* concatType = c->Record({
+	  {"in0", c->BitIn()->Arr(inLen0)},
+	    {"in1", c->BitIn()->Arr(inLen1)},
+	      {"out", c->Bit()->Arr(outLen)}
+	});
+
+      Module* concatM = c->getGlobal()->newModuleDecl("concatM", concatType);
+      ModuleDef* def = concatM->newModuleDef();
+
+      def->addInstance("cm",
+		       "coreir.concat",
+		       {{"width0", Const(inLen0)},
+			   {"width1", Const(inLen1)}});
+
+      def->connect("self.in0", "cm.in0");
+      def->connect("self.in1", "cm.in1");
+      def->connect("cm.out", "self.out");
+
+      concatM->setDef(def);
+
+      SimulatorState state(concatM);
+      state.setValue("self.in0", BitVec(3, "111"));
+      state.setValue("self.in1", BitVec(5, "00000"));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVec(8, "00000111"));
+    }
+
   }
 
 }

@@ -374,6 +374,45 @@ namespace CoreIR {
 
     setValue(toSelect(outPair.second), new BitVector(sum));
   }
+
+  void SimulatorState::updateConcatNode(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 2);
+
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
+
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
+    
+    assert(s1 != nullptr);
+    assert(s2 != nullptr);
+
+    BitVec s1Bits = s1->getBits();
+    BitVec s2Bits = s2->getBits();
+    BitVec conc(s1Bits.bitLength() + s2Bits.bitLength());
+
+    for (int i = 0; i < s1Bits.bitLength(); i++) {
+      conc.set(i, s1Bits.get(i));
+    }
+
+    for (int i = 0; i < s2Bits.bitLength(); i++) {
+      conc.set(i + s1Bits.bitLength(), s2Bits.get(i));
+    }
+
+    setValue(toSelect(outPair.second), new BitVector(conc));
+  }
   
   void SimulatorState::updateAddNode(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
@@ -549,6 +588,9 @@ namespace CoreIR {
       return;
     } else if (opName == "slice") {
       updateSliceNode(vd);
+      return;
+    } else if (opName == "concat") {
+      updateConcatNode(vd);
       return;
     }
 
