@@ -142,7 +142,8 @@ namespace CoreIR {
   bool SimulatorState::isSet(const std::string& selStr) const {
     Select* s = findSelect(selStr);
 
-    if (valMap.find(s) == std::end(valMap)) {
+    //if (valMap.find(s) == std::end(valMap)) {
+    if (valMapContains(s)) {
       return false;
     }
 
