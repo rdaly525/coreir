@@ -709,9 +709,11 @@ namespace CoreIR {
   }
   
   SimulatorState::~SimulatorState() {
-    for (auto& val : circStates[stateIndex].valMap) {
-      //delete val.second;
-    }
+    // for (auto& state : circStates) {
+    //   for (auto& val : state.valMap) {
+    // 	delete val.second;
+    //   }
+    // }
   }
 
 }

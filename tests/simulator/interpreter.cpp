@@ -305,23 +305,23 @@ namespace CoreIR {
 	state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
 	state.setMainClock("self.clk");
 
-	auto states = state.getCircStates();
-	for (auto& state : states) {
-	  cout << "State" << endl;
-	  for (auto& val : state.valMap) {
-	    cout << (val.first)->toString() << " --> " << (val.second) << endl;
-	  }
-	}
+	// auto states = state.getCircStates();
+	// for (auto& state : states) {
+	//   cout << "State" << endl;
+	//   for (auto& val : state.valMap) {
+	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
+	//   }
+	// }
 	
 	state.run();
 
-	states = state.getCircStates();
-	for (auto& state : states) {
-	  cout << "State" << endl;
-	  for (auto& val : state.valMap) {
-	    cout << (val.first)->toString() << " --> " << (val.second) << endl;
-	  }
-	}
+	// states = state.getCircStates();
+	// for (auto& state : states) {
+	//   cout << "State" << endl;
+	//   for (auto& val : state.valMap) {
+	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
+	//   }
+	// }
 	
 	SECTION("Stop at watchpoint") {
 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
