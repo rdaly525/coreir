@@ -22,7 +22,7 @@ namespace CoreIR {
 
     
     if (it == std::end(values)) {
-      cout << "Could not find " << bv << endl;
+      //cout << "Could not find " << bv << endl;
       return BitVec(width, 0);
     }
 
@@ -80,7 +80,6 @@ namespace CoreIR {
 
       if (isMemoryInstance(wd.getWire())) {
 	Instance* inst = toInstance(wd.getWire());
-	cout << "Found memory = " << inst->toString() << endl;
 
 	Args args = inst->getGenArgs();
 	uint width = (args["width"])->get<int>();
@@ -182,6 +181,10 @@ namespace CoreIR {
   void SimulatorState::stepClock(CoreIR::Select* clkSelect) {
     ClockValue* clkVal = toClock(getValue(clkSelect));
     clkVal->flip();
+  }
+
+  void SimulatorState::stepClock(const std::string& str) {
+    stepClock(findSelect(str));
   }
   
   void SimulatorState::run() {
@@ -519,8 +522,6 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    cout << "Updating memory " << inst->toString() << endl;
-
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
@@ -543,7 +544,6 @@ namespace CoreIR {
     //delete oldVal;
 
     BitVec newRData = getMemory(inst->toString(), raddrBits);
-    cout << "rdata is now value at addr " << raddrBits << " = " << newRData << endl;
 
     setValue(toSelect(outPair.second), new BitVector(newRData));
     
@@ -553,8 +553,6 @@ namespace CoreIR {
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
-
-    cout << "Updating memory " << inst->toString() << endl;
 
     auto inConns = getInputConnections(vd, gr);
 
@@ -582,7 +580,7 @@ namespace CoreIR {
     if ((clkVal->lastValue() == 0) &&
     	(clkVal->value() == 1) &&
 	(enBit == BitVec(1, 1))) {
-      cout << "Setting location " << waddrBits << " to value " << wdata->getBits() << endl;
+
       setMemory(inst->toString(), waddrBits, wdata->getBits());
 
       assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
@@ -603,8 +601,6 @@ namespace CoreIR {
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
-
-    cout << "Updating register " << inst->toString() << endl;
 
     auto outSelects = getOutputSelects(inst);
 
@@ -627,8 +623,6 @@ namespace CoreIR {
 
     if ((clkVal->lastValue() == 0) &&
 	(clkVal->value() == 1)) {
-
-      cout << "Clock set correctly" << endl;
 
       if (inConns.size() == 2) {
 	SimValue* oldVal = getValue(toSelect(outPair.second));
@@ -732,11 +726,16 @@ namespace CoreIR {
   }
   
   SimulatorState::~SimulatorState() {
-    // for (auto& state : circStates) {
-    //   for (auto& val : state.valMap) {
-    // 	delete val.second;
-    //   }
-    // }
+    set<SimValue*> vals;
+    for (auto& state : circStates) {
+      for (auto& val : state.valMap) {
+	vals.insert(val.second);
+      }
+    }
+
+    for (auto& val : vals) {
+      delete val;
+    }
   }
 
 }
