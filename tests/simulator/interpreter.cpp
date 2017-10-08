@@ -305,15 +305,35 @@ namespace CoreIR {
 	state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
 	state.setMainClock("self.clk");
 
+	auto states = state.getCircStates();
+	for (auto& state : states) {
+	  cout << "State" << endl;
+	  for (auto& val : state.valMap) {
+	    cout << (val.first)->toString() << " --> " << (val.second) << endl;
+	  }
+	}
+	
 	state.run();
 
+	states = state.getCircStates();
+	for (auto& state : states) {
+	  cout << "State" << endl;
+	  for (auto& val : state.valMap) {
+	    cout << (val.first)->toString() << " --> " << (val.second) << endl;
+	  }
+	}
+	
 	SECTION("Stop at watchpoint") {
 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
 	}
 
 	// Should rewind rewind 1 clock cycle or one half clock?
 	SECTION("Rewinding state to an earlier point") {
-	  state.rewind(4);
+
+	  cout << "state index before rewind = " << state.getStateIndex() << endl;
+	  state.rewind(2);
+	  cout << "state index after rewind  = " << state.getStateIndex() << endl;
+
 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
 	}
       }

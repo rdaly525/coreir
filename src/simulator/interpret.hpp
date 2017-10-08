@@ -100,6 +100,10 @@ namespace CoreIR {
 
     SimulatorState(CoreIR::Module* mod_);
 
+    std::vector<CircuitState> getCircStates() const;
+
+    int getStateIndex() const;
+    
     bool valMapContains(CoreIR::Select* sel) const;
 
     bool hitWatchPoint() const;

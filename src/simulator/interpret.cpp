@@ -58,6 +58,15 @@ namespace CoreIR {
 
   }
 
+  std::vector<CircuitState>
+  SimulatorState::getCircStates() const {
+    return circStates;
+  }
+
+  int SimulatorState::getStateIndex() const {
+    return stateIndex;
+  }
+
   void SimulatorState::setMemoryDefaults() {
 
     for (auto& vd : gr.getVerts()) {
@@ -283,7 +292,7 @@ namespace CoreIR {
     BitVec sum = s1->getBits() & s2->getBits();
 
     SimValue* oldVal = getValue(toSelect(outPair.second));
-    delete oldVal;
+    //delete oldVal;
 
     setValue(toSelect(outPair.second), new BitVector(sum));
   }
@@ -315,7 +324,7 @@ namespace CoreIR {
     BitVec sum = add_general_width_bv(s1->getBits(), s2->getBits());
 
     SimValue* oldVal = getValue(toSelect(outPair.second));
-    delete oldVal;
+    //delete oldVal;
 
     setValue(toSelect(outPair.second), new BitVector(sum));
   }
@@ -359,7 +368,7 @@ namespace CoreIR {
 
     SimValue* oldVal = getValue(toSelect(outPair.second));
     // Is this delete always safe?
-    delete oldVal;
+    //delete oldVal;
 
     setValue(toSelect(outPair.second), new BitVector(sum));
 
@@ -392,7 +401,7 @@ namespace CoreIR {
     BitVec sum = s1->getBits() | s2->getBits();
 
     SimValue* oldVal = getValue(toSelect(outPair.second));
-    delete oldVal;
+    //delete oldVal;
 
     setValue(toSelect(outPair.second), new BitVector(sum));
   }
@@ -418,7 +427,7 @@ namespace CoreIR {
     assert(s != nullptr);
 
     SimValue* oldVal = getValue(inst);
-    delete oldVal;
+    //delete oldVal;
 
     setValue(inst, new BitVector(s->getBits()));
     
@@ -489,7 +498,7 @@ namespace CoreIR {
     BitVec raddrBits = raddr->getBits();
 
     SimValue* oldVal = getValue(toSelect(outPair.second));
-    delete oldVal;
+    //delete oldVal;
 
     BitVec newRData = getMemory(inst->toString(), raddrBits);
     cout << "rdata is now value at addr " << raddrBits << " = " << newRData << endl;
@@ -581,7 +590,7 @@ namespace CoreIR {
 
       if (inConns.size() == 2) {
 	SimValue* oldVal = getValue(toSelect(outPair.second));
-	delete oldVal;
+	//delete oldVal;
 
 	setValue(toSelect(outPair.second), new BitVector(s1->getBits()));
       } else {
@@ -595,7 +604,7 @@ namespace CoreIR {
 
 	if (enBit->getBits() == BitVec(1, 1)) {
 	  SimValue* oldVal = getValue(toSelect(outPair.second));
-	  delete oldVal;
+	  //delete oldVal;
 
 	  setValue(toSelect(outPair.second), new BitVector(s1->getBits()));
 	}
@@ -658,7 +667,7 @@ namespace CoreIR {
 				const unsigned char clkLast,
 				const unsigned char clk) {
     SimValue* lv = circStates[stateIndex].valMap[sel];
-    delete lv;
+    //delete lv;
 
     circStates[stateIndex].valMap[sel] = new ClockValue(clkLast, clk);
   }
@@ -701,7 +710,7 @@ namespace CoreIR {
   
   SimulatorState::~SimulatorState() {
     for (auto& val : circStates[stateIndex].valMap) {
-      delete val.second;
+      //delete val.second;
     }
   }
 
