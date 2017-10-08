@@ -597,9 +597,40 @@ namespace CoreIR {
 	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
 	
       }
+      
+    }
 
-      
-      
+    SECTION("Slice") {
+      uint inLen = 7;
+      uint lo = 2;
+      uint hi = 5;
+      uint outLen = hi - lo;
+
+      Type* sliceType = c->Record({
+	  {"in", c->Array(inLen, c->BitIn())},
+	    {"out", c->Array(outLen, c->Bit())}
+	});
+
+      Module* sliceM = c->getGlobal()->newModuleDecl("sliceM", sliceType);
+      ModuleDef* def = sliceM->newModuleDef();
+
+      def->addInstance("sl",
+		       "coreir.slice",
+		       {{"width", Const(inLen)},
+			   {"lo", Const(lo)},
+			     {"hi", Const(hi)}});
+
+      def->connect("self.in", "sl.in");
+      def->connect("sl.out", "self.out");
+
+      sliceM->setDef(def);
+
+      SimulatorState state(sliceM);
+      state.setValue("self.in", BitVec(inLen, "1011010"));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVec(outLen, "110"));
     }
 
   }

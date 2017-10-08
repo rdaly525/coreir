@@ -274,6 +274,42 @@ namespace CoreIR {
     return (*it).second;
   }
 
+  void SimulatorState::updateSliceNode(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 1);
+
+    InstanceValue arg1 = findArg("in", inConns);
+
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    
+    assert(s1 != nullptr);
+
+    Args args = inst->getGenArgs();
+    uint lo = (args["lo"])->get<int>();
+    uint hi = (args["hi"])->get<int>();
+
+    assert((hi - lo) > 0);
+    
+    BitVec res(hi - lo, 1);
+    BitVec sB = s1->getBits();
+    for (int i = lo; i < hi; i++) {
+      res.set(i - lo, sB.get(i));
+    }
+
+    setValue(toSelect(outPair.second), new BitVector(res));
+  }
+
   void SimulatorState::updateAndrNode(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -510,6 +546,9 @@ namespace CoreIR {
       return;
     } else if (opName == "mux") {
       updateMuxNode(vd);
+      return;
+    } else if (opName == "slice") {
+      updateSliceNode(vd);
       return;
     }
 
