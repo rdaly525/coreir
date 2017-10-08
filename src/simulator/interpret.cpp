@@ -415,11 +415,11 @@ namespace CoreIR {
 
     assert(s != nullptr);
 
-    //SimValue* oldVal = valMap[inst];
     SimValue* oldVal = getValue(inst);
     delete oldVal;
 
-    valMap[inst] = new BitVector(s->getBits());
+    //valMap[inst] = new BitVector(s->getBits());
+    setValue(inst, new BitVector(s->getBits()));
     
   }
 
@@ -481,22 +481,24 @@ namespace CoreIR {
 
     InstanceValue raddrV = findArg("raddr", inConns);
 
-    BitVector* raddr = static_cast<BitVector*>(valMap[raddrV.getWire()]);
+    //BitVector* raddr = static_cast<BitVector*>(valMap[raddrV.getWire()]);
+    BitVector* raddr = static_cast<BitVector*>(getValue(raddrV.getWire()));
 
     assert(raddr != nullptr);
 
     BitVec raddrBits = raddr->getBits();
 
-    //SimValue* oldVal = valMap[toSelect(outPair.second)];
     SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
     BitVec newRData = getMemory(inst->toString(), raddrBits);
     cout << "rdata is now value at addr " << raddrBits << " = " << newRData << endl;
 
-    valMap[toSelect(outPair.second)] =
-      //new BitVector(BitVec(23, 45564));
-      new BitVector(newRData);
+    // valMap[toSelect(outPair.second)] =
+    //   //new BitVector(BitVec(23, 45564));
+    //   new BitVector(newRData);
+
+    setValue(toSelect(outPair.second), new BitVector(newRData));
     
   }
 
@@ -517,11 +519,16 @@ namespace CoreIR {
     InstanceValue enArg = findArg("wen", inConns);
 
 
-    BitVector* waddr = static_cast<BitVector*>(valMap[waddrV.getWire()]);
-    BitVector* wdata = static_cast<BitVector*>(valMap[wdataV.getWire()]);
-    BitVector* wen = static_cast<BitVector*>(valMap[enArg.getWire()]);
-    ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
+    // BitVector* waddr = static_cast<BitVector*>(valMap[waddrV.getWire()]);
+    // BitVector* wdata = static_cast<BitVector*>(valMap[wdataV.getWire()]);
+    // BitVector* wen = static_cast<BitVector*>(valMap[enArg.getWire()]);
+    // ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
 
+    BitVector* waddr = static_cast<BitVector*>(getValue(waddrV.getWire()));
+    BitVector* wdata = static_cast<BitVector*>(getValue(wdataV.getWire()));
+    BitVector* wen = static_cast<BitVector*>(getValue(enArg.getWire()));
+    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    
     assert(waddr != nullptr);
     assert(wdata != nullptr);
     assert(wen != nullptr);
