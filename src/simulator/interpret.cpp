@@ -577,9 +577,12 @@ namespace CoreIR {
     InstanceValue arg1 = findArg("in", inConns);
     InstanceValue clkArg = findArg("clk", inConns);
 
-    BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
+    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
+    // ClockValue* clkVal = toClock(valMap[clkArg.getWire()]);
 
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    
     assert(s1 != nullptr);
     assert(clkVal != nullptr);
 
@@ -589,26 +592,27 @@ namespace CoreIR {
       cout << "Clock set correctly" << endl;
 
       if (inConns.size() == 2) {
-	//SimValue* oldVal = valMap[toSelect(outPair.second)];
 	SimValue* oldVal = getValue(toSelect(outPair.second));
 	delete oldVal;
 
-	valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
+	//valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
+	setValue(toSelect(outPair.second), new BitVector(s1->getBits()));
       } else {
 	assert(inConns.size() == 3);
 
 	InstanceValue enArg = findArg("en", inConns);	
 
-	BitVector* enBit = static_cast<BitVector*>(valMap[enArg.getWire()]);
+	//BitVector* enBit = static_cast<BitVector*>(valMap[enArg.getWire()]);
+	BitVector* enBit = static_cast<BitVector*>(getValue(enArg.getWire()));
 
 	assert(enBit != nullptr);
 
 	if (enBit->getBits() == BitVec(1, 1)) {
-	  //SimValue* oldVal = valMap[toSelect(outPair.second)];
 	  SimValue* oldVal = getValue(toSelect(outPair.second));
 	  delete oldVal;
 
-	  valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
+	  //valMap[toSelect(outPair.second)] = new BitVector(s1->getBits());
+	  setValue(toSelect(outPair.second), new BitVector(s1->getBits()));
 	}
 	
 	// cout << "# of input connections = " << inConns.size() << endl;
