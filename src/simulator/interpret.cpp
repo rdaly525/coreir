@@ -308,11 +308,11 @@ namespace CoreIR {
 
     BitVec sum = add_general_width_bv(s1->getBits(), s2->getBits());
 
-    //SimValue* oldVal = valMap[toSelect(outPair.second)];
     SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
-    valMap[toSelect(outPair.second)] = new BitVector(sum);
+    setValue(toSelect(outPair.second), new BitVector(sum));
+    //valMap[toSelect(outPair.second)] = new BitVector(sum);
   }
 
   void SimulatorState::updateMuxNode(const vdisc vd) {
@@ -334,13 +334,11 @@ namespace CoreIR {
     InstanceValue arg2 = findArg("in1", inConns);
     InstanceValue sel = findArg("sel", inConns);
 
-    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    // BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
-
     BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
     BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
     
-    BitVector* selB = static_cast<BitVector*>(valMap[sel.getWire()]);
+    //BitVector* selB = static_cast<BitVector*>(valMap[sel.getWire()]);
+    BitVector* selB = static_cast<BitVector*>(getValue(sel.getWire()));
 
     assert(s1 != nullptr);
     assert(s2 != nullptr);
@@ -355,12 +353,11 @@ namespace CoreIR {
       sum = s2->getBits();
     }
 
-    //SimValue* oldVal = valMap[toSelect(outPair.second)];
     SimValue* oldVal = getValue(toSelect(outPair.second));
     // Is this delete always safe?
     delete oldVal;
 
-    valMap[toSelect(outPair.second)] = new BitVector(sum);
+    setValue(toSelect(outPair.second), new BitVector(sum));
 
   }
 
@@ -382,9 +379,6 @@ namespace CoreIR {
     InstanceValue arg1 = findArg("in0", inConns);
     InstanceValue arg2 = findArg("in1", inConns);
 
-    // BitVector* s1 = static_cast<BitVector*>(valMap[arg1.getWire()]);
-    // BitVector* s2 = static_cast<BitVector*>(valMap[arg2.getWire()]);
-
     BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
     BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
     
@@ -393,11 +387,11 @@ namespace CoreIR {
     
     BitVec sum = s1->getBits() | s2->getBits();
 
-    //SimValue* oldVal = valMap[toSelect(outPair.second)];
     SimValue* oldVal = getValue(toSelect(outPair.second));
     delete oldVal;
 
-    valMap[toSelect(outPair.second)] = new BitVector(sum);
+    //valMap[toSelect(outPair.second)] = new BitVector(sum);
+    setValue(toSelect(outPair.second), new BitVector(sum));
   }
   
   void SimulatorState::updateOutput(const vdisc vd) {
@@ -416,7 +410,8 @@ namespace CoreIR {
     Conn inConn = *std::begin(inConns);
     InstanceValue arg = inConn.first;
 
-    BitVector* s = static_cast<BitVector*>(valMap[arg.getWire()]);
+    //BitVector* s = static_cast<BitVector*>(valMap[arg.getWire()]);
+    BitVector* s = static_cast<BitVector*>(getValue(arg.getWire()));
 
     assert(s != nullptr);
 
