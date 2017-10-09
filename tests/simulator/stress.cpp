@@ -94,12 +94,12 @@ namespace CoreIR {
 
 	setThreadNumbers(gr);
 
-	cout << "VERT thread nos" << endl;
-	for (auto& v : gr.getVerts()) {
-	  int tNo = gr.getNode(v).getThreadNo();
-	  cout << "Thread number = " << tNo << endl;
-	  //assert(tNo == 13);
-	}
+	// cout << "VERT thread nos" << endl;
+	// for (auto& v : gr.getVerts()) {
+	//   int tNo = gr.getNode(v).getThreadNo();
+	//   //cout << "Thread number = " << tNo << endl;
+	//   //assert(tNo == 13);
+	// }
 
 	cout << "Built ordered graph" << endl;
 	deque<vdisc> topoOrder = topologicalSort(gr);
