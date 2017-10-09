@@ -194,14 +194,6 @@ namespace CoreIR {
 
     }
 
-    cout << "topo_order.size() = " << topo_order.size() << endl;
-    cout << "numVertices(g)    = " << numVertices(g) << endl;
-
-    cout << "Topological order" << endl;
-    for (auto& vd : topo_order) {
-      cout << vd << endl;
-    }
-
     assert(topo_order.size() == numVertices(g));
 
     return topo_order;

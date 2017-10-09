@@ -1049,13 +1049,10 @@ namespace CoreIR {
     for (auto& v : opG.getVerts()) {
       int threadNo = opG.getNode(v).getThreadNo();
 
-      cout << "ThreadNo = " << threadNo << endl;
-
       if (!elem(threadNo, tg.getVerts())) {
 
 	tg.addVertex( threadNo );
 
-	cout << "Added " << threadNo << endl;
       } 
 
       map_insert(threadComps, threadNo, v);

@@ -667,6 +667,7 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.out") == BitVec(8, "00000111"));
     }
 
+    deleteContext(c);
   }
 
 }
