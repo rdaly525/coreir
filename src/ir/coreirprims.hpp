@@ -296,7 +296,9 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "binary",
     widthparams,
     [](Context* c, Values args) {
+      cout << "{" << Values2Str(args) << endl;
       uint width = args.at("width")->get<int>();
+      cout << "}" << endl;
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in0",c->Flip(ptype)},

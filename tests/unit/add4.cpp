@@ -37,7 +37,10 @@ int main() {
     def->connect(add_1->sel("out"),self->sel("out"));
   add4_n->setDef(def);
   add4_n->print();
-  
+ 
+  c->runPasses({"firrtl"});
+
+
   deleteContext(c);
   
   return 0;
