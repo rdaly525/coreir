@@ -23,19 +23,21 @@ namespace CoreIR {
 
     Params counterParams({{"width",AINT}});
 
-    TypeGen* counterTypeGen = global->newTypeGen(
-						 "CounterTypeGen", //name of typegen
-						 counterParams, //Params required for typegen
-						 [](Context* c, Args args) { //lambda for generating the type
-						   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
-						   uint width = args.at("width")->get<int>(); //widthArg->get<int>(); //get function to extract the arg value.
-						   return c->Record({
-						       {"en",c->BitIn()}, 
-							 {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
-							   {"clk",c->Named("coreir.clkIn")},
-							     });
-						 } //end lambda
-						 ); //end newTypeGen
+    TypeGen* counterTypeGen =
+      global->newTypeGen(
+			 "CounterTypeGen", //name of typegen
+			 counterParams, //Params required for typegen
+			 [](Context* c, Args args) { //lambda for generating the type
+			   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
+			   uint width = args.at("width")->get<int>(); //widthArg->get<int>(); //get function to extract the arg value.
+			   return c->Record({
+			       {"en",c->BitIn()}, 
+				 {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
+				   {"clk",c->Named("coreir.clkIn")},
+				     });
+			 } //end lambda
+			 ); //end newTypeGen
+
     ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
 
 
