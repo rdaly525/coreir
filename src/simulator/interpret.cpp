@@ -186,9 +186,21 @@ namespace CoreIR {
   void SimulatorState::stepClock(const std::string& str) {
     stepClock(findSelect(str));
   }
-  
+
+  void SimulatorState::stepMainClock() {
+    stepClock(mainClock);
+  }
+
   void SimulatorState::run() {
     while (!hitWatchPoint()) {
+      runHalfCycle();
+    }
+  }
+
+  void SimulatorState::runHalfCycle() {
+    if (stateIndex < (getCircStates().size() - 1)) {
+      stateIndex++;
+    } else {
       execute();
       stepClock(mainClock);
     }

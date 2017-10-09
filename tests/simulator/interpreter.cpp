@@ -382,6 +382,17 @@ namespace CoreIR {
 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
 	}
 
+	SECTION("Rewinding and then running to an already simulated point fast forwards") {
+	  state.rewind(4);
+
+	  int numStates = state.getCircStates().size();
+
+	  state.runHalfCycle();
+
+	  REQUIRE(state.getCircStates().size() == numStates);
+	  
+	}
+
 	SECTION("Rewinding to before the start of the simulation is an error") {
 
 	  bool rewind = state.rewind(22);
