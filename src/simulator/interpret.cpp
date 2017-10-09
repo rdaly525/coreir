@@ -197,8 +197,12 @@ namespace CoreIR {
     }
   }
 
+  bool SimulatorState::atLastState() {
+    return stateIndex == (getCircStates().size() - 1);
+  }
+
   void SimulatorState::runHalfCycle() {
-    if (stateIndex < (getCircStates().size() - 1)) {
+    if (!atLastState()) {
       stateIndex++;
     } else {
       execute();
@@ -225,6 +229,8 @@ namespace CoreIR {
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
+    assert(atLastState());
+
     BitVector* b = new BitVector(bv);
     circStates[stateIndex].valMap[sel] = b;
   }
@@ -746,6 +752,7 @@ namespace CoreIR {
   }
 
   void SimulatorState::execute() {
+    assert(atLastState());
 
     CircuitState next = circStates[stateIndex];
     circStates.push_back(next);

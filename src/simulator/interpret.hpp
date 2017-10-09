@@ -114,6 +114,7 @@ namespace CoreIR {
 
     CoreIR::Select* findSelect(const std::string& name) const;
 
+    bool atLastState();
     void runHalfCycle();
     void stepMainClock();
     void stepClock(const std::string& str);
