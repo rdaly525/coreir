@@ -152,7 +152,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
-    if (genargs.at("rst")->get<bool>()) {
+    if (genargs.at("rst")->get<bool>() || genargs.at("clr")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
       defaultargs["init"] = Const::make(c,BitVector(width,0));

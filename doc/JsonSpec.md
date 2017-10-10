@@ -69,12 +69,12 @@ ValueType = "Bool"
 
 Params = {<field>:ValueType,...}
 
-Arg = ["Arg", ValueType, <field>]
-Const = ["Const", ValueType, <Val>]
-Consts = {<field>:Const,...}
+Arg = [ValueType, "Arg", <field>]
+Const = [ValueType, <Val>]
 
 Value = Arg
       | Const
 
+Values = {<field>:Value,...}
 
 ```

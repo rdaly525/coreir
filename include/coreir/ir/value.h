@@ -82,10 +82,13 @@ U2K_SPECIALIZE(Type*,VK_ConstCoreIRType)
 }
 
 namespace CoreIR {
+
 class Arg : public Value {
   const std::string field;
-  public :
-    Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
+  private :
+
+ public:
+ Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
     static bool classof(const Value* v) {return v->getKind()==VK_Arg;}
     const std::string& getField() const { return field;}
     bool operator==(const Value& r) const;
