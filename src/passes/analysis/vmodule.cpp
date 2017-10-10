@@ -32,16 +32,6 @@ string VModule::toString() {
   //Module declaration
   o << endl << "module " << modname << pstring << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
 
-  //Param declaraions
-  for (auto p : params) {
-    o << tab << "parameter " << p;
-    if (paramDefaults.count(p)) {
-      o << " = " << paramDefaults[p];
-    }
-    o << ";" << endl;
-  }
-  o << endl;
-  
   for (auto s : stmts) o << s << endl;
   o << endl << "endmodule //" << modname;
   return o.str();
