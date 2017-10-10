@@ -5,7 +5,10 @@ any key followed by a ? means it is optional
 
 ```
 //What is in the json file
-{<namespaceName>:Namespace, ...}
+{
+  "top: NamedRef,
+  namespaces: {<namespaceName>:Namespace, ...}
+}
 
 
 //Definitions
