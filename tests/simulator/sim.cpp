@@ -79,8 +79,8 @@ namespace CoreIR {
 
       def->addInstance("m0",
       		       "coreir.mem",
-      		       {{"width", Const(width)},{"depth", Const(depth)}},
-      		       {{"init", Const("0")}});
+      		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}},
+      		       {{"init", Const::make(c, "0")}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
