@@ -24,6 +24,163 @@ namespace CoreIR {
     Context* c = newContext();
   
     Namespace* g = c->getGlobal();
+
+    SECTION("Load add with cin / cout from json") {
+      if (!loadFromFile(c, "test_add_cin_two.json")) {
+	cout << "Could not Load from json!!" << endl;
+	c->die();
+      }
+
+      Module* m = c->getModule("global.Add4_cin");
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph gr;
+      buildOrderedGraph(m, gr);
+      deque<vdisc> topoOrder = topologicalSort(gr);
+
+      SECTION("Compile and run") {
+	int s = compileCode(topoOrder, gr, m, "./gencode/", "add_cin_two");
+
+	REQUIRE(s == 0);
+      }
+
+    }
+	       
+
+    SECTION("16 bit add with carry out only") {
+      uint n = 16;
+  
+      Generator* add2 = c->getGenerator("coreir.add");
+
+      // Define Add4 Module
+      Type* add4Type = c->Record({
+    	  {"in",c->Array(2,c->Array(n,c->BitIn()))},
+    	    {"out",c->Array(n,c->Bit())},
+	      {"cout", c->Bit()}
+    	});
+
+      Module* add4_n = g->newModuleDecl("Add4",add4Type);
+      ModuleDef* def = add4_n->newModuleDef();
+      Wireable* self = def->sel("self");
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(false)}, {"has_cout", Const(true)}});
+    
+      def->connect(self->sel("in")->sel(0), add0->sel("in0"));
+      def->connect(self->sel("in")->sel(1), add0->sel("in1"));
+      def->connect(add0->sel("out"), self->sel("out"));
+      def->connect(add0->sel("cout"), self->sel("cout"));
+      add4_n->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph gr;
+      buildOrderedGraph(add4_n, gr);
+      deque<vdisc> topoOrder = topologicalSort(gr);
+
+      SECTION("Compile and run") {
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  add4_n,
+				  "./gencode/",
+				  "add_cout_16",
+				  "test_add_cout_16.cpp");
+
+    	REQUIRE(s == 0);
+      }
+
+    }
+    
+    SECTION("31 bit add with carry in and carry out") {
+      uint n = 31;
+  
+      Generator* add2 = c->getGenerator("coreir.add");
+
+      // Define Add4 Module
+      Type* add4Type = c->Record({
+    	  {"in",c->Array(2,c->Array(n,c->BitIn()))},
+    	    {"out",c->Array(n,c->Bit())},
+    	      {"cin", c->BitIn()},
+    		{"cout", c->Bit()}
+    	});
+
+      Module* add4_n = g->newModuleDecl("Add4",add4Type);
+      ModuleDef* def = add4_n->newModuleDef();
+      Wireable* self = def->sel("self");
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+    
+      def->connect(self->sel("in")->sel(0), add0->sel("in0"));
+      def->connect(self->sel("in")->sel(1), add0->sel("in1"));
+      def->connect(self->sel("cin"), add0->sel("cin"));
+      def->connect(add0->sel("out"), self->sel("out"));
+      def->connect(add0->sel("cout"), self->sel("cout"));
+      add4_n->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph gr;
+      buildOrderedGraph(add4_n, gr);
+      deque<vdisc> topoOrder = topologicalSort(gr);
+
+      SECTION("Compile and run") {
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  add4_n,
+				  "./gencode/",
+				  "add_cin_cout",
+				  "test_add_cin_cout.cpp");
+
+    	REQUIRE(s == 0);
+      }
+
+    }
+
+    SECTION("32 bit add with carry in and carry out") {
+      uint n = 32;
+  
+      Generator* add2 = c->getGenerator("coreir.add");
+
+      // Define Add4 Module
+      Type* add4Type = c->Record({
+    	  {"in",c->Array(2,c->Array(n,c->BitIn()))},
+    	    {"out",c->Array(n,c->Bit())},
+    	      {"cin", c->BitIn()},
+    		{"cout", c->Bit()}
+    	});
+
+      Module* add4_n = g->newModuleDecl("Add4",add4Type);
+      ModuleDef* def = add4_n->newModuleDef();
+      Wireable* self = def->sel("self");
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+    
+      def->connect(self->sel("in")->sel(0), add0->sel("in0"));
+      def->connect(self->sel("in")->sel(1), add0->sel("in1"));
+      def->connect(self->sel("cin"), add0->sel("cin"));
+      def->connect(add0->sel("out"), self->sel("out"));
+      def->connect(add0->sel("cout"), self->sel("cout"));
+      add4_n->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph gr;
+      buildOrderedGraph(add4_n, gr);
+      deque<vdisc> topoOrder = topologicalSort(gr);
+
+      SECTION("Compile and run") {
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  add4_n,
+				  "./gencode/",
+				  "add_cin_cout_32",
+				  "test_add_cin_cout_32.cpp");
+
+    	REQUIRE(s == 0);
+      }
+
+    }
     
     SECTION("32 bit add 4") {
       uint n = 32;
@@ -78,7 +235,6 @@ namespace CoreIR {
 
 	REQUIRE(s == 0);
       }
-      
     }
 
     SECTION("6 bit signed remainder 3 operations") {
@@ -666,6 +822,50 @@ namespace CoreIR {
 
     }
 
+    SECTION("gt on 16 bits") {
+      uint n = 16;
+  
+      Generator* ugt = c->getGenerator("coreir.ugt");
+
+      Type* ugtType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Bit() }
+	});
+
+      Module* ugtM = g->newModuleDecl("ugt_test", ugtType);
+
+      ModuleDef* def = ugtM->newModuleDef();
+
+      Wireable* self = def->sel("self");
+      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const(n)}});
+
+      def->connect("self.A.0", "ugt0.in0");
+      def->connect("self.A.1", "ugt0.in1");
+      def->connect(ugt0->sel("out"), self->sel("out"));
+
+      ugtM->setDef(def);
+
+      RunGenerators rg;
+      rg.runOnNamespace(g);
+
+      NGraph g;
+      buildOrderedGraph(ugtM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+      eliminateMasks(topoOrder, g);
+
+      REQUIRE(numMasksNeeded(g) == 0);
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				ugtM,
+				"./gencode/",
+				"ugt16",
+				"test_ugt16.cpp");
+      REQUIRE(s == 0);
+
+    }
+    
     SECTION("Multiplexer test") {
       uint n = 8;
   

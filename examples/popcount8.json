@@ -44,7 +44,7 @@
         "instances":{
           "bit_const_GND":{
             "modref":"coreir.bitconst",
-            "configargs":{"value":0}
+            "modargs":{"value":["Int",0]}
           },
           "inst0":{
             "modref":"global.fold_xor3None"
