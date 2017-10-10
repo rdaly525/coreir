@@ -346,7 +346,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //);
   //For mux
   coreirprims->newTypeGen(
-    "ternary",
+    "muxType",
     widthparams,
     [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();

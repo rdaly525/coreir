@@ -27,6 +27,22 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Params widthparams = Params({{"width",c->Int()}});
   // TypeGens defined in coreirprims
 
+  //For MAC
+  coreirprims->newTypeGen(
+    "ternary",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      Type* ptype = c->Bit()->Arr(width);
+      return c->Record({
+        {"in0",c->Flip(ptype)},
+        {"in1",c->Flip(ptype)},
+        {"in2",c->Flip(ptype)},
+        {"out",ptype}
+      });
+    }
+  );
+
   //muxN type
   commonlib->newTypeGen(
     "muxN_type", //name for the typegen
@@ -62,13 +78,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   // Commonlib Arithmetic primitives
   //   umin,smin,umax,smax
-  //   absd
+  //   absd, MAC
   /////////////////////////////////
 
   //Lazy way:
   unordered_map<string,vector<string>> opmap({
     {"binary",{
       "umin","smin","umax","smax","absd"
+    }},
+    {"ternary",{
+      "MAC"
     }},
   });
   

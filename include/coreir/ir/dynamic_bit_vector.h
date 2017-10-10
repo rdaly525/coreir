@@ -40,7 +40,7 @@ namespace bsim {
     }
 
   dynamic_bit_vector(const int N_, const std::string& str) : N(N_) {
-      assert(str.size() == N);
+      assert(str.size() == (uint) N);
 
       bits.resize(NUM_BYTES(N));
       for (uint i = 0; i < bits.size(); i++) {
