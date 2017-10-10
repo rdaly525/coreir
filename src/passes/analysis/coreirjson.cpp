@@ -80,13 +80,14 @@ string Params2Json(Params gp) {
 
 string Type2Json(Type* t);
 string Value2Json(Value* v) {
+  ASSERT(v,"should not be nulL!");
   Array ret;
   if (auto a = dyn_cast<Arg>(v)) {
     ret.add(quote("Arg"));
     ret.add(ValueType2Json(v->getValueType()));
     ret.add(quote(a->getField()));
   }
-  else if (auto c = dyn_cast<Const>(v)) {
+  else if (Const* c = dyn_cast<Const>(v)) {
     ret.add(ValueType2Json(v->getValueType()));
     if (auto cb = dyn_cast<ConstBool>(c)) {
       ret.add(cb->get() ? "true" : "false");
@@ -100,7 +101,7 @@ string Value2Json(Value* v) {
     else if (auto cs = dyn_cast<ConstString>(c)) {
       ret.add(quote(cs->get()));
     }
-    else if (auto at = dyn_cast<ConstCoreIRType>(a)) {
+    else if (auto at = dyn_cast<ConstCoreIRType>(c)) {
       return Type2Json(at->get());
     }
     else {
@@ -115,6 +116,9 @@ string Value2Json(Value* v) {
 }
 
 string Values2Json(Values vs) {
+  cout << "H!" << endl;
+  cout << Values2Str(vs) << endl;
+  cout << "H2" << endl;
   Dict j;
   for (auto it : vs) j.add(it.first,Value2Json(it.second));
   return j.toString();
