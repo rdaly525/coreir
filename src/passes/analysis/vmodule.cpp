@@ -7,14 +7,30 @@ using namespace std;
 
 string VModule::toString() {
   vector<string> pdecs;
-  for (auto pmap : ports) {
-    auto port = pmap.second;
-    pdecs.push_back(port.dirstr() + " " + port.dimstr() + " " + port.getName());
+  if (interface.size()>0) {
+    pdecs = interface;
   }
+  else {
+    for (auto pmap : ports) {
+      auto port = pmap.second;
+      pdecs.push_back(port.dirstr() + " " + port.dimstr() + " " + port.getName());
+    }
+  }
+  
+  vector<string> paramstrs;
+  for (auto p : params) {
+    string s = "parameter " + p;
+    if (paramDefaults.count(p)) {
+      s = s + "=" + paramDefaults[p];
+    }
+    paramstrs.push_back(s);
+  }
+  string pstring = paramstrs.size()>0 ? " #(" + join(paramstrs.begin(),paramstrs.end(),string(", "))+") " : " ";
+
   ostringstream o;
   string tab = "  ";
   //Module declaration
-  o << endl << "module " << modname << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
+  o << endl << "module " << modname << pstring << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
 
   //Param declaraions
   for (auto p : params) {

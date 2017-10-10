@@ -57,6 +57,7 @@ class VWire {
 class VModule {
   std::string modname;
   std::unordered_map<std::string,VWire> ports;
+  std::vector<std::string> interface;
   std::unordered_set<std::string> params;
   std::unordered_map<std::string,std::string> paramDefaults;
 
@@ -88,14 +89,17 @@ class VModule {
         if (jmeta["verilog"].count("definition")) {
           stmts.push_back(jmeta["verilog"]["definition"].get<std::string>());
         }
-        if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
+        if (jmeta["verilog"].count("interface")) {
+          interface = (jmeta["verilog"]["interface"].get<std::vector<std::string>>());
+        }
+        if (jmeta["verilog"].count("parameters")) {
           for (auto p : jmeta["verilog"]["parameters"].get<std::vector<std::string>>()) {
             this->params.insert(p);
           }
         }
       }
     }
-    bool hasDef() {return stmts.size() > 0;}
+    bool hasDef() {return stmts.size() > 0 && (interface.size()>0 || ports.size()>0);}
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
     std::string toCommentString() {
       return "//Module: " + modname + " defined externally";
