@@ -446,7 +446,6 @@ namespace CoreIR {
     assert(s1 != nullptr);
     assert(s2 != nullptr);
     
-    //BitVec sum = s1->getBits() & s2->getBits();
     if (s1->getBits() != s2->getBits()) {
       setValue(toSelect(outPair.second), new BitVector(BitVec(1, 1)));
     } else {

@@ -148,7 +148,7 @@ namespace CoreIR {
 		     const BitVec& addr);
 
     bool isSet(const std::string& selStr) const;
-	    
+
     SimValue* getValue(const std::string& name) const;
     SimValue* getValue(CoreIR::Select* sel) const;
     BitVec getBitVec(CoreIR::Select* sel) const;
@@ -171,7 +171,7 @@ namespace CoreIR {
     void updateNodeValues(const vdisc vd);
 
     void execute();
-    
+
     void run();
 
     ~SimulatorState();
