@@ -81,17 +81,21 @@ T join(const A &begin, const A &end, const T &t) {
 
 std::vector<std::string> splitRef(std::string s);
 
-static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
-  {"unary",{"not","neg"}},
+
+//Does not include
+static std::unordered_map<std::string,std::unordered_set<std::string>> coreMap({
+  {"unary",{"wire","not","neg"}},
   {"unaryReduce",{"andr","orr","xorr"}},
   {"binary",{
+    "add","sub",
     "and","or","xor",
     "shl","lshr","ashr",
     "mul",
     "udiv","urem",
     "sdiv","srem","smod"
   }},
-  {"binaryReduce",{"eq",
+  {"binaryReduce",{
+    "eq","neq",
     "slt","sgt","sle","sge",
     "ult","ugt","ule","uge"
   }},

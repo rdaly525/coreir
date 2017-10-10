@@ -7,6 +7,9 @@
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
 
+#include "../definitions/core.hpp"
+
+
 using namespace std;
 using namespace CoreIR;
 
@@ -193,6 +196,7 @@ int main(int argc, char *argv[]) {
     fpass->writeToStream(*sout);
   }
   else if (outExt=="v") {
+    CoreIRLoadVerilog_coreir(c);
     modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     

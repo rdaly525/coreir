@@ -69,22 +69,33 @@ class VModule {
       Type2Ports(t,ports);
     }
     VModule(Module* m) : VModule(m->getName(),m->getType()) {
-      const json& jmeta = m->getMetaData();
-      if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
-        modname = jmeta["verilog"]["prefix"].get<std::string>() + m->getName();
-      }
-
       this->addParams(m->getModParams());
       this->addDefaults(m->getDefaultModArgs());
+      
+      this->checkJson(m->getMetaData());
     }
     VModule(Generator* g) : modname(g->getName()), gen(g) {
-      const json& jmeta = g->getMetaData();
-      if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
-        modname = jmeta["verilog"]["prefix"].get<std::string>() + g->getName();
-      }
       this->addParams(g->getGenParams());
       this->addDefaults(g->getDefaultGenArgs());
+      
+      this->checkJson(g->getMetaData());
     }
+    void checkJson(json jmeta) {
+      if (jmeta.count("verilog") ) {
+        if (jmeta["verilog"].count("prefix")) {
+          this->modname = jmeta["verilog"]["prefix"].get<std::string>() + this->modname;
+        }
+        if (jmeta["verilog"].count("definition")) {
+          stmts.push_back(jmeta["verilog"]["definition"].get<std::string>());
+        }
+        if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
+          for (auto p : jmeta["verilog"]["parameters"].get<std::vector<std::string>>()) {
+            this->params.insert(p);
+          }
+        }
+      }
+    }
+    bool hasDef() {return stmts.size() > 0;}
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
     std::string toCommentString() {
       return "//Module: " + modname + " defined externally";

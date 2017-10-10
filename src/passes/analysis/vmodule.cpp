@@ -36,8 +36,8 @@ string VModule::toInstanceString(Instance* inst) {
   Instantiable* iref = inst->getInstantiableRef();
   if (this->gen) {
     ASSERT(inst->isGen(),"DEBUG ME:");
+    ASSERT(iref==cast<Instantiable>(gen),"DEBUG ME");
     auto paramsAndDefaults = gen->getModParams(inst->getGenArgs());
-    this->addParams(paramsAndDefaults.first);
     this->addDefaults(paramsAndDefaults.second);
   }
   ostringstream o;
@@ -48,7 +48,7 @@ string VModule::toInstanceString(Instance* inst) {
   if (gen) {
     args = inst->getGenArgs();
     Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
-    mname = gen->getNamespace()->getName() + "_" + modname; //TODO bug
+    mname = modname; 
   }
   else {
     mname = modname;
@@ -60,16 +60,7 @@ string VModule::toInstanceString(Instance* inst) {
     args[amap.first] = amap.second;
   }
   o << tab << mname << " ";
-  vector<string> params;
-  const json& jmeta = iref->getMetaData();
-  if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
-    params = jmeta["verilog"]["parameters"].get<vector<string>>();
-  }
-  else {
-    for (auto amap : args) {
-      params.push_back(amap.first);
-    }
-  }
+  
   vector<string> paramstrs;
   for (auto param : params) {
     ASSERT(args.count(param),"Missing parameter " + param + " from " + Values2Str(args));

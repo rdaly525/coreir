@@ -27,13 +27,20 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Create a new Vmodule for this node
   Instantiable* i = node.getInstantiable();
   if (auto g = dyn_cast<Generator>(i)) {
-    this->modMap[i] = new VModule(g);
-    this->external.insert(i);
+    auto vmod = new VModule(g);
+    this->modMap[i] = vmod;
+    if (!vmod->hasDef()) {
+      this->external.insert(i);
+    }
     return false;
   }
   Module* m = cast<Module>(i);
   VModule* vmod = new VModule(m);
   modMap[i] = vmod;
+  if (vmod->hasDef()) {
+    ASSERT(!m->hasDef(),"Overriding coreir def with verilog def"); //TODO figure out this better
+    return false;
+  }
   if (!m->hasDef()) {
     this->external.insert(i);
     return false;

@@ -88,13 +88,13 @@ void coreir2firrtl(Instantiable* i,FModule& fm) {
   else if (i->getName()=="const") {
     ASSERT(0,"NYI Constants");
   }
-  else if (opmap["binary"].count(i->getName()) 
-     || opmap["binaryReduce"].count(i->getName())) {
+  else if (coreMap["binary"].count(i->getName()) 
+     || coreMap["binaryReduce"].count(i->getName())) {
       fm.addStmt("out <= " + op2firrtl(i->getName()) + "(in[0],in[1])");
   }
   else {
-    assert(opmap["unary"].count(i->getName())
-        || opmap["unaryReduce"].count(i->getName()));
+    assert(coreMap["unary"].count(i->getName())
+        || coreMap["unaryReduce"].count(i->getName()));
     
     fm.addStmt("out <= " + op2firrtl(i->getName()) + "(in)");
   }

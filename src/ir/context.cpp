@@ -11,14 +11,16 @@ using namespace std;
 
 namespace CoreIR {
 
-#include "coreirprims.hpp"
+#include "headers/core.hpp"
+#include "headers/corebit.hpp"
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
   typecache = new TypeCache(this);
   valuecache = new ValueCache(this);
   //Automatically load coreir //defined in coreirprims.h
-  CoreIRLoadLibrary_coreirprims(this);
+  CoreIRLoadHeader_core(this);
+  CoreIRLoadHeader_corebit(this);
   pm = new PassManager(this);
 }
 
