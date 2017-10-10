@@ -256,6 +256,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   TypeGen* memTypeGen = coreirprims->newTypeGen("memType",memGenParams,memFun);
   auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams); 
   mem->setModParamsGen(memModParamFun);
+  mem->addDefaultGenArgs({{"has_init",Const::make(c,true)}});
   jverilog["parameters"] = {"width","init"};
   jverilog["prefix"] = "coreir_";
   mem->getMetaData()["verilog"] = jverilog;

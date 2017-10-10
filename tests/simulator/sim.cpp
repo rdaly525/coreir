@@ -80,7 +80,7 @@ namespace CoreIR {
       def->addInstance("m0",
       		       "coreir.mem",
       		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}},
-      		       {{"init", Const::make(c, "0")}});
+      		       {{"init", Const::make(c, BitVector(width*depth,0))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
