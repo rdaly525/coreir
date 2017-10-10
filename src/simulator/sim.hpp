@@ -13,9 +13,6 @@ namespace CoreIR {
 			const std::string& baseName);
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
-  simArguments(CoreIR::Module& mod);
+  sortedSimArgumentPairs(Module& mod);
 
-  std::vector<std::pair<CoreIR::Type*, std::string> >
-  simInputs(CoreIR::Module& mod);
-  
 }

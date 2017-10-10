@@ -9,6 +9,10 @@
             "out": ["Array",16,"Bit"]
           }],
           "instances": {
+            "_pt": {
+              "genref": "coreir.passthrough",
+              "genargs": {"type":["CoreIRType", "Bit"]}
+            },
             "i00": {
               "genref": "coreir.add",
               "genargs": {"width":["Int", 16]}

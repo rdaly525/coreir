@@ -13,6 +13,7 @@ using namespace std;
 
 namespace CoreIR {
 
+  string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
   string printOpResultStr(const InstanceValue& wd, const NGraph& g);
 
   // wd is an instance node
@@ -126,7 +127,7 @@ namespace CoreIR {
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
       res += maskResult(*(outPair.second->getType()), compString);
     } else {
-      res += compString; //maskResult(*(outPair.second->getType()), compString);
+      res += compString;
     }
 
     return res;
@@ -136,6 +137,10 @@ namespace CoreIR {
     return parens(parens(signedCTypeString(tp)) + " " + expr);
   }
 
+  string castToUnSigned(Type& tp, const std::string& expr) {
+    return parens(parens(unSignedCTypeString(tp)) + " " + expr);
+  }
+  
   
 
   string seString(Type& tp, const std::string& arg) {
@@ -152,39 +157,39 @@ namespace CoreIR {
 
   string
   printSEThenOpThenMaskBinop(Instance* inst, const vdisc vd, const NGraph& g) {
-      auto outSelects = getOutputSelects(inst);
+    auto outSelects = getOutputSelects(inst);
 
-      assert(outSelects.size() == 1);
+    assert(outSelects.size() == 1);
 
-      pair<string, Wireable*> outPair = *std::begin(outSelects);
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-      auto inConns = getInputConnections(vd, g);
+    auto inConns = getInputConnections(vd, g);
 
-      assert(inConns.size() == 2);
+    assert(inConns.size() == 2);
 
-      InstanceValue arg1 = findArg("in0", inConns);
-      InstanceValue arg2 = findArg("in1", inConns);
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
 
-      string opString = getOpString(*inst);
+    string opString = getOpString(*inst);
 
-      Type& arg1Tp = *((arg1.getWire())->getType());
-      Type& arg2Tp = *((arg2.getWire())->getType());
+    Type& arg1Tp = *((arg1.getWire())->getType());
+    Type& arg2Tp = *((arg2.getWire())->getType());
 
-      string rs1 = printOpResultStr(arg1, g);
-      string rs2 = printOpResultStr(arg2, g);
+    string rs1 = printOpResultStr(arg1, g);
+    string rs2 = printOpResultStr(arg2, g);
 
-      string opStr = castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
-	opString +
-	castToSigned(arg2Tp, seString(arg2Tp, rs2));
+    string opStr = castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
+      opString +
+      castToSigned(arg2Tp, seString(arg2Tp, rs2));
 
-      string res;
-      if (g.getOutputConnections(vd)[0].first.needsMask()) {
-	res += maskResult(*(outPair.second->getType()), opStr);
-      } else {
-	res += opStr; //maskResult(*(outPair.second->getType()), compString);
-      }
+    string res;
+    if (g.getOutputConnections(vd)[0].first.needsMask()) {
+      res += maskResult(*(outPair.second->getType()), opStr);
+    } else {
+      res += opStr;
+    }
       
-      return res;
+    return res;
   }
 
   bool isMux(Instance& inst) {
@@ -211,11 +216,195 @@ namespace CoreIR {
 	       printOpResultStr(i0, g));
   }
 
-  string printTernop(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printAddOrSubWithCIN(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    auto ins = getInputs(vd, g);
+
+    assert(ins.size() == 3);
+    
+    Instance* inst = toInstance(wd.getWire());
+    auto outSelects = getOutputSelects(inst);
+
+    assert((outSelects.size() == 1));
+
+    string res = "";
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, g);
+
+    // Either it is a binop or there is a cin
+    assert((inConns.size() == 2) || (inConns.size() == 3));
+
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
+    InstanceValue carry = findArg("cin", inConns);
+
+    string opString = getOpString(*inst);
+
+    string compString =
+      parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
+
+    // Check if this output needs a mask
+    if (g.getOutputConnections(vd)[0].first.needsMask()) {
+      res += maskResult(*(outPair.second->getType()), compString);
+    } else {
+      res += compString;
+    }
+
+    return res;
+
+  }
+
+  CoreIR::Wireable*
+  findSelect(const std::string& selName,
+	     const std::unordered_map<std::string, CoreIR::Wireable*> selects) {
+    for (auto& sel : selects) {
+      if (sel.first == selName) {
+	return sel.second;
+      }
+    }
+
+    cout << "Could not find select with name = " << selName << endl;
+    assert(false);
+  }
+
+  string checkSumOverflowStr(Type& tp,
+			     const std::string& in0StrNC,
+			     const std::string& in1StrNC) {
+    string in0Str = castToUnSigned(tp, in0StrNC);
+    string in1Str = castToUnSigned(tp, in0StrNC);
+
+    string sumString = castToUnSigned(tp, parens(in0StrNC + " + " + in1StrNC));
+    string test1 = parens(sumString + " < " + in0Str);
+    string test2 = parens(sumString + " < " + in1Str);
+    return parens(test1 + " || " + test2);
+  }
+
+  // NOTE: This function prints the full assignment of values
+  string printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    auto ins = getInputs(vd, g);
+
+    assert(ins.size() == 3);
+    
+    Instance* inst = toInstance(wd.getWire());
+    auto outSelects = getOutputSelects(inst);
+
+    assert((outSelects.size() == 2));
+
+    Wireable* resultSelect = findSelect("out", outSelects);
+    Wireable* coutSelect = findSelect("cout", outSelects);
+
+    string res = "";
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, g);
+
+    // Either it is a binop or there is a cin
+    assert((inConns.size() == 2) || (inConns.size() == 3));
+
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
+    InstanceValue carry = findArg("cin", inConns);
+
+    string opString = getOpString(*inst);
+
+    string in0Str = printOpResultStr(arg1, g);
+    string in1Str = printOpResultStr(arg2, g);
+    string carryStr = printOpResultStr(carry, g);
+    string sumStr = parens(in0Str + opString + in1Str);
+
+    string compString =
+      parens(sumStr + " + " + carryStr);
+
+    Type& tp = *(resultSelect->getType());
+    res += maskResult(tp, compString);
+
+    // This does not actually handle the case where the underlying types are the
+    // a fixed architecture width
+    string carryRes;
+    if (standardWidth(tp)) {
+      string firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
+      string secondOverflow = checkSumOverflowStr(tp, sumStr, carryStr);
+      carryRes = parens(firstOverflow + " || " + secondOverflow);
+    } else {
+
+      carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+
+    }
+
+    string carryString = cVar(*coutSelect) + " = " + carryRes;
+
+    return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
+
+  }
+
+  // NOTE: This function prints the full assignment of values
+  string printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    auto ins = getInputs(vd, g);
+
+    assert(ins.size() == 2);
+    
+    Instance* inst = toInstance(wd.getWire());
+    auto outSelects = getOutputSelects(inst);
+
+    assert((outSelects.size() == 2));
+
+    Wireable* resultSelect = findSelect("out", outSelects);
+    Wireable* coutSelect = findSelect("cout", outSelects);
+
+    string res = "";
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, g);
+
+    // Either it is a binop or there is a cin
+    assert((inConns.size() == 2) || (inConns.size() == 3));
+
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
+
+    string opString = getOpString(*inst);
+
+    string in0Str = printOpResultStr(arg1, g);
+    string in1Str = printOpResultStr(arg2, g);
+    string sumStr = parens(in0Str + opString + in1Str);
+
+    string compString = sumStr;
+
+    Type& tp = *(resultSelect->getType());
+    res += maskResult(tp, compString);
+
+    // This does not actually handle the case where the underlying types are the
+    // a fixed architecture width
+    string carryRes;
+    if (standardWidth(tp)) {
+      string firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
+      carryRes = parens(firstOverflow);
+    } else {
+
+      carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+
+    }
+
+    string carryString = cVar(*coutSelect) + " = " + carryRes;
+
+    return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
+
+  }
+  
+  string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     assert(getInputs(vd, g).size() == 3);
 
+    Instance* inst = toInstance(wd.getWire());
     if (isMux(*inst)) {
       return printMux(inst, vd, g);
+    }
+
+    if (isAddOrSub(*inst)) {
+      // Add and subtract need special treatment because of cin and cout flags
+      return printAddOrSubWithCIN(wd, vd, g);
     }
 
     assert(false);
@@ -321,15 +510,8 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
     
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-    // string res = cVar(*(outPair.second));
-    
     if (ins.size() == 3) {
-      return printTernop(inst, vd, g);
+      return printTernop(wd, vd, g);
     }
 
     if (ins.size() == 2) {
@@ -350,7 +532,57 @@ namespace CoreIR {
     
   }
 
-  string printOp(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g) {
+    assert(wd.isSequential);
+
+    auto outSel = getOutputSelects(wd.getWire());
+    
+    assert(outSel.size() == 1);
+    Select* s = toSelect((*(begin(outSel))).second);
+    
+    assert(isInstance(s->getParent()));
+
+    Instance* r = toInstance(s->getParent());
+
+    auto ins = getInputConnections(vd, g);
+    
+    if (!wd.isReceiver) {
+      assert(ins.size() == 1);
+
+      InstanceValue raddr = findArg("raddr", ins);
+      return ln(cVar(*s) + " = " +
+		parens(cVar("(state->", *r, ")") +
+		       "[ " + printOpResultStr(raddr, g) + " ]"));
+    } else {
+      assert(ins.size() == 4);
+
+      InstanceValue waddr = findArg("waddr", ins);
+      InstanceValue wdata = findArg("wdata", ins);
+      InstanceValue clk = findArg("clk", ins);
+      InstanceValue wen = findArg("wen", ins);
+
+      string condition =
+	parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
+
+      condition += " && " + printOpResultStr(wen, g);
+
+      string oldValueName = cVar("(state->", *r, ")") + "[ " + printOpResultStr(waddr, g) + " ]";
+
+      string s = oldValueName + " = ";
+      s += ite(parens(condition),
+	       printOpResultStr(wdata, g),
+	       oldValueName);
+
+      return ln(s);
+      
+      // return ln(cVar("(state->", *r, ")") +
+		
+      // 		printOpResultStr(wdata, g));
+    
+    }
+  }
+
+  string printInstance(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 
     cout << "Instance name = " << getInstanceName(*inst) << endl;
@@ -361,14 +593,34 @@ namespace CoreIR {
       return printRegister(wd, vd, g);
     }
 
+    if (isMemoryInstance(inst)) {
+      return printMemory(wd, vd, g);
+    }
+
     auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    if (outSelects.size() == 1) {
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-    string res = cVar(*(outPair.second));
+      pair<string, Wireable*> outPair = *std::begin(outSelects);
+      string res = cVar(*(outPair.second));
 
-    return ln(res + " = " + opResultStr(wd, vd, g));
+      return ln(res + " = " + opResultStr(wd, vd, g));
+    } else {
+      assert(outSelects.size() == 2);
+      assert(isAddOrSub(*inst));
+
+      auto ins = getInputs(vd, g);
+
+      if (ins.size() == 3) {
+      
+	return printAddOrSubCIN_COUT(wd, vd, g);
+      } else {
+	assert(ins.size() == 2);
+
+	return printAddOrSubCOUT(wd, vd, g);
+	
+      }
+    }
   }
 
   bool isCombinationalInstance(const WireNode& wd) {
@@ -378,13 +630,20 @@ namespace CoreIR {
       return false;
     }
 
+    if (isMemoryInstance(wd.getWire())) {
+      cout << "Found memory instance" << endl;
+      return false;
+    }
+
     return true;
   }
 
   string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
     assert(isSelect(wd.getWire()));
 
-    if (isRegisterInstance(extractSource(toSelect(wd.getWire())))) {
+    Wireable* src = extractSource(toSelect(wd.getWire()));
+
+    if (isRegisterInstance(src) || isMemoryInstance(src)) {
       return cVar(wd);
     }
 
@@ -472,11 +731,11 @@ namespace CoreIR {
 
 	    } else {
 	      if (wd.isReceiver) {
-	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
+		//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_receiver") + ";\n";
 		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
 	      } else {
-	    	//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
+		//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in) + "_source") + ";\n";
 
 	      }
 	    }
@@ -495,13 +754,6 @@ namespace CoreIR {
     // Declare all variables
     str += "\n// Variable declarations\n";
 
-    // str += "\n// Outputs\n";
-
-    // for (auto& name_type_pair : outputs(mod)) {
-    //   Type* tp = name_type_pair.second;
-    //   str += cArrayTypeDecl(*tp, "self_" + name_type_pair.first) + ";\n";
-    // }
-  
     str += "\n// Internal variables\n";
     str += printInternalVariables(topo_order, g, mod);
 
@@ -515,7 +767,7 @@ namespace CoreIR {
       if (isInstance(inst)) {
 
 	if (!isCombinationalInstance(wd) || (g.getOutputConnections(vd).size() > 1)) {
-	  str += printOp(wd, vd, g);
+	  str += printInstance(wd, vd, g);
 	}
 
       } else {
@@ -554,11 +806,44 @@ namespace CoreIR {
   }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
+  simMemoryInputs(Module& mod) {
+    vector<pair<Type*, string>> declStrs;
+    
+    // Add register inputs
+    for (auto& inst : mod.getDef()->getInstances()) {
+      if (isMemoryInstance(inst.second)) {
+	cout << "Adding memory instance" << endl;
+	Instance* is = inst.second;
+
+	Context* c = mod.getDef()->getContext();
+
+	uint width = 16;
+	uint depth = 2;
+	Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
+	declStrs.push_back({elemType, is->toString()});
+
+	// Select* in = is->sel("in");
+	// Type* itp = in->getType();
+
+	//string regName = is->getInstname();
+
+	// declStrs.push_back({itp, regName + "_old_value"});
+	// declStrs.push_back({itp, regName + "_new_value"});
+
+
+	
+      }
+    }
+
+    return declStrs;
+  }  
+
+  std::vector<std::pair<CoreIR::Type*, std::string> >
   simRegisterInputs(Module& mod) {
 
-    Type* tp = mod.getType();
+    // Type* tp = mod.getType();
 
-    assert(tp->getKind() == Type::TK_Record);
+    // assert(tp->getKind() == Type::TK_Record);
 
     //RecordType* modRec = static_cast<RecordType*>(tp);
     vector<pair<Type*, string>> declStrs;
@@ -573,9 +858,6 @@ namespace CoreIR {
 
 	string regName = is->getInstname();
 
-	// declStrs.push_back({itp, regName + "_old_value"});
-	// declStrs.push_back({itp, regName + "_new_value"});
-
 	declStrs.push_back({itp, cVar(*is)});
 	
       }
@@ -583,37 +865,6 @@ namespace CoreIR {
 
     return declStrs;
     
-  }
-  
-  std::vector<std::pair<CoreIR::Type*, std::string> >
-  simInputs(Module& mod) {
-
-    Type* tp = mod.getType();
-
-    assert(tp->getKind() == Type::TK_Record);
-
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<pair<Type*, string>> declStrs;
-
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
-
-      if (tp->isInput()) {
-	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	} else {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
-
-	}
-      }
-    }
-
-    // Add register inputs
-    concat(declStrs, simRegisterInputs(mod));
-
-    return declStrs;
-
   }
   
   std::vector<std::pair<CoreIR::Type*, std::string> >
@@ -648,6 +899,9 @@ namespace CoreIR {
 
     // Add register inputs
     concat(declStrs, simRegisterInputs(mod));
+    // Add memory inputs
+    concat(declStrs, simMemoryInputs(mod));
+    
 
     return declStrs;
     

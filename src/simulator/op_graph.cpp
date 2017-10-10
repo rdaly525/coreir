@@ -249,7 +249,7 @@ namespace CoreIR {
     Wireable* p1 = extractSource(c1);
 
     vdisc c1_disc;
-    if (isRegisterInstance(p1)) {
+    if (isRegisterInstance(p1) || isMemoryInstance(p1)) {
       auto c1_disc_it = imap.find(outputNode(p1));
 
       assert(c1_disc_it != imap.end());
@@ -269,9 +269,16 @@ namespace CoreIR {
     Wireable* p2 = extractSource(c2);
 
     vdisc c2_disc;
-    if (isRegisterInstance(p2)) {
+    // NOTE: If the receiver instance node is memory and the
+    // port that is being received is the raddr then the
+    // sourceNode receives it
+    if (isRegisterInstance(p2) || isMemoryInstance(p2)) {
       auto c2_disc_it = imap.find(receiverNode(p2));
 
+      if (c2->getSelStr() == "raddr") {
+	cout << "Found raddr" << endl;
+	c2_disc_it = imap.find(outputNode(p2));
+      }
       assert(c2_disc_it != imap.end());
 
       c2_disc = (*c2_disc_it).second;
@@ -298,7 +305,8 @@ namespace CoreIR {
       Instance* inst = toInstance(w1);
       string genRefName = getInstanceName(*inst);
 
-      if (genRefName == "reg") {
+      //if (genRefName == "reg") {
+      if (isRegisterInstance(inst) || isMemoryInstance(inst)) {
 	WireNode wOutput = outputNode(w1);
 	WireNode wInput = receiverNode(w1);
 
