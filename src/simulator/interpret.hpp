@@ -160,6 +160,7 @@ namespace CoreIR {
     void updateMemoryValue(const vdisc vd);
     void updateAddNode(const vdisc vd);
 
+    void updateNeqNode(const vdisc vd);
     void updateEqNode(const vdisc vd);    
     void updateConcatNode(const vdisc vd);
     void updateSliceNode(const vdisc vd);    

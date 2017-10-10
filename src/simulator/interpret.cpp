@@ -422,6 +422,39 @@ namespace CoreIR {
     }
 
   }
+
+  void SimulatorState::updateNeqNode(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 2);
+
+    InstanceValue arg1 = findArg("in0", inConns);
+    InstanceValue arg2 = findArg("in1", inConns);
+
+    BitVector* s1 = static_cast<BitVector*>(getValue(arg1.getWire()));
+    BitVector* s2 = static_cast<BitVector*>(getValue(arg2.getWire()));
+    
+    assert(s1 != nullptr);
+    assert(s2 != nullptr);
+    
+    //BitVec sum = s1->getBits() & s2->getBits();
+    if (s1->getBits() != s2->getBits()) {
+      setValue(toSelect(outPair.second), new BitVector(BitVec(1, 1)));
+    } else {
+      setValue(toSelect(outPair.second), new BitVector(BitVec(1, 0)));
+    }
+
+  }
   
   void SimulatorState::updateConcatNode(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
@@ -605,6 +638,9 @@ namespace CoreIR {
       return;
     } else if (opName == "eq") {
       updateEqNode(vd);
+      return;
+    } else if (opName == "neq") {
+      updateNeqNode(vd);
       return;
     } else if (opName == "or") {
       updateOrNode(vd);
