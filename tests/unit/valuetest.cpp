@@ -16,7 +16,7 @@ int main() {
   checkValuesAreParams(g1,{{"a",c->Int()},{"b",c->String()}});
   assert(g1 != g3);
   assert(g1 != g4);
-  checkValuesAreParams(g4,{{"a",c->Int()},{"b",c->String()},{"c",c->CoreIRType()}});
+  checkValuesAreParams(g4,{{"a",c->Int()},{"b",c->String()},{"c",CoreIRType::make(c)}});
   deleteContext(c);
   return 0;
 }

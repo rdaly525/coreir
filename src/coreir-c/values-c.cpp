@@ -32,6 +32,13 @@ extern "C" {
     //Get will assert if wrong val kind
     return val->get<bool>();
   }
+
+  void COREValueBitVectorGet(COREValue* a, int* width, uint64_t* val) {
+    Value* value = rcast<Value*>(a);
+    BitVector bv = value->get<BitVector>();
+    *width = bv.bitLength();
+    *val = bv.to_type<uint64_t>();
+  }
   
   //Create Arg for Bool
   COREValue* COREValueBool(COREContext* cc, COREBool val) {
@@ -51,6 +58,12 @@ extern "C" {
   COREValue* COREValueString(COREContext* cc,char* str) {
     Context* c = rcast<Context*>(cc);
     Value* ga = Const::make(c,string(str));
+    return rcast<COREValue*>(ga);
+  }
+
+  COREValue* COREValueBitVector(COREContext* cc, int width, uint64_t val) {
+    Context* c = rcast<Context*>(cc);
+    Value* ga = Const::make(c, width, val);
     return rcast<COREValue*>(ga);
   }
 

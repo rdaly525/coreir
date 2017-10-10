@@ -33,7 +33,7 @@ NamedTypeGen = {"flippedname"?:<name>,"genparams":Parameter}
 Module = {
   "type":Type,
   "modparams"?:Parameter,
-  "defaultmodargs"?:Consts,
+  "defaultmodargs"?:Values,
   "instances"?:{<instname>:Instance,...},
   "connections"?: Connection[]
 }
@@ -46,7 +46,7 @@ Generator = {
 
 Instance = {
   "genref"?:NamedRef,
-  "genargs"?:Consts,
+  "genargs"?:Values,
   "modref"?:NamedRef,
   "modargs"?:Values
 }
@@ -69,12 +69,12 @@ ValueType = "Bool"
 
 Params = {<field>:ValueType,...}
 
-Arg = ["Arg", ValueType, <field>]
-Const = ["Const", ValueType, <Val>]
-Consts = {<field>:Const,...}
+Arg = [ValueType, "Arg", <field>]
+Const = [ValueType, <Val>]
 
 Value = Arg
       | Const
 
+Values = {<field>:Value,...}
 
 ```

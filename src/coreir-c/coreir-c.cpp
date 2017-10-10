@@ -63,6 +63,26 @@ extern "C" {
       return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_)+"."+std::string(type_name)));
   }
 
+  COREValueType* COREContextBool(COREContext* context) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->Bool());
+  }
+
+  COREValueType* COREContextInt(COREContext* context) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->Int());
+  }
+
+  COREValueType* COREContextBitVector(COREContext* context, int width) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->BitVector(width));
+  }
+
+  COREValueType* COREContextString(COREContext* context) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->String());
+  }
+
+  COREValueType* COREContextCoreIRType(COREContext* context) {
+      return rcast<COREValueType*>(CoreIRType::make(rcast<Context*>(context)));
+  }
+
   const char* COREGetInstantiableRefName(COREWireable* iref) {
     const string& name = cast<Instance>(rcast<Wireable*>(iref))->getInstantiableRef()->getName();
     return name.c_str();
