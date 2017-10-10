@@ -9,10 +9,9 @@ namespace CoreIR {
   class WireNode {
   protected:
     bool highBitsDirty;
-
-  public:
     CoreIR::Wireable* wire;
 
+  public:
     bool isSequential;
     bool isReceiver;
 
@@ -93,7 +92,10 @@ namespace CoreIR {
   static inline WireNode outputNode(CoreIR::Wireable* wire) {
     return WireNode(wire, true, false);
   }
-  
+
+  bool isGraphOutput(const WireNode& w);
+  bool isGraphInput(const WireNode& w);
+
 }
 
 namespace std {

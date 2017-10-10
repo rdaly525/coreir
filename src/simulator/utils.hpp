@@ -80,6 +80,28 @@ namespace CoreIR {
 
     return genRefName == "reg";
   }
+
+  static inline bool isMemoryInstance(CoreIR::Wireable* fst) {
+    if (!isInstance(fst)) {
+      return false;
+    }
+
+    CoreIR::Instance* inst = toInstance(fst);
+
+    auto genRef = inst->getGeneratorRef();
+
+    if (genRef == nullptr) {
+      Module* modRef = inst->getModuleRef();
+
+      assert(modRef != nullptr);
+
+      return modRef->getName() == "mem";
+    }
+
+    std::string genRefName = genRef->getName();
+
+    return genRefName == "mem";
+  }
   
   static inline bool isNamedType(CoreIR::Type& t, const std::string& name) {
     if (t.getKind() != CoreIR::Type::TK_Named) {
@@ -200,6 +222,12 @@ namespace CoreIR {
     return elem(genRefName, siOps);
   }
 
+  static inline bool isAddOrSub(Instance& inst) {
+    std::string genRefName = getInstanceName(inst);
+    std::vector<std::string> siOps{"add", "sub"};
+    return elem(genRefName, siOps);
+  }
+  
   static inline bool isUnsignedCmp(Instance& inst) {
     std::string genRefName = getInstanceName(inst);
     std::vector<std::string> siOps{"ult", "ugt", "ule", "uge"};

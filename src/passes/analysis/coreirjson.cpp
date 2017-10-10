@@ -109,6 +109,7 @@ string Value2Json(Value* v) {
   }
   else {
     ASSERT(0,"NYI");
+    return NULL;
   }
   return ret.toString();
 }
