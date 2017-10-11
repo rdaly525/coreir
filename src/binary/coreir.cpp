@@ -8,6 +8,7 @@
 #include "coreir/passes/analysis/verilog.h"
 
 #include "../definitions/coreVerilog.hpp" //TODO move this
+#include "../definitions/coreFirrtl.hpp" //TODO move this
 
 
 using namespace std;
@@ -188,6 +189,7 @@ int main(int argc, char *argv[]) {
     jpass->writeToStream(*sout,topRef);
   }
   else if (outExt=="fir") {
+    CoreIRLoadFirrtl_coreir(c);
     c->runPasses({"firrtl"});
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));

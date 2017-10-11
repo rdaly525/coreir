@@ -4,51 +4,71 @@
 using namespace std;
 using namespace CoreIR;
 
-struct FModule {
+class FModule {
   string name;
-  RecordType* rt;
-  bool noWidths;
+  vector<string> io;
   vector<string> stmts;
-  FModule(string name, Type* t, bool noWidths=false) : name(name), noWidths(noWidths) {
-    if (! (this->rt = dyn_cast<RecordType>(t))) {
-      assert(0);
-    }
-  }
-  void addStmt(string stmt) {
-    stmts.push_back(stmt);
-  }
-  string type2firrtl(Type* t);
-  string toString() {
-    vector<string> lines;
-    lines.push_back("  module " + this->name + " :");
-    for (auto rec : rt->getRecord()) {
-      string s = "    ";
-      if (rec.second->isInput()) {
-        s = s + "input ";
-      }
-      else if(rec.second->isOutput()) {
-        s = s + "output ";
+  public : 
+    FModule(Instantiable* iref) : name(iref->getName()) {
+      checkJson(iref->getMetaData());
+      if (isa<Generator>(iref)) {
+        ASSERT(this->hasDef(),"NYI generators without a firrtl def");
       }
       else {
-        rt->print();
-        ASSERT(0,"NYI");
+        Module* m = cast<Module>(iref);
+        if (io.size()==0) addIO(cast<RecordType>(m->getType()));
       }
-      s = s + rec.first + " : " + type2firrtl(rec.second);
-      lines.push_back(s);
     }
-    for (auto s : this->stmts) {
-      lines.push_back("    " + s);
+    string getName() { return name;}
+    void checkJson(json jmeta) {
+      if (jmeta.count("firrtl") ) {
+        if (jmeta["firrtl"].count("prefix")) {
+          this->name = jmeta["firrtl"]["prefix"].get<std::string>() + this->name;
+        }
+        if (jmeta["firrtl"].count("definition")) {
+          for (auto stmt : jmeta["firrtl"]["definition"].get<vector<string>>()) {
+            addStmt(stmt);
+          }
+        }
+        if (jmeta["firrtl"].count("interface")) {
+          addIO(jmeta["firrtl"]["interface"].get<std::vector<std::string>>());
+        }
+      }
     }
-    return join(lines.begin(),lines.end(),string("\n"));
-  }
+    bool hasDef() {return io.size()>0 && stmts.size()>0;}
+    void addStmt(string stmt) {
+      stmts.push_back(stmt);
+    }
+    void addIO(RecordType* rt) {
+      for (auto rpair : rt->getRecord()) {
+        Type* t = rpair.second;
+        //Assumes mixed types are outputs
+        addStmt(string(t->isInput() ? "input" : "output") + " " + rpair.first + " " + type2firrtl(t,t->isInput()));
+      }
+    }
+    void addIO(vector<string> ios) {
+      for (auto it : ios) io.push_back(it);
+    }
+    string type2firrtl(Type* t, bool isInput);
+    string toString() {
+      vector<string> lines;
+      lines.push_back("  module " + this->name + " :");
+      for (auto s : this->io) {
+        lines.push_back("    " + s);
+      }
+      for (auto s : this->stmts) {
+        lines.push_back("    " + s);
+      }
+      return join(lines.begin(),lines.end(),string("\n"));
+    }
 };
 
-string FModule::type2firrtl(Type* t) {
+string FModule::type2firrtl(Type* t, bool isInput) {
   if (auto rt = dyn_cast<RecordType>(t)) {
     vector<string> sels;
     if (!rt->isMixed()) {
       for (auto rec : rt->getRecord()) {
-        sels.push_back(rec.first + " : " + type2firrtl(rec.second));
+        sels.push_back(rec.first + " : " + type2firrtl(rec.second,isInput));
       }
     }
     else {
@@ -59,11 +79,10 @@ string FModule::type2firrtl(Type* t) {
   else if (auto at = dyn_cast<ArrayType>(t)) {
     Type* et = at->getElemType();
     if (et->isBaseType()) {
-      if (noWidths) return "UInt";
       return "UInt<" + to_string(at->getLen()) + ">";
     }
     else {
-      return type2firrtl(et) + "[" + to_string(at->getLen()) + "]";
+      return type2firrtl(et,isInput) + "[" + to_string(at->getLen()) + "]";
     }
   }
   else if (t->isBaseType()) {
@@ -73,82 +92,49 @@ string FModule::type2firrtl(Type* t) {
     assert(0);
   }
 }
-string op2firrtl(string op) {
-  //TODO 
-  return op;
-}
 
-void coreir2firrtl(Instantiable* i,FModule& fm) {
-  if (i->getName()=="mux") {
-    fm.addStmt("out <= mux(sel,in[0],in[1])");
+string sp2Str(SelectPath sp) {
+  string ret = sp[0];
+  sp.pop_front();
+  for (auto s : sp) {
+    if (isNumber(s)) ret  = ret +"[" + s + "]";
+    else ret = ret + "." + s;
   }
-  else if (i->getName()=="reg") {
-    ASSERT(0,"NYI Registers");
-  }
-  else if (i->getName()=="const") {
-    ASSERT(0,"NYI Constants");
-  }
-  else if (coreMap["binary"].count(i->getName()) 
-     || coreMap["binaryReduce"].count(i->getName())) {
-      fm.addStmt("out <= " + op2firrtl(i->getName()) + "(in[0],in[1])");
-  }
-  else {
-    assert(coreMap["unary"].count(i->getName())
-        || coreMap["unaryReduce"].count(i->getName()));
-    
-    fm.addStmt("out <= " + op2firrtl(i->getName()) + "(in)");
-  }
+  return ret;
 }
 
 string Passes::Firrtl::ID = "firrtl";
 bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   auto i = node.getInstantiable();
-  string name = i->getName();
-  bool isStdlib = i->getNamespace()->getName() == "coreir";
-  if (!isStdlib && isa<Generator>(i)) {
-    if (node.getInstanceList().size()>0) {
-      ASSERT(0,"Cannot deal with Instantiated generators");
-    }
+ 
+  FModule fm(i);
+  ASSERT(nameMap.count(i)==0,"DEBUG ME");
+  nameMap[i] = fm.getName();
+  if (isa<Generator>(i)) {
+    ASSERT(fm.hasDef(),"NYI: generators in firrtl without def");
+    fmods.push_back(fm.toString());
     return false;
   }
+  Module* m = cast<Module>(i);
+  ASSERT(m->hasDef(),"NYI external modules");
+  ModuleDef* def = m->getDef();
   
-  if (isStdlib) {
-    name = "coreir_" + i->getName();
+  //First add all instances
+  for (auto instmap : def->getInstances()) {
+    string mname = nameMap[instmap.second->getInstantiableRef()];
+    string iname = instmap.second->getInstname();
+    fm.addStmt("inst " + iname + " of " + mname);
   }
-  //TODO sometimes failing here!
-  ASSERT(nameMap.count(i)==0,i->getName());
-  nameMap[i] = name;
-  FModule* fm;
-  if (isStdlib) {
-    //This ugliness is getting an example of a type for coreir generator
-    //The 5 does not matter because I am throwing away widths anyways
-    cout << name << endl;
-    Type* t = cast<Generator>(i)->getTypeGen()->getType({{"width",Const::make(getContext(),5)}});
-    cout << name << endl;
-    fm = new FModule(name,t,true);
-    coreir2firrtl(i,*fm);
+  //Then add all connections
+  auto dm = m->newDirectedModule();
+  for (auto dcon : dm->getConnections()) {
+    SelectPath src = dcon->getSrc();
+    if (src[0] == "self") src.pop_front();
+    SelectPath snk = dcon->getSnk();
+    if (snk[0] == "self") snk.pop_front();
+    fm.addStmt(sp2Str(snk) + " <= " + sp2Str(src));
   }
-  else {
-    //General case.
-    Module* m = cast<Module>(i);
-    ASSERT(m->hasDef(),"NYI external modules");
-    ModuleDef* def = m->getDef();
-    fm = new FModule(name,m->getType());
-    
-    //First add all instances
-    for (auto instmap : def->getInstances()) {
-      string mname = nameMap[instmap.second->getInstantiableRef()];
-      string iname = instmap.second->getInstname();
-      //TODO Deal with consts, regs, shift
-      fm->addStmt("inst " + iname + " of " + mname);
-    }
-    //Then add all connections
-    auto dm = m->newDirectedModule();
-    for (auto dcon : dm->getConnections()) {
-      fm->addStmt(def->sel(dcon->getSnk())->toString() + " <= " + def->sel(dcon->getSrc())->toString());
-    }
-  }
-  fmods.push_back(fm->toString());
+  fmods.push_back(fm.toString());
   return false;
 }
 
@@ -158,18 +144,6 @@ void Passes::Firrtl::writeToStream(std::ostream& os) {
     os << smod << endl;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
