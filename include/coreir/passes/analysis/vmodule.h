@@ -85,9 +85,6 @@ class VModule {
       this->checkJson(g->getMetaData());
     }
     void checkJson(json jmeta) {
-      cout << modname << endl;
-      cout << jmeta << endl;
-      cout << "}" << endl;
       if (jmeta.count("verilog") ) {
         if (jmeta["verilog"].count("prefix")) {
           this->modname = jmeta["verilog"]["prefix"].get<std::string>() + this->modname;

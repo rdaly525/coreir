@@ -130,46 +130,53 @@ void CoreIRLoadVerilog_coreir(Context* c) {
 
   core->getGenerator("const")->getMetaData()["verilog"]["parameters"] = {"value"};
   
-  //Term
-  json vjson;
-  vjson["prefix"] = "coreir_";
-  vjson["interface"] = coreIMap["term"];
-  vjson["definition"] = "";
-  core->getGenerator("term")->getMetaData()["verilog"] = vjson;
-  
-  //regrst
-  vjson["parameters"] = {"init"};
-  vjson["interface"] = coreIMap.at("regrst");
-  vjson["definition"] = ""
-  "reg [width-1:0] outReg;\n"
-  "always @(posedge clk, negedge rst) begin\n"
-  "  if (!rst) outReg <= init;\n"
-  "  else outReg <= in;\n"
-  "end\n"
-  "assign out = outReg;";
-  
-  //reg
-  vjson["interface"] = coreIMap.at("reg");
-  vjson["definition"] = ""
-  "reg [width-1:0] outReg;\n"
-  "always @(posedge clk) begin\n"
-  "  outReg <= in;\n"
-  "end\n"
-  "assign out = outReg;";
+  {
+    //Term
+    json vjson;
+    vjson["prefix"] = "coreir_";
+    vjson["interface"] = coreIMap["term"];
+    vjson["definition"] = "";
+    core->getGenerator("term")->getMetaData()["verilog"] = vjson;
+  }
+  {
+    //regrst
+    json vjson;
+    vjson["parameters"] = {"init"};
+    vjson["interface"] = coreIMap.at("regrst");
+    vjson["definition"] = ""
+    "reg [width-1:0] outReg;\n"
+    "always @(posedge clk, negedge rst) begin\n"
+    "  if (!rst) outReg <= init;\n"
+    "  else outReg <= in;\n"
+    "end\n"
+    "assign out = outReg;";
+    core->getGenerator("regrst")->getMetaData()["verilog"] = vjson;
+  }
+  {
+    //reg
+    json vjson;
+    vjson["interface"] = coreIMap.at("reg");
+    vjson["definition"] = ""
+    "reg [width-1:0] outReg;\n"
+    "always @(posedge clk) begin\n"
+    "  outReg <= in;\n"
+    "end\n"
+    "assign out = outReg;";
+    core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
+  }
 
-  core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
-  
-  //mem
-  vjson["interface"] = coreIMap["mem"];
-  vjson["definition"] = ""
-  "reg [width-1:0] data[depth];\n"
-  "always @(posedge clk) begin\n"
-  "  if (wen) begin\n"
-  "    data[waddr] <= wdata;\n"
-  "  end\n"
-  "end\n"
-  "assign rdata = data[raddr];";
- 
-  core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
-  
+  {
+    //mem
+    json vjson;
+    vjson["interface"] = coreIMap["mem"];
+    vjson["definition"] = ""
+    "reg [width-1:0] data[depth];\n"
+    "always @(posedge clk) begin\n"
+    "  if (wen) begin\n"
+    "    data[waddr] <= wdata;\n"
+    "  end\n"
+    "end\n"
+    "assign rdata = data[raddr];";
+    core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
+  } 
 }
