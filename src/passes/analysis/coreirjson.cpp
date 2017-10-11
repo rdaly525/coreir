@@ -61,36 +61,66 @@ class Array {
 };
 
 
+string ValueType2Json(ValueType* vt) {
+  if (auto bvt = dyn_cast<BitVectorType>(vt)) {
+    Array a;
+    a.add(quote("BitVector"));
+    a.add(to_string(bvt->getWidth()));
+    return a.toString();
+  }
+  return quote(vt->toString());
+}
+
 //Ordere these in order as well
 string Params2Json(Params gp) {
   Dict j;
-  for (auto it : gp) j.add(it.first,quote(Param2Str(it.second)));
+  for (auto it : gp) j.add(it.first,ValueType2Json(it.second));
   return j.toString();
 }
 
 string Type2Json(Type* t);
-string Arg2Json(shared_ptr<Arg> a) {
-  if (auto ab = dyn_cast<ArgBool>(a)) {
-    return ab->get() ? "true" : "false";
+string Value2Json(Value* v) {
+  ASSERT(v,"should not be nulL!");
+  Array ret;
+  if (auto a = dyn_cast<Arg>(v)) {
+    ret.add(quote("Arg"));
+    ret.add(ValueType2Json(v->getValueType()));
+    ret.add(quote(a->getField()));
   }
-  else if (auto ai = dyn_cast<ArgInt>(a)) {
-    return to_string(ai->get());
-  }
-  else if (auto as = dyn_cast<ArgString>(a)) {
-    return quote(as->get());
-  }
-  else if (auto at = dyn_cast<ArgType>(a)) {
-    return Type2Json(at->get());
+  else if (Const* c = dyn_cast<Const>(v)) {
+    ret.add(ValueType2Json(v->getValueType()));
+    if (auto cb = dyn_cast<ConstBool>(c)) {
+      ret.add(cb->get() ? "true" : "false");
+    }
+    else if (auto ci = dyn_cast<ConstInt>(c)) {
+      ret.add(to_string(ci->get()));
+    }
+    else if (auto cbv = dyn_cast<ConstBitVector>(c)) {
+      ret.add(quote(toString(cbv->get())));
+    }
+    else if (auto cs = dyn_cast<ConstString>(c)) {
+      ret.add(quote(cs->get()));
+    }
+    else if (auto at = dyn_cast<ConstCoreIRType>(c)) {
+      return Type2Json(at->get());
+    }
+    else {
+      ASSERT(0,"NYI");
+    }
   }
   else {
     ASSERT(0,"NYI");
     return NULL;
   }
+  return ret.toString();
 }
 
-string Args2Json(Args args) {
+string Values2Json(Values vs) {
+  cout << "H!" << endl;
+  cout << Values2Str(vs) << endl;
+  cout << "H2" << endl;
   Dict j;
-  for (auto it : args) j.add(it.first,Arg2Json(it.second));
+  for (auto it : vs) j.add(it.first,Value2Json(it.second));
   return j.toString();
 }
 
@@ -144,23 +174,22 @@ string Instances2Json(map<string,Instance*>& insts) {
     Dict j(10);
     if (i->isGen()) {
       j.add("genref",quote(i->getGeneratorRef()->getNamespace()->getName() + "." + i->getGeneratorRef()->getName()));
-      j.add("genargs",Args2Json(i->getGenArgs()));
+      j.add("genargs",Values2Json(i->getGenArgs()));
     }
     else {
       j.add("modref",quote(i->getModuleRef()->getNamespace()->getName() + "." + i->getModuleRef()->getName()));
     }
-    if (i->hasConfigArgs()) {
-      j.add("configargs",Args2Json(i->getConfigArgs()));
+    if (i->hasModArgs()) {
+      j.add("modargs",Values2Json(i->getModArgs()));
     }
     jis.add(iname,j.toMultiString());
   }
   return jis.toMultiString();
 }
 
-string Connections2Json(unordered_set<Connection>& cons) {
-  std::set<Connection,ConnectionComp> sortedSet(cons.begin(),cons.end());
+string Connections2Json(Connections& cons) {
   Array a(8);
-  for (auto con : sortedSet) {
+  for (auto con : cons) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
     string sa = join(pa.begin(),pa.end(),string("."));
@@ -173,19 +202,15 @@ string Connections2Json(unordered_set<Connection>& cons) {
   return a.toMultiString();
 }
 
-void Instantiable2Json(Instantiable* i, Dict& j) {
-  if (!i->getConfigParams().empty()) {
-    j.add("configparams",Params2Json(i->getConfigParams()));
-  }
-  if (!i->getDefaultConfigArgs().empty()) {
-    j.add("defaultconfigargs",Args2Json(i->getDefaultConfigArgs()));
-  }
-}
-
 string Module2Json(Module* m) {
   Dict j(6);
   j.add("type",TopType2Json(m->getType()));
-  Instantiable2Json(m,j);
+  if (!m->getModParams().empty()) {
+    j.add("modparams",Params2Json(m->getModParams()));
+  }
+  if (!m->getDefaultModArgs().empty()) {
+    j.add("defaultmodargs",Values2Json(m->getDefaultModArgs()));
+  }
   if (m->hasDef()) {
     ModuleDef* def = m->getDef();
     if (!def->getInstances().empty()) {
@@ -206,10 +231,9 @@ string Module2Json(Module* m) {
 json Generator2Json(Generator* g) {
   Dict j(6);
   j.add("typegen",quote(g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName()));
-  Instantiable2Json(g,j);
   j.add("genparams",Params2Json(g->getGenParams()));
   if (!g->getDefaultGenArgs().empty()) {
-    j.add("defaultgenargs",Args2Json(g->getDefaultGenArgs()));
+    j.add("defaultgenargs",Values2Json(g->getDefaultGenArgs()));
   }
   if (g->hasMetaData()) {
     j.add("metadata",toString(g->getMetaData()));
@@ -217,6 +241,7 @@ json Generator2Json(Generator* g) {
   return j.toMultiString();
 }
 }//anonomous namespace
+
 string Passes::CoreIRJson::ID = "coreirjson";
 bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   Dict jns(2);

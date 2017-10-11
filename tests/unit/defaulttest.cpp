@@ -12,14 +12,14 @@ void checker(Module* m) {
   cout << i0->toString() << endl;
   assert(i0->getGenArgs().count("ga") && i0->getGenArgs().at("ga")->get<int>()==6);
   assert(i0->getGenArgs().count("gb") && i0->getGenArgs().at("gb")->get<int>()==7);
-  assert(i0->getConfigArgs().count("ca") && i0->getConfigArgs().at("ca")->get<int>()==11);
-  assert(i0->getConfigArgs().count("cb") && i0->getConfigArgs().at("cb")->get<int>()==12);
+  assert(i0->getModArgs().count("ca") && i0->getModArgs().at("ca")->get<int>()==11);
+  assert(i0->getModArgs().count("cb") && i0->getModArgs().at("cb")->get<int>()==12);
   
   Instance* i1 = cast<Instance>(def->sel("i1"));
   assert(i1->getGenArgs().count("ga") && i1->getGenArgs().at("ga")->get<int>()==5);
   assert(i1->getGenArgs().count("gb") && i1->getGenArgs().at("gb")->get<int>()==7);
-  assert(i1->getConfigArgs().count("ca") && i1->getConfigArgs().at("ca")->get<int>()==10);
-  assert(i1->getConfigArgs().count("cb") && i1->getConfigArgs().at("cb")->get<int>()==12);
+  assert(i1->getModArgs().count("ca") && i1->getModArgs().at("ca")->get<int>()==10);
+  assert(i1->getModArgs().count("cb") && i1->getModArgs().at("cb")->get<int>()==12);
 }
 
 int main() {
@@ -33,22 +33,26 @@ int main() {
   //Declare a TypeGenerator (in global) for addN
   g->newTypeGen(
     "default_type", //name for the typegen
-    {{"ga",AINT},{"gb",AINT}}, //generater parameters
-    [](Context* c, Args args) { //Function to compute type
+    {{"ga",c->Int()},{"gb",c->Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
       return c->Record();
     }
   );
 
 
-  Generator* d = g->newGeneratorDecl("defaults",g->getTypeGen("default_type"),{{"ga",AINT},{"gb",AINT}},{{"ca",AINT},{"cb",AINT}});
+  Generator* d = g->newGeneratorDecl("defaults",g->getTypeGen("default_type"),{{"ga",c->Int()},{"gb",c->Int()}});
+  d->setModParamsGen([](Context* c, Values genargs) -> std::pair<Params,Values> {
+    Params p({{"ca",c->Int()},{"cb",c->Int()}});
+    Values d({{"ca",Const::make(c,10)}});
+    return {p,d};
+  });
   //Set defaults for ga and ca
-  d->addDefaultGenArgs({{"ga",Const(5)}});
-  d->addDefaultConfigArgs({{"ca",Const(10)}});
+  d->addDefaultGenArgs({{"ga",Const::make(c,5)}});
 
   Module* tester = g->newModuleDecl("Tester",c->Record());
   ModuleDef* def = tester->newModuleDef();
-    def->addInstance("i0",d,{{"ga",Const(6)},{"gb",Const(7)}},{{"ca",Const(11)},{"cb",Const(12)}});
-    def->addInstance("i1",d,{{"gb",Const(7)}},{{"cb",Const(12)}});
+    def->addInstance("i0",d,{{"ga",Const::make(c,6)},{"gb",Const::make(c,7)}},{{"ca",Const::make(c,11)},{"cb",Const::make(c,12)}});
+    def->addInstance("i1",d,{{"gb",Const::make(c,7)}},{{"cb",Const::make(c,12)}});
   tester->setDef(def);
   tester->print();
  

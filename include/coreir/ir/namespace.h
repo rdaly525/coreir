@@ -2,6 +2,7 @@
 #define COREIR_NAMESPACE_HPP_
 
 #include "fwd_declare.h"
+#include "common.h"
 
 namespace CoreIR {
 
@@ -19,11 +20,11 @@ class Namespace {
   std::map<std::string,TypeGen*> typeGenList;
   
   //Caches the NamedTypes with args
-  std::unordered_map<std::string,std::unordered_map<Args,NamedType*>> namedTypeGenCache;
+  std::map<std::string,std::map<Values,NamedType*,ValuesComp>> namedTypeGenCache;
 
   //Save the unflipped names for json file
-  std::unordered_map<std::string,std::string> namedTypeNameMap;
-  std::unordered_map<std::string,std::string> typeGenNameMap;
+  std::map<std::string,std::string> namedTypeNameMap;
+  std::map<std::string,std::string> typeGenNameMap;
 
   public :
     Namespace(Context* c, std::string name) : c(c), name(name) {}
@@ -41,13 +42,12 @@ class Namespace {
     //Only returns named types without args
     std::map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
     NamedType* getNamedType(std::string name);
-    NamedType* getNamedType(std::string name, Args genargs);
+    NamedType* getNamedType(std::string name, Values genargs);
     TypeGen* getTypeGen(std::string name);
     bool hasTypeGen(std::string name) {return typeGenList.count(name)>0;}
 
-    
-    Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams, Params configparams=Params());
-    Module* newModuleDecl(std::string name, Type* t,Params configparams=Params());
+    Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams);
+    Module* newModuleDecl(std::string name, Type* t,Params moduleparams=Params());
     void addModule(Module* m);
 
     Generator* getGenerator(std::string gname);

@@ -23,7 +23,8 @@ CXX = g++-4.9
 endif
 
 CFLAGS = -Wall -fPIC
-CXXFLAGS = -std=c++11  -Wall  -fPIC -Werror
+#CXXFLAGS = -std=c++11 -Wall -fPIC -Werror -ferror-limit=5
+CXXFLAGS = -std=c++11 -Wall -fPIC #-Werror -Wno-error=sign-compare
 
 ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
@@ -34,6 +35,15 @@ export CFLAGS
 export CXXFLAGS
 
 all: build coreir
+
+simple:
+	$(MAKE) -C tests/unit build/simple
+	./tests/unit/build/simple
+
+.PHONY : unit
+unit:
+	$(MAKE) -C tests/unit
+	cd tests/unit; ./run
 
 .PHONY: test
 test: build

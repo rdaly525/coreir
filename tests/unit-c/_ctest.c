@@ -30,7 +30,7 @@ int main() {
   cpparams[0] = 0;
   cpparams[1] = 0;
 
-  void* cp = CORENewMap(c,cpkeys,cpparams,2,STR2PARAM_MAP);
+  void* cp = CORENewMap(c,cpkeys,cpparams,2,STR2VALUETYPE_MAP);
 
   COREModule* lut4 = CORENewModule(ns,"LUT4",lut4type,cp);
 

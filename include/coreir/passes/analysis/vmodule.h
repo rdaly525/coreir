@@ -74,18 +74,16 @@ class VModule {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + m->getName();
       }
 
-      this->addparams(m->getConfigParams());
-      for (auto amap : m->getDefaultConfigArgs()) {
-        paramDefaults[amap.first] = amap.second->toString();
-      }
+      this->addParams(m->getModParams());
+      this->addDefaults(m->getDefaultModArgs());
     }
     VModule(Generator* g) : modname(g->getName()), gen(g) {
       const json& jmeta = g->getMetaData();
       if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + g->getName();
       }
-      this->addparams(g->getGenParams());
-      this->addparams(g->getConfigParams());
+      this->addParams(g->getGenParams());
+      this->addDefaults(g->getDefaultGenArgs());
     }
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
     std::string toCommentString() {
@@ -99,10 +97,16 @@ class VModule {
         ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       }
     }
-    void addparams(Params ps) { 
+    void addParams(Params ps) { 
       for (auto p : ps) {
         ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
         params.insert(p.first); 
+      }
+    }
+    void addDefaults(Values ds) { 
+      for (auto dpair : ds) {
+        ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
+        paramDefaults[dpair.first] = dpair.second->toString();
       }
     }
 };

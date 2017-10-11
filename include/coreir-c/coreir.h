@@ -9,8 +9,8 @@ typedef int COREBool;
 // API for types
 #include "coreir-types.h"
 
-//API for Args
-#include "coreir-args.h"
+//API for Values
+#include "coreir-values.h"
 
 //keys and values will not be freed
 void* CORENewMap(COREContext* c, void* keys, void* values, uint len, COREMapKind kind);
@@ -19,6 +19,12 @@ void* CORENewMap(COREContext* c, void* keys, void* values, uint len, COREMapKind
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
 extern COREType* COREContextNamedType(COREContext* context, const char* namespace_, const char* type_name);
+
+extern COREValueType* COREContextBool(COREContext* context);
+extern COREValueType* COREContextInt(COREContext* context);
+extern COREValueType* COREContextBitVector(COREContext* context);
+extern COREValueType* COREContextString(COREContext* context);
+extern COREValueType* COREContextString(COREContext* context);
 
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
@@ -52,8 +58,8 @@ extern COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, c
 extern COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* config);
 
 extern COREWireable* COREModuleDefGetInterface(COREModuleDef* m);
-extern COREArg* COREGetConfigValue(COREWireable* i, char* s);
-extern bool COREHasConfigValue(COREWireable* i, char* s);
+extern COREValue* COREGetModArgValue(COREWireable* i, char* s);
+extern bool COREHasModArgValue(COREWireable* i, char* s);
 
 //Errors:
 //  Wire Error;
@@ -90,7 +96,7 @@ extern COREDirectedConnection** COREDirectedInstanceGetOutputs(COREDirectedInsta
 extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstance* directed_instance, int* num_connections);
 // END   : directedview
 
-void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg** args, int* num_args);
+void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREValue** args, int* num_args);
 
 extern const char* COREInstantiableGetName(COREInstantiable* instantiable);
 extern int COREInstantiableGetKind(COREInstantiable* instantiable);

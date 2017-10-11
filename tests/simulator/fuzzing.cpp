@@ -59,6 +59,7 @@ namespace CoreIR {
   }
 
   std::string declareInputs(Module& mod) {
+    //    assert(false);
     string res;
 
     auto args = sortedSimArgumentPairs(mod); //simInputs(mod);

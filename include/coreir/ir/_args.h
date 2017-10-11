@@ -7,21 +7,6 @@
 
 namespace CoreIR {
 
-template<class valTy>
-struct Val2Arg;
-
-#define VAL2ARG_SPECIALIZE(valtype,argtype) \
-template<> \
-struct Val2Arg<valtype> { \
-  typedef argtype type; \
-};
-
-VAL2ARG_SPECIALIZE(bool,ArgBool);
-VAL2ARG_SPECIALIZE(int,ArgInt);
-VAL2ARG_SPECIALIZE(std::string,ArgString);
-VAL2ARG_SPECIALIZE(CoreIR::Type*,ArgType);
-
-#undef VAL2ARG_SPECIALIZE
 
 class Arg {
   Param kind;
@@ -92,16 +77,16 @@ bool operator==(const Args& l, const Args& r);
 //You can use Const to create a new Arg
 
 template<typename T> 
-ArgPtr Const_impl(T val);
+Const* Const_impl(T val);
 
 template<>
-ArgPtr Const_impl<bool>(bool val);
+Const* Const_impl<bool>(bool val);
 template<>
-ArgPtr Const_impl<int>(int val);
+Const* Const_impl<int>(int val);
 template<>
-ArgPtr Const_impl<std::string>(std::string val);
+Const* Const_impl<std::string>(std::string val);
 template<>
-ArgPtr Const_impl<Type*>(Type* val);
+Const* Const_impl<Type*>(Type* val);
 
 template<typename T>
 typename std::enable_if<std::is_same<T,bool>::value,ArgPtr>::type

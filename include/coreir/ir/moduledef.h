@@ -3,11 +3,22 @@
 
 
 #include "fwd_declare.h"
+#include "common.h"
 #include "context.h"
 #include "instantiable.h"
 #include "wireable.h"
 
 namespace CoreIR {
+
+//struct ConnectionHasher {
+//  size_t operator()(const Connection& rp) const {
+//    size_t hash = 0;
+//    hash_combine(hash,rp.first);
+//    hash_combine(hash,rp.second);
+//    return hash;
+//  }
+//};
+
 
 class ModuleDef {
     friend class Wireable;
@@ -15,7 +26,7 @@ class ModuleDef {
     Module* module;
     Interface* interface; 
     std::map<std::string,Instance*> instances;
-    std::unordered_set<Connection> connections;
+    std::set<Connection,ConnectionComp> connections;
     
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;
@@ -29,7 +40,7 @@ class ModuleDef {
     ModuleDef(Module* m);
     ~ModuleDef();
     std::map<std::string,Instance*> getInstances(void) { return instances;}
-    std::unordered_set<Connection> getConnections(void) { return connections; }
+    std::set<Connection,ConnectionComp> getConnections(void) { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     
@@ -50,12 +61,13 @@ class ModuleDef {
     Wireable* sel(std::initializer_list<const char*> path);
     Wireable* sel(std::initializer_list<std::string> path);
     
+
     //API for adding an instance of either a module or generator
-    Instance* addInstance(std::string instname,Generator* genref,Args genargs, Args config=Args());
-    Instance* addInstance(std::string instname,Module* modref,Args config=Args());
+    Instance* addInstance(std::string instname,Generator* genref,Values genargs, Values modargs=Values());
+    Instance* addInstance(std::string instname,Module* modref,Values modargs=Values());
     
     //Add instance using an Instantiable ref std::string
-    Instance* addInstance(std::string instname,std::string iref,Args genOrConfigargs=Args(), Args configargs=Args());
+    Instance* addInstance(std::string instname,std::string iref,Values genOrModargs=Values(), Values modargs=Values());
     
     //copys info about i
     Instance* addInstance(Instance* i,std::string iname="");

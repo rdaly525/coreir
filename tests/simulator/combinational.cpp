@@ -64,7 +64,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(false)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, false)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -108,7 +108,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, true)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -153,7 +153,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, true)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -196,9 +196,9 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add_00 = def->addInstance("add00",add2,{{"width", Const(n)}});
-      Wireable* add_01 = def->addInstance("add01",add2,{{"width", Const(n)}});
-      Wireable* add_1 = def->addInstance("add1",add2,{{"width", Const(n)}});
+      Wireable* add_00 = def->addInstance("add00",add2,{{"width", Const::make(c,n)}});
+      Wireable* add_01 = def->addInstance("add01",add2,{{"width", Const::make(c,n)}});
+      Wireable* add_1 = def->addInstance("add1",add2,{{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in")->sel(0),add_00->sel("in0"));
       def->connect(self->sel("in")->sel(1),add_00->sel("in1"));
@@ -251,9 +251,9 @@ namespace CoreIR {
       Module* srem4_n = g->newModuleDecl("Srem4", srem4Type);
       ModuleDef* def = srem4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* srem_00 = def->addInstance("srem00", srem2, {{"width", Const(n)}});
-      Wireable* srem_01 = def->addInstance("srem01", srem2, {{"width", Const(n)}});
-      Wireable* srem_1 = def->addInstance("srem1", srem2, {{"width", Const(n)}});
+      Wireable* srem_00 = def->addInstance("srem00", srem2, {{"width", Const::make(c,n)}});
+      Wireable* srem_01 = def->addInstance("srem01", srem2, {{"width", Const::make(c,n)}});
+      Wireable* srem_1 = def->addInstance("srem1", srem2, {{"width", Const::make(c,n)}});
 
       def->connect(self->sel("in")->sel(0),srem_00->sel("in0"));
       def->connect(self->sel("in")->sel(1),srem_00->sel("in1"));
@@ -300,9 +300,9 @@ namespace CoreIR {
       Module* sub4_n = g->newModuleDecl("Sub4",sub4Type);
       ModuleDef* def = sub4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* sub_00 = def->addInstance("sub00",sub2,{{"width", Const(n)}});
-      Wireable* sub_01 = def->addInstance("sub01",sub2,{{"width", Const(n)}});
-      Wireable* sub_1 = def->addInstance("sub1",sub2,{{"width", Const(n)}});
+      Wireable* sub_00 = def->addInstance("sub00",sub2,{{"width", Const::make(c,n)}});
+      Wireable* sub_01 = def->addInstance("sub01",sub2,{{"width", Const::make(c,n)}});
+      Wireable* sub_1 = def->addInstance("sub1",sub2,{{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in")->sel(0), sub_00->sel("in0"));
       def->connect(self->sel("in")->sel(1), sub_00->sel("in1"));
@@ -350,7 +350,7 @@ namespace CoreIR {
       ModuleDef* def = mul_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* mul = def->addInstance("mul1", mul2, {{"width", Const(n)}});
+      Wireable* mul = def->addInstance("mul1", mul2, {{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in")->sel(0), mul->sel("in0"));
       def->connect(self->sel("in")->sel(1), mul->sel("in1"));
@@ -392,8 +392,8 @@ namespace CoreIR {
       ModuleDef* def = cM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const(n)}});
-      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const(n)}});
+      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const::make(c,n)}});
+      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const::make(c,n)}});
 
 
       def->connect(self->sel("a"), add0->sel("in0"));
@@ -437,7 +437,7 @@ namespace CoreIR {
       ModuleDef* def = andM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const(n)}});
+      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const::make(c,n)}});
 
       def->connect("self.input.0", "and0.in0");
       def->connect("self.input.1", "and0.in1");
@@ -497,7 +497,7 @@ namespace CoreIR {
       ModuleDef* def = addM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const(n)}});
+      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const::make(c,n)}});
 
       def->connect("self.input.0", "add0.in0");
       def->connect("self.input.1", "add0.in1");
@@ -548,7 +548,7 @@ namespace CoreIR {
       ModuleDef* def = neg_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const(n)}});
+      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const::make(c,n)}});
 
       def->connect(self->sel("A"), neg0->sel("in"));
 
@@ -607,7 +607,7 @@ namespace CoreIR {
       ModuleDef* def = neg_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const(n)}});
+      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const::make(c,n)}});
 
       def->connect(self->sel("A"), neg0->sel("in"));
 
@@ -650,8 +650,8 @@ namespace CoreIR {
       ModuleDef* def = neg_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const(n)}});
-      Wireable* neg1 = def->addInstance("neg1", neg, {{"width", Const(n)}});
+      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const::make(c,n)}});
+      Wireable* neg1 = def->addInstance("neg1", neg, {{"width", Const::make(c,n)}});
 
       def->connect(self->sel("in")->sel(0), neg0->sel("in"));
       def->connect(self->sel("in")->sel(1), neg1->sel("in"));
@@ -700,7 +700,7 @@ namespace CoreIR {
       for (int i = 0; i < 2; i++) {
 	for (int j = 0; j < 3; j++) {
 	  string str = "add" + to_string(i) + "_" + to_string(j);
-	  Wireable* addInst = def->addInstance(str, add, {{"width", Const(n)}});
+	  Wireable* addInst = def->addInstance(str, add, {{"width", Const::make(c,n)}});
 
 	  def->connect(self->sel("A")->sel(i)->sel(j), addInst->sel("in0"));
 	  def->connect(self->sel("B")->sel(i)->sel(j), addInst->sel("in1"));
@@ -753,7 +753,7 @@ namespace CoreIR {
       ModuleDef* def = eqM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* eq0 = def->addInstance("eq0", eq, {{"width", Const(n)}});
+      Wireable* eq0 = def->addInstance("eq0", eq, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "eq0.in0");
       def->connect("self.A.1", "eq0.in1");
@@ -788,7 +788,7 @@ namespace CoreIR {
       ModuleDef* def = sleM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* sle0 = def->addInstance("sle0", sle, {{"width", Const(n)}});
+      Wireable* sle0 = def->addInstance("sle0", sle, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "sle0.in0");
       def->connect("self.A.1", "sle0.in1");
@@ -837,7 +837,7 @@ namespace CoreIR {
       ModuleDef* def = ugtM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const(n)}});
+      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const::make(c, n)}});
 
       def->connect("self.A.0", "ugt0.in0");
       def->connect("self.A.1", "ugt0.in1");
@@ -881,7 +881,7 @@ namespace CoreIR {
       Generator* mux = c->getGenerator("coreir.mux");
 
       Wireable* self = def->sel("self");
-      Wireable* mux0 = def->addInstance("mux0", mux, {{"width", Const(n)}});
+      Wireable* mux0 = def->addInstance("mux0", mux, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "mux0.in0");
       def->connect("self.A.1", "mux0.in1");
@@ -925,7 +925,7 @@ namespace CoreIR {
       Generator* dshl = c->getGenerator("coreir.shl");
 
       Wireable* self = def->sel("self");
-      Wireable* dshl0 = def->addInstance("dshl0", dshl, {{"width", Const(n)}});
+      Wireable* dshl0 = def->addInstance("dshl0", dshl, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "dshl0.in0");
       def->connect("self.A.1", "dshl0.in1");
@@ -968,7 +968,7 @@ namespace CoreIR {
       Generator* dashr = c->getGenerator("coreir.ashr");
 
       Wireable* self = def->sel("self");
-      Wireable* dashr0 = def->addInstance("dashr0", dashr, {{"width", Const(n)}});
+      Wireable* dashr0 = def->addInstance("dashr0", dashr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "dashr0.in0");
       def->connect("self.A.1", "dashr0.in1");
@@ -1011,7 +1011,7 @@ namespace CoreIR {
       Generator* dlshr = c->getGenerator("coreir.lshr");
 
       Wireable* self = def->sel("self");
-      Wireable* dlshr0 = def->addInstance("dlshr0", dlshr, {{"width", Const(n)}});
+      Wireable* dlshr0 = def->addInstance("dlshr0", dlshr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "dlshr0.in0");
       def->connect("self.A.1", "dlshr0.in1");
@@ -1053,7 +1053,7 @@ namespace CoreIR {
       Generator* udiv = c->getGenerator("coreir.udiv");
 
       Wireable* self = def->sel("self");
-      Wireable* udiv0 = def->addInstance("udiv0", udiv, {{"width", Const(n)}});
+      Wireable* udiv0 = def->addInstance("udiv0", udiv, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "udiv0.in0");
       def->connect("self.A.1", "udiv0.in1");
@@ -1096,7 +1096,7 @@ namespace CoreIR {
       Generator* urem = c->getGenerator("coreir.urem");
 
       Wireable* self = def->sel("self");
-      Wireable* urem0 = def->addInstance("urem0", urem, {{"width", Const(n)}});
+      Wireable* urem0 = def->addInstance("urem0", urem, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "urem0.in0");
       def->connect("self.A.1", "urem0.in1");
@@ -1139,7 +1139,7 @@ namespace CoreIR {
       Generator* srem = c->getGenerator("coreir.srem");
 
       Wireable* self = def->sel("self");
-      Wireable* srem0 = def->addInstance("srem0", srem, {{"width", Const(n)}});
+      Wireable* srem0 = def->addInstance("srem0", srem, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "srem0.in0");
       def->connect("self.A.1", "srem0.in1");
@@ -1182,7 +1182,7 @@ namespace CoreIR {
       Generator* sdiv = c->getGenerator("coreir.sdiv");
 
       Wireable* self = def->sel("self");
-      Wireable* sdiv0 = def->addInstance("sdiv0", sdiv, {{"width", Const(n)}});
+      Wireable* sdiv0 = def->addInstance("sdiv0", sdiv, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "sdiv0.in0");
       def->connect("self.A.1", "sdiv0.in1");
@@ -1225,7 +1225,7 @@ namespace CoreIR {
       Generator* orr = c->getGenerator("coreir.orr");
 
       Wireable* self = def->sel("self");
-      Wireable* orr0 = def->addInstance("orr0", orr, {{"width", Const(n)}});
+      Wireable* orr0 = def->addInstance("orr0", orr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A", "orr0.in");
       def->connect(orr0->sel("out"), self->sel("out"));
@@ -1266,7 +1266,7 @@ namespace CoreIR {
       Generator* andr = c->getGenerator("coreir.andr");
 
       Wireable* self = def->sel("self");
-      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const(n)}});
+      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A", "andr0.in");
       def->connect(andr0->sel("out"), self->sel("out"));
