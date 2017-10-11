@@ -582,7 +582,23 @@ namespace CoreIR {
     } else if (opName == "concat") {
       updateConcatNode(vd);
       return;
+    } else if (opName == "lshr") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  return lshr(l, r);
+	});
+      return;
+    } else if (opName == "ashr") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  return ashr(l, r);
+	});
+      return;
+    } else if (opName == "shl") {
+       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	   return shl(l, r);
+	 });
+       return;
     }
+    
 
     cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
     assert(false);
