@@ -21,46 +21,47 @@ namespace CoreIR {
 
   void addCounter(Context* c, Namespace* global) {
 
-    Params counterParams({{"width",AINT}});
+    assert(false);
+    // Params counterParams({{"width",AINT}});
 
-    TypeGen* counterTypeGen =
-      global->newTypeGen(
-			 "CounterTypeGen", //name of typegen
-			 counterParams, //Params required for typegen
-			 [](Context* c, Args args) { //lambda for generating the type
-			   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
-			   uint width = args.at("width")->get<int>(); //widthArg->get<int>(); //get function to extract the arg value.
-			   return c->Record({
-			       {"en",c->BitIn()}, 
-				 {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
-				   {"clk",c->Named("coreir.clkIn")},
-				     });
-			 } //end lambda
-			 ); //end newTypeGen
+    // TypeGen* counterTypeGen =
+    //   global->newTypeGen(
+    // 			 "CounterTypeGen", //name of typegen
+    // 			 counterParams, //Params required for typegen
+    // 			 [](Context* c, Args args) { //lambda for generating the type
+    // 			   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
+    // 			   uint width = args.at("width")->get<int>(); //widthArg->get<int>(); //get function to extract the arg value.
+    // 			   return c->Record({
+    // 			       {"en",c->BitIn()}, 
+    // 				 {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
+    // 				   {"clk",c->Named("coreir.clkIn")},
+    // 				     });
+    // 			 } //end lambda
+    // 			 ); //end newTypeGen
 
-    ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
+    // ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
 
 
-    Generator* counter = global->newGeneratorDecl("counter",counterTypeGen,counterParams);
+    // Generator* counter = global->newGeneratorDecl("counter",counterTypeGen,counterParams);
 
-    counter->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
+    // counter->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
 
-	uint width = args.at("width")->get<int>();
+    // 	uint width = args.at("width")->get<int>();
       
-	Args wArg({{"width", Const(width)}});
-	def->addInstance("ai","coreir.add",wArg);
-	def->addInstance("ci","coreir.const",wArg,{{"value", Const(1)}});
+    // 	Args wArg({{"width", Const::make(c,width)}});
+    // 	def->addInstance("ai","coreir.add",wArg);
+    // 	def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,1)}});
 
-	def->addInstance("ri","coreir.reg",{{"width", Const(width)},{"en", Const(true)}});
+    // 	def->addInstance("ri","coreir.reg",{{"width", Const::make(c,width)},{"en", Const::make(c,true)}});
     
 
-	def->connect("self.clk","ri.clk");
-	def->connect("self.en","ri.en");
-	def->connect("ci.out","ai.in0");
-	def->connect("ai.out","ri.in");
-	def->connect("ri.out","ai.in1");
-	def->connect("ri.out","self.out");
-      }); //end lambda, end function
+    // 	def->connect("self.clk","ri.clk");
+    // 	def->connect("self.en","ri.en");
+    // 	def->connect("ci.out","ai.in0");
+    // 	def->connect("ai.out","ri.in");
+    // 	def->connect("ri.out","ai.in1");
+    // 	def->connect("ri.out","self.out");
+    //   }); //end lambda, end function
   
   }
   
@@ -84,7 +85,7 @@ namespace CoreIR {
       ModuleDef* def = andrN->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const(n)}});
+      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in"), andr0->sel("in"));
       def->connect(andr0->sel("out"),self->sel("out"));
@@ -133,9 +134,9 @@ namespace CoreIR {
       Module* and4_n = g->newModuleDecl("And4",and4Type);
       ModuleDef* def = and4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* and_00 = def->addInstance("and00",and2,{{"width", Const(n)}});
-      Wireable* and_01 = def->addInstance("and01",and2,{{"width", Const(n)}});
-      Wireable* and_1 = def->addInstance("and1",and2,{{"width", Const(n)}});
+      Wireable* and_00 = def->addInstance("and00",and2,{{"width", Const::make(c,n)}});
+      Wireable* and_01 = def->addInstance("and01",and2,{{"width", Const::make(c,n)}});
+      Wireable* and_1 = def->addInstance("and1",and2,{{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in0"), and_00->sel("in0"));
       def->connect(self->sel("in1"), and_00->sel("in1"));
@@ -190,9 +191,9 @@ namespace CoreIR {
       Module* or4_n = g->newModuleDecl("Or4",or4Type);
       ModuleDef* def = or4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* or_00 = def->addInstance("or00",or2,{{"width", Const(n)}});
-      Wireable* or_01 = def->addInstance("or01",or2,{{"width", Const(n)}});
-      Wireable* or_1 = def->addInstance("or1",or2,{{"width", Const(n)}});
+      Wireable* or_00 = def->addInstance("or00",or2,{{"width", Const::make(c,n)}});
+      Wireable* or_01 = def->addInstance("or01",or2,{{"width", Const::make(c,n)}});
+      Wireable* or_1 = def->addInstance("or1",or2,{{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in0"), or_00->sel("in0"));
       def->connect(self->sel("in1"), or_00->sel("in1"));
@@ -243,7 +244,7 @@ namespace CoreIR {
       Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
       ModuleDef* def = counterTest->newModuleDef();
 
-      def->addInstance("counter", "global.counter", {{"width", Const(pcWidth)}});
+      def->addInstance("counter", "global.counter", {{"width", Const::make(c,pcWidth)}});
 
       def->connect("self.en", "counter.en");
       def->connect("self.clk", "counter.clk");
@@ -420,7 +421,7 @@ namespace CoreIR {
       Module* add2_n = g->newModuleDecl("Add2",add2Type);
       ModuleDef* def = add2_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* or_00 = def->addInstance("or00",add2,{{"width", Const(n)}});
+      Wireable* or_00 = def->addInstance("or00",add2,{{"width", Const::make(c,n)}});
 
       def->connect(self->sel("in0"), or_00->sel("in0"));
       def->connect(self->sel("in1"), or_00->sel("in1"));
@@ -465,7 +466,7 @@ namespace CoreIR {
       Module* muxTest = g->newModuleDecl("muxTest", muxType);
       ModuleDef* def = muxTest->newModuleDef();
 
-      Wireable* mux = def->addInstance("m0", "coreir.mux", {{"width", Const(width)}});
+      Wireable* mux = def->addInstance("m0", "coreir.mux", {{"width", Const::make(c,width)}});
 
       def->connect("self.in0", "m0.in0");
       def->connect("self.in1", "m0.in1");
@@ -507,10 +508,11 @@ namespace CoreIR {
 
       Module* incTest = g->newModuleDecl("incMod", incTestType);
       ModuleDef* def = incTest->newModuleDef();
-      
-      Args wArg({{"width", Const(width)}});
-      def->addInstance("ai","coreir.add",wArg);
-      def->addInstance("ci","coreir.const",wArg,{{"value", Const(1)}});
+
+      assert(false);
+      // Value wArg({{"width", Const::make(c,width)}});
+      // def->addInstance("ai","coreir.add",wArg);
+      // def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,1)}});
     
       def->connect("ci.out","ai.in0");
       def->connect("self.incIn","ai.in1");
@@ -548,8 +550,8 @@ namespace CoreIR {
 
       def->addInstance("m0",
       		       "coreir.mem",
-      		       {{"width", Const(width)},{"depth", Const(depth)}},
-      		       {{"init", Const("0")}});
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
+      		       {{"init", Const::make(c,"0")}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
@@ -629,9 +631,9 @@ namespace CoreIR {
 
       def->addInstance("sl",
 		       "coreir.slice",
-		       {{"width", Const(inLen)},
-			   {"lo", Const(lo)},
-			     {"hi", Const(hi)}});
+		       {{"width", Const::make(c,inLen)},
+			   {"lo", Const::make(c,lo)},
+			     {"hi", Const::make(c,hi)}});
 
       def->connect("self.in", "sl.in");
       def->connect("sl.out", "self.out");
@@ -662,8 +664,8 @@ namespace CoreIR {
 
       def->addInstance("cm",
 		       "coreir.concat",
-		       {{"width0", Const(inLen0)},
-			   {"width1", Const(inLen1)}});
+		       {{"width0", Const::make(c,inLen0)},
+			   {"width1", Const::make(c,inLen1)}});
 
       def->connect("self.in0", "cm.in0");
       def->connect("self.in1", "cm.in1");
