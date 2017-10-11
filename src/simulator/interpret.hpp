@@ -84,6 +84,8 @@ namespace CoreIR {
 
   };
 
+  typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
+
   class SimulatorState {
     CoreIR::Module* mod;
 
@@ -126,6 +128,8 @@ namespace CoreIR {
     void setConstantDefaults();
     void setRegisterDefaults();
     void setMemoryDefaults();
+
+    void updateBitVecBinop(const vdisc vd, BitVecBinop op);
 
     void setValue(CoreIR::Select* sel, SimValue* val);
     void setValue(CoreIR::Select* sel, const BitVec& bv);

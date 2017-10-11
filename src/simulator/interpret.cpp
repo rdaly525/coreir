@@ -376,7 +376,7 @@ namespace CoreIR {
     setValue(toSelect(outPair.second), new SimBitVector(res));
   }
 
-  void SimulatorState::updateAndNode(const vdisc vd) {
+  void SimulatorState::updateBitVecBinop(const vdisc vd, BitVecBinop op) {
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -400,141 +400,211 @@ namespace CoreIR {
     assert(s1 != nullptr);
     assert(s2 != nullptr);
     
-    BitVec sum = s1->getBits() & s2->getBits();
+    BitVec res = op(s1->getBits(), s2->getBits());
 
-    setValue(toSelect(outPair.second), new SimBitVector(sum));
+    setValue(toSelect(outPair.second), new SimBitVector(res));
+  }
+
+  void SimulatorState::updateAndNode(const vdisc vd) {
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	return l & r;
+      });
+
+    // assert(false);
+    // WireNode wd = gr.getNode(vd);
+
+    // Instance* inst = toInstance(wd.getWire());
+
+    // auto outSelects = getOutputSelects(inst);
+
+    // assert(outSelects.size() == 1);
+
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    // auto inConns = getInputConnections(vd, gr);
+
+    // assert(inConns.size() == 2);
+
+    // InstanceValue arg1 = findArg("in0", inConns);
+    // InstanceValue arg2 = findArg("in1", inConns);
+
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    
+    // assert(s1 != nullptr);
+    // assert(s2 != nullptr);
+    
+    // BitVec sum = s1->getBits() & s2->getBits();
+
+    // setValue(toSelect(outPair.second), new SimBitVector(sum));
   }
 
   void SimulatorState::updateEqNode(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
-
-    Instance* inst = toInstance(wd.getWire());
-
-    auto outSelects = getOutputSelects(inst);
-
-    assert(outSelects.size() == 1);
-
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    auto inConns = getInputConnections(vd, gr);
-
-    assert(inConns.size() == 2);
-
-    InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	if (l == r ) {
+	  return BitVec(1, 1);
+	} else {
+	  return BitVec(1, 0);
+	}
+      });
     
-    assert(s1 != nullptr);
-    assert(s2 != nullptr);
+    // WireNode wd = gr.getNode(vd);
+
+    // Instance* inst = toInstance(wd.getWire());
+
+    // auto outSelects = getOutputSelects(inst);
+
+    // assert(outSelects.size() == 1);
+
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    // auto inConns = getInputConnections(vd, gr);
+
+    // assert(inConns.size() == 2);
+
+    // InstanceValue arg1 = findArg("in0", inConns);
+    // InstanceValue arg2 = findArg("in1", inConns);
+
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
     
-    if (s1->getBits() == s2->getBits()) {
-      setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 1)));
-    } else {
-      setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 0)));
-    }
+    // assert(s1 != nullptr);
+    // assert(s2 != nullptr);
+    
+    // if (s1->getBits() == s2->getBits()) {
+    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 1)));
+    // } else {
+    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 0)));
+    // }
 
   }
 
   void SimulatorState::updateNeqNode(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
 
-    Instance* inst = toInstance(wd.getWire());
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	if (l != r) {
+	  return BitVec(1, 1);
+	} else {
+	  return BitVec(1, 0);
+	}
+      });
 
-    auto outSelects = getOutputSelects(inst);
+    // WireNode wd = gr.getNode(vd);
 
-    assert(outSelects.size() == 1);
+    // Instance* inst = toInstance(wd.getWire());
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    // auto outSelects = getOutputSelects(inst);
 
-    auto inConns = getInputConnections(vd, gr);
+    // assert(outSelects.size() == 1);
 
-    assert(inConns.size() == 2);
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
+    // auto inConns = getInputConnections(vd, gr);
 
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    // assert(inConns.size() == 2);
+
+    // InstanceValue arg1 = findArg("in0", inConns);
+    // InstanceValue arg2 = findArg("in1", inConns);
+
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
     
-    assert(s1 != nullptr);
-    assert(s2 != nullptr);
+    // assert(s1 != nullptr);
+    // assert(s2 != nullptr);
     
-    if (s1->getBits() != s2->getBits()) {
-      setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 1)));
-    } else {
-      setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 0)));
-    }
+    // if (s1->getBits() != s2->getBits()) {
+    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 1)));
+    // } else {
+    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 0)));
+    // }
 
   }
   
   void SimulatorState::updateConcatNode(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
+    updateBitVecBinop(vd, [](const BitVec& s1Bits, const BitVec& s2Bits) {
+	BitVec conc(s1Bits.bitLength() + s2Bits.bitLength());
 
-    Instance* inst = toInstance(wd.getWire());
+	for (int i = 0; i < s1Bits.bitLength(); i++) {
+	  conc.set(i, s1Bits.get(i));
+	}
 
-    auto outSelects = getOutputSelects(inst);
+	for (int i = 0; i < s2Bits.bitLength(); i++) {
+	  conc.set(i + s1Bits.bitLength(), s2Bits.get(i));
+	}
 
-    assert(outSelects.size() == 1);
+	return conc;
+      });
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
+    // WireNode wd = gr.getNode(vd);
 
-    assert(inConns.size() == 2);
+    // Instance* inst = toInstance(wd.getWire());
 
-    InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
+    // auto outSelects = getOutputSelects(inst);
 
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    // assert(outSelects.size() == 1);
+
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    // auto inConns = getInputConnections(vd, gr);
+
+    // assert(inConns.size() == 2);
+
+    // InstanceValue arg1 = findArg("in0", inConns);
+    // InstanceValue arg2 = findArg("in1", inConns);
+
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
     
-    assert(s1 != nullptr);
-    assert(s2 != nullptr);
+    // assert(s1 != nullptr);
+    // assert(s2 != nullptr);
 
-    BitVec s1Bits = s1->getBits();
-    BitVec s2Bits = s2->getBits();
-    BitVec conc(s1Bits.bitLength() + s2Bits.bitLength());
+    // BitVec s1Bits = s1->getBits();
+    // BitVec s2Bits = s2->getBits();
+    // BitVec conc(s1Bits.bitLength() + s2Bits.bitLength());
 
-    for (int i = 0; i < s1Bits.bitLength(); i++) {
-      conc.set(i, s1Bits.get(i));
-    }
+    // for (int i = 0; i < s1Bits.bitLength(); i++) {
+    //   conc.set(i, s1Bits.get(i));
+    // }
 
-    for (int i = 0; i < s2Bits.bitLength(); i++) {
-      conc.set(i + s1Bits.bitLength(), s2Bits.get(i));
-    }
+    // for (int i = 0; i < s2Bits.bitLength(); i++) {
+    //   conc.set(i + s1Bits.bitLength(), s2Bits.get(i));
+    // }
 
-    setValue(toSelect(outPair.second), new SimBitVector(conc));
+    // setValue(toSelect(outPair.second), new SimBitVector(conc));
   }
   
   void SimulatorState::updateAddNode(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
-
-    Instance* inst = toInstance(wd.getWire());
-
-    auto outSelects = getOutputSelects(inst);
-
-    assert(outSelects.size() == 1);
-
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    auto inConns = getInputConnections(vd, gr);
-
-    assert(inConns.size() == 2);
-
-    InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	return add_general_width_bv(l, r);
+      });
     
-    assert(s1 != nullptr);
-    assert(s2 != nullptr);
+    // WireNode wd = gr.getNode(vd);
 
-    BitVec sum = add_general_width_bv(s1->getBits(), s2->getBits());
+    // Instance* inst = toInstance(wd.getWire());
 
-    setValue(toSelect(outPair.second), new SimBitVector(sum));
+    // auto outSelects = getOutputSelects(inst);
+
+    // assert(outSelects.size() == 1);
+
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    // auto inConns = getInputConnections(vd, gr);
+
+    // assert(inConns.size() == 2);
+
+    // InstanceValue arg1 = findArg("in0", inConns);
+    // InstanceValue arg2 = findArg("in1", inConns);
+
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    
+    // assert(s1 != nullptr);
+    // assert(s2 != nullptr);
+
+    // BitVec sum = add_general_width_bv(s1->getBits(), s2->getBits());
+
+    // setValue(toSelect(outPair.second), new SimBitVector(sum));
   }
 
   void SimulatorState::updateMuxNode(const vdisc vd) {
@@ -579,32 +649,36 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateOrNode(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
-
-    Instance* inst = toInstance(wd.getWire());
-
-    auto outSelects = getOutputSelects(inst);
-
-    assert(outSelects.size() == 1);
-
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    auto inConns = getInputConnections(vd, gr);
-
-    assert(inConns.size() == 2);
-
-    InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	return l | r;
+      });
     
-    assert(s1 != nullptr);
-    assert(s2 != nullptr);
-    
-    BitVec sum = s1->getBits() | s2->getBits();
+    // WireNode wd = gr.getNode(vd);
 
-    setValue(toSelect(outPair.second), new SimBitVector(sum));
+    // Instance* inst = toInstance(wd.getWire());
+
+    // auto outSelects = getOutputSelects(inst);
+
+    // assert(outSelects.size() == 1);
+
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    // auto inConns = getInputConnections(vd, gr);
+
+    // assert(inConns.size() == 2);
+
+    // InstanceValue arg1 = findArg("in0", inConns);
+    // InstanceValue arg2 = findArg("in1", inConns);
+
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    
+    // assert(s1 != nullptr);
+    // assert(s2 != nullptr);
+    
+    // BitVec sum = s1->getBits() | s2->getBits();
+
+    // setValue(toSelect(outPair.second), new SimBitVector(sum));
   }
   
   void SimulatorState::updateOutput(const vdisc vd) {
