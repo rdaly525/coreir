@@ -95,7 +95,7 @@ static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
     "slt","sgt","sle","sge",
     "ult","ugt","ule","uge"
   }},
-  {"ternary",{"mux"}},
+  {"muxType",{"mux"}},
 });
 
 void mergeValues(Values& v0, Values v1);

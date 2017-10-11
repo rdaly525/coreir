@@ -152,7 +152,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
-    if (genargs.at("rst")->get<bool>()) {
+    if (genargs.at("rst")->get<bool>() || genargs.at("clr")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
       defaultargs["init"] = Const::make(c,BitVector(width,0));
@@ -347,7 +347,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //);
   //For mux
   coreirprims->newTypeGen(
-    "ternary",
+    "muxType",
     widthparams,
     [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
