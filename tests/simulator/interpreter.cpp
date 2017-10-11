@@ -21,47 +21,51 @@ namespace CoreIR {
 
   void addCounter(Context* c, Namespace* global) {
 
-    assert(false);
-    // Params counterParams({{"width",AINT}});
+    //assert(false);
+    Params counterParams = {{"width", c->Int()}};
 
-    // TypeGen* counterTypeGen =
-    //   global->newTypeGen(
-    // 			 "CounterTypeGen", //name of typegen
-    // 			 counterParams, //Params required for typegen
-    // 			 [](Context* c, Args args) { //lambda for generating the type
-    // 			   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
-    // 			   uint width = args.at("width")->get<int>(); //widthArg->get<int>(); //get function to extract the arg value.
-    // 			   return c->Record({
-    // 			       {"en",c->BitIn()}, 
-    // 				 {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
-    // 				   {"clk",c->Named("coreir.clkIn")},
-    // 				     });
-    // 			 } //end lambda
-    // 			 ); //end newTypeGen
-
-    // ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
+    TypeGen* counterTypeGen =
+      global->newTypeGen(
+    			 "CounterTypeGen", //name of typegen
+    			 counterParams, //Params required for typegen
+    			 [](Context* c, Values args) { //lambda for generating the type
+    			   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
+    			   uint width = args.at("width")->get<int>(); //widthArg->get<int>(); //get function to extract the arg value.
+    			   return c->Record({
+    			       {"en",c->BitIn()}, 
+    				 {"out",c->Array(width,c->Bit())}, //Note: Array is parameterized by width now
+    				   {"clk",c->Named("coreir.clkIn")},
+    				     });
+    			 } //end lambda
+    			 ); //end newTypeGen
 
 
-    // Generator* counter = global->newGeneratorDecl("counter",counterTypeGen,counterParams);
+    ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
 
-    // counter->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Args args) {
+    Generator* counter = global->newGeneratorDecl("counter",counterTypeGen,counterParams);
 
-    // 	uint width = args.at("width")->get<int>();
+    counter->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+
+    	uint width = args.at("width")->get<int>();
       
-    // 	Args wArg({{"width", Const::make(c,width)}});
-    // 	def->addInstance("ai","coreir.add",wArg);
-    // 	def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,1)}});
+    	//Args wArg({{"width", Const::make(c,width)}});
+	Values wArg({{"width", Const::make(c,width)}});
+    	def->addInstance("ai","coreir.add",wArg);
+    	def->addInstance("ci",
+			 "coreir.const",
+			 wArg,
+			 {{"value", Const::make(c, BitVector(width, 1))}});
 
-    // 	def->addInstance("ri","coreir.reg",{{"width", Const::make(c,width)},{"en", Const::make(c,true)}});
+    	def->addInstance("ri","coreir.reg",{{"width", Const::make(c,width)},{"en", Const::make(c,true)}});
     
 
-    // 	def->connect("self.clk","ri.clk");
-    // 	def->connect("self.en","ri.en");
-    // 	def->connect("ci.out","ai.in0");
-    // 	def->connect("ai.out","ri.in");
-    // 	def->connect("ri.out","ai.in1");
-    // 	def->connect("ri.out","self.out");
-    //   }); //end lambda, end function
+    	def->connect("self.clk","ri.clk");
+    	def->connect("self.en","ri.en");
+    	def->connect("ci.out","ai.in0");
+    	def->connect("ai.out","ri.in");
+    	def->connect("ri.out","ai.in1");
+    	def->connect("ri.out","self.out");
+      }); //end lambda, end function
   
   }
   
@@ -511,8 +515,9 @@ namespace CoreIR {
 
       assert(false);
       // Value wArg({{"width", Const::make(c,width)}});
-      // def->addInstance("ai","coreir.add",wArg);
-      // def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,1)}});
+      Values wArg({{"width", Const::make(c,width)}});
+      def->addInstance("ai","coreir.add",wArg);
+      def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,1)}});
     
       def->connect("ci.out","ai.in0");
       def->connect("self.incIn","ai.in1");

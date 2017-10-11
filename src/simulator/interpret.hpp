@@ -45,12 +45,12 @@ namespace CoreIR {
     virtual SimValueType getType() const = 0;
   };
 
-  class BitVector : public SimValue {
+  class SimBitVector : public SimValue {
   protected:
     BitVec bv;
 
   public:
-    BitVector(const BitVec& bv_) : bv(bv_) {}
+    SimBitVector(const BitVec& bv_) : bv(bv_) {}
 
     BitVec getBits() const { return bv; }
 
