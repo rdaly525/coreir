@@ -410,33 +410,6 @@ namespace CoreIR {
 	return l & r;
       });
 
-    // assert(false);
-    // WireNode wd = gr.getNode(vd);
-
-    // Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 2);
-
-    // InstanceValue arg1 = findArg("in0", inConns);
-    // InstanceValue arg2 = findArg("in1", inConns);
-
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-    
-    // assert(s1 != nullptr);
-    // assert(s2 != nullptr);
-    
-    // BitVec sum = s1->getBits() & s2->getBits();
-
-    // setValue(toSelect(outPair.second), new SimBitVector(sum));
   }
 
   void SimulatorState::updateEqNode(const vdisc vd) {
@@ -448,34 +421,6 @@ namespace CoreIR {
 	}
       });
     
-    // WireNode wd = gr.getNode(vd);
-
-    // Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 2);
-
-    // InstanceValue arg1 = findArg("in0", inConns);
-    // InstanceValue arg2 = findArg("in1", inConns);
-
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-    
-    // assert(s1 != nullptr);
-    // assert(s2 != nullptr);
-    
-    // if (s1->getBits() == s2->getBits()) {
-    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 1)));
-    // } else {
-    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 0)));
-    // }
 
   }
 
@@ -489,34 +434,6 @@ namespace CoreIR {
 	}
       });
 
-    // WireNode wd = gr.getNode(vd);
-
-    // Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 2);
-
-    // InstanceValue arg1 = findArg("in0", inConns);
-    // InstanceValue arg2 = findArg("in1", inConns);
-
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-    
-    // assert(s1 != nullptr);
-    // assert(s2 != nullptr);
-    
-    // if (s1->getBits() != s2->getBits()) {
-    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 1)));
-    // } else {
-    //   setValue(toSelect(outPair.second), new SimBitVector(BitVec(1, 0)));
-    // }
 
   }
   
@@ -536,42 +453,6 @@ namespace CoreIR {
       });
 
 
-    // WireNode wd = gr.getNode(vd);
-
-    // Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 2);
-
-    // InstanceValue arg1 = findArg("in0", inConns);
-    // InstanceValue arg2 = findArg("in1", inConns);
-
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-    
-    // assert(s1 != nullptr);
-    // assert(s2 != nullptr);
-
-    // BitVec s1Bits = s1->getBits();
-    // BitVec s2Bits = s2->getBits();
-    // BitVec conc(s1Bits.bitLength() + s2Bits.bitLength());
-
-    // for (int i = 0; i < s1Bits.bitLength(); i++) {
-    //   conc.set(i, s1Bits.get(i));
-    // }
-
-    // for (int i = 0; i < s2Bits.bitLength(); i++) {
-    //   conc.set(i + s1Bits.bitLength(), s2Bits.get(i));
-    // }
-
-    // setValue(toSelect(outPair.second), new SimBitVector(conc));
   }
   
   void SimulatorState::updateAddNode(const vdisc vd) {
@@ -579,32 +460,6 @@ namespace CoreIR {
 	return add_general_width_bv(l, r);
       });
     
-    // WireNode wd = gr.getNode(vd);
-
-    // Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 2);
-
-    // InstanceValue arg1 = findArg("in0", inConns);
-    // InstanceValue arg2 = findArg("in1", inConns);
-
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-    
-    // assert(s1 != nullptr);
-    // assert(s2 != nullptr);
-
-    // BitVec sum = add_general_width_bv(s1->getBits(), s2->getBits());
-
-    // setValue(toSelect(outPair.second), new SimBitVector(sum));
   }
 
   void SimulatorState::updateMuxNode(const vdisc vd) {
@@ -653,32 +508,6 @@ namespace CoreIR {
 	return l | r;
       });
     
-    // WireNode wd = gr.getNode(vd);
-
-    // Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 2);
-
-    // InstanceValue arg1 = findArg("in0", inConns);
-    // InstanceValue arg2 = findArg("in1", inConns);
-
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-    
-    // assert(s1 != nullptr);
-    // assert(s2 != nullptr);
-    
-    // BitVec sum = s1->getBits() | s2->getBits();
-
-    // setValue(toSelect(outPair.second), new SimBitVector(sum));
   }
   
   void SimulatorState::updateOutput(const vdisc vd) {
