@@ -1,7 +1,6 @@
 #pragma once
 
 #include "coreir.h"
-#include "dynamic_bit_vector.h"
 #include "op_graph.hpp"
 
 

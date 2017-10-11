@@ -53,11 +53,12 @@ namespace CoreIR {
       if (isRegisterInstance(wd.getWire())) {
 	Instance* inst = toInstance(wd.getWire());
 
-	Args args = inst->getGenArgs();
-	uint width = (args["width"])->get<int>();
+	assert(false);
+	//Args args = inst->getModArgs();
+	//uint width = (args["width"])->get<int>();
 
 	// Set memory output port to default
-	setValue(inst->sel("out"), new BitVector(BitVec(width, 0)));
+	//setValue(inst->sel("out"), new BitVector(BitVec(width, 0)));
 	
       }
     }
@@ -81,17 +82,18 @@ namespace CoreIR {
       if (isMemoryInstance(wd.getWire())) {
 	Instance* inst = toInstance(wd.getWire());
 
-	Args args = inst->getGenArgs();
-	uint width = (args["width"])->get<int>();
-	uint depth = (args["depth"])->get<int>();
+	assert(false);
+	// Args args = inst->getGenArgs();
+	// uint width = (args["width"])->get<int>();
+	// uint depth = (args["depth"])->get<int>();
 	
 
-	// Set memory state to default value
-	SimMemory freshMem(width, depth);
-	circStates[stateIndex].memories.insert({inst->toString(), freshMem});
+	// // Set memory state to default value
+	// SimMemory freshMem(width, depth);
+	// circStates[stateIndex].memories.insert({inst->toString(), freshMem});
 
-	// Set memory output port to default
-	setValue(inst->sel("rdata"), new BitVector(BitVec(width, 0)));
+	// // Set memory output port to default
+	// setValue(inst->sel("rdata"), new BitVector(BitVec(width, 0)));
 	
       }
     }
@@ -112,15 +114,18 @@ namespace CoreIR {
 	  bool foundValue = false;
 
 	  int argInt = 0;
-	  for (auto& arg : inst->getConfigArgs()) {
+	  for (auto& arg : inst->getModArgs()) {
 	    if (arg.first == "value") {
 	      foundValue = true;
-	      Arg* valArg = arg.second.get(); //.get();
+	      Value* valArg = arg.second; //.get();
 
-	      assert(valArg->getKind() == AINT);
+	      //assert(valArg->getKind() == AINT);
 
-	      ArgInt* valInt = static_cast<ArgInt*>(valArg);
-	      argInt = valInt->get();
+	      //ArgInt* valInt = static_cast<ArgInt*>(valArg);
+	      //argInt = valInt->get();
+	      //BitVector bv = valArg->get<BitVector>();
+	      //argInt = bv.as_native_uint32();
+	      assert(false);
 	    }
 	  }
 
@@ -313,19 +318,20 @@ namespace CoreIR {
     
     assert(s1 != nullptr);
 
-    Args args = inst->getGenArgs();
-    uint lo = (args["lo"])->get<int>();
-    uint hi = (args["hi"])->get<int>();
+    assert(false);
+    // Args args = inst->getGenArgs();
+    // uint lo = (args["lo"])->get<int>();
+    // uint hi = (args["hi"])->get<int>();
 
-    assert((hi - lo) > 0);
+    // assert((hi - lo) > 0);
     
-    BitVec res(hi - lo, 1);
-    BitVec sB = s1->getBits();
-    for (int i = lo; i < hi; i++) {
-      res.set(i - lo, sB.get(i));
-    }
+    // BitVec res(hi - lo, 1);
+    // BitVec sB = s1->getBits();
+    // for (int i = lo; i < hi; i++) {
+    //   res.set(i - lo, sB.get(i));
+    // }
 
-    setValue(toSelect(outPair.second), new BitVector(res));
+    // setValue(toSelect(outPair.second), new BitVector(res));
   }
 
   void SimulatorState::updateAndrNode(const vdisc vd) {
