@@ -173,7 +173,9 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
 }
 
 void Passes::Firrtl::writeToStream(std::ostream& os) {
-  os << "Circuit MyCircuit : " << endl;
+  Instantiable* top = getContext()->getTop();
+  ASSERT(top, "Firrtl requires a top module");
+  os << "circuit " + nameMap[top] + " : " << endl;
   for (auto smod : fmods) {
     os << smod << endl;
   }

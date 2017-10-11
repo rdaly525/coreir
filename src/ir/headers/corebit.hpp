@@ -46,7 +46,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });
-  auto dff = bitop->newModuleDecl("DFF",dffType,{{"init",c->Bool()}});
+  auto dff = bitop->newModuleDecl("dff",dffType,{{"init",c->Bool()}});
   dff->addDefaultModArgs({{"init",Const::make(c,false)}});
 
   //TODO Add other types of FFs (ones with reset and preset)
