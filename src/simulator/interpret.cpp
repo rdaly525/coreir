@@ -54,7 +54,16 @@ namespace CoreIR {
 	Instance* inst = toInstance(wd.getWire());
 
 	//assert(false);
-	Values args = inst->getModArgs();
+	Values args = inst->getGenArgs();
+	cout << "# of argument = " << args.size() << endl;
+	for (auto& arg : args) {
+	  cout << arg.first << " --> " << arg.second->toString() << endl;
+	}
+
+	auto wArg = args["width"];
+
+	assert(wArg != nullptr);
+
 	uint width = (args["width"])->get<int>();
 
 	// Set memory output port to default

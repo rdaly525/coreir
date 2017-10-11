@@ -513,11 +513,12 @@ namespace CoreIR {
       Module* incTest = g->newModuleDecl("incMod", incTestType);
       ModuleDef* def = incTest->newModuleDef();
 
-      assert(false);
+      //assert(false);
       // Value wArg({{"width", Const::make(c,width)}});
       Values wArg({{"width", Const::make(c,width)}});
       def->addInstance("ai","coreir.add",wArg);
-      def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,1)}});
+      def->addInstance("ci","coreir.const",wArg,{{"value",
+	      Const::make(c, BitVector(width, 1))}});
     
       def->connect("ci.out","ai.in0");
       def->connect("self.incIn","ai.in1");
@@ -556,7 +557,7 @@ namespace CoreIR {
       def->addInstance("m0",
       		       "coreir.mem",
       		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
-      		       {{"init", Const::make(c,"0")}});
+      		       {{"init", Const::make(c,BitVector(80))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
