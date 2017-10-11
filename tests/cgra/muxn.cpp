@@ -27,7 +27,7 @@ int main() {
   Module* muxN = c->getGlobal()->newModuleDecl("mux_n", muxNType);
   ModuleDef* def = muxN->newModuleDef();
     def->addInstance("muxN_inst", muxn, 
-                     {{"width",Const(16)},{"N",Const(N)}});
+                     {{"width",Const::make(c,16)},{"N",Const::make(c,N)}});
     def->connect("self.in", "muxN_inst.in");
     def->connect("self.out", "muxN_inst.out");
   muxN->setDef(def);

@@ -194,7 +194,16 @@ namespace CoreIR {
 
     }
 
-    assert(topo_order.size() == numVertices(g));
+    cout << "topo_order.size() = " << topo_order.size() << endl;
+    cout << "numVertices(g)    = " << numVertices(g) << endl;
+
+    cout << "Topological order" << endl;
+    for (auto& vd : topo_order) {
+      cout << vd << endl;
+    }
+
+
+    assert(topo_order.size() == (uint) numVertices(g));
 
     return topo_order;
   }
@@ -343,7 +352,6 @@ namespace CoreIR {
     for (auto& connection : mod->getDef()->getConnections()) {
 
       assert(connectionIsOrdered(connection));
-
 
       Wireable* fst = connection.first;
       Wireable* snd = connection.second;

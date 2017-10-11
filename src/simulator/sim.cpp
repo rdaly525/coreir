@@ -63,15 +63,19 @@ namespace CoreIR {
     bool foundValue = false;
 
     string argStr = "";
-    for (auto& arg : inst->getConfigArgs()) {
+    for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
 	foundValue = true;
-	Arg* valArg = arg.second.get(); //.get();
+	Value* valArg = arg.second; //.get();
 
-	assert(valArg->getKind() == AINT);
+	assert(valArg->getValueType() == inst->getContext()->BitVector(16));
+	//assert(valArg->getKind() == AINT);
 
-	ArgInt* valInt = static_cast<ArgInt*>(valArg);
-	argStr = valInt->toString();
+	//ArgInt* valInt = static_cast<ArgInt*>(valArg);
+	BitVector bv = valArg->get<BitVector>();
+	stringstream ss;
+	ss << bv;
+	argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
       }
     }
 

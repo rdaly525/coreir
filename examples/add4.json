@@ -9,17 +9,21 @@
             "out": ["Array",16,"Bit"]
           }],
           "instances": {
+            "_pt": {
+              "genref": "coreir.passthrough",
+              "genargs": {"type":["CoreIRType", "Bit"]}
+            },
             "i00": {
               "genref": "coreir.add",
-              "genargs": {"width":16}
+              "genargs": {"width":["Int", 16]}
             },
             "i01": {
               "genref": "coreir.add",
-              "genargs": {"width":16}
+              "genargs": {"width":["Int", 16]}
             },
             "i1": {
               "genref": "coreir.add",
-              "genargs": {"width":16}
+              "genargs": {"width":["Int", 16]}
             }
           },
           "connections": [

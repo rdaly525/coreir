@@ -7,6 +7,8 @@
 #include "coreir/ir/error.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/typegen.h"
+#include "coreir/ir/value.h"
+
 
 using namespace std;
 
@@ -128,7 +130,7 @@ string Wireable::wireableKind2Str(WireableKind wb) {
 
 LocalConnections Wireable::getLocalConnections() {
   //For the annoying case where connections connect bact to self
-  unordered_set<Connection> uniqueCons;
+  Connections uniqueCons;
   LocalConnections cons;
   std::function<void(Wireable*)> traverse;
   traverse = [&cons,&traverse,&uniqueCons](Wireable* curw) ->void {
@@ -157,28 +159,29 @@ Wireable* Wireable::getTopParent() {
 }
 
 
-Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Args configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
+Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //First merge default args
-  mergeArgs(configargs,moduleRef->getDefaultConfigArgs());
-  //Check if configargs is the same as expected by ModuleRef
-  checkArgsAreParams(configargs,moduleRef->getConfigParams());
-  this->configargs = configargs;
+  mergeValues(modargs,moduleRef->getDefaultModArgs());
+  //Check if modargs is the same as expected by ModuleRef
+  checkValuesAreParams(modargs,moduleRef->getModParams());
+  this->modargs = modargs;
 
   //TODO checkif instname is unique
   this->type = moduleRef->getType();
 }
 
-Instance::Instance(ModuleDef* container, string instname, Generator* generatorRef, Args genargs, Args configargs) : Wireable(WK_Instance,container,nullptr), instname(instname), isgen(true), generatorRef(generatorRef) {
+Instance::Instance(ModuleDef* container, string instname, Generator* generatorRef, Values genargs, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), isgen(true), generatorRef(generatorRef) {
   ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
-  mergeArgs(genargs,generatorRef->getDefaultGenArgs());
-  checkArgsAreParams(genargs,generatorRef->getGenParams());
+  mergeValues(genargs,generatorRef->getDefaultGenArgs());
+  checkValuesAreParams(genargs,generatorRef->getGenParams());
   this->genargs = genargs;
   this->type = generatorRef->getTypeGen()->getType(genargs);
   ASSERT(isa<RecordType>(this->type),"Generated type needs to be a record but is: " + this->type->toString());
-  mergeArgs(configargs,generatorRef->getDefaultConfigArgs());
-  checkArgsAreParams(configargs,generatorRef->getConfigParams());
-  this->configargs = configargs;
+  auto mpair = generatorRef->getModParams(genargs);
+  mergeValues(modargs,mpair.second);
+  checkValuesAreParams(modargs,mpair.first);
+  this->modargs = modargs;
 }
 
 string Interface::toString() const{
@@ -213,31 +216,31 @@ bool Instance::runGenerator() {
   return true;
 }
 
-void Instance::replace(Module* moduleRef, Args configargs) {
+void Instance::replace(Module* moduleRef, Values modargs) {
   ASSERT(!this->isGen(),"NYI, Cannot replace a generator instance with a module isntance")
   ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
   ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
   this->moduleRef = moduleRef;
-  this->configargs = configargs;
-  checkArgsAreParams(configargs,moduleRef->getConfigParams());
+  this->modargs = modargs;
+  checkValuesAreParams(modargs,moduleRef->getModParams());
 }
 
 //TODO this is probably super unsafe and will leak memory
 //TODO I do not think this deals with default args
-void Instance::replace(Generator* generatorRef, Args genargs, Args configargs) {
+void Instance::replace(Generator* generatorRef, Values genargs, Values modargs) {
   ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
   ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
 
   this->generatorRef = generatorRef;
+  checkValuesAreParams(genargs,generatorRef->getGenParams());
   this->genargs = genargs;
   Type* newType = generatorRef->getTypeGen()->getType(genargs);
   ASSERT(this->getType() == newType,"NYI, Cannot replace with a different type");
-
-  this->configargs = configargs;
-
-  checkArgsAreParams(configargs,generatorRef->getConfigParams());
-  checkArgsAreParams(genargs,generatorRef->getGenParams());
-
+  
+  auto mpair = generatorRef->getModParams(genargs);
+  mergeValues(modargs,mpair.second);
+  checkValuesAreParams(modargs,mpair.first);
+  this->modargs = modargs;
 }
 
 
