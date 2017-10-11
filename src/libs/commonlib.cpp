@@ -16,14 +16,14 @@ uint num_bits(uint N) {
 }
 
 Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
-  
+
   Namespace* commonlib = c->newNamespace("commonlib");
   Namespace* coreirprims = c->getNamespace("coreir");
- 
+
   /////////////////////////////////
   // Commonlib Types
   /////////////////////////////////
-  
+
   Params widthparams = Params({{"width",c->Int()}});
   // TypeGens defined in coreirprims
 
@@ -90,7 +90,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       "MAC"
     }},
   });
-  
+
   //Add all the generators (with widthparams)
   for (auto tmap : opmap) {
     TypeGen* tg = coreirprims->getTypeGen(tmap.first);
@@ -110,7 +110,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Namespace* coreirprims = c->getNamespace("coreir");
     Generator* equal = coreirprims->getGenerator("eq");
     Module* logicalNot = coreirprims->getModule("bitnot");
-    
+
     // create necessary hardware
     Const* aWidth = Const::make(c,width);
     def->addInstance("equal",equal,{{"width",aWidth}});
@@ -129,7 +129,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
 
   Generator* muxN = commonlib->newGeneratorDecl("muxn",commonlib->getTypeGen("muxN_type"),{{"width",c->Int()},{"N",c->Int()}});
-  
+
   muxN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint N = genargs.at("N")->get<int>();
@@ -139,9 +139,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       Generator* mux2 = stdlib->getGenerator("mux");
       Generator* passthrough = stdlib->getGenerator("passthrough");
       Generator* muxN = commonlib->getGenerator("muxn");
-    
+
       Const* aWidth = Const::make(c,width);
-    
+
       if (N == 1) {
         def->addInstance("passthrough",passthrough,{{"type",Const::make(c,c->BitIn()->Arr(width))}});
       }
@@ -186,7 +186,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
 
   Generator* opN = commonlib->newGeneratorDecl("opn",commonlib->getTypeGen("opN_type"),{{"width",c->Int()},{"N",c->Int()},{"operator",c->String()}});
-  
+
   opN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint N = genargs.at("N")->get<int>();
@@ -195,10 +195,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     Namespace* commonlib = c->getNamespace("commonlib");
     Generator* opN = commonlib->getGenerator("opn");
-    
+
     Const* aWidth = Const::make(c,width);
     Const* aOperator = Const::make(c,op2);
-    
+
     if (N == 1) {
       def->addInstance("passthrough","coreir.passthrough",{{"type",Const::make(c,c->BitIn()->Arr(width))}});
     }
@@ -241,12 +241,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Params p; //params
     Values d; //defaults
     int N = genargs.at("N")->get<int>();
-    p["N"] = c->BitVector(1<<N);
+    p["init"] = c->BitVector(1<<N);
     return {p,d};
   };
 
   Params lutNParams({{"N",c->Int()}});
-  commonlib->newTypeGen("lutNType",lutNParams,[](Context* c, Values genargs) { 
+  commonlib->newTypeGen("lutNType",lutNParams,[](Context* c, Values genargs) {
     uint N = genargs.at("N")->get<int>();
     return c->Record({
       {"in",c->BitIn()->Arr(N)},
@@ -398,7 +398,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       std::string reg_name = reg_prefix + "0_" + std::to_string(j);
       def->addInstance(reg_name, "coreir.reg", {{"width",aBitwidth}});
-      
+
       // connect the input
       if (j == 1) {
         def->connect({"self","in"}, {reg_name, "in"});
@@ -415,7 +415,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         for (uint j = 1; j < stencil_width; ++j) {
           std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
           def->addInstance(reg_name, "coreir.reg", {{"width",aBitwidth}});
-  
+
           // connect the input
           if (j == 1) {
             std::string prev_reg = reg_prefix + std::to_string(i-1) + "_" + std::to_string(stencil_width-1);
@@ -453,7 +453,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         for (uint j = 1; j < stencil_width; ++j) {
           std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
           def->addInstance(reg_name, "coreir.reg", {{"width",aBitwidth}});
-  
+
           // connect the input
           if (j == 1) {
             std::string mem_name = mem_prefix + std::to_string(i);
@@ -493,11 +493,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect({reg_name, "out"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
         }
       }
-    }    
+    }
 
   });
 
-  
+
   //////////////////
   //3D Linebuffer //
   //////////////////
@@ -562,7 +562,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       };
       def->addInstance(lb2_name, "commonlib.Linebuffer", args);
       def->connect({lb2_name, "wen"}, {"self","wen"});
-    }      
+    }
 
     // SPECIAL CASE: same sized stencil as image, so no memories needed (just lbs)
     if (stencil_d1 == image_d1) {
@@ -640,7 +640,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   );
 
   Generator* counter = commonlib->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),{{"width",c->Int()},{"min",c->Int()},{"max",c->Int()},{"inc",c->Int()}});
-  
+
   counter->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint max = genargs.at("max")->get<int>();
@@ -656,7 +656,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Generator* add_gen = coreirprims->getGenerator("add");
     Generator* reg_gen = coreirprims->getGenerator("reg");
     Generator* const_gen = coreirprims->getGenerator("const");
-    
+
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     Const* aReset = Const::make(c,BitVector(width,min));
@@ -668,7 +668,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     def->addInstance("and", and_mod);
-    
+
     // wire up modules
     // clear if count+inc > max
     def->connect("count.out","self.out");
@@ -708,7 +708,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   );
 
   Generator* serializer = commonlib->newGeneratorDecl("serializer",commonlib->getTypeGen("serializer_type"),{{"width",c->Int()},{"rate",c->Int()}});
-  
+
   serializer->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     uint width = args.at("width")->get<int>();
     uint rate  = args.at("rate")->get<int>();
@@ -719,7 +719,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Namespace* coreirprims = c->getNamespace("coreir");
     Generator* const_gen = coreirprims->getGenerator("const");
     Generator* eq_gen = coreirprims->getGenerator("eq");
-    
+
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     def->addInstance("counter", "commonlib.counter",
@@ -745,7 +745,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     def->connect("zero.out","equal.in0");
     def->connect("counter.out","equal.in1");
-    
+
 
     // wire up inputs to regs and mux
     for (uint i=0; i<rate; ++i) {
@@ -761,7 +761,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         def->connect(reg_name+".en", "equal.out");
       }
     }
-    
+
     def->connect("muxn.out","self.out");
 
   });
