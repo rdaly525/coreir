@@ -13,6 +13,7 @@ namespace CoreIR {
 
 #include "headers/core.hpp"
 #include "headers/corebit.hpp"
+#include "headers/mantle.hpp"
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
@@ -21,6 +22,7 @@ Context::Context() : maxErrors(8) {
   //Automatically load coreir //defined in coreirprims.h
   CoreIRLoadHeader_core(this);
   CoreIRLoadHeader_corebit(this);
+  CoreIRLoadHeader_mantle(this);
   pm = new PassManager(this);
 }
 

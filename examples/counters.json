@@ -52,8 +52,8 @@
               "modargs": {"value":[["BitVector", 16], "1"]}
             },
             "r": {
-              "genref": "coreir.reg",
-              "genargs": {"width":["Int", 16],"en":["Bool",true]}
+              "genref": "mantle.reg",
+              "genargs": {"width":["Int", 16],"has_en":["Bool",true]}
             },
             "a": {
               "genref": "coreir.add",

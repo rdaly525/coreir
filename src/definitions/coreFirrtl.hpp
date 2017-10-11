@@ -40,11 +40,13 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       {"uge",{"out <= geq(in0,in1)"}},
     }},
     {"other",{
-      {"slice",{"bits(in0,in1)"}},
-      {"concat",{"cat(in0,in1)"}},
+      {"mux",{"out <= mux(sel,in1,in0)"}}, //TODO is this the right ordering?
+      {"slice",{"out <= bits(in,hi,lo)"}},
+      {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
-      {"term",{}},
-      {"reg",{"reg myreg: UInt, clk, rst, init","myreg <= in","out <= myreg"}}, 
+      {"term",{""}},
+      {"reg",{"reg myreg: UInt, clk","myreg <= in","out <= myreg"}}, 
+      {"regrst",{"reg myreg: UInt, clk, rst, init","myreg <= in","out <= myreg"}}, 
       //{"mem",""}, //TODO
     }}
   });
@@ -69,9 +71,26 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       "input in1 : UInt",
       "output out : UInt<1>"
     }},
+    {"mux",{
+      "input in0 : UInt",
+      "input in1 : UInt",
+      "input sel : UInt<1>",
+      "output out : UInt"
+    }},
+    {"slice",{
+      "input hi : UInt",
+      "input lo : UInt",
+      "input in : UInt",
+      "output out : UInt"
+    }},
     {"const",{"input value : UInt","output out : UInt"}},
     {"term",{"input in : UInt"}},
     {"reg",{
+      "input clk : Clock",
+      "input in : UInt",
+      "output out : UInt"
+    }},
+    {"regrst",{
       "input clk : Clock",
       "input rst : UInt<1>",
       "input in : UInt",
@@ -103,35 +122,66 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
     }
   }
 
-  //slice
-  json fjson;
-  fjson["prefix"] = "coreir_";
-  fjson["definition"] = coreFMap["other"]["slice"];
-  fjson["interface"] = coreInterfaceMap["unary"];
-  core->getGenerator("slice")->getMetaData()["firrtl"] = fjson;
-  
-  //concat
-  fjson["prefix"] = "coreir_";
-  fjson["definition"] = coreFMap["other"]["concat"];
-  fjson["interface"] = coreInterfaceMap["binary"];
-  core->getGenerator("concat")->getMetaData()["firrtl"] = fjson;
-   
-  //const
-  fjson["prefix"] = "coreir_";
-  fjson["definition"] = coreFMap["other"]["const"];
-  fjson["interface"] = coreInterfaceMap["const"];
-  core->getGenerator("const")->getMetaData()["firrtl"] = fjson;
-  
-  //term
-  fjson["prefix"] = "coreir_";
-  fjson["definition"] = coreFMap["other"]["term"];
-  fjson["interface"] = coreInterfaceMap["term"];
-  core->getGenerator("const")->getMetaData()["firrtl"] = fjson;
-  
-  //reg
-  fjson["prefix"] = "coreir_";
-  fjson["definition"] = coreFMap["other"]["reg"];
-  fjson["interface"] = coreInterfaceMap["reg"];
-  core->getGenerator("const")->getMetaData()["firrtl"] = fjson;
-  
+  {
+    //mux
+    json fjson;
+    fjson["prefix"] = "coreir_";
+    fjson["definition"] = coreFMap["other"]["mux"];
+    fjson["interface"] = coreInterfaceMap["mux"];
+    core->getGenerator("mux")->getMetaData()["firrtl"] = fjson;
+  }
+  {
+    //slice
+    json fjson;
+    fjson["prefix"] = "coreir_";
+    fjson["definition"] = coreFMap["other"]["slice"];
+    fjson["interface"] = coreInterfaceMap["slice"];
+    fjson["parameters"] = {"hi","lo"};
+    core->getGenerator("slice")->getMetaData()["firrtl"] = fjson;
+  }
+  {
+    //concat
+    json fjson;
+    fjson["prefix"] = "coreir_";
+    fjson["definition"] = coreFMap["other"]["concat"];
+    fjson["interface"] = coreInterfaceMap["binary"];
+    core->getGenerator("concat")->getMetaData()["firrtl"] = fjson;
+  }
+  {
+    //const
+    json fjson;
+    fjson["prefix"] = "coreir_";
+    fjson["definition"] = coreFMap["other"]["const"];
+    fjson["interface"] = coreInterfaceMap["const"];
+    fjson["parameters"] = {"value"};
+    core->getGenerator("const")->getMetaData()["firrtl"] = fjson;
+  }
+  {
+    //term
+    json fjson;
+    fjson["prefix"] = "coreir_";
+    fjson["definition"] = coreFMap["other"]["term"];
+    fjson["interface"] = coreInterfaceMap["term"];
+    core->getGenerator("term")->getMetaData()["firrtl"] = fjson;
+  }
+  {
+    //reg
+    json fjson;
+    fjson["prefix"] = "coreir_";
+    fjson["definition"] = coreFMap["other"]["reg"];
+    fjson["interface"] = coreInterfaceMap["reg"];
+    core->getGenerator("reg")->getMetaData()["firrtl"] = fjson;
+  }
+  {
+    //regrst
+    json fjson;
+    fjson["prefix"] = "coreir_";
+    fjson["definition"] = coreFMap["other"]["regrst"];
+    fjson["interface"] = coreInterfaceMap["regrst"];
+    fjson["parameters"] = {"init"};
+    core->getGenerator("regrst")->getMetaData()["firrtl"] = fjson;
+  }
+  //TODO Now do it for all the corebit
+  //wire, not, and, or, xor, mux, const, term, 
+
 }

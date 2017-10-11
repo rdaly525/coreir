@@ -18,6 +18,9 @@
 
 #include "coreir.h"
 
+//TODO get rid of
+using namespace std;
+
 namespace CoreIR {
 namespace Passes {
 
@@ -82,6 +85,9 @@ class VModule {
       this->checkJson(g->getMetaData());
     }
     void checkJson(json jmeta) {
+      cout << modname << endl;
+      cout << jmeta << endl;
+      cout << "}" << endl;
       if (jmeta.count("verilog") ) {
         if (jmeta["verilog"].count("prefix")) {
           this->modname = jmeta["verilog"]["prefix"].get<std::string>() + this->modname;
@@ -120,7 +126,7 @@ class VModule {
     }
     void addDefaults(Values ds) { 
       for (auto dpair : ds) {
-        ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
+        ASSERT(params.count(dpair.first),"NYI Cannot Add default! " + dpair.first);
         paramDefaults[dpair.first] = dpair.second->toString();
       }
     }

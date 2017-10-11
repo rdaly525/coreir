@@ -1,6 +1,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/instantiable.h"
 //#include <sstream>
 //#include <iterator>
 
@@ -63,6 +64,14 @@ string SelectPath2Str(SelectPath path) {
 
 string Connection2Str(Connection con) {
   return con.first->toString() + " <=> " + con.second->toString();
+}
+
+std::string Inst2Str(Instance* inst) {
+  string ret = inst->getInstname();
+  if (inst->isGen()) { 
+    ret = ret + Values2Str(inst->getGenArgs());
+  }
+  return ret + Values2Str(inst->getModArgs()) + " : " + inst->getInstantiableRef()->getRefName();
 }
 
 void checkValuesAreParams(Values args, Params params) {

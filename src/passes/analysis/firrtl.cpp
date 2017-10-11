@@ -5,14 +5,16 @@ using namespace std;
 using namespace CoreIR;
 
 class FModule {
+  Context* c;
   string name;
   vector<string> io;
+  vector<string> params;
   vector<string> stmts;
   public : 
-    FModule(Instantiable* iref) : name(iref->getName()) {
+    FModule(Instantiable* iref) : c(iref->getContext()), name(iref->getName()) {
       checkJson(iref->getMetaData());
       if (isa<Generator>(iref)) {
-        ASSERT(this->hasDef(),"NYI generators without a firrtl def");
+        ASSERT(this->hasDef(),"NYI generators without a firrtl def " + iref->toString());
       }
       else {
         Module* m = cast<Module>(iref);
@@ -33,8 +35,12 @@ class FModule {
         if (jmeta["firrtl"].count("interface")) {
           addIO(jmeta["firrtl"]["interface"].get<std::vector<std::string>>());
         }
+        if (jmeta["firrtl"].count("parameters")) {
+          this->params = (jmeta["firrtl"]["parameters"].get<std::vector<std::string>>());
+        }
       }
     }
+    vector<string> getParams() { return params;}
     bool hasDef() {return io.size()>0 && stmts.size()>0;}
     void addStmt(string stmt) {
       stmts.push_back(stmt);
@@ -43,7 +49,7 @@ class FModule {
       for (auto rpair : rt->getRecord()) {
         Type* t = rpair.second;
         //Assumes mixed types are outputs
-        addStmt(string(t->isInput() ? "input" : "output") + " " + rpair.first + " " + type2firrtl(t,t->isInput()));
+        addStmt(string(t->isInput() ? "input" : "output") + " " + rpair.first + " : " + type2firrtl(t,t->isInput()));
       }
     }
     void addIO(vector<string> ios) {
@@ -85,11 +91,16 @@ string FModule::type2firrtl(Type* t, bool isInput) {
       return type2firrtl(et,isInput) + "[" + to_string(at->getLen()) + "]";
     }
   }
+  else if (auto nt = dyn_cast<NamedType>(t)) {
+    if (nt == c->Named("coreir.clk") || nt == c->Named("coreir.clkIn")) return "Clock";
+    else if (nt == c->Named("coreir.rst") || nt == c->Named("coreir.rstIn")) return "UInt<1>";
+    else ASSERT(0,"NYI: " + nt->toString());
+  }
   else if (t->isBaseType()) {
     return "UInt<1>";
   }
   else {
-    assert(0);
+    ASSERT(0,"DEBUGME: " +t->toString());
   }
 }
 
@@ -110,6 +121,9 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   FModule fm(i);
   ASSERT(nameMap.count(i)==0,"DEBUG ME");
   nameMap[i] = fm.getName();
+  if (fm.getParams().size()) {
+    this->paramMap[i] = fm.getParams();
+  }
   if (isa<Generator>(i)) {
     ASSERT(fm.hasDef(),"NYI: generators in firrtl without def");
     fmods.push_back(fm.toString());
@@ -120,10 +134,29 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   ModuleDef* def = m->getDef();
   
   //First add all instances
-  for (auto instmap : def->getInstances()) {
-    string mname = nameMap[instmap.second->getInstantiableRef()];
-    string iname = instmap.second->getInstname();
+  for (auto instpair : def->getInstances()) {
+    Instance* inst = instpair.second;
+    string iname = instpair.first;
+    string mname = nameMap[inst->getInstantiableRef()];
     fm.addStmt("inst " + iname + " of " + mname);
+    if (paramMap.count(inst->getInstantiableRef())) {
+      auto params = paramMap[inst->getInstantiableRef()];
+      Values args = inst->getGenArgs();
+      mergeValues(args,inst->getModArgs());
+      for (auto p : params) {
+        ASSERT(args.count(p),"Missing param " + p + " for " + Inst2Str(inst) + "\n  From: "+Values2Str(args));
+        Value* v = args[p];
+        if (auto aint = dyn_cast<ConstInt>(v)) {
+          fm.addStmt(iname + "." + p + " <= " + aint->toString());
+        }
+        else if (auto abv = dyn_cast<ConstBitVector>(v)) {
+          fm.addStmt(iname + "." + p + " <= " + abv->toString());
+        }
+        else {
+          ASSERT(0,"NYI: Value " +p+ " cannot be " + v->toString());
+        }
+      }
+    }
   }
   //Then add all connections
   auto dm = m->newDirectedModule();
@@ -135,6 +168,7 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
     fm.addStmt(sp2Str(snk) + " <= " + sp2Str(src));
   }
   fmods.push_back(fm.toString());
+  
   return false;
 }
 

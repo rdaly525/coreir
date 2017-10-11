@@ -52,18 +52,33 @@ void core_convert(Context* c, Namespace* core) {
 void core_state(Context* c, Namespace* core) {
 
   Params widthparams = Params({{"width",c->Int()}});
-  
+
+  //Reg does not have a reset/init
   auto regFun = [](Context* c, Values args) {
     int width = args.at("width")->get<int>();
     return c->Record({
         {"clk", c->Named("coreir.clkIn")},
-        {"rst", c->Named("coreir.clkIn")},
         {"in" , c->BitIn()->Arr(width)},
         {"out", c->Bit()->Arr(width)}
     });
   };
 
-  auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+  TypeGen* regTypeGen = core->newTypeGen("regType",widthparams,regFun);
+  core->newGeneratorDecl("reg",regTypeGen,widthparams);
+  
+
+
+  auto regRstFun = [](Context* c, Values args) {
+    int width = args.at("width")->get<int>();
+    return c->Record({
+        {"clk", c->Named("coreir.clkIn")},
+        {"rst", c->Named("coreir.rstIn")},
+        {"in" , c->BitIn()->Arr(width)},
+        {"out", c->Bit()->Arr(width)}
+    });
+  };
+
+  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
@@ -72,9 +87,9 @@ void core_state(Context* c, Namespace* core) {
     return {modparams,defaultargs};
   };
 
-  TypeGen* regTypeGen = core->newTypeGen("regType",widthparams,regFun);
-  auto reg = core->newGeneratorDecl("reg",regTypeGen,widthparams);
-  reg->setModParamsGen(regModParamFun);
+  TypeGen* regRstTypeGen = core->newTypeGen("regRstType",widthparams,regRstFun);
+  auto regRst = core->newGeneratorDecl("regrst",regRstTypeGen,widthparams);
+  regRst->setModParamsGen(regRstModParamFun);
 
   //TODO Deal with roms
   //Memory
@@ -142,9 +157,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
     "binary",
     widthparams,
     [](Context* c, Values args) {
-      cout << "{" << Values2Str(args) << endl;
       uint width = args.at("width")->get<int>();
-      cout << "}" << endl;
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in0",c->Flip(ptype)},

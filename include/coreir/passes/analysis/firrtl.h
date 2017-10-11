@@ -8,7 +8,8 @@ namespace CoreIR {
 namespace Passes {
 
 class Firrtl : public InstanceGraphPass {
-  std::unordered_map<Instantiable*,std::string> nameMap;
+  std::map<Instantiable*,std::string> nameMap;
+  std::map<Instantiable*,std::vector<std::string>> paramMap;
   std::vector<std::string> fmods;
   public :
     static std::string ID;

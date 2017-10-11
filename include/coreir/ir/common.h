@@ -31,6 +31,7 @@ std::string Params2Str(Params,bool multi=false);
 std::string Values2Str(Values,bool multi=false);
 std::string SelectPath2Str(SelectPath path);
 std::string Connection2Str(Connection con);
+std::string Inst2Str(Instance* inst);
 
 //Checks that the values are of the correct names and types
 void checkValuesAreParams(Values args, Params params);

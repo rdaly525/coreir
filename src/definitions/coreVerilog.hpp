@@ -40,6 +40,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       {"uge","in0 >= in1"}
     }},
     {"other",{
+      {"mux","sel ? in1 : in0"},
       {"slice","in[hi-1:lo]"},
       {"concat","{in0,in1}"},
       {"const","init"}
@@ -50,7 +51,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
   });
  
   
-  std::map<std::string,std::vector<std::string>> coreInterfaceMap({
+  std::map<std::string,std::vector<std::string>> coreIMap({
     {"unary",{
       "input [width-1:0] in",
       "output [width-1:0] out"
@@ -69,6 +70,12 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "input [width-1:0] in1",
       "output out"
     }},
+    {"mux",{
+      "input [width-1:0] in0",
+      "input [width-1:0] in1",
+      "input sel",
+      "output [width-1:0] out"
+    }},
     {"slice",{
       "input [width-1:0] in",
       "output [hi-lo-1:0] out"
@@ -80,7 +87,12 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     }},
     {"const",{"output [width-1:0] out"}},
     {"term",{"input [width-1:0] in"}},
-    {"clk",{
+    {"reg",{
+      "input clk",
+      "input [width-1:0] in",
+      "output [width-1:0] out"
+    }},
+    {"regrst",{
       "input clk",
       "input rst",
       "input [width-1:0] in",
@@ -105,24 +117,29 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       vjson["prefix"] = "coreir_";
       vjson["definition"] = "  assign out = " + vbody + ";";
       if (it0.first!="other") {
-        vjson["interface"] = coreInterfaceMap[it0.first];
+        ASSERT(coreIMap.count(it0.first),"missing" + it0.first);
+        vjson["interface"] = coreIMap.at(it0.first);
       }
       else {
-        vjson["interface"] = coreInterfaceMap[it1.first];
+        ASSERT(coreIMap.count(it1.first),"missing" + it1.first);
+        vjson["interface"] = coreIMap.at(it1.first);
       }
       core->getGenerator(op)->getMetaData()["verilog"] = vjson;
     }
   }
 
+  core->getGenerator("const")->getMetaData()["verilog"]["parameters"] = {"value"};
+  
   //Term
   json vjson;
   vjson["prefix"] = "coreir_";
-  vjson["interface"] = coreInterfaceMap["term"];
+  vjson["interface"] = coreIMap["term"];
   vjson["definition"] = "";
   core->getGenerator("term")->getMetaData()["verilog"] = vjson;
   
-  //reg
-  vjson["interface"] = coreInterfaceMap["reg"];
+  //regrst
+  vjson["parameters"] = {"init"};
+  vjson["interface"] = coreIMap.at("regrst");
   vjson["definition"] = ""
   "reg [width-1:0] outReg;\n"
   "always @(posedge clk, negedge rst) begin\n"
@@ -130,11 +147,20 @@ void CoreIRLoadVerilog_coreir(Context* c) {
   "  else outReg <= in;\n"
   "end\n"
   "assign out = outReg;";
+  
+  //reg
+  vjson["interface"] = coreIMap.at("reg");
+  vjson["definition"] = ""
+  "reg [width-1:0] outReg;\n"
+  "always @(posedge clk) begin\n"
+  "  outReg <= in;\n"
+  "end\n"
+  "assign out = outReg;";
 
   core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
   
   //mem
-  vjson["interface"] = coreInterfaceMap["mem"];
+  vjson["interface"] = coreIMap["mem"];
   vjson["definition"] = ""
   "reg [width-1:0] data[depth];\n"
   "always @(posedge clk) begin\n"
