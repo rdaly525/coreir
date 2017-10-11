@@ -64,7 +64,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(false)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, false)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -108,7 +108,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, true)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -153,7 +153,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, true)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -837,7 +837,7 @@ namespace CoreIR {
       ModuleDef* def = ugtM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const(n)}});
+      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const::make(c, n)}});
 
       def->connect("self.A.0", "ugt0.in0");
       def->connect("self.A.1", "ugt0.in1");

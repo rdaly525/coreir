@@ -202,7 +202,9 @@ namespace CoreIR {
       cout << vd << endl;
     }
 
+
     assert(topo_order.size() == (uint) numVertices(g));
+
 
     return topo_order;
   }
