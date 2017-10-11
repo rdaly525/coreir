@@ -560,6 +560,10 @@ namespace CoreIR {
     } else if (opName == "add") {
       updateAddNode(vd);
       return;
+    } else if (opName == "sub") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	return sub_general_width_bv(l, r);
+      });
     } else if (opName == "const") {
       return;
     } else if (opName == "reg") {

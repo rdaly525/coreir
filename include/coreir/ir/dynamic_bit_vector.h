@@ -339,6 +339,49 @@ namespace bsim {
 
     return res;
   }
+
+  static inline
+  dynamic_bit_vector
+  sub_general_width_bv(const dynamic_bit_vector& a,
+  		       const dynamic_bit_vector& b) {
+    int Width = a.bitLength();
+    dynamic_bit_vector diff(a.bitLength());
+    dynamic_bit_vector a_cpy = a;
+
+    bool underflow = false;
+    for (int i = 0; i < Width; i++) {
+
+      if ((a_cpy.get(i) == 0) &&
+  	  (b.get(i) == 1)) {
+
+  	int j = i + 1;
+
+  	diff.set(i, 1);	  
+
+  	// Modify to carry
+  	while ((j < Width) && (a_cpy.get(j) != 1)) {
+  	  a_cpy.set(j, 1);
+  	  j++;
+  	}
+
+  	if (j >= Width) {
+  	  underflow = true;
+  	} else {
+  	  a_cpy.set(j, 0);
+  	}
+
+      } else if (a_cpy.get(i) == b.get(i)) {
+  	diff.set(i, 0);
+      } else if ((a_cpy.get(i) == 1) &&
+  		 (b.get(i) == 0)) {
+  	diff.set(i, 1);
+      } else {
+  	assert(false);
+      }
+    }
+
+    return diff;
+  }    
   
   // template<int Width>
   // static inline
