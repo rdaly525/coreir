@@ -7,7 +7,7 @@
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
 
-#include "../definitions/core.hpp"
+#include "../definitions/coreVerilog.hpp" //TODO move this
 
 
 using namespace std;
