@@ -53,7 +53,6 @@ namespace CoreIR {
       if (isRegisterInstance(wd.getWire())) {
 	Instance* inst = toInstance(wd.getWire());
 
-	//assert(false);
 	Values args = inst->getGenArgs();
 	cout << "# of argument = " << args.size() << endl;
 	for (auto& arg : args) {
@@ -91,7 +90,6 @@ namespace CoreIR {
       if (isMemoryInstance(wd.getWire())) {
 	Instance* inst = toInstance(wd.getWire());
 
-	//assert(false);
 	Values args = inst->getGenArgs();
 	uint width = (args["width"])->get<int>();
 	uint depth = (args["depth"])->get<int>();
@@ -128,13 +126,9 @@ namespace CoreIR {
 	      foundValue = true;
 	      Value* valArg = arg.second; //.get();
 
-	      //assert(valArg->getKind() == AINT);
-
-	      //ArgInt* valInt = static_cast<ArgInt*>(valArg);
-	      //argInt = valInt->get();
 	      BitVector bv = valArg->get<BitVector>();
 	      argInt = bv.as_native_uint32();
-	      //assert(false);
+
 	    }
 	  }
 
@@ -327,7 +321,6 @@ namespace CoreIR {
     
     assert(s1 != nullptr);
 
-    //assert(false);
     Values args = inst->getGenArgs();
     uint lo = (args["lo"])->get<int>();
     uint hi = (args["hi"])->get<int>();
