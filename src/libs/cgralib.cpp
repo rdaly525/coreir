@@ -37,7 +37,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     int numbitports = genargs.at("numbitports")->get<int>();
     int numdataports = genargs.at("numdataports")->get<int>();
     int width = genargs.at("width")->get<int>();
-    if (op_kind == "data" || op_kind == "combined") {
+    if (op_kind == "alu" || op_kind == "combined") {
       p["alu_op"] = c->String();
       for (int i=0; i<numdataports; ++i) {
         string mode = "data"+to_string(i)+"_mode";
