@@ -76,11 +76,11 @@ namespace bsim {
     	return *this;
       }
 
-      N = other.bitLength();
       bits.resize(other.bits.size());
 
-      for (int i = 0; i < N; i++) {
-    	set(i, other.get(i));
+      N = other.bitLength();
+      for (int i = 0; i < NUM_BYTES(N); i++) {
+        bits[i] = other.bits[i];
       }
 
 
