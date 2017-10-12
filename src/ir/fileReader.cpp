@@ -314,7 +314,7 @@ Value* json2Value(Context* c, json j) {
   switch(vtype->getKind()) {
     case Value::VK_ConstBool : return Const::make(c,jval.get<bool>());
     case Value::VK_ConstInt : return Const::make(c,jval.get<int>());
-    case Value::VK_ConstBitVector : return Const::make(c,BitVector(cast<BitVectorType>(vtype)->getWidth(),jval.get<string>()));
+    case Value::VK_ConstBitVector : return Const::make(c,BitVector(cast<BitVectorType>(vtype)->getWidth(),jval.get<uint64_t>()));
     case Value::VK_ConstString : return Const::make(c,jval.get<string>());
     case Value::VK_ConstCoreIRType : return Const::make(c,json2Type(c,jval));
     default : ASSERT(0,"Cannot have a Const of type" + vtype->toString());
@@ -369,7 +369,6 @@ Type* json2Type(Context* c, json jt) {
     else {
       cout << "ERROR NYI!: " << args[0].get<string>() << endl;
       assert(false);
-      return NULL;
     }
   }
   else throw std::runtime_error("Error parsing Type");

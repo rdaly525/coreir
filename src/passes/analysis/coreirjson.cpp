@@ -80,29 +80,28 @@ string Params2Json(Params gp) {
 
 string Type2Json(Type* t);
 string Value2Json(Value* v) {
-  ASSERT(v,"should not be nulL!");
   Array ret;
   if (auto a = dyn_cast<Arg>(v)) {
     ret.add(quote("Arg"));
     ret.add(ValueType2Json(v->getValueType()));
     ret.add(quote(a->getField()));
   }
-  else if (Const* c = dyn_cast<Const>(v)) {
+  else if (auto con = dyn_cast<Const>(v)) {
     ret.add(ValueType2Json(v->getValueType()));
-    if (auto cb = dyn_cast<ConstBool>(c)) {
+    if (auto cb = dyn_cast<ConstBool>(con)) {
       ret.add(cb->get() ? "true" : "false");
     }
-    else if (auto ci = dyn_cast<ConstInt>(c)) {
+    else if (auto ci = dyn_cast<ConstInt>(con)) {
       ret.add(to_string(ci->get()));
     }
-    else if (auto cbv = dyn_cast<ConstBitVector>(c)) {
-      ret.add(quote(toString(cbv->get())));
+    else if (auto cbv = dyn_cast<ConstBitVector>(con)) {
+      ret.add(to_string(cbv->get().to_type<int>()));
     }
-    else if (auto cs = dyn_cast<ConstString>(c)) {
+    else if (auto cs = dyn_cast<ConstString>(con)) {
       ret.add(quote(cs->get()));
     }
-    else if (auto at = dyn_cast<ConstCoreIRType>(c)) {
-      return Type2Json(at->get());
+    else if (auto at = dyn_cast<ConstCoreIRType>(con)) {
+      ret.add(Type2Json(at->get()));
     }
     else {
       ASSERT(0,"NYI");
@@ -110,15 +109,11 @@ string Value2Json(Value* v) {
   }
   else {
     ASSERT(0,"NYI");
-    return NULL;
   }
   return ret.toString();
 }
 
 string Values2Json(Values vs) {
-  cout << "H!" << endl;
-  cout << Values2Str(vs) << endl;
-  cout << "H2" << endl;
   Dict j;
   for (auto it : vs) j.add(it.first,Value2Json(it.second));
   return j.toString();
