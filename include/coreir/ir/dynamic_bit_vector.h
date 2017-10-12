@@ -34,7 +34,7 @@ namespace bsim {
 	bits[i] = 0;
       }
       
-      for (uint i = 0; i < N; i++) {
+      for (int i = 0; i < N; i++) {
 	set(i, 0);
       }
     }
@@ -66,7 +66,7 @@ namespace bsim {
     dynamic_bit_vector(const dynamic_bit_vector& other) {
       bits.resize(other.bits.size());
       N = other.bitLength();
-      for (uint i = 0; i < NUM_BYTES(N); i++) {
+      for (int i = 0; i < NUM_BYTES(N); i++) {
 	bits[i] = other.bits[i];
       }
     }
@@ -76,11 +76,11 @@ namespace bsim {
     	return *this;
       }
 
-      N = other.bitLength();
       bits.resize(other.bits.size());
 
-      for (uint i = 0; i < N; i++) {
-    	set(i, other.get(i));
+      N = other.bitLength();
+      for (int i = 0; i < NUM_BYTES(N); i++) {
+        bits[i] = other.bits[i];
       }
 
 
@@ -901,11 +901,11 @@ namespace bsim {
     bv_uint64 shift_int = get_shift_int(shift_amount);
 
     //unsigned char sign_bit = a.get(a.bitLength() - 1);
-    for (int i = a.bitLength() - 1; i >= shift_int; i--) {
+    for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
       res.set(i - shift_int, a.get(i));
     }
 
-    for (int i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
+    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
       res.set(i, 0);
     }
 
@@ -922,11 +922,11 @@ namespace bsim {
     bv_uint64 shift_int = get_shift_int(shift_amount);
 
     unsigned char sign_bit = a.get(a.bitLength() - 1);
-    for (int i = a.bitLength() - 1; i >= shift_int; i--) {
+    for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
       res.set(i - shift_int, a.get(i));
     }
 
-    for (int i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
+    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
       res.set(i, sign_bit);
     }
 
