@@ -4,6 +4,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   
   Namespace* mantle = c->newNamespace("mantle");
 
+  //Change the name of rst and clr
   auto regFun = [](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     bool en = args.at("has_en")->get<bool>();
@@ -26,7 +27,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
-    if (genargs.at("has_rst")->get<bool>()) {
+    if (genargs.at("has_rst")->get<bool>() || genargs.at("has_clr")) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
       defaultargs["init"] = Const::make(c,BitVector(width,0));
@@ -78,7 +79,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     }
     if (clr) {
       auto mux = def->addInstance("clrMux","coreir.mux",wval);
-      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,BitVector(width,0))}});
+      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,BitVector(width,0))}}); //TODO this should reference "value"!!
       def->connect(mux->sel("out"),toIn);
       def->connect(mux->sel("in1"),zero->sel("out"));
       def->connect(mux->sel("sel"),io->sel("clr"));

@@ -208,7 +208,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   
   //For mux
   core->newTypeGen(
-    "ternary",
+    "muxType",
     widthparams,
     [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();

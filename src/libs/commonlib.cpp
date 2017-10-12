@@ -389,7 +389,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Const* aBitwidth = Const::make(c,bitwidth);
     assert(isa<ConstInt>(aBitwidth));
     Const* aImageWidth = Const::make(c,image_width);
-    Namespace* coreirprims = c->getNamespace("coreir");
     std::string reg_prefix = "reg_";
     std::string mem_prefix = "mem_";
 
@@ -434,7 +433,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       for (uint i = 1; i < stencil_height; ++i) {
         std::string mem_name = mem_prefix + std::to_string(i);
         def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aImageWidth}});
-        def->addInstance(mem_name+"_valid_term", coreirprims->getModule("bitterm"));
+        def->addInstance(mem_name+"_valid_term","corebit.term");
         def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
         //def->addInstance(mem_name+"_wen", coreirprims->getModule("bitconst"), {{"value",Const::make(c,1)}});
         def->connect({mem_name,"wen"},{"self", "wen"});
@@ -547,7 +546,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     assert(bitwidth > 0);
 
     Const* aBitwidth = Const::make(c,bitwidth);
-    Namespace* coreirprims = c->getNamespace("coreir");
 
     // create the stencil linebuffers
     std::string lb2_prefix = "lb2_";
@@ -586,7 +584,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         std::string mem_name = mem_prefix + std::to_string(i);
         Const* aLBWidth = Const::make(c,image_d1 * image_d0);
         def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aLBWidth}});
-        def->addInstance(mem_name+"_valid_term", coreirprims->getModule("bitterm"));
+        def->addInstance(mem_name+"_valid_term", "corebit.term");
         def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
         def->connect({mem_name,"wen"},{"self", "wen"});
 
@@ -651,23 +649,21 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // get generators
     Namespace* coreirprims = c->getNamespace("coreir");
-    Module* and_mod = coreirprims->getModule("bitand");
     Generator* ult_gen = coreirprims->getGenerator("ult");
     Generator* add_gen = coreirprims->getGenerator("add");
-    Generator* reg_gen = coreirprims->getGenerator("reg");
     Generator* const_gen = coreirprims->getGenerator("const");
 
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     Const* aReset = Const::make(c,BitVector(width,min));
-    def->addInstance("count", reg_gen, {{"width",aBitwidth},{"clr",Const::make(c,true)},{"en",Const::make(c,true)}},
+    def->addInstance("count", "mantle.reg", {{"width",aBitwidth},{"has_clr",Const::make(c,true)},{"has_en",Const::make(c,true)}},
                          {{"init",aReset}});
 
     def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,max))}});
     def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
-    def->addInstance("and", and_mod);
+    def->addInstance("and", "corebit.and");
 
     // wire up modules
     // clear if count+inc > max
@@ -734,8 +730,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // all but input0 are stored in registers
     for (uint i=1; i<rate; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
-      def->addInstance(reg_name, "coreir.reg",
-                       {{"width",aBitwidth},{"en",Const::make(c,true)}});
+      def->addInstance(reg_name, "mantle.reg",
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}});
     }
 
     // wire up modules

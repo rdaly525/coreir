@@ -120,7 +120,7 @@ TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
 
 //TODO deal with at errors
 TypeGen* Namespace::getTypeGen(string name) {
-  assert(typeGenList.count(name)>0);
+  ASSERT(typeGenList.count(name)>0, "missing typegen: " + name);
   TypeGen* ret = typeGenList.at(name);
   assert(ret->getName()==name);
   return ret;
