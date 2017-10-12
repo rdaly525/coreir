@@ -77,7 +77,7 @@ namespace bsim {
       }
 
       N = other.bitLength();
-      bits.resize(N);
+      bits.resize(other.bits.size());
 
       for (uint i = 0; i < N; i++) {
     	set(i, other.get(i));

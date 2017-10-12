@@ -67,7 +67,7 @@ void Context::die() {
   printerrors();
   cout << "I AM DYING!" << endl;
   delete this; // sketch but okay if exits I guess
-  exit(1);
+  assert(0);
 }
 
 

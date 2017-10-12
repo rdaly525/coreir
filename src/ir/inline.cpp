@@ -175,7 +175,7 @@ bool inlineInstance(Instance* inst) {
   assert(modInline);
 
   if (!modInline->hasDef()) {
-    cout << "Cannot inline a module with no definition!: " << modInline->getName() << endl;
+    cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
     return false;
   }
   
