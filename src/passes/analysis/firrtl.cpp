@@ -4,6 +4,14 @@
 using namespace std;
 using namespace CoreIR;
 
+string toFConst(BitVector bv) {
+  return "UInt(" + to_string(bv.to_type<uint64_t>()) + ")";
+}
+string toFConst(int i) {
+  return "UInt(" + to_string(i) + ")";
+}
+
+
 class FModule {
   Context* c;
   string name;
@@ -147,10 +155,10 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
         ASSERT(args.count(p),"Missing param " + p + " for " + Inst2Str(inst) + "\n  From: "+Values2Str(args));
         Value* v = args[p];
         if (auto aint = dyn_cast<ConstInt>(v)) {
-          fm.addStmt(iname + "." + p + " <= " + aint->toString());
+          fm.addStmt(iname + "." + p + " <= " + toFConst(aint->get()));
         }
         else if (auto abv = dyn_cast<ConstBitVector>(v)) {
-          fm.addStmt(iname + "." + p + " <= " + abv->toString());
+          fm.addStmt(iname + "." + p + " <= " + toFConst(abv->get()));
         }
         else {
           ASSERT(0,"NYI: Value " +p+ " cannot be " + v->toString());

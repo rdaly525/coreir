@@ -95,7 +95,7 @@ string Value2Json(Value* v) {
       ret.add(to_string(ci->get()));
     }
     else if (auto cbv = dyn_cast<ConstBitVector>(c)) {
-      ret.add(quote(toString(cbv->get())));
+      ret.add(to_string(cbv->get().to_type<int>()));
     }
     else if (auto cs = dyn_cast<ConstString>(c)) {
       ret.add(quote(cs->get()));

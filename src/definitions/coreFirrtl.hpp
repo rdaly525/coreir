@@ -20,20 +20,20 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       {"xor",{"out <= xor(in0,in1)"}},
       {"shl",{"out <= dshl(in0,in1)"}}, //TODO probably should bit select from in1?
       {"lshr",{"out <= dshr(in0,in1)"}},
-      {"ashr",{"wire in0_s : SInt","in0_s <= toSInt(in0)","out <= dshr(in0_s,in1)"}},
-      {"add",{"out <= add(in0,in1)"}},
-      {"sub",{"out <= sub(in0,in1)"}},
-      {"mul",{"out <= mul(in0,in1)"}},
+      {"ashr",{"out <= dshr(toSInt(in0),toSInt(in1))"}},
+      {"add",{"out <= tail(add(in0,in1),1)"}},
+      {"sub",{"out <= tail(sub(in0,in1),1)"}},
+      {"mul",{"out <= mul(in0,in1)"}}, //TODO 
       {"udiv",{"out <= div(in0,in1)"}},
-      {"sdiv",{"wire in0_s : SInt","wire in1_s : SInt","in0_s <= asSInt(in0)","in1_s <= asSInt(in1)","out <= div(in0_s,in1_s)"}},
+      {"sdiv",{"out <= div(toSInt(in0),toSInt(in1))"}},
     }},
     {"binaryReduce",{
       {"eq",{"out <= eq(in0,in1)"}},
       {"neq",{"out <= neq(in0,in1)"}},
-      {"slt",{"wire in0_s : SInt","wire in1_s : SInt","in0_s <= asSInt(in0)","in1_s <= asSInt(in1)","out <= lt(in0_s,in1_s)"}},
-      {"sgt",{"wire in0_s : SInt","wire in1_s : SInt","in0_s <= asSInt(in0)","in1_s <= asSInt(in1)","out <= gt(in0_s,in1_s)"}},
-      {"sle",{"wire in0_s : SInt","wire in1_s : SInt","in0_s <= asSInt(in0)","in1_s <= asSInt(in1)","out <= leq(in0_s,in1_s)"}},
-      {"sge",{"wire in0_s : SInt","wire in1_s : SInt","in0_s <= asSInt(in0)","in1_s <= asSInt(in1)","out <= geq(in0_s,in1_s)"}},
+      {"slt",{"out <= lt(asSInt(in0),asSInt(in1))"}},
+      {"sgt",{"out <= gt(asSInt(in0),asSInt(in1))"}},
+      {"sle",{"out <= leq(asSInt(in0),asSInt(in1))"}},
+      {"sge",{"out <= geq(asSInt(in0),asSInt(in1))"}},
       {"ult",{"out <= lt(in0,in1)"}},
       {"ugt",{"out <= gt(in0,in1)"}},
       {"ule",{"out <= leq(in0,in1)"}},
@@ -41,7 +41,7 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
     }},
     {"other",{
       {"mux",{"out <= mux(sel,in1,in0)"}}, //TODO is this the right ordering?
-      {"slice",{"out <= bits(in,hi,lo)"}},
+      {"slice",{"out <= dshr(in,lo)"}},
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
       {"term",{""}},
@@ -78,7 +78,6 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       "output out : UInt"
     }},
     {"slice",{
-      "input hi : UInt",
       "input lo : UInt",
       "input in : UInt",
       "output out : UInt"
@@ -136,7 +135,7 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
     fjson["prefix"] = "coreir_";
     fjson["definition"] = coreFMap["other"]["slice"];
     fjson["interface"] = coreInterfaceMap["slice"];
-    fjson["parameters"] = {"hi","lo"};
+    fjson["parameters"] = {"lo"};
     core->getGenerator("slice")->getMetaData()["firrtl"] = fjson;
   }
   {

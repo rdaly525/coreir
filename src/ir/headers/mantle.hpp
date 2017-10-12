@@ -87,6 +87,33 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     def->connect(io->sel("in"),toIn);
   });
   
+  //Add
+
+  auto addFun = [](Context* c, Values args) {
+    int width = args.at("width")->get<int>();
+    bool cin = args.at("has_cin")->get<bool>();
+    bool cout = args.at("has_cout")->get<bool>();
+    RecordParams r({
+        {"in0" , c->BitIn()->Arr(width)},
+        {"in1" , c->BitIn()->Arr(width)},
+        {"out", c->Bit()->Arr(width)},
+    });
+    if (cin) r.push_back({"cin",c->BitIn()});
+    if (cout) r.push_back({"cout",c->Bit()});
+    return c->Record(r);
+  };
+  
+  Params addGenParams({
+    {"width",c->Int()},
+    {"has_cin",c->Bool()},
+    {"has_cout",c->Bool()},
+  });
+  TypeGen* addTypeGen = mantle->newTypeGen("addType",addGenParams,addFun);
+
+  auto add = mantle->newGeneratorDecl("add",addTypeGen,addGenParams);
+  add->addDefaultGenArgs({{"has_cin",Const::make(c,false)},{"has_cout",Const::make(c,false)}});
+  auto sub = mantle->newGeneratorDecl("sub",addTypeGen,addGenParams);
+  sub->addDefaultGenArgs({{"has_cin",Const::make(c,false)},{"has_cout",Const::make(c,false)}});
 
   return mantle;
 }
