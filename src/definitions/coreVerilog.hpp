@@ -141,6 +141,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
   {
     //regrst
     json vjson;
+    vjson["prefix"] = "coreir_";
     vjson["parameters"] = {"init"};
     vjson["interface"] = coreIMap.at("regrst");
     vjson["definition"] = ""
@@ -155,6 +156,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
   {
     //reg
     json vjson;
+    vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap.at("reg");
     vjson["definition"] = ""
     "reg [width-1:0] outReg;\n"

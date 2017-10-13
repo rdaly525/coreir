@@ -50,7 +50,7 @@ test: build
 	$(MAKE) -C tests
 	cd tests; ./run
 
-installtest:
+installtest: install
 	$(MAKE) -C tests/install
 	cd tests/install; ./run
 	coreir -i examples/counters.json -p flatten
