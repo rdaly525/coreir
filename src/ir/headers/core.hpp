@@ -282,6 +282,22 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   core_convert(c,core);
 
 
+  Params passthroughParams({
+    {"type",CoreIRType::make(c)},
+  });
+  TypeGen* passthroughTG = core->newTypeGen(
+    "passthrough",
+    passthroughParams,
+    [](Context* c, Values args) {
+      Type* t = args.at("type")->get<Type*>();
+      return c->Record({
+        {"in",t->getFlipped()},
+        {"out",t}
+      });
+    }
+  );
+  core->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
+
 
 
   return core;
