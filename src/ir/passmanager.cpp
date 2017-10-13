@@ -158,6 +158,11 @@ bool PassManager::run(PassOrder order,vector<string> nsnames) {
     ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
     this->nss.push_back(c->getNamespace(nsname));
   }
+  //For now just do all namespaces
+  //for (auto ns : c->getNamespaces()) {
+  //  nss.push_back(ns.second);
+  //}
+
   bool ret = false;
   //Execute each in order (and the respective dependencies) independently
   for (auto oname : order) {

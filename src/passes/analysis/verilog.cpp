@@ -57,7 +57,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       vmod->addStmt(VWireDec(VWire(iname+"_"+rmap.first,rmap.second)));
     }
-    ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
+    ASSERT(modMap.count(iref),"DEBUG ME: Missing iref " + iref->getRefName());
     vmod->addStmt(modMap[iref]->toInstanceString(inst));
   }
 

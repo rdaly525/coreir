@@ -99,7 +99,7 @@ class Args {
   public :
     ~Args();
     Arg* getArg(std::string field) {
-      ASSERT(args.count(field)==0,"Missing arg: " + field);
+      ASSERT(args.count(field),"Missing arg: " + field);
       return args[field];
     }
 };
