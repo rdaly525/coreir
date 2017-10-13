@@ -135,7 +135,10 @@ class VModule {
       }
     }
     std::string toConstString(Value* v) {
-      if (auto iv = dyn_cast<ConstInt>(v)) {
+      if (auto av = dyn_cast<Arg>(v)) {
+        return av->getField();
+      }
+      else if (auto iv = dyn_cast<ConstInt>(v)) {
         return iv->toString();
       }
       else if (auto bv = dyn_cast<ConstBool>(v)) {

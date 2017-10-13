@@ -36,21 +36,18 @@ class Instantiable : public MetaData, public RefName {
 std::ostream& operator<<(std::ostream& os, const Instantiable&);
 
 class Generator : public Instantiable {
-  public : 
-  
-  private :
-  
-    TypeGen* typegen;
     
-    Params genparams;
-    Values defaultGenArgs; 
-    
-    NameGenFun nameGen=nullptr;
-    ModParamsGenFun modParamsGen=nullptr;
+  TypeGen* typegen;
+  
+  Params genparams;
+  Values defaultGenArgs; 
+  
+  NameGenFun nameGen=nullptr;
+  ModParamsGenFun modParamsGen=nullptr;
 
-    //This is memory managed
-    std::map<Values,Module*,ValuesComp> genCache;
-    GeneratorDef* def = nullptr;
+  //This is memory managed
+  std::map<Values,Module*,ValuesComp> genCache;
+  GeneratorDef* def = nullptr;
   
   public :
     Generator(Namespace* ns,std::string name,TypeGen* typegen, Params genparams);
@@ -65,7 +62,10 @@ class Generator : public Instantiable {
     //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Values genargs);
-    
+    std::map<std::string,Module*> getModules();
+   
+    bool runAll();
+
     //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
     void setGeneratorDefFromFun(ModuleDefGenFun fun);
@@ -94,10 +94,10 @@ class Generator : public Instantiable {
 
 class Args {
   std::map<std::string,Arg*> args;
-  public :
+  protected :
     Args(Params params);
+  public :
     ~Args();
-
     Arg* getArg(std::string field) {
       ASSERT(args.count(field)==0,"Missing arg: " + field);
       return args[field];
@@ -111,6 +111,10 @@ class Module : public Instantiable, public Args {
   const Params modparams;
   Values defaultModArgs;
 
+
+  Generator* g = nullptr;
+  Values genargs;
+
   //std::map<std::string,Arg*> moduleargs;
 
   //the directedModule View
@@ -120,7 +124,10 @@ class Module : public Instantiable, public Args {
   std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,std::string name, Type* type,Params modparams=Params()) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams), g(g), genargs(genargs) {
+      ASSERT(genargs.size(),"Missing genargs!");
+    }
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
@@ -138,6 +145,15 @@ class Module : public Instantiable, public Args {
     std::string toString() const override;
     Type* getType() { return type;}
     
+    bool generated() { return !!g;}
+    Generator* getGenerator() { return g;}
+    Values getGenArgs() { 
+      ASSERT(generated(),"This is not a generated module!");
+      return genargs;
+    }
+    bool runGenerator();
+
+
     void print(void) override;
 
     //This will add (and override) defaultModArgs

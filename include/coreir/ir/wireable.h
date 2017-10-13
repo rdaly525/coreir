@@ -88,18 +88,12 @@ class Interface : public Wireable {
 
 class Instance : public Wireable {
   const std::string instname;
-  Module* moduleRef = nullptr;
-  
+  Module* moduleRef;
   Values modargs;
-  
   bool isgen;
-  bool wasgen = false;
-  Generator* generatorRef = nullptr;
-  Values genargs;
   
   public :
-    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs=Values());
-    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Values genargs, Values modargs=Values());
+    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs);
     static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     std::string toString() const;
     json toJson();
@@ -108,26 +102,14 @@ class Instance : public Wireable {
     const Values& getModArgs() const {return modargs;}
     bool hasModArgs() {return !modargs.empty();}
     
-    //isGen means it is currently an instance of a generator
-    //(Generator has NOT been run)
-    bool isGen() const { return isgen;}
-
-    //wasGen means it Was a generator AND the generator was run.
-    //It still has genargs, but it also is referencing a module now.
-    bool wasGen() const { return wasgen;}
-    Generator* getGeneratorRef() { return generatorRef;}
-    Instantiable* getInstantiableRef();
-    Values getGenArgs() {return genargs;}
+    bool isGen() const;
+    Generator* getGeneratorRef();
+    Values getGenArgs();
     
-    //Returns if it actually ran the generator
-    //Runs the generator and changes instance label to Module
-    //Does NOT add the module to list of namespace modules
-    //Module is owned by the generator. 
-    //Call namespace.addModule(m) to move from generator to namespace
-    bool runGenerator();
-
+    Instantiable* getInstantiableRef();
+    
     void replace(Module* moduleRef, Values modargs=Values());
-    void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
+    //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
   
   friend class InstanceGraphNode;
 };

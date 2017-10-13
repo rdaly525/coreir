@@ -60,7 +60,7 @@ Generator::~Generator() {
 
 //This is the tough one
 Module* Generator::getModule(Values genargs) {
-  
+  mergeValues(genargs,defaultGenArgs);
   if (genCache.count(genargs)) {
     return genCache[genargs];
   }
@@ -72,16 +72,16 @@ Module* Generator::getModule(Values genargs) {
     modname = nameGen(genargs);
   }
   else {
-    modname = this->name + getContext()->getUnique(); //TODO
+    modname = this->name;// + getContext()->getUnique(); //TODO create better name
   }
   Module* m;
   if (modParamsGen) {
-    std::pair<Params,Values> pc = modParamsGen(getContext(),genargs);
-    m = new Module(ns,modname,type,pc.first);
+    auto pc = modParamsGen(getContext(),genargs);
+    m = new Module(ns,modname,type,pc.first,this,genargs);
     m->addDefaultModArgs(pc.second);
   }
   else {
-     m = new Module(ns,modname,type);
+     m = new Module(ns,modname,type,Params(),this,genargs);
   }
   m->setLinkageKind(Instantiable::LK_Generated);
   genCache[genargs] = m;
@@ -89,13 +89,29 @@ Module* Generator::getModule(Values genargs) {
   //TODO I am not sure what the default behavior should be
   //for not having a def
   //Run the generator if it has the def
-  if (this->hasDef()) {
-    ModuleDef* mdef = m->newModuleDef();
-    def->createModuleDef(mdef,genargs); 
-    m->setDef(mdef);
-  }
+  //if (this->hasDef()) {
+  //  ModuleDef* mdef = m->newModuleDef();
+  //  def->createModuleDef(mdef,genargs); 
+  //  m->setDef(mdef);
+  //}
   return m;
 }
+bool Generator::runAll() {
+  bool ret = false;
+  for (auto mpair : genCache) {
+    ret |= mpair.second->runGenerator();
+  }
+  return ret;
+}
+
+std::map<std::string,Module*> Generator::getModules() {
+  std::map<std::string,Module*> ret; 
+  for (auto mpair : genCache) {
+    ret.emplace(mpair.second->getName(),mpair.second);  
+  }
+  return ret;
+}
+
 
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
   ASSERT(!def,"Do you really want to overwrite the def? No.");
@@ -117,6 +133,8 @@ string Generator::toString() const {
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;
 }
+
+
 
 void Generator::print(void) {
   cout << toString() << endl;
@@ -166,6 +184,17 @@ void Module::setDef(ModuleDef* def, bool validate) {
 
 string Module::toString() const {
   return "Module: " + name + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
+}
+
+bool Module::runGenerator() {
+  ASSERT(g,"Cannot Run Generator of module that is not gen!");
+  if (!g->hasDef()) return false;
+  if (this->hasDef()) return false;
+  
+  ModuleDef* mdef = this->newModuleDef();
+  g->getDef()->createModuleDef(mdef,genargs); 
+  this->setDef(mdef);
+  return true;
 }
 
 void Module::print(void) {

@@ -31,7 +31,7 @@ class Namespace {
     ~Namespace();
     const std::string& getName() { return name;}
     Context* getContext() { return c;}
-    std::map<std::string,Module*> getModules() { return moduleList;}
+    std::map<std::string,Module*> getModules();
     std::map<std::string,Generator*> getGenerators() { return generatorList;}
 
     NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);
@@ -48,7 +48,6 @@ class Namespace {
 
     Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams);
     Module* newModuleDecl(std::string name, Type* t,Params moduleparams=Params());
-    void addModule(Module* m);
 
     Generator* getGenerator(std::string gname);
     Module* getModule(std::string mname);
