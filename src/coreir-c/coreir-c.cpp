@@ -144,6 +144,10 @@ extern "C" {
     return rcast<COREModule*>(rcast<Namespace*>(ns)->newModuleDecl(string(name), rcast<Type*>(type),g));
   }
 
+  const char* COREModuleGetName(COREModule* module) {
+    return rcast<Module*>(module)->getName().c_str();
+  }
+
   COREModuleDef* COREModuleNewDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
   }
