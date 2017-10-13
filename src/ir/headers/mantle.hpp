@@ -79,7 +79,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     }
     if (clr) {
       auto mux = def->addInstance("clrMux","coreir.mux",wval);
-      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,BitVector(width,0))}}); //TODO this should reference "value"!!
+      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,BitVector(width,0))}}); //TODO this should reference "init"!!
       def->connect(mux->sel("out"),toIn);
       def->connect(mux->sel("in1"),zero->sel("out"));
       def->connect(mux->sel("sel"),io->sel("clr"));

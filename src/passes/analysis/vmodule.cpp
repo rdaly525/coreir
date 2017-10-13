@@ -19,10 +19,7 @@ string VModule::toString() {
   
   vector<string> paramstrs;
   for (auto p : params) {
-    string s = "parameter " + p;
-    if (paramDefaults.count(p)) {
-      s = s + "=" + paramDefaults[p];
-    }
+    string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults[p] : "16"); 
     paramstrs.push_back(s);
   }
   string pstring = paramstrs.size()>0 ? " #(" + join(paramstrs.begin(),paramstrs.end(),string(", "))+") " : " ";
@@ -40,16 +37,19 @@ string VModule::toString() {
 string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Instantiable* iref = inst->getInstantiableRef();
+  SParams params0 = params;
   if (this->gen) {
     ASSERT(inst->isGen(),"DEBUG ME:");
     ASSERT(iref==cast<Instantiable>(gen),"DEBUG ME");
     auto paramsAndDefaults = gen->getModParams(inst->getGenArgs());
-    this->addDefaults(paramsAndDefaults.second);
+    if (!this->hasDef()) {
+      this->addParams(params0,paramsAndDefaults.first);
+    }
   }
   ostringstream o;
   string tab = "  ";
   string mname;
-  unordered_map<string,VWire> iports;
+  map<string,VWire> iports;
   Values args;
   if (gen) {
     args = inst->getGenArgs();
@@ -68,9 +68,9 @@ string VModule::toInstanceString(Instance* inst) {
   o << tab << mname << " ";
   
   vector<string> paramstrs;
-  for (auto param : params) {
+  for (auto param : params0) {
     ASSERT(args.count(param),"Missing parameter " + param + " from " + Values2Str(args));
-    string astr = "." + param + "(" + args[param]->toString() + ")";
+    string astr = "." + param + "(" + toConstString(args[param]) + ")";
     paramstrs.push_back(astr);
   }
   if (paramstrs.size()) {

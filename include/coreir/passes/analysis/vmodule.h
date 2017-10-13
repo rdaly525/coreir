@@ -58,30 +58,33 @@ class VWire {
 
 
 class VModule {
+  public :
+    typedef std::set<std::string> SParams;
+    typedef std::map<std::string,std::string> SMap;
+  private:
   std::string modname;
-  std::unordered_map<std::string,VWire> ports;
+  std::map<std::string,VWire> ports;
   std::vector<std::string> interface;
-  std::unordered_set<std::string> params;
-  std::unordered_map<std::string,std::string> paramDefaults;
+  SParams params;
+  SMap paramDefaults;
 
   Generator* gen = nullptr;
   
   std::vector<std::string> stmts;
   public:
+    
     VModule(std::string modname, Type* t) {
       this->modname = modname;
       Type2Ports(t,ports);
     }
     VModule(Module* m) : VModule(m->getName(),m->getType()) {
-      this->addParams(m->getModParams());
-      this->addDefaults(m->getDefaultModArgs());
-      
+      this->addParams(params,m->getModParams());
+      this->addDefaults(paramDefaults,m->getDefaultModArgs());
       this->checkJson(m->getMetaData());
     }
     VModule(Generator* g) : modname(g->getName()), gen(g) {
-      this->addParams(g->getGenParams());
-      this->addDefaults(g->getDefaultGenArgs());
-      
+      this->addParams(params,g->getGenParams());
+      this->addDefaults(paramDefaults,g->getDefaultGenArgs());
       this->checkJson(g->getMetaData());
     }
     void checkJson(json jmeta) {
@@ -110,24 +113,44 @@ class VModule {
     std::string toString();
     std::string toInstanceString(Instance* inst);
   private :
-    void Type2Ports(Type* t,std::unordered_map<std::string,VWire>& ports) {
+    void Type2Ports(Type* t,std::map<std::string,VWire>& ports) {
       for (auto rmap : cast<RecordType>(t)->getRecord()) {
         ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       }
     }
-    void addParams(Params ps) { 
+    std::string p2Str(std::set<std::string> ss) {
+      return "(" + join(ss.begin(),ss.end(),string(",")) + ")";
+    }
+    void addParams(SParams& sps, Params ps) { 
       for (auto p : ps) {
-        ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
-        params.insert(p.first); 
+        ASSERT(sps.count(p.first)==0,"NYI Cannot have duplicate params\n"+ this->p2Str(sps) + " already has " + p.first);
+        sps.insert(p.first); 
       }
     }
-    void addDefaults(Values ds) { 
+    void addDefaults(SMap sm, Values ds) { 
       for (auto dpair : ds) {
-        ASSERT(params.count(dpair.first),"NYI Cannot Add default! " + dpair.first);
-        paramDefaults[dpair.first] = dpair.second->toString();
+        ASSERT(params.count(dpair.first),modname + " NYI Cannot Add default! " + dpair.first);
+        sm[dpair.first] = toConstString(dpair.second);
       }
     }
+    std::string toConstString(Value* v) {
+      if (auto iv = dyn_cast<ConstInt>(v)) {
+        return iv->toString();
+      }
+      else if (auto bv = dyn_cast<ConstBool>(v)) {
+        return std::to_string(uint(bv->get()));
+      }
+      else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
+        BitVector bv = bvv->get();
+        return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
+      }
+      //TODO could add string
+      assert(0);
+    }
+
+
 };
+
 
 }
 }

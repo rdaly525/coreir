@@ -43,7 +43,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       {"mux","sel ? in1 : in0"},
       {"slice","in[hi-1:lo]"},
       {"concat","{in0,in1}"},
-      {"const","init"}
+      {"const","value"}
       //{"term",""}
       //{"reg",""}, 
       //{"mem",""}, 

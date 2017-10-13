@@ -8,6 +8,7 @@
 #include "coreir/passes/analysis/verilog.h"
 
 #include "../definitions/coreVerilog.hpp" //TODO move this
+#include "../definitions/corebitVerilog.hpp" //TODO move this
 #include "../definitions/coreFirrtl.hpp" //TODO move this
 
 
@@ -199,6 +200,7 @@ int main(int argc, char *argv[]) {
   }
   else if (outExt=="v") {
     CoreIRLoadVerilog_coreir(c);
+    CoreIRLoadVerilog_corebit(c);
     modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
