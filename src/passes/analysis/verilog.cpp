@@ -30,7 +30,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   if (m->generated() && !m->hasDef()) {
     Generator* g = m->getGenerator();
     VModule* vmod;
-    if (modMap.count(g)) {
+    if (modMap.count(g)) { //Slightly hacky doing a cache here. I could just preload this with a GeneratorPass
       vmod = modMap[g];
     }
     else {
@@ -45,7 +45,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   VModule* vmod = new VModule(m);
   modMap[i] = vmod;
   if (vmod->hasDef()) {
-    ASSERT(!m->hasDef(),"Overriding coreir def with verilog def"); //TODO figure out this better
+    ASSERT(!m->hasDef(),"NYI linking error"); //TODO figure out this better
     return false;
   }
   if (!m->hasDef()) {
@@ -60,7 +60,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     string iname = imap.first;
     Instance* inst = imap.second;
     Module* mref = imap.second->getModuleRef();
-    ASSERT(modMap.count(mref),"DEBUG FUCK");
+    ASSERT(modMap.count(mref),"DEBUG ME");
     VModule* vref = modMap[mref];
     vmod->addStmt("  //Wire declarations for instance '" + iname + "' (Module "+ vref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {

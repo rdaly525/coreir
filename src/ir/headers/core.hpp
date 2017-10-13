@@ -281,24 +281,6 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   core_convert(c,core);
 
 
-  //TODO for now keep passthrough here.
-
-  //This defines a passthrough module. It is basically a nop that just passes the signal through
-  Params passthroughParams({
-    {"type",CoreIRType::make(c)},
-  });
-  TypeGen* passthroughTG = core->newTypeGen(
-    "passthrough",
-    passthroughParams,
-    [](Context* c, Values args) {
-      Type* t = args.at("type")->get<Type*>();
-      return c->Record({
-        {"in",t->getFlipped()},
-        {"out",t}
-      });
-    }
-  );
-  core->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
 
 
   return core;

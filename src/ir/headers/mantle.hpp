@@ -27,11 +27,11 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
-    if (genargs.at("has_rst")->get<bool>() || genargs.at("has_clr")->get<bool>()) {
+    //if (genargs.at("has_rst")->get<bool>() || genargs.at("has_clr")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
       defaultargs["init"] = Const::make(c,BitVector(width,0));
-    }
+    //}
     return {modparams,defaultargs};
   };
 

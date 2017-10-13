@@ -49,6 +49,11 @@ class Namespace {
     Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams);
     Module* newModuleDecl(std::string name, Type* t,Params moduleparams=Params());
 
+    //Use with caution!!
+    //This will also delete all modules in generator
+    void eraseGenerator(std::string name);
+    void eraseModule(std::string name);
+
     Generator* getGenerator(std::string gname);
     Module* getModule(std::string mname);
     Instantiable* getInstantiable(std::string name);

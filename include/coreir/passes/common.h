@@ -21,6 +21,7 @@
 #include "transform/removeunconnected.h"
 #include "transform/liftclockports.h"
 #include "transform/wireclocks.h"
+#include "transform/cullgraph.h"
 
 
 //TODO Macrofy this
@@ -50,6 +51,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveUnconnected());
     pm.addPass(new Passes::LiftClockPorts("liftclockports-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
+    pm.addPass(new Passes::CullGraph());
   }
 }
 

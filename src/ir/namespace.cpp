@@ -160,6 +160,22 @@ Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
   return m;
 }
 
+void Namespace::eraseGenerator(std::string name) {
+  ASSERT(generatorList.count(name),"Cannot delete generator because it does not exist! " + getName() + "." + name);
+  delete generatorList[name];
+  generatorList.erase(name);
+}
+
+void Namespace::eraseModule(std::string name) {
+  ASSERT(moduleList.count(name),"Cannot delete module because it does not exist!" + getName() + "." + name);
+  delete moduleList[name];
+  moduleList.erase(name);
+}
+
+
+
+
+
 Generator* Namespace::getGenerator(string gname) {
   auto it = generatorList.find(gname);
   if (it != generatorList.end()) return it->second;

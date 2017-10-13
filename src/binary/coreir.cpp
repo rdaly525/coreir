@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
   else if (outExt=="v") {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
-    modified |= c->runPasses({"rungenerators","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
+    modified |= c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
     vpass->writeToStream(*sout);
