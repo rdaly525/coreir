@@ -62,7 +62,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       def->connect("reg0.rst","self.rst");
     }
     else {
-      reg = def->addInstance("reg0","coreir.reg",wval);
+      reg = def->addInstance("reg0","coreir.reg",wval,{{"init",def->getModule()->getArg("init")}});
     }
     def->connect("reg0.out","self.out");
     def->connect("reg0.clk","self.clk");
@@ -77,7 +77,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     }
     if (clr) {
       auto mux = def->addInstance("clrMux","coreir.mux",wval);
-      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",def->getModule()->getArg("init")}});
+      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,width,0)}});
       def->connect(mux->sel("out"),toIn);
       def->connect(mux->sel("in1"),zero->sel("out"));
       def->connect(mux->sel("sel"),io->sel("clr"));
