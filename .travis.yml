@@ -8,11 +8,14 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
       - g++-4.9
+      - virtualenv
 
 before_install:
   - export COREIRCONFIG="g++-4.9";
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   - make -j2 install
+  - virtualenv -p /usr/bin/python3 coreir-python-venv
+  - source coreir-python-venv/bin/activate
   - pip install pytest
   - pip install -e bindings/python
 
