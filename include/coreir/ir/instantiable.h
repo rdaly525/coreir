@@ -111,10 +111,10 @@ class Module : public Instantiable, public Args {
   const Params modparams;
   Values defaultModArgs;
 
-
   Generator* g = nullptr;
   Values genargs;
 
+  std::string longname;
   //std::map<std::string,Arg*> moduleargs;
 
   //the directedModule View
@@ -124,10 +124,8 @@ class Module : public Instantiable, public Args {
   std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,std::string name, Type* type,Params modparams) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams) {}
-    Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams), g(g), genargs(genargs) {
-      ASSERT(genargs.size(),"Missing genargs!");
-    }
+    Module(Namespace* ns,std::string name, Type* type,Params modparams) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams), longname(name) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs);
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
@@ -145,14 +143,14 @@ class Module : public Instantiable, public Args {
     std::string toString() const override;
     Type* getType() { return type;}
     
-    bool generated() { return !!g;}
+    bool generated() const { return !!g;}
     Generator* getGenerator() { return g;}
     Values getGenArgs() { 
       ASSERT(generated(),"This is not a generated module!");
       return genargs;
     }
     bool runGenerator();
-
+    std::string getLongName() const {return longname;}
 
     void print(void) override;
 

@@ -38,16 +38,18 @@ using namespace CoreIR;
 
 //This will be buggy if a generator refers to another generator in another namespace
 string Passes::RunGenerators::ID = "rungenerators";
-bool Passes::RunGenerators::runOnNamespace(Namespace* ns) {
-  cout << "running on ns: " << ns->getName() << endl;
+bool Passes::RunGenerators::runOnContext(Context* c) {
+  cout << "In Run Generators" << endl;
   bool changed = true;
   bool modified = false;
   while (changed) {
     changed = false;
-    for (auto gpair : ns->getGenerators()) {
-      for (auto mpair : gpair.second->getModules()) {
-        cout << "g: " << mpair.second->getRefName() << Values2Str(mpair.second->getGenArgs()) << endl;
-        changed |= mpair.second->runGenerator();
+    for (auto npair : c->getNamespaces()) {
+      for (auto gpair : npair.second->getGenerators()) {
+        for (auto mpair : gpair.second->getModules()) {
+          cout << "g: " << mpair.second->getRefName() << Values2Str(mpair.second->getGenArgs()) << endl;
+          changed |= mpair.second->runGenerator();
+        }
       }
     }
     modified |= changed;

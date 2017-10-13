@@ -248,8 +248,10 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   if (!ns->getModules().empty()) {
     Dict jmod(4);
     for (auto m : ns->getModules()) {
+      string mname = m.first;
+      if (m.second->generated()) mname = m.second->getGenerator()->getName();
       if (m.second->generated() && !m.second->hasDef()) continue;
-      jmod.add(m.first,Module2Json(m.second));
+      jmod.add(mname,Module2Json(m.second));
     }
     if (!jmod.isEmpty()) {
       jns.add("modules",jmod.toMultiString());

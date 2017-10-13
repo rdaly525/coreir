@@ -35,9 +35,6 @@ std::map<std::string,Module*> Namespace::getModules() {
   return ret;
 }
 
-
-
-
 NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   //Make sure the name and its flip are different
   assert(name != nameFlip);

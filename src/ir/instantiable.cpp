@@ -103,11 +103,10 @@ bool Generator::runAll() {
   }
   return ret;
 }
-
 std::map<std::string,Module*> Generator::getModules() {
   std::map<std::string,Module*> ret; 
   for (auto mpair : genCache) {
-    ret.emplace(mpair.second->getName(),mpair.second);  
+    ret.emplace(mpair.second->getLongName(),mpair.second);  
   }
   return ret;
 }
@@ -138,6 +137,10 @@ string Generator::toString() const {
 
 void Generator::print(void) {
   cout << toString() << endl;
+}
+Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams), g(g), genargs(genargs) {
+  ASSERT(g && genargs.size(),"Missing genargs!");
+  this->longname = name + getContext()->getUnique(); //TODO do a better name
 }
 
 DirectedModule* Module::newDirectedModule() {
@@ -183,7 +186,7 @@ void Module::setDef(ModuleDef* def, bool validate) {
 }
 
 string Module::toString() const {
-  return "Module: " + name + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
+  return "Module: " + name + (generated() ? Values2Str(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
 }
 
 bool Module::runGenerator() {

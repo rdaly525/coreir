@@ -48,6 +48,9 @@ bool PassManager::runNamespacePass(Pass* pass) {
   }
   return modified;
 }
+bool PassManager::runContextPass(Pass* pass) {
+  return cast<ContextPass>(pass)->runOnContext(c);
+}
 
 //Only runs on modules with definitions
 bool PassManager::runModulePass(Pass* pass) {
@@ -115,6 +118,9 @@ bool PassManager::runPass(Pass* p) {
   }
   bool modified = false;
   switch(p->getKind()) {
+    case Pass::PK_Context:
+      modified = runContextPass(p);
+      break;
     case Pass::PK_Namespace:
       modified = runNamespacePass(p);
       break;
