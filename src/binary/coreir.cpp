@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
   }
   else if (outExt=="fir") {
     CoreIRLoadFirrtl_coreir(c);
-    c->runPasses({"firrtl"});
+    c->runPasses({"rungenerators","liftclockports-coreir","wireclocks-coreir","firrtl"});
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
   else if (outExt=="v") {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
-    modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
+    modified |= c->runPasses({"rungenerators","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"});
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
     vpass->writeToStream(*sout);

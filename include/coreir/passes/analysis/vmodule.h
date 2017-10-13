@@ -26,10 +26,11 @@ namespace Passes {
 
 class VWire {
   std::string name;
+  bool isArray;
   unsigned dim;
   Type::DirKind dir;
   public :
-    VWire(std::string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
+    VWire(std::string field,Type* t) : name(field), isArray(isa<ArrayType>(t)), dim(t->getSize()), dir(t->getDir()) {}
     VWire(Wireable* w) : VWire("",w->getType()) {
       SelectPath sp = w->getSelectPath();
       if (sp.size()==3) {
@@ -49,7 +50,7 @@ class VWire {
     }
     VWire(std::string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
     std::string dimstr() {
-      if (dim==1) return "";
+      if (!isArray) return "";
       return "["+std::to_string(dim-1)+":0]";
     }
     std::string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
