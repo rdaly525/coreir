@@ -78,7 +78,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
   {
     //Term
     json vjson;
-    vjson["prefix"] = "bitir_";
+    vjson["prefix"] = "corebit_";
     vjson["interface"] = bitIMap["term"];
     vjson["definition"] = "";
     bit->getModule("term")->getMetaData()["verilog"] = vjson;

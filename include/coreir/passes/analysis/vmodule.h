@@ -79,6 +79,7 @@ class VModule {
       Type2Ports(t,ports);
     }
     VModule(Module* m) : VModule(m->getName(),m->getType()) {
+      if (m->generated()) this->modname = m->getLongName();
       this->addParams(params,m->getModParams());
       this->addDefaults(paramDefaults,m->getDefaultModArgs());
       this->checkJson(m->getMetaData());
@@ -106,6 +107,7 @@ class VModule {
         }
       }
     }
+    std::string getName() { return modname;}
     bool hasDef() {return stmts.size() > 0 && (interface.size()>0 || ports.size()>0);}
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
     std::string toCommentString() {

@@ -29,8 +29,14 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Module* m = cast<Module>(i);
   if (m->generated() && !m->hasDef()) {
     Generator* g = m->getGenerator();
-    auto vmod = new VModule(g);
-    this->modMap[g] = vmod;
+    VModule* vmod;
+    if (modMap.count(g)) {
+      vmod = modMap[g];
+    }
+    else {
+      vmod = new VModule(g);
+    }
+    this->modMap[i] = vmod;
     if (!vmod->hasDef()) {
       this->external.insert(g);
     }
@@ -54,13 +60,13 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     string iname = imap.first;
     Instance* inst = imap.second;
     Module* mref = imap.second->getModuleRef();
-    if (mref->
-    vmod->addStmt("  //Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
+    ASSERT(modMap.count(mref),"DEBUG FUCK");
+    VModule* vref = modMap[mref];
+    vmod->addStmt("  //Wire declarations for instance '" + iname + "' (Module "+ vref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       vmod->addStmt(VWireDec(VWire(iname+"_"+rmap.first,rmap.second)));
     }
-    ASSERT(modMap.count(iref),"DEBUG ME: Missing iref " + iref->getRefName());
-    vmod->addStmt(modMap[iref]->toInstanceString(inst));
+    vmod->addStmt(vref->toInstanceString(inst));
   }
 
   vmod->addStmt("  //All the connections");
