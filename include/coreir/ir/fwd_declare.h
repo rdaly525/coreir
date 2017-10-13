@@ -12,6 +12,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <functional>
 
 #define ASSERT(C,MSG) \
   if (!(C)) { \
