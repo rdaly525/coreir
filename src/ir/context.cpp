@@ -17,6 +17,11 @@ namespace CoreIR {
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
+  Namespace* pt = newNamespace("_");
+  //This defines a passthrough module. It is basically a nop that just passes the signal through
+ 
+  
+  
   typecache = new TypeCache(this);
   valuecache = new ValueCache(this);
   //Automatically load coreir //defined in coreirprims.h
@@ -24,6 +29,23 @@ Context::Context() : maxErrors(8) {
   CoreIRLoadHeader_corebit(this);
   CoreIRLoadHeader_mantle(this);
   pm = new PassManager(this);
+  Params passthroughParams({
+    {"type",CoreIRType::make(this)},
+  });
+  TypeGen* passthroughTG = pt->newTypeGen(
+    "passthrough",
+    passthroughParams,
+    [](Context* c, Values args) {
+      Type* t = args.at("type")->get<Type*>();
+      return c->Record({
+        {"in",t->getFlipped()},
+        {"out",t}
+      });
+    }
+  );
+  pt->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
+
+
 }
 
 // Order of this matters
@@ -45,6 +67,14 @@ Context::~Context() {
 
   delete typecache;
   delete valuecache;
+}
+
+std::map<std::string,Namespace*> Context::getNamespaces() {
+  std::map<std::string,Namespace*> tmp;
+  for (auto ns : namespaces) {
+    if (ns.first!="_") tmp.emplace(ns);
+  }
+  return tmp;
 }
 
 void Context::print() {

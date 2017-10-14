@@ -173,16 +173,16 @@ int main(int argc, char *argv[]) {
     c->setTop(topRef);
   }
 
+  vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
+  
   //Load and run passes
   bool modified = false;
   if (options.count("p")) {
     string plist = options["p"].as<string>();
     vector<string> porder = splitString<vector<string>>(plist,',');
-    modified = c->runPasses(porder);
+    modified = c->runPasses(porder,namespaces);
   }
   
-  vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
-
   //Output to correct format
   if (outExt=="json") {
     c->runPasses({"coreirjson"},namespaces);
@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
   }
   else if (outExt=="fir") {
     CoreIRLoadFirrtl_coreir(c);
-    c->runPasses({"rungenerators","liftclockports-coreir","wireclocks-coreir","firrtl"});
+    c->runPasses({"rungenerators","liftclockports-coreir","wireclocks-coreir","firrtl"},namespaces);
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
@@ -201,7 +201,7 @@ int main(int argc, char *argv[]) {
   else if (outExt=="v") {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
-    modified |= c->runPasses({"rungenerators","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"});
+    modified |= c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
     vpass->writeToStream(*sout);

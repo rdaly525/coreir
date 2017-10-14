@@ -52,6 +52,14 @@ void core_convert(Context* c, Namespace* core) {
 void core_state(Context* c, Namespace* core) {
 
   Params widthparams = Params({{"width",c->Int()}});
+  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    int width = genargs.at("width")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    defaultargs["init"] = Const::make(c,BitVector(width,0));
+    return {modparams,defaultargs};
+  };
 
   //Reg does not have a reset/init
   auto regFun = [](Context* c, Values args) {
@@ -64,7 +72,8 @@ void core_state(Context* c, Namespace* core) {
   };
 
   TypeGen* regTypeGen = core->newTypeGen("regType",widthparams,regFun);
-  core->newGeneratorDecl("reg",regTypeGen,widthparams);
+  auto reg = core->newGeneratorDecl("reg",regTypeGen,widthparams);
+  reg->setModParamsGen(regRstModParamFun);
   
 
 
@@ -78,14 +87,6 @@ void core_state(Context* c, Namespace* core) {
     });
   };
 
-  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
-    Params modparams;
-    Values defaultargs;
-    int width = genargs.at("width")->get<int>();
-    modparams["init"] = BitVectorType::make(c,width);
-    defaultargs["init"] = Const::make(c,BitVector(width,0));
-    return {modparams,defaultargs};
-  };
 
   TypeGen* regRstTypeGen = core->newTypeGen("regRstType",widthparams,regRstFun);
   auto regRst = core->newGeneratorDecl("regrst",regRstTypeGen,widthparams);
@@ -281,9 +282,6 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   core_convert(c,core);
 
 
-  //TODO for now keep passthrough here.
-
-  //This defines a passthrough module. It is basically a nop that just passes the signal through
   Params passthroughParams({
     {"type",CoreIRType::make(c)},
   });
@@ -299,6 +297,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
     }
   );
   core->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
+
 
 
   return core;

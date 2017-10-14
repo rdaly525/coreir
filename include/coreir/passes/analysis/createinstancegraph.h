@@ -6,15 +6,15 @@
 namespace CoreIR {
 namespace Passes {
 
-class CreateInstanceGraph : public NamespacePass {
+class CreateInstanceGraph : public ContextPass {
   InstanceGraph* ig = nullptr;
   public :
     static std::string ID;
-    CreateInstanceGraph() : NamespacePass(ID,"Creates the InstanceGraph",true) {
+    CreateInstanceGraph() : ContextPass(ID,"Creates the InstanceGraph",true) {
       ig = new InstanceGraph;
     }
     ~CreateInstanceGraph() { delete ig;}
-    bool runOnNamespace(Namespace* ns) override;
+    bool runOnContext(Context* c) override;
     void releaseMemory() override;
     InstanceGraph* getInstanceGraph() { return ig;}
 };

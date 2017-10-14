@@ -1,5 +1,5 @@
-#ifndef RUNGENERATORS_HPP_
-#define RUNGENERATORS_HPP_
+#ifndef COREIR_CULLGRAPH_HPP_
+#define COREIR_CULLGRAPH_HPP_
 
 #include "coreir.h"
 // This will recusrively run all the generators and replace module definitions
@@ -9,11 +9,11 @@ namespace CoreIR {
 namespace Passes {
 
 
-class RunGenerators : public ContextPass {
+class CullGraph : public ContextPass {
   public :
     static std::string ID;
-    RunGenerators() : ContextPass(ID,"Runs all generators") {}
-    bool runOnContext(Context* ns);
+    CullGraph() : ContextPass(ID,"Runs all generators") {}
+    bool runOnContext(Context* c);
 };
 
 }

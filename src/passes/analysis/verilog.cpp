@@ -26,19 +26,26 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //Create a new Vmodule for this node
   Instantiable* i = node.getInstantiable();
-  if (auto g = dyn_cast<Generator>(i)) {
-    auto vmod = new VModule(g);
+  Module* m = cast<Module>(i);
+  if (m->generated() && !m->hasDef()) {
+    Generator* g = m->getGenerator();
+    VModule* vmod;
+    if (modMap.count(g)) { //Slightly hacky doing a cache here. I could just preload this with a GeneratorPass
+      vmod = modMap[g];
+    }
+    else {
+      vmod = new VModule(g);
+    }
     this->modMap[i] = vmod;
     if (!vmod->hasDef()) {
-      this->external.insert(i);
+      this->external.insert(g);
     }
     return false;
   }
-  Module* m = cast<Module>(i);
   VModule* vmod = new VModule(m);
   modMap[i] = vmod;
   if (vmod->hasDef()) {
-    ASSERT(!m->hasDef(),"Overriding coreir def with verilog def"); //TODO figure out this better
+    ASSERT(!m->hasDef(),"NYI linking error"); //TODO figure out this better
     return false;
   }
   if (!m->hasDef()) {
@@ -52,13 +59,14 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto imap : def->getInstances()) {
     string iname = imap.first;
     Instance* inst = imap.second;
-    Instantiable* iref = imap.second->getInstantiableRef();
-    vmod->addStmt("  //Wire declarations for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
+    Module* mref = imap.second->getModuleRef();
+    ASSERT(modMap.count(mref),"DEBUG ME");
+    VModule* vref = modMap[mref];
+    vmod->addStmt("  //Wire declarations for instance '" + iname + "' (Module "+ vref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       vmod->addStmt(VWireDec(VWire(iname+"_"+rmap.first,rmap.second)));
     }
-    ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
-    vmod->addStmt(modMap[iref]->toInstanceString(inst));
+    vmod->addStmt(vref->toInstanceString(inst));
   }
 
   vmod->addStmt("  //All the connections");

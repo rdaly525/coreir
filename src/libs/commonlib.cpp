@@ -137,7 +137,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       Namespace* stdlib = c->getNamespace("coreir");
       Namespace* commonlib = c->getNamespace("commonlib");
       Generator* mux2 = stdlib->getGenerator("mux");
-      Generator* passthrough = stdlib->getGenerator("passthrough");
+      Generator* passthrough = c->getGenerator("coreir.passthrough");
       Generator* muxN = commonlib->getGenerator("muxn");
 
       Const* aWidth = Const::make(c,width);

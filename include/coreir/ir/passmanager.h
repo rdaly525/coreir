@@ -48,6 +48,7 @@ class PassManager {
     friend class Pass;
     bool runPass(Pass* p);
 
+    bool runContextPass(Pass* p);
     bool runNamespacePass(Pass* p);
     bool runModulePass(Pass* p);
     bool runInstancePass(Pass* p);

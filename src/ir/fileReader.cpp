@@ -21,8 +21,7 @@ typedef map<string,json> jsonmap;
 
 
 Type* json2Type(Context* c, json jt);
-Values json2Values(Context* c, json j);
-Value* json2Value(Context* c, json j);
+Values json2Values(Context* c, json j, Module* m=nullptr);
 ValueType* json2ValueType(Context* c,json j);
 Params json2Params(Context* c,json j);
 
@@ -118,6 +117,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       nsqueue.push_back({ns,jns});
     }
     
+    vector<json> genmodqueue;
     //Saves module declaration and the json representing the module
     vector<std::pair<Module*,json>> modqueue;
     for (auto nsq : nsqueue) {
@@ -135,9 +135,14 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           
           json jmod = jmodmap.second;
-          checkJson(jmod,{"type","modparams","defaultmodargs","instances","connections"});
+          checkJson(jmod,{"type","modparams","defaultmodargs","genref","genargs","instances","connections"});
+          if (jmod.count("genref")) {
+            ASSERT(jmod.count("genargs"),"Need Genargs here");
+            //Skip all generator module defs initially
+            genmodqueue.push_back(jmod);
+            continue;
+          }
           Type* t = json2Type(c,jmod.at("type"));
-          
           Params modparams;
           if (jmod.count("modparams")) {
             modparams = json2Params(c,jmod.at("modparams"));
@@ -164,14 +169,10 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           json jgen = jgenmap.second;
           checkJson(jgen,{"typegen","genparams","defaultgenargs"});
           Params genparams = json2Params(c,jgen.at("genparams"));
-          auto tgenref = getRef(jgen.at("typegen").get<string>());
           TypeGen* typegen = c->getTypeGen(jgen.at("typegen").get<string>());
           assert(genparams == typegen->getParams());
           Params modparams;
           Generator* g = ns->newGeneratorDecl(jgenname,typegen,genparams);
-          //if (jgen.count("defaultmodargs")) {
-          //  g->addDefaultModArgs(json2Values(c,modparams,jgen.at("defaultmodargs")));
-          //}
           if (jgen.count("defaultgenargs")) {
             g->addDefaultGenArgs(json2Values(c,jgen.at("defaultgenargs")));
           }
@@ -180,6 +181,11 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
         }
       }
+    }
+    for (auto jgenmod : genmodqueue) {
+      Generator* gen = c->getGenerator(jgenmod.at("genref").get<string>());
+      Values genargs = json2Values(c,jgenmod.at("genargs"));
+      modqueue.push_back({gen->getModule(genargs),jgenmod});
     }
     //Now do all the ModuleDefinitions
     for (auto mq : modqueue) {
@@ -200,7 +206,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             Module* modRef = getModSymbol(c,jinst.at("modref").get<string>());
             Values modargs;
             if (jinst.count("modargs")) {
-              modargs = json2Values(c,jinst.at("modargs"));
+              modargs = json2Values(c,jinst.at("modargs"),modRef);
             }
             mdef->addInstance(instname,modRef,modargs);
           }
@@ -306,9 +312,15 @@ Params json2Params(Context* c,json j) {
   return g;
 }
 
-Value* json2Value(Context* c, json j) {
+Value* json2Value(Context* c, json j,Module* m) {
   auto jlist = j.get<vector<json>>();
   ValueType* vtype = json2ValueType(c,jlist[0]);
+  if (jlist.size()==3) {
+    //Arg
+    ASSERT(jlist[1].get<string>()=="Arg","Value with json array of size=3 must be an Arg");
+    ASSERT(m,"NYI using Args here");
+    return m->getArg(jlist[2].get<string>());
+  }
   json jval = jlist[1];
   ASSERT(jlist.size()==2,"NYI");
   switch(vtype->getKind()) {
@@ -321,12 +333,12 @@ Value* json2Value(Context* c, json j) {
   }
 }
 
-Values json2Values(Context* c, json j) {
+Values json2Values(Context* c, json j,Module* m) {
   Values values; 
 
   for (auto jmap : j.get<jsonmap>()) {
     string key = jmap.first;
-    values[jmap.first] = json2Value(c,jmap.second);
+    values[jmap.first] = json2Value(c,jmap.second,m);
   }
   return values;
 }

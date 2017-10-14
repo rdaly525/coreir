@@ -27,11 +27,11 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
-    if (genargs.at("has_rst")->get<bool>() || genargs.at("has_clr")) {
+    //if (genargs.at("has_rst")->get<bool>() || genargs.at("has_clr")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
       defaultargs["init"] = Const::make(c,BitVector(width,0));
-    }
+    //}
     return {modparams,defaultargs};
   };
 
@@ -56,15 +56,13 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     auto io = def->getInterface();
     Values wval({{"width",Const::make(c,width)}});
 
-    //Always instantiate the Register //TODO should this have rst or not
-    //def->connect("reg0.clk","self.clk");
     Wireable* reg;
     if (rst) {
-      reg = def->addInstance("reg0","coreir.regrst",wval);
+      reg = def->addInstance("reg0","coreir.regrst",wval,{{"init",def->getModule()->getArg("init")}});
       def->connect("reg0.rst","self.rst");
     }
     else {
-      reg = def->addInstance("reg0","coreir.reg",wval);
+      reg = def->addInstance("reg0","coreir.reg",wval,{{"init",def->getModule()->getArg("init")}});
     }
     def->connect("reg0.out","self.out");
     def->connect("reg0.clk","self.clk");
@@ -79,7 +77,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     }
     if (clr) {
       auto mux = def->addInstance("clrMux","coreir.mux",wval);
-      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,BitVector(width,0))}}); //TODO this should reference "init"!!
+      auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,width,0)}});
       def->connect(mux->sel("out"),toIn);
       def->connect(mux->sel("in1"),zero->sel("out"));
       def->connect(mux->sel("sel"),io->sel("clr"));

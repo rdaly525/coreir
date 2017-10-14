@@ -59,7 +59,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       string op = it1.first;
       string vbody = it1.second;
       json vjson;
-      vjson["prefix"] = "bitir_";
+      vjson["prefix"] = "corebit_";
       vjson["definition"] = "  assign out = " + vbody + ";";
       if (it0.first!="other") {
         ASSERT(bitIMap.count(it0.first),"missing" + it0.first);
@@ -78,7 +78,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
   {
     //Term
     json vjson;
-    vjson["prefix"] = "bitir_";
+    vjson["prefix"] = "corebit_";
     vjson["interface"] = bitIMap["term"];
     vjson["definition"] = "";
     bit->getModule("term")->getMetaData()["verilog"] = vjson;

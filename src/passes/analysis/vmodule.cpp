@@ -19,7 +19,7 @@ string VModule::toString() {
   
   vector<string> paramstrs;
   for (auto p : params) {
-    string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults[p] : "16"); 
+    string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults[p] : "1"); 
     paramstrs.push_back(s);
   }
   string pstring = paramstrs.size()>0 ? " #(" + join(paramstrs.begin(),paramstrs.end(),string(", "))+") " : " ";
