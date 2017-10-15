@@ -191,7 +191,7 @@ int main(int argc, char *argv[]) {
   }
   else if (outExt=="fir") {
     CoreIRLoadFirrtl_coreir(c);
-    c->runPasses({"rungenerators","liftclockports-coreir","wireclocks-coreir","firrtl"},namespaces);
+    c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","firrtl"},namespaces);
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
