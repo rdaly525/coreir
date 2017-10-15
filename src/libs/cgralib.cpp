@@ -51,7 +51,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     if (op_kind == "bit" || op_kind == "combined") {
       p["lut_value"] = c->BitVector(1<<numbitports);
       d["lut_value"] = Const::make(c,BitVector(1<<numbitports,0));
-      cout << "LUTVAL=" << d["lut_value"]->toString() << endl;
+      // cout << "LUTVAL=" << d["lut_value"]->toString() << endl;
       for (int i=0; i<numbitports; ++i) {
         string mode = "bit"+to_string(i)+"_mode";
         p[mode] = c->String();
