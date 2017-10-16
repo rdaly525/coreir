@@ -582,22 +582,16 @@ namespace CoreIR {
     string opName = getOpName(*toInstance(wd.getWire()));
     if (opName == "and") {
       updateAndNode(vd);
-      return;
     } else if (opName == "eq") {
       updateEqNode(vd);
-      return;
     } else if (opName == "neq") {
       updateNeqNode(vd);
-      return;
     } else if (opName == "or") {
       updateOrNode(vd);
-      return;
     } else if (opName == "andr") {
       updateAndrNode(vd);
-      return;
     } else if (opName == "add") {
       updateAddNode(vd);
-      return;
     } else if (opName == "sub") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	return sub_general_width_bv(l, r);
@@ -606,39 +600,28 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	return mul_general_width_bv(l, r);
       });
-      return;
     } else if ((opName == "const") || (opName == "bitconst")) {
-      return;
     } else if (opName == "bitterm") {
-      return;
     } else if (opName == "reg") {
-      return;
     } else if (opName == "mem") {
-      return;
     } else if (opName == "mux") {
       updateMuxNode(vd);
-      return;
     } else if (opName == "slice") {
       updateSliceNode(vd);
-      return;
     } else if (opName == "concat") {
       updateConcatNode(vd);
-      return;
     } else if (opName == "lshr") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	  return lshr(l, r);
 	});
-      return;
     } else if (opName == "ashr") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	  return ashr(l, r);
 	});
-      return;
     } else if (opName == "shl") {
        updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	   return shl(l, r);
 	 });
-       return;
     } else if (opName == "ult") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	  if (l < r) {
@@ -647,7 +630,6 @@ namespace CoreIR {
 	    return BitVec(1, 0);
 	  }
 	});
-      return;
     } else if (opName == "ule") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	  if ((l < r) || (l == r)) {
@@ -656,11 +638,37 @@ namespace CoreIR {
 	    return BitVec(1, 0);
 	  }
 	});
-    }
-    
+    } else if (opName == "sgt") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if (signed_gt(l, r)) {
+	    return BitVec(1, 1);
+	  } else {
+	    return BitVec(1, 0);
+	  }
+	});
+    } else if (opName == "sge") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if (signed_gte(l, r)) {
+	    return BitVec(1, 1);
+	  } else {
+	    return BitVec(1, 0);
+	  }
+	});
+    } else if (opName == "slt") {
 
-    cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
-    assert(false);
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if (!signed_gte(l, r)) {
+	    return BitVec(1, 1);
+	  } else {
+	    return BitVec(1, 0);
+	  }
+	});
+      
+    } else {
+      cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
+      assert(false);
+    }
+
   }
 
   void SimulatorState::updateMemoryOutput(const vdisc vd) {
