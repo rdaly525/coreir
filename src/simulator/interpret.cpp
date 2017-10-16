@@ -664,6 +664,16 @@ namespace CoreIR {
 	  }
 	});
       
+    } else if (opName == "sle") {
+
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if (!signed_gt(l, r)) {
+	    return BitVec(1, 1);
+	  } else {
+	    return BitVec(1, 0);
+	  }
+	});
+      
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
