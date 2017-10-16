@@ -131,6 +131,9 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
         if (auto av = dyn_cast<Arg>(v)) {
           stmt = stmt + av->getField();
         }
+        else if (auto abool = dyn_cast<ConstBool>(v)) {
+          stmt = stmt + toFConst(int(abool->get()));
+        }
         else if (auto aint = dyn_cast<ConstInt>(v)) {
           stmt = stmt + toFConst(aint->get());
         }
@@ -138,7 +141,7 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
           stmt = stmt + toFConst(abv->get());
         }
         else {
-          ASSERT(0,"NYI: Value " +p+ " cannot be " + v->toString());
+          ASSERT(0,"NYI: Value " +p+ " cannot be " + v->getValueType()->toString());
         }
         fm->addStmt(stmt);
       }
