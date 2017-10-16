@@ -5,7 +5,7 @@ using namespace std;
 using namespace CoreIR;
 
 string toFConst(BitVector bv) {
-  return "UInt(" + to_string(bv.to_type<uint64_t>()) + ")";
+  return "UInt<"+to_string(bv.bitLength())+">(" + to_string(bv.to_type<uint64_t>()) + ")";
 }
 string toFConst(int i) {
   return "UInt(" + to_string(i) + ")";

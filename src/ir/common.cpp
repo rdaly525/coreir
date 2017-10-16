@@ -79,7 +79,7 @@ void checkValuesAreParams(Values args, Params params) {
   ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args,multi) + "\nParams: " + Params2Str(params,multi));
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + Params2Str(params) + "\nBut only gave:" + Values2Str(args));
     ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
   }
 }
