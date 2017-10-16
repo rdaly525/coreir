@@ -564,6 +564,11 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	return sub_general_width_bv(l, r);
       });
+    } else if (opName == "mul") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	return mul_general_width_bv(l, r);
+      });
+      return;
     } else if (opName == "const") {
       return;
     } else if (opName == "reg") {

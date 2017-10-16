@@ -386,101 +386,34 @@ namespace bsim {
 
     return diff;
   }    
-  
-  // template<int Width>
-  // static inline
-  // dynamic_bit_vector<Width>
-  // add_general_width_bv(const dynamic_bit_vector<Width>& a,
-  // 		       const dynamic_bit_vector<Width>& b) {
 
-  //   dynamic_bit_vector<Width> res;
-  //   unsigned char carry = 0;
-  //   for (int i = 0; i < Width; i++) {
-  //     unsigned char sum = a.get(i) + b.get(i) + carry;
+  static inline
+  dynamic_bit_vector
+  mul_general_width_bv(const dynamic_bit_vector& a,
+  		       const dynamic_bit_vector& b) {
+    int Width = a.bitLength();
+    dynamic_bit_vector full_len(2*Width);
 
-  //     carry = 0;
+    for (int i = 0; i < Width; i++) {
+      if (b.get(i) == 1) {
 
-  //     unsigned char z_i = sum & 0x01; //sum % 2;
-  //     res.set(i, z_i);
-  //     if (sum >= 2) {
-  // 	carry = 1;
-  //     }
+  	dynamic_bit_vector shifted_a(2*Width);
 
-  //   }
+  	for (int j = 0; j < Width; j++) {
+  	  shifted_a.set(j + i, a.get(j));
+  	}
 
-  //   return res;
-  // }
+  	full_len =
+  	  add_general_width_bv(full_len, shifted_a);
+      }
+    }
 
-  // template<int Width>  
-  // static inline
-  // dynamic_bit_vector<Width>
-  // mul_general_width_bv(const dynamic_bit_vector<Width>& a,
-  // 		       const dynamic_bit_vector<Width>& b) {
-  //   dynamic_bit_vector<2*Width> full_len;
-
-  //   for (int i = 0; i < Width; i++) {
-  //     if (b.get(i) == 1) {
-
-  // 	dynamic_bit_vector<2*Width> shifted_a;
-
-  // 	for (int j = 0; j < Width; j++) {
-  // 	  shifted_a.set(j + i, a.get(j));
-  // 	}
-
-  // 	full_len =
-  // 	  add_general_width_bv(full_len, shifted_a);
-  //     }
-  //   }
-
-  //   dynamic_bit_vector<Width> res;
-  //   for (int i = 0; i < Width; i++) {
-  //     res.set(i, full_len.get(i));
-  //   }
-  //   return res;
-  // }    
-
-  // template<int Width>
-  // static inline
-  // dynamic_bit_vector<Width>
-  // sub_general_width_bv(const dynamic_bit_vector<Width>& a,
-  // 		       const dynamic_bit_vector<Width>& b) {
-  //   dynamic_bit_vector<Width> diff;
-  //   dynamic_bit_vector<Width> a_cpy = a;
-
-  //   bool underflow = false;
-  //   for (int i = 0; i < Width; i++) {
-
-  //     if ((a_cpy.get(i) == 0) &&
-  // 	  (b.get(i) == 1)) {
-
-  // 	int j = i + 1;
-
-  // 	diff.set(i, 1);	  
-
-  // 	// Modify to carry
-  // 	while ((j < Width) && (a_cpy.get(j) != 1)) {
-  // 	  a_cpy.set(j, 1);
-  // 	  j++;
-  // 	}
-
-  // 	if (j >= Width) {
-  // 	  underflow = true;
-  // 	} else {
-  // 	  a_cpy.set(j, 0);
-  // 	}
-
-  //     } else if (a_cpy.get(i) == b.get(i)) {
-  // 	diff.set(i, 0);
-  //     } else if ((a_cpy.get(i) == 1) &&
-  // 		 (b.get(i) == 0)) {
-  // 	diff.set(i, 1);
-  //     } else {
-  // 	assert(false);
-  //     }
-  //   }
-
-  //   return diff;
-  // }    
+    dynamic_bit_vector res(Width);
+    for (int i = 0; i < Width; i++) {
+      res.set(i, full_len.get(i));
+    }
+    return res;
+  }    
   
   // template<int Width>
   // class signed_int_operations {
