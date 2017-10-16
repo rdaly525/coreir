@@ -59,9 +59,10 @@ namespace bsim {
       *((int*) (&(bits[0]))) = val;
     }
 
-    dynamic_bit_vector(const bv_uint8 val) {
-      *((bv_uint8*)(&(bits[0]))) = val;
-    }
+    //dynamic_bit_vector(const int N_, const bv_uint8 val) : N(N_) {
+    //  bits.resize(NUM_BYTES(N));
+    //  *((bv_uint8*)(&(bits[0]))) = val;
+    //}
     
     dynamic_bit_vector(const dynamic_bit_vector& other) {
       bits.resize(other.bits.size());
@@ -119,7 +120,10 @@ namespace bsim {
 
     template<typename ConvType>
     ConvType to_type() const {
-      return *(const_cast<ConvType*>((const ConvType*) (&(bits[0]))));
+      ConvType tmp = *(const_cast<ConvType*>((const ConvType*) (&(bits[0]))));
+      //TODO FIXME I am a sketchy hack.
+      ConvType mask = sizeof(ConvType) > bits.size() ? (1<<N)-1 : -1; 
+      return tmp & mask;
     }
 
     inline bv_uint64 as_native_int32() const {
