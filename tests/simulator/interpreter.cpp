@@ -234,6 +234,39 @@ namespace CoreIR {
       REQUIRE(state.getBitVec(self->sel("outval")) == bv);
     }
 
+    // SECTION("Register default values") {
+    //   uint width = 5;
+
+    //   Type* regTestType =
+    // 	c->Record({
+    // 	    {"clk", c->Named("coreir.clkIn")},
+    // 	      {"in", c->Array(width, c->BitIn())},
+    // 		{"out", c->Array(width, c->Bit())}
+    // 	  });
+
+    //   Module* regTest = g->newModuleDecl("regMod", regTestType);
+    //   ModuleDef* def = regTest->newModuleDef();
+
+    //   def->addInstance("r",
+    // 		       "coreir.reg",
+    // 		       {{"width", Const::make(c, width)},
+    // 			   {"has_en", Const::make(c, false)},
+    // 			     {"value", Const::make(c, BitVector(width, 23))}});
+
+    //   def->connect("self.clk", "r.clk");
+    //   def->connect("self.in", "r.in");
+    //   def->connect("r.out", "self.out");
+
+    //   regTest->setDef(def);
+
+    //   RunGenerators rg;
+    //   rg.runOnNamespace(g);
+
+    //   SimulatorState state(regTest);
+
+    //   REQUIRE(state.getBitVec("r.out") == BitVec(width, 23));
+    // }
+
     SECTION("Counter") {
 
       addCounter(c, g);

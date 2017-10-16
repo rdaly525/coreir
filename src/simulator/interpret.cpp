@@ -54,16 +54,15 @@ namespace CoreIR {
 	Instance* inst = toInstance(wd.getWire());
 
 	Values args = inst->getGenArgs();
-	cout << "# of argument = " << args.size() << endl;
-	for (auto& arg : args) {
-	  cout << arg.first << " --> " << arg.second->toString() << endl;
-	}
 
 	auto wArg = args["width"];
 
 	assert(wArg != nullptr);
 
 	uint width = (args["width"])->get<int>();
+	//BitVector val = args["value"]->get<BitVector>();
+
+	//assert(val.bitLength() == width);
 
 	// Set memory output port to default
 	setValue(inst->sel("out"), new SimBitVector(BitVec(width, 0)));
@@ -115,9 +114,14 @@ namespace CoreIR {
       if (isInstance(wd.getWire())) {
 
 	Instance* inst = toInstance(wd.getWire());
+
+	assert(inst != nullptr);
+
+	cout << "inst = " << inst->toString() << endl;
+
 	string opName = getOpName(*inst);
 
-	if (opName == "const") {
+	if ((opName == "const")) {
 	  bool foundValue = false;
 
 	  int argInt = 0;
@@ -145,6 +149,35 @@ namespace CoreIR {
 	  ArrayType& arrTp = toArray(*(outSel->getType()));
 	  
 	  setValue(outSel, new SimBitVector(BitVec(arrTp.getLen(), argInt)));
+	} else if (opName == "bitconst") {
+
+	  bool foundValue = false;
+
+	  int argInt = 0;
+	  for (auto& arg : inst->getModArgs()) {
+	    if (arg.first == "value") {
+	      foundValue = true;
+	      Value* valArg = arg.second; //.get();
+
+	      int bv = valArg->get<int>();
+	      argInt = bv;
+
+	    }
+	  }
+
+	  assert(foundValue);
+
+
+	  auto outSelects = getOutputSelects(inst);
+
+	  assert(outSelects.size() == 1);
+
+	  pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+	  Select* outSel = toSelect(outPair.second);
+	  
+	  setValue(outSel, new SimBitVector(BitVec(1, argInt)));
+
 	}
       }
     }
@@ -569,7 +602,7 @@ namespace CoreIR {
 	return mul_general_width_bv(l, r);
       });
       return;
-    } else if (opName == "const") {
+    } else if ((opName == "const") || (opName == "bitconst")) {
       return;
     } else if (opName == "reg") {
       return;
@@ -599,6 +632,23 @@ namespace CoreIR {
 	   return shl(l, r);
 	 });
        return;
+    } else if (opName == "ult") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if (l < r) {
+	    return BitVec(1, 1);
+	  } else {
+	    return BitVec(1, 0);
+	  }
+	});
+      return;
+    } else if (opName == "ule") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if ((l < r) || (l == r)) {
+	    return BitVec(1, 1);
+	  } else {
+	    return BitVec(1, 0);
+	  }
+	});
     }
     
 

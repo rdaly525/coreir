@@ -208,8 +208,17 @@ namespace CoreIR {
 
 
   std::string getOpName(Instance& inst) {
-    string genRefName = inst.getGeneratorRef()->getName();
-    return genRefName;
+    auto genRef = inst.getGeneratorRef();
+    if (genRef != nullptr) {
+      string genRefName = genRef->getName();
+      return genRefName;
+    }
+
+    auto modRef = inst.getModuleRef();
+
+    assert(modRef != nullptr);
+
+    return modRef->getName();
   }
   
 }
