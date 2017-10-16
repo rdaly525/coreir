@@ -51,5 +51,12 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
 
   //TODO Add other types of FFs (ones with reset and preset)
 
+  Type* concatType = c->Record({
+    {"in0", c->BitIn()},
+    {"in1", c->BitIn()},
+    {"out", c->Bit()->Arr(2)}
+  });
+  bitop->newModuleDecl("concat",concatType);
+
   return bitop;
 }

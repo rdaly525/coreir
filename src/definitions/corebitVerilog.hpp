@@ -40,6 +40,12 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     }},
     {"const",{"output out"}},
     {"term",{"input in"}},
+    {"dff",{
+      "input clk",
+      "input in",
+      "input rst",
+      "output out"
+    }}
     //{"reg",{
     //  "input clk",
     //  "input [width-1:0] in",
@@ -82,6 +88,20 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     vjson["interface"] = bitIMap["term"];
     vjson["definition"] = "";
     bit->getModule("term")->getMetaData()["verilog"] = vjson;
+  }
+  {
+    //dff
+    json vjson;
+    vjson["parameters"] = {"init"};
+    vjson["interface"] = bitIMap.at("dff");
+    vjson["definition"] = ""
+    "reg outReg;\n"
+    "always @(posedge clk) begin\n"
+    "  if (!rst) outReg <= init;\n"
+    "  else outReg <= in;\n"
+    "end\n"
+    "assign out = outReg;";
+    bit->getModule("dff")->getMetaData()["verilog"] = vjson;
   }
   //{
   //  //regrst
