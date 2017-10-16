@@ -422,6 +422,8 @@ namespace CoreIR {
 
 	SECTION("Setting a value after rewinding reverts all earlier states") {
 
+	  int numStates = state.getCircStates().size();
+
 	  state.rewind(2);
 
 	  REQUIRE(!state.atLastState());
@@ -429,6 +431,8 @@ namespace CoreIR {
 	  state.setValue("self.en", BitVec(1, 0));
 
 	  REQUIRE(state.atLastState());
+
+	  REQUIRE(state.getCircStates().size() == (numStates - 2));
 	}
 
 	SECTION("Rewinding and then running to an already simulated point fast forwards") {
