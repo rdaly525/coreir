@@ -29,7 +29,6 @@ class FModule {
         io.push_back("input " + ppair.first + " : UInt<" + std::to_string(n) + ">");
       }
       if (m->generated()) {
-        cout << "HERE!" << endl;
         checkJson(m->getGenerator()->getMetaData());
       }
     }
@@ -40,15 +39,10 @@ class FModule {
           this->name = jmeta["firrtl"]["prefix"].get<std::string>() + this->name;
         }
         if (jmeta["firrtl"].count("definition")) {
-          cout << "HERE2!" << endl;
           for (auto stmt : jmeta["firrtl"]["definition"].get<std::vector<std::string>>()) {
-            cout << "HERE3!" << endl;
             addStmt(stmt);
           }
         }
-        //if (jmeta["firrtl"].count("interface")) {
-        //  addIO(jmeta["firrtl"]["interface"].get<std::vector<std::string>>());
-        //}
         //if (jmeta["firrtl"].count("parameters")) {
         //  this->params = (jmeta["firrtl"]["parameters"].get<std::vector<std::string>>());
         //}
