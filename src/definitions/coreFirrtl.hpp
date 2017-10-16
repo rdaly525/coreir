@@ -45,7 +45,7 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
       {"term",{""}},
-      {"reg",{"reg myreg: UInt, clk","myreg <= in","out <= myreg"}}, 
+      {"reg",{"reg myreg: UInt, clk, UInt(0), init","myreg <= in","out <= myreg"}}, 
       {"regrst",{"reg myreg: UInt, clk, rst, init","myreg <= in","out <= myreg"}}, 
       //{"mem",""}, //TODO
     }}

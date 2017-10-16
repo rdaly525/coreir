@@ -11,7 +11,6 @@ string toFConst(int i) {
   return "UInt(" + to_string(i) + ")";
 }
 
-
 string CoreIR::Passes::FModule::type2firrtl(Type* t, bool isInput) {
   if (auto rt = dyn_cast<RecordType>(t)) {
     vector<string> sels;
@@ -21,7 +20,7 @@ string CoreIR::Passes::FModule::type2firrtl(Type* t, bool isInput) {
       }
     }
     else {
-      ASSERT(0,"NYI");
+      ASSERT(0,"NYI Bundles");
     }
     return join(sels.begin(),sels.end(),string(", "));
   }
@@ -72,11 +71,15 @@ void addConnection(Context* c,CoreIR::Passes::FModule* fm, SelectPath snk, Selec
   }
 }
 
-//TODO find a regex lib
-void searchAndReplace(string& val, string s, string r) {
-  ASSERT(0,"NYI");
-}
 
+std::string ReplaceString(std::string subject, const std::string& search, const std::string& replace) {
+  size_t pos = 0;
+  while ((pos = subject.find(search, pos)) != std::string::npos) {
+    subject.replace(pos, search.length(), replace);
+    pos += replace.length();
+  }
+  return subject;
+}
 
 string CoreIR::Passes::FModule::toString() {
   vector<string> lines;
@@ -89,9 +92,9 @@ string CoreIR::Passes::FModule::toString() {
   }
   string ret = join(lines.begin(),lines.end(),string("\n"));
   if (gparams.size()) {
-    for (auto p : gparams) {
-      assert(0);
-      //searchAndReplace(ret,p,p);
+    for (auto it : gparams) {
+      cout << "Replacing " + it.first + " with " + it.second << endl;
+      ret = ReplaceString(ret,it.first,it.second);
     }
   }
   return ret;

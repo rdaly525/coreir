@@ -29,11 +29,11 @@ class FModule {
         io.push_back("input " + ppair.first + " : UInt<" + std::to_string(n) + ">");
       }
       if (m->generated()) {
-        checkJson(m->getGenerator()->getMetaData());
+        checkJson(m->getGenerator()->getMetaData(),m->getGenArgs());
       }
     }
     std::string getName() { return name;}
-    void checkJson(json jmeta) {
+    void checkJson(json jmeta,Values genargs) {
       if (jmeta.count("firrtl") ) {
         if (jmeta["firrtl"].count("prefix")) {
           this->name = jmeta["firrtl"]["prefix"].get<std::string>() + this->name;
@@ -43,9 +43,18 @@ class FModule {
             addStmt(stmt);
           }
         }
-        //if (jmeta["firrtl"].count("parameters")) {
-        //  this->params = (jmeta["firrtl"]["parameters"].get<std::vector<std::string>>());
-        //}
+        if (jmeta["firrtl"].count("parameters")) {
+          auto gp = (jmeta["firrtl"]["parameters"].get<std::vector<std::string>>());
+          for (auto p : gp) {
+            ASSERT(genargs.count(p),"Missing param" + p);
+            if (p=="hi") { //Sketch annoying hack. Need to subtract 1 for indicies
+              this->gparams["%"+p+"%"] = std::to_string(genargs[p]->get<int>()-1);
+            }
+            else {
+              this->gparams["%"+p+"%"] = genargs[p]->toString();
+            }
+          }
+        }
       }
     }
     bool hasDef() {return stmts.size()>0;}
