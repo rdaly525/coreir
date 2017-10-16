@@ -270,6 +270,11 @@ namespace CoreIR {
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
+    if (!atLastState()) {
+      circStates.resize(stateIndex + 1);
+      stateIndex = circStates.size() - 1;
+    }
+
     assert(atLastState());
 
     SimBitVector* b = new SimBitVector(bv);
@@ -603,6 +608,8 @@ namespace CoreIR {
       });
       return;
     } else if ((opName == "const") || (opName == "bitconst")) {
+      return;
+    } else if (opName == "bitterm") {
       return;
     } else if (opName == "reg") {
       return;

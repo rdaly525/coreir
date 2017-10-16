@@ -420,6 +420,17 @@ namespace CoreIR {
 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
 	}
 
+	SECTION("Setting a value after rewinding reverts all earlier states") {
+
+	  state.rewind(2);
+
+	  REQUIRE(!state.atLastState());
+
+	  state.setValue("self.en", BitVec(1, 0));
+
+	  REQUIRE(state.atLastState());
+	}
+
 	SECTION("Rewinding and then running to an already simulated point fast forwards") {
 	  state.rewind(4);
 
