@@ -157,9 +157,10 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     //reg
     json vjson;
     vjson["prefix"] = "coreir_";
+    vjson["parameters"] = {"init"};
     vjson["interface"] = coreIMap.at("reg");
     vjson["definition"] = ""
-    "reg [width-1:0] outReg;\n"
+    "reg [width-1:0] outReg=init;\n"
     "always @(posedge clk) begin\n"
     "  outReg <= in;\n"
     "end\n"
