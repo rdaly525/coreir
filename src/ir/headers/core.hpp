@@ -98,8 +98,8 @@ void core_state(Context* c, Namespace* core) {
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
-    ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth)); // TODO fix this
-    int awidth = uint(std::log2(depth));
+    //ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth)); // TODO fix this
+    int awidth = ceil(std::log2(depth));
     return c->Record({
       {"clk",c->Named("coreir.clkIn")},
       {"wdata",c->BitIn()->Arr(width)},

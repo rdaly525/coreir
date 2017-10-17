@@ -271,49 +271,63 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* lbMem = commonlib->newGeneratorDecl("LinebufferMem",commonlib->getTypeGen("LinebufferMemType"),MemGenParams);
   lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
 
-  //lbmem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-  //  uint width = genargs.at("width")->get<int>();
-  //  uint depth = genargs.at("depth")->get<int>();
-  //  uint awidth = (uint) ceil(log2(depth));
-  //  def->addInstance("raddr","mantle.reg",{{"width",c->Int(awidth)},{"has_en",c->Bool(true)});
-  //  def->addInstance("waddr","mantle.reg",{{"width",c->Int(awidth)},{"has_en",c->Bool(true)});
-  //  def->addInstance("mem","coreir.mem",genargs);
-  //  def->addInstance("add_r","coreir.add",{{"width",c->Int(width)}});
-  //  def->addInstance("add_r","coreir.add",{{"width",c->Int(width)}});
-  //  def->addInstance("c1","coreir.const",{{"width",c->Int(width)}},{{"value",c->BitVector(width,1)}});
-  //  def->connect("self.
-  //});
+  lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    //uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+    def->addInstance("raddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
+    def->addInstance("waddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
+    def->addInstance("mem","coreir.mem",genargs);
+    def->addInstance("add_r","coreir.add",{{"width",Const::make(c,awidth)}});
+    def->addInstance("add_w","coreir.add",{{"width",Const::make(c,awidth)}});
+    def->addInstance("c1","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,awidth,1)}});
+    def->connect("self.wdata","mem.wdata");
+    def->connect("self.wen","mem.wen");
+    def->connect("waddr.out","mem.waddr");
+    def->connect("raddr.out","mem.raddr");
+    def->connect("mem.rdata","self.rdata");
+    def->connect("add_r.out","raddr.in");
+    def->connect("add_r.in0","raddr.out");
+    def->connect("add_r.in1","c1.out");
+    def->connect("add_w.out","waddr.in");
+    def->connect("add_w.in0","waddr.out");
+    def->connect("add_w.in1","c1.out");
+    def->addInstance("veq","coreir.neq",{{"width",Const::make(c,awidth)}});
+    def->connect("veq.in0","raddr.out");
+    def->connect("veq.in1","waddr.out");
+    def->connect("veq.out","self.veq");
+  });
 
 
-module #(parameter lbmem {
-  input clk,
-  input [W-1:0] wdata,
-  input wen,
-  output [W-1:0] rdata,
-  output valid
-}
-
-  reg [A-1] raddr
-  reg [A-1] waddr;
-  
-  always @(posedge clk) begin
-    if (wen) waddr <= waddr + 1;
-  end
-  assign valid = waddr!=raddr; 
-  always @(posedge clk) begin
-    if (valid) raddr <= raddr+1;
-  end
-
-  coreir_mem inst(
-    .clk(clk),
-    .wdata(wdata),
-    .waddr(wptr),
-    .wen(wen),
-    .rdata(rdata),
-    .raddr(rptr)
-  );
-
-endmodule
+//module #(parameter lbmem {
+//  input clk,
+//  input [W-1:0] wdata,
+//  input wen,
+//  output [W-1:0] rdata,
+//  output valid
+//}
+//
+//  reg [A-1] raddr
+//  reg [A-1] waddr;
+//  
+//  always @(posedge clk) begin
+//    if (wen) waddr <= waddr + 1;
+//  end
+//  assign valid = waddr!=raddr; 
+//  always @(posedge clk) begin
+//    if (valid) raddr <= raddr+1;
+//  end
+//
+//  coreir_mem inst(
+//    .clk(clk),
+//    .wdata(wdata),
+//    .waddr(wptr),
+//    .wen(wen),
+//    .rdata(rdata),
+//    .raddr(rptr)
+//  );
+//
+//endmodule
 
 
 
