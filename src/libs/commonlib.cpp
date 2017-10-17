@@ -271,6 +271,52 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* lbMem = commonlib->newGeneratorDecl("LinebufferMem",commonlib->getTypeGen("LinebufferMemType"),MemGenParams);
   lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
 
+  //lbmem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+  //  uint width = genargs.at("width")->get<int>();
+  //  uint depth = genargs.at("depth")->get<int>();
+  //  uint awidth = (uint) ceil(log2(depth));
+  //  def->addInstance("raddr","mantle.reg",{{"width",c->Int(awidth)},{"has_en",c->Bool(true)});
+  //  def->addInstance("waddr","mantle.reg",{{"width",c->Int(awidth)},{"has_en",c->Bool(true)});
+  //  def->addInstance("mem","coreir.mem",genargs);
+  //  def->addInstance("add_r","coreir.add",{{"width",c->Int(width)}});
+  //  def->addInstance("add_r","coreir.add",{{"width",c->Int(width)}});
+  //  def->addInstance("c1","coreir.const",{{"width",c->Int(width)}},{{"value",c->BitVector(width,1)}});
+  //  def->connect("self.
+  //});
+
+
+module #(parameter lbmem {
+  input clk,
+  input [W-1:0] wdata,
+  input wen,
+  output [W-1:0] rdata,
+  output valid
+}
+
+  reg [A-1] raddr
+  reg [A-1] waddr;
+  
+  always @(posedge clk) begin
+    if (wen) waddr <= waddr + 1;
+  end
+  assign valid = waddr!=raddr; 
+  always @(posedge clk) begin
+    if (valid) raddr <= raddr+1;
+  end
+
+  coreir_mem inst(
+    .clk(clk),
+    .wdata(wdata),
+    .waddr(wptr),
+    .wen(wen),
+    .rdata(rdata),
+    .raddr(rptr)
+  );
+
+endmodule
+
+
+
   //Fifo Memory. Use this for memory in Fifo mode
   commonlib->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
