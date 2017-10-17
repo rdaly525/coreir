@@ -163,7 +163,14 @@ int main(int argc, char *argv[]) {
 
   SimulatorState state(top);
 
-  std::cout << "> " << std::endl;
+  string lastCommand = "";
+
+  while (lastCommand != "quit") {
+    std::cout << "> ";
+    getline(std::cin, lastCommand);
+  }
+
+  
 
   //Load and run passes
   //bool modified = false;
