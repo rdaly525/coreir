@@ -27,23 +27,30 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Create a new Vmodule for this node
   Instantiable* i = node.getInstantiable();
   Module* m = cast<Module>(i);
-  if (m->generated() && !m->hasDef()) {
+  if (m->generated() && !m->hasDef()) { //TODO linking concern
     Generator* g = m->getGenerator();
     VModule* vmod;
+    bool hackflag = false;
     if (modMap.count(g)) { //Slightly hacky doing a cache here. I could just preload this with a GeneratorPass
       vmod = modMap[g];
+      hackflag = true;
     }
     else {
       vmod = new VModule(g);
+      this->modMap[g] = vmod; //Keeping generators in modMap for cache
     }
     this->modMap[i] = vmod;
     if (!vmod->hasDef()) {
       this->external.insert(g);
     }
+    else if (!hackflag) {
+      modList.push_back(vmod);
+    }
     return false;
   }
   VModule* vmod = new VModule(m);
   modMap[i] = vmod;
+  modList.push_back(vmod);
   if (vmod->hasDef()) {
     ASSERT(!m->hasDef(),"NYI linking error"); //TODO figure out this better
     return false;
@@ -83,11 +90,8 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
     os << modMap[ext]->toCommentString() << endl;
   }
   os << endl;
-  for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0) { 
-      os << mmap.second->toString() << endl;
-    }
+  for (auto vmod : modList) {
+    os << vmod->toString() << endl;
   }
-
 
 }
