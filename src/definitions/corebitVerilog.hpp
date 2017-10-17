@@ -103,8 +103,8 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     vjson["definition"] = ""
     "reg outReg;\n"
     "always @(posedge clk) begin\n"
-    "  if (!rst) outReg <= init;\n"
-    "  else outReg <= in;\n"
+    "  if (!rst) outReg <= in;\n"
+    "  else outReg <= init;\n"
     "end\n"
     "assign out = outReg;";
     bit->getModule("dff")->getMetaData()["verilog"] = vjson;
