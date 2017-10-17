@@ -295,7 +295,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("veq","coreir.neq",{{"width",Const::make(c,awidth)}});
     def->connect("veq.in0","raddr.out");
     def->connect("veq.in1","waddr.out");
-    def->connect("veq.out","self.veq");
+    def->connect("veq.out","self.valid");
   });
 
 
