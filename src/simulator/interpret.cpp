@@ -194,6 +194,40 @@ namespace CoreIR {
     watchPoints.push_back({val, bv});
   }
 
+  bool SimulatorState::exists(const std::string& selStr) const {
+    ModuleDef* def = mod->getDef();
+    Wireable* w = def->sel(selStr);
+
+    if (w == nullptr) {
+      return false;
+    }
+
+    return true;
+  }
+
+  std::string concatInlined(const std::vector<std::string>& str) {
+    string final = "";
+
+    if (str.size() == 1) {
+      return str[0];
+    }
+
+    for (int i = 0; i < str.size(); i++) {
+      final += str[i];
+      if (i != (str.size() - 1)) {
+	final += "$";
+      }
+    }
+
+    return final;
+  }
+
+  BitVec SimulatorState::getBitVec(const std::vector<std::string>& str) const {
+    string concatName = concatInlined(str);
+
+    return getBitVec(concatName);
+  }
+
   bool SimulatorState::isSet(const std::string& selStr) const {
     Select* s = findSelect(selStr);
 

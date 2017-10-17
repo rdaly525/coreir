@@ -705,5 +705,11 @@ namespace CoreIR {
     deleteContext(c);
   }
 
+  TEST_CASE("Name generation") {
+    vector<string> strs{"counter", "ri", "dummy.out"};
+
+    REQUIRE(concatInlined(strs) == "counter$ri$dummy.out");
+  }
+
 
 }

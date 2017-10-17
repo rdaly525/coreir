@@ -103,6 +103,8 @@ namespace CoreIR {
 
     std::vector<CircuitState> getCircStates() const;
 
+    NGraph& getCircuitGraph() { return gr; }
+
     int getStateIndex() const;
     
     bool valMapContains(CoreIR::Select* sel) const;
@@ -150,6 +152,7 @@ namespace CoreIR {
     BitVec getMemory(const std::string& name,
 		     const BitVec& addr);
 
+    bool exists(const std::string& selStr) const;
     bool isSet(const std::string& selStr) const;
 
     SimValue* getValue(const std::string& name) const;
@@ -157,6 +160,8 @@ namespace CoreIR {
     BitVec getBitVec(CoreIR::Select* sel) const;
 
     BitVec getBitVec(const std::string& str) const;
+
+    BitVec getBitVec(const std::vector<std::string>& str) const;
 
     void updateMuxNode(const vdisc vd);
     void updateRegisterValue(const vdisc vd);
@@ -173,6 +178,8 @@ namespace CoreIR {
     void updateAndNode(const vdisc vd);
     void updateNodeValues(const vdisc vd);
 
+    
+
     void execute();
 
     void run();
@@ -181,5 +188,7 @@ namespace CoreIR {
   };
 
   ClockValue* toClock(SimValue* val);
+
+  std::string concatInlined(const std::vector<std::string>& str);
 
 }

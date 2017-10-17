@@ -183,18 +183,56 @@ int main(int argc, char *argv[]) {
       break;
     } else if (cmd == "set") {
       assert(args.size() == 3);
+
       string valName = args[1];
       string bitString = args[2];
 
       int len = bitString.size();
 
       state.setValue(valName, BitVector(len, bitString));
-    } else if (cmd == "show") {
-      assert(args.size() == 2);
 
-      string valName = args[1];
-      BitVector val = state.getBitVec(valName);
-      cout << valName << " = " << val << endl;
+    } else if (cmd == "print") {
+      if (args.size() != 2) {
+	cout << cmd << " requires " << 2 << " argument(s)" << endl;
+	continue;
+      }
+
+      string ins = args[1];
+
+      if (ins == "inputs") {
+	auto& gr = state.getCircuitGraph();
+	for (auto vd : gr.getVerts()) {
+	  if (getInputConnections(vd, gr).size() == 0) {
+	    cout << gr.getNode(vd).getWire()->toString() << " : " << gr.getNode(vd).getWire()->getType()->toString() << endl;
+	  }
+	}
+	continue;
+      }
+
+      if (ins == "outputs") {
+	auto& gr = state.getCircuitGraph();
+	for (auto vd : gr.getVerts()) {
+	  if (getOutputConnections(vd, gr).size() == 0) {
+	    cout << gr.getNode(vd).getWire()->toString() << " : " << gr.getNode(vd).getWire()->getType()->toString() << endl;
+	  }
+	}
+	continue;
+      }
+
+      if (!state.exists(ins)) {
+	cout << ins << " does not exist "<< endl;
+	continue;
+      }
+
+      if (!state.isSet(ins)) {
+	cout << ins << " is not set "<< endl;
+	continue;
+      }
+
+      BitVector bv = state.getBitVec(ins);
+
+      cout << bv << endl;
+      
     } else if (cmd == "exec") {
       assert(args.size() == 1);
 
