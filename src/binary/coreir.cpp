@@ -10,6 +10,7 @@
 #include "../definitions/coreVerilog.hpp" //TODO move this
 #include "../definitions/corebitVerilog.hpp" //TODO move this
 #include "../definitions/coreFirrtl.hpp" //TODO move this
+#include "../definitions/corebitFirrtl.hpp" //TODO move this
 
 
 using namespace std;
@@ -191,6 +192,7 @@ int main(int argc, char *argv[]) {
   }
   else if (outExt=="fir") {
     CoreIRLoadFirrtl_coreir(c);
+    CoreIRLoadFirrtl_corebit(c);
     c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","firrtl"},namespaces);
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
