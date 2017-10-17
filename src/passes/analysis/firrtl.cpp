@@ -59,15 +59,20 @@ string sp2Str(SelectPath sp) {
 void addConnection(Context* c,CoreIR::Passes::FModule* fm, SelectPath snk, SelectPath src) {
   string snkstr = sp2Str(snk);
   if (!isNumber(src.back())) {
+    if (src[0] == "self") src.pop_front();
     fm->addStmt(snkstr + " <= " + sp2Str(src));
   }
-  else if (src.size()==3) {
+  else if (src.size() == 3) {
     SelectPath tsrc = src;
+    if (tsrc[0] == "self") tsrc.pop_front();
     tsrc.pop_back();
     string tname = "tmpidx" + c->getUnique();
     fm->addStmt("wire " + tname + " : UInt");
     fm->addStmt(tname + " <= bits(" + sp2Str(tsrc)+","+src.back() + "," + src.back() + ")");
     fm->addStmt(snkstr + " <= " + tname);
+  } else {
+      std::cout << SelectPath2Str(src) << "," << SelectPath2Str(snk) << std::endl;
+      assert(false);
   }
 }
 
@@ -154,7 +159,6 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   auto dm = m->newDirectedModule();
   for (auto dcon : dm->getConnections()) {
     SelectPath src = dcon->getSrc();
-    if (src[0] == "self") src.pop_front();
     SelectPath snk = dcon->getSnk();
     ASSERT(snk.size()<3,"NYI setting to indexed thing");
     if (snk[0] == "self") snk.pop_front();
