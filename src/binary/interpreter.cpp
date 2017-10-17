@@ -165,21 +165,45 @@ int main(int argc, char *argv[]) {
 
   string lastCommand = "";
 
-  while (lastCommand != "quit") {
+  while (true) {
     std::cout << "> ";
     getline(std::cin, lastCommand);
+
+    vector<string> args =
+      splitString<vector<string>>(lastCommand, ' ');
+
+    if (args.size() == 0) {
+      continue;
+    }
+
+    string cmd = args[0];
+
+    if (cmd == "quit") {
+      std::cout << "Exiting..." << std::endl;
+      break;
+    } else if (cmd == "set") {
+      assert(args.size() == 3);
+      string valName = args[1];
+      string bitString = args[2];
+
+      int len = bitString.size();
+
+      state.setValue(valName, BitVector(len, bitString));
+    } else if (cmd == "show") {
+      assert(args.size() == 2);
+
+      string valName = args[1];
+      BitVector val = state.getBitVec(valName);
+      cout << valName << " = " << val << endl;
+    } else if (cmd == "exec") {
+      assert(args.size() == 1);
+
+      state.execute();
+
+    } else {
+      cout << "Unrecognized command: " << cmd << endl;
+    }
   }
-
-  
-
-  //Load and run passes
-  //bool modified = false;
-  //if (options.count("p")) {
-  //string plist = options["p"].as<string>();
-  //vector<string> porder = splitString<vector<string>>(plist,',');
-  //modified = c->runPasses(porder);
-
-    //}
 
   //Shutdown
   if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
