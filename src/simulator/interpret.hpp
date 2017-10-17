@@ -136,6 +136,7 @@ namespace CoreIR {
     void setValue(CoreIR::Select* sel, SimValue* val);
     void setValue(CoreIR::Select* sel, const BitVec& bv);
     void setValue(const std::string& name, const BitVec& bv);
+    void setValue(const std::vector<std::string>& name, const BitVec& bv);
 
     void setClock(CoreIR::Select* sel,
 		  const unsigned char clk_last,
@@ -157,10 +158,10 @@ namespace CoreIR {
 
     SimValue* getValue(const std::string& name) const;
     SimValue* getValue(CoreIR::Select* sel) const;
+    SimValue* getValue(const std::vector<std::string>& str) const;
+
     BitVec getBitVec(CoreIR::Select* sel) const;
-
     BitVec getBitVec(const std::string& str) const;
-
     BitVec getBitVec(const std::vector<std::string>& str) const;
 
     void updateMuxNode(const vdisc vd);

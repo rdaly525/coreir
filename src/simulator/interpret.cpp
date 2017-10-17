@@ -222,6 +222,12 @@ namespace CoreIR {
     return final;
   }
 
+  SimValue* SimulatorState::getValue(const std::vector<std::string>& str) const {
+    string concatName = concatInlined(str);
+
+    return getValue(concatName);
+  }
+  
   BitVec SimulatorState::getBitVec(const std::vector<std::string>& str) const {
     string concatName = concatInlined(str);
 
@@ -301,6 +307,11 @@ namespace CoreIR {
     setRegisterDefaults();
 
 
+  }
+
+  void SimulatorState::setValue(const std::vector<std::string>& name,
+				const BitVec& bv) {
+    setValue(concatInlined(name), bv);
   }
 
   void SimulatorState::setValue(CoreIR::Select* sel, const BitVec& bv) {
