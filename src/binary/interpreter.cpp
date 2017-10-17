@@ -6,6 +6,7 @@
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
+#include "coreir/simulator/interpreter.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -158,13 +159,20 @@ int main(int argc, char *argv[]) {
     c->setTop(topRef);
   }
 
+  c->runPasses({"rungenerators","flattentypes","flatten"});
+
+  SimulatorState state(top);
+
+  std::cout << "> " << std::endl;
+
   //Load and run passes
-  bool modified = false;
-  if (options.count("p")) {
-    string plist = options["p"].as<string>();
-    vector<string> porder = splitString<vector<string>>(plist,',');
-    modified = c->runPasses(porder);
-  }
+  //bool modified = false;
+  //if (options.count("p")) {
+  //string plist = options["p"].as<string>();
+  //vector<string> porder = splitString<vector<string>>(plist,',');
+  //modified = c->runPasses(porder);
+
+    //}
 
   //Shutdown
   if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
