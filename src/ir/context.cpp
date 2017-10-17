@@ -281,6 +281,12 @@ Value** Context::newValueArray(int size) {
     return arr;
 }
 
+Type** Context::newTypeArray(int size) {
+    Type** arr = (Type**) malloc(sizeof(Type*) * size);
+    typePtrArrays.push_back(arr);
+    return arr;
+}
+
 Connection* Context::newConnectionArray(int size) {
   Connection* arr = (Connection*) malloc(sizeof(Connection) * size);
   connectionArrays.push_back(arr);
