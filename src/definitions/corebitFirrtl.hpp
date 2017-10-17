@@ -18,7 +18,7 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
       {"term",{""}},
-      {"dff",{"reg myreg: UInt<1>, clk, rst, init","myreg <= in","out <= myreg"}}, 
+      {"dff",{"reg myreg: UInt<1>, clk with:","  (reset =>(rst, init))","myreg <= in","out <= myreg"}}, 
       //{"mem",""}, //TODO
     }}
   });
