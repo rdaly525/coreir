@@ -18,38 +18,38 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
       {"term",{""}},
-      {"dff",{"reg myreg: UInt, clk, rst, init","myreg <= in","out <= myreg"}}, 
+      {"dff",{"reg myreg: UInt<1>, clk, rst, init","myreg <= in","out <= myreg"}}, 
       //{"mem",""}, //TODO
     }}
   });
  
   
-  std::map<std::string,std::vector<std::string>> coreInterfaceMap({
-    {"unary",{
-      "input in : UInt",
-      "output out : UInt"
-    }},
-    {"binary",{
-      "input in0 : UInt",
-      "input in1 : UInt",
-      "output out : UInt"
-    }},
-    {"mux",{
-      "input in0 : UInt",
-      "input in1 : UInt",
-      "input sel : UInt<1>",
-      "output out : UInt"
-    }},
-    {"const",{"input value : UInt","output out : UInt"}},
-    {"term",{"input in : UInt"}},
-    {"dff",{
-      "input clk : Clock",
-      "input rst : UInt<1>",
-      "input in : UInt",
-      "input init : UInt",
-      "output out : UInt"
-    }},
-  });
+//  std::map<std::string,std::vector<std::string>> coreInterfaceMap({
+//    {"unary",{
+//      "input in : UInt",
+//      "output out : UInt"
+//    }},
+//    {"binary",{
+//      "input in0 : UInt",
+//      "input in1 : UInt",
+//      "output out : UInt"
+//    }},
+//    {"mux",{
+//      "input in0 : UInt",
+//      "input in1 : UInt",
+//      "input sel : UInt<1>",
+//      "output out : UInt"
+//    }},
+//    {"const",{"input value : UInt","output out : UInt"}},
+//    {"term",{"input in : UInt"}},
+//    {"dff",{
+//      "input clk : Clock",
+//      "input rst : UInt<1>",
+//      "input in : UInt",
+//      "input init : UInt",
+//      "output out : UInt"
+//    }},
+//  });
 
   Namespace* corebit = c->getNamespace("corebit");
   for (auto it0 : coreFMap) {
@@ -59,9 +59,6 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
       json fjson;
       fjson["prefix"] = "corebit_";
       fjson["definition"] = fdef;
-      if (it0.first!="other") {
-        fjson["interface"] = coreInterfaceMap[it0.first];
-      }
       corebit->getModule(op)->getMetaData()["firrtl"] = fjson;
     }
   }
@@ -70,13 +67,11 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
   json fjson;
   fjson["prefix"] = "corebit_";
   fjson["definition"] = coreFMap["other"]["mux"];
-  fjson["interface"] = coreInterfaceMap["mux"];
   corebit->getModule("mux")->getMetaData()["firrtl"] = fjson;
   
   //const
   fjson["prefix"] = "corebit_";
   fjson["definition"] = coreFMap["other"]["const"];
-  fjson["interface"] = coreInterfaceMap["const"];
   corebit->getModule("const")->getMetaData()["firrtl"] = fjson;
   
   //term
@@ -84,7 +79,6 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
   //reg
   fjson["prefix"] = "corebit_";
   fjson["definition"] = coreFMap["other"]["dff"];
-  fjson["interface"] = coreInterfaceMap["dff"];
   corebit->getModule("dff")->getMetaData()["firrtl"] = fjson;
   
 }

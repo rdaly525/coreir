@@ -31,6 +31,7 @@ class FModule {
       if (m->generated()) {
         checkJson(m->getGenerator()->getMetaData(),m->getGenArgs());
       }
+      checkJson(m->getMetaData(),Values()); //TODO deal with linking
     }
     std::string getName() { return name;}
     void checkJson(json jmeta,Values genargs) {
