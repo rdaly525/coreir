@@ -86,13 +86,17 @@ namespace CoreIR {
 
   typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
 
+  typedef std::function<bool()> StopFunction;
+
   class SimulatorState {
     CoreIR::Module* mod;
 
     NGraph gr;
     std::deque<vdisc> topoOrder;
     std::vector<std::pair<std::string, BitVec> > watchPoints;
-    std::vector<std::function<bool (const std::vector<CircuitState>& states, const int stateInd)> > stopConditions;
+
+    std::vector<StopFunction> stopConditions;
+
     CoreIR::Select* mainClock;
 
     std::vector<CircuitState> circStates;

@@ -191,7 +191,26 @@ namespace CoreIR {
 
   void SimulatorState::setWatchPoint(const std::string& val,
 				     const BitVec& bv) {
-    watchPoints.push_back({val, bv});
+
+    StopFunction func =
+      [this, val, bv]() {
+
+      if (isSet(val)) {
+    	if (getBitVec(val) == bv) {
+    	  return true;
+    	}
+      }
+      return false;
+    };
+
+    //StopFunction sFunc(func);
+    //std::function<bool()> sf(func);
+
+    stopConditions.push_back(func);
+
+    //stopConditions.push_back();
+
+  //watchPoints.push_back({val, bv});
   }
 
   bool SimulatorState::exists(const std::string& selStr) const {
@@ -245,16 +264,20 @@ namespace CoreIR {
   }
 
   bool SimulatorState::hitWatchPoint() const {
-    for (auto& wp : watchPoints) {
-      string selStr = wp.first;
-      BitVec val = wp.second;
-
-      if (isSet(selStr)) {
-	if (getBitVec(selStr) == val) {
-	  return true;
-	}
+    for (auto& func : stopConditions) {
+      if (func()) {
+	return true;
       }
     }
+    //   string selStr = wp.first;
+    //   BitVec val = wp.second;
+
+    //   if (isSet(selStr)) {
+    // 	if (getBitVec(selStr) == val) {
+    // 	  return true;
+    // 	}
+    //   }
+    // }
 
     return false;
   }
