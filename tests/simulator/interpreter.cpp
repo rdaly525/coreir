@@ -4,6 +4,7 @@
 #include "coreir-passes/analysis/pass_sim.h"
 #include "coreir/passes/transform/rungenerators.h"
 #include "coreir/simulator/interpreter.h"
+#include "coreir/libs/commonlib.h"
 
 #include "fuzzing.hpp"
 
@@ -582,8 +583,6 @@ namespace CoreIR {
       memory->setDef(def);
 
       c->runPasses({"rungenerators","flattentypes","flatten"});      
-      // RunGenerators rg;
-      // rg.runOnNamespace(c->getGlobal());
 
       SimulatorState state(memory);
 
@@ -700,6 +699,31 @@ namespace CoreIR {
       state.execute();
 
       REQUIRE(state.getBitVec("self.out") == BitVec(8, "00000111"));
+    }
+
+    SECTION("Lookup table") {
+      uint n = 11;
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Generator* andr = c->getGenerator("commonlib.lutN");
+      Type* andrNType = c->Record({
+	  {"in", c->Array(n, c->BitIn())},
+	    {"out", c->Bit()}
+	});
+
+      Module* andrN = g->newModuleDecl("andrN", andrNType);
+      ModuleDef* def = andrN->newModuleDef();
+
+      Wireable* self = def->sel("self");
+      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const::make(c,n)}});
+    
+      def->connect(self->sel("in"), andr0->sel("in"));
+      def->connect(andr0->sel("out"),self->sel("out"));
+
+      andrN->setDef(def);
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});
     }
 
     deleteContext(c);
