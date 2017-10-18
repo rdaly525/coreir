@@ -702,26 +702,32 @@ namespace CoreIR {
     }
 
     SECTION("Lookup table") {
-      uint n = 11;
+      uint n = 4;
 
       CoreIRLoadLibrary_commonlib(c);
 
-      Generator* andr = c->getGenerator("commonlib.lutN");
-      Type* andrNType = c->Record({
+      Generator* lutN = c->getGenerator("commonlib.lutN");
+      Type* lutNType = c->Record({
 	  {"in", c->Array(n, c->BitIn())},
 	    {"out", c->Bit()}
 	});
 
-      Module* andrN = g->newModuleDecl("andrN", andrNType);
-      ModuleDef* def = andrN->newModuleDef();
+      Module* lut4 = g->newModuleDecl("lut4", lutNType);
+      ModuleDef* def = lut4->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const::make(c,n)}});
+      Wireable* lut0 =
+	def->addInstance("lut0",
+			 lutN,
+			 {{"N", Const::make(c,n)}},
+			 {{"init",
+			       Const::make(c,
+					   BitVector(1 << n, "1010010111010010"))}});
     
-      def->connect(self->sel("in"), andr0->sel("in"));
-      def->connect(andr0->sel("out"),self->sel("out"));
+      def->connect(self->sel("in"), lut0->sel("in"));
+      def->connect(lut0->sel("out"),self->sel("out"));
 
-      andrN->setDef(def);
+      lut4->setDef(def);
 
       c->runPasses({"rungenerators","flattentypes","flatten"});
     }
