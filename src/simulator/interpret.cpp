@@ -880,6 +880,9 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::updateLinebufferMemValue(const vdisc vd) {
+  }
+
   void SimulatorState::updateMemoryValue(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -1005,6 +1008,11 @@ namespace CoreIR {
       WireNode wd = gr.getNode(vd);
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
 	updateRegisterValue(vd);
+      }
+
+      // TODO: Source-Sink split LinebufferMem's
+      if (isLinebufferMemInstance(wd.getWire())) {
+	updateLinebufferMemValue(vd);
       }
 
       if (isMemoryInstance(wd.getWire())) {

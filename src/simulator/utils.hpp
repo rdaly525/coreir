@@ -102,6 +102,28 @@ namespace CoreIR {
 
     return genRefName == "mem";
   }
+
+  static inline bool isLinebufferMemInstance(CoreIR::Wireable* fst) {
+    if (!isInstance(fst)) {
+      return false;
+    }
+
+    CoreIR::Instance* inst = toInstance(fst);
+
+    auto genRef = inst->getGeneratorRef();
+
+    if (genRef == nullptr) {
+      Module* modRef = inst->getModuleRef();
+
+      assert(modRef != nullptr);
+
+      return modRef->getName() == "LinebufferMem";
+    }
+
+    std::string genRefName = genRef->getName();
+
+    return genRefName == "LinebufferMem";
+  }
   
   static inline bool isNamedType(CoreIR::Type& t, const std::string& name) {
     if (t.getKind() != CoreIR::Type::TK_Named) {
