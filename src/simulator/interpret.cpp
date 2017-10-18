@@ -486,6 +486,33 @@ namespace CoreIR {
     setValue(toSelect(outPair.second), new SimBitVector(res));
   }
 
+  void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 2);
+
+    InstanceValue arg1 = findArg("in0", inConns);
+
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    
+    assert(s1 != nullptr);
+    
+    BitVec res = op(s1->getBits());
+
+    setValue(toSelect(outPair.second), new SimBitVector(res));
+
+  }
+
   void SimulatorState::updateBitVecBinop(const vdisc vd, BitVecBinop op) {
     WireNode wd = gr.getNode(vd);
 
@@ -704,6 +731,14 @@ namespace CoreIR {
       updateNeqNode(vd);
     } else if (opName == "or") {
       updateOrNode(vd);
+    } else if (opName == "xor") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  return l ^ r;
+      });
+    } else if (opName == "not") {
+      updateBitVecUnop(vd, [](const BitVec& r) {
+	  return ~r;
+      });
     } else if (opName == "andr") {
       updateAndrNode(vd);
     } else if (opName == "add") {

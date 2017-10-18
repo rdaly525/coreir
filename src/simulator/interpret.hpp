@@ -85,6 +85,7 @@ namespace CoreIR {
   };
 
   typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
+  typedef BitVec (*BitVecUnop)(const BitVec& l);
 
   typedef std::function<bool()> StopFunction;
 
@@ -136,6 +137,7 @@ namespace CoreIR {
     void setRegisterDefaults();
     void setMemoryDefaults();
 
+    void updateBitVecUnop(const vdisc vd, BitVecUnop op);
     void updateBitVecBinop(const vdisc vd, BitVecBinop op);
 
     void setValue(CoreIR::Select* sel, SimValue* val);
