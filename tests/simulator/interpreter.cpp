@@ -550,6 +550,38 @@ namespace CoreIR {
       
     }
 
+    SECTION("LineBufferMem") {
+      uint index = 2;
+      uint width = index;
+      uint depth = pow(2, index);
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+	  {"clk", c->Named("coreir.clkIn")},
+	    {"wdata", c->BitIn()->Arr(width)},
+	      {"rdata", c->BitIn()->Arr(width)},
+		{"wen", c->BitIn()},
+		  {"valid", c->Bit()}
+	});
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("m0",
+		       "commonlib.LinebufferMem",
+		       {{"width", Const::make(c, width)},
+			   {"depth", Const::make(c, depth)}});
+
+      
+
+      lbMem->setDef(def);
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});      
+
+      SimulatorState state(lbMem);
+    }
+
     SECTION("Memory") {
       uint width = 20;
       uint depth = 4;
