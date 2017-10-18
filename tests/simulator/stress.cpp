@@ -49,7 +49,7 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 32;
-      uint numInputs = 2500 / 4;
+      uint numInputs = 100;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
@@ -95,48 +95,44 @@ namespace CoreIR {
 
 	cout << "Done setting up interpreter" << endl;
 
-	state.setValue("self.in_0", BitVec(n, 10));
-
-	cout << state.getBitVec("self.in_0") << endl;
-	
       }
 
-      // SECTION("Compiling code") {
-      // 	RunGenerators rg;
-      // 	rg.runOnNamespace(g);
+      SECTION("Compiling code") {
+      	RunGenerators rg;
+      	rg.runOnNamespace(g);
 
-      // 	cout << "About to build graph" << endl;
+      	cout << "About to build graph" << endl;
 
-      // 	NGraph gr;
-      // 	buildOrderedGraph(manyOps, gr);
+      	NGraph gr;
+      	buildOrderedGraph(manyOps, gr);
 
-      // 	setThreadNumbers(gr);
+      	setThreadNumbers(gr);
 
-      // 	// cout << "VERT thread nos" << endl;
-      // 	// for (auto& v : gr.getVerts()) {
-      // 	//   int tNo = gr.getNode(v).getThreadNo();
-      // 	//   //cout << "Thread number = " << tNo << endl;
-      // 	//   //assert(tNo == 13);
-      // 	// }
+      	// cout << "VERT thread nos" << endl;
+      	// for (auto& v : gr.getVerts()) {
+      	//   int tNo = gr.getNode(v).getThreadNo();
+      	//   //cout << "Thread number = " << tNo << endl;
+      	//   //assert(tNo == 13);
+      	// }
 
-      // 	cout << "Built ordered graph" << endl;
-      // 	deque<vdisc> topoOrder = topologicalSort(gr);
+      	cout << "Built ordered graph" << endl;
+      	deque<vdisc> topoOrder = topologicalSort(gr);
 
-      // 	cout << "Topologically sorted" << endl;
+      	cout << "Topologically sorted" << endl;
 
-      // 	string randIns =
-      // 	  randomSimInputHarness(manyOps);
+      	string randIns =
+      	  randomSimInputHarness(manyOps);
 
-      // 	cout << "Generating harness" << endl;
+      	cout << "Generating harness" << endl;
 
-      // 	int s =
-      // 	  generateHarnessAndRun(topoOrder, gr, manyOps,
-      // 				"./gencode/",
-      // 				"many_ops",
-      // 				"./gencode/auto_harness_many_ops.cpp");
+      	int s =
+      	  generateHarnessAndRun(topoOrder, gr, manyOps,
+      				"./gencode/",
+      				"many_ops",
+      				"./gencode/auto_harness_many_ops.cpp");
 
-      // 	REQUIRE(s == 0);
-      // }
+      	REQUIRE(s == 0);
+      }
 
     }
 
