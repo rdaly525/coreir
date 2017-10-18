@@ -169,6 +169,7 @@ namespace CoreIR {
     BitVec getBitVec(const std::string& str) const;
     BitVec getBitVec(const std::vector<std::string>& str) const;
 
+    void updateLUTNNode(const vdisc vd);
     void updateMuxNode(const vdisc vd);
     void updateRegisterValue(const vdisc vd);
     void updateMemoryValue(const vdisc vd);

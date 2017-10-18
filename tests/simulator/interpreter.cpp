@@ -730,6 +730,13 @@ namespace CoreIR {
       lut4->setDef(def);
 
       c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      SimulatorState state(lut4);
+      state.setValue("self.in", BitVector(n, "0110"));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVec(1, 1));
     }
 
     deleteContext(c);

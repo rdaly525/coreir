@@ -644,6 +644,30 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::updateLUTNNode(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 1);
+
+    InstanceValue arg1 = findArg("in", inConns);
+
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    
+    assert(s1 != nullptr);
+
+    setValue(toSelect(outPair.second), new SimBitVector(BitVector(1, 1)));
+  }
+
   void SimulatorState::updateNodeValues(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -770,6 +794,8 @@ namespace CoreIR {
 	  }
 	});
       
+    } else if (opName == "lutN") {
+      updateLUTNNode(vd);
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
