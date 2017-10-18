@@ -665,7 +665,20 @@ namespace CoreIR {
     
     assert(s1 != nullptr);
 
-    setValue(toSelect(outPair.second), new SimBitVector(BitVector(1, 1)));
+    Values genArgs = inst->getGenArgs();
+
+    int width = genArgs["N"]->get<int>();
+
+    Values args = inst->getModArgs();
+
+    BitVector vals = args["init"]->get<BitVector>();
+
+    assert(vals.bitLength() == (1 << width));
+
+    bv_uint64 i = get_shift_int(s1->getBits());
+    unsigned char lutBit = vals.get(i);
+    
+    setValue(toSelect(outPair.second), new SimBitVector(BitVector(1, lutBit)));
   }
 
   void SimulatorState::updateNodeValues(const vdisc vd) {

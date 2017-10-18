@@ -732,11 +732,23 @@ namespace CoreIR {
       c->runPasses({"rungenerators","flattentypes","flatten"});
 
       SimulatorState state(lut4);
-      state.setValue("self.in", BitVector(n, "0110"));
 
-      state.execute();
+      SECTION("lut(6) == 1") {
+	state.setValue("self.in", BitVector(n, "0110"));
 
-      REQUIRE(state.getBitVec("self.out") == BitVec(1, 1));
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.out") == BitVec(1, 1));
+      }
+
+      SECTION("lut(0) == 0") {
+	state.setValue("self.in", BitVector(n, "0000"));
+
+	state.execute();
+
+	REQUIRE(state.getBitVec("self.out") == BitVec(1, 0));
+      }
+
     }
 
     deleteContext(c);
