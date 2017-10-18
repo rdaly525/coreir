@@ -295,7 +295,18 @@ namespace CoreIR {
     mod(mod_), mainClock(nullptr) {
 
     buildOrderedGraph(mod, gr);
+
+    cout << "Built graph, topological sorting" << endl;
+
+    std::clock_t start, end;
+
+    start = std::clock();
+
     topoOrder = topologicalSort(gr);
+
+    end = std::clock();
+
+    std::cout << "Done. Time to sort " << gr.getVerts().size() << " vertices  : " << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
 
     // Set initial state of the circuit
     CircuitState init;
