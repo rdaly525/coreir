@@ -723,15 +723,15 @@ namespace CoreIR {
     assert(isInstance(wd.getWire()));
 
     string opName = getOpName(*toInstance(wd.getWire()));
-    if (opName == "and") {
+    if ((opName == "and") || (opName == "bitand")) {
       updateAndNode(vd);
     } else if (opName == "eq") {
       updateEqNode(vd);
     } else if (opName == "neq") {
       updateNeqNode(vd);
-    } else if (opName == "or") {
+    } else if ((opName == "or") || (opName == "bitor")) {
       updateOrNode(vd);
-    } else if (opName == "xor") {
+    } else if ((opName == "xor") || (opName == "bitxor")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	  return l ^ r;
       });
