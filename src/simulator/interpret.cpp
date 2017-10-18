@@ -754,7 +754,7 @@ namespace CoreIR {
     } else if ((opName == "const") || (opName == "bitconst")) {
     } else if (opName == "bitterm") {
     } else if (opName == "reg") {
-    } else if (opName == "mem") {
+    } else if ((opName == "mem") || (opName == "LinebufferMem")) {
     } else if (opName == "mux") {
       updateMuxNode(vd);
     } else if (opName == "slice") {
@@ -984,15 +984,18 @@ namespace CoreIR {
     circStates.push_back(next);
     stateIndex++;
 
+    // Update memory outputs
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
 
       if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
+	// Does this work when the raddr port is not yet defined?
 	updateMemoryOutput(vd);
       }
 
     }
     
+    // Update combinational node values
     for (auto& vd : topoOrder) {
       updateNodeValues(vd);
     }

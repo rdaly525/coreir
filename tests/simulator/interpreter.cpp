@@ -560,7 +560,7 @@ namespace CoreIR {
       Type* lineBufferMemType = c->Record({
 	  {"clk", c->Named("coreir.clkIn")},
 	    {"wdata", c->BitIn()->Arr(width)},
-	      {"rdata", c->BitIn()->Arr(width)},
+	      {"rdata", c->Bit()->Arr(width)},
 		{"wen", c->BitIn()},
 		  {"valid", c->Bit()}
 	});
@@ -573,13 +573,27 @@ namespace CoreIR {
 		       {{"width", Const::make(c, width)},
 			   {"depth", Const::make(c, depth)}});
 
-      
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.wen", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
 
       lbMem->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes","flatten"});      
+      c->runPasses({"rungenerators","flattentypes","flatten"});
 
       SimulatorState state(lbMem);
+      state.setValue("self.wdata", BitVector(width, "11"));
+      state.setValue("self.wen", BitVector(1, "1"));
+      state.setMainClock("self.clk");
+      state.setClock("self.clk", 0, 1);
+
+      // state.setWatchPoint("self.rdata", BitVec(width, "11"));
+
+      // state.run();
+
+      // REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
     }
 
     SECTION("Memory") {
@@ -650,17 +664,23 @@ namespace CoreIR {
 
       	state.execute();
 
-      	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+	SECTION("read_data is zero initially") {
+	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+	}
 
       	state.execute();
 
-      	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	SECTION("One cycle after setting write_data the result has been updated") {
+	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	}
 
       	state.execute();
 
       	cout << "read data later = " << state.getBitVec("self.read_data") << endl;
 
-	REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	SECTION("Re-updating does not change the value") {
+	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	}
 	
       }
       
