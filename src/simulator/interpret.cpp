@@ -96,7 +96,6 @@ namespace CoreIR {
 	Values args = inst->getGenArgs();
 	uint width = (args["width"])->get<int>();
 	uint depth = (args["depth"])->get<int>();
-	
 
 	// Set memory state to default value
 	LinebufferMemory freshMem(width, depth);
@@ -104,10 +103,10 @@ namespace CoreIR {
 
 	// Set memory output port to default
 	setValue(inst->sel("rdata"), new SimBitVector(BitVec(width, 0)));
-	
+	setValue(inst->sel("valid"), new SimBitVector(BitVec(1, 0)));
       }
     }
-    
+
   }
 
   void SimulatorState::setMemoryDefaults() {

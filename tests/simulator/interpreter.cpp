@@ -590,7 +590,7 @@ namespace CoreIR {
       state.setClock("self.clk", 0, 1);
 
       SECTION("Before execution valid is 0") {
-	REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+	REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
       }
       
       for (int i = 0; i < 10; i++) {
