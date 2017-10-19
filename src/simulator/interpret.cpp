@@ -830,6 +830,22 @@ namespace CoreIR {
 	    return BitVec(1, 0);
 	  }
 	});
+    } else if (opName == "smax") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if (signed_gt(l, r) || (l == r)) {
+	    return l;
+	  } else {
+	    return r;
+	  }
+	});
+    } else if (opName == "smin") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+	  if (signed_gt(l, r) || (l == r)) {
+	    return r;
+	  } else {
+	    return l;
+	  }
+	});
     } else if (opName == "sgt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 	  if (signed_gt(l, r)) {
