@@ -466,7 +466,7 @@ namespace CoreIR {
     uint hi = (args["hi"])->get<int>();
 
     assert((hi - lo) > 0);
-    
+
     BitVec res(hi - lo, 1);
     BitVec sB = s1->getBits();
     for (int i = lo; i < hi; i++) {
@@ -1088,9 +1088,9 @@ namespace CoreIR {
   void SimulatorState::execute() {
     assert(atLastState());
 
-    CircuitState next = circStates[stateIndex];
-    circStates.push_back(next);
-    stateIndex++;
+    // CircuitState next = circStates[stateIndex];
+    // circStates.push_back(next);
+    // stateIndex++;
 
     // Update memory outputs
     for (auto& vd : topoOrder) {
