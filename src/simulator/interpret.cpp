@@ -348,15 +348,15 @@ namespace CoreIR {
 
     cout << "Built graph, topological sorting" << endl;
 
-    std::clock_t start, end;
+    //std::clock_t start, end;
 
-    start = std::clock();
+    //start = std::clock();
 
     topoOrder = topologicalSort(gr);
 
-    end = std::clock();
+    //end = std::clock();
 
-    std::cout << "Done. Time to sort " << gr.getVerts().size() << " vertices  : " << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
+    // std::cout << "Done. Time to sort " << gr.getVerts().size() << " vertices  : " << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
 
     // Set initial state of the circuit
     CircuitState init;
@@ -1093,29 +1093,23 @@ namespace CoreIR {
   void SimulatorState::execute() {
     assert(atLastState());
 
-    // Circuit saving seems to incur a quadratic performance cost
+    //std::clock_t start, end;
 
-    std::clock_t start, end;
-
-    start = clock();
+    //start = clock();
 
     CircuitState next = circStates[stateIndex];
-
-    // cout << "Valmap size   = " << next.valMap.size() << endl;
-    // cout << "# memories    = " << next.memories.size() << endl;
-    // cout << "# lb memories = " << next.lbMemories.size() << endl;
 
     circStates.push_back(next);
     stateIndex++;
 
-    end = clock();
+    //end = clock();
 
-    std::cout << "Done. Time to create next state = "
-	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-	      << std::endl;
+    // std::cout << "Done. Time to create next state = "
+    // 	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    // 	      << std::endl;
     
 
-    start = clock();
+    // start = clock();
 
     // Update memory outputs
     for (auto& vd : topoOrder) {
@@ -1133,26 +1127,26 @@ namespace CoreIR {
       
     }
 
-    end = clock();
+    //end = clock();
 
-    std::cout << "Done. Time to update memory outputs = "
-	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-	      << std::endl;
+    // std::cout << "Done. Time to update memory outputs = "
+    // 	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    // 	      << std::endl;
 
-    start = clock();
+    // start = clock();
 
     // Update combinational node values
     for (auto& vd : topoOrder) {
       updateNodeValues(vd);
     }
 
-    end = clock();
+    //end = clock();
 
-    std::cout << "Done. Time to update combinational nodes = "
-	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-	      << std::endl;
+    // std::cout << "Done. Time to update combinational nodes = "
+    // 	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    // 	      << std::endl;
 
-    start = clock();
+    // start = clock();
 
     // Update circuit state
     for (auto& vd : topoOrder) {
@@ -1174,11 +1168,11 @@ namespace CoreIR {
 
     }
 
-    end = clock();
+    // end = clock();
 
-    std::cout << "Done. Time to update memory values = "
-	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-	      << std::endl;
+    // std::cout << "Done. Time to update memory values = "
+    // 	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    // 	      << std::endl;
 
   }
 
