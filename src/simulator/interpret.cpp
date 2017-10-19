@@ -953,7 +953,14 @@ namespace CoreIR {
 
     auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() == 3);
+    if (inConns.size() != 3) {
+      cout << inConns.size() << " inputs " << endl;
+      for (auto& conn : inConns) {
+	cout << conn.first.getWire()->toString() << " -> " <<
+	  conn.second.getWire()->toString() << endl;
+      }
+      assert(inConns.size() == 3);
+    }
 
     InstanceValue wdataV = findArg("wdata", inConns);
     InstanceValue clkArg = findArg("clk", inConns);
