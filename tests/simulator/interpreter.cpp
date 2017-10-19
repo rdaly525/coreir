@@ -589,11 +589,21 @@ namespace CoreIR {
       state.setMainClock("self.clk");
       state.setClock("self.clk", 0, 1);
 
+      SECTION("Before execution valid is 0") {
+	REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      }
+      
       for (int i = 0; i < 10; i++) {
 	state.execute();
       }
 
-      REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+      SECTION("rdata is 11 in steady state") {
+	REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+      }
+
+      SECTION("valid is set to one in steady state") {
+	REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+      }
     }
 
     SECTION("Memory") {
