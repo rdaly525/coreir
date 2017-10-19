@@ -592,7 +592,13 @@ namespace CoreIR {
       SECTION("Before execution valid is 0") {
 	REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
       }
-      
+
+      state.execute();
+
+      SECTION("Before peek value was written valid is still 0") {
+	REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      }
+
       for (int i = 0; i < 10; i++) {
 	state.execute();
       }
