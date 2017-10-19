@@ -146,6 +146,8 @@ namespace CoreIR {
 
     SimulatorState(CoreIR::Module* mod_);
 
+    int numCircStates() const;
+
     std::vector<CircuitState> getCircStates() const;
 
     NGraph& getCircuitGraph() { return gr; }

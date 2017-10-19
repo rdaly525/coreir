@@ -77,6 +77,11 @@ namespace CoreIR {
     return circStates;
   }
 
+  int
+  SimulatorState::numCircStates() const {
+    return circStates.size();
+  }
+  
   int SimulatorState::getStateIndex() const {
     return stateIndex;
   }
@@ -324,7 +329,7 @@ namespace CoreIR {
   }
 
   bool SimulatorState::atLastState() {
-    return stateIndex == (getCircStates().size() - 1);
+    return stateIndex == (numCircStates() - 1);
   }
 
   void SimulatorState::runHalfCycle() {
@@ -1088,9 +1093,29 @@ namespace CoreIR {
   void SimulatorState::execute() {
     assert(atLastState());
 
-    // CircuitState next = circStates[stateIndex];
-    // circStates.push_back(next);
-    // stateIndex++;
+    // Circuit saving seems to incur a quadratic performance cost
+
+    std::clock_t start, end;
+
+    start = clock();
+
+    CircuitState next = circStates[stateIndex];
+
+    // cout << "Valmap size   = " << next.valMap.size() << endl;
+    // cout << "# memories    = " << next.memories.size() << endl;
+    // cout << "# lb memories = " << next.lbMemories.size() << endl;
+
+    circStates.push_back(next);
+    stateIndex++;
+
+    end = clock();
+
+    std::cout << "Done. Time to create next state = "
+	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+	      << std::endl;
+    
+
+    start = clock();
 
     // Update memory outputs
     for (auto& vd : topoOrder) {
@@ -1107,11 +1132,27 @@ namespace CoreIR {
       }
       
     }
-    
+
+    end = clock();
+
+    std::cout << "Done. Time to update memory outputs = "
+	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+	      << std::endl;
+
+    start = clock();
+
     // Update combinational node values
     for (auto& vd : topoOrder) {
       updateNodeValues(vd);
     }
+
+    end = clock();
+
+    std::cout << "Done. Time to update combinational nodes = "
+	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+	      << std::endl;
+
+    start = clock();
 
     // Update circuit state
     for (auto& vd : topoOrder) {
@@ -1132,6 +1173,13 @@ namespace CoreIR {
       }
 
     }
+
+    end = clock();
+
+    std::cout << "Done. Time to update memory values = "
+	      << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+	      << std::endl;
+
   }
 
   void SimulatorState::setClock(const std::string& name,
