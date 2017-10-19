@@ -141,8 +141,6 @@ namespace CoreIR {
 
 	assert(inst != nullptr);
 
-	cout << "inst = " << inst->toString() << endl;
-
 	string opName = getOpName(*inst);
 
 	if ((opName == "const")) {
@@ -688,7 +686,7 @@ namespace CoreIR {
     Conn inConn = *std::begin(inConns);
     InstanceValue arg = inConn.first;
 
-    cout << "Updating " << inst->toString() << " with value " << arg.getWire()->toString() << endl;
+    //cout << "Updating " << inst->toString() << " with value " << arg.getWire()->toString() << endl;
     SimBitVector* s = static_cast<SimBitVector*>(getValue(arg.getWire()));
 
     assert(s != nullptr);
