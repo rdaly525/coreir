@@ -911,7 +911,18 @@ namespace CoreIR {
 
     setValue(toSelect(outPair), new SimBitVector(newRData));
     // Figure out valid semantics
-    setValue(toSelect(vaidSel), new SimBitVector(BitVector(1, 1)));
+    BitVector bv(1, 0);
+    if (lineBufferOutIsValid(inst->toString())) {
+      bv = BitVector(1, 1);
+    }
+    setValue(toSelect(vaidSel), new SimBitVector(bv));
+  }
+
+  bool SimulatorState::lineBufferOutIsValid(const std::string& memName) {
+    LinebufferMemory& mem =
+      (circStates[stateIndex].lbMemories.find(memName))->second;
+
+    return mem.isValid();
   }
 
   BitVector SimulatorState::getLinebufferValue(const std::string& memName) {

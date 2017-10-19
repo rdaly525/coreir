@@ -79,6 +79,7 @@ namespace CoreIR {
 
   class LinebufferMemory {
     std::deque<BitVector> values;
+    std::deque<bool> valids;
     int width, depth;
 
   public:
@@ -88,6 +89,7 @@ namespace CoreIR {
 
       for (int i = 0; i < getDepth(); i++) {
 	values.push_back(BitVector(width, 0));
+	valids.push_back(false);
       }
 
       assert(values.size() == depth);
@@ -99,12 +101,21 @@ namespace CoreIR {
       return values[getDepth() - 1];
     }
 
+    bool isValid() const {
+      assert(valids.size() == depth);
+      return valids.back();
+    }
+
     BitVector push(const BitVector& vec) {
       values.push_front(vec);
+      valids.push_front(true);
+
       BitVector toRet = values.back();
       values.pop_back();
+      valids.pop_back();
 
       assert(values.size() == depth);
+      assert(valids.size() == depth);
 
       return toRet;
     }
@@ -186,6 +197,7 @@ namespace CoreIR {
     void updateBitVecUnop(const vdisc vd, BitVecUnop op);
     void updateBitVecBinop(const vdisc vd, BitVecBinop op);
 
+    bool lineBufferOutIsValid(const std::string& memName);
     BitVector getLinebufferValue(const std::string& memName);
 
     void setValue(CoreIR::Select* sel, SimValue* val);
