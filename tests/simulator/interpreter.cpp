@@ -589,11 +589,11 @@ namespace CoreIR {
       state.setMainClock("self.clk");
       state.setClock("self.clk", 0, 1);
 
-      // state.setWatchPoint("self.rdata", BitVec(width, "11"));
+      for (int i = 0; i < 10; i++) {
+	state.execute();
+      }
 
-      // state.run();
-
-      // REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+      REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
     }
 
     SECTION("Memory") {

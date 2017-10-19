@@ -81,6 +81,30 @@ namespace CoreIR {
     return stateIndex;
   }
 
+  void SimulatorState::setLinebufferMemDefaults() {
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isLinebufferMemInstance(wd.getWire())) {
+	Instance* inst = toInstance(wd.getWire());
+
+	Values args = inst->getGenArgs();
+	uint width = (args["width"])->get<int>();
+	uint depth = (args["depth"])->get<int>();
+	
+
+	// Set memory state to default value
+	LinebufferMemory freshMem(width, depth);
+	circStates[stateIndex].lbMemories.insert({inst->toString(), freshMem});
+
+	// Set memory output port to default
+	setValue(inst->sel("rdata"), new SimBitVector(BitVec(width, 0)));
+	
+      }
+    }
+    
+  }
+
   void SimulatorState::setMemoryDefaults() {
 
     for (auto& vd : gr.getVerts()) {
@@ -338,6 +362,7 @@ namespace CoreIR {
 
     setConstantDefaults();
     setMemoryDefaults();
+    setLinebufferMemDefaults();
     setRegisterDefaults();
 
 
@@ -663,6 +688,7 @@ namespace CoreIR {
     Conn inConn = *std::begin(inConns);
     InstanceValue arg = inConn.first;
 
+    cout << "Updating " << inst->toString() << " with value " << arg.getWire()->toString() << endl;
     SimBitVector* s = static_cast<SimBitVector*>(getValue(arg.getWire()));
 
     assert(s != nullptr);
@@ -851,6 +877,32 @@ namespace CoreIR {
 
   }
 
+  void SimulatorState::updateLinebufferMemOutput(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 2);
+
+    Wireable* outPair = CoreIR::findSelect("rdata", outSelects);
+    Wireable* vaidSel = CoreIR::findSelect("valid", outSelects);
+
+    BitVec newRData = getLinebufferValue(inst->toString());
+
+    setValue(toSelect(outPair), new SimBitVector(newRData));
+    // Figure out valid semantics
+    setValue(toSelect(vaidSel), new SimBitVector(BitVector(1, 1)));
+  }
+
+  BitVector SimulatorState::getLinebufferValue(const std::string& memName) {
+    LinebufferMemory& mem =
+      (circStates[stateIndex].lbMemories.find(memName))->second;
+
+    return mem.peek();
+  }
+
   void SimulatorState::updateMemoryOutput(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -881,6 +933,38 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateLinebufferMemValue(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 3);
+
+    InstanceValue wdataV = findArg("wdata", inConns);
+    InstanceValue clkArg = findArg("clk", inConns);
+    InstanceValue enArg = findArg("wen", inConns);
+
+    SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
+    SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    
+    assert(wdata != nullptr);
+    assert(wen != nullptr);
+    assert(clkVal != nullptr);
+
+    BitVec enBit = wen->getBits();
+
+    if ((clkVal->lastValue() == 0) &&
+    	(clkVal->value() == 1) &&
+	(enBit == BitVec(1, 1))) {
+
+      
+      setLineBufferMem(inst->toString(), wdata->getBits());
+
+      //assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+    }
+    
   }
 
   void SimulatorState::updateMemoryValue(const vdisc vd) {
@@ -996,6 +1080,11 @@ namespace CoreIR {
 	updateMemoryOutput(vd);
       }
 
+      if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
+	// Does this work when the raddr port is not yet defined?
+	updateLinebufferMemOutput(vd);
+      }
+      
     }
     
     // Update combinational node values
@@ -1040,6 +1129,12 @@ namespace CoreIR {
 				const unsigned char clkLast,
 				const unsigned char clk) {
     circStates[stateIndex].valMap[sel] = new ClockValue(clkLast, clk);
+  }
+
+  void SimulatorState::setLineBufferMem(const std::string& name,
+					const BitVector& data) {
+    LinebufferMemory& mem = (circStates[stateIndex].lbMemories.find(name))->second;
+    mem.push(data);
   }
 
   void SimulatorState::setMemory(const std::string& name,

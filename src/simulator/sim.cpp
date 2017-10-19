@@ -255,19 +255,6 @@ namespace CoreIR {
 
   }
 
-  CoreIR::Wireable*
-  findSelect(const std::string& selName,
-	     const std::unordered_map<std::string, CoreIR::Wireable*> selects) {
-    for (auto& sel : selects) {
-      if (sel.first == selName) {
-	return sel.second;
-      }
-    }
-
-    cout << "Could not find select with name = " << selName << endl;
-    assert(false);
-  }
-
   string checkSumOverflowStr(Type& tp,
 			     const std::string& in0StrNC,
 			     const std::string& in1StrNC) {

@@ -261,5 +261,9 @@ namespace CoreIR {
     std::vector<std::string> siOps{"slt", "sgt", "sle", "sge"};
     return elem(genRefName, siOps);
   }
-  
+
+  CoreIR::Wireable*
+  findSelect(const std::string& selName,
+	     const std::unordered_map<std::string, CoreIR::Wireable*> selects);
+
 }

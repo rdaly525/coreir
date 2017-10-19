@@ -77,11 +77,50 @@ namespace CoreIR {
     virtual SimValueType getType() const { return SIM_VALUE_CLK; }
   };
 
+  class LinebufferMemory {
+    std::deque<BitVector> values;
+    int width, depth;
+
+  public:
+
+    LinebufferMemory(const int width_, const int depth_) :
+      width(width_), depth(depth_) {
+
+      for (int i = 0; i < getDepth(); i++) {
+	values.push_back(BitVector(width, 0));
+      }
+
+      assert(values.size() == depth);
+    }
+
+    BitVector peek() const {
+      assert(values.size() == depth);
+
+      return values[getDepth() - 1];
+    }
+
+    BitVector push(const BitVector& vec) {
+      values.push_front(vec);
+      BitVector toRet = values.back();
+      values.pop_back();
+
+      assert(values.size() == depth);
+
+      return toRet;
+    }
+
+    int getDepth() const { return depth; }
+  };
+
   class CircuitState {
   public:
+    // Wire values
     std::unordered_map<CoreIR::Select*, SimValue*> valMap;
-    std::unordered_map<std::string, SimMemory> memories;
 
+    // Internal state of the circuit
+    std::unordered_map<std::string, SimMemory> memories;
+    std::unordered_map<std::string, LinebufferMemory> lbMemories;
+    
   };
 
   typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
@@ -135,10 +174,17 @@ namespace CoreIR {
     void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
     void setRegisterDefaults();
+    void setLineBufferMem(const std::string& name,
+			  const BitVector& data);
+
+    void updateLinebufferMemOutput(const vdisc vd);
     void setMemoryDefaults();
+    void setLinebufferMemDefaults();
 
     void updateBitVecUnop(const vdisc vd, BitVecUnop op);
     void updateBitVecBinop(const vdisc vd, BitVecBinop op);
+
+    BitVector getLinebufferValue(const std::string& memName);
 
     void setValue(CoreIR::Select* sel, SimValue* val);
     void setValue(CoreIR::Select* sel, const BitVec& bv);
