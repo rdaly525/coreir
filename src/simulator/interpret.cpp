@@ -910,7 +910,7 @@ namespace CoreIR {
     BitVec newRData = getLinebufferValue(inst->toString());
 
     setValue(toSelect(outPair), new SimBitVector(newRData));
-    // Figure out valid semantics
+
     BitVector bv(1, 0);
     if (lineBufferOutIsValid(inst->toString())) {
       bv = BitVector(1, 1);
