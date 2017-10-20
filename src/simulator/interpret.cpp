@@ -65,11 +65,15 @@ namespace CoreIR {
 	//assert(val.bitLength() == width);
 
 	// Set memory output port to default
-	setValue(inst->sel("out"), new SimBitVector(BitVec(width, 0)));
+	setValue(inst->sel("out"), makeSimBitVector(BitVec(width, 0))); //new SimBitVector(BitVec(width, 0)));
 	
       }
     }
 
+  }
+
+  SimulatorState::makeSimBitVector(const BitVector& bv) {
+    
   }
 
   std::vector<CircuitState>
@@ -1290,14 +1294,14 @@ namespace CoreIR {
   }
   
   SimulatorState::~SimulatorState() {
-    set<SimValue*> vals;
-    for (auto& state : circStates) {
-      for (auto& val : state.valMap) {
-	vals.insert(val.second);
-      }
-    }
+    // set<SimValue*> vals;
+    // for (auto& state : circStates) {
+    //   for (auto& val : state.valMap) {
+    // 	vals.insert(val.second);
+    //   }
+    // }
 
-    for (auto& val : vals) {
+    for (auto& val : allocatedValues) {
       delete val;
     }
   }

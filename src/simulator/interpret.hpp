@@ -153,6 +153,8 @@ namespace CoreIR {
     std::vector<CircuitState> circStates;
     int stateIndex;
 
+    std::set<SimValue*> allocatedValues;
+
   public:
 
     SimulatorState(CoreIR::Module* mod_);
