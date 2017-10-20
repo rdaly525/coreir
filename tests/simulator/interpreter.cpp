@@ -854,6 +854,8 @@ namespace CoreIR {
 
       
       cout << "out = " << state.getBitVec("self.O") << endl;
+
+      REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
       
     }
 
