@@ -819,6 +819,43 @@ namespace CoreIR {
 
     }
 
+    SECTION("Selecting bits from a bit vector") {
+      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+
+      cout << "loading" << endl;
+      if (!loadFromFile(c,"./sim_ready_sorter.json")) {
+	cout << "Could not Load from json!!" << endl;
+	c->die();
+      }
+
+      Module* m = g->getModule("Sorter8");
+
+      assert(m != nullptr);
+
+      SimulatorState state(m);
+      state.setValue("self.I", BitVector(8, "10010011"));
+
+      cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
+
+      BitVector one(16, "1");
+      BitVector nextIn(16, "0");
+
+      std::clock_t start, end;
+
+      start = std::clock();
+
+      state.execute();
+
+      end = std::clock();
+
+      std::cout << "Done. Time to simulate = "
+		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+		<< std::endl;
+
+      cout << "out = " << state.getBitVec("self.O") << endl;
+      
+    }
+
     deleteContext(c);
   }
 
