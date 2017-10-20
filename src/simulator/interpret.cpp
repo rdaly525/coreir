@@ -72,8 +72,11 @@ namespace CoreIR {
 
   }
 
-  SimulatorState::makeSimBitVector(const BitVector& bv) {
-    
+  SimBitVector* SimulatorState::makeSimBitVector(const BitVector& bv) {
+    auto sbv  = new SimBitVector(bv);
+    allocatedValues.insert(sbv);
+
+    return sbv;
   }
 
   std::vector<CircuitState>
@@ -106,8 +109,8 @@ namespace CoreIR {
 	circStates[stateIndex].lbMemories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
-	setValue(inst->sel("rdata"), new SimBitVector(BitVec(width, 0)));
-	setValue(inst->sel("valid"), new SimBitVector(BitVec(1, 0)));
+	setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0))); //new SimBitVector(BitVec(width, 0)));
+	setValue(inst->sel("valid"), makeSimBitVector(BitVec(1, 0))); //new SimBitVector(BitVec(1, 0)));
       }
     }
 
@@ -131,7 +134,7 @@ namespace CoreIR {
 	circStates[stateIndex].memories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
-	setValue(inst->sel("rdata"), new SimBitVector(BitVec(width, 0)));
+	setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0))); //new SimBitVector(BitVec(width, 0)));
 	
       }
     }
@@ -178,7 +181,7 @@ namespace CoreIR {
 	  Select* outSel = toSelect(outPair.second);
 	  ArrayType& arrTp = toArray(*(outSel->getType()));
 	  
-	  setValue(outSel, new SimBitVector(BitVec(arrTp.getLen(), argInt)));
+	  setValue(outSel, makeSimBitVec(BitVec(arrTp.getLen(), argInt))); //new SimBitVector(BitVec(arrTp.getLen(), argInt)));
 	} else if (opName == "bitconst") {
 
 	  bool foundValue = false;
@@ -206,7 +209,7 @@ namespace CoreIR {
 
 	  Select* outSel = toSelect(outPair.second);
 	  
-	  setValue(outSel, new SimBitVector(BitVec(1, argInt)));
+	  setValue(outSel, makeSimBitVector(BitVec(1, argInt)));
 
 	}
       }
@@ -395,7 +398,7 @@ namespace CoreIR {
 
     assert(atLastState());
 
-    SimBitVector* b = new SimBitVector(bv);    
+    SimBitVector* b = makeSimBitVector(bv);    
     setValue(sel, b);
   }
 
@@ -454,7 +457,7 @@ namespace CoreIR {
 
       int index = selectNum(sel);
 
-      return new SimBitVector(BitVec(1, (val->getBits()).get(index)));
+      return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
     }
 
     auto it = circStates[stateIndex].valMap.find(sel);
@@ -495,7 +498,7 @@ namespace CoreIR {
       res.set(i - lo, sB.get(i));
     }
 
-    setValue(toSelect(outPair.second), new SimBitVector(res));
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
   }
 
   void SimulatorState::updateAndrNode(const vdisc vd) {
@@ -528,7 +531,7 @@ namespace CoreIR {
       }
     }
 
-    setValue(toSelect(outPair.second), new SimBitVector(res));
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
   }
 
   void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
@@ -554,7 +557,7 @@ namespace CoreIR {
     
     BitVec res = op(s1->getBits());
 
-    setValue(toSelect(outPair.second), new SimBitVector(res));
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
 
   }
 
@@ -587,7 +590,7 @@ namespace CoreIR {
     
     BitVec res = op(bv1, bv2);
 
-    setValue(toSelect(outPair.second), new SimBitVector(res));
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
   }
 
   void SimulatorState::updateAndNode(const vdisc vd) {
@@ -684,7 +687,7 @@ namespace CoreIR {
       sum = s2->getBits();
     }
 
-    setValue(toSelect(outPair.second), new SimBitVector(sum));
+    setValue(toSelect(outPair.second), makeSimBitVector(sum));
 
   }
 
@@ -731,7 +734,7 @@ namespace CoreIR {
 
       Select* receiverSel = toSelect(receiver.getWire());
 
-      setValue(receiverSel, new SimBitVector(s->getBits()));
+      setValue(receiverSel, makeSimBitVector(s->getBits()));
     }
     
   }
@@ -770,7 +773,7 @@ namespace CoreIR {
     bv_uint64 i = get_shift_int(s1->getBits());
     unsigned char lutBit = vals.get(i);
     
-    setValue(toSelect(outPair.second), new SimBitVector(BitVector(1, lutBit)));
+    setValue(toSelect(outPair.second), makeSimBitVector(BitVector(1, lutBit)));
   }
 
   void SimulatorState::updateNodeValues(const vdisc vd) {
@@ -944,13 +947,13 @@ namespace CoreIR {
 
     BitVec newRData = getLinebufferValue(inst->toString());
 
-    setValue(toSelect(outPair), new SimBitVector(newRData));
+    setValue(toSelect(outPair), makeSimBitVector(newRData));
 
     BitVector bv(1, 0);
     if (lineBufferOutIsValid(inst->toString())) {
       bv = BitVector(1, 1);
     }
-    setValue(toSelect(vaidSel), new SimBitVector(bv));
+    setValue(toSelect(vaidSel), makeSimBitVector(bv));
   }
 
   bool SimulatorState::lineBufferOutIsValid(const std::string& memName) {
@@ -992,7 +995,7 @@ namespace CoreIR {
 
     BitVec newRData = getMemory(inst->toString(), raddrBits);
 
-    setValue(toSelect(outPair.second), new SimBitVector(newRData));
+    setValue(toSelect(outPair.second), makeSimBitVector(newRData));
     
   }
 
@@ -1115,7 +1118,7 @@ namespace CoreIR {
 
       if (inConns.size() == 2) {
 
-	setValue(toSelect(outPair.second), new SimBitVector(s1->getBits()));
+	setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
       } else {
 	assert(inConns.size() == 3);
 
@@ -1127,7 +1130,7 @@ namespace CoreIR {
 
 	if (enBit->getBits() == BitVec(1, 1)) {
 
-	  setValue(toSelect(outPair.second), new SimBitVector(s1->getBits()));
+	  setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
 	}
 
       }
@@ -1277,7 +1280,7 @@ namespace CoreIR {
       	val = static_cast<SimBitVector*>(getValue(parent));
       } else {
       	// TODO: Wrap allocations and delete at end of context
-      	val = new SimBitVector(BitVector(arrLen));
+      	val = makeSimBitVector(BitVector(arrLen));
       }
 
       cout << "Array access to " << sel->getSelStr() << "!" << endl;
@@ -1287,7 +1290,7 @@ namespace CoreIR {
       int index = selectNum(sel);
       oldBv.set(index, bits.get(0));
 
-      circStates[stateIndex].valMap[parent] = new SimBitVector(oldBv);
+      circStates[stateIndex].valMap[parent] = makeSimBitVector(oldBv);
 
     }
     circStates[stateIndex].valMap[sel] = val;

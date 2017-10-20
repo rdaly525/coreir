@@ -161,9 +161,12 @@ namespace CoreIR {
 
     int numCircStates() const;
 
+    
     std::vector<CircuitState> getCircStates() const;
 
     NGraph& getCircuitGraph() { return gr; }
+
+    SimBitVector* makeSimBitVector(const BitVector& bv);
 
     int getStateIndex() const;
     
