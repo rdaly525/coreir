@@ -60,12 +60,9 @@ namespace CoreIR {
 	assert(wArg != nullptr);
 
 	uint width = (args["width"])->get<int>();
-	//BitVector val = args["value"]->get<BitVector>();
-
-	//assert(val.bitLength() == width);
 
 	// Set memory output port to default
-	setValue(inst->sel("out"), makeSimBitVector(BitVec(width, 0))); //new SimBitVector(BitVec(width, 0)));
+	setValue(inst->sel("out"), makeSimBitVector(BitVec(width, 0)));
 	
       }
     }
@@ -109,8 +106,8 @@ namespace CoreIR {
 	circStates[stateIndex].lbMemories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
-	setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0))); //new SimBitVector(BitVec(width, 0)));
-	setValue(inst->sel("valid"), makeSimBitVector(BitVec(1, 0))); //new SimBitVector(BitVec(1, 0)));
+	setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0)));
+	setValue(inst->sel("valid"), makeSimBitVector(BitVec(1, 0)));
       }
     }
 
@@ -134,7 +131,7 @@ namespace CoreIR {
 	circStates[stateIndex].memories.insert({inst->toString(), freshMem});
 
 	// Set memory output port to default
-	setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0))); //new SimBitVector(BitVec(width, 0)));
+	setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0)));
 	
       }
     }
@@ -181,7 +178,7 @@ namespace CoreIR {
 	  Select* outSel = toSelect(outPair.second);
 	  ArrayType& arrTp = toArray(*(outSel->getType()));
 	  
-	  setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt))); //new SimBitVector(BitVec(arrTp.getLen(), argInt)));
+	  setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
 	} else if (opName == "bitconst") {
 
 	  bool foundValue = false;
@@ -1239,7 +1236,9 @@ namespace CoreIR {
   void SimulatorState::setClock(CoreIR::Select* sel,
 				const unsigned char clkLast,
 				const unsigned char clk) {
-    circStates[stateIndex].valMap[sel] = new ClockValue(clkLast, clk);
+    auto clkVal = new ClockValue(clkLast, clk);
+    allocatedValues.insert(clkVal);
+    circStates[stateIndex].valMap[sel] = clkVal; //new ClockValue(clkLast, clk);
   }
 
   void SimulatorState::setLineBufferMem(const std::string& name,
