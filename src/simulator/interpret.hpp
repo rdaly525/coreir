@@ -222,6 +222,7 @@ namespace CoreIR {
 
     bool exists(const std::string& selStr) const;
     bool isSet(const std::string& selStr) const;
+    bool isSet(CoreIR::Select* s) const;
 
     SimValue* getValue(const std::string& name) const;
     SimValue* getValue(CoreIR::Select* sel) const;

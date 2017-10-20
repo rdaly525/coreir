@@ -289,6 +289,14 @@ namespace CoreIR {
     return true;
   }
 
+  bool SimulatorState::isSet(CoreIR::Select* s) const {
+    if (!valMapContains(s)) {
+      return false;
+    }
+
+    return true;
+  }
+  
   bool SimulatorState::hitWatchPoint() const {
     for (auto& func : stopConditions) {
       if (func()) {
@@ -1263,21 +1271,39 @@ namespace CoreIR {
     if (arrayAccess(sel)) {
       cout << "Array access " << sel->toString() << endl;
 
-      string selStr = sel->getSelStr();
+      assert(val->getType() == SIM_VALUE_BV);
 
+      SimBitVector* bv = static_cast<SimBitVector*>(val);
+      BitVector bits = bv->getBits();
+
+      assert(bits.bitLength() == 1);
+      
+      string selStr = sel->getSelStr();
+      Select* parent = toSelect(sel->getParent());
+
+      Type& t = *(parent->getType());
+      ArrayType& arrTp = toArray(t);
+      int arrLen = arrTp.getLen();
+      
       assert(CoreIR::isNumber(selStr));
 
-      SimBitVector* val =
-	static_cast<SimBitVector*>(getValue(toSelect(sel->getParent())));
+      SimBitVector* val;
+      if (isSet(parent)) {
+      	val = static_cast<SimBitVector*>(getValue(parent));
+      } else {
+      	// TODO: Wrap allocations and delete at end of context
+      	val = new SimBitVector(BitVector(arrLen));
+      }
 
       cout << "Array access to " << sel->getSelStr() << "!" << endl;
 
+      BitVector oldBv = val->getBits();
+
       int index = std::stoi(selStr);
+      oldBv.set(index, bits.get(0));
 
-      
-      //return new SimBitVector(BitVec(1, (val->getBits()).get(index)));
+      circStates[stateIndex].valMap[sel] = new SimBitVector(oldBv);
 
-      assert(false);
     }
     circStates[stateIndex].valMap[sel] = val;
   }
