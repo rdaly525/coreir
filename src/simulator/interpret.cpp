@@ -393,7 +393,6 @@ namespace CoreIR {
 
     SimBitVector* b = new SimBitVector(bv);    
     setValue(sel, b);
-    // circStates[stateIndex].valMap[sel] = b;
   }
 
   CoreIR::Select* SimulatorState::findSelect(const std::string& name) const {
@@ -446,16 +445,10 @@ namespace CoreIR {
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) const {
     if (arrayAccess(sel)) {
 
-      // string selStr = sel->getSelStr();
-
-      // assert(CoreIR::isNumber(selStr));
-
       SimBitVector* val =
 	static_cast<SimBitVector*>(getValue(toSelect(sel->getParent())));
 
-      // cout << "Array access to " << sel->getSelStr() << "!" << endl;
-
-      int index = selectNum(sel); //std::stoi(selStr);
+      int index = selectNum(sel);
 
       return new SimBitVector(BitVec(1, (val->getBits()).get(index)));
     }
@@ -471,21 +464,17 @@ namespace CoreIR {
 
   void SimulatorState::updateSliceNode(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
-
     Instance* inst = toInstance(wd.getWire());
-
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
-
     auto inConns = getInputConnections(vd, gr);
 
     assert(inConns.size() == 1);
 
     InstanceValue arg1 = findArg("in", inConns);
-
     SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
     
     assert(s1 != nullptr);
