@@ -435,6 +435,11 @@ namespace CoreIR {
   }
 
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) const {
+    if (arrayAccess(sel)) {
+      cout << "Array access!" << endl;
+      assert(false);
+    }
+
     auto it = circStates[stateIndex].valMap.find(sel);
 
     if (it == std::end(circStates[stateIndex].valMap)) {
@@ -563,8 +568,11 @@ namespace CoreIR {
     
     assert(s1 != nullptr);
     assert(s2 != nullptr);
+
+    BitVector bv1 = s1->getBits();
+    BitVector bv2 = s2->getBits();
     
-    BitVec res = op(s1->getBits(), s2->getBits());
+    BitVec res = op(bv1, bv2);
 
     setValue(toSelect(outPair.second), new SimBitVector(res));
   }

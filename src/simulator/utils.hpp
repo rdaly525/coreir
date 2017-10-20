@@ -6,6 +6,10 @@
 
 namespace CoreIR {
 
+  static inline bool arrayAccess(Select* in) {
+    return isNumber(in->getSelStr());
+  }
+
   static inline bool isSelect(CoreIR::Wireable* fst) {
     return fst->getKind() == CoreIR::Wireable::WK_Select;
   }

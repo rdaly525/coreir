@@ -679,10 +679,6 @@ namespace CoreIR {
     return fromSelf(toSelect(parent));
   }
 
-  bool arrayAccess(Select* in) {
-    return isNumber(in->getSelStr());
-  }
-
   std::unordered_map<string, Type*>
   outputs(Module& mod) {
     Type* tp = mod.getType();
