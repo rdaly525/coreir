@@ -391,8 +391,9 @@ namespace CoreIR {
 
     assert(atLastState());
 
-    SimBitVector* b = new SimBitVector(bv);
-    circStates[stateIndex].valMap[sel] = b;
+    SimBitVector* b = new SimBitVector(bv);    
+    setValue(sel, b);
+    // circStates[stateIndex].valMap[sel] = b;
   }
 
   CoreIR::Select* SimulatorState::findSelect(const std::string& name) const {
@@ -445,17 +446,16 @@ namespace CoreIR {
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) const {
     if (arrayAccess(sel)) {
 
-      string selStr = sel->getSelStr();
+      // string selStr = sel->getSelStr();
 
-      assert(CoreIR::isNumber(selStr));
+      // assert(CoreIR::isNumber(selStr));
 
       SimBitVector* val =
 	static_cast<SimBitVector*>(getValue(toSelect(sel->getParent())));
-      
 
-      cout << "Array access to " << sel->getSelStr() << "!" << endl;
+      // cout << "Array access to " << sel->getSelStr() << "!" << endl;
 
-      int index = std::stoi(selStr);
+      int index = selectNum(sel); //std::stoi(selStr);
 
       return new SimBitVector(BitVec(1, (val->getBits()).get(index)));
     }
@@ -1265,13 +1265,6 @@ namespace CoreIR {
     return circStates[stateIndex].valMap.find(sel) != std::end(circStates[stateIndex].valMap);
   }
 
-  int selectNum(CoreIR::Select* const sel) {
-    string selStr = sel->getSelStr();
-    assert(CoreIR::isNumber(selStr));
-    int index = std::stoi(selStr);
-    return index;
-  }
-
   void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
     if (arrayAccess(sel)) {
       cout << "Array access " << sel->toString() << endl;
@@ -1283,12 +1276,8 @@ namespace CoreIR {
 
       assert(bits.bitLength() == 1);
       
-      //string selStr = sel->getSelStr();
       Select* parent = toSelect(sel->getParent());
-
-      Type& t = *(parent->getType());
-      ArrayType& arrTp = toArray(t);
-      int arrLen = arrTp.getLen();
+      int arrLen = arrayLen(parent);
 
       SimBitVector* val;
       if (isSet(parent)) {
@@ -1302,7 +1291,7 @@ namespace CoreIR {
 
       BitVector oldBv = val->getBits();
 
-      int index = selectNum(sel); //std::stoi(selStr);
+      int index = selectNum(sel);
       oldBv.set(index, bits.get(0));
 
       circStates[stateIndex].valMap[parent] = new SimBitVector(oldBv);

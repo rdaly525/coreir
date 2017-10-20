@@ -6,6 +6,14 @@
 
 namespace CoreIR {
 
+  static inline int selectNum(CoreIR::Select* const sel) {
+    std::string selStr = sel->getSelStr();
+    assert(CoreIR::isNumber(selStr));
+    int index = std::stoi(selStr);
+    return index;
+  }
+
+  
   static inline bool arrayAccess(Select* in) {
     return isNumber(in->getSelStr());
   }
@@ -269,5 +277,17 @@ namespace CoreIR {
   CoreIR::Wireable*
   findSelect(const std::string& selName,
 	     const std::unordered_map<std::string, CoreIR::Wireable*> selects);
+
+  static inline int arrayLen(CoreIR::Select* const parent) {
+    Type& t = *(parent->getType());
+    ArrayType& arrTp = toArray(t);
+    int arrLen = arrTp.getLen();
+    return arrLen;
+  }
+
+  static inline int parentArrayLen(CoreIR::Select* const sel) {
+    Select* parent = toSelect(sel->getParent());
+    return arrayLen(parent);
+  }
 
 }
