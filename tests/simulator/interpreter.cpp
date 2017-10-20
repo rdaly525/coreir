@@ -852,6 +852,7 @@ namespace CoreIR {
 		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
 		<< std::endl;
 
+      
       cout << "out = " << state.getBitVec("self.O") << endl;
       
     }

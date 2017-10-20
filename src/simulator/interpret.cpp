@@ -1302,7 +1302,7 @@ namespace CoreIR {
       int index = std::stoi(selStr);
       oldBv.set(index, bits.get(0));
 
-      circStates[stateIndex].valMap[sel] = new SimBitVector(oldBv);
+      circStates[stateIndex].valMap[parent] = new SimBitVector(oldBv);
 
     }
     circStates[stateIndex].valMap[sel] = val;
