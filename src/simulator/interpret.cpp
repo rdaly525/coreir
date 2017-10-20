@@ -919,7 +919,6 @@ namespace CoreIR {
 	    return BitVec(1, 0);
 	  }
 	});
-      
     } else if (opName == "sle") {
 
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
@@ -929,7 +928,6 @@ namespace CoreIR {
 	    return BitVec(1, 0);
 	  }
 	});
-      
     } else if (opName == "lutN") {
       updateLUTNNode(vd);
     } else {
@@ -1267,6 +1265,13 @@ namespace CoreIR {
     return circStates[stateIndex].valMap.find(sel) != std::end(circStates[stateIndex].valMap);
   }
 
+  int selectNum(CoreIR::Select* const sel) {
+    string selStr = sel->getSelStr();
+    assert(CoreIR::isNumber(selStr));
+    int index = std::stoi(selStr);
+    return index;
+  }
+
   void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
     if (arrayAccess(sel)) {
       cout << "Array access " << sel->toString() << endl;
@@ -1278,14 +1283,12 @@ namespace CoreIR {
 
       assert(bits.bitLength() == 1);
       
-      string selStr = sel->getSelStr();
+      //string selStr = sel->getSelStr();
       Select* parent = toSelect(sel->getParent());
 
       Type& t = *(parent->getType());
       ArrayType& arrTp = toArray(t);
       int arrLen = arrTp.getLen();
-      
-      assert(CoreIR::isNumber(selStr));
 
       SimBitVector* val;
       if (isSet(parent)) {
@@ -1299,7 +1302,7 @@ namespace CoreIR {
 
       BitVector oldBv = val->getBits();
 
-      int index = std::stoi(selStr);
+      int index = selectNum(sel); //std::stoi(selStr);
       oldBv.set(index, bits.get(0));
 
       circStates[stateIndex].valMap[parent] = new SimBitVector(oldBv);
