@@ -229,13 +229,13 @@ namespace CoreIR {
     bool isSet(const std::string& selStr) const;
     bool isSet(CoreIR::Select* s) const;
 
-    SimValue* getValue(const std::string& name) const;
-    SimValue* getValue(CoreIR::Select* sel) const;
-    SimValue* getValue(const std::vector<std::string>& str) const;
+    SimValue* getValue(const std::string& name);
+    SimValue* getValue(CoreIR::Select* sel);
+    SimValue* getValue(const std::vector<std::string>& str);
 
-    BitVec getBitVec(CoreIR::Select* sel) const;
-    BitVec getBitVec(const std::string& str) const;
-    BitVec getBitVec(const std::vector<std::string>& str) const;
+    BitVec getBitVec(CoreIR::Select* sel);
+    BitVec getBitVec(const std::string& str);
+    BitVec getBitVec(const std::vector<std::string>& str);
 
     void updateRegisterValue(const vdisc vd);
     void updateMemoryValue(const vdisc vd);

@@ -181,7 +181,7 @@ namespace CoreIR {
 	  Select* outSel = toSelect(outPair.second);
 	  ArrayType& arrTp = toArray(*(outSel->getType()));
 	  
-	  setValue(outSel, makeSimBitVec(BitVec(arrTp.getLen(), argInt))); //new SimBitVector(BitVec(arrTp.getLen(), argInt)));
+	  setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt))); //new SimBitVector(BitVec(arrTp.getLen(), argInt)));
 	} else if (opName == "bitconst") {
 
 	  bool foundValue = false;
@@ -274,13 +274,13 @@ namespace CoreIR {
     return final;
   }
 
-  SimValue* SimulatorState::getValue(const std::vector<std::string>& str) const {
+  SimValue* SimulatorState::getValue(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
 
     return getValue(concatName);
   }
   
-  BitVec SimulatorState::getBitVec(const std::vector<std::string>& str) const {
+  BitVec SimulatorState::getBitVec(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
 
     return getBitVec(concatName);
@@ -424,7 +424,7 @@ namespace CoreIR {
     return true;
   }
 
-  BitVec SimulatorState::getBitVec(const std::string& str) const {
+  BitVec SimulatorState::getBitVec(const std::string& str) {
     ModuleDef* def = mod->getDef();
     Wireable* w = def->sel(str);
     Select* sel = toSelect(w);
@@ -432,7 +432,7 @@ namespace CoreIR {
     return getBitVec(sel);
   }
 
-  SimValue* SimulatorState::getValue(const std::string& name) const {
+  SimValue* SimulatorState::getValue(const std::string& name)  {
     ModuleDef* def = mod->getDef();
     Wireable* w = def->sel(name);
     Select* sel = toSelect(w);
@@ -440,7 +440,7 @@ namespace CoreIR {
     return getValue(sel);
   }
 
-  BitVec SimulatorState::getBitVec(CoreIR::Select* sel) const {
+  BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
 
     SimValue* v = getValue(sel);
 
@@ -449,7 +449,7 @@ namespace CoreIR {
     return static_cast<SimBitVector*>(v)->getBits();
   }
 
-  SimValue* SimulatorState::getValue(CoreIR::Select* sel) const {
+  SimValue* SimulatorState::getValue(CoreIR::Select* sel) {
     if (arrayAccess(sel)) {
 
       SimBitVector* val =
