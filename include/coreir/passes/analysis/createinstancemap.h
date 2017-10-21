@@ -7,8 +7,8 @@ namespace CoreIR {
 namespace Passes {
 
 class CreateInstanceMap : public ModulePass {
-  //Map from Instantiables to a list of instances
-  std::map<Instantiable*,std::set<Instance*>> modInstanceMap;
+  std::map<Module*,std::set<Instance*>> modInstanceMap;
+  std::map<Generator*,std::set<Instance*>> genInstanceMap;
   public :
     static std::string ID;
     CreateFullInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
@@ -16,15 +16,15 @@ class CreateInstanceMap : public ModulePass {
     void releaseMemory() override {
       instanceMap.clear();
     }
-    bool hasInstances(Instantiable* i) {
-      return instanceMap.count(i) > 0;
-    }
-    std::set<Instance*> getModuleInstances(Instantiable* i) {
+    std::set<Instance*> getModInstances(Module* m) {
       ASSERT(this->hasInstances(i),i->getRefName() + " has no instances!");
-      return instanceMap[i];
+      return modInstanceMap[i];
     }
-    std::map<Instantiable*,std::set<Instance*>>& getModInstanceMap() {
-      return instanceMap;
+    std::map<Module*,std::set<Instance*>>& getModInstanceMap() {
+      return modInstanceMap;
+    }
+    std::map<Generator*,std::set<Instance*>>& getGenInstanceMap() {
+      return genInstanceMap;
     }
 };
 

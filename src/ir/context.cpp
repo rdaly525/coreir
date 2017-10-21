@@ -136,6 +136,15 @@ Generator* Context::getGenerator(string ref) {
   return ns->getGenerator(refsplit[1]);
 }
 
+GlobalValue* getGlobalValue(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
+  Namespace* ns = getNamespace(refsplit[0]);
+  if (
+  ASSERT(ns->hasGenerator(refsplit[1]),"Missing module: " + ref);
+  return ns->getGenerator(refsplit[1]);
+}
+
 void Context::addPass(Pass* p) {
   assert(pm);
   p->addPassManager(pm);

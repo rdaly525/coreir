@@ -35,11 +35,12 @@ bool InstanceVisitorPass::runOnGenInstances(Generator* g, set<Instance*>& instan
 
 
 void InstanceVisitorPass::addVisitorFunction(Module* m,InstanceVisitor_t fun) {
-  ASSERT(visitorMap.count(i)==0,"Already added Function for " + i->getRefName());
-  visitorMap[i] = fun;
+  ASSERT(!m->generated(),"NYI visitor for generated module");
+  ASSERT(modVisitorMap.count(m)==0,"Already added Function for " + m->getRefName());
+  modVisitorMap[i] = fun;
 }
 
 void InstanceVisitorPass::addVisitorFunction(Generator* m,InstanceVisitor_t fun) {
-  ASSERT(visitorMap.count(i)==0,"Already added Function for " + i->getRefName());
-  visitorMap[i] = fun;
+  ASSERT(genVisitorMap.count(g)==0,"Already added Function for " + g->getRefName());
+  genVisitorMap[g] = fun;
 }

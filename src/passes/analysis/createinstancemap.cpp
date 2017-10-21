@@ -7,8 +7,13 @@ using namespace std;
 std::string Passes::CreateFullInstanceMap::ID = "createfullinstancemap";
 bool Passes::CreateFullInstanceMap::runOnModule(Module* m) {
   for (auto instmap : m->getDef()->getInstances()) {
-    Instantiable* i = instmap.second->getInstantiableRef();
-    instanceMap[i].insert(instmap.second);
+    Module* m = instmap.second->getModuleRef();
+    if (m->generated()) {
+      genInstanceMap[m->getGenerator()].insert(instmap.second);
+    }
+    else {
+      modInstanceMap[m].insert(instmap.second);
+    }
   }
   return false;
 }

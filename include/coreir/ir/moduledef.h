@@ -66,7 +66,7 @@ class ModuleDef {
     Instance* addInstance(std::string instname,Generator* genref,Values genargs, Values modargs=Values());
     Instance* addInstance(std::string instname,Module* modref,Values modargs=Values());
     
-    //Add instance using an Instantiable ref std::string
+    //Add instance using a GlobalValue ref std::string
     Instance* addInstance(std::string instname,std::string iref,Values genOrModargs=Values(), Values modargs=Values());
     
     //copys info about i
