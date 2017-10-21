@@ -11,10 +11,10 @@ class vmodule:
   def add_param(self,name,init=None):
     self.params.append([name,init])
 
-  def add_input(self,name, width):
+  def add_input(self,name, width=None):
     self.ports.append(["input",name,width])
   
-  def add_output(self,name, width):
+  def add_output(self,name, width=None):
     self.ports.append(["output",name,width])
   
   def add_body(self,body):
@@ -36,7 +36,7 @@ class vmodule:
     for port in self.ports:
       p = "  " + port[0]
       width = port[2]
-      if (width != 1):
+      if (width is not None):
         if type(width) is str:
           p += " [%s-1:0]" % width
         elif type(width) is int:
@@ -115,7 +115,7 @@ if __name__ == "__main__":
           v.add_input("in0","width")
           v.add_input("in1","width")
         if (t.find("Reduce")>=0):
-          v.add_output("out",1)
+          v.add_output("out")
         else:
           v.add_output("out","width")
         v.add_body("  assign out = %s;" % exp)
@@ -127,10 +127,36 @@ if __name__ == "__main__":
     v.add_param("width",16)
     v.add_input("in0","width")
     v.add_input("in1","width")
-    v.add_input("sel",1)
+    v.add_input("sel")
     v.add_output("out","width")
     v.add_body("  assign out = sel ? in1 : in0;")
     f.write(v.to_string())
+
+    f.write("//1 bit ops\n")
+    #Do the 1 bit versions
+    for name,op in [("and","&"),("or","|"),("xor","^")]:
+      v = vmodule("coreir_bit"+name)
+      v.add_input("in0")
+      v.add_input("in1")
+      v.add_output("out")
+      v.add_body("  assign out = in0 " + op + "in1;")
+      f.write(v.to_string())
+
+    v = vmodule("coreir_bitnot")
+    v.add_input("in")
+    v.add_output("out")
+    v.add_body("  assign out = ~in;")
+    f.write(v.to_string())
+    
+    v = vmodule("coreir_bitmux")
+    v.add_input("in0")
+    v.add_input("in1")
+    v.add_input("sel")
+    v.add_output("out")
+    v.add_body("  assign out = sel ? in1 : in0;")
+    f.write(v.to_string())
+
+
 
     #Do Slice
     f.write("//slice op\n")
@@ -163,11 +189,26 @@ if __name__ == "__main__":
     v.add_body("  assign out = value;")
     f.write(v.to_string())
     
+    #Do the Bit Const
+    f.write("//Bit Const op\n")
+    v = vmodule("coreir_bitconst")
+    v.add_param("value",0)
+    v.add_output("out")
+    v.add_body("  assign out = value;")
+    f.write(v.to_string())
+    
     #Do the term
     f.write("//term op\n")
     v = vmodule("coreir_term")
     v.add_param("width",16)
     v.add_input("in","width")
+    v.add_body("  ")
+    f.write(v.to_string())
+    
+    #Do the bitterm
+    f.write("//term op\n")
+    v = vmodule("coreir_bitterm")
+    v.add_input("in")
     v.add_body("  ")
     f.write(v.to_string())
 
@@ -222,18 +263,90 @@ if __name__ == "__main__":
       #if (rst or clr):
       v.add_param("init",0)
       v.add_input("in","width")
-      v.add_input("clk",1)
+      v.add_input("clk")
       v.add_output("out","width")
       if (rst):
-        v.add_input("rst",1)
+        v.add_input("rst")
       if (clr):
-        v.add_input("clr",1)
+        v.add_input("clr")
       if (en):
-        v.add_input("en",1)
+        v.add_input("en")
+
+      v.add_body(body)
+      f.write(v.to_string())
+    
+    #Now do the single bit versions
+    for i in range(16):
+      posedge = (i>>0) & 1
+      rst = (i>>1) & 1
+      clr = (i>>2) & 1
+      en = (i>>3) & 1
+      if (rst and clr):
+        continue
+      body = "  reg r;\n"
+      body += "  always @(%s clk" % ("posedge" if posedge else "negedge")
+      if (rst):
+        body += ", negedge rst"
+      body += ") begin\n"
+      if (rst):
+        body += "    if (!rst) r <= init;\n"
+        body += "    else r <= %s;\n" % rexpr(clr,en)
+      else:
+        body += "    r <= %s;\n" % rexpr(clr,en)
+      body += "  end\n"
+      body += "  assign out = r;"
+      name = "bitreg_" + ("P" if posedge else "N")
+      if (rst):
+        name += "R"
+      if (clr):
+        name += "C"
+      if (en):
+        name += "E"
+      v = vmodule("coreir_"+name)
+      #if (rst or clr):
+      v.add_param("init",0)
+      v.add_input("in")
+      v.add_input("clk")
+      v.add_output("out")
+      if (rst):
+        v.add_input("rst")
+      if (clr):
+        v.add_input("clr")
+      if (en):
+        v.add_input("en")
 
       v.add_body(body)
       f.write(v.to_string())
       
+    #Now do the memory
+    v = vmodule("coreir_mem")
+    v.add_param("width",16)
+    v.add_param("depth",1024)
+    v.add_input("clk")
+    v.add_input("wdata","width")
+    v.add_input("waddr","$clog2(depth)")
+    v.add_input("wen")
+    v.add_output("rdata","width")
+    v.add_input("raddr","$clog2(depth)")
+    v.add_body("""
+reg [width-1:0] data[depth-1:0];
 
+always @(posedge clk) begin
+  if (wen) begin
+    data[waddr] <= wdata;
+  end
+end
 
+assign rdata = data[raddr];
+
+//Initialize to X
+integer i;
+initial begin
+  outreg = {width{1'bx}};
+  for (i=0; i<depth; i=i+1) begin
+    data[i] = {width{1'bx}};
+  end
+end
+""");
+    f.write(v.to_string())
 

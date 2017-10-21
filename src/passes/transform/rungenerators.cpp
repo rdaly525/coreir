@@ -1,6 +1,7 @@
 #include "coreir.h"
-#include "coreir-passes/transform/rungenerators.h"
+#include "coreir/passes/transform/rungenerators.h"
 
+using namespace std;
 using namespace CoreIR;
 
 
@@ -10,11 +11,6 @@ bool rungeneratorsRec(Module* m, unordered_set<Module*>& ran, unordered_set<Modu
   assert(m);
   //If I already checked module, then just return
   if (ran.count(m) > 0) return false;
-  
-  //If no definition, just return
-  if (!m->hasDef()) {
-    return false; 
-  }
 
   // Check if there are runnable generators
   // Also insert all modules in the runQueue

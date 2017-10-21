@@ -1,14 +1,23 @@
-#include "context.hpp"
-#include "coreirprims.hpp"
+#include "coreir/ir/context.h"
+#include "coreir/ir/typecache.h"
+#include "coreir/ir/valuecache.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/ir/dynamic_bit_vector.h"
+
 
 using namespace std;
 
+
+
 namespace CoreIR {
+
+#include "coreirprims.hpp"
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
-  cache = new TypeCache(this);
-  //Automatically load coreir
+  typecache = new TypeCache(this);
+  valuecache = new ValueCache(this);
+  //Automatically load coreir //defined in coreirprims.h
   CoreIRLoadLibrary_coreirprims(this);
   pm = new PassManager(this);
 }
@@ -17,11 +26,9 @@ Context::Context() : maxErrors(8) {
 Context::~Context() {
   
   //for (auto it : genargsList) delete it;
-  for (auto it : argList) delete it;
-  for (auto it : argPtrArrays) free(it);
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
-  for (auto it : libs) delete it.second;
+  for (auto it : namespaces) delete it.second;
   for (auto it : connectionPtrArrays) free(it);
   for (auto it : connectionArrays) free(it);
   for (auto it : wireableArrays) free(it);
@@ -30,8 +37,10 @@ Context::~Context() {
   for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
- 
-  delete cache;
+  for (auto it : valuePtrArrays) free(it);
+
+  delete typecache;
+  delete valuecache;
 }
 
 void Context::print() {
@@ -42,23 +51,31 @@ void Context::print() {
   cout << "EndContext" << endl;
 }
 
+void Context::error(Error& e) { 
+  errors.push_back(e.msg);
+  if (e.isfatal || errors.size() >= maxErrors) die();
+}
+void Context::printerrors() { 
+  for (auto err : errors) cout << "ERROR: " << err << endl << endl;
+}
+
 void Context::die() {
   printerrors();
   cout << "I AM DYING!" << endl;
   delete this; // sketch but okay if exits I guess
-  exit(1);
+  assert(0);
 }
 
 
 Namespace* Context::newNamespace(string name) { 
   Namespace* n = new Namespace(this,name);
-  libs.emplace(name,n);
+  namespaces.emplace(name,n);
   return n;
 }
 
 Namespace* Context::getNamespace(string name) {
-  auto it = libs.find(name);
-  if (it == libs.end()) {
+  auto it = namespaces.find(name);
+  if (it == namespaces.end()) {
     Error e;
     e.message("Could Not Find Namespace");
     e.message("  Namespace : " + name);
@@ -149,19 +166,19 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 }
 */
 
-Type* Context::Any() { return cache->newAny(); }
-Type* Context::Bit() { return cache->newBit(); }
-Type* Context::BitIn() { return cache->newBitIn(); }
-Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
-Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::Named(string nameref) {
+BitType* Context::Bit() { return typecache->getBit(); }
+BitInType* Context::BitIn() { return typecache->getBitIn(); }
+ArrayType* Context::Array(uint n, Type* t) { return typecache->getArray(n,t);}
+RecordType* Context::Record(RecordParams rp) { return typecache->getRecord(rp); }
+NamedType* Context::Named(string nameref) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
-Type* Context::Named(string nameref,Args args) {
+NamedType* Context::Named(string nameref,Values args) {
+  checkValuesAreConst(args);
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
@@ -177,6 +194,27 @@ Type* Context::In(Type* t) {
 Type* Context::Out(Type* t) {
   assert(0 && "TODO NYI");
 }
+
+BoolType* Context::Bool() { return BoolType::make(this);}
+IntType* Context::Int(){ return IntType::make(this);}
+BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
+StringType* Context::String() { return StringType::make(this);}
+//CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
+
+void Context::setTop(Module* top) {
+  ASSERT(top && top->hasDef(), top->toString() + " has no def!");
+  this->top = top;
+}
+void Context::setTop(string topRef) {
+  auto topsplit = splitString<vector<string>>(topRef,'.');
+  ASSERT(topsplit.size()==2,topRef + " is not a valid top!");
+  ASSERT(this->hasNamespace(topsplit[0]),"Missing namespace " + topsplit[0]);
+  Namespace* topns = this->getNamespace(topsplit[0]);
+  ASSERT(topns->hasModule(topsplit[1]),"Missing module " + topRef);
+  this->top = topns->getModule(topsplit[1]);
+  ASSERT(this->top->hasDef(),topRef + " has no def!");
+}
+
 
 TypeGen* Context::getTypeGen(string nameref) {
   vector<string> split = splitRef(nameref);
@@ -197,15 +235,15 @@ Params* Context::newParams() {
   return params;
 }
 
-Args* Context::newArgs() {
-  Args* args = new Args();
-  argsList.push_back(args);
-  return args;
+Values* Context::newValues() {
+  Values* vals = new Values();
+  valuesList.push_back(vals);
+  return vals;
 }
 
-Arg** Context::newArgPtrArray(int size) {
-    Arg** arr = (Arg**) malloc(sizeof(Arg*) * size);
-    argPtrArrays.push_back(arr);
+Value** Context::newValueArray(int size) {
+    Value** arr = (Value**) malloc(sizeof(Value*) * size);
+    valuePtrArrays.push_back(arr);
     return arr;
 }
 
@@ -257,26 +295,6 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     return arr;
 }
 
-Arg* Context::argBool(bool b) { 
-  Arg* ga = new ArgBool(b); 
-  argList.push_back(ga);
-  return ga;
-}
-Arg* Context::argInt(int i) { 
-  Arg* ga = new ArgInt(i); 
-  argList.push_back(ga);
-  return ga;
-}
-Arg* Context::argString(string s) { 
-  Arg* ga = new ArgString(s); 
-  argList.push_back(ga);
-  return ga;
-}
-Arg* Context::argType(Type* t) { 
-  Arg* ga = new ArgType(t); 
-  argList.push_back(ga);
-  return ga;
-}
 
 Context* newContext() {
   Context* m = new Context();

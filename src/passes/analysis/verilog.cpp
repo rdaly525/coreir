@@ -1,8 +1,10 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/vmodule.hpp"
-#include "coreir-passes/analysis/verilog.h"
+#include "coreir/passes/analysis/vmodule.h"
+#include "coreir/passes/analysis/verilog.h"
 
+using namespace std;
 using namespace CoreIR;
+using namespace CoreIR::Passes;
 
 namespace {
 

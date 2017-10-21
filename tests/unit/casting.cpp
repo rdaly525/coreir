@@ -1,20 +1,11 @@
 #include "coreir.h"
 #include <cassert>
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {
   Context* c = newContext();
-  
-  //Any
-  {
-    Type* t = c->Any();
-    assert(isa<AnyType>(t));
-    AnyType* at = cast<AnyType>(t);
-    assert(dyn_cast<Type>(at));
-    assert(dyn_cast<AnyType>(t));
-    assert(!dyn_cast<BitType>(t));
-  }
   
   //Bit
   {
@@ -35,45 +26,55 @@ int main() {
     assert(dyn_cast<ArrayType>(t));
     assert(!dyn_cast<RecordType>(t));
   }
-  
 
-  //Test casting of ArgInt
+  //Test casting of ConstBool
   {
-    Arg* a = c->argInt(5);
-    assert(isa<ArgInt>(a));
-    assert(a->get<ArgInt>()==5);
-    ArgInt* ac = cast<ArgInt>(a);
-    assert(dyn_cast<Arg>(ac));
-    assert(dyn_cast<ArgInt>(a));
-    assert(!dyn_cast<ArgString>(a));
+    Const* a = Const::make(c,false);
+    assert(isa<ConstBool>(a));
+    assert(a->get<bool>()==false);
+    ConstBool* ac = cast<ConstBool>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstBool>(a));
+    assert(!dyn_cast<ConstString>(a));
   }
   
-  //Test casting of ArgString
+  //Test casting of ConstInt
   {
-    Arg* a = c->argString("Ross");
-    assert(isa<ArgString>(a));
-    assert(a->get<ArgString>()=="Ross");
-    ArgString* ac = cast<ArgString>(a);
-    assert(dyn_cast<Arg>(ac));
-    assert(dyn_cast<ArgString>(a));
-    assert(!dyn_cast<ArgType>(a));
+    Const* a = Const::make(c,5);
+    assert(isa<ConstInt>(a));
+    assert(a->get<int>()==5);
+    ConstInt* ac = cast<ConstInt>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstInt>(a));
+    assert(!dyn_cast<ConstString>(a));
   }
   
-  //Test casting of ArgType
+  //Test casting of ConstString
   {
-    Arg* a = c->argType(c->BitIn());
-    assert(isa<ArgType>(a));
-    assert(a->get<ArgType>()==c->BitIn());
-    ArgType* ac = cast<ArgType>(a);
-    assert(dyn_cast<Arg>(ac));
-    assert(dyn_cast<ArgType>(a));
-    assert(!dyn_cast<ArgInt>(a));
+    Const* a = Const::make(c,"Ross");
+    assert(isa<ConstString>(a));
+    assert(a->get<string>()=="Ross");
+    ConstString* ac = cast<ConstString>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstString>(a));
+    assert(!dyn_cast<ConstCoreIRType>(a));
+  }
+  
+  //Test casting of ConstCoreIRType
+  {
+    Const* a = Const::make(c,c->BitIn());
+    assert(isa<ConstCoreIRType>(a));
+    assert(a->get<Type*>()==c->BitIn());
+    ConstCoreIRType* ac = cast<ConstCoreIRType>(a);
+    assert(dyn_cast<Const>(ac));
+    assert(dyn_cast<ConstCoreIRType>(a));
+    assert(!dyn_cast<ConstInt>(a));
   }
 
   //Test casting of Module
   {
     Namespace* g = c->getGlobal();
-    Instantiable* m = g->newModuleDecl("A",c->Any());
+    Instantiable* m = g->newModuleDecl("A",c->Record());
     assert(isa<Module>(m));
     Module* mi = cast<Module>(m);
     assert(dyn_cast<Instantiable>(m));
@@ -95,7 +96,7 @@ int main() {
   //Test casting of Wireables
   {
     Namespace* g = c->getGlobal();
-    Module* m = g->newModuleDecl("B",c->Any());
+    Module* m = g->newModuleDecl("B",c->Record({{"in",c->Bit()}}));
     ModuleDef* def = m->newModuleDef();
     Wireable* iface = def->sel("self");
     assert(isa<Interface>(iface));
@@ -111,7 +112,7 @@ int main() {
     assert(dyn_cast<Instance>(inst));
     assert(!dyn_cast<Interface>(inst));
     
-    Wireable* sel = inst->sel(5);
+    Wireable* sel = inst->sel("in");
     assert(isa<Select>(sel));
     Select* sel_ = cast<Select>(sel);
     assert(dyn_cast<Wireable>(sel_));

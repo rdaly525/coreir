@@ -1,0 +1,15 @@
+#!/bin/sh
+set -x #echo on
+echo "$1"
+
+#function mytest {
+#  "$@"
+#  local status = $?
+set -e
+if [[ -n $1 &&  "$1" -eq '-memcheck' ]]; then
+    #  for file in build/*; do valgrind --error-exitcode=1 $file; done
+    valgrind --error-exitcode=1 ./build/simtests
+else
+    #for file in build/*; do $file; done
+    ./build/simtests
+fi

@@ -11,15 +11,15 @@
           "instances": {
             "i00": {
               "genref": "coreir.add",
-              "genargs": {"width":16}
+              "genargs": {"width":["Int", 16]}
             },
             "i01": {
               "genref": "coreir.add",
-              "genargs": {"width":16}
+              "genargs": {"width":["Int", 16]}
             },
             "i1": {
               "genref": "coreir.add",
-              "genargs": {"width":16}
+              "genargs": {"width":["Int", 16]}
             }
           },
           "connections": [

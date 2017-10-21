@@ -1,24 +1,24 @@
-
-#include "moduledef.hpp"
-#include "typegen.hpp"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/error.h"
+#include "coreir/ir/value.h"
 #include <iterator>
+
 
 using namespace std;
 
 namespace CoreIR {
 
-
-
 ModuleDef::ModuleDef(Module* module) : module(module), instancesIterFirst(nullptr), instancesIterLast(nullptr) {
   interface = new Interface(this,module->getContext()->Flip(module->getType()));
-  cache = new SelCache();
 }
 
 ModuleDef::~ModuleDef() {
   //Delete interface, instances, cache
   delete interface;
   for(auto inst : instances) delete inst.second;
-  delete cache;
 }
 
 
@@ -27,7 +27,7 @@ void ModuleDef::print(void) {
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
     if (inst.second->isGen()) {
-      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Args2Str(inst.second->getGenArgs()) << endl;
+      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(inst.second->getGenArgs()) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
@@ -80,6 +80,12 @@ Wireable* ModuleDef::sel(SelectPath path) {
   }
   return cur;
 }
+Wireable* ModuleDef::sel(std::initializer_list<const char*> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
+Wireable* ModuleDef::sel(std::initializer_list<std::string> path) {
+  return sel(SelectPath(path.begin(),path.end()));
+}
 
 void ModuleDef::appendInstanceToIter(Instance* instance) {
     if (instancesIterFirst == nullptr) {
@@ -131,10 +137,10 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 }
 
 
-Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
-  assert(instances.count(instname)==0);
+Instance* ModuleDef::addInstance(string instname,Generator* gen, Values genargs,Values modargs) {
+  ASSERT(instances.count(instname)==0,instname + " already an instance");
 
-  Instance* inst = new Instance(this,instname,gen,genargs,config);
+  Instance* inst = new Instance(this,instname,gen,genargs,modargs);
   instances[instname] = inst;
 
   appendInstanceToIter(inst);
@@ -142,8 +148,9 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
-  Instance* inst = new Instance(this,instname,m,config);
+Instance* ModuleDef::addInstance(string instname,Module* m,Values modargs) {
+  ASSERT(instances.count(instname)==0,instname + " already an instance");
+  Instance* inst = new Instance(this,instname,m,modargs);
   instances[instname] = inst;
   
   appendInstanceToIter(inst);
@@ -151,15 +158,15 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,string iref,Args genOrConfigargs, Args configargs) {
+Instance* ModuleDef::addInstance(string instname,string iref,Values genOrModargs, Values modargs) {
   vector<string> split = splitRef(iref);
   Instantiable* ref = this->getContext()->getInstantiable(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
-    return this->addInstance(instname,g,genOrConfigargs,configargs);
+    return this->addInstance(instname,g,genOrModargs,modargs);
   }
   else {
     auto m = cast<Module>(ref);
-    return this->addInstance(instname,m,genOrConfigargs);
+    return this->addInstance(instname,m,genOrModargs);
   }
 }
 
@@ -168,9 +175,9 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
     iname = i->getInstname();
   }
   if( i->isGen()) 
-    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getConfigArgs());
+    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getModArgs());
   else 
-    return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
+    return addInstance(iname,i->getModuleRef(),i->getModArgs());
 }
 
 void ModuleDef::connect(Wireable* a, Wireable* b) {
@@ -239,7 +246,7 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   this->disconnect(connect);
 }
 void ModuleDef::disconnect(Connection con) {
-  ASSERT(connections.count(con),"Cannot delete connection that is not connected!");
+  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + Connection2Str(con));
   
   //remove references
   con.first->removeConnectedWireable(con.second);
@@ -249,12 +256,7 @@ void ModuleDef::disconnect(Connection con) {
   connections.erase(con);
 }
 
-void disconnectAllWireables(ModuleDef* m, Wireable* w) {
-  for (auto sels : w->getSelects()) {
-    disconnectAllWireables(m,sels.second);
-  }
-  m->disconnect(w);
-}
+
 void ModuleDef::removeInstance(Instance* inst) {
   removeInstance(inst->getInstname());
 }
@@ -265,7 +267,16 @@ void ModuleDef::removeInstance(string iname) {
   Instance* inst = instances.at(iname);
   
   //First remove all the connections from this instance
-  disconnectAllWireables(this,inst);
+  inst->disconnectAll();
+
+  //remove the wireable (WILL free pointer)
+  vector<string> sels;
+  for (auto selmap : inst->getSelects()) {
+    sels.push_back(selmap.first);
+  }
+  for (auto sel : sels) {
+    inst->removeSel(sel);
+  }
 
   //Now remove this instance
   instances.erase(iname);

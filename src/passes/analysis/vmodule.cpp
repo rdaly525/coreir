@@ -1,7 +1,9 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/vmodule.hpp"
+#include "coreir/passes/analysis/vmodule.h"
 
 using namespace CoreIR;
+using namespace CoreIR::Passes;
+using namespace std;
 
 string VModule::toString() {
   vector<string> pdecs;
@@ -34,24 +36,27 @@ string VModule::toInstanceString(Instance* inst) {
   Instantiable* iref = inst->getInstantiableRef();
   if (this->gen) {
     ASSERT(inst->isGen(),"DEBUG ME:");
+    auto paramsAndDefaults = gen->getModParams(inst->getGenArgs());
+    this->addParams(paramsAndDefaults.first);
+    this->addDefaults(paramsAndDefaults.second);
   }
   ostringstream o;
   string tab = "  ";
   string mname;
   unordered_map<string,VWire> iports;
-  Args args;
+  Values args;
   if (gen) {
     args = inst->getGenArgs();
     Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
-    mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
+    mname = gen->getNamespace()->getName() + "_" + modname; //TODO bug
   }
   else {
     mname = modname;
     iports = ports;
   }
 
-  for (auto amap : inst->getConfigArgs()) {
-    ASSERT(args.count(amap.first)==0,"NYI Alisaaed config/genargs");
+  for (auto amap : inst->getModArgs()) {
+    ASSERT(args.count(amap.first)==0,"NYI Alisaaed modargs/genargs");
     args[amap.first] = amap.second;
   }
   o << tab << mname << " ";
@@ -67,7 +72,7 @@ string VModule::toInstanceString(Instance* inst) {
   }
   vector<string> paramstrs;
   for (auto param : params) {
-    ASSERT(args.count(param),"Missing parameter " + param + " from " + Args2Str(args));
+    ASSERT(args.count(param),"Missing parameter " + param + " from " + Values2Str(args));
     string astr = "." + param + "(" + args[param]->toString() + ")";
     paramstrs.push_back(astr);
   }

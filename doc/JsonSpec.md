@@ -5,7 +5,10 @@ any key followed by a ? means it is optional
 
 ```
 //What is in the json file
-{<namespaceName>:Namespace, ...}
+{
+  "top: NamedRef,
+  namespaces: {<namespaceName>:Namespace, ...}
+}
 
 
 //Definitions
@@ -20,7 +23,7 @@ Namespace={
 Type = "BitIn" 
      | "Bit" 
      | ["Array", <N>, Type] 
-     | ["Record", {<key>:Type,...} ] 
+     | ["Record", {<field>:Type,...} ] 
      | ["Named",NamedRef, Args?]
 
 //This could be referring a type, module, or generator
@@ -32,8 +35,8 @@ NamedTypeGen = {"flippedname"?:<name>,"genparams":Parameter}
 //Note if there are no instances and no connections, this is a declaration
 Module = {
   "type":Type,
-  "configparams"?:Parameter,
-  "defaultconfigargs"?:Args,
+  "modparams"?:Parameter,
+  "defaultmodargs"?:Values,
   "instances"?:{<instname>:Instance,...},
   "connections"?: Connection[]
 }
@@ -41,16 +44,14 @@ Module = {
 Generator = {
   "typegen":NamedRef
   "genparams":Parameters,
-  "defaultgenargs"?:Args,
-  "configparams"?:Parameters,
-  "defaultconfigargs"?:Args,
+  "defaultgenargs"?:Consts,
 }
 
 Instance = {
-  "modref"?:NamedRef,
   "genref"?:NamedRef,
-  "genargs"?:Args,
-  "configargs"?:Args
+  "genargs"?:Values,
+  "modref"?:NamedRef,
+  "modargs"?:Values
 }
 
 Connection = [Wireable, Wireable]
@@ -59,10 +60,24 @@ Connection = [Wireable, Wireable]
 //Note: a,b can be digits representing an index. 
 Wireable = "<instname>,<a>,<b>,..."
 
-Parameters = {<key>:ParameterType,...}
-ParameterType = "Bool" | "Uint" | "Int" | "String" | "Type" | //NYI "Instantiatable"
 
-Args = {<key>:ArgsValue}
-ArgsValue = <Bool> | <Number> | <string> | Type | //NYI InstantiatableReference
+//The following is my Value IR. 
+//This contains a small IR representing constants and Referneces to generator/module args. This will be expanded
+
+ValueType = "Bool"
+          | "Int"
+          | ["BitVector" <N>]
+          | "String"
+          | "CoreIRType"
+
+Params = {<field>:ValueType,...}
+
+Arg = [ValueType, "Arg", <field>]
+Const = [ValueType, <Val>]
+
+Value = Arg
+      | Const
+
+Values = {<field>:Value,...}
 
 ```

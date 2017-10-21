@@ -1,16 +1,14 @@
 
 /*
- * Make sure you start at hellomodule.hpp before this one.
+ * Make sure you start at hellomodule.h before this one.
  *
  * This is just filling out some function definitions
  */
 
 #include "coreir.h"
-#include "coreir-passes/analysis/hellomodule.h"
+#include "coreir/passes/analysis/hellomodule.h"
 
-//This is For a convenient macro to create the registerPass and deletePass functions
-#include "coreir-macros.h"
-
+using namespace std;
 using namespace CoreIR;
 
 

@@ -1,22 +1,30 @@
-#include "json.hpp"
-#include <iostream>
 #include <fstream>
-#include "context.hpp"
-#include "instantiable.hpp"
-#include "namespace.hpp"
-#include "typegen.hpp"
-#include <unordered_map>
+#include "coreir/ir/json.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/error.h"
+#include "coreir/ir/instantiable.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/wireable.h"
+#include "coreir/ir/value.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 
+using namespace std;
 
 namespace CoreIR {
 
-typedef unordered_map<string,json> jsonmap;
-
 using json = nlohmann::json;
+typedef map<string,json> jsonmap;
+
 
 Type* json2Type(Context* c, json jt);
-Args json2Args(Context* c, Params p, json j);
-Params json2Params(json j);
+Values json2Values(Context* c, json j);
+Value* json2Value(Context* c, json j);
+ValueType* json2ValueType(Context* c,json j);
+Params json2Params(Context* c,json j);
 
 Module* getModSymbol(Context* c, string nsname, string iname);
 Module* getModSymbol(Context* c, string ref);
@@ -91,7 +99,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
         for (auto jntypegen : jns.at("namedtypegens").get<jsonmap>()) {
           checkJson(jntypegen.second,{"genparams","flippedname"});
           string name = jntypegen.first;
-          Params genparams = json2Params(jntypegen.second.at("genparams"));
+          Params genparams = json2Params(c,jntypegen.second.at("genparams"));
           if (!ns->hasTypeGen(name)) {
             throw std::runtime_error("Missing namedtypegen symbol: " + ns->getName() + "." + name);
           }
@@ -127,16 +135,16 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           
           json jmod = jmodmap.second;
-          checkJson(jmod,{"type","configparams","defaultconfigargs","instances","connections"});
+          checkJson(jmod,{"type","modparams","defaultmodargs","instances","connections"});
           Type* t = json2Type(c,jmod.at("type"));
           
-          Params configparams;
-          if (jmod.count("configparams")) {
-            configparams = json2Params(jmod.at("configparams"));
+          Params modparams;
+          if (jmod.count("modparams")) {
+            modparams = json2Params(c,jmod.at("modparams"));
           }
-          Module* m = ns->newModuleDecl(jmodname,t,configparams);
-          if (jmod.count("defaultconfigargs")) {
-            m->setDefaultConfigArgs(json2Args(c,configparams,jmod.at("defaultconfigargs")));
+          Module* m = ns->newModuleDecl(jmodname,t,modparams);
+          if (jmod.count("defaultmodargs")) {
+            m->addDefaultModArgs(json2Values(c,jmod.at("defaultmodargs")));
           }
           if (jmod.count("metadata")) {
             m->setMetaData(jmod["metadata"]);
@@ -149,26 +157,23 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           string jgenname = jgenmap.first;
           //TODO for now, if it has a module already, just skip
           if (ns->hasGenerator(jgenname)) {
-            //TODO confirm that it has the same everything like genparams and configparams
+            //TODO confirm that it has the same everything like genparams and modparams
             continue;
           }
 
           json jgen = jgenmap.second;
-          checkJson(jgen,{"typegen","genparams","defaultgenargs","configparams","defaultconfigargs"});
-          Params genparams = json2Params(jgen.at("genparams"));
+          checkJson(jgen,{"typegen","genparams","defaultgenargs"});
+          Params genparams = json2Params(c,jgen.at("genparams"));
           auto tgenref = getRef(jgen.at("typegen").get<string>());
           TypeGen* typegen = c->getTypeGen(jgen.at("typegen").get<string>());
           assert(genparams == typegen->getParams());
-          Params configparams;
-          if (jgen.count("configparams")) {
-            configparams = json2Params(jgen.at("configparams"));
-          }
-          Generator* g = ns->newGeneratorDecl(jgenname,typegen,genparams,configparams);
-          if (jgen.count("defaultconfigargs")) {
-            g->setDefaultConfigArgs(json2Args(c,configparams,jgen.at("defaultconfigargs")));
-          }
+          Params modparams;
+          Generator* g = ns->newGeneratorDecl(jgenname,typegen,genparams);
+          //if (jgen.count("defaultmodargs")) {
+          //  g->addDefaultModArgs(json2Values(c,modparams,jgen.at("defaultmodargs")));
+          //}
           if (jgen.count("defaultgenargs")) {
-            g->setDefaultGenArgs(json2Args(c,genparams,jgen.at("defaultgenargs")));
+            g->addDefaultGenArgs(json2Values(c,jgen.at("defaultgenargs")));
           }
           if (jgen.count("metadata")) {
             g->setMetaData(jgen["metadata"]);
@@ -187,27 +192,27 @@ bool loadFromFile(Context* c, string filename,Module** top) {
         for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
           string instname = jinstmap.first;
           json jinst = jinstmap.second;
-          checkJson(jinst,{"modref","genref","genargs","configargs"});
+          checkJson(jinst,{"modref","genref","genargs","modargs"});
           // This function can throw an error
           if (jinst.count("modref")) {
             assert(jinst.count("genref")==0);
             assert(jinst.count("genargs")==0);
             Module* modRef = getModSymbol(c,jinst.at("modref").get<string>());
-            Args configargs;
-            if (jinst.count("configargs")) {
-              configargs = json2Args(c,modRef->getConfigParams(),jinst.at("configargs"));
+            Values modargs;
+            if (jinst.count("modargs")) {
+              modargs = json2Values(c,jinst.at("modargs"));
             }
-            mdef->addInstance(instname,modRef,configargs);
+            mdef->addInstance(instname,modRef,modargs);
           }
           else if (jinst.count("genargs") && jinst.count("genref")) { // This is a generator
             auto gref = getRef(jinst.at("genref").get<string>());
             Generator* genRef = getGenSymbol(c,gref[0],gref[1]);
-            Args genargs = json2Args(c,genRef->getGenParams(),jinst.at("genargs"));
-            Args configargs;
-            if (jinst.count("configargs")) {
-              configargs = json2Args(c,genRef->getConfigParams(),jinst.at("configargs"));
+            Values genargs = json2Values(c,jinst.at("genargs"));
+            Values modargs;
+            if (jinst.count("modargs")) {
+              modargs = json2Values(c,jinst.at("modargs"));
             }
-            mdef->addInstance(instname,genRef,genargs,configargs);
+            mdef->addInstance(instname,genRef,genargs,modargs);
           }
           else {
             ASSERTTHROW(0,"Bad Instance. Need (modref || (genref && genargs))");
@@ -230,6 +235,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     //If top exists return it
     if (top && j.count("top")) {
       *top = getModSymbol(c,j["top"].get<string>());
+      c->setTop(*top);
     }
     else if (top) {
       *top = nullptr;
@@ -268,38 +274,63 @@ Generator* getGenSymbol(Context* c, string nsname, string iname) {
   throw std::runtime_error(msg);
 }
 
-Params json2Params(json j) {
+ValueType* json2ValueType(Context* c,json j) {
+  if (j.type() == json::value_t::array) {
+    ASSERT(j[0].get<string>()=="BitVector","Bad string for ValueType");
+    return c->BitVector(j[1].get<int>());
+  }
+  string vs = j.get<string>();
+  if (vs=="Bool") {
+    return c->Bool();
+  }
+  else if(vs=="Int") {
+    return c->Int();
+  }
+  else if(vs=="String") {
+    return c->String();
+  }
+  else if(vs=="CoreIRType") {
+    return CoreIRType::make(c);
+  }
+  else {
+    ASSERT(0,vs + " is not a ValueType");
+  }
+}
+
+Params json2Params(Context* c,json j) {
   Params g;
   if (j.is_null()) return g;
   for (auto jmap : j.get<jsonmap>()) {
-    g[jmap.first] = Str2Param(jmap.second.get<string>());
+    g[jmap.first] = json2ValueType(c,jmap.second);
   }
   return g;
 }
 
+Value* json2Value(Context* c, json j) {
+  auto jlist = j.get<vector<json>>();
+  ValueType* vtype = json2ValueType(c,jlist[0]);
+  json jval = jlist[1];
+  ASSERT(jlist.size()==2,"NYI");
+  switch(vtype->getKind()) {
+    case Value::VK_ConstBool : return Const::make(c,jval.get<bool>());
+    case Value::VK_ConstInt : return Const::make(c,jval.get<int>());
+    case Value::VK_ConstBitVector : return Const::make(c,BitVector(cast<BitVectorType>(vtype)->getWidth(),jval.get<uint64_t>()));
+    case Value::VK_ConstString : return Const::make(c,jval.get<string>());
+    case Value::VK_ConstCoreIRType : return Const::make(c,json2Type(c,jval));
+    default : ASSERT(0,"Cannot have a Const of type" + vtype->toString());
+  }
+}
 
-//loop over what j has and verify it is in genparams
-Args json2Args(Context* c, Params genparams, json j) {
-  Args gargs; 
+Values json2Values(Context* c, json j) {
+  Values values; 
 
   for (auto jmap : j.get<jsonmap>()) {
     string key = jmap.first;
-    if (!genparams.count(key)) {
-      throw std::runtime_error(key + " does not exist in params!");
-    }
-    Param kind = genparams.at(key);
-    Arg* g;
-    switch(kind) {
-      case ABOOL : g = c->argBool(j.at(key).get<bool>()); break;
-      case AINT : g = c->argInt(j.at(key).get<int>()); break;
-      case ASTRING : g = c->argString(j.at(key).get<string>()); break;
-      case ATYPE : g = c->argType(json2Type(c,j.at(key))); break;
-      default :  throw std::runtime_error(Param2Str(kind) + "is not a valid arg param!");
-    }
-    gargs[key] = g;
+    values[jmap.first] = json2Value(c,jmap.second);
   }
-  return gargs;
+  return values;
 }
+
 
 Type* json2Type(Context* c, json jt) {
   if (jt.type() == json::value_t::string) {
@@ -307,7 +338,6 @@ Type* json2Type(Context* c, json jt) {
     string kind = jt.get<string>();
     if (kind == "BitIn") return c->BitIn();
     else if (kind == "Bit") return c->Bit();
-    else if (kind == "Any") return c->Any();
     else throw std::runtime_error(kind + " is not a type!");
   }
   else if (jt.type() == json::value_t::array) {
@@ -319,11 +349,11 @@ Type* json2Type(Context* c, json jt) {
       return c->Array(n,t);
     }
     else if (kind == "Record") {
-      vector<myPair<string,Type*>> rargs;
+      RecordParams rparams;
       for (auto it : args[1].get<jsonmap>()) {
-        rargs.push_back({it.first,json2Type(c,it.second)});
+        rparams.push_back({it.first,json2Type(c,it.second)});
       }
-      return c->Record(rargs);
+      return c->Record(rparams);
     }
     else if (kind == "Named") {
       vector<string> info = getRef(args[1].get<string>());
@@ -331,7 +361,7 @@ Type* json2Type(Context* c, json jt) {
       std::string name   = info[1];
       if (args.size()==3) { //Has args
         Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
-        Args genargs = json2Args(c,genparams,args[2]);
+        Values genargs = json2Values(c,args[2]);
         return c->Named(nsname+"."+name,genargs);
       }
       return c->Named(nsname+"."+name);
@@ -342,7 +372,6 @@ Type* json2Type(Context* c, json jt) {
     }
   }
   else throw std::runtime_error("Error parsing Type");
-  return c->Any();
 }
 
 #undef ASSERTTHROW

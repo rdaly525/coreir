@@ -13,25 +13,18 @@ Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.b
 
 ### To Install:
     
-    `cd <path_to_coreir>`
-    `make install`
+    cd <path_to_coreir>
+    make install
+    
+Note: To specify a specific version of `g++` (typically required on older, shared Linux systems), set the `CXX` variable in the make command (e.g. `make install CXX=g++-4.9`)
 
 ### To verify coreir build
     
-    `make test`
+    make test
 
 ### Install standalone binary
 
-    `make coreir`
+    make coreir
 
-## How to Install Python Bindings
-
-### To Install: 
-
-    `cd <path_to_coreir>`
-    `make py`
-  
-### To verify python bindings
-    
-    `make pytest`
-
+## Python Bindings
+[https://github.com/leonardt/pycoreir](https://github.com/leonardt/pycoreir)
