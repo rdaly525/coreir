@@ -38,11 +38,11 @@ string VModule::toInstanceString(Instance* inst) {
     ASSERT(inst->isGen(),"DEBUG ME:");
     auto paramsAndDefaults = gen->getModParams(inst->getGenArgs());
 
-    cout << "Params before addParams in toInstanceString" << endl;
-    for (auto& p : params) {
-      cout << p << endl;
-    }
-    cout << "end params." << endl;
+    // cout << "Params before addParams in toInstanceString" << endl;
+    // for (auto& p : params) {
+    //   cout << p << endl;
+    // }
+    // cout << "end params." << endl;
 
     this->addParams(paramsAndDefaults.first);
     this->addDefaults(paramsAndDefaults.second);
