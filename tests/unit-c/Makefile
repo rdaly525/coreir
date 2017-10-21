@@ -5,7 +5,7 @@ INCS = -I$(HOME)/include -I.
 LPATH = -L$(HOME)/lib
 #TODO Hacky to include coreir lib. Maybe I should generate coreir-c statically including all of coreir
 LIBS = -Wl,-rpath,$(HOME)/lib -lcoreir-c -lcoreir
-SRCFILES = $(wildcard *.c)
+SRCFILES = $(wildcard [^_]*.c)
 OBJS = $(patsubst %.c,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.c,build/%,$(SRCFILES))
 

@@ -18,15 +18,15 @@ int main() {
   g->newNamedType("int16","intIn16",c->Array(16,c->Bit()));
   assert(g->getNamedType("int16") == c->Flip(g->getNamedType("intIn16")));
 
-  auto intTypeFun = [](Context* c, Args args) {
+  auto intTypeFun = [](Context* c, Values args) {
     int n = args.at("w")->get<int>();
     return c->Array(n,c->Bit());
   };
 
-  g->newNominalTypeGen("int", "intIn",{{"w",AINT}},intTypeFun);
-  Args ga1 = {{"w",Const(16)}};
-  Args ga2 = {{"w",Const(16)}};
-  Args ga3 = {{"w",Const(17)}};
+  g->newNominalTypeGen("int", "intIn",{{"w",c->Int()}},intTypeFun);
+  Values ga1 = {{"w",Const::make(c,16)}};
+  Values ga2 = {{"w",Const::make(c,16)}};
+  Values ga3 = {{"w",Const::make(c,17)}};
   
   ASSERT(ga1 == ga2,"Equality is bad");
   ASSERT(ga1 != ga3,"not equalit is bad");

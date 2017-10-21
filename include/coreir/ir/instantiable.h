@@ -4,74 +4,67 @@
 
 #include "fwd_declare.h"
 #include "metadata.h"
+#include "refname.h"
+#include "common.h"
 
 namespace CoreIR {
 
-class Instantiable : public MetaData {
+class Instantiable : public MetaData, public RefName {
   public :
     enum InstantiableKind {IK_Module,IK_Generator};
     enum LinkageKind {LK_Namespace=0, LK_Generated=1};
   protected:
     InstantiableKind kind;
-    Namespace* ns;
-    std::string name;
-    Params configparams;
-    Args defaultConfigArgs;
+    
     LinkageKind linkageKind;
   public :
-    Instantiable(InstantiableKind kind, Namespace* ns, std::string name, Params configparams) : MetaData(), kind(kind), ns(ns), name(name), configparams(configparams), linkageKind(LK_Namespace) {}
+    Instantiable(InstantiableKind kind, Namespace* ns, std::string name) : MetaData(), RefName(ns,name), kind(kind), linkageKind(LK_Namespace) {}
     virtual ~Instantiable() {}
+    InstantiableKind getKind() const { return kind;}
     
-    virtual bool hasDef() const=0;
     virtual std::string toString() const =0;
     virtual void print(void) = 0;
-    bool isKind(InstantiableKind k) const { return kind==k;}
-    InstantiableKind getKind() const { return kind;}
+    
     void setLinkageKind(LinkageKind k) { linkageKind = k;}
     LinkageKind getLinkageKind() { return linkageKind; }
-    Context* getContext();
-    Params getConfigParams() { return configparams;}
-    const std::string& getName() const { return name;}
-    std::string getRefName() const;
-    //string getName() const { return name;}
-    Namespace* getNamespace() const { return ns;}
+    
     void setNamespace(Namespace* ns) {this->ns = ns;}
     friend bool operator==(const Instantiable & l,const Instantiable & r);
     
-    //This will add (and override) defaultConfigArgs
-    void addDefaultConfigArgs(Args defaultConfigArgs);
-    Args getDefaultConfigArgs() { return defaultConfigArgs;}
 };
 
 std::ostream& operator<<(std::ostream& os, const Instantiable&);
 
 class Generator : public Instantiable {
-  TypeGen* typegen;
-  Params genparams;
-  Args defaultGenArgs; 
-  NameGen_t nameGen=nullptr;
+  public : 
+  
+  private :
+  
+    TypeGen* typegen;
+    
+    Params genparams;
+    Values defaultGenArgs; 
+    
+    NameGenFun nameGen=nullptr;
+    ModParamsGenFun modParamsGen=nullptr;
 
-  //This is memory managed
-  std::unordered_map<Args,Module*> genCache;
-  GeneratorDef* def = nullptr;
+    //This is memory managed
+    std::map<Values,Module*,ValuesComp> genCache;
+    GeneratorDef* def = nullptr;
   
   public :
-    Generator(Namespace* ns,std::string name,TypeGen* typegen, Params genparams, Params configparams);
+    Generator(Namespace* ns,std::string name,TypeGen* typegen, Params genparams);
     ~Generator();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Generator;}
-    std::string toString() const;
-    void print(void);
+    std::string toString() const override;
+    void print(void) override;
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}
-    std::string getName(Args args=Args()) {
-      if (!nameGen || args.size()==0) return Instantiable::getName();
-      return nameGen(args);
-    }
     
     //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace
-    Module* getModule(Args args);
+    Module* getModule(Values genargs);
     
     //This will transfer memory management of def to this Generator
     void setDef(GeneratorDef* def) { assert(!this->def); this->def = def;}
@@ -79,26 +72,55 @@ class Generator : public Instantiable {
     Params getGenParams() {return genparams;}
 
     //This will add (and override) default args
-    void addDefaultGenArgs(Args defaultGenfigargs);
-    Args getDefaultGenArgs() { return defaultGenArgs;}
+    void addDefaultGenArgs(Values defaultGenfigargs);
+    Values getDefaultGenArgs() { return defaultGenArgs;}
   
-    void setNameGen(NameGen_t ng) {nameGen = ng;}
-
-
+    void setNameGen(NameGenFun ng) {nameGen = ng;}
+    void setModParamsGen(ModParamsGenFun mpg) {modParamsGen = mpg;}
+    void setModParamsGen(Params modparams,Values defaultModArgs=Values()) {
+      this->modParamsGen = [modparams,defaultModArgs](Context* c,Values genargs) mutable -> std::pair<Params,Values> {
+        return {modparams,defaultModArgs}; 
+      };
+    }
+    std::pair<Params,Values> getModParams(Values genargs) {
+      if (modParamsGen) {
+        return modParamsGen(getContext(),genargs);
+      }
+      else {
+        return {Params(),Values()};
+      }
+    }
 };
 
-class Module : public Instantiable {
+class Args {
+  std::map<std::string,Arg*> args;
+  public :
+    Args(Params params);
+    ~Args();
+
+    Arg* getArg(std::string field) {
+      ASSERT(args.count(field)==0,"Missing arg: " + field);
+      return args[field];
+    }
+};
+
+class Module : public Instantiable, public Args {
   Type* type;
   ModuleDef* def = nullptr;
   
+  const Params modparams;
+  Values defaultModArgs;
+
+  //std::map<std::string,Arg*> moduleargs;
+
   //the directedModule View
   DirectedModule* directedModule = nullptr;
-  
+
   //Memory Management
   std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,std::string name, Type* type,Params configparams) : Instantiable(IK_Module,ns,name,configparams), type(type) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams=Params()) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams) {}
     ~Module();
     static bool classof(const Instantiable* i) {return i->getKind()==IK_Module;}
     bool hasDef() const { return !!def; }
@@ -108,16 +130,20 @@ class Module : public Instantiable {
    
     ModuleDef* newModuleDef();
     
-    //check for equal graphs, types, genargs, configargs
-    //Does not check instance names
-    static bool isEqual(Module* m0, Module* m1, bool checkConfig=false, bool checkInstNames=false,bool checkInstantiableNames=false);
-    
+    const Params& getModParams() const { return modparams;}
+
+    //TODO move this
     DirectedModule* newDirectedModule();
     
-    std::string toString() const;
+    std::string toString() const override;
     Type* getType() { return type;}
     
-    void print(void);
+    void print(void) override;
+
+    //This will add (and override) defaultModArgs
+    void addDefaultModArgs(Values defaultModArgs);
+    Values& getDefaultModArgs() { return defaultModArgs;}
+
   private :
     //This should be used very carefully. Could make things inconsistent
     friend class InstanceGraphNode;

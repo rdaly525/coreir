@@ -3,6 +3,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/typegen.h"
 #include "coreir/ir/error.h"
+#include "coreir/ir/value.h"
 #include <iterator>
 
 
@@ -26,7 +27,7 @@ void ModuleDef::print(void) {
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
     if (inst.second->isGen()) {
-      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Args2Str(inst.second->getGenArgs()) << endl;
+      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(inst.second->getGenArgs()) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
@@ -136,10 +137,10 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 }
 
 
-Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Args config) {
-  assert(instances.count(instname)==0);
+Instance* ModuleDef::addInstance(string instname,Generator* gen, Values genargs,Values modargs) {
+  ASSERT(instances.count(instname)==0,instname + " already an instance");
 
-  Instance* inst = new Instance(this,instname,gen,genargs,config);
+  Instance* inst = new Instance(this,instname,gen,genargs,modargs);
   instances[instname] = inst;
 
   appendInstanceToIter(inst);
@@ -147,8 +148,9 @@ Instance* ModuleDef::addInstance(string instname,Generator* gen, Args genargs,Ar
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
-  Instance* inst = new Instance(this,instname,m,config);
+Instance* ModuleDef::addInstance(string instname,Module* m,Values modargs) {
+  ASSERT(instances.count(instname)==0,instname + " already an instance");
+  Instance* inst = new Instance(this,instname,m,modargs);
   instances[instname] = inst;
   
   appendInstanceToIter(inst);
@@ -156,15 +158,15 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Args config) {
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname,string iref,Args genOrConfigargs, Args configargs) {
+Instance* ModuleDef::addInstance(string instname,string iref,Values genOrModargs, Values modargs) {
   vector<string> split = splitRef(iref);
   Instantiable* ref = this->getContext()->getInstantiable(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
-    return this->addInstance(instname,g,genOrConfigargs,configargs);
+    return this->addInstance(instname,g,genOrModargs,modargs);
   }
   else {
     auto m = cast<Module>(ref);
-    return this->addInstance(instname,m,genOrConfigargs);
+    return this->addInstance(instname,m,genOrModargs);
   }
 }
 
@@ -173,9 +175,9 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
     iname = i->getInstname();
   }
   if( i->isGen()) 
-    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getConfigArgs());
+    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getModArgs());
   else 
-    return addInstance(iname,i->getModuleRef(),i->getConfigArgs());
+    return addInstance(iname,i->getModuleRef(),i->getModArgs());
 }
 
 void ModuleDef::connect(Wireable* a, Wireable* b) {
