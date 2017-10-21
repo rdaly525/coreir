@@ -1238,7 +1238,7 @@ namespace CoreIR {
 				const unsigned char clk) {
     auto clkVal = new ClockValue(clkLast, clk);
     allocatedValues.insert(clkVal);
-    circStates[stateIndex].valMap[sel] = clkVal; //new ClockValue(clkLast, clk);
+    circStates[stateIndex].valMap[sel] = clkVal;
   }
 
   void SimulatorState::setLineBufferMem(const std::string& name,

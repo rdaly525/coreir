@@ -254,8 +254,6 @@ namespace CoreIR {
     void updateAndNode(const vdisc vd);
     void updateNodeValues(const vdisc vd);
 
-    
-
     void execute();
 
     void run();
