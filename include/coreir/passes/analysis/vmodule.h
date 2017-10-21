@@ -107,21 +107,8 @@ namespace Passes {
 
     void addParams(Params ps) {
 
-      // std::cout << "Adding params:" << std::endl;
-      // for (auto& p : ps) {
-      // 	std::cout << p.first << " --> " << p.second->toString()  << std::endl;
-      // }
-      // std::cout << "end params list" << std::endl;
-    
       for (auto p : ps) {
 	if (params.count(p.first) != 0) {
-
-	  // std::cout << "In module " << modname << ", trying to add: ";
-	  // std::cout << p.first << " --> " << p.second->toString()  << std::endl;
-	  // std::cout << "To params: " << std::endl;
-	  // for (auto& param : params) {
-	  //   std::cout << param << std::endl;
-	  // }
 
 	  ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
 	}
