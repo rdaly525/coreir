@@ -13,9 +13,19 @@ Context* Pass::getContext() {
   return pm->c;
 }
 
-bool InstanceVisitorPass::runOnInstances(Instantiable* i, unordered_set<Instance*>& instances) {
-  if (visitorMap.count(i)==0) return false;
-  auto fun = visitorMap[i];
+bool InstanceVisitorPass::runOnModInstances(Module* m, set<Instance*>& instances) {
+  if (modVisitorMap.count(m)==0) return false;
+  auto fun = modVisitorMap[g];
+  bool modified = false;
+  for (auto inst : instances) {
+    modified |= fun(inst);
+  }
+  return modified;
+}
+
+bool InstanceVisitorPass::runOnGenInstances(Generator* g, set<Instance*>& instances) {
+  if (genVisitorMap.count(g)==0) return false;
+  auto fun = genVisitorMap[g];
   bool modified = false;
   for (auto inst : instances) {
     modified |= fun(inst);
@@ -24,8 +34,12 @@ bool InstanceVisitorPass::runOnInstances(Instantiable* i, unordered_set<Instance
 }
 
 
-void InstanceVisitorPass::addVisitorFunction(Instantiable* i,InstanceVisitor_t fun) {
+void InstanceVisitorPass::addVisitorFunction(Module* m,InstanceVisitor_t fun) {
   ASSERT(visitorMap.count(i)==0,"Already added Function for " + i->getRefName());
   visitorMap[i] = fun;
 }
 
+void InstanceVisitorPass::addVisitorFunction(Generator* m,InstanceVisitor_t fun) {
+  ASSERT(visitorMap.count(i)==0,"Already added Function for " + i->getRefName());
+  visitorMap[i] = fun;
+}

@@ -2,16 +2,16 @@
 #define COREIR_TYPEGEN_HPP_
 
 #include "fwd_declare.h"
-#include "refname.h"
+#include "globalvalue.h"
 
 namespace CoreIR {
 
-class TypeGen : public RefName {
+class TypeGen : public GlobalValue {
   Params params;
   bool flipped;
   //TODO maybe cache the types based off the args
   public:
-    TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : RefName(ns,name), params(params), flipped(flipped) {}
+    TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : GlobalValue(GVK_TypeGen,ns,name), params(params), flipped(flipped) {}
     virtual ~TypeGen() {}
     virtual Type* createType(Context* c, Values args) = 0;
     Type* getType(Values genargs); //TODO change this to a functor

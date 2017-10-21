@@ -1,14 +1,14 @@
-#ifndef CREATEFULLINSTANCEMAP_HPP_
-#define CREATEFULLINSTANCEMAP_HPP_
+#ifndef CREATEINSTANCEMAP_HPP_
+#define CREATEINSTANCEMAP_HPP_
 
 #include "coreir.h"
 
 namespace CoreIR {
 namespace Passes {
 
-class CreateFullInstanceMap : public ModulePass {
+class CreateInstanceMap : public ModulePass {
   //Map from Instantiables to a list of instances
-  std::unordered_map<Instantiable*,std::unordered_set<Instance*>> instanceMap;
+  std::map<Instantiable*,std::set<Instance*>> modInstanceMap;
   public :
     static std::string ID;
     CreateFullInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
@@ -19,11 +19,11 @@ class CreateFullInstanceMap : public ModulePass {
     bool hasInstances(Instantiable* i) {
       return instanceMap.count(i) > 0;
     }
-    std::unordered_set<Instance*> getInstances(Instantiable* i) {
+    std::set<Instance*> getModuleInstances(Instantiable* i) {
       ASSERT(this->hasInstances(i),i->getRefName() + " has no instances!");
       return instanceMap[i];
     }
-    std::unordered_map<Instantiable*,std::unordered_set<Instance*>>& getFullInstanceMap() {
+    std::map<Instantiable*,std::set<Instance*>>& getModInstanceMap() {
       return instanceMap;
     }
 };

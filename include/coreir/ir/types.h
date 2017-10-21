@@ -2,7 +2,7 @@
 #define COREIR_TYPES_HPP_
 
 #include "fwd_declare.h"
-#include "refname.h"
+#include "globalvalue.h"
 
 namespace CoreIR {
 
@@ -71,7 +71,7 @@ class BitInType : public Type {
     uint getSize() const { return 1;}
 };
 
-class NamedType : public Type, public RefName {
+class NamedType : public Type, public GlobalValue {
   protected :
     
     Type* raw;

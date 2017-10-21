@@ -199,12 +199,12 @@ Module* Namespace::getModule(string mname) {
   return nullptr;
 }
 
-Instantiable* Namespace::getInstantiable(string iname) {
+GlobalValue* Namespace::getGlobalValue(string iname) {
   if (moduleList.count(iname) > 0) return moduleList.at(iname);
   if (generatorList.count(iname) > 0) return generatorList.at(iname);
   Error e;
-  e.message("Could not find Instantiable in library!");
-  e.message("  Instantiable: " + iname);
+  e.message("Could not find GlobalValue in library!");
+  e.message("  GlobalValue: " + iname);
   e.message("  Namespace: " + name);
   e.fatal();
   c->error(e);

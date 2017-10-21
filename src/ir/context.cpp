@@ -136,14 +136,6 @@ Generator* Context::getGenerator(string ref) {
   return ns->getGenerator(refsplit[1]);
 }
 
-Instantiable* Context::getInstantiable(string ref) {
-  vector<string> refsplit = splitRef(ref);
-  ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
-  Namespace* ns = getNamespace(refsplit[0]);
-  ASSERT(ns->hasInstantiable(refsplit[1]),"Missing Instantiable: " + ref);
-  return ns->getInstantiable(refsplit[1]);
-}
-
 void Context::addPass(Pass* p) {
   assert(pm);
   p->addPassManager(pm);

@@ -1,4 +1,5 @@
 #include "coreir/ir/types.h"
+#include "coreir/ir/globalvalue.h"
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
@@ -72,8 +73,8 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),ns->getContext()), RefName(ns,name), raw(raw) {}
-NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,ns->getContext()), RefName(ns,name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),ns->getContext()), GlobalValue(GVK_NamedType,ns,name), raw(raw) {}
+NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,ns->getContext()), GlobalValue(GVK_NamedType,ns,name), typegen(typegen), genargs(genargs) {
   //Check args here.
   checkValuesAreParams(genargs,typegen->getParams());
 

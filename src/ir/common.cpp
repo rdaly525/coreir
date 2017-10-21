@@ -1,7 +1,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
 //#include <sstream>
 //#include <iterator>
 
@@ -71,7 +71,7 @@ std::string Inst2Str(Instance* inst) {
   if (inst->isGen()) { 
     ret = ret + Values2Str(inst->getGenArgs());
   }
-  return ret + Values2Str(inst->getModArgs()) + " : " + inst->getInstantiableRef()->getRefName();
+  return ret + Values2Str(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
 }
 
 void checkValuesAreParams(Values args, Params params) {

@@ -94,8 +94,11 @@ bool PassManager::runInstanceVisitorPass(Pass* pass) {
   auto cfim = static_cast<Passes::CreateFullInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
   bool modified = false;
   InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
-  for (auto imap : cfim->getFullInstanceMap()) {
-    modified |= ivpass->runOnInstances(imap.first,imap.second);
+  for (auto imap : cfim->getModInstanceMap()) {
+    modified |= ivpass->runOnModInstances(imap.first,imap.second);
+  }
+  for (auto imap : cfim->getGenInstanceMap()) {
+    modified |= ivpass->runOnGenInstances(imap.first,imap.second);
   }
   return modified;
 }

@@ -104,12 +104,18 @@ class InstanceVisitorPass : public Pass {
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
     virtual void print() override {}
+    //Required to define this fucntion.
+    //Call "addVisitorFunction"
     virtual void setVisitorInfo() = 0;
+    
     typedef bool (*InstanceVisitor_t)(Instance*);
-    void addVisitorFunction(Instantiable* i,InstanceVisitor_t fun);
-    bool runOnInstances(Instantiable* i, std::unordered_set<Instance*>& instances);
+    void addVisitorFunction(Module* m,InstanceVisitor_t fun);
+    void addVisitorFunction(Generator* g,InstanceVisitor_t fun);
+    bool runOnModInstances(Module* m, std::set<Instance*>& instances);
+    bool runOnGenInstances(Generator* g, std::set<Instance*>& instances);
   private:
-    std::unordered_map<Instantiable*,InstanceVisitor_t> visitorMap;
+    std::map<Module*,InstanceVisitor_t> modVisitorMap;
+    std::map<Generator*,InstanceVisitor_t> genVisitorMap;
 };
 
 
