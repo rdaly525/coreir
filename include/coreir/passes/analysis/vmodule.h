@@ -74,8 +74,8 @@ namespace Passes {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + m->getName();
       }
 
-      // this->addParams(m->getModParams());
-      // this->addDefaults(m->getDefaultModArgs());
+      this->addParams(m->getModParams());
+      this->addDefaults(m->getDefaultModArgs());
     }
     VModule(Generator* g) : modname(g->getName()), gen(g) {
       const json& jmeta = g->getMetaData();
@@ -83,8 +83,8 @@ namespace Passes {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + g->getName();
       }
 
-      // this->addParams(g->getGenParams());
-      // this->addDefaults(g->getDefaultGenArgs());
+      this->addParams(g->getGenParams());
+      this->addDefaults(g->getDefaultGenArgs());
     }
 
     void addStmt(std::string stmt) { stmts.push_back(stmt); }

@@ -45,8 +45,9 @@ string VModule::toInstanceString(Instance* inst) {
     cout << "end params." << endl;
 
     this->addParams(paramsAndDefaults.first);
-    //this->addDefaults(paramsAndDefaults.second);
+    this->addDefaults(paramsAndDefaults.second);
   }
+
   ostringstream o;
   string tab = "  ";
   string mname;
