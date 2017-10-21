@@ -51,6 +51,9 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
       vmod->addStmt(VWireDec(VWire(iname+"_"+rmap.first,rmap.second)));
     }
     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
+
+    cout << "Calling toInstanceString() for " << inst->toString() << endl;
+
     vmod->addStmt(modMap[iref]->toInstanceString(inst));
   }
 

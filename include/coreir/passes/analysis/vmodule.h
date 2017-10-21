@@ -21,10 +21,10 @@
 namespace CoreIR {
 namespace Passes {
 
-class VWire {
-  std::string name;
-  unsigned dim;
-  Type::DirKind dir;
+  class VWire {
+    std::string name;
+    unsigned dim;
+    Type::DirKind dir;
   public :
     VWire(std::string field,Type* t) : name(field), dim(t->getSize()), dir(t->getDir()) {}
     VWire(Wireable* w) : VWire("",w->getType()) {
@@ -51,18 +51,18 @@ class VWire {
     }
     std::string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
     std::string getName() { return name;}
-};
+  };
 
 
-class VModule {
-  std::string modname;
-  std::unordered_map<std::string,VWire> ports;
-  std::unordered_set<std::string> params;
-  std::unordered_map<std::string,std::string> paramDefaults;
+  class VModule {
+    std::string modname;
+    std::unordered_map<std::string,VWire> ports;
+    std::unordered_set<std::string> params;
+    std::unordered_map<std::string,std::string> paramDefaults;
 
-  Generator* gen = nullptr;
+    Generator* gen = nullptr;
   
-  std::vector<std::string> stmts;
+    std::vector<std::string> stmts;
   public:
     VModule(std::string modname, Type* t) {
       this->modname = modname;
@@ -74,42 +74,68 @@ class VModule {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + m->getName();
       }
 
-      this->addParams(m->getModParams());
-      this->addDefaults(m->getDefaultModArgs());
+      // this->addParams(m->getModParams());
+      // this->addDefaults(m->getDefaultModArgs());
     }
     VModule(Generator* g) : modname(g->getName()), gen(g) {
       const json& jmeta = g->getMetaData();
       if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
         modname = jmeta["verilog"]["prefix"].get<std::string>() + g->getName();
       }
-      this->addParams(g->getGenParams());
-      this->addDefaults(g->getDefaultGenArgs());
+
+      // this->addParams(g->getGenParams());
+      // this->addDefaults(g->getDefaultGenArgs());
     }
+
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
+
     std::string toCommentString() {
       return "//Module: " + modname + " defined externally";
     }
+
     std::string toString();
+
     std::string toInstanceString(Instance* inst);
+
   private :
+
     void Type2Ports(Type* t,std::unordered_map<std::string,VWire>& ports) {
       for (auto rmap : cast<RecordType>(t)->getRecord()) {
-        ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
+	ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       }
     }
-    void addParams(Params ps) { 
+
+    void addParams(Params ps) {
+
+      std::cout << "Adding params:" << std::endl;
+      for (auto& p : ps) {
+	std::cout << p.first << " --> " << p.second->toString()  << std::endl;
+      }
+      std::cout << "end params list" << std::endl;
+    
       for (auto p : ps) {
-        ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
-        params.insert(p.first); 
+	if (params.count(p.first) != 0) {
+	  std::cout << "In module " << modname << ", trying to add: ";
+	  std::cout << p.first << " --> " << p.second->toString()  << std::endl;
+	  std::cout << "To params: " << std::endl;
+	  for (auto& param : params) {
+	    std::cout << param << std::endl;
+	  }
+
+	  ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
+	}
+	params.insert(p.first); 
       }
     }
+
     void addDefaults(Values ds) { 
       for (auto dpair : ds) {
-        ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
-        paramDefaults[dpair.first] = dpair.second->toString();
+	ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
+	paramDefaults[dpair.first] = dpair.second->toString();
       }
     }
-};
+
+  };
 
 }
 }
