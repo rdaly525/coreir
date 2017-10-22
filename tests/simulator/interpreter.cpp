@@ -262,6 +262,14 @@ namespace CoreIR {
 
       SimulatorState state(counterTest);
 
+      NGraph& g = state.getCircuitGraph();
+
+      cout << "COUNTER NODES" << endl;
+      for (auto& vd : g.getVerts()) {
+	cout << g.getNode(vd).getWire()->toString() << endl;
+      }
+      cout << "DONE NODES." << endl;
+
       SECTION("Test register defaults") {
     	REQUIRE(state.getBitVec("counter$ri.out") == BitVec(pcWidth, 0));
       }
