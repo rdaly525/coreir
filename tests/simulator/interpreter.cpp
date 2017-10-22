@@ -27,7 +27,7 @@ namespace CoreIR {
 
     TypeGen* counterTypeGen =
       global->newTypeGen(
-    			 "CounterTypeGen", //name of typegen
+    			 "myCounterTypeGen", //name of typegen
     			 counterParams, //Params required for typegen
     			 [](Context* c, Values args) { //lambda for generating the type
     			   //Arg* widthArg = args.at("width"); //Checking for valid args is already done for you
@@ -41,9 +41,9 @@ namespace CoreIR {
     			 ); //end newTypeGen
 
 
-    ASSERT(global->hasTypeGen("CounterTypeGen"),"Can check for typegens in namespaces");
+    ASSERT(global->hasTypeGen("myCounterTypeGen"),"Can check for typegens in namespaces");
 
-    Generator* counter = global->newGeneratorDecl("counter",counterTypeGen,counterParams);
+    Generator* counter = global->newGeneratorDecl("myCounter",counterTypeGen,counterParams);
 
     counter->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
 
@@ -238,190 +238,190 @@ namespace CoreIR {
       REQUIRE(state.getBitVec(self->sel("outval")) == bv);
     }
 
-    SECTION("Counter") {
+    // SECTION("Counter") {
 
-      addCounter(c, g);
+    //   addCounter(c, g);
 
-      uint pcWidth = 17;
-      Type* counterTestType =
-	c->Record({
-	    {"en", c->BitIn()},
-	      {"clk", c->Named("coreir.clkIn")},
-		{"counterOut", c->Array(pcWidth, c->Bit())}});
+    //   uint pcWidth = 17;
+    //   Type* counterTestType =
+    // 	c->Record({
+    // 	    {"en", c->BitIn()},
+    // 	      {"clk", c->Named("coreir.clkIn")},
+    // 		{"counterOut", c->Array(pcWidth, c->Bit())}});
 
-      Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
-      ModuleDef* def = counterTest->newModuleDef();
+    //   Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
+    //   ModuleDef* def = counterTest->newModuleDef();
 
-      def->addInstance("counter", "global.counter", {{"width", Const::make(c,pcWidth)}});
+    //   def->addInstance("counter", "global.myCounter", {{"width", Const::make(c,pcWidth)}});
 
-      def->connect("self.en", "counter.en");
-      def->connect("self.clk", "counter.clk");
-      def->connect("counter.out", "self.counterOut");
+    //   def->connect("self.en", "counter.en");
+    //   def->connect("self.clk", "counter.clk");
+    //   def->connect("counter.out", "self.counterOut");
 
-      counterTest->setDef(def);
+    //   counterTest->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes","flatten"});
+    //   c->runPasses({"rungenerators","flattentypes","flatten"});
 
-      SimulatorState state(counterTest);
+    //   SimulatorState state(counterTest);
 
-      SECTION("Test regiser defaults") {
-	REQUIRE(state.getBitVec("counter$ri.out") == BitVec(pcWidth, 0));
-      }
+    //   SECTION("Test regiser defaults") {
+    // 	REQUIRE(state.getBitVec("counter$ri.out") == BitVec(pcWidth, 0));
+    //   }
 
-      SECTION("Count from zero, enable set") {
+    //   SECTION("Count from zero, enable set") {
 
-	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
-	state.setValue("self.en", BitVec(1, 1));
-	state.setClock("self.clk", 0, 1);
+    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+    // 	state.setValue("self.en", BitVec(1, 1));
+    // 	state.setClock("self.clk", 0, 1);
 
-	state.execute();
+    // 	state.execute();
 
-	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
+    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
 
-	state.execute();
+    // 	state.execute();
 
-	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
+    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
 
-	state.execute();
+    // 	state.execute();
 
-	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
+    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
 
-      }
+    //   }
 
-      SECTION("Counting with clock changes, enable set") {
+    //   SECTION("Counting with clock changes, enable set") {
 
-	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
-	state.setValue("self.en", BitVec(1, 1));
-	state.setClock("self.clk", 0, 1);
+    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+    // 	state.setValue("self.en", BitVec(1, 1));
+    // 	state.setClock("self.clk", 0, 1);
   
-	state.execute();
+    // 	state.execute();
 
-	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+    // 	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-	SECTION("Value is 400 after first tick at 400") {
-	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
-	}
+    // 	SECTION("Value is 400 after first tick at 400") {
+    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+    // 	}
 
-	state.setClock("self.clk", 1, 0);
+    // 	state.setClock("self.clk", 1, 0);
 
-	state.execute();
+    // 	state.execute();
 
-	ClockValue* clkVal = toClock(state.getValue("self.clk"));
+    // 	ClockValue* clkVal = toClock(state.getValue("self.clk"));
 
-	cout << "last clock = " << (int) clkVal->lastValue() << endl;
-	cout << "curr clock = " << (int) clkVal->value() << endl;
+    // 	cout << "last clock = " << (int) clkVal->lastValue() << endl;
+    // 	cout << "curr clock = " << (int) clkVal->value() << endl;
 
-	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+    // 	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-	SECTION("Value is 401 after second tick") {
-	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
-	}
+    // 	SECTION("Value is 401 after second tick") {
+    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+    // 	}
 
-	state.setClock("self.clk", 0, 1);
+    // 	state.setClock("self.clk", 0, 1);
 
-	state.execute();
+    // 	state.execute();
 
-	SECTION("Value is still 401") {
-	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
-	}
+    // 	SECTION("Value is still 401") {
+    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+    // 	}
 
-	state.setClock("self.clk", 1, 0);
+    // 	state.setClock("self.clk", 1, 0);
 
-	state.execute();
+    // 	state.execute();
 
-	SECTION("Value is now 402") {
-	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 402));
-	}
+    // 	SECTION("Value is now 402") {
+    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 402));
+    // 	}
 	
-      }
+    //   }
 
-      SECTION("Enable on") {
-	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
-	state.setValue("self.en", BitVec(1, 1));
-	state.setClock("self.clk", 1, 0);
+    //   SECTION("Enable on") {
+    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+    // 	state.setValue("self.en", BitVec(1, 1));
+    // 	state.setClock("self.clk", 1, 0);
   
-	state.execute();
+    // 	state.execute();
 
-	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+    // 	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
-      }
+    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+    //   }
 
-      SECTION("Setting watchpoint") {
-	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
-	state.setClock("self.clk", 1, 0);
-	state.setValue("self.en", BitVec(1, 1));
+    //   SECTION("Setting watchpoint") {
+    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+    // 	state.setClock("self.clk", 1, 0);
+    // 	state.setValue("self.en", BitVec(1, 1));
 
-	state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
-	state.setMainClock("self.clk");
+    // 	state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
+    // 	state.setMainClock("self.clk");
 
-	// auto states = state.getCircStates();
-	// for (auto& state : states) {
-	//   cout << "State" << endl;
-	//   for (auto& val : state.valMap) {
-	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
-	//   }
-	// }
+    // 	// auto states = state.getCircStates();
+    // 	// for (auto& state : states) {
+    // 	//   cout << "State" << endl;
+    // 	//   for (auto& val : state.valMap) {
+    // 	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
+    // 	//   }
+    // 	// }
 	
-	state.run();
+    // 	state.run();
 
-	// states = state.getCircStates();
-	// for (auto& state : states) {
-	//   cout << "State" << endl;
-	//   for (auto& val : state.valMap) {
-	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
-	//   }
-	// }
+    // 	// states = state.getCircStates();
+    // 	// for (auto& state : states) {
+    // 	//   cout << "State" << endl;
+    // 	//   for (auto& val : state.valMap) {
+    // 	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
+    // 	//   }
+    // 	// }
 	
-	SECTION("Stop at watchpoint") {
-	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
-	}
+    // 	SECTION("Stop at watchpoint") {
+    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
+    // 	}
 
-	// Should rewind rewind 1 clock cycle or one half clock?
-	SECTION("Rewinding state by 1 clock cycle") {
+    // 	// Should rewind rewind 1 clock cycle or one half clock?
+    // 	SECTION("Rewinding state by 1 clock cycle") {
 
-	  cout << "state index before rewind = " << state.getStateIndex() << endl;
-	  state.rewind(2);
-	  cout << "state index after rewind  = " << state.getStateIndex() << endl;
+    // 	  cout << "state index before rewind = " << state.getStateIndex() << endl;
+    // 	  state.rewind(2);
+    // 	  cout << "state index after rewind  = " << state.getStateIndex() << endl;
 
-	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
-	}
+    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
+    // 	}
 
-	SECTION("Setting a value after rewinding reverts all earlier states") {
+    // 	SECTION("Setting a value after rewinding reverts all earlier states") {
 
-	  int numStates = state.getCircStates().size();
+    // 	  int numStates = state.getCircStates().size();
 
-	  state.rewind(2);
+    // 	  state.rewind(2);
 
-	  REQUIRE(!state.atLastState());
+    // 	  REQUIRE(!state.atLastState());
 
-	  state.setValue("self.en", BitVec(1, 0));
+    // 	  state.setValue("self.en", BitVec(1, 0));
 
-	  REQUIRE(state.atLastState());
+    // 	  REQUIRE(state.atLastState());
 
-	  REQUIRE(state.getCircStates().size() == (numStates - 2));
-	}
+    // 	  REQUIRE(state.getCircStates().size() == (numStates - 2));
+    // 	}
 
-	SECTION("Rewinding and then running to an already simulated point fast forwards") {
-	  state.rewind(4);
+    // 	SECTION("Rewinding and then running to an already simulated point fast forwards") {
+    // 	  state.rewind(4);
 
-	  int numStates = state.getCircStates().size();
+    // 	  int numStates = state.getCircStates().size();
 
-	  state.runHalfCycle();
+    // 	  state.runHalfCycle();
 
-	  REQUIRE(state.getCircStates().size() == numStates);
+    // 	  REQUIRE(state.getCircStates().size() == numStates);
 	  
-	}
+    // 	}
 
-	SECTION("Rewinding to before the start of the simulation is an error") {
+    // 	SECTION("Rewinding to before the start of the simulation is an error") {
 
-	  bool rewind = state.rewind(22);
+    // 	  bool rewind = state.rewind(22);
 
-	  REQUIRE(!rewind);
-	}
-      }
+    // 	  REQUIRE(!rewind);
+    // 	}
+    //   }
 
-    }
+    // }
 
     SECTION("Test bit vector addition") {
       cout << "23 bit or 4" << endl;
@@ -635,8 +635,8 @@ namespace CoreIR {
 
       def->addInstance("m0",
       		       "coreir.mem",
-      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
-      		       {{"init", Const::make(c,BitVector(80))}});
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
+		       //      		       {{"init", Const::make(c,BitVector(80))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
@@ -822,45 +822,45 @@ namespace CoreIR {
 
     }
 
-    SECTION("Selecting bits from a bit vector") {
-      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+    // SECTION("Selecting bits from a bit vector") {
+    //   Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
-      cout << "loading" << endl;
-      if (!loadFromFile(c,"./sim_ready_sorter.json")) {
-	cout << "Could not Load from json!!" << endl;
-	c->die();
-      }
+    //   cout << "loading" << endl;
+    //   if (!loadFromFile(c,"./sim_ready_sorter.json")) {
+    // 	cout << "Could not Load from json!!" << endl;
+    // 	c->die();
+    //   }
 
-      Module* m = g->getModule("Sorter8");
+    //   Module* m = g->getModule("Sorter8");
 
-      assert(m != nullptr);
+    //   assert(m != nullptr);
 
-      SimulatorState state(m);
-      state.setValue("self.I", BitVector(8, "10010011"));
+    //   SimulatorState state(m);
+    //   state.setValue("self.I", BitVector(8, "10010011"));
 
-      cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
+    //   cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
 
-      BitVector one(16, "1");
-      BitVector nextIn(16, "0");
+    //   BitVector one(16, "1");
+    //   BitVector nextIn(16, "0");
 
-      std::clock_t start, end;
+    //   std::clock_t start, end;
 
-      start = std::clock();
+    //   start = std::clock();
 
-      state.execute();
+    //   state.execute();
 
-      end = std::clock();
+    //   end = std::clock();
 
-      std::cout << "Done. Time to simulate = "
-		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-		<< std::endl;
+    //   std::cout << "Done. Time to simulate = "
+    // 		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    // 		<< std::endl;
 
       
-      cout << "out = " << state.getBitVec("self.O") << endl;
+    //   cout << "out = " << state.getBitVec("self.O") << endl;
 
-      REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
+    //   REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
       
-    }
+    // }
 
     deleteContext(c);
   }
