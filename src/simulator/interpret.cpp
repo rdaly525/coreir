@@ -233,14 +233,13 @@ namespace CoreIR {
       return false;
     };
 
-    //StopFunction sFunc(func);
-    //std::function<bool()> sf(func);
-
     stopConditions.push_back({val, func});
+  }
 
-    //stopConditions.push_back();
-
-  //watchPoints.push_back({val, bv});
+  void SimulatorState::deleteWatchPoint(const std::string& name) {
+    delete_if(stopConditions, [name](const StopCondition& sc) {
+	return sc.name == name;
+      });
   }
 
   bool SimulatorState::exists(const std::string& selStr) const {

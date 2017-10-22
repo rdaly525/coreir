@@ -149,7 +149,6 @@ namespace CoreIR {
 
     NGraph gr;
     std::deque<vdisc> topoOrder;
-    std::vector<std::pair<std::string, BitVec> > watchPoints;
 
     std::vector<StopCondition> stopConditions;
 
@@ -166,7 +165,6 @@ namespace CoreIR {
 
     int numCircStates() const;
 
-    
     std::vector<CircuitState> getCircStates() const;
 
     NGraph& getCircuitGraph() { return gr; }
@@ -193,6 +191,8 @@ namespace CoreIR {
 
     void setWatchPoint(const std::string& val,
 		       const BitVec& bv);
+
+    void deleteWatchPoint(const std::string& name);
 
     void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
