@@ -250,7 +250,7 @@ namespace CoreIR {
       Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
       ModuleDef* def = counterTest->newModuleDef();
 
-      def->addInstance("counter", "global.myCounter", {{"width", Const::make(c,pcWidth)}});
+      auto ct = def->addInstance("counter", "global.myCounter", {{"width", Const::make(c,pcWidth)}});
 
       def->connect("self.en", "counter.en");
       def->connect("self.clk", "counter.clk");
@@ -258,7 +258,14 @@ namespace CoreIR {
 
       counterTest->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes","flatten"});
+      //c->runPasses({"rungenerators","flattentypes","flatten"});
+      c->runPasses({"rungenerators"});//,"flattentypes","flatten"});
+
+      cout << "ct is generator ? " << ct->isGen() << endl;
+
+      bool inlinedCounter = inlineInstance(ct);
+
+      cout << "Inlined counter = " << inlinedCounter << endl;
 
       SimulatorState state(counterTest);
 
