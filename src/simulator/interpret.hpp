@@ -139,6 +139,11 @@ namespace CoreIR {
 
   typedef std::function<bool()> StopFunction;
 
+  struct StopCondition {
+    std::string name;
+    StopFunction stopTest;
+  };
+
   class SimulatorState {
     CoreIR::Module* mod;
 
@@ -146,7 +151,7 @@ namespace CoreIR {
     std::deque<vdisc> topoOrder;
     std::vector<std::pair<std::string, BitVec> > watchPoints;
 
-    std::vector<StopFunction> stopConditions;
+    std::vector<StopCondition> stopConditions;
 
     CoreIR::Select* mainClock;
 

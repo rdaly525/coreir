@@ -236,7 +236,7 @@ namespace CoreIR {
     //StopFunction sFunc(func);
     //std::function<bool()> sf(func);
 
-    stopConditions.push_back(func);
+    stopConditions.push_back({val, func});
 
     //stopConditions.push_back();
 
@@ -300,22 +300,13 @@ namespace CoreIR {
 
     return true;
   }
-  
+
   bool SimulatorState::hitWatchPoint() const {
-    for (auto& func : stopConditions) {
-      if (func()) {
+    for (auto& cond : stopConditions) {
+      if (cond.stopTest()) {
 	return true;
       }
     }
-    //   string selStr = wp.first;
-    //   BitVec val = wp.second;
-
-    //   if (isSet(selStr)) {
-    // 	if (getBitVec(selStr) == val) {
-    // 	  return true;
-    // 	}
-    //   }
-    // }
 
     return false;
   }
