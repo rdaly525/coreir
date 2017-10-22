@@ -97,8 +97,9 @@ namespace CoreIR {
 
       andrN->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       SimulatorState state(andrN);
 
@@ -154,8 +155,9 @@ namespace CoreIR {
       def->connect(and_1->sel("out"),self->sel("out"));
       and4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators","flattentypes","flatten"});      
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       // How to initialize and track values in the interpreter?
       // I think the right way would be to set select values, but
@@ -211,8 +213,9 @@ namespace CoreIR {
       def->connect(or_1->sel("out"), self->sel("outval"));
       or4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       // How to initialize or track values in the interpreter?
       // I think the right way would be to set select values, but

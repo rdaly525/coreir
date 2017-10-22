@@ -98,8 +98,9 @@ namespace CoreIR {
       }
 
       SECTION("Compiling code") {
-      	RunGenerators rg;
-      	rg.runOnNamespace(g);
+	c->runPasses({"rungenerators"});
+      	// RunGenerators rg;
+      	// rg.runOnNamespace(g);
 
       	cout << "About to build graph" << endl;
 
