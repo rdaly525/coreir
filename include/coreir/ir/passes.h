@@ -8,7 +8,7 @@ namespace CoreIR {
 class Pass {
   
   public:
-    enum PassKind {PK_Namespace, PK_Module, PK_Instance, PK_InstanceVisitor, PK_InstanceGraph};
+    enum PassKind {PK_Context, PK_Namespace, PK_Module, PK_Instance, PK_InstanceVisitor, PK_InstanceGraph};
   private:
     PassKind kind;
     //Used as the unique identifier for the pass
@@ -45,6 +45,17 @@ class Pass {
 
 typedef Pass* register_pass_t();
 typedef void delete_pass_t(Pass*);
+
+//You can do whatever you want here
+class ContextPass : public Pass {
+  public:
+    explicit ContextPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Context,name,description,isAnalysis) {}
+    static bool classof(const Pass* p) {return p->getKind()==PK_Context;}
+    virtual bool runOnContext(Context* c) = 0;
+    virtual void releaseMemory() override {}
+    virtual void setAnalysisInfo() override {}
+    virtual void print() override {}
+};
 
 //You can do whatever you want here
 class NamespacePass : public Pass {

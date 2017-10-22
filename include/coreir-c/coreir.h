@@ -47,6 +47,7 @@ extern bool CORENamespaceHasGenerator(CORENamespace* _namespace, const char* nam
 extern bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name);
 
 extern void COREPrintModule(COREModule* m);
+extern const char* COREModuleGetName(COREModule* module);
 extern COREModuleDef* COREModuleNewDef(COREModule* m);
 //extern COREModuleDef* COREModuleGetDef(COREModule* m);
 void COREModuleSetDef(COREModule* module, COREModuleDef* module_def);

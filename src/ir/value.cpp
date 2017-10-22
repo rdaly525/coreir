@@ -96,29 +96,54 @@ Const* Const_impl<Type*>(Context* c,Type* val) {
 }
 
 
+//template<>
+//string TemplatedConst<bool>::toString() const {
+//  return vtype->toString() + "(" + (value ? "True" : "False") + ")";
+//}
+//
+//template<>
+//string TemplatedConst<int>::toString() const {
+//  return vtype->toString() + "(" + to_string(value) + ")";
+//}
+//
+//template<>
+//string TemplatedConst<BitVector>::toString() const {
+//  return vtype->toString() + "(" + to_string(value.to_type<int>()) + ")";
+//}
+//
+//template<>
+//string TemplatedConst<std::string>::toString() const {
+//  return vtype->toString() + "(" + value + ")";
+//}
+//
+//template<>
+//string TemplatedConst<Type*>::toString() const {
+//  return vtype->toString() + "(" + value->toString() + ")";
+//}
+
 template<>
 string TemplatedConst<bool>::toString() const {
-  return vtype->toString() + "(" + (value ? "True" : "False") + ")";
+  return value ? "True" : "False";
 }
 
 template<>
 string TemplatedConst<int>::toString() const {
-  return vtype->toString() + "(" + to_string(value) + ")";
+  return to_string(value);
 }
 
 template<>
 string TemplatedConst<BitVector>::toString() const {
-  return vtype->toString() + "(" + to_string(value.to_type<int>()) + ")";
+  return to_string(value.to_type<int>());
 }
 
 template<>
 string TemplatedConst<std::string>::toString() const {
-  return vtype->toString() + "(" + value + ")";
+  return value;
 }
 
 template<>
 string TemplatedConst<Type*>::toString() const {
-  return vtype->toString() + "(" + value->toString() + ")";
+  return value->toString();
 }
 
 }

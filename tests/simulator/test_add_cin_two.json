@@ -11,7 +11,7 @@
 		 }],
 		 "instances":{
 		     "inst0":{
-			 "genref":"coreir.add",
+			 "genref":"mantle.add",
 			 "genargs":{"has_cin":["Bool",true], "has_cout":["Bool",false], "width":["Int",4]}
 		     }
 		 },

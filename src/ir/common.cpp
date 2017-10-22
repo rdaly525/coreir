@@ -1,6 +1,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/instantiable.h"
 //#include <sstream>
 //#include <iterator>
 
@@ -65,12 +66,20 @@ string Connection2Str(Connection con) {
   return con.first->toString() + " <=> " + con.second->toString();
 }
 
+std::string Inst2Str(Instance* inst) {
+  string ret = inst->getInstname();
+  if (inst->isGen()) { 
+    ret = ret + Values2Str(inst->getGenArgs());
+  }
+  return ret + Values2Str(inst->getModArgs()) + " : " + inst->getInstantiableRef()->getRefName();
+}
+
 void checkValuesAreParams(Values args, Params params) {
   bool multi = args.size() > 4 || params.size() > 4;
   ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args,multi) + "\nParams: " + Params2Str(params,multi));
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
+    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + Params2Str(params) + "\nBut only gave:" + Values2Str(args));
     ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
   }
 }

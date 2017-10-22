@@ -48,6 +48,9 @@ bool PassManager::runNamespacePass(Pass* pass) {
   }
   return modified;
 }
+bool PassManager::runContextPass(Pass* pass) {
+  return cast<ContextPass>(pass)->runOnContext(c);
+}
 
 //Only runs on modules with definitions
 bool PassManager::runModulePass(Pass* pass) {
@@ -115,6 +118,9 @@ bool PassManager::runPass(Pass* p) {
   }
   bool modified = false;
   switch(p->getKind()) {
+    case Pass::PK_Context:
+      modified = runContextPass(p);
+      break;
     case Pass::PK_Namespace:
       modified = runNamespacePass(p);
       break;
@@ -158,6 +164,11 @@ bool PassManager::run(PassOrder order,vector<string> nsnames) {
     ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
     this->nss.push_back(c->getNamespace(nsname));
   }
+  //For now just do all namespaces
+  //for (auto ns : c->getNamespaces()) {
+  //  nss.push_back(ns.second);
+  //}
+
   bool ret = false;
   //Execute each in order (and the respective dependencies) independently
   for (auto oname : order) {

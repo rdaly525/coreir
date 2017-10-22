@@ -14,7 +14,7 @@ class InstanceGraph {
   public :
     InstanceGraph() {}
     ~InstanceGraph() {this->releaseMemory();}
-    void construct(Namespace* ns);
+    void construct(Context* c);
     std::list<InstanceGraphNode*> getSortedNodes() { return sortedNodes;}
     void releaseMemory();
     void sortVisit(InstanceGraphNode* node);
