@@ -24,18 +24,18 @@ using namespace std;
 namespace CoreIR {
 namespace Passes {
 
-<<<<<<< HEAD
-  class VWire {
-    std::string name;
-    unsigned dim;
-    Type::DirKind dir;
-=======
+// <<<<<<< HEAD
+//   class VWire {
+//     std::string name;
+//     unsigned dim;
+//     Type::DirKind dir;
+// =======
 class VWire {
   std::string name;
   bool isArray;
   unsigned dim;
   Type::DirKind dir;
->>>>>>> upstream/dev
+  //>>>>>>> upstream/dev
   public :
     VWire(std::string field,Type* t) : name(field), isArray(isa<ArrayType>(t)), dim(t->getSize()), dir(t->getDir()) {}
     VWire(Wireable* w) : VWire("",w->getType()) {
@@ -65,13 +65,13 @@ class VWire {
   };
 
 
-<<<<<<< HEAD
-  class VModule {
-    std::string modname;
-    std::unordered_map<std::string,VWire> ports;
-    std::unordered_set<std::string> params;
-    std::unordered_map<std::string,std::string> paramDefaults;
-=======
+// <<<<<<< HEAD
+//   class VModule {
+//     std::string modname;
+//     std::unordered_map<std::string,VWire> ports;
+//     std::unordered_set<std::string> params;
+//     std::unordered_map<std::string,std::string> paramDefaults;
+// =======
 class VModule {
   public :
     typedef std::set<std::string> SParams;
@@ -82,7 +82,7 @@ class VModule {
   std::vector<std::string> interface;
   SParams params;
   SMap paramDefaults;
->>>>>>> upstream/dev
+  //>>>>>>> upstream/dev
 
     Generator* gen = nullptr;
   
@@ -121,17 +121,17 @@ class VModule {
           }
         }
       }
-<<<<<<< HEAD
+// <<<<<<< HEAD
 
-      this->addParams(g->getGenParams());
-      this->addDefaults(g->getDefaultGenArgs());
-    }
+//       this->addParams(g->getGenParams());
+//       this->addDefaults(g->getDefaultGenArgs());
+//     }
 
-=======
+// =======
     }
     std::string getName() { return modname;}
     bool hasDef() {return stmts.size() > 0 && (interface.size()>0 || ports.size()>0);}
->>>>>>> upstream/dev
+  //>>>>>>> upstream/dev
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
 
     std::string toCommentString() {
@@ -143,34 +143,34 @@ class VModule {
     std::string toInstanceString(Instance* inst);
 
   private :
-<<<<<<< HEAD
+// <<<<<<< HEAD
 
-    void Type2Ports(Type* t,std::unordered_map<std::string,VWire>& ports) {
-=======
+//     void Type2Ports(Type* t,std::unordered_map<std::string,VWire>& ports) {
+// =======
     void Type2Ports(Type* t,std::map<std::string,VWire>& ports) {
->>>>>>> upstream/dev
+      //>>>>>>> upstream/dev
       for (auto rmap : cast<RecordType>(t)->getRecord()) {
 	ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       }
     }
-<<<<<<< HEAD
+// <<<<<<< HEAD
 
-    void addParams(Params ps) {
+//     void addParams(Params ps) {
 
-      for (auto p : ps) {
-	if (params.count(p.first) != 0) {
+//       for (auto p : ps) {
+// 	if (params.count(p.first) != 0) {
 
-	  ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
-	}
-	params.insert(p.first); 
-      }
-    }
+// 	  ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
+// 	}
+// 	params.insert(p.first); 
+//       }
+//     }
 
-    void addDefaults(Values ds) { 
-      for (auto dpair : ds) {
-	ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
-	paramDefaults[dpair.first] = dpair.second->toString();
-=======
+//     void addDefaults(Values ds) { 
+//       for (auto dpair : ds) {
+// 	ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
+// 	paramDefaults[dpair.first] = dpair.second->toString();
+// =======
     std::string p2Str(std::set<std::string> ss) {
       return "(" + join(ss.begin(),ss.end(),string(",")) + ")";
     }
@@ -199,18 +199,18 @@ class VModule {
       else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
         BitVector bv = bvv->get();
         return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
->>>>>>> upstream/dev
+	//>>>>>>> upstream/dev
       }
       //TODO could add string
       assert(0);
     }
 
-<<<<<<< HEAD
-  };
-=======
+// <<<<<<< HEAD
+//   };
+// =======
 
 };
->>>>>>> upstream/dev
+  //>>>>>>> upstream/dev
 
 
 }
