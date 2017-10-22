@@ -1296,13 +1296,6 @@ namespace CoreIR {
   }
   
   SimulatorState::~SimulatorState() {
-    // set<SimValue*> vals;
-    // for (auto& state : circStates) {
-    //   for (auto& val : state.valMap) {
-    // 	vals.insert(val.second);
-    //   }
-    // }
-
     for (auto& val : allocatedValues) {
       delete val;
     }
