@@ -31,6 +31,7 @@ class Context {
     std::unordered_map<void*,Value*> valueList;
     std::vector<Values*> valuesList;
     std::vector<Value**> valuePtrArrays;
+    std::vector<Type**> typePtrArrays;
     std::vector<RecordParams*> recordParamsList;
     std::vector<Params*> paramsList;
     std::vector<Connection*> connectionArrays;
@@ -65,7 +66,7 @@ class Context {
     Module* getModule(std::string ref);
     Generator* getGenerator(std::string ref);
     Instantiable* getInstantiable(std::string ref);
-    std::map<std::string,Namespace*> getNamespaces() {return namespaces;}
+    std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
 
@@ -119,6 +120,7 @@ class Context {
     
     
     Value** newValueArray(int size);
+    Type** newTypeArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);

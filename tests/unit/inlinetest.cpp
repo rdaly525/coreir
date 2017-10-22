@@ -58,7 +58,7 @@ int main() {
       def->connect(inst->sel("in")->sel(i),def->getInterface()->sel("in")->sel(i));
     }
     def->connect(inst->sel("out"),def->getInterface()->sel("out"));
-    inst->runGenerator();
+    add4->runAll();
     inlineInstance(inst);
   add->setDef(def);
   add->print();

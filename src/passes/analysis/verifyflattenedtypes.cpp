@@ -26,7 +26,7 @@ bool Passes::VerifyFlattenedTypes::runOnInstanceGraphNode(InstanceGraphNode& nod
     for (auto inst : node.getInstanceList()) {
       for (auto rmap : (cast<RecordType>(inst->getType()))->getRecord()) {
         ASSERT(isBitOrArrOfBits(rmap.second),
-          "{"+inst->getContainer()->getModule()->getRefName()+"}."+inst->getInstname() + "." + rmap.first + " is not flattened!\n  Type is: " + rmap.second->toString()); 
+          "{"+inst->getContainer()->getModule()->getRefName()+"}."+inst->getInstname() + "." + rmap.first + " IS not flattened!\n  Type is: " + rmap.second->toString()); 
       }
     }
   }

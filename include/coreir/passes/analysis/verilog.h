@@ -9,6 +9,7 @@ namespace CoreIR {
 namespace Passes {
 
 class Verilog : public InstanceGraphPass {
+  std::vector<VModule*> modList;
   std::unordered_map<Instantiable*,VModule*> modMap;
   std::unordered_set<Instantiable*> external;
   public :

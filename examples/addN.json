@@ -2,16 +2,10 @@
   "top": "global.Add12",
   "namespaces": {
     "global": {
-      "namedtypegens": {
-        "addN_type": {
-          "genparams": {"width":"int", "N":"int"},
-          "flipname": "addN_typeFlip"
-        }
-      },
       "generators": {
         "addN": {
           "typegen": "global.addN_type",
-          "genparams": {"width":"int", "N":"int"}
+          "genparams": {"width":"Int", "N":"Int"}
         }
       },
       "modules": {
@@ -46,4 +40,4 @@
       }
     }
   }
-},
+}

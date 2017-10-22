@@ -7,25 +7,28 @@ using namespace std;
 
 string VModule::toString() {
   vector<string> pdecs;
-  for (auto pmap : ports) {
-    auto port = pmap.second;
-    pdecs.push_back(port.dirstr() + " " + port.dimstr() + " " + port.getName());
+  if (interface.size()>0) {
+    pdecs = interface;
   }
+  else {
+    for (auto pmap : ports) {
+      auto port = pmap.second;
+      pdecs.push_back(port.dirstr() + " " + port.dimstr() + " " + port.getName());
+    }
+  }
+  
+  vector<string> paramstrs;
+  for (auto p : params) {
+    string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults[p] : "1"); 
+    paramstrs.push_back(s);
+  }
+  string pstring = paramstrs.size()>0 ? " #(" + join(paramstrs.begin(),paramstrs.end(),string(", "))+") " : " ";
+
   ostringstream o;
   string tab = "  ";
   //Module declaration
-  o << endl << "module " << modname << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
+  o << endl << "module " << modname << pstring << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
 
-  //Param declaraions
-  for (auto p : params) {
-    o << tab << "parameter " << p;
-    if (paramDefaults.count(p)) {
-      o << " = " << paramDefaults[p];
-    }
-    o << ";" << endl;
-  }
-  o << endl;
-  
   for (auto s : stmts) o << s << endl;
   o << endl << "endmodule //" << modname;
   return o.str();
@@ -34,23 +37,31 @@ string VModule::toString() {
 string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Instantiable* iref = inst->getInstantiableRef();
+  SParams params0 = params;
   if (this->gen) {
     ASSERT(inst->isGen(),"DEBUG ME:");
+    ASSERT(iref==cast<Instantiable>(gen),"DEBUG ME");
     auto paramsAndDefaults = gen->getModParams(inst->getGenArgs());
+<<<<<<< HEAD
 
     this->addParams(paramsAndDefaults.first);
     this->addDefaults(paramsAndDefaults.second);
+=======
+    if (!this->hasDef()) {
+      this->addParams(params0,paramsAndDefaults.first);
+    }
+>>>>>>> upstream/dev
   }
 
   ostringstream o;
   string tab = "  ";
   string mname;
-  unordered_map<string,VWire> iports;
+  map<string,VWire> iports;
   Values args;
   if (gen) {
     args = inst->getGenArgs();
     Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
-    mname = gen->getNamespace()->getName() + "_" + modname; //TODO bug
+    mname = modname; 
   }
   else {
     mname = modname;
@@ -62,20 +73,11 @@ string VModule::toInstanceString(Instance* inst) {
     args[amap.first] = amap.second;
   }
   o << tab << mname << " ";
-  vector<string> params;
-  const json& jmeta = iref->getMetaData();
-  if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
-    params = jmeta["verilog"]["parameters"].get<vector<string>>();
-  }
-  else {
-    for (auto amap : args) {
-      params.push_back(amap.first);
-    }
-  }
+  
   vector<string> paramstrs;
-  for (auto param : params) {
+  for (auto param : params0) {
     ASSERT(args.count(param),"Missing parameter " + param + " from " + Values2Str(args));
-    string astr = "." + param + "(" + args[param]->toString() + ")";
+    string astr = "." + param + "(" + toConstString(args[param]) + ")";
     paramstrs.push_back(astr);
   }
   if (paramstrs.size()) {

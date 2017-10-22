@@ -121,7 +121,7 @@ namespace CoreIR {
     SECTION("16 bit add with carry out only") {
       uint n = 16;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+      Generator* add2 = c->getGenerator("mantle.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
@@ -164,7 +164,7 @@ namespace CoreIR {
     SECTION("31 bit add with carry in and carry out") {
       uint n = 31;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+      Generator* add2 = c->getGenerator("mantle.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
@@ -209,7 +209,7 @@ namespace CoreIR {
     SECTION("32 bit add with carry in and carry out") {
       uint n = 32;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+      Generator* add2 = c->getGenerator("mantle.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
