@@ -2,6 +2,7 @@
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
@@ -163,19 +164,16 @@ void inlinePassthrough(Instance* i) {
 bool inlineInstance(Instance* inst) {
   //Special case for a passthrough
   //TODO should have a better check for passthrough than string compare
-  if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
+  Module* mref = inst->getModuleRef();
+  if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
     inlinePassthrough(inst);
     return true;
   }
-  if (inst->isGen()) {
-    return false;
-  }
   ModuleDef* def = inst->getContainer();
-  Module* modInline = inst->getModuleRef();
-  assert(modInline);
+  Module* modInline = mref;
 
   if (!modInline->hasDef()) {
-    cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
+    //cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
     return false;
   }
   

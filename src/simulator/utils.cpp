@@ -5,7 +5,10 @@ using namespace std;
 
 namespace CoreIR {
 
+  //TODO change the following to use proper coreIR casting
+  //isa<>, cast<>, dyn_cast<>
   bool isBitArray(Type& t) {
+    
     if (t.getKind() != Type::TK_Array) {
       return false;
     }
@@ -208,7 +211,7 @@ namespace CoreIR {
 
 
   std::string getOpName(Instance& inst) {
-    string genRefName = inst.getGeneratorRef()->getName();
+    string genRefName = inst.getModuleRef()->getName();
     return genRefName;
   }
   

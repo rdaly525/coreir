@@ -83,6 +83,11 @@ NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genarg
   dir = raw->getDir();
 }
 
+void NamedType::print() {
+  cout << "NYI print on named type" << endl;
+}
+
+
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
   unordered_set<uint> dirs; // Slight hack because it is not easy to hash enums
@@ -103,7 +108,7 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
   }
 }
 
-Type* RecordType::appendField(string label, Type* t) {
+RecordType* RecordType::appendField(string label, Type* t) {
   ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
   
   RecordParams newParams({{label,t}});
@@ -113,7 +118,7 @@ Type* RecordType::appendField(string label, Type* t) {
   return c->Record(newParams);
 }
 
-Type* RecordType::detachField(string label) {
+RecordType* RecordType::detachField(string label) {
   ASSERT(this->getRecord().count(label)==1,"Cannot detach" + label + " from type: " + this->toString());
   
   RecordParams newParams;

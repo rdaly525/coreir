@@ -79,7 +79,7 @@ class VModule {
       Type2Ports(t,ports);
     }
     VModule(Module* m) : VModule(m->getName(),m->getType()) {
-      if (m->generated()) this->modname = m->getLongName();
+      if (m->isGenerated()) this->modname = m->getLongName();
       this->addParams(params,m->getModParams());
       this->addDefaults(paramDefaults,m->getDefaultModArgs());
       this->checkJson(m->getMetaData());

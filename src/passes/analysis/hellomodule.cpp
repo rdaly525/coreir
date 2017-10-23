@@ -25,7 +25,7 @@ bool Passes::HelloModule::runOnModule(Module* m) {
   
   //Get the insantiable which we want to compare against
   //Note this will do an automatic upcast which is fine
-  Instantiable* coreir_reg = c->getGenerator("coreir.reg");
+  Generator* coreir_reg = c->getGenerator("coreir.reg");
 
   
   //Define our vecotr of instances
@@ -36,8 +36,10 @@ bool Passes::HelloModule::runOnModule(Module* m) {
     
     //If the instance's InstantiableRef (the thing that it is instancing) is a coreir.reg
     //increment the counter
-    if (inst->getInstantiableRef() == coreir_reg) {
-      regInsts.push_back(inst);
+    if (inst->getModuleRef()->isGenerated()) {
+      if (inst->getModuleRef()->getGenerator() == coreir_reg) {
+        regInsts.push_back(inst);
+      }
     }
   }
   //Add this current module to the user datastructure we defined before
@@ -48,13 +50,13 @@ bool Passes::HelloModule::runOnModule(Module* m) {
 }
 
 //Just filling out the function bodies. 
-bool Passes::HelloModule::hasRegisterInstances(Instantiable* i) {
-  return registerMap.count(i) > 0;
+bool Passes::HelloModule::hasRegisterInstances(Module* m) {
+  return registerMap.count(m) > 0;
 }
 
-std::vector<Instance*> Passes::HelloModule::getRegisterInstances(Instantiable* i) {
+std::vector<Instance*> Passes::HelloModule::getRegisterInstances(Module* m) {
   //A little unsafe because this adds wrong Instances to the reigster map.
-  return registerMap[i];
+  return registerMap[m];
 }
 
 //Just filling out the function bodies. 

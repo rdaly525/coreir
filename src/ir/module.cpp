@@ -1,4 +1,5 @@
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
@@ -14,7 +15,13 @@ using namespace std;
 
 namespace CoreIR {
 
-Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : GlobalValue(GVK_Module,ns,name), Args(modparams), type(type), modparams(modparams), g(g), genargs(genargs) {
+Module::Module(Namespace* ns,std::string name, Type* type,Params modparams) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), longname(name) {
+  ASSERT(isa<RecordType>(type), "Module type needs to be a record!\n"+type->toString());
+  this->type = cast<RecordType>(type);
+}
+Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), g(g), genargs(genargs) {
+  ASSERT(isa<RecordType>(type), "Module type needs to be a record!\n"+type->toString());
+  this->type = cast<RecordType>(type);
   ASSERT(g && genargs.size(),"Missing genargs!");
   this->longname = name + getContext()->getUnique(); //TODO do a better name
 }
@@ -62,7 +69,7 @@ void Module::setDef(ModuleDef* def, bool validate) {
 }
 
 string Module::toString() const {
-  return "Module: " + name + (generated() ? Values2Str(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
+  return "Module: " + name + (isGenerated() ? Values2Str(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
 }
 
 bool Module::runGenerator() {

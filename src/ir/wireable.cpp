@@ -176,47 +176,17 @@ Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Val
   this->type = moduleRef->getType();
 }
 
-
 string Instance::toString() const {
   return instname;
 }
 
-Instantiable* Instance::getInstantiableRef() {
-  if (isGen()) return getGeneratorRef();
-  else return getModuleRef();
-}
-bool Instance::isGen() const { return moduleRef->generated();}
-Generator* Instance::getGeneratorRef() { return moduleRef->getGenerator();} //TODO depreciate
-Values Instance::getGenArgs() {return moduleRef->getGenArgs();}
-
-
 void Instance::replace(Module* moduleRef, Values modargs) {
-  ASSERT(!this->isGen(),"NYI, Cannot replace a generator instance with a module isntance")
-  ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
   ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
+  ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
   this->moduleRef = moduleRef;
   this->modargs = modargs;
   checkValuesAreParams(modargs,moduleRef->getModParams());
 }
-
-//TODO this is probably super unsafe and will leak memory
-//TODO I do not think this deals with default args
-//void Instance::replace(Generator* generatorRef, Values genargs, Values modargs) {
-//  ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
-//  ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
-//
-//  this->generatorRef = generatorRef;
-//  checkValuesAreParams(genargs,generatorRef->getGenParams());
-//  this->genargs = genargs;
-//  Type* newType = generatorRef->getTypeGen()->getType(genargs);
-//  ASSERT(this->getType() == newType,"NYI, Cannot replace with a different type");
-//  
-//  auto mpair = generatorRef->getModParams(genargs);
-//  mergeValues(modargs,mpair.second);
-//  checkValuesAreParams(modargs,mpair.first);
-//  this->modargs = modargs;
-//}
-
 
 string Select::toString() const {
   string ret = parent->toString();

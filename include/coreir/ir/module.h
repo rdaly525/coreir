@@ -10,7 +10,7 @@
 namespace CoreIR {
 
 class Module : public GlobalValue, public Args {
-  Type* type;
+  RecordType* type;
   ModuleDef* def = nullptr;
   
   const Params modparams;
@@ -28,9 +28,9 @@ class Module : public GlobalValue, public Args {
   std::vector<ModuleDef*> mdefList;
 
   public :
-    Module(Namespace* ns,std::string name, Type* type,Params modparams) : GlobalValue(GVK_Module,ns,name), Args(modparams), type(type), modparams(modparams), longname(name) {}
+    Module(Namespace* ns,std::string name, Type* type,Params modparams);
     Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs);
-    ~Module();
+    virtual ~Module();
     static bool classof(const GlobalValue* i) {return i->getKind()==GVK_Module;}
     bool hasDef() const { return !!def; }
     ModuleDef* getDef() const { return def; } 
@@ -45,12 +45,15 @@ class Module : public GlobalValue, public Args {
     DirectedModule* newDirectedModule();
     
     std::string toString() const override;
-    Type* getType() { return type;}
+    RecordType* getType() { return type;}
     
-    bool generated() const { return !!g;}
-    Generator* getGenerator() { return g;}
+    bool isGenerated() const { return !!g;}
+    Generator* getGenerator() { 
+      ASSERT(isGenerated(),"This is not a generated module!");
+      return g;
+    }
     Values getGenArgs() { 
-      ASSERT(generated(),"This is not a generated module!");
+      ASSERT(isGenerated(),"This is not a generated module!");
       return genargs;
     }
     bool runGenerator();
@@ -65,8 +68,8 @@ class Module : public GlobalValue, public Args {
   private :
     //This should be used very carefully. Could make things inconsistent
     friend class InstanceGraphNode;
-    void setType(Type* t) {
-      type = t;
+    void setType(RecordType* t) {
+      this->type = t;
     }
 };
 

@@ -4,7 +4,7 @@
 
 #include "fwd_declare.h"
 #include "globalvalue.h"
-//#include "common.h"
+#include "common.h"
 
 namespace CoreIR {
 
@@ -24,7 +24,7 @@ class Generator : public GlobalValue {
   
   public :
     Generator(Namespace* ns,std::string name,TypeGen* typegen, Params genparams);
-    ~Generator();
+    virtual ~Generator();
     static bool classof(const GlobalValue* i) {return i->getKind()==GVK_Generator;}
     std::string toString() const override;
     void print(void) override;

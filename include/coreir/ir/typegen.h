@@ -14,6 +14,8 @@ class TypeGen : public GlobalValue {
     TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : GlobalValue(GVK_TypeGen,ns,name), params(params), flipped(flipped) {}
     virtual ~TypeGen() {}
     virtual Type* createType(Context* c, Values args) = 0;
+    virtual std::string toString() const override = 0;
+    virtual void print() const override = 0;
     Type* getType(Values genargs); //TODO change this to a functor
     Params getParams() const {return params;}
     bool isFlipped() const { return flipped;}
@@ -26,6 +28,8 @@ class TypeGenFromFun : public TypeGen {
     Type* createType(Context* c, Values genargs) override {
       return fun(c,genargs);
     }
+    std::string toString() const override {return "NYI"; }
+    void print() const override {}//TODO
   private :
     TypeGenFun fun;
 };

@@ -2,25 +2,32 @@
 #include "coreir/ir/typecache.h"
 #include "coreir/ir/valuecache.h"
 #include "coreir/ir/passmanager.h"
+#include "coreir/ir/namespace.h"
 #include "coreir/ir/dynamic_bit_vector.h"
-
+#include "coreir/ir/error.h"
+#include "coreir/ir/passes.h"
 
 using namespace std;
 
 
+#include "coreir/ir/valuetype.h"
+#include "coreir/ir/value.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/generator.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/moduledef.h"
 
 namespace CoreIR {
-
+//TODO sketchy
 #include "headers/core.hpp"
 #include "headers/corebit.hpp"
 #include "headers/mantle.hpp"
+
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
   Namespace* pt = newNamespace("_");
   //This defines a passthrough module. It is basically a nop that just passes the signal through
- 
-  
   
   typecache = new TypeCache(this);
   valuecache = new ValueCache(this);
@@ -136,13 +143,14 @@ Generator* Context::getGenerator(string ref) {
   return ns->getGenerator(refsplit[1]);
 }
 
-GlobalValue* getGlobalValue(std::string ref) {
+GlobalValue* Context::getGlobalValue(std::string ref) {
   vector<string> refsplit = splitRef(ref);
   ASSERT(hasNamespace(refsplit[0]),"Missing namespace: " + refsplit[0]);
   Namespace* ns = getNamespace(refsplit[0]);
-  if (
-  ASSERT(ns->hasGenerator(refsplit[1]),"Missing module: " + ref);
-  return ns->getGenerator(refsplit[1]);
+  if (ns->hasGenerator(refsplit[1])) return ns->getGenerator(refsplit[1]);
+  if (ns->hasModule(refsplit[1])) return ns->getModule(refsplit[1]);
+  ASSERT(0,"MISSING " + ref);
+  return nullptr;
 }
 
 void Context::addPass(Pass* p) {

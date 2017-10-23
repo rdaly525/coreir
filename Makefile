@@ -36,9 +36,9 @@ export CXXFLAGS
 
 all: build coreir
 
-.PHONY: src
-src:
-	$(MAKE) -C src $(TARGET)
+.PHONY: ir
+ir:
+	$(MAKE) -C src/ir $(TARGET)
 
 simple:
 	$(MAKE) -C tests/unit build/simple

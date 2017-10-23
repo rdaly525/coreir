@@ -25,7 +25,7 @@ class GlobalValue: public MetaData {
     std::string getRefName() const;
  
     virtual std::string toString() const =0;
-    virtual void print(void) = 0;
+    virtual void print() const = 0;
     friend bool operator==(const GlobalValue& l,const GlobalValue& r);
     
 };

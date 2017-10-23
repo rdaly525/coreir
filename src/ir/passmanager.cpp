@@ -21,7 +21,6 @@ PassManager::PassManager(Context* c) : c(c) {
     pmap.second->addPassManager(this);
   }
 
-  //this->instanceGraph = new InstanceGraph();
 }
 
 

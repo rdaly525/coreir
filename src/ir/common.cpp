@@ -68,8 +68,8 @@ string Connection2Str(Connection con) {
 
 std::string Inst2Str(Instance* inst) {
   string ret = inst->getInstname();
-  if (inst->isGen()) { 
-    ret = ret + Values2Str(inst->getGenArgs());
+  if (inst->getModuleRef()->isGenerated()) { 
+    ret = ret + Values2Str(inst->getModuleRef()->getGenArgs());
   }
   return ret + Values2Str(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
 }

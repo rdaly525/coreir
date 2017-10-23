@@ -1,9 +1,7 @@
-#ifndef PASSMANAGER_HPP_
-#define PASSMANAGER_HPP_
+#ifndef COREIR_PASSMANAGER_HPP_
+#define COREIR_PASSMANAGER_HPP_
 
-#include "coreir.h"
-#include "passes.h"
-#include "instancegraph.h"
+#include "fwd_declare.h"
 #include <stack>
 
 namespace CoreIR {

@@ -7,115 +7,153 @@
 namespace CoreIR {
 
   static inline bool isSelect(CoreIR::Wireable* fst) {
-    return fst->getKind() == CoreIR::Wireable::WK_Select;
+    return isa<Select>(fst);
   }
 
   static inline CoreIR::Select* toSelect(CoreIR::Wireable* w) {
-    assert(isSelect(w));
-    return static_cast<CoreIR::Select*>(w);
+    //cast<> already asserts if wrong type
+    return cast<Select>(w);
+    //assert(isSelect(w));
   }
 
   static inline bool isSelect(const CoreIR::Wireable& fst) {
-    return fst.getKind() == CoreIR::Wireable::WK_Select;
+    return isa<Select>(fst);
   }
 
   static inline CoreIR::Select& toSelect(CoreIR::Wireable& fst) {
-    assert(isSelect(fst));
-    return static_cast<CoreIR::Select&>(fst);
+    //cast<> already throws assert if wrong type
+    return cast<Select>(fst);
+    //assert(isSelect(fst));
   }
 
   static inline bool fromSelf(CoreIR::Select* w) {
-    CoreIR::Wireable* parent = w->getParent();
-    if (isSelect(parent)) {
-      return fromSelf(toSelect(parent));
-    }
+    
+    //I already have this function
+    Wireable* topParent = w->getTopParent();
+    return isa<Interface>(topParent);
 
-    return parent->toString() == "self";
+
+    //CoreIR::Wireable* parent = w->getParent();
+    //if (isSelect(parent)) {
+    //  return fromSelf(toSelect(parent));
+    //}
+
+    //return parent->toString() == "self";
   }
 
   
   static inline bool isInstance(CoreIR::Wireable* fst) {
-    return fst->getKind() == CoreIR::Wireable::WK_Instance;
+    return isa<Instance>(fst);
   }
 
   static inline bool isInterface(CoreIR::Wireable* fst) {
-    return fst->getKind() == CoreIR::Wireable::WK_Interface;
+    return isa<Interface>(fst);
   }
   
   static inline CoreIR::Instance* toInstance(CoreIR::Wireable* fst) {
     assert(isInstance(fst));
-    return static_cast<CoreIR::Instance*>(fst);
+    return cast<Instance>(fst);
   }
 
   static inline bool isRegisterInstance(CoreIR::Wireable* fst) {
     //cout << "checking isRegisterInstance " << fst->toString() << endl;
-
-    if (!isInstance(fst)) {
-      return false;
+    
+    if (auto inst = dyn_cast<Instance>(fst)) {
+      Module* m = inst->getModuleRef();
+      //module's name is always either the modules name or the generators name
+      //m->getLongName() is a uniquified name for generated modules
+      //TODO really should be checking m->getRefName() == "coreir.reg"
+      return m->getName() == "reg";
     }
+    return false;
 
-    //cout << "Is instance" << endl;
 
-    CoreIR::Instance* inst = toInstance(fst);
 
-    auto genRef = inst->getGeneratorRef();
+    //if (!isInstance(fst)) {
+    //  return false;
+    //}
 
-    //cout << "genRef is null ? " << (genRef == nullptr) << endl;
+    ////cout << "Is instance" << endl;
 
-    if (genRef == nullptr) {
-      //std::cout << "ERROR: genRef is null for " << fst->toString() << std::endl;
+    //CoreIR::Instance* inst = toInstance(fst);
 
-      Module* modRef = inst->getModuleRef();
+    //auto genRef = inst->getGeneratorRef();
 
-      //std::cout << "Module ref is null ? " << (modRef == nullptr) << std::endl;
+    ////cout << "genRef is null ? " << (genRef == nullptr) << endl;
 
-      assert(modRef != nullptr);
+    //if (genRef == nullptr) {
+    //  //std::cout << "ERROR: genRef is null for " << fst->toString() << std::endl;
 
-      //cout << "Module ref name = " << modRef->getName() << endl;      
+    //  Module* modRef = inst->getModuleRef();
 
-      return modRef->getName() == "reg";
-    }
+    //  //std::cout << "Module ref is null ? " << (modRef == nullptr) << std::endl;
 
-    std::string genRefName = genRef->getName();
+    //  assert(modRef != nullptr);
 
-    return genRefName == "reg";
+    //  //cout << "Module ref name = " << modRef->getName() << endl;      
+
+    //  return modRef->getName() == "reg";
+    //}
+
+    //std::string genRefName = genRef->getName();
+
+    //return genRefName == "reg";
   }
 
   static inline bool isMemoryInstance(CoreIR::Wireable* fst) {
-    if (!isInstance(fst)) {
-      return false;
+    
+    if (auto inst = dyn_cast<Instance>(fst)) {
+      Module* m = inst->getModuleRef();
+      return m->getName() == "mem";
     }
+    return false;
+ 
 
-    CoreIR::Instance* inst = toInstance(fst);
 
-    auto genRef = inst->getGeneratorRef();
 
-    if (genRef == nullptr) {
-      Module* modRef = inst->getModuleRef();
+    //if (!isInstance(fst)) {
+    //  return false;
+    //}
 
-      assert(modRef != nullptr);
+    //CoreIR::Instance* inst = toInstance(fst);
 
-      return modRef->getName() == "mem";
-    }
+    //auto genRef = inst->getGeneratorRef();
 
-    std::string genRefName = genRef->getName();
+    //if (genRef == nullptr) {
+    //  Module* modRef = inst->getModuleRef();
 
-    return genRefName == "mem";
+    //  assert(modRef != nullptr);
+
+    //  return modRef->getName() == "mem";
+    //}
+
+    //std::string genRefName = genRef->getName();
+
+    //return genRefName == "mem";
   }
   
   static inline bool isNamedType(CoreIR::Type& t, const std::string& name) {
-    if (t.getKind() != CoreIR::Type::TK_Named) {
-      return false;
+    
+    //Can only convert to bool if casting to a pointer
+    if (NamedType* namedType = dyn_cast<NamedType>(&t)) {
+      return namedType->getName() == name;
     }
+    return false;
+    
+    //if (t.getKind() != CoreIR::Type::TK_Named) {
+    //  return false;
+    //}
 
-    CoreIR::NamedType& nt = static_cast<CoreIR::NamedType&>(t);
-    return nt.getName() == name;
+    //CoreIR::NamedType& nt = static_cast<CoreIR::NamedType&>(t);
+    //return nt.getName() == name;
 
   }
 
   
   static inline bool isArray(CoreIR::Type& t) {
-    return t.getKind() == CoreIR::Type::TK_Array;
+    return isa<ArrayType>(t);
+
+    //return t.getKind() == CoreIR::Type::TK_Array;
   }
 
   static inline bool isClkIn(CoreIR::Type& t) {
@@ -166,25 +204,31 @@ namespace CoreIR {
 
   static inline
   std::string getInstanceName(Instance& w) {
-    auto g = w.getGeneratorRef();
+    return w.getModuleRef()->getName();
 
-    if (g == nullptr) {
-      auto m = w.getModuleRef();
+    //auto g = w.getGeneratorRef();
 
-      assert(m != nullptr);
+    //if (g == nullptr) {
+    //  auto m = w.getModuleRef();
 
-      return m->getName();
-    }
+    //  assert(m != nullptr);
 
-    return g->getName();
+    //  return m->getName();
+    //}
+
+    //return g->getName();
   }
 
   static inline Generator* getGeneratorRef(Instance& w) {
-    auto g = w.getGeneratorRef();
+    Module* m = w.getModuleRef();
+    assert(m->isGenerated());
+    return m->getGenerator();
 
-    assert(g != nullptr);
+    //auto g = w.getGeneratorRef();
 
-    return g;
+    //assert(g != nullptr);
+
+    //return g;
   }
 
   static inline bool isDASHR(Instance& inst) {

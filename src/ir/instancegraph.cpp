@@ -62,7 +62,7 @@ void InstanceGraphNode::appendField(string label,Type* t) {
   RecordType* mtype = cast<RecordType>(m->getType());
 
   //appendField will assert if the field already exists
-  Type* newType = mtype->appendField(label,t);
+  RecordType* newType = mtype->appendField(label,t);
 
   //Do not have to check any connections because I am adding a new field
 
@@ -86,7 +86,7 @@ void InstanceGraphNode::detachField(string label) {
   RecordType* mtype = cast<RecordType>(m->getType());
 
   //Will assert if field does not exist
-  Type* newType = mtype->detachField(label);
+  RecordType* newType = mtype->detachField(label);
 
   //Remove anything connected to the module def interface
   Interface* iface = m->getDef()->getInterface();

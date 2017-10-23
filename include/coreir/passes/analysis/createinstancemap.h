@@ -11,14 +11,15 @@ class CreateInstanceMap : public ModulePass {
   std::map<Generator*,std::set<Instance*>> genInstanceMap;
   public :
     static std::string ID;
-    CreateFullInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
+    CreateInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
     bool runOnModule(Module* ns) override;
     void releaseMemory() override {
-      instanceMap.clear();
+      modInstanceMap.clear();
+      genInstanceMap.clear();
     }
     std::set<Instance*> getModInstances(Module* m) {
-      ASSERT(this->hasInstances(i),i->getRefName() + " has no instances!");
-      return modInstanceMap[i];
+      ASSERT(modInstanceMap.count(m),m->getRefName() + " has no instances!");
+      return modInstanceMap[m];
     }
     std::map<Module*,std::set<Instance*>>& getModInstanceMap() {
       return modInstanceMap;

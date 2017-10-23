@@ -5,9 +5,9 @@ using namespace std;
 using namespace CoreIR;
 
 namespace {
-void recurse(Module* m, set<Instantiable*>& used) {
+void recurse(Module* m, set<GlobalValue*>& used) {
   used.insert(m);
-  if (m->generated()) used.insert(m->getGenerator());
+  if (m->isGenerated()) used.insert(m->getGenerator());
   if (!m->hasDef()) return;
   for (auto ipair : m->getDef()->getInstances()) {
     recurse(ipair.second->getModuleRef(),used);
@@ -19,10 +19,10 @@ string Passes::CullGraph::ID = "cullgraph";
 bool Passes::CullGraph::runOnContext(Context* c) {
   if (!c->hasTop()) return false;
   //Find a list of all used Modules and Generators
-  set<Instantiable*> used;
+  set<GlobalValue*> used;
   recurse(c->getTop(),used);
   
-  set<Instantiable*> toErase;
+  set<GlobalValue*> toErase;
   for (auto npair : c->getNamespaces()) {
     for (auto gpair : npair.second->getGenerators()) {
       if (used.count(gpair.second)==0) {

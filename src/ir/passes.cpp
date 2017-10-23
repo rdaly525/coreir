@@ -1,6 +1,6 @@
 #include "coreir/ir/passes.h"
 #include "coreir/ir/passmanager.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
 
 using namespace std;
 using namespace CoreIR;
