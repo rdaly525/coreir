@@ -260,13 +260,13 @@ namespace CoreIR {
       counterTest->setDef(def);
 
       //c->runPasses({"rungenerators","flattentypes","flatten"});
-      c->runPasses({"rungenerators"});//,"flattentypes","flatten"});
+      c->runPasses({"rungenerators", "flattentypes","flatten"});
 
       cout << "ct is generator ? " << ct->isGen() << endl;
 
-      bool inlinedCounter = inlineInstance(ct);
+      // bool inlinedCounter = inlineInstance(ct);
 
-      cout << "Inlined counter = " << inlinedCounter << endl;
+      // cout << "Inlined counter = " << inlinedCounter << endl;
 
       SimulatorState state(counterTest);
 
@@ -279,12 +279,12 @@ namespace CoreIR {
       cout << "DONE NODES." << endl;
 
       SECTION("Test register defaults") {
-    	REQUIRE(state.getBitVec("counter$ri.out") == BitVec(pcWidth, 0));
+    	REQUIRE(state.getBitVec("counter$ri$reg0.out") == BitVec(pcWidth, 0));
       }
 
       SECTION("Count from zero, enable set") {
 
-    	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+    	state.setValue("counter$ri$reg0..out", BitVec(pcWidth, 0));
     	state.setValue("self.en", BitVec(1, 1));
     	state.setClock("self.clk", 0, 1);
 
@@ -304,7 +304,7 @@ namespace CoreIR {
 
       SECTION("Counting with clock changes, enable set") {
 
-    	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+    	state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
     	state.setClock("self.clk", 0, 1);
   
@@ -350,7 +350,7 @@ namespace CoreIR {
       }
 
       SECTION("Enable on") {
-    	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+    	state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
     	state.setClock("self.clk", 1, 0);
   
@@ -362,7 +362,7 @@ namespace CoreIR {
       }
 
       SECTION("Setting watchpoint") {
-    	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+    	state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));
     	state.setClock("self.clk", 1, 0);
     	state.setValue("self.en", BitVec(1, 1));
 
