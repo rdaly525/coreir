@@ -599,7 +599,7 @@ namespace CoreIR {
 
       lbMem->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes", "flatten", "verifyconnectivity"}); //, {"commonlib", "mantle", "global"}); //,"flatten"});
+      c->runPasses({"rungenerators","flattentypes"}); //, "flatten"});, "verifyconnectivity"}); //, {"commonlib", "mantle", "global"}); //,"flatten"});
 
       if (!saveToFile(g, "linebuffermem.json", lbMem)) {
         cout << "Could not save to json!!" << endl;
