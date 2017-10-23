@@ -10,8 +10,7 @@
 #include "analysis/verifyconnectivity.h"
 #include "analysis/verifyinputconnections.h"
 #include "analysis/verifyflattenedtypes.h"
-#include "analysis/createmodinstancemap.h"
-#include "analysis/createfullinstancemap.h"
+#include "analysis/createinstancemap.h"
 
 //Transform passes
 #include "transform/flatten.h"
@@ -31,8 +30,7 @@ namespace CoreIR {
     //Analysis
     pm.addPass(new Passes::HelloModule());
     pm.addPass(new Passes::CreateInstanceGraph());
-    pm.addPass(new Passes::CreateModInstanceMap());
-    pm.addPass(new Passes::CreateFullInstanceMap());
+    pm.addPass(new Passes::CreateInstanceMap());
     pm.addPass(new Passes::Firrtl());
     pm.addPass(new Passes::CoreIRJson());
     pm.addPass(new Passes::Verilog());

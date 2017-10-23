@@ -4,7 +4,7 @@
 #include <stack>
 
 #include "coreir/passes/analysis/createinstancegraph.h"
-#include "coreir/passes/analysis/createfullinstancemap.h"
+#include "coreir/passes/analysis/createinstancemap.h"
 
 
 
@@ -90,7 +90,7 @@ bool PassManager::runInstancePass(Pass* pass) {
 bool PassManager::runInstanceVisitorPass(Pass* pass) {
 
   //Get the analysis pass which constructs the instancegraph
-  auto cfim = static_cast<Passes::CreateFullInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
+  auto cfim = static_cast<Passes::CreateInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
   bool modified = false;
   InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
   for (auto imap : cfim->getModInstanceMap()) {

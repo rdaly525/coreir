@@ -12,7 +12,7 @@ using namespace std;
 
 namespace CoreIR {
 
-void Type::print(void) { cout << "Type: " << (*this) << endl; }
+void Type::print(void) const { cout << "Type: " << (*this) << endl; }
 
 string Type::TypeKind2Str(TypeKind t) {
   switch(t) {
@@ -83,7 +83,7 @@ NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genarg
   dir = raw->getDir();
 }
 
-void NamedType::print() {
+void NamedType::print() const {
   cout << "NYI print on named type" << endl;
 }
 

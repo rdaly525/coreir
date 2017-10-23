@@ -83,7 +83,7 @@ bool Module::runGenerator() {
   return true;
 }
 
-void Module::print(void) {
+void Module::print(void) const {
   cout << toString() << endl;
   if(def) def->print();
 

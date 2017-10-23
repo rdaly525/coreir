@@ -59,7 +59,7 @@ class Module : public GlobalValue, public Args {
     bool runGenerator();
     std::string getLongName() const {return longname;}
 
-    void print(void) override;
+    void print(void) const override;
 
     //This will add (and override) defaultModArgs
     void addDefaultModArgs(Values defaultModArgs);

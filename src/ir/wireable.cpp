@@ -2,7 +2,8 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/error.h"
 #include "coreir/ir/types.h"
@@ -164,7 +165,7 @@ string Interface::toString() const{
 
 
 
-Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
+Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //First merge default args
   mergeValues(modargs,moduleRef->getDefaultModArgs());

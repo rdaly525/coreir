@@ -109,7 +109,7 @@ string Generator::toString() const {
   return ret;
 }
 
-void Generator::print(void) {
+void Generator::print(void) const {
   cout << toString() << endl;
 }
 

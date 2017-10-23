@@ -1,6 +1,7 @@
 #include "coreir/ir/passes.h"
 #include "coreir/ir/passmanager.h"
 #include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -15,7 +16,7 @@ Context* Pass::getContext() {
 
 bool InstanceVisitorPass::runOnModInstances(Module* m, set<Instance*>& instances) {
   if (modVisitorMap.count(m)==0) return false;
-  auto fun = modVisitorMap[g];
+  auto fun = modVisitorMap[m];
   bool modified = false;
   for (auto inst : instances) {
     modified |= fun(inst);
@@ -33,14 +34,13 @@ bool InstanceVisitorPass::runOnGenInstances(Generator* g, set<Instance*>& instan
   return modified;
 }
 
-
 void InstanceVisitorPass::addVisitorFunction(Module* m,InstanceVisitor_t fun) {
-  ASSERT(!m->generated(),"NYI visitor for generated module");
+  ASSERT(!m->isGenerated(),"NYI visitor for generated module");
   ASSERT(modVisitorMap.count(m)==0,"Already added Function for " + m->getRefName());
-  modVisitorMap[i] = fun;
+  modVisitorMap[m] = fun;
 }
 
-void InstanceVisitorPass::addVisitorFunction(Generator* m,InstanceVisitor_t fun) {
+void InstanceVisitorPass::addVisitorFunction(Generator* g,InstanceVisitor_t fun) {
   ASSERT(genVisitorMap.count(g)==0,"Already added Function for " + g->getRefName());
   genVisitorMap[g] = fun;
 }

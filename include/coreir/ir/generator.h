@@ -27,7 +27,7 @@ class Generator : public GlobalValue {
     virtual ~Generator();
     static bool classof(const GlobalValue* i) {return i->getKind()==GVK_Generator;}
     std::string toString() const override;
-    void print(void) override;
+    void print() const override;
     TypeGen* getTypeGen() const { return typegen;}
     bool hasDef() const { return !!def; }
     GeneratorDef* getDef() const {return def;}

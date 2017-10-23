@@ -27,7 +27,7 @@ class Type {
     Type* sel(std::string sel);
     bool canSel(std::string sel);
     virtual uint getSize() const=0;
-    void print(void);
+    virtual void print(void) const;
     Context* getContext() {return c; };
     static std::string TypeKind2Str(TypeKind t);
     
@@ -84,7 +84,7 @@ class NamedType : public Type, public GlobalValue {
     NamedType(Namespace* ns, std::string name, TypeGen* typegen, Values genargs);
     static bool classof(const Type* t) {return t->getKind()==TK_Named;}
     std::string toString(void) const override { return this->getRefName(); } //TODO add generator
-    void print() override;
+    void print() const override;
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}
