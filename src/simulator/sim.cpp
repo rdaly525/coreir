@@ -74,8 +74,8 @@ namespace CoreIR {
 	//ArgInt* valInt = static_cast<ArgInt*>(valArg);
 	BitVector bv = valArg->get<BitVector>();
 	stringstream ss;
-	ss << bv;
-	argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
+	//ss << bv;
+        argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
       }
     }
 
