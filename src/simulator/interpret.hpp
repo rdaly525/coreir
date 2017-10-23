@@ -92,17 +92,17 @@ namespace CoreIR {
 	valids.push_back(false);
       }
 
-      assert(values.size() == depth);
+      assert(((int)values.size()) == depth);
     }
 
     BitVector peek() const {
-      assert(values.size() == depth);
+      assert(((int)values.size()) == depth);
 
       return values[getDepth() - 1];
     }
 
     bool isValid() const {
-      assert(valids.size() == depth);
+      assert(((int)valids.size()) == depth);
       return valids.back();
     }
 
@@ -114,8 +114,8 @@ namespace CoreIR {
       values.pop_back();
       valids.pop_back();
 
-      assert(values.size() == depth);
-      assert(valids.size() == depth);
+      assert(((int)values.size()) == depth);
+      assert(((int)valids.size()) == depth);
 
       return toRet;
     }

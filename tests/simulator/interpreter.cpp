@@ -237,7 +237,6 @@ namespace CoreIR {
       REQUIRE(state.getBitVec(self->sel("outval")) == bv);
     }
 
-    // TODO: Reintroduce this test once counter is inlined
     SECTION("Counter") {
 
       addCounter(c, g);

@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");
   
-  std::ostream* sout = &std::cout;
+  //std::ostream* sout = &std::cout;
   std::ofstream fout;
   string outExt = "json";
   if (options.count("o")) {
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
         || outExt == "v", "Cannot support out extention: " + outExt);
     fout.open(outfileName);
     ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
-    sout = &fout;
+    //sout = &fout;
   }
   
   //Load input
