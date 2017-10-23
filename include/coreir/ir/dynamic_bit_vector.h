@@ -351,7 +351,7 @@ namespace bsim {
     dynamic_bit_vector diff(a.bitLength());
     dynamic_bit_vector a_cpy = a;
 
-    bool underflow = false;
+    //bool underflow = false;
     for (int i = 0; i < Width; i++) {
 
       if ((a_cpy.get(i) == 0) &&
@@ -368,7 +368,7 @@ namespace bsim {
   	}
 
   	if (j >= Width) {
-  	  underflow = true;
+  	  //underflow = true;
   	} else {
   	  a_cpy.set(j, 0);
   	}
