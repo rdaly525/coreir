@@ -167,12 +167,8 @@ bool inlineInstance(Instance* inst) {
     inlinePassthrough(inst);
     return true;
   }
-  if (inst->isGen()) {
-    return false;
-  }
-  ModuleDef* def = inst->getContainer();
   Module* modInline = inst->getModuleRef();
-  assert(modInline);
+  ModuleDef* def = inst->getContainer();
 
   if (!modInline->hasDef()) {
     cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
