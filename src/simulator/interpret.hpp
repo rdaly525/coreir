@@ -130,6 +130,7 @@ namespace CoreIR {
 
     // Internal state of the circuit
     std::unordered_map<std::string, SimMemory> memories;
+    std::unordered_map<std::string, BitVec> registers;
     std::unordered_map<std::string, LinebufferMemory> lbMemories;
     
   };
@@ -223,6 +224,11 @@ namespace CoreIR {
 		  const unsigned char clk_last,
 		  const unsigned char clk);
 
+    void setRegister(const std::string& name,
+                     const BitVec& data);
+
+    BitVec getRegister(const std::string& name);
+    
     void setMemory(const std::string& name,
 		   const BitVec& addr,
 		   const BitVec& data);

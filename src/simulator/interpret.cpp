@@ -1244,6 +1244,17 @@ namespace CoreIR {
     mem.push(data);
   }
 
+  void SimulatorState::setRegister(const std::string& name,
+                                   const BitVec& data) {
+
+    circStates[stateIndex].registers.insert({name, data});
+
+  }
+
+  BitVec SimulatorState::getRegister(const std::string& name) {
+    return map_find(name, circStates[stateIndex].registers);
+  }
+
   void SimulatorState::setMemory(const std::string& name,
                                  const BitVec& addr,
                                  const BitVec& data) {
