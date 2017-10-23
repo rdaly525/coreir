@@ -650,7 +650,14 @@ namespace CoreIR {
 
     auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() == 3);
+    if (inConns.size() != 3) {
+      cout << "Mux does not have 3 inputs!" << endl;
+      for (auto& inConn : inConns) {
+        cout << inConn.first.getWire()->toString() << " --> " << inConn.second.getWire()->toString() << endl;
+      }
+
+      assert(inConns.size() == 3);
+    }
 
     InstanceValue arg1 = findArg("in0", inConns);
     InstanceValue arg2 = findArg("in1", inConns);
