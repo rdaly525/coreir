@@ -381,6 +381,7 @@ Type* json2Type(Context* c, json jt) {
     else {
       cout << "ERROR NYI!: " << args[0].get<string>() << endl;
       assert(false);
+      return NULL;
     }
   }
   else throw std::runtime_error("Error parsing Type");

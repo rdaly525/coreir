@@ -211,7 +211,8 @@ namespace CoreIR {
       def->connect(or_1->sel("out"), self->sel("outval"));
       or4_n->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes","flatten"});
+      c->runPasses({"rungenerators","flattentypes"}); //,"flatten"});
+
       // RunGenerators rg;
       // rg.runOnNamespace(g);
 
@@ -598,8 +599,13 @@ namespace CoreIR {
 
       lbMem->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes","flatten"});
+      c->runPasses({"rungenerators","flattentypes", "flatten", "verifyconnectivity"}); //, {"commonlib", "mantle", "global"}); //,"flatten"});
 
+      if (!saveToFile(g, "linebuffermem.json", lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
       SimulatorState state(lbMem);
 
       state.setValue("self.wdata", BitVector(width, "11"));
