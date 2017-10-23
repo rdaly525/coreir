@@ -283,12 +283,17 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("c1","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,awidth,1)}});
     def->connect("self.wdata","mem.wdata");
     def->connect("self.wen","mem.wen");
+    def->connect("self.clk","mem.clk");
     def->connect("waddr.out","mem.waddr");
     def->connect("raddr.out","mem.raddr");
     def->connect("mem.rdata","self.rdata");
     def->connect("add_r.out","raddr.in");
     def->connect("add_r.in0","raddr.out");
     def->connect("add_r.in1","c1.out");
+    def->connect("waddr.en","self.wen");
+    def->connect("waddr.clk","self.clk");
+    def->connect("raddr.en","self.wen");
+    def->connect("raddr.clk","self.clk");
     def->connect("add_w.out","waddr.in");
     def->connect("add_w.in0","waddr.out");
     def->connect("add_w.in1","c1.out");
