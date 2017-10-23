@@ -284,7 +284,7 @@ namespace CoreIR {
 
       SECTION("Count from zero, enable set") {
 
-    	state.setValue("counter$ri$reg0..out", BitVec(pcWidth, 0));
+    	state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));
     	state.setValue("self.en", BitVec(1, 1));
     	state.setClock("self.clk", 0, 1);
 
