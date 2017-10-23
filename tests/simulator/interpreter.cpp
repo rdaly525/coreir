@@ -237,205 +237,205 @@ namespace CoreIR {
     }
 
     // TODO: Reintroduce this test once counter is inlined
-    // SECTION("Counter") {
+    SECTION("Counter") {
 
-    //   addCounter(c, g);
+      addCounter(c, g);
 
-    //   uint pcWidth = 17;
-    //   Type* counterTestType =
-    // 	c->Record({
-    // 	    {"en", c->BitIn()},
-    // 	      {"clk", c->Named("coreir.clkIn")},
-    // 		{"counterOut", c->Array(pcWidth, c->Bit())}});
+      uint pcWidth = 17;
+      Type* counterTestType =
+    	c->Record({
+    	    {"en", c->BitIn()},
+    	      {"clk", c->Named("coreir.clkIn")},
+    		{"counterOut", c->Array(pcWidth, c->Bit())}});
 
-    //   Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
-    //   ModuleDef* def = counterTest->newModuleDef();
+      Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
+      ModuleDef* def = counterTest->newModuleDef();
 
-    //   auto ct = def->addInstance("counter", "global.myCounter", {{"width", Const::make(c,pcWidth)}});
+      auto ct = def->addInstance("counter", "global.myCounter", {{"width", Const::make(c,pcWidth)}});
 
-    //   def->connect("self.en", "counter.en");
-    //   def->connect("self.clk", "counter.clk");
-    //   def->connect("counter.out", "self.counterOut");
+      def->connect("self.en", "counter.en");
+      def->connect("self.clk", "counter.clk");
+      def->connect("counter.out", "self.counterOut");
 
-    //   counterTest->setDef(def);
+      counterTest->setDef(def);
 
-    //   //c->runPasses({"rungenerators","flattentypes","flatten"});
-    //   c->runPasses({"rungenerators"});//,"flattentypes","flatten"});
+      //c->runPasses({"rungenerators","flattentypes","flatten"});
+      c->runPasses({"rungenerators"});//,"flattentypes","flatten"});
 
-    //   cout << "ct is generator ? " << ct->isGen() << endl;
+      cout << "ct is generator ? " << ct->isGen() << endl;
 
-    //   bool inlinedCounter = inlineInstance(ct);
+      bool inlinedCounter = inlineInstance(ct);
 
-    //   cout << "Inlined counter = " << inlinedCounter << endl;
+      cout << "Inlined counter = " << inlinedCounter << endl;
 
-    //   SimulatorState state(counterTest);
+      SimulatorState state(counterTest);
 
-    //   NGraph& g = state.getCircuitGraph();
+      NGraph& g = state.getCircuitGraph();
 
-    //   cout << "COUNTER NODES" << endl;
-    //   for (auto& vd : g.getVerts()) {
-    // 	cout << g.getNode(vd).getWire()->toString() << endl;
-    //   }
-    //   cout << "DONE NODES." << endl;
+      cout << "COUNTER NODES" << endl;
+      for (auto& vd : g.getVerts()) {
+    	cout << g.getNode(vd).getWire()->toString() << endl;
+      }
+      cout << "DONE NODES." << endl;
 
-    //   SECTION("Test register defaults") {
-    // 	REQUIRE(state.getBitVec("counter$ri.out") == BitVec(pcWidth, 0));
-    //   }
+      SECTION("Test register defaults") {
+    	REQUIRE(state.getBitVec("counter$ri.out") == BitVec(pcWidth, 0));
+      }
 
-    //   SECTION("Count from zero, enable set") {
+      SECTION("Count from zero, enable set") {
 
-    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
-    // 	state.setValue("self.en", BitVec(1, 1));
-    // 	state.setClock("self.clk", 0, 1);
+    	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+    	state.setValue("self.en", BitVec(1, 1));
+    	state.setClock("self.clk", 0, 1);
 
-    // 	state.execute();
+    	state.execute();
 
-    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
+    	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
 
-    // 	state.execute();
+    	state.execute();
 
-    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
+    	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
 
-    // 	state.execute();
+    	state.execute();
 
-    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
+    	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
 
-    //   }
+      }
 
-    //   SECTION("Counting with clock changes, enable set") {
+      SECTION("Counting with clock changes, enable set") {
 
-    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
-    // 	state.setValue("self.en", BitVec(1, 1));
-    // 	state.setClock("self.clk", 0, 1);
+    	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+    	state.setValue("self.en", BitVec(1, 1));
+    	state.setClock("self.clk", 0, 1);
   
-    // 	state.execute();
+    	state.execute();
 
-    // 	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+    	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-    // 	SECTION("Value is 400 after first tick at 400") {
-    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
-    // 	}
+    	SECTION("Value is 400 after first tick at 400") {
+    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+    	}
 
-    // 	state.setClock("self.clk", 1, 0);
+    	state.setClock("self.clk", 1, 0);
 
-    // 	state.execute();
+    	state.execute();
 
-    // 	ClockValue* clkVal = toClock(state.getValue("self.clk"));
+    	ClockValue* clkVal = toClock(state.getValue("self.clk"));
 
-    // 	cout << "last clock = " << (int) clkVal->lastValue() << endl;
-    // 	cout << "curr clock = " << (int) clkVal->value() << endl;
+    	cout << "last clock = " << (int) clkVal->lastValue() << endl;
+    	cout << "curr clock = " << (int) clkVal->value() << endl;
 
-    // 	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+    	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-    // 	SECTION("Value is 401 after second tick") {
-    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
-    // 	}
+    	SECTION("Value is 401 after second tick") {
+    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+    	}
 
-    // 	state.setClock("self.clk", 0, 1);
+    	state.setClock("self.clk", 0, 1);
 
-    // 	state.execute();
+    	state.execute();
 
-    // 	SECTION("Value is still 401") {
-    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
-    // 	}
+    	SECTION("Value is still 401") {
+    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
+    	}
 
-    // 	state.setClock("self.clk", 1, 0);
+    	state.setClock("self.clk", 1, 0);
 
-    // 	state.execute();
+    	state.execute();
 
-    // 	SECTION("Value is now 402") {
-    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 402));
-    // 	}
+    	SECTION("Value is now 402") {
+    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 402));
+    	}
 	
-    //   }
+      }
 
-    //   SECTION("Enable on") {
-    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
-    // 	state.setValue("self.en", BitVec(1, 1));
-    // 	state.setClock("self.clk", 1, 0);
+      SECTION("Enable on") {
+    	state.setValue("counter$ri.out", BitVec(pcWidth, 400));
+    	state.setValue("self.en", BitVec(1, 1));
+    	state.setClock("self.clk", 1, 0);
   
-    // 	state.execute();
+    	state.execute();
 
-    // 	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
+    	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-    // 	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
-    //   }
+    	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+      }
 
-    //   SECTION("Setting watchpoint") {
-    // 	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
-    // 	state.setClock("self.clk", 1, 0);
-    // 	state.setValue("self.en", BitVec(1, 1));
+      SECTION("Setting watchpoint") {
+    	state.setValue("counter$ri.out", BitVec(pcWidth, 0));
+    	state.setClock("self.clk", 1, 0);
+    	state.setValue("self.en", BitVec(1, 1));
 
-    // 	state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
-    // 	state.setMainClock("self.clk");
+    	state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
+    	state.setMainClock("self.clk");
 
-    // 	// auto states = state.getCircStates();
-    // 	// for (auto& state : states) {
-    // 	//   cout << "State" << endl;
-    // 	//   for (auto& val : state.valMap) {
-    // 	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
-    // 	//   }
-    // 	// }
+    	// auto states = state.getCircStates();
+    	// for (auto& state : states) {
+    	//   cout << "State" << endl;
+    	//   for (auto& val : state.valMap) {
+    	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
+    	//   }
+    	// }
 	
-    // 	state.run();
+    	state.run();
 
-    // 	// states = state.getCircStates();
-    // 	// for (auto& state : states) {
-    // 	//   cout << "State" << endl;
-    // 	//   for (auto& val : state.valMap) {
-    // 	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
-    // 	//   }
-    // 	// }
+    	// states = state.getCircStates();
+    	// for (auto& state : states) {
+    	//   cout << "State" << endl;
+    	//   for (auto& val : state.valMap) {
+    	//     cout << (val.first)->toString() << " --> " << (val.second) << endl;
+    	//   }
+    	// }
 	
-    // 	SECTION("Stop at watchpoint") {
-    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
-    // 	}
+    	SECTION("Stop at watchpoint") {
+    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
+    	}
 
-    // 	// Should rewind rewind 1 clock cycle or one half clock?
-    // 	SECTION("Rewinding state by 1 clock cycle") {
+    	// Should rewind rewind 1 clock cycle or one half clock?
+    	SECTION("Rewinding state by 1 clock cycle") {
 
-    // 	  cout << "state index before rewind = " << state.getStateIndex() << endl;
-    // 	  state.rewind(2);
-    // 	  cout << "state index after rewind  = " << state.getStateIndex() << endl;
+    	  cout << "state index before rewind = " << state.getStateIndex() << endl;
+    	  state.rewind(2);
+    	  cout << "state index after rewind  = " << state.getStateIndex() << endl;
 
-    // 	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
-    // 	}
+    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
+    	}
 
-    // 	SECTION("Setting a value after rewinding reverts all earlier states") {
+    	SECTION("Setting a value after rewinding reverts all earlier states") {
 
-    // 	  int numStates = state.getCircStates().size();
+    	  int numStates = state.getCircStates().size();
 
-    // 	  state.rewind(2);
+    	  state.rewind(2);
 
-    // 	  REQUIRE(!state.atLastState());
+    	  REQUIRE(!state.atLastState());
 
-    // 	  state.setValue("self.en", BitVec(1, 0));
+    	  state.setValue("self.en", BitVec(1, 0));
 
-    // 	  REQUIRE(state.atLastState());
+    	  REQUIRE(state.atLastState());
 
-    // 	  REQUIRE(state.getCircStates().size() == (numStates - 2));
-    // 	}
+    	  REQUIRE(state.getCircStates().size() == (numStates - 2));
+    	}
 
-    // 	SECTION("Rewinding and then running to an already simulated point fast forwards") {
-    // 	  state.rewind(4);
+    	SECTION("Rewinding and then running to an already simulated point fast forwards") {
+    	  state.rewind(4);
 
-    // 	  int numStates = state.getCircStates().size();
+    	  int numStates = state.getCircStates().size();
 
-    // 	  state.runHalfCycle();
+    	  state.runHalfCycle();
 
-    // 	  REQUIRE(state.getCircStates().size() == numStates);
+    	  REQUIRE(state.getCircStates().size() == numStates);
 	  
-    // 	}
+    	}
 
-    // 	SECTION("Rewinding to before the start of the simulation is an error") {
+    	SECTION("Rewinding to before the start of the simulation is an error") {
 
-    // 	  bool rewind = state.rewind(22);
+    	  bool rewind = state.rewind(22);
 
-    // 	  REQUIRE(!rewind);
-    // 	}
-    //   }
+    	  REQUIRE(!rewind);
+    	}
+      }
 
-    // }
+    }
 
     SECTION("Test bit vector addition") {
       cout << "23 bit or 4" << endl;
@@ -575,20 +575,20 @@ namespace CoreIR {
       CoreIRLoadLibrary_commonlib(c);
 
       Type* lineBufferMemType = c->Record({
-	  {"clk", c->Named("coreir.clkIn")},
-	    {"wdata", c->BitIn()->Arr(width)},
-	      {"rdata", c->Bit()->Arr(width)},
-		{"wen", c->BitIn()},
-		  {"valid", c->Bit()}
-	});
+          {"clk", c->Named("coreir.clkIn")},
+            {"wdata", c->BitIn()->Arr(width)},
+              {"rdata", c->Bit()->Arr(width)},
+        	{"wen", c->BitIn()},
+        	  {"valid", c->Bit()}
+        });
 
       Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
       ModuleDef* def = lbMem->newModuleDef();
 
       def->addInstance("m0",
-		       "commonlib.LinebufferMem",
-		       {{"width", Const::make(c, width)},
-			   {"depth", Const::make(c, depth)}});
+        	       "commonlib.LinebufferMem",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.wen", "m0.wen");
@@ -601,31 +601,32 @@ namespace CoreIR {
       c->runPasses({"rungenerators","flattentypes","flatten"});
 
       SimulatorState state(lbMem);
+
       state.setValue("self.wdata", BitVector(width, "11"));
       state.setValue("self.wen", BitVector(1, "1"));
       state.setMainClock("self.clk");
       state.setClock("self.clk", 0, 1);
 
-      SECTION("Before execution valid is 0") {
-	REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
-      }
+      // SECTION("Before execution valid is 0") {
+      //   REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
+      // }
 
       state.execute();
 
       SECTION("Before peek value was written valid is still 0") {
-	REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
       }
 
       for (int i = 0; i < 10; i++) {
-	state.execute();
+        state.execute();
       }
 
       SECTION("rdata is 11 in steady state") {
-	REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
       }
 
       SECTION("valid is set to one in steady state") {
-	REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
       }
     }
 

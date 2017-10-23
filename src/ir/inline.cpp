@@ -167,9 +167,9 @@ bool inlineInstance(Instance* inst) {
     inlinePassthrough(inst);
     return true;
   }
-  if (inst->isGen()) {
-    return false;
-  }
+  // if (inst->isGen()) {
+  //   return false;
+  // }
   ModuleDef* def = inst->getContainer();
   Module* modInline = inst->getModuleRef();
   assert(modInline);
