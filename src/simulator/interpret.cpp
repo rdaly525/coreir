@@ -1134,7 +1134,7 @@ namespace CoreIR {
 
       if (inConns.size() == 2) {
 
-        cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
+        //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), s1->getBits());
 
@@ -1151,7 +1151,7 @@ namespace CoreIR {
 
         if (enBit->getBits() == BitVec(1, 1)) {
 
-          cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;
+          //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;
           //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
           setRegister(inst->toString(), s1->getBits());
 
@@ -1174,12 +1174,6 @@ namespace CoreIR {
 
     circStates.push_back(next);
     stateIndex++;
-
-    cout << "Register values" << endl;
-    for (auto& regVal : circStates[stateIndex].registers) {
-      cout << regVal.first << " = " << regVal.second << endl;
-    }
-    cout << "reg done." << endl;
 
     //end = clock();
 
@@ -1290,21 +1284,9 @@ namespace CoreIR {
 
     CircuitState& lastState = circStates[stateIndex];
 
-    cout << "--- Register values before setting" << endl;
-    for (auto& regVal : lastState.registers) {
-      cout << regVal.first << " = " << regVal.second << endl;
-    }
-    cout << "--- reg done." << endl;
-
     lastState.registers.erase(name);
     lastState.registers.insert({name, data});
 
-    cout << "--- Register values after setting" << endl;
-    for (auto& regVal : lastState.registers) {
-      cout << regVal.first << " = " << regVal.second << endl;
-    }
-    cout << "--- reg done." << endl;
-    
   }
 
   BitVec SimulatorState::getRegister(const std::string& name) {
@@ -1326,7 +1308,6 @@ namespace CoreIR {
 
   void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
     if (arrayAccess(sel)) {
-      cout << "Array access " << sel->toString() << endl;
 
       assert(val->getType() == SIM_VALUE_BV);
 
@@ -1345,8 +1326,6 @@ namespace CoreIR {
         // TODO: Wrap allocations and delete at end of context
         val = makeSimBitVector(BitVector(arrLen));
       }
-
-      cout << "Array access to " << sel->getSelStr() << "!" << endl;
 
       BitVector oldBv = val->getBits();
 
