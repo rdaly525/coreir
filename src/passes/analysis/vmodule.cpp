@@ -42,10 +42,17 @@ string VModule::toInstanceString(Instance* inst) {
     ASSERT(inst->isGen(),"DEBUG ME:");
     ASSERT(iref==cast<Instantiable>(gen),"DEBUG ME");
     auto paramsAndDefaults = gen->getModParams(inst->getGenArgs());
+// <<<<<<< HEAD
+
+//     this->addParams(paramsAndDefaults.first);
+//     this->addDefaults(paramsAndDefaults.second);
+// =======
     if (!this->hasDef()) {
       this->addParams(params0,paramsAndDefaults.first);
     }
+    //>>>>>>> upstream/dev
   }
+
   ostringstream o;
   string tab = "  ";
   string mname;

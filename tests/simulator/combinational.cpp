@@ -18,6 +18,75 @@ using namespace std;
 
 namespace CoreIR {
 
+  void colorAdd4Tree(NGraph& g) {
+    for (auto& vd : g.getVerts()) {
+      WireNode wd = g.getNode(vd);
+
+
+      Wireable* w = wd.getWire();
+      cout << "VD " << vd << " = " << w->toString() << endl;
+
+      if (isSelect(w)) {
+	string ss = toSelect(w)->getSelStr();
+
+	if (ss == "in0" || ss == "in1") {
+	  wd.setThreadNo(0);
+	} else if (ss == "in2" || ss == "in3") {
+	  wd.setThreadNo(1);
+	} else if (ss == "out") {
+	  wd.setThreadNo(3);
+	} else {
+	  assert(false);
+	}
+      } else {
+	if (w->toString() == "add00") {
+	  wd.setThreadNo(0);
+	} else if (w->toString() == "add01") {
+	  wd.setThreadNo(1);
+	} else if (w->toString() == "add1") {
+	  wd.setThreadNo(2);
+	} else {
+	  assert(false);
+	}
+      }
+
+      g.addVertLabel(vd, wd);
+    }
+  }
+
+  // Problem: Need to handle nodes that represent arrays
+  void colorConnectedComponents(NGraph& g) {
+    vector<vdisc> inVerts = vertsWithNoIncomingEdge(g);
+
+    cout << "inVerts size = " << inVerts.size() << endl;
+
+    int currentThread = 0;
+
+    for (auto& inVert : inVerts) {
+
+      vector<vdisc> s{inVert};
+
+      while (s.size() > 0) {
+	vdisc vd = s.back();
+
+	WireNode w = g.getNode(vd);
+	w.setThreadNo(currentThread);
+
+	g.addVertLabel(vd, w);
+
+	s.pop_back();
+
+	for (auto ed : g.outEdges(vd)) {
+	  vdisc input = g.target(ed);
+	  s.push_back(input);
+	}
+      
+      }
+
+      currentThread++;
+    }
+  }
+
   TEST_CASE("Combinational logic simulation") {
 
     // New context
@@ -33,8 +102,9 @@ namespace CoreIR {
 
       Module* m = c->getModule("global.Add4_cin");
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(m, gr);
@@ -72,8 +142,9 @@ namespace CoreIR {
       def->connect(add0->sel("cout"), self->sel("cout"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -117,8 +188,9 @@ namespace CoreIR {
       def->connect(add0->sel("cout"), self->sel("cout"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -162,8 +234,9 @@ namespace CoreIR {
       def->connect(add0->sel("cout"), self->sel("cout"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -183,14 +256,20 @@ namespace CoreIR {
     }
     
     SECTION("32 bit add 4") {
+
+      cout << "32 bit add 4" << endl;
+
       uint n = 32;
   
       Generator* add2 = c->getGenerator("coreir.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
-	  {"in",c->Array(4,c->Array(n,c->BitIn()))},
-	    {"out",c->Array(n,c->Bit())}
+	  {"in0",c->Array(n,c->BitIn())},
+	    {"in1",c->Array(n,c->BitIn())},
+	      {"in2",c->Array(n,c->BitIn())},
+		{"in3",c->Array(n,c->BitIn())},
+		  {"out",c->Array(n,c->Bit())}
 	});
 
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
@@ -200,10 +279,10 @@ namespace CoreIR {
       Wireable* add_01 = def->addInstance("add01",add2,{{"width", Const::make(c,n)}});
       Wireable* add_1 = def->addInstance("add1",add2,{{"width", Const::make(c,n)}});
     
-      def->connect(self->sel("in")->sel(0),add_00->sel("in0"));
-      def->connect(self->sel("in")->sel(1),add_00->sel("in1"));
-      def->connect(self->sel("in")->sel(2),add_01->sel("in0"));
-      def->connect(self->sel("in")->sel(3),add_01->sel("in1"));
+      def->connect(self->sel("in0"), add_00->sel("in0"));
+      def->connect(self->sel("in1"), add_00->sel("in1"));
+      def->connect(self->sel("in2"), add_01->sel("in0"));
+      def->connect(self->sel("in3"), add_01->sel("in1"));
 
       def->connect(add_00->sel("out"),add_1->sel("in0"));
       def->connect(add_01->sel("out"),add_1->sel("in1"));
@@ -211,15 +290,16 @@ namespace CoreIR {
       def->connect(add_1->sel("out"),self->sel("out"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
       deque<vdisc> topoOrder = topologicalSort(gr);
 
       SECTION("Checking graph size") {
-	REQUIRE(numVertices(gr) == 5);
+	REQUIRE(numVertices(gr) == 8);
       }
 
       SECTION("Checking mask elimination") {
@@ -235,6 +315,35 @@ namespace CoreIR {
 
 	REQUIRE(s == 0);
       }
+
+      SECTION("Compile multithreaded code") {
+	cout << "32 bit add 4 multithreaded" << endl;
+	colorAdd4Tree(gr);
+
+	SECTION("Checking thread graph properties") {
+	  ThreadGraph tg = buildThreadGraph(gr);
+
+	  REQUIRE(tg.getVerts().size() == 4);
+	  REQUIRE(tg.getEdges().size() == 3);
+	}
+
+	deque<vdisc> topoOrder = topologicalSort(gr);
+
+	for (auto& vd : topoOrder) {
+	  WireNode wd = gr.getNode(vd);
+	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+	}
+
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  add4_n,
+				  "./gencode/",
+				  "add4_parallel",
+				  "test_add4_parallel.cpp");
+	REQUIRE(s == 0);
+	
+      }
+
     }
 
     SECTION("6 bit signed remainder 3 operations") {
@@ -267,8 +376,9 @@ namespace CoreIR {
       def->connect(srem_1->sel("out"),self->sel("out"));
       srem4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(srem4_n, gr);
@@ -315,8 +425,9 @@ namespace CoreIR {
       def->connect(sub_1->sel("out"),self->sel("out"));
       sub4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sub4_n, g);
@@ -358,8 +469,9 @@ namespace CoreIR {
       def->connect(mul->sel("out"), self->sel("out"));
       mul_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(mul_n, g);
@@ -406,8 +518,9 @@ namespace CoreIR {
 
       cM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(cM, g);
@@ -445,8 +558,9 @@ namespace CoreIR {
 
       andM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(andM, g);
@@ -505,8 +619,9 @@ namespace CoreIR {
 
       addM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(addM, g);
@@ -556,8 +671,9 @@ namespace CoreIR {
 
       neg_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -615,8 +731,9 @@ namespace CoreIR {
 
       neg_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -641,8 +758,10 @@ namespace CoreIR {
       Generator* neg = c->getGenerator("coreir.not");
 
       Type* neg2Type = c->Record({
-	  {"in",    c->Array(2, c->Array(n,c->BitIn()))},
-	    {"out", c->Array(2, c->Array(n,c->Bit()))}
+	  {"in0",    c->Array(n,c->BitIn())},
+	    {"in1",    c->Array(n,c->BitIn())},
+	      {"out0", c->Array(n,c->Bit())},
+		{"out1", c->Array(n,c->Bit())},
 	});
 
       Module* neg_n = g->newModuleDecl("two_negs", neg2Type);
@@ -653,16 +772,17 @@ namespace CoreIR {
       Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const::make(c,n)}});
       Wireable* neg1 = def->addInstance("neg1", neg, {{"width", Const::make(c,n)}});
 
-      def->connect(self->sel("in")->sel(0), neg0->sel("in"));
-      def->connect(self->sel("in")->sel(1), neg1->sel("in"));
+      def->connect(self->sel("in0"), neg0->sel("in"));
+      def->connect(self->sel("in1"), neg1->sel("in"));
 
-      def->connect(neg0->sel("out"), self->sel("out")->sel(0));
-      def->connect(neg1->sel("out"), self->sel("out")->sel(1));
+      def->connect(neg0->sel("out"), self->sel("out0"));
+      def->connect(neg1->sel("out"), self->sel("out1"));
 
       neg_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -671,13 +791,29 @@ namespace CoreIR {
       buildOrderedGraph(neg_n, g);
 
       SECTION("Checking graph size") {
-	REQUIRE(numVertices(g) == 4);
+	REQUIRE(numVertices(g) == 6);
       }
 
-      deque<vdisc> topoOrder = topologicalSort(g);
+      SECTION("Printing single threaded code") {
+	deque<vdisc> topoOrder = topologicalSort(g);
+	int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs");
+	REQUIRE(s == 0);
+      }
 
-      int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs");
-      REQUIRE(s == 0);
+      SECTION("Printing multithreaded code") {
+	colorConnectedComponents(g);
+	deque<vdisc> topoOrder = topologicalSort(g);
+
+	for (auto& vd : topoOrder) {
+	  WireNode wd = g.getNode(vd);
+	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+	}
+
+	int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs_parallel");
+	REQUIRE(s == 0);
+	
+      }
+
       
     }
 
@@ -711,9 +847,10 @@ namespace CoreIR {
 
       addM->setDef(def);
       
-	      
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = addM->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -761,8 +898,9 @@ namespace CoreIR {
 
       eqM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(eqM, g);
@@ -796,8 +934,9 @@ namespace CoreIR {
 
       sleM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sleM, g);
@@ -845,8 +984,9 @@ namespace CoreIR {
 
       ugtM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(ugtM, g);
@@ -890,8 +1030,9 @@ namespace CoreIR {
 
       muxM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(muxM, g);
@@ -933,8 +1074,9 @@ namespace CoreIR {
 
       dshlM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dshlM, g);
@@ -976,8 +1118,9 @@ namespace CoreIR {
 
       dashrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dashrM, g);
@@ -1019,8 +1162,9 @@ namespace CoreIR {
 
       dlshrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dlshrM, g);
@@ -1061,8 +1205,9 @@ namespace CoreIR {
 
       udivM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(udivM, g);
@@ -1104,8 +1249,9 @@ namespace CoreIR {
 
       uremM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(uremM, g);
@@ -1147,8 +1293,9 @@ namespace CoreIR {
 
       sremM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sremM, g);
@@ -1190,8 +1337,9 @@ namespace CoreIR {
 
       sdivM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sdivM, g);
@@ -1232,8 +1380,9 @@ namespace CoreIR {
 
       orrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(orrM, g);
@@ -1273,8 +1422,9 @@ namespace CoreIR {
 
       andrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(andrM, g);
@@ -1305,9 +1455,10 @@ namespace CoreIR {
 
       Module* mainMod = c->getModule("global.main");
 
-      
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(mainMod, g);

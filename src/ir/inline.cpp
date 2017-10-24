@@ -167,6 +167,13 @@ bool inlineInstance(Instance* inst) {
     inlinePassthrough(inst);
     return true;
   }
+// <<<<<<< HEAD
+//   // if (inst->isGen()) {
+//   //   return false;
+//   // }
+//   ModuleDef* def = inst->getContainer();
+// =======
+//>>>>>>> upstream/dev
   Module* modInline = inst->getModuleRef();
   ModuleDef* def = inst->getContainer();
 
