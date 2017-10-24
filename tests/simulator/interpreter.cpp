@@ -387,64 +387,64 @@ namespace CoreIR {
       }
 
       // TODO: Reintroduce later
-      // SECTION("Setting watchpoint") {
-      //   //state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));
-      //   state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
-      //   state.setClock("self.clk", 1, 0);
-      //   state.setValue("self.en", BitVec(1, 1));
+      SECTION("Setting watchpoint") {
+        //state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));
+        state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
+        state.setClock("self.clk", 1, 0);
+        state.setValue("self.en", BitVec(1, 1));
 
-      //   state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
-      //   state.setMainClock("self.clk");
+        state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
+        state.setMainClock("self.clk");
 
-      //   state.run();
+        state.run();
 
-      //   SECTION("Stop at watchpoint") {
-      //     REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
-      //   }
+        SECTION("Stop at watchpoint") {
+          REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 10));
+        }
 
-      //   // Should rewind rewind 1 clock cycle or one half clock?
-      //   SECTION("Rewinding state by 1 clock cycle") {
+        // Should rewind rewind 1 clock cycle or one half clock?
+        SECTION("Rewinding state by 1 clock cycle") {
 
-      //     cout << "state index before rewind = " << state.getStateIndex() << endl;
-      //     state.rewind(2);
-      //     cout << "state index after rewind  = " << state.getStateIndex() << endl;
+          cout << "state index before rewind = " << state.getStateIndex() << endl;
+          state.rewind(2);
+          cout << "state index after rewind  = " << state.getStateIndex() << endl;
 
-      //     REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
-      //   }
+          REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
+        }
 
-      //   SECTION("Setting a value after rewinding reverts all earlier states") {
+        SECTION("Setting a value after rewinding reverts all earlier states") {
 
-      //     int numStates = state.getCircStates().size();
+          int numStates = state.getCircStates().size();
 
-      //     state.rewind(2);
+          state.rewind(2);
 
-      //     REQUIRE(!state.atLastState());
+          REQUIRE(!state.atLastState());
 
-      //     state.setValue("self.en", BitVec(1, 0));
+          state.setValue("self.en", BitVec(1, 0));
 
-      //     REQUIRE(state.atLastState());
+          REQUIRE(state.atLastState());
 
-      //     REQUIRE(state.getCircStates().size() == (numStates - 2));
-      //   }
+          REQUIRE(state.getCircStates().size() == (numStates - 2));
+        }
 
-      //   SECTION("Rewinding and then running to an already simulated point fast forwards") {
-      //     state.rewind(4);
+        SECTION("Rewinding and then running to an already simulated point fast forwards") {
+          state.rewind(4);
 
-      //     int numStates = state.getCircStates().size();
+          int numStates = state.getCircStates().size();
 
-      //     state.runHalfCycle();
+          state.runHalfCycle();
 
-      //     REQUIRE(state.getCircStates().size() == numStates);
+          REQUIRE(state.getCircStates().size() == numStates);
 	  
-      //   }
+        }
 
-      //   SECTION("Rewinding to before the start of the simulation is an error") {
+        SECTION("Rewinding to before the start of the simulation is an error") {
 
-      //     bool rewind = state.rewind(22);
+          bool rewind = state.rewind(22);
 
-      //     REQUIRE(!rewind);
-      //   }
-      // }
+          REQUIRE(!rewind);
+        }
+      }
 
     }
 
