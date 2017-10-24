@@ -29,7 +29,7 @@ Namespace::~Namespace() {
 std::map<std::string,Module*> Namespace::getModules() { 
   std::map<std::string,Module*> ret = moduleList;
   for (auto g : generatorList) {
-    for (auto m : g.second->getModules()) {
+    for (auto m : g.second->getGeneratedModules()) {
       ret.emplace(m);
     }
   }

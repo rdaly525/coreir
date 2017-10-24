@@ -79,7 +79,7 @@ bool Generator::runAll() {
   }
   return ret;
 }
-std::map<std::string,Module*> Generator::getModules() {
+std::map<std::string,Module*> Generator::getGeneratedModules() {
   std::map<std::string,Module*> ret; 
   for (auto mpair : genCache) {
     ret.emplace(mpair.second->getLongName(),mpair.second);  

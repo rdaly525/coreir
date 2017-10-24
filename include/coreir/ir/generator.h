@@ -35,7 +35,9 @@ class Generator : public GlobalValue {
     //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Values genargs);
-    std::map<std::string,Module*> getModules();
+
+    //Get all generated modules
+    std::map<std::string,Module*> getGeneratedModules();
    
     bool runAll();
 
