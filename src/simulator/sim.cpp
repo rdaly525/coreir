@@ -53,7 +53,7 @@ namespace CoreIR {
 
     string res =
       maskResult(*((outPair.second)->getType()),
-		 val);
+                 val);
 
     return res;
   }
@@ -65,17 +65,17 @@ namespace CoreIR {
     string argStr = "";
     for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
-	foundValue = true;
-	Value* valArg = arg.second; //.get();
+        foundValue = true;
+        Value* valArg = arg.second; //.get();
 
-	assert(valArg->getValueType() == inst->getContext()->BitVector(16));
-	//assert(valArg->getKind() == AINT);
+        assert(valArg->getValueType() == inst->getContext()->BitVector(16));
+        //assert(valArg->getKind() == AINT);
 
-	//ArgInt* valInt = static_cast<ArgInt*>(valArg);
-	BitVector bv = valArg->get<BitVector>();
-	stringstream ss;
-	ss << bv;
-	argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
+        //ArgInt* valInt = static_cast<ArgInt*>(valArg);
+        BitVector bv = valArg->get<BitVector>();
+        stringstream ss;
+        ss << bv;
+        argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
       }
     }
 
@@ -115,10 +115,10 @@ namespace CoreIR {
       assert(containWidth > tw);
 
       string mask =
-	parens(bitMaskString(printOpResultStr(arg2, g)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g)));
+        parens(bitMaskString(printOpResultStr(arg2, g)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g)));
 
       string signBitSet =
-	parens("0x01 & " + parens(printOpResultStr(arg1, g) +  " >> " + parens(to_string(tw - 1))));
+        parens("0x01 & " + parens(printOpResultStr(arg1, g) +  " >> " + parens(to_string(tw - 1))));
 
       compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
     }
@@ -212,8 +212,8 @@ namespace CoreIR {
     InstanceValue i1 = findArg("in1", ins);
     
     return ite(printOpResultStr(sel, g),
-	       printOpResultStr(i1, g),
-	       printOpResultStr(i0, g));
+               printOpResultStr(i1, g),
+               printOpResultStr(i0, g));
   }
 
   string printAddOrSubWithCIN(const WireNode& wd, const vdisc vd, const NGraph& g) {
@@ -255,22 +255,9 @@ namespace CoreIR {
 
   }
 
-  CoreIR::Wireable*
-  findSelect(const std::string& selName,
-	     const std::unordered_map<std::string, CoreIR::Wireable*> selects) {
-    for (auto& sel : selects) {
-      if (sel.first == selName) {
-	return sel.second;
-      }
-    }
-
-    cout << "Could not find select with name = " << selName << endl;
-    assert(false);
-  }
-
   string checkSumOverflowStr(Type& tp,
-			     const std::string& in0StrNC,
-			     const std::string& in1StrNC) {
+                             const std::string& in0StrNC,
+                             const std::string& in1StrNC) {
     string in0Str = castToUnSigned(tp, in0StrNC);
     string in1Str = castToUnSigned(tp, in0StrNC);
 
@@ -416,15 +403,15 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
 
     if (isBitwiseOp(*inst) ||
-	isSignInvariantOp(*inst) ||
-	isUnsignedCmp(*inst) ||
-	isShiftOp(*inst) ||
-	isUDivOrRem(*inst)) {
+        isSignInvariantOp(*inst) ||
+        isUnsignedCmp(*inst) ||
+        isShiftOp(*inst) ||
+        isUDivOrRem(*inst)) {
       return printOpThenMaskBinop(wd, vd, g);
     }
 
     if (isSignedCmp(*inst) ||
-	isSDivOrRem(*inst)) {
+        isSDivOrRem(*inst)) {
       return printSEThenOpThenMaskBinop(inst, vd, g);
     }
 
@@ -476,8 +463,8 @@ namespace CoreIR {
     }
 
     s += ite(parens(condition),
-	     printOpResultStr(add, g),
-	     oldValName) + ";\n";
+             printOpResultStr(add, g),
+             oldValName) + ";\n";
     
     return s;
   }
@@ -551,8 +538,8 @@ namespace CoreIR {
 
       InstanceValue raddr = findArg("raddr", ins);
       return ln(cVar(*s) + " = " +
-		parens(cVar("(state->", *r, ")") +
-		       "[ " + printOpResultStr(raddr, g) + " ]"));
+                parens(cVar("(state->", *r, ")") +
+                       "[ " + printOpResultStr(raddr, g) + " ]"));
     } else {
       assert(ins.size() == 4);
 
@@ -562,7 +549,7 @@ namespace CoreIR {
       InstanceValue wen = findArg("wen", ins);
 
       string condition =
-	parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
+        parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
 
       condition += " && " + printOpResultStr(wen, g);
 
@@ -570,14 +557,14 @@ namespace CoreIR {
 
       string s = oldValueName + " = ";
       s += ite(parens(condition),
-	       printOpResultStr(wdata, g),
-	       oldValueName);
+               printOpResultStr(wdata, g),
+               oldValueName);
 
       return ln(s);
       
       // return ln(cVar("(state->", *r, ")") +
-		
-      // 		printOpResultStr(wdata, g));
+                
+      //                printOpResultStr(wdata, g));
     
     }
   }
@@ -619,12 +606,12 @@ namespace CoreIR {
 
       if (ins.size() == 3) {
       
-	return printAddOrSubCIN_COUT(wd, vd, g);
+        return printAddOrSubCIN_COUT(wd, vd, g);
       } else {
-	assert(ins.size() == 2);
+        assert(ins.size() == 2);
 
-	return printAddOrSubCOUT(wd, vd, g);
-	
+        return printAddOrSubCOUT(wd, vd, g);
+        
       }
     }
   }
@@ -692,10 +679,6 @@ namespace CoreIR {
     return fromSelf(toSelect(parent));
   }
 
-  bool arrayAccess(Select* in) {
-    return isNumber(in->getSelStr());
-  }
-
   std::unordered_map<string, Type*>
   outputs(Module& mod) {
     Type* tp = mod.getType();
@@ -710,7 +693,7 @@ namespace CoreIR {
       Type* tp = name_type_pair.second;
 
       if (tp->isOutput()) {
-	outs.insert(name_type_pair);
+        outs.insert(name_type_pair);
       }
     }
 
@@ -719,31 +702,31 @@ namespace CoreIR {
   }
 
   string printInternalVariables(const std::deque<vdisc>& topo_order,
-				NGraph& g,
-				Module&) {
+                                NGraph& g,
+                                Module&) {
     string str = "";
     for (auto& vd : topo_order) {
       WireNode wd = getNode( g, vd);
       Wireable* w = wd.getWire();
 
       for (auto inSel : getOutputSelects(w)) {
-	Select* in = toSelect(inSel.second);
+        Select* in = toSelect(inSel.second);
 
-	if (!fromSelfInterface(in)) {
-	  if (!arrayAccess(in)) {
+        if (!fromSelfInterface(in)) {
+          if (!arrayAccess(in)) {
 
-	    if (!wd.isSequential) {
+            if (!wd.isSequential) {
 
-	      str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
+              str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
 
-	    } else {
-	      if (wd.isReceiver) {
-		str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
-	      }
-	    }
-	  }
-	}
+            } else {
+              if (wd.isReceiver) {
+                str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
+              }
+            }
+          }
+        }
       }
     }
 
@@ -751,9 +734,9 @@ namespace CoreIR {
   }
 
   string printSimFunctionBody(const std::deque<vdisc>& topo_order,
-			      NGraph& g,
-			      Module& mod,
-			      const int threadNo) {
+                              NGraph& g,
+                              Module& mod,
+                              const int threadNo) {
     string str = "";
     // Declare all variables
     str += "\n// Variable declarations\n";
@@ -770,30 +753,30 @@ namespace CoreIR {
 
       if (wd.getThreadNo() == threadNo) {      
 
-	Wireable* inst = wd.getWire();
+        Wireable* inst = wd.getWire();
 
-	if (isInstance(inst)) {	
+        if (isInstance(inst)) { 
 
-	  if (!isCombinationalInstance(wd) ||
-	      (g.getOutputConnections(vd).size() > 1) ||
-	      (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
-	    str += printInstance(wd, vd, g);
-	  }
+          if (!isCombinationalInstance(wd) ||
+              (g.getOutputConnections(vd).size() > 1) ||
+              (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
+            str += printInstance(wd, vd, g);
+          }
 
-	} else {
+        } else {
 
-	  if (inst->getType()->isInput()) {
+          if (inst->getType()->isInput()) {
 
-	    auto inConns = getInputConnections(vd, g);
+            auto inConns = getInputConnections(vd, g);
 
-	    // If not an instance copy the input values
-	    for (auto inConn : inConns) {
+            // If not an instance copy the input values
+            for (auto inConn : inConns) {
 
-	      str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
-	    }
+              str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+            }
 
-	  }
-	}
+          }
+        }
       }
     }
 
@@ -821,26 +804,26 @@ namespace CoreIR {
     // Add register inputs
     for (auto& inst : mod.getDef()->getInstances()) {
       if (isMemoryInstance(inst.second)) {
-	cout << "Adding memory instance" << endl;
-	Instance* is = inst.second;
+        cout << "Adding memory instance" << endl;
+        Instance* is = inst.second;
 
-	Context* c = mod.getDef()->getContext();
+        Context* c = mod.getDef()->getContext();
 
-	uint width = 16;
-	uint depth = 2;
-	Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
-	declStrs.push_back({elemType, is->toString()});
+        uint width = 16;
+        uint depth = 2;
+        Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
+        declStrs.push_back({elemType, is->toString()});
 
-	// Select* in = is->sel("in");
-	// Type* itp = in->getType();
+        // Select* in = is->sel("in");
+        // Type* itp = in->getType();
 
-	//string regName = is->getInstname();
+        //string regName = is->getInstname();
 
-	// declStrs.push_back({itp, regName + "_old_value"});
-	// declStrs.push_back({itp, regName + "_new_value"});
+        // declStrs.push_back({itp, regName + "_old_value"});
+        // declStrs.push_back({itp, regName + "_new_value"});
 
 
-	
+        
       }
     }
 
@@ -860,15 +843,15 @@ namespace CoreIR {
     // Add register inputs
     for (auto& inst : mod.getDef()->getInstances()) {
       if (isRegisterInstance(inst.second)) {
-	Instance* is = inst.second;
+        Instance* is = inst.second;
 
-	Select* in = is->sel("in");
-	Type* itp = in->getType();
+        Select* in = is->sel("in");
+        Type* itp = in->getType();
 
-	string regName = is->getInstname();
+        string regName = is->getInstname();
 
-	declStrs.push_back({itp, cVar(*is)});
-	
+        declStrs.push_back({itp, cVar(*is)});
+        
       }
     }
 
@@ -885,21 +868,21 @@ namespace CoreIR {
       Wireable* w = wd.getWire();
 
       if (isThreadShared(vd, g)) {
-	for (auto inSel : getOutputSelects(w)) {
-	  Select* in = toSelect(inSel.second);
+        for (auto inSel : getOutputSelects(w)) {
+          Select* in = toSelect(inSel.second);
 
-	  if (!fromSelfInterface(in)) {
-	    if (!arrayAccess(in)) {
+          if (!fromSelfInterface(in)) {
+            if (!arrayAccess(in)) {
 
-	      if (!wd.isSequential) {
+              if (!wd.isSequential) {
 
-		declStrs.push_back({in->getType(), cVar(*in)});
-		//str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
+                declStrs.push_back({in->getType(), cVar(*in)});
+                //str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
-	      }
-	    }
-	  }
-	}
+              }
+            }
+          }
+        }
       }
     }
 
@@ -920,19 +903,19 @@ namespace CoreIR {
       Type* tp = name_type_pair.second;
 
       if (tp->isInput()) {
-	if (!underlyingTypeIsClkIn(*tp)) {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	} else {
-	  declStrs.push_back({tp, "self_" + name_type_pair.first});
-	  declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
+        if (!underlyingTypeIsClkIn(*tp)) {
+          declStrs.push_back({tp, "self_" + name_type_pair.first});
+        } else {
+          declStrs.push_back({tp, "self_" + name_type_pair.first});
+          declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
 
-	}
+        }
       } else {
-	assert(tp->isOutput());
+        assert(tp->isOutput());
 
-	declStrs.push_back({tp, "self_" + name_type_pair.first});
-	
-	//declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
+        declStrs.push_back({tp, "self_" + name_type_pair.first});
+        
+        //declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
       }
     }
 
@@ -947,14 +930,14 @@ namespace CoreIR {
   }
 
   std::vector<string> sortedSimArgumentList(Module& mod,
-					    const NGraph& g) {
+                                            const NGraph& g) {
 
     auto decls = sortedSimArgumentPairs(mod);
 
     concat(decls, threadSharedVariableDecls(g));
     
     sort_lt(decls, [](const pair<Type*, string>& tpp) {
-	return tpp.second;
+        return tpp.second;
       });
 
     vector<string> declStrs;
@@ -982,10 +965,10 @@ namespace CoreIR {
     string mask = parens(arg + " & " + bitMaskString(startWidth));
 
     string testClause = parens(arg + " & " + parens("1ULL << " +
-						    parens(startWidth + " - 1")));
+                                                    parens(startWidth + " - 1")));
 
     string res = parens(mask + " | " +
-			ite(testClause, lastMask(startWidth, extWidth), "0"));
+                        ite(testClause, lastMask(startWidth, extWidth), "0"));
     
     def += res + "\n\n";
 
@@ -994,7 +977,7 @@ namespace CoreIR {
   }
 
   std::string printEvalStruct(CoreIR::Module* mod,
-			      const NGraph& g) {
+                              const NGraph& g) {
     string res = "struct circuit_state {\n";
 
     auto declStrs = sortedSimArgumentList(*mod, g);
@@ -1009,7 +992,7 @@ namespace CoreIR {
 
   // Note: Dont actually need baseName here
   string printDecl(CoreIR::Module* mod,
-		   const NGraph& g) {
+                   const NGraph& g) {
     string code = "";
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
@@ -1028,17 +1011,17 @@ namespace CoreIR {
   }
 
   bool connectionFromTo(const vdisc sourceThread,
-			const vdisc destThread,
-			const NGraph& opG,
-			unordered_map<vdisc, vector<vdisc> >& threadComps) {
+                        const vdisc destThread,
+                        const NGraph& opG,
+                        unordered_map<vdisc, vector<vdisc> >& threadComps) {
     vector<vdisc> sourceNodes = threadComps[sourceThread];
     vector<vdisc> destNodes = threadComps[destThread];
 
     for (auto& sn : sourceNodes) {
       for (auto& dn : destNodes) {
-	if (opG.connected(sn, dn)) {
-	  return true;
-	}
+        if (opG.connected(sn, dn)) {
+          return true;
+        }
       }
     }
     
@@ -1053,13 +1036,10 @@ namespace CoreIR {
     for (auto& v : opG.getVerts()) {
       int threadNo = opG.getNode(v).getThreadNo();
 
-      cout << "ThreadNo = " << threadNo << endl;
-
       if (!elem(threadNo, tg.getVerts())) {
 
-	tg.addVertex( threadNo );
+        tg.addVertex( threadNo );
 
-	cout << "Added " << threadNo << endl;
       } 
 
       map_insert(threadComps, threadNo, v);
@@ -1070,7 +1050,7 @@ namespace CoreIR {
     // for (auto& ent : threadComps) {
     //   cout << "thread number " << ent.first << " contains" << endl;
     //   for (auto& vd : ent.second) {
-    // 	cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
+    //  cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
     //   }
     // }
 
@@ -1081,7 +1061,7 @@ namespace CoreIR {
 
     // for (auto& src : opG.getVerts()) {
     //   for (auto& dest : opG.getVerts()) {
-    // 	cout << src << " connected to " << dest << " ? " << opG.connected(src, dest) << endl;
+    //  cout << src << " connected to " << dest << " ? " << opG.connected(src, dest) << endl;
     //   }
     // }
 
@@ -1091,16 +1071,16 @@ namespace CoreIR {
     vector<vdisc> threadVerts = tg.getVerts();
     for (int i = 0; i < threadVerts.size(); i++) {
       for (int j = 0; j < threadVerts.size(); j++) {
-	if (i != j) {
-	  vdisc sourceThread = threadVerts[i];
-	  vdisc destThread = threadVerts[j];
+        if (i != j) {
+          vdisc sourceThread = threadVerts[i];
+          vdisc destThread = threadVerts[j];
 
-	  if (connectionFromTo(sourceThread, destThread, opG, threadComps)) {
-	    cout << "Adding edge from " << sourceThread << " to " << destThread << endl;
-	    tg.addEdge(sourceThread, destThread);
-	  }
-	}
-	
+          if (connectionFromTo(sourceThread, destThread, opG, threadComps)) {
+            cout << "Adding edge from " << sourceThread << " to " << destThread << endl;
+            tg.addEdge(sourceThread, destThread);
+          }
+        }
+        
       }
     }
 
@@ -1114,9 +1094,9 @@ namespace CoreIR {
   }
 
   string printCode(const std::deque<vdisc>& topoOrder,
-		   NGraph& g,
-		   CoreIR::Module* mod,
-		   const std::string& baseName) {
+                   NGraph& g,
+                   CoreIR::Module* mod,
+                   const std::string& baseName) {
 
     string code = "";
 
@@ -1152,9 +1132,9 @@ namespace CoreIR {
 
       // Join threads that this thread depends on
       for (auto depEdge : tg.inEdges(i)) {
-	vdisc se = tg.source(depEdge);
-	code += ln("simulate_" + to_string(se) + "_thread.join()");
-	remove(se, unJoinedThreads);
+        vdisc se = tg.source(depEdge);
+        code += ln("simulate_" + to_string(se) + "_thread.join()");
+        remove(se, unJoinedThreads);
       }
       code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
     }

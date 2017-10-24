@@ -158,6 +158,11 @@ Wireable* Wireable::getTopParent() {
   return top;
 }
 
+string Interface::toString() const{
+  return "self";
+}
+
+
 
 Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef), isgen(false) {
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
@@ -171,50 +176,19 @@ Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Val
   this->type = moduleRef->getType();
 }
 
-Instance::Instance(ModuleDef* container, string instname, Generator* generatorRef, Values genargs, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), isgen(true), generatorRef(generatorRef) {
-  ASSERT(generatorRef,"Generator is null, in inst: " + this->getInstname());
-  mergeValues(genargs,generatorRef->getDefaultGenArgs());
-  checkValuesAreParams(genargs,generatorRef->getGenParams());
-  this->genargs = genargs;
-  this->type = generatorRef->getTypeGen()->getType(genargs);
-  ASSERT(isa<RecordType>(this->type),"Generated type needs to be a record but is: " + this->type->toString());
-  auto mpair = generatorRef->getModParams(genargs);
-  mergeValues(modargs,mpair.second);
-  checkValuesAreParams(modargs,mpair.first);
-  this->modargs = modargs;
-}
-
-string Interface::toString() const{
-  return "self";
-}
 
 string Instance::toString() const {
   return instname;
 }
 
 Instantiable* Instance::getInstantiableRef() {
-  if (isgen) return generatorRef;
-  else return moduleRef;
+  if (isGen()) return getGeneratorRef();
+  else return getModuleRef();
 }
+bool Instance::isGen() const { return moduleRef->generated();}
+Generator* Instance::getGeneratorRef() { return moduleRef->getGenerator();} //TODO depreciate
+Values Instance::getGenArgs() {return moduleRef->getGenArgs();}
 
-bool Instance::runGenerator() {
-  ASSERT(generatorRef,"Not a Generator Instanc! in " + this->getInstname());
-  //If we have already run the generator, do not run again
-  if (moduleRef) return false;
-
-  //TODO should this be the default behavior?
-  //If there is no generatorDef, then just do nothing
-  if (!generatorRef->hasDef()) return false;
-
-  //Actually run the generator
-  this->moduleRef = generatorRef->getModule(genargs);
-  assert(moduleRef->hasDef());
-
-  //Change this instance to a Module
-  isgen = false;
-  wasgen = true;
-  return true;
-}
 
 void Instance::replace(Module* moduleRef, Values modargs) {
   ASSERT(!this->isGen(),"NYI, Cannot replace a generator instance with a module isntance")
@@ -227,21 +201,21 @@ void Instance::replace(Module* moduleRef, Values modargs) {
 
 //TODO this is probably super unsafe and will leak memory
 //TODO I do not think this deals with default args
-void Instance::replace(Generator* generatorRef, Values genargs, Values modargs) {
-  ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
-  ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
-
-  this->generatorRef = generatorRef;
-  checkValuesAreParams(genargs,generatorRef->getGenParams());
-  this->genargs = genargs;
-  Type* newType = generatorRef->getTypeGen()->getType(genargs);
-  ASSERT(this->getType() == newType,"NYI, Cannot replace with a different type");
-  
-  auto mpair = generatorRef->getModParams(genargs);
-  mergeValues(modargs,mpair.second);
-  checkValuesAreParams(modargs,mpair.first);
-  this->modargs = modargs;
-}
+//void Instance::replace(Generator* generatorRef, Values genargs, Values modargs) {
+//  ASSERT(generatorRef,"Generator is null! in inst: " + this->getInstname());
+//  ASSERT(this->isGen(),"NYI, Cannot replace a generator instance with a module isntance");
+//
+//  this->generatorRef = generatorRef;
+//  checkValuesAreParams(genargs,generatorRef->getGenParams());
+//  this->genargs = genargs;
+//  Type* newType = generatorRef->getTypeGen()->getType(genargs);
+//  ASSERT(this->getType() == newType,"NYI, Cannot replace with a different type");
+//  
+//  auto mpair = generatorRef->getModParams(genargs);
+//  mergeValues(modargs,mpair.second);
+//  checkValuesAreParams(modargs,mpair.first);
+//  this->modargs = modargs;
+//}
 
 
 string Select::toString() const {

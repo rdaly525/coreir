@@ -9,6 +9,7 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/pass_sim.h"
 #include "coreir/passes/transform/rungenerators.h"
+#include "coreir/simulator/interpreter.h"
 
 #include "../src/simulator/output.hpp"
 #include "../src/simulator/sim.hpp"
@@ -83,41 +84,55 @@ namespace CoreIR {
 
       manyOps->setDef(def);
 
+      SECTION("Interpreting code") {
+	cout << "Starting passes" << endl;
+	c->runPasses({"rungenerators"}); //, "flattentypes"}); //,"flatten"});
+	cout << "Done with passes" << endl;
+
+	cout << "Setting up interpreter" << endl;
+
+	SimulatorState state(manyOps);
+
+	cout << "Done setting up interpreter" << endl;
+
+      }
+
       SECTION("Compiling code") {
-	RunGenerators rg;
-	rg.runOnNamespace(g);
+	c->runPasses({"rungenerators"});
+      	// RunGenerators rg;
+      	// rg.runOnNamespace(g);
 
-	cout << "About to build graph" << endl;
+      	cout << "About to build graph" << endl;
 
-	NGraph gr;
-	buildOrderedGraph(manyOps, gr);
+      	NGraph gr;
+      	buildOrderedGraph(manyOps, gr);
 
-	setThreadNumbers(gr);
+      	setThreadNumbers(gr);
 
-	cout << "VERT thread nos" << endl;
-	for (auto& v : gr.getVerts()) {
-	  int tNo = gr.getNode(v).getThreadNo();
-	  cout << "Thread number = " << tNo << endl;
-	  //assert(tNo == 13);
-	}
+      	// cout << "VERT thread nos" << endl;
+      	// for (auto& v : gr.getVerts()) {
+      	//   int tNo = gr.getNode(v).getThreadNo();
+      	//   //cout << "Thread number = " << tNo << endl;
+      	//   //assert(tNo == 13);
+      	// }
 
-	cout << "Built ordered graph" << endl;
-	deque<vdisc> topoOrder = topologicalSort(gr);
+      	cout << "Built ordered graph" << endl;
+      	deque<vdisc> topoOrder = topologicalSort(gr);
 
-	cout << "Topologically sorted" << endl;
+      	cout << "Topologically sorted" << endl;
 
-	string randIns =
-	  randomSimInputHarness(manyOps);
+      	string randIns =
+      	  randomSimInputHarness(manyOps);
 
-	cout << "Generating harness" << endl;
+      	cout << "Generating harness" << endl;
 
-	int s =
-	  generateHarnessAndRun(topoOrder, gr, manyOps,
-				"./gencode/",
-				"many_ops",
-				"./gencode/auto_harness_many_ops.cpp");
+      	int s =
+      	  generateHarnessAndRun(topoOrder, gr, manyOps,
+      				"./gencode/",
+      				"many_ops",
+      				"./gencode/auto_harness_many_ops.cpp");
 
-	REQUIRE(s == 0);
+      	REQUIRE(s == 0);
       }
 
     }

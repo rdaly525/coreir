@@ -37,6 +37,8 @@ Module = {
   "type":Type,
   "modparams"?:Parameter,
   "defaultmodargs"?:Values,
+  "genref"?:NamedRef, //Used for generated modules
+  "genargs"?:Values, //'' '' 
   "instances"?:{<instname>:Instance,...},
   "connections"?: Connection[]
 }
@@ -45,6 +47,7 @@ Generator = {
   "typegen":NamedRef
   "genparams":Parameters,
   "defaultgenargs"?:Consts,
+
 }
 
 Instance = {

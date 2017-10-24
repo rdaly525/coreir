@@ -28,6 +28,7 @@ class Type {
     bool canSel(std::string sel);
     virtual uint getSize() const=0;
     void print(void);
+    Context* getContext() {return c; };
     static std::string TypeKind2Str(TypeKind t);
     
     //"sugar" for making arrays

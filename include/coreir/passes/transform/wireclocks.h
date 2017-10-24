@@ -10,6 +10,7 @@ class WireClocks : public ModulePass {
   private :
     Type* clockType; 
   public :
+
     WireClocks(std::string name, Type* clockType) : ModulePass(name,"Wire any module with clocktype"), clockType(clockType) {}
     bool runOnModule(Module* m);
 };

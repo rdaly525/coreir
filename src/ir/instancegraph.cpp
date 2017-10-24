@@ -22,18 +22,20 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
   sortedNodes.push_front(node);
 }
 
-void InstanceGraph::construct(Namespace* ns) {
+void InstanceGraph::construct(Context* c) {
 
   //Contains all external nodes referenced
   //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
 
   //Create all Nodes first
-  for (auto imap : ns->getModules()) {
-    nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
+  for (auto nsmap : c->getNamespaces()) {
+    for (auto imap : nsmap.second->getModules()) {
+      nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
+    }
   }
-  for (auto imap : ns->getGenerators()) {
-    nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
-  }
+  //for (auto imap : ns->getGenerators()) {
+  //  nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
+  //}
 
   //populate all the nodes with pointers to the instances
   unordered_map<Instantiable*,InstanceGraphNode*> nodeMap2;
@@ -46,15 +48,17 @@ void InstanceGraph::construct(Namespace* ns) {
     if (!m->hasDef()) continue;
     ModuleDef* mdef = cast<Module>(nodemap.first)->getDef();
     for (auto instmap : mdef->getInstances()) {
-      Instantiable* icheck = instmap.second->getInstantiableRef();
-      InstanceGraphNode* node;
-      if (nodeMap.count(icheck)==0) {
-        node = new InstanceGraphNode(icheck,true);
-        nodeMap[icheck] = node;
-      }
-      else {
-        node = nodeMap[icheck];
-      }
+      Instantiable* icheck = instmap.second->getModuleRef();
+      ASSERT(nodeMap.count(icheck),"missing: " + icheck->toString());
+      InstanceGraphNode* node = nodeMap[icheck];
+
+      //if (nodeMap.count(icheck)==0) {
+      //  node = new InstanceGraphNode(icheck,true);
+      //  nodeMap[icheck] = node;
+      //}
+      //else {
+      //  node = nodeMap[icheck];
+      //}
 
       node->addInstance(instmap.second,nodemap.second);
     }

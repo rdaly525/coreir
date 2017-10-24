@@ -7,6 +7,12 @@
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
 
+#include "../definitions/coreVerilog.hpp" //TODO move this
+#include "../definitions/corebitVerilog.hpp" //TODO move this
+#include "../definitions/coreFirrtl.hpp" //TODO move this
+#include "../definitions/corebitFirrtl.hpp" //TODO move this
+
+
 using namespace std;
 using namespace CoreIR;
 
@@ -168,16 +174,16 @@ int main(int argc, char *argv[]) {
     c->setTop(topRef);
   }
 
+  vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
+  
   //Load and run passes
   bool modified = false;
   if (options.count("p")) {
     string plist = options["p"].as<string>();
     vector<string> porder = splitString<vector<string>>(plist,',');
-    modified = c->runPasses(porder);
+    modified = c->runPasses(porder,namespaces);
   }
   
-  vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
-
   //Output to correct format
   if (outExt=="json") {
     c->runPasses({"coreirjson"},namespaces);
@@ -185,7 +191,9 @@ int main(int argc, char *argv[]) {
     jpass->writeToStream(*sout,topRef);
   }
   else if (outExt=="fir") {
-    c->runPasses({"firrtl"});
+    CoreIRLoadFirrtl_coreir(c);
+    CoreIRLoadFirrtl_corebit(c);
+    c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","firrtl"},namespaces);
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
@@ -193,7 +201,9 @@ int main(int argc, char *argv[]) {
     fpass->writeToStream(*sout);
   }
   else if (outExt=="v") {
-    modified |= c->runPasses({"removebulkconnections","flattentypes","verilog"});
+    CoreIRLoadVerilog_coreir(c);
+    CoreIRLoadVerilog_corebit(c);
+    modified |= c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
     vpass->writeToStream(*sout);

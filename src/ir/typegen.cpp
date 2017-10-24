@@ -11,8 +11,15 @@ namespace CoreIR {
 
 Type* TypeGen::getType(Values args) {
   checkValuesAreParams(args,params);
-  Type* t = this->createType(ns->getContext(),args);
-  return flipped ? t->getFlipped() : t;
+  try {
+    Type* t = this->createType(ns->getContext(),args);
+    return flipped ? t->getFlipped() : t;
+  }
+  catch(std::out_of_range) {
+    cout << "Failed on " << this->getRefName() << " with args=" << Values2Str(args) << endl;
+    assert(0);
+    return nullptr;
+  }
 }
 
 }
