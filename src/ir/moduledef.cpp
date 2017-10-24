@@ -124,7 +124,8 @@ void ModuleDef::removeInstanceFromIter(Instance* instance) {
     if (instance == this->instancesIterLast) {
         // The new last is this instance's prev
         this->instancesIterLast = prev;
-    } else if (instance == this->instancesIterFirst) {
+    }
+    if (instance == this->instancesIterFirst) {
         // The new first is the this instance's next
         this->instancesIterFirst = next;
     }
