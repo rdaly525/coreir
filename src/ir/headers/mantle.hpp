@@ -117,7 +117,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
 
   //Add "wire" 
   Params wireParams({
-    {"type",CoreIRType::make(this)},
+    {"type",CoreIRType::make(c)},
   });
   TypeGen* wireTG = mantle->newTypeGen(
     "wire",
@@ -130,10 +130,10 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       });
     }
   );
-  Generator* wire = pt->newGeneratorDecl("wire",wireTG,wireParams);
+  Generator* wire = mantle->newGeneratorDecl("wire",wireTG,wireParams);
   wire->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     def->connect("self.in","self.out");
-  }
+  });
 
 
 
