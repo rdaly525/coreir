@@ -1133,8 +1133,11 @@ namespace CoreIR {
 
       if (inConns.size() == 2) {
 
+        cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), s1->getBits());
+
+        assert(getRegister(inst->toString()) == s1->getBits());
 
       } else {
         assert(inConns.size() == 3);
@@ -1147,8 +1150,11 @@ namespace CoreIR {
 
         if (enBit->getBits() == BitVec(1, 1)) {
 
+          cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;
           //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
           setRegister(inst->toString(), s1->getBits());
+
+          assert(getRegister(inst->toString()) == s1->getBits());
         }
 
       }
@@ -1167,6 +1173,12 @@ namespace CoreIR {
 
     circStates.push_back(next);
     stateIndex++;
+
+    cout << "Register values" << endl;
+    for (auto& regVal : circStates[stateIndex].registers) {
+      cout << regVal.first << " = " << regVal.second << endl;
+    }
+    cout << "reg done." << endl;
 
     //end = clock();
 
