@@ -79,8 +79,8 @@ namespace CoreIR {
 
       def->addInstance("m0",
       		       "coreir.mem",
-      		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}},
-      		       {{"init", Const::make(c, BitVector(width*depth,0))}});
+      		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}});
+		       //      		       {{"init", Const::make(c, BitVector(width*depth,0))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
@@ -91,8 +91,9 @@ namespace CoreIR {
 
       memory->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       cout << "Building graph" << endl;
 
@@ -155,8 +156,9 @@ namespace CoreIR {
 
       rg->setDef(def);
 
-      RunGenerators runGen;
-      runGen.runOnNamespace(c->getGlobal());
+      c->runPasses({"rungenerators"});
+      // RunGenerators runGen;
+      // runGen.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(rg, g);
@@ -220,9 +222,10 @@ namespace CoreIR {
 
       counter->setDef(def);
       counter->print();
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(counter, g);
@@ -311,9 +314,10 @@ namespace CoreIR {
 
       regChain->setDef(def);
       regChain->print();
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(regChain, g);
@@ -359,9 +363,10 @@ namespace CoreIR {
       def->connect("r0.out","self.cout");
 
       regChain->setDef(def);
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(regChain, g);
@@ -403,9 +408,10 @@ namespace CoreIR {
       def->connect("r0.out","self.cout");
 
       regChain->setDef(def);
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(regChain, g);
@@ -467,8 +473,9 @@ namespace CoreIR {
 
       clkArr->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       cout << "Building graph" << endl;
 

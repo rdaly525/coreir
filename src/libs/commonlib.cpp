@@ -264,6 +264,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
       {"rdata", c->Bit()->Arr(width)},
+	// Is this just wen delayed by N?
       {"valid", c->Bit()},
     });
   });
