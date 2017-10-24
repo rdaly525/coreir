@@ -1,0 +1,70 @@
+{"top":"global.Counter4_flattened",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Counter4_flattened":{
+        "type":["Record",{
+          "O":["Array",4,"Bit"],
+          "COUT":"Bit",
+          "CLK":["Named","coreir.clkIn"]
+        }],
+        "instances":{
+          "bit_const_GND":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "bit_const_VCC":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          },
+          "inst0":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",5]}
+          },
+          "inst1":{
+            "genref":"mantle.reg",
+            "genargs":{"has_clr":["Bool",false], "has_en":["Bool",false], "has_rst":["Bool",false], "width":["Int",1]}
+          },
+          "inst2":{
+            "genref":"mantle.reg",
+            "genargs":{"has_clr":["Bool",false], "has_en":["Bool",false], "has_rst":["Bool",false], "width":["Int",1]}
+          },
+          "inst3":{
+            "genref":"mantle.reg",
+            "genargs":{"has_clr":["Bool",false], "has_en":["Bool",false], "has_rst":["Bool",false], "width":["Int",1]}
+          },
+          "inst4":{
+            "genref":"mantle.reg",
+            "genargs":{"has_clr":["Bool",false], "has_en":["Bool",false], "has_rst":["Bool",false], "width":["Int",1]}
+          }
+        },
+        "connections":[
+          ["bit_const_GND.out","inst0.in0.0"],
+          ["bit_const_GND.out","inst0.in1.0"],
+          ["bit_const_GND.out","inst0.in1.2"],
+          ["bit_const_GND.out","inst0.in1.3"],
+          ["bit_const_GND.out","inst0.in1.4"],
+          ["bit_const_VCC.out","inst0.in1.1"],
+          ["inst1.clk","self.CLK"],
+          ["inst2.clk","self.CLK"],
+          ["inst3.clk","self.CLK"],
+          ["inst4.clk","self.CLK"],
+          ["self.COUT","inst0.out.4"],
+          ["inst0.in0.1","inst1.out.0"],
+          ["inst0.in0.2","inst2.out.0"],
+          ["inst0.in0.3","inst3.out.0"],
+          ["inst0.in0.4","inst4.out.0"],
+          ["inst0.out.0","inst1.in.0"],
+          ["inst0.out.1","inst2.in.0"],
+          ["inst0.out.2","inst3.in.0"],
+          ["inst0.out.3","inst4.in.0"],
+          ["inst1.out.0","self.O.0"],
+          ["inst2.out.0","self.O.1"],
+          ["inst3.out.0","self.O.2"],
+          ["inst4.out.0","self.O.3"]
+        ]
+      }
+    }
+  }
+}
+}

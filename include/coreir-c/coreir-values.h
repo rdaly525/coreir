@@ -11,7 +11,7 @@
 extern COREValueType* COREGetValueType(COREValue* arg);
 
 //Create Args
-extern COREValue* COREValueBool(COREContext* c,COREBool b);
+extern COREValue* COREValueBool(COREContext* c, bool b);
 extern COREValue* COREValueInt(COREContext* c,int i);
 extern COREValue* COREValueString(COREContext* c,char* str);
 extern COREValue* COREValueBitVector(COREContext* c, int width, uint64_t val);

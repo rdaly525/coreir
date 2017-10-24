@@ -31,6 +31,7 @@ std::string Params2Str(Params,bool multi=false);
 std::string Values2Str(Values,bool multi=false);
 std::string SelectPath2Str(SelectPath path);
 std::string Connection2Str(Connection con);
+std::string Inst2Str(Instance* inst);
 
 //Checks that the values are of the correct names and types
 void checkValuesAreParams(Values args, Params params);
@@ -81,21 +82,25 @@ T join(const A &begin, const A &end, const T &t) {
 
 std::vector<std::string> splitRef(std::string s);
 
-static std::unordered_map<std::string,std::unordered_set<std::string>> opmap({
-  {"unary",{"not","neg"}},
+
+//Does not include
+static std::unordered_map<std::string,std::unordered_set<std::string>> coreMap({
+  {"unary",{"wire","not","neg"}},
   {"unaryReduce",{"andr","orr","xorr"}},
   {"binary",{
+    "add","sub",
     "and","or","xor",
     "shl","lshr","ashr",
     "mul",
     "udiv","urem",
     "sdiv","srem","smod"
   }},
-  {"binaryReduce",{"eq",
+  {"binaryReduce",{
+    "eq","neq",
     "slt","sgt","sle","sge",
     "ult","ugt","ule","uge"
   }},
-  {"ternary",{"mux"}},
+  {"muxType",{"mux"}},
 });
 
 void mergeValues(Values& v0, Values v1);

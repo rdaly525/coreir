@@ -12,11 +12,13 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <functional>
 
 #define ASSERT(C,MSG) \
   if (!(C)) { \
     std::cout << "ERROR: " << MSG << std::endl << std::endl; \
     assert(C); \
+    while (true) {} /* Hack so GCC knows this doesn't ever return */ \
   }
 
 typedef uint32_t uint;

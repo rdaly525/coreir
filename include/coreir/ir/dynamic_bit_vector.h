@@ -30,6 +30,10 @@ namespace bsim {
   public:
     dynamic_bit_vector(const int N_) : N(N_) {
       bits.resize(NUM_BYTES(N));
+      for (uint i = 0; i < bits.size(); i++) {
+	bits[i] = 0;
+      }
+      
       for (int i = 0; i < N; i++) {
 	set(i, 0);
       }
@@ -55,21 +59,10 @@ namespace bsim {
       *((int*) (&(bits[0]))) = val;
     }
 
-    // dynamic_bit_vector(const bv_uint64 val) {
-    //   *((bv_uint64*)(&bits)) = val;
-    // }
-    
-    // dynamic_bit_vector(const bv_uint32 val) {
-    //   *((bv_uint32*)(&bits)) = val;
-    // }
-
-    // dynamic_bit_vector(const bv_uint16 val) {
-    //   *((bv_uint16*)(&bits)) = val;
-    // }
-
-    dynamic_bit_vector(const bv_uint8 val) {
-      *((bv_uint8*)(&bits)) = val;
-    }
+    //dynamic_bit_vector(const int N_, const bv_uint8 val) : N(N_) {
+    //  bits.resize(NUM_BYTES(N));
+    //  *((bv_uint8*)(&(bits[0]))) = val;
+    //}
     
     dynamic_bit_vector(const dynamic_bit_vector& other) {
       bits.resize(other.bits.size());
@@ -84,11 +77,11 @@ namespace bsim {
     	return *this;
       }
 
-      N = other.bitLength();
-      bits.resize(N);
+      bits.resize(other.bits.size());
 
-      for (int i = 0; i < N; i++) {
-    	set(i, other.get(i));
+      N = other.bitLength();
+      for (int i = 0; i < NUM_BYTES(N); i++) {
+        bits[i] = other.bits[i];
       }
 
 
@@ -127,27 +120,29 @@ namespace bsim {
 
     template<typename ConvType>
     ConvType to_type() const {
-      return *((ConvType*) (&(bits[0])));
+      ConvType tmp = *(const_cast<ConvType*>((const ConvType*) (&(bits[0]))));
+      ConvType mask = sizeof(ConvType) > bits.size() ? (1<<N)-1 : -1;
+      return tmp & mask;
     }
 
     inline bv_uint64 as_native_int32() const {
-      return *((bv_sint32*) (&bits));
+      return to_type<bv_sint32>();
     }
     
     inline bv_uint64 as_native_uint64() const {
-      return *((bv_uint64*) (&bits));
+      return to_type<bv_uint64>();
     }
 
     inline bv_uint32 as_native_uint32() const {
-      return *((bv_uint32*) (&bits));
+      return to_type<bv_uint32>();
     }
 
     inline bv_uint16 as_native_uint16() const {
-      return *((bv_uint16*) (&bits));
+      return to_type<bv_uint16>();
     }
 
     inline bv_uint8 as_native_uint8() const {
-      return *((bv_uint8*) (&bits));
+      return to_type<bv_uint8>();
     }
 
     inline int bitLength() const {
@@ -325,100 +320,99 @@ namespace bsim {
     
   // };
 
-  // template<int Width>
-  // static inline
-  // dynamic_bit_vector<Width>
-  // add_general_width_bv(const dynamic_bit_vector<Width>& a,
-  // 		       const dynamic_bit_vector<Width>& b) {
+  static inline
+  dynamic_bit_vector
+  add_general_width_bv(const dynamic_bit_vector& a,
+  		       const dynamic_bit_vector& b) {
 
-  //   dynamic_bit_vector<Width> res;
-  //   unsigned char carry = 0;
-  //   for (int i = 0; i < Width; i++) {
-  //     unsigned char sum = a.get(i) + b.get(i) + carry;
+    dynamic_bit_vector res(a.bitLength());
+    unsigned char carry = 0;
+    for (int i = 0; i < a.bitLength(); i++) {
+      unsigned char sum = a.get(i) + b.get(i) + carry;
 
-  //     carry = 0;
+      carry = 0;
 
-  //     unsigned char z_i = sum & 0x01; //sum % 2;
-  //     res.set(i, z_i);
-  //     if (sum >= 2) {
-  // 	carry = 1;
-  //     }
+      unsigned char z_i = sum & 0x01; //sum % 2;
+      res.set(i, z_i);
+      if (sum >= 2) {
+  	carry = 1;
+      }
 
-  //   }
+    }
 
-  //   return res;
-  // }
+    return res;
+  }
 
-  // template<int Width>  
-  // static inline
-  // dynamic_bit_vector<Width>
-  // mul_general_width_bv(const dynamic_bit_vector<Width>& a,
-  // 		       const dynamic_bit_vector<Width>& b) {
-  //   dynamic_bit_vector<2*Width> full_len;
+  static inline
+  dynamic_bit_vector
+  sub_general_width_bv(const dynamic_bit_vector& a,
+  		       const dynamic_bit_vector& b) {
+    int Width = a.bitLength();
+    dynamic_bit_vector diff(a.bitLength());
+    dynamic_bit_vector a_cpy = a;
 
-  //   for (int i = 0; i < Width; i++) {
-  //     if (b.get(i) == 1) {
+    //bool underflow = false;
+    for (int i = 0; i < Width; i++) {
 
-  // 	dynamic_bit_vector<2*Width> shifted_a;
+      if ((a_cpy.get(i) == 0) &&
+  	  (b.get(i) == 1)) {
 
-  // 	for (int j = 0; j < Width; j++) {
-  // 	  shifted_a.set(j + i, a.get(j));
-  // 	}
+  	int j = i + 1;
 
-  // 	full_len =
-  // 	  add_general_width_bv(full_len, shifted_a);
-  //     }
-  //   }
+  	diff.set(i, 1);	  
 
-  //   dynamic_bit_vector<Width> res;
-  //   for (int i = 0; i < Width; i++) {
-  //     res.set(i, full_len.get(i));
-  //   }
-  //   return res;
-  // }    
+  	// Modify to carry
+  	while ((j < Width) && (a_cpy.get(j) != 1)) {
+  	  a_cpy.set(j, 1);
+  	  j++;
+  	}
 
-  // template<int Width>
-  // static inline
-  // dynamic_bit_vector<Width>
-  // sub_general_width_bv(const dynamic_bit_vector<Width>& a,
-  // 		       const dynamic_bit_vector<Width>& b) {
-  //   dynamic_bit_vector<Width> diff;
-  //   dynamic_bit_vector<Width> a_cpy = a;
+  	if (j >= Width) {
+  	  //underflow = true;
+  	} else {
+  	  a_cpy.set(j, 0);
+  	}
 
-  //   bool underflow = false;
-  //   for (int i = 0; i < Width; i++) {
+      } else if (a_cpy.get(i) == b.get(i)) {
+  	diff.set(i, 0);
+      } else if ((a_cpy.get(i) == 1) &&
+  		 (b.get(i) == 0)) {
+  	diff.set(i, 1);
+      } else {
+  	assert(false);
+      }
+    }
 
-  //     if ((a_cpy.get(i) == 0) &&
-  // 	  (b.get(i) == 1)) {
+    return diff;
+  }    
 
-  // 	int j = i + 1;
+  static inline
+  dynamic_bit_vector
+  mul_general_width_bv(const dynamic_bit_vector& a,
+  		       const dynamic_bit_vector& b) {
+    int Width = a.bitLength();
+    dynamic_bit_vector full_len(2*Width);
 
-  // 	diff.set(i, 1);	  
+    for (int i = 0; i < Width; i++) {
+      if (b.get(i) == 1) {
 
-  // 	// Modify to carry
-  // 	while ((j < Width) && (a_cpy.get(j) != 1)) {
-  // 	  a_cpy.set(j, 1);
-  // 	  j++;
-  // 	}
+  	dynamic_bit_vector shifted_a(2*Width);
 
-  // 	if (j >= Width) {
-  // 	  underflow = true;
-  // 	} else {
-  // 	  a_cpy.set(j, 0);
-  // 	}
+  	for (int j = 0; j < Width; j++) {
+  	  shifted_a.set(j + i, a.get(j));
+  	}
 
-  //     } else if (a_cpy.get(i) == b.get(i)) {
-  // 	diff.set(i, 0);
-  //     } else if ((a_cpy.get(i) == 1) &&
-  // 		 (b.get(i) == 0)) {
-  // 	diff.set(i, 1);
-  //     } else {
-  // 	assert(false);
-  //     }
-  //   }
+  	full_len =
+  	  add_general_width_bv(full_len, shifted_a);
+      }
+    }
 
-  //   return diff;
-  // }    
+    dynamic_bit_vector res(Width);
+    for (int i = 0; i < Width; i++) {
+      res.set(i, full_len.get(i));
+    }
+    return res;
+  }    
   
   // template<int Width>
   // class signed_int_operations {
@@ -748,6 +742,44 @@ namespace bsim {
     return !(a > b);
   }
 
+  static inline dynamic_bit_vector
+  andr(const dynamic_bit_vector& a) {
+    for (int i = 0; i < a.bitLength(); i++) {
+      if (a.get(i) != 1) {
+	return dynamic_bit_vector(1, "0");
+      }
+    }
+
+    return dynamic_bit_vector(1, "1");
+  }
+
+  static inline dynamic_bit_vector
+  orr(const dynamic_bit_vector& a) {
+    for (int i = 0; i < a.bitLength(); i++) {
+      if (a.get(i) == 1) {
+	return dynamic_bit_vector(1, "1");
+      }
+    }
+
+    return dynamic_bit_vector(1, "0");
+  }
+
+  static inline dynamic_bit_vector
+  xorr(const dynamic_bit_vector& a) {
+    int numSet = 0;
+    for (int i = 0; i < a.bitLength(); i++) {
+      if (a.get(i) == 1) {
+	numSet++;
+      }
+    }
+
+    if ((numSet % 2) == 0) {
+      return dynamic_bit_vector(1, "0");
+    }
+
+    return dynamic_bit_vector(1, "1");
+  }
+  
   // template<int N>
   // static inline bool operator<=(const unsigned_int<N>& a,
   // 				const unsigned_int<N>& b) {
@@ -773,42 +805,126 @@ namespace bsim {
   //   return quotient;
   // }
 
-  // template<int N>
-  // static inline bool operator>(const signed_int<N>& a,
-  // 			       const signed_int<N>& b) {
+  static inline bool
+  signed_gt(const dynamic_bit_vector& a,
+	    const dynamic_bit_vector& b) {
 
-  //   // a negative b non-negative
-  //   if ((a.get(N - 1) == 1) && (b.get(N - 1) == 0)) {
-  //     return false;
-  //   }
+    assert(a.bitLength() == b.bitLength());
 
-  //   // b negative a non-negative
-  //   if ((b.get(N - 1) == 1) && (a.get(N - 1) == 0)) {
-  //     return true;
-  //   }
+    int N = a.bitLength();
 
-  //   // Both negative or both non-negative
-  //   //if ((a.get(N - 1) == 1) && (b.get(N - 1) == 1)) {
+    // a negative b non-negative
+    if ((a.get(N - 1) == 1) && (b.get(N - 1) == 0)) {
+      return false;
+    }
 
-  //   for (int i = N - 2; i >= 0; i--) {
-  //     if (a.get(i) > b.get(i)) {
-  // 	return true;
-  //     }
+    // b negative a non-negative
+    if ((b.get(N - 1) == 1) && (a.get(N - 1) == 0)) {
+      return true;
+    }
 
-  //     if (a.get(i) < b.get(i)) {
-  // 	return false;
-  //     }
-  //   }
+    // Both negative or both non-negative
+    //if ((a.get(N - 1) == 1) && (b.get(N - 1) == 1)) {
 
-  //   return false;
+    for (int i = N - 2; i >= 0; i--) {
+      if (a.get(i) > b.get(i)) {
+  	return true;
+      }
 
-  // }
+      if (a.get(i) < b.get(i)) {
+  	return false;
+      }
+    }
 
-  // template<int N>
-  // static inline bool operator>=(const signed_int<N>& a,
-  // 				const signed_int<N>& b) {
-  //   return (a > b) || (a == b);
-  // }
+    return false;
+
+  }
+
+  static inline bool signed_gte(const dynamic_bit_vector& a,
+  				const dynamic_bit_vector& b) {
+    return (signed_gt(a, b)) || (a == b);
+  }
+
+  static inline
+  bv_uint64 get_shift_int(const dynamic_bit_vector& shift_amount) {
+    bv_uint64 shift_int = 0;
+    if (shift_amount.bitLength() > 64) {
+      assert(false);
+    }
+
+    else if (shift_amount.bitLength() > 32) {
+      shift_int = shift_amount.to_type<bv_uint64>();
+    }
+
+    else if (shift_amount.bitLength() > 16) {
+      shift_int = (bv_uint64) (shift_amount.to_type<bv_uint32>());
+    }
+
+    else if (shift_amount.bitLength() > 8) {
+      shift_int = (bv_uint64) (shift_amount.to_type<bv_uint16>());
+    } else {
+      shift_int = (bv_uint64) (shift_amount.to_type<bv_uint8>());
+    }
+
+    //std::cout << "shift_int = " << shift_int << std::endl;
+    assert(shift_int < 65);
+
+    return shift_int;
+  }
+
+  static inline dynamic_bit_vector
+  lshr(const dynamic_bit_vector& a,
+       const dynamic_bit_vector& shift_amount) {
+    dynamic_bit_vector res(a.bitLength());
+
+    bv_uint64 shift_int = get_shift_int(shift_amount);
+
+    //unsigned char sign_bit = a.get(a.bitLength() - 1);
+    for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
+      res.set(i - shift_int, a.get(i));
+    }
+
+    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
+      res.set(i, 0);
+    }
+
+    return res;
+  }
+
+  // Arithmetic shift right
+  static inline
+  dynamic_bit_vector
+  ashr(const dynamic_bit_vector& a,
+       const dynamic_bit_vector& shift_amount) {
+    dynamic_bit_vector res(a.bitLength());
+
+    bv_uint64 shift_int = get_shift_int(shift_amount);
+
+    unsigned char sign_bit = a.get(a.bitLength() - 1);
+    for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
+      res.set(i - shift_int, a.get(i));
+    }
+
+    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
+      res.set(i, sign_bit);
+    }
+
+    return res;
+  }
+  
+  static inline
+  dynamic_bit_vector
+  shl(const dynamic_bit_vector& a,
+      const dynamic_bit_vector& shift_amount) {
+    dynamic_bit_vector res(a.bitLength());
+
+    bv_uint64 shift_int = get_shift_int(shift_amount);    
+    for (int i = shift_int; i < a.bitLength(); i++) {
+      res.set(i, a.get(i - shift_int));
+    }
+
+    return res;
+  }
 
   // template<int N>
   // static inline bool operator<=(const signed_int<N>& a,
@@ -816,7 +932,6 @@ namespace bsim {
   //   return !(a > b);
   // }
 
-  
   // template<int N>
   // static inline bool operator!=(const signed_int<N>& a,
   // 				const signed_int<N>& b) {

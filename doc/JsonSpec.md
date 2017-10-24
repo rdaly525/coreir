@@ -5,7 +5,10 @@ any key followed by a ? means it is optional
 
 ```
 //What is in the json file
-{<namespaceName>:Namespace, ...}
+{
+  "top: NamedRef,
+  namespaces: {<namespaceName>:Namespace, ...}
+}
 
 
 //Definitions
@@ -33,7 +36,9 @@ NamedTypeGen = {"flippedname"?:<name>,"genparams":Parameter}
 Module = {
   "type":Type,
   "modparams"?:Parameter,
-  "defaultmodargs"?:Consts,
+  "defaultmodargs"?:Values,
+  "genref"?:NamedRef, //Used for generated modules
+  "genargs"?:Values, //'' '' 
   "instances"?:{<instname>:Instance,...},
   "connections"?: Connection[]
 }
@@ -42,11 +47,12 @@ Generator = {
   "typegen":NamedRef
   "genparams":Parameters,
   "defaultgenargs"?:Consts,
+
 }
 
 Instance = {
   "genref"?:NamedRef,
-  "genargs"?:Consts,
+  "genargs"?:Values,
   "modref"?:NamedRef,
   "modargs"?:Values
 }

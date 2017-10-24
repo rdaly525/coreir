@@ -37,7 +37,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     int numbitports = genargs.at("numbitports")->get<int>();
     int numdataports = genargs.at("numdataports")->get<int>();
     int width = genargs.at("width")->get<int>();
-    if (op_kind == "data" || op_kind == "combined") {
+    if (op_kind == "alu" || op_kind == "combined") {
       p["alu_op"] = c->String();
       for (int i=0; i<numdataports; ++i) {
         string mode = "data"+to_string(i)+"_mode";
@@ -51,7 +51,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
     if (op_kind == "bit" || op_kind == "combined") {
       p["lut_value"] = c->BitVector(1<<numbitports);
       d["lut_value"] = Const::make(c,BitVector(1<<numbitports,0));
-      cout << "LUTVAL=" << d["lut_value"]->toString() << endl;
+      // cout << "LUTVAL=" << d["lut_value"]->toString() << endl;
       for (int i=0; i<numbitports; ++i) {
         string mode = "bit"+to_string(i)+"_mode";
         p[mode] = c->String();

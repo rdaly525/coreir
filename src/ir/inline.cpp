@@ -135,7 +135,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
   Type* wtype = w->getType();
   
   //Add actual passthrough instance
-  Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",Const::make(c,wtype)}});
+  Instance* pt = def->addInstance(instname,c->getGenerator("_.passthrough"),{{"type",Const::make(c,wtype)}});
   
   unordered_set<Wireable*> completed;
   PTTraverse(def,w,pt->sel("out"),completed);
@@ -167,15 +167,18 @@ bool inlineInstance(Instance* inst) {
     inlinePassthrough(inst);
     return true;
   }
-  if (inst->isGen()) {
-    return false;
-  }
-  ModuleDef* def = inst->getContainer();
+// <<<<<<< HEAD
+//   // if (inst->isGen()) {
+//   //   return false;
+//   // }
+//   ModuleDef* def = inst->getContainer();
+// =======
+//>>>>>>> upstream/dev
   Module* modInline = inst->getModuleRef();
-  assert(modInline);
+  ModuleDef* def = inst->getContainer();
 
   if (!modInline->hasDef()) {
-    cout << "Cannot inline a module with no definition!: " << modInline->getName() << endl;
+    cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
     return false;
   }
   

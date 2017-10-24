@@ -152,7 +152,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
-    if (genargs.at("rst")->get<bool>()) {
+    if (genargs.at("rst")->get<bool>() || genargs.at("clr")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
       defaultargs["init"] = Const::make(c,BitVector(width,0));
@@ -256,6 +256,7 @@ void coreirprims_state(Context* c, Namespace* coreirprims) {
   TypeGen* memTypeGen = coreirprims->newTypeGen("memType",memGenParams,memFun);
   auto mem = coreirprims->newGeneratorDecl("mem",memTypeGen,memGenParams); 
   mem->setModParamsGen(memModParamFun);
+  mem->addDefaultGenArgs({{"has_init",Const::make(c,true)}});
   jverilog["parameters"] = {"width","init"};
   jverilog["prefix"] = "coreir_";
   mem->getMetaData()["verilog"] = jverilog;
@@ -296,7 +297,9 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
     "binary",
     widthparams,
     [](Context* c, Values args) {
+      cout << "{" << Values2Str(args) << endl;
       uint width = args.at("width")->get<int>();
+      cout << "}" << endl;
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({
         {"in0",c->Flip(ptype)},
@@ -346,7 +349,7 @@ Namespace* CoreIRLoadLibrary_coreirprims(Context* c) {
   //);
   //For mux
   coreirprims->newTypeGen(
-    "ternary",
+    "muxType",
     widthparams,
     [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();

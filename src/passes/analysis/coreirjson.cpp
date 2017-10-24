@@ -3,6 +3,7 @@
 #include <set>
 #include <map>
 
+//TODO Write out Generator mod defs
 using namespace CoreIR;
 using namespace std;
 namespace {
@@ -26,6 +27,7 @@ class Dict {
   public:
     Dict(uint i) : ts(tab(i)) {}
     Dict() {}
+    bool isEmpty() { return fields.size()==0;}
     void add(string field,string val) { 
       fields.push_back(quote(field)+":"+val);
       sorted[field] = quote(field)+":"+val;
@@ -81,27 +83,26 @@ string Params2Json(Params gp) {
 string Type2Json(Type* t);
 string Value2Json(Value* v) {
   Array ret;
+  ret.add(ValueType2Json(v->getValueType()));
   if (auto a = dyn_cast<Arg>(v)) {
     ret.add(quote("Arg"));
-    ret.add(ValueType2Json(v->getValueType()));
     ret.add(quote(a->getField()));
   }
-  else if (auto c = dyn_cast<Const>(v)) {
-    ret.add(ValueType2Json(v->getValueType()));
-    if (auto cb = dyn_cast<ConstBool>(c)) {
+  else if (auto con = dyn_cast<Const>(v)) {
+    if (auto cb = dyn_cast<ConstBool>(con)) {
       ret.add(cb->get() ? "true" : "false");
     }
-    else if (auto ci = dyn_cast<ConstInt>(c)) {
+    else if (auto ci = dyn_cast<ConstInt>(con)) {
       ret.add(to_string(ci->get()));
     }
-    else if (auto cbv = dyn_cast<ConstBitVector>(c)) {
-      ret.add(quote(toString(cbv->get())));
+    else if (auto cbv = dyn_cast<ConstBitVector>(con)) {
+      ret.add(to_string(cbv->get().to_type<uint64_t>()));
     }
-    else if (auto cs = dyn_cast<ConstString>(c)) {
+    else if (auto cs = dyn_cast<ConstString>(con)) {
       ret.add(quote(cs->get()));
     }
-    else if (auto at = dyn_cast<ConstCoreIRType>(a)) {
-      return Type2Json(at->get());
+    else if (auto at = dyn_cast<ConstCoreIRType>(con)) {
+      ret.add(Type2Json(at->get()));
     }
     else {
       ASSERT(0,"NYI");
@@ -199,6 +200,10 @@ string Connections2Json(Connections& cons) {
 
 string Module2Json(Module* m) {
   Dict j(6);
+  if (m->hasDef() && m->generated()) {
+    j.add("genref",quote(m->getGenerator()->getRefName()));
+    j.add("genargs",Values2Json(m->getGenArgs()));
+  }
   j.add("type",TopType2Json(m->getType()));
   if (!m->getModParams().empty()) {
     j.add("modparams",Params2Json(m->getModParams()));
@@ -242,8 +247,15 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   Dict jns(2);
   if (!ns->getModules().empty()) {
     Dict jmod(4);
-    for (auto m : ns->getModules()) jmod.add(m.first,Module2Json(m.second));
-    jns.add("modules",jmod.toMultiString());
+    for (auto m : ns->getModules()) {
+      string mname = m.first;
+      if (m.second->generated()) mname = m.second->getGenerator()->getName();
+      if (m.second->generated() && !m.second->hasDef()) continue;
+      jmod.add(mname,Module2Json(m.second));
+    }
+    if (!jmod.isEmpty()) {
+      jns.add("modules",jmod.toMultiString());
+    }
   }
   if (!ns->getGenerators().empty()) {
     Dict jgen(4);
