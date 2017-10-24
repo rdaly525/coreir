@@ -281,6 +281,23 @@ namespace CoreIR {
     	REQUIRE(state.getBitVec("counter$ri$reg0.out") == BitVec(pcWidth, 0));
       }
 
+      SECTION("Test setting and getting registers") {
+        state.setRegister("counter$ri$reg0", BitVec(pcWidth, 231));
+
+        auto states = state.getCircStates();
+
+        cout << "# of states = " << states.size() << endl;
+
+        cout << "Register values" << endl;
+        for (auto& regVal : states.back().registers) {
+          cout << regVal.first << " = " << regVal.second << endl;
+        }
+        cout << "reg done." << endl;
+
+
+        REQUIRE(state.getRegister("counter$ri$reg0") == BitVec(pcWidth, 231));
+      }
+
       SECTION("Count from zero, enable set") {
 
     	//state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));

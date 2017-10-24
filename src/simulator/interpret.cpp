@@ -105,6 +105,7 @@ namespace CoreIR {
 
         // Set memory state to default value
         LinebufferMemory freshMem(width, depth);
+        circStates[stateIndex].lbMemories.erase(inst->toString()); //, freshMem});
         circStates[stateIndex].lbMemories.insert({inst->toString(), freshMem});
 
         // Set memory output port to default
@@ -1287,8 +1288,23 @@ namespace CoreIR {
   void SimulatorState::setRegister(const std::string& name,
                                    const BitVec& data) {
 
-    circStates[stateIndex].registers.insert({name, data});
+    CircuitState& lastState = circStates[stateIndex];
 
+    cout << "--- Register values before setting" << endl;
+    for (auto& regVal : lastState.registers) {
+      cout << regVal.first << " = " << regVal.second << endl;
+    }
+    cout << "--- reg done." << endl;
+
+    lastState.registers.erase(name);
+    lastState.registers.insert({name, data});
+
+    cout << "--- Register values after setting" << endl;
+    for (auto& regVal : lastState.registers) {
+      cout << regVal.first << " = " << regVal.second << endl;
+    }
+    cout << "--- reg done." << endl;
+    
   }
 
   BitVec SimulatorState::getRegister(const std::string& name) {
