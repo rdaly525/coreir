@@ -64,8 +64,8 @@ namespace CoreIR {
       manyOps->setDef(def);
 
       SECTION("Compiling code") {
-	RunGenerators rg;
-	rg.runOnNamespace(g);
+	
+	c->runPasses({"rungenerators"});
 
 	cout << "About to build graph" << endl;
 
