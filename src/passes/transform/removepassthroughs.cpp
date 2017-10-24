@@ -17,6 +17,6 @@ std::string Passes::RemovePassthroughs::ID = "removepassthroughs";
 
 void Passes::RemovePassthroughs::setVisitorInfo() {
 //Context* c = this->getContext();
-  addVisitorFunction(c->getInstantiable("mantle.passthrough"),inlinePassthrough);
+  addVisitorFunction(c->getInstantiable("mantle.wire"),inlinePassthrough);
 
 }
