@@ -114,5 +114,28 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   auto sub = mantle->newGeneratorDecl("sub",addTypeGen,addGenParams);
   sub->addDefaultGenArgs({{"has_cin",Const::make(c,false)},{"has_cout",Const::make(c,false)}});
 
+
+  //Add "wire" 
+  Params wireParams({
+    {"type",CoreIRType::make(c)},
+  });
+  TypeGen* wireTG = mantle->newTypeGen(
+    "wire",
+    wireParams,
+    [](Context* c, Values args) {
+      Type* t = args.at("type")->get<Type*>();
+      return c->Record({
+        {"in",t->getFlipped()},
+        {"out",t}
+      });
+    }
+  );
+  Generator* wire = mantle->newGeneratorDecl("wire",wireTG,wireParams);
+  wire->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    def->connect("self.in","self.out");
+  });
+
+
+
   return mantle;
 }

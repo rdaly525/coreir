@@ -137,13 +137,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       Namespace* stdlib = c->getNamespace("coreir");
       Namespace* commonlib = c->getNamespace("commonlib");
       Generator* mux2 = stdlib->getGenerator("mux");
-      Generator* passthrough = c->getGenerator("coreir.passthrough");
       Generator* muxN = commonlib->getGenerator("muxn");
 
       Const* aWidth = Const::make(c,width);
 
       if (N == 1) {
-        def->addInstance("passthrough",passthrough,{{"type",Const::make(c,c->BitIn()->Arr(width))}});
+        def->connect("self.in.data.0","self.out");
       }
       else if (N == 2) {
         def->addInstance("join",mux2,{{"width",aWidth}});
@@ -200,7 +199,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Const* aOperator = Const::make(c,op2);
 
     if (N == 1) {
-      def->addInstance("passthrough","coreir.passthrough",{{"type",Const::make(c,c->BitIn()->Arr(width))}});
+      def->connect("self.in.0","self.out");
     }
     else if (N == 2) {
       def->addInstance("join",op2,{{"width",aWidth}});
