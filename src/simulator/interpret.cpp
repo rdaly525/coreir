@@ -62,7 +62,9 @@ namespace CoreIR {
         uint width = (args["width"])->get<int>();
 
         // Set memory output port to default
-        setValue(inst->sel("out"), makeSimBitVector(BitVec(width, 0)));
+        //setValue(inst->sel("out"), makeSimBitVector(BitVec(width, 0)));
+        setRegister(inst->toString(), BitVec(width, 0));
+        setValue(inst->sel("out"), getRegister(inst->toString()));
         
       }
     }
@@ -431,6 +433,7 @@ namespace CoreIR {
 
     SimValue* v = getValue(sel);
 
+    assert(v != nullptr);
     assert(isSimBitVector(v));
 
     return static_cast<SimBitVector*>(v)->getBits();
@@ -1035,6 +1038,24 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::updateRegisterOutput(const vdisc vd) {
+
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    BitVec newRData = getRegister(inst->toString()); //getMemory(inst->toString(), raddrBits);
+
+    setValue(toSelect(outPair.second), makeSimBitVector(newRData));
+    
+  }
+
   void SimulatorState::updateMemoryValue(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -1112,7 +1133,9 @@ namespace CoreIR {
 
       if (inConns.size() == 2) {
 
-        setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
+        //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
+        setRegister(inst->toString(), s1->getBits());
+
       } else {
         assert(inConns.size() == 3);
 
@@ -1124,7 +1147,8 @@ namespace CoreIR {
 
         if (enBit->getBits() == BitVec(1, 1)) {
 
-          setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
+          //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
+          setRegister(inst->toString(), s1->getBits());
         }
 
       }
@@ -1153,7 +1177,7 @@ namespace CoreIR {
 
     // start = clock();
 
-    // Update memory outputs
+    // Update sequential element outputs
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
 
@@ -1165,6 +1189,10 @@ namespace CoreIR {
       if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
         // Does this work when the raddr port is not yet defined?
         updateLinebufferMemOutput(vd);
+      }
+
+      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+        updateRegisterOutput(vd);
       }
       
     }

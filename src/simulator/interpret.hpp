@@ -248,6 +248,8 @@ namespace CoreIR {
     BitVec getBitVec(const std::string& str);
     BitVec getBitVec(const std::vector<std::string>& str);
 
+    void updateRegisterOutput(const vdisc vd);
+
     void updateRegisterValue(const vdisc vd);
     void updateMemoryValue(const vdisc vd);
     void updateLinebufferMemValue(const vdisc vd);
