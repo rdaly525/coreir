@@ -297,6 +297,12 @@ namespace CoreIR {
     return getBitVec(concatName);
   }
 
+  void SimulatorState::setWatchPoint(const std::vector<std::string>& path, const BitVec& bv) {
+    string concatName = concatInlined(path);
+
+    return setWatchPoint(concatName, bv);
+  }
+
   bool SimulatorState::isSet(const std::string& selStr) const {
     Select* s = findSelect(selStr);
 

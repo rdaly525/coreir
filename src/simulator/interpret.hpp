@@ -80,11 +80,11 @@ namespace CoreIR {
   class LinebufferMemory {
     std::deque<BitVector> values;
     std::deque<bool> valids;
-    int width, depth;
+    unsigned int width, depth;
 
   public:
 
-    LinebufferMemory(const int width_, const int depth_) :
+    LinebufferMemory(const int width_, const unsigned int depth_) :
       width(width_), depth(depth_) {
 
       for (int i = 0; i < getDepth(); i++) {
@@ -194,6 +194,8 @@ namespace CoreIR {
     void stepClock(CoreIR::Select* clkSelect);
 
     void setWatchPoint(const std::string& val,
+		       const BitVec& bv);
+    void setWatchPoint(const std::vector<std::string>& path,
 		       const BitVec& bv);
 
     void deleteWatchPoint(const std::string& name);
