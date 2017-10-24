@@ -386,7 +386,6 @@ namespace CoreIR {
     	REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
       }
 
-      // TODO: Reintroduce later
       SECTION("Setting watchpoint") {
         //state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
