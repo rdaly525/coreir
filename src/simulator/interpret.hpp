@@ -166,6 +166,9 @@ namespace CoreIR {
 
     int numCircStates() const;
 
+    void setInputDefaults();
+    std::vector<vdisc> unsetInputs();
+
     std::vector<CircuitState> getCircStates() const;
 
     NGraph& getCircuitGraph() { return gr; }
@@ -194,6 +197,10 @@ namespace CoreIR {
 		       const BitVec& bv);
 
     void deleteWatchPoint(const std::string& name);
+
+    void setDFFDefaults();
+    void updateDFFOutput(const vdisc vd);
+    void updateDFFValue(const vdisc vd);
 
     void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
