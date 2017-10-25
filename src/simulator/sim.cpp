@@ -1069,8 +1069,8 @@ namespace CoreIR {
 
     // Add edges to graph
     vector<vdisc> threadVerts = tg.getVerts();
-    for (int i = 0; i < threadVerts.size(); i++) {
-      for (int j = 0; j < threadVerts.size(); j++) {
+    for (uint i = 0; i < threadVerts.size(); i++) {
+      for (uint j = 0; j < threadVerts.size(); j++) {
         if (i != j) {
           vdisc sourceThread = threadVerts[i];
           vdisc destThread = threadVerts[j];

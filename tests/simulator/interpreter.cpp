@@ -853,6 +853,22 @@ namespace CoreIR {
 
     }
 
+    SECTION("D flip flop") {
+      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+
+      cout << "loading" << endl;
+      if (!loadFromFile(c,"./topo_sort_error.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      Module* m = g->getModule("simple");
+
+      SimulatorState state(m);
+      
+
+    }
+
     // TODO: Uncomment this when the bit operations in coreir are figured out
     // SECTION("Selecting bits from a bit vector") {
     //   Namespace* common = CoreIRLoadLibrary_commonlib(c);

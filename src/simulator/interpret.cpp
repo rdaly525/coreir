@@ -8,7 +8,7 @@ namespace CoreIR {
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
     assert(bv.bitLength() == log2(depth));
-    assert(val.bitLength() == width);
+    assert(val.bitLength() == ((int) width));
 
     values.erase(bv);
     values.insert({bv, val});
@@ -152,10 +152,14 @@ namespace CoreIR {
 
         assert(inst != nullptr);
 
-        string opName = getOpName(*inst);
+        string opName = inst->getModuleRef()->getNamespace()->getName() + "." + getOpName(*inst);
 
-        if ((opName == "const")) {
+        cout << "opName = " << opName << endl;
+
+        if ((opName == "coreir.const")) {
           bool foundValue = false;
+
+          cout << "Found coreir const node " << inst->toString() << endl;
 
           int argInt = 0;
           for (auto& arg : inst->getModArgs()) {
@@ -163,6 +167,7 @@ namespace CoreIR {
               foundValue = true;
               Value* valArg = arg.second; //.get();
 
+              
               BitVector bv = valArg->get<BitVector>();
               argInt = bv.as_native_uint32();
 
@@ -182,17 +187,17 @@ namespace CoreIR {
           ArrayType& arrTp = toArray(*(outSel->getType()));
           
           setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
-        } else if (opName == "bitconst") {
+        } else if (opName == "corebit.const") {
 
           bool foundValue = false;
 
-          int argInt = 0;
+          bool argInt = false;
           for (auto& arg : inst->getModArgs()) {
             if (arg.first == "value") {
               foundValue = true;
               Value* valArg = arg.second; //.get();
 
-              int bv = valArg->get<int>();
+              bool bv = valArg->get<bool>();
               argInt = bv;
 
             }
@@ -209,7 +214,7 @@ namespace CoreIR {
 
           Select* outSel = toSelect(outPair.second);
           
-          setValue(outSel, makeSimBitVector(BitVec(1, argInt)));
+          setValue(outSel, makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
 
         }
       }
@@ -263,7 +268,7 @@ namespace CoreIR {
       return str[0];
     }
 
-    for (int i = 0; i < str.size(); i++) {
+    for (uint i = 0; i < str.size(); i++) {
       final += str[i];
       if (i != (str.size() - 1)) {
         final += "$";
@@ -356,7 +361,19 @@ namespace CoreIR {
 
     //start = std::clock();
 
+    cout << "Nodes in graph" << endl;
+    for (auto& vd : gr.getVerts()) {
+      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    }
+    cout << "done." << endl;
+    
     topoOrder = topologicalSort(gr);
+
+    cout << "Nodes in sort" << endl;
+    for (auto& vd : topoOrder) {
+      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    }
+    cout << "done." << endl;
 
     //end = std::clock();
 
@@ -485,7 +502,7 @@ namespace CoreIR {
 
     BitVec res(hi - lo, 1);
     BitVec sB = s1->getBits();
-    for (int i = lo; i < hi; i++) {
+    for (uint i = lo; i < hi; i++) {
       res.set(i - lo, sB.get(i));
     }
 
