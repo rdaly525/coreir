@@ -109,7 +109,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     Namespace* coreirprims = c->getNamespace("coreir");
     Generator* equal = coreirprims->getGenerator("eq");
-    Module* logicalNot = coreirprims->getModule("bitnot");
+    Module* logicalNot = c->getModule("corebit.not");
 
     // create necessary hardware
     Const* aWidth = Const::make(c,width);
