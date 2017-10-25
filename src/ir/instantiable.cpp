@@ -113,7 +113,7 @@ std::map<std::string,Module*> Generator::getModules() {
 
 
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
-  ASSERT(!def,"Do you really want to overwrite the def? No.");
+  //ASSERT(!def,"Do you really want to overwrite the def? No.");
   this->def = new GeneratorDefFromFun(this,fun);
 }
 

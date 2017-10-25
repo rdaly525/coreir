@@ -35,11 +35,14 @@ bool Passes::CullGraph::runOnContext(Context* c) {
       }
     }
   }
+  //TODO really hacky fix
   for (auto i : toErase) {
     if (auto m = dyn_cast<Module>(i)) {
       m->getNamespace()->eraseModule(m->getName());
     }
-    else if (auto g = dyn_cast<Generator>(i)) {
+  }
+  for (auto i : toErase) {
+    if (auto g = dyn_cast<Generator>(i)) {
       g->getNamespace()->eraseGenerator(g->getName());
     }
   }

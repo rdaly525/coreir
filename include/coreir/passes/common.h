@@ -3,6 +3,7 @@
 
 //Analysis passes
 #include "analysis/hellomodule.h"
+#include "analysis/printer.h"
 #include "analysis/createinstancegraph.h"
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
@@ -31,6 +32,7 @@ namespace CoreIR {
     Context* c = pm.getContext();
     //Analysis
     pm.addPass(new Passes::HelloModule());
+    pm.addPass(new Passes::Printer());
     pm.addPass(new Passes::CreateInstanceGraph());
     pm.addPass(new Passes::CreateModInstanceMap());
     pm.addPass(new Passes::CreateFullInstanceMap());
