@@ -396,8 +396,13 @@ namespace CoreIR {
     setLinebufferMemDefaults();
     setRegisterDefaults();
     setDFFDefaults();
+    setInputDefaults();
 
 
+  }
+
+  void SimulatorState::setInputDefaults() {
+    
   }
 
   void SimulatorState::setValue(const std::vector<std::string>& name,

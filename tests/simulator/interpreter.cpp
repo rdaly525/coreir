@@ -940,6 +940,35 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
     }
 
+    SECTION("Failing clock test") {
+
+      cout << "loading" << endl;
+      if (!loadFromFile(c,"./simple_register_example.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      Module* regMod = g->getModule("simple_flattened");
+      SimulatorState state(regMod);
+
+      state.setClock("self.CLK", 0, 1);
+      state.setValue("self.I0", BitVec(2, "11"));
+
+      state.execute();
+      state.execute();
+
+      SimValue* val = state.getValue("self.CLK");
+      assert(val->getType() == SIM_VALUE_CLK);
+
+      ClockValue* clkVal = static_cast<ClockValue*>(val);
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(2, "11"));
+      REQUIRE(clkVal->value() == 1);
+      REQUIRE(clkVal->lastValue() == 0);
+      
+      
+    }
+
     deleteContext(c);
   }
 

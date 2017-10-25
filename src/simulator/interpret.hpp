@@ -166,6 +166,8 @@ namespace CoreIR {
 
     int numCircStates() const;
 
+    void setInputDefaults();
+
     std::vector<CircuitState> getCircStates() const;
 
     NGraph& getCircuitGraph() { return gr; }
