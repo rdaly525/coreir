@@ -6,6 +6,21 @@
 
 namespace CoreIR {
 
+  static inline
+  std::string getInstanceName(Instance& w) {
+    auto g = w.getGeneratorRef();
+
+    if (g == nullptr) {
+      auto m = w.getModuleRef();
+
+      assert(m != nullptr);
+
+      return m->getName();
+    }
+
+    return g->getName();
+  }
+
   static inline int selectNum(CoreIR::Select* const sel) {
     std::string selStr = sel->getSelStr();
     assert(CoreIR::isNumber(selStr));
@@ -57,6 +72,17 @@ namespace CoreIR {
   static inline CoreIR::Instance* toInstance(CoreIR::Wireable* fst) {
     assert(isInstance(fst));
     return static_cast<CoreIR::Instance*>(fst);
+  }
+
+  static inline bool isDFFInstance(CoreIR::Wireable* fst) {
+    if (!isInstance(fst)) {
+      return false;
+    }
+
+    CoreIR::Instance* inst = toInstance(fst);
+    std::string name = getInstanceName(*inst);
+
+    return name == "dff";
   }
 
   static inline bool isRegisterInstance(CoreIR::Wireable* fst) {
@@ -197,21 +223,6 @@ namespace CoreIR {
   bool connectionIsOrdered(const CoreIR::Connection& connection);
 
   std::string getOpName(CoreIR::Instance& inst);
-
-  static inline
-  std::string getInstanceName(Instance& w) {
-    auto g = w.getGeneratorRef();
-
-    if (g == nullptr) {
-      auto m = w.getModuleRef();
-
-      assert(m != nullptr);
-
-      return m->getName();
-    }
-
-    return g->getName();
-  }
 
   static inline Generator* getGeneratorRef(Instance& w) {
     auto g = w.getGeneratorRef();

@@ -356,7 +356,19 @@ namespace CoreIR {
 
     //start = std::clock();
 
+    cout << "Nodes in graph" << endl;
+    for (auto& vd : gr.getVerts()) {
+      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    }
+    cout << "done." << endl;
+    
     topoOrder = topologicalSort(gr);
+
+    cout << "Nodes in sort" << endl;
+    for (auto& vd : topoOrder) {
+      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    }
+    cout << "done." << endl;
 
     //end = std::clock();
 
