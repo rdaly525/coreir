@@ -8,7 +8,7 @@ namespace CoreIR {
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
     assert(bv.bitLength() == log2(depth));
-    assert(val.bitLength() == width);
+    assert(val.bitLength() == ((int) width));
 
     values.erase(bv);
     values.insert({bv, val});
@@ -268,7 +268,7 @@ namespace CoreIR {
       return str[0];
     }
 
-    for (int i = 0; i < str.size(); i++) {
+    for (uint i = 0; i < str.size(); i++) {
       final += str[i];
       if (i != (str.size() - 1)) {
         final += "$";
@@ -502,7 +502,7 @@ namespace CoreIR {
 
     BitVec res(hi - lo, 1);
     BitVec sB = s1->getBits();
-    for (int i = lo; i < hi; i++) {
+    for (uint i = lo; i < hi; i++) {
       res.set(i - lo, sB.get(i));
     }
 
