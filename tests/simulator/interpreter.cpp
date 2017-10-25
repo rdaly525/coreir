@@ -902,45 +902,44 @@ namespace CoreIR {
     }
 
     // TODO: Uncomment this when the bit operations in coreir are figured out
-    // SECTION("Selecting bits from a bit vector") {
-    //   Namespace* common = CoreIRLoadLibrary_commonlib(c);
+    SECTION("Selecting bits from a bit vector") {
+      Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
-    //   cout << "loading" << endl;
-    //   if (!loadFromFile(c,"./sim_ready_sorter.json")) {
-    // 	cout << "Could not Load from json!!" << endl;
-    // 	c->die();
-    //   }
+      cout << "loading" << endl;
+      if (!loadFromFile(c,"./sim_ready_sorter.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
 
-    //   Module* m = g->getModule("Sorter8");
+      Module* m = g->getModule("Sorter8");
 
-    //   assert(m != nullptr);
+      assert(m != nullptr);
 
-    //   SimulatorState state(m);
-    //   state.setValue("self.I", BitVector(8, "10010011"));
+      SimulatorState state(m);
+      state.setValue("self.I", BitVector(8, "10010011"));
 
-    //   cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
+      cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
 
-    //   BitVector one(16, "1");
-    //   BitVector nextIn(16, "0");
+      BitVector one(16, "1");
+      BitVector nextIn(16, "0");
 
-    //   std::clock_t start, end;
+      std::clock_t start, end;
 
-    //   start = std::clock();
+      start = std::clock();
 
-    //   state.execute();
+      state.execute();
 
-    //   end = std::clock();
+      end = std::clock();
 
-    //   std::cout << "Done. Time to simulate = "
-    // 		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    // 		<< std::endl;
+      std::cout << "Done. Time to simulate = "
+    		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    		<< std::endl;
 
       
-    //   cout << "out = " << state.getBitVec("self.O") << endl;
+      cout << "out = " << state.getBitVec("self.O") << endl;
 
-    //   REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
-      
-    // }
+      REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
+    }
 
     deleteContext(c);
   }
