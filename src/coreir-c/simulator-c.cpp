@@ -59,6 +59,19 @@ extern "C" {
     return rcast<CORESimValue*>(state->getValue(path));
   }
 
+  void CORESimSetMainClock(CORESimulatorState* cstate, char** cpath, int path_len) {
+    SimulatorState*state = rcast<SimulatorState*>(cstate);
+    vector<string> path = MakeSimPath(cpath, path_len);
+    state->setMainClock(path);
+  }
+
+  void CORESimSetClock(CORESimulatorState* cstate, char** cpath, int path_len, bool lastval, bool curval) {
+    SimulatorState* state = rcast<SimulatorState*>(cstate);
+    vector<string> path = MakeSimPath(cpath, path_len);
+
+    state->setClock(path, lastval, curval);
+  }
+
   void CORESimSetValue(CORESimulatorState* cstate, char** cpath, int path_len, bool* new_val, int val_len) {
     SimulatorState* state = rcast<SimulatorState*>(cstate);
     vector<string> path = MakeSimPath(cpath, path_len);

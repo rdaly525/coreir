@@ -234,6 +234,11 @@ namespace CoreIR {
     mainClock = s;
   }
 
+  void SimulatorState::setMainClock(const std::vector<std::string>& path) {
+    std::string name = concatInlined(path);
+    setMainClock(name);
+  }
+
   void SimulatorState::setWatchPoint(const std::string& val,
                                      const BitVec& bv) {
 
@@ -1357,6 +1362,14 @@ namespace CoreIR {
     //        << std::endl;
 
   }
+
+  void SimulatorState::setClock(const std::vector<std::string> &path,
+                                const unsigned char clk_last,
+                                const unsigned char clk) {
+    string name = concatInlined(path);
+    setClock(name, clk_last, clk);
+  }
+
 
   void SimulatorState::setClock(const std::string& name,
                                 const unsigned char clk_last,

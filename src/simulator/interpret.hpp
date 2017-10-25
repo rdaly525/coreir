@@ -182,6 +182,7 @@ namespace CoreIR {
     bool hitWatchPoint() const;
 
     void setMainClock(const std::string& val);
+    void setMainClock(const std::vector<std::string>& path);
 
     bool rewind(const int halfCycles);
 
@@ -232,6 +233,10 @@ namespace CoreIR {
     void setClock(const std::string& name,
 		  const unsigned char clk_last,
 		  const unsigned char clk);
+
+    void setClock(const std::vector<std::string>& path,
+                  const unsigned char clk_last,
+                  const unsigned char clk);
 
     void setRegister(const std::string& name,
                      const BitVec& data);
