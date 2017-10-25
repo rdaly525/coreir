@@ -68,7 +68,7 @@ extern "C" {
     }
     state->setValue(path, bv);
   }
-   
+
   void CORESimStepMainClock(CORESimulatorState* cstate) {
     SimulatorState* state = rcast<SimulatorState*>(cstate);
     state->stepMainClock();

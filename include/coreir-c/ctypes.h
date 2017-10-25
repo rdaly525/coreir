@@ -15,9 +15,11 @@ typedef struct COREWirePath COREWirePath;
 typedef struct COREValue COREValue;
 typedef struct COREValueType COREValueType;
 typedef struct COREInstantiable COREInstantiable;
+
 typedef struct COREDirectedConnection COREDirectedConnection;
 typedef struct COREDirectedModule COREDirectedModule;
 typedef struct COREDirectedInstance COREDirectedInstance;
+
 typedef struct CORESimulatorState CORESimulatorState;
 typedef struct CORESimValue CORESimValue;
 
