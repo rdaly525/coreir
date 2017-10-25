@@ -8,7 +8,7 @@ namespace CoreIR {
 
   string getQualifiedOpName(CoreIR::Instance& inst) {
     string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
-      getOpName(*inst);
+      getOpName(inst);
 
     return opName;
   }
@@ -949,7 +949,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "coreir.lutN") {
+    } else if (opName == "commonlib.lutN") {
       updateLUTNNode(vd);
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
