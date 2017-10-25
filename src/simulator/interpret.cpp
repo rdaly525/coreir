@@ -152,10 +152,14 @@ namespace CoreIR {
 
         assert(inst != nullptr);
 
-        string opName = getOpName(*inst);
+        string opName = inst->getModuleRef()->getNamespace()->getName() + "." + getOpName(*inst);
 
-        if ((opName == "const")) {
+        cout << "opName = " << opName << endl;
+
+        if ((opName == "coreir.const")) {
           bool foundValue = false;
+
+          cout << "Found coreir const node " << inst->toString() << endl;
 
           int argInt = 0;
           for (auto& arg : inst->getModArgs()) {
@@ -163,6 +167,7 @@ namespace CoreIR {
               foundValue = true;
               Value* valArg = arg.second; //.get();
 
+              
               BitVector bv = valArg->get<BitVector>();
               argInt = bv.as_native_uint32();
 
@@ -182,17 +187,17 @@ namespace CoreIR {
           ArrayType& arrTp = toArray(*(outSel->getType()));
           
           setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
-        } else if (opName == "bitconst") {
+        } else if (opName == "corebit.const") {
 
           bool foundValue = false;
 
-          int argInt = 0;
+          bool argInt = false;
           for (auto& arg : inst->getModArgs()) {
             if (arg.first == "value") {
               foundValue = true;
               Value* valArg = arg.second; //.get();
 
-              int bv = valArg->get<int>();
+              bool bv = valArg->get<bool>();
               argInt = bv;
 
             }
@@ -209,7 +214,7 @@ namespace CoreIR {
 
           Select* outSel = toSelect(outPair.second);
           
-          setValue(outSel, makeSimBitVector(BitVec(1, argInt)));
+          setValue(outSel, makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
 
         }
       }
