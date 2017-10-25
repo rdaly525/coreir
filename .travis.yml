@@ -13,12 +13,7 @@ before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
   - bash miniconda.sh -b -p $HOME/miniconda
   - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda update -q conda
-  - conda info -a
-  - pip install -e https://github.com/leonardt/pycoreir
-  - sudo pip install -e pycoreir
+  - pip install git+git://github.com/leonardt/pycoreir.git@dev
   - export COREIRCONFIG="g++-4.9";
   - sudo make -j 2 install COREIR_INCLUDE_PYTHON_TYPEGEN=1 PYTHON_CONFIG=python3-config
 
