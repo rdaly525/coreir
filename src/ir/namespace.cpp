@@ -119,7 +119,7 @@ NamedType* Namespace::getNamedType(string name, Values genargs) {
 }
 TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   assert(namedTypeList.count(name)==0);
-  assert(typeGenList.count(name)==0);
+  ASSERT(typeGenList.count(name)==0, name + " is already a used typegen name");
   
   TypeGen* typegen = new TypeGenFromFun(this,name,genparams,fun);
   
@@ -134,7 +134,7 @@ TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
 TypeGen* Namespace::getTypeGen(string name) {
   ASSERT(typeGenList.count(name)>0, "missing typegen: " + name);
   TypeGen* ret = typeGenList.at(name);
-  assert(ret->getName()==name);
+  ASSERT(typeGenList.count(name)>0, "Could not find typegen named " + name);
   return ret;
 }
 
