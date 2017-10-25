@@ -40,7 +40,8 @@ class TypeGenFromPython : public TypeGen {
               values_ptrs[count] = element.second;
               count++;
           }
-          PyObject* value_object = PyObject_CallFunction(py_typeGenFunc, "llli",
+          const char* signature = "llli";
+          PyObject* value_object = PyObject_CallFunction(py_typeGenFunc, signature,
                   (void *) c, (void *) names, (void *) values_ptrs, size);
           if (!value_object) {
             if (PyErr_Occurred()) PyErr_Print();
