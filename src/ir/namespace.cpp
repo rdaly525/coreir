@@ -167,6 +167,10 @@ void Namespace::eraseGenerator(std::string name) {
 }
 
 void Namespace::eraseModule(std::string name) {
+  //TODO hacky fix
+  if (generatorList.count(name)) return;
+
+
   ASSERT(moduleList.count(name),"Cannot delete module because it does not exist!" + getName() + "." + name);
   delete moduleList[name];
   moduleList.erase(name);
