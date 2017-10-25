@@ -825,7 +825,7 @@ namespace CoreIR {
 			 {{"init",
 			       Const::make(c,
 					   BitVector(1 << n, "1010010111010010"))}});
-    
+
       def->connect(self->sel("in"), lut0->sel("in"));
       def->connect(lut0->sel("out"),self->sel("out"));
 
@@ -856,59 +856,135 @@ namespace CoreIR {
     SECTION("D flip flop") {
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
+      
+      Module* dff = c->getModule("corebit.dff");
+      Type* dffType = c->Record({
+          {"IN", c->BitIn()},
+            {"CLK", c->Named("coreir.clkIn")},
+                {"OUT", c->Bit()}
+        });
+
+      Module* dffTest = g->newModuleDecl("dffTest", dffType);
+      ModuleDef* def = dffTest->newModuleDef();
+
+      Wireable* dff0 =
+        def->addInstance("dff0",
+        		 dff,
+        		 {{"init", Const::make(c, true)}});
+
+      Wireable* self = def->sel("self");
+      def->connect("self.IN", "dff0.in");
+      def->connect("self.CLK", "dff0.clk");
+      def->connect("dff0.out", "self.OUT");
+
+      dffTest->setDef(def);
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      // cout << "loading" << endl;
+      // if (!loadFromFile(c,"./topo_sort_error.json")) {
+      //   cout << "Could not Load from json!!" << endl;
+      //   c->die();
+      // }
+
+      // Module* m = g->getModule("simple");
+
+      SimulatorState state(dffTest);
+      state.setClock("self.CLK", 0, 1);
+      state.setValue("self.IN", BitVec(1, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 1));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 0));
+
+    }
+
+    SECTION("Selecting bits from a bit vector") {
+      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+
       cout << "loading" << endl;
-      if (!loadFromFile(c,"./topo_sort_error.json")) {
+      if (!loadFromFile(c,"./sim_ready_sorter.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
       }
 
-      Module* m = g->getModule("simple");
+      Module* m = g->getModule("Sorter8");
+
+      assert(m != nullptr);
 
       SimulatorState state(m);
-      
+      state.setValue("self.I", BitVector(8, "10010011"));
 
+      cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
+
+      BitVector one(16, "1");
+      BitVector nextIn(16, "0");
+
+      std::clock_t start, end;
+
+      start = std::clock();
+
+      state.execute();
+
+      end = std::clock();
+
+      std::cout << "Done. Time to simulate = "
+    		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    		<< std::endl;
+
+      
+      cout << "out = " << state.getBitVec("self.O") << endl;
+
+      REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
     }
 
-    // TODO: Uncomment this when the bit operations in coreir are figured out
-    // SECTION("Selecting bits from a bit vector") {
-    //   Namespace* common = CoreIRLoadLibrary_commonlib(c);
+    SECTION("Failing clock test") {
 
-    //   cout << "loading" << endl;
-    //   if (!loadFromFile(c,"./sim_ready_sorter.json")) {
-    // 	cout << "Could not Load from json!!" << endl;
-    // 	c->die();
-    //   }
+      cout << "loading" << endl;
+      if (!loadFromFile(c,"./simple_register_example.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
 
-    //   Module* m = g->getModule("Sorter8");
+      Module* regMod = g->getModule("simple_flattened");
+      SimulatorState state(regMod);
 
-    //   assert(m != nullptr);
+      SECTION("2 unset inputs") {
+        REQUIRE(state.unsetInputs().size() == 2);
+      }
 
-    //   SimulatorState state(m);
-    //   state.setValue("self.I", BitVector(8, "10010011"));
+      state.execute();
 
-    //   cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
+      state.setClock("self.CLK", 0, 1);
 
-    //   BitVector one(16, "1");
-    //   BitVector nextIn(16, "0");
-
-    //   std::clock_t start, end;
-
-    //   start = std::clock();
-
-    //   state.execute();
-
-    //   end = std::clock();
-
-    //   std::cout << "Done. Time to simulate = "
-    // 		<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    // 		<< std::endl;
-
+      SECTION("1 unset inputs") {
+        REQUIRE(state.unsetInputs().size() == 1);
+      }
       
-    //   cout << "out = " << state.getBitVec("self.O") << endl;
+      state.setValue("self.I0", BitVec(2, "11"));
 
-    //   REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
+      SECTION("0 unset inputs") {
+        REQUIRE(state.unsetInputs().size() == 0);
+      }
       
-    // }
+      state.execute();
+      state.execute();
+
+      SimValue* val = state.getValue("self.CLK");
+      assert(val->getType() == SIM_VALUE_CLK);
+
+      ClockValue* clkVal = static_cast<ClockValue*>(val);
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(2, "11"));
+      REQUIRE(clkVal->value() == 1);
+      REQUIRE(clkVal->lastValue() == 0);
+      
+      
+    }
 
     deleteContext(c);
   }

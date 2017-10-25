@@ -6,6 +6,13 @@ using namespace std;
 
 namespace CoreIR {
 
+  string getQualifiedOpName(CoreIR::Instance& inst) {
+    string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
+      getOpName(inst);
+
+    return opName;
+  }
+
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
     assert(bv.bitLength() == log2(depth));
     assert(val.bitLength() == ((int) width));
@@ -388,8 +395,14 @@ namespace CoreIR {
     setMemoryDefaults();
     setLinebufferMemDefaults();
     setRegisterDefaults();
+    setDFFDefaults();
+    setInputDefaults();
 
 
+  }
+
+  void SimulatorState::setInputDefaults() {
+    
   }
 
   void SimulatorState::setValue(const std::vector<std::string>& name,
@@ -805,58 +818,60 @@ namespace CoreIR {
 
     assert(isInstance(wd.getWire()));
 
-    string opName = getOpName(*toInstance(wd.getWire()));
-    if ((opName == "and") || (opName == "bitand")) {
+    //string opName = getOpName(*toInstance(wd.getWire()));
+    string opName = getQualifiedOpName(*toInstance(wd.getWire()));
+
+    if ((opName == "coreir.and") || (opName == "corebit.and")) {
       updateAndNode(vd);
-    } else if (opName == "eq") {
+    } else if (opName == "coreir.eq") {
       updateEqNode(vd);
-    } else if (opName == "neq") {
+    } else if (opName == "coreir.neq") {
       updateNeqNode(vd);
-    } else if ((opName == "or") || (opName == "bitor")) {
+    } else if ((opName == "coreir.or") || (opName == "corebit.or")) {
       updateOrNode(vd);
-    } else if ((opName == "xor") || (opName == "bitxor")) {
+    } else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
       });
-    } else if (opName == "not") {
+    } else if (opName == "coreir.not") {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
       });
-    } else if (opName == "andr") {
+    } else if (opName == "coreir.andr") {
       updateAndrNode(vd);
-    } else if (opName == "add") {
+    } else if (opName == "coreir.add") {
       updateAddNode(vd);
-    } else if (opName == "sub") {
+    } else if (opName == "coreir.sub") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return sub_general_width_bv(l, r);
       });
-    } else if (opName == "mul") {
+    } else if (opName == "coreir.mul") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return mul_general_width_bv(l, r);
       });
-    } else if ((opName == "const") || (opName == "bitconst")) {
-    } else if (opName == "bitterm") {
-    } else if (opName == "reg") {
-    } else if ((opName == "mem") || (opName == "LinebufferMem")) {
-    } else if (opName == "mux") {
+    } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
+    } else if (opName == "corebit.term") {
+    } else if ((opName == "coreir.reg") || (opName == "corebit.dff")) {
+    } else if ((opName == "coreir.mem") || (opName == "commonlib.LinebufferMem")) {
+    } else if (opName == "coreir.mux") {
       updateMuxNode(vd);
-    } else if (opName == "slice") {
+    } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
-    } else if (opName == "concat") {
+    } else if (opName == "coreir.concat") {
       updateConcatNode(vd);
-    } else if (opName == "lshr") {
+    } else if (opName == "coreir.lshr") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return lshr(l, r);
         });
-    } else if (opName == "ashr") {
+    } else if (opName == "coreir.ashr") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return ashr(l, r);
         });
-    } else if (opName == "shl") {
+    } else if (opName == "coreir.shl") {
        updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
            return shl(l, r);
          });
-    } else if (opName == "ult") {
+    } else if (opName == "coreir.ult") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (l < r) {
             return BitVec(1, 1);
@@ -864,7 +879,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "ule") {
+    } else if (opName == "coreir.ule") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if ((l < r) || (l == r)) {
             return BitVec(1, 1);
@@ -872,7 +887,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "ugt") {
+    } else if (opName == "coreir.ugt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (l > r) {
             return BitVec(1, 1);
@@ -881,7 +896,7 @@ namespace CoreIR {
           }
         });
       
-    } else if (opName == "uge") {
+    } else if (opName == "coreir.uge") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if ((l > r) || (l == r)) {
             return BitVec(1, 1);
@@ -889,7 +904,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "smax") {
+    } else if (opName == "coreir.smax") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gt(l, r) || (l == r)) {
             return l;
@@ -897,7 +912,7 @@ namespace CoreIR {
             return r;
           }
         });
-    } else if (opName == "smin") {
+    } else if (opName == "coreir.smin") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gt(l, r) || (l == r)) {
             return r;
@@ -905,7 +920,7 @@ namespace CoreIR {
             return l;
           }
         });
-    } else if (opName == "sgt") {
+    } else if (opName == "coreir.sgt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gt(l, r)) {
             return BitVec(1, 1);
@@ -913,7 +928,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "sge") {
+    } else if (opName == "coreir.sge") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gte(l, r)) {
             return BitVec(1, 1);
@@ -921,7 +936,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "slt") {
+    } else if (opName == "coreir.slt") {
 
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (!signed_gte(l, r)) {
@@ -930,7 +945,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "sle") {
+    } else if (opName == "coreir.sle") {
 
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (!signed_gt(l, r)) {
@@ -939,7 +954,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "lutN") {
+    } else if (opName == "commonlib.lutN") {
       updateLUTNNode(vd);
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
@@ -1056,6 +1071,33 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::setDFFDefaults() {
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isDFFInstance(wd.getWire())) {
+        Instance* inst = toInstance(wd.getWire());
+
+        Values args = inst->getModArgs();
+
+        bool val = args["init"]->get<bool>();
+
+        setRegister(inst->toString(), BitVec(1, val ? 1 : 0));
+        setValue(inst->sel("out"), getRegister(inst->toString()));
+      }
+    }
+  }
+
+  void SimulatorState::updateDFFOutput(const vdisc vd) {
+    //assert(false);
+    updateRegisterOutput(vd);
+  }
+
+  void SimulatorState::updateDFFValue(const vdisc vd) {
+    //assert(false);
+    updateRegisterValue(vd);
+  }
+  
   void SimulatorState::updateRegisterOutput(const vdisc vd) {
 
     WireNode wd = gr.getNode(vd);
@@ -1180,6 +1222,29 @@ namespace CoreIR {
 
   }
 
+  std::vector<vdisc> SimulatorState::unsetInputs() {
+    NGraph& opGraph = getCircuitGraph();
+    vector<vdisc> unset;
+    for (auto& vd : opGraph.getVerts()) {
+
+      WireNode w = opGraph.getNode(vd);
+
+      if (isGraphInput(w)) {
+
+        Select* inSel = toSelect(w.getWire());
+
+        if (!isSet(inSel)) { //toSelect(sel.second))) {
+          cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+          unset.push_back(vd);
+        }
+
+      }
+
+    }
+
+    return unset;
+  }
+
   void SimulatorState::execute() {
     assert(atLastState());
 
@@ -1191,6 +1256,15 @@ namespace CoreIR {
 
     circStates.push_back(next);
     stateIndex++;
+
+    vector<vdisc> unsetIns = unsetInputs();
+    if (unsetIns.size() > 0) {
+      cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;
+      for (auto& vd : unsetIns) {
+        cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
+      }
+      return;
+    }
 
     //end = clock();
 
@@ -1217,6 +1291,10 @@ namespace CoreIR {
 
       if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
         updateRegisterOutput(vd);
+      }
+
+      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+        updateDFFOutput(vd);
       }
       
     }
@@ -1260,6 +1338,10 @@ namespace CoreIR {
         }
       }
 
+      if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
+        updateDFFValue(vd);
+      }
+      
     }
 
     // end = clock();
