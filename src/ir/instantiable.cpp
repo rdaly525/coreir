@@ -113,8 +113,12 @@ std::map<std::string,Module*> Generator::getModules() {
 
 
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
-  //ASSERT(!def,"Do you really want to overwrite the def? No.");
+  bool err = false;
+  for (auto gpair : genCache) err |= gpair.second->hasDef();
+  ASSERT(!err,"Cannot set generator defention when generator already ran!");
+  if (this->def) delete this->def;
   this->def = new GeneratorDefFromFun(this,fun);
+  
 }
 
 void Generator::addDefaultGenArgs(Values defaultGenArgs) {
