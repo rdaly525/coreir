@@ -1225,15 +1225,21 @@ namespace CoreIR {
     vector<vdisc> unset;
     for (auto& vd : opGraph.getVerts()) {
 
-      if (opGraph.getInputConnections(vd).size() == 0) {
+      WireNode w = opGraph.getNode(vd);
+      //if (opGraph.getInputConnections(vd).size() == 0) {
+      if (isGraphInput(w)) {
 
-        for (auto& sel : getOutputSelects(opGraph.getNode(vd).getWire())) {
-          if (!isSet(toSelect(sel.second))) {
-            unset.push_back(vd);
-            break;            
-          }
+        Select* inSel = toSelect(w.getWire());
+        //assert(isSw.getWire()
 
+        //for (auto& sel : getOutputSelects(opGraph.getNode(vd).getWire())) {
+        //for (auto& sel : getOutputSelects(w.getWire())) {
+        if (!isSet(inSel)) { //toSelect(sel.second))) {
+          cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+          unset.push_back(vd);
         }
+
+          //}
       }
 
     }
