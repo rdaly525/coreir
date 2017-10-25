@@ -1220,6 +1220,27 @@ namespace CoreIR {
 
   }
 
+  std::vector<vdisc> SimulatorState::unsetInputs() {
+    NGraph& opGraph = getCircuitGraph();
+    vector<vdisc> unset;
+    for (auto& vd : opGraph.getVerts()) {
+
+      if (opGraph.getInputConnections(vd).size() == 0) {
+
+        for (auto& sel : getOutputSelects(opGraph.getNode(vd).getWire())) {
+          if (!isSet(toSelect(sel.second))) {
+            unset.push_back(vd);
+            break;            
+          }
+
+        }
+      }
+
+    }
+
+    return unset;
+  }
+
   void SimulatorState::execute() {
     assert(atLastState());
 
@@ -1231,6 +1252,15 @@ namespace CoreIR {
 
     circStates.push_back(next);
     stateIndex++;
+
+    vector<vdisc> unsetIns = unsetInputs();
+    if (unsetIns.size() > 0) {
+      cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;
+      for (auto& vd : unsetIns) {
+        cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
+      }
+      return;
+    }
 
     //end = clock();
 

@@ -951,9 +951,24 @@ namespace CoreIR {
       Module* regMod = g->getModule("simple_flattened");
       SimulatorState state(regMod);
 
+      SECTION("2 unset inputs") {
+        REQUIRE(state.unsetInputs().size() == 2);
+      }
+
+      state.execute();
+
       state.setClock("self.CLK", 0, 1);
+
+      SECTION("1 unset inputs") {
+        REQUIRE(state.unsetInputs().size() == 1);
+      }
+      
       state.setValue("self.I0", BitVec(2, "11"));
 
+      SECTION("0 unset inputs") {
+        REQUIRE(state.unsetInputs().size() == 0);
+      }
+      
       state.execute();
       state.execute();
 

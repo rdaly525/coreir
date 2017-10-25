@@ -167,6 +167,7 @@ namespace CoreIR {
     int numCircStates() const;
 
     void setInputDefaults();
+    std::vector<vdisc> unsetInputs();
 
     std::vector<CircuitState> getCircStates() const;
 
