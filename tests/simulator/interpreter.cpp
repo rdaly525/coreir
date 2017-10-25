@@ -865,7 +865,6 @@ namespace CoreIR {
       Module* m = g->getModule("simple");
 
       SimulatorState state(m);
-
       
 
     }
