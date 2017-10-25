@@ -59,11 +59,11 @@ extern "C" {
     return rcast<CORESimValue*>(state->getValue(path));
   }
 
-  void CORESimSetValue(CORESimulatorState* cstate, char** cpath, int path_len, bool* new_val) {
+  void CORESimSetValue(CORESimulatorState* cstate, char** cpath, int path_len, bool* new_val, int val_len) {
     SimulatorState* state = rcast<SimulatorState*>(cstate);
     vector<string> path = MakeSimPath(cpath, path_len);
-    BitVec bv = state->getBitVec(path);
-    for (int i = 0; i < bv.bitLength(); i++) {
+    BitVec bv(val_len);
+    for (int i = 0; i < val_len; i++) {
       bv.set(i, new_val[i]);
     }
     state->setValue(path, bv);
@@ -89,11 +89,11 @@ extern "C" {
     return state->rewind(halfCycles);
   }
 
-  void CORESimSetWatchPoint(CORESimulatorState* cstate, char** cpath, int path_len, bool* watch_val) {
+  void CORESimSetWatchPoint(CORESimulatorState* cstate, char** cpath, int path_len, bool* watch_val, int watch_len) {
     SimulatorState *state = rcast<SimulatorState*>(cstate);
     vector<string> path = MakeSimPath(cpath, path_len);
-    BitVec bv = state->getBitVec(path);
-    for (int i = 0; i < bv.bitLength(); i++) {
+    BitVec bv(watch_len);
+    for (int i = 0; i < watch_len; i++) {
       bv.set(i, watch_val[i]);
     }
     state->setWatchPoint(path, bv);

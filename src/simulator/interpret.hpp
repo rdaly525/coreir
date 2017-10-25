@@ -80,11 +80,11 @@ namespace CoreIR {
   class LinebufferMemory {
     std::deque<BitVector> values;
     std::deque<bool> valids;
-    unsigned int width, depth;
+    int width, depth;
 
   public:
 
-    LinebufferMemory(const int width_, const unsigned int depth_) :
+    LinebufferMemory(const int width_, const int depth_) :
       width(width_), depth(depth_) {
 
       for (int i = 0; i < getDepth(); i++) {

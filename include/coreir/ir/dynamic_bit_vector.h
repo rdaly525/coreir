@@ -372,7 +372,6 @@ namespace bsim {
   	} else {
   	  a_cpy.set(j, 0);
   	}
-        (void)underflow;
 
       } else if (a_cpy.get(i) == b.get(i)) {
   	diff.set(i, 0);
