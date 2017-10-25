@@ -17,10 +17,3 @@ If you have a non-standard Python installation such as `miniconda`, pass a speci
 ```
 make install -j 8 COREIR_INCLUDE_PYTHON_TYPEGEN=1 PYTHON_CONFIG=python3-config
 ```
-
-Also, when using the coreir runtime, you'll need to set the `PYTHONHOME` variable so that the Python API can load your installed packages.
-
-An example running the test suite
-```
-PYTHONHOME=~/miniconda3 make test  
-```

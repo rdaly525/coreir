@@ -23,6 +23,8 @@ class TypeGenFromPython : public TypeGen {
       // Add cwd to path (not added by default when using the embedded
       // interpreter)
       PyRun_SimpleString( "import sys\nsys.path.append(\".\")\n" );
+      wchar_t python_home[] = PYTHON_HOME;
+      Py_SetPythonHome(python_home);
       PyObject *py_module = PyImport_ImportModule(moduleName.c_str());
       if (py_module != NULL) {
         Py_INCREF(py_module);

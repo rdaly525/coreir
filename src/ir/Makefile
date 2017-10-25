@@ -2,9 +2,10 @@ HOME = ../..
 INCS = -I$(HOME)/include -I.
 ifdef COREIR_INCLUDE_PYTHON_TYPEGEN
 	PYTHON_CONFIG ?= python-config
-	CXXFLAGS += $(shell $(PYTHON_CONFIG) --includes) -DCOREIR_INCLUDE_PYTHON_TYPEGEN 
-	PYTHON_LIBPATH = $(shell $(PYTHON_CONFIG) --prefix)/lib
-	LDFLAGS += -L $(PYTHON_LIBPATH) $(shell $(PYTHON_CONFIG) --libs) -Wl,-rpath,$(PYTHON_LIBPATH)
+	PYTHONHOME = $(shell $(PYTHON_CONFIG) --prefix)
+	CXXFLAGS += $(shell $(PYTHON_CONFIG) --includes) -DCOREIR_INCLUDE_PYTHON_TYPEGEN -DPYTHON_HOME="L\"$(PYTHONHOME)\""
+	PYTHON_LIBS = $(PYTHONHOME)/lib
+	LDFLAGS += -L $(PYTHON_LIBS) $(shell $(PYTHON_CONFIG) --libs) -Wl,-rpath,$(PYTHON_LIBS)
 endif
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o) $(wildcard ../simulator/build/*.o)
