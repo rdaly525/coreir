@@ -6,6 +6,33 @@
 
 namespace CoreIR {
 
+  static inline
+  std::string getInstanceName(Instance& w) {
+    auto g = w.getGeneratorRef();
+
+    if (g == nullptr) {
+      auto m = w.getModuleRef();
+
+      assert(m != nullptr);
+
+      return m->getName();
+    }
+
+    return g->getName();
+  }
+
+  static inline int selectNum(CoreIR::Select* const sel) {
+    std::string selStr = sel->getSelStr();
+    assert(CoreIR::isNumber(selStr));
+    int index = std::stoi(selStr);
+    return index;
+  }
+
+  
+  static inline bool arrayAccess(Select* in) {
+    return isNumber(in->getSelStr());
+  }
+
   static inline bool isSelect(CoreIR::Wireable* fst) {
     return fst->getKind() == CoreIR::Wireable::WK_Select;
   }
@@ -45,6 +72,17 @@ namespace CoreIR {
   static inline CoreIR::Instance* toInstance(CoreIR::Wireable* fst) {
     assert(isInstance(fst));
     return static_cast<CoreIR::Instance*>(fst);
+  }
+
+  static inline bool isDFFInstance(CoreIR::Wireable* fst) {
+    if (!isInstance(fst)) {
+      return false;
+    }
+
+    CoreIR::Instance* inst = toInstance(fst);
+    std::string name = getInstanceName(*inst);
+
+    return name == "dff";
   }
 
   static inline bool isRegisterInstance(CoreIR::Wireable* fst) {
@@ -101,6 +139,28 @@ namespace CoreIR {
     std::string genRefName = genRef->getName();
 
     return genRefName == "mem";
+  }
+
+  static inline bool isLinebufferMemInstance(CoreIR::Wireable* fst) {
+    if (!isInstance(fst)) {
+      return false;
+    }
+
+    CoreIR::Instance* inst = toInstance(fst);
+
+    auto genRef = inst->getGeneratorRef();
+
+    if (genRef == nullptr) {
+      Module* modRef = inst->getModuleRef();
+
+      assert(modRef != nullptr);
+
+      return modRef->getName() == "LinebufferMem";
+    }
+
+    std::string genRefName = genRef->getName();
+
+    return genRefName == "LinebufferMem";
   }
   
   static inline bool isNamedType(CoreIR::Type& t, const std::string& name) {
@@ -164,21 +224,6 @@ namespace CoreIR {
 
   std::string getOpName(CoreIR::Instance& inst);
 
-  static inline
-  std::string getInstanceName(Instance& w) {
-    auto g = w.getGeneratorRef();
-
-    if (g == nullptr) {
-      auto m = w.getModuleRef();
-
-      assert(m != nullptr);
-
-      return m->getName();
-    }
-
-    return g->getName();
-  }
-
   static inline Generator* getGeneratorRef(Instance& w) {
     auto g = w.getGeneratorRef();
 
@@ -239,5 +284,21 @@ namespace CoreIR {
     std::vector<std::string> siOps{"slt", "sgt", "sle", "sge"};
     return elem(genRefName, siOps);
   }
-  
+
+  CoreIR::Wireable*
+  findSelect(const std::string& selName,
+	     const std::unordered_map<std::string, CoreIR::Wireable*> selects);
+
+  static inline int arrayLen(CoreIR::Select* const parent) {
+    Type& t = *(parent->getType());
+    ArrayType& arrTp = toArray(t);
+    int arrLen = arrTp.getLen();
+    return arrLen;
+  }
+
+  static inline int parentArrayLen(CoreIR::Select* const sel) {
+    Select* parent = toSelect(sel->getParent());
+    return arrayLen(parent);
+  }
+
 }

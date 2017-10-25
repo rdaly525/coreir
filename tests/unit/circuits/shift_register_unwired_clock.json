@@ -28,39 +28,39 @@
           "instances": {
             "inst0": {
               "genargs": {
-                "clr": ["Bool", false],
-                "en": ["Bool", false],
-                "rst": ["Bool", false],
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
                 "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             },
             "inst1": {
               "genargs": {
-                "clr": ["Bool", false],
-                "en": ["Bool", false],
-                "rst": ["Bool", false],
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
                 "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             },
             "inst2": {
               "genargs": {
-                "clr": ["Bool", false],
-                "en": ["Bool", false],
-                "rst": ["Bool", false],
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
                 "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             },
             "inst3": {
               "genargs": {
-                "clr": ["Bool", false],
-                "en": ["Bool", false],
-                "rst": ["Bool", false],
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
                 "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             }
           },
           "type": [

@@ -79,8 +79,8 @@ namespace CoreIR {
 
       def->addInstance("m0",
       		       "coreir.mem",
-      		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}},
-      		       {{"init", Const::make(c, BitVector(width*depth,0))}});
+      		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}});
+		       //      		       {{"init", Const::make(c, BitVector(width*depth,0))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
@@ -91,8 +91,9 @@ namespace CoreIR {
 
       memory->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       cout << "Building graph" << endl;
 
@@ -146,7 +147,7 @@ namespace CoreIR {
 
       ModuleDef* def = rg->newModuleDef();
 
-      def->addInstance("r", "coreir.reg", {{"width", Const::make(c,n)}, {"en", Const::make(c,true)}});
+      def->addInstance("r", "mantle.reg", {{"width", Const::make(c,n)}, {"has_en", Const::make(c,true)}});
 
       def->connect("self.en", "r.en");
       def->connect("self.clk", "r.clk");
@@ -155,8 +156,9 @@ namespace CoreIR {
 
       rg->setDef(def);
 
-      RunGenerators runGen;
-      runGen.runOnNamespace(c->getGlobal());
+      c->runPasses({"rungenerators"});
+      // RunGenerators runGen;
+      // runGen.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(rg, g);
@@ -208,7 +210,7 @@ namespace CoreIR {
       def->addInstance("ci","coreir.const",wArg,{{"value", Const::make(c,BitVector(16, 1))}});
 
       //Reg has default arguments. en/clr/rst are False by default. Init is also 0 by default
-      def->addInstance("ri","coreir.reg",{{"width", Const::make(c,16)},{"en", Const::make(c,true)}});
+      def->addInstance("ri","mantle.reg",{{"width", Const::make(c,16)},{"has_en", Const::make(c,true)}});
     
       //Connections
       def->connect("self.clk","ri.clk");
@@ -220,9 +222,10 @@ namespace CoreIR {
 
       counter->setDef(def);
       counter->print();
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(counter, g);
@@ -287,9 +290,9 @@ namespace CoreIR {
       Values wArg({{"width", Const::make(c,16)}});
 
       def->addInstance("ai", "coreir.add", wArg);
-      def->addInstance("r0","coreir.reg",{{"width", Const::make(c,16)},{"en", Const::make(c,true)}});
-      def->addInstance("r1","coreir.reg",{{"width", Const::make(c,16)},{"en", Const::make(c,true)}});
-      def->addInstance("r2","coreir.reg",{{"width", Const::make(c,16)},{"en", Const::make(c,true)}});
+      def->addInstance("r0","mantle.reg",{{"width", Const::make(c,16)},{"has_en", Const::make(c,true)}});
+      def->addInstance("r1","mantle.reg",{{"width", Const::make(c,16)},{"has_en", Const::make(c,true)}});
+      def->addInstance("r2","mantle.reg",{{"width", Const::make(c,16)},{"has_en", Const::make(c,true)}});
     
       //Connections
       def->connect("self.clk", "r0.clk");
@@ -311,9 +314,10 @@ namespace CoreIR {
 
       regChain->setDef(def);
       regChain->print();
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(regChain, g);
@@ -351,7 +355,7 @@ namespace CoreIR {
       Module* regChain = c->getGlobal()->newModuleDecl("regChain", regChainType);
       ModuleDef* def = regChain->newModuleDef();
 
-      def->addInstance("r0","coreir.reg",{{"width", Const::make(c,n)},{"en", Const::make(c,false)}});
+      def->addInstance("r0","mantle.reg",{{"width", Const::make(c,n)},{"has_en", Const::make(c,false)}});
     
       //Connections
       def->connect("self.clk", "r0.clk");
@@ -359,9 +363,10 @@ namespace CoreIR {
       def->connect("r0.out","self.cout");
 
       regChain->setDef(def);
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(regChain, g);
@@ -395,7 +400,7 @@ namespace CoreIR {
       Module* regChain = c->getGlobal()->newModuleDecl("regChain", regChainType);
       ModuleDef* def = regChain->newModuleDef();
 
-      def->addInstance("r0","coreir.reg",{{"width", Const::make(c,n)},{"en", Const::make(c,false)}});
+      def->addInstance("r0","mantle.reg",{{"width", Const::make(c,n)},{"has_en", Const::make(c,false)}});
     
       //Connections
       def->connect("self.clk", "r0.clk");
@@ -403,9 +408,10 @@ namespace CoreIR {
       def->connect("r0.out","self.cout");
 
       regChain->setDef(def);
-  
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       NGraph g;
       buildOrderedGraph(regChain, g);
@@ -455,9 +461,9 @@ namespace CoreIR {
       for (uint i = 0; i < nRegs; i++) {
 	string rName = "r" + to_string(i);
 	Wireable* r = def->addInstance(rName,
-				       "coreir.reg",
+				       "mantle.reg",
 				       {{"width", Const::make(c,n)},
-					   {"en", Const::make(c,false)}});
+					   {"has_en", Const::make(c,false)}});
 
 	def->connect(self->sel("clkArr")->sel(i), r->sel("clk"));
 	def->connect(self->sel("a")->sel(i), r->sel("in"));
@@ -467,8 +473,9 @@ namespace CoreIR {
 
       clkArr->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(c->getGlobal());
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(c->getGlobal());
 
       cout << "Building graph" << endl;
 

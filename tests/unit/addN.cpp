@@ -69,12 +69,11 @@ int main() {
     {"out",c->Bit()->Arr(13)}
   });
 
-  Namespace* coreir = c->getNamespace("coreir");
   Module* add12 = g->newModuleDecl("Add12",add12Type);
   ModuleDef* def = add12->newModuleDef();
     def->addInstance("add8_upper",addN,{{"width",Const::make(c,13)},{"N",Const::make(c,8)}});
     def->addInstance("add4_lower",addN,{{"width",Const::make(c,13)},{"N",Const::make(c,4)}});
-    def->addInstance("add2_join",coreir->getGenerator("add"),{{"width",Const::make(c,13)}});
+    def->addInstance("add2_join","coreir.add",{{"width",Const::make(c,13)}});
     def->connect("self.in8","add8_upper.in");
     def->connect("self.in4","add4_lower.in");
     def->connect("add8_upper.out","add2_join.in0");

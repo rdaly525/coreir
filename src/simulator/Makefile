@@ -1,19 +1,17 @@
-COREIRCONFIG ?= g++
-CXX ?= g++
+# COREIRCONFIG ?= g++
+# CXX ?= g++
 
-ifeq ($(COREIRCONFIG),g++)
-CXX = g++
-endif
+# ifeq ($(COREIRCONFIG),g++)
+# CXX = g++
+# endif
 
-ifeq ($(COREIRCONFIG),g++-4.9)
-CXX = g++-4.9
-endif
+# ifeq ($(COREIRCONFIG),g++-4.9)
+# CXX = g++-4.9
+# endif
 
-CXXFLAGS = -std=c++11  -Wall  -fPIC
-
-ifdef COREDEBUG
-CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
-endif
+# ifdef COREDEBUG
+# CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
+# endif
 
 HOME = ../../
 LPATH = -L$(HOME)/lib

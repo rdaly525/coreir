@@ -7,8 +7,9 @@ using namespace CoreIR;
 namespace {
 
   bool inlinePassthrough(Instance* inst) {
-    inlineInstance(inst);
-    return true;
+
+    return inlineInstance(inst);
+
   }
 
 }
@@ -17,7 +18,8 @@ namespace {
 std::string Passes::RemovePassthroughs::ID = "removepassthroughs";
 
 void Passes::RemovePassthroughs::setVisitorInfo() {
-//Context* c = this->getContext();
-  addVisitorFunction(c->getInstantiable("coreir.passthrough"),inlinePassthrough);
+
+  addVisitorFunction(getContext()->getGenerator("mantle.wire"),inlinePassthrough);
+
 
 }

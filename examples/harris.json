@@ -10,352 +10,352 @@
         "instances":{
           "0const0_":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":0}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 0]}
           },
           "0const0_$1":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":0}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 0]}
           },
           "0const0_$2":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":0}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 0]}
           },
           "100const100_":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":100}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 0]}
           },
           "_635const2_":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":2}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 2]}
           },
           "_635const2_$1":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":2}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 2]}
           },
           "_685const2_":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":2}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 2]}
           },
           "_685const2_$1":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":2}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 2]}
           },
           "_763const7_":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":7}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 7]}
           },
           "_763const7_$1":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":7}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 7]}
           },
           "_763const7_$2":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":7}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 7]}
           },
           "_772const4_":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":4}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 4]}
           },
           "_794const255_$2":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":255}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 5]}
           },
           "_795const0_":{
             "genref":"coreir.const",
-            "genargs":{"width":16},
-            "configargs":{"value":0}
+            "genargs":{"width":["Int", 16]},
+            "modargs":{"value":[["BitVector", 16], 0]}
           },
           "add_637_640":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_644_646":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_651_652":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_654_655":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_657_658":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_660_661":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_663_664":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_666_667":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_669_670":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_672_673":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_675_676":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_682_686":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_691_693":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_703_704":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_706_707":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_709_710":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_712_713":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_715_716":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_718_719":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_721_722":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_724_725":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_727_728":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_733_734":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_736_737":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_739_740":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_742_743":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_745_746":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_748_749":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_751_752":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_754_755":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_757_758":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "add_764_765":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.add",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "ashr_760_763":{
             "genref":"coreir.ashr",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "ashr_761_763":{
             "genref":"coreir.ashr",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "ashr_762_763":{
             "genref":"coreir.ashr",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "ashr_771_772":{
             "genref":"coreir.ashr",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "bitand_791_792":{
-            "modref":"coreir.bitand"
+            "modref":"corebit.and"
           },
           "lb_grad_xx_2_stencil_update_stream":{
             "genref":"commonlib.Linebuffer",
-            "genargs":{"bitwidth":16, "image_width":484, "stencil_height":3, "stencil_width":3}
+            "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 484], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_grad_xy_2_stencil_update_stream":{
             "genref":"commonlib.Linebuffer",
-            "genargs":{"bitwidth":16, "image_width":484, "stencil_height":3, "stencil_width":3}
+            "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 484], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_grad_yy_2_stencil_update_stream":{
             "genref":"commonlib.Linebuffer",
-            "genargs":{"bitwidth":16, "image_width":484, "stencil_height":3, "stencil_width":3}
+            "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 484], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_p3_cim_stencil_update_stream":{
             "genref":"commonlib.Linebuffer",
-            "genargs":{"bitwidth":16, "image_width":482, "stencil_height":3, "stencil_width":3}
+            "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 482], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_padded_2_stencil_update_stream":{
             "genref":"commonlib.Linebuffer",
-            "genargs":{"bitwidth":16, "image_width":486, "stencil_height":3, "stencil_width":3}
+            "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 486], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "mul_634_635":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_639_635":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_649_649":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_684_685":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_689_685":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_699_701":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_731_731":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_764_765":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_766_766":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mul_768_768":{
             "genref":"coreir.mul",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "mux_793_794_795":{
             "genref":"coreir.mux",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "smax_776_777":{
             "genref":"commonlib.smax",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "smax_778_779":{
             "genref":"commonlib.smax",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "smax_780_781":{
             "genref":"commonlib.smax",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "smax_782_783":{
             "genref":"commonlib.smax",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "smax_784_785":{
             "genref":"commonlib.smax",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "smax_786_787":{
             "genref":"commonlib.smax",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "smax_788_789":{
             "genref":"commonlib.smax",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "sub_629_631":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "sub_632_636":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "sub_641_643":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "sub_679_681":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "sub_687_690":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "sub_694_696":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "sub_767_769":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "sub_770_773":{
-            "genref":"coreir.sub",
-            "genargs":{"has_cin":false, "has_cout":false, "width":16}
+            "genref":"mantle.sub",
+            "genargs":{"has_cin":["Bool", false], "has_cout":["Bool", false], "width":["Int", 16]}
           },
           "ule100_775":{
             "genref":"coreir.ule",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           },
           "ult_790_775":{
             "genref":"coreir.ult",
-            "genargs":{"width":16}
+            "genargs":{"width":["Int", 16]}
           }
         },
         "connections":[

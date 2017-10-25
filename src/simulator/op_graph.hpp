@@ -37,13 +37,15 @@ namespace CoreIR {
     std::vector<edisc> edges;
     std::vector<vdisc> verts;
 
+    std::map<vdisc, std::vector<edisc> > adjacent_incoming;
+    std::map<vdisc, std::vector<edisc> > adjacent_outgoing;
+
     std::map<edisc, std::pair<vdisc, vdisc> > edgeVals;
     std::map<edisc, Conn> edgeNames;
     std::map<vdisc, WireNode> vertNames;
 
 
   public:
-    
     WireNode getNode(const vdisc vd) const {
       auto vit = vertNames.find(vd);
 
@@ -69,6 +71,13 @@ namespace CoreIR {
       assert(eit != std::end(edgeVals));
 
       return (*eit).second.first;
+    }
+
+    void addVertLabel(const vdisc vd, const WireNode& wd) {
+      vertNames.erase(vd);
+
+      vertNames.insert({vd, wd});
+
     }
 
     void addEdgeLabel(const edisc ed, const Conn& conn) {
@@ -99,6 +108,9 @@ namespace CoreIR {
       edges.push_back(ed);
       edgeVals.insert({ed, {s, e}});
 
+      map_insert(adjacent_outgoing, s, ed);
+      map_insert(adjacent_incoming, e, ed);
+
       return ed;
     }
 
@@ -111,24 +123,47 @@ namespace CoreIR {
       return v;
     }
 
+    void addVertex(const vdisc v) {
+      assert(!elem(v, verts));
+
+      verts.push_back(v);
+    }
+
+    vdisc addVertex() {
+      vdisc v = nextVertexDisc();
+      verts.push_back(v);
+      return v;
+    }
+    
     std::vector<edisc> outEdges(const vdisc vd) const {
-      std::vector<edisc> eds;
-      for (auto& e : edges) {
-	if (source(e) == vd) {
-	  eds.push_back(e);
-	}
+      if (adjacent_outgoing.find(vd) == std::end(adjacent_outgoing)) {
+	return {};
       }
-      return eds;
+
+      return map_find(vd, adjacent_outgoing);
+
+      // std::vector<edisc> eds;
+      // for (auto& e : edges) {
+      // 	if (source(e) == vd) {
+      // 	  eds.push_back(e);
+      // 	}
+      // }
+      // return eds;
     }
 
     std::vector<edisc> inEdges(const vdisc vd) const {
-      std::vector<edisc> eds;
-      for (auto& e : edges) {
-	if (target(e) == vd) {
-	  eds.push_back(e);
-	}
+      if (adjacent_incoming.find(vd) == std::end(adjacent_incoming)) {
+	return {};
       }
-      return eds;
+
+      return map_find(vd, adjacent_incoming);
+      // std::vector<edisc> eds;
+      // for (auto& e : edges) {
+      // 	if (target(e) == vd) {
+      // 	  eds.push_back(e);
+      // 	}
+      // }
+      // return eds;
     }
 
     std::vector<edisc> getEdges() const {
@@ -144,6 +179,16 @@ namespace CoreIR {
 
       for (auto& vpair : vertNames) {
 	if (vpair.second == wn) {
+	  return true;
+	}
+      }
+
+      return false;
+    }
+
+    bool connected(const vdisc source, const vdisc dest) const {
+      for (auto& ed : outEdges(source)) {
+	if (target(ed) == dest) {
 	  return true;
 	}
       }
@@ -205,4 +250,7 @@ namespace CoreIR {
 
   int numMasksNeeded(const NGraph& g);
 
+  std::vector<vdisc> vertsWithNoIncomingEdge(const NGraph& g);
+
+  bool isThreadShared(const vdisc v, const NGraph& g);
 }

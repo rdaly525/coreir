@@ -23,6 +23,18 @@ Namespace::~Namespace() {
   for (auto tg : typeGenList) delete tg.second;
 }
 
+//This will return all modules including all the generated ones
+//TODO 
+std::map<std::string,Module*> Namespace::getModules() { 
+  std::map<std::string,Module*> ret = moduleList;
+  for (auto g : generatorList) {
+    for (auto m : g.second->getModules()) {
+      ret.emplace(m);
+    }
+  }
+  return ret;
+}
+
 NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   //Make sure the name and its flip are different
   assert(name != nameFlip);
@@ -120,7 +132,7 @@ TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
 
 //TODO deal with at errors
 TypeGen* Namespace::getTypeGen(string name) {
-  assert(typeGenList.count(name)>0);
+  ASSERT(typeGenList.count(name)>0, "missing typegen: " + name);
   TypeGen* ret = typeGenList.at(name);
   ASSERT(typeGenList.count(name)>0, "Could not find typegen named " + name);
   return ret;
@@ -148,15 +160,25 @@ Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
   return m;
 }
 
-void Namespace::addModule(Module* m) {
-  ASSERT(m->getLinkageKind()==Instantiable::LK_Generated,"Cannot add Namespace module to another namespace!");
-  string name = m->getName();
-  assert(moduleList.count(name)==0);
-  assert(generatorList.count(name)==0);
-  m->setNamespace(this);
-  m->setLinkageKind(Instantiable::LK_Namespace);
-  moduleList[name] = m;
+void Namespace::eraseGenerator(std::string name) {
+  ASSERT(generatorList.count(name),"Cannot delete generator because it does not exist! " + getName() + "." + name);
+  delete generatorList[name];
+  generatorList.erase(name);
 }
+
+void Namespace::eraseModule(std::string name) {
+  //TODO hacky fix
+  if (generatorList.count(name)) return;
+
+
+  ASSERT(moduleList.count(name),"Cannot delete module because it does not exist!" + getName() + "." + name);
+  delete moduleList[name];
+  moduleList.erase(name);
+}
+
+
+
+
 
 Generator* Namespace::getGenerator(string gname) {
   auto it = generatorList.find(gname);

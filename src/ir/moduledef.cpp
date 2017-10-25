@@ -138,10 +138,11 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 }
 
 
+ //   Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs);
 Instance* ModuleDef::addInstance(string instname,Generator* gen, Values genargs,Values modargs) {
   ASSERT(instances.count(instname)==0,instname + " already an instance");
 
-  Instance* inst = new Instance(this,instname,gen,genargs,modargs);
+  Instance* inst = new Instance(this,instname,gen->getModule(genargs),modargs);
   instances[instname] = inst;
 
   appendInstanceToIter(inst);
