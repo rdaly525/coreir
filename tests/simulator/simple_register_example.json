@@ -1,0 +1,27 @@
+{"top":"global.simple_flattened",
+"namespaces":{
+  "global":{
+    "modules":{
+      "simple_flattened":{
+        "type":["Record",{
+          "I0":["Array",2,"BitIn"],
+          "O":["Array",2,"Bit"],
+          "CLK":["Named","coreir.clkIn"]
+        }],
+        "instances":{
+          "inst0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"init":[["BitVector",2],0]}
+          }
+        },
+        "connections":[
+          ["inst0.clk","self.CLK"],
+          ["inst0.in","self.I0"],
+          ["inst0.out","self.O"]
+        ]
+      }
+    }
+  }
+}
+}

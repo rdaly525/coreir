@@ -205,7 +205,6 @@ namespace CoreIR {
 
     assert(topo_order.size() == (uint) numVertices(g));
 
-
     return topo_order;
   }
 
@@ -251,7 +250,9 @@ namespace CoreIR {
     Wireable* p1 = extractSource(c1);
 
     vdisc c1_disc;
-    if (isRegisterInstance(p1) || isMemoryInstance(p1)) {
+    if (isRegisterInstance(p1) ||
+        isMemoryInstance(p1) ||
+        isDFFInstance(p1)) {
       auto c1_disc_it = imap.find(outputNode(p1));
 
       assert(c1_disc_it != imap.end());
@@ -274,7 +275,9 @@ namespace CoreIR {
     // NOTE: If the receiver instance node is memory and the
     // port that is being received is the raddr then the
     // sourceNode receives it
-    if (isRegisterInstance(p2) || isMemoryInstance(p2)) {
+    if (isRegisterInstance(p2) ||
+        isMemoryInstance(p2) ||
+        isDFFInstance(p2)) {
       auto c2_disc_it = imap.find(receiverNode(p2));
 
       if (c2->getSelStr() == "raddr") {
@@ -308,7 +311,9 @@ namespace CoreIR {
       string genRefName = getInstanceName(*inst);
 
       //if (genRefName == "reg") {
-      if (isRegisterInstance(inst) || isMemoryInstance(inst)) {
+      if (isRegisterInstance(inst) ||
+          isMemoryInstance(inst) ||
+          isDFFInstance(inst)) {
 	WireNode wOutput = outputNode(w1);
 	WireNode wInput = receiverNode(w1);
 
@@ -511,4 +516,18 @@ namespace CoreIR {
     return numMasks;
   }
 
+  bool isThreadShared(const vdisc v, const NGraph& g) {
+    int threadNo = g.getNode(v).getThreadNo();
+
+    for (auto& conn : g.outEdges(v)) {
+      vdisc dest = g.target(conn);
+      if (g.getNode(dest).getThreadNo() != threadNo) {
+	return true;
+      }
+    }
+
+    return false;
+  }
+
+  
 }

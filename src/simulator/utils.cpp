@@ -213,6 +213,31 @@ namespace CoreIR {
   std::string getOpName(Instance& inst) {
     string genRefName = inst.getModuleRef()->getName();
     return genRefName;
+    
+    //auto genRef = inst.getGeneratorRef();
+    //if (genRef != nullptr) {
+    //  string genRefName = genRef->getName();
+    //  return genRefName;
+    //}
+
+    //auto modRef = inst.getModuleRef();
+
+    //assert(modRef != nullptr);
+
+    //return modRef->getName();
   }
-  
+
+  CoreIR::Wireable*
+  findSelect(const std::string& selName,
+	     const std::unordered_map<std::string, CoreIR::Wireable*> selects) {
+    for (auto& sel : selects) {
+      if (sel.first == selName) {
+	return sel.second;
+      }
+    }
+
+    cout << "Could not find select with name = " << selName << endl;
+    assert(false);
+  }
+
 }

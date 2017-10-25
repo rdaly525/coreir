@@ -66,7 +66,8 @@ class Context {
     Module* getModule(std::string ref);
     Generator* getGenerator(std::string ref);
     GlobalValue* getGlobalValue(std::string ref);
-    
+    bool hasGlobalValue(std::string ref);
+
     std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));

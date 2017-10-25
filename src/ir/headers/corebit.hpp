@@ -42,7 +42,6 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
   //DFF
   Type* dffType = c->Record({
     {"clk",c->Named("coreir.clkIn")},
-    {"rst",c->Named("coreir.rstIn")},
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });

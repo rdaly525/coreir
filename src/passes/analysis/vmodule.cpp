@@ -44,7 +44,9 @@ string VModule::toInstanceString(Instance* inst) {
     if (!this->hasDef()) {
       this->addParams(params0,paramsAndDefaults.first);
     }
+    //>>>>>>> upstream/dev
   }
+
   ostringstream o;
   string tab = "  ";
   string mname;

@@ -9,6 +9,7 @@
 #include "coreir.h"
 #include "coreir-passes/analysis/pass_sim.h"
 #include "coreir/passes/transform/rungenerators.h"
+#include "coreir/simulator/interpreter.h"
 
 #include "../src/simulator/output.hpp"
 #include "../src/simulator/sim.hpp"
@@ -21,6 +22,26 @@ using namespace CoreIR::Passes;
 using namespace std;
 
 namespace CoreIR {
+
+  void setThreadNumbers(NGraph& gr) {
+    for (auto& v : gr.getVerts()) {
+      WireNode w = gr.getNode(v);
+
+      if (isGraphInput(w)) {
+	cout << "Input = " << w.getWire()->toString() << endl;
+      	w.setThreadNo(0);
+      } else {
+      	w.setThreadNo(13);
+      }
+
+      //w.setThreadNo(13);
+
+      //cout << "Thread number before setting = " << gr.getNode(v).getThreadNo() << endl;
+      gr.addVertLabel(v, w);
+
+      //cout << "Thread number after setting  = " << gr.getNode(v).getThreadNo() << endl;
+    }
+  }
 
   TEST_CASE("Large circuits for testing") {
     Context* c = newContext();
@@ -63,41 +84,56 @@ namespace CoreIR {
 
       manyOps->setDef(def);
 
-      SECTION("Compiling code") {
-	
-	c->runPasses({"rungenerators"});
+      SECTION("Interpreting code") {
+	cout << "Starting passes" << endl;
+	c->runPasses({"rungenerators"}); //, "flattentypes"}); //,"flatten"});
+	cout << "Done with passes" << endl;
 
-	cout << "About to build graph" << endl;
+	cout << "Setting up interpreter" << endl;
 
-	NGraph gr;
-	buildOrderedGraph(manyOps, gr);
+	SimulatorState state(manyOps);
 
-	cout << "Built ordered graph" << endl;
+	cout << "Done setting up interpreter" << endl;
 
-	deque<vdisc> topoOrder = topologicalSort(gr);
-
-	cout << "Topologically sorted" << endl;
-
-	string randIns =
-	  randomSimInputHarness(manyOps);
-
-	cout << "Generating harness" << endl;
-
-	int s =
-	  generateHarnessAndRun(topoOrder, gr, manyOps,
-				"./gencode/",
-				"many_ops",
-				"./gencode/auto_harness_many_ops.cpp");
-
-	REQUIRE(s == 0);
       }
 
-      // SECTION("Building verilog") {
-      // 	// Building verilog example
-      // 	int s = buildVerilator(manyOps, g);
+      SECTION("Compiling code") {
+	c->runPasses({"rungenerators"});
+      	// RunGenerators rg;
+      	// rg.runOnNamespace(g);
 
-      // 	REQUIRE(s == 0);
-      // }
+      	cout << "About to build graph" << endl;
+
+      	NGraph gr;
+      	buildOrderedGraph(manyOps, gr);
+
+      	setThreadNumbers(gr);
+
+      	// cout << "VERT thread nos" << endl;
+      	// for (auto& v : gr.getVerts()) {
+      	//   int tNo = gr.getNode(v).getThreadNo();
+      	//   //cout << "Thread number = " << tNo << endl;
+      	//   //assert(tNo == 13);
+      	// }
+
+      	cout << "Built ordered graph" << endl;
+      	deque<vdisc> topoOrder = topologicalSort(gr);
+
+      	cout << "Topologically sorted" << endl;
+
+      	string randIns =
+      	  randomSimInputHarness(manyOps);
+
+      	cout << "Generating harness" << endl;
+
+      	int s =
+      	  generateHarnessAndRun(topoOrder, gr, manyOps,
+      				"./gencode/",
+      				"many_ops",
+      				"./gencode/auto_harness_many_ops.cpp");
+
+      	REQUIRE(s == 0);
+      }
 
     }
 

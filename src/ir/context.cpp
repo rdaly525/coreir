@@ -152,7 +152,12 @@ GlobalValue* Context::getGlobalValue(std::string ref) {
   ASSERT(0,"MISSING " + ref);
   return nullptr;
 }
-
+bool Context::hasGlobalValue(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  if (!hasNamespace(refsplit[0])) return false;
+  Namespace* ns = getNamespace(refsplit[0]);
+  return ns->hasGlobalValue(refsplit[1]);
+}
 void Context::addPass(Pass* p) {
   assert(pm);
   p->addPassManager(pm);

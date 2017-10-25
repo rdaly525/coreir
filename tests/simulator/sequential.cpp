@@ -79,8 +79,8 @@ namespace CoreIR {
 
       def->addInstance("m0",
       		       "coreir.mem",
-      		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}},
-      		       {{"init", Const::make(c, BitVector(width*depth,0))}});
+      		       {{"width", Const::make(c, width)},{"depth", Const::make(c, depth)}});
+		       //      		       {{"init", Const::make(c, BitVector(width*depth,0))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
@@ -91,7 +91,6 @@ namespace CoreIR {
 
       memory->setDef(def);
 
-      
       c->runPasses({"rungenerators"});
 
       cout << "Building graph" << endl;
@@ -155,9 +154,8 @@ namespace CoreIR {
 
       rg->setDef(def);
 
-      
       c->runPasses({"rungenerators"});
-
+      
       NGraph g;
       buildOrderedGraph(rg, g);
 
@@ -220,7 +218,6 @@ namespace CoreIR {
 
       counter->setDef(def);
       counter->print();
-  
       
       c->runPasses({"rungenerators"});
 
@@ -311,7 +308,6 @@ namespace CoreIR {
 
       regChain->setDef(def);
       regChain->print();
-  
       
       c->runPasses({"rungenerators"});
 
@@ -359,8 +355,7 @@ namespace CoreIR {
       def->connect("r0.out","self.cout");
 
       regChain->setDef(def);
-  
-      
+
       c->runPasses({"rungenerators"});
 
       NGraph g;
@@ -403,7 +398,6 @@ namespace CoreIR {
       def->connect("r0.out","self.cout");
 
       regChain->setDef(def);
-  
       
       c->runPasses({"rungenerators"});
 
@@ -467,7 +461,6 @@ namespace CoreIR {
 
       clkArr->setDef(def);
 
-      
       c->runPasses({"rungenerators"});
 
       cout << "Building graph" << endl;
