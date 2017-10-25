@@ -1089,11 +1089,13 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateDFFOutput(const vdisc vd) {
-    assert(false);
+    //assert(false);
+    updateRegisterOutput(vd);
   }
 
   void SimulatorState::updateDFFValue(const vdisc vd) {
-    assert(false);
+    //assert(false);
+    updateRegisterValue(vd);
   }
   
   void SimulatorState::updateRegisterOutput(const vdisc vd) {
