@@ -825,7 +825,7 @@ namespace CoreIR {
 			 {{"init",
 			       Const::make(c,
 					   BitVector(1 << n, "1010010111010010"))}});
-    
+
       def->connect(self->sel("in"), lut0->sel("in"));
       def->connect(lut0->sel("out"),self->sel("out"));
 
@@ -901,7 +901,6 @@ namespace CoreIR {
 
     }
 
-    // TODO: Uncomment this when the bit operations in coreir are figured out
     SECTION("Selecting bits from a bit vector") {
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
