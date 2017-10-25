@@ -388,6 +388,7 @@ namespace CoreIR {
     setMemoryDefaults();
     setLinebufferMemDefaults();
     setRegisterDefaults();
+    setDFFDefaults();
 
 
   }
@@ -836,7 +837,7 @@ namespace CoreIR {
       });
     } else if ((opName == "const") || (opName == "bitconst")) {
     } else if (opName == "bitterm") {
-    } else if (opName == "reg") {
+    } else if ((opName == "reg") || (opName == "dff")) {
     } else if ((opName == "mem") || (opName == "LinebufferMem")) {
     } else if (opName == "mux") {
       updateMuxNode(vd);
@@ -1056,6 +1057,30 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::setDFFDefaults() {
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isDFFInstance(wd.getWire())) {
+        Instance* inst = toInstance(wd.getWire());
+
+        Values args = inst->getModArgs();
+
+        bool val = args["init"]->get<bool>();
+        //uint width = (args["width"])->get<int>();
+
+        setRegister(inst->toString(), BitVec(1, val ? 1 : 0));
+        setValue(inst->sel("out"), getRegister(inst->toString()));
+      }
+    }
+  }
+
+  void SimulatorState::updateDFFOutput(const vdisc vd) {
+  }
+
+  void SimulatorState::updateDFFValue(const vdisc vd) {
+  }
+  
   void SimulatorState::updateRegisterOutput(const vdisc vd) {
 
     WireNode wd = gr.getNode(vd);
@@ -1218,6 +1243,10 @@ namespace CoreIR {
       if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
         updateRegisterOutput(vd);
       }
+
+      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+        updateDFFOutput(vd);
+      }
       
     }
 
@@ -1260,6 +1289,10 @@ namespace CoreIR {
         }
       }
 
+      if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
+        updateDFFValue(vd);
+      }
+      
     }
 
     // end = clock();

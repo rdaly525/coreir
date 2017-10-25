@@ -195,6 +195,10 @@ namespace CoreIR {
 
     void deleteWatchPoint(const std::string& name);
 
+    void setDFFDefaults();
+    void updateDFFOutput(const vdisc vd);
+    void updateDFFValue(const vdisc vd);
+
     void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
     void setRegisterDefaults();

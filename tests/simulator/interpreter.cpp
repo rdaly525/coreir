@@ -865,7 +865,11 @@ namespace CoreIR {
       Module* m = g->getModule("simple");
 
       SimulatorState state(m);
-      
+      state.setClock("self.CLK", 0, 1);
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.COUT") == BitVec(1, 0));
 
     }
 
