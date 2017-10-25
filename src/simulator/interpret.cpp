@@ -1226,20 +1226,16 @@ namespace CoreIR {
     for (auto& vd : opGraph.getVerts()) {
 
       WireNode w = opGraph.getNode(vd);
-      //if (opGraph.getInputConnections(vd).size() == 0) {
+
       if (isGraphInput(w)) {
 
         Select* inSel = toSelect(w.getWire());
-        //assert(isSw.getWire()
 
-        //for (auto& sel : getOutputSelects(opGraph.getNode(vd).getWire())) {
-        //for (auto& sel : getOutputSelects(w.getWire())) {
         if (!isSet(inSel)) { //toSelect(sel.second))) {
           cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
           unset.push_back(vd);
         }
 
-          //}
       }
 
     }
