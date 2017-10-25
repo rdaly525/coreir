@@ -143,7 +143,12 @@ Instantiable* Context::getInstantiable(string ref) {
   ASSERT(ns->hasInstantiable(refsplit[1]),"Missing Instantiable: " + ref);
   return ns->getInstantiable(refsplit[1]);
 }
-
+bool Context::hasInstantiable(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  if (!hasNamespace(refsplit[0])) return false;
+  Namespace* ns = getNamespace(refsplit[0]);
+  return ns->hasInstantiable(refsplit[1]);
+}
 void Context::addPass(Pass* p) {
   assert(pm);
   p->addPassManager(pm);
