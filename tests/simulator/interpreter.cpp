@@ -873,15 +873,15 @@ namespace CoreIR {
         		 dff,
         		 {{"init", Const::make(c, true)}});
 
-      Wireable* self = def->sel("self");
-      def->connect("self.IN", "dff0.in");
-      def->connect("self.CLK", "dff0.clk");
-      def->connect("self.RST", "dff0.rst");
-      def->connect("dff0.out", "self.OUT");
+      // Wireable* self = def->sel("self");
+      // def->connect("self.IN", "dff0.in");
+      // def->connect("self.CLK", "dff0.clk");
+      // def->connect("self.RST", "dff0.rst");
+      // def->connect("dff0.out", "self.OUT");
 
-      dffTest->setDef(def);
+      // dffTest->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes","flatten"});
+      // c->runPasses({"rungenerators","flattentypes","flatten"});
 
       // // cout << "loading" << endl;
       // // if (!loadFromFile(c,"./topo_sort_error.json")) {
@@ -891,9 +891,9 @@ namespace CoreIR {
 
       // // Module* m = g->getModule("simple");
 
-      SimulatorState state(dffTest);
-      state.setClock("self.CLK", 0, 1);
-      state.setValue("self.IN", BitVec(1, 0));
+      // SimulatorState state(dffTest);
+      // state.setClock("self.CLK", 0, 1);
+      // state.setValue("self.IN", BitVec(1, 0));
 
       // state.execute();
 
