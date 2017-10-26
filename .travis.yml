@@ -19,10 +19,10 @@ before_install:
   - sudo make -j 2 install COREIR_INCLUDE_PYTHON_TYPEGEN=1 PYTHON_CONFIG=python3-config
 
 script:
-  - make installtest
+  - make installtest COREIR_INCLUDE_PYTHON_TYPEGEN=1 PYTHON_CONFIG=python3-config
   - sudo make uninstall
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
-  - make test
+  - make test 
 
 compiler:
   - gcc
