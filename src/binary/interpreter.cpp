@@ -64,6 +64,9 @@ int main(int argc, char *argv[]) {
   
   
   Context* c = newContext();
+
+  CoreIRLoadLibrary_commonlib(c);
+
   //Load external passes
   if (options.count("e")) {
     vector<string> libs = splitString<vector<string>>(options["e"].as<string>(),',');
@@ -160,8 +163,6 @@ int main(int argc, char *argv[]) {
     c->setTop(topRef);
   }
 
-  CoreIRLoadLibrary_commonlib(c);
-
   c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});
 
   SimulatorState state(top);
@@ -205,7 +206,8 @@ int main(int argc, char *argv[]) {
       if (ins == "inputs") {
 	auto& gr = state.getCircuitGraph();
 	for (auto vd : gr.getVerts()) {
-	  if (getInputConnections(vd, gr).size() == 0) {
+	  //if (getInputConnections(vd, gr).size() == 0) {
+          if (isGraphInput(gr.getNode(vd))) {
 	    cout << gr.getNode(vd).getWire()->toString() << " : " << gr.getNode(vd).getWire()->getType()->toString() << endl;
 	  }
 	}
@@ -215,7 +217,8 @@ int main(int argc, char *argv[]) {
       if (ins == "outputs") {
 	auto& gr = state.getCircuitGraph();
 	for (auto vd : gr.getVerts()) {
-	  if (getOutputConnections(vd, gr).size() == 0) {
+	  //if (getOutputConnections(vd, gr).size() == 0) {
+          if (isGraphOutput(gr.getNode(vd))) {
 	    cout << gr.getNode(vd).getWire()->toString() << " : " << gr.getNode(vd).getWire()->getType()->toString() << endl;
 	  }
 	}
