@@ -6,6 +6,10 @@ using namespace std;
 
 namespace CoreIR {
 
+  int bitsToIndex(const int depth) {
+    return ceil(log2(depth)) + 1;
+  }
+
   string getQualifiedOpName(CoreIR::Instance& inst) {
     string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
       getOpName(inst);
@@ -14,7 +18,10 @@ namespace CoreIR {
   }
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
-    assert(bv.bitLength() == log2(depth));
+    cout << "bv.bitLength() = " << bv.bitLength() << endl;
+    cout << "log2(depth))   = " << log2(depth) << endl;
+
+    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
     assert(val.bitLength() == ((int) width));
 
     values.erase(bv);
@@ -22,8 +29,10 @@ namespace CoreIR {
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
+    cout << "bv.bitLength() = " << bv.bitLength() << endl;
+    cout << "log2(depth))   = " << log2(depth) << endl;
 
-    assert(bv.bitLength() == log2(depth));
+    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
 
     auto it = values.find(bv);
 

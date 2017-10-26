@@ -963,6 +963,57 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
     }
 
+    SECTION("conv_3_1 from json") {
+
+      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+
+      cout << "loading" << endl;
+      //if (!loadFromFile(c,"./sim_ready_conv_3_1.json")) {
+      if (!loadFromFile(c,"./conv_3_1.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});
+
+      Module* m = g->getModule("DesignTop");
+
+      assert(m != nullptr);
+
+      SimulatorState state(m);
+      state.setValue("self.in_0", BitVector(16, "1010110101010111"));
+      state.setClock("self.clk", 0, 1);
+
+      state.runHalfCycle();
+
+      REQUIRE(state.isSet("self.out"));
+
+      // state.setValue("self.I", BitVector(8, "10010011"));
+
+      // cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
+
+      // BitVector one(16, "1");
+      // BitVector nextIn(16, "0");
+
+      // std::clock_t start, end;
+
+      // start = std::clock();
+
+      // state.execute();
+
+      // end = std::clock();
+
+      // std::cout << "Done. Time to simulate = "
+      //   	<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+      //   	<< std::endl;
+
+      
+      // cout << "out = " << state.getBitVec("self.O") << endl;
+
+      // REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
+      
+    }
+
     SECTION("Failing clock test") {
 
       cout << "loading" << endl;
