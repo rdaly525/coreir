@@ -1,6 +1,8 @@
 #include "coreir/ir/context.h"
 #include "coreir/ir/typecache.h"
+#include "coreir/ir/valuecache.h"
 #include "coreir/ir/passmanager.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 
 
 using namespace std;
@@ -9,14 +11,41 @@ using namespace std;
 
 namespace CoreIR {
 
-#include "coreirprims.hpp"
+#include "headers/core.hpp"
+#include "headers/corebit.hpp"
+#include "headers/mantle.hpp"
 
 Context::Context() : maxErrors(8) {
   global = newNamespace("global");
-  cache = new TypeCache(this);
+  Namespace* pt = newNamespace("_");
+  //This defines a passthrough module. It is basically a nop that just passes the signal through
+ 
+  
+  
+  typecache = new TypeCache(this);
+  valuecache = new ValueCache(this);
   //Automatically load coreir //defined in coreirprims.h
-  CoreIRLoadLibrary_coreirprims(this);
+  CoreIRLoadHeader_core(this);
+  CoreIRLoadHeader_corebit(this);
+  CoreIRLoadHeader_mantle(this);
   pm = new PassManager(this);
+  Params passthroughParams({
+    {"type",CoreIRType::make(this)},
+  });
+  TypeGen* passthroughTG = pt->newTypeGen(
+    "passthrough",
+    passthroughParams,
+    [](Context* c, Values args) {
+      Type* t = args.at("type")->get<Type*>();
+      return c->Record({
+        {"in",t->getFlipped()},
+        {"out",t}
+      });
+    }
+  );
+  pt->newGeneratorDecl("passthrough",passthroughTG,passthroughParams);
+
+
 }
 
 // Order of this matters
@@ -34,9 +63,18 @@ Context::~Context() {
   for (auto it : stringBuffers) free(it);
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
-  for (auto it : argPtrArrays) free(it);
+  for (auto it : valuePtrArrays) free(it);
 
-  delete cache;
+  delete typecache;
+  delete valuecache;
+}
+
+std::map<std::string,Namespace*> Context::getNamespaces() {
+  std::map<std::string,Namespace*> tmp;
+  for (auto ns : namespaces) {
+    if (ns.first!="_") tmp.emplace(ns);
+  }
+  return tmp;
 }
 
 void Context::print() {
@@ -59,7 +97,7 @@ void Context::die() {
   printerrors();
   cout << "I AM DYING!" << endl;
   delete this; // sketch but okay if exits I guess
-  exit(1);
+  assert(0);
 }
 
 
@@ -105,7 +143,12 @@ Instantiable* Context::getInstantiable(string ref) {
   ASSERT(ns->hasInstantiable(refsplit[1]),"Missing Instantiable: " + ref);
   return ns->getInstantiable(refsplit[1]);
 }
-
+bool Context::hasInstantiable(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  if (!hasNamespace(refsplit[0])) return false;
+  Namespace* ns = getNamespace(refsplit[0]);
+  return ns->hasInstantiable(refsplit[1]);
+}
 void Context::addPass(Pass* p) {
   assert(pm);
   p->addPassManager(pm);
@@ -162,18 +205,19 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 }
 */
 
-Type* Context::Bit() { return cache->newBit(); }
-Type* Context::BitIn() { return cache->newBitIn(); }
-Type* Context::Array(uint n, Type* t) { return cache->newArray(n,t);}
-Type* Context::Record(RecordParams rp) { return cache->newRecord(rp); }
-Type* Context::Named(string nameref) {
+BitType* Context::Bit() { return typecache->getBit(); }
+BitInType* Context::BitIn() { return typecache->getBitIn(); }
+ArrayType* Context::Array(uint n, Type* t) { return typecache->getArray(n,t);}
+RecordType* Context::Record(RecordParams rp) { return typecache->getRecord(rp); }
+NamedType* Context::Named(string nameref) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
-Type* Context::Named(string nameref,Args args) {
+NamedType* Context::Named(string nameref,Values args) {
+  checkValuesAreConst(args);
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
   ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
@@ -189,6 +233,12 @@ Type* Context::In(Type* t) {
 Type* Context::Out(Type* t) {
   assert(0 && "TODO NYI");
 }
+
+BoolType* Context::Bool() { return BoolType::make(this);}
+IntType* Context::Int(){ return IntType::make(this);}
+BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
+StringType* Context::String() { return StringType::make(this);}
+//CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
   ASSERT(top && top->hasDef(), top->toString() + " has no def!");
@@ -224,15 +274,21 @@ Params* Context::newParams() {
   return params;
 }
 
-Args* Context::newArgs() {
-  Args* args = new Args();
-  argsList.push_back(args);
-  return args;
+Values* Context::newValues() {
+  Values* vals = new Values();
+  valuesList.push_back(vals);
+  return vals;
 }
 
-Arg** Context::newArgPtrArray(int size) {
-    Arg** arr = (Arg**) malloc(sizeof(Arg*) * size);
-    argPtrArrays.push_back(arr);
+Value** Context::newValueArray(int size) {
+    Value** arr = (Value**) malloc(sizeof(Value*) * size);
+    valuePtrArrays.push_back(arr);
+    return arr;
+}
+
+Type** Context::newTypeArray(int size) {
+    Type** arr = (Type**) malloc(sizeof(Type*) * size);
+    typePtrArrays.push_back(arr);
     return arr;
 }
 
@@ -284,16 +340,6 @@ DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
     return arr;
 }
 
-void* Context::saveArg(shared_ptr<Arg> arg) { 
-  void* key = arg.get();
-  argList[key] = arg;
-  return key;
-}
-
-ArgPtr Context::getSavedArg(void* arg) {
-  ASSERT(argList.count(arg),"Missing Arg!");
-  return argList[arg];
-}
 
 Context* newContext() {
   Context* m = new Context();

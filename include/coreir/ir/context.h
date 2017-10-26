@@ -20,23 +20,29 @@ class Context {
   //Unique int
   uint unique=0;
 
-  //Memory management
-  TypeCache* cache;
+  public :
+    //Used for caching the types
+    ValueCache* valuecache;
+    TypeCache* typecache;
   
-  std::unordered_map<void*,ArgPtr> argList;
-  std::vector<Args*> argsList;
-  std::vector<Arg**> argPtrArrays;
-  std::vector<RecordParams*> recordParamsList;
-  std::vector<Params*> paramsList;
-  std::vector<Connection*> connectionArrays;
-  std::vector<Connection**> connectionPtrArrays;
-  std::vector<Wireable**> wireableArrays;
-  std::vector<const char**> constStringArrays;
-  std::vector<char**> stringArrays;
-  std::vector<char*> stringBuffers;
-  std::vector<DirectedConnection*> directedConnectionArrays;
-  std::vector<DirectedConnection**> directedConnectionPtrArrays;
-  std::vector<DirectedInstance**> directedInstancePtrArrays;
+  private :
+    
+    //Memory management
+    std::unordered_map<void*,Value*> valueList;
+    std::vector<Values*> valuesList;
+    std::vector<Value**> valuePtrArrays;
+    std::vector<Type**> typePtrArrays;
+    std::vector<RecordParams*> recordParamsList;
+    std::vector<Params*> paramsList;
+    std::vector<Connection*> connectionArrays;
+    std::vector<Connection**> connectionPtrArrays;
+    std::vector<Wireable**> wireableArrays;
+    std::vector<const char**> constStringArrays;
+    std::vector<char**> stringArrays;
+    std::vector<char*> stringBuffers;
+    std::vector<DirectedConnection*> directedConnectionArrays;
+    std::vector<DirectedConnection**> directedConnectionPtrArrays;
+    std::vector<DirectedInstance**> directedInstancePtrArrays;
 
   public :
     Context();
@@ -60,7 +66,9 @@ class Context {
     Module* getModule(std::string ref);
     Generator* getGenerator(std::string ref);
     Instantiable* getInstantiable(std::string ref);
-    std::map<std::string,Namespace*> getNamespaces() {return namespaces;}
+    bool hasInstantiable(std::string ref);
+
+    std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
 
@@ -68,13 +76,21 @@ class Context {
     //Do not use unless you really have to.
     PassManager* getPassManager() { return pm;}
 
-    //Factory functions for types
-    Type* Bit();
-    Type* BitIn();
-    Type* Array(uint n, Type* t);
-    Type* Record(RecordParams rp=RecordParams());
-    Type* Named(std::string nameref);
-    Type* Named(std::string nameref, Args args);
+    //Factory functions for Types
+    BitType* Bit();
+    BitInType* BitIn();
+    ArrayType* Array(uint n, Type* t);
+    RecordType* Record(RecordParams rp=RecordParams());
+    NamedType* Named(std::string nameref);
+    NamedType* Named(std::string nameref, Values args);
+
+
+    //Factory functions for ValueTypes
+    BoolType* Bool();
+    IntType* Int();
+    BitVectorType* BitVector(int width);
+    StringType* String();
+    //CoreIRType* coreirType();
 
     Type* Flip(Type* t);
     Type* In(Type* t);
@@ -84,7 +100,7 @@ class Context {
 
     RecordParams* newRecordParams();
     Params* newParams();
-    Args* newArgs();
+    Values* newValues();
 
     //Unique
     std::string getUnique() {
@@ -101,11 +117,12 @@ class Context {
     // C API memory management
 
     //Saves 
-    void* saveArg(ArgPtr arg);
-    ArgPtr getSavedArg(void*);
+    void* saveValue(Value* val);
+    Value* getSavedValue(void*);
     
     
-    Arg** newArgPtrArray(int size);
+    Value** newValueArray(int size);
+    Type** newTypeArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);

@@ -5,8 +5,8 @@ using namespace CoreIR;
 using namespace std;
 
 std::string Passes::CreateInstanceGraph::ID = "createinstancegraph";
-bool Passes::CreateInstanceGraph::runOnNamespace(Namespace* ns) {
-  ig->construct(ns);
+bool Passes::CreateInstanceGraph::runOnContext(Context* c) {
+  ig->construct(c);
   return false;
 }
 void Passes::CreateInstanceGraph::releaseMemory() {

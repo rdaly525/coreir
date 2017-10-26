@@ -14,7 +14,7 @@ extern "C" {
     switch(kind) {
       case(STR2TYPE_ORDEREDMAP) : {
         char** skeys = (char**) keys;
-        Type** types = (Type**) values;
+        Type** types = (Type**) values; // TODO Sketch, this is doing an implicit rcast
         RecordParams* tmap = c->newRecordParams();
         for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
@@ -24,26 +24,25 @@ extern "C" {
         ret = (void*) tmap;
         break;
       }
-      case (STR2ARG_MAP) : {
+      case (STR2VALUE_MAP) : {
         char** skeys = (char**) keys;
-        void** args = (void**) values;
-        Args* amap = c->newArgs();
+        Value** args = (Value**) values;
+        Values* amap = c->newValues();
         for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
-          ArgPtr a = c->getSavedArg(args[i]);
+          Value* a = args[i];
           amap->emplace(s,a);
         }
         ret = (void*) amap;
         break;
       }
-      case (STR2PARAM_MAP) : {
+      case (STR2VALUETYPE_MAP) : {
         char** skeys = (char**) keys;
-        Param* params = (Param*) values;
+        ValueType** vtypes = (ValueType**) values;
         Params* pmap = c->newParams();
         for (uint i=0; i<len; ++i) {
           string s = std::string(skeys[i]);
-          Param p = params[i];
-          pmap->emplace(s,p);
+          pmap->emplace(s,vtypes[i]);
         }
         ret = (void*) pmap;
         break;
@@ -64,23 +63,51 @@ extern "C" {
       return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_)+"."+std::string(type_name)));
   }
 
+  COREValueType* COREContextBool(COREContext* context) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->Bool());
+  }
+
+  COREValueType* COREContextInt(COREContext* context) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->Int());
+  }
+
+  COREValueType* COREContextBitVector(COREContext* context, int width) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->BitVector(width));
+  }
+
+  COREValueType* COREContextString(COREContext* context) {
+      return rcast<COREValueType*>(rcast<Context*>(context)->String());
+  }
+
+  COREValueType* COREContextCoreIRType(COREContext* context) {
+      return rcast<COREValueType*>(CoreIRType::make(rcast<Context*>(context)));
+  }
+
+  bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes) {
+    Context* context = rcast<Context*>(ctx);
+    vector<string> vec_passes;
+    for (int i = 0; i < num_passes; i++) {
+      vec_passes.emplace_back(passes[i]);
+    }
+    return context->runPasses(vec_passes);
+  }
+
   const char* COREGetInstantiableRefName(COREWireable* iref) {
     const string& name = cast<Instance>(rcast<Wireable*>(iref))->getInstantiableRef()->getName();
     return name.c_str();
   }
 
-  //TODO change the name to Arg
-  COREArg* COREGetConfigValue(COREWireable* i, char* s) {
+  COREValue* COREGetModArg(COREWireable* i, char* s) {
     string str(s);
-    Args configargs =cast<Instance>(rcast<Wireable*>(i))->getConfigArgs();
-    ASSERT(configargs.count(str)>0, "ConfigArgs does not contain field: " + str);
-    return rcast<COREArg*>(configargs[str].get());
+    Values modargs =cast<Instance>(rcast<Wireable*>(i))->getModArgs();
+    ASSERT(modargs.count(str)>0, "ModArgs does not contain field: " + str);
+    return rcast<COREValue*>(modargs[str]);
   }
 
-  bool COREHasConfigValue(COREWireable* i, char* s) {
+  bool COREHasModArg(COREWireable* i, char* s) {
     string str(s);
-    Args configargs =cast<Instance>(rcast<Wireable*>(i))->getConfigArgs();
-    return configargs.count(str) > 0;
+    Values modargs =cast<Instance>(rcast<Wireable*>(i))->getModArgs();
+    return modargs.count(str) > 0;
   }
 
 
@@ -120,10 +147,14 @@ extern "C" {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getNamespace(std::string(name)));
   }
 
-  COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams) {
+  COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* modparams) {
     Params g;
-    if (configparams) g =*rcast<Params*>(configparams) ;
+    if (modparams) g =*rcast<Params*>(modparams) ;
     return rcast<COREModule*>(rcast<Namespace*>(ns)->newModuleDecl(string(name), rcast<Type*>(type),g));
+  }
+
+  const char* COREModuleGetName(COREModule* module) {
+    return rcast<Module*>(module)->getName().c_str();
   }
 
   COREModuleDef* COREModuleNewDef(COREModule* module) {
@@ -134,12 +165,12 @@ extern "C" {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->getDef());
   }
 
-  COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* config) {
-    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Args*>(config)));
+  COREWireable* COREModuleDefAddModuleInstance(COREModuleDef* module_def, char* name, COREModule* module, void* mod) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Values*>(mod)));
   }
 
-  COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* config) {
-    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Generator*>(generator), *rcast<Args*>(genargs), *rcast<Args*>(config)));
+  COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* mod) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Generator*>(generator), *rcast<Values*>(genargs), *rcast<Values*>(mod)));
   }
 
   void COREModuleSetDef(COREModule* module, COREModuleDef* module_def) {
@@ -185,7 +216,7 @@ extern "C" {
 
   COREConnection** COREModuleDefGetConnections(COREModuleDef* m, int* numConnections) {
     ModuleDef* module_def = rcast<ModuleDef*>(m);
-    unordered_set<Connection> connection_set = module_def->getConnections();
+    auto connection_set = module_def->getConnections();
     Context* context = module_def->getContext();
     int size = connection_set.size();
     *numConnections = size;
@@ -422,20 +453,20 @@ extern "C" {
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
 
-  void COREInstanceGetGenArgs(COREWireable* core_instance, char*** names, COREArg*** args, int* num_args) {
+  void COREInstanceGetGenValues(COREWireable* core_instance, char*** names, COREValue*** args, int* num_args) {
       Instance* instance = rcast<Instance*>(core_instance);
-      Args genArgs = instance->getGenArgs();
-      int size = genArgs.size();
+      Values genValues = instance->getGenArgs();
+      int size = genValues.size();
       Context* context = instance->getContext();
       *names = context->newStringArray(size);
-      *args  = (COREArg**) context->newArgPtrArray(size);
+      *args  = (COREValue**) context->newValueArray(size);
       *num_args = size;
       int count = 0;
-      for (auto element : genArgs) {
+      for (auto element : genValues) {
           std::size_t name_length = element.first.size();
           (*names)[count] = context->newStringBuffer(name_length + 1);
           memcpy((*names)[count], element.first.c_str(), name_length + 1);
-          (*args)[count] = rcast<COREArg*>(element.second.get());
+          (*args)[count] = rcast<COREValue*>(element.second);
           count++;
       }
   }

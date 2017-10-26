@@ -18,6 +18,75 @@ using namespace std;
 
 namespace CoreIR {
 
+  void colorAdd4Tree(NGraph& g) {
+    for (auto& vd : g.getVerts()) {
+      WireNode wd = g.getNode(vd);
+
+
+      Wireable* w = wd.getWire();
+      cout << "VD " << vd << " = " << w->toString() << endl;
+
+      if (isSelect(w)) {
+	string ss = toSelect(w)->getSelStr();
+
+	if (ss == "in0" || ss == "in1") {
+	  wd.setThreadNo(0);
+	} else if (ss == "in2" || ss == "in3") {
+	  wd.setThreadNo(1);
+	} else if (ss == "out") {
+	  wd.setThreadNo(3);
+	} else {
+	  assert(false);
+	}
+      } else {
+	if (w->toString() == "add00") {
+	  wd.setThreadNo(0);
+	} else if (w->toString() == "add01") {
+	  wd.setThreadNo(1);
+	} else if (w->toString() == "add1") {
+	  wd.setThreadNo(2);
+	} else {
+	  assert(false);
+	}
+      }
+
+      g.addVertLabel(vd, wd);
+    }
+  }
+
+  // Problem: Need to handle nodes that represent arrays
+  void colorConnectedComponents(NGraph& g) {
+    vector<vdisc> inVerts = vertsWithNoIncomingEdge(g);
+
+    cout << "inVerts size = " << inVerts.size() << endl;
+
+    int currentThread = 0;
+
+    for (auto& inVert : inVerts) {
+
+      vector<vdisc> s{inVert};
+
+      while (s.size() > 0) {
+	vdisc vd = s.back();
+
+	WireNode w = g.getNode(vd);
+	w.setThreadNo(currentThread);
+
+	g.addVertLabel(vd, w);
+
+	s.pop_back();
+
+	for (auto ed : g.outEdges(vd)) {
+	  vdisc input = g.target(ed);
+	  s.push_back(input);
+	}
+      
+      }
+
+      currentThread++;
+    }
+  }
+
   TEST_CASE("Combinational logic simulation") {
 
     // New context
@@ -33,8 +102,9 @@ namespace CoreIR {
 
       Module* m = c->getModule("global.Add4_cin");
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(m, gr);
@@ -52,7 +122,7 @@ namespace CoreIR {
     SECTION("16 bit add with carry out only") {
       uint n = 16;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+      Generator* add2 = c->getGenerator("mantle.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
@@ -64,7 +134,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(false)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, false)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -72,8 +142,9 @@ namespace CoreIR {
       def->connect(add0->sel("cout"), self->sel("cout"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -95,7 +166,7 @@ namespace CoreIR {
     SECTION("31 bit add with carry in and carry out") {
       uint n = 31;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+      Generator* add2 = c->getGenerator("mantle.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
@@ -108,7 +179,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, true)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -117,8 +188,9 @@ namespace CoreIR {
       def->connect(add0->sel("cout"), self->sel("cout"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -140,7 +212,7 @@ namespace CoreIR {
     SECTION("32 bit add with carry in and carry out") {
       uint n = 32;
   
-      Generator* add2 = c->getGenerator("coreir.add");
+      Generator* add2 = c->getGenerator("mantle.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
@@ -153,7 +225,7 @@ namespace CoreIR {
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const(n)}, {"has_cin", Const(true)}, {"has_cout", Const(true)}});
+      Wireable* add0 = def->addInstance("add0",add2,{{"width", Const::make(c, n)}, {"has_cin", Const::make(c, true)}, {"has_cout", Const::make(c, true)}});
     
       def->connect(self->sel("in")->sel(0), add0->sel("in0"));
       def->connect(self->sel("in")->sel(1), add0->sel("in1"));
@@ -162,8 +234,9 @@ namespace CoreIR {
       def->connect(add0->sel("cout"), self->sel("cout"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -183,27 +256,33 @@ namespace CoreIR {
     }
     
     SECTION("32 bit add 4") {
+
+      cout << "32 bit add 4" << endl;
+
       uint n = 32;
   
       Generator* add2 = c->getGenerator("coreir.add");
 
       // Define Add4 Module
       Type* add4Type = c->Record({
-	  {"in",c->Array(4,c->Array(n,c->BitIn()))},
-	    {"out",c->Array(n,c->Bit())}
+	  {"in0",c->Array(n,c->BitIn())},
+	    {"in1",c->Array(n,c->BitIn())},
+	      {"in2",c->Array(n,c->BitIn())},
+		{"in3",c->Array(n,c->BitIn())},
+		  {"out",c->Array(n,c->Bit())}
 	});
 
       Module* add4_n = g->newModuleDecl("Add4",add4Type);
       ModuleDef* def = add4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* add_00 = def->addInstance("add00",add2,{{"width", Const(n)}});
-      Wireable* add_01 = def->addInstance("add01",add2,{{"width", Const(n)}});
-      Wireable* add_1 = def->addInstance("add1",add2,{{"width", Const(n)}});
+      Wireable* add_00 = def->addInstance("add00",add2,{{"width", Const::make(c,n)}});
+      Wireable* add_01 = def->addInstance("add01",add2,{{"width", Const::make(c,n)}});
+      Wireable* add_1 = def->addInstance("add1",add2,{{"width", Const::make(c,n)}});
     
-      def->connect(self->sel("in")->sel(0),add_00->sel("in0"));
-      def->connect(self->sel("in")->sel(1),add_00->sel("in1"));
-      def->connect(self->sel("in")->sel(2),add_01->sel("in0"));
-      def->connect(self->sel("in")->sel(3),add_01->sel("in1"));
+      def->connect(self->sel("in0"), add_00->sel("in0"));
+      def->connect(self->sel("in1"), add_00->sel("in1"));
+      def->connect(self->sel("in2"), add_01->sel("in0"));
+      def->connect(self->sel("in3"), add_01->sel("in1"));
 
       def->connect(add_00->sel("out"),add_1->sel("in0"));
       def->connect(add_01->sel("out"),add_1->sel("in1"));
@@ -211,15 +290,16 @@ namespace CoreIR {
       def->connect(add_1->sel("out"),self->sel("out"));
       add4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
       deque<vdisc> topoOrder = topologicalSort(gr);
 
       SECTION("Checking graph size") {
-	REQUIRE(numVertices(gr) == 5);
+	REQUIRE(numVertices(gr) == 8);
       }
 
       SECTION("Checking mask elimination") {
@@ -235,6 +315,35 @@ namespace CoreIR {
 
 	REQUIRE(s == 0);
       }
+
+      SECTION("Compile multithreaded code") {
+	cout << "32 bit add 4 multithreaded" << endl;
+	colorAdd4Tree(gr);
+
+	SECTION("Checking thread graph properties") {
+	  ThreadGraph tg = buildThreadGraph(gr);
+
+	  REQUIRE(tg.getVerts().size() == 4);
+	  REQUIRE(tg.getEdges().size() == 3);
+	}
+
+	deque<vdisc> topoOrder = topologicalSort(gr);
+
+	for (auto& vd : topoOrder) {
+	  WireNode wd = gr.getNode(vd);
+	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+	}
+
+	int s = compileCodeAndRun(topoOrder,
+				  gr,
+				  add4_n,
+				  "./gencode/",
+				  "add4_parallel",
+				  "test_add4_parallel.cpp");
+	REQUIRE(s == 0);
+	
+      }
+
     }
 
     SECTION("6 bit signed remainder 3 operations") {
@@ -251,9 +360,9 @@ namespace CoreIR {
       Module* srem4_n = g->newModuleDecl("Srem4", srem4Type);
       ModuleDef* def = srem4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* srem_00 = def->addInstance("srem00", srem2, {{"width", Const(n)}});
-      Wireable* srem_01 = def->addInstance("srem01", srem2, {{"width", Const(n)}});
-      Wireable* srem_1 = def->addInstance("srem1", srem2, {{"width", Const(n)}});
+      Wireable* srem_00 = def->addInstance("srem00", srem2, {{"width", Const::make(c,n)}});
+      Wireable* srem_01 = def->addInstance("srem01", srem2, {{"width", Const::make(c,n)}});
+      Wireable* srem_1 = def->addInstance("srem1", srem2, {{"width", Const::make(c,n)}});
 
       def->connect(self->sel("in")->sel(0),srem_00->sel("in0"));
       def->connect(self->sel("in")->sel(1),srem_00->sel("in1"));
@@ -267,8 +376,9 @@ namespace CoreIR {
       def->connect(srem_1->sel("out"),self->sel("out"));
       srem4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(srem4_n, gr);
@@ -300,9 +410,9 @@ namespace CoreIR {
       Module* sub4_n = g->newModuleDecl("Sub4",sub4Type);
       ModuleDef* def = sub4_n->newModuleDef();
       Wireable* self = def->sel("self");
-      Wireable* sub_00 = def->addInstance("sub00",sub2,{{"width", Const(n)}});
-      Wireable* sub_01 = def->addInstance("sub01",sub2,{{"width", Const(n)}});
-      Wireable* sub_1 = def->addInstance("sub1",sub2,{{"width", Const(n)}});
+      Wireable* sub_00 = def->addInstance("sub00",sub2,{{"width", Const::make(c,n)}});
+      Wireable* sub_01 = def->addInstance("sub01",sub2,{{"width", Const::make(c,n)}});
+      Wireable* sub_1 = def->addInstance("sub1",sub2,{{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in")->sel(0), sub_00->sel("in0"));
       def->connect(self->sel("in")->sel(1), sub_00->sel("in1"));
@@ -315,8 +425,9 @@ namespace CoreIR {
       def->connect(sub_1->sel("out"),self->sel("out"));
       sub4_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sub4_n, g);
@@ -350,7 +461,7 @@ namespace CoreIR {
       ModuleDef* def = mul_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* mul = def->addInstance("mul1", mul2, {{"width", Const(n)}});
+      Wireable* mul = def->addInstance("mul1", mul2, {{"width", Const::make(c,n)}});
     
       def->connect(self->sel("in")->sel(0), mul->sel("in0"));
       def->connect(self->sel("in")->sel(1), mul->sel("in1"));
@@ -358,8 +469,9 @@ namespace CoreIR {
       def->connect(mul->sel("out"), self->sel("out"));
       mul_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(mul_n, g);
@@ -392,8 +504,8 @@ namespace CoreIR {
       ModuleDef* def = cM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const(n)}});
-      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const(n)}});
+      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const::make(c,n)}});
+      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const::make(c,n)}});
 
 
       def->connect(self->sel("a"), add0->sel("in0"));
@@ -406,8 +518,9 @@ namespace CoreIR {
 
       cM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(cM, g);
@@ -437,7 +550,7 @@ namespace CoreIR {
       ModuleDef* def = andM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const(n)}});
+      Wireable* and0 = def->addInstance("and0", andG, {{"width", Const::make(c,n)}});
 
       def->connect("self.input.0", "and0.in0");
       def->connect("self.input.1", "and0.in1");
@@ -445,8 +558,9 @@ namespace CoreIR {
 
       andM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(andM, g);
@@ -497,7 +611,7 @@ namespace CoreIR {
       ModuleDef* def = addM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const(n)}});
+      Wireable* add0 = def->addInstance("add0", addG, {{"width", Const::make(c,n)}});
 
       def->connect("self.input.0", "add0.in0");
       def->connect("self.input.1", "add0.in1");
@@ -505,8 +619,9 @@ namespace CoreIR {
 
       addM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(addM, g);
@@ -548,7 +663,7 @@ namespace CoreIR {
       ModuleDef* def = neg_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const(n)}});
+      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const::make(c,n)}});
 
       def->connect(self->sel("A"), neg0->sel("in"));
 
@@ -556,8 +671,9 @@ namespace CoreIR {
 
       neg_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -607,7 +723,7 @@ namespace CoreIR {
       ModuleDef* def = neg_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const(n)}});
+      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const::make(c,n)}});
 
       def->connect(self->sel("A"), neg0->sel("in"));
 
@@ -615,8 +731,9 @@ namespace CoreIR {
 
       neg_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -641,8 +758,10 @@ namespace CoreIR {
       Generator* neg = c->getGenerator("coreir.not");
 
       Type* neg2Type = c->Record({
-	  {"in",    c->Array(2, c->Array(n,c->BitIn()))},
-	    {"out", c->Array(2, c->Array(n,c->Bit()))}
+	  {"in0",    c->Array(n,c->BitIn())},
+	    {"in1",    c->Array(n,c->BitIn())},
+	      {"out0", c->Array(n,c->Bit())},
+		{"out1", c->Array(n,c->Bit())},
 	});
 
       Module* neg_n = g->newModuleDecl("two_negs", neg2Type);
@@ -650,19 +769,20 @@ namespace CoreIR {
       ModuleDef* def = neg_n->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const(n)}});
-      Wireable* neg1 = def->addInstance("neg1", neg, {{"width", Const(n)}});
+      Wireable* neg0 = def->addInstance("neg0", neg, {{"width", Const::make(c,n)}});
+      Wireable* neg1 = def->addInstance("neg1", neg, {{"width", Const::make(c,n)}});
 
-      def->connect(self->sel("in")->sel(0), neg0->sel("in"));
-      def->connect(self->sel("in")->sel(1), neg1->sel("in"));
+      def->connect(self->sel("in0"), neg0->sel("in"));
+      def->connect(self->sel("in1"), neg1->sel("in"));
 
-      def->connect(neg0->sel("out"), self->sel("out")->sel(0));
-      def->connect(neg1->sel("out"), self->sel("out")->sel(1));
+      def->connect(neg0->sel("out"), self->sel("out0"));
+      def->connect(neg1->sel("out"), self->sel("out1"));
 
       neg_n->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -671,13 +791,29 @@ namespace CoreIR {
       buildOrderedGraph(neg_n, g);
 
       SECTION("Checking graph size") {
-	REQUIRE(numVertices(g) == 4);
+	REQUIRE(numVertices(g) == 6);
       }
 
-      deque<vdisc> topoOrder = topologicalSort(g);
+      SECTION("Printing single threaded code") {
+	deque<vdisc> topoOrder = topologicalSort(g);
+	int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs");
+	REQUIRE(s == 0);
+      }
 
-      int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs");
-      REQUIRE(s == 0);
+      SECTION("Printing multithreaded code") {
+	colorConnectedComponents(g);
+	deque<vdisc> topoOrder = topologicalSort(g);
+
+	for (auto& vd : topoOrder) {
+	  WireNode wd = g.getNode(vd);
+	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+	}
+
+	int s = compileCode(topoOrder, g, neg_n, "./gencode/", "two_negs_parallel");
+	REQUIRE(s == 0);
+	
+      }
+
       
     }
 
@@ -700,7 +836,7 @@ namespace CoreIR {
       for (int i = 0; i < 2; i++) {
 	for (int j = 0; j < 3; j++) {
 	  string str = "add" + to_string(i) + "_" + to_string(j);
-	  Wireable* addInst = def->addInstance(str, add, {{"width", Const(n)}});
+	  Wireable* addInst = def->addInstance(str, add, {{"width", Const::make(c,n)}});
 
 	  def->connect(self->sel("A")->sel(i)->sel(j), addInst->sel("in0"));
 	  def->connect(self->sel("B")->sel(i)->sel(j), addInst->sel("in1"));
@@ -711,9 +847,10 @@ namespace CoreIR {
 
       addM->setDef(def);
       
-	      
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       Type* t = addM->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -753,7 +890,7 @@ namespace CoreIR {
       ModuleDef* def = eqM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* eq0 = def->addInstance("eq0", eq, {{"width", Const(n)}});
+      Wireable* eq0 = def->addInstance("eq0", eq, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "eq0.in0");
       def->connect("self.A.1", "eq0.in1");
@@ -761,8 +898,9 @@ namespace CoreIR {
 
       eqM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(eqM, g);
@@ -788,7 +926,7 @@ namespace CoreIR {
       ModuleDef* def = sleM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* sle0 = def->addInstance("sle0", sle, {{"width", Const(n)}});
+      Wireable* sle0 = def->addInstance("sle0", sle, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "sle0.in0");
       def->connect("self.A.1", "sle0.in1");
@@ -796,8 +934,9 @@ namespace CoreIR {
 
       sleM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sleM, g);
@@ -837,7 +976,7 @@ namespace CoreIR {
       ModuleDef* def = ugtM->newModuleDef();
 
       Wireable* self = def->sel("self");
-      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const(n)}});
+      Wireable* ugt0 = def->addInstance("ugt0", ugt, {{"width", Const::make(c, n)}});
 
       def->connect("self.A.0", "ugt0.in0");
       def->connect("self.A.1", "ugt0.in1");
@@ -845,8 +984,9 @@ namespace CoreIR {
 
       ugtM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(ugtM, g);
@@ -881,7 +1021,7 @@ namespace CoreIR {
       Generator* mux = c->getGenerator("coreir.mux");
 
       Wireable* self = def->sel("self");
-      Wireable* mux0 = def->addInstance("mux0", mux, {{"width", Const(n)}});
+      Wireable* mux0 = def->addInstance("mux0", mux, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "mux0.in0");
       def->connect("self.A.1", "mux0.in1");
@@ -890,8 +1030,9 @@ namespace CoreIR {
 
       muxM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(muxM, g);
@@ -925,7 +1066,7 @@ namespace CoreIR {
       Generator* dshl = c->getGenerator("coreir.shl");
 
       Wireable* self = def->sel("self");
-      Wireable* dshl0 = def->addInstance("dshl0", dshl, {{"width", Const(n)}});
+      Wireable* dshl0 = def->addInstance("dshl0", dshl, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "dshl0.in0");
       def->connect("self.A.1", "dshl0.in1");
@@ -933,8 +1074,9 @@ namespace CoreIR {
 
       dshlM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dshlM, g);
@@ -968,7 +1110,7 @@ namespace CoreIR {
       Generator* dashr = c->getGenerator("coreir.ashr");
 
       Wireable* self = def->sel("self");
-      Wireable* dashr0 = def->addInstance("dashr0", dashr, {{"width", Const(n)}});
+      Wireable* dashr0 = def->addInstance("dashr0", dashr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "dashr0.in0");
       def->connect("self.A.1", "dashr0.in1");
@@ -976,8 +1118,9 @@ namespace CoreIR {
 
       dashrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dashrM, g);
@@ -1011,7 +1154,7 @@ namespace CoreIR {
       Generator* dlshr = c->getGenerator("coreir.lshr");
 
       Wireable* self = def->sel("self");
-      Wireable* dlshr0 = def->addInstance("dlshr0", dlshr, {{"width", Const(n)}});
+      Wireable* dlshr0 = def->addInstance("dlshr0", dlshr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "dlshr0.in0");
       def->connect("self.A.1", "dlshr0.in1");
@@ -1019,8 +1162,9 @@ namespace CoreIR {
 
       dlshrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dlshrM, g);
@@ -1053,7 +1197,7 @@ namespace CoreIR {
       Generator* udiv = c->getGenerator("coreir.udiv");
 
       Wireable* self = def->sel("self");
-      Wireable* udiv0 = def->addInstance("udiv0", udiv, {{"width", Const(n)}});
+      Wireable* udiv0 = def->addInstance("udiv0", udiv, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "udiv0.in0");
       def->connect("self.A.1", "udiv0.in1");
@@ -1061,8 +1205,9 @@ namespace CoreIR {
 
       udivM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(udivM, g);
@@ -1096,7 +1241,7 @@ namespace CoreIR {
       Generator* urem = c->getGenerator("coreir.urem");
 
       Wireable* self = def->sel("self");
-      Wireable* urem0 = def->addInstance("urem0", urem, {{"width", Const(n)}});
+      Wireable* urem0 = def->addInstance("urem0", urem, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "urem0.in0");
       def->connect("self.A.1", "urem0.in1");
@@ -1104,8 +1249,9 @@ namespace CoreIR {
 
       uremM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(uremM, g);
@@ -1139,7 +1285,7 @@ namespace CoreIR {
       Generator* srem = c->getGenerator("coreir.srem");
 
       Wireable* self = def->sel("self");
-      Wireable* srem0 = def->addInstance("srem0", srem, {{"width", Const(n)}});
+      Wireable* srem0 = def->addInstance("srem0", srem, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "srem0.in0");
       def->connect("self.A.1", "srem0.in1");
@@ -1147,8 +1293,9 @@ namespace CoreIR {
 
       sremM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sremM, g);
@@ -1182,7 +1329,7 @@ namespace CoreIR {
       Generator* sdiv = c->getGenerator("coreir.sdiv");
 
       Wireable* self = def->sel("self");
-      Wireable* sdiv0 = def->addInstance("sdiv0", sdiv, {{"width", Const(n)}});
+      Wireable* sdiv0 = def->addInstance("sdiv0", sdiv, {{"width", Const::make(c,n)}});
 
       def->connect("self.A.0", "sdiv0.in0");
       def->connect("self.A.1", "sdiv0.in1");
@@ -1190,8 +1337,9 @@ namespace CoreIR {
 
       sdivM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sdivM, g);
@@ -1225,15 +1373,16 @@ namespace CoreIR {
       Generator* orr = c->getGenerator("coreir.orr");
 
       Wireable* self = def->sel("self");
-      Wireable* orr0 = def->addInstance("orr0", orr, {{"width", Const(n)}});
+      Wireable* orr0 = def->addInstance("orr0", orr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A", "orr0.in");
       def->connect(orr0->sel("out"), self->sel("out"));
 
       orrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(orrM, g);
@@ -1266,15 +1415,16 @@ namespace CoreIR {
       Generator* andr = c->getGenerator("coreir.andr");
 
       Wireable* self = def->sel("self");
-      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const(n)}});
+      Wireable* andr0 = def->addInstance("andr0", andr, {{"width", Const::make(c,n)}});
 
       def->connect("self.A", "andr0.in");
       def->connect(andr0->sel("out"), self->sel("out"));
 
       andrM->setDef(def);
 
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(andrM, g);
@@ -1305,9 +1455,10 @@ namespace CoreIR {
 
       Module* mainMod = c->getModule("global.main");
 
-      
-      RunGenerators rg;
-      rg.runOnNamespace(g);
+
+      c->runPasses({"rungenerators"});
+      // RunGenerators rg;
+      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(mainMod, g);

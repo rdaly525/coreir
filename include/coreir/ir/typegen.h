@@ -2,35 +2,32 @@
 #define COREIR_TYPEGEN_HPP_
 
 #include "fwd_declare.h"
+#include "refname.h"
 
 namespace CoreIR {
 
-class TypeGen {
-  Namespace* ns;
-  std::string name;
+class TypeGen : public RefName {
   Params params;
   bool flipped;
   //TODO maybe cache the types based off the args
   public:
-    TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : ns(ns), name(name), params(params), flipped(flipped) {}
+    TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : RefName(ns,name), params(params), flipped(flipped) {}
     virtual ~TypeGen() {}
-    virtual Type* createType(Context* c, Args args) = 0;
-    Type* getType(Args args);
-    Namespace* getNamespace() const {return ns;}
-    const std::string& getName() const {return name;}
+    virtual Type* createType(Context* c, Values args) = 0;
+    Type* getType(Values genargs); //TODO change this to a functor
     Params getParams() const {return params;}
     bool isFlipped() const { return flipped;}
 };
 
 //Notice, the base class does the flipping for you in the function computeType
 class TypeGenFromFun : public TypeGen {
-  TypeGenFun fun;
-  
-  public:
+  public :
     TypeGenFromFun(Namespace* ns, std::string name, Params params, TypeGenFun fun, bool flipped=false) : TypeGen(ns,name,params,flipped), fun(fun) {}
-    Type* createType(Context* c, Args args) {
-      return fun(c,args);
+    Type* createType(Context* c, Values genargs) override {
+      return fun(c,genargs);
     }
+  private :
+    TypeGenFun fun;
 };
 
 }// CoreIR

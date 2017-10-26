@@ -5,6 +5,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/error.h"
 #include "coreir/ir/typegen.h"
+#include "coreir/ir/value.h"
 
 using namespace std;
 
@@ -71,15 +72,15 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(TK_Named,DK_Mixed,c) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),ns->getContext()), RefName(ns,name), raw(raw) {}
+NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,ns->getContext()), RefName(ns,name), typegen(typegen), genargs(genargs) {
   //Check args here.
-  checkArgsAreParams(genargs,typegen->getParams());
+  checkValuesAreParams(genargs,typegen->getParams());
 
   //Run the typegen
   raw = typegen->getType(genargs);
   dir = raw->getDir();
 }
-string NamedType::getRefName() {return ns->getName() + "." + name;}
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
@@ -104,10 +105,9 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
 Type* RecordType::appendField(string label, Type* t) {
   ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
   
-  //TODO this was annoying to write. I should fix up the whole myPair thing
-  RecordParams newParams({myPair<string,Type*>(label,t)});
+  RecordParams newParams({{label,t}});
   for (auto rparam : this->getRecord()) {
-    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
+    newParams.push_back({rparam.first,rparam.second});
   }
   return c->Record(newParams);
 }
@@ -115,11 +115,10 @@ Type* RecordType::appendField(string label, Type* t) {
 Type* RecordType::detachField(string label) {
   ASSERT(this->getRecord().count(label)==1,"Cannot detach" + label + " from type: " + this->toString());
   
-  //TODO this was annoying to write. I should fix up the whole myPair thing
   RecordParams newParams;
   for (auto rparam : this->getRecord()) {
     if (rparam.first == label) continue;
-    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
+    newParams.push_back({rparam.first,rparam.second});
   }
   return c->Record(newParams);
 }

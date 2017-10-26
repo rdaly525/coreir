@@ -29,7 +29,7 @@ namespace CoreIR {
     out << code;
     out.close();
 
-    string runCmd = "clang++ -std=c++11 -c " + outFile;
+    string runCmd = "clang++ -lpthread -std=c++11 -c " + outFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -46,7 +46,7 @@ namespace CoreIR {
 		  const std::string& hFile) {
 
     string codeStr = printCode(topoOrder, g, mod, hFile);
-    string hStr = printDecl(mod, hFile);
+    string hStr = printDecl(mod, g);
 
     string codeFilePath = codePath + codeFile;
     string hFilePath = codePath + hFile;
@@ -68,7 +68,7 @@ namespace CoreIR {
 		  const std::string& hFile) {
 
     string codeStr = printCode(topoOrder, g, mod, hFile);
-    string hStr = printDecl(mod, hFile);
+    string hStr = printDecl(mod, g);
 
     std::ofstream out(codeFile);
     out << codeStr;
@@ -94,7 +94,7 @@ namespace CoreIR {
 
     string codeFilePath = outDir + codeFile;
   
-    string runCmd = "clang++ -std=c++11 -c " + codeFilePath;
+    string runCmd = "clang++ -lpthread -std=c++11 -c " + codeFilePath;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -109,18 +109,6 @@ namespace CoreIR {
 			const std::string& baseFileName,
 			const std::string& harnessFile) {
 
-    // writeBitVectorLib();    
-
-    // string hFile = outFile + ".h";
-    // string codeFile = outFile + ".cpp";
-
-    // writeFiles(topoOrder, g, mod, "", codeFile, hFile);
-  
-    // string runCmd = "clang++ -std=c++11 " + codeFile + " " + harnessFile;
-    // int s = system(runCmd.c_str());
-
-    // cout << "Command result = " << s << endl;
-
     writeBitVectorLib();    
 
     string hFile = baseFileName + ".h";
@@ -131,7 +119,7 @@ namespace CoreIR {
     string codeFilePath = outDir + codeFile;
 
     string harnessFilePath = outDir + harnessFile;
-    string runCmd = "clang++ -std=c++11 " + codeFilePath + " " + harnessFilePath;
+    string runCmd = "clang++ -lpthread -std=c++11 " + codeFilePath + " " + harnessFilePath;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -154,7 +142,7 @@ namespace CoreIR {
     out << code;
     out.close();
 
-    string runCmd = "clang++ -std=c++11 " + outFile + " " + harnessFile;
+    string runCmd = "clang++ -lpthread -std=c++11 " + outFile + " " + harnessFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;

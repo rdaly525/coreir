@@ -11,13 +11,13 @@
         }],
         "instances":{
           "inst0":{
-            "modref":"coreir.bitand"
+            "modref":"corebit.and"
           },
           "inst1":{
-            "modref":"coreir.bitand"
+            "modref":"corebit.and"
           },
           "inst2":{
-            "modref":"coreir.bitand"
+            "modref":"corebit.and"
           },
           "inst3":{
             "modref":"global.fold_or3None"
@@ -43,8 +43,8 @@
         }],
         "instances":{
           "bit_const_GND":{
-            "modref":"coreir.bitconst",
-            "configargs":{"value":0}
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool", false]}
           },
           "inst0":{
             "modref":"global.fold_xor3None"
@@ -147,10 +147,10 @@
         }],
         "instances":{
           "inst0":{
-            "modref":"coreir.bitor"
+            "modref":"corebit.or"
           },
           "inst1":{
-            "modref":"coreir.bitor"
+            "modref":"corebit.or"
           }
         },
         "connections":[
@@ -170,10 +170,10 @@
         }],
         "instances":{
           "inst0":{
-            "modref":"coreir.bitxor"
+            "modref":"corebit.xor"
           },
           "inst1":{
-            "modref":"coreir.bitxor"
+            "modref":"corebit.xor"
           }
         },
         "connections":[

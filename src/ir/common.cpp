@@ -1,6 +1,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/wireable.h"
-#include "coreir/ir/args.h"
+#include "coreir/ir/value.h"
+#include "coreir/ir/instantiable.h"
 //#include <sstream>
 //#include <iterator>
 
@@ -16,14 +17,14 @@ bool isPower2(uint n) {
 
 bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
   if (l.size() != r.size()) {
-    return l.size() > r.size();
+    return l.size() < r.size();
   }
   for (uint i=0; i<l.size(); ++i) {
-    if (l[i] != r[i]) return l[i] > r[i];
+    if (l[i] != r[i]) return l[i] < r[i];
   }
-  return true;
+  return false;
 }
-bool ConnectionComp::operator() (const Connection& l, const Connection& r) {
+bool ConnectionComp::operator() (const Connection& l, const Connection& r) const {
   if (l.first!=r.first) return SPComp(l.first->getSelectPath(),r.first->getSelectPath());
   return SPComp(l.second->getSelectPath(),r.second->getSelectPath());
 }
@@ -37,40 +38,26 @@ Connection connectionCtor(Wireable* a, Wireable* b) {
   }
 }
 
-
-string Param2Str(Param genparam) {
-  switch(genparam) {
-    case ABOOL : return "bool";
-    case AINT : return "int";
-    case ASTRING : return "string";
-    case ATYPE : return "type";
-    default : break;
-  }
-  ASSERT(0,"NYI Param=" + to_string(genparam));
-}
-Param Str2Param(string s) {
-  if (s=="bool") return ABOOL;
-  if (s=="int") return AINT;
-  if (s=="string") return ASTRING;
-  if (s=="type") return ATYPE;
-  throw std::runtime_error("Cannot convert " + s + " to Param");
-}
-
-string Params2Str(Params genparams) {
+string Params2Str(Params genparams, bool multi) {
   string ret = "(";
-  for (auto it=genparams.begin(); it!=genparams.end(); ++it) {
-    ret = ret + (it==genparams.begin() ? "" : ",") + it->first + ":"+Param2Str(it->second);
+  vector<string> plist;
+  for (auto gpair : genparams) {
+    plist.push_back(gpair.first + ":" + gpair.second->toString());
   }
-  return ret + ")";
+  string sep = multi ? ",\n  " : ", ";
+  return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
 
-string Args2Str(Args args) {
-  string s = "(";
-  for (auto it=args.begin(); it!=args.end(); ++it) {
-    s = s + (it==args.begin() ? "" : ",") + it->first + ":"+it->second->toString();
+string Values2Str(Values vals, bool multi) {
+  string ret = "(";
+  vector<string> plist;
+  for (auto vpair : vals) {
+    plist.push_back(vpair.first + ":" + vpair.second->toString());
   }
-  return s + ")";
+  string sep = multi ? ",\n  " : ", ";
+  return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
+
 string SelectPath2Str(SelectPath path) {
   return join(path.begin(),path.end(),string("."));
 }
@@ -79,12 +66,27 @@ string Connection2Str(Connection con) {
   return con.first->toString() + " <=> " + con.second->toString();
 }
 
-void checkArgsAreParams(Args args, Params params) {
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Args2Str(args) + "\nParams: " + Params2Str(params));
+std::string Inst2Str(Instance* inst) {
+  string ret = inst->getInstname();
+  if (inst->isGen()) { 
+    ret = ret + Values2Str(inst->getGenArgs());
+  }
+  return ret + Values2Str(inst->getModArgs()) + " : " + inst->getInstantiableRef()->getRefName();
+}
+
+void checkValuesAreParams(Values args, Params params) {
+  bool multi = args.size() > 4 || params.size() > 4;
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args,multi) + "\nParams: " + Params2Str(params,multi));
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Arg Not found: " + param.first );
-    ASSERT(arg->second->getKind() == param.second,"Param type mismatch for: " + param.first + " (" + Param2Str(arg->second->getKind())+ " vs " + Param2Str(param.second)+")");
+    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + Params2Str(params) + "\nBut only gave:" + Values2Str(args));
+    ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
+  }
+}
+
+void checkValuesAreConst(Values vs) {
+  for (auto v : vs) {
+    ASSERT(isa<Const>(v.second),v.first + " Needs to be a const!");
   }
 }
 
@@ -100,7 +102,7 @@ bool hasChar(const std::string s, char c) {
 }
 
 //merge a1 into a0
-void mergeArgs(Args& a0, Args a1) {
+void mergeValues(Values& a0, Values a1) {
   for (auto arg : a1) {
     if (a0.count(arg.first)==0) {
       a0.insert(arg);

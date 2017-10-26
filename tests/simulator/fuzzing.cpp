@@ -59,6 +59,7 @@ namespace CoreIR {
   }
 
   std::string declareInputs(Module& mod) {
+    //    assert(false);
     string res;
 
     auto args = sortedSimArgumentPairs(mod); //simInputs(mod);
@@ -169,7 +170,7 @@ namespace CoreIR {
     cout << "Done generating harness" << endl;
 
     string codeFilePath = codeDir + codeFile;
-    string runCmd = "clang++ -std=c++11 " + codeFilePath + " " + harnessFile;
+    string runCmd = "clang++ -lpthread -std=c++11 " + codeFilePath + " " + harnessFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
