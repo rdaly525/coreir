@@ -7,6 +7,7 @@
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir/simulator/interpreter.h"
+#include "coreir/libs/commonlib.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -159,7 +160,9 @@ int main(int argc, char *argv[]) {
     c->setTop(topRef);
   }
 
-  c->runPasses({"rungenerators","flattentypes","flatten"});
+  CoreIRLoadLibrary_commonlib(c);
+
+  c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});
 
   SimulatorState state(top);
 
