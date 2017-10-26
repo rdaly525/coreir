@@ -188,6 +188,8 @@ namespace CoreIR {
 
     void setMainClock(const std::string& val);
 
+    bool hasMainClock() const { return mainClock != nullptr; }
+
     bool rewind(const int halfCycles);
 
     CoreIR::Select* findSelect(const std::string& name) const;

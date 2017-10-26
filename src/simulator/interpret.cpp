@@ -1256,6 +1256,11 @@ namespace CoreIR {
     circStates.push_back(next);
     stateIndex++;
 
+    if (hasMainClock()) {
+      ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
+      setValue(mainClock, clockCopy);
+    }
+
     vector<vdisc> unsetIns = unsetInputs();
     if (unsetIns.size() > 0) {
       cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;

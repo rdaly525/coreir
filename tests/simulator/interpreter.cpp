@@ -418,7 +418,8 @@ namespace CoreIR {
 
           state.rewind(3);
 
-          int newCount = clk->getHalfCycleCount();
+          ClockValue* clockAfterRewind = toClock(state.getValue("self.clk"));
+          int newCount = clockAfterRewind->getHalfCycleCount();
 
           REQUIRE(newCount == (oldCount - 3));
         }
