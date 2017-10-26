@@ -60,10 +60,11 @@ namespace CoreIR {
   class ClockValue : public SimValue {
   protected:
     unsigned char lastVal, val;
+    int halfCycleCount;
 
   public:
     ClockValue(const unsigned char lastVal_,
-	       const unsigned char val_) : lastVal(lastVal_), val(val_) {}
+	       const unsigned char val_) : lastVal(lastVal_), val(val_), halfCycleCount(0) {}
 
     unsigned char value() const { return val; }
     unsigned char lastValue() const { return lastVal; }
@@ -72,7 +73,11 @@ namespace CoreIR {
       unsigned char tmp = lastVal;
       lastVal = val;
       val = tmp;
+      halfCycleCount++;
     }
+
+    int getCycleCount() const { return halfCycleCount / 2; }
+    int getHalfCycleCount() const { return halfCycleCount; }
 
     virtual SimValueType getType() const { return SIM_VALUE_CLK; }
   };

@@ -300,7 +300,6 @@ namespace CoreIR {
 
       SECTION("Count from zero, enable set") {
 
-    	//state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
     	state.setValue("self.en", BitVec(1, 1));
     	state.setClock("self.clk", 0, 1);
@@ -374,7 +373,7 @@ namespace CoreIR {
       }
 
       SECTION("Enable on") {
-    	//state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 400));
+
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
     	state.setClock("self.clk", 1, 0);
@@ -387,7 +386,7 @@ namespace CoreIR {
       }
 
       SECTION("Setting watchpoint") {
-        //state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 0));
+
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
         state.setClock("self.clk", 1, 0);
         state.setValue("self.en", BitVec(1, 1));
@@ -409,6 +408,19 @@ namespace CoreIR {
           cout << "state index after rewind  = " << state.getStateIndex() << endl;
 
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 9));
+        }
+
+        SECTION("Rewinding the changes clock cycle count") {
+
+          ClockValue* clk = toClock(state.getValue("self.clk"));
+
+          int oldCount = clk->getHalfCycleCount();
+
+          state.rewind(3);
+
+          int newCount = clk->getHalfCycleCount();
+
+          REQUIRE(newCount == (oldCount - 3));
         }
 
         SECTION("Setting a value after rewinding reverts all earlier states") {

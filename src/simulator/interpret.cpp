@@ -1253,7 +1253,6 @@ namespace CoreIR {
     //start = clock();
 
     CircuitState next = circStates[stateIndex];
-
     circStates.push_back(next);
     stateIndex++;
 
