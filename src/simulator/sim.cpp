@@ -847,8 +847,13 @@ namespace CoreIR {
 
         Context* c = mod.getDef()->getContext();
 
-        uint width = 16;
-        uint depth = 2;
+        Values args = is->getGenArgs();
+
+        auto wArg = args["width"];
+        auto dArg = args["depth"];
+        
+        uint width = wArg->get<int>(); //16;
+        uint depth = dArg->get<int>();
         Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
         declStrs.push_back({elemType, is->toString()});
 
