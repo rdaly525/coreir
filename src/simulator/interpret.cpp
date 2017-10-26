@@ -1258,6 +1258,7 @@ namespace CoreIR {
 
     if (hasMainClock()) {
       ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
+      allocatedValues.insert(clockCopy);
       setValue(mainClock, clockCopy);
     }
 
