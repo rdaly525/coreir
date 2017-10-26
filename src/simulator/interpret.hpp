@@ -188,13 +188,12 @@ namespace CoreIR {
     bool hitWatchPoint() const;
 
     void setMainClock(const std::string& val);
-    //<<<<<<< HEAD
+
     void setMainClock(CoreIR::Select* s);
 
     bool hasMainClock() const { return mainClock != nullptr; }
-// =======
+
     void setMainClock(const std::vector<std::string>& path);
-// >>>>>>> upstream/dev
 
     bool rewind(const int halfCycles);
 
