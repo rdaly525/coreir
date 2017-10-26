@@ -231,9 +231,14 @@ namespace CoreIR {
 
   void SimulatorState::setMainClock(const std::string& val) {
     Select* s = findSelect(val);
-    mainClock = s;
+    setMainClock(s);
+
   }
 
+  void SimulatorState::setMainClock(CoreIR::Select* s) {
+    mainClock = s;
+  }
+  
   void SimulatorState::setMainClock(const std::vector<std::string>& path) {
     std::string name = concatInlined(path);
     setMainClock(name);
@@ -368,6 +373,46 @@ namespace CoreIR {
     }
   }
 
+  void SimulatorState::findMainClock() {
+
+    vector<Select*> clockInputs;
+
+    for (auto& vd : getCircuitGraph().getVerts()) {
+
+      WireNode w = getCircuitGraph().getNode(vd);
+
+      if (isGraphInput(w)) {
+
+        Select* inSel = toSelect(w.getWire());
+        Type* tp = inSel->getType();
+        cout << inSel->toString() << " has type " << tp->toString() << endl;
+        if (tp->getKind() == CoreIR::Type::TK_Named) {
+          NamedType* ntp = static_cast<NamedType*>(tp);
+
+          if (ntp->toString() == "coreir.clk") {
+            clockInputs.push_back(inSel);
+          }
+        }
+
+      }
+      
+    }
+
+    if (clockInputs.size() > 1) {
+      cout << "ERROR: Circuit has " << clockInputs.size() << " clocks, but this simulator currently supports only one" << endl;
+      cout << "The clocks are " << endl;
+      for (auto& clk : clockInputs) {
+        cout << clk->toString() << endl;
+      }
+      assert(false);
+    }
+
+    if (clockInputs.size() == 1) {
+      cout << "Setting main clock = " << clockInputs[0]->toString() << endl;
+      setMainClock(clockInputs[0]);
+    }
+  }
+
   SimulatorState::SimulatorState(CoreIR::Module* mod_) :
     mod(mod_), mainClock(nullptr) {
 
@@ -401,6 +446,8 @@ namespace CoreIR {
     CircuitState init;
     circStates = {init};
     stateIndex = 0;
+
+    findMainClock();
 
     setConstantDefaults();
     setMemoryDefaults();
@@ -1264,7 +1311,6 @@ namespace CoreIR {
     //start = clock();
 
     CircuitState next = circStates[stateIndex];
-
     circStates.push_back(next);
     stateIndex++;
 
@@ -1275,6 +1321,12 @@ namespace CoreIR {
         cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
       }
       return;
+    }
+
+    if (hasMainClock()) {
+      ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
+      allocatedValues.insert(clockCopy);
+      setValue(mainClock, clockCopy);
     }
 
     //end = clock();
