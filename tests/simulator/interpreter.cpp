@@ -984,33 +984,11 @@ namespace CoreIR {
       state.setValue("self.in_0", BitVector(16, "1010110101010111"));
       state.setClock("self.clk", 0, 1);
 
-      state.runHalfCycle();
+      for (int i = 0; i < 10; i++) {
+        state.runHalfCycle();
+      }
 
       REQUIRE(state.isSet("self.out"));
-
-      // state.setValue("self.I", BitVector(8, "10010011"));
-
-      // cout << "# of nodes in circuit = " << state.getCircuitGraph().getVerts().size() << endl;
-
-      // BitVector one(16, "1");
-      // BitVector nextIn(16, "0");
-
-      // std::clock_t start, end;
-
-      // start = std::clock();
-
-      // state.execute();
-
-      // end = std::clock();
-
-      // std::cout << "Done. Time to simulate = "
-      //   	<< (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-      //   	<< std::endl;
-
-      
-      // cout << "out = " << state.getBitVec("self.O") << endl;
-
-      // REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
       
     }
 
