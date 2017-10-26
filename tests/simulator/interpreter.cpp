@@ -392,7 +392,7 @@ namespace CoreIR {
         state.setValue("self.en", BitVec(1, 1));
 
         state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
-        state.setMainClock("self.clk");
+        //state.setMainClock("self.clk");
 
         state.run();
 
@@ -641,7 +641,7 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "11"));
       state.setValue("self.wen", BitVector(1, "1"));
-      state.setMainClock("self.clk");
+      //state.setMainClock("self.clk");
       state.setClock("self.clk", 0, 1);
 
       // SECTION("Before execution valid is 0") {

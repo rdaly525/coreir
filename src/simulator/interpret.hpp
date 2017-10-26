@@ -171,6 +171,7 @@ namespace CoreIR {
 
     int numCircStates() const;
 
+    void findMainClock();
     void setInputDefaults();
     std::vector<vdisc> unsetInputs();
 
@@ -187,6 +188,7 @@ namespace CoreIR {
     bool hitWatchPoint() const;
 
     void setMainClock(const std::string& val);
+    void setMainClock(CoreIR::Select* s);
 
     bool hasMainClock() const { return mainClock != nullptr; }
 
