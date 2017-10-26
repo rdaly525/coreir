@@ -422,6 +422,14 @@ namespace CoreIR {
           int newCount = clockAfterRewind->getHalfCycleCount();
 
           REQUIRE(newCount == (oldCount - 3));
+
+          state.runHalfCycle();
+
+          ClockValue* clockLater = toClock(state.getValue("self.clk"));
+
+          int countLater = clockLater->getHalfCycleCount();
+
+          REQUIRE(countLater == (newCount + 1));
         }
 
         SECTION("Setting a value after rewinding reverts all earlier states") {
