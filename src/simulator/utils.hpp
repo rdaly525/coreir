@@ -224,6 +224,14 @@ namespace CoreIR {
 
   std::string getOpName(CoreIR::Instance& inst);
 
+  static inline std::string getQualifiedOpName(CoreIR::Instance& inst) {
+    std::string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
+      getOpName(inst);
+
+    return opName;
+  }
+
+  
   static inline Generator* getGeneratorRef(Instance& w) {
     auto g = w.getGeneratorRef();
 

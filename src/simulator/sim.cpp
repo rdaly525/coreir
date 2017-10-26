@@ -58,7 +58,7 @@ namespace CoreIR {
     return res;
   }
 
-  string printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
     bool foundValue = false;
 
@@ -68,7 +68,9 @@ namespace CoreIR {
         foundValue = true;
         Value* valArg = arg.second; //.get();
 
-        assert(valArg->getValueType() == inst->getContext()->BitVector(16));
+        cout << "Value type = " << valArg->getValueType()->toString() << endl;
+
+        //assert(valArg->getValueType() == inst->getContext()->BitVector(16));
         //assert(valArg->getKind() == AINT);
 
         //ArgInt* valInt = static_cast<ArgInt*>(valArg);
@@ -83,7 +85,43 @@ namespace CoreIR {
 
     return argStr;
   }
-  
+
+  string printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+
+    bool foundValue = false;
+
+    string argStr = "";
+    for (auto& arg : inst->getModArgs()) {
+      if (arg.first == "value") {
+        foundValue = true;
+        Value* valArg = arg.second; //.get();
+
+        cout << "Value type = " << valArg->getValueType()->toString() << endl;
+
+        assert(valArg->getValueType() == inst->getContext()->Bool());
+        //assert(valArg->getKind() == AINT);
+
+        //ArgInt* valInt = static_cast<ArgInt*>(valArg);
+        bool bv = valArg->get<bool>();
+        stringstream ss;
+        ss << (bv ? "1" : "0");
+        argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
+      }
+    }
+
+    assert(foundValue);
+
+    return argStr;
+  }
+
+  string printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+    if (getQualifiedOpName(*inst) == "corebit.const") {
+      return printBitConstant(inst, vd, g);
+    } else {
+      return printBVConstant(inst, vd, g);
+    }
+  }
+
   string printOpThenMaskBinop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 

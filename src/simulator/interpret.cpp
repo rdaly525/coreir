@@ -10,13 +10,6 @@ namespace CoreIR {
     return ceil(log2(depth)) + 1;
   }
 
-  string getQualifiedOpName(CoreIR::Instance& inst) {
-    string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
-      getOpName(inst);
-
-    return opName;
-  }
-
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
     cout << "bv.bitLength() = " << bv.bitLength() << endl;
     cout << "log2(depth))   = " << log2(depth) << endl;
