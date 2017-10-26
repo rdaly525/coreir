@@ -83,6 +83,15 @@ extern "C" {
       return rcast<COREValueType*>(CoreIRType::make(rcast<Context*>(context)));
   }
 
+  bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes) {
+    Context* context = rcast<Context*>(ctx);
+    vector<string> vec_passes;
+    for (int i = 0; i < num_passes; i++) {
+      vec_passes.emplace_back(passes[i]);
+    }
+    return context->runPasses(vec_passes);
+  }
+
   const char* COREGetInstantiableRefName(COREWireable* iref) {
     const string& name = cast<Instance>(rcast<Wireable*>(iref))->getInstantiableRef()->getName();
     return name.c_str();
