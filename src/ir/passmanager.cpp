@@ -26,6 +26,7 @@ PassManager::PassManager(Context* c) : c(c) {
 
 
 void PassManager::addPass(Pass* p) {
+  p->addPassManager(this);
   ASSERT(passMap.count(p->name) == 0,"Cannot add duplicate \"" + p->name + "\" pass");
   passMap[p->name] = p;
   if (p->isAnalysis) {

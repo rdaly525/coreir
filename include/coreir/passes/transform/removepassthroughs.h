@@ -9,10 +9,8 @@ namespace Passes {
   class RemovePassthroughs : public InstanceVisitorPass {
   public :
     static std::string ID;
-  RemovePassthroughs(Context* c) : InstanceVisitorPass(ID,"Inlines all passthroughs"), c(c) {}
+  RemovePassthroughs() : InstanceVisitorPass(ID,"Inlines all passthroughs") {}
     void setVisitorInfo() override;
-  private: 
-    Context* c;
   };
 
 
