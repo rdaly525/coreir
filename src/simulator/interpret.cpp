@@ -235,10 +235,18 @@ namespace CoreIR {
 
   }
 
+  //<<<<<<< HEAD
   void SimulatorState::setMainClock(CoreIR::Select* s) {
     mainClock = s;
   }
   
+  //=======
+  void SimulatorState::setMainClock(const std::vector<std::string>& path) {
+    std::string name = concatInlined(path);
+    setMainClock(name);
+  }
+
+  //>>>>>>> upstream/dev
   void SimulatorState::setWatchPoint(const std::string& val,
                                      const BitVec& bv) {
 
@@ -300,6 +308,12 @@ namespace CoreIR {
     string concatName = concatInlined(str);
 
     return getBitVec(concatName);
+  }
+
+  void SimulatorState::setWatchPoint(const std::vector<std::string>& path, const BitVec& bv) {
+    string concatName = concatInlined(path);
+
+    return setWatchPoint(concatName, bv);
   }
 
   bool SimulatorState::isSet(const std::string& selStr) const {
@@ -1403,6 +1417,14 @@ namespace CoreIR {
     //        << std::endl;
 
   }
+
+  void SimulatorState::setClock(const std::vector<std::string> &path,
+                                const unsigned char clk_last,
+                                const unsigned char clk) {
+    string name = concatInlined(path);
+    setClock(name, clk_last, clk);
+  }
+
 
   void SimulatorState::setClock(const std::string& name,
                                 const unsigned char clk_last,

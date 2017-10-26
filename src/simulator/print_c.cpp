@@ -106,7 +106,7 @@ namespace CoreIR {
     cout << "ERROR: Unsupported op name = " << genRefName << endl;
 
     assert(false);
-
+    return "";
   }
 
   std::string unSignedCTypeString(Type& tp) {
