@@ -3,6 +3,7 @@
 
 //Analysis passes
 #include "analysis/hellomodule.h"
+#include "analysis/printer.h"
 #include "analysis/createinstancegraph.h"
 #include "analysis/firrtl.h"
 #include "analysis/verilog.h"
@@ -18,6 +19,7 @@
 #include "transform/rungenerators.h"
 #include "transform/flattentypes.h"
 #include "transform/removebulkconnections.h"
+#include "transform/removepassthroughs.h"
 #include "transform/removeunconnected.h"
 #include "transform/liftclockports.h"
 #include "transform/wireclocks.h"
@@ -30,6 +32,7 @@ namespace CoreIR {
     Context* c = pm.getContext();
     //Analysis
     pm.addPass(new Passes::HelloModule());
+    pm.addPass(new Passes::Printer());
     pm.addPass(new Passes::CreateInstanceGraph());
     pm.addPass(new Passes::CreateModInstanceMap());
     pm.addPass(new Passes::CreateFullInstanceMap());
@@ -48,6 +51,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RunGenerators());
     pm.addPass(new Passes::FlattenTypes());
     pm.addPass(new Passes::RemoveBulkConnections());
+    pm.addPass(new Passes::RemovePassthroughs());
     pm.addPass(new Passes::RemoveUnconnected());
     pm.addPass(new Passes::LiftClockPorts("liftclockports-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));

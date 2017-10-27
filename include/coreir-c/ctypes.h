@@ -20,6 +20,9 @@ typedef struct COREDirectedConnection COREDirectedConnection;
 typedef struct COREDirectedModule COREDirectedModule;
 typedef struct COREDirectedInstance COREDirectedInstance;
 
+typedef struct CORESimulatorState CORESimulatorState;
+typedef struct CORESimValue CORESimValue;
+
 typedef enum {
   STR2TYPE_ORDEREDMAP = 0,
   STR2VALUETYPE_MAP = 1,

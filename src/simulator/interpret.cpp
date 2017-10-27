@@ -6,9 +6,16 @@ using namespace std;
 
 namespace CoreIR {
 
+  string getQualifiedOpName(CoreIR::Instance& inst) {
+    string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
+      getOpName(inst);
+
+    return opName;
+  }
+
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
     assert(bv.bitLength() == log2(depth));
-    assert(val.bitLength() == width);
+    assert(val.bitLength() == ((int) width));
 
     values.erase(bv);
     values.insert({bv, val});
@@ -152,10 +159,14 @@ namespace CoreIR {
 
         assert(inst != nullptr);
 
-        string opName = getOpName(*inst);
+        string opName = inst->getModuleRef()->getNamespace()->getName() + "." + getOpName(*inst);
 
-        if ((opName == "const")) {
+        cout << "opName = " << opName << endl;
+
+        if ((opName == "coreir.const")) {
           bool foundValue = false;
+
+          cout << "Found coreir const node " << inst->toString() << endl;
 
           int argInt = 0;
           for (auto& arg : inst->getModArgs()) {
@@ -163,6 +174,7 @@ namespace CoreIR {
               foundValue = true;
               Value* valArg = arg.second; //.get();
 
+              
               BitVector bv = valArg->get<BitVector>();
               argInt = bv.as_native_uint32();
 
@@ -182,17 +194,17 @@ namespace CoreIR {
           ArrayType& arrTp = toArray(*(outSel->getType()));
           
           setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
-        } else if (opName == "bitconst") {
+        } else if (opName == "corebit.const") {
 
           bool foundValue = false;
 
-          int argInt = 0;
+          bool argInt = false;
           for (auto& arg : inst->getModArgs()) {
             if (arg.first == "value") {
               foundValue = true;
               Value* valArg = arg.second; //.get();
 
-              int bv = valArg->get<int>();
+              bool bv = valArg->get<bool>();
               argInt = bv;
 
             }
@@ -209,7 +221,7 @@ namespace CoreIR {
 
           Select* outSel = toSelect(outPair.second);
           
-          setValue(outSel, makeSimBitVector(BitVec(1, argInt)));
+          setValue(outSel, makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
 
         }
       }
@@ -219,7 +231,17 @@ namespace CoreIR {
 
   void SimulatorState::setMainClock(const std::string& val) {
     Select* s = findSelect(val);
+    setMainClock(s);
+
+  }
+
+  void SimulatorState::setMainClock(CoreIR::Select* s) {
     mainClock = s;
+  }
+  
+  void SimulatorState::setMainClock(const std::vector<std::string>& path) {
+    std::string name = concatInlined(path);
+    setMainClock(name);
   }
 
   void SimulatorState::setWatchPoint(const std::string& val,
@@ -263,7 +285,7 @@ namespace CoreIR {
       return str[0];
     }
 
-    for (int i = 0; i < str.size(); i++) {
+    for (uint i = 0; i < str.size(); i++) {
       final += str[i];
       if (i != (str.size() - 1)) {
         final += "$";
@@ -283,6 +305,12 @@ namespace CoreIR {
     string concatName = concatInlined(str);
 
     return getBitVec(concatName);
+  }
+
+  void SimulatorState::setWatchPoint(const std::vector<std::string>& path, const BitVec& bv) {
+    string concatName = concatInlined(path);
+
+    return setWatchPoint(concatName, bv);
   }
 
   bool SimulatorState::isSet(const std::string& selStr) const {
@@ -345,6 +373,46 @@ namespace CoreIR {
     }
   }
 
+  void SimulatorState::findMainClock() {
+
+    vector<Select*> clockInputs;
+
+    for (auto& vd : getCircuitGraph().getVerts()) {
+
+      WireNode w = getCircuitGraph().getNode(vd);
+
+      if (isGraphInput(w)) {
+
+        Select* inSel = toSelect(w.getWire());
+        Type* tp = inSel->getType();
+        cout << inSel->toString() << " has type " << tp->toString() << endl;
+        if (tp->getKind() == CoreIR::Type::TK_Named) {
+          NamedType* ntp = static_cast<NamedType*>(tp);
+
+          if (ntp->toString() == "coreir.clk") {
+            clockInputs.push_back(inSel);
+          }
+        }
+
+      }
+      
+    }
+
+    if (clockInputs.size() > 1) {
+      cout << "ERROR: Circuit has " << clockInputs.size() << " clocks, but this simulator currently supports only one" << endl;
+      cout << "The clocks are " << endl;
+      for (auto& clk : clockInputs) {
+        cout << clk->toString() << endl;
+      }
+      assert(false);
+    }
+
+    if (clockInputs.size() == 1) {
+      cout << "Setting main clock = " << clockInputs[0]->toString() << endl;
+      setMainClock(clockInputs[0]);
+    }
+  }
+
   SimulatorState::SimulatorState(CoreIR::Module* mod_) :
     mod(mod_), mainClock(nullptr) {
 
@@ -356,7 +424,19 @@ namespace CoreIR {
 
     //start = std::clock();
 
+    cout << "Nodes in graph" << endl;
+    for (auto& vd : gr.getVerts()) {
+      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    }
+    cout << "done." << endl;
+    
     topoOrder = topologicalSort(gr);
+
+    cout << "Nodes in sort" << endl;
+    for (auto& vd : topoOrder) {
+      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    }
+    cout << "done." << endl;
 
     //end = std::clock();
 
@@ -367,12 +447,20 @@ namespace CoreIR {
     circStates = {init};
     stateIndex = 0;
 
+    findMainClock();
+
     setConstantDefaults();
     setMemoryDefaults();
     setLinebufferMemDefaults();
     setRegisterDefaults();
+    setDFFDefaults();
+    setInputDefaults();
 
 
+  }
+
+  void SimulatorState::setInputDefaults() {
+    
   }
 
   void SimulatorState::setValue(const std::vector<std::string>& name,
@@ -485,7 +573,7 @@ namespace CoreIR {
 
     BitVec res(hi - lo, 1);
     BitVec sB = s1->getBits();
-    for (int i = lo; i < hi; i++) {
+    for (uint i = lo; i < hi; i++) {
       res.set(i - lo, sB.get(i));
     }
 
@@ -788,58 +876,60 @@ namespace CoreIR {
 
     assert(isInstance(wd.getWire()));
 
-    string opName = getOpName(*toInstance(wd.getWire()));
-    if ((opName == "and") || (opName == "bitand")) {
+    //string opName = getOpName(*toInstance(wd.getWire()));
+    string opName = getQualifiedOpName(*toInstance(wd.getWire()));
+
+    if ((opName == "coreir.and") || (opName == "corebit.and")) {
       updateAndNode(vd);
-    } else if (opName == "eq") {
+    } else if (opName == "coreir.eq") {
       updateEqNode(vd);
-    } else if (opName == "neq") {
+    } else if (opName == "coreir.neq") {
       updateNeqNode(vd);
-    } else if ((opName == "or") || (opName == "bitor")) {
+    } else if ((opName == "coreir.or") || (opName == "corebit.or")) {
       updateOrNode(vd);
-    } else if ((opName == "xor") || (opName == "bitxor")) {
+    } else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
       });
-    } else if (opName == "not") {
+    } else if (opName == "coreir.not") {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
       });
-    } else if (opName == "andr") {
+    } else if (opName == "coreir.andr") {
       updateAndrNode(vd);
-    } else if (opName == "add") {
+    } else if (opName == "coreir.add") {
       updateAddNode(vd);
-    } else if (opName == "sub") {
+    } else if (opName == "coreir.sub") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return sub_general_width_bv(l, r);
       });
-    } else if (opName == "mul") {
+    } else if (opName == "coreir.mul") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return mul_general_width_bv(l, r);
       });
-    } else if ((opName == "const") || (opName == "bitconst")) {
-    } else if (opName == "bitterm") {
-    } else if (opName == "reg") {
-    } else if ((opName == "mem") || (opName == "LinebufferMem")) {
-    } else if (opName == "mux") {
+    } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
+    } else if (opName == "corebit.term") {
+    } else if ((opName == "coreir.reg") || (opName == "corebit.dff")) {
+    } else if ((opName == "coreir.mem") || (opName == "commonlib.LinebufferMem")) {
+    } else if (opName == "coreir.mux") {
       updateMuxNode(vd);
-    } else if (opName == "slice") {
+    } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
-    } else if (opName == "concat") {
+    } else if (opName == "coreir.concat") {
       updateConcatNode(vd);
-    } else if (opName == "lshr") {
+    } else if (opName == "coreir.lshr") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return lshr(l, r);
         });
-    } else if (opName == "ashr") {
+    } else if (opName == "coreir.ashr") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return ashr(l, r);
         });
-    } else if (opName == "shl") {
+    } else if (opName == "coreir.shl") {
        updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
            return shl(l, r);
          });
-    } else if (opName == "ult") {
+    } else if (opName == "coreir.ult") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (l < r) {
             return BitVec(1, 1);
@@ -847,7 +937,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "ule") {
+    } else if (opName == "coreir.ule") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if ((l < r) || (l == r)) {
             return BitVec(1, 1);
@@ -855,7 +945,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "ugt") {
+    } else if (opName == "coreir.ugt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (l > r) {
             return BitVec(1, 1);
@@ -864,7 +954,7 @@ namespace CoreIR {
           }
         });
       
-    } else if (opName == "uge") {
+    } else if (opName == "coreir.uge") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if ((l > r) || (l == r)) {
             return BitVec(1, 1);
@@ -872,7 +962,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "smax") {
+    } else if (opName == "coreir.smax") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gt(l, r) || (l == r)) {
             return l;
@@ -880,7 +970,7 @@ namespace CoreIR {
             return r;
           }
         });
-    } else if (opName == "smin") {
+    } else if (opName == "coreir.smin") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gt(l, r) || (l == r)) {
             return r;
@@ -888,7 +978,7 @@ namespace CoreIR {
             return l;
           }
         });
-    } else if (opName == "sgt") {
+    } else if (opName == "coreir.sgt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gt(l, r)) {
             return BitVec(1, 1);
@@ -896,7 +986,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "sge") {
+    } else if (opName == "coreir.sge") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (signed_gte(l, r)) {
             return BitVec(1, 1);
@@ -904,7 +994,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "slt") {
+    } else if (opName == "coreir.slt") {
 
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (!signed_gte(l, r)) {
@@ -913,7 +1003,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "sle") {
+    } else if (opName == "coreir.sle") {
 
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (!signed_gt(l, r)) {
@@ -922,7 +1012,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-    } else if (opName == "lutN") {
+    } else if (opName == "commonlib.lutN") {
       updateLUTNNode(vd);
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
@@ -1039,6 +1129,33 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::setDFFDefaults() {
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isDFFInstance(wd.getWire())) {
+        Instance* inst = toInstance(wd.getWire());
+
+        Values args = inst->getModArgs();
+
+        bool val = args["init"]->get<bool>();
+
+        setRegister(inst->toString(), BitVec(1, val ? 1 : 0));
+        setValue(inst->sel("out"), getRegister(inst->toString()));
+      }
+    }
+  }
+
+  void SimulatorState::updateDFFOutput(const vdisc vd) {
+    //assert(false);
+    updateRegisterOutput(vd);
+  }
+
+  void SimulatorState::updateDFFValue(const vdisc vd) {
+    //assert(false);
+    updateRegisterValue(vd);
+  }
+  
   void SimulatorState::updateRegisterOutput(const vdisc vd) {
 
     WireNode wd = gr.getNode(vd);
@@ -1163,6 +1280,29 @@ namespace CoreIR {
 
   }
 
+  std::vector<vdisc> SimulatorState::unsetInputs() {
+    NGraph& opGraph = getCircuitGraph();
+    vector<vdisc> unset;
+    for (auto& vd : opGraph.getVerts()) {
+
+      WireNode w = opGraph.getNode(vd);
+
+      if (isGraphInput(w)) {
+
+        Select* inSel = toSelect(w.getWire());
+
+        if (!isSet(inSel)) { //toSelect(sel.second))) {
+          cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+          unset.push_back(vd);
+        }
+
+      }
+
+    }
+
+    return unset;
+  }
+
   void SimulatorState::execute() {
     assert(atLastState());
 
@@ -1171,9 +1311,23 @@ namespace CoreIR {
     //start = clock();
 
     CircuitState next = circStates[stateIndex];
-
     circStates.push_back(next);
     stateIndex++;
+
+    vector<vdisc> unsetIns = unsetInputs();
+    if (unsetIns.size() > 0) {
+      cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;
+      for (auto& vd : unsetIns) {
+        cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
+      }
+      return;
+    }
+
+    if (hasMainClock()) {
+      ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
+      allocatedValues.insert(clockCopy);
+      setValue(mainClock, clockCopy);
+    }
 
     //end = clock();
 
@@ -1200,6 +1354,10 @@ namespace CoreIR {
 
       if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
         updateRegisterOutput(vd);
+      }
+
+      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+        updateDFFOutput(vd);
       }
       
     }
@@ -1243,6 +1401,10 @@ namespace CoreIR {
         }
       }
 
+      if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
+        updateDFFValue(vd);
+      }
+      
     }
 
     // end = clock();
@@ -1252,6 +1414,14 @@ namespace CoreIR {
     //        << std::endl;
 
   }
+
+  void SimulatorState::setClock(const std::vector<std::string> &path,
+                                const unsigned char clk_last,
+                                const unsigned char clk) {
+    string name = concatInlined(path);
+    setClock(name, clk_last, clk);
+  }
+
 
   void SimulatorState::setClock(const std::string& name,
                                 const unsigned char clk_last,

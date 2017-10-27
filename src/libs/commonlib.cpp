@@ -100,31 +100,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   }
 
   /////////////////////////////////
-  // definition of not equal     //
-  /////////////////////////////////
-  Generator* notEqual = commonlib->newGeneratorDecl("neq",coreirprims->getTypeGen("binaryReduce"),{{"width",c->Int()}});
-
-  notEqual->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-    int width = genargs.at("width")->get<int>();
-
-    Namespace* coreirprims = c->getNamespace("coreir");
-    Generator* equal = coreirprims->getGenerator("eq");
-    Module* logicalNot = coreirprims->getModule("bitnot");
-
-    // create necessary hardware
-    Const* aWidth = Const::make(c,width);
-    def->addInstance("equal",equal,{{"width",aWidth}});
-    def->addInstance("not",logicalNot);
-
-    // connect hardware
-    def->connect("self.in0","equal.in0");
-    def->connect("self.in1","equal.in1");
-    def->connect("equal.out","not.in");
-    def->connect("not.out","self.out");
-
-  });
-
-  /////////////////////////////////
   // muxN definition             //
   /////////////////////////////////
 
