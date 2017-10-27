@@ -71,7 +71,6 @@ namespace CoreIR {
         uint width = (args["width"])->get<int>();
 
         // Set memory output port to default
-        //setValue(inst->sel("out"), makeSimBitVector(BitVec(width, 0)));
         setRegister(inst->toString(), BitVec(width, 0));
         setValue(inst->sel("out"), getRegister(inst->toString()));
         
@@ -163,12 +162,8 @@ namespace CoreIR {
 
         string opName = inst->getModuleRef()->getNamespace()->getName() + "." + getOpName(*inst);
 
-        cout << "opName = " << opName << endl;
-
         if ((opName == "coreir.const")) {
           bool foundValue = false;
-
-          cout << "Found coreir const node " << inst->toString() << endl;
 
           int argInt = 0;
           for (auto& arg : inst->getModArgs()) {
@@ -387,7 +382,7 @@ namespace CoreIR {
 
         Select* inSel = toSelect(w.getWire());
         Type* tp = inSel->getType();
-        cout << inSel->toString() << " has type " << tp->toString() << endl;
+
         if (tp->getKind() == CoreIR::Type::TK_Named) {
           NamedType* ntp = static_cast<NamedType*>(tp);
 
@@ -410,7 +405,6 @@ namespace CoreIR {
     }
 
     if (clockInputs.size() == 1) {
-      cout << "Setting main clock = " << clockInputs[0]->toString() << endl;
       setMainClock(clockInputs[0]);
     }
   }
@@ -420,25 +414,23 @@ namespace CoreIR {
 
     buildOrderedGraph(mod, gr);
 
-    cout << "Built graph, topological sorting" << endl;
-
     //std::clock_t start, end;
 
     //start = std::clock();
 
-    cout << "Nodes in graph" << endl;
-    for (auto& vd : gr.getVerts()) {
-      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
-    }
-    cout << "done." << endl;
+    // cout << "Nodes in graph" << endl;
+    // for (auto& vd : gr.getVerts()) {
+    //   cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    // }
+    // cout << "done." << endl;
     
     topoOrder = topologicalSort(gr);
 
-    cout << "Nodes in sort" << endl;
-    for (auto& vd : topoOrder) {
-      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
-    }
-    cout << "done." << endl;
+    // cout << "Nodes in sort" << endl;
+    // for (auto& vd : topoOrder) {
+    //   cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
+    // }
+    // cout << "done." << endl;
 
     //end = std::clock();
 
