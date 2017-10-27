@@ -981,11 +981,13 @@ namespace CoreIR {
       assert(m != nullptr);
 
       SimulatorState state(m);
-      state.setValue("self.in_0", BitVector(16, "1010110101010111"));
-      state.setClock("self.clk", 0, 1);
+      state.setValue("self.in_0", BitVector(16, "0000000000000001"));
+      state.setClock("self.clk", 1, 0);
 
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 30*2*2; i++) {
         state.runHalfCycle();
+        //state.execute();
+        cout << "self.out = " << state.getBitVec("self.out") << endl;
       }
 
       REQUIRE(state.isSet("self.out"));

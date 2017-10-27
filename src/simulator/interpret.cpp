@@ -11,8 +11,8 @@ namespace CoreIR {
   }
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
-    cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    cout << "log2(depth))   = " << log2(depth) << endl;
+    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
+    // cout << "log2(depth))   = " << log2(depth) << endl;
 
     //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
     assert(val.bitLength() == ((int) width));
@@ -22,8 +22,8 @@ namespace CoreIR {
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
-    cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    cout << "log2(depth))   = " << log2(depth) << endl;
+    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
+    // cout << "log2(depth))   = " << log2(depth) << endl;
 
     //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
 
@@ -791,31 +791,17 @@ namespace CoreIR {
 
     Select* inst = toSelect(wd.getWire());
 
-    // Type& t = *(inst->getType());
-    
-    // if (isArray(t)) {
-    //   ArrayType& arrTp = toArray(t);
-    //   int arrLen = arrTp.getLen();
-      
-    //   cout << "Array output of length " << arrLen << "!" << endl;
-    //   assert(false);
-    // }
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 0);
 
     auto inConns = getInputConnections(vd, gr);
 
-    cout << "Output = " << inst->toString() << endl;
-    cout << "# of inputs = " << inConns.size() << endl;
-    //assert(inConns.size() == 1);
-
     for (auto& inConn : inConns) {
-      //Conn inConn = *std::begin(inConns);
+
       InstanceValue arg = inConn.first;
       InstanceValue receiver = inConn.second;
 
-      //cout << "Updating " << inst->toString() << " with value " << arg.getWire()->toString() << endl;
       SimBitVector* s = static_cast<SimBitVector*>(getValue(arg.getWire()));
 
       assert(s != nullptr);
