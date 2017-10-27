@@ -24,7 +24,7 @@ script:
   - make installtest
   - sudo make uninstall
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
-  - make test -j 2 install
+  - make test
 compiler:
   - gcc
 
