@@ -36,9 +36,7 @@ class Namespace {
 
     NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);
     void newNominalTypeGen(std::string name, std::string nameFlip,Params genparams, TypeGenFun fun);
-#ifdef COREIR_INCLUDE_PYTHON_TYPEGEN
     TypeGen* newTypeGenFromPython(std::string name, Params genparams, std::string moduleName, std::string functionName);
-#endif
     TypeGen* newTypeGen(std::string name, Params genparams, TypeGenFun fun);
     bool hasNamedType(std::string name);
     
