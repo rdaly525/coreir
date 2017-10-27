@@ -130,24 +130,7 @@ class VModule {
 	ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       }
     }
-// <<<<<<< HEAD
 
-//     void addParams(Params ps) {
-
-//       for (auto p : ps) {
-// 	if (params.count(p.first) != 0) {
-
-// 	  ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
-// 	}
-// 	params.insert(p.first); 
-//       }
-//     }
-
-//     void addDefaults(Values ds) { 
-//       for (auto dpair : ds) {
-// 	ASSERT(params.count(dpair.first),"NYI Cannot Add default!");
-// 	paramDefaults[dpair.first] = dpair.second->toString();
-// =======
     std::string p2Str(std::set<std::string> ss) {
       return "(" + join(ss.begin(),ss.end(),string(",")) + ")";
     }
@@ -176,7 +159,7 @@ class VModule {
       else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
         BitVector bv = bvv->get();
         return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
-	//>>>>>>> upstream/dev
+
       }
       //TODO could add string
       assert(0);
