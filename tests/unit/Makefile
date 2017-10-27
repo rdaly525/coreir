@@ -12,6 +12,7 @@ EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
 ifdef COREIR_INCLUDE_PYTHON_TYPEGEN
 	PYTHON_CONFIG ?= python-config
 	PYTHONHOME = $(shell $(PYTHON_CONFIG) --prefix)
+	CXXFLAGS += $(shell $(PYTHON_CONFIG) --includes) -DCOREIR_INCLUDE_PYTHON_TYPEGEN -DPYTHON_HOME="L\"$(PYTHONHOME)\""
 	PYTHON_LIBS = $(PYTHONHOME)/lib
 	PYLDFLAGS = -L $(PYTHON_LIBS) $(shell $(PYTHON_CONFIG) --libs)
 endif
