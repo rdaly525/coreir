@@ -630,25 +630,28 @@ namespace CoreIR {
       lbMem->setDef(def);
 
       c->runPasses({"rungenerators","flattentypes", "flatten"});
-      //, "verifyconnectivity"}); //, {"commonlib", "mantle", "global"}); //,"flatten"});
 
-      if (!saveToFile(g, "linebuffermem.json", lbMem)) {
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
         cout << "Could not save to json!!" << endl;
         c->die();
       }
       
+
       SimulatorState state(lbMem);
 
       state.setValue("self.wdata", BitVector(width, "11"));
       state.setValue("self.wen", BitVector(1, "1"));
-      //state.setMainClock("self.clk");
-      state.setClock("self.clk", 0, 1);
+      state.setClock("self.clk", 1, 0);
 
       // SECTION("Before execution valid is 0") {
       //   REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
       // }
 
-      state.execute();
+      cout << "LINEBUFFER BEHAVIOR" << endl;
+      for (int i = 0; i < 30; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      }
 
       SECTION("Before peek value was written valid is still 0") {
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
