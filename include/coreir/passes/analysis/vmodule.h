@@ -24,18 +24,12 @@ using namespace std;
 namespace CoreIR {
 namespace Passes {
 
-// <<<<<<< HEAD
-//   class VWire {
-//     std::string name;
-//     unsigned dim;
-//     Type::DirKind dir;
-// =======
 class VWire {
   std::string name;
   bool isArray;
   unsigned dim;
   Type::DirKind dir;
-  //>>>>>>> upstream/dev
+
   public :
     VWire(std::string field,Type* t) : name(field), isArray(isa<ArrayType>(t)), dim(t->getSize()), dir(t->getDir()) {}
     VWire(Wireable* w) : VWire("",w->getType()) {
@@ -65,13 +59,6 @@ class VWire {
   };
 
 
-// <<<<<<< HEAD
-//   class VModule {
-//     std::string modname;
-//     std::unordered_map<std::string,VWire> ports;
-//     std::unordered_set<std::string> params;
-//     std::unordered_map<std::string,std::string> paramDefaults;
-// =======
 class VModule {
   public :
     typedef std::set<std::string> SParams;
@@ -82,7 +69,6 @@ class VModule {
   std::vector<std::string> interface;
   SParams params;
   SMap paramDefaults;
-  //>>>>>>> upstream/dev
 
     Generator* gen = nullptr;
   
@@ -121,17 +107,11 @@ class VModule {
           }
         }
       }
-// <<<<<<< HEAD
 
-//       this->addParams(g->getGenParams());
-//       this->addDefaults(g->getDefaultGenArgs());
-//     }
-
-// =======
     }
     std::string getName() { return modname;}
     bool hasDef() {return stmts.size() > 0 && (interface.size()>0 || ports.size()>0);}
-  //>>>>>>> upstream/dev
+
     void addStmt(std::string stmt) { stmts.push_back(stmt); }
 
     std::string toCommentString() {
@@ -143,12 +123,9 @@ class VModule {
     std::string toInstanceString(Instance* inst);
 
   private :
-// <<<<<<< HEAD
 
-//     void Type2Ports(Type* t,std::unordered_map<std::string,VWire>& ports) {
-// =======
     void Type2Ports(Type* t,std::map<std::string,VWire>& ports) {
-      //>>>>>>> upstream/dev
+
       for (auto rmap : cast<RecordType>(t)->getRecord()) {
 	ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       }
@@ -205,12 +182,8 @@ class VModule {
       assert(0);
     }
 
-// <<<<<<< HEAD
-//   };
-// =======
 
 };
-  //>>>>>>> upstream/dev
 
 
 }
