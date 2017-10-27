@@ -318,7 +318,7 @@ Value* json2Value(Context* c, json j,Module* m) {
   if (jlist.size()==3) {
     //Arg
     ASSERT(jlist[1].get<string>()=="Arg","Value with json array of size=3 must be an Arg");
-    ASSERT(m,"NYI using Args here");
+    ASSERT(m,"Can only use 'Arg' reference in modargs");
     return m->getArg(jlist[2].get<string>());
   }
   json jval = jlist[1];
