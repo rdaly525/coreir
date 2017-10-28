@@ -8,18 +8,23 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
       - g++-4.9
-      - python-virtualenv
 
 before_install:
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - pip install git+git://github.com/leonardt/pycoreir.git@dev
   - export COREIRCONFIG="g++-4.9";
-  - sudo make -j 2 install
+  - export LD_LIBRARY_PATH=`python3-config --prefix`/lib:$LD_LIBRARY_PATH
+  - export COREIR_INCLUDE_PYTHON_TYPEGEN=1
+  - export PYTHON_CONFIG=python3-config
+  - sudo make -j 2 install  
 
 script:
   - make installtest
   - sudo make uninstall
   - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   - make test
-
 compiler:
   - gcc
 

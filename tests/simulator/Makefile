@@ -25,19 +25,26 @@ SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
 
+ifdef COREIR_INCLUDE_PYTHON_TYPEGEN
+	PYTHON_CONFIG ?= python-config
+	PYTHONHOME = $(shell $(PYTHON_CONFIG) --prefix)
+	PYTHON_LIBS = $(PYTHONHOME)/lib
+	PYLDFLAGS = -L $(PYTHON_LIBS) $(shell $(PYTHON_CONFIG) --libs)
+endif
+
 #all: $(EXES)
 
 all: build/simtests
 
 build/simtests: $(OBJS)
-	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) 
+	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $< $(LPATH) $(LIBS) $(PYLDFLAGS)
 
 clean:
 	rm -rf build/*
 	rm -f _*.json
 
 build/simtests: $(OBJS) #build/%.o 
-	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $(OBJS) $(LPATH) $(LIBS) 
+	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $(OBJS) $(LPATH) $(LIBS) $(PYLDFLAGS)
 
 build/%.o: %.cpp
-	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<
+	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $< $(PYLDFLAGS)
