@@ -142,9 +142,28 @@ string Generator::toString() const {
 void Generator::print(void) {
   cout << toString() << endl;
 }
+
+string stringifyValue(Context* c,Value* v) {
+  if (auto vi = dyn_cast<ConstInt>(v)) {
+    return to_string(vi->get());
+  }
+  if (auto vb = dyn_cast<ConstBool>(v)) {
+    return vb->get() ? "true" : "false";
+  }
+  return c->getUnique();
+}
+string stringifyValues(Context* c, Values vs) {
+  vector<string> ss;
+  for (auto vpair : vs) {
+    string s = vpair.first + "_" + stringifyValue(c,vpair.second);
+    ss.push_back(s);
+  }
+  return join(ss.begin(),ss.end(),string("__"));
+}
+
 Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams), g(g), genargs(genargs) {
   ASSERT(g && genargs.size(),"Missing genargs!");
-  this->longname = name + getContext()->getUnique(); //TODO do a better name
+  this->longname = name + "_" + stringifyValues(getContext(),genargs);
 }
 
 DirectedModule* Module::newDirectedModule() {

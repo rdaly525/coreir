@@ -99,6 +99,22 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   }
 
+  Generator* smax = c->getGenerator("commonlib.smax");
+  smax->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    ASSERT(width==16,"NYI non 16");
+    def->addInstance("scomp","coreir.sge",args);
+    def->addInstance("max_mux","coreir.mux",args);
+    def->connect("self.in0","scomp.in0");
+    def->connect("self.in1","scomp.in1");
+    def->connect("scomp.out","max_mux.sel");
+    def->connect("self.in1","max_mux.in0");
+    def->connect("self.in0","max_mux.in1");
+    def->connect("self.out","max_mux.out");
+  });
+
+
+
   /////////////////////////////////
   // muxN definition             //
   /////////////////////////////////
