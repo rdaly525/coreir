@@ -1,4 +1,5 @@
 #include "coreir/ir/types.h"
+#include "coreir/ir/globalvalue.h"
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
@@ -11,7 +12,7 @@ using namespace std;
 
 namespace CoreIR {
 
-void Type::print(void) { cout << "Type: " << (*this) << endl; }
+void Type::print(void) const { cout << "Type: " << (*this) << endl; }
 
 string Type::TypeKind2Str(TypeKind t) {
   switch(t) {
@@ -72,8 +73,8 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),ns->getContext()), RefName(ns,name), raw(raw) {}
-NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,ns->getContext()), RefName(ns,name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),ns->getContext()), GlobalValue(GVK_NamedType,ns,name), raw(raw) {}
+NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,ns->getContext()), GlobalValue(GVK_NamedType,ns,name), typegen(typegen), genargs(genargs) {
   //Check args here.
   checkValuesAreParams(genargs,typegen->getParams());
 
@@ -81,6 +82,11 @@ NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genarg
   raw = typegen->getType(genargs);
   dir = raw->getDir();
 }
+
+void NamedType::print() const {
+  cout << "NYI print on named type" << endl;
+}
+
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
@@ -102,7 +108,7 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
   }
 }
 
-Type* RecordType::appendField(string label, Type* t) {
+RecordType* RecordType::appendField(string label, Type* t) {
   ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
   
   RecordParams newParams({{label,t}});
@@ -112,7 +118,7 @@ Type* RecordType::appendField(string label, Type* t) {
   return c->Record(newParams);
 }
 
-Type* RecordType::detachField(string label) {
+RecordType* RecordType::detachField(string label) {
   ASSERT(this->getRecord().count(label)==1,"Cannot detach" + label + " from type: " + this->toString());
   
   RecordParams newParams;

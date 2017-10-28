@@ -25,9 +25,8 @@ std::string Passes::Verilog::ID = "verilog";
 bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //Create a new Vmodule for this node
-  Instantiable* i = node.getInstantiable();
-  Module* m = cast<Module>(i);
-  if (m->generated() && !m->hasDef()) { //TODO linking concern
+  Module* m = node.getModule();
+  if (m->isGenerated() && !m->hasDef()) { //TODO linking concern
     Generator* g = m->getGenerator();
     VModule* vmod;
     bool hackflag = false;
@@ -39,7 +38,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
       vmod = new VModule(g);
       this->modMap[g] = vmod; //Keeping generators in modMap for cache
     }
-    this->modMap[i] = vmod;
+    this->modMap[m] = vmod;
     if (!vmod->hasDef()) {
       this->external.insert(g);
     }
@@ -49,14 +48,14 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
   VModule* vmod = new VModule(m);
-  modMap[i] = vmod;
+  modMap[m] = vmod;
   modList.push_back(vmod);
   if (vmod->hasDef()) {
     ASSERT(!m->hasDef(),"NYI linking error"); //TODO figure out this better
     return false;
   }
   if (!m->hasDef()) {
-    this->external.insert(i);
+    this->external.insert(m);
     return false;
   }
 

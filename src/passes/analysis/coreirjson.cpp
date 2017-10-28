@@ -168,9 +168,10 @@ string Instances2Json(map<string,Instance*>& insts) {
     string iname = imap.first;
     Instance* i = imap.second;
     Dict j(10);
-    if (i->isGen()) {
-      j.add("genref",quote(i->getGeneratorRef()->getNamespace()->getName() + "." + i->getGeneratorRef()->getName()));
-      j.add("genargs",Values2Json(i->getGenArgs()));
+    Module* m = i->getModuleRef();
+    if (m->isGenerated()) {
+      j.add("genref",quote(m->getGenerator()->getRefName()));
+      j.add("genargs",Values2Json(m->getGenArgs()));
     }
     else {
       j.add("modref",quote(i->getModuleRef()->getNamespace()->getName() + "." + i->getModuleRef()->getName()));
@@ -200,7 +201,7 @@ string Connections2Json(Connections& cons) {
 
 string Module2Json(Module* m) {
   Dict j(6);
-  if (m->hasDef() && m->generated()) {
+  if (m->hasDef() && m->isGenerated()) {
     j.add("genref",quote(m->getGenerator()->getRefName()));
     j.add("genargs",Values2Json(m->getGenArgs()));
   }
@@ -249,8 +250,8 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
     Dict jmod(4);
     for (auto m : ns->getModules()) {
       string mname = m.first;
-      if (m.second->generated()) mname = m.second->getGenerator()->getName();
-      if (m.second->generated() && !m.second->hasDef()) continue;
+      if (m.second->isGenerated()) mname = m.second->getGenerator()->getName();
+      if (m.second->isGenerated() && !m.second->hasDef()) continue;
       jmod.add(mname,Module2Json(m.second));
     }
     if (!jmod.isEmpty()) {

@@ -28,7 +28,7 @@ class FModule {
         else ASSERT(0,"NYI");
         io.push_back("input " + ppair.first + " : UInt<" + std::to_string(n) + ">");
       }
-      if (m->generated()) {
+      if (m->isGenerated()) {
         checkJson(m->getGenerator()->getMetaData(),m->getGenArgs());
       }
       checkJson(m->getMetaData(),Values()); //TODO deal with linking

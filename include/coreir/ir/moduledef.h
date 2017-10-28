@@ -5,7 +5,7 @@
 #include "fwd_declare.h"
 #include "common.h"
 #include "context.h"
-#include "instantiable.h"
+#include "module.h"
 #include "wireable.h"
 
 namespace CoreIR {
@@ -48,7 +48,7 @@ class ModuleDef {
     ModuleDef* copy();
     Context* getContext();
     const std::string& getName();
-    Type* getType();
+    RecordType* getType();
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 
@@ -66,7 +66,7 @@ class ModuleDef {
     Instance* addInstance(std::string instname,Generator* genref,Values genargs, Values modargs=Values());
     Instance* addInstance(std::string instname,Module* modref,Values modargs=Values());
     
-    //Add instance using an Instantiable ref std::string
+    //Add instance using a GlobalValue ref std::string
     Instance* addInstance(std::string instname,std::string iref,Values genOrModargs=Values(), Values modargs=Values());
     
     //copys info about i

@@ -13,8 +13,7 @@ bool Passes::RunGenerators::runOnContext(Context* c) {
     changed = false;
     for (auto npair : c->getNamespaces()) {
       for (auto gpair : npair.second->getGenerators()) {
-        for (auto mpair : gpair.second->getModules()) {
-          cout << "g: " << mpair.second->getRefName() << Values2Str(mpair.second->getGenArgs()) << endl;
+        for (auto mpair : gpair.second->getGeneratedModules()) {
           changed |= mpair.second->runGenerator();
         }
       }

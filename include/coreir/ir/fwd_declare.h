@@ -57,6 +57,7 @@ class Value;
 class Arg;
 class Const;
 
+
 template<class T>
 class TemplatedConst;
 
@@ -79,8 +80,7 @@ class CoreIRType;
 
 class MetaData;
 
-//instantiable.h
-class Instantiable;
+class GlobalValue;
 class Generator;
 class Module;
 

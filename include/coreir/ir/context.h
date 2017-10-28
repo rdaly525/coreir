@@ -65,8 +65,8 @@ class Context {
     Namespace* getCoreirPrims() {return getNamespace("coreir");}
     Module* getModule(std::string ref);
     Generator* getGenerator(std::string ref);
-    Instantiable* getInstantiable(std::string ref);
-    bool hasInstantiable(std::string ref);
+    GlobalValue* getGlobalValue(std::string ref);
+    bool hasGlobalValue(std::string ref);
 
     std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
