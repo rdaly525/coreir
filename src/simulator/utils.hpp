@@ -271,7 +271,7 @@ namespace CoreIR {
 
   static inline bool isSignInvariantOp(Instance& inst) {
     std::string genRefName = getInstanceName(inst);
-    std::vector<std::string> siOps{"add", "sub", "mul", "eq"};
+    std::vector<std::string> siOps{"add", "sub", "mul", "eq", "neq"};
     return elem(genRefName, siOps);
   }
 

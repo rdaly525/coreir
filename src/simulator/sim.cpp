@@ -449,6 +449,8 @@ namespace CoreIR {
       return printSEThenOpThenMaskBinop(inst, vd, g);
     }
 
+    cout << "Unsupported binop = " << inst->toString() << " from module = " << inst->getModuleRef()->getName() << endl;
+
     assert(false);
   }
 
