@@ -88,6 +88,15 @@ extern "C" {
     return rcast<COREModule*>(m);
   }
 
+  bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes) {
+    Context* context = rcast<Context*>(ctx);
+    vector<string> vec_passes;
+    for (int i = 0; i < num_passes; i++) {
+      vec_passes.emplace_back(passes[i]);
+    }
+    return context->runPasses(vec_passes);
+  }
+
   COREValue* COREGetModArg(COREWireable* i, char* s) {
     string str(s);
     Values modargs =cast<Instance>(rcast<Wireable*>(i))->getModArgs();

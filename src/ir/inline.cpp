@@ -169,6 +169,8 @@ bool inlineInstance(Instance* inst) {
     inlinePassthrough(inst);
     return true;
   }
+  
+  Values instModArgs = inst->getModArgs();
   ModuleDef* def = inst->getContainer();
   Module* modInline = mref;
 
@@ -188,9 +190,17 @@ bool inlineInstance(Instance* inst) {
   string inlinePrefix = inst->getInstname() + "$";
 
   //First add all the instances of defInline into def with a new name
-  for (auto instmap : defInline->getInstances()) {
-    string iname = inlinePrefix + instmap.first;
-    def->addInstance(instmap.second,iname);
+  for (auto instpair : defInline->getInstances()) {
+    string iname = inlinePrefix + instpair.first;
+    Values modargs = instpair.second->getModArgs();
+    //Should do this in a more generic way
+    for (auto vpair : modargs) {
+      if (Arg* varg = dyn_cast<Arg>(vpair.second)) {
+        ASSERT(instModArgs.count(varg->getField()),"DEBUG ME");
+        modargs[vpair.first] = instModArgs[varg->getField()];
+      }
+    }
+    def->addInstance(iname,instpair.second->getModuleRef(),modargs);
   }
   
   //Now add all the easy connections (that do not touch the boundary)

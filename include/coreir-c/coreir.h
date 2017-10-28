@@ -26,6 +26,8 @@ extern COREValueType* COREContextBitVector(COREContext* context);
 extern COREValueType* COREContextString(COREContext* context);
 extern COREValueType* COREContextString(COREContext* context);
 
+extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes);
+
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
 

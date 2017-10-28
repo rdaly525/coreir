@@ -60,10 +60,11 @@ namespace CoreIR {
   class ClockValue : public SimValue {
   protected:
     unsigned char lastVal, val;
+    int halfCycleCount;
 
   public:
     ClockValue(const unsigned char lastVal_,
-	       const unsigned char val_) : lastVal(lastVal_), val(val_) {}
+	       const unsigned char val_) : lastVal(lastVal_), val(val_), halfCycleCount(0) {}
 
     unsigned char value() const { return val; }
     unsigned char lastValue() const { return lastVal; }
@@ -72,7 +73,11 @@ namespace CoreIR {
       unsigned char tmp = lastVal;
       lastVal = val;
       val = tmp;
+      halfCycleCount++;
     }
+
+    int getCycleCount() const { return halfCycleCount / 2; }
+    int getHalfCycleCount() const { return halfCycleCount; }
 
     virtual SimValueType getType() const { return SIM_VALUE_CLK; }
   };
@@ -166,6 +171,7 @@ namespace CoreIR {
 
     int numCircStates() const;
 
+    void findMainClock();
     void setInputDefaults();
     std::vector<vdisc> unsetInputs();
 
@@ -183,6 +189,12 @@ namespace CoreIR {
 
     void setMainClock(const std::string& val);
 
+    void setMainClock(CoreIR::Select* s);
+
+    bool hasMainClock() const { return mainClock != nullptr; }
+
+    void setMainClock(const std::vector<std::string>& path);
+
     bool rewind(const int halfCycles);
 
     CoreIR::Select* findSelect(const std::string& name) const;
@@ -194,6 +206,8 @@ namespace CoreIR {
     void stepClock(CoreIR::Select* clkSelect);
 
     void setWatchPoint(const std::string& val,
+		       const BitVec& bv);
+    void setWatchPoint(const std::vector<std::string>& path,
 		       const BitVec& bv);
 
     void deleteWatchPoint(const std::string& name);
@@ -230,6 +244,10 @@ namespace CoreIR {
     void setClock(const std::string& name,
 		  const unsigned char clk_last,
 		  const unsigned char clk);
+
+    void setClock(const std::vector<std::string>& path,
+                  const unsigned char clk_last,
+                  const unsigned char clk);
 
     void setRegister(const std::string& name,
                      const BitVec& data);
