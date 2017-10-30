@@ -6,16 +6,14 @@
 #include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir/ir/error.h"
 #include "coreir/ir/passes.h"
-
-using namespace std;
-
-
 #include "coreir/ir/valuetype.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/generator.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
+
+using namespace std;
 
 namespace CoreIR {
 //TODO sketchy
