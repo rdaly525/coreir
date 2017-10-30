@@ -1,14 +1,14 @@
-#include "coreir/ir/refname.h"
+#include "coreir/ir/globalvalue.h"
 #include "coreir/ir/namespace.h"
 
 using namespace std;
 namespace CoreIR {
 
-string RefName::getRefName() const {
+string GlobalValue::getRefName() const {
   return this->ns->getName() + "." + this->name;
 }
 
-Context* RefName::getContext() {
+Context* GlobalValue::getContext() {
   return ns->getContext();
 }
 

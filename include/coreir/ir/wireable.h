@@ -90,23 +90,17 @@ class Instance : public Wireable {
   const std::string instname;
   Module* moduleRef;
   Values modargs;
-  bool isgen;
   
   public :
     Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs);
     static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     std::string toString() const;
     json toJson();
-    Module* getModuleRef() {return moduleRef;}
     const std::string& getInstname() const { return instname; }
     const Values& getModArgs() const {return modargs;}
     bool hasModArgs() {return !modargs.empty();}
     
-    bool isGen() const;
-    Generator* getGeneratorRef();
-    Values getGenArgs();
-    
-    Instantiable* getInstantiableRef();
+    Module* getModuleRef() {return moduleRef;}
     
     void replace(Module* moduleRef, Values modargs=Values());
     //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());

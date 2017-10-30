@@ -31,6 +31,8 @@ class Namespace {
     ~Namespace();
     const std::string& getName() { return name;}
     Context* getContext() { return c;}
+    //Returns a map of ALL modules including generated ones
+    //for generated mdules, the key is the uniquified longname
     std::map<std::string,Module*> getModules();
     std::map<std::string,Generator*> getGenerators() { return generatorList;}
 
@@ -56,10 +58,10 @@ class Namespace {
 
     Generator* getGenerator(std::string gname);
     Module* getModule(std::string mname);
-    Instantiable* getInstantiable(std::string name);
+    GlobalValue* getGlobalValue(std::string name);
     bool hasModule(std::string mname) { return moduleList.count(mname) > 0; }
     bool hasGenerator(std::string iname) { return generatorList.count(iname) > 0; }
-    bool hasInstantiable(std::string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
+    bool hasGlobalValue(std::string iname) { return moduleList.count(iname) > 0 || generatorList.count(iname) > 0; }
     
     void print();
 };

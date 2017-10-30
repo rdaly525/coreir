@@ -67,7 +67,7 @@ namespace CoreIR {
       if (isRegisterInstance(wd.getWire())) {
         Instance* inst = toInstance(wd.getWire());
 
-        Values args = inst->getGenArgs();
+        Values args = inst->getModuleRef()->getGenArgs();
 
         auto wArg = args["width"];
 
@@ -112,7 +112,7 @@ namespace CoreIR {
       if (isLinebufferMemInstance(wd.getWire())) {
         Instance* inst = toInstance(wd.getWire());
 
-        Values args = inst->getGenArgs();
+        Values args = inst->getModuleRef()->getGenArgs();
         uint width = (args["width"])->get<int>();
         uint depth = (args["depth"])->get<int>();
 
@@ -137,7 +137,7 @@ namespace CoreIR {
       if (isMemoryInstance(wd.getWire())) {
         Instance* inst = toInstance(wd.getWire());
 
-        Values args = inst->getGenArgs();
+        Values args = inst->getModuleRef()->getGenArgs();
         uint width = (args["width"])->get<int>();
         uint depth = (args["depth"])->get<int>();
         
@@ -564,7 +564,7 @@ namespace CoreIR {
     
     assert(s1 != nullptr);
 
-    Values args = inst->getGenArgs();
+    Values args = inst->getModuleRef()->getGenArgs();
     uint lo = (args["lo"])->get<int>();
     uint hi = (args["hi"])->get<int>();
 
@@ -831,7 +831,7 @@ namespace CoreIR {
     
     assert(s1 != nullptr);
 
-    Values genArgs = inst->getGenArgs();
+    Values genArgs = inst->getModuleRef()->getGenArgs();
 
     int width = genArgs["N"]->get<int>();
 

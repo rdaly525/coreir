@@ -36,17 +36,11 @@ string VModule::toString() {
 
 string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
-  Instantiable* iref = inst->getInstantiableRef();
+  Module* mref = inst->getModuleRef();
   SParams params0 = params;
   if (this->gen) {
-    ASSERT(inst->isGen(),"DEBUG ME:");
-    ASSERT(iref==cast<Instantiable>(gen),"DEBUG ME");
-    auto paramsAndDefaults = gen->getModParams(inst->getGenArgs());
-// <<<<<<< HEAD
-
-//     this->addParams(paramsAndDefaults.first);
-//     this->addDefaults(paramsAndDefaults.second);
-// =======
+    assert(mref->isGenerated());
+    auto paramsAndDefaults = gen->getModParams(mref->getGenArgs());
     if (!this->hasDef()) {
       this->addParams(params0,paramsAndDefaults.first);
     }
@@ -59,8 +53,8 @@ string VModule::toInstanceString(Instance* inst) {
   map<string,VWire> iports;
   Values args;
   if (gen) {
-    args = inst->getGenArgs();
-    Type2Ports(gen->getTypeGen()->getType(inst->getGenArgs()),iports);
+    args = mref->getGenArgs();
+    Type2Ports(gen->getTypeGen()->getType(args),iports);
     mname = modname; 
   }
   else {

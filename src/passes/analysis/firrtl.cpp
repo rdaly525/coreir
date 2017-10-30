@@ -111,8 +111,7 @@ string CoreIR::Passes::FModule::toString() {
 
 string Passes::Firrtl::ID = "firrtl";
 bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
-  auto i = node.getInstantiable();
-  Module* m = cast<Module>(i);
+  Module* m = node.getModule();
   auto fm = new FModule(m);
   ASSERT(modMap.count(m)==0,"DEBUGME");
   this->modMap[m] = fm;

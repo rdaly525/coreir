@@ -1,7 +1,9 @@
 #include "coreir/ir/moduledef.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/typegen.h"
+#include "coreir/ir/types.h"
 #include "coreir/ir/error.h"
 #include "coreir/ir/value.h"
 #include <iterator>
@@ -12,7 +14,7 @@ using namespace std;
 namespace CoreIR {
 
 ModuleDef::ModuleDef(Module* module) : module(module), instancesIterFirst(nullptr), instancesIterLast(nullptr) {
-  interface = new Interface(this,module->getContext()->Flip(module->getType()));
+  interface = new Interface(this,cast<RecordType>(module->getType()->getFlipped()));
 }
 
 ModuleDef::~ModuleDef() {
@@ -26,11 +28,12 @@ void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
   for (auto inst : instances) {
-    if (inst.second->isGen()) {
-      cout << "      " << inst.first << " : " << inst.second->getGeneratorRef()->getName() << Values2Str(inst.second->getGenArgs()) << endl;
+    Module* mref = inst.second->getModuleRef();
+    if (mref->isGenerated()) {
+      cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << Values2Str(mref->getGenArgs()) << endl;
     }
     else {
-      cout << "      " << inst.first << " : " << inst.second->getModuleRef()->getName() << endl;
+      cout << "      " << inst.first << " : " << mref->getName() << endl;
     }
   }
   cout << "    Connections:\n";
@@ -42,7 +45,7 @@ void ModuleDef::print(void) {
 
 Context* ModuleDef::getContext() { return module->getContext(); }
 const string& ModuleDef::getName() {return module->getName();}
-Type* ModuleDef::getType() {return module->getType();}
+RecordType* ModuleDef::getType() {return module->getType();}
 
 ModuleDef* ModuleDef::copy() {
   Module* m = this->getModule();
@@ -162,7 +165,7 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Values modargs) {
 
 Instance* ModuleDef::addInstance(string instname,string iref,Values genOrModargs, Values modargs) {
   vector<string> split = splitRef(iref);
-  Instantiable* ref = this->getContext()->getInstantiable(iref);
+  GlobalValue* ref = this->getContext()->getGlobalValue(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
     return this->addInstance(instname,g,genOrModargs,modargs);
   }
@@ -176,10 +179,13 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
   if (iname=="") {
     iname = i->getInstname();
   }
-  if( i->isGen()) 
-    return addInstance(iname,i->getGeneratorRef(),i->getGenArgs(),i->getModArgs());
-  else 
+  Module* mref = i->getModuleRef();
+  if(mref->isGenerated()) {
+    return addInstance(iname,mref->getGenerator(),mref->getGenArgs(),i->getModArgs());
+  }
+  else {
     return addInstance(iname,i->getModuleRef(),i->getModArgs());
+  }
 }
 
 void ModuleDef::connect(Wireable* a, Wireable* b) {

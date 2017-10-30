@@ -4,7 +4,8 @@
 #include "coreir/ir/context.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/typegen.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/error.h"
 
 using namespace std;
@@ -28,7 +29,7 @@ Namespace::~Namespace() {
 std::map<std::string,Module*> Namespace::getModules() { 
   std::map<std::string,Module*> ret = moduleList;
   for (auto g : generatorList) {
-    for (auto m : g.second->getModules()) {
+    for (auto m : g.second->getGeneratedModules()) {
       ret.emplace(m);
     }
   }
@@ -203,12 +204,12 @@ Module* Namespace::getModule(string mname) {
   return nullptr;
 }
 
-Instantiable* Namespace::getInstantiable(string iname) {
+GlobalValue* Namespace::getGlobalValue(string iname) {
   if (moduleList.count(iname) > 0) return moduleList.at(iname);
   if (generatorList.count(iname) > 0) return generatorList.at(iname);
   Error e;
-  e.message("Could not find Instantiable in library!");
-  e.message("  Instantiable: " + iname);
+  e.message("Could not find GlobalValue in library!");
+  e.message("  GlobalValue: " + iname);
   e.message("  Namespace: " + name);
   e.fatal();
   c->error(e);

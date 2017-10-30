@@ -58,26 +58,18 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //  new flattened ports.
   //delete the passthrough
   
-  Instantiable* i = node.getInstantiable();
+  Module* mod = node.getModule();
   
   //If it is a generator or has no def:
   //Make sure all instances already have flat types
-  bool isGenOrNoDef = isa<Generator>(i);
-  if (auto mod = dyn_cast<Module>(i)) {
-    isGenOrNoDef |= !mod->hasDef();
-  }
+  bool isGenOrNoDef = mod->isGenerated() || !mod->hasDef();
   if (isGenOrNoDef) {
-    for (auto inst : node.getInstanceList()) {
-      for (auto record : cast<RecordType>(inst->getType())->getRecord()) {
-        ASSERT(isBitOrArrOfBits(record.second),
-          inst->getInstname() +"." + record.first + " is not a bit/array of bits");
-      }
+    for (auto rpair : mod->getType()->getRecord()) {
+      ASSERT(isBitOrArrOfBits(rpair.second),
+      "NYI flatten types of generator or nodef module\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString()); 
     }
-    return false;
   }
-  
-  //I know I have a module here
-  Module* mod = cast<Module>(i);
+ 
   ModuleDef* def = mod->getDef();
   
   //Get a list of all the correct ports necessary. 
@@ -104,7 +96,6 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
 
   //TODO use definition of instance itsefl
-
 
   //Now the fun part.
   //Get a list of interface + instances

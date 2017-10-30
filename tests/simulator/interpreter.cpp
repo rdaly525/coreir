@@ -261,7 +261,7 @@ namespace CoreIR {
 
       c->runPasses({"rungenerators", "flattentypes","flatten"});
 
-      cout << "ct is generator ? " << ct->isGen() << endl;
+      cout << "ct is generator ? " << ct->getModuleRef()->isGenerated() << endl;
 
       // bool inlinedCounter = inlineInstance(ct);
 

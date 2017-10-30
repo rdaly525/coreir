@@ -18,8 +18,6 @@ namespace {
 std::string Passes::RemovePassthroughs::ID = "removepassthroughs";
 
 void Passes::RemovePassthroughs::setVisitorInfo() {
-
   addVisitorFunction(getContext()->getGenerator("mantle.wire"),inlinePassthrough);
-
 
 }

@@ -83,6 +83,11 @@ extern "C" {
       return rcast<COREValueType*>(CoreIRType::make(rcast<Context*>(context)));
   }
 
+  COREModule* COREGetModuleRef(COREWireable* iref) {
+    Module* m = cast<Instance>(rcast<Wireable*>(iref))->getModuleRef();
+    return rcast<COREModule*>(m);
+  }
+
   bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes) {
     Context* context = rcast<Context*>(ctx);
     vector<string> vec_passes;
@@ -90,11 +95,6 @@ extern "C" {
       vec_passes.emplace_back(passes[i]);
     }
     return context->runPasses(vec_passes);
-  }
-
-  const char* COREGetInstantiableRefName(COREWireable* iref) {
-    const string& name = cast<Instance>(rcast<Wireable*>(iref))->getInstantiableRef()->getName();
-    return name.c_str();
   }
 
   COREValue* COREGetModArg(COREWireable* i, char* s) {
@@ -109,8 +109,6 @@ extern "C" {
     Values modargs =cast<Instance>(rcast<Wireable*>(i))->getModArgs();
     return modargs.count(str) > 0;
   }
-
-
 
   //TODO update C api
   //This can return nullptr
@@ -153,9 +151,40 @@ extern "C" {
     return rcast<COREModule*>(rcast<Namespace*>(ns)->newModuleDecl(string(name), rcast<Type*>(type),g));
   }
 
+  bool COREModuleIsGenerated(COREModule* mod) {
+    return rcast<Module*>(mod)->isGenerated();
+  }
+
+  COREGenerator* COREModuleGetGenerator(COREModule* mod) {
+    return rcast<COREGenerator*>(rcast<Module*>(mod)->getGenerator());
+  }
+
+  void COREModuleGetGenArgs(COREModule* core_mod, char*** names, COREValue*** args, int* num_args) {
+      Module* mod = rcast<Module*>(core_mod);
+      Values genValues = mod->getGenArgs();
+      int size = genValues.size();
+      Context* context = mod->getContext();
+      *names = context->newStringArray(size);
+      *args  = (COREValue**) context->newValueArray(size);
+      *num_args = size;
+      int count = 0;
+      for (auto element : genValues) {
+          std::size_t name_length = element.first.size();
+          (*names)[count] = context->newStringBuffer(name_length + 1);
+          memcpy((*names)[count], element.first.c_str(), name_length + 1);
+          (*args)[count] = rcast<COREValue*>(element.second);
+          count++;
+      }
+  }
+
   const char* COREModuleGetName(COREModule* module) {
     return rcast<Module*>(module)->getName().c_str();
   }
+  
+  const char* COREGeneratorGetName(COREGenerator* gen) {
+      return rcast<Generator*>(gen)->getName().c_str();
+  }
+
 
   COREModuleDef* COREModuleNewDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
@@ -169,7 +198,7 @@ extern "C" {
     return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Module*>(module),*rcast<Values*>(mod)));
   }
 
-  COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREInstantiable* generator, void* genargs, void* mod) {
+  COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def, char* name, COREGenerator* generator, void* genargs, void* mod) {
     return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->addInstance(string(name),rcast<Generator*>(generator), *rcast<Values*>(genargs), *rcast<Values*>(mod)));
   }
 
@@ -294,23 +323,8 @@ extern "C" {
     return rcast<Namespace*>(n)->getName().c_str();
   }
 
-  COREInstantiable* CORENamespaceGetInstantiable(CORENamespace* _namespace, const char* name) {
-      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getInstantiable(std::string(name)));
-  }
-
-  bool CORENamespaceHasInstantiable(CORENamespace* _namespace, const char* name) {
-      std::map<std::string,Generator*> generators =
-          rcast<Namespace*>(_namespace)->getGenerators();
-      auto generator_it = generators.find(name);
-      if (generator_it != generators.end()) return true;
-      std::map<std::string,Module*> modules =
-          rcast<Namespace*>(_namespace)->getModules();
-      auto module_it = modules.find(name);
-      return module_it != modules.end();
-  }
-
-  COREInstantiable* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name) {
-      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getGenerator(std::string(name)));
+  COREGenerator* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name) {
+      return rcast<COREGenerator*>(rcast<Namespace*>(_namespace)->getGenerator(std::string(name)));
   }
 
   bool CORENamespaceHasGenerator(CORENamespace* _namespace, const char* name) {
@@ -320,8 +334,8 @@ extern "C" {
       return it != generators.end();
   }
 
-  COREInstantiable* CORENamespaceGetModule(CORENamespace* _namespace, const char* name) {
-      return rcast<COREInstantiable*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
+  COREModule* CORENamespaceGetModule(CORENamespace* _namespace, const char* name) {
+      return rcast<COREModule*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
   }
 
   bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name) {
@@ -452,34 +466,6 @@ extern "C" {
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
-
-  void COREInstanceGetGenValues(COREWireable* core_instance, char*** names, COREValue*** args, int* num_args) {
-      Instance* instance = rcast<Instance*>(core_instance);
-      Values genValues = instance->getGenArgs();
-      int size = genValues.size();
-      Context* context = instance->getContext();
-      *names = context->newStringArray(size);
-      *args  = (COREValue**) context->newValueArray(size);
-      *num_args = size;
-      int count = 0;
-      for (auto element : genValues) {
-          std::size_t name_length = element.first.size();
-          (*names)[count] = context->newStringBuffer(name_length + 1);
-          memcpy((*names)[count], element.first.c_str(), name_length + 1);
-          (*args)[count] = rcast<COREValue*>(element.second);
-          count++;
-      }
-  }
-
-  const char* COREInstantiableGetName(COREInstantiable* instantiable) {
-      return rcast<Instantiable*>(instantiable)->getName().c_str();
-  }
-
-  int COREInstantiableGetKind(COREInstantiable* instantiable) {
-      return rcast<Instantiable*>(instantiable)->getKind();
-  }
-
-
 
 
 }//extern "C"

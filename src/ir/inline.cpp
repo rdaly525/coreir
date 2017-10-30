@@ -2,6 +2,7 @@
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
@@ -163,22 +164,18 @@ void inlinePassthrough(Instance* i) {
 bool inlineInstance(Instance* inst) {
   //Special case for a passthrough
   //TODO should have a better check for passthrough than string compare
-  if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
+  Module* mref = inst->getModuleRef();
+  if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
     inlinePassthrough(inst);
     return true;
   }
-// <<<<<<< HEAD
-//   // if (inst->isGen()) {
-//   //   return false;
-//   // }
-//   ModuleDef* def = inst->getContainer();
-// =======
-//>>>>>>> upstream/dev
-  Module* modInline = inst->getModuleRef();
+  
+  Values instModArgs = inst->getModArgs();
   ModuleDef* def = inst->getContainer();
+  Module* modInline = mref;
 
   if (!modInline->hasDef()) {
-    cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
+    //cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
     return false;
   }
   
@@ -193,9 +190,17 @@ bool inlineInstance(Instance* inst) {
   string inlinePrefix = inst->getInstname() + "$";
 
   //First add all the instances of defInline into def with a new name
-  for (auto instmap : defInline->getInstances()) {
-    string iname = inlinePrefix + instmap.first;
-    def->addInstance(instmap.second,iname);
+  for (auto instpair : defInline->getInstances()) {
+    string iname = inlinePrefix + instpair.first;
+    Values modargs = instpair.second->getModArgs();
+    //Should do this in a more generic way
+    for (auto vpair : modargs) {
+      if (Arg* varg = dyn_cast<Arg>(vpair.second)) {
+        ASSERT(instModArgs.count(varg->getField()),"DEBUG ME");
+        modargs[vpair.first] = instModArgs[varg->getField()];
+      }
+    }
+    def->addInstance(iname,instpair.second->getModuleRef(),modargs);
   }
   
   //Now add all the easy connections (that do not touch the boundary)
