@@ -16,6 +16,8 @@ namespace CoreIR {
 
     //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
     assert(val.bitLength() == ((int) width));
+    // Cannot access out of range elements
+    assert(bv.to_type<uint>() < depth);
 
     values.erase(bv);
     values.insert({bv, val});
@@ -26,6 +28,9 @@ namespace CoreIR {
     // cout << "log2(depth))   = " << log2(depth) << endl;
 
     //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
+
+    // Cannot access out of range elements
+    assert(bv.to_type<uint>() < depth);
 
     auto it = values.find(bv);
 
