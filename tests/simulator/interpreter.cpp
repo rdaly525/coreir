@@ -675,6 +675,76 @@ namespace CoreIR {
       // }
     }
 
+    SECTION("LineBufferMem power of 2") {
+
+      uint index = 2;
+      uint width = index;
+      uint depth = pow(2, index); // 10
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+          {"clk", c->Named("coreir.clkIn")},
+            {"wdata", c->BitIn()->Arr(width)},
+              {"rdata", c->Bit()->Arr(width)},
+        	{"wen", c->BitIn()},
+        	  {"valid", c->Bit()}
+        });
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("m0",
+        	       "commonlib.LinebufferMem",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.wen", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
+
+      lbMem->setDef(def);
+
+      if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
+      c->runPasses({"rungenerators","flattentypes", "flatten"});
+
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      SimulatorState state(lbMem);
+
+      state.setValue("self.wdata", BitVector(width, "11"));
+      state.setValue("self.wen", BitVector(1, "1"));
+      state.setClock("self.clk", 1, 0);
+
+      cout << "LINEBUFFER BEHAVIOR" << endl;
+      for (int i = 0; i < 3; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      }
+
+      SECTION("rdata is 00 after 3 half cycles") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "00"));
+      }
+
+      for (int i = 0; i < 30; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      }
+
+      SECTION("rdata is 11 in steady state") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+      }
+    }
+    
     SECTION("Memory") {
       uint width = 20;
       uint depth = 4;
