@@ -845,7 +845,8 @@ namespace CoreIR {
 
         Context* c = mod.getDef()->getContext();
 
-        Values args = is->getGenArgs();
+        Values args = is->getModuleRef()->getGenArgs();
+        //Values args = is->getModArgs();
 
         auto wArg = args["width"];
         auto dArg = args["depth"];
