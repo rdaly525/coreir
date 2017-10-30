@@ -152,6 +152,18 @@ GlobalValue* Context::getGlobalValue(std::string ref) {
   ASSERT(0,"MISSING " + ref);
   return nullptr;
 }
+bool Context::hasGenerator(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  if (!hasNamespace(refsplit[0])) return false;
+  Namespace* ns = getNamespace(refsplit[0]);
+  return ns->hasGenerator(refsplit[1]);
+}
+bool Context::hasModule(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  if (!hasNamespace(refsplit[0])) return false;
+  Namespace* ns = getNamespace(refsplit[0]);
+  return ns->hasModule(refsplit[1]);
+}
 bool Context::hasGlobalValue(std::string ref) {
   vector<string> refsplit = splitRef(ref);
   if (!hasNamespace(refsplit[0])) return false;
@@ -247,7 +259,7 @@ BoolType* Context::Bool() { return BoolType::make(this);}
 IntType* Context::Int(){ return IntType::make(this);}
 BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
 StringType* Context::String() { return StringType::make(this);}
-//CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
+CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
   ASSERT(top && top->hasDef(), top->toString() + " has no def!");
