@@ -279,7 +279,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                      "coreir.const",
                      {{"width",Const::make(c,awidth)}},
                      // Fix this for 64 bit constants!
-                     {{"value", Const::make(c, awidth, (1 << awidth) - 1)}});
+                     {{"value", Const::make(c, awidth, depth)}}); //(1 << awidth) - 1)}});
 
     // Wire up the resets
     def->connect("raddr_eq.out", "raddr_mux.sel");
