@@ -250,28 +250,81 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     //uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
     uint awidth = (uint) ceil(log2(depth));
+
     def->addInstance("raddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
     def->addInstance("waddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
+
     def->addInstance("mem","coreir.mem",genargs);
+
     def->addInstance("add_r","coreir.add",{{"width",Const::make(c,awidth)}});
     def->addInstance("add_w","coreir.add",{{"width",Const::make(c,awidth)}});
     def->addInstance("c1","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,awidth,1)}});
+
+    // Multiplexers to check max value
+    def->addInstance("raddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
+    def->addInstance("waddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
+
+    // Equals to test if addresses are at the max
+    def->addInstance("raddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
+    def->addInstance("waddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
+    
+    // Reset constant
+    def->addInstance("zero_const",
+                     "coreir.const",
+                     {{"width",Const::make(c,awidth)}},
+                     {{"value", Const::make(c, awidth, 0)}});
+
+    // Max constant
+    def->addInstance("max_const",
+                     "coreir.const",
+                     {{"width",Const::make(c,awidth)}},
+                     // Fix this for 64 bit constants!
+                     {{"value", Const::make(c, awidth, (1 << awidth) - 1)}});
+
+    // Wire up the resets
+    def->connect("raddr_eq.out", "raddr_mux.sel");
+    def->connect("waddr_eq.out", "waddr_mux.sel");
+
+    def->connect("zero_const.out", "raddr_mux.in1");
+    def->connect("zero_const.out", "waddr_mux.in1");
+
+    def->connect("add_r.out", "raddr_mux.in0");
+    def->connect("add_w.out", "waddr_mux.in0");
+
+    def->connect("waddr_mux.out", "waddr.in");
+    def->connect("raddr_mux.out", "raddr.in");
+
+    // Wire up equals inputs
+    def->connect("add_r.out", "raddr_eq.in0");
+    def->connect("max_const.out", "raddr_eq.in1");
+
+    def->connect("add_w.out", "waddr_eq.in0");
+    def->connect("max_const.out", "waddr_eq.in1");
+    
+    // Wire up the rest of the circuit
     def->connect("self.wdata","mem.wdata");
+
     def->connect("self.wen","mem.wen");
     def->connect("self.clk","mem.clk");
+
     def->connect("waddr.out","mem.waddr");
     def->connect("raddr.out","mem.raddr");
     def->connect("mem.rdata","self.rdata");
-    def->connect("add_r.out","raddr.in");
+
+    //def->connect("add_r.out","raddr.in");
     def->connect("add_r.in0","raddr.out");
     def->connect("add_r.in1","c1.out");
+
     def->connect("waddr.en","self.wen");
     def->connect("waddr.clk","self.clk");
+
     def->connect("raddr.en","self.wen");
     def->connect("raddr.clk","self.clk");
-    def->connect("add_w.out","waddr.in");
+
+    //def->connect("add_w.out","waddr.in");
     def->connect("add_w.in0","waddr.out");
     def->connect("add_w.in1","c1.out");
+
     def->addInstance("veq","coreir.neq",{{"width",Const::make(c,awidth)}});
     def->connect("veq.in0","raddr.out");
     def->connect("veq.in1","waddr.out");
