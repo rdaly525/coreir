@@ -599,9 +599,10 @@ namespace CoreIR {
     }
 
     SECTION("LineBufferMem") {
-      uint index = 2;
+
+      uint index = 4;
       uint width = index;
-      uint depth = pow(2, index);
+      uint depth = pow(2, index) - 6; // 10
 
       CoreIRLoadLibrary_commonlib(c);
 
@@ -643,7 +644,7 @@ namespace CoreIR {
 
       SimulatorState state(lbMem);
 
-      state.setValue("self.wdata", BitVector(width, "11"));
+      state.setValue("self.wdata", BitVector(width, "1111"));
       state.setValue("self.wen", BitVector(1, "1"));
       state.setClock("self.clk", 1, 0);
 
@@ -651,22 +652,22 @@ namespace CoreIR {
       //   REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
       // }
 
+      // SECTION("Before peek value was written valid is still 0") {
+      //   REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      // }
+
       cout << "LINEBUFFER BEHAVIOR" << endl;
-      for (int i = 0; i < 30; i++) {
+      for (int i = 0; i < 25; i++) {
         state.runHalfCycle();
         cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
       }
 
-      SECTION("Before peek value was written valid is still 0") {
-        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
-      }
-
-      for (int i = 0; i < 10; i++) {
-        state.execute();
-      }
+      // for (int i = 0; i < 10; i++) {
+      //   state.execute();
+      // }
 
       SECTION("rdata is 11 in steady state") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "1111"));
       }
 
       // SECTION("valid is set to one in steady state") {
