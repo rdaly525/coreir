@@ -846,7 +846,6 @@ namespace CoreIR {
         Context* c = mod.getDef()->getContext();
 
         Values args = is->getModuleRef()->getGenArgs();
-        //Values args = is->getModArgs();
 
         auto wArg = args["width"];
         auto dArg = args["depth"];
@@ -856,16 +855,6 @@ namespace CoreIR {
         Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
         declStrs.push_back({elemType, is->toString()});
 
-        // Select* in = is->sel("in");
-        // Type* itp = in->getType();
-
-        //string regName = is->getInstname();
-
-        // declStrs.push_back({itp, regName + "_old_value"});
-        // declStrs.push_back({itp, regName + "_new_value"});
-
-
-        
       }
     }
 

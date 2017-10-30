@@ -630,7 +630,7 @@ namespace CoreIR {
 
       lbMem->setDef(def);
 
-      if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
+      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
         cout << "Could not save to json!!" << endl;
         c->die();
       }
