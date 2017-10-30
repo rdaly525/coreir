@@ -92,7 +92,7 @@ class Context {
     IntType* Int();
     BitVectorType* BitVector(int width);
     StringType* String();
-    CoreIRType* CoreIRType();
+    //CoreIRType* CoreIRType();
 
     Type* Flip(Type* t);
     Type* In(Type* t);

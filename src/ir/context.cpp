@@ -259,7 +259,7 @@ BoolType* Context::Bool() { return BoolType::make(this);}
 IntType* Context::Int(){ return IntType::make(this);}
 BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
 StringType* Context::String() { return StringType::make(this);}
-CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
+//CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
   ASSERT(top && top->hasDef(), top->toString() + " has no def!");
