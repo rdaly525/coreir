@@ -150,6 +150,18 @@ GlobalValue* Context::getGlobalValue(std::string ref) {
   ASSERT(0,"MISSING " + ref);
   return nullptr;
 }
+bool Context::hasGenerator(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  if (!hasNamespace(refsplit[0])) return false;
+  Namespace* ns = getNamespace(refsplit[0]);
+  return ns->hasGenerator(refsplit[1]);
+}
+bool Context::hasModule(std::string ref) {
+  vector<string> refsplit = splitRef(ref);
+  if (!hasNamespace(refsplit[0])) return false;
+  Namespace* ns = getNamespace(refsplit[0]);
+  return ns->hasModule(refsplit[1]);
+}
 bool Context::hasGlobalValue(std::string ref) {
   vector<string> refsplit = splitRef(ref);
   if (!hasNamespace(refsplit[0])) return false;
