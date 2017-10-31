@@ -103,7 +103,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "input [width-1:0] wdata",
       "input [$clog2(depth)-1:0] waddr",
       "input wen",
-      "output rdata [width-1:0]",
+      "output [width-1:0] rdata",
       "input [$clog2(depth)-1:0] raddr"
     }}
   });
