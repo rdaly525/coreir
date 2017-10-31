@@ -62,8 +62,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //If it is a generator or has no def:
   //Make sure all instances already have flat types
-  bool isGenOrNoDef = mod->isGenerated() || !mod->hasDef();
-  if (isGenOrNoDef) {
+  if (!mod->hasDef()) {
     for (auto rpair : mod->getType()->getRecord()) {
       ASSERT(isBitOrArrOfBits(rpair.second),
       "NYI flatten types of generator or nodef module\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString()); 
