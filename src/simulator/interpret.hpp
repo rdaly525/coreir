@@ -197,6 +197,8 @@ namespace CoreIR {
 
     bool rewind(const int halfCycles);
 
+    void updateInputs(const vdisc vd);    
+
     CoreIR::Select* findSelect(const std::string& name) const;
 
     bool atLastState();

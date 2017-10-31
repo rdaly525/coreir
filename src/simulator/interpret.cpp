@@ -639,7 +639,21 @@ namespace CoreIR {
 
   }
 
+  void SimulatorState::updateInputs(const vdisc vd) {
+    auto inConns = getInputConnections(vd, gr);
+    for (auto& conn : inConns) {
+      Select* source = toSelect(conn.first.getWire());
+      Select* dest = toSelect(conn.second.getWire());
+
+      setValue(dest, getValue(source));
+    }
+
+  }
+
   void SimulatorState::updateBitVecBinop(const vdisc vd, BitVecBinop op) {
+
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -649,25 +663,31 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
+    // InstanceValue arg1 = findArg("in0", inConns);
 
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 2);
 
-    InstanceValue arg1 = findArg("in0", inConns);
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
+    SimBitVector* s1 =
+      static_cast<SimBitVector*>(getValue(arg1));
+    //static_cast<SimBitVector*>(getValue(arg1.getWire()));
 
     assert(s1 != nullptr);
 
     BitVector bv1 = s1->getBits();
     
-    InstanceValue arg2 = findArg("in1", inConns);
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    // InstanceValue arg2 = findArg("in1", inConns);
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
 
+    Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    SimBitVector* s2 =
+      static_cast<SimBitVector*>(getValue(arg2));
+    
     assert(s2 != nullptr);
 
     BitVector bv2 = s2->getBits();
-    
+
     BitVec res = op(bv1, bv2);
 
     setValue(toSelect(outPair.second), makeSimBitVector(res));
@@ -1210,9 +1230,37 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateRegisterValue(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
 
+    WireNode wd = gr.getNode(vd);
     Instance* inst = toInstance(wd.getWire());
+
+    // New code
+    updateInputs(vd);
+
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 2);
+
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    SimBitVector* s1 =
+      static_cast<SimBitVector*>(getValue(arg1));
+    //static_cast<SimBitVector*>(getValue(arg1.getWire()));
+
+    assert(s1 != nullptr);
+
+    BitVector bv1 = s1->getBits();
+    
+    // InstanceValue arg2 = findArg("in1", inConns);
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+
+    // Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    // SimBitVector* s2 =
+    //   static_cast<SimBitVector*>(getValue(arg2));
+    
+    // assert(s2 != nullptr);
+
+    // BitVector bv2 = s2->getBits();
+
+    // Original code
 
     auto outSelects = getOutputSelects(inst);
 
@@ -1222,12 +1270,15 @@ namespace CoreIR {
 
     auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() >= 2);
+    assert(inSels.size() >= 2);
 
-    InstanceValue arg1 = findArg("in", inConns);
+    //InstanceValue arg1 = findArg("in", inConns);
+
     InstanceValue clkArg = findArg("clk", inConns);
 
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s1 =
+    //   static_cast<SimBitVector*>(getValue(arg1));
+      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
     assert(s1 != nullptr);
@@ -1236,7 +1287,7 @@ namespace CoreIR {
     if ((clkVal->lastValue() == 0) &&
         (clkVal->value() == 1)) {
 
-      if (inConns.size() == 2) {
+      if (inSels.size() == 2) {
 
         //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
@@ -1245,7 +1296,7 @@ namespace CoreIR {
         assert(getRegister(inst->toString()) == s1->getBits());
 
       } else {
-        assert(inConns.size() == 3);
+        assert(inSels.size() == 3);
 
         InstanceValue enArg = findArg("en", inConns);   
 
