@@ -1134,7 +1134,7 @@ namespace CoreIR {
 
       state.execute();
 
-      REQUIRE(state.getBitVec("self.O") == BitVec(2, "0000"));
+      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0000"));
       
     }
     
