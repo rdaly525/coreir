@@ -625,7 +625,7 @@ namespace CoreIR {
 
     auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() == 2);
+    //assert(inConns.size() == 2);
 
     InstanceValue arg1 = findArg("in0", inConns);
 
@@ -645,25 +645,27 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
 
     auto outSelects = getOutputSelects(inst);
-
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() == 2);
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 2);
 
     InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
-
     SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-    
+
     assert(s1 != nullptr);
-    assert(s2 != nullptr);
 
     BitVector bv1 = s1->getBits();
+    
+    InstanceValue arg2 = findArg("in1", inConns);
+    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+
+    assert(s2 != nullptr);
+
     BitVector bv2 = s2->getBits();
     
     BitVec res = op(bv1, bv2);
