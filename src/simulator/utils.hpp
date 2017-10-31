@@ -255,6 +255,14 @@ namespace CoreIR {
 
   std::string getOpName(CoreIR::Instance& inst);
 
+  static inline std::string getQualifiedOpName(CoreIR::Instance& inst) {
+    std::string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
+      getOpName(inst);
+
+    return opName;
+  }
+
+  
   static inline Generator* getGeneratorRef(Instance& w) {
     Module* m = w.getModuleRef();
     assert(m->isGenerated());
@@ -298,7 +306,7 @@ namespace CoreIR {
 
   static inline bool isSignInvariantOp(Instance& inst) {
     std::string genRefName = getInstanceName(inst);
-    std::vector<std::string> siOps{"add", "sub", "mul", "eq"};
+    std::vector<std::string> siOps{"add", "sub", "mul", "eq", "neq"};
     return elem(genRefName, siOps);
   }
 

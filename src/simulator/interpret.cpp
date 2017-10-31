@@ -6,24 +6,31 @@ using namespace std;
 
 namespace CoreIR {
 
-  string getQualifiedOpName(CoreIR::Instance& inst) {
-    string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
-      getOpName(inst);
-
-    return opName;
+  int bitsToIndex(const int depth) {
+    return ceil(log2(depth)) + 1;
   }
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
-    assert(bv.bitLength() == log2(depth));
+    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
+    // cout << "log2(depth))   = " << log2(depth) << endl;
+
+    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
     assert(val.bitLength() == ((int) width));
+    // Cannot access out of range elements
+    assert(bv.to_type<uint>() < depth);
 
     values.erase(bv);
     values.insert({bv, val});
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
+    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
+    // cout << "log2(depth))   = " << log2(depth) << endl;
 
-    assert(bv.bitLength() == log2(depth));
+    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
+
+    // Cannot access out of range elements
+    assert(bv.to_type<uint>() < depth);
 
     auto it = values.find(bv);
 
@@ -69,7 +76,6 @@ namespace CoreIR {
         uint width = (args["width"])->get<int>();
 
         // Set memory output port to default
-        //setValue(inst->sel("out"), makeSimBitVector(BitVec(width, 0)));
         setRegister(inst->toString(), BitVec(width, 0));
         setValue(inst->sel("out"), getRegister(inst->toString()));
         
@@ -161,12 +167,8 @@ namespace CoreIR {
 
         string opName = inst->getModuleRef()->getNamespace()->getName() + "." + getOpName(*inst);
 
-        cout << "opName = " << opName << endl;
-
         if ((opName == "coreir.const")) {
           bool foundValue = false;
-
-          cout << "Found coreir const node " << inst->toString() << endl;
 
           int argInt = 0;
           for (auto& arg : inst->getModArgs()) {
@@ -385,7 +387,7 @@ namespace CoreIR {
 
         Select* inSel = toSelect(w.getWire());
         Type* tp = inSel->getType();
-        cout << inSel->toString() << " has type " << tp->toString() << endl;
+
         if (tp->getKind() == CoreIR::Type::TK_Named) {
           NamedType* ntp = static_cast<NamedType*>(tp);
 
@@ -408,7 +410,6 @@ namespace CoreIR {
     }
 
     if (clockInputs.size() == 1) {
-      cout << "Setting main clock = " << clockInputs[0]->toString() << endl;
       setMainClock(clockInputs[0]);
     }
   }
@@ -418,29 +419,7 @@ namespace CoreIR {
 
     buildOrderedGraph(mod, gr);
 
-    cout << "Built graph, topological sorting" << endl;
-
-    //std::clock_t start, end;
-
-    //start = std::clock();
-
-    cout << "Nodes in graph" << endl;
-    for (auto& vd : gr.getVerts()) {
-      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
-    }
-    cout << "done." << endl;
-    
     topoOrder = topologicalSort(gr);
-
-    cout << "Nodes in sort" << endl;
-    for (auto& vd : topoOrder) {
-      cout << vd << " = " << gr.getNode(vd).getWire()->toString() << endl;
-    }
-    cout << "done." << endl;
-
-    //end = std::clock();
-
-    // std::cout << "Done. Time to sort " << gr.getVerts().size() << " vertices  : " << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms" << std::endl;
 
     // Set initial state of the circuit
     CircuitState init;
@@ -614,6 +593,8 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -624,49 +605,51 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
-
-    assert(inConns.size() == 2);
-
-    InstanceValue arg1 = findArg("in0", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 1);
     
-    assert(s1 != nullptr);
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
     
-    BitVec res = op(s1->getBits());
+    BitVec res = op(bv1); //s1->getBits());
 
     setValue(toSelect(outPair.second), makeSimBitVector(res));
 
   }
 
+  void SimulatorState::updateInputs(const vdisc vd) {
+    auto inConns = getInputConnections(vd, gr);
+    for (auto& conn : inConns) {
+      Select* source = toSelect(conn.first.getWire());
+      Select* dest = toSelect(conn.second.getWire());
+
+      setValue(dest, getValue(source));
+    }
+
+  }
+
   void SimulatorState::updateBitVecBinop(const vdisc vd, BitVecBinop op) {
+
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
 
     auto outSelects = getOutputSelects(inst);
-
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 2);
 
-    assert(inConns.size() == 2);
-
-    InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
     
-    assert(s1 != nullptr);
-    assert(s2 != nullptr);
+    Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    BitVector bv2 = getBitVec(arg2); //s2->getBits();
 
-    BitVector bv1 = s1->getBits();
-    BitVector bv2 = s2->getBits();
-    
     BitVec res = op(bv1, bv2);
 
     setValue(toSelect(outPair.second), makeSimBitVector(res));
@@ -730,6 +713,8 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateMuxNode(const vdisc vd) {
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -740,37 +725,24 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 3);
 
-    if (inConns.size() != 3) {
-      cout << "Mux does not have 3 inputs!" << endl;
-      for (auto& inConn : inConns) {
-        cout << inConn.first.getWire()->toString() << " --> " << inConn.second.getWire()->toString() << endl;
-      }
-
-      assert(inConns.size() == 3);
-    }
-
-    InstanceValue arg1 = findArg("in0", inConns);
-    InstanceValue arg2 = findArg("in1", inConns);
-    InstanceValue sel = findArg("sel", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+    Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
+    BitVector bv1 = getBitVec(arg1);
     
-    SimBitVector* selB = static_cast<SimBitVector*>(getValue(sel.getWire()));
+    Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    BitVector bv2 = getBitVec(arg2);
 
-    assert(s1 != nullptr);
-    assert(s2 != nullptr);
-    assert(selB != nullptr);
-
+    Select* sel = toSelect(CoreIR::findSelect("sel", inSels));
+    BitVector selB = getBitVec(sel);
     
-    BitVec sum(s1->getBits().bitLength());
+    BitVec sum(bv1.bitLength());
     
-    if (selB->getBits() == BitVec(1, 0)) {
-      sum = s1->getBits();
+    if (selB == BitVec(1, 0)) {
+      sum = bv1; //s1->getBits();
     } else {
-      sum = s2->getBits();
+      sum = bv2; //s2->getBits();
     }
 
     setValue(toSelect(outPair.second), makeSimBitVector(sum));
@@ -789,31 +761,17 @@ namespace CoreIR {
 
     Select* inst = toSelect(wd.getWire());
 
-    // Type& t = *(inst->getType());
-    
-    // if (isArray(t)) {
-    //   ArrayType& arrTp = toArray(t);
-    //   int arrLen = arrTp.getLen();
-      
-    //   cout << "Array output of length " << arrLen << "!" << endl;
-    //   assert(false);
-    // }
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 0);
 
     auto inConns = getInputConnections(vd, gr);
 
-    cout << "Output = " << inst->toString() << endl;
-    cout << "# of inputs = " << inConns.size() << endl;
-    //assert(inConns.size() == 1);
-
     for (auto& inConn : inConns) {
-      //Conn inConn = *std::begin(inConns);
+
       InstanceValue arg = inConn.first;
       InstanceValue receiver = inConn.second;
 
-      //cout << "Updating " << inst->toString() << " with value " << arg.getWire()->toString() << endl;
       SimBitVector* s = static_cast<SimBitVector*>(getValue(arg.getWire()));
 
       assert(s != nullptr);
@@ -1223,9 +1181,37 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateRegisterValue(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
 
+    WireNode wd = gr.getNode(vd);
     Instance* inst = toInstance(wd.getWire());
+
+    // New code
+    updateInputs(vd);
+
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 2);
+
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    SimBitVector* s1 =
+      static_cast<SimBitVector*>(getValue(arg1));
+    //static_cast<SimBitVector*>(getValue(arg1.getWire()));
+
+    assert(s1 != nullptr);
+
+    BitVector bv1 = s1->getBits();
+    
+    // InstanceValue arg2 = findArg("in1", inConns);
+    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
+
+    // Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    // SimBitVector* s2 =
+    //   static_cast<SimBitVector*>(getValue(arg2));
+    
+    // assert(s2 != nullptr);
+
+    // BitVector bv2 = s2->getBits();
+
+    // Original code
 
     auto outSelects = getOutputSelects(inst);
 
@@ -1235,12 +1221,15 @@ namespace CoreIR {
 
     auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() >= 2);
+    assert(inSels.size() >= 2);
 
-    InstanceValue arg1 = findArg("in", inConns);
+    //InstanceValue arg1 = findArg("in", inConns);
+
     InstanceValue clkArg = findArg("clk", inConns);
 
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s1 =
+    //   static_cast<SimBitVector*>(getValue(arg1));
+      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
     assert(s1 != nullptr);
@@ -1249,7 +1238,7 @@ namespace CoreIR {
     if ((clkVal->lastValue() == 0) &&
         (clkVal->value() == 1)) {
 
-      if (inConns.size() == 2) {
+      if (inSels.size() == 2) {
 
         //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
@@ -1258,7 +1247,7 @@ namespace CoreIR {
         assert(getRegister(inst->toString()) == s1->getBits());
 
       } else {
-        assert(inConns.size() == 3);
+        assert(inSels.size() == 3);
 
         InstanceValue enArg = findArg("en", inConns);   
 

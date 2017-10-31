@@ -599,9 +599,10 @@ namespace CoreIR {
     }
 
     SECTION("LineBufferMem") {
-      uint index = 2;
+
+      uint index = 4;
       uint width = index;
-      uint depth = pow(2, index);
+      uint depth = pow(2, index) - 6; // 10
 
       CoreIRLoadLibrary_commonlib(c);
 
@@ -629,37 +630,44 @@ namespace CoreIR {
 
       lbMem->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes", "flatten"});
-      //, "verifyconnectivity"}); //, {"commonlib", "mantle", "global"}); //,"flatten"});
-
-      if (!saveToFile(g, "linebuffermem.json", lbMem)) {
+      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
         cout << "Could not save to json!!" << endl;
         c->die();
       }
       
+      c->runPasses({"rungenerators","flattentypes", "flatten"});
+
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
       SimulatorState state(lbMem);
 
-      state.setValue("self.wdata", BitVector(width, "11"));
+      state.setValue("self.wdata", BitVector(width, "1111"));
       state.setValue("self.wen", BitVector(1, "1"));
-      //state.setMainClock("self.clk");
-      state.setClock("self.clk", 0, 1);
+      state.setClock("self.clk", 1, 0);
 
       // SECTION("Before execution valid is 0") {
       //   REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
       // }
 
-      state.execute();
+      // SECTION("Before peek value was written valid is still 0") {
+      //   REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      // }
 
-      SECTION("Before peek value was written valid is still 0") {
-        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      cout << "LINEBUFFER BEHAVIOR" << endl;
+      for (int i = 0; i < 25; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
       }
 
-      for (int i = 0; i < 10; i++) {
-        state.execute();
-      }
+      // for (int i = 0; i < 10; i++) {
+      //   state.execute();
+      // }
 
       SECTION("rdata is 11 in steady state") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "1111"));
       }
 
       // SECTION("valid is set to one in steady state") {
@@ -667,6 +675,76 @@ namespace CoreIR {
       // }
     }
 
+    SECTION("LineBufferMem power of 2") {
+
+      uint index = 2;
+      uint width = index;
+      uint depth = pow(2, index); // 10
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+          {"clk", c->Named("coreir.clkIn")},
+            {"wdata", c->BitIn()->Arr(width)},
+              {"rdata", c->Bit()->Arr(width)},
+        	{"wen", c->BitIn()},
+        	  {"valid", c->Bit()}
+        });
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("m0",
+        	       "commonlib.LinebufferMem",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.wen", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
+
+      lbMem->setDef(def);
+
+      if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
+      c->runPasses({"rungenerators","flattentypes", "flatten"});
+
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      SimulatorState state(lbMem);
+
+      state.setValue("self.wdata", BitVector(width, "11"));
+      state.setValue("self.wen", BitVector(1, "1"));
+      state.setClock("self.clk", 1, 0);
+
+      cout << "LINEBUFFER BEHAVIOR" << endl;
+      for (int i = 0; i < 3; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      }
+
+      SECTION("rdata is 00 after 3 half cycles") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "00"));
+      }
+
+      for (int i = 0; i < 30; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      }
+
+      SECTION("rdata is 11 in steady state") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+      }
+    }
+    
     SECTION("Memory") {
       uint width = 20;
       uint depth = 4;
@@ -963,6 +1041,38 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
     }
 
+    // SECTION("conv_3_1 from json") {
+
+    //   Namespace* common = CoreIRLoadLibrary_commonlib(c);
+
+    //   cout << "loading" << endl;
+    //   //if (!loadFromFile(c,"./sim_ready_conv_3_1.json")) {
+    //   if (!loadFromFile(c,"./conv_3_1.json")) {
+    // 	cout << "Could not Load from json!!" << endl;
+    // 	c->die();
+    //   }
+
+    //   c->runPasses({"flattentypes", "rungenerators", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+
+    //   Module* m = g->getModule("DesignTop");
+
+    //   assert(m != nullptr);
+
+    //   SimulatorState state(m);
+    //   state.setValue("self.in_0", BitVector(16, "0000000000000001"));
+    //   state.setClock("self.clk", 1, 0);
+
+    //   for (int i = 0; i < 10; i++) {
+    //     state.runHalfCycle();
+    //     //state.execute();
+    //     // ClockValue* clk = toClock(state.getValue("self.clk"));
+    //     // cout << "self.out " << clk->getHalfCycleCount() << " = " << state.getBitVec("self.out") << endl;
+    //   }
+
+    //   REQUIRE(state.isSet("self.out"));
+      
+    // }
+
     SECTION("Failing clock test") {
 
       cout << "loading" << endl;
@@ -1007,6 +1117,28 @@ namespace CoreIR {
       
     }
 
+    SECTION("Bit selects in inputs to nodes") {
+      if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      Module* regMod = g->getModule("simple_flattened");
+      SimulatorState state(regMod);
+
+      state.execute();
+
+      state.setClock("self.CLK", 0, 1);
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0000"));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0001"));
+    }
+    
     deleteContext(c);
   }
 
