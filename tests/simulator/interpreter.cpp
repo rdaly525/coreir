@@ -1135,7 +1135,10 @@ namespace CoreIR {
       state.execute();
 
       REQUIRE(state.getBitVec("self.O") == BitVec(4, "0000"));
-      
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0001"));
     }
     
     deleteContext(c);
