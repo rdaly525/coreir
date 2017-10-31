@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_MAIN
+
 #include "catch.hpp"
 
 #include "coreir.h"
@@ -1132,13 +1134,7 @@ namespace CoreIR {
 
       state.execute();
 
-      // SimValue* val = state.getValue("self.O");
-
-      // ClockValue* clkVal = static_cast<ClockValue*>(val);
-
       REQUIRE(state.getBitVec("self.O") == BitVec(2, "0000"));
-      // REQUIRE(clkVal->value() == 1);
-      // REQUIRE(clkVal->lastValue() == 0);
       
     }
     
