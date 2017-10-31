@@ -3,6 +3,8 @@
 #include <dlfcn.h>
 #include <fstream>
 
+#include <string>
+
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
@@ -186,14 +188,23 @@ int main(int argc, char *argv[]) {
       std::cout << "Exiting..." << std::endl;
       break;
     } else if (cmd == "set") {
-      assert(args.size() == 3);
+      if (args.size() == 3) {
 
-      string valName = args[1];
-      string bitString = args[2];
+        string valName = args[1];
+        string bitString = args[2];
 
-      int len = bitString.size();
+        int len = bitString.size();
 
-      state.setValue(valName, BitVector(len, bitString));
+        state.setValue(valName, BitVector(len, bitString));
+      } else if (args.size() == 4) {
+        string clkName  = args[1];
+        string oldVal = args[2];
+        string newVal = args[3];
+
+        state.setClock(clkName, stoi(oldVal), stoi(newVal));
+      } else {
+        assert(false);
+      }
 
     } else if (cmd == "print") {
       if (args.size() != 2) {
