@@ -1117,6 +1117,31 @@ namespace CoreIR {
       
     }
 
+    SECTION("Bit selects in inputs to nodes") {
+      if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      Module* regMod = g->getModule("simple_flattened");
+      SimulatorState state(regMod);
+
+      state.execute();
+
+      state.setClock("self.CLK", 0, 1);
+
+      state.execute();
+
+      // SimValue* val = state.getValue("self.O");
+
+      // ClockValue* clkVal = static_cast<ClockValue*>(val);
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(2, "0000"));
+      // REQUIRE(clkVal->value() == 1);
+      // REQUIRE(clkVal->lastValue() == 0);
+      
+    }
+    
     deleteContext(c);
   }
 
