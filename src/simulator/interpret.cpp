@@ -613,6 +613,8 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -623,17 +625,23 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
+    //auto inConns = getInputConnections(vd, gr);
 
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 1);
+    
     //assert(inConns.size() == 2);
 
-    InstanceValue arg1 = findArg("in0", inConns);
+    // InstanceValue arg1 = findArg("in0", inConns);
 
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
     
-    assert(s1 != nullptr);
+    // assert(s1 != nullptr);
+
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
     
-    BitVec res = op(s1->getBits());
+    BitVec res = op(bv1); //s1->getBits());
 
     setValue(toSelect(outPair.second), makeSimBitVector(res));
 
@@ -663,30 +671,14 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    // InstanceValue arg1 = findArg("in0", inConns);
-
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 2);
 
     Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
-    SimBitVector* s1 =
-      static_cast<SimBitVector*>(getValue(arg1));
-    //static_cast<SimBitVector*>(getValue(arg1.getWire()));
-
-    assert(s1 != nullptr);
-
-    BitVector bv1 = s1->getBits();
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
     
-    // InstanceValue arg2 = findArg("in1", inConns);
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-
     Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
-    SimBitVector* s2 =
-      static_cast<SimBitVector*>(getValue(arg2));
-    
-    assert(s2 != nullptr);
-
-    BitVector bv2 = s2->getBits();
+    BitVector bv2 = getBitVec(arg2); //s2->getBits();
 
     BitVec res = op(bv1, bv2);
 
