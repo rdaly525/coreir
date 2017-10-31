@@ -118,6 +118,16 @@ NamedType* Namespace::getNamedType(string name, Values genargs) {
 
   return named;
 }
+
+void Namespace::addTypeGen(TypeGen* typegen) {
+  ASSERT(typegen->getNamespace() == this, "Adding typegen to a namespace different than its own");
+  ASSERT(namedTypeList.count(typegen->getName())==0, "Name collision in addTypeGen");
+
+  //Add name to typeGenNameMap
+  typeGenNameMap[typegen->getName()] = "";
+  typeGenList[typegen->getName()] = typegen;
+}
+
 TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
   assert(namedTypeList.count(name)==0);
   ASSERT(typeGenList.count(name)==0, name + " is already a used typegen name");
