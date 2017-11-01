@@ -478,7 +478,7 @@ namespace CoreIR {
 
   // NOTE: Actually implement by checking types
   bool isSimBitVector(SimValue* v) {
-    return true;
+    return v->getType() == SIM_VALUE_BV;
   }
 
   BitVec SimulatorState::getBitVec(const std::string& str) {
