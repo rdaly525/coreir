@@ -3,6 +3,8 @@
 #include <dlfcn.h>
 #include <fstream>
 
+#include <string>
+
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
@@ -186,14 +188,23 @@ int main(int argc, char *argv[]) {
       std::cout << "Exiting..." << std::endl;
       break;
     } else if (cmd == "set") {
-      assert(args.size() == 3);
+      if (args.size() == 3) {
 
-      string valName = args[1];
-      string bitString = args[2];
+        string valName = args[1];
+        string bitString = args[2];
 
-      int len = bitString.size();
+        int len = bitString.size();
 
-      state.setValue(valName, BitVector(len, bitString));
+        state.setValue(valName, BitVector(len, bitString));
+      } else if (args.size() == 4) {
+        string clkName  = args[1];
+        string oldVal = args[2];
+        string newVal = args[3];
+
+        state.setClock(clkName, stoi(oldVal), stoi(newVal));
+      } else {
+        assert(false);
+      }
 
     } else if (cmd == "print") {
       if (args.size() != 2) {
@@ -206,10 +217,11 @@ int main(int argc, char *argv[]) {
       if (ins == "inputs") {
 	auto& gr = state.getCircuitGraph();
 	for (auto vd : gr.getVerts()) {
-	  //if (getInputConnections(vd, gr).size() == 0) {
+
           if (isGraphInput(gr.getNode(vd))) {
 	    cout << gr.getNode(vd).getWire()->toString() << " : " << gr.getNode(vd).getWire()->getType()->toString() << endl;
 	  }
+
 	}
 	continue;
       }
@@ -217,10 +229,11 @@ int main(int argc, char *argv[]) {
       if (ins == "outputs") {
 	auto& gr = state.getCircuitGraph();
 	for (auto vd : gr.getVerts()) {
-	  //if (getOutputConnections(vd, gr).size() == 0) {
+
           if (isGraphOutput(gr.getNode(vd))) {
 	    cout << gr.getNode(vd).getWire()->toString() << " : " << gr.getNode(vd).getWire()->getType()->toString() << endl;
 	  }
+
 	}
 	continue;
       }
@@ -235,14 +248,34 @@ int main(int argc, char *argv[]) {
 	continue;
       }
 
-      BitVector bv = state.getBitVec(ins);
+      //cout << "Getting bit vector" << endl;
+      //BitVector bv = state.getBitVec(ins);
+      SimValue* val = state.getValue(ins);
 
-      cout << bv << endl;
+      if (val->getType() == SIM_VALUE_BV) {
+
+        cout << static_cast<SimBitVector*>(val)->getBits() << endl;
+      } else {
+        assert(val->getType() == SIM_VALUE_CLK);
+
+        ClockValue* clk = toClock(val);
+
+        cout << "Last value    = " << (int)(clk->lastValue()) << endl;
+        cout << "Current value = " << (int)(clk->value()) << endl;
+      }
       
     } else if (cmd == "exec") {
       assert(args.size() == 1);
 
-      state.execute();
+      state.runHalfCycle();
+      state.runHalfCycle();
+
+    } else if (cmd == "cycle-count") {
+      if (args.size() != 1) {
+        cout << "Error: Cycle count takes no arguments!" << endl;
+      }
+
+      cout << toClock(state.getValue(state.getMainClock()))->getCycleCount() << endl;
 
     } else {
       cout << "Unrecognized command: " << cmd << endl;

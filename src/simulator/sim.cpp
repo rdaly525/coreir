@@ -1158,22 +1158,30 @@ namespace CoreIR {
 
     code += "void simulate( circuit_state* state ) {\n";
 
-    for (auto i : unPrintedThreads) {
-      string iStr = to_string(i);
+    if (unPrintedThreads.size() == 1) {
+      string iStr = to_string(unPrintedThreads[0]);
 
-      // Join threads that this thread depends on
-      for (auto depEdge : tg.inEdges(i)) {
-        vdisc se = tg.source(depEdge);
-        code += ln("simulate_" + to_string(se) + "_thread.join()");
-        remove(se, unJoinedThreads);
+      code += ln("simulate_" + iStr + "( state )");
+
+    } else {
+
+      for (auto i : unPrintedThreads) {
+        string iStr = to_string(i);
+
+        // Join threads that this thread depends on
+        for (auto depEdge : tg.inEdges(i)) {
+          vdisc se = tg.source(depEdge);
+          code += ln("simulate_" + to_string(se) + "_thread.join()");
+          remove(se, unJoinedThreads);
+        }
+        code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
       }
-      code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
-    }
 
-    // Join all remaining threads before simulate function ends
-    for (auto i : unJoinedThreads) {
-      string iStr = to_string(i);
-      code += ln("simulate_" + iStr + "_thread.join()");
+      // Join all remaining threads before simulate function ends
+      for (auto i : unJoinedThreads) {
+        string iStr = to_string(i);
+        code += ln("simulate_" + iStr + "_thread.join()");
+      }
     }
 
     code += "}\n";
