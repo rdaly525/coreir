@@ -32,7 +32,7 @@ public :
   SmvBVVar() = default;
   SmvBVVar(string instname, string field, Type* t) :
     instname(instname), portname(field), dim(t->getSize()), dir(t->getDir())     {
-    name = (instname == "" ? "" : instname + SEP) + portname;
+    name = (instname == "" ? "" : instname + "$") + portname;
     fullname = field+name;
   }
   SmvBVVar(Wireable* w) : SmvBVVar("","",w->getType()) {
@@ -56,7 +56,7 @@ public :
       instname = sp[0];
     }
 
-    name = (instname == "" ? "" : instname + SEP) + portname;
+    name = (instname == "" ? "" : instname + "$") + portname;
     fullname = name;
   }
   bool operator==(const SmvBVVar &other) const
@@ -101,10 +101,8 @@ public:
       modname = jmeta["verilog"]["prefix"].get<string>() + m->getName();
     }
 
-    this->addparams(m->getConfigParams());
-    for (auto amap : m->getDefaultConfigArgs()) {
-      paramDefaults[amap.first] = amap.second->toString();
-    }
+    this->addParams(params,m->getModParams());
+    this->addDefaults(paramDefaults,m->getDefaultModArgs());
   }
   SMVModule(Generator* g) : modname(g->getName()), gen(g) {
     const json& jmeta = g->getMetaData();
@@ -112,8 +110,9 @@ public:
     if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
       modname = jmeta["verilog"]["prefix"].get<string>() + g->getName();
     }
-    this->addparams(g->getGenParams());
-    this->addparams(g->getConfigParams());
+    this->addParams(params,g->getGenParams());
+    this->addDefaults(paramDefaults,g->getDefaultGenArgs());
+    //this->addparams(g->getConfigParams());
   }
   void addStmt(string stmt) { stmts.push_back(stmt); }
   void addPort(SmvBVVar v) {ports.push_back(v);}
@@ -135,16 +134,39 @@ private :
     }
   }
   void addPortsFromGen(Instance* inst) {
-    Type* t = gen->getTypeGen()->getType(inst->getGenArgs());
+    Module *m = inst->getModuleRef();
+    ASSERT (m->isGenerated(), "Module not generated");
+    Type* t = gen->getTypeGen()->getType(inst->getModuleRef()->getGenArgs());
     for (auto rmap : cast<RecordType>(t)->getRecord()) {
       ports.push_back(SmvBVVar(inst->getInstname(), rmap.first, rmap.second));
     }
   }
-  void addparams(Params ps) { 
+  void addParams(unordered_set<string>& sps, Params ps) { 
     for (auto p : ps) {
       ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
-      params.insert(p.first); 
+      sps.insert(p.first); 
     }
+  }
+  void addDefaults(unordered_map<string,string> sm, Values ds) { 
+    for (auto dpair : ds) {
+      sm[dpair.first] = toConstString(dpair.second);
+    }
+  }
+  std::string toConstString(Value* v) {
+    if (auto av = dyn_cast<Arg>(v)) {
+      return av->getField();
+    }
+    else if (auto iv = dyn_cast<ConstInt>(v)) {
+      return iv->toString();
+    }
+    else if (auto bv = dyn_cast<ConstBool>(v)) {
+      return std::to_string(uint(bv->get()));
+    }
+    else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
+      BitVector bv = bvv->get();
+      return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
+    }
+    assert(0);
   }
 };
 

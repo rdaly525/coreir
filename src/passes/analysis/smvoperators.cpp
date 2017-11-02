@@ -118,6 +118,10 @@ namespace CoreIR {
       return SMVBop(context, "Add", "+", in1_p, in2_p, out_p);
     }
 
+    string SMVSub(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
+      return SMVBop(context, "Sub", "-", in1_p, in2_p, out_p);
+    }
+    
     string SMVConcat(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
       return SMVBop(context, "Concat", "::", in1_p, in2_p, out_p);
     }

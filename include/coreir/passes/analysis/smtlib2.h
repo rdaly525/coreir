@@ -12,8 +12,8 @@ namespace CoreIR {
 namespace Passes {
 
 class SmtLib2 : public InstanceGraphPass {
-  unordered_map<Instantiable*,SMTModule*> modMap;
-  unordered_set<Instantiable*> external;
+  unordered_map<Module*,SMTModule*> modMap;
+  unordered_set<Module*> external;
   // operators ignored by smt translation
   set<string> no_ops = {"term"};
   public :

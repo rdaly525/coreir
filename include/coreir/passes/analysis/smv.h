@@ -12,9 +12,9 @@ namespace CoreIR {
 namespace Passes {
 
   class SMV : public InstanceGraphPass { // ModulePass
-  unordered_map<Instantiable*,SMVModule*> modMap;
+  unordered_map<Module*,SMVModule*> modMap;
   unordered_map<string, PropDef> properties;
-  unordered_set<Instantiable*> external;
+  unordered_set<Module*> external;
   // operators ignored by smv translation
   set<string> no_ops = {"term"};
   public :

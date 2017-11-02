@@ -46,29 +46,29 @@ string SMTModule::toInitVarDecString() {
 
 string SMTModule::toInstanceString(Instance* inst, string path) {
   string instname = inst->getInstname();
-  Instantiable* iref = inst->getInstantiableRef();
-  if (this->gen) {
-    ASSERT(inst->isGen(),"DEBUG ME:");
-  }
+  Module* mref = inst->getModuleRef();
+  // if (this->gen) {
+  //   ASSERT(inst->isGen(),"DEBUG ME:");
+  // }
   ostringstream o;
   string tab = "  ";
   string mname;
-  Args args;
+  Values args;
   if (gen) {
-    args = inst->getGenArgs();
+    args = mref->getGenArgs();
     addPortsFromGen(inst);
-    mname = gen->getNamespace()->getName() + "_" + gen->getName(args);
+    mname = modname; //gen->getNamespace()->getName() + "_" + gen->getName(args);
   }
   else {
     mname = modname;
   }
   
-  for (auto amap : inst->getConfigArgs()) {
+  for (auto amap : inst->getModArgs()) {
     ASSERT(args.count(amap.first)==0,"NYI Alisaaed config/genargs");
     args[amap.first] = amap.second;
   }
   vector<string> params;
-  const json& jmeta = iref->getMetaData();
+  const json& jmeta = mref->getMetaData();
   if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
     params = jmeta["verilog"]["parameters"].get<vector<string>>();
   }
@@ -79,7 +79,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   }
   vector<string> paramstrs;
   for (auto param : params) {
-    ASSERT(args.count(param),"Missing parameter " + param + " from " + Args2Str(args));
+    ASSERT(args.count(param),"Missing parameter " + param + " from " + Values2Str(args));
     string astr = "." + param + "(" + args[param]->toString() + ")";
     paramstrs.push_back(astr);
   }
@@ -95,6 +95,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   enum operation {neg_op = 1,
                   const_op,
                   add_op,
+                  sub_op,
                   and_op,
                   or_op,
                   xor_op,
@@ -107,22 +108,26 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   unordered_map<string, operation> opmap;
 
   opmap.emplace(pre+"neg", neg_op);
-  opmap.emplace(pre+"bitconst", const_op);
+  opmap.emplace(pre+"bitneg", neg_op);
+  opmap.emplace(pre+"not", neg_op);
+  opmap.emplace(pre+"bitnot", neg_op);
   opmap.emplace(pre+"const", const_op);
+  opmap.emplace(pre+"bitconst", const_op);
   opmap.emplace(pre+"add", add_op);
-  opmap.emplace(pre+"bitand", and_op);
+  opmap.emplace(pre+"sub", sub_op);
   opmap.emplace(pre+"and", and_op);
-  opmap.emplace(pre+"bitor", or_op);
+  opmap.emplace(pre+"bitand", and_op);
   opmap.emplace(pre+"or", or_op);
-  opmap.emplace(pre+"bitxor", xor_op);
+  opmap.emplace(pre+"bitor", or_op);
   opmap.emplace(pre+"xor", xor_op);
+  opmap.emplace(pre+"bitxor", xor_op);
   opmap.emplace(pre+"bitreg", reg_op);
   opmap.emplace(pre+"reg", reg_op);
   opmap.emplace(pre+"reg_PE", regPE_op);
   opmap.emplace(pre+"concat", concat_op);
   opmap.emplace(pre+"slice", slice_op);
   opmap.emplace(pre+"term", term_op);
-
+  
 #define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
   
   SmtBVVar out; var_assign(out, "out");
@@ -140,6 +145,9 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     break;
   case add_op:
     o << SMTAdd(context, in0, in1, out);
+    break;
+  case sub_op:
+    o << SMTSub(context, in0, in1, out);
     break;
   case and_op:
     o << SMTAnd(context, in0, in1, out);

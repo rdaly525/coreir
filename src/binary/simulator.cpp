@@ -6,6 +6,7 @@
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
+#include "coreir/libs/commonlib.h"
 
 #include "../simulator/output.hpp"
 #include "../simulator/sim.hpp"
@@ -45,6 +46,8 @@ int main(int argc, char *argv[]) {
   
   
   Context* c = newContext();
+
+  CoreIRLoadLibrary_commonlib(c);
   
   ASSERT(options.count("i"),"No input specified")
   string infileName = options["i"].as<string>();
@@ -58,6 +61,8 @@ int main(int argc, char *argv[]) {
   }
   string topRef = "";
   if (top) topRef = top->getRefName();
+
+  c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});  
 
   NGraph gr;
   buildOrderedGraph(top, gr);

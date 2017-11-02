@@ -97,6 +97,10 @@ namespace CoreIR {
       return SMTBop(context, "Add", "bvadd", in1_p, in2_p, out_p);
     }
 
+    string SMTSub(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      return SMTBop(context, "Sub", "bvsub", in1_p, in2_p, out_p);
+    }
+    
     string SMTConcat(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       return SMTBop(context, "Concat", "concat", in1_p, in2_p, out_p);
     }

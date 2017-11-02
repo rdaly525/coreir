@@ -58,7 +58,31 @@ namespace CoreIR {
     return res;
   }
 
-  string printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+
+    bool foundValue = false;
+
+    string argStr = "";
+    for (auto& arg : inst->getModArgs()) {
+      if (arg.first == "value") {
+        foundValue = true;
+        Value* valArg = arg.second;
+
+        cout << "Value type = " << valArg->getValueType()->toString() << endl;
+
+        BitVector bv = valArg->get<BitVector>();
+        stringstream ss;
+        ss << "0b" << bv;
+        argStr = ss.str();
+      }
+    }
+
+    assert(foundValue);
+
+    return argStr;
+  }
+
+  string printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
     bool foundValue = false;
 
@@ -68,13 +92,15 @@ namespace CoreIR {
         foundValue = true;
         Value* valArg = arg.second; //.get();
 
-        assert(valArg->getValueType() == inst->getContext()->BitVector(16));
+        cout << "Value type = " << valArg->getValueType()->toString() << endl;
+
+        assert(valArg->getValueType() == inst->getContext()->Bool());
         //assert(valArg->getKind() == AINT);
 
         //ArgInt* valInt = static_cast<ArgInt*>(valArg);
-        BitVector bv = valArg->get<BitVector>();
+        bool bv = valArg->get<bool>();
         stringstream ss;
-        ss << bv;
+        ss << (bv ? "1" : "0");
         argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
       }
     }
@@ -83,7 +109,15 @@ namespace CoreIR {
 
     return argStr;
   }
-  
+
+  string printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+    if (getQualifiedOpName(*inst) == "corebit.const") {
+      return printBitConstant(inst, vd, g);
+    } else {
+      return printBVConstant(inst, vd, g);
+    }
+  }
+
   string printOpThenMaskBinop(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 
@@ -414,6 +448,8 @@ namespace CoreIR {
         isSDivOrRem(*inst)) {
       return printSEThenOpThenMaskBinop(inst, vd, g);
     }
+
+    cout << "Unsupported binop = " << inst->toString() << " from module = " << inst->getModuleRef()->getName() << endl;
 
     assert(false);
   }
@@ -809,21 +845,16 @@ namespace CoreIR {
 
         Context* c = mod.getDef()->getContext();
 
-        uint width = 16;
-        uint depth = 2;
+        Values args = is->getModuleRef()->getGenArgs();
+
+        auto wArg = args["width"];
+        auto dArg = args["depth"];
+        
+        uint width = wArg->get<int>(); //16;
+        uint depth = dArg->get<int>();
         Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
         declStrs.push_back({elemType, is->toString()});
 
-        // Select* in = is->sel("in");
-        // Type* itp = in->getType();
-
-        //string regName = is->getInstname();
-
-        // declStrs.push_back({itp, regName + "_old_value"});
-        // declStrs.push_back({itp, regName + "_new_value"});
-
-
-        
       }
     }
 
@@ -1127,22 +1158,30 @@ namespace CoreIR {
 
     code += "void simulate( circuit_state* state ) {\n";
 
-    for (auto i : unPrintedThreads) {
-      string iStr = to_string(i);
+    if (unPrintedThreads.size() == 1) {
+      string iStr = to_string(unPrintedThreads[0]);
 
-      // Join threads that this thread depends on
-      for (auto depEdge : tg.inEdges(i)) {
-        vdisc se = tg.source(depEdge);
-        code += ln("simulate_" + to_string(se) + "_thread.join()");
-        remove(se, unJoinedThreads);
+      code += ln("simulate_" + iStr + "( state )");
+
+    } else {
+
+      for (auto i : unPrintedThreads) {
+        string iStr = to_string(i);
+
+        // Join threads that this thread depends on
+        for (auto depEdge : tg.inEdges(i)) {
+          vdisc se = tg.source(depEdge);
+          code += ln("simulate_" + to_string(se) + "_thread.join()");
+          remove(se, unJoinedThreads);
+        }
+        code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
       }
-      code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
-    }
 
-    // Join all remaining threads before simulate function ends
-    for (auto i : unJoinedThreads) {
-      string iStr = to_string(i);
-      code += ln("simulate_" + iStr + "_thread.join()");
+      // Join all remaining threads before simulate function ends
+      for (auto i : unJoinedThreads) {
+        string iStr = to_string(i);
+        code += ln("simulate_" + iStr + "_thread.join()");
+      }
     }
 
     code += "}\n";

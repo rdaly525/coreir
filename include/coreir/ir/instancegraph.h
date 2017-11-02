@@ -8,8 +8,7 @@ namespace CoreIR {
 
 class InstanceGraphNode;
 class InstanceGraph {
-  std::unordered_map<Instantiable*,InstanceGraphNode*> nodeMap;
-  //std::unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
+  std::unordered_map<Module*,InstanceGraphNode*> nodeMap;
   std::list<InstanceGraphNode*> sortedNodes;
   public :
     InstanceGraph() {}
@@ -23,16 +22,15 @@ class InstanceGraph {
 
 class InstanceGraphNode {
   //The underlying instantiable
-  Instantiable* i;
+  Module* m;
   typedef std::vector<Instance*> InstanceList;
   InstanceList instanceList;
   bool external;
   public:
-    InstanceGraphNode(Instantiable* i,bool external) : i(i), external(external) {}
+    InstanceGraphNode(Module* m,bool external) : m(m), external(external) {}
     //Returns a list of instances that instantiate THIS instantiable (Kind of like a Use-def
     InstanceList getInstanceList() { return instanceList;}
-    //Get the instantiable (module or generator that this refers to)
-    Instantiable* getInstantiable() { return i;}
+    Module* getModule() { return m;}
 
     bool isExternal() {return external;}
 

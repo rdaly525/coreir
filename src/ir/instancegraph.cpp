@@ -25,7 +25,6 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 void InstanceGraph::construct(Context* c) {
 
   //Contains all external nodes referenced
-  //unordered_map<Instantiable*,InstanceGraphNode*> externalNodeMap;
 
   //Create all Nodes first
   for (auto nsmap : c->getNamespaces()) {
@@ -33,12 +32,9 @@ void InstanceGraph::construct(Context* c) {
       nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
     }
   }
-  //for (auto imap : ns->getGenerators()) {
-  //  nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
-  //}
 
   //populate all the nodes with pointers to the instances
-  unordered_map<Instantiable*,InstanceGraphNode*> nodeMap2;
+  unordered_map<Module*,InstanceGraphNode*> nodeMap2;
   for (auto nodemap : nodeMap) {
     nodeMap2.insert(nodemap);
   }
@@ -48,18 +44,9 @@ void InstanceGraph::construct(Context* c) {
     if (!m->hasDef()) continue;
     ModuleDef* mdef = cast<Module>(nodemap.first)->getDef();
     for (auto instmap : mdef->getInstances()) {
-      Instantiable* icheck = instmap.second->getModuleRef();
+      Module* icheck = instmap.second->getModuleRef();
       ASSERT(nodeMap.count(icheck),"missing: " + icheck->toString());
       InstanceGraphNode* node = nodeMap[icheck];
-
-      //if (nodeMap.count(icheck)==0) {
-      //  node = new InstanceGraphNode(icheck,true);
-      //  nodeMap[icheck] = node;
-      //}
-      //else {
-      //  node = nodeMap[icheck];
-      //}
-
       node->addInstance(instmap.second,nodemap.second);
     }
   }
@@ -71,15 +58,11 @@ void InstanceGraph::construct(Context* c) {
 
 
 void InstanceGraphNode::appendField(string label,Type* t) {
-  auto i = getInstantiable();
-  if (isa<Generator>(i)) {
-    ASSERT(0,"NYI Handling changing generator types");
-  }
-  Module* m = cast<Module>(i);
+  auto m = getModule();
   RecordType* mtype = cast<RecordType>(m->getType());
 
   //appendField will assert if the field already exists
-  Type* newType = mtype->appendField(label,t);
+  RecordType* newType = mtype->appendField(label,t);
 
   //Do not have to check any connections because I am adding a new field
 
@@ -98,14 +81,12 @@ void InstanceGraphNode::appendField(string label,Type* t) {
 }
 
 void InstanceGraphNode::detachField(string label) {
-  auto i = getInstantiable();
-  ASSERT(!isa<Generator>(i),"NYI Handling changing generator types");
-  Module* m = cast<Module>(i);
+  Module* m = getModule();
   ASSERT(m->hasDef(),"NYI Handling changing types for module declaration");
   RecordType* mtype = cast<RecordType>(m->getType());
 
   //Will assert if field does not exist
-  Type* newType = mtype->detachField(label);
+  RecordType* newType = mtype->detachField(label);
 
   //Remove anything connected to the module def interface
   Interface* iface = m->getDef()->getInterface();

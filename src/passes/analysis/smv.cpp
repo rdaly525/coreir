@@ -34,19 +34,18 @@ std::string Passes::SMV::ID = "smv";
 bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   //Create a new SMVmodule for this node
-  Instantiable* i = node.getInstantiable();
-  if (auto g = dyn_cast<Generator>(i)) {
-    this->modMap[i] = new SMVModule(g);
-    this->external.insert(i);
-    return false;
-  }
-  Module* m = cast<Module>(i);
+  Module* m = node.getModule();
+  // if (auto g = dyn_cast<Generator>(m)) {
+  //   this->modMap[m] = new SMTModule(g);
+  //   this->external.insert(m);
+  //   return false;
+  // }
   SMVModule* smod = new SMVModule(m);
-  modMap[i] = smod;
-  if (!m->hasDef()) {
-    this->external.insert(i);
-    return false;
-  }
+  modMap[m] = smod;
+  // if (!m->hasDef()) {
+  //   //    this->external.insert(m);
+  //   return false;
+  // }
 
   if (this->getContext()->hasTop() &&
       this->getContext()->getTop()->getMetaData().count("properties") > 0) {
@@ -68,10 +67,10 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto imap : def->getInstances()) {
     string iname = imap.first;
     Instance* inst = imap.second;
-    Instantiable* iref = imap.second->getInstantiableRef();
+    Module* mref = imap.second->getModuleRef();
     // do not add comment for no ops
     if (no_ops.count(imap.first) == 0 ) {
-      smod->addStmt("-- START module declaration for instance '" + imap.first + "' (Module "+ iref->getName() + ")");
+      smod->addStmt("-- START module declaration for instance '" + imap.first + "' (Module "+ mref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmvBVVar var = SmvBVVar(iname, rmap.first, rmap.second);
@@ -79,8 +78,8 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
       variables.push_back(var.getName());
       smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
     }
-    ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
-    smod->addStmt(modMap[iref]->toInstanceString(inst, imap.first));
+    ASSERT(modMap.count(mref),"DEBUG ME: Missing mref");
+    smod->addStmt(modMap[mref]->toInstanceString(inst, imap.first));
     if (no_ops.count(imap.first) == 0 ) {
       smod->addStmt("-- END module declaration\n");
     }

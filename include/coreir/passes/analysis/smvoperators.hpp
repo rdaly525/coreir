@@ -31,6 +31,7 @@ namespace CoreIR {
     string SMVNot(string context, SmvBVVar in, SmvBVVar out);
     string SMVConst(string context, SmvBVVar out, string val);
     string SMVAdd(string context, SmvBVVar in1, SmvBVVar in2, SmvBVVar out);
+    string SMVSub(string context, SmvBVVar in1, SmvBVVar in2, SmvBVVar out);
     string SMVConcat(string context, SmvBVVar in1, SmvBVVar in2, SmvBVVar out);
     string SMVReg(string context, SmvBVVar in, SmvBVVar clk, SmvBVVar out);
     string SMVRegPE(string context, SmvBVVar in, SmvBVVar clk, SmvBVVar out, SmvBVVar en);

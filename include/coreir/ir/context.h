@@ -65,8 +65,10 @@ class Context {
     Namespace* getCoreirPrims() {return getNamespace("coreir");}
     Module* getModule(std::string ref);
     Generator* getGenerator(std::string ref);
-    Instantiable* getInstantiable(std::string ref);
-    bool hasInstantiable(std::string ref);
+    GlobalValue* getGlobalValue(std::string ref);
+    bool hasGenerator(std::string ref);
+    bool hasModule(std::string ref);
+    bool hasGlobalValue(std::string ref);
 
     std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
@@ -90,7 +92,7 @@ class Context {
     IntType* Int();
     BitVectorType* BitVector(int width);
     StringType* String();
-    //CoreIRType* coreirType();
+    //CoreIRType* CoreIRType();
 
     Type* Flip(Type* t);
     Type* In(Type* t);
