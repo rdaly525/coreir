@@ -28,3 +28,5 @@ deploy:
   file: "coreir.tar.gz"
   on:
     repo: rdaly525/coreir
+    tags: true
+    branch: master
