@@ -136,7 +136,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           
           json jmod = jmodmap.second;
-          checkJson(jmod,{"type","modparams","defaultmodargs","genref","genargs","instances","connections"});
+          checkJson(jmod,{"type","modparams","defaultmodargs","genref","genargs","instances","connections","metadata"});
           if (jmod.count("genref")) {
             ASSERT(jmod.count("genargs"),"Need Genargs here");
             //Skip all generator module defs initially
@@ -168,7 +168,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
 
           json jgen = jgenmap.second;
-          checkJson(jgen,{"typegen","genparams","defaultgenargs"});
+          checkJson(jgen,{"typegen","genparams","defaultgenargs","metadata"});
           Params genparams = json2Params(c,jgen.at("genparams"));
           TypeGen* typegen = c->getTypeGen(jgen.at("typegen").get<string>());
           assert(genparams == typegen->getParams());
