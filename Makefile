@@ -36,19 +36,6 @@ export CXXFLAGS
 
 all: build coreir
 
-.PHONY: ir
-ir:
-	$(MAKE) -C src/ir $(TARGET)
-
-simple:
-	$(MAKE) -C tests/unit build/simple
-	./tests/unit/build/simple
-
-.PHONY : unit
-unit:
-	$(MAKE) -C tests/unit
-	cd tests/unit; ./run
-
 .PHONY: test
 test: build
 	$(MAKE) -C tests
@@ -106,6 +93,14 @@ clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests/install clean
+
+.PHONY: release
+release:
+	-rm -rf release/include release/lib release/bin
+	cp -r include release/.
+	cp -r lib release/.
+	cp -r bin release/.
+	tar -zcvf coreir.tar.gz release
 
 .PHONY: travis
 travis:
