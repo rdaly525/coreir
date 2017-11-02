@@ -990,17 +990,17 @@ namespace CoreIR {
 
       c->runPasses({"rungenerators","flattentypes","flatten"});
 
-      map<string,json> symdata =
-        dff->getMetaData()["symtable"].get<map<string,json>>();
+      // map<string,json> symdata =
+      //   dff->getMetaData()["symtable"].get<map<string,json>>();
 
-      for (auto& symEnt : symdata) {
-        SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
-        for (auto& p : curpath) {
-          cout << p << "$";
-        }
+      // for (auto& symEnt : symdata) {
+      //   SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+      //   for (auto& p : curpath) {
+      //     cout << p << "$";
+      //   }
 
-        cout << endl;
-      }
+      //   cout << endl;
+      // }
       
 
       // cout << "loading" << endl;
