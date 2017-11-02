@@ -200,7 +200,6 @@ bool inlineInstance(Instance* inst) {
   json jsym(json::value_t::object);
   saveSymTable(jsym,instname,inst);
 
-
   //I will be inlining defInline into def
   //Making a copy because i want to modify it first without modifying all of the other instnaces of modInline
   ModuleDef* defInline = modInline->getDef()->copy();
@@ -256,6 +255,9 @@ bool inlineInstance(Instance* inst) {
   //typecheck the module
   def->validate();
 
+  //for each entry in instances symbtable
+  //prepend instname to key
+  //determine where new instance is pointing to
   if (mref->getMetaData().get<map<string,json>>().count("symtable")) {
     json jisym = mref->getMetaData()["symtable"];
     for (auto p : jisym.get<map<string,json>>()) {
@@ -266,12 +268,20 @@ bool inlineInstance(Instance* inst) {
       jsym[newkey] = path;
     }
   }
-  //for each entry in instances symbtable
-  //prepend instname to key
-  //determine where new instance is pointing to
-
-  def->getModule()->getMetaData()["symtable"] = jsym;
-
+ 
+  if (def->getModule()->getMetaData().get<map<string,json>>().count("symtable")) {
+    json jmerge = def->getModule()->getMetaData()["symtable"];
+    for (auto pair : jsym.get<map<string,json>>()) {
+      bool check = jmerge.get<map<string,json>>().count(pair.first)==0;
+      ASSERT(check,"DEBUGME");
+      jmerge[pair.first] = pair.second;
+    }
+    def->getModule()->getMetaData()["symtable"] = jmerge;
+  }
+  else {
+    def->getModule()->getMetaData()["symtable"] = jsym;
+  }
+  
   return true;
 }
 
