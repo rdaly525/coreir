@@ -254,7 +254,8 @@ bool inlineInstance(Instance* inst) {
   inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
 
   //typecheck the module
-  def->validate();
+  // WARNING: Temporarily removed to check performance impact in _stereo.json
+  //def->validate();
 
   if (mref->getMetaData().get<map<string,json>>().count("symtable")) {
     json jisym = mref->getMetaData()["symtable"];
