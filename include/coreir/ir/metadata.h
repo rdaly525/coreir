@@ -10,7 +10,7 @@ namespace CoreIR {
 class MetaData {
   json metadata;
   public:
-    MetaData() {}
+    MetaData() : metadata(json::value_t::object) {}
     json& getMetaData() {return metadata;}
     bool hasMetaData() {return !metadata.empty();}
     void setMetaData(json j) {metadata = j;}
