@@ -261,11 +261,21 @@ namespace CoreIR {
 
       c->runPasses({"rungenerators", "flattentypes","flatten"});
 
+      map<string,json> symdata =
+        counterTest->getMetaData()["symtable"].get<map<string,json>>();
+
+      cout << "symdata size = " << symdata.size() << endl;
+
+      for (auto& symEnt : symdata) {
+        SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+        for (auto& p : curpath) {
+          cout << p << "$";
+        }
+
+        cout << endl;
+      }
+      
       cout << "ct is generator ? " << ct->getModuleRef()->isGenerated() << endl;
-
-      // bool inlinedCounter = inlineInstance(ct);
-
-      // cout << "Inlined counter = " << inlinedCounter << endl;
 
       SimulatorState state(counterTest);
 
@@ -979,6 +989,19 @@ namespace CoreIR {
       dffTest->setDef(def);
 
       c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      map<string,json> symdata =
+        dff->getMetaData()["symtable"].get<map<string,json>>();
+
+      for (auto& symEnt : symdata) {
+        SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+        for (auto& p : curpath) {
+          cout << p << "$";
+        }
+
+        cout << endl;
+      }
+      
 
       // cout << "loading" << endl;
       // if (!loadFromFile(c,"./topo_sort_error.json")) {
