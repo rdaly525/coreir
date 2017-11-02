@@ -8,6 +8,9 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
   if (this->onlyInputs && w->getType()->isOutput()) {
     return true;
   }
+  if (auto rt = dyn_cast<RecordType>(w->getType())) {
+    if (rt->getRecord().size()==0) return true;
+  }
 
   Context* c = this->getContext();
   if (w->getConnectedWireables().size()>0) return true;

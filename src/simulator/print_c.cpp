@@ -81,6 +81,8 @@ namespace CoreIR {
       return "~";
     } else if (genRefName == "eq") {
       return " == ";
+    } else if (genRefName == "neq") {
+      return " != ";
     } else if ((genRefName == "sge") || (genRefName == "uge")) {
       return " >= ";
     } else if ((genRefName == "sle") || (genRefName == "ule")) {
@@ -106,7 +108,7 @@ namespace CoreIR {
     cout << "ERROR: Unsupported op name = " << genRefName << endl;
 
     assert(false);
-
+    return "";
   }
 
   std::string unSignedCTypeString(Type& tp) {

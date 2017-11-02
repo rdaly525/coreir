@@ -5,15 +5,13 @@ using namespace std;
 using namespace CoreIR;
 
 bool Passes::LiftClockPorts::runOnInstanceGraphNode(InstanceGraphNode& node) {
-    Instantiable* instantiable = node.getInstantiable();
     bool clockAdded = false;
     
-    if (isa<Generator>(instantiable)) return false;
-    Module* module = cast<Module>(instantiable);
+    Module* module = node.getModule();
     if (!module->hasDef()) return false;
 
     ModuleDef* definition = module->getDef();
-    RecordType* type = cast<RecordType>(definition->getType());  // FIXME: Can I assume this is always a RecordType
+    RecordType* type = definition->getType();  // FIXME: Can I assume this is always a RecordType
     bool containsClock = false;
     for (auto field : type->getRecord()) {
         if (field.second == this->clockType) {

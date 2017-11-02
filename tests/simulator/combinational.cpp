@@ -103,8 +103,6 @@ namespace CoreIR {
       Module* m = c->getModule("global.Add4_cin");
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(m, gr);
@@ -143,8 +141,6 @@ namespace CoreIR {
       add4_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -189,9 +185,6 @@ namespace CoreIR {
       add4_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
-
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
       deque<vdisc> topoOrder = topologicalSort(gr);
@@ -235,8 +228,6 @@ namespace CoreIR {
       add4_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -291,8 +282,6 @@ namespace CoreIR {
       add4_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(add4_n, gr);
@@ -377,8 +366,6 @@ namespace CoreIR {
       srem4_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph gr;
       buildOrderedGraph(srem4_n, gr);
@@ -426,8 +413,6 @@ namespace CoreIR {
       sub4_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sub4_n, g);
@@ -470,8 +455,6 @@ namespace CoreIR {
       mul_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(mul_n, g);
@@ -519,8 +502,6 @@ namespace CoreIR {
       cM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(cM, g);
@@ -559,8 +540,6 @@ namespace CoreIR {
       andM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(andM, g);
@@ -620,8 +599,6 @@ namespace CoreIR {
       addM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(addM, g);
@@ -672,8 +649,6 @@ namespace CoreIR {
       neg_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -732,8 +707,6 @@ namespace CoreIR {
       neg_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -781,8 +754,6 @@ namespace CoreIR {
       neg_n->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       Type* t = neg_n->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -847,10 +818,7 @@ namespace CoreIR {
 
       addM->setDef(def);
       
-
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       Type* t = addM->getType();
       cout << "Module type = " << t->toString() << endl;
@@ -899,8 +867,6 @@ namespace CoreIR {
       eqM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(eqM, g);
@@ -935,8 +901,6 @@ namespace CoreIR {
       sleM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sleM, g);
@@ -985,8 +949,6 @@ namespace CoreIR {
       ugtM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(ugtM, g);
@@ -1031,8 +993,6 @@ namespace CoreIR {
       muxM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(muxM, g);
@@ -1075,8 +1035,6 @@ namespace CoreIR {
       dshlM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dshlM, g);
@@ -1119,8 +1077,6 @@ namespace CoreIR {
       dashrM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dashrM, g);
@@ -1163,8 +1119,6 @@ namespace CoreIR {
       dlshrM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(dlshrM, g);
@@ -1206,8 +1160,6 @@ namespace CoreIR {
       udivM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(udivM, g);
@@ -1250,8 +1202,6 @@ namespace CoreIR {
       uremM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(uremM, g);
@@ -1294,8 +1244,6 @@ namespace CoreIR {
       sremM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sremM, g);
@@ -1338,8 +1286,6 @@ namespace CoreIR {
       sdivM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(sdivM, g);
@@ -1381,8 +1327,6 @@ namespace CoreIR {
       orrM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(orrM, g);
@@ -1423,8 +1367,6 @@ namespace CoreIR {
       andrM->setDef(def);
 
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(andrM, g);
@@ -1455,10 +1397,7 @@ namespace CoreIR {
 
       Module* mainMod = c->getModule("global.main");
 
-
       c->runPasses({"rungenerators"});
-      // RunGenerators rg;
-      // rg.runOnNamespace(g);
 
       NGraph g;
       buildOrderedGraph(mainMod, g);

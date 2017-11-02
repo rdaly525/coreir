@@ -1,4 +1,5 @@
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/generator.h"
+#include "coreir/ir/globalvalue.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
@@ -14,29 +15,7 @@ using namespace std;
 
 namespace CoreIR {
 
-///////////////////////////////////////////////////////////
-//-------------------- Instantiable ---------------------//
-///////////////////////////////////////////////////////////
-
-//bool operator==(const Instantiable & l,const Instantiable & r) {
-//  return l.isKind(r.getKind()) && (l.getName()==r.getName()) && (l.getNamespace()->getName() == r.getNamespace()->getName());
-//}
-Args::Args(Params params) {
-  for (auto ppair : params) {
-    assert(args.count(ppair.first)==0);
-    args[ppair.first] = new Arg(ppair.second,ppair.first);
-  }
-}
-Args::~Args() {
-  for (auto apair : args) delete apair.second;
-}
-
-ostream& operator<<(ostream& os, const Instantiable& i) {
-  os << i.toString();
-  return os;
-}
-
-Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams) : Instantiable(IK_Generator,ns,name), typegen(typegen), genparams(genparams) {
+Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparams) : GlobalValue(GVK_Generator,ns,name), typegen(typegen), genparams(genparams) {
   //Verify that typegen params are a subset of genparams
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);
@@ -52,9 +31,7 @@ Generator::~Generator() {
   }
   //Delete all the Generated Modules only if they are Generated and not Namespace
   for (auto m : genCache) {
-    if (m.second->getLinkageKind()==Instantiable::LK_Generated) { 
-      delete m.second;
-    }
+    delete m.second;
   }
 }
 
@@ -72,7 +49,7 @@ Module* Generator::getModule(Values genargs) {
     modname = nameGen(genargs);
   }
   else {
-    modname = this->name;// + getContext()->getUnique(); //TODO create better name
+    modname = this->name;
   }
   Module* m;
   if (modParamsGen) {
@@ -83,7 +60,6 @@ Module* Generator::getModule(Values genargs) {
   else {
      m = new Module(ns,modname,type,Params(),this,genargs);
   }
-  m->setLinkageKind(Instantiable::LK_Generated);
   genCache[genargs] = m;
   
   //TODO I am not sure what the default behavior should be
@@ -103,7 +79,7 @@ bool Generator::runAll() {
   }
   return ret;
 }
-std::map<std::string,Module*> Generator::getModules() {
+std::map<std::string,Module*> Generator::getGeneratedModules() {
   std::map<std::string,Module*> ret; 
   for (auto mpair : genCache) {
     ret.emplace(mpair.second->getLongName(),mpair.second);  
@@ -137,77 +113,8 @@ string Generator::toString() const {
   return ret;
 }
 
-
-
-void Generator::print(void) {
+void Generator::print(void) const {
   cout << toString() << endl;
-}
-Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : Instantiable(IK_Module,ns,name), Args(modparams), type(type), modparams(modparams), g(g), genargs(genargs) {
-  ASSERT(g && genargs.size(),"Missing genargs!");
-  this->longname = name + getContext()->getUnique(); //TODO do a better name
-}
-
-DirectedModule* Module::newDirectedModule() {
-  if (!directedModule) {
-    directedModule = new DirectedModule(this);
-  }
-  return directedModule;
-}
-
-Module::~Module() {
-  
-  for (auto md : mdefList) delete md;
-  delete directedModule;
-}
-
-ModuleDef* Module::newModuleDef() {
-  
-  ModuleDef* md = new ModuleDef(this);
-  mdefList.push_back(md);
-  return md;
-}
-
-void Module::addDefaultModArgs(Values defaultModArgs) {
-  //Check to make sure each arg is in the mod params
-  for (auto argmap : defaultModArgs) {
-    ASSERT(modparams.count(argmap.first),"Cannot set default module arg. Param " + argmap.first + " Does not exist!")
-    this->defaultModArgs[argmap.first] = argmap.second;
-  }
-}
-
-void Module::setDef(ModuleDef* def, bool validate) {
-  if (validate) {
-    if (def->validate()) {
-      cout << "Error Validating def" << endl;
-      this->getContext()->die();
-    }
-  }
-  this->def = def;
-  //Directed View is not valid anymore
-  if (this->directedModule) {
-    delete this->directedModule;
-  }
-}
-
-string Module::toString() const {
-  return "Module: " + name + (generated() ? Values2Str(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
-}
-
-bool Module::runGenerator() {
-  ASSERT(g,"Cannot Run Generator of module that is not gen!");
-  if (!g->hasDef()) return false;
-  if (this->hasDef()) return false;
-  
-  ModuleDef* mdef = this->newModuleDef();
-  g->getDef()->createModuleDef(mdef,genargs); 
-  this->setDef(mdef);
-  return true;
-}
-
-void Module::print(void) {
-  cout << toString() << endl;
-  if(def) def->print();
-
 }
 
 }//CoreIR namespace

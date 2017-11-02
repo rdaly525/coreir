@@ -8,17 +8,20 @@ typedef struct COREContext COREContext;
 typedef struct CORENamespace CORENamespace;
 typedef struct COREType COREType;
 typedef struct COREModule COREModule;
+typedef struct COREGenerator COREGenerator;
 typedef struct COREModuleDef COREModuleDef;
 typedef struct COREWireable COREWireable;
 typedef struct COREConnection COREConnection;
 typedef struct COREWirePath COREWirePath;
 typedef struct COREValue COREValue;
 typedef struct COREValueType COREValueType;
-typedef struct COREInstantiable COREInstantiable;
 
 typedef struct COREDirectedConnection COREDirectedConnection;
 typedef struct COREDirectedModule COREDirectedModule;
 typedef struct COREDirectedInstance COREDirectedInstance;
+
+typedef struct CORESimulatorState CORESimulatorState;
+typedef struct CORESimValue CORESimValue;
 
 typedef enum {
   STR2TYPE_ORDEREDMAP = 0,

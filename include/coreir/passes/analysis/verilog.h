@@ -10,8 +10,8 @@ namespace Passes {
 
 class Verilog : public InstanceGraphPass {
   std::vector<VModule*> modList;
-  std::unordered_map<Instantiable*,VModule*> modMap;
-  std::unordered_set<Instantiable*> external;
+  std::unordered_map<GlobalValue*,VModule*> modMap;
+  std::unordered_set<GlobalValue*> external;
   public :
     static std::string ID;
     Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}

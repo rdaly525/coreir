@@ -6,7 +6,8 @@
 #include "coreir/ir/typegen.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/error.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/generator.h"
+#include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
@@ -135,7 +136,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           
           json jmod = jmodmap.second;
-          checkJson(jmod,{"type","modparams","defaultmodargs","genref","genargs","instances","connections"});
+          checkJson(jmod,{"type","modparams","defaultmodargs","genref","genargs","instances","connections","metadata"});
           if (jmod.count("genref")) {
             ASSERT(jmod.count("genargs"),"Need Genargs here");
             //Skip all generator module defs initially
@@ -167,7 +168,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
 
           json jgen = jgenmap.second;
-          checkJson(jgen,{"typegen","genparams","defaultgenargs"});
+          checkJson(jgen,{"typegen","genparams","defaultgenargs","metadata"});
           Params genparams = json2Params(c,jgen.at("genparams"));
           TypeGen* typegen = c->getTypeGen(jgen.at("typegen").get<string>());
           assert(genparams == typegen->getParams());
@@ -318,7 +319,7 @@ Value* json2Value(Context* c, json j,Module* m) {
   if (jlist.size()==3) {
     //Arg
     ASSERT(jlist[1].get<string>()=="Arg","Value with json array of size=3 must be an Arg");
-    ASSERT(m,"NYI using Args here");
+    ASSERT(m,"Can only use 'Arg' reference in modargs");
     return m->getArg(jlist[2].get<string>());
   }
   json jval = jlist[1];

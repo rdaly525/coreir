@@ -74,10 +74,10 @@ int main() {
   //Test casting of Module
   {
     Namespace* g = c->getGlobal();
-    Instantiable* m = g->newModuleDecl("A",c->Record());
+    GlobalValue* m = g->newModuleDecl("A",c->Record());
     assert(isa<Module>(m));
     Module* mi = cast<Module>(m);
-    assert(dyn_cast<Instantiable>(m));
+    assert(dyn_cast<GlobalValue>(m));
     assert(dyn_cast<Module>(mi));
     assert(!dyn_cast<Generator>(mi));
   }
@@ -85,10 +85,10 @@ int main() {
   //Test casting of Generator
   {
     Namespace* coreir = c->getNamespace("coreir");
-    Instantiable* m = coreir->getGenerator("add");
+    GlobalValue* m = coreir->getGenerator("add");
     assert(isa<Generator>(m));
     Generator* mi = cast<Generator>(m);
-    assert(dyn_cast<Instantiable>(m));
+    assert(dyn_cast<GlobalValue>(m));
     assert(dyn_cast<Generator>(mi));
     assert(!dyn_cast<Module>(mi));
   }

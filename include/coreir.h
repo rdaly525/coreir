@@ -10,7 +10,8 @@
 #include "coreir/ir/valuetype.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/typegen.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
 
