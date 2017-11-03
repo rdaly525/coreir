@@ -65,11 +65,16 @@ ModuleDef* ModuleDef::copy() {
 bool ModuleDef::hasSel(std::string selstr) {
   SelectPath path = splitString<SelectPath>(selstr,'.');
   string iname = path[0];
-  path.pop_front();
-  if (this->instances.count(path[0])) {
-    return instances[iname]->hasSel(join(path.begin(),path.end(),string(".")));
+  Wireable* inst;
+  if (iname=="self") {
+    inst = this->interface;
   }
-  return false;
+  else {
+    if (this->instances.count(iname)==0) return false;
+    inst = this->instances[iname];
+  }
+  path.pop_front();
+  return inst->hasSel(join(path.begin(),path.end(),string(".")));
 }
 
 
