@@ -62,6 +62,17 @@ ModuleDef* ModuleDef::copy() {
   return def;
 }
 
+bool ModuleDef::hasSel(std::string selstr) {
+  SelectPath path = splitString<SelectPath>(selstr,'.');
+  string iname = path[0];
+  path.pop_front();
+  if (this->instances.count(path[0])) {
+    return instances[iname]->hasSel(join(path.begin(),path.end(),string(".")));
+  }
+  return false;
+}
+
+
 //Can pass in either a single instance name
 //Or pass in a '.' deleminated string
 Wireable* ModuleDef::sel(string s) { 
