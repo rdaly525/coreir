@@ -10,18 +10,6 @@ typedef void (*voidFunctionType)(void);
 
 string SMTModule::toString() {
   ostringstream o;
-  string tab = "  ";
-
-  //Param declaraions
-  for (auto p : params) {
-    o << tab << "parameter " << p;
-    if (paramDefaults.count(p)) {
-      o << " = " << paramDefaults[p];
-    }
-    o << ";" << endl;
-  }
-  o << endl;
-  
   for (auto s : stmts) o << s << endl;
   return o.str();
 }
@@ -47,9 +35,6 @@ string SMTModule::toInitVarDecString() {
 string SMTModule::toInstanceString(Instance* inst, string path) {
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
-  // if (this->gen) {
-  //   ASSERT(inst->isGen(),"DEBUG ME:");
-  // }
   ostringstream o;
   string tab = "  ";
   string mname;

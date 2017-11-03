@@ -13,7 +13,6 @@ namespace {
   if ( find(variables.begin(), variables.end(), var.getName()) == variables.end() ) {
       variables.push_back(var.getName());
       smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
-      //      smod->addStmt("-- ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
         smod->addStmt("-- START module declaration for signal '" + var.getName() + "'");
         smod->addStmt(SMVClock("", var));
@@ -25,27 +24,16 @@ namespace {
 
 }
 
-// bool Passes::SMV::runOnModule(Module* module) {
-//   if (module != getContext()->getTop()) return false;
-// }
-
-
 std::string Passes::SMV::ID = "smv";
 bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   //Create a new SMVmodule for this node
   Module* m = node.getModule();
-  // if (auto g = dyn_cast<Generator>(m)) {
-  //   this->modMap[m] = new SMTModule(g);
-  //   this->external.insert(m);
-  //   return false;
-  // }
   SMVModule* smod = new SMVModule(m);
   modMap[m] = smod;
-  // if (!m->hasDef()) {
-  //   //    this->external.insert(m);
-  //   return false;
-  // }
+  if (!m->hasDef()) {
+    return false;
+  }
 
   if (this->getContext()->hasTop() &&
       this->getContext()->getTop()->getMetaData().count("properties") > 0) {
@@ -125,8 +113,6 @@ void Passes::SMV::writeToStream(std::ostream& os) {
   
   os << "MODULE main" << endl;
   
-  // Print variable declarations
-  
   os << "-- Variable declarations" << endl;
   for (auto mmap : modMap) {
     if (external.count(mmap.first)==0) {
@@ -134,12 +120,14 @@ void Passes::SMV::writeToStream(std::ostream& os) {
     }
   }
 
+  os << "-- Modules definitions" << endl;
   for (auto mmap : modMap) {
     if (external.count(mmap.first)==0) {
       os << mmap.second->toString() << endl;
     }
   }
 
+  os << "-- Properties" << endl;
   for (auto property : properties) {
     os << SMVProperty(property.first, property.second.first, property.second.second) << endl;
   }

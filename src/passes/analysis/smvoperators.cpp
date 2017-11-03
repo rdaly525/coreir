@@ -148,11 +148,12 @@ namespace CoreIR {
       return comment + NL + get_invar(curr);
     }
 
-    string SMVConst(string context, SmvBVVar out_p, string val) {
+    string SMVConst(string context, SmvBVVar out_p, int val) {
       // INVAR: (out = val)
       string out = out_p.getPortName();
-      string comment = "-- SMVConst (out, val) = (" + out + ", " + val + ")";
-      string curr = binary_op("=", SMVgetCurr(context, out), val);
+      string vals = getSMVbits(stoi(out_p.dimstr()), val);
+      string comment = "-- SMVConst (out, val) = (" + out + ", " + vals + ")";
+      string curr = binary_op("=", SMVgetCurr(context, out), vals);
       return comment + NL + get_invar(curr);
     }
 
@@ -212,6 +213,26 @@ namespace CoreIR {
       return comment + NL + get_init(init) + NL + get_trans(trans);
     }
 
+    string SMVMux(string context, SmvBVVar in0_p, SmvBVVar in1_p, SmvBVVar sel_p, SmvBVVar out_p) {
+      string in0 = in0_p.getPortName();
+      string in1 = in1_p.getPortName();
+      string sel = sel_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = "-- SMVMux (in0, in1, sel, out) = (" + in0 + ", " + in1 + ", " + sel + ", " + out + ")";
+
+      string one = "0ud1_1";
+      string zero = "0ud1_0";
+      
+      string then_bc = binary_op("=", SMVgetCurr(context, sel), one);
+      string else_bc = binary_op("=", SMVgetCurr(context, sel), zero);
+      string curr_1 = binary_op("->", then_bc, binary_op("=", SMVgetCurr(context, in0), SMVgetCurr(context, out)));
+      string curr_2 = binary_op("->", else_bc, binary_op("=", SMVgetCurr(context, in1), SMVgetCurr(context, out)));
+      string invar = binary_op("&", curr_1, curr_2);
+
+      return comment + NL + get_invar(invar);
+    }
+
+    
     string SMVProperty(string name, PropType type, string value) {
       string ptype = type == invarspec ? "INVARSPEC" : "LTLSPEC";
       return ptype + " NAME\n" + name + " := " + value + ";";

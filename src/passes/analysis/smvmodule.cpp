@@ -11,18 +11,6 @@ typedef void (*voidFunctionType)(void);
 
 string SMVModule::toString() {
   ostringstream o;
-  string tab = "  ";
-
-  //Param declaraions
-  for (auto p : params) {
-    o << tab << "parameter " << p;
-    if (paramDefaults.count(p)) {
-      o << " = " << paramDefaults[p];
-    }
-    o << ";" << endl;
-  }
-  o << endl;
-  
   for (auto s : stmts) o << s << endl;
   return o.str();
 }
@@ -48,9 +36,6 @@ string SMVModule::toInitVarDecString() {
 string SMVModule::toInstanceString(Instance* inst, string path) {
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
-  // if (this->gen) {
-  //   ASSERT(inst->isGen(),"DEBUG ME:");
-  // }
   ostringstream o;
   string tab = "  ";
   string mname;
@@ -92,7 +77,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   }
 
   string context = path+"$";
-  string pre = "coreir_";
+  string pre = ""; //"coreir_";
 
   enum operation {neg_op = 1,
                   const_op,
@@ -105,7 +90,8 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
                   regPE_op,
                   concat_op,
                   slice_op,
-                  term_op};
+                  term_op,
+                  mux_op};
 
   unordered_map<string, operation> opmap;
 
@@ -129,6 +115,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"concat", concat_op);
   opmap.emplace(pre+"slice", slice_op);
   opmap.emplace(pre+"term", term_op);
+  opmap.emplace(pre+"mux", mux_op);
 
 #define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
   
@@ -138,6 +125,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   SmvBVVar in1; var_assign(in1, "in1");
   SmvBVVar clk; var_assign(clk, "clk");
   SmvBVVar en; var_assign(en, "en");
+  SmvBVVar sel; var_assign(sel, "sel");
   
   switch (opmap[mname]) {
   case term_op:
@@ -170,10 +158,12 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
     o << SMVRegPE(context, in, clk, out, en);
     break;
   case const_op:
-    int width; width = args["width"] ? stoi(args["width"]->toString()) : 1;
     int value; value = stoi(args["value"]->toString());
-    o << SMVConst(context, out, getSMVbits(width, value));
+    o << SMVConst(context, out, value);
     break;
+  case mux_op:
+    o << SMVMux(context, in0, in1, sel, out);
+    break;    
   case slice_op:
     int lo; lo = stoi(args["lo"]->toString());
     int hi; hi = stoi(args["hi"]->toString());

@@ -16,7 +16,6 @@ namespace {
       smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
       smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
       smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
-      // smod->addStmt(";; ADDING missing variable: " +var.getName()+"\n");
       if (var.getName().find(CLOCK) != string::npos) {
         smod->addStmt(";; START module declaration for signal '" + var.getName());
         smod->addStmt(SMTClock("", var));
@@ -33,17 +32,10 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   //Create a new SMTmodule for this node
 
-
   Module* m = node.getModule();
-  // if (auto g = dyn_cast<Generator>(m)) {
-  //   this->modMap[m] = new SMTModule(g);
-  //   this->external.insert(m);
-  //   return false;
-  // }
   SMTModule* smod = new SMTModule(m);
   modMap[m] = smod;
   if (!m->hasDef()) {
-    //    this->external.insert(m);
     return false;
   }
 
@@ -110,8 +102,6 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 void Passes::SmtLib2::writeToStream(std::ostream& os) {
 
   os << "(set-logic QF_BV)" << endl;
-  
-  // Print variable declarations
 
   os << ";; Init Variable declarations" << endl;
   for (auto mmap : modMap) {
@@ -134,6 +124,7 @@ void Passes::SmtLib2::writeToStream(std::ostream& os) {
     }
   }
 
+  os << ";; Modules definitions" << endl;
   for (auto mmap : modMap) {
     if (external.count(mmap.first)==0) {
       os << mmap.second->toString() << endl;
