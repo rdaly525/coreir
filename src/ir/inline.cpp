@@ -253,7 +253,8 @@ bool inlineInstance(Instance* inst) {
   inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
 
   //typecheck the module
-  def->validate();
+  // WARNING: Temporarily removed to check performance impact in _stereo.json
+  //def->validate();
 
   //for each entry in instances symbtable
   //prepend instname to key

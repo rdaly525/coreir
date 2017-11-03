@@ -152,6 +152,8 @@ namespace CoreIR {
 
   class SimulatorState {
     CoreIR::Module* mod;
+    std::map<std::string, json> symTable;
+    bool hasSymTable;
 
     NGraph gr;
     std::deque<vdisc> topoOrder;
@@ -298,6 +300,16 @@ namespace CoreIR {
     void execute();
 
     void run();
+
+    // Symbol table lookup
+    SimValue*
+    getValueByOriginalName(const std::vector<std::string>& instanceList,
+                           const std::vector<std::string>& portSelectList);
+
+    SimValue*
+    getValueByOriginalName(const std::string& name);
+    
+    // Destructor
 
     ~SimulatorState();
   };

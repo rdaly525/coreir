@@ -62,7 +62,11 @@ int main(int argc, char *argv[]) {
   string topRef = "";
   if (top) topRef = top->getRefName();
 
-  c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});  
+  cout << "Starting passes" << endl;
+
+  c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});
+
+  cout << "Done running passes" << endl;
 
   NGraph gr;
   buildOrderedGraph(top, gr);
