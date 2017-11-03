@@ -517,10 +517,15 @@ namespace CoreIR {
 
   SimValue* SimulatorState::getValue(const std::string& name)  {
     ModuleDef* def = mod->getDef();
-    Wireable* w = def->sel(name);
-    Select* sel = toSelect(w);
 
-    return getValue(sel);
+    if (def->hasSel(name)) {
+      Wireable* w = def->sel(name);
+      Select* sel = toSelect(w);
+
+      return getValue(sel);
+    }
+
+    return nullptr;
   }
 
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {

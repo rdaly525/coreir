@@ -361,7 +361,11 @@ namespace CoreIR {
 
     	state.execute();
 
-    	ClockValue* clkVal = toClock(state.getValue("self.clk"));
+        SimValue* clkSimVal = state.getValue("self.clk");
+
+        REQUIRE(clkSimVal != nullptr);
+
+    	ClockValue* clkVal = toClock(clkSimVal);
 
     	cout << "last clock = " << (int) clkVal->lastValue() << endl;
     	cout << "curr clock = " << (int) clkVal->value() << endl;

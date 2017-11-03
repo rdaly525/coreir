@@ -60,11 +60,11 @@ extern "C" {
   }
 
   CORESimValue* CORESimGetValueByOriginalName(CORESimulatorState* cstate, char** inst_path, int inst_path_len, char** port_selects, int port_selects_len) {
-    //SimulatorState* state = rcast<SimulatorState*>(cstate);
+    SimulatorState* state = rcast<SimulatorState*>(cstate);
     vector<string> instPath = MakeSimPath(inst_path,inst_path_len);
     vector<string> selects = MakeSimPath(port_selects,port_selects_len);
     //TODO uncomment
-    //return rcast<CORESimValue*>(state->getValueByOriginalName(instPath,selects));
+    return rcast<CORESimValue*>(state->getValueByOriginalName(instPath,selects));
     return nullptr;
   }
   
