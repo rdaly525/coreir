@@ -89,8 +89,8 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     portstrs.emplace(port.getPortName(), port);
   }
 
-  string context = path+SEP;
-  string pre = "coreir_";
+  string context = path+"$";
+  string pre = ""; //"coreir_";
 
   enum operation {neg_op = 1,
                   const_op,
@@ -103,7 +103,8 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
                   regPE_op,
                   concat_op,
                   slice_op,
-                  term_op};
+                  term_op,
+                  mux_op};
 
   unordered_map<string, operation> opmap;
 
@@ -127,6 +128,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"concat", concat_op);
   opmap.emplace(pre+"slice", slice_op);
   opmap.emplace(pre+"term", term_op);
+  opmap.emplace(pre+"mux", mux_op);
   
 #define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
   
@@ -136,7 +138,8 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   SmtBVVar in1; var_assign(in1, "in1");
   SmtBVVar clk; var_assign(clk, "clk");
   SmtBVVar en; var_assign(en, "en");
-  
+  SmtBVVar sel; var_assign(sel, "sel");
+
   switch (opmap[mname]) {
   case term_op:
     break;
@@ -168,10 +171,12 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     o << SMTRegPE(context, in, clk, out, en);
     break;
   case const_op:
-    int width; width = args["width"] ? stoi(args["width"]->toString()) : 1;
     int value; value = stoi(args["value"]->toString());
-    o << SMTConst(context, out, getSMTbits(width, value));
+    o << SMTConst(context, out, value);
     break;
+  case mux_op:
+    o << SMTMux(context, in0, in1, sel, out);
+    break;    
   case slice_op:
     int lo; lo = stoi(args["lo"]->toString());
     int hi; hi = stoi(args["hi"]->toString());

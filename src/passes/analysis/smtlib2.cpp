@@ -42,10 +42,10 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
   // }
   SMTModule* smod = new SMTModule(m);
   modMap[m] = smod;
-  // if (!m->hasDef()) {
-  //   //    this->external.insert(m);
-  //   return false;
-  // }
+  if (!m->hasDef()) {
+    //    this->external.insert(m);
+    return false;
+  }
 
   ModuleDef* def = m->getDef();
 

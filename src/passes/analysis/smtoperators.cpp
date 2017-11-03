@@ -127,11 +127,12 @@ namespace CoreIR {
       return SMTUop(context, "Not", "bvnot", in_p, out_p);
     }
 
-    string SMTConst(string context, SmtBVVar out_p, string val) {
+    string SMTConst(string context, SmtBVVar out_p, int val) {
       string out = out_p.getPortName();
-      string comment = ";; SMTConst (out, val) = (" + out + ", " + val + ")";
-      string curr = assert_op("(= " + SMTgetCurr(context, out) + " " + val + ")");
-      string next = assert_op("(= " + SMTgetNext(context, out) + " " + val + ")");
+      string vals = getSMTbits(stoi(out_p.dimstr()), val);
+      string comment = ";; SMTConst (out, val) = (" + out + ", " + vals + ")";
+      string curr = assert_op("(= " + SMTgetCurr(context, out) + " " + vals + ")");
+      string next = assert_op("(= " + SMTgetNext(context, out) + " " + vals + ")");
       return comment + NL + curr + NL + next;
     }
     
@@ -176,5 +177,31 @@ namespace CoreIR {
       return comment + NL + init + NL + trans;
     }
 
+    string SMTMux(string context, SmtBVVar in0_p, SmtBVVar in1_p, SmtBVVar sel_p, SmtBVVar out_p) {
+      string in0 = in0_p.getPortName();
+      string in1 = in1_p.getPortName();
+      string sel = sel_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMTMux (in0, in1, sel, out) = (" + in0 + ", " + in1 + ", " + sel + ", " + out + ")";
+
+      string one = getSMTbits(stoi(sel_p.dimstr()), 1);
+      string zero = getSMTbits(stoi(sel_p.dimstr()), 0);
+      
+      string then_bc = "(= "+SMTgetCurr(context, sel)+" "+one+")";
+      string else_bc = "(= "+SMTgetCurr(context, sel)+" "+zero+")";
+      string curr_1 = "(=> "+then_bc+" (= "+SMTgetCurr(context, in0)+" "+SMTgetCurr(context, out)+"))";
+      string curr_2 = "(=> "+else_bc+" (= "+SMTgetCurr(context, in1)+" "+SMTgetCurr(context, out)+"))";
+      string curr = assert_op("(and " + curr_1 + " " + curr_2 + ")");
+
+      string then_bn = "(= "+SMTgetNext(context, sel)+" "+one+")";
+      string else_bn = "(= "+SMTgetNext(context, sel)+" "+zero+")";
+      string next_1 = "(=> "+then_bn+" (= "+SMTgetNext(context, in0)+" "+SMTgetNext(context, out)+"))";
+      string next_2 = "(=> "+else_bn+" (= "+SMTgetNext(context, in1)+" "+SMTgetNext(context, out)+"))";
+      string next = assert_op("(and " + next_1 + " " + next_2 + ")");
+
+      return comment + NL + curr + NL + next;
+    }
+
+    
   }
 }

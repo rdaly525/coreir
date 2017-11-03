@@ -91,7 +91,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
     portstrs.emplace(port.getPortName(), port);
   }
 
-  string context = path+SEP;
+  string context = path+"$";
   string pre = "coreir_";
 
   enum operation {neg_op = 1,
