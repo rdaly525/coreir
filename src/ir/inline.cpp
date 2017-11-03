@@ -264,6 +264,9 @@ bool inlineInstance(Instance* inst) {
       string newkey = instname + "." + p.first;
       ASSERT(jsym.count(newkey)==0,"DEBUGME");
       SelectPath path = p.second.get<SelectPath>();
+      if (path[0] =="self") {
+        path.pop_front();
+      }
       path[0] = inlinePrefix + path[0]; 
       jsym[newkey] = path;
     }
