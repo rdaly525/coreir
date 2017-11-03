@@ -18,7 +18,7 @@ int main() {
   Type* muxNType = c->Record({
       {"in",c->Record({
             {"data",c->BitIn()->Arr(16)->Arr(N)},
-            {"sel",c->BitIn()->Arr(16)}
+            {"sel",c->BitIn()->Arr(4)}
           })},
     {"out",c->Bit()->Arr(16)}
   });
@@ -33,7 +33,7 @@ int main() {
   muxN->setDef(def);
   muxN->print();
 
-  c->runPasses({"rungenerators", "flatten"});
+  c->runPasses({"rungenerators", "flatten", "verifyconnectivity-noclkrst"});
   muxN->getDef()->validate();
 
   // write out the json
