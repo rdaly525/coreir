@@ -417,6 +417,15 @@ namespace CoreIR {
   SimulatorState::SimulatorState(CoreIR::Module* mod_) :
     mod(mod_), mainClock(nullptr) {
 
+    hasSymTable = false;
+
+    // Create symbol table if it exists
+    if (mod->getMetaData().get<map<string,json>>().count("symtable")) {
+      hasSymTable = true;
+      symTable =
+        mod->getMetaData()["symtable"].get<map<string,json>>();
+    }
+
     buildOrderedGraph(mod, gr);
 
     topoOrder = topologicalSort(gr);

@@ -1035,11 +1035,14 @@ namespace CoreIR {
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
       cout << "loading" << endl;
-      if (!loadFromFile(c,"./sim_ready_sorter.json")) {
+      //if (!loadFromFile(c,"./sim_ready_sorter.json")) {
+      if (!loadFromFile(c,"./sorter.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
       }
 
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+      
       Module* m = g->getModule("Sorter8");
 
       assert(m != nullptr);

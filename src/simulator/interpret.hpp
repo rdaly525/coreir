@@ -152,6 +152,8 @@ namespace CoreIR {
 
   class SimulatorState {
     CoreIR::Module* mod;
+    std::map<std::string, json> symTable;
+    bool hasSymTable;
 
     NGraph gr;
     std::deque<vdisc> topoOrder;
