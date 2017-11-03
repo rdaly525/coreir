@@ -8,6 +8,7 @@ extern int CORESimValueGetLength(CORESimValue *val);
 extern CORESimulatorState *CORENewSimulatorState(COREModule* module);
 extern void COREDeleteSimulatorState(CORESimulatorState* state);
 extern CORESimValue* CORESimGetValue(CORESimulatorState* cstate, char** cpath, int path_len);
+extern CORESimValue* CORESimGetValueByOriginalName(CORESimulatorState* cstate, char** inst_path, int inst_path_len, char** port_selects, int port_selects_len);
 extern void CORESimSetMainClock(CORESimulatorState* cstate, char** cpath, int path_leN);
 extern void CORESimSetClock(CORESimulatorState* cstate, char** cpath, int path_len, bool lastval, bool curval);
 extern int CORESimGetClockCycles(CORESimulatorState* cstate, char** cpath, int path_len);
