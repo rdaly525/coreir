@@ -344,7 +344,6 @@ namespace CoreIR {
 
       SECTION("Counting with clock changes, enable set") {
 
-    	//state.setValue("counter$ri$reg0.out", BitVec(pcWidth, 400));
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
     	state.setClock("self.clk", 0, 1);
