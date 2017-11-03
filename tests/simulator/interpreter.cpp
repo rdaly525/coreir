@@ -1073,37 +1073,37 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
     }
 
-    // SECTION("conv_3_1 from json") {
+    SECTION("conv_3_1 from json") {
 
-    //   Namespace* common = CoreIRLoadLibrary_commonlib(c);
+      Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
-    //   cout << "loading" << endl;
-    //   //if (!loadFromFile(c,"./sim_ready_conv_3_1.json")) {
-    //   if (!loadFromFile(c,"./conv_3_1.json")) {
-    // 	cout << "Could not Load from json!!" << endl;
-    // 	c->die();
-    //   }
+      cout << "loading" << endl;
+      //if (!loadFromFile(c,"./sim_ready_conv_3_1.json")) {
+      if (!loadFromFile(c,"./conv_3_1.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
 
-    //   c->runPasses({"flattentypes", "rungenerators", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+      c->runPasses({"flattentypes", "rungenerators", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
 
-    //   Module* m = g->getModule("DesignTop");
+      Module* m = g->getModule("DesignTop");
 
-    //   assert(m != nullptr);
+      assert(m != nullptr);
 
-    //   SimulatorState state(m);
-    //   state.setValue("self.in_0", BitVector(16, "0000000000000001"));
-    //   state.setClock("self.clk", 1, 0);
+      SimulatorState state(m);
+      state.setValue("self.in_0", BitVector(16, "0000000000000001"));
+      state.setClock("self.clk", 1, 0);
 
-    //   for (int i = 0; i < 10; i++) {
-    //     state.runHalfCycle();
-    //     //state.execute();
-    //     // ClockValue* clk = toClock(state.getValue("self.clk"));
-    //     // cout << "self.out " << clk->getHalfCycleCount() << " = " << state.getBitVec("self.out") << endl;
-    //   }
+      for (int i = 0; i < 10; i++) {
+        state.runHalfCycle();
+        //state.execute();
+        // ClockValue* clk = toClock(state.getValue("self.clk"));
+        // cout << "self.out " << clk->getHalfCycleCount() << " = " << state.getBitVec("self.out") << endl;
+      }
 
-    //   REQUIRE(state.isSet("self.out"));
+      REQUIRE(state.isSet("self.out"));
       
-    // }
+    }
 
     SECTION("Failing clock test") {
 
