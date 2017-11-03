@@ -129,6 +129,7 @@ if __name__ == "__main__":
     config.simple = args.simple
     config.eqlist = args.eqlist
 
-    config.eqlist = config.eqlist.replace(".","$")
+    if config.eqlist:
+        config.eqlist = config.eqlist.replace(".","$")
 
     sys.exit(generate_unrolling(config))
