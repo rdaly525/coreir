@@ -261,7 +261,7 @@ bool inlineInstance(Instance* inst) {
   if (mref->getMetaData().get<map<string,json>>().count("symtable")) {
     json jisym = mref->getMetaData()["symtable"];
     for (auto p : jisym.get<map<string,json>>()) {
-      string newkey = instname + "." + p.first;
+      string newkey = instname + "$" + p.first;
       ASSERT(jsym.count(newkey)==0,"DEBUGME");
       SelectPath path = p.second.get<SelectPath>();
       if (path[0] =="self") {
