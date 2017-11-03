@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_MAIN
+
 #include "catch.hpp"
 
 #include "coreir.h"
@@ -484,9 +486,21 @@ namespace CoreIR {
 
       SECTION("Finding values using unflattened-names") {
 
-        SECTION("counter.en") {
+        state.setValue("self.en", BitVector(1, 1));
 
-          //REQUIRE(state.getByOriginalName() );
+        SECTION("self.en") {
+          SimValue* val =
+            state.getValueByOriginalName({"self"},
+                                         {"en"});
+
+          REQUIRE(val->getType() == SIM_VALUE_BV);
+        }
+
+        SECTION("counter.en") {
+          auto val = state.getValueByOriginalName({"counter"},
+                                                  {"en"});
+
+          REQUIRE(val->getType() == SIM_VALUE_BV);
         }
       }
 

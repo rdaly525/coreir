@@ -301,6 +301,12 @@ namespace CoreIR {
 
     void run();
 
+    SimValue*
+    getValueByOriginalName(const std::vector<std::string>& instanceList,
+                           const std::vector<std::string>& portSelectList);
+
+    // Destructor
+
     ~SimulatorState();
   };
 

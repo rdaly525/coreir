@@ -297,6 +297,23 @@ namespace CoreIR {
     return final;
   }
 
+  std::string concatSelects(const std::vector<std::string>& str) {
+    string final = "";
+
+    if (str.size() == 1) {
+      return str[0];
+    }
+
+    for (uint i = 0; i < str.size(); i++) {
+      final += str[i];
+      if (i != (str.size() - 1)) {
+        final += ".";
+      }
+    }
+
+    return final;
+  }
+  
   SimValue* SimulatorState::getValue(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
 
@@ -1505,7 +1522,26 @@ namespace CoreIR {
     }
     circStates[stateIndex].valMap[sel] = val;
   }
-  
+
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
+                                         const std::vector<std::string>& portSelectList) {
+
+    string selectVal = concatSelects(portSelectList);
+    vector<string> insts = instanceList;
+    insts[insts.size() - 1] =
+      insts[insts.size() - 1] + "." + selectVal;
+    string name = concatInlined(insts);
+
+    SimValue* val = getValue(name);
+
+    if (val != nullptr) {
+      return val;
+    }
+
+    assert(false);
+  }
+
   SimulatorState::~SimulatorState() {
     for (auto& val : allocatedValues) {
       delete val;
