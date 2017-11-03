@@ -482,6 +482,14 @@ namespace CoreIR {
         }
       }
 
+      SECTION("Finding values using unflattened-names") {
+
+        SECTION("counter.en") {
+
+          //REQUIRE(state.getByOriginalName() );
+        }
+      }
+
     }
 
     SECTION("Test bit vector addition") {
