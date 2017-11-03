@@ -174,14 +174,20 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect({"self","in","data",to_string(i)},{"muxN_0","in","data",to_string(i)});
         }
 
-        def->addInstance("muxN_0_slice",
-                         "coreir.slice",
-                         {{"width", Const::make(c, Nlargehalf)},
-                             {"lo", Const::make(c, 0)},
-                               {"hi", Const::make(c, Nlargehalf)}});
+        // uint largeHalfIndexBits =
+        //   num_bits(Nlargehalf);
 
-        def->connect({"self", "in", "sel"}, {"muxN_0_slice.in"});
-        def->connect({"muxN_0_slice", "out"}, {"muxN_0", "in", "sel"});
+        // uint smallhalfIndexBits =
+        //   num_bits(Nsmallhalf);
+        
+        // def->addInstance("muxN_0_slice",
+        //                  "coreir.slice",
+        //                  {{"width", Const::make(c, Nlargehalf)},
+        //                      {"lo", Const::make(c, 0)},
+        //                        {"hi", Const::make(c, Nlargehalf)}});
+
+        // def->connect({"self", "in", "sel"}, {"muxN_0_slice.in"});
+        // def->connect({"muxN_0_slice", "out"}, {"muxN_0", "in", "sel"});
 
         for (uint i=0; i<Nsmallhalf; ++i) {
           def->connect({"self","in","data",to_string(i+Nlargehalf)},{"muxN_1","in","data",to_string(i)});

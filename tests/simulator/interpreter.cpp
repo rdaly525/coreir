@@ -261,6 +261,11 @@ namespace CoreIR {
 
       c->runPasses({"rungenerators", "flattentypes","flatten"});
 
+      bool hasSymtab =
+        counterTest->getMetaData().get<map<string,json>>().count("symtable");
+
+      cout << "hasSymtab = " << hasSymtab << endl;
+
       map<string,json> symdata =
         counterTest->getMetaData()["symtable"].get<map<string,json>>();
 
@@ -268,8 +273,9 @@ namespace CoreIR {
 
       for (auto& symEnt : symdata) {
         SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+        cout << symEnt.first << " --> ";
         for (auto& p : curpath) {
-          cout << p << "$";
+          cout << p << ".";
         }
 
         cout << endl;

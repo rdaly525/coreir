@@ -95,53 +95,53 @@ namespace CoreIR {
   
     Namespace* g = c->getGlobal();
 
-    SECTION("commonlib mux with 71 inputs") {
-      uint N = 71;
-      uint width = 16;
+    // SECTION("commonlib mux with 71 inputs") {
+    //   uint N = 71;
+    //   uint width = 16;
 
-      CoreIRLoadLibrary_commonlib(c);
+    //   CoreIRLoadLibrary_commonlib(c);
 
-      Type* muxNType =
-        c->Record({
-            {"in",c->Record({
-                  {"data",c->BitIn()->Arr(width)->Arr(N)},
-                    {"sel",c->BitIn()->Arr(width)}
-                })},
-              {"out",c->Bit()->Arr(width)}
-          });
+    //   Type* muxNType =
+    //     c->Record({
+    //         {"in",c->Record({
+    //               {"data",c->BitIn()->Arr(width)->Arr(N)},
+    //                 {"sel",c->BitIn()->Arr(width)}
+    //             })},
+    //           {"out",c->Bit()->Arr(width)}
+    //       });
 
-      Module* muxNTest = c->getGlobal()->newModuleDecl("muxN", muxNType);
-      ModuleDef* def = muxNTest->newModuleDef();
+    //   Module* muxNTest = c->getGlobal()->newModuleDecl("muxN", muxNType);
+    //   ModuleDef* def = muxNTest->newModuleDef();
 
-      def->addInstance("mux0",
-                       "commonlib.muxn",
-                       {{"width", Const::make(c, width)},
-                           {"N", Const::make(c, N)}});
+    //   def->addInstance("mux0",
+    //                    "commonlib.muxn",
+    //                    {{"width", Const::make(c, width)},
+    //                        {"N", Const::make(c, N)}});
 
-      def->connect("mux0.out", "self.out");
+    //   def->connect("mux0.out", "self.out");
 
-      def->connect({"self", "in", "sel"},
-                   {"mux0", "in", "sel"});
-      for (uint i = 0; i < N; i++) {
-        def->connect({"self", "in", "data", to_string(i)},
-                     {"mux0", "in", "data", to_string(i)});
-      }
+    //   def->connect({"self", "in", "sel"},
+    //                {"mux0", "in", "sel"});
+    //   for (uint i = 0; i < N; i++) {
+    //     def->connect({"self", "in", "data", to_string(i)},
+    //                  {"mux0", "in", "data", to_string(i)});
+    //   }
 
-      muxNTest->setDef(def);
+    //   muxNTest->setDef(def);
 
-      c->runPasses({"rungenerators", "flatten", "flattentypes", "liftclockports-coreir", "wireclocks-coreir"});
+    //   c->runPasses({"rungenerators", "flatten", "flattentypes", "liftclockports-coreir", "wireclocks-coreir"});
 
-      NGraph gr;
-      buildOrderedGraph(muxNTest, gr);
-      deque<vdisc> topoOrder = topologicalSort(gr);
+    //   NGraph gr;
+    //   buildOrderedGraph(muxNTest, gr);
+    //   deque<vdisc> topoOrder = topologicalSort(gr);
 
-      SECTION("Compile and run") {
-	int s = compileCode(topoOrder, gr, muxNTest, "./gencode/", "mux" + to_string(N));
+    //   SECTION("Compile and run") {
+    //     int s = compileCode(topoOrder, gr, muxNTest, "./gencode/", "mux" + to_string(N));
 
-	REQUIRE(s == 0);
-      }
+    //     REQUIRE(s == 0);
+    //   }
       
-    }
+    // }
 
     SECTION("Load add with cin / cout from json") {
       if (!loadFromFile(c, "test_add_cin_two.json")) {
