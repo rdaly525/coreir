@@ -1084,7 +1084,7 @@ namespace CoreIR {
     	c->die();
       }
 
-      c->runPasses({"flattentypes", "rungenerators", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
 
       Module* m = g->getModule("DesignTop");
 
