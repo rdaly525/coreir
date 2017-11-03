@@ -7,14 +7,11 @@
             "clk": ["Named","coreir.clkIn"]
           }],
           "instances": {
-            "count0": {"modref": "global.counter"},
-            "count1": {"modref": "global.counter"}
+            "cnt": {"modref": "global.counter"}
           },
           "connections": [
-            ["count0.clk","self.clk"],
-            ["count1.clk","self.clk"],
-            ["count0.out.4","count1.clr"],
-            ["count1.out.8","count0.clr"]
+            ["cnt.clk","self.clk"],
+            ["cnt.out.4","cnt.clr"]
           ]
         },
         "counter": {

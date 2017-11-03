@@ -159,20 +159,40 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
         uint Nlargehalf = 1 << (Nbits-1);
         uint Nsmallhalf = N - Nlargehalf;
+
         def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
 
         cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
+
         Const* aNlarge = Const::make(c,Nlargehalf);
         Const* aNsmall = Const::make(c,Nsmallhalf);
 
         def->addInstance("muxN_0",muxN,{{"width",aWidth},{"N",aNlarge}});
         def->addInstance("muxN_1",muxN,{{"width",aWidth},{"N",aNsmall}});
+
         for (uint i=0; i<Nlargehalf; ++i) {
           def->connect({"self","in","data",to_string(i)},{"muxN_0","in","data",to_string(i)});
         }
+
+        // uint largeHalfIndexBits =
+        //   num_bits(Nlargehalf);
+
+        // uint smallhalfIndexBits =
+        //   num_bits(Nsmallhalf);
+        
+        // def->addInstance("muxN_0_slice",
+        //                  "coreir.slice",
+        //                  {{"width", Const::make(c, Nlargehalf)},
+        //                      {"lo", Const::make(c, 0)},
+        //                        {"hi", Const::make(c, Nlargehalf)}});
+
+        // def->connect({"self", "in", "sel"}, {"muxN_0_slice.in"});
+        // def->connect({"muxN_0_slice", "out"}, {"muxN_0", "in", "sel"});
+
         for (uint i=0; i<Nsmallhalf; ++i) {
           def->connect({"self","in","data",to_string(i+Nlargehalf)},{"muxN_1","in","data",to_string(i)});
         }
+
         def->connect("muxN_0.out","join.in0");
         def->connect("muxN_1.out","join.in1");
       }

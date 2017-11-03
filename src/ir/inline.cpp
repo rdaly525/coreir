@@ -13,9 +13,9 @@ namespace CoreIR {
 // This helper will connect everything from wa to wb with a spDelta. 
 // spDelta is the SelectPath delta to get from wa to wb
 void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireable* wb) {
-  //cout << "w:" << w->toString() << endl;
-  //cout << "spDelta:" << SelectPath2Str(spDelta) << endl;
-  //cout << "inw:" << inw->toString() << endl << endl;
+  //cout << "w:" << w->toString() << endl;;
+  //cout << "spDelta:" << SelectPath2Str(spDelta) << endl;;
+  //cout << "inw:" << inw->toString() << endl; << endl;;
   
   for (auto waCon : wa->getConnectedWireables() ) {
     for (auto wbCon : wb->getConnectedWireables() ) { //was inw
@@ -24,7 +24,7 @@ void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireab
       //concatenate the spDelta into wa
       waConSPath.insert(waConSPath.end(),spDelta.begin(),spDelta.end());
       def->connect(waConSPath,wbConSPath);
-      //cout << "Hconnecting: " << SelectPath2Str(wOtherSPath) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;
+      //cout << "Hconnecting: " << SelectPath2Str(wOtherSPath) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;;
     }
   }
 
@@ -94,7 +94,7 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
   for (auto waCon : wa->getConnectedWireables() ) {
     for (auto wbCon : wb->getConnectedWireables() ) {
       def->connect(waCon,wbCon);
-      //cout << "connecting: " << SelectPath2Str(wOther->getSelectPath()) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;
+      //cout << "connecting: " << SelectPath2Str(wOther->getSelectPath()) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;;
     }
   }
 }
@@ -159,6 +159,20 @@ void inlinePassthrough(Instance* i) {
   def->removeInstance(i);
 }
 
+void saveSymTable(json& symtable,string path, Wireable* w) {
+  if (w->getConnectedWireables().size()==0) {
+    for (auto spair : w->getSelects()) {
+      saveSymTable(symtable,path + "." + spair.first,spair.second);
+    }
+  }
+  else {
+    Wireable* other = *(w->getConnectedWireables().begin());
+    assert(other);
+    bool check = symtable.get<map<string,json>>().count(path)==0;
+    ASSERT(check,"DEBUGME");
+    symtable[path] = other->getSelectPath();
+  }
+}
 
 //This will modify the moduledef to inline the instance
 bool inlineInstance(Instance* inst) {
@@ -175,10 +189,17 @@ bool inlineInstance(Instance* inst) {
   Module* modInline = mref;
 
   if (!modInline->hasDef()) {
-    //cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;
+    //cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;;
     return false;
   }
-  
+  string instname = inst->getInstname();
+
+  //Add a bunch of symbol table metadata
+  //First for each port of instance that is connected
+  //Save that as metadata (inst.port.blah -> its connection)
+  json jsym(json::value_t::object);
+  saveSymTable(jsym,instname,inst);
+
   //I will be inlining defInline into def
   //Making a copy because i want to modify it first without modifying all of the other instnaces of modInline
   ModuleDef* defInline = modInline->getDef()->copy();
@@ -232,7 +253,41 @@ bool inlineInstance(Instance* inst) {
   inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
 
   //typecheck the module
-  def->validate();
+  // WARNING: Temporarily removed to check performance impact in _stereo.json
+  //def->validate();
+
+  //for each entry in instances symbtable
+  //prepend instname to key
+  //determine where new instance is pointing to
+  if (mref->getMetaData().get<map<string,json>>().count("symtable")) {
+    json jisym = mref->getMetaData()["symtable"];
+    for (auto p : jisym.get<map<string,json>>()) {
+      string newkey = instname + "$" + p.first;
+      ASSERT(jsym.count(newkey)==0,"DEBUGME");
+      SelectPath path = p.second.get<SelectPath>();
+      if (path[0] =="self") {
+        path[0] = instname;
+      }
+      else {
+        path[0] = inlinePrefix + path[0]; 
+      }
+      jsym[newkey] = path;
+    }
+  }
+ 
+  if (def->getModule()->getMetaData().get<map<string,json>>().count("symtable")) {
+    json jmerge = def->getModule()->getMetaData()["symtable"];
+    for (auto pair : jsym.get<map<string,json>>()) {
+      bool check = jmerge.get<map<string,json>>().count(pair.first)==0;
+      ASSERT(check,"DEBUGME");
+      jmerge[pair.first] = pair.second;
+    }
+    def->getModule()->getMetaData()["symtable"] = jmerge;
+  }
+  else {
+    def->getModule()->getMetaData()["symtable"] = jsym;
+  }
+  
   return true;
 }
 
