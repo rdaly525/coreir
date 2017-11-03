@@ -145,16 +145,16 @@ namespace CoreIR {
     if (isDASHR(*inst)) {
       uint tw = typeWidth(*(arg1.getWire()->getType()));
       uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
+      if (containWidth > tw) {
 
-      assert(containWidth > tw);
+        string mask =
+          parens(bitMaskString(printOpResultStr(arg2, g)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g)));
 
-      string mask =
-        parens(bitMaskString(printOpResultStr(arg2, g)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g)));
+        string signBitSet =
+          parens("0x01 & " + parens(printOpResultStr(arg1, g) +  " >> " + parens(to_string(tw - 1))));
 
-      string signBitSet =
-        parens("0x01 & " + parens(printOpResultStr(arg1, g) +  " >> " + parens(to_string(tw - 1))));
-
-      compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
+        compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
+      }
     }
 
     // Check if this output needs a mask
@@ -183,9 +183,16 @@ namespace CoreIR {
     uint startWidth = typeWidth(tp);
     uint extWidth = containerTypeWidth(tp);
 
-    return "SIGN_EXTEND( " + to_string(startWidth) + ", " +
-      to_string(extWidth) + ", " +
-      arg + " )";
+    if (startWidth < extWidth) {
+      return "SIGN_EXTEND( " + to_string(startWidth) + ", " +
+        to_string(extWidth) + ", " +
+        arg + " )";
+    } else if (startWidth == extWidth) {
+      return parens(arg);
+    } else {
+      cout << "ERROR: trying to sign extend from " << startWidth << " to " << extWidth << endl;
+      assert(false);
+    }
 
   }
 

@@ -297,6 +297,40 @@ namespace CoreIR {
     return final;
   }
 
+  std::string concatSelects(const std::vector<std::string>& str) {
+    string final = "";
+
+    if (str.size() == 1) {
+      return str[0];
+    }
+
+    for (uint i = 0; i < str.size(); i++) {
+      final += str[i];
+      if (i != (str.size() - 1)) {
+        final += ".";
+      }
+    }
+
+    return final;
+  }
+
+  std::string concatSelects(const std::deque<std::string>& str) {
+    string final = "";
+
+    if (str.size() == 1) {
+      return str[0];
+    }
+
+    for (uint i = 0; i < str.size(); i++) {
+      final += str[i];
+      if (i != (str.size() - 1)) {
+        final += ".";
+      }
+    }
+
+    return final;
+  }
+  
   SimValue* SimulatorState::getValue(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
 
@@ -417,6 +451,15 @@ namespace CoreIR {
   SimulatorState::SimulatorState(CoreIR::Module* mod_) :
     mod(mod_), mainClock(nullptr) {
 
+    hasSymTable = false;
+
+    // Create symbol table if it exists
+    if (mod->getMetaData().get<map<string,json>>().count("symtable")) {
+      hasSymTable = true;
+      symTable =
+        mod->getMetaData()["symtable"].get<map<string,json>>();
+    }
+
     buildOrderedGraph(mod, gr);
 
     topoOrder = topologicalSort(gr);
@@ -491,10 +534,15 @@ namespace CoreIR {
 
   SimValue* SimulatorState::getValue(const std::string& name)  {
     ModuleDef* def = mod->getDef();
-    Wireable* w = def->sel(name);
-    Select* sel = toSelect(w);
 
-    return getValue(sel);
+    if (def->hasSel(name)) {
+      Wireable* w = def->sel(name);
+      Select* sel = toSelect(w);
+
+      return getValue(sel);
+    }
+
+    return nullptr;
   }
 
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
@@ -1496,7 +1544,46 @@ namespace CoreIR {
     }
     circStates[stateIndex].valMap[sel] = val;
   }
-  
+
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
+                                         const std::vector<std::string>& portSelectList) {
+
+    string selectVal = concatSelects(portSelectList);
+    vector<string> insts = instanceList;
+    insts[insts.size() - 1] =
+      insts[insts.size() - 1] + "." + selectVal;
+    string name = concatInlined(insts);
+    return getValueByOriginalName(name);
+  }
+
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::string& name) {
+    
+    SimValue* val = getValue(name);
+
+    // Case 1: The value being requested exists in the simulator code
+    if (val != nullptr) {
+      return val;
+    }
+
+    // Case 2: The value being requested has an entry in the symbol table
+    if (symTable.count(name) > 0) {
+      SelectPath ent = symTable[name];
+      string entName = concatSelects(ent);
+
+      cout << "Entry name = " << entName << endl;
+      return getValueByOriginalName(entName);
+      //assert(false);
+    }
+
+    // Case 3: The value does not have a symbol table entry. 3 subcases:
+    //      1. The value is invalid
+    //      2. Need to traverse up the type hierarchy
+    //      3. Need to traverse down the type hierarchy
+    assert(false);
+  }
+
   SimulatorState::~SimulatorState() {
     for (auto& val : allocatedValues) {
       delete val;
