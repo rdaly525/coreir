@@ -301,10 +301,14 @@ namespace CoreIR {
 
     void run();
 
+    // Symbol table lookup
     SimValue*
     getValueByOriginalName(const std::vector<std::string>& instanceList,
                            const std::vector<std::string>& portSelectList);
 
+    SimValue*
+    getValueByOriginalName(const std::string& name);
+    
     // Destructor
 
     ~SimulatorState();

@@ -313,6 +313,23 @@ namespace CoreIR {
 
     return final;
   }
+
+  std::string concatSelects(const std::deque<std::string>& str) {
+    string final = "";
+
+    if (str.size() == 1) {
+      return str[0];
+    }
+
+    for (uint i = 0; i < str.size(); i++) {
+      final += str[i];
+      if (i != (str.size() - 1)) {
+        final += ".";
+      }
+    }
+
+    return final;
+  }
   
   SimValue* SimulatorState::getValue(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
@@ -1537,13 +1554,33 @@ namespace CoreIR {
     insts[insts.size() - 1] =
       insts[insts.size() - 1] + "." + selectVal;
     string name = concatInlined(insts);
+    return getValueByOriginalName(name);
+  }
 
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::string& name) {
+    
     SimValue* val = getValue(name);
 
+    // Case 1: The value being requested exists in the simulator code
     if (val != nullptr) {
       return val;
     }
 
+    // Case 2: The value being requested has an entry in the symbol table
+    if (symTable.count(name) > 0) {
+      SelectPath ent = symTable[name];
+      string entName = concatSelects(ent);
+
+      cout << "Entry name = " << entName << endl;
+      return getValueByOriginalName(entName);
+      //assert(false);
+    }
+
+    // Case 3: The value does not have a symbol table entry. 3 subcases:
+    //      1. The value is invalid
+    //      2. Need to traverse up the type hierarchy
+    //      3. Need to traverse down the type hierarchy
     assert(false);
   }
 
