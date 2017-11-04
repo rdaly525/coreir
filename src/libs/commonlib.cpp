@@ -6,6 +6,8 @@ using namespace std;
 using namespace CoreIR;
 
 uint num_bits(uint N) {
+  if (N==0) { return 1; }
+
   uint num_shifts = 0;
   uint temp_value = N;
   while (temp_value > 0) {
@@ -61,7 +63,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       return c->Record({
         {"in",c->Record({
               {"data",c->BitIn()->Arr(width)->Arr(N)},
-              {"sel",c->BitIn()->Arr(width)}
+              {"sel",c->BitIn()->Arr(num_bits(N-1))}
             })},
         {"out",c->Bit()->Arr(width)}
       });
@@ -142,6 +144,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       if (N == 1) {
         def->connect("self.in.data.0","self.out");
+        def->addInstance("term_sel", "corebit.term");
+        def->connect("self.in.sel.0", "term_sel.in");
       }
       else if (N == 2) {
         def->addInstance("join",mux2,{{"width",aWidth}});
@@ -160,9 +164,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         uint Nlargehalf = 1 << (Nbits-1);
         uint Nsmallhalf = N - Nlargehalf;
 
-        def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
-
-        cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
+        //cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
 
         Const* aNlarge = Const::make(c,Nlargehalf);
         Const* aNsmall = Const::make(c,Nsmallhalf);
@@ -174,27 +176,29 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect({"self","in","data",to_string(i)},{"muxN_0","in","data",to_string(i)});
         }
 
-        // uint largeHalfIndexBits =
-        //   num_bits(Nlargehalf);
-
-        // uint smallhalfIndexBits =
-        //   num_bits(Nsmallhalf);
-        
-        // def->addInstance("muxN_0_slice",
-        //                  "coreir.slice",
-        //                  {{"width", Const::make(c, Nlargehalf)},
-        //                      {"lo", Const::make(c, 0)},
-        //                        {"hi", Const::make(c, Nlargehalf)}});
-
-        // def->connect({"self", "in", "sel"}, {"muxN_0_slice.in"});
-        // def->connect({"muxN_0_slice", "out"}, {"muxN_0", "in", "sel"});
-
         for (uint i=0; i<Nsmallhalf; ++i) {
           def->connect({"self","in","data",to_string(i+Nlargehalf)},{"muxN_1","in","data",to_string(i)});
         }
 
         def->connect("muxN_0.out","join.in0");
         def->connect("muxN_1.out","join.in1");
+
+        // wire up selects
+        def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
+        Values sliceArgs0 = {{"width", Const::make(c,Nbits)},
+                             {"lo", Const::make(c,0)},
+                             {"hi", Const::make(c,num_bits(Nlargehalf-1))}};
+        Values sliceArgs1 = {{"width", Const::make(c,Nbits)},
+                             {"lo", Const::make(c,0)},
+                             {"hi", Const::make(c,num_bits(Nsmallhalf-1))}};
+
+        def->addInstance("sel_slice0", "coreir.slice", sliceArgs0); 
+        def->connect("self.in.sel", "sel_slice0.in");
+        def->connect("sel_slice0.out", "muxN_0.in.sel");
+
+        def->addInstance("sel_slice1", "coreir.slice", sliceArgs1); 
+        def->connect("self.in.sel", "sel_slice1.in");
+        def->connect("sel_slice1.out", "muxN_1.in.sel");
       }
 
     });
@@ -853,6 +857,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     uint rate  = args.at("rate")->get<int>();
     assert(width>0);
     assert(rate>1);
+    assert(width > num_bits(rate-1)); // not enough bits in counter for rate
 
     // get generators
     Namespace* coreirprims = c->getNamespace("coreir");
@@ -869,7 +874,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                      {{"width",aBitwidth}});
     def->addInstance("zero", const_gen,
                      {{"width",aBitwidth}},{{"value",Const::make(c,BitVector(width,0))}});
-
+    Values sliceArgs = {{"width", Const::make(c,width)},
+                        {"lo", Const::make(c,0)},
+                        {"hi", Const::make(c,num_bits(rate-1))}};
+    def->addInstance("slice", "coreir.slice", sliceArgs);
+    
     // all but input0 are stored in registers
     for (uint i=1; i<rate; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
@@ -880,7 +889,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // wire up modules
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
-    def->connect("counter.out","muxn.in.sel");
+
+    def->connect("counter.out","slice.in");
+    def->connect("slice.out","muxn.in.sel");
 
     def->connect("zero.out","equal.in0");
     def->connect("counter.out","equal.in1");
