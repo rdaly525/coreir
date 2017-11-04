@@ -14,7 +14,7 @@ void core_convert(Context* c, Namespace* core) {
       uint width = args.at("width")->get<int>();
       uint lo = args.at("lo")->get<int>();
       uint hi = args.at("hi")->get<int>();
-      ASSERT(lo < hi && hi<=width,"Bad slice args! hi="+to_string(lo) + ", hi=" + to_string(hi));
+      ASSERT(lo < hi && hi<=width,"Bad slice args! lo="+to_string(lo) + ", hi=" + to_string(hi));
       return c->Record({
         {"in",c->BitIn()->Arr(width)},
         {"out",c->Bit()->Arr(hi-lo)}
