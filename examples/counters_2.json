@@ -1,0 +1,98 @@
+{
+    "top" : "global.counters",
+    "namespaces": {
+        "global": {
+            "modules": {
+                "counters": {
+                    "metadata" : {"properties": [["exec_to_30","invar","\"out\" != 0ud16_10"],
+                                                 ["out_plus_1","invar","(!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = (\"out\" + 0ud16_1))"],
+                                                 ["reset","ltl","G(F((!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = 0ud16_0)))"]]
+                                 },
+                    "type": ["Record",{
+                    }],
+                    "instances": {
+                        "count0": {"modref": "global.counter"},
+                        "count1": {"modref": "global.counter"},
+                        "slice0": {
+                            "genref": "coreir.slice",
+                            "genargs": {"width":16, "lo":0,"hi":8}
+                        },
+                        "slice1": {
+                            "genref": "coreir.slice",
+                            "genargs": {"width":16, "lo":8,"hi":16}
+                        },
+                        "cat": {
+                            "genref": "coreir.concat",
+                            "genargs": {"width0":8, "width1":8}
+                        },
+                        "neg": {
+                            "genref": "coreir.neg",
+                            "genargs": {"width":16}
+                        },
+                        "term": {
+                            "genref": "coreir.term",
+                            "genargs": {"width":16}
+                        }
+                    },
+                    "connections": [
+                        ["count0.out.4","count1.en"],
+                        ["count1.out.8","count0.en"],
+                        ["count0.out","slice0.in"],
+                        ["count1.out","slice1.in"],
+                        ["slice0.out","cat.in0"],
+                        ["slice1.out","cat.in1"],
+                        ["cat.out","neg.in"],
+                        ["neg.out","term.in"]
+                    ]
+                },
+                "counter": {
+                    "type": ["Record",{
+                        "en": "BitIn",
+                        "out": ["Array",16,"Bit"]
+                    }],
+                    "instances": {
+                        "c1": {
+                            "genref": "coreir.const",
+                            "genargs": {"width":16},
+                            "configargs": {"value":1}
+                        },
+                        "r": {
+                            "genref": "coreir.reg",
+                            "genargs": {"width":16,"en":true}
+                        },
+                        "a": {
+                            "genref": "coreir.add",
+                            "genargs": {"width":16}
+                        },
+                        "c2": {
+                            "genref": "coreir.const",
+                            "genargs": {"width":15},
+                            "configargs": {"value":0}
+                        },
+                        "a2": {
+                            "genref": "coreir.add",
+                            "genargs": {"width":16}
+                        },
+                        "cc": {
+                            "genref": "coreir.concat",
+                            "genargs": {"width0":15, "width1":1}
+                        }
+                    },
+                    "connections": [
+                        ["c1.out","a.in0"],
+                        ["r.out","a.in1"],
+                        ["a.out","a2.in0"],
+                        ["cc.out","a2.in1"],
+                        ["c2.out","cc.in0"],
+                        ["a.out.6","cc.in1.0"],
+                        ["a2.out","r.in"],
+                        ["r.out","self.out"],
+                        ["self.en","r.en"]
+                    ]
+                }
+            }
+        }
+    }
+}
+
+

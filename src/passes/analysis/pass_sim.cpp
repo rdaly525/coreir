@@ -1,6 +1,6 @@
 #include "coreir.h"
 
-#include "coreir-passes/analysis/pass_sim.h"
+#include "coreir/passes/analysis/pass_sim.h"
 #include "../../simulator/sim.hpp"
 #include "../../simulator/output.hpp"
 

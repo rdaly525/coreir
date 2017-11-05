@@ -1,4 +1,3 @@
-
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/wireable.h"
@@ -8,6 +7,7 @@
 #include "coreir/ir/value.h"
 
 using namespace std;
+
 namespace CoreIR {
 
 // This helper will connect everything from wa to wb with a spDelta. 
