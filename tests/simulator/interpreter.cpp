@@ -1,4 +1,4 @@
-//#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -1234,32 +1234,47 @@ namespace CoreIR {
       
     }
 
-    SECTION("Reading original files") {
-      if (!loadFromFile(c,"./tmpf6uvlhug.json")) {
+    SECTION("Counter 2 read by original name") {
+      if (!loadFromFile(c,"./tmprb3ud4p2.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
       }
 
       c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
 
-      Module* regMod = g->getModule("simple_flattened");
+      Module* regMod = g->getModule("simple");
       SimulatorState state(regMod);
 
+      bool hasSymtab =
+        regMod->getMetaData().get<map<string,json>>().count("symtable");
+
+      cout << "regMod hasSymtab = " << hasSymtab << endl;
+
+      map<string,json> symdata =
+        regMod->getMetaData()["symtable"].get<map<string,json>>();
+
+      cout << "symdata size = " << symdata.size() << endl;
+
+      for (auto& symEnt : symdata) {
+        SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+        cout << symEnt.first << " --> ";
+        for (auto& p : curpath) {
+          cout << p << ".";
+        }
+
+        cout << endl;
+      }
+      
       state.execute();
 
       state.setClock("self.CLK", 0, 1);
 
       state.execute();
 
-      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0000"));
-
-      state.execute();
-
-      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0001"));
+      
+      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
+      
     }
-    
-    deleteContext(c);
-  }
     
     SECTION("Bit selects in inputs to nodes") {
       if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
