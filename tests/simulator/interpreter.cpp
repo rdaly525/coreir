@@ -1257,10 +1257,10 @@ namespace CoreIR {
 
       for (auto& symEnt : symdata) {
         SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
-        cout << symEnt.first << " --> ";
-        for (auto& p : curpath) {
-          cout << p << ".";
-        }
+        cout << symEnt.first << " --> " << concatSelects(curpath);
+        // for (auto& p : curpath) {
+        //   cout << p << ".";
+        // }
 
         cout << endl;
       }

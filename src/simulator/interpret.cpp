@@ -1590,6 +1590,33 @@ namespace CoreIR {
     return getValueByOriginalName(name);
   }
 
+  bool isPrefixOf(const std::string& foo,
+                  const std::string& foobar) {
+    auto res = std::mismatch(foo.begin(), foo.end(), foobar.begin());
+
+    if (res.first == foo.end()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  std::vector<string>
+  selectsOffOf(const std::string& selectName,
+               std::map<std::string, json>& symTable) {
+
+    vector<string> sels;
+
+    for (auto& ent : symTable) {
+      string selName = ent.first;
+      if (isPrefixOf(selectName, selName)) {
+        sels.push_back(selName);
+      }
+    }
+
+    return sels;
+  }
+
   SimValue*
   SimulatorState::getValueByOriginalName(const std::string& name) {
     
@@ -1613,6 +1640,16 @@ namespace CoreIR {
     //      1. The value is invalid
     //      2. Need to traverse up the type hierarchy
     //      3. Need to traverse down the type hierarchy
+
+    cout << name << " is not a key in the symbol table" << endl;
+    cout << "Selects off of this name = " << endl;
+    vector<string> postFixes =
+      selectsOffOf(name, symTable);
+
+    for (auto& sp : postFixes) {
+      cout << sp << endl;
+    }
+
     assert(false);
   }
 

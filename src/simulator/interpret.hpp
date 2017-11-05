@@ -326,5 +326,7 @@ namespace CoreIR {
   ClockValue* toClock(SimValue* val);
 
   std::string concatInlined(const std::vector<std::string>& str);
+  std::string concatSelects(const std::deque<std::string>& str);
+  std::string concatSelects(const std::vector<std::string>& str);
 
 }
