@@ -169,16 +169,7 @@ bool inlineInstance(Instance* inst) {
   //TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
   if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
-    cout << "{\n" << endl;
-    cout << Inst2Str(inst) << endl;
-    inst->getContainer()->getModule()->print();
-    cout << "TO:" << endl;
-
     inlinePassthrough(inst);
-
-    inst->getContainer()->getModule()->print();
-    cout << "}\n" << endl;
-
     return true;
   }
   
