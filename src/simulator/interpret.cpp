@@ -1553,25 +1553,39 @@ namespace CoreIR {
   }
 
   void
-  SimulatorState::setWatchPointByOriginalName(const std::string& name) {
+  SimulatorState::setWatchPointByOriginalName(const std::string& name,
+                                              const BitVec& bv) {
+    //Case 1: Value exists in the flattened circuit
+    if (exists(name)) {
+      setWatchPoint(name, bv);
+    }
+
+    // Case 2: Value exists in the symbol table
+    if (symTable.count(name) > 0) {
+      SelectPath ent = symTable[name];
+      string entName = concatSelects(ent);
+
+      cout << "Entry name = " << entName << endl;
+      return setWatchPointByOriginalName(entName, bv);
+    }
+
+    // Case 3: Need to traverse up and down the type hierarchy looking
+    // for the value
+    assert(false);
   }
 
   void
   SimulatorState::setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
-                                              const std::vector<std::string>& portSelectList) {
+                                              const std::vector<std::string>& portSelectList,
+                                              const BitVec& bv) {
     string originalName = reconstructName(instanceList, portSelectList);
 
-    setWatchPointByOriginalName(originalName);
+    setWatchPointByOriginalName(originalName, bv);
   }
 
   SimValue*
   SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
                                          const std::vector<std::string>& portSelectList) {
-    // string selectVal = concatSelects(portSelectList);
-    // vector<string> insts = instanceList;
-    // insts[insts.size() - 1] =
-    //   insts[insts.size() - 1] + "." + selectVal;
-    // concatInlined(insts);
     string name = reconstructName(instanceList, portSelectList);
     return getValueByOriginalName(name);
   }

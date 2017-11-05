@@ -311,10 +311,12 @@ namespace CoreIR {
 
     void
     setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
-                                const std::vector<std::string>& portSelectList);
+                                const std::vector<std::string>& portSelectList,
+                                const BitVec& value);
 
     void
-    setWatchPointByOriginalName(const std::string& name);
+    setWatchPointByOriginalName(const std::string& name,
+                                const BitVec& bv);
 
     // Destructor
 
