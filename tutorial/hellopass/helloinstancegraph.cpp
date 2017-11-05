@@ -21,7 +21,7 @@
 
 //I made a copy of the hellmodule and embedded in the system. For external passes 
 //referencing analysis passes, you need to add it to the full build.
-#include "coreir-passes/analysis/hellomodule.h"
+#include "coreir/passes/analysis/hellomodule.h"
 
 using namespace CoreIR;
 
