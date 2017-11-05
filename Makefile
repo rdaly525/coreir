@@ -90,6 +90,7 @@ clean:
 	-rm _*json
 	-rm _*fir
 	-rm _*v
+	-rm -rf release/include
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests/install clean

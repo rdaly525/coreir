@@ -1,0 +1,58 @@
+{
+  "namespaces": {
+    "global": {
+      "modules": {
+        "counters": {
+          "type": ["Record",{
+          }],
+          "instances": {
+            "count0": {"modref": "global.counter"},
+            "count1": {"modref": "global.counter"},
+            "term0": {
+              "genref": "coreir.term",
+              "genargs": {"width":16}
+            },
+            "term1": {
+              "genref": "coreir.term",
+              "genargs": {"width":16}
+            }
+          },
+          "connections": [
+            ["count0.out","term0.in"],
+            ["count1.out","term1.in"],
+	    ["count0.out.8", "count1.en"],
+	    ["count1.out.8", "count0.en"]
+          ]
+        },
+        "counter": {
+          "type": ["Record",{
+            "en": "BitIn",
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "c1": {
+              "genref": "coreir.const",
+              "genargs": {"width":16},
+              "configargs": {"value":1}
+            },
+            "r": {
+              "genref": "coreir.reg",
+              "genargs": {"width":16,"en":true}
+            },
+            "a": {
+              "genref": "coreir.add",
+              "genargs": {"width":16}
+            }
+          },
+          "connections": [
+            ["c1.out","a.in0"],
+            ["r.out","a.in1"],
+            ["a.out","r.in"],
+            ["r.out","self.out"],
+            ["self.en","r.en"]
+          ]
+        }
+      }
+    }
+  }
+}

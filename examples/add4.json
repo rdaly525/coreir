@@ -8,6 +8,7 @@
             "in": ["Array",4,["Array",16,"BitIn"]],
             "out": ["Array",16,"Bit"]
           }],
+          "properties": [["correct_sum","invar","out = (in_0 + in_1 + in_2 + in_3)"]],
           "instances": {
             "i00": {
               "genref": "coreir.add",
