@@ -309,6 +309,13 @@ namespace CoreIR {
     SimValue*
     getValueByOriginalName(const std::string& name);
 
+    void
+    setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                const std::vector<std::string>& portSelectList);
+
+    void
+    setWatchPointByOriginalName(const std::string& name);
+
     // Destructor
 
     ~SimulatorState();

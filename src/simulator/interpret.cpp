@@ -272,13 +272,6 @@ namespace CoreIR {
   bool SimulatorState::exists(const std::string& selStr) const {
     ModuleDef* def = mod->getDef();
     return def->hasSel(selStr);
-    // Wireable* w = def->sel(selStr);
-
-    // if (w == nullptr) {
-    //   return false;
-    // }
-
-    // return true;
   }
 
   std::string concatInlined(const std::vector<std::string>& str) {
@@ -1547,15 +1540,39 @@ namespace CoreIR {
     circStates[stateIndex].valMap[sel] = val;
   }
 
-  SimValue*
-  SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
-                                         const std::vector<std::string>& portSelectList) {
-
+  string
+  reconstructName(const std::vector<std::string>& instanceList,
+                  const std::vector<std::string>& portSelectList) {
     string selectVal = concatSelects(portSelectList);
     vector<string> insts = instanceList;
     insts[insts.size() - 1] =
       insts[insts.size() - 1] + "." + selectVal;
     string name = concatInlined(insts);
+
+    return name;
+  }
+
+  void
+  SimulatorState::setWatchPointByOriginalName(const std::string& name) {
+  }
+
+  void
+  SimulatorState::setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                              const std::vector<std::string>& portSelectList) {
+    string originalName = reconstructName(instanceList, portSelectList);
+
+    setWatchPointByOriginalName(originalName);
+  }
+
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
+                                         const std::vector<std::string>& portSelectList) {
+    // string selectVal = concatSelects(portSelectList);
+    // vector<string> insts = instanceList;
+    // insts[insts.size() - 1] =
+    //   insts[insts.size() - 1] + "." + selectVal;
+    // concatInlined(insts);
+    string name = reconstructName(instanceList, portSelectList);
     return getValueByOriginalName(name);
   }
 
