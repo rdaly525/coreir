@@ -1574,7 +1574,6 @@ namespace CoreIR {
 
       cout << "Entry name = " << entName << endl;
       return getValueByOriginalName(entName);
-      //assert(false);
     }
 
     // Case 3: The value does not have a symbol table entry. 3 subcases:
