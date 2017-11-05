@@ -98,7 +98,7 @@ namespace CoreIR {
       }
 
       SECTION("Compiling code") {
-	c->runPasses({"rungenerators"});
+	c->runPasses({"rungenerators", "flattentypes"});
       	// RunGenerators rg;
       	// rg.runOnNamespace(g);
 
@@ -106,6 +106,13 @@ namespace CoreIR {
 
       	NGraph gr;
       	buildOrderedGraph(manyOps, gr);
+
+        SECTION("3 topological levels") {
+          vector<vector<vdisc>> topoLevels =
+            topologicalLevels(gr);
+
+          REQUIRE(topoLevels.size() == 3);
+        }
 
       	setThreadNumbers(gr);
 

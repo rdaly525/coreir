@@ -271,13 +271,7 @@ namespace CoreIR {
 
   bool SimulatorState::exists(const std::string& selStr) const {
     ModuleDef* def = mod->getDef();
-    Wireable* w = def->sel(selStr);
-
-    if (w == nullptr) {
-      return false;
-    }
-
-    return true;
+    return def->hasSel(selStr);
   }
 
   std::string concatInlined(const std::vector<std::string>& str) {
@@ -546,7 +540,6 @@ namespace CoreIR {
   }
 
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
-
     SimValue* v = getValue(sel);
 
     assert(v != nullptr);
@@ -565,6 +558,8 @@ namespace CoreIR {
 
       return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
     }
+
+    assert(mod->getDef()->hasSel(sel->toString()));
 
     auto it = circStates[stateIndex].valMap.find(sel);
 
@@ -1545,15 +1540,53 @@ namespace CoreIR {
     circStates[stateIndex].valMap[sel] = val;
   }
 
-  SimValue*
-  SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
-                                         const std::vector<std::string>& portSelectList) {
-
+  string
+  reconstructName(const std::vector<std::string>& instanceList,
+                  const std::vector<std::string>& portSelectList) {
     string selectVal = concatSelects(portSelectList);
     vector<string> insts = instanceList;
     insts[insts.size() - 1] =
       insts[insts.size() - 1] + "." + selectVal;
     string name = concatInlined(insts);
+
+    return name;
+  }
+
+  void
+  SimulatorState::setWatchPointByOriginalName(const std::string& name,
+                                              const BitVec& bv) {
+    //Case 1: Value exists in the flattened circuit
+    if (exists(name)) {
+      setWatchPoint(name, bv);
+    }
+
+    // Case 2: Value exists in the symbol table
+    if (symTable.count(name) > 0) {
+      SelectPath ent = symTable[name];
+      string entName = concatSelects(ent);
+
+      cout << "Entry name = " << entName << endl;
+      return setWatchPointByOriginalName(entName, bv);
+    }
+
+    // Case 3: Need to traverse up and down the type hierarchy looking
+    // for the value
+    assert(false);
+  }
+
+  void
+  SimulatorState::setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                              const std::vector<std::string>& portSelectList,
+                                              const BitVec& bv) {
+    string originalName = reconstructName(instanceList, portSelectList);
+
+    setWatchPointByOriginalName(originalName, bv);
+  }
+
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
+                                         const std::vector<std::string>& portSelectList) {
+    string name = reconstructName(instanceList, portSelectList);
     return getValueByOriginalName(name);
   }
 
@@ -1574,7 +1607,6 @@ namespace CoreIR {
 
       cout << "Entry name = " << entName << endl;
       return getValueByOriginalName(entName);
-      //assert(false);
     }
 
     // Case 3: The value does not have a symbol table entry. 3 subcases:

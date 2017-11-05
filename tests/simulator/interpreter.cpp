@@ -75,7 +75,67 @@ namespace CoreIR {
     // New context
     Context* c = newContext();
   
+
     Namespace* g = c->getGlobal();
+
+    SECTION("commonlib mux with 71 inputs") {
+      uint N = 71;
+      uint width = 16;
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* muxNType =
+        c->Record({
+            {"in",c->Record({
+                  {"data",c->BitIn()->Arr(width)->Arr(N)},
+                    {"sel",c->BitIn()->Arr(7)}
+                })},
+              {"out",c->Bit()->Arr(width)}
+          });
+
+      Module* muxNTest = c->getGlobal()->newModuleDecl("muxN", muxNType);
+      ModuleDef* def = muxNTest->newModuleDef();
+
+      def->addInstance("mux0",
+                       "commonlib.muxn",
+                       {{"width", Const::make(c, width)},
+                           {"N", Const::make(c, N)}});
+
+      def->connect("mux0.out", "self.out");
+
+      def->connect({"self", "in", "sel"},
+                   {"mux0", "in", "sel"});
+      for (uint i = 0; i < N; i++) {
+        def->connect({"self", "in", "data", to_string(i)},
+                     {"mux0", "in", "data", to_string(i)});
+      }
+
+      muxNTest->setDef(def);
+
+      c->runPasses({"rungenerators", "flatten", "flattentypes", "liftclockports-coreir", "wireclocks-coreir"});
+
+      SimulatorState state(muxNTest);
+      for (uint i = 0; i < N; i++) {
+        state.setValue("self.in_data_" + to_string(i), BitVector(width, i));
+      }
+
+      state.setValue("self.in_sel", BitVector(7, "0010010"));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(16, 18));
+      
+      // NGraph gr;
+      // buildOrderedGraph(muxNTest, gr);
+      // deque<vdisc> topoOrder = topologicalSort(gr);
+
+      // SECTION("Compile and run") {
+      //   int s = compileCode(topoOrder, gr, muxNTest, "./gencode/", "mux" + to_string(N));
+
+      //   REQUIRE(s == 0);
+      // }
+      
+    }
 
     SECTION("andr") {
       uint n = 11;
