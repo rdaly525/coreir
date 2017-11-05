@@ -151,10 +151,12 @@ namespace CoreIR {
 
     auto allVerts = g.getVerts();
     set<vdisc> nodes(begin(allVerts), end(allVerts));
+    set<vdisc> alreadyAdded;
 
     vector<vdisc> initial = vertsWithNoIncomingEdge(g);
     for (auto& node : initial) {
       nodes.erase(node);
+      alreadyAdded.insert(node);
     }
 
     levels.push_back(initial);
@@ -169,7 +171,7 @@ namespace CoreIR {
           bool allInputsInPriorLevel = true;
           for (auto& inEd : inEds) {
             vdisc src = g.source(inEd);
-            if (!alreadyAdded.elem(src)) {
+            if (alreadyAdded.find(src) == end(alreadyAdded)) {
               allInputsInPriorLevel = false;
               break;
             }
@@ -183,6 +185,7 @@ namespace CoreIR {
 
       for (auto& node : level) {
         nodes.erase(node);
+        alreadyAdded.insert(node);
       }
 
       levels.push_back(level);
