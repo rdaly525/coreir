@@ -191,6 +191,8 @@ namespace CoreIR {
       levels.push_back(level);
     }
 
+    assert(alreadyAdded.size() == g.getVerts().size());
+
     return levels;
   }
 
