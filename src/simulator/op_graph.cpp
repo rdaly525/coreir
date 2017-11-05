@@ -159,6 +159,35 @@ namespace CoreIR {
 
     levels.push_back(initial);
 
+    while (nodes.size() > 0) {
+      vector<vdisc> level;
+
+      for (auto& node : nodes) {
+        auto inEds = g.inEdges(node);
+        if (inEds.size() > 0) {
+
+          bool allInputsInPriorLevel = true;
+          for (auto& inEd : inEds) {
+            vdisc src = g.source(inEd);
+            if (!alreadyAdded.elem(src)) {
+              allInputsInPriorLevel = false;
+              break;
+            }
+          }
+
+          if (allInputsInPriorLevel) {
+            level.push_back(node);
+          }
+        }
+      }
+
+      for (auto& node : level) {
+        nodes.erase(node);
+      }
+
+      levels.push_back(level);
+    }
+
     return levels;
   }
 
