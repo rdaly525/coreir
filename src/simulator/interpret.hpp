@@ -308,7 +308,7 @@ namespace CoreIR {
 
     SimValue*
     getValueByOriginalName(const std::string& name);
-    
+
     // Destructor
 
     ~SimulatorState();

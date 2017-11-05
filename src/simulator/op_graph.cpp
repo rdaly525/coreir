@@ -146,6 +146,22 @@ namespace CoreIR {
 
   }
 
+  std::vector<std::vector<vdisc> > topologicalLevels(const NGraph& g) {
+    vector<vector<vdisc> > levels;
+
+    auto allVerts = g.getVerts();
+    set<vdisc> nodes(begin(allVerts), end(allVerts));
+
+    vector<vdisc> initial = vertsWithNoIncomingEdge(g);
+    for (auto& node : initial) {
+      nodes.erase(node);
+    }
+
+    levels.push_back(initial);
+
+    return levels;
+  }
+
   std::deque<vdisc> topologicalSort(const NGraph& g) {
     deque<vdisc> topo_order;
 
