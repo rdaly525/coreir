@@ -1234,6 +1234,33 @@ namespace CoreIR {
       
     }
 
+    SECTION("Reading original files") {
+      if (!loadFromFile(c,"./tmpf6uvlhug.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+
+      Module* regMod = g->getModule("simple_flattened");
+      SimulatorState state(regMod);
+
+      state.execute();
+
+      state.setClock("self.CLK", 0, 1);
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0000"));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0001"));
+    }
+    
+    deleteContext(c);
+  }
+    
     SECTION("Bit selects in inputs to nodes") {
       if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
     	cout << "Could not Load from json!!" << endl;
