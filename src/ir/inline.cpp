@@ -13,18 +13,15 @@ namespace CoreIR {
 // This helper will connect everything from wa to wb with a spDelta. 
 // spDelta is the SelectPath delta to get from wa to wb
 void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireable* wb) {
-  //cout << "w:" << w->toString() << endl;;
-  //cout << "spDelta:" << SelectPath2Str(spDelta) << endl;;
-  //cout << "inw:" << inw->toString() << endl; << endl;;
   
   for (auto waCon : wa->getConnectedWireables() ) {
     for (auto wbCon : wb->getConnectedWireables() ) { //was inw
       SelectPath wbConSPath = wbCon->getSelectPath();
       SelectPath waConSPath = waCon->getSelectPath();
+      
       //concatenate the spDelta into wa
       waConSPath.insert(waConSPath.end(),spDelta.begin(),spDelta.end());
       def->connect(waConSPath,wbConSPath);
-      //cout << "Hconnecting: " << SelectPath2Str(wOtherSPath) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;;
     }
   }
 
@@ -46,7 +43,7 @@ void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireab
 
 //This helper will connect a single select layer of the passthrough.
 void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
-  
+
   //wa should be the flip type of wb
   assert(wa->getType()==wb->getType()->getFlipped());
   
@@ -61,25 +58,17 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
     if (wbSelects.count(waSelmap.first)>0) {
       both.insert(waSelmap.first);
     }
-    else {
-      waOnly.insert(waSelmap.first);
-    }
+    waOnly.insert(waSelmap.first);
   }
   for (auto wbSelmap : wbSelects) {
-    if (both.count(wbSelmap.first) == 0) {
-      wbOnly.insert(wbSelmap.first);
-    }
+    wbOnly.insert(wbSelmap.first);
   }
-
-  //Basic set theory assertion
-  assert(waOnly.size() + wbOnly.size() + 2*both.size() == waSelects.size() + wbSelects.size());
 
   //Traverse another level for both
   for (auto selstr : both ) {
     connectSameLevel(def,waSelects[selstr],wbSelects[selstr]);
   }
   
-  //TODO check any bugs here first
   //Connect wb to all the subselects of waOnly
   for (auto selstr : waOnly) {
     connectOffsetLevel(def,wb, {selstr}, waSelects[selstr]);
@@ -180,7 +169,16 @@ bool inlineInstance(Instance* inst) {
   //TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
   if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
+    cout << "{\n" << endl;
+    cout << Inst2Str(inst) << endl;
+    inst->getContainer()->getModule()->print();
+    cout << "TO:" << endl;
+
     inlinePassthrough(inst);
+
+    inst->getContainer()->getModule()->print();
+    cout << "}\n" << endl;
+
     return true;
   }
   
@@ -287,7 +285,9 @@ bool inlineInstance(Instance* inst) {
   else {
     def->getModule()->getMetaData()["symtable"] = jsym;
   }
-  
+ 
+
+
   return true;
 }
 

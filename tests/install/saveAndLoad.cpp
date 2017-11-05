@@ -117,4 +117,10 @@ int main() {
   m->print();
 
   deleteContext(c);
+
+  //c = newContext();
+  //m = nullptr;
+  //assert(loadFromFile(c,"/Users/rdaly/coreir/simp.json",&m));
+  //inlineInstance(cast<Instance>(m->getDef()->sel("_pt")));
+
 }
