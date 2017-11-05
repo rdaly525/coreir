@@ -115,7 +115,7 @@ namespace CoreIR {
       c->runPasses({"rungenerators", "flatten", "flattentypes", "liftclockports-coreir", "wireclocks-coreir"});
 
       SimulatorState state(muxNTest);
-      for (int i = 0; i < N; i++) {
+      for (uint i = 0; i < N; i++) {
         state.setValue("self.in_data_" + to_string(i), BitVector(width, i));
       }
 
