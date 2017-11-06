@@ -252,12 +252,44 @@ namespace CoreIR {
     StopFunction func =
       [this, val, bv]() {
 
-      if (isSet(val)) {
-        if (getBitVec(val) == bv) {
-          return true;
+      if (exists(val)) {
+
+        if (isSet(val)) {
+          SimValue* nm = getValue(val);
+
+          if (nm != nullptr) {
+            SimBitVector* simVal = toSimBitVector(nm);
+
+            if (simVal->getBits() == bv) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+        } else {
+          return false;
         }
       }
+
+      SimValue* res = getValueByOriginalName(val);
+      if (res != nullptr) {
+        SimBitVector* simVal = toSimBitVector(res);
+
+        if (simVal->getBits() == bv) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+
       return false;
+
+      // if (isSet(val)) {
+      //   if (getBitVec(val) == bv) {
+      //     return true;
+      //   }
+      // }
+      // return false;
     };
 
     stopConditions.push_back({val, func});

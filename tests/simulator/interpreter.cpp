@@ -1,4 +1,4 @@
-//#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -1246,8 +1246,6 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVec(2, "11"));
       REQUIRE(clkVal->value() == 1);
       REQUIRE(clkVal->lastValue() == 0);
-      
-      
     }
 
     SECTION("Counter 2 read by original name") {
@@ -1277,27 +1275,43 @@ namespace CoreIR {
         cout << symEnt.first << " --> " << concatSelects(curpath) << endl;
       }
 
-      state.setClock("self.CLK", 0, 1);      
+      SECTION("Checking lookup by original names") {
+        state.setClock("self.CLK", 0, 1);      
 
-      for (uint i = 0; i < 4; i++) {
+        for (uint i = 0; i < 4; i++) {
 
-        state.execute();
-        state.stepMainClock();
+          state.execute();
+          state.stepMainClock();
 
-        cout << "O " << i << " = " << state.getBitVec("self.O") << endl;        
+          cout << "O " << i << " = " << state.getBitVec("self.O") << endl;        
+        }
+
+        REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
+
+        for (auto& ent : symdata) {
+          SimValue* val = state.getValueByOriginalName(ent.first);
+
+          REQUIRE(val != nullptr);
+
+          if (val->getType() == SIM_VALUE_BV) {
+            SimBitVector* valBV = static_cast<SimBitVector*>(val);
+            cout << "Value of " << ent.first << " is " << valBV->getBits() << endl;
+          }
+        }
+
       }
 
-      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
+      SECTION("Setting watchpoints by original name") {
+        state.setClock("self.CLK", 0, 1);
 
-      for (auto& ent : symdata) {
-        SimValue* val = state.getValueByOriginalName(ent.first);
+        state.setWatchPointByOriginalName("inst0.O", BitVector(2, 2));
 
-        REQUIRE(val != nullptr);
+        state.run();
 
-        if (val->getType() == SIM_VALUE_BV) {
-          SimBitVector* valBV = static_cast<SimBitVector*>(val);
-          cout << "Value of " << ent.first << " is " << valBV->getBits() << endl;
-        }
+        SimBitVector* sbv =
+          toSimBitVector(state.getValueByOriginalName("inst0.O"));
+
+        REQUIRE(sbv->getBits() == BitVector(2, 2));
       }
       
     }
