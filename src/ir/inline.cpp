@@ -25,14 +25,6 @@ void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireab
     }
   }
 
-  //Traverse up the wa keeping wb constant
-  if (auto was = dyn_cast<Select>(wa)) {
-    SelectPath tu = spDelta;
-    assert(was->getParent());
-    tu.push_front(was->getSelStr());
-    connectOffsetLevel(def,was->getParent(),tu,wb);
-  }
-
   //Traverse down the wb keeping wa constant
   for (auto wbselmap : wb->getSelects()) {
     SelectPath td = spDelta;
@@ -50,40 +42,32 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
   auto waSelects = wa->getSelects();
   auto wbSelects = wb->getSelects();
   
-  //Sort into the three sets of the vendiagram
-  unordered_set<string> waOnly;
-  unordered_set<string> wbOnly;
   unordered_set<string> both;
   for (auto waSelmap : waSelects) {
     if (wbSelects.count(waSelmap.first)>0) {
       both.insert(waSelmap.first);
     }
-    waOnly.insert(waSelmap.first);
-  }
-  for (auto wbSelmap : wbSelects) {
-    wbOnly.insert(wbSelmap.first);
   }
 
-  //Traverse another level for both
+  //Traverse another same level for both
   for (auto selstr : both ) {
     connectSameLevel(def,waSelects[selstr],wbSelects[selstr]);
   }
   
-  //Connect wb to all the subselects of waOnly
-  for (auto selstr : waOnly) {
-    connectOffsetLevel(def,wb, {selstr}, waSelects[selstr]);
+  //Connect wb to all the subselects of wa
+  for (auto spair : waSelects) {
+    connectOffsetLevel(def,wb, {spair.first}, spair.second);
   }
 
-  //Connect wa to all the subselects of wbOnly
-  for (auto selstr : wbOnly) {
-    connectOffsetLevel(def,wa, {selstr}, wbSelects[selstr]);
+  //Connect wa to all the subselects of wb
+  for (auto spair : wbSelects) {
+    connectOffsetLevel(def,wa, {spair.first}, spair.second);
   }
 
   //Now connect all N^2 possible connections for this level
   for (auto waCon : wa->getConnectedWireables() ) {
     for (auto wbCon : wb->getConnectedWireables() ) {
       def->connect(waCon,wbCon);
-      //cout << "connecting: " << SelectPath2Str(wOther->getSelectPath()) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;;
     }
   }
 }
