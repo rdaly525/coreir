@@ -308,7 +308,16 @@ namespace CoreIR {
 
     SimValue*
     getValueByOriginalName(const std::string& name);
-    
+
+    void
+    setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                const std::vector<std::string>& portSelectList,
+                                const BitVec& value);
+
+    void
+    setWatchPointByOriginalName(const std::string& name,
+                                const BitVec& bv);
+
     // Destructor
 
     ~SimulatorState();
@@ -317,5 +326,7 @@ namespace CoreIR {
   ClockValue* toClock(SimValue* val);
 
   std::string concatInlined(const std::vector<std::string>& str);
+  std::string concatSelects(const std::deque<std::string>& str);
+  std::string concatSelects(const std::vector<std::string>& str);
 
 }

@@ -75,7 +75,67 @@ namespace CoreIR {
     // New context
     Context* c = newContext();
   
+
     Namespace* g = c->getGlobal();
+
+    SECTION("commonlib mux with 71 inputs") {
+      uint N = 71;
+      uint width = 16;
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* muxNType =
+        c->Record({
+            {"in",c->Record({
+                  {"data",c->BitIn()->Arr(width)->Arr(N)},
+                    {"sel",c->BitIn()->Arr(7)}
+                })},
+              {"out",c->Bit()->Arr(width)}
+          });
+
+      Module* muxNTest = c->getGlobal()->newModuleDecl("muxN", muxNType);
+      ModuleDef* def = muxNTest->newModuleDef();
+
+      def->addInstance("mux0",
+                       "commonlib.muxn",
+                       {{"width", Const::make(c, width)},
+                           {"N", Const::make(c, N)}});
+
+      def->connect("mux0.out", "self.out");
+
+      def->connect({"self", "in", "sel"},
+                   {"mux0", "in", "sel"});
+      for (uint i = 0; i < N; i++) {
+        def->connect({"self", "in", "data", to_string(i)},
+                     {"mux0", "in", "data", to_string(i)});
+      }
+
+      muxNTest->setDef(def);
+
+      c->runPasses({"rungenerators", "flatten", "flattentypes", "liftclockports-coreir", "wireclocks-coreir"});
+
+      SimulatorState state(muxNTest);
+      for (uint i = 0; i < N; i++) {
+        state.setValue("self.in_data_" + to_string(i), BitVector(width, i));
+      }
+
+      state.setValue("self.in_sel", BitVector(7, "0010010"));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(16, 18));
+      
+      // NGraph gr;
+      // buildOrderedGraph(muxNTest, gr);
+      // deque<vdisc> topoOrder = topologicalSort(gr);
+
+      // SECTION("Compile and run") {
+      //   int s = compileCode(topoOrder, gr, muxNTest, "./gencode/", "mux" + to_string(N));
+
+      //   REQUIRE(s == 0);
+      // }
+      
+    }
 
     SECTION("andr") {
       uint n = 11;
@@ -1174,6 +1234,60 @@ namespace CoreIR {
       
     }
 
+    SECTION("Counter 2 read by original name") {
+      if (!loadFromFile(c,"./tmprb3ud4p2.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+
+      Module* regMod = g->getModule("simple");
+      SimulatorState state(regMod);
+
+      bool hasSymtab =
+        regMod->getMetaData().get<map<string,json>>().count("symtable");
+
+      cout << "regMod hasSymtab = " << hasSymtab << endl;
+
+      map<string,json> symdata =
+        regMod->getMetaData()["symtable"].get<map<string,json>>();
+
+      cout << "symdata size = " << symdata.size() << endl;
+
+      for (auto& symEnt : symdata) {
+        SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+        cout << symEnt.first << " --> " << concatSelects(curpath);
+        // for (auto& p : curpath) {
+        //   cout << p << ".";
+        // }
+
+        cout << endl;
+      }
+      
+      state.execute();
+
+      state.setClock("self.CLK", 0, 1);
+
+      state.execute();
+      state.execute();
+      state.execute();
+
+      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
+
+      for (auto& ent : symdata) {
+        SimValue* val = state.getValueByOriginalName(ent.first);
+
+        REQUIRE(val != nullptr);
+
+        if (val->getType() == SIM_VALUE_BV) {
+          SimBitVector* valBV = static_cast<SimBitVector*>(val);
+          cout << "Value of " << ent.first << " is " << valBV->getBits() << endl;
+        }
+      }
+      
+    }
+    
     SECTION("Bit selects in inputs to nodes") {
       if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
     	cout << "Could not Load from json!!" << endl;
