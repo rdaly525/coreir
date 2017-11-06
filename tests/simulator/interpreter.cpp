@@ -1342,6 +1342,20 @@ namespace CoreIR {
 
       REQUIRE(state.getBitVec("self.O") == BitVec(4, "0010"));
     }
+
+    SECTION("Magma fifo example") {
+
+      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+
+      if (!loadFromFile(c,"./fifo_magma_json.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      Module* fifoMod = g->getModule("Fifo");
+      SimulatorState state(fifoMod);
+
+    }
     
     deleteContext(c);
   }
