@@ -1270,9 +1270,21 @@ namespace CoreIR {
       state.setClock("self.CLK", 0, 1);
 
       state.execute();
+      state.execute();
+      state.execute();
 
-      
-      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
+      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));      
+
+      for (auto& ent : symdata) {
+        SimValue* val = state.getValueByOriginalName(ent.first);
+
+        REQUIRE(val != nullptr);
+
+        if (val->getType() == SIM_VALUE_BV) {
+          SimBitVector* valBV = static_cast<SimBitVector*>(val);
+          cout << "Value of " << ent.first << " is " << valBV->getBits() << endl;
+        }
+      }
       
     }
     

@@ -1624,6 +1624,7 @@ namespace CoreIR {
 
     // Case 1: The value being requested exists in the simulator code
     if (val != nullptr) {
+      cout << "Flattened graph contains " << name << endl;
       return val;
     }
 
@@ -1642,10 +1643,11 @@ namespace CoreIR {
     //      3. Need to traverse down the type hierarchy
 
     cout << name << " is not a key in the symbol table" << endl;
-    cout << "Selects off of this name = " << endl;
+    cout << "Selects off of this name" << endl;
     vector<string> postFixes =
       selectsOffOf(name, symTable);
 
+    // Handle the case where the underlying value is an array
     if (postFixes.size() > 0) {
 
       SelectPath namePath = splitString<SelectPath>(name,'.');
@@ -1678,13 +1680,30 @@ namespace CoreIR {
         BitVector sbits = sbv->getBits();
 
         assert(sbits.bitLength() == 1);
+
+        int index = stoi(lastSelStr);
+        result.set(index, sbits.get(0));
       }
 
       return makeSimBitVector(result);
     }
 
-    
-    assert(false);
+    SelectPath namePath = splitString<SelectPath>(name, '.');
+    string access = namePath.back();
+    namePath.pop_back();
+
+    cout << "Getting value of " << concatSelects(namePath) << endl;
+
+    SimValue* sv = getValueByOriginalName(concatSelects(namePath));
+    assert(sv->getType() == SIM_VALUE_BV);
+
+    SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+
+    return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access))));
+
+    // assert(sv->getType() == SIM_VALUE_BV);
+
+    // assert(false);
   }
 
   SimulatorState::~SimulatorState() {
