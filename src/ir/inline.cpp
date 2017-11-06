@@ -89,20 +89,15 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
 }
 
 namespace {
-void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to, unordered_set<Wireable*>& completed) {
+void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) {
-    if (completed.count(other)==0) {
-      def->connect(to,other);
-    }
+    def->connect(to,other);
   }
   for (auto other : from->getConnectedWireables()) {
-    if (completed.count(other)==0) {
-      def->disconnect(from,other);
-      completed.insert(other);
-    }
+    def->disconnect(from,other);
   }
   for (auto sels : from->getSelects()) {
-    PTTraverse(def,sels.second,to->sel(sels.first),completed);
+    PTTraverse(def,sels.second,to->sel(sels.first));
   }
 }
 }
@@ -128,7 +123,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
   Instance* pt = def->addInstance(instname,c->getGenerator("_.passthrough"),{{"type",Const::make(c,wtype)}});
   
   unordered_set<Wireable*> completed;
-  PTTraverse(def,w,pt->sel("out"),completed);
+  PTTraverse(def,w,pt->sel("out"));
   
   //Connect the passthrough back to w
   def->connect(w,pt->sel("in"));
@@ -169,6 +164,7 @@ bool inlineInstance(Instance* inst) {
   //TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
   if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
+    //cout << "Inlining: " << Inst2Str(inst) << endl;
     inlinePassthrough(inst);
     return true;
   }
