@@ -128,5 +128,17 @@ extern "C" {
     state->setWatchPoint(path, bv);
   }
 
+  void CORESimSetWatchPointByOriginalName(CORESimulatorState* cstate, char** inst_path, int inst_path_len, char** port_selects, int port_selects_len, bool *watch_val, int watch_len) {
+    SimulatorState* state = rcast<SimulatorState*>(cstate);
+    vector<string> instPath = MakeSimPath(inst_path, inst_path_len);
+    vector<string> selects = MakeSimPath(port_selects, port_selects_len);
+    BitVec bv(watch_len);
+    for (int i = 0; i < watch_len; i++) {
+      bv.set(i, watch_val[i]);
+    }
+
+    state->setWatchPointByOriginalName(instPath, selects, bv);
+  }
+
 }//extern "C"
 }//CoreIR namespace

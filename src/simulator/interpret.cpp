@@ -1390,14 +1390,6 @@ namespace CoreIR {
       
     }
 
-    //end = clock();
-
-    // std::cout << "Done. Time to update memory outputs = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
-
-    // start = clock();
-
     // Update combinational node values
     for (auto& vd : topoOrder) {
       updateNodeValues(vd);
