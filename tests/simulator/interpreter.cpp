@@ -1234,6 +1234,60 @@ namespace CoreIR {
       
     }
 
+    SECTION("Counter 2 read by original name") {
+      if (!loadFromFile(c,"./tmprb3ud4p2.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+
+      Module* regMod = g->getModule("simple");
+      SimulatorState state(regMod);
+
+      bool hasSymtab =
+        regMod->getMetaData().get<map<string,json>>().count("symtable");
+
+      cout << "regMod hasSymtab = " << hasSymtab << endl;
+
+      map<string,json> symdata =
+        regMod->getMetaData()["symtable"].get<map<string,json>>();
+
+      cout << "symdata size = " << symdata.size() << endl;
+
+      for (auto& symEnt : symdata) {
+        SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+        cout << symEnt.first << " --> " << concatSelects(curpath);
+        // for (auto& p : curpath) {
+        //   cout << p << ".";
+        // }
+
+        cout << endl;
+      }
+      
+      state.execute();
+
+      state.setClock("self.CLK", 0, 1);
+
+      state.execute();
+      state.execute();
+      state.execute();
+
+      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
+
+      for (auto& ent : symdata) {
+        SimValue* val = state.getValueByOriginalName(ent.first);
+
+        REQUIRE(val != nullptr);
+
+        if (val->getType() == SIM_VALUE_BV) {
+          SimBitVector* valBV = static_cast<SimBitVector*>(val);
+          cout << "Value of " << ent.first << " is " << valBV->getBits() << endl;
+        }
+      }
+      
+    }
+    
     SECTION("Bit selects in inputs to nodes") {
       if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
     	cout << "Could not Load from json!!" << endl;

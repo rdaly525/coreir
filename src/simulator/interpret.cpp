@@ -518,6 +518,12 @@ namespace CoreIR {
     return v->getType() == SIM_VALUE_BV;
   }
 
+  SimBitVector* toSimBitVector(SimValue* v) {
+    assert(isSimBitVector(v));
+
+    return static_cast<SimBitVector*>(v);
+  }
+
   BitVec SimulatorState::getBitVec(const std::string& str) {
     ModuleDef* def = mod->getDef();
     Wireable* w = def->sel(str);
@@ -543,9 +549,11 @@ namespace CoreIR {
     SimValue* v = getValue(sel);
 
     assert(v != nullptr);
-    assert(isSimBitVector(v));
 
-    return static_cast<SimBitVector*>(v)->getBits();
+    return toSimBitVector(v)->getBits();
+    // assert(isSimBitVector(v));
+
+    // return static_cast<SimBitVector*>(v)->getBits();
   }
 
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) {
@@ -1237,23 +1245,11 @@ namespace CoreIR {
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
       static_cast<SimBitVector*>(getValue(arg1));
-    //static_cast<SimBitVector*>(getValue(arg1.getWire()));
 
     assert(s1 != nullptr);
 
     BitVector bv1 = s1->getBits();
     
-    // InstanceValue arg2 = findArg("in1", inConns);
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-
-    // Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
-    // SimBitVector* s2 =
-    //   static_cast<SimBitVector*>(getValue(arg2));
-    
-    // assert(s2 != nullptr);
-
-    // BitVector bv2 = s2->getBits();
-
     // Original code
 
     auto outSelects = getOutputSelects(inst);
@@ -1270,9 +1266,6 @@ namespace CoreIR {
 
     InstanceValue clkArg = findArg("clk", inConns);
 
-    // SimBitVector* s1 =
-    //   static_cast<SimBitVector*>(getValue(arg1));
-      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
     assert(s1 != nullptr);
@@ -1590,6 +1583,33 @@ namespace CoreIR {
     return getValueByOriginalName(name);
   }
 
+  bool isPrefixOf(const std::string& foo,
+                  const std::string& foobar) {
+    auto res = std::mismatch(foo.begin(), foo.end(), foobar.begin());
+
+    if (res.first == foo.end()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  std::vector<string>
+  selectsOffOf(const std::string& selectName,
+               std::map<std::string, json>& symTable) {
+
+    vector<string> sels;
+
+    for (auto& ent : symTable) {
+      string selName = ent.first;
+      if (isPrefixOf(selectName, selName)) {
+        sels.push_back(selName);
+      }
+    }
+
+    return sels;
+  }
+
   SimValue*
   SimulatorState::getValueByOriginalName(const std::string& name) {
     
@@ -1597,6 +1617,7 @@ namespace CoreIR {
 
     // Case 1: The value being requested exists in the simulator code
     if (val != nullptr) {
+      cout << "Flattened graph contains " << name << endl;
       return val;
     }
 
@@ -1613,7 +1634,72 @@ namespace CoreIR {
     //      1. The value is invalid
     //      2. Need to traverse up the type hierarchy
     //      3. Need to traverse down the type hierarchy
-    assert(false);
+
+    cout << name << " is not a key in the symbol table" << endl;
+    cout << "Selects off of this name" << endl;
+    vector<string> postFixes =
+      selectsOffOf(name, symTable);
+
+    // Handle the case where the underlying value is an array
+    if (postFixes.size() > 0) {
+
+      SelectPath namePath = splitString<SelectPath>(name,'.');
+      for (auto& sp : postFixes) {
+        SelectPath sPath = splitString<SelectPath>(sp,'.');
+        assert(sPath.size() == (namePath.size() + 1));
+
+        string lastSelStr = sPath.back();
+
+        assert(isNumber(lastSelStr));
+
+        cout << sp << endl;
+      }
+
+      // At this point we know that the result will be an array
+      // We are assuming that it is an array of bits
+      cout << "Result is an array of length " << postFixes.size() << endl;
+
+      BitVector result(postFixes.size());
+
+      for (auto& sp : postFixes) {
+        SelectPath sPath = splitString<SelectPath>(sp,'.');
+        string lastSelStr = sPath.back();
+
+        SimValue* sv = getValueByOriginalName(sp);
+        // assert(sv->getType() == SIM_VALUE_BV);
+
+        // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+
+        auto sbv = toSimBitVector(sv);
+
+        BitVector sbits = sbv->getBits();
+
+        assert(sbits.bitLength() == 1);
+
+        int index = stoi(lastSelStr);
+        result.set(index, sbits.get(0));
+      }
+
+      return makeSimBitVector(result);
+    }
+
+    SelectPath namePath = splitString<SelectPath>(name, '.');
+    string access = namePath.back();
+    namePath.pop_back();
+
+    cout << "Getting value of " << concatSelects(namePath) << endl;
+
+    SimValue* sv = getValueByOriginalName(concatSelects(namePath));
+    auto sbv = toSimBitVector(sv);
+    // assert(sv->getType() == SIM_VALUE_BV);
+
+    // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+
+    return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access))));
+
+    // assert(sv->getType() == SIM_VALUE_BV);
+
+    // assert(false);
   }
 
   SimulatorState::~SimulatorState() {
