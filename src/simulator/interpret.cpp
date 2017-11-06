@@ -356,6 +356,12 @@ namespace CoreIR {
 
   bool SimulatorState::isSet(CoreIR::Select* s) const {
     if (!valMapContains(s)) {
+
+      string str = s->getSelStr();
+      if (isNumber(str)) {
+        return isSet(toSelect(s->getParent()));
+      }
+
       return false;
     }
 
