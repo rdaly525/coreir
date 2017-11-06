@@ -3,19 +3,27 @@
     "global": {
       "modules": {
         "counters": {
+            "metadata" : {"properties": [["exec_to_30","invar","\"out\" != 0ud16_10"],
+                                         ["out_plus_1","invar","(!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = (\"out\" + 0ud16_1))"],
+                                         ["reset","ltl","G(F((!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = 0ud16_0)))"]]
+                                 },
           "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"]
           }],
-          "instances": {
+            "instances": {
             "count0": {"modref": "global.counter"},
             "count1": {"modref": "global.counter"}
           },
           "connections": [
+            ["count0.clk","self.clk"],
+            ["count1.clk","self.clk"],
             ["count0.out.4","count1.clr"],
             ["count1.out.8","count0.clr"]
           ]
         },
         "counter": {
           "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"],
             "clr": "BitIn",
             "out": ["Array",16,"Bit"]
           }],
@@ -38,6 +46,7 @@
           "connections": [
             ["c1.out","a.in0"],
             ["r.out","a.in1"],
+            ["r.clk","self.clk"],
             ["a.out","r.in"],
             ["r.out","self.out"],
             ["self.clr","r.clr"]

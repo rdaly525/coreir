@@ -3,6 +3,8 @@
 #include <dlfcn.h>
 #include <fstream>
 
+#include "coreir/passes/analysis/smtlib2.h"
+#include "coreir/passes/analysis/smv.h"
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
@@ -156,6 +158,8 @@ int main(int argc, char *argv[]) {
     ASSERT(outExt == "json" 
         || outExt == "txt"
         || outExt == "fir"
+        || outExt == "smt2"
+        || outExt == "smv"
         || outExt == "v", "Cannot support out extention: " + outExt);
     fout.open(outfileName);
     ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
@@ -205,6 +209,18 @@ int main(int argc, char *argv[]) {
     CoreIRLoadVerilog_corebit(c);
     modified |= c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
+    
+    vpass->writeToStream(*sout);
+  }
+  else if (outExt=="smt2") {
+    modified |= c->runPasses({"removebulkconnections","flattentypes","smtlib2"});
+    auto vpass = static_cast<Passes::SmtLib2*>(c->getPassManager()->getAnalysisPass("smtlib2"));
+    
+    vpass->writeToStream(*sout);
+  }
+  else if (outExt=="smv") {
+    modified |= c->runPasses({"removebulkconnections","flattentypes","smv"});
+    auto vpass = static_cast<Passes::SMV*>(c->getPassManager()->getAnalysisPass("smv"));
     
     vpass->writeToStream(*sout);
   }

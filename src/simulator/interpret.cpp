@@ -271,13 +271,7 @@ namespace CoreIR {
 
   bool SimulatorState::exists(const std::string& selStr) const {
     ModuleDef* def = mod->getDef();
-    Wireable* w = def->sel(selStr);
-
-    if (w == nullptr) {
-      return false;
-    }
-
-    return true;
+    return def->hasSel(selStr);
   }
 
   std::string concatInlined(const std::vector<std::string>& str) {
@@ -297,6 +291,40 @@ namespace CoreIR {
     return final;
   }
 
+  std::string concatSelects(const std::vector<std::string>& str) {
+    string final = "";
+
+    if (str.size() == 1) {
+      return str[0];
+    }
+
+    for (uint i = 0; i < str.size(); i++) {
+      final += str[i];
+      if (i != (str.size() - 1)) {
+        final += ".";
+      }
+    }
+
+    return final;
+  }
+
+  std::string concatSelects(const std::deque<std::string>& str) {
+    string final = "";
+
+    if (str.size() == 1) {
+      return str[0];
+    }
+
+    for (uint i = 0; i < str.size(); i++) {
+      final += str[i];
+      if (i != (str.size() - 1)) {
+        final += ".";
+      }
+    }
+
+    return final;
+  }
+  
   SimValue* SimulatorState::getValue(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
 
@@ -417,6 +445,15 @@ namespace CoreIR {
   SimulatorState::SimulatorState(CoreIR::Module* mod_) :
     mod(mod_), mainClock(nullptr) {
 
+    hasSymTable = false;
+
+    // Create symbol table if it exists
+    if (mod->getMetaData().get<map<string,json>>().count("symtable")) {
+      hasSymTable = true;
+      symTable =
+        mod->getMetaData()["symtable"].get<map<string,json>>();
+    }
+
     buildOrderedGraph(mod, gr);
 
     topoOrder = topologicalSort(gr);
@@ -481,6 +518,12 @@ namespace CoreIR {
     return v->getType() == SIM_VALUE_BV;
   }
 
+  SimBitVector* toSimBitVector(SimValue* v) {
+    assert(isSimBitVector(v));
+
+    return static_cast<SimBitVector*>(v);
+  }
+
   BitVec SimulatorState::getBitVec(const std::string& str) {
     ModuleDef* def = mod->getDef();
     Wireable* w = def->sel(str);
@@ -491,20 +534,26 @@ namespace CoreIR {
 
   SimValue* SimulatorState::getValue(const std::string& name)  {
     ModuleDef* def = mod->getDef();
-    Wireable* w = def->sel(name);
-    Select* sel = toSelect(w);
 
-    return getValue(sel);
+    if (def->hasSel(name)) {
+      Wireable* w = def->sel(name);
+      Select* sel = toSelect(w);
+
+      return getValue(sel);
+    }
+
+    return nullptr;
   }
 
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
-
     SimValue* v = getValue(sel);
 
     assert(v != nullptr);
-    assert(isSimBitVector(v));
 
-    return static_cast<SimBitVector*>(v)->getBits();
+    return toSimBitVector(v)->getBits();
+    // assert(isSimBitVector(v));
+
+    // return static_cast<SimBitVector*>(v)->getBits();
   }
 
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) {
@@ -517,6 +566,8 @@ namespace CoreIR {
 
       return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
     }
+
+    assert(mod->getDef()->hasSel(sel->toString()));
 
     auto it = circStates[stateIndex].valMap.find(sel);
 
@@ -1194,23 +1245,11 @@ namespace CoreIR {
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
       static_cast<SimBitVector*>(getValue(arg1));
-    //static_cast<SimBitVector*>(getValue(arg1.getWire()));
 
     assert(s1 != nullptr);
 
     BitVector bv1 = s1->getBits();
     
-    // InstanceValue arg2 = findArg("in1", inConns);
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-
-    // Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
-    // SimBitVector* s2 =
-    //   static_cast<SimBitVector*>(getValue(arg2));
-    
-    // assert(s2 != nullptr);
-
-    // BitVector bv2 = s2->getBits();
-
     // Original code
 
     auto outSelects = getOutputSelects(inst);
@@ -1227,9 +1266,6 @@ namespace CoreIR {
 
     InstanceValue clkArg = findArg("clk", inConns);
 
-    // SimBitVector* s1 =
-    //   static_cast<SimBitVector*>(getValue(arg1));
-      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
     assert(s1 != nullptr);
@@ -1496,7 +1532,176 @@ namespace CoreIR {
     }
     circStates[stateIndex].valMap[sel] = val;
   }
-  
+
+  string
+  reconstructName(const std::vector<std::string>& instanceList,
+                  const std::vector<std::string>& portSelectList) {
+    string selectVal = concatSelects(portSelectList);
+    vector<string> insts = instanceList;
+    insts[insts.size() - 1] =
+      insts[insts.size() - 1] + "." + selectVal;
+    string name = concatInlined(insts);
+
+    return name;
+  }
+
+  void
+  SimulatorState::setWatchPointByOriginalName(const std::string& name,
+                                              const BitVec& bv) {
+    //Case 1: Value exists in the flattened circuit
+    if (exists(name)) {
+      setWatchPoint(name, bv);
+    }
+
+    // Case 2: Value exists in the symbol table
+    if (symTable.count(name) > 0) {
+      SelectPath ent = symTable[name];
+      string entName = concatSelects(ent);
+
+      cout << "Entry name = " << entName << endl;
+      return setWatchPointByOriginalName(entName, bv);
+    }
+
+    // Case 3: Need to traverse up and down the type hierarchy looking
+    // for the value
+    assert(false);
+  }
+
+  void
+  SimulatorState::setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                              const std::vector<std::string>& portSelectList,
+                                              const BitVec& bv) {
+    string originalName = reconstructName(instanceList, portSelectList);
+
+    setWatchPointByOriginalName(originalName, bv);
+  }
+
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::vector<std::string>& instanceList,
+                                         const std::vector<std::string>& portSelectList) {
+    string name = reconstructName(instanceList, portSelectList);
+    return getValueByOriginalName(name);
+  }
+
+  bool isPrefixOf(const std::string& foo,
+                  const std::string& foobar) {
+    auto res = std::mismatch(foo.begin(), foo.end(), foobar.begin());
+
+    if (res.first == foo.end()) {
+      return true;
+    }
+
+    return false;
+  }
+
+  std::vector<string>
+  selectsOffOf(const std::string& selectName,
+               std::map<std::string, json>& symTable) {
+
+    vector<string> sels;
+
+    for (auto& ent : symTable) {
+      string selName = ent.first;
+      if (isPrefixOf(selectName, selName)) {
+        sels.push_back(selName);
+      }
+    }
+
+    return sels;
+  }
+
+  SimValue*
+  SimulatorState::getValueByOriginalName(const std::string& name) {
+    
+    SimValue* val = getValue(name);
+
+    // Case 1: The value being requested exists in the simulator code
+    if (val != nullptr) {
+      cout << "Flattened graph contains " << name << endl;
+      return val;
+    }
+
+    // Case 2: The value being requested has an entry in the symbol table
+    if (symTable.count(name) > 0) {
+      SelectPath ent = symTable[name];
+      string entName = concatSelects(ent);
+
+      cout << "Entry name = " << entName << endl;
+      return getValueByOriginalName(entName);
+    }
+
+    // Case 3: The value does not have a symbol table entry. 3 subcases:
+    //      1. The value is invalid
+    //      2. Need to traverse up the type hierarchy
+    //      3. Need to traverse down the type hierarchy
+
+    cout << name << " is not a key in the symbol table" << endl;
+    cout << "Selects off of this name" << endl;
+    vector<string> postFixes =
+      selectsOffOf(name, symTable);
+
+    // Handle the case where the underlying value is an array
+    if (postFixes.size() > 0) {
+
+      SelectPath namePath = splitString<SelectPath>(name,'.');
+      for (auto& sp : postFixes) {
+        SelectPath sPath = splitString<SelectPath>(sp,'.');
+        assert(sPath.size() == (namePath.size() + 1));
+
+        string lastSelStr = sPath.back();
+
+        assert(isNumber(lastSelStr));
+
+        cout << sp << endl;
+      }
+
+      // At this point we know that the result will be an array
+      // We are assuming that it is an array of bits
+      cout << "Result is an array of length " << postFixes.size() << endl;
+
+      BitVector result(postFixes.size());
+
+      for (auto& sp : postFixes) {
+        SelectPath sPath = splitString<SelectPath>(sp,'.');
+        string lastSelStr = sPath.back();
+
+        SimValue* sv = getValueByOriginalName(sp);
+        // assert(sv->getType() == SIM_VALUE_BV);
+
+        // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+
+        auto sbv = toSimBitVector(sv);
+
+        BitVector sbits = sbv->getBits();
+
+        assert(sbits.bitLength() == 1);
+
+        int index = stoi(lastSelStr);
+        result.set(index, sbits.get(0));
+      }
+
+      return makeSimBitVector(result);
+    }
+
+    SelectPath namePath = splitString<SelectPath>(name, '.');
+    string access = namePath.back();
+    namePath.pop_back();
+
+    cout << "Getting value of " << concatSelects(namePath) << endl;
+
+    SimValue* sv = getValueByOriginalName(concatSelects(namePath));
+    auto sbv = toSimBitVector(sv);
+    // assert(sv->getType() == SIM_VALUE_BV);
+
+    // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+
+    return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access))));
+
+    // assert(sv->getType() == SIM_VALUE_BV);
+
+    // assert(false);
+  }
+
   SimulatorState::~SimulatorState() {
     for (auto& val : allocatedValues) {
       delete val;

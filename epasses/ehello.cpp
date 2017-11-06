@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/helloa.h"
+#include "coreir/passes/analysis/helloa.h"
 
 using namespace CoreIR;
 

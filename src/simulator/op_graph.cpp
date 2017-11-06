@@ -146,6 +146,56 @@ namespace CoreIR {
 
   }
 
+  std::vector<std::vector<vdisc> > topologicalLevels(const NGraph& g) {
+    vector<vector<vdisc> > levels;
+
+    auto allVerts = g.getVerts();
+    set<vdisc> nodes(begin(allVerts), end(allVerts));
+    set<vdisc> alreadyAdded;
+
+    vector<vdisc> initial = vertsWithNoIncomingEdge(g);
+    for (auto& node : initial) {
+      nodes.erase(node);
+      alreadyAdded.insert(node);
+    }
+
+    levels.push_back(initial);
+
+    while (nodes.size() > 0) {
+      vector<vdisc> level;
+
+      for (auto& node : nodes) {
+        auto inEds = g.inEdges(node);
+        if (inEds.size() > 0) {
+
+          bool allInputsInPriorLevel = true;
+          for (auto& inEd : inEds) {
+            vdisc src = g.source(inEd);
+            if (alreadyAdded.find(src) == end(alreadyAdded)) {
+              allInputsInPriorLevel = false;
+              break;
+            }
+          }
+
+          if (allInputsInPriorLevel) {
+            level.push_back(node);
+          }
+        }
+      }
+
+      for (auto& node : level) {
+        nodes.erase(node);
+        alreadyAdded.insert(node);
+      }
+
+      levels.push_back(level);
+    }
+
+    assert(alreadyAdded.size() == g.getVerts().size());
+
+    return levels;
+  }
+
   std::deque<vdisc> topologicalSort(const NGraph& g) {
     deque<vdisc> topo_order;
 
@@ -197,10 +247,10 @@ namespace CoreIR {
     cout << "topo_order.size() = " << topo_order.size() << endl;
     cout << "numVertices(g)    = " << numVertices(g) << endl;
 
-    cout << "Topological order" << endl;
-    for (auto& vd : topo_order) {
-      cout << vd << endl;
-    }
+    // cout << "Topological order" << endl;
+    // for (auto& vd : topo_order) {
+    //   cout << vd << endl;
+    // }
 
 
     assert(topo_order.size() == (uint) numVertices(g));

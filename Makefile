@@ -44,7 +44,7 @@ test: build
 installtest:
 	$(MAKE) -C tests/install
 	cd tests/install; ./run
-	coreir -i examples/counters.json -p flatten
+	coreir -i examples/counters.json -p rungenerators,flatten,verifyconnectivity-onlyinputs
 
 .PHONY: build
 build:
@@ -90,6 +90,7 @@ clean:
 	-rm _*json
 	-rm _*fir
 	-rm _*v
+	-rm -rf release/include
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests/install clean
