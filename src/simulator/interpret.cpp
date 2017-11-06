@@ -683,14 +683,14 @@ namespace CoreIR {
       Select* source = toSelect(conn.first.getWire());
       Select* dest = toSelect(conn.second.getWire());
 
-      if (isSet(source)) {
+      //if (isSet(source)) {
         setValue(dest, getValue(source));
-      } else {
-        cout << source->toString() << " is not set in updateInputs" << endl;
-        SimValue* val = getValue(source);
+      // } else {
+      //   cout << source->toString() << " is not set in updateInputs" << endl;
+      //   SimValue* val = getValue(source);
 
-        assert(val == nullptr);
-      }
+      //   assert(val == nullptr);
+      // }
     }
 
   }
