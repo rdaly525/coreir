@@ -914,8 +914,8 @@ namespace CoreIR {
 
       	state.execute();
 
-	SECTION("read_data is zero initially") {
-	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+	SECTION("read_data is 23 after the first rising edge") {
+	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
 	}
 
       	state.execute();

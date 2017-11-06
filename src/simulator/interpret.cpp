@@ -569,6 +569,8 @@ namespace CoreIR {
       SimBitVector* val =
         static_cast<SimBitVector*>(getValue(toSelect(sel->getParent())));
 
+      assert(val != nullptr);
+
       int index = selectNum(sel);
 
       return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
