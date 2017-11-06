@@ -1,4 +1,4 @@
-#define CATCH_CONFIG_MAIN
+//#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -382,12 +382,12 @@ namespace CoreIR {
     	state.setValue("self.en", BitVec(1, 1));
         state.resetCircuit();
         
-    	state.setClock("self.clk", 0, 1);
 
         SECTION("Before first clock cycle the output is zero") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
         }
-        
+
+    	state.setClock("self.clk", 0, 1);
     	state.execute();
 
         SECTION("After first cycle the output is 1") {
