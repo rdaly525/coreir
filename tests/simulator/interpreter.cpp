@@ -382,7 +382,6 @@ namespace CoreIR {
     	state.setValue("self.en", BitVec(1, 1));
         state.resetCircuit();
         
-
         SECTION("Before first clock cycle the output is zero") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
         }
@@ -390,19 +389,27 @@ namespace CoreIR {
     	state.setClock("self.clk", 0, 1);
     	state.execute();
 
-        SECTION("After first cycle the output is 1") {
+        SECTION("After first rising clock edge the output is 1") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
         }
 
     	state.execute();
 
-        SECTION("Next cycle the value is 2") {
+        SECTION("After the second rising clock edge the output is 2") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
         }
 
+        state.setClock("self.clk", 1, 0);
+        state.execute();
+
+        SECTION("No updates during a falling clock edge") {
+          REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
+        }
+
+        state.setClock("self.clk", 0, 1);
     	state.execute();
 
-        SECTION("At cycle 3 the value is 3") {
+        SECTION("After the third rising clock edge the output is 3") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 3));
         }
 
