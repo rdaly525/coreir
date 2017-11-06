@@ -1,4 +1,4 @@
-#define CATCH_CONFIG_MAIN
+//#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -1273,7 +1273,7 @@ namespace CoreIR {
       state.execute();
       state.execute();
 
-      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));      
+      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
 
       for (auto& ent : symdata) {
         SimValue* val = state.getValueByOriginalName(ent.first);

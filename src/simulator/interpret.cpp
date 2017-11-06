@@ -518,6 +518,12 @@ namespace CoreIR {
     return v->getType() == SIM_VALUE_BV;
   }
 
+  SimBitVector* toSimBitVector(SimValue* v) {
+    assert(isSimBitVector(v));
+
+    return static_cast<SimBitVector*>(v);
+  }
+
   BitVec SimulatorState::getBitVec(const std::string& str) {
     ModuleDef* def = mod->getDef();
     Wireable* w = def->sel(str);
@@ -543,9 +549,11 @@ namespace CoreIR {
     SimValue* v = getValue(sel);
 
     assert(v != nullptr);
-    assert(isSimBitVector(v));
 
-    return static_cast<SimBitVector*>(v)->getBits();
+    return toSimBitVector(v)->getBits();
+    // assert(isSimBitVector(v));
+
+    // return static_cast<SimBitVector*>(v)->getBits();
   }
 
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) {
@@ -1237,23 +1245,11 @@ namespace CoreIR {
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
       static_cast<SimBitVector*>(getValue(arg1));
-    //static_cast<SimBitVector*>(getValue(arg1.getWire()));
 
     assert(s1 != nullptr);
 
     BitVector bv1 = s1->getBits();
     
-    // InstanceValue arg2 = findArg("in1", inConns);
-    // SimBitVector* s2 = static_cast<SimBitVector*>(getValue(arg2.getWire()));
-
-    // Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
-    // SimBitVector* s2 =
-    //   static_cast<SimBitVector*>(getValue(arg2));
-    
-    // assert(s2 != nullptr);
-
-    // BitVector bv2 = s2->getBits();
-
     // Original code
 
     auto outSelects = getOutputSelects(inst);
@@ -1270,9 +1266,6 @@ namespace CoreIR {
 
     InstanceValue clkArg = findArg("clk", inConns);
 
-    // SimBitVector* s1 =
-    //   static_cast<SimBitVector*>(getValue(arg1));
-      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
     assert(s1 != nullptr);
@@ -1673,9 +1666,11 @@ namespace CoreIR {
         string lastSelStr = sPath.back();
 
         SimValue* sv = getValueByOriginalName(sp);
-        assert(sv->getType() == SIM_VALUE_BV);
+        // assert(sv->getType() == SIM_VALUE_BV);
 
-        SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+        // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+
+        auto sbv = toSimBitVector(sv);
 
         BitVector sbits = sbv->getBits();
 
@@ -1695,9 +1690,10 @@ namespace CoreIR {
     cout << "Getting value of " << concatSelects(namePath) << endl;
 
     SimValue* sv = getValueByOriginalName(concatSelects(namePath));
-    assert(sv->getType() == SIM_VALUE_BV);
+    auto sbv = toSimBitVector(sv);
+    // assert(sv->getType() == SIM_VALUE_BV);
 
-    SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+    // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
 
     return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access))));
 
