@@ -299,6 +299,8 @@ namespace CoreIR {
 
     void execute();
 
+    void resetCircuit();
+
     void run();
 
     // Symbol table lookup

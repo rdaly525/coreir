@@ -380,24 +380,30 @@ namespace CoreIR {
 
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
     	state.setValue("self.en", BitVec(1, 1));
+        state.resetCircuit();
+        
     	state.setClock("self.clk", 0, 1);
 
-    	state.execute();
-
-        SECTION("After first cycle the output is the initial value") {
+        SECTION("Before first clock cycle the output is zero") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
         }
-
+        
     	state.execute();
 
-        SECTION("Next cycle the value is 1") {
+        SECTION("After first cycle the output is 1") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
         }
 
     	state.execute();
 
-        SECTION("At cycle 3 the value is 2") {
+        SECTION("Next cycle the value is 2") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 2));
+        }
+
+    	state.execute();
+
+        SECTION("At cycle 3 the value is 3") {
+          REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 3));
         }
 
       }
@@ -406,14 +412,20 @@ namespace CoreIR {
 
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
+        state.resetCircuit();
+
     	state.setClock("self.clk", 0, 1);
-  
+
+    	SECTION("Value is 400 after setting register") {
+    	  REQUIRE(state.getRegister("counter$ri$reg0") == BitVec(pcWidth, 400));
+    	}
+        
     	state.execute();
 
     	cout << "Output = " << state.getBitVec("self.counterOut") << endl;
 
-    	SECTION("Value is 400 after first tick at 400") {
-    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 400));
+    	SECTION("Value is 401 after first tick") {
+    	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
     	}
 
     	state.setClock("self.clk", 1, 0);
@@ -435,7 +447,7 @@ namespace CoreIR {
     	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
     	}
 
-    	state.setClock("self.clk", 0, 1);
+    	state.setClock("self.clk", 1, 0);
 
     	state.execute();
 
@@ -443,7 +455,7 @@ namespace CoreIR {
     	  REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 401));
     	}
 
-    	state.setClock("self.clk", 1, 0);
+    	state.setClock("self.clk", 0, 1);
 
     	state.execute();
 
@@ -1092,25 +1104,18 @@ namespace CoreIR {
 
       //   cout << endl;
       // }
-      
-
-      // cout << "loading" << endl;
-      // if (!loadFromFile(c,"./topo_sort_error.json")) {
-      //   cout << "Could not Load from json!!" << endl;
-      //   c->die();
-      // }
-
-      // Module* m = g->getModule("simple");
 
       SimulatorState state(dffTest);
       state.setClock("self.CLK", 0, 1);
-      state.setValue("self.IN", BitVec(1, 0));
+      state.setValue("self.IN", BitVec(1, 1));
 
       state.execute();
 
       SECTION("After first execute value is 1") {
         REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 1));
       }
+
+      state.setValue("self.IN", BitVec(1, 0));      
 
       state.execute();
 
@@ -1238,83 +1243,83 @@ namespace CoreIR {
       
     }
 
-    SECTION("Counter 2 read by original name") {
-      if (!loadFromFile(c,"./tmprb3ud4p2.json")) {
-    	cout << "Could not Load from json!!" << endl;
-    	c->die();
-      }
+    // SECTION("Counter 2 read by original name") {
+    //   if (!loadFromFile(c,"./tmprb3ud4p2.json")) {
+    // 	cout << "Could not Load from json!!" << endl;
+    // 	c->die();
+    //   }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+    //   c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
 
-      Module* regMod = g->getModule("simple");
-      SimulatorState state(regMod);
+    //   Module* regMod = g->getModule("simple");
+    //   SimulatorState state(regMod);
 
-      bool hasSymtab =
-        regMod->getMetaData().get<map<string,json>>().count("symtable");
+    //   bool hasSymtab =
+    //     regMod->getMetaData().get<map<string,json>>().count("symtable");
 
-      cout << "regMod hasSymtab = " << hasSymtab << endl;
+    //   cout << "regMod hasSymtab = " << hasSymtab << endl;
 
-      map<string,json> symdata =
-        regMod->getMetaData()["symtable"].get<map<string,json>>();
+    //   map<string,json> symdata =
+    //     regMod->getMetaData()["symtable"].get<map<string,json>>();
 
-      cout << "symdata size = " << symdata.size() << endl;
+    //   cout << "symdata size = " << symdata.size() << endl;
 
-      for (auto& symEnt : symdata) {
-        SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
-        cout << symEnt.first << " --> " << concatSelects(curpath);
-        // for (auto& p : curpath) {
-        //   cout << p << ".";
-        // }
+    //   for (auto& symEnt : symdata) {
+    //     SelectPath curpath = symdata[symEnt.first].get<SelectPath>();
+    //     cout << symEnt.first << " --> " << concatSelects(curpath);
+    //     // for (auto& p : curpath) {
+    //     //   cout << p << ".";
+    //     // }
 
-        cout << endl;
-      }
+    //     cout << endl;
+    //   }
 
-      state.setClock("self.CLK", 0, 1);      
+    //   state.setClock("self.CLK", 0, 1);      
 
-      for (uint i = 0; i < 4; i++) {
+    //   for (uint i = 0; i < 4; i++) {
 
-        state.execute();
-        state.stepMainClock();
+    //     state.execute();
+    //     state.stepMainClock();
 
-        cout << "O " << i << " = " << state.getBitVec("self.O") << endl;        
-      }
+    //     cout << "O " << i << " = " << state.getBitVec("self.O") << endl;        
+    //   }
 
-      REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
+    //   REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
 
-      for (auto& ent : symdata) {
-        SimValue* val = state.getValueByOriginalName(ent.first);
+    //   for (auto& ent : symdata) {
+    //     SimValue* val = state.getValueByOriginalName(ent.first);
 
-        REQUIRE(val != nullptr);
+    //     REQUIRE(val != nullptr);
 
-        if (val->getType() == SIM_VALUE_BV) {
-          SimBitVector* valBV = static_cast<SimBitVector*>(val);
-          cout << "Value of " << ent.first << " is " << valBV->getBits() << endl;
-        }
-      }
+    //     if (val->getType() == SIM_VALUE_BV) {
+    //       SimBitVector* valBV = static_cast<SimBitVector*>(val);
+    //       cout << "Value of " << ent.first << " is " << valBV->getBits() << endl;
+    //     }
+    //   }
       
-    }
+    // }
     
-    SECTION("Bit selects in inputs to nodes") {
-      if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
-    	cout << "Could not Load from json!!" << endl;
-    	c->die();
-      }
+  //   SECTION("Bit selects in inputs to nodes") {
+  //     if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
+  //   	cout << "Could not Load from json!!" << endl;
+  //   	c->die();
+  //     }
 
-      Module* regMod = g->getModule("simple_flattened");
-      SimulatorState state(regMod);
+  //     Module* regMod = g->getModule("simple_flattened");
+  //     SimulatorState state(regMod);
 
-      state.execute();
+  //     state.execute();
 
-      state.setClock("self.CLK", 0, 1);
+  //     state.setClock("self.CLK", 0, 1);
 
-      state.execute();
+  //     state.execute();
 
-      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0000"));
+  //     REQUIRE(state.getBitVec("self.O") == BitVec(4, "0000"));
 
-      state.execute();
+  //     state.execute();
 
-      REQUIRE(state.getBitVec("self.O") == BitVec(4, "0001"));
-    }
+  //     REQUIRE(state.getBitVec("self.O") == BitVec(4, "0001"));
+  //   }
     
     deleteContext(c);
   }

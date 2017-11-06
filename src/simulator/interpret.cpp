@@ -1363,6 +1363,47 @@ namespace CoreIR {
     return unset;
   }
 
+  void SimulatorState::resetCircuit() {
+    setClock(getMainClock(), 0, 0);
+
+    // Update sequential element outputs
+    for (auto& vd : topoOrder) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
+        // Does this work when the raddr port is not yet defined?
+        updateMemoryOutput(vd);
+      }
+
+      if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
+        // Does this work when the raddr port is not yet defined?
+        updateLinebufferMemOutput(vd);
+      }
+
+      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+        updateRegisterOutput(vd);
+      }
+
+      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+        updateDFFOutput(vd);
+      }
+      
+    }
+
+    //end = clock();
+
+    // std::cout << "Done. Time to update memory outputs = "
+    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
+    //        << std::endl;
+
+    // start = clock();
+
+    // Update combinational node values
+    for (auto& vd : topoOrder) {
+      updateNodeValues(vd);
+    }
+  }
+
   void SimulatorState::execute() {
     assert(atLastState());
 
@@ -1397,7 +1438,6 @@ namespace CoreIR {
     
 
     // start = clock();
-
 
     // Update circuit state
     for (auto& vd : topoOrder) {
