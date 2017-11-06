@@ -1648,23 +1648,25 @@ namespace CoreIR {
   void
   SimulatorState::setWatchPointByOriginalName(const std::string& name,
                                               const BitVec& bv) {
-    //Case 1: Value exists in the flattened circuit
-    if (exists(name)) {
-      setWatchPoint(name, bv);
-    }
+    setWatchPoint(name, bv);
 
-    // Case 2: Value exists in the symbol table
-    if (symTable.count(name) > 0) {
-      SelectPath ent = symTable[name];
-      string entName = concatSelects(ent);
+    // //Case 1: Value exists in the flattened circuit
+    // if (exists(name)) {
+    //   setWatchPoint(name, bv);
+    // }
 
-      cout << "Entry name = " << entName << endl;
-      return setWatchPointByOriginalName(entName, bv);
-    }
+    // // Case 2: Value exists in the symbol table
+    // if (symTable.count(name) > 0) {
+    //   SelectPath ent = symTable[name];
+    //   string entName = concatSelects(ent);
 
-    // Case 3: Need to traverse up and down the type hierarchy looking
-    // for the value
-    assert(false);
+    //   cout << "Entry name = " << entName << endl;
+    //   return setWatchPointByOriginalName(entName, bv);
+    // }
+
+    // // Case 3: Need to traverse up and down the type hierarchy looking
+    // // for the value
+    // assert(false);
   }
 
   void

@@ -1311,6 +1311,8 @@ namespace CoreIR {
         SimBitVector* sbv =
           toSimBitVector(state.getValueByOriginalName("inst0.O"));
 
+        cout << "inst0.O = " << sbv->getBits() << endl;
+
         REQUIRE(sbv->getBits() == BitVector(2, 2));
       }
       
