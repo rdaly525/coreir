@@ -1646,10 +1646,44 @@ namespace CoreIR {
     vector<string> postFixes =
       selectsOffOf(name, symTable);
 
-    for (auto& sp : postFixes) {
-      cout << sp << endl;
+    if (postFixes.size() > 0) {
+
+      SelectPath namePath = splitString<SelectPath>(name,'.');
+      for (auto& sp : postFixes) {
+        SelectPath sPath = splitString<SelectPath>(sp,'.');
+        assert(sPath.size() == (namePath.size() + 1));
+
+        string lastSelStr = sPath.back();
+
+        assert(isNumber(lastSelStr));
+
+        cout << sp << endl;
+      }
+
+      // At this point we know that the result will be an array
+      // We are assuming that it is an array of bits
+      cout << "Result is an array of length " << postFixes.size() << endl;
+
+      BitVector result(postFixes.size());
+
+      for (auto& sp : postFixes) {
+        SelectPath sPath = splitString<SelectPath>(sp,'.');
+        string lastSelStr = sPath.back();
+
+        SimValue* sv = getValueByOriginalName(sp);
+        assert(sv->getType() == SIM_VALUE_BV);
+
+        SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+
+        BitVector sbits = sbv->getBits();
+
+        assert(sbits.bitLength() == 1);
+      }
+
+      return makeSimBitVector(result);
     }
 
+    
     assert(false);
   }
 
