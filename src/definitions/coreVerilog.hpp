@@ -171,6 +171,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
   {
     //mem
     json vjson;
+    vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["mem"];
     vjson["definition"] = ""
     "reg [width-1:0] data[depth];\n"
