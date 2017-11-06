@@ -1352,9 +1352,20 @@ namespace CoreIR {
     	c->die();
       }
 
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+      
       Module* fifoMod = g->getModule("Fifo");
       SimulatorState state(fifoMod);
+      state.setValue("self.wdata", BitVector(4, "1010"));
+      state.setValue("self.wen", BitVector(4, "1"));
+      state.setValue("self.ren", BitVector(4, "0"));
+      state.resetCircuit();
 
+      state.setClock("self.CLK", 0, 1);
+
+      state.execute();
+
+      REQUIRE(state.isSet("self.wdata"));
     }
     
     deleteContext(c);

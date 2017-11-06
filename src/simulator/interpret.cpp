@@ -883,6 +883,9 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateLUTNNode(const vdisc vd) {
+
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -893,15 +896,36 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
-
-    assert(inConns.size() == 1);
-
-    InstanceValue arg1 = findArg("in", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 1);
     
-    assert(s1 != nullptr);
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
+    
+    //BitVec res = op(bv1); //s1->getBits());
+
+    //setValue(toSelect(outPair.second), makeSimBitVector(res));
+
+    // Original code
+    //WireNode wd = gr.getNode(vd);
+
+    //Instance* inst = toInstance(wd.getWire());
+
+    // auto outSelects = getOutputSelects(inst);
+
+    // assert(outSelects.size() == 1);
+
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    // auto inConns = getInputConnections(vd, gr);
+
+    // assert(inConns.size() == 1);
+
+    //InstanceValue arg1 = findArg("in", inConns);
+
+    //SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    
+    //assert(s1 != nullptr);
 
     Values genArgs = inst->getModuleRef()->getGenArgs();
 
@@ -913,7 +937,7 @@ namespace CoreIR {
 
     assert(vals.bitLength() == (1 << width));
 
-    bv_uint64 i = get_shift_int(s1->getBits());
+    bv_uint64 i = get_shift_int(bv1); //get_shift_int(s1->getBits());
     unsigned char lutBit = vals.get(i);
     
     setValue(toSelect(outPair.second), makeSimBitVector(BitVector(1, lutBit)));
@@ -948,7 +972,7 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
       });
-    } else if (opName == "coreir.not") {
+    } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
       });
@@ -960,7 +984,7 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return sub_general_width_bv(l, r);
       });
-    } else if (opName == "coreir.mul") {
+    } else if ((opName == "coreir.mul")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return mul_general_width_bv(l, r);
       });
@@ -968,7 +992,7 @@ namespace CoreIR {
     } else if (opName == "corebit.term") {
     } else if ((opName == "coreir.reg") || (opName == "corebit.dff")) {
     } else if ((opName == "coreir.mem") || (opName == "commonlib.LinebufferMem")) {
-    } else if (opName == "coreir.mux") {
+    } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
     } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
