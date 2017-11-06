@@ -1,4 +1,4 @@
-//#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -1108,11 +1108,15 @@ namespace CoreIR {
 
       state.execute();
 
-      REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 1));
+      SECTION("After first execute value is 1") {
+        REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 1));
+      }
 
       state.execute();
 
-      REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 0));
+      SECTION("After second execute value is 0") {
+        REQUIRE(state.getBitVec("self.OUT") == BitVec(1, 0));
+      }
 
     }
 

@@ -346,11 +346,12 @@ namespace CoreIR {
   bool SimulatorState::isSet(const std::string& selStr) const {
     Select* s = findSelect(selStr);
 
-    if (!valMapContains(s)) {
-      return false;
-    }
+    return isSet(s);
+    // if (!valMapContains(s)) {
+    //   return false;
+    // }
 
-    return true;
+    // return true;
   }
 
   bool SimulatorState::isSet(CoreIR::Select* s) const {
@@ -674,7 +675,14 @@ namespace CoreIR {
       Select* source = toSelect(conn.first.getWire());
       Select* dest = toSelect(conn.second.getWire());
 
-      setValue(dest, getValue(source));
+      if (isSet(source)) {
+        setValue(dest, getValue(source));
+      } else {
+        cout << source->toString() << " is not set in updateInputs" << endl;
+        SimValue* val = getValue(source);
+
+        assert(val == nullptr);
+      }
     }
 
   }
