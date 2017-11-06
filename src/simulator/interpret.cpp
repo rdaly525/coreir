@@ -1246,9 +1246,28 @@ namespace CoreIR {
     SimBitVector* s1 =
       static_cast<SimBitVector*>(getValue(arg1));
 
-    assert(s1 != nullptr);
+    BitVector bv1(0);
+    if (s1 != nullptr) {
+      bv1 = s1->getBits();
+    } else {
+      int width = (inst->getModuleRef()->getGenArgs())["width"]->get<int>();
+          // for (auto& arg : inst->getModArgs()) {
+          //   if (arg.first == "value") {
+          //     foundValue = true;
+          //     Value* valArg = arg.second; //.get();
 
-    BitVector bv1 = s1->getBits();
+              
+          //     BitVector bv = valArg->get<BitVector>();
+          //     argInt = bv.as_native_uint32();
+
+          //   }
+          // }
+      
+      // Set dummy value for initilization
+      bv1 = BitVector(width, 0);
+    }
+
+
     
     // Original code
 
@@ -1268,7 +1287,7 @@ namespace CoreIR {
 
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
-    assert(s1 != nullptr);
+    //assert(s1 != nullptr);
     assert(clkVal != nullptr);
 
     if ((clkVal->lastValue() == 0) &&
@@ -1278,9 +1297,9 @@ namespace CoreIR {
 
         //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
-        setRegister(inst->toString(), s1->getBits());
+        setRegister(inst->toString(), bv1); //s1->getBits());
 
-        assert(getRegister(inst->toString()) == s1->getBits());
+        assert(getRegister(inst->toString()) == bv1); //s1->getBits());
 
       } else {
         assert(inSels.size() == 3);
@@ -1295,9 +1314,9 @@ namespace CoreIR {
 
           //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;
           //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
-          setRegister(inst->toString(), s1->getBits());
+          setRegister(inst->toString(), bv1); //s1->getBits());
 
-          assert(getRegister(inst->toString()) == s1->getBits());
+          assert(getRegister(inst->toString()) == bv1); //s1->getBits());
         }
 
       }
@@ -1363,6 +1382,31 @@ namespace CoreIR {
 
     // start = clock();
 
+
+    // Update circuit state
+    for (auto& vd : topoOrder) {
+      WireNode wd = gr.getNode(vd);
+      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+        updateRegisterValue(vd);
+      }
+
+      // TODO: Source-Sink split LinebufferMem's
+      if (isLinebufferMemInstance(wd.getWire())) {
+        updateLinebufferMemValue(vd);
+      }
+
+      if (isMemoryInstance(wd.getWire())) {
+        if (wd.isReceiver) {
+          updateMemoryValue(vd);
+        }
+      }
+
+      if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
+        updateDFFValue(vd);
+      }
+      
+    }
+    
     // Update sequential element outputs
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
@@ -1407,30 +1451,6 @@ namespace CoreIR {
     //        << std::endl;
 
     // start = clock();
-
-    // Update circuit state
-    for (auto& vd : topoOrder) {
-      WireNode wd = gr.getNode(vd);
-      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
-        updateRegisterValue(vd);
-      }
-
-      // TODO: Source-Sink split LinebufferMem's
-      if (isLinebufferMemInstance(wd.getWire())) {
-        updateLinebufferMemValue(vd);
-      }
-
-      if (isMemoryInstance(wd.getWire())) {
-        if (wd.isReceiver) {
-          updateMemoryValue(vd);
-        }
-      }
-
-      if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
-        updateDFFValue(vd);
-      }
-      
-    }
 
     // end = clock();
 
