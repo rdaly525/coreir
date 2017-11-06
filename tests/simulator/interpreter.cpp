@@ -1264,14 +1264,16 @@ namespace CoreIR {
 
         cout << endl;
       }
-      
-      state.execute();
 
-      state.setClock("self.CLK", 0, 1);
+      state.setClock("self.CLK", 0, 1);      
 
-      state.execute();
-      state.execute();
-      state.execute();
+      for (uint i = 0; i < 4; i++) {
+
+        state.execute();
+        state.stepMainClock();
+
+        cout << "O " << i << " = " << state.getBitVec("self.O") << endl;        
+      }
 
       REQUIRE(state.getValueByOriginalName("inst0$inst0.O"));
 
