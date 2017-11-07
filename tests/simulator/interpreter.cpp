@@ -1337,7 +1337,7 @@ namespace CoreIR {
 
       state.setClock("self.CLK", 0, 1);
 
-      for (uint i = 0; i < 4; i++) {
+      for (uint i = 0; i < 1000; i++) {
 
         state.execute();
         state.stepMainClock();
