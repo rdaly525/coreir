@@ -26,8 +26,6 @@ CFLAGS = -Wall -fPIC
 #CXXFLAGS = -std=c++11 -Wall -fPIC -Werror -ferror-limit=5
 CXXFLAGS = -std=c++11 -Wall -fPIC -Werror
 
-COREDEBUG=1
-
 ifdef COREDEBUG
 CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
 endif
