@@ -5,20 +5,20 @@ using namespace std;
 using namespace CoreIR;
 
 string type2magma(Context* c,Type* t) {
-  if (auto rt = dyn_cast<RecordType>(t)) {
-    ASSERT(0,"NYI");   
-    //vector<string> sels;
-    //if (!rt->isMixed()) {
-    //  for (auto rec : rt->getRecord()) {
-    //    sels.push_back(rec.first + " : " + type2magma(rec.second,isInput));
-    //  }
-    //}
-    //else {
-    //  ASSERT(0,"NYI Bundles");
-    //}
-    //return join(sels.begin(),sels.end(),string(", "));
-  }
-  else if (auto at = dyn_cast<ArrayType>(t)) {
+  //if (auto rt = dyn_cast<RecordType>(t)) {
+  //  ASSERT(0,"NYI");   
+  //  //vector<string> sels;
+  //  //if (!rt->isMixed()) {
+  //  //  for (auto rec : rt->getRecord()) {
+  //  //    sels.push_back(rec.first + " : " + type2magma(rec.second,isInput));
+  //  //  }
+  //  //}
+  //  //else {
+  //  //  ASSERT(0,"NYI Bundles");
+  //  //}
+  //  //return join(sels.begin(),sels.end(),string(", "));
+  //}
+  if (auto at = dyn_cast<ArrayType>(t)) {
     Type* et = at->getElemType();
     return "Array("+to_string(at->getLen())+"," + type2magma(c,et) + ")";
   }
