@@ -1317,6 +1317,35 @@ namespace CoreIR {
       }
       
     }
+
+    SECTION("Yet another magma counter failure") {
+      if (!loadFromFile(c,"./tmpvtu16uq5.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      c->runPasses({"rungenerators", "flattentypes", "flatten"}); //, "liftclockports-coreir", "wireclocks-coreir"});
+
+      Module* regMod = g->getModule("simple");
+      SimulatorState state(regMod);
+      state.setClock("self.CLK", 0, 1);
+      state.resetCircuit();
+
+
+      cout << "in yet another magma counter error test" << endl;
+      cout << "self.O after reset = " << state.getBitVec("self.O") << endl;
+
+      state.setClock("self.CLK", 0, 1);
+
+      for (uint i = 0; i < 4; i++) {
+
+        state.execute();
+        state.stepMainClock();
+
+        cout << "Circuit O " << i << " = " << state.getBitVec("self.O") << endl;
+      }
+      
+    }
     
     SECTION("Bit selects in inputs to nodes") {
       if (!loadFromFile(c,"./mantle_counter_flattened.json")) {
