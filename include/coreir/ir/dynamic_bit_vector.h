@@ -55,7 +55,9 @@ namespace bsim {
     }
 
     dynamic_bit_vector(const int N_, const int val) : N(N_) {
-      bits.resize(NUM_BYTES(N));
+      // Padding the bit vector storage for the case
+      // where NUM_BYTES(N) < sizeof(int)
+      bits.resize(NUM_BYTES(N) + NUM_BYTES(sizeof(int)));
       *((int*) (&(bits[0]))) = val;
     }
 
@@ -120,8 +122,12 @@ namespace bsim {
 
     template<typename ConvType>
     ConvType to_type() const {
-      ConvType tmp = *(const_cast<ConvType*>((const ConvType*) (&(bits[0]))));
-      ConvType mask = sizeof(ConvType) > bits.size() ? (1<<N)-1 : -1;
+      std::vector<unsigned char> cpy_bits = bits;
+      cpy_bits.resize(cpy_bits.size() + sizeof(ConvType));
+
+      ConvType tmp = *(const_cast<ConvType*>((const ConvType *) (&(cpy_bits[0]))));
+      //ConvType tmp = *(const_cast<ConvType*>((const ConvType*) (&(cpy_bits[0]))));
+      ConvType mask = sizeof(ConvType) > cpy_bits.size() ? (1<<N)-1 : -1;
       return tmp & mask;
     }
 
