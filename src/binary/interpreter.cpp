@@ -273,10 +273,41 @@ int main(int argc, char *argv[]) {
     } else if (cmd == "cycle-count") {
       if (args.size() != 1) {
         cout << "Error: Cycle count takes no arguments!" << endl;
+        
+      } else {
+
+        cout << toClock(state.getValue(state.getMainClock()))->getCycleCount() << endl;
       }
 
-      cout << toClock(state.getValue(state.getMainClock()))->getCycleCount() << endl;
+    } else if (cmd == "watch") {
+      if (args.size() != 3) {
+        cout << "Error: watchpoint setting requires a name and value" << endl;
+      } else {
+        string name = args[1];
+        string value = args[2];
 
+        BitVector vec(value.size(), value);
+        state.setWatchPoint(name, vec);
+      } 
+    } else if (cmd == "run") {
+      if (args.size() != 1) {
+        cout << "run takes no arguments!" << endl;
+      } else {
+        state.run();
+      }
+    } else if (cmd == "rewind") {
+      if (args.size() != 2) {
+        cout << "Error: rewind requires the number of cycles to rewind" << endl;
+      } else {
+        int cyclesToRewind = stoi(args[1]);
+        state.rewind(2*cyclesToRewind);
+      }
+    } else if (cmd == "delete-watch") {
+      if (args.size() != 2) {
+        cout << "Error: delete-watch needs 1 argument" << endl;
+      } else {
+        state.deleteWatchPoint(args[1]);
+      }
     } else {
       cout << "Unrecognized command: " << cmd << endl;
     }

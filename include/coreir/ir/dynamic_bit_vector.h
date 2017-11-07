@@ -57,8 +57,10 @@ namespace bsim {
     dynamic_bit_vector(const int N_, const int val) : N(N_) {
       // Padding the bit vector storage for the case
       // where NUM_BYTES(N) < sizeof(int)
-      bits.resize(NUM_BYTES(N) + NUM_BYTES(sizeof(int)));
-      *((int*) (&(bits[0]))) = val;
+      bits.resize(NUM_BYTES(N) + sizeof(int));
+      //*((int*) (&(bits[0]))) = val;
+      //*((int*) bits.data()) = val;
+      *((int*) bits.data()) = val;
     }
 
     //dynamic_bit_vector(const int N_, const bv_uint8 val) : N(N_) {
