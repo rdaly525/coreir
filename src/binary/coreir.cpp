@@ -215,7 +215,7 @@ int main(int argc, char *argv[]) {
     vpass->writeToStream(*sout);
   }
   else if (outExt=="py") {
-    modified |= c->runPasses({"rungenerators","cullgraph","magma"});
+    modified |= c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","magma"});
     auto mpass = static_cast<Passes::Magma*>(c->getPassManager()->getAnalysisPass("magma"));
     mpass->writeToStream(*sout);
   }
