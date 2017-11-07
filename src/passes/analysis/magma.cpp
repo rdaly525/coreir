@@ -123,13 +123,11 @@ string Values2MStr(Values vs) {
 string CoreIR::Passes::MModule::toInstanceString(string iname, Values modargs) {
   iname = ReplaceString(iname,string("$"),string("__ds__"));
   if (m->getNamespace()->getName() == "coreir") {
-    //cout << iname << " " << m->getRefName() << " " << Values2Str(m->getGenArgs()) << endl;
-    //if (m->getName()=="const") return "bits"+BV2Str(modargs.at("value"));
     mergeValues(modargs,m->getGenArgs());
-    return this->name + Values2MStr(modargs) + "(name=" + "\""+iname+"\")";
+    return this->name + Values2MStr(modargs) + "()"; //"(name=" + "\""+iname+"\")";
   }
   else if (m->getNamespace()->getName() == "corebit") {
-    return this->name + Values2MStr(modargs) + "(name=" + "\""+iname+"\")";
+    return this->name + Values2MStr(modargs) + "()"; //"(name=" + "\""+iname+"\")";
   }
   else if (modargs.size()) {
     return "Define_" + this->name + Values2MStr(modargs) + "()";
@@ -181,28 +179,14 @@ string CoreIR::Passes::MModule::toString() {
 string Passes::Magma::ID = "magma";
 bool Passes::Magma::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Module* m = node.getModule();
-  //m->print();
   ASSERT(modMap.count(m)==0,"DEBUGME");
-  //if (m->isGenerated()) {
-  //  cout << m->getRefName() << " " << Values2Str(m->getGenArgs()) << endl;
-  //}
+  
   MModule* fm;
-  if (m->isGenerated() && !m->hasDef()) {
-    if (genMap.count(m->getGenerator())) {
-      fm = genMap[m->getGenerator()];
-    }
-    else {
-      fm = new MModule(m);
-      genMap[m->getGenerator()] = fm;
-    }
-    this->modMap[m] = fm;
-  }
-  else {
-    fm = new MModule(m);
-    this->modMap[m] = fm;
-    if (m->getNamespace()->getName() != "corebit") {
-      this->mmods.push_back(fm);
-    }
+  
+  fm = new MModule(m);
+  this->modMap[m] = fm;
+  if (m->getNamespace()->getName() != "corebit" && m->getNamespace()->getName() != "coreir") {
+    this->mmods.push_back(fm);
   }
   
   if (!m->hasDef()) return false;

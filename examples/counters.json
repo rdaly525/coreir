@@ -36,7 +36,7 @@
             "r": {
               "genref": "mantle.reg",
               "genargs": {"width":["Int", 16],"has_clr":["Bool",true]},
-              "modargs": {"init":[["BitVector",16],55]}
+              "modargs": {"init":[["BitVector",16],0]}
             },
             "a": {
               "genref": "coreir.add",
