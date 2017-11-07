@@ -6,6 +6,7 @@
 #include "coreir/passes/analysis/smtlib2.h"
 #include "coreir/passes/analysis/smv.h"
 #include "coreir/passes/analysis/firrtl.h"
+#include "coreir/passes/analysis/magma.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
 
@@ -64,7 +65,7 @@ int main(int argc, char *argv[]) {
     ("h,help","help")
     ("v,verbose","Set verbose")
     ("i,input","input file: <file>.json",cxxopts::value<std::string>())
-    ("o,output","output file: <file>.<json|fir|v|dot>",cxxopts::value<std::string>())
+    ("o,output","output file: <file>.<json|fir|v|py|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",cxxopts::value<std::string>())
@@ -158,6 +159,7 @@ int main(int argc, char *argv[]) {
     ASSERT(outExt == "json" 
         || outExt == "txt"
         || outExt == "fir"
+        || outExt == "py"
         || outExt == "smt2"
         || outExt == "smv"
         || outExt == "v", "Cannot support out extention: " + outExt);
@@ -211,6 +213,11 @@ int main(int argc, char *argv[]) {
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
     vpass->writeToStream(*sout);
+  }
+  else if (outExt=="py") {
+    modified |= c->runPasses({"rungenerators","cullgraph","magma"});
+    auto mpass = static_cast<Passes::Magma*>(c->getPassManager()->getAnalysisPass("magma"));
+    mpass->writeToStream(*sout);
   }
   else if (outExt=="smt2") {
     modified |= c->runPasses({"removebulkconnections","flattentypes","smtlib2"});
