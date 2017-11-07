@@ -124,10 +124,10 @@ string CoreIR::Passes::MModule::toInstanceString(string iname, Values modargs) {
   iname = ReplaceString(iname,string("$"),string("__ds__"));
   if (m->getNamespace()->getName() == "coreir") {
     mergeValues(modargs,m->getGenArgs());
-    return this->name + Values2MStr(modargs) + "()"; //"(name=" + "\""+iname+"\")";
+    return this->name + Values2MStr(modargs) + "(name=" + "\""+iname+"\")";
   }
   else if (m->getNamespace()->getName() == "corebit") {
-    return this->name + Values2MStr(modargs) + "()"; //"(name=" + "\""+iname+"\")";
+    return this->name + Values2MStr(modargs) + "(name=" + "\""+iname+"\")";
   }
   else if (modargs.size()) {
     return "Define_" + this->name + Values2MStr(modargs) + "()";
@@ -151,6 +151,7 @@ string CoreIR::Passes::MModule::toString() {
   string magname = "\"" + this->name + "\"";
   string fname;
   if (m->getModParams().size()) {
+    lines.push_back("@cache_definition");
     fname = "Define_" + this->name + Params2MStr(m->getModParams());
     lines.push_back("def " + fname +":");
     ts = "  ";
