@@ -38,6 +38,17 @@ string type2magma(Context* c,Type* t) {
   }
 }
 
+namespace {
+std::string ReplaceString(std::string subject, const std::string& search, const std::string& replace) {
+  size_t pos = 0;
+  while ((pos = subject.find(search, pos)) != std::string::npos) {
+    subject.replace(pos, search.length(), replace);
+    pos += replace.length();
+  }
+  return subject;
+}
+}
+
 void CoreIR::Passes::MModule::addIO(RecordType* rt) {
   for (auto rpair : rt->getRecord()) {
     io.push_back("\""+rpair.first+"\"");
@@ -58,7 +69,8 @@ string sp2Str(SelectPath sp) {
 string toWire(SelectPath snk, SelectPath src) {
   if (src[0] == "self") src[0] = "io";
   if (snk[0] == "self") snk[0] = "io";
-  return "wire("+sp2Str(snk) + ", " + sp2Str(src)+")";
+  string ret = "wire("+sp2Str(snk) + ", " + sp2Str(src)+")";
+  return ReplaceString(ret,string("$"),string("__ds__"));
 }
 
 string toUpper(string s) {
@@ -71,6 +83,9 @@ string toUpper(string s) {
 std::string CoreIR::Passes::MModule::toName(Module* m) {
   if (m->getNamespace()->getName() == "coreir") {
     return "mantle.coreir.DefineCoreir" + toUpper(m->getName());
+  }
+  else if (m->getNamespace()->getName() == "corebit") {
+    return "mantle.coreir.DefineCorebit" + toUpper(m->getName());
   }
   return m->getNamespace()->getName() + "_" + m->getLongName();
 }
@@ -106,9 +121,14 @@ string Values2MStr(Values vs) {
 }
 
 string CoreIR::Passes::MModule::toInstanceString(string iname, Values modargs) {
+  iname = ReplaceString(iname,string("$"),string("__ds__"));
   if (m->getNamespace()->getName() == "coreir") {
+    //cout << iname << " " << m->getRefName() << " " << Values2Str(m->getGenArgs()) << endl;
     //if (m->getName()=="const") return "bits"+BV2Str(modargs.at("value"));
     mergeValues(modargs,m->getGenArgs());
+    return this->name + Values2MStr(modargs) + "(name=" + "\""+iname+"\")";
+  }
+  else if (m->getNamespace()->getName() == "corebit") {
     return this->name + Values2MStr(modargs) + "(name=" + "\""+iname+"\")";
   }
   else if (modargs.size()) {
@@ -161,7 +181,11 @@ string CoreIR::Passes::MModule::toString() {
 string Passes::Magma::ID = "magma";
 bool Passes::Magma::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Module* m = node.getModule();
+  //m->print();
   ASSERT(modMap.count(m)==0,"DEBUGME");
+  //if (m->isGenerated()) {
+  //  cout << m->getRefName() << " " << Values2Str(m->getGenArgs()) << endl;
+  //}
   MModule* fm;
   if (m->isGenerated() && !m->hasDef()) {
     if (genMap.count(m->getGenerator())) {
@@ -176,7 +200,9 @@ bool Passes::Magma::runOnInstanceGraphNode(InstanceGraphNode& node) {
   else {
     fm = new MModule(m);
     this->modMap[m] = fm;
-    this->mmods.push_back(fm);
+    if (m->getNamespace()->getName() != "corebit") {
+      this->mmods.push_back(fm);
+    }
   }
   
   if (!m->hasDef()) return false;
@@ -190,6 +216,7 @@ bool Passes::Magma::runOnInstanceGraphNode(InstanceGraphNode& node) {
     ASSERT(modMap.count(mref),"DEBUGMEs");
     MModule* fmref = modMap[mref];
 
+    iname = ReplaceString(iname,string("$"),string("__ds__"));
     fm->addStmt(iname + " = " + fmref->toInstanceString(iname,inst->getModArgs()));
   }
 
