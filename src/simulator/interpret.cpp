@@ -839,9 +839,9 @@ namespace CoreIR {
     BitVec sum(bv1.bitLength());
     
     if (selB == BitVec(1, 0)) {
-      sum = bv1; //s1->getBits();
+      sum = bv1;
     } else {
-      sum = bv2; //s2->getBits();
+      sum = bv2;
     }
 
     setValue(toSelect(outPair.second), makeSimBitVector(sum));
