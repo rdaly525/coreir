@@ -1,4 +1,4 @@
-//#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -1314,6 +1314,35 @@ namespace CoreIR {
         cout << "inst0.O = " << sbv->getBits() << endl;
 
         REQUIRE(sbv->getBits() == BitVector(2, 2));
+      }
+      
+    }
+
+    SECTION("Yet another magma counter failure") {
+      if (!loadFromFile(c,"./tmpvtu16uq5.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      c->runPasses({"rungenerators", "flattentypes", "flatten"}); //, "liftclockports-coreir", "wireclocks-coreir"});
+
+      Module* regMod = g->getModule("simple");
+      SimulatorState state(regMod);
+      state.setClock("self.CLK", 0, 1);
+      state.resetCircuit();
+
+
+      cout << "in yet another magma counter error test" << endl;
+      cout << "self.O after reset = " << state.getBitVec("self.O") << endl;
+
+      state.setClock("self.CLK", 0, 1);
+
+      for (uint i = 0; i < 4; i++) {
+
+        state.execute();
+        state.stepMainClock();
+
+        cout << "Circuit O " << i << " = " << state.getBitVec("self.O") << endl;
       }
       
     }
