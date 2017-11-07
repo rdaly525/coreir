@@ -97,9 +97,8 @@ string V2MStr(Value* v) {
   return "";
 }
 
-string Values2MStr(string iname,Values vs) {
+string Values2MStr(Values vs) {
   vector<string> ss;
-  ss.push_back("name=\""+iname+"\"");
   for (auto vpair : vs) {
     ss.push_back(vpair.first+"="+V2MStr(vpair.second));
   }
@@ -108,12 +107,12 @@ string Values2MStr(string iname,Values vs) {
 
 string CoreIR::Passes::MModule::toInstanceString(string iname, Values modargs) {
   if (m->getNamespace()->getName() == "coreir") {
-    if (m->getName()=="const") return "bits"+BV2Str(modargs.at("value"));
+    //if (m->getName()=="const") return "bits"+BV2Str(modargs.at("value"));
     mergeValues(modargs,m->getGenArgs());
-    return this->name + Values2MStr(iname,modargs) + "()";
+    return this->name + Values2MStr(modargs) + "(name=" + "\""+iname+"\")";
   }
   else if (modargs.size()) {
-    return "Define_" + this->name + Values2MStr(iname,modargs) + "()";
+    return "Define_" + this->name + Values2MStr(modargs) + "()";
   }
   else {
     return this->name + "()";
