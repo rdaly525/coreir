@@ -116,7 +116,7 @@ class RecordType : public Type {
     RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
     std::vector<std::string> getFields() { return _order;}
-    std::unordered_map<std::string,Type*> getRecord() { return record;}
+    std::unordered_map<std::string,Type*>& getRecord() { return record;}
     std::string toString(void) const override;
     uint getSize() const override;
     

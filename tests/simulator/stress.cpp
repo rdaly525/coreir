@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_MAIN
+
 #include "catch.hpp"
 
 #include <fstream>
@@ -49,7 +51,7 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 16;
-      uint numOutputs = 50;
+      uint numOutputs = 5000;
       uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");
@@ -75,8 +77,11 @@ namespace CoreIR {
       ModuleDef* def = manyOps->newModuleDef();
       Wireable* self = def->sel("self");
 
+      
       cout << "Wiring up inputs" << endl;
 
+      vector<Wireable*> ops;
+      vector<Wireable*> regs;
       for (uint i = 0; i < numOutputs; i++) {
 	Wireable* op;
 	if ((i % 2) == 0) {
@@ -87,20 +92,71 @@ namespace CoreIR {
 	    def->addInstance("or_" + to_string(i), or2, {{"width", Const::make(c,n)}});
 	}
 
-	def->connect(self->sel("in_" + to_string(2*i)), op->sel("in0"));
-	def->connect(self->sel("in_" + to_string(2*i + 1)), op->sel("in1"));
-
         auto reg = def->addInstance("reg_" + to_string(i),
                                     "coreir.reg",
                                     {{"width", Const::make(c, n)}});
+
+        ops.push_back(op);
+        regs.push_back(reg);
+
+        //cout << "Created instances " << i << endl;
+
+	// def->connect(self->sel("in_" + to_string(2*i)), op->sel("in0"));
+	// def->connect(self->sel("in_" + to_string(2*i + 1)), op->sel("in1"));
+
+        // def->connect(op->sel("out"), reg->sel("in"));
+        // def->connect(self->sel("clk"), reg->sel("clk"));
+
+	// def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
+
+        // cout << "Wired up inputs " << i << endl;
+      }
+
+      cout << "Created ALL instances" << endl;
+
+      cout << "Creating dummy selects" << endl;
+
+      for (uint i = 0; i < numOutputs; i++) {
+
+        auto op = ops[i];
+        auto reg = regs[i];
+
+	auto s1 = self->sel("in_" + to_string(2*i));
+        auto s2 = op->sel("in0");
+	auto s3 = self->sel("in_" + to_string(2*i + 1));
+        auto s4 = op->sel("in1");
+
+        auto s5 = op->sel("out");
+        auto s6 = reg->sel("in");
+        auto s7 = self->sel("clk");
+        auto s8 = reg->sel("clk");
+
+	auto s9 = reg->sel("out");
+        auto s10 = self->sel("out_" + to_string(i));
+
+        //cout << "Selects!!!" << endl;
+
+      }
+
+      for (uint i = 0; i < numOutputs; i++) {
+
+        auto op = ops[i];
+        auto reg = regs[i];
+
+	def->connect(self->sel("in_" + to_string(2*i)), op->sel("in0"));
+	def->connect(self->sel("in_" + to_string(2*i + 1)), op->sel("in1"));
 
         def->connect(op->sel("out"), reg->sel("in"));
         def->connect(self->sel("clk"), reg->sel("clk"));
 
 	def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
-      }
 
+        //cout << "Wired up inputs " << i << endl;
+      }
+      
       cout << "Setting definition" << endl;
+
+      //assert(false);
 
       manyOps->setDef(def);
 

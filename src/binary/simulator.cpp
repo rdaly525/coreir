@@ -73,6 +73,7 @@ void balancedComponentsParallel(NGraph& gr) {
 
   int numComponents = 0;
 
+  vector<set<vdisc> > ccs;
   for (auto& vd : gr.getVerts()) {
 
     WireNode wd = gr.getNode(vd);
@@ -92,12 +93,27 @@ void balancedComponentsParallel(NGraph& gr) {
           gr.addVertLabel(ccNode, w);
         }
       
+
+        ccs.push_back(ccNodes);
         numComponents++;
       }
     }
   }
 
   cout << "# of connected components = " << numComponents << endl;
+
+  // Now balance the components
+  //int nThreads = 2;
+  int i = 0;
+  for (auto& cc : ccs) {
+    for (auto& vd : cc) {
+      WireNode w = gr.getNode(vd);
+      //w.setThreadNo((i % 2) + 1);
+      w.setThreadNo((i % 2) + 1); 
+      gr.addVertLabel(vd, w);
+    }
+    i++;
+  }
 }
 
 int main(int argc, char *argv[]) {

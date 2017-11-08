@@ -1178,8 +1178,13 @@ namespace CoreIR {
         // Join threads that this thread depends on
         for (auto depEdge : tg.inEdges(i)) {
           vdisc se = tg.source(depEdge);
-          code += ln("simulate_" + to_string(se) + "_thread.join()");
-          remove(se, unJoinedThreads);
+          if (elem(se, unJoinedThreads)) {
+            code += ln("simulate_" + to_string(se) + "_thread.join()");
+            remove(se, unJoinedThreads);
+            cout << "Joined thread " << se << endl;
+
+          }
+          
         }
         code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
       }
