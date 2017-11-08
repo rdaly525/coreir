@@ -68,35 +68,40 @@ int main(int argc, char **argv, char **env) {
 
   int nprints = 0;
   
-  top->clk = 1;
-  top->eval();
   top->clk = 0;
+  top->eval();
+  top->clk = 1;
   top->eval();
 
   int cnt = 0;
   for (int i=0; i<nclks; ++i) {
     top->clk = 0;
-    top->eval();
-    //negedge ---------------
     
-    //Set input
-    top->clk = 1;
-    
-    uint16_t in;
-    ifile.read((char*)&in,2);
-    top->in_0 = in;
-    cout << "in: " << in << endl;
-    
-    top->eval();
-    //posedge ---------------
-    
-    uint16_t out = top->out;
-    cout << "out: " << out << endl;
-    ofile.write((char*)&out,2);
+    uint16_t in=0;
+    ifile.read((char*)&in,1);
     if (ifile.eof()) {
       cout << "i=" << i << endl;
       break;
     }
+    top->in_0 = in;
+    cout << "in: " << in << endl;
+ 
+    top->eval();
+    //negedge ---------------
+    cout << "n-lb0: " << top->lb0 << endl;
+    cout << "n-lb1: " << top->lb1 << endl;
+    
+    if (i >=delay) {
+      uint16_t out = top->out & 0xff;
+      cout << "out: " << out << endl;
+      ofile.write((char*)&out,1);
+    }
+
+    top->clk = 1;
+    
+    
+    top->eval();
+    //posedge ---------------
   }
 
   top->in_0 = 0;
@@ -104,11 +109,12 @@ int main(int argc, char **argv, char **env) {
     top->clk = 0;
     top->eval();
     //negedge ---------------
+    uint16_t out = top->out;
+    ofile.write((char*)&out,1);
+    
     top->clk = 1;
     top->eval();
     //posedge ---------------
-    uint16_t out = top->out;
-    ofile.write((char*)&out,2);
 
   }
   ifile.close();
