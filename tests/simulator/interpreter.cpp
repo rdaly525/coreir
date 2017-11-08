@@ -380,14 +380,15 @@ namespace CoreIR {
 
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
     	state.setValue("self.en", BitVec(1, 1));
-        state.resetCircuit();
-        
+
+    	state.setClock("self.clk", 0, 1);
+    	state.execute();
+
         SECTION("Before first clock cycle the output is zero") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
         }
 
-    	state.setClock("self.clk", 0, 1);
-    	state.execute();
+        state.execute();
 
         SECTION("After first rising clock edge the output is 1") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));

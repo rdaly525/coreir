@@ -1455,10 +1455,6 @@ namespace CoreIR {
   void SimulatorState::execute() {
     assert(atLastState());
 
-    //std::clock_t start, end;
-
-    //start = clock();
-
     CircuitState next = circStates[stateIndex];
     circStates.push_back(next);
     stateIndex++;
@@ -1478,15 +1474,7 @@ namespace CoreIR {
       setValue(mainClock, clockCopy);
     }
 
-    //end = clock();
-
-    // std::cout << "Done. Time to create next state = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
-    
-
-    // start = clock();
-
+    // If we are not at the first state then update the state
     if (stateIndex != 1) {
       // Update circuit state
       for (auto& vd : topoOrder) {
@@ -1537,32 +1525,10 @@ namespace CoreIR {
       
     }
 
-    //end = clock();
-
-    // std::cout << "Done. Time to update memory outputs = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
-
-    // start = clock();
-
     // Update combinational node values
     for (auto& vd : topoOrder) {
       updateNodeValues(vd);
     }
-
-    //end = clock();
-
-    // std::cout << "Done. Time to update combinational nodes = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
-
-    // start = clock();
-
-    // end = clock();
-
-    // std::cout << "Done. Time to update memory values = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
 
   }
 
