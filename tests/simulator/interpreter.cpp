@@ -784,7 +784,7 @@ namespace CoreIR {
         val = add_general_width_bv(val, one);
       }
 
-      SECTION("After 10 high clocks the output is still 0") {
+      SECTION("After 9 high clocks the output is still 0") {
         REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0000"));
       }
 
