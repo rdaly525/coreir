@@ -46,7 +46,7 @@ class VWire {
         assert(0);
       }
       if (sp[0] != "self") {
-        name = sp[0]+ "_" + name;
+        name = sp[0]+ "__" + name;
       }
     }
     VWire(std::string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
