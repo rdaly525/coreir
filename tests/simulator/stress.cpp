@@ -51,7 +51,7 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 16;
-      uint numOutputs = 5000;
+      uint numOutputs = 10000;
       uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");
