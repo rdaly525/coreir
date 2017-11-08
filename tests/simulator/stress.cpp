@@ -49,7 +49,8 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 16;
-      uint numInputs = 5000;
+      uint numOutputs = 50;
+      uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
@@ -58,23 +59,25 @@ namespace CoreIR {
       RecordParams opParams = {
         {"clk", c->Named("coreir.clkIn")}};
 
+      cout << "Creating recordparams" << endl;
       for (uint i = 0; i < numInputs; i++) {
         opParams.push_back({"in_" + to_string(i), c->Array(n,c->BitIn())});
       }
 
-      for (uint i = 0; i < (numInputs - 1); i++) {
+      for (uint i = 0; i < numOutputs; i++) {
         opParams.push_back({"out_" + to_string(i), c->Array(n, c->Bit())});
       }
 
+      cout << "Creating module" << endl;
+
       Type* manyOpsType = c->Record(opParams);
-
       Module* manyOps = g->newModuleDecl("manyOps", manyOpsType);
-
       ModuleDef* def = manyOps->newModuleDef();
-
       Wireable* self = def->sel("self");
 
-      for (uint i = 0; i < numInputs - 1; i++) {
+      cout << "Wiring up inputs" << endl;
+
+      for (uint i = 0; i < numOutputs; i++) {
 	Wireable* op;
 	if ((i % 2) == 0) {
 	  op =
@@ -84,8 +87,8 @@ namespace CoreIR {
 	    def->addInstance("or_" + to_string(i), or2, {{"width", Const::make(c,n)}});
 	}
 
-	def->connect(self->sel("in_" + to_string(i)), op->sel("in0"));
-	def->connect(self->sel("in_" + to_string(i + 1)), op->sel("in1"));
+	def->connect(self->sel("in_" + to_string(2*i)), op->sel("in0"));
+	def->connect(self->sel("in_" + to_string(2*i + 1)), op->sel("in1"));
 
         auto reg = def->addInstance("reg_" + to_string(i),
                                     "coreir.reg",
@@ -97,7 +100,11 @@ namespace CoreIR {
 	def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
       }
 
+      cout << "Setting definition" << endl;
+
       manyOps->setDef(def);
+
+      cout << "Running passes" << endl;
 
       c->runPasses({"rungenerators"}); //, "flattentypes"}); //, "flatten"});
 
