@@ -1,4 +1,4 @@
-#define CATCH_CONFIG_MAIN
+//#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -420,7 +420,6 @@ namespace CoreIR {
 
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
-        //state.resetCircuit();
 
     	state.setClock("self.clk", 0, 1);
 
@@ -773,10 +772,15 @@ namespace CoreIR {
 
       state.setClock("self.clk", 0, 1);
 
+      BitVector one(width, "1");
+      BitVector val(width, "1");
+
       cout << "LINEBUFFER BEHAVIOR" << endl;
       for (int i = 0; i < 10; i++) {
+        state.setValue("self.wdata", val);
         state.execute();
         cout << "self.rdata " << (i + 1) << " = " << state.getBitVec("self.rdata") << endl;
+        val = add_general_width_bv(val, one);
       }
 
       SECTION("After 10 high clocks the output is still the default") {
@@ -786,8 +790,8 @@ namespace CoreIR {
       state.execute();
 
 
-      SECTION("rdata is 1111 in steady state") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "1111"));
+      SECTION("The first value out of the buffer is 1") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0010"));
       }
 
     }
@@ -932,7 +936,7 @@ namespace CoreIR {
 
       	state.execute();
 
-        SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set") {
+        SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
           REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
         }
 
@@ -1198,15 +1202,21 @@ namespace CoreIR {
 
       SimulatorState state(m);
       state.setValue("self.in_0", BitVector(16, "0000000000000001"));
-      state.setClock("self.clk", 1, 0);
+      state.setClock("self.clk", 0, 1);
 
-      // vector<string> pixelVals{"1", "101", "1", "0"};
-      // vector<string> outVals;
-      // //for (int i = 0; i < 10; i++) {
-      for (int i = 0; i < 10; i++) { //pixelVals.size(); i++) {
-        state.runHalfCycle();
+      BitVector one(16, "1");
+      BitVector zero(16, "0");
+      BitVector inVal = one; //zero;
 
-        //outVals.push_back(state.getBitVec("self.out"));
+      for (int i = 0; i < 50; i++) {
+        state.setValue("self.in_0", inVal);
+        state.execute();
+
+        cout << "conv_3_1 state.out " << i << " = " << state.getBitVec("self.out").to_type<uint16_t>() << " -- in0 = " << state.getBitVec("self.in_0").to_type<uint16_t>() << endl;
+        
+        inVal = add_general_width_bv(inVal, one);
+
+
       }
 
       REQUIRE(state.isSet("self.out"));

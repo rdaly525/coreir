@@ -1452,55 +1452,34 @@ namespace CoreIR {
     }
   }
 
-  void SimulatorState::execute() {
-    assert(atLastState());
-
-    CircuitState next = circStates[stateIndex];
-    circStates.push_back(next);
-    stateIndex++;
-
-    vector<vdisc> unsetIns = unsetInputs();
-    if (unsetIns.size() > 0) {
-      cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;
-      for (auto& vd : unsetIns) {
-        cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
+  void SimulatorState::exeSequential() {
+    // Update circuit state
+    for (auto& vd : topoOrder) {
+      WireNode wd = gr.getNode(vd);
+      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+        updateRegisterValue(vd);
       }
-      return;
-    }
 
-    if (hasMainClock()) {
-      ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
-      allocatedValues.insert(clockCopy);
-      setValue(mainClock, clockCopy);
-    }
+      // TODO: Source-Sink split LinebufferMem's
+      if (isLinebufferMemInstance(wd.getWire())) {
+        updateLinebufferMemValue(vd);
+      }
 
-    // If we are not at the first state then update the state
-    if (stateIndex != 1) {
-      // Update circuit state
-      for (auto& vd : topoOrder) {
-        WireNode wd = gr.getNode(vd);
-        if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
-          updateRegisterValue(vd);
+      if (isMemoryInstance(wd.getWire())) {
+        if (wd.isReceiver) {
+          updateMemoryValue(vd);
         }
+      }
 
-        // TODO: Source-Sink split LinebufferMem's
-        if (isLinebufferMemInstance(wd.getWire())) {
-          updateLinebufferMemValue(vd);
-        }
-
-        if (isMemoryInstance(wd.getWire())) {
-          if (wd.isReceiver) {
-            updateMemoryValue(vd);
-          }
-        }
-
-        if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
-          updateDFFValue(vd);
-        }
+      if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
+        updateDFFValue(vd);
+      }
       
-      }
     }
-    
+
+  }
+
+  void SimulatorState::exeCombinational() {
     // Update sequential element outputs
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
@@ -1529,6 +1508,91 @@ namespace CoreIR {
     for (auto& vd : topoOrder) {
       updateNodeValues(vd);
     }
+  }
+
+  void SimulatorState::execute() {
+    assert(atLastState());
+
+    CircuitState next = circStates[stateIndex];
+    circStates.push_back(next);
+    stateIndex++;
+
+    vector<vdisc> unsetIns = unsetInputs();
+    if (unsetIns.size() > 0) {
+      cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;
+      for (auto& vd : unsetIns) {
+        cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
+      }
+      return;
+    }
+
+    if (hasMainClock()) {
+      ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
+      allocatedValues.insert(clockCopy);
+      setValue(mainClock, clockCopy);
+    }
+
+    // If we are not at the first state then update the state
+    // if (stateIndex == 1) {
+    //   resetCircuit();
+    // }
+
+    if (stateIndex != 1) {
+      // Update circuit state
+      // for (auto& vd : topoOrder) {
+      //   WireNode wd = gr.getNode(vd);
+      //   if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+      //     updateRegisterValue(vd);
+      //   }
+
+      //   // TODO: Source-Sink split LinebufferMem's
+      //   if (isLinebufferMemInstance(wd.getWire())) {
+      //     updateLinebufferMemValue(vd);
+      //   }
+
+      //   if (isMemoryInstance(wd.getWire())) {
+      //     if (wd.isReceiver) {
+      //       updateMemoryValue(vd);
+      //     }
+      //   }
+
+      //   if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
+      //     updateDFFValue(vd);
+      //   }
+      
+      // }
+      exeSequential();
+    }
+
+    exeCombinational();
+    // // Update sequential element outputs
+    // for (auto& vd : topoOrder) {
+    //   WireNode wd = gr.getNode(vd);
+
+    //   if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
+    //     // Does this work when the raddr port is not yet defined?
+    //     updateMemoryOutput(vd);
+    //   }
+
+    //   if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
+    //     // Does this work when the raddr port is not yet defined?
+    //     updateLinebufferMemOutput(vd);
+    //   }
+
+    //   if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+    //     updateRegisterOutput(vd);
+    //   }
+
+    //   if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+    //     updateDFFOutput(vd);
+    //   }
+      
+    // }
+
+    // // Update combinational node values
+    // for (auto& vd : topoOrder) {
+    //   updateNodeValues(vd);
+    // }
 
   }
 
