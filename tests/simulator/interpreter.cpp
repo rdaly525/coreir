@@ -423,7 +423,6 @@ namespace CoreIR {
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
         state.resetCircuit();
-
     	state.setClock("self.clk", 0, 1);
 
         // state.execute();
@@ -785,16 +784,22 @@ namespace CoreIR {
         val = add_general_width_bv(val, one);
       }
 
-      SECTION("After 10 high clocks the output is one") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0001"));
+      SECTION("After 10 high clocks the output is still 0") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0000"));
       }
 
       state.execute();
 
       SECTION("The first value out of the buffer is 1") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0010"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0001"));
       }
 
+      state.execute();
+
+      SECTION("The second value out of the buffer is 2") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0010"));
+      }
+      
     }
 
     SECTION("LineBufferMem power of 2") {
@@ -935,11 +940,11 @@ namespace CoreIR {
       	state.setValue("self.write_data", BitVec(width, 23));
       	state.setValue("self.read_addr", BitVec(index, 0));
 
-      	state.execute();
+      	// state.execute();
 
-        SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
-          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-        }
+        // SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
+        //   REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+        // }
 
         state.execute();
 
