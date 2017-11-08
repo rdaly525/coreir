@@ -381,13 +381,16 @@ namespace CoreIR {
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
     	state.setValue("self.en", BitVec(1, 1));
         state.resetCircuit();
-        
+
+    	// state.setClock("self.clk", 0, 1);
+    	// state.execute();
+
         SECTION("Before first clock cycle the output is zero") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
         }
 
-    	state.setClock("self.clk", 0, 1);
-    	state.execute();
+        state.setClock("self.clk", 0, 1);
+        state.execute();
 
         SECTION("After first rising clock edge the output is 1") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 1));
@@ -420,8 +423,9 @@ namespace CoreIR {
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
         state.resetCircuit();
-
     	state.setClock("self.clk", 0, 1);
+
+        // state.execute();
 
     	SECTION("Value is 400 after setting register") {
     	  REQUIRE(state.getRegister("counter$ri$reg0") == BitVec(pcWidth, 400));
@@ -492,7 +496,6 @@ namespace CoreIR {
         state.setValue("self.en", BitVec(1, 1));
 
         state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
-        //state.setMainClock("self.clk");
 
         state.run();
 
@@ -766,33 +769,37 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "1111"));
       state.setValue("self.wen", BitVector(1, "1"));
-      state.setClock("self.clk", 1, 0);
+      state.resetCircuit();
 
-      // SECTION("Before execution valid is 0") {
-      //   REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
-      // }
+      state.setClock("self.clk", 0, 1);
 
-      // SECTION("Before peek value was written valid is still 0") {
-      //   REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
-      // }
+      BitVector one(width, "1");
+      BitVector val(width, "1");
 
       cout << "LINEBUFFER BEHAVIOR" << endl;
-      for (int i = 0; i < 25; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      for (int i = 0; i < 9; i++) {
+        state.setValue("self.wdata", val);
+        state.execute();
+        cout << "self.rdata " << (i + 1) << " = " << state.getBitVec("self.rdata") << endl;
+        val = add_general_width_bv(val, one);
       }
 
-      // for (int i = 0; i < 10; i++) {
-      //   state.execute();
-      // }
-
-      SECTION("rdata is 11 in steady state") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "1111"));
+      SECTION("After 9 high clocks the output is still 0") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0000"));
       }
 
-      // SECTION("valid is set to one in steady state") {
-      //   REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
-      // }
+      state.execute();
+
+      SECTION("The first value out of the buffer is 1") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0001"));
+      }
+
+      state.execute();
+
+      SECTION("The second value out of the buffer is 2") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0010"));
+      }
+      
     }
 
     SECTION("LineBufferMem power of 2") {
@@ -843,6 +850,8 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "11"));
       state.setValue("self.wen", BitVector(1, "1"));
+      state.resetCircuit();
+
       state.setClock("self.clk", 1, 0);
 
       cout << "LINEBUFFER BEHAVIOR" << endl;
@@ -931,7 +940,13 @@ namespace CoreIR {
       	state.setValue("self.write_data", BitVec(width, 23));
       	state.setValue("self.read_addr", BitVec(index, 0));
 
-      	state.execute();
+      	// state.execute();
+
+        // SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
+        //   REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+        // }
+
+        state.execute();
 
 	SECTION("read_data is 23 after the first rising edge") {
 	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
@@ -1179,7 +1194,7 @@ namespace CoreIR {
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
       cout << "loading" << endl;
-      //if (!loadFromFile(c,"./sim_ready_conv_3_1.json")) {
+
       if (!loadFromFile(c,"./conv_3_1.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
@@ -1193,16 +1208,26 @@ namespace CoreIR {
 
       SimulatorState state(m);
       state.setValue("self.in_0", BitVector(16, "0000000000000001"));
-      state.setClock("self.clk", 1, 0);
+      state.setClock("self.clk", 0, 1);
 
-      for (int i = 0; i < 10; i++) {
-        state.runHalfCycle();
-        //state.execute();
-        // ClockValue* clk = toClock(state.getValue("self.clk"));
-        // cout << "self.out " << clk->getHalfCycleCount() << " = " << state.getBitVec("self.out") << endl;
+      BitVector one(16, "1");
+      BitVector zero(16, "0");
+      BitVector inVal = one; //zero;
+
+      for (int i = 0; i < 50; i++) {
+        state.setValue("self.in_0", inVal);
+        state.execute();
+
+        cout << "conv_3_1 state.out " << i << " = " << state.getBitVec("self.out").to_type<uint16_t>() << " -- in0 = " << state.getBitVec("self.in_0").to_type<uint16_t>() << endl;
+        
+        inVal = add_general_width_bv(inVal, one);
+
+
       }
 
       REQUIRE(state.isSet("self.out"));
+
+
       
     }
 
@@ -1337,7 +1362,7 @@ namespace CoreIR {
 
       state.setClock("self.CLK", 0, 1);
 
-      for (uint i = 0; i < 1000; i++) {
+      for (uint i = 0; i < 50; i++) {
 
         state.execute();
         state.stepMainClock();

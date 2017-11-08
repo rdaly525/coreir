@@ -48,8 +48,8 @@ namespace CoreIR {
     Namespace* g = c->getGlobal();
 
     SECTION("Many logical operations in parallel") {
-      uint n = 32;
-      uint numInputs = 100;
+      uint n = 16;
+      uint numInputs = 500;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
@@ -57,7 +57,8 @@ namespace CoreIR {
       // Define Add4 Module
       Type* manyOpsType = c->Record({
 	  {"in", c->Array(numInputs, c->Array(n,c->BitIn()))},
-	    {"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))}
+            {"clk", c->Named("coreir.clkIn")},
+              {"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))}
 	});
 
       Module* manyOps = g->newModuleDecl("manyOps", manyOpsType);
@@ -79,61 +80,69 @@ namespace CoreIR {
 	def->connect(self->sel("in")->sel(i), op->sel("in0"));
 	def->connect(self->sel("in")->sel(i + 1), op->sel("in1"));
 
-	def->connect(op->sel("out"), self->sel("out")->sel(i));
+        auto reg = def->addInstance("reg_" + to_string(i),
+                                    "coreir.reg",
+                                    {{"width", Const::make(c, n)}});
+
+        def->connect(op->sel("out"), reg->sel("in"));
+        def->connect(self->sel("clk"), reg->sel("clk"));
+
+	def->connect(reg->sel("out"), self->sel("out")->sel(i));
       }
 
       manyOps->setDef(def);
 
-      SECTION("Interpreting code") {
-	cout << "Starting passes" << endl;
-	c->runPasses({"rungenerators"}); //, "flattentypes"}); //,"flatten"});
-	cout << "Done with passes" << endl;
+      c->runPasses({"rungenerators", "flattentypes"}); //, "flatten"});
 
-	cout << "Setting up interpreter" << endl;
-
-	SimulatorState state(manyOps);
-
-	cout << "Done setting up interpreter" << endl;
-
+      if (!saveToFile(g, "many_ops.json", manyOps)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
       }
+      
+      // SECTION("Interpreting code") {
+      //   cout << "Starting passes" << endl;
+      //   cout << "Done with passes" << endl;
+      //   cout << "Setting up interpreter" << endl;
 
-      SECTION("Compiling code") {
-	c->runPasses({"rungenerators", "flattentypes"});
-      	// RunGenerators rg;
-      	// rg.runOnNamespace(g);
+      //   SimulatorState state(manyOps);
 
-      	cout << "About to build graph" << endl;
+      // }
 
-      	NGraph gr;
-      	buildOrderedGraph(manyOps, gr);
+      // SECTION("Compiling code") {
+      //   c->runPasses({"rungenerators", "flattentypes"});
 
-        SECTION("3 topological levels") {
-          vector<vector<vdisc>> topoLevels =
-            topologicalLevels(gr);
+      // 	cout << "About to build graph" << endl;
 
-          REQUIRE(topoLevels.size() == 3);
-        }
+      // 	NGraph gr;
+      // 	buildOrderedGraph(manyOps, gr);
 
-      	setThreadNumbers(gr);
+      //   SECTION("3 topological levels") {
+      //     vector<vector<vdisc>> topoLevels =
+      //       topologicalLevels(gr);
 
-      	cout << "Built ordered graph" << endl;
-      	deque<vdisc> topoOrder = topologicalSort(gr);
+      //     REQUIRE(topoLevels.size() == 3);
+      //   }
 
-      	cout << "Topologically sorted" << endl;
+      // 	setThreadNumbers(gr);
 
-      	string randIns =
-      	  randomSimInputHarness(manyOps);
+      // 	cout << "Built ordered graph" << endl;
+      // 	deque<vdisc> topoOrder = topologicalSort(gr);
 
-      	cout << "Generating harness" << endl;
+      // 	cout << "Topologically sorted" << endl;
 
-      	int s =
-      	  generateHarnessAndRun(topoOrder, gr, manyOps,
-      				"./gencode/",
-      				"many_ops",
-      				"./gencode/auto_harness_many_ops.cpp");
+      // 	string randIns =
+      // 	  randomSimInputHarness(manyOps);
 
-      	REQUIRE(s == 0);
-      }
+      // 	cout << "Generating harness" << endl;
+
+      // 	int s =
+      // 	  generateHarnessAndRun(topoOrder, gr, manyOps,
+      // 				"./gencode/",
+      // 				"many_ops",
+      // 				"./gencode/auto_harness_many_ops.cpp");
+
+      // 	REQUIRE(s == 0);
+      // }
 
     }
 
