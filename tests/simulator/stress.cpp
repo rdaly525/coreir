@@ -57,7 +57,8 @@ namespace CoreIR {
       // Define Add4 Module
       Type* manyOpsType = c->Record({
 	  {"in", c->Array(numInputs, c->Array(n,c->BitIn()))},
-	    {"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))}
+            {"clk", c->Named("coreir.clkIn")},
+              {"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))}
 	});
 
       Module* manyOps = g->newModuleDecl("manyOps", manyOpsType);
@@ -79,7 +80,14 @@ namespace CoreIR {
 	def->connect(self->sel("in")->sel(i), op->sel("in0"));
 	def->connect(self->sel("in")->sel(i + 1), op->sel("in1"));
 
-	def->connect(op->sel("out"), self->sel("out")->sel(i));
+        auto reg = def->addInstance("reg_" + to_string(i),
+                                    "coreir.reg",
+                                    {{"width", Const::make(c, n)}});
+
+        def->connect(op->sel("out"), reg->sel("in"));
+        def->connect(self->sel("clk"), reg->sel("clk"));
+
+	def->connect(reg->sel("out"), self->sel("out")->sel(i));
       }
 
       manyOps->setDef(def);

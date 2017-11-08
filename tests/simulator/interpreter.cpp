@@ -1179,7 +1179,7 @@ namespace CoreIR {
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
       cout << "loading" << endl;
-      //if (!loadFromFile(c,"./sim_ready_conv_3_1.json")) {
+
       if (!loadFromFile(c,"./conv_3_1.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
@@ -1195,14 +1195,18 @@ namespace CoreIR {
       state.setValue("self.in_0", BitVector(16, "0000000000000001"));
       state.setClock("self.clk", 1, 0);
 
-      for (int i = 0; i < 10; i++) {
+      // vector<string> pixelVals{"1", "101", "1", "0"};
+      // vector<string> outVals;
+      // //for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 10; i++) { //pixelVals.size(); i++) {
         state.runHalfCycle();
-        //state.execute();
-        // ClockValue* clk = toClock(state.getValue("self.clk"));
-        // cout << "self.out " << clk->getHalfCycleCount() << " = " << state.getBitVec("self.out") << endl;
+
+        //outVals.push_back(state.getBitVec("self.out"));
       }
 
       REQUIRE(state.isSet("self.out"));
+
+
       
     }
 

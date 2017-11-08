@@ -61,6 +61,8 @@ namespace bsim {
       //*((int*) (&(bits[0]))) = val;
       //*((int*) bits.data()) = val;
       *((int*) bits.data()) = val;
+
+      // TODO: Add resize NUM_BYTES(N)
     }
 
     //dynamic_bit_vector(const int N_, const bv_uint8 val) : N(N_) {
