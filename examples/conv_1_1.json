@@ -8,23 +8,33 @@
           "out":["Array",16,"Bit"]
         }],
         "instances":{
-          "_284const0_":{
+          "_286_pt":{
+            "genref":"mantle.wire",
+            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
+          },
+          "add_285_289_290":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",16]}
+          },
+          "const0__284":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
             "modargs":{"value":[["BitVector",16],0]}
           },
-          "_286_pt":{
-            "genref":"coreir.passthrough",
-            "genargs":{"type":["CoreIRType", ["Array",16,"Bit"]]}
-          },
-          "_288const3_":{
+          "const3__288":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],1]}
+            "modargs":{"value":[["BitVector",16],3]}
           },
-          "add_285_289_290":{
-            "genref":"coreir.add",
-            "genargs":{"has_cin":["Bool",false], "has_cout":["Bool",false], "width":["Int",16]}
+          "const0__284":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],0]}
+          },
+          "const3__288":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],3]}
           },
           "mul_287_288_289":{
             "genref":"coreir.mul",
@@ -32,12 +42,12 @@
           }
         },
         "connections":[
-          ["_284const0_.out","add_285_289_290.in0"],
           ["_286_pt.in","self.in.0"],
           ["_286_pt.out","mul_287_288_289.in0"],
-          ["_288const3_.out","mul_287_288_289.in1"],
+          ["add_285_289_290.in0","const0__284.out"],
           ["add_285_289_290.in1","mul_287_288_289.out"],
-          ["add_285_289_290.out","self.out"]
+          ["add_285_289_290.out","self.out"],
+          ["const3__288.out","mul_287_288_289.in1"]
         ]
       }
     }

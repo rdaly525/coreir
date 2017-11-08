@@ -44,7 +44,6 @@ string VModule::toInstanceString(Instance* inst) {
     if (!this->hasDef()) {
       this->addParams(params0,paramsAndDefaults.first);
     }
-    //>>>>>>> upstream/dev
   }
 
   ostringstream o;
@@ -80,7 +79,7 @@ string VModule::toInstanceString(Instance* inst) {
   //Assume names are <instname>_port
   vector<string> portstrs;
   for (auto port : iports) {
-    string pstr = "."+port.first+"(" + instname+"_"+ port.first+")";
+    string pstr = "."+port.first+"(" + instname+"__"+ port.first+")";
     portstrs.push_back(pstr);
   }
   o << instname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
