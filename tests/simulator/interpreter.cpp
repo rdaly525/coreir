@@ -420,9 +420,11 @@ namespace CoreIR {
 
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
-        state.resetCircuit();
+        //state.resetCircuit();
 
     	state.setClock("self.clk", 0, 1);
+
+        state.execute();
 
     	SECTION("Value is 400 after setting register") {
     	  REQUIRE(state.getRegister("counter$ri$reg0") == BitVec(pcWidth, 400));
@@ -929,6 +931,12 @@ namespace CoreIR {
       	state.setValue("self.read_addr", BitVec(index, 0));
 
       	state.execute();
+
+        SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set") {
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+        }
+
+        state.execute();
 
 	SECTION("read_data is 23 after the first rising edge") {
 	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
