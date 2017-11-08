@@ -380,14 +380,16 @@ namespace CoreIR {
 
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 0));
     	state.setValue("self.en", BitVec(1, 1));
+        state.resetCircuit();
 
-    	state.setClock("self.clk", 0, 1);
-    	state.execute();
+    	// state.setClock("self.clk", 0, 1);
+    	// state.execute();
 
         SECTION("Before first clock cycle the output is zero") {
           REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 0));
         }
 
+        state.setClock("self.clk", 0, 1);
         state.execute();
 
         SECTION("After first rising clock edge the output is 1") {
@@ -420,10 +422,11 @@ namespace CoreIR {
 
         state.setRegister("counter$ri$reg0", BitVec(pcWidth, 400));
     	state.setValue("self.en", BitVec(1, 1));
+        state.resetCircuit();
 
     	state.setClock("self.clk", 0, 1);
 
-        state.execute();
+        // state.execute();
 
     	SECTION("Value is 400 after setting register") {
     	  REQUIRE(state.getRegister("counter$ri$reg0") == BitVec(pcWidth, 400));
@@ -494,7 +497,6 @@ namespace CoreIR {
         state.setValue("self.en", BitVec(1, 1));
 
         state.setWatchPoint("self.counterOut", BitVec(pcWidth, 10));
-        //state.setMainClock("self.clk");
 
         state.run();
 
@@ -768,7 +770,7 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "1111"));
       state.setValue("self.wen", BitVector(1, "1"));
-      //state.resetCircuit();
+      state.resetCircuit();
 
       state.setClock("self.clk", 0, 1);
 
@@ -776,19 +778,18 @@ namespace CoreIR {
       BitVector val(width, "1");
 
       cout << "LINEBUFFER BEHAVIOR" << endl;
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < 9; i++) {
         state.setValue("self.wdata", val);
         state.execute();
         cout << "self.rdata " << (i + 1) << " = " << state.getBitVec("self.rdata") << endl;
         val = add_general_width_bv(val, one);
       }
 
-      SECTION("After 10 high clocks the output is still the default") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0000"));
+      SECTION("After 10 high clocks the output is one") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0001"));
       }
 
       state.execute();
-
 
       SECTION("The first value out of the buffer is 1") {
         REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0010"));
@@ -1356,7 +1357,7 @@ namespace CoreIR {
 
       state.setClock("self.CLK", 0, 1);
 
-      for (uint i = 0; i < 1000; i++) {
+      for (uint i = 0; i < 50; i++) {
 
         state.execute();
         state.stepMainClock();

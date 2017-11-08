@@ -715,14 +715,8 @@ namespace CoreIR {
       Select* source = toSelect(conn.first.getWire());
       Select* dest = toSelect(conn.second.getWire());
 
-      //if (isSet(source)) {
-        setValue(dest, getValue(source));
-      // } else {
-      //   cout << source->toString() << " is not set in updateInputs" << endl;
-      //   SimValue* val = getValue(source);
+      setValue(dest, getValue(source));
 
-      //   assert(val == nullptr);
-      // }
     }
 
   }
@@ -902,31 +896,6 @@ namespace CoreIR {
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     BitVector bv1 = getBitVec(arg1); //s1->getBits();
     
-    //BitVec res = op(bv1); //s1->getBits());
-
-    //setValue(toSelect(outPair.second), makeSimBitVector(res));
-
-    // Original code
-    //WireNode wd = gr.getNode(vd);
-
-    //Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 1);
-
-    //InstanceValue arg1 = findArg("in", inConns);
-
-    //SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    
-    //assert(s1 != nullptr);
-
     Values genArgs = inst->getModuleRef()->getGenArgs();
 
     int width = genArgs["N"]->get<int>();
@@ -1323,18 +1292,6 @@ namespace CoreIR {
       bv1 = s1->getBits();
     } else {
       int width = (inst->getModuleRef()->getGenArgs())["width"]->get<int>();
-          // for (auto& arg : inst->getModArgs()) {
-          //   if (arg.first == "value") {
-          //     foundValue = true;
-          //     Value* valArg = arg.second; //.get();
-
-              
-          //     BitVector bv = valArg->get<BitVector>();
-          //     argInt = bv.as_native_uint32();
-
-          //   }
-          // }
-      
       // Set dummy value for initilization
       bv1 = BitVector(width, 0);
     }
@@ -1532,67 +1489,8 @@ namespace CoreIR {
       setValue(mainClock, clockCopy);
     }
 
-    // If we are not at the first state then update the state
-    // if (stateIndex == 1) {
-    //   resetCircuit();
-    // }
-
-    if (stateIndex != 1) {
-      // Update circuit state
-      // for (auto& vd : topoOrder) {
-      //   WireNode wd = gr.getNode(vd);
-      //   if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
-      //     updateRegisterValue(vd);
-      //   }
-
-      //   // TODO: Source-Sink split LinebufferMem's
-      //   if (isLinebufferMemInstance(wd.getWire())) {
-      //     updateLinebufferMemValue(vd);
-      //   }
-
-      //   if (isMemoryInstance(wd.getWire())) {
-      //     if (wd.isReceiver) {
-      //       updateMemoryValue(vd);
-      //     }
-      //   }
-
-      //   if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
-      //     updateDFFValue(vd);
-      //   }
-      
-      // }
-      exeSequential();
-    }
-
+    exeSequential();
     exeCombinational();
-    // // Update sequential element outputs
-    // for (auto& vd : topoOrder) {
-    //   WireNode wd = gr.getNode(vd);
-
-    //   if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
-    //     // Does this work when the raddr port is not yet defined?
-    //     updateMemoryOutput(vd);
-    //   }
-
-    //   if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
-    //     // Does this work when the raddr port is not yet defined?
-    //     updateLinebufferMemOutput(vd);
-    //   }
-
-    //   if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-    //     updateRegisterOutput(vd);
-    //   }
-
-    //   if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
-    //     updateDFFOutput(vd);
-    //   }
-      
-    // }
-
-    // // Update combinational node values
-    // for (auto& vd : topoOrder) {
-    //   updateNodeValues(vd);
-    // }
 
   }
 
