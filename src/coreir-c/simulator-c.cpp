@@ -67,6 +67,11 @@ extern "C" {
     return rcast<CORESimValue*>(state->getValueByOriginalName(instPath,selects));
     return nullptr;
   }
+
+  void CORESimResetCircuit(CORESimulatorState* cstate) {
+    SimulatorState* state = rcast<SimulatorState*>(cstate);
+    state->resetCircuit();
+  }
   
   void CORESimSetMainClock(CORESimulatorState* cstate, char** cpath, int path_len) {
     SimulatorState*state = rcast<SimulatorState*>(cstate);
