@@ -1487,28 +1487,30 @@ namespace CoreIR {
 
     // start = clock();
 
-    // Update circuit state
-    for (auto& vd : topoOrder) {
-      WireNode wd = gr.getNode(vd);
-      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
-        updateRegisterValue(vd);
-      }
-
-      // TODO: Source-Sink split LinebufferMem's
-      if (isLinebufferMemInstance(wd.getWire())) {
-        updateLinebufferMemValue(vd);
-      }
-
-      if (isMemoryInstance(wd.getWire())) {
-        if (wd.isReceiver) {
-          updateMemoryValue(vd);
+    if (stateIndex != 1) {
+      // Update circuit state
+      for (auto& vd : topoOrder) {
+        WireNode wd = gr.getNode(vd);
+        if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+          updateRegisterValue(vd);
         }
-      }
 
-      if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
-        updateDFFValue(vd);
-      }
+        // TODO: Source-Sink split LinebufferMem's
+        if (isLinebufferMemInstance(wd.getWire())) {
+          updateLinebufferMemValue(vd);
+        }
+
+        if (isMemoryInstance(wd.getWire())) {
+          if (wd.isReceiver) {
+            updateMemoryValue(vd);
+          }
+        }
+
+        if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
+          updateDFFValue(vd);
+        }
       
+      }
     }
     
     // Update sequential element outputs

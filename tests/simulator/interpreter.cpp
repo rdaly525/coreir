@@ -1,4 +1,4 @@
-//#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_MAIN
 
 #include "catch.hpp"
 
@@ -766,33 +766,27 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "1111"));
       state.setValue("self.wen", BitVector(1, "1"));
-      state.setClock("self.clk", 1, 0);
+      //state.resetCircuit();
 
-      // SECTION("Before execution valid is 0") {
-      //   REQUIRE(state.getBitVec("m0.valid") == BitVec(1, 0));
-      // }
-
-      // SECTION("Before peek value was written valid is still 0") {
-      //   REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
-      // }
+      state.setClock("self.clk", 0, 1);
 
       cout << "LINEBUFFER BEHAVIOR" << endl;
-      for (int i = 0; i < 25; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      for (int i = 0; i < 10; i++) {
+        state.execute();
+        cout << "self.rdata " << (i + 1) << " = " << state.getBitVec("self.rdata") << endl;
       }
 
-      // for (int i = 0; i < 10; i++) {
-      //   state.execute();
-      // }
+      SECTION("After 10 high clocks the output is still the default") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0000"));
+      }
 
-      SECTION("rdata is 11 in steady state") {
+      state.execute();
+
+
+      SECTION("rdata is 1111 in steady state") {
         REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "1111"));
       }
 
-      // SECTION("valid is set to one in steady state") {
-      //   REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
-      // }
     }
 
     SECTION("LineBufferMem power of 2") {
@@ -843,6 +837,8 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "11"));
       state.setValue("self.wen", BitVector(1, "1"));
+      state.resetCircuit();
+
       state.setClock("self.clk", 1, 0);
 
       cout << "LINEBUFFER BEHAVIOR" << endl;
