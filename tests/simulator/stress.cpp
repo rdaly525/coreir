@@ -55,11 +55,13 @@ namespace CoreIR {
       Generator* or2 = c->getGenerator("coreir.or");
 
       // Define Add4 Module
-      Type* manyOpsType = c->Record({
-	  {"in", c->Array(numInputs, c->Array(n,c->BitIn()))},
-            {"clk", c->Named("coreir.clkIn")},
-              {"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))}
-	});
+      RecordParams opParams = {
+        {"clk", c->Named("coreir.clkIn")}};
+
+      opParams.push_back({"in", c->Array(numInputs, c->Array(n,c->BitIn()))});
+      opParams.push_back({"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))});
+
+      Type* manyOpsType = c->Record(opParams);
 
       Module* manyOps = g->newModuleDecl("manyOps", manyOpsType);
 
