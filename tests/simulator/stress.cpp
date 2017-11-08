@@ -49,7 +49,7 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 16;
-      uint numInputs = 500;
+      uint numInputs = 5000;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
@@ -58,8 +58,13 @@ namespace CoreIR {
       RecordParams opParams = {
         {"clk", c->Named("coreir.clkIn")}};
 
-      opParams.push_back({"in", c->Array(numInputs, c->Array(n,c->BitIn()))});
-      opParams.push_back({"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))});
+      for (uint i = 0; i < numInputs; i++) {
+        opParams.push_back({"in_" + to_string(i), c->Array(n,c->BitIn())});
+      }
+
+      for (uint i = 0; i < (numInputs - 1); i++) {
+        opParams.push_back({"out_" + to_string(i), c->Array(n, c->Bit())});
+      }
 
       Type* manyOpsType = c->Record(opParams);
 
@@ -79,8 +84,8 @@ namespace CoreIR {
 	    def->addInstance("or_" + to_string(i), or2, {{"width", Const::make(c,n)}});
 	}
 
-	def->connect(self->sel("in")->sel(i), op->sel("in0"));
-	def->connect(self->sel("in")->sel(i + 1), op->sel("in1"));
+	def->connect(self->sel("in_" + to_string(i)), op->sel("in0"));
+	def->connect(self->sel("in_" + to_string(i + 1)), op->sel("in1"));
 
         auto reg = def->addInstance("reg_" + to_string(i),
                                     "coreir.reg",
@@ -89,13 +94,14 @@ namespace CoreIR {
         def->connect(op->sel("out"), reg->sel("in"));
         def->connect(self->sel("clk"), reg->sel("clk"));
 
-	def->connect(reg->sel("out"), self->sel("out")->sel(i));
+	def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
       }
 
       manyOps->setDef(def);
 
-      c->runPasses({"rungenerators", "flattentypes"}); //, "flatten"});
+      c->runPasses({"rungenerators"}); //, "flattentypes"}); //, "flatten"});
 
+      cout << "Writing to json" << endl;
       if (!saveToFile(g, "many_ops.json", manyOps)) {
         cout << "Could not save to json!!" << endl;
         c->die();
