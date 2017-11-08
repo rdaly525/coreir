@@ -1377,36 +1377,8 @@ namespace CoreIR {
   }
 
   void SimulatorState::resetCircuit() {
-    setClock(getMainClock(), 0, 0);
 
-    // Update sequential element outputs
-    for (auto& vd : topoOrder) {
-      WireNode wd = gr.getNode(vd);
-
-      if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
-        // Does this work when the raddr port is not yet defined?
-        updateMemoryOutput(vd);
-      }
-
-      if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
-        // Does this work when the raddr port is not yet defined?
-        updateLinebufferMemOutput(vd);
-      }
-
-      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-        updateRegisterOutput(vd);
-      }
-
-      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
-        updateDFFOutput(vd);
-      }
-      
-    }
-
-    // Update combinational node values
-    for (auto& vd : topoOrder) {
-      updateNodeValues(vd);
-    }
+    exeCombinational();
   }
 
   void SimulatorState::exeSequential() {
