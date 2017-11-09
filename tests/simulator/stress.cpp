@@ -144,8 +144,8 @@ namespace CoreIR {
     SECTION("Many logical operations in parallel") {
       uint n = 16;
       //uint numOutputs = 100000;
-      uint numOutputs = 10000;
-      //uint numOutputs = 100;
+      //uint numOutputs = 10000;
+      uint numOutputs = 100;
       uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");
@@ -193,17 +193,6 @@ namespace CoreIR {
         ops.push_back(op);
         regs.push_back(reg);
 
-        //cout << "Created instances " << i << endl;
-
-	// def->connect(self->sel("in_" + to_string(2*i)), op->sel("in0"));
-	// def->connect(self->sel("in_" + to_string(2*i + 1)), op->sel("in1"));
-
-        // def->connect(op->sel("out"), reg->sel("in"));
-        // def->connect(self->sel("clk"), reg->sel("clk"));
-
-	// def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
-
-        // cout << "Wired up inputs " << i << endl;
       }
 
       cout << "Created ALL instances" << endl;
