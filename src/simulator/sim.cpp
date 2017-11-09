@@ -776,29 +776,37 @@ namespace CoreIR {
     return str;
   }
 
-  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
+  string printSimFunctionPrefix(const std::deque<vdisc>& topo_order,
                               NGraph& g,
                               Module& mod,
                               const int threadNo) {
-    cout << "Printing sim function for " << threadNo << endl;
-
-    //stringstream ss;
-    
     string str = "";
 
-    str.reserve(100*topo_order.size());
     // Declare all variables
     str += "\n// Variable declarations\n";
 
     str += "\n// Internal variables\n";
     str += printInternalVariables(topo_order, g, mod);
 
+    return str;
+  }
+
+  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
+                              NGraph& g,
+                              Module& mod,
+                              const int threadNo) {
+    cout << "Printing sim function for " << threadNo << endl;
+
+    string str = printSimFunctionPrefix(topo_order, g, mod, threadNo);
+
     // Print out operations in topological order
     str += "\n// Simulation code\n";
 
+    //stringstream ss;
     //ss << str;
 
     int i = 0;
+    vector<string> simLines;
     for (auto& vd : topo_order) {
 
       string val = "<UNSET>";
@@ -814,10 +822,7 @@ namespace CoreIR {
               (g.getOutputConnections(vd).size() > 1) ||
               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
 
-            val = printInstance(wd, vd, g);
-
-            str += val; //printInstance(wd, vd, g);
-              //ss << printInstance(wd, vd, g);
+            simLines.push_back(printInstance(wd, vd, g));
 
           }
 
@@ -830,12 +835,8 @@ namespace CoreIR {
             // If not an instance copy the input values
             for (auto inConn : inConns) {
 
-              val = ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+              simLines.push_back(ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g)));
               
-                str += val;
-                //ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
-
-              //ss << ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
             }
 
           }
@@ -847,6 +848,14 @@ namespace CoreIR {
       }
       i++;
     }
+
+    cout << "Done writing sim lines, now need to concatenate them" << endl;
+
+    for (auto& ln : simLines) {
+      str += ln;
+    }
+
+    cout << "Done concatenating" << endl;
 
     return str; //ss.str(); //str;
   }
