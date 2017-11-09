@@ -373,7 +373,6 @@ namespace CoreIR {
       
       deque<vdisc> topoOrder = topologicalSort(gr);
 
-      //auto str = printCode(topoOrder, gr, srem4_n);
       int s = compileCodeAndRun(topoOrder,
 				gr,
 				srem4_n,

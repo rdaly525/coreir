@@ -615,7 +615,7 @@ namespace CoreIR {
   string printInstance(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 
-    cout << "Instance name = " << getInstanceName(*inst) << endl;
+    //cout << "Instance name = " << getInstanceName(*inst) << endl;
 
     //auto ins = getInputs(vd, g);
     
@@ -780,7 +780,12 @@ namespace CoreIR {
                               NGraph& g,
                               Module& mod,
                               const int threadNo) {
+    cout << "Printing sim function for " << threadNo << endl;
+
+    //stringstream ss;
+    
     string str = "";
+    str.reserve(100*topo_order.size());
     // Declare all variables
     str += "\n// Variable declarations\n";
 
@@ -789,12 +794,16 @@ namespace CoreIR {
 
     // Print out operations in topological order
     str += "\n// Simulation code\n";
+
+    //ss << str;
+
+    int i = 0;
     for (auto& vd : topo_order) {
 
 
       WireNode wd = getNode(g, vd);
 
-      if (wd.getThreadNo() == threadNo) {      
+      if (wd.getThreadNo() == threadNo) {
 
         Wireable* inst = wd.getWire();
 
@@ -803,7 +812,11 @@ namespace CoreIR {
           if (!isCombinationalInstance(wd) ||
               (g.getOutputConnections(vd).size() > 1) ||
               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
+
+            //if (i < 1000) {
             str += printInstance(wd, vd, g);
+            //ss << printInstance(wd, vd, g);
+              //}
           }
 
         } else {
@@ -815,15 +828,23 @@ namespace CoreIR {
             // If not an instance copy the input values
             for (auto inConn : inConns) {
 
+              //if (i < 1000) {
               str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+                //}
+              //ss << ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
             }
 
           }
         }
       }
+
+      if ((i % 500) == 0) {
+        cout << "Code for instance " << i << endl;
+      }
+      i++;
     }
 
-    return str;
+    return str; //ss.str(); //str;
   }
 
   bool underlyingTypeIsClkIn(Type& tp) {
@@ -1054,23 +1075,33 @@ namespace CoreIR {
                         unordered_map<vdisc, vector<vdisc> >& threadComps) {
     vector<vdisc> sourceNodes = threadComps[sourceThread];
     vector<vdisc> destNodes = threadComps[destThread];
+    sort(begin(destNodes), end(destNodes));
 
     for (auto& sn : sourceNodes) {
-      for (auto& dn : destNodes) {
-        if (opG.connected(sn, dn)) {
+      for (auto ed : opG.outEdges(sn)) {
+        if (binary_search(begin(destNodes), end(destNodes), opG.target(ed))) {
           return true;
         }
       }
+      // for (auto& dn : destNodes) {
+      //   if (opG.connected(sn, dn)) {
+      //     return true;
+      //   }
+      // }
     }
-    
+
     return false;
   }
 
   ThreadGraph buildThreadGraph(const NGraph& opG) {
+
+    cout << "Building thread graph" << endl;
+
     ThreadGraph tg;
 
     unordered_map<vdisc, vector<vdisc> > threadComps;
-    
+
+    int i = 0;
     for (auto& v : opG.getVerts()) {
       int threadNo = opG.getNode(v).getThreadNo();
 
@@ -1082,15 +1113,20 @@ namespace CoreIR {
 
       map_insert(threadComps, threadNo, v);
 
+      if ((i % 1000) == 0) {
+        cout << "Computed thread for vertex " << i << ", # of thread nos = " << tg.getVerts().size() << endl;
+      }
+
+      i++;
     }
 
-    // cout << "Thread components" << endl;
-    // for (auto& ent : threadComps) {
-    //   cout << "thread number " << ent.first << " contains" << endl;
-    //   for (auto& vd : ent.second) {
-    //  cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
-    //   }
-    // }
+    cout << "Thread components" << endl;
+    for (auto& ent : threadComps) {
+      cout << "thread number " << ent.first << " contains " << ent.second.size() << " nodes" << endl;
+     //  for (auto& vd : ent.second) {
+     // cout << "\t" << vd << " = " << opG.getNode(vd).getWire()->toString() << endl;
+     //  }
+    }
 
     // cout << "Operation graph edges" << endl;
     // for (auto& ed : opG.getEdges()) {
@@ -1103,20 +1139,28 @@ namespace CoreIR {
     //   }
     // }
 
-    cout << endl;
+    cout << "# of threadComps = " << threadComps.size() << endl;
 
     // Add edges to graph
     vector<vdisc> threadVerts = tg.getVerts();
+
+    cout << "# of threadVerts = " << threadVerts.size() << endl;
+
     for (uint i = 0; i < threadVerts.size(); i++) {
       for (uint j = 0; j < threadVerts.size(); j++) {
         if (i != j) {
           vdisc sourceThread = threadVerts[i];
           vdisc destThread = threadVerts[j];
 
-          if (connectionFromTo(sourceThread, destThread, opG, threadComps)) {
-            cout << "Adding edge from " << sourceThread << " to " << destThread << endl;
-            tg.addEdge(sourceThread, destThread);
-          }
+          // There are no backward connections
+          //if (!tg.connected(destThread, sourceThread)) {
+
+            if (connectionFromTo(sourceThread, destThread, opG, threadComps)) {
+              cout << "Adding edge from " << sourceThread << " to " << destThread << endl;
+              tg.addEdge(sourceThread, destThread);
+            }
+
+            //}
         }
         
       }
@@ -1178,8 +1222,13 @@ namespace CoreIR {
         // Join threads that this thread depends on
         for (auto depEdge : tg.inEdges(i)) {
           vdisc se = tg.source(depEdge);
-          code += ln("simulate_" + to_string(se) + "_thread.join()");
-          remove(se, unJoinedThreads);
+          if (elem(se, unJoinedThreads)) {
+            code += ln("simulate_" + to_string(se) + "_thread.join()");
+            remove(se, unJoinedThreads);
+            cout << "Joined thread " << se << endl;
+
+          }
+          
         }
         code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
       }

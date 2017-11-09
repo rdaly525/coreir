@@ -38,7 +38,7 @@ class Wireable : public MetaData {
       connected.erase(w);
     }
     
-    Select* sel(std::string);
+    Select* sel(const std::string&);
     Select* sel(uint);
     Select* sel(SelectPath);
     
