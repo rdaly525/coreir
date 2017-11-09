@@ -785,6 +785,7 @@ namespace CoreIR {
     //stringstream ss;
     
     string str = "";
+
     str.reserve(100*topo_order.size());
     // Declare all variables
     str += "\n// Variable declarations\n";
@@ -800,7 +801,7 @@ namespace CoreIR {
     int i = 0;
     for (auto& vd : topo_order) {
 
-
+      string val = "<UNSET>";
       WireNode wd = getNode(g, vd);
 
       if (wd.getThreadNo() == threadNo) {
@@ -813,10 +814,11 @@ namespace CoreIR {
               (g.getOutputConnections(vd).size() > 1) ||
               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
 
-            //if (i < 1000) {
-            str += printInstance(wd, vd, g);
-            //ss << printInstance(wd, vd, g);
-              //}
+            val = printInstance(wd, vd, g);
+
+            str += val; //printInstance(wd, vd, g);
+              //ss << printInstance(wd, vd, g);
+
           }
 
         } else {
@@ -828,9 +830,11 @@ namespace CoreIR {
             // If not an instance copy the input values
             for (auto inConn : inConns) {
 
-              //if (i < 1000) {
-              str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
-                //}
+              val = ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+              
+                str += val;
+                //ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+
               //ss << ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
             }
 
@@ -839,7 +843,7 @@ namespace CoreIR {
       }
 
       if ((i % 500) == 0) {
-        cout << "Code for instance " << i << endl;
+        cout << "Code for instance " << i << " = " << val << endl;
       }
       i++;
     }
@@ -892,11 +896,6 @@ namespace CoreIR {
   std::vector<std::pair<CoreIR::Type*, std::string> >
   simRegisterInputs(Module& mod) {
 
-    // Type* tp = mod.getType();
-
-    // assert(tp->getKind() == Type::TK_Record);
-
-    //RecordType* modRec = static_cast<RecordType*>(tp);
     vector<pair<Type*, string>> declStrs;
     
     // Add register inputs

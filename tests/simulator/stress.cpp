@@ -144,8 +144,8 @@ namespace CoreIR {
     SECTION("Many logical operations in parallel") {
       uint n = 16;
       //uint numOutputs = 100000;
-      //uint numOutputs = 10000;
-      uint numOutputs = 100;
+      uint numOutputs = 10000;
+      //uint numOutputs = 100;
       uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");
@@ -283,7 +283,7 @@ namespace CoreIR {
       // be printed out
       deque<vdisc> topoOrder = topologicalSort(gr);
 
-      string codePath = "./";
+      string codePath = "./gencode/";
       string codeFile = manyOps->getName() + "_sim.cpp";
       string hFile = manyOps->getName() + "_sim.h";
 
