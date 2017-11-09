@@ -51,6 +51,7 @@ namespace CoreIR {
 
     SECTION("Many logical operations in parallel") {
       uint n = 16;
+      //uint numOutputs = 100000;
       uint numOutputs = 10000;
       uint numInputs = numOutputs*2;
   
@@ -134,9 +135,13 @@ namespace CoreIR {
 	auto s9 = reg->sel("out");
         auto s10 = self->sel("out_" + to_string(i));
 
-        //cout << "Selects!!!" << endl;
+        if ((i % 1000) == 0) {
+          cout << "Selects " << i << "!!!" << endl;
+        }
 
       }
+
+      cout << "Done with selects" << endl;
 
       for (uint i = 0; i < numOutputs; i++) {
 
@@ -151,7 +156,9 @@ namespace CoreIR {
 
 	def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
 
-        //cout << "Wired up inputs " << i << endl;
+        if ((i % 1000) == 0) {
+          cout << "Wired up inputs " << i << endl;
+        }
       }
       
       cout << "Setting definition" << endl;

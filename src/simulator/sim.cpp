@@ -789,12 +789,14 @@ namespace CoreIR {
 
     // Print out operations in topological order
     str += "\n// Simulation code\n";
+
+    int i = 0;
     for (auto& vd : topo_order) {
 
 
       WireNode wd = getNode(g, vd);
 
-      if (wd.getThreadNo() == threadNo) {      
+      if (wd.getThreadNo() == threadNo) {
 
         Wireable* inst = wd.getWire();
 
@@ -821,6 +823,11 @@ namespace CoreIR {
           }
         }
       }
+
+      if ((i % 500) == 0) {
+        cout << "Code for instance " << i << endl;
+      }
+      i++;
     }
 
     return str;
@@ -1107,6 +1114,9 @@ namespace CoreIR {
 
     // Add edges to graph
     vector<vdisc> threadVerts = tg.getVerts();
+
+    cout << "# of threadVerts = " << threadVerts.size() << endl;
+
     for (uint i = 0; i < threadVerts.size(); i++) {
       for (uint j = 0; j < threadVerts.size(); j++) {
         if (i != j) {

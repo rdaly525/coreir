@@ -83,7 +83,7 @@ void balancedComponentsParallel(NGraph& gr) {
         set<vdisc> ccNodes =
           connectedComponent(vd, gr);
 
-        cout << "CC size = " << ccNodes.size() << endl;
+        //cout << "CC size = " << ccNodes.size() << endl;
 
         for (auto& ccNode : ccNodes) {
           nodes.erase(ccNode);
@@ -166,6 +166,10 @@ int main(int argc, char *argv[]) {
   balancedComponentsParallel(gr);
 
 
+  cout << "Starting topological sort" << endl;
+
+  // Delete inputs from the order, since they do not need to
+  // be printed out
   deque<vdisc> topoOrder = topologicalSort(gr);
 
   string codePath = "./";
@@ -173,6 +177,9 @@ int main(int argc, char *argv[]) {
   string hFile = top->getName() + "_sim.h";
 
   writeBitVectorLib(codePath + "bit_vector.h");
+
+  cout << "Writing out files" << endl;
+
   writeFiles(topoOrder, gr, top, codePath, codeFile, hFile);
   
   return 0;
