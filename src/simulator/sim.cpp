@@ -782,9 +782,10 @@ namespace CoreIR {
                               const int threadNo) {
     cout << "Printing sim function for " << threadNo << endl;
 
-    stringstream ss;
+    //stringstream ss;
     
     string str = "";
+    str.reserve(100*topo_order.size());
     // Declare all variables
     str += "\n// Variable declarations\n";
 
@@ -794,7 +795,7 @@ namespace CoreIR {
     // Print out operations in topological order
     str += "\n// Simulation code\n";
 
-    ss << str;
+    //ss << str;
 
     int i = 0;
     for (auto& vd : topo_order) {
@@ -813,8 +814,8 @@ namespace CoreIR {
               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
 
             //if (i < 1000) {
-            //str += printInstance(wd, vd, g);
-            ss << printInstance(wd, vd, g);
+            str += printInstance(wd, vd, g);
+            //ss << printInstance(wd, vd, g);
               //}
           }
 
@@ -828,9 +829,9 @@ namespace CoreIR {
             for (auto inConn : inConns) {
 
               //if (i < 1000) {
-              //str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+              str += ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
                 //}
-              ss << ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
+              //ss << ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g));
             }
 
           }
@@ -843,7 +844,7 @@ namespace CoreIR {
       i++;
     }
 
-    return ss.str(); //str;
+    return str; //ss.str(); //str;
   }
 
   bool underlyingTypeIsClkIn(Type& tp) {
