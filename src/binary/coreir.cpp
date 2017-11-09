@@ -199,7 +199,7 @@ int main(int argc, char *argv[]) {
   else if (outExt=="fir") {
     CoreIRLoadFirrtl_coreir(c);
     CoreIRLoadFirrtl_corebit(c);
-    c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","firrtl"},namespaces);
+    c->runPasses({"rungenerators","cullgraph","wireclocks-coreir","firrtl"},namespaces);
     //Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(c->getPassManager()->getAnalysisPass("firrtl"));
     
@@ -209,13 +209,13 @@ int main(int argc, char *argv[]) {
   else if (outExt=="v") {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
-    modified |= c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
+    modified |= c->runPasses({"rungenerators","cullgraph","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
     
     vpass->writeToStream(*sout);
   }
   else if (outExt=="py") {
-    modified |= c->runPasses({"rungenerators","cullgraph","liftclockports-coreir","wireclocks-coreir","magma"});
+    modified |= c->runPasses({"rungenerators","cullgraph","wireclocks-coreir","magma"});
     auto mpass = static_cast<Passes::Magma*>(c->getPassManager()->getAnalysisPass("magma"));
     mpass->writeToStream(*sout);
   }
