@@ -112,7 +112,7 @@ namespace CoreIR {
 
       muxNTest->setDef(def);
 
-      c->runPasses({"rungenerators", "flatten", "flattentypes", "liftclockports-coreir", "wireclocks-coreir"});
+      c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
 
       SimulatorState state(muxNTest);
       for (uint i = 0; i < N; i++) {
@@ -1200,7 +1200,7 @@ namespace CoreIR {
     	c->die();
       }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
 
       Module* m = g->getModule("DesignTop");
 
@@ -1279,7 +1279,7 @@ namespace CoreIR {
     	c->die();
       }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
 
       Module* regMod = g->getModule("simple");
       SimulatorState state(regMod);
@@ -1349,7 +1349,7 @@ namespace CoreIR {
     	c->die();
       }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten"}); //, "liftclockports-coreir", "wireclocks-coreir"});
+      c->runPasses({"rungenerators", "flattentypes", "flatten"}); //,  "wireclocks-coreir"});
 
       Module* regMod = g->getModule("simple");
       SimulatorState state(regMod);
@@ -1406,7 +1406,7 @@ namespace CoreIR {
     	c->die();
       }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten", "liftclockports-coreir", "wireclocks-coreir"});
+      c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
       
       Module* fifoMod = g->getModule("Fifo");
       SimulatorState state(fifoMod);
