@@ -94,10 +94,13 @@ int main(int argc, char **argv, char **env) {
 
   //Check if h,w,x*,y* are all possible
   int size = fileSizeBytes(ifile);
+  ASSERT(size > delay, "Size must be larger than delay: size=" + to_string(size) + " delay=" + to_string(delay) + "\n");
+  ASSERT(delay >= 0, "delay must be non-negative");
   size = size-delay;
+
   ASSERT(W*H==size,to_string(W) + "*" + to_string(H) + "!=" + to_string(size));
   char c;
-  for (uint d=0; d<delay; d++) {
+  for (int d=0; d<delay; d++) {
     ifile.read(&c,1);
   }
   for (int h=0; h<H; h++) {
