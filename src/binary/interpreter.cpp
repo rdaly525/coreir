@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
     c->setTop(topRef);
   }
 
-  c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});
+  c->runPasses({"rungenerators","flattentypes","flatten","wireclocks-coreir"});
 
   SimulatorState state(top);
 
