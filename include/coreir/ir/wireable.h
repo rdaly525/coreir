@@ -21,6 +21,7 @@ class Wireable : public MetaData {
     
     //This manages the memory for the selects
     std::unordered_map<std::string,Select*> selects;
+    SelectPath selectpath;
   public :
     Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
     virtual ~Wireable();
@@ -57,7 +58,7 @@ class Wireable : public MetaData {
 
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,a,b,0}
-    SelectPath getSelectPath();
+    SelectPath& getSelectPath();
     ConstSelectPath getConstSelectPath();
     std::string wireableKind2Str(WireableKind wb);
     LocalConnections getLocalConnections();

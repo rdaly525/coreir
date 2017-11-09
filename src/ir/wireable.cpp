@@ -103,20 +103,21 @@ void Wireable::removeSel(string selStr) {
 }
 
 
-SelectPath Wireable::getSelectPath() {
-  Wireable* top = this;
-  SelectPath path;
-  while(auto s = dyn_cast<Select>(top)) {
-    path.push_front(s->getSelStr());
-    top = s->getParent();
+SelectPath& Wireable::getSelectPath() {
+  if (selectpath.size()==0) {
+    Wireable* top = this;
+    while(auto s = dyn_cast<Select>(top)) {
+      selectpath.push_front(s->getSelStr());
+      top = s->getParent();
+    }
+    if (isa<Interface>(top))
+      selectpath.push_front("self");
+    else { //This should be an instance
+      string instname = cast<Instance>(top)->getInstname();
+      selectpath.push_front(instname);
+    }
   }
-  if (isa<Interface>(top))
-    path.push_front("self");
-  else { //This should be an instance
-    string instname = cast<Instance>(top)->getInstname();
-    path.push_front(instname);
-  }
-  return path;
+  return selectpath;
 }
 
 Context* Wireable::getContext() { return container->getContext();}
