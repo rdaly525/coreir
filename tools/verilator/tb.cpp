@@ -60,20 +60,14 @@ int main(int argc, char **argv, char **env) {
     nclks = options["n"].as<int>();
   }
 
-  int clk;
-
   Verilated::commandArgs(argc, argv);
   Vtop* top = new Vtop;
 
-
-  int nprints = 0;
-  
   top->clk = 0;
   top->eval();
   top->clk = 1;
   top->eval();
 
-  int cnt = 0;
   for (int i=0; i<nclks; ++i) {
     top->clk = 0;
     
