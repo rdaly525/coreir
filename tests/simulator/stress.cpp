@@ -193,17 +193,6 @@ namespace CoreIR {
         ops.push_back(op);
         regs.push_back(reg);
 
-        //cout << "Created instances " << i << endl;
-
-	// def->connect(self->sel("in_" + to_string(2*i)), op->sel("in0"));
-	// def->connect(self->sel("in_" + to_string(2*i + 1)), op->sel("in1"));
-
-        // def->connect(op->sel("out"), reg->sel("in"));
-        // def->connect(self->sel("clk"), reg->sel("clk"));
-
-	// def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
-
-        // cout << "Wired up inputs " << i << endl;
       }
 
       cout << "Created ALL instances" << endl;
@@ -283,7 +272,7 @@ namespace CoreIR {
       // be printed out
       deque<vdisc> topoOrder = topologicalSort(gr);
 
-      string codePath = "./";
+      string codePath = "./gencode/";
       string codeFile = manyOps->getName() + "_sim.cpp";
       string hFile = manyOps->getName() + "_sim.h";
 
