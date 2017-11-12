@@ -50,6 +50,7 @@ bool checkInputConnected(Wireable* w, Error* e) {
 //True is error
 //false is no error
 bool checkInputOutputs(Wireable* w, Error* e) {
+  assert(w);
   if (!w->getType()->hasInput()) return false;
   int numwires = w->getConnectedWireables().size();
   bool err = false;
@@ -97,6 +98,7 @@ bool Passes::VerifyInputConnections::runOnModule(Module* m) {
   vector<Wireable*> work;
   work.push_back(mdef->getInterface());
   for (auto instmap : mdef->getInstances() ) {
+    ASSERT(instmap.second,"Bad instance!: " + instmap.first);
     work.push_back(instmap.second);
   }
   for (auto w : work) {

@@ -481,9 +481,9 @@ namespace CoreIR {
       std::vector<B> bs{b};
       m[a] = bs;
     } else {
-      auto elems = m[a];
+      auto& elems = m[a];
       elems.push_back(b);
-      m[a] = elems;
+      //m[a] = elems;
     }
   }
 
@@ -513,9 +513,9 @@ namespace CoreIR {
       std::vector<B> bs{b};
       m[a] = bs;
     } else {
-      auto elems = m[a];
+      auto& elems = m[a];
       elems.push_back(b);
-      m[a] = elems;
+      //m[a] = elems;
     }
   }
   

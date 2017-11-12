@@ -297,7 +297,11 @@ namespace CoreIR {
     void updateAndNode(const vdisc vd);
     void updateNodeValues(const vdisc vd);
 
+    void exeSequential();
+    void exeCombinational();
     void execute();
+
+    void resetCircuit();
 
     void run();
 
@@ -324,6 +328,7 @@ namespace CoreIR {
   };
 
   ClockValue* toClock(SimValue* val);
+  SimBitVector* toSimBitVector(SimValue* v);
 
   std::string concatInlined(const std::vector<std::string>& str);
   std::string concatSelects(const std::deque<std::string>& str);
