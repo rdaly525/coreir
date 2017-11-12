@@ -261,27 +261,6 @@ namespace CoreIR {
 
       // Simulation code
 
-      NGraph gr;
-      buildOrderedGraph(manyOps, gr);
-
-      balancedComponentsParallel(gr);
-
-      cout << "Starting manyOpsological sort" << endl;
-
-      // Delete inputs from the order, since they do not need to
-      // be printed out
-      deque<vdisc> topoOrder = topologicalSort(gr);
-
-      string codePath = "./gencode/";
-      string codeFile = manyOps->getName() + "_sim.cpp";
-      string hFile = manyOps->getName() + "_sim.h";
-
-      writeBitVectorLib(codePath + "bit_vector.h");
-
-      cout << "Writing out files" << endl;
-
-      writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
-      
       // SECTION("Interpreting code") {
       //   cout << "Starting passes" << endl;
       //   cout << "Done with passes" << endl;
@@ -290,6 +269,28 @@ namespace CoreIR {
       //   SimulatorState state(manyOps);
 
       // }
+      
+      // NGraph gr;
+      // buildOrderedGraph(manyOps, gr);
+
+      // balancedComponentsParallel(gr);
+
+      // cout << "Starting manyOpsological sort" << endl;
+
+      // // Delete inputs from the order, since they do not need to
+      // // be printed out
+      // deque<vdisc> topoOrder = topologicalSort(gr);
+
+      // string codePath = "./gencode/";
+      // string codeFile = manyOps->getName() + "_sim.cpp";
+      // string hFile = manyOps->getName() + "_sim.h";
+
+      // writeBitVectorLib(codePath + "bit_vector.h");
+
+      // cout << "Writing out files" << endl;
+
+      // writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
+      
 
       // SECTION("Compiling code") {
       //   c->runPasses({"rungenerators", "flattentypes"});
