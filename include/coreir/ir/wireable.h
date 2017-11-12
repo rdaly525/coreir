@@ -20,14 +20,14 @@ class Wireable : public MetaData {
     std::unordered_set<Wireable*> connected; 
     
     //This manages the memory for the selects
-    std::unordered_map<std::string,Select*> selects;
+    std::map<std::string,Select*> selects;
     SelectPath selectpath;
   public :
     Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
     virtual ~Wireable();
     virtual std::string toString() const=0;
     std::unordered_set<Wireable*> getConnectedWireables() { return connected;}
-    std::unordered_map<std::string,Select*> getSelects() { return selects;}
+    const std::map<std::string,Select*>& getSelects() { return selects;}
     bool hasSel(std::string selstr) {return selects.count(selstr) >0;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();

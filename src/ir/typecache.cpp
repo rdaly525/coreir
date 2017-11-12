@@ -30,6 +30,11 @@ TypeCache::~TypeCache() {
       delete ttpair.second;
     }
   }
+  
+  for (auto bpair : bitVectorCache) {
+    delete bpair.second;
+  }
+
   delete bitI;
   delete bitO;
   delete boolType;

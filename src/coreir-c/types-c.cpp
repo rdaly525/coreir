@@ -41,7 +41,7 @@ extern "C" {
 
   void CORERecordTypeGetItems(COREType* recordType, char*** keys, COREType*** values, int* size) {
       RecordType* type = rcast<RecordType*>(recordType);
-      std::unordered_map<std::string,Type*> record = type->getRecord();
+      auto const& record = type->getRecord();
       *size = record.size();
       *keys = type->getContext()->newStringArray(*size);
       *values = (COREType **) type->getContext()->newTypeArray(*size);

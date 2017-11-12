@@ -126,8 +126,9 @@ string TopType2Json(Type* t) {
   a.add(quote("Record"));
   auto rt = cast<RecordType>(t);
   Dict r(8);
-  for (auto field : rt->getFields()) {
-    r.add(field,Type2Json(rt->getRecord()[field]));
+  auto const& fields = rt->getFields();
+  for (auto field : fields) {
+    r.add(field,Type2Json(rt->getRecord().at(field)));
   }
   a.add(r.toMultiString());
   return a.toString();
@@ -151,7 +152,7 @@ string Type2Json(Type* t) {
     a.add(quote("Record"));
     Dict r;
     for (auto field : rt->getFields()) {
-      r.add(field,Type2Json(rt->getRecord()[field]));
+      r.add(field,Type2Json(rt->getRecord().at(field)));
     }
     a.add(r.toString());
   }

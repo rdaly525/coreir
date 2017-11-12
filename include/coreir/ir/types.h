@@ -109,14 +109,14 @@ class ArrayType : public Type {
 
 
 class RecordType : public Type {
-  std::unordered_map<std::string,Type*> record;
+  std::map<std::string,Type*> record;
   std::vector<std::string> _order;
   public :
     RecordType(Context* c, RecordParams _record);
     RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
-    std::vector<std::string> getFields() { return _order;}
-    std::unordered_map<std::string,Type*>& getRecord() { return record;}
+    const std::vector<std::string>& getFields() const { return _order;}
+    const std::map<std::string,Type*>& getRecord() const { return record;}
     std::string toString(void) const override;
     uint getSize() const override;
     

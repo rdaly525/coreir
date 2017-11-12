@@ -286,6 +286,7 @@ void ModuleDef::removeInstance(Instance* inst) {
   removeInstance(inst->getInstname());
 }
 
+
 void ModuleDef::removeInstance(string iname) {
   //First verify that instance exists
   ASSERT(instances.count(iname), "Instance " + iname + " does not exist");
@@ -308,6 +309,7 @@ void ModuleDef::removeInstance(string iname) {
   
   removeInstanceFromIter(inst);
 
+  delete inst;
 }
 
 } //coreir namespace
