@@ -313,7 +313,7 @@ namespace CoreIR {
       Module* counterTest = g->newModuleDecl("counterMod", counterTestType);
       ModuleDef* def = counterTest->newModuleDef();
 
-      auto ct = def->addInstance("counter", "global.myCounter", {{"width", Const::make(c,pcWidth)}});
+      def->addInstance("counter", "global.myCounter", {{"width", Const::make(c,pcWidth)}});
 
       def->connect("self.en", "counter.en");
       def->connect("self.clk", "counter.clk");
@@ -343,7 +343,7 @@ namespace CoreIR {
         cout << endl;
       }
       
-      cout << "ct is generator ? " << ct->getModuleRef()->isGenerated() << endl;
+      //cout << "ct is generator ? " << ct->getModuleRef()->isGenerated() << endl;
 
       SimulatorState state(counterTest);
 

@@ -34,7 +34,9 @@ bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
 Type* Type::sel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
     ASSERT(rt->getRecord().count(selstr),"Bad Select!");
-    return rt->getRecord()[selstr];
+    
+    //return *(rt->getRecord().find(selstr));
+    return rt->getRecord().at(selstr);
   }
   else if (auto at = dyn_cast<ArrayType>(this)) {
     ASSERT(isNumber(selstr),selstr + " needs to be a number!");
