@@ -7,6 +7,9 @@ code for add4.json enter the command:
 `>./bin/simulator -i examples/add4.json`
 
 This will generate 3 C++ files: add4_sim.cpp, add4_sim.h, and bit_vector.h.
+
+bit_vector.h is a utility function that you can ignore.
+
 If you open add4_sim.h contains a struct representing the state of the circuit
 and the declaration of the simulation function:
 
@@ -29,6 +32,8 @@ struct circuit_state {
 void simulate( circuit_state* state );
 
 ```
+
+add4_sim.cpp contains 
 
 Then compile the resulting code with:
 
