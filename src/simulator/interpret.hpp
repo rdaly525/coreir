@@ -304,6 +304,7 @@ namespace CoreIR {
     void resetCircuit();
 
     void run();
+    void runBack();
 
     // Symbol table lookup
     SimValue*

@@ -567,6 +567,16 @@ namespace CoreIR {
 
           REQUIRE(!rewind);
         }
+
+        SECTION("Deleting watchpoint and re-running back to earlier state") {
+          state.deleteWatchPoint("self.counterOut");
+
+          state.setWatchPoint("self.counterOut", BitVec(pcWidth, 5));
+
+          state.runBack();
+
+          REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 5));
+        }
       }
 
       SECTION("Finding values using unflattened-names") {

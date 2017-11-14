@@ -429,6 +429,12 @@ namespace CoreIR {
     }
   }
 
+  void SimulatorState::runBack() {
+    while (!hitWatchPoint()) {
+      rewind(1);
+    }
+  }
+
   bool SimulatorState::atLastState() {
     return stateIndex == (numCircStates() - 1);
   }
