@@ -6,7 +6,29 @@ code for add4.json enter the command:
 
 `>./bin/simulator -i examples/add4.json`
 
-This will generate
+This will generate 3 C++ files: add4_sim.cpp, add4_sim.h, and bit_vector.h.
+If you open add4_sim.h contains a struct representing the state of the circuit
+and the declaration of the simulation function:
+
+```cpp
+#include <stdint.h>
+#include <cstdio>
+
+#include "bit_vector.h"
+
+using namespace bsim;
+
+struct circuit_state {
+	uint16_t self_in_0;
+	uint16_t self_in_1;
+	uint16_t self_in_2;
+	uint16_t self_in_3;
+	uint16_t self_out;
+};
+
+void simulate( circuit_state* state );
+
+```
 
 Then compile the resulting code with:
 
