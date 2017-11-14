@@ -1,4 +1,5 @@
 # Writing Passes
+Note: these tutorials will not currently compile as they are using an old API. Will be updated soon
 This guide is meant to be an introduction into writing passes
 
 `>cd tutorial/hellopasses`

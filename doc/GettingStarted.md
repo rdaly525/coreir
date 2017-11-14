@@ -1,5 +1,6 @@
 # Getting Started
-This guide is meant to be a gentle introduction into the CoreIR API. You will build up a Module and a Generator from scratch. First do:
+Note: these tutorials will not currently compile as they are using an old API. Will be updated soon
+This guide is meant to be a gentle introduction into the CoreIR API. You will build up a Module and a Generator from scratch.
 
 `>cd tutorial/hellocounter`
 
