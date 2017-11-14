@@ -6,41 +6,15 @@
 ## Installation Instructions
   Refer to INSTALL.md
 
-## Repo Director Structure
-```
-/bin
-/lib
-/include
-  /coreir-c
-  /coreir-lib
-  /coreir-passes
-    /analysis
-    /transform
-/src
-  /ir
-  /libs
-  /coreir-c
-  /passes
-    /analysis
-    /transform
-  /binary
-/tests
-  /unit
-  /unit-c
-  /cgra
-/doc
-/examples
-/tools
-//TODO quick description of each folder
-```
-
 ## Guides
 
-  `doc/GettingStarted.md`
   `doc/StandaloneCoreIR.md`
+  `doc/JsonSpec.md`
+  `doc/Casting.md`
+  `doc/Simulator.md`
+  `doc/GettingStarted.md`
   `doc/WritingPasses.md`
   `doc/LibraryGuide.md`
-  `doc/JsonSpec.md`
 
 ## SMT2 Generation
-./bin/coreir -i examples/counters.json -o test.smt2 -p 'liftclockports-coreir,wireclocks-coreir,smtlib2'
+coreir -i examples/counters.json -o test.smt2 
