@@ -33,7 +33,39 @@ void simulate( circuit_state* state );
 
 ```
 
-add4_sim.cpp contains 
+The function ``` void simulate( circuit_state* state ); ``` simulates a single cycle
+of execution.
+
+The code for ```simulate``` is located in add4_sim.cpp and should look like so:
+
+```cpp
+#include "add4_sim.h"
+#include <thread>
+
+using namespace bsim;
+
+#define SIGN_EXTEND(start, end, x) (((x) & ((1ULL << (start)) - 1)) | (((x) & (1ULL << ((start) - 1))) ? (((1ULL << ((end) - (start))) - 1) << (start)) : 0))
+
+#define MASK(width, expr) (((1ULL << (width)) - 1) & ((expr)))
+
+void simulate_0( circuit_state* state ) {
+
+// Variable declarations
+
+// Internal variables
+uint16_t  i01_out;
+uint16_t  i00_out;
+uint16_t  i1_out;
+
+// Simulation code
+(state->self_out) = (((state->self_in_0) + (state->self_in_1)) + ((state->self_in_2) + (state->self_in_3)));
+}
+
+void simulate( circuit_state* state ) {
+simulate_0( state );
+}
+
+```
 
 Then compile the resulting code with:
 
