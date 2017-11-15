@@ -67,7 +67,7 @@ simulate_0( state );
 
 ```
 
-Then compile the resulting code with:
+You can compile the resulting code with:
 
 `>clang++ -std=c++11 -c ./add4_sim.cpp`
 
@@ -77,4 +77,4 @@ CoreIR also inclues a circuit interpreter that can be run from the command line 
 through a CoreIR C++ API.
 
 To see some examples of how to use the interpreter through the C++ API
-look at the unit tests in ./tests/simulator/interpreter.cpp
+look at the unit tests in [../tests/simulator/interpreter.cpp](../tests/simulator/interpreter.cpp).
