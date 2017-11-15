@@ -36,12 +36,12 @@ Module* randomCircuit(CoreIR::Context* c,
   Generator* or2 = c->getGenerator("coreir.or");
   
   for (int i = 0; i < numOperations; i++) {
-    Wireable* op;
+    //Wireable* op;
     if ((i % 2) == 0) {
-      op =
+      //op =
         def->addInstance("op_" + to_string(i), and2, {{"width", Const::make(c, width)}});
     } else {
-      op =
+      //op =
         def->addInstance("op_" + to_string(i), or2, {{"width", Const::make(c, width)}});
     }
 
