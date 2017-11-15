@@ -73,9 +73,6 @@ int main(int argc, char *argv[]) {
   NGraph gr;
   buildOrderedGraph(top, gr);
 
-  balancedComponentsParallel(gr);
-
-
   cout << "Starting topological sort" << endl;
 
   // Delete inputs from the order, since they do not need to

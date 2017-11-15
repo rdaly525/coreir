@@ -5,4 +5,5 @@
 namespace CoreIR {
 
   void balancedComponentsParallel(NGraph& gr);
+
 }
