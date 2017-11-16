@@ -1,4 +1,4 @@
-#include "utils.hpp"
+#include "coreir/simulator/utils.h"
 
 using namespace CoreIR;
 using namespace std;

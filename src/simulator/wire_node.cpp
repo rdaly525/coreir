@@ -1,4 +1,4 @@
-#include "wire_node.hpp"
+#include "coreir/simulator/wire_node.h"
 
 namespace CoreIR {
 

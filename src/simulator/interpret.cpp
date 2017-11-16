@@ -1,6 +1,5 @@
-#include "interpret.hpp"
-
-#include "sim.hpp"
+#include "coreir/simulator/interpreter.h"
+#include "coreir/simulator/simulator.h"
 
 using namespace std;
 

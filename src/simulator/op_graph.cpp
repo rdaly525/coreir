@@ -1,7 +1,7 @@
-#include "op_graph.hpp"
+#include "coreir/simulator/op_graph.h"
 
-#include "algorithm.hpp"
-#include "utils.hpp"
+#include "coreir/simulator/algorithm.h"
+#include "coreir/simulator/utils.h"
 
 using namespace std;
 
