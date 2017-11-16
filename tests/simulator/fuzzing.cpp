@@ -1,9 +1,14 @@
 #include "fuzzing.hpp"
 
-#include "../src/simulator/algorithm.hpp"
-#include "../src/simulator/sim.hpp"
-#include "../src/simulator/print_c.hpp"
-#include "../src/simulator/output.hpp"
+#include "coreir/simulator/output.h"
+#include "coreir/simulator/simulator.h"
+#include "coreir/simulator/utils.h"
+#include "coreir/simulator/print_c.h"
+
+// #include "../src/simulator/algorithm.hpp"
+// #include "../src/simulator/sim.hpp"
+// #include "../src/simulator/print_c.hpp"
+// #include "../src/simulator/output.hpp"
 
 #include <limits.h>
 #include <unistd.h>

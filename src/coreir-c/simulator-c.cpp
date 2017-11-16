@@ -1,7 +1,7 @@
 #include "coreir-c/coreir-simulator.h"
 #include "coreir.h"
 #include "common-c.hpp"
-#include "../simulator/interpret.hpp"
+#include "coreir/simulator/interpreter.h"
 
 using namespace std;
 namespace CoreIR {

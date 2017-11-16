@@ -10,10 +10,6 @@
 
 #include "fuzzing.hpp"
 
-#include "../src/simulator/output.hpp"
-#include "../src/simulator/sim.hpp"
-#include "../src/simulator/utils.hpp"
-
 #include <iostream>
 
 using namespace CoreIR;

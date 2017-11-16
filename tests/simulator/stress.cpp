@@ -13,10 +13,10 @@
 #include "coreir/passes/transform/rungenerators.h"
 #include "coreir/simulator/interpreter.h"
 
-#include "../src/simulator/multithreading.hpp"
-#include "../src/simulator/output.hpp"
-#include "../src/simulator/sim.hpp"
-#include "../src/simulator/utils.hpp"
+#include "coreir/simulator/multithreading.h"
+#include "coreir/simulator/output.h"
+#include "coreir/simulator/simulator.h"
+#include "coreir/simulator/utils.h"
 
 #include <iostream>
 

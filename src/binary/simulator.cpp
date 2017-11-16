@@ -8,11 +8,9 @@
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir/libs/commonlib.h"
 
-
-#include "../simulator/output.hpp"
-#include "../simulator/multithreading.hpp"
-#include "../simulator/sim.hpp"
-#include "../simulator/utils.hpp"
+#include "coreir/simulator/output.h"
+#include "coreir/simulator/multithreading.h"
+#include "coreir/simulator/simulator.h"
 
 using namespace std;
 using namespace CoreIR;
