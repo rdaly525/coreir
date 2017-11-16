@@ -74,8 +74,6 @@ namespace CoreIR {
 
     // New context
     Context* c = newContext();
-  
-
     Namespace* g = c->getGlobal();
 
     SECTION("commonlib mux with 71 inputs") {

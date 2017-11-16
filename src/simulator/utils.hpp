@@ -1,6 +1,11 @@
 #pragma once
 
-#include "coreir.h"
+//#include "coreir.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/wireable.h"
 
 #include "algorithm.hpp"
 

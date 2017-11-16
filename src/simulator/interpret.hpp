@@ -3,7 +3,6 @@
 #include "coreir.h"
 #include "op_graph.hpp"
 
-
 namespace CoreIR {
 
   typedef bsim::dynamic_bit_vector BitVec;
