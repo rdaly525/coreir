@@ -1,11 +1,10 @@
-#include "sim.hpp"
+#include "coreir/simulator/simulator.h"
 
 #include "coreir/passes/transform/flatten.h"
 #include "coreir/passes/transform/rungenerators.h"
-
-#include "algorithm.hpp"
-#include "print_c.hpp"
-#include "utils.hpp"
+#include "coreir/simulator/algorithm.h"
+#include "coreir/simulator/print_c.h"
+#include "coreir/simulator/utils.h"
 
 using namespace CoreIR;
 using namespace CoreIR::Passes;

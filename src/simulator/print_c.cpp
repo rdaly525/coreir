@@ -1,4 +1,4 @@
-#include "print_c.hpp"
+#include "coreir/simulator/print_c.h"
 
 using namespace std;
 

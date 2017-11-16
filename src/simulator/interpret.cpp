@@ -1,6 +1,5 @@
-#include "interpret.hpp"
-
-#include "sim.hpp"
+#include "coreir/simulator/interpreter.h"
+#include "coreir/simulator/simulator.h"
 
 using namespace std;
 
@@ -426,6 +425,12 @@ namespace CoreIR {
   void SimulatorState::run() {
     while (!hitWatchPoint()) {
       runHalfCycle();
+    }
+  }
+
+  void SimulatorState::runBack() {
+    while (!hitWatchPoint()) {
+      rewind(1);
     }
   }
 

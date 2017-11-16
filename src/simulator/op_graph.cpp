@@ -1,12 +1,16 @@
-#include "op_graph.hpp"
+#include "coreir/simulator/op_graph.h"
 
-#include "algorithm.hpp"
-#include "utils.hpp"
+#include "coreir/simulator/algorithm.h"
+#include "coreir/simulator/utils.h"
 
 using namespace std;
 
 namespace CoreIR {
 
+  void addConnection(std::unordered_map<WireNode, vdisc>& imap,
+		     Conn& conn,
+		     NGraph& g);
+  
   Wireable* extractSource(Select* sel) {
     Wireable* p = sel->getParent();
 
