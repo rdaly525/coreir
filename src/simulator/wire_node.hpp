@@ -1,6 +1,6 @@
 #pragma once
 
-//#include "coreir.h"
+#include "coreir/ir/moduledef.h"
 
 #include "utils.hpp"
 

@@ -22,7 +22,8 @@
 #include "coreir/ir/passes.h"
 #include "coreir/ir/instancegraph.h"
 
-//#include "coreir/simulator/interpreter.h"
+#include "coreir/simulator/interpreter.h"
+#include "coreir/simulator/simulator.h"
 
 #else //C header
 

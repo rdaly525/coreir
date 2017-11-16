@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "coreir.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/namespace.h"

@@ -231,10 +231,6 @@ namespace CoreIR {
 
   std::vector<Conn> getOutputConnections(const vdisc vd, const NGraph& g);
 
-  void addConnection(std::unordered_map<WireNode, vdisc>& imap,
-		     Conn& conn,
-		     NGraph& g);
-  
   void addWireableToGraph(CoreIR::Wireable* w1,
 			  std::unordered_map<WireNode, vdisc>& imap,
 			  NGraph& g);

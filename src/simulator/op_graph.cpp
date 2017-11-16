@@ -7,6 +7,10 @@ using namespace std;
 
 namespace CoreIR {
 
+  void addConnection(std::unordered_map<WireNode, vdisc>& imap,
+		     Conn& conn,
+		     NGraph& g);
+  
   Wireable* extractSource(Select* sel) {
     Wireable* p = sel->getParent();
 
