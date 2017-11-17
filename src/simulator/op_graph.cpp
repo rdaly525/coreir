@@ -276,7 +276,7 @@ namespace CoreIR {
     for (auto out_edge_desc : outEdges(vd)) {
 
       Conn edge_conn =
-	getConn(out_edge_desc);
+        getConn(out_edge_desc);
 
       assert(isSelect(edge_conn.first.getWire()));
 

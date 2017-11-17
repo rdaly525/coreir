@@ -535,10 +535,12 @@ namespace CoreIR {
     Instance* r = toInstance(s->getParent());
     string rName = r->getInstname();
 
+    
     if (!wd.isReceiver) {
+      //return "";
       return ln(cVar(*s) + " = " + cVar("(state->", *r, ")"));
     } else {
-      return enableRegReceiver(wd, vd, g);
+      return enableRegReceiver(wd, vd, g); // + ln(cVar(*s) + " = " + cVar("(state->", *r, ")"));
     }
   }
 
@@ -810,6 +812,54 @@ namespace CoreIR {
 
     int i = 0;
     vector<string> simLines;
+
+    // Update stateful element values
+    simLines.push_back("// Update stored state in sequential elements\n");
+    for (auto& vd : topo_order) {
+
+      WireNode wd = getNode(g, vd);
+
+      if (wd.getThreadNo() == threadNo) {
+
+        Wireable* inst = wd.getWire();
+
+        if (isInstance(inst)) { 
+
+          if (!isCombinationalInstance(wd) &&
+              wd.isReceiver) {
+
+            simLines.push_back(printInstance(wd, vd, g));
+
+          }
+
+        }
+      }
+      
+    }
+
+    for (auto& vd : topo_order) {
+
+      WireNode wd = getNode(g, vd);
+
+      if (wd.getThreadNo() == threadNo) {
+
+        Wireable* inst = wd.getWire();
+
+        if (isInstance(inst)) { 
+
+          if (!isCombinationalInstance(wd) &&
+              !(wd.isReceiver)) {
+
+            simLines.push_back(printInstance(wd, vd, g));
+
+          }
+
+        }
+      }
+      
+    }
+    
+    simLines.push_back("// Update combinational logic\n");
     for (auto& vd : topo_order) {
 
       string val = "<UNSET>";
@@ -821,9 +871,9 @@ namespace CoreIR {
 
         if (isInstance(inst)) { 
 
-          if (!isCombinationalInstance(wd) ||
-              (g.getOutputConnections(vd).size() > 1) ||
-              (isThreadShared(vd, g) && wd.getThreadNo() == threadNo)) {
+          if ((isCombinationalInstance(wd)) &&
+              ((g.getOutputConnections(vd).size() > 1) ||
+               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo))) {
 
             simLines.push_back(printInstance(wd, vd, g));
 
