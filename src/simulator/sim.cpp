@@ -12,6 +12,23 @@ using namespace std;
 
 namespace CoreIR {
 
+  class NameMapping {
+  public:
+
+    std::string nameOfSelect(CoreIR::Select* const sel) const {
+      return cVar(sel);
+    }
+
+    std::string nameOfClkSelect(CoreIR::Select* const sel) const {
+      return cVar(sel);
+    }
+
+    std::string nameOfClkLastSelect(CoreIR::Select* const sel) const {
+      return cVar(sel);
+    }
+    
+  };
+
   string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
   string printOpResultStr(const InstanceValue& wd, const NGraph& g);
 
@@ -173,8 +190,6 @@ namespace CoreIR {
   string castToUnSigned(Type& tp, const std::string& expr) {
     return parens(parens(unSignedCTypeString(tp)) + " " + expr);
   }
-  
-  
 
   string seString(Type& tp, const std::string& arg) {
 
@@ -488,7 +503,7 @@ namespace CoreIR {
     InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
 
-    string oldValName = cVar("(state->", *r, ")"); // + "_old_value)";
+    string oldValName = cVar("(state->", *r, ")");
 
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
