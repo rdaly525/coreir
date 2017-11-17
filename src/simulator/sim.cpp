@@ -683,7 +683,11 @@ namespace CoreIR {
 
     Wireable* src = extractSource(toSelect(wd.getWire()));
 
-    if (isRegisterInstance(src) || isMemoryInstance(src)) {
+    if (isRegisterInstance(src)) {
+      return cVar("(state->", *src, ")");
+    }
+
+    if (isMemoryInstance(src)) {
       return cVar(wd);
     }
 
@@ -837,6 +841,7 @@ namespace CoreIR {
       
     }
 
+    simLines.push_back("// Update outputs of sequential elements\n");
     for (auto& vd : topo_order) {
 
       WireNode wd = getNode(g, vd);
@@ -1139,16 +1144,13 @@ namespace CoreIR {
     sort(begin(destNodes), end(destNodes));
 
     for (auto& sn : sourceNodes) {
+
       for (auto ed : opG.outEdges(sn)) {
         if (binary_search(begin(destNodes), end(destNodes), opG.target(ed))) {
           return true;
         }
       }
-      // for (auto& dn : destNodes) {
-      //   if (opG.connected(sn, dn)) {
-      //     return true;
-      //   }
-      // }
+
     }
 
     return false;

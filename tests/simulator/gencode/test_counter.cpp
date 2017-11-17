@@ -25,22 +25,21 @@ int main() {
 
     state.self_clk = i % 2;
 
-    //simulate(&ri_new_value, &self_out, ri_old_value, self_clk, self_clk_last, self_en);
-
     simulate(&state);
 
     // Copy old values to new values
     state.self_clk_last = state.self_clk;
-    //state.ri_old_value = state.ri_new_value;
-    //state.ri_old_value = state.ri_new_value;
+
+    printf("output = %hu\n", state.self_out);
+    printf("new_register value = %hu\n", state.ri); //_new_value);
+    
   }
 
   printf("output = %hu\n", state.self_out);
   printf("new_register value = %hu\n", state.ri); //_new_value);
   
   //if ((state.ri_new_value != 10) || (state.self_out != 9)) {
-  if ((state.ri != 10) || (state.self_out != 9)) {
-
+  if ((state.ri != 10) || (state.self_out != 10)) {
     return 1;
   }
   
