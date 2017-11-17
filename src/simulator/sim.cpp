@@ -483,14 +483,10 @@ namespace CoreIR {
 
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
-    //string s = "*(state->" + rName + "_new_value) = ";
-    //string s = "state->" + rName + "_new_value = ";
     string s = cVar("(state->", *toInstance(wd.getWire()), ")") + " = ";
 
     InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
-
-    //string oldValName = "(state->" + rName + "_old_value)";
 
     string oldValName = cVar("(state->", *r, ")"); // + "_old_value)";
 
@@ -525,10 +521,7 @@ namespace CoreIR {
     string rName = r->getInstname();
 
     if (!wd.isReceiver) {
-      // TODO: Replace manual state name construction with wrapper
-      //return cVar(*s) + " = " + "(state->" + rName + "_old_value)" + " ; // Register print \n";
-
-      return ln(cVar(*s) + " = " + cVar("(state->", *r, ")")); //"(state->" + rName + ")" + " ; // Register print \n";
+      return ln(cVar(*s) + " = " + cVar("(state->", *r, ")"));
     } else {
       return enableRegReceiver(wd, vd, g);
     }
@@ -604,10 +597,6 @@ namespace CoreIR {
 
       return ln(s);
       
-      // return ln(cVar("(state->", *r, ")") +
-                
-      //                printOpResultStr(wdata, g));
-    
     }
   }
 
