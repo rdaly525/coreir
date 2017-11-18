@@ -1,12 +1,8 @@
 #pragma once
 
-#include "coreir/simulator/op_graph.h"
+#include "coreir/simulator/multithreading.h"
 
 namespace CoreIR {
-
-  typedef NGraph ThreadGraph;
-
-  int numThreads(const ThreadGraph& g);
 
   std::string printCode(const std::deque<vdisc>& topoOrder,
 			NGraph& g,
@@ -21,5 +17,8 @@ namespace CoreIR {
 
 
   ThreadGraph buildThreadGraph(const NGraph& opG);
+
+  std::string seMacroDef();
+  std::string maskMacroDef();
 
 }
