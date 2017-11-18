@@ -12,6 +12,10 @@ using namespace std;
 
 namespace CoreIR {
 
+  string outputVarName(CoreIR::Wireable& outSel) {
+    return cVar("(state->", outSel, ")");
+  }
+
   string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
   string printOpResultStr(const InstanceValue& wd, const NGraph& g);
 
@@ -480,12 +484,14 @@ namespace CoreIR {
 
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
-    string s = cVar("(state->", *toInstance(wd.getWire()), ")") + " = ";
+    //string s = cVar("(state->", *toInstance(wd.getWire()), ")") + " = ";
+    string s = outputVarName(*wd.getWire()) + " = ";
 
     InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
 
-    string oldValName = cVar("(state->", *r, ")");
+    //string oldValName = cVar("(state->", *r, ")");
+    string oldValName = outputVarName(*r); //cVar("(state->", *r, ")");
 
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
@@ -829,7 +835,10 @@ namespace CoreIR {
             // If not an instance copy the input values
             for (auto inConn : inConns) {
 
-              simLines.push_back(ln(cVar("(state->", *(inConn.second.getWire()), ")") + " = " + printOpResultStr(inConn.first, g)));
+              Wireable& outSel = *(inConn.second.getWire());
+              string outVarName = outputVarName(outSel);
+
+              simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g)));
               
             }
 
