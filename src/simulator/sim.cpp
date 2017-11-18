@@ -321,7 +321,7 @@ namespace CoreIR {
 
   }
 
-  string printMux(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printMux(Instance* inst, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
     assert(isMux(*inst));
 
     auto ins = getInputConnections(vd, g);
@@ -332,9 +332,9 @@ namespace CoreIR {
     InstanceValue i0 = findArg("in0", ins);
     InstanceValue i1 = findArg("in1", ins);
     
-    return ite(printOpResultStr(sel, g),
-               printOpResultStr(i1, g),
-               printOpResultStr(i0, g));
+    return ite(printOpResultStr(sel, g, lp),
+               printOpResultStr(i1, g, lp),
+               printOpResultStr(i0, g, lp));
   }
 
   string printAddOrSubWithCIN(const WireNode& wd, const vdisc vd, const NGraph& g) {
@@ -502,12 +502,12 @@ namespace CoreIR {
 
   }
   
-  string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
     assert(getInputs(vd, g).size() == 3);
 
     Instance* inst = toInstance(wd.getWire());
     if (isMux(*inst)) {
-      return printMux(inst, vd, g);
+      return printMux(inst, vd, g, lp);
     }
 
     if (isAddOrSub(*inst)) {
@@ -623,7 +623,7 @@ namespace CoreIR {
     auto ins = getInputs(vd, g);
     
     if (ins.size() == 3) {
-      return printTernop(wd, vd, g);
+      return printTernop(wd, vd, g, lp);
     }
 
     if (ins.size() == 2) {
@@ -643,7 +643,7 @@ namespace CoreIR {
     return "";
   }
 
-  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
     assert(wd.isSequential);
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -663,8 +663,8 @@ namespace CoreIR {
       InstanceValue raddr = findArg("raddr", ins);
 
       return ln(cVar(*s) + " = " +
-                parens(outputVarName(*r) +
-                       "[ " + printOpResultStr(raddr, g) + " ]"));
+                parens(lp.outputVarName(*r) +
+                       "[ " + printOpResultStr(raddr, g, lp) + " ]"));
 
     } else {
       assert(ins.size() == 4);
@@ -675,16 +675,16 @@ namespace CoreIR {
       InstanceValue wen = findArg("wen", ins);
 
       string condition =
-        parens(parens(lastClkVarName(clk) + " == 0") + " && " +
-               parens(clkVarName(clk) + " == 1"));
+        parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
+               parens(lp.clkVarName(clk) + " == 1"));
         
-      condition += " && " + printOpResultStr(wen, g);
+      condition += " && " + printOpResultStr(wen, g, lp);
 
-      string oldValueName = outputVarName(*r) + "[ " + printOpResultStr(waddr, g) + " ]";
+      string oldValueName = lp.outputVarName(*r) + "[ " + printOpResultStr(waddr, g, lp) + " ]";
 
       string s = oldValueName + " = ";
       s += ite(parens(condition),
-               printOpResultStr(wdata, g),
+               printOpResultStr(wdata, g, lp),
                oldValueName);
 
       return ln(s);
@@ -704,7 +704,7 @@ namespace CoreIR {
     }
 
     if (isMemoryInstance(inst)) {
-      return printMemory(wd, vd, g);
+      return printMemory(wd, vd, g, layoutPolicy);
     }
 
     auto outSelects = getOutputSelects(inst);
