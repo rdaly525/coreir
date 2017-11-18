@@ -31,12 +31,54 @@ namespace CoreIR {
   class LayoutPolicy {
   public:
     virtual ~LayoutPolicy() {}
+
+    virtual std::string lastClkVarName(InstanceValue& clk) = 0;
+
+    virtual std::string clkVarName(InstanceValue& clk) = 0;
+
+    virtual std::string outputVarName(CoreIR::Wireable& outSel) = 0;
+
+    virtual std::string outputVarName(const InstanceValue& val) = 0;
+
   };
   
   class CustomStructLayout : public LayoutPolicy {
+  public:
+    std::string lastClkVarName(InstanceValue& clk) {
+      return CoreIR::lastClkVarName(clk);
+    }
+
+    std::string clkVarName(InstanceValue& clk) {
+      return CoreIR::clkVarName(clk);
+    }
+
+    std::string outputVarName(CoreIR::Wireable& outSel) {
+      return CoreIR::outputVarName(outSel);
+    }
+
+    std::string outputVarName(const InstanceValue& val) {
+      return CoreIR::outputVarName(val);
+    }
+    
   };
 
   class CharBufferLayout : public LayoutPolicy {
+    std::string lastClkVarName(InstanceValue& clk) {
+      assert(false);
+    }
+
+    std::string clkVarName(InstanceValue& clk) {
+      assert(false);
+    }
+
+    std::string outputVarName(CoreIR::Wireable& outSel) {
+      assert(false);
+    }
+
+    std::string outputVarName(const InstanceValue& val) {
+      assert(false);
+    }
+
   };
   
   
