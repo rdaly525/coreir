@@ -81,12 +81,35 @@ namespace CoreIR {
 
   };
 
-  string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
-  string printOpResultStr(const InstanceValue& wd, const NGraph& g);
+  string printBinop(const WireNode& wd,
+                    const vdisc vd,
+                    const NGraph& g,
+                    const LayoutPolicy& lp);
 
+  string printOpResultStr(const InstanceValue& wd,
+                          const NGraph& g,
+                          const LayoutPolicy& lp);
+
+  string printOpResultStr(const InstanceValue& wd,
+                          const NGraph& g) {
+    CustomStructLayout lp;
+    return printOpResultStr(wd, g, lp);
+  }
+  
   // wd is an instance node
-  string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g);
+  string opResultStr(const WireNode& wd,
+                     const vdisc vd,
+                     const NGraph& g,
+                     const LayoutPolicy& lp);
 
+  string opResultStr(const WireNode& wd,
+                     const vdisc vd,
+                     const NGraph& g) {
+    CustomStructLayout lp;
+    return opResultStr(wd, vd, g, lp);
+    
+  }
+  
   string printUnop(Instance* inst, const vdisc vd, const NGraph& g) {
     auto outSelects = getOutputSelects(inst);
 
@@ -186,7 +209,10 @@ namespace CoreIR {
     }
   }
 
-  string printOpThenMaskBinop(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printOpThenMaskBinop(const WireNode& wd,
+                              const vdisc vd,
+                              const NGraph& g,
+                              const LayoutPolicy& lp) {
     Instance* inst = toInstance(wd.getWire());
 
     auto outSelects = getOutputSelects(inst);
@@ -207,7 +233,7 @@ namespace CoreIR {
     string opString = getOpString(*inst);
 
     string compString =
-      parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g));
+      parens(printOpResultStr(arg1, g, lp) + opString + printOpResultStr(arg2, g, lp));
 
     // And not standard width
     if (isDASHR(*inst)) {
@@ -216,10 +242,10 @@ namespace CoreIR {
       if (containWidth > tw) {
 
         string mask =
-          parens(bitMaskString(printOpResultStr(arg2, g)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g)));
+          parens(bitMaskString(printOpResultStr(arg2, g, lp)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g, lp)));
 
         string signBitSet =
-          parens("0x01 & " + parens(printOpResultStr(arg1, g) +  " >> " + parens(to_string(tw - 1))));
+          parens("0x01 & " + parens(printOpResultStr(arg1, g, lp) +  " >> " + parens(to_string(tw - 1))));
 
         compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
       }
@@ -504,7 +530,11 @@ namespace CoreIR {
     assert(false);
   }
 
-  string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printBinop(const WireNode& wd,
+                    const vdisc vd,
+                    const NGraph& g,
+                    const LayoutPolicy& lp) {
+
     assert(getInputs(vd, g).size() == 2);
 
     Instance* inst = toInstance(wd.getWire());
@@ -514,7 +544,7 @@ namespace CoreIR {
         isUnsignedCmp(*inst) ||
         isShiftOp(*inst) ||
         isUDivOrRem(*inst)) {
-      return printOpThenMaskBinop(wd, vd, g);
+      return printOpThenMaskBinop(wd, vd, g, lp);
     }
 
     if (isSignedCmp(*inst) ||
@@ -596,7 +626,10 @@ namespace CoreIR {
     }
   }
 
-  string opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string opResultStr(const WireNode& wd,
+                     const vdisc vd,
+                     const NGraph& g,
+                     const LayoutPolicy& lp) {
 
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
@@ -606,7 +639,7 @@ namespace CoreIR {
     }
 
     if (ins.size() == 2) {
-      return printBinop(wd, vd, g);
+      return printBinop(wd, vd, g, lp);
     }
 
     if (ins.size() == 1) {
@@ -672,7 +705,11 @@ namespace CoreIR {
     }
   }
 
-  string printInstance(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printInstance(const WireNode& wd,
+                       const vdisc vd,
+                       const NGraph& g,
+                       const LayoutPolicy& layoutPolicy) {
+
     Instance* inst = toInstance(wd.getWire());
 
     if (isRegisterInstance(inst)) {
@@ -687,16 +724,16 @@ namespace CoreIR {
 
     if (outSelects.size() == 1) {
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-    string res;
-    if (!isThreadShared(vd, g)) {
-      res = cVar(*(outPair.second));
-    } else {
-      res = outputVarName(*(outPair.second));
-    }
+      pair<string, Wireable*> outPair = *std::begin(outSelects);
+      string res;
+      if (!isThreadShared(vd, g)) {
+        res = cVar(*(outPair.second));
+      } else {
+        res = layoutPolicy.outputVarName(*(outPair.second));
+      }
 
     
-      return ln(res + " = " + opResultStr(wd, vd, g));
+      return ln(res + " = " + opResultStr(wd, vd, g, layoutPolicy));
     } else {
       assert(outSelects.size() == 2);
       assert(isAddOrSub(*inst));
@@ -729,13 +766,15 @@ namespace CoreIR {
     return true;
   }
 
-  string printOpResultStr(const InstanceValue& wd, const NGraph& g) {
+  string printOpResultStr(const InstanceValue& wd,
+                          const NGraph& g,
+                          const LayoutPolicy& lp) {
     assert(isSelect(wd.getWire()));
 
     Wireable* src = extractSource(toSelect(wd.getWire()));
 
     if (isRegisterInstance(src)) {
-      return outputVarName(*src);
+      return lp.outputVarName(*src);
     }
 
     if (isMemoryInstance(src)) {
@@ -746,11 +785,11 @@ namespace CoreIR {
 
     // Is this the correct way to check if the value is an input?
     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
-      return outputVarName(wd);
+      return lp.outputVarName(wd);
     }
 
     if (isThreadShared(g.getOpNodeDisc(sourceInstance), g)) {
-      return outputVarName(wd);
+      return lp.outputVarName(wd);
     }
     assert(g.containsOpNode(sourceInstance));
 
@@ -759,7 +798,7 @@ namespace CoreIR {
     // TODO: Should really check whether or not there is one connection using
     // the given variable, this is slightly too conservative
     if (g.getOutputConnections(opNodeD).size() == 1) {
-      return opResultStr(combNode(sourceInstance), opNodeD, g);
+      return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
     }
 
     return cVar(wd);
@@ -843,7 +882,7 @@ namespace CoreIR {
           if (!isCombinationalInstance(wd) &&
               wd.isReceiver) {
 
-            simLines.push_back(printInstance(wd, vd, g));
+            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
           }
 
@@ -866,7 +905,7 @@ namespace CoreIR {
           if (!isCombinationalInstance(wd) &&
               !(wd.isReceiver)) {
 
-            simLines.push_back(printInstance(wd, vd, g));
+            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
           }
 
@@ -891,7 +930,7 @@ namespace CoreIR {
               ((g.getOutputConnections(vd).size() > 1) ||
                (isThreadShared(vd, g) && wd.getThreadNo() == threadNo))) {
 
-            simLines.push_back(printInstance(wd, vd, g));
+            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
           }
 
