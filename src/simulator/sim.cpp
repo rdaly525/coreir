@@ -32,56 +32,55 @@ namespace CoreIR {
   public:
     virtual ~LayoutPolicy() {}
 
-    virtual std::string lastClkVarName(InstanceValue& clk) = 0;
+    virtual std::string lastClkVarName(InstanceValue& clk) const = 0;
 
-    virtual std::string clkVarName(InstanceValue& clk) = 0;
+    virtual std::string clkVarName(InstanceValue& clk) const = 0;
 
-    virtual std::string outputVarName(CoreIR::Wireable& outSel) = 0;
+    virtual std::string outputVarName(CoreIR::Wireable& outSel) const = 0;
 
-    virtual std::string outputVarName(const InstanceValue& val) = 0;
+    virtual std::string outputVarName(const InstanceValue& val) const = 0;
 
   };
   
   class CustomStructLayout : public LayoutPolicy {
   public:
-    std::string lastClkVarName(InstanceValue& clk) {
+    std::string lastClkVarName(InstanceValue& clk) const {
       return CoreIR::lastClkVarName(clk);
     }
 
-    std::string clkVarName(InstanceValue& clk) {
+    std::string clkVarName(InstanceValue& clk) const {
       return CoreIR::clkVarName(clk);
     }
 
-    std::string outputVarName(CoreIR::Wireable& outSel) {
+    std::string outputVarName(CoreIR::Wireable& outSel) const {
       return CoreIR::outputVarName(outSel);
     }
 
-    std::string outputVarName(const InstanceValue& val) {
+    std::string outputVarName(const InstanceValue& val) const {
       return CoreIR::outputVarName(val);
     }
     
   };
 
   class CharBufferLayout : public LayoutPolicy {
-    std::string lastClkVarName(InstanceValue& clk) {
+    std::string lastClkVarName(InstanceValue& clk) const {
       assert(false);
     }
 
-    std::string clkVarName(InstanceValue& clk) {
+    std::string clkVarName(InstanceValue& clk) const {
       assert(false);
     }
 
-    std::string outputVarName(CoreIR::Wireable& outSel) {
+    std::string outputVarName(CoreIR::Wireable& outSel) const {
       assert(false);
     }
 
-    std::string outputVarName(const InstanceValue& val) {
+    std::string outputVarName(const InstanceValue& val) const {
       assert(false);
     }
 
   };
-  
-  
+
   string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
   string printOpResultStr(const InstanceValue& wd, const NGraph& g);
 
@@ -906,7 +905,7 @@ namespace CoreIR {
             for (auto inConn : inConns) {
 
               Wireable& outSel = *(inConn.second.getWire());
-              string outVarName = outputVarName(outSel);
+              string outVarName = layoutPolicy.outputVarName(outSel);
 
               simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g)));
               
