@@ -27,6 +27,18 @@ namespace CoreIR {
   string outputVarName(const InstanceValue& val) {
     return cVar("(state->", val, ")");
   }
+
+  class LayoutPolicy {
+  public:
+    virtual ~LayoutPolicy() {}
+  };
+  
+  class CustomStructLayout : public LayoutPolicy {
+  };
+
+  class CharBufferLayout : public LayoutPolicy {
+  };
+  
   
   string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
   string printOpResultStr(const InstanceValue& wd, const NGraph& g);
@@ -745,9 +757,9 @@ namespace CoreIR {
   }
 
   string printSimFunctionPrefix(const std::deque<vdisc>& topo_order,
-                              NGraph& g,
-                              Module& mod,
-                              const int threadNo) {
+                                NGraph& g,
+                                Module& mod,
+                                const int threadNo) {
     string str = "";
 
     // Declare all variables
@@ -762,7 +774,9 @@ namespace CoreIR {
   string printSimFunctionBody(const std::deque<vdisc>& topo_order,
                               NGraph& g,
                               Module& mod,
-                              const int threadNo) {
+                              const int threadNo,
+                              const LayoutPolicy& layoutPolicy) {
+
     cout << "Printing sim function for " << threadNo << endl;
 
     string str = printSimFunctionPrefix(topo_order, g, mod, threadNo);
@@ -1078,10 +1092,12 @@ namespace CoreIR {
 
     ThreadGraph tg = buildThreadGraph(g);
 
+    CustomStructLayout sl;
+
     for (auto& i : tg.getVerts()) {
       code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
 
-      code += printSimFunctionBody(topoOrder, g, *mod, i);
+      code += printSimFunctionBody(topoOrder, g, *mod, i, sl);
 
       code += "}\n\n";
 
