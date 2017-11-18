@@ -274,7 +274,10 @@ namespace CoreIR {
   }
 
   string
-  printSEThenOpThenMaskBinop(Instance* inst, const vdisc vd, const NGraph& g) {
+  printSEThenOpThenMaskBinop(Instance* inst,
+                             const vdisc vd,
+                             const NGraph& g,
+                             const LayoutPolicy& lp) {
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
@@ -293,8 +296,8 @@ namespace CoreIR {
     Type& arg1Tp = *((arg1.getWire())->getType());
     Type& arg2Tp = *((arg2.getWire())->getType());
 
-    string rs1 = printOpResultStr(arg1, g);
-    string rs2 = printOpResultStr(arg2, g);
+    string rs1 = printOpResultStr(arg1, g, lp);
+    string rs2 = printOpResultStr(arg2, g, lp);
 
     string opStr = castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
       opString +
@@ -534,7 +537,7 @@ namespace CoreIR {
 
     if (isSignedCmp(*inst) ||
         isSDivOrRem(*inst)) {
-      return printSEThenOpThenMaskBinop(inst, vd, g);
+      return printSEThenOpThenMaskBinop(inst, vd, g, lp);
     }
 
     cout << "Unsupported binop = " << inst->toString() << " from module = " << inst->getModuleRef()->getName() << endl;
@@ -548,7 +551,7 @@ namespace CoreIR {
     return recordTypeHasField("en", w->getType());
   }
 
-  string enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
 
     auto outSel = getOutputSelects(wd.getWire());
 
@@ -558,38 +561,38 @@ namespace CoreIR {
     assert(isInstance(sl->getParent()));
 
     Instance* r = toInstance(sl->getParent());
-    string rName = r->getInstname();
+    //string rName = r->getInstname();
 
     auto ins = getInputConnections(vd, g);
 
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
-    string s = outputVarName(*wd.getWire()) + " = ";
+    string s = lp.outputVarName(*wd.getWire()) + " = ";
 
     InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
 
-    string oldValName = outputVarName(*r);
+    string oldValName = lp.outputVarName(*r);
 
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
     string condition =
-      parens(parens(lastClkVarName(clk) + " == 0") + " && " +
-             parens(clkVarName(clk) + " == 1"));
+      parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
+             parens(lp.clkVarName(clk) + " == 1"));
 
     if (hasEnable(wd.getWire())) {
       InstanceValue en = findArg("en", ins);
-      condition += " && " + printOpResultStr(en, g);
+      condition += " && " + printOpResultStr(en, g, lp);
     }
 
     s += ite(parens(condition),
-             printOpResultStr(add, g),
+             printOpResultStr(add, g, lp),
              oldValName) + ";\n";
     
     return s;
   }
 
-  string printRegister(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printRegister(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
     assert(wd.isSequential);
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -600,14 +603,14 @@ namespace CoreIR {
     assert(isInstance(s->getParent()));
 
     Instance* r = toInstance(s->getParent());
-    string rName = r->getInstname();
+    //string rName = r->getInstname();
 
     
     if (!wd.isReceiver) {
       //return "";
-      return ln(cVar(*s) + " = " + outputVarName(*r));
+      return ln(cVar(*s) + " = " + lp.outputVarName(*r));
     } else {
-      return enableRegReceiver(wd, vd, g);
+      return enableRegReceiver(wd, vd, g, lp);
     }
   }
 
@@ -632,7 +635,6 @@ namespace CoreIR {
     }
 
     if (ins.size() == 0) {
-
       return printConstant(inst, vd, g);
     }
 
@@ -698,7 +700,7 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
 
     if (isRegisterInstance(inst)) {
-      return printRegister(wd, vd, g);
+      return printRegister(wd, vd, g, layoutPolicy);
     }
 
     if (isMemoryInstance(inst)) {
@@ -756,17 +758,14 @@ namespace CoreIR {
                           const LayoutPolicy& lp) {
     assert(isSelect(wd.getWire()));
 
-    Wireable* src = extractSource(toSelect(wd.getWire()));
-
-    if (isRegisterInstance(src)) {
-      return lp.outputVarName(*src);
+    Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));    
+    if (isRegisterInstance(sourceInstance)) {
+      return lp.outputVarName(*sourceInstance);
     }
 
-    if (isMemoryInstance(src)) {
+    if (isMemoryInstance(sourceInstance)) {
       return cVar(wd);
     }
-
-    Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
 
     // Is this the correct way to check if the value is an input?
     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
@@ -786,7 +785,7 @@ namespace CoreIR {
       return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
     }
 
-    return cVar(wd);
+    return "/* LOCAL */" + cVar(wd);
   }
 
   string printInternalVariables(const std::deque<vdisc>& topo_order,
@@ -931,7 +930,7 @@ namespace CoreIR {
               Wireable& outSel = *(inConn.second.getWire());
               string outVarName = layoutPolicy.outputVarName(outSel);
 
-              simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g)));
+              simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g, layoutPolicy)));
               
             }
 

@@ -10,10 +10,7 @@ namespace CoreIR {
   }
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
-    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    // cout << "log2(depth))   = " << log2(depth) << endl;
 
-    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
     assert(val.bitLength() == ((int) width));
     // Cannot access out of range elements
     assert(bv.to_type<uint>() < depth);
