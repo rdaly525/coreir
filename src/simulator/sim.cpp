@@ -12,10 +12,22 @@ using namespace std;
 
 namespace CoreIR {
 
+  string lastClkVarName(InstanceValue& clk) {
+    return cVar("(state->", clk, "_last)");
+  }
+
+  string clkVarName(InstanceValue& clk) {
+    return cVar("(state->", clk, ")");
+  }
+  
   string outputVarName(CoreIR::Wireable& outSel) {
     return cVar("(state->", outSel, ")");
   }
 
+  string outputVarName(InstanceValue& val) {
+    return cVar("(state->", val, ")");
+  }
+  
   string printBinop(const WireNode& wd, const vdisc vd, const NGraph& g);
   string printOpResultStr(const InstanceValue& wd, const NGraph& g);
 
@@ -496,7 +508,9 @@ namespace CoreIR {
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
     string condition =
-      parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
+      //parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
+      parens(parens(lastClkVarName(clk) + " == 0") + " && " +
+             parens(clkVarName(clk) + " == 1"));
 
     if (hasEnable(wd.getWire())) {
       InstanceValue en = findArg("en", ins);
@@ -526,7 +540,7 @@ namespace CoreIR {
     
     if (!wd.isReceiver) {
       //return "";
-      return ln(cVar(*s) + " = " + cVar("(state->", *r, ")"));
+      return ln(cVar(*s) + " = " + outputVarName(*r)); //cVar("(state->", *r, ")"));
     } else {
       return enableRegReceiver(wd, vd, g);
     }
@@ -577,9 +591,14 @@ namespace CoreIR {
       assert(ins.size() == 1);
 
       InstanceValue raddr = findArg("raddr", ins);
+      // return ln(cVar(*s) + " = " +
+      //           parens(cVar("(state->", *r, ")") +
+      //                  "[ " + printOpResultStr(raddr, g) + " ]"));
+
       return ln(cVar(*s) + " = " +
-                parens(cVar("(state->", *r, ")") +
+                parens(outputVarName(*r) +
                        "[ " + printOpResultStr(raddr, g) + " ]"));
+
     } else {
       assert(ins.size() == 4);
 
@@ -589,11 +608,15 @@ namespace CoreIR {
       InstanceValue wen = findArg("wen", ins);
 
       string condition =
-        parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
+        parens(parens(lastClkVarName(clk) + " == 0") + " && " +
+               parens(clkVarName(clk) + " == 1"));
+        
+        // parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
 
       condition += " && " + printOpResultStr(wen, g);
 
-      string oldValueName = cVar("(state->", *r, ")") + "[ " + printOpResultStr(waddr, g) + " ]";
+      //string oldValueName = cVar("(state->", *r, ")") + "[ " + printOpResultStr(waddr, g) + " ]";
+      string oldValueName = outputVarName(*r) + "[ " + printOpResultStr(waddr, g) + " ]";
 
       string s = oldValueName + " = ";
       s += ite(parens(condition),
@@ -625,7 +648,8 @@ namespace CoreIR {
     if (!isThreadShared(vd, g)) {
       res = cVar(*(outPair.second));
     } else {
-      res = cVar("(state->", *(outPair.second), ")");
+      //res = cVar("(state->", *(outPair.second), ")");
+      res = outputVarName(*(outPair.second));
     }
 
     
@@ -668,7 +692,8 @@ namespace CoreIR {
     Wireable* src = extractSource(toSelect(wd.getWire()));
 
     if (isRegisterInstance(src)) {
-      return cVar("(state->", *src, ")");
+      //return cVar("(state->", *src, ")");
+      return outputVarName(*src);
     }
 
     if (isMemoryInstance(src)) {
@@ -679,11 +704,13 @@ namespace CoreIR {
 
     // Is this the correct way to check if the value is an input?
     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
-      return cVar("(state->", wd, ")");
+      //return cVar("(state->", wd, ")");
+      return outputVarName(wd);
     }
 
     if (isThreadShared(g.getOpNodeDisc(sourceInstance), g)) {
-      return cVar("(state->", wd, ")");
+      //return cVar("(state->", wd, ")");
+      return outputVarName(wd);
     }
     assert(g.containsOpNode(sourceInstance));
 
