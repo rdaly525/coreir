@@ -24,7 +24,7 @@ namespace CoreIR {
     return cVar("(state->", outSel, ")");
   }
 
-  string outputVarName(InstanceValue& val) {
+  string outputVarName(const InstanceValue& val) {
     return cVar("(state->", val, ")");
   }
   
@@ -496,19 +496,16 @@ namespace CoreIR {
 
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
-    //string s = cVar("(state->", *toInstance(wd.getWire()), ")") + " = ";
     string s = outputVarName(*wd.getWire()) + " = ";
 
     InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
 
-    //string oldValName = cVar("(state->", *r, ")");
-    string oldValName = outputVarName(*r); //cVar("(state->", *r, ")");
+    string oldValName = outputVarName(*r);
 
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
     string condition =
-      //parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
       parens(parens(lastClkVarName(clk) + " == 0") + " && " +
              parens(clkVarName(clk) + " == 1"));
 
@@ -540,7 +537,7 @@ namespace CoreIR {
     
     if (!wd.isReceiver) {
       //return "";
-      return ln(cVar(*s) + " = " + outputVarName(*r)); //cVar("(state->", *r, ")"));
+      return ln(cVar(*s) + " = " + outputVarName(*r));
     } else {
       return enableRegReceiver(wd, vd, g);
     }
@@ -591,9 +588,6 @@ namespace CoreIR {
       assert(ins.size() == 1);
 
       InstanceValue raddr = findArg("raddr", ins);
-      // return ln(cVar(*s) + " = " +
-      //           parens(cVar("(state->", *r, ")") +
-      //                  "[ " + printOpResultStr(raddr, g) + " ]"));
 
       return ln(cVar(*s) + " = " +
                 parens(outputVarName(*r) +
@@ -611,11 +605,8 @@ namespace CoreIR {
         parens(parens(lastClkVarName(clk) + " == 0") + " && " +
                parens(clkVarName(clk) + " == 1"));
         
-        // parens(cVar("(state->", clk, "_last)") + " == 0") + " && " + parens(cVar("(state->", clk, ")") + " == 1");
-
       condition += " && " + printOpResultStr(wen, g);
 
-      //string oldValueName = cVar("(state->", *r, ")") + "[ " + printOpResultStr(waddr, g) + " ]";
       string oldValueName = outputVarName(*r) + "[ " + printOpResultStr(waddr, g) + " ]";
 
       string s = oldValueName + " = ";
@@ -648,7 +639,6 @@ namespace CoreIR {
     if (!isThreadShared(vd, g)) {
       res = cVar(*(outPair.second));
     } else {
-      //res = cVar("(state->", *(outPair.second), ")");
       res = outputVarName(*(outPair.second));
     }
 
@@ -692,7 +682,6 @@ namespace CoreIR {
     Wireable* src = extractSource(toSelect(wd.getWire()));
 
     if (isRegisterInstance(src)) {
-      //return cVar("(state->", *src, ")");
       return outputVarName(*src);
     }
 
@@ -704,12 +693,10 @@ namespace CoreIR {
 
     // Is this the correct way to check if the value is an input?
     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
-      //return cVar("(state->", wd, ")");
       return outputVarName(wd);
     }
 
     if (isThreadShared(g.getOpNodeDisc(sourceInstance), g)) {
-      //return cVar("(state->", wd, ")");
       return outputVarName(wd);
     }
     assert(g.containsOpNode(sourceInstance));
