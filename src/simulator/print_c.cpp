@@ -260,7 +260,6 @@ namespace CoreIR {
     string expr = "(expr)";
     string width = "(width)";
 
-    
     return "#define MASK(width, expr) " + parens( bitMaskString(width) +  " & " + parens(expr)) + "\n\n";
   }
 

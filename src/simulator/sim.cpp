@@ -458,7 +458,6 @@ namespace CoreIR {
     assert(false);
   }
 
-  // getInstantiableRef 
   bool hasEnable(Wireable* w) {
     assert(isRegisterInstance(w));
 
@@ -523,7 +522,7 @@ namespace CoreIR {
       //return "";
       return ln(cVar(*s) + " = " + cVar("(state->", *r, ")"));
     } else {
-      return enableRegReceiver(wd, vd, g); // + ln(cVar(*s) + " = " + cVar("(state->", *r, ")"));
+      return enableRegReceiver(wd, vd, g);
     }
   }
 
@@ -603,10 +602,6 @@ namespace CoreIR {
   string printInstance(const WireNode& wd, const vdisc vd, const NGraph& g) {
     Instance* inst = toInstance(wd.getWire());
 
-    //cout << "Instance name = " << getInstanceName(*inst) << endl;
-
-    //auto ins = getInputs(vd, g);
-    
     if (isRegisterInstance(inst)) {
       return printRegister(wd, vd, g);
     }
@@ -697,45 +692,6 @@ namespace CoreIR {
     return cVar(wd);
   }
 
-  bool fromSelfInterface(Select* w) {
-    if (!fromSelf(w)) {
-      return false;
-    }
-
-    Wireable* parent = w->getParent();
-    if (isInterface(parent)) {
-      return true;
-    } else if (isInstance(parent)) {
-      return false;
-    }
-
-    assert(isSelect(parent));
-
-    return fromSelf(toSelect(parent));
-  }
-
-  std::unordered_map<string, Type*>
-  outputs(Module& mod) {
-    Type* tp = mod.getType();
-
-    assert(tp->getKind() == Type::TK_Record);
-
-    unordered_map<string, Type*> outs;
-
-    RecordType* modRec = static_cast<RecordType*>(tp);
-    vector<string> declStrs;
-    for (auto& name_type_pair : modRec->getRecord()) {
-      Type* tp = name_type_pair.second;
-
-      if (tp->isOutput()) {
-        outs.insert(name_type_pair);
-      }
-    }
-
-    return outs;
-    
-  }
-
   string printInternalVariables(const std::deque<vdisc>& topo_order,
                                 NGraph& g,
                                 Module&) {
@@ -793,9 +749,6 @@ namespace CoreIR {
 
     // Print out operations in topological order
     str += "\n// Simulation code\n";
-
-    //stringstream ss;
-    //ss << str;
 
     int i = 0;
     vector<string> simLines;

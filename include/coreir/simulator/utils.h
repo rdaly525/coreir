@@ -348,4 +348,9 @@ namespace CoreIR {
     return arrayLen(parent);
   }
 
+  std::unordered_map<std::string, CoreIR::Type*>
+  outputs(CoreIR::Module& mod);
+
+  bool fromSelfInterface(CoreIR::Select* w);
+  
 }
