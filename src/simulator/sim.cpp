@@ -961,7 +961,6 @@ namespace CoreIR {
               if (!wd.isSequential) {
 
                 declStrs.push_back({in->getType(), cVar(*in)});
-                //str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
 
               }
             }
