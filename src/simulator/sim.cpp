@@ -28,20 +28,6 @@ namespace CoreIR {
     return cVar("(state->", val, ")");
   }
 
-  class LayoutPolicy {
-  public:
-    virtual ~LayoutPolicy() {}
-
-    virtual std::string lastClkVarName(InstanceValue& clk) const = 0;
-
-    virtual std::string clkVarName(InstanceValue& clk) const = 0;
-
-    virtual std::string outputVarName(CoreIR::Wireable& outSel) const = 0;
-
-    virtual std::string outputVarName(const InstanceValue& val) const = 0;
-
-  };
-  
   class CustomStructLayout : public LayoutPolicy {
   public:
     std::string lastClkVarName(InstanceValue& clk) const {
@@ -107,7 +93,6 @@ namespace CoreIR {
                      const NGraph& g) {
     CustomStructLayout lp;
     return opResultStr(wd, vd, g, lp);
-    
   }
   
   string printUnop(Instance* inst, const vdisc vd, const NGraph& g) {
