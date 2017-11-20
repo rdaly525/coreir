@@ -972,6 +972,8 @@ namespace CoreIR {
     vector<string> simLines;
 
     concat(simLines,
+           updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
+    concat(simLines,
            updateCombinationalLogic(topo_order, g, mod, threadNo, layoutPolicy));
     concat(simLines,
            updateSequentialElements(topo_order, g, mod, threadNo, layoutPolicy));

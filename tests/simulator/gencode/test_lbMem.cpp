@@ -48,5 +48,12 @@ int main() {
 
   assert(state.self_rdata == 1);
 
+  simulate(&state);
+  simulate(&state);
+  simulate(&state);
+
+  assert(state.self_rdata == 1);
+  
+
   return 0;
 }
