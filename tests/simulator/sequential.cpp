@@ -4,6 +4,7 @@
 
 #include "coreir.h"
 #include "coreir/passes/transform/rungenerators.h"
+#include "coreir/libs/commonlib.h"
 
 #include "coreir/simulator/output.h"
 #include "coreir/simulator/simulator.h"
@@ -485,14 +486,40 @@ namespace CoreIR {
     }
 
     SECTION("LineBufferMem") {
-      if (!loadFromFile(c,"./linebuffermem.json")) {
-    	cout << "Could not Load from json!!" << endl;
-    	c->die();
-      }
 
+      uint index = 4;
+      uint width = index;
+      uint depth = pow(2, index) - 6;
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+          {"clk", c->Named("coreir.clkIn")},
+            {"wdata", c->BitIn()->Arr(width)},
+              {"rdata", c->Bit()->Arr(width)},
+        	  {"valid", c->Bit()}
+        });
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("lb_wen", "corebit.const", {{"value", Const::make(c, true)}});
+      def->addInstance("m0",
+        	       "commonlib.LinebufferMem",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("lb_wen.out", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
+
+      lbMem->setDef(def);
+      
       c->runPasses({"rungenerators","flattentypes","flatten"});
 
-      Module* m = c->getGlobal()->getModule("lbMem");
+      Module* m = lbMem;
 
       NGraph g;
       buildOrderedGraph(m, g);
