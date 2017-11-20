@@ -130,6 +130,55 @@ namespace CoreIR {
       }
       
     }
+
+    SECTION("Register with enable, but the enable is connected to a constant") {
+      uint n = 5;
+
+      Type* RegType = c->Record({
+	    {"out", c->Array(n, c->Bit())},
+	      {"a", c->Array(n, c->BitIn())},
+	      {"clk", c->Named("coreir.clkIn")}
+	});
+
+      Module* rg = c->getGlobal()->newModuleDecl("offReg", RegType);
+
+      ModuleDef* def = rg->newModuleDef();
+
+      def->addInstance("r", "mantle.reg", {{"width", Const::make(c,n)},
+            {"has_en", Const::make(c,true)}});
+      def->addInstance("en_const",
+                       "corebit.const",
+                       {{"value", Const::make(c, true)}});
+
+      def->connect("en_const.out", "r.en");
+      def->connect("self.clk", "r.clk");
+      def->connect("self.a", "r.in");
+      def->connect("r.out", "self.out");
+
+      rg->setDef(def);
+
+      c->runPasses({"rungenerators"});
+      
+      NGraph g;
+      buildOrderedGraph(rg, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      SECTION("Compile and run") {      
+	string outFile = "reg_const_enable";
+
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  rg,
+				  "./gencode/",
+				  outFile,
+				  "test_reg_const_enable.cpp");
+
+	REQUIRE(s == 0);
+
+      }
+      
+    }
     
     SECTION("Non standard width register") {
       uint n = 5;
