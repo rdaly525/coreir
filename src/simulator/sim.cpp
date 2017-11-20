@@ -835,25 +835,16 @@ namespace CoreIR {
     return str;
   }
 
-  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
-                              NGraph& g,
-                              Module& mod,
-                              const int threadNo,
-                              const LayoutPolicy& layoutPolicy) {
-
-    cout << "Printing sim function for " << threadNo << endl;
-
-    string str = printSimFunctionPrefix(topo_order, g, mod, threadNo);
-
-    // Print out operations in topological order
-    str += "\n// Simulation code\n";
-
-    int i = 0;
+  vector<string>
+  updateSequentialElements(const std::deque<vdisc>& topoOrder,
+                           NGraph& g,
+                           Module& mod,
+                           const int threadNo,
+                           const LayoutPolicy& layoutPolicy) {
     vector<string> simLines;
-
     // Update stateful element values
     simLines.push_back("// Update stored state in sequential elements\n");
-    for (auto& vd : topo_order) {
+    for (auto& vd : topoOrder) {
 
       WireNode wd = getNode(g, vd);
 
@@ -875,8 +866,20 @@ namespace CoreIR {
       
     }
 
+    return simLines;
+
+  }
+
+  vector<string>
+  updateSequentialOutputs(const std::deque<vdisc>& topoOrder,
+                          NGraph& g,
+                          Module& mod,
+                          const int threadNo,
+                          const LayoutPolicy& layoutPolicy) {
+
+    vector<string> simLines;
     simLines.push_back("// Update outputs of sequential elements\n");
-    for (auto& vd : topo_order) {
+    for (auto& vd : topoOrder) {
 
       WireNode wd = getNode(g, vd);
 
@@ -895,9 +898,37 @@ namespace CoreIR {
 
         }
       }
-      
     }
+
+    return simLines;
     
+  }  
+
+  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
+                              NGraph& g,
+                              Module& mod,
+                              const int threadNo,
+                              const LayoutPolicy& layoutPolicy) {
+
+    cout << "Printing sim function for " << threadNo << endl;
+
+    string str = printSimFunctionPrefix(topo_order, g, mod, threadNo);
+
+    // Print out operations in topological order
+    str += "\n// Simulation code\n";
+
+    int i = 0;
+    vector<string> simLines;
+
+    concat(simLines, updateSequentialElements(topo_order,
+                                              g,
+                                              mod,
+                                              threadNo,
+                                              layoutPolicy));
+
+    concat(simLines,
+           updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
+
     simLines.push_back("// Update combinational logic\n");
     for (auto& vd : topo_order) {
 
