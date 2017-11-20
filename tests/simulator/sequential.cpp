@@ -59,6 +59,38 @@ namespace CoreIR {
 
     Context* c = newContext();
 
+    SECTION("Combinational logic before register update") {
+      uint width = 32;
+
+      Type* regType = c->Record({
+          {"clk", c->Named("coreir.clkIn")},
+            {"in_0", c->BitIn()->Arr(width)},
+              {"in_1", c->BitIn()->Arr(width)},
+                {"out_0", c->Bit()->Arr(width)},
+                  {"out_1", c->Bit()->Arr(width)}
+        });
+
+      Module* regComb =
+        c->getGlobal()->newModuleDecl("regComb", regType);
+
+      ModuleDef* def = regComb->newModuleDef();
+
+      def->addInstance("add0", "coreir.add", {{"width", Const::make(c, width)}});
+      def->addInstance("reg0", "coreir.reg", {{"width", Const::make(c, width)}});
+
+      def->connect("self.in_0", "add0.in0");
+      def->connect("self.in_1", "add0.in1");
+
+      def->connect("add0.out", "self.out_0");
+      def->connect("add0.out", "reg0.in");
+
+      def->connect("reg0.out", "self.out_1");
+
+      def->connect("self.clk", "reg0.clk");
+
+      regComb->setDef(def);
+    }
+
     SECTION("Memory primitive") {
       uint width = 16;
       uint depth = 2;
