@@ -30,21 +30,23 @@ int main() {
 
   printMem(state);
 
-  for (int i = 0; i < 40; i++) {
+  for (int i = 0; i < 9; i++) {
     simulate(&state);
 
-    printMem(state);
-    cout << "state.self_rdata             = " << bitset<8>(state.self_rdata) << endl;
-    cout << "state.self_m0$raddr$reg0     = " << bitset<8>(state.m0$raddr$reg0) << endl;
-    cout << "state.self_m0$waddr$reg0     = " << bitset<8>(state.m0$waddr$reg0) << endl;
+    //printMem(state);
+    cout << "state.self_rdata " << i << "             = " << bitset<8>(state.self_rdata) << endl;
+    //cout << "state.self_m0$raddr$reg0     = " << bitset<8>(state.m0$raddr$reg0) << endl;
+    //cout << "state.self_m0$waddr$reg0     = " << bitset<8>(state.m0$waddr$reg0) << endl;
 
-    cout << "-----------------------------" << endl;
+    //cout << "-----------------------------" << endl;
     //cout << "state->m0$raddr$reg0 = " << bitset<8>(state.m0$raddr$reg0) << endl;
   }
 
-  if (state.self_rdata != 1) {
-    return 1;
-  }
+  assert(state.self_rdata == 0);
+
+  simulate(&state);
+
+  assert(state.self_rdata == 1);
 
   return 0;
 }
