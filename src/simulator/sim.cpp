@@ -166,18 +166,14 @@ namespace CoreIR {
     for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
         foundValue = true;
-        Value* valArg = arg.second; //.get();
-
-        cout << "Value type = " << valArg->getValueType()->toString() << endl;
+        Value* valArg = arg.second;
 
         assert(valArg->getValueType() == inst->getContext()->Bool());
-        //assert(valArg->getKind() == AINT);
 
-        //ArgInt* valInt = static_cast<ArgInt*>(valArg);
         bool bv = valArg->get<bool>();
         stringstream ss;
         ss << (bv ? "1" : "0");
-        argStr = ss.str(); //std::to_string(valArg->get<int>()); //valInt->toString();
+        argStr = ss.str();
       }
     }
 
@@ -314,11 +310,8 @@ namespace CoreIR {
   }
 
   bool isMux(Instance& inst) {
-
     string genRefName = getInstanceName(inst);
-
     return genRefName == "mux";
-
   }
 
   string printMux(Instance* inst, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
@@ -1235,7 +1228,6 @@ namespace CoreIR {
             cout << "Joined thread " << se << endl;
 
           }
-          
         }
         code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
       }

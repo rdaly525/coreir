@@ -484,6 +484,30 @@ namespace CoreIR {
       
     }
 
+    SECTION("LineBufferMem") {
+      if (!loadFromFile(c,"./linebuffermem.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      Module* m = c->getGlobal()->getModule("lbMem");
+
+      NGraph g;
+      buildOrderedGraph(m, g);
+
+      cout << "Done building graph" << endl;
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      SECTION("Compile and run") {
+	int s = compileCode(topoOrder, g, m, "./gencode/", "lbMem");
+	REQUIRE(s == 0);
+      }
+
+    }
+
     
     deleteContext(c);
 
