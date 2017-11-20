@@ -131,29 +131,41 @@ namespace CoreIR {
       
     }
 
-    SECTION("Register with enable, but the enable is connected to a constant") {
+    SECTION("Registers with enable, but the enable is connected to a constant") {
       uint n = 5;
 
       Type* RegType = c->Record({
-	    {"out", c->Array(n, c->Bit())},
-	      {"a", c->Array(n, c->BitIn())},
-	      {"clk", c->Named("coreir.clkIn")}
+	  {"en", c->BitIn()},
+	    {"out_0", c->Array(n, c->Bit())},
+              {"out_1", c->Array(n, c->Bit())},
+                {"a", c->Array(n, c->BitIn())},
+                  {"clk", c->Named("coreir.clkIn")}
 	});
 
       Module* rg = c->getGlobal()->newModuleDecl("offReg", RegType);
 
       ModuleDef* def = rg->newModuleDef();
 
-      def->addInstance("r", "mantle.reg", {{"width", Const::make(c,n)},
+      def->addInstance("r0", "mantle.reg", {{"width", Const::make(c,n)},
             {"has_en", Const::make(c,true)}});
+      def->addInstance("r1", "mantle.reg", {{"width", Const::make(c,n)},
+            {"has_en", Const::make(c,true)}});
+
       def->addInstance("en_const",
                        "corebit.const",
                        {{"value", Const::make(c, true)}});
 
-      def->connect("en_const.out", "r.en");
-      def->connect("self.clk", "r.clk");
-      def->connect("self.a", "r.in");
-      def->connect("r.out", "self.out");
+      def->connect("en_const.out", "r0.en");
+      def->connect("en_const.out", "r1.en");
+
+      def->connect("self.clk", "r0.clk");
+      def->connect("self.clk", "r1.clk");
+
+      def->connect("self.a", "r0.in");
+      def->connect("self.a", "r1.in");
+
+      def->connect("r0.out", "self.out_0");
+      def->connect("r1.out", "self.out_1");
 
       rg->setDef(def);
 
