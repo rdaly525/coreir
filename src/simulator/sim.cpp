@@ -12,19 +12,19 @@ using namespace std;
 
 namespace CoreIR {
 
-  string lastClkVarName(InstanceValue& clk) {
+  static string lastClkVarName(InstanceValue& clk) {
     return cVar("(state->", clk, "_last)");
   }
 
-  string clkVarName(InstanceValue& clk) {
+  static string clkVarName(InstanceValue& clk) {
     return cVar("(state->", clk, ")");
   }
   
-  string outputVarName(CoreIR::Wireable& outSel) {
+  static string outputVarName(CoreIR::Wireable& outSel) {
     return cVar("(state->", outSel, ")");
   }
 
-  string outputVarName(const InstanceValue& val) {
+  static string outputVarName(const InstanceValue& val) {
     return cVar("(state->", val, ")");
   }
 
