@@ -497,6 +497,7 @@ namespace CoreIR {
           {"clk", c->Named("coreir.clkIn")},
             {"wdata", c->BitIn()->Arr(width)},
               {"rdata", c->Bit()->Arr(width)},
+                {"wen", c->BitIn()},
         	  {"valid", c->Bit()}
         });
 
@@ -510,7 +511,9 @@ namespace CoreIR {
         		   {"depth", Const::make(c, depth)}});
 
       def->connect("self.clk", "m0.clk");
-      def->connect("lb_wen.out", "m0.wen");
+      //def->connect("lb_wen.out", "m0.wen");
+      def->connect("self.wen", "m0.wen");
+      
       def->connect("self.wdata", "m0.wdata");
       def->connect("m0.rdata", "self.rdata");
       def->connect("m0.valid", "self.valid");

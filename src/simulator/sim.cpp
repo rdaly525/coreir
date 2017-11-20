@@ -836,7 +836,7 @@ namespace CoreIR {
                            const LayoutPolicy& layoutPolicy) {
     vector<string> simLines;
     // Update stateful element values
-    simLines.push_back("// Update stored state in sequential elements\n");
+    simLines.push_back("\n// ----- Update stored state in sequential elements\n");
     for (auto& vd : topoOrder) {
 
       WireNode wd = getNode(g, vd);
@@ -871,7 +871,7 @@ namespace CoreIR {
                           const LayoutPolicy& layoutPolicy) {
 
     vector<string> simLines;
-    simLines.push_back("// Update outputs of sequential elements\n");
+    simLines.push_back("\n// ----- Update outputs of sequential elements\n");
     for (auto& vd : topoOrder) {
 
       WireNode wd = getNode(g, vd);
@@ -906,7 +906,7 @@ namespace CoreIR {
     vector<string> simLines;
 
     int i = 0;
-    simLines.push_back("// Update combinational logic\n");
+    simLines.push_back("\n// ----- Update combinational logic\n");
     for (auto& vd : topoOrder) {
 
       string val = "<UNSET>";
