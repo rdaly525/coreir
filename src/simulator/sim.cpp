@@ -904,33 +904,17 @@ namespace CoreIR {
     
   }  
 
-  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
-                              NGraph& g,
-                              Module& mod,
-                              const int threadNo,
-                              const LayoutPolicy& layoutPolicy) {
-
-    cout << "Printing sim function for " << threadNo << endl;
-
-    string str = printSimFunctionPrefix(topo_order, g, mod, threadNo);
-
-    // Print out operations in topological order
-    str += "\n// Simulation code\n";
-
-    int i = 0;
+  vector<string>
+  updateCombinationalLogic(const std::deque<vdisc>& topoOrder,
+                           NGraph& g,
+                           Module& mod,
+                           const int threadNo,
+                           const LayoutPolicy& layoutPolicy) {
     vector<string> simLines;
 
-    concat(simLines, updateSequentialElements(topo_order,
-                                              g,
-                                              mod,
-                                              threadNo,
-                                              layoutPolicy));
-
-    concat(simLines,
-           updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
-
+    int i = 0;
     simLines.push_back("// Update combinational logic\n");
-    for (auto& vd : topo_order) {
+    for (auto& vd : topoOrder) {
 
       string val = "<UNSET>";
       WireNode wd = getNode(g, vd);
@@ -975,6 +959,32 @@ namespace CoreIR {
       i++;
     }
 
+
+    return simLines;
+  }
+  
+  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
+                              NGraph& g,
+                              Module& mod,
+                              const int threadNo,
+                              const LayoutPolicy& layoutPolicy) {
+
+    cout << "Printing sim function for " << threadNo << endl;
+
+    string str = printSimFunctionPrefix(topo_order, g, mod, threadNo);
+
+    // Print out operations in topological order
+    str += "\n// Simulation code\n";
+
+    vector<string> simLines;
+
+    concat(simLines,
+           updateSequentialElements(topo_order, g, mod, threadNo, layoutPolicy));
+    concat(simLines,
+           updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
+    concat(simLines,
+           updateCombinationalLogic(topo_order, g, mod, threadNo, layoutPolicy));
+    
     cout << "Done writing sim lines, now need to concatenate them" << endl;
 
     for (auto& ln : simLines) {
