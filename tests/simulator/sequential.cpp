@@ -89,6 +89,27 @@ namespace CoreIR {
       def->connect("self.clk", "reg0.clk");
 
       regComb->setDef(def);
+
+      c->runPasses({"rungenerators"});
+      
+      NGraph g;
+      buildOrderedGraph(regComb, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      SECTION("Compile and run") {      
+	string outFile = "comb_then_reg";
+        string testFile = "test_" + outFile + ".cpp";
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  regComb,
+				  "./gencode/",
+				  outFile,
+                                  testFile);
+
+	REQUIRE(s == 0);
+      }
+      
     }
 
     SECTION("Memory primitive") {
