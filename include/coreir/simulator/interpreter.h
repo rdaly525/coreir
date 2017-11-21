@@ -315,6 +315,10 @@ namespace CoreIR {
     getValueByOriginalName(const std::string& name);
 
     void
+    deleteWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                const std::vector<std::string>& portSelectList);
+
+    void
     setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
                                 const std::vector<std::string>& portSelectList,
                                 const BitVec& value);
