@@ -554,7 +554,6 @@ namespace CoreIR {
     setValue(s, bv);
   }
 
-  // NOTE: Actually implement by checking types
   bool isSimBitVector(SimValue* v) {
     return v->getType() == SIM_VALUE_BV;
   }
@@ -1463,6 +1462,7 @@ namespace CoreIR {
       setValue(mainClock, clockCopy);
     }
 
+    exeCombinational();
     exeSequential();
     exeCombinational();
 
