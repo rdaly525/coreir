@@ -1217,21 +1217,51 @@ namespace CoreIR {
       BitVector zero(16, "0");
       BitVector inVal = one; //zero;
 
-      for (int i = 0; i < 50; i++) {
-        state.setValue("self.in_0", inVal);
+      int val = 1;
+
+      int lastClk = 0;
+      int nextClk = 1;
+
+      state.setClock("self.clk", lastClk, nextClk);
+      state.setValue("self.in_0", BitVec(16, val));
+
+      for (int i = 0; i < 41; i++) {
+        nextClk = i % 2;
+
+        state.setClock("self.clk", lastClk, nextClk);
+
         state.execute();
 
-        cout << "conv_3_1 state.out " << i << " = " << state.getBitVec("self.out").to_type<uint16_t>() << " -- in0 = " << state.getBitVec("self.in_0").to_type<uint16_t>() << endl;
-        
-        inVal = add_general_width_bv(inVal, one);
+        if ((i % 2) == 0) {
+          cout << "Output " << i << " = " <<
+            state.getBitVec("self.out").to_type<uint16_t>() << endl;
+        }
 
+        if ((i % 2) == 1) {
+          val = val + 1;
+
+          state.setValue("self.in_0", BitVec(16, val));
+        }
+
+        lastClk = nextClk;
 
       }
 
-      REQUIRE(state.isSet("self.out"));
+      REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
+
+      // for (int i = 0; i < 50; i++) {
+      //   state.setValue("self.in_0", inVal);
+      //   state.execute();
+
+      //   cout << "conv_3_1 state.out " << i << " = " << state.getBitVec("self.out").to_type<uint16_t>() << " -- in0 = " << state.getBitVec("self.in_0").to_type<uint16_t>() << endl;
+      //   inVal = add_general_width_bv(inVal, one);
 
 
-      
+      // }
+
+      // REQUIRE(state.isSet("self.out"));
+
+
     }
 
     SECTION("Failing clock test") {
