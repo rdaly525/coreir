@@ -1249,19 +1249,6 @@ namespace CoreIR {
 
       REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
 
-      // for (int i = 0; i < 50; i++) {
-      //   state.setValue("self.in_0", inVal);
-      //   state.execute();
-
-      //   cout << "conv_3_1 state.out " << i << " = " << state.getBitVec("self.out").to_type<uint16_t>() << " -- in0 = " << state.getBitVec("self.in_0").to_type<uint16_t>() << endl;
-      //   inVal = add_general_width_bv(inVal, one);
-
-
-      // }
-
-      // REQUIRE(state.isSet("self.out"));
-
-
     }
 
     SECTION("Failing clock test") {
