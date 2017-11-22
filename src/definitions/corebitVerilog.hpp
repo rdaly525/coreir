@@ -12,6 +12,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       {"and","in0 & in1"},
       {"or","in0 | in1"},
       {"xor","in0 ^ in1"},
+      {"xnor","in0 ~^ in1"},
     }},
     {"other",{
       {"mux","sel ? in1 : in0"},
