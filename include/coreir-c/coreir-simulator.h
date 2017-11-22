@@ -14,6 +14,7 @@ extern void CORESimSetClock(CORESimulatorState* cstate, char** cpath, int path_l
 extern int CORESimGetClockCycles(CORESimulatorState* cstate, char** cpath, int path_len);
 extern void CORESimSetValue(CORESimulatorState* cstate, char** cpath, int path_len, bool* new_val, int val_len);
 extern void CORESimResetCircuit(CORESimulatorState* cstate);
+extern void CORESimRunHalfCycle(CORESimulatorState* cstate);
 extern void CORESimStepMainClock(CORESimulatorState* cstate);
 extern void CORESimRun(CORESimulatorState* cstate);
 extern void CORESimExecute(CORESimulatorState* cstate);

@@ -1576,6 +1576,12 @@ namespace CoreIR {
     return name;
   }
 
+  void SimulatorState::deleteWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                                      const std::vector<std::string>& portSelectList) {
+    string originalName = reconstructName(instanceList, portSelectList);
+    deleteWatchPoint(originalName);
+  }
+
   void
   SimulatorState::setWatchPointByOriginalName(const std::string& name,
                                               const BitVec& bv) {
