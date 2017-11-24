@@ -21,7 +21,7 @@ int main() {
   state.self_wdata = 1;
   state.self_wen = 1;
 
-  state.m0$raddr$reg0 = 1;
+  state.m0$raddr$reg0 = 0;
   state.m0$waddr$reg0 = 0;
   
   for (int i = 0; i < 10; i++) {
