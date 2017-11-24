@@ -251,4 +251,7 @@ namespace CoreIR {
   std::vector<std::vector<vdisc> > topologicalLevels(const NGraph& g);
 
   bool isThreadShared(const vdisc v, const NGraph& g);
+
+  Select* findMainClock(const NGraph& g);
+
 }
