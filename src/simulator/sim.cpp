@@ -758,6 +758,7 @@ namespace CoreIR {
 
     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));    
     if (isRegisterInstance(sourceInstance)) {
+      // TODO: This should print out the register output variable name
       return lp.outputVarName(*sourceInstance);
     }
 

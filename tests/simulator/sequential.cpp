@@ -715,6 +715,33 @@ namespace CoreIR {
 
     }
 
+    SECTION("conv_3_1") {
+      CoreIRLoadLibrary_commonlib(c);
+
+      if (!loadFromFile(c,"./conv_3_1.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+      
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      Module* m = c->getGlobal()->getModule("DesignTop");
+
+      NGraph g;
+      buildOrderedGraph(m, g);
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      SECTION("Compile and run") {
+	int s = compileCodeAndRun(topoOrder,
+                                  g,
+                                  m,
+                                  "./gencode/",
+                                  "conv_3_1",
+                                  "test_conv_3_1.cpp");
+	REQUIRE(s == 0);
+      }
+        
+    }
     
     deleteContext(c);
 
