@@ -971,52 +971,16 @@ namespace CoreIR {
 
     vector<string> simLines;
 
-    // // Finding the clock intput
-    // vector<Select*> clockInputs;
+    auto clk = findMainClock(g);
 
-    // for (auto& vd : g.getVerts()) {
-
-    //   WireNode w = g.getNode(vd);
-
-    //   if (isGraphInput(w)) {
-
-    //     Select* inSel = toSelect(w.getWire());
-    //     Type* tp = inSel->getType();
-
-    //     if (tp->getKind() == CoreIR::Type::TK_Named) {
-    //       NamedType* ntp = static_cast<NamedType*>(tp);
-
-    //       if (ntp->toString() == "coreir.clk") {
-    //         clockInputs.push_back(inSel);
-    //       }
-    //     }
-
-    //   }
-      
-    // }
-
-    // if (clockInputs.size() > 1) {
-    //   cout << "ERROR: Circuit has " << clockInputs.size() << " clocks, but this simulator currently supports only one" << endl;
-    //   cout << "The clocks are " << endl;
-    //   for (auto& clk : clockInputs) {
-    //     cout << clk->toString() << endl;
-    //   }
-    //   assert(false);
-    // }
-
-    // Select* clk = nullptr;
-    // if (clockInputs.size() == 1) {
-    //   clk = clockInputs[0]; //setMainClock(clockInputs[0]);
-    // }
-
-    // if (clk != nullptr) {
-      // InstanceValue clkInst(clk);
+    if (clk != nullptr) {
+      InstanceValue clkInst(clk);
     
-      // string condition =
-      //   parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
-      //          parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
+      string condition =
+        parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
+               parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
-      //simLines.push_back("if " + condition + " {\n");
+      simLines.push_back("if " + condition + " {\n");
 
 
       concat(simLines,
@@ -1028,8 +992,8 @@ namespace CoreIR {
       concat(simLines,
              updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
 
-      //simLines.push_back("\n}\n");
-      //}
+      simLines.push_back("\n}\n");
+    }
 
     concat(simLines,
            updateCombinationalLogic(topo_order, g, mod, threadNo, layoutPolicy));

@@ -445,39 +445,6 @@ namespace CoreIR {
   }
 
   void SimulatorState::findMainClock() {
-
-    // vector<Select*> clockInputs;
-
-    // for (auto& vd : getCircuitGraph().getVerts()) {
-
-    //   WireNode w = getCircuitGraph().getNode(vd);
-
-    //   if (isGraphInput(w)) {
-
-    //     Select* inSel = toSelect(w.getWire());
-    //     Type* tp = inSel->getType();
-
-    //     if (tp->getKind() == CoreIR::Type::TK_Named) {
-    //       NamedType* ntp = static_cast<NamedType*>(tp);
-
-    //       if (ntp->toString() == "coreir.clk") {
-    //         clockInputs.push_back(inSel);
-    //       }
-    //     }
-
-    //   }
-      
-    // }
-
-    // if (clockInputs.size() > 1) {
-    //   cout << "ERROR: Circuit has " << clockInputs.size() << " clocks, but this simulator currently supports only one" << endl;
-    //   cout << "The clocks are " << endl;
-    //   for (auto& clk : clockInputs) {
-    //     cout << clk->toString() << endl;
-    //   }
-    //   assert(false);
-    // }
-
     auto clkInput = CoreIR::findMainClock(getCircuitGraph());
 
     if (clkInput != nullptr) {
