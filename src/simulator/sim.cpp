@@ -996,12 +996,11 @@ namespace CoreIR {
              updateCombinationalLogic(topo_order, g, mod, threadNo, layoutPolicy));
       concat(simLines,
              updateSequentialElements(topo_order, g, mod, threadNo, layoutPolicy));
-      concat(simLines,
-             updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
-
       simLines.push_back("\n}\n");
     }
 
+    concat(simLines,
+           updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
     concat(simLines,
            updateCombinationalLogic(topo_order, g, mod, threadNo, layoutPolicy));
     
