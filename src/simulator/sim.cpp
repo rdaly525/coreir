@@ -562,26 +562,30 @@ namespace CoreIR {
 
     string s = lp.outputVarName(*wd.getWire()) + " = ";
 
-    InstanceValue clk = findArg("clk", ins);
+    //InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
 
     string oldValName = lp.outputVarName(*r);
 
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
-    string condition =
-      parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
-             parens(lp.clkVarName(clk) + " == 1"));
+    // string condition =
+    //   parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
+    //          parens(lp.clkVarName(clk) + " == 1"));
 
     if (hasEnable(wd.getWire())) {
+      string condition = "";
+      
       InstanceValue en = findArg("en", ins);
-      condition += " && " + printOpResultStr(en, g, lp);
+      condition += printOpResultStr(en, g, lp);
+
+      s += ite(parens(condition),
+               printOpResultStr(add, g, lp),
+               oldValName) + ";\n";
+    } else {
+      s += printOpResultStr(add, g, lp) + ";\n";
     }
 
-    s += ite(parens(condition),
-             printOpResultStr(add, g, lp),
-             oldValName) + ";\n";
-    
     return s;
   }
 
@@ -981,7 +985,6 @@ namespace CoreIR {
                parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
       simLines.push_back("if " + condition + " {\n");
-
 
       concat(simLines,
              updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
