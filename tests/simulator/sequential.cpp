@@ -723,7 +723,7 @@ namespace CoreIR {
     	c->die();
       }
       
-      c->runPasses({"rungenerators","flattentypes","flatten"});
+      c->runPasses({"rungenerators","flattentypes","flatten", "wireclocks-coreir"});
 
       Module* m = c->getGlobal()->getModule("DesignTop");
 
