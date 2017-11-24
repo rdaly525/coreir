@@ -668,14 +668,15 @@ namespace CoreIR {
 
       InstanceValue waddr = findArg("waddr", ins);
       InstanceValue wdata = findArg("wdata", ins);
-      InstanceValue clk = findArg("clk", ins);
+      //InstanceValue clk = findArg("clk", ins);
       InstanceValue wen = findArg("wen", ins);
 
-      string condition =
-        parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
-               parens(lp.clkVarName(clk) + " == 1"));
+      // string condition =
+      //   parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
+      //          parens(lp.clkVarName(clk) + " == 1"));
         
-      condition += " && " + printOpResultStr(wen, g, lp);
+      //condition += " && " + printOpResultStr(wen, g, lp);
+      string condition = printOpResultStr(wen, g, lp);
 
       string oldValueName = lp.outputVarName(*r) + "[ " + printOpResultStr(waddr, g, lp) + " ]";
 
