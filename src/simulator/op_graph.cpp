@@ -320,6 +320,12 @@ namespace CoreIR {
 
       auto c1_disc_it = imap.find(combNode(p1));
 
+      if (isRegisterInstance(p1) ||
+          isMemoryInstance(p1) ||
+          isDFFInstance(p1)) {
+        c1_disc_it = imap.find(outputNode(p1));
+      }
+
       assert(c1_disc_it != imap.end());
 
       c1_disc = (*c1_disc_it).second;
@@ -331,27 +337,45 @@ namespace CoreIR {
     // NOTE: If the receiver instance node is memory and the
     // port that is being received is the raddr then the
     // sourceNode receives it
-    // if (isRegisterInstance(p2) ||
-    //     isMemoryInstance(p2) ||
-    //     isDFFInstance(p2)) {
-    //   auto c2_disc_it = imap.find(receiverNode(p2));
+    if (isMemoryInstance(p2)) {
 
-    //   if (c2->getSelStr() == "raddr") {
-    //     cout << "Found raddr" << endl;
-    //     c2_disc_it = imap.find(outputNode(p2));
-    //   }
-    //   assert(c2_disc_it != imap.end());
+      auto c2_disc_it = imap.find(receiverNode(p2));
 
-    //   c2_disc = (*c2_disc_it).second;
-    // } else {
-    //assert(!isRegisterInstance(p2));
+      if (c2->getSelStr() == "raddr") {
+        cout << "Found raddr" << endl;
+        c2_disc_it = imap.find(outputNode(p2));
+
+        assert(c2_disc_it != imap.end());
+
+        c2_disc = (*c2_disc_it).second;
+
+      } else {
+        auto c2_disc_it = imap.find(combNode(p2));
+
+        if (isRegisterInstance(p2) ||
+            isMemoryInstance(p2) ||
+            isDFFInstance(p2)) {
+          c2_disc_it = imap.find(receiverNode(p2));
+        }
+        
+        assert(c2_disc_it != imap.end());
+
+        c2_disc = (*c2_disc_it).second;
+
+      }
+    } else {
 
       auto c2_disc_it = imap.find(combNode(p2));
+      if (isRegisterInstance(p2) ||
+          isMemoryInstance(p2) ||
+          isDFFInstance(p2)) {
+        c2_disc_it = imap.find(receiverNode(p2));
+      }
 
       assert(c2_disc_it != imap.end());
 
       c2_disc = (*c2_disc_it).second;
-      //}
+    }
 
     edisc ed = g.addEdge(c1_disc, c2_disc);
 
