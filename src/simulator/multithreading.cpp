@@ -77,8 +77,6 @@ namespace CoreIR {
       nodes.insert(vd);
     }
 
-    int numComponents = 0;
-
     vector<set<vdisc> > ccs;
     for (auto& vd : gr.getVerts()) {
 
@@ -94,14 +92,14 @@ namespace CoreIR {
           for (auto& ccNode : ccNodes) {
             nodes.erase(ccNode);
 
-            WireNode w = gr.getNode(ccNode);
-            w.setThreadNo(numComponents);
-            gr.addVertLabel(ccNode, w);
+            // WireNode w = gr.getNode(ccNode);
+            // w.setThreadNo(numComponents);
+            // gr.addVertLabel(ccNode, w);
           }
       
 
           ccs.push_back(ccNodes);
-          numComponents++;
+          //numComponents++;
         }
       }
     }
@@ -109,11 +107,27 @@ namespace CoreIR {
     return ccs;
   }
 
+  void numberComponents(const std::vector<set<vdisc>>& ccs,
+                        NGraph& gr) {
+    int numComponents = 0;
+
+    for (auto& ccNodes : ccs) {
+      for (auto& ccNode : ccNodes) {
+        WireNode w = gr.getNode(ccNode);
+        w.setThreadNo(numComponents);
+        gr.addVertLabel(ccNode, w);
+      }
+      numComponents++;
+    }
+    
+  }
+
   void balancedComponentsParallel(NGraph& gr) {
 
     auto ccs = connectedComponentsIgnoringInputs(gr);
     cout << "# of connected components = " << ccs.size() << endl;
 
+    numberComponents(ccs, gr);
     // Now balance the components
     //int nThreads = 2;
     int i = 0;
