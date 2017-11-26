@@ -71,7 +71,7 @@ namespace CoreIR {
   }
 
   std::vector<std::set<vdisc>>
-  connectedComponentsIgnoringInputs(NGraph& gr) {
+  connectedComponentsIgnoringInputs(const NGraph& gr) {
     set<vdisc> nodes;
     for (auto& vd : gr.getVerts()) {
       nodes.insert(vd);

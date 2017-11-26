@@ -981,7 +981,8 @@ namespace CoreIR {
 
     vector<set<vdisc>> ccs =
       connectedComponentsIgnoringInputs(g);
-    
+
+    cout << "# of connected components = " << ccs.size() << endl;
 
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
@@ -996,6 +997,8 @@ namespace CoreIR {
              updateSequentialOutputs(threadNodes, g, mod, threadNo, layoutPolicy));
       concat(simLines,
              updateCombinationalLogic(threadNodes, g, mod, threadNo, layoutPolicy));
+
+      // Move this outside and then optimize away?
       concat(simLines,
              updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
       simLines.push_back("\n}\n");
