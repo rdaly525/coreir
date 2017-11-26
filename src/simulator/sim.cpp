@@ -951,7 +951,22 @@ namespace CoreIR {
 
     return simLines;
   }
-  
+
+  bool isSubgraphInput(const vdisc vd,
+                       const std::deque<vdisc>& nodes,
+                       const NGraph& g) {
+
+    for (auto ec : g.inEdges(vd)) {
+      for (auto& other : nodes) {
+        if (g.source(ec) == other) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -990,10 +1005,35 @@ namespace CoreIR {
 
       simLines.push_back("if " + condition + " {\n");
 
-      concat(simLines,
-             updateSequentialOutputs(threadNodes, g, mod, threadNo, layoutPolicy));
-      concat(simLines,
-             updateCombinationalLogic(threadNodes, g, mod, threadNo, layoutPolicy));
+      for (auto& cc : ccs) {
+        deque<vdisc> nodes;
+        for (auto& vd : threadNodes) {
+          if (elem(vd, cc)) {
+            nodes.push_back(vd);
+          }
+        }
+
+        bool hasCombInput = false;
+        for (auto& vd : nodes) {
+          if (isSubgraphInput(vd, nodes, g)) {
+
+            WireNode wd = g.getNode(vd);
+            if (!wd.isSequential) {
+              hasCombInput = true;
+              break;
+            }
+          }
+        }
+
+        // Only need to update the DAGS that start from an input, otherwise the
+        // result is fresh already
+        if (hasCombInput) {
+          concat(simLines,
+                 updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
+          concat(simLines,
+                 updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
+        }
+      }
 
       concat(simLines,
              updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
@@ -1007,6 +1047,7 @@ namespace CoreIR {
           nodes.push_back(vd);
         }
       }
+
       concat(simLines,
              updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
       concat(simLines,

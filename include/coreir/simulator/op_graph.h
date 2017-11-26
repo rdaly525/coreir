@@ -142,13 +142,6 @@ namespace CoreIR {
 
       return map_find(vd, adjacent_outgoing);
 
-      // std::vector<edisc> eds;
-      // for (auto& e : edges) {
-      // 	if (source(e) == vd) {
-      // 	  eds.push_back(e);
-      // 	}
-      // }
-      // return eds;
     }
 
     std::vector<edisc> inEdges(const vdisc vd) const {
@@ -157,13 +150,7 @@ namespace CoreIR {
       }
 
       return map_find(vd, adjacent_incoming);
-      // std::vector<edisc> eds;
-      // for (auto& e : edges) {
-      // 	if (target(e) == vd) {
-      // 	  eds.push_back(e);
-      // 	}
-      // }
-      // return eds;
+
     }
 
     std::vector<edisc> getEdges() const {
