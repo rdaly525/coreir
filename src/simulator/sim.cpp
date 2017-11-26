@@ -967,6 +967,56 @@ namespace CoreIR {
     return true;
   }
 
+  bool isSubgraphOutput(const vdisc vd,
+                       const std::deque<vdisc>& nodes,
+                       const NGraph& g) {
+
+    return g.outEdges(vd).size() == 0;
+    // for (auto ec : g.outEdges(vd)) {
+    //   for (auto& other : nodes) {
+    //     if (g.source(ec) == other) {
+    //       return false;
+    //     }
+    //   }
+    // }
+
+    // return true;
+  }
+  
+  bool subgraphHasCombinationalInput(const std::deque<vdisc>& nodes,
+                                     const NGraph& g) {
+    bool hasCombInput = false;
+    for (auto& vd : nodes) {
+      if (isSubgraphInput(vd, nodes, g)) {
+
+        WireNode wd = g.getNode(vd);
+        if (!wd.isSequential) {
+          hasCombInput = true;
+          break;
+        }
+      }
+    }
+
+    return hasCombInput;
+  }
+
+  bool subgraphHasCombinationalOutput(const std::deque<vdisc>& nodes,
+                                      const NGraph& g) {
+    bool hasCombOutput = false;
+    for (auto& vd : nodes) {
+      if (isSubgraphOutput(vd, nodes, g)) {
+
+        WireNode wd = g.getNode(vd);
+        if (!wd.isSequential) {
+          hasCombOutput = true;
+          break;
+        }
+      }
+    }
+
+    return hasCombOutput;
+  }
+  
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -996,6 +1046,53 @@ namespace CoreIR {
 
     cout << "# of connected components = " << ccs.size() << endl;
 
+    vector<deque<vdisc> > alwaysUpdateDAGs;
+    vector<deque<vdisc> > preSequentialDAGs;
+    vector<deque<vdisc> > postSequentialDAGs;
+
+    // Set presequential DAGs
+    for (auto& cc : ccs) {
+      deque<vdisc> nodes;
+      for (auto& vd : threadNodes) {
+        if (elem(vd, cc)) {
+          nodes.push_back(vd);
+        }
+      }
+
+      if (subgraphHasCombinationalInput(nodes, g)) {
+        preSequentialDAGs.push_back(nodes);
+      }
+    }
+
+    // Set postsequential DAGs
+    for (auto& cc : ccs) {
+      deque<vdisc> nodes;
+      for (auto& vd : threadNodes) {
+        if (elem(vd, cc)) {
+          nodes.push_back(vd);
+        }
+      }
+
+      if (!subgraphHasCombinationalInput(nodes, g)) {
+        postSequentialDAGs.push_back(nodes);
+      }
+    }
+
+    // Set always DAGs
+    for (auto& cc : ccs) {
+      deque<vdisc> nodes;
+      for (auto& vd : threadNodes) {
+        if (elem(vd, cc)) {
+          nodes.push_back(vd);
+        }
+      }
+
+      if (subgraphHasCombinationalInput(nodes, g) &&
+          subgraphHasCombinationalOutput(nodes, g)) {
+        alwaysUpdateDAGs.push_back(nodes);
+      }
+    }
+    
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
     
@@ -1005,54 +1102,45 @@ namespace CoreIR {
 
       simLines.push_back("if " + condition + " {\n");
 
-      for (auto& cc : ccs) {
-        deque<vdisc> nodes;
-        for (auto& vd : threadNodes) {
-          if (elem(vd, cc)) {
-            nodes.push_back(vd);
-          }
-        }
 
-        bool hasCombInput = false;
-        for (auto& vd : nodes) {
-          if (isSubgraphInput(vd, nodes, g)) {
-
-            WireNode wd = g.getNode(vd);
-            if (!wd.isSequential) {
-              hasCombInput = true;
-              break;
-            }
-          }
-        }
-
+        
         // Only need to update the DAGS that start from an input, otherwise the
         // result is fresh already
-        if (hasCombInput) {
+      for (auto& nodes : preSequentialDAGs) {
           concat(simLines,
                  updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
           concat(simLines,
                  updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
-        }
       }
 
       concat(simLines,
              updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
+
+      for (auto& nodes : postSequentialDAGs) {
+          concat(simLines,
+                 updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
+          concat(simLines,
+                 updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
+      }
+
       simLines.push_back("\n}\n");
     }
 
-    for (auto& cc : ccs) {
-      deque<vdisc> nodes;
-      for (auto& vd : threadNodes) {
-        if (elem(vd, cc)) {
-          nodes.push_back(vd);
-        }
-      }
+    // for (auto& cc : ccs) {
+    //   deque<vdisc> nodes;
+    //   for (auto& vd : threadNodes) {
+    //     if (elem(vd, cc)) {
+    //       nodes.push_back(vd);
+    //     }
+    //   }
 
+    for (auto& nodes : alwaysUpdateDAGs) {
       concat(simLines,
              updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
       concat(simLines,
              updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
     }
+      //}
     
     cout << "Done writing sim lines, now need to concatenate them" << endl;
 
