@@ -849,7 +849,7 @@ namespace CoreIR {
 
       WireNode wd = getNode(g, vd);
 
-      if (wd.getThreadNo() == threadNo) {
+      //if (wd.getThreadNo() == threadNo) {
 
         Wireable* inst = wd.getWire();
 
@@ -863,7 +863,7 @@ namespace CoreIR {
           }
 
         }
-      }
+        //}
       
     }
 
@@ -884,7 +884,7 @@ namespace CoreIR {
 
       WireNode wd = getNode(g, vd);
 
-      if (wd.getThreadNo() == threadNo) {
+      //if (wd.getThreadNo() == threadNo) {
 
         Wireable* inst = wd.getWire();
 
@@ -898,7 +898,7 @@ namespace CoreIR {
           }
 
         }
-      }
+        //}
     }
 
     return simLines;
@@ -920,7 +920,7 @@ namespace CoreIR {
       string val = "<UNSET>";
       WireNode wd = getNode(g, vd);
 
-      if (wd.getThreadNo() == threadNo) {
+      //if (wd.getThreadNo() == threadNo) {
 
         Wireable* inst = wd.getWire();
 
@@ -947,12 +947,12 @@ namespace CoreIR {
               string outVarName = layoutPolicy.outputVarName(outSel);
 
               simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g, layoutPolicy)));
-              
+
             }
 
           }
+          //}
         }
-      }
 
       if ((i % 500) == 0) {
         cout << "Code for instance " << i << " = " << val << endl;
@@ -964,7 +964,7 @@ namespace CoreIR {
     return simLines;
   }
   
-  string printSimFunctionBody(const std::deque<vdisc>& topo_order,
+  string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
                               const int threadNo,
@@ -972,7 +972,7 @@ namespace CoreIR {
 
     cout << "Printing sim function for " << threadNo << endl;
 
-    string str = printSimFunctionPrefix(topo_order, g, mod, threadNo);
+    string str = printSimFunctionPrefix(topoOrder, g, mod, threadNo);
 
     // Print out operations in topological order
     str += "\n// Simulation code\n";
@@ -980,6 +980,13 @@ namespace CoreIR {
     vector<string> simLines;
 
     auto clk = findMainClock(g);
+
+    deque<vdisc> threadNodes;
+    for (auto& vd : topoOrder) {
+      if (g.getNode(vd).getThreadNo() == threadNo) {
+        threadNodes.push_back(vd);
+      }
+    }
 
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
@@ -991,18 +998,18 @@ namespace CoreIR {
       simLines.push_back("if " + condition + " {\n");
 
       concat(simLines,
-             updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
+             updateSequentialOutputs(threadNodes, g, mod, threadNo, layoutPolicy));
       concat(simLines,
-             updateCombinationalLogic(topo_order, g, mod, threadNo, layoutPolicy));
+             updateCombinationalLogic(threadNodes, g, mod, threadNo, layoutPolicy));
       concat(simLines,
-             updateSequentialElements(topo_order, g, mod, threadNo, layoutPolicy));
+             updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
       simLines.push_back("\n}\n");
     }
 
     concat(simLines,
-           updateSequentialOutputs(topo_order, g, mod, threadNo, layoutPolicy));
+           updateSequentialOutputs(threadNodes, g, mod, threadNo, layoutPolicy));
     concat(simLines,
-           updateCombinationalLogic(topo_order, g, mod, threadNo, layoutPolicy));
+           updateCombinationalLogic(threadNodes, g, mod, threadNo, layoutPolicy));
     
     cout << "Done writing sim lines, now need to concatenate them" << endl;
 

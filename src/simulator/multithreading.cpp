@@ -63,7 +63,6 @@ namespace CoreIR {
           if (!isGraphInput(wd)) {
             rem.push_back(other);
           }
-          //rem.push_back(other);
         }
       }
     

@@ -53,7 +53,7 @@ namespace CoreIR {
       uint n = 16;
       //uint numOutputs = 100000;
       //uint numOutputs = 10000;
-      uint numOutputs = 100;
+      uint numOutputs = 1000;
       uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");
@@ -159,13 +159,13 @@ namespace CoreIR {
 
       cout << "Running passes" << endl;
 
-      c->runPasses({"rungenerators"}); //, "flattentypes"}); //, "flatten"});
+      c->runPasses({"rungenerators"}); //, "flattentypes"})"flatten"});
 
-      // cout << "Writing to json" << endl;
-      // if (!saveToFile(g, "many_ops.json", manyOps)) {
-      //   cout << "Could not save to json!!" << endl;
-      //   c->die();
-      // }
+      cout << "Writing to json" << endl;
+      if (!saveToFile(g, "many_ops.json", manyOps)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
 
       // Simulation code
 
@@ -178,26 +178,26 @@ namespace CoreIR {
 
       // }
       
-      // NGraph gr;
-      // buildOrderedGraph(manyOps, gr);
+      NGraph gr;
+      buildOrderedGraph(manyOps, gr);
 
-      // balancedComponentsParallel(gr);
+      //balancedComponentsParallel(gr);
 
-      // cout << "Starting manyOpsological sort" << endl;
+      cout << "Starting manyOpsological sort" << endl;
 
-      // // Delete inputs from the order, since they do not need to
-      // // be printed out
-      // deque<vdisc> topoOrder = topologicalSort(gr);
+      // Delete inputs from the order, since they do not need to
+      // be printed out
+      deque<vdisc> topoOrder = topologicalSort(gr);
 
-      // string codePath = "./gencode/";
-      // string codeFile = manyOps->getName() + "_sim.cpp";
-      // string hFile = manyOps->getName() + "_sim.h";
+      string codePath = "./gencode/";
+      string codeFile = manyOps->getName() + "_sim.cpp";
+      string hFile = manyOps->getName() + "_sim.h";
 
-      // writeBitVectorLib(codePath + "bit_vector.h");
+      writeBitVectorLib(codePath + "bit_vector.h");
 
-      // cout << "Writing out files" << endl;
+      cout << "Writing out files" << endl;
 
-      // writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
+      writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
       
 
       // SECTION("Compiling code") {
