@@ -849,21 +849,18 @@ namespace CoreIR {
 
       WireNode wd = getNode(g, vd);
 
-      //if (wd.getThreadNo() == threadNo) {
+      Wireable* inst = wd.getWire();
 
-        Wireable* inst = wd.getWire();
+      if (isInstance(inst)) { 
 
-        if (isInstance(inst)) { 
+        if (!isCombinationalInstance(wd) &&
+            wd.isReceiver) {
 
-          if (!isCombinationalInstance(wd) &&
-              wd.isReceiver) {
-
-            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
-
-          }
+          simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
         }
-        //}
+
+      }
       
     }
 
@@ -883,22 +880,19 @@ namespace CoreIR {
     for (auto& vd : topoOrder) {
 
       WireNode wd = getNode(g, vd);
+      Wireable* inst = wd.getWire();
 
-      //if (wd.getThreadNo() == threadNo) {
+      if (isInstance(inst)) { 
 
-        Wireable* inst = wd.getWire();
+        if (!isCombinationalInstance(wd) &&
+            !(wd.isReceiver)) {
 
-        if (isInstance(inst)) { 
-
-          if (!isCombinationalInstance(wd) &&
-              !(wd.isReceiver)) {
-
-            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
-
-          }
+          simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
         }
-        //}
+
+      }
+
     }
 
     return simLines;
@@ -919,8 +913,6 @@ namespace CoreIR {
 
       string val = "<UNSET>";
       WireNode wd = getNode(g, vd);
-
-      //if (wd.getThreadNo() == threadNo) {
 
         Wireable* inst = wd.getWire();
 
@@ -951,7 +943,6 @@ namespace CoreIR {
             }
 
           }
-          //}
         }
 
       if ((i % 500) == 0) {
