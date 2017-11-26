@@ -979,6 +979,10 @@ namespace CoreIR {
       }
     }
 
+    vector<set<vdisc>> ccs =
+      connectedComponentsIgnoringInputs(g);
+    
+
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
     

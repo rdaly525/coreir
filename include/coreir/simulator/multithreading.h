@@ -10,4 +10,7 @@ namespace CoreIR {
 
   void balancedComponentsParallel(NGraph& gr);
 
+  std::vector<std::set<vdisc>>
+  connectedComponentsIgnoringInputs(NGraph& opG);
+
 }

@@ -5,7 +5,6 @@ using namespace std;
 
 namespace CoreIR {
 
-
   int numThreads(const ThreadGraph& g) {
     return g.numVertices();
   }
@@ -31,7 +30,7 @@ namespace CoreIR {
     return false;
   }
   
-  set<vdisc> connectedComponent(const vdisc v, NGraph& gr) {
+  set<vdisc> connectedComponent(const vdisc v, const NGraph& gr) {
     set<vdisc> cc;
 
     vector<vdisc> rem{v};
@@ -71,7 +70,8 @@ namespace CoreIR {
     return cc;
   }
 
-  void balancedComponentsParallel(NGraph& gr) {
+  std::vector<std::set<vdisc>>
+  connectedComponentsIgnoringInputs(NGraph& gr) {
     set<vdisc> nodes;
     for (auto& vd : gr.getVerts()) {
       nodes.insert(vd);
@@ -106,7 +106,13 @@ namespace CoreIR {
       }
     }
 
-    cout << "# of connected components = " << numComponents << endl;
+    return ccs;
+  }
+
+  void balancedComponentsParallel(NGraph& gr) {
+
+    auto ccs = connectedComponentsIgnoringInputs(gr);
+    cout << "# of connected components = " << ccs.size() << endl;
 
     // Now balance the components
     //int nThreads = 2;
