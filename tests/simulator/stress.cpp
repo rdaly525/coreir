@@ -53,7 +53,7 @@ namespace CoreIR {
       uint n = 16;
       //uint numOutputs = 100000;
       //uint numOutputs = 10000;
-      uint numOutputs = 1000;
+      uint numOutputs = 10;
       uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");

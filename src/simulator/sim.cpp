@@ -852,16 +852,13 @@ namespace CoreIR {
       Wireable* inst = wd.getWire();
 
       if (isInstance(inst)) { 
-
         if (!isCombinationalInstance(wd) &&
             wd.isReceiver) {
 
           simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
         }
-
       }
-      
     }
 
     return simLines;
@@ -998,16 +995,23 @@ namespace CoreIR {
       concat(simLines,
              updateCombinationalLogic(threadNodes, g, mod, threadNo, layoutPolicy));
 
-      // Move this outside and then optimize away?
       concat(simLines,
              updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
       simLines.push_back("\n}\n");
     }
 
-    concat(simLines,
-           updateSequentialOutputs(threadNodes, g, mod, threadNo, layoutPolicy));
-    concat(simLines,
-           updateCombinationalLogic(threadNodes, g, mod, threadNo, layoutPolicy));
+    for (auto& cc : ccs) {
+      deque<vdisc> nodes;
+      for (auto& vd : threadNodes) {
+        if (elem(vd, cc)) {
+          nodes.push_back(vd);
+        }
+      }
+      concat(simLines,
+             updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
+      concat(simLines,
+             updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
+    }
     
     cout << "Done writing sim lines, now need to concatenate them" << endl;
 
