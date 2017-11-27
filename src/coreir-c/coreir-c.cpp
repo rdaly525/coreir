@@ -110,6 +110,10 @@ extern "C" {
     return modargs.count(str) > 0;
   }
 
+  bool COREModuleHasDef(COREModule* module) {
+      return rcast<Module*>(module)->hasDef();
+  }
+
   //TODO update C api
   //This can return nullptr
   //bool loadFromFile(Context* c, string filename,Module** top);
