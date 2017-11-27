@@ -471,6 +471,10 @@ extern "C" {
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
 
+  const char* COREInstanceGetInstname(COREWireable* instance) {
+      return rcast<Instance*>(instance)->getInstname().c_str();
+  }
+
 
 }//extern "C"
 }//CoreIR namespace
