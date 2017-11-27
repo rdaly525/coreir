@@ -27,6 +27,8 @@
 #include "transform/wireclocks.h"
 #include "transform/cullgraph.h"
 
+#include "transform/adddirected.h"
+
 
 //TODO Macrofy this
 namespace CoreIR {
@@ -60,6 +62,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveUnconnected());
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::CullGraph());
+    pm.addPass(new Passes::AddDirected());
   }
 }
 
