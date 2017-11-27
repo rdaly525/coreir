@@ -155,6 +155,10 @@ extern "C" {
     return rcast<Module*>(mod)->isGenerated();
   }
 
+  COREType* COREModuleGetType(COREModule* module) {
+    return rcast<COREType*>(rcast<Module*>(module)->getType());
+  }
+
   COREGenerator* COREModuleGetGenerator(COREModule* mod) {
     return rcast<COREGenerator*>(rcast<Module*>(mod)->getGenerator());
   }
