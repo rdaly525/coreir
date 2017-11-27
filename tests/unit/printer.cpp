@@ -80,6 +80,8 @@ int main() {
     def->connect("add8_upper.out","add2_join.in0");
     def->connect("add4_lower.out","add2_join.in1");
     def->connect("add2_join.out","self.out");
+  add12->setDef(def);
+  add12->print();
   
   vector<string> passes;
   passes.emplace_back("printer");
