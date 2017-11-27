@@ -905,7 +905,7 @@ namespace CoreIR {
     vector<string> simLines;
 
     int i = 0;
-    simLines.push_back("\n// ----- Update combinational logic\n");
+    //simLines.push_back("\n// ----- Update combinational logic\n");
     for (auto& vd : topoOrder) {
 
       string val = "<UNSET>";
@@ -972,15 +972,6 @@ namespace CoreIR {
                        const NGraph& g) {
 
     return g.outEdges(vd).size() == 0;
-    // for (auto ec : g.outEdges(vd)) {
-    //   for (auto& other : nodes) {
-    //     if (g.source(ec) == other) {
-    //       return false;
-    //     }
-    //   }
-    // }
-
-    // return true;
   }
   
   bool subgraphHasCombinationalInput(const std::deque<vdisc>& nodes,
@@ -1000,6 +991,34 @@ namespace CoreIR {
     return hasCombInput;
   }
 
+  bool subgraphHasAllSequentialOutputs(const std::deque<vdisc>& nodes,
+                                       const NGraph& g) {
+    for (auto& vd : nodes) {
+      if (isSubgraphOutput(vd, nodes, g)) {
+        WireNode wd = g.getNode(vd);
+        if (!wd.isSequential) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  bool subgraphHasAllSequentialInputs(const std::deque<vdisc>& nodes,
+                                      const NGraph& g) {
+    for (auto& vd : nodes) {
+      if (isSubgraphInput(vd, nodes, g)) {
+        WireNode wd = g.getNode(vd);
+        if (!wd.isSequential) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+  
   bool subgraphHasCombinationalOutput(const std::deque<vdisc>& nodes,
                                       const NGraph& g) {
     bool hasCombOutput = false;
@@ -1046,10 +1065,13 @@ namespace CoreIR {
 
     cout << "# of connected components = " << ccs.size() << endl;
 
-    vector<deque<vdisc> > alwaysUpdateDAGs;
+    vector<deque<vdisc> > preSequentialAlwaysDAGs;
     vector<deque<vdisc> > preSequentialDAGs;
     vector<deque<vdisc> > postSequentialDAGs;
-
+    vector<deque<vdisc> > postSequentialAlwaysDAGs;
+    vector<deque<vdisc> > alwaysUpdateDAGs;
+    vector<deque<vdisc> > pureCombDAGs;
+    
     // Set presequential DAGs
     for (auto& cc : ccs) {
       deque<vdisc> nodes;
@@ -1062,29 +1084,9 @@ namespace CoreIR {
       if (subgraphHasCombinationalInput(nodes, g)) {
         preSequentialDAGs.push_back(nodes);
       }
-    }
-
-    // Set postsequential DAGs
-    for (auto& cc : ccs) {
-      deque<vdisc> nodes;
-      for (auto& vd : threadNodes) {
-        if (elem(vd, cc)) {
-          nodes.push_back(vd);
-        }
-      }
 
       if (!subgraphHasCombinationalInput(nodes, g)) {
         postSequentialDAGs.push_back(nodes);
-      }
-    }
-
-    // Set always DAGs
-    for (auto& cc : ccs) {
-      deque<vdisc> nodes;
-      for (auto& vd : threadNodes) {
-        if (elem(vd, cc)) {
-          nodes.push_back(vd);
-        }
       }
 
       if (subgraphHasCombinationalInput(nodes, g) &&
@@ -1106,6 +1108,7 @@ namespace CoreIR {
         
         // Only need to update the DAGS that start from an input, otherwise the
         // result is fresh already
+      simLines.push_back("\n// ----- Update combinational logic before clock\n");
       for (auto& nodes : preSequentialDAGs) {
           concat(simLines,
                  updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
@@ -1116,6 +1119,7 @@ namespace CoreIR {
       concat(simLines,
              updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
 
+      simLines.push_back("\n// ----- Update combinational logic after clock\n");
       for (auto& nodes : postSequentialDAGs) {
           concat(simLines,
                  updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
@@ -1134,6 +1138,7 @@ namespace CoreIR {
     //     }
     //   }
 
+    simLines.push_back("\n// ----- Update mandatory combinational logic\n");
     for (auto& nodes : alwaysUpdateDAGs) {
       concat(simLines,
              updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
