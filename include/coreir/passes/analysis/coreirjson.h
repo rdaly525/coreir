@@ -14,7 +14,7 @@ class CoreIRJson : public NamespacePass {
     static std::string ID;
     CoreIRJson() : NamespacePass(ID,"Creates a json of the coreir",true) {}
     bool runOnNamespace(Namespace* ns) override;
-    void writeToStream(std::ostream& os,std::string topRef);
+    void writeToStream(std::ostream& os,std::string topRef="");
 };
 
 }
