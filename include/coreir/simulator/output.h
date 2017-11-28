@@ -1,7 +1,7 @@
 #ifndef SIM_OUTPUT_HPP_
 #define SIM_OUTPUT_HPP_
 
-#include "op_graph.hpp"
+#include "coreir/simulator/op_graph.h"
 
 #include <deque>
 

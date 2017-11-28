@@ -1,9 +1,9 @@
-#include "output.hpp"
+#include "coreir/simulator/output.h"
 
 #include <fstream>
 #include <iostream>
 
-#include "sim.hpp"
+#include "coreir/simulator/simulator.h"
 #include "bsim_lib.hpp"
 
 using namespace std;
@@ -45,15 +45,26 @@ namespace CoreIR {
 		  const std::string& codeFile,
 		  const std::string& hFile) {
 
+    cout << "Writing out code" << endl;
+
     string codeStr = printCode(topoOrder, g, mod, hFile);
+
+    cout << "Done writing out code" << endl;
+
     string hStr = printDecl(mod, g);
+
+    cout << "Done writing out headers" << endl;
 
     string codeFilePath = codePath + codeFile;
     string hFilePath = codePath + hFile;
 
+    cout << "Writing files" << endl;
+
     std::ofstream out(codeFilePath);
     out << codeStr;
     out.close();
+
+    cout << "Wrote out code file" << endl;
 
     std::ofstream outH(hFilePath);
     outH << hStr;

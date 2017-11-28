@@ -1,15 +1,14 @@
 #include "catch.hpp"
 
 #include "coreir.h"
-#include "coreir/passes/analysis/pass_sim.h"
 #include "coreir/passes/transform/rungenerators.h"
 #include "coreir/libs/commonlib.h"
 
 #include "fuzzing.hpp"
 
-#include "../src/simulator/output.hpp"
-#include "../src/simulator/sim.hpp"
-#include "../src/simulator/utils.hpp"
+#include "coreir/simulator/output.h"
+#include "coreir/simulator/simulator.h"
+#include "coreir/simulator/utils.h"
 
 #include <iostream>
 
@@ -373,7 +372,6 @@ namespace CoreIR {
       
       deque<vdisc> topoOrder = topologicalSort(gr);
 
-      //auto str = printCode(topoOrder, gr, srem4_n);
       int s = compileCodeAndRun(topoOrder,
 				gr,
 				srem4_n,

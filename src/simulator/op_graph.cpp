@@ -1,12 +1,16 @@
-#include "op_graph.hpp"
+#include "coreir/simulator/op_graph.h"
 
-#include "algorithm.hpp"
-#include "utils.hpp"
+#include "coreir/simulator/algorithm.h"
+#include "coreir/simulator/utils.h"
 
 using namespace std;
 
 namespace CoreIR {
 
+  void addConnection(std::unordered_map<WireNode, vdisc>& imap,
+		     Conn& conn,
+		     NGraph& g);
+  
   Wireable* extractSource(Select* sel) {
     Wireable* p = sel->getParent();
 
@@ -204,10 +208,12 @@ namespace CoreIR {
     //vector<edisc> deleted_edges;
     unordered_set<edisc> deleted_edges;
 
+    cout << "Starting topological sort" << endl;
+
     while (s.size() > 0) {
       vdisc vd = s.back();
 
-      assert(!elem(vd, topo_order));
+      //assert(!elem(vd, topo_order));
 
       topo_order.push_back(vd);
       s.pop_back();
@@ -235,7 +241,7 @@ namespace CoreIR {
 
 	if (noOtherEdges){
 
-	  assert(!elem(dest, s));
+	  //assert(!elem(dest, s));
 
 	  s.push_back(dest);
 	}

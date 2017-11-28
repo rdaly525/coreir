@@ -207,6 +207,7 @@ Instance* ModuleDef::addInstance(Instance* i,string iname) {
 void ModuleDef::connect(Wireable* a, Wireable* b) {
   //Make sure you are connecting within the same context
   Context* c = getContext();
+
   if (a->getContainer()!=this || b->getContainer() != this) {
     Error e;
     e.message("connections can only occur within the same module");
@@ -285,6 +286,7 @@ void ModuleDef::removeInstance(Instance* inst) {
   removeInstance(inst->getInstname());
 }
 
+
 void ModuleDef::removeInstance(string iname) {
   //First verify that instance exists
   ASSERT(instances.count(iname), "Instance " + iname + " does not exist");
@@ -307,6 +309,7 @@ void ModuleDef::removeInstance(string iname) {
   
   removeInstanceFromIter(inst);
 
+  delete inst;
 }
 
 } //coreir namespace

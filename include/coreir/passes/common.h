@@ -11,6 +11,7 @@
 #include "coreir/passes/analysis/smv.h"
 #include "coreir/passes/analysis/verifyflatcoreirprims.h"
 #include "analysis/coreirjson.h"
+#include "analysis/magma.h"
 #include "analysis/verifyconnectivity.h"
 #include "analysis/verifyinputconnections.h"
 #include "analysis/verifyflattenedtypes.h"
@@ -23,7 +24,6 @@
 #include "transform/removebulkconnections.h"
 #include "transform/removepassthroughs.h"
 #include "transform/removeunconnected.h"
-#include "transform/liftclockports.h"
 #include "transform/wireclocks.h"
 #include "transform/cullgraph.h"
 
@@ -39,6 +39,7 @@ namespace CoreIR {
     pm.addPass(new Passes::CreateInstanceMap());
     pm.addPass(new Passes::Firrtl());
     pm.addPass(new Passes::CoreIRJson());
+    pm.addPass(new Passes::Magma());
     pm.addPass(new Passes::Verilog());
     pm.addPass(new Passes::SmtLib2());
     pm.addPass(new Passes::SMV());
@@ -57,7 +58,6 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveBulkConnections());
     pm.addPass(new Passes::RemovePassthroughs());
     pm.addPass(new Passes::RemoveUnconnected());
-    pm.addPass(new Passes::LiftClockPorts("liftclockports-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::CullGraph());
   }

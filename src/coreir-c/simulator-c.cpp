@@ -1,7 +1,7 @@
 #include "coreir-c/coreir-simulator.h"
 #include "coreir.h"
 #include "common-c.hpp"
-#include "../simulator/interpret.hpp"
+#include "coreir/simulator/interpreter.h"
 
 using namespace std;
 namespace CoreIR {
@@ -67,6 +67,11 @@ extern "C" {
     return rcast<CORESimValue*>(state->getValueByOriginalName(instPath,selects));
     return nullptr;
   }
+
+  void CORESimResetCircuit(CORESimulatorState* cstate) {
+    SimulatorState* state = rcast<SimulatorState*>(cstate);
+    state->resetCircuit();
+  }
   
   void CORESimSetMainClock(CORESimulatorState* cstate, char** cpath, int path_len) {
     SimulatorState*state = rcast<SimulatorState*>(cstate);
@@ -98,6 +103,11 @@ extern "C" {
     state->setValue(path, bv);
   }
 
+  void CORESimRunHalfCycle(CORESimulatorState* cstate) {
+    SimulatorState* state = rcast<SimulatorState*>(cstate);
+    state->runHalfCycle();
+  }
+
   void CORESimStepMainClock(CORESimulatorState* cstate) {
     SimulatorState* state = rcast<SimulatorState*>(cstate);
     state->stepMainClock();
@@ -116,6 +126,13 @@ extern "C" {
   bool CORESimRewind(CORESimulatorState* cstate, int halfCycles) {
     SimulatorState* state = rcast<SimulatorState*>(cstate);
     return state->rewind(halfCycles);
+  }
+
+  void CORESimDeleteWatchPointByOriginalName(CORESimulatorState* cstate, char** inst_path, int inst_path_len, char** port_selects, int port_selects_len) {
+    SimulatorState* state = rcast<SimulatorState*>(cstate);
+    vector<string> instPath = MakeSimPath(inst_path, inst_path_len);
+    vector<string> selects = MakeSimPath(port_selects, port_selects_len);
+    state->deleteWatchPointByOriginalName(instPath, selects);
   }
 
   void CORESimSetWatchPoint(CORESimulatorState* cstate, char** cpath, int path_len, bool* watch_val, int watch_len) {

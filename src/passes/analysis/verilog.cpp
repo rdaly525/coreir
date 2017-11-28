@@ -70,17 +70,9 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     VModule* vref = modMap[mref];
     vmod->addStmt("  //Wire declarations for instance '" + iname + "' (Module "+ vref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      vmod->addStmt(VWireDec(VWire(iname+"_"+rmap.first,rmap.second)));
+      vmod->addStmt(VWireDec(VWire(iname+"__"+rmap.first,rmap.second)));
     }
-// <<<<<<< HEAD
-//     ASSERT(modMap.count(iref),"DEBUG ME: Missing iref");
-
-//     cout << "Calling toInstanceString() for " << inst->toString() << endl;
-
-//     vmod->addStmt(modMap[iref]->toInstanceString(inst));
-// =======
     vmod->addStmt(vref->toInstanceString(inst));
-    //>>>>>>> upstream/dev
   }
 
   vmod->addStmt("  //All the connections");

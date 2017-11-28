@@ -8,9 +8,9 @@
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir/libs/commonlib.h"
 
-#include "../simulator/output.hpp"
-#include "../simulator/sim.hpp"
-#include "../simulator/utils.hpp"
+#include "coreir/simulator/output.h"
+#include "coreir/simulator/multithreading.h"
+#include "coreir/simulator/simulator.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -64,12 +64,17 @@ int main(int argc, char *argv[]) {
 
   cout << "Starting passes" << endl;
 
-  c->runPasses({"rungenerators","flattentypes","flatten", "liftclockports-coreir", "wireclocks-coreir"});
+  c->runPasses({"rungenerators","flattentypes","flatten", "wireclocks-coreir"});
 
   cout << "Done running passes" << endl;
 
   NGraph gr;
   buildOrderedGraph(top, gr);
+
+  cout << "Starting topological sort" << endl;
+
+  // Delete inputs from the order, since they do not need to
+  // be printed out
   deque<vdisc> topoOrder = topologicalSort(gr);
 
   string codePath = "./";
@@ -77,6 +82,9 @@ int main(int argc, char *argv[]) {
   string hFile = top->getName() + "_sim.h";
 
   writeBitVectorLib(codePath + "bit_vector.h");
+
+  cout << "Writing out files" << endl;
+
   writeFiles(topoOrder, gr, top, codePath, codeFile, hFile);
   
   return 0;

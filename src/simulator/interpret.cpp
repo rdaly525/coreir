@@ -1,6 +1,5 @@
-#include "interpret.hpp"
-
-#include "sim.hpp"
+#include "coreir/simulator/interpreter.h"
+#include "coreir/simulator/simulator.h"
 
 using namespace std;
 
@@ -252,12 +251,44 @@ namespace CoreIR {
     StopFunction func =
       [this, val, bv]() {
 
-      if (isSet(val)) {
-        if (getBitVec(val) == bv) {
-          return true;
+      if (exists(val)) {
+
+        if (isSet(val)) {
+          SimValue* nm = getValue(val);
+
+          if (nm != nullptr) {
+            SimBitVector* simVal = toSimBitVector(nm);
+
+            if (simVal->getBits() == bv) {
+              return true;
+            } else {
+              return false;
+            }
+          }
+        } else {
+          return false;
         }
       }
+
+      SimValue* res = getValueByOriginalName(val);
+      if (res != nullptr) {
+        SimBitVector* simVal = toSimBitVector(res);
+
+        if (simVal->getBits() == bv) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+
       return false;
+
+      // if (isSet(val)) {
+      //   if (getBitVec(val) == bv) {
+      //     return true;
+      //   }
+      // }
+      // return false;
     };
 
     stopConditions.push_back({val, func});
@@ -346,15 +377,22 @@ namespace CoreIR {
   bool SimulatorState::isSet(const std::string& selStr) const {
     Select* s = findSelect(selStr);
 
-    if (!valMapContains(s)) {
-      return false;
-    }
+    return isSet(s);
+    // if (!valMapContains(s)) {
+    //   return false;
+    // }
 
-    return true;
+    // return true;
   }
 
   bool SimulatorState::isSet(CoreIR::Select* s) const {
     if (!valMapContains(s)) {
+
+      string str = s->getSelStr();
+      if (isNumber(str)) {
+        return isSet(toSelect(s->getParent()));
+      }
+
       return false;
     }
 
@@ -387,6 +425,12 @@ namespace CoreIR {
   void SimulatorState::run() {
     while (!hitWatchPoint()) {
       runHalfCycle();
+    }
+  }
+
+  void SimulatorState::runBack() {
+    while (!hitWatchPoint()) {
+      rewind(1);
     }
   }
 
@@ -562,6 +606,8 @@ namespace CoreIR {
       SimBitVector* val =
         static_cast<SimBitVector*>(getValue(toSelect(sel->getParent())));
 
+      assert(val != nullptr);
+
       int index = selectNum(sel);
 
       return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
@@ -675,6 +721,7 @@ namespace CoreIR {
       Select* dest = toSelect(conn.second.getWire());
 
       setValue(dest, getValue(source));
+
     }
 
   }
@@ -791,9 +838,9 @@ namespace CoreIR {
     BitVec sum(bv1.bitLength());
     
     if (selB == BitVec(1, 0)) {
-      sum = bv1; //s1->getBits();
+      sum = bv1;
     } else {
-      sum = bv2; //s2->getBits();
+      sum = bv2;
     }
 
     setValue(toSelect(outPair.second), makeSimBitVector(sum));
@@ -835,6 +882,9 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateLUTNNode(const vdisc vd) {
+
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -845,16 +895,12 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
-
-    assert(inConns.size() == 1);
-
-    InstanceValue arg1 = findArg("in", inConns);
-
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 1);
     
-    assert(s1 != nullptr);
-
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
+    
     Values genArgs = inst->getModuleRef()->getGenArgs();
 
     int width = genArgs["N"]->get<int>();
@@ -865,7 +911,7 @@ namespace CoreIR {
 
     assert(vals.bitLength() == (1 << width));
 
-    bv_uint64 i = get_shift_int(s1->getBits());
+    bv_uint64 i = get_shift_int(bv1); //get_shift_int(s1->getBits());
     unsigned char lutBit = vals.get(i);
     
     setValue(toSelect(outPair.second), makeSimBitVector(BitVector(1, lutBit)));
@@ -900,7 +946,7 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
       });
-    } else if (opName == "coreir.not") {
+    } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
       });
@@ -912,7 +958,7 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return sub_general_width_bv(l, r);
       });
-    } else if (opName == "coreir.mul") {
+    } else if ((opName == "coreir.mul")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return mul_general_width_bv(l, r);
       });
@@ -920,7 +966,7 @@ namespace CoreIR {
     } else if (opName == "corebit.term") {
     } else if ((opName == "coreir.reg") || (opName == "corebit.dff")) {
     } else if ((opName == "coreir.mem") || (opName == "commonlib.LinebufferMem")) {
-    } else if (opName == "coreir.mux") {
+    } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
     } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
@@ -1246,9 +1292,16 @@ namespace CoreIR {
     SimBitVector* s1 =
       static_cast<SimBitVector*>(getValue(arg1));
 
-    assert(s1 != nullptr);
+    BitVector bv1(0);
+    if (s1 != nullptr) {
+      bv1 = s1->getBits();
+    } else {
+      int width = (inst->getModuleRef()->getGenArgs())["width"]->get<int>();
+      // Set dummy value for initilization
+      bv1 = BitVector(width, 0);
+    }
 
-    BitVector bv1 = s1->getBits();
+
     
     // Original code
 
@@ -1268,7 +1321,7 @@ namespace CoreIR {
 
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
-    assert(s1 != nullptr);
+    //assert(s1 != nullptr);
     assert(clkVal != nullptr);
 
     if ((clkVal->lastValue() == 0) &&
@@ -1278,9 +1331,9 @@ namespace CoreIR {
 
         //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
-        setRegister(inst->toString(), s1->getBits());
+        setRegister(inst->toString(), bv1); //s1->getBits());
 
-        assert(getRegister(inst->toString()) == s1->getBits());
+        assert(getRegister(inst->toString()) == bv1); //s1->getBits());
 
       } else {
         assert(inSels.size() == 3);
@@ -1295,9 +1348,9 @@ namespace CoreIR {
 
           //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;
           //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
-          setRegister(inst->toString(), s1->getBits());
+          setRegister(inst->toString(), bv1); //s1->getBits());
 
-          assert(getRegister(inst->toString()) == s1->getBits());
+          assert(getRegister(inst->toString()) == bv1); //s1->getBits());
         }
 
       }
@@ -1328,86 +1381,12 @@ namespace CoreIR {
     return unset;
   }
 
-  void SimulatorState::execute() {
-    assert(atLastState());
+  void SimulatorState::resetCircuit() {
 
-    //std::clock_t start, end;
+    exeCombinational();
+  }
 
-    //start = clock();
-
-    CircuitState next = circStates[stateIndex];
-    circStates.push_back(next);
-    stateIndex++;
-
-    vector<vdisc> unsetIns = unsetInputs();
-    if (unsetIns.size() > 0) {
-      cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;
-      for (auto& vd : unsetIns) {
-        cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
-      }
-      return;
-    }
-
-    if (hasMainClock()) {
-      ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
-      allocatedValues.insert(clockCopy);
-      setValue(mainClock, clockCopy);
-    }
-
-    //end = clock();
-
-    // std::cout << "Done. Time to create next state = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
-    
-
-    // start = clock();
-
-    // Update sequential element outputs
-    for (auto& vd : topoOrder) {
-      WireNode wd = gr.getNode(vd);
-
-      if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
-        // Does this work when the raddr port is not yet defined?
-        updateMemoryOutput(vd);
-      }
-
-      if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
-        // Does this work when the raddr port is not yet defined?
-        updateLinebufferMemOutput(vd);
-      }
-
-      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-        updateRegisterOutput(vd);
-      }
-
-      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
-        updateDFFOutput(vd);
-      }
-      
-    }
-
-    //end = clock();
-
-    // std::cout << "Done. Time to update memory outputs = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
-
-    // start = clock();
-
-    // Update combinational node values
-    for (auto& vd : topoOrder) {
-      updateNodeValues(vd);
-    }
-
-    //end = clock();
-
-    // std::cout << "Done. Time to update combinational nodes = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
-
-    // start = clock();
-
+  void SimulatorState::exeSequential() {
     // Update circuit state
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
@@ -1432,11 +1411,63 @@ namespace CoreIR {
       
     }
 
-    // end = clock();
+  }
 
-    // std::cout << "Done. Time to update memory values = "
-    //        << (end - start) / (double)(CLOCKS_PER_SEC / 1000) << " ms"
-    //        << std::endl;
+  void SimulatorState::exeCombinational() {
+    // Update sequential element outputs
+    for (auto& vd : topoOrder) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
+        // Does this work when the raddr port is not yet defined?
+        updateMemoryOutput(vd);
+      }
+
+      if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
+        // Does this work when the raddr port is not yet defined?
+        updateLinebufferMemOutput(vd);
+      }
+
+      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+        updateRegisterOutput(vd);
+      }
+
+      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+        updateDFFOutput(vd);
+      }
+      
+    }
+
+    // Update combinational node values
+    for (auto& vd : topoOrder) {
+      updateNodeValues(vd);
+    }
+  }
+
+  void SimulatorState::execute() {
+    assert(atLastState());
+
+    CircuitState next = circStates[stateIndex];
+    circStates.push_back(next);
+    stateIndex++;
+
+    vector<vdisc> unsetIns = unsetInputs();
+    if (unsetIns.size() > 0) {
+      cout << "Cannot execute because " << unsetIns.size() << " input(s) are not set:" << endl;
+      for (auto& vd : unsetIns) {
+        cout << "\t" << getCircuitGraph().getNode(vd).getWire()->toString() << endl;
+      }
+      return;
+    }
+
+    if (hasMainClock()) {
+      ClockValue* clockCopy = new ClockValue(*toClock(getValue(mainClock)));
+      allocatedValues.insert(clockCopy);
+      setValue(mainClock, clockCopy);
+    }
+
+    exeSequential();
+    exeCombinational();
 
   }
 
@@ -1545,26 +1576,34 @@ namespace CoreIR {
     return name;
   }
 
+  void SimulatorState::deleteWatchPointByOriginalName(const std::vector<std::string>& instanceList,
+                                                      const std::vector<std::string>& portSelectList) {
+    string originalName = reconstructName(instanceList, portSelectList);
+    deleteWatchPoint(originalName);
+  }
+
   void
   SimulatorState::setWatchPointByOriginalName(const std::string& name,
                                               const BitVec& bv) {
-    //Case 1: Value exists in the flattened circuit
-    if (exists(name)) {
-      setWatchPoint(name, bv);
-    }
+    setWatchPoint(name, bv);
 
-    // Case 2: Value exists in the symbol table
-    if (symTable.count(name) > 0) {
-      SelectPath ent = symTable[name];
-      string entName = concatSelects(ent);
+    // //Case 1: Value exists in the flattened circuit
+    // if (exists(name)) {
+    //   setWatchPoint(name, bv);
+    // }
 
-      cout << "Entry name = " << entName << endl;
-      return setWatchPointByOriginalName(entName, bv);
-    }
+    // // Case 2: Value exists in the symbol table
+    // if (symTable.count(name) > 0) {
+    //   SelectPath ent = symTable[name];
+    //   string entName = concatSelects(ent);
 
-    // Case 3: Need to traverse up and down the type hierarchy looking
-    // for the value
-    assert(false);
+    //   cout << "Entry name = " << entName << endl;
+    //   return setWatchPointByOriginalName(entName, bv);
+    // }
+
+    // // Case 3: Need to traverse up and down the type hierarchy looking
+    // // for the value
+    // assert(false);
   }
 
   void

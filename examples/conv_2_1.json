@@ -43,7 +43,7 @@
             "genref":"commonlib.Linebuffer",
             "genargs":{"bitwidth":["Int",16], "image_width":["Int",10], "stencil_height":["Int",2], "stencil_width":["Int",1]}
           },
-          "lb_p4_clamped_stencil_update_stream_wen":{
+          "lb_p4_clamped_stencil_update_stream__wen":{
             "modref":"corebit.const",
             "modargs":{"value":["Bool",true]}
           },
@@ -69,7 +69,7 @@
           ["add_335_343_344.in1","mul_342_338_343.out"],
           ["add_335_343_344.out","self.out"],
           ["lb_p4_clamped_stencil_update_stream.in","self.in.0"],
-          ["lb_p4_clamped_stencil_update_stream.wen","lb_p4_clamped_stencil_update_stream_wen.out"]
+          ["lb_p4_clamped_stencil_update_stream.wen","lb_p4_clamped_stencil_update_stream__wen.out"]
         ]
       }
     }

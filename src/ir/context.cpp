@@ -72,6 +72,7 @@ Context::~Context() {
 
   delete typecache;
   delete valuecache;
+  delete pm;
 }
 
 std::map<std::string,Namespace*> Context::getNamespaces() {

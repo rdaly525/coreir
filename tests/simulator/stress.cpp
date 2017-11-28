@@ -1,3 +1,5 @@
+#define CATCH_CONFIG_MAIN
+
 #include "catch.hpp"
 
 #include <fstream>
@@ -7,13 +9,13 @@
 #include "fuzzing.hpp"
 
 #include "coreir.h"
-#include "coreir/passes/analysis/pass_sim.h"
 #include "coreir/passes/transform/rungenerators.h"
 #include "coreir/simulator/interpreter.h"
 
-#include "../src/simulator/output.hpp"
-#include "../src/simulator/sim.hpp"
-#include "../src/simulator/utils.hpp"
+#include "coreir/simulator/multithreading.h"
+#include "coreir/simulator/output.h"
+#include "coreir/simulator/simulator.h"
+#include "coreir/simulator/utils.h"
 
 #include <iostream>
 
@@ -48,25 +50,41 @@ namespace CoreIR {
     Namespace* g = c->getGlobal();
 
     SECTION("Many logical operations in parallel") {
-      uint n = 32;
-      uint numInputs = 100;
+      uint n = 16;
+      //uint numOutputs = 100000;
+      //uint numOutputs = 10000;
+      uint numOutputs = 100;
+      uint numInputs = numOutputs*2;
   
       Generator* and2 = c->getGenerator("coreir.and");
       Generator* or2 = c->getGenerator("coreir.or");
 
       // Define Add4 Module
-      Type* manyOpsType = c->Record({
-	  {"in", c->Array(numInputs, c->Array(n,c->BitIn()))},
-	    {"out", c->Array(numInputs - 1, c->Array(n, c->Bit()))}
-	});
+      RecordParams opParams = {
+        {"clk", c->Named("coreir.clkIn")}};
 
+      cout << "Creating recordparams" << endl;
+      for (uint i = 0; i < numInputs; i++) {
+        opParams.push_back({"in_" + to_string(i), c->Array(n,c->BitIn())});
+      }
+
+      for (uint i = 0; i < numOutputs; i++) {
+        opParams.push_back({"out_" + to_string(i), c->Array(n, c->Bit())});
+      }
+
+      cout << "Creating module" << endl;
+
+      Type* manyOpsType = c->Record(opParams);
       Module* manyOps = g->newModuleDecl("manyOps", manyOpsType);
-
       ModuleDef* def = manyOps->newModuleDef();
-
       Wireable* self = def->sel("self");
 
-      for (uint i = 0; i < numInputs - 1; i++) {
+      
+      cout << "Wiring up inputs" << endl;
+
+      vector<Wireable*> ops;
+      vector<Wireable*> regs;
+      for (uint i = 0; i < numOutputs; i++) {
 	Wireable* op;
 	if ((i % 2) == 0) {
 	  op =
@@ -76,64 +94,147 @@ namespace CoreIR {
 	    def->addInstance("or_" + to_string(i), or2, {{"width", Const::make(c,n)}});
 	}
 
-	def->connect(self->sel("in")->sel(i), op->sel("in0"));
-	def->connect(self->sel("in")->sel(i + 1), op->sel("in1"));
+        auto reg = def->addInstance("reg_" + to_string(i),
+                                    "coreir.reg",
+                                    {{"width", Const::make(c, n)}});
 
-	def->connect(op->sel("out"), self->sel("out")->sel(i));
+        ops.push_back(op);
+        regs.push_back(reg);
+
       }
+
+      cout << "Created ALL instances" << endl;
+
+      cout << "Creating dummy selects" << endl;
+
+      for (uint i = 0; i < numOutputs; i++) {
+
+        auto op = ops[i];
+        auto reg = regs[i];
+
+	auto s1 = self->sel("in_" + to_string(2*i));
+        auto s2 = op->sel("in0");
+	auto s3 = self->sel("in_" + to_string(2*i + 1));
+        auto s4 = op->sel("in1");
+
+        auto s5 = op->sel("out");
+        auto s6 = reg->sel("in");
+        auto s7 = self->sel("clk");
+        auto s8 = reg->sel("clk");
+
+	auto s9 = reg->sel("out");
+        auto s10 = self->sel("out_" + to_string(i));
+
+        if ((i % 1000) == 0) {
+          cout << "Selects " << i << "!!!" << endl;
+        }
+
+      }
+
+      cout << "Done with selects" << endl;
+
+      for (uint i = 0; i < numOutputs; i++) {
+
+        auto op = ops[i];
+        auto reg = regs[i];
+
+	def->connect(self->sel("in_" + to_string(2*i)), op->sel("in0"));
+	def->connect(self->sel("in_" + to_string(2*i + 1)), op->sel("in1"));
+
+        def->connect(op->sel("out"), reg->sel("in"));
+        def->connect(self->sel("clk"), reg->sel("clk"));
+
+	def->connect(reg->sel("out"), self->sel("out_" + to_string(i)));
+
+        if ((i % 1000) == 0) {
+          cout << "Wired up inputs " << i << endl;
+        }
+      }
+      
+      cout << "Setting definition" << endl;
+
+      //assert(false);
 
       manyOps->setDef(def);
 
-      SECTION("Interpreting code") {
-	cout << "Starting passes" << endl;
-	c->runPasses({"rungenerators"}); //, "flattentypes"}); //,"flatten"});
-	cout << "Done with passes" << endl;
+      cout << "Running passes" << endl;
 
-	cout << "Setting up interpreter" << endl;
+      c->runPasses({"rungenerators"}); //, "flattentypes"}); //, "flatten"});
 
-	SimulatorState state(manyOps);
+      // cout << "Writing to json" << endl;
+      // if (!saveToFile(g, "many_ops.json", manyOps)) {
+      //   cout << "Could not save to json!!" << endl;
+      //   c->die();
+      // }
 
-	cout << "Done setting up interpreter" << endl;
+      // Simulation code
 
-      }
+      // SECTION("Interpreting code") {
+      //   cout << "Starting passes" << endl;
+      //   cout << "Done with passes" << endl;
+      //   cout << "Setting up interpreter" << endl;
 
-      SECTION("Compiling code") {
-	c->runPasses({"rungenerators", "flattentypes"});
-      	// RunGenerators rg;
-      	// rg.runOnNamespace(g);
+      //   SimulatorState state(manyOps);
 
-      	cout << "About to build graph" << endl;
+      // }
+      
+      // NGraph gr;
+      // buildOrderedGraph(manyOps, gr);
 
-      	NGraph gr;
-      	buildOrderedGraph(manyOps, gr);
+      // balancedComponentsParallel(gr);
 
-        SECTION("3 topological levels") {
-          vector<vector<vdisc>> topoLevels =
-            topologicalLevels(gr);
+      // cout << "Starting manyOpsological sort" << endl;
 
-          REQUIRE(topoLevels.size() == 3);
-        }
+      // // Delete inputs from the order, since they do not need to
+      // // be printed out
+      // deque<vdisc> topoOrder = topologicalSort(gr);
 
-      	setThreadNumbers(gr);
+      // string codePath = "./gencode/";
+      // string codeFile = manyOps->getName() + "_sim.cpp";
+      // string hFile = manyOps->getName() + "_sim.h";
 
-      	cout << "Built ordered graph" << endl;
-      	deque<vdisc> topoOrder = topologicalSort(gr);
+      // writeBitVectorLib(codePath + "bit_vector.h");
 
-      	cout << "Topologically sorted" << endl;
+      // cout << "Writing out files" << endl;
 
-      	string randIns =
-      	  randomSimInputHarness(manyOps);
+      // writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
+      
 
-      	cout << "Generating harness" << endl;
+      // SECTION("Compiling code") {
+      //   c->runPasses({"rungenerators", "flattentypes"});
 
-      	int s =
-      	  generateHarnessAndRun(topoOrder, gr, manyOps,
-      				"./gencode/",
-      				"many_ops",
-      				"./gencode/auto_harness_many_ops.cpp");
+      // 	cout << "About to build graph" << endl;
 
-      	REQUIRE(s == 0);
-      }
+      // 	NGraph gr;
+      // 	buildOrderedGraph(manyOps, gr);
+
+      //   SECTION("3 topological levels") {
+      //     vector<vector<vdisc>> topoLevels =
+      //       topologicalLevels(gr);
+
+      //     REQUIRE(topoLevels.size() == 3);
+      //   }
+
+      // 	setThreadNumbers(gr);
+
+      // 	cout << "Built ordered graph" << endl;
+      // 	deque<vdisc> topoOrder = topologicalSort(gr);
+
+      // 	cout << "Topologically sorted" << endl;
+
+      // 	string randIns =
+      // 	  randomSimInputHarness(manyOps);
+
+      // 	cout << "Generating harness" << endl;
+
+      // 	int s =
+      // 	  generateHarnessAndRun(topoOrder, gr, manyOps,
+      // 				"./gencode/",
+      // 				"many_ops",
+      // 				"./gencode/auto_harness_many_ops.cpp");
+
+      // 	REQUIRE(s == 0);
+      // }
 
     }
 
