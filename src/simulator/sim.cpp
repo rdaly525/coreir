@@ -761,7 +761,11 @@ namespace CoreIR {
       // TODO: This should print out the register output variable name
       //return lp.outputVarName(*sourceInstance);
 
-      return cVar(wd);
+      if (lp.getReadRegsDirectly() == false) {
+        return cVar(wd);
+      } else {
+        return lp.outputVarName(*sourceInstance);
+      }
     }
 
     if (isMemoryInstance(sourceInstance)) {
@@ -1162,7 +1166,7 @@ namespace CoreIR {
                               NGraph& g,
                               Module& mod,
                               const int threadNo,
-                              const LayoutPolicy& layoutPolicy) {
+                              LayoutPolicy& layoutPolicy) {
 
     cout << "Printing sim function for " << threadNo << endl;
 
@@ -1193,8 +1197,8 @@ namespace CoreIR {
       
       simLines.push_back("if " + condition + " {\n");
         
-        // Only need to update the DAGS that start from an input, otherwise the
-        // result is fresh already
+      // Only need to update the DAGS that start from an input, otherwise the
+      // result is fresh already
       simLines.push_back("\n// ----- Update combinational logic before clock\n");
       for (auto& nodes : paths.preSequentialDAGs) {
           concat(simLines,
@@ -1209,6 +1213,8 @@ namespace CoreIR {
              updateSequentialElements(paths.threadNodes, g, mod, threadNo, layoutPolicy));
       simLines.push_back("\n// ----- Done\n");
 
+      // No need to print out register updates
+      layoutPolicy.setReadRegsDirectly(true);
       simLines.push_back("\n// ----- Update combinational logic after clock\n");
       for (auto& nodes : paths.postSequentialDAGs) {
           concat(simLines,

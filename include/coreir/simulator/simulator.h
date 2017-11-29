@@ -5,9 +5,23 @@
 namespace CoreIR {
 
   class LayoutPolicy {
+  protected:
+
+    bool readRegsDirectly;
+
   public:
+    LayoutPolicy() : readRegsDirectly(false) {}
+
     virtual ~LayoutPolicy() {}
 
+    virtual void setReadRegsDirectly(const bool newVal) {
+      readRegsDirectly = newVal;
+    }
+
+    virtual bool getReadRegsDirectly() const {
+      return readRegsDirectly;
+    }
+    
     virtual std::string lastClkVarName(InstanceValue& clk) const = 0;
 
     virtual std::string clkVarName(InstanceValue& clk) const = 0;
