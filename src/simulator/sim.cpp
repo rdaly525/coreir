@@ -1092,8 +1092,72 @@ namespace CoreIR {
                                          const NGraph& g) {
     return !subgraphHasSequentialOutput(nodes, g);
   }
-  
-  
+
+  struct CircuitPaths {
+    deque<vdisc> threadNodes;
+    vector<deque<vdisc> > preSequentialAlwaysDAGs;
+    vector<deque<vdisc> > preSequentialDAGs;
+    vector<deque<vdisc> > postSequentialDAGs;
+    vector<deque<vdisc> > postSequentialAlwaysDAGs;
+    vector<deque<vdisc> > pureCombDAGs;
+  };
+
+  CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder,
+                                 NGraph& g,
+                                 Module& mod,
+                                 const int threadNo) {
+    CircuitPaths paths;
+
+    for (auto& vd : topoOrder) {
+      if (g.getNode(vd).getThreadNo() == threadNo) {
+        paths.threadNodes.push_back(vd);
+      }
+    }
+
+    vector<set<vdisc>> ccs =
+      connectedComponentsIgnoringInputs(g);
+
+    cout << "# of connected components = " << ccs.size() << endl;
+
+    // Set presequential DAGs
+    for (auto& cc : ccs) {
+      deque<vdisc> nodes;
+      for (auto& vd : paths.threadNodes) {
+        if (elem(vd, cc)) {
+          nodes.push_back(vd);
+        }
+      }
+
+      if (subgraphHasCombinationalOutput(nodes, g) &&
+          subgraphHasSequentialOutput(nodes, g)) {
+        // Need to split up graphs of this form
+        paths.preSequentialAlwaysDAGs.push_back(nodes);
+      }
+
+      if (subgraphHasCombinationalInput(nodes, g) &&
+          subgraphHasSequentialInput(nodes, g)) {
+        // Need to split up graphs of this form
+        paths.postSequentialAlwaysDAGs.push_back(nodes);
+      }
+
+      if (subgraphHasAllSequentialOutputs(nodes, g)) {
+        paths.preSequentialDAGs.push_back(nodes);
+      }
+
+      if (subgraphHasAllSequentialInputs(nodes, g)) {
+        paths.postSequentialDAGs.push_back(nodes);
+      }
+      
+      if (subgraphHasAllCombinationalInputs(nodes, g) &&
+          subgraphHasAllCombinationalOutputs(nodes, g)) {
+        paths.pureCombDAGs.push_back(nodes);
+      }
+    }
+    
+
+    return paths;
+  }
+
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -1109,61 +1173,10 @@ namespace CoreIR {
 
     vector<string> simLines;
 
+    auto paths = buildCircuitPaths(topoOrder, g, mod, threadNo);
+
     auto clk = findMainClock(g);
 
-    deque<vdisc> threadNodes;
-    for (auto& vd : topoOrder) {
-      if (g.getNode(vd).getThreadNo() == threadNo) {
-        threadNodes.push_back(vd);
-      }
-    }
-
-    vector<set<vdisc>> ccs =
-      connectedComponentsIgnoringInputs(g);
-
-    cout << "# of connected components = " << ccs.size() << endl;
-
-    vector<deque<vdisc> > preSequentialAlwaysDAGs;
-    vector<deque<vdisc> > preSequentialDAGs;
-    vector<deque<vdisc> > postSequentialDAGs;
-    vector<deque<vdisc> > postSequentialAlwaysDAGs;
-    vector<deque<vdisc> > pureCombDAGs;
-    
-    // Set presequential DAGs
-    for (auto& cc : ccs) {
-      deque<vdisc> nodes;
-      for (auto& vd : threadNodes) {
-        if (elem(vd, cc)) {
-          nodes.push_back(vd);
-        }
-      }
-
-      if (subgraphHasCombinationalOutput(nodes, g) &&
-          subgraphHasSequentialOutput(nodes, g)) {
-        // Need to split up graphs of this form
-        preSequentialAlwaysDAGs.push_back(nodes);
-      }
-
-      if (subgraphHasCombinationalInput(nodes, g) &&
-          subgraphHasSequentialInput(nodes, g)) {
-        // Need to split up graphs of this form
-        postSequentialAlwaysDAGs.push_back(nodes);
-      }
-
-      if (subgraphHasAllSequentialOutputs(nodes, g)) {
-        preSequentialDAGs.push_back(nodes);
-      }
-
-      if (subgraphHasAllSequentialInputs(nodes, g)) {
-        postSequentialDAGs.push_back(nodes);
-      }
-      
-      if (subgraphHasAllCombinationalInputs(nodes, g) &&
-          subgraphHasAllCombinationalOutputs(nodes, g)) {
-        pureCombDAGs.push_back(nodes);
-      }
-    }
-    
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
     
@@ -1171,7 +1184,7 @@ namespace CoreIR {
         parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
                parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
-      for (auto& nodes : preSequentialAlwaysDAGs) {
+      for (auto& nodes : paths.preSequentialAlwaysDAGs) {
           concat(simLines,
                  updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
           concat(simLines,
@@ -1183,7 +1196,7 @@ namespace CoreIR {
         // Only need to update the DAGS that start from an input, otherwise the
         // result is fresh already
       simLines.push_back("\n// ----- Update combinational logic before clock\n");
-      for (auto& nodes : preSequentialDAGs) {
+      for (auto& nodes : paths.preSequentialDAGs) {
           concat(simLines,
                  updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
           concat(simLines,
@@ -1193,11 +1206,11 @@ namespace CoreIR {
 
       simLines.push_back("\n// ----- Updating sequential logic\n");
       concat(simLines,
-             updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
+             updateSequentialElements(paths.threadNodes, g, mod, threadNo, layoutPolicy));
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n// ----- Update combinational logic after clock\n");
-      for (auto& nodes : postSequentialDAGs) {
+      for (auto& nodes : paths.postSequentialDAGs) {
           concat(simLines,
                  updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
           concat(simLines,
@@ -1207,7 +1220,7 @@ namespace CoreIR {
 
       simLines.push_back("\n}\n");
 
-      for (auto& nodes : postSequentialAlwaysDAGs) {
+      for (auto& nodes : paths.postSequentialAlwaysDAGs) {
           concat(simLines,
                  updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
           concat(simLines,
@@ -1217,7 +1230,7 @@ namespace CoreIR {
     }
 
     simLines.push_back("\n// ----- Update pure combinational logic\n");
-    for (auto& nodes : pureCombDAGs) {
+    for (auto& nodes : paths.pureCombDAGs) {
       concat(simLines,
              updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
       concat(simLines,
@@ -1233,7 +1246,7 @@ namespace CoreIR {
 
     cout << "Done concatenating" << endl;
 
-    return str; //ss.str(); //str;
+    return str;
   }
 
   bool underlyingTypeIsClkIn(Type& tp) {
