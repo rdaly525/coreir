@@ -1189,9 +1189,12 @@ namespace CoreIR {
           concat(simLines,
                  updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
       }
+      simLines.push_back("\n// ----- Done\n");
 
+      simLines.push_back("\n// ----- Updating sequential logic\n");
       concat(simLines,
              updateSequentialElements(threadNodes, g, mod, threadNo, layoutPolicy));
+      simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n// ----- Update combinational logic after clock\n");
       for (auto& nodes : postSequentialDAGs) {
@@ -1200,6 +1203,7 @@ namespace CoreIR {
           concat(simLines,
                  updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
       }
+      simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n}\n");
 
@@ -1219,6 +1223,7 @@ namespace CoreIR {
       concat(simLines,
              updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
     }
+    simLines.push_back("\n// ----- Done\n");
     
     cout << "Done writing sim lines, now need to concatenate them" << endl;
 
