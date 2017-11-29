@@ -956,6 +956,13 @@ namespace CoreIR {
                        const std::deque<vdisc>& nodes,
                        const NGraph& g) {
 
+    if (g.inEdges(vd).size() == 0) {
+      WireNode wd = g.getNode(vd);
+      if (getQualifiedOpName(*toInstance(extractSource(toSelect(wd.getWire())))) == "coreir.const") {
+        return false;
+      }
+    }
+
     for (auto ec : g.inEdges(vd)) {
       for (auto& other : nodes) {
         if (g.source(ec) == other) {
@@ -1125,7 +1132,14 @@ namespace CoreIR {
 
       if (subgraphHasCombinationalOutput(nodes, g) &&
           subgraphHasSequentialOutput(nodes, g)) {
+        // Need to split up graphs of this form
         preSequentialAlwaysDAGs.push_back(nodes);
+      }
+
+      if (subgraphHasCombinationalInput(nodes, g) &&
+          subgraphHasSequentialInput(nodes, g)) {
+        // Need to split up graphs of this form
+        postSequentialAlwaysDAGs.push_back(nodes);
       }
 
       if (subgraphHasAllSequentialOutputs(nodes, g)) {
@@ -1136,11 +1150,6 @@ namespace CoreIR {
         postSequentialDAGs.push_back(nodes);
       }
       
-      if (subgraphHasCombinationalInput(nodes, g) &&
-          subgraphHasSequentialInput(nodes, g)) {
-        postSequentialAlwaysDAGs.push_back(nodes);
-      }
-
       if (subgraphHasAllCombinationalInputs(nodes, g) &&
           subgraphHasAllCombinationalOutputs(nodes, g)) {
         pureCombDAGs.push_back(nodes);
