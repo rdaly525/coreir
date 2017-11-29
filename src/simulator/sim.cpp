@@ -958,8 +958,16 @@ namespace CoreIR {
 
     if (g.inEdges(vd).size() == 0) {
       WireNode wd = g.getNode(vd);
-      if (getQualifiedOpName(*toInstance(extractSource(toSelect(wd.getWire())))) == "coreir.const") {
-        return false;
+      Wireable* src = wd.getWire();
+
+      cout << "src = " << src->toString() << endl;
+
+      if (isInstance(src)) {
+        Instance* inst = toInstance(src);
+        if ((getQualifiedOpName(*inst) == "coreir.const") ||
+            (getQualifiedOpName(*inst) == "corebit.const")) {
+          return false;
+        }
       }
     }
 
