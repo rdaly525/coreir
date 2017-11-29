@@ -604,8 +604,11 @@ namespace CoreIR {
 
     
     if (!wd.isReceiver) {
-      //return "";
-      return ln(cVar(*s) + " = " + lp.outputVarName(*r));
+      if (!lp.getReadRegsDirectly()) {
+        return ln(cVar(*s) + " = " + lp.outputVarName(*r));
+      } else {
+        return "";
+      }
     } else {
       return enableRegReceiver(wd, vd, g, lp);
     }
