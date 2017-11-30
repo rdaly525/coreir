@@ -305,33 +305,33 @@ namespace CoreIR {
 	REQUIRE(s == 0);
       }
 
-      SECTION("Compile multithreaded code") {
-	cout << "32 bit add 4 multithreaded" << endl;
-	colorAdd4Tree(gr);
+      // SECTION("Compile multithreaded code") {
+      //   cout << "32 bit add 4 multithreaded" << endl;
+      //   colorAdd4Tree(gr);
 
-	SECTION("Checking thread graph properties") {
-	  ThreadGraph tg = buildThreadGraph(gr);
+      //   SECTION("Checking thread graph properties") {
+      //     ThreadGraph tg = buildThreadGraph(gr);
 
-	  REQUIRE(tg.getVerts().size() == 4);
-	  REQUIRE(tg.getEdges().size() == 3);
-	}
+      //     REQUIRE(tg.getVerts().size() == 4);
+      //     REQUIRE(tg.getEdges().size() == 3);
+      //   }
 
-	deque<vdisc> topoOrder = topologicalSort(gr);
+      //   deque<vdisc> topoOrder = topologicalSort(gr);
 
-	for (auto& vd : topoOrder) {
-	  WireNode wd = gr.getNode(vd);
-	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
-	}
+      //   for (auto& vd : topoOrder) {
+      //     WireNode wd = gr.getNode(vd);
+      //     cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+      //   }
 
-	int s = compileCodeAndRun(topoOrder,
-				  gr,
-				  add4_n,
-				  "./gencode/",
-				  "add4_parallel",
-				  "test_add4_parallel.cpp");
-	REQUIRE(s == 0);
+      //   int s = compileCodeAndRun(topoOrder,
+      //   			  gr,
+      //   			  add4_n,
+      //   			  "./gencode/",
+      //   			  "add4_parallel",
+      //   			  "test_add4_parallel.cpp");
+      //   REQUIRE(s == 0);
 	
-      }
+      // }
 
     }
 
