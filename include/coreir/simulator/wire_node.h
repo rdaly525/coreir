@@ -11,7 +11,6 @@ namespace CoreIR {
     bool highBitsDirty;
     int threadNumber;
 
-  public:
     CoreIR::Wireable* wire;
 
   public:
