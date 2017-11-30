@@ -204,6 +204,8 @@ namespace CoreIR {
     std::vector<CoreIR::Wireable*> getOutputs(const vdisc vd) const;
   };
 
+  typedef NGraph NGraph;
+
   int numVertices(const NGraph& g);
   std::deque<vdisc> topologicalSort(const NGraph& g);
 
