@@ -42,6 +42,10 @@ namespace CoreIR {
     std::vector<std::pair<CoreIR::Type*, std::string> > varDecls;
     std::set<std::string> allocatedAlready;
 
+    CoreIR::Context* c;
+
+    CustomStructLayout(CoreIR::Context* const c_) : c(c_) {}
+
     std::string lastClkVarName(InstanceValue& clk) {
       varDecls.push_back({clk.getWire()->getType(), cVar("", clk, "_last")});
       return CoreIR::lastClkVarName(clk);
@@ -82,6 +86,25 @@ namespace CoreIR {
         }
 
         return CoreIR::outputVarName(val);
+      } else if (isMemoryInstance(&val)) {
+
+        if (!elem(cVar(val), allocatedAlready)) {
+          Instance* is = toInstance(&val);
+
+          Values args = is->getModuleRef()->getGenArgs();
+
+          auto wArg = args["width"];
+          auto dArg = args["depth"];
+        
+          uint width = wArg->get<int>();
+          uint depth = dArg->get<int>();
+          Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
+
+          varDecls.push_back({elemType, cVar(val)});
+          allocatedAlready.insert(cVar(val));
+        }
+
+        return CoreIR::outputVarName(val);
       }
 
       assert(false);
@@ -104,25 +127,12 @@ namespace CoreIR {
                           const NGraph& g,
                           LayoutPolicy& lp);
 
-  string printOpResultStr(const InstanceValue& wd,
-                          const NGraph& g) {
-    CustomStructLayout lp;
-    return printOpResultStr(wd, g, lp);
-  }
-  
   // wd is an instance node
   string opResultStr(const WireNode& wd,
                      const vdisc vd,
                      const NGraph& g,
                      LayoutPolicy& lp);
 
-  string opResultStr(const WireNode& wd,
-                     const vdisc vd,
-                     const NGraph& g) {
-    CustomStructLayout lp;
-    return opResultStr(wd, vd, g, lp);
-  }
-  
   string printUnop(Instance* inst,
                    const vdisc vd,
                    const NGraph& g,
@@ -1189,7 +1199,7 @@ namespace CoreIR {
 
     ThreadGraph tg = buildThreadGraph(g);
 
-    CustomStructLayout sl;
+    CustomStructLayout sl(mod->getDef()->getContext());
 
     for (auto& i : tg.getVerts()) {
       code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
