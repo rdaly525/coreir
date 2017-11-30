@@ -1,10 +1,26 @@
 #include "coreir/simulator/codegen.h"
 
+#include "coreir/ir/value.h"
+
 #include "coreir/simulator/print_c.h"
 
 using namespace std;
 
 namespace CoreIR {
+
+  bool underlyingTypeIsClkIn(Type& tp) {
+    if (isClkIn(tp)) {
+      return true;
+    }
+
+    if (isArray(tp)) {
+      ArrayType& tarr = toArray(tp);
+      return underlyingTypeIsClkIn(*(tarr.getElemType()));
+    }
+
+    return false;
+
+  }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   threadSharedVariableDecls(const NGraph& g) {
@@ -60,4 +76,97 @@ namespace CoreIR {
     return res;
   }  
 
+
+
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  simMemoryInputs(Module& mod) {
+    vector<pair<Type*, string>> declStrs;
+    
+    // Add register inputs
+    for (auto& inst : mod.getDef()->getInstances()) {
+      if (isMemoryInstance(inst.second)) {
+        cout << "Adding memory instance" << endl;
+        Instance* is = inst.second;
+
+        Context* c = mod.getDef()->getContext();
+
+        Values args = is->getModuleRef()->getGenArgs();
+
+        auto wArg = args["width"];
+        auto dArg = args["depth"];
+        
+        uint width = wArg->get<int>(); //16;
+        uint depth = dArg->get<int>();
+        Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
+        declStrs.push_back({elemType, is->toString()});
+
+      }
+    }
+
+    return declStrs;
+  }  
+
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  simRegisterInputs(Module& mod) {
+
+    vector<pair<Type*, string>> declStrs;
+    
+    // Add register inputs
+    for (auto& inst : mod.getDef()->getInstances()) {
+      if (isRegisterInstance(inst.second)) {
+        Instance* is = inst.second;
+
+        Select* in = is->sel("in");
+        Type* itp = in->getType();
+
+        string regName = is->getInstname();
+
+        declStrs.push_back({itp, cVar(*is)});
+        
+      }
+    }
+
+    return declStrs;
+    
+  }
+
+  std::vector<std::pair<CoreIR::Type*, std::string> >
+  sortedSimArgumentPairs(Module& mod) {
+
+    Type* tp = mod.getType();
+
+    assert(tp->getKind() == Type::TK_Record);
+
+    RecordType* modRec = static_cast<RecordType*>(tp);
+    vector<pair<Type*, string>> declStrs;
+
+    for (auto& name_type_pair : modRec->getRecord()) {
+      Type* tp = name_type_pair.second;
+
+      if (tp->isInput()) {
+        if (!underlyingTypeIsClkIn(*tp)) {
+          declStrs.push_back({tp, "self_" + name_type_pair.first});
+        } else {
+          declStrs.push_back({tp, "self_" + name_type_pair.first});
+          declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
+
+        }
+      } else {
+        assert(tp->isOutput());
+
+        declStrs.push_back({tp, "self_" + name_type_pair.first});
+
+      }
+    }
+
+    // Add register inputs
+    concat(declStrs, simRegisterInputs(mod));
+    // Add memory inputs
+    concat(declStrs, simMemoryInputs(mod));
+    
+
+    return declStrs;
+    
+  }
+  
 }
