@@ -74,7 +74,8 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Find all combinational dependencies
   for (auto outcon : dm.getOutputs()) {
     Wireable* output = outcon->getSnkWireable();
-    traverseOut2In(output,output,outputInfo);
+    Wireable* con = outcon->getSrcWireable();
+    traverseOut2In(con,output,outputInfo);
   }
   
   //All the outputs with no comb dependencies come from state. (not quite true, but good enough)
@@ -136,6 +137,7 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
 }
 
 void Passes::CreateCombView::traverseOut2In(Wireable* curin, Wireable* out, map<Wireable*,Output*>& outputInfo) {
+  assert(curin->getType()->isOutput());
   Wireable* parent = curin->getTopParent();
   if (isa<Interface>(parent)) {
     outputInfo[out]->inputs.insert(curin);

@@ -1,0 +1,55 @@
+{"top":"global.counters",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "counters": {
+          "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"],
+            "out0": ["Array",16,"Bit"],
+            "out1": ["Array",16,"Bit"]
+          }],
+            "instances": {
+            "count0": {"modref": "global.counter"},
+            "count1": {"modref": "global.counter"}
+          },
+          "connections": [
+            ["count0.clk","self.clk"],
+            ["count1.clk","self.clk"],
+            ["count0.out","self.out0"],
+            ["count1.out","self.out1"]
+          ]
+        },
+        "counter": {
+          "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"],
+            "clr": "BitIn",
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "c1": {
+              "genref": "coreir.const",
+              "genargs": {"width":["Int", 16]},
+              "modargs": {"value":[["BitVector", 16], 1]}
+            },
+            "r": {
+              "genref": "coreir.reg",
+              "genargs": {"width":["Int", 16]},
+              "modargs": {"init":[["BitVector",16],0]}
+            },
+            "a": {
+              "genref": "coreir.add",
+              "genargs": {"width":["Int", 16]}
+            }
+          },
+          "connections": [
+            ["c1.out","a.in0"],
+            ["r.out","a.in1"],
+            ["r.clk","self.clk"],
+            ["a.out","r.in"],
+            ["r.out","self.out"]
+          ]
+        }
+      }
+    }
+  }
+}
