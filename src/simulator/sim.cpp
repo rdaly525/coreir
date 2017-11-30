@@ -33,19 +33,22 @@ namespace CoreIR {
   public:
     std::vector<std::pair<CoreIR::Type*, std::string> > varDecls;
 
-    std::string lastClkVarName(InstanceValue& clk) const {
+    std::string lastClkVarName(InstanceValue& clk) {
+      varDecls.push_back({clk.getWire()->getType(), cVar("", clk, "_last")});
       return CoreIR::lastClkVarName(clk);
     }
 
-    std::string clkVarName(InstanceValue& clk) const {
+    std::string clkVarName(InstanceValue& clk) {
+      varDecls.push_back({clk.getWire()->getType(), cVar(clk)});
       return CoreIR::clkVarName(clk);
     }
 
-    std::string outputVarName(CoreIR::Wireable& outSel) const {
-      return CoreIR::outputVarName(outSel);
+    std::string outputVarName(CoreIR::Wireable& val) {
+      varDecls.push_back({val.getType(), cVar(val)});
+      return CoreIR::outputVarName(val);
     }
 
-    std::string outputVarName(const InstanceValue& val) const {
+    std::string outputVarName(const InstanceValue& val) {
       varDecls.push_back({val.getWire()->getType(), cVar(val)});
       return CoreIR::outputVarName(val);
     }
@@ -55,11 +58,11 @@ namespace CoreIR {
   string printBinop(const WireNode& wd,
                     const vdisc vd,
                     const NGraph& g,
-                    const LayoutPolicy& lp);
+                    LayoutPolicy& lp);
 
   string printOpResultStr(const InstanceValue& wd,
                           const NGraph& g,
-                          const LayoutPolicy& lp);
+                          LayoutPolicy& lp);
 
   string printOpResultStr(const InstanceValue& wd,
                           const NGraph& g) {
@@ -71,7 +74,7 @@ namespace CoreIR {
   string opResultStr(const WireNode& wd,
                      const vdisc vd,
                      const NGraph& g,
-                     const LayoutPolicy& lp);
+                     LayoutPolicy& lp);
 
   string opResultStr(const WireNode& wd,
                      const vdisc vd,
@@ -178,7 +181,7 @@ namespace CoreIR {
   string printOpThenMaskBinop(const WireNode& wd,
                               const vdisc vd,
                               const NGraph& g,
-                              const LayoutPolicy& lp) {
+                              LayoutPolicy& lp) {
     Instance* inst = toInstance(wd.getWire());
 
     auto outSelects = getOutputSelects(inst);
@@ -258,7 +261,7 @@ namespace CoreIR {
   printSEThenOpThenMaskBinop(Instance* inst,
                              const vdisc vd,
                              const NGraph& g,
-                             const LayoutPolicy& lp) {
+                             LayoutPolicy& lp) {
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
@@ -299,7 +302,7 @@ namespace CoreIR {
     return genRefName == "mux";
   }
 
-  string printMux(Instance* inst, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
+  string printMux(Instance* inst, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     assert(isMux(*inst));
 
     auto ins = getInputConnections(vd, g);
@@ -480,7 +483,7 @@ namespace CoreIR {
 
   }
   
-  string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
+  string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     assert(getInputs(vd, g).size() == 3);
 
     Instance* inst = toInstance(wd.getWire());
@@ -499,7 +502,7 @@ namespace CoreIR {
   string printBinop(const WireNode& wd,
                     const vdisc vd,
                     const NGraph& g,
-                    const LayoutPolicy& lp) {
+                    LayoutPolicy& lp) {
 
     assert(getInputs(vd, g).size() == 2);
 
@@ -529,7 +532,7 @@ namespace CoreIR {
     return recordTypeHasField("en", w->getType());
   }
 
-  string enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
+  string enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
 
     auto outSel = getOutputSelects(wd.getWire());
 
@@ -574,7 +577,7 @@ namespace CoreIR {
     return s;
   }
 
-  string printRegister(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
+  string printRegister(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     assert(wd.isSequential);
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -602,7 +605,7 @@ namespace CoreIR {
   string opResultStr(const WireNode& wd,
                      const vdisc vd,
                      const NGraph& g,
-                     const LayoutPolicy& lp) {
+                     LayoutPolicy& lp) {
 
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
@@ -628,7 +631,7 @@ namespace CoreIR {
     return "";
   }
 
-  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g, const LayoutPolicy& lp) {
+  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     assert(wd.isSequential);
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -681,7 +684,7 @@ namespace CoreIR {
   string printInstance(const WireNode& wd,
                        const vdisc vd,
                        const NGraph& g,
-                       const LayoutPolicy& layoutPolicy) {
+                       LayoutPolicy& layoutPolicy) {
 
     Instance* inst = toInstance(wd.getWire());
 
@@ -741,7 +744,7 @@ namespace CoreIR {
 
   string printOpResultStr(const InstanceValue& wd,
                           const NGraph& g,
-                          const LayoutPolicy& lp) {
+                          LayoutPolicy& lp) {
     assert(isSelect(wd.getWire()));
 
     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));    
@@ -833,7 +836,7 @@ namespace CoreIR {
                            NGraph& g,
                            Module& mod,
                            const int threadNo,
-                           const LayoutPolicy& layoutPolicy) {
+                           LayoutPolicy& layoutPolicy) {
     vector<string> simLines;
     // Update stateful element values
 
@@ -862,7 +865,7 @@ namespace CoreIR {
                           NGraph& g,
                           Module& mod,
                           const int threadNo,
-                          const LayoutPolicy& layoutPolicy) {
+                          LayoutPolicy& layoutPolicy) {
 
     vector<string> simLines;
 
@@ -893,7 +896,7 @@ namespace CoreIR {
                            NGraph& g,
                            Module& mod,
                            const int threadNo,
-                           const LayoutPolicy& layoutPolicy) {
+                           LayoutPolicy& layoutPolicy) {
     vector<string> simLines;
 
     int i = 0;
@@ -1190,6 +1193,7 @@ namespace CoreIR {
 
     ModuleCode mc(g, mod);
     mc.codeString = code;
+    mc.structLayout = sl.varDecls;
 
     return mc;
   }
