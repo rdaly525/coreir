@@ -168,5 +168,24 @@ namespace CoreIR {
     return declStrs;
     
   }
-  
+
+  std::vector<string> sortedSimArgumentList(Module& mod,
+                                            const NGraph& g) {
+
+    auto decls = sortedSimArgumentPairs(mod);
+
+    concat(decls, threadSharedVariableDecls(g));
+    
+    sort_lt(decls, [](const pair<Type*, string>& tpp) {
+        return tpp.second;
+      });
+
+    vector<string> declStrs;
+    for (auto declPair :  decls) {
+      declStrs.push_back(cArrayTypeDecl(*(declPair.first), declPair.second));
+    }
+
+    return declStrs;
+  }
+
 }

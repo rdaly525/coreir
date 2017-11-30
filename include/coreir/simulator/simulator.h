@@ -1,5 +1,6 @@
 #pragma once
 
+#include "coreir/simulator/codegen.h"
 #include "coreir/simulator/multithreading.h"
 
 namespace CoreIR {
@@ -44,8 +45,7 @@ namespace CoreIR {
 			CoreIR::Module* mod,
 			const std::string& baseName);
 
-  std::string printDecl(CoreIR::Module* mod,
-			const NGraph& g);
+  std::string printDecl(const ModuleCode& mc);
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod);

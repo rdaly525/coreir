@@ -4,7 +4,6 @@
 #include "coreir/passes/transform/rungenerators.h"
 
 #include "coreir/simulator/algorithm.h"
-#include "coreir/simulator/codegen.h"
 #include "coreir/simulator/print_c.h"
 #include "coreir/simulator/utils.h"
 
@@ -1121,28 +1120,7 @@ namespace CoreIR {
     return str;
   }
 
-  std::vector<string> sortedSimArgumentList(Module& mod,
-                                            const NGraph& g) {
-
-    auto decls = sortedSimArgumentPairs(mod);
-
-    concat(decls, threadSharedVariableDecls(g));
-    
-    sort_lt(decls, [](const pair<Type*, string>& tpp) {
-        return tpp.second;
-      });
-
-    vector<string> declStrs;
-    for (auto declPair :  decls) {
-      declStrs.push_back(cArrayTypeDecl(*(declPair.first), declPair.second));
-    }
-
-    return declStrs;
-  }
-
-  // Note: Dont actually need baseName here
-  string printDecl(CoreIR::Module* mod,
-                   const NGraph& g) {
+  string printDecl(const ModuleCode& mc) {
     string code = "";
     code += "#include <stdint.h>\n";
     code += "#include <cstdio>\n\n";
@@ -1150,8 +1128,8 @@ namespace CoreIR {
 
     code += "using namespace bsim;\n\n";
 
-    ModuleCode mc(g, mod);
     code += printEvalStruct(mc);
+
     code += "void simulate( circuit_state* state );\n";
 
     return code;

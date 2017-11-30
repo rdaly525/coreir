@@ -51,7 +51,10 @@ namespace CoreIR {
 
     cout << "Done writing out code" << endl;
 
-    string hStr = printDecl(mod, g);
+    ModuleCode mc(g, mod);
+    string hStr = printDecl(mc);
+    
+    //string hStr = printDecl(mod, g);
 
     cout << "Done writing out headers" << endl;
 
@@ -79,7 +82,8 @@ namespace CoreIR {
 		  const std::string& hFile) {
 
     string codeStr = printCode(topoOrder, g, mod, hFile);
-    string hStr = printDecl(mod, g);
+    ModuleCode mc(g, mod);
+    string hStr = printDecl(mc);
 
     std::ofstream out(codeFile);
     out << codeStr;
