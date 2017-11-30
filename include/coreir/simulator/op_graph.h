@@ -6,6 +6,7 @@ namespace CoreIR {
 
   class InstanceValue {
   protected:
+    // Allow an array of wires for SIMD experiments?
     CoreIR::Select* wire;
 
     bool mustMask;
