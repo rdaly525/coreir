@@ -71,24 +71,26 @@ namespace CoreIR {
         return selectName(toSelect(&val));
       }
 
-      varDecls.push_back({val.getType(), cVar(val)});
+      assert(isInstance(&val));
 
-      return CoreIR::outputVarName(val);
+      if (isRegisterInstance(&val)) {
+
+        Select* sel = val.sel("out");
+        if (!elem(cVar(val), allocatedAlready)) {
+          varDecls.push_back({sel->getType(), cVar(val)});
+          allocatedAlready.insert(cVar(val));
+        }
+
+        return CoreIR::outputVarName(val);
+      }
+
+      assert(false);
     }
 
     std::string outputVarName(const InstanceValue& val) {
       cout << "Creating output for " << val.getWire()->toString() << endl;
 
       return selectName(val.getWire());
-
-      // Select* baseSel = baseSelect(toSelect(val.getWire()));
-
-      // if (!elem(cVar(baseSel), allocatedAlready)) {
-      //   varDecls.push_back({baseSel->getType(), cVar(baseSel)});
-      //   allocatedAlready.insert(cVar(baseSel));
-      // }
-
-      // return CoreIR::outputVarName(val);
     }
     
   };
