@@ -29,9 +29,18 @@ namespace CoreIR {
     return cVar("(state->", val, ")");
   }
 
+  CoreIR::Select* baseSelect(CoreIR::Select* const sel) {
+    if (!isSelect(sel->getParent())) {
+      return sel;
+    }
+
+    return baseSelect(toSelect(sel->getParent()));
+  }
+
   class CustomStructLayout : public LayoutPolicy {
   public:
     std::vector<std::pair<CoreIR::Type*, std::string> > varDecls;
+    std::set<std::string> allocatedAlready;
 
     std::string lastClkVarName(InstanceValue& clk) {
       varDecls.push_back({clk.getWire()->getType(), cVar("", clk, "_last")});
@@ -49,7 +58,15 @@ namespace CoreIR {
     }
 
     std::string outputVarName(const InstanceValue& val) {
-      varDecls.push_back({val.getWire()->getType(), cVar(val)});
+      cout << "Creating output for " << val.getWire()->toString() << endl;
+
+      Select* baseSel = baseSelect(toSelect(val.getWire()));
+
+      if (!elem(cVar(baseSel), allocatedAlready)) {
+        varDecls.push_back({baseSel->getType(), cVar(baseSel)});
+        allocatedAlready.insert(cVar(baseSel));
+      }
+
       return CoreIR::outputVarName(val);
     }
     
