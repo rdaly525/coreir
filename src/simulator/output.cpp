@@ -47,15 +47,13 @@ namespace CoreIR {
 
     cout << "Writing out code" << endl;
 
-    string codeStr = printCode(topoOrder, g, mod, hFile);
+    ModuleCode mc = buildCode(topoOrder, g, mod, hFile);
+    string codeStr = printCode(mc);
 
     cout << "Done writing out code" << endl;
 
-    ModuleCode mc(g, mod);
     string hStr = printDecl(mc);
     
-    //string hStr = printDecl(mod, g);
-
     cout << "Done writing out headers" << endl;
 
     string codeFilePath = codePath + codeFile;
@@ -81,8 +79,8 @@ namespace CoreIR {
 		  const std::string& codeFile,
 		  const std::string& hFile) {
 
-    string codeStr = printCode(topoOrder, g, mod, hFile);
-    ModuleCode mc(g, mod);
+    ModuleCode mc = buildCode(topoOrder, g, mod, hFile);
+    string codeStr = printCode(mc);
     string hStr = printDecl(mc);
 
     std::ofstream out(codeFile);

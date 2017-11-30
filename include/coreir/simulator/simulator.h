@@ -39,11 +39,13 @@ namespace CoreIR {
                        Module& mod,
                        const int threadNo,
                        const LayoutPolicy& layoutPolicy);
-  
-  std::string printCode(const std::deque<vdisc>& topoOrder,
-			NGraph& g,
-			CoreIR::Module* mod,
-			const std::string& baseName);
+
+  std::string printCode(const ModuleCode& mc);
+
+  ModuleCode buildCode(const std::deque<vdisc>& topoOrder,
+                       NGraph& g,
+                       CoreIR::Module* mod,
+                       const std::string& baseName);
 
   std::string printDecl(const ModuleCode& mc);
 

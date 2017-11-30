@@ -554,9 +554,6 @@ namespace CoreIR {
       REQUIRE(numMasksNeeded(g) == 0);
 
       SECTION("Compiling code") {
-	auto str = printCode(topoOrder, g, andM, "and37.h");
-	cout << "CODE STRING" << endl;
-	cout << str << endl;
 
 	string outFile = "./gencode/and37.cpp";
 
@@ -607,10 +604,6 @@ namespace CoreIR {
       }
 
       deque<vdisc> topoOrder = topologicalSort(g);
-
-      auto str = printCode(topoOrder, g, addM, "add63.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
 
       string outFile = "add63";
       int s = compileCodeAndRun(topoOrder,
@@ -663,9 +656,6 @@ namespace CoreIR {
       }
 
       SECTION("Compiling code") {
-	auto str = printCode(topoOrder, gr, neg_n, "neg2.h");
-	cout << "CODE STRING" << endl;
-	cout << str << endl;
 
 	string outFile = "neg2";
 	int s = compileCodeAndRun(topoOrder,
@@ -827,10 +817,6 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, addM, "mat2_3_add.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
       string outFile = "./gencode/mat2_3_add.cpp";
       int s = compileCodeAndRun(topoOrder,
 				g,
@@ -909,10 +895,6 @@ namespace CoreIR {
 
       REQUIRE(numMasksNeeded(g) == 0);
 
-
-      auto str = printCode(topoOrder, g, sleM, "sle7.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
 
       int s = compileCodeAndRun(topoOrder,
 				g,

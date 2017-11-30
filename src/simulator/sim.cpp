@@ -1135,10 +1135,14 @@ namespace CoreIR {
     return code;
   }
 
-  string printCode(const std::deque<vdisc>& topoOrder,
-                   NGraph& g,
-                   CoreIR::Module* mod,
-                   const std::string& baseName) {
+  std::string printCode(const ModuleCode& mc) {
+    return mc.codeString;
+  }
+
+  ModuleCode buildCode(const std::deque<vdisc>& topoOrder,
+                       NGraph& g,
+                       CoreIR::Module* mod,
+                       const std::string& baseName) {
 
     string code = "";
 
@@ -1156,11 +1160,8 @@ namespace CoreIR {
 
     for (auto& i : tg.getVerts()) {
       code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
-
       code += printSimFunctionBody(topoOrder, g, *mod, i, sl);
-
       code += "}\n\n";
-
     }
 
     deque<vdisc> unPrintedThreads = topologicalSort(tg);
@@ -1203,7 +1204,10 @@ namespace CoreIR {
 
     code += "}\n";
 
-    return code;
+    ModuleCode mc(g, mod);
+    mc.codeString = code;
+
+    return mc;
   }
 
 }

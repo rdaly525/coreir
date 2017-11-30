@@ -344,10 +344,6 @@ namespace CoreIR {
 
       REQUIRE(splitNodeEdgesCorrect(g));
 
-      auto str = printCode(topoOrder, g, rg, "reg5.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
       SECTION("Compile and run") {      
 	string outFile = "reg5";
 
@@ -409,10 +405,6 @@ namespace CoreIR {
       cout << "Done topological sorting" << endl;
 
       REQUIRE(splitNodeEdgesCorrect(g));
-
-      auto str = printCode(topoOrder, g, counter, "counter.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
 
       SECTION("Compile and run") {      
 	string outFile = "counter";
@@ -589,12 +581,8 @@ namespace CoreIR {
       deque<vdisc> topoOrder = topologicalSort(g);
       cout << "Done topological sorting" << endl;
 
-      // auto str = printCode(topoOrder, g, regChain, "long_register_no_enable.h");
-      // cout << "CODE STRING" << endl;
-      // cout << str << endl;
-
       SECTION("Compile code") {
-	//string outFile = "./gencode/long_register_no_enable.cpp";
+
 	int s =
 	  compileCode(topoOrder,
 		      g,

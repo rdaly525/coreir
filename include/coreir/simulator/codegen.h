@@ -14,6 +14,8 @@ namespace CoreIR {
     CoreIR::Module* mod;
 
     std::vector<std::pair<CoreIR::Type*, std::string> > structLayout;
+
+    std::string codeString;
     
     ModuleCode(const NGraph& g_, CoreIR::Module* mod_) : g(g_), mod(mod_) {
       structLayout = sortedSimArgumentPairs(*mod);
