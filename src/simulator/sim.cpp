@@ -342,7 +342,10 @@ namespace CoreIR {
                printOpResultStr(i0, g, lp));
   }
 
-  string printAddOrSubWithCIN(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printAddOrSubWithCIN(const WireNode& wd,
+                              const vdisc vd,
+                              const NGraph& g,
+                              LayoutPolicy& lp) {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 3);
@@ -368,7 +371,7 @@ namespace CoreIR {
     string opString = getOpString(*inst);
 
     string compString =
-      parens(printOpResultStr(arg1, g) + opString + printOpResultStr(arg2, g) + " + " + printOpResultStr(carry, g));
+      parens(printOpResultStr(arg1, g, lp) + opString + printOpResultStr(arg2, g, lp) + " + " + printOpResultStr(carry, g, lp));
 
     // Check if this output needs a mask
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
@@ -517,7 +520,7 @@ namespace CoreIR {
 
     if (isAddOrSub(*inst)) {
       // Add and subtract need special treatment because of cin and cout flags
-      return printAddOrSubWithCIN(wd, vd, g);
+      return printAddOrSubWithCIN(wd, vd, g, lp);
     }
 
     assert(false);
