@@ -2,7 +2,9 @@
 
 #include "coreir/passes/transform/flatten.h"
 #include "coreir/passes/transform/rungenerators.h"
+
 #include "coreir/simulator/algorithm.h"
+#include "coreir/simulator/codegen.h"
 #include "coreir/simulator/print_c.h"
 #include "coreir/simulator/utils.h"
 
@@ -1186,35 +1188,6 @@ namespace CoreIR {
   }
 
   std::vector<std::pair<CoreIR::Type*, std::string> >
-  threadSharedVariableDecls(const NGraph& g) {
-    vector<pair<Type*, string>> declStrs;
-
-    for (auto& vd : g.getVerts()) {
-      WireNode wd = getNode( g, vd);
-      Wireable* w = wd.getWire();
-
-      if (isThreadShared(vd, g)) {
-        for (auto inSel : getOutputSelects(w)) {
-          Select* in = toSelect(inSel.second);
-
-          if (!fromSelfInterface(in)) {
-            if (!arrayAccess(in)) {
-
-              if (!wd.isSequential) {
-
-                declStrs.push_back({in->getType(), cVar(*in)});
-
-              }
-            }
-          }
-        }
-      }
-    }
-
-    return declStrs;
-  }
-
-  std::vector<std::pair<CoreIR::Type*, std::string> >
   sortedSimArgumentPairs(Module& mod) {
 
     Type* tp = mod.getType();
@@ -1239,8 +1212,7 @@ namespace CoreIR {
         assert(tp->isOutput());
 
         declStrs.push_back({tp, "self_" + name_type_pair.first});
-        
-        //declStrs.push_back({tp, "(*self_" + name_type_pair.first + "_ptr)"});
+
       }
     }
 
@@ -1273,20 +1245,6 @@ namespace CoreIR {
     return declStrs;
   }
 
-  std::string printEvalStruct(CoreIR::Module* mod,
-                              const NGraph& g) {
-    string res = "struct circuit_state {\n";
-
-    auto declStrs = sortedSimArgumentList(*mod, g);
-    for (auto& dstr : declStrs) {
-      res += "\t" + dstr + ";\n";
-    }
-    
-    res += "};\n\n";
-
-    return res;
-  }  
-
   // Note: Dont actually need baseName here
   string printDecl(CoreIR::Module* mod,
                    const NGraph& g) {
@@ -1297,7 +1255,7 @@ namespace CoreIR {
 
     code += "using namespace bsim;\n\n";
 
-    code += printEvalStruct(mod, g);
+    code += printEvalStruct(ModuleCode(g, mod));
     code += "void simulate( circuit_state* state );\n";
 
     return code;
