@@ -39,16 +39,6 @@ void Passes::CreateCombView::setupCoreir(Module* m) {
   }
 }
 
-struct Output {
-  set<Wireable*> states;
-  set<Wireable*> inputs;
-};
-
-struct Input {
-  set<Wireable*> states;
-  set<Wireable*> outputs; //Unused for now
-};
-
 
 string Passes::CreateCombView::ID = "createcombview";
 bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
@@ -62,7 +52,7 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
     ASSERT(0,"NYI");
   }
   ASSERT(m->hasDef(), "NEEDS Def!");
-  //ModuleDef* mdef = m->getDef();
+  ModuleDef* mdef = m->getDef();
 
   DirectedModule dm(m);
 
@@ -82,17 +72,25 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
   
   //Find all combinational dependencies
-  //for (auto outcon : dm.getOutputs()) {
-  //  Wireable* output = outcon->getSnkWireable();
-  //  traverseOut2In(output,output);
-  //}
-  //
-  //for (auto outcon : dm.getOutputs()) {
-  //  Wireable* output = outcon->getSnkWireable();
-  //  if (outputInfo.inputs.count(output)==0) {
-  //    outputInfo.states.insert(output); //Not sure why I am adding this here
-  //  }
-  //}
+  for (auto outcon : dm.getOutputs()) {
+    Wireable* output = outcon->getSnkWireable();
+    traverseOut2In(output,output,outputInfo);
+  }
+  
+  //All the outputs with no comb dependencies come from state. (not quite true, but good enough)
+  for (auto outcon : dm.getOutputs()) {
+    Wireable* output = outcon->getSnkWireable();
+    if (outputInfo[output]->inputs.count(output)==0) {
+      outputInfo[output]->states.insert(output); //Not sure why I am adding this here
+    }
+  }
+
+  //Find all the inputs that are driving the next state
+  
+  //TODO for now I am just setting it to be all the inputs
+  for (auto ipair : inputInfo) {
+    ipair.second->states.insert(mdef->getInterface()); //TODO actually calculate this
+  }
 
   //for (auto ipair : mdef->getInstances()) {
   //  Module* mref = ipair->getModuleRef();
@@ -137,22 +135,25 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-//void traverseOut2In(Wireable* curout, Wireable* out) {
-//  Wireable* input = foo(curout);
-//  Wireable* parent = input->getTopParent();
-//  if (isa<Interface>(parent)) {
-//    outputInfo.inputs.insert(input);
-//    inputInfo.outputs.insert(out);
-//    return;
-//  }
-//  Instance* inode = cast<Instance>(parent);
-//  Module* mnode = inode->getModuleRef();
-//  if (this->hasComb(mnode)) {
-//    auto checkoutputs = combs[mnode].outputs;
-//    //TODO check that input is in checkoutputs
-//    for (auto nextin : combs[mnode].inputs) {
-//      traverseOut2In(nextin, out);
-//    }
-//  }
+void Passes::CreateCombView::traverseOut2In(Wireable* curin, Wireable* out, map<Wireable*,Output*>& outputInfo) {
+  Wireable* parent = curin->getTopParent();
+  if (isa<Interface>(parent)) {
+    outputInfo[out]->inputs.insert(curin);
+    //inputInfo.outputs.insert(out);
+    return;
+  }
+  Instance* inode = cast<Instance>(parent);
+  Module* mnode = inode->getModuleRef();
+  if (this->hasComb(mnode)) {
+    auto checkoutputs = combs[mnode].outputs;
+    //TODO check that input is in checkoutputs
+    for (auto nextpath : combs[mnode].inputs) {
+      assert(inode->canSel(nextpath));
+      Wireable* nextin = inode->sel(nextpath);
+      for (auto con : nextin->getLocalConnections()) {
+        traverseOut2In(con.second, out,outputInfo);
+      }
+    }
+  }
 
-//}
+}

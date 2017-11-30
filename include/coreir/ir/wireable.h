@@ -50,6 +50,7 @@ class Wireable : public MetaData {
     Select* sel(std::initializer_list<std::string> path);
   
     bool canSel(std::string);
+    bool canSel(SelectPath);
   
     //Connect this to w
     void connect(Wireable* w);

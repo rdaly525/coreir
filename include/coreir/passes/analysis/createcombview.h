@@ -12,6 +12,17 @@ class CreateCombView : public InstanceGraphPass {
       std::set<SelectPath> inputs;
       std::set<SelectPath> outputs;
     };
+
+    struct Output {
+      std::set<Wireable*> states;
+      std::set<Wireable*> inputs;
+    };
+
+    struct Input {
+      std::set<Wireable*> states;
+      std::set<Wireable*> outputs; //Unused for now
+    };
+
   private:
 
     std::map<Module*,std::set<SelectPath>> srcs;
@@ -44,6 +55,8 @@ class CreateCombView : public InstanceGraphPass {
 
   private:
     void setupCoreir(Module* m);
+    void traverseOut2In(Wireable* curin, Wireable* out, std::map<Wireable*,Output*>& outputInfo);
+
 };
 
 }
