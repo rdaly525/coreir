@@ -241,4 +241,36 @@ namespace CoreIR {
 
   Select* findMainClock(const NGraph& g);
 
+  bool isSubgraphInput(const vdisc vd,
+                       const std::deque<vdisc>& nodes,
+                       const NGraph& g);
+
+  bool isSubgraphOutput(const vdisc vd,
+                        const std::deque<vdisc>& nodes,
+                        const NGraph& g);
+  
+  bool subgraphHasCombinationalInput(const std::deque<vdisc>& nodes,
+                                     const NGraph& g);
+
+  bool subgraphHasAllSequentialOutputs(const std::deque<vdisc>& nodes,
+                                       const NGraph& g);
+
+  bool subgraphHasAllSequentialInputs(const std::deque<vdisc>& nodes,
+                                      const NGraph& g);
+
+  bool subgraphHasCombinationalOutput(const std::deque<vdisc>& nodes,
+                                      const NGraph& g);
+
+  bool subgraphHasSequentialInput(const std::deque<vdisc>& nodes,
+                                  const NGraph& g);
+
+  bool subgraphHasSequentialOutput(const std::deque<vdisc>& nodes,
+                                   const NGraph& g);
+
+  bool subgraphHasAllCombinationalInputs(const std::deque<vdisc>& nodes,
+                                         const NGraph& g);
+
+  bool subgraphHasAllCombinationalOutputs(const std::deque<vdisc>& nodes,
+                                          const NGraph& g);
+
 }
