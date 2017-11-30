@@ -39,6 +39,30 @@ void Passes::CreateCombView::setupCoreir(Module* m) {
   }
 }
 
+void Passes::CreateCombView::setupCorebit(Module* m) {
+  string mname = m->getName();
+  if (mname == "dff") {
+    srcs[m].insert({"out"});
+    snks[m].insert({"in"});
+    snks[m].insert({"clk"});
+  }
+  else {
+    set<SelectPath> inputs;
+    set<SelectPath> outputs;
+    for (auto record : m->getType()->getRecord()) {
+      if (record.second->isInput()) {
+        inputs.insert({record.first});
+      }
+      else {
+        assert(record.second->isOutput());
+        outputs.insert({record.first});
+      }
+    }
+    combs[m].inputs = inputs;
+    combs[m].outputs = outputs;
+  }
+}
+
 
 string Passes::CreateCombView::ID = "createcombview";
 bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
@@ -49,9 +73,10 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
   if (m->getNamespace()->getName() == "corebit") {
-    ASSERT(0,"NYI");
+    setupCorebit(m);
+    return false;
   }
-  ASSERT(m->hasDef(), "NEEDS Def!");
+  ASSERT(m->hasDef(), "NEEDS Def! " + m->getRefName());
   ModuleDef* mdef = m->getDef();
 
   DirectedModule dm(m);
