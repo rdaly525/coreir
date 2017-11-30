@@ -425,9 +425,9 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string in0Str = printOpResultStr(arg1, g);
-    string in1Str = printOpResultStr(arg2, g);
-    string carryStr = printOpResultStr(carry, g);
+    string in0Str = printOpResultStr(arg1, g, lp);
+    string in1Str = printOpResultStr(arg2, g, lp);
+    string carryStr = printOpResultStr(carry, g, lp);
     string sumStr = parens(in0Str + opString + in1Str);
 
     string compString =
