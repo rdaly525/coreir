@@ -199,7 +199,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
         for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
           string instname = jinstmap.first;
           json jinst = jinstmap.second;
-          checkJson(jinst,{"modref","genref","genargs","modargs"});
+          checkJson(jinst,{"metadata","modref","genref","genargs","modargs"});
           // This function can throw an error
           Instance* inst;
           if (jinst.count("modref")) {
