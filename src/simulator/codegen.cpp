@@ -159,14 +159,10 @@ namespace CoreIR {
       }
     }
 
-    // Add register inputs
     concat(declStrs, simRegisterInputs(mod));
-    // Add memory inputs
     concat(declStrs, simMemoryInputs(mod));
-    
 
     return declStrs;
-    
   }
 
   std::vector<string> sortedSimArgumentList(Module& mod,

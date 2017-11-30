@@ -31,6 +31,8 @@ namespace CoreIR {
 
   class CustomStructLayout : public LayoutPolicy {
   public:
+    std::vector<std::pair<CoreIR::Type*, std::string> > varDecls;
+
     std::string lastClkVarName(InstanceValue& clk) const {
       return CoreIR::lastClkVarName(clk);
     }
@@ -44,28 +46,10 @@ namespace CoreIR {
     }
 
     std::string outputVarName(const InstanceValue& val) const {
+      varDecls.push_back({val.getWire()->getType(), cVar(val)});
       return CoreIR::outputVarName(val);
     }
     
-  };
-
-  class CharBufferLayout : public LayoutPolicy {
-    std::string lastClkVarName(InstanceValue& clk) const {
-      assert(false);
-    }
-
-    std::string clkVarName(InstanceValue& clk) const {
-      assert(false);
-    }
-
-    std::string outputVarName(CoreIR::Wireable& outSel) const {
-      assert(false);
-    }
-
-    std::string outputVarName(const InstanceValue& val) const {
-      assert(false);
-    }
-
   };
 
   string printBinop(const WireNode& wd,
