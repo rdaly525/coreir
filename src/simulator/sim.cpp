@@ -52,9 +52,24 @@ namespace CoreIR {
       return CoreIR::clkVarName(clk);
     }
 
+    std::string selectName(CoreIR::Select* sel) {
+      Select* baseSel = baseSelect(toSelect(sel));
+
+      if (!elem(cVar(baseSel), allocatedAlready)) {
+        varDecls.push_back({baseSel->getType(), cVar(baseSel)});
+        allocatedAlready.insert(cVar(baseSel));
+      }
+
+      return CoreIR::outputVarName(sel);
+    }
+
     std::string outputVarName(CoreIR::Wireable& val) {
 
       cout << "Adding output name for " << val.toString() << " with type " << val.getType()->toString() << endl;
+
+      if (isSelect(val)) {
+        return selectName(toSelect(&val));
+      }
 
       varDecls.push_back({val.getType(), cVar(val)});
 
@@ -64,14 +79,16 @@ namespace CoreIR {
     std::string outputVarName(const InstanceValue& val) {
       cout << "Creating output for " << val.getWire()->toString() << endl;
 
-      Select* baseSel = baseSelect(toSelect(val.getWire()));
+      return selectName(val.getWire());
 
-      if (!elem(cVar(baseSel), allocatedAlready)) {
-        varDecls.push_back({baseSel->getType(), cVar(baseSel)});
-        allocatedAlready.insert(cVar(baseSel));
-      }
+      // Select* baseSel = baseSelect(toSelect(val.getWire()));
 
-      return CoreIR::outputVarName(val);
+      // if (!elem(cVar(baseSel), allocatedAlready)) {
+      //   varDecls.push_back({baseSel->getType(), cVar(baseSel)});
+      //   allocatedAlready.insert(cVar(baseSel));
+      // }
+
+      // return CoreIR::outputVarName(val);
     }
     
   };
