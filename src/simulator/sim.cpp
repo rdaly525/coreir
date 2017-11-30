@@ -1165,6 +1165,20 @@ namespace CoreIR {
     return paths;
   }
 
+  void addDAGCode(std::vector<std::deque<vdisc> >& dags,
+                  NGraph& g,
+                  Module& mod,
+                  const int threadNo,
+                  LayoutPolicy& layoutPolicy,
+                  std::vector<std::string>& simLines) {
+    for (auto& nodes : dags) {
+      concat(simLines,
+             updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
+      concat(simLines,
+             updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
+    }
+  }
+
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -1191,24 +1205,18 @@ namespace CoreIR {
         parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
                parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
-      for (auto& nodes : paths.preSequentialAlwaysDAGs) {
-          concat(simLines,
-                 updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
-          concat(simLines,
-                 updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
-      }
-      
+      addDAGCode(paths.preSequentialAlwaysDAGs,
+                 g, mod, threadNo, layoutPolicy, simLines);
+
       simLines.push_back("if " + condition + " {\n");
         
       // Only need to update the DAGS that start from an input, otherwise the
       // result is fresh already
       simLines.push_back("\n// ----- Update combinational logic before clock\n");
-      for (auto& nodes : paths.preSequentialDAGs) {
-          concat(simLines,
-                 updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
-          concat(simLines,
-                 updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
-      }
+
+      addDAGCode(paths.preSequentialDAGs,
+                 g, mod, threadNo, layoutPolicy, simLines);
+      
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n// ----- Updating sequential logic\n");
@@ -1219,23 +1227,17 @@ namespace CoreIR {
       // No need to print out register updates
       layoutPolicy.setReadRegsDirectly(true);
       simLines.push_back("\n// ----- Update combinational logic after clock\n");
-      for (auto& nodes : paths.postSequentialDAGs) {
-          concat(simLines,
-                 updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
-          concat(simLines,
-                 updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
-      }
+
+      addDAGCode(paths.postSequentialDAGs,
+                 g, mod, threadNo, layoutPolicy, simLines);
+
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n}\n");
 
-      for (auto& nodes : paths.postSequentialAlwaysDAGs) {
-          concat(simLines,
-                 updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
-          concat(simLines,
-                 updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
-      }
-
+      addDAGCode(paths.postSequentialAlwaysDAGs,
+                 g, mod, threadNo, layoutPolicy, simLines);
+      
     }
 
     simLines.push_back("\n// ----- Update pure combinational logic\n");
