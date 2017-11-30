@@ -64,7 +64,18 @@ class Wireable : public MetaData {
     SelectPath& getSelectPath();
     ConstSelectPath getConstSelectPath();
     std::string wireableKind2Str(WireableKind wb);
+
+    //TODO turn these into iterators instead
+    
+    //Will return all of the selects (include self)
+    //Used for traversing type hierarchy downwards
+    std::map<SelectPath,Wireable*> getAllSelects();
+    std::map<SelectPath,Wireable*> getAllParents();
+
+
+    //Get all the connections from self and all the selects
     LocalConnections getLocalConnections();
+    
     Wireable* getTopParent();
 
     //removes the select from this wireble.

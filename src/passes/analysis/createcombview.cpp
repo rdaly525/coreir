@@ -173,6 +173,22 @@ void Passes::CreateCombView::traverseOut2In(Wireable* curin, Wireable* out, map<
   Module* mnode = inode->getModuleRef();
   if (this->hasComb(mnode)) {
     auto checkoutputs = combs[mnode].outputs;
+    bool found = false;
+    for (auto opath : checkoutputs) {
+      for (auto spair : curin->getAllSelects()) {
+        SelectPath spath = spair.second->getSelectPath();
+        spath.pop_front();
+        if (opath == spath) found = true;
+      }
+      for (auto spair : curin->getAllParents()) {
+        SelectPath spath = spair.second->getSelectPath();
+        spath.pop_front();
+        if (opath == spath) found = true;
+      }
+    }
+    if (!found) return;
+
+
     //TODO check that input is in checkoutputs
     for (auto nextpath : combs[mnode].inputs) {
       assert(inode->canSel(nextpath));
