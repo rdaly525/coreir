@@ -21,8 +21,8 @@ class DirectedConnection {
     DirectedConnection(Connection& c);
     SelectPath getSrc();
     SelectPath getSnk();
-    SelectPath getSrcWireable() {return src;}
-    SelectPath getSnkWireable() {return snk;}
+    Wireable* getSrcWireable() {return src;}
+    Wireable* getSnkWireable() {return snk;}
     ConstSelectPath getConstSrc();
     ConstSelectPath getConstSnk();
     Context* getContext();

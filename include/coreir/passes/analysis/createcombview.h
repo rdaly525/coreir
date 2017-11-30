@@ -7,23 +7,43 @@ namespace CoreIR {
 namespace Passes {
 
 class CreateCombView : public InstanceGraphPass {
-  std::map<Module*,std::set<SelectPath>> srcs;
-  std::map<Module*,std::set<SelectPath>> snks;
-  std::map<Module*,std::pair<std::set<SelectPath>,std::set<SelectPath>> combs;
+  public:
+    struct Comb {
+      std::set<SelectPath> inputs;
+      std::set<SelectPath> outputs;
+    };
+  private:
+
+    std::map<Module*,std::set<SelectPath>> srcs;
+    std::map<Module*,std::set<SelectPath>> snks;
+    std::map<Module*,Comb> combs;
 
   public :
     static std::string ID;
     CreateCombView() : InstanceGraphPass(ID,"create comb view datastructures",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
-    
-    bool hasSrc(Module* m);
-    bool hasSnk(Module* m);
-    bool hasComb(Module* m);
+    bool hasSrc(Module* m) { 
+      return (srcs.count(m) > 0) && srcs[m].size() > 0;
+    }
+    bool hasSnk(Module* m) { 
+      return (snks.count(m) > 0) && snks[m].size() > 0;
+    }
+    bool hasComb(Module* m) {
+      return (combs.count(m) > 0) && (combs[m].inputs.size()>0 || combs[m].outputs.size()>0);
+    }
 
-    std::set<std::string> getSrc(Module* m);
-    std::set<std::string> getSnk(Module* m);
-    std::pair<std::set<std::string>,std::set<std::string>> getComb(Module* m);
+    std::set<SelectPath>& getSrc(Module* m) {
+      return srcs[m];
+    }
+    std::set<SelectPath>& getSnk(Module* m) {
+      return snks[m];
+    }
+    Comb& getComb(Module* m) {
+      return combs[m];
+    }
 
+  private:
+    void setupCoreir(Module* m);
 };
 
 }
