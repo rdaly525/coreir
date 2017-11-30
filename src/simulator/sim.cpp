@@ -53,7 +53,11 @@ namespace CoreIR {
     }
 
     std::string outputVarName(CoreIR::Wireable& val) {
+
+      cout << "Adding output name for " << val.toString() << " with type " << val.getType()->toString() << endl;
+
       varDecls.push_back({val.getType(), cVar(val)});
+
       return CoreIR::outputVarName(val);
     }
 
@@ -390,7 +394,7 @@ namespace CoreIR {
   }
 
   // NOTE: This function prints the full assignment of values
-  string printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 3);
@@ -449,7 +453,7 @@ namespace CoreIR {
   }
 
   // NOTE: This function prints the full assignment of values
-  string printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g) {
+  string printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 2);
@@ -476,8 +480,8 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string in0Str = printOpResultStr(arg1, g);
-    string in1Str = printOpResultStr(arg2, g);
+    string in0Str = printOpResultStr(arg1, g, lp);
+    string in1Str = printOpResultStr(arg2, g, lp);
     string sumStr = parens(in0Str + opString + in1Str);
 
     string compString = sumStr;
@@ -738,11 +742,11 @@ namespace CoreIR {
 
       if (ins.size() == 3) {
       
-        return printAddOrSubCIN_COUT(wd, vd, g);
+        return printAddOrSubCIN_COUT(wd, vd, g, layoutPolicy);
       } else {
         assert(ins.size() == 2);
 
-        return printAddOrSubCOUT(wd, vd, g);
+        return printAddOrSubCOUT(wd, vd, g, layoutPolicy);
         
       }
     }
