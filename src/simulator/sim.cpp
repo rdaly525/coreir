@@ -100,7 +100,10 @@ namespace CoreIR {
     return opResultStr(wd, vd, g, lp);
   }
   
-  string printUnop(Instance* inst, const vdisc vd, const NGraph& g) {
+  string printUnop(Instance* inst,
+                   const vdisc vd,
+                   const NGraph& g,
+                   LayoutPolicy& lp) {
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
@@ -124,11 +127,11 @@ namespace CoreIR {
     string val;
 
     if (opString != "andr") {
-      val = opString + printOpResultStr(cn.first, g);
+      val = opString + printOpResultStr(cn.first, g, lp);
     } else {
 
       uint w = typeWidth(*(cn.first.getWire()->getType()));
-      val = parens(printOpResultStr(cn.first, g) + " == " + bitMaskString(w));
+      val = parens(printOpResultStr(cn.first, g, lp) + " == " + bitMaskString(w));
 
     }
 
@@ -636,7 +639,7 @@ namespace CoreIR {
     }
 
     if (ins.size() == 1) {
-      return printUnop(inst, vd, g);
+      return printUnop(inst, vd, g, lp);
     }
 
     if (ins.size() == 0) {
