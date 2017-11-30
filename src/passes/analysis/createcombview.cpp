@@ -61,6 +61,8 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   if (m->getNamespace()->getName() == "corebit") {
     ASSERT(0,"NYI");
   }
+  ASSERT(m->hasDef(), "NEEDS Def!");
+  //ModuleDef* mdef = m->getDef();
 
   DirectedModule dm(m);
 
@@ -79,9 +81,26 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
     inputInfo.emplace(input,new Input());
   }
   
-  //Traverse to set in all the Inputs and Outputs
-  //TODO
-  
+  //Find all combinational dependencies
+  //for (auto outcon : dm.getOutputs()) {
+  //  Wireable* output = outcon->getSnkWireable();
+  //  traverseOut2In(output,output);
+  //}
+  //
+  //for (auto outcon : dm.getOutputs()) {
+  //  Wireable* output = outcon->getSnkWireable();
+  //  if (outputInfo.inputs.count(output)==0) {
+  //    outputInfo.states.insert(output); //Not sure why I am adding this here
+  //  }
+  //}
+
+  //for (auto ipair : mdef->getInstances()) {
+  //  Module* mref = ipair->getModuleRef();
+  //  if (!this->hasSrc(mref)) continue;
+  //  for (auto 
+  //}
+
+
   for (auto opair : outputInfo) {
     Output* oinfo = opair.second;
     Wireable* out = opair.first;
@@ -118,7 +137,22 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-void traverse(Wireable* cur, Wireable* out) {
-  //get the connected wireable
+//void traverseOut2In(Wireable* curout, Wireable* out) {
+//  Wireable* input = foo(curout);
+//  Wireable* parent = input->getTopParent();
+//  if (isa<Interface>(parent)) {
+//    outputInfo.inputs.insert(input);
+//    inputInfo.outputs.insert(out);
+//    return;
+//  }
+//  Instance* inode = cast<Instance>(parent);
+//  Module* mnode = inode->getModuleRef();
+//  if (this->hasComb(mnode)) {
+//    auto checkoutputs = combs[mnode].outputs;
+//    //TODO check that input is in checkoutputs
+//    for (auto nextin : combs[mnode].inputs) {
+//      traverseOut2In(nextin, out);
+//    }
+//  }
 
-}
+//}

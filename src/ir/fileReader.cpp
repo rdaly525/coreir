@@ -201,6 +201,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           json jinst = jinstmap.second;
           checkJson(jinst,{"modref","genref","genargs","modargs"});
           // This function can throw an error
+          Instance* inst;
           if (jinst.count("modref")) {
             assert(jinst.count("genref")==0);
             assert(jinst.count("genargs")==0);
@@ -209,7 +210,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             if (jinst.count("modargs")) {
               modargs = json2Values(c,jinst.at("modargs"),modRef);
             }
-            mdef->addInstance(instname,modRef,modargs);
+            inst = mdef->addInstance(instname,modRef,modargs);
           }
           else if (jinst.count("genargs") && jinst.count("genref")) { // This is a generator
             auto gref = getRef(jinst.at("genref").get<string>());
@@ -219,10 +220,13 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             if (jinst.count("modargs")) {
               modargs = json2Values(c,jinst.at("modargs"));
             }
-            mdef->addInstance(instname,genRef,genargs,modargs);
+            inst = mdef->addInstance(instname,genRef,genargs,modargs);
           }
           else {
             ASSERTTHROW(0,"Bad Instance. Need (modref || (genref && genargs))");
+          }
+          if (jinst.count("metadata")) {
+            inst->setMetaData(jinst["metadata"]);
           }
         } // End Instances
       }

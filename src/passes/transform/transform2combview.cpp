@@ -146,14 +146,17 @@ bool Passes::Transform2CombView::runOnInstanceGraphNode(InstanceGraphNode& node)
     if (combview->hasSrc(m)) {
       auto newinst = def->addInstance(iname_src,ns->getModule(mname_src));
       newinst->getMetaData()["srcsnkcomb"] = "src";
+      newinst->getMetaData()["original"] = iname;
     }
     if (combview->hasSnk(m)) {
       auto newinst = def->addInstance(iname_snk,ns->getModule(mname_snk));
       newinst->getMetaData()["srcsnkcomb"] = "snk";
+      newinst->getMetaData()["original"] = iname;
     }
     if (combview->hasComb(m)) {
       auto newinst = def->addInstance(iname_comb,ns->getModule(mname_comb));
       newinst->getMetaData()["srcsnkcomb"] = "comb";
+      newinst->getMetaData()["original"] = iname;
     }
 
     //Src
