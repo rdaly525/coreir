@@ -1098,40 +1098,36 @@ namespace CoreIR {
       // Only need to update the DAGS that start from an input, otherwise the
       // result is fresh already
       simLines.push_back("\n// ----- Update combinational logic before clock\n");
-
       addDAGCode(paths.preSequentialDAGs,
                  g, mod, threadNo, layoutPolicy, simLines);
-      
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n// ----- Updating sequential logic\n");
       concat(simLines,
              updateSequentialElements(paths.threadNodes, g, mod, threadNo, layoutPolicy));
       simLines.push_back("\n// ----- Done\n");
-
       // No need to print out register updates
       layoutPolicy.setReadRegsDirectly(true);
       simLines.push_back("\n// ----- Update combinational logic after clock\n");
 
+      cout << "# of post sequential dags = " << paths.postSequentialDAGs.size() << endl;
+      for (auto& dag : paths.postSequentialDAGs) {
+        cout << dag.size() << endl;
+      }
       addDAGCode(paths.postSequentialDAGs,
                  g, mod, threadNo, layoutPolicy, simLines);
-
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n}\n");
-
       addDAGCode(paths.postSequentialAlwaysDAGs,
                  g, mod, threadNo, layoutPolicy, simLines);
       
     }
 
     simLines.push_back("\n// ----- Update pure combinational logic\n");
-    for (auto& nodes : paths.pureCombDAGs) {
-      concat(simLines,
-             updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
-      concat(simLines,
-             updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
-    }
+    addDAGCode(paths.pureCombDAGs,
+               g, mod, threadNo, layoutPolicy, simLines);
+
     simLines.push_back("\n// ----- Done\n");
     
     cout << "Done writing sim lines, now need to concatenate them" << endl;
