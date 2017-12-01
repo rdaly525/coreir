@@ -52,7 +52,7 @@ namespace CoreIR {
   }
 
   std::string printEvalStruct(const ModuleCode& mc) {
-    string res = "struct circuit_state {\n";
+    string res = "struct __attribute__((packed, aligned(32))) circuit_state {\n";
 
     auto decls = mc.structLayout;
 

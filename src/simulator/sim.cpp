@@ -1192,6 +1192,12 @@ namespace CoreIR {
         string stateOutLoc =
           cVar(*(g.getNode(dag[1]).getWire()));
 
+
+
+        // Guarantee that all variables are declared
+        layoutPolicy.outputVarName(*(g.getNode(dag[0]).getWire()));
+        layoutPolicy.outputVarName(*(g.getNode(dag[1]).getWire()));
+        
         outvars.push_back(stateOutLoc);
 
       }
