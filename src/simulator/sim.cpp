@@ -66,7 +66,7 @@ namespace CoreIR {
       }
 
       vector<pair<Type*, string> > others;
-      for (int i = 0; i < varDecls.size(); i++) {
+      for (uint i = 0; i < varDecls.size(); i++) {
         if (!elem(i, adjacentInds)) {
           others.push_back(varDecls[i]);
         }
@@ -75,7 +75,7 @@ namespace CoreIR {
       varDecls = others;
       concat(varDecls, adj);
 
-      assert(varDecls.size() == oldSize);
+      assert(varDecls.size() == ((unsigned) oldSize));
     }
 
     std::string lastClkVarName(InstanceValue& clk) {
@@ -1085,8 +1085,8 @@ namespace CoreIR {
   vector<vector<SubDAG> >
   groupIdenticalSubDAGs(const vector<SubDAG>& dags, const int groupSize) {
     vector<vector<SubDAG> > groups;
-    //for (auto& dag : dags) {
-    int i;
+
+    uint i;
     for (i = 0; i < dags.size(); i += groupSize) {
       if ((i + groupSize) > dags.size()) {
         break;
