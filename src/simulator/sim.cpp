@@ -1069,11 +1069,14 @@ namespace CoreIR {
       groups.push_back(sg);
     }
 
-    vector<SubDAG> sg;      
-    for (; i < dags.size(); i++) {
-      sg.push_back(dags[i]);
+    if (i < dags.size()) {
+      vector<SubDAG> sg;      
+      for (; i < dags.size(); i++) {
+        sg.push_back(dags[i]);
+      }
+
+      groups.push_back(sg);
     }
-    groups.push_back(sg);
 
     return groups;
   }
@@ -1121,10 +1124,18 @@ namespace CoreIR {
 
     int opWidth = 16;
     int groupSize = 256 / opWidth;
+
+    cout << "groupSize = " << groupSize << endl;
     vector<vector<SubDAG> > dagGroups = groupIdenticalSubDAGs(dags, groupSize);
 
+    //vector<vector<string> > state_var_groups;
+    
     for (int i = 0; i < dagGroups.size(); i++) {
       vector<SubDAG>& group = dagGroups[i];
+
+      // Create forced variable groups in layout
+      //for (auto& dag : group) {
+      //}
       SubDAG init = group[0];
       string stateInLoc =
         layoutPolicy.outputVarName(*(g.getNode(init[0]).getWire()));
