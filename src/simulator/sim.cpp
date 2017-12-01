@@ -857,8 +857,7 @@ namespace CoreIR {
 
   string printSimFunctionPrefix(const std::deque<vdisc>& topo_order,
                                 NGraph& g,
-                                Module& mod,
-                                const int threadNo) {
+                                Module& mod) {
     string str = "";
 
     // Declare all variables
@@ -1068,12 +1067,12 @@ namespace CoreIR {
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
-                              const int threadNo,
                               LayoutPolicy& layoutPolicy) {
 
+    int threadNo = 0;
     cout << "Printing sim function for " << threadNo << endl;
 
-    string str = printSimFunctionPrefix(topoOrder, g, mod, threadNo);
+    string str = printSimFunctionPrefix(topoOrder, g, mod);
 
     // Print out operations in topological order
     str += "\n// Simulation code\n";
@@ -1173,62 +1172,19 @@ namespace CoreIR {
     string code = "";
 
     code += "#include \"" + baseName + "\"\n";
-    //code += "#include <thread>\n\n";
-
     code += "using namespace bsim;\n\n";
 
     code += seMacroDef();
     code += maskMacroDef();
 
-    //ThreadGraph tg = buildThreadGraph(g);
-
     CustomStructLayout sl(mod->getDef()->getContext());
 
-    //for (auto& i : tg.getVerts()) {
-      code += "void simulate_0( circuit_state* state ) {\n";
-      code += printSimFunctionBody(topoOrder, g, *mod, 0, sl);
-      code += "}\n\n";
-      //}
-
-    //deque<vdisc> unPrintedThreads = topologicalSort(tg);
-    // vector<vdisc> unJoinedThreads;
-    // for (auto& vd : unPrintedThreads) {
-    //   unJoinedThreads.push_back(vd);
-    // }
+    code += "void simulate_0( circuit_state* state ) {\n";
+    code += printSimFunctionBody(topoOrder, g, *mod, sl);
+    code += "}\n\n";
 
     code += "void simulate( circuit_state* state ) {\n";
-
-    //assert(unPrintedThreads.size() == 1);
-    //if (unPrintedThreads.size() == 1) {
-    //string iStr = to_string(unPrintedThreads[0]);
-
-      code += ln("simulate_0( state )");
-
-      //} else {
-
-    //   for (auto i : unPrintedThreads) {
-    //     string iStr = to_string(i);
-
-    //     // Join threads that this thread depends on
-    //     for (auto depEdge : tg.inEdges(i)) {
-    //       vdisc se = tg.source(depEdge);
-    //       if (elem(se, unJoinedThreads)) {
-    //         code += ln("simulate_" + to_string(se) + "_thread.join()");
-    //         remove(se, unJoinedThreads);
-    //         cout << "Joined thread " << se << endl;
-
-    //       }
-    //     }
-    //     code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
-    //   }
-
-    //   // Join all remaining threads before simulate function ends
-    //   for (auto i : unJoinedThreads) {
-    //     string iStr = to_string(i);
-    //     code += ln("simulate_" + iStr + "_thread.join()");
-    //   }
-    // }
-
+    code += ln("simulate_0( state )");
     code += "}\n";
 
     ModuleCode mc(g, mod);
