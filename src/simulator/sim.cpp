@@ -903,7 +903,6 @@ namespace CoreIR {
   updateSequentialElements(const std::deque<vdisc>& topoOrder,
                            NGraph& g,
                            Module& mod,
-                           const int threadNo,
                            LayoutPolicy& layoutPolicy) {
     vector<string> simLines;
     // Update stateful element values
@@ -932,7 +931,6 @@ namespace CoreIR {
   updateSequentialOutputs(const std::deque<vdisc>& topoOrder,
                           NGraph& g,
                           Module& mod,
-                          const int threadNo,
                           LayoutPolicy& layoutPolicy) {
 
     vector<string> simLines;
@@ -963,7 +961,6 @@ namespace CoreIR {
   updateCombinationalLogic(const std::deque<vdisc>& topoOrder,
                            NGraph& g,
                            Module& mod,
-                           const int threadNo,
                            LayoutPolicy& layoutPolicy) {
     vector<string> simLines;
 
@@ -979,8 +976,8 @@ namespace CoreIR {
         if (isInstance(inst)) { 
 
           if ((isCombinationalInstance(wd)) &&
-              ((g.getOutputConnections(vd).size() > 1) ||
-               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo))) {
+              ((g.getOutputConnections(vd).size() > 1))) { // ||
+               //               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo))) {
 
             simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
@@ -1142,9 +1139,9 @@ namespace CoreIR {
     if (!allSeqOut || (dags.size() < 8)) {
       for (auto& nodes : dags) {
         concat(simLines,
-               updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
+               updateSequentialOutputs(nodes, g, mod, layoutPolicy));
         concat(simLines,
-               updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
+               updateCombinationalLogic(nodes, g, mod, layoutPolicy));
       }
       return;
     }
@@ -1266,7 +1263,7 @@ namespace CoreIR {
 
       simLines.push_back("\n// ----- Updating sequential logic\n");
       concat(simLines,
-             updateSequentialElements(paths.threadNodes, g, mod, threadNo, layoutPolicy));
+             updateSequentialElements(paths.threadNodes, g, mod, layoutPolicy));
       simLines.push_back("\n// ----- Done\n");
       // No need to print out register updates
       layoutPolicy.setReadRegsDirectly(true);
