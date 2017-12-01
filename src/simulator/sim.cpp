@@ -1213,10 +1213,10 @@ namespace CoreIR {
       string tmp = cVar(*(g.getNode(init[0]).getWire()));
 
       simLines.push_back("__m256i " + tmp +
-                         " = _mm256_loadu_si256((__m256i const*)" +
+                         " = _mm256_loadu_si256((__m256i const*) &" +
                          stateInLoc + ");\n");
 
-      simLines.push_back("_mm256_storeu_si256((__m256i *)" + stateOutLoc +
+      simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
                          ", " +
                          tmp + ");\n");
 

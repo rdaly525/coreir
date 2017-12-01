@@ -200,7 +200,7 @@ namespace CoreIR {
       //writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
       
 
-      int s = compileCode(topoOrder, gr, manyOps, "./gencode/", "manyOps_sim");
+      int s = compileCodeAndRun(topoOrder, gr, manyOps, "./gencode/", "manyOps_sim", "test_manyOps_sim.cpp");
 
       REQUIRE(s == 0);
       // SECTION("Compiling code") {
