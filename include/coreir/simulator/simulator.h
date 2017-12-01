@@ -15,7 +15,7 @@ namespace CoreIR {
 
     virtual ~LayoutPolicy() {}
 
-    void forceAdjacent(const std::vector<std::string>& vars) {
+    virtual void forceAdjacent(const std::vector<std::string>& vars) {
       assert(false);
     }
     

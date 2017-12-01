@@ -47,7 +47,40 @@ namespace CoreIR {
     CustomStructLayout(CoreIR::Context* const c_) : c(c_) {}
 
     void forceAdjacent(const std::vector<std::string>& vars) {
-      assert(false);
+      vector<unsigned> adjacentInds;
+      //for (auto& elem : varDecls) {
+      for (auto& v : vars) {
+        for (unsigned i = 0; i < varDecls.size(); i++) {
+          auto& elem = varDecls[i];
+          if (elem.second == v) {
+            adjacentInds.push_back(i);
+            break;
+          }
+        }
+      }
+
+      int oldSize = varDecls.size();
+
+      auto adj = select_indexes(varDecls, adjacentInds);
+      varDecls = copy_not_indexes(varDecls, adjacentInds);
+
+      cout << "Mid size = " << varDecls.size() << endl;
+
+      concat(varDecls, adj);
+
+      cout << "Old size = " << oldSize << endl;
+      cout << "New size = " << varDecls.size() << endl;
+
+      cout << "After forcing adjacency for " << endl;
+      for (auto& v : vars) {
+        cout << v << endl;
+      }
+
+      cout << endl << "Layout order is " << endl;
+      for (auto& elem : varDecls) {
+        cout << elem.second << endl;
+      }
+      assert(varDecls.size() == oldSize);
     }
 
     std::string lastClkVarName(InstanceValue& clk) {
@@ -792,8 +825,6 @@ namespace CoreIR {
 
     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));    
     if (isRegisterInstance(sourceInstance)) {
-      // TODO: This should print out the register output variable name
-      //return lp.outputVarName(*sourceInstance);
 
       if (lp.getReadRegsDirectly() == false) {
         return cVar(wd);
@@ -1142,12 +1173,12 @@ namespace CoreIR {
       vector<string> outvars;
       for (auto& dag : group) {
         string stateInLoc =
-          layoutPolicy.outputVarName(*(g.getNode(dag[0]).getWire()));
+          cVar(*(g.getNode(dag[0]).getWire()));
 
         invars.push_back(stateInLoc);
 
         string stateOutLoc =
-          layoutPolicy.outputVarName(*(g.getNode(dag[1]).getWire()));
+          cVar(*(g.getNode(dag[1]).getWire()));
 
         outvars.push_back(stateOutLoc);
 

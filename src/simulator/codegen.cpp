@@ -58,9 +58,9 @@ namespace CoreIR {
 
     concat(decls, threadSharedVariableDecls(mc.g));
     
-    sort_lt(decls, [](const pair<Type*, string>& tpp) {
-        return tpp.second;
-      });
+    // sort_lt(decls, [](const pair<Type*, string>& tpp) {
+    //     return tpp.second;
+    //   });
 
     vector<string> declStrs;
     for (auto declPair :  decls) {
