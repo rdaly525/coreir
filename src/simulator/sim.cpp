@@ -61,8 +61,20 @@ namespace CoreIR {
 
       int oldSize = varDecls.size();
 
-      auto adj = select_indexes(varDecls, adjacentInds);
-      varDecls = copy_not_indexes(varDecls, adjacentInds);
+      //auto adj = select_indexes(varDecls, adjacentInds);
+      vector<pair<Type*, string> > adj;
+      for (auto& ind : adjacentInds) {
+        adj.push_back(varDecls[ind]);
+      }
+
+      vector<pair<Type*, string> > others;
+      for (int i = 0; i < varDecls.size(); i++) {
+        if (!elem(i, adjacentInds)) {
+          others.push_back(varDecls[i]);
+        }
+      }
+      //varDecls = copy_not_indexes(varDecls, adjacentInds);
+      varDecls = others;
 
       cout << "Mid size = " << varDecls.size() << endl;
 
