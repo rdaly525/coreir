@@ -76,22 +76,22 @@ namespace CoreIR {
       //varDecls = copy_not_indexes(varDecls, adjacentInds);
       varDecls = others;
 
-      cout << "Mid size = " << varDecls.size() << endl;
+      //cout << "Mid size = " << varDecls.size() << endl;
 
       concat(varDecls, adj);
 
-      cout << "Old size = " << oldSize << endl;
-      cout << "New size = " << varDecls.size() << endl;
+      // cout << "Old size = " << oldSize << endl;
+      // cout << "New size = " << varDecls.size() << endl;
 
-      cout << "After forcing adjacency for " << endl;
-      for (auto& v : vars) {
-        cout << v << endl;
-      }
+      // cout << "After forcing adjacency for " << endl;
+      // for (auto& v : vars) {
+      //   cout << v << endl;
+      // }
 
-      cout << endl << "Layout order is " << endl;
-      for (auto& elem : varDecls) {
-        cout << elem.second << endl;
-      }
+      // cout << endl << "Layout order is " << endl;
+      // for (auto& elem : varDecls) {
+      //   cout << elem.second << endl;
+      // }
       assert(varDecls.size() == oldSize);
     }
 
