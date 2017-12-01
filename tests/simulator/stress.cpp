@@ -193,13 +193,16 @@ namespace CoreIR {
       string codeFile = manyOps->getName() + "_sim.cpp";
       string hFile = manyOps->getName() + "_sim.h";
 
-      writeBitVectorLib(codePath + "bit_vector.h");
+      // writeBitVectorLib(codePath + "bit_vector.h");
 
-      cout << "Writing out files" << endl;
+      // cout << "Writing out files" << endl;
 
-      writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
+      //writeFiles(topoOrder, gr, manyOps, codePath, codeFile, hFile);
       
 
+      int s = compileCode(topoOrder, gr, manyOps, "./gencode/", "manyOps_sim");
+
+      REQUIRE(s == 0);
       // SECTION("Compiling code") {
       //   c->runPasses({"rungenerators", "flattentypes"});
 

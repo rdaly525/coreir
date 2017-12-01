@@ -1050,6 +1050,34 @@ namespace CoreIR {
     return paths;
   }
 
+  typedef std::deque<vdisc> SubDAG;
+
+  vector<vector<SubDAG> >
+  groupIdenticalSubDAGs(const vector<SubDAG>& dags, const int groupSize) {
+    vector<vector<SubDAG> > groups;
+    //for (auto& dag : dags) {
+    int i;
+    for (i = 0; i < dags.size(); i += groupSize) {
+      if ((i + groupSize) > dags.size()) {
+        break;
+      }
+
+      vector<SubDAG> sg;      
+      for (int j = 0; j < groupSize; j++) {
+        sg.push_back(dags[i + j]);
+      }
+      groups.push_back(sg);
+    }
+
+    vector<SubDAG> sg;      
+    for (; i < dags.size(); i++) {
+      sg.push_back(dags[i]);
+    }
+    groups.push_back(sg);
+
+    return groups;
+  }
+
   void addDAGCode(std::vector<std::deque<vdisc> >& dags,
                   NGraph& g,
                   Module& mod,
@@ -1088,7 +1116,21 @@ namespace CoreIR {
       return;
     }
 
-    assert(false);
+    // Parallelizeable output graphs
+    simLines.push_back("// ====== Vectorizing accesses ======\n");
+
+    int opWidth = 16;
+    int groupSize = 256 / opWidth;
+    vector<vector<SubDAG> > dagGroups = groupIdenticalSubDAGs(dags, groupSize);
+
+    for (int i = 0; i < dagGroups.size(); i++) {
+      vector<SubDAG>& group = dagGroups[i];
+      SubDAG init = group[0];
+      simLines.push_back("__m256i tmp_" +
+                         to_string(i) +
+                         " = _mm256_loadu_si256((__m256i const*)" +
+                         layoutPolicy.outputVarName(*(g.getNode(init[0]).getWire())) + ");\n");
+    }
   }
 
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
