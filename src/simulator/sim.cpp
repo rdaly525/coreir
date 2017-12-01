@@ -48,7 +48,6 @@ namespace CoreIR {
 
     void forceAdjacent(const std::vector<std::string>& vars) {
       vector<unsigned> adjacentInds;
-      //for (auto& elem : varDecls) {
       for (auto& v : vars) {
         for (unsigned i = 0; i < varDecls.size(); i++) {
           auto& elem = varDecls[i];
@@ -61,7 +60,6 @@ namespace CoreIR {
 
       int oldSize = varDecls.size();
 
-      //auto adj = select_indexes(varDecls, adjacentInds);
       vector<pair<Type*, string> > adj;
       for (auto& ind : adjacentInds) {
         adj.push_back(varDecls[ind]);
@@ -73,25 +71,10 @@ namespace CoreIR {
           others.push_back(varDecls[i]);
         }
       }
-      //varDecls = copy_not_indexes(varDecls, adjacentInds);
+
       varDecls = others;
-
-      //cout << "Mid size = " << varDecls.size() << endl;
-
       concat(varDecls, adj);
 
-      // cout << "Old size = " << oldSize << endl;
-      // cout << "New size = " << varDecls.size() << endl;
-
-      // cout << "After forcing adjacency for " << endl;
-      // for (auto& v : vars) {
-      //   cout << v << endl;
-      // }
-
-      // cout << endl << "Layout order is " << endl;
-      // for (auto& elem : varDecls) {
-      //   cout << elem.second << endl;
-      // }
       assert(varDecls.size() == oldSize);
     }
 
@@ -1184,27 +1167,35 @@ namespace CoreIR {
       vector<string> invars;
       vector<string> outvars;
       for (auto& dag : group) {
-        string stateInLoc =
-          cVar(*(g.getNode(dag[0]).getWire()));
 
-        invars.push_back(stateInLoc);
+        for (auto& vd : dag) {
 
-        string stateOutLoc =
-          cVar(*(g.getNode(dag[1]).getWire()));
+          //if (isGraphInput(g.getNode(vd))) {
+          if (isSubgraphInput(vd, dag, g)) {
+            string stateInLoc =
+              cVar(*(g.getNode(vd).getWire()));
 
+            invars.push_back(stateInLoc);
 
+            layoutPolicy.outputVarName(*(g.getNode(vd).getWire()));
+          }
 
-        // Guarantee that all variables are declared
-        layoutPolicy.outputVarName(*(g.getNode(dag[0]).getWire()));
-        layoutPolicy.outputVarName(*(g.getNode(dag[1]).getWire()));
-        
-        outvars.push_back(stateOutLoc);
+          if (isSubgraphOutput(vd, dag, g)) {
+            string stateOutLoc =
+              cVar(*(g.getNode(vd).getWire()));
+
+            // Guarantee that all variables are declared
+            layoutPolicy.outputVarName(*(g.getNode(vd).getWire()));
+
+            outvars.push_back(stateOutLoc);
+          }
+        }
 
       }
 
       state_var_groups.push_back(invars);
       state_var_groups.push_back(outvars);
-      
+
       SubDAG init = group[0];
       string stateInLoc =
         layoutPolicy.outputVarName(*(g.getNode(init[0]).getWire()));
