@@ -1126,10 +1126,20 @@ namespace CoreIR {
     for (int i = 0; i < dagGroups.size(); i++) {
       vector<SubDAG>& group = dagGroups[i];
       SubDAG init = group[0];
-      simLines.push_back("__m256i tmp_" +
-                         to_string(i) +
+      string stateInLoc =
+        layoutPolicy.outputVarName(*(g.getNode(init[0]).getWire()));
+      string stateOutLoc =
+        layoutPolicy.outputVarName(*(g.getNode(init[1]).getWire()));
+      string tmp = cVar(*(g.getNode(init[0]).getWire()));
+
+      simLines.push_back("__m256i " + tmp +
                          " = _mm256_loadu_si256((__m256i const*)" +
-                         layoutPolicy.outputVarName(*(g.getNode(init[0]).getWire())) + ");\n");
+                         stateInLoc + ");\n");
+
+      simLines.push_back("_mm256_storeu_si256((__m256i *)" + stateOutLoc +
+                         ", " +
+                         tmp + ");\n");
+
     }
   }
 
