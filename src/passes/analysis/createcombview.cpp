@@ -106,7 +106,7 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //All the outputs with no comb dependencies come from state. (not quite true, but good enough)
   for (auto outcon : dm.getOutputs()) {
     Wireable* output = outcon->getSnkWireable();
-    if (outputInfo[output]->inputs.count(output)==0) {
+    if (outputInfo[output]->inputs.size()==0) {
       outputInfo[output]->states.insert(output); //Not sure why I am adding this here
     }
   }
@@ -126,6 +126,8 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
 
   for (auto opair : outputInfo) {
+
+
     Output* oinfo = opair.second;
     Wireable* out = opair.first;
     SelectPath opath = out->getSelectPath();
