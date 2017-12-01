@@ -46,6 +46,10 @@ namespace CoreIR {
 
     CustomStructLayout(CoreIR::Context* const c_) : c(c_) {}
 
+    void forceAdjacent(const std::vector<std::string>& vars) {
+      assert(false);
+    }
+
     std::string lastClkVarName(InstanceValue& clk) {
       varDecls.push_back({clk.getWire()->getType(), cVar("", clk, "_last")});
       return CoreIR::lastClkVarName(clk);
@@ -1128,14 +1132,30 @@ namespace CoreIR {
     cout << "groupSize = " << groupSize << endl;
     vector<vector<SubDAG> > dagGroups = groupIdenticalSubDAGs(dags, groupSize);
 
-    //vector<vector<string> > state_var_groups;
+    vector<vector<string> > state_var_groups;
     
     for (int i = 0; i < dagGroups.size(); i++) {
       vector<SubDAG>& group = dagGroups[i];
 
       // Create forced variable groups in layout
-      //for (auto& dag : group) {
-      //}
+      vector<string> invars;
+      vector<string> outvars;
+      for (auto& dag : group) {
+        string stateInLoc =
+          layoutPolicy.outputVarName(*(g.getNode(dag[0]).getWire()));
+
+        invars.push_back(stateInLoc);
+
+        string stateOutLoc =
+          layoutPolicy.outputVarName(*(g.getNode(dag[1]).getWire()));
+
+        outvars.push_back(stateOutLoc);
+
+      }
+
+      state_var_groups.push_back(invars);
+      state_var_groups.push_back(outvars);
+      
       SubDAG init = group[0];
       string stateInLoc =
         layoutPolicy.outputVarName(*(g.getNode(init[0]).getWire()));
@@ -1151,6 +1171,18 @@ namespace CoreIR {
                          ", " +
                          tmp + ");\n");
 
+    }
+
+    cout << "====== State var groups" << endl;
+    for (auto& gp : state_var_groups) {
+      cout << "--------- Group" << endl;
+      for (auto& var : gp) {
+        cout << "-- " << var << endl;
+      }
+    }
+
+    for (auto& gp : state_var_groups) {
+      layoutPolicy.forceAdjacent(gp);
     }
   }
 

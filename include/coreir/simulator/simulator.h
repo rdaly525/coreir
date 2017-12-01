@@ -15,6 +15,10 @@ namespace CoreIR {
 
     virtual ~LayoutPolicy() {}
 
+    void forceAdjacent(const std::vector<std::string>& vars) {
+      assert(false);
+    }
+    
     virtual void setReadRegsDirectly(const bool newVal) {
       readRegsDirectly = newVal;
     }
