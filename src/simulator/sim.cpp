@@ -69,8 +69,6 @@ namespace CoreIR {
 
     std::string outputVarName(CoreIR::Wireable& val) {
 
-      cout << "Adding output name for " << val.toString() << " with type " << val.getType()->toString() << endl;
-
       if (isSelect(val)) {
         return selectName(toSelect(&val));
       }
@@ -598,7 +596,6 @@ namespace CoreIR {
     assert(isInstance(sl->getParent()));
 
     Instance* r = toInstance(sl->getParent());
-    //string rName = r->getInstname();
 
     auto ins = getInputConnections(vd, g);
 
@@ -606,17 +603,12 @@ namespace CoreIR {
 
     string s = lp.outputVarName(*wd.getWire()) + " = ";
 
-    //InstanceValue clk = findArg("clk", ins);
     InstanceValue add = findArg("in", ins);
 
     string oldValName = lp.outputVarName(*r);
 
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
-    // string condition =
-    //   parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
-    //          parens(lp.clkVarName(clk) + " == 1"));
-
     if (hasEnable(wd.getWire())) {
       string condition = "";
       
@@ -644,9 +636,6 @@ namespace CoreIR {
     assert(isInstance(s->getParent()));
 
     Instance* r = toInstance(s->getParent());
-    //string rName = r->getInstname();
-
-    
     if (!wd.isReceiver) {
       if (!lp.getReadRegsDirectly()) {
         return ln(cVar(*s) + " = " + lp.outputVarName(*r));
@@ -715,14 +704,8 @@ namespace CoreIR {
 
       InstanceValue waddr = findArg("waddr", ins);
       InstanceValue wdata = findArg("wdata", ins);
-      //InstanceValue clk = findArg("clk", ins);
       InstanceValue wen = findArg("wen", ins);
 
-      // string condition =
-      //   parens(parens(lp.lastClkVarName(clk) + " == 0") + " && " +
-      //          parens(lp.clkVarName(clk) + " == 1"));
-        
-      //condition += " && " + printOpResultStr(wen, g, lp);
       string condition = printOpResultStr(wen, g, lp);
 
       string oldValueName = lp.outputVarName(*r) + "[ " + printOpResultStr(waddr, g, lp) + " ]";
@@ -1190,60 +1173,61 @@ namespace CoreIR {
     string code = "";
 
     code += "#include \"" + baseName + "\"\n";
-    code += "#include <thread>\n\n";
+    //code += "#include <thread>\n\n";
 
     code += "using namespace bsim;\n\n";
 
     code += seMacroDef();
     code += maskMacroDef();
 
-    ThreadGraph tg = buildThreadGraph(g);
+    //ThreadGraph tg = buildThreadGraph(g);
 
     CustomStructLayout sl(mod->getDef()->getContext());
 
-    for (auto& i : tg.getVerts()) {
-      code += "void simulate_" + to_string(i) + "( circuit_state* state ) {\n";
-      code += printSimFunctionBody(topoOrder, g, *mod, i, sl);
+    //for (auto& i : tg.getVerts()) {
+      code += "void simulate_0( circuit_state* state ) {\n";
+      code += printSimFunctionBody(topoOrder, g, *mod, 0, sl);
       code += "}\n\n";
-    }
+      //}
 
-    deque<vdisc> unPrintedThreads = topologicalSort(tg);
-    vector<vdisc> unJoinedThreads;
-    for (auto& vd : unPrintedThreads) {
-      unJoinedThreads.push_back(vd);
-    }
+    //deque<vdisc> unPrintedThreads = topologicalSort(tg);
+    // vector<vdisc> unJoinedThreads;
+    // for (auto& vd : unPrintedThreads) {
+    //   unJoinedThreads.push_back(vd);
+    // }
 
     code += "void simulate( circuit_state* state ) {\n";
 
-    if (unPrintedThreads.size() == 1) {
-      string iStr = to_string(unPrintedThreads[0]);
+    //assert(unPrintedThreads.size() == 1);
+    //if (unPrintedThreads.size() == 1) {
+    //string iStr = to_string(unPrintedThreads[0]);
 
-      code += ln("simulate_" + iStr + "( state )");
+      code += ln("simulate_0( state )");
 
-    } else {
+      //} else {
 
-      for (auto i : unPrintedThreads) {
-        string iStr = to_string(i);
+    //   for (auto i : unPrintedThreads) {
+    //     string iStr = to_string(i);
 
-        // Join threads that this thread depends on
-        for (auto depEdge : tg.inEdges(i)) {
-          vdisc se = tg.source(depEdge);
-          if (elem(se, unJoinedThreads)) {
-            code += ln("simulate_" + to_string(se) + "_thread.join()");
-            remove(se, unJoinedThreads);
-            cout << "Joined thread " << se << endl;
+    //     // Join threads that this thread depends on
+    //     for (auto depEdge : tg.inEdges(i)) {
+    //       vdisc se = tg.source(depEdge);
+    //       if (elem(se, unJoinedThreads)) {
+    //         code += ln("simulate_" + to_string(se) + "_thread.join()");
+    //         remove(se, unJoinedThreads);
+    //         cout << "Joined thread " << se << endl;
 
-          }
-        }
-        code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
-      }
+    //       }
+    //     }
+    //     code += ln("std::thread simulate_" + iStr + "_thread( simulate_" + iStr + ", state )");
+    //   }
 
-      // Join all remaining threads before simulate function ends
-      for (auto i : unJoinedThreads) {
-        string iStr = to_string(i);
-        code += ln("simulate_" + iStr + "_thread.join()");
-      }
-    }
+    //   // Join all remaining threads before simulate function ends
+    //   for (auto i : unJoinedThreads) {
+    //     string iStr = to_string(i);
+    //     code += ln("simulate_" + iStr + "_thread.join()");
+    //   }
+    // }
 
     code += "}\n";
 
