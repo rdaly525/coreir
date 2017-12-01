@@ -1056,12 +1056,39 @@ namespace CoreIR {
                   const int threadNo,
                   LayoutPolicy& layoutPolicy,
                   std::vector<std::string>& simLines) {
-    for (auto& nodes : dags) {
-      concat(simLines,
-             updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
-      concat(simLines,
-             updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
+
+    bool allSeqOut = true;
+    for (auto& dag : dags) {
+      if (dag.size() != 2) {
+        allSeqOut = false;
+        break;
+      }
+
+      WireNode startWd = g.getNode(dag[0]);
+      if (!startWd.isSequential) {
+        allSeqOut = false;
+        break;
+      }
+
+      WireNode endWd = g.getNode(dag[1]);
+      if (!isGraphOutput(endWd)) {
+        allSeqOut = false;
+        break;
+      }
+
     }
+
+    if (!allSeqOut || (dags.size() < 8)) {
+      for (auto& nodes : dags) {
+        concat(simLines,
+               updateSequentialOutputs(nodes, g, mod, threadNo, layoutPolicy));
+        concat(simLines,
+               updateCombinationalLogic(nodes, g, mod, threadNo, layoutPolicy));
+      }
+      return;
+    }
+
+    assert(false);
   }
 
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
@@ -1168,6 +1195,7 @@ namespace CoreIR {
     string code = "";
 
     code += "#include \"" + baseName + "\"\n";
+    code += "#include <immintrin.h>\n";
     code += "using namespace bsim;\n\n";
 
     code += seMacroDef();
