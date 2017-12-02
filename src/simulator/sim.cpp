@@ -1195,33 +1195,62 @@ namespace CoreIR {
     }
     return;
   }
-  
+
+  std::vector<std::string> printSIMDGroup(const std::vector<SubDAG>& group,
+                                          const NGraph& g,
+                                          LayoutPolicy& lp) {
+    vector<string> simLines;
+    SubDAG init = group[0];
+    string stateInLoc =
+      lp.outputVarName(*(g.getNode(init[0]).getWire()));
+    string stateOutLoc =
+      lp.outputVarName(*(g.getNode(init[1]).getWire()));
+    string tmp = cVar(*(g.getNode(init[0]).getWire()));
+
+    simLines.push_back("__m256i " + tmp +
+                       " = _mm256_loadu_si256((__m256i const*) &" +
+                       stateInLoc + ");\n");
+
+    simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
+                       ", " +
+                       tmp + ");\n");
+
+    return simLines;
+  }
+
   void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
                   NGraph& g,
                   Module& mod,
-                  const int threadNo,
                   LayoutPolicy& layoutPolicy,
                   std::vector<std::string>& simLines) {
 
-    bool allSeqOut = true;
-    for (auto& dag : dags) {
-      if (dag.size() != 2) {
-        allSeqOut = false;
-        break;
-      }
+    bool allSeqOut = false;   
+    if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
 
-      WireNode startWd = g.getNode(dag[0]);
-      if (!startWd.isSequential) {
-        allSeqOut = false;
-        break;
-      }
+      allSeqOut = true;
+      for (auto& dag : dags) {
+        if (dag.size() != 2) {
+          allSeqOut = false;
+          break;
+        }
 
-      WireNode endWd = g.getNode(dag[1]);
-      if (!isGraphOutput(endWd)) {
-        allSeqOut = false;
-        break;
-      }
+        WireNode startWd = g.getNode(dag[0]);
+        if (!startWd.isSequential) {
+          allSeqOut = false;
+          break;
+        }
 
+        WireNode endWd = g.getNode(dag[1]);
+        if (!isGraphOutput(endWd)) {
+          allSeqOut = false;
+          break;
+        }
+
+      }
+    }
+
+    if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
+      cout << "Found " << dags.size() << " of size 2!" << endl;
     }
 
     if (!allSeqOut || (dags.size() < 8)) {
@@ -1245,23 +1274,7 @@ namespace CoreIR {
     vector<vector<string> > state_var_groups;
 
     for (uint i = 0; i < dagGroups.size(); i++) {
-      vector<SubDAG>& group = dagGroups[i];
-
-      SubDAG init = group[0];
-      string stateInLoc =
-        layoutPolicy.outputVarName(*(g.getNode(init[0]).getWire()));
-      string stateOutLoc =
-        layoutPolicy.outputVarName(*(g.getNode(init[1]).getWire()));
-      string tmp = cVar(*(g.getNode(init[0]).getWire()));
-
-      simLines.push_back("__m256i " + tmp +
-                         " = _mm256_loadu_si256((__m256i const*) &" +
-                         stateInLoc + ");\n");
-
-      simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
-                         ", " +
-                         tmp + ");\n");
-
+      concat(simLines, printSIMDGroup(dagGroups[i], g, layoutPolicy));
     }
 
   }
@@ -1293,7 +1306,7 @@ namespace CoreIR {
                parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
       addDAGCode(paths.preSequentialAlwaysDAGs,
-                 g, mod, threadNo, layoutPolicy, simLines);
+                 g, mod, layoutPolicy, simLines);
 
       simLines.push_back("if " + condition + " {\n");
         
@@ -1301,7 +1314,7 @@ namespace CoreIR {
       // result is fresh already
       simLines.push_back("\n// ----- Update combinational logic before clock\n");
       addDAGCode(paths.preSequentialDAGs,
-                 g, mod, threadNo, layoutPolicy, simLines);
+                 g, mod, layoutPolicy, simLines);
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n// ----- Updating sequential logic\n");
@@ -1317,18 +1330,18 @@ namespace CoreIR {
         cout << dag.size() << endl;
       }
       addDAGCode(paths.postSequentialDAGs,
-                 g, mod, threadNo, layoutPolicy, simLines);
+                 g, mod, layoutPolicy, simLines);
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n}\n");
       addDAGCode(paths.postSequentialAlwaysDAGs,
-                 g, mod, threadNo, layoutPolicy, simLines);
+                 g, mod, layoutPolicy, simLines);
       
     }
 
     simLines.push_back("\n// ----- Update pure combinational logic\n");
     addDAGCode(paths.pureCombDAGs,
-               g, mod, threadNo, layoutPolicy, simLines);
+               g, mod, layoutPolicy, simLines);
 
     simLines.push_back("\n// ----- Done\n");
     
