@@ -1333,6 +1333,7 @@ namespace CoreIR {
         if (isGraphInput(g.getNode(src)) &&
             !isClkIn(*(g.getNode(src).getWire()->getType())) &&
             !elem(src, fulldag)) {
+          cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
           fulldag.push_back(src);
         }
       }
@@ -1380,6 +1381,14 @@ namespace CoreIR {
       vector<SubDAG> fulldags;
       for (auto& dag : dags) {
         fulldags.push_back(addInputs(dag, g));
+      }
+
+      cout << "Full dags" << endl;
+      for (auto& dag : fulldags) {
+        cout << "===== DAG" << endl;
+        for (auto& vd : dag) {
+          cout << g.getNode(vd).getWire()->toString() << endl;
+        }
       }
 
       // Note: Add graph input completion
