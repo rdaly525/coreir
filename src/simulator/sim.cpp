@@ -1218,6 +1218,16 @@ namespace CoreIR {
     return simLines;
   }
 
+  vector<SubDAG>
+  alignIdenticalGraphs(const std::vector<SubDAG>& dags,
+                       const NGraph& g) {
+    vector<SubDAG> subdags;
+
+    
+
+    return subdags;
+  }
+  
   void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
                   NGraph& g,
                   Module& mod,
@@ -1249,8 +1259,10 @@ namespace CoreIR {
       }
     }
 
-    if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
+    if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
       cout << "Found " << dags.size() << " of size 2!" << endl;
+      vector<SubDAG> subdags =
+        alignIdenticalGraphs(dags, g);
     }
 
     bool vectorize = allSeqOut && (dags.size() >= 8);
