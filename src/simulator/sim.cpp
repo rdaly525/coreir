@@ -1093,7 +1093,7 @@ namespace CoreIR {
         break;
       }
 
-      vector<SubDAG> sg;      
+      vector<SubDAG> sg;
       for (int j = 0; j < groupSize; j++) {
         sg.push_back(dags[i + j]);
       }
@@ -1167,7 +1167,36 @@ namespace CoreIR {
     std::vector<SubDAG> nodes;
   };
 
-  void addDAGCode(std::vector<std::deque<vdisc> >& dags,
+  bool allSameSize(const std::vector<SubDAG>& dags) {
+    if (dags.size() < 2) {
+      return true;
+    }
+
+    int size = dags[0].size();
+    for (int i = 1; i < dags.size(); i++) {
+      if (dags[i].size() != size) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void addScalarDAGCode(const std::vector<std::deque<vdisc> >& dags,
+                        NGraph& g,
+                        Module& mod,
+                        LayoutPolicy& layoutPolicy,
+                        std::vector<std::string>& simLines) {
+    for (auto& nodes : dags) {
+      concat(simLines,
+             updateSequentialOutputs(nodes, g, mod, layoutPolicy));
+      concat(simLines,
+             updateCombinationalLogic(nodes, g, mod, layoutPolicy));
+    }
+    return;
+  }
+  
+  void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
                   NGraph& g,
                   Module& mod,
                   const int threadNo,
@@ -1196,12 +1225,7 @@ namespace CoreIR {
     }
 
     if (!allSeqOut || (dags.size() < 8)) {
-      for (auto& nodes : dags) {
-        concat(simLines,
-               updateSequentialOutputs(nodes, g, mod, layoutPolicy));
-        concat(simLines,
-               updateCombinationalLogic(nodes, g, mod, layoutPolicy));
-      }
+      addScalarDAGCode(dags, g, mod, layoutPolicy, simLines);
       return;
     }
 
