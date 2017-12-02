@@ -1253,7 +1253,8 @@ namespace CoreIR {
       cout << "Found " << dags.size() << " of size 2!" << endl;
     }
 
-    if (!allSeqOut || (dags.size() < 8)) {
+    bool vectorize = allSeqOut && (dags.size() >= 8);
+    if (!vectorize) {
       addScalarDAGCode(dags, g, mod, layoutPolicy, simLines);
       return;
     }
