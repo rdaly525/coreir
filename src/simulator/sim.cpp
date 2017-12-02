@@ -1080,7 +1080,11 @@ namespace CoreIR {
   typedef std::deque<vdisc> SubDAG;
 
   vector<vector<SubDAG> >
-  groupIdenticalSubDAGs(const vector<SubDAG>& dags, const int groupSize) {
+  groupIdenticalSubDAGs(const vector<SubDAG>& dags,
+                        const NGraph& g,
+                        const int groupSize,
+                        LayoutPolicy& lp) {
+
     vector<vector<SubDAG> > groups;
 
     uint i;
@@ -1105,6 +1109,56 @@ namespace CoreIR {
       groups.push_back(sg);
     }
 
+    // Force adjacency
+    vector<vector<string> > state_var_groups;
+    for (uint i = 0; i < groups.size(); i++) {
+      vector<SubDAG>& group = groups[i];
+
+      // Create forced variable groups in layout
+      vector<string> invars;
+      vector<string> outvars;
+      for (auto& dag : group) {
+
+        for (auto& vd : dag) {
+
+          if (isSubgraphInput(vd, dag, g)) {
+            string stateInLoc =
+              cVar(*(g.getNode(vd).getWire()));
+
+            invars.push_back(stateInLoc);
+
+            lp.outputVarName(*(g.getNode(vd).getWire()));
+          }
+
+          if (isSubgraphOutput(vd, dag, g)) {
+            string stateOutLoc =
+              cVar(*(g.getNode(vd).getWire()));
+
+            // Guarantee that all variables are declared
+            lp.outputVarName(*(g.getNode(vd).getWire()));
+
+            outvars.push_back(stateOutLoc);
+          }
+        }
+
+      }
+
+      state_var_groups.push_back(invars);
+      state_var_groups.push_back(outvars);
+    }
+
+    cout << "====== State var groups" << endl;
+    for (auto& gp : state_var_groups) {
+      cout << "--------- Group" << endl;
+      for (auto& var : gp) {
+        cout << "-- " << var << endl;
+      }
+    }
+
+    for (auto& gp : state_var_groups) {
+      lp.forceAdjacent(gp);
+    }
+    
     return groups;
   }
 
@@ -1158,44 +1212,16 @@ namespace CoreIR {
     int groupSize = 256 / opWidth;
 
     cout << "groupSize = " << groupSize << endl;
-    vector<vector<SubDAG> > dagGroups = groupIdenticalSubDAGs(dags, groupSize);
+
+    // Maybe this function is where layout constraints should be
+    // decided?
+    vector<vector<SubDAG> > dagGroups =
+      groupIdenticalSubDAGs(dags, g, groupSize, layoutPolicy);
 
     vector<vector<string> > state_var_groups;
-    
+
     for (uint i = 0; i < dagGroups.size(); i++) {
       vector<SubDAG>& group = dagGroups[i];
-
-      // Create forced variable groups in layout
-      vector<string> invars;
-      vector<string> outvars;
-      for (auto& dag : group) {
-
-        for (auto& vd : dag) {
-
-          if (isSubgraphInput(vd, dag, g)) {
-            string stateInLoc =
-              cVar(*(g.getNode(vd).getWire()));
-
-            invars.push_back(stateInLoc);
-
-            layoutPolicy.outputVarName(*(g.getNode(vd).getWire()));
-          }
-
-          if (isSubgraphOutput(vd, dag, g)) {
-            string stateOutLoc =
-              cVar(*(g.getNode(vd).getWire()));
-
-            // Guarantee that all variables are declared
-            layoutPolicy.outputVarName(*(g.getNode(vd).getWire()));
-
-            outvars.push_back(stateOutLoc);
-          }
-        }
-
-      }
-
-      state_var_groups.push_back(invars);
-      state_var_groups.push_back(outvars);
 
       SubDAG init = group[0];
       string stateInLoc =
@@ -1214,17 +1240,6 @@ namespace CoreIR {
 
     }
 
-    cout << "====== State var groups" << endl;
-    for (auto& gp : state_var_groups) {
-      cout << "--------- Group" << endl;
-      for (auto& var : gp) {
-        cout << "-- " << var << endl;
-      }
-    }
-
-    for (auto& gp : state_var_groups) {
-      layoutPolicy.forceAdjacent(gp);
-    }
   }
 
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
