@@ -1321,7 +1321,27 @@ namespace CoreIR {
 
     return eqClasses;
   }
-  
+
+  SubDAG addInputs(const SubDAG& dag, const NGraph& g) {
+    SubDAG fulldag;
+    for (auto& vd : dag) {
+      cout << "# of in edges = " << g.inEdges(vd).size() << endl;
+      for (auto& con : g.inEdges(vd)) {
+        vdisc src = g.source(con);
+
+        cout << g.getNode(src).getWire()->toString() << endl;
+        if (isGraphInput(g.getNode(src)) &&
+            !isClkIn(*(g.getNode(src).getWire()->getType())) &&
+            !elem(src, fulldag)) {
+          fulldag.push_back(src);
+        }
+      }
+
+      fulldag.push_back(vd);
+    }
+    return fulldag;
+  }
+
   void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
                   NGraph& g,
                   Module& mod,
@@ -1356,9 +1376,15 @@ namespace CoreIR {
     if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
       cout << "Found " << dags.size() << " of size 2!" << endl;
 
+
+      vector<SubDAG> fulldags;
+      for (auto& dag : dags) {
+        fulldags.push_back(addInputs(dag, g));
+      }
+
       // Note: Add graph input completion
       vector<vector<SubDAG> > eqClasses =
-        alignIdenticalGraphs(dags, g);
+        alignIdenticalGraphs(fulldags, g);
 
       cout << "Aligned identical graphs" << endl;
       for (auto& subdags : eqClasses) {
