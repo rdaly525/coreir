@@ -20,7 +20,7 @@ namespace CoreIR {
   static string clkVarName(InstanceValue& clk) {
     return cVar("(state->", clk, ")");
   }
-  
+
   static string outputVarName(CoreIR::Wireable& outSel) {
     return cVar("(state->", outSel, ")");
   }
@@ -1108,6 +1108,11 @@ namespace CoreIR {
     return groups;
   }
 
+  class SIMDGroup {
+  public:
+    std::vector<SubDAG> nodes;
+  };
+
   void addDAGCode(std::vector<std::deque<vdisc> >& dags,
                   NGraph& g,
                   Module& mod,
@@ -1157,7 +1162,7 @@ namespace CoreIR {
 
     vector<vector<string> > state_var_groups;
     
-    for (int i = 0; i < dagGroups.size(); i++) {
+    for (uint i = 0; i < dagGroups.size(); i++) {
       vector<SubDAG>& group = dagGroups[i];
 
       // Create forced variable groups in layout
@@ -1167,7 +1172,6 @@ namespace CoreIR {
 
         for (auto& vd : dag) {
 
-          //if (isGraphInput(g.getNode(vd))) {
           if (isSubgraphInput(vd, dag, g)) {
             string stateInLoc =
               cVar(*(g.getNode(vd).getWire()));
