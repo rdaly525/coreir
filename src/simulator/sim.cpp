@@ -1218,13 +1218,85 @@ namespace CoreIR {
     return simLines;
   }
 
+  bool nodesMatch(const vdisc ref,
+                  const vdisc a,
+                  const NGraph& g) {
+    WireNode rn = g.getNode(ref);
+    WireNode an = g.getNode(a);
+
+    if (isGraphInput(rn) && isGraphInput(an)) {
+      // TODO: Check width
+      return true;
+    }
+
+    if (isGraphOutput(rn) && isGraphOutput(an)) {
+      // TODO: Check width
+      return true;
+    }
+
+    if (isInstance(rn.getWire()) && isInstance(an.getWire())) {
+      if (isRegisterInstance(rn.getWire()) &&
+          isRegisterInstance(an.getWire())) {
+        return true;
+      }
+
+      if (!isRegisterInstance(rn.getWire()) &&
+          !isRegisterInstance(an.getWire())) {
+        Instance* ri = toInstance(rn.getWire());
+        Instance* ai = toInstance(an.getWire());
+
+        if (getQualifiedOpName(*ri) ==
+            getQualifiedOpName(*ai)) {
+          return true;
+        }
+      }
+
+    }
+
+    return false;
+  }
+  
+  SubDAG alignWRT(const SubDAG& reference,
+                  const SubDAG& toAlign,
+                  const NGraph& g) {
+    map<vdisc, vdisc> nodeMap;
+    for (auto& refNode : reference) {
+
+      bool foundMatch = false;
+      for (auto& aNode : toAlign) {
+        if (nodesMatch(refNode, aNode, g)) {
+          nodeMap.insert({refNode, aNode});
+          foundMatch = true;
+          break;
+        }
+      }
+
+      assert(foundMatch);
+    }
+
+    SubDAG aligned;
+    for (auto& node : reference) {
+      aligned.push_back(nodeMap[node]);
+    }
+
+    return aligned;
+  }
+                            
   vector<SubDAG>
   alignIdenticalGraphs(const std::vector<SubDAG>& dags,
                        const NGraph& g) {
     vector<SubDAG> subdags;
 
-    
+    if (dags.size() == 0) {
+      return subdags;
+    }
 
+    subdags.push_back(dags[0]);
+
+    for (int i = 1; i < dags.size(); i++) {
+      SubDAG aligned = alignWRT(subdags.back(), dags[i], g);
+      subdags.push_back(aligned);
+    }
     return subdags;
   }
   
@@ -1261,8 +1333,19 @@ namespace CoreIR {
 
     if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
       cout << "Found " << dags.size() << " of size 2!" << endl;
+
+      // Note: Add graph input completion
       vector<SubDAG> subdags =
         alignIdenticalGraphs(dags, g);
+
+      cout << "Aligned identical graphs" << endl;
+      for (auto& dag : subdags) {
+        cout << "------- DAG" << endl;
+        for (auto& vd : dag) {
+          cout << g.getNode(vd).getWire()->toString() << endl;
+        }
+      }
+      assert(false);
     }
 
     bool vectorize = allSeqOut && (dags.size() >= 8);
