@@ -1271,7 +1271,9 @@ namespace CoreIR {
         }
       }
 
-      assert(foundMatch);
+      if (!foundMatch) {
+        return {};
+      }
     }
 
     SubDAG aligned;
@@ -1282,22 +1284,42 @@ namespace CoreIR {
     return aligned;
   }
                             
-  vector<SubDAG>
+  vector<vector<SubDAG> >
   alignIdenticalGraphs(const std::vector<SubDAG>& dags,
                        const NGraph& g) {
-    vector<SubDAG> subdags;
+
+    vector<vector<SubDAG> > eqClasses;
 
     if (dags.size() == 0) {
-      return subdags;
+      return eqClasses;
     }
-
+    
+    vector<SubDAG> subdags;
     subdags.push_back(dags[0]);
+    eqClasses.push_back(subdags);
 
+    
     for (int i = 1; i < dags.size(); i++) {
-      SubDAG aligned = alignWRT(subdags.back(), dags[i], g);
-      subdags.push_back(aligned);
+
+      bool foundClass = false;
+
+      for (auto& eqClass : eqClasses) {
+        SubDAG aligned = alignWRT(eqClass.back(), dags[i], g);
+
+        // If the alignment succeeded add to existing equivalence class
+        if (aligned.size() == dags[i].size()) {
+          eqClass.push_back(aligned);
+          foundClass = true;
+          break;
+        }
+      }
+
+      if (!foundClass) {
+        eqClasses.push_back({dags[i]});
+      }
     }
-    return subdags;
+
+    return eqClasses;
   }
   
   void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
@@ -1335,17 +1357,42 @@ namespace CoreIR {
       cout << "Found " << dags.size() << " of size 2!" << endl;
 
       // Note: Add graph input completion
-      vector<SubDAG> subdags =
+      vector<vector<SubDAG> > eqClasses =
         alignIdenticalGraphs(dags, g);
 
       cout << "Aligned identical graphs" << endl;
-      for (auto& dag : subdags) {
-        cout << "------- DAG" << endl;
-        for (auto& vd : dag) {
-          cout << g.getNode(vd).getWire()->toString() << endl;
+      for (auto& subdags : eqClasses) {
+        cout << "====== Class" << endl;
+        for (auto& dag : subdags) {
+          cout << "------- DAG" << endl;
+          for (auto& vd : dag) {
+            cout << g.getNode(vd).getWire()->toString() << endl;
+          }
         }
       }
-      assert(false);
+
+      assert(eqClasses.size() == 2);
+
+      auto class0 = eqClasses[0];
+      auto class1 = eqClasses[1];
+
+
+      int opWidth = 16;
+      // Max logic op size is 128
+      int groupSize = 128 / opWidth;
+
+      auto group0 = groupIdenticalSubDAGs(class0, g, groupSize, layoutPolicy);
+      auto group1 = groupIdenticalSubDAGs(class1, g, groupSize, layoutPolicy);
+
+      for (auto& group : group0) {
+        concat(simLines, printSIMDGroup(group, g, layoutPolicy));
+      }
+
+      for (auto& group : group1) {
+        concat(simLines, printSIMDGroup(group, g, layoutPolicy));
+      }
+      
+      return;
     }
 
     bool vectorize = allSeqOut && (dags.size() >= 8);
@@ -1366,8 +1413,6 @@ namespace CoreIR {
     // decided?
     vector<vector<SubDAG> > dagGroups =
       groupIdenticalSubDAGs(dags, g, groupSize, layoutPolicy);
-
-    vector<vector<string> > state_var_groups;
 
     for (uint i = 0; i < dagGroups.size(); i++) {
       concat(simLines, printSIMDGroup(dagGroups[i], g, layoutPolicy));
