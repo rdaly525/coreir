@@ -214,7 +214,7 @@ namespace CoreIR {
   }
 
   static inline bool isClkIn(CoreIR::Type& t) {
-    return isNamedType(t, "clkIn");
+    return isNamedType(t, "clk"); //isNamedType(t, "clkIn");
   }
 
   

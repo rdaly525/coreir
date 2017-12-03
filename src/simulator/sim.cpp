@@ -1329,7 +1329,9 @@ namespace CoreIR {
       for (auto& con : g.inEdges(vd)) {
         vdisc src = g.source(con);
 
-        cout << g.getNode(src).getWire()->toString() << endl;
+        cout << g.getNode(src).getWire()->toString();
+        cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
+
         if (isGraphInput(g.getNode(src)) &&
             !isClkIn(*(g.getNode(src).getWire()->getType())) &&
             !elem(src, fulldag)) {
