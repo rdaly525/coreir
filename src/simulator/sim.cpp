@@ -1201,19 +1201,68 @@ namespace CoreIR {
                                           LayoutPolicy& lp) {
     vector<string> simLines;
     SubDAG init = group[0];
-    string stateInLoc =
-      lp.outputVarName(*(g.getNode(init[0]).getWire()));
-    string stateOutLoc =
-      lp.outputVarName(*(g.getNode(init[1]).getWire()));
-    string tmp = cVar(*(g.getNode(init[0]).getWire()));
 
-    simLines.push_back("__m256i " + tmp +
-                       " = _mm256_loadu_si256((__m256i const*) &" +
-                       stateInLoc + ");\n");
+    string tmp = cVar(*(g.getNode(init[0]).getWire()));    
 
-    simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
-                       ", " +
-                       tmp + ");\n");
+    // Emit SIMD code for each node in the pattern
+    for (auto& vd : init) {
+
+      if (isGraphInput(g.getNode(vd))) {
+        string stateInLoc =
+          lp.outputVarName(*(g.getNode(vd).getWire()));
+
+        simLines.push_back("__m256i " + cVar(*(g.getNode(vd).getWire())) + 
+                           " = _mm256_loadu_si256((__m256i const*) &" +
+                           stateInLoc + ");\n");
+
+      } else if (isGraphOutput(g.getNode(vd))) {
+
+        string stateOutLoc =
+          lp.outputVarName(*(g.getNode(vd).getWire()));
+
+        auto ins = getInputConnections(vd, g);
+        cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
+        for (auto& in : ins) {
+          cout << in.first.getWire()->toString() << endl;
+        }
+        InstanceValue resV = findArg("in", ins);
+        string res = cVar(resV.getWire());
+        
+        simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
+                           ", " +
+                           res + ");\n");
+      } else {
+
+        Instance* inst = toInstance(g.getNode(vd).getWire());
+
+        if (isRegisterInstance(inst)) {
+          if (g.getNode(vd).isReceiver) {
+
+            string stateOutLoc =
+              lp.outputVarName(*(g.getNode(vd).getWire()));
+
+            auto ins = getInputConnections(vd, g);
+            InstanceValue resV = findArg("in", ins);
+            string res = cVar(resV.getWire());
+            simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
+                               ", " +
+                               res + ");\n");
+
+          } else {
+            string stateInLoc =
+              lp.outputVarName(*(g.getNode(vd).getWire()));
+
+            simLines.push_back("__m256i " + cVar(g.getNode(vd).getWire()->sel("out")) +
+                               " = _mm256_loadu_si256((__m256i const*) &" +
+                               stateInLoc + ");\n");
+            
+          }
+
+        } else {
+          simLines.push_back("// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
+        }
+      }
+    }
 
     return simLines;
   }
