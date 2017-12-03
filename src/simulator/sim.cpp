@@ -1173,7 +1173,7 @@ namespace CoreIR {
     }
 
     int size = dags[0].size();
-    for (int i = 1; i < dags.size(); i++) {
+    for (uint i = 1; i < dags.size(); i++) {
       if (dags[i].size() != size) {
         return false;
       }
@@ -1378,7 +1378,7 @@ namespace CoreIR {
     eqClasses.push_back(subdags);
 
     
-    for (int i = 1; i < dags.size(); i++) {
+    for (uint i = 1; i < dags.size(); i++) {
 
       bool foundClass = false;
 
@@ -1512,23 +1512,6 @@ namespace CoreIR {
       addScalarDAGCode(dags, g, mod, layoutPolicy, simLines);
       return;
     }
-
-    // Parallelizeable output graphs
-
-
-    // int opWidth = 16;
-    // int groupSize = 256 / opWidth;
-
-    // cout << "groupSize = " << groupSize << endl;
-
-    // // Maybe this function is where layout constraints should be
-    // // decided?
-    // vector<vector<SubDAG> > dagGroups =
-    //   groupIdenticalSubDAGs(dags, g, groupSize, layoutPolicy);
-
-    // for (uint i = 0; i < dagGroups.size(); i++) {
-    //   concat(simLines, printSIMDGroup(dagGroups[i], g, layoutPolicy));
-    // }
 
   }
 
