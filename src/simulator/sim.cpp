@@ -1413,27 +1413,22 @@ namespace CoreIR {
         }
       }
 
-      assert(eqClasses.size() == 2);
-
-      auto class0 = eqClasses[0];
-      auto class1 = eqClasses[1];
-
+      //assert(eqClasses.size() == 2);
 
       int opWidth = 16;
       // Max logic op size is 128
       int groupSize = 128 / opWidth;
 
-      auto group0 = groupIdenticalSubDAGs(class0, g, groupSize, layoutPolicy);
-      auto group1 = groupIdenticalSubDAGs(class1, g, groupSize, layoutPolicy);
+      cout << "Printing groups " << endl;
 
-      for (auto& group : group0) {
-        concat(simLines, printSIMDGroup(group, g, layoutPolicy));
+      simLines.push_back("// ====== Vectorizing accesses ======\n");
+      for (auto& eqClass : eqClasses) {
+        auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
+        for (auto& group : group0) {
+          concat(simLines, printSIMDGroup(group, g, layoutPolicy));
+        }
       }
 
-      for (auto& group : group1) {
-        concat(simLines, printSIMDGroup(group, g, layoutPolicy));
-      }
-      
       return;
     }
 
@@ -1444,21 +1439,21 @@ namespace CoreIR {
     }
 
     // Parallelizeable output graphs
-    simLines.push_back("// ====== Vectorizing accesses ======\n");
 
-    int opWidth = 16;
-    int groupSize = 256 / opWidth;
 
-    cout << "groupSize = " << groupSize << endl;
+    // int opWidth = 16;
+    // int groupSize = 256 / opWidth;
 
-    // Maybe this function is where layout constraints should be
-    // decided?
-    vector<vector<SubDAG> > dagGroups =
-      groupIdenticalSubDAGs(dags, g, groupSize, layoutPolicy);
+    // cout << "groupSize = " << groupSize << endl;
 
-    for (uint i = 0; i < dagGroups.size(); i++) {
-      concat(simLines, printSIMDGroup(dagGroups[i], g, layoutPolicy));
-    }
+    // // Maybe this function is where layout constraints should be
+    // // decided?
+    // vector<vector<SubDAG> > dagGroups =
+    //   groupIdenticalSubDAGs(dags, g, groupSize, layoutPolicy);
+
+    // for (uint i = 0; i < dagGroups.size(); i++) {
+    //   concat(simLines, printSIMDGroup(dagGroups[i], g, layoutPolicy));
+    // }
 
   }
 
