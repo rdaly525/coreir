@@ -1220,17 +1220,23 @@ namespace CoreIR {
         string stateOutLoc =
           lp.outputVarName(*(g.getNode(vd).getWire()));
 
-        // auto ins = getInputConnections(vd, g);
-        // cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
-        // for (auto& in : ins) {
-        //   cout << in.first.getWire()->toString() << endl;
-        // }
+        
+        auto ins = getInputConnections(vd, g);
+        cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
+        for (auto& in : ins) {
+          cout << in.first.getWire()->toString() << endl;
+          cout << in.second.getWire()->toString() << endl;
+        }
+
+        assert(ins.size() == 1);
+
+        InstanceValue resV = ins[0].first;
         // InstanceValue resV = findArg("in", ins);
-        // string res = cVar(resV.getWire());
+        string res = cVar(resV.getWire());
         
         simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
                            ", " +
-                           tmp + ");\n");
+                           res + ");\n");
       } else {
 
         Instance* inst = toInstance(g.getNode(vd).getWire());
