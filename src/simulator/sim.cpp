@@ -1220,17 +1220,17 @@ namespace CoreIR {
         string stateOutLoc =
           lp.outputVarName(*(g.getNode(vd).getWire()));
 
-        auto ins = getInputConnections(vd, g);
-        cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
-        for (auto& in : ins) {
-          cout << in.first.getWire()->toString() << endl;
-        }
-        InstanceValue resV = findArg("in", ins);
-        string res = cVar(resV.getWire());
+        // auto ins = getInputConnections(vd, g);
+        // cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
+        // for (auto& in : ins) {
+        //   cout << in.first.getWire()->toString() << endl;
+        // }
+        // InstanceValue resV = findArg("in", ins);
+        // string res = cVar(resV.getWire());
         
         simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
                            ", " +
-                           res + ");\n");
+                           tmp + ");\n");
       } else {
 
         Instance* inst = toInstance(g.getNode(vd).getWire());
@@ -1258,6 +1258,16 @@ namespace CoreIR {
             
           }
 
+        } else if (getQualifiedOpName(*inst) == "coreir.and") {
+
+          auto ins = getInputConnections(vd, g);
+          string arg0 = cVar(findArg("in0", ins).getWire());
+          string arg1 = cVar(findArg("in1", ins).getWire());
+
+          string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
+          
+          simLines.push_back(ln("__m128i " + resName + " = _mm_and_si128(" + arg0 + ", " + arg1 + ")"));
+          
         } else {
           simLines.push_back("// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
         }
