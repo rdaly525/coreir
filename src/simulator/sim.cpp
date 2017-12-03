@@ -1211,8 +1211,8 @@ namespace CoreIR {
         string stateInLoc =
           lp.outputVarName(*(g.getNode(vd).getWire()));
 
-        simLines.push_back("__m256i " + cVar(*(g.getNode(vd).getWire())) + 
-                           " = _mm256_loadu_si256((__m256i const*) &" +
+        simLines.push_back("__m128i " + cVar(*(g.getNode(vd).getWire())) + 
+                           " = _mm_loadu_si128((__m128i const*) &" +
                            stateInLoc + ");\n");
 
       } else if (isGraphOutput(g.getNode(vd))) {
@@ -1234,7 +1234,7 @@ namespace CoreIR {
         // InstanceValue resV = findArg("in", ins);
         string res = cVar(resV.getWire());
         
-        simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
+        simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
                            ", " +
                            res + ");\n");
       } else {
@@ -1250,7 +1250,7 @@ namespace CoreIR {
             auto ins = getInputConnections(vd, g);
             InstanceValue resV = findArg("in", ins);
             string res = cVar(resV.getWire());
-            simLines.push_back("_mm256_storeu_si256((__m256i *) &" + stateOutLoc +
+            simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
                                ", " +
                                res + ");\n");
 
@@ -1258,8 +1258,8 @@ namespace CoreIR {
             string stateInLoc =
               lp.outputVarName(*(g.getNode(vd).getWire()));
 
-            simLines.push_back("__m256i " + cVar(g.getNode(vd).getWire()->sel("out")) +
-                               " = _mm256_loadu_si256((__m256i const*) &" +
+            simLines.push_back("__m128i " + cVar(g.getNode(vd).getWire()->sel("out")) +
+                               " = _mm_loadu_si128((__m128i const*) &" +
                                stateInLoc + ");\n");
             
           }
@@ -1273,6 +1273,16 @@ namespace CoreIR {
           string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
           
           simLines.push_back(ln("__m128i " + resName + " = _mm_and_si128(" + arg0 + ", " + arg1 + ")"));
+          
+        } else if (getQualifiedOpName(*inst) == "coreir.or") {
+
+          auto ins = getInputConnections(vd, g);
+          string arg0 = cVar(findArg("in0", ins).getWire());
+          string arg1 = cVar(findArg("in1", ins).getWire());
+
+          string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
+          
+          simLines.push_back(ln("__m128i " + resName + " = _mm_or_si128(" + arg0 + ", " + arg1 + ")"));
           
         } else {
           simLines.push_back("// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
