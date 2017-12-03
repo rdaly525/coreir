@@ -1259,14 +1259,18 @@ namespace CoreIR {
   SubDAG alignWRT(const SubDAG& reference,
                   const SubDAG& toAlign,
                   const NGraph& g) {
+    set<vdisc> alreadyUsed;
+
     map<vdisc, vdisc> nodeMap;
     for (auto& refNode : reference) {
 
       bool foundMatch = false;
       for (auto& aNode : toAlign) {
-        if (nodesMatch(refNode, aNode, g)) {
+        if (!elem(aNode, alreadyUsed) &&
+            nodesMatch(refNode, aNode, g)) {
           nodeMap.insert({refNode, aNode});
           foundMatch = true;
+          alreadyUsed.insert(aNode);
           break;
         }
       }
@@ -1325,6 +1329,7 @@ namespace CoreIR {
   SubDAG addInputs(const SubDAG& dag, const NGraph& g) {
     SubDAG fulldag;
     for (auto& vd : dag) {
+      cout << "Node: " << g.getNode(vd).getWire()->toString() << endl;
       cout << "# of in edges = " << g.inEdges(vd).size() << endl;
       for (auto& con : g.inEdges(vd)) {
         vdisc src = g.source(con);
