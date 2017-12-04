@@ -1553,7 +1553,6 @@ namespace CoreIR {
     ModuleCode mc(g, mod);
     mc.codeString = code;
     mc.structLayout = sl.getVarDecls();
-
     return mc;
   }
 

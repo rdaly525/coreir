@@ -99,6 +99,10 @@ namespace CoreIR {
 
     bool canMerge(const std::string& a,
                   const std::string& b) {
+      if (adjacentGroups.size() == 0) {
+        return true;
+      }
+
       uint aGroup = 0;
       uint bGroup = 0;
       for (uint i = 0; i < adjacentGroups.size(); i++) {
@@ -114,6 +118,9 @@ namespace CoreIR {
 
         }
       }
+
+      assert(aGroup < adjacentGroups.size());
+      assert(bGroup < adjacentGroups.size());
 
       if ((aGroup == bGroup) && (adjacent(a, b, adjacentGroups[aGroup]))) {
         return true;
@@ -134,7 +141,10 @@ namespace CoreIR {
         std::string a = vars[i];
         std::string b = vars[i + 1];
 
-        assert(canMerge(a, b));
+        if (!canMerge(a, b)) {
+          std::cout << "ERROR: Cannot merge " << a << " and " << b << std::endl;
+          assert(false); //canMerge(a, b));
+        }
       }
 
       std::vector<unsigned> adjacentInds;
@@ -171,11 +181,13 @@ namespace CoreIR {
 
     std::string lastClkVarName(InstanceValue& clk) {
       varDecls.push_back({clk.getWire()->getType(), cVar("", clk, "_last")});
+      adjacentGroups.push_back({{clk.getWire()->getType(), cVar("", clk, "_last")}});
       return CoreIR::lastClkVarName(clk);
     }
 
     std::string clkVarName(InstanceValue& clk) {
       varDecls.push_back({clk.getWire()->getType(), cVar(clk)});
+      adjacentGroups.push_back({{clk.getWire()->getType(), cVar(clk)}});
       return CoreIR::clkVarName(clk);
     }
 
@@ -184,6 +196,7 @@ namespace CoreIR {
 
       if (!elem(cVar(baseSel), allocatedAlready)) {
         varDecls.push_back({baseSel->getType(), cVar(baseSel)});
+        adjacentGroups.push_back({{baseSel->getType(), cVar(baseSel)}});
         allocatedAlready.insert(cVar(baseSel));
       }
 
@@ -203,6 +216,7 @@ namespace CoreIR {
         Select* sel = val.sel("out");
         if (!elem(cVar(val), allocatedAlready)) {
           varDecls.push_back({sel->getType(), cVar(val)});
+          adjacentGroups.push_back({{sel->getType(), cVar(val)}});
           allocatedAlready.insert(cVar(val));
         }
 
@@ -222,6 +236,7 @@ namespace CoreIR {
           Type* elemType = c->Array(depth, c->Array(width, c->BitIn()));
 
           varDecls.push_back({elemType, cVar(val)});
+          adjacentGroups.push_back({{elemType, cVar(val)}});
           allocatedAlready.insert(cVar(val));
         }
 
