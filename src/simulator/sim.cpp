@@ -1012,25 +1012,30 @@ namespace CoreIR {
     return simLines;
   }
 
+  typedef std::deque<vdisc> SubDAG;
+
+  class SIMDGroup {
+  public:
+    int totalWidth;
+    std::vector<SubDAG> nodes;
+  };
+
   struct CircuitPaths {
     deque<vdisc> threadNodes;
-    vector<deque<vdisc> > preSequentialAlwaysDAGs;
-    vector<deque<vdisc> > preSequentialDAGs;
-    vector<deque<vdisc> > postSequentialDAGs;
-    vector<deque<vdisc> > postSequentialAlwaysDAGs;
-    vector<deque<vdisc> > pureCombDAGs;
+    vector<SIMDGroup > preSequentialAlwaysDAGs;
+    vector<SIMDGroup > preSequentialDAGs;
+    vector<SIMDGroup > postSequentialDAGs;
+    vector<SIMDGroup > postSequentialAlwaysDAGs;
+    vector<SIMDGroup > pureCombDAGs;
   };
 
   CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder,
                                  NGraph& g,
-                                 Module& mod,
-                                 const int threadNo) {
+                                 Module& mod) {
     CircuitPaths paths;
 
     for (auto& vd : topoOrder) {
-      if (g.getNode(vd).getThreadNo() == threadNo) {
-        paths.threadNodes.push_back(vd);
-      }
+      paths.threadNodes.push_back(vd);
     }
 
     vector<set<vdisc>> ccs =
@@ -1050,40 +1055,32 @@ namespace CoreIR {
       if (subgraphHasCombinationalOutput(nodes, g) &&
           subgraphHasSequentialOutput(nodes, g)) {
         // Need to split up graphs of this form
-        paths.preSequentialAlwaysDAGs.push_back(nodes);
+        paths.preSequentialAlwaysDAGs.push_back({-1, {nodes}});
       }
 
       if (subgraphHasCombinationalInput(nodes, g) &&
           subgraphHasSequentialInput(nodes, g)) {
         // Need to split up graphs of this form
-        paths.postSequentialAlwaysDAGs.push_back(nodes);
+        paths.postSequentialAlwaysDAGs.push_back({-1, {nodes}});
       }
 
       if (subgraphHasAllSequentialOutputs(nodes, g)) {
-        paths.preSequentialDAGs.push_back(nodes);
+        paths.preSequentialDAGs.push_back({-1, {nodes}});
       }
 
       if (subgraphHasAllSequentialInputs(nodes, g)) {
-        paths.postSequentialDAGs.push_back(nodes);
+        paths.postSequentialDAGs.push_back({-1, {nodes}});
       }
       
       if (subgraphHasAllCombinationalInputs(nodes, g) &&
           subgraphHasAllCombinationalOutputs(nodes, g)) {
-        paths.pureCombDAGs.push_back(nodes);
+        paths.pureCombDAGs.push_back({-1, {nodes}});
       }
     }
     
 
     return paths;
   }
-
-  typedef std::deque<vdisc> SubDAG;
-
-  class SIMDGroup {
-  public:
-    int totalWidth;
-    std::vector<SubDAG> nodes;
-  };
 
   //vector<vector<SubDAG> >
   vector<SIMDGroup>
@@ -1436,7 +1433,8 @@ namespace CoreIR {
     return fulldag;
   }
 
-  void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
+  //void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
+  void addDAGCode(const std::vector<SIMDGroup>& dags,
                   NGraph& g,
                   Module& mod,
                   LayoutPolicy& layoutPolicy,
@@ -1528,9 +1526,6 @@ namespace CoreIR {
                               Module& mod,
                               LayoutPolicy& layoutPolicy) {
 
-    int threadNo = 0;
-    cout << "Printing sim function for " << threadNo << endl;
-
     string str = printSimFunctionPrefix(topoOrder, g, mod);
 
     // Print out operations in topological order
@@ -1538,7 +1533,7 @@ namespace CoreIR {
 
     vector<string> simLines;
 
-    auto paths = buildCircuitPaths(topoOrder, g, mod, threadNo);
+    auto paths = buildCircuitPaths(topoOrder, g, mod);
 
     auto clk = findMainClock(g);
 
