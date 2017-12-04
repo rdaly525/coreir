@@ -165,6 +165,12 @@ namespace CoreIR {
     vector<SIMDGroup > postSequentialAlwaysDAGs;
     vector<SIMDGroup > pureCombDAGs;
   };
+
+  std::vector<std::string> printSIMDNode(const vdisc vd,
+                                         const int opWidth,
+                                         NGraph& g,
+                                         Module& mod,
+                                         LayoutPolicy& lp);
   
   string printBinop(const WireNode& wd,
                     const vdisc vd,
@@ -923,26 +929,38 @@ namespace CoreIR {
                            NGraph& g,
                            Module& mod,
                            LayoutPolicy& layoutPolicy) {
-    assert(group.nodes.size() == 1);
 
-    auto topoOrder = group.nodes[0];
     vector<string> simLines;
-    // Update stateful element values
+    auto topoOrder = group.nodes[0];
+    
+    if (group.nodes.size() == 1) {
 
-    for (auto& vd : topoOrder) {
+      // Update stateful element values
 
-      WireNode wd = getNode(g, vd);
-
-      Wireable* inst = wd.getWire();
-
-      if (isInstance(inst)) { 
-        if (!isCombinationalInstance(wd) &&
-            wd.isReceiver) {
-
-          simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
-
+      for (auto& vd : topoOrder) {
+        WireNode wd = getNode(g, vd);
+        Wireable* inst = wd.getWire();
+        if (isInstance(inst)) { 
+          if (!isCombinationalInstance(wd) &&
+              wd.isReceiver) {
+            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
+          }
         }
       }
+    } else {
+
+      for (auto& vd : topoOrder) {
+        WireNode wd = getNode(g, vd);
+        Wireable* inst = wd.getWire();
+        if (isInstance(inst)) { 
+          if (!isCombinationalInstance(wd) &&
+              wd.isReceiver) {
+            concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, layoutPolicy));
+            //simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
+          }
+        }
+      }
+      
     }
 
     return simLines;
@@ -1201,6 +1219,102 @@ namespace CoreIR {
     return;
   }
 
+  std::vector<std::string> printSIMDNode(const vdisc vd,
+                                         const int opWidth,
+                                         NGraph& g,
+                                         Module& mod,
+                                         LayoutPolicy& lp) {
+    vector<string> simLines;
+    if (isGraphInput(g.getNode(vd))) {
+      string stateInLoc =
+        lp.outputVarName(*(g.getNode(vd).getWire()));
+
+      simLines.push_back("__m128i " + cVar(*(g.getNode(vd).getWire())) +
+                         " = _mm_loadu_si128((__m128i const*) &" +
+                         stateInLoc + ");\n");
+
+      return simLines;
+    } else if (isGraphOutput(g.getNode(vd))) {
+
+      string stateOutLoc =
+        lp.outputVarName(*(g.getNode(vd).getWire()));
+        
+      auto ins = getInputConnections(vd, g);
+      cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
+      for (auto& in : ins) {
+        cout << in.first.getWire()->toString() << endl;
+        cout << in.second.getWire()->toString() << endl;
+      }
+
+      assert(ins.size() == 1);
+
+      InstanceValue resV = ins[0].first;
+      // InstanceValue resV = findArg("in", ins);
+      string res = cVar(resV.getWire());
+        
+      simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
+                         ", " +
+                         res + ");\n");
+
+      return simLines;
+    } else {
+
+      Instance* inst = toInstance(g.getNode(vd).getWire());
+
+      if (isRegisterInstance(inst)) {
+        if (g.getNode(vd).isReceiver) {
+
+          string stateOutLoc =
+            lp.outputVarName(*(g.getNode(vd).getWire()));
+
+          auto ins = getInputConnections(vd, g);
+          InstanceValue resV = findArg("in", ins);
+          string res = cVar(resV.getWire());
+          simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
+                             ", " +
+                             res + ");\n");
+
+        } else {
+          string stateInLoc =
+            lp.outputVarName(*(g.getNode(vd).getWire()));
+
+          simLines.push_back("__m128i " + cVar(g.getNode(vd).getWire()->sel("out")) +
+                             " = _mm_loadu_si128((__m128i const*) &" +
+                             stateInLoc + ");\n");
+            
+        }
+
+      } else if (getQualifiedOpName(*inst) == "coreir.and") {
+
+        auto ins = getInputConnections(vd, g);
+        string arg0 = cVar(findArg("in0", ins).getWire());
+        string arg1 = cVar(findArg("in1", ins).getWire());
+
+        string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
+          
+        simLines.push_back(ln("__m128i " + resName + " = _mm_and_si128(" + arg0 + ", " + arg1 + ")"));
+          
+      } else if (getQualifiedOpName(*inst) == "coreir.or") {
+
+        auto ins = getInputConnections(vd, g);
+        string arg0 = cVar(findArg("in0", ins).getWire());
+        string arg1 = cVar(findArg("in1", ins).getWire());
+
+        string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
+          
+        simLines.push_back(ln("__m128i " + resName + " = _mm_or_si128(" + arg0 + ", " + arg1 + ")"));
+          
+      } else {
+        simLines.push_back("// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
+      }
+
+      return simLines;
+    }
+
+    cout << "Cannot print node " << g.getNode(vd).getWire()->toString() << endl;
+    assert(false);
+  }
+  
   std::vector<std::string> printSIMDGroup(const SIMDGroup& group,
                                           NGraph& g,
                                           Module& mod,
@@ -1219,474 +1333,403 @@ namespace CoreIR {
 
     // Emit SIMD code for each node in the pattern
     for (auto& vd : init) {
-
-      if (isGraphInput(g.getNode(vd))) {
-        string stateInLoc =
-          lp.outputVarName(*(g.getNode(vd).getWire()));
-
-        simLines.push_back("__m128i " + cVar(*(g.getNode(vd).getWire())) +
-                           " = _mm_loadu_si128((__m128i const*) &" +
-                           stateInLoc + ");\n");
-
-      } else if (isGraphOutput(g.getNode(vd))) {
-
-        string stateOutLoc =
-          lp.outputVarName(*(g.getNode(vd).getWire()));
-
-        
-        auto ins = getInputConnections(vd, g);
-        cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
-        for (auto& in : ins) {
-          cout << in.first.getWire()->toString() << endl;
-          cout << in.second.getWire()->toString() << endl;
-        }
-
-        assert(ins.size() == 1);
-
-        InstanceValue resV = ins[0].first;
-        // InstanceValue resV = findArg("in", ins);
-        string res = cVar(resV.getWire());
-        
-        simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
-                           ", " +
-                           res + ");\n");
-      } else {
-
-        Instance* inst = toInstance(g.getNode(vd).getWire());
-
-        if (isRegisterInstance(inst)) {
-          if (g.getNode(vd).isReceiver) {
-
-            string stateOutLoc =
-              lp.outputVarName(*(g.getNode(vd).getWire()));
-
-            auto ins = getInputConnections(vd, g);
-            InstanceValue resV = findArg("in", ins);
-            string res = cVar(resV.getWire());
-            simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
-                               ", " +
-                               res + ");\n");
-
-          } else {
-            string stateInLoc =
-              lp.outputVarName(*(g.getNode(vd).getWire()));
-
-            simLines.push_back("__m128i " + cVar(g.getNode(vd).getWire()->sel("out")) +
-                               " = _mm_loadu_si128((__m128i const*) &" +
-                               stateInLoc + ");\n");
-            
-          }
-
-        } else if (getQualifiedOpName(*inst) == "coreir.and") {
-
-          auto ins = getInputConnections(vd, g);
-          string arg0 = cVar(findArg("in0", ins).getWire());
-          string arg1 = cVar(findArg("in1", ins).getWire());
-
-          string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
-          
-          simLines.push_back(ln("__m128i " + resName + " = _mm_and_si128(" + arg0 + ", " + arg1 + ")"));
-          
-        } else if (getQualifiedOpName(*inst) == "coreir.or") {
-
-          auto ins = getInputConnections(vd, g);
-          string arg0 = cVar(findArg("in0", ins).getWire());
-          string arg1 = cVar(findArg("in1", ins).getWire());
-
-          string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
-          
-          simLines.push_back(ln("__m128i " + resName + " = _mm_or_si128(" + arg0 + ", " + arg1 + ")"));
-          
-        } else {
-          simLines.push_back("// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
-        }
-      }
+      concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, lp));
     }
 
     return simLines;
   }
 
-  bool nodesMatch(const vdisc ref,
-                  const vdisc a,
-                  const NGraph& g) {
-    WireNode rn = g.getNode(ref);
-    WireNode an = g.getNode(a);
+    bool nodesMatch(const vdisc ref,
+                    const vdisc a,
+                    const NGraph& g) {
+      WireNode rn = g.getNode(ref);
+      WireNode an = g.getNode(a);
 
-    if (isGraphInput(rn) && isGraphInput(an)) {
-      // TODO: Check width
-      return true;
-    }
-
-    if (isGraphOutput(rn) && isGraphOutput(an)) {
-      // TODO: Check width
-      return true;
-    }
-
-    if (isInstance(rn.getWire()) && isInstance(an.getWire())) {
-      if (isRegisterInstance(rn.getWire()) &&
-          isRegisterInstance(an.getWire())) {
+      if (isGraphInput(rn) && isGraphInput(an)) {
+        // TODO: Check width
         return true;
       }
 
-      if (!isRegisterInstance(rn.getWire()) &&
-          !isRegisterInstance(an.getWire())) {
-        Instance* ri = toInstance(rn.getWire());
-        Instance* ai = toInstance(an.getWire());
+      if (isGraphOutput(rn) && isGraphOutput(an)) {
+        // TODO: Check width
+        return true;
+      }
 
-        if (getQualifiedOpName(*ri) ==
-            getQualifiedOpName(*ai)) {
+      if (isInstance(rn.getWire()) && isInstance(an.getWire())) {
+        if (isRegisterInstance(rn.getWire()) &&
+            isRegisterInstance(an.getWire())) {
           return true;
         }
+
+        if (!isRegisterInstance(rn.getWire()) &&
+            !isRegisterInstance(an.getWire())) {
+          Instance* ri = toInstance(rn.getWire());
+          Instance* ai = toInstance(an.getWire());
+
+          if (getQualifiedOpName(*ri) ==
+              getQualifiedOpName(*ai)) {
+            return true;
+          }
+        }
+
       }
 
+      return false;
     }
-
-    return false;
-  }
   
-  SubDAG alignWRT(const SubDAG& reference,
-                  const SubDAG& toAlign,
-                  const NGraph& g) {
-    set<vdisc> alreadyUsed;
+    SubDAG alignWRT(const SubDAG& reference,
+                    const SubDAG& toAlign,
+                    const NGraph& g) {
+      set<vdisc> alreadyUsed;
 
-    map<vdisc, vdisc> nodeMap;
-    for (auto& refNode : reference) {
+      map<vdisc, vdisc> nodeMap;
+      for (auto& refNode : reference) {
 
-      bool foundMatch = false;
-      for (auto& aNode : toAlign) {
-        if (!elem(aNode, alreadyUsed) &&
-            nodesMatch(refNode, aNode, g)) {
-          nodeMap.insert({refNode, aNode});
-          foundMatch = true;
-          alreadyUsed.insert(aNode);
-          break;
+        bool foundMatch = false;
+        for (auto& aNode : toAlign) {
+          if (!elem(aNode, alreadyUsed) &&
+              nodesMatch(refNode, aNode, g)) {
+            nodeMap.insert({refNode, aNode});
+            foundMatch = true;
+            alreadyUsed.insert(aNode);
+            break;
+          }
+        }
+
+        if (!foundMatch) {
+          return {};
         }
       }
 
-      if (!foundMatch) {
-        return {};
+      SubDAG aligned;
+      for (auto& node : reference) {
+        aligned.push_back(nodeMap[node]);
       }
-    }
 
-    SubDAG aligned;
-    for (auto& node : reference) {
-      aligned.push_back(nodeMap[node]);
+      return aligned;
     }
-
-    return aligned;
-  }
                             
-  vector<vector<SubDAG> >
-  alignIdenticalGraphs(const std::vector<SubDAG>& dags,
-                       const NGraph& g) {
+    vector<vector<SubDAG> >
+      alignIdenticalGraphs(const std::vector<SubDAG>& dags,
+                           const NGraph& g) {
 
-    vector<vector<SubDAG> > eqClasses;
+      vector<vector<SubDAG> > eqClasses;
 
-    if (dags.size() == 0) {
+      if (dags.size() == 0) {
+        return eqClasses;
+      }
+    
+      vector<SubDAG> subdags;
+      subdags.push_back(dags[0]);
+      eqClasses.push_back(subdags);
+
+    
+      for (uint i = 1; i < dags.size(); i++) {
+
+        bool foundClass = false;
+
+        for (auto& eqClass : eqClasses) {
+          SubDAG aligned = alignWRT(eqClass.back(), dags[i], g);
+
+          // If the alignment succeeded add to existing equivalence class
+          if (aligned.size() == dags[i].size()) {
+            eqClass.push_back(aligned);
+            foundClass = true;
+            break;
+          }
+        }
+
+        if (!foundClass) {
+          eqClasses.push_back({dags[i]});
+        }
+      }
+
       return eqClasses;
     }
-    
-    vector<SubDAG> subdags;
-    subdags.push_back(dags[0]);
-    eqClasses.push_back(subdags);
 
-    
-    for (uint i = 1; i < dags.size(); i++) {
+    SubDAG addInputs(const SubDAG& dag, const NGraph& g) {
+      SubDAG fulldag;
+      for (auto& vd : dag) {
+        cout << "Node: " << g.getNode(vd).getWire()->toString() << endl;
+        cout << "# of in edges = " << g.inEdges(vd).size() << endl;
+        for (auto& con : g.inEdges(vd)) {
+          vdisc src = g.source(con);
 
-      bool foundClass = false;
+          cout << g.getNode(src).getWire()->toString();
+          cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
 
-      for (auto& eqClass : eqClasses) {
-        SubDAG aligned = alignWRT(eqClass.back(), dags[i], g);
-
-        // If the alignment succeeded add to existing equivalence class
-        if (aligned.size() == dags[i].size()) {
-          eqClass.push_back(aligned);
-          foundClass = true;
-          break;
+          if (isGraphInput(g.getNode(src)) &&
+              !isClkIn(*(g.getNode(src).getWire()->getType())) &&
+              !elem(src, fulldag)) {
+            cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
+            fulldag.push_back(src);
+          }
         }
-      }
 
-      if (!foundClass) {
-        eqClasses.push_back({dags[i]});
+        fulldag.push_back(vd);
       }
+      return fulldag;
     }
 
-    return eqClasses;
-  }
+    std::vector<SIMDGroup>
+      optimizeSIMD(const std::vector<SIMDGroup>& originalGroups,
+                   NGraph& g,
+                   Module& mod,
+                   LayoutPolicy& layoutPolicy) {
 
-  SubDAG addInputs(const SubDAG& dag, const NGraph& g) {
-    SubDAG fulldag;
-    for (auto& vd : dag) {
-      cout << "Node: " << g.getNode(vd).getWire()->toString() << endl;
-      cout << "# of in edges = " << g.inEdges(vd).size() << endl;
-      for (auto& con : g.inEdges(vd)) {
-        vdisc src = g.source(con);
+      // bool allSeqOut = false;
+      // if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
 
-        cout << g.getNode(src).getWire()->toString();
-        cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
+      //   allSeqOut = true;
+      //   for (auto& dag : dags) {
+      //     if (dag.size() != 2) {
+      //       allSeqOut = false;
+      //       break;
+      //     }
 
-        if (isGraphInput(g.getNode(src)) &&
-            !isClkIn(*(g.getNode(src).getWire()->getType())) &&
-            !elem(src, fulldag)) {
-          cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
-          fulldag.push_back(src);
-        }
-      }
+      //     WireNode startWd = g.getNode(dag[0]);
+      //     if (!startWd.isSequential) {
+      //       allSeqOut = false;
+      //       break;
+      //     }
 
-      fulldag.push_back(vd);
-    }
-    return fulldag;
-  }
+      //     WireNode endWd = g.getNode(dag[1]);
+      //     if (!isGraphOutput(endWd)) {
+      //       allSeqOut = false;
+      //       break;
+      //     }
 
-  std::vector<SIMDGroup>
-  optimizeSIMD(const std::vector<SIMDGroup>& originalGroups,
-               NGraph& g,
-               Module& mod,
-               LayoutPolicy& layoutPolicy) {
+      //   }
+      // }
 
-    // bool allSeqOut = false;
-    // if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
-
-    //   allSeqOut = true;
-    //   for (auto& dag : dags) {
-    //     if (dag.size() != 2) {
-    //       allSeqOut = false;
-    //       break;
-    //     }
-
-    //     WireNode startWd = g.getNode(dag[0]);
-    //     if (!startWd.isSequential) {
-    //       allSeqOut = false;
-    //       break;
-    //     }
-
-    //     WireNode endWd = g.getNode(dag[1]);
-    //     if (!isGraphOutput(endWd)) {
-    //       allSeqOut = false;
-    //       break;
-    //     }
-
-    //   }
-    // }
-
-    vector<SubDAG> dags;
-    for (auto& gp : originalGroups) {
-      if (gp.nodes.size() != 1) {
+      if (originalGroups.size() == 0) {
         return originalGroups;
       }
 
-      dags.push_back(gp.nodes[0]);
-    }
-
-    if (allSameSize(dags) && (dags.size() > 4) && (dags.size() == 2)) {
-      cout << "Found " << dags.size() << " of size 2!" << endl;
-
-      vector<SubDAG> fulldags;
-      for (auto& dag : dags) {
-        fulldags.push_back(addInputs(dag, g));
-      }
-
-      cout << "Full dags" << endl;
-      for (auto& dag : fulldags) {
-        cout << "===== DAG" << endl;
-        for (auto& vd : dag) {
-          cout << g.getNode(vd).getWire()->toString() << endl;
+      vector<SubDAG> dags;
+      for (auto& gp : originalGroups) {
+        if (gp.nodes.size() != 1) {
+          return originalGroups;
         }
+
+        dags.push_back(gp.nodes[0]);
       }
 
-      // Note: Add graph input completion
-      vector<vector<SubDAG> > eqClasses =
-        alignIdenticalGraphs(fulldags, g);
+      cout << "Optimizing SIMD, found dag group of size " << dags.size() << endl;
+      cout << "Dag size = " << dags[0].size() << endl;
 
-      cout << "Aligned identical graphs" << endl;
-      for (auto& subdags : eqClasses) {
-        cout << "====== Class" << endl;
-        for (auto& dag : subdags) {
-          cout << "------- DAG" << endl;
+      if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
+        cout << "Found " << dags.size() << " of size 2!" << endl;
+
+        vector<SubDAG> fulldags;
+        for (auto& dag : dags) {
+          fulldags.push_back(addInputs(dag, g));
+        }
+
+        cout << "Full dags" << endl;
+        for (auto& dag : fulldags) {
+          cout << "===== DAG" << endl;
           for (auto& vd : dag) {
             cout << g.getNode(vd).getWire()->toString() << endl;
           }
         }
+
+        // Note: Add graph input completion
+        vector<vector<SubDAG> > eqClasses =
+          alignIdenticalGraphs(fulldags, g);
+
+        cout << "Aligned identical graphs" << endl;
+        for (auto& subdags : eqClasses) {
+          cout << "====== Class" << endl;
+          for (auto& dag : subdags) {
+            cout << "------- DAG" << endl;
+            for (auto& vd : dag) {
+              cout << g.getNode(vd).getWire()->toString() << endl;
+            }
+          }
+        }
+
+        int opWidth = 16;
+        // Max logic op size is 128
+        int groupSize = 128 / opWidth;
+
+        cout << "Printing groups " << endl;
+
+        vector<SIMDGroup> simdGroups;
+        for (auto& eqClass : eqClasses) {
+          auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
+          concat(simdGroups, group0);
+        }
+
+        return simdGroups;
       }
 
-      int opWidth = 16;
-      // Max logic op size is 128
-      int groupSize = 128 / opWidth;
+      cout << "Nope, could not do SIMD optimizations" << endl;
+      return originalGroups;
+    }
+  
+  
+    //void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
+    void addDAGCode(const std::vector<SIMDGroup>& dags,
+                    NGraph& g,
+                    Module& mod,
+                    LayoutPolicy& layoutPolicy,
+                    std::vector<std::string>& simLines) {
 
-      cout << "Printing groups " << endl;
-
-      vector<SIMDGroup> simdGroups;
-      for (auto& eqClass : eqClasses) {
-        auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
-        concat(simdGroups, group0);
-        // for (auto& group : group0) {
-        //   concat(simLines, printSIMDGroup(group, g, mod, layoutPolicy));
-        // }
+      for (auto& simdGroup : dags) {
+        concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy));
       }
 
-      return simdGroups;
+
     }
 
-    return originalGroups;
-  }
-  
-  
-  //void addDAGCode(const std::vector<std::deque<vdisc> >& dags,
-  void addDAGCode(const std::vector<SIMDGroup>& dags,
-                  NGraph& g,
-                  Module& mod,
-                  LayoutPolicy& layoutPolicy,
-                  std::vector<std::string>& simLines) {
+    string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
+                                NGraph& g,
+                                Module& mod,
+                                LayoutPolicy& layoutPolicy) {
 
-    for (auto& simdGroup : dags) {
-      concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy));
-    }
+      string str = printSimFunctionPrefix(topoOrder, g, mod);
 
+      // Print out operations in topological order
+      str += "\n// Simulation code\n";
 
-  }
+      vector<string> simLines;
 
-  string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
-                              NGraph& g,
-                              Module& mod,
-                              LayoutPolicy& layoutPolicy) {
+      auto paths = buildCircuitPaths(topoOrder, g, mod);
+      paths.postSequentialDAGs = optimizeSIMD(paths.postSequentialDAGs,
+                                              g,
+                                              mod,
+                                              layoutPolicy);
+      paths.preSequentialDAGs = optimizeSIMD(paths.preSequentialDAGs,
+                                             g,
+                                             mod,
+                                             layoutPolicy);
 
-    string str = printSimFunctionPrefix(topoOrder, g, mod);
-
-    // Print out operations in topological order
-    str += "\n// Simulation code\n";
-
-    vector<string> simLines;
-
-    auto paths = buildCircuitPaths(topoOrder, g, mod);
-    paths.postSequentialDAGs = optimizeSIMD(paths.postSequentialDAGs,
-                                            g,
-                                            mod,
-                                            layoutPolicy);
       // concat(allUpdates, paths.preSequentialDAGs);
       // concat(allUpdates, paths.postSequentialAlwaysDAGs);
       // concat(allUpdates, paths.preSequentialAlwaysDAGs);
 
 
-    auto clk = findMainClock(g);
+      auto clk = findMainClock(g);
 
-    if (clk != nullptr) {
-      InstanceValue clkInst(clk);
+      if (clk != nullptr) {
+        InstanceValue clkInst(clk);
     
-      string condition =
-        parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
-               parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
+        string condition =
+          parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
+                 parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
-      addDAGCode(paths.preSequentialAlwaysDAGs,
-                 g, mod, layoutPolicy, simLines);
+        addDAGCode(paths.preSequentialAlwaysDAGs,
+                   g, mod, layoutPolicy, simLines);
 
-      simLines.push_back("if " + condition + " {\n");
+        simLines.push_back("if " + condition + " {\n");
         
-      // Only need to update the DAGS that start from an input, otherwise the
-      // result is fresh already
-      simLines.push_back("\n// ----- Update combinational logic before clock\n");
-      addDAGCode(paths.preSequentialDAGs,
-                 g, mod, layoutPolicy, simLines);
-      simLines.push_back("\n// ----- Done\n");
+        // Only need to update the DAGS that start from an input, otherwise the
+        // result is fresh already
+        simLines.push_back("\n// ----- Update combinational logic before clock\n");
+        addDAGCode(paths.preSequentialDAGs,
+                   g, mod, layoutPolicy, simLines);
+        simLines.push_back("\n// ----- Done\n");
 
-      simLines.push_back("\n// ----- Updating sequential logic\n");
+        simLines.push_back("\n// ----- Updating sequential logic\n");
 
-      vector<SIMDGroup> allUpdates;
-      concat(allUpdates, paths.postSequentialDAGs);
-      concat(allUpdates, paths.preSequentialDAGs);
-      concat(allUpdates, paths.postSequentialAlwaysDAGs);
-      concat(allUpdates, paths.preSequentialAlwaysDAGs);
+        vector<SIMDGroup> allUpdates;
+        concat(allUpdates, paths.postSequentialDAGs);
+        concat(allUpdates, paths.preSequentialDAGs);
+        concat(allUpdates, paths.postSequentialAlwaysDAGs);
+        concat(allUpdates, paths.preSequentialAlwaysDAGs);
 
-      for (auto& dag : allUpdates) {
-        concat(simLines,
-               updateSequentialElements(dag, g, mod, layoutPolicy));
+        for (auto& dag : allUpdates) {
+          concat(simLines,
+                 updateSequentialElements(dag, g, mod, layoutPolicy));
+        }
+
+        simLines.push_back("\n// ----- Done\n");
+
+        // No need to print out register updates
+        layoutPolicy.setReadRegsDirectly(true);
+        simLines.push_back("\n// ----- Update combinational logic after clock\n");
+
+        // cout << "# of post sequential dags = " << paths.postSequentialDAGs.size() << endl;
+        // for (auto& dag : paths.postSequentialDAGs) {
+        //   cout << dag.size() << endl;
+        // }
+
+        addDAGCode(paths.postSequentialDAGs,
+                   g, mod, layoutPolicy, simLines);
+        simLines.push_back("\n// ----- Done\n");
+
+        simLines.push_back("\n}\n");
+        addDAGCode(paths.postSequentialAlwaysDAGs,
+                   g, mod, layoutPolicy, simLines);
+      
       }
 
-      simLines.push_back("\n// ----- Done\n");
-
-      // No need to print out register updates
-      layoutPolicy.setReadRegsDirectly(true);
-      simLines.push_back("\n// ----- Update combinational logic after clock\n");
-
-      // cout << "# of post sequential dags = " << paths.postSequentialDAGs.size() << endl;
-      // for (auto& dag : paths.postSequentialDAGs) {
-      //   cout << dag.size() << endl;
-      // }
-
-      addDAGCode(paths.postSequentialDAGs,
+      simLines.push_back("\n// ----- Update pure combinational logic\n");
+      addDAGCode(paths.pureCombDAGs,
                  g, mod, layoutPolicy, simLines);
+
       simLines.push_back("\n// ----- Done\n");
-
-      simLines.push_back("\n}\n");
-      addDAGCode(paths.postSequentialAlwaysDAGs,
-                 g, mod, layoutPolicy, simLines);
-      
-    }
-
-    simLines.push_back("\n// ----- Update pure combinational logic\n");
-    addDAGCode(paths.pureCombDAGs,
-               g, mod, layoutPolicy, simLines);
-
-    simLines.push_back("\n// ----- Done\n");
     
-    cout << "Done writing sim lines, now need to concatenate them" << endl;
+      cout << "Done writing sim lines, now need to concatenate them" << endl;
 
-    for (auto& ln : simLines) {
-      str += ln;
+      for (auto& ln : simLines) {
+        str += ln;
+      }
+
+      cout << "Done concatenating" << endl;
+
+      return str;
     }
 
-    cout << "Done concatenating" << endl;
+    string printDecl(const ModuleCode& mc) {
+      string code = "";
+      code += "#include <stdint.h>\n";
+      code += "#include <cstdio>\n\n";
+      code += "#include \"bit_vector.h\"\n\n";
 
-    return str;
+      code += "using namespace bsim;\n\n";
+
+      code += printEvalStruct(mc);
+
+      code += "void simulate( circuit_state* state );\n";
+
+      return code;
+    }
+
+    std::string printCode(const ModuleCode& mc) {
+      return mc.codeString;
+    }
+
+    ModuleCode buildCode(const std::deque<vdisc>& topoOrder,
+                         NGraph& g,
+                         CoreIR::Module* mod,
+                         const std::string& baseName) {
+
+      string code = "";
+
+      code += "#include \"" + baseName + "\"\n";
+      code += "#include <immintrin.h>\n";
+      code += "using namespace bsim;\n\n";
+
+      code += seMacroDef();
+      code += maskMacroDef();
+
+      CustomStructLayout sl(mod->getDef()->getContext());
+
+      code += "void simulate_0( circuit_state* state ) {\n";
+      code += printSimFunctionBody(topoOrder, g, *mod, sl);
+      code += "}\n\n";
+
+      code += "void simulate( circuit_state* state ) {\n";
+      code += ln("simulate_0( state )");
+      code += "}\n";
+
+      ModuleCode mc(g, mod);
+      mc.codeString = code;
+      mc.structLayout = sl.varDecls;
+
+      return mc;
+    }
+
   }
-
-  string printDecl(const ModuleCode& mc) {
-    string code = "";
-    code += "#include <stdint.h>\n";
-    code += "#include <cstdio>\n\n";
-    code += "#include \"bit_vector.h\"\n\n";
-
-    code += "using namespace bsim;\n\n";
-
-    code += printEvalStruct(mc);
-
-    code += "void simulate( circuit_state* state );\n";
-
-    return code;
-  }
-
-  std::string printCode(const ModuleCode& mc) {
-    return mc.codeString;
-  }
-
-  ModuleCode buildCode(const std::deque<vdisc>& topoOrder,
-                       NGraph& g,
-                       CoreIR::Module* mod,
-                       const std::string& baseName) {
-
-    string code = "";
-
-    code += "#include \"" + baseName + "\"\n";
-    code += "#include <immintrin.h>\n";
-    code += "using namespace bsim;\n\n";
-
-    code += seMacroDef();
-    code += maskMacroDef();
-
-    CustomStructLayout sl(mod->getDef()->getContext());
-
-    code += "void simulate_0( circuit_state* state ) {\n";
-    code += printSimFunctionBody(topoOrder, g, *mod, sl);
-    code += "}\n\n";
-
-    code += "void simulate( circuit_state* state ) {\n";
-    code += ln("simulate_0( state )");
-    code += "}\n";
-
-    ModuleCode mc(g, mod);
-    mc.codeString = code;
-    mc.structLayout = sl.varDecls;
-
-    return mc;
-  }
-
-}
