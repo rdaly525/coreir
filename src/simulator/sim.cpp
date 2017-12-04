@@ -1079,13 +1079,21 @@ namespace CoreIR {
 
   typedef std::deque<vdisc> SubDAG;
 
-  vector<vector<SubDAG> >
+  class SIMDGroup {
+  public:
+    int totalWidth;
+    std::vector<SubDAG> nodes;
+  };
+
+  //vector<vector<SubDAG> >
+  vector<SIMDGroup>
   groupIdenticalSubDAGs(const vector<SubDAG>& dags,
                         const NGraph& g,
                         const int groupSize,
                         LayoutPolicy& lp) {
 
-    vector<vector<SubDAG> > groups;
+    //vector<vector<SubDAG> > groups;
+    vector<SIMDGroup> groups;
 
     uint i;
     for (i = 0; i < dags.size(); i += groupSize) {
@@ -1097,7 +1105,7 @@ namespace CoreIR {
       for (int j = 0; j < groupSize; j++) {
         sg.push_back(dags[i + j]);
       }
-      groups.push_back(sg);
+      groups.push_back({groupSize, sg});
     }
 
     if (i < dags.size()) {
@@ -1106,13 +1114,13 @@ namespace CoreIR {
         sg.push_back(dags[i]);
       }
 
-      groups.push_back(sg);
+      groups.push_back({groupSize, sg});
     }
 
     // Force adjacency
     vector<vector<string> > state_var_groups;
     for (uint i = 0; i < groups.size(); i++) {
-      vector<SubDAG>& group = groups[i];
+      vector<SubDAG>& group = groups[i].nodes;
 
       // Create forced variable groups in layout
       vector<string> invars;
@@ -1162,11 +1170,6 @@ namespace CoreIR {
     return groups;
   }
 
-  class SIMDGroup {
-  public:
-    std::vector<SubDAG> nodes;
-  };
-
   bool allSameSize(const std::vector<SubDAG>& dags) {
     if (dags.size() < 2) {
       return true;
@@ -1196,11 +1199,11 @@ namespace CoreIR {
     return;
   }
 
-  std::vector<std::string> printSIMDGroup(const std::vector<SubDAG>& group,
+  std::vector<std::string> printSIMDGroup(const SIMDGroup& group, //const std::vector<SubDAG>& group,
                                           const NGraph& g,
                                           LayoutPolicy& lp) {
     vector<string> simLines;
-    SubDAG init = group[0];
+    SubDAG init = group.nodes[0];
 
     string tmp = cVar(*(g.getNode(init[0]).getWire()));    
 
