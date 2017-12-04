@@ -1175,7 +1175,7 @@ namespace CoreIR {
       return true;
     }
 
-    int size = dags[0].size();
+    uint size = dags[0].size();
     for (uint i = 1; i < dags.size(); i++) {
       if (dags[i].size() != size) {
         return false;
