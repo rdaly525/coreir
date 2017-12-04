@@ -1199,10 +1199,18 @@ namespace CoreIR {
     return;
   }
 
-  std::vector<std::string> printSIMDGroup(const SIMDGroup& group, //const std::vector<SubDAG>& group,
-                                          const NGraph& g,
+  std::vector<std::string> printSIMDGroup(const SIMDGroup& group,
+                                          NGraph& g,
+                                          Module& mod,
                                           LayoutPolicy& lp) {
     vector<string> simLines;
+
+    // If the group actually is scalar code just call the scalar printout
+    if (group.nodes.size() == 1) {
+      addScalarDAGCode({group.nodes[0]}, g, mod, lp, simLines);
+      return simLines;
+    }
+    
     SubDAG init = group.nodes[0];
 
     string tmp = cVar(*(g.getNode(init[0]).getWire()));    
@@ -1214,7 +1222,7 @@ namespace CoreIR {
         string stateInLoc =
           lp.outputVarName(*(g.getNode(vd).getWire()));
 
-        simLines.push_back("__m128i " + cVar(*(g.getNode(vd).getWire())) + 
+        simLines.push_back("__m128i " + cVar(*(g.getNode(vd).getWire())) +
                            " = _mm_loadu_si128((__m128i const*) &" +
                            stateInLoc + ");\n");
 
@@ -1490,8 +1498,6 @@ namespace CoreIR {
         }
       }
 
-      //assert(eqClasses.size() == 2);
-
       int opWidth = 16;
       // Max logic op size is 128
       int groupSize = 128 / opWidth;
@@ -1502,7 +1508,7 @@ namespace CoreIR {
       for (auto& eqClass : eqClasses) {
         auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
         for (auto& group : group0) {
-          concat(simLines, printSIMDGroup(group, g, layoutPolicy));
+          concat(simLines, printSIMDGroup(group, g, mod, layoutPolicy));
         }
       }
 
