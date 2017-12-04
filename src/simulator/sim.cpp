@@ -22,7 +22,6 @@ namespace CoreIR {
   };
 
   struct CircuitPaths {
-    deque<vdisc> threadNodes;
     vector<SIMDGroup > preSequentialAlwaysDAGs;
     vector<SIMDGroup > preSequentialDAGs;
     vector<SIMDGroup > postSequentialDAGs;
@@ -878,8 +877,7 @@ namespace CoreIR {
         if (isInstance(inst)) { 
 
           if ((isCombinationalInstance(wd)) &&
-              ((g.getOutputConnections(vd).size() > 1))) { // ||
-               //               (isThreadShared(vd, g) && wd.getThreadNo() == threadNo))) {
+              ((g.getOutputConnections(vd).size() > 1))) {
 
             simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
 
@@ -919,10 +917,6 @@ namespace CoreIR {
                                  Module& mod) {
     CircuitPaths paths;
 
-    for (auto& vd : topoOrder) {
-      paths.threadNodes.push_back(vd);
-    }
-
     vector<set<vdisc>> ccs =
       connectedComponentsIgnoringInputs(g);
 
@@ -931,7 +925,8 @@ namespace CoreIR {
     // Set presequential DAGs
     for (auto& cc : ccs) {
       deque<vdisc> nodes;
-      for (auto& vd : paths.threadNodes) {
+
+      for (auto& vd : topoOrder) {
         if (elem(vd, cc)) {
           nodes.push_back(vd);
         }
@@ -1278,8 +1273,8 @@ namespace CoreIR {
     }
                             
     vector<vector<SubDAG> >
-      alignIdenticalGraphs(const std::vector<SubDAG>& dags,
-                           const NGraph& g) {
+    alignIdenticalGraphs(const std::vector<SubDAG>& dags,
+                         const NGraph& g) {
 
       vector<vector<SubDAG> > eqClasses;
 
@@ -1340,10 +1335,10 @@ namespace CoreIR {
     }
 
     std::vector<SIMDGroup>
-      optimizeSIMD(const std::vector<SIMDGroup>& originalGroups,
-                   NGraph& g,
-                   Module& mod,
-                   LayoutPolicy& layoutPolicy) {
+    optimizeSIMD(const std::vector<SIMDGroup>& originalGroups,
+                 NGraph& g,
+                 Module& mod,
+                 LayoutPolicy& layoutPolicy) {
 
       if (originalGroups.size() == 0) {
         return originalGroups;
@@ -1412,165 +1407,154 @@ namespace CoreIR {
     }
 
   void addDAGCode(const std::vector<SIMDGroup>& dags,
-                    NGraph& g,
-                    Module& mod,
-                    LayoutPolicy& layoutPolicy,
-                    std::vector<std::string>& simLines) {
+                  NGraph& g,
+                  Module& mod,
+                  LayoutPolicy& layoutPolicy,
+                  std::vector<std::string>& simLines) {
 
-      for (auto& simdGroup : dags) {
-        concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy));
-      }
-
-
-    }
-
-    string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
-                                NGraph& g,
-                                Module& mod,
-                                LayoutPolicy& layoutPolicy) {
-
-      string str = printSimFunctionPrefix(topoOrder, g, mod);
-
-      // Print out operations in topological order
-      str += "\n// Simulation code\n";
-
-      vector<string> simLines;
-
-      auto paths = buildCircuitPaths(topoOrder, g, mod);
-      paths.postSequentialDAGs = optimizeSIMD(paths.postSequentialDAGs,
-                                              g,
-                                              mod,
-                                              layoutPolicy);
-      paths.preSequentialDAGs = optimizeSIMD(paths.preSequentialDAGs,
-                                             g,
-                                             mod,
-                                             layoutPolicy);
-
-      // concat(allUpdates, paths.preSequentialDAGs);
-      // concat(allUpdates, paths.postSequentialAlwaysDAGs);
-      // concat(allUpdates, paths.preSequentialAlwaysDAGs);
-
-
-      auto clk = findMainClock(g);
-
-      if (clk != nullptr) {
-        InstanceValue clkInst(clk);
-    
-        string condition =
-          parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
-                 parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
-
-        addDAGCode(paths.preSequentialAlwaysDAGs,
-                   g, mod, layoutPolicy, simLines);
-
-        simLines.push_back("if " + condition + " {\n");
-        
-        // Only need to update the DAGS that start from an input, otherwise the
-        // result is fresh already
-        simLines.push_back("\n// ----- Update combinational logic before clock\n");
-        addDAGCode(paths.preSequentialDAGs,
-                   g, mod, layoutPolicy, simLines);
-        simLines.push_back("\n// ----- Done\n");
-
-        simLines.push_back("\n// ----- Updating sequential logic\n");
-
-        vector<SIMDGroup> allUpdates;
-        concat(allUpdates, paths.postSequentialDAGs);
-        concat(allUpdates, paths.preSequentialDAGs);
-        concat(allUpdates, paths.postSequentialAlwaysDAGs);
-        concat(allUpdates, paths.preSequentialAlwaysDAGs);
-
-        for (auto& dag : allUpdates) {
-          concat(simLines,
-                 updateSequentialElements(dag, g, mod, layoutPolicy));
-        }
-
-        simLines.push_back("\n// ----- Done\n");
-
-        // No need to print out register updates
-        layoutPolicy.setReadRegsDirectly(true);
-        simLines.push_back("\n// ----- Update combinational logic after clock\n");
-
-        // cout << "# of post sequential dags = " << paths.postSequentialDAGs.size() << endl;
-        // for (auto& dag : paths.postSequentialDAGs) {
-        //   cout << dag.size() << endl;
-        // }
-
-        addDAGCode(paths.postSequentialDAGs,
-                   g, mod, layoutPolicy, simLines);
-        simLines.push_back("\n// ----- Done\n");
-
-        simLines.push_back("\n}\n");
-        addDAGCode(paths.postSequentialAlwaysDAGs,
-                   g, mod, layoutPolicy, simLines);
-      
-      }
-
-      simLines.push_back("\n// ----- Update pure combinational logic\n");
-      addDAGCode(paths.pureCombDAGs,
-                 g, mod, layoutPolicy, simLines);
-
-      simLines.push_back("\n// ----- Done\n");
-    
-      cout << "Done writing sim lines, now need to concatenate them" << endl;
-
-      for (auto& ln : simLines) {
-        str += ln;
-      }
-
-      cout << "Done concatenating" << endl;
-
-      return str;
-    }
-
-    string printDecl(const ModuleCode& mc) {
-      string code = "";
-      code += "#include <stdint.h>\n";
-      code += "#include <cstdio>\n\n";
-      code += "#include \"bit_vector.h\"\n\n";
-
-      code += "using namespace bsim;\n\n";
-
-      code += printEvalStruct(mc);
-
-      code += "void simulate( circuit_state* state );\n";
-
-      return code;
-    }
-
-    std::string printCode(const ModuleCode& mc) {
-      return mc.codeString;
-    }
-
-    ModuleCode buildCode(const std::deque<vdisc>& topoOrder,
-                         NGraph& g,
-                         CoreIR::Module* mod,
-                         const std::string& baseName) {
-
-      string code = "";
-
-      code += "#include \"" + baseName + "\"\n";
-      code += "#include <immintrin.h>\n";
-      code += "using namespace bsim;\n\n";
-
-      code += seMacroDef();
-      code += maskMacroDef();
-
-      CustomStructLayout sl(mod->getDef()->getContext());
-
-      code += "void simulate_0( circuit_state* state ) {\n";
-      code += printSimFunctionBody(topoOrder, g, *mod, sl);
-      code += "}\n\n";
-
-      code += "void simulate( circuit_state* state ) {\n";
-      code += ln("simulate_0( state )");
-      code += "}\n";
-
-      ModuleCode mc(g, mod);
-      mc.codeString = code;
-      mc.structLayout = sl.varDecls;
-
-      return mc;
+    for (auto& simdGroup : dags) {
+      concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy));
     }
 
   }
+
+  string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
+                              NGraph& g,
+                              Module& mod,
+                              LayoutPolicy& layoutPolicy) {
+
+    string str = printSimFunctionPrefix(topoOrder, g, mod);
+
+    // Print out operations in topological order
+    str += "\n// Simulation code\n";
+
+    vector<string> simLines;
+
+    auto paths = buildCircuitPaths(topoOrder, g, mod);
+    paths.postSequentialDAGs = optimizeSIMD(paths.postSequentialDAGs,
+                                            g,
+                                            mod,
+                                            layoutPolicy);
+    paths.preSequentialDAGs = optimizeSIMD(paths.preSequentialDAGs,
+                                           g,
+                                           mod,
+                                           layoutPolicy);
+
+    auto clk = findMainClock(g);
+
+    if (clk != nullptr) {
+      InstanceValue clkInst(clk);
+    
+      string condition =
+        parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
+               parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
+
+      addDAGCode(paths.preSequentialAlwaysDAGs,
+                 g, mod, layoutPolicy, simLines);
+
+      simLines.push_back("if " + condition + " {\n");
+        
+      // Only need to update the DAGS that start from an input, otherwise the
+      // result is fresh already
+      simLines.push_back("\n// ----- Update combinational logic before clock\n");
+      addDAGCode(paths.preSequentialDAGs,
+                 g, mod, layoutPolicy, simLines);
+      simLines.push_back("\n// ----- Done\n");
+
+      simLines.push_back("\n// ----- Updating sequential logic\n");
+
+      vector<SIMDGroup> allUpdates;
+      concat(allUpdates, paths.postSequentialDAGs);
+      concat(allUpdates, paths.preSequentialDAGs);
+      concat(allUpdates, paths.postSequentialAlwaysDAGs);
+      concat(allUpdates, paths.preSequentialAlwaysDAGs);
+
+      for (auto& dag : allUpdates) {
+        concat(simLines,
+               updateSequentialElements(dag, g, mod, layoutPolicy));
+      }
+
+      simLines.push_back("\n// ----- Done\n");
+
+      // No need to print out register updates
+      layoutPolicy.setReadRegsDirectly(true);
+      simLines.push_back("\n// ----- Update combinational logic after clock\n");
+
+      addDAGCode(paths.postSequentialDAGs,
+                 g, mod, layoutPolicy, simLines);
+      simLines.push_back("\n// ----- Done\n");
+
+      simLines.push_back("\n}\n");
+      addDAGCode(paths.postSequentialAlwaysDAGs,
+                 g, mod, layoutPolicy, simLines);
+      
+    }
+
+    simLines.push_back("\n// ----- Update pure combinational logic\n");
+    addDAGCode(paths.pureCombDAGs,
+               g, mod, layoutPolicy, simLines);
+
+    simLines.push_back("\n// ----- Done\n");
+    
+    cout << "Done writing sim lines, now need to concatenate them" << endl;
+
+    for (auto& ln : simLines) {
+      str += ln;
+    }
+
+    cout << "Done concatenating" << endl;
+
+    return str;
+  }
+
+  string printDecl(const ModuleCode& mc) {
+    string code = "";
+    code += "#include <stdint.h>\n";
+    code += "#include <cstdio>\n\n";
+    code += "#include \"bit_vector.h\"\n\n";
+
+    code += "using namespace bsim;\n\n";
+
+    code += printEvalStruct(mc);
+
+    code += "void simulate( circuit_state* state );\n";
+
+    return code;
+  }
+
+  std::string printCode(const ModuleCode& mc) {
+    return mc.codeString;
+  }
+
+  ModuleCode buildCode(const std::deque<vdisc>& topoOrder,
+                       NGraph& g,
+                       CoreIR::Module* mod,
+                       const std::string& baseName) {
+
+    string code = "";
+
+    code += "#include \"" + baseName + "\"\n";
+    code += "#include <immintrin.h>\n";
+    code += "using namespace bsim;\n\n";
+
+    code += seMacroDef();
+    code += maskMacroDef();
+
+    CustomStructLayout sl(mod->getDef()->getContext());
+
+    code += "void simulate_0( circuit_state* state ) {\n";
+    code += printSimFunctionBody(topoOrder, g, *mod, sl);
+    code += "}\n\n";
+
+    code += "void simulate( circuit_state* state ) {\n";
+    code += ln("simulate_0( state )");
+    code += "}\n";
+
+    ModuleCode mc(g, mod);
+    mc.codeString = code;
+    mc.structLayout = sl.varDecls;
+
+    return mc;
+  }
+
+}
