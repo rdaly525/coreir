@@ -1196,7 +1196,10 @@ namespace CoreIR {
 
     // Emit SIMD code for each node in the pattern
     for (auto& vd : init) {
-      concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, lp));
+      WireNode wd = g.getNode(vd);
+      if (!wd.isSequential || !wd.isReceiver) {
+        concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, lp));
+      }
     }
 
     return simLines;
