@@ -34,7 +34,7 @@ namespace CoreIR {
                                          NGraph& g,
                                          Module& mod,
                                          LayoutPolicy& lp);
-  
+
   string printBinop(const WireNode& wd,
                     const vdisc vd,
                     const NGraph& g,
@@ -1272,139 +1272,139 @@ namespace CoreIR {
       return aligned;
     }
                             
-    vector<vector<SubDAG> >
-    alignIdenticalGraphs(const std::vector<SubDAG>& dags,
-                         const NGraph& g) {
+  vector<vector<SubDAG> >
+  alignIdenticalGraphs(const std::vector<SubDAG>& dags,
+                       const NGraph& g) {
 
-      vector<vector<SubDAG> > eqClasses;
+    vector<vector<SubDAG> > eqClasses;
 
-      if (dags.size() == 0) {
-        return eqClasses;
-      }
-    
-      vector<SubDAG> subdags;
-      subdags.push_back(dags[0]);
-      eqClasses.push_back(subdags);
-
-    
-      for (uint i = 1; i < dags.size(); i++) {
-
-        bool foundClass = false;
-
-        for (auto& eqClass : eqClasses) {
-          SubDAG aligned = alignWRT(eqClass.back(), dags[i], g);
-
-          // If the alignment succeeded add to existing equivalence class
-          if (aligned.size() == dags[i].size()) {
-            eqClass.push_back(aligned);
-            foundClass = true;
-            break;
-          }
-        }
-
-        if (!foundClass) {
-          eqClasses.push_back({dags[i]});
-        }
-      }
-
+    if (dags.size() == 0) {
       return eqClasses;
     }
+    
+    vector<SubDAG> subdags;
+    subdags.push_back(dags[0]);
+    eqClasses.push_back(subdags);
 
-    SubDAG addInputs(const SubDAG& dag, const NGraph& g) {
-      SubDAG fulldag;
-      for (auto& vd : dag) {
-        cout << "Node: " << g.getNode(vd).getWire()->toString() << endl;
-        cout << "# of in edges = " << g.inEdges(vd).size() << endl;
-        for (auto& con : g.inEdges(vd)) {
-          vdisc src = g.source(con);
+    
+    for (uint i = 1; i < dags.size(); i++) {
 
-          cout << g.getNode(src).getWire()->toString();
-          cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
+      bool foundClass = false;
 
-          if (isGraphInput(g.getNode(src)) &&
-              !isClkIn(*(g.getNode(src).getWire()->getType())) &&
-              !elem(src, fulldag)) {
-            cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
-            fulldag.push_back(src);
-          }
+      for (auto& eqClass : eqClasses) {
+        SubDAG aligned = alignWRT(eqClass.back(), dags[i], g);
+
+        // If the alignment succeeded add to existing equivalence class
+        if (aligned.size() == dags[i].size()) {
+          eqClass.push_back(aligned);
+          foundClass = true;
+          break;
         }
-
-        fulldag.push_back(vd);
       }
-      return fulldag;
+
+      if (!foundClass) {
+        eqClasses.push_back({dags[i]});
+      }
     }
 
-    std::vector<SIMDGroup>
-    optimizeSIMD(const std::vector<SIMDGroup>& originalGroups,
-                 NGraph& g,
-                 Module& mod,
-                 LayoutPolicy& layoutPolicy) {
+    return eqClasses;
+  }
 
-      if (originalGroups.size() == 0) {
+  SubDAG addInputs(const SubDAG& dag, const NGraph& g) {
+    SubDAG fulldag;
+    for (auto& vd : dag) {
+      cout << "Node: " << g.getNode(vd).getWire()->toString() << endl;
+      cout << "# of in edges = " << g.inEdges(vd).size() << endl;
+      for (auto& con : g.inEdges(vd)) {
+        vdisc src = g.source(con);
+
+        cout << g.getNode(src).getWire()->toString();
+        cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
+
+        if (isGraphInput(g.getNode(src)) &&
+            !isClkIn(*(g.getNode(src).getWire()->getType())) &&
+            !elem(src, fulldag)) {
+          cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
+          fulldag.push_back(src);
+        }
+      }
+
+      fulldag.push_back(vd);
+    }
+    return fulldag;
+  }
+
+  std::vector<SIMDGroup>
+  optimizeSIMD(const std::vector<SIMDGroup>& originalGroups,
+               NGraph& g,
+               Module& mod,
+               LayoutPolicy& layoutPolicy) {
+
+    if (originalGroups.size() == 0) {
+      return originalGroups;
+    }
+
+    vector<SubDAG> dags;
+    for (auto& gp : originalGroups) {
+      if (gp.nodes.size() != 1) {
         return originalGroups;
       }
 
-      vector<SubDAG> dags;
-      for (auto& gp : originalGroups) {
-        if (gp.nodes.size() != 1) {
-          return originalGroups;
-        }
+      dags.push_back(gp.nodes[0]);
+    }
 
-        dags.push_back(gp.nodes[0]);
+    cout << "Optimizing SIMD, found dag group of size " << dags.size() << endl;
+    cout << "Dag size = " << dags[0].size() << endl;
+
+    if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
+      cout << "Found " << dags.size() << " of size 2!" << endl;
+
+      vector<SubDAG> fulldags;
+      for (auto& dag : dags) {
+        fulldags.push_back(addInputs(dag, g));
       }
 
-      cout << "Optimizing SIMD, found dag group of size " << dags.size() << endl;
-      cout << "Dag size = " << dags[0].size() << endl;
-
-      if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
-        cout << "Found " << dags.size() << " of size 2!" << endl;
-
-        vector<SubDAG> fulldags;
-        for (auto& dag : dags) {
-          fulldags.push_back(addInputs(dag, g));
+      cout << "Full dags" << endl;
+      for (auto& dag : fulldags) {
+        cout << "===== DAG" << endl;
+        for (auto& vd : dag) {
+          cout << g.getNode(vd).getWire()->toString() << endl;
         }
+      }
 
-        cout << "Full dags" << endl;
-        for (auto& dag : fulldags) {
-          cout << "===== DAG" << endl;
+      // Note: Add graph input completion
+      vector<vector<SubDAG> > eqClasses =
+        alignIdenticalGraphs(fulldags, g);
+
+      cout << "Aligned identical graphs" << endl;
+      for (auto& subdags : eqClasses) {
+        cout << "====== Class" << endl;
+        for (auto& dag : subdags) {
+          cout << "------- DAG" << endl;
           for (auto& vd : dag) {
             cout << g.getNode(vd).getWire()->toString() << endl;
           }
         }
-
-        // Note: Add graph input completion
-        vector<vector<SubDAG> > eqClasses =
-          alignIdenticalGraphs(fulldags, g);
-
-        cout << "Aligned identical graphs" << endl;
-        for (auto& subdags : eqClasses) {
-          cout << "====== Class" << endl;
-          for (auto& dag : subdags) {
-            cout << "------- DAG" << endl;
-            for (auto& vd : dag) {
-              cout << g.getNode(vd).getWire()->toString() << endl;
-            }
-          }
-        }
-
-        int opWidth = 16;
-        // Max logic op size is 128
-        int groupSize = 128 / opWidth;
-
-        cout << "Printing groups " << endl;
-
-        vector<SIMDGroup> simdGroups;
-        for (auto& eqClass : eqClasses) {
-          auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
-          concat(simdGroups, group0);
-        }
-
-        return simdGroups;
       }
 
-      cout << "Nope, could not do SIMD optimizations" << endl;
-      return originalGroups;
+      int opWidth = 16;
+      // Max logic op size is 128
+      int groupSize = 128 / opWidth;
+
+      cout << "Printing groups " << endl;
+
+      vector<SIMDGroup> simdGroups;
+      for (auto& eqClass : eqClasses) {
+        auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
+        concat(simdGroups, group0);
+      }
+
+      return simdGroups;
     }
+
+    cout << "Nope, could not do SIMD optimizations" << endl;
+    return originalGroups;
+  }
 
   void addDAGCode(const std::vector<SIMDGroup>& dags,
                   NGraph& g,
