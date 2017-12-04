@@ -1142,37 +1142,44 @@ namespace CoreIR {
     for (uint i = 0; i < groups.size(); i++) {
       vector<SubDAG>& group = groups[i].nodes;
 
+      auto dag = group[0];
+
       // Create forced variable groups in layout
-      vector<string> invars;
-      vector<string> outvars;
-      for (auto& dag : group) {
+      for (uint i = 0; i < dag.size(); i++) {
+        vdisc vd = dag[i];
 
-        for (auto& vd : dag) {
-
-          if (isSubgraphInput(vd, dag, g)) {
+        if (isSubgraphInput(vd, dag, g)) {        
+          vector<string> invars;
+          for (auto& dag : group) {
+            auto vd = dag[i];
             string stateInLoc =
               cVar(*(g.getNode(vd).getWire()));
 
             invars.push_back(stateInLoc);
-
             lp.outputVarName(*(g.getNode(vd).getWire()));
           }
 
-          if (isSubgraphOutput(vd, dag, g)) {
+          state_var_groups.push_back(invars);
+        }
+
+        if (isSubgraphOutput(vd, dag, g)) {
+          vector<string> outvars;
+
+          for (auto& dag : group) {
+            auto vd = dag[i];
             string stateOutLoc =
               cVar(*(g.getNode(vd).getWire()));
 
-            // Guarantee that all variables are declared
             lp.outputVarName(*(g.getNode(vd).getWire()));
 
             outvars.push_back(stateOutLoc);
           }
-        }
 
+          state_var_groups.push_back(outvars);
+          
+        }
       }
 
-      state_var_groups.push_back(invars);
-      state_var_groups.push_back(outvars);
     }
 
     cout << "====== State var groups" << endl;
