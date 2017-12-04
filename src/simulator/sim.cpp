@@ -1243,37 +1243,37 @@ namespace CoreIR {
     return false;
   }
   
-    SubDAG alignWRT(const SubDAG& reference,
-                    const SubDAG& toAlign,
-                    const NGraph& g) {
-      set<vdisc> alreadyUsed;
+  SubDAG alignWRT(const SubDAG& reference,
+                  const SubDAG& toAlign,
+                  const NGraph& g) {
+    set<vdisc> alreadyUsed;
 
-      map<vdisc, vdisc> nodeMap;
-      for (auto& refNode : reference) {
+    map<vdisc, vdisc> nodeMap;
+    for (auto& refNode : reference) {
 
-        bool foundMatch = false;
-        for (auto& aNode : toAlign) {
-          if (!elem(aNode, alreadyUsed) &&
-              nodesMatch(refNode, aNode, g)) {
-            nodeMap.insert({refNode, aNode});
-            foundMatch = true;
-            alreadyUsed.insert(aNode);
-            break;
-          }
-        }
-
-        if (!foundMatch) {
-          return {};
+      bool foundMatch = false;
+      for (auto& aNode : toAlign) {
+        if (!elem(aNode, alreadyUsed) &&
+            nodesMatch(refNode, aNode, g)) {
+          nodeMap.insert({refNode, aNode});
+          foundMatch = true;
+          alreadyUsed.insert(aNode);
+          break;
         }
       }
 
-      SubDAG aligned;
-      for (auto& node : reference) {
-        aligned.push_back(nodeMap[node]);
+      if (!foundMatch) {
+        return {};
       }
-
-      return aligned;
     }
+
+    SubDAG aligned;
+    for (auto& node : reference) {
+      aligned.push_back(nodeMap[node]);
+    }
+
+    return aligned;
+  }
                             
   vector<vector<SubDAG> >
   alignIdenticalGraphs(const std::vector<SubDAG>& dags,
@@ -1421,6 +1421,25 @@ namespace CoreIR {
 
   }
 
+  struct CodeGroup {
+    std::vector<SIMDGroup> dags;
+    bool sequentialUpdate;
+  };
+
+  void addDAGCode(const CodeGroup& code,
+                  NGraph& g,
+                  Module& mod,
+                  LayoutPolicy& layoutPolicy,
+                  std::vector<std::string>& simLines) {
+    if (!code.sequentialUpdate) {
+      addDAGCode(code.dags, g, mod, layoutPolicy, simLines);
+    } else {
+      for (auto& dag : code.dags) {
+        concat(simLines, updateSequentialElements(dag, g, mod, layoutPolicy));
+      }
+    }
+  }
+  
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -1447,7 +1466,7 @@ namespace CoreIR {
 
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
-    
+
       string condition =
         parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
                parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
@@ -1472,10 +1491,9 @@ namespace CoreIR {
       concat(allUpdates, paths.postSequentialAlwaysDAGs);
       concat(allUpdates, paths.preSequentialAlwaysDAGs);
 
-      for (auto& dag : allUpdates) {
-        concat(simLines,
-               updateSequentialElements(dag, g, mod, layoutPolicy));
-      }
+      //for (auto& dag : allUpdates) {
+      addDAGCode({allUpdates, true}, g, mod, layoutPolicy, simLines);
+        //}
 
       simLines.push_back("\n// ----- Done\n");
 
