@@ -143,7 +143,7 @@ namespace CoreIR {
 
         if (!canMerge(a, b)) {
           std::cout << "ERROR: Cannot merge " << a << " and " << b << std::endl;
-          assert(false); //canMerge(a, b));
+          assert(false);
         }
       }
 
