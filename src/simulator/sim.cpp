@@ -148,6 +148,24 @@ namespace CoreIR {
     
   };
 
+
+  typedef std::deque<vdisc> SubDAG;
+
+  class SIMDGroup {
+  public:
+    int totalWidth;
+    std::vector<SubDAG> nodes;
+  };
+
+  struct CircuitPaths {
+    deque<vdisc> threadNodes;
+    vector<SIMDGroup > preSequentialAlwaysDAGs;
+    vector<SIMDGroup > preSequentialDAGs;
+    vector<SIMDGroup > postSequentialDAGs;
+    vector<SIMDGroup > postSequentialAlwaysDAGs;
+    vector<SIMDGroup > pureCombDAGs;
+  };
+  
   string printBinop(const WireNode& wd,
                     const vdisc vd,
                     const NGraph& g,
@@ -900,10 +918,14 @@ namespace CoreIR {
   }
 
   vector<string>
-  updateSequentialElements(const std::deque<vdisc>& topoOrder,
+  //updateSequentialElements(const std::deque<vdisc>& topoOrder,
+  updateSequentialElements(const SIMDGroup& group,
                            NGraph& g,
                            Module& mod,
                            LayoutPolicy& layoutPolicy) {
+    assert(group.nodes.size() == 1);
+
+    auto topoOrder = group.nodes[0];
     vector<string> simLines;
     // Update stateful element values
 
@@ -1011,23 +1033,6 @@ namespace CoreIR {
 
     return simLines;
   }
-
-  typedef std::deque<vdisc> SubDAG;
-
-  class SIMDGroup {
-  public:
-    int totalWidth;
-    std::vector<SubDAG> nodes;
-  };
-
-  struct CircuitPaths {
-    deque<vdisc> threadNodes;
-    vector<SIMDGroup > preSequentialAlwaysDAGs;
-    vector<SIMDGroup > preSequentialDAGs;
-    vector<SIMDGroup > postSequentialDAGs;
-    vector<SIMDGroup > postSequentialAlwaysDAGs;
-    vector<SIMDGroup > pureCombDAGs;
-  };
 
   CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder,
                                  NGraph& g,
@@ -1440,84 +1445,88 @@ namespace CoreIR {
                   LayoutPolicy& layoutPolicy,
                   std::vector<std::string>& simLines) {
 
-    bool allSeqOut = false;   
-    if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
-
-      allSeqOut = true;
-      for (auto& dag : dags) {
-        if (dag.size() != 2) {
-          allSeqOut = false;
-          break;
-        }
-
-        WireNode startWd = g.getNode(dag[0]);
-        if (!startWd.isSequential) {
-          allSeqOut = false;
-          break;
-        }
-
-        WireNode endWd = g.getNode(dag[1]);
-        if (!isGraphOutput(endWd)) {
-          allSeqOut = false;
-          break;
-        }
-
-      }
+    for (auto& simdGroup : dags) {
+      concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy));
     }
 
-    if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
-      cout << "Found " << dags.size() << " of size 2!" << endl;
+    // bool allSeqOut = false;
+    // if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
 
-      vector<SubDAG> fulldags;
-      for (auto& dag : dags) {
-        fulldags.push_back(addInputs(dag, g));
-      }
+    //   allSeqOut = true;
+    //   for (auto& dag : dags) {
+    //     if (dag.size() != 2) {
+    //       allSeqOut = false;
+    //       break;
+    //     }
 
-      cout << "Full dags" << endl;
-      for (auto& dag : fulldags) {
-        cout << "===== DAG" << endl;
-        for (auto& vd : dag) {
-          cout << g.getNode(vd).getWire()->toString() << endl;
-        }
-      }
+    //     WireNode startWd = g.getNode(dag[0]);
+    //     if (!startWd.isSequential) {
+    //       allSeqOut = false;
+    //       break;
+    //     }
 
-      // Note: Add graph input completion
-      vector<vector<SubDAG> > eqClasses =
-        alignIdenticalGraphs(fulldags, g);
+    //     WireNode endWd = g.getNode(dag[1]);
+    //     if (!isGraphOutput(endWd)) {
+    //       allSeqOut = false;
+    //       break;
+    //     }
 
-      cout << "Aligned identical graphs" << endl;
-      for (auto& subdags : eqClasses) {
-        cout << "====== Class" << endl;
-        for (auto& dag : subdags) {
-          cout << "------- DAG" << endl;
-          for (auto& vd : dag) {
-            cout << g.getNode(vd).getWire()->toString() << endl;
-          }
-        }
-      }
+    //   }
+    // }
 
-      int opWidth = 16;
-      // Max logic op size is 128
-      int groupSize = 128 / opWidth;
+    // if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
+    //   cout << "Found " << dags.size() << " of size 2!" << endl;
 
-      cout << "Printing groups " << endl;
+    //   vector<SubDAG> fulldags;
+    //   for (auto& dag : dags) {
+    //     fulldags.push_back(addInputs(dag, g));
+    //   }
 
-      simLines.push_back("// ====== Vectorizing accesses ======\n");
-      for (auto& eqClass : eqClasses) {
-        auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
-        for (auto& group : group0) {
-          concat(simLines, printSIMDGroup(group, g, mod, layoutPolicy));
-        }
-      }
+    //   cout << "Full dags" << endl;
+    //   for (auto& dag : fulldags) {
+    //     cout << "===== DAG" << endl;
+    //     for (auto& vd : dag) {
+    //       cout << g.getNode(vd).getWire()->toString() << endl;
+    //     }
+    //   }
 
-      return;
-    }
+    //   // Note: Add graph input completion
+    //   vector<vector<SubDAG> > eqClasses =
+    //     alignIdenticalGraphs(fulldags, g);
 
-    bool vectorize = allSeqOut && (dags.size() >= 8);
-    if (!vectorize) {
-      addScalarDAGCode(dags, g, mod, layoutPolicy, simLines);
-      return;
-    }
+    //   cout << "Aligned identical graphs" << endl;
+    //   for (auto& subdags : eqClasses) {
+    //     cout << "====== Class" << endl;
+    //     for (auto& dag : subdags) {
+    //       cout << "------- DAG" << endl;
+    //       for (auto& vd : dag) {
+    //         cout << g.getNode(vd).getWire()->toString() << endl;
+    //       }
+    //     }
+    //   }
+
+    //   int opWidth = 16;
+    //   // Max logic op size is 128
+    //   int groupSize = 128 / opWidth;
+
+    //   cout << "Printing groups " << endl;
+
+    //   simLines.push_back("// ====== Vectorizing accesses ======\n");
+    //   for (auto& eqClass : eqClasses) {
+    //     auto group0 = groupIdenticalSubDAGs(eqClass, g, groupSize, layoutPolicy);
+    //     for (auto& group : group0) {
+    //       concat(simLines, printSIMDGroup(group, g, mod, layoutPolicy));
+    //     }
+    //   }
+
+    //   return;
+    // }
+
+    // bool vectorize = allSeqOut && (dags.size() >= 8);
+    // if (!vectorize) {
+    //   addScalarDAGCode(dags, g, mod, layoutPolicy, simLines);
+    //   return;
+    // }
 
   }
 
@@ -1558,7 +1567,7 @@ namespace CoreIR {
 
       simLines.push_back("\n// ----- Updating sequential logic\n");
 
-      vector<deque<vdisc> > allUpdates;
+      vector<SIMDGroup> allUpdates;
       concat(allUpdates, paths.postSequentialDAGs);
       concat(allUpdates, paths.preSequentialDAGs);
       concat(allUpdates, paths.postSequentialAlwaysDAGs);
@@ -1575,10 +1584,11 @@ namespace CoreIR {
       layoutPolicy.setReadRegsDirectly(true);
       simLines.push_back("\n// ----- Update combinational logic after clock\n");
 
-      cout << "# of post sequential dags = " << paths.postSequentialDAGs.size() << endl;
-      for (auto& dag : paths.postSequentialDAGs) {
-        cout << dag.size() << endl;
-      }
+      // cout << "# of post sequential dags = " << paths.postSequentialDAGs.size() << endl;
+      // for (auto& dag : paths.postSequentialDAGs) {
+      //   cout << dag.size() << endl;
+      // }
+
       addDAGCode(paths.postSequentialDAGs,
                  g, mod, layoutPolicy, simLines);
       simLines.push_back("\n// ----- Done\n");
