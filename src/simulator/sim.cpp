@@ -1202,43 +1202,43 @@ namespace CoreIR {
     return simLines;
   }
 
-    bool nodesMatch(const vdisc ref,
-                    const vdisc a,
-                    const NGraph& g) {
-      WireNode rn = g.getNode(ref);
-      WireNode an = g.getNode(a);
+  bool nodesMatch(const vdisc ref,
+                  const vdisc a,
+                  const NGraph& g) {
+    WireNode rn = g.getNode(ref);
+    WireNode an = g.getNode(a);
 
-      if (isGraphInput(rn) && isGraphInput(an)) {
-        // TODO: Check width
+    if (isGraphInput(rn) && isGraphInput(an)) {
+      // TODO: Check width
+      return true;
+    }
+
+    if (isGraphOutput(rn) && isGraphOutput(an)) {
+      // TODO: Check width
+      return true;
+    }
+
+    if (isInstance(rn.getWire()) && isInstance(an.getWire())) {
+      if (isRegisterInstance(rn.getWire()) &&
+          isRegisterInstance(an.getWire())) {
         return true;
       }
 
-      if (isGraphOutput(rn) && isGraphOutput(an)) {
-        // TODO: Check width
-        return true;
-      }
+      if (!isRegisterInstance(rn.getWire()) &&
+          !isRegisterInstance(an.getWire())) {
+        Instance* ri = toInstance(rn.getWire());
+        Instance* ai = toInstance(an.getWire());
 
-      if (isInstance(rn.getWire()) && isInstance(an.getWire())) {
-        if (isRegisterInstance(rn.getWire()) &&
-            isRegisterInstance(an.getWire())) {
+        if (getQualifiedOpName(*ri) ==
+            getQualifiedOpName(*ai)) {
           return true;
         }
-
-        if (!isRegisterInstance(rn.getWire()) &&
-            !isRegisterInstance(an.getWire())) {
-          Instance* ri = toInstance(rn.getWire());
-          Instance* ai = toInstance(an.getWire());
-
-          if (getQualifiedOpName(*ri) ==
-              getQualifiedOpName(*ai)) {
-            return true;
-          }
-        }
-
       }
 
-      return false;
     }
+
+    return false;
+  }
   
     SubDAG alignWRT(const SubDAG& reference,
                     const SubDAG& toAlign,
@@ -1552,7 +1552,7 @@ namespace CoreIR {
 
     ModuleCode mc(g, mod);
     mc.codeString = code;
-    mc.structLayout = sl.varDecls;
+    mc.structLayout = sl.getVarDecls();
 
     return mc;
   }

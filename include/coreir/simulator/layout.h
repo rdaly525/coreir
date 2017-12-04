@@ -65,16 +65,78 @@ namespace CoreIR {
     return baseSelect(toSelect(sel->getParent()));
   }
 
-  class CustomStructLayout : public LayoutPolicy {
-  public:
-    std::vector<std::pair<CoreIR::Type*, std::string> > varDecls;
-    std::set<std::string> allocatedAlready;
+  typedef std::pair<CoreIR::Type*, std::string> VarDecl;
 
+  class CustomStructLayout : public LayoutPolicy {
+
+    std::vector<std::vector<VarDecl> > adjacentGroups;
+    std::vector<VarDecl> varDecls;
+
+  public:
+    std::set<std::string> allocatedAlready;
     CoreIR::Context* c;
 
     CustomStructLayout(CoreIR::Context* const c_) : c(c_) {}
 
+    std::vector<std::pair<CoreIR::Type*, std::string> > getVarDecls() const {
+      return varDecls;
+    }
+
+    bool adjacent(const std::string& a,
+                  const std::string& b,
+                  const std::vector<VarDecl>& decls) {
+      assert(decls.size() >= 2);
+
+      for (uint i = 0; i < decls.size() - 1; i++) {
+        if ((decls[i].second == a) &&
+            (decls[i + 1].second == b)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    bool canMerge(const std::string& a,
+                  const std::string& b) {
+      uint aGroup = 0;
+      uint bGroup = 0;
+      for (uint i = 0; i < adjacentGroups.size(); i++) {
+        auto valGroup = adjacentGroups[i];
+        for (uint j = 0; j < valGroup.size(); j++) {
+          if (valGroup[j].second == a) {
+            aGroup = i;
+          }
+
+          if (valGroup[j].second == b) {
+            bGroup = i;
+          }
+
+        }
+      }
+
+      if ((aGroup == bGroup) && (adjacent(a, b, adjacentGroups[aGroup]))) {
+        return true;
+      }
+
+      if ((adjacentGroups[aGroup].back().second == a) &&
+          (adjacentGroups[bGroup].front().second == b)) {
+        return true;
+      }
+
+      return false;
+    }
+
     void forceAdjacent(const std::vector<std::string>& vars) {
+      assert(vars.size() > 1);
+
+      for (uint i = 0; i < vars.size() - 1; i++) {
+        std::string a = vars[i];
+        std::string b = vars[i + 1];
+
+        assert(canMerge(a, b));
+      }
+
       std::vector<unsigned> adjacentInds;
       for (auto& v : vars) {
         for (unsigned i = 0; i < varDecls.size(); i++) {
@@ -100,6 +162,7 @@ namespace CoreIR {
         }
       }
 
+      adjacentGroups.push_back(adj);
       varDecls = others;
       concat(varDecls, adj);
 
