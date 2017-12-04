@@ -1459,7 +1459,6 @@ namespace CoreIR {
     if (allSameSize(dags) && (dags.size() > 4) && (dags[0].size() == 2)) {
       cout << "Found " << dags.size() << " of size 2!" << endl;
 
-
       vector<SubDAG> fulldags;
       for (auto& dag : dags) {
         fulldags.push_back(addInputs(dag, g));
@@ -1554,9 +1553,20 @@ namespace CoreIR {
       simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n// ----- Updating sequential logic\n");
-      concat(simLines,
-             updateSequentialElements(paths.threadNodes, g, mod, layoutPolicy));
+
+      vector<deque<vdisc> > allUpdates;
+      concat(allUpdates, paths.postSequentialDAGs);
+      concat(allUpdates, paths.preSequentialDAGs);
+      concat(allUpdates, paths.postSequentialAlwaysDAGs);
+      concat(allUpdates, paths.preSequentialAlwaysDAGs);
+
+      for (auto& dag : allUpdates) {
+        concat(simLines,
+               updateSequentialElements(dag, g, mod, layoutPolicy));
+      }
+
       simLines.push_back("\n// ----- Done\n");
+
       // No need to print out register updates
       layoutPolicy.setReadRegsDirectly(true);
       simLines.push_back("\n// ----- Update combinational logic after clock\n");
