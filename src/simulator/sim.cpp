@@ -924,7 +924,6 @@ namespace CoreIR {
   }
 
   vector<string>
-  //updateSequentialElements(const std::deque<vdisc>& topoOrder,
   updateSequentialElements(const SIMDGroup& group,
                            NGraph& g,
                            Module& mod,
@@ -956,7 +955,6 @@ namespace CoreIR {
           if (!isCombinationalInstance(wd) &&
               wd.isReceiver) {
             concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, layoutPolicy));
-            //simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
           }
         }
       }
@@ -1112,7 +1110,6 @@ namespace CoreIR {
                         const int groupSize,
                         LayoutPolicy& lp) {
 
-    //vector<vector<SubDAG> > groups;
     vector<SIMDGroup> groups;
 
     uint i;
@@ -1148,7 +1145,7 @@ namespace CoreIR {
       for (uint i = 0; i < dag.size(); i++) {
         vdisc vd = dag[i];
 
-        if (isSubgraphInput(vd, dag, g)) {        
+        if (isSubgraphInput(vd, dag, g)) {  
           vector<string> invars;
           for (auto& dag : group) {
             auto vd = dag[i];
@@ -1483,31 +1480,6 @@ namespace CoreIR {
                    NGraph& g,
                    Module& mod,
                    LayoutPolicy& layoutPolicy) {
-
-      // bool allSeqOut = false;
-      // if (allSameSize(dags) && (dags.size() > 0) && (dags[0].size() == 2)) {
-
-      //   allSeqOut = true;
-      //   for (auto& dag : dags) {
-      //     if (dag.size() != 2) {
-      //       allSeqOut = false;
-      //       break;
-      //     }
-
-      //     WireNode startWd = g.getNode(dag[0]);
-      //     if (!startWd.isSequential) {
-      //       allSeqOut = false;
-      //       break;
-      //     }
-
-      //     WireNode endWd = g.getNode(dag[1]);
-      //     if (!isGraphOutput(endWd)) {
-      //       allSeqOut = false;
-      //       break;
-      //     }
-
-      //   }
-      // }
 
       if (originalGroups.size() == 0) {
         return originalGroups;
