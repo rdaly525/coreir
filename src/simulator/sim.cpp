@@ -1490,31 +1490,12 @@ namespace CoreIR {
 
       codeGroups.push_back({paths.postSequentialDAGs, false});
 
-      
-      // Only need to update the DAGS that start from an input, otherwise the
-      // result is fresh already
-      //simLines.push_back("\n// ----- Update combinational logic before clock\n");
-      // addDAGCode(paths.preSequentialDAGs,
-      //            g, mod, layoutPolicy, simLines);
-      //simLines.push_back("\n// ----- Done\n");
-
-      //simLines.push_back("\n// ----- Updating sequential logic\n");
-
       for (auto& group : codeGroups) {
         addDAGCode(group, g, mod, layoutPolicy, simLines);
       }
 
-      //simLines.push_back("\n// ----- Done\n");
-
-      // No need to print out register updates
-      // layoutPolicy.setReadRegsDirectly(true);
-      // simLines.push_back("\n// ----- Update combinational logic after clock\n");
-
-      // addDAGCode(paths.postSequentialDAGs,
-      //            g, mod, layoutPolicy, simLines);
-      // simLines.push_back("\n// ----- Done\n");
-
       simLines.push_back("\n}\n");
+
       addDAGCode(paths.postSequentialAlwaysDAGs,
                  g, mod, layoutPolicy, simLines);
       
