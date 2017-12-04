@@ -1475,35 +1475,44 @@ namespace CoreIR {
                  g, mod, layoutPolicy, simLines);
 
       simLines.push_back("if " + condition + " {\n");
-        
-      // Only need to update the DAGS that start from an input, otherwise the
-      // result is fresh already
-      simLines.push_back("\n// ----- Update combinational logic before clock\n");
-      addDAGCode(paths.preSequentialDAGs,
-                 g, mod, layoutPolicy, simLines);
-      simLines.push_back("\n// ----- Done\n");
 
-      simLines.push_back("\n// ----- Updating sequential logic\n");
+      vector<CodeGroup> codeGroups;
 
+      codeGroups.push_back({paths.preSequentialDAGs, false});
+      
       vector<SIMDGroup> allUpdates;
       concat(allUpdates, paths.postSequentialDAGs);
       concat(allUpdates, paths.preSequentialDAGs);
       concat(allUpdates, paths.postSequentialAlwaysDAGs);
       concat(allUpdates, paths.preSequentialAlwaysDAGs);
 
-      //for (auto& dag : allUpdates) {
-      addDAGCode({allUpdates, true}, g, mod, layoutPolicy, simLines);
-        //}
+      codeGroups.push_back({allUpdates, true});
 
-      simLines.push_back("\n// ----- Done\n");
+      codeGroups.push_back({paths.postSequentialDAGs, false});
+
+      
+      // Only need to update the DAGS that start from an input, otherwise the
+      // result is fresh already
+      //simLines.push_back("\n// ----- Update combinational logic before clock\n");
+      // addDAGCode(paths.preSequentialDAGs,
+      //            g, mod, layoutPolicy, simLines);
+      //simLines.push_back("\n// ----- Done\n");
+
+      //simLines.push_back("\n// ----- Updating sequential logic\n");
+
+      for (auto& group : codeGroups) {
+        addDAGCode(group, g, mod, layoutPolicy, simLines);
+      }
+
+      //simLines.push_back("\n// ----- Done\n");
 
       // No need to print out register updates
-      layoutPolicy.setReadRegsDirectly(true);
-      simLines.push_back("\n// ----- Update combinational logic after clock\n");
+      // layoutPolicy.setReadRegsDirectly(true);
+      // simLines.push_back("\n// ----- Update combinational logic after clock\n");
 
-      addDAGCode(paths.postSequentialDAGs,
-                 g, mod, layoutPolicy, simLines);
-      simLines.push_back("\n// ----- Done\n");
+      // addDAGCode(paths.postSequentialDAGs,
+      //            g, mod, layoutPolicy, simLines);
+      // simLines.push_back("\n// ----- Done\n");
 
       simLines.push_back("\n}\n");
       addDAGCode(paths.postSequentialAlwaysDAGs,
