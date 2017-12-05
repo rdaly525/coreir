@@ -1,4 +1,5 @@
-.SUFFIXES:
+CXX ?= g++
+CXXFLAGS = -std=c++11 -Wall -fPIC -Werror
 
 HOME = ../..
 INCS = -I$(HOME)/include -I.

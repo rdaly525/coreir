@@ -8,17 +8,21 @@
         }],
         "instances":{
           "c0":{
-            "modref":"global.counter_U0"
+            "genref":"global.counter",
+            "genargs":{"width":["Int",17]}
           },
           "c1":{
-            "modref":"global.counter_U1"
+            "genref":"global.counter",
+            "genargs":{"width":["Int",23]}
           }
         },
         "connections":[
-          ["c0.out.16","c1.en"]
+          ["c1.en","c0.out.16"]
         ]
       },
-      "counter_U0":{
+      "counter":{
+        "genref":"global.counter",
+        "genargs":{"width":["Int",17]},
         "type":["Record",{
           "en":"BitIn",
           "out":["Array",17,"Bit"],
@@ -27,29 +31,31 @@
         "instances":{
           "ai":{
             "genref":"coreir.add",
-            "genargs":{"width":17}
+            "genargs":{"width":["Int",17]}
           },
           "ci":{
             "genref":"coreir.const",
-            "genargs":{"width":17},
-            "configargs":{"value":1}
+            "genargs":{"width":["Int",17]},
+            "modargs":{"value":[["BitVector",17],1]}
           },
           "ri":{
-            "genref":"coreir.reg",
-            "genargs":{"clr":false, "en":true, "width":17, "rst":false},
-            "configargs":{"init":0}
+            "genref":"mantle.reg",
+            "genargs":{"has_clr":["Bool",false], "has_en":["Bool",true], "has_rst":["Bool",false], "width":["Int",17]},
+            "modargs":{"init":[["BitVector",17],0]}
           }
         },
         "connections":[
-          ["self.out","ri.out"],
-          ["self.en","ri.en"],
-          ["self.clk","ri.clk"],
-          ["ri.out","ai.in1"],
-          ["ri.in","ai.out"],
-          ["ci.out","ai.in0"]
+          ["ai.in0","ci.out"],
+          ["ai.in1","ri.out"],
+          ["ai.out","ri.in"],
+          ["ri.clk","self.clk"],
+          ["ri.en","self.en"],
+          ["ri.out","self.out"]
         ]
       },
-      "counter_U1":{
+      "counter":{
+        "genref":"global.counter",
+        "genargs":{"width":["Int",23]},
         "type":["Record",{
           "en":"BitIn",
           "out":["Array",23,"Bit"],
@@ -58,33 +64,33 @@
         "instances":{
           "ai":{
             "genref":"coreir.add",
-            "genargs":{"width":23}
+            "genargs":{"width":["Int",23]}
           },
           "ci":{
             "genref":"coreir.const",
-            "genargs":{"width":23},
-            "configargs":{"value":1}
+            "genargs":{"width":["Int",23]},
+            "modargs":{"value":[["BitVector",23],1]}
           },
           "ri":{
-            "genref":"coreir.reg",
-            "genargs":{"clr":false, "en":true, "width":23, "rst":false},
-            "configargs":{"init":0}
+            "genref":"mantle.reg",
+            "genargs":{"has_clr":["Bool",false], "has_en":["Bool",true], "has_rst":["Bool",false], "width":["Int",23]},
+            "modargs":{"init":[["BitVector",23],0]}
           }
         },
         "connections":[
-          ["self.out","ri.out"],
-          ["self.en","ri.en"],
-          ["self.clk","ri.clk"],
-          ["ri.out","ai.in1"],
-          ["ri.in","ai.out"],
-          ["ci.out","ai.in0"]
+          ["ai.in0","ci.out"],
+          ["ai.in1","ri.out"],
+          ["ai.out","ri.in"],
+          ["ri.clk","self.clk"],
+          ["ri.en","self.en"],
+          ["ri.out","self.out"]
         ]
       }
     },
     "generators":{
       "counter":{
         "typegen":"global.CounterTypeGen",
-        "genparams":{"width":"int"}
+        "genparams":{"width":"Int"}
       }
     }
   }
