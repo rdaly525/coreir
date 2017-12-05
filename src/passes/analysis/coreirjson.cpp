@@ -180,6 +180,9 @@ string Instances2Json(map<string,Instance*>& insts) {
     if (i->hasModArgs()) {
       j.add("modargs",Values2Json(i->getModArgs()));
     }
+    if (i->hasMetaData()) {
+      j.add("metadata",toString(i->getMetaData()));
+    }
     jis.add(iname,j.toMultiString());
   }
   return jis.toMultiString();

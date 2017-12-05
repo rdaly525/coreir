@@ -1,0 +1,70 @@
+Combpass
+
+What it should do:
+Use InstanceGraphPass.
+
+It should basically create, analyize and create new modules for each module
+
+
+//analysis pass
+//createcombview
+
+out:
+  states: (a function of state)
+  inputs (A function of at least one input)
+
+in:
+  states: next_state is a function of this input
+  outputs: 
+
+
+traverse(cur,out):
+  go to previous node from cur
+  if node is mod_src
+    out.state.push
+  if node is input:
+    out.inputs.push
+    input.outs.push(out)
+  for input in node.comb.inputs
+    traverse(input,out)
+
+for out in output:
+  traverse(out,out)
+
+foreach snk : node.snk:
+  foreach state_input : snk
+    go to previous node from cur
+    if node is mod_src: next
+    if node is input:
+      input.state.push(node)
+
+//Create src, snk, comb from dependency
+
+//Create src
+for all out.state,
+  add to out to output of src
+  
+//Create snk
+for all in.state:
+  add in to input of snk
+
+//Create combinational
+for each out.input
+  add out and add input to comb
+
+
+//transform pass
+//transform2comb
+
+
+Now I just need to actually create the module:
+for each module create:
+  new module declarations: module_src, module_snk, module_comb using the datastruture
+    label (metadata) src and snk as such.
+    attach metadata to original module
+  for each instance:
+    isolate via pt:
+    instantiate each of src, snk, comb for that module type
+    reconnect appropriatly
+    remove passthrough
+    
