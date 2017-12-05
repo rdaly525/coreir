@@ -56,7 +56,7 @@ class CreateCombView : public InstanceGraphPass {
   private:
     void setupCoreir(Module* m);
     void setupCorebit(Module* m);
-    void traverseOut2In(Wireable* curin, Wireable* out, std::map<Wireable*,Output*>& outputInfo);
+    void traverseOut2In(Wireable* curin, Wireable* out, std::map<Wireable*,Output*>& outputInfo, std::map<Wireable*,Input*>& inputInfo);
 
 };
 

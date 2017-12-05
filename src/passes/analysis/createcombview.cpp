@@ -100,7 +100,7 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto outcon : dm.getOutputs()) {
     Wireable* output = outcon->getSnkWireable();
     Wireable* con = outcon->getSrcWireable();
-    traverseOut2In(con,output,outputInfo);
+    traverseOut2In(con,output,outputInfo,inputInfo);
   }
   
   //All the outputs with no comb dependencies come from state. (not quite true, but good enough)
@@ -115,7 +115,9 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //TODO for now I am just setting it to be all the inputs
   for (auto ipair : inputInfo) {
-    ipair.second->states.insert(mdef->getInterface()); //TODO actually calculate this
+    if (ipair.second->outputs.size()==0) {
+      ipair.second->states.insert(mdef->getInterface()); //TODO actually calculate this
+    }
   }
 
   //for (auto ipair : mdef->getInstances()) {
@@ -163,12 +165,14 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-void Passes::CreateCombView::traverseOut2In(Wireable* curin, Wireable* out, map<Wireable*,Output*>& outputInfo) {
+void Passes::CreateCombView::traverseOut2In(Wireable* curin, Wireable* out, map<Wireable*,Output*>& outputInfo, map<Wireable*,Input*>& inputInfo) {
   assert(curin->getType()->isOutput());
   Wireable* parent = curin->getTopParent();
   if (isa<Interface>(parent)) {
+    assert(outputInfo.count(out));
     outputInfo[out]->inputs.insert(curin);
-    //inputInfo.outputs.insert(out);
+    assert(inputInfo.count(curin));
+    inputInfo[curin]->outputs.insert(out);
     return;
   }
   Instance* inode = cast<Instance>(parent);
@@ -196,7 +200,7 @@ void Passes::CreateCombView::traverseOut2In(Wireable* curin, Wireable* out, map<
       assert(inode->canSel(nextpath));
       Wireable* nextin = inode->sel(nextpath);
       for (auto con : nextin->getLocalConnections()) {
-        traverseOut2In(con.second, out,outputInfo);
+        traverseOut2In(con.second, out,outputInfo,inputInfo);
       }
     }
   }
