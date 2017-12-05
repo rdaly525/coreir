@@ -58,6 +58,17 @@ bool Type::canSel(string selstr) {
   }
   return false;
 }
+
+bool Type::canSel(SelectPath path) {
+  if (path.size()==0) return true;
+  string sel = path.front();
+  if (!this->canSel(sel)) return false;
+  path.pop_front();
+  return this->sel(sel)->canSel(path);
+}
+
+
+
 std::ostream& operator<<(ostream& os, const Type& t) {
   os << t.toString();
   return os;
