@@ -1,0 +1,70 @@
+{"top":"global.counters",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "adder": {
+          "type": ["Record",{
+            "in": ["Array",2,["Array",16,"BitIn"]],
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "add": {"genref": "coreir.add", "genargs": {"width":["Int", 16]}}
+          },
+          "connections": [
+            ["self.in.0","add.in0"],
+            ["self.in.1","add.in1"],
+            ["self.out","add.out"]
+          ]
+        },
+        "counters": {
+          "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"],
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "count0": {"modref": "global.counter"},
+            "count1": {"modref": "global.counter"},
+            "add": {"modref": "global.adder"}
+          },
+          "connections": [
+            ["count0.clk","self.clk"],
+            ["count1.clk","self.clk"],
+            ["count0.out","add.in.0"],
+            ["count1.out","add.in.1"],
+            ["add.out","self.out"]
+          ]
+        },
+        "counter": {
+          "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"],
+            "clr": "BitIn",
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "c1": {
+              "genref": "coreir.const",
+              "genargs": {"width":["Int", 16]},
+              "modargs": {"value":[["BitVector", 16], 1]}
+            },
+            "r": {
+              "genref": "coreir.reg",
+              "genargs": {"width":["Int", 16]},
+              "modargs": {"init":[["BitVector",16],0]}
+            },
+            "a": {
+              "genref": "coreir.add",
+              "genargs": {"width":["Int", 16]}
+            }
+          },
+          "connections": [
+            ["c1.out","a.in0"],
+            ["r.out","a.in1"],
+            ["r.clk","self.clk"],
+            ["a.out","r.in"],
+            ["r.out","self.out"]
+          ]
+        }
+      }
+    }
+  }
+}
