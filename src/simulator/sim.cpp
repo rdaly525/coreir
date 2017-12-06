@@ -4,6 +4,7 @@
 #include "coreir/passes/transform/rungenerators.h"
 
 #include "coreir/simulator/algorithm.h"
+#include "coreir/simulator/low_rep.h"
 #include "coreir/simulator/print_c.h"
 #include "coreir/simulator/utils.h"
 
@@ -555,7 +556,16 @@ namespace CoreIR {
     Instance* r = toInstance(s->getParent());
     if (!wd.isReceiver) {
       if (!lp.getReadRegsDirectly()) {
-        return ln(cVar(*s) + " = " + lp.outputVarName(*r));
+
+        LowProgram prog;
+        prog.addAssignStmt(new LowId(cVar(*s)),
+                           new LowId(lp.outputVarName(*r)));
+
+        
+        string fStr = prog.cString();
+
+        return fStr;
+        //return ln(cVar(*s) + " = " + lp.outputVarName(*r));
       } else {
         return "";
       }
