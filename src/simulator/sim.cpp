@@ -347,7 +347,11 @@ namespace CoreIR {
   }
 
   // NOTE: This function prints the full assignment of values
-  string printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
+  void printAddOrSubCIN_COUT(const WireNode& wd,
+                             const vdisc vd,
+                             const NGraph& g,
+                             LayoutPolicy& lp,
+                             LowProgram& prog) {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 3);
@@ -399,7 +403,6 @@ namespace CoreIR {
 
     }
 
-    LowProgram prog;
     prog.addAssignStmt(new LowId(cVar(*resultSelect)),
                        new LowId(res));
 
@@ -409,9 +412,9 @@ namespace CoreIR {
 
     //return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
 
-    auto fStr = prog.cString();
+    // auto fStr = prog.cString();
 
-    return fStr;
+    // return fStr;
   }
 
   // NOTE: This function prints the full assignment of values
@@ -697,8 +700,13 @@ namespace CoreIR {
       auto ins = getInputs(vd, g);
 
       if (ins.size() == 3) {
-      
-        return printAddOrSubCIN_COUT(wd, vd, g, layoutPolicy);
+
+        LowProgram prog;
+        printAddOrSubCIN_COUT(wd, vd, g, layoutPolicy, prog);
+
+        auto res = prog.cString();
+
+        return res;
       } else {
         assert(ins.size() == 2);
 
