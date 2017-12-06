@@ -550,7 +550,9 @@ namespace CoreIR {
 
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
-    string s = lp.outputVarName(*wd.getWire()) + " = ";
+    //string s = lp.outputVarName(*wd.getWire()) + " = ";
+
+    string resName = lp.outputVarName(*wd.getWire());
 
     InstanceValue add = findArg("in", ins);
 
@@ -558,20 +560,26 @@ namespace CoreIR {
 
     // Need to handle the case where clock is not actually directly from an input
     // clock variable
+    string resStr;
     if (hasEnable(wd.getWire())) {
       string condition = "";
       
       InstanceValue en = findArg("en", ins);
       condition += printOpResultStr(en, g, lp);
 
-      s += ite(parens(condition),
-               printOpResultStr(add, g, lp),
-               oldValName) + ";\n";
+      resStr = ite(parens(condition),
+                    printOpResultStr(add, g, lp),
+                    oldValName) + ";\n";
     } else {
-      s += printOpResultStr(add, g, lp) + ";\n";
+      resStr = printOpResultStr(add, g, lp) + ";\n";
     }
 
-    return s;
+    LowProgram prog;
+    prog.addAssignStmt(new LowId(resName),
+                       new LowId(resStr));
+
+    auto fStr = prog.cString();
+    return fStr;
   }
 
   string printRegister(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
@@ -685,49 +693,51 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
+    LowProgram prog;
+      
     if (isRegisterInstance(inst)) {
       return printRegister(wd, vd, g, layoutPolicy);
-    }
-
-    if (isMemoryInstance(inst)) {
+    } else if (isMemoryInstance(inst)) {
       return printMemory(wd, vd, g, layoutPolicy);
-    }
-
-    auto outSelects = getOutputSelects(inst);
-
-    if (outSelects.size() == 1) {
-
-      pair<string, Wireable*> outPair = *std::begin(outSelects);
-      string res;
-      if (!isThreadShared(vd, g)) {
-        res = cVar(*(outPair.second));
-      } else {
-        res = layoutPolicy.outputVarName(*(outPair.second));
-      }
-
-    
-      return ln(res + " = " + opResultStr(wd, vd, g, layoutPolicy));
     } else {
-      assert(outSelects.size() == 2);
-      assert(isAddOrSub(*inst));
 
-      auto ins = getInputs(vd, g);
+      auto outSelects = getOutputSelects(inst);
 
-      LowProgram prog;
-      
-      if (ins.size() == 3) {
+      if (outSelects.size() == 1) {
 
-        printAddOrSubCIN_COUT(wd, vd, g, layoutPolicy, prog);
+        pair<string, Wireable*> outPair = *std::begin(outSelects);
+        string res;
+        if (!isThreadShared(vd, g)) {
+          res = cVar(*(outPair.second));
+        } else {
+          res = layoutPolicy.outputVarName(*(outPair.second));
+        }
+
+        //return ln(res + " = " + opResultStr(wd, vd, g, layoutPolicy));
+        prog.addAssignStmt(new LowId(res),
+                           new LowId(opResultStr(wd, vd, g, layoutPolicy)));
 
       } else {
-        assert(ins.size() == 2);
+        assert(outSelects.size() == 2);
+        assert(isAddOrSub(*inst));
 
-        printAddOrSubCOUT(wd, vd, g, layoutPolicy, prog);
+        auto ins = getInputs(vd, g);
+
+        if (ins.size() == 3) {
+
+          printAddOrSubCIN_COUT(wd, vd, g, layoutPolicy, prog);
+
+        } else {
+          assert(ins.size() == 2);
+
+          printAddOrSubCOUT(wd, vd, g, layoutPolicy, prog);
+        }
       }
-
-      auto res = prog.cString();
-      return res;
     }
+
+    auto res = prog.cString();
+    return res;
+
   }
 
   bool isCombinationalInstance(const WireNode& wd) {
