@@ -789,5 +789,18 @@ namespace CoreIR {
     return !subgraphHasSequentialOutput(nodes, g);
   }
 
-  
+
+  bool isConstant(const WireNode& wd) {
+    Wireable* w = wd.getWire();
+
+    if (isInstance(w)) {
+      string name = getQualifiedOpName(*toInstance(w));
+
+      return (name == "coreir.const") ||
+        (name == "corebit.const");
+    }
+
+    return false;
+  }
+
 }

@@ -276,4 +276,5 @@ namespace CoreIR {
   bool subgraphHasAllCombinationalOutputs(const std::deque<vdisc>& nodes,
                                           const NGraph& g);
 
+  bool isConstant(const WireNode& wd);
 }

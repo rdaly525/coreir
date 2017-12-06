@@ -733,7 +733,8 @@ namespace CoreIR {
 
     // TODO: Should really check whether or not there is one connection using
     // the given variable, this is slightly too conservative
-    if (g.getOutputConnections(opNodeD).size() == 1) {
+    if ((g.getOutputConnections(opNodeD).size() == 1) ||
+        (isConstant(g.getNode(opNodeD)))) {
       return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
     }
 
