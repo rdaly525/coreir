@@ -41,8 +41,18 @@ namespace CoreIR {
   };
 
   class LowBinop : public LowExpr {
+    std::string op;
+    LowExpr* op0;
+    LowExpr* op1;
+
   public:
-    virtual std::string cString() const { assert(false); }
+    LowBinop(const std::string& op_,
+             LowExpr* const op0_,
+             LowExpr* const op1_) : op(op_), op0(op0_), op1(op1_) {}
+
+    virtual std::string cString() const {
+      return parens(op0->cString() + " " + op + " " + op1->cString());
+    }
 
   };
 

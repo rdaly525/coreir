@@ -172,8 +172,11 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string compString =
-      parens(printOpResultStr(arg1, g, lp) + opString + printOpResultStr(arg2, g, lp));
+    LowExpr* expr = new LowBinop(opString,
+                                 new LowId(printOpResultStr(arg1, g, lp)),
+                                 new LowId(printOpResultStr(arg2, g, lp)));
+    string compString = expr->cString();
+      //parens(printOpResultStr(arg1, g, lp) + opString + printOpResultStr(arg2, g, lp));
 
     // And not standard width
     if (isDASHR(*inst)) {
@@ -197,6 +200,8 @@ namespace CoreIR {
     } else {
       res += compString;
     }
+
+    delete expr;
 
     return res;
   }
