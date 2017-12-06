@@ -535,7 +535,11 @@ namespace CoreIR {
     return recordTypeHasField("en", w->getType());
   }
 
-  string enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
+  void enableRegReceiver(const WireNode& wd,
+                         const vdisc vd,
+                         const NGraph& g,
+                         LayoutPolicy& lp,
+                         LowProgram& prog) {
 
     auto outSel = getOutputSelects(wd.getWire());
 
@@ -574,15 +578,19 @@ namespace CoreIR {
       resStr = printOpResultStr(add, g, lp) + ";\n";
     }
 
-    LowProgram prog;
+    //LowProgram prog;
     prog.addAssignStmt(new LowId(resName),
                        new LowId(resStr));
 
-    auto fStr = prog.cString();
-    return fStr;
+    // auto fStr = prog.cString();
+    // return fStr;
   }
 
-  string printRegister(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
+  void printRegister(const WireNode& wd,
+                     const vdisc vd,
+                     const NGraph& g,
+                     LayoutPolicy& lp,
+                     LowProgram& prog) {
     assert(wd.isSequential);
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -593,24 +601,24 @@ namespace CoreIR {
     assert(isInstance(s->getParent()));
 
     Instance* r = toInstance(s->getParent());
+
     if (!wd.isReceiver) {
       if (!lp.getReadRegsDirectly()) {
 
-        LowProgram prog;
         prog.addAssignStmt(new LowId(cVar(*s)),
                            new LowId(lp.outputVarName(*r)));
 
-        
-        string fStr = prog.cString();
-
-        return fStr;
-        //return ln(cVar(*s) + " = " + lp.outputVarName(*r));
+        // string fStr = prog.cString();
+        // return fStr;
       } else {
-        return "";
+        return;// "";
       }
     } else {
-      return enableRegReceiver(wd, vd, g, lp);
+      enableRegReceiver(wd, vd, g, lp, prog);
     }
+
+    // string fStr = prog.cString();
+    // return fStr;
   }
 
   string opResultStr(const WireNode& wd,
@@ -642,7 +650,11 @@ namespace CoreIR {
     return "";
   }
 
-  string printMemory(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
+  void printMemory(const WireNode& wd,
+                     const vdisc vd,
+                     const NGraph& g,
+                   LayoutPolicy& lp,
+                   LowProgram& prog) {
     assert(wd.isSequential);
 
     auto outSel = getOutputSelects(wd.getWire());
@@ -661,9 +673,14 @@ namespace CoreIR {
 
       InstanceValue raddr = findArg("raddr", ins);
 
-      return ln(cVar(*s) + " = " +
-                parens(lp.outputVarName(*r) +
-                       "[ " + printOpResultStr(raddr, g, lp) + " ]"));
+      prog.addAssignStmt(new LowId(cVar(*s)),
+                         new LowId(parens(lp.outputVarName(*r) +
+                                          "[ " + printOpResultStr(raddr, g, lp) + " ]")));
+
+
+      // return ln(cVar(*s) + " = " +
+      //           parens(lp.outputVarName(*r) +
+      //                  "[ " + printOpResultStr(raddr, g, lp) + " ]"));
 
     } else {
       assert(ins.size() == 4);
@@ -676,12 +693,17 @@ namespace CoreIR {
 
       string oldValueName = lp.outputVarName(*r) + "[ " + printOpResultStr(waddr, g, lp) + " ]";
 
-      string s = oldValueName + " = ";
-      s += ite(parens(condition),
-               printOpResultStr(wdata, g, lp),
-               oldValueName);
+      prog.addAssignStmt(new LowId(oldValueName),
+                         new LowId(ite(parens(condition),
+                                       printOpResultStr(wdata, g, lp),
+                                       oldValueName)));
 
-      return ln(s);
+      // string s = oldValueName + " = ";
+      // s += ite(parens(condition),
+      //          printOpResultStr(wdata, g, lp),
+      //          oldValueName);
+
+      // return ln(s);
       
     }
   }
@@ -696,9 +718,10 @@ namespace CoreIR {
     LowProgram prog;
       
     if (isRegisterInstance(inst)) {
-      return printRegister(wd, vd, g, layoutPolicy);
+      printRegister(wd, vd, g, layoutPolicy, prog);
     } else if (isMemoryInstance(inst)) {
-      return printMemory(wd, vd, g, layoutPolicy);
+      //return printMemory(wd, vd, g, layoutPolicy);
+      printMemory(wd, vd, g, layoutPolicy, prog);
     } else {
 
       auto outSelects = getOutputSelects(inst);
