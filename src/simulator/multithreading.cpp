@@ -5,6 +5,19 @@ using namespace std;
 
 namespace CoreIR {
 
+  bool isConstant(const WireNode& wd) {
+    Wireable* w = wd.getWire();
+
+    if (isInstance(w)) {
+      string name = getQualifiedOpName(*toInstance(w));
+
+      return (name == "coreir.const") ||
+        (name == "corebit.const");
+    }
+
+    return false;
+  }
+
   int numThreads(const ThreadGraph& g) {
     return g.numVertices();
   }
@@ -49,7 +62,7 @@ namespace CoreIR {
 
         if (cc.find(other) == end(cc)) {
           WireNode wd = gr.getNode(other);
-          if (!isGraphInput(wd)) {
+          if (!isGraphInput(wd) && !isConstant(wd)) {
             rem.push_back(other);
           }
         }
@@ -59,7 +72,7 @@ namespace CoreIR {
         vdisc other = gr.target(ed);
         if (cc.find(other) == end(cc)) {
           WireNode wd = gr.getNode(other);
-          if (!isGraphInput(wd)) {
+          if (!isGraphInput(wd) && !isConstant(wd)) {
             rem.push_back(other);
           }
         }
@@ -82,7 +95,7 @@ namespace CoreIR {
 
       WireNode wd = gr.getNode(vd);
 
-      if (!isGraphInput(wd)) {
+      if (!isGraphInput(wd) && !isConstant(wd)) {
         if (nodes.find(vd) != end(nodes)) {
           set<vdisc> ccNodes =
             connectedComponent(vd, gr);
