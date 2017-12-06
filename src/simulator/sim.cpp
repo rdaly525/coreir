@@ -418,7 +418,11 @@ namespace CoreIR {
   }
 
   // NOTE: This function prints the full assignment of values
-  string printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
+  void printAddOrSubCOUT(const WireNode& wd,
+                         const vdisc vd,
+                         const NGraph& g,
+                         LayoutPolicy& lp,
+                         LowProgram& prog) {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 2);
@@ -466,10 +470,20 @@ namespace CoreIR {
 
     }
 
-    string carryString = cVar(*coutSelect) + " = " + carryRes;
+    //LowProgram prog;
+    prog.addAssignStmt(new LowId(cVar(*resultSelect)),
+                       new LowId(res));
 
-    return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
+    prog.addAssignStmt(new LowId(cVar(*coutSelect)),
+                       new LowId(carryRes));
 
+    //string carryString = cVar(*coutSelect) + " = " + carryRes;
+
+    //return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
+
+    // auto fStr = prog.cString();
+
+    // return fStr;
   }
   
   string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
@@ -699,20 +713,20 @@ namespace CoreIR {
 
       auto ins = getInputs(vd, g);
 
+      LowProgram prog;
+      
       if (ins.size() == 3) {
 
-        LowProgram prog;
         printAddOrSubCIN_COUT(wd, vd, g, layoutPolicy, prog);
 
-        auto res = prog.cString();
-
-        return res;
       } else {
         assert(ins.size() == 2);
 
-        return printAddOrSubCOUT(wd, vd, g, layoutPolicy);
-        
+        printAddOrSubCOUT(wd, vd, g, layoutPolicy, prog);
       }
+
+      auto res = prog.cString();
+      return res;
     }
   }
 
