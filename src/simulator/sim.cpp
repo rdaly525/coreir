@@ -399,10 +399,19 @@ namespace CoreIR {
 
     }
 
-    string carryString = cVar(*coutSelect) + " = " + carryRes;
+    LowProgram prog;
+    prog.addAssignStmt(new LowId(cVar(*resultSelect)),
+                       new LowId(res));
 
-    return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
+    prog.addAssignStmt(new LowId(cVar(*coutSelect)),
+                       new LowId(carryRes));
+    //string carryString = cVar(*coutSelect) + " = " + carryRes;
 
+    //return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
+
+    auto fStr = prog.cString();
+
+    return fStr;
   }
 
   // NOTE: This function prints the full assignment of values
