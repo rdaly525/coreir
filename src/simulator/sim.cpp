@@ -1554,7 +1554,7 @@ namespace CoreIR {
 
     CustomStructLayout sl(mod->getDef()->getContext());
 
-    code += "void simulate_0( circuit_state* state ) {\n";
+    code += "void simulate_0( circuit_state* __restrict state ) {\n";
     code += printSimFunctionBody(topoOrder, g, *mod, sl);
     code += "}\n\n";
 
