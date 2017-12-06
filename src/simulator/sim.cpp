@@ -209,8 +209,6 @@ namespace CoreIR {
   }
 
   string seString(Type& tp, const std::string& arg) {
-
-
     uint startWidth = typeWidth(tp);
     uint extWidth = containerTypeWidth(tp);
 
