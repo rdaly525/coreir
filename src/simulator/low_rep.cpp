@@ -23,7 +23,6 @@ namespace CoreIR {
   }
 
   std::string LowId::cString() const {
-    cout << "Calling lowid cstring" << endl;
     return name;
   }
 
