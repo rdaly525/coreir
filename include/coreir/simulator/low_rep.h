@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "coreir/simulator/print_c.h"
+
 namespace CoreIR {
 
   enum LowExprType {
