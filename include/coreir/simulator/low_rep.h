@@ -32,8 +32,16 @@ namespace CoreIR {
   };
 
   class LowBitVec : public LowExpr {
+    BitVec bv;
+
   public:
-    virtual std::string cString() const { assert(false); }
+    LowBitVec(const BitVec& bv_) : bv(bv_) {}
+    virtual std::string cString() const {
+      std::stringstream ss;
+      ss << "0b" << bv;
+      return ss.str();
+    }
+    //assert(false); }
   };
 
   class LowUnop : public LowExpr {
@@ -53,6 +61,9 @@ namespace CoreIR {
              LowExpr* const op1_) : op(op_), op0(op0_), op1(op1_) {}
 
     virtual std::string cString() const {
+      if (op == "MASK") {
+        return op + parens(op0->cString() + ", " + op1->cString());
+      }
       return parens(op0->cString() + " " + op + " " + op1->cString());
     }
 

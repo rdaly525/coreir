@@ -51,8 +51,8 @@ namespace CoreIR {
                      const NGraph& g,
                      LayoutPolicy& lp);
 
-  LowExpr* maskResultExpr(const uint w, const std::string& expr) {
-    return new LowId("MASK( " + std::to_string(w) + ", " + expr + " )");
+  LowExpr* maskResultExpr(const uint w, LowExpr* const expr) {
+    return new LowBinop("MASK", new LowBitVec(BitVec(32, w)), expr);
   }
 
   LowExpr* maskResultExpression(CoreIR::Type& tp, const std::string& expr) {
@@ -60,7 +60,7 @@ namespace CoreIR {
       return new LowId(expr);
     }
 
-    return maskResultExpr(typeWidth(tp), expr);
+    return maskResultExpr(typeWidth(tp), new LowId(expr));
   }
   
   LowExpr* printUnop(Instance* inst,
