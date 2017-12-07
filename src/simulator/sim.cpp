@@ -708,10 +708,10 @@ namespace CoreIR {
     }
   }
 
-  string printInstance(const WireNode& wd,
-                       const vdisc vd,
-                       const NGraph& g,
-                       LayoutPolicy& layoutPolicy) {
+  LowProgram printInstance(const WireNode& wd,
+                           const vdisc vd,
+                           const NGraph& g,
+                           LayoutPolicy& layoutPolicy) {
 
     Instance* inst = toInstance(wd.getWire());
 
@@ -756,9 +756,10 @@ namespace CoreIR {
       }
     }
 
-    auto res = prog.cString();
-    return res;
+    return prog;
 
+    // auto res = prog.cString();
+    // return res;
   }
 
   bool isCombinationalInstance(const WireNode& wd) {
@@ -881,7 +882,8 @@ namespace CoreIR {
         if (isInstance(inst)) { 
           if (!isCombinationalInstance(wd) &&
               wd.isReceiver) {
-            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
+            LowProgram prog = printInstance(wd, vd, g, layoutPolicy);
+            simLines.push_back(prog.cString()); //printInstance(wd, vd, g, layoutPolicy));
           }
         }
       }
@@ -928,7 +930,8 @@ namespace CoreIR {
               (!isCombinationalInstance(wd) &&
                !wd.isReceiver)) {
 
-            simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
+            LowProgram prog = printInstance(wd, vd, g, layoutPolicy);
+            simLines.push_back(prog.cString());
           }
 
         } else {
