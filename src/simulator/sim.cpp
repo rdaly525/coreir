@@ -1504,16 +1504,17 @@ namespace CoreIR {
                   NGraph& g,
                   Module& mod,
                   LayoutPolicy& layoutPolicy,
-                  std::vector<std::string>& simLines) {
+                  LowProgram& prog) {
+                  //std::vector<std::string>& simLines) {
     if (!code.sequentialUpdate) {
-      LowProgram prog;
+      //LowProgram prog;
       addDAGCode(code.dags, g, mod, layoutPolicy, prog);
-      simLines.push_back(prog.cString());
+      //simLines.push_back(prog.cString());
     } else {
       for (auto& dag : code.dags) {
-        LowProgram prog;
+        //LowProgram prog;
         updateSequentialElements(dag, g, mod, layoutPolicy, prog);
-        simLines.push_back(prog.cString());
+        //simLines.push_back(prog.cString());
         //concat(simLines, updateSequentialElements(dag, g, mod, layoutPolicy));
       }
     }
@@ -1550,8 +1551,10 @@ namespace CoreIR {
         parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
                parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
+      LowProgram aProg;
       addDAGCode({paths.preSequentialAlwaysDAGs, false},
-                 g, mod, layoutPolicy, simLines);
+                 g, mod, layoutPolicy, aProg);
+      simLines.push_back(aProg.cString());
 
       simLines.push_back("if " + condition + " {\n");
 
@@ -1569,20 +1572,27 @@ namespace CoreIR {
 
       codeGroups.push_back({paths.postSequentialDAGs, false});
 
+      LowProgram clkProg;
       for (auto& group : codeGroups) {
-        addDAGCode(group, g, mod, layoutPolicy, simLines);
+        addDAGCode(group, g, mod, layoutPolicy, clkProg);
       }
-
+      simLines.push_back(clkProg.cString());
+      
       simLines.push_back("\n}\n");
 
+      LowProgram postProg;
       addDAGCode({paths.postSequentialAlwaysDAGs, false},
-                 g, mod, layoutPolicy, simLines);
+                 g, mod, layoutPolicy, postProg);
+      simLines.push_back(postProg.cString());
       
     }
 
     simLines.push_back("\n// ----- Update pure combinational logic\n");
+
+    LowProgram combProg;
     addDAGCode({paths.pureCombDAGs, false},
-               g, mod, layoutPolicy, simLines);
+               g, mod, layoutPolicy, combProg);
+    simLines.push_back(combProg.cString());
 
     simLines.push_back("\n// ----- Done\n");
     
