@@ -908,16 +908,18 @@ namespace CoreIR {
 
   }
 
-  LowProgram
+  //LowProgram
+  void
   updateCombinationalLogic(const std::deque<vdisc>& topoOrder,
                            NGraph& g,
                            Module& mod,
-                           LayoutPolicy& layoutPolicy) {
+                           LayoutPolicy& layoutPolicy,
+                           LowProgram& prog) {
     vector<string> simLines;
 
     int i = 0;
 
-    LowProgram prog;
+    //LowProgram prog;
     for (auto& vd : topoOrder) {
 
       string val = "<UNSET>";
@@ -962,7 +964,7 @@ namespace CoreIR {
       i++;
     }
 
-    return prog;
+    //return prog;
 
     // simLines.push_back(prog.cString());
 
@@ -1129,9 +1131,14 @@ namespace CoreIR {
                         NGraph& g,
                         Module& mod,
                         LayoutPolicy& layoutPolicy,
-                        std::vector<std::string>& simLines) {
+                        LowProgram& prog) {
+                        //std::vector<std::string>& simLines) {
     for (auto& nodes : dags) {
-      simLines.push_back(updateCombinationalLogic(nodes, g, mod, layoutPolicy).cString());
+      updateCombinationalLogic(nodes,
+                               g,
+                               mod,
+                               layoutPolicy,
+                               prog);
     }
     return;
   }
@@ -1237,14 +1244,14 @@ namespace CoreIR {
                                           NGraph& g,
                                           Module& mod,
                                           LayoutPolicy& lp) {
-    vector<string> simLines;
-
     // If the group actually is scalar code just call the scalar printout
     if (group.nodes.size() == 1) {
-      addScalarDAGCode({group.nodes[0]}, g, mod, lp, simLines);
-      return simLines;
+      LowProgram prog;
+      addScalarDAGCode({group.nodes[0]}, g, mod, lp, prog);
+      return {prog.cString()};
     }
-    
+
+    vector<string> simLines;
     SubDAG init = group.nodes[0];
 
     string tmp = cVar(*(g.getNode(init[0]).getWire()));    
