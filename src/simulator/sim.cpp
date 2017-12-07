@@ -908,7 +908,7 @@ namespace CoreIR {
 
   }
 
-  vector<string>
+  LowProgram
   updateCombinationalLogic(const std::deque<vdisc>& topoOrder,
                            NGraph& g,
                            Module& mod,
@@ -933,9 +933,7 @@ namespace CoreIR {
               (!isCombinationalInstance(wd) &&
                !wd.isReceiver)) {
 
-            //LowProgram prog;
             printInstance(wd, vd, g, layoutPolicy, prog);
-            //simLines.push_back(prog.cString());
           }
 
         } else {
@@ -950,13 +948,8 @@ namespace CoreIR {
               Wireable& outSel = *(inConn.second.getWire());
               string outVarName = layoutPolicy.outputVarName(outSel);
 
-              //LowProgram prog;
               prog.addAssignStmt(new LowId(outVarName),
                                  new LowId(printOpResultStr(inConn.first, g, layoutPolicy)));
-
-              //simLines.push_back(prog.cString());
-
-              //simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g, layoutPolicy)));
 
             }
 
@@ -969,9 +962,11 @@ namespace CoreIR {
       i++;
     }
 
-    simLines.push_back(prog.cString());
+    return prog;
 
-    return simLines;
+    // simLines.push_back(prog.cString());
+
+    // return simLines;
   }
 
   CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder,
@@ -1136,8 +1131,7 @@ namespace CoreIR {
                         LayoutPolicy& layoutPolicy,
                         std::vector<std::string>& simLines) {
     for (auto& nodes : dags) {
-      concat(simLines,
-             updateCombinationalLogic(nodes, g, mod, layoutPolicy));
+      simLines.push_back(updateCombinationalLogic(nodes, g, mod, layoutPolicy).cString());
     }
     return;
   }
