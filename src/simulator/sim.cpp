@@ -50,6 +50,19 @@ namespace CoreIR {
                      const NGraph& g,
                      LayoutPolicy& lp);
 
+  LowExpr* bitMaskExpression(uint w) {
+    assert(w > 0);
+
+    return new LowBinop("-",
+                        new LowBinop("<<",
+                                     //new LowBitVec(BitVec(64, 1)),
+                                     new LowId("1ULL"),
+                                     new LowBitVec(BitVec(64, w))),
+                        new LowBitVec(BitVec(64, 1)));
+
+    //; parens(parens("1ULL << " + std::to_string(w)) + " - 1");
+  }
+  
   LowExpr* maskResultExpr(const uint w, LowExpr* const expr) {
     return new LowBinop("MASK", new LowBitVec(BitVec(32, w)), expr);
   }
@@ -102,7 +115,9 @@ namespace CoreIR {
 
       uint w = typeWidth(*(cn.first.getWire()->getType()));
       //val = parens(printOpResultStr(cn.first, g, lp) + " == " + bitMaskString(w));
-      val = new LowId(parens(printOpResultStr(cn.first, g, lp) + " == " + bitMaskString(w)));
+      val = new LowBinop("==",
+                         new LowId(printOpResultStr(cn.first, g, lp)),
+                         bitMaskExpression(w));
 
     }
 
