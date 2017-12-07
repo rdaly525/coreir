@@ -45,7 +45,6 @@ namespace CoreIR {
                           const NGraph& g,
                           LayoutPolicy& lp);
 
-  // wd is an instance node
   string opResultStr(const WireNode& wd,
                      const vdisc vd,
                      const NGraph& g,
@@ -55,23 +54,29 @@ namespace CoreIR {
     return new LowBinop("MASK", new LowBitVec(BitVec(32, w)), expr);
   }
 
-  LowExpr* maskResultExpression(CoreIR::Type& tp, const std::string& expr) {
+  LowExpr* maskResultExpression(CoreIR::Type& tp, LowExpr* const expr) {
     if (standardWidth(tp)) {
-      return new LowId(expr);
+      return expr;
     }
 
-    return maskResultExpr(typeWidth(tp), new LowId(expr));
+    return maskResultExpr(typeWidth(tp), expr);
   }
-  
-  LowExpr* printUnop(Instance* inst,
-                     const vdisc vd,
-                     const NGraph& g,
-                     LayoutPolicy& lp) {
+
+  std::pair<std::string, Wireable*> getOutSelect(Instance* const inst) {
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    return outPair;
+  }
+
+  LowExpr* printUnop(Instance* inst,
+                     const vdisc vd,
+                     const NGraph& g,
+                     LayoutPolicy& lp) {
+    auto outPair = getOutSelect(inst);
 
     auto inConns = getInputConnections(vd, g);
 
@@ -87,14 +92,17 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string val;
+    //string val;
 
+    LowExpr* val = nullptr;
     if (opString != "andr") {
-      val = opString + printOpResultStr(cn.first, g, lp);
+      val = new LowUnop(opString, new LowId(printOpResultStr(cn.first, g, lp)));
+      //val = opString + printOpResultStr(cn.first, g, lp);
     } else {
 
       uint w = typeWidth(*(cn.first.getWire()->getType()));
-      val = parens(printOpResultStr(cn.first, g, lp) + " == " + bitMaskString(w));
+      //val = parens(printOpResultStr(cn.first, g, lp) + " == " + bitMaskString(w));
+      val = new LowId(parens(printOpResultStr(cn.first, g, lp) + " == " + bitMaskString(w)));
 
     }
 
