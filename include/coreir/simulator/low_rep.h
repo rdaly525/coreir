@@ -54,6 +54,9 @@ namespace CoreIR {
             LowExpr* const op0_) : op(op_), op0(op0_) {}
 
     virtual std::string cString() const {
+      if (op == "ULL") {
+        return parens(parens(op0->cString()) + op);
+      }
       return parens(op + op0->cString());
     }
   };

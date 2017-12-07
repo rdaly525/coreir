@@ -55,12 +55,9 @@ namespace CoreIR {
 
     return new LowBinop("-",
                         new LowBinop("<<",
-                                     //new LowBitVec(BitVec(64, 1)),
                                      new LowId("1ULL"),
                                      new LowBitVec(BitVec(64, w))),
                         new LowBitVec(BitVec(64, 1)));
-
-    //; parens(parens("1ULL << " + std::to_string(w)) + " - 1");
   }
   
   LowExpr* maskResultExpr(const uint w, LowExpr* const expr) {
