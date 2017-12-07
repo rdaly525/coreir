@@ -864,13 +864,15 @@ namespace CoreIR {
     return str;
   }
 
-  vector<string>
+  //vector<string>
+  void
   updateSequentialElements(const SIMDGroup& group,
                            NGraph& g,
                            Module& mod,
-                           LayoutPolicy& layoutPolicy) {
+                           LayoutPolicy& layoutPolicy,
+                           LowProgram& prog) {
 
-    vector<string> simLines;
+    //vector<string> simLines;
     auto topoOrder = group.nodes[0];
     
     if (group.nodes.size() == 1) {
@@ -883,9 +885,9 @@ namespace CoreIR {
         if (isInstance(inst)) { 
           if (!isCombinationalInstance(wd) &&
               wd.isReceiver) {
-            LowProgram prog;
+            //LowProgram prog;
             printInstance(wd, vd, g, layoutPolicy, prog);
-            simLines.push_back(prog.cString()); //printInstance(wd, vd, g, layoutPolicy));
+            //simLines.push_back(prog.cString()); //printInstance(wd, vd, g, layoutPolicy));
           }
         }
       }
@@ -906,7 +908,7 @@ namespace CoreIR {
       
     }
 
-    return simLines;
+    //return simLines;
 
   }
 
@@ -1509,7 +1511,10 @@ namespace CoreIR {
       simLines.push_back(prog.cString());
     } else {
       for (auto& dag : code.dags) {
-        concat(simLines, updateSequentialElements(dag, g, mod, layoutPolicy));
+        LowProgram prog;
+        updateSequentialElements(dag, g, mod, layoutPolicy, prog);
+        simLines.push_back(prog.cString());
+        //concat(simLines, updateSequentialElements(dag, g, mod, layoutPolicy));
       }
     }
   }
