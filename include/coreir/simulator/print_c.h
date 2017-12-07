@@ -34,7 +34,6 @@ namespace CoreIR {
     }
 
     return maskResultStr(typeWidth(tp), expr);
-    //return parens( bitMaskString(tp) +  " & " + parens(expr));
   }
   
 

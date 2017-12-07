@@ -51,10 +51,22 @@ namespace CoreIR {
                      const NGraph& g,
                      LayoutPolicy& lp);
 
-  string printUnop(Instance* inst,
-                   const vdisc vd,
-                   const NGraph& g,
-                   LayoutPolicy& lp) {
+  LowExpr* maskResultExpr(const uint w, const std::string& expr) {
+    return new LowId("MASK( " + std::to_string(w) + ", " + expr + " )");
+  }
+
+  LowExpr* maskResultExpression(CoreIR::Type& tp, const std::string& expr) {
+    if (standardWidth(tp)) {
+      return new LowId(expr);
+    }
+
+    return maskResultExpr(typeWidth(tp), expr);
+  }
+  
+  LowExpr* printUnop(Instance* inst,
+                     const vdisc vd,
+                     const NGraph& g,
+                     LayoutPolicy& lp) {
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
@@ -86,11 +98,13 @@ namespace CoreIR {
 
     }
 
-    string res =
-      maskResult(*((outPair.second)->getType()),
-                 val);
+    return maskResultExpression(*((outPair.second)->getType()), val);
 
-    return res;
+    // string res =
+    //   maskResult(*((outPair.second)->getType()),
+    //              val);
+
+    // return new LowId(res);
   }
 
   string printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
@@ -408,13 +422,6 @@ namespace CoreIR {
 
     prog.addAssignStmt(new LowId(cVar(*coutSelect)),
                        new LowId(carryRes));
-    //string carryString = cVar(*coutSelect) + " = " + carryRes;
-
-    //return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
-
-    // auto fStr = prog.cString();
-
-    // return fStr;
   }
 
   // NOTE: This function prints the full assignment of values
@@ -477,13 +484,6 @@ namespace CoreIR {
     prog.addAssignStmt(new LowId(cVar(*coutSelect)),
                        new LowId(carryRes));
 
-    //string carryString = cVar(*coutSelect) + " = " + carryRes;
-
-    //return ln(cVar(*resultSelect) + " = " + res) + ln(carryString);
-
-    // auto fStr = prog.cString();
-
-    // return fStr;
   }
   
   string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
@@ -582,8 +582,6 @@ namespace CoreIR {
     prog.addAssignStmt(new LowId(resName),
                        new LowId(resStr));
 
-    // auto fStr = prog.cString();
-    // return fStr;
   }
 
   void printRegister(const WireNode& wd,
@@ -608,8 +606,6 @@ namespace CoreIR {
         prog.addAssignStmt(new LowId(cVar(*s)),
                            new LowId(lp.outputVarName(*r)));
 
-        // string fStr = prog.cString();
-        // return fStr;
       } else {
         return;// "";
       }
@@ -617,8 +613,6 @@ namespace CoreIR {
       enableRegReceiver(wd, vd, g, lp, prog);
     }
 
-    // string fStr = prog.cString();
-    // return fStr;
   }
 
   string opResultStr(const WireNode& wd,
@@ -638,7 +632,7 @@ namespace CoreIR {
     }
 
     if (ins.size() == 1) {
-      return printUnop(inst, vd, g, lp);
+      return printUnop(inst, vd, g, lp)->cString();
     }
 
     if (ins.size() == 0) {
@@ -716,8 +710,6 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    //LowProgram prog;
-      
     if (isRegisterInstance(inst)) {
       printRegister(wd, vd, g, layoutPolicy, prog);
     } else if (isMemoryInstance(inst)) {
@@ -757,10 +749,6 @@ namespace CoreIR {
       }
     }
 
-    //return prog;
-
-    // auto res = prog.cString();
-    // return res;
   }
 
   bool isCombinationalInstance(const WireNode& wd) {
