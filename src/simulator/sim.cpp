@@ -102,16 +102,12 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    //string val;
-
     LowExpr* val = nullptr;
     if (opString != "andr") {
       val = new LowUnop(opString, new LowId(printOpResultStr(cn.first, g, lp)));
-      //val = opString + printOpResultStr(cn.first, g, lp);
     } else {
 
       uint w = typeWidth(*(cn.first.getWire()->getType()));
-      //val = parens(printOpResultStr(cn.first, g, lp) + " == " + bitMaskString(w));
       val = new LowBinop("==",
                          new LowId(printOpResultStr(cn.first, g, lp)),
                          bitMaskExpression(w));
@@ -119,15 +115,9 @@ namespace CoreIR {
     }
 
     return maskResultExpression(*((outPair.second)->getType()), val);
-
-    // string res =
-    //   maskResult(*((outPair.second)->getType()),
-    //              val);
-
-    // return new LowId(res);
   }
 
-  string printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+  LowExpr* printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
     bool foundValue = false;
 
@@ -148,10 +138,10 @@ namespace CoreIR {
 
     assert(foundValue);
 
-    return argStr;
+    return new LowId(argStr);
   }
 
-  string printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+  LowExpr* printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
     bool foundValue = false;
 
@@ -172,10 +162,10 @@ namespace CoreIR {
 
     assert(foundValue);
 
-    return argStr;
+    return new LowId(argStr);
   }
 
-  string printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
+  LowExpr* printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
     if (getQualifiedOpName(*inst) == "corebit.const") {
       return printBitConstant(inst, vd, g);
     } else {
@@ -656,7 +646,7 @@ namespace CoreIR {
     }
 
     if (ins.size() == 0) {
-      return printConstant(inst, vd, g);
+      return printConstant(inst, vd, g)->cString();
     }
 
     cout << "Unsupported instance = " << inst->toString() << endl;
