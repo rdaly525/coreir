@@ -1240,15 +1240,18 @@ namespace CoreIR {
     assert(false);
   }
   
-  std::vector<std::string> printSIMDGroup(const SIMDGroup& group,
-                                          NGraph& g,
-                                          Module& mod,
-                                          LayoutPolicy& lp) {
+  //std::vector<std::string>
+  printSIMDGroup(const SIMDGroup& group,
+                 NGraph& g,
+                 Module& mod,
+                 LayoutPolicy& lp,
+                 LowProgram& prog) {
     // If the group actually is scalar code just call the scalar printout
     if (group.nodes.size() == 1) {
-      LowProgram prog;
+      //LowProgram prog;
       addScalarDAGCode({group.nodes[0]}, g, mod, lp, prog);
-      return {prog.cString()};
+      //return {prog.cString()};
+      return;
     }
 
     assert(false);
@@ -1477,10 +1480,11 @@ namespace CoreIR {
                   NGraph& g,
                   Module& mod,
                   LayoutPolicy& layoutPolicy,
-                  std::vector<std::string>& simLines) {
+                  LowProgram& prog) {
+                  //std::vector<std::string>& simLines) {
 
     for (auto& simdGroup : dags) {
-      concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy));
+      concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy, prog));
     }
 
   }
@@ -1496,7 +1500,9 @@ namespace CoreIR {
                   LayoutPolicy& layoutPolicy,
                   std::vector<std::string>& simLines) {
     if (!code.sequentialUpdate) {
-      addDAGCode(code.dags, g, mod, layoutPolicy, simLines);
+      LowProgram prog;
+      addDAGCode(code.dags, g, mod, layoutPolicy, simLines, prog);
+      simLines.push_back(prog.cString());
     } else {
       for (auto& dag : code.dags) {
         concat(simLines, updateSequentialElements(dag, g, mod, layoutPolicy));
