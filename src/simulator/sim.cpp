@@ -195,7 +195,7 @@ namespace CoreIR {
     LowExpr* expr = new LowBinop(opString,
                                  new LowId(printOpResultStr(arg1, g, lp)),
                                  new LowId(printOpResultStr(arg2, g, lp)));
-    string compString = expr->cString();
+    //string compString = expr->cString();
 
     // And not standard width
     if (isDASHR(*inst)) {
@@ -213,13 +213,22 @@ namespace CoreIR {
         string mask = maskExpr->cString();
           // parens(bitMaskString(printOpResultStr(arg2, g, lp)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g, lp)));
 
-        string signBitSet =
-          parens("0x01 & " + parens(printOpResultStr(arg1, g, lp) +  " >> " + parens(to_string(tw - 1))));
+        LowExpr* signBitSet =
+          new LowBinop("&",
+                       new LowBitVec(BitVec(1, 1)),
+                       new LowBinop(">>",
+                                    new LowId(printOpResultStr(arg1, g, lp)),
+                                    new LowId(parens(to_string(tw - 1)))));
 
-        compString = parens(ite(signBitSet, mask, "0") + " | " + parens(compString));
+        expr =
+          new LowBinop("|",
+                       new LowId(parens(ite(signBitSet->cString(), mask, "0"))),
+                       expr);
+        //                              + " | " + parens(compString));
       }
     }
 
+    string compString = expr->cString();
     // Check if this output needs a mask
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
       res += maskResult(*(outPair.second->getType()), compString);
