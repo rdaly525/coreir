@@ -905,36 +905,6 @@ namespace CoreIR {
   }
 
   vector<string>
-  updateSequentialOutputs(const std::deque<vdisc>& topoOrder,
-                          NGraph& g,
-                          Module& mod,
-                          LayoutPolicy& layoutPolicy) {
-
-    vector<string> simLines;
-
-    for (auto& vd : topoOrder) {
-
-      WireNode wd = getNode(g, vd);
-      Wireable* inst = wd.getWire();
-
-      if (isInstance(inst)) { 
-
-        if (!isCombinationalInstance(wd) &&
-            !(wd.isReceiver)) {
-
-          simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
-
-        }
-
-      }
-
-    }
-
-    return simLines;
-    
-  }  
-
-  vector<string>
   updateCombinationalLogic(const std::deque<vdisc>& topoOrder,
                            NGraph& g,
                            Module& mod,
@@ -1152,8 +1122,6 @@ namespace CoreIR {
                         LayoutPolicy& layoutPolicy,
                         std::vector<std::string>& simLines) {
     for (auto& nodes : dags) {
-      // concat(simLines,
-      //        updateSequentialOutputs(nodes, g, mod, layoutPolicy));
       concat(simLines,
              updateCombinationalLogic(nodes, g, mod, layoutPolicy));
     }
