@@ -36,10 +36,10 @@ namespace CoreIR {
                                          Module& mod,
                                          LayoutPolicy& lp);
 
-  string printBinop(const WireNode& wd,
-                    const vdisc vd,
-                    const NGraph& g,
-                    LayoutPolicy& lp);
+  LowExpr* printBinop(const WireNode& wd,
+                      const vdisc vd,
+                      const NGraph& g,
+                      LayoutPolicy& lp);
 
   string printOpResultStr(const InstanceValue& wd,
                           const NGraph& g,
@@ -119,14 +119,8 @@ namespace CoreIR {
 
   LowExpr* printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
-    //bool foundValue = false;
-
-    //string argStr = "";
-
     for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
-
-        //foundValue = true;
 
         Value* valArg = arg.second;
 
@@ -135,28 +129,17 @@ namespace CoreIR {
         BitVector bv = valArg->get<BitVector>();
         return new LowBitVec(bv);
 
-        // stringstream ss;
-        // ss << "0b" << bv;
-        // argStr = ss.str();
       }
     }
 
     assert(false);
-    // assert(foundValue);
-
-    // return new LowId(argStr);
   }
 
   LowExpr* printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
-    //bool foundValue = false;
-
-    //string argStr = "";
-
     for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
 
-        //foundValue = true;
         Value* valArg = arg.second;
 
         assert(valArg->getValueType() == inst->getContext()->Bool());
@@ -169,17 +152,11 @@ namespace CoreIR {
           return new LowBitVec(BitVec(1, 0));
         }
 
-        // stringstream ss;
-        // ss << (bv ? "1" : "0");
-        // argStr = ss.str();
       }
     }
 
     assert(false);
 
-    // assert(foundValue);
-
-    // return new LowId(argStr);
   }
 
   LowExpr* printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
@@ -190,19 +167,21 @@ namespace CoreIR {
     }
   }
 
-  string printOpThenMaskBinop(const WireNode& wd,
-                              const vdisc vd,
-                              const NGraph& g,
-                              LayoutPolicy& lp) {
+  LowExpr* printOpThenMaskBinop(const WireNode& wd,
+                                const vdisc vd,
+                                const NGraph& g,
+                                LayoutPolicy& lp) {
     Instance* inst = toInstance(wd.getWire());
 
-    auto outSelects = getOutputSelects(inst);
+    // auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    // assert(outSelects.size() == 1);
 
     string res = "";
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    //pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    pair<string, Wireable*> outPair = getOutSelect(inst);
 
     auto inConns = getInputConnections(vd, g);
 
@@ -217,7 +196,6 @@ namespace CoreIR {
                                  new LowId(printOpResultStr(arg1, g, lp)),
                                  new LowId(printOpResultStr(arg2, g, lp)));
     string compString = expr->cString();
-    //parens(printOpResultStr(arg1, g, lp) + opString + printOpResultStr(arg2, g, lp));
 
     // And not standard width
     if (isDASHR(*inst)) {
@@ -225,8 +203,15 @@ namespace CoreIR {
       uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
       if (containWidth > tw) {
 
-        string mask =
-          parens(bitMaskString(printOpResultStr(arg2, g, lp)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g, lp)));
+        LowExpr* maskExpr =
+          new LowBinop("<<",
+                       new LowId(bitMaskString(printOpResultStr(arg2, g, lp))),
+                       new LowBinop("-",
+                                    new LowId(to_string(tw)),
+                                    new LowId(printOpResultStr(arg2, g, lp))));
+
+        string mask = maskExpr->cString();
+          // parens(bitMaskString(printOpResultStr(arg2, g, lp)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g, lp)));
 
         string signBitSet =
           parens("0x01 & " + parens(printOpResultStr(arg1, g, lp) +  " >> " + parens(to_string(tw - 1))));
@@ -244,7 +229,7 @@ namespace CoreIR {
 
     delete expr;
 
-    return res;
+    return new LowId(res);
   }
 
   string castToSigned(Type& tp, const std::string& expr) {
@@ -529,10 +514,10 @@ namespace CoreIR {
     assert(false);
   }
 
-  string printBinop(const WireNode& wd,
-                    const vdisc vd,
-                    const NGraph& g,
-                    LayoutPolicy& lp) {
+  LowExpr* printBinop(const WireNode& wd,
+                      const vdisc vd,
+                      const NGraph& g,
+                      LayoutPolicy& lp) {
 
     assert(getInputs(vd, g).size() == 2);
 
@@ -548,7 +533,7 @@ namespace CoreIR {
 
     if (isSignedCmp(*inst) ||
         isSDivOrRem(*inst)) {
-      return printSEThenOpThenMaskBinop(inst, vd, g, lp);
+      return new LowId(printSEThenOpThenMaskBinop(inst, vd, g, lp));
     }
 
     cout << "Unsupported binop = " << inst->toString() << " from module = " << inst->getModuleRef()->getName() << endl;
@@ -655,7 +640,7 @@ namespace CoreIR {
     }
 
     if (ins.size() == 2) {
-      return printBinop(wd, vd, g, lp);
+      return printBinop(wd, vd, g, lp)->cString();
     }
 
     if (ins.size() == 1) {
