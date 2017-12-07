@@ -720,7 +720,6 @@ namespace CoreIR {
     if (isRegisterInstance(inst)) {
       printRegister(wd, vd, g, layoutPolicy, prog);
     } else if (isMemoryInstance(inst)) {
-      //return printMemory(wd, vd, g, layoutPolicy);
       printMemory(wd, vd, g, layoutPolicy, prog);
     } else {
 
@@ -736,7 +735,6 @@ namespace CoreIR {
           res = layoutPolicy.outputVarName(*(outPair.second));
         }
 
-        //return ln(res + " = " + opResultStr(wd, vd, g, layoutPolicy));
         prog.addAssignStmt(new LowId(res),
                            new LowId(opResultStr(wd, vd, g, layoutPolicy)));
 
@@ -954,11 +952,13 @@ namespace CoreIR {
 
         if (isInstance(inst)) { 
 
-          if ((isCombinationalInstance(wd)) &&
-              ((g.getOutputConnections(vd).size() > 1))) {
+          if (((isCombinationalInstance(wd)) &&
+               ((g.getOutputConnections(vd).size() > 1))) ||
+
+              (!isCombinationalInstance(wd) &&
+               !wd.isReceiver)) {
 
             simLines.push_back(printInstance(wd, vd, g, layoutPolicy));
-
           }
 
         } else {
@@ -1152,8 +1152,8 @@ namespace CoreIR {
                         LayoutPolicy& layoutPolicy,
                         std::vector<std::string>& simLines) {
     for (auto& nodes : dags) {
-      concat(simLines,
-             updateSequentialOutputs(nodes, g, mod, layoutPolicy));
+      // concat(simLines,
+      //        updateSequentialOutputs(nodes, g, mod, layoutPolicy));
       concat(simLines,
              updateCombinationalLogic(nodes, g, mod, layoutPolicy));
     }
@@ -1181,6 +1181,7 @@ namespace CoreIR {
         lp.outputVarName(*(g.getNode(vd).getWire()));
         
       auto ins = getInputConnections(vd, g);
+
       cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
       for (auto& in : ins) {
         cout << in.first.getWire()->toString() << endl;
