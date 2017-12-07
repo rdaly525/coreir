@@ -917,6 +917,7 @@ namespace CoreIR {
 
     int i = 0;
 
+    LowProgram prog;
     for (auto& vd : topoOrder) {
 
       string val = "<UNSET>";
@@ -932,9 +933,9 @@ namespace CoreIR {
               (!isCombinationalInstance(wd) &&
                !wd.isReceiver)) {
 
-            LowProgram prog;
+            //LowProgram prog;
             printInstance(wd, vd, g, layoutPolicy, prog);
-            simLines.push_back(prog.cString());
+            //simLines.push_back(prog.cString());
           }
 
         } else {
@@ -949,11 +950,11 @@ namespace CoreIR {
               Wireable& outSel = *(inConn.second.getWire());
               string outVarName = layoutPolicy.outputVarName(outSel);
 
-              LowProgram prog;
+              //LowProgram prog;
               prog.addAssignStmt(new LowId(outVarName),
                                  new LowId(printOpResultStr(inConn.first, g, layoutPolicy)));
 
-              simLines.push_back(prog.cString());
+              //simLines.push_back(prog.cString());
 
               //simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g, layoutPolicy)));
 
@@ -967,6 +968,8 @@ namespace CoreIR {
       }
       i++;
     }
+
+    simLines.push_back(prog.cString());
 
     return simLines;
   }
