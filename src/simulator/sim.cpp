@@ -708,14 +708,15 @@ namespace CoreIR {
     }
   }
 
-  LowProgram printInstance(const WireNode& wd,
-                           const vdisc vd,
-                           const NGraph& g,
-                           LayoutPolicy& layoutPolicy) {
+  void printInstance(const WireNode& wd,
+                     const vdisc vd,
+                     const NGraph& g,
+                     LayoutPolicy& layoutPolicy,
+                     LowProgram& prog) {
 
     Instance* inst = toInstance(wd.getWire());
 
-    LowProgram prog;
+    //LowProgram prog;
       
     if (isRegisterInstance(inst)) {
       printRegister(wd, vd, g, layoutPolicy, prog);
@@ -756,7 +757,7 @@ namespace CoreIR {
       }
     }
 
-    return prog;
+    //return prog;
 
     // auto res = prog.cString();
     // return res;
@@ -882,7 +883,8 @@ namespace CoreIR {
         if (isInstance(inst)) { 
           if (!isCombinationalInstance(wd) &&
               wd.isReceiver) {
-            LowProgram prog = printInstance(wd, vd, g, layoutPolicy);
+            LowProgram prog;
+            printInstance(wd, vd, g, layoutPolicy, prog);
             simLines.push_back(prog.cString()); //printInstance(wd, vd, g, layoutPolicy));
           }
         }
@@ -930,7 +932,8 @@ namespace CoreIR {
               (!isCombinationalInstance(wd) &&
                !wd.isReceiver)) {
 
-            LowProgram prog = printInstance(wd, vd, g, layoutPolicy);
+            LowProgram prog;
+            printInstance(wd, vd, g, layoutPolicy, prog);
             simLines.push_back(prog.cString());
           }
 
@@ -946,7 +949,13 @@ namespace CoreIR {
               Wireable& outSel = *(inConn.second.getWire());
               string outVarName = layoutPolicy.outputVarName(outSel);
 
-              simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g, layoutPolicy)));
+              LowProgram prog;
+              prog.addAssignStmt(new LowId(outVarName),
+                                 new LowId(printOpResultStr(inConn.first, g, layoutPolicy)));
+
+              simLines.push_back(prog.cString());
+
+              //simLines.push_back(ln(outVarName + " = " + printOpResultStr(inConn.first, g, layoutPolicy)));
 
             }
 
@@ -958,7 +967,6 @@ namespace CoreIR {
       }
       i++;
     }
-
 
     return simLines;
   }
