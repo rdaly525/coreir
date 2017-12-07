@@ -119,50 +119,67 @@ namespace CoreIR {
 
   LowExpr* printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
-    bool foundValue = false;
+    //bool foundValue = false;
 
-    string argStr = "";
+    //string argStr = "";
+
     for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
-        foundValue = true;
+
+        //foundValue = true;
+
         Value* valArg = arg.second;
 
         cout << "Value type = " << valArg->getValueType()->toString() << endl;
 
         BitVector bv = valArg->get<BitVector>();
-        stringstream ss;
-        ss << "0b" << bv;
-        argStr = ss.str();
+        return new LowBitVec(bv);
+
+        // stringstream ss;
+        // ss << "0b" << bv;
+        // argStr = ss.str();
       }
     }
 
-    assert(foundValue);
+    assert(false);
+    // assert(foundValue);
 
-    return new LowId(argStr);
+    // return new LowId(argStr);
   }
 
   LowExpr* printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
-    bool foundValue = false;
+    //bool foundValue = false;
 
-    string argStr = "";
+    //string argStr = "";
+
     for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
-        foundValue = true;
+
+        //foundValue = true;
         Value* valArg = arg.second;
 
         assert(valArg->getValueType() == inst->getContext()->Bool());
 
         bool bv = valArg->get<bool>();
-        stringstream ss;
-        ss << (bv ? "1" : "0");
-        argStr = ss.str();
+
+        if (bv == true) {
+          return new LowBitVec(BitVec(1, 1));
+        } else {
+          return new LowBitVec(BitVec(1, 0));
+        }
+
+        // stringstream ss;
+        // ss << (bv ? "1" : "0");
+        // argStr = ss.str();
       }
     }
 
-    assert(foundValue);
+    assert(false);
 
-    return new LowId(argStr);
+    // assert(foundValue);
+
+    // return new LowId(argStr);
   }
 
   LowExpr* printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
