@@ -891,16 +891,18 @@ namespace CoreIR {
       }
     } else {
 
-      for (auto& vd : topoOrder) {
-        WireNode wd = getNode(g, vd);
-        Wireable* inst = wd.getWire();
-        if (isInstance(inst)) { 
-          if (!isCombinationalInstance(wd) &&
-              wd.isReceiver) {
-            concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, layoutPolicy));
-          }
-        }
-      }
+      assert(false);
+
+      // for (auto& vd : topoOrder) {
+      //   WireNode wd = getNode(g, vd);
+      //   Wireable* inst = wd.getWire();
+      //   if (isInstance(inst)) { 
+      //     if (!isCombinationalInstance(wd) &&
+      //         wd.isReceiver) {
+      //       concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, layoutPolicy));
+      //     }
+      //   }
+      // }
       
     }
 
@@ -1241,6 +1243,7 @@ namespace CoreIR {
   }
   
   //std::vector<std::string>
+  void
   printSIMDGroup(const SIMDGroup& group,
                  NGraph& g,
                  Module& mod,
@@ -1484,7 +1487,8 @@ namespace CoreIR {
                   //std::vector<std::string>& simLines) {
 
     for (auto& simdGroup : dags) {
-      concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy, prog));
+      //concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy, prog));
+      printSIMDGroup(simdGroup, g, mod, layoutPolicy, prog);
     }
 
   }
@@ -1501,7 +1505,7 @@ namespace CoreIR {
                   std::vector<std::string>& simLines) {
     if (!code.sequentialUpdate) {
       LowProgram prog;
-      addDAGCode(code.dags, g, mod, layoutPolicy, simLines, prog);
+      addDAGCode(code.dags, g, mod, layoutPolicy, prog);
       simLines.push_back(prog.cString());
     } else {
       for (auto& dag : code.dags) {
@@ -1541,7 +1545,7 @@ namespace CoreIR {
         parens(parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
                parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
-      addDAGCode(paths.preSequentialAlwaysDAGs,
+      addDAGCode({paths.preSequentialAlwaysDAGs, false},
                  g, mod, layoutPolicy, simLines);
 
       simLines.push_back("if " + condition + " {\n");
@@ -1566,13 +1570,13 @@ namespace CoreIR {
 
       simLines.push_back("\n}\n");
 
-      addDAGCode(paths.postSequentialAlwaysDAGs,
+      addDAGCode({paths.postSequentialAlwaysDAGs, false},
                  g, mod, layoutPolicy, simLines);
       
     }
 
     simLines.push_back("\n// ----- Update pure combinational logic\n");
-    addDAGCode(paths.pureCombDAGs,
+    addDAGCode({paths.pureCombDAGs, false},
                g, mod, layoutPolicy, simLines);
 
     simLines.push_back("\n// ----- Done\n");
