@@ -45,10 +45,10 @@ namespace CoreIR {
                           const NGraph& g,
                           LayoutPolicy& lp);
 
-  string opResultStr(const WireNode& wd,
-                     const vdisc vd,
-                     const NGraph& g,
-                     LayoutPolicy& lp);
+  LowExpr* opResultStr(const WireNode& wd,
+                       const vdisc vd,
+                       const NGraph& g,
+                       LayoutPolicy& lp);
 
   LowExpr* bitMaskExpression(uint w) {
     assert(w > 0);
@@ -507,17 +507,17 @@ namespace CoreIR {
 
   }
   
-  string printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
+  LowExpr* printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     assert(getInputs(vd, g).size() == 3);
 
     Instance* inst = toInstance(wd.getWire());
     if (isMux(*inst)) {
-      return printMux(inst, vd, g, lp);
+      return new LowId(printMux(inst, vd, g, lp));
     }
 
     if (isAddOrSub(*inst)) {
       // Add and subtract need special treatment because of cin and cout flags
-      return printAddOrSubWithCIN(wd, vd, g, lp);
+      return new LowId(printAddOrSubWithCIN(wd, vd, g, lp));
     }
 
     assert(false);
@@ -636,10 +636,10 @@ namespace CoreIR {
 
   }
 
-  string opResultStr(const WireNode& wd,
-                     const vdisc vd,
-                     const NGraph& g,
-                     LayoutPolicy& lp) {
+  LowExpr* opResultStr(const WireNode& wd,
+                       const vdisc vd,
+                       const NGraph& g,
+                       LayoutPolicy& lp) {
 
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
@@ -649,20 +649,19 @@ namespace CoreIR {
     }
 
     if (ins.size() == 2) {
-      return printBinop(wd, vd, g, lp)->cString();
+      return printBinop(wd, vd, g, lp);
     }
 
     if (ins.size() == 1) {
-      return printUnop(inst, vd, g, lp)->cString();
+      return printUnop(inst, vd, g, lp);
     }
 
     if (ins.size() == 0) {
-      return printConstant(inst, vd, g)->cString();
+      return printConstant(inst, vd, g);
     }
 
     cout << "Unsupported instance = " << inst->toString() << endl;
     assert(false);
-    return "";
   }
 
   void printMemory(const WireNode& wd,
@@ -750,7 +749,7 @@ namespace CoreIR {
         }
 
         prog.addAssignStmt(new LowId(res),
-                           new LowId(opResultStr(wd, vd, g, layoutPolicy)));
+                           opResultStr(wd, vd, g, layoutPolicy));
 
       } else {
         assert(outSelects.size() == 2);
@@ -821,7 +820,7 @@ namespace CoreIR {
     // the given variable, this is slightly too conservative
     if ((g.getOutputConnections(opNodeD).size() == 1) ||
         (isConstant(g.getNode(opNodeD)))) {
-      return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
+      return opResultStr(combNode(sourceInstance), opNodeD, g, lp)->cString();
     }
 
     return "/* LOCAL */" + cVar(wd);
