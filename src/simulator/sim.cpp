@@ -1251,20 +1251,22 @@ namespace CoreIR {
       return {prog.cString()};
     }
 
-    vector<string> simLines;
-    SubDAG init = group.nodes[0];
+    assert(false);
 
-    string tmp = cVar(*(g.getNode(init[0]).getWire()));    
+    // vector<string> simLines;
+    // SubDAG init = group.nodes[0];
 
-    // Emit SIMD code for each node in the pattern
-    for (auto& vd : init) {
-      WireNode wd = g.getNode(vd);
-      if (!wd.isSequential || !wd.isReceiver) {
-        concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, lp));
-      }
-    }
+    // string tmp = cVar(*(g.getNode(init[0]).getWire()));    
 
-    return simLines;
+    // // Emit SIMD code for each node in the pattern
+    // for (auto& vd : init) {
+    //   WireNode wd = g.getNode(vd);
+    //   if (!wd.isSequential || !wd.isReceiver) {
+    //     concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, lp));
+    //   }
+    // }
+
+    // return simLines;
   }
 
   bool nodesMatch(const vdisc ref,
@@ -1515,14 +1517,14 @@ namespace CoreIR {
     vector<string> simLines;
 
     auto paths = buildCircuitPaths(topoOrder, g, mod);
-    paths.postSequentialDAGs = optimizeSIMD(paths.postSequentialDAGs,
-                                            g,
-                                            mod,
-                                            layoutPolicy);
-    paths.preSequentialDAGs = optimizeSIMD(paths.preSequentialDAGs,
-                                           g,
-                                           mod,
-                                           layoutPolicy);
+    // paths.postSequentialDAGs = optimizeSIMD(paths.postSequentialDAGs,
+    //                                         g,
+    //                                         mod,
+    //                                         layoutPolicy);
+    // paths.preSequentialDAGs = optimizeSIMD(paths.preSequentialDAGs,
+    //                                        g,
+    //                                        mod,
+    //                                        layoutPolicy);
 
     auto clk = findMainClock(g);
 
