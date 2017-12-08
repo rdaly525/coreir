@@ -203,7 +203,6 @@ namespace CoreIR {
     LowExpr* expr = new LowBinop(opString,
                                  printOpResultStr(arg1, g, lp),
                                  printOpResultStr(arg2, g, lp));
-    //string compString = expr->cString();
 
     // And not standard width
     if (isDASHR(*inst)) {
@@ -213,40 +212,34 @@ namespace CoreIR {
 
         LowExpr* maskExpr =
           new LowBinop("<<",
-                       new LowId(bitMaskString(printOpResultStr(arg2, g, lp)->cString())),
+                       bitMaskExpression(printOpResultStr(arg2, g, lp)),
                        new LowBinop("-",
                                     new LowId(to_string(tw)),
                                     printOpResultStr(arg2, g, lp)));
 
         string mask = maskExpr->cString();
-          // parens(bitMaskString(printOpResultStr(arg2, g, lp)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g, lp)));
 
         LowExpr* signBitSet =
           new LowBinop("&",
                        new LowBitVec(BitVec(1, 1)),
                        new LowBinop(">>",
                                     printOpResultStr(arg1, g, lp),
-                                    new LowId(parens(to_string(tw - 1)))));
+                                    new LowId(to_string(tw - 1))));
 
         expr =
           new LowBinop("|",
-                       new LowId(parens(ite(signBitSet->cString(), mask, "0"))),
+                       new LowId(ite(signBitSet->cString(), mask, "0")),
                        expr);
-        //                              + " | " + parens(compString));
       }
     }
 
-    string compString = expr->cString();
+    // string compString = expr->cString();
     // Check if this output needs a mask
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
-      res += maskResult(*(outPair.second->getType()), compString);
-    } else {
-      res += compString;
+      expr = maskResultExpression(*(outPair.second->getType()), expr); //compString);
     }
 
-    delete expr;
-
-    return new LowId(res);
+    return expr;
   }
 
   string castToSigned(Type& tp, const std::string& expr) {
