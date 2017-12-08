@@ -41,15 +41,23 @@ namespace CoreIR {
                       const NGraph& g,
                       LayoutPolicy& lp);
 
-  string printOpResultStr(const InstanceValue& wd,
-                          const NGraph& g,
-                          LayoutPolicy& lp);
+  LowExpr* printOpResultStr(const InstanceValue& wd,
+                            const NGraph& g,
+                            LayoutPolicy& lp);
 
   LowExpr* opResultStr(const WireNode& wd,
                        const vdisc vd,
                        const NGraph& g,
                        LayoutPolicy& lp);
 
+  LowExpr* bitMaskExpression(LowExpr* exp) {
+    return new LowBinop("-",
+                        new LowBinop("<<",
+                                     new LowId("1ULL"),
+                                     exp),
+                        new LowBitVec(BitVec(64, 1)));
+  }
+  
   LowExpr* bitMaskExpression(uint w) {
     assert(w > 0);
 
@@ -785,32 +793,33 @@ namespace CoreIR {
     return true;
   }
 
-  string printOpResultStr(const InstanceValue& wd,
-                          const NGraph& g,
-                          LayoutPolicy& lp) {
+  LowExpr* printOpResultStr(const InstanceValue& wd,
+                            const NGraph& g,
+                            LayoutPolicy& lp) {
     assert(isSelect(wd.getWire()));
 
     Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));    
     if (isRegisterInstance(sourceInstance)) {
 
       if (lp.getReadRegsDirectly() == false) {
-        return cVar(wd);
+        return new LowId(cVar(wd));
       } else {
-        return lp.outputVarName(*sourceInstance);
+        return new LowId(lp.outputVarName(*sourceInstance));
       }
     }
 
     if (isMemoryInstance(sourceInstance)) {
-      return cVar(wd);
+      return new LowId(cVar(wd));
     }
 
     // Is this the correct way to check if the value is an input?
     if (isSelect(sourceInstance) && fromSelf(toSelect(sourceInstance))) {
-      return lp.outputVarName(wd);
+      return new LowId(lp.outputVarName(wd));
     }
 
+    // TODO: Eliminate thread sharing analysis
     if (isThreadShared(g.getOpNodeDisc(sourceInstance), g)) {
-      return lp.outputVarName(wd);
+      return new LowId(lp.outputVarName(wd));
     }
     assert(g.containsOpNode(sourceInstance));
 
@@ -820,7 +829,8 @@ namespace CoreIR {
     // the given variable, this is slightly too conservative
     if ((g.getOutputConnections(opNodeD).size() == 1) ||
         (isConstant(g.getNode(opNodeD)))) {
-      return opResultStr(combNode(sourceInstance), opNodeD, g, lp)->cString();
+      //return opResultStr(combNode(sourceInstance), opNodeD, g, lp)->cString();
+      return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
     }
 
     return "/* LOCAL */" + cVar(wd);
@@ -1144,7 +1154,6 @@ namespace CoreIR {
                         Module& mod,
                         LayoutPolicy& layoutPolicy,
                         LowProgram& prog) {
-                        //std::vector<std::string>& simLines) {
     for (auto& nodes : dags) {
       updateCombinationalLogic(nodes,
                                g,
