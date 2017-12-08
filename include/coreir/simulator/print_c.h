@@ -73,7 +73,6 @@ namespace CoreIR {
 
   std::string cPrimitiveTypeString(CoreIR::Type& t);
 
-
   static inline std::string ln(const std::string& s) {
     return s + ";\n";
   }

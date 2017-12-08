@@ -181,14 +181,6 @@ namespace CoreIR {
                                 LayoutPolicy& lp) {
     Instance* inst = toInstance(wd.getWire());
 
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    string res = "";
-
-    //pair<string, Wireable*> outPair = *std::begin(outSelects);
-
     pair<string, Wireable*> outPair = getOutSelect(inst);
 
     auto inConns = getInputConnections(vd, g);
@@ -236,30 +228,30 @@ namespace CoreIR {
     // string compString = expr->cString();
     // Check if this output needs a mask
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
-      expr = maskResultExpression(*(outPair.second->getType()), expr); //compString);
+      expr = maskResultExpression(*(outPair.second->getType()), expr);
     }
 
     return expr;
   }
 
-  string castToSigned(Type& tp, const std::string& expr) {
-    return parens(parens(signedCTypeString(tp)) + " " + expr);
+  LowExpr* castToSigned(Type& tp, LowExpr* const expr) {
+    return new LowId(parens(parens(signedCTypeString(tp)) + " " + expr->cString()));
   }
 
   string castToUnSigned(Type& tp, const std::string& expr) {
     return parens(parens(unSignedCTypeString(tp)) + " " + expr);
   }
 
-  string seString(Type& tp, const std::string& arg) {
+  LowExpr* seString(Type& tp, LowExpr* const arg) {
     uint startWidth = typeWidth(tp);
     uint extWidth = containerTypeWidth(tp);
 
     if (startWidth < extWidth) {
-      return "SIGN_EXTEND( " + to_string(startWidth) + ", " +
-        to_string(extWidth) + ", " +
-        arg + " )";
+      return new LowId("SIGN_EXTEND( " + to_string(startWidth) + ", " +
+                       to_string(extWidth) + ", " +
+                       arg->cString() + " )");
     } else if (startWidth == extWidth) {
-      return parens(arg);
+      return arg;
     } else {
       cout << "ERROR: trying to sign extend from " << startWidth << " to " << extWidth << endl;
       assert(false);
@@ -267,7 +259,7 @@ namespace CoreIR {
 
   }
 
-  string
+  LowExpr*
   printSEThenOpThenMaskBinop(Instance* inst,
                              const vdisc vd,
                              const NGraph& g,
@@ -290,18 +282,20 @@ namespace CoreIR {
     Type& arg1Tp = *((arg1.getWire())->getType());
     Type& arg2Tp = *((arg2.getWire())->getType());
 
-    string rs1 = printOpResultStr(arg1, g, lp)->cString();
-    string rs2 = printOpResultStr(arg2, g, lp)->cString();
+    LowExpr* rs1 = printOpResultStr(arg1, g, lp);
+    LowExpr* rs2 = printOpResultStr(arg2, g, lp);
 
-    string opStr = castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
-      opString +
-      castToSigned(arg2Tp, seString(arg2Tp, rs2));
+    LowExpr* opStr =
+      new LowBinop(opString,
+                   castToSigned(arg1Tp, seString(arg1Tp, rs1)),
+                   castToSigned(arg2Tp, seString(arg2Tp, rs2)));
 
-    string res;
+    //string res;
+    LowExpr* res;
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
-      res += maskResult(*(outPair.second->getType()), opStr);
+      res = maskResultExpression(*(outPair.second->getType()), opStr);
     } else {
-      res += opStr;
+      res = opStr;
     }
       
     return res;
@@ -543,7 +537,7 @@ namespace CoreIR {
 
     if (isSignedCmp(*inst) ||
         isSDivOrRem(*inst)) {
-      return new LowId(printSEThenOpThenMaskBinop(inst, vd, g, lp));
+      return printSEThenOpThenMaskBinop(inst, vd, g, lp);
     }
 
     cout << "Unsupported binop = " << inst->toString() << " from module = " << inst->getModuleRef()->getName() << endl;
@@ -713,13 +707,6 @@ namespace CoreIR {
                                        printOpResultStr(wdata, g, lp)->cString(),
                                        oldValueName)));
 
-      // string s = oldValueName + " = ";
-      // s += ite(parens(condition),
-      //          printOpResultStr(wdata, g, lp),
-      //          oldValueName);
-
-      // return ln(s);
-      
     }
   }
 
@@ -822,11 +809,10 @@ namespace CoreIR {
     // the given variable, this is slightly too conservative
     if ((g.getOutputConnections(opNodeD).size() == 1) ||
         (isConstant(g.getNode(opNodeD)))) {
-      //return opResultStr(combNode(sourceInstance), opNodeD, g, lp)->cString();
+
       return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
     }
 
-    //return "/* LOCAL */" + cVar(wd);
     return new LowId(cVar(wd));
   }
 
