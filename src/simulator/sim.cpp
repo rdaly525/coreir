@@ -238,8 +238,8 @@ namespace CoreIR {
     return new LowId(parens(parens(signedCTypeString(tp)) + " " + expr->cString()));
   }
 
-  string castToUnSigned(Type& tp, const std::string& expr) {
-    return parens(parens(unSignedCTypeString(tp)) + " " + expr);
+  LowExpr* castToUnSigned(Type& tp, LowExpr* const expr) {
+    return new LowId(parens(parens(unSignedCTypeString(tp)) + " " + expr->cString()));
   }
 
   LowExpr* seString(Type& tp, LowExpr* const arg) {
@@ -364,16 +364,19 @@ namespace CoreIR {
 
   }
 
-  string checkSumOverflowStr(Type& tp,
-                             const std::string& in0StrNC,
-                             const std::string& in1StrNC) {
-    string in0Str = castToUnSigned(tp, in0StrNC);
-    string in1Str = castToUnSigned(tp, in0StrNC);
+  LowExpr* checkSumOverflowStr(Type& tp,
+                               LowExpr* const in0StrNC,
+                               LowExpr* const in1StrNC) {
 
-    string sumString = castToUnSigned(tp, parens(in0StrNC + " + " + in1StrNC));
-    string test1 = parens(sumString + " < " + in0Str);
-    string test2 = parens(sumString + " < " + in1Str);
-    return parens(test1 + " || " + test2);
+                             // const std::string& in0StrNC,
+                             // const std::string& in1StrNC) {
+    LowExpr* in0Str = castToUnSigned(tp, in0StrNC);
+    LowExpr* in1Str = castToUnSigned(tp, in1StrNC);
+
+    LowExpr* sumString = castToUnSigned(tp, new LowId(parens(in0StrNC->cString() + " + " + in1StrNC->cString())));
+    string test1 = parens(sumString->cString() + " < " + in0Str->cString());
+    string test2 = parens(sumString->cString() + " < " + in1Str->cString());
+    return new LowId(parens(test1 + " || " + test2));
   }
 
   // NOTE: This function prints the full assignment of values
@@ -409,13 +412,13 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string in0Str = printOpResultStr(arg1, g, lp)->cString();
-    string in1Str = printOpResultStr(arg2, g, lp)->cString();
-    string carryStr = printOpResultStr(carry, g, lp)->cString();
-    string sumStr = parens(in0Str + opString + in1Str);
+    auto in0Str = printOpResultStr(arg1, g, lp);
+    auto in1Str = printOpResultStr(arg2, g, lp);
+    auto carryStr = printOpResultStr(carry, g, lp);
+    auto sumStr = new LowBinop(opString, in0Str, in1Str); //parens(in0Str + opString + in1Str);
 
     string compString =
-      parens(sumStr + " + " + carryStr);
+      parens(sumStr->cString() + " + " + carryStr->cString());
 
     Type& tp = *(resultSelect->getType());
     res += maskResult(tp, compString);
@@ -424,9 +427,9 @@ namespace CoreIR {
     // a fixed architecture width
     string carryRes;
     if (standardWidth(tp)) {
-      string firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
-      string secondOverflow = checkSumOverflowStr(tp, sumStr, carryStr);
-      carryRes = parens(firstOverflow + " || " + secondOverflow);
+      auto firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
+      auto secondOverflow = checkSumOverflowStr(tp, sumStr, carryStr);
+      carryRes = parens(firstOverflow->cString() + " || " + secondOverflow->cString());
     } else {
 
       carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
@@ -458,7 +461,7 @@ namespace CoreIR {
     Wireable* resultSelect = findSelect("out", outSelects);
     Wireable* coutSelect = findSelect("cout", outSelects);
 
-    string res = "";
+    //string res = "";
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
@@ -472,30 +475,31 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string in0Str = printOpResultStr(arg1, g, lp)->cString();
-    string in1Str = printOpResultStr(arg2, g, lp)->cString();
-    string sumStr = parens(in0Str + opString + in1Str);
+    auto in0Str = printOpResultStr(arg1, g, lp);
+    auto in1Str = printOpResultStr(arg2, g, lp);
+    LowExpr* sumStr = new LowBinop(opString,
+                                   in0Str,
+                                   in1Str);
 
-    string compString = sumStr;
+    auto compString = sumStr;
 
     Type& tp = *(resultSelect->getType());
-    res += maskResult(tp, compString);
+    LowExpr* res = maskResultExpression(tp, compString);
 
     // This does not actually handle the case where the underlying types are the
     // a fixed architecture width
     string carryRes;
     if (standardWidth(tp)) {
-      string firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
-      carryRes = parens(firstOverflow);
+      LowExpr* firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
+      carryRes = parens(firstOverflow->cString());
     } else {
 
-      carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
+      carryRes = parens(parens(compString->cString() + " >> " + to_string(typeWidth(tp))) + " & 0x1");
 
     }
 
     //LowProgram prog;
-    prog.addAssignStmt(new LowId(cVar(*resultSelect)),
-                       new LowId(res));
+    prog.addAssignStmt(new LowId(cVar(*resultSelect)), res);
 
     prog.addAssignStmt(new LowId(cVar(*coutSelect)),
                        new LowId(carryRes));
@@ -582,12 +586,13 @@ namespace CoreIR {
     // clock variable
     string resStr;
     if (hasEnable(wd.getWire())) {
-      string condition = "";
+      //string condition = "";
+      LowExpr* condition;
       
       InstanceValue en = findArg("en", ins);
-      condition += printOpResultStr(en, g, lp)->cString();
+      condition = printOpResultStr(en, g, lp);
 
-      resStr = ite(parens(condition),
+      resStr = ite(parens(condition->cString()),
                    printOpResultStr(add, g, lp)->cString(),
                     oldValName) + ";\n";
     } else {
@@ -685,11 +690,6 @@ namespace CoreIR {
       prog.addAssignStmt(new LowId(cVar(*s)),
                          new LowId(parens(lp.outputVarName(*r) +
                                           "[ " + printOpResultStr(raddr, g, lp)->cString() + " ]")));
-
-
-      // return ln(cVar(*s) + " = " +
-      //           parens(lp.outputVarName(*r) +
-      //                  "[ " + printOpResultStr(raddr, g, lp) + " ]"));
 
     } else {
       assert(ins.size() == 4);
