@@ -112,12 +112,12 @@ namespace CoreIR {
 
     LowExpr* val = nullptr;
     if (opString != "andr") {
-      val = new LowUnop(opString, new LowId(printOpResultStr(cn.first, g, lp)));
+      val = new LowUnop(opString, printOpResultStr(cn.first, g, lp));
     } else {
 
       uint w = typeWidth(*(cn.first.getWire()->getType()));
       val = new LowBinop("==",
-                         new LowId(printOpResultStr(cn.first, g, lp)),
+                         printOpResultStr(cn.first, g, lp),
                          bitMaskExpression(w));
 
     }
@@ -201,8 +201,8 @@ namespace CoreIR {
     string opString = getOpString(*inst);
 
     LowExpr* expr = new LowBinop(opString,
-                                 new LowId(printOpResultStr(arg1, g, lp)),
-                                 new LowId(printOpResultStr(arg2, g, lp)));
+                                 printOpResultStr(arg1, g, lp),
+                                 printOpResultStr(arg2, g, lp));
     //string compString = expr->cString();
 
     // And not standard width
@@ -213,10 +213,10 @@ namespace CoreIR {
 
         LowExpr* maskExpr =
           new LowBinop("<<",
-                       new LowId(bitMaskString(printOpResultStr(arg2, g, lp))),
+                       new LowId(bitMaskString(printOpResultStr(arg2, g, lp)->cString())),
                        new LowBinop("-",
                                     new LowId(to_string(tw)),
-                                    new LowId(printOpResultStr(arg2, g, lp))));
+                                    printOpResultStr(arg2, g, lp)));
 
         string mask = maskExpr->cString();
           // parens(bitMaskString(printOpResultStr(arg2, g, lp)) + " << " + parens(to_string(tw) + " - " + printOpResultStr(arg2, g, lp)));
@@ -225,7 +225,7 @@ namespace CoreIR {
           new LowBinop("&",
                        new LowBitVec(BitVec(1, 1)),
                        new LowBinop(">>",
-                                    new LowId(printOpResultStr(arg1, g, lp)),
+                                    printOpResultStr(arg1, g, lp),
                                     new LowId(parens(to_string(tw - 1)))));
 
         expr =
@@ -297,8 +297,8 @@ namespace CoreIR {
     Type& arg1Tp = *((arg1.getWire())->getType());
     Type& arg2Tp = *((arg2.getWire())->getType());
 
-    string rs1 = printOpResultStr(arg1, g, lp);
-    string rs2 = printOpResultStr(arg2, g, lp);
+    string rs1 = printOpResultStr(arg1, g, lp)->cString();
+    string rs2 = printOpResultStr(arg2, g, lp)->cString();
 
     string opStr = castToSigned(arg1Tp, seString(arg1Tp, rs1)) +
       opString +
@@ -330,9 +330,9 @@ namespace CoreIR {
     InstanceValue i0 = findArg("in0", ins);
     InstanceValue i1 = findArg("in1", ins);
     
-    return ite(printOpResultStr(sel, g, lp),
-               printOpResultStr(i1, g, lp),
-               printOpResultStr(i0, g, lp));
+    return ite(printOpResultStr(sel, g, lp)->cString(),
+               printOpResultStr(i1, g, lp)->cString(),
+               printOpResultStr(i0, g, lp)->cString());
   }
 
   string printAddOrSubWithCIN(const WireNode& wd,
@@ -364,7 +364,7 @@ namespace CoreIR {
     string opString = getOpString(*inst);
 
     string compString =
-      parens(printOpResultStr(arg1, g, lp) + opString + printOpResultStr(arg2, g, lp) + " + " + printOpResultStr(carry, g, lp));
+      parens(printOpResultStr(arg1, g, lp)->cString() + opString + printOpResultStr(arg2, g, lp)->cString() + " + " + printOpResultStr(carry, g, lp)->cString());
 
     // Check if this output needs a mask
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
@@ -422,9 +422,9 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string in0Str = printOpResultStr(arg1, g, lp);
-    string in1Str = printOpResultStr(arg2, g, lp);
-    string carryStr = printOpResultStr(carry, g, lp);
+    string in0Str = printOpResultStr(arg1, g, lp)->cString();
+    string in1Str = printOpResultStr(arg2, g, lp)->cString();
+    string carryStr = printOpResultStr(carry, g, lp)->cString();
     string sumStr = parens(in0Str + opString + in1Str);
 
     string compString =
@@ -485,8 +485,8 @@ namespace CoreIR {
 
     string opString = getOpString(*inst);
 
-    string in0Str = printOpResultStr(arg1, g, lp);
-    string in1Str = printOpResultStr(arg2, g, lp);
+    string in0Str = printOpResultStr(arg1, g, lp)->cString();
+    string in1Str = printOpResultStr(arg2, g, lp)->cString();
     string sumStr = parens(in0Str + opString + in1Str);
 
     string compString = sumStr;
@@ -598,13 +598,13 @@ namespace CoreIR {
       string condition = "";
       
       InstanceValue en = findArg("en", ins);
-      condition += printOpResultStr(en, g, lp);
+      condition += printOpResultStr(en, g, lp)->cString();
 
       resStr = ite(parens(condition),
-                    printOpResultStr(add, g, lp),
+                   printOpResultStr(add, g, lp)->cString(),
                     oldValName) + ";\n";
     } else {
-      resStr = printOpResultStr(add, g, lp) + ";\n";
+      resStr = printOpResultStr(add, g, lp)->cString() + ";\n";
     }
 
     //LowProgram prog;
@@ -697,7 +697,7 @@ namespace CoreIR {
 
       prog.addAssignStmt(new LowId(cVar(*s)),
                          new LowId(parens(lp.outputVarName(*r) +
-                                          "[ " + printOpResultStr(raddr, g, lp) + " ]")));
+                                          "[ " + printOpResultStr(raddr, g, lp)->cString() + " ]")));
 
 
       // return ln(cVar(*s) + " = " +
@@ -711,13 +711,13 @@ namespace CoreIR {
       InstanceValue wdata = findArg("wdata", ins);
       InstanceValue wen = findArg("wen", ins);
 
-      string condition = printOpResultStr(wen, g, lp);
+      string condition = printOpResultStr(wen, g, lp)->cString();
 
-      string oldValueName = lp.outputVarName(*r) + "[ " + printOpResultStr(waddr, g, lp) + " ]";
+      string oldValueName = lp.outputVarName(*r) + "[ " + printOpResultStr(waddr, g, lp)->cString() + " ]";
 
       prog.addAssignStmt(new LowId(oldValueName),
                          new LowId(ite(parens(condition),
-                                       printOpResultStr(wdata, g, lp),
+                                       printOpResultStr(wdata, g, lp)->cString(),
                                        oldValueName)));
 
       // string s = oldValueName + " = ";
@@ -833,7 +833,8 @@ namespace CoreIR {
       return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
     }
 
-    return "/* LOCAL */" + cVar(wd);
+    //return "/* LOCAL */" + cVar(wd);
+    return new LowId(cVar(wd));
   }
 
   string printInternalVariables(const std::deque<vdisc>& topo_order,
@@ -973,7 +974,7 @@ namespace CoreIR {
               string outVarName = layoutPolicy.outputVarName(outSel);
 
               prog.addAssignStmt(new LowId(outVarName),
-                                 new LowId(printOpResultStr(inConn.first, g, layoutPolicy)));
+                                 printOpResultStr(inConn.first, g, layoutPolicy));
 
             }
 
