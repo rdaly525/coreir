@@ -107,6 +107,17 @@ namespace CoreIR {
   bool isGraphOutput(const WireNode& w);
   bool isGraphInput(const WireNode& w);
 
+  static inline std::string nodeString(const WireNode& w) {
+    if (w.isSequential) {
+      if (w.isReceiver) {
+        return w.getWire()->toString() + ", receiver";
+      } else {
+        return w.getWire()->toString() + ", source";
+      }
+    }
+    return w.getWire()->toString();
+  }
+
 }
 
 namespace std {

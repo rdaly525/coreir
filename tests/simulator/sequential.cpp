@@ -703,12 +703,126 @@ namespace CoreIR {
 
     }
 
+    SECTION("Harris") {
+      CoreIRLoadLibrary_commonlib(c);
+
+      if (!loadFromFile(c,"./_harris.json")) {
+    	cout << "Could not Load from json!!" << endl;
+    	c->die();
+      }
+
+
+      cout << "==== HARRIS Graph" << endl;
+      Module* mPre = c->getGlobal()->getModule("DesignTop");
+      NGraph preG;
+      buildOrderedGraph(mPre, preG);
+
+      auto preOrder = topologicalSort(preG);
+
+      cout << "Pre topological order = " << endl;
+      for (auto& vd : preOrder) {
+        cout << preG.getNode(vd).getWire()->toString() << endl;
+      }
+
+      auto preLevels = topologicalLevels(preG);
+
+      cout << "Pre topological order = " << endl;
+      for (auto& level : preLevels) {
+        cout << "------- Level" << endl;
+        for (auto& vd : level) {
+          WireNode wd = preG.getNode(vd);
+          cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << endl;
+          
+        }
+      }
+
+      c->runPasses({"rungenerators","flattentypes", "flatten", "wireclocks-coreir"});
+      Module* m = c->getGlobal()->getModule("DesignTop");
+
+      NGraph g;
+      buildOrderedGraph(m, g);
+      auto postLevels = topologicalLevels(g);
+      cout << "Pre topological order = " << endl;
+      for (auto& level : postLevels) {
+        cout << "------- Level" << endl;
+        for (auto& vd : level) {
+          WireNode wd = g.getNode(vd);
+          cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << endl;
+          
+        }
+      }
+
+      // Finding all nodes from each of the lb grads
+      vector<vdisc> grad_xx_nodes;
+      vector<vdisc> grad_xy_nodes;
+      vector<vdisc> grad_yy_nodes;
+
+      for (auto& vd : concat_all(postLevels)) {
+        Wireable* w = g.getNode(vd).getWire();
+        if (isInstance(w)) {
+          Instance* inst = toInstance(w);
+
+          string instName = inst->toString();
+          string origin = instName.substr(0, instName.find("$"));
+
+          if (origin == "lb_grad_yy_2_stencil_update_stream") {
+            grad_yy_nodes.push_back(vd);
+          }
+
+          if (origin == "lb_grad_xx_2_stencil_update_stream") {
+            grad_xx_nodes.push_back(vd);
+          }
+
+          if (origin == "lb_grad_xy_2_stencil_update_stream") {
+            grad_xy_nodes.push_back(vd);
+          }
+          
+        }
+      }
+
+      cout << "---- gradient linebuffers" << endl;
+      cout << "---- yy elems" << endl;
+      for (auto& vd : grad_yy_nodes) {
+        cout << nodeString(g.getNode(vd)) << endl;
+      }
+      cout << "---- xx elems" << endl;
+      for (auto& vd : grad_xx_nodes) {
+        cout << nodeString(g.getNode(vd)) << endl;
+      }
+      cout << "---- xy elems" << endl;
+      for (auto& vd : grad_xy_nodes) {
+        cout << nodeString(g.getNode(vd)) << endl;
+      }
+    }
+
     SECTION("conv_3_1") {
       CoreIRLoadLibrary_commonlib(c);
 
       if (!loadFromFile(c,"./conv_3_1.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
+      }
+
+
+      Module* mPre = c->getGlobal()->getModule("DesignTop");
+      NGraph preG;
+      buildOrderedGraph(mPre, preG);
+
+      auto preOrder = topologicalSort(preG);
+
+      cout << "Pre topological order = " << endl;
+      for (auto& vd : preOrder) {
+        cout << preG.getNode(vd).getWire()->toString() << endl;
+      }
+
+      auto preLevels = topologicalLevels(preG);
+
+      cout << "Pre topological order = " << endl;
+      for (auto& level : preLevels) {
+        cout << "------- Level" << endl;
+        for (auto& vd : level) {
+          cout << preG.getNode(vd).getWire()->toString() << endl;
+        }
       }
       
       c->runPasses({"rungenerators","flattentypes","flatten", "wireclocks-coreir"});
