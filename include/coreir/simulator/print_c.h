@@ -56,7 +56,9 @@ namespace CoreIR {
   static inline std::string ite(const std::string& condition,
 		  const std::string& trueRes,
 		  const std::string& falseRes) {
-    return parens(condition + " ? " + trueRes + " : " + falseRes);
+    //return parens(condition + " ? " + trueRes + " : " + falseRes);
+    std::string cnd = "true";
+    return parens(cnd + " ? " + trueRes + " : " + falseRes);
   }
 
 
