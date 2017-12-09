@@ -20,6 +20,29 @@ using namespace std;
 
 namespace CoreIR {
 
+  vector<vector<vdisc> >
+  groupByImplName(const vector<vector<vdisc> >& identicalComps,
+                  // May not need this parameter
+                  const int width) {
+    assert((identicalComps.size() % width) == 0);
+    assert(identicalComps.size() > 0);
+
+    vector<vector<vdisc> > groups;
+    for (int i = 0; i < identicalComps[0].size(); i++) {
+      vector<vdisc> gp;
+      for (int j = 0; j < width; j++) {
+        gp.push_back(identicalComps[j][i]);
+      }
+      groups.push_back(gp);
+    }
+
+    cout << "Id comps size = " << concat_all(identicalComps).size() << endl;
+    cout << "Grouped size  = " << concat_all(groups).size() << endl;
+    assert(concat_all(groups).size() == concat_all(identicalComps).size());
+
+    return groups;
+  }
+
   bool splitNodeEdgesCorrect(const NGraph& g) {
 
     //assert(false);
@@ -781,18 +804,56 @@ namespace CoreIR {
       }
 
       cout << "---- gradient linebuffers" << endl;
-      cout << "---- yy elems" << endl;
+      cout << "---- yy elems = " << grad_yy_nodes.size() << endl;
       for (auto& vd : grad_yy_nodes) {
         cout << nodeString(g.getNode(vd)) << endl;
       }
-      cout << "---- xx elems" << endl;
+      cout << "---- xx elems = " << grad_xx_nodes.size() << endl;
       for (auto& vd : grad_xx_nodes) {
         cout << nodeString(g.getNode(vd)) << endl;
       }
-      cout << "---- xy elems" << endl;
+      cout << "---- xy elems size = " << grad_xy_nodes.size() << endl;
       for (auto& vd : grad_xy_nodes) {
         cout << nodeString(g.getNode(vd)) << endl;
       }
+
+      vector<vector<vdisc> > identicalComps;
+      identicalComps.push_back(grad_xx_nodes);
+      identicalComps.push_back(grad_yy_nodes);
+      identicalComps.push_back(grad_xy_nodes);
+
+      vector<vector<vdisc> > simdGroups =
+        groupByImplName(identicalComps, 3);
+
+      vector<vdisc> internalNodes = concat_all(simdGroups);
+      vector<vdisc> stagedInputs;
+      vector<vdisc> stagedOutputs;
+
+      for (auto& comp : simdGroups) {
+        cout << "--- Group" << endl;
+        for (auto& vd : comp) {
+          cout << "\t" << nodeString(g.getNode(vd)) << endl;
+        }
+
+        cout << "--- Group inputs" << endl;
+        for (auto& vd : comp) {
+          for (auto& inConn : g.inEdges(vd)) {
+            auto inVD = g.source(inConn);
+            cout << "\t\t" << nodeString(g.getNode(inVD)) << endl;
+
+            if (!elem(inVD, internalNodes) && !elem(inVD, stagedInputs)) {
+              stagedInputs.push_back(inVD);
+            }
+          }
+        }
+      }
+
+      cout << "# of inputs to stage = " << stagedInputs.size() << endl;
+      for (auto& vd : stagedInputs) {
+        cout << "\t" << nodeString(g.getNode(vd)) << endl;
+      }
+
+      
     }
 
     SECTION("conv_3_1") {
