@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "coreir/ir/dynamic_bit_vector.h"
+#include "coreir/ir/fwd_declare.h"
 #include "coreir/simulator/print_c.h"
 
 namespace CoreIR {
@@ -32,10 +34,10 @@ namespace CoreIR {
   };
 
   class LowBitVec : public LowExpr {
-    BitVec bv;
+    BitVector bv;
 
   public:
-    LowBitVec(const BitVec& bv_) : bv(bv_) {}
+    LowBitVec(const BitVector& bv_) : bv(bv_) {}
     virtual std::string cString() const {
       std::stringstream ss;
       ss << "0b" << bv;
