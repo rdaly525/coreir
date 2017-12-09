@@ -846,6 +846,19 @@ namespace CoreIR {
             }
           }
         }
+
+        cout << "--- Group outputs" << endl;
+        for (auto& vd : comp) {
+          for (auto& inConn : g.outEdges(vd)) {
+            auto inVD = g.target(inConn);
+            cout << "\t\t" << nodeString(g.getNode(inVD)) << endl;
+
+            if (!elem(inVD, internalNodes) && !elem(inVD, stagedOutputs)) {
+              stagedOutputs.push_back(inVD);
+            }
+          }
+        }
+
       }
 
       cout << "# of inputs to stage = " << stagedInputs.size() << endl;
@@ -853,6 +866,11 @@ namespace CoreIR {
         cout << "\t" << nodeString(g.getNode(vd)) << endl;
       }
 
+      cout << "# of outputs to stage = " << stagedOutputs.size() << endl;
+      for (auto& vd : stagedOutputs) {
+        cout << "\t" << nodeString(g.getNode(vd)) << endl;
+      }
+      
       
     }
 
