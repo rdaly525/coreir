@@ -1,16 +1,16 @@
-#ifndef WIRECLOCKPORTPASS_HPP_
-#define WIRECLOCKPORTPASS_HPP_
+#ifndef REGISTERINPUTSPASS_HPP_
+#define REGISTERINPUTSPASS_HPP_
 
 #include "coreir.h"
 
 namespace CoreIR {
 namespace Passes {
 
-class Registerinputs : public InstanceGraphPass {
+class RegisterInputs : public InstanceGraphPass {
   private :
-    Type* clockType; 
+
   public :
-  Registerinputs(std::string name) : InstanceGraphPass(name, "Register all non-clock inputs.") {}
+  RegisterInputs(std::string name) : InstanceGraphPass(name, "Register all non-clock inputs.") {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node);
 
 };
