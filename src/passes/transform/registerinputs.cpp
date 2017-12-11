@@ -30,20 +30,28 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
         Type* selTp = sel->getType();
 
-        assert(selTp->getKind() == Type::TK_Array);
+        if (selTp->getKind() == Type::TK_Array) {
 
-        ArrayType* atp = static_cast<CoreIR::ArrayType*>(selTp);
-        int len = atp->getLen();
+          ArrayType* atp = static_cast<CoreIR::ArrayType*>(selTp);
+          int len = atp->getLen();
 
-        cout << "Input type   = " << selTp->toString() << endl;
-        cout << "Array length = " << len << endl;
+          cout << "Input type   = " << selTp->toString() << endl;
+          cout << "Array length = " << len << endl;
 
-        // TODO: Ensure truly unique name
-        auto selReg = def->addInstance(field.first + "_auto_reg",
-                                       "coreir.reg",
-                                       {{"width", Const::make(c, len)}});
+          // TODO: Ensure truly unique name
+          auto selReg = def->addInstance(field.first + "_auto_reg",
+                                         "coreir.reg",
+                                         {{"width", Const::make(c, len)}});
 
-        newRegs.insert({sel, selReg});
+          newRegs.insert({sel, selReg});
+        } else {
+          // Add a flip flop in front of single bit inputs
+          assert(selTp->getKind() == Type::TK_Bit);
+
+          auto selDFF = def->addInstance(field.first + "_auto_dff",
+                                         "corebit.dff");
+          newRegs.insert({sel, selDFF});
+        }
 
         // cout << "With connections" << endl;
         // for (auto& connected : w->getConnectedWireables()) {
