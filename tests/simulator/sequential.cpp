@@ -28,7 +28,7 @@ namespace CoreIR {
     assert(identicalComps.size() > 0);
 
     vector<vector<vdisc> > groups;
-    for (int i = 0; i < identicalComps[0].size(); i++) {
+    for (uint i = 0; i < identicalComps[0].size(); i++) {
       vector<vdisc> gp;
       for (int j = 0; j < width; j++) {
         gp.push_back(identicalComps[j][i]);
