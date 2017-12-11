@@ -729,7 +729,7 @@ namespace CoreIR {
     SECTION("Harris") {
       CoreIRLoadLibrary_commonlib(c);
 
-      if (!loadFromFile(c,"./_harris.json")) {
+      if (!loadFromFile(c,"./harris.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
       }

@@ -1,11 +1,15 @@
 #include <stdint.h>
 #include <cstdio>
 
+#include <iostream>
+
 #include "counter.h"
+
+using namespace std;
 
 int main() {
   uint8_t self_en = 1;
-  uint16_t self_out;
+  uint16_t self_out = 0;
   uint8_t self_clk = 0;
   uint8_t self_clk_last = 1;
   uint16_t ri_old_value = 0;
@@ -20,7 +24,8 @@ int main() {
   //state.ri_old_value = 0;
   //state.ri_new_value = 0; //&ri_new_value;
   state.self_out = self_out;
-  
+
+  cout << "Self out initial = " << state.self_out << endl;
   for (int i = 0; i < 20; i++) {
 
     state.self_clk = i % 2;

@@ -991,11 +991,13 @@ namespace CoreIR {
         paths.postSequentialAlwaysDAGs.push_back({-1, {nodes}});
       }
 
-      if (subgraphHasAllSequentialOutputs(nodes, g)) {
+      //if (subgraphHasAllSequentialOutputs(nodes, g)) {
+      if (subgraphHasSequentialOutput(nodes, g)) {
         paths.preSequentialDAGs.push_back({-1, {nodes}});
       }
 
-      if (subgraphHasAllSequentialInputs(nodes, g)) {
+      //if (subgraphHasAllSequentialInputs(nodes, g)) {
+      if (subgraphHasSequentialInput(nodes, g)) {
         paths.postSequentialDAGs.push_back({-1, {nodes}});
       }
       
