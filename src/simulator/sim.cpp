@@ -1504,7 +1504,37 @@ namespace CoreIR {
       }
     }
   }
-  
+
+  vector<SIMDGroup> deleteDuplicates(const std::vector<SIMDGroup>& allUpdates) {
+    vector<SIMDGroup> unique;
+
+    for (auto& update : allUpdates) {
+
+      bool isDuplicate = false;
+      for (auto& existing : unique) {
+        if (existing.nodes.size() != update.nodes.size()) {
+          continue;
+        }
+
+        if (existing.nodes.size() == 1) {
+          set<vdisc> ex_set(begin(existing.nodes[0]), end(existing.nodes[0]));
+          set<vdisc> up_set(begin(update.nodes[0]), end(update.nodes[0]));
+
+          if ((intersection(ex_set, up_set).size() == ex_set.size()) &&
+              (ex_set.size() == up_set.size())) {
+            isDuplicate = true;
+            break;
+          }
+        }
+      }
+
+      if (!isDuplicate) {
+        unique.push_back(update);
+      }
+    }
+    return unique;
+  }
+
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -1553,6 +1583,8 @@ namespace CoreIR {
       concat(allUpdates, paths.postSequentialAlwaysDAGs);
       concat(allUpdates, paths.preSequentialAlwaysDAGs);
 
+      allUpdates = deleteDuplicates(allUpdates);
+
       codeGroups.push_back({allUpdates, true});
 
       codeGroups.push_back({paths.postSequentialDAGs, false});
@@ -1562,7 +1594,6 @@ namespace CoreIR {
         addDAGCode(group, g, mod, layoutPolicy, clkProg);
       }
       simLines.push_back(clkProg.cString());
-      
       simLines.push_back("\n}\n");
 
       LowProgram postProg;
