@@ -14,22 +14,6 @@ using namespace std;
 
 namespace CoreIR {
 
-  typedef std::deque<vdisc> SubDAG;
-
-  class SIMDGroup {
-  public:
-    int totalWidth;
-    std::vector<SubDAG> nodes;
-  };
-
-  struct CircuitPaths {
-    vector<SIMDGroup > preSequentialAlwaysDAGs;
-    vector<SIMDGroup > preSequentialDAGs;
-    vector<SIMDGroup > postSequentialDAGs;
-    vector<SIMDGroup > postSequentialAlwaysDAGs;
-    vector<SIMDGroup > pureCombDAGs;
-  };
-
   std::vector<std::string> printSIMDNode(const vdisc vd,
                                          const int opWidth,
                                          NGraph& g,
