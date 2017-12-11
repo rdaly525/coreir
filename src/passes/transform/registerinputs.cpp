@@ -43,7 +43,6 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
                                        "coreir.reg",
                                        {{"width", Const::make(c, len)}});
 
-        def->connect(sel, selReg->sel("in"));
         newRegs.insert({sel, selReg});
 
         // cout << "With connections" << endl;
@@ -68,12 +67,43 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
 
   for (auto& conn : def->getConnections()) {
-    cout << Connection2Str(conn) << endl;
-
-    // Wireable* sel1 = conn.first;
-    // Wireable* sel2 = conn.second;
+    cout << Connection2Str(conn) << " ";
 
     
+    Wireable* sel1 = conn.first;
+    Wireable* sel2 = conn.second;
+
+    Wireable* inSel;
+    Wireable* outSel;
+
+    bool foundIn = false;
+
+    if (newRegs.find(sel1) != std::end(newRegs)) {
+      foundIn = true;
+      inSel = sel1;
+      outSel = sel2;
+      cout << "Contains input " << endl;
+    }
+
+    if (newRegs.find(sel2) != std::end(newRegs)) {
+      foundIn = true;
+      inSel = sel2;
+      outSel = sel1;
+      cout << "Contains input " << endl;
+    }
+    
+    cout << endl;
+
+    if (foundIn) {
+
+      def->disconnect(conn);
+      def->connect(outSel, newRegs[inSel]->sel("out"));
+
+    }
+  }
+
+  for (auto& selPair : newRegs) {
+    def->connect(selPair.first, (selPair.second)->sel("in"));
   }
   
   return true;
