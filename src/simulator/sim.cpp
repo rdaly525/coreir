@@ -978,13 +978,15 @@ namespace CoreIR {
       }
 
       if (subgraphHasCombinationalOutput(nodes, g) &&
-          subgraphHasSequentialOutput(nodes, g)) {
+          subgraphHasSequentialOutput(nodes, g) &&
+          subgraphHasCombinationalInput(nodes, g)) {
         // Need to split up graphs of this form
         paths.preSequentialAlwaysDAGs.push_back({-1, {nodes}});
       }
 
       if (subgraphHasCombinationalInput(nodes, g) &&
-          subgraphHasSequentialInput(nodes, g)) {
+          subgraphHasSequentialInput(nodes, g) &&
+          subgraphHasCombinationalOutput(nodes, g)) {
         // Need to split up graphs of this form
         paths.postSequentialAlwaysDAGs.push_back({-1, {nodes}});
       }
