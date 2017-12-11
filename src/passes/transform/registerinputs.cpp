@@ -12,7 +12,12 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   ModuleDef* def = module->getDef();
 
+  Wireable* self = def->sel("self");
+
+  map<Wireable*, Instance*> newRegs;
+
   Context* c = module->getDef()->getContext();
+
   for (auto& field : module->getType()->getRecord()) {
     if (field.second != c->Named("coreir.clkIn")) {
 
@@ -21,6 +26,25 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
       if (dk == Type::DirKind::DK_In) {
         //Wireable* w = field.first;
         cout << "Input = " << field.first << endl;
+        auto sel = self->sel(field.first);
+
+        Type* selTp = sel->getType();
+
+        assert(selTp->getKind() == Type::TK_Array);
+
+        ArrayType* atp = static_cast<CoreIR::ArrayType*>(selTp);
+        int len = atp->getLen();
+
+        cout << "Input type   = " << selTp->toString() << endl;
+        cout << "Array length = " << len << endl;
+
+        // TODO: Ensure truly unique name
+        auto selReg = def->addInstance(field.first + "_auto_reg",
+                                       "coreir.reg",
+                                       {{"width", Const::make(c, len)}});
+
+        def->connect(sel, selReg->sel("in"));
+        newRegs.insert({sel, selReg});
 
         // cout << "With connections" << endl;
         // for (auto& connected : w->getConnectedWireables()) {
@@ -38,13 +62,11 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
     cout << wd->toString() << endl;
   }
 
-  Wireable* self = def->sel("self");
   cout << "# of wireables connected to self = " << self->getConnectedWireables().size() << endl;
   for (auto& wd : self->getConnectedWireables()) {
     cout << wd->toString() << endl;
   }
 
-  map<Wireable*, Instance*> newRegs;
   for (auto& conn : def->getConnections()) {
     cout << Connection2Str(conn) << endl;
 
