@@ -6,7 +6,9 @@ using namespace CoreIR;
 bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   Module* module = node.getModule();
-  if (!module->hasDef()) return false;
+  if (!module->hasDef()) {
+    return false;
+  }
   
   return false;
 }
