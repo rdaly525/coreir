@@ -25,6 +25,7 @@
 #include "transform/removebulkconnections.h"
 #include "transform/removepassthroughs.h"
 #include "transform/removeunconnected.h"
+#include "transform/registerinputs.h"
 #include "transform/wireclocks.h"
 #include "transform/cullgraph.h"
 
@@ -67,6 +68,7 @@ namespace CoreIR {
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::CullGraph());
     pm.addPass(new Passes::AddDirected());
+    pm.addPass(new Passes::RegisterInputs("registerinputs"));
     pm.addPass(new Passes::Transform2CombView());
   }
 }
