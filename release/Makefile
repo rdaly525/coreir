@@ -18,6 +18,7 @@ install:
 	install -d $(prefix)/include/coreir/libs
 	install -d $(prefix)/include/coreir/passes/analysis
 	install -d $(prefix)/include/coreir/passes/transform
+	install -d $(prefix)/include/coreir/simulator
 	install include/coreir.h $(prefix)/include
 	install include/coreir-c/* $(prefix)/include/coreir-c
 	install include/coreir/*.h $(prefix)/include/coreir
