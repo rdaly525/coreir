@@ -110,6 +110,10 @@ extern "C" {
     return modargs.count(str) > 0;
   }
 
+  bool COREModuleHasDef(COREModule* module) {
+      return rcast<Module*>(module)->hasDef();
+  }
+
   //TODO update C api
   //This can return nullptr
   //bool loadFromFile(Context* c, string filename,Module** top);
@@ -153,6 +157,10 @@ extern "C" {
 
   bool COREModuleIsGenerated(COREModule* mod) {
     return rcast<Module*>(mod)->isGenerated();
+  }
+
+  COREType* COREModuleGetType(COREModule* module) {
+    return rcast<COREType*>(rcast<Module*>(module)->getType());
   }
 
   COREGenerator* COREModuleGetGenerator(COREModule* mod) {
@@ -471,6 +479,9 @@ extern "C" {
       return rcast<Instance*>(instance)->getInstname().c_str();
   }
 
+  bool CORETypeIsInput(COREType* type) {
+      return rcast<Type*>(type)->isInput();
+  }
 
 }//extern "C"
 }//CoreIR namespace

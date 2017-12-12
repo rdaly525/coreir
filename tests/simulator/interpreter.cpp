@@ -3,16 +3,11 @@
 #include "catch.hpp"
 
 #include "coreir.h"
-#include "coreir/passes/analysis/pass_sim.h"
 #include "coreir/passes/transform/rungenerators.h"
 #include "coreir/simulator/interpreter.h"
 #include "coreir/libs/commonlib.h"
 
 #include "fuzzing.hpp"
-
-#include "../src/simulator/output.hpp"
-#include "../src/simulator/sim.hpp"
-#include "../src/simulator/utils.hpp"
 
 #include <iostream>
 
@@ -74,8 +69,6 @@ namespace CoreIR {
 
     // New context
     Context* c = newContext();
-  
-
     Namespace* g = c->getGlobal();
 
     SECTION("commonlib mux with 71 inputs") {
@@ -566,6 +559,16 @@ namespace CoreIR {
           bool rewind = state.rewind(22);
 
           REQUIRE(!rewind);
+        }
+
+        SECTION("Deleting watchpoint and re-running back to earlier state") {
+          state.deleteWatchPoint("self.counterOut");
+
+          state.setWatchPoint("self.counterOut", BitVec(pcWidth, 5));
+
+          state.runBack();
+
+          REQUIRE(state.getBitVec("self.counterOut") == BitVec(pcWidth, 5));
         }
       }
 

@@ -26,6 +26,7 @@ class Type {
     virtual std::string toString(void) const =0;
     Type* sel(std::string sel);
     bool canSel(std::string sel);
+    bool canSel(SelectPath path);
     virtual uint getSize() const=0;
     virtual void print(void) const;
     Context* getContext() {return c; };

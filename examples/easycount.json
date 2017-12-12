@@ -1,0 +1,36 @@
+{"top":"global.counter",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "counter": {
+          "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"],
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "c1": {
+              "genref": "coreir.const",
+              "genargs": {"width":["Int", 16]},
+              "modargs": {"value":[["BitVector", 16], 1]}
+            },
+            "r": {
+              "genref": "coreir.reg",
+              "genargs": {"width":["Int", 16]}
+            },
+            "a": {
+              "genref": "coreir.add",
+              "genargs": {"width":["Int", 16]}
+            }
+          },
+          "connections": [
+            ["c1.out","a.in0"],
+            ["r.out","a.in1"],
+            ["r.clk","self.clk"],
+            ["a.out","r.in"],
+            ["r.out","self.out"]
+          ]
+        }
+      }
+    }
+  }
+}

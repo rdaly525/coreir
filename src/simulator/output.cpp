@@ -1,9 +1,9 @@
-#include "output.hpp"
+#include "coreir/simulator/output.h"
 
 #include <fstream>
 #include <iostream>
 
-#include "sim.hpp"
+#include "coreir/simulator/simulator.h"
 #include "bsim_lib.hpp"
 
 using namespace std;

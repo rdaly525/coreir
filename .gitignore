@@ -28,3 +28,9 @@ test.v
 tests/.DS_Store
 tests/simulator/.DS_Store
 tests/simulator/gencode/*.o
+
+# Test utilities
+revert_interp_only.sh
+revert_stress_only.sh
+interp_tests_only.sh
+stress_only.sh
