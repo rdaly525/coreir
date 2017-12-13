@@ -37,7 +37,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Params widthparams = Params({{"width",c->Int()}});
   // TypeGens defined in coreirprims
 
-  //For MAC
+  //For MAD
   coreirprims->newTypeGen(
     "ternary",
     widthparams,
@@ -88,7 +88,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   // Commonlib Arithmetic primitives
   //   umin,smin,umax,smax
-  //   absd, MAC
+  //   absd, MAD
   /////////////////////////////////
 
   //Lazy way:
@@ -97,7 +97,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       "umin","smin","umax","smax","absd"
     }},
     {"ternary",{
-      "MAC"
+      "MAD"
     }},
   });
 
@@ -123,7 +123,107 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.out","max_mux.out");
   });
 
+  /////////////////////////////////
+  // reg array definition        //
+  /////////////////////////////////
 
+  Params reg_array_args =  {{"type",CoreIRType::make(c)},{"has_en",c->Bool()},{"has_clr",c->Bool()},{"has_rst",c->Bool()},{"init",c->Int()}};
+  TypeGen* regArrayTG = coreirprims->newTypeGen(
+    "regArrayTG",
+    reg_array_args,
+    [](Context* c, Values args) {
+      Type* t = args.at("type")->get<Type*>();
+      bool en  = args.at("has_en")->get<bool>();
+      bool clr = args.at("has_clr")->get<bool>();
+      bool rst = args.at("has_rst")->get<bool>();
+      assert(!(clr && rst));
+
+      RecordParams r({
+          {"in", t->getFlipped()},
+            {"clk", c->Named("coreir.clkIn")},
+              {"out", t}
+        });
+      if (en) r.push_back({"en",c->BitIn()});
+      if (clr) r.push_back({"clr",c->BitIn()});
+      if (rst) r.push_back({"rst",c->BitIn()});
+      return c->Record(r);
+    }
+  );
+  Generator* reg_array = commonlib->newGeneratorDecl("reg_array",regArrayTG,reg_array_args);
+  reg_array->addDefaultGenArgs({{"has_en",Const::make(c,false)},{"has_clr",Const::make(c,false)},{"has_rst",Const::make(c,false)},{"init",Const::make(c,0)}});
+
+  reg_array->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      Type* type = args.at("type")->get<Type*>();
+      bool en = args.at("has_en")->get<bool>();
+      bool clr = args.at("has_clr")->get<bool>();
+      bool rst = args.at("has_rst")->get<bool>();
+      int init = args.at("init")->get<int>();
+      Type* cType = type;
+
+      // identify type size
+      vector<uint> lengths;
+      uint bitwidth = 1;
+      while(!cType->isBaseType()) {
+        assert(cType->getKind() == Type::TypeKind::TK_Array);
+        ArrayType* aType = static_cast<ArrayType*>(cType);
+        uint length = aType->getLen();
+        
+        cType = aType->getElemType();
+        if (cType->isBaseType()) {
+          bitwidth = length;
+        } else {
+          //lengths.insert(lengths.begin(), length);
+          lengths.push_back(length);
+        }
+      }
+
+      // create and connect the interface
+      Wireable* pt_in = def->addInstance("pt_in", "mantle.wire", {{"type",Const::make(c,type)}});
+      Wireable* pt_out = def->addInstance("pt_out", "mantle.wire", {{"type",Const::make(c,type)}});
+      def->connect("self.in", "pt_in.in");
+      def->connect("self.out", "pt_out.out");
+
+      // collect all interface wires
+      std::vector<Wireable*> in_wires; in_wires.push_back(pt_in->sel("out"));
+      std::vector<Wireable*> out_wires; out_wires.push_back(pt_out->sel("in"));
+      for (uint dim_length : lengths) {
+        std::vector<Wireable*> in_temp; 
+        std::vector<Wireable*> out_temp;
+        in_temp.reserve(in_wires.size() * dim_length);
+        out_temp.reserve(out_wires.size() * dim_length);
+
+        for (uint i=0; i<dim_length; ++i) {
+          for (auto in_wire : in_wires) {
+            in_temp.push_back(in_wire->sel(i));
+          }
+          for (auto out_wire : out_wires) {
+            out_temp.push_back(out_wire->sel(i));
+          }
+        }
+        in_wires = in_temp;
+        out_wires = out_temp;
+      }
+
+      // create and wire up registers
+      assert(in_wires.size() == out_wires.size());
+      for (uint i=0; i<in_wires.size(); ++i) {
+        std::string reg_name = "reg_" + std::to_string(i);
+        Values reg_args = {{"width", Const::make(c,bitwidth)},
+                           {"has_en", Const::make(c,en)},
+                           {"has_clr", Const::make(c,clr)},
+                           {"has_rst", Const::make(c,rst)}};
+        Values reg_configargs = {{"init", Const::make(c,BitVector(bitwidth,init))}};
+        Wireable* reg = def->addInstance(reg_name, "mantle.reg", reg_args, reg_configargs);
+        if (en) { def->connect("self.en", reg_name+".en"); }
+        if (clr) { def->connect("self.clr", reg_name+".clr"); }
+        if (rst) { def->connect("self.rst", reg_name+".rst"); }
+        def->connect(in_wires[i], reg->sel("in"));
+        def->connect(reg->sel("out"), out_wires[i]);
+      }
+
+    });
+
+ 
 
   /////////////////////////////////
   // muxN definition             //
