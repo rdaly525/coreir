@@ -52,4 +52,5 @@ namespace CoreIR {
                                  Module& mod);
 
   SubDAG addInputs(const SubDAG& dag, const NGraph& g);
+  SubDAG addConstants(const SubDAG& dag, const NGraph& g);
 }

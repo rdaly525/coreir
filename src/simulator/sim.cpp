@@ -143,7 +143,6 @@ namespace CoreIR {
         } else {
           return new LowBitVec(BitVec(1, 0));
         }
-
       }
     }
 
@@ -1394,6 +1393,30 @@ namespace CoreIR {
     return fulldag;
   }
 
+  SubDAG addConstants(const SubDAG& dag, const NGraph& g) {
+    SubDAG fulldag;
+    for (auto& vd : dag) {
+      cout << "Node: " << g.getNode(vd).getWire()->toString() << endl;
+      cout << "# of in edges = " << g.inEdges(vd).size() << endl;
+      for (auto& con : g.inEdges(vd)) {
+        vdisc src = g.source(con);
+
+        cout << g.getNode(src).getWire()->toString();
+        cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
+
+        if (isConstant(g.getNode(src)) &&
+            !isClkIn(*(g.getNode(src).getWire()->getType())) &&
+            !elem(src, fulldag)) {
+          cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
+          fulldag.push_back(src);
+        }
+      }
+
+      fulldag.push_back(vd);
+    }
+    return fulldag;
+  }
+  
   std::vector<SIMDGroup>
   optimizeSIMD(const std::vector<SIMDGroup>& originalGroups,
                NGraph& g,
