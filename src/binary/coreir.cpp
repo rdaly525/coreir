@@ -153,8 +153,9 @@ int main(int argc, char *argv[]) {
   std::ostream* sout = &std::cout;
   std::ofstream fout;
   string outExt = "json";
+  string outfileName = "";
   if (options.count("o")) {
-    string outfileName = options["o"].as<string>();
+    outfileName = options["o"].as<string>();
     outExt = getExt(outfileName);
     ASSERT(outExt == "json" 
         || outExt == "txt"
@@ -218,6 +219,13 @@ int main(int argc, char *argv[]) {
     modified |= c->runPasses({"rungenerators","cullgraph","wireclocks-coreir","magma"});
     auto mpass = static_cast<Passes::Magma*>(c->getPassManager()->getAnalysisPass("magma"));
     mpass->writeToStream(*sout);
+  }
+  else if (outExt=="txt") {
+    assert(top);
+    assert(outfileName!="");
+    if (!saveToDot(top,outfileName)) {
+      c->die();
+    }
   }
   else if (outExt=="smt2") {
     modified |= c->runPasses({"removebulkconnections","flattentypes","smtlib2"});
