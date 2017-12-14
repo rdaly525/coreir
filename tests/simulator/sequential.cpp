@@ -82,6 +82,55 @@ namespace CoreIR {
 
     Context* c = newContext();
 
+    SECTION("Register with fanout 2") {
+
+      uint width = 32;
+
+      Type* regType = c->Record({
+          {"clk", c->Named("coreir.clkIn")},
+            {"in", c->BitIn()->Arr(width)},
+              {"out_0", c->Bit()->Arr(width)},
+                {"out_1", c->Bit()->Arr(width)}
+        });
+
+      Module* regComb =
+        c->getGlobal()->newModuleDecl("regComb", regType);
+
+      ModuleDef* def = regComb->newModuleDef();
+
+      def->addInstance("reg0", "coreir.reg", {{"width", Const::make(c, width)}});
+
+      def->connect("self.in", "reg0.in");
+
+      def->connect("reg0.out", "self.out_0");
+      def->connect("reg0.out", "self.out_1");
+
+      def->connect("self.clk", "reg0.clk");
+
+      regComb->setDef(def);
+
+      c->runPasses({"rungenerators"});
+      
+      NGraph g;
+      buildOrderedGraph(regComb, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      SECTION("Compile and run") {      
+	string outFile = "fanout_2_reg";
+        string testFile = "test_" + outFile + ".cpp";
+	int s = compileCodeAndRun(topoOrder,
+				  g,
+				  regComb,
+				  "./gencode/",
+				  outFile,
+                                  testFile);
+
+	REQUIRE(s == 0);
+      }
+      
+    }
+
     SECTION("Combinational logic before register update, sequential path") {
       uint width = 32;
 
