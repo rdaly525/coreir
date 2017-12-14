@@ -597,7 +597,14 @@ namespace CoreIR {
 
     auto outSel = getOutputSelects(wd.getWire());
 
-    assert(outSel.size() == 1);
+    if ((outSel.size() != 1)) {
+      cout << "Register " << nodeString(wd) << " has " << outSel.size() << " out selects!" << endl;
+      for (auto& outSel : getOutputSelects(wd.getWire())) {
+        cout << outSel.first << " --> " << outSel.second->toString() << endl;
+      }
+      assert(false);
+    }
+
     Select* s = toSelect((*(begin(outSel))).second);
 
     assert(isInstance(s->getParent()));
