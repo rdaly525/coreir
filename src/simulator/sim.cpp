@@ -577,9 +577,9 @@ namespace CoreIR {
 
       resStr = ite(parens(condition->cString()),
                    printOpResultStr(add, g, lp)->cString(),
-                    oldValName) + ";\n";
+                   oldValName); // + ";\n";
     } else {
-      resStr = printOpResultStr(add, g, lp)->cString() + ";\n";
+      resStr = printOpResultStr(add, g, lp)->cString(); // + ";\n";
     }
 
     //LowProgram prog;
@@ -966,6 +966,7 @@ namespace CoreIR {
 
     cout << "# of connected components = " << ccs.size() << endl;
 
+    // Group the graph components
     vector<SubDAG> seqToSeq;
     vector<SubDAG> seqToComb;
     vector<SubDAG> seqToMixed;
