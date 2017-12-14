@@ -966,6 +966,19 @@ namespace CoreIR {
 
     cout << "# of connected components = " << ccs.size() << endl;
 
+    vector<SubDAG> seqToSeq;
+    vector<SubDAG> seqToComb;
+    vector<SubDAG> seqToMixed;
+
+    vector<SubDAG> combToSeq;
+    vector<SubDAG> combToComb;
+    vector<SubDAG> combToMixed;
+    
+    vector<SubDAG> mixedToSeq;
+    vector<SubDAG> mixedToComb;
+    vector<SubDAG> mixedToMixed;
+    
+
     // Set presequential DAGs
     for (auto& cc : ccs) {
       deque<vdisc> nodes;
