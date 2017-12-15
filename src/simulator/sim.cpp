@@ -597,6 +597,11 @@ namespace CoreIR {
 
     auto outSel = getOutputSelects(wd.getWire());
 
+    if (outSel.size() == 0) {
+      // Node has no outputs
+      return;
+    }
+
     if ((outSel.size() != 1)) {
       cout << "Register " << nodeString(wd) << " has " << outSel.size() << " out selects!" << endl;
       for (auto& outSel : getOutputSelects(wd.getWire())) {

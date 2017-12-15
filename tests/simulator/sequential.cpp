@@ -793,7 +793,7 @@ namespace CoreIR {
 
       cout << "Pre topological order = " << endl;
       for (auto& vd : preOrder) {
-        cout << preG.getNode(vd).getWire()->toString() << endl;
+        cout << preG.getNode(vd).getWire()->toString() << " has " << preG.outEdges(vd).size() << " outputs " << endl;
       }
 
       auto preLevels = topologicalLevels(preG);
@@ -811,6 +811,7 @@ namespace CoreIR {
       c->runPasses({"rungenerators","flattentypes", "flatten", "wireclocks-coreir"});
       Module* m = c->getGlobal()->getModule("DesignTop");
 
+      map<int, vector<vdisc>> numOutputsHisto;
       NGraph g;
       buildOrderedGraph(m, g);
       auto postLevels = topologicalLevels(g);
@@ -819,9 +820,16 @@ namespace CoreIR {
         cout << "------- Level" << endl;
         for (auto& vd : level) {
           WireNode wd = g.getNode(vd);
-          cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << endl;
+          cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << " has " << g.outEdges(vd).size() << " outputs" << endl;
           
+
+          map_insert(numOutputsHisto, (int) g.outEdges(vd).size(), vd);
         }
+      }
+
+      cout << "Fan out distribution" << endl;
+      for (auto& ent : numOutputsHisto) {
+        cout << ent.first << " --> " << ent.second.size() << endl;
       }
 
       // Finding all nodes from each of the lb grads
