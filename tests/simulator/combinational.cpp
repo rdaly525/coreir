@@ -1035,6 +1035,60 @@ namespace CoreIR {
       
     }
 
+    SECTION("Multiply then shift 16 bit") {
+      uint n = 16;
+
+      Type* dashrType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* dashrM = g->newModuleDecl("dashrM", dashrType);
+      ModuleDef* def = dashrM->newModuleDef();
+
+      Generator* dashr = c->getGenerator("coreir.ashr");
+
+      Wireable* self = def->sel("self");
+      Wireable* dashr0 =
+        def->addInstance("dashr0", dashr, {{"width", Const::make(c,n)}});
+      auto mul0 =
+        def->addInstance("mul0", "coreir.mul", {{"width", Const::make(c, n)}});
+      auto c0 =
+        def->addInstance("four",
+                         "coreir.const",
+                         {{"width", Const::make(c, n)}},
+                         {{"value", Const::make(c, BitVector(n, 4))}});
+
+
+      def->connect("self.A.0", "mul0.in0");
+      def->connect("self.A.1", "mul0.in1");
+      def->connect("four.out", "dashr0.in1");
+      def->connect("mul0.out", "dashr0.in0");
+      def->connect(dashr0->sel("out"), self->sel("out"));
+
+      dashrM->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      NGraph g;
+      buildOrderedGraph(dashrM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "multiply_shift_16";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				dashrM,
+				"./gencode/",
+				outFile,
+				"test_multiply_shift_16.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
+    
+
     SECTION("60 bit dashr test") {
       uint n = 60;
   
