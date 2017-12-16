@@ -1670,12 +1670,23 @@ namespace CoreIR {
           for (auto& node : sd) {
             WireNode wd = g.getNode(node);
 
-            if (isSubgraphOutput(node, sd, g) &&
-                !isGraphOutput(wd) &&
+            if (!isGraphOutput(wd) &&
                 !(wd.isSequential && wd.isReceiver)) {
-              deleted = true;
-              toDelete = node;
-              break;
+              bool isOut = true;
+
+              for (auto& conn : g.outEdges(node)) {
+                vdisc tg = g.target(conn);
+                if (elem(tg, sd)) {
+                  isOut = false;
+                  break;
+                }
+              }
+
+              if (isOut) {
+                deleted = true;
+                toDelete = node;
+                break;
+              }
             }
           }
 
