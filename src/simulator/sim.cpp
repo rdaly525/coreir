@@ -191,8 +191,8 @@ namespace CoreIR {
     // And not standard width
     if (isDASHR(*inst)) {
       uint tw = typeWidth(*(arg1.getWire()->getType()));
-      uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
-      if (containWidth > tw) {
+      //uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
+      //if (containWidth > tw) {
 
         LowExpr* maskExpr =
           new LowBinop("<<",
@@ -214,7 +214,7 @@ namespace CoreIR {
           new LowBinop("|",
                        new LowId(ite(signBitSet->cString(), mask, "0")),
                        expr);
-      }
+        //}
     }
 
     // string compString = expr->cString();
