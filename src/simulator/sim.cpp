@@ -158,6 +158,15 @@ namespace CoreIR {
     }
   }
 
+
+  LowExpr* castToSigned(Type& tp, LowExpr* const expr) {
+    return new LowId(parens(parens(signedCTypeString(tp)) + " " + expr->cString()));
+  }
+
+  LowExpr* castToUnSigned(Type& tp, LowExpr* const expr) {
+    return new LowId(parens(parens(unSignedCTypeString(tp)) + " " + expr->cString()));
+  }
+  
   LowExpr* printOpThenMaskBinop(const WireNode& wd,
                                 const vdisc vd,
                                 const NGraph& g,
@@ -214,15 +223,7 @@ namespace CoreIR {
       expr = maskResultExpression(*(outPair.second->getType()), expr);
     }
 
-    return expr;
-  }
-
-  LowExpr* castToSigned(Type& tp, LowExpr* const expr) {
-    return new LowId(parens(parens(signedCTypeString(tp)) + " " + expr->cString()));
-  }
-
-  LowExpr* castToUnSigned(Type& tp, LowExpr* const expr) {
-    return new LowId(parens(parens(unSignedCTypeString(tp)) + " " + expr->cString()));
+    return castToUnSigned(*(outPair.second->getType()), expr);
   }
 
   LowExpr* seString(Type& tp, LowExpr* const arg) {
