@@ -61,6 +61,10 @@ namespace CoreIR {
       }
       return parens(op + op0->cString());
     }
+
+    virtual ~LowUnop() {
+      delete op0;
+    }
   };
 
   class LowBinop : public LowExpr {
@@ -80,6 +84,11 @@ namespace CoreIR {
       return parens(op0->cString() + " " + op + " " + op1->cString());
     }
 
+    virtual ~LowBinop() {
+      delete op0;
+      delete op1;
+    }
+    
   };
 
   enum LowStmtType {
@@ -111,12 +120,17 @@ namespace CoreIR {
     virtual std::string cString() const {
       return getLHS()->cString() + " = " + getRHS()->cString() + ";\n";
     }
+
+    virtual ~LowAssign() {
+      delete lhs;
+      delete rhs;
+    }
   };
 
   class LowProgram {
   protected:
     std::vector<LowStmt*> stmts;
-    std::vector<LowExpr*> exprs;
+    //std::vector<LowExpr*> exprs;
 
   public:
 
@@ -126,8 +140,8 @@ namespace CoreIR {
     void addAssignStmt(LowExpr* const lhs,
                        LowExpr* const rhs) {
       stmts.push_back(new LowAssign(lhs, rhs));
-      exprs.push_back(lhs);
-      exprs.push_back(rhs);
+      // exprs.push_back(lhs);
+      // exprs.push_back(rhs);
     }
 
     ~LowProgram() {
@@ -135,9 +149,9 @@ namespace CoreIR {
         delete stmt;
       }
 
-      for (auto& expr : exprs) {
-        delete expr;
-      }
+      // for (auto& expr : exprs) {
+      //   delete expr;
+      // }
 
     }
   };
