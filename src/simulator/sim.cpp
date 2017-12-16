@@ -1585,6 +1585,68 @@ namespace CoreIR {
     return unique;
   }
 
+  vector<SIMDGroup> pruneSequentialSinks(const std::vector<SIMDGroup> dags,
+                                         const NGraph& g) {
+    vector<SIMDGroup> gp;
+
+    for (auto& dag : dags) {
+      if (dag.nodes.size() == 1) {
+        SubDAG sd;
+
+        for (auto& node : dag.nodes[0]) {
+          WireNode wd = g.getNode(node);
+          if (!(wd.isSequential && wd.isReceiver)) {
+            sd.push_back(node);
+          } else {
+            cout << "Removing " << nodeString(wd) << endl;
+          }
+        }
+
+        bool deleted = true;
+        while (deleted) {
+          deleted = false;
+
+          vdisc toDelete = 0;
+          for (auto& node : sd) {
+            WireNode wd = g.getNode(node);
+
+
+            if (!isGraphOutput(wd) &&
+                !(wd.isSequential && wd.isReceiver)) {
+              // TODO: Make this the definition of isSubgraphOutput?
+              bool isOut = true;
+
+              for (auto& conn : g.outEdges(node)) {
+                vdisc tg = g.target(conn);
+                if (elem(tg, sd)) {
+                  isOut = false;
+                  break;
+                }
+              }
+
+              if (isOut) {
+                deleted = true;
+                toDelete = node;
+                break;
+              }
+            }
+          }
+
+          if (deleted) {
+            cout << "Deleting " << nodeString(g.getNode(toDelete)) << endl;
+            remove(toDelete, sd);
+          }
+        }
+
+        gp.push_back({dag.totalWidth, {sd}});
+      } else {
+        gp.push_back(dag);
+      }
+    }
+
+    return gp;
+  }
+  
   vector<SIMDGroup> pruneOutputs(const std::vector<SIMDGroup> dags,
                                  const NGraph& g) {
     vector<SIMDGroup> gp;
@@ -1657,6 +1719,10 @@ namespace CoreIR {
 
     paths.preSequentialDAGs =
       pruneOutputs(paths.preSequentialDAGs, g);
+
+    paths.postSequentialDAGs =
+      pruneSequentialSinks(paths.postSequentialDAGs, g);
+    
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
 
