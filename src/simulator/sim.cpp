@@ -1683,7 +1683,7 @@ namespace CoreIR {
 
     code += printEvalStruct(mc);
 
-    code += "void simulate( circuit_state* state );\n";
+    code += "void simulate( circuit_state* __restrict const state );\n";
 
     return code;
   }
@@ -1708,11 +1708,11 @@ namespace CoreIR {
 
     CustomStructLayout sl(mod->getDef()->getContext());
 
-    code += "void simulate_0( circuit_state* __restrict state ) {\n";
+    code += "void simulate_0( circuit_state* __restrict const state ) {\n";
     code += printSimFunctionBody(topoOrder, g, *mod, sl);
     code += "}\n\n";
 
-    code += "void simulate( circuit_state* state ) {\n";
+    code += "void simulate( circuit_state* __restrict const state ) {\n";
     code += ln("simulate_0( state )");
     code += "}\n";
 
