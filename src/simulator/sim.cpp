@@ -1585,6 +1585,52 @@ namespace CoreIR {
     return unique;
   }
 
+  vector<SIMDGroup> pruneOutputs(const std::vector<SIMDGroup> dags,
+                                 const NGraph& g) {
+    vector<SIMDGroup> gp;
+
+    for (auto& dag : dags) {
+      if (dag.nodes.size() == 1) {
+        SubDAG sd;
+
+        for (auto& node : dag.nodes[0]) {
+          WireNode wd = g.getNode(node);
+          if (!isGraphOutput(wd)) {
+            sd.push_back(node);
+          }
+        }
+
+        bool deleted = true;
+        while (deleted) {
+          deleted = false;
+
+          vdisc toDelete = 0;
+          for (auto& node : sd) {
+            WireNode wd = g.getNode(node);
+
+            if (isSubgraphOutput(node, sd, g) &&
+                !isGraphOutput(wd) &&
+                !(wd.isSequential && wd.isReceiver)) {
+              deleted = true;
+              toDelete = node;
+              break;
+            }
+          }
+
+          if (deleted) {
+            remove(toDelete, sd);
+          }
+        }
+
+        gp.push_back({dag.totalWidth, {sd}});
+      } else {
+        gp.push_back(dag);
+      }
+    }
+
+    return gp;
+  }
+
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -1609,6 +1655,8 @@ namespace CoreIR {
 
     auto clk = findMainClock(g);
 
+    paths.preSequentialDAGs =
+      pruneOutputs(paths.preSequentialDAGs, g);
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
 
