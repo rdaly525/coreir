@@ -47,6 +47,61 @@ namespace CoreIR {
     std::map<vdisc, Node> vertNames;
 
   public:
+
+    WireNode getNode(const vdisc vd) const {
+      auto vit = vertNames.find(vd);
+
+      assert(vit != std::end(vertNames));
+
+      return (*vit).second;
+    }
+
+    Conn getConn(const edisc ed) const {
+
+      auto eit = edgeNames.find(ed);
+
+      assert(eit != std::end(edgeNames));
+
+      return (*eit).second;
+    }
+
+    bool hasLabel(const edisc ed) const {
+      return edgeNames.find(ed) != std::end(edgeNames);
+    }
+
+    vdisc target(const edisc ed)  const {
+      auto eit = edgeVals.find(ed);
+
+      assert(eit != std::end(edgeVals));
+
+      return (*eit).second.second;
+    }
+
+    vdisc source(const edisc ed)  const {
+      auto eit = edgeVals.find(ed);
+
+      assert(eit != std::end(edgeVals));
+
+      return (*eit).second.first;
+    }
+
+    std::vector<edisc> inEdges(const vdisc vd) const {
+      if (adjacent_incoming.find(vd) == std::end(adjacent_incoming)) {
+	return {};
+      }
+
+      return map_find(vd, adjacent_incoming);
+
+    }
+
+    std::vector<edisc> getEdges() const {
+      return edges;
+    }
+
+    std::vector<vdisc> getVerts() const {
+      return verts;
+    }
+    
     edisc addEdge(const vdisc s, const vdisc e) {
       edisc ed = nextEdgeDisc();
 
@@ -136,7 +191,9 @@ namespace CoreIR {
       return (*eit).second;
     }
 
-    bool hasLabel(const edisc ed) const;
+    bool hasLabel(const edisc ed) const {
+      return edgeNames.find(ed) != std::end(edgeNames);
+    }
 
     vdisc source(const edisc ed)  const {
       auto eit = edgeVals.find(ed);
@@ -147,6 +204,8 @@ namespace CoreIR {
     }
 
     void addVertLabel(const vdisc vd, const WireNode& wd) {
+      g.addVertLabel(vd, wd);
+      
       vertNames.erase(vd);
 
       vertNames.insert({vd, wd});
@@ -154,6 +213,7 @@ namespace CoreIR {
     }
 
     void addEdgeLabel(const edisc ed, const Conn& conn) {
+      g.addEdgeLabel(ed, conn);
 
       edgeNames[ed] = conn;
 
@@ -168,6 +228,8 @@ namespace CoreIR {
     }
 
     edisc addEdge(const vdisc s, const vdisc e) {
+      g.addEdge(s, e);
+
       edisc ed = nextEdgeDisc();
 
       edges.push_back(ed);
@@ -180,15 +242,19 @@ namespace CoreIR {
     }
 
     edisc nextEdgeDisc() const {
+      g.nextEdgeDisc();
       return edges.size();
     }
 
     vdisc nextVertexDisc() const {
+      g.nextVertexDisc();
       return verts.size();
     }
     
     vdisc addVertex(const WireNode& w) {
       assert(w.isOpNode());
+
+      g.addVertex(w);
 
       vdisc v = nextVertexDisc();
       verts.push_back(v);
@@ -199,10 +265,13 @@ namespace CoreIR {
     void addVertex(const vdisc v) {
       assert(!elem(v, verts));
 
+      g.addVertex(v);
+
       verts.push_back(v);
     }
 
     vdisc addVertex() {
+      g.addVertex();
       vdisc v = nextVertexDisc();
       verts.push_back(v);
       return v;

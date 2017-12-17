@@ -39,10 +39,6 @@ namespace CoreIR {
     return g.getInputConnections(vd);
   }
 
-  bool NGraph::hasLabel(const edisc ed) const {
-    return edgeNames.find(ed) != std::end(edgeNames);
-  }
-
   std::vector<Conn> NGraph::getInputConnections(const vdisc vd) const {
     vector<Conn> inConss;
 
