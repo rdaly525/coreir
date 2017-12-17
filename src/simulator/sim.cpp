@@ -1129,9 +1129,16 @@ namespace CoreIR {
 
   }
 
+  enum GroupType {
+    CODE_GROUP_PRE_CLK,
+    CODE_GROUP_CLK,
+    CODE_GROUP_POST_CLK,
+  };
+
   struct CodeGroup {
     std::vector<SIMDGroup> dags;
     bool sequentialUpdate;
+    GroupType tp;
   };
 
   void addDAGCode(const CodeGroup& code,
@@ -1208,40 +1215,57 @@ namespace CoreIR {
         vector<CodeGroup> codeGroups;
         cout << "# of pre updates  = " << paths.preSequentialDAGs.size() << endl;
         for (auto& gp : paths.preSequentialDAGs) {
-          //updateOrder.addVertex({{gp}, false});
-          //updateOrder.addVertex({{gp}, true});
+          updateOrder.addVertex({{gp}, false, CODE_GROUP_PRE_CLK});
+          updateOrder.addVertex({{gp}, true, CODE_GROUP_CLK});
 
-          codeGroups.push_back({{gp}, false});
-          codeGroups.push_back({{gp}, true});
+          // codeGroups.push_back({{gp}, false, });
+          // codeGroups.push_back({{gp}, true});
         }
 
         cout << "# of post updates = " << paths.postSequentialDAGs.size() << endl;
         for (auto& gp : paths.postSequentialDAGs) {
-          //updateOrder.addVertex({{gp}, false});
-          //updateOrder.addVertex({{gp}, true});
+          updateOrder.addVertex({{gp}, true, CODE_GROUP_CLK});
+          updateOrder.addVertex({{gp}, false, CODE_GROUP_POST_CLK});
 
-          codeGroups.push_back({{gp}, false});
-          codeGroups.push_back({{gp}, true});
+          // codeGroups.push_back({{gp}, false});
+          // codeGroups.push_back({{gp}, true});
         }
 
         // Insert use to update edges
-        // for (auto& vd : updateOrder.getVerts()) {
-        //   CodeGroup gp = updateOrder.getNode(vd);
-        //   if (gp.sequentialUpdate) {
-        //     for (auto& ud : updateOrder.getVerts()) {
-        //       CodeGroup useGroup = updateOrder.getNode(vd);
-        //       if (!useGroup.sequentialUpdate) {
-        //         if (usesOutput(useGroup
-        //       }
-        //     }
-        //   }
-        // }
+        for (auto& vd : updateOrder.getVerts()) {
+          CodeGroup gp = updateOrder.getNode(vd);
+          if (gp.tp == CODE_GROUP_PRE_CLK) {
+            for (auto& ud : updateOrder.getVerts()) {
+              CodeGroup op = updateOrder.getNode(vd);
+              if (op.tp == CODE_GROUP_CLK) {
+
+                // TODO: Check that the pre group contains an output that
+                // is udpated in clock group
+                updateOrder.addEdge(vd, ud);
+              }
+            }
+          }
+        }
 
         // Insert update to use edges
+        for (auto& vd : updateOrder.getVerts()) {
+          CodeGroup gp = updateOrder.getNode(vd);
+          if (gp.tp == CODE_GROUP_CLK) {
+            for (auto& ud : updateOrder.getVerts()) {
+              CodeGroup op = updateOrder.getNode(vd);
+              if (op.tp == CODE_GROUP_POST_CLK) {
+
+                // TODO: Check that the post group contains an input that
+                // is udpated in clock group
+                updateOrder.addEdge(vd, ud);
+              }
+            }
+          }
+        }
         
         LowProgram clkProg;
-        for (auto& group : codeGroups) {
-          addDAGCode(group, g, mod, layoutPolicy, clkProg);
+        for (auto& group : topologicalSort(updateOrder)) {
+          addDAGCode(updateOrder.getNode(group), g, mod, layoutPolicy, clkProg);
         }
         simLines.push_back(clkProg.cString());
         

@@ -177,8 +177,94 @@ namespace CoreIR {
 
       return false;
     }
+
+    std::vector<vdisc> vertsWithNoIncomingEdge() const {
+      std::vector<vdisc> vs;
+      for (auto v : getVerts()) {
+
+        //if (getInputConnections(v).size() == 0) {
+        if (inEdges(v).size() == 0) {
+          vs.push_back(v);
+        }
+      }
+
+      return vs;
+    
+    }
     
   };
+
+  template<typename Node, typename Edge>
+  std::vector<vdisc>
+  vertsWithNoIncomingEdge(const DirectedGraph<Node, Edge>& g) {
+    return g.vertsWithNoIncomingEdge();
+  }
+
+  template<typename Node, typename Edge>
+  std::deque<vdisc> topologicalSort(const DirectedGraph<Node, Edge>& g) {
+    std::deque<vdisc> topo_order;
+
+    std::vector<vdisc> s = vertsWithNoIncomingEdge(g);
+
+    //vector<edisc> deleted_edges;
+    std::unordered_set<edisc> deleted_edges;
+
+    //cout << "Starting topological sort" << endl;
+
+    while (s.size() > 0) {
+      vdisc vd = s.back();
+
+      //assert(!elem(vd, topo_order));
+
+      topo_order.push_back(vd);
+      s.pop_back();
+
+      
+      for (auto ed : g.outEdges(vd)) {
+
+	//deleted_edges.push_back(ed);
+	deleted_edges.insert(ed);
+	
+	vdisc src = g.source(ed);
+	vdisc dest = g.target(ed);
+
+	assert(src == vd);
+
+	bool noOtherEdges = true;
+
+	for (auto in_ed : g.inEdges(dest)) {
+
+	  if (!elem(in_ed, deleted_edges)) {
+	    noOtherEdges = false;
+	    break;
+	  }
+	}
+
+	if (noOtherEdges){
+
+	  //assert(!elem(dest, s));
+
+	  s.push_back(dest);
+	}
+      }
+
+
+    }
+
+    // cout << "topo_order.size() = " << topo_order.size() << endl;
+    // cout << "numVertices(g)    = " << numVertices(g) << endl;
+
+    // cout << "Topological order" << endl;
+    // for (auto& vd : topo_order) {
+    //   cout << vd << endl;
+    // }
+
+
+    assert(topo_order.size() == (uint) g.numVertices());
+
+    return topo_order;
+    
+  }
   
   class NGraph {
   protected:
