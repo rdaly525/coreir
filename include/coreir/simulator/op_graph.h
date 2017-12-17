@@ -52,7 +52,7 @@ namespace CoreIR {
 
     std::map<vdisc, Node> getVertNames() const { return vertNames; }
 
-    WireNode getNode(const vdisc vd) const {
+    Node getNode(const vdisc vd) const {
       auto vit = vertNames.find(vd);
 
       assert(vit != std::end(vertNames));
@@ -110,8 +110,6 @@ namespace CoreIR {
     }
 
     vdisc addVertex(const Node& w) {
-      assert(w.isOpNode());
-
       vdisc v = nextVertexDisc();
       verts.push_back(v);
       vertNames[v] = w;

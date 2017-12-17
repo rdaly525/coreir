@@ -1202,30 +1202,43 @@ namespace CoreIR {
           (paths.postSequentialAlwaysDAGs.size() == 0)) {
         cout << "All updates inside the clock!" << endl;
         simLines.push_back("// All updates inside clock\n");
-        
+
+        DirectedGraph<CodeGroup, CodeGroup*> updateOrder;
+
         vector<CodeGroup> codeGroups;
+        cout << "# of pre updates  = " << paths.preSequentialDAGs.size() << endl;
         for (auto& gp : paths.preSequentialDAGs) {
+          //updateOrder.addVertex({{gp}, false});
+          //updateOrder.addVertex({{gp}, true});
+
           codeGroups.push_back({{gp}, false});
           codeGroups.push_back({{gp}, true});
         }
 
+        cout << "# of post updates = " << paths.postSequentialDAGs.size() << endl;
         for (auto& gp : paths.postSequentialDAGs) {
-          codeGroups.push_back({{gp}, true});
+          //updateOrder.addVertex({{gp}, false});
+          //updateOrder.addVertex({{gp}, true});
+
           codeGroups.push_back({{gp}, false});
+          codeGroups.push_back({{gp}, true});
         }
+
+        // Insert use to update edges
+        // for (auto& vd : updateOrder.getVerts()) {
+        //   CodeGroup gp = updateOrder.getNode(vd);
+        //   if (gp.sequentialUpdate) {
+        //     for (auto& ud : updateOrder.getVerts()) {
+        //       CodeGroup useGroup = updateOrder.getNode(vd);
+        //       if (!useGroup.sequentialUpdate) {
+        //         if (usesOutput(useGroup
+        //       }
+        //     }
+        //   }
+        // }
+
+        // Insert update to use edges
         
-        //codeGroups.push_back({paths.preSequentialDAGs, false});
-
-        // vector<SIMDGroup> allUpdates;
-        // concat(allUpdates, paths.postSequentialDAGs);
-        // concat(allUpdates, paths.preSequentialDAGs);
-      
-        // allUpdates = deleteDuplicates(allUpdates);
-
-        // codeGroups.push_back({allUpdates, true});
-
-        // codeGroups.push_back({paths.postSequentialDAGs, false});
-
         LowProgram clkProg;
         for (auto& group : codeGroups) {
           addDAGCode(group, g, mod, layoutPolicy, clkProg);
