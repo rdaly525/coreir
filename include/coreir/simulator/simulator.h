@@ -31,26 +31,4 @@ namespace CoreIR {
   std::string seMacroDef();
   std::string maskMacroDef();
 
-  typedef std::deque<vdisc> SubDAG;
-
-  class SIMDGroup {
-  public:
-    int totalWidth;
-    std::vector<SubDAG> nodes;
-  };
-
-  struct CircuitPaths {
-    std::vector<SIMDGroup > preSequentialAlwaysDAGs;
-    std::vector<SIMDGroup > preSequentialDAGs;
-    std::vector<SIMDGroup > postSequentialDAGs;
-    std::vector<SIMDGroup > postSequentialAlwaysDAGs;
-    std::vector<SIMDGroup > pureCombDAGs;
-  };
-
-  CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder,
-                                 NGraph& g,
-                                 Module& mod);
-
-  SubDAG addInputs(const SubDAG& dag, const NGraph& g);
-  SubDAG addConstants(const SubDAG& dag, const NGraph& g);
 }
