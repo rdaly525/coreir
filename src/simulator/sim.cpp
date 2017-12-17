@@ -1198,27 +1198,67 @@ namespace CoreIR {
 
       simLines.push_back("if " + condition + " {\n");
 
-      vector<CodeGroup> codeGroups;
+      if ((paths.postSequentialAlwaysDAGs.size() == 0) &&
+          (paths.postSequentialAlwaysDAGs.size() == 0)) {
+        cout << "All updates inside the clock!" << endl;
+        simLines.push_back("// All updates inside clock\n");
+        
+        vector<CodeGroup> codeGroups;
+        for (auto& gp : paths.preSequentialDAGs) {
+          codeGroups.push_back({{gp}, false});
+          codeGroups.push_back({{gp}, true});
+        }
 
-      codeGroups.push_back({paths.preSequentialDAGs, false});
+        for (auto& gp : paths.postSequentialDAGs) {
+          codeGroups.push_back({{gp}, true});
+          codeGroups.push_back({{gp}, false});
+        }
+        
+        //codeGroups.push_back({paths.preSequentialDAGs, false});
+
+        // vector<SIMDGroup> allUpdates;
+        // concat(allUpdates, paths.postSequentialDAGs);
+        // concat(allUpdates, paths.preSequentialDAGs);
       
-      vector<SIMDGroup> allUpdates;
-      concat(allUpdates, paths.postSequentialDAGs);
-      concat(allUpdates, paths.preSequentialDAGs);
-      concat(allUpdates, paths.postSequentialAlwaysDAGs);
-      concat(allUpdates, paths.preSequentialAlwaysDAGs);
+        // allUpdates = deleteDuplicates(allUpdates);
 
-      allUpdates = deleteDuplicates(allUpdates);
+        // codeGroups.push_back({allUpdates, true});
 
-      codeGroups.push_back({allUpdates, true});
+        // codeGroups.push_back({paths.postSequentialDAGs, false});
 
-      codeGroups.push_back({paths.postSequentialDAGs, false});
+        LowProgram clkProg;
+        for (auto& group : codeGroups) {
+          addDAGCode(group, g, mod, layoutPolicy, clkProg);
+        }
+        simLines.push_back(clkProg.cString());
+        
+        //assert(false);
 
-      LowProgram clkProg;
-      for (auto& group : codeGroups) {
-        addDAGCode(group, g, mod, layoutPolicy, clkProg);
+      } else {
+
+        vector<CodeGroup> codeGroups;
+
+        codeGroups.push_back({paths.preSequentialDAGs, false});
+
+        vector<SIMDGroup> allUpdates;
+        concat(allUpdates, paths.postSequentialAlwaysDAGs);
+        concat(allUpdates, paths.preSequentialAlwaysDAGs);
+
+        concat(allUpdates, paths.postSequentialDAGs);
+        concat(allUpdates, paths.preSequentialDAGs);
+      
+        allUpdates = deleteDuplicates(allUpdates);
+
+        codeGroups.push_back({allUpdates, true});
+
+        codeGroups.push_back({paths.postSequentialDAGs, false});
+
+        LowProgram clkProg;
+        for (auto& group : codeGroups) {
+          addDAGCode(group, g, mod, layoutPolicy, clkProg);
+        }
+        simLines.push_back(clkProg.cString());
       }
-      simLines.push_back(clkProg.cString());
       simLines.push_back("\n}\n");
 
       LowProgram postProg;
