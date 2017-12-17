@@ -1161,6 +1161,40 @@ namespace CoreIR {
     }
   }
 
+  bool outToIn(const CodeGroup& gp,
+               const CodeGroup& op,
+               const NGraph& g) {
+    if ((gp.dags.size() != 1) || (op.dags.size() != 1)) {
+      return true;
+    }
+
+    SIMDGroup gp0 = gp.dags[0];
+    SIMDGroup op0 = op.dags[0];
+
+    if ((gp0.nodes.size() != 1) || (op0.nodes.size() != 1)) {
+      return true;
+    }
+
+    SubDAG gpd = gp0.nodes[0];
+    SubDAG opd = op0.nodes[0];
+
+    for (auto& vd : gpd) {
+      if (isSubgraphOutput(vd, gpd, g)) {
+        for (auto& ud : opd) {
+          if (isSubgraphInput(ud, opd, g)) {
+            if (g.getNode(vd).getWire() ==
+                g.getNode(ud).getWire()) {
+              cout << "Subgraphs share Out -> In " << nodeString(g.getNode(vd)) << endl;
+              return true;
+            }
+          }
+        }
+      }
+    }
+    // Fill in input output dependencies
+    return false;
+  }
+
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
                               NGraph& g,
                               Module& mod,
@@ -1257,7 +1291,9 @@ namespace CoreIR {
 
                 // TODO: Check that the post group contains an input that
                 // is udpated in clock group
-                updateOrder.addEdge(vd, ud);
+                if (outToIn(gp, op, g)) {
+                  updateOrder.addEdge(vd, ud);
+                }
               }
             }
           }
