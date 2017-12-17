@@ -775,7 +775,7 @@ namespace CoreIR {
                             LayoutPolicy& lp) {
     assert(isSelect(wd.getWire()));
 
-    Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));    
+    Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
     if (isRegisterInstance(sourceInstance)) {
 
       if (lp.getReadRegsDirectly() == false) {

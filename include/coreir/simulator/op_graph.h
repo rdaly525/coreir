@@ -186,153 +186,76 @@ namespace CoreIR {
   protected:
     DirectedGraph<WireNode, Conn> g;
     
-    // std::vector<edisc> edges;
-    // std::vector<vdisc> verts;
-
-    // std::map<vdisc, std::vector<edisc> > adjacent_incoming;
-    // std::map<vdisc, std::vector<edisc> > adjacent_outgoing;
-
-    // std::map<edisc, std::pair<vdisc, vdisc> > edgeVals;
-    // std::map<edisc, Conn> edgeNames;
-    // std::map<vdisc, WireNode> vertNames;
-
-
   public:
     WireNode getNode(const vdisc vd) const {
       return g.getNode(vd);
-      // auto vit = vertNames.find(vd);
-
-      // assert(vit != std::end(vertNames));
-
-      // return (*vit).second;
     }
 
     Conn getConn(const edisc ed) const {
       return g.getConn(ed);
-
-      // auto eit = edgeNames.find(ed);
-
-      // assert(eit != std::end(edgeNames));
-
-      // return (*eit).second;
     }
 
     bool hasLabel(const edisc ed) const {
       return g.hasLabel(ed);
-      //return edgeNames.find(ed) != std::end(edgeNames);
     }
 
     vdisc source(const edisc ed)  const {
       return g.source(ed);
-
-      // auto eit = edgeVals.find(ed);
-
-      // assert(eit != std::end(edgeVals));
-
-      // return (*eit).second.first;
     }
 
     void addVertLabel(const vdisc vd, const WireNode& wd) {
       g.addVertLabel(vd, wd);
-      
-      // vertNames.erase(vd);
-
-      // vertNames.insert({vd, wd});
-
     }
 
     void addEdgeLabel(const edisc ed, const Conn& conn) {
       g.addEdgeLabel(ed, conn);
-
-      //edgeNames[ed] = conn;
-
     }
 
     vdisc target(const edisc ed)  const {
       return g.target(ed);
-      // auto eit = edgeVals.find(ed);
-
-      // assert(eit != std::end(edgeVals));
-
-      // return (*eit).second.second;
     }
 
     edisc addEdge(const vdisc s, const vdisc e) {
       return g.addEdge(s, e);
-
-      // edisc ed = nextEdgeDisc();
-
-      // edges.push_back(ed);
-      // edgeVals.insert({ed, {s, e}});
-
-      // map_insert(adjacent_outgoing, s, ed);
-      // map_insert(adjacent_incoming, e, ed);
-
-      // return ed;
     }
 
     edisc nextEdgeDisc() const {
       return g.nextEdgeDisc();
-      //return edges.size();
     }
 
     vdisc nextVertexDisc() const {
       return g.nextVertexDisc();
-      //return verts.size();
     }
     
     vdisc addVertex(const WireNode& w) {
       assert(w.isOpNode());
 
       return g.addVertex(w);
-
-      // vdisc v = nextVertexDisc();
-      // verts.push_back(v);
-      // vertNames[v] = w;
-      // return v;
     }
 
     void addVertex(const vdisc v) {
-      //assert(!elem(v, verts));
-
       g.addVertex(v);
 
-      //verts.push_back(v);
     }
 
     vdisc addVertex() {
       return g.addVertex();
-      // vdisc v = nextVertexDisc();
-      // verts.push_back(v);
-      // return v;
     }
     
     std::vector<edisc> outEdges(const vdisc vd) const {
       return g.outEdges(vd);
-      // if (adjacent_outgoing.find(vd) == std::end(adjacent_outgoing)) {
-      //   return {};
-      // }
-
-      // return map_find(vd, adjacent_outgoing);
-
     }
 
     std::vector<edisc> inEdges(const vdisc vd) const {
       return g.inEdges(vd);
-      // if (adjacent_incoming.find(vd) == std::end(adjacent_incoming)) {
-      //   return {};
-      // }
-
-      // return map_find(vd, adjacent_incoming);
-
     }
 
     std::vector<edisc> getEdges() const {
-      return g.getEdges(); //edges;
+      return g.getEdges();
     }
 
     std::vector<vdisc> getVerts() const {
-      return g.getVerts(); //verts;
+      return g.getVerts();
     }
 
     bool containsOpNode(CoreIR::Wireable* w) const {
@@ -349,13 +272,6 @@ namespace CoreIR {
 
     bool connected(const vdisc source, const vdisc dest) const {
       return g.connected(source, dest);
-      // for (auto& ed : outEdges(source)) {
-      //   if (target(ed) == dest) {
-      //     return true;
-      //   }
-      // }
-
-      // return false;
     }
 
     vdisc getOpNodeDisc(CoreIR::Wireable* w) const {
