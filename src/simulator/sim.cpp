@@ -1236,7 +1236,7 @@ namespace CoreIR {
           CodeGroup gp = updateOrder.getNode(vd);
           if (gp.tp == CODE_GROUP_PRE_CLK) {
             for (auto& ud : updateOrder.getVerts()) {
-              CodeGroup op = updateOrder.getNode(vd);
+              CodeGroup op = updateOrder.getNode(ud);
               if (op.tp == CODE_GROUP_CLK) {
 
                 // TODO: Check that the pre group contains an output that
@@ -1252,7 +1252,7 @@ namespace CoreIR {
           CodeGroup gp = updateOrder.getNode(vd);
           if (gp.tp == CODE_GROUP_CLK) {
             for (auto& ud : updateOrder.getVerts()) {
-              CodeGroup op = updateOrder.getNode(vd);
+              CodeGroup op = updateOrder.getNode(ud);
               if (op.tp == CODE_GROUP_POST_CLK) {
 
                 // TODO: Check that the post group contains an input that
