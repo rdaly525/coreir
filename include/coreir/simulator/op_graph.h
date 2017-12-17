@@ -33,8 +33,80 @@ namespace CoreIR {
   typedef int vdisc;
   typedef int edisc;
 
+  template<typename Node, typename Edge>
+  class DirectedGraph {
+
+    std::vector<edisc> edges;
+    std::vector<vdisc> verts;
+
+    std::map<vdisc, std::vector<edisc> > adjacent_incoming;
+    std::map<vdisc, std::vector<edisc> > adjacent_outgoing;
+
+    std::map<edisc, std::pair<vdisc, vdisc> > edgeVals;
+    std::map<edisc, Edge> edgeNames;
+    std::map<vdisc, Node> vertNames;
+
+  public:
+    edisc addEdge(const vdisc s, const vdisc e) {
+      edisc ed = nextEdgeDisc();
+
+      edges.push_back(ed);
+      edgeVals.insert({ed, {s, e}});
+
+      map_insert(adjacent_outgoing, s, ed);
+      map_insert(adjacent_incoming, e, ed);
+
+      return ed;
+    }
+
+    vdisc addVertex(const Node& w) {
+      assert(w.isOpNode());
+
+      vdisc v = nextVertexDisc();
+      verts.push_back(v);
+      vertNames[v] = w;
+      return v;
+    }
+
+    void addVertex(const vdisc v) {
+      assert(!elem(v, verts));
+
+      verts.push_back(v);
+    }
+
+    vdisc addVertex() {
+      vdisc v = nextVertexDisc();
+      verts.push_back(v);
+      return v;
+    }
+
+    void addVertLabel(const vdisc vd, const WireNode& wd) {
+      vertNames.erase(vd);
+
+      vertNames.insert({vd, wd});
+
+    }
+
+    void addEdgeLabel(const edisc ed, const Conn& conn) {
+
+      edgeNames[ed] = conn;
+
+    }
+
+    edisc nextEdgeDisc() const {
+      return edges.size();
+    }
+
+    vdisc nextVertexDisc() const {
+      return verts.size();
+    }
+    
+  };
+  
   class NGraph {
   protected:
+    DirectedGraph<WireNode, Conn> g;
+    
     std::vector<edisc> edges;
     std::vector<vdisc> verts;
 
@@ -95,14 +167,6 @@ namespace CoreIR {
       return (*eit).second.second;
     }
 
-    edisc nextEdgeDisc() const {
-      return edges.size();
-    }
-
-    vdisc nextVertexDisc() const {
-      return verts.size();
-    }
-    
     edisc addEdge(const vdisc s, const vdisc e) {
       edisc ed = nextEdgeDisc();
 
@@ -115,6 +179,14 @@ namespace CoreIR {
       return ed;
     }
 
+    edisc nextEdgeDisc() const {
+      return edges.size();
+    }
+
+    vdisc nextVertexDisc() const {
+      return verts.size();
+    }
+    
     vdisc addVertex(const WireNode& w) {
       assert(w.isOpNode());
 
