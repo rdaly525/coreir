@@ -85,15 +85,6 @@ namespace CoreIR {
       return (*eit).second.first;
     }
 
-    std::vector<edisc> inEdges(const vdisc vd) const {
-      if (adjacent_incoming.find(vd) == std::end(adjacent_incoming)) {
-	return {};
-      }
-
-      return map_find(vd, adjacent_incoming);
-
-    }
-
     std::vector<edisc> getEdges() const {
       return edges;
     }
@@ -154,6 +145,35 @@ namespace CoreIR {
 
     vdisc nextVertexDisc() const {
       return verts.size();
+    }
+
+    std::vector<edisc> outEdges(const vdisc vd) const {
+      if (adjacent_outgoing.find(vd) == std::end(adjacent_outgoing)) {
+        return {};
+      }
+
+      return map_find(vd, adjacent_outgoing);
+
+    }
+
+    std::vector<edisc> inEdges(const vdisc vd) const {
+      if (adjacent_incoming.find(vd) == std::end(adjacent_incoming)) {
+        return {};
+      }
+
+      return map_find(vd, adjacent_incoming);
+
+    }
+
+    bool connected(const vdisc source, const vdisc dest) const {
+
+      for (auto& ed : outEdges(source)) {
+        if (target(ed) == dest) {
+          return true;
+        }
+      }
+
+      return false;
     }
     
   };
