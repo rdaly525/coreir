@@ -183,24 +183,28 @@ namespace CoreIR {
     }
 
     Conn getConn(const edisc ed) const {
+      return g.getConn(ed);
 
-      auto eit = edgeNames.find(ed);
+      // auto eit = edgeNames.find(ed);
 
-      assert(eit != std::end(edgeNames));
+      // assert(eit != std::end(edgeNames));
 
-      return (*eit).second;
+      // return (*eit).second;
     }
 
     bool hasLabel(const edisc ed) const {
-      return edgeNames.find(ed) != std::end(edgeNames);
+      return g.hasLabel(ed);
+      //return edgeNames.find(ed) != std::end(edgeNames);
     }
 
     vdisc source(const edisc ed)  const {
-      auto eit = edgeVals.find(ed);
+      return g.source(ed);
 
-      assert(eit != std::end(edgeVals));
+      // auto eit = edgeVals.find(ed);
 
-      return (*eit).second.first;
+      // assert(eit != std::end(edgeVals));
+
+      // return (*eit).second.first;
     }
 
     void addVertLabel(const vdisc vd, const WireNode& wd) {
@@ -220,11 +224,12 @@ namespace CoreIR {
     }
 
     vdisc target(const edisc ed)  const {
-      auto eit = edgeVals.find(ed);
+      return g.target(ed);
+      // auto eit = edgeVals.find(ed);
 
-      assert(eit != std::end(edgeVals));
+      // assert(eit != std::end(edgeVals));
 
-      return (*eit).second.second;
+      // return (*eit).second.second;
     }
 
     edisc addEdge(const vdisc s, const vdisc e) {
@@ -278,29 +283,31 @@ namespace CoreIR {
     }
     
     std::vector<edisc> outEdges(const vdisc vd) const {
-      if (adjacent_outgoing.find(vd) == std::end(adjacent_outgoing)) {
-	return {};
-      }
+      return g.outEdges(vd);
+      // if (adjacent_outgoing.find(vd) == std::end(adjacent_outgoing)) {
+      //   return {};
+      // }
 
-      return map_find(vd, adjacent_outgoing);
+      // return map_find(vd, adjacent_outgoing);
 
     }
 
     std::vector<edisc> inEdges(const vdisc vd) const {
-      if (adjacent_incoming.find(vd) == std::end(adjacent_incoming)) {
-	return {};
-      }
+      return g.inEdges(vd);
+      // if (adjacent_incoming.find(vd) == std::end(adjacent_incoming)) {
+      //   return {};
+      // }
 
-      return map_find(vd, adjacent_incoming);
+      // return map_find(vd, adjacent_incoming);
 
     }
 
     std::vector<edisc> getEdges() const {
-      return edges;
+      return g.getEdges(); //edges;
     }
 
     std::vector<vdisc> getVerts() const {
-      return verts;
+      return g.getVerts(); //verts;
     }
 
     bool containsOpNode(CoreIR::Wireable* w) const {
@@ -316,13 +323,14 @@ namespace CoreIR {
     }
 
     bool connected(const vdisc source, const vdisc dest) const {
-      for (auto& ed : outEdges(source)) {
-	if (target(ed) == dest) {
-	  return true;
-	}
-      }
+      return g.connected(source, dest);
+      // for (auto& ed : outEdges(source)) {
+      //   if (target(ed) == dest) {
+      //     return true;
+      //   }
+      // }
 
-      return false;
+      // return false;
     }
 
     vdisc getOpNodeDisc(CoreIR::Wireable* w) const {
