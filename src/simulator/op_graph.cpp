@@ -140,11 +140,11 @@ namespace CoreIR {
     return g.numVertices();
   }
 
-  int NGraph::numVertices() const {
+  // int NGraph::numVertices() const {
 
-    return verts.size();
+  //   return verts.size();
 
-  }
+  // }
 
   std::vector<std::vector<vdisc> > topologicalLevels(const NGraph& g) {
     vector<vector<vdisc> > levels;
