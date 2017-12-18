@@ -1178,21 +1178,40 @@ namespace CoreIR {
     SubDAG gpd = gp0.nodes[0];
     SubDAG opd = op0.nodes[0];
 
+    set<Wireable*> outs;
     for (auto& vd : gpd) {
       if (isSubgraphOutput(vd, gpd, g)) {
-        for (auto& ud : opd) {
-          if (isSubgraphInput(ud, opd, g)) {
-            if (g.getNode(vd).getWire() ==
-                g.getNode(ud).getWire()) {
-              cout << "Subgraphs share Out -> In " << nodeString(g.getNode(vd)) << endl;
-              return true;
-            }
-          }
-        }
+        outs.insert(g.getNode(vd).getWire());
       }
     }
+    set<Wireable*> ins;
+    for (auto& vd : opd) {
+      if (isSubgraphInput(vd, opd, g)) {
+        ins.insert(g.getNode(vd).getWire());
+      }
+    }
+
+    if (intersection(outs, ins).size() == 0) {
+      return false;
+    }
+
+    return true;
+    
+    // for (auto& vd : gpd) {
+    //   if (isSubgraphOutput(vd, gpd, g)) {
+    //     for (auto& ud : opd) {
+    //       if (isSubgraphInput(ud, opd, g)) {
+    //         if (g.getNode(vd).getWire() ==
+    //             g.getNode(ud).getWire()) {
+    //           cout << "Subgraphs share Out -> In " << nodeString(g.getNode(vd)) << endl;
+    //           return true;
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
     // Fill in input output dependencies
-    return false;
+    //return false;
   }
 
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
