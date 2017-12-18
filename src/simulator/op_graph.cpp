@@ -646,7 +646,7 @@ namespace CoreIR {
       WireNode wd = g.getNode(vd);
       Wireable* src = wd.getWire();
 
-      cout << "src = " << src->toString() << endl;
+      //cout << "src = " << src->toString() << endl;
 
       if (isInstance(src)) {
         Instance* inst = toInstance(src);

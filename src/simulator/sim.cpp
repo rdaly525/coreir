@@ -1195,6 +1195,7 @@ namespace CoreIR {
       return false;
     }
 
+    cout << "Subgraphs share Out -> In " << endl;
     return true;
     
     // for (auto& vd : gpd) {
