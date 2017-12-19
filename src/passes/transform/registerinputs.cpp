@@ -23,6 +23,8 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
 
+  cout << "Running on module " << module->getName() << endl;
+
   for (auto& field : module->getType()->getRecord()) {
     if (field.second != c->Named("coreir.clkIn")) {
 
@@ -66,7 +68,7 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
     }
   }
 
-  auto interface = def->getInterface();
+  //f  auto interface = def->getInterface();
   //cout << interface->getType()->toString() << endl;
 
   //cout << "# of wireables connected to interfaces = " << interface->getConnectedWireables().size() << endl;
@@ -101,11 +103,11 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
     if (newRegs.find(sel2) != std::end(newRegs)) {
       foundIn = true;
       inSel = sel2;
-      //outSel = sel1;
-      cout << "Contains input " << endl;
+      outSel = sel1;
+      //cout << "Contains input " << endl;
     }
     
-    cout << endl;
+    //cout << endl;
 
     if (foundIn) {
 
