@@ -18,6 +18,11 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   Context* c = module->getDef()->getContext();
 
+  // Only register the top module
+  if (c->getTop() != module) {
+    return false;
+  }
+
   for (auto& field : module->getType()->getRecord()) {
     if (field.second != c->Named("coreir.clkIn")) {
 
@@ -25,7 +30,7 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
       if (dk == Type::DirKind::DK_In) {
         //Wireable* w = field.first;
-        cout << "Input = " << field.first << endl;
+        //cout << "Input = " << field.first << endl;
         auto sel = self->sel(field.first);
 
         Type* selTp = sel->getType();
@@ -35,8 +40,8 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
           ArrayType* atp = static_cast<CoreIR::ArrayType*>(selTp);
           int len = atp->getLen();
 
-          cout << "Input type   = " << selTp->toString() << endl;
-          cout << "Array length = " << len << endl;
+          //cout << "Input type   = " << selTp->toString() << endl;
+          //cout << "Array length = " << len << endl;
 
           // TODO: Ensure truly unique name
           auto selReg = def->addInstance(field.first + "_auto_reg",
@@ -62,20 +67,20 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
 
   auto interface = def->getInterface();
-  cout << interface->getType()->toString() << endl;
+  //cout << interface->getType()->toString() << endl;
 
-  cout << "# of wireables connected to interfaces = " << interface->getConnectedWireables().size() << endl;
-  for (auto& wd : interface->getConnectedWireables()) {
-    cout << wd->toString() << endl;
-  }
+  //cout << "# of wireables connected to interfaces = " << interface->getConnectedWireables().size() << endl;
+  // for (auto& wd : interface->getConnectedWireables()) {
+  //   cout << wd->toString() << endl;
+  // }
 
-  cout << "# of wireables connected to self = " << self->getConnectedWireables().size() << endl;
-  for (auto& wd : self->getConnectedWireables()) {
-    cout << wd->toString() << endl;
-  }
+  // cout << "# of wireables connected to self = " << self->getConnectedWireables().size() << endl;
+  // for (auto& wd : self->getConnectedWireables()) {
+  //   cout << wd->toString() << endl;
+  // }
 
   for (auto& conn : def->getConnections()) {
-    cout << Connection2Str(conn) << " ";
+    //cout << Connection2Str(conn) << " ";
 
     
     Wireable* sel1 = conn.first;
@@ -90,13 +95,13 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
       foundIn = true;
       inSel = sel1;
       outSel = sel2;
-      cout << "Contains input " << endl;
+      //cout << "Contains input " << endl;
     }
 
     if (newRegs.find(sel2) != std::end(newRegs)) {
       foundIn = true;
       inSel = sel2;
-      outSel = sel1;
+      //outSel = sel1;
       cout << "Contains input " << endl;
     }
     
