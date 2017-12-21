@@ -22,6 +22,7 @@
 #include "transform/flatten.h"
 #include "transform/rungenerators.h"
 #include "transform/flattentypes.h"
+#include "transform/groupconnections.h"
 #include "transform/removebulkconnections.h"
 #include "transform/removepassthroughs.h"
 #include "transform/removeunconnected.h"
