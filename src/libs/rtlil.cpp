@@ -130,3 +130,5 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   
   return rtLib;
 }
+
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(rtlil)

@@ -12,6 +12,8 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
     return false;
   }
 
+  cout << "Processing module: " << m->getName() << endl;
+
   ModuleDef* def = m->getDef();
   cout << "Connections" << endl;
   vector<Connection> arrayToArrayConns;
@@ -31,16 +33,48 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
         auto lsTp = cast<ArrayType>(ls->getParent()->getType());
         auto rsTp = cast<ArrayType>(rs->getParent()->getType());
 
-        cout << ls->getParent()->toString() << " len = " << lsTp->getLen() << endl;
-        cout << rs->getParent()->toString() << " len = " << rsTp->getLen() << endl;
+        //cout << ls->getParent()->toString() << " len = " << lsTp->getLen() << endl;
+        //cout << rs->getParent()->toString() << " len = " << rsTp->getLen() << endl;
         if (lsTp->getLen() == rsTp->getLen()) {
-          arrayToArrayConns.push_back(conn);
-          cout << "( " << ls->toString() << ", " << rs->toString() << " )" << endl;
+
+          auto lParent = ls->getParent();
+          auto rParent = rs->getParent();
+
+          if (lParent < rParent) {
+            arrayToArrayConns.push_back({ls, rs});
+          } else {
+            arrayToArrayConns.push_back({rs, ls});
+          }
+          //cout << "( " << ls->toString() << ", " << rs->toString() << " )" << endl;
         }
       }
     }
   }
 
+  sort_lt(arrayToArrayConns, [](const Connection& l) {
+      return stoi(cast<Select>(l.second)->getSelStr());
+    });
+  
+  sort_lt(arrayToArrayConns, [](const Connection& l) {
+      return cast<Select>(l.second)->getParent();
+    });
+
+  sort_lt(arrayToArrayConns, [](const Connection& l) {
+      return cast<Select>(l.first)->getParent();
+    });
+
+  cout << "--- Sorted connections" << endl;
+  for (auto& conn : arrayToArrayConns) {
+    cout << "( " << conn.first->toString() << ", " << conn.second->toString() << " )" << endl;
+  }
+
+  // Idea: Sort each pair so that the wireable with the lower value parent is
+  // always on the lhs
+
+  // Next: Sort the list of connections by lhs, then sort by rhs
+  // 
+
+  
   cout << "# of array - array connections = " << arrayToArrayConns.size() << endl;
   vector<vector<Connection> > cLists;
     
