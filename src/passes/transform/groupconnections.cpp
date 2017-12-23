@@ -59,16 +59,131 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
               end(arrayToArrayConns),
               [](const Connection& l,
                  const Connection& r) {
-                return cast<Select>(l.first)->getParent() < cast<Select>(r.first)->getParent();
+                return cast<Select>(l.second)->getParent() <
+                  cast<Select>(r.second)->getParent();
               });
-  // sort_lt(arrayToArrayConns, [](const Connection& l) {
-  //     return cast<Select>(l.first)->getParent();
-  //   });
+  
+  stable_sort(begin(arrayToArrayConns),
+              end(arrayToArrayConns),
+              [](const Connection& l,
+                 const Connection& r) {
+                return cast<Select>(l.first)->getParent() <
+                  cast<Select>(r.first)->getParent();
+              });
 
-  cout << "--- Sorted connections" << endl;
-  for (auto& conn : arrayToArrayConns) {
-    cout << "( " << conn.first->toString() << ", " << conn.second->toString() << " )" << endl;
+  if (arrayToArrayConns.size() == 0) {
+    return false;
   }
+
+
+  vector<vector<Connection> > groups;
+  split_by(arrayToArrayConns,
+           groups,
+           [](const Connection& l, const Connection& r) {
+             Select* lastL = cast<Select>(l.first);
+             Select* lastR = cast<Select>(l.second);
+
+             Select* nextL = cast<Select>(r.first);
+             Select* nextR = cast<Select>(r.second);
+
+             if (lastL->getParent() != nextL->getParent()) {
+               return false;
+             }
+
+             if (lastR->getParent() != nextR->getParent()) {
+               return false;
+             }
+
+             if ((stoi(lastL->getSelStr()) + 1) ==
+                 stoi(nextL->getSelStr())) {
+
+               if ((stoi(lastR->getSelStr()) + 1) ==
+                   stoi(nextR->getSelStr())) {
+                 return true;
+               }                    
+             }
+                
+             return false;
+           });
+
+  delete_if(groups, [](const vector<Connection>& conns) {
+      assert(conns.size() > 0);
+
+      auto conn = conns[0];
+      Select* sel = cast<Select>(conn.first);
+      ArrayType* tp = cast<ArrayType>(sel->getParent()->getType());
+
+      return tp->getLen() != conns.size();
+    });
+
+  cout << "# of connections before deleting = " << def->getConnections().size() << endl;
+  for (auto& gp : groups) {
+    assert(gp.size() > 0);
+
+    //cout << "Deleting group of size " << gp.size() << endl;
+    auto conn = gp[0];
+    Select* selL = cast<Select>(conn.first);
+    Select* selR = cast<Select>(conn.second);
+
+    Wireable* parentL = selL->getParent();
+    Wireable* parentR = selR->getParent();
+
+    for (auto& conn : gp) {
+      def->disconnect(conn.first, conn.second);
+    }
+
+    def->connect(parentL, parentR);
+    
+  }
+
+  cout << "# of connections after deleting = " << def->getConnections().size() << endl;
+  // cout << "GROUPS" << endl;
+  // for (auto& gp : groups) {
+  //   cout << "-------- Group" << endl;
+  //   for (auto& conn : gp) {
+  //     cout << "( " << conn.first->toString() << ", " << conn.second->toString() << " )" << endl;
+  //   }
+  // }
+
+  // vector<Connection> connGroup;
+  // connGroup.push_back(arrayToArrayConns[0]);
+  // Select* lastLeft = cast<Select>(arrayToArrayConns[0].first);
+  // Select* lastRight = cast<Select>(arrayToArrayConns[0].second);
+  
+  // for (uint i = 1; i < arrayToArrayConns.size(); i++) {
+
+  //   Connection conn = arrayToArrayConns[i];
+
+  //   Select* curLeft = cast<Select>(conn.first);
+  //   Select* curRight = cast<Select>(conn.second);
+
+  //   Wireable* curLeftParent = curLeft->getParent();
+  //   Wireable* curRightParent = curRight->getParent();
+
+  //   if ((curLeft->getParent() == lastLeft->getParent()) &&
+  //       (curRight->getParent() == lastRight->getParent())) {
+      
+  //   } else {
+  //     if (connGroup.size() > 0) {
+  //       groups.push_back(connGroup);
+  //     }
+
+  //     connGroup = {};
+  //   }
+    
+  //   lastLeft = curLeft;
+  //   lastRight = curRight;
+
+  // }
+
+  // if (connGroup.size() > 0) {
+  //   groups.push_back(connGroup);
+  // }
+
+  // cout << "--- Sorted connections" << endl;
+  // for (auto& conn : arrayToArrayConns) {
+  //   cout << "( " << conn.first->toString() << ", " << conn.second->toString() << " )" << endl;
+  // }
 
   // Idea: Sort each pair so that the wireable with the lower value parent is
   // always on the lhs
@@ -77,8 +192,8 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
   // 
 
   
-  cout << "# of array - array connections = " << arrayToArrayConns.size() << endl;
-  vector<vector<Connection> > cLists;
+  // cout << "# of array - array connections = " << arrayToArrayConns.size() << endl;
+  // vector<vector<Connection> > cLists;
     
-  return false;
+  return true;
 }
