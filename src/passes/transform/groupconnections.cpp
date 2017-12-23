@@ -52,16 +52,18 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
   }
 
   sort_lt(arrayToArrayConns, [](const Connection& l) {
-      return stoi(cast<Select>(l.second)->getSelStr());
-    });
-  
-  sort_lt(arrayToArrayConns, [](const Connection& l) {
-      return cast<Select>(l.second)->getParent();
+      return stoi(cast<Select>(l.first)->getSelStr());
     });
 
-  sort_lt(arrayToArrayConns, [](const Connection& l) {
-      return cast<Select>(l.first)->getParent();
-    });
+  stable_sort(begin(arrayToArrayConns),
+              end(arrayToArrayConns),
+              [](const Connection& l,
+                 const Connection& r) {
+                return cast<Select>(l.first)->getParent() < cast<Select>(r.first)->getParent();
+              });
+  // sort_lt(arrayToArrayConns, [](const Connection& l) {
+  //     return cast<Select>(l.first)->getParent();
+  //   });
 
   cout << "--- Sorted connections" << endl;
   for (auto& conn : arrayToArrayConns) {
