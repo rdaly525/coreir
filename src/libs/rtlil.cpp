@@ -77,6 +77,22 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("rtMux", muxTP, muxParams);
 
+  auto muxGen = c->getGenerator("rtlil.rtMux");
+  muxGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      uint width = args.at("WIDTH")->get<int>();
+
+      Instance* mux = nullptr;
+      if (width > 1) {
+        mux = def->addInstance("mux0", "coreir.mux", {{"width", Const::make(c, width)}});
+      } else {
+        mux = def->addInstance("mux0", "corebit.mux");
+      }
+
+      assert(mux != nullptr);
+
+      
+    });
+
   Params dffParams = {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()}};
   TypeGen* dffTP =
     rtLib->newTypeGen(
