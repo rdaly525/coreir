@@ -96,7 +96,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     auto gen = rtLib->getGenerator(name);
 
     std::function<void (Context*, Values, ModuleDef*)> genFun =
-      [&name](Context* c, Values args, ModuleDef* def) {
+      [name](Context* c, Values args, ModuleDef* def) {
         uint a_width = args.at("A_WIDTH")->get<int>();
         uint b_width = args.at("B_WIDTH")->get<int>();
         uint y_width = args.at("Y_WIDTH")->get<int>();
