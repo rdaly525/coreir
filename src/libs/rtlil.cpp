@@ -9,6 +9,22 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   auto rtLib = c->newNamespace("rtlil");
 
 
+  // Casting nodes
+  Params extendParams = {{"in_width", c->Int()}, {"out_width", c->Int()}};
+  TypeGen* extendTP =
+    rtLib->newTypeGen("extend",
+                      extendParams,
+                      [](Context* c, Values genargs) {
+                        uint in_width = genargs.at("in_width")->get<int>();
+                        uint out_width = genargs.at("out_width")->get<int>();
+
+                        ASSERT(in_width <= out_width, "in_width > out_width in extend node");
+
+                        return c->Record({
+                            {"in", c->BitIn()->Arr(in_width)},
+                              {"out", c->Bit()->Arr(out_width)}
+                          });
+                      });
 
   vector<string> rtlilBinops{"and", "or", "xor", "xnor", "shl", "shr", "sshl", "sshr", "logic_and", "logic_or", "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt", "add", "sub", "mul", "div", "mod", "pow"};
 
@@ -90,7 +106,10 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
       assert(mux != nullptr);
 
-      
+      def->connect("self.A", "mux0.in0");
+      def->connect("self.B", "mux0.in1");
+      def->connect("self.S", "mux0.sel");
+      def->connect("self.Y", "mux0.out");
     });
 
   Params dffParams = {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()}};
