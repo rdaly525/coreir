@@ -26,6 +26,12 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                           });
                       });
 
+  rtLib->newGeneratorDecl("extend", extendTP, extendParams);
+
+  Type* toClockType = c->Record({{"in", c->Bit()}, {"out", c->Named("coreir.clkIn")}});
+  rtLib->newModuleDecl("to_clkIn", toClockType);
+
+  // Operation related nodes
   vector<string> rtlilBinops{"and", "or", "xor", "xnor", "shl", "shr", "sshl", "sshr", "logic_and", "logic_or", "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt", "add", "sub", "mul", "div", "mod", "pow"};
 
   for (auto& name : rtlilBinops) {
@@ -112,6 +118,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       def->connect("self.Y", "mux0.out");
     });
 
+  // Sequential nodes
   Params dffParams = {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()}};
   TypeGen* dffTP =
     rtLib->newTypeGen(
@@ -127,6 +134,37 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                       });
 
   rtLib->newGeneratorDecl("dff", dffTP, dffParams);
+
+  auto dffGen = c->getGenerator("rtlil.dff");
+  dffGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      uint polarity = args.at("POLARITY")->get<int>();
+
+      ASSERT(polarity == 1, "Currently CoreIR only supports rising edge DFFs");
+
+      uint width = args.at("WIDTH")->get<int>();
+
+      Instance* reg = nullptr;
+
+      if (width == 1) {
+        reg = def->addInstance("reg0", "corebit.dff");
+      } else {
+        reg = def->addInstance("reg0",
+                               "coreir.reg",
+                               {{"width", Const::make(c, width)}});
+      }
+
+      assert(reg != nullptr);
+
+      def->connect("self.D", "reg0.in");
+
+      // Add clock cast node, in rtlil the clock input is just another bit
+      def->addInstance("toClk0", "rtlil.to_clkIn");
+
+      def->connect("self.CLK", "toClk0.in");
+      def->connect("toClk0.out", "reg0.clk");
+
+      def->connect("reg0.out", "self.Q");
+    });
 
   Params adffParams = {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()},
                        // NOTE: ARST_VALUE should really be a bit vector
