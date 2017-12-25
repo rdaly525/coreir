@@ -5,6 +5,37 @@ COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(rtlil);
 using namespace std;
 using namespace CoreIR;
 
+std::string rtlilCoreirName(const std::string& name) {
+  //"logic_and", "logic_or", "eqx", "nex", "lt", "gt"};
+  if (name == "eq") {
+    return "coreir.eq";
+  }
+
+  if (name == "ne") {
+    return "coreir.neq";
+  }
+
+  // TODO: Distinguish signed / unsigned
+  if (name == "ge") {
+    return "coreir.uge";
+  }
+
+  if (name == "le") {
+    return "coreir.ule";
+  }
+
+  if (name == "gt") {
+    return "coreir.ugt";
+  }
+
+  if (name == "lt") {
+    return "coreir.ult";
+  }
+  
+  cout << "Unsupported name = " << name << endl;
+  assert(false);
+}
+
 Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   auto rtLib = c->newNamespace("rtlil");
 
@@ -59,6 +90,86 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     
   }
 
+  // Definitions for binops
+  vector<string> rtlilBinaryComps{"logic_and", "logic_or", "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt"};
+  for (auto& name : rtlilBinaryComps) {
+    auto gen = rtLib->getGenerator(name);
+
+    std::function<void (Context*, Values, ModuleDef*)> genFun =
+      [&name](Context* c, Values args, ModuleDef* def) {
+        uint a_width = args.at("A_WIDTH")->get<int>();
+        uint b_width = args.at("B_WIDTH")->get<int>();
+        uint y_width = args.at("Y_WIDTH")->get<int>();
+
+        ASSERT(y_width == 1, "Output of a comparator must be 1 bit!");
+
+        bool a_signed = args.at("A_SIGNED")->get<bool>();
+        bool b_signed = args.at("B_SIGNED")->get<bool>();
+
+        ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+        ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+
+        uint ext_width = max(a_width, b_width);
+
+        def->addInstance("extendA",
+                         "rtlil.extend",
+                         {{"in_width", Const::make(c, a_width)},
+                             {"out_width", Const::make(c, ext_width)}});
+
+        def->addInstance("extendB",
+                         "rtlil.extend",
+                         {{"in_width", Const::make(c, b_width)},
+                             {"out_width", Const::make(c, ext_width)}});
+
+        string opGenName = rtlilCoreirName(name);
+        def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
+        
+        // def->connect("self.A", "mux0.in0");
+        // def->connect("self.B", "mux0.in1");
+        // def->connect("self.S", "mux0.sel");
+        // def->connect("self.Y", "mux0.out");
+    };
+
+    gen->setGeneratorDefFromFun(genFun);
+
+    //gen->setGeneratorDefFromFun(genFun);
+    // [&name](Context* c, Values args, ModuleDef* def) {
+    //     uint a_width = args.at("A_WIDTH")->get<int>();
+    //     uint b_width = args.at("B_WIDTH")->get<int>();
+    //     uint y_width = args.at("Y_WIDTH")->get<int>();
+
+    //     ASSERT(y_width == 1, "Output of a comparator must be 1 bit!");
+
+    //     bool a_signed = args.at("A_SIGNED")->get<bool>();
+    //     bool b_signed = args.at("B_SIGNED")->get<bool>();
+
+    //     ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+    //     ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+
+    //     uint ext_width = max(a_width, b_width);
+
+    //     def->addInstance("extendA",
+    //                      "rtlil.extend",
+    //                      {{"in_width", Const::make(c, a_width)},
+    //                          {"out_width", Const::make(c, ext_width)}});
+
+    //     def->addInstance("extendB",
+    //                      "rtlil.extend",
+    //                      {{"in_width", Const::make(c, b_width)},
+    //                          {"out_width", Const::make(c, ext_width)}});
+
+    //     string opGenName = rtlilCoreirName(name);
+    //     def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
+        
+    //     // def->connect("self.A", "mux0.in0");
+    //     // def->connect("self.B", "mux0.in1");
+    //     // def->connect("self.S", "mux0.sel");
+    //     // def->connect("self.Y", "mux0.out");
+    //   });
+
+  }
+
+  // Unary operation declarations
   vector<string> rtlilUnops{"not", "pos", "neg", "reduce_and", "reduce_or", "reduce_xor", "reduce_xnor", "reduce_bool", "logic_not"};
 
   for (auto& name : rtlilUnops) {
