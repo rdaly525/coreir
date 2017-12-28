@@ -91,6 +91,69 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   }
 
   // Definitions for binops
+
+  // - Bitwise operations
+  vector<string> rtlilBitwise{"and", "or", "xor"};
+  for (auto& name : rtlilBitwise) {
+    auto gen = rtLib->getGenerator(name);
+
+    std::function<void (Context*, Values, ModuleDef*)> genFun =
+      [name](Context* c, Values args, ModuleDef* def) {
+      uint a_width = args.at("A_WIDTH")->get<int>();
+      uint b_width = args.at("B_WIDTH")->get<int>();
+      uint y_width = args.at("Y_WIDTH")->get<int>();
+
+      bool a_signed = args.at("A_SIGNED")->get<bool>();
+      bool b_signed = args.at("B_SIGNED")->get<bool>();
+
+      ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+      ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+
+      ASSERT(y_width >= a_width, "Bitwise operation must have output at least as long as operands");
+      ASSERT(y_width >= b_width, "Bitwise operation must have output at least as long as operands");
+
+      uint ext_width = y_width;
+
+      if (ext_width > 1) {
+        def->addInstance("extendA",
+                         "rtlil.extend",
+                         {{"in_width", Const::make(c, a_width)},
+                             {"out_width", Const::make(c, ext_width)}});
+
+        def->addInstance("extendB",
+                         "rtlil.extend",
+                         {{"in_width", Const::make(c, b_width)},
+                             {"out_width", Const::make(c, ext_width)}});
+
+        string opGenName = rtlilCoreirName(name);
+        def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
+
+        def->connect("self.A", "extendA.in");
+        def->connect("self.B", "extendB.in");
+        
+        def->connect("extendA.out", "op0.in0");
+        def->connect("extendB.out", "op0.in1");
+
+        def->connect("op0.out", "self.Y");
+      } else {
+        // Use corebit
+
+        string opGenName = rtlilCorebitName(name);
+        def->addInstance("op0", opGenName);
+
+        def->connect("self.A", "op0.in0");
+        def->connect("self.B", "op0.in1");
+
+        def->connect("op0.out", "self.Y");
+
+      }
+    };
+
+    gen->setGeneratorDefFromFun(genFun);
+    
+  }
+
+  // - Comparators
   vector<string> rtlilBinaryComps{"logic_and", "logic_or", "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt"};
   for (auto& name : rtlilBinaryComps) {
     auto gen = rtLib->getGenerator(name);
@@ -134,41 +197,6 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     };
 
     gen->setGeneratorDefFromFun(genFun);
-
-    //gen->setGeneratorDefFromFun(genFun);
-    // [&name](Context* c, Values args, ModuleDef* def) {
-    //     uint a_width = args.at("A_WIDTH")->get<int>();
-    //     uint b_width = args.at("B_WIDTH")->get<int>();
-    //     uint y_width = args.at("Y_WIDTH")->get<int>();
-
-    //     ASSERT(y_width == 1, "Output of a comparator must be 1 bit!");
-
-    //     bool a_signed = args.at("A_SIGNED")->get<bool>();
-    //     bool b_signed = args.at("B_SIGNED")->get<bool>();
-
-    //     ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
-    //     ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
-
-    //     uint ext_width = max(a_width, b_width);
-
-    //     def->addInstance("extendA",
-    //                      "rtlil.extend",
-    //                      {{"in_width", Const::make(c, a_width)},
-    //                          {"out_width", Const::make(c, ext_width)}});
-
-    //     def->addInstance("extendB",
-    //                      "rtlil.extend",
-    //                      {{"in_width", Const::make(c, b_width)},
-    //                          {"out_width", Const::make(c, ext_width)}});
-
-    //     string opGenName = rtlilCoreirName(name);
-    //     def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
-        
-    //     // def->connect("self.A", "mux0.in0");
-    //     // def->connect("self.B", "mux0.in1");
-    //     // def->connect("self.S", "mux0.sel");
-    //     // def->connect("self.Y", "mux0.out");
-    //   });
 
   }
 
