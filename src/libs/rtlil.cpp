@@ -82,6 +82,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
 
   // Casting nodes
+
+  // Unsigned extend
   Params extendParams = {{"in_width", c->Int()}, {"out_width", c->Int()}};
   TypeGen* extendTP =
     rtLib->newTypeGen("extend",
@@ -100,9 +102,14 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("extend", extendTP, extendParams);
 
+  // Cast bit to clock
   Type* toClockType = c->Record({{"in", c->BitIn()},
         {"out", c->Named("coreir.clk")}});
   rtLib->newModuleDecl("to_clkIn", toClockType);
+
+  // Cast bit to bit vector of length one
+  Type* toBVType = c->Record({{"in", c->BitIn()}, {"out", c->Bit()->Arr(1)}});
+  rtLib->newModuleDecl("to_bv", toBVType);
 
   // Operation related nodes
   vector<string> rtlilBinops{"and", "or", "xor", "xnor", "shl", "shr", "sshl", "sshr", "logic_and", "logic_or", "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt", "add", "sub", "mul", "div", "mod", "pow"};
@@ -216,13 +223,16 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
         string opGenName = rtlilCoreirName(name);
         def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
 
+        def->addInstance("conv0", "rtlil.to_bv");
+
         def->connect("self.A", "extendA.in");
         def->connect("self.B", "extendB.in");
         
         def->connect("extendA.out", "op0.in0");
         def->connect("extendB.out", "op0.in1");
 
-        def->connect("op0.out", "self.Y");
+        def->connect("op0.out", "conv0.in");
+        def->connect("conv0.out", "self.Y");
     };
 
     gen->setGeneratorDefFromFun(genFun);
@@ -275,11 +285,11 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       uint width = args.at("WIDTH")->get<int>();
 
       Instance* mux = nullptr;
-      if (width > 1) {
+      //if (width > 1) {
         mux = def->addInstance("mux0", "coreir.mux", {{"width", Const::make(c, width)}});
-      } else {
-        mux = def->addInstance("mux0", "corebit.mux");
-      }
+        //} else {
+        //mux = def->addInstance("mux0", "corebit.mux");
+        //}
 
       assert(mux != nullptr);
 
@@ -316,13 +326,13 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
       Instance* reg = nullptr;
 
-      if (width == 1) {
-        reg = def->addInstance("reg0", "corebit.dff");
-      } else {
+      //if (width == 1) {
+      //reg = def->addInstance("reg0", "corebit.dff");
+      //} else {
         reg = def->addInstance("reg0",
                                "coreir.reg",
                                {{"width", Const::make(c, width)}});
-      }
+        //}
 
       assert(reg != nullptr);
 
