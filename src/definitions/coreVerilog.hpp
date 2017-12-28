@@ -43,6 +43,8 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       {"mux","sel ? in1 : in0"},
       {"slice","in[hi-1:lo]"},
       {"concat","{in0,in1}"},
+      {"zext","{(width_out-width_in){1'b0},in"},
+      {"sext","{(width_out-width_in){in[width_in-1]},in"},
       {"const","value"}
       //{"term",""}
       //{"reg",""}, 
@@ -84,6 +86,14 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "input [width0-1:0] in0",
       "input [width1-1:0] in1",
       "output [width0+width1-1:0] out"
+    }},
+    {"zext",{
+      "input [width_in-1:0] in",
+      "output [width_out-1:0] out"
+    }},
+    {"sext",{
+      "input [width_in-1:0] in",
+      "output [width_out-1:0] out"
     }},
     {"const",{"output [width-1:0] out"}},
     {"term",{"input [width-1:0] in"}},

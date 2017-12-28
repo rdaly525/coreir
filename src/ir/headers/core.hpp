@@ -43,9 +43,26 @@ void core_convert(Context* c, Namespace* core) {
   
   core->newGeneratorDecl("concat",concatTypeGen,concatParams);
 
-  //TODO sign extend
-  //TODO zero extend
-  //TODO repeat
+  Params extParams({
+    {"width_in",c->Int()},
+    {"width_out",c->Int()}
+  });
+  auto extTypeGen = core->newTypeGen(
+    "extTypeFun",
+    extParams,
+    [](Context* c, Values args) {
+      uint width_in = args.at("width_in")->get<int>();
+      uint width_out = args.at("width_out")->get<int>();
+      ASSERT(width_out >= width_in,"Bad valudes for widths")
+      return c->Record({
+        {"in",c->BitIn()->Arr(width_in)},
+        {"out",c->Bit()->Arr(width_out)}
+      });
+    }
+  );
+  
+  core->newGeneratorDecl("zext",extTypeGen,extParams);
+  core->newGeneratorDecl("sext",extTypeGen,extParams);
 
 }
 
