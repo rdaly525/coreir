@@ -24,6 +24,18 @@ std::string rtlilCorebitName(const std::string& name) {
 std::string rtlilCoreirName(const std::string& name) {
   //"logic_and", "logic_or", "eqx", "nex", "lt", "gt"};
 
+  if (name == "add") {
+    return "coreir.add";
+  }
+
+  if (name == "sub") {
+    return "coreir.sub";
+  }
+
+  if (name == "mul") {
+    return "coreir.mul";
+  }
+  
   if (name == "and") {
     return "coreir.and";
   }
@@ -89,7 +101,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   rtLib->newGeneratorDecl("extend", extendTP, extendParams);
 
   Type* toClockType = c->Record({{"in", c->BitIn()},
-        {"out", c->Named("coreir.clkIn")}});
+        {"out", c->Named("coreir.clk")}});
   rtLib->newModuleDecl("to_clkIn", toClockType);
 
   // Operation related nodes
@@ -122,8 +134,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   // Definitions for binops
 
-  // - Bitwise operations
-  vector<string> rtlilBitwise{"and", "or", "xor"};
+  // - Bitwise and arithmetic operations
+  vector<string> rtlilBitwise{"and", "or", "xor", "add", "sub", "mul"};
   for (auto& name : rtlilBitwise) {
     auto gen = rtLib->getGenerator(name);
 
@@ -139,8 +151,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
       ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
 
-      ASSERT(y_width >= a_width, "Bitwise operation must have output at least as long as operands");
-      ASSERT(y_width >= b_width, "Bitwise operation must have output at least as long as operands");
+      ASSERT(y_width >= a_width, "Bitwise and arithmetic operations must have output at least as long as operands");
+      ASSERT(y_width >= b_width, "Bitwise and arithmetic operations must have output at least as long as operands");
 
       uint ext_width = y_width;
 
@@ -171,7 +183,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   }
 
   // - Comparators
-  vector<string> rtlilBinaryComps{"logic_and", "logic_or", "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt"};
+  vector<string> rtlilBinaryComps{"eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt"};
   for (auto& name : rtlilBinaryComps) {
     auto gen = rtLib->getGenerator(name);
 
