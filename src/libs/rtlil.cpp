@@ -5,8 +5,37 @@ COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(rtlil);
 using namespace std;
 using namespace CoreIR;
 
+std::string rtlilCorebitName(const std::string& name) {
+  if (name == "and") {
+    return "corebit.and";
+  }
+
+  if (name == "or") {
+    return "corebit.or";
+  }
+
+  if (name == "xor") {
+    return "corebit.xor";
+  }
+  
+  assert(false);
+}
+
 std::string rtlilCoreirName(const std::string& name) {
   //"logic_and", "logic_or", "eqx", "nex", "lt", "gt"};
+
+  if (name == "and") {
+    return "coreir.and";
+  }
+
+  if (name == "or") {
+    return "coreir.or";
+  }
+
+  if (name == "xor") {
+    return "coreir.xor";
+  }
+
   if (name == "eq") {
     return "coreir.eq";
   }
@@ -114,39 +143,26 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
       uint ext_width = y_width;
 
-      if (ext_width > 1) {
-        def->addInstance("extendA",
-                         "rtlil.extend",
-                         {{"in_width", Const::make(c, a_width)},
-                             {"out_width", Const::make(c, ext_width)}});
+      def->addInstance("extendA",
+                       "rtlil.extend",
+      {{"in_width", Const::make(c, a_width)},
+          {"out_width", Const::make(c, ext_width)}});
 
-        def->addInstance("extendB",
-                         "rtlil.extend",
-                         {{"in_width", Const::make(c, b_width)},
-                             {"out_width", Const::make(c, ext_width)}});
+      def->addInstance("extendB",
+                       "rtlil.extend",
+      {{"in_width", Const::make(c, b_width)},
+          {"out_width", Const::make(c, ext_width)}});
 
-        string opGenName = rtlilCoreirName(name);
-        def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
+      string opGenName = rtlilCoreirName(name);
+      def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
 
-        def->connect("self.A", "extendA.in");
-        def->connect("self.B", "extendB.in");
+      def->connect("self.A", "extendA.in");
+      def->connect("self.B", "extendB.in");
         
-        def->connect("extendA.out", "op0.in0");
-        def->connect("extendB.out", "op0.in1");
+      def->connect("extendA.out", "op0.in0");
+      def->connect("extendB.out", "op0.in1");
 
-        def->connect("op0.out", "self.Y");
-      } else {
-        // Use corebit
-
-        string opGenName = rtlilCorebitName(name);
-        def->addInstance("op0", opGenName);
-
-        def->connect("self.A", "op0.in0");
-        def->connect("self.B", "op0.in1");
-
-        def->connect("op0.out", "self.Y");
-
-      }
+      def->connect("op0.out", "self.Y");
     };
 
     gen->setGeneratorDefFromFun(genFun);
