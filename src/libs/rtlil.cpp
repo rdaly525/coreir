@@ -88,7 +88,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("extend", extendTP, extendParams);
 
-  Type* toClockType = c->Record({{"in", c->Bit()}, {"out", c->Named("coreir.clkIn")}});
+  Type* toClockType = c->Record({{"in", c->BitIn()},
+        {"out", c->Named("coreir.clkIn")}});
   rtLib->newModuleDecl("to_clkIn", toClockType);
 
   // Operation related nodes
@@ -295,9 +296,9 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   auto dffGen = c->getGenerator("rtlil.dff");
   dffGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-      uint polarity = args.at("CLK_POLARITY")->get<int>();
+      bool polarity = args.at("CLK_POLARITY")->get<bool>();
 
-      ASSERT(polarity == 1, "Currently CoreIR only supports rising edge DFFs");
+      ASSERT(polarity == true, "Currently CoreIR only supports rising edge DFFs");
 
       uint width = args.at("WIDTH")->get<int>();
 
