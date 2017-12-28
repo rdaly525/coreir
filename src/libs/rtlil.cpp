@@ -123,11 +123,14 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
         string opGenName = rtlilCoreirName(name);
         def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
+
+        def->connect("self.A", "extendA.in");
+        def->connect("self.B", "extendB.in");
         
-        // def->connect("self.A", "mux0.in0");
-        // def->connect("self.B", "mux0.in1");
-        // def->connect("self.S", "mux0.sel");
-        // def->connect("self.Y", "mux0.out");
+        def->connect("extendA.out", "op0.in0");
+        def->connect("extendB.out", "op0.in1");
+
+        def->connect("op0.out", "self.Y");
     };
 
     gen->setGeneratorDefFromFun(genFun);
