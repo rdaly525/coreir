@@ -295,7 +295,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   auto dffGen = c->getGenerator("rtlil.dff");
   dffGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-      uint polarity = args.at("POLARITY")->get<int>();
+      uint polarity = args.at("CLK_POLARITY")->get<int>();
 
       ASSERT(polarity == 1, "Currently CoreIR only supports rising edge DFFs");
 
