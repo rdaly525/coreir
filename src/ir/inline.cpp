@@ -36,7 +36,7 @@ void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireab
 //This helper will connect a single select layer of the passthrough.
 void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
 
-  cout << "Connecting same level" << endl;
+  //cout << "Connecting same level" << endl;
 
   //wa should be the flip type of wb
   assert(wa->getType()==wb->getType()->getFlipped());
@@ -66,7 +66,7 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
     connectOffsetLevel(def,wa, {spair.first}, spair.second);
   }
 
-  cout << "Connecting possible N^2 wireables" << endl;
+  //cout << "Connecting possible N^2 wireables" << endl;
 
   //Now connect all N^2 possible connections for this level
   for (auto waCon : wa->getConnectedWireables() ) {
@@ -75,7 +75,7 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
     }
   }
 
-  cout << "Done connecting wireables" << endl;
+  //cout << "Done connecting wireables" << endl;
 }
 
 namespace {
@@ -155,7 +155,7 @@ bool inlineInstance(Instance* inst) {
   //TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
   if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
-    cout << "Inlining: " << Inst2Str(inst) << endl;
+    //cout << "Inlining: " << Inst2Str(inst) << endl;
     inlinePassthrough(inst);
     return true;
   }
