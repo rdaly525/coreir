@@ -47,7 +47,39 @@ namespace CoreIR {
 
   void registersToConstants(CoreIR::Module* const mod,
                             std::unordered_map<std::string, BitVec>& regValues) {
-    
+    if (!mod->hasDef()) {
+      return;
+    }
+
+    ModuleDef* def = mod->getDef();
+    Context* c = mod->getContext();
+    for (auto instR : def->getInstances()) {
+      auto inst = instR.second;
+      if (getQualifiedOpName(*inst) == "coreir.reg") {
+
+        cout << "Found register = " << inst->toString() << endl;
+
+        if (contains_key(inst->toString(), regValues)) {
+
+          BitVec value = regValues.find(inst->toString())->second;
+
+          cout << "Replacing register = " << inst->toString() << endl;
+
+          
+          string cName = inst->toString() + "_const_value";
+          Instance* constR =
+            def->addInstance(cName,
+                             "coreir.const",
+                             {{"width", Const::make(c, value.bitLength())}},
+                             {{"value", Const::make(c, value)}});
+
+          // How to find what the register is connected to?
+          //def->connect(constR->sel("out"), );
+
+          def->removeInstance(inst);
+        }
+      }
+    }
   }
 
   TEST_CASE("Partial evaluation") {
@@ -96,6 +128,20 @@ namespace CoreIR {
       state.execute();
       
       REQUIRE(state.getBitVec("self.out") == BitVec(width, 56));
+
+      CircuitState st = state.getCircStates().back();
+
+      cout << "Instances before conversion" << endl;
+      for (auto inst : rg->getDef()->getInstances()) {
+        cout << inst.first << ": " << inst.second->toString() << endl;
+      }
+
+      registersToConstants(rg, st.registers);
+
+      cout << "Instances after conversion" << endl;
+      for (auto inst : rg->getDef()->getInstances()) {
+        cout << inst.first << ": " << inst.second->toString() << endl;
+      }
     }
 
     deleteContext(c);
