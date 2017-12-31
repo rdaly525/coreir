@@ -5,6 +5,8 @@
 
 namespace CoreIR {
 
+  bool deleteDeadInstances(CoreIR::Module* const mod);
+
   namespace Passes {
 
     class DeleteDeadInstances : public ModulePass {

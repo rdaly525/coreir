@@ -2,6 +2,7 @@
 
 #include "coreir.h"
 #include "coreir/passes/transform/rungenerators.h"
+#include "coreir/passes/transform/deletedeadinstances.h"
 
 #include "coreir/simulator/output.h"
 #include "coreir/simulator/simulator.h"
@@ -44,45 +45,7 @@ namespace CoreIR {
       last = current;
     }
   };
-
-  bool hasOutputConnection(Wireable* w) {
-    for (auto wb : w->getConnectedWireables()) {
-      if (wb->getType()->getDir() == Type::DK_In) {
-        return true;
-      }
-    }
-
-    for (auto smap : w->getSelects()) {
-      if (hasOutputConnection(smap.second)) {
-        return true;
-      }
-    }
-    return false;
-  }
   
-  void deleteDeadInstances(CoreIR::Module* const mod) {
-    if (!mod->hasDef()) {
-      return;
-    }
-
-    ModuleDef* def = mod->getDef();
-
-    bool changed = true;
-
-    while (changed) {
-      changed = false;
-
-      for (auto instR : def->getInstances()) {
-        Instance* inst = instR.second;
-
-        if (!hasOutputConnection(inst)) {
-          changed = true;
-          def->removeInstance(inst);
-        }
-      }
-    }
-  }
-
   void registersToConstants(CoreIR::Module* const mod,
                             std::unordered_map<std::string, BitVec>& regValues) {
     if (!mod->hasDef()) {
