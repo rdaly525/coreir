@@ -117,16 +117,6 @@ namespace CoreIR {
 
       rg->setDef(def);
 
-      // PartialEvaluator pe(rg);
-      // pe.setValue("self.clk", BitVec(1, 0));
-      // pe.eval();
-
-      // pe.setValue("self.clk", BitVec(1, 1));
-      // pe.setValue("self.en", BitVec(1, 1));
-      // pe.setValue("self.in", BitVec(width, 5));
-
-      // pe.eval();
-
       c->runPasses({"rungenerators", "flattentypes", "flatten"});
 
       SimulatorState state(rg);
