@@ -64,8 +64,11 @@ namespace CoreIR {
           BitVec value = regValues.find(inst->toString())->second;
 
           cout << "Replacing register = " << inst->toString() << endl;
+          cout << "Connected wireables = " << endl;
+          for (auto wb : inst->getConnectedWireables()) {
+            cout << "\t" << wb->toString() << endl;
+          }
 
-          
           string cName = inst->toString() + "_const_value";
           Instance* constR =
             def->addInstance(cName,
@@ -73,8 +76,15 @@ namespace CoreIR {
                              {{"width", Const::make(c, value.bitLength())}},
                              {{"value", Const::make(c, value)}});
 
-          // How to find what the register is connected to?
+          // How to find what the register output is connected to?
           //def->connect(constR->sel("out"), );
+          for (auto& conn : def->getConnections()) {
+            if (conn.first == inst->sel("out")) {
+              def->connect(constR->sel("out"), conn.second);
+            } else if (conn.second == inst->sel("out")) {
+              def->connect(conn.second, constR->sel("out"));
+            }
+          }
 
           def->removeInstance(inst);
         }
@@ -141,6 +151,10 @@ namespace CoreIR {
       cout << "Instances after conversion" << endl;
       for (auto inst : rg->getDef()->getInstances()) {
         cout << inst.first << ": " << inst.second->toString() << endl;
+      }
+
+      for (auto& conn : rg->getDef()->getConnections()) {
+        cout << conn.first->toString() << " <---> " << conn.second->toString() << endl;
       }
     }
 
