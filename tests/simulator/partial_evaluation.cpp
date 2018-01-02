@@ -101,12 +101,18 @@ namespace CoreIR {
       ArrayType* arrTp = cast<ArrayType>(fstType);
       int len = arrTp->getLen();
 
-      
+      for (int i = 0; i < len; i++) {
+        concat(unpackedConns, unpackConnection({fst->sel(i), snd->sel(i)}));
+      }
+
+      return unpackedConns;
+
     } else {
       cout << "Wireable " << fst->toString() << " has unsupported type in unpackConnection = " << fstType->toString() << endl;
       assert(false);
     }
-    return unpackedConns;
+
+    assert(false);
   }
 
   bool foldConstants(CoreIR::Module* const mod) {
