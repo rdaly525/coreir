@@ -96,6 +96,67 @@ namespace CoreIR {
   TEST_CASE("Partial evaluation") {
     Context* c = newContext();
 
+    SECTION("Partially evaluate a mux whose select is a register") {
+
+      uint width = 8;
+      Type* combLoop =
+        c->Record({{"clk", c->Named("coreir.clkIn")},
+              {"regIn", c->BitIn()->Arr(1)},
+              {"in0", c->BitIn()->Arr(width)},
+                {"in1", c->BitIn()->Arr(width)},
+                  {"out", c->Bit()->Arr(width)}});
+
+      Module* cl = c->getGlobal()->newModuleDecl("cl", combLoop);
+      ModuleDef* def = cl->newModuleDef();
+
+      def->addInstance("r", "coreir.reg", {{"width", Const::make(c, 1)}});
+      def->addInstance("mux0", "coreir.mux", {{"width", Const::make(c, width)}});
+
+      def->connect("self.regIn", "r.in");
+      def->connect("self.clk", "r.clk");
+      def->connect("r.out.0", "mux0.sel");
+
+      def->connect("self.in0", "mux0.in0");
+      def->connect("self.in1", "mux0.in1");
+
+      def->connect("mux0.out", "self.out");
+
+      cl->setDef(def);
+
+      c->runPasses({"rungenerators", "flattentypes", "flatten"});
+
+      SimulatorState state(cl);
+      state.setClock("self.clk", 0, 1);
+      state.setValue("self.regIn", BitVec(1, 1));
+      state.setValue("self.in0", BitVec(width, 56));
+      state.setValue("self.in1", BitVec(width, 12));
+
+      state.execute();
+      state.execute();
+      
+      REQUIRE(state.getBitVec("self.out") == BitVec(width, 12));
+
+      CircuitState st = state.getCircStates().back();
+
+      cout << "Instances before conversion" << endl;
+      for (auto inst : cl->getDef()->getInstances()) {
+        cout << inst.first << ": " << inst.second->toString() << endl;
+      }
+
+      registersToConstants(cl, st.registers);
+      deleteDeadInstances(cl);
+
+      cout << "Instances after conversion" << endl;
+      for (auto inst : cl->getDef()->getInstances()) {
+        cout << inst.first << ": " << inst.second->toString() << endl;
+      }
+
+      for (auto& conn : cl->getDef()->getConnections()) {
+        cout << conn.first->toString() << " <---> " << conn.second->toString() << endl;
+      }
+      
+    }
+
     SECTION("Partially evaluating a register") {
       uint width = 16;
 
@@ -104,7 +165,6 @@ namespace CoreIR {
               {"in", c->BitIn()->Arr(width)},
                 {"en", c->BitIn()},
                 {"out", c->Bit()->Arr(width)}});
-
 
       Module* rg = c->getGlobal()->newModuleDecl("rg", regOut);
       ModuleDef* def = rg->newModuleDef();
