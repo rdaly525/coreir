@@ -45,6 +45,23 @@ namespace CoreIR {
       last = current;
     }
   };
+
+  CoreIR::Wireable* replaceSelect(CoreIR::Wireable* const toReplace,
+                                  CoreIR::Wireable* const replacement,
+                                  CoreIR::Wireable* const sel) {
+    if (toReplace == sel) {
+      return replacement;
+    }
+
+    if (isa<Select>(sel)) {
+      Select* selP = cast<Select>(sel);
+      return replaceSelect(toReplace,
+                           replacement,
+                           selP->getParent())->sel(selP->getSelStr());
+    }
+
+    return sel;
+  }
   
   void registersToConstants(CoreIR::Module* const mod,
                             std::unordered_map<std::string, BitVec>& regValues) {
@@ -77,14 +94,27 @@ namespace CoreIR {
                              {{"width", Const::make(c, value.bitLength())}},
                              {{"value", Const::make(c, value)}});
 
+          Select* regOutSel = cast<Select>(inst->sel("out"));
+          Select* constOutSel = cast<Select>(constR->sel("out"));
+
           // How to find what the register output is connected to?
           //def->connect(constR->sel("out"), );
           for (auto& conn : def->getConnections()) {
-            if (conn.first == inst->sel("out")) {
-              def->connect(constR->sel("out"), conn.second);
-            } else if (conn.second == inst->sel("out")) {
-              def->connect(conn.second, constR->sel("out"));
-            }
+            Wireable* connFst = replaceSelect(regOutSel, constOutSel, conn.first);
+            Wireable* connSnd = replaceSelect(regOutSel, constOutSel, conn.second);
+
+            def->disconnect(conn.first, conn.second);
+            def->connect(connFst, connSnd);
+            
+            // if (conn.first == inst->sel("out")) {
+            //   def->connect(constR->sel("out"), conn.second);
+            // } else if (conn.second == inst->sel("out")) {
+            //   def->connect(conn.second, constR->sel("out"));
+            // }
+
+            // assert(connFst != nullptr);
+            // assert(connSnd != nullptr);
+            
           }
 
           def->removeInstance(inst);
@@ -138,7 +168,7 @@ namespace CoreIR {
 
       CircuitState st = state.getCircStates().back();
 
-      cout << "Instances before conversion" << endl;
+      cout << "RMux Instances before conversion" << endl;
       for (auto inst : cl->getDef()->getInstances()) {
         cout << inst.first << ": " << inst.second->toString() << endl;
       }
@@ -146,15 +176,26 @@ namespace CoreIR {
       registersToConstants(cl, st.registers);
       deleteDeadInstances(cl);
 
-      cout << "Instances after conversion" << endl;
+      cout << "RMux Instances after conversion" << endl;
       for (auto inst : cl->getDef()->getInstances()) {
         cout << inst.first << ": " << inst.second->toString() << endl;
       }
 
+      // After conversion there is a mux and a constant for the register
+      REQUIRE(cl->getDef()->getInstances().size() == 2);
+
       for (auto& conn : cl->getDef()->getConnections()) {
         cout << conn.first->toString() << " <---> " << conn.second->toString() << endl;
       }
-      
+
+      SimulatorState state2(cl);
+      state2.setValue("self.in1", BitVec(width, 4));
+      state2.setClock("self.clk", 0, 1);
+
+      state2.execute();
+      state2.execute();
+
+      REQUIRE(state2.getBitVec("self.in1") == BitVec(width, 4));
     }
 
     SECTION("Partially evaluating a register") {
