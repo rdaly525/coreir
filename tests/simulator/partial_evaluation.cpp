@@ -62,6 +62,111 @@ namespace CoreIR {
 
     return sel;
   }
+
+  std::vector<Select*>
+  getReceiverSelects(CoreIR::Wireable* inst) {
+    vector<Select*> conns;
+
+    for (auto sel : inst->getConnectedWireables()) {
+      if (sel->getType()->getDir() == Type::DK_In) {
+        conns.push_back(cast<Select>(sel));
+      }
+    }
+
+    for (auto sel : inst->getSelects()) {
+      concat(conns, getReceiverSelects(sel.second));
+    }
+
+    return conns;
+  }
+  
+  bool foldConstants(CoreIR::Module* const mod) {
+    if (!mod->hasDef()) {
+      return false;
+    }
+
+    ModuleDef* def = mod->getDef();
+    Context* c = mod->getContext();
+
+    for (auto instR : def->getInstances()) {
+      if (getQualifiedOpName(*(instR.second)) == "coreir.const") {
+        Instance* inst = instR.second;
+        cout << "Found constant to fold = " << inst->toString() << endl;
+
+        vector<Select*> receivers =
+          getReceiverSelects(inst);
+
+        cout << "Connections" << endl;
+        for (auto sel : receivers) {
+          cout << "\tConnects to " << sel->toString() << endl;
+
+          // cout << "\tSelect: " << (sel.second)->toString() << endl;
+          // for (auto wb : (sel.second)->getConnectedWireables()) {
+          //   cout << "\t\tConnected to: " << wb->toString() << endl;
+          // }
+        }
+      } else if (getQualifiedOpName(*(instR.second)) == "coreir.mux") {
+        Instance* inst = instR.second;
+
+        cout << "Found mux " << inst->toString() << endl;
+        auto wbs = inst->sel("sel")->getConnectedWireables();
+
+        assert(wbs.size() == 1);
+
+        Wireable* ptr = *std::begin(wbs);
+
+        cout << "Conneted to " << ptr->toString() << endl;
+
+        assert(isa<Select>(ptr));
+
+        Wireable* src = extractSource(cast<Select>(ptr));
+
+        if (isa<Instance>(src) &&
+            (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
+
+          Instance* srcConst = cast<Instance>(src);
+          cout << "Found constant mux" << endl;
+
+          BitVec val = (srcConst->getModArgs().find("value"))->second->get<BitVec>();
+
+          cout << "value = " << val << endl;
+
+          Select* bitSelect = cast<Select>(ptr);
+
+          string selStr = bitSelect->getSelStr();
+          Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
+
+          cout << "Parent = " << parent->toString() << endl;
+          cout << "Src    = " << src->toString() << endl;
+          assert(parent == src);
+          assert(isNumber(selStr));
+
+          int offset = stoi(selStr);
+
+          uint8_t bit = val.get(offset);
+
+          assert((bit == 0) || (bit == 1));
+
+          Select* replacement = nullptr;
+          Select* toReplace = inst->sel("out");
+          if (bit == 0) {
+            replacement = inst->sel("in0");
+          } else {
+            assert(bit == 1);
+            replacement = inst->sel("in1");
+          }
+
+          assert(replacement != nullptr);
+
+          def->removeInstance(inst);
+
+
+        }
+            
+      }
+    }
+    return true;
+  }
   
   void registersToConstants(CoreIR::Module* const mod,
                             std::unordered_map<std::string, BitVec>& regValues) {
@@ -175,27 +280,40 @@ namespace CoreIR {
 
       registersToConstants(cl, st.registers);
       deleteDeadInstances(cl);
+      foldConstants(cl);
 
       cout << "RMux Instances after conversion" << endl;
       for (auto inst : cl->getDef()->getInstances()) {
         cout << inst.first << ": " << inst.second->toString() << endl;
       }
 
-      // After conversion there is a mux and a constant for the register
-      REQUIRE(cl->getDef()->getInstances().size() == 2);
+      // After conversion there is a constant for the register
+      REQUIRE(cl->getDef()->getInstances().size() == 1);
 
       for (auto& conn : cl->getDef()->getConnections()) {
         cout << conn.first->toString() << " <---> " << conn.second->toString() << endl;
       }
 
       SimulatorState state2(cl);
+      state2.setValue("self.in0", BitVec(width, 8));
       state2.setValue("self.in1", BitVec(width, 4));
+      state2.setValue("self.regIn", BitVec(width, 0));
       state2.setClock("self.clk", 0, 1);
 
       state2.execute();
       state2.execute();
 
-      REQUIRE(state2.getBitVec("self.in1") == BitVec(width, 4));
+      REQUIRE(state2.getBitVec("self.out") == BitVec(width, 4));
+
+      bool foundMux = false;
+      for (auto& inst : cl->getDef()->getInstances()) {
+        if (getQualifiedOpName(*(inst.second)) == "coreir.mux") {
+          foundMux = true;
+          break;
+        }
+      }
+
+      REQUIRE(!foundMux);
     }
 
     SECTION("Partially evaluating a register") {
