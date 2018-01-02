@@ -80,6 +80,23 @@ namespace CoreIR {
     return conns;
   }
 
+  std::vector<Connection>
+  getSourceConnections(CoreIR::Wireable* w) {
+    vector<Connection> conns;
+
+    for (auto sel : w->getConnectedWireables()) {
+      if (sel->getType()->getDir() == Type::DK_Out) {
+        conns.push_back({sel, w});
+      }
+    }
+
+    for (auto sel : w->getSelects()) {
+      concat(conns, getSourceConnections(sel.second));
+    }
+
+    return conns;
+  }
+  
   std::vector<Select*>
   getReceiverSelects(CoreIR::Wireable* inst) {
     vector<Select*> conns;
