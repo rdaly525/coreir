@@ -79,7 +79,36 @@ namespace CoreIR {
 
     return conns;
   }
-  
+
+  std::vector<Connection>
+  unpackConnection(const CoreIR::Connection& conn) {
+    Wireable* fst = conn.first;
+    Wireable* snd = conn.second;
+
+    assert(fst->getType() == snd->getType()->getFlipped());
+
+    Type* fstType = fst->getType();
+
+    // Bit connections are already unpacked
+    if ((fstType->getKind() == Type::TK_Bit) ||
+        (fstType->getKind() == Type::TK_BitIn)) {
+      return {conn};
+    }
+
+    vector<Connection> unpackedConns;
+
+    if (fstType->getKind() == Type::TK_Array) {
+      ArrayType* arrTp = cast<ArrayType>(fstType);
+      int len = arrTp->getLen();
+
+      
+    } else {
+      cout << "Wireable " << fst->toString() << " has unsupported type in unpackConnection = " << fstType->toString() << endl;
+      assert(false);
+    }
+    return unpackedConns;
+  }
+
   bool foldConstants(CoreIR::Module* const mod) {
     if (!mod->hasDef()) {
       return false;
