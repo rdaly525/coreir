@@ -164,7 +164,14 @@ namespace CoreIR {
           // in second map, then add each key, value pair to the module definition
           // as a connection?
 
-          // Really
+          // The key idea is that bulk connections can / should be broken down into
+          // their representation as individual connections, but not really
+          // connections but
+          // ports on instances / the interface. So ports should be decomposed
+          // into their lowest representation as bits
+
+          // Can kind of think of this as a "replace net" operation. Replace the
+          // net defined by mux.out with the "net" defined by mux.in0
           Select* replacement = nullptr;
           Select* toReplace = inst->sel("out");
           if (bit == 0) {

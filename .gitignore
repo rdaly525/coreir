@@ -34,3 +34,6 @@ revert_interp_only.sh
 revert_stress_only.sh
 interp_tests_only.sh
 stress_only.sh
+
+DesignTop_sim.cpp
+DesignTop_sim.h
