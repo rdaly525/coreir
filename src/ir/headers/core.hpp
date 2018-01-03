@@ -64,6 +64,51 @@ void core_convert(Context* c, Namespace* core) {
   core->newGeneratorDecl("zext",extTypeGen,extParams);
   core->newGeneratorDecl("sext",extTypeGen,extParams);
 
+
+  //strip
+  Params stripParams({
+    {"type",CoreIRType::make(c)}
+  });
+  auto stripTypeGen = core->newTypeGen(
+    "stripTypeFun",
+    stripParams,
+    [](Context* c, Values args) {
+      Type* type = args.at("type")->get<Type*>();
+      ASSERT(isa<NamedType>(type),"type needs to be a named type");
+      NamedType* ntype = cast<NamedType>(type);
+      ASSERT(!ntype->isGen(),"NYI named type generators");
+      ASSERT(ntype->isBaseType(), "NYI named type that is not Bit or BitIn");
+      ASSERT(ntype->isOutput(), "NYI named types that are not outputs");
+      return c->Record({
+        {"in",ntype->getFlipped()},
+        {"out",ntype->getRaw()}
+      });
+    }
+  );
+  core->newGeneratorDecl("strip",stripTypeGen,stripParams);
+
+  //wrap
+  Params wrapParams({
+    {"type",CoreIRType::make(c)}
+  });
+  auto wrapTypeGen = core->newTypeGen(
+    "wrapTypeFun",
+    wrapParams,
+    [](Context* c, Values args) {
+      Type* type = args.at("type")->get<Type*>();
+      ASSERT(isa<NamedType>(type),"type needs to be a named type");
+      NamedType* ntype = cast<NamedType>(type);
+      ASSERT(!ntype->isGen(),"NYI named type generators");
+      ASSERT(ntype->isBaseType(), "NYI named type that is not Bit or BitIn");
+      ASSERT(ntype->isOutput(), "NYI named type that is not output");
+      return c->Record({
+        {"in",ntype->getRaw()->getFlipped()},
+        {"out",ntype}
+      });
+    }
+  );
+  core->newGeneratorDecl("wrap",wrapTypeGen,wrapParams);
+
 }
 
 void core_state(Context* c, Namespace* core) {
