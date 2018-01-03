@@ -174,10 +174,81 @@ namespace CoreIR {
     return true;
   }
 
-  std::map<Select*, Select*> driverSignalMap(CoreIR::ModuleDef* const def) {
-    return {};
+  std::map<Wireable*, Wireable*> signalDriverMap(CoreIR::ModuleDef* const def) {
+    map<Wireable*, Wireable*> bitToDriver;
+
+    for (auto connection : def->getConnections()) {
+      Wireable* fst = connection.first;
+      Wireable* snd = connection.second;
+
+      assert(isSelect(fst));
+      assert(isSelect(snd));
+
+      Select* fst_select = static_cast<Select*>(fst);
+
+      Type* fst_tp = fst_select->getType();
+
+      if (fst_tp->isInput()) {
+        bitToDriver[fst] = snd;
+      } else {
+        bitToDriver[snd] = fst;
+      }
+      
+    }
+    return bitToDriver;
   }
 
+  std::map<Wireable*, std::vector<Wireable*> >
+  signalReceiverMap(CoreIR::ModuleDef* const def) {
+    map<Wireable*, vector<Wireable*> > bitToDriver;
+
+    for (auto connection : def->getConnections()) {
+      Wireable* fst = connection.first;
+      Wireable* snd = connection.second;
+
+      assert(isSelect(fst));
+      assert(isSelect(snd));
+
+      Select* fst_select = static_cast<Select*>(fst);
+
+      Type* fst_tp = fst_select->getType();
+
+      if (fst_tp->isInput()) {
+        map_insert(bitToDriver, snd, fst);
+      } else {
+        map_insert(bitToDriver, fst, snd);
+      }
+      
+    }
+    return bitToDriver;
+  }
+
+  bool isAncestorOf(Wireable* const possibleAncestor,
+                    Wireable* const w) {
+    if (possibleAncestor == w) {
+      return true;
+    }
+
+    if (isa<Select>(w)) {
+      Select* ws = cast<Select>(w);
+      return isAncestorOf(possibleAncestor, ws->getParent());
+    }
+
+    return false;
+  }
+
+  vector<Wireable*>
+  drivenBy(Wireable* const w,
+           std::map<Wireable*, std::vector<Wireable*> >& receiverMap) {
+    vector<Wireable*> driven;
+    for (auto rec : receiverMap) {
+      if (isAncestorOf(w, rec.first)) {
+        concat(driven, rec.second);
+      }
+    }
+    return driven;
+  }
+  
   bool foldConstants(CoreIR::Module* const mod) {
     if (!mod->hasDef()) {
       return false;
@@ -185,6 +256,9 @@ namespace CoreIR {
 
     ModuleDef* def = mod->getDef();
     Context* c = mod->getContext();
+
+    auto driverMap = signalDriverMap(def);
+    auto receiverMap = signalReceiverMap(def);
 
     for (auto instR : def->getInstances()) {
       if (getQualifiedOpName(*(instR.second)) == "coreir.const") {
@@ -197,11 +271,6 @@ namespace CoreIR {
         cout << "Connections" << endl;
         for (auto sel : receivers) {
           cout << "\tConnects to " << sel->toString() << endl;
-
-          // cout << "\tSelect: " << (sel.second)->toString() << endl;
-          // for (auto wb : (sel.second)->getConnectedWireables()) {
-          //   cout << "\t\tConnected to: " << wb->toString() << endl;
-          // }
         }
       } else if (getQualifiedOpName(*(instR.second)) == "coreir.mux") {
         Instance* inst = instR.second;
@@ -223,20 +292,20 @@ namespace CoreIR {
             (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
 
           Instance* srcConst = cast<Instance>(src);
-          cout << "Found constant mux" << endl;
+          //cout << "Found constant mux" << endl;
 
           BitVec val =
             (srcConst->getModArgs().find("value"))->second->get<BitVec>();
 
-          cout << "value = " << val << endl;
+          //cout << "value = " << val << endl;
 
           Select* bitSelect = cast<Select>(ptr);
 
           string selStr = bitSelect->getSelStr();
           Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
 
-          cout << "Parent = " << parent->toString() << endl;
-          cout << "Src    = " << src->toString() << endl;
+          // cout << "Parent = " << parent->toString() << endl;
+          // cout << "Src    = " << src->toString() << endl;
           assert(parent == src);
           assert(isNumber(selStr));
 
@@ -253,6 +322,31 @@ namespace CoreIR {
           } else {
             assert(bit == 1);
             replacement = inst->sel("in1");
+          }
+
+          //cout << "Receivers of mux output to rewire" << endl;
+          for (auto sel : drivenBy(toReplace, receiverMap)) {
+            //cout << "\t" << "sel = " << sel->toString() << endl;
+
+            auto target = driverMap[sel];
+
+            //cout << "\tsel driver = " << target->toString() << endl;
+
+            Select* val =
+              cast<Select>(replaceSelect(toReplace,
+                                         replacement,
+                                         cast<Select>(target)));
+
+            //cout << "replacement select = " << val->toString() << endl;
+
+            auto driver = map_find(cast<Wireable>(val), driverMap);
+            // Select* driver = nullptr;
+            assert(driver != nullptr);
+
+            //cout << "replacement select driven by " << driver->toString() << endl;
+
+            //cout << "connecting " << sel->toString() << " <--> " << driver->toString() << endl;
+            def->connect(sel, driver);
           }
 
           assert(replacement != nullptr);
@@ -375,36 +469,56 @@ namespace CoreIR {
         cout << inst.first << ": " << inst.second->toString() << endl;
       }
 
+      auto sigDrivers = signalDriverMap(cl->getDef());
+      cout << "Signal bits to drivers" << endl;
+      for (auto dp : sigDrivers) {
+        cout << "\t" << dp.first->toString() << " driven by " << dp.second->toString() << endl;
+      }
+
+      auto sigReceivers = signalReceiverMap(cl->getDef());
+      cout << "Signal bits to receivers" << endl;
+      for (auto dp : sigReceivers) {
+        cout << "\t" << dp.first->toString() << " drives ";
+        for (auto val : dp.second) {
+          cout << val->toString() << ", " << endl;
+        }
+      }
+      
       // After conversion there is a constant for the register
-      SECTION("1 instance") {
+      SECTION("The mux is removed by constant folding") {
         REQUIRE(cl->getDef()->getInstances().size() == 1);
+
+        bool foundMux = false;
+        for (auto& inst : cl->getDef()->getInstances()) {
+          if (getQualifiedOpName(*(inst.second)) == "coreir.mux") {
+            foundMux = true;
+            break;
+          }
+        }
+
+        REQUIRE(!foundMux);
+
       }
 
-      cout << "RMux Connections" << endl;
-      for (auto& conn : cl->getDef()->getConnections()) {
-        cout << "\t" << conn.first->toString() << " <---> " << conn.second->toString() << endl;
+      SECTION("The circuit output is in1") {
+
+        cout << "RMux Connections" << endl;
+        for (auto& conn : cl->getDef()->getConnections()) {
+          cout << "\t" << conn.first->toString() << " <---> " << conn.second->toString() << endl;
+        }
+
+        SimulatorState state2(cl);
+        state2.setValue("self.in0", BitVec(width, 8));
+        state2.setValue("self.in1", BitVec(width, 4));
+        state2.setValue("self.regIn", BitVec(width, 0));
+        state2.setClock("self.clk", 0, 1);
+
+        state2.execute();
+        state2.execute();
+
+        REQUIRE(state2.getBitVec("self.out") == BitVec(width, 4));
       }
 
-      // SimulatorState state2(cl);
-      // state2.setValue("self.in0", BitVec(width, 8));
-      // state2.setValue("self.in1", BitVec(width, 4));
-      // state2.setValue("self.regIn", BitVec(width, 0));
-      // state2.setClock("self.clk", 0, 1);
-
-      // state2.execute();
-      // state2.execute();
-
-      // REQUIRE(state2.getBitVec("self.out") == BitVec(width, 4));
-
-      // bool foundMux = false;
-      // for (auto& inst : cl->getDef()->getInstances()) {
-      //   if (getQualifiedOpName(*(inst.second)) == "coreir.mux") {
-      //     foundMux = true;
-      //     break;
-      //   }
-      // }
-
-      // REQUIRE(!foundMux);
     }
 
     SECTION("Partially evaluating a register") {
