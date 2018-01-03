@@ -11,9 +11,7 @@ bool Passes::CreateInstanceMap::runOnModule(Module* m) {
     if (m->isGenerated()) {
       genInstanceMap[m->getGenerator()].insert(instmap.second);
     }
-    else {
-      modInstanceMap[m].insert(instmap.second);
-    }
+    modInstanceMap[m].insert(instmap.second);
   }
   return false;
 }

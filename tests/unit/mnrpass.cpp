@@ -19,12 +19,12 @@ int main() {
   // Define random module with subs
   Module* ms = prj->newModuleDecl("SNRTestSub",c->Record());
   ModuleDef* def = ms->newModuleDef();
-    def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",Const::make(c,5)}});
-    def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",Const::make(c,5)}});
-    def->addInstance("c2",sl->getGenerator("const"),wargs,{{"value",Const::make(c,2)}});
-    def->addInstance("s0",sl->getGenerator("sub"),wargs);
-    def->addInstance("s1",sl->getGenerator("sub"),wargs);
-    def->addInstance("m0",sl->getGenerator("mul"),wargs);
+    def->addInstance("c0","coreir.const",wargs,{{"value",Const::make(c,5)}});
+    def->addInstance("c1","coreir.const",wargs,{{"value",Const::make(c,5)}});
+    def->addInstance("c2","coreir.const",wargs,{{"value",Const::make(c,2)}});
+    def->addInstance("s0","coreir.sub",wargs);
+    def->addInstance("s1","coreir.sub",wargs);
+    def->addInstance("m0","coreir.mul",wargs);
     def->connect("c0.out","s0.in0");
     def->connect("c1.out","s0.in1");
     def->connect("s0.out","s1.in0");
@@ -37,12 +37,12 @@ int main() {
   // Define same random module with adds instead of subs and operands switched
   Module* ma = g->newModuleDecl("SNRTestAdd",c->Record());
   def = ma->newModuleDef();
-    def->addInstance("c0",sl->getGenerator("const"),wargs,{{"value",Const::make(c,0)}});
-    def->addInstance("c1",sl->getGenerator("const"),wargs,{{"value",Const::make(c,1)}});
-    def->addInstance("c2",sl->getGenerator("const"),wargs,{{"value",Const::make(c,2)}});
-    def->addInstance("a0",sl->getGenerator("add"),wargs);
-    def->addInstance("a1",sl->getGenerator("add"),wargs);
-    def->addInstance("m0",sl->getGenerator("mul"),wargs);
+    def->addInstance("c0","coreir.const",wargs,{{"value",Const::make(c,0)}});
+    def->addInstance("c1","coreir.const",wargs,{{"value",Const::make(c,1)}});
+    def->addInstance("c2","coreir.const",wargs,{{"value",Const::make(c,2)}});
+    def->addInstance("a0","coreir.add",wargs);
+    def->addInstance("a1","coreir.add",wargs);
+    def->addInstance("m0","coreir.mul",wargs);
     def->connect("c0.out","a0.in1");
     def->connect("c1.out","a0.in0");
     def->connect("a0.out","a1.in1");

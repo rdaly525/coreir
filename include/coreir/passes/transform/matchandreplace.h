@@ -22,7 +22,7 @@ class MatchAndReplace : public ModulePass {
 
   private:
     Module* pattern;
-    Instantiable* replacement;
+    GlobalValue* replacement;
 
     void verifyOpts(Opts opts);
 
@@ -48,7 +48,7 @@ class MatchAndReplace : public ModulePass {
 
 
   public:
-    explicit MatchAndReplace(std::string name, Module* pattern, Instantiable* replacement, Opts opts=Opts()) : ModulePass(name,"Matches a module and replaces it"), pattern(pattern), replacement(replacement), genargs(opts.genargs), modargs(opts.modargs), getModArgs(opts.getModArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
+    explicit MatchAndReplace(std::string name, Module* pattern, GlobalValue* replacement, Opts opts=Opts()) : ModulePass(name,"Matches a module and replaces it"), pattern(pattern), replacement(replacement), genargs(opts.genargs), modargs(opts.modargs), getModArgs(opts.getModArgs), checkMatching(opts.checkMatching), instanceKey(opts.instanceKey) {
       mergeValues(genargs, dyn_cast<Generator>(replacement)->getDefaultGenArgs());
       this->verifyOpts(opts);
       this->preprocessPattern();
