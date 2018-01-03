@@ -775,161 +775,161 @@ namespace CoreIR {
 
     }
 
-    SECTION("Harris") {
-      CoreIRLoadLibrary_commonlib(c);
+    // SECTION("Harris") {
+    //   CoreIRLoadLibrary_commonlib(c);
 
-      if (!loadFromFile(c,"./harris.json")) {
-    	cout << "Could not Load from json!!" << endl;
-    	c->die();
-      }
+    //   if (!loadFromFile(c,"./harris.json")) {
+    // 	cout << "Could not Load from json!!" << endl;
+    // 	c->die();
+    //   }
 
 
-      cout << "==== HARRIS Graph" << endl;
-      Module* mPre = c->getGlobal()->getModule("DesignTop");
-      NGraph preG;
-      buildOrderedGraph(mPre, preG);
+    //   cout << "==== HARRIS Graph" << endl;
+    //   Module* mPre = c->getGlobal()->getModule("DesignTop");
+    //   NGraph preG;
+    //   buildOrderedGraph(mPre, preG);
 
-      auto preOrder = topologicalSort(preG);
+    //   auto preOrder = topologicalSort(preG);
 
-      cout << "Pre topological order = " << endl;
-      for (auto& vd : preOrder) {
-        cout << preG.getNode(vd).getWire()->toString() << " has " << preG.outEdges(vd).size() << " outputs " << endl;
-      }
+    //   cout << "Pre topological order = " << endl;
+    //   for (auto& vd : preOrder) {
+    //     cout << preG.getNode(vd).getWire()->toString() << " has " << preG.outEdges(vd).size() << " outputs " << endl;
+    //   }
 
-      auto preLevels = topologicalLevels(preG);
+    //   auto preLevels = topologicalLevels(preG);
 
-      cout << "Pre topological order = " << endl;
-      for (auto& level : preLevels) {
-        cout << "------- Level" << endl;
-        for (auto& vd : level) {
-          WireNode wd = preG.getNode(vd);
-          cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << endl;
+    //   cout << "Pre topological order = " << endl;
+    //   for (auto& level : preLevels) {
+    //     cout << "------- Level" << endl;
+    //     for (auto& vd : level) {
+    //       WireNode wd = preG.getNode(vd);
+    //       cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << endl;
           
-        }
-      }
+    //     }
+    //   }
 
-      c->runPasses({"rungenerators","flattentypes", "flatten", "wireclocks-coreir"});
-      Module* m = c->getGlobal()->getModule("DesignTop");
+    //   c->runPasses({"rungenerators","flattentypes", "flatten", "wireclocks-coreir"});
+    //   Module* m = c->getGlobal()->getModule("DesignTop");
 
-      map<int, vector<vdisc>> numOutputsHisto;
-      NGraph g;
-      buildOrderedGraph(m, g);
-      auto postLevels = topologicalLevels(g);
-      cout << "Pre topological order = " << endl;
-      for (auto& level : postLevels) {
-        cout << "------- Level" << endl;
-        for (auto& vd : level) {
-          WireNode wd = g.getNode(vd);
-          cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << " has " << g.outEdges(vd).size() << " outputs" << endl;
+    //   map<int, vector<vdisc>> numOutputsHisto;
+    //   NGraph g;
+    //   buildOrderedGraph(m, g);
+    //   auto postLevels = topologicalLevels(g);
+    //   cout << "Pre topological order = " << endl;
+    //   for (auto& level : postLevels) {
+    //     cout << "------- Level" << endl;
+    //     for (auto& vd : level) {
+    //       WireNode wd = g.getNode(vd);
+    //       cout << wd.getWire()->toString() << " : " << wd.getWire()->getType()->toString() << " has " << g.outEdges(vd).size() << " outputs" << endl;
           
 
-          map_insert(numOutputsHisto, (int) g.outEdges(vd).size(), vd);
-        }
-      }
+    //       map_insert(numOutputsHisto, (int) g.outEdges(vd).size(), vd);
+    //     }
+    //   }
 
-      cout << "Fan out distribution" << endl;
-      for (auto& ent : numOutputsHisto) {
-        cout << ent.first << " --> " << ent.second.size() << endl;
-      }
+    //   cout << "Fan out distribution" << endl;
+    //   for (auto& ent : numOutputsHisto) {
+    //     cout << ent.first << " --> " << ent.second.size() << endl;
+    //   }
 
-      // Finding all nodes from each of the lb grads
-      vector<vdisc> grad_xx_nodes;
-      vector<vdisc> grad_xy_nodes;
-      vector<vdisc> grad_yy_nodes;
+    //   // Finding all nodes from each of the lb grads
+    //   vector<vdisc> grad_xx_nodes;
+    //   vector<vdisc> grad_xy_nodes;
+    //   vector<vdisc> grad_yy_nodes;
 
-      for (auto& vd : concat_all(postLevels)) {
-        Wireable* w = g.getNode(vd).getWire();
-        if (isInstance(w)) {
-          Instance* inst = toInstance(w);
+    //   for (auto& vd : concat_all(postLevels)) {
+    //     Wireable* w = g.getNode(vd).getWire();
+    //     if (isInstance(w)) {
+    //       Instance* inst = toInstance(w);
 
-          string instName = inst->toString();
-          string origin = instName.substr(0, instName.find("$"));
+    //       string instName = inst->toString();
+    //       string origin = instName.substr(0, instName.find("$"));
 
-          if (origin == "lb_grad_yy_2_stencil_update_stream") {
-            grad_yy_nodes.push_back(vd);
-          }
+    //       if (origin == "lb_grad_yy_2_stencil_update_stream") {
+    //         grad_yy_nodes.push_back(vd);
+    //       }
 
-          if (origin == "lb_grad_xx_2_stencil_update_stream") {
-            grad_xx_nodes.push_back(vd);
-          }
+    //       if (origin == "lb_grad_xx_2_stencil_update_stream") {
+    //         grad_xx_nodes.push_back(vd);
+    //       }
 
-          if (origin == "lb_grad_xy_2_stencil_update_stream") {
-            grad_xy_nodes.push_back(vd);
-          }
+    //       if (origin == "lb_grad_xy_2_stencil_update_stream") {
+    //         grad_xy_nodes.push_back(vd);
+    //       }
           
-        }
-      }
+    //     }
+    //   }
 
-      cout << "---- gradient linebuffers" << endl;
-      cout << "---- yy elems = " << grad_yy_nodes.size() << endl;
-      for (auto& vd : grad_yy_nodes) {
-        cout << nodeString(g.getNode(vd)) << endl;
-      }
-      cout << "---- xx elems = " << grad_xx_nodes.size() << endl;
-      for (auto& vd : grad_xx_nodes) {
-        cout << nodeString(g.getNode(vd)) << endl;
-      }
-      cout << "---- xy elems size = " << grad_xy_nodes.size() << endl;
-      for (auto& vd : grad_xy_nodes) {
-        cout << nodeString(g.getNode(vd)) << endl;
-      }
+    //   cout << "---- gradient linebuffers" << endl;
+    //   cout << "---- yy elems = " << grad_yy_nodes.size() << endl;
+    //   for (auto& vd : grad_yy_nodes) {
+    //     cout << nodeString(g.getNode(vd)) << endl;
+    //   }
+    //   cout << "---- xx elems = " << grad_xx_nodes.size() << endl;
+    //   for (auto& vd : grad_xx_nodes) {
+    //     cout << nodeString(g.getNode(vd)) << endl;
+    //   }
+    //   cout << "---- xy elems size = " << grad_xy_nodes.size() << endl;
+    //   for (auto& vd : grad_xy_nodes) {
+    //     cout << nodeString(g.getNode(vd)) << endl;
+    //   }
 
-      vector<vector<vdisc> > identicalComps;
-      identicalComps.push_back(grad_xx_nodes);
-      identicalComps.push_back(grad_yy_nodes);
-      identicalComps.push_back(grad_xy_nodes);
+    //   vector<vector<vdisc> > identicalComps;
+    //   identicalComps.push_back(grad_xx_nodes);
+    //   identicalComps.push_back(grad_yy_nodes);
+    //   identicalComps.push_back(grad_xy_nodes);
 
-      vector<vector<vdisc> > simdGroups =
-        groupByImplName(identicalComps, 3);
+    //   vector<vector<vdisc> > simdGroups =
+    //     groupByImplName(identicalComps, 3);
 
-      vector<vdisc> internalNodes = concat_all(simdGroups);
-      vector<vdisc> stagedInputs;
-      vector<vdisc> stagedOutputs;
+    //   vector<vdisc> internalNodes = concat_all(simdGroups);
+    //   vector<vdisc> stagedInputs;
+    //   vector<vdisc> stagedOutputs;
 
-      for (auto& comp : simdGroups) {
-        cout << "--- Group" << endl;
-        for (auto& vd : comp) {
-          cout << "\t" << nodeString(g.getNode(vd)) << endl;
-        }
+    //   for (auto& comp : simdGroups) {
+    //     cout << "--- Group" << endl;
+    //     for (auto& vd : comp) {
+    //       cout << "\t" << nodeString(g.getNode(vd)) << endl;
+    //     }
 
-        cout << "--- Group inputs" << endl;
-        for (auto& vd : comp) {
-          for (auto& inConn : g.inEdges(vd)) {
-            auto inVD = g.source(inConn);
-            cout << "\t\t" << nodeString(g.getNode(inVD)) << endl;
+    //     cout << "--- Group inputs" << endl;
+    //     for (auto& vd : comp) {
+    //       for (auto& inConn : g.inEdges(vd)) {
+    //         auto inVD = g.source(inConn);
+    //         cout << "\t\t" << nodeString(g.getNode(inVD)) << endl;
 
-            if (!elem(inVD, internalNodes) && !elem(inVD, stagedInputs)) {
-              stagedInputs.push_back(inVD);
-            }
-          }
-        }
+    //         if (!elem(inVD, internalNodes) && !elem(inVD, stagedInputs)) {
+    //           stagedInputs.push_back(inVD);
+    //         }
+    //       }
+    //     }
 
-        cout << "--- Group outputs" << endl;
-        for (auto& vd : comp) {
-          for (auto& inConn : g.outEdges(vd)) {
-            auto inVD = g.target(inConn);
-            cout << "\t\t" << nodeString(g.getNode(inVD)) << endl;
+    //     cout << "--- Group outputs" << endl;
+    //     for (auto& vd : comp) {
+    //       for (auto& inConn : g.outEdges(vd)) {
+    //         auto inVD = g.target(inConn);
+    //         cout << "\t\t" << nodeString(g.getNode(inVD)) << endl;
 
-            if (!elem(inVD, internalNodes) && !elem(inVD, stagedOutputs)) {
-              stagedOutputs.push_back(inVD);
-            }
-          }
-        }
+    //         if (!elem(inVD, internalNodes) && !elem(inVD, stagedOutputs)) {
+    //           stagedOutputs.push_back(inVD);
+    //         }
+    //       }
+    //     }
 
-      }
+    //   }
 
-      cout << "# of inputs to stage = " << stagedInputs.size() << endl;
-      for (auto& vd : stagedInputs) {
-        cout << "\t" << nodeString(g.getNode(vd)) << endl;
-      }
+    //   cout << "# of inputs to stage = " << stagedInputs.size() << endl;
+    //   for (auto& vd : stagedInputs) {
+    //     cout << "\t" << nodeString(g.getNode(vd)) << endl;
+    //   }
 
-      cout << "# of outputs to stage = " << stagedOutputs.size() << endl;
-      for (auto& vd : stagedOutputs) {
-        cout << "\t" << nodeString(g.getNode(vd)) << endl;
-      }
+    //   cout << "# of outputs to stage = " << stagedOutputs.size() << endl;
+    //   for (auto& vd : stagedOutputs) {
+    //     cout << "\t" << nodeString(g.getNode(vd)) << endl;
+    //   }
       
       
-    }
+    // }
 
     SECTION("conv_3_1") {
       CoreIRLoadLibrary_commonlib(c);
