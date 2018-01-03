@@ -18,8 +18,11 @@ bool Passes::RunGenerators::runOnContext(Context* c) {
         }
       }
     }
+
     modified |= changed;
   }
+
+  cout << "Done running generators" << endl;
 
   return modified;
   
