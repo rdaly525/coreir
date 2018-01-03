@@ -216,31 +216,6 @@ namespace CoreIR {
 
           assert((bit == 0) || (bit == 1));
 
-          // Problem: What if the mux.in0 select is driven by many things?
-          // Need a function that replaces every driver of every receiver of
-          // mux.out with the corresponding driver of mux.in0. This is basically
-          // the operation that is used in inlining
-
-          // Solution: Build 2 maps: one that maps from selects off of mux.in0
-          // to drivers and one that maps from selects off of mux.out to receivers?
-
-          // Problem: What if the set of selects that drive mux.in0 and the set of
-          // selects off of mux.out are not the same? Need to go to the lowest
-          // common denominator
-
-          // Once I have these lowest common denominator maps, then what? replace
-          // each mux.out.<REST_OF_SELECT> with driver(mux.in0.<REST_OF_SELECT>)
-          // in second map, then add each key, value pair to the module definition
-          // as a connection?
-
-          // The key idea is that bulk connections can / should be broken down into
-          // their representation as individual connections, but not really
-          // connections but
-          // ports on instances / the interface. So ports should be decomposed
-          // into their lowest representation as bits
-
-          // Can kind of think of this as a "replace net" operation. Replace the
-          // net defined by mux.out with the "net" defined by mux.in0
           Select* replacement = nullptr;
           Select* toReplace = inst->sel("out");
           if (bit == 0) {
