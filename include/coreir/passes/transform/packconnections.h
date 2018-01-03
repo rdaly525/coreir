@@ -1,5 +1,5 @@
-#ifndef COREIR_GROUPCONNECTIONS_HPP_
-#define COREIR_GROUPCONNECTIONS_HPP_
+#ifndef COREIR_PACKCONNECTIONS_HPP_
+#define COREIR_PACKCONNECTIONS_HPP_
 
 #include "coreir.h"
 
@@ -8,11 +8,11 @@ namespace CoreIR {
 namespace Passes {
 
 //This will add directed connection metadata to modules
-class GroupConnections : public ModulePass {
+class PackConnections : public ModulePass {
   
   public:
     static std::string ID;
-    GroupConnections() : ModulePass(ID, "Collapse bitwise connections into grouped connections where possible") {}
+    PackConnections() : ModulePass(ID, "Collapse bitwise connections into packed connections where possible") {}
     bool runOnModule(Module* m) override;
 };
 

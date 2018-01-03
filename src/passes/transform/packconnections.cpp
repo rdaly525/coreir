@@ -1,13 +1,13 @@
 #include "coreir.h"
-#include "coreir/passes/transform/groupconnections.h"
+#include "coreir/passes/transform/packconnections.h"
 
 using namespace std;
 using namespace CoreIR;
 
 
 //Do not forget to set this static variable!!
-string Passes::GroupConnections::ID = "groupconnections";
-bool Passes::GroupConnections::runOnModule(Module* m) {
+string Passes::PackConnections::ID = "packconnections";
+bool Passes::PackConnections::runOnModule(Module* m) {
   if (!m->hasDef()) {
     return false;
   }
@@ -76,9 +76,9 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
   }
 
 
-  vector<vector<Connection> > groups;
+  vector<vector<Connection> > packs;
   split_by(arrayToArrayConns,
-           groups,
+           packs,
            [](const Connection& l, const Connection& r) {
              Select* lastL = cast<Select>(l.first);
              Select* lastR = cast<Select>(l.second);
@@ -106,7 +106,7 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
              return false;
            });
 
-  delete_if(groups, [](const vector<Connection>& conns) {
+  delete_if(packs, [](const vector<Connection>& conns) {
       assert(conns.size() > 0);
 
       auto conn = conns[0];
@@ -117,10 +117,10 @@ bool Passes::GroupConnections::runOnModule(Module* m) {
     });
 
   cout << "# of connections before deleting = " << def->getConnections().size() << endl;
-  for (auto& gp : groups) {
+  for (auto& gp : packs) {
     assert(gp.size() > 0);
 
-    //cout << "Deleting group of size " << gp.size() << endl;
+    //cout << "Deleting pack of size " << gp.size() << endl;
     auto conn = gp[0];
     Select* selL = cast<Select>(conn.first);
     Select* selR = cast<Select>(conn.second);
