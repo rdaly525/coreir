@@ -129,6 +129,10 @@ namespace CoreIR {
       return {conn};
     }
 
+    if (fstType->getKind() == Type::TK_Named) {
+      return {conn};
+    }
+
     vector<Connection> unpackedConns;
 
     if (fstType->getKind() == Type::TK_Array) {
@@ -147,6 +151,31 @@ namespace CoreIR {
     }
 
     assert(false);
+  }
+
+  bool unpackConnections(CoreIR::Module* const mod) {
+    if (!mod->hasDef()) {
+      return false;
+    }
+
+    ModuleDef* def = mod->getDef();
+    Context* c = mod->getContext();
+
+    for (auto& conn : def->getConnections()) {
+      auto unpacked = unpackConnection(conn);
+
+      def->disconnect(conn);
+
+      for (auto& connR : unpacked) {
+        def->connect(connR.first, connR.second);
+      }
+    }
+
+    return true;
+  }
+
+  std::map<Select*, Select*> driverSignalMap(CoreIR::ModuleDef* const def) {
+    return {};
   }
 
   bool foldConstants(CoreIR::Module* const mod) {
@@ -196,7 +225,8 @@ namespace CoreIR {
           Instance* srcConst = cast<Instance>(src);
           cout << "Found constant mux" << endl;
 
-          BitVec val = (srcConst->getModArgs().find("value"))->second->get<BitVec>();
+          BitVec val =
+            (srcConst->getModArgs().find("value"))->second->get<BitVec>();
 
           cout << "value = " << val << endl;
 
@@ -228,7 +258,6 @@ namespace CoreIR {
           assert(replacement != nullptr);
 
           def->removeInstance(inst);
-
 
         }
             
@@ -271,23 +300,12 @@ namespace CoreIR {
           Select* regOutSel = cast<Select>(inst->sel("out"));
           Select* constOutSel = cast<Select>(constR->sel("out"));
 
-          // How to find what the register output is connected to?
-          //def->connect(constR->sel("out"), );
           for (auto& conn : def->getConnections()) {
             Wireable* connFst = replaceSelect(regOutSel, constOutSel, conn.first);
             Wireable* connSnd = replaceSelect(regOutSel, constOutSel, conn.second);
 
             def->disconnect(conn.first, conn.second);
             def->connect(connFst, connSnd);
-            
-            // if (conn.first == inst->sel("out")) {
-            //   def->connect(constR->sel("out"), conn.second);
-            // } else if (conn.second == inst->sel("out")) {
-            //   def->connect(conn.second, constR->sel("out"));
-            // }
-
-            // assert(connFst != nullptr);
-            // assert(connSnd != nullptr);
             
           }
 
@@ -349,6 +367,7 @@ namespace CoreIR {
 
       registersToConstants(cl, st.registers);
       deleteDeadInstances(cl);
+      unpackConnections(cl);
       foldConstants(cl);
 
       cout << "RMux Instances after conversion" << endl;
@@ -357,10 +376,13 @@ namespace CoreIR {
       }
 
       // After conversion there is a constant for the register
-      REQUIRE(cl->getDef()->getInstances().size() == 1);
+      SECTION("1 instance") {
+        REQUIRE(cl->getDef()->getInstances().size() == 1);
+      }
 
+      cout << "RMux Connections" << endl;
       for (auto& conn : cl->getDef()->getConnections()) {
-        cout << conn.first->toString() << " <---> " << conn.second->toString() << endl;
+        cout << "\t" << conn.first->toString() << " <---> " << conn.second->toString() << endl;
       }
 
       // SimulatorState state2(cl);
@@ -420,7 +442,6 @@ namespace CoreIR {
 
       CircuitState st = state.getCircStates().back();
 
-      cout << "Instances before conversion" << endl;
       for (auto inst : rg->getDef()->getInstances()) {
         cout << inst.first << ": " << inst.second->toString() << endl;
       }
@@ -428,7 +449,6 @@ namespace CoreIR {
       registersToConstants(rg, st.registers);
       deleteDeadInstances(rg);
 
-      cout << "Instances after conversion" << endl;
       for (auto inst : rg->getDef()->getInstances()) {
         cout << inst.first << ": " << inst.second->toString() << endl;
       }
