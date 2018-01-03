@@ -215,10 +215,8 @@ namespace CoreIR {
 
       if (fst_tp->isInput()) {
         map_insert(bitToDriver, snd, fst);
-        //bitToDriver[fst] = snd;
       } else {
         map_insert(bitToDriver, fst, snd);
-        //bitToDriver[snd] = fst;
       }
       
     }
@@ -294,20 +292,20 @@ namespace CoreIR {
             (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
 
           Instance* srcConst = cast<Instance>(src);
-          cout << "Found constant mux" << endl;
+          //cout << "Found constant mux" << endl;
 
           BitVec val =
             (srcConst->getModArgs().find("value"))->second->get<BitVec>();
 
-          cout << "value = " << val << endl;
+          //cout << "value = " << val << endl;
 
           Select* bitSelect = cast<Select>(ptr);
 
           string selStr = bitSelect->getSelStr();
           Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
 
-          cout << "Parent = " << parent->toString() << endl;
-          cout << "Src    = " << src->toString() << endl;
+          // cout << "Parent = " << parent->toString() << endl;
+          // cout << "Src    = " << src->toString() << endl;
           assert(parent == src);
           assert(isNumber(selStr));
 
@@ -326,28 +324,28 @@ namespace CoreIR {
             replacement = inst->sel("in1");
           }
 
-          cout << "Receivers of mux output to rewire" << endl;
+          //cout << "Receivers of mux output to rewire" << endl;
           for (auto sel : drivenBy(toReplace, receiverMap)) {
-            cout << "\t" << "sel = " << sel->toString() << endl;
+            //cout << "\t" << "sel = " << sel->toString() << endl;
 
             auto target = driverMap[sel];
 
-            cout << "\tsel driver = " << target->toString() << endl;
+            //cout << "\tsel driver = " << target->toString() << endl;
 
             Select* val =
               cast<Select>(replaceSelect(toReplace,
                                          replacement,
                                          cast<Select>(target)));
 
-            cout << "replacement select = " << val->toString() << endl;
+            //cout << "replacement select = " << val->toString() << endl;
 
             auto driver = map_find(cast<Wireable>(val), driverMap);
             // Select* driver = nullptr;
             assert(driver != nullptr);
 
-            cout << "replacement select driven by " << driver->toString() << endl;
+            //cout << "replacement select driven by " << driver->toString() << endl;
 
-            cout << "connecting " << sel->toString() << " <--> " << driver->toString() << endl;
+            //cout << "connecting " << sel->toString() << " <--> " << driver->toString() << endl;
             def->connect(sel, driver);
           }
 
