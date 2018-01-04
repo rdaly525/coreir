@@ -327,13 +327,9 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
       Instance* reg = nullptr;
 
-      //if (width == 1) {
-      //reg = def->addInstance("reg0", "corebit.dff");
-      //} else {
-        reg = def->addInstance("reg0",
-                               "coreir.reg",
-                               {{"width", Const::make(c, width)}});
-        //}
+      reg = def->addInstance("reg0",
+                             "coreir.reg",
+                             {{"width", Const::make(c, width)}});
 
       assert(reg != nullptr);
 
