@@ -8,12 +8,12 @@ namespace CoreIR {
 namespace Passes {
 
 //This will add directed connection metadata to modules
-class Clockifyinterface : public ModulePass {
+  class ClockifyInterface : public ModulePass {
   
   public:
     static std::string ID;
-    Clockifyinterface() : ModulePass(ID, "Convert any BitIn fields in the interface that are only used as clocks into fields with named type coreir.clkIn") {}
-    bool runOnModule(Module* m) override
+    ClockifyInterface() : ModulePass(ID, "Convert any BitIn fields in the interface that are only used as clocks into fields with named type coreir.clkIn") {}
+    bool runOnModule(Module* m) override;
 };
 
 }
