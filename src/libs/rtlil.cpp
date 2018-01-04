@@ -22,8 +22,6 @@ std::string rtlilCorebitName(const std::string& name) {
 }
 
 std::string rtlilCoreirName(const std::string& name) {
-  //"logic_and", "logic_or", "eqx", "nex", "lt", "gt"};
-
   if (name == "add") {
     return "coreir.add";
   }
@@ -80,39 +78,42 @@ std::string rtlilCoreirName(const std::string& name) {
 Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   auto rtLib = c->newNamespace("rtlil");
 
-
   // Casting nodes
 
-  // Unsigned extend
-  Params extendParams = {{"in_width", c->Int()}, {"out_width", c->Int()}};
-  TypeGen* extendTP =
-    rtLib->newTypeGen("extend",
-                      extendParams,
-                      [](Context* c, Values genargs) {
-                        uint in_width = genargs.at("in_width")->get<int>();
-                        uint out_width = genargs.at("out_width")->get<int>();
+  // // Unsigned extend
+  // Params extendParams = {{"width_in", c->Int()}, {"width_out", c->Int()}};
+  // TypeGen* extendTP =
+  //   rtLib->newTypeGen("extend",
+  //                     extendParams,
+  //                     [](Context* c, Values genargs) {
+  //                       uint width_in = genargs.at("width_in")->get<int>();
+  //                       uint width_out = genargs.at("width_out")->get<int>();
 
-                        ASSERT(in_width <= out_width, "in_width > out_width in extend node");
+  //                       ASSERT(width_in <= width_out, "width_in > width_out in extend node");
 
-                        return c->Record({
-                            {"in", c->BitIn()->Arr(in_width)},
-                              {"out", c->Bit()->Arr(out_width)}
-                          });
-                      });
+  //                       return c->Record({
+  //                           {"in", c->BitIn()->Arr(width_in)},
+  //                             {"out", c->Bit()->Arr(width_out)}
+  //                         });
+  //                     });
 
-  rtLib->newGeneratorDecl("extend", extendTP, extendParams);
+  // rtLib->newGeneratorDecl("extend", extendTP, extendParams);
 
-  // Cast bit to clock
-  Type* toClockType = c->Record({{"in", c->BitIn()},
-        {"out", c->Named("coreir.clk")}});
-  rtLib->newModuleDecl("to_clkIn", toClockType);
+  // // Cast bit to clock
+  // Type* toClockType = c->Record({{"in", c->BitIn()},
+  //       {"out", c->Named("coreir.clk")}});
+  // rtLib->newModuleDecl("to_clkIn", toClockType);
 
-  // Cast bit to bit vector of length one
-  Type* toBVType = c->Record({{"in", c->BitIn()}, {"out", c->Bit()->Arr(1)}});
-  rtLib->newModuleDecl("to_bv", toBVType);
+  // // Cast bit to bit vector of length one
+  // Type* toBVType = c->Record({{"in", c->BitIn()}, {"out", c->Bit()->Arr(1)}});
+  // rtLib->newModuleDecl("to_bv", toBVType);
 
   // Operation related nodes
-  vector<string> rtlilBinops{"and", "or", "xor", "xnor", "shl", "shr", "sshl", "sshr", "logic_and", "logic_or", "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt", "add", "sub", "mul", "div", "mod", "pow"};
+  vector<string> rtlilBinops{"and", "or", "xor", "xnor",
+      "shl", "shr", "sshl", "sshr",
+      "logic_and", "logic_or",
+      "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt",
+      "add", "sub", "mul", "div", "mod", "pow"};
 
   for (auto& name : rtlilBinops) {
     Params binopParams = {{"A_SIGNED", c->Bool()},
@@ -164,14 +165,14 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       uint ext_width = y_width;
 
       def->addInstance("extendA",
-                       "rtlil.extend",
-      {{"in_width", Const::make(c, a_width)},
-          {"out_width", Const::make(c, ext_width)}});
+                       "coreir.zext",
+      {{"width_in", Const::make(c, a_width)},
+          {"width_out", Const::make(c, ext_width)}});
 
       def->addInstance("extendB",
-                       "rtlil.extend",
-      {{"in_width", Const::make(c, b_width)},
-          {"out_width", Const::make(c, ext_width)}});
+                       "coreir.zext",
+      {{"width_in", Const::make(c, b_width)},
+          {"width_out", Const::make(c, ext_width)}});
 
       string opGenName = rtlilCoreirName(name);
       def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
@@ -211,14 +212,14 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
         uint ext_width = max(a_width, b_width);
 
         def->addInstance("extendA",
-                         "rtlil.extend",
-                         {{"in_width", Const::make(c, a_width)},
-                             {"out_width", Const::make(c, ext_width)}});
+                         "coreir.zext",
+                         {{"width_in", Const::make(c, a_width)},
+                             {"width_out", Const::make(c, ext_width)}});
 
         def->addInstance("extendB",
-                         "rtlil.extend",
-                         {{"in_width", Const::make(c, b_width)},
-                             {"out_width", Const::make(c, ext_width)}});
+                         "coreir.zext",
+                         {{"width_in", Const::make(c, b_width)},
+                             {"width_out", Const::make(c, ext_width)}});
 
         string opGenName = rtlilCoreirName(name);
         def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
@@ -326,20 +327,19 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
       Instance* reg = nullptr;
 
-      //if (width == 1) {
-      //reg = def->addInstance("reg0", "corebit.dff");
-      //} else {
-        reg = def->addInstance("reg0",
-                               "coreir.reg",
-                               {{"width", Const::make(c, width)}});
-        //}
+      reg = def->addInstance("reg0",
+                             "coreir.reg",
+                             {{"width", Const::make(c, width)}});
 
       assert(reg != nullptr);
 
       def->connect("self.D", "reg0.in");
 
       // Add clock cast node, in rtlil the clock input is just another bit
-      def->addInstance("toClk0", "rtlil.to_clkIn");
+      //def->addInstance("toClk0", "rtlil.to_clkIn");
+      def->addInstance("toClk0",
+                       "coreir.wrap",
+                       {{"type", Const::make(c, c->Named("coreir.clkIn"))}});
 
       def->connect("self.CLK", "toClk0.in");
       def->connect("toClk0.out", "reg0.clk");
@@ -347,9 +347,11 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       def->connect("reg0.out", "self.Q");
     });
 
-  Params adffParams = {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()},
-                       // NOTE: ARST_VALUE should really be a bit vector
-                       {"ARST_POLARITY", c->Bool()}, {"ARST_VALUE", c->Int()}};
+  Params adffParams =
+    {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()},
+     // NOTE: ARST_VALUE should really be a bit vector
+     {"ARST_POLARITY", c->Bool()}, {"ARST_VALUE", c->Int()}};
+
   TypeGen* adffTP =
     rtLib->newTypeGen(
                       "adff",

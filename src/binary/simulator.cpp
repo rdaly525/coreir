@@ -60,7 +60,8 @@ int main(int argc, char *argv[]) {
     c->die();
   }
   string topRef = "";
-  if (top) topRef = top->getRefName();
+  assert(top);
+  topRef = top->getRefName();
 
   cout << "Starting passes" << endl;
 
