@@ -194,18 +194,13 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
         string opGenName = rtlilCoreirName(name);
         def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
 
-        //def->addInstance("conv0", "rtlil.to_bv");
-        //def->addInstance("conv0", "coreir.wrap", );
-
         def->connect("self.A", "extendA.in");
         def->connect("self.B", "extendB.in");
-        
+
         def->connect("extendA.out", "op0.in0");
         def->connect("extendB.out", "op0.in1");
 
         def->connect("op0.out", "self.Y.0");
-        // def->connect("op0.out.0", "conv0.in");
-        // def->connect("conv0.out", "self.Y");
     };
 
     gen->setGeneratorDefFromFun(genFun);
