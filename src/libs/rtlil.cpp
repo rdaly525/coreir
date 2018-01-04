@@ -78,36 +78,6 @@ std::string rtlilCoreirName(const std::string& name) {
 Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   auto rtLib = c->newNamespace("rtlil");
 
-  // Casting nodes
-
-  // // Unsigned extend
-  // Params extendParams = {{"width_in", c->Int()}, {"width_out", c->Int()}};
-  // TypeGen* extendTP =
-  //   rtLib->newTypeGen("extend",
-  //                     extendParams,
-  //                     [](Context* c, Values genargs) {
-  //                       uint width_in = genargs.at("width_in")->get<int>();
-  //                       uint width_out = genargs.at("width_out")->get<int>();
-
-  //                       ASSERT(width_in <= width_out, "width_in > width_out in extend node");
-
-  //                       return c->Record({
-  //                           {"in", c->BitIn()->Arr(width_in)},
-  //                             {"out", c->Bit()->Arr(width_out)}
-  //                         });
-  //                     });
-
-  // rtLib->newGeneratorDecl("extend", extendTP, extendParams);
-
-  // // Cast bit to clock
-  // Type* toClockType = c->Record({{"in", c->BitIn()},
-  //       {"out", c->Named("coreir.clk")}});
-  // rtLib->newModuleDecl("to_clkIn", toClockType);
-
-  // // Cast bit to bit vector of length one
-  // Type* toBVType = c->Record({{"in", c->BitIn()}, {"out", c->Bit()->Arr(1)}});
-  // rtLib->newModuleDecl("to_bv", toBVType);
-
   // Operation related nodes
   vector<string> rtlilBinops{"and", "or", "xor", "xnor",
       "shl", "shr", "sshl", "sshr",
