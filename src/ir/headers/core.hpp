@@ -77,7 +77,7 @@ void core_convert(Context* c, Namespace* core) {
       ASSERT(isa<NamedType>(type),"type needs to be a named type");
       NamedType* ntype = cast<NamedType>(type);
       ASSERT(!ntype->isGen(),"NYI named type generators");
-      ASSERT(ntype->isBaseType(), "NYI named type that is not Bit or BitIn");
+      ASSERT(ntype->getRaw()->isBaseType(), "NYI named type that is not Bit or BitIn");
       ASSERT(ntype->isOutput(), "NYI named types that are not outputs");
       return c->Record({
         {"in",ntype->getFlipped()},
@@ -99,7 +99,7 @@ void core_convert(Context* c, Namespace* core) {
       ASSERT(isa<NamedType>(type),"type needs to be a named type");
       NamedType* ntype = cast<NamedType>(type);
       ASSERT(!ntype->isGen(),"NYI named type generators");
-      ASSERT(ntype->isBaseType(), "NYI named type that is not Bit or BitIn");
+      ASSERT(ntype->getRaw()->isBaseType(), "NYI named type that is not Bit or BitIn");
       ASSERT(ntype->isOutput(), "NYI named type that is not output");
       return c->Record({
         {"in",ntype->getRaw()->getFlipped()},
