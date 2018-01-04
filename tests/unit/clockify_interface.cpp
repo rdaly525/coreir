@@ -13,10 +13,31 @@ int main() {
 
   Type* clType = c->Record({
       {"clk", c->BitIn()},
-        {"in", c->BitIn()->Arr(width)}
+        {"in", c->BitIn()->Arr(width)},
+          {"out", c->Bit()->Arr(width)}
     });
 
-  CoreIRLoadLibrary_rtlil(c);
+  Module* cl = g->newModuleDecl("cl", clType);
+  ModuleDef* def = cl->newModuleDef();
+
+  def->addInstance("reg0",
+                   "coreir.reg",
+                   {{"width", Const::make(c, width)}});
+
+  def->connect("self.in", "reg0.in");
+
+  // Add clock cast node, in rtlil the clock input is just another bit
+  //def->addInstance("toClk0", "rtlil.to_clkIn");
+  def->addInstance("toClk0",
+                   "coreir.wrap",
+                   {{"type", Const::make(c, c->Named("coreir.clk"))}});
+
+  def->connect("self.clk", "toClk0.in");
+  def->connect("toClk0.out", "reg0.clk");
+
+  def->connect("reg0.out", "self.out");
+  
+  cl->setDef(def);
 
   deleteContext(c);
 }
