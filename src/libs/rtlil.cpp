@@ -339,7 +339,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       //def->addInstance("toClk0", "rtlil.to_clkIn");
       def->addInstance("toClk0",
                        "coreir.wrap",
-                       {{"type", Const::make(c, c->Named("coreir.clk"))}});
+                       {{"type", Const::make(c, c->Named("coreir.clkIn"))}});
 
       def->connect("self.CLK", "toClk0.in");
       def->connect("toClk0.out", "reg0.clk");
@@ -347,9 +347,11 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       def->connect("reg0.out", "self.Q");
     });
 
-  Params adffParams = {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()},
-                       // NOTE: ARST_VALUE should really be a bit vector
-                       {"ARST_POLARITY", c->Bool()}, {"ARST_VALUE", c->Int()}};
+  Params adffParams =
+    {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()},
+     // NOTE: ARST_VALUE should really be a bit vector
+     {"ARST_POLARITY", c->Bool()}, {"ARST_VALUE", c->Int()}};
+
   TypeGen* adffTP =
     rtLib->newTypeGen(
                       "adff",
