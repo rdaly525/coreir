@@ -45,6 +45,8 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       {"concat","{in0,in1}"},
       {"zext","{(width_out-width_in){1'b0},in}"},
       {"sext","{(width_out-width_in){in[width_in-1]},in}"},
+      {"strip","in"},
+      {"wrap","in"},
       {"const","value"}
       //{"term",""}
       //{"reg",""}, 
@@ -94,6 +96,14 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     {"sext",{
       "input [width_in-1:0] in",
       "output [width_out-1:0] out"
+    }},
+    {"strip",{
+      "input in",
+      "output out"
+    }},
+    {"wrap",{
+      "input in",
+      "output out"
     }},
     {"const",{"output [width-1:0] out"}},
     {"term",{"input [width-1:0] in"}},
