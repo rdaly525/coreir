@@ -39,5 +39,10 @@ int main() {
   
   cl->setDef(def);
 
+  c->runPasses({"clockifyinterface"});
+
+  // clockification deletes the cast to clock
+  assert(cl->getDef()->getInstances().size() == 1);
+
   deleteContext(c);
 }
