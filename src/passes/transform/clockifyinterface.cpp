@@ -4,10 +4,11 @@
 using namespace std;
 using namespace CoreIR;
 
-
 //Do not forget to set this static variable!!
-string Passes::ClockifyInterface::ID = "clockifyinterface";
-bool Passes::ClockifyInterface::runOnModule(Module* m) {
+
+bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) {
+
+  Module* m = node.getModule();
   if (!m->hasDef()) {
     return false;
   }
@@ -17,12 +18,107 @@ bool Passes::ClockifyInterface::runOnModule(Module* m) {
 
   cout << "Processing module: " << m->getName() << endl;
 
-  Wireable* topclk = nullptr;
+  vector<Select*> possibleClocks;
   for (auto field : m->getType()->getRecord()) {
     if (field.second == c->BitIn()) {
-      topclk = def->sel("self")->sel(field.first);
+      possibleClocks.push_back(def->sel("self")->sel(field.first));
     }
   }
 
-  return true;
+  bool modifiedClock = false;
+  for (auto pclk : possibleClocks) {
+    bool allClocks = true;
+
+    for (auto sel : pclk->getConnectedWireables()) {
+      cout << pclk->toString() << " is connected to " << sel->toString() << endl;
+
+      Select* selS = cast<Select>(sel);
+      Wireable* parent = selS->getParent();
+
+      if (!isa<Instance>(parent)) {
+        allClocks = false;
+        break;
+      } else {
+        Instance* inst = cast<Instance>(parent);
+        if (getQualifiedOpName(*inst) != "coreir.wrap") {
+          allClocks = false;
+          break;
+        } else {
+          cout << inst->toString() << " is a wrap node" << endl;
+
+          cout << "args" << endl;
+          for (auto arg : inst->getModArgs()) {
+            cout << arg.first << " = " << arg.second->toString() << endl;
+          }
+
+          auto arg = (inst->getModuleRef()->getGenArgs()).at("type")->get<Type*>();
+
+          cout << "Got arg = " << arg->toString() << endl;
+
+          if (isa<NamedType>(arg)) {
+            cout << arg->toString() << " is a named type" << endl;
+
+            NamedType* ntp = cast<NamedType>(arg);
+
+            cout << "arg name = " << ntp->getName() << endl;
+
+            if (ntp->getRefName() != "coreir.clk") {
+              allClocks = false;
+              break;
+            }
+          } else {
+            allClocks = false;
+            break;
+          }
+        }
+      }
+    }
+
+    if (allClocks) {
+      cout << "All receivers of " << pclk->toString() << " are clock casts" << endl;
+
+      // Now need to:
+      // 1. Delete original BitIn field from interface type
+      // 2. Add new clock field to interface type
+      // 3. Connect the new clock field to every receiver of every wrap cast
+
+      // Collect every reciever port that the new clock port in the interface
+      // will connect to
+      vector<Wireable*> connectToNewClock;
+      for (auto sel : pclk->getConnectedWireables()) {
+        Instance* inst = cast<Instance>(cast<Select>(sel)->getParent());
+        Select* outConn = inst->sel("out");
+
+        // Need to build receiver map and use it here
+        for (auto receiverPort : outConn->getConnectedWireables()) {
+          cout << "\t" << receiverPort->toString() <<
+            " connects to " << outConn->toString() << endl;
+
+          connectToNewClock.push_back(receiverPort);
+        }
+      }
+
+      // Delete all cast instances that are no longer needed
+      for (auto sel : pclk->getConnectedWireables()) {
+        Instance* inst = cast<Instance>(cast<Select>(sel)->getParent());
+        def->removeInstance(inst);
+      }
+
+      string clkFieldName = pclk->getSelStr();
+      node.detachField(clkFieldName);
+
+      node.appendField(clkFieldName, c->Named("coreir.clkIn"));
+
+      Select* s = def->sel("self")->sel(clkFieldName);
+
+      // Wire the new clock port to all old connections
+      for (auto w : connectToNewClock) {
+        def->connect(s, w);
+      }
+      
+      modifiedClock = true;
+    }
+  }
+
+  return modifiedClock;
 }

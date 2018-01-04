@@ -8,12 +8,12 @@ namespace CoreIR {
 namespace Passes {
 
 //This will add directed connection metadata to modules
-  class ClockifyInterface : public ModulePass {
+  class ClockifyInterface : public InstanceGraphPass {
   
   public:
-    static std::string ID;
-    ClockifyInterface() : ModulePass(ID, "Convert any BitIn fields in the interface that are only used as clocks into fields with named type coreir.clkIn") {}
-    bool runOnModule(Module* m) override;
+
+    ClockifyInterface(std::string name) : InstanceGraphPass(name, "Convert any BitIn fields in the interface that are only used as clocks into fields with named type coreir.clkIn") {}
+    bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
 };
 
 }

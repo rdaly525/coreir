@@ -39,7 +39,7 @@ int main() {
   
   cl->setDef(def);
 
-  c->runPasses({"clockifyinterface"});
+  c->runPasses({"rungenerators", "clockifyinterface"});
 
   // clockification deletes the cast to clock
   assert(cl->getDef()->getInstances().size() == 1);

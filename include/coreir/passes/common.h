@@ -73,7 +73,7 @@ namespace CoreIR {
     pm.addPass(new Passes::AddDirected());
     pm.addPass(new Passes::PackConnections());
     pm.addPass(new Passes::UnpackConnections());
-    pm.addPass(new Passes::ClockifyInterface());
+    pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
     pm.addPass(new Passes::RegisterInputs("registerinputs"));
     pm.addPass(new Passes::Transform2CombView());
   }
