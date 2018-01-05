@@ -22,6 +22,19 @@ std::string rtlilCorebitName(const std::string& name) {
 }
 
 std::string rtlilCoreirName(const std::string& name) {
+  
+  if (name == "shl") {
+    return "coreir.shl";
+  }
+
+  if (name == "shr") {
+    return "coreir.lshr";
+  }
+
+  if (name == "sshr") {
+    return "coreir.ashr";
+  }
+  
   if (name == "not") {
     return "coreir.not";
   }
@@ -127,6 +140,63 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   }
 
   // Definitions for binops
+
+  // - Shift operations, ignoring sshl
+  vector<string> rtlilShifts{"shl", "shr", "sshr"};
+  for (auto& name : rtlilShifts) {
+    auto gen = rtLib->getGenerator(name);
+
+    std::function<void (Context*, Values, ModuleDef*)> genFun =
+      [name](Context* c, Values args, ModuleDef* def) {
+      uint a_width = args.at("A_WIDTH")->get<int>();
+      uint b_width = args.at("B_WIDTH")->get<int>();
+      uint y_width = args.at("Y_WIDTH")->get<int>();
+
+      // Does it matter whether a shift operand is signed or not? sshr vs shr
+      // is what determines whether to zero extend or not right?
+      // bool a_signed = args.at("A_SIGNED")->get<bool>();
+      // bool b_signed = args.at("B_SIGNED")->get<bool>();
+
+      // ASSERT(!a_signed, "Have not yet added signed input support for " + name);
+      // ASSERT(!b_signed, "Have not yet added signed shift value support for " + name);
+
+      ASSERT(y_width >= a_width, "Shift operations must have output at least as long as bit vector being shifted");
+      //ASSERT(y_width >= b_width, "Shift operations must have output at least as long as shift value");
+
+      uint res_width = max(a_width, y_width);
+      uint ext_width = max(res_width, b_width);
+
+      def->addInstance("extendA",
+                       "coreir.zext",
+      {{"width_in", Const::make(c, a_width)},
+          {"width_out", Const::make(c, ext_width)}});
+
+      def->addInstance("extendB",
+                       "coreir.zext",
+      {{"width_in", Const::make(c, b_width)},
+          {"width_out", Const::make(c, ext_width)}});
+
+      string opGenName = rtlilCoreirName(name);
+      def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
+
+      def->addInstance("slice0", "coreir.slice",
+      {{"width", Const::make(c, ext_width)},
+          {"lo", Const::make(c, 0)},
+            {"hi", Const::make(c, res_width)}});
+
+      def->connect("self.A", "extendA.in");
+      def->connect("self.B", "extendB.in");
+        
+      def->connect("extendA.out", "op0.in0");
+      def->connect("extendB.out", "op0.in1");
+
+      def->connect("op0.out", "slice0.in");
+      def->connect("slice0.out", "self.Y");
+    };
+
+    gen->setGeneratorDefFromFun(genFun);
+    
+  }
 
   // - Bitwise and arithmetic operations
   vector<string> rtlilBitwise{"and", "or", "xor", "add", "sub", "mul"};
