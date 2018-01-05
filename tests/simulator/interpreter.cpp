@@ -293,6 +293,7 @@ namespace CoreIR {
     }
 
     SECTION("Counter") {
+      c->enSymtable();
 
       addCounter(c, g);
 
@@ -1294,6 +1295,8 @@ namespace CoreIR {
     }
 
     SECTION("Counter 2 read by original name") {
+      c->enSymtable();
+
       if (!loadFromFile(c,"./tmprb3ud4p2.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
