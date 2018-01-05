@@ -75,8 +75,7 @@
           ["m0$waddr$enMux.out","m0$waddr$reg0.in"],
           ["m0$waddr$enMux.sel","self.wen"],
           ["m0$waddr$reg0.clk","self.clk"]
-        ],
-        "metadata":{"symtable":{"m0$raddr.clk":["m0","clk"],"m0$raddr.en":["m0","wen"],"m0$raddr.in":["m0$add_r","out"],"m0$raddr.out":["m0$mem","raddr"],"m0$waddr.clk":["m0","clk"],"m0$waddr.en":["m0","wen"],"m0$waddr.in":["m0$add_w","out"],"m0$waddr.out":["m0$mem","waddr"],"m0.clk":["self","clk"],"m0.rdata":["self","rdata"],"m0.valid":["self","valid"],"m0.wdata":["self","wdata"],"m0.wen":["self","wen"]}}
+        ]
       }
     }
   }
