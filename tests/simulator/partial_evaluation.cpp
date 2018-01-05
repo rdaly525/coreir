@@ -21,9 +21,18 @@ namespace CoreIR {
     CircuitState last;
     CircuitState current;
 
+    std::set<SimValue*> allocatedValues;
+
   public:
     PartialEvaluator(Module* const mod_) : mod(mod_) {}
 
+    SimBitVector* makeSimBitVector(const BitVector& bv) {
+      auto sbv  = new SimBitVector(bv);
+      allocatedValues.insert(sbv);
+
+      return sbv;
+    }
+    
     void setValue(const std::string& name,
                   const BitVec& bv) {
       ModuleDef* def = mod->getDef();
@@ -35,6 +44,98 @@ namespace CoreIR {
 
     void setValue(CoreIR::Select* const sel,
                   const BitVec& bv) {
+      setValue(sel, makeSimBitVector(bv));
+    }
+
+    SimValue* getValue(CoreIR::Select* sel) {
+      if (arrayAccess(sel)) {
+
+        SimBitVector* val =
+          static_cast<SimBitVector*>(getValue(toSelect(sel->getParent())));
+
+        assert(val != nullptr);
+
+        int index = selectNum(sel);
+
+        return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
+      }
+
+      assert(mod->getDef()->hasSel(sel->toString()));
+
+      auto it = current.valMap.find(sel);
+
+      if (it == std::end(current.valMap)) {
+        return nullptr;
+      }
+
+      return (*it).second;
+    }
+
+    bool valMapContains(CoreIR::Select* sel) const {
+      return current.valMap.find(sel) != std::end(current.valMap);
+    }
+    
+    bool isSet(const std::string& selStr) const {
+      Select* s = findSelect(selStr);
+
+      return isSet(s);
+    }
+
+    bool isSet(CoreIR::Select* s) const {
+      if (!valMapContains(s)) {
+
+        string str = s->getSelStr();
+        if (isNumber(str)) {
+          return isSet(toSelect(s->getParent()));
+        }
+
+        return false;
+      }
+
+      return true;
+    }
+    
+    CoreIR::Select* findSelect(const std::string& name) const {
+      ModuleDef* def = mod->getDef();
+      Wireable* w = def->sel(name);
+      Select* s = toSelect(w);
+
+      return s;
+    }
+    
+    void setValue(CoreIR::Select* const sel,
+                  SimValue* val) {
+
+      if (arrayAccess(sel)) {
+
+        assert(val->getType() == SIM_VALUE_BV);
+
+        SimBitVector* bv = static_cast<SimBitVector*>(val);
+        BitVector bits = bv->getBits();
+
+        assert(bits.bitLength() == 1);
+      
+        Select* parent = toSelect(sel->getParent());
+        int arrLen = arrayLen(parent);
+
+        SimBitVector* val;
+        if (isSet(parent)) {
+          val = static_cast<SimBitVector*>(getValue(parent));
+        } else {
+          // TODO: Wrap allocations and delete at end of context
+          val = makeSimBitVector(BitVector(arrLen));
+        }
+
+        BitVector oldBv = val->getBits();
+
+        int index = selectNum(sel);
+        oldBv.set(index, bits.get(0));
+
+        current.valMap[parent] = makeSimBitVector(oldBv);
+
+      }
+
+      current.valMap[sel] = val;
     }
     
     void eval() {
@@ -44,6 +145,13 @@ namespace CoreIR {
       // Update comb logic again
       
       last = current;
+
+    }
+
+    ~PartialEvaluator() {
+      for (auto val : allocatedValues) {
+        delete val;
+      }
     }
   };
 
