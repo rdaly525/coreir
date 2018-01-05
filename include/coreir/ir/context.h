@@ -11,6 +11,8 @@ class Context {
   Namespace* global;
   std::map<std::string,Namespace*> namespaces;
   PassManager* pm;
+  
+  bool symtable = false;
 
   uint maxErrors;
   std::vector<std::string> errors;
@@ -57,8 +59,8 @@ class Context {
     void printerrors();
     void print();
 
-    //bool linkLib(Namespace* defns, Namespace* declns);
-    
+    void enSymtable() {symtable = true;}
+    bool hasSymtable() { return symtable;}
     Namespace* newNamespace(std::string name);
     bool hasNamespace(std::string name) { return namespaces.count(name) > 0; }
     Namespace* getNamespace(std::string s);

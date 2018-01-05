@@ -150,7 +150,7 @@ void saveSymTable(json& symtable,string path, Wireable* w) {
 
 //This will modify the moduledef to inline the instance
 bool inlineInstance(Instance* inst) {
-
+  Context* c = inst->getContext();
   //Special case for a passthrough
   //TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
@@ -174,7 +174,9 @@ bool inlineInstance(Instance* inst) {
   //First for each port of instance that is connected
   //Save that as metadata (inst.port.blah -> its connection)
   json jsym(json::value_t::object);
-  saveSymTable(jsym,instname,inst);
+  if (c->hasSymtable()) {
+    saveSymTable(jsym,instname,inst);
+  }
 
   //I will be inlining defInline into def
   //Making a copy because i want to modify it first without modifying all of the other instnaces of modInline
@@ -231,39 +233,40 @@ bool inlineInstance(Instance* inst) {
   //typecheck the module
   // WARNING: Temporarily removed to check performance impact in _stereo.json
   //def->validate();
-
-  //for each entry in instances symbtable
-  //prepend instname to key
-  //determine where new instance is pointing to
-  if (mref->getMetaData().get<map<string,json>>().count("symtable")) {
-    json jisym = mref->getMetaData()["symtable"];
-    for (auto p : jisym.get<map<string,json>>()) {
-      string newkey = instname + "$" + p.first;
-      ASSERT(jsym.count(newkey)==0,"DEBUGME");
-      SelectPath path = p.second.get<SelectPath>();
-      if (path[0] =="self") {
-        path[0] = instname;
+  
+  if (c->hasSymtable()) {
+    //for each entry in instances symbtable
+    //prepend instname to key
+    //determine where new instance is pointing to
+    if (mref->getMetaData().get<map<string,json>>().count("symtable")) {
+      json jisym = mref->getMetaData()["symtable"];
+      for (auto p : jisym.get<map<string,json>>()) {
+        string newkey = instname + "$" + p.first;
+        ASSERT(jsym.count(newkey)==0,"DEBUGME");
+        SelectPath path = p.second.get<SelectPath>();
+        if (path[0] =="self") {
+          path[0] = instname;
+        }
+        else {
+          path[0] = inlinePrefix + path[0]; 
+        }
+        jsym[newkey] = path;
       }
-      else {
-        path[0] = inlinePrefix + path[0]; 
+    }
+   
+    if (def->getModule()->getMetaData().get<map<string,json>>().count("symtable")) {
+      json jmerge = def->getModule()->getMetaData()["symtable"];
+      for (auto pair : jsym.get<map<string,json>>()) {
+        bool check = jmerge.get<map<string,json>>().count(pair.first)==0;
+        ASSERT(check,"DEBUGME");
+        jmerge[pair.first] = pair.second;
       }
-      jsym[newkey] = path;
+      def->getModule()->getMetaData()["symtable"] = jmerge;
     }
-  }
- 
-  if (def->getModule()->getMetaData().get<map<string,json>>().count("symtable")) {
-    json jmerge = def->getModule()->getMetaData()["symtable"];
-    for (auto pair : jsym.get<map<string,json>>()) {
-      bool check = jmerge.get<map<string,json>>().count(pair.first)==0;
-      ASSERT(check,"DEBUGME");
-      jmerge[pair.first] = pair.second;
+    else {
+      def->getModule()->getMetaData()["symtable"] = jsym;
     }
-    def->getModule()->getMetaData()["symtable"] = jmerge;
-  }
-  else {
-    def->getModule()->getMetaData()["symtable"] = jsym;
-  }
- 
+  } 
 
 
   return true;
