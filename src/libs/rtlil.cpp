@@ -339,7 +339,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       //def->addInstance("toClk0", "rtlil.to_clkIn");
       def->addInstance("toClk0",
                        "coreir.wrap",
-                       {{"type", Const::make(c, c->Named("coreir.clkIn"))}});
+                       {{"type", Const::make(c, c->Named("coreir.clk"))}});
 
       def->connect("self.CLK", "toClk0.in");
       def->connect("toClk0.out", "reg0.clk");
