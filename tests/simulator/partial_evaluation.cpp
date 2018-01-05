@@ -137,6 +137,11 @@ namespace CoreIR {
 
       current.valMap[sel] = val;
     }
+
+    void incrementTime() {
+      last = current;
+      current = {};
+    }
     
     void eval() {
 
