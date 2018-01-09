@@ -36,11 +36,14 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
       Wireable* parent = selS->getParent();
 
       if (!isa<Instance>(parent)) {
+        cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << parent->toString() << ", which is not an instance" << endl;
         allClocks = false;
         break;
       } else {
         Instance* inst = cast<Instance>(parent);
         if (getQualifiedOpName(*inst) != "coreir.wrap") {
+
+          cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << inst->toString() << ", which is not a wrap node" << endl;
           allClocks = false;
           break;
         } else {
@@ -63,10 +66,13 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
             cout << "arg name = " << ntp->getName() << endl;
 
             if (ntp->getRefName() != "coreir.clk") {
+
+              cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << inst->toString() << ", which casts to type " << ntp->toString() << endl;
               allClocks = false;
               break;
             }
           } else {
+            cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << inst->toString() << ", which casts to type " << arg->toString() << endl;
             allClocks = false;
             break;
           }
