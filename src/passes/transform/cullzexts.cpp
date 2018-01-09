@@ -14,40 +14,48 @@ bool Passes::CullZexts::runOnModule(Module* m) {
   auto def = m->getDef();
 
   bool deletedZext = false;
-  for (auto instS : def->getInstances()) {
-    Instance* inst = instS.second;
 
-    if (getQualifiedOpName(*inst) == "coreir.zext") {
-      auto args = inst->getModuleRef()->getGenArgs();
+  cout << "Deleting zexts in " << m->toString() << endl;
 
-      uint in_width = args.at("width_in")->get<int>();
-      uint out_width = args.at("width_out")->get<int>();
+  bool contDel = true;
+  while (contDel) {
+    contDel = false;
+    for (auto instS : def->getInstances()) {
+      Instance* inst = instS.second;
 
-      if (in_width == out_width) {
-        // Found useless zext
-        cout << inst->toString() << " is an identity zext" << endl;
+      if (getQualifiedOpName(*inst) == "coreir.zext") {
+        auto args = inst->getModuleRef()->getGenArgs();
 
-        Select* inSel = inst->sel("in");
-        Select* outSel = inst->sel("out");
+        uint in_width = args.at("width_in")->get<int>();
+        uint out_width = args.at("width_out")->get<int>();
 
-        // Only handling easy wiring case for now
-        if ((inSel->getConnectedWireables().size() == 1) &&
-            (outSel->getConnectedWireables().size() == 1)) {
+        if (in_width == out_width) {
+          // Found useless zext
+          //cout << inst->toString() << " is an identity zext" << endl;
 
-          cout << "Deleting " << inst->toString() << endl;
+          Select* inSel = inst->sel("in");
+          Select* outSel = inst->sel("out");
 
-          Select* toIn = cast<Select>(*std::begin(inSel->getConnectedWireables()));
-          Select* toOut = cast<Select>(*std::begin(outSel->getConnectedWireables()));
+          // Only handling easy wiring case for now
+          if ((inSel->getConnectedWireables().size() == 1) &&
+              (outSel->getConnectedWireables().size() == 1)) {
 
-          def->removeInstance(inst);
+            //cout << "Deleting " << inst->toString() << endl;
 
-          def->connect(toIn, toOut);
+            Select* toIn = cast<Select>(*std::begin(inSel->getConnectedWireables()));
+            Select* toOut = cast<Select>(*std::begin(outSel->getConnectedWireables()));
 
-          deletedZext = true;
+            def->removeInstance(inst);
+
+            def->connect(toIn, toOut);
+
+            deletedZext = true;
+            contDel = true;
+            break;
+          }
         }
       }
     }
   }
-
   return deletedZext;
 }
