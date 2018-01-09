@@ -7,5 +7,9 @@ using namespace CoreIR;
 string Passes::CullZexts::ID = "cullzexts";
 
 bool Passes::CullZexts::runOnModule(Module* m) {
-  return false;
+  if (!m->hasDef()) {
+    return false;
+  }
+
+  return true;
 }
