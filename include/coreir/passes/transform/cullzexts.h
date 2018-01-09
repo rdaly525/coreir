@@ -12,7 +12,7 @@ class CullZexts : public ModulePass {
   
   public:
     static std::string ID;
-    CullZexts() : ModulePass(ID, "Collapse bitwise connections into packed connections where possible") {}
+    CullZexts() : ModulePass(ID, "Remove zero extend nodes that extend from width N to width N") {}
     bool runOnModule(Module* m) override;
 };
 

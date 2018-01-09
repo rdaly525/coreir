@@ -14,7 +14,7 @@ int main() {
 
   Type* inType = c->Record({
       {"in", c->BitIn()->Arr(width)},
-        {"out", c->BitIn()->Arr(width)}
+        {"out", c->Bit()->Arr(width)}
     });
 
   Module* cl = g->newModuleDecl("cl", inType);
@@ -28,5 +28,14 @@ int main() {
   def->connect("zext0.out", "neg0.in");
   def->connect("neg0.out", "self.out");
 
-  assert(false);
+  cl->setDef(def);
+
+  c->runPasses({"rungenerators"});
+  
+  assert(cl->getDef()->getInstances().size() == 2);
+
+  c->runPasses({"cullzexts"});
+
+  assert(cl->getDef()->getInstances().size() == 1);
+
 }
