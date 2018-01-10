@@ -44,6 +44,8 @@ void testBasicSubCircuit() {
     extractSubcircuit(cl, {def->sel("self")->sel("clk"),
           def->sel("self")->sel("config_bit")});
 
+  cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
+
   assert(subCircuitInstances.size() == 2);
 }
 
