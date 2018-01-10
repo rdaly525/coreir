@@ -52,6 +52,7 @@ namespace CoreIR {
           determined.push_back(inst.second);
           subCircuitValues.push_back(inst.second);
           foundInst = true;
+          cout << "Instance " << inst.second->toString() << " is determined by the config ports" << endl;
           break;
         }
       }
