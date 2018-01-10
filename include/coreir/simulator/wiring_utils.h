@@ -19,6 +19,9 @@ namespace CoreIR {
   std::vector<Select*>
   getReceiverSelects(CoreIR::Wireable* inst);
 
+  std::vector<Select*>
+  getSourceSelects(CoreIR::Wireable* inst);
+  
   std::map<Wireable*, Wireable*>
   signalDriverMap(CoreIR::ModuleDef* const def);
 

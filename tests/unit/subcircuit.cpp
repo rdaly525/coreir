@@ -45,6 +45,9 @@ void testBasicSubCircuit() {
           def->sel("self")->sel("config_bit")});
 
   cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
+  for (auto inst : subCircuitInstances) {
+    cout << "\t" << inst->toString() << endl;
+  }
 
   assert(subCircuitInstances.size() == 2);
 }

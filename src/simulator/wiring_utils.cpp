@@ -76,6 +76,23 @@ namespace CoreIR {
     return conns;
   }
 
+  std::vector<Select*>
+  getSourceSelects(CoreIR::Wireable* inst) {
+    vector<Select*> conns;
+
+    for (auto sel : inst->getConnectedWireables()) {
+      if (sel->getType()->getDir() == Type::DK_Out) {
+        conns.push_back(cast<Select>(sel));
+      }
+    }
+
+    for (auto sel : inst->getSelects()) {
+      concat(conns, getSourceSelects(sel.second));
+    }
+
+    return conns;
+  }
+  
   std::map<Wireable*, Wireable*> signalDriverMap(CoreIR::ModuleDef* const def) {
     map<Wireable*, Wireable*> bitToDriver;
 

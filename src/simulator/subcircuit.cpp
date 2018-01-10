@@ -9,8 +9,19 @@ namespace CoreIR {
 
   bool inputsAreDeterminedBy(CoreIR::Instance* const inst,
                              const std::vector<Wireable*>& alreadyDetermined) {
-    if (inst->getConnectedWireables().size() == 0) {
-      return true;
+    for (auto sel : getSourceSelects(inst)) {
+      bool foundAncestor = false;
+
+      for (auto w : alreadyDetermined) {
+        if (isAncestorOf(w, sel)) {
+          foundAncestor = true;
+          break;
+        }
+      }
+
+      if (foundAncestor == false) {
+        return false;
+      }
     }
 
     return true;
