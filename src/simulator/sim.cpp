@@ -1368,7 +1368,21 @@ namespace CoreIR {
                g, mod, layoutPolicy, combProg);
     simLines.push_back(combProg.cString());
 
+    
     simLines.push_back("\n// ----- Done\n");
+
+    if (clk != nullptr) {
+      InstanceValue clkV(clk);
+      string lastClkName = layoutPolicy.lastClkVarName(clkV);
+      string clkName = layoutPolicy.clkVarName(clkV);
+
+      simLines.push_back("\n// ----- Setting last clock values\n");
+      LowAssign* clkUpdate = new LowAssign(new LowId(lastClkName),
+                                           new LowId(clkName));
+      simLines.push_back(clkUpdate->cString());
+
+      delete clkUpdate;
+    }
     
     cout << "Done writing sim lines, now need to concatenate them" << endl;
 
