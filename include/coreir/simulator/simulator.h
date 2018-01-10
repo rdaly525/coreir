@@ -3,6 +3,7 @@
 #include "coreir/simulator/codegen.h"
 #include "coreir/simulator/layout.h"
 #include "coreir/simulator/multithreading.h"
+#include "coreir/simulator/subcircuit.h"
 
 namespace CoreIR {
 
