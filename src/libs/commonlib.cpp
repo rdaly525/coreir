@@ -499,7 +499,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
   Generator* lbMem = commonlib->newGeneratorDecl("LinebufferMem",commonlib->getTypeGen("LinebufferMemType"),MemGenParams);
   lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
-  /*
+  
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
@@ -590,7 +590,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("veq.in1","waddr.out");
     def->connect("veq.out","self.valid");
   });
-*/
+
 //// reference verilog code for lbmem
 //module #(parameter lbmem {
 //  input clk,
