@@ -45,7 +45,7 @@ namespace CoreIR {
   }
 
   template<typename E, typename T>
-  bool elem(E e, std::vector<T> t) {
+  bool elem(E e, std::vector<T>& t) {
     return std::find(begin(t), end(t), e) != end(t);
   }
 

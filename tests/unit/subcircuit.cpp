@@ -55,38 +55,38 @@ void testBasicSubCircuit() {
 }
 
 void testCGRAConfigSubcircuit() {
-  Context* c = newContext();
+  // Context* c = newContext();
 
-  Module* topMod = nullptr;
+  // Module* topMod = nullptr;
 
-  cout << "Loading CGRA" << endl;
+  // cout << "Loading CGRA" << endl;
 
-  if (!loadFromFile(c,"/Users/dillon/VerilogWorkspace/CGRAGenerator/hardware/generator_z/top/top_flat_clk.json", &topMod)) {
-    cout << "Could not Load from json!!" << endl;
-    c->die();
-  }
+  // if (!loadFromFile(c,"/Users/dillon/VerilogWorkspace/CGRAGenerator/hardware/generator_z/top/top_flat_clk.json", &topMod)) {
+  //   cout << "Could not Load from json!!" << endl;
+  //   c->die();
+  // }
 
-  cout << "Loaded CGRA" << endl;
+  // cout << "Loaded CGRA" << endl;
 
-  assert(topMod != nullptr);
+  // assert(topMod != nullptr);
 
-  assert(topMod->hasDef());
+  // assert(topMod->hasDef());
 
-  ModuleDef* def = topMod->getDef();
+  // ModuleDef* def = topMod->getDef();
 
-  auto subCircuitInstances =
-    extractSubcircuit(topMod, {def->sel("self")->sel("clk"),
-          def->sel("self")->sel("reset"),
-          def->sel("self")->sel("config_addr"),
-          def->sel("self")->sel("config_data"),
-          });
+  // auto subCircuitInstances =
+  //   extractSubcircuit(topMod, {def->sel("self")->sel("clk"),
+  //         def->sel("self")->sel("reset"),
+  //         def->sel("self")->sel("config_addr"),
+  //         def->sel("self")->sel("config_data"),
+  //         });
 
-  cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
-  for (auto inst : subCircuitInstances) {
-    cout << "\t" << inst->toString() << endl;
-  }
+  // cout << "Size of subcircuit = " << subCircuitInstances.size() << endl;
+  // // for (auto inst : subCircuitInstances) {
+  // //   cout << "\t" << inst->toString() << endl;
+  // // }
 
-  deleteContext(c);
+  // deleteContext(c);
   
 }
 
