@@ -36,7 +36,7 @@ clean:
 	rm -rf build/*
 	rm -f _*.json
 
-build/simtests: $(OBJS) #build/%.o 
+build/simtests: $(OBJS)
 	$(CXX) $(CXXFLAGS) $(INCS) -o $@ $(OBJS) $(LPATH) $(LIBS) 
 
 build/%.o: %.cpp
