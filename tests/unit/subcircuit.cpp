@@ -74,17 +74,31 @@ void testCGRAConfigSubcircuit() {
 
   ModuleDef* def = topMod->getDef();
 
-  auto subCircuitInstances =
-    extractSubcircuit(topMod, {def->sel("self")->sel("clk"),
+  vector<Wireable*> subCircuitPorts{def->sel("self")->sel("clk"),
           def->sel("self")->sel("reset"),
           def->sel("self")->sel("config_addr"),
           def->sel("self")->sel("config_data"),
-          });
+      };
+
+  auto subCircuitInstances =
+    extractSubcircuit(topMod, subCircuitPorts);
 
   cout << "Size of subcircuit = " << subCircuitInstances.size() << endl;
   for (auto inst : subCircuitInstances) {
-    cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+    if ((getQualifiedOpName(*inst) == "coreir.reg") ||
+        (getQualifiedOpName(*inst) == "coreir.regrst") ||
+        (getQualifiedOpName(*inst) == "corebit.dff")) {
+      cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+    }
   }
+
+  addSubcircuitModule("top_config",
+                      topMod,
+                      subCircuitPorts,
+                      subCircuitInstances,
+                      c,
+                      c->getGlobal());
+  
 
   deleteContext(c);
   

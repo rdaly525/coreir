@@ -126,10 +126,10 @@ namespace CoreIR {
       concat(toConsider, receiverInstances(w, receiverMap));
     }
 
-    cout << "Instances to consider" << endl;
-    for (auto inst : toConsider) {
-      cout << "\t" << inst->toString() << endl;
-    }
+    // cout << "Instances to consider" << endl;
+    // for (auto inst : toConsider) {
+    //   cout << "\t" << inst->toString() << endl;
+    // }
 
     // Need to add all constants
 
@@ -189,33 +189,6 @@ namespace CoreIR {
         //break;
       }
 
-      //else {
-      //   cout << next->toString() << " is not determined by: ";
-      //   for (auto inst : determined) {
-      //     cout << inst->toString() << ", ";
-      //   }
-      //   cout << endl;
-      // }
-      
-      // Instance* found = nullptr;
-      // for (auto inst : notAdded) {
-
-      //   if (inputsAreDeterminedBy(inst, determined, driverMap) &&
-      //       !elem(inst, alreadyAdded)) {
-
-      //     determined.insert(inst);
-      //     subCircuitValues.push_back(inst);
-      //     alreadyAdded.insert(inst);
-
-      //     found = inst;
-      //     foundInst = true;
-
-      //     //cout << "Instance " << inst->toString() << " : " << inst->getModuleRef()->toString() << " is determined by the config ports" << endl;
-
-      //     break;
-      //   }
-      // }
-
       if (foundInst) {
         assert(found != nullptr);
         notAdded.erase(found);
@@ -247,5 +220,47 @@ namespace CoreIR {
     return subCircuitValues;
   }
 
+  void
+  addSubcircuitModule(const std::string& moduleName,
+                      CoreIR::Module* const srcModule,
+                      const std::vector<Wireable*>& selfPorts,
+                      const std::vector<CoreIR::Instance*>& instances,
+                      CoreIR::Context* const c,
+                      CoreIR::Namespace* const g) {
+    // How do I build a subcircuit? I suppose a subcircuit is the same as
+    // the original module, but it:
+    //
+    // 1. Has ports from selfPorts
+    // 2. Deletes connections that connect two wireables not in subcircuit
+    //    wireables
+    // 3. Replaces connections that connect sequential registers to instances
+    //    with connections from registers to new ports
+
+    assert(srcModule->hasDef());
+
+    ModuleDef* srcDef = srcModule->getDef();
+    Wireable* srcSelf = srcDef->sel("self");
+
+    // Check that all selfPorts are off of self
+    for (auto port : selfPorts) {
+      ASSERT(isa<Select>(port), "All subcircuit ports must be selects");
+
+      Select* sel = cast<Select>(port);
+      Wireable* parent = sel->getParent();
+
+      ASSERT(parent == srcSelf, "All subcircuit ports must be selects off of self");
+    }
+
+    // Create module interface by adding all self ports, and adding
+    // ports for all register / dff outputs, at the same time create
+    // connections between registers and ports
+
+    // Create module definition by adding all instances
+    // and creating map from subcircuit instances to original circuit
+    // instances.
+
+    // Add all connections between subcircuit wireables, and then add all connections
+    // between registers and their output ports
+  }
 
 }
