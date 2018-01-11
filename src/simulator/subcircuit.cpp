@@ -48,23 +48,41 @@ namespace CoreIR {
   bool inputsAreDeterminedBy(CoreIR::Instance* const inst,
                              const std::set<Wireable*>& alreadyDetermined,
                              std::map<Wireable*, Wireable*>& driverMap) {
-    for (Select* sel : allInputSelects(inst)) {
-      bool foundAncestor = false;
 
-      //for (auto w : alreadyDetermined) {
-      if ((!contains_key(cast<Wireable>(sel), driverMap)) ||
-          elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {//isAncestorOf(w, driverMap[sel])) {
-        foundAncestor = true;
+    cout << "Checking determination of " << inst->toString() << endl;
+
+    bool allAncestorsDetermined = true;
+
+    for (Select* sel : allInputSelects(inst)) {
+      //bool foundAncestor = false;
+
+      // if (!((!contains_key(cast<Wireable>(sel), driverMap)) ||
+      //       elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined))) {
+        //isAncestorOf(w, driverMap[sel])) {
+
+        //foundAncestor = true;
+
+      if (contains_key(cast<Wireable>(sel), driverMap) && 
+          !elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {
+
+        cout << sel->toString() << " is not determined by " << endl;
+        for (auto det : alreadyDetermined) {
+          cout << "\t" << det->toString() << endl;
+        }
+        allAncestorsDetermined = false;
         break;
       }
-      //}
 
-      if (foundAncestor == false) {
-        return false;
-      }
+      // if (foundAncestor == false) {
+      //   return false;
+      // }
     }
 
-    return true;
+    return allAncestorsDetermined;
+
+    // cout << inst->toString() << endl;
+
+    // return true;
   }
 
   std::vector<CoreIR::Instance*>
@@ -107,6 +125,12 @@ namespace CoreIR {
     vector<Instance*> subCircuitValues;
 
     set<Wireable*> determined(begin(startingPorts), end(startingPorts));
+
+    cout << "Determined ports" << endl;
+    for (auto det : determined) {
+      cout << "\t" << det->toString() << endl;
+    }
+
     set<Instance*> alreadyAdded;
 
     set<Instance*> notAdded;
