@@ -148,6 +148,11 @@ namespace CoreIR {
       }
       
     }
+
+    cout << "Initial determined set" << endl;
+    for (auto det : determined) {
+      cout << "\t" << det->toString() << endl;
+    }
     
     bool foundInst = true;
     while (toConsider.size() > 0) {
@@ -180,7 +185,7 @@ namespace CoreIR {
 
         concat(toConsider, recInstances);
 
-        //cout << "Instance " << inst->toString() << " : " << inst->getModuleRef()->toString() << " is determined by the config ports" << endl;
+        cout << "Instance " << next->toString() << " : " << next->getModuleRef()->toString() << " is determined by the existing subcircuit" << endl;
 
         //cout << "# of nodes to consider = " << toConsider.size() << endl;
         // for (auto inst : toConsider) {

@@ -218,7 +218,9 @@ void testSubcircuitModule() {
   // Wire up config select
   def->connect("self.config_addr", "compare_addr.in0");
   def->connect("chip_addr.out", "compare_addr.in1");
-  def->connect("compare_addr.out", "op_select.sel");
+  def->connect("compare_addr.out", "config_data_reg.en");
+  def->connect("self.config_data", "config_data_reg.in.0");
+  def->connect("config_data_reg.out.0", "op_select.sel");
 
   miniChip->setDef(def);
 
