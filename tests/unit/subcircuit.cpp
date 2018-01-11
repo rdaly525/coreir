@@ -82,9 +82,9 @@ void testCGRAConfigSubcircuit() {
           });
 
   cout << "Size of subcircuit = " << subCircuitInstances.size() << endl;
-  // for (auto inst : subCircuitInstances) {
-  //   cout << "\t" << inst->toString() << endl;
-  // }
+  for (auto inst : subCircuitInstances) {
+    cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+  }
 
   deleteContext(c);
   
