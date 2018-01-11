@@ -590,8 +590,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("veq.in1","waddr.out");
     def->connect("veq.out","self.valid");
   });
-  */
-
+*/
+//// reference verilog code for lbmem
 //module #(parameter lbmem {
 //  input clk,
 //  input [W-1:0] wdata,

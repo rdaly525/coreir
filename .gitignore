@@ -1,5 +1,6 @@
 *~
 **/_*.json
+**/_*.txt
 *.pyc
 \#*\#
 tests/bindings/python/ice40_test.json
