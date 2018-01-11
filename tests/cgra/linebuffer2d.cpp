@@ -12,73 +12,54 @@ int main() {
   
   //Find linebuffer in the commonlib namespace
   Namespace* commonlib = CoreIRLoadLibrary_commonlib(c);
-  Generator* linebuffer = commonlib->getGenerator("linebuffer");
-
-  // input stream and output stencil for arr(x)->arr(y)->arr(z) 
-  //                             have size x horiz, y vert, z depth
-  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(2);
-  Type* out_type = c->Bit()->Arr(16)->Arr(6)->Arr(6);
-  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48);
-
-//  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(1);
-//  Type* out_type = c->Bit()->Arr(16)->Arr(4)->Arr(3);
-//  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48);
-
-//  Type* in_type = c->BitIn()->Arr(16)->Arr(1)->Arr(2)->Arr(1);
-//  Type* out_type = c->Bit()->Arr(16)->Arr(3)->Arr(4)->Arr(2);
-//  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48)->Arr(96);
+  Generator* linebuffer = commonlib->getGenerator("linebuffer2d");
 
   // Define lb32 Module
   Type* lb32Type = c->Record({
-    {"in",in_type},
-      //{"wen",c->BitIn()}, 
-      //{"valid", c->Bit()},
-    {"out",out_type}
+    {"in",c->BitIn()->Arr(16)},
+    {"out",c->Bit()->Arr(16)->Arr(2)->Arr(3)}
   });
 
+  // REGULAR CASE (image width != stencil width)
 
-  // REGULAR CASE (image width != stencil width) and 2D
+  Const* aWidth = Const::make(c,16);
+  Const* aStencilW = Const::make(c,2);
+  Const* aStencilH = Const::make(c,3);
+  Const* aImageW = Const::make(c,512);
 
   Module* lb32 = c->getGlobal()->newModuleDecl("lb32", lb32Type);
   ModuleDef* def = lb32->newModuleDef();
-  def->addInstance("lb32_inst", linebuffer, {{"input_type",Const::make(c,in_type)}, 
-        {"output_type",Const::make(c,out_type)}, {"image_type",Const::make(c,img_type)}});
-    def->connect("self", "lb32_inst");
+    def->addInstance("lb32_inst", linebuffer, {{"bitwidth",aWidth},
+          {"stencil_width",aStencilW},{"stencil_height",aStencilH},
+                                        {"image_width",aImageW}});
+    def->connect("self.in", "lb32_inst.in");
+    def->connect("self.out", "lb32_inst.out");
   lb32->setDef(def);
   lb32->print();
 
   cout << "Running Generators" << endl;
   lb32->print();
 
-  //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
-  c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
-  lb32->print();
+  c->runPasses({"rungenerators", "flatten"});
   lb32->getDef()->validate();
 
   // write out the json
   cout << "Saving json" << endl;
-  if (!saveToFile(c->getGlobal(), "_linebuffer.json", lb32)) {
+  if (!saveToFile(c->getGlobal(), "_lb32.json", lb32)) {
     cout << "Could not save to json!!" << endl;
-    c->die();
-  }
-
-  // write out the dot file
-  cout << "Saving dot file" << endl;
-  if (!saveToDot(lb32, "_linebuffer.txt")) {
-    cout << "Could not save to dot!!" << endl;
     c->die();
   }
   
   CoreIR::Module* m = nullptr;
-  if (!loadFromFile(c, "_linebuffer.json", &m)) {
+  if (!loadFromFile(c, "_lb32.json", &m)) {
     cout << "Could not load from json!!" << endl;
     c->die();
   }
-  ASSERT(m, "Could not load top: _linebuffer");
+  ASSERT(m, "Could not load top: _lb32");
   m->print();
 
   // SPECIAL CASE (stencil width == image width)
-  /*
+
   Const* aImageW2 = Const::make(c,2);
 
   Module* lb32_special = c->getGlobal()->newModuleDecl("lb32_special", lb32Type);
@@ -111,7 +92,9 @@ int main() {
   }
   ASSERT(m, "Could not load top: _lb32_special");
   m->print();
-  */
+
+
+
 
   deleteContext(c);
 }
