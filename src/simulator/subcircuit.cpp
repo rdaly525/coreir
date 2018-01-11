@@ -131,6 +131,24 @@ namespace CoreIR {
       cout << "\t" << inst->toString() << endl;
     }
 
+    // Need to add all constants
+
+    cout << "Adding all constants (and other zero input nodes)" << endl;
+    for (auto instS : def->getInstances()) {
+      Instance* inst = instS.second;
+
+      if (inputsAreDeterminedBy(inst, determined, driverMap) &&
+          !elem(inst, alreadyAdded)) {
+
+        determined.insert(inst);
+        subCircuitValues.push_back(inst);
+        alreadyAdded.insert(inst);
+
+        concat(toConsider, receiverInstances(inst, receiverMap));
+      }
+      
+    }
+    
     bool foundInst = true;
     while (toConsider.size() > 0) {
       foundInst = false;
@@ -169,7 +187,9 @@ namespace CoreIR {
         //   cout << "\t" << inst->toString() << endl;
         // }
         //break;
-      } //else {
+      }
+
+      //else {
       //   cout << next->toString() << " is not determined by: ";
       //   for (auto inst : determined) {
       //     cout << inst->toString() << ", ";
@@ -204,6 +224,24 @@ namespace CoreIR {
       if (notAdded.size() % 100 == 0) {
         cout << notAdded.size() << " instances that have not been added" << endl;
       }
+    }
+
+    cout << "Checking that all needed instances have been added" << endl;
+    for (auto instS : def->getInstances()) {
+      Instance* inst = instS.second;
+
+      if (inputsAreDeterminedBy(inst, determined, driverMap) &&
+          !elem(inst, alreadyAdded)) {
+
+        determined.insert(inst);
+        subCircuitValues.push_back(inst);
+        alreadyAdded.insert(inst);
+
+        cout << "Instance " << inst->toString() << " : " << inst->getModuleRef()->toString() << "\n\tis determined by the config ports, but wasnt added" << endl;
+
+        assert(false);
+      }
+      
     }
 
     return subCircuitValues;
