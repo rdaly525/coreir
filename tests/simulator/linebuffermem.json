@@ -11,70 +11,17 @@
           "valid":"Bit"
         }],
         "instances":{
-          "m0$add_r":{
-            "genref":"coreir.add",
-            "genargs":{"width":["Int",2]}
-          },
-          "m0$add_w":{
-            "genref":"coreir.add",
-            "genargs":{"width":["Int",2]}
-          },
-          "m0$c1":{
-            "genref":"coreir.const",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],1]}
-          },
-          "m0$mem":{
-            "genref":"coreir.mem",
+          "m0":{
+            "genref":"commonlib.LinebufferMem",
             "genargs":{"depth":["Int",4], "width":["Int",2]}
-          },
-          "m0$raddr$enMux":{
-            "genref":"coreir.mux",
-            "genargs":{"width":["Int",2]}
-          },
-          "m0$raddr$reg0":{
-            "genref":"coreir.reg",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"init":[["BitVector",2],0]}
-          },
-          "m0$veq":{
-            "genref":"coreir.neq",
-            "genargs":{"width":["Int",2]}
-          },
-          "m0$waddr$enMux":{
-            "genref":"coreir.mux",
-            "genargs":{"width":["Int",2]}
-          },
-          "m0$waddr$reg0":{
-            "genref":"coreir.reg",
-            "genargs":{"width":["Int",2]},
-            "modargs":{"init":[["BitVector",2],0]}
           }
         },
         "connections":[
-          ["m0$add_r.in0","m0$raddr$reg0.out"],
-          ["m0$add_r.in1","m0$c1.out"],
-          ["m0$add_r.out","m0$raddr$enMux.in1"],
-          ["m0$add_w.in0","m0$waddr$reg0.out"],
-          ["m0$add_w.in1","m0$c1.out"],
-          ["m0$add_w.out","m0$waddr$enMux.in1"],
-          ["m0$mem.clk","self.clk"],
-          ["m0$mem.raddr","m0$raddr$reg0.out"],
-          ["m0$mem.rdata","self.rdata"],
-          ["m0$mem.waddr","m0$waddr$reg0.out"],
-          ["m0$mem.wdata","self.wdata"],
-          ["m0$mem.wen","self.wen"],
-          ["m0$raddr$enMux.in0","m0$raddr$reg0.out"],
-          ["m0$raddr$enMux.out","m0$raddr$reg0.in"],
-          ["m0$raddr$enMux.sel","self.wen"],
-          ["m0$raddr$reg0.clk","self.clk"],
-          ["m0$raddr$reg0.out","m0$veq.in0"],
-          ["m0$veq.in1","m0$waddr$reg0.out"],
-          ["m0$veq.out","self.valid"],
-          ["m0$waddr$enMux.in0","m0$waddr$reg0.out"],
-          ["m0$waddr$enMux.out","m0$waddr$reg0.in"],
-          ["m0$waddr$enMux.sel","self.wen"],
-          ["m0$waddr$reg0.clk","self.clk"]
+          ["m0.clk","self.clk"],
+          ["m0.rdata","self.rdata"],
+          ["m0.valid","self.valid"],
+          ["m0.wdata","self.wdata"],
+          ["m0.wen","self.wen"]
         ]
       }
     }

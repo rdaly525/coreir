@@ -16,9 +16,9 @@ int main() {
 
   // input stream and output stencil for arr(x)->arr(y)->arr(z) 
   //                             have size x horiz, y vert, z depth
-  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(2);
-  Type* out_type = c->Bit()->Arr(16)->Arr(6)->Arr(6);
-  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48);
+  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(2)->Arr(1);
+  Type* out_type = c->Bit()->Arr(16)->Arr(6)->Arr(6)->Arr(2);
+  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48)->Arr(48);
 
 //  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(1);
 //  Type* out_type = c->Bit()->Arr(16)->Arr(4)->Arr(3);
@@ -31,9 +31,10 @@ int main() {
   // Define lb32 Module
   Type* lb32Type = c->Record({
     {"in",in_type},
-      //{"wen",c->BitIn()}, 
-      //{"valid", c->Bit()},
-    {"out",out_type}
+      //{"wen",c->BitIn()},
+    {"out",out_type},
+    {"valid", c->Bit()},
+    {"valid_chain", c->Bit()}
   });
 
 
@@ -42,7 +43,7 @@ int main() {
   Module* lb32 = c->getGlobal()->newModuleDecl("lb32", lb32Type);
   ModuleDef* def = lb32->newModuleDef();
   def->addInstance("lb32_inst", linebuffer, {{"input_type",Const::make(c,in_type)}, 
-        {"output_type",Const::make(c,out_type)}, {"image_type",Const::make(c,img_type)}});
+        {"output_type",Const::make(c,out_type)}, {"image_type",Const::make(c,img_type)}, {"has_valid",Const::make(c,true)}});
     def->connect("self", "lb32_inst");
   lb32->setDef(def);
   lb32->print();
@@ -57,24 +58,24 @@ int main() {
 
   // write out the json
   cout << "Saving json" << endl;
-  if (!saveToFile(c->getGlobal(), "_linebuffer.json", lb32)) {
+  if (!saveToFile(c->getGlobal(), "_linebufferv.json", lb32)) {
     cout << "Could not save to json!!" << endl;
     c->die();
   }
 
   // write out the dot file
   cout << "Saving dot file" << endl;
-  if (!saveToDot(lb32, "_linebuffer.txt")) {
+  if (!saveToDot(lb32, "_linebufferv.txt")) {
     cout << "Could not save to dot!!" << endl;
     c->die();
   }
   
   CoreIR::Module* m = nullptr;
-  if (!loadFromFile(c, "_linebuffer.json", &m)) {
+  if (!loadFromFile(c, "_linebufferv.json", &m)) {
     cout << "Could not load from json!!" << endl;
     c->die();
   }
-  ASSERT(m, "Could not load top: _linebuffer");
+  ASSERT(m, "Could not load top: _linebufferv");
   m->print();
 
   // SPECIAL CASE (stencil width == image width)
