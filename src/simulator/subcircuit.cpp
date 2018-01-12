@@ -125,12 +125,22 @@ namespace CoreIR {
     vector<Instance*> subCircuitValues;
 
     set<Wireable*> determined(begin(startingPorts), end(startingPorts));
+    set<Wireable*> undetermined;
+    for (auto portR : def->sel("self")->getSelects()) {
+      Wireable* port = portR.second;
+      undetermined.insert(port);
+    }
 
     cout << "Determined ports" << endl;
     for (auto det : determined) {
       cout << "\t" << det->toString() << endl;
     }
 
+    cout << "Undetermined ports" << endl;
+    for (auto det : undetermined) {
+      cout << "\t" << det->toString() << endl;
+    }
+    
     set<Instance*> alreadyAdded;
 
     set<Instance*> notAdded;
@@ -228,6 +238,8 @@ namespace CoreIR {
       }
     }
 
+
+    // Verify the result
     cout << "Checking that all needed instances have been added" << endl;
     for (auto instS : def->getInstances()) {
       Instance* inst = instS.second;
