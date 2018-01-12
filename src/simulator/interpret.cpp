@@ -846,6 +846,39 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::updateZextNode(const vdisc vd) {
+    updateInputs(vd);
+
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    uint inWidth = inst->getModuleRef()->getGenArgs().at("width_in")->get<int>();
+    uint outWidth = inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
+    
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 1);
+    
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
+
+    ASSERT(bv1.bitLength() == inWidth, "bit vector argument to coreir.zext has wrong input width");
+
+    BitVec res(outWidth, 0);
+    for (uint i = 0; i < inWidth; i++) {
+      res.set(i, bv1.get(i));
+    }
+
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
+
+  }
+
   void SimulatorState::updateLUTNNode(const vdisc vd) {
 
     updateInputs(vd);
@@ -911,6 +944,8 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
       });
+    } else if ((opName == "coreir.zext")) {
+      updateZextNode(vd);
     } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
