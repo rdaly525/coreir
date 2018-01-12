@@ -738,7 +738,7 @@ namespace CoreIR {
 
       } else {
         assert(outSelects.size() == 2);
-        assert(isAddOrSub(*inst));
+        ASSERT(isAddOrSub(*inst),"This instance with 2+ output ports is undefined: " + inst->getModuleRef()->toString());
 
         auto ins = getInputs(vd, g);
 
