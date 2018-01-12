@@ -335,12 +335,19 @@ namespace CoreIR {
     // ports for all register / dff outputs, at the same time create
     // connections between registers and ports
 
+    Type* modType = c->Record({});
+    Module* subMod = g->newModuleDecl(moduleName, modType);
+    ModuleDef* def = subMod->newModuleDef();
+
     // Create module definition by adding all instances
     // and creating map from subcircuit instances to original circuit
     // instances.
 
     // Add all connections between subcircuit wireables, and then add all connections
     // between registers and their output ports
+
+    subMod->setDef(def);
+    
   }
 
 }
