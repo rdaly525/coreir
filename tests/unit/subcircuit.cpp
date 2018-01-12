@@ -1,5 +1,6 @@
 #include "coreir.h"
 
+#include "coreir/libs/rtlil.h"
 #include "coreir/passes/transform/deletedeadinstances.h"
 #include "coreir/passes/transform/unpackconnections.h"
 #include "coreir/passes/transform/packconnections.h"
@@ -331,13 +332,12 @@ void testCGRAConnectBox() {
 
   Module* topMod = nullptr;
 
-  if (!loadFromFile(c, "cb_unq1.json", &topMod)) {
+  if (!loadFromFile(c, "cb_unq_proc.json", &topMod)) {
     cout << "Could not Load from json!!" << endl;
     c->die();
   }
 
-  assert(false);
-
+  
   deleteContext(c);
 
 }
