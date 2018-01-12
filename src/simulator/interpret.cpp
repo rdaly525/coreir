@@ -654,6 +654,39 @@ namespace CoreIR {
     setValue(toSelect(outPair.second), makeSimBitVector(res));
   }
 
+  void SimulatorState::updateOrrNode(const vdisc vd) {
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inConns = getInputConnections(vd, gr);
+
+    assert(inConns.size() == 1);
+
+    InstanceValue arg1 = findArg("in", inConns);
+
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    
+    assert(s1 != nullptr);
+    
+    BitVec res(1, 0);
+    BitVec sB = s1->getBits();
+    for (int i = 0; i < sB.bitLength(); i++) {
+      if (sB.get(i) == 1) {
+        res = BitVec(1, 1);
+        break;
+      }
+    }
+
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
+  }
+  
   void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
     updateInputs(vd);
 
@@ -952,6 +985,8 @@ namespace CoreIR {
       });
     } else if (opName == "coreir.andr") {
       updateAndrNode(vd);
+    } else if (opName == "coreir.orr") {
+      updateOrrNode(vd);
     } else if (opName == "coreir.add") {
       updateAddNode(vd);
     } else if (opName == "coreir.sub") {
