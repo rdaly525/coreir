@@ -916,7 +916,7 @@ namespace CoreIR {
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     BitVector bv1 = getBitVec(arg1); //s1->getBits();
 
-    ASSERT(bv1.bitLength() == inWidth, "bit vector argument to coreir.zext has wrong input width");
+    ASSERT(((uint) bv1.bitLength()) == inWidth, "bit vector argument to coreir.zext has wrong input width");
 
     BitVec res(outWidth, 0);
     for (uint i = 0; i < inWidth; i++) {
