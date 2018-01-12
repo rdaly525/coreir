@@ -335,7 +335,13 @@ namespace CoreIR {
     // ports for all register / dff outputs, at the same time create
     // connections between registers and ports
 
-    Type* modType = c->Record({});
+    vector<pair<string, Type*> > fields;
+    for (auto port : selfPorts) {
+      Select* sel = cast<Select>(port);
+      fields.push_back({sel->getSelStr(), sel->getType()});
+    }
+    
+    Type* modType = c->Record(fields);
     Module* subMod = g->newModuleDecl(moduleName, modType);
     ModuleDef* def = subMod->newModuleDef();
 

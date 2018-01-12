@@ -252,6 +252,17 @@ void testSubcircuitModule() {
     c->getGlobal()->getModule("miniChip_config");
 
   assert(miniChip_conf != nullptr);
+  assert(miniChip_conf->hasDef());
+
+  SimulatorState state(miniChip_conf);
+  state.setValue("self.config_addr", BitVec(addr_width, 12));
+  state.setValue("self.config_data", BitVec(1, 1));
+  state.setClock("self.clk", 0, 1);
+
+  state.execute();
+  state.execute();
+
+  assert(false);
 
   deleteContext(c);
 }
