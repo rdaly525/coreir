@@ -347,17 +347,19 @@ namespace CoreIR {
     Module* subMod = g->newModuleDecl(moduleName, modType);
     ModuleDef* def = subMod->newModuleDef();
 
+    
     for (auto inst : instances) {
-      if (inst->getModuleRef()->isGenerated()) {
-        def->addInstance(inst->getInstname(),
-                         inst->getModuleRef()->getGenerator(),
-                         inst->getModuleRef()->getGenArgs(),
-                         inst->getModArgs());
-      } else {
-        def->addInstance(inst->getInstname(),
-                         inst->getModuleRef(),
-                         inst->getModArgs());
-      }
+      def->addInstance(inst, inst->getInstname());
+      // if (inst->getModuleRef()->isGenerated()) {
+      //   def->addInstance(inst->getInstname(),
+      //                    inst->getModuleRef()->getGenerator(),
+      //                    inst->getModuleRef()->getGenArgs(),
+      //                    inst->getModArgs());
+      // } else {
+      //   def->addInstance(inst->getInstname(),
+      //                    inst->getModuleRef(),
+      //                    inst->getModArgs());
+      // }
     }
 
     for (auto inst : instances) {

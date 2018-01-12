@@ -337,7 +337,53 @@ void testCGRAConnectBox() {
     c->die();
   }
 
-  
+  assert(topMod->hasDef());
+
+  ModuleDef* def = topMod->getDef();
+
+  // Extract the configuration subcircuit
+  vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
+      def->sel("self")->sel("config_data"),
+      def->sel("self")->sel("config_en"),
+      def->sel("self")->sel("clk"),
+      def->sel("self")->sel("reset")};
+
+  auto subCircuitInstances =
+    extractSubcircuit(topMod, subCircuitPorts);
+
+  cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
+  for (auto inst : subCircuitInstances) {
+    cout << "\t" << inst->toString() << endl;
+  }
+
+  // Create the subcircuit for the config
+  addSubcircuitModule("topMod_config",
+                      topMod,
+                      subCircuitPorts,
+                      subCircuitInstances,
+                      c,
+                      c->getGlobal());
+
+  Module* topMod_conf =
+    c->getGlobal()->getModule("topMod_config");
+
+  cout << "topMod_config interface" << endl;
+  cout << topMod_conf->toString() << endl;
+
+  assert(topMod_conf != nullptr);
+  assert(topMod_conf->hasDef());
+
+  ModuleDef* mcDef = topMod_conf->getDef();
+  cout << "topMod config instances" << endl;
+  for (auto instR : mcDef->getInstances()) {
+    cout << "\t" << instR.second->toString() << endl;
+  }
+
+  cout << "topMod config connections" << endl;
+  for (auto conn : mcDef->getConnections()) {
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  }
+
   deleteContext(c);
 
 }
