@@ -398,6 +398,42 @@ void testCGRAConnectBox() {
 
   assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0.out") == BitVec(32, 6));
 
+  cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
+
+  registersToConstants(topMod, configState.getCircStates().back().registers);
+  deleteDeadInstances(topMod);
+  unpackConnections(topMod);
+  foldConstants(topMod);
+  deleteDeadInstances(topMod);
+
+  c->runPasses({"packconnections"});
+
+  cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
+
+  // cout << "topMod partially evaluated instances" << endl;
+  // for (auto instR : topMod->getDef()->getInstances()) {
+  //   cout << "\t" << instR.second->toString() << endl;
+  // }
+
+  // cout << "topMod partially evaluated connections" << endl;
+  // for (auto conn : topMod->getDef()->getConnections()) {
+  //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  // }
+
+  // assert(topMod->getDef()->getInstances().size() == 2);
+
+  // SimulatorState fs(topMod);
+  // fs.setValue("self.in0", BitVec(width, 234));
+  // fs.setValue("self.in1", BitVec(width, 34534));
+  // fs.setClock("self.clk", 0, 1);
+
+  // fs.execute();
+  // fs.execute();
+
+  //assert(fs.getBitVec("self.out") == BitVec(width, 234 | 34534));
+
+  assert(false);
+  
   deleteContext(c);
 
 }

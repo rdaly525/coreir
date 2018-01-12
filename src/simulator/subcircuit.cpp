@@ -449,104 +449,111 @@ namespace CoreIR {
     ModuleDef* def = mod->getDef();
     //Context* c = mod->getContext();
 
-    auto driverMap = signalDriverMap(def);
-    auto receiverMap = signalReceiverMap(def);
+    bool changed = true;
 
-    for (auto instR : def->getInstances()) {
-      if (getQualifiedOpName(*(instR.second)) == "coreir.const") {
-        Instance* inst = instR.second;
-        cout << "Found constant to fold = " << inst->toString() << endl;
+    while (changed) {
+      changed = false;
 
-        vector<Select*> receivers =
-          getReceiverSelects(inst);
+      auto driverMap = signalDriverMap(def);
+      auto receiverMap = signalReceiverMap(def);
 
-        cout << "Connections" << endl;
-        for (auto sel : receivers) {
-          cout << "\tConnects to " << sel->toString() << endl;
-        }
-      } else if (getQualifiedOpName(*(instR.second)) == "coreir.mux") {
-        Instance* inst = instR.second;
+      for (auto instR : def->getInstances()) {
+        if (getQualifiedOpName(*(instR.second)) == "coreir.const") {
+          Instance* inst = instR.second;
+          cout << "Found constant to fold = " << inst->toString() << endl;
 
-        cout << "Found mux " << inst->toString() << endl;
-        auto wbs = inst->sel("sel")->getConnectedWireables();
+          vector<Select*> receivers =
+            getReceiverSelects(inst);
 
-        assert(wbs.size() == 1);
-
-        Wireable* ptr = *std::begin(wbs);
-
-        cout << "Conneted to " << ptr->toString() << endl;
-
-        assert(isa<Select>(ptr));
-
-        Wireable* src = extractSource(cast<Select>(ptr));
-
-        if (isa<Instance>(src) &&
-            (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
-
-          Instance* srcConst = cast<Instance>(src);
-          //cout << "Found constant mux" << endl;
-
-          BitVec val =
-            (srcConst->getModArgs().find("value"))->second->get<BitVec>();
-
-          //cout << "value = " << val << endl;
-
-          Select* bitSelect = cast<Select>(ptr);
-
-          string selStr = bitSelect->getSelStr();
-          Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
-
-          // cout << "Parent = " << parent->toString() << endl;
-          // cout << "Src    = " << src->toString() << endl;
-          assert(parent == src);
-          assert(isNumber(selStr));
-
-          int offset = stoi(selStr);
-
-          uint8_t bit = val.get(offset);
-
-          assert((bit == 0) || (bit == 1));
-
-          Select* replacement = nullptr;
-          Select* toReplace = inst->sel("out");
-          if (bit == 0) {
-            replacement = inst->sel("in0");
-          } else {
-            assert(bit == 1);
-            replacement = inst->sel("in1");
+          cout << "Connections" << endl;
+          for (auto sel : receivers) {
+            cout << "\tConnects to " << sel->toString() << endl;
           }
+        } else if (getQualifiedOpName(*(instR.second)) == "coreir.mux") {
+          Instance* inst = instR.second;
 
-          //cout << "Receivers of mux output to rewire" << endl;
-          for (auto sel : drivenBy(toReplace, receiverMap)) {
-            //cout << "\t" << "sel = " << sel->toString() << endl;
+          cout << "Found mux " << inst->toString() << endl;
+          auto wbs = inst->sel("sel")->getConnectedWireables();
 
-            auto target = driverMap[sel];
+          assert(wbs.size() == 1);
 
-            //cout << "\tsel driver = " << target->toString() << endl;
+          Wireable* ptr = *std::begin(wbs);
 
-            Select* val =
-              cast<Select>(replaceSelect(toReplace,
-                                         replacement,
-                                         cast<Select>(target)));
+          cout << "Conneted to " << ptr->toString() << endl;
 
-            //cout << "replacement select = " << val->toString() << endl;
+          assert(isa<Select>(ptr));
 
-            auto driver = map_find(cast<Wireable>(val), driverMap);
-            // Select* driver = nullptr;
-            assert(driver != nullptr);
+          Wireable* src = extractSource(cast<Select>(ptr));
 
-            //cout << "replacement select driven by " << driver->toString() << endl;
+          if (isa<Instance>(src) &&
+              (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
 
-            //cout << "connecting " << sel->toString() << " <--> " << driver->toString() << endl;
-            def->connect(sel, driver);
+            Instance* srcConst = cast<Instance>(src);
+            //cout << "Found constant mux" << endl;
+
+            BitVec val =
+              (srcConst->getModArgs().find("value"))->second->get<BitVec>();
+
+            //cout << "value = " << val << endl;
+
+            Select* bitSelect = cast<Select>(ptr);
+
+            string selStr = bitSelect->getSelStr();
+            Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
+
+            // cout << "Parent = " << parent->toString() << endl;
+            // cout << "Src    = " << src->toString() << endl;
+            assert(parent == src);
+            assert(isNumber(selStr));
+
+            int offset = stoi(selStr);
+
+            uint8_t bit = val.get(offset);
+
+            assert((bit == 0) || (bit == 1));
+
+            Select* replacement = nullptr;
+            Select* toReplace = inst->sel("out");
+            if (bit == 0) {
+              replacement = inst->sel("in0");
+            } else {
+              assert(bit == 1);
+              replacement = inst->sel("in1");
+            }
+
+            //cout << "Receivers of mux output to rewire" << endl;
+            for (auto sel : drivenBy(toReplace, receiverMap)) {
+              //cout << "\t" << "sel = " << sel->toString() << endl;
+
+              auto target = driverMap[sel];
+
+              //cout << "\tsel driver = " << target->toString() << endl;
+
+              Select* val =
+                cast<Select>(replaceSelect(toReplace,
+                                           replacement,
+                                           cast<Select>(target)));
+
+              //cout << "replacement select = " << val->toString() << endl;
+
+              auto driver = map_find(cast<Wireable>(val), driverMap);
+              // Select* driver = nullptr;
+              assert(driver != nullptr);
+
+              //cout << "replacement select driven by " << driver->toString() << endl;
+
+              //cout << "connecting " << sel->toString() << " <--> " << driver->toString() << endl;
+              def->connect(sel, driver);
+            }
+
+            assert(replacement != nullptr);
+
+            def->removeInstance(inst);
+            changed = true;
+            break;
           }
-
-          assert(replacement != nullptr);
-
-          def->removeInstance(inst);
-
-        }
             
+        }
       }
     }
     return true;
