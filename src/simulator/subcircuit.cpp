@@ -334,13 +334,26 @@ namespace CoreIR {
     // Create module interface by adding all self ports, and adding
     // ports for all register / dff outputs, at the same time create
     // connections between registers and ports
-
     vector<pair<string, Type*> > fields;
     for (auto port : selfPorts) {
       Select* sel = cast<Select>(port);
       fields.push_back({sel->getSelStr(), sel->getType()});
     }
-    
+
+    for (auto inst : instances) {
+      if ((getQualifiedOpName(*inst) == "coreir.reg") ||
+          (getQualifiedOpName(*inst) == "coreir.regrst") ||
+          (getQualifiedOpName(*inst) == "corebit.dff")) {
+
+        Type* tp = inst->sel("out")->getType();
+        string name = inst->toString() + "_subcircuit_out";
+
+        fields.push_back({name, tp});
+
+        cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+      }
+    }
+
     Type* modType = c->Record(fields);
     Module* subMod = g->newModuleDecl(moduleName, modType);
     ModuleDef* def = subMod->newModuleDef();
