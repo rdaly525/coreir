@@ -396,7 +396,7 @@ void testCGRAConnectBox() {
   configState.execute();
   configState.execute();
 
-  assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0_subcircuit_out.out") == BitVec(32, 6));
+  assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0.out") == BitVec(32, 6));
 
   deleteContext(c);
 

@@ -655,6 +655,8 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateOrrNode(const vdisc vd) {
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
@@ -665,18 +667,23 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
+    // auto inConns = getInputConnections(vd, gr);
 
-    cout << "orr conns" << endl;
-    for (auto conn : inConns) {
-      cout << "\t" << conn.first.getWire()->toString() << " <---> " << conn.second.getWire()->toString() << endl;
-    }
+    // cout << "orr conns" << endl;
+    // for (auto conn : inConns) {
+    //   cout << "\t" << conn.first.getWire()->toString() << " <---> " << conn.second.getWire()->toString() << endl;
+    // }
 
-    assert(inConns.size() == 1);
+    // assert(inConns.size() == 1);
 
-    InstanceValue arg1 = findArg("in", inConns);
+    // InstanceValue arg1 = findArg("in", inConns);
 
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    Select* inSel = inst->sel("in");
+
+    ASSERT(isSet(inSel), "in must have a value to evaluate this node");
+
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(inSel));
+      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
     
     assert(s1 != nullptr);
     
@@ -699,11 +706,13 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto outSelects = getOutputSelects(inst);
+    // auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    // assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    Select* outSel = inst->sel("out");
 
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 1);
@@ -713,7 +722,8 @@ namespace CoreIR {
     
     BitVec res = op(bv1); //s1->getBits());
 
-    setValue(toSelect(outPair.second), makeSimBitVector(res));
+    //setValue(toSelect(outPair.second), makeSimBitVector(res));
+    setValue(outSel, makeSimBitVector(res));
 
   }
 
