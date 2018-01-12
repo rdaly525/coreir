@@ -254,6 +254,17 @@ void testSubcircuitModule() {
   assert(miniChip_conf != nullptr);
   assert(miniChip_conf->hasDef());
 
+  ModuleDef* mcDef = miniChip_conf->getDef();
+  cout << "miniChip config instances" << endl;
+  for (auto instR : mcDef->getInstances()) {
+    cout << "\t" << instR.second->toString() << endl;
+  }
+
+  cout << "miniChip config connections" << endl;
+  for (auto conn : mcDef->getConnections()) {
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  }
+
   SimulatorState state(miniChip_conf);
   state.setValue("self.config_addr", BitVec(addr_width, 12));
   state.setValue("self.config_data", BitVec(1, 1));

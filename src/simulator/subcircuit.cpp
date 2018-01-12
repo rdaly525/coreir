@@ -358,6 +358,61 @@ namespace CoreIR {
     Module* subMod = g->newModuleDecl(moduleName, modType);
     ModuleDef* def = subMod->newModuleDef();
 
+    for (auto inst : instances) {
+      if (inst->getModuleRef()->isGenerated()) {
+        def->addInstance(inst->getInstname(),
+                         inst->getModuleRef()->getGenerator(),
+                         inst->getModuleRef()->getGenArgs(),
+                         inst->getModArgs());
+      } else {
+        def->addInstance(inst->getInstname(),
+                         inst->getModuleRef(),
+                         inst->getModArgs());
+      }
+    }
+
+    for (auto inst : instances) {
+      if ((getQualifiedOpName(*inst) == "coreir.reg") ||
+          (getQualifiedOpName(*inst) == "coreir.regrst") ||
+          (getQualifiedOpName(*inst) == "corebit.dff")) {
+
+        string destName = "self." + inst->toString() + "_subcircuit_out";
+        string instName = inst->getInstname() + ".out";
+        def->connect(destName, instName);
+      }
+    }
+
+    auto thisDefInstances = def->getInstances();
+    for (auto conn : srcDef->getConnections()) {
+      Wireable* fst = conn.first;
+      Wireable* snd = conn.second;
+
+      Wireable* fstSrc = extractSource(cast<Select>(fst));
+      Wireable* sndSrc = extractSource(cast<Select>(snd));
+
+      Wireable* newFst = nullptr;
+      Wireable* newSnd = nullptr;
+
+      if ((isa<Instance>(fstSrc) && isa<Instance>(sndSrc))) {
+        if (contains_key(fstSrc->toString(), thisDefInstances) &&
+            contains_key(sndSrc->toString(), thisDefInstances)) {
+          
+          def->connect(replaceSelect(fstSrc,
+                                     thisDefInstances[fstSrc->toString()],
+                                     fst),
+
+                       replaceSelect(sndSrc,
+                                     thisDefInstances[sndSrc->toString()],
+                                     snd));
+        }
+      }
+
+      // if (def->hasSel(cast<Select>(conn.first)->toString()) &&
+      //     def->hasSel(cast<Select>(conn.second)->toString())) {
+      //   def->connect(conn.first->toString(), conn.second->toString());
+      // }
+    }
+    
     // Create module definition by adding all instances
     // and creating map from subcircuit instances to original circuit
     // instances.
@@ -366,7 +421,6 @@ namespace CoreIR {
     // between registers and their output ports
 
     subMod->setDef(def);
-    
   }
 
 }
