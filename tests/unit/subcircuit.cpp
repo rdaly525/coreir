@@ -326,9 +326,26 @@ void testSubcircuitModule() {
   deleteContext(c);
 }
 
+void testCGRAConnectBox() {
+  Context* c = newContext();
+
+  Module* topMod = nullptr;
+
+  if (!loadFromFile(c,"./cb_unq1.v", &topMod)) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+
+  assert(false);
+
+  deleteContext(c);
+
+}
+
 int main() {
   testBasicSubCircuit();
   testNodeAfterConstant();
   testSubcircuitModule();
+  testCGRAConnectBox();
   //testCGRAConfigSubcircuit();
 }
