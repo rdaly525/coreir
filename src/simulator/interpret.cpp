@@ -667,6 +667,11 @@ namespace CoreIR {
 
     auto inConns = getInputConnections(vd, gr);
 
+    cout << "orr conns" << endl;
+    for (auto conn : inConns) {
+      cout << "\t" << conn.first.getWire()->toString() << " <---> " << conn.second.getWire()->toString() << endl;
+    }
+
     assert(inConns.size() == 1);
 
     InstanceValue arg1 = findArg("in", inConns);
