@@ -367,22 +367,36 @@ void testCGRAConnectBox() {
   Module* topMod_conf =
     c->getGlobal()->getModule("topMod_config");
 
-  cout << "topMod_config interface" << endl;
-  cout << topMod_conf->toString() << endl;
+  // cout << "topMod_config interface" << endl;
+  // cout << topMod_conf->toString() << endl;
 
   assert(topMod_conf != nullptr);
   assert(topMod_conf->hasDef());
 
-  ModuleDef* mcDef = topMod_conf->getDef();
-  cout << "topMod config instances" << endl;
-  for (auto instR : mcDef->getInstances()) {
-    cout << "\t" << instR.second->toString() << endl;
-  }
+  // ModuleDef* mcDef = topMod_conf->getDef();
+  // cout << "topMod config instances" << endl;
+  // for (auto instR : mcDef->getInstances()) {
+  //   cout << "\t" << instR.second->toString() << endl;
+  // }
 
-  cout << "topMod config connections" << endl;
-  for (auto conn : mcDef->getConnections()) {
-    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
-  }
+  // cout << "topMod config connections" << endl;
+  // for (auto conn : mcDef->getConnections()) {
+  //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  // }
+
+  c->runPasses({"clockifyinterface"});
+
+  SimulatorState configState(topMod_conf);
+  configState.setClock("self.clk", 0, 1);
+  configState.setValue("self.config_en", BitVec(1, 1));
+  configState.setValue("self.config_addr", BitVec(32, 0));
+  configState.setValue("self.config_data", BitVec(32, 6));
+  configState.setValue("self.reset", BitVec(1, 0));
+
+  configState.execute();
+  configState.execute();
+
+  assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0_subcircuit_out.out") == BitVec(32, 6));
 
   deleteContext(c);
 

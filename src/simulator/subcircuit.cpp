@@ -350,16 +350,6 @@ namespace CoreIR {
     
     for (auto inst : instances) {
       def->addInstance(inst, inst->getInstname());
-      // if (inst->getModuleRef()->isGenerated()) {
-      //   def->addInstance(inst->getInstname(),
-      //                    inst->getModuleRef()->getGenerator(),
-      //                    inst->getModuleRef()->getGenArgs(),
-      //                    inst->getModArgs());
-      // } else {
-      //   def->addInstance(inst->getInstname(),
-      //                    inst->getModuleRef(),
-      //                    inst->getModArgs());
-      // }
     }
 
     for (auto inst : instances) {
