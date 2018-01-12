@@ -551,9 +551,13 @@ namespace CoreIR {
             def->removeInstance(inst);
             changed = true;
             break;
+          } else if (isa<Instance>(src) &&
+                   (getQualifiedOpName(*(cast<Instance>(src))) == "corebit.const")) {
+            assert(false);
           }
             
-        }
+        } 
+
       }
     }
     return true;
