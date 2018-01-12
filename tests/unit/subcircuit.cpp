@@ -415,25 +415,31 @@ void testCGRAConnectBox() {
   //   cout << "\t" << instR.second->toString() << endl;
   // }
 
-  // cout << "topMod partially evaluated connections" << endl;
-  // for (auto conn : topMod->getDef()->getConnections()) {
-  //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
-  // }
+  cout << "topMod partially evaluated connections" << endl;
+  for (auto conn : topMod->getDef()->getConnections()) {
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  }
 
   // assert(topMod->getDef()->getInstances().size() == 2);
 
-  // SimulatorState fs(topMod);
-  // fs.setValue("self.in0", BitVec(width, 234));
-  // fs.setValue("self.in1", BitVec(width, 34534));
-  // fs.setClock("self.clk", 0, 1);
+  SimulatorState fs(topMod);
+  fs.setValue("self.in_0", BitVec(16, 0));
+  fs.setValue("self.in_1", BitVec(16, 1));
+  fs.setValue("self.in_2", BitVec(16, 2));
+  fs.setValue("self.in_3", BitVec(16, 3));
+  fs.setValue("self.in_4", BitVec(16, 4));
+  fs.setValue("self.in_5", BitVec(16, 5));
+  fs.setValue("self.in_6", BitVec(16, 6));
+  fs.setValue("self.in_7", BitVec(16, 7));
+  fs.setValue("self.in_8", BitVec(16, 8));
+  fs.setValue("self.in_9", BitVec(16, 9));
+  //fs.setClock("self.clk", 0, 1);
 
-  // fs.execute();
-  // fs.execute();
+  fs.execute();
+  fs.execute();
 
-  //assert(fs.getBitVec("self.out") == BitVec(width, 234 | 34534));
+  assert(fs.getBitVec("self.out") == BitVec(16, 6));
 
-  assert(false);
-  
   deleteContext(c);
 
 }
