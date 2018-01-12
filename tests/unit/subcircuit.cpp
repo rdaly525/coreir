@@ -331,7 +331,7 @@ void testCGRAConnectBox() {
 
   Module* topMod = nullptr;
 
-  if (!loadFromFile(c,"./cb_unq1.v", &topMod)) {
+  if (!loadFromFile(c, "cb_unq1.json", &topMod)) {
     cout << "Could not Load from json!!" << endl;
     c->die();
   }
