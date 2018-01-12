@@ -1,5 +1,6 @@
 #pragma once
 
+#include "coreir/simulator/interpreter.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/wireable.h"
 
@@ -16,5 +17,10 @@ namespace CoreIR {
                       const std::vector<CoreIR::Instance*>& instances,
                       CoreIR::Context* const c,
                       CoreIR::Namespace* const g);
-  
+
+  bool foldConstants(CoreIR::Module* const mod);
+
+  void registersToConstants(CoreIR::Module* const mod,
+                            std::unordered_map<std::string, BitVec>& regValues);
+
 }

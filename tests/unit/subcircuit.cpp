@@ -1,5 +1,9 @@
 #include "coreir.h"
 
+#include "coreir/passes/transform/deletedeadinstances.h"
+#include "coreir/passes/transform/unpackconnections.h"
+#include "coreir/passes/transform/packconnections.h"
+
 using namespace std;
 using namespace CoreIR;
 
@@ -84,13 +88,17 @@ void testCGRAConfigSubcircuit() {
     extractSubcircuit(topMod, subCircuitPorts);
 
   cout << "Size of subcircuit = " << subCircuitInstances.size() << endl;
+  int i = 0;
   for (auto inst : subCircuitInstances) {
     if ((getQualifiedOpName(*inst) == "coreir.reg") ||
         (getQualifiedOpName(*inst) == "coreir.regrst") ||
         (getQualifiedOpName(*inst) == "corebit.dff")) {
-      cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+      i++;
+      //cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
     }
   }
+
+  cout << "# of registers = " << i << endl;
 
   addSubcircuitModule("top_config",
                       topMod,
@@ -98,7 +106,15 @@ void testCGRAConfigSubcircuit() {
                       subCircuitInstances,
                       c,
                       c->getGlobal());
-  
+
+
+  Module* topConfig = c->getGlobal()->getModule("top_config");
+  cout << "Deleting dead instances" << endl;
+  deleteDeadInstances(topConfig);
+  cout << "Done deleting dead instances" << endl;
+
+  cout << "# of top config instances " << topConfig->getDef()->getInstances().size() << endl;
+  cout << "# of top config connections " << topConfig->getDef()->getConnections().size() << endl;
 
   deleteContext(c);
   
@@ -226,6 +242,7 @@ void testSubcircuitModule() {
 
   c->runPasses({"rungenerators", "flatten"});
 
+  // Extract the configuration subcircuit
   vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
       def->sel("self")->sel("config_data"),
       def->sel("self")->sel("clk")};
@@ -276,6 +293,36 @@ void testSubcircuitModule() {
   assert(state.getBitVec("self.config_data_reg$reg0_subcircuit_out") ==
          BitVec(1, 1));
 
+  registersToConstants(miniChip, state.getCircStates().back().registers);
+  deleteDeadInstances(miniChip);
+  unpackConnections(miniChip);
+  foldConstants(miniChip);
+  deleteDeadInstances(miniChip);
+
+  c->runPasses({"packconnections"});
+
+  cout << "miniChip partially evaluated instances" << endl;
+  for (auto instR : miniChip->getDef()->getInstances()) {
+    cout << "\t" << instR.second->toString() << endl;
+  }
+
+  cout << "miniChip partially evaluated connections" << endl;
+  for (auto conn : miniChip->getDef()->getConnections()) {
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  }
+
+  assert(miniChip->getDef()->getInstances().size() == 2);
+
+  SimulatorState fs(miniChip);
+  fs.setValue("self.in0", BitVec(width, 234));
+  fs.setValue("self.in1", BitVec(width, 34534));
+  fs.setClock("self.clk", 0, 1);
+
+  fs.execute();
+  fs.execute();
+
+  assert(fs.getBitVec("self.out") == BitVec(width, 234 | 34534));
+  
   deleteContext(c);
 }
 
