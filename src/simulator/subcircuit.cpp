@@ -307,14 +307,6 @@ namespace CoreIR {
                       const std::vector<CoreIR::Instance*>& instances,
                       CoreIR::Context* const c,
                       CoreIR::Namespace* const g) {
-    // How do I build a subcircuit? I suppose a subcircuit is the same as
-    // the original module, but it:
-    //
-    // 1. Has ports from selfPorts
-    // 2. Deletes connections that connect two wireables not in subcircuit
-    //    wireables
-    // 3. Replaces connections that connect sequential registers to instances
-    //    with connections from registers to new ports
 
     assert(srcModule->hasDef());
 
@@ -331,13 +323,10 @@ namespace CoreIR {
       ASSERT(parent == srcSelf, "All subcircuit ports must be selects off of self");
     }
 
-    // Create module interface by adding all self ports, and adding
-    // ports for all register / dff outputs, at the same time create
-    // connections between registers and ports
     vector<pair<string, Type*> > fields;
     for (auto port : selfPorts) {
       Select* sel = cast<Select>(port);
-      fields.push_back({sel->getSelStr(), sel->getType()});
+      fields.push_back({sel->getSelStr(), sel->getType()->getFlipped()});
     }
 
     for (auto inst : instances) {
@@ -393,32 +382,69 @@ namespace CoreIR {
       Wireable* newFst = nullptr;
       Wireable* newSnd = nullptr;
 
-      if ((isa<Instance>(fstSrc) && isa<Instance>(sndSrc))) {
-        if (contains_key(fstSrc->toString(), thisDefInstances) &&
-            contains_key(sndSrc->toString(), thisDefInstances)) {
-          
-          def->connect(replaceSelect(fstSrc,
-                                     thisDefInstances[fstSrc->toString()],
-                                     fst),
+      if (isa<Instance>(fstSrc) &&
+          contains_key(fstSrc->toString(), thisDefInstances)) {
+        newFst = replaceSelect(fstSrc,
+                               thisDefInstances[fstSrc->toString()],
+                               fst);
+      } else if (isa<Select>(fstSrc)) {
 
-                       replaceSelect(sndSrc,
-                                     thisDefInstances[sndSrc->toString()],
-                                     snd));
+        Select* fstSel = cast<Select>(fstSrc);
+        string str = fstSel->getSelStr();
+
+        bool foundField = false;
+        for (auto field : subMod->getType()->getRecord()) {
+          if (str == field.first) {
+            foundField = true;
+            break;
+          }
         }
+
+        if (foundField) {
+          newFst = replaceSelect(fstSrc,
+                                 def->sel("self")->sel(fstSel->getSelStr()),
+                                 fst);
+
+          cout << "Found self select " << newFst->toString() << endl;
+        }
+
       }
 
-      // if (def->hasSel(cast<Select>(conn.first)->toString()) &&
-      //     def->hasSel(cast<Select>(conn.second)->toString())) {
-      //   def->connect(conn.first->toString(), conn.second->toString());
-      // }
-    }
-    
-    // Create module definition by adding all instances
-    // and creating map from subcircuit instances to original circuit
-    // instances.
+      if (isa<Instance>(sndSrc) &&
+          contains_key(sndSrc->toString(), thisDefInstances)) {
 
-    // Add all connections between subcircuit wireables, and then add all connections
-    // between registers and their output ports
+        newSnd = replaceSelect(sndSrc,
+                               thisDefInstances[sndSrc->toString()],
+                               snd);
+      } else if (isa<Select>(sndSrc)) {
+
+        Select* sndSel = cast<Select>(sndSrc);
+        string str = sndSel->getSelStr();
+
+        bool foundField = false;
+        for (auto field : subMod->getType()->getRecord()) {
+          if (str == field.first) {
+            foundField = true;
+            break;
+          }
+        }
+
+        if (foundField) {
+          newSnd = replaceSelect(sndSrc,
+                                 def->sel("self")->sel(sndSel->getSelStr()),
+                                 snd);
+
+          cout << "Found self select " << newSnd->toString() << endl;
+        }
+
+      }
+
+      if ((newFst != nullptr) &&
+          (newSnd != nullptr)) {
+        def->connect(newFst, newSnd);
+      }
+
+    }
 
     subMod->setDef(def);
   }

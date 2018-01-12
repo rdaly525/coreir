@@ -276,8 +276,6 @@ void testSubcircuitModule() {
   assert(state.getBitVec("self.config_data_reg$reg0_subcircuit_out") ==
          BitVec(1, 1));
 
-  assert(false);
-
   deleteContext(c);
 }
 
