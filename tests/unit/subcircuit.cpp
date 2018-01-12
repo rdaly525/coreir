@@ -226,11 +226,12 @@ void testSubcircuitModule() {
 
   c->runPasses({"rungenerators", "flatten"});
 
+  vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
+      def->sel("self")->sel("config_data"),
+      def->sel("self")->sel("clk")};
+
   auto subCircuitInstances =
-    extractSubcircuit(miniChip,
-                      {def->sel("self")->sel("config_addr"),
-                          def->sel("self")->sel("config_data"),
-                          def->sel("self")->sel("clk")});
+    extractSubcircuit(miniChip, subCircuitPorts);
 
   cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
   for (auto inst : subCircuitInstances) {
@@ -238,6 +239,19 @@ void testSubcircuitModule() {
   }
 
   assert(subCircuitInstances.size() == 4);
+
+  // Create the subcircuit for the config
+  addSubcircuitModule("miniChip_config",
+                      miniChip,
+                      subCircuitPorts,
+                      subCircuitInstances,
+                      c,
+                      c->getGlobal());
+
+  Module* miniChip_conf =
+    c->getGlobal()->getModule("miniChip_config");
+
+  assert(miniChip_conf != nullptr);
 
   deleteContext(c);
 }

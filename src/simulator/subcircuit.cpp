@@ -44,6 +44,33 @@ namespace CoreIR {
 
     return conns;
   }
+
+  bool hasInputFrom(CoreIR::Instance* const inst,
+                    const std::set<Wireable*>& alreadyDetermined,
+                    std::map<Wireable*, Wireable*>& driverMap) {
+    //cout << "Checking determination of " << inst->toString() << endl;
+
+    for (Select* sel : allInputSelects(inst)) {
+
+      if (contains_key(cast<Wireable>(sel), driverMap) && 
+          elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {
+
+        return true;
+
+        // cout << sel->toString() << " is not determined by " << endl;
+        // for (auto det : alreadyDetermined) {
+        //   cout << "\t" << det->toString() << endl;
+        // }
+        // allAncestorsDetermined = false;
+        // break;
+      }
+
+    }
+
+    return false;
+    //return allAncestorsDetermined;
+
+  }
   
   bool inputsAreDeterminedBy(CoreIR::Instance* const inst,
                              const std::set<Wireable*>& alreadyDetermined,
@@ -128,7 +155,10 @@ namespace CoreIR {
     set<Wireable*> undetermined;
     for (auto portR : def->sel("self")->getSelects()) {
       Wireable* port = portR.second;
-      undetermined.insert(port);
+
+      if (!elem(port, determined)) {
+        undetermined.insert(port);
+      }
     }
 
     cout << "Determined ports" << endl;
@@ -156,7 +186,7 @@ namespace CoreIR {
     cout << "Done building driver and receiver maps" << endl;
 
     vector<Instance*> toConsider;
-    for (auto w : determined) {
+    for (auto w : undetermined) {
       concat(toConsider, receiverInstances(w, receiverMap));
     }
 
@@ -167,21 +197,21 @@ namespace CoreIR {
 
     // Need to add all constants
 
-    cout << "Adding all constants (and other zero input nodes)" << endl;
-    for (auto instS : def->getInstances()) {
-      Instance* inst = instS.second;
+    // cout << "Adding all constants (and other zero input nodes)" << endl;
+    // for (auto instS : def->getInstances()) {
+    //   Instance* inst = instS.second;
 
-      if (inputsAreDeterminedBy(inst, determined, driverMap) &&
-          !elem(inst, alreadyAdded)) {
+    //   if (inputsAreDeterminedBy(inst, determined, driverMap) &&
+    //       !elem(inst, alreadyAdded)) {
 
-        determined.insert(inst);
-        subCircuitValues.push_back(inst);
-        alreadyAdded.insert(inst);
+    //     determined.insert(inst);
+    //     //subCircuitValues.push_back(inst);
+    //     alreadyAdded.insert(inst);
 
-        concat(toConsider, receiverInstances(inst, receiverMap));
-      }
+    //     concat(toConsider, receiverInstances(inst, receiverMap));
+    //   }
       
-    }
+    // }
 
     cout << "Initial determined set" << endl;
     for (auto det : determined) {
@@ -201,12 +231,14 @@ namespace CoreIR {
       //   cout << "\t" << inst->toString() << endl;
       // }
 
-      if (inputsAreDeterminedBy(next, determined, driverMap) &&
-          !elem(next, alreadyAdded)) {
+      // if (inputsAreDeterminedBy(next, determined, driverMap) &&
+      //     !elem(next, alreadyAdded)) {
 
-        determined.insert(next);
-        subCircuitValues.push_back(next);
-        alreadyAdded.insert(next);
+      if (!elem(cast<Wireable>(next), undetermined) &&
+          hasInputFrom(next, undetermined, driverMap)) {
+        undetermined.insert(next);
+        //subCircuitValues.push_back(next);
+        //alreadyAdded.insert(next);
 
         found = next;
         foundInst = true;
@@ -219,7 +251,7 @@ namespace CoreIR {
 
         concat(toConsider, recInstances);
 
-        cout << "Instance " << next->toString() << " : " << next->getModuleRef()->toString() << " is determined by the existing subcircuit" << endl;
+        //cout << "Instance " << next->toString() << " : " << next->getModuleRef()->toString() << " is determined by the existing subcircuit" << endl;
 
         //cout << "# of nodes to consider = " << toConsider.size() << endl;
         // for (auto inst : toConsider) {
@@ -239,24 +271,31 @@ namespace CoreIR {
     }
 
 
-    // Verify the result
-    cout << "Checking that all needed instances have been added" << endl;
-    for (auto instS : def->getInstances()) {
-      Instance* inst = instS.second;
-
-      if (inputsAreDeterminedBy(inst, determined, driverMap) &&
-          !elem(inst, alreadyAdded)) {
-
-        determined.insert(inst);
+    for (auto instR : def->getInstances()) {
+      Instance* inst = instR.second;
+      if (!elem(cast<Wireable>(inst), undetermined)) {
         subCircuitValues.push_back(inst);
-        alreadyAdded.insert(inst);
-
-        cout << "Instance " << inst->toString() << " : " << inst->getModuleRef()->toString() << "\n\tis determined by the config ports, but wasnt added" << endl;
-
-        assert(false);
       }
-      
     }
+
+    // Verify the result
+    // cout << "Checking that all needed instances have been added" << endl;
+    // for (auto instS : def->getInstances()) {
+    //   Instance* inst = instS.second;
+
+    //   if (inputsAreDeterminedBy(inst, determined, driverMap) &&
+    //       !elem(inst, alreadyAdded)) {
+
+    //     determined.insert(inst);
+    //     subCircuitValues.push_back(inst);
+    //     alreadyAdded.insert(inst);
+
+    //     cout << "Instance " << inst->toString() << " : " << inst->getModuleRef()->toString() << "\n\tis determined by the config ports, but wasnt added" << endl;
+
+    //     assert(false);
+    //   }
+      
+    // }
 
     return subCircuitValues;
   }
