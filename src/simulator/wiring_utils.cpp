@@ -1,6 +1,7 @@
 #include "coreir/simulator/wiring_utils.h"
 
 #include "coreir/ir/types.h"
+#include "coreir/ir/value.h"
 #include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir/simulator/algorithm.h"
 #include "coreir/simulator/op_graph.h"
@@ -235,6 +236,22 @@ namespace CoreIR {
 
       if (!isConstant(src)) {
         return maybe<BitVector>();
+      }
+
+      Instance* srcConst = cast<Instance>(src);
+      if (getQualifiedOpName(*srcConst) == "corebit.const") {
+        bool val = srcConst->getModArgs().at("value")->get<bool>();
+        if (val == true) {
+          bv.set(i, 1);
+        } else {
+          bv.set(i, 0);
+        }
+      } else {
+        ASSERT(getQualifiedOpName(*srcConst) == "coreir.const",
+               "must be constant");
+
+        BitVector val = srcConst->getModArgs().at("value")->get<BitVector>();
+        bv.set(i, val.get(i));
       }
     }
 
