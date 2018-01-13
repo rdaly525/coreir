@@ -792,4 +792,14 @@ namespace CoreIR {
     return false;
   }
 
+  template<typename T>
+  class maybe {
+    bool has_val;
+  public:
+
+    maybe() : has_val(false) {}
+
+    bool has_value() const { return has_val; }
+  };
+
 }

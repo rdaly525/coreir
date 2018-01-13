@@ -167,5 +167,15 @@ namespace CoreIR {
     }
     return driven;
   }
+
+  std::vector<CoreIR::Select*>
+  getSignalValues(CoreIR::Select* const sel) {
+    assert(false);
+  }
+
+  maybe<BitVector>
+  getSignalBitVec(const std::vector<CoreIR::Select*>& signals) {
+    assert(false);
+  }
   
 }

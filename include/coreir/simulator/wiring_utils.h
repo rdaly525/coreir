@@ -3,6 +3,7 @@
 #include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/simulator/algorithm.h"
 
 namespace CoreIR {
 
@@ -34,5 +35,11 @@ namespace CoreIR {
   std::vector<Wireable*>
   drivenBy(Wireable* const w,
            std::map<Wireable*, std::vector<Wireable*> >& receiverMap);
+
+  std::vector<CoreIR::Select*>
+  getSignalValues(CoreIR::Select* const sel);
+
+  maybe<BitVector>
+  getSignalBitVec(const std::vector<CoreIR::Select*>& signals);
   
 }

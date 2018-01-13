@@ -612,14 +612,18 @@ namespace CoreIR {
                 return false;
             });
 
-          maybe<BitVec> sigValue = getSignalBitVec(values);
-          ASSERT(sigValue.has_value(), "sigValue must be a constant");
+          if (allInputsConst) {
+            changed = true;
 
-          // Extend sigValue
+            maybe<BitVec> sigValue = getSignalBitVec(values);
+            ASSERT(sigValue.has_value(), "sigValue must be a constant");
 
-          // Create new constant value
+            // Extend sigValue
+
+            // Create new constant value
           
-          // Remove delete old instance and replace with new constant
+            // Remove delete old instance and replace with new constant
+          }
           
         }
 
