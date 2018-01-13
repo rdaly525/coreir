@@ -445,10 +445,112 @@ void testCGRAConnectBox() {
 
 }
 
+void testCGRASwitchBox() {
+
+  Context* c = newContext();
+
+  Module* topMod = nullptr;
+
+  if (!loadFromFile(c, "sb_unq4_proc.json", &topMod)) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+
+  assert(topMod->hasDef());
+
+  ModuleDef* def = topMod->getDef();
+
+  // Extract the configuration subcircuit
+  vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
+      def->sel("self")->sel("config_data"),
+      def->sel("self")->sel("config_en"),
+      def->sel("self")->sel("clk"),
+      def->sel("self")->sel("reset")};
+
+  auto subCircuitInstances =
+    extractSubcircuit(topMod, subCircuitPorts);
+
+  // cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
+  // for (auto inst : subCircuitInstances) {
+  //   cout << "\t" << inst->toString() << endl;
+  // }
+
+  // Create the subcircuit for the config
+  addSubcircuitModule("topMod_config",
+                      topMod,
+                      subCircuitPorts,
+                      subCircuitInstances,
+                      c,
+                      c->getGlobal());
+
+  Module* topMod_conf =
+    c->getGlobal()->getModule("topMod_config");
+
+  // cout << "topMod_config interface" << endl;
+  // cout << topMod_conf->toString() << endl;
+
+  assert(topMod_conf != nullptr);
+  assert(topMod_conf->hasDef());
+
+  // ModuleDef* mcDef = topMod_conf->getDef();
+  // cout << "topMod config instances" << endl;
+  // for (auto instR : mcDef->getInstances()) {
+  //   cout << "\t" << instR.second->toString() << endl;
+  // }
+
+  // cout << "topMod config connections" << endl;
+  // for (auto conn : mcDef->getConnections()) {
+  //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  // }
+
+  // c->runPasses({"clockifyinterface"});
+
+  // SimulatorState configState(topMod_conf);
+  // configState.setClock("self.clk", 0, 1);
+  // configState.setValue("self.config_en", BitVec(1, 1));
+  // configState.setValue("self.config_addr", BitVec(32, 0));
+  // configState.setValue("self.config_data", BitVec(32, 6));
+  // configState.setValue("self.reset", BitVec(1, 0));
+
+  // configState.execute();
+  // configState.execute();
+
+  // assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0.out") == BitVec(32, 6));
+
+  // cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
+
+  // registersToConstants(topMod, configState.getCircStates().back().registers);
+  // deleteDeadInstances(topMod);
+  // unpackConnections(topMod);
+  // foldConstants(topMod);
+  // deleteDeadInstances(topMod);
+
+  // c->runPasses({"packconnections"});
+
+  // cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
+
+  // cout << "topMod partially evaluated instances" << endl;
+  // for (auto instR : topMod->getDef()->getInstances()) {
+  //   cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
+  // }
+
+  // cout << "topMod partially evaluated connections" << endl;
+  // for (auto conn : topMod->getDef()->getConnections()) {
+  //   cout << "\t" << conn.first->toString() << " <-> " <<
+  //     conn.second->toString() << endl;
+  // }
+
+  //assert(false);
+
+  deleteContext(c);
+
+}
+
 int main() {
   testBasicSubCircuit();
   testNodeAfterConstant();
   testSubcircuitModule();
   testCGRAConnectBox();
+  testCGRASwitchBox();
   //testCGRAConfigSubcircuit();
 }
