@@ -581,6 +581,45 @@ namespace CoreIR {
           }
 
           cout << inst->toString() << " only receives constants" << endl;
+
+          // What is the right vocabulary to ask for inputs with? I'd like to
+          // materialize a bit vector for each input. Maybe a sigspec like
+          // construction? For an instance input bv[n] we get a vector of selects
+          // of length n, then for each select get constant values if they exist?
+
+          // Process: Get sigspec for input. Then check that all sigspecs are
+          // defined (every bit of the signal comes from somewhere). Then get
+          // bit signal values. If every bit signal value is a constant then
+          // materialize a bit vector from the signal values.
+
+          // Then extend this bit vector, create a constant, and replace the
+          // original instance with it
+
+          Select* input = inst->sel("in");
+          vector<Select*> values = getSignalValues(input);
+
+          bool allInputsConst = all_of(values, [](Select* const sel) {
+                if (sel == nullptr) {
+                  return false;
+                }
+
+                Wireable* src = extractSource(sel);
+                if (isa<Instance>(src) &&
+                    isConstant(cast<Instance>(src))) {
+                  return true;
+                }
+
+                return false;
+            });
+
+          maybe<BitVec> sigValue = getSignalBitVec(values);
+          ASSERT(sigValue.has_value(), "sigValue must be a constant");
+
+          // Extend sigValue
+
+          // Create new constant value
+          
+          // Remove delete old instance and replace with new constant
           
         }
 
