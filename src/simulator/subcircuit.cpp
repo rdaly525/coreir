@@ -459,27 +459,27 @@ namespace CoreIR {
 
       for (auto instR : def->getInstances()) {
         if (getQualifiedOpName(*(instR.second)) == "coreir.const") {
-          Instance* inst = instR.second;
-          cout << "Found constant to fold = " << inst->toString() << endl;
+          //Instance* inst = instR.second;
+          //cout << "Found constant to fold = " << inst->toString() << endl;
 
-          vector<Select*> receivers =
-            getReceiverSelects(inst);
+          // vector<Select*> receivers =
+          //   getReceiverSelects(inst);
 
-          cout << "Connections" << endl;
-          for (auto sel : receivers) {
-            cout << "\tConnects to " << sel->toString() << endl;
-          }
+          // cout << "Connections" << endl;
+          // for (auto sel : receivers) {
+          //   cout << "\tConnects to " << sel->toString() << endl;
+          // }
         } else if (getQualifiedOpName(*(instR.second)) == "coreir.mux") {
           Instance* inst = instR.second;
 
-          cout << "Found mux " << inst->toString() << endl;
+          //cout << "Found mux " << inst->toString() << endl;
           auto wbs = inst->sel("sel")->getConnectedWireables();
 
           assert(wbs.size() == 1);
 
           Wireable* ptr = *std::begin(wbs);
 
-          cout << "Conneted to " << ptr->toString() << endl;
+          //cout << "Conneted to " << ptr->toString() << endl;
 
           assert(isa<Select>(ptr));
 
@@ -599,10 +599,10 @@ namespace CoreIR {
           Select* input = inst->sel("in");
           vector<Select*> values = getSignalValues(input);
 
-          cout << "Signal values" << endl;
-          for (auto val : values) {
-            cout << "\t" << val->toString() << endl;
-          }
+          // cout << "Signal values" << endl;
+          // for (auto val : values) {
+          //   cout << "\t" << val->toString() << endl;
+          // }
           maybe<BitVec> sigValue = getSignalBitVec(values);
 
           if (sigValue.has_value()) {
@@ -613,7 +613,7 @@ namespace CoreIR {
             uint outWidth =
               inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
 
-            assert(inWidth == sigVal.bitLength());
+            assert(inWidth == ((uint) sigVal.bitLength()));
 
             BitVec res(outWidth, 0);
             for (uint i = 0; i < inWidth; i++) {
@@ -686,8 +686,8 @@ namespace CoreIR {
             uint inWidth =
               inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-            assert(sigVal0.bitLength() == inWidth);
-            assert(sigVal1.bitLength() == inWidth);
+            assert(((uint) sigVal0.bitLength()) == inWidth);
+            assert(((uint) sigVal1.bitLength()) == inWidth);
             assert(res.bitLength() == 1);
 
             bool resVal = res == BitVec(1, 1) ? true : false;
@@ -758,9 +758,9 @@ namespace CoreIR {
             uint inWidth =
               inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-            assert(sigVal0.bitLength() == inWidth);
-            assert(sigVal1.bitLength() == inWidth);
-            assert(res.bitLength() == inWidth);
+            assert(((uint) sigVal0.bitLength()) == inWidth);
+            assert(((uint) sigVal1.bitLength()) == inWidth);
+            assert(((uint) res.bitLength()) == inWidth);
 
             //bool resVal = res == BitVec(1, 1) ? true : false;
 
@@ -821,7 +821,7 @@ namespace CoreIR {
             BitVec sigVal0 = sigValue0.get_value();
 
             BitVec res = BitVec(1, 0);
-            for (uint i = 0; i < sigVal0.bitLength(); i++) {
+            for (uint i = 0; i < ((uint) sigVal0.bitLength()); i++) {
               if (sigVal0.get(i) == 1) {
                 res = BitVec(1, 1);
                 break;
@@ -831,7 +831,7 @@ namespace CoreIR {
             uint inWidth =
               inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-            assert(sigVal0.bitLength() == inWidth);
+            assert(((uint) sigVal0.bitLength()) == inWidth);
             assert(res.bitLength() == 1);
 
             bool resVal = res == BitVec(1, 1) ? true : false;

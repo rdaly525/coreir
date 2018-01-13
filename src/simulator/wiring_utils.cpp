@@ -222,7 +222,7 @@ namespace CoreIR {
     //   cout << "\t" << sig << endl;
     // }
 
-    for (uint i = 0; i < bv.bitLength(); i++) {
+    for (uint i = 0; i < ((uint) bv.bitLength()); i++) {
       //cout << "Getting signal " << i << endl;
       Select* sigi = signals[i];
 
