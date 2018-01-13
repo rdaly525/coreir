@@ -559,20 +559,6 @@ namespace CoreIR {
               (srcConst->getModArgs().find("value"))->second->get<bool>();
 
             BitVector val(1, valB == true ? 1 : 0);
-            //cout << "value = " << val << endl;
-
-            //Select* bitSelect = cast<Select>(ptr);
-
-            //string selStr = bitSelect->getSelStr();
-            //Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
-
-            // cout << "Parent = " << parent->toString() << endl;
-            // cout << "Src    = " << src->toString() << endl;
-            //assert(parent == src);
-            //assert(isNumber(selStr));
-
-            //int offset = stoi(selStr);
-            
             uint8_t bit = val.get(0);
 
             assert((bit == 0) || (bit == 1));
@@ -695,7 +681,7 @@ namespace CoreIR {
             BitVec sigVal0 = sigValue0.get_value();
             BitVec sigVal1 = sigValue1.get_value();
 
-            BitVec res = sigVal0 == sigVal1;
+            BitVec res = BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
 
             uint inWidth =
               inst->getModuleRef()->getGenArgs().at("width")->get<int>();
