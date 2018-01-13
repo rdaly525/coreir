@@ -410,14 +410,15 @@ void testCGRAConnectBox() {
 
   cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
-  // cout << "topMod partially evaluated instances" << endl;
-  // for (auto instR : topMod->getDef()->getInstances()) {
-  //   cout << "\t" << instR.second->toString() << endl;
-  // }
+  cout << "topMod partially evaluated instances" << endl;
+  for (auto instR : topMod->getDef()->getInstances()) {
+    cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
+  }
 
   cout << "topMod partially evaluated connections" << endl;
   for (auto conn : topMod->getDef()->getConnections()) {
-    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+    cout << "\t" << conn.first->toString() << " <-> " <<
+      conn.second->toString() << endl;
   }
 
   // assert(topMod->getDef()->getInstances().size() == 2);

@@ -556,7 +556,33 @@ namespace CoreIR {
             assert(false);
           }
             
-        } 
+        } else if (getQualifiedOpName(*(instR.second)) == "coreir.zext") {
+          Instance* inst = instR.second;
+          auto inSelects = allInputSelects(inst);
+
+          bool allInsConstant = true;
+          for (auto sel : inSelects) {
+
+            if (contains_key(cast<Wireable>(sel), driverMap)) {
+
+              Wireable* driverSel = driverMap[cast<Wireable>(sel)];
+
+              if (!isConstant(extractSource(cast<Select>(driverSel)))) {
+                allInsConstant = false;
+                break;
+              }
+            }
+          }
+
+          // Check that the inputs fully define the select
+
+          if (!allInsConstant) {
+            continue;
+          }
+
+          cout << inst->toString() << " only receives constants" << endl;
+          
+        }
 
       }
     }

@@ -352,5 +352,7 @@ namespace CoreIR {
   outputs(CoreIR::Module& mod);
 
   bool fromSelfInterface(CoreIR::Select* w);
+
+  bool isConstant(CoreIR::Wireable* const w);
   
 }
