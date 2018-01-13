@@ -801,6 +801,76 @@ namespace CoreIR {
           }
 
           
+        } else if (getQualifiedOpName(*(instR.second)) == "coreir.orr") {
+
+          Instance* inst = instR.second;
+
+          Select* in = inst->sel("in");
+
+          vector<Select*> in0Values = getSignalValues(in);
+
+          // cout << "in0 values" << endl;
+          // for (auto val : in0Values) {
+          //   cout << "\t" << val->toString() << endl;
+          // }
+
+          maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+
+          if (sigValue0.has_value()) {
+
+            BitVec sigVal0 = sigValue0.get_value();
+
+            BitVec res = BitVec(1, 0);
+            for (uint i = 0; i < sigVal0.bitLength(); i++) {
+              if (sigVal0.get(i) == 1) {
+                res = BitVec(1, 1);
+                break;
+              }
+            }
+
+            uint inWidth =
+              inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+            assert(sigVal0.bitLength() == inWidth);
+            assert(res.bitLength() == 1);
+
+            bool resVal = res == BitVec(1, 1) ? true : false;
+
+            auto newConst =
+              def->addInstance(inst->toString() + "_const_replacement",
+                               "corebit.const",
+                               {{"value", Const::make(c, resVal)}});
+
+            auto rConns = getReceiverConnections(inst->sel("out"));
+
+            vector<Connection> newConns;
+            for (auto rConn : rConns) {
+              Wireable* fst = rConn.first;
+              Wireable* snd = rConn.second;
+
+              Wireable* rFst = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             fst);
+
+              Wireable* rSnd = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             snd);
+
+              newConns.push_back({rFst, rSnd});
+            }
+
+            // Remove instance after connecting
+            def->removeInstance(inst);
+
+            for (auto nConn : newConns) {
+              def->connect(nConn.first, nConn.second);
+            }
+
+            //assert(false);
+            changed = true;
+            break;
+          }
+
         }
       }
     }
