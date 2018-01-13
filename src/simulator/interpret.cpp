@@ -747,10 +747,10 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto outSelects = getOutputSelects(inst);
-    assert(outSelects.size() == 1);
+    // auto outSelects = getOutputSelects(inst);
+    // assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    //pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 2);
@@ -763,7 +763,8 @@ namespace CoreIR {
 
     BitVec res = op(bv1, bv2);
 
-    setValue(toSelect(outPair.second), makeSimBitVector(res));
+    //setValue(toSelect(outPair.second), makeSimBitVector(res));
+    setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
 
   void SimulatorState::updateAndNode(const vdisc vd) {

@@ -503,31 +503,31 @@ void testCGRASwitchBox() {
   //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
   // }
 
-  // c->runPasses({"clockifyinterface"});
+  c->runPasses({"clockifyinterface"});
 
-  // SimulatorState configState(topMod_conf);
-  // configState.setClock("self.clk", 0, 1);
-  // configState.setValue("self.config_en", BitVec(1, 1));
-  // configState.setValue("self.config_addr", BitVec(32, 0));
-  // configState.setValue("self.config_data", BitVec(32, 6));
-  // configState.setValue("self.reset", BitVec(1, 0));
+  SimulatorState configState(topMod_conf);
+  configState.setClock("self.clk", 0, 1);
+  configState.setValue("self.config_en", BitVec(1, 1));
+  configState.setValue("self.config_addr", BitVec(32, 0));
+  configState.setValue("self.config_data", BitVec(32, 6));
+  configState.setValue("self.reset", BitVec(1, 0));
 
-  // configState.execute();
-  // configState.execute();
+  configState.execute();
+  configState.execute();
 
   // assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0.out") == BitVec(32, 6));
 
-  // cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
+  cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
-  // registersToConstants(topMod, configState.getCircStates().back().registers);
-  // deleteDeadInstances(topMod);
-  // unpackConnections(topMod);
-  // foldConstants(topMod);
-  // deleteDeadInstances(topMod);
+  registersToConstants(topMod, configState.getCircStates().back().registers);
+  deleteDeadInstances(topMod);
+  unpackConnections(topMod);
+  foldConstants(topMod);
+  deleteDeadInstances(topMod);
 
-  // c->runPasses({"packconnections"});
+  c->runPasses({"packconnections"});
 
-  // cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
+  cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
   // cout << "topMod partially evaluated instances" << endl;
   // for (auto instR : topMod->getDef()->getInstances()) {
