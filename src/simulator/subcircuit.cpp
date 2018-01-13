@@ -659,19 +659,19 @@ namespace CoreIR {
           Instance* inst = instR.second;
 
           Select* in0 = inst->sel("in0");
-          Select* in1 = inst->sel("in0");
+          Select* in1 = inst->sel("in1");
 
           vector<Select*> in0Values = getSignalValues(in0);
           vector<Select*> in1Values = getSignalValues(in1);
 
-          cout << "in0 values" << endl;
-          for (auto val : in0Values) {
-            cout << "\t" << val->toString() << endl;
-          }
-          cout << "in1 values" << endl;
-          for (auto val : in1Values) {
-            cout << "\t" << val->toString() << endl;
-          }
+          // cout << "in0 values" << endl;
+          // for (auto val : in0Values) {
+          //   cout << "\t" << val->toString() << endl;
+          // }
+          // cout << "in1 values" << endl;
+          // for (auto val : in1Values) {
+          //   cout << "\t" << val->toString() << endl;
+          // }
 
           maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
           maybe<BitVec> sigValue1 = getSignalBitVec(in1Values);
@@ -696,7 +696,6 @@ namespace CoreIR {
               def->addInstance(inst->toString() + "_const_replacement",
                                "corebit.const",
                                {{"value", Const::make(c, resVal)}});
-            //                               {{"width", Const::make(c, 1)}});
 
             auto rConns = getReceiverConnections(inst->sel("out"));
 
@@ -728,6 +727,80 @@ namespace CoreIR {
             break;
           }
 
+        } else if (getQualifiedOpName(*(instR.second)) == "coreir.or") {
+          Instance* inst = instR.second;
+
+          Select* in0 = inst->sel("in0");
+          Select* in1 = inst->sel("in1");
+
+          vector<Select*> in0Values = getSignalValues(in0);
+          vector<Select*> in1Values = getSignalValues(in1);
+
+          // cout << "in0 values" << endl;
+          // for (auto val : in0Values) {
+          //   cout << "\t" << val->toString() << endl;
+          // }
+          // cout << "in1 values" << endl;
+          // for (auto val : in1Values) {
+          //   cout << "\t" << val->toString() << endl;
+          // }
+
+          maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+          maybe<BitVec> sigValue1 = getSignalBitVec(in1Values);
+
+          if (sigValue0.has_value() && sigValue1.has_value()) {
+
+            BitVec sigVal0 = sigValue0.get_value();
+            BitVec sigVal1 = sigValue1.get_value();
+
+            BitVec res = sigVal0 | sigVal1; //BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
+
+            uint inWidth =
+              inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+            assert(sigVal0.bitLength() == inWidth);
+            assert(sigVal1.bitLength() == inWidth);
+            assert(res.bitLength() == inWidth);
+
+            //bool resVal = res == BitVec(1, 1) ? true : false;
+
+            auto newConst =
+              def->addInstance(inst->toString() + "_const_replacement",
+                               "coreir.const",
+                               {{"width", Const::make(c, inWidth)}},
+                               {{"value", Const::make(c, res)}});
+
+            auto rConns = getReceiverConnections(inst->sel("out"));
+
+            vector<Connection> newConns;
+            for (auto rConn : rConns) {
+              Wireable* fst = rConn.first;
+              Wireable* snd = rConn.second;
+
+              Wireable* rFst = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             fst);
+
+              Wireable* rSnd = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             snd);
+
+              newConns.push_back({rFst, rSnd});
+            }
+
+            // Remove instance after connecting
+            def->removeInstance(inst);
+
+            for (auto nConn : newConns) {
+              def->connect(nConn.first, nConn.second);
+            }
+
+            //assert(false);
+            changed = true;
+            break;
+          }
+
+          
         }
       }
     }
