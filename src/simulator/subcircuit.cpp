@@ -595,8 +595,7 @@ namespace CoreIR {
 
             auto rConns = getReceiverConnections(inst->sel("out"));
 
-            def->removeInstance(inst);
-
+            vector<Connection> newConns;
             for (auto rConn : rConns) {
               Wireable* fst = rConn.first;
               Wireable* snd = rConn.second;
@@ -609,9 +608,17 @@ namespace CoreIR {
                                              newConst->sel("out"),
                                              snd);
 
-              def->connect(rFst, rSnd);
+              newConns.push_back({rFst, rSnd});
             }
 
+            // Remove instance after connecting
+            def->removeInstance(inst);
+
+            for (auto nConn : newConns) {
+              def->connect(nConn.first, nConn.second);
+            }
+
+            //assert(false);
             changed = true;
             break;
           }
