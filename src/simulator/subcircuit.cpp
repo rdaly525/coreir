@@ -553,7 +553,58 @@ namespace CoreIR {
             break;
           } else if (isa<Instance>(src) &&
                    (getQualifiedOpName(*(cast<Instance>(src))) == "corebit.const")) {
-            assert(false);
+
+            Instance* srcConst = cast<Instance>(src);
+            bool valB =
+              (srcConst->getModArgs().find("value"))->second->get<bool>();
+
+            BitVector val(1, valB == true ? 1 : 0);
+            //cout << "value = " << val << endl;
+
+            //Select* bitSelect = cast<Select>(ptr);
+
+            //string selStr = bitSelect->getSelStr();
+            //Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
+
+            // cout << "Parent = " << parent->toString() << endl;
+            // cout << "Src    = " << src->toString() << endl;
+            //assert(parent == src);
+            //assert(isNumber(selStr));
+
+            //int offset = stoi(selStr);
+            
+            uint8_t bit = val.get(0);
+
+            assert((bit == 0) || (bit == 1));
+
+            Select* replacement = nullptr;
+            Select* toReplace = inst->sel("out");
+            if (bit == 0) {
+              replacement = inst->sel("in0");
+            } else {
+              assert(bit == 1);
+              replacement = inst->sel("in1");
+            }
+
+            for (auto sel : drivenBy(toReplace, receiverMap)) {
+              auto target = driverMap[sel];
+
+              Select* val =
+                cast<Select>(replaceSelect(toReplace,
+                                           replacement,
+                                           cast<Select>(target)));
+
+              auto driver = map_find(cast<Wireable>(val), driverMap);
+              assert(driver != nullptr);
+
+              def->connect(sel, driver);
+            }
+
+            assert(replacement != nullptr);
+
+            def->removeInstance(inst);
+            changed = true;
+            break;
           }
             
         } else if (getQualifiedOpName(*(instR.second)) == "coreir.zext") {
@@ -569,10 +620,6 @@ namespace CoreIR {
           maybe<BitVec> sigValue = getSignalBitVec(values);
 
           if (sigValue.has_value()) {
-            // Extend sigValue
-            // Create new constant value
-            // Remove delete old instance and replace with new constant
-
             BitVec sigVal = sigValue.get_value();
 
             uint inWidth =
@@ -622,6 +669,79 @@ namespace CoreIR {
             changed = true;
             break;
           }
+        } else if (getQualifiedOpName(*(instR.second)) == "coreir.eq") {
+          Instance* inst = instR.second;
+
+          Select* in0 = inst->sel("in0");
+          Select* in1 = inst->sel("in0");
+
+          vector<Select*> in0Values = getSignalValues(in0);
+          vector<Select*> in1Values = getSignalValues(in1);
+
+          cout << "in0 values" << endl;
+          for (auto val : in0Values) {
+            cout << "\t" << val->toString() << endl;
+          }
+          cout << "in1 values" << endl;
+          for (auto val : in1Values) {
+            cout << "\t" << val->toString() << endl;
+          }
+
+          maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+          maybe<BitVec> sigValue1 = getSignalBitVec(in1Values);
+
+          if (sigValue0.has_value() && sigValue1.has_value()) {
+
+            BitVec sigVal0 = sigValue0.get_value();
+            BitVec sigVal1 = sigValue1.get_value();
+
+            BitVec res = sigVal0 == sigVal1;
+
+            uint inWidth =
+              inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+            assert(sigVal0.bitLength() == inWidth);
+            assert(sigVal1.bitLength() == inWidth);
+            assert(res.bitLength() == 1);
+
+            bool resVal = res == BitVec(1, 1) ? true : false;
+
+            auto newConst =
+              def->addInstance(inst->toString() + "_const_replacement",
+                               "corebit.const",
+                               {{"value", Const::make(c, resVal)}});
+            //                               {{"width", Const::make(c, 1)}});
+
+            auto rConns = getReceiverConnections(inst->sel("out"));
+
+            vector<Connection> newConns;
+            for (auto rConn : rConns) {
+              Wireable* fst = rConn.first;
+              Wireable* snd = rConn.second;
+
+              Wireable* rFst = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             fst);
+
+              Wireable* rSnd = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             snd);
+
+              newConns.push_back({rFst, rSnd});
+            }
+
+            // Remove instance after connecting
+            def->removeInstance(inst);
+
+            for (auto nConn : newConns) {
+              def->connect(nConn.first, nConn.second);
+            }
+
+            //assert(false);
+            changed = true;
+            break;
+          }
+
         }
       }
     }
