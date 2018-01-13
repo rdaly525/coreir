@@ -795,9 +795,17 @@ namespace CoreIR {
   template<typename T>
   class maybe {
     bool has_val;
+    T val;
+
   public:
 
     maybe() : has_val(false) {}
+    maybe(const T& val_) : has_val(true), val(val_) {}
+
+    T get_value() const {
+      assert(has_value());
+      return val;
+    }
 
     bool has_value() const { return has_val; }
   };

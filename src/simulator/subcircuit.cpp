@@ -447,7 +447,7 @@ namespace CoreIR {
     }
 
     ModuleDef* def = mod->getDef();
-    //Context* c = mod->getContext();
+    Context* c = mod->getContext();
 
     bool changed = true;
 
@@ -558,77 +558,67 @@ namespace CoreIR {
             
         } else if (getQualifiedOpName(*(instR.second)) == "coreir.zext") {
           Instance* inst = instR.second;
-          auto inSelects = allInputSelects(inst);
-
-          bool allInsConstant = true;
-          for (auto sel : inSelects) {
-
-            if (contains_key(cast<Wireable>(sel), driverMap)) {
-
-              Wireable* driverSel = driverMap[cast<Wireable>(sel)];
-
-              if (!isConstant(extractSource(cast<Select>(driverSel)))) {
-                allInsConstant = false;
-                break;
-              }
-            }
-          }
-
-          // Check that the inputs fully define the select
-
-          if (!allInsConstant) {
-            continue;
-          }
-
-          cout << inst->toString() << " only receives constants" << endl;
-
-          // What is the right vocabulary to ask for inputs with? I'd like to
-          // materialize a bit vector for each input. Maybe a sigspec like
-          // construction? For an instance input bv[n] we get a vector of selects
-          // of length n, then for each select get constant values if they exist?
-
-          // Process: Get sigspec for input. Then check that all sigspecs are
-          // defined (every bit of the signal comes from somewhere). Then get
-          // bit signal values. If every bit signal value is a constant then
-          // materialize a bit vector from the signal values.
-
-          // Then extend this bit vector, create a constant, and replace the
-          // original instance with it
 
           Select* input = inst->sel("in");
           vector<Select*> values = getSignalValues(input);
 
-          bool allInputsConst = all_of(values, [](Select* const sel) {
-                if (sel == nullptr) {
-                  return false;
-                }
-
-                Wireable* src = extractSource(sel);
-                if (isa<Instance>(src) &&
-                    isConstant(cast<Instance>(src))) {
-                  return true;
-                }
-
-                return false;
-            });
-
-          if (allInputsConst) {
-            changed = true;
-
-            maybe<BitVec> sigValue = getSignalBitVec(values);
-            ASSERT(sigValue.has_value(), "sigValue must be a constant");
-
-            // Extend sigValue
-
-            // Create new constant value
-          
-            // Remove delete old instance and replace with new constant
+          cout << "Signal values" << endl;
+          for (auto val : values) {
+            cout << "\t" << val->toString() << endl;
           }
-          
-        }
+          maybe<BitVec> sigValue = getSignalBitVec(values);
 
+          if (sigValue.has_value()) {
+            // Extend sigValue
+            // Create new constant value
+            // Remove delete old instance and replace with new constant
+
+            BitVec sigVal = sigValue.get_value();
+
+            uint inWidth =
+              inst->getModuleRef()->getGenArgs().at("width_in")->get<int>();
+            uint outWidth =
+              inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
+
+            assert(inWidth == sigVal.bitLength());
+
+            BitVec res(outWidth, 0);
+            for (uint i = 0; i < inWidth; i++) {
+              res.set(i, sigVal.get(i));
+            }
+            
+            auto newConst =
+              def->addInstance(inst->toString() + "_const_replacement",
+                               "coreir.const",
+                               {{"width", Const::make(c, outWidth)}},
+                               {{"value", Const::make(c, res)}});
+
+            auto rConns = getReceiverConnections(inst->sel("out"));
+
+            def->removeInstance(inst);
+
+            for (auto rConn : rConns) {
+              Wireable* fst = rConn.first;
+              Wireable* snd = rConn.second;
+
+              Wireable* rFst = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             fst);
+
+              Wireable* rSnd = replaceSelect(inst->sel("out"),
+                                             newConst->sel("out"),
+                                             snd);
+
+              def->connect(rFst, rSnd);
+            }
+
+            changed = true;
+            break;
+          }
+        }
       }
     }
+
     return true;
   }
   

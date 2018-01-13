@@ -1,7 +1,9 @@
 #include "coreir/simulator/wiring_utils.h"
 
 #include "coreir/ir/types.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir/simulator/algorithm.h"
+#include "coreir/simulator/op_graph.h"
 #include "coreir/simulator/utils.h"
 
 using namespace std;
@@ -168,14 +170,75 @@ namespace CoreIR {
     return driven;
   }
 
+  CoreIR::Select* getDriverSelect(CoreIR::Select* const src) {
+    // Outputs do not have drivers
+    assert(src->getType()->getDir() == Type::DK_In);
+    assert(src->getType()->getKind() == Type::TK_BitIn);
+
+    auto connected = src->getConnectedWireables();
+    // No direct connections
+    if (connected.size() == 0) {
+
+      // Need to search up and down the type hierarchy. A bit select
+      //bool hasAncestorConnection = false;
+      assert(false);
+    }
+
+    assert(connected.size() == 1);
+
+    return cast<Select>(*std::begin(connected));
+  }
+
   std::vector<CoreIR::Select*>
   getSignalValues(CoreIR::Select* const sel) {
-    assert(false);
+    assert(isBitArray(*(sel->getType())));
+
+    ArrayType* tp = cast<ArrayType>(sel->getType());
+
+    uint len = tp->getLen();
+    Type* elemType = tp->getElemType();
+
+    assert(elemType->getDir() == Type::DK_In);
+
+    vector<Select*> sels;
+    for (uint i = 0; i < len; i++) {
+      Select* inSel = sel->sel(to_string(i));
+      Select* driverSel = getDriverSelect(inSel);
+
+      sels.push_back(driverSel);
+    }
+
+    return sels;
   }
 
   maybe<BitVector>
   getSignalBitVec(const std::vector<CoreIR::Select*>& signals) {
-    assert(false);
+
+    BitVector bv(signals.size(), 0);
+
+    // cout << "Getting signal bit vec" << endl;
+    // for (auto sig : signals) {
+    //   cout << "\t" << sig << endl;
+    // }
+
+    for (uint i = 0; i < bv.bitLength(); i++) {
+      //cout << "Getting signal " << i << endl;
+      Select* sigi = signals[i];
+
+      if (sigi == nullptr) {
+        return maybe<BitVector>();
+      }
+
+      //cout << "sigi = " << sigi->toString() << endl;
+
+      Wireable* src = extractSource(sigi);
+
+      if (!isConstant(src)) {
+        return maybe<BitVector>();
+      }
+    }
+
+    return maybe<BitVector>(bv);
   }
   
 }
