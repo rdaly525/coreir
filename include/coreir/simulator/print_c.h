@@ -34,7 +34,6 @@ namespace CoreIR {
     }
 
     return maskResultStr(typeWidth(tp), expr);
-    //return parens( bitMaskString(tp) +  " & " + parens(expr));
   }
   
 
@@ -57,7 +56,12 @@ namespace CoreIR {
   static inline std::string ite(const std::string& condition,
 		  const std::string& trueRes,
 		  const std::string& falseRes) {
+    std::string cntrlMask =
+      parens(parens(parens(parens("int") + condition) + " << 31") + " >> 31") +
+      " | ";
     return parens(condition + " ? " + trueRes + " : " + falseRes);
+    //std::string cnd = "true";
+    //return parens(cnd + " ? " + trueRes + " : " + falseRes);
   }
 
 
@@ -73,7 +77,6 @@ namespace CoreIR {
   std::string cArrayTypeDecl(CoreIR::Type& t, const std::string& varName);
 
   std::string cPrimitiveTypeString(CoreIR::Type& t);
-
 
   static inline std::string ln(const std::string& s) {
     return s + ";\n";

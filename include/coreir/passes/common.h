@@ -22,9 +22,13 @@
 #include "transform/flatten.h"
 #include "transform/rungenerators.h"
 #include "transform/flattentypes.h"
+#include "transform/packconnections.h"
+#include "transform/unpackconnections.h"
+#include "transform/clockifyinterface.h"
 #include "transform/removebulkconnections.h"
 #include "transform/removepassthroughs.h"
 #include "transform/removeunconnected.h"
+#include "transform/registerinputs.h"
 #include "transform/wireclocks.h"
 #include "transform/cullgraph.h"
 
@@ -67,6 +71,10 @@ namespace CoreIR {
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::CullGraph());
     pm.addPass(new Passes::AddDirected());
+    pm.addPass(new Passes::PackConnections());
+    pm.addPass(new Passes::UnpackConnections());
+    pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
+    pm.addPass(new Passes::RegisterInputs("registerinputs"));
     pm.addPass(new Passes::Transform2CombView());
   }
 }
