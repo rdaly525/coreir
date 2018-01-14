@@ -944,7 +944,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
           uint num_indices = num_dims - 1;
           //cout << "we have " << num_dims << " dims and " << num_indices << " input dims" << endl;
-          uint indices[num_indices] = { 0 };
+          uint indices[num_indices];
+          memset( indices, 0, num_indices*sizeof(uint) );
 
           bool create_more_lbmems = true;
           while (create_more_lbmems) {
