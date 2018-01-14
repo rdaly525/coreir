@@ -337,6 +337,7 @@ void testCGRAConnectBox() {
     c->die();
   }
 
+  c->runPasses({"removeconstduplicates"});
   assert(topMod->hasDef());
 
   ModuleDef* def = topMod->getDef();
@@ -457,6 +458,8 @@ void testCGRASwitchBox() {
     cout << "Could not Load from json!!" << endl;
     c->die();
   }
+
+  c->runPasses({"removeconstduplicates"});
 
   assert(topMod->hasDef());
 
