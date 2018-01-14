@@ -22,6 +22,8 @@
 #include "transform/flatten.h"
 #include "transform/rungenerators.h"
 #include "transform/flattentypes.h"
+#include "transform/removeconstduplicates.h"
+#include "transform/packbitconstants.h"
 #include "transform/packconnections.h"
 #include "transform/unpackconnections.h"
 #include "transform/clockifyinterface.h"
@@ -72,8 +74,10 @@ namespace CoreIR {
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::CullGraph());
     pm.addPass(new Passes::AddDirected());
+    pm.addPass(new Passes::PackBitConstants());
     pm.addPass(new Passes::PackConnections());
     pm.addPass(new Passes::UnpackConnections());
+    pm.addPass(new Passes::RemoveConstDuplicates());
     pm.addPass(new Passes::CullZexts());
     pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
     pm.addPass(new Passes::RegisterInputs("registerinputs"));

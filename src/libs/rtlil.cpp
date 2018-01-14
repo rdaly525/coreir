@@ -578,11 +578,12 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       ASSERT(polarity == true,
              "Currently CoreIR only supports rising edge DFFs");
 
-      bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
+      // TODO: Reintroduce as a parameter
+      // bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
       int rstVal = args.at("ARST_VALUE")->get<int>();
 
-      ASSERT(rstPolarity == true,
-             "Currently CoreIR only supports rising edge rest adffs");
+      // ASSERT(rstPolarity == true,
+      //        "Currently CoreIR only supports rising edge resets on adffs");
       
       uint width = args.at("WIDTH")->get<int>();
 

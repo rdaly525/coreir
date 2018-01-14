@@ -4,6 +4,7 @@
 #include "coreir/simulator/layout.h"
 #include "coreir/simulator/multithreading.h"
 #include "coreir/simulator/subcircuit.h"
+#include "coreir/simulator/wiring_utils.h"
 
 namespace CoreIR {
 

@@ -423,6 +423,8 @@ void testCGRAConnectBox() {
 
   // assert(topMod->getDef()->getInstances().size() == 2);
 
+  c->runPasses({"clockifyinterface"});
+  
   SimulatorState fs(topMod);
   fs.setValue("self.in_0", BitVec(16, 0));
   fs.setValue("self.in_1", BitVec(16, 1));
@@ -504,7 +506,7 @@ void testCGRASwitchBox() {
   // }
 
   c->runPasses({"clockifyinterface"});
-
+  
   SimulatorState configState(topMod_conf);
   configState.setClock("self.clk", 0, 1);
   configState.setValue("self.config_en", BitVec(1, 1));
