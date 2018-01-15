@@ -45,38 +45,72 @@ bool Passes::CullZexts::runOnModule(Module* m) {
       uint out_width = args.at("width_out")->get<int>();
 
       if (in_width == out_width) {
-        // Found useless zext
-        //cout << inst->toString() << " is an identity zext" << endl;
 
-        Select* inSel = inst->sel("in");
-        Select* outSel = inst->sel("out");
+        cout << inst->toString() << " is an identity zext" << endl;
 
-        // Only handling easy wiring case for now, should really eliminate
-        // any that have no selects on the outputs
-        if ((inSel->getConnectedWireables().size() == 1) &&
-            noSubSelects(outSel)) {
 
-          toDelete.push_back(inst);
-        }
+        toDelete.push_back(inst);
       }
     }
   }
 
-
   cout << "Deleting " << toDelete.size() << " id zexts" << endl;
 
+  
   for (auto inst : toDelete) {
 
-    Select* inSel = inst->sel("in");
-    Select* outSel = inst->sel("out");
+    Select* toReplace = inst->sel("out");
+    Select* replaceIn = inst->sel("in");
 
-    Select* toIn = cast<Select>(*std::begin(inSel->getConnectedWireables()));
+    vector<Select*> inValues = getSignalValues(replaceIn);
 
-    auto receivers = outSel->getConnectedWireables();
+    for (auto outConn : getReceiverConnections(toReplace)) {
+      auto unpackedOutConns = unpackConnection(outConn);
+
+      if (def->hasConnection(outConn.first, outConn.second)) {
+        def->disconnect(outConn.first, outConn.second);
+
+        for (auto conn : unpackedOutConns) {
+          cout << "\tconnecting: " << conn.first->toString() << " <---> " << conn.second->toString() << endl;
+          def->connect(conn.first, conn.second);
+        }
+      }
+
+    }
+
+    vector<Connection> newConns;
+    for (uint i = 0; i < inValues.size(); i++) {
+      Select* replacement = inValues[i];
+      Select* toReplaceI = toReplace->sel(to_string(i));
+
+      if (replacement != nullptr) {
+        for (auto outConn : getReceiverConnections(toReplace)) {
+
+          Wireable* fst = outConn.first;
+          Wireable* snd = outConn.second;
+
+          Wireable* newFst = replaceSelect(toReplaceI,
+                                           replacement,
+                                           fst);
+
+          Wireable* newSnd = replaceSelect(toReplaceI,
+                                           replacement,
+                                           snd);
+
+          newConns.push_back({newFst, newSnd});
+
+        }
+      } else {
+        // Could just silently skip but I want to see if there are any unconnected
+        // zero extends
+        assert(false);
+      }
+    }
+
     def->removeInstance(inst);
 
-    for (auto rec : receivers) {
-      def->connect(toIn, rec);
+    for (auto conn : newConns) {
+      def->connect(conn.first, conn.second);
     }
 
     deletedZext = true;
