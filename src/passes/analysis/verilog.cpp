@@ -26,6 +26,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //Create a new Vmodule for this node
   Module* m = node.getModule();
+  m->print();
   if (m->isGenerated() && !m->hasDef()) { //TODO linking concern
     Generator* g = m->getGenerator();
     VModule* vmod;
@@ -49,15 +50,16 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
   VModule* vmod = new VModule(m);
   modMap[m] = vmod;
-  modList.push_back(vmod);
   if (vmod->hasDef()) {
     ASSERT(!m->hasDef(),"NYI linking error"); //TODO figure out this better
+    modList.push_back(vmod);
     return false;
   }
   if (!m->hasDef()) {
     this->external.insert(m);
     return false;
   }
+  modList.push_back(vmod);
 
   ModuleDef* def = m->getDef();
   
