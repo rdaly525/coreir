@@ -20,7 +20,7 @@ int main() {
   Module* cl = g->newModuleDecl("cl", inType);
   ModuleDef* def = cl->newModuleDef();
 
-  def->addInstance("neg0", "coreir.neg", {{"width", Const::make(c, width)}});
+  def->addInstance("neg0", "coreir.not", {{"width", Const::make(c, width)}});
   def->addInstance("zext0", "coreir.zext", {{"width_in", Const::make(c, width)},
         {"width_out", Const::make(c, width)}});
 
@@ -37,7 +37,14 @@ int main() {
   c->runPasses({"cullzexts"});
 
 
-  // TODO: Reintroduce when cullzexts using passthroughs
-  //assert(cl->getDef()->getInstances().size() == 1);
+  //TODO: Reintroduce when cullzexts using passthroughs
+  assert(cl->getDef()->getInstances().size() == 1);
 
+  SimulatorState state(cl);
+  state.setValue("self.in", BitVec(12, 34534));
+
+  state.execute();
+
+  assert(state.getBitVec("self.out") == ~BitVec(12, 34534));
+  
 }
