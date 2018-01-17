@@ -5,6 +5,11 @@ COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(rtlil);
 using namespace std;
 using namespace CoreIR;
 
+bool signMatters(const std::string& opName) {
+  vector<string> signInvOps{"and", "or", "xor", "add", "sub", "mul"};
+  return !elem(opName, signInvOps);
+}
+
 std::string rtlilCorebitName(const std::string& name) {
   if (name == "and") {
     return "corebit.and";
@@ -212,8 +217,18 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       bool a_signed = args.at("A_SIGNED")->get<bool>();
       bool b_signed = args.at("B_SIGNED")->get<bool>();
 
-      ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
-      ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+      bool signsMatter = signMatters(name);
+
+      if (a_signed || b_signed) {
+        cout << "operation = " << name << endl;
+        cout << "a_signed = " << a_signed << endl;
+        cout << "b_signed = " << b_signed << endl;
+      }
+      
+      ASSERT(!signsMatter || (!a_signed && !b_signed), "Have not yet added signed arithmetic support for RTLIL");
+
+      // ASSERT(!a_signed, "Have not yet added signed arithmetic support for RTLIL");
+      // ASSERT(!b_signed, "Have not yet added signed arithmetic support for RTLIL");
 
       ASSERT(y_width >= a_width, "Bitwise and arithmetic operations must have output at least as long as operands");
       ASSERT(y_width >= b_width, "Bitwise and arithmetic operations must have output at least as long as operands");
@@ -306,8 +321,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     bool a_signed = args.at("A_SIGNED")->get<bool>();
     bool b_signed = args.at("B_SIGNED")->get<bool>();
 
-    ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
-    ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+    ASSERT(!a_signed, "Have not yet added signed logic_or support for RTLIL");
+    ASSERT(!b_signed, "Have not yet added signed logic_or support for RTLIL");
 
     uint ext_width = max(a_width, b_width);
 
@@ -352,8 +367,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     bool a_signed = args.at("A_SIGNED")->get<bool>();
     bool b_signed = args.at("B_SIGNED")->get<bool>();
 
-    ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
-    ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+    ASSERT(!a_signed, "Have not yet added signed logic_and support for RTLIL");
+    ASSERT(!b_signed, "Have not yet added signed logic_and support for RTLIL");
 
     uint ext_width = max(a_width, b_width);
 
@@ -422,7 +437,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
     bool a_signed = args.at("A_SIGNED")->get<bool>();
 
-    ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+    ASSERT(!a_signed, "Have not yet added signed negation support for RTLIL");
 
     def->addInstance("extendA",
                      "coreir.zext",
@@ -454,7 +469,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
         bool a_signed = args.at("A_SIGNED")->get<bool>();
 
-        ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+        ASSERT(!a_signed, "Have not yet added signed reduce support for RTLIL");
 
         string opGenName = rtlilCoreirName(name);
         def->addInstance("op0", opGenName, {{"width", Const::make(c, a_width)}});

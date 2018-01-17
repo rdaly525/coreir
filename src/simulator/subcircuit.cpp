@@ -310,6 +310,8 @@ namespace CoreIR {
 
     assert(srcModule->hasDef());
 
+    cout << "Creating subcircuit " << moduleName << endl;
+
     ModuleDef* srcDef = srcModule->getDef();
     Wireable* srcSelf = srcDef->sel("self");
 
@@ -328,6 +330,8 @@ namespace CoreIR {
       Select* sel = cast<Select>(port);
       fields.push_back({sel->getSelStr(), sel->getType()->getFlipped()});
     }
+
+    cout << "Created subcircuit type with " << fields.size() << " fields" << endl;
 
     for (auto inst : instances) {
       if ((getQualifiedOpName(*inst) == "coreir.reg") ||

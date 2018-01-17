@@ -622,15 +622,18 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateAndrNode(const vdisc vd) {
+
+    updateInputs(vd);
+
     WireNode wd = gr.getNode(vd);
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto outSelects = getOutputSelects(inst);
+    // auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    // assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inConns = getInputConnections(vd, gr);
 
@@ -651,7 +654,9 @@ namespace CoreIR {
       }
     }
 
-    setValue(toSelect(outPair.second), makeSimBitVector(res));
+    //setValue(toSelect(outPair.second), makeSimBitVector(res));
+    Select* outSel = inst->sel("out");
+    setValue(outSel, makeSimBitVector(res));
   }
 
   void SimulatorState::updateOrrNode(const vdisc vd) {
