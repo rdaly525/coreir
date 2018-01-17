@@ -46,7 +46,7 @@ bool Passes::CullZexts::runOnModule(Module* m) {
 
       if (in_width == out_width) {
 
-        cout << inst->toString() << " is an identity zext" << endl;
+        //cout << inst->toString() << " is an identity zext" << endl;
 
         toDelete.push_back(inst);
       }
@@ -68,64 +68,5 @@ bool Passes::CullZexts::runOnModule(Module* m) {
     inlineInstance(instPT);
   }
   
-  //   Select* toReplace = inst->sel("out");
-  //   Select* replaceIn = inst->sel("in");
-
-  //   vector<Select*> inValues = getSignalValues(replaceIn);
-
-  //   for (auto outConn : getReceiverConnections(toReplace)) {
-  //     auto unpackedOutConns = unpackConnection(outConn);
-
-  //     if (def->hasConnection(outConn.first, outConn.second)) {
-  //       def->disconnect(outConn.first, outConn.second);
-
-  //       for (auto conn : unpackedOutConns) {
-  //         cout << "\tconnecting: " << conn.first->toString() << " <---> " << conn.second->toString() << endl;
-  //         def->connect(conn.first, conn.second);
-  //       }
-  //     }
-
-  //   }
-
-  //   vector<Connection> newConns;
-  //   for (uint i = 0; i < inValues.size(); i++) {
-  //     Select* replacement = inValues[i];
-  //     Select* toReplaceI = toReplace->sel(to_string(i));
-
-  //     if (replacement != nullptr) {
-  //       for (auto outConn : getReceiverConnections(toReplace)) {
-
-  //         Wireable* fst = outConn.first;
-  //         Wireable* snd = outConn.second;
-
-  //         Wireable* newFst = replaceSelect(toReplaceI,
-  //                                          replacement,
-  //                                          fst);
-
-  //         Wireable* newSnd = replaceSelect(toReplaceI,
-  //                                          replacement,
-  //                                          snd);
-
-  //         newConns.push_back({newFst, newSnd});
-
-  //       }
-  //     } else {
-  //       // Could just silently skip but I want to see if there are any unconnected
-  //       // zero extends
-  //       assert(false);
-  //     }
-  //   }
-
-  //   def->removeInstance(inst);
-
-  //   for (auto conn : newConns) {
-  //     def->connect(conn.first, conn.second);
-  //   }
-
-  //   deletedZext = true;
-  // }
-
-  // cout << "Done deleting zexts" << endl;
-
   return deletedZext;
 }
