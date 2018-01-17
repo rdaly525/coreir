@@ -635,13 +635,19 @@ namespace CoreIR {
 
     // pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inConns = getInputConnections(vd, gr);
+    // auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() == 1);
+    // assert(inConns.size() == 1);
 
-    InstanceValue arg1 = findArg("in", inConns);
+    // InstanceValue arg1 = findArg("in", inConns);
 
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+
+    Select* inSel = inst->sel("in");
+
+    ASSERT(isSet(inSel), "in must have a value to evaluate this node");
+
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(inSel));
     
     assert(s1 != nullptr);
     
