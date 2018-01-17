@@ -268,6 +268,15 @@ namespace CoreIR {
     
   }
 
-  
+  bool isConstant(CoreIR::Wireable* const w) {
+    if (isInstance(w)) {
+      string name = getQualifiedOpName(*toInstance(w));
+
+      return (name == "coreir.const") ||
+        (name == "corebit.const");
+    }
+
+    return false;
+  }
 
 }

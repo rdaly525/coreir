@@ -116,7 +116,7 @@ class Instance : public Wireable {
     bool hasModArgs() {return !modargs.empty();}
     
     Module* getModuleRef() {return moduleRef;}
-    
+
     void replace(Module* moduleRef, Values modargs=Values());
     //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
   

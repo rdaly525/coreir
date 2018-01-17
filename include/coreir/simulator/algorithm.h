@@ -45,7 +45,7 @@ namespace CoreIR {
   }
 
   template<typename E, typename T>
-  bool elem(E e, std::vector<T> t) {
+  bool elem(E e, std::vector<T>& t) {
     return std::find(begin(t), end(t), e) != end(t);
   }
 
@@ -791,5 +791,23 @@ namespace CoreIR {
 
     return false;
   }
+
+  template<typename T>
+  class maybe {
+    bool has_val;
+    T val;
+
+  public:
+
+    maybe() : has_val(false) {}
+    maybe(const T& val_) : has_val(true), val(val_) {}
+
+    T get_value() const {
+      assert(has_value());
+      return val;
+    }
+
+    bool has_value() const { return has_val; }
+  };
 
 }

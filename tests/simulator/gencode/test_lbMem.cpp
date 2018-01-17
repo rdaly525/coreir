@@ -33,6 +33,8 @@ int main() {
   for (int i = 0; i < 9; i++) {
     simulate(&state);
 
+    state.self_clk_last = 0;
+
     //printMem(state);
     cout << "state.self_rdata " << i << "             = " << bitset<8>(state.self_rdata) << endl;
     //cout << "state.self_m0$raddr$reg0     = " << bitset<8>(state.m0$raddr$reg0) << endl;

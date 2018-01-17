@@ -180,14 +180,22 @@ namespace CoreIR {
     }
 
     std::string lastClkVarName(InstanceValue& clk) {
-      varDecls.push_back({clk.getWire()->getType(), cVar("", clk, "_last")});
-      adjacentGroups.push_back({{clk.getWire()->getType(), cVar("", clk, "_last")}});
+      if (!elem(cVar("", clk, "_last"), allocatedAlready)) {
+        varDecls.push_back({clk.getWire()->getType(), cVar("", clk, "_last")});
+        adjacentGroups.push_back({{clk.getWire()->getType(), cVar("", clk, "_last")}});
+        allocatedAlready.insert(cVar("", clk, "_last"));
+      }
+
       return CoreIR::lastClkVarName(clk);
     }
 
     std::string clkVarName(InstanceValue& clk) {
-      varDecls.push_back({clk.getWire()->getType(), cVar(clk)});
-      adjacentGroups.push_back({{clk.getWire()->getType(), cVar(clk)}});
+      if (!elem(cVar(clk), allocatedAlready)) {
+        varDecls.push_back({clk.getWire()->getType(), cVar(clk)});
+        adjacentGroups.push_back({{clk.getWire()->getType(), cVar(clk)}});
+        allocatedAlready.insert(cVar(clk));
+      }
+
       return CoreIR::clkVarName(clk);
     }
 
