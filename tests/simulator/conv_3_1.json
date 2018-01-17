@@ -73,7 +73,7 @@
             "modargs":{"value":[["BitVector",16],7]}
           },
           "lb_p4_clamped_stencil_update_stream":{
-            "genref":"commonlib.Linebuffer",
+            "genref":"commonlib.linebuffer2d",
             "genargs":{"bitwidth":["Int",16], "image_width":["Int",10], "stencil_height":["Int",3], "stencil_width":["Int",1]}
           },
           "lb_p4_clamped_stencil_update_stream_wen":{

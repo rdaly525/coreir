@@ -305,33 +305,33 @@ namespace CoreIR {
 	REQUIRE(s == 0);
       }
 
-      SECTION("Compile multithreaded code") {
-	cout << "32 bit add 4 multithreaded" << endl;
-	colorAdd4Tree(gr);
+      // SECTION("Compile multithreaded code") {
+      //   cout << "32 bit add 4 multithreaded" << endl;
+      //   colorAdd4Tree(gr);
 
-	SECTION("Checking thread graph properties") {
-	  ThreadGraph tg = buildThreadGraph(gr);
+      //   SECTION("Checking thread graph properties") {
+      //     ThreadGraph tg = buildThreadGraph(gr);
 
-	  REQUIRE(tg.getVerts().size() == 4);
-	  REQUIRE(tg.getEdges().size() == 3);
-	}
+      //     REQUIRE(tg.getVerts().size() == 4);
+      //     REQUIRE(tg.getEdges().size() == 3);
+      //   }
 
-	deque<vdisc> topoOrder = topologicalSort(gr);
+      //   deque<vdisc> topoOrder = topologicalSort(gr);
 
-	for (auto& vd : topoOrder) {
-	  WireNode wd = gr.getNode(vd);
-	  cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
-	}
+      //   for (auto& vd : topoOrder) {
+      //     WireNode wd = gr.getNode(vd);
+      //     cout << "Node " << vd << " has thread number = " << wd.getThreadNo() << endl;
+      //   }
 
-	int s = compileCodeAndRun(topoOrder,
-				  gr,
-				  add4_n,
-				  "./gencode/",
-				  "add4_parallel",
-				  "test_add4_parallel.cpp");
-	REQUIRE(s == 0);
+      //   int s = compileCodeAndRun(topoOrder,
+      //   			  gr,
+      //   			  add4_n,
+      //   			  "./gencode/",
+      //   			  "add4_parallel",
+      //   			  "test_add4_parallel.cpp");
+      //   REQUIRE(s == 0);
 	
-      }
+      // }
 
     }
 
@@ -554,9 +554,6 @@ namespace CoreIR {
       REQUIRE(numMasksNeeded(g) == 0);
 
       SECTION("Compiling code") {
-	auto str = printCode(topoOrder, g, andM, "and37.h");
-	cout << "CODE STRING" << endl;
-	cout << str << endl;
 
 	string outFile = "./gencode/and37.cpp";
 
@@ -607,10 +604,6 @@ namespace CoreIR {
       }
 
       deque<vdisc> topoOrder = topologicalSort(g);
-
-      auto str = printCode(topoOrder, g, addM, "add63.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
 
       string outFile = "add63";
       int s = compileCodeAndRun(topoOrder,
@@ -663,9 +656,6 @@ namespace CoreIR {
       }
 
       SECTION("Compiling code") {
-	auto str = printCode(topoOrder, gr, neg_n, "neg2.h");
-	cout << "CODE STRING" << endl;
-	cout << str << endl;
 
 	string outFile = "neg2";
 	int s = compileCodeAndRun(topoOrder,
@@ -827,10 +817,6 @@ namespace CoreIR {
 
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      auto str = printCode(topoOrder, g, addM, "mat2_3_add.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
-
       string outFile = "./gencode/mat2_3_add.cpp";
       int s = compileCodeAndRun(topoOrder,
 				g,
@@ -909,10 +895,6 @@ namespace CoreIR {
 
       REQUIRE(numMasksNeeded(g) == 0);
 
-
-      auto str = printCode(topoOrder, g, sleM, "sle7.h");
-      cout << "CODE STRING" << endl;
-      cout << str << endl;
 
       int s = compileCodeAndRun(topoOrder,
 				g,
@@ -1052,6 +1034,60 @@ namespace CoreIR {
       REQUIRE(s == 0);
       
     }
+
+    SECTION("Multiply then shift 16 bit") {
+      uint n = 16;
+
+      Type* dashrType = c->Record({
+	  {"A",    c->Array(2, c->Array(n, c->BitIn())) },
+	    {"out", c->Array(n, c->Bit()) }
+	});
+
+      Module* dashrM = g->newModuleDecl("dashrM", dashrType);
+      ModuleDef* def = dashrM->newModuleDef();
+
+      Generator* dashr = c->getGenerator("coreir.ashr");
+
+      Wireable* self = def->sel("self");
+      Wireable* dashr0 =
+        def->addInstance("dashr0", dashr, {{"width", Const::make(c,n)}});
+      auto mul0 =
+        def->addInstance("mul0", "coreir.mul", {{"width", Const::make(c, n)}});
+      auto c0 =
+        def->addInstance("four",
+                         "coreir.const",
+                         {{"width", Const::make(c, n)}},
+                         {{"value", Const::make(c, BitVector(n, 4))}});
+
+
+      def->connect("self.A.0", "mul0.in0");
+      def->connect("self.A.1", "mul0.in1");
+      def->connect("four.out", "dashr0.in1");
+      def->connect("mul0.out", "dashr0.in0");
+      def->connect(dashr0->sel("out"), self->sel("out"));
+
+      dashrM->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      NGraph g;
+      buildOrderedGraph(dashrM, g);
+
+      deque<vdisc> topoOrder = topologicalSort(g);
+
+      string outFile = "multiply_shift_16";
+
+      int s = compileCodeAndRun(topoOrder,
+				g,
+				dashrM,
+				"./gencode/",
+				outFile,
+				"test_multiply_shift_16.cpp");
+
+      REQUIRE(s == 0);
+      
+    }
+    
 
     SECTION("60 bit dashr test") {
       uint n = 60;

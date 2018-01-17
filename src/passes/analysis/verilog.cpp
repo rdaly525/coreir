@@ -49,15 +49,16 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
   VModule* vmod = new VModule(m);
   modMap[m] = vmod;
-  modList.push_back(vmod);
   if (vmod->hasDef()) {
     ASSERT(!m->hasDef(),"NYI linking error"); //TODO figure out this better
+    modList.push_back(vmod);
     return false;
   }
   if (!m->hasDef()) {
     this->external.insert(m);
     return false;
   }
+  modList.push_back(vmod);
 
   ModuleDef* def = m->getDef();
   

@@ -255,5 +255,33 @@ namespace CoreIR {
     assert(false);
 
   }
+
+  string maskMacroDef() {
+    string expr = "(expr)";
+    string width = "(width)";
+
+    return "#define MASK(width, expr) " + parens( bitMaskString(width) +  " & " + parens(expr)) + "\n\n";
+  }
+
+  string seMacroDef() {
+    string arg = "(x)";
+    string startWidth = "(start)";
+    string extWidth = "(end)";
+
+    string def = "#define SIGN_EXTEND(start, end, x) ";
+    string mask = parens(arg + " & " + bitMaskString(startWidth));
+
+    string testClause = parens(arg + " & " + parens("1ULL << " +
+                                                    parens(startWidth + " - 1")));
+
+    string res = parens(mask + " | " +
+                        ite(testClause, lastMask(startWidth, extWidth), "0"));
+    
+    def += res + "\n\n";
+
+    return def;
+
+  }
+
   
 }

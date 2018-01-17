@@ -12,7 +12,7 @@ int main() {
   
   //Find linebuffer_3d in the commonlib namespace
   Namespace* commonlib = CoreIRLoadLibrary_commonlib(c);
-  Generator* linebuffer_d = commonlib->getGenerator("Linebuffer_3d");
+  Generator* linebuffer3d = commonlib->getGenerator("linebuffer3d");
 
   // Define lb325 Module
   Type* lb325Type = c->Record({
@@ -23,7 +23,7 @@ int main() {
 
   Module* lb325 = c->getGlobal()->newModuleDecl("lb325", lb325Type);
   ModuleDef* def = lb325->newModuleDef();
-  def->addInstance("lb325_inst", linebuffer_d, {{"bitwidth",Const::make(c,16)},
+  def->addInstance("lb325_inst", linebuffer3d, {{"bitwidth",Const::make(c,16)},
         {"stencil_d0",Const::make(c,3)},{"stencil_d1",Const::make(c,2)},{"stencil_d2",Const::make(c,5)},
                                          {"image_d0",Const::make(c,3)},{"image_d1",Const::make(c,512)}});
     def->connect("self.in", "lb325_inst.in");

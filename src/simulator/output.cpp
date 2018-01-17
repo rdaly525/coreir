@@ -29,7 +29,7 @@ namespace CoreIR {
     out << code;
     out.close();
 
-    string runCmd = "clang++ -lpthread -std=c++11 -c " + outFile;
+    string runCmd = "clang++ -march=native -lpthread -std=c++11 -c " + outFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -47,12 +47,13 @@ namespace CoreIR {
 
     cout << "Writing out code" << endl;
 
-    string codeStr = printCode(topoOrder, g, mod, hFile);
+    ModuleCode mc = buildCode(topoOrder, g, mod, hFile);
+    string codeStr = printCode(mc);
 
     cout << "Done writing out code" << endl;
 
-    string hStr = printDecl(mod, g);
-
+    string hStr = printDecl(mc);
+    
     cout << "Done writing out headers" << endl;
 
     string codeFilePath = codePath + codeFile;
@@ -78,8 +79,9 @@ namespace CoreIR {
 		  const std::string& codeFile,
 		  const std::string& hFile) {
 
-    string codeStr = printCode(topoOrder, g, mod, hFile);
-    string hStr = printDecl(mod, g);
+    ModuleCode mc = buildCode(topoOrder, g, mod, hFile);
+    string codeStr = printCode(mc);
+    string hStr = printDecl(mc);
 
     std::ofstream out(codeFile);
     out << codeStr;
@@ -105,7 +107,7 @@ namespace CoreIR {
 
     string codeFilePath = outDir + codeFile;
   
-    string runCmd = "clang++ -lpthread -std=c++11 -c " + codeFilePath;
+    string runCmd = "clang++ -march=native -lpthread -std=c++11 -c " + codeFilePath;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -130,7 +132,7 @@ namespace CoreIR {
     string codeFilePath = outDir + codeFile;
 
     string harnessFilePath = outDir + harnessFile;
-    string runCmd = "clang++ -lpthread -std=c++11 " + codeFilePath + " " + harnessFilePath;
+    string runCmd = "clang++ -march=native -lpthread -std=c++11 " + codeFilePath + " " + harnessFilePath;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;
@@ -153,7 +155,7 @@ namespace CoreIR {
     out << code;
     out.close();
 
-    string runCmd = "clang++ -lpthread -std=c++11 " + outFile + " " + harnessFile;
+    string runCmd = "clang++ -march=native -lpthread -std=c++11 " + outFile + " " + harnessFile;
     int s = system(runCmd.c_str());
 
     cout << "Command result = " << s << endl;

@@ -10,10 +10,7 @@ namespace CoreIR {
   }
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
-    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    // cout << "log2(depth))   = " << log2(depth) << endl;
 
-    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
     assert(val.bitLength() == ((int) width));
     // Cannot access out of range elements
     assert(bv.to_type<uint>() < depth);
@@ -448,41 +445,10 @@ namespace CoreIR {
   }
 
   void SimulatorState::findMainClock() {
+    auto clkInput = CoreIR::findMainClock(getCircuitGraph());
 
-    vector<Select*> clockInputs;
-
-    for (auto& vd : getCircuitGraph().getVerts()) {
-
-      WireNode w = getCircuitGraph().getNode(vd);
-
-      if (isGraphInput(w)) {
-
-        Select* inSel = toSelect(w.getWire());
-        Type* tp = inSel->getType();
-
-        if (tp->getKind() == CoreIR::Type::TK_Named) {
-          NamedType* ntp = static_cast<NamedType*>(tp);
-
-          if (ntp->toString() == "coreir.clk") {
-            clockInputs.push_back(inSel);
-          }
-        }
-
-      }
-      
-    }
-
-    if (clockInputs.size() > 1) {
-      cout << "ERROR: Circuit has " << clockInputs.size() << " clocks, but this simulator currently supports only one" << endl;
-      cout << "The clocks are " << endl;
-      for (auto& clk : clockInputs) {
-        cout << clk->toString() << endl;
-      }
-      assert(false);
-    }
-
-    if (clockInputs.size() == 1) {
-      setMainClock(clockInputs[0]);
+    if (clkInput != nullptr) {
+      setMainClock(clkInput);
     }
   }
 
@@ -557,7 +523,6 @@ namespace CoreIR {
     setValue(s, bv);
   }
 
-  // NOTE: Actually implement by checking types
   bool isSimBitVector(SimValue* v) {
     return v->getType() == SIM_VALUE_BV;
   }
@@ -1466,6 +1431,7 @@ namespace CoreIR {
       setValue(mainClock, clockCopy);
     }
 
+    exeCombinational();
     exeSequential();
     exeCombinational();
 

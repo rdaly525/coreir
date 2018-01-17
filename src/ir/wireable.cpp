@@ -59,6 +59,13 @@ bool Wireable::canSel(string selstr) {
   return type->canSel(selstr);
 }
 
+bool Wireable::canSel(SelectPath path) {
+  return type->canSel(path);
+}
+
+
+
+
 ConstSelectPath Wireable::getConstSelectPath() {
   Wireable* top = this;
   ConstSelectPath path;
@@ -128,6 +135,42 @@ string Wireable::wireableKind2Str(WireableKind wb) {
     case WK_Select: return "Select";
   }
   ASSERT(false,"Unknown WireableKind: " + to_string(wb));
+}
+
+namespace {
+void traverse2(std::map<SelectPath,Wireable*>& ret, SelectPath path, Wireable* w) {
+  ret.emplace(path,w);
+  for (auto spair : w->getSelects()) {
+    SelectPath newpath = path;
+    path.push_back(spair.first);
+    traverse2(ret,newpath,spair.second);
+  }
+}
+}
+
+std::map<SelectPath,Wireable*> Wireable::getAllSelects() {
+  std::map<SelectPath,Wireable*> ret;
+  SelectPath path;
+  traverse2(ret,path,this);
+  return ret;
+}
+
+namespace {
+void traverse3(std::map<SelectPath,Wireable*>& ret, SelectPath path, Wireable* w) {
+  if (!isa<Select>(w)) return;
+  Select* select = cast<Select>(w);
+  path.push_front(select->getSelStr());
+  ret.emplace(path,select->getParent());
+  traverse3(ret, path,select->getParent());
+}
+
+}
+
+std::map<SelectPath,Wireable*> Wireable::getAllParents() {
+  std::map<SelectPath,Wireable*> ret;
+  SelectPath path;
+  traverse3(ret,path,this);
+  return ret;
 }
 
 LocalConnections Wireable::getLocalConnections() {

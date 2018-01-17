@@ -1,0 +1,30 @@
+{"top":"global.lbMem",
+"namespaces":{
+  "global":{
+    "modules":{
+      "lbMem":{
+        "type":["Record",{
+          "clk":["Named","coreir.clkIn"],
+          "wdata":["Array",2,"BitIn"],
+          "rdata":["Array",2,"Bit"],
+          "wen":"BitIn",
+          "valid":"Bit"
+        }],
+        "instances":{
+          "m0":{
+            "genref":"commonlib.LinebufferMem",
+            "genargs":{"depth":["Int",4], "width":["Int",2]}
+          }
+        },
+        "connections":[
+          ["m0.clk","self.clk"],
+          ["m0.rdata","self.rdata"],
+          ["m0.valid","self.valid"],
+          ["m0.wdata","self.wdata"],
+          ["m0.wen","self.wen"]
+        ]
+      }
+    }
+  }
+}
+}

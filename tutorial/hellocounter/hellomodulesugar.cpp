@@ -15,12 +15,12 @@ int main() {
   //Now lets create a module declaration. Declarations are specified separately from the definition
   Module* counter = c->getGlobal()->newModuleDecl("counter",CounterType); //use getGlobalFunction
   ModuleDef* def = counter->newModuleDef();
-    Args wArg({{"width",c->argInt(16)}});
+    Values wArg({{"width",Const::make(c,16)}});
     def->addInstance("ai","coreir.add",wArg); // using <namespace>.<module> notation 
-    def->addInstance("ci","coreir.const",wArg,{{"value",c->argInt(1)}});
+    def->addInstance("ci","coreir.const",wArg,{{"value",Const::make(c,16,1)}});
 
     //Reg has default arguments. en/clr/rst are False by default. Init is also 0 by default
-    def->addInstance("ri","coreir.reg",{{"width",c->argInt(16)},{"en",c->argBool(true)}});
+    def->addInstance("ri","mantle.reg",{{"width",Const::make(c,16)},{"has_en",Const::make(c,true)}});
     
     //Connections
     def->connect("self.clk","ri.clk");
