@@ -86,8 +86,6 @@ void CoreIRLoadVerilog_corebit(Context* c) {
   }
 
   bit->getModule("const")->getMetaData()["verilog"]["parameters"] = {"value"};
-  bit->getModule("const")->getMetaData()["verilog"]["interface"] = bitIMap.at("const");
-  bit->getModule("const")->getMetaData()["verilog"]["definition"] = "assign out = value;";
   
   {
     //Term
