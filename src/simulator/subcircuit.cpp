@@ -890,8 +890,10 @@ namespace CoreIR {
 
     ModuleDef* def = mod->getDef();
     Context* c = mod->getContext();
+
     for (auto instR : def->getInstances()) {
       auto inst = instR.second;
+
       if (getQualifiedOpName(*inst) == "coreir.reg") {
 
         cout << "Found register = " << inst->toString() << endl;
@@ -902,9 +904,9 @@ namespace CoreIR {
 
           cout << "Replacing register = " << inst->toString() << endl;
           cout << "Connected wireables = " << endl;
-          for (auto wb : inst->getConnectedWireables()) {
-            cout << "\t" << wb->toString() << endl;
-          }
+          // for (auto wb : inst->getConnectedWireables()) {
+          //   cout << "\t" << wb->toString() << endl;
+          // }
 
           string cName = inst->toString() + "_const_value";
           Instance* constR =
@@ -913,22 +915,67 @@ namespace CoreIR {
                              {{"width", Const::make(c, value.bitLength())}},
                              {{"value", Const::make(c, value)}});
 
-          Select* regOutSel = cast<Select>(inst->sel("out"));
-          Select* constOutSel = cast<Select>(constR->sel("out"));
-
-          for (auto& conn : def->getConnections()) {
-            Wireable* connFst = replaceSelect(regOutSel, constOutSel, conn.first);
-            Wireable* connSnd = replaceSelect(regOutSel, constOutSel, conn.second);
-
-            def->disconnect(conn.first, conn.second);
-            def->connect(connFst, connSnd);
-            
-          }
-
+          Instance* instPT = addPassthrough(inst, "_const_to_register_PT");
           def->removeInstance(inst);
+
+          def->connect(constR->sel("out"), instPT->sel("in")->sel("out"));
+          inlineInstance(instPT);
+          
+          
+          // Select* regOutSel = cast<Select>(inst->sel("out"));
+          // Select* constOutSel = cast<Select>(constR->sel("out"));
+
+          // for (auto& conn : def->getConnections()) {
+          //   Wireable* connFst = replaceSelect(regOutSel, constOutSel, conn.first);
+          //   Wireable* connSnd = replaceSelect(regOutSel, constOutSel, conn.second);
+
+          //   def->disconnect(conn.first, conn.second);
+          //   def->connect(connFst, connSnd);
+          // }
+          
         }
       }
     }
+    
+    // for (auto instR : def->getInstances()) {
+    //   auto inst = instR.second;
+    //   if (getQualifiedOpName(*inst) == "coreir.reg") {
+
+    //     cout << "Found register = " << inst->toString() << endl;
+
+    //     if (contains_key(inst->toString(), regValues)) {
+
+    //       BitVec value = regValues.find(inst->toString())->second;
+
+    //       cout << "Replacing register = " << inst->toString() << endl;
+    //       cout << "Connected wireables = " << endl;
+    //       for (auto wb : inst->getConnectedWireables()) {
+    //         cout << "\t" << wb->toString() << endl;
+    //       }
+
+    //       string cName = inst->toString() + "_const_value";
+    //       Instance* constR =
+    //         def->addInstance(cName,
+    //                          "coreir.const",
+    //                          {{"width", Const::make(c, value.bitLength())}},
+    //                          {{"value", Const::make(c, value)}});
+
+    //       Select* regOutSel = cast<Select>(inst->sel("out"));
+    //       Select* constOutSel = cast<Select>(constR->sel("out"));
+
+    //       for (auto& conn : def->getConnections()) {
+    //         Wireable* connFst = replaceSelect(regOutSel, constOutSel, conn.first);
+    //         Wireable* connSnd = replaceSelect(regOutSel, constOutSel, conn.second);
+
+    //         def->disconnect(conn.first, conn.second);
+    //         def->connect(connFst, connSnd);
+            
+    //       }
+
+    //       def->removeInstance(inst);
+    //     }
+    //   }
+    // }
   }
 
 }
