@@ -296,7 +296,7 @@ void testSubcircuitModule() {
 
   registersToConstants(miniChip, state.getCircStates().back().registers);
   deleteDeadInstances(miniChip);
-  unpackConnections(miniChip);
+  //unpackConnections(miniChip);
   foldConstants(miniChip);
   deleteDeadInstances(miniChip);
 
@@ -403,7 +403,7 @@ void testCGRAConnectBox() {
 
   registersToConstants(topMod, configState.getCircStates().back().registers);
   deleteDeadInstances(topMod);
-  unpackConnections(topMod);
+  //unpackConnections(topMod);
   foldConstants(topMod);
   deleteDeadInstances(topMod);
 
@@ -526,7 +526,7 @@ void testCGRASwitchBox() {
 
   registersToConstants(topMod, configState.getCircStates().back().registers);
   deleteDeadInstances(topMod);
-  unpackConnections(topMod);
+  //unpackConnections(topMod);
   foldConstants(topMod);
   deleteDeadInstances(topMod);
 

@@ -384,7 +384,6 @@ namespace CoreIR {
       //for (auto instR : def->getInstances()) {
       for (auto inst : unchecked) {
         if (getQualifiedOpName(*(inst)) == "coreir.mux") {
-          //Instance* inst = instR.second;
 
           //cout << "Found mux " << inst->toString() << endl;
           auto wbs = inst->sel("sel")->getConnectedWireables();
@@ -415,8 +414,6 @@ namespace CoreIR {
             string selStr = bitSelect->getSelStr();
             Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
 
-            // cout << "Parent = " << parent->toString() << endl;
-            // cout << "Src    = " << src->toString() << endl;
             assert(parent == src);
             assert(isNumber(selStr));
 
@@ -427,19 +424,13 @@ namespace CoreIR {
             assert((bit == 0) || (bit == 1));
 
             Select* replacement = nullptr;
-            //Select* toReplace = inst->sel("out");
-
-            // PROBLEM: How do I rewire in0 if it comes from multiple connections?
-            // Create a replacement passthrough for the whole inst?
 
             Instance* instPT = addPassthrough(inst, "_inline_mux_PT");
 
             if (bit == 0) {
-              //replacement = inst->sel("in0");
               replacement = instPT->sel("in")->sel("in0");
             } else {
               assert(bit == 1);
-              //replacement = inst->sel("in1");
               replacement = instPT->sel("in")->sel("in1");
             }
 
@@ -489,7 +480,6 @@ namespace CoreIR {
           }
             
         } else if (getQualifiedOpName(*(inst)) == "coreir.zext") {
-          //Instance* inst = instR.second;
 
           Select* input = inst->sel("in");
           vector<Select*> values = getSignalValues(input);
@@ -533,7 +523,6 @@ namespace CoreIR {
             break;
           }
         } else if (getQualifiedOpName(*(inst)) == "coreir.eq") {
-          //Instance* inst = instR.second;
 
           Select* in0 = inst->sel("in0");
           Select* in1 = inst->sel("in1");
@@ -587,7 +576,6 @@ namespace CoreIR {
           }
 
         } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
-          //Instance* inst = instR.second;
 
           Select* in0 = inst->sel("in0");
           Select* in1 = inst->sel("in1");
@@ -643,8 +631,6 @@ namespace CoreIR {
 
           
         } else if (getQualifiedOpName(*(inst)) == "coreir.orr") {
-
-          //Instance* inst = instR.second;
 
           Select* in = inst->sel("in");
 
