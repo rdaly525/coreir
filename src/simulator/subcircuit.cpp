@@ -560,11 +560,9 @@ namespace CoreIR {
 
             Select* replacement = nullptr;
             if (bit == 0) {
-              //replacement = inst->sel("in0");
               replacement = instPT->sel("in")->sel("in0");
             } else {
               assert(bit == 1);
-              //replacement = inst->sel("in1");
               replacement = instPT->sel("in")->sel("in1");
             }
 
@@ -637,30 +635,41 @@ namespace CoreIR {
                                {{"width", Const::make(c, outWidth)}},
                                {{"value", Const::make(c, res)}});
 
-            auto rConns = getReceiverConnections(inst->sel("out"));
+            Instance* instPT = addPassthrough(inst, "_inline_mux_PT");
 
-            vector<Connection> newConns;
-            for (auto rConn : rConns) {
-              Wireable* fst = rConn.first;
-              Wireable* snd = rConn.second;
+            Select* replacement = newConst->sel("out");
 
-              Wireable* rFst = replaceSelect(inst->sel("out"),
-                                             newConst->sel("out"),
-                                             fst);
-
-              Wireable* rSnd = replaceSelect(inst->sel("out"),
-                                             newConst->sel("out"),
-                                             snd);
-
-              newConns.push_back({rFst, rSnd});
-            }
-
-            // Remove instance after connecting
             def->removeInstance(inst);
 
-            for (auto nConn : newConns) {
-              def->connect(nConn.first, nConn.second);
-            }
+            def->connect(replacement,
+                         instPT->sel("in")->sel("out"));
+
+            inlineInstance(instPT);
+            
+            // auto rConns = getReceiverConnections(inst->sel("out"));
+
+            // vector<Connection> newConns;
+            // for (auto rConn : rConns) {
+            //   Wireable* fst = rConn.first;
+            //   Wireable* snd = rConn.second;
+
+            //   Wireable* rFst = replaceSelect(inst->sel("out"),
+            //                                  newConst->sel("out"),
+            //                                  fst);
+
+            //   Wireable* rSnd = replaceSelect(inst->sel("out"),
+            //                                  newConst->sel("out"),
+            //                                  snd);
+
+            //   newConns.push_back({rFst, rSnd});
+            // }
+
+            // // Remove instance after connecting
+            // def->removeInstance(inst);
+
+            // for (auto nConn : newConns) {
+            //   def->connect(nConn.first, nConn.second);
+            // }
 
             //assert(false);
             changed = true;
