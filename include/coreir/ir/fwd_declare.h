@@ -14,10 +14,16 @@
 #include <iostream>
 #include <functional>
 
+#include <execinfo.h>
+
 #define ASSERT(C,MSG) \
   if (!(C)) { \
-    std::cout << "ERROR: " << MSG << std::endl << std::endl; \
-    assert(C); \
+    void* array[20]; \
+    size_t size; \
+    size = backtrace(array,20); \
+    std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
+    backtrace_symbols_fd(array,size,2); \
+    exit(1); \
     while (true) {} /* Hack so GCC knows this doesn't ever return */ \
   }
 
@@ -105,7 +111,8 @@ bool operator==(const Values& l, const Values& r);
 typedef std::function<Type*(Context* c, Values genargs)> TypeGenFun;
 typedef std::string (*NameGenFun)(Values);
 typedef std::function<std::pair<Params,Values>(Context*,Values)> ModParamsGenFun;
-typedef void (*ModuleDefGenFun)(Context* c,Values genargs,ModuleDef*);
+  //typedef void (*ModuleDefGenFun)(Context* c,Values genargs,ModuleDef*);
+typedef std::function<void (Context* c,Values genargs,ModuleDef*) > ModuleDefGenFun;
 
 typedef std::vector<std::pair<std::string,Type*>> RecordParams ;
 

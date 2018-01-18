@@ -16,16 +16,27 @@
 #include "analysis/verifyinputconnections.h"
 #include "analysis/verifyflattenedtypes.h"
 #include "analysis/createinstancemap.h"
+#include "analysis/createcombview.h"
 
 //Transform passes
 #include "transform/flatten.h"
 #include "transform/rungenerators.h"
 #include "transform/flattentypes.h"
+#include "transform/removeconstduplicates.h"
+#include "transform/packbitconstants.h"
+#include "transform/packconnections.h"
+#include "transform/unpackconnections.h"
+#include "transform/clockifyinterface.h"
+#include "transform/cullzexts.h"
 #include "transform/removebulkconnections.h"
 #include "transform/removepassthroughs.h"
 #include "transform/removeunconnected.h"
+#include "transform/registerinputs.h"
 #include "transform/wireclocks.h"
 #include "transform/cullgraph.h"
+
+#include "transform/adddirected.h"
+#include "transform/transform2combview.h"
 
 
 //TODO Macrofy this
@@ -50,6 +61,8 @@ namespace CoreIR {
     pm.addPass(new Passes::VerifyConnectivity(false,true));
     pm.addPass(new Passes::VerifyConnectivity(false,false));
     pm.addPass(new Passes::VerifyFlattenedTypes());
+    pm.addPass(new Passes::CreateCombView());
+
 
     //Transform
     pm.addPass(new Passes::Flatten());
@@ -60,6 +73,15 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveUnconnected());
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::CullGraph());
+    pm.addPass(new Passes::AddDirected());
+    pm.addPass(new Passes::PackBitConstants());
+    pm.addPass(new Passes::PackConnections());
+    pm.addPass(new Passes::UnpackConnections());
+    pm.addPass(new Passes::RemoveConstDuplicates());
+    pm.addPass(new Passes::CullZexts());
+    pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
+    pm.addPass(new Passes::RegisterInputs("registerinputs"));
+    pm.addPass(new Passes::Transform2CombView());
   }
 }
 

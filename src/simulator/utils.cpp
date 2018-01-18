@@ -214,17 +214,6 @@ namespace CoreIR {
     string genRefName = inst.getModuleRef()->getName();
     return genRefName;
     
-    //auto genRef = inst.getGeneratorRef();
-    //if (genRef != nullptr) {
-    //  string genRefName = genRef->getName();
-    //  return genRefName;
-    //}
-
-    //auto modRef = inst.getModuleRef();
-
-    //assert(modRef != nullptr);
-
-    //return modRef->getName();
   }
 
   CoreIR::Wireable*
@@ -238,6 +227,56 @@ namespace CoreIR {
 
     cout << "Could not find select with name = " << selName << endl;
     assert(false);
+  }
+
+  bool fromSelfInterface(Select* w) {
+    if (!fromSelf(w)) {
+      return false;
+    }
+
+    Wireable* parent = w->getParent();
+    if (isInterface(parent)) {
+      return true;
+    } else if (isInstance(parent)) {
+      return false;
+    }
+
+    assert(isSelect(parent));
+
+    return fromSelf(toSelect(parent));
+  }
+
+  std::unordered_map<string, Type*>
+  outputs(Module& mod) {
+    Type* tp = mod.getType();
+
+    assert(tp->getKind() == Type::TK_Record);
+
+    unordered_map<string, Type*> outs;
+
+    RecordType* modRec = static_cast<RecordType*>(tp);
+    vector<string> declStrs;
+    for (auto& name_type_pair : modRec->getRecord()) {
+      Type* tp = name_type_pair.second;
+
+      if (tp->isOutput()) {
+        outs.insert(name_type_pair);
+      }
+    }
+
+    return outs;
+    
+  }
+
+  bool isConstant(CoreIR::Wireable* const w) {
+    if (isInstance(w)) {
+      string name = getQualifiedOpName(*toInstance(w));
+
+      return (name == "coreir.const") ||
+        (name == "corebit.const");
+    }
+
+    return false;
   }
 
 }

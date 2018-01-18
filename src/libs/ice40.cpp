@@ -22,12 +22,12 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
                                     {"CO",  c->Bit()}});
     ice40->newModuleDecl("SB_CARRY", SB_CARRYType);
 
-    Type* SB_DFFType = c->Record({{"C", c->BitIn()},
+    Type* SB_DFFType = c->Record({{"C", c->Named("coreir.clkIn")},
                                   {"D", c->BitIn()},
                                   {"Q", c->Bit()}});
     ice40->newModuleDecl("SB_DFF", SB_DFFType);
 
-    Type* SB_DFFEType = c->Record({{"C", c->BitIn()},
+    Type* SB_DFFEType = c->Record({{"C", c->Named("coreir.clkIn")},
                                    {"D", c->BitIn()},
                                    {"E", c->BitIn()},
                                    {"Q", c->Bit()}});

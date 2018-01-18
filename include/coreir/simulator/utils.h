@@ -214,7 +214,7 @@ namespace CoreIR {
   }
 
   static inline bool isClkIn(CoreIR::Type& t) {
-    return isNamedType(t, "clkIn");
+    return isNamedType(t, "clk"); //isNamedType(t, "clkIn");
   }
 
   
@@ -348,4 +348,11 @@ namespace CoreIR {
     return arrayLen(parent);
   }
 
+  std::unordered_map<std::string, CoreIR::Type*>
+  outputs(CoreIR::Module& mod);
+
+  bool fromSelfInterface(CoreIR::Select* w);
+
+  bool isConstant(CoreIR::Wireable* const w);
+  
 }
