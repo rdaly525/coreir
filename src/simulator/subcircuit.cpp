@@ -542,34 +542,6 @@ namespace CoreIR {
 
             inlineInstance(instPT);
             
-            // //cout << "Receivers of mux output to rewire" << endl;
-            // for (auto sel : drivenBy(toReplace, receiverMap)) {
-            //   //cout << "\t" << "sel = " << sel->toString() << endl;
-
-            //   auto target = driverMap[sel];
-
-            //   //cout << "\tsel driver = " << target->toString() << endl;
-
-            //   Select* val =
-            //     cast<Select>(replaceSelect(toReplace,
-            //                                replacement,
-            //                                cast<Select>(target)));
-
-            //   //cout << "replacement select = " << val->toString() << endl;
-
-            //   auto driver = map_find(cast<Wireable>(val), driverMap);
-            //   // Select* driver = nullptr;
-            //   assert(driver != nullptr);
-
-            //   //cout << "replacement select driven by " << driver->toString() << endl;
-
-            //   //cout << "connecting " << sel->toString() << " <--> " << driver->toString() << endl;
-            //   def->connect(sel, driver);
-            // }
-
-            // assert(replacement != nullptr);
-
-            // def->removeInstance(inst);
             changed = true;
             break;
           } else if (isa<Instance>(src) &&
@@ -584,32 +556,50 @@ namespace CoreIR {
 
             assert((bit == 0) || (bit == 1));
 
+            Instance* instPT = addPassthrough(inst, "_inline_mux_PT");
+
             Select* replacement = nullptr;
-            Select* toReplace = inst->sel("out");
             if (bit == 0) {
-              replacement = inst->sel("in0");
+              //replacement = inst->sel("in0");
+              replacement = instPT->sel("in")->sel("in0");
             } else {
               assert(bit == 1);
-              replacement = inst->sel("in1");
+              //replacement = inst->sel("in1");
+              replacement = instPT->sel("in")->sel("in1");
             }
-
-            for (auto sel : drivenBy(toReplace, receiverMap)) {
-              auto target = driverMap[sel];
-
-              Select* val =
-                cast<Select>(replaceSelect(toReplace,
-                                           replacement,
-                                           cast<Select>(target)));
-
-              auto driver = map_find(cast<Wireable>(val), driverMap);
-              assert(driver != nullptr);
-
-              def->connect(sel, driver);
-            }
-
-            assert(replacement != nullptr);
 
             def->removeInstance(inst);
+
+            def->connect(replacement,
+                         instPT->sel("in")->sel("out"));
+
+            inlineInstance(instPT);
+            
+            // Select* toReplace = inst->sel("out");
+            // if (bit == 0) {
+            //   replacement = inst->sel("in0");
+            // } else {
+            //   assert(bit == 1);
+            //   replacement = inst->sel("in1");
+            // }
+
+            // for (auto sel : drivenBy(toReplace, receiverMap)) {
+            //   auto target = driverMap[sel];
+
+            //   Select* val =
+            //     cast<Select>(replaceSelect(toReplace,
+            //                                replacement,
+            //                                cast<Select>(target)));
+
+            //   auto driver = map_find(cast<Wireable>(val), driverMap);
+            //   assert(driver != nullptr);
+
+            //   def->connect(sel, driver);
+            // }
+
+            // assert(replacement != nullptr);
+
+            // def->removeInstance(inst);
             changed = true;
             break;
           }
