@@ -1016,7 +1016,7 @@ namespace CoreIR {
     } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
     } else if (opName == "corebit.term") {
     } else if ((opName == "coreir.reg") || (opName == "corebit.dff")) {
-    } else if ((opName == "coreir.mem") || (opName == "commonlib.LinebufferMem")) {
+    } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
     } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
     } else if (opName == "coreir.slice") {

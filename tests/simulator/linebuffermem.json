@@ -26,7 +26,7 @@
           },
           "m0$mem":{
             "genref":"coreir.mem",
-            "genargs":{"depth":["Int",4], "width":["Int",2]}
+            "genargs":{"depth":["Int",4], "has_init":["Bool",false], "width":["Int",2]}
           },
           "m0$raddr$enMux":{
             "genref":"coreir.mux",

@@ -176,7 +176,7 @@ namespace CoreIR {
       varDecls = others;
       concat(varDecls, adj);
 
-      assert(varDecls.size() == ((unsigned) oldSize));
+      ASSERT(varDecls.size() == ((unsigned) oldSize), "varDecl != oldsize: " + std::to_string(oldSize));
     }
 
     std::string lastClkVarName(InstanceValue& clk) {

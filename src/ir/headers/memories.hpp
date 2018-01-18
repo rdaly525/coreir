@@ -26,8 +26,8 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     });
   });
 
-  //Note this is a linebuffer MEMORY and not a full linebuffer.
-  Generator* lbMem = memory->newGeneratorDecl("linebuffer",memory->getTypeGen("LinebufferMemType"),MemGenParams);
+  //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
+  Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("LinebufferMemType"),MemGenParams);
   //lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
   
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
