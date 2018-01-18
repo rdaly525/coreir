@@ -154,7 +154,8 @@ namespace CoreIR {
     for (auto& v : opG.getVerts()) {
       int threadNo = opG.getNode(v).getThreadNo();
 
-      if (!elem(threadNo, tg.getVerts())) {
+      auto tgVerts = tg.getVerts();
+      if (!elem(threadNo, tgVerts)) {
 
         tg.addVertex( threadNo );
 

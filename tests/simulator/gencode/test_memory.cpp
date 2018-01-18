@@ -26,6 +26,7 @@ int main() {
   state.self_write_en = 1;
   state.self_write_addr = 1;
   state.self_write_data = 10;
+  state.self_clk_last = 0;
 
   simulate(&state);
 

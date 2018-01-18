@@ -22,6 +22,35 @@ std::string rtlilCorebitName(const std::string& name) {
 }
 
 std::string rtlilCoreirName(const std::string& name) {
+  
+  if (name == "shl") {
+    return "coreir.shl";
+  }
+
+  if (name == "shr") {
+    return "coreir.lshr";
+  }
+
+  if (name == "sshr") {
+    return "coreir.ashr";
+  }
+  
+  if (name == "not") {
+    return "coreir.not";
+  }
+
+  if (name == "reduce_or") {
+    return "coreir.orr";
+  }
+
+  if (name == "reduce_and") {
+    return "coreir.andr";
+  }
+
+  if (name == "reduce_xor") {
+    return "coreir.xorr";
+  }
+  
   if (name == "add") {
     return "coreir.add";
   }
@@ -112,6 +141,63 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   // Definitions for binops
 
+  // - Shift operations, ignoring sshl
+  vector<string> rtlilShifts{"shl", "shr", "sshr"};
+  for (auto& name : rtlilShifts) {
+    auto gen = rtLib->getGenerator(name);
+
+    std::function<void (Context*, Values, ModuleDef*)> genFun =
+      [name](Context* c, Values args, ModuleDef* def) {
+      uint a_width = args.at("A_WIDTH")->get<int>();
+      uint b_width = args.at("B_WIDTH")->get<int>();
+      uint y_width = args.at("Y_WIDTH")->get<int>();
+
+      // Does it matter whether a shift operand is signed or not? sshr vs shr
+      // is what determines whether to zero extend or not right?
+      // bool a_signed = args.at("A_SIGNED")->get<bool>();
+      // bool b_signed = args.at("B_SIGNED")->get<bool>();
+
+      // ASSERT(!a_signed, "Have not yet added signed input support for " + name);
+      // ASSERT(!b_signed, "Have not yet added signed shift value support for " + name);
+
+      ASSERT(y_width >= a_width, "Shift operations must have output at least as long as bit vector being shifted");
+      //ASSERT(y_width >= b_width, "Shift operations must have output at least as long as shift value");
+
+      uint res_width = max(a_width, y_width);
+      uint ext_width = max(res_width, b_width);
+
+      def->addInstance("extendA",
+                       "coreir.zext",
+      {{"width_in", Const::make(c, a_width)},
+          {"width_out", Const::make(c, ext_width)}});
+
+      def->addInstance("extendB",
+                       "coreir.zext",
+      {{"width_in", Const::make(c, b_width)},
+          {"width_out", Const::make(c, ext_width)}});
+
+      string opGenName = rtlilCoreirName(name);
+      def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
+
+      def->addInstance("slice0", "coreir.slice",
+      {{"width", Const::make(c, ext_width)},
+          {"lo", Const::make(c, 0)},
+            {"hi", Const::make(c, res_width)}});
+
+      def->connect("self.A", "extendA.in");
+      def->connect("self.B", "extendB.in");
+        
+      def->connect("extendA.out", "op0.in0");
+      def->connect("extendB.out", "op0.in1");
+
+      def->connect("op0.out", "slice0.in");
+      def->connect("slice0.out", "self.Y");
+    };
+
+    gen->setGeneratorDefFromFun(genFun);
+    
+  }
+
   // - Bitwise and arithmetic operations
   vector<string> rtlilBitwise{"and", "or", "xor", "add", "sub", "mul"};
   for (auto& name : rtlilBitwise) {
@@ -183,13 +269,13 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
         def->addInstance("extendA",
                          "coreir.zext",
-                         {{"width_in", Const::make(c, a_width)},
-                             {"width_out", Const::make(c, ext_width)}});
+      {{"width_in", Const::make(c, a_width)},
+          {"width_out", Const::make(c, ext_width)}});
 
         def->addInstance("extendB",
                          "coreir.zext",
-                         {{"width_in", Const::make(c, b_width)},
-                             {"width_out", Const::make(c, ext_width)}});
+      {{"width_in", Const::make(c, b_width)},
+          {"width_out", Const::make(c, ext_width)}});
 
         string opGenName = rtlilCoreirName(name);
         def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
@@ -207,6 +293,98 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   }
 
+  auto logicOrGen = rtLib->getGenerator("logic_or");
+
+  std::function<void (Context*, Values, ModuleDef*)> logicOrGenFun =
+    [](Context* c, Values args, ModuleDef* def) {
+    uint a_width = args.at("A_WIDTH")->get<int>();
+    uint b_width = args.at("B_WIDTH")->get<int>();
+    uint y_width = args.at("Y_WIDTH")->get<int>();
+
+    ASSERT(y_width == 1, "Output of a comparator must be 1 bit!");
+
+    bool a_signed = args.at("A_SIGNED")->get<bool>();
+    bool b_signed = args.at("B_SIGNED")->get<bool>();
+
+    ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+    ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+
+    uint ext_width = max(a_width, b_width);
+
+    def->addInstance("extendA",
+                     "coreir.zext",
+    {{"width_in", Const::make(c, a_width)},
+        {"width_out", Const::make(c, ext_width)}});
+
+    def->addInstance("extendB",
+                     "coreir.zext",
+    {{"width_in", Const::make(c, b_width)},
+        {"width_out", Const::make(c, ext_width)}});
+
+    def->addInstance("aRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
+    def->addInstance("bRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
+    def->addInstance("orOps", "corebit.or");
+
+    def->connect("self.A", "extendA.in");
+    def->connect("self.B", "extendB.in");
+
+    def->connect("extendA.out", "aRed.in");
+    def->connect("extendB.out", "bRed.in");
+
+    def->connect("orOps.in0", "aRed.out");
+    def->connect("orOps.in1", "bRed.out");
+    
+    def->connect("orOps.out", "self.Y.0");
+  };
+
+  logicOrGen->setGeneratorDefFromFun(logicOrGenFun);
+  
+  auto logicAndGen = rtLib->getGenerator("logic_and");
+
+  std::function<void (Context*, Values, ModuleDef*)> logicAndGenFun =
+    [](Context* c, Values args, ModuleDef* def) {
+    uint a_width = args.at("A_WIDTH")->get<int>();
+    uint b_width = args.at("B_WIDTH")->get<int>();
+    uint y_width = args.at("Y_WIDTH")->get<int>();
+
+    ASSERT(y_width == 1, "Output of a comparator must be 1 bit!");
+
+    bool a_signed = args.at("A_SIGNED")->get<bool>();
+    bool b_signed = args.at("B_SIGNED")->get<bool>();
+
+    ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+    ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+
+    uint ext_width = max(a_width, b_width);
+
+    def->addInstance("extendA",
+                     "coreir.zext",
+    {{"width_in", Const::make(c, a_width)},
+        {"width_out", Const::make(c, ext_width)}});
+
+    def->addInstance("extendB",
+                     "coreir.zext",
+    {{"width_in", Const::make(c, b_width)},
+        {"width_out", Const::make(c, ext_width)}});
+
+    def->addInstance("aRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
+    def->addInstance("bRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
+    def->addInstance("andOps", "corebit.and");
+
+    def->connect("self.A", "extendA.in");
+    def->connect("self.B", "extendB.in");
+
+    def->connect("extendA.out", "aRed.in");
+    def->connect("extendB.out", "bRed.in");
+
+    def->connect("andOps.in0", "aRed.out");
+    def->connect("andOps.in1", "bRed.out");
+    
+    def->connect("andOps.out", "self.Y.0");
+  };
+
+  logicAndGen->setGeneratorDefFromFun(logicAndGenFun);
+  
   // Unary operation declarations
   vector<string> rtlilUnops{"not", "pos", "neg", "reduce_and", "reduce_or", "reduce_xor", "reduce_xnor", "reduce_bool", "logic_not"};
 
@@ -231,6 +409,64 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     
   }
 
+  // Unary operator implementations
+  auto notGen = rtLib->getGenerator("not");
+
+  std::function<void (Context*, Values, ModuleDef*)> genFun =
+    [](Context* c, Values args, ModuleDef* def) {
+    uint a_width = args.at("A_WIDTH")->get<int>();
+    uint y_width = args.at("Y_WIDTH")->get<int>();
+    uint ext_width = y_width;
+
+    ASSERT(y_width >= a_width, "Output of not must be at least as large as its input");
+
+    bool a_signed = args.at("A_SIGNED")->get<bool>();
+
+    ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+
+    def->addInstance("extendA",
+                     "coreir.zext",
+    {{"width_in", Const::make(c, a_width)},
+        {"width_out", Const::make(c, ext_width)}});
+    
+    string opGenName = rtlilCoreirName("not");
+    def->addInstance("op0", opGenName, {{"width", Const::make(c, y_width)}});
+
+    def->connect("self.A", "extendA.in");
+    def->connect("extendA.out", "op0.in");
+    def->connect("op0.out", "self.Y");
+  };
+
+  notGen->setGeneratorDefFromFun(genFun);
+
+
+  // Reduction ops
+  vector<string> rtlilReduceOps{"reduce_and", "reduce_or", "reduce_xor"};
+  for (auto& name : rtlilReduceOps) {
+    auto gen = rtLib->getGenerator(name);
+
+    std::function<void (Context*, Values, ModuleDef*)> genFun =
+      [name](Context* c, Values args, ModuleDef* def) {
+        uint a_width = args.at("A_WIDTH")->get<int>();
+        uint y_width = args.at("Y_WIDTH")->get<int>();
+
+        ASSERT(y_width == 1, "Output of a logical reduce must be 1 bit!");
+
+        bool a_signed = args.at("A_SIGNED")->get<bool>();
+
+        ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+
+        string opGenName = rtlilCoreirName(name);
+        def->addInstance("op0", opGenName, {{"width", Const::make(c, a_width)}});
+
+        def->connect("self.A", "op0.in");
+        def->connect("op0.out", "self.Y.0");
+    };
+
+    gen->setGeneratorDefFromFun(genFun);
+
+  }
+  
   Params muxParams = {{"WIDTH", c->Int()}};
   TypeGen* muxTP =
     rtLib->newTypeGen(
@@ -335,6 +571,54 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("adff", adffTP, adffParams);
 
+  auto adffGen = c->getGenerator("rtlil.adff");
+  adffGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      bool polarity = args.at("CLK_POLARITY")->get<bool>();
+
+      ASSERT(polarity == true,
+             "Currently CoreIR only supports rising edge DFFs");
+
+      // TODO: Reintroduce as a parameter
+      // bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
+      int rstVal = args.at("ARST_VALUE")->get<int>();
+
+      // ASSERT(rstPolarity == true,
+      //        "Currently CoreIR only supports rising edge resets on adffs");
+      
+      uint width = args.at("WIDTH")->get<int>();
+
+      Instance* reg = nullptr;
+
+      reg = def->addInstance("reg0",
+                             "mantle.reg",
+                             {{"width", Const::make(c, width)},
+                                 {"has_rst", Const::make(c, true)}},
+                             {{"init", Const::make(c, BitVec(width, rstVal))}});
+
+                                   
+
+      assert(reg != nullptr);
+
+      def->connect("self.D", "reg0.in");
+
+      // Add clock cast node, in rtlil the clock input is just another bit
+      //def->addInstance("toClk0", "rtlil.to_clkIn");
+      def->addInstance("toClk0",
+                       "coreir.wrap",
+                       {{"type", Const::make(c, c->Named("coreir.clk"))}});
+
+      def->addInstance("toRST0",
+                       "coreir.wrap",
+                       {{"type", Const::make(c, c->Named("coreir.rst"))}});
+      
+      def->connect("self.ARST", "toRST0.in");
+      def->connect("toRST0.out", "reg0.rst");
+      def->connect("self.CLK", "toClk0.in");
+      def->connect("toClk0.out", "reg0.clk");
+
+      def->connect("reg0.out", "self.Q");
+    });
+  
   Params dlatchParams = {{"WIDTH", c->Int()}, {"EN_POLARITY", c->Bool()}};
   TypeGen* dlatchTP =
     rtLib->newTypeGen(

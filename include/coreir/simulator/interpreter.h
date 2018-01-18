@@ -284,6 +284,8 @@ namespace CoreIR {
     void updateMemoryValue(const vdisc vd);
     void updateLinebufferMemValue(const vdisc vd);
 
+    void updateOrrNode(const vdisc vd);
+    void updateZextNode(const vdisc vd);
     void updateLUTNNode(const vdisc vd);
     void updateMuxNode(const vdisc vd);
     void updateAddNode(const vdisc vd);
