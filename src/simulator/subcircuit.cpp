@@ -57,18 +57,11 @@ namespace CoreIR {
 
         return true;
 
-        // cout << sel->toString() << " is not determined by " << endl;
-        // for (auto det : alreadyDetermined) {
-        //   cout << "\t" << det->toString() << endl;
-        // }
-        // allAncestorsDetermined = false;
-        // break;
       }
 
     }
 
     return false;
-    //return allAncestorsDetermined;
 
   }
   
@@ -81,13 +74,6 @@ namespace CoreIR {
     bool allAncestorsDetermined = true;
 
     for (Select* sel : allInputSelects(inst)) {
-      //bool foundAncestor = false;
-
-      // if (!((!contains_key(cast<Wireable>(sel), driverMap)) ||
-      //       elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined))) {
-        //isAncestorOf(w, driverMap[sel])) {
-
-        //foundAncestor = true;
 
       if (contains_key(cast<Wireable>(sel), driverMap) && 
           !elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {
@@ -100,16 +86,9 @@ namespace CoreIR {
         break;
       }
 
-      // if (foundAncestor == false) {
-      //   return false;
-      // }
     }
 
     return allAncestorsDetermined;
-
-    // cout << inst->toString() << endl;
-
-    // return true;
   }
 
   std::vector<CoreIR::Instance*>
@@ -124,11 +103,8 @@ namespace CoreIR {
       }
     }
     
-    //cout << "# of output selects from " << w->toString() << " = " << outSels.size() << endl;
-
     vector<Instance*> instances;
     for (auto iSel : outSels) {
-      //cout << "Out select = " << iSel->toString() << endl;
 
       for (auto sel : receiverMap[iSel]) {
         Wireable* src = extractSource(cast<Select>(sel));
@@ -190,29 +166,6 @@ namespace CoreIR {
       concat(toConsider, receiverInstances(w, receiverMap));
     }
 
-    // cout << "Instances to consider" << endl;
-    // for (auto inst : toConsider) {
-    //   cout << "\t" << inst->toString() << endl;
-    // }
-
-    // Need to add all constants
-
-    // cout << "Adding all constants (and other zero input nodes)" << endl;
-    // for (auto instS : def->getInstances()) {
-    //   Instance* inst = instS.second;
-
-    //   if (inputsAreDeterminedBy(inst, determined, driverMap) &&
-    //       !elem(inst, alreadyAdded)) {
-
-    //     determined.insert(inst);
-    //     //subCircuitValues.push_back(inst);
-    //     alreadyAdded.insert(inst);
-
-    //     concat(toConsider, receiverInstances(inst, receiverMap));
-    //   }
-      
-    // }
-
     cout << "Initial determined set" << endl;
     for (auto det : determined) {
       cout << "\t" << det->toString() << endl;
@@ -226,38 +179,17 @@ namespace CoreIR {
       Instance* found = nullptr;
       toConsider.pop_back();
 
-      // cout << "Already added = " << endl;
-      // for (auto inst : alreadyAdded) {
-      //   cout << "\t" << inst->toString() << endl;
-      // }
-
-      // if (inputsAreDeterminedBy(next, determined, driverMap) &&
-      //     !elem(next, alreadyAdded)) {
-
       if (!elem(cast<Wireable>(next), undetermined) &&
           hasInputFrom(next, undetermined, driverMap)) {
         undetermined.insert(next);
-        //subCircuitValues.push_back(next);
-        //alreadyAdded.insert(next);
 
         found = next;
         foundInst = true;
 
         auto recInstances = receiverInstances(found, receiverMap);
-        // cout << found->toString() << " has receiver instances" << endl;
-        // for (auto inst : recInstances) {
-        //   cout << "\t" << inst->toString() << endl;
-        // }
 
         concat(toConsider, recInstances);
 
-        //cout << "Instance " << next->toString() << " : " << next->getModuleRef()->toString() << " is determined by the existing subcircuit" << endl;
-
-        //cout << "# of nodes to consider = " << toConsider.size() << endl;
-        // for (auto inst : toConsider) {
-        //   cout << "\t" << inst->toString() << endl;
-        // }
-        //break;
       }
 
       if (foundInst) {
@@ -277,25 +209,6 @@ namespace CoreIR {
         subCircuitValues.push_back(inst);
       }
     }
-
-    // Verify the result
-    // cout << "Checking that all needed instances have been added" << endl;
-    // for (auto instS : def->getInstances()) {
-    //   Instance* inst = instS.second;
-
-    //   if (inputsAreDeterminedBy(inst, determined, driverMap) &&
-    //       !elem(inst, alreadyAdded)) {
-
-    //     determined.insert(inst);
-    //     subCircuitValues.push_back(inst);
-    //     alreadyAdded.insert(inst);
-
-    //     cout << "Instance " << inst->toString() << " : " << inst->getModuleRef()->toString() << "\n\tis determined by the config ports, but wasnt added" << endl;
-
-    //     assert(false);
-    //   }
-      
-    // }
 
     return subCircuitValues;
   }
@@ -455,6 +368,11 @@ namespace CoreIR {
 
     bool changed = true;
 
+    set<Instance*> unchecked;
+    for (auto inst : def->getInstances()) {
+      unchecked.insert(inst.second);
+    }
+
     while (changed) {
       changed = false;
 
@@ -463,9 +381,10 @@ namespace CoreIR {
       // auto driverMap = signalDriverMap(def);
       // auto receiverMap = signalReceiverMap(def);
 
-      for (auto instR : def->getInstances()) {
-        if (getQualifiedOpName(*(instR.second)) == "coreir.mux") {
-          Instance* inst = instR.second;
+      //for (auto instR : def->getInstances()) {
+      for (auto inst : unchecked) {
+        if (getQualifiedOpName(*(inst)) == "coreir.mux") {
+          //Instance* inst = instR.second;
 
           //cout << "Found mux " << inst->toString() << endl;
           auto wbs = inst->sel("sel")->getConnectedWireables();
@@ -532,6 +451,7 @@ namespace CoreIR {
             inlineInstance(instPT);
             
             changed = true;
+            unchecked.erase(inst);
             break;
           } else if (isa<Instance>(src) &&
                    (getQualifiedOpName(*(cast<Instance>(src))) == "corebit.const")) {
@@ -561,13 +481,15 @@ namespace CoreIR {
                          instPT->sel("in")->sel("out"));
 
             inlineInstance(instPT);
+
             
             changed = true;
+            unchecked.erase(inst);
             break;
           }
             
-        } else if (getQualifiedOpName(*(instR.second)) == "coreir.zext") {
-          Instance* inst = instR.second;
+        } else if (getQualifiedOpName(*(inst)) == "coreir.zext") {
+          //Instance* inst = instR.second;
 
           Select* input = inst->sel("in");
           vector<Select*> values = getSignalValues(input);
@@ -607,10 +529,11 @@ namespace CoreIR {
             inlineInstance(instPT);
 
             changed = true;
+            unchecked.erase(inst);
             break;
           }
-        } else if (getQualifiedOpName(*(instR.second)) == "coreir.eq") {
-          Instance* inst = instR.second;
+        } else if (getQualifiedOpName(*(inst)) == "coreir.eq") {
+          //Instance* inst = instR.second;
 
           Select* in0 = inst->sel("in0");
           Select* in1 = inst->sel("in1");
@@ -658,38 +581,13 @@ namespace CoreIR {
                          instPT->sel("in")->sel("out"));
             inlineInstance(instPT);
             
-            // auto rConns = getReceiverConnections(inst->sel("out"));
-
-            // vector<Connection> newConns;
-            // for (auto rConn : rConns) {
-            //   Wireable* fst = rConn.first;
-            //   Wireable* snd = rConn.second;
-
-            //   Wireable* rFst = replaceSelect(inst->sel("out"),
-            //                                  newConst->sel("out"),
-            //                                  fst);
-
-            //   Wireable* rSnd = replaceSelect(inst->sel("out"),
-            //                                  newConst->sel("out"),
-            //                                  snd);
-
-            //   newConns.push_back({rFst, rSnd});
-            // }
-
-            // // Remove instance after connecting
-            // def->removeInstance(inst);
-
-            // for (auto nConn : newConns) {
-            //   def->connect(nConn.first, nConn.second);
-            // }
-
-            //assert(false);
             changed = true;
+            unchecked.erase(inst);
             break;
           }
 
-        } else if (getQualifiedOpName(*(instR.second)) == "coreir.or") {
-          Instance* inst = instR.second;
+        } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
+          //Instance* inst = instR.second;
 
           Select* in0 = inst->sel("in0");
           Select* in1 = inst->sel("in1");
@@ -738,40 +636,15 @@ namespace CoreIR {
                          instPT->sel("in")->sel("out"));
             inlineInstance(instPT);
             
-            // auto rConns = getReceiverConnections(inst->sel("out"));
-
-            // vector<Connection> newConns;
-            // for (auto rConn : rConns) {
-            //   Wireable* fst = rConn.first;
-            //   Wireable* snd = rConn.second;
-
-            //   Wireable* rFst = replaceSelect(inst->sel("out"),
-            //                                  newConst->sel("out"),
-            //                                  fst);
-
-            //   Wireable* rSnd = replaceSelect(inst->sel("out"),
-            //                                  newConst->sel("out"),
-            //                                  snd);
-
-            //   newConns.push_back({rFst, rSnd});
-            // }
-
-            // // Remove instance after connecting
-            // def->removeInstance(inst);
-
-            // for (auto nConn : newConns) {
-            //   def->connect(nConn.first, nConn.second);
-            // }
-
-            //assert(false);
             changed = true;
+            unchecked.erase(inst);
             break;
           }
 
           
-        } else if (getQualifiedOpName(*(instR.second)) == "coreir.orr") {
+        } else if (getQualifiedOpName(*(inst)) == "coreir.orr") {
 
-          Instance* inst = instR.second;
+          //Instance* inst = instR.second;
 
           Select* in = inst->sel("in");
 
@@ -815,34 +688,9 @@ namespace CoreIR {
             def->connect(replacement,
                          instPT->sel("in")->sel("out"));
             inlineInstance(instPT);
-            
-            // auto rConns = getReceiverConnections(inst->sel("out"));
 
-            // vector<Connection> newConns;
-            // for (auto rConn : rConns) {
-            //   Wireable* fst = rConn.first;
-            //   Wireable* snd = rConn.second;
-
-            //   Wireable* rFst = replaceSelect(inst->sel("out"),
-            //                                  newConst->sel("out"),
-            //                                  fst);
-
-            //   Wireable* rSnd = replaceSelect(inst->sel("out"),
-            //                                  newConst->sel("out"),
-            //                                  snd);
-
-            //   newConns.push_back({rFst, rSnd});
-            // }
-
-            // // Remove instance after connecting
-            // def->removeInstance(inst);
-
-            // for (auto nConn : newConns) {
-            //   def->connect(nConn.first, nConn.second);
-            // }
-
-            //assert(false);
             changed = true;
+            unchecked.erase(inst);
             break;
           }
 
@@ -891,62 +739,10 @@ namespace CoreIR {
 
           def->connect(constR->sel("out"), instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
-          
-          
-          // Select* regOutSel = cast<Select>(inst->sel("out"));
-          // Select* constOutSel = cast<Select>(constR->sel("out"));
-
-          // for (auto& conn : def->getConnections()) {
-          //   Wireable* connFst = replaceSelect(regOutSel, constOutSel, conn.first);
-          //   Wireable* connSnd = replaceSelect(regOutSel, constOutSel, conn.second);
-
-          //   def->disconnect(conn.first, conn.second);
-          //   def->connect(connFst, connSnd);
-          // }
-          
         }
       }
     }
     
-    // for (auto instR : def->getInstances()) {
-    //   auto inst = instR.second;
-    //   if (getQualifiedOpName(*inst) == "coreir.reg") {
-
-    //     cout << "Found register = " << inst->toString() << endl;
-
-    //     if (contains_key(inst->toString(), regValues)) {
-
-    //       BitVec value = regValues.find(inst->toString())->second;
-
-    //       cout << "Replacing register = " << inst->toString() << endl;
-    //       cout << "Connected wireables = " << endl;
-    //       for (auto wb : inst->getConnectedWireables()) {
-    //         cout << "\t" << wb->toString() << endl;
-    //       }
-
-    //       string cName = inst->toString() + "_const_value";
-    //       Instance* constR =
-    //         def->addInstance(cName,
-    //                          "coreir.const",
-    //                          {{"width", Const::make(c, value.bitLength())}},
-    //                          {{"value", Const::make(c, value)}});
-
-    //       Select* regOutSel = cast<Select>(inst->sel("out"));
-    //       Select* constOutSel = cast<Select>(constR->sel("out"));
-
-    //       for (auto& conn : def->getConnections()) {
-    //         Wireable* connFst = replaceSelect(regOutSel, constOutSel, conn.first);
-    //         Wireable* connSnd = replaceSelect(regOutSel, constOutSel, conn.second);
-
-    //         def->disconnect(conn.first, conn.second);
-    //         def->connect(connFst, connSnd);
-            
-    //       }
-
-    //       def->removeInstance(inst);
-    //     }
-    //   }
-    // }
   }
 
 }
