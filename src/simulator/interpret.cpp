@@ -10,10 +10,7 @@ namespace CoreIR {
   }
 
   void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
-    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    // cout << "log2(depth))   = " << log2(depth) << endl;
 
-    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
     assert(val.bitLength() == ((int) width));
     // Cannot access out of range elements
     assert(bv.to_type<uint>() < depth);
@@ -448,41 +445,10 @@ namespace CoreIR {
   }
 
   void SimulatorState::findMainClock() {
+    auto clkInput = CoreIR::findMainClock(getCircuitGraph());
 
-    vector<Select*> clockInputs;
-
-    for (auto& vd : getCircuitGraph().getVerts()) {
-
-      WireNode w = getCircuitGraph().getNode(vd);
-
-      if (isGraphInput(w)) {
-
-        Select* inSel = toSelect(w.getWire());
-        Type* tp = inSel->getType();
-
-        if (tp->getKind() == CoreIR::Type::TK_Named) {
-          NamedType* ntp = static_cast<NamedType*>(tp);
-
-          if (ntp->toString() == "coreir.clk") {
-            clockInputs.push_back(inSel);
-          }
-        }
-
-      }
-      
-    }
-
-    if (clockInputs.size() > 1) {
-      cout << "ERROR: Circuit has " << clockInputs.size() << " clocks, but this simulator currently supports only one" << endl;
-      cout << "The clocks are " << endl;
-      for (auto& clk : clockInputs) {
-        cout << clk->toString() << endl;
-      }
-      assert(false);
-    }
-
-    if (clockInputs.size() == 1) {
-      setMainClock(clockInputs[0]);
+    if (clkInput != nullptr) {
+      setMainClock(clkInput);
     }
   }
 
@@ -557,7 +523,6 @@ namespace CoreIR {
     setValue(s, bv);
   }
 
-  // NOTE: Actually implement by checking types
   bool isSimBitVector(SimValue* v) {
     return v->getType() == SIM_VALUE_BV;
   }
@@ -689,7 +654,7 @@ namespace CoreIR {
     setValue(toSelect(outPair.second), makeSimBitVector(res));
   }
 
-  void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
+  void SimulatorState::updateOrrNode(const vdisc vd) {
     updateInputs(vd);
 
     WireNode wd = gr.getNode(vd);
@@ -702,6 +667,53 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
+    // auto inConns = getInputConnections(vd, gr);
+
+    // cout << "orr conns" << endl;
+    // for (auto conn : inConns) {
+    //   cout << "\t" << conn.first.getWire()->toString() << " <---> " << conn.second.getWire()->toString() << endl;
+    // }
+
+    // assert(inConns.size() == 1);
+
+    // InstanceValue arg1 = findArg("in", inConns);
+
+    Select* inSel = inst->sel("in");
+
+    ASSERT(isSet(inSel), "in must have a value to evaluate this node");
+
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(inSel));
+      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    
+    assert(s1 != nullptr);
+    
+    BitVec res(1, 0);
+    BitVec sB = s1->getBits();
+    for (int i = 0; i < sB.bitLength(); i++) {
+      if (sB.get(i) == 1) {
+        res = BitVec(1, 1);
+        break;
+      }
+    }
+
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
+  }
+  
+  void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
+    updateInputs(vd);
+
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    // auto outSelects = getOutputSelects(inst);
+
+    // assert(outSelects.size() == 1);
+
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    Select* outSel = inst->sel("out");
+
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 1);
     
@@ -710,7 +722,8 @@ namespace CoreIR {
     
     BitVec res = op(bv1); //s1->getBits());
 
-    setValue(toSelect(outPair.second), makeSimBitVector(res));
+    //setValue(toSelect(outPair.second), makeSimBitVector(res));
+    setValue(outSel, makeSimBitVector(res));
 
   }
 
@@ -734,10 +747,10 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto outSelects = getOutputSelects(inst);
-    assert(outSelects.size() == 1);
+    // auto outSelects = getOutputSelects(inst);
+    // assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    //pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 2);
@@ -750,7 +763,8 @@ namespace CoreIR {
 
     BitVec res = op(bv1, bv2);
 
-    setValue(toSelect(outPair.second), makeSimBitVector(res));
+    //setValue(toSelect(outPair.second), makeSimBitVector(res));
+    setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
 
   void SimulatorState::updateAndNode(const vdisc vd) {
@@ -881,6 +895,39 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::updateZextNode(const vdisc vd) {
+    updateInputs(vd);
+
+    WireNode wd = gr.getNode(vd);
+
+    Instance* inst = toInstance(wd.getWire());
+
+    uint inWidth = inst->getModuleRef()->getGenArgs().at("width_in")->get<int>();
+    uint outWidth = inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
+    
+    auto outSelects = getOutputSelects(inst);
+
+    assert(outSelects.size() == 1);
+
+    pair<string, Wireable*> outPair = *std::begin(outSelects);
+
+    auto inSels = getInputSelects(inst);
+    assert(inSels.size() == 1);
+    
+    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+    BitVector bv1 = getBitVec(arg1); //s1->getBits();
+
+    ASSERT(((uint) bv1.bitLength()) == inWidth, "bit vector argument to coreir.zext has wrong input width");
+
+    BitVec res(outWidth, 0);
+    for (uint i = 0; i < inWidth; i++) {
+      res.set(i, bv1.get(i));
+    }
+
+    setValue(toSelect(outPair.second), makeSimBitVector(res));
+
+  }
+
   void SimulatorState::updateLUTNNode(const vdisc vd) {
 
     updateInputs(vd);
@@ -946,12 +993,16 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
       });
+    } else if ((opName == "coreir.zext")) {
+      updateZextNode(vd);
     } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
       });
     } else if (opName == "coreir.andr") {
       updateAndrNode(vd);
+    } else if (opName == "coreir.orr") {
+      updateOrrNode(vd);
     } else if (opName == "coreir.add") {
       updateAddNode(vd);
     } else if (opName == "coreir.sub") {
@@ -1466,6 +1517,7 @@ namespace CoreIR {
       setValue(mainClock, clockCopy);
     }
 
+    exeCombinational();
     exeSequential();
     exeCombinational();
 

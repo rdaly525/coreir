@@ -226,23 +226,23 @@
             "modref":"corebit.and"
           },
           "lb_grad_xx_2_stencil_update_stream":{
-            "genref":"commonlib.Linebuffer",
+            "genref":"commonlib.linebuffer2d",
             "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 484], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_grad_xy_2_stencil_update_stream":{
-            "genref":"commonlib.Linebuffer",
+            "genref":"commonlib.linebuffer2d",
             "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 484], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_grad_yy_2_stencil_update_stream":{
-            "genref":"commonlib.Linebuffer",
+            "genref":"commonlib.linebuffer2d",
             "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 484], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_p3_cim_stencil_update_stream":{
-            "genref":"commonlib.Linebuffer",
+            "genref":"commonlib.linebuffer2d",
             "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 482], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "lb_padded_2_stencil_update_stream":{
-            "genref":"commonlib.Linebuffer",
+            "genref":"commonlib.linebuffer2d",
             "genargs":{"bitwidth":["Int", 16], "image_width":["Int", 486], "stencil_height":["Int", 3], "stencil_width":["Int", 3]}
           },
           "mul_634_635":{
