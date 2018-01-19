@@ -411,6 +411,8 @@ void testCGRAConnectBox() {
 
   cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
+  assert(topMod->getDef()->getInstances().size() == 0);
+
   cout << "topMod partially evaluated instances" << endl;
   for (auto instR : topMod->getDef()->getInstances()) {
     cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
@@ -533,6 +535,8 @@ void testCGRASwitchBox() {
   c->runPasses({"packconnections"});
 
   cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
+
+  assert(topMod->getDef()->getInstances().size() == 0);
 
   // cout << "switch box partially evaluated instances" << endl;
   // for (auto instR : topMod->getDef()->getInstances()) {
