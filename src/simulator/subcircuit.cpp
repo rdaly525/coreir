@@ -373,7 +373,14 @@ namespace CoreIR {
       unchecked.insert(inst.second);
     }
 
-    while (changed) {
+    set<Instance*> toConsider;
+    for (auto inst : unchecked) {
+      if (isConstant(inst)) {
+        for (auto elem : 
+      }
+    }
+    //while (changed) {
+    while (toCheck.size() > 0) {
       changed = false;
 
       cout << "Folding constant" << endl;
@@ -430,6 +437,9 @@ namespace CoreIR {
               replacement = instPT->sel("in")->sel("in1");
             }
 
+            auto recInstances = receiverInstances(found, receiverMap);
+            concat(toConsider, recInstances);
+
             def->removeInstance(inst);
 
             def->connect(replacement,
@@ -462,6 +472,9 @@ namespace CoreIR {
               replacement = instPT->sel("in")->sel("in1");
             }
 
+            auto recInstances = receiverInstances(found, receiverMap);
+            concat(toConsider, recInstances);
+            
             def->removeInstance(inst);
 
             def->connect(replacement,
@@ -509,6 +522,10 @@ namespace CoreIR {
 
             Instance* instPT = addPassthrough(inst, "_inline_zext_PT");
             Select* replacement = newConst->sel("out");
+
+                        auto recInstances = receiverInstances(found, receiverMap);
+            concat(toConsider, recInstances);
+
             def->removeInstance(inst);
             def->connect(replacement,
                          instPT->sel("in")->sel("out"));
@@ -561,6 +578,10 @@ namespace CoreIR {
 
             Instance* instPT = addPassthrough(inst, "_inline_eq_PT");
             Select* replacement = newConst->sel("out");
+
+            auto recInstances = receiverInstances(found, receiverMap);
+            concat(toConsider, recInstances);
+
             def->removeInstance(inst);
             def->connect(replacement,
                          instPT->sel("in")->sel("out"));
@@ -615,6 +636,10 @@ namespace CoreIR {
 
             Instance* instPT = addPassthrough(inst, "_inline_or_PT");
             Select* replacement = newConst->sel("out");
+
+            auto recInstances = receiverInstances(found, receiverMap);
+            concat(toConsider, recInstances);
+
             def->removeInstance(inst);
             def->connect(replacement,
                          instPT->sel("in")->sel("out"));
@@ -666,6 +691,10 @@ namespace CoreIR {
 
             Instance* instPT = addPassthrough(inst, "_inline_orr_PT");
             Select* replacement = newConst->sel("out");
+
+            auto recInstances = receiverInstances(found, receiverMap);
+            concat(toConsider, recInstances);
+            
             def->removeInstance(inst);
             def->connect(replacement,
                          instPT->sel("in")->sel("out"));
