@@ -745,7 +745,7 @@ namespace CoreIR {
       ModuleDef* def = lbMem->newModuleDef();
 
       def->addInstance("m0",
-        	       "commonlib.LinebufferMem",
+        	       "memory.rowbuffer",
         	       {{"width", Const::make(c, width)},
         		   {"depth", Const::make(c, depth)}});
 
@@ -826,7 +826,7 @@ namespace CoreIR {
       ModuleDef* def = lbMem->newModuleDef();
 
       def->addInstance("m0",
-        	       "commonlib.LinebufferMem",
+        	       "memory.rowbuffer",
         	       {{"width", Const::make(c, width)},
         		   {"depth", Const::make(c, depth)}});
 

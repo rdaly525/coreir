@@ -70,7 +70,6 @@ int main(int argc, char **argv, char **env) {
 
   for (int i=0; i<nclks; ++i) {
     top->clk = 0;
-    
     uint16_t in=0;
     ifile.read((char*)&in,1);
     if (ifile.eof()) {
