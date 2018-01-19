@@ -1,4 +1,5 @@
 #include "coreir/libs/commonlib.h"
+#include "coreir/libs/aetherlinglib.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(commonlib);
 
@@ -1372,6 +1373,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   // on every cycle, input<n> is outputted where n=count
 
   // Not yet implemented
+  CoreIRLoadLibrary_aetherlinglib(c);
 
   return commonlib;
 }
