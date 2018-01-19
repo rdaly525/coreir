@@ -439,6 +439,14 @@ namespace CoreIR {
 
           Select* replacement = nullptr;
 
+          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
+          for (auto elem : recInstances) {
+            auto src = extractSource(elem);
+            if (isa<Instance>(src)) {
+              toConsider.insert(cast<Instance>(src));
+            }
+          }
+
           Instance* instPT = addPassthrough(inst, "_inline_mux_PT");
 
           if (bit == 0) {
@@ -446,14 +454,6 @@ namespace CoreIR {
           } else {
             assert(bit == 1);
             replacement = instPT->sel("in")->sel("in1");
-          }
-
-          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
-          for (auto elem : recInstances) {
-            auto src = extractSource(elem);
-            if (isa<Instance>(src)) {
-              toConsider.insert(cast<Instance>(src));
-            }
           }
 
           def->removeInstance(inst);
@@ -476,6 +476,14 @@ namespace CoreIR {
 
           assert((bit == 0) || (bit == 1));
 
+          auto recInstances = getReceiverSelects(inst);
+          for (auto elem : recInstances) {
+            auto src = extractSource(elem);
+            if (isa<Instance>(src)) {
+              toConsider.insert(cast<Instance>(src));
+            }
+          }
+            
           Instance* instPT = addPassthrough(inst, "_inline_mux_PT");
 
           Select* replacement = nullptr;
@@ -486,14 +494,6 @@ namespace CoreIR {
             replacement = instPT->sel("in")->sel("in1");
           }
 
-          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
-          for (auto elem : recInstances) {
-            auto src = extractSource(elem);
-            if (isa<Instance>(src)) {
-              toConsider.insert(cast<Instance>(src));
-            }
-          }
-            
           def->removeInstance(inst);
 
           def->connect(replacement,
@@ -537,16 +537,16 @@ namespace CoreIR {
                              {{"width", Const::make(c, outWidth)}},
                              {{"value", Const::make(c, res)}});
 
-          Instance* instPT = addPassthrough(inst, "_inline_zext_PT");
-          Select* replacement = newConst->sel("out");
-
-          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
+          auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {
             auto src = extractSource(elem);
             if (isa<Instance>(src)) {
               toConsider.insert(cast<Instance>(src));
             }
           }
+
+          Instance* instPT = addPassthrough(inst, "_inline_zext_PT");
+          Select* replacement = newConst->sel("out");
 
           def->removeInstance(inst);
           def->connect(replacement,
@@ -596,16 +596,16 @@ namespace CoreIR {
                              "corebit.const",
                              {{"value", Const::make(c, resVal)}});
 
-          Instance* instPT = addPassthrough(inst, "_inline_eq_PT");
-          Select* replacement = newConst->sel("out");
-
-          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
+          auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {
             auto src = extractSource(elem);
             if (isa<Instance>(src)) {
               toConsider.insert(cast<Instance>(src));
             }
           }
+
+          Instance* instPT = addPassthrough(inst, "_inline_eq_PT");
+          Select* replacement = newConst->sel("out");
 
           def->removeInstance(inst);
           def->connect(replacement,
@@ -657,16 +657,16 @@ namespace CoreIR {
                              {{"width", Const::make(c, inWidth)}},
                              {{"value", Const::make(c, res)}});
 
-          Instance* instPT = addPassthrough(inst, "_inline_or_PT");
-          Select* replacement = newConst->sel("out");
-
-          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
+          auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {
             auto src = extractSource(elem);
             if (isa<Instance>(src)) {
               toConsider.insert(cast<Instance>(src));
             }
           }
+
+          Instance* instPT = addPassthrough(inst, "_inline_or_PT");
+          Select* replacement = newConst->sel("out");
 
           def->removeInstance(inst);
           def->connect(replacement,
@@ -715,10 +715,7 @@ namespace CoreIR {
                              "corebit.const",
                              {{"value", Const::make(c, resVal)}});
 
-          Instance* instPT = addPassthrough(inst, "_inline_orr_PT");
-          Select* replacement = newConst->sel("out");
-
-          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
+          auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {
             auto src = extractSource(elem);
             if (isa<Instance>(src)) {
@@ -726,6 +723,9 @@ namespace CoreIR {
             }
           }
             
+          Instance* instPT = addPassthrough(inst, "_inline_orr_PT");
+          Select* replacement = newConst->sel("out");
+
           def->removeInstance(inst);
           def->connect(replacement,
                        instPT->sel("in")->sel("out"));
