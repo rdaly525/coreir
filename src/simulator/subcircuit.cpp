@@ -5,6 +5,7 @@
 #include "coreir/simulator/algorithm.h"
 #include "coreir/simulator/op_graph.h"
 #include "coreir/simulator/wiring_utils.h"
+#include "coreir/simulator/utils.h"
 
 using namespace std;
 
@@ -365,30 +366,38 @@ namespace CoreIR {
     ModuleDef* def = mod->getDef();
     Context* c = mod->getContext();
 
-    set<Instance*> unchecked;
-    for (auto inst : def->getInstances()) {
-      unchecked.insert(inst.second);
-    }
+    // set<Instance*> unchecked;
+    // for (auto inst : def->getInstances()) {
+    //   unchecked.insert(inst.second);
+    // }
 
     set<Instance*> toConsider;
-    for (auto inst : unchecked) {
-      if (isConstant(inst)) {
-        for (auto elem : getReceiverSelects(inst)) {
+    for (auto inst : def->getInstances()) {
+      if (isConstant(inst.second)) {
+        for (auto elem : getReceiverSelects(inst.second)) {
           auto src = extractSource(elem);
           if (isa<Instance>(src)) {
             toConsider.insert(cast<Instance>(src));
           }
         }
       }
+
     }
 
+    int i = 0;
     while (toConsider.size() > 0) {
-      cout << "Folding constant ";
+      //cout << "Folding constant ";
+
+      if ((i % 100) == 0) {
+        cout << "Folding constants, i = " << i << endl;
+      }
+
+      i++;
 
       Instance* inst = *std::begin(toConsider);
       toConsider.erase(inst);
 
-      cout << inst->toString() << endl;
+      //cout << inst->toString() << endl;
 
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
@@ -414,7 +423,6 @@ namespace CoreIR {
 
         if (isa<Instance>(src) &&
             (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
-
           Instance* srcConst = cast<Instance>(src);
           //cout << "Found constant mux" << endl;
 
@@ -439,7 +447,7 @@ namespace CoreIR {
 
           Select* replacement = nullptr;
 
-          auto recInstances = getReceiverSelects(inst); //receiverInstances(inst, receiverMap);
+          auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {
             auto src = extractSource(elem);
             if (isa<Instance>(src)) {
@@ -463,7 +471,7 @@ namespace CoreIR {
 
           inlineInstance(instPT);
             
-          unchecked.erase(inst);
+          //unchecked.erase(inst);
         } else if (isa<Instance>(src) &&
                    (getQualifiedOpName(*(cast<Instance>(src))) == "corebit.const")) {
 
@@ -502,7 +510,7 @@ namespace CoreIR {
           inlineInstance(instPT);
 
             
-          unchecked.erase(inst);
+          //unchecked.erase(inst);
         }
             
       } else if (getQualifiedOpName(*(inst)) == "coreir.zext") {
@@ -553,7 +561,7 @@ namespace CoreIR {
                        instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
 
-          unchecked.erase(inst);
+          //unchecked.erase(inst);
         }
       } else if (getQualifiedOpName(*(inst)) == "coreir.eq") {
 
@@ -612,7 +620,7 @@ namespace CoreIR {
                        instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
             
-          unchecked.erase(inst);
+          //unchecked.erase(inst);
         }
 
       } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
@@ -640,7 +648,7 @@ namespace CoreIR {
           BitVec sigVal0 = sigValue0.get_value();
           BitVec sigVal1 = sigValue1.get_value();
 
-          BitVec res = sigVal0 | sigVal1; //BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
+          BitVec res = sigVal0 | sigVal1;
 
           uint inWidth =
             inst->getModuleRef()->getGenArgs().at("width")->get<int>();
@@ -648,8 +656,6 @@ namespace CoreIR {
           assert(((uint) sigVal0.bitLength()) == inWidth);
           assert(((uint) sigVal1.bitLength()) == inWidth);
           assert(((uint) res.bitLength()) == inWidth);
-
-          //bool resVal = res == BitVec(1, 1) ? true : false;
 
           auto newConst =
             def->addInstance(inst->toString() + "_const_replacement",
@@ -673,7 +679,6 @@ namespace CoreIR {
                        instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
             
-          unchecked.erase(inst);
         }
 
           
@@ -731,7 +736,6 @@ namespace CoreIR {
                        instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
 
-          unchecked.erase(inst);
         }
 
       }
@@ -754,7 +758,7 @@ namespace CoreIR {
 
       if (getQualifiedOpName(*inst) == "coreir.reg") {
 
-        cout << "Found register = " << inst->toString() << endl;
+        //cout << "Found register = " << inst->toString() << endl;
 
         if (contains_key(inst->toString(), regValues)) {
 
