@@ -378,10 +378,6 @@ namespace CoreIR {
 
       cout << "Folding constant" << endl;
 
-      // auto driverMap = signalDriverMap(def);
-      // auto receiverMap = signalReceiverMap(def);
-
-      //for (auto instR : def->getInstances()) {
       for (auto inst : unchecked) {
         if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
