@@ -752,7 +752,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               lbmem_name += "_" + to_string(indices[dim_i]);
             }
 
-            def->addInstance(lbmem_name, "commonlib.LinebufferMem", 
+            def->addInstance(lbmem_name, "memory.rowbuffer",
                              {{"width",aBitwidth},{"depth",aLbmemSize}});
 
             ///// connect lbmem input and wen /////
@@ -1024,7 +1024,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       std::string mem_prefix = "mem_";
       for (uint i = 1; i < stencil_height; ++i) {
         std::string mem_name = mem_prefix + std::to_string(i);
-        def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aImageWidth}});
+        def->addInstance(mem_name,"memory.rowbuffer",{{"width",aBitwidth},{"depth",aImageWidth}});
         def->addInstance(mem_name+"_valid_term","corebit.term");
         def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
         //def->addInstance(mem_name+"_wen", coreirprims->getModule("bitconst"), {{"value",Const::make(c,1)}});
@@ -1175,7 +1175,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       for (uint i = 1; i < stencil_d2; ++i) {
         std::string mem_name = mem_prefix + std::to_string(i);
         Const* aLBWidth = Const::make(c,image_d1 * image_d0);
-        def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aLBWidth}});
+        def->addInstance(mem_name,"memory.rowbuffer",{{"width",aBitwidth},{"depth",aLBWidth}});
         def->addInstance(mem_name+"_valid_term", "corebit.term");
         def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
         def->connect({mem_name,"wen"},{"self", "wen"});
