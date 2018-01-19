@@ -764,8 +764,8 @@ namespace CoreIR {
 
           BitVec value = regValues.find(inst->toString())->second;
 
-          cout << "Replacing register = " << inst->toString() << endl;
-          cout << "Connected wireables = " << endl;
+          // cout << "Replacing register = " << inst->toString() << endl;
+          // cout << "Connected wireables = " << endl;
           // for (auto wb : inst->getConnectedWireables()) {
           //   cout << "\t" << wb->toString() << endl;
           // }

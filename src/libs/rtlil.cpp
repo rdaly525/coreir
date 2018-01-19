@@ -649,6 +649,28 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                       });
 
   rtLib->newGeneratorDecl("dlatch", dlatchTP, dlatchParams);
+
+  Params memParams =
+    {{"SIZE", c->Int()}, {"WIDTH", c->Int()}};
+  TypeGen* memTP =
+    rtLib->newTypeGen("memory",
+                      memParams,
+                      [](Context* c, Values genargs) {
+                        uint width = genargs.at("WIDTH")->get<int>();
+
+                        return c->Record({
+                            {"RD_EN", c->BitIn()},
+                              {"RD_DATA", c->Bit()->Arr(width)},
+                                {"RD_ADDR", c->BitIn()->Arr(width)},
+                                  {"RD_CLK", c->BitIn()},
+                                    {"WR_EN", c->BitIn()},
+                                      {"WR_DATA", c->BitIn()->Arr(width)},
+                                        {"WR_ADDR", c->BitIn()->Arr(width)},
+                                          {"WR_CLK", c->BitIn()}
+                          });
+                      });
+
+  rtLib->newGeneratorDecl("memory", memTP, memParams);
   
   return rtLib;
 }
