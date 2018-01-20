@@ -10,6 +10,35 @@ bool signMatters(const std::string& opName) {
   return !elem(opName, signInvOps);
 }
 
+std::string rtlilSignedComparatorName(const std::string& name) {
+  if (name == "lt") {
+    return "coreir.slt";
+  }
+
+  if (name == "gt") {
+    return "coreir.sgt";
+  }
+
+  if (name == "ge") {
+    return "coreir.sge";
+  }
+
+  if (name == "le") {
+    return "coreir.sle";
+  }
+
+  if (name == "eq") {
+    return "coreir.eq";
+  }
+
+  if (name == "ne") {
+    return "coreir.neq";
+  }
+
+  cout << "Unsupported signed comparator " << name << endl;
+  assert(false);
+}
+
 std::string rtlilCorebitName(const std::string& name) {
   if (name == "and") {
     return "corebit.and";
@@ -277,8 +306,20 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
         bool a_signed = args.at("A_SIGNED")->get<bool>();
         bool b_signed = args.at("B_SIGNED")->get<bool>();
 
-        ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
-        ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+        bool bothSigned = false;
+        if (a_signed && b_signed) {
+          bothSigned = true;
+        } else {
+          if (a_signed || b_signed) {
+            cout << "operation = " << name << endl;
+            cout << "a_signed = " << a_signed << endl;
+            cout << "b_signed = " << b_signed << endl;
+          }
+
+          ASSERT(!a_signed, "Have not yet added signed comparator support for RTLIL");
+          ASSERT(!b_signed, "Have not yet added signed comparator support for RTLIL");
+        }
+
 
         uint ext_width = max(a_width, b_width);
 
@@ -292,7 +333,12 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       {{"width_in", Const::make(c, b_width)},
           {"width_out", Const::make(c, ext_width)}});
 
-        string opGenName = rtlilCoreirName(name);
+        string opGenName;
+        if (bothSigned) {
+          opGenName = rtlilSignedComparatorName(name);
+        } else {
+          opGenName = rtlilCoreirName(name);
+        }
         def->addInstance("op0", opGenName, {{"width", Const::make(c, ext_width)}});
 
         def->connect("self.A", "extendA.in");
@@ -663,7 +709,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                               {"RD_DATA", c->Bit()->Arr(width)},
                                 {"RD_ADDR", c->BitIn()->Arr(width)},
                                   {"RD_CLK", c->BitIn()},
-                                    {"WR_EN", c->BitIn()},
+                                    {"WR_EN", c->BitIn()->Arr(width)},
                                       {"WR_DATA", c->BitIn()->Arr(width)},
                                         {"WR_ADDR", c->BitIn()->Arr(width)},
                                           {"WR_CLK", c->BitIn()}

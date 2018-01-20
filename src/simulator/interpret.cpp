@@ -557,12 +557,12 @@ namespace CoreIR {
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
     SimValue* v = getValue(sel);
 
+    if (v == nullptr) {
+      cout << sel->toString() << " cannot be found" << endl;
+    }
     assert(v != nullptr);
 
     return toSimBitVector(v)->getBits();
-    // assert(isSimBitVector(v));
-
-    // return static_cast<SimBitVector*>(v)->getBits();
   }
 
   SimValue* SimulatorState::getValue(CoreIR::Select* sel) {

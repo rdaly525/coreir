@@ -1,5 +1,7 @@
 #include "coreir/passes/transform/deletedeadinstances.h"
 
+std::string CoreIR::Passes::DeleteDeadInstances::ID = "deletedeadinstances";
+
 namespace CoreIR {
 
 
