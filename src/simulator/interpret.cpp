@@ -848,16 +848,21 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    auto inSels = getInputSelects(inst);
-    assert(inSels.size() == 3);
+    // auto inSels = getInputSelects(inst);
+    // if (inSels.size() != 3) {
+    // }
+    // assert(inSels.size() == 3);
 
-    Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
+    //Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
+    Select* arg1 = inst->sel("in0");
     BitVector bv1 = getBitVec(arg1);
     
-    Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    //Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    Select* arg2 = inst->sel("in1");
     BitVector bv2 = getBitVec(arg2);
 
-    Select* sel = toSelect(CoreIR::findSelect("sel", inSels));
+    //Select* sel = toSelect(CoreIR::findSelect("sel", inSels));
+    Select* sel = inst->sel("sel");
     BitVector selB = getBitVec(sel);
     
     BitVec sum(bv1.bitLength());

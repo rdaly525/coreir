@@ -500,6 +500,36 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   notGen->setGeneratorDefFromFun(genFun);
 
+  auto logicNotGen = rtLib->getGenerator("logic_not");
+
+  std::function<void (Context*, Values, ModuleDef*)> lnotGenFun =
+    [](Context* c, Values args, ModuleDef* def) {
+    uint a_width = args.at("A_WIDTH")->get<int>();
+    uint y_width = args.at("Y_WIDTH")->get<int>();
+
+    ASSERT(y_width == 1, "Output of logic_not must be 1 bit");
+
+    bool a_signed = args.at("A_SIGNED")->get<bool>();
+
+    ASSERT(!a_signed, "Have not yet added signed negation support for rtlil.logic_not");
+
+    def->addInstance("reduce", "coreir.orr", {{"width", Const::make(c, a_width)}});
+    def->addInstance("negate", "corebit.not");
+
+    def->connect("self.A", "reduce.in");
+    def->connect("reduce.out", "negate.in");
+    def->connect("negate.out", "self.Y.0");
+
+    // string opGenName = rtlilCoreirName("not");
+    // def->addInstance("op0", opGenName, {{"width", Const::make(c, y_width)}});
+
+    // def->connect("self.A", "extendA.in");
+    // def->connect("extendA.out", "op0.in");
+    // def->connect("op0.out", "self.Y");
+  };
+
+  logicNotGen->setGeneratorDefFromFun(lnotGenFun);
+  
 
   // Reduction ops
   vector<string> rtlilReduceOps{"reduce_and", "reduce_or", "reduce_xor"};
