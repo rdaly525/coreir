@@ -77,6 +77,10 @@ std::string rtlilCoreirName(const std::string& name) {
     return "coreir.orr";
   }
 
+  if (name == "reduce_bool") {
+    return "coreir.orr";
+  }
+  
   if (name == "reduce_and") {
     return "coreir.andr";
   }
@@ -532,7 +536,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   
 
   // Reduction ops
-  vector<string> rtlilReduceOps{"reduce_and", "reduce_or", "reduce_xor"};
+  vector<string> rtlilReduceOps{"reduce_and", "reduce_or", "reduce_xor", "reduce_bool"};
   for (auto& name : rtlilReduceOps) {
     auto gen = rtLib->getGenerator(name);
 
@@ -543,9 +547,10 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
         ASSERT(y_width == 1, "Output of a logical reduce must be 1 bit!");
 
-        bool a_signed = args.at("A_SIGNED")->get<bool>();
+        //bool a_signed = args.at("A_SIGNED")->get<bool>();
 
-        ASSERT(!a_signed, "Have not yet added signed reduce support for RTLIL");
+        // NOTE: For reducing booleans signed vs unsigned should not matter
+        //ASSERT(!a_signed, "Have not yet added signed reduce support for RTLIL");
 
         string opGenName = rtlilCoreirName(name);
         def->addInstance("op0", opGenName, {{"width", Const::make(c, a_width)}});

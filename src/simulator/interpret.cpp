@@ -835,6 +835,7 @@ namespace CoreIR {
     
   }
 
+  // cpuregs$__DOLLAR__memory__BACKSLASH__regs__DOLLAR__rdmux__LEFT_BRACKET__0__RIGHT_BRACKET____LEFT_BRACKET__4__RIGHT_BRACKET____LEFT_BRACKET__15__RIGHT_BRACKET____DOLLAR__4518$mux0pwd
   void SimulatorState::updateMuxNode(const vdisc vd) {
     updateInputs(vd);
 

@@ -910,7 +910,17 @@ namespace bsim {
        const dynamic_bit_vector& shift_amount) {
     dynamic_bit_vector res(a.bitLength());
 
+    if (shift_amount.bitLength() > 64) {
+      std::cout << "ERROR: arithmetic shifting with " << shift_amount.bitLength() << " bit operand" << std::endl;
+      assert(shift_amount.bitLength() <= 64);
+    }
+    
     bv_uint64 shift_int = get_shift_int(shift_amount);
+
+    if (shift_int >= a.bitLength()) {
+      std::cout << "shift_int     = " << shift_int << std::endl;
+      std::cout << "a.bitLength() = " << a.bitLength() << std::endl;
+    }
 
     unsigned char sign_bit = a.get(a.bitLength() - 1);
     for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
