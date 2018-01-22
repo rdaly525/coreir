@@ -1,14 +1,14 @@
 #include "coreir/libs/aetherlinglib.h"
 
-COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(commonlib);
+COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(aetherlinglib);
 
 using namespace std;
 using namespace CoreIR;
 
-Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
+Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
 
-  Namespace* commonlib = c->newNamespace("commonlib");
-  Namespace* coreirprims = c->getNamespace("coreir");
+  Namespace* aetherlinglib = c->newNamespace("aetherlinglib");
+  //Namespace* coreirprims = c->getNamespace("coreir");
 
   /////////////////////////////////
   // Commonlib Types
@@ -16,25 +16,28 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   Params widthparams = Params({{"width",c->Int()}});
 
-  commonLib->newTypeGen(
-      "mapN_type", // name for typegen
-      {
+  Params mapNparams = Params({
           {"width", c->Int()},
           {"N", c->Int()},
           {"numOperatorsParallel", c->Int()},
           {"operator", c->String()}
-      }, // generator parameters
+      });
+
+  aetherlinglib->newTypeGen(
+      "mapN_type", // name for typegen
+      mapNparams, // generator parameters
       [](Context* c, Values genargs) { //Function to compute type
           uint width = genargs.at("width")->get<int>();
           uint N = genargs.at("N")->get<int>();
-          uint numOperatorsParallel = genargs.at("N")->get<int>();
           return c->Record({
-                  {"in", c->BitIn()->Arr(width)->Arr(N)}
+                  {"in", c->BitIn()->Arr(width)->Arr(N)},
                   {"out", c->Bit()->Arr(width)}
               });
       });
 
-  
+  aetherlinglib->newGeneratorDecl("mapN", aetherlinglib->getTypeGen("mapN_type"), mapNparams);
+
+  return aetherlinglib;  
 }
 
 COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(aetherlinglib)

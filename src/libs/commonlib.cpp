@@ -1373,7 +1373,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   // on every cycle, input<n> is outputted where n=count
 
   // Not yet implemented
-  CoreIRLoadLibrary_aetherlinglib(c);
 
   return commonlib;
 }
