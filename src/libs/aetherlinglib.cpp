@@ -119,106 +119,21 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
                     def->connect("self.in." + inputIdxStr, muxName + ".in.data." + to_string(j));
                 }
 
+                // handle spillover
+
                 // now create the op and wire the mux into it
                 def->addInstance("op_" + idxStr, op);
-                def->connect("mux.out", "op_" + idxStr + ".in");
+                string opStr = "op_" + idxStr;
+                def->connect("mux.out", opStr + ".in");
+                def->connect(opStr + ".out", "self.out." + to_string(j));
             }
              
-            if (N == 1) {
-                def->connect("self.in.0","self.out");
-            }
-            else if (N == 2) {
-                def->addInstance("join",op2,{{"width",aWidth}});
-                def->connect("join.out","self.out");
-
-                def->connect("self.in.0","join.in0");
-                def->connect("self.in.1","join.in1");
-            }
-            else {
-                def->addInstance("join",op2,{{"width",aWidth}});
-                def->connect("join.out","self.out");
-
-                //Connect half instances
-                uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
-                uint Nlargehalf = 1 << (Nbits-1);
-                uint Nsmallhalf = N - Nlargehalf;
-
-                //cout << "N=" << N << " which has bitwidth " << Nbits << ", breaking into " << Nlargehalf << " and " << Nsmallhalf <<endl;
-                Const* aNlarge = Const::make(c,Nlargehalf);
-                Const* aNsmall = Const::make(c,Nsmallhalf);
-
-                def->addInstance("opN_0",opN,{{"width",aWidth},{"N",aNlarge},{"operator",aOperator}});
-                def->addInstance("opN_1",opN,{{"width",aWidth},{"N",aNsmall},{"operator",aOperator}});
-                for (uint i=0; i<Nlargehalf; ++i) {
-                    def->connect({"self","in",to_string(i)},{"opN_0","in",to_string(i)});
-                }
-                for (uint i=0; i<Nsmallhalf; ++i) {
-                    def->connect({"self","in",to_string(i+Nlargehalf)},{"opN_1","in",to_string(i)});
-                }
-                def->connect("opN_0.out","join.in0");
-                def->connect("opN_1.out","join.in1");
-            }
+            //HOW DO I HANDLE SPILLOVER? DO I GIVE A SIGNAL FOR WHEN OUT HAS CHANGED, AND A DIFFERENT ONE
+            // FOR WHEN ONLY SPILLOVER HAPPENS?
 
         });
 
     return aetherlinglib;  
-}
-
-void addCounter(Context* c, Namespace* ns) {
-    // counter type
-    ns->newTypeGen(
-        "counter_type", //name for the typegen
-        {{"width",c->Int()},{"min",c->Int()},{"max",c->Int()},{"inc",c->Int()}}, //generater parameters
-        [](Context* c, Values genargs) { //Function to compute type
-            uint width = genargs.at("width")->get<int>();
-            return c->Record({
-                    {"out",c->Bit()->Arr(width)},
-                    {"overflow",c->Bit()}
-                });
-        }
-        );
-
-    Generator* counter = aetherlinglib->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),{{"width",c->Int()},{"min",c->Int()},{"max",c->Int()},{"inc",c->Int()}});
-
-    counter->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-            uint width = genargs.at("width")->get<int>();
-            uint max = genargs.at("max")->get<int>();
-            uint min = genargs.at("min")->get<int>();
-            uint inc = genargs.at("inc")->get<int>();
-            assert(width>0);
-            assert(max>min);
-
-            // get generators
-            Namespace* coreirprims = c->getNamespace("coreir");
-            Generator* ult_gen = coreirprims->getGenerator("ult");
-            Generator* add_gen = coreirprims->getGenerator("add");
-            Generator* const_gen = coreirprims->getGenerator("const");
-
-            // create hardware
-            Const* aBitwidth = Const::make(c,width);
-            Const* aReset = Const::make(c,BitVector(width,min));
-            def->addInstance("count", "mantle.reg", {{"width",aBitwidth},{"has_clr",Const::make(c,true)},{"has_en",Const::make(c,false)}}, {{"init",aReset}});
-
-            def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,max))}});
-            def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
-            def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
-            def->addInstance("add", add_gen, {{"width",aBitwidth}});
-            //def->addInstance("and", "corebit.and");
-
-            // wire up modules
-            // clear if max < count+inc
-            def->connect("count.out","self.out");
-            def->connect("count.out","add.in0");
-            def->connect("inc.out","add.in1");
-
-            def->connect("add.out","count.in");
-
-            def->connect("add.out","ult.in1");
-            def->connect("max.out","ult.in0");
-            def->connect("ult.out","count.clr");
-            def->connect("ult.out","self.overflow");
-
-        });
 }
 
 COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(aetherlinglib)
