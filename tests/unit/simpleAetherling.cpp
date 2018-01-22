@@ -19,8 +19,7 @@ int main() {
 
     Values mapNParams({
             {"width", Const::make(c, 16)},
-            {"N", Const::make(c, 4)},
-            {"numOperatorsParallel", Const::make(c, 4)},
+            {"parallelOperators", Const::make(c, 4)},
             {"operator", Const::make(c, "coreir.mul")}
         });
                       
