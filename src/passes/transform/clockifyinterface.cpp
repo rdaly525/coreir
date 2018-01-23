@@ -28,8 +28,10 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
   bool modifiedClock = false;
   for (auto pclk : possibleClocks) {
     bool allClocks = true;
+    int numInputs = pclk->getConnectedWireables().size();
 
     for (auto sel : pclk->getConnectedWireables()) {
+
       //cout << pclk->toString() << " is connected to " << sel->toString() << endl;
 
       Select* selS = cast<Select>(sel);
@@ -80,7 +82,7 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
       }
     }
 
-    if (allClocks) {
+    if (allClocks && (numInputs > 0)) {
       cout << "All receivers of " << pclk->toString() << " are clock casts" << endl;
 
       // Now need to:

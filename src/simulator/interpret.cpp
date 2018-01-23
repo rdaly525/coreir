@@ -1395,6 +1395,7 @@ namespace CoreIR {
     if ((clkVal->lastValue() == 0) &&
         (clkVal->value() == 1)) {
 
+      //cout << "High clock" << endl;
       if (inSels.size() == 2) {
 
         //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
@@ -1455,10 +1456,12 @@ namespace CoreIR {
   }
 
   void SimulatorState::exeSequential() {
+    //cout << "Doing sequential updates" << endl;
     // Update circuit state
     for (auto& vd : topoOrder) {
       WireNode wd = gr.getNode(vd);
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+        //cout << "Updating register " << wd.getWire()->toString() << endl;
         updateRegisterValue(vd);
       }
 
