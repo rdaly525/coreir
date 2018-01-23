@@ -22,6 +22,7 @@ ValueCache::~ValueCache() {
   for (auto it : bvCache) delete it.second;
   for (auto it : stringCache) delete it.second;
   for (auto it : typeCache) delete it.second;
+  for (auto it : moduleCache) delete it.second;
 }
 
 ConstBool* ValueCache::getBool(bool val) {
@@ -36,9 +37,7 @@ ConstInt* ValueCache::getInt(int val) {
 }
 
 ConstBitVector* ValueCache::getBitVector(BitVector val) {
-  if (bvCache.count(val) ) {
-    return bvCache[val];
-  }
+  if (bvCache.count(val) ) return bvCache[val];
   auto v = new ConstBitVector(c->BitVector(val.bitLength()),val);
   bvCache[val] = v;
   return v;
@@ -55,6 +54,13 @@ ConstCoreIRType* ValueCache::getType(Type* val) {
   if (typeCache.count(val) ) return typeCache[val];
   auto v = new ConstCoreIRType(CoreIRType::make(c),val);
   typeCache[val] = v;
+  return v;
+}
+
+ConstModule* ValueCache::getModule(Module* val) {
+  if (moduleCache.count(val) ) return moduleCache[val];
+  auto v = new ConstModule(CoreIRType::make(c),val);
+  moduleCache[val] = v;
   return v;
 }
 

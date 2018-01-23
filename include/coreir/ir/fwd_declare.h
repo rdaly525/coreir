@@ -58,31 +58,6 @@ class TypeGen;
 class TypeCache;
 class ValueCache;
 
-//value.h
-class Value;
-class Arg;
-class Const;
-
-
-template<class T>
-class TemplatedConst;
-
-typedef TemplatedConst<bool> ConstBool;
-typedef TemplatedConst<int> ConstInt;
-typedef TemplatedConst<BitVector> ConstBitVector;
-typedef TemplatedConst<std::string> ConstString;
-typedef TemplatedConst<Type*> ConstCoreIRType;
-
-
-
-//valuetype.h
-class ValueType;
-class BoolType;
-class IntType;
-class BitVectorType;
-class StringType;
-class CoreIRType;
-
 
 class MetaData;
 
@@ -97,6 +72,36 @@ class Wireable;
 class Interface;
 class Instance;
 class Select;
+
+
+//valuetype.h
+class ValueType;
+class BoolType;
+class IntType;
+class BitVectorType;
+class StringType;
+class CoreIRType;
+class ModuleType;
+
+
+
+//value.h
+class Value;
+class Arg;
+class Const;
+template<class T>
+class TemplatedConst;
+
+typedef TemplatedConst<bool> ConstBool;
+typedef TemplatedConst<int> ConstInt;
+typedef TemplatedConst<BitVector> ConstBitVector;
+typedef TemplatedConst<std::string> ConstString;
+typedef TemplatedConst<Type*> ConstCoreIRType;
+typedef TemplatedConst<Module*> ConstModule;
+
+
+
+
 
 class Pass;
 class PassManager;

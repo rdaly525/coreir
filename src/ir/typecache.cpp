@@ -18,6 +18,7 @@ TypeCache::TypeCache(Context* c) : c(c) {
   intType = new IntType(c);
   stringType = new StringType(c);
   coreIRType = new CoreIRType(c);
+  moduleType = new ModuleType(c);
 
 }
 
@@ -41,6 +42,7 @@ TypeCache::~TypeCache() {
   delete intType;
   delete stringType;
   delete coreIRType;
+  delete moduleType;
 }
 
 
