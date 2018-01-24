@@ -58,6 +58,8 @@ namespace CoreIR {
                 // safe version of wiring out: def->connect(mapNName + ".out." + to_string(i), "self.out." + to_string(i))
             }
 
+            c->runPasses({"rungenerators"});
+
             mainModule->setDef(def);
 
             SimulatorState state(mainModule);

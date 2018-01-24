@@ -73,8 +73,8 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
                 string idxStr = to_string(i);                
                 string opStr = "op_" + idxStr;
                 def->addInstance(opStr, op, {{"width", aWidth}});
-                def->connect("constInput.out", opStr + ".in");
-                def->connect("self.in." + idxStr, opStr + ".in");
+                def->connect("constInput.out", opStr + ".in0");
+                def->connect("self.in." + idxStr, opStr + ".in1");
                 def->connect(opStr + ".out", "self.out." + idxStr);
             }
              
