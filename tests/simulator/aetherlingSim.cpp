@@ -44,7 +44,6 @@ namespace CoreIR {
             };
             string mapNName = "map" + to_string(parallelOperators);
             def->addInstance(mapNName, "aetherlinglib.mapN", mapnModArgs);
-
             // create different input for each operator
             for (int i = 0 ; i < parallelOperators; i++) {
                 string constName = "constInput" + to_string(i);
@@ -55,7 +54,7 @@ namespace CoreIR {
                     {{"value", Const::make(c, width, i)}});
 
                 def->connect(constName + ".out", mapNName + ".in." + to_string(i));
-                //def->connect(mapNName + ".out", "self.out");
+                def->connect(mapNName + ".out", "self.out");
                 // safe version of wiring out: def->connect(mapNName + ".out." + to_string(i), "self.out." + to_string(i))
             }
 
