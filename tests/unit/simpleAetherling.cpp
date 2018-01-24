@@ -20,6 +20,7 @@ int main() {
     Values mapNParams({
             {"width", Const::make(c, 16)},
             {"parallelOperators", Const::make(c, 4)},
+            {"constInput", Const::make(c, 2)},
             {"operator", Const::make(c, "coreir.mul")}
         });
                       
