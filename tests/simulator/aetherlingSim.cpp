@@ -59,14 +59,14 @@ namespace CoreIR {
             }
 
             mainModule->setDef(def);
+            c->runPasses({"rungenerators", "flatten", "flattentypes"});
             mainModule->print();
-            c->runPasses({"rungenerators", "flatten"});
             
             SimulatorState state(mainModule);
             state.execute();
 
             for (int i = 0; i < parallelOperators; i++) {
-                //REQUIRE(state.getBitVec("self.out." + to_string(i)) == BitVector(width, i*constInput));
+                REQUIRE(state.getBitVec("self.out_" + to_string(i)) == BitVector(width, i*constInput));
             }
                     
         }
