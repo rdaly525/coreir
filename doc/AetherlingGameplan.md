@@ -6,3 +6,13 @@ How my system will work:
    1. Modules - the CoreIR instances that get mapped to circuits, like adders and counters
    1. Passes - how I will write my transformations and introduce buffers. Passes transform generators into modules and modules into other modules. This is where I will implement my space-time computations and buffer size computations. The users will create their functions (like apply a kernel) and call generators with those modules as parameters. The generators will indicate that the users want to parallelize the modules. I will then, through passes, transform the map/etc generators to get the right amount of parallelism and add in buffers between the various modules the match rates.
 4. CoreIR C++ interpreter - how I will test my generators/modules/passes. See my first test here: https://github.com/David-Durst/coreir/blob/aetherling/tests/simulator/aetherlingSim.cpp . This test parallelizes multiplying an array of numbers by 2.
+
+
+
+questions:
+1. What is a buffer?
+2. Do I create a place holder between all my modules that I replace on passes?
+3. What are the space and time constraints on the CGRA chip? - need to talk to ross about this. sub qestions
+   1. What is a unit of compute? ALU, LUT, etc. How do I abstract this into a general unit?
+   1. How to map each of these units into a cost structure for the optimizer
+   1. Are there physical constraints that make units of the same category not fungible? Does distance matter?
