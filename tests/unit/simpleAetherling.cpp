@@ -14,18 +14,18 @@ int main() {
             {"out",c->Array(16,c->Bit())}
         });
     Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInOneOutGenType);
-    ModuleDef* testDef = test->newModuleDef();
+    ModuleDef* testDef = testModule->newModuleDef();
 
     /* creating the mulBy2 that the mapN will parallelize */
     Module* mulBy2 = c->getGlobal()->newModuleDecl("mulBy2", oneInOneOutGenType);
-    ModuleDef* mulBy2Def = test->newModuleDef();
+    ModuleDef* mulBy2Def = mulBy2->newModuleDef();
 
     uint width = 16;
-    string constModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, 4));
-    mulBy2Def->addInstance("mul", "coreir.mul");
+    string constModule = Aetherling_addCoreIRConstantModule(c, mulBy2Def, width, Const::make(c, width, 4));
+    mulBy2Def->addInstance("mul", "coreir.mul", {{"width", Const::make(c, width)}});
     mulBy2Def->connect("self.in", "mul.in0");
     mulBy2Def->connect(constModule + ".out", "mul.in1");
-    mulBy2Def->connect("mul.out", "self.out")
+    mulBy2Def->connect("mul.out", "self.out");
 
     Values mapNParams({
             {"width", Const::make(c, width)},
@@ -34,15 +34,15 @@ int main() {
         });
                       
     // ignoring last argumen to addIstance as no module parameters    
-    def->addInstance("mapMul", "aetherlinglib.mapN", mapNParams);
+    testDef->addInstance("mapMul", "aetherlinglib.mapN", mapNParams);
 
-    def->connect("self.in","mapMul.in");
-    def->connect("mapMul.out","self.out");
+    testDef->connect("self.in","mapMul.in");
+    testDef->connect("mapMul.out","self.out");
 
     c->runPasses({"rungenerators", "verifyconnectivity"});
   
     testDef->print();
-    cout << testDef->toString() << endl;
+    cout << testModule->toString() << endl;
   
     deleteContext(c);
     return 0;

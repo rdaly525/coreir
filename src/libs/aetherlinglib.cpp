@@ -17,6 +17,12 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
 
     Params widthparams = Params({{"width",c->Int()}});
 
+    /*
+     * width - the width in bits of each input
+     * parallelOperatrs - how many operators to have in parallel
+     * operator - the operator to parallelize. Note that it must have one input known as "in" and 
+     * one output known as "out"
+     */
     Params mapNparams = Params({
             {"width", c->Int()},
             {"parallelOperators", c->Int()},
@@ -115,15 +121,14 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     return aetherlinglib;  
 }
 
-string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width, BitVector bv) {
+string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width, Const* val) {
     stringstream bvStr;
-    bvStr << bv;
-    string constName = "constInput_" + bvStr.str();
+    string constName = "constInput_" + val->toString();
     def->addInstance(
         constName,
         "coreir.const",
         {{"width", Const::make(c,width)}},
-        {{"value", Const::make(c,bv)}});
+        {{"value", val}});
     return constName;
 }
 

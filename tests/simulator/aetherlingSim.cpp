@@ -37,15 +37,19 @@ namespace CoreIR {
             ModuleDef* def = mainModule->newModuleDef();
 
             /* creating the mulBy2 that the mapN will parallelize */
+            //Type of module 
+            Type* oneInOneOutGenType = c->Record({
+                    {"in",c->Array(16,c->BitIn())},
+                    {"out",c->Array(16,c->Bit())}
+                });
             Module* mulBy2 = c->getGlobal()->newModuleDecl("mulBy2", oneInOneOutGenType);
-            ModuleDef* mulBy2Def = test->newModuleDef();
+            ModuleDef* mulBy2Def = mulBy2->newModuleDef();
 
-            uint width = 16;
             string constModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, 4));
             mulBy2Def->addInstance("mul", "coreir.mul");
             mulBy2Def->connect("self.in", "mul.in0");
             mulBy2Def->connect(constModule + ".out", "mul.in1");
-            mulBy2Def->connect("mul.out", "self.out")
+            mulBy2Def->connect("mul.out", "self.out");
 
             Values mapnModArgs = {
                 {"width", Const::make(c, width)},

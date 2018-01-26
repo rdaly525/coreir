@@ -11,6 +11,6 @@ COREIR_GEN_CPP_API_DECLARATION_FOR_LIBRARY(aetherlinglib);
 
 COREIR_GEN_C_API_DECLARATION_FOR_LIBRARY(aetherlinglib);
 
-std::string Aetherling_addCoreIRConstantModule(CoreIR::Context* c, CoreIR::ModuleDef* def, uint width, BitVector bv);
+std::string Aetherling_addCoreIRConstantModule(CoreIR::Context* c, CoreIR::ModuleDef* def, uint width, CoreIR::Const* val);
 
 #endif //COREIR_AETHERLINGLIB_HPP_
