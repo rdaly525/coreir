@@ -68,10 +68,8 @@ bool Passes::VerifyConnectivity::runOnModule(Module* m) {
     verify &= checkIfFullyConnected(inst.second,e);
   }
   if (!verify) {
-    e.fatal();
     c->error(e);
   }
-
   return false;
 
 }
