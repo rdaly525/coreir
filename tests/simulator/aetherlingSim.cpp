@@ -35,13 +35,24 @@ namespace CoreIR {
                 });
             Module* mainModule = c->getGlobal()->newModuleDecl("mainMapNMulTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
-          
+
+            /* creating the mulBy2 that the mapN will parallelize */
+            Module* mulBy2 = c->getGlobal()->newModuleDecl("mulBy2", oneInOneOutGenType);
+            ModuleDef* mulBy2Def = test->newModuleDef();
+
+            uint width = 16;
+            string constModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, 4));
+            mulBy2Def->addInstance("mul", "coreir.mul");
+            mulBy2Def->connect("self.in", "mul.in0");
+            mulBy2Def->connect(constModule + ".out", "mul.in1");
+            mulBy2Def->connect("mul.out", "self.out")
+
             Values mapnModArgs = {
                 {"width", Const::make(c, width)},
                 {"parallelOperators", Const::make(c, parallelOperators)},
-                {"constInput", Const::make(c, constInput)},
-                {"operator", Const::make(c, "coreir.mul")}
+                {"operator", Const::make(c, mulBy2)}
             };
+            
             string mapNName = "map" + to_string(parallelOperators);
             def->addInstance(mapNName, "aetherlinglib.mapN", mapnModArgs);
             // create different input for each operator

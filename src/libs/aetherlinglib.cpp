@@ -22,8 +22,7 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
             {"parallelOperators", c->Int()},
             //{"inputType", CoreIRType::make(c)},
             //{"outputType", CoreIRType::make(c)},
-            {"constInput", c->Int()},
-            {"operator", c->String()}
+            {"operator", ModuleType::make(c)}
         });
 
     aetherlinglib->newTypeGen(
@@ -48,11 +47,9 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     mapN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint width = genargs.at("width")->get<int>();
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
+            Module* opModule = genargs.at("operator")->get<Module*>();
             //Type* inputType = genargs.at("inputType")->get<Type*>;
             //Type* outputType = genargs.at("outputType")->get<Type*>;
-            // make this the second argument for all operators
-            uint constInput = genargs.at("constInput")->get<int>();
-            string op = genargs.at("operator")->get<string>();
             assert(parallelOperators>0);
             assert(width>0);
             /*RecordType* inputTypeRecord = dynamic_cast<RecordType*>(inputType);
@@ -60,21 +57,13 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
             RecordType* outputTypeRecord = dynamic_cast<RecordType*>(outputType);
             assert(outputTypeRecord != 0); // 0 if cast failed, so output type wasn't RecordType
             */
-            Const* aWidth = Const::make(c,width);
-            def->addInstance(
-                "constInput",
-                "coreir.const",
-                {{"width",aWidth}},
-                {{"value", Const::make(c, width, constInput)}});
-
-                    
+                     
             // now create each op and wire the inputs and outputs to it
             for (int i = 0; i < parallelOperators; i++) {
                 string idxStr = to_string(i);                
                 string opStr = "op_" + idxStr;
-                def->addInstance(opStr, op, {{"width", aWidth}});
-                def->connect("constInput.out", opStr + ".in0");
-                def->connect("self.in." + idxStr, opStr + ".in1");
+                def->addInstance(opStr, opModule, {{}});
+                def->connect("self.in." + idxStr, opStr + ".in");
                 def->connect(opStr + ".out", "self.out." + idxStr);
             }
              
@@ -124,6 +113,18 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
         });
 
     return aetherlinglib;  
+}
+
+string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width, BitVector bv) {
+    stringstream bvStr;
+    bvStr << bv;
+    string constName = "constInput_" + bvStr.str();
+    def->addInstance(
+        constName,
+        "coreir.const",
+        {{"width", Const::make(c,width)}},
+        {{"value", Const::make(c,bv)}});
+    return constName;
 }
 
 COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(aetherlinglib)

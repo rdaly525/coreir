@@ -9,19 +9,28 @@ int main() {
     CoreIRLoadLibrary_aetherlinglib(c);
 
     //Type of module 
-    Type* addmultType = c->Record({
+    Type* oneInOneOutGenType = c->Record({
             {"in",c->Array(16,c->BitIn())},
             {"out",c->Array(16,c->Bit())}
         });
-    Values w16({{"width",Const::make(c,16)}});
-    Module* addmult = c->getGlobal()->newModuleDecl("addmult",addmultType);
-    ModuleDef* def = addmult->newModuleDef();
+    Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInOneOutGenType);
+    ModuleDef* testDef = test->newModuleDef();
+
+    /* creating the mulBy2 that the mapN will parallelize */
+    Module* mulBy2 = c->getGlobal()->newModuleDecl("mulBy2", oneInOneOutGenType);
+    ModuleDef* mulBy2Def = test->newModuleDef();
+
+    uint width = 16;
+    string constModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, 4));
+    mulBy2Def->addInstance("mul", "coreir.mul");
+    mulBy2Def->connect("self.in", "mul.in0");
+    mulBy2Def->connect(constModule + ".out", "mul.in1");
+    mulBy2Def->connect("mul.out", "self.out")
 
     Values mapNParams({
-            {"width", Const::make(c, 16)},
+            {"width", Const::make(c, width)},
             {"parallelOperators", Const::make(c, 4)},
-            {"constInput", Const::make(c, 2)},
-            {"operator", Const::make(c, "coreir.mul")}
+            {"operator", Const::make(c, mulBy2)}
         });
                       
     // ignoring last argumen to addIstance as no module parameters    
@@ -29,9 +38,11 @@ int main() {
 
     def->connect("self.in","mapMul.in");
     def->connect("mapMul.out","self.out");
+
+    c->runPasses({"rungenerators", "verifyconnectivity"});
   
-    addmult->print();
-    cout << addmult->toString() << endl;
+    testDef->print();
+    cout << testDef->toString() << endl;
   
     deleteContext(c);
     return 0;
