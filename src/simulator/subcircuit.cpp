@@ -358,6 +358,9 @@ namespace CoreIR {
     subMod->setDef(def);
   }
 
+  void printConnectionInfo(const std::string& sel) {
+  }
+
   bool foldConstants(CoreIR::Module* const mod) {
     if (!mod->hasDef()) {
       return false;
@@ -386,18 +389,28 @@ namespace CoreIR {
 
     int i = 0;
     while (toConsider.size() > 0) {
-      //cout << "Folding constant ";
-
       if ((i % 100) == 0) {
         cout << "Folding constants, i = " << i << endl;
       }
 
       i++;
 
+      // assert(def->hasSel("test_pe$test_pe_comp$__DOLLAR__or__DOLLAR____DOT__/pe_verilog/test_pe_comp_unq1__DOT__sv__COLON__298__DOLLAR__368$op0.in0"));
+
+      // Select* sel = cast<Select>(def->sel("test_pe$test_pe_comp$__DOLLAR__or__DOLLAR____DOT__/pe_verilog/test_pe_comp_unq1__DOT__sv__COLON__298__DOLLAR__368$op0.in0"));
+
+      // cout << "# of connected wireables for " << sel->toString() << " ";
+      // cout << sel->getConnectedWireables().size() << endl;
+      // for (auto wb : sel->getConnectedWireables()) {
+      //   cout << "\t" << wb->toString() << endl;
+      // }
+
+      // assert(sel->getConnectedWireables().size() == 1);
+
       Instance* inst = *std::begin(toConsider);
       toConsider.erase(inst);
 
-      //cout << inst->toString() << endl;
+      cout << "Considering instance " << inst->toString() << endl;
 
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
@@ -440,6 +453,9 @@ namespace CoreIR {
           assert(isNumber(selStr));
 
           int offset = stoi(selStr);
+
+          cout << "\tSource = " << srcConst->toString() << endl;
+          cout << "\tOffset = " << offset << endl;
 
           uint8_t bit = val.get(offset);
 
@@ -509,8 +525,6 @@ namespace CoreIR {
 
           inlineInstance(instPT);
 
-            
-          //unchecked.erase(inst);
         }
             
       } else if (getQualifiedOpName(*(inst)) == "coreir.zext") {
@@ -518,10 +532,6 @@ namespace CoreIR {
         Select* input = inst->sel("in");
         vector<Select*> values = getSignalValues(input);
 
-        // cout << "Signal values" << endl;
-        // for (auto val : values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
         maybe<BitVec> sigValue = getSignalBitVec(values);
 
         if (sigValue.has_value()) {
@@ -620,7 +630,6 @@ namespace CoreIR {
                        instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
             
-          //unchecked.erase(inst);
         }
 
       } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
@@ -630,15 +639,6 @@ namespace CoreIR {
 
         vector<Select*> in0Values = getSignalValues(in0);
         vector<Select*> in1Values = getSignalValues(in1);
-
-        // cout << "in0 values" << endl;
-        // for (auto val : in0Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
-        // cout << "in1 values" << endl;
-        // for (auto val : in1Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
 
         maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
         maybe<BitVec> sigValue1 = getSignalBitVec(in1Values);
@@ -753,35 +753,43 @@ namespace CoreIR {
     ModuleDef* def = mod->getDef();
     Context* c = mod->getContext();
 
-    for (auto instR : def->getInstances()) {
-      auto inst = instR.second;
+    bool found = true;
 
-      if (getQualifiedOpName(*inst) == "coreir.reg") {
+    while (found) {
+      found = false;
 
-        //cout << "Found register = " << inst->toString() << endl;
+      for (auto instR : def->getInstances()) {
+        auto inst = instR.second;
 
-        if (contains_key(inst->toString(), regValues)) {
+        if (getQualifiedOpName(*inst) == "coreir.reg") {
 
-          BitVec value = regValues.find(inst->toString())->second;
+          //cout << "Found register = " << inst->toString() << endl;
 
-          // cout << "Replacing register = " << inst->toString() << endl;
-          // cout << "Connected wireables = " << endl;
-          // for (auto wb : inst->getConnectedWireables()) {
-          //   cout << "\t" << wb->toString() << endl;
-          // }
+          if (contains_key(inst->toString(), regValues)) {
 
-          string cName = inst->toString() + "_const_value";
-          Instance* constR =
-            def->addInstance(cName,
-                             "coreir.const",
-                             {{"width", Const::make(c, value.bitLength())}},
-                             {{"value", Const::make(c, value)}});
+            BitVec value = regValues.find(inst->toString())->second;
 
-          Instance* instPT = addPassthrough(inst, "_const_to_register_PT");
-          def->removeInstance(inst);
+            // cout << "Replacing register = " << inst->toString() << endl;
+            // cout << "Connected wireables = " << endl;
+            // for (auto wb : inst->getConnectedWireables()) {
+            //   cout << "\t" << wb->toString() << endl;
+            // }
 
-          def->connect(constR->sel("out"), instPT->sel("in")->sel("out"));
-          inlineInstance(instPT);
+            string cName = inst->toString() + "_const_value";
+            Instance* constR =
+              def->addInstance(cName,
+                               "coreir.const",
+                               {{"width", Const::make(c, value.bitLength())}},
+                               {{"value", Const::make(c, value)}});
+
+            Instance* instPT = addPassthrough(inst, "_const_to_register_PT");
+            def->removeInstance(inst);
+
+            def->connect(constR->sel("out"), instPT->sel("in")->sel("out"));
+            inlineInstance(instPT);
+            found = true;
+            break;
+          }
         }
       }
     }

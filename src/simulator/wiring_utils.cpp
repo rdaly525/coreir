@@ -180,11 +180,13 @@ namespace CoreIR {
     // No direct connections
     if (connected.size() == 0) {
 
-      //cout << src->toString() << " has no direct connections" << endl;
+      cout << src->toString() << " has no direct connections" << endl;
 
       Wireable* parent = src->getParent();
       if (!isa<Select>(parent)) {
-        cout << "Need to implement lower type hierarchy search" << endl;
+        cout << "Need to implement lower type hierarchy search to get driver " <<
+          " of " << src->toString() << endl;
+        
         assert(false);
       }
 

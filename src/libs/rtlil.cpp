@@ -752,6 +752,44 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                       });
 
   rtLib->newGeneratorDecl("memory", memTP, memParams);
+
+//   auto memoryGen = c->getGenerator("rtlil.memory");
+//   memoryGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+
+//       uint width = args.at("WIDTH")->get<int>();
+//       uint size = args.at("SIZE")->get<int>();
+
+//       def->addInstance("base_memory",
+//                        );
+//       reg = def->addInstance("reg0",
+//                              "mantle.reg",
+//                              {{"width", Const::make(c, width)},
+//                                  {"has_rst", Const::make(c, true)}},
+//                              {{"init", Const::make(c, BitVec(width, rstVal))}});
+
+                                   
+
+//       assert(reg != nullptr);
+
+//       def->connect("self.D", "reg0.in");
+
+//       // Add clock cast node, in rtlil the clock input is just another bit
+//       //def->addInstance("toClk0", "rtlil.to_clkIn");
+//       def->addInstance("toClk0",
+//                        "coreir.wrap",
+//                        {{"type", Const::make(c, c->Named("coreir.clk"))}});
+
+//       def->addInstance("toRST0",
+//                        "coreir.wrap",
+//                        {{"type", Const::make(c, c->Named("coreir.rst"))}});
+      
+//       def->connect("self.ARST", "toRST0.in");
+//       def->connect("toRST0.out", "reg0.rst");
+//       def->connect("self.CLK", "toClk0.in");
+//       def->connect("toClk0.out", "reg0.clk");
+
+//       def->connect("reg0.out", "self.Q");
+//     });
   
   return rtLib;
 }
