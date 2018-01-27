@@ -59,7 +59,7 @@ ConstCoreIRType* ValueCache::getType(Type* val) {
 
 ConstModule* ValueCache::getModule(Module* val) {
   if (moduleCache.count(val) ) return moduleCache[val];
-  auto v = new ConstModule(CoreIRType::make(c),val);
+  auto v = new ConstModule(ModuleType::make(c),val);
   moduleCache[val] = v;
   return v;
 }

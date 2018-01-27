@@ -24,6 +24,7 @@ U2V_SPECIALIZE(int,ConstInt);
 U2V_SPECIALIZE(BitVector,ConstBitVector);
 U2V_SPECIALIZE(std::string,ConstString);
 U2V_SPECIALIZE(CoreIR::Type*,ConstCoreIRType);
+U2V_SPECIALIZE(CoreIR::Module*,ConstModule);
 
 #undef U2V_SPECIALIZE
 
