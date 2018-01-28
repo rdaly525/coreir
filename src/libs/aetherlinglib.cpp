@@ -1,6 +1,7 @@
 #include "coreir/libs/aetherlinglib.h"
 #include "coreir/libs/commonlib.h"
 #include "aetherlinglib/aeMapN.h"
+#include "aetherlinglib/aeReduceN.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(aetherlinglib);
 
@@ -12,10 +13,11 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     Namespace* aetherlinglib = c->newNamespace(AETHERLING_NAMESPACE);
 
     /////////////////////////////////
-    // Aetherlingliblib Types
+    // Create all the different generators
     /////////////////////////////////
 
     Aetherling_createMapGenerator(c);
+    Aetherling_createReduceGenerator(c);
 
     // create a generator to convert two argument modules into one argument
     // modules with a fixed constant for one input
