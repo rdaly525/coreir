@@ -32,9 +32,7 @@ void Aetherling_createReduceGenerator(Context* c) {
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
             return c->Record({
                     {"in", c->BitIn()->Arr(width)->Arr(parallelOperators)},
-                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)},
-                    {"mergeCur", c->Bit()}, // set this bit if you want the current output to be merged with
-                        // the last one
+                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
                 });
         });
 
@@ -67,16 +65,51 @@ void Aetherling_createReduceGenerator(Context* c) {
                     }
                 }
             }
+            def->connect("op_0_0.out", "self.out");
+        });
+
+    aetherlinglib->newTypeGen(
+        "reduceNSerializable_type", // name for typegen
+        reduceNparams, // generator parameters
+        [](Context* c, Values genargs) { //Function to compute type
+            uint width = genargs.at("width")->get<int>();
+            uint parallelOperators = genargs.at("parallelOperators")->get<int>();
+            return c->Record({
+                    {"in", c->BitIn()->Arr(width)->Arr(parallelOperators)},
+                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)},
+                    {"mergeCur", c->Bit()}, // set this bit if you want the current output to be merged with
+                        // the last one
+                });
+        });
+
+    Generator* reduceNSerializable =
+        aetherlinglib->newGeneratorDecl(
+            "reduceNSerializable",
+            aetherlinglib->getTypeGen("reduceNserializable_type"),
+            reduceNparams);
+
+        reduceN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+            uint numLayers = genargs.at("numLayers")->get<int>();
+            uint width = genargs.at("width")->get<int>();
+            uint parallelOperators = genargs.at("parallelOperators")->get<int>();
+            Module* opModule = genargs.at("operator")->get<Module*>();
+            assert(parallelOperators>0);
+            assert(numLayers>0);
+            assert(width>0);
+
+            def->addInstance("reducer", "aetherlinglib.reduceN", genargs);
+            def->connect("self.in", "reducer.in");
+
             // have a mux to switch between merged and unmerged outputs
             def->addInstance("mergeMux", "commonlib.muxn",
                              {{"width", Const::make(c, width)}},
                              {{"N", Const::make(c, 2)}});
             // connect the current output directly to the merge
-            def->connect("op_0_0.out", "mergeMux.in0");
+            def->connect("reducerN.out", "mergeMux.in0");
             // also merge the current output with the last one
             def->addInstance("mergeOp", opModule, {{}});
             def->addInstance("lastOutputReg", "coreir.reg", {{"width", Const::make(c, width)}});
-            def->connect("op_0_0.out", "mergeOp.in0");
+            def->connect("reducerN.out", "mergeOp.in0");
             def->connect("lastOutputReg.out", "mergeOp.in1");
             def->connect("mergeOp.out", "mergeMux.in1");
             // pass the current chosen ouptut (merged or unmerged) to out and back to reg so that reg
@@ -84,5 +117,6 @@ void Aetherling_createReduceGenerator(Context* c) {
             def->connect("mergeCur", "mergeMux.sel");
             def->connect("mergeMux.out", "lastOutputReg.in");
             def->connect("mergeMux.out", "self.out");
-        });
+        });    
+            
 }
