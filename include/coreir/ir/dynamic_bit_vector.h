@@ -1103,8 +1103,8 @@ namespace bsim {
 		     const unsigned exp_width) {
     unsigned width = 1 + precision_width + exp_width;
 
-    assert(a.bitLength() == width);
-    assert(b.bitLength() == width);
+    assert((uint) a.bitLength() == width);
+    assert((uint) b.bitLength() == width);
 
     dynamic_bit_vector a_mant = slice(a, 0, precision_width);
     dynamic_bit_vector b_mant = slice(b, 0, precision_width);
@@ -1227,8 +1227,8 @@ namespace bsim {
 
     unsigned width = 1 + precision_width + exp_width;
 
-    assert(a.bitLength() == width);
-    assert(b.bitLength() == width);
+    assert((uint) a.bitLength() == width);
+    assert((uint) b.bitLength() == width);
 
     dynamic_bit_vector a_mant = slice(a, 0, precision_width);
     dynamic_bit_vector b_mant = slice(b, 0, precision_width);
