@@ -66,7 +66,6 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
 }
 
 string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width, Const* val) {
-    stringstream bvStr;
     string constName = "constInput_" + val->toString();
     def->addInstance(
         constName,
@@ -76,4 +75,4 @@ string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width
     return constName;
 }
 
-COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(aetherlinglib)
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(aetherlinglib);

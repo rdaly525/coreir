@@ -7,6 +7,7 @@ using namespace CoreIR;
 
 string getOpName(int layer, int idxInLayer) {
     return "op_" + to_string(layer) + "_" + to_string(idxInLayer);
+}
 
 void Aetherling_createReduceGenerator(Context* c) {
 
@@ -52,7 +53,7 @@ void Aetherling_createReduceGenerator(Context* c) {
             for (int i = numLayers - 1; i >= 0; i--) {
                 // since its a binary tree, each layer has 2^i elements
                 for (int j = 0; j < pow(2, i); j++) {
-                    string opStr = getOpName(layer, j);
+                    string opStr = getOpName(i, j);
                     def->addInstance(opStr, opModule, {{}});
                     // wire up inputs if first layer
                     if (i == numLayers) {
@@ -79,16 +80,16 @@ void Aetherling_createReduceGenerator(Context* c) {
                     {"out", c->Bit()->Arr(width)->Arr(parallelOperators)},
                     {"mergeCur", c->Bit()}, // set this bit if you want the current output to be merged with
                         // the last one
-                });
+                        });
         });
 
     Generator* reduceNSerializable =
         aetherlinglib->newGeneratorDecl(
             "reduceNSerializable",
-            aetherlinglib->getTypeGen("reduceNserializable_type"),
+            aetherlinglib->getTypeGen("reduceNSerializable_type"),
             reduceNparams);
 
-        reduceN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    reduceNSerializable->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numLayers = genargs.at("numLayers")->get<int>();
             uint width = genargs.at("width")->get<int>();
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();

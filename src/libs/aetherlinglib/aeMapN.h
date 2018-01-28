@@ -1,5 +1,6 @@
 #include "coreir/libs/aetherlinglib.h"
 #include "coreir/libs/commonlib.h"
+#include <stdio.h>
 
 using namespace std;
 using namespace CoreIR;
@@ -59,7 +60,7 @@ void Aetherling_createMapGenerator(Context* c) {
             for (int i = 0; i < parallelOperators; i++) {
                 string idxStr = to_string(i);                
                 string opStr = "op_" + idxStr;
-                def->addInstance(opStr, opModule, {{}});
+                def->addInstance(opStr, opModule);
                 def->connect("self.in." + idxStr, opStr + ".in");
                 def->connect(opStr + ".out", "self.out." + idxStr);
             }
