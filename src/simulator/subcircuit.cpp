@@ -411,6 +411,8 @@ namespace CoreIR {
       toConsider.erase(inst);
 
       cout << "Considering instance " << inst->toString() << endl;
+      // cout << "Module before trying to fold" << endl;
+      // mod->print();
 
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 

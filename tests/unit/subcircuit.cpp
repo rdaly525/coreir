@@ -401,7 +401,22 @@ void testCGRAConnectBox() {
 
   cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
-  registersToConstants(topMod, configState.getCircStates().back().registers);
+  auto regs = configState.getCircStates().back().registers;
+  cout << "Connect box converting " << regs.size() << " registers to constants" << endl;
+  for (auto reg : regs) {
+    cout << "\t" << reg.first << " ---> " << reg.second << endl;
+  }
+
+  registersToConstants(topMod, regs);
+
+  // if (!saveToFile(c->getGlobal(), "registered_connect_box.json", topMod)) {
+  //   cout << "Could not save to json!!" << endl;
+  //   c->die();
+  // }
+  
+  // cout << "connect box partially evaluated:" << endl;
+  // topMod->print();
+
   deleteDeadInstances(topMod);
   //unpackConnections(topMod);
   foldConstants(topMod);
@@ -526,7 +541,26 @@ void testCGRASwitchBox() {
 
   cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
-  registersToConstants(topMod, configState.getCircStates().back().registers);
+  auto regs = configState.getCircStates().back().registers;
+  cout << "Connect box converting " << regs.size() << " registers to constants" << endl;
+  for (auto reg : regs) {
+    cout << "\t" << reg.first << " ---> " << reg.second << endl;
+  }
+  
+  registersToConstants(topMod, regs);
+
+  // if (!saveToFile(c->getGlobal(), "registered_switch_box.json", topMod)) {
+  //   cout << "Could not save to json!!" << endl;
+  //   c->die();
+  // }
+  
+  // cout << "switch box partially evaluated:" << endl;
+  // topMod->print();
+  
+  // for (auto instR : topMod->getDef()->getInstances()) {
+  //   cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
+  // }
+
   deleteDeadInstances(topMod);
   //unpackConnections(topMod);
   foldConstants(topMod);
@@ -537,11 +571,6 @@ void testCGRASwitchBox() {
   cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
   assert(topMod->getDef()->getInstances().size() == 0);
-
-  // cout << "switch box partially evaluated instances" << endl;
-  // for (auto instR : topMod->getDef()->getInstances()) {
-  //   cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
-  // }
 
   cout << "switch box partially evaluated connections" << endl;
   for (auto conn : topMod->getDef()->getConnections()) {
@@ -561,5 +590,5 @@ int main() {
   testSubcircuitModule();
   testCGRAConnectBox();
   testCGRASwitchBox();
-  //testCGRAConfigSubcircuit();
+  
 }
