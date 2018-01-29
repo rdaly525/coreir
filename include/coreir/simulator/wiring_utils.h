@@ -41,5 +41,7 @@ namespace CoreIR {
 
   maybe<BitVector>
   getSignalBitVec(const std::vector<CoreIR::Select*>& signals);
-  
+
+  std::vector<Connection>
+  unpackConnection(const CoreIR::Connection& conn);
 }

@@ -69,6 +69,7 @@ bool Passes::VerifyConnectivity::runOnModule(Module* m) {
   }
   if (!verify) {
     c->error(e);
+    c->printerrors();
   }
   return false;
 
