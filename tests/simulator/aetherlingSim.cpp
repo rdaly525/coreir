@@ -74,9 +74,12 @@ namespace CoreIR {
             }
 
             mainModule->setDef(def);
+            mapN_mul->getModuleRef()->print();
             c->runPasses({"rungenerators", "flatten", "flattentypes"});
             mainModule->print();
+            cout << "hi" << endl;
             mapN_mul->getModuleRef()->print();
+            cout << endl;
                         
             SimulatorState state(mainModule);
             state.execute();
