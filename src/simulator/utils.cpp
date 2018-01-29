@@ -1,5 +1,9 @@
 #include "coreir/simulator/utils.h"
 
+#include "coreir/ir/context.h"
+
+#include <fstream>
+
 using namespace CoreIR;
 using namespace std;
 
@@ -279,4 +283,133 @@ namespace CoreIR {
     return false;
   }
 
+  std::vector<char> hexToBytes(const std::string& hex) {
+    std::vector<char> bytes;
+
+    for (unsigned int i = 0; i < hex.length(); i += 2) {
+      std::string byteString = hex.substr(i, 2);
+      char byte = (char) strtol(byteString.c_str(), NULL, 16);
+      bytes.push_back(byte);
+    }
+
+    return bytes;
+  }
+
+  std::vector<std::string> splitString(const std::string& str,
+                                       const std::string& delimiter) {
+    std::vector<std::string> strings;
+
+    std::string::size_type pos = 0;
+    std::string::size_type prev = 0;
+    while ((pos = str.find(delimiter, prev)) != std::string::npos)
+      {
+        strings.push_back(str.substr(prev, pos - prev));
+        prev = pos + 1;
+      }
+
+    // To get the last substring (or only, if delimiter is not found)
+    strings.push_back(str.substr(prev));
+
+    return strings;
+  }
+
+  BitVector hexStringToBitVector(const std::string& str) {
+    vector<char> addrBytes = hexToBytes(str);
+
+    //assert(addrBytes.size() == 4);
+    int numBits = str.size() * 4;
+
+    reverse(addrBytes);
+
+    BitVector configAddr(numBits, 0);
+
+    int offset = 0;
+    for (auto byte : addrBytes) {
+      BitVector tmp(8, byte);
+      for (uint i = 0; i < (uint) tmp.bitLength(); i++) {
+        configAddr.set(offset, tmp.get(i));
+        offset++;
+      }
+    }
+
+    assert(offset == 32);
+
+    return configAddr;
+  }
+
+  BitStreamConfig loadConfig(const std::string& configFileName) {
+    cout << "Loading configuration state" << endl;
+
+    //configFile("./bitstream/shell_bitstream.bs")
+    std::ifstream configFile(configFileName);
+    std::string str((std::istreambuf_iterator<char>(configFile)),
+                    std::istreambuf_iterator<char>());
+
+    cout << "Config file text" << endl;
+    cout << str << endl;
+
+    auto configLines = splitString(str, "\n");
+    cout << "Config lines" << endl;
+    for (auto line : configLines) {
+      cout << "\t" << line << endl;
+    }
+
+    vector<BitVector> configDatas;
+    vector<BitVector> configAddrs;
+
+    for (auto line : configLines) {
+      auto entries = splitString(line, " ");
+
+      cout << "# of entries == " << entries.size() << endl;
+      cout << "Line = " << line << endl;
+
+      assert(entries.size() == 2);
+
+      string addrString = entries[0];
+      string dataString = entries[1];
+
+      cout << "addr string = " << addrString << endl;
+      cout << "data string = " << dataString << endl;
+
+      assert(addrString.size() == 8);
+      assert(dataString.size() == 8);
+
+      // Convert strings to bit vectors
+      vector<char> addrBytes = hexToBytes(addrString);
+      assert(addrBytes.size() == 4);
+
+      BitVector configAddr = hexStringToBitVector(addrString);
+      BitVector configData = hexStringToBitVector(dataString);
+
+      cout << "configAddr = " << configAddr << endl;
+      cout << "configData = " << configData << endl;
+
+      configAddrs.push_back(configAddr);
+      configDatas.push_back(configData);
+    }
+
+    assert(configAddrs.size() == configLines.size());
+    assert(configDatas.size() == configLines.size());
+
+    return {configAddrs, configDatas};
+  }
+
+  Module* loadModule(CoreIR::Context* const c,
+                     const std::string& fileName,
+                     const std::string& topModName) {
+    Module* topMod = nullptr;
+
+    if (!loadFromFile(c, fileName, &topMod)) {
+      cout << "Could not Load from json!!" << endl;
+      c->die();
+    }
+
+    topMod = c->getGlobal()->getModule(topModName);
+
+    assert(topMod != nullptr);
+
+    return topMod;
+  }
+
+  
 }

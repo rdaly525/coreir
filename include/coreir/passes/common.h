@@ -20,6 +20,7 @@
 
 //Transform passes
 #include "transform/flatten.h"
+#include "coreir/passes/transform/deletedeadinstances.h"
 #include "transform/rungenerators.h"
 #include "transform/flattentypes.h"
 #include "transform/removeconstduplicates.h"
@@ -78,6 +79,7 @@ namespace CoreIR {
     pm.addPass(new Passes::PackConnections());
     pm.addPass(new Passes::UnpackConnections());
     pm.addPass(new Passes::RemoveConstDuplicates());
+    pm.addPass(new Passes::DeleteDeadInstances());
     pm.addPass(new Passes::CullZexts());
     pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
     pm.addPass(new Passes::RegisterInputs("registerinputs"));

@@ -17,6 +17,10 @@ class VerifyConnectivity : public ModulePass {
       addDependency("verifyinputconnections");
     }
     bool runOnModule(Module* m) override;
+    bool finalize() override {
+      getContext()->checkerrors();
+      return false;
+    }
 
   private:
     bool checkIfFullyConnected(Wireable* w, Error& e);

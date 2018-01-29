@@ -91,6 +91,9 @@ namespace CoreIR {
     assert(isSelect(dest));
 
     Select* destSel = toSelect(dest);
+    if (!(destSel->getParent() == inst)) {
+      cout << "Destination select: " << destSel->toString() << endl;
+    }
     assert(destSel->getParent() == inst);
 
     string opString = getOpString(*inst);
@@ -192,8 +195,6 @@ namespace CoreIR {
     // And not standard width
     if (isDASHR(*inst)) {
       uint tw = typeWidth(*(arg1.getWire()->getType()));
-      //uint containWidth = containerTypeWidth(*(arg1.getWire()->getType()));
-      //if (containWidth > tw) {
 
         LowExpr* maskExpr =
           new LowBinop("<<",
@@ -215,11 +216,8 @@ namespace CoreIR {
           new LowBinop("|",
                        new LowId(ite(signBitSet->cString(), mask, "0")),
                        expr);
-        //}
     }
 
-    // string compString = expr->cString();
-    // Check if this output needs a mask
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
       expr = maskResultExpression(*(outPair.second->getType()), expr);
     }
@@ -275,7 +273,6 @@ namespace CoreIR {
                    castToSigned(arg1Tp, seString(arg1Tp, rs1)),
                    castToSigned(arg2Tp, seString(arg2Tp, rs2)));
 
-    //string res;
     LowExpr* res;
     if (g.getOutputConnections(vd)[0].first.needsMask()) {
       res = maskResultExpression(*(outPair.second->getType()), opStr);
@@ -483,7 +480,6 @@ namespace CoreIR {
 
     }
 
-    //LowProgram prog;
     prog.addAssignStmt(new LowId(cVar(*resultSelect)), res);
 
     prog.addAssignStmt(new LowId(cVar(*coutSelect)),
@@ -559,8 +555,6 @@ namespace CoreIR {
 
     assert((ins.size() == 3) || (ins.size() == 2 && !hasEnable(wd.getWire())));
 
-    //string s = lp.outputVarName(*wd.getWire()) + " = ";
-
     string resName = lp.outputVarName(*wd.getWire());
 
     InstanceValue add = findArg("in", ins);
@@ -571,7 +565,6 @@ namespace CoreIR {
     // clock variable
     string resStr;
     if (hasEnable(wd.getWire())) {
-      //string condition = "";
       LowExpr* condition;
       
       InstanceValue en = findArg("en", ins);
@@ -579,12 +572,11 @@ namespace CoreIR {
 
       resStr = ite(parens(condition->cString()),
                    printOpResultStr(add, g, lp)->cString(),
-                   oldValName); // + ";\n";
+                   oldValName);
     } else {
-      resStr = printOpResultStr(add, g, lp)->cString(); // + ";\n";
+      resStr = printOpResultStr(add, g, lp)->cString();
     }
 
-    //LowProgram prog;
     prog.addAssignStmt(new LowId(resName),
                        new LowId(resStr));
 
@@ -859,7 +851,6 @@ namespace CoreIR {
     return str;
   }
 
-  //vector<string>
   void
   updateSequentialElements(const SIMDGroup& group,
                            NGraph& g,
@@ -867,12 +858,9 @@ namespace CoreIR {
                            LayoutPolicy& layoutPolicy,
                            LowProgram& prog) {
 
-    //vector<string> simLines;
     auto topoOrder = group.nodes[0];
     
     if (group.nodes.size() == 1) {
-
-      // Update stateful element values
 
       for (auto& vd : topoOrder) {
         WireNode wd = getNode(g, vd);
@@ -880,34 +868,20 @@ namespace CoreIR {
         if (isInstance(inst)) { 
           if (!isCombinationalInstance(wd) &&
               wd.isReceiver) {
-            //LowProgram prog;
+
             printInstance(wd, vd, g, layoutPolicy, prog);
-            //simLines.push_back(prog.cString()); //printInstance(wd, vd, g, layoutPolicy));
+
           }
         }
       }
     } else {
 
       assert(false);
-
-      // for (auto& vd : topoOrder) {
-      //   WireNode wd = getNode(g, vd);
-      //   Wireable* inst = wd.getWire();
-      //   if (isInstance(inst)) { 
-      //     if (!isCombinationalInstance(wd) &&
-      //         wd.isReceiver) {
-      //       concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, layoutPolicy));
-      //     }
-      //   }
-      // }
       
     }
 
-    //return simLines;
-
   }
 
-  //LowProgram
   void
   updateCombinationalLogic(const std::deque<vdisc>& topoOrder,
                            NGraph& g,
@@ -918,7 +892,6 @@ namespace CoreIR {
 
     int i = 0;
 
-    //LowProgram prog;
     for (auto& vd : topoOrder) {
 
       string val = "<UNSET>";
@@ -963,11 +936,6 @@ namespace CoreIR {
       i++;
     }
 
-    //return prog;
-
-    // simLines.push_back(prog.cString());
-
-    // return simLines;
   }
 
   void addScalarDAGCode(const std::vector<std::deque<vdisc> >& dags,
@@ -1099,20 +1067,6 @@ namespace CoreIR {
 
     assert(false);
 
-    // vector<string> simLines;
-    // SubDAG init = group.nodes[0];
-
-    // string tmp = cVar(*(g.getNode(init[0]).getWire()));    
-
-    // // Emit SIMD code for each node in the pattern
-    // for (auto& vd : init) {
-    //   WireNode wd = g.getNode(vd);
-    //   if (!wd.isSequential || !wd.isReceiver) {
-    //     concat(simLines, printSIMDNode(vd, group.totalWidth, g, mod, lp));
-    //   }
-    // }
-
-    // return simLines;
   }
 
   void addDAGCode(const std::vector<SIMDGroup>& dags,
@@ -1120,10 +1074,8 @@ namespace CoreIR {
                   Module& mod,
                   LayoutPolicy& layoutPolicy,
                   LowProgram& prog) {
-                  //std::vector<std::string>& simLines) {
 
     for (auto& simdGroup : dags) {
-      //concat(simLines, printSIMDGroup(simdGroup, g, mod, layoutPolicy, prog));
       printSIMDGroup(simdGroup, g, mod, layoutPolicy, prog);
     }
 
@@ -1146,17 +1098,16 @@ namespace CoreIR {
                   Module& mod,
                   LayoutPolicy& layoutPolicy,
                   LowProgram& prog) {
-                  //std::vector<std::string>& simLines) {
+
     if (!code.sequentialUpdate) {
-      //LowProgram prog;
+
       addDAGCode(code.dags, g, mod, layoutPolicy, prog);
-      //simLines.push_back(prog.cString());
+
     } else {
       for (auto& dag : code.dags) {
-        //LowProgram prog;
+
         updateSequentialElements(dag, g, mod, layoutPolicy, prog);
-        //simLines.push_back(prog.cString());
-        //concat(simLines, updateSequentialElements(dag, g, mod, layoutPolicy));
+
       }
     }
   }
@@ -1195,24 +1146,8 @@ namespace CoreIR {
       return false;
     }
 
-    cout << "Subgraphs share Out -> In " << endl;
     return true;
     
-    // for (auto& vd : gpd) {
-    //   if (isSubgraphOutput(vd, gpd, g)) {
-    //     for (auto& ud : opd) {
-    //       if (isSubgraphInput(ud, opd, g)) {
-    //         if (g.getNode(vd).getWire() ==
-    //             g.getNode(ud).getWire()) {
-    //           cout << "Subgraphs share Out -> In " << nodeString(g.getNode(vd)) << endl;
-    //           return true;
-    //         }
-    //       }
-    //     }
-    //   }
-    // }
-    // Fill in input output dependencies
-    //return false;
   }
 
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
@@ -1228,14 +1163,6 @@ namespace CoreIR {
     vector<string> simLines;
 
     auto paths = buildCircuitPaths(topoOrder, g, mod);
-    // paths.postSequentialDAGs = optimizeSIMD(paths.postSequentialDAGs,
-    //                                         g,
-    //                                         mod,
-    //                                         layoutPolicy);
-    // paths.preSequentialDAGs = optimizeSIMD(paths.preSequentialDAGs,
-    //                                        g,
-    //                                        mod,
-    //                                        layoutPolicy);
 
     auto clk = findMainClock(g);
 
@@ -1271,18 +1198,12 @@ namespace CoreIR {
         for (auto& gp : paths.preSequentialDAGs) {
           updateOrder.addVertex({{gp}, false, CODE_GROUP_PRE_CLK});
           updateOrder.addVertex({{gp}, true, CODE_GROUP_CLK});
-
-          // codeGroups.push_back({{gp}, false, });
-          // codeGroups.push_back({{gp}, true});
         }
 
         cout << "# of post updates = " << paths.postSequentialDAGs.size() << endl;
         for (auto& gp : paths.postSequentialDAGs) {
           updateOrder.addVertex({{gp}, true, CODE_GROUP_CLK});
           updateOrder.addVertex({{gp}, false, CODE_GROUP_POST_CLK});
-
-          // codeGroups.push_back({{gp}, false});
-          // codeGroups.push_back({{gp}, true});
         }
 
         // Insert use to update edges
@@ -1325,8 +1246,6 @@ namespace CoreIR {
         }
         simLines.push_back(clkProg.cString());
         
-        //assert(false);
-
       } else {
 
         vector<CodeGroup> codeGroups;
