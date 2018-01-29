@@ -170,7 +170,7 @@ namespace CoreIR {
       return false;
     }
     
-    return cast<Instance>(fst)->getModuleRef()->getRefName() == "commonlib.LinebufferMem";
+    return cast<Instance>(fst)->getModuleRef()->getRefName() == "memory.rowbuffer";
 
 
     //CoreIR::Instance* inst = toInstance(fst);
