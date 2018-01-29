@@ -1,6 +1,7 @@
 #pragma once
 
 #include "coreir/ir/common.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/namespace.h"
 #include "coreir/ir/types.h"
@@ -354,5 +355,16 @@ namespace CoreIR {
   bool fromSelfInterface(CoreIR::Select* w);
 
   bool isConstant(CoreIR::Wireable* const w);
+
+  struct BitStreamConfig {
+    std::vector<BitVector> configAddrs;
+    std::vector<BitVector> configDatas;
+  };
+
+  BitStreamConfig loadConfig(const std::string& configFileName);
+
+  Module* loadModule(CoreIR::Context* const c,
+                     const std::string& fileName,
+                     const std::string& topModName);
   
 }

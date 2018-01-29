@@ -2,6 +2,7 @@
 
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/types.h"
+#include "coreir/passes/transform/deletedeadinstances.h"
 #include "coreir/simulator/algorithm.h"
 #include "coreir/simulator/op_graph.h"
 #include "coreir/simulator/wiring_utils.h"
@@ -798,4 +799,79 @@ namespace CoreIR {
     
   }
 
+  void partiallyEvaluateCircuit(CoreIR::Module* const wholeTopMod,
+                                std::unordered_map<std::string, BitVector>& regMap) {
+    cout << "Converting " << regMap.size() << " registers to constants" << endl;
+    for (auto reg : regMap) {
+      cout << "\t" << reg.first << " ---> " << reg.second << endl;
+    }
+
+    registersToConstants(wholeTopMod, regMap);
+
+    for (auto inst : wholeTopMod->getDef()->getInstances()) {
+      cout << "\t" << inst.second->toString() << " : " << inst.second->getModuleRef()->toString() << endl;
+    }
+
+    cout << "Top module after deleting dead instances" << endl;
+    wholeTopMod->print();
+    cout << wholeTopMod->toString() << endl;
+    if (!saveToFile(wholeTopMod->getContext()->getGlobal(), "sb_unq1_registered.json", wholeTopMod)) {
+      cout << "Could not save to json!!" << endl;
+      assert(false);
+    }
+  
+    cout << "Deleting dead instances" << endl;
+    deleteDeadInstances(wholeTopMod);
+
+    cout << "# of instances partially evaluated top after deleting dead instances = " << wholeTopMod->getDef()->getInstances().size() << endl;
+
+    cout << "Folding constants to finish partial evaluation" << endl;
+    foldConstants(wholeTopMod);
+
+    cout << "Done folding constants" << endl;
+
+    deleteDeadInstances(wholeTopMod);
+
+    cout << "# of instances partially evaluated top after constant folding = " << wholeTopMod->getDef()->getInstances().size() << endl;
+
+  }
+
+
+  Module* createSubCircuit(CoreIR::Module* const topMod,
+                           std::vector<CoreIR::Wireable*>& subCircuitPorts,
+                           std::vector<CoreIR::Instance*>& subCircuitInstances,
+                           CoreIR::Context* const c) {
+  
+    // Create the subcircuit for the config, this could be isolated into a function
+    addSubcircuitModule("topMod_config",
+                        topMod,
+                        subCircuitPorts,
+                        subCircuitInstances,
+                        c,
+                        c->getGlobal());
+
+    Module* topMod_conf =
+      c->getGlobal()->getModule("topMod_config");
+
+    assert(topMod_conf != nullptr);
+    assert(topMod_conf->hasDef());
+
+    deleteDeadInstances(topMod_conf);
+
+    cout << "# of instances in subcircuit after deleting dead instances = " << topMod_conf->getDef()->getInstances().size() << endl;
+
+    c->setTop(topMod_conf);
+    c->runPasses({"removeconstduplicates"});
+
+    cout << "# of instances in subcircuit after deleting duplicate constants = " << topMod_conf->getDef()->getInstances().size() << endl;
+  
+    cout << "Saving the config circuit" << endl;
+    if (!saveToFile(c->getGlobal(), "topModConfig.json", topMod_conf)) {
+      cout << "Could not save to json!!" << endl;
+      c->die();
+    }
+
+    return topMod_conf;
+  }
+  
 }
