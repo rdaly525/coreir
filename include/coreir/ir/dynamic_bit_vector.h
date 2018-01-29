@@ -46,7 +46,7 @@ namespace bsim {
 
       int num_digits = 0;
       std::string str;
-      for (int i = 0; i < str_raw.size(); i++) {
+      for (uint i = 0; i < str_raw.size(); i++) {
 	if (isdigit(str_raw[i])) {
 	  num_digits++;
 	  str += str_raw[i];
@@ -370,7 +370,7 @@ namespace bsim {
     dynamic_bit_vector diff(a.bitLength());
     dynamic_bit_vector a_cpy = a;
 
-    bool underflow = false;
+    //bool underflow = false;
     for (int i = 0; i < Width; i++) {
 
       if ((a_cpy.get(i) == 0) &&
@@ -387,7 +387,7 @@ namespace bsim {
   	}
 
   	if (j >= Width) {
-  	  underflow = true;
+  	  //underflow = true;
   	} else {
   	  a_cpy.set(j, 0);
   	}
@@ -988,52 +988,52 @@ namespace bsim {
   }
   
 
-  static inline
-  dynamic_bit_vector
-  extend(const dynamic_bit_vector& a, const int extra_bits) {
-    dynamic_bit_vector res(a.bitLength() + extra_bits);
-    for (uint i = 0; i < a.bitLength(); i++) {
-      res.set(i, a.get(i));
-    }
+  // static inline
+  // dynamic_bit_vector
+  // extend(const dynamic_bit_vector& a, const int extra_bits) {
+  //   dynamic_bit_vector res(a.bitLength() + extra_bits);
+  //   for (uint i = 0; i < a.bitLength(); i++) {
+  //     res.set(i, a.get(i));
+  //   }
 
-    return res;
-  }
+  //   return res;
+  // }
 
-  static inline
-  dynamic_bit_vector
-  set_ops(const dynamic_bit_vector& a_exp,
-	  const dynamic_bit_vector& b_exp,
-	  const dynamic_bit_vector& a_ext,
-	  const dynamic_bit_vector& b_ext,	  
-	  dynamic_bit_vector& a_op,
-	  dynamic_bit_vector& b_op) {
+  // static inline
+  // dynamic_bit_vector
+  // set_ops(const dynamic_bit_vector& a_exp,
+  //         const dynamic_bit_vector& b_exp,
+  //         const dynamic_bit_vector& a_ext,
+  //         const dynamic_bit_vector& b_ext,	  
+  //         dynamic_bit_vector& a_op,
+  //         dynamic_bit_vector& b_op) {
 
-    dynamic_bit_vector tentative_exp(a_exp.bitLength()); //exp_width);    
+  //   dynamic_bit_vector tentative_exp(a_exp.bitLength()); //exp_width);    
 
-    if (a_exp > b_exp) {
-      tentative_exp = a_exp;
+  //   if (a_exp > b_exp) {
+  //     tentative_exp = a_exp;
 
-      auto diff = sub_general_width_bv(a_exp, b_exp);
+  //     auto diff = sub_general_width_bv(a_exp, b_exp);
 
-      auto shift_b = lshr(b_ext, diff);
+  //     auto shift_b = lshr(b_ext, diff);
 
-      a_op = a_ext;
-      b_op = shift_b;
+  //     a_op = a_ext;
+  //     b_op = shift_b;
 
-    } else {
-      tentative_exp = b_exp;
+  //   } else {
+  //     tentative_exp = b_exp;
 
-      auto diff = sub_general_width_bv(b_exp, a_exp);
+  //     auto diff = sub_general_width_bv(b_exp, a_exp);
 
-      auto shift_a = lshr(a_ext, diff);
+  //     auto shift_a = lshr(a_ext, diff);
 
-      a_op = shift_a;
-      b_op = b_ext;
+  //     a_op = shift_a;
+  //     b_op = b_ext;
 
-    }
+  //   }
 
-    return tentative_exp;
-  }
+  //   return tentative_exp;
+  // }
 
   // static inline
   // dynamic_bit_vector
