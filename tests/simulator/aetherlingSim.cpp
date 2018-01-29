@@ -83,15 +83,11 @@ namespace CoreIR {
             //mapN_mul->getModuleRef()->print();
             cout << endl;
                         
-            //SimulatorState state(mainModule);
-            //state.execute();
-            BitVector bv0 = BitVector(width, 0*constInput);
-            BitVector bv1 = BitVector(width, 1*constInput);
-            BitVector bv2 = BitVector(width, 2*constInput);
-            BitVector bv3 = BitVector(width, 3*constInput);
-
+            SimulatorState state(mainModule);
+            state.execute();
+            
             for (int i = 0; i < parallelOperators; i++) {
-                //  REQUIRE(state.getBitVec("self.out_" + to_string(i)) == BitVector(width, i*constInput));
+                REQUIRE(state.getBitVec("self.out_" + to_string(i)) == BitVector(width, i*constInput));
             }
                     
         }
