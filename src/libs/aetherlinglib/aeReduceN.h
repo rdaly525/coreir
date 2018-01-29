@@ -30,10 +30,10 @@ void Aetherling_createReduceGenerator(Context* c) {
         reduceNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint width = genargs.at("width")->get<int>();
-            uint parallelOperators = genargs.at("parallelOperators")->get<int>();
+            uint initialBreadth = pow(2, genargs.at("numLayers")->get<int>() - 1);
             return c->Record({
-                    {"in", c->BitIn()->Arr(width)->Arr(parallelOperators)},
-                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
+                    {"in", c->BitIn()->Arr(width)->Arr(initialBreadth)},
+                    {"out", c->Bit()->Arr(width)->Arr(initialBreadth)}
                 });
         });
 
@@ -43,9 +43,7 @@ void Aetherling_createReduceGenerator(Context* c) {
     reduceN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numLayers = genargs.at("numLayers")->get<int>();
             uint width = genargs.at("width")->get<int>();
-            uint parallelOperators = genargs.at("parallelOperators")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
-            assert(parallelOperators>0);
             assert(numLayers>0);
             assert(width>0);
 
@@ -74,10 +72,10 @@ void Aetherling_createReduceGenerator(Context* c) {
         reduceNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint width = genargs.at("width")->get<int>();
-            uint parallelOperators = genargs.at("parallelOperators")->get<int>();
+            uint initialBreadth = pow(2, genargs.at("numLayers")->get<int>() - 1);
             return c->Record({
-                    {"in", c->BitIn()->Arr(width)->Arr(parallelOperators)},
-                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)},
+                    {"in", c->BitIn()->Arr(width)->Arr(initialBreadth)},
+                    {"out", c->Bit()->Arr(width)->Arr(initialBreadth)},
                     {"mergeCur", c->Bit()}, // set this bit if you want the current output to be merged with
                         // the last one
                         });
@@ -92,9 +90,7 @@ void Aetherling_createReduceGenerator(Context* c) {
     reduceNSerializable->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numLayers = genargs.at("numLayers")->get<int>();
             uint width = genargs.at("width")->get<int>();
-            uint parallelOperators = genargs.at("parallelOperators")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
-            assert(parallelOperators>0);
             assert(numLayers>0);
             assert(width>0);
 

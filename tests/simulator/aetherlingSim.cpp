@@ -40,8 +40,8 @@ namespace CoreIR {
             /* creating the mulBy2 that the mapN will parallelize */
             //Type of module 
             Type* oneInOneOutGenType = c->Record({
-                    {"in",c->Array(16,c->BitIn())},
-                    {"out",c->Array(16,c->Bit())}
+                    {"in",c->BitIn()->Arr(width)},
+                    {"out",c->Bit()->Arr(width)}
                 });
             Module* mulBy2 = c->getGlobal()->newModuleDecl("mulBy2", oneInOneOutGenType);
             ModuleDef* mulBy2Def = mulBy2->newModuleDef();
@@ -79,10 +79,8 @@ namespace CoreIR {
             mapN_mul->getModuleRef()->print();
             c->runPasses({"rungenerators", "flatten", "flattentypes"});
             mainModule->print();
-            cout << "hi" << endl;
             //mapN_mul->getModuleRef()->print();
-            cout << endl;
-                        
+
             SimulatorState state(mainModule);
             state.execute();
             
@@ -94,7 +92,6 @@ namespace CoreIR {
 
         deleteContext(c);
     }
-/*
 
     TEST_CASE("Simulate reduceNSerializable from aetherlinglib") {
         // New context
@@ -108,7 +105,7 @@ namespace CoreIR {
 
             CoreIRLoadLibrary_commonlib(c);
             CoreIRLoadLibrary_aetherlinglib(c);
-
+            printf("hi\n");
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)}
@@ -117,7 +114,8 @@ namespace CoreIR {
             ModuleDef* def = mainModule->newModuleDef();
 
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
-            
+            add->print();
+
             Values reduceNModArgs = {
                 {"numLayers", Const::make(c, numLayers)},
                 {"width", Const::make(c, width)},
@@ -145,10 +143,8 @@ namespace CoreIR {
             reduceN_add->getModuleRef()->print();
             c->runPasses({"rungenerators", "flatten", "flattentypes"});
             mainModule->print();
-            cout << "hi" << endl;
-            reduceN_add->getModuleRef()->print();
-            cout << endl;
-                        
+            //reduceN_add->getModuleRef()->print();
+                                    
             SimulatorState state(mainModule);
             state.execute();
 
@@ -156,5 +152,4 @@ namespace CoreIR {
         }
         deleteContext(c);
     }
-*/
 }
