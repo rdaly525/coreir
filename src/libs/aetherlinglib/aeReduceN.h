@@ -30,10 +30,10 @@ void Aetherling_createReduceGenerator(Context* c) {
         reduceNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint width = genargs.at("width")->get<int>();
-            uint initialBreadth = pow(2, genargs.at("numLayers")->get<int>() - 1);
+            uint inputs = pow(2, genargs.at("numLayers")->get<int>());
             return c->Record({
-                    {"in", c->BitIn()->Arr(width)->Arr(initialBreadth)},
-                    {"out", c->Bit()->Arr(width)->Arr(initialBreadth)}
+                    {"in", c->BitIn()->Arr(width)->Arr(inputs)},
+                    {"out", c->Bit()->Arr(width)}
                 });
         });
 
@@ -52,19 +52,24 @@ void Aetherling_createReduceGenerator(Context* c) {
                 // since its a binary tree, each layer has 2^i elements
                 for (int j = 0; j < pow(2, i); j++) {
                     string opStr = getOpName(i, j);
-                    def->addInstance(opStr, opModule, {{}});
+                    def->addInstance(opStr, opModule);
+                    printf("hi0.2\n");
                     // wire up inputs if first layer
-                    if (i == numLayers) {
+                    if (i == numLayers - 1) {
+                        printf("op name: %s\n", opStr.c_str());
                         def->connect("self.in." + to_string(j*2), opStr + ".in0");
+                        printf("dude\n");
                         def->connect("self.in." + to_string(j*2+1), opStr + ".in1");
                     }
-                    else {
+                    else if (i > 0) {
+                        printf("howdy");
                         def->connect(getOpName(i+1, j*2) + ".out", opStr + ".in0");
                         def->connect(getOpName(i+1, j*2+1) + ".out", opStr + ".in1");
                     }
                 }
             }
             def->connect("op_0_0.out", "self.out");
+            printf("hi2\n");
         });
 
     aetherlinglib->newTypeGen(
@@ -72,10 +77,10 @@ void Aetherling_createReduceGenerator(Context* c) {
         reduceNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint width = genargs.at("width")->get<int>();
-            uint initialBreadth = pow(2, genargs.at("numLayers")->get<int>() - 1);
+            uint inputs = pow(2, genargs.at("numLayers")->get<int>());
             return c->Record({
-                    {"in", c->BitIn()->Arr(width)->Arr(initialBreadth)},
-                    {"out", c->Bit()->Arr(width)->Arr(initialBreadth)},
+                    {"in", c->BitIn()->Arr(width)->Arr(inputs)},
+                    {"out", c->Bit()->Arr(width)},
                     {"mergeCur", c->Bit()}, // set this bit if you want the current output to be merged with
                         // the last one
                         });
@@ -99,12 +104,11 @@ void Aetherling_createReduceGenerator(Context* c) {
 
             // have a mux to switch between merged and unmerged outputs
             def->addInstance("mergeMux", "commonlib.muxn",
-                             {{"width", Const::make(c, width)}},
-                             {{"N", Const::make(c, 2)}});
+                             {{"width", Const::make(c, width)}, {"N", Const::make(c, 2)}});
             // connect the current output directly to the merge
             def->connect("reducerN.out", "mergeMux.in0");
             // also merge the current output with the last one
-            def->addInstance("mergeOp", opModule, {{}});
+            def->addInstance("mergeOp", opModule);
             def->addInstance("lastOutputReg", "coreir.reg", {{"width", Const::make(c, width)}});
             def->connect("reducerN.out", "mergeOp.in0");
             def->connect("lastOutputReg.out", "mergeOp.in1");

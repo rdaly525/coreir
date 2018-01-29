@@ -126,7 +126,7 @@ namespace CoreIR {
             Instance* reduceN_add = def->addInstance(reduceNName, "aetherlinglib.reduceNSerializable", reduceNModArgs);
             // create different input for each operator
             int rightOutput = 0;
-            for (int i = 0 ; i < pow(2, numLayers-1); i++) {
+            for (int i = 0 ; i < pow(2, numLayers); i++) {
                 string constName = "constInput" + to_string(i);
                 def->addInstance(
                     constName,

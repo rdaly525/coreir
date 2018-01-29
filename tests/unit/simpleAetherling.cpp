@@ -57,6 +57,7 @@ int main() {
     mulBy2Def->connect("self.in", "mul.in0");
     mulBy2Def->connect(constModule + ".out", "mul.in1");
     mulBy2Def->connect("mul.out", "self.out");
+    mulBy2->setDef(mulBy2Def);
 
     Values mapNParams({
             {"width", Const::make(c, width)},
@@ -71,7 +72,7 @@ int main() {
 
     Values reduceNParams({
             {"width", Const::make(c, width)},
-            {"numLayers", Const::make(c, int(log2(2*parallelInputs)))},
+            {"numLayers", Const::make(c, int(log2(parallelInputs)))},
             {"operator", Const::make(c, add)}
         });
 
