@@ -174,15 +174,35 @@ namespace CoreIR {
   CoreIR::Select* getDriverSelect(CoreIR::Select* const src) {
     // Outputs do not have drivers
     assert(src->getType()->getDir() == Type::DK_In);
-    assert(src->getType()->getKind() == Type::TK_BitIn);
+    //assert(src->getType()->getKind() == Type::TK_BitIn);
 
     auto connected = src->getConnectedWireables();
     // No direct connections
     if (connected.size() == 0) {
 
-      // Need to search up and down the type hierarchy. A bit select
-      //bool hasAncestorConnection = false;
-      assert(false);
+      cout << src->toString() << " has no direct connections" << endl;
+
+      Wireable* parent = src->getParent();
+      if (!isa<Select>(parent)) {
+        cout << "Need to implement lower type hierarchy search to get driver " <<
+          " of " << src->toString() << endl;
+        
+        assert(false);
+      }
+
+      Select* parentSel = cast<Select>(parent);
+      Select* parentDriver = getDriverSelect(parentSel);
+
+      if (parentDriver == nullptr) {
+        return nullptr;
+      }
+
+      Select* res = parentDriver->sel(src->getSelStr());
+
+      //cout << src->toString() << " has no direct connections" <<
+      //" is driven by " << res->toString() << endl;
+
+      return res;
     }
 
     assert(connected.size() == 1);
@@ -257,5 +277,44 @@ namespace CoreIR {
 
     return maybe<BitVector>(bv);
   }
-  
+
+  std::vector<Connection>
+  unpackConnection(const CoreIR::Connection& conn) {
+    Wireable* fst = conn.first;
+    Wireable* snd = conn.second;
+
+    assert(fst->getType() == snd->getType()->getFlipped());
+
+    Type* fstType = fst->getType();
+
+    // Bit connections are already unpacked
+    if ((fstType->getKind() == Type::TK_Bit) ||
+        (fstType->getKind() == Type::TK_BitIn)) {
+      return {conn};
+    }
+
+    if (fstType->getKind() == Type::TK_Named) {
+      return {conn};
+    }
+
+    vector<Connection> unpackedConns;
+
+    if (fstType->getKind() == Type::TK_Array) {
+      ArrayType* arrTp = cast<ArrayType>(fstType);
+      int len = arrTp->getLen();
+
+      for (int i = 0; i < len; i++) {
+        concat(unpackedConns, unpackConnection({fst->sel(i), snd->sel(i)}));
+      }
+
+      return unpackedConns;
+
+    } else {
+      cout << "Wireable " << fst->toString() << " has unsupported type in unpackConnection = " << fstType->toString() << endl;
+      assert(false);
+    }
+
+    assert(false);
+  }
+
 }

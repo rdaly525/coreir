@@ -13,6 +13,7 @@ class ValueType {
       VTK_BitVector=2,
       VTK_String=3,
       VTK_CoreIRType=4,
+      VTK_Module=5,
     };
   private :
     ValueTypeKind kind;
@@ -60,6 +61,14 @@ class CoreIRType : public ValueType {
     static bool classof(const ValueType* v) {return v->getKind()==VTK_CoreIRType;}
     static CoreIRType* make(Context* c);
 };
+
+class ModuleType : public ValueType {
+  public :
+    ModuleType(Context* c) : ValueType(c,VTK_Module) {}
+    static bool classof(const ValueType* v) {return v->getKind()==VTK_Module;}
+    static ModuleType* make(Context* c);
+};
+
 
 }
 #endif
