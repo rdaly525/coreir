@@ -137,11 +137,19 @@ namespace CoreIR {
                 def->connect(constName + ".out", reduceNName + ".in." + to_string(i));
                 rightOutput += i;
             }
-            
+
+            def->addInstance("dontMergeCur","coreir.const",
+                             {{"width", Const::make(c, 1)}}, {{"value", Const::make(c,1,1)}});
+            def->connect("dontMergeCur.out.0", reduceNName + ".mergeCur");
             def->connect(reduceNName + ".out", "self.out");
             mainModule->setDef(def);
+            printf("this is what youre looking for\n");
+            mainModule->print();
+            printf("over\n");
             reduceN_add->getModuleRef()->print();
-            c->runPasses({"rungenerators", "flatten", "flattentypes"});
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes"});
+            //c->runPasses({"rungenerators", "flatten", "flattentypes"});
+
             mainModule->print();
             //reduceN_add->getModuleRef()->print();
                                     

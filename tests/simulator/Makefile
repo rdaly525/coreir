@@ -12,9 +12,10 @@
 #
 #CXXFLAGS = -std=c++11  -Wall -g -fPIC -Werror
 #
-#ifdef COREDEBUG
-#CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG 
-#endif
+COREDEBUG := 1
+ifdef COREDEBUG
+CXXFLAGS += -std=c++11 -Wall -fPIC -Werror -O0 -g3 -D_GLIBCXX_DEBUG 
+endif
 
 
 HOME = ../..

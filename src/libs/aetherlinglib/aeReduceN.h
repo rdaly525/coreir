@@ -58,7 +58,7 @@ void Aetherling_createReduceGenerator(Context* c) {
                         def->connect("self.in." + to_string(j*2), opStr + ".in0");
                         def->connect("self.in." + to_string(j*2+1), opStr + ".in1");
                     }
-                    else if (i > 0) {
+                    else {
                         def->connect(getOpName(i+1, j*2) + ".out", opStr + ".in0");
                         def->connect(getOpName(i+1, j*2+1) + ".out", opStr + ".in1");
                     }
