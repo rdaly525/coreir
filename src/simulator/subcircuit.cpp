@@ -406,9 +406,9 @@ namespace CoreIR {
       Instance* inst = *std::begin(toConsider);
       toConsider.erase(inst);
 
-      cout << "Considering instance " << inst->toString() << endl;
-      cout << "Module before trying to fold" << endl;
-      mod->print();
+      // cout << "Considering instance " << inst->toString() << endl;
+      // cout << "Module before trying to fold" << endl;
+      // mod->print();
 
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
@@ -579,14 +579,14 @@ namespace CoreIR {
         vector<Select*> in0Values = getSignalValues(in0);
         vector<Select*> in1Values = getSignalValues(in1);
 
-        // cout << "in0 values" << endl;
-        // for (auto val : in0Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
-        // cout << "in1 values" << endl;
-        // for (auto val : in1Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
+        cout << "in0 values" << endl;
+        for (auto val : in0Values) {
+          cout << "\t" << val->toString() << endl;
+        }
+        cout << "in1 values" << endl;
+        for (auto val : in1Values) {
+          cout << "\t" << val->toString() << endl;
+        }
 
         maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
         maybe<BitVec> sigValue1 = getSignalBitVec(in1Values);
@@ -596,6 +596,8 @@ namespace CoreIR {
           BitVec sigVal0 = sigValue0.get_value();
           BitVec sigVal1 = sigValue1.get_value();
 
+          cout << "sigVal0 = " << sigVal0 << endl;
+          cout << "sigVal1 = " << sigVal1 << endl;
           BitVec res = BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
 
           uint inWidth =

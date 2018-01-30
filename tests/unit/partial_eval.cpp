@@ -131,7 +131,5 @@ int main() {
 
   deleteContext(c);
 
-  assert(false);
-  
   return 0;
 }
