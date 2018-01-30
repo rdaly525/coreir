@@ -42,7 +42,6 @@ void testFoldEquals() {
   eqMod->print();
 
   assert(eqMod->getDef()->getInstances().size() == 1);
-  assert(false);
 
   deleteContext(c);
 }

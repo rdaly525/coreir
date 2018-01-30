@@ -166,6 +166,7 @@ void testNodeAfterConstant() {
 }
 
 void testSubcircuitModule() {
+
   Context* c = newContext();
 
   Namespace* g = c->getGlobal();

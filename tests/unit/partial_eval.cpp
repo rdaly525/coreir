@@ -14,6 +14,8 @@ using namespace std;
 
 int main() {
 
+  cout << "Starting partial eval test" << endl;
+
   Context* c = newContext();
 
   Module* topMod = loadModule(c, "registered_switch_proc_flat.json", "registered_switch");

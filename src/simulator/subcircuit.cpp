@@ -801,14 +801,30 @@ namespace CoreIR {
       cout << "\t" << reg.first << " ---> " << reg.second << endl;
     }
 
+    cout << "Top module before converting registers to constants" << endl;
+    wholeTopMod->print();
+    
     registersToConstants(wholeTopMod, regMap);
 
+    cout << "Instances converting registers to constants" << endl;
     for (auto inst : wholeTopMod->getDef()->getInstances()) {
       cout << "\t" << inst.second->toString() << " : " << inst.second->getModuleRef()->toString() << endl;
+
+      if (getQualifiedOpName(*(inst.second)) == "coreir.const") {
+        BitVec value = inst.second->getModArgs().at("value")->get<BitVec>();
+        cout << "\tValue = " << value << endl;
+      }
+
+      if (getQualifiedOpName(*(inst.second)) == "corebit.const") {
+        bool value = inst.second->getModArgs().at("value")->get<bool>();
+        cout << "\tValue = " << value << endl;
+      }
+
     }
 
-    cout << "Top module after deleting dead instances" << endl;
+    cout << "Top module after converting registers to constants" << endl;
     wholeTopMod->print();
+
     cout << wholeTopMod->toString() << endl;
     if (!saveToFile(wholeTopMod->getContext()->getGlobal(), "sb_unq1_registered.json", wholeTopMod)) {
       cout << "Could not save to json!!" << endl;
