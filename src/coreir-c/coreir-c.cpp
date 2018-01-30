@@ -211,6 +211,10 @@ extern "C" {
       }
   }
 
+  COREModule* COREGeneratorGetModule(COREGenerator* core_gen, void* genargs) {
+      return rcast<COREModule*>(rcast<Generator*>(core_gen)->getModule(*rcast<Values*>(genargs)));
+  }
+
 
   COREModuleDef* COREModuleNewDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());

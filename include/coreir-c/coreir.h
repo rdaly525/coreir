@@ -44,6 +44,7 @@ void COREModuleGetGenArgs(COREModule* mod, char*** names, COREValue** args, int*
 extern const char* COREModuleGetName(COREModule* module);
 extern const char* COREGeneratorGetName(COREModule* module);
 void COREGeneratorGetGenParams(COREGenerator* core_gen, char*** names, COREValueType*** params, int* num_params);
+COREModule* COREGeneratorGetModule(COREGenerator* core_gen, void* genargs);
 
 //Errors:
 //  Invalid arg: Module name already exists
