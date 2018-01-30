@@ -42,21 +42,27 @@ int main() {
   topState.setClock("self.clk", 0, 1);
   topState.setValue("self.config_en", BitVec(1, 1));
     
-  BitStreamConfig bs =
-    loadConfig("./sb_1_bitstream.bs");
+  // BitStreamConfig bs =
+  //   loadConfig("./sb_1_bitstream.bs");
 
-  cout << "Configuring pe tile" << endl;
-  for (uint i = 0; i < bs.configAddrs.size(); i++) {
+  // cout << "Configuring pe tile" << endl;
+  // for (uint i = 0; i < bs.configAddrs.size(); i++) {
 
-    cout << "Simulating config " << i << endl;
-    cout << "config addr = " << bs.configAddrs[i] << endl;
-    cout << "config data = " << bs.configDatas[i] << endl;
+  //   cout << "Simulating config " << i << endl;
+  //   cout << "config addr = " << bs.configAddrs[i] << endl;
+  //   cout << "config data = " << bs.configDatas[i] << endl;
 
-    topState.setValue("self.config_addr", bs.configAddrs[i]);
-    topState.setValue("self.config_data", bs.configDatas[i]);
+  //   topState.setValue("self.config_addr", bs.configAddrs[i]);
+  //   topState.setValue("self.config_data", bs.configDatas[i]);
 
-    topState.execute();
-  }
+  //   topState.execute();
+  // }
+
+  BitVector configData(32, 0x00000C00);
+  topState.setValue("self.config_addr", BitVec(32, 0));
+  topState.setValue("self.config_data", configData);
+
+  topState.execute();
 
   Module* wholeTopMod = nullptr;
   wholeTopMod = c->getGlobal()->getModule("registered_switch");
