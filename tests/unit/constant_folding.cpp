@@ -13,6 +13,7 @@ void testFoldEquals() {
 
   Namespace* g = c->getGlobal();
   uint width = 2;
+  uint cwidth = 32;
 
   Type* eqModTP = c->Record({{"out", c->Bit()}});
 
@@ -21,12 +22,12 @@ void testFoldEquals() {
 
   def->addInstance("cmp", "coreir.eq", {{"width", Const::make(c, width)}});
 
-  def->addInstance("c0", "coreir.const", {{"width", Const::make(c, width)}}, {{"value", Const::make(c, BitVec(width, 4))}});
+  def->addInstance("c0", "coreir.const", {{"width", Const::make(c, cwidth)}}, {{"value", Const::make(c, BitVec(cwidth, 0x00000C00))}});
 
-  def->addInstance("c1", "coreir.const", {{"width", Const::make(c, width)}}, {{"value", Const::make(c, BitVec(width, 4))}});
+  def->addInstance("c1", "coreir.const", {{"width", Const::make(c, width)}}, {{"value", Const::make(c, BitVec(width, 3))}});
 
-  def->connect("c0.out.0", "cmp.in0.0");
-  def->connect("c0.out.1", "cmp.in0.1");
+  def->connect("c0.out.10", "cmp.in0.0");
+  def->connect("c0.out.11", "cmp.in0.1");
 
   def->connect("c1.out.0", "cmp.in1.0");
   def->connect("c1.out.1", "cmp.in1.1");
@@ -35,6 +36,10 @@ void testFoldEquals() {
   
   eqMod->setDef(def);
 
+  SimulatorState originalState(eqMod);
+  originalState.execute();
+  assert(originalState.getBitVec("self.out") == BitVec(1, 1));
+  
   foldConstants(eqMod);
   deleteDeadInstances(eqMod);
 
@@ -42,6 +47,10 @@ void testFoldEquals() {
   eqMod->print();
 
   assert(eqMod->getDef()->getInstances().size() == 1);
+
+  SimulatorState state(eqMod);
+  state.execute();
+  assert(state.getBitVec("self.out") == BitVec(1, 1));
 
   deleteContext(c);
 }
