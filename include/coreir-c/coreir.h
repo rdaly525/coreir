@@ -43,6 +43,7 @@ extern COREGenerator* COREModuleGetGenerator(COREModule* mod);
 void COREModuleGetGenArgs(COREModule* mod, char*** names, COREValue** args, int* num_args);
 extern const char* COREModuleGetName(COREModule* module);
 extern const char* COREGeneratorGetName(COREModule* module);
+void COREGeneratorGetGenParams(COREGenerator* core_gen, char*** names, COREValueType*** params, int* num_params);
 
 //Errors:
 //  Invalid arg: Module name already exists
@@ -103,6 +104,6 @@ extern COREDirectedConnection** COREDirectedInstanceGetOutputs(COREDirectedInsta
 extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstance* directed_instance, int* num_connections);
 // END   : directedview
 
-
+int COREValueTypeGetKind(COREValueType* value_type);
 
 #endif //COREIR_C_H_

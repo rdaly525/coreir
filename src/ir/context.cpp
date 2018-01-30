@@ -69,6 +69,7 @@ Context::~Context() {
   for (auto it : directedConnectionPtrArrays) free(it);
   for (auto it : directedInstancePtrArrays) free(it);
   for (auto it : valuePtrArrays) free(it);
+  for (auto it : valueTypePtrArrays) free(it);
 
   delete typecache;
   delete valuecache;
@@ -303,6 +304,12 @@ Values* Context::newValues() {
 Value** Context::newValueArray(int size) {
     Value** arr = (Value**) malloc(sizeof(Value*) * size);
     valuePtrArrays.push_back(arr);
+    return arr;
+}
+
+ValueType** Context::newValueTypeArray(int size) {
+    ValueType** arr = (ValueType**) malloc(sizeof(ValueType*) * size);
+    valueTypePtrArrays.push_back(arr);
     return arr;
 }
 

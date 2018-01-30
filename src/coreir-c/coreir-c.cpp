@@ -193,6 +193,24 @@ extern "C" {
       return rcast<Generator*>(gen)->getName().c_str();
   }
 
+  void COREGeneratorGetGenParams(COREGenerator* core_gen, char*** names, COREValueType*** params, int* num_params) {
+      Generator* gen = rcast<Generator*>(core_gen);
+      Params genParams = gen->getGenParams();
+      int size = genParams.size();
+      Context* context = gen->getContext();
+      *names = context->newStringArray(size);
+      *params = (COREValueType **) context->newValueTypeArray(size);
+      *num_params = size;
+      int count = 0;
+      for (auto element : genParams) {
+          std::size_t name_length = element.first.size();
+          (*names)[count] = context->newStringBuffer(name_length + 1);
+          memcpy((*names)[count], element.first.c_str(), name_length + 1);
+          (*params)[count] = rcast<COREValueType*>(element.second);
+          count++;
+      }
+  }
+
 
   COREModuleDef* COREModuleNewDef(COREModule* module) {
     return rcast<COREModuleDef*>(rcast<Module*>(module)->newModuleDef());
@@ -481,6 +499,10 @@ extern "C" {
 
   bool CORETypeIsInput(COREType* type) {
       return rcast<Type*>(type)->isInput();
+  }
+
+  int COREValueTypeGetKind(COREValueType* value_type) {
+      return rcast<ValueType*>(value_type)->getKind();
   }
 
 }//extern "C"
