@@ -97,7 +97,7 @@ int main() {
 
   cout << "self.out_1_0 = " << state.getBitVec("self.out_1_0") << endl;
   
-  //assert(state.getBitVec("self.out_1_0") == BitVec(16, 34));
+  assert(state.getBitVec("self.out_1_0") == BitVec(16, 34));
 
   state.setValue("self.pe_output_0", BitVec(16, 2));
 
@@ -105,7 +105,7 @@ int main() {
 
   cout << "self.out_1_0 = " << state.getBitVec("self.out_1_0") << endl;
 
-  //assert(state.getBitVec("self.out_1_0") == BitVec(16, 2));
+  assert(state.getBitVec("self.out_1_0") == BitVec(16, 2));
 
   deleteContext(c);
   

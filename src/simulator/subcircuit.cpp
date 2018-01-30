@@ -370,11 +370,6 @@ namespace CoreIR {
     ModuleDef* def = mod->getDef();
     Context* c = mod->getContext();
 
-    // set<Instance*> unchecked;
-    // for (auto inst : def->getInstances()) {
-    //   unchecked.insert(inst.second);
-    // }
-
     set<Instance*> toConsider;
     for (auto inst : def->getInstances()) {
       if (isConstant(inst.second)) {
@@ -412,8 +407,8 @@ namespace CoreIR {
       toConsider.erase(inst);
 
       cout << "Considering instance " << inst->toString() << endl;
-      // cout << "Module before trying to fold" << endl;
-      // mod->print();
+      cout << "Module before trying to fold" << endl;
+      mod->print();
 
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
