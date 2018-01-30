@@ -24,6 +24,7 @@ U2V_SPECIALIZE(int,ConstInt);
 U2V_SPECIALIZE(BitVector,ConstBitVector);
 U2V_SPECIALIZE(std::string,ConstString);
 U2V_SPECIALIZE(CoreIR::Type*,ConstCoreIRType);
+U2V_SPECIALIZE(CoreIR::Module*,ConstModule);
 
 #undef U2V_SPECIALIZE
 
@@ -35,9 +36,10 @@ class Value {
       VK_ConstBitVector=2,
       VK_ConstString=3,
       VK_ConstCoreIRType=4,
-      VK_ConstEnd=5,
-      VK_Arg=6,
-      VK_CPPLambda=7
+      VK_ConstModule=5,
+      VK_ConstEnd=6,
+      VK_Arg=7,
+      VK_CPPLambda=8
     };
   private :
     ValueKind kind;
@@ -77,6 +79,7 @@ U2K_SPECIALIZE(int,VK_ConstInt)
 U2K_SPECIALIZE(BitVector,VK_ConstBitVector)
 U2K_SPECIALIZE(std::string,VK_ConstString)
 U2K_SPECIALIZE(Type*,VK_ConstCoreIRType)
+U2K_SPECIALIZE(Module*,VK_ConstModule)
 
 #undef U2K_SPECIALIZE
 }
@@ -124,6 +127,7 @@ TSTAMP(int)
 TSTAMP(BitVector)
 TSTAMP(std::string)
 TSTAMP(Type*)
+TSTAMP(Module*)
 
 #undef TSTAMP
 
@@ -173,6 +177,12 @@ class Const : public Value {
     static inline typename std::enable_if<std::is_convertible<T,Type*>::value,Const*>::type
     make(Context* c,T val) {
       return Const_impl<Type*>(c,val);
+    }
+    
+    template<typename T>
+    static inline typename std::enable_if<std::is_convertible<T,Module*>::value,Const*>::type
+    make(Context* c,T val) {
+      return Const_impl<Module*>(c,val);
     }
 
     virtual std::string toString() const override = 0;

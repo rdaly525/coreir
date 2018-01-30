@@ -19,6 +19,7 @@ class ValueCache {
   std::map<BitVector,ConstBitVector*,BitVectorComp> bvCache;
   std::map<std::string,ConstString*> stringCache;
   std::map<Type*,ConstCoreIRType*> typeCache;
+  std::map<Module*,ConstModule*> moduleCache;
   
   public :
     ValueCache(Context* c); 
@@ -29,6 +30,7 @@ class ValueCache {
     ConstBitVector* getBitVector(BitVector val);
     ConstString* getString(std::string val);
     ConstCoreIRType* getType(Type* val);
+    ConstModule* getModule(Module* val);
 
 };
 
