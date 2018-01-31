@@ -1285,15 +1285,16 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto outSelects = getOutputSelects(inst);
+    // auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    // assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    // pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     BitVec newRData = getRegister(inst->toString()); //getMemory(inst->toString(), raddrBits);
 
-    setValue(toSelect(outPair.second), makeSimBitVector(newRData));
+    //setValue(toSelect(outPair.second), makeSimBitVector(newRData));
+    setValue(inst->sel("out"), makeSimBitVector(newRData));
     
   }
 
