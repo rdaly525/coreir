@@ -33,6 +33,7 @@ class Context {
     std::unordered_map<void*,Value*> valueList;
     std::vector<Values*> valuesList;
     std::vector<Value**> valuePtrArrays;
+    std::vector<ValueType**> valueTypePtrArrays;
     std::vector<Type**> typePtrArrays;
     std::vector<RecordParams*> recordParamsList;
     std::vector<Params*> paramsList;
@@ -126,6 +127,7 @@ class Context {
     
     
     Value** newValueArray(int size);
+    ValueType** newValueTypeArray(int size);
     Type** newTypeArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
