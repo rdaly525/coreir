@@ -100,7 +100,7 @@ namespace CoreIR {
 
         SECTION("aetherlinglib reduceN with 4 inputs, coreir.add as op, 16 bit width") {
             uint width = 16;
-            uint numLayers = 4;
+            uint numLayers = 3;
             uint constInput = 3;
 
             CoreIRLoadLibrary_commonlib(c);
@@ -139,21 +139,17 @@ namespace CoreIR {
             }
 
             def->addInstance("dontMergeCur","coreir.const",
-                             {{"width", Const::make(c, 1)}}, {{"value", Const::make(c,1,1)}});
+                             {{"width", Const::make(c, 1)}}, {{"value", Const::make(c,1,0)}});
             def->connect("dontMergeCur.out.0", reduceNName + ".mergeCur");
             def->connect(reduceNName + ".out", "self.out");
             mainModule->setDef(def);
-            printf("this is what youre looking for\n");
             mainModule->print();
-            printf("over\n");
             reduceN_add->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes"});
-            //c->runPasses({"rungenerators", "flatten", "flattentypes"});
-
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes", "wireclocks-coreir"});
             mainModule->print();
-            //reduceN_add->getModuleRef()->print();
                                     
             SimulatorState state(mainModule);
+            state.setClock("self.clk", 0, 1); // get a new rising clock edge
             state.execute();
 
             REQUIRE(state.getBitVec("self.out") == BitVector(width, rightOutput));
