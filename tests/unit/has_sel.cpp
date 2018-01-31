@@ -40,12 +40,14 @@ int main() {
 
   addMod->setDef(def);
 
+  cout << "addMod" << endl;
+  addMod->print();
+
   assert(addMod->getDef()->hasSel("self.out"));
 
   // Q: What is the appropriate behavior here? No such select? Say this select
   //    exists?
-  assert(addMod->getDef()->hasSel("self.out.0"));
+  // assert(addMod->getDef()->hasSel("self.out.0"));
 
   deleteContext(c);
-  assert(false);
 }
