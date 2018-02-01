@@ -1273,12 +1273,10 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateDFFOutput(const vdisc vd) {
-    //assert(false);
     updateRegisterOutput(vd);
   }
 
   void SimulatorState::updateDFFValue(const vdisc vd) {
-    //assert(false);
     updateRegisterValue(vd);
   }
   
@@ -1286,22 +1284,11 @@ namespace CoreIR {
 
     WireNode wd = gr.getNode(vd);
 
-    cout << "Updating output for " << wd.getWire()->toString() << endl;
-
     Instance* inst = toInstance(wd.getWire());
 
+    BitVec newRData = getRegister(inst->toString());
 
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    BitVec newRData = getRegister(inst->toString()); //getMemory(inst->toString(), raddrBits);
-
-    //setValue(toSelect(outPair.second), makeSimBitVector(newRData));
     setValue(inst->sel("out"), makeSimBitVector(newRData));
-    
   }
 
   void SimulatorState::updateMemoryValue(const vdisc vd) {
