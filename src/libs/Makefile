@@ -24,5 +24,5 @@ build/%.dylib: build/%.o
 	$(CXX) -install_name "@rpath/libcoreir-$*.dylib" -dynamiclib $(LPATH) $(LDFLAGS) -lcoreir -o $@ $^
 	cp $@ $(HOME)/lib/libcoreir-$*.dylib
 
-build/%.o: %.cpp $(DEPS)
+build/%.o: %.cpp $(DEPS) aetherlinglib/*.h
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<
