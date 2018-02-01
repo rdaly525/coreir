@@ -48,23 +48,25 @@ void Aetherling_createReduceGenerator(Context* c) {
             assert(width>0);
 
             // create each layer
-            for (int i = numLayers - 1; i >= 0; i--) {
+            for (uint i = 0; i < numLayers; i++) {
                 // since its a binary tree, each layer has 2^i elements
-                for (int j = 0; j < pow(2, i); j++) {
+                for (uint j = 0; j < pow(2, i); j++) {
                     string opStr = getOpName(i, j);
                     def->addInstance(opStr, opModule);
-                    // wire up inputs if first layer
+                    // wire up inputs special only if first layer
                     if (i == numLayers - 1) {
                         def->connect("self.in." + to_string(j*2), opStr + ".in0");
                         def->connect("self.in." + to_string(j*2+1), opStr + ".in1");
                     }
+                    // wire output special only if last layer
+                    if (i == 0) {
+                        def->connect(opStr + ".out", "self.out");
+                    }
                     else {
-                        def->connect(getOpName(i+1, j*2) + ".out", opStr + ".in0");
-                        def->connect(getOpName(i+1, j*2+1) + ".out", opStr + ".in1");
+                        def->connect(opStr + ".out", getOpName(i-1, j/2) + ".in" + to_string(j % 2));
                     }
                 }
             }
-            def->connect("op_0_0.out", "self.out");
         });
 
     aetherlinglib->newTypeGen(

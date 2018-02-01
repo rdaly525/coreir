@@ -57,7 +57,7 @@ void Aetherling_createMapGenerator(Context* c) {
             */
                      
             // now create each op and wire the inputs and outputs to it
-            for (int i = 0; i < parallelOperators; i++) {
+            for (uint i = 0; i < parallelOperators; i++) {
                 string idxStr = to_string(i);                
                 string opStr = "op_" + idxStr;
                 def->addInstance(opStr, opModule);
