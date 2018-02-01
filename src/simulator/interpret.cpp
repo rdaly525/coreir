@@ -1450,18 +1450,15 @@ namespace CoreIR {
   }
 
   void SimulatorState::exeSequential() {
-    //cout << "Doing sequential updates" << endl;
-    // Update circuit state
-    //for (auto& vd : topoOrder) {
 
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
-        //cout << "Updating register " << wd.getWire()->toString() << endl;
+
         updateRegisterValue(vd);
       }
 
-      // TODO: Source-Sink split LinebufferMem's
+      // NOTE: Remove this. It is now obsolete
       if (isLinebufferMemInstance(wd.getWire())) {
         updateLinebufferMemValue(vd);
       }
@@ -1482,7 +1479,8 @@ namespace CoreIR {
 
   void SimulatorState::exeCombinational() {
     // Update sequential element outputs
-    for (auto& vd : topoOrder) {
+    //for (auto& vd : topoOrder) {
+    for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
 
       if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
