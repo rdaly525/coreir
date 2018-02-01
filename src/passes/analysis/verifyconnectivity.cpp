@@ -41,7 +41,7 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
     bool isConnected = true;
     for (uint i=0; i<at->getLen(); ++i) {
       //TODO bug with named types here
-      if (!w->hasSel(to_string(i))) {
+      if (!w->canSel(to_string(i))) {
         e.message("{"+w->getContainer()->getName() + "}." + w->toString()+"."+to_string(i)+" Is not fully connected (A)");
         return false;
       }
