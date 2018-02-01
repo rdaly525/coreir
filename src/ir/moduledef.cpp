@@ -77,7 +77,7 @@ bool ModuleDef::canSel(SelectPath path) {
     inst = this->instances[iname];
   }
   path.pop_front();
-  return inst->canSel(join(path.begin(),path.end(),string(".")));
+  return inst->canSel(path);
 }
 
 

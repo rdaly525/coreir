@@ -299,7 +299,7 @@ namespace CoreIR {
 
   bool SimulatorState::exists(const std::string& selStr) const {
     ModuleDef* def = mod->getDef();
-    return def->hasSel(selStr);
+    return def->canSel(selStr);
   }
 
   std::string concatInlined(const std::vector<std::string>& str) {
@@ -544,7 +544,7 @@ namespace CoreIR {
   SimValue* SimulatorState::getValue(const std::string& name)  {
     ModuleDef* def = mod->getDef();
 
-    if (def->hasSel(name)) {
+    if (def->canSel(name)) {
       Wireable* w = def->sel(name);
       Select* sel = toSelect(w);
 
@@ -578,7 +578,7 @@ namespace CoreIR {
       return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
     }
 
-    assert(mod->getDef()->hasSel(sel->toString()));
+    assert(mod->getDef()->canSel(sel->toString()));
 
     auto it = circStates[stateIndex].valMap.find(sel);
 
