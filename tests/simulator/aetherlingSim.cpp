@@ -61,7 +61,7 @@ namespace CoreIR {
             string mapNName = "map" + to_string(parallelOperators);
             Instance* mapN_mul = def->addInstance(mapNName, "aetherlinglib.mapN", mapnModArgs);
             // create different input for each operator
-            for (int i = 0 ; i < parallelOperators; i++) {
+            for (uint i = 0 ; i < parallelOperators; i++) {
                 string constName = "constInput" + to_string(i);
                 def->addInstance(
                     constName,
@@ -84,7 +84,7 @@ namespace CoreIR {
             SimulatorState state(mainModule);
             state.execute();
             
-            for (int i = 0; i < parallelOperators; i++) {
+            for (uint i = 0; i < parallelOperators; i++) {
                 REQUIRE(state.getBitVec("self.out_" + to_string(i)) == BitVector(width, i*constInput));
             }
                     
@@ -125,8 +125,8 @@ namespace CoreIR {
             string reduceNName = "reduce" + to_string(numLayers);
             Instance* reduceN_add = def->addInstance(reduceNName, "aetherlinglib.reduceNSerializable", reduceNModArgs);
             // create different input for each operator
-            int rightOutput = 0;
-            for (int i = 0 ; i < pow(2, numLayers); i++) {
+            uint rightOutput = 0;
+            for (uint i = 0 ; i < pow(2, numLayers); i++) {
                 string constName = "constInput" + to_string(i);
                 def->addInstance(
                     constName,
