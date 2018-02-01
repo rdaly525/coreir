@@ -10,7 +10,7 @@
 #CXX = g++-4.9
 #endif
 #
-#CXXFLAGS = -std=c++11  -Wall -g -fPIC -Werror
+#CXXFLAGS = -std=c++11  -Wall -fPIC -Werror
 #
 #ifdef COREDEBUG
 #CXXFLAGS += -std=c++11 -Wall -fPIC -Werror -O0 -g3 -D_GLIBCXX_DEBUG 
