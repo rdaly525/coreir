@@ -1452,7 +1452,9 @@ namespace CoreIR {
   void SimulatorState::exeSequential() {
     //cout << "Doing sequential updates" << endl;
     // Update circuit state
-    for (auto& vd : topoOrder) {
+    //for (auto& vd : topoOrder) {
+
+    for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
         //cout << "Updating register " << wd.getWire()->toString() << endl;
