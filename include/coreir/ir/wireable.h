@@ -28,7 +28,6 @@ class Wireable : public MetaData {
     virtual std::string toString() const=0;
     std::unordered_set<Wireable*> getConnectedWireables() { return connected;}
     const std::map<std::string,Select*>& getSelects() { return selects;}
-    bool hasSel(std::string selstr) {return selects.count(selstr) >0;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();
     WireableKind getKind() const { return kind; }

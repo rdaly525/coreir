@@ -43,7 +43,7 @@ int main() {
   cout << "addMod" << endl;
   addMod->print();
 
-  assert(addMod->getDef()->hasSel("self.out"));
+  assert(addMod->getDef()->canSel("self.out.2"));
 
   // Q: What is the appropriate behavior here? No such select? Say this select
   //    exists?

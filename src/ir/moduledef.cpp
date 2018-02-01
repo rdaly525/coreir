@@ -62,8 +62,11 @@ ModuleDef* ModuleDef::copy() {
   return def;
 }
 
-bool ModuleDef::hasSel(std::string selstr) {
+bool ModuleDef::canSel(std::string selstr) {
   SelectPath path = splitString<SelectPath>(selstr,'.');
+  return this->canSel(path);
+}
+bool ModuleDef::canSel(SelectPath path) {
   string iname = path[0];
   Wireable* inst;
   if (iname=="self") {
@@ -74,7 +77,7 @@ bool ModuleDef::hasSel(std::string selstr) {
     inst = this->instances[iname];
   }
   path.pop_front();
-  return inst->hasSel(join(path.begin(),path.end(),string(".")));
+  return inst->canSel(join(path.begin(),path.end(),string(".")));
 }
 
 
