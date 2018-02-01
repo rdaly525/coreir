@@ -270,8 +270,11 @@ namespace CoreIR {
         ASSERT(getQualifiedOpName(*srcConst) == "coreir.const",
                "must be constant");
 
+        ASSERT(isNumber(sigi->getSelStr()), "Bit must be driven by a single bit from a constant");
+
+        int offset = stoi(sigi->getSelStr());
         BitVector val = srcConst->getModArgs().at("value")->get<BitVector>();
-        bv.set(i, val.get(i));
+        bv.set(i, val.get(offset));
       }
     }
 

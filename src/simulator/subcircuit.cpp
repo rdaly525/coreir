@@ -370,11 +370,6 @@ namespace CoreIR {
     ModuleDef* def = mod->getDef();
     Context* c = mod->getContext();
 
-    // set<Instance*> unchecked;
-    // for (auto inst : def->getInstances()) {
-    //   unchecked.insert(inst.second);
-    // }
-
     set<Instance*> toConsider;
     for (auto inst : def->getInstances()) {
       if (isConstant(inst.second)) {
@@ -411,7 +406,7 @@ namespace CoreIR {
       Instance* inst = *std::begin(toConsider);
       toConsider.erase(inst);
 
-      cout << "Considering instance " << inst->toString() << endl;
+      // cout << "Considering instance " << inst->toString() << endl;
       // cout << "Module before trying to fold" << endl;
       // mod->print();
 
@@ -601,6 +596,8 @@ namespace CoreIR {
           BitVec sigVal0 = sigValue0.get_value();
           BitVec sigVal1 = sigValue1.get_value();
 
+          // cout << "sigVal0 = " << sigVal0 << endl;
+          // cout << "sigVal1 = " << sigVal1 << endl;
           BitVec res = BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
 
           uint inWidth =
@@ -806,14 +803,30 @@ namespace CoreIR {
       cout << "\t" << reg.first << " ---> " << reg.second << endl;
     }
 
+    // cout << "Top module before converting registers to constants" << endl;
+    // wholeTopMod->print();
+    
     registersToConstants(wholeTopMod, regMap);
 
-    for (auto inst : wholeTopMod->getDef()->getInstances()) {
-      cout << "\t" << inst.second->toString() << " : " << inst.second->getModuleRef()->toString() << endl;
-    }
+    // cout << "Instances converting registers to constants" << endl;
+    // for (auto inst : wholeTopMod->getDef()->getInstances()) {
+    //   cout << "\t" << inst.second->toString() << " : " << inst.second->getModuleRef()->toString() << endl;
 
-    cout << "Top module after deleting dead instances" << endl;
-    wholeTopMod->print();
+    //   if (getQualifiedOpName(*(inst.second)) == "coreir.const") {
+    //     BitVec value = inst.second->getModArgs().at("value")->get<BitVec>();
+    //     cout << "\tValue = " << value << endl;
+    //   }
+
+    //   if (getQualifiedOpName(*(inst.second)) == "corebit.const") {
+    //     bool value = inst.second->getModArgs().at("value")->get<bool>();
+    //     cout << "\tValue = " << value << endl;
+    //   }
+
+    // }
+
+    // cout << "Top module after converting registers to constants" << endl;
+    // wholeTopMod->print();
+
     cout << wholeTopMod->toString() << endl;
     if (!saveToFile(wholeTopMod->getContext()->getGlobal(), "sb_unq1_registered.json", wholeTopMod)) {
       cout << "Could not save to json!!" << endl;

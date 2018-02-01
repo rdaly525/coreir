@@ -14,11 +14,44 @@ using namespace std;
 
 int main() {
 
+  cout << "Starting partial eval test" << endl;
+
   Context* c = newContext();
 
   Module* topMod = loadModule(c, "registered_switch_proc_flat.json", "registered_switch");
   auto def = topMod->getDef();
 
+  BitVector configData(32, 0x00000C00);
+  
+  SimulatorState originalState(topMod);
+  originalState.setClock("self.clk", 0, 1);
+  originalState.setValue("self.config_en", BitVec(1, 1));
+  originalState.setValue("self.config_addr", BitVec(32, 0));
+  originalState.setValue("self.config_data", configData);
+
+  originalState.setValue("self.in_0_0", BitVec(16, 0));
+  originalState.setValue("self.in_2_0", BitVec(16, 0));
+  originalState.setValue("self.in_3_0", BitVec(16, 0));
+  originalState.setValue("self.pe_output_0", BitVec(16, 0));
+  
+  originalState.execute();
+
+  originalState.setValue("self.config_en", BitVec(1, 0));
+
+  originalState.setValue("self.in_0_0", BitVec(16, 1));
+  originalState.setValue("self.in_2_0", BitVec(16, 2));
+  originalState.setValue("self.in_3_0", BitVec(16, 3));
+  originalState.setValue("self.pe_output_0", BitVec(16, 34));
+    
+  originalState.setValue("self.config_en", BitVec(1, 0));
+  originalState.setValue("self.pe_output_0", BitVec(16, 34));
+
+  originalState.execute();
+
+  cout << "original self.out_1_0 = " << originalState.getBitVec("self.out_1_0") << endl;
+  
+  assert(originalState.getBitVec("self.out_1_0") == BitVec(16, 34));
+  
   // Insert partial eval code
   vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
       def->sel("self")->sel("config_data"),
@@ -40,21 +73,10 @@ int main() {
   topState.setClock("self.clk", 0, 1);
   topState.setValue("self.config_en", BitVec(1, 1));
     
-  BitStreamConfig bs =
-    loadConfig("./sb_1_bitstream.bs");
+  topState.setValue("self.config_addr", BitVec(32, 0));
+  topState.setValue("self.config_data", configData);
 
-  cout << "Configuring pe tile" << endl;
-  for (uint i = 0; i < bs.configAddrs.size(); i++) {
-
-    cout << "Simulating config " << i << endl;
-    cout << "config addr = " << bs.configAddrs[i] << endl;
-    cout << "config data = " << bs.configDatas[i] << endl;
-
-    topState.setValue("self.config_addr", bs.configAddrs[i]);
-    topState.setValue("self.config_data", bs.configDatas[i]);
-
-    topState.execute();
-  }
+  topState.execute();
 
   Module* wholeTopMod = nullptr;
   wholeTopMod = c->getGlobal()->getModule("registered_switch");
@@ -97,7 +119,7 @@ int main() {
 
   cout << "self.out_1_0 = " << state.getBitVec("self.out_1_0") << endl;
   
-  //assert(state.getBitVec("self.out_1_0") == BitVec(16, 34));
+  assert(state.getBitVec("self.out_1_0") == BitVec(16, 34));
 
   state.setValue("self.pe_output_0", BitVec(16, 2));
 
@@ -105,9 +127,9 @@ int main() {
 
   cout << "self.out_1_0 = " << state.getBitVec("self.out_1_0") << endl;
 
-  //assert(state.getBitVec("self.out_1_0") == BitVec(16, 2));
+  assert(state.getBitVec("self.out_1_0") == BitVec(16, 2));
 
   deleteContext(c);
-  
+
   return 0;
 }
