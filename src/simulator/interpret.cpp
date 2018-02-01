@@ -993,6 +993,9 @@ namespace CoreIR {
       return;
     }
 
+    if (!(isInstance(wd.getWire()))) {
+      cout << "Error in updateNodeValues " << wd.getWire()->toString() << endl;
+    }
     assert(isInstance(wd.getWire()));
 
     //string opName = getOpName(*toInstance(wd.getWire()));
@@ -1283,7 +1286,10 @@ namespace CoreIR {
 
     WireNode wd = gr.getNode(vd);
 
+    cout << "Updating output for " << wd.getWire()->toString() << endl;
+
     Instance* inst = toInstance(wd.getWire());
+
 
     // auto outSelects = getOutputSelects(inst);
 
