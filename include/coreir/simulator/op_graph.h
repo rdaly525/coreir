@@ -451,4 +451,7 @@ namespace CoreIR {
                                           const NGraph& g);
 
   bool isConstant(const WireNode& wd);
+
+  std::deque<vdisc> topologicalSortNoFail(const NGraph& g);
+
 }

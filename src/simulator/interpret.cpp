@@ -466,7 +466,16 @@ namespace CoreIR {
 
     buildOrderedGraph(mod, gr);
 
-    topoOrder = topologicalSort(gr);
+    deque<vdisc> order = topologicalSortNoFail(gr);
+
+    // TODO: This test for combinational loops can fail for 2 element circuits,
+    // replace it with something more robust
+    if (order.size() == gr.getVerts().size()) {
+      topoOrder = order;
+      hasCombinationalLoop = false;
+    } else {
+      hasCombinationalLoop = true;
+    }
 
     // Set initial state of the circuit
     CircuitState init;
@@ -1502,6 +1511,8 @@ namespace CoreIR {
       }
       
     }
+
+    ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
 
     // Update combinational node values
     for (auto& vd : topoOrder) {
