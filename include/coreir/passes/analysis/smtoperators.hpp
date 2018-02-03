@@ -23,7 +23,7 @@ namespace CoreIR {
     string SMTOr(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTXor(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTNot(string context, SmtBVVar in, SmtBVVar out);
-    string SMTConst(string context, SmtBVVar out, int val);
+    string SMTConst(string context, SmtBVVar out, string val);
     string SMTAdd(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTSub(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTConcat(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);

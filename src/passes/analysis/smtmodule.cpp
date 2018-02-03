@@ -40,14 +40,20 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   string mname;
   Values args;
   if (gen) {
-    args = mref->getGenArgs();
     addPortsFromGen(inst);
     mname = modname; //gen->getNamespace()->getName() + "_" + gen->getName(args);
   }
   else {
     mname = modname;
   }
-  
+
+  // it appears that arguments are kept in GenArgs even if it's a module
+  // We want all arguments available
+  for (auto amap : mref->getGenArgs()) {
+    ASSERT(args.count(amap.first)==0, "NYI Aliased config/genargs");
+    args[amap.first] = amap.second;
+  }
+
   for (auto amap : inst->getModArgs()) {
     ASSERT(args.count(amap.first)==0,"NYI Alisaaed config/genargs");
     args[amap.first] = amap.second;
@@ -75,7 +81,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   }
 
   string context = path+"$";
-  string pre = ""; //"coreir_";
+  string pre = "coreir.";
 
   enum operation {neg_op = 1,
                   const_op,
@@ -114,9 +120,9 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"slice", slice_op);
   opmap.emplace(pre+"term", term_op);
   opmap.emplace(pre+"mux", mux_op);
-  
+
 #define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
-  
+
   SmtBVVar out; var_assign(out, "out");
   SmtBVVar in; var_assign(in, "in");
   SmtBVVar in0; var_assign(in0, "in0");
@@ -124,6 +130,8 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   SmtBVVar clk; var_assign(clk, "clk");
   SmtBVVar en; var_assign(en, "en");
   SmtBVVar sel; var_assign(sel, "sel");
+  SmtBVVar clr; var_assign(clr, "clr");
+  SmtBVVar rst; var_assign(rst, "rst");
 
   switch (opmap[mname]) {
   case term_op:
@@ -156,12 +164,11 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     o << SMTRegPE(context, in, clk, out, en);
     break;
   case const_op:
-    int value; value = stoi(args["value"]->toString());
-    o << SMTConst(context, out, value);
+    o << SMTConst(context, out, args["value"]->toString());
     break;
   case mux_op:
     o << SMTMux(context, in0, in1, sel, out);
-    break;    
+    break;
   case slice_op:
     int lo; lo = stoi(args["lo"]->toString());
     int hi; hi = stoi(args["hi"]->toString());
@@ -170,7 +177,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   default:
     o << "!!! UNMATCHED: " << mname << " !!!";
   }
-  
+
   o << endl;
   return o.str();
 }
