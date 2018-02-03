@@ -18,8 +18,6 @@ void Aetherling_createMapGenerator(Context* c) {
     Params mapNparams = Params({
             //{"width", c->Int()},
             {"parallelOperators", c->Int()},
-            {"inputType", CoreIRType::make(c)},
-            {"outputType", CoreIRType::make(c)},
             {"operator", ModuleType::make(c)}
         });
 
@@ -29,11 +27,11 @@ void Aetherling_createMapGenerator(Context* c) {
         [](Context* c, Values genargs) { //Function to compute type
             //uint width = genargs.at("width")->get<int>();
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
-            Type* inputType = genargs.at("inputType")->get<Type*>();
-            Type* outputType = genargs.at("outputType")->get<Type*>();
+            Module* opModule = genargs.at("operator")->get<Module*>();
+            RecordType* opType = opModule->getType();
             return c->Record({
-                    {"in", inputType->Arr(parallelOperators)},
-                    {"out", outputType->Arr(parallelOperators)}
+                    {"in", opType->sel("in")->Arr(parallelOperators)},
+                    {"out", opType->sel("out")->Arr(parallelOperators)}
                     //{"in", c->BitIn()->Arr(width)->Arr(parallelOperators)},
                     //{"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
                 });
@@ -46,7 +44,7 @@ void Aetherling_createMapGenerator(Context* c) {
             //uint width = genargs.at("width")->get<int>();
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
-            Type* inputType = genargs.at("inputType")->get<Type*>();
+            //Type* inputType = genargs.at("inputType")->get<Type*>();
             //Type* outputType = genargs.at("outputType")->get<Type*>();
             assert(parallelOperators>0);
             //assert(width>0);
@@ -54,9 +52,9 @@ void Aetherling_createMapGenerator(Context* c) {
             //assert(inputTypeRecord != 0); // 0 if cast failed, so input type wasn't RecordType
             //RecordType* outputTypeRecord = dynamic_cast<RecordType*>(outputType);
             //assert(outputTypeRecord != 0); // 0 if cast failed, so output type wasn't RecordType
-            opModule->getType()->sel("in")->print();
-            inputType->print();
-            assert(opModule->getType()->sel("in") == inputType); // ensure input type maps module type
+            //opModule->getType()->sel("in")->print();
+            //inputType->print();
+            //assert(opModule->getType()->sel("in") == inputType); // ensure input type maps module type
             
             // now create each op and wire the inputs and outputs to it
             for (uint i = 0; i < parallelOperators; i++) {

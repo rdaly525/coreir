@@ -43,12 +43,11 @@ int main() {
     ModuleDef* testDef = testModule->newModuleDef();
 
     //Type of module
-    RecordType* zippedType = c->Record({
+    Type* twoInZippedOneOutGenType = c->Record({
+            {"in", c->Record({
                         {"el0", c->BitIn()->Arr(width)},
                         {"el1", c->BitIn()->Arr(width)}
-        });
-    Type* twoInZippedOneOutGenType = c->Record({
-            {"in",zippedType},
+                    })},
             {"out",c->Bit()->Arr(width)}
         });
 
@@ -72,8 +71,6 @@ int main() {
     
     Values mapNParams({
             {"parallelOperators", Const::make(c, parallelInputs)},
-            {"inputType", Const::make(c, zippedType)},
-            {"outputType", Const::make(c, c->Bit()->Arr(width))},
             {"operator", Const::make(c, mul2Inputs)}
         });
                       
