@@ -38,44 +38,61 @@ namespace CoreIR {
             Module* mainModule = c->getGlobal()->newModuleDecl("mainMapNMulTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
 
-            /* creating the mulBy2 that the mapN will parallelize */
-            //Type of module 
-            Type* oneInOneOutGenType = c->Record({
-                    {"in",c->BitIn()->Arr(width)},
+            RecordType* zippedType = c->Record({
+                    {"el0", c->BitIn()->Arr(width)},
+                    {"el1", c->BitIn()->Arr(width)}
+                });
+            Type* twoInZippedOneOutGenType = c->Record({
+                    {"in",zippedType},
                     {"out",c->Bit()->Arr(width)}
                 });
-            Module* mulBy2 = c->getGlobal()->newModuleDecl("mulBy2", oneInOneOutGenType);
-            ModuleDef* mulBy2Def = mulBy2->newModuleDef();
 
-            string constModule = Aetherling_addCoreIRConstantModule(c, mulBy2Def, width, Const::make(c, width, constInput));
-            mulBy2Def->addInstance("mul", "coreir.mul", {{"width", Const::make(c, width)}});
-            mulBy2Def->connect("self.in", "mul.in0");
-            mulBy2Def->connect(constModule + ".out", "mul.in1");
-            mulBy2Def->connect("mul.out", "self.out");
+            /* creating the mulBy2 that the mapN will parallelize */
+            Module* mul2Inputs = c->getGlobal()->newModuleDecl("mul2Inputs", twoInZippedOneOutGenType);
+            ModuleDef* mul2InputsDef = mul2Inputs->newModuleDef();        
 
-            Values mapnModArgs = {
-                {"width", Const::make(c, width)},
-                {"parallelOperators", Const::make(c, parallelOperators)},
-                {"operator", Const::make(c, mulBy2)}
-            };
-            
+            mul2InputsDef->addInstance("mul", "coreir.mul", {{"width", Const::make(c, width)}});
+            mul2InputsDef->connect("self.in.el0", "mul.in0");
+            mul2InputsDef->connect("self.in.el1", "mul.in1");
+            mul2InputsDef->connect("mul.out", "self.out");
+            mul2Inputs->setDef(mul2InputsDef);
+
+            Values zip2Params({
+                    {"numInputs", Const::make(c, parallelOperators)},
+                    {"input0Type", Const::make(c, c->BitIn()->Arr(width))},
+                    {"input1Type", Const::make(c, c->BitIn()->Arr(width))}
+                });
+    
+            Values mapNParams({
+                    {"parallelOperators", Const::make(c, parallelOperators)},
+                    {"inputType", Const::make(c, zippedType)},
+                    {"outputType", Const::make(c, c->Bit()->Arr(width))},
+                    {"operator", Const::make(c, mul2Inputs)}
+                });
+
+            def->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
             string mapNName = "map" + to_string(parallelOperators);
-            Instance* mapN_mul = def->addInstance(mapNName, "aetherlinglib.mapN", mapnModArgs);
-            // create different input for each operator
+            Instance* mapN_mul = def->addInstance(mapNName, "aetherlinglib.mapN", mapNParams);
+
+            // here we are wiring up a constant value and an iterated one to each input of the zip before
+            // it goes into the map
+            string notIteratedConstModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, constInput));
+
             for (uint i = 0 ; i < parallelOperators; i++) {
                 string constName = "constInput" + to_string(i);
+                def->connect(notIteratedConstModule + ".out", "zip2.in0." + to_string(i));
                 def->addInstance(
                     constName,
                     "coreir.const",
                     {{"width", Const::make(c, width)}},
                     {{"value", Const::make(c, width, i)}});
 
-                def->connect(constName + ".out", mapNName + ".in." + to_string(i));
-                // safe version of wiring out: def->connect(mapNName + ".out." + to_string(i), "self.out." + to_string(i))
+                def->connect(constName + ".out",  "zip2.in1." + to_string(i));
             }
+
+            def->connect("zip2.out", mapNName + ".in");
             def->connect(mapNName + ".out", "self.out");
-                        
-            mulBy2->setDef(mulBy2Def);
+            
             mainModule->setDef(def);
             mapN_mul->getModuleRef()->print();
             c->runPasses({"rungenerators", "flatten", "flattentypes"});
