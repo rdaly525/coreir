@@ -367,4 +367,7 @@ namespace CoreIR {
                      const std::string& fileName,
                      const std::string& topModName);
   
+  std::vector<std::string> splitStr(const std::string& str,
+                                    const std::string& delimiter);
+
 }
