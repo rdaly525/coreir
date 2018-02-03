@@ -84,7 +84,6 @@ int main() {
     Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
 
     Values reduceNParams({
-            {"width", Const::make(c, width)},
             {"numLayers", Const::make(c, int(log2(parallelInputs)))},
             {"operator", Const::make(c, add)}
         });

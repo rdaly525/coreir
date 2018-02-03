@@ -21,7 +21,6 @@ void Aetherling_createReduceGenerator(Context* c) {
      */
     Params reduceNparams = Params({
             {"numLayers", c->Int()},
-            {"width", c->Int()},
             {"operator", ModuleType::make(c)}
         });
 
@@ -29,11 +28,12 @@ void Aetherling_createReduceGenerator(Context* c) {
         "reduceN_type", // name for typegen
         reduceNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            uint width = genargs.at("width")->get<int>();
             uint inputs = pow(2, genargs.at("numLayers")->get<int>());
+            Module* opModule = genargs.at("operator")->get<Module*>();
+            RecordType* opType = opModule->getType();
             return c->Record({
-                    {"in", c->BitIn()->Arr(width)->Arr(inputs)},
-                    {"out", c->Bit()->Arr(width)}
+                    {"in", opType->sel("in0")->Arr(inputs)},
+                    {"out", opType->sel("out")}
                 });
         });
 
@@ -42,10 +42,8 @@ void Aetherling_createReduceGenerator(Context* c) {
 
     reduceN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numLayers = genargs.at("numLayers")->get<int>();
-            uint width = genargs.at("width")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
             assert(numLayers>0);
-            assert(width>0);
 
             // create each layer
             for (uint i = 0; i < numLayers; i++) {
@@ -73,11 +71,12 @@ void Aetherling_createReduceGenerator(Context* c) {
         "reduceNSerializable_type", // name for typegen
         reduceNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            uint width = genargs.at("width")->get<int>();
             uint inputs = pow(2, genargs.at("numLayers")->get<int>());
+            Module* opModule = genargs.at("operator")->get<Module*>();
+            RecordType* opType = opModule->getType();
             return c->Record({
-                    {"in", c->BitIn()->Arr(width)->Arr(inputs)},
-                    {"out", c->Bit()->Arr(width)},
+                    {"in", opType->sel("in0")->Arr(inputs)},
+                    {"out", opType->sel("out")},
                     {"mergeCur", c->BitIn()} // set this bit if you want the current output to be merged with
                     // the last one
                 });
@@ -91,22 +90,23 @@ void Aetherling_createReduceGenerator(Context* c) {
 
     reduceNSerializable->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numLayers = genargs.at("numLayers")->get<int>();
-            uint width = genargs.at("width")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
+            RecordType* opType = opModule->getType();
             assert(numLayers>0);
-            assert(width>0);
 
             def->addInstance("reducer", "aetherlinglib.reduceN", genargs);
             def->connect("self.in", "reducer.in");
 
             // have a mux to switch between merged and unmerged outputs
             def->addInstance("mergeMux", "commonlib.muxn",
-                             {{"width", Const::make(c, width)}, {"N", Const::make(c, 2)}});
+                             {{"width", Const::make(c, opType->sel("in0")->getSize())}, {"N", Const::make(c, 2)}});
             // connect the current output directly to the merge
             def->connect("reducer.out", "mergeMux.in.data.0");
             // also merge the current output with the last one
             def->addInstance("mergeOp", opModule);
-            def->addInstance("lastOutputReg", "coreir.reg", {{"width", Const::make(c, width)}});
+            opType->print();
+            printf("size %i", opType->sel("out")->getSize());
+            def->addInstance("lastOutputReg", "coreir.reg", {{"width", Const::make(c, opType->sel("out")->getSize())}});
             def->connect("reducer.out", "mergeOp.in0");
             def->connect("lastOutputReg.out", "mergeOp.in1");
             def->connect("mergeOp.out", "mergeMux.in.data.1");
