@@ -159,6 +159,7 @@ namespace CoreIR {
       }
 
       int oldSize = varDecls.size();
+      
 
       std::vector<std::pair<Type*, std::string> > adj;
       for (auto& ind : adjacentInds) {
@@ -176,7 +177,7 @@ namespace CoreIR {
       varDecls = others;
       concat(varDecls, adj);
 
-      ASSERT(varDecls.size() == ((unsigned) oldSize), "varDecl != oldsize: " + std::to_string(oldSize));
+      ASSERT(varDecls.size() == ((unsigned) oldSize), "oldsize is " + std::to_string(oldSize));
     }
 
     std::string lastClkVarName(InstanceValue& clk) {

@@ -10,21 +10,23 @@ std::string sanitizedName(const std::string& cellName) {
   string instName = "";
   for (uint i = 0; i < cellName.size(); i++) {
     if (cellName[i] == '$') {
-      instName += "__DOLLAR__";
+      //instName += "UDOLLARU";
     } else if (cellName[i] == ':') {
-      instName += "__COLON__";
+      //instName += "UCOLONU";
     } else if (cellName[i] == '.') {
-      instName += "__DOT__";
+      //instName += "UDOTU";
     } else if (cellName[i] == '\\') {
-      instName += "__BACKSLASH__";
+      instName += "UBACKSLASHU";
     } else if (cellName[i] == '=') {
-      instName += "__EQUALS__";
+      instName += "UEQUALSU";
     } else if (cellName[i] == '[') {
-      instName += "__LEFT_BRACKET__";
+      instName += "ULEFTUBRACKETU";
     } else if (cellName[i] == ']') {
-      instName += "__RIGHT_BRACKET__";
+      instName += "URIGHTUBRACKETU";
     } else if (cellName[i] == '/') {
-      instName += "__FORWARD_SLASH__";
+      instName += "UFORWARDUSLASHU";
+    } else if (cellName[i] == '_') {
+      //instName += "UUNDERSCOREU";
     } else {
       instName += cellName[i];
     }
@@ -53,25 +55,27 @@ bool Passes::SanitizeNames::runOnModule(Module* m) {
     Instance* inst = *begin(allInstances);
     allInstances.erase(inst);
 
-    Instance* instPT = addPassthrough(inst, "_sanitize_names_PT");
-
-    auto sels = inst->getSelects();
-
-    inst->disconnectAll();
-
     string sName = sanitizedName(inst->getInstname());
 
-    auto safeNameInstance =
-      def->addInstance(inst, sName);
+    if (sName != inst->getInstname()) {
+      Instance* instPT = addPassthrough(inst, "_sanitize_names_PT");
 
-    for (auto selR : sels) {
-      def->connect(instPT->sel("in")->sel(selR.first),
-                   safeNameInstance->sel(selR.first));
+      auto sels = inst->getSelects();
+
+      inst->disconnectAll();
+
+      auto safeNameInstance =
+        def->addInstance(inst, sName);
+
+      for (auto selR : sels) {
+        def->connect(instPT->sel("in")->sel(selR.first),
+                     safeNameInstance->sel(selR.first));
+      }
+
+      def->removeInstance(inst);
+
+      inlineInstance(instPT);
     }
-
-    def->removeInstance(inst);
-
-    inlineInstance(instPT);
   }
 
   return changedName;

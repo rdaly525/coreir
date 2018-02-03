@@ -257,7 +257,7 @@ namespace CoreIR {
 
         fields.push_back({name, tp});
 
-        //cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+        cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
       }
     }
 
