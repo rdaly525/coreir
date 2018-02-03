@@ -105,7 +105,6 @@ void Aetherling_createReduceGenerator(Context* c) {
             // also merge the current output with the last one
             def->addInstance("mergeOp", opModule);
             opType->print();
-            printf("size %i", opType->sel("out")->getSize());
             def->addInstance("lastOutputReg", "coreir.reg", {{"width", Const::make(c, opType->sel("out")->getSize())}});
             def->connect("reducer.out", "mergeOp.in0");
             def->connect("lastOutputReg.out", "mergeOp.in1");
