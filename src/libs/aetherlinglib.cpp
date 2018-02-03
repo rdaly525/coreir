@@ -2,6 +2,7 @@
 #include "coreir/libs/commonlib.h"
 #include "aetherlinglib/aeMapN.h"
 #include "aetherlinglib/aeReduceN.h"
+#include "aetherlinglib/aeZip2.h"
 //#include "aetherlinglib/aeConvN.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(aetherlinglib);
@@ -19,6 +20,7 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
 
     Aetherling_createMapGenerator(c);
     Aetherling_createReduceGenerator(c);
+    Aetherling_createZipGenerator(c);
     //Aetherling_createConvGenerator(c);
 
     // create a generator to convert two argument modules into one argument

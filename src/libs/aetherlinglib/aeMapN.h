@@ -16,10 +16,10 @@ void Aetherling_createMapGenerator(Context* c) {
      * one output known as "out"
      */
     Params mapNparams = Params({
-            {"width", c->Int()},
+            //{"width", c->Int()},
             {"parallelOperators", c->Int()},
-            //{"inputType", CoreIRType::make(c)},
-            //{"outputType", CoreIRType::make(c)},
+            {"inputType", CoreIRType::make(c)},
+            {"outputType", CoreIRType::make(c)},
             {"operator", ModuleType::make(c)}
         });
 
@@ -27,15 +27,15 @@ void Aetherling_createMapGenerator(Context* c) {
         "mapN_type", // name for typegen
         mapNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            uint width = genargs.at("width")->get<int>();
+            //uint width = genargs.at("width")->get<int>();
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
-            //Type* inputType = genargs.at("inputType")->get<Type*>;
-            //Type* outputType = genargs.at("outputType")->get<Type*>;
+            Type* inputType = genargs.at("inputType")->get<Type*>();
+            Type* outputType = genargs.at("outputType")->get<Type*>();
             return c->Record({
-                    //{"in", input_type->Arr(parallelOperators)},
-                    //{"out", output_type->Arr(parallelOperators)}
-                    {"in", c->BitIn()->Arr(width)->Arr(parallelOperators)},
-                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
+                    {"in", inputType->Arr(parallelOperators)},
+                    {"out", outputType->Arr(parallelOperators)}
+                    //{"in", c->BitIn()->Arr(width)->Arr(parallelOperators)},
+                    //{"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
                 });
         });
 
@@ -43,19 +43,21 @@ void Aetherling_createMapGenerator(Context* c) {
         aetherlinglib->newGeneratorDecl("mapN", aetherlinglib->getTypeGen("mapN_type"), mapNparams);
 
     mapN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-            uint width = genargs.at("width")->get<int>();
+            //uint width = genargs.at("width")->get<int>();
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
-            //Type* inputType = genargs.at("inputType")->get<Type*>;
-            //Type* outputType = genargs.at("outputType")->get<Type*>;
+            Type* inputType = genargs.at("inputType")->get<Type*>();
+            //Type* outputType = genargs.at("outputType")->get<Type*>();
             assert(parallelOperators>0);
-            assert(width>0);
-            /*RecordType* inputTypeRecord = dynamic_cast<RecordType*>(inputType);
-            assert(inputTypeRecord != 0); // 0 if cast failed, so input type wasn't RecordType
-            RecordType* outputTypeRecord = dynamic_cast<RecordType*>(outputType);
-            assert(outputTypeRecord != 0); // 0 if cast failed, so output type wasn't RecordType
-            */
-                     
+            //assert(width>0);
+            //RecordType* inputTypeRecord = dynamic_cast<RecordType*>(inputType);
+            //assert(inputTypeRecord != 0); // 0 if cast failed, so input type wasn't RecordType
+            //RecordType* outputTypeRecord = dynamic_cast<RecordType*>(outputType);
+            //assert(outputTypeRecord != 0); // 0 if cast failed, so output type wasn't RecordType
+            opModule->getType()->sel("in")->print();
+            inputType->print();
+            assert(opModule->getType()->sel("in") == inputType); // ensure input type maps module type
+            
             // now create each op and wire the inputs and outputs to it
             for (uint i = 0; i < parallelOperators; i++) {
                 string idxStr = to_string(i);                
@@ -64,6 +66,5 @@ void Aetherling_createMapGenerator(Context* c) {
                 def->connect("self.in." + idxStr, opStr + ".in");
                 def->connect(opStr + ".out", "self.out." + idxStr);
             }
-             
         });
 }

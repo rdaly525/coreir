@@ -15,6 +15,7 @@ const std::string AETHERLING_NAMESPACE = "aetherlinglib";
 
 void Aetherling_createMapGenerator(CoreIR::Context* c);
 void Aetherling_createReduceGenerator(CoreIR::Context* c);
+void Aetherling_createZipGenerator(CoreIR::Context* c);
 void Aetherling_createConvGenerator(CoreIR::Context* c);
 
 std::string Aetherling_addCoreIRConstantModule(CoreIR::Context* c, CoreIR::ModuleDef* def, uint width, CoreIR::Const* val);
