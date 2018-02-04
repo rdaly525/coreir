@@ -18,6 +18,9 @@ void Aetherling_createReduceGenerator(CoreIR::Context* c);
 void Aetherling_createZipGenerator(CoreIR::Context* c);
 void Aetherling_createConvGenerator(CoreIR::Context* c);
 
+// helper functions
 std::string Aetherling_addCoreIRConstantModule(CoreIR::Context* c, CoreIR::ModuleDef* def, uint width, CoreIR::Const* val);
+CoreIR::Module* Aetherling_convert2InputModuleTo2ZippedInput(CoreIR::Context* c, CoreIR::Module* moduleToWrap, CoreIR::Values modargs=CoreIR::Values());
+
 
 #endif //COREIR_AETHERLINGLIB_HPP_

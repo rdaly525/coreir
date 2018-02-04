@@ -62,3 +62,29 @@ void Aetherling_createZipGenerator(Context* c) {
             }
         });
 }
+
+// note that constructorName is a GlobalValue refrence (a fully qualified reference to the module or generator)
+Module* Aetherling_convert2InputModuleTo2ZippedInput(Context* c, Module* moduleToWrap, Values modargs=Values()) {
+    //Type of module
+    Type* twoInZippedOneOutGenType = c->Record({
+            {"in", c->Record({
+                        {"el0", moduleToWrap->getType()->sel("in0")},
+                        {"el1", moduleToWrap->getType()->sel("in1")}
+                    })},
+            {"out", moduleToWrap->getType()->sel("out")}
+        });
+
+    string zip2ModuleName = "zip2_" + moduleToWrap->getLongName();
+    Module* wrapperForZip2 = c->getGlobal()->newModuleDecl(zip2ModuleName, twoInZippedOneOutGenType);
+    ModuleDef* wrapperForZip2Def = wrapperForZip2->newModuleDef();
+
+    // create the wrapped instance and wire up the inputs and outputs to it
+    string wrappedInstanceName = "wrappedInstance_" +  moduleToWrap->getLongName();
+    wrapperForZip2Def->addInstance(wrappedInstanceName, moduleToWrap, modargs);
+    wrapperForZip2Def->connect("self.in.el0", wrappedInstanceName + ".in0");
+    wrapperForZip2Def->connect("self.in.el1", wrappedInstanceName + ".in1");
+    wrapperForZip2Def->connect(wrappedInstanceName + ".out", "self.out");
+    wrapperForZip2->setDef(wrapperForZip2Def);
+
+    return wrapperForZip2;
+}

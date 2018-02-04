@@ -37,11 +37,14 @@ int main() {
     Type* oneInManyOutGenType = c->Record({
             {"in",c->BitIn()->Arr(width)->Arr(parallelInputs)},
             {"outMap",c->Bit()->Arr(width)->Arr(parallelInputs)},
-            {"outReduce",c->Bit()->Arr(width)}
+            {"outReduce",c->Bit()->Arr(width)},
+            {"outConv1D", c->Bit()-Arr(width)}
         });
     Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInManyOutGenType);
     ModuleDef* testDef = testModule->newModuleDef();
 
+    // creating map for testing
+    
     //Type of module
     Type* twoInZippedOneOutGenType = c->Record({
             {"in", c->Record({
@@ -50,6 +53,8 @@ int main() {
                     })},
             {"out",c->Bit()->Arr(width)}
         });
+
+    
 
     /* creating the mulBy2 that the mapN will parallelize */
     Module* mul2Inputs = c->getGlobal()->newModuleDecl("mul2Inputs", twoInZippedOneOutGenType);
@@ -78,6 +83,7 @@ int main() {
     testDef->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
     testDef->addInstance("mapMul", "aetherlinglib.mapN", mapNParams);
 
+    // creating reduce for testing
     Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
 
     Values reduceNParams({
@@ -86,7 +92,25 @@ int main() {
         });
 
     testDef->addInstance("reduceAdd", "aetherlinglib.reduceN", reduceNParams);
-    
+
+    // creating convolution for testing
+    uint dataWidth = parallelInputs*4;
+    testDef->addInstance("conv1D", "aetherlinglib.conv1D", {
+            {"dataWidth", Const::make(c, dataWidth)},
+            {"kernelWidth", Const::make(c, parallelInputs)},
+            {"elementWidth", Const::make(c, width)}
+        });
+
+    // wiring up the kernel and the data inputs, everythign is same as justing if wiring works
+    for (uint i = 0; i < parallelInputs; i++) {
+        testDef->connect(constModule + ".out", "conv1D.in.kernel." + to_string(i));
+    }
+
+    for (uint i = 0; i < dataWidth; i++) {
+        testDef->connect(constModule + ".out", "conv1D.in.data." + to_string(i));
+    }
+    testDef->connect("conv1D.out", "self.out");
+        
     testDef->connect("self.in","zip2.in0");
     for (uint i = 0; i <parallelInputs; i++) {
         testDef->connect(constModule + ".out", "zip2.in1." + to_string(i));
