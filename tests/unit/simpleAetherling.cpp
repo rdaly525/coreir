@@ -108,17 +108,19 @@ int main() {
         testDef->connect(constModule + ".out", "conv1D.in.kernel." + to_string(i));
     }
 
-    for (uint i = 0; i < dataWidth; i++) {
-        testDef->connect(constModule + ".out", "conv1D.in.data." + to_string(i));
-    }
+    testDef->connect(constModule + ".out", "conv1D.in.data");
+    
     testDef->connect("conv1D.out", "self.outConv1D");
-        
+
+    // wiring up zippped input o mul
     testDef->connect("self.in","zip2.in0");
     for (uint i = 0; i <parallelInputs; i++) {
         testDef->connect(constModule + ".out", "zip2.in1." + to_string(i));
     }
     testDef->connect("zip2.out", "mapMul.in");
     testDef->connect("mapMul.out","self.outMap");
+
+    // wiring up reduce
     testDef->connect("self.in", "reduceAdd.in");
     testDef->connect("reduceAdd.out", "self.outReduce");
 
