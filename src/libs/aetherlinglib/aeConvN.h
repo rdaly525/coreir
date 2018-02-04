@@ -39,12 +39,14 @@ void Aetherling_createConvGenerator(Context* c) {
             uint kernelWidth = genargs.at("kernelWidth")->get<int>();
             uint elementWidth = genargs.at("elementWidth")->get<int>();
             uint dataWidth = genargs.at("dataWidth")->get<int>();
-            // create the type of that the linebuffer will kick out every clock
-            // this is kernel width number of pixels (so one pixel is element width bits)
-            Type* lbImgType = def->sel("self.in.data")->getType();
-            ArrayType* lbInType = dyn_cast<ArrayType>(c->BitIn()->Arr(elementWidth)->Arr(1));
-            ArrayType* lbOutType = dyn_cast<ArrayType>(c->Bit()->Arr(elementWidth)->Arr(kernelWidth));
             ArrayType* kernelType = dyn_cast<ArrayType>(def->sel("self.in.kernel")->getType());
+            // create the type of total image, the input per clock, and output per clock from linebuffer
+            Type* lbImgType = c->BitIn()->Arr(elementWidth)->Arr(dataWidth);
+            // need this to be an arr(1) as linebuffer outputs one pixel per clock (one elementwidth)
+            ArrayType* lbInType = dyn_cast<ArrayType>(c->In(def->sel("self.in.data")->getType()->Arr(1)));
+            // this has to be same as kernel type as they are going to be zipped together
+            // and then element-wise multiplied;
+            ArrayType* lbOutType = dyn_cast<ArrayType>(c->Out(kernelType));
             assert(kernelWidth>0);
             assert(elementWidth>0);
 

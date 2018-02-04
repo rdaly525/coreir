@@ -14,7 +14,6 @@ void Aetherling_createReduceGenerator(Context* c) {
     Namespace* aetherlinglib = c->getNamespace(AETHERLING_NAMESPACE);
     
     /*
-     * numLayers - the number of layers of reducers
      * parallelOperatrs - how many operators to have in parallel
      * operator - the operator to parallelize. Note that it must have two inputs known as "in0" and "in1" and 
      * one output known as "out"

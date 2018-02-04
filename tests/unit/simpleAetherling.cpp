@@ -40,7 +40,8 @@ int main() {
             {"in",c->BitIn()->Arr(width)->Arr(parallelInputs)},
             {"outMap",c->Bit()->Arr(width)->Arr(parallelInputs)},
             {"outReduce",c->Bit()->Arr(width)},
-            {"outConv1D", c->Bit()->Arr(width)}
+            {"outConv1D", c->Bit()->Arr(width)},
+            {"validConv1D", c->Bit()}
         });
     Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInManyOutGenType);
     ModuleDef* testDef = testModule->newModuleDef();
@@ -111,6 +112,7 @@ int main() {
     testDef->connect(constModule + ".out", "conv1D.in.data");
     
     testDef->connect("conv1D.out", "self.outConv1D");
+    testDef->connect("conv1D.valid", "self.validConv1D");
 
     // wiring up zippped input o mul
     testDef->connect("self.in","zip2.in0");
