@@ -9,7 +9,6 @@ using namespace CoreIR;
 void Aetherling_createConvGenerator(Context* c) {
 
     Namespace* aetherlinglib = c->getNamespace(AETHERLING_NAMESPACE);
-    Namespace* commonlib = c->getNamespace("commonlib");
     
     Params conv1Dparams = Params({
             {"dataWidth", c->Int()},
@@ -22,11 +21,12 @@ void Aetherling_createConvGenerator(Context* c) {
         conv1Dparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint elementWidth = genargs.at("elementWidth")->get<int>();
+            uint kernelWidth = genargs.at("elementWidth")->get<int>();
             uint dataWidth = genargs.at("dataWidth")->get<int>();
             return c->Record({
                     {"in", c->Record({
-                                {"data", c->BitIn()->Arr(elementWidth)->(dataWidth)},
-                                {"kernel", c->BitIn()->Arr(elementWidth)->(kernelWidth)}
+                                {"data", c->BitIn()->Arr(elementWidth)->Arr(dataWidth)},
+                                {"kernel", c->BitIn()->Arr(elementWidth)->Arr(kernelWidth)}
                             })},
                     {"out", c->Bit()->Arr(elementWidth)}
                 });
@@ -35,18 +35,16 @@ void Aetherling_createConvGenerator(Context* c) {
     Generator* conv1D =
         aetherlinglib->newGeneratorDecl("conv1D", aetherlinglib->getTypeGen("conv1D_type"), conv1Dparams);
    
-    reduceN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-            Type* imgType = genargs.at("imgType")->get<Type*>();
+    conv1D->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint kernelWidth = genargs.at("kernelWidth")->get<int>();
             uint elementWidth = genargs.at("elementWidth")->get<int>();
             // create the type of that the linebuffer will kick out every clock
             // this is kernel width number of pixels (so one pixel is element width bits)
             Type* lbImgType = def->sel("self.in.data")->getType();
-            ArrayType* lbInType = c->BitIn()->Arr(elementWidth);
-            ArrayType* lbOutType = c->Bit()->Arr(elementWidth)->Arr(kernelWidth);
+            Type* lbInType = c->BitIn()->Arr(elementWidth);
+            Type* lbOutType = c->Bit()->Arr(elementWidth)->Arr(kernelWidth);
             assert(kernelWidth>0);
             assert(elementWidth>0);
-            assert(dataWidth>0);
             
             // create the instances of the convolution, map, and reduce needed for conv
             // along with zip2 needed to create input to map and input ops for map and reduce
@@ -62,19 +60,22 @@ void Aetherling_createConvGenerator(Context* c) {
 
             def->addInstance("conv1DZip2", "aetherlinglib.zip2", {
                     {"numInputs", Const::make(c, kernelWidth)},
-                    {"input0Type", Const::make(c, c->In(lbOutType))}
+                    {"input0Type", Const::make(c, c->In(lbOutType))},
                     {"input1Type", Const::make(c, def->sel("self.in.kernel")->getType())}
                 });
 
-            Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(
-                c, c->getModule("coreir.mul"), {{"width", Const::make(c, elementWidth)}});
+            Module* mul2Unzipped = c->getGenerator("coreir.mul")->
+                getModule({{"width", Const::make(c, elementWidth)}});
+
+            
+            Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(c, mul2Unzipped);
             
             def->addInstance("conv1DMap", "aetherlinglib.mapN", {
                     {"parallelOperators", Const::make(c, kernelWidth)},
                     {"operator", Const::make(c, mul2Zipped)}
                 });
 
-            Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
+            Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, elementWidth)}});
 
             def->addInstance("conv1DReduce", "aetherlinglib.reduceNSerializable", {
                     // need to multiply by 2 to get right number of layers, like 4 inputs

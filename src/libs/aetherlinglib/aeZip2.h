@@ -64,7 +64,7 @@ void Aetherling_createZipGenerator(Context* c) {
 }
 
 // note that constructorName is a GlobalValue refrence (a fully qualified reference to the module or generator)
-Module* Aetherling_convert2InputModuleTo2ZippedInput(Context* c, Module* moduleToWrap, Values modargs=Values()) {
+Module* Aetherling_convert2InputModuleTo2ZippedInput(Context* c, Module* moduleToWrap, Values modargs) {
     //Type of module
     Type* twoInZippedOneOutGenType = c->Record({
             {"in", c->Record({

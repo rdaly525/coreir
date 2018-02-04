@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir/libs/aetherlinglib.h"
+#include "coreir/libs/commonlib.h"
 #include <execinfo.h>
 #include <stdio.h>
 #include <signal.h>
@@ -28,6 +29,7 @@ void handler(int sig) {
 int main() {
     signal(SIGSEGV, handler);   // install our handler
     Context* c = newContext();
+    CoreIRLoadLibrary_commonlib(c);
     CoreIRLoadLibrary_aetherlinglib(c);
 
     uint parallelInputs = 4;
@@ -38,7 +40,7 @@ int main() {
             {"in",c->BitIn()->Arr(width)->Arr(parallelInputs)},
             {"outMap",c->Bit()->Arr(width)->Arr(parallelInputs)},
             {"outReduce",c->Bit()->Arr(width)},
-            {"outConv1D", c->Bit()-Arr(width)}
+            {"outConv1D", c->Bit()->Arr(width)}
         });
     Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInManyOutGenType);
     ModuleDef* testDef = testModule->newModuleDef();
@@ -109,7 +111,7 @@ int main() {
     for (uint i = 0; i < dataWidth; i++) {
         testDef->connect(constModule + ".out", "conv1D.in.data." + to_string(i));
     }
-    testDef->connect("conv1D.out", "self.out");
+    testDef->connect("conv1D.out", "self.outConv1D");
         
     testDef->connect("self.in","zip2.in0");
     for (uint i = 0; i <parallelInputs; i++) {
