@@ -1,8 +1,9 @@
 
 #include "coreir.h"
-#include "coreir-passes/transform/flattentypes.h"
+#include "coreir/passes/transform/flattentypes.h"
 #include <set>
 
+using namespace std;
 using namespace CoreIR;
 namespace {
 inline bool isBit(Type* t) {
@@ -57,26 +58,17 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //  new flattened ports.
   //delete the passthrough
   
-  Instantiable* i = node.getInstantiable();
+  Module* mod = node.getModule();
   
   //If it is a generator or has no def:
   //Make sure all instances already have flat types
-  bool isGenOrNoDef = isa<Generator>(i);
-  if (auto mod = dyn_cast<Module>(i)) {
-    isGenOrNoDef |= !mod->hasDef();
-  }
-  if (isGenOrNoDef) {
-    for (auto inst : node.getInstanceList()) {
-      for (auto record : cast<RecordType>(inst->getType())->getRecord()) {
-        ASSERT(isBitOrArrOfBits(record.second),
-          inst->getInstname() +"." + record.first + " is not a bit/array of bits");
-      }
+  if (!mod->hasDef()) {
+    for (auto rpair : mod->getType()->getRecord()) {
+      ASSERT(isBitOrArrOfBits(rpair.second),
+      "NYI flatten types of generator or nodef module\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString()); 
     }
-    return false;
   }
-  
-  //I know I have a module here
-  Module* mod = cast<Module>(i);
+ 
   ModuleDef* def = mod->getDef();
   
   //Get a list of all the correct ports necessary. 
@@ -102,6 +94,8 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     node.appendField(newportpair.first,newportpair.second);
   }
 
+  //TODO use definition of instance itsefl
+
   //Now the fun part.
   //Get a list of interface + instances
   vector<Wireable*> work;
@@ -111,19 +105,21 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
   
   for (auto w : work) {
+    ModuleDef* wdef = w->getContainer();
+    
     //Add passtrhough to isolate the ports
     auto pt = addPassthrough(w,"_pt" + this->getContext()->getUnique());
     
     //disconnect passthrough from wireable
-    def->disconnect(pt->sel("in"),w);
+    wdef->disconnect(pt->sel("in"),w);
 
     //connect all old ports of passtrhough to new ports of wireable
     for (uint i=0; i<ports.size(); ++i) {
-      def->connect(pt->sel("in")->sel(ports[i].first), w->sel(newports[i].first));
+      wdef->connect(pt->sel("in")->sel(ports[i].first), w->sel(newports[i].first));
     }
     //reconnect all unchanged ports
     for (auto p : unchanged) {
-      def->connect(pt->sel("in")->sel(p),w->sel(p));
+      wdef->connect(pt->sel("in")->sel(p),w->sel(p));
     }
 
     //inline the passthrough

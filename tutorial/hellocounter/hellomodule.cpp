@@ -15,6 +15,7 @@ int main() {
   //Every context also comes preloaded with 'coreir' namespace
   //coreir contains all of the primitives (like add, reg, and, etc)
   Namespace* coreir = c->getNamespace("coreir");
+  Namespace* mantle = c->getNamespace("mantle");
  
   //Our goal is to define a counter module
   // first we need a type. This represents the interface to the counter module.
@@ -46,19 +47,19 @@ int main() {
   //A counter requires an adder, a register and a constant(1)
   //Note all of the coreir primitives are generators because they require a width argument.
   Generator* Add = coreir->getGenerator("add");
-  Generator* Reg = coreir->getGenerator("reg");
+  Generator* Reg = mantle->getGenerator("reg");
   Generator* Const = coreir->getGenerator("const");
 
   //Lets instance the Add and call it "ai"
-  Instance* ai = def->addInstance("ai",Add,{{"width",c->argInt(16)}});
+  Instance* ai = def->addInstance("ai",Add,{{"width",Const::make(c,16)}});
   
-  //The third value here is the genArgs (generator arguments).
+  //The third value here is the genValues (generator arguments).
   //You specify all of the parameters required by the generator here.
   //a Generator Arg can be a bool, int, string or CoreIR::Type*
   //These each have correspondng constructors found in CoreIR::context.
 
   //Now lets instance the Constant.
-  def->addInstance("ci",Const,{{"width",c->argInt(16)}},{{"value",c->argInt(1)}});
+  def->addInstance("ci",Const,{{"width",Const::make(c,16)}},{{"value",Const::make(c,16,1)}});
 
   //What is this 4th argument? This is a configarg. Configargs are usually things like initialization values 
   //Or anything that does not change the type or structure of the circuit. Constant has one config arg 
@@ -66,14 +67,14 @@ int main() {
   
   //And finally lets instance the Register
   //Lets specify all the arguments to the register separately
-  Args regGenArgs({
-    {"width",c->argInt(16)}, //width of the register
-    {"en",c->argBool(true)}, //Does the register have an enable port?
-    {"clr",c->argBool(false)}, //Does the register have a synchronous clr?
-    {"rst",c->argBool(false)} //Does the register have an asynchronous rst?
+  Values regGenValues({
+    {"width",Const::make(c,16)}, //width of the register
+    {"has_en",Const::make(c,true)}, //Does the register have an enable port?
+    {"has_clr",Const::make(c,false)}, //Does the register have a synchronous clr?
+    {"has_rst",Const::make(c,false)} //Does the register have an asynchronous rst?
   });
-  Args regConfigArgs({{"init",c->argInt(0)}}); //Initialiation value of the register
-  Instance* ri = def->addInstance("ri",Reg,regGenArgs,regConfigArgs);
+  Values regConfigValues({{"init",Const::make(c,16,0)}}); //Initialiation value of the register
+  Instance* ri = def->addInstance("ri",Reg,regGenValues,regConfigValues);
 
   //Now that we have the instances, lets specify the connections
   //Lets first specifiy the connection between the adder and the register.

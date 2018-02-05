@@ -1,7 +1,7 @@
 #include "coreir.h"
-#include "coreir-passes/transform/wireclocks.h"
-#include "coreir-passes/transform/liftclockports.h"
+#include "coreir/passes/transform/wireclocks.h"
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {
@@ -19,13 +19,11 @@ int main() {
     // shift_register->print();
     ModuleDef* definition = shift_register->getDef();
 
-    Passes::LiftClockPorts* liftClockPorts = new Passes::LiftClockPorts("liftclockports",clockInType);
     Passes::WireClocks* wireClock = new Passes::WireClocks("wireclocks",clockInType);
-    context->addPass(liftClockPorts);
     context->addPass(wireClock);
 
     // Run the pass
-    context->runPasses({"liftclockports", "wireclocks"});
+    context->runPasses({"wireclocks"});
     Wireable* topClock = definition->sel("self.clk");
 
     // Check that the clocks are now wired

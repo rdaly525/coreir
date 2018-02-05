@@ -1,12 +1,4 @@
-General Ideas
  
-getAnalysisPass
-
-
-Simple Inst Pass
-Given a moduledecl 'from' and 'to' with the same interface,
-Replace all instances of 'from' to 'to'. This is wonderful for mapping
-
 
 Patter Matching Pass steps
 Step 1: Analyze pattern (can be done at pass creation time)
@@ -64,9 +56,6 @@ Do the following
   (also optionally inline it)
 
 
-Random idea, implement a generator which takes a module, and an instance, and inlines that instance. 
-
-
 Ideas for Simple generator language
 
 Basically keep using the same Args.
@@ -87,138 +76,4 @@ But add Arguemnt manipulation nodes like
 Maybe there should also be an AOpaque(Args,Args(*fun)(Args args, Void* userdata))
 
 If this is the case, then is there really a difference between a Module and a Generator?
-
-Restructure for coreir to be more similar to LLVM
-
-Named
-  string name
-
-Symbol : Value
-  Namespace* ns
-
-Instantiable : Symbol
-  Configparams params
-
-Module : Instantiable
-  
-Generator : Instantiable
-
-Wireable : Value
-
-Instance : Wireable
-  configArgs
-
-GenInstance : Instance
-
-NamedType : Symboal : Type
-
-GenNamedType : NamedType
-
-LLVM Compiler passes
-Module (Set of functions)
-  
-
-List of passes I want to do
-Compute Verilog: Modules -> Verilog
-Requires?
-Looping over every Module in the minimized dag
-
-VerilogPass : Module Pass
-  map<string,string> Mod2Verilog
-  bool runonModule(Module m) {
-    if (namespace==stdlib) {
-
-    }
-    else if
-
-  }
-  string instance2verilog
-
-Run Generators Pass
-RunAllGenerators : Module Pass
-  
-
-Inline Pass
-
-
-Add Clock enable pass
-ClockEn : ComputeDAG
-  runOnModule(Module m) {
-    foreach instance {
-      if instance has clk
-        if has clk en
-          add And gate
-          Wire output of And to instance.clken
-        if no clk en
-          instance -> instance with clken
-      Wire self.clken -> inst.clken
-    }
-  }
-
-OR
-
-ClockEN : ComputeDag
-  string clken
-  runOnModule(Module m) {
-    foreach instance with clock
-      replace instRef with clkEnGen(instRef)
-      Wire m.clken to inst.clken
-    }
-  }
-}
-
-clkEnGen(ModuleDef def, Module mref,Type tref) {
-  
-
-}
-
-
-
-Add4 -> G(Add2)
-
-Types of passes:
-
-Module Pass
-Runs over the modules in arbitrary order
-bool runPass(Module m)
-
-computeDAG
-Run over Modules in DAG sorted order, bottom up
-
-Instance Pass
-Run over all instances in all DAGs in any order.
-Is this useful?
-
-
-
-
-
-For the compilers Have a set of graph editing operations
-First is basically replace moduleDef with new moduleDef
-
-//Fundemental
-AddNode
-DeleteNode(Deletes dangling wires)
-AddWire
-DeleteWire
-Change NodeType (also provide mappings from old wirepaths to new wirepaths)
-  //This should default to the same wirepaths if matching.
-Change NodeModuleRef
-Run Generator
-Change genargs
-Change configargs
-
-//Helpers
-splitedge(edge), Adds a node on an edge between the nodes
-
-
-Maybe do Typechecking based on moduleDef, and always call when you add the definition to the module
-
-Maybe do flatten on instances within a moduleDef. 
-
-Have ArgNull type
-Maybe have default args somehow? That would be nice
-Have the Args be references rather than pointers. Can construct normally on stack without helper functions
-
-Change Error handling to do something like LLVM where they return an Error type that you can derefence to get the return value. 
 

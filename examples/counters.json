@@ -1,76 +1,58 @@
-{
+{"top":"global.counters",
   "namespaces": {
     "global": {
       "modules": {
         "counters": {
+            "metadata" : {"properties": [["exec_to_30","invar","\"out\" != 0ud16_10"],
+                                         ["out_plus_1","invar","(!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = (\"out\" + 0ud16_1))"],
+                                         ["reset","ltl","G(F((!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = 0ud16_0)))"]]
+                                 },
           "type": ["Record",{
+            "clk": ["Named","coreir.clkIn"]
           }],
-          "instances": {
+            "instances": {
             "count0": {"modref": "global.counter"},
-            "count1": {"modref": "global.counter"},
-            "slice0": {
-              "genref": "coreir.slice",
-              "genargs": {"width":16, "lo":0,"hi":8}
-            },
-            "slice1": {
-              "genref": "coreir.slice",
-              "genargs": {"width":16, "lo":8,"hi":16}
-            },
-            "cat": {
-              "genref": "coreir.concat",
-              "genargs": {"width0":8, "width1":8}
-            },
-            "neg": {
-              "genref": "coreir.neg",
-              "genargs": {"width":16}
-            },
-            "term": {
-              "genref": "coreir.term",
-              "genargs": {"width":16}
-            }
+            "count1": {"modref": "global.counter"}
           },
           "connections": [
-            ["count0.out.4","count1.en"],
-            ["count1.out.8","count0.en"],
-            ["count0.out","slice0.in"],
-            ["count1.out","slice1.in"],
-            ["slice0.out","cat.in0"],
-            ["slice1.out","cat.in1"],
-            ["cat.out","neg.in"],
-            ["neg.out","term.in"]
+            ["count0.clk","self.clk"],
+            ["count1.clk","self.clk"],
+            ["count0.out.4","count1.clr"],
+            ["count1.out.8","count0.clr"]
           ]
         },
         "counter": {
           "type": ["Record",{
-            "en": "BitIn",
+            "clk": ["Named","coreir.clkIn"],
+            "clr": "BitIn",
             "out": ["Array",16,"Bit"]
           }],
           "instances": {
             "c1": {
               "genref": "coreir.const",
-              "genargs": {"width":16},
-              "configargs": {"value":1}
+              "genargs": {"width":["Int", 16]},
+              "modargs": {"value":[["BitVector", 16], 1]}
             },
             "r": {
-              "genref": "coreir.reg",
-              "genargs": {"width":16,"en":true}
+              "genref": "mantle.reg",
+              "genargs": {"width":["Int", 16],"has_clr":["Bool",true]},
+              "modargs": {"init":[["BitVector",16],0]}
             },
             "a": {
               "genref": "coreir.add",
-              "genargs": {"width":16}
+              "genargs": {"width":["Int", 16]}
             }
           },
           "connections": [
             ["c1.out","a.in0"],
             ["r.out","a.in1"],
+            ["r.clk","self.clk"],
             ["a.out","r.in"],
             ["r.out","self.out"],
-            ["self.en","r.en"]
+            ["self.clr","r.clr"]
           ]
         }
       }
     }
   }
 }
-
-

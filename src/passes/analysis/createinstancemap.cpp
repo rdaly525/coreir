@@ -1,18 +1,19 @@
 #include "coreir.h"
-#include "coreir-passes/analysis/createinstancemap.h"
+#include "coreir/passes/analysis/createinstancemap.h"
 
 using namespace CoreIR;
+using namespace std;
 
-std::string Passes::CreateInstanceMap::ID = "createinstancemap";
+std::string Passes::CreateInstanceMap::ID = "createfullinstancemap";
 bool Passes::CreateInstanceMap::runOnModule(Module* m) {
-  InstanceMapType imap;
-  if (m->hasDef()) {
-    ModuleDef* def = m->getDef();
-    for (auto instmap : def->getInstances()) {
-      Instantiable* i = instmap.second->getInstantiableRef();
-      imap[i].insert(instmap.second);
+  for (auto instmap : m->getDef()->getInstances()) {
+    Module* m = instmap.second->getModuleRef();
+    if (m->isGenerated()) {
+      genInstanceMap[m->getGenerator()].insert(instmap.second);
+    }
+    else {
+      modInstanceMap[m].insert(instmap.second);
     }
   }
-  modInstanceMap[m] = imap;
   return false;
 }

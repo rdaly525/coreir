@@ -1,5 +1,6 @@
 #include "coreir.h"
 
+using namespace std;
 using namespace CoreIR;
 
 int main() {
@@ -21,9 +22,9 @@ int main() {
   Module* add4_n = g->newModuleDecl("Add4",add4Type);
   ModuleDef* def = add4_n->newModuleDef();
     Wireable* self = def->sel("self");
-    Wireable* add_00 = def->addInstance("add00",add2,{{"width",c->argInt(n)}});
-    Wireable* add_01 = def->addInstance("add01",add2,{{"width",c->argInt(n)}});
-    Wireable* add_1 = def->addInstance("add1",add2,{{"width",c->argInt(n)}});
+    Wireable* add_00 = def->addInstance("add00",add2,{{"width",Const::make(c,n)}});
+    Wireable* add_01 = def->addInstance("add01",add2,{{"width",Const::make(c,n)}});
+    Wireable* add_1 = def->addInstance("add1",add2,{{"width",Const::make(c,n)}});
     
     def->connect(self->sel("in")->sel(0),add_00->sel("in0"));
     def->connect(self->sel("in")->sel(1),add_00->sel("in1"));
@@ -36,7 +37,7 @@ int main() {
     def->connect(add_1->sel("out"),self->sel("out"));
   add4_n->setDef(def);
   add4_n->print();
-  
+
   deleteContext(c);
   
   return 0;

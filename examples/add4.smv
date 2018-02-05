@@ -1,0 +1,60 @@
+#define B(bv) (bv = 0ud1_1)
+MODULE main
+-- Variable declarations
+VAR i01$out: word[16];
+VAR i01$in1: word[16];
+VAR i01$in0: word[16];
+VAR i00$out: word[16];
+VAR i00$in1: word[16];
+VAR i00$in0: word[16];
+VAR i1$out: word[16];
+VAR i1$in1: word[16];
+VAR i1$in0: word[16];
+VAR in_3: word[16];
+VAR in_1: word[16];
+VAR out: word[16];
+VAR in_2: word[16];
+VAR in_0: word[16];
+
+
+-- START module declaration for instance 'i01' (Module add)
+-- SMVAdd (in1, in2, out) = (in0, in1, out)
+INVAR
+((i01$in0 + i01$in1) = i01$out);
+
+-- END module declaration
+
+-- START module declaration for instance 'i00' (Module add)
+-- SMVAdd (in1, in2, out) = (in0, in1, out)
+INVAR
+((i00$in0 + i00$in1) = i00$out);
+
+-- END module declaration
+
+-- START module declaration for instance 'i1' (Module add)
+-- SMVAdd (in1, in2, out) = (in0, in1, out)
+INVAR
+((i1$in0 + i1$in1) = i1$out);
+
+-- END module declaration
+
+-- START connections definition
+INVAR
+(i01$in1 = in_3);
+INVAR
+(i00$in1 = in_1);
+INVAR
+(i1$in0 = i00$out);
+INVAR
+(out = i1$out);
+INVAR
+(i1$in1 = i01$out);
+INVAR
+(i01$in0 = in_2);
+INVAR
+(i00$in0 = in_0);
+-- END connections definition
+
+
+INVARSPEC NAME
+correct_sum := out = (in_0 + in_1 + in_2 + in_3);

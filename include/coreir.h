@@ -1,23 +1,37 @@
 #ifndef COREIR_H_
 #define COREIR_H_
 
+#ifdef __cplusplus //C++ header
+#include "coreir/ir/casting/casting.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/context.h"
+#include "coreir/ir/namespace.h"
+#include "coreir/ir/value.h"
+#include "coreir/ir/valuetype.h"
+#include "coreir/ir/types.h"
+#include "coreir/ir/typegen.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
+#include "coreir/ir/moduledef.h"
+#include "coreir/ir/wireable.h"
+
+#include "coreir/ir/error.h"
+
+#include "coreir/ir/directedview.h"
+#include "coreir/ir/passmanager.h"
+#include "coreir/ir/passes.h"
+#include "coreir/ir/instancegraph.h"
+
+#include "coreir/simulator/interpreter.h"
+#include "coreir/simulator/simulator.h"
+#include "coreir/simulator/print_c.h"
+
+#else //C header
+
+#include "coreir-c/coreir.h"
+
+#endif
 
 
-//TODO I should actually move over all the hpp files into include directly
-//Also should create coreir/ to put all these files in to be consistent
-#include "../src/ir/context.hpp"
-#include "../src/ir/directedview.hpp"
-#include "passmanager.h"
-#include "passes.h"
-#include "instancegraph.h"
-
-
-namespace CoreIR {
-//extra helper functions
-
-//Inlines the instance
-  bool inlineInstance(Instance*);
-  Instance* addPassthrough(Wireable* w,std::string instname);
-}
 
 #endif //COREIR_H_

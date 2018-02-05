@@ -27,52 +27,40 @@
           ],
           "instances": {
             "inst0": {
-              "configargs": {
-                "init": 0
-              },
               "genargs": {
-                "clr": false,
-                "en": false,
-                "rst": false,
-                "width": 4
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
+                "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             },
             "inst1": {
-              "configargs": {
-                "init": 0
-              },
               "genargs": {
-                "clr": false,
-                "en": false,
-                "rst": false,
-                "width": 4
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
+                "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             },
             "inst2": {
-              "configargs": {
-                "init": 0
-              },
               "genargs": {
-                "clr": false,
-                "en": false,
-                "rst": false,
-                "width": 4
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
+                "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             },
             "inst3": {
-              "configargs": {
-                "init": 0
-              },
               "genargs": {
-                "clr": false,
-                "en": false,
-                "rst": false,
-                "width": 4
+                "has_clr": ["Bool", false],
+                "has_en": ["Bool", false],
+                "has_rst": ["Bool", false],
+                "width": ["Int", 4]
               },
-              "genref": "coreir.reg"
+              "genref": "mantle.reg"
             }
           },
           "type": [

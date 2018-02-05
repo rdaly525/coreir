@@ -26,9 +26,6 @@ extern "C" {
     rcast<Type*>(t)->print();
   }
 
-  COREType* COREAny(COREContext* c) {
-    return rcast<COREType*>(rcast<Context*>(c)->Any());
-  }
   COREType* COREBitIn(COREContext* c) {
     return rcast<COREType*>(rcast<Context*>(c)->BitIn());
   }
@@ -42,6 +39,22 @@ extern "C" {
     return rcast<COREType*>(rcast<Context*>(context)->Record(*rcast<RecordParams*>(record_param)));
   }
 
+  void CORERecordTypeGetItems(COREType* recordType, char*** keys, COREType*** values, int* size) {
+      RecordType* type = rcast<RecordType*>(recordType);
+      auto const& record = type->getRecord();
+      *size = record.size();
+      *keys = type->getContext()->newStringArray(*size);
+      *values = (COREType **) type->getContext()->newTypeArray(*size);
+      int count = 0;
+      for (auto element : record) {
+          std::size_t key_length = element.first.size();
+          (*keys)[count] = type->getContext()->newStringBuffer(key_length + 1);
+          memcpy((*keys)[count], element.first.c_str(), key_length + 1);
+          (*values)[count] = (COREType*) element.second;
+          count++;
+      }
+  }
+
   uint COREArrayTypeGetLen(COREType* arrayType) {
     Type* t = rcast<Type*>(arrayType);
     return cast<ArrayType>(t)->getLen();
@@ -51,6 +64,10 @@ extern "C" {
     Type* t = rcast<Type*>(arrayType);
     Type* elemType = cast<ArrayType>(t)->getElemType();
     return rcast<COREType*>(elemType);
+  }
+
+  const char* CORENamedTypeToString(COREType* namedType) {
+    return rcast<NamedType*>(namedType)->toString().c_str();
   }
 }
 
