@@ -33,6 +33,7 @@ int main() {
     CoreIRLoadLibrary_aetherlinglib(c);
 
     uint parallelInputs = 4;
+    uint notPow2ParallelInputs = 3;
     uint width = 16;
     
     //Type of module 
@@ -97,24 +98,25 @@ int main() {
     testDef->addInstance("reduceAdd", "aetherlinglib.reduceN", reduceNParams);
 
     // creating convolution for testing
-    uint dataWidth = parallelInputs*4;
+    uint dataWidth = notPow2ParallelInputs*4;
     testDef->addInstance("conv1D", "aetherlinglib.conv1D", {
             {"dataWidth", Const::make(c, dataWidth)},
-            {"kernelWidth", Const::make(c, parallelInputs)},
+            {"inputPerClockWidth", Const::make(c, 1)},
+            {"kernelWidth", Const::make(c, notPow2ParallelInputs)},
             {"elementWidth", Const::make(c, width)}
         });
 
     // wiring up the kernel and the data inputs, everythign is same as justing if wiring works
-    for (uint i = 0; i < parallelInputs; i++) {
+    for (uint i = 0; i < notPow2ParallelInputs; i++) {
         testDef->connect(constModule + ".out", "conv1D.in.kernel." + to_string(i));
     }
 
-    testDef->connect(constModule + ".out", "conv1D.in.data");
+    testDef->connect(constModule + ".out", "conv1D.in.data.0");
     
     testDef->connect("conv1D.out", "self.outConv1D");
     testDef->connect("conv1D.valid", "self.validConv1D");
 
-    // wiring up zippped input o mul
+    // wiring up zippped input to mul
     testDef->connect("self.in","zip2.in0");
     for (uint i = 0; i <parallelInputs; i++) {
         testDef->connect(constModule + ".out", "zip2.in1." + to_string(i));

@@ -12,6 +12,7 @@ void Aetherling_createConvGenerator(Context* c) {
     
     Params conv1Dparams = Params({
             {"dataWidth", c->Int()},
+            {"inputPerClockWidth", c->Int()},
             {"kernelWidth", c->Int()},
             {"elementWidth", c->Int()}
         });
@@ -22,9 +23,10 @@ void Aetherling_createConvGenerator(Context* c) {
         [](Context* c, Values genargs) { //Function to compute type
             uint elementWidth = genargs.at("elementWidth")->get<int>();
             uint kernelWidth = genargs.at("kernelWidth")->get<int>();
+            uint inputPerClockWidth = genargs.at("inputPerClockWidth")->get<int>();
             return c->Record({
                     {"in", c->Record({
-                                {"data", c->BitIn()->Arr(elementWidth)},
+                                {"data", c->BitIn()->Arr(elementWidth)->Arr(inputPerClockWidth)},
                                 {"kernel", c->BitIn()->Arr(elementWidth)->Arr(kernelWidth)}
                             })},
                     {"out", c->Bit()->Arr(elementWidth)},
@@ -43,7 +45,7 @@ void Aetherling_createConvGenerator(Context* c) {
             // create the type of total image, the input per clock, and output per clock from linebuffer
             Type* lbImgType = c->BitIn()->Arr(elementWidth)->Arr(dataWidth);
             // need this to be an arr(1) as linebuffer outputs one pixel per clock (one elementwidth)
-            ArrayType* lbInType = dyn_cast<ArrayType>(c->In(def->sel("self.in.data")->getType()->Arr(1)));
+            ArrayType* lbInType = dyn_cast<ArrayType>(c->In(def->sel("self.in.data")->getType()));
             // this has to be same as kernel type as they are going to be zipped together
             // and then element-wise multiplied;
             ArrayType* lbOutType = dyn_cast<ArrayType>(c->Out(kernelType));
@@ -52,12 +54,12 @@ void Aetherling_createConvGenerator(Context* c) {
 
             // create the instances of the convolution, map, and reduce needed for conv
             // along with zip2 needed to create input to map and input ops for map and reduce
-            def->addInstance("conv1DLineBuffer", "commonlib.linebuffer", {
+            Instance* lbInst = def->addInstance("conv1DLineBuffer", "commonlib.linebuffer", {
                     {"input_type", Const::make(c, lbInType)},
                     {"output_type", Const::make(c, lbOutType)},
                     {"image_type", Const::make(c, lbImgType)},
                     {"has_valid", Const::make(c, true)},
-                    {"is_last_lb", Const::make(c, true)}
+                    {"is_last_lb", Const::make(c, false)}
                 });
 
 
@@ -82,21 +84,24 @@ void Aetherling_createConvGenerator(Context* c) {
                 });
 
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, elementWidth)}});
+            string addIdentityModule = Aetherling_addCoreIRConstantModule(c, def, elementWidth, Const::make(c, elementWidth, 0));
 
-            def->addInstance("conv1DReduce", "aetherlinglib.reduceNSerializable", {
+            def->addInstance("conv1DReduce", "aetherlinglib.reduceNAnyInputs", {
                     // need to multiply by 2 to get right number of layers, like 4 inputs
                     // is 3 layers and log2(8) = 3
-                    {"numLayers", Const::make(c, int(log2(kernelWidth)))},
+                    {"numInputs", Const::make(c, kernelWidth)},
                     {"operator", Const::make(c, add)}
                 });
 
             // now wire everythign up
-            def->connect("self.in.data", "conv1DLineBuffer.in.0");
+            def->connect("self.in.data", "conv1DLineBuffer.in");
             def->connect("conv1DLineBuffer.out", "conv1DZip2.in0");
             def->connect("self.in.kernel", "conv1DZip2.in1");
             def->connect("conv1DZip2.out", "conv1DMap.in");
-            def->connect("conv1DMap.out", "conv1DReduce.in");
+            def->connect("conv1DMap.out", "conv1DReduce.in.data");
+            def->connect(addIdentityModule + ".out", "conv1DReduce.in.identity");
             def->connect("conv1DReduce.out", "self.out");
             def->connect("conv1DLineBuffer.valid", "self.valid");
+            lbInst->getModuleRef()->print();
         });
 }

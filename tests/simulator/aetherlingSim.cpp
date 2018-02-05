@@ -120,12 +120,11 @@ namespace CoreIR {
 
             CoreIRLoadLibrary_commonlib(c);
             CoreIRLoadLibrary_aetherlinglib(c);
-            printf("hi\n");
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)}
                 });
-            Module* mainModule = c->getGlobal()->newModuleDecl("mainMapNMulTest", mainModuleType);
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceNTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
 
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
@@ -167,6 +166,90 @@ namespace CoreIR {
             state.execute();
 
             REQUIRE(state.getBitVec("self.out") == BitVector(width, rightOutput));
+        }
+        deleteContext(c);
+    }
+
+    TEST_CASE("Simulate convolution from aetherlinglib") {
+        // New context
+        Context* c = newContext();
+        Namespace* g = c->getGlobal();
+
+        SECTION("aetherlinglib conv1D with 9 values for data, 3 values for kernel, 1 value input per clock, 16 bit width") {
+            uint dataWidth = 9;
+            uint inputPerClockWidth = 1;
+            uint kernelWidth = 3;
+            uint elementWidth = 16;
+
+            CoreIRLoadLibrary_commonlib(c);
+            CoreIRLoadLibrary_aetherlinglib(c);
+            // create the main module to run the test on the adder
+            Type* mainModuleType = c->Record({
+                    {"in", c->BitIn()->Arr(elementWidth)->Arr(inputPerClockWidth)},
+                    {"out", c->Bit()->Arr(elementWidth)},
+                    {"valid", c->Bit()}                        
+                });
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainConv1DTest", mainModuleType);
+            ModuleDef* def = mainModule->newModuleDef();
+
+            Values conv1DGenArgs = {
+                {"dataWidth", Const::make(c, dataWidth)},
+                {"inputPerClockWidth", Const::make(c, inputPerClockWidth)},
+                {"kernelWidth", Const::make(c, kernelWidth)},
+                {"elementWidth", Const::make(c, elementWidth)},
+            };
+
+            string conv1DName = "conv1D_test";
+            Instance* conv1D = def->addInstance(conv1DName, "aetherlinglib.conv1D", conv1DGenArgs);
+            // create different input for each element of kernel
+            for (uint i = 0 ; i < kernelWidth; i++) {
+                string constName = "constInput" + to_string(i);
+                def->addInstance(
+                    constName,
+                    "coreir.const",
+                    {{"width", Const::make(c, elementWidth)}},
+                    {{"value", Const::make(c, elementWidth, i)}});
+
+                def->connect(constName + ".out", conv1DName + ".in.kernel." + to_string(i));
+            }
+
+            def->connect("self.in", conv1DName + ".in.data");
+            def->connect(conv1DName + ".out", "self.out");
+            def->connect(conv1DName + ".valid", "self.valid");
+
+            mainModule->setDef(def);
+            mainModule->print();
+            conv1D->getModuleRef()->print();
+            //c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes", "wireclocks-coreir"});
+            c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+            mainModule->print();
+                                    
+            SimulatorState state(mainModule);
+            // pass in increasing numbers each clock cycle, should get 1*2*3 times that number
+            // once valid is right, should get items out in same order sent in           
+            for (uint clkCount = 0, numValidClks = 0; ; clkCount++) {
+                state.setClock("self.clk", 0, 1); // get a new rising clock edge
+                // set the input
+                state.setValue("self.in_0", BitVector(elementWidth, clkCount));
+                state.execute();
+
+                // should take kernelWidth/inputPerClockWidth cycles before valid, then stay valid for rest
+                if (clkCount + 1 < kernelWidth/inputPerClockWidth) {
+                    REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
+                }
+                else {
+                    REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
+
+                    // now check that the n, n+1, ..., n+(kernelWidth-1) inputs are used to produce output
+                    // on nth clock cycle of valid
+                    uint rightOutput = 0;
+                    for (uint i = 0; i < kernelWidth; i++) {
+                        rightOutput += (numValidClks+i)*i;
+                    }
+                    REQUIRE(state.getBitVec("self.out") == BitVector(elementWidth, rightOutput));
+                    numValidClks++;
+                }
+            }
         }
         deleteContext(c);
     }

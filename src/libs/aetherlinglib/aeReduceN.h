@@ -14,7 +14,9 @@ void Aetherling_createReduceGenerator(Context* c) {
     Namespace* aetherlinglib = c->getNamespace(AETHERLING_NAMESPACE);
     
     /*
-     * parallelOperatrs - how many operators to have in parallel
+     * numLayers - the number of layers of operators. The number of inputs will be 2^(numLayers+1), because
+     * each operator takes two inputs, so first layer of ops takes inputs equal to double its number of 
+     * operators
      * operator - the operator to parallelize. Note that it must have two inputs known as "in0" and "in1" and 
      * one output known as "out"
      */
@@ -64,6 +66,62 @@ void Aetherling_createReduceGenerator(Context* c) {
                     }
                 }
             }
+        });
+
+    /*
+     * This reducer allows for non-powers of 2 inputs, requires an identity for operator so that can wire
+     * up all irrelevant inputs to it.
+     * numInputs - the total number of inputs to this module
+     * operator - the operator to parallelize. Note that it must have two inputs known as "in0" and "in1" and 
+     * one output known as "out"
+     */
+    Params reduceNAnyInputsparams = Params({
+            {"numInputs", c->Int()},
+            {"operator", ModuleType::make(c)}
+        });
+
+    aetherlinglib->newTypeGen(
+        "reduceNAnyInputs_type", // name for typegen
+        reduceNAnyInputsparams, // generator parameters
+        [](Context* c, Values genargs) { //Function to compute type
+            uint inputs = genargs.at("numInputs")->get<int>();
+            Module* opModule = genargs.at("operator")->get<Module*>();
+            RecordType* opType = opModule->getType();
+            return c->Record({
+                    {"in", c->Record({
+                                {"data", opType->sel("in0")->Arr(inputs)},
+                                {"identity", opType->sel("in0")}
+                            })},
+                    {"out", opType->sel("out")}
+                });
+        });
+
+    Generator* reduceNAnyInputs =
+        aetherlinglib->newGeneratorDecl("reduceNAnyInputs", aetherlinglib->getTypeGen("reduceNAnyInputs_type"), reduceNAnyInputsparams);
+
+    reduceNAnyInputs->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+            uint numInputs = genargs.at("numInputs")->get<int>();
+            // this works as numLayers is one less than depth, so don't need to divide numInputs by 2
+            // as that also doesn't count as a layer
+            uint numLayers = int(ceil(log2(numInputs)));
+            Module* opModule = genargs.at("operator")->get<Module*>();
+            assert(numLayers>0);
+
+            def->addInstance("reducer", "aetherlinglib.reduceN", {
+                    {"numLayers", Const::make(c, numLayers)},
+                    {"operator", Const::make(c, opModule)}
+                });
+
+            uint i;
+            for (i = 0; i < numInputs; i++) {
+                string iStr = to_string(i);
+                def->connect("self.in.data." + iStr, "reducer.in." + iStr);
+            }
+            // connect identity to rest of in now, all others up to power of 2
+            for (; i < int(pow(2,ceil(log2(numInputs)))); i++) {
+                def->connect("self.in.identity", "reducer.in." + to_string(i));
+            }
+            def->connect("reducer.out", "self.out");
         });
 
     aetherlinglib->newTypeGen(
