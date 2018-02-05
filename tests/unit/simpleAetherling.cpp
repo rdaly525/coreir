@@ -35,13 +35,18 @@ int main() {
     uint parallelInputs = 4;
     uint notPow2ParallelInputs = 3;
     uint width = 16;
+
+    Type* inFlattenType = c->BitIn()->Arr(2)->Arr(2)->Arr(2);
+    Type* outFlattenType = c->Bit()->Arr(2);
     
     //Type of module 
     Type* oneInManyOutGenType = c->Record({
             {"in",c->BitIn()->Arr(width)->Arr(parallelInputs)},
+            {"inFlatten", inFlattenType},
             {"outMap",c->Bit()->Arr(width)->Arr(parallelInputs)},
             {"outReduce",c->Bit()->Arr(width)},
             {"outConv1D", c->Bit()->Arr(width)},
+            {"outFlatten", outFlattenType->Arr(4)},
             {"validConv1D", c->Bit()}
         });
     Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInManyOutGenType);
@@ -82,7 +87,7 @@ int main() {
             {"parallelOperators", Const::make(c, parallelInputs)},
             {"operator", Const::make(c, mul2Inputs)}
         });
-                      
+
     // ignoring last argumen to addIstance as no module parameters
     testDef->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
     testDef->addInstance("mapMul", "aetherlinglib.mapN", mapNParams);
@@ -105,6 +110,19 @@ int main() {
             {"kernelWidth", Const::make(c, notPow2ParallelInputs)},
             {"elementWidth", Const::make(c, width)}
         });
+
+    printf("32\n");
+    // creating flatten for testing
+    
+    testDef->addInstance("flattenTest", "aetherlinglib.flattenN", {
+            {"inputType", Const::make(c, inFlattenType)},
+            {"singleElementOutputType", Const::make(c, outFlattenType)}
+        });
+    printf("44\n");
+
+    // wiring up the flatten
+    testDef->connect("self.inFlatten", "flattenTest.in");
+    testDef->connect("flattenTest.out", "self.outFlatten");
 
     // wiring up the kernel and the data inputs, everythign is same as justing if wiring works
     for (uint i = 0; i < notPow2ParallelInputs; i++) {

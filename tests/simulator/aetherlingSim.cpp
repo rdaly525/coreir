@@ -220,8 +220,8 @@ namespace CoreIR {
             mainModule->setDef(def);
             mainModule->print();
             conv1D->getModuleRef()->print();
-            //c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes", "wireclocks-coreir"});
-            c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes", "wireclocks-coreir"});
+            //c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
             mainModule->print();
                                     
             SimulatorState state(mainModule);
