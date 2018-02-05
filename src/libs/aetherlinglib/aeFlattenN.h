@@ -79,13 +79,10 @@ void Aetherling_createFlattenGenerator(Context* c) {
                 uint flattenInnerOutputLen = getFlattenedSize(c, inputType->getElemType(), singleElementOutputType);
                 for (uint i = 0; i < inputTypeLen; i++) {
                     string iStr = to_string(i);
-                    cout << "flattenNInner_" + iStr << " has input type " << inputType->getElemType()->toString() << endl;
-                    Instance* fl = def->addInstance("flattenNInner_" + iStr, "aetherlinglib.flattenN", {
+                    def->addInstance("flattenNInner_" + iStr, "aetherlinglib.flattenN", {
                             {"inputType", Const::make(c, inputType->getElemType())},
                             {"singleElementOutputType", Const::make(c, singleElementOutputType)}
                         });
-                    cout << "single el output: " << singleElementOutputType->toString() << endl;
-                    cout << "it has to_string " << fl->getModuleRef()->toString() << endl;
                     def->connect("self.in." + iStr, "flattenNInner_" + iStr + ".in");
                     // wire up each output from the inner to the output
                     for (uint j = 0; j < flattenInnerOutputLen; j++) {
