@@ -49,9 +49,11 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
 
   // it appears that arguments are kept in GenArgs even if it's a module
   // We want all arguments available
-  for (auto amap : mref->getGenArgs()) {
-    ASSERT(args.count(amap.first)==0, "NYI Aliased config/genargs");
-    args[amap.first] = amap.second;
+  if (mref->isGenerated()) {
+    for (auto amap : mref->getGenArgs()) {
+      ASSERT(args.count(amap.first)==0, "NYI Aliased config/genargs");
+      args[amap.first] = amap.second;
+    }
   }
 
   for (auto amap : inst->getModArgs()) {
@@ -123,6 +125,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"term", term_op);
   opmap.emplace(pre+"mux", mux_op);
   opmap.emplace("mantle.reg", mantle_reg_op);
+  opmap.emplace("corebit.const", const_op);
 
 #define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
 
