@@ -95,7 +95,9 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
                   concat_op,
                   slice_op,
                   term_op,
-                  mux_op};
+                  mux_op,
+                  mantle_reg_op
+  };
 
   unordered_map<string, operation> opmap;
 
@@ -120,6 +122,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"slice", slice_op);
   opmap.emplace(pre+"term", term_op);
   opmap.emplace(pre+"mux", mux_op);
+  opmap.emplace("mantle.reg", mantle_reg_op);
 
 #define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
 
@@ -132,6 +135,18 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   SmtBVVar sel; var_assign(sel, "sel");
   SmtBVVar clr; var_assign(clr, "clr");
   SmtBVVar rst; var_assign(rst, "rst");
+
+  // Mantle primitives
+  // Most are slightly different, except
+  // clk and CLK could be combined with tolower
+  SmtBVVar I; var_assign(I, "I");
+  SmtBVVar I0; var_assign(I, "I0");
+  SmtBVVar I1; var_assign(I, "I1");
+  SmtBVVar O; var_assign(O, "O");
+  SmtBVVar CLK; var_assign(CLK, "CLK");
+  SmtBVVar CLR; var_assign(CLR, "CLR");
+  SmtBVVar RESET; var_assign(RESET, "RESET");
+  SmtBVVar CE; var_assign(CE, "CE");
 
   switch (opmap[mname]) {
   case term_op:
@@ -173,6 +188,9 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     int lo; lo = stoi(args["lo"]->toString());
     int hi; hi = stoi(args["hi"]->toString());
     o << SMTSlice(context, in, out, lo, hi-1);
+    break;
+  case mantle_reg_op:
+    o << SMTMantleReg(context, args, I, O, CLK, CLR, CE, RESET);
     break;
   default:
     o << "!!! UNMATCHED: " << mname << " !!!";

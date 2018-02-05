@@ -170,6 +170,71 @@ namespace CoreIR {
     // TODO: Translate Mantle Reg
     // Need parameters for CLR, CE and RESET
     //string SMTMantleReg
+    string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p, SmtBVVar CLK_p, SmtBVVar CLR_p, SmtBVVar CE_p, SmtBVVar RESET_p) {
+      // INIT: out = modargs:init:val
+      int width = stoi(args["width"]->toString());
+      string I = I_p.getPortName();
+      string O = O_p.getPortName();
+      string CLK = CLK_p.getPortName();
+      string comment = ";; SMTMantleReg (I, O, CLK, CLR?, CE?, RESET?) = (" +
+        I + ", " + O + ", " + CLK + ", " + args["has_clr"]->toString() +
+        ", " + args["has_en"]->toString() + ", " +
+        args["has_rst"]->toString() + ")";
+
+      bool has_clr = args["has_clr"];
+      bool has_ce = args["has_ce"];
+      bool has_rst = args["has_rst"];
+
+      string clkToggle = "(and (= " + SMTgetCurr(context, CLK) + " #b0) (= " +
+        SMTgetNext(context, CLK) + " #b1))";
+      string initval = getSMTbits(width, stoi(args["init"]->toString()));
+      string init = assert_op("(= " + SMTgetInit(context, O) + " " +
+                              initval + ")");
+
+      string trans;
+      if (has_ce && has_rst) {
+        string rst = "(= " + SMTgetCurr(context, RESET_p.getPortName()) + " #b1)";
+        string ce = "(= " + SMTgetCurr(context, CE_p.getPortName()) + " #b1)";
+        string trans1 = "(=> (and " + rst + " " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + initval + "))";
+        string trans2 = "(=> (and (not " + rst + ") " + clkToggle + " " +
+          ce + ") (= " + SMTgetNext(context, O) + " " +
+          SMTgetCurr(context, I) + "))";
+        string trans3 = "(=> (or (and (not " + rst + ") (not " + ce + ")) (not " +
+          clkToggle + ")) (= " + SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + " " + trans3 + ")");
+      }
+      else if (has_ce) {
+        string ce = "(= " + SMTgetCurr(context, CE_p.getPortName()) + " #b1)";
+        string trans1 = "(=> (and " + ce + " " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, I) + "))";
+        string trans2 = "(=> (or (not " + ce + ") (not " + clkToggle + "))"
+          "(= " + SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + ")");
+      }
+      else if (has_rst) {
+        string rst = "(= " + SMTgetCurr(context, RESET_p.getPortName()) + " #b1)";
+        string trans1 = "(=> (and " + rst + " " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + initval + "))";
+        string trans2 = "(=> (and (not " + rst + ") " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, I) + "))";
+        string trans3 = "(=> (or (not " + rst + ") (not " + clkToggle + "))"
+          "(= " + SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + " " + trans3 + ")");
+      }
+      else {
+        string trans1 = "(=> " + clkToggle + " " + "(= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, I) + "))";
+        string trans2 = "(=> (not " + clkToggle + ") " + "(= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + ")");
+      }
+
+      ASSERT(!has_clr, "CLR not supported by SMT translation yet.");
+
+      return comment + NL + init + NL + trans;
+
+    }
 
     string SMTRegPE(string context, SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p, SmtBVVar en_p) {
       // INIT: out = 0

@@ -10,7 +10,7 @@ using namespace std;
 namespace CoreIR {
   namespace Passes {
     typedef std::pair<string, SmtBVVar> named_var;
-    
+
     string SmtBVVarDec(SmtBVVar w);
     string SMTgetCurr(string var);
     string SMTgetNext(string var);
@@ -29,6 +29,7 @@ namespace CoreIR {
     string SMTConcat(string context, SmtBVVar in1, SmtBVVar in2, SmtBVVar out);
     string SMTReg(string context, SmtBVVar in, SmtBVVar clk, SmtBVVar out);
     string SMTRegPE(string context, SmtBVVar in, SmtBVVar clk, SmtBVVar out, SmtBVVar en);
+    string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p, SmtBVVar CLK_p, SmtBVVar CLR_p, SmtBVVar CE_p, SmtBVVar RESET_p);
     string SMTCounter(string context, SmtBVVar clk, SmtBVVar en, SmtBVVar out);
     string SMTSlice(string context, SmtBVVar in, SmtBVVar out, int low, int high);
     string SMTClock(string context, SmtBVVar clk_p);
