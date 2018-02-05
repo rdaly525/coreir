@@ -111,14 +111,12 @@ int main() {
             {"elementWidth", Const::make(c, width)}
         });
 
-    printf("32\n");
+
     // creating flatten for testing
-    
     testDef->addInstance("flattenTest", "aetherlinglib.flattenN", {
             {"inputType", Const::make(c, inFlattenType)},
             {"singleElementOutputType", Const::make(c, outFlattenType)}
         });
-    printf("44\n");
 
     // wiring up the flatten
     testDef->connect("self.inFlatten", "flattenTest.in");

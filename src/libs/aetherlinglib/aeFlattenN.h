@@ -13,26 +13,19 @@ uint getFlattenedSize(Context* c, Type* containerType, Type* innerType) {
     // do this for comparing the two
     Type* outContainerType = c->Out(containerType);
     ArrayType* curAsArray;
-    printf("1\n");
     for (
         // must do this cast later as curType may not always be an arrayType
         Type* curType = outContainerType;
         curType != innerType;
         curType = curAsArray->getElemType()) {
         // If this cast fails, its probably because containerType wasn't an array (to some degree) of innerType
-        printf("a\n");
-        curType->print();
-        innerType->print();
         if (curType->isBaseType()) {
             cerr << errorString << endl;
             assert(!curType->isBaseType()); //"The type you are trying to flatten from doesn't contain the type you are trying to flatten to");
         }
         curAsArray = dynamic_cast<ArrayType*>(curType);
-        printf("b\n");
         flattenedSize *= curAsArray->getLen();
-        printf("c\n");
     }
-    printf("2\n");
     return flattenedSize;
 }
 
