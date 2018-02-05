@@ -753,6 +753,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       }
 
 
+
       // create and connect valid chain
       if (has_valid && is_last_lb) {
         string valid_prefix = "valreg_";
@@ -762,7 +763,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           if (i == 0) {
             string reg_name = valid_prefix + to_string(i);
             def->addInstance(reg_name, "corebit.dff");
-            def->connect({"self","wen"}, {reg_name,"in"});
+            def->addInstance("enableConst", "coreir.const", {{"width",aBitwidth}}, {{"value", Const::make(c, 1)}});
+            def->connect({"enableConst","out"}, {reg_name,"in"});
          
             // create and connect to register; register connects to previous register
           } else {
@@ -781,6 +783,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 				def->connect({"self","valid_chain"},{last_valid_name,"out"});
         
       } // valid chain
+
 
 
     //////////////////////////  
