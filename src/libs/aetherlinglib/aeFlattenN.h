@@ -22,20 +22,9 @@ void Aetherling_createFlattenGenerator(Context* c) {
         "flattenN_type", // name for typegen
         flattenNparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            uint outputSize = 1;
-            // increment this for each dimension that must be flattened by
             Type* inputType = genargs.at("inputType")->get<Type*>();
             Type* singleElementOutputType = genargs.at("singleElementOutputType")->get<Type*>();
-            // strip off dimensions until you get to the type equal to the one to output
-            for (
-                // must do this cast later as curType may not always be an arrayType
-                Type* curType = inputType, ArrayType* curAsArray;
-                curType != outputTypesingleElementOutputType;
-                curType = curAsArray->getElemType()) {
-                // If this cast fails, its probably because inputType wasn't an array of singleElementOutputType
-                curAsArray = dynamic_cast<ArrayType*>(curType);
-                outputSize *= curAsArray->getLen();
-            }
+            uint outputSize = getFlattenedSize(inputType, singleElementOutputType);
             return c->Record({
                     {"in", inputType},
                     {"out", singleElementOutputType->Arr(outputSize)}
@@ -62,28 +51,29 @@ void Aetherling_createFlattenGenerator(Context* c) {
             // then wire each of its outputs to this flattener's output
             else {
                 uint inputTypeLen = inputType->getLen();
+                uint flattenInnerOutputLen = getFlattenedSize(inputType->getElemType(), outputType);
                 for (uint i = 0; i < inputTypeLen; i++) {
                     string iStr = to_string(i);
                     def->addInstance("flattenNInner_" + iStr, flattenN, {
                             {"inputType", inputType->getElemType()},
-                            {"singleElementOutputType", genargs.at("singleElementOutputType")->get<Type*>()}
+                            {"singleElementOutputType",
+                                    genargs.at("singleElementOutputType")->get<Type*>()
+                                    ->Arr(flattenInnerOutputLen)}
                         });
                     def->connect("self.in." + iStr, "flattenNInner_" + iStr + ".in");
                     // wire up each output from the inner to the output
-                    for (uint j = 0; j < ; j++) {
+                    for (uint j = 0; j < flattenInnerOutputLen; j++) {
                         string jStr = to_string(j);
-                        string outIdxStr = to_string(i*inputTypeLen + j)
-                            def->connect("flattenNInner_" + iStr + ".out." + jStr, "self.out." + outIdxStr);
+                        string outIdxStr = to_string(i*flattenInnerOutputLen + j);
+                        def->connect("flattenNInner_" + iStr + ".out." + jStr, "self.out." + outIdxStr);
                     }
-                    def->connect("flattenNInner_" + idxStr + ".in");
-                    // def->connect("self.out."
-                    def->connect("self.in1." + idxStr, "self.out." + idxStr + ".el1");
                 }
             }
         });
 }
 
 uint getFlattenedSize(Type* containerType, Type* innerType) {
+    // strip off dimensions until you get to the type equal to the innerType
     uint flattenedSize = 1;
     for (
         // must do this cast later as curType may not always be an arrayType
