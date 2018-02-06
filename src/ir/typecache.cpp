@@ -14,6 +14,7 @@ TypeCache::TypeCache(Context* c) : c(c) {
   bitIO = new BitInOutType(c);
   bitI->setFlipped(bitO);
   bitO->setFlipped(bitI);
+  bitIO->setFlipped(bitIO);
 
   boolType = new BoolType(c);
   intType = new IntType(c);
