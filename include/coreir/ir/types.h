@@ -41,7 +41,8 @@ class Type {
     bool isOutput() const { return dir==DK_Out; }
     bool isMixed() const { return dir==DK_Mixed; }
     bool isUnknown() const { return dir==DK_Unknown; }
-    bool hasInput() const { return isInput() || isMixed(); }
+    //bool hasInput() const { return isInput() || isMixed(); }
+    bool hasInput() const { return isInput(); }// || isMixed(); }
 
     bool isBaseType();
 
