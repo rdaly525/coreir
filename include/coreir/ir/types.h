@@ -77,7 +77,7 @@ class BitInOutType : public Type {
     BitInOutType(Context* c) : Type(TK_BitInOut,DK_Mixed,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_BitInOut;}
     
-    std::string toString(void) const override {return "BitIn";}
+    std::string toString(void) const override {return "BitInOut";}
     uint getSize() const override { return 1;}
 };
 
