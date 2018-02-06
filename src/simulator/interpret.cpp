@@ -280,12 +280,6 @@ namespace CoreIR {
 
       return false;
 
-      // if (isSet(val)) {
-      //   if (getBitVec(val) == bv) {
-      //     return true;
-      //   }
-      // }
-      // return false;
     };
 
     stopConditions.push_back({val, func});

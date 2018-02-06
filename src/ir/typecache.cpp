@@ -38,6 +38,7 @@ TypeCache::~TypeCache() {
 
   delete bitI;
   delete bitO;
+  delete bitIO;
   delete boolType;
   delete intType;
   delete stringType;
