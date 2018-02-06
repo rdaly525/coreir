@@ -1,5 +1,5 @@
 #ifndef COREIR_FOLDCONSTANTS_HPP_
-#ifndef COREIR_FOLDCONSTANTS_HPP_
+#define COREIR_FOLDCONSTANTS_HPP_
 
 #include "coreir.h"
 
