@@ -181,9 +181,9 @@ namespace CoreIR {
         ", " + args["has_en"]->toString() + ", " +
         args["has_rst"]->toString() + ")";
 
-      bool has_clr = args["has_clr"];
-      bool has_ce = args["has_ce"];
-      bool has_rst = args["has_rst"];
+      bool has_clr = args["has_clr"]->toString() == "True";
+      bool has_ce = args["has_en"]->toString() == "True";
+      bool has_rst = args["has_rst"]->toString() == "True";
 
       string clkToggle = "(and (= " + SMTgetCurr(context, CLK) + " #b0) (= " +
         SMTgetNext(context, CLK) + " #b1))";
@@ -231,7 +231,6 @@ namespace CoreIR {
       }
 
       ASSERT(!has_clr, "CLR not supported by SMT translation yet.");
-
       return comment + NL + init + NL + trans;
 
     }
