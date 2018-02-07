@@ -29,6 +29,7 @@ class Pass {
     Context* getContext();
     std::string getName() { return name;}
     virtual void print() {}
+    virtual bool finalize() { return false;}
     
     template<typename T>
     T* getAnalysisPass() {

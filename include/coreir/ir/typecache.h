@@ -32,6 +32,7 @@ class TypeCache {
   std::unordered_map<int,BitVectorType*> bitVectorCache;
   StringType* stringType;
   CoreIRType* coreIRType;
+  ModuleType* moduleType;
 
   public :
     TypeCache(Context* c); 
@@ -49,6 +50,7 @@ class TypeCache {
     BitVectorType* getBitVector(int width);
     StringType* getString() { return stringType;}
     CoreIRType* getCoreIRType() { return coreIRType;}
+    ModuleType* getModuleType() { return moduleType;}
 
 };
 

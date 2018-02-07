@@ -142,6 +142,7 @@ bool PassManager::runPass(Pass* p) {
     default:
       ASSERT(0,"NYI!");
   }
+  modified |= p->finalize();
   if (verbose) {
     p->print();
   }

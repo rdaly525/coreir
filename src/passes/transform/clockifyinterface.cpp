@@ -28,9 +28,11 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
   bool modifiedClock = false;
   for (auto pclk : possibleClocks) {
     bool allClocks = true;
+    int numInputs = pclk->getConnectedWireables().size();
 
     for (auto sel : pclk->getConnectedWireables()) {
-      cout << pclk->toString() << " is connected to " << sel->toString() << endl;
+
+      //cout << pclk->toString() << " is connected to " << sel->toString() << endl;
 
       Select* selS = cast<Select>(sel);
       Wireable* parent = selS->getParent();
@@ -47,23 +49,23 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
           allClocks = false;
           break;
         } else {
-          cout << inst->toString() << " is a wrap node" << endl;
+          //cout << inst->toString() << " is a wrap node" << endl;
 
-          cout << "args" << endl;
-          for (auto arg : inst->getModArgs()) {
-            cout << arg.first << " = " << arg.second->toString() << endl;
-          }
+          // cout << "args" << endl;
+          // for (auto arg : inst->getModArgs()) {
+          //   cout << arg.first << " = " << arg.second->toString() << endl;
+          // }
 
           auto arg = (inst->getModuleRef()->getGenArgs()).at("type")->get<Type*>();
 
-          cout << "Got arg = " << arg->toString() << endl;
+          //cout << "Got arg = " << arg->toString() << endl;
 
           if (isa<NamedType>(arg)) {
             cout << arg->toString() << " is a named type" << endl;
 
             NamedType* ntp = cast<NamedType>(arg);
 
-            cout << "arg name = " << ntp->getName() << endl;
+            //cout << "arg name = " << ntp->getName() << endl;
 
             if (ntp->getRefName() != "coreir.clk") {
 
@@ -80,7 +82,7 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
       }
     }
 
-    if (allClocks) {
+    if (allClocks && (numInputs > 0)) {
       cout << "All receivers of " << pclk->toString() << " are clock casts" << endl;
 
       // Now need to:

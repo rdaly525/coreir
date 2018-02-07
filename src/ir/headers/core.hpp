@@ -156,7 +156,7 @@ void core_state(Context* c, Namespace* core) {
 
   //TODO Deal with roms
   //Memory
-  Params memGenParams({{"width",c->Int()},{"depth",c->Int()}});
+  Params memGenParams({{"width",c->Int()},{"depth",c->Int()},{"has_init",c->Bool()}});
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
@@ -172,21 +172,22 @@ void core_state(Context* c, Namespace* core) {
     });
   };
   
-  //auto memModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
-  //  Params modparams;
-  //  Values defaultargs;
-  //  bool has_init = genargs.at("has_init")->get<bool>();
-  //  if (has_init) {
-  //    int width = genargs.at("width")->get<int>();
-  //    int depth = genargs.at("depth")->get<int>();
-  //    modparams["init"] = BitVectorType::make(c,width*depth);
-  //  }
-  //  return {modparams,defaultargs};
-  //};
+  auto memModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    bool has_init = genargs.at("has_init")->get<bool>();
+    if (has_init) {
+      int width = genargs.at("width")->get<int>();
+      int depth = genargs.at("depth")->get<int>();
+      modparams["init"] = BitVectorType::make(c,width*depth);
+    }
+    return {modparams,defaultargs};
+  };
 
   TypeGen* memTypeGen = core->newTypeGen("memType",memGenParams,memFun);
-  core->newGeneratorDecl("mem",memTypeGen,memGenParams); 
-  //mem->setModParamsGen(memModParamFun);
+  Generator* mem = core->newGeneratorDecl("mem",memTypeGen,memGenParams); 
+  mem->setModParamsGen(memModParamFun);
+  mem->addDefaultGenArgs({{"has_init",Const::make(c,false)}});
 
 }
 

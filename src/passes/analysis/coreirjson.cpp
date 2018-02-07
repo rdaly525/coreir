@@ -104,6 +104,9 @@ string Value2Json(Value* v) {
     else if (auto at = dyn_cast<ConstCoreIRType>(con)) {
       ret.add(Type2Json(at->get()));
     }
+    else if (auto at = dyn_cast<ConstModule>(con)) {
+      ret.add(quote(at->get()->getRefName()));
+    }
     else {
       ASSERT(0,"NYI");
     }

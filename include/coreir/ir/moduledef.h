@@ -52,7 +52,8 @@ class ModuleDef {
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 
-    bool hasSel(std::string selstr);
+    bool canSel(std::string selstr);
+    bool canSel(SelectPath path);
     //Can select using std::string (inst.port.subport)
     Wireable* sel(std::string s);
     //Or using a select Path

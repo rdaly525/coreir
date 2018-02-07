@@ -27,7 +27,7 @@ Wireable::~Wireable() {
   }
 }
 
-  Select* Wireable::sel(const std::string& selStr) {
+Select* Wireable::sel(const std::string& selStr) {
   if (selects.count(selStr)) {
     return selects[selStr];
   }
