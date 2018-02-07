@@ -81,7 +81,6 @@ string Params2Json(Params gp) {
 }
 
 string Type2Json(Type* t);
-string Module2Json(Module* m);
 string Value2Json(Value* v) {
   Array ret;
   ret.add(ValueType2Json(v->getValueType()));
@@ -106,7 +105,7 @@ string Value2Json(Value* v) {
       ret.add(Type2Json(at->get()));
     }
     else if (auto at = dyn_cast<ConstModule>(con)) {
-      ret.add(Module2Json(at->get()));
+      ret.add(quote(at->get()->getRefName()));
     }
     else {
       ASSERT(0,"NYI");
