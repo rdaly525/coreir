@@ -295,8 +295,8 @@ namespace CoreIR {
     return bytes;
   }
 
-  std::vector<std::string> splitString(const std::string& str,
-                                       const std::string& delimiter) {
+  std::vector<std::string> splitStr(const std::string& str,
+                                    const std::string& delimiter) {
     std::vector<std::string> strings;
 
     std::string::size_type pos = 0;
@@ -348,7 +348,7 @@ namespace CoreIR {
     cout << "Config file text" << endl;
     cout << str << endl;
 
-    auto configLines = splitString(str, "\n");
+    auto configLines = splitStr(str, "\n");
     cout << "Config lines" << endl;
     for (auto line : configLines) {
       cout << "\t" << line << endl;
@@ -358,7 +358,7 @@ namespace CoreIR {
     vector<BitVector> configAddrs;
 
     for (auto line : configLines) {
-      auto entries = splitString(line, " ");
+      auto entries = splitStr(line, " ");
 
       cout << "# of entries == " << entries.size() << endl;
       cout << "Line = " << line << endl;

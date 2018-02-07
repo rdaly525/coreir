@@ -550,20 +550,7 @@ void testCGRASwitchBox() {
   
   registersToConstants(topMod, regs);
 
-  // if (!saveToFile(c->getGlobal(), "registered_switch_box.json", topMod)) {
-  //   cout << "Could not save to json!!" << endl;
-  //   c->die();
-  // }
-  
-  // cout << "switch box partially evaluated:" << endl;
-  // topMod->print();
-  
-  // for (auto instR : topMod->getDef()->getInstances()) {
-  //   cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
-  // }
-
   deleteDeadInstances(topMod);
-  //unpackConnections(topMod);
   foldConstants(topMod);
   deleteDeadInstances(topMod);
 
@@ -585,11 +572,33 @@ void testCGRASwitchBox() {
 
 }
 
+void testMixedRegister() {
+
+  Context* c = newContext();
+
+  Type* tp = c->Record({
+      {"config_data", c->BitIn()->Arr(8)},
+        {"data", c->BitIn()->Arr(2)},
+          {"const_val", c->BitIn()->Arr(2)}
+    });
+
+  Module* m = c->getGlobal()->newModuleDecl("opt_reg", tp);
+  ModuleDef* def = m->newModuleDef();
+
+  //def->addInstance("");
+
+  m->setDef(def);
+  
+  deleteContext(c);
+
+  //assert(false);
+}
+
 int main() {
+  testMixedRegister();
   testBasicSubCircuit();
   testNodeAfterConstant();
   testSubcircuitModule();
   testCGRAConnectBox();
   testCGRASwitchBox();
-  
 }

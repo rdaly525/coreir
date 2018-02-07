@@ -167,6 +167,8 @@ namespace CoreIR {
 
     std::set<SimValue*> allocatedValues;
 
+    bool hasCombinationalLoop;
+
   public:
 
     SimulatorState(CoreIR::Module* mod_);

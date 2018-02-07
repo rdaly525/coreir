@@ -190,7 +190,7 @@ namespace CoreIR {
     return levels;
   }
 
-  std::deque<vdisc> topologicalSort(const NGraph& g) {
+  std::deque<vdisc> topologicalSortNoFail(const NGraph& g) {
     deque<vdisc> topo_order;
 
     vector<vdisc> s = vertsWithNoIncomingEdge(g);
@@ -243,6 +243,12 @@ namespace CoreIR {
     cout << "topo_order.size() = " << topo_order.size() << endl;
     cout << "numVertices(g)    = " << numVertices(g) << endl;
 
+    return topo_order;
+  }
+
+  std::deque<vdisc> topologicalSort(const NGraph& g) {
+
+    auto topo_order = topologicalSortNoFail(g);
     // cout << "Topological order" << endl;
     // for (auto& vd : topo_order) {
     //   cout << vd << endl;

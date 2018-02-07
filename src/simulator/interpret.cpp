@@ -466,7 +466,16 @@ namespace CoreIR {
 
     buildOrderedGraph(mod, gr);
 
-    topoOrder = topologicalSort(gr);
+    deque<vdisc> order = topologicalSortNoFail(gr);
+
+    // TODO: This test for combinational loops can fail for 2 element circuits,
+    // replace it with something more robust
+    if (order.size() == gr.getVerts().size()) {
+      topoOrder = order;
+      hasCombinationalLoop = false;
+    } else {
+      hasCombinationalLoop = true;
+    }
 
     // Set initial state of the circuit
     CircuitState init;
@@ -993,6 +1002,9 @@ namespace CoreIR {
       return;
     }
 
+    if (!(isInstance(wd.getWire()))) {
+      cout << "Error in updateNodeValues " << wd.getWire()->toString() << endl;
+    }
     assert(isInstance(wd.getWire()));
 
     //string opName = getOpName(*toInstance(wd.getWire()));
@@ -1270,12 +1282,10 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateDFFOutput(const vdisc vd) {
-    //assert(false);
     updateRegisterOutput(vd);
   }
 
   void SimulatorState::updateDFFValue(const vdisc vd) {
-    //assert(false);
     updateRegisterValue(vd);
   }
   
@@ -1285,17 +1295,9 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    // auto outSelects = getOutputSelects(inst);
+    BitVec newRData = getRegister(inst->toString());
 
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    BitVec newRData = getRegister(inst->toString()); //getMemory(inst->toString(), raddrBits);
-
-    //setValue(toSelect(outPair.second), makeSimBitVector(newRData));
     setValue(inst->sel("out"), makeSimBitVector(newRData));
-    
   }
 
   void SimulatorState::updateMemoryValue(const vdisc vd) {
@@ -1457,16 +1459,15 @@ namespace CoreIR {
   }
 
   void SimulatorState::exeSequential() {
-    //cout << "Doing sequential updates" << endl;
-    // Update circuit state
-    for (auto& vd : topoOrder) {
+
+    for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
-        //cout << "Updating register " << wd.getWire()->toString() << endl;
+
         updateRegisterValue(vd);
       }
 
-      // TODO: Source-Sink split LinebufferMem's
+      // NOTE: Remove this. It is now obsolete
       if (isLinebufferMemInstance(wd.getWire())) {
         updateLinebufferMemValue(vd);
       }
@@ -1487,7 +1488,8 @@ namespace CoreIR {
 
   void SimulatorState::exeCombinational() {
     // Update sequential element outputs
-    for (auto& vd : topoOrder) {
+    //for (auto& vd : topoOrder) {
+    for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
 
       if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
@@ -1509,6 +1511,8 @@ namespace CoreIR {
       }
       
     }
+
+    ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
 
     // Update combinational node values
     for (auto& vd : topoOrder) {
