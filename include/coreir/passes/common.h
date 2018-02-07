@@ -23,9 +23,11 @@
 #include "coreir/passes/transform/deletedeadinstances.h"
 #include "transform/rungenerators.h"
 #include "transform/flattentypes.h"
+#include "transform/fold_constants.h"
 #include "transform/removeconstduplicates.h"
 #include "transform/packbitconstants.h"
 #include "transform/packconnections.h"
+#include "transform/sanitize_names.h"
 #include "transform/unpackconnections.h"
 #include "transform/clockifyinterface.h"
 #include "transform/cullzexts.h"
@@ -77,10 +79,12 @@ namespace CoreIR {
     pm.addPass(new Passes::AddDirected());
     pm.addPass(new Passes::PackBitConstants());
     pm.addPass(new Passes::PackConnections());
+    pm.addPass(new Passes::FoldConstants());
     pm.addPass(new Passes::UnpackConnections());
     pm.addPass(new Passes::RemoveConstDuplicates());
     pm.addPass(new Passes::DeleteDeadInstances());
     pm.addPass(new Passes::CullZexts());
+    pm.addPass(new Passes::SanitizeNames());
     pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
     pm.addPass(new Passes::RegisterInputs("registerinputs"));
     pm.addPass(new Passes::Transform2CombView());

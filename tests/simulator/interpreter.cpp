@@ -64,6 +64,50 @@ namespace CoreIR {
       }); //end lambda, end function
   
   }
+
+  TEST_CASE("Interpreting circuits with combinational loops") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("Two muxes") {
+
+      // uint width = 2;
+
+      // Type* twoMuxType =
+      //   c->Record({
+      //       {"in", c->BitIn()->Arr(width)},
+      //         {"sel", c->BitIn()},
+      //           {"out", c->Bit()->Arr(width)}
+      //     });
+
+      // Module* twoMux = c->getGlobal()->newModuleDecl("twoMux", twoMuxType);
+      // ModuleDef* def = twoMux->newModuleDef();
+
+      // def->addInstance("mux0",
+      //                  "coreir.mux",
+      //                  {{"width", Const::make(c, width)}});
+
+      // def->connect("self.sel", "mux0.sel");
+      // def->connect("self.in", "mux0.in0");
+      // def->connect("mux0.out", "mux0.in1");
+      // def->connect("mux0.out", "self.out");
+
+      // twoMux->setDef(def);
+
+      // c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+      // SimulatorState state(twoMux);
+
+      // state.setValue("self.in", BitVector(width, "11"));
+
+      // state.execute();
+
+      // REQUIRE(state.getBitVec("self.out") == BitVector(width, "11"));
+      
+    }
+
+    deleteContext(c);
+  }
   
   TEST_CASE("Interpret simulator graphs") {
 
