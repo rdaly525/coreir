@@ -303,6 +303,9 @@ ValueType* json2ValueType(Context* c,json j) {
   else if(vs=="CoreIRType") {
     return CoreIRType::make(c);
   }
+  else if(vs=="Module") {
+    return ModuleType::make(c);
+  }
   else {
     ASSERT(0,vs + " is not a ValueType");
   }
@@ -334,6 +337,7 @@ Value* json2Value(Context* c, json j,Module* m) {
     case ValueType::VTK_BitVector : return Const::make(c,BitVector(cast<BitVectorType>(vtype)->getWidth(),jval.get<uint64_t>()));
     case ValueType::VTK_String : return Const::make(c,jval.get<string>());
     case ValueType::VTK_CoreIRType : return Const::make(c,json2Type(c,jval));
+    case ValueType::VTK_Module : return Const::make(c,c->getModule(jval));
     default : ASSERT(0,"Cannot have a Const of type" + vtype->toString());
   }
 }
