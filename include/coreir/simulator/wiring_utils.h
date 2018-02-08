@@ -44,4 +44,9 @@ namespace CoreIR {
 
   std::vector<Connection>
   unpackConnection(const CoreIR::Connection& conn);
+
+  void portToConstant(const std::string& portName,
+                      const BitVector& value,
+                      CoreIR::Module* const mod);
+
 }

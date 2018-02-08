@@ -320,4 +320,39 @@ namespace CoreIR {
     assert(false);
   }
 
+  void portToConstant(const std::string& portName,
+                      const BitVector& value,
+                      CoreIR::Module* const mod) {
+    assert(mod->hasDef());
+
+    cout << "Replacing port " << portName << endl;
+
+    Context* c = mod->getContext();
+
+    auto def = mod->getDef();
+    stringstream ss;
+    ss << value;
+    auto constReplace = def->addInstance("def_self_const_replace_" + ss.str(),
+                                         "coreir.const",
+                                         {{"width", Const::make(c, value.bitLength())}},
+                                         {{"value", Const::make(c, value)}});
+
+    Select* sel = def->sel("self")->sel(portName);
+
+    Select* replacement = constReplace->sel("out");
+
+    Instance* wbPassthrough = addPassthrough(sel, constReplace->getInstname() + "_tmp_passthrough");
+
+    wbPassthrough->sel("in")->disconnectAll();
+    def->connect(wbPassthrough->sel("in"),
+                 replacement);
+
+    inlineInstance(wbPassthrough);
+
+    cout << "Inlined passthrough" << endl;
+
+    return;
+  }
+
+  
 }
