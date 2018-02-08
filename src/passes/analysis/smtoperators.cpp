@@ -55,8 +55,8 @@ namespace CoreIR {
     }
 
     string getSMTbits(unsigned width, int x) {
-      bitset<numeric_limits<int>::digits> b(x);
-      return "#b" + b.to_string().substr(numeric_limits<int>::digits - width);
+      bitset<64> b(x);
+      return "#b" + b.to_string().substr(64 - width);
     }
 
     string SMTAssign(SmtBVVar vleft, SmtBVVar vright) {
@@ -89,6 +89,40 @@ namespace CoreIR {
       return SMTBop(context, "Or", "bvor", in1_p, in2_p, out_p);
     }
 
+    string SMTEq(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      // INIT: TRUE
+      // TRANS: (((in1 = in2) -> (out = #b1)) & ((in1 != in2) -> (out = #b0)))
+      //        (((in1' = in2') -> (out' = #b1)) & ((in1' != in2') -> (out' = #b0)))
+      string in1 = in1_p.getPortName();
+      string in2 = in2_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMT Eq(in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
+
+      string input1;
+      string input2;
+      string output;
+
+      input1 = SMTgetCurr(context, in1);
+      input2 = SMTgetCurr(context, in2);
+      output = SMTgetCurr(context, out);
+      
+      string curr = "(and (=> (= " + input1 + " " + input2 + ") (= " + output + " #b1)) "
+                         "(=> (not (= " + input1 + " " + input2 + ")) (= " + output + " #b0)))";
+
+      curr = "(assert " + curr + ")";
+      
+      input1 = SMTgetNext(context, in1);
+      input2 = SMTgetNext(context, in2);
+      output = SMTgetNext(context, out);
+      
+      string next = "(and (=> (= " + input1 + " " + input2 + ") (= " + output + " #b1)) "
+                         "(=> (not (= " + input1 + " " + input2 + ")) (= " + output + " #b0)))";
+      
+      next = "(assert " + next + ")";
+      
+      return comment + NL + curr + NL + next;
+    }
+    
     string SMTXor(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       return SMTBop(context, "Xor", "bvxor", in1_p, in2_p, out_p);
     }

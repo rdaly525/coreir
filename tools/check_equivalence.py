@@ -26,8 +26,14 @@ def generate_equivalence_check(config):
     with open(config.input_file2) as f:
         model_2 = f.read()
 
-        inps = config.inputlist.replace(" ", "").split(",")
-        outs = config.outputlist.replace(" ", "").split(",")
+        inps = []
+        outs = []
+        
+        if config.inputlist != "":
+            inps = config.inputlist.replace(" ", "").split(",")
+
+        if config.outputlist != "":
+            outs = config.outputlist.replace(" ", "").split(",")
 
     set_vals = []
 

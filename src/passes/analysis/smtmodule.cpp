@@ -91,6 +91,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
                   sub_op,
                   and_op,
                   or_op,
+                  eq_op,
                   xor_op,
                   reg_op,
                   regPE_op,
@@ -114,6 +115,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"and", and_op);
   opmap.emplace(pre+"bitand", and_op);
   opmap.emplace(pre+"or", or_op);
+  opmap.emplace(pre+"eq", eq_op);
   opmap.emplace(pre+"bitor", or_op);
   opmap.emplace(pre+"xor", xor_op);
   opmap.emplace(pre+"bitxor", xor_op);
@@ -168,6 +170,9 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     break;
   case or_op:
     o << SMTOr(context, in0, in1, out);
+    break;
+  case eq_op:
+    o << SMTEq(context, in0, in1, out);
     break;
   case xor_op:
     o << SMTXor(context, in0, in1, out);
