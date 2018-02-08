@@ -350,7 +350,6 @@ namespace CoreIR {
     inlineInstance(wbPassthrough);
 
     cout << "Inlined passthrough" << endl;
-
     return;
   }
 

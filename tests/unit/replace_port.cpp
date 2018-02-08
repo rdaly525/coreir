@@ -3,7 +3,7 @@
 using namespace CoreIR;
 using namespace std;
 
-int main() {
+void testReplaceArrayPort() {
   Context* c = newContext();
 
   Namespace* g = c->getGlobal();
@@ -34,5 +34,89 @@ int main() {
 
   deleteContext(c);
 
+}
+
+void testReplaceBitPort() {
+  Context* c = newContext();
+
+  Namespace* g = c->getGlobal();
+  Type* tp = c->Record({{"in", c->BitIn()},
+        {"out", c->Bit()}});
+
+  Module* md = g->newModuleDecl("port_in", tp);
+  ModuleDef* def = md->newModuleDef();
+
+  def->addInstance("neg", "corebit.not");
+  def->connect("self.in", "neg.in");
+  def->connect("neg.out", "self.out");
+
+  md->setDef(def);
+
+  portToConstant("in", BitVec(1, 0), md);
+
+  if (!saveToFile(c->getGlobal(), "bit_replacement.json", md)) {
+    cout << "Could not save to json!!" << endl;
+    c->die();
+  }
+  
+  cout << "module after" << endl;
+  md->print();
+
+  SimulatorState state(md);
+  state.execute();
+
+  cout << "self.out      = " << state.getBitVec("self.out") << endl;
+
+  assert(state.getBitVec("self.out") == ~BitVec(1, 0));
+
+  deleteContext(c);
+}
+
+void testBuildBitArrayToBit() {
+  Context* c = newContext();
+
+  Namespace* g = c->getGlobal();
+  Type* tp = c->Record({{"in", c->BitIn()},
+        {"out", c->Bit()}});
+
+  Module* md = g->newModuleDecl("port_in", tp);
+  ModuleDef* def = md->newModuleDef();
+
+  def->addInstance("def_self_const_replace_0",
+                   "coreir.const",
+                   {{"width", Const::make(c, 1)}},
+                   {{"value", Const::make(c, BitVec(1, 0))}});
+
+  def->addInstance("neg", "corebit.not");
+  def->connect("def_self_const_replace_0.out", "neg.in");
+  def->connect("neg.out", "self.out");
+
+  md->setDef(def);
+
+  portToConstant("in", BitVec(1, 0), md);
+
+  if (!saveToFile(c->getGlobal(), "bit_replacement.json", md)) {
+    cout << "Could not save to json!!" << endl;
+    c->die();
+  }
+  
+  cout << "module after" << endl;
+  md->print();
+
+  SimulatorState state(md);
+  state.execute();
+
+  cout << "self.out      = " << state.getBitVec("self.out") << endl;
+
+  assert(state.getBitVec("self.out") == ~BitVec(1, 0));
+
+  deleteContext(c);
+
   assert(false);
+}
+
+int main() {
+  testReplaceArrayPort();
+  testReplaceBitPort();
+  testBuildBitArrayToBit();
 }
