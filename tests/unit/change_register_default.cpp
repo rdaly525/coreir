@@ -24,7 +24,27 @@ int main() {
 
   md->setDef(def);
 
-  assert(false);
+  cout << "Before changing register" << endl;
+  md->print();
+
+  Instance* r = def->getInstances()["reg"];
+  cout << "reg init = " << r->getModArgs().at("init")->get<BitVector>() << endl;;
+
+  setRegisterInit("reg", BitVec(3, 1), md);
+
+  r = def->getInstances()["reg"];
+  cout << "reg init after = " << r->getModArgs().at("init")->get<BitVector>() << endl;;
+  
+  cout << "After changing register" << endl;
+  md->print();
+
+  SimulatorState state(md);
+  state.setClock("self.clk", 0, 0);
+  state.setValue("self.in", BitVec(3, 1));
+
+  state.execute();
+
+  assert(state.getRegister("reg") == BitVec(3, 1));
 
   deleteContext(c);
 }

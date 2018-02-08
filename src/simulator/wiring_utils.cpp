@@ -353,5 +353,33 @@ namespace CoreIR {
     return;
   }
 
+  void setRegisterInit(const std::string& instanceName,
+                       const BitVector& value,
+                       CoreIR::Module* const mod) {
+    assert(mod->hasDef());
+
+    auto def = mod->getDef();
+
+    Instance* inst = def->getInstances()[instanceName];
+    assert(inst != nullptr);
+    assert(getQualifiedOpName(*inst) == "coreir.reg");
+
+    string instName = inst->getInstname();
+    auto pt = addPassthrough(inst, inst->toString() + "_reg_replace_pt");
+    Values args = inst->getModArgs();
+    args["init"] = Const::make(mod->getContext(), value);
+
+    Values genArgs = inst->getModuleRef()->getGenArgs();
+
+    def->removeInstance(inst);
+
+    Instance* replacement =
+      def->addInstance(instName, "coreir.reg", genArgs, args);
+
+    def->connect(pt->sel("in"),
+                 replacement);
+
+    inlineInstance(pt);
+  }
   
 }

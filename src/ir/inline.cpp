@@ -185,7 +185,6 @@ bool inlineInstance(Instance* inst) {
   //Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(),"_insidePT");
   
-
   string inlinePrefix = inst->getInstname() + "$";
 
   //First add all the instances of defInline into def with a new name

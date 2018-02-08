@@ -49,4 +49,8 @@ namespace CoreIR {
                       const BitVector& value,
                       CoreIR::Module* const mod);
 
+  void setRegisterInit(const std::string& instanceName,
+                       const BitVector& value,
+                       CoreIR::Module* const mod);
+  
 }
