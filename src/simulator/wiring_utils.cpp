@@ -330,9 +330,9 @@ namespace CoreIR {
     Context* c = mod->getContext();
 
     auto def = mod->getDef();
-    stringstream ss;
-    ss << value;
-    auto constReplace = def->addInstance("def_self_const_replace_" + ss.str(),
+    // stringstream ss;
+    // ss << value;
+    auto constReplace = def->addInstance("def_self_const_replace_" + portName,
                                          "coreir.const",
                                          {{"width", Const::make(c, value.bitLength())}},
                                          {{"value", Const::make(c, value)}});
