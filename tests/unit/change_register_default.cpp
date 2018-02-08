@@ -28,7 +28,7 @@ int main() {
   md->print();
 
   Instance* r = def->getInstances()["reg"];
-  cout << "reg init = " << r->getModArgs().at("init")->get<BitVector>() << endl;;
+  cout << "reg init = " << r->getModArgs().at("init")->get<BitVector>() << endl;
 
   setRegisterInit("reg", BitVec(3, 1), md);
 
