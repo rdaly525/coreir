@@ -4,6 +4,10 @@
 *.pyc
 \#*\#
 tests/bindings/python/ice40_test.json
+GPATH
+GTAGS
+GRTAGS
+.#*
 
 # Simulator unit test files
 tests/unit/*.o

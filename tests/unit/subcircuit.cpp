@@ -166,6 +166,7 @@ void testNodeAfterConstant() {
 }
 
 void testSubcircuitModule() {
+
   Context* c = newContext();
 
   Namespace* g = c->getGlobal();
@@ -296,7 +297,7 @@ void testSubcircuitModule() {
 
   registersToConstants(miniChip, state.getCircStates().back().registers);
   deleteDeadInstances(miniChip);
-  unpackConnections(miniChip);
+  //unpackConnections(miniChip);
   foldConstants(miniChip);
   deleteDeadInstances(miniChip);
 
@@ -401,15 +402,32 @@ void testCGRAConnectBox() {
 
   cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
-  registersToConstants(topMod, configState.getCircStates().back().registers);
+  auto regs = configState.getCircStates().back().registers;
+  cout << "Connect box converting " << regs.size() << " registers to constants" << endl;
+  for (auto reg : regs) {
+    cout << "\t" << reg.first << " ---> " << reg.second << endl;
+  }
+
+  registersToConstants(topMod, regs);
+
+  // if (!saveToFile(c->getGlobal(), "registered_connect_box.json", topMod)) {
+  //   cout << "Could not save to json!!" << endl;
+  //   c->die();
+  // }
+  
+  // cout << "connect box partially evaluated:" << endl;
+  // topMod->print();
+
   deleteDeadInstances(topMod);
-  unpackConnections(topMod);
+  //unpackConnections(topMod);
   foldConstants(topMod);
   deleteDeadInstances(topMod);
 
   c->runPasses({"packconnections"});
 
   cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
+
+  assert(topMod->getDef()->getInstances().size() == 0);
 
   cout << "topMod partially evaluated instances" << endl;
   for (auto instR : topMod->getDef()->getInstances()) {
@@ -524,9 +542,15 @@ void testCGRASwitchBox() {
 
   cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
-  registersToConstants(topMod, configState.getCircStates().back().registers);
+  auto regs = configState.getCircStates().back().registers;
+  cout << "Connect box converting " << regs.size() << " registers to constants" << endl;
+  for (auto reg : regs) {
+    cout << "\t" << reg.first << " ---> " << reg.second << endl;
+  }
+  
+  registersToConstants(topMod, regs);
+
   deleteDeadInstances(topMod);
-  unpackConnections(topMod);
   foldConstants(topMod);
   deleteDeadInstances(topMod);
 
@@ -534,10 +558,7 @@ void testCGRASwitchBox() {
 
   cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
 
-  // cout << "switch box partially evaluated instances" << endl;
-  // for (auto instR : topMod->getDef()->getInstances()) {
-  //   cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
-  // }
+  assert(topMod->getDef()->getInstances().size() == 0);
 
   cout << "switch box partially evaluated connections" << endl;
   for (auto conn : topMod->getDef()->getConnections()) {
@@ -551,11 +572,33 @@ void testCGRASwitchBox() {
 
 }
 
+void testMixedRegister() {
+
+  Context* c = newContext();
+
+  Type* tp = c->Record({
+      {"config_data", c->BitIn()->Arr(8)},
+        {"data", c->BitIn()->Arr(2)},
+          {"const_val", c->BitIn()->Arr(2)}
+    });
+
+  Module* m = c->getGlobal()->newModuleDecl("opt_reg", tp);
+  ModuleDef* def = m->newModuleDef();
+
+  //def->addInstance("");
+
+  m->setDef(def);
+  
+  deleteContext(c);
+
+  //assert(false);
+}
+
 int main() {
+  testMixedRegister();
   testBasicSubCircuit();
   testNodeAfterConstant();
   testSubcircuitModule();
   testCGRAConnectBox();
   testCGRASwitchBox();
-  //testCGRAConfigSubcircuit();
 }

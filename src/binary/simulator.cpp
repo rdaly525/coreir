@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 
   cout << "Starting passes" << endl;
 
-  c->runPasses({"rungenerators","flattentypes","flatten", "wireclocks-coreir"});
+  c->runPasses({"rungenerators","flattentypes","flatten"}); //, "wireclocks-coreir"});
 
   cout << "Done running passes" << endl;
 

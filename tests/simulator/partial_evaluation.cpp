@@ -62,7 +62,7 @@ namespace CoreIR {
         return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
       }
 
-      assert(mod->getDef()->hasSel(sel->toString()));
+      assert(mod->getDef()->canSel(sel->toString()));
 
       auto it = current.valMap.find(sel);
 

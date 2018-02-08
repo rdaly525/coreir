@@ -28,7 +28,8 @@ namespace bsim {
     int N;
 
   public:
-    dynamic_bit_vector() : bits({0}), N(1) {}
+
+    dynamic_bit_vector() : N(1) {}
 
     dynamic_bit_vector(const int N_) : N(N_) {
       bits.resize(NUM_BYTES(N));
@@ -41,10 +42,21 @@ namespace bsim {
       }
     }
 
-    dynamic_bit_vector(const int N_, const std::string& str) : N(N_) {
-      int len = str.size();
-      assert(len <= N);
-      
+    dynamic_bit_vector(const int N_, const std::string& str_raw) : N(N_) {
+
+      int num_digits = 0;
+      std::string str;
+      for (uint i = 0; i < str_raw.size(); i++) {
+	if (isdigit(str_raw[i])) {
+	  num_digits++;
+	  str += str_raw[i];
+	} else {
+	  assert(str_raw[i] == '_');
+	}
+      }
+      assert(num_digits <= N);
+
+      int len = str.size();      
       bits.resize(NUM_BYTES(N));
       for (int i = len - 1; i >= 0; i--) {
         unsigned char val = (str[i] == '0') ? 0 : 1;
@@ -57,14 +69,8 @@ namespace bsim {
     }
 
     dynamic_bit_vector(const int N_, const int val) : N(N_) {
-      // Padding the bit vector storage for the case
-      // where NUM_BYTES(N) < sizeof(int)
-      bits.resize(NUM_BYTES(N) + sizeof(int));
-      //*((int*) (&(bits[0]))) = val;
-      //*((int*) bits.data()) = val;
-      *((int*) bits.data()) = val;
-
-      // TODO: Add resize NUM_BYTES(N)
+      bits.resize(NUM_BYTES(N));
+      *((int*) (&(bits[0]))) = val;
     }
 
     //dynamic_bit_vector(const int N_, const bv_uint8 val) : N(N_) {
@@ -128,12 +134,9 @@ namespace bsim {
 
     template<typename ConvType>
     ConvType to_type() const {
-      std::vector<unsigned char> cpy_bits = bits;
-      cpy_bits.resize(cpy_bits.size() + sizeof(ConvType));
-
-      ConvType tmp = *(const_cast<ConvType*>((const ConvType *) (&(cpy_bits[0]))));
-      //ConvType tmp = *(const_cast<ConvType*>((const ConvType*) (&(cpy_bits[0]))));
-      ConvType mask = sizeof(ConvType) > cpy_bits.size() ? (1<<N)-1 : -1;
+      ConvType tmp = *(const_cast<ConvType*>((const ConvType*) (&(bits[0]))));
+      //TODO FIXME I am a sketchy hack.
+      ConvType mask = sizeof(ConvType) > bits.size() ? (1<<N)-1 : -1; 
       return tmp & mask;
     }
 
@@ -182,6 +185,10 @@ namespace bsim {
   static inline bool operator==(const dynamic_bit_vector& a,
 				const dynamic_bit_vector& b) {
     return a.equals(b);
+  }
+
+  static inline unsigned char highBit(const dynamic_bit_vector& a) {
+    return a.get(a.bitLength() - 1);
   }
 
   // template<int N>
@@ -747,6 +754,11 @@ namespace bsim {
     return false;
   }
 
+  static inline bool operator>=(const dynamic_bit_vector& a,
+				const dynamic_bit_vector& b) {
+    return (a > b) || (a == b);
+  }
+  
   static inline bool operator<(const dynamic_bit_vector& a,
   			       const dynamic_bit_vector& b) {
     if (a == b) { return false; }
@@ -891,6 +903,10 @@ namespace bsim {
 
     bv_uint64 shift_int = get_shift_int(shift_amount);
 
+    if (shift_int == 0) {
+      return a;
+    }
+
     //unsigned char sign_bit = a.get(a.bitLength() - 1);
     for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
       res.set(i - shift_int, a.get(i));
@@ -908,6 +924,11 @@ namespace bsim {
   dynamic_bit_vector
   ashr(const dynamic_bit_vector& a,
        const dynamic_bit_vector& shift_amount) {
+
+    if (shift_amount == dynamic_bit_vector(shift_amount.bitLength(), 0)) {
+      return a;
+    }
+
     dynamic_bit_vector res(a.bitLength());
 
     bv_uint64 shift_int = get_shift_int(shift_amount);
@@ -938,6 +959,332 @@ namespace bsim {
     return res;
   }
 
+  static inline
+  dynamic_bit_vector
+  concat(const dynamic_bit_vector& a,
+	 const dynamic_bit_vector& b) {
+    dynamic_bit_vector res(a.bitLength() + b.bitLength());
+    for (int i = 0; i < a.bitLength(); i++) {
+      res.set(i, a.get(i));
+    }
+    for (int i = 0; i < b.bitLength(); i++) {
+      res.set(i + a.bitLength(), b.get(i));
+    }
+
+    return res;
+  }
+  
+  static inline
+  dynamic_bit_vector
+  slice(const dynamic_bit_vector& a,
+	const int start,
+	const int end) {
+    dynamic_bit_vector res(end - start);
+
+    for (int i = 0; i < res.bitLength(); i++) {
+      res.set(i, a.get(i + start));
+    }
+    return res;
+  }
+  
+
+  // static inline
+  // dynamic_bit_vector
+  // extend(const dynamic_bit_vector& a, const int extra_bits) {
+  //   dynamic_bit_vector res(a.bitLength() + extra_bits);
+  //   for (uint i = 0; i < a.bitLength(); i++) {
+  //     res.set(i, a.get(i));
+  //   }
+
+  //   return res;
+  // }
+
+  // static inline
+  // dynamic_bit_vector
+  // set_ops(const dynamic_bit_vector& a_exp,
+  //         const dynamic_bit_vector& b_exp,
+  //         const dynamic_bit_vector& a_ext,
+  //         const dynamic_bit_vector& b_ext,	  
+  //         dynamic_bit_vector& a_op,
+  //         dynamic_bit_vector& b_op) {
+
+  //   dynamic_bit_vector tentative_exp(a_exp.bitLength()); //exp_width);    
+
+  //   if (a_exp > b_exp) {
+  //     tentative_exp = a_exp;
+
+  //     auto diff = sub_general_width_bv(a_exp, b_exp);
+
+  //     auto shift_b = lshr(b_ext, diff);
+
+  //     a_op = a_ext;
+  //     b_op = shift_b;
+
+  //   } else {
+  //     tentative_exp = b_exp;
+
+  //     auto diff = sub_general_width_bv(b_exp, a_exp);
+
+  //     auto shift_a = lshr(a_ext, diff);
+
+  //     a_op = shift_a;
+  //     b_op = b_ext;
+
+  //   }
+
+  //   return tentative_exp;
+  // }
+
+  // static inline
+  // dynamic_bit_vector
+  // renormalize_zeros(dynamic_bit_vector& sliced_sum,
+  //       	    const dynamic_bit_vector& tentative_exp,
+  //       	    const int width) {
+
+  //   dynamic_bit_vector new_exp(tentative_exp.bitLength());
+
+  //   int num_leading_zeros = 0;
+  //   for (int i = sliced_sum.bitLength(); i >= 0; i--) {
+  //     if (sliced_sum.get(i) == 1) {
+  //       break;
+  //     }
+
+  //     num_leading_zeros++;
+  //   }
+
+  //   dynamic_bit_vector shift_w(width, num_leading_zeros);
+  //   sliced_sum = shl(sliced_sum, shift_w);
+  //   new_exp = sub_general_width_bv(tentative_exp, shift_w);
+
+  //   std::cout << "Sum after shifting " << num_leading_zeros << " = " << sliced_sum << std::endl;
+
+  //   return new_exp;
+  // }  
+
+  // // NOTE: This should implement "round to nearest even"
+  // static inline
+  // dynamic_bit_vector
+  // ieee_round(const dynamic_bit_vector& sum) {
+  //   dynamic_bit_vector guards = slice(sum, 0, 2);
+  //   dynamic_bit_vector last_three = slice(sum, 0, 3);
+
+  //   std::cout << "to round       = " << sum << std::endl;
+  //   std::cout << "last 3 digits  = " << last_three << std::endl;
+
+  //   std::cout << "guards         =  " << guards << std::endl;
+
+  //   dynamic_bit_vector upper(2, "10");
+
+  //   dynamic_bit_vector res = sum;
+  //   dynamic_bit_vector app(sum.bitLength(), "10");
+  //   if (guards > upper) {
+  //     res = add_general_width_bv(sum, app);
+  //   } else if (guards == upper) {
+  //     if (sum.get(2) == 0) {
+  //       res = sub_general_width_bv(sum, app);
+  //     } else {
+  //       assert(sum.get(2) == 1);
+  //       res = add_general_width_bv(sum, app);
+  //     }
+  //   }
+
+  //   auto rnd_last_3 = slice(res, 0, 3);
+  //   std::cout << "rounded last 3 = " << rnd_last_3 << std::endl;
+  //   std::cout << "res      = " << res << std::endl;
+
+  //   return res;
+  // }
+
+  // static inline
+  // dynamic_bit_vector
+  // floating_point_add(const dynamic_bit_vector& a,
+  //       	     const dynamic_bit_vector& b,
+  //       	     const unsigned precision_width,
+  //       	     const unsigned exp_width) {
+  //   unsigned width = 1 + precision_width + exp_width;
+
+  //   assert((uint) a.bitLength() == width);
+  //   assert((uint) b.bitLength() == width);
+
+  //   dynamic_bit_vector a_mant = slice(a, 0, precision_width);
+  //   dynamic_bit_vector b_mant = slice(b, 0, precision_width);
+
+  //   assert(a_mant.bitLength() == precision_width);
+  //   assert(b_mant.bitLength() == precision_width);
+
+  //   // TODO: Check normalization
+  //   dynamic_bit_vector a_exp = slice(a,
+  //       			     precision_width,
+  //       			     precision_width + exp_width);
+
+  //   dynamic_bit_vector b_exp = slice(b,
+  //       			     precision_width,
+  //       			     precision_width + exp_width);
+
+  //   assert(a_exp.bitLength() == exp_width);
+  //   assert(b_exp.bitLength() == exp_width);
+
+  //   // auto a_ext = extend(a_mant, 2);
+  //   // a_ext.set(precision_width, 1);
+  //   // auto b_ext = extend(b_mant, 2);
+  //   // b_ext.set(precision_width, 1);
+
+  //   std::cout << "a_man      = " << a_mant << std::endl;
+  //   std::cout << "b_man      = " << b_mant << std::endl;
+    
+  //   auto a_ext = extend(a_mant, 4);
+  //   a_ext = shl(a_ext, dynamic_bit_vector(width, 2));
+  //   a_ext.set(precision_width + 2, 1);
+
+  //   auto b_ext = extend(b_mant, 4);
+  //   b_ext = shl(b_ext, dynamic_bit_vector(width, 2));
+  //   b_ext.set(precision_width + 2, 1);
+    
+  //   std::cout << "a_ext      = " << a_ext << std::endl;
+  //   std::cout << "b_ext      = " << b_ext << std::endl;
+    
+  //   dynamic_bit_vector a_op(a_ext.bitLength());
+  //   dynamic_bit_vector b_op(b_ext.bitLength());
+
+  //   auto tentative_exp = set_ops(a_exp, b_exp,
+  //       			 a_ext, b_ext,
+  //       			 a_op, b_op);
+
+  //   std::cout << "a_op       = " << a_op << std::endl;
+  //   std::cout << "b_op       = " << b_op << std::endl;
+    
+  //   std::cout << "Operating" << std::endl;
+
+  //   dynamic_bit_vector sum(a_op.bitLength());
+  //   if ((highBit(a) == 0) && (highBit(b) == 1)) {
+  //     sum = sub_general_width_bv(a_op , b_op);
+  //   } else {
+  //     sum = add_general_width_bv(a_op , b_op);
+  //   }
+
+  //   bool overflow = sum.get(sum.bitLength() - 1) == 1;
+
+  //   std::cout << "sum =    " << sum << std::endl;
+
+  //   dynamic_bit_vector final_sum(precision_width);
+
+  //   if ((highBit(a) == 0) && (highBit(b) == 1)) {
+
+  //     sum = ieee_round(sum);      
+
+  //     dynamic_bit_vector sliced_sum(sum.bitLength() - 2);
+  //     sliced_sum = slice(sum, 2, sum.bitLength() - 2);
+
+  //     assert(sliced_sum.bitLength() == precision_width);
+
+  //     tentative_exp = renormalize_zeros(sliced_sum, tentative_exp, width);
+
+  //     final_sum = sliced_sum;
+
+  //   } else {
+
+  //     if (overflow) {
+  //       //sum = ieee_round(sum);
+
+  //       dynamic_bit_vector one(exp_width, 1);
+  //       tentative_exp = add_general_width_bv(tentative_exp, one);
+
+  //       auto shift_sum = ieee_round(lshr(sum, one));
+  //       final_sum = slice(shift_sum, 2, sum.bitLength() - 2);
+
+  //       std::cout << "sss =   " << final_sum << std::endl;
+  //     } else {
+
+  //       sum = ieee_round(sum);
+  //       dynamic_bit_vector sliced_sum(sum.bitLength() - 2);
+  //       sliced_sum = slice(sum, 2, sum.bitLength() - 2);
+
+  //       assert(sliced_sum.bitLength() == precision_width);
+  //       final_sum = sliced_sum;      
+  //     }
+
+  //   }
+
+
+
+  //   dynamic_bit_vector sign_bit(1);
+  //   sign_bit.set(0, 0);
+
+  //   auto res = concat(final_sum, concat(tentative_exp, sign_bit));
+
+  //   assert(res.bitLength() == width);
+
+  //   return res;
+  // }
+
+  
+  // static inline
+  // bool
+  // floating_point_gt(const dynamic_bit_vector& a,
+  //       	    const dynamic_bit_vector& b,
+  //       	    const unsigned precision_width,
+  //       	    const unsigned exp_width) {
+
+  //   unsigned width = 1 + precision_width + exp_width;
+
+  //   assert((uint) a.bitLength() == width);
+  //   assert((uint) b.bitLength() == width);
+
+  //   dynamic_bit_vector a_mant = slice(a, 0, precision_width);
+  //   dynamic_bit_vector b_mant = slice(b, 0, precision_width);
+
+  //   assert(a_mant.bitLength() == precision_width);
+  //   assert(b_mant.bitLength() == precision_width);
+
+  //   // TODO: Check normalization
+  //   dynamic_bit_vector a_exp = slice(a,
+  //       			     precision_width,
+  //       			     precision_width + exp_width);
+
+  //   dynamic_bit_vector b_exp = slice(b,
+  //       			     precision_width,
+  //       			     precision_width + exp_width);
+
+  //   assert(a_exp.bitLength() == exp_width);
+  //   assert(b_exp.bitLength() == exp_width);
+
+  //   bool a_pos = highBit(a) == 0;
+  //   bool b_pos = highBit(b) == 0;
+
+  //   if (a_pos && b_pos) {
+
+  //     if (a_exp > b_exp) {
+  //       return true;
+  //     }
+
+  //     if (b_exp > a_exp) {
+  //       return false;
+  //     }
+    
+
+  //     assert(b_exp == a_exp);
+
+  //     return a_mant > b_mant;
+  //   } else if (!a_pos && !b_pos) {
+  //     if (a_exp > b_exp) {
+  //       return false;
+  //     }
+
+  //     if (b_exp > a_exp) {
+  //       return true;
+  //     }
+
+  //     assert(b_exp == a_exp);
+
+  //     return a_mant < b_mant;
+  //   } else if (!a_pos && b_pos) {
+  //     return false;
+  //   } else if (a_pos && !b_pos) {
+  //     return true;
+  //   } else {
+  //     assert(false);
+  //   }
+  // }
   // template<int N>
   // static inline bool operator<=(const signed_int<N>& a,
   // 				const signed_int<N>& b) {

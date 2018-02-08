@@ -1,0 +1,36 @@
+{"top":"global.eqMod",
+"namespaces":{
+  "global":{
+    "modules":{
+      "eqMod":{
+        "type":["Record",{
+          "out":"Bit"
+        }],
+        "instances":{
+          "c0":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",32]},
+            "modargs":{"value":[["BitVector",32],0]}
+          },
+          "c1":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"value":[["BitVector",2],3]}
+          },
+          "cmp":{
+            "genref":"coreir.eq",
+            "genargs":{"width":["Int",2]}
+          }
+        },
+        "connections":[
+          ["cmp.out","self.out"],
+          ["c0.out.10","cmp.in0.0"],
+          ["c0.out.11","cmp.in0.1"],
+          ["c1.out.0","cmp.in1.0"],
+          ["c1.out.1","cmp.in1.1"]
+        ]
+      }
+    }
+  }
+}
+}

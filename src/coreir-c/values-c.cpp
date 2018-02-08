@@ -67,6 +67,12 @@ extern "C" {
     return rcast<COREValue*>(ga);
   }
 
+  COREValue* COREValueModule(COREContext* cc, COREModule* mod) {
+    Context* c = rcast<Context*>(cc);
+    Value* ga = Const::make(c, rcast<Module*>(mod));
+    return rcast<COREValue*>(ga);
+  }
+
 }
 
 }

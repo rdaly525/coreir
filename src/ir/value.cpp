@@ -3,6 +3,7 @@
 #include "coreir/ir/value.h"
 #include "coreir/ir/valuecache.h"
 #include "coreir/ir/types.h"
+#include "coreir/ir/module.h"
 #include "coreir/ir/dynamic_bit_vector.h"
 
 using namespace std;
@@ -44,6 +45,7 @@ TSTAMP(int)
 TSTAMP(BitVector)
 TSTAMP(std::string)
 TSTAMP(Type*)
+TSTAMP(Module*)
 
 #undef TSTAMP
 
@@ -74,6 +76,7 @@ template<>
 Const* Const_impl<bool>(Context* c,bool val) {
   return c->valuecache->getBool(val);
 }
+
 //TODO HERE replace bool with correct tyeps
 template<>
 Const* Const_impl<int>(Context* c,int val) {
@@ -95,6 +98,10 @@ Const* Const_impl<Type*>(Context* c,Type* val) {
   return c->valuecache->getType(val);
 }
 
+template<>
+Const* Const_impl<Module*>(Context* c,Module* val) {
+  return c->valuecache->getModule(val);
+}
 
 //template<>
 //string TemplatedConst<bool>::toString() const {
@@ -144,6 +151,11 @@ string TemplatedConst<std::string>::toString() const {
 template<>
 string TemplatedConst<Type*>::toString() const {
   return value->toString();
+}
+
+template<>
+string TemplatedConst<Module*>::toString() const {
+  return value->getRefName();
 }
 
 }
