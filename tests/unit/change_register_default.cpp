@@ -46,5 +46,19 @@ int main() {
 
   assert(state.getRegister("reg") == BitVec(3, 1));
 
+  c->runPasses({"rungenerators"});
+
+  setRegisterInit("reg", BitVec(3, 3), md);
+
+  SimulatorState state2(md);
+  state2.setClock("self.clk", 0, 0);
+  state2.setValue("self.in", BitVec(3, 1));
+
+  state2.execute();
+
+  assert(state2.getRegister("reg") == BitVec(3, 3));
+  
+
+  //assert(false);
   deleteContext(c);
 }

@@ -356,6 +356,7 @@ namespace CoreIR {
   void setRegisterInit(const std::string& instanceName,
                        const BitVector& value,
                        CoreIR::Module* const mod) {
+    cout << "Replacing " << instanceName << endl;
     assert(mod->hasDef());
 
     auto def = mod->getDef();
@@ -380,6 +381,8 @@ namespace CoreIR {
                  replacement);
 
     inlineInstance(pt);
+
+    cout << "done" << endl;
   }
   
 }
