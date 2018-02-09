@@ -307,14 +307,14 @@ namespace CoreIR {
 
       string then_bc = "(= "+SMTgetCurr(context, sel)+" "+one+")";
       string else_bc = "(= "+SMTgetCurr(context, sel)+" "+zero+")";
-      string curr_1 = "(=> "+then_bc+" (= "+SMTgetCurr(context, in0)+" "+SMTgetCurr(context, out)+"))";
-      string curr_2 = "(=> "+else_bc+" (= "+SMTgetCurr(context, in1)+" "+SMTgetCurr(context, out)+"))";
+      string curr_1 = "(=> "+then_bc+" (= "+SMTgetCurr(context, in1)+" "+SMTgetCurr(context, out)+"))";
+      string curr_2 = "(=> "+else_bc+" (= "+SMTgetCurr(context, in0)+" "+SMTgetCurr(context, out)+"))";
       string curr = assert_op("(and " + curr_1 + " " + curr_2 + ")");
 
       string then_bn = "(= "+SMTgetNext(context, sel)+" "+one+")";
       string else_bn = "(= "+SMTgetNext(context, sel)+" "+zero+")";
-      string next_1 = "(=> "+then_bn+" (= "+SMTgetNext(context, in0)+" "+SMTgetNext(context, out)+"))";
-      string next_2 = "(=> "+else_bn+" (= "+SMTgetNext(context, in1)+" "+SMTgetNext(context, out)+"))";
+      string next_1 = "(=> "+then_bn+" (= "+SMTgetNext(context, in1)+" "+SMTgetNext(context, out)+"))";
+      string next_2 = "(=> "+else_bn+" (= "+SMTgetNext(context, in0)+" "+SMTgetNext(context, out)+"))";
       string next = assert_op("(and " + next_1 + " " + next_2 + ")");
 
       return comment + NL + curr + NL + next;
