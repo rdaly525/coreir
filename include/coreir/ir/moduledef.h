@@ -109,6 +109,7 @@ class ModuleDef {
     //TODO Does not check if Everything (even inputs) is connected
     // Returns true if there is an error
     bool validate();
+    bool checkTypes();
 };
 
 }//CoreIR namespace
