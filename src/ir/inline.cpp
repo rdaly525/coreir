@@ -92,25 +92,6 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
 }
 }
 
-namespace {
-void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to, unordered_set<Wireable*>& completed) {
-  for (auto other : from->getConnectedWireables()) {
-    if (completed.count(other)==0) {
-      def->connect(to,other);
-    }
-  }
-  for (auto other : from->getConnectedWireables()) {
-    if (completed.count(other)==0) {
-      def->disconnect(from,other);
-      completed.insert(other);
-    }
-  }
-  for (auto sels : from->getSelects()) {
-    PTTraverse(def,sels.second,to->sel(sels.first),completed);
-  }
-}
-}
-
 //addPassthrough will create a passthrough Module for Wireable w with name <name>
   //This buffer has interface {"in": Flip(w.Type), "out": w.Type}
   // There will be one connection connecting w to name.in, and all the connections
