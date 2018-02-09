@@ -96,9 +96,9 @@ void testBuildBitArrayToBit() {
   cout << "Manually created def" << endl;
   def->print();
   bool is_error = def->validate();
-  assert(is_error);
+  assert(!is_error);
 
-  //md->setDef(def);
+  md->setDef(def);
 
   // portToConstant("in", BitVec(1, 0), md);
 
