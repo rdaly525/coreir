@@ -68,7 +68,7 @@ void testFoldRegister() {
 
   def->addInstance("reg", "coreir.reg",
                    {{"width", Const::make(c, 3)}},
-                   {{"init", Const::make(c, BitVec(3, 0))}});
+                   {{"init", Const::make(c, BitVec(3, 2))}});
 
   def->connect("reg.out", "reg.in");
   def->connect("self.clk", "reg.clk");
@@ -93,6 +93,14 @@ void testFoldRegister() {
   }
 
   assert(containsConst);
+
+  SimulatorState state(md);
+  state.setClock("self.clk", 0, 1);
+  state.setValue("self.in", BitVec(3, 0));
+
+  state.execute();
+
+  assert(state.getBitVec("self.out") == BitVec(3, 2));
 
   deleteContext(c);
 
