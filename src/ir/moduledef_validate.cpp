@@ -9,7 +9,7 @@ using namespace std;
 namespace CoreIR {
 //True is error
 //False is no error
-bool checkTypes(Wireable* a, Wireable* b) {
+bool ModuleDef::checkTypes(Wireable* a, Wireable* b) {
   Context* c = a->getContext();
   Type* ta = a->getType();
   Type* tb = b->getType();
