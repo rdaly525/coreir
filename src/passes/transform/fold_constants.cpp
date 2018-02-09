@@ -24,6 +24,8 @@ namespace CoreIR {
             toConsider.insert(cast<Instance>(src));
           }
         }
+      } else if (getQualifiedOpName(*(inst.second)) == "coreir.reg") {
+        toConsider.insert(inst.second);
       }
 
     }
@@ -383,8 +385,51 @@ namespace CoreIR {
 
         }
 
+      } else if (getQualifiedOpName(*inst) == "coreir.reg") {
+        // Optimize registers away if the input is connected to the
+        // output
+
+        //cout << "Found reg " << inst->toString() << endl;
+
+        Select* inSel = inst->sel("in");
+        Select* outSel = inst->sel("out");
+
+        vector<Select*> inValues = getSignalValues(inSel);
+
+        bool allInsFromOut = true;
+        for (auto bitVal : inValues) {
+          Wireable* src = extractSource(bitVal);
+
+          //cout << "src->sel(\"out\") = " << src->sel("out")->toString() << endl;
+          //cout << "outSel            = " << outSel->toString() << endl;
+
+          if (src->sel("out") != outSel) {
+            allInsFromOut = false;
+          }
+        }
+
+        if (allInsFromOut) {
+          //cout << "Removing register " << inst->toString() << endl;
+          BitVector value = inst->getModArgs().at("init")->get<BitVector>();
+          auto newConst =
+            def->addInstance(inst->toString() + "_reg_const_replacement",
+                             "coreir.const",
+                             {{"width", Const::make(c, value.bitLength())}},
+                             {{"value", Const::make(c, BitVector(value))}});
+
+          Instance* instPT = addPassthrough(inst, "_remove_reg_PT");
+          Select* replacement = newConst->sel("out");
+
+          def->removeInstance(inst);
+          def->connect(replacement,
+                       instPT->sel("in")->sel("out"));
+          inlineInstance(instPT);
+          
+        }
       }
     }
+
+    //cout << "Done folding constants" << endl;
 
     return true;
   }

@@ -70,12 +70,17 @@ void testFoldRegister() {
                    {{"width", Const::make(c, 3)}},
                    {{"init", Const::make(c, BitVec(3, 0))}});
 
-  def->connect("self.in", "reg.in");
+  def->connect("reg.out", "reg.in");
   def->connect("self.clk", "reg.clk");
   def->connect("reg.out", "self.out");
 
   md->setDef(def);
 
+  c->runPasses({"fold-constants"});
+
+  cout << "After folding constants" << endl;
+
+  md->print();
   assert(def->getInstances().size() == 1);
 
   bool containsConst = false;
@@ -88,7 +93,7 @@ void testFoldRegister() {
   }
 
   assert(containsConst);
-  assert(false);
+
   deleteContext(c);
 
 }
