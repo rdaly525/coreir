@@ -223,7 +223,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             inst = mdef->addInstance(instname,genRef,genargs,modargs);
           }
           else {
-            ASSERTTHROW(0,"Bad Instance. Need (modref || (genref && genargs))");
+            ASSERTTHROW(0,"Bad Instance. Need (modref || (genref && genargs)) " + instname);
           }
           if (jinst.count("metadata")) {
             inst->setMetaData(jinst["metadata"]);
