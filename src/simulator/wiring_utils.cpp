@@ -343,9 +343,15 @@ namespace CoreIR {
 
     Instance* wbPassthrough = addPassthrough(sel, constReplace->getInstname() + "_tmp_passthrough");
 
+    cout << "passthrough type = " << wbPassthrough->getType()->toString() << endl;
+    cout << "replacement type = " << replacement->getType()->toString() << endl;
+
     wbPassthrough->sel("in")->disconnectAll();
     def->connect(wbPassthrough->sel("in"),
                  replacement);
+
+    cout << "Module def with passthrough" << endl;
+    def->print();
 
     inlineInstance(wbPassthrough);
 

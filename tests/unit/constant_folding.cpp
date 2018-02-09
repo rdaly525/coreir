@@ -35,6 +35,9 @@ void testFoldEquals() {
   def->connect("cmp.out", "self.out");
   
   eqMod->setDef(def);
+  if (!saveToFile(g, "_eqmod.json",eqMod)) {
+    c->die();
+  }
 
   SimulatorState originalState(eqMod);
   originalState.execute();

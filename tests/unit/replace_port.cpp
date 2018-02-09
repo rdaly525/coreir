@@ -69,54 +69,61 @@ void testReplaceBitPort() {
 
   assert(state.getBitVec("self.out") == ~BitVec(1, 0));
 
+  assert(false);
+
   deleteContext(c);
 }
 
-// void testBuildBitArrayToBit() {
-//   Context* c = newContext();
+void testBuildBitArrayToBit() {
+  Context* c = newContext();
 
-//   Namespace* g = c->getGlobal();
-//   Type* tp = c->Record({{"in", c->BitIn()},
-//         {"out", c->Bit()}});
+  Namespace* g = c->getGlobal();
+  Type* tp = c->Record({{"in", c->BitIn()},
+        {"out", c->Bit()}});
 
-//   Module* md = g->newModuleDecl("port_in", tp);
-//   ModuleDef* def = md->newModuleDef();
+  Module* md = g->newModuleDecl("port_in", tp);
+  ModuleDef* def = md->newModuleDef();
 
-//   def->addInstance("def_self_const_replace_0",
-//                    "coreir.const",
-//                    {{"width", Const::make(c, 1)}},
-//                    {{"value", Const::make(c, BitVec(1, 0))}});
+  def->addInstance("def_self_const_replace_0",
+                   "coreir.const",
+                   {{"width", Const::make(c, 1)}},
+                   {{"value", Const::make(c, BitVec(1, 0))}});
 
-//   def->addInstance("neg", "corebit.not");
-//   def->connect("def_self_const_replace_0.out", "neg.in");
-//   def->connect("neg.out", "self.out");
+  def->addInstance("neg", "corebit.not");
+  def->connect("def_self_const_replace_0.out", "neg.in");
+  def->connect("neg.out", "self.out");
 
-//   md->setDef(def);
+  cout << "Manually created def" << endl;
+  def->print();
+  bool is_error = def->validate();
+  assert(is_error);
 
-//   portToConstant("in", BitVec(1, 0), md);
+  //md->setDef(def);
 
-//   if (!saveToFile(c->getGlobal(), "bit_replacement.json", md)) {
-//     cout << "Could not save to json!!" << endl;
-//     c->die();
-//   }
+  // portToConstant("in", BitVec(1, 0), md);
+
+  // if (!saveToFile(c->getGlobal(), "bit_replacement.json", md)) {
+  //   cout << "Could not save to json!!" << endl;
+  //   c->die();
+  // }
   
-//   cout << "module after" << endl;
-//   md->print();
+  // cout << "module after" << endl;
+  // md->print();
 
-//   SimulatorState state(md);
-//   state.execute();
+  // SimulatorState state(md);
+  // state.execute();
 
-//   cout << "self.out      = " << state.getBitVec("self.out") << endl;
+  // cout << "self.out      = " << state.getBitVec("self.out") << endl;
 
-//   assert(state.getBitVec("self.out") == ~BitVec(1, 0));
+  // assert(state.getBitVec("self.out") == ~BitVec(1, 0));
 
-//   deleteContext(c);
+  deleteContext(c);
 
-//   assert(false);
-// }
+  assert(false);
+}
 
 int main() {
   testReplaceArrayPort();
-  testReplaceBitPort();
-  //testBuildBitArrayToBit();
+  //testReplaceBitPort();
+  testBuildBitArrayToBit();
 }

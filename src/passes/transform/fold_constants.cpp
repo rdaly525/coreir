@@ -386,11 +386,6 @@ namespace CoreIR {
         }
 
       } else if (getQualifiedOpName(*inst) == "coreir.reg") {
-        // Optimize registers away if the input is connected to the
-        // output
-
-        //cout << "Found reg " << inst->toString() << endl;
-
         Select* inSel = inst->sel("in");
         Select* outSel = inst->sel("out");
 
@@ -400,16 +395,13 @@ namespace CoreIR {
         for (auto bitVal : inValues) {
           Wireable* src = extractSource(bitVal);
 
-          //cout << "src->sel(\"out\") = " << src->sel("out")->toString() << endl;
-          //cout << "outSel            = " << outSel->toString() << endl;
-
           if (src->sel("out") != outSel) {
             allInsFromOut = false;
           }
         }
 
         if (allInsFromOut) {
-          //cout << "Removing register " << inst->toString() << endl;
+
           BitVector value = inst->getModArgs().at("init")->get<BitVector>();
           auto newConst =
             def->addInstance(inst->toString() + "_reg_const_replacement",
@@ -428,8 +420,6 @@ namespace CoreIR {
         }
       }
     }
-
-    //cout << "Done folding constants" << endl;
 
     return true;
   }
