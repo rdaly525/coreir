@@ -92,7 +92,11 @@ def generate_equivalence_check(config):
     for ous in outs:
         pre.append("(= %s %s)"%(curr(m_1(ous[0])), curr(m_2(ous[1]))))
 
-    pos = []    
+    for inp in inps:
+        pre.append("(= %s %s)"%(next(m_1(inp[0])), next(m_2(inp[1]))))
+            
+    pos = []
+
     for ous in outs:
         pos.append("(= %s %s)"%(next(m_1(ous[0])), next(m_2(ous[1]))))
 

@@ -5,7 +5,7 @@ Equivalence Checking via Transition Relation Analysis (CoreIR)
 This analysis performs an equivalence checking between two systems,
 and it tries to find a counterexample to the following assumption:
 
-((inputs_1 = inputs_2) and (outputs_1 = outputs_2)) -> (outputs_1' = outputs_2')
+((inputs_1 = inputs_2) and (outputs_1 = outputs_2) and (inputs_1' = inputs_2')) -> (outputs_1' = outputs_2')
 
 where var and var' represent current and next variable in the
 transition relation.
