@@ -84,6 +84,7 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
 
   string context = path+"$";
   string pre = "coreir.";
+  string prebit = "corebit.";
 
   enum operation {neg_op = 1,
                   const_op,
@@ -99,6 +100,12 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
                   slice_op,
                   term_op,
                   mux_op,
+                  mul_op,
+                  lshr_op,
+                  ashr_op,
+                  andr_op,
+                  orr_op,
+                  zext_op,
                   mantle_reg_op
   };
 
@@ -108,12 +115,14 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"bitneg", neg_op);
   opmap.emplace(pre+"not", neg_op);
   opmap.emplace(pre+"bitnot", neg_op);
+  opmap.emplace(prebit+"not", neg_op);
   opmap.emplace(pre+"const", const_op);
   opmap.emplace(pre+"bitconst", const_op);
   opmap.emplace(pre+"add", add_op);
   opmap.emplace(pre+"sub", sub_op);
   opmap.emplace(pre+"and", and_op);
   opmap.emplace(pre+"bitand", and_op);
+  opmap.emplace(prebit+"and", and_op);
   opmap.emplace(pre+"or", or_op);
   opmap.emplace(pre+"eq", eq_op);
   opmap.emplace(pre+"bitor", or_op);
@@ -126,9 +135,19 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   opmap.emplace(pre+"slice", slice_op);
   opmap.emplace(pre+"term", term_op);
   opmap.emplace(pre+"mux", mux_op);
-  opmap.emplace("mantle.reg", mantle_reg_op);
-  opmap.emplace("corebit.const", const_op);
+  opmap.emplace(prebit+"const", const_op);
 
+  opmap.emplace(pre+"lshr", lshr_op);
+  opmap.emplace(pre+"ashr", ashr_op);
+  opmap.emplace(pre+"mul", mul_op);
+
+  opmap.emplace(pre+"orr", orr_op);
+  opmap.emplace(pre+"andr", andr_op);
+
+  opmap.emplace(pre+"zext", zext_op);
+  
+  opmap.emplace("mantle.reg", mantle_reg_op);
+  
 #define var_assign(var, name) if (portstrs.find(name) != portstrs.end()) var = portstrs.find(name)->second
 
   SmtBVVar out; var_assign(out, "out");
@@ -191,6 +210,24 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     break;
   case mux_op:
     o << SMTMux(context, in0, in1, sel, out);
+    break;
+  case lshr_op:
+    o << SMTLshr(context, in0, in1, out);
+    break;
+  case ashr_op:
+    o << SMTAshr(context, in0, in1, out);
+    break;
+  case mul_op:
+    o << SMTMul(context, in0, in1, out);
+    break;
+  case orr_op:
+    o << SMTOrr(context, in, out);
+    break;
+  case andr_op:
+    o << SMTAndr(context, in, out);
+    break;
+  case zext_op:
+    o << SMTZext(context, in, out);
     break;
   case slice_op:
     int lo; lo = stoi(args["lo"]->toString());

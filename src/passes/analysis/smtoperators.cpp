@@ -55,8 +55,8 @@ namespace CoreIR {
     }
 
     string getSMTbits(unsigned width, int x) {
-      bitset<64> b(x);
-      return "#b" + b.to_string().substr(64 - width);
+      bitset<256> b(x);
+      return "#b" + b.to_string().substr(256 - width);
     }
 
     string SMTAssign(SmtBVVar vleft, SmtBVVar vright) {
@@ -320,6 +320,63 @@ namespace CoreIR {
       return comment + NL + curr + NL + next;
     }
 
+    string SMTLshr(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      return SMTBop(context, "Lshr", "bvlshr", in1_p, in2_p, out_p);
+    }
 
+    string SMTAshr(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      return SMTBop(context, "Ashr", "bvashr", in1_p, in2_p, out_p);
+    }
+    
+    string SMTMul(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      return SMTBop(context, "Mul", "bvmul", in1_p, in2_p, out_p);
+    }
+
+    string SMTAndr(string context, SmtBVVar in_p, SmtBVVar out_p) {
+      string in = in_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMTAndr (in, out) = (" + in + ", " + out + ")";
+
+      string one = getSMTbits(stoi(in_p.dimstr()), -1);
+
+      string true_res; 
+      string false_res;
+      
+      true_res  = "(=> (= "+SMTgetCurr(context, in)+" "+one+") ("+SMTgetCurr(context, out)+" #b1))";
+      false_res = "(=> (not (= "+SMTgetCurr(context, in)+" "+one+")) ("+SMTgetCurr(context, out)+" #b0))";
+      string curr = assert_op("(and "+true_res+" "+false_res+")");
+
+      true_res  = "(=> (= "+SMTgetNext(context, in)+" "+one+") ("+SMTgetNext(context, out)+" #b1))";
+      false_res = "(=> (not (= "+SMTgetNext(context, in)+" "+one+")) ("+SMTgetNext(context, out)+" #b0))";
+      string next = assert_op("(and "+true_res+" "+false_res+")");
+      
+      return comment + NL + curr + NL + next;
+    }
+
+    string SMTOrr(string context, SmtBVVar in_p, SmtBVVar out_p) {
+      string in = in_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMTOrr (in, out) = (" + in + ", " + out + ")";
+
+      string zero = getSMTbits(stoi(in_p.dimstr()), 0);
+
+      string true_res; 
+      string false_res;
+      
+      true_res  = "(=> (= "+SMTgetCurr(context, in)+" "+zero+") ("+SMTgetCurr(context, out)+" #b0))";
+      false_res = "(=> (not (= "+SMTgetCurr(context, in)+" "+zero+")) ("+SMTgetCurr(context, out)+" #b1))";
+      string curr = assert_op("(and "+true_res+" "+false_res+")");
+
+      true_res  = "(=> (= "+SMTgetNext(context, in)+" "+zero+") ("+SMTgetNext(context, out)+" #b0))";
+      false_res = "(=> (not (= "+SMTgetNext(context, in)+" "+zero+")) ("+SMTgetNext(context, out)+" #b1))";
+      string next = assert_op("(and "+true_res+" "+false_res+")");
+      
+      return comment + NL + curr + NL + next;
+    }
+
+    string SMTZext(string context, SmtBVVar in_p, SmtBVVar out_p) {
+      return SMTUop(context, "Zext", "(_ zero_extend 1)", in_p, out_p);
+    }
+    
   }
 }
