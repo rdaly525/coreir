@@ -222,6 +222,10 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
   }
 
   // TODO should I type check here at all?
+  bool err = checkTypes(a,b);
+  if (err) {
+    c->die();
+  }
   //checkWiring(a,b);
   
   Connection connect = connectionCtor(a,b);
