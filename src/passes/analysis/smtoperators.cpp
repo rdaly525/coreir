@@ -55,8 +55,8 @@ namespace CoreIR {
     }
 
     string getSMTbits(unsigned width, int x) {
-      bitset<numeric_limits<int>::digits> b(x);
-      return "#b" + b.to_string().substr(numeric_limits<int>::digits - width);
+      bitset<256> b(x);
+      return "#b" + b.to_string().substr(256 - width);
     }
 
     string SMTAssign(SmtBVVar vleft, SmtBVVar vright) {
@@ -80,7 +80,7 @@ namespace CoreIR {
       string next = binary_op_eqass(op, SMTgetNext(context, in1), SMTgetNext(context, in2), SMTgetNext(context, out));
       return comment + NL + curr + NL + next;
     }
-    
+
     string SMTAnd(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       return SMTBop(context, "And", "bvand", in1_p, in2_p, out_p);
     }
@@ -89,10 +89,44 @@ namespace CoreIR {
       return SMTBop(context, "Or", "bvor", in1_p, in2_p, out_p);
     }
 
+    string SMTEq(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      // INIT: TRUE
+      // TRANS: (((in1 = in2) -> (out = #b1)) & ((in1 != in2) -> (out = #b0)))
+      //        (((in1' = in2') -> (out' = #b1)) & ((in1' != in2') -> (out' = #b0)))
+      string in1 = in1_p.getPortName();
+      string in2 = in2_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMT Eq(in1, in2, out) = (" + in1 + ", " + in2 + ", " + out + ")";
+
+      string input1;
+      string input2;
+      string output;
+
+      input1 = SMTgetCurr(context, in1);
+      input2 = SMTgetCurr(context, in2);
+      output = SMTgetCurr(context, out);
+      
+      string curr = "(and (=> (= " + input1 + " " + input2 + ") (= " + output + " #b1)) "
+                         "(=> (not (= " + input1 + " " + input2 + ")) (= " + output + " #b0)))";
+
+      curr = "(assert " + curr + ")";
+      
+      input1 = SMTgetNext(context, in1);
+      input2 = SMTgetNext(context, in2);
+      output = SMTgetNext(context, out);
+      
+      string next = "(and (=> (= " + input1 + " " + input2 + ") (= " + output + " #b1)) "
+                         "(=> (not (= " + input1 + " " + input2 + ")) (= " + output + " #b0)))";
+      
+      next = "(assert " + next + ")";
+      
+      return comment + NL + curr + NL + next;
+    }
+    
     string SMTXor(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       return SMTBop(context, "Xor", "bvxor", in1_p, in2_p, out_p);
     }
-    
+
     string SMTAdd(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       return SMTBop(context, "Add", "bvadd", in1_p, in2_p, out_p);
     }
@@ -100,7 +134,7 @@ namespace CoreIR {
     string SMTSub(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       return SMTBop(context, "Sub", "bvsub", in1_p, in2_p, out_p);
     }
-    
+
     string SMTConcat(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
       return SMTBop(context, "Concat", "concat", in1_p, in2_p, out_p);
     }
@@ -115,27 +149,43 @@ namespace CoreIR {
       string next = unary_op_eqass(op, SMTgetNext(context, in), SMTgetNext(context, out));
       return comment + NL + curr + NL + next;
     }
-    
+
     string SMTSlice(string context, SmtBVVar in_p, SmtBVVar out_p, int low_p, int high_p) {
       string low = to_string(low_p);
-      string high = to_string(high_p);      
+      string high = to_string(high_p);
       string op = "(_ extract " + high + " " + low + ")";
       return SMTUop(context, "Slice", op, in_p, out_p);
     }
-    
+
     string SMTNot(string context, SmtBVVar in_p, SmtBVVar out_p) {
       return SMTUop(context, "Not", "bvnot", in_p, out_p);
     }
 
-    string SMTConst(string context, SmtBVVar out_p, int val) {
+    string SMTConst(string context, SmtBVVar out_p, string val) {
       string out = out_p.getPortName();
-      string vals = getSMTbits(stoi(out_p.dimstr()), val);
+      string vals;
+
+      if (val == "False") {
+        vals = getSMTbits(1, 1);
+      }
+      else if (val == "True") {
+        vals = getSMTbits(1, 1);
+      }
+      else {
+        try {
+          vals = getSMTbits(stoi(out_p.dimstr()), stoi(val));
+        }
+        catch (std::invalid_argument& e){
+          std::cerr << e.what() << std::endl;
+        }
+      }
+
       string comment = ";; SMTConst (out, val) = (" + out + ", " + vals + ")";
       string curr = assert_op("(= " + SMTgetCurr(context, out) + " " + vals + ")");
       string next = assert_op("(= " + SMTgetNext(context, out) + " " + vals + ")");
       return comment + NL + curr + NL + next;
     }
-    
+
     string SMTReg(string context, SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p) {
       // INIT: out = 0
       // TRANS: ((!clk & clk') -> (out' = in)) & (!(!clk & clk') -> (out' = out))
@@ -149,6 +199,74 @@ namespace CoreIR {
       string trans_2 = "(=> (not (= (bvand (bvnot " + SMTgetCurr(context, clk) + ") " + SMTgetNext(context, clk) + ") #b1)) (= " + SMTgetNext(context, out) + " " + SMTgetCurr(context, out) + "))";
       string trans = assert_op("(and " + trans_1 + " " + trans_2 + ")");
       return comment + NL + init + NL + trans;
+    }
+
+    // TODO: Translate Mantle Reg
+    // Need parameters for CLR, CE and RESET
+    //string SMTMantleReg
+    string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p, SmtBVVar CLK_p, SmtBVVar CLR_p, SmtBVVar CE_p, SmtBVVar RESET_p) {
+      // INIT: out = modargs:init:val
+      int width = stoi(args["width"]->toString());
+      string I = I_p.getPortName();
+      string O = O_p.getPortName();
+      string CLK = CLK_p.getPortName();
+      string comment = ";; SMTMantleReg (I, O, CLK, CLR?, CE?, RESET?) = (" +
+        I + ", " + O + ", " + CLK + ", " + args["has_clr"]->toString() +
+        ", " + args["has_en"]->toString() + ", " +
+        args["has_rst"]->toString() + ")";
+
+      bool has_clr = args["has_clr"]->toString() == "True";
+      bool has_ce = args["has_en"]->toString() == "True";
+      bool has_rst = args["has_rst"]->toString() == "True";
+
+      string clkToggle = "(and (= " + SMTgetCurr(context, CLK) + " #b0) (= " +
+        SMTgetNext(context, CLK) + " #b1))";
+      string initval = getSMTbits(width, stoi(args["init"]->toString()));
+      string init = assert_op("(= " + SMTgetInit(context, O) + " " +
+                              initval + ")");
+
+      string trans;
+      if (has_ce && has_rst) {
+        string rst = "(= " + SMTgetCurr(context, RESET_p.getPortName()) + " #b1)";
+        string ce = "(= " + SMTgetCurr(context, CE_p.getPortName()) + " #b1)";
+        string trans1 = "(=> (and " + rst + " " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + initval + "))";
+        string trans2 = "(=> (and (not " + rst + ") " + clkToggle + " " +
+          ce + ") (= " + SMTgetNext(context, O) + " " +
+          SMTgetCurr(context, I) + "))";
+        string trans3 = "(=> (or (and (not " + rst + ") (not " + ce + ")) (not " +
+          clkToggle + ")) (= " + SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + " " + trans3 + ")");
+      }
+      else if (has_ce) {
+        string ce = "(= " + SMTgetCurr(context, CE_p.getPortName()) + " #b1)";
+        string trans1 = "(=> (and " + ce + " " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, I) + "))";
+        string trans2 = "(=> (or (not " + ce + ") (not " + clkToggle + "))"
+          "(= " + SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + ")");
+      }
+      else if (has_rst) {
+        string rst = "(= " + SMTgetCurr(context, RESET_p.getPortName()) + " #b1)";
+        string trans1 = "(=> (and " + rst + " " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + initval + "))";
+        string trans2 = "(=> (and (not " + rst + ") " + clkToggle + ") (= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, I) + "))";
+        string trans3 = "(=> (or (not " + rst + ") (not " + clkToggle + "))"
+          "(= " + SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + " " + trans3 + ")");
+      }
+      else {
+        string trans1 = "(=> " + clkToggle + " " + "(= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, I) + "))";
+        string trans2 = "(=> (not " + clkToggle + ") " + "(= " +
+          SMTgetNext(context, O) + " " + SMTgetCurr(context, O) + "))";
+        trans = assert_op("(and " + trans1 + " " + trans2 + ")");
+      }
+
+      ASSERT(!has_clr, "CLR not supported by SMT translation yet.");
+      return comment + NL + init + NL + trans;
+
     }
 
     string SMTRegPE(string context, SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p, SmtBVVar en_p) {
@@ -186,22 +304,79 @@ namespace CoreIR {
 
       string one = getSMTbits(stoi(sel_p.dimstr()), 1);
       string zero = getSMTbits(stoi(sel_p.dimstr()), 0);
-      
+
       string then_bc = "(= "+SMTgetCurr(context, sel)+" "+one+")";
       string else_bc = "(= "+SMTgetCurr(context, sel)+" "+zero+")";
-      string curr_1 = "(=> "+then_bc+" (= "+SMTgetCurr(context, in0)+" "+SMTgetCurr(context, out)+"))";
-      string curr_2 = "(=> "+else_bc+" (= "+SMTgetCurr(context, in1)+" "+SMTgetCurr(context, out)+"))";
+      string curr_1 = "(=> "+then_bc+" (= "+SMTgetCurr(context, in1)+" "+SMTgetCurr(context, out)+"))";
+      string curr_2 = "(=> "+else_bc+" (= "+SMTgetCurr(context, in0)+" "+SMTgetCurr(context, out)+"))";
       string curr = assert_op("(and " + curr_1 + " " + curr_2 + ")");
 
       string then_bn = "(= "+SMTgetNext(context, sel)+" "+one+")";
       string else_bn = "(= "+SMTgetNext(context, sel)+" "+zero+")";
-      string next_1 = "(=> "+then_bn+" (= "+SMTgetNext(context, in0)+" "+SMTgetNext(context, out)+"))";
-      string next_2 = "(=> "+else_bn+" (= "+SMTgetNext(context, in1)+" "+SMTgetNext(context, out)+"))";
+      string next_1 = "(=> "+then_bn+" (= "+SMTgetNext(context, in1)+" "+SMTgetNext(context, out)+"))";
+      string next_2 = "(=> "+else_bn+" (= "+SMTgetNext(context, in0)+" "+SMTgetNext(context, out)+"))";
       string next = assert_op("(and " + next_1 + " " + next_2 + ")");
 
       return comment + NL + curr + NL + next;
     }
 
+    string SMTLshr(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      return SMTBop(context, "Lshr", "bvlshr", in1_p, in2_p, out_p);
+    }
+
+    string SMTAshr(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      return SMTBop(context, "Ashr", "bvashr", in1_p, in2_p, out_p);
+    }
+    
+    string SMTMul(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
+      return SMTBop(context, "Mul", "bvmul", in1_p, in2_p, out_p);
+    }
+
+    string SMTAndr(string context, SmtBVVar in_p, SmtBVVar out_p) {
+      string in = in_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMTAndr (in, out) = (" + in + ", " + out + ")";
+
+      string one = getSMTbits(stoi(in_p.dimstr()), -1);
+
+      string true_res; 
+      string false_res;
+      
+      true_res  = "(=> (= "+SMTgetCurr(context, in)+" "+one+") ("+SMTgetCurr(context, out)+" #b1))";
+      false_res = "(=> (not (= "+SMTgetCurr(context, in)+" "+one+")) ("+SMTgetCurr(context, out)+" #b0))";
+      string curr = assert_op("(and "+true_res+" "+false_res+")");
+
+      true_res  = "(=> (= "+SMTgetNext(context, in)+" "+one+") ("+SMTgetNext(context, out)+" #b1))";
+      false_res = "(=> (not (= "+SMTgetNext(context, in)+" "+one+")) ("+SMTgetNext(context, out)+" #b0))";
+      string next = assert_op("(and "+true_res+" "+false_res+")");
+      
+      return comment + NL + curr + NL + next;
+    }
+
+    string SMTOrr(string context, SmtBVVar in_p, SmtBVVar out_p) {
+      string in = in_p.getPortName();
+      string out = out_p.getPortName();
+      string comment = ";; SMTOrr (in, out) = (" + in + ", " + out + ")";
+
+      string zero = getSMTbits(stoi(in_p.dimstr()), 0);
+
+      string true_res; 
+      string false_res;
+      
+      true_res  = "(=> (= "+SMTgetCurr(context, in)+" "+zero+") ("+SMTgetCurr(context, out)+" #b0))";
+      false_res = "(=> (not (= "+SMTgetCurr(context, in)+" "+zero+")) ("+SMTgetCurr(context, out)+" #b1))";
+      string curr = assert_op("(and "+true_res+" "+false_res+")");
+
+      true_res  = "(=> (= "+SMTgetNext(context, in)+" "+zero+") ("+SMTgetNext(context, out)+" #b0))";
+      false_res = "(=> (not (= "+SMTgetNext(context, in)+" "+zero+")) ("+SMTgetNext(context, out)+" #b1))";
+      string next = assert_op("(and "+true_res+" "+false_res+")");
+      
+      return comment + NL + curr + NL + next;
+    }
+
+    string SMTZext(string context, SmtBVVar in_p, SmtBVVar out_p) {
+      return SMTUop(context, "Zext", "(_ zero_extend 1)", in_p, out_p);
+    }
     
   }
 }

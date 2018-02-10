@@ -4,8 +4,8 @@
       "modules": {
         "counters": {
             "metadata" : {"properties": [["exec_to_30","invar","\"out\" != 0ud16_10"],
-                                         ["out_plus_1","invar","(!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = (\"out\" + 0ud16_1))"],
-                                         ["reset","ltl","G(F((!B(\"clk\") & next(B(\"clk\")) & B(\"en\")) -> (next(\"out\") = 0ud16_0)))"]]
+                                         ["out_plus_1","invar","(!B(\"clk\") & next(B(\"clk\")) & !B(\"clr\")) -> (next(\"out\") = (\"out\" + 0ud16_1))"],
+                                         ["reset","ltl","G(F((!B(\"clk\") & next(B(\"clk\")) & !B(\"clr\")) -> (next(\"out\") = 0ud16_0)))"]]
                                  },
           "type": ["Record",{
             "clk": ["Named","coreir.clkIn"]

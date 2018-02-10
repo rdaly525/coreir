@@ -80,6 +80,7 @@ class SMVModule {
   unordered_set<string> params;
   unordered_map<string,string> paramDefaults;
 
+  bool instantiated = false;
   Generator* gen = nullptr;
   
   vector<string> stmts;
@@ -114,6 +115,8 @@ public:
     this->addDefaults(paramDefaults,g->getDefaultGenArgs());
     //this->addparams(g->getConfigParams());
   }
+  void instantiate() {instantiated=true;}
+  bool isInstantiated() {return instantiated;}
   void addStmt(string stmt) { stmts.push_back(stmt); }
   void addPort(SmvBVVar v) {ports.push_back(v);}
   void addVarDec(string vd) { vardecs.push_back(vd); }
