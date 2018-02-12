@@ -332,30 +332,41 @@ namespace CoreIR {
     auto def = mod->getDef();
     // stringstream ss;
     // ss << value;
-    auto constReplace = def->addInstance("def_self_const_replace_" + portName,
-                                         "coreir.const",
-                                         {{"width", Const::make(c, value.bitLength())}},
-                                         {{"value", Const::make(c, value)}});
 
     Select* sel = def->sel("self")->sel(portName);
+
+    Instance* constReplace = nullptr;
+    if (isBitArray(*(sel->getType()))) {
+      constReplace = def->addInstance("def_self_const_replace_" + portName,
+                                      "coreir.const",
+                                      {{"width", Const::make(c, value.bitLength())}},
+                                      {{"value", Const::make(c, value)}});
+    } else {
+      //assert(isBitType(*(sel->getType())));
+      constReplace = def->addInstance("def_self_const_replace_" + portName,
+                                      "corebit.const",
+                                      {{"value", Const::make(c, value.get(0) ? true : false)}});
+    }
+
+    assert(constReplace != nullptr);
 
     Select* replacement = constReplace->sel("out");
 
     Instance* wbPassthrough = addPassthrough(sel, constReplace->getInstname() + "_tmp_passthrough");
 
-    cout << "passthrough type = " << wbPassthrough->getType()->toString() << endl;
-    cout << "replacement type = " << replacement->getType()->toString() << endl;
+    // cout << "passthrough type = " << wbPassthrough->getType()->toString() << endl;
+    // cout << "replacement type = " << replacement->getType()->toString() << endl;
 
     wbPassthrough->sel("in")->disconnectAll();
     def->connect(wbPassthrough->sel("in"),
                  replacement);
 
-    cout << "Module def with passthrough" << endl;
-    def->print();
+    // cout << "Module def with passthrough" << endl;
+    // def->print();
 
     inlineInstance(wbPassthrough);
 
-    cout << "Inlined passthrough" << endl;
+    //cout << "Inlined passthrough" << endl;
     return;
   }
 

@@ -41,12 +41,17 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   string mname;
   Values args;
   if (gen) {
-    args = mref->getGenArgs();
     addPortsFromGen(inst);
     mname = modname; //gen->getNamespace()->getName() + "_" + gen->getName(args);
   }
   else {
     mname = modname;
+  }
+
+  // Even if not generator, there are some arguments in GenArgs and we want those too
+  for (auto amap : mref->getGenArgs()) {
+    ASSERT(args.count(amap.first)==0, "NYI Aliased config/genargs");
+    args[amap.first] = amap.second;
   }
 
   for (auto amap : inst->getModArgs()) {

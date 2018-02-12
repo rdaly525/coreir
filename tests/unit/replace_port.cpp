@@ -54,6 +54,9 @@ void testReplaceBitPort() {
 
   portToConstant("in", BitVec(1, 0), md);
 
+  bool error = md->getDef()->validate();
+  assert(!error);
+
   if (!saveToFile(c->getGlobal(), "bit_replacement.json", md)) {
     cout << "Could not save to json!!" << endl;
     c->die();
@@ -68,8 +71,6 @@ void testReplaceBitPort() {
   cout << "self.out      = " << state.getBitVec("self.out") << endl;
 
   assert(state.getBitVec("self.out") == ~BitVec(1, 0));
-
-  assert(false);
 
   deleteContext(c);
 }
@@ -124,6 +125,6 @@ void testBuildBitArrayToBit() {
 
 int main() {
   testReplaceArrayPort();
-  //testReplaceBitPort();
-  testBuildBitArrayToBit();
+  testReplaceBitPort();
+  //testBuildBitArrayToBit();
 }
