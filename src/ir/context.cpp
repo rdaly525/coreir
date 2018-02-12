@@ -112,6 +112,7 @@ void Context::die() {
 
 
 Namespace* Context::newNamespace(string name) { 
+  checkStringSyntax(name);
   Namespace* n = new Namespace(this,name);
   namespaces.emplace(name,n);
   return n;
