@@ -6,10 +6,12 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
-#include "coreir/ir/args.h"
+#include "coreir/ir/value.h"
+#include "coreir/ir/valuetype.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/typegen.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
 
@@ -19,6 +21,10 @@
 #include "coreir/ir/passmanager.h"
 #include "coreir/ir/passes.h"
 #include "coreir/ir/instancegraph.h"
+
+#include "coreir/simulator/interpreter.h"
+#include "coreir/simulator/simulator.h"
+#include "coreir/simulator/print_c.h"
 
 #else //C header
 

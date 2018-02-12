@@ -1,5 +1,5 @@
-#ifndef METADATA_HPP_
-#define METADATA_HPP_
+#ifndef COREIR_METADATA_HPP_
+#define COREIR_METADATA_HPP_
 
 #include "fwd_declare.h"
 #include "json.h"
@@ -10,7 +10,7 @@ namespace CoreIR {
 class MetaData {
   json metadata;
   public:
-    MetaData() {}
+    MetaData() : metadata(json::value_t::object) {}
     json& getMetaData() {return metadata;}
     bool hasMetaData() {return !metadata.empty();}
     void setMetaData(json j) {metadata = j;}

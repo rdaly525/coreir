@@ -1,27 +1,21 @@
 #include "coreir/ir/types.h"
+#include "coreir/ir/globalvalue.h"
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/namespace.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/error.h"
 #include "coreir/ir/typegen.h"
+#include "coreir/ir/value.h"
 
 using namespace std;
 
 namespace CoreIR {
 
-void Type::print(void) { cout << "Type: " << (*this) << endl; }
-
-bool Type::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any(); 
-  e->message("Cant select from this type!");
-  e->message("  Type: " + toString());
-  return true;
-}
+void Type::print(void) const { cout << "Type: " << (*this) << endl; }
 
 string Type::TypeKind2Str(TypeKind t) {
   switch(t) {
-    case TK_Any : return "Any";
     case TK_Bit : return "Bit";
     case TK_BitIn : return "BitIn";
     case TK_Array : return "Array";
@@ -36,6 +30,23 @@ Type* Type::Arr(uint i) {
 }
 
 bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
+
+Type* Type::sel(string selstr) {
+  if (auto rt = dyn_cast<RecordType>(this)) {
+    ASSERT(rt->getRecord().count(selstr),"Bad Select!");
+    
+    //return *(rt->getRecord().find(selstr));
+    return rt->getRecord().at(selstr);
+  }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
+    ASSERT(isNumber(selstr),selstr + " needs to be a number!");
+    uint i = std::stoi(selstr,nullptr,0);
+    ASSERT(i < at->getLen(),"Bad Select!");
+    return at->getElemType();
+  }
+  ASSERT(0,"Bad Select");
+}
+
 bool Type::canSel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
     return rt->getRecord().count(selstr);
@@ -47,6 +58,17 @@ bool Type::canSel(string selstr) {
   }
   return false;
 }
+
+bool Type::canSel(SelectPath path) {
+  if (path.size()==0) return true;
+  string sel = path.front();
+  if (!this->canSel(sel)) return false;
+  path.pop_front();
+  return this->sel(sel)->canSel(path);
+}
+
+
+
 std::ostream& operator<<(ostream& os, const Type& t) {
   os << t.toString();
   return os;
@@ -64,44 +86,20 @@ string RecordType::toString(void) const {
   return ret;
 }
 
-NamedType::NamedType(Context* c,Namespace* ns, string name, TypeGen* typegen, Args genargs) : Type(TK_Named,DK_Mixed,c) ,ns(ns), name(name), typegen(typegen), genargs(genargs) {
+NamedType::NamedType(Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),ns->getContext()), GlobalValue(GVK_NamedType,ns,name), raw(raw) {}
+NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen, Values genargs) : Type(TK_Named,DK_Mixed,ns->getContext()), GlobalValue(GVK_NamedType,ns,name), typegen(typegen), genargs(genargs) {
   //Check args here.
-  checkArgsAreParams(genargs,typegen->getParams());
+  checkValuesAreParams(genargs,typegen->getParams());
 
   //Run the typegen
   raw = typegen->getType(genargs);
   dir = raw->getDir();
 }
-string NamedType::getRefName() {return ns->getName() + "." + name;}
-//TODO How to deal with select? For now just do a normal select off of raw
-bool NamedType::sel(string sel, Type** ret, Error* e) {
-  return raw->sel(sel,ret,e);
+
+void NamedType::print() const {
+  cout << "NYI print on named type" << endl;
 }
 
-bool AnyType::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any();
-  return false;
-}
-
-bool ArrayType::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any();
-  if (!isNumber(sel)) {
-    e->message("Idx into Array needs to be a number");
-    e->message("  Idx: '" + sel + "'");
-    e->message("  Type: " + toString());
-    return true;
-  }
-  uint i = stoi(sel);
-  if(i >= len ) {
-    e->message("Index out of bounds for Array");
-    e->message("  Required range: [0," + to_string(len-1) + "]");
-    e->message("  Idx: " + sel);
-    e->message("  Type: " + toString());
-    return true;
-  }
-  *ret = elemType;
-  return false;
-}
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
@@ -123,43 +121,27 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
   }
 }
 
-Type* RecordType::appendField(string label, Type* t) {
+RecordType* RecordType::appendField(string label, Type* t) {
   ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
   
-  //TODO this was annoying to write. I should fix up the whole myPair thing
-  RecordParams newParams({myPair<string,Type*>(label,t)});
+  RecordParams newParams({{label,t}});
   for (auto rparam : this->getRecord()) {
-    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
+    newParams.push_back({rparam.first,rparam.second});
   }
   return c->Record(newParams);
 }
 
-Type* RecordType::detachField(string label) {
+RecordType* RecordType::detachField(string label) {
   ASSERT(this->getRecord().count(label)==1,"Cannot detach" + label + " from type: " + this->toString());
   
-  //TODO this was annoying to write. I should fix up the whole myPair thing
   RecordParams newParams;
   for (auto rparam : this->getRecord()) {
     if (rparam.first == label) continue;
-    newParams.push_back(myPair<string,Type*>(rparam.first,rparam.second));
+    newParams.push_back({rparam.first,rparam.second});
   }
   return c->Record(newParams);
 }
 
-// TODO should this actually return Any if it is missing?
-bool RecordType::sel(string sel, Type** ret, Error* e) {
-  *ret = c->Any();
-  auto it = record.find(sel);
-  if (it != record.end()) {
-    *ret = it->second;
-    return false;
-  } 
-  e->message("Bad select field for Record");
-  e->message("  Sel: '" + sel + "'");
-  e->message("  Type: " + toString());
-  return true;
-
-}
 uint RecordType::getSize() const {
   uint size = 0;
   for (auto field : record) {

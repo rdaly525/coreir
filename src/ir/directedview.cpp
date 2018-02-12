@@ -2,7 +2,7 @@
 #include "coreir/ir/directedview.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/wireable.h"
-#include "coreir/ir/instantiable.h"
+#include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
 
 using namespace std;
@@ -11,8 +11,6 @@ using namespace CoreIR;
 DirectedConnection::DirectedConnection(Connection& c) : c(c) {
   Wireable* wa = c.first;
   Wireable* wb = c.second;
-  wa->toString();
-  wb->toString();
   //Confirm that one is definitely only inputs and one is only outputs
   Type* ta = wa->getType();
   Type* tb = wb->getType();

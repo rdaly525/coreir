@@ -2,12 +2,13 @@
 #define COREIR_TYPES_HPP_
 
 #include "fwd_declare.h"
+#include "globalvalue.h"
 
 namespace CoreIR {
 
 class Type {
   public :
-    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4,TK_Any=5};
+    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4};
     enum DirKind {DK_In,DK_Out,DK_Mixed,DK_Unknown};
   protected :
     TypeKind kind;
@@ -23,10 +24,12 @@ class Type {
     TypeKind getKind() const {return kind;}
     DirKind getDir() const {return dir;}
     virtual std::string toString(void) const =0;
-    virtual bool sel(std::string sel, Type** ret, Error* e);
+    Type* sel(std::string sel);
     bool canSel(std::string sel);
+    bool canSel(SelectPath path);
     virtual uint getSize() const=0;
-    void print(void);
+    virtual void print(void) const;
+    Context* getContext() {return c; };
     static std::string TypeKind2Str(TypeKind t);
     
     //"sugar" for making arrays
@@ -52,22 +55,12 @@ class Type {
 
 std::ostream& operator<<(std::ostream& os, const Type& t);
 
-class AnyType : public Type {
-  public :
-    AnyType(Context* c) : Type(TK_Any,DK_Unknown,c) {}
-    static bool classof(const Type* t) {return t->getKind()==TK_Any;}
-    std::string toString(void) const {return "Any";}
-    
-    bool sel(std::string sel, Type** ret, Error* e);
-    uint getSize() const { return 0;}
-};
-
 class BitType : public Type {
   public :
     BitType(Context* c) : Type(TK_Bit,DK_Out,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Bit;}
-    std::string toString(void) const {return "Bit";}
-    uint getSize() const { return 1;}
+    std::string toString(void) const override {return "Bit";}
+    uint getSize() const override { return 1;}
 };
 
 class BitInType : public Type {
@@ -75,35 +68,29 @@ class BitInType : public Type {
     BitInType(Context* c) : Type(TK_BitIn,DK_In,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_BitIn;}
     
-    std::string toString(void) const {return "BitIn";}
-    uint getSize() const { return 1;}
+    std::string toString(void) const override {return "BitIn";}
+    uint getSize() const override { return 1;}
 };
 
-class NamedType : public Type {
+class NamedType : public Type, public GlobalValue {
   protected :
-    Namespace* ns;
-    std::string name;
     
     Type* raw;
 
     bool isgen=false;
     TypeGen* typegen=nullptr;
-    Args genargs;
+    Values genargs;
   public :
-    NamedType(Context* c, Namespace* ns, std::string name, Type* raw) : Type(TK_Named,raw->getDir(),c), ns(ns), name(name), raw(raw) {}
-    NamedType(Context* c, Namespace* ns, std::string name, TypeGen* typegen, Args genargs);
+    NamedType(Namespace* ns, std::string name, Type* raw);
+    NamedType(Namespace* ns, std::string name, TypeGen* typegen, Values genargs);
     static bool classof(const Type* t) {return t->getKind()==TK_Named;}
-    std::string toString(void) const { return name; } //TODO add generator
-    Namespace* getNamespace() {return ns;}
-    std::string getName() {return name;}
-    std::string getRefName();
+    std::string toString(void) const override { return this->getRefName(); } //TODO add generator
+    void print() const override;
     Type* getRaw() {return raw;}
     bool isGen() { return isgen;}
     TypeGen* getTypegen() { return typegen;}
-    Args getGenArgs() {return genargs;}
-    uint getSize() const { return raw->getSize();}
-    
-    bool sel(std::string sel, Type** ret, Error* e);
+    Values getGenArgs() {return genargs;}
+    uint getSize() const override { return raw->getSize();}
 };
 
 class ArrayType : public Type {
@@ -114,31 +101,29 @@ class ArrayType : public Type {
     static bool classof(const Type* t) {return t->getKind()==TK_Array;}
     uint getLen() {return len;}
     Type* getElemType() { return elemType; }
-    std::string toString(void) const { 
+    std::string toString(void) const override { 
       return elemType->toString() + "[" + std::to_string(len) + "]";
     };
-    bool sel(std::string sel, Type** ret, Error* e);
-    uint getSize() const { return len * elemType->getSize();}
+    uint getSize() const override { return len * elemType->getSize();}
 
 };
 
 
 class RecordType : public Type {
-  std::unordered_map<std::string,Type*> record;
+  std::map<std::string,Type*> record;
   std::vector<std::string> _order;
   public :
     RecordType(Context* c, RecordParams _record);
     RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
-    std::vector<std::string> getFields() { return _order;}
-    std::unordered_map<std::string,Type*> getRecord() { return record;}
-    std::string toString(void) const;
-    bool sel(std::string sel, Type** ret, Error* e);
-    uint getSize() const;
+    const std::vector<std::string>& getFields() const { return _order;}
+    const std::map<std::string,Type*>& getRecord() const { return record;}
+    std::string toString(void) const override;
+    uint getSize() const override;
     
     //nice functions for creating a new type with or without a field
-    Type* appendField(std::string label, Type* t); 
-    Type* detachField(std::string label);
+    RecordType* appendField(std::string label, Type* t); 
+    RecordType* detachField(std::string label);
 
 };
 

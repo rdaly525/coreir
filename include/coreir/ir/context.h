@@ -11,30 +11,41 @@ class Context {
   Namespace* global;
   std::map<std::string,Namespace*> namespaces;
   PassManager* pm;
+  
+  bool symtable = false;
 
   uint maxErrors;
   std::vector<std::string> errors;
  
+  Module* top = nullptr;
+
   //Unique int
   uint unique=0;
 
-  //Memory management
-  TypeCache* cache;
+  public :
+    //Used for caching the types
+    ValueCache* valuecache;
+    TypeCache* typecache;
   
-  std::vector<Arg*> argList;
-  std::vector<Args*> argsList;
-  std::vector<Arg**> argPtrArrays;
-  std::vector<RecordParams*> recordParamsList;
-  std::vector<Params*> paramsList;
-  std::vector<Connection*> connectionArrays;
-  std::vector<Connection**> connectionPtrArrays;
-  std::vector<Wireable**> wireableArrays;
-  std::vector<const char**> constStringArrays;
-  std::vector<char**> stringArrays;
-  std::vector<char*> stringBuffers;
-  std::vector<DirectedConnection*> directedConnectionArrays;
-  std::vector<DirectedConnection**> directedConnectionPtrArrays;
-  std::vector<DirectedInstance**> directedInstancePtrArrays;
+  private :
+    
+    //Memory management
+    std::unordered_map<void*,Value*> valueList;
+    std::vector<Values*> valuesList;
+    std::vector<Value**> valuePtrArrays;
+    std::vector<ValueType**> valueTypePtrArrays;
+    std::vector<Type**> typePtrArrays;
+    std::vector<RecordParams*> recordParamsList;
+    std::vector<Params*> paramsList;
+    std::vector<Connection*> connectionArrays;
+    std::vector<Connection**> connectionPtrArrays;
+    std::vector<Wireable**> wireableArrays;
+    std::vector<const char**> constStringArrays;
+    std::vector<char**> stringArrays;
+    std::vector<char*> stringBuffers;
+    std::vector<DirectedConnection*> directedConnectionArrays;
+    std::vector<DirectedConnection**> directedConnectionPtrArrays;
+    std::vector<DirectedInstance**> directedInstancePtrArrays;
 
   public :
     Context();
@@ -49,16 +60,20 @@ class Context {
     void printerrors();
     void print();
 
-    //bool linkLib(Namespace* defns, Namespace* declns);
-    
+    void enSymtable() {symtable = true;}
+    bool hasSymtable() { return symtable;}
     Namespace* newNamespace(std::string name);
     bool hasNamespace(std::string name) { return namespaces.count(name) > 0; }
     Namespace* getNamespace(std::string s);
     Namespace* getCoreirPrims() {return getNamespace("coreir");}
     Module* getModule(std::string ref);
     Generator* getGenerator(std::string ref);
-    Instantiable* getInstantiable(std::string ref);
-    std::map<std::string,Namespace*> getNamespaces() {return namespaces;}
+    GlobalValue* getGlobalValue(std::string ref);
+    bool hasGenerator(std::string ref);
+    bool hasModule(std::string ref);
+    bool hasGlobalValue(std::string ref);
+
+    std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
 
@@ -66,14 +81,21 @@ class Context {
     //Do not use unless you really have to.
     PassManager* getPassManager() { return pm;}
 
-    //Factory functions for types
-    Type* Any();
-    Type* Bit();
-    Type* BitIn();
-    Type* Array(uint n, Type* t);
-    Type* Record(RecordParams rp=RecordParams());
-    Type* Named(std::string nameref);
-    Type* Named(std::string nameref, Args args);
+    //Factory functions for Types
+    BitType* Bit();
+    BitInType* BitIn();
+    ArrayType* Array(uint n, Type* t);
+    RecordType* Record(RecordParams rp=RecordParams());
+    NamedType* Named(std::string nameref);
+    NamedType* Named(std::string nameref, Values args);
+
+
+    //Factory functions for ValueTypes
+    BoolType* Bool();
+    IntType* Int();
+    BitVectorType* BitVector(int width);
+    StringType* String();
+    //CoreIRType* CoreIRType();
 
     Type* Flip(Type* t);
     Type* In(Type* t);
@@ -83,23 +105,30 @@ class Context {
 
     RecordParams* newRecordParams();
     Params* newParams();
-    Args* newArgs();
-    
-    //Factory functions for args
-    Arg* argBool(bool b);
-    Arg* argInt(int i);
-    Arg* argString(std::string s);
-    Arg* argType(Type* t);
+    Values* newValues();
 
     //Unique
     std::string getUnique() {
       return "_U" + std::to_string(unique++);
     }
+   
+    //Sets the top module
+    void setTop(std::string topRef);
+    void setTop(Module* top);
+    bool hasTop() { return !!top;}
+    Module* getTop() { return top;}
 
+     
+    // C API memory management
+
+    //Saves 
+    void* saveValue(Value* val);
+    Value* getSavedValue(void*);
     
-
-
-    Arg** newArgPtrArray(int size);
+    
+    Value** newValueArray(int size);
+    ValueType** newValueTypeArray(int size);
+    Type** newTypeArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
     Wireable** newWireableArray(int size);

@@ -1,0 +1,13 @@
+set on_failure_script_quits 1
+# go_msat
+# msat_check_invar_bmc -a falsification
+go_bmc
+check_invar_bmc_inc -a falsification
+check_invar_ic3 -g -O2
+# msat_check_ltlspec_sbmc_inc -c
+# check_ltlspec_sbmc_inc -c
+check_ltlspec_klive
+show_property
+show_traces -a -p4 -o traces.xml
+quit
+

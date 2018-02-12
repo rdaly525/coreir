@@ -8,11 +8,10 @@ namespace {
 bool hasConnection(Wireable* w) {
   if (w->getConnectedWireables().size()) return true;
   
-  bool hasCon = false;
   for (auto smap : w->getSelects()) {
-    hasCon |= hasConnection(smap.second);
+    if (hasConnection(smap.second)) return true;
   }
-  return hasCon;
+  return false;
 }
 }
 

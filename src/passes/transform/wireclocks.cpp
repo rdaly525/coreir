@@ -4,35 +4,39 @@
 using namespace std;
 using namespace CoreIR;
 
-bool Passes::WireClocks::runOnModule(Module* module) {
-    ASSERT(module->hasDef(), "WireClockPass can only be run on a module with a definition");
+bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
+    
+    Module* module = node.getModule();
+    if (!module->hasDef()) return false;
 
-    ModuleDef* definition = module->getDef();
-
-    RecordType* type = cast<RecordType>(definition->getType());  // FIXME: Can I assume this is always a RecordType
-    string clkInName;
-    for (auto field : type->getRecord()) {
+    ModuleDef* def = module->getDef();
+    vector<Wireable*> clks;
+    //Check if any instance has a clock type
+    for (auto inst : def->getInstances()) {
+      for (auto field : cast<RecordType>(inst.second->getType())->getRecord()) {
         if (field.second == this->clockType) {
-            ASSERT(clkInName.empty(), "Found multiple inputs with the same clock type in wireclockpass");
-            clkInName = field.first;
-            break;
+          clks.push_back(inst.second->sel(field.first));
         }
+      }
     }
-    Interface* interface = definition->getInterface();
-    Wireable* interfaceClock = interface->sel(clkInName);
+    if (clks.size()==0) {
+      return false;
+    }
+    
+    Wireable* topclk=nullptr;
+    for (auto field : module->getType()->getRecord()) {
+      if (field.second == this->clockType) {
+        topclk = def->sel("self")->sel(field.first);
+      }
+    }
+    //Add clk if needed
+    if (!topclk) {
+      node.appendField("clk", this->clockType);
+      topclk = def->sel("self")->sel("clk");
+    }
+    for (auto clk : clks) {
+      def->connect(topclk,clk);
+    }
 
-    bool clockWired = false;
-    for (auto instance : definition->getInstances()) {
-        RecordType* instanceType = cast<RecordType>(instance.second->getType());
-        for (auto field : instanceType->getRecord()) {
-            if (field.second == this->clockType) {
-                if (!definition->hasConnection(interfaceClock, instance.second->sel(field.first))) {
-                    definition->connect(interfaceClock, instance.second->sel(field.first));
-                    clockWired = true;
-                    break;
-                }
-            }
-        }
-    }
-    return clockWired;
+    return true;
 }

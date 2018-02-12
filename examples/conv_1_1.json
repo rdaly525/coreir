@@ -1,0 +1,56 @@
+{"top":"global.DesignTop",
+"namespaces":{
+  "global":{
+    "modules":{
+      "DesignTop":{
+        "type":["Record",{
+          "in":["Array",1,["Array",16,"BitIn"]],
+          "out":["Array",16,"Bit"]
+        }],
+        "instances":{
+          "_286_pt":{
+            "genref":"mantle.wire",
+            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
+          },
+          "add_285_289_290":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",16]}
+          },
+          "const0__284":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],0]}
+          },
+          "const3__288":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],3]}
+          },
+          "const0__284":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],0]}
+          },
+          "const3__288":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",16]},
+            "modargs":{"value":[["BitVector",16],3]}
+          },
+          "mul_287_288_289":{
+            "genref":"coreir.mul",
+            "genargs":{"width":["Int",16]}
+          }
+        },
+        "connections":[
+          ["_286_pt.in","self.in.0"],
+          ["_286_pt.out","mul_287_288_289.in0"],
+          ["add_285_289_290.in0","const0__284.out"],
+          ["add_285_289_290.in1","mul_287_288_289.out"],
+          ["add_285_289_290.out","self.out"],
+          ["const3__288.out","mul_287_288_289.in1"]
+        ]
+      }
+    }
+  }
+}
+}

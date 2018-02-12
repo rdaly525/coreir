@@ -5,31 +5,47 @@
 #include <vector>
 #include <deque>
 #include <map>
+#include <set>
 #include <unordered_map>
 #include <unordered_set>
+#include <memory>
 #include <cassert>
 #include <sstream>
 #include <iostream>
+#include <functional>
+
+#include <execinfo.h>
 
 #define ASSERT(C,MSG) \
   if (!(C)) { \
-    std::cout << "ERROR: " << MSG << std::endl << std::endl; \
-    assert(C); \
+    void* array[20]; \
+    size_t size; \
+    size = backtrace(array,20); \
+    std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
+    backtrace_symbols_fd(array,size,2); \
+    exit(1); \
+    while (true) {} /* Hack so GCC knows this doesn't ever return */ \
   }
 
 typedef uint32_t uint;
+
+namespace bsim {
+  class dynamic_bit_vector;
+}
+typedef bsim::dynamic_bit_vector BitVector;
 
 namespace CoreIR {
 
 class Context;
 struct Error;
 class Namespace;
+class RefName;
 
 class DirectedConnection;
 class DirectedInstance;
 class DirectedModule;
 
-//Types
+//Types : types.h
 class Type;
 class BitType;
 class BitInType;
@@ -40,17 +56,12 @@ class NamedType;
 class TypeGen;
 
 class TypeCache;
+class ValueCache;
 
-class Arg;
-class ArgBool;
-class ArgInt;
-class ArgString;
-class ArgType;
 
 class MetaData;
 
-//instantiable.h
-class Instantiable;
+class GlobalValue;
 class Generator;
 class Module;
 
@@ -62,42 +73,59 @@ class Interface;
 class Instance;
 class Select;
 
+
+//valuetype.h
+class ValueType;
+class BoolType;
+class IntType;
+class BitVectorType;
+class StringType;
+class CoreIRType;
+class ModuleType;
+
+
+
+//value.h
+class Value;
+class Arg;
+class Const;
+template<class T>
+class TemplatedConst;
+
+typedef TemplatedConst<bool> ConstBool;
+typedef TemplatedConst<int> ConstInt;
+typedef TemplatedConst<BitVector> ConstBitVector;
+typedef TemplatedConst<std::string> ConstString;
+typedef TemplatedConst<Type*> ConstCoreIRType;
+typedef TemplatedConst<Module*> ConstModule;
+
+
+
+
+
 class Pass;
 class PassManager;
 
-typedef enum {AINT=0,ASTRING=1,ATYPE=2,ABOOL=3} Param;
+typedef std::map<std::string,Value*> Values;
+typedef std::map<std::string,ValueType*> Params;
 
-typedef std::map<std::string,Param> Params;
-typedef std::map<std::string,Arg*> Args;
-bool operator==(const Args& l, const Args& r);
+bool operator==(const Values& l, const Values& r);
 
-//TODO this is a hack solution that should be fixed
-// This is so I do not overload the std::hash<std::pair<T1,T2>> class.
-// Use myPair for hashing
-template<class T1, class T2>
-struct myPair {
-  T1 first;
-  T2 second;
-  myPair(T1 first, T2 second) : first(first), second(second) {}
-  friend bool operator==(const myPair& l,const myPair& r) {
-    return l.first==r.first && l.second==r.second;
-  }
-};
 
-typedef Type* (*TypeGenFun)(Context* c, Args args);
-typedef std::vector<myPair<std::string,Type*>> RecordParams ;
-typedef std::string (*NameGen_t)(Args);
-typedef myPair<uint,Type*> ArrayParams ;
+//Function prototypes for APIs
+typedef std::function<Type*(Context* c, Values genargs)> TypeGenFun;
+typedef std::string (*NameGenFun)(Values);
+typedef std::function<std::pair<Params,Values>(Context*,Values)> ModParamsGenFun;
+  //typedef void (*ModuleDefGenFun)(Context* c,Values genargs,ModuleDef*);
+typedef std::function<void (Context* c,Values genargs,ModuleDef*) > ModuleDefGenFun;
 
-typedef void (*ModuleDefGenFun)(ModuleDef*,Context*, Type*, Args);
+typedef std::vector<std::pair<std::string,Type*>> RecordParams ;
 
 typedef std::deque<std::string> SelectPath;
 typedef std::vector<std::reference_wrapper<const std::string>> ConstSelectPath;
-typedef myPair<Wireable*,Wireable*> Connection;
+typedef std::pair<Wireable*,Wireable*> Connection;
 //This is meant to be in relation to an instance. First wireable of the pair is of that instance.
 typedef std::vector<std::pair<Wireable*,Wireable*>> LocalConnections;
-
-
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online
@@ -112,20 +140,20 @@ inline void hash_combine(size_t& seed, const T& v) {
 } //CoreIR namespace
 
 namespace std {
-  //slow
-  template <class T1, class T2>
-  struct hash<CoreIR::myPair<T1,T2>> {
-    //template <class T1, class T2>
-    size_t operator() (const CoreIR::myPair<T1,T2>& p) const {
-      auto h1 = std::hash<T1>{}(p.first);
-      auto h2 = std::hash<T2>{}(p.second);
-      return h1 ^ (h2<<1);
-    }
-  };
+  ////slow
+  //template <class T1, class T2>
+  //struct hash<CoreIR::myPair<T1,T2>> {
+  //  //template <class T1, class T2>
+  //  size_t operator() (const CoreIR::myPair<T1,T2>& p) const {
+  //    auto h1 = std::hash<T1>{}(p.first);
+  //    auto h2 = std::hash<T2>{}(p.second);
+  //    return h1 ^ (h2<<1);
+  //  }
+  //};
 
   template <>
-  struct hash<CoreIR::Args> {
-    size_t operator() (const CoreIR::Args& args) const;
+  struct hash<CoreIR::Values> {
+    size_t operator() (const CoreIR::Values& args) const;
   };
   
   template <>
@@ -133,8 +161,7 @@ namespace std {
     size_t operator() (const CoreIR::SelectPath& path) const {
       size_t h = 0;
       for (auto str : path) {
-        auto hstr = std::hash<std::string>{}(str);
-        h = (h<<1) ^ hstr;
+        CoreIR::hash_combine(h,str);
       }
       return h;
     }

@@ -1,0 +1,51 @@
+{
+  "top": "global.simp",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "simp": {
+          "type": ["Record",{
+            "out": ["Array",3,"Bit"]
+          }],
+          "instances": {
+            "mreg0": {
+              "genref": "mantle.reg",
+              "genargs": {"width":["Int",3]}
+            },
+            "_pt": {
+              "genref": "_.passthrough",
+              "genargs": {"type":["CoreIRType", ["Array",3,"Bit"]]}
+            }
+          },
+          "connections": [
+            ["self.out","_pt.out"],
+            ["_pt.out.0","mreg0.in.0"],
+            ["_pt.out.1","mreg0.in.1"],
+            ["_pt.out.2","mreg0.in.2"],
+            ["mreg0.out.0","_pt.in.0"],
+            ["mreg0.out.1","_pt.in.1"],
+            ["mreg0.out.2","_pt.in.2"]
+          ]
+        },
+        "myreg": {
+          "type": ["Record",{
+            "in": ["Array",3,"BitIn"],
+            "out": ["Array",3,"Bit"]
+          }],
+          "instances": {
+            "r0": {
+              "genref": "coreir.reg",
+              "genargs": {"width":["Int",3]}
+            }
+          },
+          "connections": [
+            ["self.in","r0.in"],
+            ["self.out","r0.out"]
+          ]
+        }
+      }
+    }
+  }
+}
+
+

@@ -1,0 +1,38 @@
+{
+  "top": "global.concats",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "concats": {
+          "type": ["Record",{
+            "in": ["Array",16,"BitIn"],
+            "out": ["Array",16,"Bit"]
+          }],
+          "instances": {
+            "s0": {
+              "genref": "coreir.slice",
+              "genargs": {"width":["Int", 16], "hi":["Int",16], "lo":["Int",12]}
+            },
+            "s1": {
+              "genref": "coreir.slice",
+              "genargs": {"width":["Int", 16], "hi":["Int",15], "lo":["Int",3]}
+            },
+            "cc0": {
+              "genref": "coreir.concat",
+              "genargs": {"width0":["Int", 4],"width1":["Int", 12]}
+            }
+          },
+          "connections": [
+            ["self.in","s0.in"],
+            ["self.in","s1.in"],
+            ["s0.out","cc0.in0"],
+            ["s1.out","cc0.in1"],
+            ["cc0.out","self.out"]
+          ]
+        }
+      }
+    }
+  }
+}
+
+

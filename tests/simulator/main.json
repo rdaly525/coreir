@@ -1,0 +1,50 @@
+{
+  "namespaces": {
+    "global": {
+      "modules": {
+        "main": {
+          "connections": [
+            [
+              "self.d",
+              "inst1.out"
+            ],
+            [
+              "self.c",
+              "inst1.in1"
+            ],
+            [
+              "self.b",
+              "inst0.in1"
+            ],
+            [
+              "self.a",
+              "inst0.in0"
+            ],
+            [
+              "inst1.in0",
+              "inst0.out"
+            ]
+          ],
+          "instances": {
+            "inst0": {
+              "modref": "corebit.and"
+            },
+            "inst1": {
+              "modref": "corebit.xor"
+            }
+          },
+          "type": [
+            "Record",
+            {
+              "a": "BitIn",
+              "b": "BitIn",
+              "c": "BitIn",
+              "d": "Bit"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "top": "global.main"
+}

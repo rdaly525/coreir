@@ -9,28 +9,49 @@ struct RecordParamsHasher {
   size_t operator()(const RecordParams& rp) const {
     size_t hash = 0;
     for (auto it : rp) {
-      hash_combine(hash,it);
+      size_t h = 0;
+      hash_combine(h,it.first);
+      hash_combine(h,it.second);
+      hash ^= h;
     }
     return hash;
   }
 };
 
+
+//This stores Types and VTypes
 class TypeCache {
   Context* c;
-  Type* bitI;
-  Type* bitO;
-  Type* any;
-  std::unordered_map<ArrayParams,Type*> ArrayCache; //Hasher is just the hash<myPair> definied in common
-  std::unordered_map<RecordParams,Type*,RecordParamsHasher> RecordCache;
+  BitInType* bitI;
+  BitType* bitO;
+  std::unordered_map<Type*,std::unordered_map<int,ArrayType*>> ArrayCache;
+  std::unordered_map<RecordParams,RecordType*,RecordParamsHasher> RecordCache;
   
+  BoolType* boolType;
+  IntType* intType;
+  std::unordered_map<int,BitVectorType*> bitVectorCache;
+  StringType* stringType;
+  CoreIRType* coreIRType;
+  ModuleType* moduleType;
+
   public :
     TypeCache(Context* c); 
     ~TypeCache();
-    Type* newAny() { return any; }
-    Type* newBit() { return bitO; }
-    Type* newBitIn() { return bitI; }
-    Type* newArray(uint32_t len, Type* t);
-    Type* newRecord(RecordParams params);
+    
+    //Types
+    BitType* getBit() { return bitO; }
+    BitInType* getBitIn() { return bitI; }
+    ArrayType* getArray(uint32_t len, Type* t);
+    RecordType* getRecord(RecordParams params);
+
+    //ValueTypes
+    BoolType* getBool() { return boolType;}
+    IntType* getInt() { return intType;}
+    BitVectorType* getBitVector(int width);
+    StringType* getString() { return stringType;}
+    CoreIRType* getCoreIRType() { return coreIRType;}
+    ModuleType* getModuleType() { return moduleType;}
+
 };
 
 }//CoreIR namespace

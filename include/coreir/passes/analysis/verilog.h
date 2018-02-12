@@ -9,14 +9,15 @@ namespace CoreIR {
 namespace Passes {
 
 class Verilog : public InstanceGraphPass {
-  std::unordered_map<Instantiable*,VModule*> modMap;
-  std::unordered_set<Instantiable*> external;
+  std::vector<VModule*> modList;
+  std::unordered_map<GlobalValue*,VModule*> modMap;
+  std::unordered_set<GlobalValue*> external;
   public :
     static std::string ID;
     Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
-      addDependency("verifyfullyconnected");
+      addDependency("verifyconnectivity-onlyinputs"); //Should change back to check all connections
       addDependency("verifyflattenedtypes");
     }
     

@@ -9,11 +9,11 @@ namespace CoreIR {
 namespace Passes {
 
 
-class RunGenerators : public NamespacePass {
+class RunGenerators : public ContextPass {
   public :
     static std::string ID;
-    RunGenerators() : NamespacePass(ID,"Runs all generators") {}
-    bool runOnNamespace(Namespace* ns);
+    RunGenerators() : ContextPass(ID,"Runs all generators") {}
+    bool runOnContext(Context* ns);
 };
 
 }

@@ -8,7 +8,7 @@ namespace CoreIR {
 class Pass {
   
   public:
-    enum PassKind {PK_Namespace, PK_Module, PK_Instance, PK_InstanceVisitor, PK_InstanceGraph};
+    enum PassKind {PK_Context, PK_Namespace, PK_Module, PK_Instance, PK_InstanceVisitor, PK_InstanceGraph};
   private:
     PassKind kind;
     //Used as the unique identifier for the pass
@@ -29,6 +29,7 @@ class Pass {
     Context* getContext();
     std::string getName() { return name;}
     virtual void print() {}
+    virtual bool finalize() { return false;}
     
     template<typename T>
     T* getAnalysisPass() {
@@ -45,6 +46,17 @@ class Pass {
 
 typedef Pass* register_pass_t();
 typedef void delete_pass_t(Pass*);
+
+//You can do whatever you want here
+class ContextPass : public Pass {
+  public:
+    explicit ContextPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Context,name,description,isAnalysis) {}
+    static bool classof(const Pass* p) {return p->getKind()==PK_Context;}
+    virtual bool runOnContext(Context* c) = 0;
+    virtual void releaseMemory() override {}
+    virtual void setAnalysisInfo() override {}
+    virtual void print() override {}
+};
 
 //You can do whatever you want here
 class NamespacePass : public Pass {
@@ -93,12 +105,18 @@ class InstanceVisitorPass : public Pass {
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
     virtual void print() override {}
+    //Required to define this fucntion.
+    //Call "addVisitorFunction"
     virtual void setVisitorInfo() = 0;
+    
     typedef bool (*InstanceVisitor_t)(Instance*);
-    void addVisitorFunction(Instantiable* i,InstanceVisitor_t fun);
-    bool runOnInstances(Instantiable* i, std::unordered_set<Instance*>& instances);
+    void addVisitorFunction(Module* m,InstanceVisitor_t fun);
+    void addVisitorFunction(Generator* g,InstanceVisitor_t fun);
+    bool runOnModInstances(Module* m, std::set<Instance*>& instances);
+    bool runOnGenInstances(Generator* g, std::set<Instance*>& instances);
   private:
-    std::unordered_map<Instantiable*,InstanceVisitor_t> visitorMap;
+    std::map<Module*,InstanceVisitor_t> modVisitorMap;
+    std::map<Generator*,InstanceVisitor_t> genVisitorMap;
 };
 
 

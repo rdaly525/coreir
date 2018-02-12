@@ -20,14 +20,14 @@ class Wireable : public MetaData {
     std::unordered_set<Wireable*> connected; 
     
     //This manages the memory for the selects
-    std::unordered_map<std::string,Select*> selects;
+    std::map<std::string,Select*> selects;
+    SelectPath selectpath;
   public :
     Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
     virtual ~Wireable();
     virtual std::string toString() const=0;
     std::unordered_set<Wireable*> getConnectedWireables() { return connected;}
-    std::unordered_map<std::string,Select*> getSelects() { return selects;}
-    bool hasSel(std::string selstr) {return selects.count(selstr) >0;}
+    const std::map<std::string,Select*>& getSelects() { return selects;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();
     WireableKind getKind() const { return kind; }
@@ -38,7 +38,9 @@ class Wireable : public MetaData {
       connected.erase(w);
     }
     
-    Select* sel(std::string);
+    
+
+    Select* sel(const std::string&);
     Select* sel(uint);
     Select* sel(SelectPath);
     
@@ -47,6 +49,7 @@ class Wireable : public MetaData {
     Select* sel(std::initializer_list<std::string> path);
   
     bool canSel(std::string);
+    bool canSel(SelectPath);
   
     //Connect this to w
     void connect(Wireable* w);
@@ -57,10 +60,21 @@ class Wireable : public MetaData {
 
     // if this wireable is from add3inst.a.b[0], then this will look like
     // {add3inst,a,b,0}
-    SelectPath getSelectPath();
+    SelectPath& getSelectPath();
     ConstSelectPath getConstSelectPath();
     std::string wireableKind2Str(WireableKind wb);
+
+    //TODO turn these into iterators instead
+    
+    //Will return all of the selects (include self)
+    //Used for traversing type hierarchy downwards
+    std::map<SelectPath,Wireable*> getAllSelects();
+    std::map<SelectPath,Wireable*> getAllParents();
+
+
+    //Get all the connections from self and all the selects
     LocalConnections getLocalConnections();
+    
     Wireable* getTopParent();
 
     //removes the select from this wireble.
@@ -88,47 +102,22 @@ class Interface : public Wireable {
 
 class Instance : public Wireable {
   const std::string instname;
-  Module* moduleRef = nullptr;
-  
-  Args configargs;
-  
-  bool isgen;
-  bool wasgen = false;
-  Generator* generatorRef = nullptr;
-  Args genargs;
+  Module* moduleRef;
+  Values modargs;
   
   public :
-    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Args configargs=Args());
-    Instance(ModuleDef* container, std::string instname, Generator* generatorRef, Args genargs, Args configargs=Args());
+    Instance(ModuleDef* container, std::string instname, Module* moduleRef, Values modargs);
     static bool classof(const Wireable* w) {return w->getKind()==WK_Instance;}
     std::string toString() const;
     json toJson();
+    const std::string& getInstname() const { return instname; }
+    const Values& getModArgs() const {return modargs;}
+    bool hasModArgs() {return !modargs.empty();}
+    
     Module* getModuleRef() {return moduleRef;}
-    const std::string& getInstname() { return instname; }
-    Arg* getConfigArg(std::string s);
-    Args getConfigArgs() const {return configargs;}
-    bool hasConfigArgs() {return !configargs.empty();}
-    
-    //isGen means it is currently an instance of a generator
-    //(Generator has NOT been run)
-    bool isGen() const { return isgen;}
 
-    //wasGen means it Was a generator AND the generator was run.
-    //It still has genargs, but it also is referencing a module now.
-    bool wasGen() const { return wasgen;}
-    Generator* getGeneratorRef() { return generatorRef;}
-    Instantiable* getInstantiableRef();
-    Args getGenArgs() {return genargs;}
-    
-    //Returns if it actually ran the generator
-    //Runs the generator and changes instance label to Module
-    //Does NOT add the module to list of namespace modules
-    //Module is owned by the generator. 
-    //Call namespace.addModule(m) to move from generator to namespace
-    bool runGenerator();
-
-    void replace(Module* moduleRef, Args configargs=Args());
-    void replace(Generator* generatorRef, Args genargs, Args configargs=Args());
+    void replace(Module* moduleRef, Values modargs=Values());
+    //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
   
   friend class InstanceGraphNode;
 };

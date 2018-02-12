@@ -1,37 +1,28 @@
-
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/types.h"
+#include "coreir/ir/value.h"
 
 using namespace std;
+
 namespace CoreIR {
 
 // This helper will connect everything from wa to wb with a spDelta. 
 // spDelta is the SelectPath delta to get from wa to wb
 void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireable* wb) {
-  //cout << "w:" << w->toString() << endl;
-  //cout << "spDelta:" << SelectPath2Str(spDelta) << endl;
-  //cout << "inw:" << inw->toString() << endl << endl;
   
   for (auto waCon : wa->getConnectedWireables() ) {
     for (auto wbCon : wb->getConnectedWireables() ) { //was inw
       SelectPath wbConSPath = wbCon->getSelectPath();
       SelectPath waConSPath = waCon->getSelectPath();
+      
       //concatenate the spDelta into wa
       waConSPath.insert(waConSPath.end(),spDelta.begin(),spDelta.end());
       def->connect(waConSPath,wbConSPath);
-      //cout << "Hconnecting: " << SelectPath2Str(wOtherSPath) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;
     }
-  }
-
-  //Traverse up the wa keeping wb constant
-  if (auto was = dyn_cast<Select>(wa)) {
-    SelectPath tu = spDelta;
-    assert(was->getParent());
-    tu.push_front(was->getSelStr());
-    connectOffsetLevel(def,was->getParent(),tu,wb);
   }
 
   //Traverse down the wb keeping wa constant
@@ -44,74 +35,59 @@ void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireab
 
 //This helper will connect a single select layer of the passthrough.
 void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
-  
+
+  //cout << "Connecting same level" << endl;
+
   //wa should be the flip type of wb
   assert(wa->getType()==wb->getType()->getFlipped());
   
   auto waSelects = wa->getSelects();
   auto wbSelects = wb->getSelects();
   
-  //Sort into the three sets of the vendiagram
-  unordered_set<string> waOnly;
-  unordered_set<string> wbOnly;
   unordered_set<string> both;
   for (auto waSelmap : waSelects) {
     if (wbSelects.count(waSelmap.first)>0) {
       both.insert(waSelmap.first);
     }
-    else {
-      waOnly.insert(waSelmap.first);
-    }
-  }
-  for (auto wbSelmap : wbSelects) {
-    if (both.count(wbSelmap.first) == 0) {
-      wbOnly.insert(wbSelmap.first);
-    }
   }
 
-  //Basic set theory assertion
-  assert(waOnly.size() + wbOnly.size() + 2*both.size() == waSelects.size() + wbSelects.size());
-
-  //Traverse another level for both
+  //Traverse another same level for both
   for (auto selstr : both ) {
     connectSameLevel(def,waSelects[selstr],wbSelects[selstr]);
   }
   
-  //TODO check any bugs here first
-  //Connect wb to all the subselects of waOnly
-  for (auto selstr : waOnly) {
-    connectOffsetLevel(def,wb, {selstr}, waSelects[selstr]);
+  //Connect wb to all the subselects of wa
+  for (auto spair : waSelects) {
+    connectOffsetLevel(def,wb, {spair.first}, spair.second);
   }
 
-  //Connect wa to all the subselects of wbOnly
-  for (auto selstr : wbOnly) {
-    connectOffsetLevel(def,wa, {selstr}, wbSelects[selstr]);
+  //Connect wa to all the subselects of wb
+  for (auto spair : wbSelects) {
+    connectOffsetLevel(def,wa, {spair.first}, spair.second);
   }
+
+  //cout << "Connecting possible N^2 wireables" << endl;
 
   //Now connect all N^2 possible connections for this level
   for (auto waCon : wa->getConnectedWireables() ) {
     for (auto wbCon : wb->getConnectedWireables() ) {
       def->connect(waCon,wbCon);
-      //cout << "connecting: " << SelectPath2Str(wOther->getSelectPath()) + " <==> " + SelectPath2Str(inwOtherSPath) << endl;
     }
   }
+
+  //cout << "Done connecting wireables" << endl;
 }
 
 namespace {
-void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to, unordered_set<Wireable*>& completed) {
+void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) {
-    if (completed.count(other)==0) {
-      def->connect(to,other);
-    }
+    def->connect(to,other);
   }
   for (auto other : from->getConnectedWireables()) {
-    if (completed.count(other)==0) {
-      def->disconnect(from,other);
-      completed.insert(other);
-    }
+    def->disconnect(from,other);
   }
   for (auto sels : from->getSelects()) {
-    PTTraverse(def,sels.second,to->sel(sels.first),completed);
+    PTTraverse(def,sels.second,to->sel(sels.first));
   }
 }
 }
@@ -134,10 +110,10 @@ Instance* addPassthrough(Wireable* w,string instname) {
   Type* wtype = w->getType();
   
   //Add actual passthrough instance
-  Instance* pt = def->addInstance(instname,c->getGenerator("coreir.passthrough"),{{"type",c->argType(wtype)}});
+  Instance* pt = def->addInstance(instname,c->getGenerator("_.passthrough"),{{"type",Const::make(c,wtype)}});
   
   unordered_set<Wireable*> completed;
-  PTTraverse(def,w,pt->sel("out"),completed);
+  PTTraverse(def,w,pt->sel("out"));
   
   //Connect the passthrough back to w
   def->connect(w,pt->sel("in"));
@@ -157,27 +133,51 @@ void inlinePassthrough(Instance* i) {
   def->removeInstance(i);
 }
 
+void saveSymTable(json& symtable,string path, Wireable* w) {
+  if (w->getConnectedWireables().size()==0) {
+    for (auto spair : w->getSelects()) {
+      saveSymTable(symtable,path + "." + spair.first,spair.second);
+    }
+  }
+  else {
+    Wireable* other = *(w->getConnectedWireables().begin());
+    assert(other);
+    bool check = symtable.get<map<string,json>>().count(path)==0;
+    ASSERT(check,"DEBUGME");
+    symtable[path] = other->getSelectPath();
+  }
+}
 
 //This will modify the moduledef to inline the instance
 bool inlineInstance(Instance* inst) {
+  Context* c = inst->getContext();
   //Special case for a passthrough
   //TODO should have a better check for passthrough than string compare
-  if (inst->isGen() && inst->getGeneratorRef()->getName() == "passthrough") {
+  Module* mref = inst->getModuleRef();
+  if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
+    //cout << "Inlining: " << Inst2Str(inst) << endl;
     inlinePassthrough(inst);
     return true;
   }
-  if (inst->isGen()) {
-    return false;
-  }
+  
+  Values instModArgs = inst->getModArgs();
   ModuleDef* def = inst->getContainer();
-  Module* modInline = inst->getModuleRef();
-  assert(modInline);
+  Module* modInline = mref;
 
   if (!modInline->hasDef()) {
-    cout << "Cannot inline a module with no definition!: " << modInline->getName() << endl;
+    //cout << "Inline Pass: " << modInline->getName() << " has no definition, skipping..." << endl;;
     return false;
   }
-  
+  string instname = inst->getInstname();
+
+  //Add a bunch of symbol table metadata
+  //First for each port of instance that is connected
+  //Save that as metadata (inst.port.blah -> its connection)
+  json jsym(json::value_t::object);
+  if (c->hasSymtable()) {
+    saveSymTable(jsym,instname,inst);
+  }
+
   //I will be inlining defInline into def
   //Making a copy because i want to modify it first without modifying all of the other instnaces of modInline
   ModuleDef* defInline = modInline->getDef()->copy();
@@ -189,9 +189,17 @@ bool inlineInstance(Instance* inst) {
   string inlinePrefix = inst->getInstname() + "$";
 
   //First add all the instances of defInline into def with a new name
-  for (auto instmap : defInline->getInstances()) {
-    string iname = inlinePrefix + instmap.first;
-    def->addInstance(instmap.second,iname);
+  for (auto instpair : defInline->getInstances()) {
+    string iname = inlinePrefix + instpair.first;
+    Values modargs = instpair.second->getModArgs();
+    //Should do this in a more generic way
+    for (auto vpair : modargs) {
+      if (Arg* varg = dyn_cast<Arg>(vpair.second)) {
+        ASSERT(instModArgs.count(varg->getField()),"DEBUG ME");
+        modargs[vpair.first] = instModArgs[varg->getField()];
+      }
+    }
+    def->addInstance(iname,instpair.second->getModuleRef(),modargs);
   }
   
   //Now add all the easy connections (that do not touch the boundary)
@@ -223,7 +231,44 @@ bool inlineInstance(Instance* inst) {
   inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
 
   //typecheck the module
-  def->validate();
+  // WARNING: Temporarily removed to check performance impact in _stereo.json
+  //def->validate();
+  
+  if (c->hasSymtable()) {
+    //for each entry in instances symbtable
+    //prepend instname to key
+    //determine where new instance is pointing to
+    if (mref->getMetaData().get<map<string,json>>().count("symtable")) {
+      json jisym = mref->getMetaData()["symtable"];
+      for (auto p : jisym.get<map<string,json>>()) {
+        string newkey = instname + "$" + p.first;
+        ASSERT(jsym.count(newkey)==0,"DEBUGME");
+        SelectPath path = p.second.get<SelectPath>();
+        if (path[0] =="self") {
+          path[0] = instname;
+        }
+        else {
+          path[0] = inlinePrefix + path[0]; 
+        }
+        jsym[newkey] = path;
+      }
+    }
+   
+    if (def->getModule()->getMetaData().get<map<string,json>>().count("symtable")) {
+      json jmerge = def->getModule()->getMetaData()["symtable"];
+      for (auto pair : jsym.get<map<string,json>>()) {
+        bool check = jmerge.get<map<string,json>>().count(pair.first)==0;
+        ASSERT(check,"DEBUGME");
+        jmerge[pair.first] = pair.second;
+      }
+      def->getModule()->getMetaData()["symtable"] = jmerge;
+    }
+    else {
+      def->getModule()->getMetaData()["symtable"] = jsym;
+    }
+  } 
+
+
   return true;
 }
 

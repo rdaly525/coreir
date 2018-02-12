@@ -4,25 +4,28 @@
 #include <stack>
 
 #include "coreir/passes/analysis/createinstancegraph.h"
-#include "coreir/passes/analysis/createfullinstancemap.h"
+#include "coreir/passes/analysis/createinstancemap.h"
 
 
 
 using namespace std;
 using namespace CoreIR;
 
+
 PassManager::PassManager(Context* c) : c(c) {
   initializePasses(*this);
+  
 
   //Give all the passes access to passmanager
   for (auto pmap : passMap) {
     pmap.second->addPassManager(this);
   }
 
-  //this->instanceGraph = new InstanceGraph();
 }
 
+
 void PassManager::addPass(Pass* p) {
+  p->addPassManager(this);
   ASSERT(passMap.count(p->name) == 0,"Cannot add duplicate \"" + p->name + "\" pass");
   passMap[p->name] = p;
   if (p->isAnalysis) {
@@ -44,6 +47,9 @@ bool PassManager::runNamespacePass(Pass* pass) {
     modified |= cast<NamespacePass>(pass)->runOnNamespace(ns);
   }
   return modified;
+}
+bool PassManager::runContextPass(Pass* pass) {
+  return cast<ContextPass>(pass)->runOnContext(c);
 }
 
 //Only runs on modules with definitions
@@ -85,11 +91,14 @@ bool PassManager::runInstancePass(Pass* pass) {
 bool PassManager::runInstanceVisitorPass(Pass* pass) {
 
   //Get the analysis pass which constructs the instancegraph
-  auto cfim = static_cast<Passes::CreateFullInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
+  auto cfim = static_cast<Passes::CreateInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
   bool modified = false;
   InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
-  for (auto imap : cfim->getFullInstanceMap()) {
-    modified |= ivpass->runOnInstances(imap.first,imap.second);
+  for (auto imap : cfim->getModInstanceMap()) {
+    modified |= ivpass->runOnModInstances(imap.first,imap.second);
+  }
+  for (auto imap : cfim->getGenInstanceMap()) {
+    modified |= ivpass->runOnGenInstances(imap.first,imap.second);
   }
   return modified;
 }
@@ -112,6 +121,9 @@ bool PassManager::runPass(Pass* p) {
   }
   bool modified = false;
   switch(p->getKind()) {
+    case Pass::PK_Context:
+      modified = runContextPass(p);
+      break;
     case Pass::PK_Namespace:
       modified = runNamespacePass(p);
       break;
@@ -130,6 +142,7 @@ bool PassManager::runPass(Pass* p) {
     default:
       ASSERT(0,"NYI!");
   }
+  modified |= p->finalize();
   if (verbose) {
     p->print();
   }
@@ -155,6 +168,11 @@ bool PassManager::run(PassOrder order,vector<string> nsnames) {
     ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
     this->nss.push_back(c->getNamespace(nsname));
   }
+  //For now just do all namespaces
+  //for (auto ns : c->getNamespaces()) {
+  //  nss.push_back(ns.second);
+  //}
+
   bool ret = false;
   //Execute each in order (and the respective dependencies) independently
   for (auto oname : order) {
