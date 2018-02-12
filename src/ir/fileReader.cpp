@@ -323,11 +323,13 @@ Type* json2Type(Context* c, json jt) {
       return c->Array(n,t);
     }
     else if (kind == "Record") {
-      vector<myPair<string,Type*>> rargs;
-      for (auto it : args[1].get<jsonmap>()) {
-        rargs.push_back({it.first,json2Type(c,it.second)});
+      RecordParams rparams;
+      for (auto it : args[1].get<vector<json>>()) {
+        vector<json> field = it.get<vector<json>>();
+        ASSERT(field.size()==2, "Invalid Record field" + toString(it));
+        rparams.push_back({field[0].get<string>(),json2Type(c,field[1])});
       }
-      return c->Record(rargs);
+      return c->Record(rparams);
     }
     else if (kind == "Named") {
       vector<string> info = getRef(args[1].get<string>());
