@@ -38,7 +38,7 @@ Connection connectionCtor(Wireable* a, Wireable* b) {
   }
 }
 
-string Params2Str(Params genparams, bool multi) {
+string toString(Params genparams, bool multi) {
   string ret = "(";
   vector<string> plist;
   for (auto gpair : genparams) {
@@ -48,7 +48,7 @@ string Params2Str(Params genparams, bool multi) {
   return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
 
-string Values2Str(Values vals, bool multi) {
+string toString(Values vals, bool multi) {
   string ret = "(";
   vector<string> plist;
   for (auto vpair : vals) {
@@ -58,28 +58,29 @@ string Values2Str(Values vals, bool multi) {
   return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
 
-string SelectPath2Str(SelectPath path) {
+string toString(SelectPath path) {
   return join(path.begin(),path.end(),string("."));
 }
 
-string Connection2Str(Connection con) {
+string toString(Connection con) {
   return con.first->toString() + " <=> " + con.second->toString();
 }
 
-std::string Inst2Str(Instance* inst) {
+
+std::string toString(Instance* inst) {
   string ret = inst->getInstname();
   if (inst->getModuleRef()->isGenerated()) { 
-    ret = ret + Values2Str(inst->getModuleRef()->getGenArgs());
+    ret = ret + toString(inst->getModuleRef()->getGenArgs());
   }
-  return ret + Values2Str(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
+  return ret + toString(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
 }
 
 void checkValuesAreParams(Values args, Params params) {
   bool multi = args.size() > 4 || params.size() > 4;
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args,multi) + "\nParams: " + Params2Str(params,multi));
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + toString(args,multi) + "\nParams: " + toString(params,multi));
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + Params2Str(params) + "\nBut only gave:" + Values2Str(args));
+    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) + "\nBut only gave:" + toString(args));
     ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
   }
 }

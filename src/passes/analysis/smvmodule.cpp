@@ -71,7 +71,7 @@ string SMVModule::toInstanceString(Instance* inst, string path) {
   }
   vector<string> paramstrs;
   for (auto param : params) {
-    ASSERT(args.count(param),"Missing parameter " + param + " from " + Values2Str(args));
+    ASSERT(args.count(param),"Missing parameter " + param + " from " + ::CoreIR::toString(args));
     string astr = "." + param + "(" + args[param]->toString() + ")";
     paramstrs.push_back(astr);
   }

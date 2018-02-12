@@ -155,7 +155,7 @@ bool inlineInstance(Instance* inst) {
   //TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
   if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
-    //cout << "Inlining: " << Inst2Str(inst) << endl;
+    //cout << "Inlining: " << toString(inst) << endl;
     inlinePassthrough(inst);
     return true;
   }
