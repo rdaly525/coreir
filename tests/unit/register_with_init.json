@@ -1,0 +1,27 @@
+{"top":"global.regComb",
+"namespaces":{
+  "global":{
+    "modules":{
+      "regComb":{
+        "type":["Record",{
+          "clk":["Named","coreir.clkIn"],
+          "in":["Array",32,"BitIn"],
+          "out":["Array",32,"Bit"]
+        }],
+        "instances":{
+          "reg0":{
+            "genref":"coreir.reg",
+            "genargs":{"width":["Int",32]},
+            "modargs":{"init":[["BitVector",32],0]}
+          }
+        },
+        "connections":[
+          ["reg0.clk","self.clk"],
+          ["reg0.in","self.in"],
+          ["reg0.out","self.out"]
+        ]
+      }
+    }
+  }
+}
+}
