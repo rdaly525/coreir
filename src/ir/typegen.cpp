@@ -16,7 +16,7 @@ Type* TypeGen::getType(Values args) {
     return flipped ? t->getFlipped() : t;
   }
   catch(std::out_of_range) {
-    cout << "Failed on " << this->getRefName() << " with args=" << Values2Str(args) << endl;
+    cout << "Failed on " << this->getRefName() << " with args=" << ::CoreIR::toString(args) << endl;
     assert(0);
     return nullptr;
   }
