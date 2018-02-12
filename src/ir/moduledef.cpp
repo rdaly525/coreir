@@ -30,7 +30,7 @@ void ModuleDef::print(void) {
   for (auto inst : instances) {
     Module* mref = inst.second->getModuleRef();
     if (mref->isGenerated()) {
-      cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << Values2Str(mref->getGenArgs()) << endl;
+      cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << ::CoreIR::toString(mref->getGenArgs()) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << mref->getName() << endl;
@@ -38,7 +38,7 @@ void ModuleDef::print(void) {
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
-    cout << "      " << Connection2Str(connection) << endl;
+    cout << "      " << toString(connection) << endl;
   }
   cout << endl;
 }
@@ -278,7 +278,7 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   this->disconnect(connect);
 }
 void ModuleDef::disconnect(Connection con) {
-  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + Connection2Str(con));
+  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + toString(con));
   
   //remove references
   con.first->removeConnectedWireable(con.second);

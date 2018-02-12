@@ -71,7 +71,7 @@ void addConnection(Context* c,CoreIR::Passes::FModule* fm, SelectPath snk, Selec
     fm->addStmt(tname + " <= bits(" + sp2Str(tsrc)+","+src.back() + "," + src.back() + ")");
     fm->addStmt(snkstr + " <= " + tname);
   } else {
-      std::cout << SelectPath2Str(src) << "," << SelectPath2Str(snk) << std::endl;
+      std::cout << toString(src) << "," << toString(snk) << std::endl;
       assert(false);
   }
 }
