@@ -28,14 +28,15 @@ void saveRegModule() {
 
   regComb->setDef(def);
 
+
+  c->runPasses({"rungenerators"});
+  
   SimulatorState state(regComb);
   state.setClock("self.clk", 0, 0);
   state.setValue("self.in", BitVec(width, 3));
   state.execute();
 
   assert(state.getBitVec("self.out") == BitVec(width, 24));
-
-  c->runPasses({"rungenerators"});
 
   if (!saveToFile(c->getGlobal(), "register_with_init.json", regComb)) {
     cout << "Could not save to json!!" << endl;

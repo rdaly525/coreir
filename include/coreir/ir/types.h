@@ -8,7 +8,7 @@ namespace CoreIR {
 
 class Type {
   public :
-    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4};
+    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4, TK_BitInOut};
     enum DirKind {DK_In,DK_Out,DK_Mixed,DK_Unknown};
   protected :
     TypeKind kind;
@@ -41,7 +41,8 @@ class Type {
     bool isOutput() const { return dir==DK_Out; }
     bool isMixed() const { return dir==DK_Mixed; }
     bool isUnknown() const { return dir==DK_Unknown; }
-    bool hasInput() const { return isInput() || isMixed(); }
+    //bool hasInput() const { return isInput() || isMixed(); }
+    bool hasInput() const { return isInput(); }// || isMixed(); }
 
     bool isBaseType();
 
@@ -69,6 +70,15 @@ class BitInType : public Type {
     static bool classof(const Type* t) {return t->getKind()==TK_BitIn;}
     
     std::string toString(void) const override {return "BitIn";}
+    uint getSize() const override { return 1;}
+};
+
+class BitInOutType : public Type {
+  public :
+    BitInOutType(Context* c) : Type(TK_BitInOut,DK_Mixed,c) {}
+    static bool classof(const Type* t) {return t->getKind()==TK_BitInOut;}
+    
+    std::string toString(void) const override {return "BitInOut";}
     uint getSize() const override { return 1;}
 };
 

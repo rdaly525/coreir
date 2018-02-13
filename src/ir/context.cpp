@@ -231,6 +231,7 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 
 BitType* Context::Bit() { return typecache->getBit(); }
 BitInType* Context::BitIn() { return typecache->getBitIn(); }
+BitInOutType* Context::BitInOut() { return typecache->getBitInOut(); }  
 ArrayType* Context::Array(uint n, Type* t) { return typecache->getArray(n,t);}
 RecordType* Context::Record(RecordParams rp) { return typecache->getRecord(rp); }
 NamedType* Context::Named(string nameref) {

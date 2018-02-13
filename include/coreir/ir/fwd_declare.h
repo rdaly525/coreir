@@ -49,6 +49,7 @@ class DirectedModule;
 class Type;
 class BitType;
 class BitInType;
+class BitInOutType;
 class ArrayType;
 class RecordType;
 class NamedType;

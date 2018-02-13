@@ -11,8 +11,10 @@ namespace CoreIR {
 TypeCache::TypeCache(Context* c) : c(c) {
   bitO = new BitType(c);
   bitI = new BitInType(c);
+  bitIO = new BitInOutType(c);
   bitI->setFlipped(bitO);
   bitO->setFlipped(bitI);
+  bitIO->setFlipped(bitIO);
 
   boolType = new BoolType(c);
   intType = new IntType(c);
@@ -38,6 +40,7 @@ TypeCache::~TypeCache() {
 
   delete bitI;
   delete bitO;
+  delete bitIO;
   delete boolType;
   delete intType;
   delete stringType;
