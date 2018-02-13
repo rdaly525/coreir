@@ -753,6 +753,22 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("memory", memTP, memParams);
 
+  Params outToInOutParams =
+    {{"WIDTH", c->Int()}};
+  TypeGen* outToInOutTP =
+    rtLib->newTypeGen("outArrayToInOutArray",
+                      outToInOutParams,
+                      [](Context* c, Values genargs) {
+                        uint width = genargs.at("WIDTH")->get<int>();
+
+                        return c->Record({
+                            {"IN", c->BitIn()->Arr(width)},
+                              {"OUT", c->BitInOut()->Arr(width)}
+                          });
+                      });
+
+  rtLib->newGeneratorDecl("outArrayToInOutArray", outToInOutTP, outToInOutParams);
+
 //   auto memoryGen = c->getGenerator("rtlil.memory");
 //   memoryGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
 

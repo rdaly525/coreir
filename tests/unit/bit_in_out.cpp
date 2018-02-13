@@ -23,8 +23,9 @@ int main() {
   Module* md = g->newModuleDecl("io", tp);
   ModuleDef* def = md->newModuleDef();
 
-  def->connect("self.pad", "self.p2f");
-  def->connect("self.pad", "self.f2p");
+  // TODO: Add casting and connections
+  // def->connect("self.pad", "self.p2f");
+  // def->connect("self.pad", "self.f2p");
   
   md->setDef(def);
 
