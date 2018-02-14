@@ -801,7 +801,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                           });
                       });
 
-  rtLib->newGeneratorDecl("outArrayToInOutArray", padIOTP, padIOParams);
+  rtLib->newGeneratorDecl("padIO", padIOTP, padIOParams);
   
 //   auto memoryGen = c->getGenerator("rtlil.memory");
 //   memoryGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
