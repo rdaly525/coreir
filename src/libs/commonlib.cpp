@@ -142,13 +142,19 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   // Commonlib Arithmetic primitives
   //   umin,smin,umax,smax
-  //   absd, MAD
+	//   uclamp, sclamp
+  //   abs, absd, MAD
   /////////////////////////////////
 
   //Lazy way:
   unordered_map<string,vector<string>> opmap({
+      {"unary",{
+        "abs"
+    }},
     {"binary",{
-      "umin","smin","umax","smax","absd"
+      "umin","smin","umax","smax",
+      "uclamp","sclamp",
+      "absd"
     }},
     {"ternary",{
       "MAD"
@@ -163,6 +169,50 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   }
 
+  // Define min/max modules
+
+  Generator* umin = c->getGenerator("commonlib.umin");
+  umin->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    ASSERT(width==16,"NYI non 16");
+    def->addInstance("ucomp","coreir.ule",args);
+    def->addInstance("min_mux","coreir.mux",args);
+    def->connect("self.in0","ucomp.in0");
+    def->connect("self.in1","ucomp.in1");
+    def->connect("ucomp.out","min_mux.sel");
+    def->connect("self.in1","min_mux.in0");
+    def->connect("self.in0","min_mux.in1");
+    def->connect("self.out","min_mux.out");
+  });
+
+  Generator* smin = c->getGenerator("commonlib.smin");
+  smin->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    ASSERT(width==16,"NYI non 16");
+    def->addInstance("scomp","coreir.sle",args);
+    def->addInstance("min_mux","coreir.mux",args);
+    def->connect("self.in0","scomp.in0");
+    def->connect("self.in1","scomp.in1");
+    def->connect("scomp.out","min_mux.sel");
+    def->connect("self.in1","min_mux.in0");
+    def->connect("self.in0","min_mux.in1");
+    def->connect("self.out","min_mux.out");
+  });
+
+  Generator* umax = c->getGenerator("commonlib.umax");
+  umax->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    ASSERT(width==16,"NYI non 16");
+    def->addInstance("ucomp","coreir.uge",args);
+    def->addInstance("max_mux","coreir.mux",args);
+    def->connect("self.in0","ucomp.in0");
+    def->connect("self.in1","ucomp.in1");
+    def->connect("ucomp.out","max_mux.sel");
+    def->connect("self.in1","max_mux.in0");
+    def->connect("self.in0","max_mux.in1");
+    def->connect("self.out","max_mux.out");
+  });
+
   Generator* smax = c->getGenerator("commonlib.smax");
   smax->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     uint width = args.at("width")->get<int>();
@@ -175,6 +225,86 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.in1","max_mux.in0");
     def->connect("self.in0","max_mux.in1");
     def->connect("self.out","max_mux.out");
+  });
+
+  // Define clamp
+  Generator* uclamp = c->getGenerator("commonlib.uclamp");
+  uclamp->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("max","coreir.umax",args);
+    def->addInstance("min","coreir.umin",args);
+    def->connect("self.in0","max.in0");
+    def->connect("self.in1","max.in1");
+    def->connect("self.in2","min.in0");
+    def->connect("max.out","min.in1");
+    def->connect("self.out","min.out");
+  });
+
+  Generator* sclamp = c->getGenerator("commonlib.sclamp");
+  sclamp->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("max","coreir.smax",args);
+    def->addInstance("min","coreir.smin",args);
+    def->connect("self.in0","max.in0");
+    def->connect("self.in1","max.in1");
+    def->connect("self.in2","min.in0");
+    def->connect("max.out","min.in1");
+    def->connect("self.out","min.out");
+  });
+
+  // Define abs,absd
+  Generator* abs = c->getGenerator("commonlib.abs");
+  abs->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    def->addInstance("out_mux","coreir.mux",args);
+    def->addInstance("is_pos","coreir.sge",args);
+    def->addInstance("mult","coreir.mul",args);
+
+    def->addInstance("negone_const",
+		     "coreir.const",
+		     {{"width",Const::make(c,width)}},
+		     {{"value", Const::make(c, width, -1)}});
+    def->addInstance("zero_const",
+		     "coreir.const",
+		     {{"width",Const::make(c, width)}},
+		     {{"value", Const::make(c, width, 0)}});
+
+    // is_pos = in > 0
+    def->connect("self.in","is_pos.in0");
+    def->connect("zero_const.out","is_pos.in1");
+
+    // in * -1
+    def->connect("negone_const.out","mult.in0");
+    def->connect("self.in","mult.in1");
+
+    // is_pos ? in : -in
+    def->connect("is_pos.out","out_mux.sel");
+    def->connect("self.in","out_mux.in0");
+    def->connect("mult.out","out_mux.in1");
+
+    def->connect("out_mux.out","self.out");
+  });
+
+  Generator* absd = c->getGenerator("commonlib.absd");
+  absd->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("abs","commonlib.abs",args);
+    def->addInstance("sub","coreir.sub",args);
+
+    def->connect("self.in0","sub.in0");
+    def->connect("self.in1","sub.in1");
+    def->connect("sub.out","abs.in");
+    def->connect("abs.out","self.out");
+  });
+
+  // Define MAD
+  Generator* MAD = c->getGenerator("commonlib.MAD");
+  MAD->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("mult","coreir.mul",args);
+    def->addInstance("add","coreir.add",args);
+
+    def->connect("self.in0","mult.in0");
+    def->connect("self.in1","mult.in1");
+    def->connect("self.in2","add.in0");
+    def->connect("mult.out","add.in1");
+    def->connect("add.out", "self.out");
   });
 
   /////////////////////////////////
@@ -618,7 +748,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         }
       }
 
-      /*
+
       // create and connect valid chain
       if (has_valid && is_last_lb) {
         string valid_prefix = "valreg_";
@@ -646,7 +776,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         def->connect({"self","valid"},{last_valid_name,"out"});
         
       } // valid chain
-      */
+
 
     //////////////////////////  
     ///// RECURSIVE CASE /////
