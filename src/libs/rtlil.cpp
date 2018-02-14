@@ -795,13 +795,13 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                         uint width = genargs.at("WIDTH")->get<int>();
 
                         return c->Record({
-                            {"TO_PIN", c->BitInOut()->Arr(width)},
-                              {"IN", c->BitIn()->Arr(width)},
-                                {"OUT", c->BitInOut()->Arr(width)}
+                            {"INOUT_PORT", c->BitInOut()->Arr(width)},
+                              {"IN_PORT", c->BitIn()->Arr(width)},
+                                {"OUT_PORT", c->BitInOut()->Arr(width)}
                           });
                       });
 
-  rtLib->newGeneratorDecl("outArrayToInOutArray", outToInOutTP, outToInOutParams);
+  rtLib->newGeneratorDecl("outArrayToInOutArray", padIOTP, padIOParams);
   
 //   auto memoryGen = c->getGenerator("rtlil.memory");
 //   memoryGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
