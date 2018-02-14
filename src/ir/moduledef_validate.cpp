@@ -17,7 +17,16 @@ bool ModuleDef::checkTypes(Wireable* a, Wireable* b) {
   //  2 outputs are connected to the same input
   //  an inout is connected to an input (good!)
   //  an inout is connected to an output (bad!)
-  
+
+  // inout can connect to any direction
+  if (ta->getDir() == Type::DK_Mixed) {
+    return false;
+  }
+
+  if (tb->getDir() == Type::DK_Mixed) {
+    return false;
+  }
+
   if (ta == c->Flip(tb) ) return false;
   
   Error e;
@@ -52,7 +61,10 @@ bool checkInputConnected(Wireable* w, Error* e) {
 //True is error
 //false is no error
 bool checkInputOutputs(Wireable* w, Error* e) {
-  if (!w->getType()->hasInput()) return false;
+  if (!w->getType()->hasInput()) {
+    return false;
+  }
+
   int numwires = w->getConnectedWireables().size();
   bool err = false;
   if (numwires > 1) {

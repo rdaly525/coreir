@@ -70,9 +70,12 @@ namespace CoreIR {
         assert(wArg != nullptr);
 
         uint width = (args["width"])->get<int>();
+        BitVector initVal = inst->getModArgs().at("init")->get<BitVector>();
+
+        assert(initVal.bitLength() == width);
 
         // Set memory output port to default
-        setRegister(inst->toString(), BitVec(width, 0));
+        setRegister(inst->toString(), initVal);
         setValue(inst->sel("out"), getRegister(inst->toString()));
         
       }
@@ -280,12 +283,6 @@ namespace CoreIR {
 
       return false;
 
-      // if (isSet(val)) {
-      //   if (getBitVec(val) == bv) {
-      //     return true;
-      //   }
-      // }
-      // return false;
     };
 
     stopConditions.push_back({val, func});

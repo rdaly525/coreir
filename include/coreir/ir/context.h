@@ -84,6 +84,7 @@ class Context {
     //Factory functions for Types
     BitType* Bit();
     BitInType* BitIn();
+    BitInOutType* BitInOut();
     ArrayType* Array(uint n, Type* t);
     RecordType* Record(RecordParams rp=RecordParams());
     NamedType* Named(std::string nameref);

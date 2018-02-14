@@ -141,6 +141,10 @@ string TopType2Json(Type* t) {
 string Type2Json(Type* t) {
   if (isa<BitType>(t)) return quote("Bit");
   if (isa<BitInType>(t)) return quote("BitIn");
+
+  if (isa<BitInOutType>(t)) {
+    return quote("BitInOut");
+  }
   Array a;
   if (auto nt = dyn_cast<NamedType>(t)) {
     a.add(quote("Named"));

@@ -320,4 +320,86 @@ namespace CoreIR {
     assert(false);
   }
 
+  void portToConstant(const std::string& portName,
+                      const BitVector& value,
+                      CoreIR::Module* const mod) {
+    assert(mod->hasDef());
+
+    cout << "Replacing port " << portName << endl;
+
+    Context* c = mod->getContext();
+
+    auto def = mod->getDef();
+    // stringstream ss;
+    // ss << value;
+
+    Select* sel = def->sel("self")->sel(portName);
+
+    Instance* constReplace = nullptr;
+    if (isBitArray(*(sel->getType()))) {
+      constReplace = def->addInstance("def_self_const_replace_" + portName,
+                                      "coreir.const",
+                                      {{"width", Const::make(c, value.bitLength())}},
+                                      {{"value", Const::make(c, value)}});
+    } else {
+      //assert(isBitType(*(sel->getType())));
+      constReplace = def->addInstance("def_self_const_replace_" + portName,
+                                      "corebit.const",
+                                      {{"value", Const::make(c, value.get(0) ? true : false)}});
+    }
+
+    assert(constReplace != nullptr);
+
+    Select* replacement = constReplace->sel("out");
+
+    Instance* wbPassthrough = addPassthrough(sel, constReplace->getInstname() + "_tmp_passthrough");
+
+    // cout << "passthrough type = " << wbPassthrough->getType()->toString() << endl;
+    // cout << "replacement type = " << replacement->getType()->toString() << endl;
+
+    wbPassthrough->sel("in")->disconnectAll();
+    def->connect(wbPassthrough->sel("in"),
+                 replacement);
+
+    // cout << "Module def with passthrough" << endl;
+    // def->print();
+
+    inlineInstance(wbPassthrough);
+
+    //cout << "Inlined passthrough" << endl;
+    return;
+  }
+
+  void setRegisterInit(const std::string& instanceName,
+                       const BitVector& value,
+                       CoreIR::Module* const mod) {
+    cout << "Replacing " << instanceName << endl;
+    assert(mod->hasDef());
+
+    auto def = mod->getDef();
+
+    Instance* inst = def->getInstances()[instanceName];
+    assert(inst != nullptr);
+    assert(getQualifiedOpName(*inst) == "coreir.reg");
+
+    string instName = inst->getInstname();
+    auto pt = addPassthrough(inst, inst->toString() + "_reg_replace_pt");
+    Values args = inst->getModArgs();
+    args["init"] = Const::make(mod->getContext(), value);
+
+    Values genArgs = inst->getModuleRef()->getGenArgs();
+
+    def->removeInstance(inst);
+
+    Instance* replacement =
+      def->addInstance(instName, "coreir.reg", genArgs, args);
+
+    def->connect(pt->sel("in"),
+                 replacement);
+
+    inlineInstance(pt);
+
+    cout << "done" << endl;
+  }
+  
 }
