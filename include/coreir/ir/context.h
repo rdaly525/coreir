@@ -82,7 +82,7 @@ class Context {
     PassManager* getPassManager() { return pm;}
 
     //Factory functions for Types
-    BitType* Bit();
+    BitType* Bit(); //Construct a BitOut type
     BitInType* BitIn();
     BitInOutType* BitInOut();
     ArrayType* Array(uint n, Type* t);

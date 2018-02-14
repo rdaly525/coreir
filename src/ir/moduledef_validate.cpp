@@ -15,18 +15,7 @@ bool ModuleDef::checkTypes(Wireable* a, Wireable* b) {
   Type* tb = b->getType();
   //TODO This might not be valid if:
   //  2 outputs are connected to the same input
-  //  an inout is connected to an input (good!)
-  //  an inout is connected to an output (bad!)
-
-  // inout can connect to any direction
-  if (ta->getDir() == Type::DK_Mixed) {
-    return false;
-  }
-
-  if (tb->getDir() == Type::DK_Mixed) {
-    return false;
-  }
-
+  
   if (ta == c->Flip(tb) ) return false;
   
   Error e;
@@ -56,7 +45,6 @@ bool checkInputConnected(Wireable* w, Error* e) {
   return err;
 }
 
-//TODO do stuff in numwires==1 even if errors on numwirew>1
 //Checks if multiple thigns are connected to an input. If so an error
 //True is error
 //false is no error

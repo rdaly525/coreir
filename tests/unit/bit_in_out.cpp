@@ -9,26 +9,34 @@ int main() {
   Type* inTp = c->BitInOut();
 
   cout << "Bit in out = " << inTp->toString() << endl;
-
-  Type* tp =
-    c->Record({
-        {"pad", c->BitInOut()},
-          {"p2f", c->Bit()},
-            {"f2p", c->BitIn()}
-      });
-
-  cout << tp->toString() << endl;
+  int width = 9;
+  Type* muxType = c->Record({
+    {"out", c->Bit()->Arr(width)},
+    {"in0", c->BitIn()->Arr(width)},
+    {"in1", c->BitIn()->Arr(width)},
+    {"sel", c->BitIn()}
+  });
 
   Namespace* g = c->getGlobal();
-  Module* md = g->newModuleDecl("io", tp);
+  Module* md = g->newModuleDecl("mux", muxType);
   ModuleDef* def = md->newModuleDef();
 
-  // TODO: Add casting and connections
-  // def->connect("self.pad", "self.p2f");
-  // def->connect("self.pad", "self.f2p");
+  def->addInstance("not0","corebit.not");
+  def->addInstance("tp0","coreir.triput",{{"width",Const::make(c,width)}});
+  def->addInstance("tp1","coreir.triput",{{"width",Const::make(c,width)}});
+  def->addInstance("tg","coreir.triget",{{"width",Const::make(c,width)}});
+
+  def->connect("self.sel", "not0.in");
+  def->connect("self.sel", "tp1.en");
+  def->connect("not0.out", "tp0.en");
+  def->connect("self.in0", "tp0.in");
+  def->connect("self.in1", "tp1.in");
+  def->connect("tp0.out", "tg.in");
+  def->connect("tp1.out", "tg.in");
+  def->connect("tg.out", "self.out");
   
   md->setDef(def);
-
+  md->print();
   
 
   deleteContext(c);
