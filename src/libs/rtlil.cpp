@@ -797,13 +797,17 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                         return c->Record({
                             {"INOUT_PORT", c->BitInOut()->Arr(width)},
                               {"IN_PORT", c->BitIn()->Arr(width)},
-                                {"OUT_PORT", c->BitInOut()->Arr(width)}
+                                {"OUT_PORT", c->Bit()->Arr(width)}
                           });
                       });
 
   rtLib->newGeneratorDecl("padIO", padIOTP, padIOParams);
-  
-//   auto memoryGen = c->getGenerator("rtlil.memory");
+
+  Type* highImpedanceType =
+    c->Record({{"OUT", c->Bit()}});
+  rtLib->newModuleDecl("highImpedanceBit", highImpedanceType);
+
+  //   auto memoryGen = c->getGenerator("rtlil.memory");
 //   memoryGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
 
 //       uint width = args.at("WIDTH")->get<int>();

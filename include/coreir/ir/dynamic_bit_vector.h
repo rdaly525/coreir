@@ -136,7 +136,7 @@ namespace bsim {
     ConvType to_type() const {
       ConvType tmp = *(const_cast<ConvType*>((const ConvType*) (&(bits[0]))));
       //TODO FIXME I am a sketchy hack.
-      ConvType mask = sizeof(ConvType) > bits.size() ? (1<<N)-1 : -1; 
+      ConvType mask = sizeof(ConvType) > bits.size() ? (1<<N)-1 : -1;
       return tmp & mask;
     }
 
