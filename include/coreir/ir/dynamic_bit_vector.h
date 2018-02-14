@@ -7,11 +7,7 @@
 #include <type_traits>
 
 #define GEN_NUM_BYTES(N) (((N) / 8) + 1 - (((N) % 8 == 0)))
-#define NUM_BYTES_GT_8(N) GEN_NUM_BYTES(N)
-#define NUM_BYTES_GT_4(N) (N <= 64 ? 8 : NUM_BYTES_GT_8(N))
-#define NUM_BYTES_GT_2(N) (N <= 32 ? 4 : NUM_BYTES_GT_4(N))
-#define NUM_BYTES_GT_1(N) (N <= 16 ? 2 : NUM_BYTES_GT_2(N))
-#define NUM_BYTES(N) (N <= 8 ? (1) : NUM_BYTES_GT_1(N))
+#define NUM_BYTES(N) GEN_NUM_BYTES(N)
 
 typedef int8_t  bv_sint8;
 typedef int32_t  bv_sint32;
@@ -174,10 +170,18 @@ namespace bsim {
       *((int*) (&(bits[0]))) = val;
     }
 
-    //dynamic_bit_vector(const int N_, const bv_uint8 val) : N(N_) {
-    //  bits.resize(NUM_BYTES(N));
-    //  *((bv_uint8*)(&(bits[0]))) = val;
-    //}
+    std::string hex_string() {
+      std::string hex = std::to_string(N) + "'h";
+
+      for (int i = bits.size() - 1; i >= 0; i--) {
+        char bit_h = bits[i] & 0x0f;
+        char bit_l = (bits[i] >> 4) & 0x0f;
+
+        hex += bit_l > 9 ? bit_l + 87 : bit_l + 48;
+        hex += bit_h > 9 ? bit_h + 87 : bit_h + 48;
+      }
+      return hex;
+    }
     
     dynamic_bit_vector(const dynamic_bit_vector& other) {
       bits.resize(other.bits.size());
