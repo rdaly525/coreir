@@ -329,7 +329,7 @@ extern "C" {
     return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
   }
 
-  COREModuleDef* COREWireableGetModuleDef(COREWireable* w) {
+  COREModuleDef* COREWireableGetContainer(COREWireable* w) {
     return rcast<COREModuleDef*>(rcast<Wireable*>(w)->getContainer());
   }
 
