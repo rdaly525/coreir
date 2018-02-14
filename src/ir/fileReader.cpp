@@ -378,8 +378,10 @@ Type* json2Type(Context* c, json jt) {
     }
     else if (kind == "Record") {
       RecordParams rparams;
-      for (auto it : args[1].get<jsonmap>()) {
-        rparams.push_back({it.first,json2Type(c,it.second)});
+      for (auto it : args[1].get<vector<json>>()) {
+        vector<json> field = it.get<vector<json>>();
+        ASSERT(field.size()==2, "Invalid Record field" + toString(it));
+        rparams.push_back({field[0].get<string>(),json2Type(c,field[1])});
       }
       return c->Record(rparams);
     }
