@@ -731,6 +731,50 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("dlatch", dlatchTP, dlatchParams);
 
+  Params dffsrParams = {{"WIDTH", c->Int()},
+                        {"CLR_POLARITY", c->Bool()},
+                        {"SET_POLARITY", c->Bool()},
+                        {"CLK_POLARITY", c->Bool()}};
+  TypeGen* dffsrTP =
+    rtLib->newTypeGen(
+                      "dffsr",
+                      dffsrParams,
+                      [](Context* c, Values genargs) {
+                        uint width = genargs.at("WIDTH")->get<int>();
+
+                        return c->Record({
+                              {"D", c->BitIn()->Arr(width)},
+                                {"CLK", c->BitIn()},
+                                  {"CLR", c->BitIn()->Arr(width)},
+                                    {"SET", c->BitIn()->Arr(width)},
+                                      {"Q", c->Bit()->Arr(width)}});
+                      });
+
+  rtLib->newGeneratorDecl("dffsr", dffsrTP, dffsrParams);
+
+  Params shiftxParams = {{"A_WIDTH", c->Int()},
+                         {"A_SIGNED", c->Bool()},
+                         {"B_WIDTH", c->Int()},
+                         {"B_SIGNED", c->Bool()},
+                         {"Y_WIDTH", c->Int()}};
+
+  TypeGen* shiftxTP =
+    rtLib->newTypeGen(
+                      "shiftx",
+                      shiftxParams,
+                      [](Context* c, Values genargs) {
+                        uint a_width = genargs.at("A_WIDTH")->get<int>();
+                        uint b_width = genargs.at("B_WIDTH")->get<int>();
+                        uint y_width = genargs.at("Y_WIDTH")->get<int>();
+
+                        return c->Record({
+                              {"A", c->BitIn()->Arr(a_width)},
+                                {"B", c->BitIn()->Arr(b_width)},
+                                  {"Y", c->Bit()->Arr(y_width)}});
+                      });
+
+  rtLib->newGeneratorDecl("shiftx", shiftxTP, shiftxParams);
+  
   Params memParams =
     {{"SIZE", c->Int()}, {"WIDTH", c->Int()}};
   TypeGen* memTP =
@@ -807,43 +851,9 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     c->Record({{"OUT", c->Bit()}});
   rtLib->newModuleDecl("highImpedanceBit", highImpedanceType);
 
-  //   auto memoryGen = c->getGenerator("rtlil.memory");
-//   memoryGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-
-//       uint width = args.at("WIDTH")->get<int>();
-//       uint size = args.at("SIZE")->get<int>();
-
-//       def->addInstance("base_memory",
-//                        );
-//       reg = def->addInstance("reg0",
-//                              "mantle.reg",
-//                              {{"width", Const::make(c, width)},
-//                                  {"has_rst", Const::make(c, true)}},
-//                              {{"init", Const::make(c, BitVec(width, rstVal))}});
-
-                                   
-
-//       assert(reg != nullptr);
-
-//       def->connect("self.D", "reg0.in");
-
-//       // Add clock cast node, in rtlil the clock input is just another bit
-//       //def->addInstance("toClk0", "rtlil.to_clkIn");
-//       def->addInstance("toClk0",
-//                        "coreir.wrap",
-//                        {{"type", Const::make(c, c->Named("coreir.clk"))}});
-
-//       def->addInstance("toRST0",
-//                        "coreir.wrap",
-//                        {{"type", Const::make(c, c->Named("coreir.rst"))}});
-      
-//       def->connect("self.ARST", "toRST0.in");
-//       def->connect("toRST0.out", "reg0.rst");
-//       def->connect("self.CLK", "toClk0.in");
-//       def->connect("toClk0.out", "reg0.clk");
-
-//       def->connect("reg0.out", "self.Q");
-//     });
+  Type* unknownBitType =
+    c->Record({{"OUT", c->Bit()}});
+  rtLib->newModuleDecl("unknownBit", unknownBitType);
   
   return rtLib;
 }
