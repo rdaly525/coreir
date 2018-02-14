@@ -29,7 +29,7 @@ Type* Type::Arr(uint i) {
   return c->Array(i,this);
 }
 
-bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
+bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this) || isa<BitInOutType>(this);}
 
 Type* Type::sel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
