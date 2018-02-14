@@ -753,6 +753,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("memory", memTP, memParams);
 
+  // BitInOut conversion facilities
   Params outToInOutParams =
     {{"WIDTH", c->Int()}};
   TypeGen* outToInOutTP =
@@ -769,6 +770,39 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("outArrayToInOutArray", outToInOutTP, outToInOutParams);
 
+  Params inOutToOutParams =
+    {{"WIDTH", c->Int()}};
+  TypeGen* inOutToOutTP =
+    rtLib->newTypeGen("inOutToOut",
+                      outToInOutParams,
+                      [](Context* c, Values genargs) {
+                        uint width = genargs.at("WIDTH")->get<int>();
+
+                        return c->Record({
+                            {"IN", c->BitInOut()->Arr(width)},
+                              {"OUT", c->Bit()->Arr(width)}
+                          });
+                      });
+
+  rtLib->newGeneratorDecl("inOutArrayToOutArray", inOutToOutTP, inOutToOutParams);
+
+  Params padIOParams =
+    {{"WIDTH", c->Int()}};
+  TypeGen* padIOTP =
+    rtLib->newTypeGen("padIO",
+                      padIOParams,
+                      [](Context* c, Values genargs) {
+                        uint width = genargs.at("WIDTH")->get<int>();
+
+                        return c->Record({
+                            {"TO_PIN", c->BitInOut()->Arr(width)},
+                              {"IN", c->BitIn()->Arr(width)},
+                                {"OUT", c->BitInOut()->Arr(width)}
+                          });
+                      });
+
+  rtLib->newGeneratorDecl("outArrayToInOutArray", outToInOutTP, outToInOutParams);
+  
 //   auto memoryGen = c->getGenerator("rtlil.memory");
 //   memoryGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
 
