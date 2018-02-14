@@ -36,7 +36,12 @@ void saveRegModule() {
   state.setValue("self.in", BitVec(width, 3));
   state.execute();
 
+  cout << "self.out = " << state.getBitVec("self.out") << endl;
+  cout << "correct  = " << BitVec(width, 24) << endl;
+
   assert(state.getBitVec("self.out") == BitVec(width, 24));
+
+  cout << "Saving" << endl;
 
   if (!saveToFile(c->getGlobal(), "register_with_init.json", regComb)) {
     cout << "Could not save to json!!" << endl;

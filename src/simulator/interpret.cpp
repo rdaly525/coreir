@@ -75,7 +75,7 @@ namespace CoreIR {
         assert(initVal.bitLength() == width);
 
         // Set memory output port to default
-        setRegister(inst->toString(), BitVec(initVal));
+        setRegister(inst->toString(), initVal);
         setValue(inst->sel("out"), getRegister(inst->toString()));
         
       }
