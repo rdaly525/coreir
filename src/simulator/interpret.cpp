@@ -69,7 +69,7 @@ namespace CoreIR {
 
         assert(wArg != nullptr);
 
-        uint width = (args["width"])->get<int>();
+        int width = (args["width"])->get<int>();
         BitVector initVal = inst->getModArgs().at("init")->get<BitVector>();
 
         assert(initVal.bitLength() == width);
