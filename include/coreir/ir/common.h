@@ -27,11 +27,6 @@ typedef std::set<Connection,ConnectionComp> Connections;
 //These are defined in helpers
 bool isNumber(std::string s);
 bool isPower2(uint n);
-std::string Params2Str(Params,bool multi=false);
-std::string Values2Str(Values,bool multi=false);
-std::string SelectPath2Str(SelectPath path);
-std::string Connection2Str(Connection con);
-std::string Inst2Str(Instance* inst);
 
 //Checks that the values are of the correct names and types
 void checkValuesAreParams(Values args, Params params);
@@ -41,15 +36,11 @@ void checkValuesAreConst(Values vs);
 
 bool hasChar(const std::string s, char c);
 
-////Used for casting Values, Consts, Args
-//template<typename To,typename FromMap>
-//std::map<std::string,std::shared_ptr<To>> castMap (FromMap fm) {
-//  std::map<std::string,std::shared_ptr<To>> tomap;
-//  for (auto fpair : fm) {
-//    tomap[fpair.first] = cast<To>(fpair.second);
-//  }
-//  return tomap;
-//}
+std::string toString(Params,bool multi=false);
+std::string toString(Values,bool multi=false);
+std::string toString(SelectPath path);
+std::string toString(Connection con);
+std::string toString(Instance* inst);
 
 template<class T> std::string toString(const T& t) {
   std::ostringstream stream;
