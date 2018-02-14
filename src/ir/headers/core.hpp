@@ -293,6 +293,34 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
       core->newGeneratorDecl(op,tg,widthparams);
     }
   }
+  
+  TypeGen* triputTG = core->newTypeGen(
+    "triPut",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)},
+        {"en",c->BitIn()},
+        {"out",c->BitInOut()->Arr(width)}
+      });
+    }
+  );
+  core->newGeneratorDecl("triput",triputTG,widthparams);
+  
+  TypeGen* trigetTG = core->newTypeGen(
+    "triGet",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record({
+        {"in",c->BitInOut()->Arr(width)},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+  core->newGeneratorDecl("triget",trigetTG,widthparams);
+  
 
   /////////////////////////////////
   // Stdlib stateful primitives

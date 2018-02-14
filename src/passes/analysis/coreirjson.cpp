@@ -96,7 +96,8 @@ string Value2Json(Value* v) {
       ret.add(to_string(ci->get()));
     }
     else if (auto cbv = dyn_cast<ConstBitVector>(con)) {
-      ret.add(to_string(cbv->get().to_type<uint64_t>()));
+      BitVector bv = cbv->get();
+      ret.add(bv.hex_string());
     }
     else if (auto cs = dyn_cast<ConstString>(con)) {
       ret.add(quote(cs->get()));
@@ -141,6 +142,10 @@ string TopType2Json(Type* t) {
 string Type2Json(Type* t) {
   if (isa<BitType>(t)) return quote("Bit");
   if (isa<BitInType>(t)) return quote("BitIn");
+
+  if (isa<BitInOutType>(t)) {
+    return quote("BitInOut");
+  }
   Array a;
   if (auto nt = dyn_cast<NamedType>(t)) {
     a.add(quote("Named"));

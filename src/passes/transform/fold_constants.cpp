@@ -24,6 +24,8 @@ namespace CoreIR {
             toConsider.insert(cast<Instance>(src));
           }
         }
+      } else if (getQualifiedOpName(*(inst.second)) == "coreir.reg") {
+        toConsider.insert(inst.second);
       }
 
     }
@@ -383,6 +385,39 @@ namespace CoreIR {
 
         }
 
+      } else if (getQualifiedOpName(*inst) == "coreir.reg") {
+        Select* inSel = inst->sel("in");
+        Select* outSel = inst->sel("out");
+
+        vector<Select*> inValues = getSignalValues(inSel);
+
+        bool allInsFromOut = true;
+        for (auto bitVal : inValues) {
+          Wireable* src = extractSource(bitVal);
+
+          if (src->sel("out") != outSel) {
+            allInsFromOut = false;
+          }
+        }
+
+        if (allInsFromOut) {
+
+          BitVector value = inst->getModArgs().at("init")->get<BitVector>();
+          auto newConst =
+            def->addInstance(inst->toString() + "_reg_const_replacement",
+                             "coreir.const",
+                             {{"width", Const::make(c, value.bitLength())}},
+                             {{"value", Const::make(c, BitVector(value))}});
+
+          Instance* instPT = addPassthrough(inst, "_remove_reg_PT");
+          Select* replacement = newConst->sel("out");
+
+          def->removeInstance(inst);
+          def->connect(replacement,
+                       instPT->sel("in")->sel("out"));
+          inlineInstance(instPT);
+          
+        }
       }
     }
 
