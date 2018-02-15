@@ -10,32 +10,34 @@ void Aetherling_createMapGenerator(Context* c) {
     Namespace* aetherlinglib = c->getNamespace(AETHERLING_NAMESPACE);
     
     /*
+     * This implementation of map is fully parallel. It will produce output in one clock cycle.
      * parallelOperatrs - how many operators to have in parallel
      * operator - the operator to parallelize. Note that it must have one input known as "in" and 
      * one output known as "out"
      */
-    Params mapNparams = Params({
+    Params mapXTparams = Params({
             {"parallelOperators", c->Int()},
             {"operator", ModuleType::make(c)}
         });
 
     aetherlinglib->newTypeGen(
-        "mapN_type", // name for typegen
-        mapNparams, // generator parameters
+        "mapX_type", // name for typegen
+        mapXTparams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             return c->Record({
                     {"in", opType->sel("in")->Arr(parallelOperators)},
-                    {"out", opType->sel("out")->Arr(parallelOperators)}
+                    {"out", opType->sel("out")->Arr(parallelOperators)},
+                    {"valid", c->Bit()}
                 });
         });
 
-    Generator* mapN =
-        aetherlinglib->newGeneratorDecl("mapN", aetherlinglib->getTypeGen("mapN_type"), mapNparams);
+    Generator* mapX =
+        aetherlinglib->newGeneratorDecl("mapX", aetherlinglib->getTypeGen("mapX_type"), mapXTparams);
 
-    mapN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    mapX->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint parallelOperators = genargs.at("parallelOperators")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
             assert(parallelOperators>0);

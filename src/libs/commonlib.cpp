@@ -700,7 +700,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + \
            " != 0, dimension length must be divisible, becuase we can't swizzle data");
 
-    if (img_dim - out_dim < 3 && (img_dim != out_dim)) {
+    // note: only making rowbuffer if more than 1D
+    if (img_dim - out_dim < 3 && (img_dim != out_dim) && num_dims > 1) {
       std::cout << "Image dimension " << dim << "  is " << img_dim 
                 << " and output stencil size is " << out_dim
                 << ", which means the linebuffer mem is going to be very small" << std::endl;
@@ -1073,6 +1074,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
+  /*
+   * DEPRECATED: DO NOT USE 2D or 3D IMPLEMENTATION, LINEBUFFER HANLDES MULTIPLE DIMENSIONS
+   */
   //Linebuffer2d
   //Declare a TypeGenerator (in global) for 2d linebuffer
   commonlib->newTypeGen(
@@ -1250,6 +1254,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   );
 
+  /*
+   * DEPRECATED: DO NOT USE 2D or 3D IMPLEMENTATION, LINEBUFFER HANLDES MULTIPLE DIMENSIONS
+   */
   Generator* linebuffer3d = commonlib->newGeneratorDecl(
     "linebuffer3d",
     commonlib->getTypeGen("linebuffer3d_type"),{
