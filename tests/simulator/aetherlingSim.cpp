@@ -70,10 +70,10 @@ namespace CoreIR {
                     {{"value", Const::make(c, width, i)}});
 
                 def->connect(constName + ".out", mapNName + ".in." + to_string(i));
-                def->connect(mapNName + ".out", "self.out");
                 // safe version of wiring out: def->connect(mapNName + ".out." + to_string(i), "self.out." + to_string(i))
             }
-            
+            def->connect(mapNName + ".out", "self.out");
+                        
             mulBy2->setDef(mulBy2Def);
             mainModule->setDef(def);
             mapN_mul->getModuleRef()->print();
