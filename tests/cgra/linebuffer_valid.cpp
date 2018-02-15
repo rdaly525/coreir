@@ -16,13 +16,13 @@ int main() {
 
   // input stream and output stencil for arr(x)->arr(y)->arr(z) 
   //                             have size x horiz, y vert, z depth
-  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(2)->Arr(1);
-  Type* out_type = c->Bit()->Arr(16)->Arr(6)->Arr(6)->Arr(2);
-  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48)->Arr(48);
+//  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(2)->Arr(1);
+//  Type* out_type = c->Bit()->Arr(16)->Arr(6)->Arr(6)->Arr(2);
+//  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48)->Arr(48);
 
-//  Type* in_type = c->BitIn()->Arr(16)->Arr(2)->Arr(1);
-//  Type* out_type = c->Bit()->Arr(16)->Arr(4)->Arr(3);
-//  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48);
+  Type* in_type = c->BitIn()->Arr(16)->Arr(1);
+  Type* out_type = c->Bit()->Arr(16)->Arr(4);
+  Type* img_type = c->Bit()->Arr(16)->Arr(48);
 
 //  Type* in_type = c->BitIn()->Arr(16)->Arr(1)->Arr(2)->Arr(1);
 //  Type* out_type = c->Bit()->Arr(16)->Arr(3)->Arr(4)->Arr(2);
@@ -30,12 +30,12 @@ int main() {
 
   // Define lb32 Module
   Type* lb32Type = c->Record({
-    {"in",in_type},
-      //{"wen",c->BitIn()},
-    {"out",out_type},
-    {"valid", c->Bit()},
-    {"valid_chain", c->Bit()}
-  });
+			{"in",in_type},
+			{"wen",c->BitIn()},
+			{"out",out_type},
+			{"valid", c->Bit()},
+			{"valid_chain", c->Bit()}
+		});
 
 
   // REGULAR CASE (image width != stencil width) and 2D
