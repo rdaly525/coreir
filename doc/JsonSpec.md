@@ -23,7 +23,7 @@ Namespace={
 Type = "BitIn" 
      | "Bit" 
      | ["Array", <N>, Type] 
-     | ["Record", [<key>:Type,...] ] 
+     | ["Record", [[<key>,Type],... ] 
      | ["Named",NamedRef, Args?]
 
 //This could be referring a type, module, or generator
