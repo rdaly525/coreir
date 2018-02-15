@@ -638,7 +638,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       Type* out_type  = genargs.at("output_type")->get<Type*>();
       RecordParams recordparams = {
           {"in", in_type},
-          //{"wen",c->BitIn()},
+          {"wen",c->BitIn()},
           {"out", out_type}
       };
 
@@ -671,10 +671,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     vector<uint> img_dims = get_dims(img_type);
 
     uint bitwidth = in_dims[0]; // first array is bitwidth
-    assert(bitwidth > 0);
-    isPowerOfTwo(bitwidth);
-    assert(bitwidth == out_dims[0]); // all bitwidths must match
-    assert(bitwidth == img_dims[0]);
+    ASSERT(bitwidth > 0, "The first dimension for the input is interpretted "
+					 "as the bitwidth which was set to " + to_string(bitwidth));
+
+    ASSERT(bitwidth == out_dims[0], 
+					 to_string(bitwidth) + " != " + to_string(out_dims[0]) + "all bitwidths must match");
+    ASSERT(bitwidth == img_dims[0], 
+					 to_string(bitwidth) + " != " + to_string(img_dims[0]) + "all bitwidths must match");
+
     in_dims.erase(in_dims.begin()); // erase the bitwidth size from vectors
     out_dims.erase(out_dims.begin());
     img_dims.erase(img_dims.begin());
@@ -693,7 +697,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     assert(img_dim >= out_dim); // image dimension length must be larger than output
     assert(out_dim >= in_dim); // output stencil size must be larger than the input
     assert(img_dim % in_dim == 0); // dimension length must be divisible, becuase we can't swizzle data
-    ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + 
+    ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + \
            " != 0, dimension length must be divisible, becuase we can't swizzle data");
 
     if (img_dim - out_dim < 3 && (img_dim != out_dim)) {
@@ -774,6 +778,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         // connect last valid bit to self.valid
         string last_valid_name = valid_prefix + to_string(out_dim-in_dim);
         def->connect({"self","valid"},{last_valid_name,"out"});
+				def->connect({"self","valid_chain"},{last_valid_name,"out"});
         
       } // valid chain
 
