@@ -39,7 +39,7 @@ class ModuleDef {
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
-    const std::map<std::string,Instance*>& getInstances(void) const { return instances;}
+    std::map<std::string,Instance*> getInstances(void) { return instances;}
     std::set<Connection,ConnectionComp> getConnections(void) { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);

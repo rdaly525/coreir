@@ -2,6 +2,8 @@
 
 std::string CoreIR::Passes::DeleteDeadInstances::ID = "deletedeadinstances";
 
+using namespace std;
+
 namespace CoreIR {
 
 
@@ -29,13 +31,11 @@ namespace CoreIR {
 
     bool changed = false;
     
-
     do {
       changed = false;
-
       for (auto instR : def->getInstances()) {
         Instance* inst = instR.second;
-
+        assert(inst);
         if (!hasOutputConnection(inst)) {
           changed = true;
           def->removeInstance(inst);
