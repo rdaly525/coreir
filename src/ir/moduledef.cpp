@@ -237,7 +237,7 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
     connections.insert(connect);
   }
   else {
-    cout << "ALREADY ADDED CONNECTION!" << endl;
+    ASSERT(0,"Trying to add following connection twice! " + toString(connect));
   }
 }
 
