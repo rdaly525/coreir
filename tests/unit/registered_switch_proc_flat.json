@@ -38,7 +38,7 @@
           "__DOLLAR__procdff__DOLLAR__12$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",32]},
-            "modargs":{"init":[["BitVector",32],0]}
+            "modargs":{"init":[["BitVector",32],"32'h0"]}
           },
           "__DOLLAR__procmux__DOLLAR__10$mux0":{
             "genref":"coreir.mux",

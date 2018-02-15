@@ -57,7 +57,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
   }
   json j;
 
-  //try {
+  try {
     file >> j;
     //There are the following dependencies moduleDefs->(all modules)->(all types)
     //Therefore first load all namedtypes and typegens
@@ -251,12 +251,14 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     else if (top) {
       *top = nullptr;
     }
-  //} catch(std::exception& exc) {
-  //  Error e; 
-  //  e.message(exc.what());
-  //  c->error(e);
-  //  return false;
-  //}
+  } catch(std::exception& exc) {
+    Error e; 
+    e.message("In file: " + filename);
+    e.message(exc.what());
+    
+    c->error(e);
+    return false;
+  }
   return true;
 }
 

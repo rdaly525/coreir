@@ -35,12 +35,12 @@
           },
           "type": [
             "Record",
-            {
-              "a": "BitIn",
-              "b": "BitIn",
-              "c": "BitIn",
-              "d": "Bit"
-            }
+            [
+              ["a": "BitIn"],
+              ["b": "BitIn"],
+              ["c": "BitIn"],
+              ["d": "Bit"]
+            ]
           ]
         }
       }
