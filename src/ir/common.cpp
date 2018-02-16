@@ -78,7 +78,7 @@ std::string toString(Instance* inst) {
 
 static const char* regex_str = "^[a-zA-Z_\\-\\$][0-9a-zA-Z_\\-\\$]*$";
 void checkStringSyntax(std::string str) {
-  static regex reg(regex_str);
+  static regex reg(regex_str, std::regex_constants::basic);
   ASSERT(regex_search(str,reg),str+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
 }
 
