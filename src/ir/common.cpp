@@ -2,8 +2,9 @@
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/module.h"
-//#include <sstream>
-//#include <iterator>
+
+#include <regex>
+
 
 using namespace std;
 namespace CoreIR {
@@ -74,6 +75,15 @@ std::string toString(Instance* inst) {
   }
   return ret + toString(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
 }
+
+static const char* regex_str = "^[a-zA-Z_\\-\\$][0-9a-zA-Z_\\-\\$]*$";
+void checkStringSyntax(std::string str) {
+  static regex reg(regex_str, std::regex_constants::basic);
+  ASSERT(regex_search(str,reg),str+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
+}
+
+
+
 
 void checkValuesAreParams(Values args, Params params) {
   bool multi = args.size() > 4 || params.size() > 4;
