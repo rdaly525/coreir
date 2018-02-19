@@ -700,8 +700,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + \
            " != 0, dimension length must be divisible, becuase we can't swizzle data");
 
-    // note: only making rowbuffer if more than 1D
-    if (img_dim - out_dim < 3 && (img_dim != out_dim) && num_dims > 1) {
+    if (img_dim - out_dim < 3 && (img_dim != out_dim)) {
       std::cout << "Image dimension " << dim << "  is " << img_dim 
                 << " and output stencil size is " << out_dim
                 << ", which means the linebuffer mem is going to be very small" << std::endl;
@@ -754,7 +753,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       }
 
 
-
       // create and connect valid chain
       if (has_valid && is_last_lb) {
         string valid_prefix = "valreg_";
@@ -764,8 +762,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           if (i == 0) {
             string reg_name = valid_prefix + to_string(i);
             def->addInstance(reg_name, "corebit.dff");
-            def->addInstance("enableConst", "coreir.const", {{"width",aBitwidth}}, {{"value", Const::make(c, 1)}});
-            def->connect({"enableConst","out"}, {reg_name,"in"});
+            def->connect({"self","wen"}, {reg_name,"in"});
          
             // create and connect to register; register connects to previous register
           } else {
@@ -784,7 +781,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 				def->connect({"self","valid_chain"},{last_valid_name,"out"});
         
       } // valid chain
-
 
 
     //////////////////////////  
@@ -1074,9 +1070,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
-  /*
-   * DEPRECATED: DO NOT USE 2D or 3D IMPLEMENTATION, LINEBUFFER HANLDES MULTIPLE DIMENSIONS
-   */
   //Linebuffer2d
   //Declare a TypeGenerator (in global) for 2d linebuffer
   commonlib->newTypeGen(
@@ -1254,9 +1247,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   );
 
-  /*
-   * DEPRECATED: DO NOT USE 2D or 3D IMPLEMENTATION, LINEBUFFER HANLDES MULTIPLE DIMENSIONS
-   */
   Generator* linebuffer3d = commonlib->newGeneratorDecl(
     "linebuffer3d",
     commonlib->getTypeGen("linebuffer3d_type"),{

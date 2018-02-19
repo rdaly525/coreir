@@ -29,6 +29,7 @@ void Aetherling_createConvGenerator(Context* c) {
                                 {"data", c->BitIn()->Arr(elementWidth)->Arr(inputPerClockWidth)},
                                 {"kernel", c->BitIn()->Arr(elementWidth)->Arr(kernelWidth)}
                             })},
+                    {"wen", c->BitIn()},
                     {"out", c->Bit()->Arr(elementWidth)},
                     {"valid", c->Bit()}
                 });
@@ -58,8 +59,7 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"input_type", Const::make(c, lbInType)},
                     {"output_type", Const::make(c, lbOutType)},
                     {"image_type", Const::make(c, lbImgType)},
-                    {"has_valid", Const::make(c, true)},
-                    {"is_last_lb", Const::make(c, false)}
+                    {"has_valid", Const::make(c, true)}
                 });
 
 
@@ -102,6 +102,7 @@ void Aetherling_createConvGenerator(Context* c) {
             def->connect(addIdentityModule + ".out", "conv1DReduce.in.identity");
             def->connect("conv1DReduce.out", "self.out");
             def->connect("conv1DLineBuffer.valid", "self.valid");
+            def->connect("self.wen", "conv1DLineBuffer.wen");
             lbInst->getModuleRef()->print();
         });
 }
