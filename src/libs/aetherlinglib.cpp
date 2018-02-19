@@ -24,6 +24,7 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     Aetherling_createZipGenerator(c);
     Aetherling_createConvGenerator(c);
     Aetherling_createFlattenGenerator(c);
+    Aetherling_createFlattenGenerator(c);
 
     // create a generator to convert two argument modules into one argument
     // modules with a fixed constant for one input

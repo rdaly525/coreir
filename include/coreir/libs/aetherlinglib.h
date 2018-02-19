@@ -18,6 +18,7 @@ void Aetherling_createReduceGenerator(CoreIR::Context* c);
 void Aetherling_createZipGenerator(CoreIR::Context* c);
 void Aetherling_createConvGenerator(CoreIR::Context* c);
 void Aetherling_createFlattenGenerator(CoreIR::Context* c);
+void Aetherling_createDehydrateGenerator(CoreIR::Context* c);
 
 // helper functions
 std::string Aetherling_addCoreIRConstantModule(CoreIR::Context* c, CoreIR::ModuleDef* def, uint width, CoreIR::Const* val);
