@@ -229,18 +229,19 @@ namespace CoreIR {
             SimulatorState state(mainModule);
             // pass in increasing numbers each clock cycle, should get 1*2*3 times that number
             // once valid is right, should get items out in same order sent in           
-            for (uint clkCount = 0, numValidClks = 0; ; clkCount++) {
+            for (uint clkCount = 0, numValidClks = 0; numValidClks < dataWidth ; clkCount++) {
                 state.setClock("self.clk", 0, 1); // get a new rising clock edge
                 // set the input
                 state.setValue("self.in_0", BitVector(elementWidth, clkCount));
-                state.execute();
+                state.exeCombinational();
                 cout<< "self.in_0: " << state.getBitVec("self.in_0") << endl;
                 cout<< "conv1D_test$conv1DLineBuffer$reg_1.out" << state.getBitVec("conv1D_test$conv1DLineBuffer$reg_1.out") << endl;
                 cout<< "conv1D_test$conv1DLineBuffer$reg_2.out" << state.getBitVec("conv1D_test$conv1DLineBuffer$reg_2.out") << endl;
 
 
                 // should take kernelWidth/inputPerClockWidth cycles before valid, then stay valid for rest
-                if (clkCount + 1 < kernelWidth/inputPerClockWidth) {
+                // note that timing is off slightly as this is a 0 latency linebuffer
+                if (clkCount < kernelWidth/inputPerClockWidth - 1) {
                     REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
                 }
                 else {
@@ -257,13 +258,13 @@ namespace CoreIR {
                     cout<<"mul1 in0: " << state.getBitVec("conv1D_test$conv1DMap$op_1$wrappedInstance_mul_U5.in0") << ", mul1 in1: " << state.getBitVec("conv1D_test$conv1DMap$op_1$wrappedInstance_mul_U5.in1") << endl;
                     cout<<"mul2 in0: " << state.getBitVec("conv1D_test$conv1DMap$op_2$wrappedInstance_mul_U5.in0") << ", mul2 in1: " << state.getBitVec("conv1D_test$conv1DMap$op_2$wrappedInstance_mul_U5.in1") << endl;
                     cout<< "out bitvec" << state.getBitVec("self.out") << endl;
-                    assert(0);
-                    
+                    //assert(0);
                     REQUIRE(state.getBitVec("self.out") == BitVector(elementWidth, rightOutput));
                     numValidClks++;
-                    assert(0);
-                    assert(1);
+                    //assert(0);
+                    //assert(1);
                 }
+                state.exeSequential();
             }
         }
         deleteContext(c);

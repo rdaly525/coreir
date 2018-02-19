@@ -756,7 +756,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       // create and connect valid chain
       if (has_valid && is_last_lb) {
         string valid_prefix = "valreg_";
-        for (uint i=0; i<out_dim; i+=in_dim) {
+        for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
           
           // connect to input wen
           if (i == 0) {
@@ -776,7 +776,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         }
 
         // connect last valid bit to self.valid
-        string last_valid_name = valid_prefix + to_string(out_dim-in_dim);
+        string last_valid_name = valid_prefix + to_string(out_dim-2*in_dim);
         def->connect({"self","valid"},{last_valid_name,"out"});
 				def->connect({"self","valid_chain"},{last_valid_name,"out"});
         
