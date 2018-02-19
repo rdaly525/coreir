@@ -962,6 +962,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // create and connect valid chain
       if (has_valid && is_last_lb) {
+/* // this is a chain of valids, which doesn't work, since
+   // valid signals must go low every line
         string valid_prefix = "valreg_";
         for (uint i=0; i<out_dim; i+=in_dim) {
           
@@ -981,11 +983,41 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
           }
         }
+*/
+
+				// counter 0:1:max/inc
+				// valid = stencil_size-1 <= count 
+				string counter_prefix = "valcounter_";
+				string counter_name = counter_prefix + to_string(0);
+				Values counter_args = {
+					{"width",Const::make(c,bitwidth)},
+					{"min",Const::make(c,0)},
+					{"max",Const::make(c,img_dim / in_dim)},
+					{"inc",Const::make(c,1)}
+				};
+				def->addInstance(counter_name,"commonlib.counter",counter_args);
+
+				// comparator for valid (if stencil_size < count)
+				string compare_name = "valcompare_d" + to_string(0);
+				def->addInstance(compare_name,"coreir.ule",{{"width",aBitwidth}});
+				string const_name = "stencilsize_d" + to_string(0);
+				int const_value = out_dim/in_dim - 1;
+				assert(const_value >= 0);
+				Values const_arg = {{"value",Const::make(c,BitVector(bitwidth, const_value))}};
+				def->addInstance(const_name, "coreir.const", {{"width",aBitwidth}}, const_arg);
+
+				// connections
+				// counter en by wen
+				def->connect({"self","wen"},{counter_name,"en"});
+
+				// wire up comparator
+				def->connect({const_name,"out"},{compare_name,"in0"});
+				def->connect({counter_name,"out"},{compare_name,"in1"});
 
         // connect last valid bit to self.valid
-        string last_valid_name = valid_prefix + to_string(out_dim-in_dim);
-        def->connect({"self","valid"},{last_valid_name,"out"});
-				def->connect({"self","valid_chain"},{last_valid_name,"out"});
+        string valid_name = "valcompare_d" + to_string(0);
+        def->connect({"self","valid"},{valid_name,"out"});
+				def->connect({"self","valid_chain"},{valid_name,"out"});
         
       } // valid chain
 
