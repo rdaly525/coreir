@@ -167,7 +167,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   }
 
-  // Define min/max modules
+  //*** Define min/max modules ***//
 
   Generator* umin = c->getGenerator("commonlib.umin");
   umin->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
@@ -225,7 +225,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.out","max_mux.out");
   });
 
-  // Define clamp
+  //*** Define clamp ***//
   Generator* uclamp = c->getGenerator("commonlib.uclamp");
   uclamp->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     def->addInstance("max","coreir.umax",args);
@@ -248,7 +248,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.out","min.out");
   });
 
-  // Define abs,absd
+  //*** Define abs,absd ***//
   Generator* abs = c->getGenerator("commonlib.abs");
   abs->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     uint width = args.at("width")->get<int>();
@@ -292,7 +292,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("abs.out","self.out");
   });
 
-  // Define MAD
+  //*** Define MAD ***//
   Generator* MAD = c->getGenerator("commonlib.MAD");
   MAD->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     def->addInstance("mult","coreir.mul",args);
@@ -306,7 +306,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
   /////////////////////////////////
-  // reg array definition        //
+  //*** reg array definition  ***//
   /////////////////////////////////
 
   Params reg_array_args =  {{"type",CoreIRType::make(c)},{"has_en",c->Bool()},{"has_clr",c->Bool()},{"has_rst",c->Bool()},{"init",c->Int()}};
@@ -408,7 +408,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
  
 
   /////////////////////////////////
-  // muxN definition             //
+  //*** muxN definition       ***//
   /////////////////////////////////
 
   Generator* muxN = commonlib->newGeneratorDecl("muxn",commonlib->getTypeGen("muxN_type"),{{"width",c->Int()},{"N",c->Int()}});
@@ -486,7 +486,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
   /////////////////////////////////
-  // opN definition             //
+  //*** opN definition        ***//
   /////////////////////////////////
 
   Generator* opN = commonlib->newGeneratorDecl("opn",commonlib->getTypeGen("opN_type"),{{"width",c->Int()},{"N",c->Int()},{"operator",c->String()}});
@@ -541,7 +541,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
   /////////////////////////////////
-  // bitopN definition           //
+  //*** bitopN definition     ***//
   /////////////////////////////////
 
   Generator* bitopN = commonlib->newGeneratorDecl("bitopn",commonlib->getTypeGen("bitopN_type"),{{"N",c->Int()},{"operator",c->String()}});
@@ -594,7 +594,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
-  //Add a LUTN
+  //*** Add a LUTN ***//
   auto LUTModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params p; //params
     Values d; //defaults
@@ -615,7 +615,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   lutN->setModParamsGen(LUTModParamFun);
 
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
-  //Linebuffer Memory. Use this for memory in linebuffer mode
+  //*** Linebuffer Memory. Use this for memory in linebuffer mode ***//
   commonlib->newTypeGen("LinebufferMemType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     return c->Record({
@@ -754,7 +754,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
 
-  //Fifo Memory. Use this for memory in Fifo mode
+  //*** Fifo Memory. Use this for memory in Fifo mode ***//
   commonlib->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     return c->Record({
@@ -826,7 +826,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   //}
 
 
-  // generic recursively defined linebuffer
+  //*** generic recursively defined linebuffer ***//
   Params lb_args = 
     {{"input_type",CoreIRType::make(c)},
      {"output_type",CoreIRType::make(c)},
@@ -1277,7 +1277,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
-  //Linebuffer2d
+  //*** DEPRECATED: Linebuffer2d ***//
   //Declare a TypeGenerator (in global) for 2d linebuffer
   commonlib->newTypeGen(
     "linebuffer2d_type", //name for the typegen
@@ -1432,10 +1432,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
-  //////////////////
-  //3D Linebuffer //
-  //////////////////
 
+  //*** DEPRECATED: 3D Linebuffer ***//
   //Declare a TypeGenerator (in global) for 3d linebuffer
   commonlib->newTypeGen(
     "linebuffer3d_type", //name for the typegen
@@ -1551,7 +1549,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
   /////////////////////////////////
-  // counter definition          //
+  //*** counter definition    ***//
   /////////////////////////////////
 
   // counter follows a for loop of format:
@@ -1618,7 +1616,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
   /////////////////////////////////
-  // serializer definition       //
+  //*** serializer definition ***//
   /////////////////////////////////
 
   // on count==0, read in all input values.
@@ -1708,7 +1706,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
   /////////////////////////////////
-  // decoder definition          //
+  //*** decoder definition    ***//
   /////////////////////////////////
 
   // on count==0, read in all input values.
