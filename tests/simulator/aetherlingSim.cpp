@@ -250,7 +250,7 @@ namespace CoreIR {
                     // on nth clock cycle of valid
                     uint rightOutput = 0;
                     for (uint i = 0; i < kernelWidth; i++) {
-                        rightOutput += ((kernelWidth-i-1)+numValidClks)*i;
+                        rightOutput += (numValidClks+i)*i;
                     }
                     cout<<"constInput0: " << state.getBitVec("constInput0.out") << endl;
                     cout<<"mul0 in0: " << state.getBitVec("conv1D_test$conv1DMap$op_0$wrappedInstance_mul_U5.in0") << ", mul0 in1: " << state.getBitVec("conv1D_test$conv1DMap$op_0$wrappedInstance_mul_U5.in1") << endl;
