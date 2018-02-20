@@ -29,7 +29,7 @@ Type* Type::Arr(uint i) {
   return c->Array(i,this);
 }
 
-bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
+bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this) || isa<BitInOutType>(this);}
 
 Type* Type::sel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
@@ -67,6 +67,26 @@ bool Type::canSel(SelectPath path) {
   return this->sel(sel)->canSel(path);
 }
 
+bool Type::hasInput() const { 
+  if (isInput() ) return true;
+  if (isMixed()) {
+    if (auto at = dyn_cast<ArrayType>(this)) {
+      return at->getElemType()->hasInput();
+    }
+    else if (auto nt = dyn_cast<NamedType>(this)) {
+      return nt->getRaw()->hasInput();
+    }
+    else if (auto rt = dyn_cast<RecordType>(this)) {
+      bool ret = false;
+      for (auto field : rt->getRecord()) {
+        ret |= field.second->hasInput();
+      }
+      return ret;
+    }
+    assert(0);
+  }
+  return false;
+}
 
 
 std::ostream& operator<<(ostream& os, const Type& t) {
@@ -102,7 +122,7 @@ void NamedType::print() const {
 
 
 //Stupid hashing wrapper for enum
-RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
+RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Null,c) {
   unordered_set<uint> dirs; // Slight hack because it is not easy to hash enums
   for(auto field : _record) {
     checkStringSyntax(field.first);
@@ -110,8 +130,9 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
     _order.push_back(field.first);
     dirs.insert(field.second->getDir());
   }
-  if (dirs.count(DK_Unknown) || dirs.size()==0) {
-    dir = DK_Unknown;
+  assert(dirs.count(DK_Null) == 0);
+  if (dirs.size()==0) {
+    dir = DK_Null;
   }
   else if (dirs.size() > 1) {
     dir = DK_Mixed;

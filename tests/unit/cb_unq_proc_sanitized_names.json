@@ -3,24 +3,24 @@
   "global":{
     "modules":{
       "cb_unq1":{
-        "type":["Record",{
-          "clk":["Named","coreir.clkIn"],
-          "config_addr":["Array",32,"BitIn"],
-          "config_data":["Array",32,"BitIn"],
-          "config_en":"BitIn",
-          "in_0":["Array",16,"BitIn"],
-          "in_1":["Array",16,"BitIn"],
-          "in_2":["Array",16,"BitIn"],
-          "in_3":["Array",16,"BitIn"],
-          "in_4":["Array",16,"BitIn"],
-          "in_5":["Array",16,"BitIn"],
-          "in_6":["Array",16,"BitIn"],
-          "in_7":["Array",16,"BitIn"],
-          "in_8":["Array",16,"BitIn"],
-          "in_9":["Array",16,"BitIn"],
-          "out":["Array",16,"Bit"],
-          "reset":"BitIn"
-        }],
+        "type":["Record",[
+          ["clk",["Named","coreir.clkIn"]],
+          ["config_addr",["Array",32,"BitIn"]],
+          ["config_data",["Array",32,"BitIn"]],
+          ["config_en","BitIn"],
+          ["in_0",["Array",16,"BitIn"]],
+          ["in_1",["Array",16,"BitIn"]],
+          ["in_2",["Array",16,"BitIn"]],
+          ["in_3",["Array",16,"BitIn"]],
+          ["in_4",["Array",16,"BitIn"]],
+          ["in_5",["Array",16,"BitIn"]],
+          ["in_6",["Array",16,"BitIn"]],
+          ["in_7",["Array",16,"BitIn"]],
+          ["in_8",["Array",16,"BitIn"]],
+          ["in_9",["Array",16,"BitIn"]],
+          ["out",["Array",16,"Bit"]],
+          ["reset","BitIn"]
+        ]],
         "instances":{
           "DOLLARautoDOLLARpmuxtreeDOTccCOLON100COLONexecuteDOLLAR27op0":{
             "genref":"coreir.orr",
@@ -129,7 +129,7 @@
           "DOLLARprocdffDOLLAR26reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",32]},
-            "modargs":{"init":[["BitVector",32],0]}
+            "modargs":{"init":[["BitVector",32],"32'h0"]}
           },
           "DOLLARprocmuxDOLLAR10CMP0DOTBLEFTBRACKET0RIGHTBRACKETDOLLARbitconst0":{
             "modref":"corebit.const",

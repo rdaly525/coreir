@@ -3,10 +3,10 @@
   "global":{
     "modules":{
       "BitonicSorter2":{
-        "type":["Record",{
-          "O":["Array",2,"Bit"],
-          "I":["Array",2,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",2,"Bit"]],
+          ["I",["Array",2,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Swap"
@@ -18,10 +18,10 @@
         ]
       },
       "BitonicSorter4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.UnRiffle4"
@@ -54,10 +54,10 @@
         ]
       },
       "Merger4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.UnReverseRiffle4"
@@ -90,10 +90,10 @@
         ]
       },
       "Merger8":{
-        "type":["Record",{
-          "O":["Array",8,"Bit"],
-          "I":["Array",8,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",8,"Bit"]],
+          ["I",["Array",8,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.UnReverseRiffle8"
@@ -134,10 +134,10 @@
         ]
       },
       "ReverseRiffle4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "connections":[
           ["self.O.3","self.I.2"],
           ["self.O.2","self.I.1"],
@@ -146,10 +146,10 @@
         ]
       },
       "ReverseRiffle8":{
-        "type":["Record",{
-          "O":["Array",8,"Bit"],
-          "I":["Array",8,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",8,"Bit"]],
+          ["I",["Array",8,"BitIn"]]
+        ]],
         "connections":[
           ["self.O.7","self.I.4"],
           ["self.O.6","self.I.3"],
@@ -162,10 +162,10 @@
         ]
       },
       "Riffle4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "connections":[
           ["self.O.3","self.I.3"],
           ["self.O.2","self.I.1"],
@@ -174,10 +174,10 @@
         ]
       },
       "Sorter2":{
-        "type":["Record",{
-          "O":["Array",2,"Bit"],
-          "I":["Array",2,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",2,"Bit"]],
+          ["I",["Array",2,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Swap"
@@ -189,10 +189,10 @@
         ]
       },
       "Sorter4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Merger4"
@@ -217,10 +217,10 @@
         ]
       },
       "Sorter8":{
-        "type":["Record",{
-          "O":["Array",8,"Bit"],
-          "I":["Array",8,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",8,"Bit"]],
+          ["I",["Array",8,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Merger8"
@@ -253,10 +253,10 @@
         ]
       },
       "Swap":{
-        "type":["Record",{
-          "O":["Array",2,"Bit"],
-          "I":["Array",2,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",2,"Bit"]],
+          ["I",["Array",2,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"corebit.and"
@@ -275,10 +275,10 @@
         ]
       },
       "Swap4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Swap"
@@ -299,10 +299,10 @@
         ]
       },
       "Swap8":{
-        "type":["Record",{
-          "O":["Array",8,"Bit"],
-          "I":["Array",8,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",8,"Bit"]],
+          ["I",["Array",8,"BitIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Swap"
@@ -337,10 +337,10 @@
         ]
       },
       "UnReverseRiffle4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "connections":[
           ["self.O.3","self.I.1"],
           ["self.O.2","self.I.3"],
@@ -349,10 +349,10 @@
         ]
       },
       "UnReverseRiffle8":{
-        "type":["Record",{
-          "O":["Array",8,"Bit"],
-          "I":["Array",8,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",8,"Bit"]],
+          ["I",["Array",8,"BitIn"]]
+        ]],
         "connections":[
           ["self.O.7","self.I.1"],
           ["self.O.6","self.I.3"],
@@ -365,10 +365,10 @@
         ]
       },
       "UnRiffle4":{
-        "type":["Record",{
-          "O":["Array",4,"Bit"],
-          "I":["Array",4,"BitIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",4,"Bit"]],
+          ["I",["Array",4,"BitIn"]]
+        ]],
         "connections":[
           ["self.O.3","self.I.3"],
           ["self.O.2","self.I.1"],
