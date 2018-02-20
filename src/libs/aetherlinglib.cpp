@@ -5,6 +5,7 @@
 #include "aetherlinglib/aeZip2.h"
 #include "aetherlinglib/aeConvN.h"
 #include "aetherlinglib/aeFlattenN.h"
+#include "aetherlinglib/aeDehydrate.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(aetherlinglib);
 
@@ -24,7 +25,7 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     Aetherling_createZipGenerator(c);
     Aetherling_createConvGenerator(c);
     Aetherling_createFlattenGenerator(c);
-    Aetherling_createFlattenGenerator(c);
+    Aetherling_createHydrateAndDehydrateGenerators(c);
 
     // create a generator to convert two argument modules into one argument
     // modules with a fixed constant for one input
