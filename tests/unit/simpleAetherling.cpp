@@ -47,6 +47,7 @@ int main() {
             {"outReduce",c->Bit()->Arr(width)},
             {"outConv1D", c->Bit()->Arr(width)},
             {"outFlatten", outFlattenType->Arr(4)},
+            {"outHydrate", c->Bit()->Arr(width)->Arr(parallelInputs)},
             {"validConv1D", c->Bit()}
         });
     Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInManyOutGenType);
@@ -146,6 +147,16 @@ int main() {
     // wiring up reduce
     testDef->connect("self.in", "reduceAdd.in");
     testDef->connect("reduceAdd.out", "self.outReduce");
+
+    // creating the hydrate and dehydrate
+    Values hydrateParams({
+            {"hydratedType", Const::make(c, c->BitIn()->Arr(width)->Arr(parallelInputs))}
+        });
+    testDef->addInstance("dehydrateTest", "aetherlinglib.dehydrate", hydrateParams);
+    testDef->addInstance("hydrateTest", "aetherlinglib.hydrate", hydrateParams);
+    testDef->connect("self.in", "dehydrateTest.in");
+    testDef->connect("dehydrateTest.out", "hydrateTest.in");
+    testDef->connect("hydrateTest.out", "self.outHydrate");
 
     testModule->setDef(testDef);
     testModule->print();
