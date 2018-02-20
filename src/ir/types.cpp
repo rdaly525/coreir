@@ -125,7 +125,7 @@ void NamedType::print() const {
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Null,c) {
   unordered_set<uint> dirs; // Slight hack because it is not easy to hash enums
   for(auto field : _record) {
-    assert(!isNumber(field.first) && "Cannot have number as record field");
+    checkStringSyntax(field.first);
     record.emplace(field.first,field.second);
     _order.push_back(field.first);
     dirs.insert(field.second->getDir());
@@ -143,6 +143,7 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Nul
 }
 
 RecordType* RecordType::appendField(string label, Type* t) {
+  checkStringSyntax(label);
   ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
   
   RecordParams newParams({{label,t}});

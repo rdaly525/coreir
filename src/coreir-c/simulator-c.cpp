@@ -157,5 +157,11 @@ extern "C" {
     state->setWatchPointByOriginalName(instPath, selects, bv);
   }
 
+  void COREEnSymtable(COREContext* core_ctx) {
+    Context *ctx = rcast<Context*>(core_ctx);
+    ctx->enSymtable();
+  }
+
+
 }//extern "C"
 }//CoreIR namespace

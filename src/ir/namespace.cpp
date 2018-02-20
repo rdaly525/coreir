@@ -11,7 +11,9 @@
 using namespace std;
 
 namespace CoreIR {
-
+Namespace::Namespace(Context* c, std::string name) : c(c), name(name) {
+  checkStringSyntax(name);
+}
 Namespace::~Namespace() {
   for (auto m : moduleList) delete m.second;
   for (auto g : generatorList) delete g.second;
@@ -148,7 +150,6 @@ TypeGen* Namespace::getTypeGen(string name) {
   ASSERT(typeGenList.count(name)>0, "Could not find typegen named " + name);
   return ret;
 }
-
 
 
 Generator* Namespace::newGeneratorDecl(string name,TypeGen* typegen, Params genparams) {

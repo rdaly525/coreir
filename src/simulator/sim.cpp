@@ -651,6 +651,7 @@ namespace CoreIR {
 
     cout << "Unsupported instance = " << inst->toString() << endl;
     assert(false);
+    return nullptr;
   }
 
   void printMemory(const WireNode& wd,
