@@ -100,8 +100,8 @@ clean:
 .PHONY: release
 release:
 	-rm -rf release/include release/lib release/bin
-	$(MAKE) src so
-	$(MAKE) src dylib
+	$(MAKE) -C src so
+	$(MAKE) -C src dylib
 	cp -r include release/.
 	cp -r lib release/.
 	cp -r bin release/.
