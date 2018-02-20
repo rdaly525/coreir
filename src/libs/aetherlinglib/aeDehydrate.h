@@ -12,7 +12,6 @@ using namespace CoreIR;
  * Since same process for dehydrate and hydrate, just wiring in different direction, reusing logic
  */
 void walkTypeTree(ModuleDef* def, uint dehydratedSize, queue<tuple<Type*,string>>& elementsToExamine) {
-    cout << "hi" << endl;
     // go through every type
     for (int curDehydratedIndex = 0; !elementsToExamine.empty();) { 
         // get the next type and its name
@@ -20,7 +19,6 @@ void walkTypeTree(ModuleDef* def, uint dehydratedSize, queue<tuple<Type*,string>
         elementsToExamine.pop();
         Type* curType = get<0>(curElement);
         string curName = get<1>(curElement);
-        //cout << curName << ": " << curType->toString() <<endl;
 
         // add its children elements to the queue if its not a bit, or wire up the bits
         switch(curType->getKind()) {
@@ -51,9 +49,7 @@ void walkTypeTree(ModuleDef* def, uint dehydratedSize, queue<tuple<Type*,string>
             break;
         }
         case Type::TypeKind::TK_Named : {
-            NamedType* curAsNamed = dyn_cast<NamedType>(curType);
-            elementsToExamine.push(make_tuple(curAsNamed->getRaw(), curName));
-            break;
+            ASSERT(0, "hydrating or dehydrating named types not supported");
         }
         default : ASSERT(0, "hydrating or dehydrating invalid type " + curType->toString());
         }
@@ -91,11 +87,8 @@ void Aetherling_createHydrateAndDehydrateGenerators(Context* c) {
         aetherlinglib->newGeneratorDecl("dehydrate", aetherlinglib->getTypeGen("dehydrate_type"), hydrateParams);
 
     dehydrate->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-            Type* inputType = def->sel("self.in")->getType();//c->In(genargs.at("hydratedType")->get<Type*>());
+            Type* inputType = c->In(genargs.at("hydratedType")->get<Type*>());
             uint outputSize = inputType->getSize();
-            cout << "dehydrate self in" << def->sel("self.in")->getType()->toString() << endl;
-            cout << "dehydrate self in2" << c->In(genargs.at("hydratedType")->get<Type*>())->toString() << endl;
-            cout << "dehydrate self out" <<  def->sel("self.out")->getType()->toString() << endl;
             // note: this gets a value for each element, so if an array has n elements, this gets
             // pushed n times
             // the string is the name of the type
@@ -124,15 +117,12 @@ void Aetherling_createHydrateAndDehydrateGenerators(Context* c) {
     hydrate->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             Type* outputType = c->Out(genargs.at("hydratedType")->get<Type*>());
             uint inputSize = outputType->getSize();
-            cout << def->sel("self.in")->getType()->toString() << endl;
-            cout << def->sel("self.out")->getType()->toString() << endl;
             // note: this gets a value for each element, so if an array has n elements, this gets
             // pushed n times
             // the string is the name of the type
             queue<tuple<Type*,string>> elementsToExamine;
             // first element to examine is hydrated output and its name relative to root
             elementsToExamine.push(make_tuple(outputType, "self.out"));
-            cout << "dude" << endl;
             
             walkTypeTree(def, inputSize, elementsToExamine);
         });
