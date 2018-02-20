@@ -318,6 +318,7 @@ namespace CoreIR {
     }
 
     assert(false);
+    return {};
   }
 
 }

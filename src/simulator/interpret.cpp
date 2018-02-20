@@ -1733,7 +1733,6 @@ namespace CoreIR {
 
     // Case 1: The value being requested exists in the simulator code
     if (val != nullptr) {
-      cout << "Flattened graph contains " << name << endl;
       return val;
     }
 
@@ -1742,7 +1741,7 @@ namespace CoreIR {
       SelectPath ent = symTable[name];
       string entName = concatSelects(ent);
 
-      cout << "Entry name = " << entName << endl;
+      //cout << "Entry name = " << entName << endl;
       return getValueByOriginalName(entName);
     }
 
@@ -1751,8 +1750,8 @@ namespace CoreIR {
     //      2. Need to traverse up the type hierarchy
     //      3. Need to traverse down the type hierarchy
 
-    cout << name << " is not a key in the symbol table" << endl;
-    cout << "Selects off of this name" << endl;
+    //cout << name << " is not a key in the symbol table" << endl;
+    //cout << "Selects off of this name" << endl;
     vector<string> postFixes =
       selectsOffOf(name, symTable);
 
@@ -1768,12 +1767,12 @@ namespace CoreIR {
 
         assert(isNumber(lastSelStr));
 
-        cout << sp << endl;
+        //cout << sp << endl;
       }
 
       // At this point we know that the result will be an array
       // We are assuming that it is an array of bits
-      cout << "Result is an array of length " << postFixes.size() << endl;
+      //cout << "Result is an array of length " << postFixes.size() << endl;
 
       BitVector result(postFixes.size());
 
@@ -1803,7 +1802,7 @@ namespace CoreIR {
     string access = namePath.back();
     namePath.pop_back();
 
-    cout << "Getting value of " << concatSelects(namePath) << endl;
+    //cout << "Getting value of " << concatSelects(namePath) << endl;
 
     SimValue* sv = getValueByOriginalName(concatSelects(namePath));
     auto sbv = toSimBitVector(sv);
