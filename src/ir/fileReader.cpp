@@ -253,7 +253,9 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     }
   } catch(std::exception& exc) {
     Error e; 
+    e.message("In file: " + filename);
     e.message(exc.what());
+    
     c->error(e);
     return false;
   }
@@ -290,7 +292,9 @@ ValueType* json2ValueType(Context* c,json j) {
     ASSERT(j[0].get<string>()=="BitVector","Bad string for ValueType");
     return c->BitVector(j[1].get<int>());
   }
+  cout << "{" << j << endl;
   string vs = j.get<string>();
+  cout << "}";
   if (vs=="Bool") {
     return c->Bool();
   }
@@ -334,7 +338,12 @@ Value* json2Value(Context* c, json j,Module* m) {
   switch(vtype->getKind()) {
     case ValueType::VTK_Bool : return Const::make(c,jval.get<bool>());
     case ValueType::VTK_Int : return Const::make(c,jval.get<int>());
-    case ValueType::VTK_BitVector : return Const::make(c,BitVector(cast<BitVectorType>(vtype)->getWidth(),jval.get<uint64_t>()));
+    case ValueType::VTK_BitVector : {
+      ASSERTTHROW(jval.is_string(),toString(jval) + " needs to be a bitvector string <N>'h<value>");
+      auto bv = BitVector(jval.get<string>());
+      assert(bv.bitLength() == cast<BitVectorType>(vtype)->getWidth());
+      return Const::make(c,bv);                                 
+    }
     case ValueType::VTK_String : return Const::make(c,jval.get<string>());
     case ValueType::VTK_CoreIRType : return Const::make(c,json2Type(c,jval));
     case ValueType::VTK_Module : return Const::make(c,c->getModule(jval));
@@ -371,8 +380,10 @@ Type* json2Type(Context* c, json jt) {
     }
     else if (kind == "Record") {
       RecordParams rparams;
-      for (auto it : args[1].get<jsonmap>()) {
-        rparams.push_back({it.first,json2Type(c,it.second)});
+      for (auto it : args[1].get<vector<json>>()) {
+        vector<json> field = it.get<vector<json>>();
+        ASSERT(field.size()==2, "Invalid Record field" + toString(it));
+        rparams.push_back({field[0].get<string>(),json2Type(c,field[1])});
       }
       return c->Record(rparams);
     }

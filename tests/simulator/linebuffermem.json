@@ -3,13 +3,13 @@
   "global":{
     "modules":{
       "lbMem":{
-        "type":["Record",{
-          "clk":["Named","coreir.clkIn"],
-          "wdata":["Array",2,"BitIn"],
-          "rdata":["Array",2,"Bit"],
-          "wen":"BitIn",
-          "valid":"Bit"
-        }],
+        "type":["Record",[
+          ["clk",["Named","coreir.clkIn"]],
+          ["wdata",["Array",2,"BitIn"]],
+          ["rdata",["Array",2,"Bit"]],
+          ["wen","BitIn"],
+          ["valid","Bit"]
+        ]],
         "instances":{
           "m0$add_r":{
             "genref":"coreir.add",
@@ -22,7 +22,7 @@
           "m0$c1":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],1]}
+            "modargs":{"value":[["BitVector",2],"2'h01"]}
           },
           "m0$mem":{
             "genref":"coreir.mem",
@@ -35,7 +35,7 @@
           "m0$raddr$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
-            "modargs":{"init":[["BitVector",2],0]}
+            "modargs":{"init":[["BitVector",2],"2'h00"]}
           },
           "m0$veq":{
             "genref":"coreir.neq",
@@ -48,7 +48,7 @@
           "m0$waddr$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
-            "modargs":{"init":[["BitVector",2],0]}
+            "modargs":{"init":[["BitVector",2],"2'h00"]}
           }
         },
         "connections":[

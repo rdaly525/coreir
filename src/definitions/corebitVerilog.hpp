@@ -17,7 +17,9 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       {"mux","sel ? in1 : in0"},
       {"concat","{in0, in1}"},
       {"const","value"},
-      {"term",""}
+      {"term",""},
+      {"triput","en ? in : 1'bz"},
+      {"triget","in"},
       //{"reg",""}, TODO
     }}
   });
@@ -46,6 +48,15 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     }},
     {"const",{"output out"}},
     {"term",{"input in"}},
+    {"triput",{
+      "input in",
+      "input en",
+      "inout out"
+    }},
+    {"triget",{
+      "inout in",
+      "output out"
+    }},
     {"dff",{
       "input clk",
       "input in",

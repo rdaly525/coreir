@@ -3,17 +3,17 @@
   "global":{
     "modules":{
       "registered_switch":{
-        "type":["Record",{
-          "clk":["Named","coreir.clkIn"],
-          "config_addr":["Array",32,"BitIn"],
-          "config_data":["Array",32,"BitIn"],
-          "config_en":"BitIn",
-          "in_0_0":["Array",2,"BitIn"],
-          "in_2_0":["Array",2,"BitIn"],
-          "in_3_0":["Array",2,"BitIn"],
-          "out_1_0":["Array",2,"Bit"],
-          "pe_output_0":["Array",2,"BitIn"]
-        }],
+        "type":["Record",[
+          ["clk",["Named","coreir.clkIn"]],
+          ["config_addr",["Array",32,"BitIn"]],
+          ["config_data",["Array",32,"BitIn"]],
+          ["config_en","BitIn"],
+          ["in_0_0",["Array",2,"BitIn"]],
+          ["in_2_0",["Array",2,"BitIn"]],
+          ["in_3_0",["Array",2,"BitIn"]],
+          ["out_1_0",["Array",2,"Bit"]],
+          ["pe_output_0",["Array",2,"BitIn"]]
+        ]],
         "instances":{
           "DOLLARautoDOLLARpmuxtreeDOTccCOLON35COLONorgeneratorDOLLAR17op0":{
             "genref":"coreir.or",
@@ -38,7 +38,7 @@
           "DOLLARprocdffDOLLAR12reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",32]},
-            "modargs":{"init":[["BitVector",32],0]}
+            "modargs":{"init":[["BitVector",32],"32'h0"]}
           },
           "DOLLARprocmuxDOLLAR10mux0":{
             "genref":"coreir.mux",
