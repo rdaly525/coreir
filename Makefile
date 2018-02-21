@@ -58,6 +58,7 @@ install: build coreir
 	install -d $(prefix)/include/coreir-c
 	install -d $(prefix)/include/coreir/ir/casting
 	install -d $(prefix)/include/coreir/libs
+	install -d $(prefix)/include/coreir/definitions
 	install -d $(prefix)/include/coreir/passes/analysis
 	install -d $(prefix)/include/coreir/passes/transform
 	install -d $(prefix)/include/coreir/simulator
@@ -67,6 +68,7 @@ install: build coreir
 	install include/coreir/ir/*.h $(prefix)/include/coreir/ir
 	install include/coreir/ir/casting/* $(prefix)/include/coreir/ir/casting
 	install include/coreir/libs/* $(prefix)/include/coreir/libs
+	install include/coreir/definitions/* $(prefix)/include/coreir/definitions
 	install include/coreir/passes/*.h $(prefix)/include/coreir/passes
 	install include/coreir/passes/analysis/* $(prefix)/include/coreir/passes/analysis
 	install include/coreir/passes/transform/* $(prefix)/include/coreir/passes/transform
