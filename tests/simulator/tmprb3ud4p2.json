@@ -3,12 +3,12 @@
   "global":{
     "modules":{
       "Add2_cout":{
-        "type":["Record",{
-          "I0":["Array",2,"BitIn"],
-          "I1":["Array",2,"BitIn"],
-          "O":["Array",2,"Bit"],
-          "COUT":"Bit"
-        }],
+        "type":["Record",[
+          ["I0",["Array",2,"BitIn"]],
+          ["I1",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]],
+          ["COUT","Bit"]
+        ]],
         "instances":{
           "bit_const_GND":{
             "modref":"corebit.const",
@@ -32,11 +32,11 @@
         ]
       },
       "Counter2":{
-        "type":["Record",{
-          "O":["Array",2,"Bit"],
-          "COUT":"Bit",
-          "CLK":["Named","coreir.clkIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",2,"Bit"]],
+          ["COUT","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
         "instances":{
           "bit_const_GND":{
             "modref":"corebit.const",
@@ -64,16 +64,16 @@
         ]
       },
       "DFF_init0_has_ceFalse_has_resetFalse":{
-        "type":["Record",{
-          "I":"BitIn",
-          "O":"Bit",
-          "CLK":["Named","coreir.clkIn"]
-        }],
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
         "instances":{
           "inst0":{
             "genref":"mantle.reg",
             "genargs":{"has_clr":["Bool",false], "has_en":["Bool",false], "has_rst":["Bool",false], "width":["Int",1]},
-            "modargs":{"init":[["BitVector",1],0]}
+            "modargs":{"init":[["BitVector",1],"1'h0"]}
           }
         },
         "connections":[
@@ -83,11 +83,11 @@
         ]
       },
       "Register2":{
-        "type":["Record",{
-          "I":["Array",2,"BitIn"],
-          "O":["Array",2,"Bit"],
-          "CLK":["Named","coreir.clkIn"]
-        }],
+        "type":["Record",[
+          ["I",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.DFF_init0_has_ceFalse_has_resetFalse"
@@ -106,11 +106,11 @@
         ]
       },
       "simple":{
-        "type":["Record",{
-          "O":["Array",2,"Bit"],
-          "COUT":"Bit",
-          "CLK":["Named","coreir.clkIn"]
-        }],
+        "type":["Record",[
+          ["O",["Array",2,"Bit"]],
+          ["COUT","Bit"],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
         "instances":{
           "inst0":{
             "modref":"global.Counter2"

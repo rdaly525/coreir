@@ -28,6 +28,10 @@ typedef std::set<Connection,ConnectionComp> Connections;
 bool isNumber(std::string s);
 bool isPower2(uint n);
 
+
+//Used to make sure string formats are valid for inst names, module names, etc
+void checkStringSyntax(std::string str);
+
 //Checks that the values are of the correct names and types
 void checkValuesAreParams(Values args, Params params);
 

@@ -1464,30 +1464,30 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVec(4, "0010"));
     }
 
-    SECTION("Magma fifo example") {
+    //SECTION("Magma fifo example") {
 
-      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+    //  Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
-      if (!loadFromFile(c,"./fifo_magma_json.json")) {
-    	cout << "Could not Load from json!!" << endl;
-    	c->die();
-      }
+    //  if (!loadFromFile(c,"./fifo_magma_json.json")) {
+    //	cout << "Could not Load from json!!" << endl;
+    //	c->die();
+    //  }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
-      
-      Module* fifoMod = g->getModule("Fifo");
-      SimulatorState state(fifoMod);
-      // state.setValue("self.wdata", BitVector(4, "1010"));
-      // state.setValue("self.wen", BitVector(4, "1"));
-      // state.setValue("self.ren", BitVector(4, "0"));
-      // state.resetCircuit();
+    //  c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
+    //  
+    //  Module* fifoMod = g->getModule("Fifo");
+    //  SimulatorState state(fifoMod);
+    //  // state.setValue("self.wdata", BitVector(4, "1010"));
+    //  // state.setValue("self.wen", BitVector(4, "1"));
+    //  // state.setValue("self.ren", BitVector(4, "0"));
+    //  // state.resetCircuit();
 
-      // state.setClock("self.CLK", 0, 1);
+    //  // state.setClock("self.CLK", 0, 1);
 
-      // state.execute();
+    //  // state.execute();
 
-      // REQUIRE(state.isSet("self.wdata"));
-    }
+    //  // REQUIRE(state.isSet("self.wdata"));
+    //}
     
     deleteContext(c);
   }
