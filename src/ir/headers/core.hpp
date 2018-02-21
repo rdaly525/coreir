@@ -294,8 +294,8 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
     }
   }
   
-  TypeGen* triputTG = core->newTypeGen(
-    "triPut",
+  TypeGen* tribufTG = core->newTypeGen(
+    "triBuf",
     widthparams,
     [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
@@ -306,10 +306,10 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
       });
     }
   );
-  core->newGeneratorDecl("triput",triputTG,widthparams);
+  core->newGeneratorDecl("tribuf",tribufTG,widthparams);
   
-  TypeGen* trigetTG = core->newTypeGen(
-    "triGet",
+  TypeGen* ibufTG = core->newTypeGen(
+    "iBuf",
     widthparams,
     [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
@@ -319,8 +319,30 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
       });
     }
   );
-  core->newGeneratorDecl("triget",trigetTG,widthparams);
+  core->newGeneratorDecl("ibuf",ibufTG,widthparams);
   
+  core->newTypeGen(
+    "pullResistor",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+
+      return c->Record({
+        {"out",c->BitInOut()->Arr(width)}
+      });
+    }
+  );
+  
+  auto pullresistorModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    int width = genargs.at("width")->get<int>();
+    Params modparams;
+    modparams["value"] = BitVectorType::make(c,width);
+    return {modparams,Values()};
+  };
+
+  auto pr = core->newGeneratorDecl("pullresistor",core->getTypeGen("pullResistor"),widthparams);
+  pr->setModParamsGen(pullresistorModParamFun);
+
 
   /////////////////////////////////
   // Stdlib stateful primitives
