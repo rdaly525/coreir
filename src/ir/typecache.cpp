@@ -53,6 +53,12 @@ ArrayType* TypeCache::getArray(uint len, Type* t) {
   if (ArrayCache.count(t) && ArrayCache[t].count(len)) {
     return ArrayCache[t][len];
   } 
+  else if (t->isInOut()) {
+    ArrayType* a = new ArrayType(c,t,len);
+    a->setFlipped(a);
+    ArrayCache[t][len] = a;
+    return a;
+  }
   else {
     ArrayType* a = new ArrayType(c,t,len);
     ArrayType* af = new ArrayType(c,c->Flip(t),len);
@@ -72,6 +78,13 @@ RecordType* TypeCache::getRecord(RecordParams params) {
   else {
     RecordType* r = new RecordType(c,params);
     
+    //Inout just needs a single type
+    if (r->isInOut()) {
+      r->setFlipped(r);
+      RecordCache.emplace(params,r);
+      return r;
+    }
+
     // Create params for flipped
     RecordParams paramsF;
     for (auto p : params) {
