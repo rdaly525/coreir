@@ -34,8 +34,14 @@ int main() {
 
   io->setDef(def);
 
+  cout << "Before splitting" << endl;
+  io->print();
+
   c->runPasses({"split-inouts"});
 
+  cout << "After splitting" << endl;
+  io->print();
+  
   assert(def->getInstances().size() == 1);
   
   deleteContext(c);
