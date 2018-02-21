@@ -4,16 +4,16 @@
 #include "coreir.h"
 
 namespace CoreIR {
-namespace Passes {
+  namespace Passes {
 
-class SplitInouts : public InstanceGraphPass {
-  private :
-    Type* clockType; 
-  public:
-  SplitInouts(std::string name) : InstanceGraphPass(name, "Break up each inout port into an input port and an output port") {}
-  bool runOnInstanceGraphNode(InstanceGraphNode& node);
-};
+    class SplitInouts : public InstanceGraphPass {
+    private :
 
-}
+    public:
+      SplitInouts(std::string name) : InstanceGraphPass(name, "Break up each inout port into an input port and an output port") {}
+      bool runOnInstanceGraphNode(InstanceGraphNode& node);
+    };
+
+  }
 }
 #endif

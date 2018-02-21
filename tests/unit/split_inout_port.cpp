@@ -35,8 +35,8 @@ int main() {
   io->setDef(def);
 
   c->runPasses({"split-inouts"});
+
+  assert(def->getInstances().size() == 1);
   
   deleteContext(c);
-
-  assert(false);
 }
