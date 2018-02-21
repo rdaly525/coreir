@@ -2,6 +2,8 @@
 #include "cxxopts.hpp"
 #include <dlfcn.h>
 #include <fstream>
+#include <sys/utsname.h>
+
 
 #include "coreir/passes/analysis/smtlib2.h"
 #include "coreir/passes/analysis/smv.h"
@@ -19,11 +21,58 @@
 using namespace std;
 using namespace CoreIR;
 
+
 string getExt(string s) {
   auto split = splitString<vector<string>>(s,'.');
   ASSERT(split.size()>=2,"File needs extention: " + s);
   return split[split.size()-1];
 }
+
+bool fileExists(string name) {
+  std:: ifstream infile(name);
+  return infile.good();
+}
+
+void parseLib(string lib,string& libname,string& filename,vector<string>& lpaths) {
+  struct utsname unameData;
+  uname(&unameData);
+  string osname = unameData.sysname;
+  cout << "osname " << osname << endl;
+  string ext;
+  if (osname=="Darwin") {
+    ext = "dylib";
+  }
+  else if (osname=="Linux") {
+    ext = "so";
+  }
+  else {
+    ASSERT(0,"Cannot support OS " + osname);
+  }
+  
+  vector<string> f1parse = splitString<vector<string>>(lib,'/');
+  string libfile = f1parse[f1parse.size()-1];
+  vector<string> f2parse = splitString<vector<string>>(libfile,'.');
+  
+  if (f1parse.size()==1 && f2parse.size()==1) { //Just passed in the name of the library
+    libname = lib;
+    string filecheck = "libcoreir-" + libname + "." + ext;
+    for (auto path : lpaths) {
+      filename = path + "/" + filecheck;
+      if (fileExists(filename)) {
+        return;
+      }
+    }
+    ASSERT(0,"Cannot find lib " + lib);
+  }
+  else if (f2parse.size()==2 && f2parse[1]==ext) {
+    libname = f2parse[0].substr(10,f2parse[0].length()-10);
+    filename = lib;
+    ASSERT(fileExists(filename),"Cannot find lib " +lib);
+    return;
+  }
+  ASSERT(0,"Cannot find lib " + lib);
+}
+
 
 typedef std::map<std::string,std::pair<void*,Pass*>> OpenPassHandles_t;
 typedef std::map<std::string,std::pair<void*,Namespace*>> OpenLibHandles_t;
@@ -68,7 +117,7 @@ int main(int argc, char *argv[]) {
     ("o,output","output file: <file>.<json|fir|v|py|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
-    ("l,load_libs","external libs: '<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",cxxopts::value<std::string>())
+    ("l,load_libs","external libs: '<libname0>,<path/libname1.so>,<libname2>,...'",cxxopts::value<std::string>())
     ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
     ("t,top","top: <namespace>.<modulename>",cxxopts::value<std::string>())
     ;
@@ -106,17 +155,23 @@ int main(int argc, char *argv[]) {
   }
   
   if (options.count("l")) {
-    vector<string> files = splitString<vector<string>>(options["l"].as<string>(),',');
-    for (auto file : files) {
-      vector<string> f1parse = splitString<vector<string>>(file,'/');
-      string libfile = f1parse[f1parse.size()-1];
-      vector<string> f2parse = splitRef(libfile);
-      ASSERT(f2parse[1]=="so" || f2parse[1]=="dylib","Bad file: " + file);
-      string libname = f2parse[0].substr(10,f2parse[0].length()-10);
+    vector<string> lpaths = {"/usr/local/lib","/usr/lib"};
+    if (auto lpath = std::getenv("LD_LIBRARY_PATH")) {
+      lpaths.push_back(lpath);
+    }
+    if (auto lpath = std::getenv("DYLD_LIBRARY_PATH")) {
+      lpaths.push_back(lpath);
+    }
+    vector<string> libs = splitString<vector<string>>(options["l"].as<string>(),',');
+    for (auto lib : libs) {
+      
+      string libname;
+      string filename;
+      parseLib(lib,libname,filename,lpaths);
 
-      ASSERT(openLibHandles.count(file)==0,"Cannot REopen " + file);
-      void* libHandle = dlopen(file.c_str(),RTLD_LAZY);
-      ASSERT(libHandle,"Cannot open file: " + file);
+      ASSERT(openLibHandles.count(filename)==0,"Cannot REopen " + filename);
+      void* libHandle = dlopen(filename.c_str(),RTLD_LAZY);
+      ASSERT(libHandle,"Cannot open file: " + filename);
       dlerror();
       //Load the Libraries
       string funname = "ExternalLoadLibrary_"+libname;
@@ -128,8 +183,8 @@ int main(int argc, char *argv[]) {
         return 1;
       }
       Namespace* ns = loadLib(c);
-      ASSERT(ns,"NS is null in file " + file);
-      openLibHandles[file] = {libHandle,ns};
+      ASSERT(ns,"NS is null in file " + filename);
+      openLibHandles[filename] = {libHandle,ns};
     }
   }
   
