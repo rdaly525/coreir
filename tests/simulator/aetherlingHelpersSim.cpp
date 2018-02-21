@@ -52,9 +52,10 @@ namespace CoreIR {
 
             def->addInstance("hydrate", "aetherlinglib.hydrate",
                                        {{"hydratedType", Const::make(c, twoArrays)}});
-                        
+
             def->connect(el0InputModule + ".out", "dehydrate.in.container.el0");
             def->connect(el1InputModule + ".out", "dehydrate.in.container.el1");
+            def->connect("dehydrate.out", "hydrate.in");
             def->connect("hydrate.out", "self.out");
 
             mainModule->setDef(def);
