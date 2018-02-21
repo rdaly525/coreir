@@ -29,15 +29,14 @@ string getExt(string s) {
 }
 
 bool fileExists(string name) {
-  std:: ifstream infile(name);
+  std::ifstream infile(name);
   return infile.good();
 }
 
 void parseLib(string lib,string& libname,string& filename,vector<string>& lpaths) {
   struct utsname unameData;
-  uname(&unameData);
+  assert(!uname(&unameData));
   string osname = unameData.sysname;
-  cout << "osname " << osname << endl;
   string ext;
   if (osname=="Darwin") {
     ext = "dylib";
@@ -62,7 +61,7 @@ void parseLib(string lib,string& libname,string& filename,vector<string>& lpaths
         return;
       }
     }
-    ASSERT(0,"Cannot find lib " + lib);
+    ASSERT(0,"Cannot find lib " + lib + " in the following paths\n" + join(lpaths.begin(),lpaths.end(),string("\n")));
   }
   else if (f2parse.size()==2 && f2parse[1]==ext) {
     libname = f2parse[0].substr(10,f2parse[0].length()-10);
@@ -156,10 +155,10 @@ int main(int argc, char *argv[]) {
   
   if (options.count("l")) {
     vector<string> lpaths = {"/usr/local/lib","/usr/lib"};
-    if (auto lpath = std::getenv("LD_LIBRARY_PATH")) {
+    if (auto lpath = std::getenv("DYLD_LIBRARY_PATH")) {
       lpaths.push_back(lpath);
     }
-    if (auto lpath = std::getenv("DYLD_LIBRARY_PATH")) {
+    if (auto lpath = std::getenv("LD_LIBRARY_PATH")) {
       lpaths.push_back(lpath);
     }
     vector<string> libs = splitString<vector<string>>(options["l"].as<string>(),',');
