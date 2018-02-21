@@ -322,7 +322,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   core->newGeneratorDecl("ibuf",ibufTG,widthparams);
   
   core->newTypeGen(
-    "pullresistor",
+    "pullResistor",
     widthparams,
     [](Context* c, Values args) {
       uint width = args.at("width")->get<int>();
@@ -340,7 +340,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
     return {modparams,Values()};
   };
 
-  auto pr = core->newGeneratorDecl("pullresistor",core->getTypeGen("out"),widthparams);
+  auto pr = core->newGeneratorDecl("pullresistor",core->getTypeGen("pullResistor"),widthparams);
   pr->setModParamsGen(pullresistorModParamFun);
 
 

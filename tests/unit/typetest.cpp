@@ -12,7 +12,10 @@ int main() {
   assert(c->BitIn() == c->BitIn());
   assert(c->Bit() == c->Bit());
   assert(c->BitIn() == c->Flip(c->Bit()));
+  
   assert(c->BitInOut() == c->Flip(c->BitInOut()));
+  assert(c->BitInOut()->Arr(5) == c->Flip(c->BitInOut()->Arr(5)));
+  assert(c->Record({{"a",c->BitInOut()}}) == c->Flip(c->Record({{"a",c->BitInOut()}})));
 
 
   // Test out Named Types

@@ -22,9 +22,9 @@ int main() {
   ModuleDef* def = md->newModuleDef();
 
   def->addInstance("not0","corebit.not");
-  def->addInstance("tp0","coreir.triput",{{"width",Const::make(c,width)}});
-  def->addInstance("tp1","coreir.triput",{{"width",Const::make(c,width)}});
-  def->addInstance("tg","coreir.triget",{{"width",Const::make(c,width)}});
+  def->addInstance("tp0","coreir.tribuf",{{"width",Const::make(c,width)}});
+  def->addInstance("tp1","coreir.tribuf",{{"width",Const::make(c,width)}});
+  def->addInstance("tg","coreir.ibuf",{{"width",Const::make(c,width)}});
 
   def->connect("self.sel", "not0.in");
   def->connect("self.sel", "tp1.en");
