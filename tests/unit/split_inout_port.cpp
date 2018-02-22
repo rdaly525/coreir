@@ -44,6 +44,22 @@ int main() {
 
   assert(def->getInstances().size() == 1);
 
-  assert(false);
+  SimulatorState sim(io);
+
+  sim.setValue("self.en", BitVector(1, 0));
+  sim.setValue("self.io_output", BitVector(1, 1));
+  sim.setValue("self.to_io", BitVector(1, 0));
+
+  sim.execute();
+
+  assert(sim.getBitVec("self.from_io") == BitVector(1, 1));
+
+  sim.setValue("self.en", BitVector(1, 1));
+
+  sim.execute();
+
+  assert(sim.getBitVec("self.from_io") == BitVector(1, 0));
+  assert(sim.getBitVec("self.io_input") == BitVector(1, 0));
+  
   deleteContext(c);
 }
