@@ -12,6 +12,10 @@ int main() {
   assert(c->BitIn() == c->BitIn());
   assert(c->Bit() == c->Bit());
   assert(c->BitIn() == c->Flip(c->Bit()));
+  
+  assert(c->BitInOut() == c->Flip(c->BitInOut()));
+  assert(c->BitInOut()->Arr(5) == c->Flip(c->BitInOut()->Arr(5)));
+  assert(c->Record({{"a",c->BitInOut()}}) == c->Flip(c->Record({{"a",c->BitInOut()}})));
 
 
   // Test out Named Types
@@ -40,8 +44,10 @@ int main() {
   vector<Type*> ts = {
     c->BitIn(),
     c->Bit(),
+    c->BitInOut(),
     c->Array(5,c->BitIn()),
     c->Array(6,c->Bit())->Arr(5)->Arr(3)->Arr(2),
+    c->BitInOut()->Arr(13),
     c->Record({{"a",c->BitIn()},{"b",c->Array(8,c->Bit())}}),
     Inta,
     Intb,
