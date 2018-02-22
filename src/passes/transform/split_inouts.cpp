@@ -105,24 +105,53 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
         def->connect(f, s);
       }
 
-      // for (auto conn : triBufConns) {
-      //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
-      //   Wireable* f = replaceSelect(tristateBuf->sel("in"),
-      //                               outputPort,
-      //                               conn.first);
 
-      //   Wireable* s = replaceSelect(tristateBuf->sel("in"),
-      //                               outputPort,
-      //                               conn.second);
+      vector<Select*> tribufSels = getSourceSelects(tristateBuf->sel("in"));
+      // TODO: Eventually support arbitrary width connections
+      assert(tribufSels.size() == 1);
 
-      //   def->connect(f, s);
-      // }
-      
+      auto triBufDriver = tribufSels[0];
+      def->connect(triBufDriver, inputPort);
+
+      // Wire tricast output receivers to the triput output receivers to
+      // the mux output
+      //auto triBufConns = getSourceConnections(tristateBuf->sel("in"));
+      //cout << "Tristatebuf conns size = " << triBufConns.size() << endl;
+      auto triCastConns = getReceiverConnections(tristateCast->sel("out"));
+      cout << "Tri cast conns = " << triCastConns.size() << endl;
+      vector<Connection> freshConns;
+      for (auto conn : triCastConns) {
+        cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+        Wireable* f = replaceSelect(tristateCast->sel("out"),
+                                    mux->sel("out"),
+                                    conn.first);
+
+        Wireable* s = replaceSelect(tristateCast->sel("out"),
+                                    mux->sel("out"),
+                                    conn.second);
+
+        //def->connect(f, s);
+        freshConns.push_back({f, s});
+      }
+
+      for (auto conn : triCastConns) {
+        def->disconnect(conn);
+      }
+
+      for (auto conn : freshConns) {
+        def->connect(conn.first, conn.second);
+      }
+
       // tristateBuf en to mux select
       auto enSels = getSourceSelects(tristateBuf->sel("en"));
       assert(enSels.size() == 1);
       
       def->connect(mux->sel("sel"), enSels[0]);
+
+      def->removeInstance(tristateBuf);
+      def->removeInstance(tristateCast);
+
+      node.detachField(portName);
       
     }
   }
