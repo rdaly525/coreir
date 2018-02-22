@@ -10,10 +10,10 @@
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
 
-#include "../definitions/coreVerilog.hpp" //TODO move this
-#include "../definitions/corebitVerilog.hpp" //TODO move this
-#include "../definitions/coreFirrtl.hpp" //TODO move this
-#include "../definitions/corebitFirrtl.hpp" //TODO move this
+#include "coreir/definitions/coreVerilog.hpp"
+#include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/definitions/coreFirrtl.hpp"
+#include "coreir/definitions/corebitFirrtl.hpp"
 
 
 using namespace std;
