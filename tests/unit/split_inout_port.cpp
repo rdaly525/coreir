@@ -41,8 +41,8 @@ int main() {
 
   cout << "After splitting" << endl;
   io->print();
-  
+
   assert(def->getInstances().size() == 1);
-  
+
   deleteContext(c);
 }

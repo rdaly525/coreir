@@ -44,6 +44,51 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
       // Add array connections
       def->connect(mux->sel("in0")->sel(0), outputPort);
+      // Connect mux->sel("in1") to inputPort
+
+      // Get all connections
+      vector<Select*> srcs = getSourceSelects(ioPort);
+      assert(srcs.size() == 0);
+      
+      vector<Select*> receivers = getReceiverSelects(ioPort);
+      assert(receivers.size() == 0);
+
+      vector<Select*> ios = getIOSelects(ioPort);
+      cout << "IO selects" << endl;
+      for (auto io : ios) {
+        cout << "\t" << io->toString() << endl;
+      }
+
+      set<Instance*> ioSources;
+      for (auto io : ios) {
+        Wireable* src = extractSource(io);
+        assert(isa<Instance>(src));
+
+        ioSources.insert(cast<Instance>(src));
+      }
+
+      assert(ioSources.size() == 2);
+
+      Instance* tristateBuf = nullptr;
+      Instance* tristateCast = nullptr;
+
+      cout << "IO sources" << endl;
+      for (auto ioSrc : ioSources) {
+        cout << "\t" << ioSrc->toString() << endl;
+
+        if (getQualifiedOpName(*ioSrc) == "coreir.triput") {
+          tristateBuf = ioSrc;
+        } else if (getQualifiedOpName(*ioSrc) == "coreir.triget") {
+          tristateCast = ioSrc;
+        }
+      }
+
+      
+      assert(tristateBuf != nullptr);
+      assert(tristateCast != nullptr);
+
+      
+      
     }
   }
   return false;
