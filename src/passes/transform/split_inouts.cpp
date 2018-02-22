@@ -83,11 +83,46 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
         }
       }
 
-      
+      // Note: Need to check whether the connections between inouts are full
+      // connections or partial as well
+
       assert(tristateBuf != nullptr);
       assert(tristateCast != nullptr);
 
+      // tristateBuffer inputs to mux in1
+      auto triBufConns = getSourceConnections(tristateBuf->sel("in"));
+      cout << "Tristatebuf conns size = " << triBufConns.size() << endl;
+      for (auto conn : triBufConns) {
+        cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+        Wireable* f = replaceSelect(tristateBuf->sel("in"),
+                                  mux->sel("in1"),
+                                  conn.first);
+
+        Wireable* s = replaceSelect(tristateBuf->sel("in"),
+                                  mux->sel("in1"),
+                                  conn.second);
+
+        def->connect(f, s);
+      }
+
+      // for (auto conn : triBufConns) {
+      //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+      //   Wireable* f = replaceSelect(tristateBuf->sel("in"),
+      //                               outputPort,
+      //                               conn.first);
+
+      //   Wireable* s = replaceSelect(tristateBuf->sel("in"),
+      //                               outputPort,
+      //                               conn.second);
+
+      //   def->connect(f, s);
+      // }
       
+      // tristateBuf en to mux select
+      auto enSels = getSourceSelects(tristateBuf->sel("en"));
+      assert(enSels.size() == 1);
+      
+      def->connect(mux->sel("sel"), enSels[0]);
       
     }
   }

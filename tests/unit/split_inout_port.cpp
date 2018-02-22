@@ -44,5 +44,6 @@ int main() {
 
   assert(def->getInstances().size() == 1);
 
+  assert(false);
   deleteContext(c);
 }
