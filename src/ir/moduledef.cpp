@@ -268,7 +268,11 @@ Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
 
 //This will remove all connections from a specific wireable
 void ModuleDef::disconnect(Wireable* w) {
+  vector<Wireable*> toDelete;
   for (auto wc : w->getConnectedWireables()) {
+    toDelete.push_back(wc);
+  }
+  for (auto wc : toDelete) {
     this->disconnect(w,wc);
   }
 }

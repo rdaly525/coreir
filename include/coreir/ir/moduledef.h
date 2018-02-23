@@ -40,7 +40,7 @@ class ModuleDef {
     ModuleDef(Module* m);
     ~ModuleDef();
     const std::map<std::string,Instance*>& getInstances(void) const { return instances;}
-    std::set<Connection,ConnectionComp> getConnections(void) { return connections; }
+    const std::set<Connection,ConnectionComp>& getConnections(void) const { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     
@@ -98,7 +98,7 @@ class ModuleDef {
 
     //API for deleting an instance
     //This will also delete all connections from all connected things
-    ////Note these will invalidate iterators! Be careful on for loops
+    ////Note these will invalidate iterators from the following: getInstances(), getConnections(), getConnectedWireables()
     void removeInstance(std::string inst);
     void removeInstance(Instance* inst);
 
