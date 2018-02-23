@@ -307,7 +307,7 @@ namespace CoreIR {
       int len = arrTp->getLen();
 
       for (int i = 0; i < len; i++) {
-        concat(unpackedConns, unpackConnection({fst->sel(i), snd->sel(i)}));
+        concat(unpackedConns, unpackConnection(connectionCtor(fst->sel(i), snd->sel(i))));
       }
 
       return unpackedConns;

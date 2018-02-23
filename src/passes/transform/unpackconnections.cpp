@@ -22,7 +22,9 @@ string Passes::UnpackConnections::ID = "unpackconnections";
       toDelete.push_back(conn);
 
       for (auto& connR : unpacked) {
-        def->connect(connR.first, connR.second);
+        if (!def->hasConnection(connR.first,connR.second)) {
+          def->connect(connR.first, connR.second);
+        }
       }
     }
     for (auto conn : toDelete) {
