@@ -12,6 +12,8 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
 
   Context* c = module->getDef()->getContext();
+
+  bool changed = false;
   
   map<Select*, Select*> inoutsToOuts;
   map<Select*, Select*> inoutsToIns;
@@ -152,8 +154,8 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
       def->removeInstance(tristateCast);
 
       node.detachField(portName);
-      
+      changed = true;
     }
   }
-  return false;
+  return changed;
 }

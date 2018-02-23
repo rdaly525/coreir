@@ -1451,7 +1451,6 @@ namespace CoreIR {
   }
 
   void SimulatorState::resetCircuit() {
-
     exeCombinational();
   }
 
