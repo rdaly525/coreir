@@ -307,7 +307,7 @@ namespace CoreIR {
       int len = arrTp->getLen();
 
       for (int i = 0; i < len; i++) {
-        concat(unpackedConns, unpackConnection({fst->sel(i), snd->sel(i)}));
+        concat(unpackedConns, unpackConnection(connectionCtor(fst->sel(i), snd->sel(i))));
       }
 
       return unpackedConns;
@@ -379,7 +379,7 @@ namespace CoreIR {
 
     auto def = mod->getDef();
 
-    Instance* inst = def->getInstances()[instanceName];
+    Instance* inst = def->getInstances().at(instanceName);
     assert(inst != nullptr);
     assert(getQualifiedOpName(*inst) == "coreir.reg");
 
