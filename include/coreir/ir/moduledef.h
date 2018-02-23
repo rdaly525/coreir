@@ -98,6 +98,7 @@ class ModuleDef {
 
     //API for deleting an instance
     //This will also delete all connections from all connected things
+    ////Note these will invalidate iterators! Be careful on for loops
     void removeInstance(std::string inst);
     void removeInstance(Instance* inst);
 

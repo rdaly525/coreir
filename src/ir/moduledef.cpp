@@ -27,7 +27,7 @@ ModuleDef::~ModuleDef() {
 void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
-  for (auto inst : instances) {
+  for (auto inst : this->getInstances()) {
     Module* mref = inst.second->getModuleRef();
     if (mref->isGenerated()) {
       cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << ::CoreIR::toString(mref->getGenArgs()) << endl;
