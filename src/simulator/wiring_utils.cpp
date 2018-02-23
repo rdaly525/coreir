@@ -379,7 +379,7 @@ namespace CoreIR {
 
     auto def = mod->getDef();
 
-    Instance* inst = def->getInstances()[instanceName];
+    Instance* inst = def->getInstances().at(instanceName);
     assert(inst != nullptr);
     assert(getQualifiedOpName(*inst) == "coreir.reg");
 
