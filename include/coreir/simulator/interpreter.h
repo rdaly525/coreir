@@ -43,6 +43,8 @@ namespace CoreIR {
     virtual ~SimValue() {}
 
     virtual SimValueType getType() const = 0;
+
+    virtual bool operator==(const SimValue& other) const = 0;
   };
 
   class SimBitVector : public SimValue {
@@ -55,6 +57,15 @@ namespace CoreIR {
     BitVec getBits() const { return bv; }
 
     virtual SimValueType getType() const { return SIM_VALUE_BV; }
+
+    virtual bool operator==(const SimValue& other) const {
+      if (other.getType() != SIM_VALUE_BV) {
+        return false;
+      }
+      const SimBitVector& otherBit = static_cast<const SimBitVector&>(other);
+
+      return this->getBits() == otherBit.getBits();
+    }
   };
 
   class ClockValue : public SimValue {
@@ -80,6 +91,18 @@ namespace CoreIR {
     int getHalfCycleCount() const { return halfCycleCount; }
 
     virtual SimValueType getType() const { return SIM_VALUE_CLK; }
+
+    virtual bool operator==(const SimValue& other) const {
+      if (other.getType() != SIM_VALUE_CLK) {
+        return false;
+      }
+      const ClockValue& otherBit = static_cast<const ClockValue&>(other);
+
+      // Q: Should we compare half cycle counts?
+      return (this->value() == otherBit.value()) &&
+        (this->lastValue() == otherBit.lastValue());
+    }
+    
   };
 
   class LinebufferMemory {

@@ -1526,6 +1526,7 @@ namespace CoreIR {
         }
       }
 
+      CircuitState lastState = getCircStates().back();
       while (freshNodes.size() > 0) {
         vdisc vd = *std::begin(freshNodes);
         Wireable* w = gr.getNode(vd).getWire();
@@ -1536,13 +1537,21 @@ namespace CoreIR {
         // Need to update and check whether the update actually changed any of
         // the outputs of this wire
 
-        // map<Select*, SimValue*> oldVals;
-        // for (auto s : ) {
-        // }
-        
-        bool outputsChanged = true;
+        // How to deal with checking outputs here?
+        Select* out = w->sel("out");
+        SimValue* v = lastState.valMap[out];
+
         updateNodeValues(vd);
-        
+
+        SimValue* vNext = lastState.valMap[out];
+
+        bool outputsChanged = false;
+        if (v == nullptr) {
+          outputsChanged = true;
+        } else {
+          outputsChanged = *vNext == *v;
+        }
+
         if (!outputsChanged) {
           continue;
         }
