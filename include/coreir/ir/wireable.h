@@ -79,6 +79,7 @@ class Wireable : public MetaData {
     Wireable* getTopParent();
 
     //removes the select from this wireble.
+    //Note this invalides iterators from getSelects()
     void removeSel(std::string selStr);
 
 
