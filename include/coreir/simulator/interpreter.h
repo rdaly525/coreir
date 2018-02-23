@@ -45,6 +45,10 @@ namespace CoreIR {
     virtual SimValueType getType() const = 0;
 
     virtual bool operator==(const SimValue& other) const = 0;
+
+    virtual bool operator!=(const SimValue& other) const {
+      return !((*this) == other);
+    }
   };
 
   class SimBitVector : public SimValue {

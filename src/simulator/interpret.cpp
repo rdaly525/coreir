@@ -1514,7 +1514,7 @@ namespace CoreIR {
       }
     } else {
 
-      ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
+      //ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
 
       set<vdisc> freshNodes;
       // Initially all inputs are fresh
@@ -1532,24 +1532,28 @@ namespace CoreIR {
         Wireable* w = gr.getNode(vd).getWire();
         freshNodes.erase(vd);
 
+        unordered_map<Select*, SimValue*> oldVals = lastState.valMap;
         assert(gr.containsOpNode(w));
 
         // Need to update and check whether the update actually changed any of
         // the outputs of this wire
 
-        // How to deal with checking outputs here?
-        Select* out = w->sel("out");
-        SimValue* v = lastState.valMap[out];
-
         updateNodeValues(vd);
 
-        SimValue* vNext = lastState.valMap[out];
+        unordered_map<Select*, SimValue*> currentVals = lastState.valMap;
 
+        // This check doesnt deal with changed inputs.
         bool outputsChanged = false;
-        if (v == nullptr) {
+        if (currentVals.size() != oldVals.size()) {
           outputsChanged = true;
         } else {
-          outputsChanged = *vNext == *v;
+          for (auto v : oldVals) {
+            assert(contains_key(v.first, currentVals));
+            if (*(v.second) != *(currentVals.find(v.first)->second)) {
+              outputsChanged = true;
+              break;
+            }
+          }
         }
 
         if (!outputsChanged) {
