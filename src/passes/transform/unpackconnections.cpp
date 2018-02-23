@@ -16,6 +16,8 @@ string Passes::UnpackConnections::ID = "unpackconnections";
 
     ModuleDef* def = mod->getDef();
     vector<Connection> toDelete;
+    vector<Connection> toConnect;
+
     for (auto& conn : def->getConnections()) {
       auto unpacked = unpackConnection(conn);
 
@@ -23,12 +25,16 @@ string Passes::UnpackConnections::ID = "unpackconnections";
 
       for (auto& connR : unpacked) {
         if (!def->hasConnection(connR.first,connR.second)) {
-          def->connect(connR.first, connR.second);
+          //def->connect(connR.first, connR.second);
+          toConnect.push_back({connR.first, connR.second});
         }
       }
     }
     for (auto conn : toDelete) {
       def->disconnect(conn);
+    }
+    for (auto conn : toConnect) {
+      def->connect(conn.first, conn.second);
     }
 
     return true;
