@@ -21,12 +21,10 @@ void Aetherling_createMapGenerator(Context* c) {
      * parallelOperatrs - how many operators to have in parallel
      * operator - the operator to parallelize. Note that it must have one input known as "in" and 
      * one output known as "out"
-     * parallelism - number of inputs to processes in one cycle. At this time, numInputs % parallelism == 0
      */
-    Params mapParams = Params({
+    Params mapSeqParParams = Params({
             {"numInputs", c->Int()},
             {"operator", ModuleType::make(c)},
-            {"parallelism", c->Int()}
         });
 
     /*
@@ -34,8 +32,8 @@ void Aetherling_createMapGenerator(Context* c) {
      * This is done to keep a consistent type interface so compiler transformations are easier.
      */
     aetherlinglib->newTypeGen(
-        "map_type", // name for typegen
-        mapParams, // generator parameters
+        "mapSeqPar_type", // name for typegen
+        mapSeqParParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint numInputs = genargs.at("numInputs")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
@@ -51,15 +49,14 @@ void Aetherling_createMapGenerator(Context* c) {
         });
 
     Generator* mapParallel =
-        aetherlinglib->newGeneratorDecl("mapParallel", aetherlinglib->getTypeGen("map_type"), mapParams);
+        aetherlinglib->newGeneratorDecl("mapParallel", aetherlinglib->getTypeGen("mapSeqPar_type"), mapSeqParParams);
 
     mapParallel->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
-            uint parallelism = genargs.at("parallelism")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
 
             // now create each op and wire the inputs and outputs to it
-            for (uint i = 0; i < parallelOperators; i++) {
+            for (uint i = 0; i < numInputs; i++) {
                 string idxStr = to_string(i);                
                 string opStr = "op_" + idxStr;
                 def->addInstance(opStr, opModule);
@@ -77,11 +74,10 @@ void Aetherling_createMapGenerator(Context* c) {
      * equal to length of input 
      */
     Generator* mapSequential =
-        aetherlinglib->newGeneratorDecl("mapSequential", aetherlinglib->getTypeGen("mapT_type"), mapXTparams);
+        aetherlinglib->newGeneratorDecl("mapSequential", aetherlinglib->getTypeGen("mapSeqPar_type"), mapSeqParParams);
 
-    mapParallel->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    mapSequential->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
-            uint parallelism = genargs.at("parallelism")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             Type* inputElementType = opType->sel("in");

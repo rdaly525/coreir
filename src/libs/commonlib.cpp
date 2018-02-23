@@ -1431,7 +1431,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint rate  = args.at("rate")->get<int>();
       return c->Record({
         {"en",c->BitIn()},
+        {"reset",c->BitIn()},
         {"count",c->Bit()->Arr(width)},
+        {"finishedCycle", c->Bit()}, // have cycled through all outputs
         {"in",c->BitIn()->Arr(width)->Arr(rate)},
         {"out",c->Bit()->Arr(width)}
       });
@@ -1475,6 +1477,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
 
     // wire up modules
+    def->connect("self.reset", "counter.reset");
+    def->connect("counter.overflow", "self.finishedCycle");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
 
@@ -1497,6 +1501,114 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
         // connect reg enables
         def->connect(reg_name+".en", "equal.out");
+      }
+    }
+
+    def->connect("muxn.out","self.out");
+
+  });
+
+
+  
+  /////////////////////////////////
+  // deserializer definition       //
+  /////////////////////////////////
+
+  // on every cycle, input<n> is received where n=count
+  // on count==rate-1, output all input values.
+
+
+  // serializer type
+  commonlib->newTypeGen(
+    "deserializer_type", //name for the typegen
+    {{"width",c->Int()},{"rate",c->Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
+      uint width = args.at("width")->get<int>();
+      uint rate  = args.at("rate")->get<int>();
+      return c->Record({
+        {"en",c->BitIn()},
+        {"reset",c->BitIn()},
+        {"count",c->Bit()->Arr(width)},
+        {"finishedCycle", c->Bit()},
+        {"in",c->BitIn()->Arr(width)},
+        {"out",c->Bit()->Arr(width)->Arr(rate)}
+      });
+    }
+  );
+
+  Generator* deserializer = commonlib->newGeneratorDecl("deserializer",commonlib->getTypeGen("deserializer_type"),{{"width",c->Int()},{"rate",c->Int()}});
+
+  deserializer->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    uint rate  = args.at("rate")->get<int>();
+    assert(width>0);
+    assert(rate>1);
+    assert(width > num_bits(rate-1)); // not enough bits in counter for rate
+
+    // create hardware
+    Const* aBitwidth = Const::make(c,width);
+    for (uint i=0; i<rate; ++i) {
+      std::string reg_name = "reg_" + std::to_string(i);
+      def->addInstance(reg_name, "mantle.reg",
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}});
+    }
+    // these registers pass along the signal to write to one register
+    // this signal is initalized by reset being passed in, and is passed along
+    // so that only 1 register is written to in each clock cycle
+    // and all reg enables after first with not reset so that, if one reset
+    // before an earlier one finishes, the earlier one is aborted
+    // the extra reg (i == rate) is for emitting when all inputs have been stored
+    for (uint i=1; i<rate+1; ++i) {
+      std::string reg_name = "en_reg_" + std::to_string(i);
+      std::string and_name = "en_and_" + std::to_string(i);
+      def->addInstance(reg_name, "mantle.reg", {{"width",aBitwidth},{"has_en",Const::make(c,false)}});
+      def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
+    }
+    // used this in driving finishedCycle signal
+    def->addInstance("finishedOr", "coreir.or", {{"width",Const::make(c,1)}});
+    // the not to invert the reset
+    def->addInstance("resetInvert", "coreir.not", {{"width",Const::make(c,1)}});
+
+    def->connect("self.reset", "resetInvert.in");
+
+    // wire up one input to all regs
+    for (uint i=0; i<rate; ++i) {
+      std::string idx = std::to_string(i);
+      std::string reg_name = "reg_"+idx;
+      std::string en_reg_name = "en_reg_"+idx;
+      std::string en_and_name = "en_and_"+idx;
+      std::string next_en_reg_name = "en_reg_"+std::to_string(i+1);
+
+      def->connect("self.in", reg_name+".in");
+      def->connect(reg_name+".out", "self.out."+idx);
+
+      // connect reg enables
+      if (i == 0) {
+          def->connect("self.reset", reg_name + ".en");
+          // only setup enable chain if more than one register
+          if (rate > 0) {
+              def->connect("self.reset", next_en_reg_name + ".in");
+          }
+      }
+      else {
+          def->connect(en_reg_name + ".out", reg_name+".en");
+          // handle next enable reg for all except the extra register driving the finishedCycle output
+          if (i < rate - 1) {
+              def->connect(en_reg_name + ".out", en_and_name + ".in0");
+              def->connect("resetInvert.out", en_and_name + ".in1");
+              def->connect(en_and_name + ".out", next_en_reg_name + ".in");
+          }
+      }
+      // wire up the extra en_reg (idx is rate) to finishedCycle as done when
+      // that register's value has been set 1 one 
+      if (i == rate - 1) {
+          // emit finsihed cycle if just finished cycle last clock or finished cycle in prior clock
+          // do this until you get a reset signal, then deassert finishedCycle
+          def->connect(next_en_reg_name + ".out", "finishedOr.in0");
+          def->connect("self.finishedCycle", "finishedOr.in1");
+          def->connect("finishedOr.out", "en_and_" + std::to_string(i+1) + ".in0");
+          def->connect("resetInvert.out", "en_and_" + std::to_string(i+1) + ".in1");
+          def->connect("en_and_" + std::to_string(i+1) + ".out", "self.finishedCycle");
       }
     }
 
