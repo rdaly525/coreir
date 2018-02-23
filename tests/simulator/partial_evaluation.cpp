@@ -214,7 +214,7 @@ namespace CoreIR {
 
       registersToConstants(cl, st.registers);
       deleteDeadInstances(cl);
-      unpackConnections(cl);
+      //unpackConnections(cl);
       foldConstants(cl);
 
       // cout << "RMux Instances after conversion" << endl;
