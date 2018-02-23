@@ -1360,6 +1360,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint width = genargs.at("width")->get<int>();
       return c->Record({
         {"en",c->BitIn()},
+        {"reset", c->BitIn()},
         {"out",c->Bit()->Arr(width)},
         {"overflow",c->Bit()}
       });
@@ -1393,6 +1394,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     //def->addInstance("and", "corebit.and");
+    def->addInstance("resetOr", "coreir.or", {{"width",aBitwidth}});
 
     // wire up modules
     // clear if max < count+inc
@@ -1405,7 +1407,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     def->connect("add.out","ult.in1");
     def->connect("max.out","ult.in0");
-    def->connect("ult.out","count.clr");
+    // clear count on either getting to max or reset
+    def->connect("ult.out","resetOr.in0");
+    def->connect("self.reset","resetOr.in1");
+    def->connect("resetOr.out","count.clr");
     def->connect("ult.out","self.overflow");
 
   });
