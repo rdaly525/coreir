@@ -78,9 +78,9 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
       for (auto ioSrc : ioSources) {
         cout << "\t" << ioSrc->toString() << endl;
 
-        if (getQualifiedOpName(*ioSrc) == "coreir.triput") {
+        if (getQualifiedOpName(*ioSrc) == "coreir.tribuf") {
           tristateBuf = ioSrc;
-        } else if (getQualifiedOpName(*ioSrc) == "coreir.triget") {
+        } else if (getQualifiedOpName(*ioSrc) == "coreir.ibuf") {
           tristateCast = ioSrc;
         }
       }

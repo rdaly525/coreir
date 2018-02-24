@@ -18,11 +18,11 @@ int main() {
   ModuleDef* def = io->newModuleDef();
 
   def->addInstance("tristate_buf",
-                   "coreir.triput",
+                   "coreir.tribuf",
                    {{"width", Const::make(c, width)}});
 
   def->addInstance("tristate_out",
-                   "coreir.triget",
+                   "coreir.ibuf",
                    {{"width", Const::make(c, width)}});
 
   def->connect("tristate_buf.en", "self.en");
