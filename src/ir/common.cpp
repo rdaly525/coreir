@@ -94,6 +94,7 @@ inline bool syntaxWN(char c) {
 }
 }
 
+static std::string regex_str("^[a-zA-Z_\\-\\$][a-zA-Z0-9_\\-\\$]*");
 void checkStringSyntax(std::string& str) {
   //static regex reg(regex_str, std::regex_constants::basic);
   ASSERT(syntaxW(str[0]),str+" 0: is not a valid coreIR name!. Needs to be = " + string(regex_str));
