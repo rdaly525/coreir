@@ -841,7 +841,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                         return c->Record({
                             {"INOUT_PORT", c->BitInOut()->Arr(width)},
                               {"IN_PORT", c->BitIn()->Arr(width)},
-                                {"OUT_PORT", c->Bit()->Arr(width)}
+                                {"OUT_PORT", c->Bit()->Arr(width)},
+                                  {"INOUT_DRIVER_PORT", c->BitInOut()->Arr(width)}
                           });
                       });
 

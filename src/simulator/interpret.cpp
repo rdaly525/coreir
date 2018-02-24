@@ -1451,7 +1451,6 @@ namespace CoreIR {
   }
 
   void SimulatorState::resetCircuit() {
-
     exeCombinational();
   }
 
@@ -1485,7 +1484,6 @@ namespace CoreIR {
 
   void SimulatorState::exeCombinational() {
     // Update sequential element outputs
-    //for (auto& vd : topoOrder) {
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
 
@@ -1509,11 +1507,69 @@ namespace CoreIR {
       
     }
 
-    ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
+    if (!hasCombinationalLoop) {
+      // Update combinational node values
+      for (auto& vd : topoOrder) {
+        updateNodeValues(vd);
+      }
+    } else {
 
-    // Update combinational node values
-    for (auto& vd : topoOrder) {
-      updateNodeValues(vd);
+      //ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
+
+      set<vdisc> freshNodes;
+      // Initially all inputs are fresh
+      for (auto& vd : gr.getVerts()) {
+        WireNode w = gr.getNode(vd);
+
+        if (isGraphInput(w)) {
+          freshNodes.insert(vd);
+        }
+      }
+
+      CircuitState lastState = getCircStates().back();
+      while (freshNodes.size() > 0) {
+        vdisc vd = *std::begin(freshNodes);
+        Wireable* w = gr.getNode(vd).getWire();
+        freshNodes.erase(vd);
+
+        unordered_map<Select*, SimValue*> oldVals = lastState.valMap;
+        assert(gr.containsOpNode(w));
+
+        // Need to update and check whether the update actually changed any of
+        // the outputs of this wire
+
+        updateNodeValues(vd);
+
+        unordered_map<Select*, SimValue*> currentVals = lastState.valMap;
+
+        // This check doesnt deal with changed inputs.
+        bool outputsChanged = false;
+        if (currentVals.size() != oldVals.size()) {
+          outputsChanged = true;
+        } else {
+          for (auto v : oldVals) {
+            assert(contains_key(v.first, currentVals));
+            if (*(v.second) != *(currentVals.find(v.first)->second)) {
+              outputsChanged = true;
+              break;
+            }
+          }
+        }
+
+        if (!outputsChanged) {
+          continue;
+        }
+
+        for (auto outEdge : gr.outEdges(vd)) {
+          vdisc wd = gr.target(outEdge);
+
+          // Sequential elements dont get updated in this function
+          if (gr.containsOpNode(gr.getNode(wd).getWire())) {
+            freshNodes.insert(wd);
+          }
+        }
+
+      }
     }
   }
 
@@ -1660,24 +1716,6 @@ namespace CoreIR {
   SimulatorState::setWatchPointByOriginalName(const std::string& name,
                                               const BitVec& bv) {
     setWatchPoint(name, bv);
-
-    // //Case 1: Value exists in the flattened circuit
-    // if (exists(name)) {
-    //   setWatchPoint(name, bv);
-    // }
-
-    // // Case 2: Value exists in the symbol table
-    // if (symTable.count(name) > 0) {
-    //   SelectPath ent = symTable[name];
-    //   string entName = concatSelects(ent);
-
-    //   cout << "Entry name = " << entName << endl;
-    //   return setWatchPointByOriginalName(entName, bv);
-    // }
-
-    // // Case 3: Need to traverse up and down the type hierarchy looking
-    // // for the value
-    // assert(false);
   }
 
   void

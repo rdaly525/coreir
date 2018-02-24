@@ -366,9 +366,17 @@ Type* json2Type(Context* c, json jt) {
   if (jt.type() == json::value_t::string) {
     //Will be bitIn or Bit
     string kind = jt.get<string>();
-    if (kind == "BitIn") return c->BitIn();
-    else if (kind == "Bit") return c->Bit();
-    else throw std::runtime_error(kind + " is not a type!");
+    if (kind == "BitIn") {
+      return c->BitIn();
+      
+    } else if (kind == "Bit") {
+      return c->Bit();
+    } else if (kind == "BitInOut") {
+      return c->BitInOut();
+    } else {
+      throw std::runtime_error(kind + " is not a type!");
+    }
+ 
   }
   else if (jt.type() == json::value_t::array) {
     vector<json> args = jt.get<vector<json>>();

@@ -97,7 +97,7 @@ namespace CoreIR {
       // c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
 
       // SimulatorState state(twoMux);
-
+      // state.setValue("self.sel", BitVector(1, 0));
       // state.setValue("self.in", BitVector(width, "11"));
 
       // state.execute();
@@ -943,7 +943,6 @@ namespace CoreIR {
       def->addInstance("m0",
       		       "coreir.mem",
       		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
-		       //      		       {{"init", Const::make(c,BitVector(80))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
