@@ -134,6 +134,65 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   wire->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     def->connect("self.in","self.out");
   });
+  
+
+  Params counterParams({
+    {"width",c->Int()},
+    {"has_max",c->Bool()}
+  });
+  // counter type
+  commonlib->newTypeGen(
+    "counter_type", //name for the typegen
+    counterParams,
+    [](Context* c, Values genargs) { //Function to compute type
+      uint width = genargs.at("width")->get<int>();
+      return c->Record({
+        {"out",c->Bit()->Arr(width)},
+      });
+    }
+  );
+  auto counterModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    uint width = genargs.at("width")->get<int>();
+    bool has_max = genargs.at("has_max")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    defaultargs["init"] = Const::make(c,BitVector(width,0));
+    if (has_max) {
+      modparams["max"] = BitVectorType::make(c,width);
+    }
+    return {modparams,defaultargs};
+  };
+
+  Generator* counter = mantle->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),counterParams);
+  counter->setModParamsGen(counterModParamFun);
+  counter->addDefaultGenArgs({{"has_max",Const::make(c,false)}});
+  counter->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    uint width = genargs.at("width")->get<int>();
+    bool has_max = genargs.at("has_max")->get<int>();
+    Params widthParams({{"width",Const::make(c,width)}});
+    def->addInstance("r","coreir.reg",widthParams,{{"init",def->getModule()->getArg("init")}});
+    def->addInstance("c1","coreir.const",widthParams,{{"value",Const::make(c,width,1)}});
+    def->addInstance("add","coreir.add",widthParams);
+    def->connect("r.out","add.in0");
+    def->connect("c1.out","add.in1");
+    def->connect("r.out","self.out");
+    if (has_max) {
+      def->addInstance("c0","coreir.const",widthParams,{{"value",Const::make(c,width,0)}});
+      def->addInstance("mux","coreir.mux",widthParams);
+      def->addInstance("eq","coreir.eq",widthParams);
+      def->addConstant("maxval","coreir.const",widthParams,{{"value",def->getModule()->getArg("max")}});
+      def->connect("r.out","eq.in0");
+      def->connect("maxval.out","eq.in1");
+      def->connect("eq.out","mux.sel");
+      def->connect("add.out","mux.in0");
+      def->connect("c0.out","mux.in1");
+      def->connect("mux.out","r.in");
+    }
+    else {
+      def->connect("add.out","r.in");
+    }
+  });
 
 
 

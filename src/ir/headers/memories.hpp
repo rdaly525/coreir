@@ -21,16 +21,37 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
       {"rdata", c->Bit()->Arr(width)},
-	// Is this just wen delayed by N?
       {"valid", c->Bit()},
     });
   });
 
   //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
   Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("LinebufferMemType"),MemGenParams);
-  //lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
   
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+  
+  });
+
+  //Fifo Memory. Use this for memory in Fifo mode
+  memory->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"ren", c->BitIn()},
+      {"almost_full", c->Bit()},
+      {"valid", c->Bit()}
+    });
+  });
+  Generator* fifoMem = memory->newGeneratorDecl("fifo",memory->getTypeGen("FifoMemType"),MemGenParams);
+  fifoMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  fifoMem->setModParamsGen({{"almost_full_cnt",c->Int()}});
+
+  fifoMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
     uint awidth = (uint) ceil(log2(depth));
@@ -121,54 +142,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("veq.out","self.valid");
   });
 
-//// reference verilog code for lbmem
-//module #(parameter lbmem {
-//  input clk,
-//  input [W-1:0] wdata,
-//  input wen,
-//  output [W-1:0] rdata,
-//  output valid
-//}
-//
-//  reg [A-1] raddr
-//  reg [A-1] waddr;
-//  
-//  always @(posedge clk) begin
-//    if (wen) waddr <= waddr + 1;
-//  end
-//  assign valid = waddr!=raddr; 
-//  always @(posedge clk) begin
-//    if (valid) raddr <= raddr+1;
-//  end
-//
-//  coreir_mem inst(
-//    .clk(clk),
-//    .wdata(wdata),
-//    .waddr(wptr),
-//    .wen(wen),
-//    .rdata(rdata),
-//    .raddr(rptr)
-//  );
-//
-//endmodule
 
-
-  //Fifo Memory. Use this for memory in Fifo mode
-  memory->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
-    uint width = genargs.at("width")->get<int>();
-    return c->Record({
-      {"clk", c->Named("coreir.clkIn")},
-      {"wdata", c->BitIn()->Arr(width)},
-      {"wen", c->BitIn()},
-      {"rdata", c->Bit()->Arr(width)},
-      {"ren", c->BitIn()},
-      {"almost_full", c->Bit()},
-      {"valid", c->Bit()}
-    });
-  });
-  Generator* fifoMem = memory->newGeneratorDecl("fifo",memory->getTypeGen("FifoMemType"),MemGenParams);
-  fifoMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
-  fifoMem->setModParamsGen({{"almost_full_cnt",c->Int()}});
 
   memory->newTypeGen("RamType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
