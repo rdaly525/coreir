@@ -39,6 +39,7 @@ namespace CoreIR {
         if (!hasOutputConnection(inst)) {
           changed = true;
           def->removeInstance(inst);
+          break;
         }
       }
 
