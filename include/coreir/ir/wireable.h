@@ -17,7 +17,7 @@ class Wireable : public MetaData {
     ModuleDef* container; // ModuleDef which it is contained in 
     Type* type;
 
-    std::unordered_set<Wireable*> connected; 
+    std::set<Wireable*> connected; 
     
     //This manages the memory for the selects
     std::map<std::string,Select*> selects;
@@ -26,7 +26,7 @@ class Wireable : public MetaData {
     Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
     virtual ~Wireable();
     virtual std::string toString() const=0;
-    std::unordered_set<Wireable*> getConnectedWireables() { return connected;}
+    const std::set<Wireable*>& getConnectedWireables() { return connected;}
     const std::map<std::string,Select*>& getSelects() { return selects;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();
@@ -55,6 +55,7 @@ class Wireable : public MetaData {
     void connect(Wireable* w);
 
     //Disconnect everything from this wireable
+    //NOTE This invalidates iterators from getConnectedWireables() and getConnections(). Do not call while iterating over these
     void disconnect();
     void disconnectAll();
 
@@ -78,6 +79,7 @@ class Wireable : public MetaData {
     Wireable* getTopParent();
 
     //removes the select from this wireble.
+    //Note this invalides iterators from getSelects()
     void removeSel(std::string selStr);
 
 

@@ -107,8 +107,12 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
       }
 
       // Delete all cast instances that are no longer needed
+      vector<Instance*> toDelete;
       for (auto sel : pclk->getConnectedWireables()) {
         Instance* inst = cast<Instance>(cast<Select>(sel)->getParent());
+        toDelete.push_back(inst);
+      }
+      for (auto inst : toDelete) {
         def->removeInstance(inst);
       }
 

@@ -33,14 +33,16 @@ namespace CoreIR {
     
     do {
       changed = false;
+      vector<Instance*> toDelete;
       for (auto instR : def->getInstances()) {
         Instance* inst = instR.second;
-        assert(inst);
         if (!hasOutputConnection(inst)) {
           changed = true;
-          def->removeInstance(inst);
-          break;
+          toDelete.push_back(inst);
         }
+      }
+      for (auto inst : toDelete) {
+        def->removeInstance(inst);
       }
 
     } while (changed);
