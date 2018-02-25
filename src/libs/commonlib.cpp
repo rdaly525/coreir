@@ -1433,7 +1433,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         {"en",c->BitIn()},
         {"reset",c->BitIn()},
         {"count",c->Bit()->Arr(width)},
-        {"finishedCycle", c->Bit()}, // have cycled through all outputs
+        {"ready", c->Bit()}, // have cycled through all outputs, put new inputs on this cycle
         {"in",c->BitIn()->Arr(width)->Arr(rate)},
         {"out",c->Bit()->Arr(width)}
       });
@@ -1478,7 +1478,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // wire up modules
     def->connect("self.reset", "counter.reset");
-    def->connect("counter.overflow", "self.finishedCycle");
+    def->connect("counter.overflow", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
 
@@ -1529,7 +1529,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         {"en",c->BitIn()},
         {"reset",c->BitIn()},
         {"count",c->Bit()->Arr(width)},
-        {"finishedCycle", c->Bit()},
+        {"valid", c->Bit()}, // output is valid
         {"in",c->BitIn()->Arr(width)},
         {"out",c->Bit()->Arr(width)->Arr(rate)}
       });
@@ -1602,13 +1602,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       // wire up the extra en_reg (idx is rate) to finishedCycle as done when
       // that register's value has been set 1 one 
       if (i == rate - 1) {
-          // emit finsihed cycle if just finished cycle last clock or finished cycle in prior clock
-          // do this until you get a reset signal, then deassert finishedCycle
+          // emit valid if just finished cycle last clock or valid in prior clock
+          // do this until you get a reset signal, then deassert valid
           def->connect(next_en_reg_name + ".out", "finishedOr.in0");
-          def->connect("self.finishedCycle", "finishedOr.in1");
+          def->connect("self.ready", "finishedOr.in1");
           def->connect("finishedOr.out", "en_and_" + std::to_string(i+1) + ".in0");
           def->connect("resetInvert.out", "en_and_" + std::to_string(i+1) + ".in1");
-          def->connect("en_and_" + std::to_string(i+1) + ".out", "self.finishedCycle");
+          def->connect("en_and_" + std::to_string(i+1) + ".out", "self.valid");
       }
     }
 
