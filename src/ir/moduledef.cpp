@@ -27,7 +27,7 @@ ModuleDef::~ModuleDef() {
 void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
-  for (auto inst : instances) {
+  for (auto inst : this->getInstances()) {
     Module* mref = inst.second->getModuleRef();
     if (mref->isGenerated()) {
       cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << ::CoreIR::toString(mref->getGenArgs()) << endl;
@@ -268,7 +268,11 @@ Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
 
 //This will remove all connections from a specific wireable
 void ModuleDef::disconnect(Wireable* w) {
+  vector<Wireable*> toDelete;
   for (auto wc : w->getConnectedWireables()) {
+    toDelete.push_back(wc);
+  }
+  for (auto wc : toDelete) {
     this->disconnect(w,wc);
   }
 }

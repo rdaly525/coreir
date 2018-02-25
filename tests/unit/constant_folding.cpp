@@ -44,6 +44,7 @@ void testFoldEquals() {
   assert(originalState.getBitVec("self.out") == BitVec(1, 1));
   
   foldConstants(eqMod);
+  eqMod->print();
   deleteDeadInstances(eqMod);
 
   cout << "eqMod after folding constants" << endl;

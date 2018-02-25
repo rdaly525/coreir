@@ -95,6 +95,23 @@ namespace CoreIR {
 
     return conns;
   }
+
+  std::vector<Select*>
+  getIOSelects(CoreIR::Wireable* inst) {
+    vector<Select*> conns;
+
+    for (auto sel : inst->getConnectedWireables()) {
+      if (sel->getType()->getDir() == Type::DK_InOut) {
+        conns.push_back(cast<Select>(sel));
+      }
+    }
+
+    for (auto sel : inst->getSelects()) {
+      concat(conns, getIOSelects(sel.second));
+    }
+
+    return conns;
+  }
   
   std::map<Wireable*, Wireable*> signalDriverMap(CoreIR::ModuleDef* const def) {
     map<Wireable*, Wireable*> bitToDriver;
@@ -307,7 +324,7 @@ namespace CoreIR {
       int len = arrTp->getLen();
 
       for (int i = 0; i < len; i++) {
-        concat(unpackedConns, unpackConnection({fst->sel(i), snd->sel(i)}));
+        concat(unpackedConns, unpackConnection(connectionCtor(fst->sel(i), snd->sel(i))));
       }
 
       return unpackedConns;
@@ -379,7 +396,7 @@ namespace CoreIR {
 
     auto def = mod->getDef();
 
-    Instance* inst = def->getInstances()[instanceName];
+    Instance* inst = def->getInstances().at(instanceName);
     assert(inst != nullptr);
     assert(getQualifiedOpName(*inst) == "coreir.reg");
 

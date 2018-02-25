@@ -83,7 +83,11 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) {
     def->connect(to,other);
   }
+  vector<Wireable*> toDelete;
   for (auto other : from->getConnectedWireables()) {
+    toDelete.push_back(other);
+  }
+  for (auto other : toDelete) {
     def->disconnect(from,other);
   }
   for (auto sels : from->getSelects()) {

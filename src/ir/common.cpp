@@ -76,10 +76,32 @@ std::string toString(Instance* inst) {
   return ret + toString(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
 }
 
-static const char* regex_str = "^[a-zA-Z_\\-\\$][0-9a-zA-Z_\\-\\$]*$";
-void checkStringSyntax(std::string str) {
-  static regex reg(regex_str, std::regex_constants::basic);
-  ASSERT(regex_search(str,reg),str+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
+namespace {
+inline bool syntaxW(char c) {
+  return (c >= 'a' && c<='z')
+      || (c >= 'A' && c<= 'Z')
+      || (c=='_')
+      || (c=='-')
+      || (c=='$');
+}
+inline bool syntaxWN(char c) {
+  return (c >= 'a' && c<='z')
+      || (c >= 'A' && c<= 'Z')
+      || (c >= '0' && c<= '9')
+      || (c=='_')
+      || (c=='-')
+      || (c=='$');
+}
+}
+
+static std::string regex_str("^[a-zA-Z_\\-\\$][a-zA-Z0-9_\\-\\$]*");
+void checkStringSyntax(std::string& str) {
+  //static regex reg(regex_str, std::regex_constants::basic);
+  ASSERT(syntaxW(str[0]),str+" 0: is not a valid coreIR name!. Needs to be = " + string(regex_str));
+  for (uint i=1; i<str.length(); ++i) {
+    ASSERT(syntaxWN(str[i]),str+" " +to_string(i)+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
+  }
+  //ASSERT(regex_search(str,syntaxreg),str+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
 }
 
 
