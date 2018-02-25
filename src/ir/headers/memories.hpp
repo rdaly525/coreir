@@ -84,10 +84,6 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("valid_ext.out","sub_valid.in1");
     def->connect("sub_valid.out","cnt.in");
 
-    //For convenience
-    def->addInstance("cnt_n","coreir.wire",awParams);
-    def->connect("sub_valid.out","cnt_n.in");
-
     //Logic to drive valid
     //valid_n = valid ? (cnt_n !=0) : (cnt_n == depth-1)
     def->addInstance("valid_n","corebit.mux");
@@ -99,9 +95,9 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("eq_depth.out","valid_n.in0");
     def->connect("neq_0.out","valid_n.in1");
     def->connect("c0.out","neq_0.in0");
-    def->connect("cnt_n.out","neq_0.in1");
+    def->connect("sub_valid.out","neq_0.in1");
     def->connect("depth_m1.out","eq_depth.in0");
-    def->connect("cnt_n.out","eq_depth.in1");
+    def->connect("sub_valid.out","eq_depth.in1");
 
   });
 
