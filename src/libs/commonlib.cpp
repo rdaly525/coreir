@@ -1561,7 +1561,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (uint i=1; i<rate+1; ++i) {
       std::string reg_name = "en_reg_" + std::to_string(i);
       std::string and_name = "en_and_" + std::to_string(i);
-      def->addInstance(reg_name, "mantle.reg", {{"width",aBitwidth},{"has_en",Const::make(c,false)}});
+      def->addInstance(reg_name, "mantle.reg", {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}});
       def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
     }
     // used this in driving finishedCycle signal

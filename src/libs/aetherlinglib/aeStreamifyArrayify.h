@@ -39,7 +39,7 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
     streamify->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             Type* elementType = genargs.at("elementType")->get<Type*>();
             uint arrayLength = genargs.at("arrayLength")->get<int>();
-            uint elementWidth = elementType->getSize()
+            uint elementWidth = elementType->getSize();
 
             Values hydratedType({
                     {"hydratedType", Const::make(c, elementType)}
@@ -49,13 +49,13 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             // serializer will choose 1 input at a time, dehydrate converts complex types to bit arrays
             // hydrate converts them back
             def->addInstance("dehydrateForSerializer", "aetherlinglib.mapN", {
-                    {"numInputs", Const::make(c, numInputs)},
+                    {"numInputs", Const::make(c, arrayLength)},
                     {"operator", Const::make(c, dehydrateInput)}
                 });
 
             def->addInstance("serializer", "commonlib.seralizer", {
-                    {"width", elementWidth},
-                    {"rate", numInputs}
+                    {"width", Const::make(c, elementWidth)},
+                    {"rate", Const::make(c, arrayLength)}
                 });
             def->addInstance("hydrateForSerializer", "aetherlinglib.hydrate", hydratedType);
             def->addInstance("notFinishedCycle", "coreir.not", {{"width", Const::make(c, 1)}});
@@ -114,7 +114,7 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
     arrayify->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             Type* elementType = genargs.at("elementType")->get<Type*>();
             uint arrayLength = genargs.at("arrayLength")->get<int>();
-            uint elementWidth = elementType->getSize()
+            uint elementWidth = elementType->getSize();
 
             Values hydratedType({
                     {"hydratedType", Const::make(c, elementType)}
@@ -127,13 +127,13 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             def->addInstance("dehydrateForDeserializer", "aetherlinglib.dehydrate", hydratedType);  
 
             def->addInstance("deserializer", "commonlib.deseralizer", {
-                    {"width", elementWidth},
-                    {"rate", numInputs}
+                    {"width", Const::make(c, elementWidth)},
+                    {"rate", Const::make(c, arrayLength)}
                 });
 
             Module* hydrateOutput = c->getGenerator("aetherlinglib.hydrate")->getModule(hydratedType);
             def->addInstance("hydrateForDeserializer", "aetherlinglib.mapN", {
-                    {"numInputs", Const::make(c, numInputs)},
+                    {"numInputs", Const::make(c, arrayLength)},
                     {"operator", Const::make(c, hydrateOutput)}
                 });
           
