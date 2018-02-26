@@ -131,26 +131,13 @@ namespace CoreIR {
             def->connect("arrayify.valid", "self.valid");
 
             mainModule->setDef(def);
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst"},
-                         {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
-            cout << "printing pre wiring" << endl;
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+                        "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
+                        "deletedeadinstances"},
+                {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
+            
             mainModule->print();
-            saveToFile(g, "_streamifyPreWiring.json",mainModule);
-            c->runPasses({"wireclocks-coreir"},
-                         {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
-            cout << "printing post wiring" << endl;
-            saveToFile(g, "_streamifyPostWiring.json",mainModule);
-            mainModule->print();
-            c->runPasses({"flatten", "flattentypes",  "verifyconnectivity", "deletedeadinstances"},
-                         {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
-
-            /*
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "flattentypes", "wireclocks-coreir", "verifyconnectivity"},
-                         {"aetherlinglib", "commonlib", "coreir", "global"});
-            */
-            mainModule->print();
-            cout << -1 << endl;
-
+    
             SimulatorState state(mainModule);
             state.setClock("self.clk", 0, 1); // get a new rising clock edge
             // on first clock, ready should be asserted, then deasserted for rest until processed all input
