@@ -75,7 +75,7 @@ namespace CoreIR {
         Context* c = newContext();
         Namespace* g = c->getGlobal();
 
-        SECTION("aetherlinglib dehydrate and rehydrate") {
+        SECTION("aetherlinglib streamify and arrayify") {
             uint width = 16;
             uint parallelInputs = 4;
             uint constInput = 3;
@@ -131,8 +131,15 @@ namespace CoreIR {
             def->connect("arrayify.valid", "self.valid");
 
             mainModule->setDef(def);
-            c->runPasses({"rungenerators", "verifyconnectivity", "flatten", "flattentypes"});
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "flattentypes", "wireclocks-coreir", "verifyconnectivity"},
+                         {"aetherlinglib", "commonlib", "coreir", "global"});
+
+            /*
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "flattentypes", "wireclocks-coreir", "verifyconnectivity"},
+                         {"aetherlinglib", "commonlib", "coreir", "global"});
+            */
             mainModule->print();
+            cout << -1 << endl;
 
             SimulatorState state(mainModule);
             // on first clock, ready should be asserted, then deasserted for rest until processed all input

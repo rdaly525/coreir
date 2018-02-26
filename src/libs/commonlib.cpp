@@ -1562,7 +1562,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       std::string and_name = "en_and_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg", {
               {"width",Const::make(c,1)},
-              {"has_en",Const::make(c,false)}
+              {"has_en",Const::make(c,true)}
           }, {{"init",Const::make(c,1, i == 0 ? 1 : 0)}});
       // going to have a special case for wiring last enable reg, so don't make the and in this case
       if (i < rate - 1) {
@@ -1592,6 +1592,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // for every data reg, wire in the enable reg
       def->connect(en_reg_name + ".out.0", reg_name + ".en");
+      def->connect("self.en", en_reg_name + ".en");
 
       // if this is the last reg, wire it's output and the deserializer reset into the input for the
       // first enable reg as if either occurs its a reason for starting cycle again

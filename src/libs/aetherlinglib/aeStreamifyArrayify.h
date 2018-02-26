@@ -68,6 +68,13 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             // in this version, never stop, always keep looping over array to produce stream
             // ready says when able to take next array
             def->connect("serializer.ready", "self.ready");
+
+            // for ignoring the valid and ready
+            def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->connect("dehydrateForSerializer.ready", "ignoreReady.in.0");
+            def->connect("dehydrateForSerializer.valid", "ignoreValid.in.0");
+
         });
 
     aetherlinglib->newTypeGen(
@@ -122,5 +129,11 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             def->connect("dehydrateForDeserializer.out", "deserializer.in");
             def->connect("deserializer.out", "hydrateForDeserializer.in");
             def->connect("hydrateForDeserializer.out", "self.out");
+
+            // for ignoring the valid and ready
+            def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->connect("hydrateForDeserializer.ready", "ignoreReady.in.0");
+            def->connect("hydrateForDeserializer.valid", "ignoreValid.in.0");
         });
 }

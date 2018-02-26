@@ -22,6 +22,12 @@ namespace CoreIR {
         Context* c = newContext();
         Namespace* g = c->getGlobal();
 
+        uint width = 16;
+        uint parallelOperators = 4;
+        uint constInput = 3;
+
+        CoreIRLoadLibrary_commonlib(c);
+        CoreIRLoadLibrary_aetherlinglib(c);
         
         Type* twoInZippedOneOutGenType = c->Record({
                 {"in",c->Record({
@@ -53,13 +59,6 @@ namespace CoreIR {
             });
 
         SECTION("aetherlinglib mapParallel with 4 mul, 3 as constant, 16 bit width") {
-            uint width = 16;
-            uint parallelOperators = 4;
-            uint constInput = 3;
-
-            CoreIRLoadLibrary_commonlib(c);
-            CoreIRLoadLibrary_aetherlinglib(c);
-
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
@@ -71,8 +70,8 @@ namespace CoreIR {
             string mapParallelName = "map" + to_string(parallelOperators);
             Instance* mapParallel_mul = def->addInstance(mapParallelName, "aetherlinglib.mapParallel", mapParams);
             // for ignoring the valid and ready
-            testDef->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
-            testDef->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
 
             // here we are wiring up a constant value and an iterated one to each input of the zip before
             // it goes into the map
@@ -109,14 +108,8 @@ namespace CoreIR {
                     
         }
 
+        /*
         SECTION("aetherlinglib mapSequential with 4 mul, 3 as constant, 16 bit width") {
-            uint width = 16;
-            uint parallelOperators = 4;
-            uint constInput = 3;
-
-            CoreIRLoadLibrary_commonlib(c);
-            CoreIRLoadLibrary_aetherlinglib(c);
-
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
@@ -170,6 +163,7 @@ namespace CoreIR {
             }
                     
         }
+        */
 
         deleteContext(c);
     }
