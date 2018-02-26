@@ -27,7 +27,8 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             return c->Record({
                     {"in", c->In(elementType->Arr(arrayLength))},
                     {"out", c->Out(elementType)},
-                    {"reset", c->BitIn()}
+                    {"reset", c->BitIn()},
+                    {"ready", c->Bit()}
                         //{"emittedAllElements", c->Bit()} // this bit is 1 once all the elements of the array
                     // have been emitted to the stream
                 });
@@ -83,13 +84,10 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             def->connect("dehydrateForSeralizer.out", "serializer.in");
             def->connect("serializer.out", "hydrateForSerializer.in");
             def->connect("hydrateForSerializer.out", "self.out");
-            // as long as haven't reached the end of the array, keep emitting elements
-            def->connect("serializer.finishedCycle", "notFinishedCycle.in");
-            // keep emmitting elements as long as haven't hit end
-            def->connect("notFinishedCycle.out", "enOr.in0");
-            // if hit end and reset, go back to the beginning
-            def->connect("self.reset", "enOr.in1");
-            def->connect("enOr.out", "serializer.en");
+            // in this version, never stop, always keep looping over array to produce stream
+            // ready says when able to take next array
+            def->connect("serializer.ready", "self.ready");
+            
             // def->connect(enableConst + ".out", "serializer.en");
         });
 
@@ -102,8 +100,8 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             return c->Record({
                     {"in", c->In(elementType)},
                     {"out", c->Out(elementType->Arr(arrayLength))},
-                    {"reset", c->BitIn()}
-                        //{"emittedAllElements", c->Bit()} // this bit is 1 once all the elements of the array
+                    {"reset", c->BitIn()},
+                    {"valid", c->Bit()} // this bit is 1 once all the elements of the array
                     // have been emitted to the stream
                 });
         });
@@ -155,6 +153,7 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             //string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
 
             def->connect("self.in", "dehydrateForDeseralizer.in");
+            def->connect("deserializer.valid", "self.valid");
             def->connect("self.reset", "deserializer.reset");
             def->connect("selfDeseralizer.out", "deserializer.in");
             def->connect("deserializer.out", "hydrateForDeserializer.in");

@@ -1557,15 +1557,25 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // so that only 1 register is written to in each clock cycle
     // and all reg enables after first with not reset so that, if one reset
     // before an earlier one finishes, the earlier one is aborted
-    // the extra reg (i == rate) is for emitting when all inputs have been stored
-    for (uint i=1; i<rate+1; ++i) {
+    // the first reg starts with signal 1, the rest with 0
+    for (uint i=0; i<rate; ++i) {
       std::string reg_name = "en_reg_" + std::to_string(i);
       std::string and_name = "en_and_" + std::to_string(i);
-      def->addInstance(reg_name, "mantle.reg", {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}});
-      def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
+      def->addInstance(reg_name, "mantle.reg", {
+              {"width",Const::make(c,1)},
+              {"has_en",Const::make(c,false)}
+              {"init",Const::make(c,1, i == 0 ? 1 : 0)}
+          });
+      // going to have a special case for wiring last enable reg, so don't make the and in this case
+      if (i < rate - 1) {
+          def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
+      }
     }
-    // used this in driving finishedCycle signal
-    def->addInstance("finishedOr", "coreir.or", {{"width",Const::make(c,1)}});
+    // this reg is 1 only cycle after last enable reg is 1, to indicate that all registers have been written
+    // to in the last cycle
+    def->addInstance("validReg", "mantle.reg", {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}});
+    // use this for driving input to first enable reg
+    def->addInstance("firstEnabledOr", "coreir.or", {{"width",Const::make(c,1)}});
     // the not to invert the reset
     def->addInstance("resetInvert", "coreir.not", {{"width",Const::make(c,1)}});
 
@@ -1582,38 +1592,25 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->connect("self.in", reg_name+".in");
       def->connect(reg_name+".out", "self.out."+idx);
 
-      // connect reg enables
-      if (i == 0) {
-          def->connect("self.reset", reg_name + ".en");
-          // only setup enable chain if more than one register
-          if (rate > 0) {
-              def->connect("self.reset", next_en_reg_name + ".in");
-          }
+      // for every data reg, wire in the enable reg
+      def->connect(en_reg_name + ".out", reg_name + ".en");
+
+      // if this is the last reg, wire it's output and the deserializer reset into the input for the
+      // first enable reg as if either occurs its a reason for starting cycle again
+      if (i == rate - 1) {
+          def->connect("self.reset", "firstEnabledOr.in0");
+          def->connect(en_reg_name + ".out", "firstEnabledOr.in1");
+          def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in");
+
+          def->connect(en_reg_name + ".out", "self.valid");
       }
       else {
-          def->connect(en_reg_name + ".out", reg_name+".en");
-          // handle next enable reg for all except the extra register driving the finishedCycle output
-          if (i < rate - 1) {
-              def->connect(en_reg_name + ".out", en_and_name + ".in0");
-              def->connect("resetInvert.out", en_and_name + ".in1");
-              def->connect(en_and_name + ".out", next_en_reg_name + ".in");
-          }
+          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect("resetInvert.out", en_and_name + ".in1");
+          def->connect(en_and_name + ".out", next_en_reg_name + ".in");
       }
-      // wire up the extra en_reg (idx is rate) to finishedCycle as done when
-      // that register's value has been set 1 one 
-      if (i == rate - 1) {
-          // emit valid if just finished cycle last clock or valid in prior clock
-          // do this until you get a reset signal, then deassert valid
-          def->connect(next_en_reg_name + ".out", "finishedOr.in0");
-          def->connect("self.ready", "finishedOr.in1");
-          def->connect("finishedOr.out", "en_and_" + std::to_string(i+1) + ".in0");
-          def->connect("resetInvert.out", "en_and_" + std::to_string(i+1) + ".in1");
-          def->connect("en_and_" + std::to_string(i+1) + ".out", "self.valid");
-      }
-    }
 
     def->connect("muxn.out","self.out");
-
   });
 
 
