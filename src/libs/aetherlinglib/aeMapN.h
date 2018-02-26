@@ -81,7 +81,7 @@ void Aetherling_createMapGenerator(Context* c) {
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             Type* inputElementType = opType->sel("in");
-            uint elementWidth = inputElementType->getSize()
+            uint elementWidth = inputElementType->getSize();
 
             Values hydratedType({
                     {"hydratedType", Const::make(c, inputElementType)}
@@ -96,8 +96,8 @@ void Aetherling_createMapGenerator(Context* c) {
                 });
 
             def->addInstance("serializer", "commonlib.seralizer", {
-                    {"width", elementWidth},
-                    {"rate", numInputs}
+                    {"width", Const::make(c, elementWidth)},
+                    {"rate", Const::make(c, numInputs)}
                 });
             def->addInstance("readyAndValid", "coreir.and", {
                     {"width", Const::make(c, elementWidth)}

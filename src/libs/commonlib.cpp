@@ -1563,7 +1563,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       std::string and_name = "en_and_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg", {
               {"width",Const::make(c,1)},
-              {"has_en",Const::make(c,false)}
+              {"has_en",Const::make(c,false)},
               {"init",Const::make(c,1, i == 0 ? 1 : 0)}
           });
       // going to have a special case for wiring last enable reg, so don't make the and in this case
@@ -1609,6 +1609,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect("resetInvert.out", en_and_name + ".in1");
           def->connect(en_and_name + ".out", next_en_reg_name + ".in");
       }
+    }
 
     def->connect("muxn.out","self.out");
   });
