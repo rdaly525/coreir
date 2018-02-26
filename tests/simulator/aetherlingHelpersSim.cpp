@@ -131,8 +131,18 @@ namespace CoreIR {
             def->connect("arrayify.valid", "self.valid");
 
             mainModule->setDef(def);
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "flattentypes", "wireclocks-coreir", "verifyconnectivity"},
-                         {"aetherlinglib", "commonlib", "coreir", "global"});
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst"},
+                         {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
+            cout << "printing pre wiring" << endl;
+            mainModule->print();
+            saveToFile(g, "_streamifyPreWiring.json",mainModule);
+            c->runPasses({"wireclocks-coreir"},
+                         {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
+            cout << "printing post wiring" << endl;
+            saveToFile(g, "_streamifyPostWiring.json",mainModule);
+            mainModule->print();
+            c->runPasses({"flatten", "flattentypes",  "verifyconnectivity", "deletedeadinstances"},
+                         {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
 
             /*
             c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "flattentypes", "wireclocks-coreir", "verifyconnectivity"},
@@ -142,16 +152,17 @@ namespace CoreIR {
             cout << -1 << endl;
 
             SimulatorState state(mainModule);
+            state.setClock("self.clk", 0, 1); // get a new rising clock edge
             // on first clock, ready should be asserted, then deasserted for rest until processed all input
             // from start until all inputs have gone through, valid should be deasserted
             for (uint i = 0; i < parallelInputs; i++) {
                 cout << i << endl;
-                //REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
-                //REQUIRE(state.getBitVec("self.ready") == BitVector(1, parallelInputs % i == 0 ? 1 : 0));
+                REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
+                REQUIRE(state.getBitVec("self.ready") == BitVector(1, parallelInputs % i == 0 ? 1 : 0));
                 state.execute();
             }
-            //REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
-            //REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
+            REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
+            REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
             for (uint i = 0; i < parallelInputs; i++) {
                 string idx = to_string(i);
                 REQUIRE(state.getBitVec("self.out_" + idx + "_container_el0") == BitVector(width, parallelInputs*(i+1)));
