@@ -1394,7 +1394,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     //def->addInstance("and", "corebit.and");
-    def->addInstance("resetOr", "coreir.or", {{"width",aBitwidth}});
+    def->addInstance("resetOr", "coreir.or", {{"width",Const::make(c, 1)}});
 
     // wire up modules
     // clear if max < count+inc
@@ -1408,9 +1408,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("add.out","ult.in1");
     def->connect("max.out","ult.in0");
     // clear count on either getting to max or reset
-    def->connect("ult.out","resetOr.in0");
-    def->connect("self.reset","resetOr.in1");
-    def->connect("resetOr.out","count.clr");
+    def->connect("ult.out","resetOr.in0.0");
+    def->connect("self.reset","resetOr.in1.0");
+    def->connect("resetOr.out.0","count.clr");
     def->connect("ult.out","self.overflow");
 
   });

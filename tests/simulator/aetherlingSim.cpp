@@ -17,13 +17,12 @@ using namespace std;
 
 namespace CoreIR {
 
-    TEST_CASE("Simulate mapN from aetherlinglib") {
-
+    TEST_CASE("Simulate mapParallel from aetherlinglib") {
         // New context
         Context* c = newContext();
         Namespace* g = c->getGlobal();
 
-        SECTION("aetherlinglib mapN with 4 mul, 3 as constant, 16 bit width") {
+        SECTION("aetherlinglib mapParallel with 4 mul, 3 as constant, 16 bit width") {
             uint width = 16;
             uint parallelOperators = 4;
             uint constInput = 3;
@@ -46,7 +45,7 @@ namespace CoreIR {
                     {"out",c->Bit()->Arr(width)}
                 });
 
-            /* creating the mulBy2 that the mapN will parallelize */
+            /* creating the mulBy2 that the mapParallel will parallelize */
             Module* mul2Inputs = c->getGlobal()->newModuleDecl("mul2Inputs", twoInZippedOneOutGenType);
             ModuleDef* mul2InputsDef = mul2Inputs->newModuleDef();        
 
@@ -62,14 +61,14 @@ namespace CoreIR {
                     {"input1Type", Const::make(c, c->BitIn()->Arr(width))}
                 });
     
-            Values mapNParams({
-                    {"parallelOperators", Const::make(c, parallelOperators)},
+            Values mapParams({
+                    {"numInputs", Const::make(c, parallelOperators)},
                     {"operator", Const::make(c, mul2Inputs)}
                 });
 
             def->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
-            string mapNName = "map" + to_string(parallelOperators);
-            Instance* mapN_mul = def->addInstance(mapNName, "aetherlinglib.mapN", mapNParams);
+            string mapParallelName = "map" + to_string(parallelOperators);
+            Instance* mapParallel_mul = def->addInstance(mapParallelName, "aetherlinglib.mapParallel", mapParams);
 
             // here we are wiring up a constant value and an iterated one to each input of the zip before
             // it goes into the map
@@ -87,14 +86,13 @@ namespace CoreIR {
                 def->connect(constName + ".out",  "zip2.in1." + to_string(i));
             }
 
-            def->connect("zip2.out", mapNName + ".in");
-            def->connect(mapNName + ".out", "self.out");
+            def->connect("zip2.out", mapParallelName + ".in");
+            def->connect(mapParallelName + ".out", "self.out");
             
             mainModule->setDef(def);
-            mapN_mul->getModuleRef()->print();
+            mapParallel_mul->getModuleRef()->print();
             c->runPasses({"rungenerators", "flatten", "flattentypes"});
             mainModule->print();
-            //mapN_mul->getModuleRef()->print();
 
             SimulatorState state(mainModule);
             state.execute();

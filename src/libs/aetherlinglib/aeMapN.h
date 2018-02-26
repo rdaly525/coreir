@@ -5,13 +5,6 @@
 using namespace std;
 using namespace CoreIR;
 
-/*
- * Create a map where all the results are computed in one clock cycle
- */
-void defineFullyParallelMap(Context* c, ModuleDef* def, string mapName, uint numInputs, Module* opModule) {
-   
-}
-
 void Aetherling_createMapGenerator(Context* c) {
 
     Namespace* aetherlinglib = c->getNamespace(AETHERLING_NAMESPACE);
@@ -42,9 +35,7 @@ void Aetherling_createMapGenerator(Context* c) {
                     {"in", opType->sel("in")->Arr(numInputs)},
                     {"out", opType->sel("out")->Arr(numInputs)},
                     {"ready", c->Bit()},
-                    {"nextReady", c->BitIn()},
-                    {"valid", c->Bit()},
-                    {"prevValid", c->BitIn()}
+                    {"valid", c->Bit()}
                 });
         });
 
@@ -64,8 +55,8 @@ void Aetherling_createMapGenerator(Context* c) {
                 def->connect(opStr + ".out", "self.out." + idxStr);
             }
             string oneConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
-            def->connect(oneConst + ".out", "self.ready");
-            def->connect(oneConst + ".out", "self.valid");
+            def->connect(oneConst + ".out.0", "self.ready");
+            def->connect(oneConst + ".out.0", "self.valid");
             
         });
 
@@ -81,55 +72,30 @@ void Aetherling_createMapGenerator(Context* c) {
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             Type* inputElementType = opType->sel("in");
-            uint elementWidth = inputElementType->getSize();
 
-            Values hydratedType({
-                    {"hydratedType", Const::make(c, inputElementType)}
-                });
-            Module* dehydrateInput = c->getGenerator("aetherlinglib.dehydrate")->getModule(hydratedType);
-            /* this part is responsible for getting 1 input per clock */
-            // serializer will choose 1 input at a time, dehydrate converts complex types to bit arrays
-            // hydrate converts them back
-            def->addInstance("dehydrateForSerializer", "aetherlinglib.mapN", {
-                    {"numInputs", Const::make(c, numInputs)},
-                    {"operator", Const::make(c, dehydrateInput)}
+            Values streamifyArrayifyParams({
+                    {"elementType", Const::make(c, inputElementType)},
+                    {"arrayLength", Const::make(c, numInputs)}
                 });
 
-            def->addInstance("serializer", "commonlib.seralizer", {
-                    {"width", Const::make(c, elementWidth)},
-                    {"rate", Const::make(c, numInputs)}
-                });
-            def->addInstance("readyAndValid", "coreir.and", {
-                    {"width", Const::make(c, elementWidth)}
-                });
-            def->addInstance("hydrateForSerializer", "aetherling.hydrate", hydratedType);
-
-            def->connect("self.in", "dehydrateForSeralizer.in");
-            def->connect("dehydrateForSeralizer.out", "serializer.in");
-            def->connect("serializer.out", "hydrateForSerializer.in");
-            // run serializer wehn previous input is valid and next is ready
-            // maybe this should always be enabled and reset when both ready and valid?
-            def->connect("self.nextReady", "readyAndvalid.in0");
-            def->connect("self.prevValid", "readyAndValid.in1");
-            def->connect("readyAndValid.out", "seralizer.en");
-
-            /* this part does the actual math */
+            def->addInstance("streamify", "aetherlinglib.streamify", streamifyArrayifyParams);
             def->addInstance("op", opModule);
-            def->connect("hydrateForSerializer.out", "op.in");
-            def->connect("op.out", "self.out." + idxStr);
+            def->addInstance("arrayify", "aetherlinglib.arrayify", streamifyArrayifyParams);
 
-            
+            // do the work
+            def->connect("self.in", "streamify.in");
+            def->connect("streamify.out", "op.in");
+            def->connect("op.out", "arrayify.in");
+            def->connect("arrayify.out", "self.out");
 
-            // now create each op and wire the inputs and outputs to it
-            for (uint i = 0; i < parallelOperators; i++) {
-                string idxStr = to_string(i);                
-                string opStr = "op_" + idxStr;
-                def->addInstance(opStr, opModule);
-                def->connect("self.in." + idxStr, opStr + ".in");
-                def->connect(opStr + ".out", "self.out." + idxStr);
-            }
-            string oneConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
-            def->connect(oneConst + ".out", "self.valid");
-            
+            // handle the overhead
+            string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
+            string disableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 0));
+            def->connect(enableConst + ".out.0", "streamify.en");
+            def->connect(enableConst + ".out.0", "arrayify.en");
+            def->connect("streamify.ready", "self.ready");
+            def->connect("arrayify.valid", "self.valid");
+            def->connect(disableConst + ".out.0", "streamify.reset");
+            def->connect(disableConst + ".out.0", "arrayify.reset");
         });
 }

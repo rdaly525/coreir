@@ -66,7 +66,7 @@ int main() {
 
     
 
-    /* creating the mulBy2 that the mapN will parallelize */
+    /* creating the mulBy2 that the mapParallel will parallelize */
     Module* mul2Inputs = c->getGlobal()->newModuleDecl("mul2Inputs", twoInZippedOneOutGenType);
     ModuleDef* mul2InputsDef = mul2Inputs->newModuleDef();
         
@@ -84,14 +84,17 @@ int main() {
             {"input1Type", Const::make(c, c->BitIn()->Arr(width))}
         });
     
-    Values mapNParams({
-            {"parallelOperators", Const::make(c, parallelInputs)},
+    Values mapParams({
+            {"numInputs", Const::make(c, parallelInputs)},
             {"operator", Const::make(c, mul2Inputs)}
         });
 
     // ignoring last argumen to addIstance as no module parameters
     testDef->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
-    testDef->addInstance("mapMul", "aetherlinglib.mapN", mapNParams);
+    testDef->addInstance("mapMul", "aetherlinglib.mapParallel", mapParams);
+    // for ignoring ready and valid signals
+    testDef->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
+    testDef->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
 
     // creating reduce for testing
     Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
@@ -143,6 +146,8 @@ int main() {
     }
     testDef->connect("zip2.out", "mapMul.in");
     testDef->connect("mapMul.out","self.outMap");
+    testDef->connect("mapMul.valid", "ignoreValid.in.0");
+    testDef->connect("mapMul.ready", "ignoreReady.in.0");
 
     // wiring up reduce
     testDef->connect("self.in", "reduceAdd.in");

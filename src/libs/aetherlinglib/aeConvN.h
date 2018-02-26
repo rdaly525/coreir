@@ -78,8 +78,8 @@ void Aetherling_createConvGenerator(Context* c) {
             
             Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(c, mul2Unzipped);
             
-            def->addInstance("conv1DMap", "aetherlinglib.mapN", {
-                    {"parallelOperators", Const::make(c, kernelWidth)},
+            def->addInstance("conv1DMap", "aetherlinglib.mapParallel", {
+                    {"numInputs", Const::make(c, kernelWidth)},
                     {"operator", Const::make(c, mul2Zipped)}
                 });
 
