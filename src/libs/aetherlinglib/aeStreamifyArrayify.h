@@ -10,8 +10,8 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
 
     Namespace* aetherlinglib = c->getNamespace(AETHERLING_NAMESPACE);
     /*
-     * inputType - the type that you want to flatten
-     * outputType - what you want to flatten it into, inputType must be some set of arrays of this
+     * elementType - the type that the stream/array contains
+     * arrayLength - how wide arrays should be received/emmitted
      */
     Params streamifyArrayifyParams = Params({
             {"elementType", CoreIRType::make(c)},
@@ -30,8 +30,6 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
                     {"reset", c->BitIn()},
                     {"en", c->BitIn()},
                     {"ready", c->Bit()}
-                        //{"emittedAllElements", c->Bit()} // this bit is 1 once all the elements of the array
-                    // have been emitted to the stream
                 });
         });
 
@@ -60,22 +58,6 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
                     {"rate", Const::make(c, arrayLength)}
                 });
             def->addInstance("hydrateForSerializer", "aetherlinglib.hydrate", hydratedType);
-            /*
-            // these will emit 1 as long as count of serializer isn't max count and should keep going
-            def->addInstance("countEq", "coreir.eq", {{"width", Const::make(c, elementWidth)}});
-            string lastElement = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, width, numInputs));
-            // this register will emit 1 the cycle after streamify has gone trhough all elements
-            // reset will clear it to 0 to show that not all elements have been emitted
-            def->addInstance("emittedAllReg", "coreir.reg", {
-                    {"width", Const::make(c, 1)},
-                    {"has_en", Const::make(c, true)},
-                    {"has_clr", Const::make(c, true)},
-                    {"has_rst", Const::make(c, false)} // note: this is asynchronous, clear is what
-                    // I want as it is synchronous
-                });
-            */
-            // emit the constant 1 for enabling the serializer
-            //string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
 
             def->connect("self.in", "dehydrateForSerializer.in");
             def->connect("self.reset", "serializer.reset");
@@ -86,8 +68,6 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             // in this version, never stop, always keep looping over array to produce stream
             // ready says when able to take next array
             def->connect("serializer.ready", "self.ready");
-            
-            // def->connect(enableConst + ".out", "serializer.en");
         });
 
     aetherlinglib->newTypeGen(
@@ -134,23 +114,6 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
                     {"numInputs", Const::make(c, arrayLength)},
                     {"operator", Const::make(c, hydrateOutput)}
                 });
-          
-            /*
-            // these will emit 1 as long as count of serializer isn't max count and should keep going
-            def->addInstance("countEq", "coreir.eq", {{"width", Const::make(c, elementWidth)}});
-            string lastElement = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, width, numInputs));
-            // this register will emit 1 the cycle after streamify has gone trhough all elements
-            // reset will clear it to 0 to show that not all elements have been emitted
-            def->addInstance("emittedAllReg", "coreir.reg", {
-                    {"width", Const::make(c, 1)},
-                    {"has_en", Const::make(c, true)},
-                    {"has_clr", Const::make(c, true)},
-                    {"has_rst", Const::make(c, false)} // note: this is asynchronous, clear is what
-                    // I want as it is synchronous
-                });
-            */
-            // emit the constant 1 for enabling the seralizler
-            //string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
 
             def->connect("self.in", "dehydrateForDeserializer.in");
             def->connect("deserializer.valid", "self.valid");
@@ -159,6 +122,5 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             def->connect("dehydrateForDeserializer.out", "deserializer.in");
             def->connect("deserializer.out", "hydrateForDeserializer.in");
             def->connect("hydrateForDeserializer.out", "self.out");
-            // def->connect(enableConst + ".out", "serializer.en");
         });
 }
