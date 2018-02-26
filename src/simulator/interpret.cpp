@@ -1045,6 +1045,10 @@ namespace CoreIR {
     } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
     } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
+    } else if ((opName == "coreir.wire") || (opName == "corebit.wire")) {
+      updateBitVecUnop(vd, [](const BitVec& r) {
+          return r;
+      });
     } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
     } else if (opName == "coreir.concat") {
