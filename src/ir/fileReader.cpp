@@ -292,9 +292,7 @@ ValueType* json2ValueType(Context* c,json j) {
     ASSERT(j[0].get<string>()=="BitVector","Bad string for ValueType");
     return c->BitVector(j[1].get<int>());
   }
-  cout << "{" << j << endl;
   string vs = j.get<string>();
-  cout << "}";
   if (vs=="Bool") {
     return c->Bool();
   }
@@ -376,7 +374,6 @@ Type* json2Type(Context* c, json jt) {
     } else {
       throw std::runtime_error(kind + " is not a type!");
     }
- 
   }
   else if (jt.type() == json::value_t::array) {
     vector<json> args = jt.get<vector<json>>();

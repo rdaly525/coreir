@@ -48,8 +48,8 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       {"strip","in"},
       {"wrap","in"},
       {"const","value"},
-      {"triput","en ? in : 'hz"},
-      {"triget","in"},
+      {"tribuf","en ? in : 'hz"},
+      {"ibuf","in"},
       //{"term",""}
       //{"reg",""}, 
       //{"mem",""}, 
@@ -109,12 +109,12 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     }},
     {"const",{"output [width-1:0] out"}},
     {"term",{"input [width-1:0] in"}},
-    {"triput",{
+    {"tribuf",{
       "input [width-1:0] in",
       "input en",
       "inout out"
     }},
-    {"triget",{
+    {"ibuf",{
       "inout [width-1:0] in",
       "output [width-1:0] out"
     }},
