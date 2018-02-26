@@ -1528,7 +1528,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       return c->Record({
         {"en",c->BitIn()},
         {"reset",c->BitIn()},
-        {"count",c->Bit()->Arr(width)},
         {"valid", c->Bit()}, // output is valid
         {"in",c->BitIn()->Arr(width)},
         {"out",c->Bit()->Arr(width)->Arr(rate)}
@@ -1563,9 +1562,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       std::string and_name = "en_and_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg", {
               {"width",Const::make(c,1)},
-              {"has_en",Const::make(c,false)},
-              {"init",Const::make(c,1, i == 0 ? 1 : 0)}
-          });
+              {"has_en",Const::make(c,false)}
+          }, {{"init",Const::make(c,1, i == 0 ? 1 : 0)}});
       // going to have a special case for wiring last enable reg, so don't make the and in this case
       if (i < rate - 1) {
           def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
@@ -1579,7 +1577,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // the not to invert the reset
     def->addInstance("resetInvert", "coreir.not", {{"width",Const::make(c,1)}});
 
-    def->connect("self.reset", "resetInvert.in");
+    def->connect("self.reset", "resetInvert.in.0");
 
     // wire up one input to all regs
     for (uint i=0; i<rate; ++i) {
@@ -1593,16 +1591,19 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->connect(reg_name+".out", "self.out."+idx);
 
       // for every data reg, wire in the enable reg
-      def->connect(en_reg_name + ".out", reg_name + ".en");
+      def->connect(en_reg_name + ".out.0", reg_name + ".en");
 
       // if this is the last reg, wire it's output and the deserializer reset into the input for the
       // first enable reg as if either occurs its a reason for starting cycle again
       if (i == rate - 1) {
-          def->connect("self.reset", "firstEnabledOr.in0");
+          def->connect("self.reset", "firstEnabledOr.in0.0");
           def->connect(en_reg_name + ".out", "firstEnabledOr.in1");
           def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in");
 
-          def->connect(en_reg_name + ".out", "self.valid");
+          // wire up the valid signal, which comes one clock after the last reg is enabled, same cycle
+          // as that reg starts emitting the right value
+          def->connect(en_reg_name + ".out", "validReg.in");
+          def->connect("validReg.out.0", "self.valid");
       }
       else {
           def->connect(en_reg_name + ".out", en_and_name + ".in0");
@@ -1610,8 +1611,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect(en_and_name + ".out", next_en_reg_name + ".in");
       }
     }
-
-    def->connect("muxn.out","self.out");
   });
 
 

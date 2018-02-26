@@ -50,12 +50,12 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
 
             // serializer will choose 1 input at a time, dehydrate converts complex types to bit arrays
             // hydrate converts them back
-            def->addInstance("dehydrateForSerializer", "aetherlinglib.mapN", {
+            def->addInstance("dehydrateForSerializer", "aetherlinglib.mapParallel", {
                     {"numInputs", Const::make(c, arrayLength)},
                     {"operator", Const::make(c, dehydrateInput)}
                 });
 
-            def->addInstance("serializer", "commonlib.seralizer", {
+            def->addInstance("serializer", "commonlib.serializer", {
                     {"width", Const::make(c, elementWidth)},
                     {"rate", Const::make(c, arrayLength)}
                 });
@@ -74,12 +74,12 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
                     // I want as it is synchronous
                 });
             */
-            // emit the constant 1 for enabling the seralizler
+            // emit the constant 1 for enabling the serializer
             //string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
 
-            def->connect("self.in", "dehydrateForSeralizer.in");
+            def->connect("self.in", "dehydrateForSerializer.in");
             def->connect("self.reset", "serializer.reset");
-            def->connect("dehydrateForSeralizer.out", "serializer.in");
+            def->connect("dehydrateForSerializer.out", "serializer.in");
             def->connect("self.en", "serializer.en");
             def->connect("serializer.out", "hydrateForSerializer.in");
             def->connect("hydrateForSerializer.out", "self.out");
@@ -100,7 +100,7 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
                     {"in", c->In(elementType)},
                     {"out", c->Out(elementType->Arr(arrayLength))},
                     {"reset", c->BitIn()},
-                    {"en", c->Bit()},
+                    {"en", c->BitIn()},
                     {"valid", c->Bit()} // this bit is 1 once all the elements of the array
                     // have been emitted to the stream
                 });
@@ -124,13 +124,13 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
 
             def->addInstance("dehydrateForDeserializer", "aetherlinglib.dehydrate", hydratedType);  
 
-            def->addInstance("deserializer", "commonlib.deseralizer", {
+            def->addInstance("deserializer", "commonlib.deserializer", {
                     {"width", Const::make(c, elementWidth)},
                     {"rate", Const::make(c, arrayLength)}
                 });
 
             Module* hydrateOutput = c->getGenerator("aetherlinglib.hydrate")->getModule(hydratedType);
-            def->addInstance("hydrateForDeserializer", "aetherlinglib.mapN", {
+            def->addInstance("hydrateForDeserializer", "aetherlinglib.mapParallel", {
                     {"numInputs", Const::make(c, arrayLength)},
                     {"operator", Const::make(c, hydrateOutput)}
                 });
@@ -152,11 +152,11 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
             // emit the constant 1 for enabling the seralizler
             //string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
 
-            def->connect("self.in", "dehydrateForDeseralizer.in");
+            def->connect("self.in", "dehydrateForDeserializer.in");
             def->connect("deserializer.valid", "self.valid");
             def->connect("self.en", "deserializer.en");
             def->connect("self.reset", "deserializer.reset");
-            def->connect("selfDeseralizer.out", "deserializer.in");
+            def->connect("dehydrateForDeserializer.out", "deserializer.in");
             def->connect("deserializer.out", "hydrateForDeserializer.in");
             def->connect("hydrateForDeserializer.out", "self.out");
             // def->connect(enableConst + ".out", "serializer.en");
