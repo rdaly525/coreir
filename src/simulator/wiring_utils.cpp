@@ -363,7 +363,7 @@ namespace CoreIR {
       //assert(isBitType(*(sel->getType())));
       constReplace = def->addInstance("def_self_const_replace_" + portName,
                                       "corebit.const",
-                                      {{"value", Const::make(c, value.get(0) ? true : false)}});
+                                      {{"value", Const::make(c, value.get(0).binary_value() ? true : false)}});
     }
 
     assert(constReplace != nullptr);

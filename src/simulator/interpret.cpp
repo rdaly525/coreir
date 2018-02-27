@@ -581,7 +581,7 @@ namespace CoreIR {
 
       int index = selectNum(sel);
 
-      return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
+      return makeSimBitVector(BitVec(1, (val->getBits()).get(index).binary_value()));
     }
 
     assert(mod->getDef()->canSel(sel->toString()));
@@ -982,7 +982,7 @@ namespace CoreIR {
     assert(vals.bitLength() == (1 << width));
 
     bv_uint64 i = get_shift_int(bv1); //get_shift_int(s1->getBits());
-    unsigned char lutBit = vals.get(i);
+    unsigned char lutBit = vals.get(i).binary_value();
     
     setValue(toSelect(outPair.second), makeSimBitVector(BitVector(1, lutBit)));
   }
@@ -1049,6 +1049,8 @@ namespace CoreIR {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return r;
       });
+    } else if ((opName == "coreir.term") || (opName == "corebit.term")) {
+      // No-op
     } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
     } else if (opName == "coreir.concat") {
@@ -1849,7 +1851,7 @@ namespace CoreIR {
 
     // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
 
-    return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access))));
+    return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access)).binary_value()));
 
     // assert(sv->getType() == SIM_VALUE_BV);
 

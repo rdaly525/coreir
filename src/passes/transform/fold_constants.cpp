@@ -102,7 +102,7 @@ namespace CoreIR {
           cout << "\tSource = " << srcConst->toString() << endl;
           cout << "\tOffset = " << offset << endl;
 
-          uint8_t bit = val.get(offset);
+          uint8_t bit = val.get(offset).binary_value();
 
           assert((bit == 0) || (bit == 1));
 
@@ -141,7 +141,7 @@ namespace CoreIR {
             (srcConst->getModArgs().find("value"))->second->get<bool>();
 
           BitVector val(1, valB == true ? 1 : 0);
-          uint8_t bit = val.get(0);
+          uint8_t bit = val.get(0).binary_value();
 
           assert((bit == 0) || (bit == 1));
 

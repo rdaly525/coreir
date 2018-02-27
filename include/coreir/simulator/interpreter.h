@@ -6,7 +6,7 @@
 
 namespace CoreIR {
 
-  typedef bsim::dynamic_bit_vector BitVec;
+  typedef bsim::quad_value_bit_vector BitVec;
 
   enum SimValueType {
     SIM_VALUE_BV,
