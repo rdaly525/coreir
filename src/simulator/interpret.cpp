@@ -1049,6 +1049,8 @@ namespace CoreIR {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return r;
       });
+    } else if ((opName == "coreir.term") || (opName == "corebit.term")) {
+      // No-op
     } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
     } else if (opName == "coreir.concat") {
