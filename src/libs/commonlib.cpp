@@ -1457,7 +1457,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     def->addInstance("counter", "commonlib.counter",
-                     {{"width",aBitwidth},{"min",Const::make(c,0)},{"max",Const::make(c,rate)},{"inc",Const::make(c,1)}});
+                     {{"width",aBitwidth},{"min",Const::make(c,0)},{"max",Const::make(c,rate-1)},{"inc",Const::make(c,1)}});
     def->addInstance("muxn", "commonlib.muxn",
                      {{"width",aBitwidth},{"N",Const::make(c,rate)}});
     def->addInstance("equal", eq_gen,
@@ -1478,7 +1478,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // wire up modules
     def->connect("self.reset", "counter.reset");
-    def->connect("counter.overflow", "self.ready");
+    def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
 
@@ -1563,11 +1563,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance(reg_name, "mantle.reg", {
               {"width",Const::make(c,1)},
               {"has_en",Const::make(c,true)}
-          }, {{"init",Const::make(c,1, i == 0 ? 1 : 0)}});
-      // going to have a special case for wiring last enable reg, so don't make the and in this case
-      if (i < rate - 1) {
-          def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
-      }
+          }, {{"init",Const::make(c, 1, i == 0 ? 1 : 0)}});
+      def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
     }
     // this reg is 1 only cycle after last enable reg is 1, to indicate that all registers have been written
     // to in the last cycle
@@ -1603,7 +1600,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
           // wire up the valid signal, which comes one clock after the last reg is enabled, same cycle
           // as that reg starts emitting the right value
-          def->connect(en_reg_name + ".out", "validReg.in");
+          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect("resetInvert.out", en_and_name + ".in1");
+          def->connect(en_and_name + ".out", "validReg.in");
           def->connect("validReg.out.0", "self.valid");
       }
       else {

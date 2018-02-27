@@ -92,11 +92,11 @@ namespace CoreIR {
             def->connect("zip2.out", mapParallelName + ".in");
             def->connect(mapParallelName + ".out", "self.out");
             def->connect(mapParallelName + ".ready", "ignoreReady.in.0");
-            def->connect(mapParallelName + ".valid", "ignoreReady.in.0");
+            def->connect(mapParallelName + ".valid", "ignoreValid.in.0");
             
             mainModule->setDef(def);
             mapParallel_mul->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity", "flatten", "flattentypes"});
+            c->runPasses({"rungenerators", "verifyconnectivity", "flatten", "flattentypes", "deletedeadinstances"});
             mainModule->print();
 
             SimulatorState state(mainModule);
