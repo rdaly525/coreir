@@ -30,9 +30,9 @@
 typedef uint32_t uint;
 
 namespace bsim {
-  class dynamic_bit_vector;
+  class quad_value_bit_vector;
 }
-typedef bsim::dynamic_bit_vector BitVector;
+typedef bsim::quad_value_bit_vector BitVector;
 
 namespace CoreIR {
 

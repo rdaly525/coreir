@@ -22,7 +22,7 @@
           "m0$c1":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",2]},
-            "modargs":{"value":[["BitVector",2],"2'h01"]}
+            "modargs":{"value":[["BitVector",2],"2'h1"]}
           },
           "m0$mem":{
             "genref":"coreir.mem",
@@ -35,7 +35,7 @@
           "m0$raddr$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
-            "modargs":{"init":[["BitVector",2],"2'h00"]}
+            "modargs":{"init":[["BitVector",2],"2'h0"]}
           },
           "m0$veq":{
             "genref":"coreir.neq",
@@ -48,7 +48,7 @@
           "m0$waddr$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
-            "modargs":{"init":[["BitVector",2],"2'h00"]}
+            "modargs":{"init":[["BitVector",2],"2'h0"]}
           }
         },
         "connections":[
