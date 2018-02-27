@@ -225,7 +225,7 @@ namespace bsim {
     quad_value_bit_vector(const int N_) : N(N_) {
       //bits.resize(NUM_BYTES(N));
       bits.resize(N);
-      for (uint i = 0; i < ((int) bits.size()); i++) {
+      for (uint i = 0; i < ((uint) bits.size()); i++) {
 	bits[i] = quad_value(0);
       }
       
