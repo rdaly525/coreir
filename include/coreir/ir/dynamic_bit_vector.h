@@ -6,6 +6,8 @@
 #include <stdint.h>
 #include <type_traits>
 
+// This is a comment
+
 typedef int8_t  bv_sint8;
 typedef int32_t  bv_sint32;
 
@@ -223,7 +225,7 @@ namespace bsim {
     quad_value_bit_vector(const int N_) : N(N_) {
       //bits.resize(NUM_BYTES(N));
       bits.resize(N);
-      for (uint i = 0; i < bits.size(); i++) {
+      for (uint i = 0; i < ((int) bits.size()); i++) {
 	bits[i] = quad_value(0);
       }
       
@@ -346,7 +348,7 @@ namespace bsim {
       bits.resize(N);
 
       for (int i = 0; i < N; i++) {
-        if (i < sizeof(int)*8) {
+        if (i < ((int) sizeof(int)*8)) {
           set(i, quad_value((val >> i) & 0x01));
         } else {
           set(i, quad_value(0));
@@ -361,13 +363,13 @@ namespace bsim {
 
       std::string hex_digits = "";
 
-      for (int i = 0; i < bits.size(); i += 4) {
+      for (int i = 0; i < ((int) bits.size()); i += 4) {
         unsigned char bit_l = 0;
         bool found_abnormal = false;
 
         for (int j = 0; j < 4; j++) {
           int index = i + j;
-          if (index >= bits.size()) {
+          if (index >= ((int) bits.size())) {
           } else {
             if (bits[index].is_binary()) {
               bit_l |= (bits[index].binary_value() & 0x01) << j;
@@ -928,7 +930,7 @@ namespace bsim {
   quad_value_bit_vector
   extend(const quad_value_bit_vector& a, const int extra_bits) {
     quad_value_bit_vector res(a.bitLength() + extra_bits);
-    for (uint i = 0; i < a.bitLength(); i++) {
+    for (int i = 0; i < a.bitLength(); i++) {
       res.set(i, a.get(i));
     }
 
