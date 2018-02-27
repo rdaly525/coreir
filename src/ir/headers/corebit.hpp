@@ -31,11 +31,27 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
   bitop->newModuleDecl("mux",bitTernaryType);
   bitop->newModuleDecl("wire",bitUnaryType);
   
+  Type* triBufType = c->Record({
+    {"in",c->BitIn()},
+    {"en",c->BitIn()},
+    {"out",c->BitInOut()}
+  });
+  bitop->newModuleDecl("tribuf",triBufType);
+  Type* iBufType = c->Record({
+    {"in",c->BitInOut()},
+    {"out",c->Bit()}
+  });
+  bitop->newModuleDecl("ibuf",iBufType);
+  bitop->newModuleDecl("pullresistor",c->Record({{"out",c->BitInOut()}}),{{"value",c->Bool()}});
+
   //TODO Add Halfadder/fulladder
 
   //Const and Term
   bitop->newModuleDecl("const",c->Record({{"out",c->Bit()}}),{{"value",c->Bool()}});
   bitop->newModuleDecl("term",c->Record({{"in",c->BitIn()}}));
+
+
+
 
   //State
   

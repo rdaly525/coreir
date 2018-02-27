@@ -300,7 +300,7 @@ extern "C" {
 
   COREWireable** COREWireableGetConnectedWireables(COREWireable* w, int* numWireables) {
     Wireable* wireable = rcast<Wireable*>(w);
-    unordered_set<Wireable*> connections_set = wireable->getConnectedWireables();
+    set<Wireable*> connections_set = wireable->getConnectedWireables();
     Context* context = wireable->getContext();
     int size = connections_set.size();
     *numWireables = size;
@@ -329,7 +329,7 @@ extern "C" {
     return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
   }
 
-  COREModuleDef* COREWireableGetModuleDef(COREWireable* w) {
+  COREModuleDef* COREWireableGetContainer(COREWireable* w) {
     return rcast<COREModuleDef*>(rcast<Wireable*>(w)->getContainer());
   }
 

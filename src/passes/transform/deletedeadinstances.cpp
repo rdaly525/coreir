@@ -2,12 +2,15 @@
 
 std::string CoreIR::Passes::DeleteDeadInstances::ID = "deletedeadinstances";
 
+using namespace std;
+
 namespace CoreIR {
 
 
   bool hasOutputConnection(Wireable* w) {
     for (auto wb : w->getConnectedWireables()) {
-      if (wb->getType()->getDir() == Type::DK_In) {
+      if ((wb->getType()->getDir() == Type::DK_In) ||
+          (wb->getType()->getDir() == Type::DK_InOut)) {
         return true;
       }
     }
@@ -29,17 +32,18 @@ namespace CoreIR {
 
     bool changed = false;
     
-
     do {
       changed = false;
-
+      vector<Instance*> toDelete;
       for (auto instR : def->getInstances()) {
         Instance* inst = instR.second;
-
         if (!hasOutputConnection(inst)) {
           changed = true;
-          def->removeInstance(inst);
+          toDelete.push_back(inst);
         }
+      }
+      for (auto inst : toDelete) {
+        def->removeInstance(inst);
       }
 
     } while (changed);

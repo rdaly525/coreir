@@ -8,8 +8,8 @@ namespace CoreIR {
 
 class Type {
   public :
-    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4};
-    enum DirKind {DK_In,DK_Out,DK_Mixed,DK_Unknown};
+    enum TypeKind {TK_Bit=0, TK_BitIn=1,TK_Array=2,TK_Record=3,TK_Named=4, TK_BitInOut=5};
+    enum DirKind {DK_In,DK_Out,DK_InOut,DK_Mixed,DK_Null};
   protected :
     TypeKind kind;
 
@@ -39,9 +39,10 @@ class Type {
     
     bool isInput() const { return dir==DK_In;}
     bool isOutput() const { return dir==DK_Out; }
+    bool isInOut() const { return dir==DK_InOut; }
     bool isMixed() const { return dir==DK_Mixed; }
-    bool isUnknown() const { return dir==DK_Unknown; }
-    bool hasInput() const { return isInput() || isMixed(); }
+    bool isUnknown() const { return dir==DK_Null; }
+    bool hasInput() const;
 
     bool isBaseType();
 
@@ -72,6 +73,15 @@ class BitInType : public Type {
     uint getSize() const override { return 1;}
 };
 
+class BitInOutType : public Type {
+  public :
+    BitInOutType(Context* c) : Type(TK_BitInOut,DK_InOut,c) {}
+    static bool classof(const Type* t) {return t->getKind()==TK_BitInOut;}
+    
+    std::string toString(void) const override {return "BitInOut";}
+    uint getSize() const override { return 1;}
+};
+
 class NamedType : public Type, public GlobalValue {
   protected :
     
@@ -86,10 +96,10 @@ class NamedType : public Type, public GlobalValue {
     static bool classof(const Type* t) {return t->getKind()==TK_Named;}
     std::string toString(void) const override { return this->getRefName(); } //TODO add generator
     void print() const override;
-    Type* getRaw() {return raw;}
-    bool isGen() { return isgen;}
-    TypeGen* getTypegen() { return typegen;}
-    Values getGenArgs() {return genargs;}
+    Type* getRaw() const {return raw;}
+    bool isGen() const { return isgen;}
+    TypeGen* getTypegen() const { return typegen;}
+    Values getGenArgs() const {return genargs;}
     uint getSize() const override { return raw->getSize();}
 };
 
@@ -99,8 +109,8 @@ class ArrayType : public Type {
   public :
     ArrayType(Context* c,Type *elemType, uint len) : Type(TK_Array,elemType->getDir(),c), elemType(elemType), len(len) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Array;}
-    uint getLen() {return len;}
-    Type* getElemType() { return elemType; }
+    uint getLen() const {return len;}
+    Type* getElemType() const { return elemType; }
     std::string toString(void) const override { 
       return elemType->toString() + "[" + std::to_string(len) + "]";
     };
@@ -114,7 +124,7 @@ class RecordType : public Type {
   std::vector<std::string> _order;
   public :
     RecordType(Context* c, RecordParams _record);
-    RecordType(Context* c) : Type(TK_Record,DK_Unknown,c) {}
+    RecordType(Context* c) : Type(TK_Record,DK_Null,c) {}
     static bool classof(const Type* t) {return t->getKind()==TK_Record;}
     const std::vector<std::string>& getFields() const { return _order;}
     const std::map<std::string,Type*>& getRecord() const { return record;}

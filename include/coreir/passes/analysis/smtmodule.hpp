@@ -61,7 +61,7 @@ public :
   }
   bool operator==(const SmtBVVar &other) const
   { return (name.compare(other.name) == 0);
-  }  
+  }
   SmtBVVar(string instname, string portname, unsigned dim, Type::DirKind dir) :
     instname(instname), portname(portname), dim(dim), dir(dir) {}
   string dimstr() {return to_string(dim);}
@@ -80,8 +80,9 @@ class SMTModule {
   unordered_set<string> params;
   unordered_map<string,string> paramDefaults;
 
+  bool instantiated = false;
   Generator* gen = nullptr;
-  
+
   vector<string> stmts;
   vector<string> vardecs;
   vector<string> nextvardecs;
@@ -94,7 +95,15 @@ public:
     Type2Ports(t, ports);
   }
   SMTModule(Module* m) : SMTModule(m->getName(),m->getType()) {
-    this->modname = m->getName();
+    string ns;
+    if(m->isGenerated()) {
+      ns = m->getGenerator()->getNamespace()->getName();
+    }
+    else
+    {
+      ns = m->getNamespace()->getName();
+    }
+    this->modname = ns + "." + m->getName();
     const json& jmeta = m->getMetaData();
     // still using verilog prefixes -- should be okay
     if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
@@ -104,10 +113,11 @@ public:
     this->addParams(params,m->getModParams());
     this->addDefaults(paramDefaults,m->getDefaultModArgs());
   }
-  SMTModule(Generator* g) : modname(g->getName()), gen(g) {
+  SMTModule(Generator* g) : modname(g->getNamespace()->getName() + "." + g->getName()), gen(g) {
     const json& jmeta = g->getMetaData();
     // still using verilog prefixes -- should be fine
     if (jmeta.count("verilog") && jmeta["verilog"].count("prefix")) {
+      cout << "verilog prefix tag" << jmeta["verilog"]["prefix"].get<string>() << endl;
       modname = jmeta["verilog"]["prefix"].get<string>() + g->getName();
     }
     this->addParams(params,g->getGenParams());
@@ -122,6 +132,8 @@ public:
   string toCommentString() {
     return "//Module: " + modname + " defined externally";
   }
+  void instantiate() {instantiated=true;}
+  bool isInstantiated() {return instantiated;}
   string toString();
   string toVarDecString();
   string toNextVarDecString();
@@ -141,13 +153,13 @@ private :
       ports.push_back(SmtBVVar(inst->getInstname(), rmap.first, rmap.second));
     }
   }
-  void addParams(unordered_set<string>& sps, Params ps) { 
+  void addParams(unordered_set<string>& sps, Params ps) {
     for (auto p : ps) {
       ASSERT(params.count(p.first)==0,"NYI Cannot have duplicate params");
-      sps.insert(p.first); 
+      sps.insert(p.first);
     }
   }
-  void addDefaults(unordered_map<string,string> sm, Values ds) { 
+  void addDefaults(unordered_map<string,string> sm, Values ds) {
     for (auto dpair : ds) {
       sm[dpair.first] = toConstString(dpair.second);
     }
@@ -168,7 +180,7 @@ private :
     }
     assert(0);
   }
-  
+
 };
 
 #endif

@@ -2,8 +2,9 @@
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/module.h"
-//#include <sstream>
-//#include <iterator>
+
+#include <regex>
+
 
 using namespace std;
 namespace CoreIR {
@@ -38,7 +39,7 @@ Connection connectionCtor(Wireable* a, Wireable* b) {
   }
 }
 
-string Params2Str(Params genparams, bool multi) {
+string toString(Params genparams, bool multi) {
   string ret = "(";
   vector<string> plist;
   for (auto gpair : genparams) {
@@ -48,7 +49,7 @@ string Params2Str(Params genparams, bool multi) {
   return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
 
-string Values2Str(Values vals, bool multi) {
+string toString(Values vals, bool multi) {
   string ret = "(";
   vector<string> plist;
   for (auto vpair : vals) {
@@ -58,28 +59,60 @@ string Values2Str(Values vals, bool multi) {
   return "(" + join(plist.begin(),plist.end(),sep) + ")";
 }
 
-string SelectPath2Str(SelectPath path) {
+string toString(SelectPath path) {
   return join(path.begin(),path.end(),string("."));
 }
 
-string Connection2Str(Connection con) {
+string toString(Connection con) {
   return con.first->toString() + " <=> " + con.second->toString();
 }
 
-std::string Inst2Str(Instance* inst) {
+
+std::string toString(Instance* inst) {
   string ret = inst->getInstname();
   if (inst->getModuleRef()->isGenerated()) { 
-    ret = ret + Values2Str(inst->getModuleRef()->getGenArgs());
+    ret = ret + toString(inst->getModuleRef()->getGenArgs());
   }
-  return ret + Values2Str(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
+  return ret + toString(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
 }
+
+namespace {
+inline bool syntaxW(char c) {
+  return (c >= 'a' && c<='z')
+      || (c >= 'A' && c<= 'Z')
+      || (c=='_')
+      || (c=='-')
+      || (c=='$');
+}
+inline bool syntaxWN(char c) {
+  return (c >= 'a' && c<='z')
+      || (c >= 'A' && c<= 'Z')
+      || (c >= '0' && c<= '9')
+      || (c=='_')
+      || (c=='-')
+      || (c=='$');
+}
+}
+
+static std::string regex_str("^[a-zA-Z_\\-\\$][a-zA-Z0-9_\\-\\$]*");
+void checkStringSyntax(std::string& str) {
+  //static regex reg(regex_str, std::regex_constants::basic);
+  ASSERT(syntaxW(str[0]),str+" 0: is not a valid coreIR name!. Needs to be = " + string(regex_str));
+  for (uint i=1; i<str.length(); ++i) {
+    ASSERT(syntaxWN(str[i]),str+" " +to_string(i)+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
+  }
+  //ASSERT(regex_search(str,syntaxreg),str+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
+}
+
+
+
 
 void checkValuesAreParams(Values args, Params params) {
   bool multi = args.size() > 4 || params.size() > 4;
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + Values2Str(args,multi) + "\nParams: " + Params2Str(params,multi));
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + toString(args,multi) + "\nParams: " + toString(params,multi));
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + Params2Str(params) + "\nBut only gave:" + Values2Str(args));
+    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) + "\nBut only gave:" + toString(args));
     ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
   }
 }
