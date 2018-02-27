@@ -157,7 +157,6 @@ namespace CoreIR {
             }
             REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
             REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
-            assert(0);
             for (uint i = 0; i < parallelInputs; i++) {
                 string idx = to_string(i);
                 REQUIRE(state.getBitVec("self.out_" + idx + "_container_el0") == BitVector(width, parallelInputs*(i+1)));
