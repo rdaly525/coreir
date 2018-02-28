@@ -65,9 +65,9 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.valid","valid.out");
 
     //Logic to drive raddr
-    def->connect("self.wen","raddr.en");
+    def->connect("valid.out","raddr.en");
     
-    //Logic to drive raddr
+    //Logic to drive waddr
     def->connect("self.wen","waddr.en");
     
     //Logic to drive cnt
