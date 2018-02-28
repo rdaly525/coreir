@@ -135,7 +135,6 @@ namespace CoreIR {
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
-            saveToFile(g, "_streamifyReady.json",mainModule);
             mainModule->print();
     
             SimulatorState state(mainModule);
@@ -143,13 +142,7 @@ namespace CoreIR {
             state.execute();
             // on first clock, ready should be asserted, then deasserted for rest until processed all input
             // from start until all inputs have gone through, valid should be deasserted
-            Instance* x = def->addInstance("dude", "mantle.reg", {
-                    {"width",Const::make(c,1)},
-                    {"has_en",Const::make(c,true)}
-                }, {{"init",Const::make(c,1,1)}});
-            cout << x << endl;
             for (uint i = 0; i < parallelInputs; i++) {
-                cout << i << endl;
                 REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
                 REQUIRE(state.getBitVec("self.ready") == BitVector(1, i % parallelInputs == 0 ? 1 : 0));
                 state.setClock("self.clk", 0, 1); // get a new rising clock edge
