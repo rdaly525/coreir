@@ -65,6 +65,112 @@ namespace CoreIR {
   
   }
 
+  TEST_CASE("Interpreting coreir.wire and corebit.wire") {
+
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("coreir.wire") {
+      uint width = 4;
+      Type* tp = c->Record({{"in", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+      def->addInstance("w", "coreir.wire", {{"width", Const::make(c, width)}});
+      def->connect("self.in", "w.in");
+      def->connect("w.out", "self.out");
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(width, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 12));
+    }
+
+    SECTION("corebit.wire") {
+      Type* tp = c->Record({{"in", c->BitIn()},
+            {"out", c->Bit()}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+      def->addInstance("w", "corebit.wire");
+      def->connect("self.in", "w.in");
+      def->connect("w.out", "self.out");
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(1, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 12));
+    }
+    
+    deleteContext(c);
+  }
+
+  TEST_CASE("Interpreting coreir.term and corebit.term") {
+
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("coreir.term") {
+      uint width = 4;
+      Type* tp = c->Record({{"in", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+
+      def->addInstance("w", "coreir.term", {{"width", Const::make(c, width)}});
+      def->connect("self.in", "w.in");
+
+      def->addInstance("c", "coreir.const", {{"width", Const::make(c, width)}}, {{"value", Const::make(c, BitVector(width, 1))}});
+      def->connect("c.out", "self.out");
+
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(width, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 1));
+    }
+
+    SECTION("corebit.term") {
+      Type* tp = c->Record({{"in", c->BitIn()},
+            {"out", c->Bit()}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+
+      def->addInstance("w", "corebit.term");
+      def->connect("self.in", "w.in");
+
+      def->addInstance("c", "corebit.const", {{"value", Const::make(c, false)}});
+      def->connect("c.out", "self.out");
+
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(1, 1));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 0));
+    }
+    
+    deleteContext(c);
+  }
+  
   TEST_CASE("Interpreting circuits with combinational loops") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();

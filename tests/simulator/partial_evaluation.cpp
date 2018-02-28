@@ -59,7 +59,7 @@ namespace CoreIR {
 
         int index = selectNum(sel);
 
-        return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
+        return makeSimBitVector(BitVec(1, (val->getBits()).get(index).binary_value()));
       }
 
       assert(mod->getDef()->canSel(sel->toString()));

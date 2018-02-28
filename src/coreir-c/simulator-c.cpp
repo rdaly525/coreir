@@ -21,7 +21,7 @@ extern "C" {
     SimValue* val = rcast<SimValue*>(cval);
     if (val->getType() == SIM_VALUE_BV) {
       SimBitVector* bv = static_cast<SimBitVector*>(val);
-      return bv->getBits().get(bit);
+      return bv->getBits().get(bit).binary_value();
     }
     else if (val->getType() == SIM_VALUE_CLK) {
       ClockValue* cv = static_cast<ClockValue*>(val);

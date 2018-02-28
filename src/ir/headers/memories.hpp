@@ -87,7 +87,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     //Logic to drive valid
     //valid_n = valid ? (cnt_n !=0) : (cnt_n == depth-1)
     def->addInstance("valid_n","corebit.mux");
-    def->addInstance("depth_m1","coreir.const",awParams,{{"value",Const::make(c,addrWidth,depth-1)}});
+    def->addInstance("depth_m1","coreir.const",awParams,{{"value",Const::make(c,addrWidth,depth)}});
     def->addInstance("eq_depth","coreir.eq",awParams);
     def->addInstance("neq_0","coreir.neq",awParams);
     def->connect("valid_n.out","valid.in");
