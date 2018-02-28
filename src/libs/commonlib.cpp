@@ -962,8 +962,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // create and connect valid chain
       if (has_valid && is_last_lb) {
-/* // this is a chain of valids, which doesn't work, since
-   // valid signals must go low every line
+				// this is a chain of valids
         string valid_prefix = "valreg_";
         for (uint i=0; i<out_dim; i+=in_dim) {
           
@@ -983,7 +982,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
           }
         }
-*/
+			}
+
+/*// a counter is not needed since the images are only 1d
 
 				// counter 0:1:max/inc
 				// valid = stencil_size-1 <= count 
@@ -1018,8 +1019,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         string valid_name = "valcompare_d" + to_string(0);
         def->connect({"self","valid"},{valid_name,"out"});
 				def->connect({"self","valid_chain"},{valid_name,"out"});
-        
-      } // valid chain
+				}*/        
+
 
 
     //////////////////////////  
