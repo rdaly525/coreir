@@ -42,8 +42,6 @@ void Aetherling_createReduceGenerator(Context* c) {
             return c->Record({
                     {"in", opType->sel("in0")->Arr(numInputs)},
                     {"out", opType->sel("out")},
-                    {"ready", c->Bit()},
-                    {"valid", c->Bit()}
                 });
         });
 
@@ -77,10 +75,6 @@ void Aetherling_createReduceGenerator(Context* c) {
                     }
                 }
             }
-            // always ready and valid
-            string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
-            def->connect(enableConst + ".out.0", "self.ready");
-            def->connect(enableConst + ".out.0", "self.valid");
         });
 
     /*
@@ -102,9 +96,7 @@ void Aetherling_createReduceGenerator(Context* c) {
                                 {"data", opType->sel("in0")->Arr(inputs)},
                                 {"identity", opType->sel("in0")}
                             })},
-                    {"out", opType->sel("out")},
-                    {"ready", c->Bit()},
-                    {"valid", c->Bit()}
+                    {"out", opType->sel("out")}
                 });
         });
 
@@ -131,59 +123,6 @@ void Aetherling_createReduceGenerator(Context* c) {
                 def->connect("self.in.identity", "reducer.in." + to_string(i));
             }
             def->connect("reducer.out", "self.out");
-            def->connect("reducer.ready", "self.ready");
-            def->connect("reducer.valid", "self.valid");
-        });
-
-    aetherlinglib->newTypeGen(
-        "reduceSequential_type", // name for typegen
-        reduceParallelSequentialParams, // generator parameters
-        [](Context* c, Values genargs) { //Function to compute type
-            uint inputs = genargs.at("numInputs")->get<int>();
-            Module* opModule = genargs.at("operator")->get<Module*>();
-            RecordType* opType = opModule->getType();
-            return c->Record({
-                    {"in", opType->sel("in0")->Arr(numInputs)},
-                    {"out", opType->sel("out")},
-                    {"ready", c->Bit()},
-                    {"valid", c->Bit()}
-                });
-        });
-
-    Generator* reduceSequential =
-        aetherlinglib->newGeneratorDecl("reduceSequential", aetherlinglib->getTypeGen("reduceSequential_type"), reduceSequentialParallelParams);
-
-
-    reduceSequential->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-            uint numInputs = genargs.at("numInputs")->get<int>();
-            Module* opModule = genargs.at("operator")->get<Module*>();
-            RecordType* opType = opModule->getType();
-            uint elementWidth = opType->sel("out")->getSize();
-            
-            Values streamifyParams({
-                    {"elementType", Const::make(c, opType->sel("in0"))},
-                    {"arrayLength", Const::make(c, numInputs)} 
-                });
-
-            def->addInstance("streamify", "aetherlinglib.streamify", streamifyParams);
-            def->addInstance("op", opModule);
-            def->addInstance("accumulatorReg", "coreir.reg",
-                             {{"width", Const::make(c, elementWidth)}});
-            // on the first clock cycle, store first input, all other clock cycles, store
-            // f(accumulator, nextInput)
-            def->addInstance("accumulatorInputMux", "commonlib.muxn", {
-                    {"width", Const::make(c, elementWidth)},
-                    {"N", Const::make(c, 2)}});
-
-            def->connect("self.in", "streamify.in");
-            def->connect("streamify.out", "op.in0");
-            def->connect("accumlatorReg.out", "op.in1");
-            def->connect("op.out", "accumulatorInputmux.in.data.0");
-            def->connect("self.in.0", "accumulatorInputMux.in.data.1");
-            def->connect("accumulatorInputMux.out", "accumulatorReg.in");
-            // if ready is 1 (first clock of iteration through inputs) use in 0, for accumulator
-            // value. otherwise, use output of op
-            def->connect("streamify.ready", "accumulatorInputMux.sel.0");
         });
 
       aetherlinglib->newTypeGen(
@@ -194,29 +133,35 @@ void Aetherling_createReduceGenerator(Context* c) {
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             return c->Record({
-                    {"in", opType->sel("in0")->Arr(numInputs)},
+                    {"in", opType->sel("in0")},
                     {"out", opType->sel("out")},
-                    {"ready", c->Bit()},
                     {"valid", c->Bit()}
                 });
         });
 
-    Generator* reduceSequentialMultipleClocks =
+    Generator* reduceSequential =
         aetherlinglib->newGeneratorDecl("reduceSequential", aetherlinglib->getTypeGen("reduceSequential_type"), reduceSequentialParallelParams);
-
 
     reduceSequential->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             uint elementWidth = opType->sel("out")->getSize();
-            
-            Values streamifyParams({
-                    {"elementType", Const::make(c, opType->sel("in0"))},
-                    {"arrayLength", Const::make(c, numInputs)} 
-                });
+            Const* elementWidthConst = Const::make(c,elementWidth);
 
-            def->addInstance("streamify", "aetherlinglib.streamify", streamifyParams);
+            // counter selects the input to the accumulator
+            def->addInstance("counter", "commonlib.counter", {
+                    {"elementWidth", elementWidthConst},
+                    {"min",Const::make(c,0)},
+                    {"max",Const::make(c,numInputs-1)},
+                    {"inc",Const::make(c,1)}}
+                );
+            def->addInstance("equal", "coreir.eq",
+                             {{"width", elementWidthConst}});
+            def->addInstance("zero", "coreir.const",
+                             {{"width", elementWidthConst}},
+                             {{"value", Const::make(c, elementWidth, 0)}});
+            
             def->addInstance("op", opModule);
             def->addInstance("accumulatorReg", "coreir.reg",
                              {{"width", Const::make(c, elementWidth)}});
@@ -226,15 +171,19 @@ void Aetherling_createReduceGenerator(Context* c) {
                     {"width", Const::make(c, elementWidth)},
                     {"N", Const::make(c, 2)}});
 
-            def->connect("self.in", "streamify.in");
-            def->connect("streamify.out", "op.in0");
+            def->connect("self.in", "op.in0");
             def->connect("accumlatorReg.out", "op.in1");
             def->connect("op.out", "accumulatorInputmux.in.data.0");
             def->connect("self.in.0", "accumulatorInputMux.in.data.1");
             def->connect("accumulatorInputMux.out", "accumulatorReg.in");
-            // if ready is 1 (first clock of iteration through inputs) use in 0, for accumulator
+            def->connect("accumlatorReg.out", "self.out");
+            // if counter is 0 (first clock of iteration through inputs) use input 0 for accumulator
             // value. otherwise, use output of op
-            def->connect("streamify.ready", "accumulatorInputMux.sel.0");
+            def->connect("zero.out","equal.in0");
+            def->connect("counter.out","equal.in1");
+            def->connect("equal.out", "accumulatorInputMux.sel");
+            // valid on overflow
+            def->connect("counter.overflow", "self.valid");
         });    
             
 }
