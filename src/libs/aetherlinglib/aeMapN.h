@@ -72,15 +72,20 @@ void Aetherling_createMapGenerator(Context* c) {
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             Type* inputElementType = opType->sel("in");
+            Type* outputElementType = opType->sel("out");
 
-            Values streamifyArrayifyParams({
+            Values streamifyParams({
                     {"elementType", Const::make(c, inputElementType)},
                     {"arrayLength", Const::make(c, numInputs)}
                 });
+            Values arrayifyParams({
+                    {"elementType", Const::make(c, outputElementType)},
+                    {"arrayLength", Const::make(c, numInputs)}
+                });
 
-            def->addInstance("streamify", "aetherlinglib.streamify", streamifyArrayifyParams);
+            def->addInstance("streamify", "aetherlinglib.streamify", streamifyParams);
             def->addInstance("op", opModule);
-            def->addInstance("arrayify", "aetherlinglib.arrayify", streamifyArrayifyParams);
+            def->addInstance("arrayify", "aetherlinglib.arrayify", arrayifyParams);
 
             // do the work
             def->connect("self.in", "streamify.in");

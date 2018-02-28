@@ -23,7 +23,7 @@ namespace CoreIR {
         Namespace* g = c->getGlobal();
 
         uint width = 16;
-        uint parallelOperators = 4;
+        uint numInputs = 4;
         uint constInput = 3;
 
         CoreIRLoadLibrary_commonlib(c);
@@ -48,26 +48,26 @@ namespace CoreIR {
         mul2Inputs->setDef(mul2InputsDef);
 
         Values zip2Params({
-                {"numInputs", Const::make(c, parallelOperators)},
+                {"numInputs", Const::make(c, numInputs)},
                 {"input0Type", Const::make(c, c->BitIn()->Arr(width))},
                 {"input1Type", Const::make(c, c->BitIn()->Arr(width))}
             });
     
         Values mapParams({
-                {"numInputs", Const::make(c, parallelOperators)},
+                {"numInputs", Const::make(c, numInputs)},
                 {"operator", Const::make(c, mul2Inputs)}
             });
 
         SECTION("aetherlinglib mapParallel with 4 mul, 3 as constant, 16 bit width") {
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
-                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
+                    {"out", c->Bit()->Arr(width)->Arr(numInputs)}
                 });
             Module* mainModule = c->getGlobal()->newModuleDecl("mainMapParallelMulTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
 
             def->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
-            string mapParallelName = "map" + to_string(parallelOperators);
+            string mapParallelName = "map" + to_string(numInputs);
             Instance* mapParallel_mul = def->addInstance(mapParallelName, "aetherlinglib.mapParallel", mapParams);
             // for ignoring the valid and ready
             def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
@@ -77,7 +77,7 @@ namespace CoreIR {
             // it goes into the map
             string notIteratedConstModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, constInput));
 
-            for (uint i = 0 ; i < parallelOperators; i++) {
+            for (uint i = 0 ; i < numInputs; i++) {
                 string constName = "constInput" + to_string(i);
                 def->connect(notIteratedConstModule + ".out", "zip2.in0." + to_string(i));
                 def->addInstance(
@@ -102,31 +102,32 @@ namespace CoreIR {
             SimulatorState state(mainModule);
             state.execute();
             
-            for (uint i = 0; i < parallelOperators; i++) {
+            for (uint i = 0; i < numInputs; i++) {
                 REQUIRE(state.getBitVec("self.out_" + to_string(i)) == BitVector(width, i*constInput));
             }
                     
         }
 
-        /*
         SECTION("aetherlinglib mapSequential with 4 mul, 3 as constant, 16 bit width") {
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
-                    {"out", c->Bit()->Arr(width)->Arr(parallelOperators)}
+                    {"out", c->Bit()->Arr(width)->Arr(numInputs)},
+                    {"ready", c->Bit()},
+                    {"valid", c->Bit()}
                 });
             Module* mainModule = c->getGlobal()->newModuleDecl("mainMapSequentialMulTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
 
 
             def->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
-            string mapSeqName = "map" + to_string(parallelOperators);
+            string mapSeqName = "map" + to_string(numInputs);
             Instance* mapSeq_mul = def->addInstance(mapSeqName, "aetherlinglib.mapSequential", mapParams);
 
             // here we are wiring up a constant value and an iterated one to each input of the zip before
             // it goes into the map
             string notIteratedConstModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, constInput));
 
-            for (uint i = 0 ; i < parallelOperators; i++) {
+            for (uint i = 0 ; i < numInputs; i++) {
                 string constName = "constInput" + to_string(i);
                 def->connect(notIteratedConstModule + ".out", "zip2.in0." + to_string(i));
                 def->addInstance(
@@ -138,32 +139,37 @@ namespace CoreIR {
                 def->connect(constName + ".out",  "zip2.in1." + to_string(i));
             }
 
-            def->connect("zip2.out", mapParallelName + ".in");
-            def->connect(mapParallelName + ".out", "self.out");
+            def->connect("zip2.out", mapSeqName + ".in");
+            def->connect(mapSeqName + ".out", "self.out");
+            def->connect(mapSeqName + ".ready", "self.ready");
+            def->connect(mapSeqName + ".valid", "self.valid");
+            
             
             mainModule->setDef(def);
-            mapParallel_mul->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity", "flatten", "flattentypes"});
+            mapSeq_mul->getModuleRef()->print();
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+                        "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
+                        "deletedeadinstances"},
+                {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
             mainModule->print();
 
             SimulatorState state(mainModule);
+            state.setClock("self.clk", 0, 0);
+            state.execute();
             // on first clock, ready should be asserted, then deasserted for rest until processed all input
             // from start until all inputs have gone through, valid should be deasserted
-            for (uint i = 0; i < parallelInputs; i++) {
-                cout << i << endl;
+            for (uint i = 0; i < numInputs; i++) {
                 REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
-                REQUIRE(state.getBitVec("self.ready") == BitVector(1, parallelInputs % i == 0 ? 1 : 0));
+                REQUIRE(state.getBitVec("self.ready") == BitVector(1, i % numInputs == 0 ? 1 : 0));
+                state.setClock("self.clk", 0, 1); // get a new rising clock edge
                 state.execute();
             }
             REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
             REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
-            
-            for (uint i = 0; i < parallelOperators; i++) {
+            for (uint i = 0; i < numInputs; i++) {
                 REQUIRE(state.getBitVec("self.out_" + to_string(i)) == BitVector(width, i*constInput));
             }
-                    
         }
-        */
 
         deleteContext(c);
     }
