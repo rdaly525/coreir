@@ -39,7 +39,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     
     def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
     def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
-    def->addInstance("cnt","coreir.reg",awParams,{{"init",Const::make(c,16,0)}});
+    def->addInstance("cnt","coreir.reg",awParams,{{"init",Const::make(c,addrWidth,0)}});
 
     def->addInstance("valid","corebit.dff");
     
