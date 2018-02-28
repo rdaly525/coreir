@@ -24,7 +24,7 @@ void Aetherling_createReduceGenerator(Context* c) {
      * operator - the operator to parallelize. Note that it must have two inputs known as "in0" and "in1" and 
      * one output known as "out"
      */
-    Params reduceParallelSerialParams = Params({
+    Params reduceParallelSequentialParams = Params({
             {"numInputs", c->Int()},
             {"operator", ModuleType::make(c)}
         });
@@ -34,7 +34,7 @@ void Aetherling_createReduceGenerator(Context* c) {
      */
     aetherlinglib->newTypeGen(
         "reduceParallelPower2Inputs_type", // name for typegen
-        reduceParallelSerialParams, // generator parameters
+        reduceParallelSequentialParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint numInputs = genargs.at("numInputs")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
@@ -92,7 +92,7 @@ void Aetherling_createReduceGenerator(Context* c) {
      */
     aetherlinglib->newTypeGen(
         "reduceParallel_type", // name for typegen
-        reduceParallelSerialParams, // generator parameters
+        reduceParallelSequentialParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             uint inputs = genargs.at("numInputs")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
