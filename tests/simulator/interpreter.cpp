@@ -1087,6 +1087,28 @@ namespace CoreIR {
       }
 
       SECTION("Write to address zero") {
+
+        SECTION("Read is combinational") {
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.write_en", BitVec(1, 0));
+          state.setValue("self.write_addr", BitVec(index, 0));
+          state.setValue("self.write_data", BitVec(width, 23));
+          
+          state.setValue("self.read_addr", BitVec(index, 2));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 2));
+
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.read_addr", BitVec(index, 0));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+
+        }
+
       	state.setClock("self.clk", 0, 1);
       	state.setValue("self.write_en", BitVec(1, 1));
       	state.setValue("self.write_addr", BitVec(index, 0));
