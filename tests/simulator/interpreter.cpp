@@ -1093,12 +1093,6 @@ namespace CoreIR {
       	state.setValue("self.write_data", BitVec(width, 23));
       	state.setValue("self.read_addr", BitVec(index, 0));
 
-      	// state.execute();
-
-        // SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
-        //   REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-        // }
-
         state.execute();
 
 	SECTION("read_data is 23 after the first rising edge") {
