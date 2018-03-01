@@ -154,21 +154,25 @@ namespace CoreIR {
             mainModule->print();
 
             SimulatorState state(mainModule);
-            state.setClock("self.clk", 0, 0);
-            state.execute();
+            state.setClock("self.clk", 0, 1);
             // on first clock, ready should be asserted, then deasserted for rest until processed all input
             // from start until all inputs have gone through, valid should be deasserted
-            for (uint i = 0; i < numInputs; i++) {
+            for (uint i = 0; i < numInputs - 1; i++) {
+                state.exeCombinational();
                 REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
                 REQUIRE(state.getBitVec("self.ready") == BitVector(1, i % numInputs == 0 ? 1 : 0));
-                state.setClock("self.clk", 0, 1); // get a new rising clock edge
-                state.execute();
+                state.exeSequential();
             }
-            REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
+            state.exeCombinational();
+            REQUIRE(state.getBitVec("self.ready") == BitVector(1, 0));
             REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
             for (uint i = 0; i < numInputs; i++) {
                 REQUIRE(state.getBitVec("self.out_" + to_string(i)) == BitVector(width, i*constInput));
             }
+            state.exeSequential();
+            state.exeCombinational();
+            REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
+            REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
         }
 
         deleteContext(c);

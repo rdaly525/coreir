@@ -138,23 +138,41 @@ namespace CoreIR {
             mainModule->print();
     
             SimulatorState state(mainModule);
-            state.setClock("self.clk", 0, 0);
-            state.execute();
-            // on first clock, ready should be asserted, then deasserted for rest until processed all input
+            state.setClock("self.clk", 0, 1); // get a new rising clock edge
+            // on first cycle, ready should be asserted, then deasserted for rest until processed all input
             // from start until all inputs have gone through, valid should be deasserted
-            for (uint i = 0; i < parallelInputs; i++) {
-                REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
-                REQUIRE(state.getBitVec("self.ready") == BitVector(1, i % parallelInputs == 0 ? 1 : 0));
-                state.setClock("self.clk", 0, 1); // get a new rising clock edge
-                state.execute();
+            // note: 4 clock cycles, which means 3 edges as first clock is on
+            for (uint i = 0; i < parallelInputs - 1; i++) {
+                state.exeCombinational();
+                cout << "reg 0: " << state.getBitVec("arrayify$deserializer$reg_0$reg0.out") << endl;
+                cout << "reg 1: " << state.getBitVec("arrayify$deserializer$reg_1$reg0.out") << endl;
+                cout << "reg 2: " << state.getBitVec("arrayify$deserializer$reg_2$reg0.out") << endl;
+                cout << "counter: " << state.getBitVec("streamify$serializer$counter$count$reg0.out") << endl;
+                cout << "ult0: " << state.getBitVec("streamify$serializer$counter$ult.in0") << endl;
+                cout << "ult1: " << state.getBitVec("streamify$serializer$counter$ult.in1") << endl;
+                cout << "ult out: " << state.getBitVec("streamify$serializer$counter$ult.out") << endl;
+                cout << "ready: " << state.getBitVec("self.ready") << endl;
+                cout << "valid: " << state.getBitVec("self.valid") << endl;
+                //REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
+                //REQUIRE(state.getBitVec("self.ready") == BitVector(1, i % parallelInputs == 0 ? 1 : 0));
+                state.exeSequential();
             }
-            REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
+            state.exeCombinational();
+            cout << "counter: " << state.getBitVec("streamify$serializer$counter$count$reg0.out") << endl;
+            cout << "ready: " << state.getBitVec("self.ready") << endl;
+            cout << "valid: " << state.getBitVec("self.valid") << endl;
+            cout << "max: " << state.getBitVec("streamify$serializer$counter$max.out") << endl;
+            REQUIRE(state.getBitVec("self.ready") == BitVector(1, 0));
             REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
             for (uint i = 0; i < parallelInputs; i++) {
                 string idx = to_string(i);
                 REQUIRE(state.getBitVec("self.out_" + idx + "_container_el0") == BitVector(width, parallelInputs*(i+1)));
                 REQUIRE(state.getBitVec("self.out_" + idx + "_container_el1") == BitVector(width, (parallelInputs+1)*(i+1)));
             }
+            state.exeSequential();
+            state.exeCombinational();
+            REQUIRE(state.getBitVec("self.ready") == BitVector(1, 1));
+            REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
         }
         deleteContext(c);
     }

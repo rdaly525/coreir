@@ -1546,7 +1546,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // create hardware
     Const* aBitwidth = Const::make(c,width);
-    for (uint i=0; i<rate; ++i) {
+    for (uint i=0; i<rate-1; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg",
                        {{"width",aBitwidth},{"has_en",Const::make(c,true)}});
@@ -1557,7 +1557,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // and all reg enables after first with not reset so that, if one reset
     // before an earlier one finishes, the earlier one is aborted
     // the first reg starts with signal 1, the rest with 0
-    for (uint i=0; i<rate; ++i) {
+    for (uint i=0; i<rate-1; ++i) {
       std::string reg_name = "en_reg_" + std::to_string(i);
       std::string and_name = "en_and_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg", {
@@ -1577,7 +1577,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.reset", "resetInvert.in.0");
 
     // wire up one input to all regs
-    for (uint i=0; i<rate; ++i) {
+    for (uint i=0; i<rate-1; ++i) {
       std::string idx = std::to_string(i);
       std::string reg_name = "reg_"+idx;
       std::string en_reg_name = "en_reg_"+idx;
@@ -1593,7 +1593,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // if this is the last reg, wire it's output and the deserializer reset into the input for the
       // first enable reg as if either occurs its a reason for starting cycle again
-      if (i == rate - 1) {
+      if (i == rate - 2) {
           def->connect("self.reset", "firstEnabledOr.in0.0");
           def->connect(en_reg_name + ".out", "firstEnabledOr.in1");
           def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in");
@@ -1611,6 +1611,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect(en_and_name + ".out", next_en_reg_name + ".in");
       }
     }
+    // wire the input to the last output slot, as directly sending that one out so each cycle is
+    // 4 clocks, 3 clock ticks
+    def->connect("self.in", "self.out." + to_string(rate-1));
   });
 
 
