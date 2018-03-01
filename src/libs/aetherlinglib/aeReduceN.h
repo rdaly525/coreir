@@ -175,7 +175,7 @@ void Aetherling_createReduceGenerator(Context* c) {
             def->connect("op.out", "accumulatorInputMux.in.data.0");
             def->connect("self.in", "accumulatorInputMux.in.data.1");
             def->connect("accumulatorInputMux.out", "accumulatorReg.in");
-            def->connect("accumulatorReg.out", "self.out");
+            def->connect("accumulatorInputMux.out", "self.out");
             // if counter is 0 (first clock of iteration through inputs) use input 0 for accumulator
             // value. otherwise, use output of op
             def->connect("zero.out","equal.in0");
@@ -183,6 +183,11 @@ void Aetherling_createReduceGenerator(Context* c) {
             def->connect("equal.out", "accumulatorInputMux.in.sel.0");
             // valid on overflow
             def->connect("counter.overflow", "self.valid");
+            // force no reset on counter
+            string disableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 0));
+            string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
+            def->connect(disableConst + ".out.0", "counter.reset");
+            def->connect(enableConst + ".out.0", "counter.en");
         });    
             
 }

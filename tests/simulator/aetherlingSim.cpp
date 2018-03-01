@@ -178,32 +178,33 @@ namespace CoreIR {
         deleteContext(c);
     }
 
-    TEST_CASE("Simulate reduceNSerializable from aetherlinglib") {
+    TEST_CASE("Simulate reduce from aetherlinglib") {
         // New context
         Context* c = newContext();
         Namespace* g = c->getGlobal();
 
-        SECTION("aetherlinglib reduceN with 4 inputs, coreir.add as op, 16 bit width") {
-            uint width = 16;
-            uint numInputs = 9;
-            uint constInput = 3;
+        uint width = 16;
+        uint numInputs = 9;
+        uint constInput = 3;
 
-            CoreIRLoadLibrary_commonlib(c);
-            CoreIRLoadLibrary_aetherlinglib(c);
+        CoreIRLoadLibrary_commonlib(c);
+        CoreIRLoadLibrary_aetherlinglib(c);
+        
+        Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
+        add->print();
+
+        Values reduceModArgs = {
+            {"numInputs", Const::make(c, numInputs)},
+            {"operator", Const::make(c, add)}
+        };
+            
+        SECTION("aetherlinglib reduceParallel with 4 inputs, coreir.add as op, 16 bit width") {
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)}
                 });
-            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceNTest", mainModuleType);
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceParallelTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
-
-            Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
-            add->print();
-
-            Values reduceModArgs = {
-                {"numInputs", Const::make(c, numInputs)},
-                {"operator", Const::make(c, add)}
-            };
             
             string reduceParallelName = "reduce" + to_string(numInputs);
             Instance* reduceParallel_add = def->addInstance(reduceParallelName, "aetherlinglib.reduceParallel", reduceModArgs);
@@ -238,6 +239,54 @@ namespace CoreIR {
             state.exeCombinational();
 
             REQUIRE(state.getBitVec("self.out") == BitVector(width, rightOutput));
+        }
+
+        SECTION("aetherlinglib reduceSequential with 4 inputs, coreir.add as op, 16 bit width") {
+            Type* mainModuleType = c->Record({
+                    {"in", c->BitIn()->Arr(width)},
+                    {"out", c->Bit()->Arr(width)},
+                    {"valid", c->Bit()}
+                });
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceSequentialTest", mainModuleType);
+            ModuleDef* def = mainModule->newModuleDef();
+            
+            string reduceSequentialName = "reduce" + to_string(numInputs);
+            Instance* reduceSequential_add = def->addInstance(reduceSequentialName, "aetherlinglib.reduceSequential", reduceModArgs);
+            def->connect("self.in", reduceSequentialName + ".in");
+            def->connect(reduceSequentialName + ".out", "self.out");
+            def->connect(reduceSequentialName + ".valid", "self.valid");
+            
+            mainModule->setDef(def);
+            mainModule->print();
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+                        "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
+                        "deletedeadinstances"},
+                {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
+            mainModule->print();
+                                 
+            SimulatorState state(mainModule);
+            state.setClock("self.clk", 0, 1);
+            uint rightOutput = 0;
+            // on first clock, ready should be asserted, then deasserted for rest until processed all input
+            // from start until all inputs have gone through, valid should be deasserted
+            uint i;
+            for (i = 0; i < numInputs - 1; i++) {
+                state.setValue("self.in", BitVector(width, i));
+                rightOutput += i;
+                state.exeCombinational();
+                REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
+                state.exeSequential();
+            }
+            state.setValue("self.in", BitVector(width, i));
+            rightOutput += i;
+            state.exeCombinational();
+            REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
+            REQUIRE(state.getBitVec("self.out") == BitVector(width, rightOutput));
+            state.exeSequential();
+            state.exeCombinational();
+            // ensure that on first cycle of next iteration, outputing right thing
+            REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
+            REQUIRE(state.getBitVec("self.out") == BitVector(width, i));
         }
         deleteContext(c);
     }
