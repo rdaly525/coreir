@@ -181,7 +181,7 @@ namespace CoreIR {
 
         SECTION("aetherlinglib reduceN with 4 inputs, coreir.add as op, 16 bit width") {
             uint width = 16;
-            uint numLayers = 3;
+            uint numInputs = 9;
             uint constInput = 3;
 
             CoreIRLoadLibrary_commonlib(c);
@@ -196,16 +196,19 @@ namespace CoreIR {
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
             add->print();
 
-            Values reduceNModArgs = {
-                {"numLayers", Const::make(c, numLayers)},
+            Values reduceModArgs = {
+                {"numInputs", Const::make(c, numInputs)},
                 {"operator", Const::make(c, add)}
             };
             
-            string reduceNName = "reduce" + to_string(numLayers);
-            Instance* reduceN_add = def->addInstance(reduceNName, "aetherlinglib.reduceNSerializable", reduceNModArgs);
+            string reduceParallelName = "reduce" + to_string(numInputs);
+            Instance* reduceParallel_add = def->addInstance(reduceParallelName, "aetherlinglib.reduceParallel", reduceModArgs);
+            string addIdentityConst = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, 0));
+
+            def->connect(addIdentityConst + ".out", reduceParallelName + ".in.identity");
             // create different input for each operator
             uint rightOutput = 0;
-            for (uint i = 0 ; i < pow(2, numLayers); i++) {
+            for (uint i = 0 ; i < numInputs; i++) {
                 string constName = "constInput" + to_string(i);
                 def->addInstance(
                     constName,
@@ -213,23 +216,22 @@ namespace CoreIR {
                     {{"width", Const::make(c, width)}},
                     {{"value", Const::make(c, width, i)}});
 
-                def->connect(constName + ".out", reduceNName + ".in." + to_string(i));
+                def->connect(constName + ".out", reduceParallelName + ".in.data." + to_string(i));
                 rightOutput += i;
             }
 
-            def->addInstance("dontMergeCur","coreir.const",
-                             {{"width", Const::make(c, 1)}}, {{"value", Const::make(c,1,0)}});
-            def->connect("dontMergeCur.out.0", reduceNName + ".mergeCur");
-            def->connect(reduceNName + ".out", "self.out");
+            def->connect(reduceParallelName + ".out", "self.out");
             mainModule->setDef(def);
             mainModule->print();
-            reduceN_add->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes", "wireclocks-coreir"});
+            reduceParallel_add->getModuleRef()->print();
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+                        "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
+                        "deletedeadinstances"},
+                {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
             mainModule->print();
                                     
             SimulatorState state(mainModule);
-            state.setClock("self.clk", 0, 1); // get a new rising clock edge
-            state.execute();
+            state.exeCombinational();
 
             REQUIRE(state.getBitVec("self.out") == BitVector(width, rightOutput));
         }
@@ -288,8 +290,10 @@ namespace CoreIR {
             mainModule->setDef(def);
             mainModule->print();
             conv1D->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst", "flatten", "verifyconnectivity-onlyinputs-noclkrst", "flattentypes", "wireclocks-coreir"});
-            //c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+                        "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
+                        "deletedeadinstances"},
+                {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
             mainModule->print();
                                     
             SimulatorState state(mainModule);

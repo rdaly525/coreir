@@ -83,10 +83,14 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"operator", Const::make(c, mul2Zipped)}
                 });
 
+            // can ignore map's ready and valid since it's fully parallel
+            def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
+
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, elementWidth)}});
             string addIdentityModule = Aetherling_addCoreIRConstantModule(c, def, elementWidth, Const::make(c, elementWidth, 0));
 
-            def->addInstance("conv1DReduce", "aetherlinglib.reduceNAnyInputs", {
+            def->addInstance("conv1DReduce", "aetherlinglib.reduceParallel", {
                     // need to multiply by 2 to get right number of layers, like 4 inputs
                     // is 3 layers and log2(8) = 3
                     {"numInputs", Const::make(c, kernelWidth)},
@@ -99,6 +103,8 @@ void Aetherling_createConvGenerator(Context* c) {
             def->connect("self.in.kernel", "conv1DZip2.in1");
             def->connect("conv1DZip2.out", "conv1DMap.in");
             def->connect("conv1DMap.out", "conv1DReduce.in.data");
+            def->connect("conv1DMap.ready", "ignoreReady.in.0");
+            def->connect("conv1DMap.valid", "ignoreValid.in.0");
             def->connect(addIdentityModule + ".out", "conv1DReduce.in.identity");
             def->connect("conv1DReduce.out", "self.out");
             def->connect("conv1DLineBuffer.valid", "self.valid");

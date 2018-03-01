@@ -44,7 +44,9 @@ int main() {
             {"in",c->BitIn()->Arr(width)->Arr(parallelInputs)},
             {"inFlatten", inFlattenType},
             {"outMap",c->Bit()->Arr(width)->Arr(parallelInputs)},
-            {"outReduce",c->Bit()->Arr(width)},
+            {"outReduceParallel",c->Bit()->Arr(width)},
+            {"outReduceSequential",c->Bit()->Arr(width)},
+            {"validReduceSequential",c->Bit()},
             {"outConv1D", c->Bit()->Arr(width)},
             {"outFlatten", outFlattenType->Arr(4)},
             {"outHydrate", c->Bit()->Arr(width)->Arr(parallelInputs)},
@@ -99,12 +101,13 @@ int main() {
     // creating reduce for testing
     Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
 
-    Values reduceNParams({
-            {"numLayers", Const::make(c, int(log2(parallelInputs)))},
+    Values reduceParams({
+            {"numInputs", Const::make(c, parallelInputs)},
             {"operator", Const::make(c, add)}
         });
 
-    testDef->addInstance("reduceAdd", "aetherlinglib.reduceN", reduceNParams);
+    testDef->addInstance("reduceAddParallel", "aetherlinglib.reduceParallel", reduceParams);
+    testDef->addInstance("reduceAddSequential", "aetherlinglib.reduceSequential", reduceParams);
 
     // creating convolution for testing
     uint dataWidth = notPow2ParallelInputs*4;
@@ -150,8 +153,15 @@ int main() {
     testDef->connect("mapMul.ready", "ignoreReady.in.0");
 
     // wiring up reduce
-    testDef->connect("self.in", "reduceAdd.in");
-    testDef->connect("reduceAdd.out", "self.outReduce");
+    string zeroConst = Aetherling_addCoreIRConstantModule(c, testDef, width, Const::make(c, width, 0));
+
+    testDef->connect("self.in", "reduceAddParallel.in.data");
+    testDef->connect(zeroConst + ".out", "reduceAddParallel.in.identity");
+    testDef->connect("reduceAddParallel.out", "self.outReduceParallel");
+    // wiring up reduce
+    testDef->connect("self.in.0", "reduceAddSequential.in");
+    testDef->connect("reduceAddSequential.out", "self.outReduceSequential");
+    testDef->connect("reduceAddSequential.valid", "self.validReduceSequential");
 
     // creating the hydrate and dehydrate
     Values hydrateParams({

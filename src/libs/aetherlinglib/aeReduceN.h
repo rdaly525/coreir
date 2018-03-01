@@ -46,14 +46,13 @@ void Aetherling_createReduceGenerator(Context* c) {
         });
 
     Generator* reduceParallelPower2Inputs =
-        aetherlinglib->newGeneratorDecl("reduceParallelPower2Inputs", aetherlinglib->getTypeGen("reduceParallelPower2Inputs_type"), reduceParallelParams);
+        aetherlinglib->newGeneratorDecl("reduceParallelPower2Inputs", aetherlinglib->getTypeGen("reduceParallelPower2Inputs_type"), reduceParallelSequentialParams);
 
     reduceParallelPower2Inputs->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
-            ASSERT(IsPowerOfTwo(inputs), "numInputs is not a power of 2 for reduceParallelPower2Inputs, use the reduceParallel module for this case");
+            ASSERT(IsPowerOfTwo(numInputs), "numInputs is not a power of 2 for reduceParallelPower2Inputs, use the reduceParallel module for this case");
             uint depth = int(ceil(log2(numInputs)));
             Module* opModule = genargs.at("operator")->get<Module*>();
-            assert(numLayers>0);
 
             // create each layer for all dpeths other than input
             for (uint i = 0; i < depth; i++) {
@@ -62,7 +61,7 @@ void Aetherling_createReduceGenerator(Context* c) {
                     string opStr = getOpName(i, j);
                     def->addInstance(opStr, opModule);
                     // wire up inputs special only if first layer
-                    if (i == numLayers - 1) {
+                    if (i == depth - 1) {
                         def->connect("self.in." + to_string(j*2), opStr + ".in0");
                         def->connect("self.in." + to_string(j*2+1), opStr + ".in1");
                     }
@@ -101,7 +100,7 @@ void Aetherling_createReduceGenerator(Context* c) {
         });
 
     Generator* reduceParallel =
-        aetherlinglib->newGeneratorDecl("reduceParallel", aetherlinglib->getTypeGen("reduceParallel_type"), reduceParallelParams);
+        aetherlinglib->newGeneratorDecl("reduceParallel", aetherlinglib->getTypeGen("reduceParallel_type"), reduceParallelSequentialParams);
 
     reduceParallel->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
@@ -129,7 +128,6 @@ void Aetherling_createReduceGenerator(Context* c) {
         "reduceSequential_type", // name for typegen
         reduceParallelSequentialParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            uint inputs = genargs.at("numInputs")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
             return c->Record({
@@ -140,7 +138,7 @@ void Aetherling_createReduceGenerator(Context* c) {
         });
 
     Generator* reduceSequential =
-        aetherlinglib->newGeneratorDecl("reduceSequential", aetherlinglib->getTypeGen("reduceSequential_type"), reduceSequentialParallelParams);
+        aetherlinglib->newGeneratorDecl("reduceSequential", aetherlinglib->getTypeGen("reduceSequential_type"), reduceParallelSequentialParams);
 
     reduceSequential->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
@@ -151,7 +149,7 @@ void Aetherling_createReduceGenerator(Context* c) {
 
             // counter selects the input to the accumulator
             def->addInstance("counter", "commonlib.counter", {
-                    {"elementWidth", elementWidthConst},
+                    {"width", elementWidthConst},
                     {"min",Const::make(c,0)},
                     {"max",Const::make(c,numInputs-1)},
                     {"inc",Const::make(c,1)}}
@@ -170,18 +168,19 @@ void Aetherling_createReduceGenerator(Context* c) {
             def->addInstance("accumulatorInputMux", "commonlib.muxn", {
                     {"width", Const::make(c, elementWidth)},
                     {"N", Const::make(c, 2)}});
+            // shoudl this output be sent directly to the out?
 
             def->connect("self.in", "op.in0");
-            def->connect("accumlatorReg.out", "op.in1");
-            def->connect("op.out", "accumulatorInputmux.in.data.0");
-            def->connect("self.in.0", "accumulatorInputMux.in.data.1");
+            def->connect("accumulatorReg.out", "op.in1");
+            def->connect("op.out", "accumulatorInputMux.in.data.0");
+            def->connect("self.in", "accumulatorInputMux.in.data.1");
             def->connect("accumulatorInputMux.out", "accumulatorReg.in");
-            def->connect("accumlatorReg.out", "self.out");
+            def->connect("accumulatorReg.out", "self.out");
             // if counter is 0 (first clock of iteration through inputs) use input 0 for accumulator
             // value. otherwise, use output of op
             def->connect("zero.out","equal.in0");
             def->connect("counter.out","equal.in1");
-            def->connect("equal.out", "accumulatorInputMux.sel");
+            def->connect("equal.out", "accumulatorInputMux.in.sel.0");
             // valid on overflow
             def->connect("counter.overflow", "self.valid");
         });    
