@@ -36,14 +36,14 @@ void Aetherling_createFlattenGenerator(Context* c) {
      * inputType - the type that you want to flatten
      * outputType - what you want to flatten it into, inputType must be some set of arrays of this
      */
-    Params flattenNparams = Params({
+    Params flattenParams = Params({
             {"inputType", CoreIRType::make(c)},
             {"singleElementOutputType", CoreIRType::make(c)}
         });
 
     aetherlinglib->newTypeGen(
-        "flattenN_type", // name for typegen
-        flattenNparams, // generator parameters
+        "flatten_type", // name for typegen
+        flattenParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
             Type* inputType = genargs.at("inputType")->get<Type*>();
             Type* singleElementOutputType = genargs.at("singleElementOutputType")->get<Type*>();
@@ -54,10 +54,10 @@ void Aetherling_createFlattenGenerator(Context* c) {
                 });
         });
 
-    Generator* flattenN =
-        aetherlinglib->newGeneratorDecl("flattenN", aetherlinglib->getTypeGen("flattenN_type"), flattenNparams);
+    Generator* flatten =
+        aetherlinglib->newGeneratorDecl("flatten", aetherlinglib->getTypeGen("flatten_type"), flattenParams);
 
-    flattenN->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    flatten->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             printf("running generator\n");
             ArrayType* inputType = dyn_cast<ArrayType>(genargs.at("inputType")->get<Type*>());
             Type* singleElementOutputType = genargs.at("singleElementOutputType")->get<Type*>();
@@ -79,16 +79,16 @@ void Aetherling_createFlattenGenerator(Context* c) {
                 uint flattenInnerOutputLen = getFlattenedSize(c, inputType->getElemType(), singleElementOutputType);
                 for (uint i = 0; i < inputTypeLen; i++) {
                     string iStr = to_string(i);
-                    def->addInstance("flattenNInner_" + iStr, "aetherlinglib.flattenN", {
+                    def->addInstance("flattenInner_" + iStr, "aetherlinglib.flatten", {
                             {"inputType", Const::make(c, inputType->getElemType())},
                             {"singleElementOutputType", Const::make(c, singleElementOutputType)}
                         });
-                    def->connect("self.in." + iStr, "flattenNInner_" + iStr + ".in");
+                    def->connect("self.in." + iStr, "flattenInner_" + iStr + ".in");
                     // wire up each output from the inner to the output
                     for (uint j = 0; j < flattenInnerOutputLen; j++) {
                         string jStr = to_string(j);
                         string outIdxStr = to_string(i*flattenInnerOutputLen + j);
-                        def->connect("flattenNInner_" + iStr + ".out." + jStr, "self.out." + outIdxStr);
+                        def->connect("flattenInner_" + iStr + ".out." + jStr, "self.out." + outIdxStr);
                     }
                 }
             }

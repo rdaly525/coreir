@@ -120,7 +120,7 @@ int main() {
 
 
     // creating flatten for testing
-    testDef->addInstance("flattenTest", "aetherlinglib.flattenN", {
+    testDef->addInstance("flattenTest", "aetherlinglib.flatten", {
             {"inputType", Const::make(c, inFlattenType)},
             {"singleElementOutputType", Const::make(c, outFlattenType)}
         });
