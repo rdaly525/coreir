@@ -12,7 +12,7 @@ void Aetherling_createConvGenerator(Context* c) {
     
     Params conv1Dparams = Params({
             {"dataWidth", c->Int()},
-            {"inputPerClockWidth", c->Int()},
+            {"inputsPerClock", c->Int()},
             {"kernelWidth", c->Int()},
             {"elementWidth", c->Int()}
         });
@@ -23,10 +23,10 @@ void Aetherling_createConvGenerator(Context* c) {
         [](Context* c, Values genargs) { //Function to compute type
             uint elementWidth = genargs.at("elementWidth")->get<int>();
             uint kernelWidth = genargs.at("kernelWidth")->get<int>();
-            uint inputPerClockWidth = genargs.at("inputPerClockWidth")->get<int>();
+            uint inputsPerClock = genargs.at("inputsPerClock")->get<int>();
             return c->Record({
                     {"in", c->Record({
-                                {"data", c->BitIn()->Arr(elementWidth)->Arr(inputPerClockWidth)},
+                                {"data", c->BitIn()->Arr(elementWidth)->Arr(inputsPerClock)},
                                 {"kernel", c->BitIn()->Arr(elementWidth)->Arr(kernelWidth)}
                             })},
                     {"wen", c->BitIn()},
@@ -42,6 +42,7 @@ void Aetherling_createConvGenerator(Context* c) {
             uint kernelWidth = genargs.at("kernelWidth")->get<int>();
             uint elementWidth = genargs.at("elementWidth")->get<int>();
             uint dataWidth = genargs.at("dataWidth")->get<int>();
+            uint inputsPerClock = genargs.at("inputsPerClock")->get<int>();
             ArrayType* kernelType = dyn_cast<ArrayType>(def->sel("self.in.kernel")->getType());
             // create the type of total image, the input per clock, and output per clock from linebuffer
             Type* lbImgType = c->BitIn()->Arr(elementWidth)->Arr(dataWidth);
@@ -62,46 +63,71 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"has_valid", Const::make(c, true)}
                 });
 
-
             // for zip2, note that numInputs is the size of the array of input0 and input1,
             // for input0 and 1 I just want the types of the elements, so have to strip the array lenghts
             // with getElemType
-            def->addInstance("conv1DZip2", "aetherlinglib.zip2", {
+            // make 1 zip2 for each concurrent input you are processing
+            /*Module* zip2PerInput = c->getGenerator("aetherlinglib.zip2")->getModule({
                     {"numInputs", Const::make(c, kernelWidth)},
                     {"input0Type", Const::make(c, c->In(lbOutType->getElemType()))}, 
                     {"input1Type", Const::make(c, c->In(kernelType->getElemType()))}
                 });
+            */
 
             Module* mul2Unzipped = c->getGenerator("coreir.mul")->
                 getModule({{"width", Const::make(c, elementWidth)}});
-
             
             Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(c, mul2Unzipped);
-            
-            def->addInstance("conv1DMap", "aetherlinglib.mapParallel", {
+            cout << 3 << endl;
+
+            // each one of these maps processes the output associated with one input
+            Module* mapForOneInput = c->getGenerator("aetherlinglib.mapParallel")->getModule({
                     {"numInputs", Const::make(c, kernelWidth)},
                     {"operator", Const::make(c, mul2Zipped)}
                 });
+            cout << 1 << endl;
 
-            // can ignore map's ready and valid since it's fully parallel
+            // now add a mapForOneInput for each input per clock
+            def->addInstance("conv1DMapForAllInputs", "aetherlinglib.mapParallel", {
+                    {"numInputs", Const::make(c, inputsPerClock)},
+                    {"operator", Const::make(c, mapForOneInput)}
+                });
+
+            // can ignore map's ready and valid since both are fully parallel
             def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
             def->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
+            cout << 4 << endl;
 
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, elementWidth)}});
             string addIdentityModule = Aetherling_addCoreIRConstantModule(c, def, elementWidth, Const::make(c, elementWidth, 0));
 
-            def->addInstance("conv1DReduce", "aetherlinglib.reduceParallel", {
-                    // need to multiply by 2 to get right number of layers, like 4 inputs
-                    // is 3 layers and log2(8) = 3
+            // each reduce handles the output associated with each input per clock
+            Module* reduceForOneInput = c->getGenerator("aetherlinglib.reduceParallel")->getModule({
                     {"numInputs", Const::make(c, kernelWidth)},
                     {"operator", Const::make(c, add)}
                 });
 
+            // now add a reduceForOneInput for input for clock
+            def->addInstance("conv1DReduceForAllInputs", "aetherlinglib.mapParallel", {
+                    {"numInputs", Const::make(c, inputsPerClock)},
+                    {"operator", Const::make(c, reduceForOneInput)}
+                });
+
             // now wire everythign up
             def->connect("self.in.data", "conv1DLineBuffer.in");
-            def->connect("conv1DLineBuffer.out", "conv1DZip2.in0");
-            def->connect("self.in.kernel", "conv1DZip2.in1");
-            def->connect("conv1DZip2.out", "conv1DMap.in");
+            // assuming stride is 1, so each input per clock increases the output width by 1
+            for (int i = 0; i < inputsPerClock; i++) {
+                cout << "hi" << endl;
+                Values sliceArgs = {{"width", Const::make(c, kernelWidth + inputsPerClock - 1)},
+                                    {"lo", Const::make(c,i)},
+                                    {"hi", Const::make(c,kernelWidth + i)}};
+                cout << "dude" << endl;
+                string idx = to_string(i);
+                def->addInstance("lbSlicer_" + idx, "coreir.slice", sliceArgs);
+                def->connect("conv1DLineBuffer.out", "lbSlicer_" + idx + ".in");
+                def->connect("lbSlicer_" + idx + ".out", "conv1DMapForAllInputs.in." + idx + ".in.el0");
+                def->connect("self.in.kernel", "conv1DMapForAllInputs.in." + idx + ".in.el1");
+            }
             def->connect("conv1DMap.out", "conv1DReduce.in.data");
             def->connect("conv1DMap.ready", "ignoreReady.in.0");
             def->connect("conv1DMap.valid", "ignoreValid.in.0");

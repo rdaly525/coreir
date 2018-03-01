@@ -113,7 +113,7 @@ int main() {
     uint dataWidth = notPow2ParallelInputs*4;
     testDef->addInstance("conv1D", "aetherlinglib.conv1D", {
             {"dataWidth", Const::make(c, dataWidth)},
-            {"inputPerClockWidth", Const::make(c, 1)},
+            {"inputsPerClock", Const::make(c, 1)},
             {"kernelWidth", Const::make(c, notPow2ParallelInputs)},
             {"elementWidth", Const::make(c, width)}
         });

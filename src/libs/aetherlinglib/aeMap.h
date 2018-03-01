@@ -54,10 +54,30 @@ void Aetherling_createMapGenerator(Context* c) {
                 def->connect("self.in." + idxStr, opStr + ".in");
                 def->connect(opStr + ".out", "self.out." + idxStr);
             }
-            string oneConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
-            def->connect(oneConst + ".out.0", "self.ready");
-            def->connect(oneConst + ".out.0", "self.valid");
-            
+            string oneConst;
+            // if op has ready or valid, wire those up to this map's ready and valid
+            // create a one output if this map needs to drive either its own ready or valid
+            cout << "as" << endl;
+            bool hasReady = opModule->getType()->canSel("ready");
+            bool hasValid = opModule->getType()->canSel("valid");
+            cout << "a" << endl;
+            if (!hasReady || !hasValid) {
+                oneConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
+            }
+            // all ops should be same, so can take ready and valid from first op
+            if (hasReady) {
+                def->connect("op_0.ready", "self.ready");
+            }
+            else {
+                def->connect(oneConst + ".out.0", "self.ready");
+            }
+            cout << "b" << endl;
+            if (hasValid) {
+                def->connect("op_0.valid", "self.valid");
+            }
+            else {
+                def->connect(oneConst + ".out.0", "self.valid");
+            }
         });
 
     /* 
