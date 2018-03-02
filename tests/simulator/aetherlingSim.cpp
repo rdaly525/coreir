@@ -420,17 +420,6 @@ namespace CoreIR {
             mainModule->setDef(def);
             mainModule->print();
             conv1D->getModuleRef()->print();
-            /* c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
-                        "wireclocks-coreir"},
-                {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
-            c->runPasses({"flatten", "flattentypes"},
-                {"aetherlinglib"});
-            cout <<"1" << endl;
-            mainModule->print();
-            cout << "2" << endl;
-
-            assert(0);
-            */
 
             c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
@@ -449,28 +438,6 @@ namespace CoreIR {
                                                                     clkCount*inputsPerClock + inputIdx));
                 }
                 state.exeCombinational();
-                string analyze[] = {
-                        "self.in_0",
-                        "self.in_1",
-                        "conv1D_test$conv1DMapForAllInputs$op_0$op_0.in0",
-                        "conv1D_test$conv1DMapForAllInputs$op_0$op_1.in0",
-                        "conv1D_test$conv1DMapForAllInputs$op_0$op_2.in0",
-                        "conv1D_test$conv1DMapForAllInputs$op_1$op_0.in0",
-                        "conv1D_test$conv1DMapForAllInputs$op_1$op_1.in0",
-                        "conv1D_test$conv1DMapForAllInputs$op_1$op_2.in0",
-                        "conv1D_test$conv1DReduceForAllInputs$op_0$reducer$op_1_0.in0",
-                        "conv1D_test$conv1DReduceForAllInputs$op_0$reducer$op_1_0.in1",
-                        "conv1D_test$conv1DReduceForAllInputs$op_0$reducer$op_1_0.out",
-                        "conv1D_test$conv1DReduceForAllInputs$op_0$reducer$op_1_1.in0",
-                        "conv1D_test$conv1DReduceForAllInputs$op_0$reducer$op_1_1.in1",
-                        "conv1D_test$conv1DReduceForAllInputs$op_0$reducer$op_1_1.out"};
-//                        "conv1D_test$conv1DReduceForAllInputs$op_1$reducer$op_1_0.out",
-                        //                      "conv1D_test$conv1DReduceForAllInputs$op_1$reducer$op_1_1.out"};
-                for (auto a : analyze) {
-                    cout << a + ": " << state.getBitVec(a) << endl;
-                }
-
-
                 // should be valid starting on cycle (kernelWidth + inputsPerClock - 1) / inputsPerClock
                 // note: subtract 1 more for 0 indexing
                 if (clkCount < (kernelWidth + inputsPerClock - 1) / inputsPerClock - 1) {
