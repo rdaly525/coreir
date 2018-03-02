@@ -20,6 +20,7 @@ void Aetherling_createConvGenerator(CoreIR::Context* c);
 void Aetherling_createFlattenGenerator(CoreIR::Context* c);
 void Aetherling_createHydrateAndDehydrateGenerators(CoreIR::Context* c);
 void Aetherling_createStreamifyArrayifyGenerator(CoreIR::Context* c);
+void Aetherling_createOverlapPartitionGenerator(CoreIR::Context* c);
 
 // helper functions
 std::string Aetherling_addCoreIRConstantModule(CoreIR::Context* c, CoreIR::ModuleDef* def, uint width, CoreIR::Const* val);

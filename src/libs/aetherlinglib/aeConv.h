@@ -74,15 +74,21 @@ void Aetherling_createConvGenerator(Context* c) {
                 });
             */
 
+            def->addInstance("overlapPartition", "aetherlinglib.overlapPartition", {
+                    {"elementType", Const::make(c, lbOutputType->getElemType())},
+                    {"numOverlapped", Const::make(c, inputsPerClock)},
+                    {"arrayLen", Const::make(c, kernelWidth)}
+                });
+
             Module* mul2Unzipped = c->getGenerator("coreir.mul")->
                 getModule({{"width", Const::make(c, elementWidth)}});
             
-            Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(c, mul2Unzipped);
+            //Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(c, mul2Unzipped);
 
             // each one of these maps processes the output associated with one input
             Module* mapForOneInput = c->getGenerator("aetherlinglib.mapParallel")->getModule({
                     {"numInputs", Const::make(c, kernelWidth)},
-                    {"operator", Const::make(c, mul2Zipped)}
+                    {"operator", Const::make(c, mul2Unzipped)}
                 });
 
             // now add a mapForOneInput for each input per clock
@@ -109,19 +115,16 @@ void Aetherling_createConvGenerator(Context* c) {
             // now wire everythign up
             def->connect("self.in.data", "conv1DLineBuffer.in");
             // assuming stride is 1, so each input per clock increases the output width by 1
-            for (int i = 0; i < inputsPerClock; i++) {
-                string idx = to_string(i);
-                for (int j = 0; j < kernelWidth; j++) {
-                    string jdx = to_string(j);
-                    def->connect("conv1DLineBuffer.out." + to_string(i + j),
-                                 "conv1DMapForAllInputs.in." + idx + "." + jdx + ".el0");
-                    def->connect("self.in.kernel." + jdx, "conv1DMapForAllInputs.in." + idx + "." + jdx
-                                 + ".el1");
-                }
-                def->connect("conv1DMapForAllInputs.out." + idx, "conv1DReduceForAllInputs.in." + idx + ".data");
+            def->connect("conv1DLineBuffer.out", "overlapPartition.in");
+            def->connect("overlapPartition.out", "conv1DMapForAllInputs.in0");
+            // connect the kernel to every in1
+            for (uint i = 0; i < inputsPerClock; i++) {
+                def->connect("self.in.kernel", "conv1DMapForAllInputs.in1." + idx);
+                def->connect("conv1DMapForAllInputs.out." + idx,
+                             "conv1DReduceForAllInputs.in." + idx + ".data");
                 def->connect(addIdentityModule + ".out", "conv1DReduceForAllInputs.in." + idx + ".identity");
-                def->connect("conv1DReduceForAllInputs.out." + idx, "self.out." + idx);
             }
+            def->connect("conv1DReduceForAllInputs.out", "self.out");
             def->connect("conv1DLineBuffer.valid", "self.valid");
             def->connect("self.wen", "conv1DLineBuffer.wen");
             lbInst->getModuleRef()->print();
