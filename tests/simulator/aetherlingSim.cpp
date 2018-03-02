@@ -478,7 +478,6 @@ namespace CoreIR {
                 }
                 else {
                     REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
-                    assert(0);
                     // verify that the output for each input per clock is offset by 1 pixel
                     for (uint inputIdx = 0; inputIdx < inputsPerClock; inputIdx++) {
                         // now check that the n, n+1, ..., n+(kernelWidth-1) inputs are used to produce output
