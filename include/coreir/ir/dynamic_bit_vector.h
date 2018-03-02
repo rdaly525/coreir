@@ -877,7 +877,8 @@ namespace bsim {
       res.set(i - shift_int, a.get(i));
     }
 
-    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
+    int last_index = (int)a.bitLength() - shift_int;
+    for (int i = a.bitLength() - 1; i >= last_index && i >= 0; i--) {
       res.set(i, sign_bit);
     }
 
