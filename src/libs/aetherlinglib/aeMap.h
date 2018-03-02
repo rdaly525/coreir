@@ -1,9 +1,52 @@
 #include "coreir/libs/aetherlinglib.h"
 #include "coreir/libs/commonlib.h"
+#include <string.h>
 #include <stdio.h>
+#include <vector>
 
 using namespace std;
 using namespace CoreIR;
+
+vector<pair<string,Type*>> getInputOrOutputFields(Context* c, RecordType* rtype, bool getInputs) {
+    auto fields = rtype->getRecord();
+    vector<pair<string, Type*>> returnFields;
+    for (auto& field : fields) {
+        // since all input ops to map should be single cycle, don't deal with this.
+        if (field.first == "ready" || field.first == "valid") {
+            continue;
+        }
+        else if (field.second->isInput() && getInputs) {
+            returnFields.push_back(field);
+        }
+        else if (field.second->isOutput() && !getInputs) {
+            returnFields.push_back(field);
+        }
+        else if (field.second->isMixed()) {
+            ASSERT(0, "Can't map over field " + field.first + " with mixed type");
+        }
+    }
+    return returnFields;
+}
+
+Type* generateMapType(Context* c, Values genargs, bool sequential) {
+    uint numInputs = genargs.at("numInputs")->get<int>();
+    Module* opModule = genargs.at("operator")->get<Module*>();
+    RecordType* opType = opModule->getType();
+    auto opInputFields = getInputOrOutputFields(c, opType, true);
+    auto opOutputFields = getInputOrOutputFields(c, opType, false);
+    RecordType* mapPorts = c->Record({});
+    for (auto opInputField : opInputFields) {
+        mapPorts = mapPorts->appendField(opInputField.first, opInputField.second->Arr(numInputs));
+    }
+    for (auto opOutputField : opOutputFields) {
+        mapPorts = mapPorts->appendField(opOutputField.first, opOutputField.second->Arr(numInputs));
+    }
+    if (sequential) {
+        mapPorts = mapPorts->appendField("ready", c->Bit());
+        mapPorts = mapPorts->appendField("valid", c->Bit());
+    }
+    return mapPorts;
+}
 
 void Aetherling_createMapGenerator(Context* c) {
 
@@ -20,40 +63,36 @@ void Aetherling_createMapGenerator(Context* c) {
             {"operator", ModuleType::make(c)},
         });
 
-    /*
-     * All versions of map take the entire input in at once and emit a valid signal when the output is correct.
-     * This is done to keep a consistent type interface so compiler transformations are easier.
-     */
     aetherlinglib->newTypeGen(
-        "mapSeqPar_type", // name for typegen
+        "mapPar_type", // name for typegen
         mapSeqParParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            uint numInputs = genargs.at("numInputs")->get<int>();
-            Module* opModule = genargs.at("operator")->get<Module*>();
-            RecordType* opType = opModule->getType();
-            return c->Record({
-                    {"in", opType->sel("in")->Arr(numInputs)},
-                    {"out", opType->sel("out")->Arr(numInputs)},
-                    {"ready", c->Bit()},
-                    {"valid", c->Bit()}
-                });
+            return generateMapType(c, genargs, true);
         });
 
     Generator* mapParallel =
-        aetherlinglib->newGeneratorDecl("mapParallel", aetherlinglib->getTypeGen("mapSeqPar_type"), mapSeqParParams);
+        aetherlinglib->newGeneratorDecl("mapParallel", aetherlinglib->getTypeGen("mapPar_type"), mapSeqParParams);
 
     mapParallel->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
+            RecordType* opType = opModule->getType();
+            auto opInputFields = getInputOrOutputFields(c, opType, true);
+            auto opOutputFields = getInputOrOutputFields(c, opType, false);
 
             // now create each op and wire the inputs and outputs to it
             for (uint i = 0; i < numInputs; i++) {
                 string idxStr = to_string(i);                
                 string opStr = "op_" + idxStr;
                 def->addInstance(opStr, opModule);
-                def->connect("self.in." + idxStr, opStr + ".in");
-                def->connect(opStr + ".out", "self.out." + idxStr);
+                for (auto opInputField : opInputFields) {
+                    def->connect("self." + opInputField.first + "." + idxStr, opStr + "." + opInputField.first);
+                }
+                for (auto opOutputField: opOutputFields) {
+                    def->connect(opStr + "." + opOutputField.first, "self." + opOutputField.first + "." + idxStr);
+                }
             }
+            /*
             string oneConst;
             // if op has ready or valid, wire those up to this map's ready and valid
             // create a one output if this map needs to drive either its own ready or valid
@@ -78,49 +117,71 @@ void Aetherling_createMapGenerator(Context* c) {
             else {
                 def->connect(oneConst + ".out.0", "self.valid");
             }
+            */
         });
 
+    aetherlinglib->newTypeGen(
+        "mapSeq_type", // name for typegen
+        mapSeqParParams, // generator parameters
+        [](Context* c, Values genargs) { //Function to compute type
+            return generateMapType(c, genargs, false);
+        });
     /* 
-     * This implementation of map is fully sequential, it will take the input in over cycles
-     * equal to length of input 
+     * This implementation of map is fully sequential, takes entire input in first cycle, emits it all
+     * on last cycle
      */
     Generator* mapSequential =
-        aetherlinglib->newGeneratorDecl("mapSequential", aetherlinglib->getTypeGen("mapSeqPar_type"), mapSeqParParams);
+        aetherlinglib->newGeneratorDecl("mapSequential", aetherlinglib->getTypeGen("mapSeq_type"), mapSeqParParams);
 
     mapSequential->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
             uint numInputs = genargs.at("numInputs")->get<int>();
             Module* opModule = genargs.at("operator")->get<Module*>();
             RecordType* opType = opModule->getType();
-            Type* inputElementType = opType->sel("in");
-            Type* outputElementType = opType->sel("out");
+            auto opInputFields = getInputOrOutputFields(c, opType, true);
+            auto opOutputFields = getInputOrOutputFields(c, opType, false);
 
-            Values streamifyParams({
-                    {"elementType", Const::make(c, inputElementType)},
-                    {"arrayLength", Const::make(c, numInputs)}
-                });
-            Values arrayifyParams({
-                    {"elementType", Const::make(c, outputElementType)},
-                    {"arrayLength", Const::make(c, numInputs)}
-                });
-
-            def->addInstance("streamify", "aetherlinglib.streamify", streamifyParams);
             def->addInstance("op", opModule);
-            def->addInstance("arrayify", "aetherlinglib.arrayify", arrayifyParams);
-
-            // do the work
-            def->connect("self.in", "streamify.in");
-            def->connect("streamify.out", "op.in");
-            def->connect("op.out", "arrayify.in");
-            def->connect("arrayify.out", "self.out");
-
-            // handle the overhead
             string enableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
             string disableConst = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 0));
-            def->connect(enableConst + ".out.0", "streamify.en");
-            def->connect(enableConst + ".out.0", "arrayify.en");
-            def->connect("streamify.ready", "self.ready");
-            def->connect("arrayify.valid", "self.valid");
-            def->connect(disableConst + ".out.0", "streamify.reset");
-            def->connect(disableConst + ".out.0", "arrayify.reset");
+            // create a streamify for each input and wire each streamify to its op input
+            for (auto opInputField : opInputFields) {
+                Values streamifyParams({
+                    {"elementType", Const::make(c, opInputField.second)},
+                    {"arrayLength", Const::make(c, numInputs)}
+                });
+                string streamifyName = "streamify_" + opInputField.first;
+                def->addInstance(streamifyName, "aetherlinglib.streamify", streamifyParams);
+                def->connect("self." + opInputField.first, streamifyName + ".in");
+                def->connect(streamifyName + ".out", "op." + opInputField.first);
+                // enable and prevent reset of all streamifies
+                def->connect(enableConst + ".out.0", streamifyName + ".en");
+                def->connect(disableConst + ".out.0", streamifyName + ".reset");
+                // ignore the readys from all the streamifies, will take one later
+                def->addInstance("ignoreReady" + streamifyName, "coreir.term",
+                                 {{"width", Const::make(c, 1)}});
+                def->connect(streamifyName + ".ready", "ignoreReady" + streamifyName + ".in.0");
+            }
+            for (auto opOutputField: opOutputFields) {
+                Values arrayifyParams({
+                    {"elementType", Const::make(c, opOutputField.second)},
+                    {"arrayLength", Const::make(c, numInputs)}
+                });
+                string arrayifyName = "arrayify_" + opOutputField.first;
+                def->addInstance(arrayifyName, "aetherlinglib.arrayify", arrayifyParams);
+                def->connect("op." + opOutputField.first, arrayifyName + ".in");
+                def->connect(arrayifyName + ".out", "self." + opOutputField.first);
+                // enable and prevent reset of all streamifies
+                def->connect(enableConst + ".out.0", arrayifyName + ".en");
+                def->connect(disableConst + ".out.0", arrayifyName + ".reset");
+                // ignore the readys from all the streamifies, will take one later
+                def->addInstance("ignoreValid" + arrayifyName, "coreir.term",
+                                 {{"width", Const::make(c, 1)}});
+                def->connect(arrayifyName + ".ready", "ignoreValid" + arrayifyName + ".in.0");
+
+            }
+
+            // handle the ready and valid from one streamify and arrayify
+            def->connect("streamify_" + opInputFields.front().first + ".ready", "self.ready");
+            def->connect("arrayify_" + opOutputFields.front().first + ".valid", "self.valid");
         });
 }
