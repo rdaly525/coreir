@@ -45,14 +45,14 @@ int main() {
         {"output_type",Const::make(c,out_type)}, {"image_type",Const::make(c,img_type)}});
     def->connect("self", "lb32_inst");
   lb32->setDef(def);
-  lb32->print();
+  //lb32->print();
 
   cout << "Running Generators" << endl;
-  lb32->print();
+  //lb32->print();
 
   //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
   c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
-  lb32->print();
+  //lb32->print();
   lb32->getDef()->validate();
 
   // write out the json

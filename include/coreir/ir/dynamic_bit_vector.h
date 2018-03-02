@@ -864,24 +864,26 @@ namespace bsim {
   ashr(const quad_value_bit_vector& a,
        const quad_value_bit_vector& shift_amount) {
 
-    if (shift_amount == quad_value_bit_vector(shift_amount.bitLength(), 0)) {
-      return a;
-    }
+    return a;
+    // if (shift_amount == quad_value_bit_vector(shift_amount.bitLength(), 0)) {
+    //   return a;
+    // }
 
-    quad_value_bit_vector res(a.bitLength());
+    // quad_value_bit_vector res(a.bitLength());
 
-    bv_uint64 shift_int = get_shift_int(shift_amount);
+    // bv_uint64 shift_int = get_shift_int(shift_amount);
 
-    quad_value sign_bit = a.get(a.bitLength() - 1);
-    for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
-      res.set(i - shift_int, a.get(i));
-    }
+    // quad_value sign_bit = a.get(a.bitLength() - 1);
+    // for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
+    //   res.set(i - shift_int, a.get(i));
+    // }
 
-    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
-      res.set(i, sign_bit);
-    }
+    // int last_index = (int)a.bitLength() - (int)shift_int;
+    // for (int i = a.bitLength() - 1; (i >= last_index) && (i >= 0); i--) {
+    //   res.set(i, sign_bit);
+    // }
 
-    return res;
+    // return res;
   }
   
   static inline

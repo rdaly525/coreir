@@ -854,7 +854,17 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   Type* unknownBitType =
     c->Record({{"OUT", c->Bit()}});
-  rtLib->newModuleDecl("unknownBit", unknownBitType);
+  auto uMod = rtLib->newModuleDecl("unknownBit", unknownBitType);
+  auto uDef = uMod->newModuleDef();
+
+  uDef->addInstance("uConst",
+                    "coreir.const",
+                    {{"width", Const::make(c, 1)}},
+                    {{"value", Const::make(c, BitVector(1, "x"))}});
+
+  uDef->connect("uConst.out.0", "self.OUT");
+
+  uMod->setDef(uDef);
   
   return rtLib;
 }
