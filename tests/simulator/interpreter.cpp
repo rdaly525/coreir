@@ -907,17 +907,7 @@ namespace CoreIR {
 
       lbMem->setDef(def);
 
-      // if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
-      //   cout << "Could not save to json!!" << endl;
-      //   c->die();
-      // }
-      
       c->runPasses({"rungenerators","flattentypes", "flatten"});
-
-      // if (!saveToFile(g, "linebuffermem.json",lbMem)) {
-      //   cout << "Could not save to json!!" << endl;
-      //   c->die();
-      // }
 
       SimulatorState state(lbMem);
 
@@ -988,17 +978,7 @@ namespace CoreIR {
 
       lbMem->setDef(def);
 
-      // if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
-      //   cout << "Could not save to json!!" << endl;
-      //   c->die();
-      // }
-      
       c->runPasses({"rungenerators","flattentypes", "flatten"});
-
-      // if (!saveToFile(g, "linebuffermem.json",lbMem)) {
-      //   cout << "Could not save to json!!" << endl;
-      //   c->die();
-      // }
 
       SimulatorState state(lbMem);
 
