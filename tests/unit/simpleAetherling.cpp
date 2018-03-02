@@ -94,9 +94,6 @@ int main() {
     // ignoring last argumen to addIstance as no module parameters
     testDef->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
     testDef->addInstance("mapMul", "aetherlinglib.mapParallel", mapParams);
-    // for ignoring ready and valid signals
-    testDef->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
-    testDef->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
 
     // creating reduce for testing
     Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
@@ -149,8 +146,6 @@ int main() {
     }
     testDef->connect("zip2.out", "mapMul.in");
     testDef->connect("mapMul.out","self.outMap");
-    testDef->connect("mapMul.valid", "ignoreValid.in.0");
-    testDef->connect("mapMul.ready", "ignoreReady.in.0");
 
     // wiring up reduce
     string zeroConst = Aetherling_addCoreIRConstantModule(c, testDef, width, Const::make(c, width, 0));

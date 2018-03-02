@@ -67,7 +67,7 @@ void Aetherling_createMapGenerator(Context* c) {
         "mapPar_type", // name for typegen
         mapSeqParParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            return generateMapType(c, genargs, true);
+            return generateMapType(c, genargs, false);
         });
 
     Generator* mapParallel =
@@ -124,7 +124,7 @@ void Aetherling_createMapGenerator(Context* c) {
         "mapSeq_type", // name for typegen
         mapSeqParParams, // generator parameters
         [](Context* c, Values genargs) { //Function to compute type
-            return generateMapType(c, genargs, false);
+            return generateMapType(c, genargs, true);
         });
     /* 
      * This implementation of map is fully sequential, takes entire input in first cycle, emits it all
@@ -176,7 +176,7 @@ void Aetherling_createMapGenerator(Context* c) {
                 // ignore the readys from all the streamifies, will take one later
                 def->addInstance("ignoreValid" + arrayifyName, "coreir.term",
                                  {{"width", Const::make(c, 1)}});
-                def->connect(arrayifyName + ".ready", "ignoreValid" + arrayifyName + ".in.0");
+                def->connect(arrayifyName + ".valid", "ignoreValid" + arrayifyName + ".in.0");
 
             }
 

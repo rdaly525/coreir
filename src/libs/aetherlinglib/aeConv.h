@@ -91,10 +91,6 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"operator", Const::make(c, mapForOneInput)}
                 });
 
-            // can ignore maps' ready and valid since both are fully parallel
-            def->addInstance("ignoreReadyMap", "coreir.term", {{"width", Const::make(c, 1)}});
-            def->addInstance("ignoreValidMap", "coreir.term", {{"width", Const::make(c, 1)}});
-
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, elementWidth)}});
             string addIdentityModule = Aetherling_addCoreIRConstantModule(c, def, elementWidth, Const::make(c, elementWidth, 0));
 
@@ -109,11 +105,6 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"numInputs", Const::make(c, inputsPerClock)},
                     {"operator", Const::make(c, reduceForOneInput)}
                 });
-
-            // can ignore reduces' ready and valid since all are fully parallel
-            def->addInstance("ignoreReadyReduce", "coreir.term", {{"width", Const::make(c, 1)}});
-            def->addInstance("ignoreValidReduce", "coreir.term", {{"width", Const::make(c, 1)}});
-
 
             // now wire everythign up
             def->connect("self.in.data", "conv1DLineBuffer.in");
@@ -131,10 +122,6 @@ void Aetherling_createConvGenerator(Context* c) {
                 def->connect(addIdentityModule + ".out", "conv1DReduceForAllInputs.in." + idx + ".identity");
                 def->connect("conv1DReduceForAllInputs.out." + idx, "self.out." + idx);
             }
-            def->connect("conv1DMapForAllInputs.ready", "ignoreReadyMap.in.0");
-            def->connect("conv1DMapForAllInputs.valid", "ignoreValidMap.in.0");
-            def->connect("conv1DReduceForAllInputs.ready", "ignoreReadyReduce.in.0");
-            def->connect("conv1DReduceForAllInputs.valid", "ignoreValidReduce.in.0");
             def->connect("conv1DLineBuffer.valid", "self.valid");
             def->connect("self.wen", "conv1DLineBuffer.wen");
             lbInst->getModuleRef()->print();

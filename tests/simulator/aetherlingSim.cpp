@@ -69,10 +69,6 @@ namespace CoreIR {
             def->addInstance("zip2", "aetherlinglib.zip2", zip2Params);
             string mapParallelName = "map" + to_string(numInputs);
             Instance* mapParallel_mul = def->addInstance(mapParallelName, "aetherlinglib.mapParallel", mapParams);
-            // for ignoring the valid and ready
-            def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
-            def->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
-
             // here we are wiring up a constant value and an iterated one to each input of the zip before
             // it goes into the map
             string notIteratedConstModule = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, constInput));
@@ -91,8 +87,6 @@ namespace CoreIR {
 
             def->connect("zip2.out", mapParallelName + ".in");
             def->connect(mapParallelName + ".out", "self.out");
-            def->connect(mapParallelName + ".ready", "ignoreReady.in.0");
-            def->connect(mapParallelName + ".valid", "ignoreValid.in.0");
             
             mainModule->setDef(def);
             mapParallel_mul->getModuleRef()->print();
@@ -357,9 +351,10 @@ namespace CoreIR {
                 // set the input
                 state.setValue("self.in_0", BitVector(elementWidth, clkCount));
                 state.exeCombinational();
-                
-                // should take kernelWidth/inputsPerClock cycles before valid, then stay valid for rest
-                if (clkCount < kernelWidth/inputsPerClock - 1) {
+
+                // should be valid starting on cycle (kernelWidth + inputsPerClock - 1) / inputsPerClock
+                // note: subtract 1 more for 0 indexing
+                if (clkCount < (kernelWidth + inputsPerClock - 1) / inputsPerClock - 1) {
                     REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
                 }
                 else {
@@ -442,9 +437,10 @@ namespace CoreIR {
                                                                     clkCount*inputsPerClock + inputIdx));
                 }
                 state.exeCombinational();
-                
-                // should take kernelWidth/inputsPerClock cycles before valid, then stay valid for rest
-                if (clkCount < kernelWidth/inputsPerClock - 1) {
+
+                // should be valid starting on cycle (kernelWidth + inputsPerClock - 1) / inputsPerClock
+                // note: subtract 1 more for 0 indexing
+                if (clkCount < (kernelWidth + inputsPerClock - 1) / inputsPerClock - 1) {
                     REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
                 }
                 else {
