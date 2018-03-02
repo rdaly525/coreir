@@ -726,7 +726,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       //cout << "creating base case linebuffer" << endl;
       // connect based on input size
       for (uint i=0; i<out_dim; ++i) {
-        uint iflip = (out_dim-1) - i; // output goes to mirror position
+        // output goes to mirror position, except keeping order within a single clock cycle
+        uint iflip = (out_dim-1) - (in_dim - 1 - i % in_dim) - (i / in_dim) * in_dim;
+
 
         // connect to input
         if (i < in_dim) {
