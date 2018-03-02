@@ -29,15 +29,15 @@ void Aetherling_createOverlapPartitionGenerator(Context* c) {
             uint arrayLen = genargs.at("arrayLen")->get<int>();
             return c->Record({
                     {"in", c->In(elementType->Arr(arrayLen + numOverlapped - 1))},
-                    {"out", c->Out(elementType->Arr(arrayLen)->Arr(numOverlapped)}
+                    {"out", c->Out(elementType->Arr(arrayLen)->Arr(numOverlapped))}
                 });
         });
 
     Generator* overlapPartition =
-        aetherlinglib->newGeneratorDecl("overlapPartition", aetherlinglib->getTypeGen("overlapPartition_type"), flattenParams);
+        aetherlinglib->newGeneratorDecl("overlapPartition", aetherlinglib->getTypeGen("overlapPartition_type"),
+                                        overlapPartitionParams);
 
     overlapPartition->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-            Type* elementType = genargs.at("elementType")->get<Type*>();
             uint numOverlapped = genargs.at("numOverlapped")->get<int>();
             uint arrayLen = genargs.at("arrayLen")->get<int>();
 

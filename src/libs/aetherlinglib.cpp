@@ -7,6 +7,7 @@
 #include "aetherlinglib/aeFlatten.h"
 #include "aetherlinglib/aeDehydrate.h"
 #include "aetherlinglib/aeStreamifyArrayify.h"
+#include "aetherlinglib/aeOverlapPartition.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(aetherlinglib);
 
@@ -28,6 +29,7 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     Aetherling_createFlattenGenerator(c);
     Aetherling_createHydrateAndDehydrateGenerators(c);
     Aetherling_createStreamifyArrayifyGenerator(c);
+    Aetherling_createOverlapPartitionGenerator(c);
 
     // create a generator to convert two argument modules into one argument
     // modules with a fixed constant for one input

@@ -75,7 +75,7 @@ void Aetherling_createConvGenerator(Context* c) {
             */
 
             def->addInstance("overlapPartition", "aetherlinglib.overlapPartition", {
-                    {"elementType", Const::make(c, lbOutputType->getElemType())},
+                    {"elementType", Const::make(c, lbOutType->getElemType())},
                     {"numOverlapped", Const::make(c, inputsPerClock)},
                     {"arrayLen", Const::make(c, kernelWidth)}
                 });
@@ -119,6 +119,7 @@ void Aetherling_createConvGenerator(Context* c) {
             def->connect("overlapPartition.out", "conv1DMapForAllInputs.in0");
             // connect the kernel to every in1
             for (uint i = 0; i < inputsPerClock; i++) {
+                string idx = to_string(i);
                 def->connect("self.in.kernel", "conv1DMapForAllInputs.in1." + idx);
                 def->connect("conv1DMapForAllInputs.out." + idx,
                              "conv1DReduceForAllInputs.in." + idx + ".data");
