@@ -27,10 +27,10 @@ ModuleDef::~ModuleDef() {
 void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
-  for (auto inst : instances) {
+  for (auto inst : this->getInstances()) {
     Module* mref = inst.second->getModuleRef();
     if (mref->isGenerated()) {
-      cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << Values2Str(mref->getGenArgs()) << endl;
+      cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << ::CoreIR::toString(mref->getGenArgs()) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << mref->getName() << endl;
@@ -38,7 +38,7 @@ void ModuleDef::print(void) {
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
-    cout << "      " << Connection2Str(connection) << endl;
+    cout << "      " << toString(connection) << endl;
   }
   cout << endl;
 }
@@ -222,6 +222,10 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
   }
 
   // TODO should I type check here at all?
+  bool err = checkTypes(a,b);
+  if (err) {
+    c->die();
+  }
   //checkWiring(a,b);
   
   Connection connect = connectionCtor(a,b);
@@ -233,7 +237,7 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
     connections.insert(connect);
   }
   else {
-    cout << "ALREADY ADDED CONNECTION!" << endl;
+    ASSERT(0,"Trying to add following connection twice! " + toString(connect));
   }
 }
 
@@ -264,7 +268,11 @@ Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
 
 //This will remove all connections from a specific wireable
 void ModuleDef::disconnect(Wireable* w) {
+  vector<Wireable*> toDelete;
   for (auto wc : w->getConnectedWireables()) {
+    toDelete.push_back(wc);
+  }
+  for (auto wc : toDelete) {
     this->disconnect(w,wc);
   }
 }
@@ -274,7 +282,7 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   this->disconnect(connect);
 }
 void ModuleDef::disconnect(Connection con) {
-  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + Connection2Str(con));
+  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + toString(con));
   
   //remove references
   con.first->removeConnectedWireable(con.second);

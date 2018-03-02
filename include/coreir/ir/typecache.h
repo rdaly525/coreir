@@ -24,6 +24,7 @@ class TypeCache {
   Context* c;
   BitInType* bitI;
   BitType* bitO;
+  BitInOutType* bitIO;
   std::unordered_map<Type*,std::unordered_map<int,ArrayType*>> ArrayCache;
   std::unordered_map<RecordParams,RecordType*,RecordParamsHasher> RecordCache;
   
@@ -41,6 +42,7 @@ class TypeCache {
     //Types
     BitType* getBit() { return bitO; }
     BitInType* getBitIn() { return bitI; }
+    BitInOutType* getBitInOut() { return bitIO; }
     ArrayType* getArray(uint32_t len, Type* t);
     RecordType* getRecord(RecordParams params);
 

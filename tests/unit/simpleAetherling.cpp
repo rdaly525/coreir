@@ -36,7 +36,7 @@ int main() {
     //Type of module 
     Type* oneInManyOutGenType = c->Record({
             {"in",c->BitIn()->Arr(width)->Arr(parallelInputs)},
-            {"outMap",c->Bit()->Arr(width)},
+            {"outMap",c->Bit()->Arr(width)->Arr(parallelInputs)},
             {"outReduce",c->Bit()->Arr(width)}
         });
     Module* testModule = c->getGlobal()->newModuleDecl("testModule",oneInManyOutGenType);

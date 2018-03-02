@@ -35,7 +35,9 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
       topclk = def->sel("self")->sel("clk");
     }
     for (auto clk : clks) {
-      def->connect(topclk,clk);
+      if (!def->hasConnection(topclk,clk)) {
+        def->connect(topclk,clk);
+      }
     }
 
     return true;

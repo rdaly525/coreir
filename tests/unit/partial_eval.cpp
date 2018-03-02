@@ -18,7 +18,7 @@ int main() {
 
   Context* c = newContext();
 
-  Module* topMod = loadModule(c, "registered_switch_proc_flat.json", "registered_switch");
+  Module* topMod = loadModule(c, "registered_switch_proc_flat_sanitized_names.json", "registered_switch");
   auto def = topMod->getDef();
 
   BitVector configData(32, 0x00000C00);

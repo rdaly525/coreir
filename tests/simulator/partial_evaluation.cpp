@@ -59,7 +59,7 @@ namespace CoreIR {
 
         int index = selectNum(sel);
 
-        return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
+        return makeSimBitVector(BitVec(1, (val->getBits()).get(index).binary_value()));
       }
 
       assert(mod->getDef()->canSel(sel->toString()));
@@ -214,28 +214,28 @@ namespace CoreIR {
 
       registersToConstants(cl, st.registers);
       deleteDeadInstances(cl);
-      unpackConnections(cl);
       foldConstants(cl);
+      unpackConnections(cl);
 
-      // cout << "RMux Instances after conversion" << endl;
-      // for (auto inst : cl->getDef()->getInstances()) {
-      //   cout << inst.first << ": " << inst.second->toString() << endl;
-      // }
+      cout << "RMux Instances after conversion" << endl;
+      for (auto inst : cl->getDef()->getInstances()) {
+        cout << inst.first << ": " << inst.second->toString() << endl;
+      }
 
-      // auto sigDrivers = signalDriverMap(cl->getDef());
-      // cout << "Signal bits to drivers" << endl;
-      // for (auto dp : sigDrivers) {
-      //   cout << "\t" << dp.first->toString() << " driven by " << dp.second->toString() << endl;
-      // }
+      auto sigDrivers = signalDriverMap(cl->getDef());
+      cout << "Signal bits to drivers" << endl;
+      for (auto dp : sigDrivers) {
+        cout << "\t" << dp.first->toString() << " driven by " << dp.second->toString() << endl;
+      }
 
-      // auto sigReceivers = signalReceiverMap(cl->getDef());
-      // cout << "Signal bits to receivers" << endl;
-      // for (auto dp : sigReceivers) {
-      //   cout << "\t" << dp.first->toString() << " drives ";
-      //   for (auto val : dp.second) {
-      //     cout << val->toString() << ", " << endl;
-      //   }
-      // }
+      auto sigReceivers = signalReceiverMap(cl->getDef());
+      cout << "Signal bits to receivers" << endl;
+      for (auto dp : sigReceivers) {
+        cout << "\t" << dp.first->toString() << " drives ";
+        for (auto val : dp.second) {
+          cout << val->toString() << ", " << endl;
+        }
+      }
       
       SECTION("The mux is removed by constant folding") {
         REQUIRE(cl->getDef()->getInstances().size() == 1);

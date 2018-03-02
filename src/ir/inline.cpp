@@ -83,7 +83,11 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) {
     def->connect(to,other);
   }
+  vector<Wireable*> toDelete;
   for (auto other : from->getConnectedWireables()) {
+    toDelete.push_back(other);
+  }
+  for (auto other : toDelete) {
     def->disconnect(from,other);
   }
   for (auto sels : from->getSelects()) {
@@ -155,7 +159,7 @@ bool inlineInstance(Instance* inst) {
   //TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
   if (mref->isGenerated() && mref->getGenerator()->getRefName() == "_.passthrough") {
-    //cout << "Inlining: " << Inst2Str(inst) << endl;
+    //cout << "Inlining: " << toString(inst) << endl;
     inlinePassthrough(inst);
     return true;
   }
@@ -185,7 +189,6 @@ bool inlineInstance(Instance* inst) {
   //Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(),"_insidePT");
   
-
   string inlinePrefix = inst->getInstname() + "$";
 
   //First add all the instances of defInline into def with a new name

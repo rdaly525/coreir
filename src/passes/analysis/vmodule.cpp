@@ -69,7 +69,7 @@ string VModule::toInstanceString(Instance* inst) {
   
   vector<string> paramstrs;
   for (auto param : params0) {
-    ASSERT(args.count(param),"Missing parameter " + param + " from " + Values2Str(args));
+    ASSERT(args.count(param),"Missing parameter " + param + " from " + ::CoreIR::toString(args));
     string astr = "." + param + "(" + toConstString(args[param]) + ")";
     paramstrs.push_back(astr);
   }

@@ -65,6 +65,112 @@ namespace CoreIR {
   
   }
 
+  TEST_CASE("Interpreting coreir.wire and corebit.wire") {
+
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("coreir.wire") {
+      uint width = 4;
+      Type* tp = c->Record({{"in", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+      def->addInstance("w", "coreir.wire", {{"width", Const::make(c, width)}});
+      def->connect("self.in", "w.in");
+      def->connect("w.out", "self.out");
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(width, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 12));
+    }
+
+    SECTION("corebit.wire") {
+      Type* tp = c->Record({{"in", c->BitIn()},
+            {"out", c->Bit()}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+      def->addInstance("w", "corebit.wire");
+      def->connect("self.in", "w.in");
+      def->connect("w.out", "self.out");
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(1, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 12));
+    }
+    
+    deleteContext(c);
+  }
+
+  TEST_CASE("Interpreting coreir.term and corebit.term") {
+
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("coreir.term") {
+      uint width = 4;
+      Type* tp = c->Record({{"in", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+
+      def->addInstance("w", "coreir.term", {{"width", Const::make(c, width)}});
+      def->connect("self.in", "w.in");
+
+      def->addInstance("c", "coreir.const", {{"width", Const::make(c, width)}}, {{"value", Const::make(c, BitVector(width, 1))}});
+      def->connect("c.out", "self.out");
+
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(width, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 1));
+    }
+
+    SECTION("corebit.term") {
+      Type* tp = c->Record({{"in", c->BitIn()},
+            {"out", c->Bit()}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+
+      def->addInstance("w", "corebit.term");
+      def->connect("self.in", "w.in");
+
+      def->addInstance("c", "corebit.const", {{"value", Const::make(c, false)}});
+      def->connect("c.out", "self.out");
+
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(1, 1));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 0));
+    }
+    
+    deleteContext(c);
+  }
+  
   TEST_CASE("Interpreting circuits with combinational loops") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
@@ -97,7 +203,7 @@ namespace CoreIR {
       // c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
 
       // SimulatorState state(twoMux);
-
+      // state.setValue("self.sel", BitVector(1, 0));
       // state.setValue("self.in", BitVector(width, "11"));
 
       // state.execute();
@@ -943,7 +1049,6 @@ namespace CoreIR {
       def->addInstance("m0",
       		       "coreir.mem",
       		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
-		       //      		       {{"init", Const::make(c,BitVector(80))}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
@@ -982,17 +1087,33 @@ namespace CoreIR {
       }
 
       SECTION("Write to address zero") {
+
+        SECTION("Read is combinational") {
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.write_en", BitVec(1, 0));
+          state.setValue("self.write_addr", BitVec(index, 0));
+          state.setValue("self.write_data", BitVec(width, 23));
+          
+          state.setValue("self.read_addr", BitVec(index, 2));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 2));
+
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.read_addr", BitVec(index, 0));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+
+        }
+
       	state.setClock("self.clk", 0, 1);
       	state.setValue("self.write_en", BitVec(1, 1));
       	state.setValue("self.write_addr", BitVec(index, 0));
       	state.setValue("self.write_data", BitVec(width, 23));
       	state.setValue("self.read_addr", BitVec(index, 0));
-
-      	// state.execute();
-
-        // SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
-        //   REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-        // }
 
         state.execute();
 
@@ -1464,30 +1585,30 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVec(4, "0010"));
     }
 
-    SECTION("Magma fifo example") {
+    //SECTION("Magma fifo example") {
 
-      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+    //  Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
-      if (!loadFromFile(c,"./fifo_magma_json.json")) {
-    	cout << "Could not Load from json!!" << endl;
-    	c->die();
-      }
+    //  if (!loadFromFile(c,"./fifo_magma_json.json")) {
+    //	cout << "Could not Load from json!!" << endl;
+    //	c->die();
+    //  }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
-      
-      Module* fifoMod = g->getModule("Fifo");
-      SimulatorState state(fifoMod);
-      // state.setValue("self.wdata", BitVector(4, "1010"));
-      // state.setValue("self.wen", BitVector(4, "1"));
-      // state.setValue("self.ren", BitVector(4, "0"));
-      // state.resetCircuit();
+    //  c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
+    //  
+    //  Module* fifoMod = g->getModule("Fifo");
+    //  SimulatorState state(fifoMod);
+    //  // state.setValue("self.wdata", BitVector(4, "1010"));
+    //  // state.setValue("self.wen", BitVector(4, "1"));
+    //  // state.setValue("self.ren", BitVector(4, "0"));
+    //  // state.resetCircuit();
 
-      // state.setClock("self.CLK", 0, 1);
+    //  // state.setClock("self.CLK", 0, 1);
 
-      // state.execute();
+    //  // state.execute();
 
-      // REQUIRE(state.isSet("self.wdata"));
-    }
+    //  // REQUIRE(state.isSet("self.wdata"));
+    //}
     
     deleteContext(c);
   }

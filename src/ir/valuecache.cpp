@@ -6,7 +6,33 @@ using namespace std;
 namespace CoreIR {
 
 bool BitVectorComp::operator() (const BitVector& l, const BitVector& r) const {
-  if (l.bitLength() != r.bitLength()) return l.bitLength() < r.bitLength();
+  if (l.bitLength() != r.bitLength()) {
+    return l.bitLength() < r.bitLength();
+  }
+
+  for (int i = l.bitLength() - 1; i >= 0; i--) {
+    auto lv = l.get(i);
+    auto rv = r.get(i);
+
+    if (lv.is_binary() && rv.is_binary()) {
+      if (lv.binary_value() > rv.binary_value()) {
+        return true;
+      }
+    } else if (lv.is_binary()) {
+      return true;
+    } else if (rv.is_binary()) {
+      return false;
+    } else {
+      if (!(lv.is_unknown() && rv.is_unknown())) {
+        cout << "lv = " << lv << endl;
+        cout << "rv = " << rv << endl;
+
+        cout << "l = " << l << endl;
+        cout << "r = " << r << endl;
+      }
+      assert(lv.is_unknown() && rv.is_unknown());
+    }
+  }
   return l < r;
 }
 

@@ -6,7 +6,10 @@
 ## Installation Instructions
   Refer to INSTALL.md
 
-## Guides
+## License
+  CoreIR is open source under the terms of the freeBSD license found in LICENSE.txt
+
+## Documentation
 
   `doc/StandaloneCoreIR.md`
   `doc/JsonSpec.md`
