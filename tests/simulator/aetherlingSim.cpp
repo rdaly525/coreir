@@ -298,7 +298,7 @@ namespace CoreIR {
 
         SECTION("aetherlinglib conv1D with 9 values for data, 3 values for kernel, 1 value input per clock, 16 bit width") {
             uint dataWidth = 9;
-            uint inputPerClockWidth = 1;
+            uint inputsPerClock = 1;
             uint kernelWidth = 3;
             uint elementWidth = 16;
 
@@ -306,8 +306,8 @@ namespace CoreIR {
             CoreIRLoadLibrary_aetherlinglib(c);
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
-                    {"in", c->BitIn()->Arr(elementWidth)->Arr(inputPerClockWidth)},
-                    {"out", c->Bit()->Arr(elementWidth)},
+                    {"in", c->BitIn()->Arr(elementWidth)->Arr(inputsPerClock)},
+                    {"out", c->Bit()->Arr(elementWidth)->Arr(1)},
                     {"valid", c->Bit()}                        
                 });
             Module* mainModule = c->getGlobal()->newModuleDecl("mainConv1DTest", mainModuleType);
@@ -315,7 +315,7 @@ namespace CoreIR {
 
             Values conv1DGenArgs = {
                 {"dataWidth", Const::make(c, dataWidth)},
-                {"inputPerClockWidth", Const::make(c, inputPerClockWidth)},
+                {"inputsPerClock", Const::make(c, inputsPerClock)},
                 {"kernelWidth", Const::make(c, kernelWidth)},
                 {"elementWidth", Const::make(c, elementWidth)},
             };
@@ -358,8 +358,8 @@ namespace CoreIR {
                 state.setValue("self.in_0", BitVector(elementWidth, clkCount));
                 state.exeCombinational();
                 
-                // should take kernelWidth/inputPerClockWidth cycles before valid, then stay valid for rest
-                if (clkCount < kernelWidth/inputPerClockWidth - 1) {
+                // should take kernelWidth/inputsPerClock cycles before valid, then stay valid for rest
+                if (clkCount < kernelWidth/inputsPerClock - 1) {
                     REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
                 }
                 else {
@@ -371,7 +371,7 @@ namespace CoreIR {
                     for (uint i = 0; i < kernelWidth; i++) {
                         rightOutput += (numValidClks+i)*i;
                     }
-                    REQUIRE(state.getBitVec("self.out") == BitVector(elementWidth, rightOutput));
+                    REQUIRE(state.getBitVec("self.out_0") == BitVector(elementWidth, rightOutput));
                     numValidClks++;
                 }
                 state.exeSequential();

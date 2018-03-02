@@ -30,7 +30,7 @@ void Aetherling_createConvGenerator(Context* c) {
                                 {"kernel", c->BitIn()->Arr(elementWidth)->Arr(kernelWidth)}
                             })},
                     {"wen", c->BitIn()},
-                    {"out", c->Bit()->Arr(elementWidth)},
+                    {"out", c->Bit()->Arr(elementWidth)->Arr(inputsPerClock)},
                     {"valid", c->Bit()}
                 });
         });
@@ -67,30 +67,23 @@ void Aetherling_createConvGenerator(Context* c) {
             // for input0 and 1 I just want the types of the elements, so have to strip the array lenghts
             // with getElemType
             // make 1 zip2 for each concurrent input you are processing
-            Module* zip2ForOneInput = c->getGenerator("aetherlinglib.zip2")->getModule({
+            /*Module* zip2PerInput = c->getGenerator("aetherlinglib.zip2")->getModule({
                     {"numInputs", Const::make(c, kernelWidth)},
                     {"input0Type", Const::make(c, c->In(lbOutType->getElemType()))}, 
                     {"input1Type", Const::make(c, c->In(kernelType->getElemType()))}
                 });
-
-            def->addInstance("conv1Zip2AllInputs", "aetherlinglib.mapParallel", {
-                    {"numInputs", Const::make(c, inputsPerClock)},
-                    {"operator", Const::make(c, zip2ForOneInput)}
-                });
-            
+            */
 
             Module* mul2Unzipped = c->getGenerator("coreir.mul")->
                 getModule({{"width", Const::make(c, elementWidth)}});
             
             Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(c, mul2Unzipped);
-            cout << 3 << endl;
 
             // each one of these maps processes the output associated with one input
             Module* mapForOneInput = c->getGenerator("aetherlinglib.mapParallel")->getModule({
                     {"numInputs", Const::make(c, kernelWidth)},
                     {"operator", Const::make(c, mul2Zipped)}
                 });
-            cout << 1 << endl;
 
             // now add a mapForOneInput for each input per clock
             def->addInstance("conv1DMapForAllInputs", "aetherlinglib.mapParallel", {
@@ -98,10 +91,9 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"operator", Const::make(c, mapForOneInput)}
                 });
 
-            // can ignore map's ready and valid since both are fully parallel
-            def->addInstance("ignoreReady", "coreir.term", {{"width", Const::make(c, 1)}});
-            def->addInstance("ignoreValid", "coreir.term", {{"width", Const::make(c, 1)}});
-            cout << 4 << endl;
+            // can ignore maps' ready and valid since both are fully parallel
+            def->addInstance("ignoreReadyMap", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->addInstance("ignoreValidMap", "coreir.term", {{"width", Const::make(c, 1)}});
 
             Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, elementWidth)}});
             string addIdentityModule = Aetherling_addCoreIRConstantModule(c, def, elementWidth, Const::make(c, elementWidth, 0));
@@ -118,23 +110,31 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"operator", Const::make(c, reduceForOneInput)}
                 });
 
+            // can ignore reduces' ready and valid since all are fully parallel
+            def->addInstance("ignoreReadyReduce", "coreir.term", {{"width", Const::make(c, 1)}});
+            def->addInstance("ignoreValidReduce", "coreir.term", {{"width", Const::make(c, 1)}});
+
+
             // now wire everythign up
             def->connect("self.in.data", "conv1DLineBuffer.in");
             // assuming stride is 1, so each input per clock increases the output width by 1
             for (int i = 0; i < inputsPerClock; i++) {
                 string idx = to_string(i);
                 for (int j = 0; j < kernelWidth; j++) {
+                    string jdx = to_string(j);
                     def->connect("conv1DLineBuffer.out." + to_string(i + j),
-                                 "conv1DMapForAllInputs.in." + idx + "." + to_string(j) + ".el0");
-                    def->connect("self.in.kernel", "conv1DMapForAllInputs.in." + idx + "." + to_string(j)
+                                 "conv1DMapForAllInputs.in." + idx + "." + jdx + ".el0");
+                    def->connect("self.in.kernel." + jdx, "conv1DMapForAllInputs.in." + idx + "." + jdx
                                  + ".el1");
                 }
+                def->connect("conv1DMapForAllInputs.out." + idx, "conv1DReduceForAllInputs.in." + idx + ".data");
+                def->connect(addIdentityModule + ".out", "conv1DReduceForAllInputs.in." + idx + ".identity");
+                def->connect("conv1DReduceForAllInputs.out." + idx, "self.out." + idx);
             }
-            def->connect("conv1DMap.out", "conv1DReduce.in.data");
-            def->connect("conv1DMap.ready", "ignoreReady.in.0");
-            def->connect("conv1DMap.valid", "ignoreValid.in.0");
-            def->connect(addIdentityModule + ".out", "conv1DReduce.in.identity");
-            def->connect("conv1DReduce.out", "self.out");
+            def->connect("conv1DMapForAllInputs.ready", "ignoreReadyMap.in.0");
+            def->connect("conv1DMapForAllInputs.valid", "ignoreValidMap.in.0");
+            def->connect("conv1DReduceForAllInputs.ready", "ignoreReadyReduce.in.0");
+            def->connect("conv1DReduceForAllInputs.valid", "ignoreValidReduce.in.0");
             def->connect("conv1DLineBuffer.valid", "self.valid");
             def->connect("self.wen", "conv1DLineBuffer.wen");
             lbInst->getModuleRef()->print();

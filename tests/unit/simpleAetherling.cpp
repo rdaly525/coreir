@@ -47,7 +47,7 @@ int main() {
             {"outReduceParallel",c->Bit()->Arr(width)},
             {"outReduceSequential",c->Bit()->Arr(width)},
             {"validReduceSequential",c->Bit()},
-            {"outConv1D", c->Bit()->Arr(width)},
+            {"outConv1D", c->Bit()->Arr(width)->Arr(1)},
             {"outFlatten", outFlattenType->Arr(4)},
             {"outHydrate", c->Bit()->Arr(width)->Arr(parallelInputs)},
             {"validConv1D", c->Bit()}
