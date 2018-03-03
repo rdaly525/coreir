@@ -79,6 +79,10 @@ namespace bsim {
       assert(v < 4);
     }
 
+    bool same_representation(const quad_value other) const {
+      return value == other.value;
+    }
+
     unsigned char get_char() const {
       return value;
     }
@@ -145,11 +149,29 @@ namespace bsim {
 
   static inline quad_value operator+(const quad_value& a,
                                      const quad_value& b) {
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
+
     return a.plus(b);
   }
 
   static inline quad_value operator&(const quad_value& a,
                                      const quad_value& b) {
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
+
+    if (a.is_binary() && (a.binary_value() == 0)) {
+      return quad_value(0);
+    }
+
+    if (b.is_binary() && (b.binary_value() == 0)) {
+      return quad_value(0);
+    }
+
+    if (a.is_unknown() || b.is_unknown()) {
+      return quad_value(QBV_UNKNOWN_VALUE);
+    }
+
     assert(a.is_binary());
     assert(b.is_binary());
 
@@ -159,14 +181,30 @@ namespace bsim {
   static inline quad_value operator|(const quad_value& a,
                                      const quad_value& b) {
 
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
+
+    if (a.is_binary() && (a.binary_value() == 1)) {
+      return quad_value(1);
+    }
+    if (b.is_binary() && (b.binary_value() == 1)) {
+      return quad_value(1);
+    }
+
+    if (a.is_unknown() || b.is_unknown()) {
+      return quad_value(QBV_UNKNOWN_VALUE);
+    }
+
     assert(a.is_binary());
     assert(b.is_binary());
-
     return quad_value(a.binary_value() | b.binary_value());
   }
 
   static inline quad_value operator^(const quad_value& a,
                                      const quad_value& b) {
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
+
     assert(a.is_binary());
     assert(b.is_binary());
 
@@ -177,6 +215,9 @@ namespace bsim {
   static inline bool operator>(const quad_value& a,
                                const quad_value& b) {
 
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
+
     assert(a.is_binary());
     assert(b.is_binary());
 
@@ -185,6 +226,8 @@ namespace bsim {
 
   static inline bool operator<(const quad_value& a,
                                const quad_value& b) {
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
 
     assert(a.is_binary());
     assert(b.is_binary());
@@ -194,6 +237,8 @@ namespace bsim {
   
   static inline quad_value operator~(const quad_value& a) {
 
+    assert(!a.is_high_impedance());
+    
     assert(a.is_binary());
 
     return quad_value((~a.binary_value()) & 0x01);
@@ -201,11 +246,17 @@ namespace bsim {
   
   static inline bool operator==(const quad_value& a,
                                 const quad_value& b) {
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
+
     return a.equals(b);
   }
 
   static inline bool operator!=(const quad_value& a,
                                 const quad_value& b) {
+    assert(!a.is_high_impedance());
+    assert(!b.is_high_impedance());
+
     return !(a == b);
   }
 
@@ -213,7 +264,7 @@ namespace bsim {
 					 const quad_value& a) {
     a.print(out);
     return out;
-  }  
+  }
 
   class quad_value_bit_vector {
     std::vector<quad_value> bits;
@@ -521,6 +572,30 @@ namespace bsim {
     
   };
 
+  static inline bool same_representation(const quad_value_bit_vector& a,
+                           const quad_value_bit_vector& b) {
+    if (a.bitLength() != b.bitLength()) {
+      return false;
+    }
+
+    for (int i = 0; i < ((int) a.bitLength()); i++) {
+      quad_value av = a.get(i);
+      quad_value bv = b.get(i);
+      if (!av.same_representation(bv)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static inline quad_value_bit_vector unknown_bv(const int len) {
+    std::string str = "";
+    for (int i = 0; i < len; i++) {
+      str += "x";
+    }
+    return quad_value_bit_vector(len, str);
+  }
+
   static inline std::ostream& operator<<(std::ostream& out,
 					 const quad_value_bit_vector& a) {
     out << a.binary_string();
@@ -545,6 +620,11 @@ namespace bsim {
     quad_value_bit_vector res(a.bitLength());
     unsigned char carry = 0;
     for (int i = 0; i < ((int) a.bitLength()); i++) {
+
+      if (!a.get(i).is_binary() ||
+          !b.get(i).is_binary()) {
+        return unknown_bv(a.bitLength());
+      }
 
       unsigned char sum = a.get(i).binary_value() + b.get(i).binary_value() + carry;
 
@@ -596,7 +676,7 @@ namespace bsim {
   		 (b.get(i) == 0)) {
   	diff.set(i, 1);
       } else {
-  	assert(false);
+        return unknown_bv(a.bitLength());
       }
     }
 
