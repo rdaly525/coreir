@@ -33,7 +33,7 @@ bool BitVectorComp::operator() (const BitVector& l, const BitVector& r) const {
       assert(lv.is_unknown() && rv.is_unknown());
     }
   }
-  return l < r;
+  return false;
 }
 
 ValueCache::ValueCache(Context* c) : c(c) {
