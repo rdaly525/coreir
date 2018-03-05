@@ -34,70 +34,86 @@ namespace CoreIR {
         Context* c = newContext();
         Namespace* g = c->getGlobal();
 
-        SECTION("aetherlinglib conv1D with 16 values for data, 3 values for kernel, 2 values input per clock, 16 bit width then conv1D with 16 bits for data, 2 values for kernel, 1 value input per clock") {
+        SECTION("3 conv1D with 16 values for data, 3 values for kernel, 2 values input per clock, 16 bit width then conv1D with 16 bits for data, 2 values for kernel, 1 value input per clock") {
 
-            convParams_t conv1Params = {16, 2, 3, 16};
-            convParams_t conv2Params = {16, 2, 2, 16};
+            convParams_t convParams = {16, 2, 3, 16};
 
             CoreIRLoadLibrary_commonlib(c);
             CoreIRLoadLibrary_aetherlinglib(c);
             // create the main module to run the test on the adder
             Type* mainModuleType = c->Record({
-                    {"in", c->BitIn()->Arr(conv1Params.elementWidth)->Arr(conv1Params.inputsPerClock)},
-                    {"out", c->Bit()->Arr(conv2Params.elementWidth)->Arr(conv2Params.inputsPerClock)},
+                    {"in", c->BitIn()->Arr(convParams.elementWidth)->Arr(convParams.inputsPerClock)},
+                    {"out", c->Bit()->Arr(convParams.elementWidth)->Arr(convParams.dataWidth)},
                     {"valid", c->Bit()}                        
                 });
             Module* mainModule = c->getGlobal()->newModuleDecl("mainConv1DTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
 
-            Values conv1GenArgs = {
-                {"dataWidth", Const::make(c, conv1Params.dataWidth)},
-                {"inputsPerClock", Const::make(c, conv1Params.inputsPerClock)},
-                {"kernelWidth", Const::make(c, conv1Params.kernelWidth)},
-                {"elementWidth", Const::make(c, conv1Params.elementWidth)},
-            };
-
-            Values conv2GenArgs = {
-                {"dataWidth", Const::make(c, conv2Params.dataWidth)},
-                {"inputsPerClock", Const::make(c, conv2Params.inputsPerClock)},
-                {"kernelWidth", Const::make(c, conv2Params.kernelWidth)},
-                {"elementWidth", Const::make(c, conv2Params.elementWidth)},
+            Values convGenArgs = {
+                {"dataWidth", Const::make(c, convParams.dataWidth)},
+                {"inputsPerClock", Const::make(c, convParams.inputsPerClock)},
+                {"kernelWidth", Const::make(c, convParams.kernelWidth)},
+                {"elementWidth", Const::make(c, convParams.elementWidth)},
             };
 
             string conv1Name = "conv1_test";
             string conv2Name = "conv2_test";
-            Instance* conv1 = def->addInstance(conv1Name, "aetherlinglib.conv1D", conv1GenArgs);
-            Instance* conv2 = def->addInstance(conv2Name, "aetherlinglib.conv1D", conv2GenArgs);
-            string wenModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
-            def->connect(wenModule + ".out.0", conv1Name + ".wen");
+            Instance* conv1 = def->addInstance(conv1Name, "aetherlinglib.conv1D", convGenArgs);
+            Instance* conv2 = def->addInstance(conv2Name, "aetherlinglib.conv1D", convGenArgs);
+            
+            Module* add = c->getGenerator("coreir.add")->
+                getModule({{"width", Const::make(c, convParams.elementWidth)}});
+            Instance* mapAdders = def->addInstance("mapAdders", "aetherlinglib.mapParallel", {
+                    {"numInputs", Const::make(c, convParams.inputsPerClock)},
+                    {"operator", Const::make(c, add)}
+                });
+
+            ArrayType* mapAddersOutType = dyn_cast<ArrayType>(mapAdders->getType()->sel("out"));
+            uint streamifyPairedLength = convParams.dataWidth/convParams.inputsPerClock;
+
+            def->addInstance("pairCollector", "aetherlinglib.arrayify", {
+                    {"elementType", Const::make(c, mapAddersOutType)},
+                    {"arrayLength", Const::make(c, streamifyPairedLength)}
+                });
+
+            def->addInstance("pairToFullArrayFlatten", "aetherlinglib.flatten", {
+                    {"inputType", Const::make(c, c->In(mapAddersOutType->Arr(streamifyPairedLength)))},
+                    {"singleElementOutputType", Const::make(c, mapAddersOutType->getElemType())}
+                });            
+            
             // create different input for each element of kernel
-            for (uint i = 0 ; i < conv1Params.kernelWidth; i++) {
-                string constName = "constInput_conv1_" + to_string(i);
+            for (uint i = 0 ; i < convParams.kernelWidth; i++) {
+                string constName = "constInput_test_" + to_string(i);
                 def->addInstance(
                     constName,
                     "coreir.const",
-                    {{"width", Const::make(c, conv1Params.elementWidth)}},
-                    {{"value", Const::make(c, conv1Params.elementWidth, i)}});
+                    {{"width", Const::make(c, convParams.elementWidth)}},
+                    {{"value", Const::make(c, convParams.elementWidth, i)}});
 
                 def->connect(constName + ".out", conv1Name + ".in.kernel." + to_string(i));
-            }
-
-            for (uint i = 0 ; i < conv2Params.kernelWidth; i++) {
-                string constName = "constInput_conv2_" + to_string(i);
-                def->addInstance(
-                    constName,
-                    "coreir.const",
-                    {{"width", Const::make(c, conv2Params.elementWidth)}},
-                    {{"value", Const::make(c, conv2Params.elementWidth, i+2)}});
-
                 def->connect(constName + ".out", conv2Name + ".in.kernel." + to_string(i));
             }
 
             def->connect("self.in", conv1Name + ".in.data");
-            def->connect(conv1Name + ".out", conv2Name + ".in.data");
-            def->connect(conv2Name + ".out", "self.out");
-            def->connect(conv1Name + ".valid", conv2Name + ".wen");
-            def->connect(conv2Name + ".valid", "self.valid");
+            def->connect("self.in", conv2Name + ".in.data");
+            def->connect(conv1Name + ".out", "mapAdders.in0");
+            def->connect(conv2Name + ".out", "mapAdders.in1");
+            def->connect("mapAdders.out", "pairCollector.in");
+            def->connect("pairCollector.out", "pairToFullArrayFlatten.in");
+            def->connect("pairToFullArrayFlatten.out", "self.out");
+
+            // handle enable/reset beauracracy 
+            string wenModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
+            string disableModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 0));
+            def->addInstance("bothConvsValid", "coreir.and",
+                             {{"width", Const::make(c, 1)}});
+            def->connect(wenModule + ".out.0", conv1Name + ".wen");
+            def->connect(wenModule + ".out.0", conv2Name + ".wen");
+            def->connect(conv1Name + ".valid", "bothConvsValid.in0.0");
+            def->connect(conv2Name + ".valid", "bothConvsValid.in1.0");
+            def->connect("bothConvsValid.out.0", "pairCollector.en");
+            def->connect(disableModule + ".out.0", "pairCollector.reset");
+            def->connect("pairCollector.valid", "self.valid");
 
             mainModule->setDef(def);
             mainModule->print();
@@ -112,41 +128,35 @@ namespace CoreIR {
             SimulatorState state(mainModule);
             // pass in increasing numbers each clock cycle, should get 1*2*3 times that number
             // once valid is right, should get items out in same order sent in           
-            for (uint clkCount = 0, numValidClks = 0; numValidClks < conv2Params.dataWidth / conv2Params.inputsPerClock ; clkCount++) {
+            for (uint clkCount = 0, numValidClks = 0; numValidClks < 1 ; clkCount++) {
                 state.setClock("self.clk", 0, 1); // get a new rising clock edge
                 // set the input
-                for (uint inputIdx = 0; inputIdx < conv1Params.inputsPerClock; inputIdx++) {
-                    state.setValue("self.in_" + to_string(inputIdx), BitVector(conv1Params.elementWidth,
-                                                                    clkCount*conv1Params.inputsPerClock + inputIdx));
+                for (uint inputIdx = 0; inputIdx < convParams.inputsPerClock; inputIdx++) {
+                    state.setValue("self.in_" + to_string(inputIdx), BitVector(convParams.elementWidth,
+                                                                    clkCount*convParams.inputsPerClock + inputIdx));
                 }
                 state.exeCombinational();
-                // should be valid after both conv1 and 2 are valid
+                // should be valid after both conv1 and 2 are valid and gone trhough all input
                 // note: subtract 1 more for 0 indexing
-                if (clkCount < cyclesForConvToBeValid(conv1Params) + cyclesForConvToBeValid(conv2Params) - 1) {
+                uint convToBeValid = cyclesForConvToBeValid(convParams);
+                if (clkCount < cyclesForConvToBeValid(convParams) + convParams.dataWidth / convParams.inputsPerClock - 1) {
                     REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
                 }
                 else {
                     REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
-                    uint * conv1Output = new uint[conv1Params.inputsPerClock];
-                    for (uint inputIdx = 0; inputIdx < conv1Params.inputsPerClock; inputIdx++) {
+                    uint * conv1Output = new uint[convParams.dataWidth];
+                    for (uint inputIdx = 0; inputIdx < convParams.dataWidth; inputIdx++) {
                         // compute the outputs of conv1
                         conv1Output[inputIdx] = 0;
-                        for (uint i = 0; i < conv1Params.kernelWidth; i++) {
+                        for (uint i = 0; i < convParams.kernelWidth; i++) {
                             // 2 inputs per clock, by time outputing, emitting output for inputs
                             // 0,1,2 and 1,2,3 on first cycle (i inside parethenses creates each sequence
                             // of 3, i outside is for kernel element
-                            conv1Output[inputIdx] += (numValidClks*conv1Params.inputsPerClock+inputIdx+i)*i;
+                            conv1Output[inputIdx] += (inputIdx+i)*i;
                         }
-
+                        REQUIRE(state.getBitVec("self.out_" + to_string(inputIdx)) ==
+                            BitVector(convParams.elementWidth, 2*conv1Output[inputIdx]));
                     }
-
-                    uint rightOutput = 0;
-                    for (uint i = 0; i < conv2Params.kernelWidth; i++) {
-                        // all outputs of conv1 are multiplied by the kernel, then summed up
-                        rightOutput += conv1Output[i]*(i+2);
-                    }
-                    REQUIRE(state.getBitVec("self.out_0") ==
-                            BitVector(conv1Params.elementWidth, rightOutput));
                     delete [] conv1Output;
 
                     numValidClks++;
