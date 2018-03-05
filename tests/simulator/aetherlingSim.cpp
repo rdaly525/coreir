@@ -18,6 +18,7 @@ using namespace std;
 namespace CoreIR {
 
     TEST_CASE("Simulate mapN from aetherlinglib") {
+
         // New context
         Context* c = newContext();
         Namespace* g = c->getGlobal();
