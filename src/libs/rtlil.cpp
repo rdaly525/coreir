@@ -782,21 +782,52 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                       memParams,
                       [](Context* c, Values genargs) {
                         uint width = genargs.at("WIDTH")->get<int>();
+                        uint depth = genargs.at("SIZE")->get<int>();
+                        uint awidth = ceil(log2(depth));
 
                         return c->Record({
                             {"RD_EN", c->BitIn()},
                               {"RD_DATA", c->Bit()->Arr(width)},
-                                {"RD_ADDR", c->BitIn()->Arr(width)},
+                                {"RD_ADDR", c->BitIn()->Arr(awidth)},
                                   {"RD_CLK", c->BitIn()},
                                     {"WR_EN", c->BitIn()->Arr(width)},
                                       {"WR_DATA", c->BitIn()->Arr(width)},
-                                        {"WR_ADDR", c->BitIn()->Arr(width)},
+                                        {"WR_ADDR", c->BitIn()->Arr(awidth)},
                                           {"WR_CLK", c->BitIn()}
                           });
                       });
 
-  rtLib->newGeneratorDecl("memory", memTP, memParams);
+  auto memGen = rtLib->newGeneratorDecl("memory", memTP, memParams);
 
+  // TODO: Proper RD_EN, RD_CLK use
+  memGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      int depth = args.at("SIZE")->get<int>();
+      int width = args.at("WIDTH")->get<int>();
+
+      def->addInstance("mem",
+                       "coreir.mem",
+                       {{"width", Const::make(c, width)},
+                           {"depth", Const::make(c, depth)}});
+
+      // Add clock cast node, in rtlil the clock input is just another bit
+      //def->addInstance("toClk0", "rtlil.to_clkIn");
+      def->addInstance("toClk0",
+                       "coreir.wrap",
+                       {{"type", Const::make(c, c->Named("coreir.clk"))}});
+
+      def->connect("self.WR_CLK", "toClk0.in");
+      def->connect("toClk0.out", "mem.clk");
+
+      def->connect("self.RD_ADDR", "mem.raddr");
+      // Correct this bitwise enable!
+      def->connect("self.WR_EN.0", "mem.wen");
+
+      def->connect("self.WR_DATA", "mem.wdata");
+      def->connect("self.WR_ADDR", "mem.waddr");
+
+      def->connect("mem.rdata", "self.RD_DATA");
+    });
+  
   // BitInOut conversion facilities
   Params outToInOutParams =
     {{"WIDTH", c->Int()}};
