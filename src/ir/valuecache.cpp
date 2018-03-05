@@ -23,13 +23,6 @@ bool BitVectorComp::operator() (const BitVector& l, const BitVector& r) const {
     } else if (rv.is_binary()) {
       return false;
     } else {
-      if (!(lv.is_unknown() && rv.is_unknown())) {
-        cout << "lv = " << lv << endl;
-        cout << "rv = " << rv << endl;
-
-        cout << "l = " << l << endl;
-        cout << "r = " << r << endl;
-      }
       assert(lv.is_unknown() && rv.is_unknown());
     }
   }
