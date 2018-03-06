@@ -22,20 +22,20 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
     toCheck.insert(instR.second);
   }
 
-  cout << "Running on module " << m->toString() << endl;
+  //cout << "Running on module " << m->toString() << endl;
 
   while (toCheck.size() > 0) {
     Instance* next = *begin(toCheck);
     Module* mr = next->getModuleRef();
     RecordType* tp = mr->getType();
-    cout << "\tChecking instance " << next->toString() << endl;
+    //cout << "\tChecking instance " << next->toString() << endl;
     for (auto field : tp->getFields()) {
       Select* sel = next->sel(field);
 
       if (sel->getType()->getDir() == Type::DirKind::DK_In) {
 
         if (getSourceSelects(sel).size() == 0) {
-          cout << "\t\t" << sel->toString() << endl;
+          //cout << "\t\t" << sel->toString() << endl;
           //assert(isBitArray(*(sel->getType())) || isBitType(*(sel->getType())));
 
           if (isBitArray(*(sel->getType()))) {
