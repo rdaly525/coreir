@@ -1378,53 +1378,36 @@ namespace CoreIR {
       bv1 = BitVector(width, 0);
     }
     
-    // Original code
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    //pair<string, Wireable*> outPair = *std::begin(outSelects);
-
     auto inConns = getInputConnections(vd, gr);
 
     assert(inSels.size() >= 2);
 
     InstanceValue clkArg = findArg("clk", inConns);
-
     ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
-    //assert(s1 != nullptr);
     assert(clkVal != nullptr);
 
     if ((clkVal->lastValue() == 0) &&
         (clkVal->value() == 1)) {
 
-      //cout << "High clock" << endl;
       if (inSels.size() == 2) {
 
-        //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
-        //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
-        setRegister(inst->toString(), bv1); //s1->getBits());
-
-        assert(getRegister(inst->toString()) == bv1); //s1->getBits());
+        setRegister(inst->toString(), bv1);
+        assert(getRegister(inst->toString()) == bv1);
 
       } else {
         assert(inSels.size() == 3);
 
         InstanceValue enArg = findArg("en", inConns);   
-
         SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
 
         assert(enBit != nullptr);
 
         if (enBit->getBits() == BitVec(1, 1)) {
 
-          //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;
-          //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
-          setRegister(inst->toString(), bv1); //s1->getBits());
+          setRegister(inst->toString(), bv1);
 
-          assert(getRegister(inst->toString()) == bv1); //s1->getBits());
+          assert(getRegister(inst->toString()) == bv1);
         }
 
       }

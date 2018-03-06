@@ -35,7 +35,7 @@ string VModule::toString() {
 }
 
 string VModule::toInstanceString(Instance* inst) {
-  cout << "Instance = " << inst->toString() << endl;
+  //cout << "Instance = " << inst->toString() << endl;
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params0 = params;
@@ -71,9 +71,12 @@ string VModule::toInstanceString(Instance* inst) {
   vector<string> paramstrs;
   for (auto param : params0) {
     ASSERT(args.count(param),"Missing parameter " + param + " from " + ::CoreIR::toString(args));
-    cout << "Param = " << param << endl;
-    string astr = "." + param + "(" + toConstString(args[param]) + ")";
-    paramstrs.push_back(astr);
+
+    // TODO: Remove this when we have a better solution for verilog output
+    if (param != "type") {
+      string astr = "." + param + "(" + toConstString(args[param]) + ")";
+      paramstrs.push_back(astr);
+    }
   }
   if (paramstrs.size()) {
     o << "#(" << join(paramstrs.begin(),paramstrs.end(),string(",")) << ") ";
