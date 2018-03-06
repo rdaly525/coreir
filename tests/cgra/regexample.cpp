@@ -36,6 +36,7 @@ int main() {
   
   Top->print();
 
+  // Removed this
   deleteContext(c);
   return 0;
 }

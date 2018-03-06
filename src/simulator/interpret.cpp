@@ -581,7 +581,10 @@ namespace CoreIR {
 
       int index = selectNum(sel);
 
-      return makeSimBitVector(BitVec(1, (val->getBits()).get(index).binary_value()));
+      BitVec bv(1, 0);
+      bv.set(0, val->getBits().get(index));
+
+      return makeSimBitVector(bv);
     }
 
     assert(mod->getDef()->canSel(sel->toString()));
@@ -1360,7 +1363,7 @@ namespace CoreIR {
     updateInputs(vd);
 
     auto inSels = getInputSelects(inst);
-    assert(inSels.size() == 2);
+    ASSERT(inSels.size() == 2, to_string(inSels.size()) + " inSels" + toString(inst));
 
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
@@ -1407,8 +1410,7 @@ namespace CoreIR {
         //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), bv1); //s1->getBits());
-
-        assert(getRegister(inst->toString()) == bv1); //s1->getBits());
+        ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
 
       } else {
         assert(inSels.size() == 3);
@@ -1843,19 +1845,13 @@ namespace CoreIR {
     string access = namePath.back();
     namePath.pop_back();
 
-    //cout << "Getting value of " << concatSelects(namePath) << endl;
-
     SimValue* sv = getValueByOriginalName(concatSelects(namePath));
     auto sbv = toSimBitVector(sv);
-    // assert(sv->getType() == SIM_VALUE_BV);
 
-    // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+    BitVector finalBv(1, 0);
+    finalBv.set(0, sbv->getBits().get(stoi(access)));
+    return makeSimBitVector(finalBv); //makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access)).binary_value()));
 
-    return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access)).binary_value()));
-
-    // assert(sv->getType() == SIM_VALUE_BV);
-
-    // assert(false);
   }
 
   SimulatorState::~SimulatorState() {

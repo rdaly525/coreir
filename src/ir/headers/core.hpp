@@ -119,7 +119,11 @@ void core_state(Context* c, Namespace* core) {
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
     modparams["init"] = BitVectorType::make(c,width);
-    defaultargs["init"] = Const::make(c,BitVector(width,'x'));
+    string startString = "";
+    for (int i = 0; i < width; i++) {
+      startString += "x";
+    }
+    defaultargs["init"] = Const::make(c,BitVector(width, startString));
     return {modparams,defaultargs};
   };
 

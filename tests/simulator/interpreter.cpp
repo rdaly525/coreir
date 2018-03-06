@@ -912,7 +912,7 @@ namespace CoreIR {
         c->die();
       }
       
-      c->runPasses({"rungenerators","flattentypes", "flatten"});
+      c->runPasses({"rungenerators","verifyconnectivity","flattentypes", "flatten","verifyconnectivity"});
 
       if (!saveToFile(g, "linebuffermem.json",lbMem)) {
         cout << "Could not save to json!!" << endl;
@@ -930,9 +930,10 @@ namespace CoreIR {
       BitVector one(width, "1");
       BitVector val(width, "1");
 
-      cout << "LINEBUFFER BEHAVIOR" << endl;
+      cout << "LINEBUFFER1 BEHAVIOR" << endl;
       for (int i = 0; i < 9; i++) {
         state.setValue("self.wdata", val);
+        cout << "after setting value " << toString(val) << endl;
         state.execute();
         cout << "self.rdata " << (i + 1) << " = " << state.getBitVec("self.rdata") << endl;
         val = add_general_width_bv(val, one);
@@ -1008,7 +1009,7 @@ namespace CoreIR {
 
       state.setClock("self.clk", 1, 0);
 
-      cout << "LINEBUFFER BEHAVIOR" << endl;
+      cout << "LINEBUFFER2 BEHAVIOR" << endl;
       for (int i = 0; i < 3; i++) {
         state.runHalfCycle();
         cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
@@ -1087,17 +1088,39 @@ namespace CoreIR {
       }
 
       SECTION("Write to address zero") {
+
+        SECTION("Read is combinational") {
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.write_en", BitVec(1, 0));
+          state.setValue("self.write_addr", BitVec(index, 0));
+          state.setValue("self.write_data", BitVec(width, 23));
+          
+          state.setValue("self.read_addr", BitVec(index, 2));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 2));
+
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.read_addr", BitVec(index, 0));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+
+        }
+
       	state.setClock("self.clk", 0, 1);
       	state.setValue("self.write_en", BitVec(1, 1));
       	state.setValue("self.write_addr", BitVec(index, 0));
       	state.setValue("self.write_data", BitVec(width, 23));
       	state.setValue("self.read_addr", BitVec(index, 0));
 
-      	// state.execute();
+      	//state.exeCombinational();
 
-        SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
-          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-        }
+        //SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
+        //  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+        //}
 
         state.execute();
 
