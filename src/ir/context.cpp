@@ -253,11 +253,23 @@ NamedType* Context::Named(string nameref,Values args) {
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 Type* Context::In(Type* t) {
-  assert(0 && "TODO NYI");
+    assert(!t->isMixed() && "can't make all input if part are in and part are out");
+    if (t->isInput()) {
+        return t;
+    }
+    else {
+        return t->getFlipped();
+    }
 }
 
 Type* Context::Out(Type* t) {
-  assert(0 && "TODO NYI");
+    assert(!t->isMixed() && "can't make all output if part are in and part are out");
+    if (t->isInput()) {
+        return t->getFlipped();
+    }
+    else {
+        return t;
+    }
 }
 
 BoolType* Context::Bool() { return BoolType::make(this);}
