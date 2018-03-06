@@ -43,7 +43,6 @@ void Aetherling_createConvGenerator(Context* c) {
             uint elementWidth = genargs.at("elementWidth")->get<int>();
             uint dataWidth = genargs.at("dataWidth")->get<int>();
             uint inputsPerClock = genargs.at("inputsPerClock")->get<int>();
-//            ArrayType* kernelType = dyn_cast<ArrayType>(def->sel("self.in.kernel")->getType());
             // create the type of total image, the input per clock, and output per clock from linebuffer
             Type* lbImgType = c->BitIn()->Arr(elementWidth)->Arr(dataWidth);
             // need this to be an arr(1) as linebuffer outputs one pixel per clock (one elementwidth)
@@ -62,17 +61,6 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"image_type", Const::make(c, lbImgType)},
                     {"has_valid", Const::make(c, true)}
                 });
-
-            // for zip2, note that numInputs is the size of the array of input0 and input1,
-            // for input0 and 1 I just want the types of the elements, so have to strip the array lenghts
-            // with getElemType
-            // make 1 zip2 for each concurrent input you are processing
-            /*Module* zip2PerInput = c->getGenerator("aetherlinglib.zip2")->getModule({
-                    {"numInputs", Const::make(c, kernelWidth)},
-                    {"input0Type", Const::make(c, c->In(lbOutType->getElemType()))}, 
-                    {"input1Type", Const::make(c, c->In(kernelType->getElemType()))}
-                });
-            */
 
             def->addInstance("overlapPartition", "aetherlinglib.overlapPartition", {
                     {"elementType", Const::make(c, lbOutType->getElemType())},
