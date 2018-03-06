@@ -35,7 +35,7 @@ void walkTypeTree(ModuleDef* def, uint dehydratedSize, queue<tuple<Type*,string>
         case Type::TypeKind::TK_Array : {
             ArrayType* curAsArr = dyn_cast<ArrayType>(curType);
             Type* elemType = curAsArr->getElemType();
-            for (int i = 0; i < curAsArr->getLen(); i++) {
+            for (uint i = 0; i < curAsArr->getLen(); i++) {
                 elementsToExamine.push(make_tuple(elemType, curName + "." + to_string(i)));
             }
             break;

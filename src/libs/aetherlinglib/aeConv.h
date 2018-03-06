@@ -71,8 +71,6 @@ void Aetherling_createConvGenerator(Context* c) {
             Module* mul2Unzipped = c->getGenerator("coreir.mul")->
                 getModule({{"width", Const::make(c, elementWidth)}});
             
-            //Module* mul2Zipped = Aetherling_convert2InputModuleTo2ZippedInput(c, mul2Unzipped);
-
             // each one of these maps processes the output associated with one input
             Module* mapForOneInput = c->getGenerator("aetherlinglib.mapParallel")->getModule({
                     {"numInputs", Const::make(c, kernelWidth)},
