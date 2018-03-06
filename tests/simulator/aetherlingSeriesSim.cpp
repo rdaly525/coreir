@@ -136,26 +136,19 @@ namespace CoreIR {
                                                                     clkCount*convParams.inputsPerClock + inputIdx));
                 }
                 state.exeCombinational();
-                // should be valid after both conv1 and 2 are valid and gone trhough all input
-                // note: subtract 1 more for 0 indexing
-                uint convToBeValid = cyclesForConvToBeValid(convParams);
-                if (clkCount < cyclesForConvToBeValid(convParams) + convParams.dataWidth / convParams.inputsPerClock - 1) {
-                    REQUIRE(state.getBitVec("self.valid") == BitVector(1, 0));
-                }
-                else {
-                    REQUIRE(state.getBitVec("self.valid") == BitVector(1, 1));
+                if(state.getBitVec("self.valid") == BitVector(1, 1)) {
                     uint * conv1Output = new uint[convParams.dataWidth];
                     for (uint inputIdx = 0; inputIdx < convParams.dataWidth; inputIdx++) {
                         // compute the outputs of conv1
-                        conv1Output[inputIdx] = 0;
+                        uint rightOutput = 0;
                         for (uint i = 0; i < convParams.kernelWidth; i++) {
                             // 2 inputs per clock, by time outputing, emitting output for inputs
                             // 0,1,2 and 1,2,3 on first cycle (i inside parethenses creates each sequence
                             // of 3, i outside is for kernel element
-                            conv1Output[inputIdx] += (inputIdx+i)*i;
+                            rightOutput += (inputIdx+i)*i;
                         }
                         REQUIRE(state.getBitVec("self.out_" + to_string(inputIdx)) ==
-                            BitVector(convParams.elementWidth, 2*conv1Output[inputIdx]));
+                            BitVector(convParams.elementWidth, 2*rightOutput));
                     }
                     delete [] conv1Output;
 
