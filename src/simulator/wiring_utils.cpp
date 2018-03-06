@@ -324,8 +324,9 @@ namespace CoreIR {
     Type* fstType = fst->getType();
 
     // Bit connections are already unpacked
-    if ((fstType->getKind() == Type::TK_Bit) ||
-        (fstType->getKind() == Type::TK_BitIn)) {
+    // if ((fstType->getKind() == Type::TK_Bit) ||
+    //     (fstType->getKind() == Type::TK_BitIn)) {
+    if (isBitType(*fstType)) {
       return {conn};
     }
 
