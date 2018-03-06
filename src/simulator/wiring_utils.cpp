@@ -11,6 +11,22 @@ using namespace std;
 
 namespace CoreIR {
 
+  bool isBitType(const Type& tp) {
+    if (isa<BitType>(tp)) {
+      return true;
+    }
+
+    if (isa<BitInType>(tp)) {
+      return true;
+    }
+
+    if (isa<BitInOutType>(tp)) {
+      return true;
+    }
+
+    return false;
+  }
+
   CoreIR::Wireable* replaceSelect(CoreIR::Wireable* const toReplace,
                                   CoreIR::Wireable* const replacement,
                                   CoreIR::Wireable* const sel) {

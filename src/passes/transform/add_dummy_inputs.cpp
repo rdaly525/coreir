@@ -7,54 +7,70 @@ using namespace CoreIR;
 string Passes::AddDummyInputs::ID = "add-dummy-inputs";
 
 bool Passes::AddDummyInputs::runOnModule(Module* m) {
-  // if (!m->hasDef()) {
-  //   return false;
-  // }
+  if (!m->hasDef()) {
+    return false;
+  }
 
-  // auto def = m->getDef();
+  auto def = m->getDef();
+  auto c = def->getContext();
 
-  // bool deletedZext = false;
+  bool addedDummy = false;
 
-  // cout << "Deleting zexts in " << m->toString() << endl;
-  // cout << "# of instance in " << m->toString() << " = " << def->getInstances().size() << endl;
+  auto instances = def->getInstances();
+  set<Instance*> toCheck;
+  for (auto instR : instances) {
+    toCheck.insert(instR.second);
+  }
 
-  // vector<Instance*> toDelete;
+  cout << "Running on module " << m->toString() << endl;
+
+  while (toCheck.size() > 0) {
+    Instance* next = *begin(toCheck);
+    Module* mr = next->getModuleRef();
+    RecordType* tp = mr->getType();
+    cout << "\tChecking instance " << next->toString() << endl;
+    for (auto field : tp->getFields()) {
+      Select* sel = next->sel(field);
+
+      if (sel->getType()->getDir() == Type::DirKind::DK_In) {
+
+        if (getSourceSelects(sel).size() == 0) {
+          cout << "\t\t" << sel->toString() << endl;
+          //assert(isBitArray(*(sel->getType())) || isBitType(*(sel->getType())));
+
+          if (isBitArray(*(sel->getType()))) {
+            ArrayType* arrTp = cast<ArrayType>(sel->getType());
+            int width = arrTp->getLen();
+            string constName = next->toString() + "_" + field + "_const_in";
+            auto replaceConst =
+              def->addInstance(constName,
+                               "coreir.const",
+                               {{"width", Const::make(c, width)}},
+                               {{"value", Const::make(c, BitVector(width, 0))}});
+
+            def->connect(replaceConst->sel("out"), sel);
+          } else {
+            assert(isBitType(*(sel->getType())));
+
+            string constName = next->toString() + "_" + field + "_const_in";
+            auto replaceConst =
+              def->addInstance(constName,
+                               "corebit.const",
+                               {{"value", Const::make(c, false)}});
+
+            def->connect(replaceConst->sel("out"), sel);
+            
+          }
+          
+        }
+        
+      }
+    }
+
+    toCheck.erase(next);
+  }
   
-  // for (auto instS : def->getInstances()) {
-  //   Instance* inst = instS.second;
-
-  //   if (getQualifiedOpName(*inst) == "coreir.zext") {
-  //     auto args = inst->getModuleRef()->getGenArgs();
-
-  //     uint in_width = args.at("width_in")->get<int>();
-  //     uint out_width = args.at("width_out")->get<int>();
-
-  //     if (in_width == out_width) {
-
-  //       //cout << inst->toString() << " is an identity zext" << endl;
-
-  //       toDelete.push_back(inst);
-  //     }
-  //   }
-  // }
-
-  // cout << "Deleting " << toDelete.size() << " id zexts" << endl;
-  // deletedZext = toDelete.size() > 0;
-
-  // for (auto inst : toDelete) {
-
-  //   Instance* instPT = addPassthrough(inst, "_cullZext_PT");
-
-  //   def->removeInstance(inst);
-
-  //   def->connect(instPT->sel("in")->sel("in"),
-  //                instPT->sel("in")->sel("out"));
-
-  //   inlineInstance(instPT);
-  // }
-
-  // cout << "Done culling zero extends" << endl;
-
-  // return deletedZext;
-  return false;
+  return addedDummy;
 }
+
+// {top}.pe_0xF.in_BUS1_S3_T4 Is not connected
