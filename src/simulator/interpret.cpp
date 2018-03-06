@@ -1377,22 +1377,18 @@ namespace CoreIR {
       // Set dummy value for initilization
       bv1 = BitVector(width, 0);
     }
-
-
     
     // Original code
 
-    auto outSelects = getOutputSelects(inst);
+    // auto outSelects = getOutputSelects(inst);
 
-    assert(outSelects.size() == 1);
+    // assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
+    //pair<string, Wireable*> outPair = *std::begin(outSelects);
 
     auto inConns = getInputConnections(vd, gr);
 
     assert(inSels.size() >= 2);
-
-    //InstanceValue arg1 = findArg("in", inConns);
 
     InstanceValue clkArg = findArg("clk", inConns);
 
