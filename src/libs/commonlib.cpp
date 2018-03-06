@@ -1475,7 +1475,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (uint i=1; i<rate; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg",
-                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}});
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
+                       {{"init", Const::make(c, width, 0)}});
     }
 
     // wire up modules
@@ -1551,7 +1552,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (uint i=0; i<rate-1; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg",
-                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}});
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
+                       {{"init", Const::make(c, width, 0)}});
     }
     // these registers pass along the signal to write to one register
     // this signal is initalized by reset being passed in, and is passed along
@@ -1570,7 +1572,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
     // this reg is 1 only cycle after last enable reg is 1, to indicate that all registers have been written
     // to in the last cycle
-    def->addInstance("validReg", "mantle.reg", {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}});
+    def->addInstance("validReg", "mantle.reg",
+                     {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}},
+                     {{"init", Const::make(c, 1, 0)}});
     // use this for driving input to first enable reg
     def->addInstance("firstEnabledOr", "coreir.or", {{"width",Const::make(c,1)}});
     // the not to invert the reset
