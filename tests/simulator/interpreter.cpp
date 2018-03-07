@@ -874,162 +874,67 @@ namespace CoreIR {
       
       
     }
+    SECTION("Memory") {
+      uint width = 20;
+      uint depth = 4;
+      uint index = 2;
 
-    SECTION("LineBufferMem") {
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+      	    {"write_data", c->BitIn()->Arr(width)},
+      	      {"write_addr", c->BitIn()->Arr(index)},
+      		{"write_en", c->BitIn()},
+      		  {"read_data", c->Bit()->Arr(width)},
+      		    {"read_addr", c->BitIn()->Arr(index)}
+      	});
 
-      uint index = 4;
-      uint width = index;
-      uint depth = pow(2, index) - 6; // 10
-
-      CoreIRLoadLibrary_commonlib(c);
-
-      Type* lineBufferMemType = c->Record({
-          {"clk", c->Named("coreir.clkIn")},
-            {"wdata", c->BitIn()->Arr(width)},
-              {"rdata", c->Bit()->Arr(width)},
-        	{"wen", c->BitIn()},
-        	  {"valid", c->Bit()}
-        });
-
-      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
-      ModuleDef* def = lbMem->newModuleDef();
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
 
       def->addInstance("m0",
-        	       "memory.rowbuffer",
-        	       {{"width", Const::make(c, width)},
-        		   {"depth", Const::make(c, depth)}});
+      		       "coreir.mem",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
 
       def->connect("self.clk", "m0.clk");
-      def->connect("self.wen", "m0.wen");
-      def->connect("self.wdata", "m0.wdata");
-      def->connect("m0.rdata", "self.rdata");
-      def->connect("m0.valid", "self.valid");
+      def->connect("self.write_en", "m0.wen");
+      def->connect("self.write_data", "m0.wdata");
+      def->connect("self.write_addr", "m0.waddr");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
 
-      lbMem->setDef(def);
+      memory->setDef(def);
 
-      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-      
-      c->runPasses({"rungenerators","verifyconnectivity","flattentypes", "flatten","verifyconnectivity"});
+      c->runPasses({"rungenerators","flattentypes","flatten"});      
 
-      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-
-      SimulatorState state(lbMem);
-
-      state.setValue("self.wdata", BitVector(width, "1111"));
-      state.setValue("self.wen", BitVector(1, "1"));
-      state.resetCircuit();
+      SimulatorState state(memory);
 
       state.setClock("self.clk", 0, 1);
+      state.setValue("self.write_en", BitVec(1, 0));
+      state.setValue("self.write_addr", BitVec(index, 0));
+      state.setValue("self.write_data", BitVec(width, 23));
+      state.setValue("self.read_addr", BitVec(index, 0));
 
-      BitVector one(width, "1");
-      BitVector val(width, "1");
-
-      cout << "LINEBUFFER1 BEHAVIOR" << endl;
-      for (int i = 0; i < 9; i++) {
-        state.setValue("self.wdata", val);
-        cout << "after setting value " << toString(val) << endl;
-        state.execute();
-        cout << "self.rdata " << (i + 1) << " = " << state.getBitVec("self.rdata") << endl;
-        val = add_general_width_bv(val, one);
-      }
-
-      SECTION("After 9 high clocks the output is still 0") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0000"));
-      }
-
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
       state.execute();
-
-      SECTION("The first value out of the buffer is 1") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0001"));
-      }
-
+      state.setValue("self.write_en", BitVec(1, 1));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      REQUIRE(state.getBitVec("self.write_addr") == BitVec(index, 0));
       state.execute();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+      state.setValue("self.write_addr", BitVec(index, 1));
+      state.setValue("self.write_data", BitVec(width, 5));
+      state.setValue("self.read_addr", BitVec(index, 1));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      state.execute();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
 
-      SECTION("The second value out of the buffer is 2") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0010"));
-      }
-      
-    }
-
-    SECTION("LineBufferMem power of 2") {
-
-      uint index = 2;
-      uint width = index;
-      uint depth = pow(2, index); // 10
-
-      CoreIRLoadLibrary_commonlib(c);
-
-      Type* lineBufferMemType = c->Record({
-          {"clk", c->Named("coreir.clkIn")},
-            {"wdata", c->BitIn()->Arr(width)},
-              {"rdata", c->Bit()->Arr(width)},
-        	{"wen", c->BitIn()},
-        	  {"valid", c->Bit()}
-        });
-
-      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
-      ModuleDef* def = lbMem->newModuleDef();
-
-      def->addInstance("m0",
-        	       "memory.rowbuffer",
-        	       {{"width", Const::make(c, width)},
-        		   {"depth", Const::make(c, depth)}});
-
-      def->connect("self.clk", "m0.clk");
-      def->connect("self.wen", "m0.wen");
-      def->connect("self.wdata", "m0.wdata");
-      def->connect("m0.rdata", "self.rdata");
-      def->connect("m0.valid", "self.valid");
-
-      lbMem->setDef(def);
-
-      if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-      
-      c->runPasses({"rungenerators","flattentypes", "flatten"});
-
-      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-
-      SimulatorState state(lbMem);
-
-      state.setValue("self.wdata", BitVector(width, "11"));
-      state.setValue("self.wen", BitVector(1, "1"));
-      state.resetCircuit();
-
-      state.setClock("self.clk", 1, 0);
-
-      cout << "LINEBUFFER2 BEHAVIOR" << endl;
-      for (int i = 0; i < 3; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
-      }
-
-      SECTION("rdata is 00 after 3 half cycles") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "00"));
-      }
-
-      for (int i = 0; i < 30; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
-      }
-
-      SECTION("rdata is 11 in steady state") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
-      }
     }
     
-    SECTION("Memory") {
+    SECTION("Memory2") {
       uint width = 20;
       uint depth = 4;
       uint index = 2;
@@ -1116,23 +1021,23 @@ namespace CoreIR {
       	state.setValue("self.write_data", BitVec(width, 23));
       	state.setValue("self.read_addr", BitVec(index, 0));
 
-      	//state.exeCombinational();
+      	state.exeCombinational();
 
-        //SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
-        //  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-        //}
+        SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+        }
 
         state.execute();
 
-	SECTION("read_data is 23 after the first rising edge") {
-	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
-	}
+	      SECTION("read_data is 23 after the first rising edge") {
+	        REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	      }
 
       	state.execute();
 
-	SECTION("One cycle after setting write_data the result has been updated") {
-	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
-	}
+	      SECTION("One cycle after setting write_data the result has been updated") {
+	        REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	      }
 
       	state.execute();
 
@@ -1145,6 +1050,187 @@ namespace CoreIR {
       }
       
     }
+
+    SECTION("LineBufferMem") {
+
+      uint index = 4;
+      uint width = index;
+      uint depth = 10;
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+          {"clk", c->Named("coreir.clkIn")},
+            {"wdata", c->BitIn()->Arr(width)},
+              {"rdata", c->Bit()->Arr(width)},
+        	{"wen", c->BitIn()},
+        	  {"valid", c->Bit()}
+        });
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("m0",
+        	       "memory.rowbuffer",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.wen", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
+
+      lbMem->setDef(def);
+
+      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
+      c->runPasses({"rungenerators","verifyconnectivity","flattentypes", "flatten","verifyconnectivity"});
+
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      SimulatorState state(lbMem);
+
+      state.setValue("self.wdata", BitVector(width, "0"));
+      state.setValue("self.wen", BitVector(1, "0"));
+      state.resetCircuit();
+
+      state.setClock("self.clk", 0, 1);
+
+      BitVector one(width, "1");
+      BitVector val(width, "1");
+
+      cout << "ROWBUFFER BEHAVIOR" << endl;
+      //Loading up the rowbuffer
+      for (int i = 0; i < 10; i++) {
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1, "1"));
+        cout << "after setting value " << toString(val) << endl;
+        state.exeCombinational();
+        cout << "raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        cout << "self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "0"));
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      //Loading and reading (steady state)
+      for (int i = 0; i < 10; i++) {
+        cout << "LR self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "LR self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        cout << "LR raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        cout << "LR waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+	      cout << "mem[0] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 0)) << endl;
+	      cout << "mem[1] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 1)) << endl;
+        //state.exeCombinational(); //TODO It works if This is here, but fails if it is missing
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        cout << "setting wdata to " << val << endl;
+        state.exeCombinational();
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      //just reading
+      for (int i = 0; i < 10; i++) {
+        cout << "R" << i << " self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "R" << i << " self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "1"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (10+i+1)%16));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,0));
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      REQUIRE(state.getBitVec("self.valid")== BitVec(1,0));
+
+    }
+
+    SECTION("LineBufferMem power of 2") {
+
+      uint index = 2;
+      uint width = index;
+      uint depth = pow(2, index); // 10
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+          {"clk", c->Named("coreir.clkIn")},
+            {"wdata", c->BitIn()->Arr(width)},
+              {"rdata", c->Bit()->Arr(width)},
+        	{"wen", c->BitIn()},
+        	  {"valid", c->Bit()}
+        });
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("m0",
+        	       "memory.rowbuffer",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.wen", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
+
+      lbMem->setDef(def);
+
+      if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
+      c->runPasses({"rungenerators","flattentypes", "flatten"});
+
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      SimulatorState state(lbMem);
+
+      state.setValue("self.wdata", BitVector(width, "11"));
+      state.setValue("self.wen", BitVector(1, "1"));
+      state.resetCircuit();
+
+      state.setClock("self.clk", 1, 0);
+
+      cout << "LINEBUFFER2 BEHAVIOR" << endl;
+      for (int i = 0; i < 3; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      }
+
+      SECTION("rdata is 00 after 3 half cycles") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "00"));
+      }
+
+      for (int i = 0; i < 30; i++) {
+        state.runHalfCycle();
+        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
+      }
+
+      SECTION("rdata is 11 in steady state") {
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
+      }
+    }
+    
 
     SECTION("Slice") {
       uint inLen = 7;

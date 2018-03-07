@@ -41,7 +41,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
     def->addInstance("cnt","coreir.reg",awParams,{{"init",Const::make(c,BitVector(addrWidth,0))}});
 
-    def->addInstance("valid","coreir.reg",{{"width",Const::make(c,1)}});
+    def->addInstance("valid","corebit.dff",{{"init",Const::make(c,false)}});
     
     //Constants:
     def->addInstance("c0","coreir.const",awParams,{{"value",Const::make(c,addrWidth,0)}});
@@ -61,10 +61,10 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.wen","mem.wen");
 
     //Other IO
-    def->connect("self.valid","valid.out.0");
+    def->connect("self.valid","valid.out");
 
     //Logic to drive raddr
-    def->connect("valid.out.0","raddr.en");
+    def->connect("valid.out","raddr.en");
     
     //Logic to drive waddr
     def->connect("self.wen","waddr.en");
@@ -76,7 +76,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth)}});
     def->addInstance("valid_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth)}});
     def->connect("self.wen","wen_ext.in.0");
-    def->connect("valid.out.0","valid_ext.in.0");
+    def->connect("valid.out","valid_ext.in.0");
     def->connect("wen_ext.out","add_wen.in0");
     def->connect("cnt.out","add_wen.in1");
     def->connect("add_wen.out","sub_valid.in0");
@@ -89,8 +89,8 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->addInstance("depth_m1","coreir.const",awParams,{{"value",Const::make(c,addrWidth,depth)}});
     def->addInstance("eq_depth","coreir.eq",awParams);
     def->addInstance("neq_0","coreir.neq",awParams);
-    def->connect("valid_n.out","valid.in.0");
-    def->connect("valid.out.0","valid_n.sel");
+    def->connect("valid_n.out","valid.in");
+    def->connect("valid.out","valid_n.sel");
     def->connect("eq_depth.out","valid_n.in0");
     def->connect("neq_0.out","valid_n.in1");
     def->connect("c0.out","neq_0.in0");
