@@ -275,8 +275,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // is_pos ? in : -in
     def->connect("is_pos.out","out_mux.sel");
-    def->connect("self.in","out_mux.in0");
-    def->connect("mult.out","out_mux.in1");
+    def->connect("self.in","out_mux.in1");
+    def->connect("mult.out","out_mux.in0");
 
     def->connect("out_mux.out","self.out");
   });
