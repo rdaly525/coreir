@@ -1606,6 +1606,7 @@ namespace CoreIR {
     exeCombinational();
     exeSequential();
     exeCombinational();
+    exeCombinational();
 
   }
 

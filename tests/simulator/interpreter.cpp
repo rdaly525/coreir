@@ -1108,7 +1108,7 @@ namespace CoreIR {
 
       cout << "ROWBUFFER BEHAVIOR" << endl;
       //Loading up the rowbuffer
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < depth; i++) {
         state.setValue("self.wdata", val);
         state.setValue("self.wen", BitVector(1, "1"));
         cout << "after setting value " << toString(val) << endl;
@@ -1122,13 +1122,14 @@ namespace CoreIR {
       }
       
       //Loading and reading (steady state)
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < depth; i++) {
         cout << "LR self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
         cout << "LR self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
         cout << "LR raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
         cout << "LR waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
 	      cout << "mem[0] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 0)) << endl;
 	      cout << "mem[1] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 1)) << endl;
+	      //cout << "mem.addr " << (i) << " = " << state.getBitVec("m0$mem.raddr") << endl;
         //state.exeCombinational(); //TODO It works if This is here, but fails if it is missing
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
         REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
@@ -1145,11 +1146,11 @@ namespace CoreIR {
       }
       
       //just reading
-      for (int i = 0; i < 10; i++) {
+      for (int i = 0; i < depth; i++) {
         cout << "R" << i << " self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
         cout << "R" << i << " self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, "1"));
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (10+i+1)%16));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (depth+i+1)%16));
         state.setValue("self.wdata", val);
         state.setValue("self.wen", BitVector(1,0));
         state.execute();
@@ -1161,9 +1162,9 @@ namespace CoreIR {
 
     SECTION("LineBufferMem power of 2") {
 
-      uint index = 2;
+      uint index = 4;
       uint width = index;
-      uint depth = pow(2, index); // 10
+      uint depth = 16;
 
       CoreIRLoadLibrary_commonlib(c);
 
@@ -1191,12 +1192,12 @@ namespace CoreIR {
 
       lbMem->setDef(def);
 
-      if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
+      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
         cout << "Could not save to json!!" << endl;
         c->die();
       }
       
-      c->runPasses({"rungenerators","flattentypes", "flatten"});
+      c->runPasses({"rungenerators","verifyconnectivity","flattentypes", "flatten","verifyconnectivity"});
 
       if (!saveToFile(g, "linebuffermem.json",lbMem)) {
         cout << "Could not save to json!!" << endl;
@@ -1205,32 +1206,68 @@ namespace CoreIR {
 
       SimulatorState state(lbMem);
 
-      state.setValue("self.wdata", BitVector(width, "11"));
-      state.setValue("self.wen", BitVector(1, "1"));
+      state.setValue("self.wdata", BitVector(width, "0"));
+      state.setValue("self.wen", BitVector(1, "0"));
       state.resetCircuit();
 
-      state.setClock("self.clk", 1, 0);
+      state.setClock("self.clk", 0, 1);
 
-      cout << "LINEBUFFER2 BEHAVIOR" << endl;
-      for (int i = 0; i < 3; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
-      }
+      BitVector one(width, "1");
+      BitVector val(width, "1");
 
-      SECTION("rdata is 00 after 3 half cycles") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "00"));
+      cout << "ROWBUFFER BEHAVIOR" << endl;
+      //Loading up the rowbuffer
+      for (int i = 0; i < depth; i++) {
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1, "1"));
+        cout << "after setting value " << toString(val) << endl;
+        state.exeCombinational();
+        cout << "raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        cout << "self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "0"));
+        state.execute();
+        val = add_general_width_bv(val, one);
       }
+      
+      //Loading and reading (steady state)
+      for (int i = 0; i < depth; i++) {
+        cout << "LR self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "LR self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        cout << "LR raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        cout << "LR waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+	      cout << "mem[0] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 0)) << endl;
+	      cout << "mem[1] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 1)) << endl;
+	      //cout << "mem.addr " << (i) << " = " << state.getBitVec("m0$mem.raddr") << endl;
+        //state.exeCombinational(); //TODO It works if This is here, but fails if it is missing
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        cout << "setting wdata to " << val << endl;
+        state.exeCombinational();
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      //just reading
+      for (int i = 0; i < depth; i++) {
+        cout << "R" << i << " self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "R" << i << " self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "1"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (depth+i+1)%16));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,0));
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      REQUIRE(state.getBitVec("self.valid")== BitVec(1,0));
 
-      for (int i = 0; i < 30; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
-      }
-
-      SECTION("rdata is 11 in steady state") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
-      }
     }
-    
 
     SECTION("Slice") {
       uint inLen = 7;

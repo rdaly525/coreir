@@ -33,18 +33,19 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     uint addrWidth = (uint) ceil(log2(depth));
     
     Values awParams({{"width",Const::make(c,addrWidth)}});
+    Values aw1Params({{"width",Const::make(c,addrWidth+1)}});
     
     //All State (mem, waddr, raddr, valid)
     def->addInstance("mem","coreir.mem",genargs);
     
     def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
     def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
-    def->addInstance("cnt","coreir.reg",awParams,{{"init",Const::make(c,BitVector(addrWidth,0))}});
+    def->addInstance("cnt","coreir.reg",aw1Params,{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
 
     def->addInstance("valid","corebit.dff",{{"init",Const::make(c,false)}});
     
     //Constants:
-    def->addInstance("c0","coreir.const",awParams,{{"value",Const::make(c,addrWidth,0)}});
+    def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
 
     //All clk connections:
     def->connect("self.clk","mem.clk");
@@ -71,10 +72,10 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     
     //Logic to drive cnt
     // cnt_n = cnt + wen - valid
-    def->addInstance("add_wen","coreir.add",awParams);
-    def->addInstance("sub_valid","coreir.sub",awParams);
-    def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth)}});
-    def->addInstance("valid_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth)}});
+    def->addInstance("add_wen","coreir.add",aw1Params);
+    def->addInstance("sub_valid","coreir.sub",aw1Params);
+    def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
+    def->addInstance("valid_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
     def->connect("self.wen","wen_ext.in.0");
     def->connect("valid.out","valid_ext.in.0");
     def->connect("wen_ext.out","add_wen.in0");
@@ -86,9 +87,9 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     //Logic to drive valid
     //valid_n = valid ? (cnt_n !=0) : (cnt_n == depth-1)
     def->addInstance("valid_n","corebit.mux");
-    def->addInstance("depth_m1","coreir.const",awParams,{{"value",Const::make(c,addrWidth,depth)}});
-    def->addInstance("eq_depth","coreir.eq",awParams);
-    def->addInstance("neq_0","coreir.neq",awParams);
+    def->addInstance("depth_m1","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,depth)}});
+    def->addInstance("eq_depth","coreir.eq",aw1Params);
+    def->addInstance("neq_0","coreir.neq",aw1Params);
     def->connect("valid_n.out","valid.in");
     def->connect("valid.out","valid_n.sel");
     def->connect("eq_depth.out","valid_n.in0");
