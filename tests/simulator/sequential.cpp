@@ -941,7 +941,7 @@ namespace CoreIR {
       
       
     // }
-
+    /*
     SECTION("conv_3_1") {
       CoreIRLoadLibrary_commonlib(c);
 
@@ -980,7 +980,6 @@ namespace CoreIR {
       buildOrderedGraph(m, g);
       deque<vdisc> topoOrder = topologicalSort(g);
 
-      /*
       SECTION("Compile and run") {
 	int s = compileCodeAndRun(topoOrder,
                                   g,
@@ -990,10 +989,9 @@ namespace CoreIR {
                                   "test_conv_3_1.cpp");
 	REQUIRE(s == 0);
       }
-      */
         
     }
-    
+    */
     deleteContext(c);
 
   }

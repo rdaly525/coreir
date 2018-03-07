@@ -1447,7 +1447,7 @@ namespace CoreIR {
         Select* inSel = toSelect(w.getWire());
 
         if (!isSet(inSel)) { //toSelect(sel.second))) {
-          cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+          //cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
           unset.push_back(vd);
         }
 
