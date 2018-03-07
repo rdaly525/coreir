@@ -964,6 +964,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       if (has_valid && is_last_lb) {
 				// this is a chain of valids
         string valid_prefix = "valreg_";
+				uint last_idx = -1;
         for (uint i=0; i<out_dim; i+=in_dim) {
           
           // connect to input wen
@@ -981,7 +982,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             def->connect({prev_reg_name, "out"}, {reg_name, "in"});
 
           }
+
+					// update last idx used
+					last_idx = i;
         }
+
+        // connect last valid bit to self.valid
+        string valid_name = valid_prefix + to_string(last_idx);
+        def->connect({"self","valid"},{valid_name,"out"});
+				def->connect({"self","valid_chain"},{valid_name,"out"});
 			}
 
 /*// a counter is not needed since the images are only 1d
