@@ -1407,7 +1407,7 @@ namespace CoreIR {
       //cout << "High clock" << endl;
       if (inSels.size() == 2) {
 
-        //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
+        //cout << "Setting register " << inst->toString() << " to " << bv1 << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), bv1); //s1->getBits());
         ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
