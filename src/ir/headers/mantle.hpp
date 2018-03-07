@@ -30,7 +30,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     //if (genargs.at("has_rst")->get<bool>() || genargs.at("has_clr")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
-      defaultargs["init"] = Const::make(c,BitVector(width,0));
+      defaultargs["init"] = Const::make(c,width,0);
     //}
     return {modparams,defaultargs};
   };
@@ -178,6 +178,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     bool has_en = genargs.at("has_en")->get<bool>();
     Values widthParams({{"width",Const::make(c,width)}});
     def->addInstance("r","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,has_en)}},{{"init",def->getModule()->getArg("init")}});
+    def->connect("self.clk","r.clk");
     if (has_en) {
       def->connect("self.en","r.en");
     }

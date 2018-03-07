@@ -33,7 +33,7 @@ bool isPower2(uint n);
 void checkStringSyntax(std::string& str);
 
 //Checks that the values are of the correct names and types
-void checkValuesAreParams(Values args, Params params);
+void checkValuesAreParams(Values args, Params params,std::string errstring="");
 
 //Checks that all the values are actually constants
 void checkValuesAreConst(Values vs);

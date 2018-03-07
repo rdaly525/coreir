@@ -1363,7 +1363,7 @@ namespace CoreIR {
     updateInputs(vd);
 
     auto inSels = getInputSelects(inst);
-    assert(inSels.size() == 2);
+    ASSERT(inSels.size() == 2, to_string(inSels.size()) + " inSels" + toString(inst));
 
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
@@ -1407,11 +1407,10 @@ namespace CoreIR {
       //cout << "High clock" << endl;
       if (inSels.size() == 2) {
 
-        //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
+        //cout << "Setting register " << inst->toString() << " to " << bv1 << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), bv1); //s1->getBits());
-
-        assert(getRegister(inst->toString()) == bv1); //s1->getBits());
+        ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
 
       } else {
         assert(inSels.size() == 3);
@@ -1448,7 +1447,7 @@ namespace CoreIR {
         Select* inSel = toSelect(w.getWire());
 
         if (!isSet(inSel)) { //toSelect(sel.second))) {
-          cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+          //cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
           unset.push_back(vd);
         }
 
@@ -1606,6 +1605,7 @@ namespace CoreIR {
 
     exeCombinational();
     exeSequential();
+    exeCombinational();
     exeCombinational();
 
   }
