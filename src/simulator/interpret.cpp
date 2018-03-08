@@ -166,50 +166,15 @@ namespace CoreIR {
         string opName = inst->getModuleRef()->getNamespace()->getName() + "." + getOpName(*inst);
 
         if ((opName == "coreir.const")) {
-          //bool foundValue = false;
 
           BitVector argInt = inst->getModArgs().at("value")->get<BitVector>();
 
-          //int argInt = 0;
-          // for (auto& arg : inst->getModArgs()) {
-          //   if (arg.first == "value") {
-          //     foundValue = true;
-          //     Value* valArg = arg.second; //.get();
-
-              
-          //     BitVector bv = valArg->get<BitVector>();
-          //     argInt = bv.as_native_uint32();
-
-          //   }
-          // }
-
-          //assert(foundValue);
-
-
           Select* outSel = inst->sel("out");
-
-          //ArrayType& arrTp = toArray(*(outSel->getType()));
-          //setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
 
           setValue(outSel, makeSimBitVector(argInt));
         } else if (opName == "corebit.const") {
 
-          //bool foundValue = false;
-
           bool argInt = inst->getModArgs().at("value")->get<bool>();
-          // bool argInt = false;
-          // for (auto& arg : inst->getModArgs()) {
-          //   if (arg.first == "value") {
-          //     foundValue = true;
-          //     Value* valArg = arg.second;
-
-          //     bool bv = valArg->get<bool>();
-          //     argInt = bv;
-
-          //   }
-          // }
-
-          //assert(foundValue);
 
           Select* outSel = inst->sel("out");
           setValue(outSel, makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
@@ -1156,44 +1121,44 @@ namespace CoreIR {
   }
 
   void SimulatorState::updateLinebufferMemValue(const vdisc vd) {
-    WireNode wd = gr.getNode(vd);
+  //   WireNode wd = gr.getNode(vd);
 
-    Instance* inst = toInstance(wd.getWire());
+  //   Instance* inst = toInstance(wd.getWire());
 
-    auto inConns = getInputConnections(vd, gr);
+  //   auto inConns = getInputConnections(vd, gr);
 
-    if (inConns.size() != 3) {
-      cout << inConns.size() << " inputs " << endl;
-      for (auto& conn : inConns) {
-        cout << conn.first.getWire()->toString() << " -> " <<
-          conn.second.getWire()->toString() << endl;
-      }
-      assert(inConns.size() == 3);
-    }
+  //   if (inConns.size() != 3) {
+  //     cout << inConns.size() << " inputs " << endl;
+  //     for (auto& conn : inConns) {
+  //       cout << conn.first.getWire()->toString() << " -> " <<
+  //         conn.second.getWire()->toString() << endl;
+  //     }
+  //     assert(inConns.size() == 3);
+  //   }
 
-    InstanceValue wdataV = findArg("wdata", inConns);
-    InstanceValue clkArg = findArg("clk", inConns);
-    InstanceValue enArg = findArg("wen", inConns);
+  //   InstanceValue wdataV = findArg("wdata", inConns);
+  //   InstanceValue clkArg = findArg("clk", inConns);
+  //   InstanceValue enArg = findArg("wen", inConns);
 
-    SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
-    SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
-    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+  //   SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
+  //   SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+  //   ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     
-    assert(wdata != nullptr);
-    assert(wen != nullptr);
-    assert(clkVal != nullptr);
+  //   assert(wdata != nullptr);
+  //   assert(wen != nullptr);
+  //   assert(clkVal != nullptr);
 
-    BitVec enBit = wen->getBits();
+  //   BitVec enBit = wen->getBits();
 
-    if ((clkVal->lastValue() == 0) &&
-        (clkVal->value() == 1) &&
-        (enBit == BitVec(1, 1))) {
+  //   if ((clkVal->lastValue() == 0) &&
+  //       (clkVal->value() == 1) &&
+  //       (enBit == BitVec(1, 1))) {
 
       
-      setLineBufferMem(inst->toString(), wdata->getBits());
+  //     setLineBufferMem(inst->toString(), wdata->getBits());
 
-      //assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
-    }
+  //     //assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+  //   }
     
   }
 
