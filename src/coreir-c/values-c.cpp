@@ -33,6 +33,18 @@ extern "C" {
     return val->get<bool>();
   }
 
+  bool COREValueBitVectorIsBinary(COREValue* a) {
+    Value* value = rcast<Value*>(a);
+    BitVector bv = value->get<BitVector>();
+    return bv.is_binary();
+  }
+
+  void COREValueBitVectorGetWidth(COREValue* a, int* width) {
+    Value* value = rcast<Value*>(a);
+    BitVector bv = value->get<BitVector>();
+    *width = bv.bitLength();
+  }
+
   void COREValueBitVectorGet(COREValue* a, int* width, uint64_t* val) {
     Value* value = rcast<Value*>(a);
     BitVector bv = value->get<BitVector>();
