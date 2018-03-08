@@ -169,7 +169,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   }
 
-  // Define min/max modules
+  //*** Define min/max modules ***//
 
   Generator* umin = c->getGenerator("commonlib.umin");
   umin->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
@@ -227,7 +227,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.out","max_mux.out");
   });
 
-  // Define clamp
+  //*** Define clamp ***//
   Generator* uclamp = c->getGenerator("commonlib.uclamp");
   uclamp->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     def->addInstance("max","coreir.umax",args);
@@ -250,7 +250,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.out","min.out");
   });
 
-  // Define abs,absd
+  //*** Define abs,absd ***//
   Generator* abs = c->getGenerator("commonlib.abs");
   abs->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     uint width = args.at("width")->get<int>();
@@ -277,8 +277,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // is_pos ? in : -in
     def->connect("is_pos.out","out_mux.sel");
-    def->connect("self.in","out_mux.in0");
-    def->connect("mult.out","out_mux.in1");
+    def->connect("self.in","out_mux.in1");
+    def->connect("mult.out","out_mux.in0");
 
     def->connect("out_mux.out","self.out");
   });
@@ -294,7 +294,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("abs.out","self.out");
   });
 
-  // Define MAD
+  //*** Define MAD ***//
   Generator* MAD = c->getGenerator("commonlib.MAD");
   MAD->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
     def->addInstance("mult","coreir.mul",args);
@@ -308,7 +308,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
   /////////////////////////////////
-  // reg array definition        //
+  //*** reg array definition  ***//
   /////////////////////////////////
 
   Params reg_array_args =  {{"type",CoreIRType::make(c)},{"has_en",c->Bool()},{"has_clr",c->Bool()},{"has_rst",c->Bool()},{"init",c->Int()}};
@@ -410,7 +410,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
  
 
   /////////////////////////////////
-  // muxN definition             //
+  //*** muxN definition       ***//
   /////////////////////////////////
 
   Generator* muxN = commonlib->newGeneratorDecl("muxn",commonlib->getTypeGen("muxN_type"),{{"width",c->Int()},{"N",c->Int()}});
@@ -488,7 +488,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
   /////////////////////////////////
-  // opN definition             //
+  //*** opN definition        ***//
   /////////////////////////////////
 
   Generator* opN = commonlib->newGeneratorDecl("opn",commonlib->getTypeGen("opN_type"),{{"width",c->Int()},{"N",c->Int()},{"operator",c->String()}});
@@ -543,7 +543,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
   /////////////////////////////////
-  // bitopN definition           //
+  //*** bitopN definition     ***//
   /////////////////////////////////
 
   Generator* bitopN = commonlib->newGeneratorDecl("bitopn",commonlib->getTypeGen("bitopN_type"),{{"N",c->Int()},{"operator",c->String()}});
@@ -596,7 +596,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
-  //Add a LUTN
+  //*** Add a LUTN ***//
   auto LUTModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params p; //params
     Values d; //defaults
@@ -616,10 +616,193 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* lutN = commonlib->newGeneratorDecl("lutN",commonlib->getTypeGen("lutNType"),lutNParams);
   lutN->setModParamsGen(LUTModParamFun);
 
+  Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
+  //*** Linebuffer Memory. Use this for memory in linebuffer mode ***//
+  commonlib->newTypeGen("LinebufferMemType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+	// Is this just wen delayed by N?
+      {"valid", c->Bit()},
+    });
+  });
+  Generator* lbMem = commonlib->newGeneratorDecl("LinebufferMem",commonlib->getTypeGen("LinebufferMemType"),MemGenParams);
+  lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  
+  lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    //uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+
+    def->addInstance("raddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
+    def->addInstance("waddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
+
+    def->addInstance("mem","coreir.mem",genargs);
+
+    def->addInstance("add_r","coreir.add",{{"width",Const::make(c,awidth)}});
+    def->addInstance("add_w","coreir.add",{{"width",Const::make(c,awidth)}});
+    def->addInstance("c1","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,awidth,1)}});
+
+    if (!isPowerOfTwo(depth)) {
+
+      // Multiplexers to check max value
+      def->addInstance("raddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
+      def->addInstance("waddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
+
+      // Equals to test if addresses are at the max
+      def->addInstance("raddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
+      def->addInstance("waddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
+    
+      // Reset constant
+      def->addInstance("zero_const",
+                       "coreir.const",
+                       {{"width",Const::make(c,awidth)}},
+                       {{"value", Const::make(c, awidth, 0)}});
+
+      // Max constant
+      def->addInstance("max_const",
+                       "coreir.const",
+                       {{"width",Const::make(c,awidth)}},
+                       // Fix this for 64 bit constants!
+                       {{"value", Const::make(c, awidth, depth)}}); //(1 << awidth) - 1)}});
+
+      // Wire up the resets
+      def->connect("raddr_eq.out", "raddr_mux.sel");
+      def->connect("waddr_eq.out", "waddr_mux.sel");
+
+      def->connect("zero_const.out", "raddr_mux.in1");
+      def->connect("zero_const.out", "waddr_mux.in1");
+
+      def->connect("add_r.out", "raddr_mux.in0");
+      def->connect("add_w.out", "waddr_mux.in0");
+
+      def->connect("waddr_mux.out", "waddr.in");
+      def->connect("raddr_mux.out", "raddr.in");
+
+      // Wire up equals inputs
+      def->connect("add_r.out", "raddr_eq.in0");
+      def->connect("max_const.out", "raddr_eq.in1");
+
+      def->connect("add_w.out", "waddr_eq.in0");
+      def->connect("max_const.out", "waddr_eq.in1");
+
+    } else {
+      def->connect("add_r.out","raddr.in");    
+      def->connect("add_w.out","waddr.in");
+    }
+
+    // Wire up the rest of the circuit
+    def->connect("self.wdata","mem.wdata");
+
+    def->connect("self.wen","mem.wen");
+    def->connect("self.clk","mem.clk");
+
+    def->connect("waddr.out","mem.waddr");
+    def->connect("raddr.out","mem.raddr");
+    def->connect("mem.rdata","self.rdata");
+
+
+    def->connect("add_r.in0","raddr.out");
+    def->connect("add_r.in1","c1.out");
+
+    def->connect("waddr.en","self.wen");
+    def->connect("waddr.clk","self.clk");
+
+    def->connect("raddr.en","self.wen");
+    def->connect("raddr.clk","self.clk");
+
+    def->connect("add_w.in0","waddr.out");
+    def->connect("add_w.in1","c1.out");
+
+    def->addInstance("veq","coreir.neq",{{"width",Const::make(c,awidth)}});
+    def->connect("veq.in0","raddr.out");
+    def->connect("veq.in1","waddr.out");
+    def->connect("veq.out","self.valid");
+  });
+
+//// reference verilog code for lbmem
+//module #(parameter lbmem {
+//  input clk,
+//  input [W-1:0] wdata,
+//  input wen,
+//  output [W-1:0] rdata,
+//  output valid
+//}
+//
+//  reg [A-1] raddr
+//  reg [A-1] waddr;
+//  
+//  always @(posedge clk) begin
+//    if (wen) waddr <= waddr + 1;
+//  end
+//  assign valid = waddr!=raddr; 
+//  always @(posedge clk) begin
+//    if (valid) raddr <= raddr+1;
+//  end
+//
+//  coreir_mem inst(
+//    .clk(clk),
+//    .wdata(wdata),
+//    .waddr(wptr),
+//    .wen(wen),
+//    .rdata(rdata),
+//    .raddr(rptr)
+//  );
+//
+//endmodule
 
 
 
-  // generic recursively defined linebuffer
+  //*** Fifo Memory. Use this for memory in Fifo mode ***//
+  commonlib->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"ren", c->BitIn()},
+      {"almost_full", c->Bit()},
+      {"valid", c->Bit()}
+    });
+  });
+  Generator* fifoMem = commonlib->newGeneratorDecl("FifoMem",commonlib->getTypeGen("FifoMemType"),MemGenParams);
+  fifoMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  fifoMem->setModParamsGen({{"almost_full_cnt",c->Int()}});
+
+  commonlib->newTypeGen("RamType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"waddr", c->BitIn()->Arr(awidth)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(awidth)},
+      {"ren", c->BitIn()},
+    });
+  });
+  Generator* ram = commonlib->newGeneratorDecl("Ram",commonlib->getTypeGen("RamType"),MemGenParams);
+  ram->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    def->addInstance("mem","coreir.mem",genargs);
+    def->addInstance("readreg","coreir.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
+    def->connect("self.clk","readreg.clk");
+    def->connect("self.clk","mem.clk");
+    def->connect("self.wdata","mem.wdata");
+    def->connect("self.waddr","mem.waddr");
+    def->connect("self.wen","mem.wen");
+    def->connect("mem.rdata","readreg.in");
+    def->connect("self.rdata","readreg.out");
+    def->connect("self.raddr","mem.raddr");
+    def->connect("self.ren","readreg.en");
+  });
+
+  //*** generic recursively defined linebuffer ***//
   Params lb_args = 
     {{"input_type",CoreIRType::make(c)},
      {"output_type",CoreIRType::make(c)},
@@ -757,7 +940,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // create and connect valid chain
       if (has_valid && is_last_lb) {
+				// this is a chain of valids
         string valid_prefix = "valreg_";
+
+				uint last_idx = -1;
         for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
           
           // connect to input wen
@@ -775,14 +961,53 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             def->connect({prev_reg_name, "out"}, {reg_name, "in"});
 
           }
+
+					last_idx = i;
         }
 
         // connect last valid bit to self.valid
-        string last_valid_name = valid_prefix + to_string(out_dim-2*in_dim);
+        string last_valid_name = valid_prefix + to_string(last_idx);
         def->connect({"self","valid"},{last_valid_name,"out"});
 				def->connect({"self","valid_chain"},{last_valid_name,"out"});
         
       } // valid chain
+
+/*// a counter is not needed since the images are only 1d
+
+				// counter 0:1:max/inc
+				// valid = stencil_size-1 <= count 
+				string counter_prefix = "valcounter_";
+				string counter_name = counter_prefix + to_string(0);
+				Values counter_args = {
+					{"width",Const::make(c,bitwidth)},
+					{"min",Const::make(c,0)},
+					{"max",Const::make(c,img_dim / in_dim)},
+					{"inc",Const::make(c,1)}
+				};
+				def->addInstance(counter_name,"commonlib.counter",counter_args);
+
+				// comparator for valid (if stencil_size < count)
+				string compare_name = "valcompare_d" + to_string(0);
+				def->addInstance(compare_name,"coreir.ule",{{"width",aBitwidth}});
+				string const_name = "stencilsize_d" + to_string(0);
+				int const_value = out_dim/in_dim - 1;
+				assert(const_value >= 0);
+				Values const_arg = {{"value",Const::make(c,BitVector(bitwidth, const_value))}};
+				def->addInstance(const_name, "coreir.const", {{"width",aBitwidth}}, const_arg);
+
+				// connections
+				// counter en by wen
+				def->connect({"self","wen"},{counter_name,"en"});
+
+				// wire up comparator
+				def->connect({const_name,"out"},{compare_name,"in0"});
+				def->connect({counter_name,"out"},{compare_name,"in1"});
+
+        // connect last valid bit to self.valid
+        string valid_name = "valcompare_d" + to_string(0);
+        def->connect({"self","valid"},{valid_name,"out"});
+				def->connect({"self","valid_chain"},{valid_name,"out"});
+				}*/        
 
 
     //////////////////////////  
@@ -1072,7 +1297,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
-  //Linebuffer2d
+  //*** DEPRECATED: Linebuffer2d ***//
   //Declare a TypeGenerator (in global) for 2d linebuffer
   commonlib->newTypeGen(
     "linebuffer2d_type", //name for the typegen
@@ -1227,10 +1452,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
-  //////////////////
-  //3D Linebuffer //
-  //////////////////
 
+  //*** DEPRECATED: 3D Linebuffer ***//
   //Declare a TypeGenerator (in global) for 3d linebuffer
   commonlib->newTypeGen(
     "linebuffer3d_type", //name for the typegen
@@ -1346,7 +1569,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
   /////////////////////////////////
-  // counter definition          //
+  //*** counter definition    ***//
   /////////////////////////////////
 
   // counter follows a for loop of format:
@@ -1418,7 +1641,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
   /////////////////////////////////
-  // serializer definition       //
+  //*** serializer definition ***//
   /////////////////////////////////
 
   // on count==0, read in all input values.
@@ -1624,7 +1847,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
   /////////////////////////////////
-  // decoder definition          //
+  //*** decoder definition    ***//
   /////////////////////////////////
 
   // on count==0, read in all input values.
