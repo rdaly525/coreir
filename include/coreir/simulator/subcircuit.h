@@ -23,4 +23,12 @@ namespace CoreIR {
   void registersToConstants(CoreIR::Module* const mod,
                             std::unordered_map<std::string, BitVec>& regValues);
 
+  void partiallyEvaluateCircuit(CoreIR::Module* const wholeTopMod,
+                                std::unordered_map<std::string, BitVector>& regMap);
+
+  Module* createSubCircuit(CoreIR::Module* const topMod,
+                           std::vector<CoreIR::Wireable*>& subCircuitPorts,
+                           std::vector<CoreIR::Instance*>& subCircuitInstances,
+                           CoreIR::Context* const c);
+  
 }

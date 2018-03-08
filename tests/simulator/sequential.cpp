@@ -741,7 +741,7 @@ namespace CoreIR {
 
       def->addInstance("lb_wen", "corebit.const", {{"value", Const::make(c, true)}});
       def->addInstance("m0",
-        	       "commonlib.LinebufferMem",
+        	       "memory.rowbuffer",
         	       {{"width", Const::make(c, width)},
         		   {"depth", Const::make(c, depth)}});
 

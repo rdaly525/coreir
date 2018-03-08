@@ -1,4 +1,5 @@
 #include "coreir/libs/commonlib.h"
+#include "coreir/libs/aetherlinglib.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(commonlib);
 
@@ -24,16 +25,17 @@ vector<uint> get_dims(Type* type) {
   uint bitwidth = 1;
   Type* cType = type;
   while(!cType->isBaseType()) {
-    assert(cType->getKind() == Type::TypeKind::TK_Array);
-    ArrayType* aType = static_cast<ArrayType*>(cType);
-    uint length = aType->getLen();
-        
-    cType = aType->getElemType();
-    if (cType->isBaseType()) {
-      bitwidth = length;
-    } else {
-      lengths.insert(lengths.begin(), length);
-      //lengths.push_back(length);
+    if (auto aType = dyn_cast<ArrayType>(cType)) {
+      
+      uint length = aType->getLen();
+          
+      cType = aType->getElemType();
+      if (cType->isBaseType()) {
+        bitwidth = length;
+      } else {
+        lengths.insert(lengths.begin(), length);
+        //lengths.push_back(length);
+      }
     }
   }
 
@@ -800,32 +802,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.ren","readreg.en");
   });
 
-  ////TODO add bitvector initialization
-  //commonlib->newTypeGen("RomType",MemGenParams,[](Context* c, Values genargs) {
-  //  uint width = genargs.at("width")->get<int>();
-  //  uint depth = genargs.at("depth")->get<int>();
-  //  uint awidth = (uint) ceil(log2(depth));
-  //  return c->Record({
-  //    {"clk", c->Named("coreir.clkIn")},
-  //    {"rdata", c->Bit()->Arr(width)},
-  //    {"raddr", c->BitIn()->Arr(awidth)},
-  //    {"ren", c->BitIn()},
-  //  });
-  //});
-  //Generator* rom = commonlib->newGeneratorDecl("Rom",commonlib->getTypeGen("RomType"),MemGenParams);
-  //rom->setGeneratorDefFromFun([](ModuleDef* def,Context* c, Type* t, Values genargs) {
-  //  def->addInstance("mem","coreir.mem",genargs,TODO Init);
-  //  def->wire("self.clk","mem.clk");
-  //  def->wire("self.wdata","mem.wdata");
-  //  def->wire("self.waddr","mem.waddr");
-  //  def->wire("self.wen","mem.wen");
-  //  def->wire("mem.rdata","readreg.in");
-  //  def->wire("self.rdata","readreg.out");
-  //  def->wire("self.raddr","mem.raddr");
-  //  def->wire("self.ren","readreg.en");
-  //}
-
-
   //*** generic recursively defined linebuffer ***//
   Params lb_args = 
     {{"input_type",CoreIRType::make(c)},
@@ -1137,7 +1113,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               lbmem_name += "_" + to_string(indices[dim_i]);
             }
 
-            def->addInstance(lbmem_name, "commonlib.LinebufferMem", 
+            def->addInstance(lbmem_name, "memory.rowbuffer",
                              {{"width",aBitwidth},{"depth",aLbmemSize}});
 
             ///// connect lbmem input and wen /////
@@ -1409,7 +1385,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       std::string mem_prefix = "mem_";
       for (uint i = 1; i < stencil_height; ++i) {
         std::string mem_name = mem_prefix + std::to_string(i);
-        def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aImageWidth}});
+        def->addInstance(mem_name,"memory.rowbuffer",{{"width",aBitwidth},{"depth",aImageWidth}});
         def->addInstance(mem_name+"_valid_term","corebit.term");
         def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
         //def->addInstance(mem_name+"_wen", coreirprims->getModule("bitconst"), {{"value",Const::make(c,1)}});
@@ -1558,7 +1534,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       for (uint i = 1; i < stencil_d2; ++i) {
         std::string mem_name = mem_prefix + std::to_string(i);
         Const* aLBWidth = Const::make(c,image_d1 * image_d0);
-        def->addInstance(mem_name,"commonlib.LinebufferMem",{{"width",aBitwidth},{"depth",aLBWidth}});
+        def->addInstance(mem_name,"memory.rowbuffer",{{"width",aBitwidth},{"depth",aLBWidth}});
         def->addInstance(mem_name+"_valid_term", "corebit.term");
         def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
         def->connect({mem_name,"wen"},{"self", "wen"});

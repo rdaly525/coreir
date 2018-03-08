@@ -47,7 +47,7 @@ class Generator : public GlobalValue {
     Params getGenParams() {return genparams;}
 
     //This will add (and override) default args
-    void addDefaultGenArgs(Values defaultGenfigargs);
+    void addDefaultGenArgs(Values defaultGenargs);
     Values getDefaultGenArgs() { return defaultGenArgs;}
   
     void setNameGen(NameGenFun ng) {nameGen = ng;}

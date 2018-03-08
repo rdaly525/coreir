@@ -190,7 +190,7 @@ namespace CoreIR {
     return levels;
   }
 
-  std::deque<vdisc> topologicalSort(const NGraph& g) {
+  std::deque<vdisc> topologicalSortNoFail(const NGraph& g) {
     deque<vdisc> topo_order;
 
     vector<vdisc> s = vertsWithNoIncomingEdge(g);
@@ -243,13 +243,43 @@ namespace CoreIR {
     cout << "topo_order.size() = " << topo_order.size() << endl;
     cout << "numVertices(g)    = " << numVertices(g) << endl;
 
+    return topo_order;
+  }
+
+  std::deque<vdisc> topologicalSort(const NGraph& g) {
+
+    auto topo_order = topologicalSortNoFail(g);
     // cout << "Topological order" << endl;
     // for (auto& vd : topo_order) {
     //   cout << vd << endl;
     // }
 
 
-    assert(topo_order.size() == (uint) numVertices(g));
+    if (!(topo_order.size() == (uint) numVertices(g))) {
+      cout << "Vertices not all included!" << endl;
+
+      for (auto vert : g.getVerts()) {
+        if (!elem(vert, topo_order)) {
+          cout << "\tNot in topological sort: " << vert << ", " << g.getNode(vert).getWire()->toString() << ", " << g.getNode(vert).getWire()->getType()->toString() << endl;
+          cout << "\tOUTPUT CONNECTIONS" << endl;
+          for (auto ed : g.outEdges(vert)) {
+            Conn c = g.getConn(ed);
+            cout << "\t\t" << c.first.getWire()->toString() << " <---> " << c.second.getWire()->toString() << endl;
+              
+          }
+
+          cout << "\tINPUT CONNECTIONS" << endl;
+          for (auto ed : g.inEdges(vert)) {
+            Conn c = g.getConn(ed);
+            cout << "\t\t" << c.first.getWire()->toString() << " <---> " << c.second.getWire()->toString() << endl;
+            //cout << "\t\t" << nodeString(g.getNode(c.first)) << " <---> " << nodeString(g.getNode(c.second)) << endl;
+              
+          }
+          
+        }
+      }
+      assert(topo_order.size() == (uint) numVertices(g));
+    }
 
     return topo_order;
   }

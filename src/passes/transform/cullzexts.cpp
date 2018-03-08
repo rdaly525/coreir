@@ -45,44 +45,28 @@ bool Passes::CullZexts::runOnModule(Module* m) {
       uint out_width = args.at("width_out")->get<int>();
 
       if (in_width == out_width) {
-        // Found useless zext
+
         //cout << inst->toString() << " is an identity zext" << endl;
 
-        Select* inSel = inst->sel("in");
-        Select* outSel = inst->sel("out");
-
-        // Only handling easy wiring case for now, should really eliminate
-        // any that have no selects on the outputs
-        if ((inSel->getConnectedWireables().size() == 1) &&
-            noSubSelects(outSel)) {
-
-          toDelete.push_back(inst);
-        }
+        toDelete.push_back(inst);
       }
     }
   }
 
-
   cout << "Deleting " << toDelete.size() << " id zexts" << endl;
+  deletedZext = toDelete.size() > 0;
 
   for (auto inst : toDelete) {
 
-    Select* inSel = inst->sel("in");
-    Select* outSel = inst->sel("out");
+    Instance* instPT = addPassthrough(inst, "_cullZext_PT");
 
-    Select* toIn = cast<Select>(*std::begin(inSel->getConnectedWireables()));
-
-    auto receivers = outSel->getConnectedWireables();
     def->removeInstance(inst);
 
-    for (auto rec : receivers) {
-      def->connect(toIn, rec);
-    }
+    def->connect(instPT->sel("in")->sel("in"),
+                 instPT->sel("in")->sel("out"));
 
-    deletedZext = true;
+    inlineInstance(instPT);
   }
-
-  cout << "Done deleting zexts" << endl;
-
+  
   return deletedZext;
 }
