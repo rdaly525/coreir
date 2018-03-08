@@ -117,7 +117,6 @@ namespace CoreIR {
     // Internal state of the circuit
     std::unordered_map<std::string, SimMemory> memories;
     std::unordered_map<std::string, BitVec> registers;
-    //std::unordered_map<std::string, LinebufferMemory> lbMemories;
     
   };
 

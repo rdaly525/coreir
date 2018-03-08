@@ -1035,27 +1035,19 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto outSelects = getOutputSelects(inst);
-
-    assert(outSelects.size() == 1);
-
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-
     auto inConns = getInputConnections(vd, gr);
 
     assert(inConns.size() == 1);
 
     InstanceValue raddrV = findArg("raddr", inConns);
-
     SimBitVector* raddr = static_cast<SimBitVector*>(getValue(raddrV.getWire()));
 
     assert(raddr != nullptr);
 
     BitVec raddrBits = raddr->getBits();
-
     BitVec newRData = getMemory(inst->toString(), raddrBits);
 
-    setValue(toSelect(outPair.second), makeSimBitVector(newRData));
+    setValue(inst->sel("rdata"), makeSimBitVector(newRData));
     
   }
 
@@ -1240,11 +1232,6 @@ namespace CoreIR {
         updateRegisterValue(vd);
       }
 
-      // NOTE: Remove this. It is now obsolete
-      // if (isLinebufferMemInstance(wd.getWire())) {
-      //   updateLinebufferMemValue(vd);
-      // }
-
       if (isMemoryInstance(wd.getWire())) {
         if (wd.isReceiver) {
           updateMemoryValue(vd);
@@ -1268,11 +1255,6 @@ namespace CoreIR {
         // Does this work when the raddr port is not yet defined?
         updateMemoryOutput(vd);
       }
-
-      // if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
-      //   // Does this work when the raddr port is not yet defined?
-      //   updateLinebufferMemOutput(vd);
-      // }
 
       if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
         updateRegisterOutput(vd);
