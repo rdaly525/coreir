@@ -380,7 +380,8 @@ namespace CoreIR {
       for (auto instR : def->getInstances()) {
         auto inst = instR.second;
 
-        if (getQualifiedOpName(*inst) == "coreir.reg") {
+        if ((getQualifiedOpName(*inst) == "coreir.reg") ||
+            (getQualifiedOpName(*inst) == "coreir.regrst")) {
 
           //cout << "Found register = " << inst->toString() << endl;
 
