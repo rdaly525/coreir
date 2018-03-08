@@ -154,7 +154,6 @@ namespace CoreIR {
 
   void SimulatorState::setConstantDefaults() {
 
-    // Set constants
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
 
@@ -167,44 +166,50 @@ namespace CoreIR {
         string opName = inst->getModuleRef()->getNamespace()->getName() + "." + getOpName(*inst);
 
         if ((opName == "coreir.const")) {
-          bool foundValue = false;
+          //bool foundValue = false;
 
-          int argInt = 0;
-          for (auto& arg : inst->getModArgs()) {
-            if (arg.first == "value") {
-              foundValue = true;
-              Value* valArg = arg.second; //.get();
+          BitVector argInt = inst->getModArgs().at("value")->get<BitVector>();
+
+          //int argInt = 0;
+          // for (auto& arg : inst->getModArgs()) {
+          //   if (arg.first == "value") {
+          //     foundValue = true;
+          //     Value* valArg = arg.second; //.get();
 
               
-              BitVector bv = valArg->get<BitVector>();
-              argInt = bv.as_native_uint32();
+          //     BitVector bv = valArg->get<BitVector>();
+          //     argInt = bv.as_native_uint32();
 
-            }
-          }
+          //   }
+          // }
 
-          assert(foundValue);
+          //assert(foundValue);
 
 
           Select* outSel = inst->sel("out");
-          ArrayType& arrTp = toArray(*(outSel->getType()));
-          setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
+
+          //ArrayType& arrTp = toArray(*(outSel->getType()));
+          //setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
+
+          setValue(outSel, makeSimBitVector(argInt));
         } else if (opName == "corebit.const") {
 
-          bool foundValue = false;
+          //bool foundValue = false;
 
-          bool argInt = false;
-          for (auto& arg : inst->getModArgs()) {
-            if (arg.first == "value") {
-              foundValue = true;
-              Value* valArg = arg.second;
+          bool argInt = inst->getModArgs().at("value")->get<bool>();
+          // bool argInt = false;
+          // for (auto& arg : inst->getModArgs()) {
+          //   if (arg.first == "value") {
+          //     foundValue = true;
+          //     Value* valArg = arg.second;
 
-              bool bv = valArg->get<bool>();
-              argInt = bv;
+          //     bool bv = valArg->get<bool>();
+          //     argInt = bv;
 
-            }
-          }
+          //   }
+          // }
 
-          assert(foundValue);
+          //assert(foundValue);
 
           Select* outSel = inst->sel("out");
           setValue(outSel, makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
