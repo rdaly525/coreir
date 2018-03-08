@@ -267,8 +267,8 @@ int main(int argc, char *argv[]) {
     //modified |= c->runPasses({"rungenerators","cullgraph","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
 
     cout << "Running vpasses" << endl;
-    //modified |= c->runPasses({"rungenerators","cullgraph","flattentypes","verilog"},namespaces);
-    modified |= c->runPasses({"cullgraph","flattentypes","verilog"},namespaces);
+    modified |= c->runPasses({"rungenerators","flattentypes","verilog"},namespaces);
+    //modified |= c->runPasses({"cullgraph","flattentypes","verilog"},namespaces);
     cout << "Running vpasses" << endl;
 
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));

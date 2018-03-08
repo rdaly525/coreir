@@ -415,7 +415,8 @@ namespace CoreIR {
 
     Instance* inst = def->getInstances().at(instanceName);
     assert(inst != nullptr);
-    assert(getQualifiedOpName(*inst) == "coreir.reg");
+    assert((getQualifiedOpName(*inst) == "coreir.reg") ||
+           (getQualifiedOpName(*inst) == "coreir.regrst"));
 
     string instName = inst->getInstname();
     auto pt = addPassthrough(inst, inst->toString() + "_reg_replace_pt");
@@ -426,8 +427,15 @@ namespace CoreIR {
 
     def->removeInstance(inst);
 
-    Instance* replacement =
-      def->addInstance(instName, "coreir.reg", genArgs, args);
+    Instance* replacement = nullptr;
+    if (getQualifiedOpName(*inst) == "coreir.reg") {
+      replacement = def->addInstance(instName, "coreir.reg", genArgs, args);
+    } else {
+      assert(getQualifiedOpName(*inst) == "coreir.regrst");
+      replacement = def->addInstance(instName, "coreir.regrst", genArgs, args);
+    }
+
+    assert(replacement != nullptr);
 
     def->connect(pt->sel("in"),
                  replacement);
