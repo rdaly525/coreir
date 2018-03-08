@@ -98,7 +98,7 @@ namespace CoreIR {
 
       ModuleDef* def = regComb->newModuleDef();
 
-      def->addInstance("reg0", "coreir.reg", {{"width", Const::make(c, width)}});
+      def->addInstance("reg0", "coreir.reg", {{"width", Const::make(c, width)}}, {{"init", Const::make(c, BitVec(width, 24))}});
 
       def->connect("self.in", "reg0.in");
 
@@ -109,7 +109,17 @@ namespace CoreIR {
 
       regComb->setDef(def);
 
+      if (!saveToFile(c->getGlobal(), "register_fan_out_2_pre_gen.json", regComb)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
       c->runPasses({"rungenerators"});
+
+      if (!saveToFile(c->getGlobal(), "register_fan_out_2.json", regComb)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
       
       NGraph g;
       buildOrderedGraph(regComb, g);
@@ -720,6 +730,7 @@ namespace CoreIR {
       
     }
 
+    /*
     SECTION("LineBufferMem") {
 
       uint index = 4;
@@ -772,8 +783,8 @@ namespace CoreIR {
                                   "test_lbMem.cpp");
 	REQUIRE(s == 0);
       }
-
     }
+    */
 
     // SECTION("Harris") {
     //   CoreIRLoadLibrary_commonlib(c);
@@ -930,7 +941,7 @@ namespace CoreIR {
       
       
     // }
-
+    /*
     SECTION("conv_3_1") {
       CoreIRLoadLibrary_commonlib(c);
 
@@ -980,7 +991,7 @@ namespace CoreIR {
       }
         
     }
-    
+    */
     deleteContext(c);
 
   }

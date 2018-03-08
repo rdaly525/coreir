@@ -114,12 +114,16 @@ void core_convert(Context* c, Namespace* core) {
 void core_state(Context* c, Namespace* core) {
 
   Params widthparams = Params({{"width",c->Int()}});
-  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+  auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
     modparams["init"] = BitVectorType::make(c,width);
-    defaultargs["init"] = Const::make(c,BitVector(width,0));
+    string startString = "";
+    for (int i = 0; i < width; i++) {
+      startString += "x";
+    }
+    defaultargs["init"] = Const::make(c,BitVector(width, startString));
     return {modparams,defaultargs};
   };
 
@@ -135,9 +139,16 @@ void core_state(Context* c, Namespace* core) {
 
   TypeGen* regTypeGen = core->newTypeGen("regType",widthparams,regFun);
   auto reg = core->newGeneratorDecl("reg",regTypeGen,widthparams);
-  reg->setModParamsGen(regRstModParamFun);
+  reg->setModParamsGen(regModParamFun);
   
 
+  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    int width = genargs.at("width")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    return {modparams,defaultargs};
+  };
 
   auto regRstFun = [](Context* c, Values args) {
     int width = args.at("width")->get<int>();
@@ -293,6 +304,56 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
       core->newGeneratorDecl(op,tg,widthparams);
     }
   }
+  
+  TypeGen* tribufTG = core->newTypeGen(
+    "triBuf",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)},
+        {"en",c->BitIn()},
+        {"out",c->BitInOut()->Arr(width)}
+      });
+    }
+  );
+  core->newGeneratorDecl("tribuf",tribufTG,widthparams);
+  
+  TypeGen* ibufTG = core->newTypeGen(
+    "iBuf",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record({
+        {"in",c->BitInOut()->Arr(width)},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+  core->newGeneratorDecl("ibuf",ibufTG,widthparams);
+  
+  core->newTypeGen(
+    "pullResistor",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+
+      return c->Record({
+        {"out",c->BitInOut()->Arr(width)}
+      });
+    }
+  );
+  
+  auto pullresistorModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    int width = genargs.at("width")->get<int>();
+    Params modparams;
+    modparams["value"] = BitVectorType::make(c,width);
+    return {modparams,Values()};
+  };
+
+  auto pr = core->newGeneratorDecl("pullresistor",core->getTypeGen("pullResistor"),widthparams);
+  pr->setModParamsGen(pullresistorModParamFun);
+
 
   /////////////////////////////////
   // Stdlib stateful primitives

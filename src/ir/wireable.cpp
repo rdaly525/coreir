@@ -210,11 +210,14 @@ string Interface::toString() const{
 
 
 Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef) {
+  checkStringSyntax(instname);
+  //ASSERT(container->getInstances().count(instname)==0,"Cannot add two instances with the same name: " + instname);
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //First merge default args
   mergeValues(modargs,moduleRef->getDefaultModArgs());
   //Check if modargs is the same as expected by ModuleRef
-  checkValuesAreParams(modargs,moduleRef->getModParams());
+  checkValuesAreParams(modargs,moduleRef->getModParams(),instname);
+  
   this->modargs = modargs;
 
   //TODO checkif instname is unique
@@ -230,7 +233,7 @@ void Instance::replace(Module* moduleRef, Values modargs) {
   ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
   this->moduleRef = moduleRef;
   this->modargs = modargs;
-  checkValuesAreParams(modargs,moduleRef->getModParams());
+  checkValuesAreParams(modargs,moduleRef->getModParams(),this->getInstname());
 }
 
 string Select::toString() const {

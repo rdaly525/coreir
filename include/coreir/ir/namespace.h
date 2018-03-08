@@ -27,7 +27,7 @@ class Namespace {
   std::map<std::string,std::string> typeGenNameMap;
 
   public :
-    Namespace(Context* c, std::string name) : c(c), name(name) {}
+    Namespace(Context* c, std::string name);
     ~Namespace();
     const std::string& getName() { return name;}
     Context* getContext() { return c;}

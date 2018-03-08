@@ -42,7 +42,7 @@ Module* Generator::getModule(Values genargs) {
     return genCache[genargs];
   }
   
-  checkValuesAreParams(genargs,genparams);
+  checkValuesAreParams(genargs,genparams,getRefName());
   Type* type = typegen->getType(genargs);
   string modname;
   if (nameGen) {
@@ -107,7 +107,7 @@ void Generator::addDefaultGenArgs(Values defaultGenArgs) {
 
 string Generator::toString() const {
   string ret = "Generator: " + name;
-  ret = ret + "\n    Params: " + Params2Str(genparams);
+  ret = ret + "\n    Params: " + ::CoreIR::toString(genparams);
   ret = ret + "\n    TypeGen: TODO";// + typegen->toString();
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;

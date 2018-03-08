@@ -104,7 +104,8 @@ namespace CoreIR {
 
     for (auto& select : inst->getSelects()) {
       if (select.second->getType()->isInput()) {
-	outs.insert(select);
+        //cout << select.first << "->" + select.second->toString() << endl;
+	      outs.insert(select);
       }
     }
 

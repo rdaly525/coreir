@@ -69,10 +69,13 @@ namespace CoreIR {
 
         assert(wArg != nullptr);
 
-        uint width = (args["width"])->get<int>();
+        int width = (args["width"])->get<int>();
+        BitVector initVal = inst->getModArgs().at("init")->get<BitVector>();
+
+        assert(initVal.bitLength() == width);
 
         // Set memory output port to default
-        setRegister(inst->toString(), BitVec(width, 0));
+        setRegister(inst->toString(), initVal);
         setValue(inst->sel("out"), getRegister(inst->toString()));
         
       }
@@ -280,12 +283,6 @@ namespace CoreIR {
 
       return false;
 
-      // if (isSet(val)) {
-      //   if (getBitVec(val) == bv) {
-      //     return true;
-      //   }
-      // }
-      // return false;
     };
 
     stopConditions.push_back({val, func});
@@ -584,7 +581,10 @@ namespace CoreIR {
 
       int index = selectNum(sel);
 
-      return makeSimBitVector(BitVec(1, (val->getBits()).get(index)));
+      BitVec bv(1, 0);
+      bv.set(0, val->getBits().get(index));
+
+      return makeSimBitVector(bv);
     }
 
     assert(mod->getDef()->canSel(sel->toString()));
@@ -985,7 +985,7 @@ namespace CoreIR {
     assert(vals.bitLength() == (1 << width));
 
     bv_uint64 i = get_shift_int(bv1); //get_shift_int(s1->getBits());
-    unsigned char lutBit = vals.get(i);
+    unsigned char lutBit = vals.get(i).binary_value();
     
     setValue(toSelect(outPair.second), makeSimBitVector(BitVector(1, lutBit)));
   }
@@ -1048,6 +1048,12 @@ namespace CoreIR {
     } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
     } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
+    } else if ((opName == "coreir.wire") || (opName == "corebit.wire")) {
+      updateBitVecUnop(vd, [](const BitVec& r) {
+          return r;
+      });
+    } else if ((opName == "coreir.term") || (opName == "corebit.term")) {
+      // No-op
     } else if (opName == "coreir.slice") {
       updateSliceNode(vd);
     } else if (opName == "coreir.concat") {
@@ -1357,7 +1363,7 @@ namespace CoreIR {
     updateInputs(vd);
 
     auto inSels = getInputSelects(inst);
-    assert(inSels.size() == 2);
+    ASSERT(inSels.size() == 2, to_string(inSels.size()) + " inSels" + toString(inst));
 
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
@@ -1401,11 +1407,10 @@ namespace CoreIR {
       //cout << "High clock" << endl;
       if (inSels.size() == 2) {
 
-        //cout << "Setting register " << inst->toString() << " to " << s1->getBits() << endl;        
+        //cout << "Setting register " << inst->toString() << " to " << bv1 << endl;        
         //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), bv1); //s1->getBits());
-
-        assert(getRegister(inst->toString()) == bv1); //s1->getBits());
+        ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
 
       } else {
         assert(inSels.size() == 3);
@@ -1442,7 +1447,7 @@ namespace CoreIR {
         Select* inSel = toSelect(w.getWire());
 
         if (!isSet(inSel)) { //toSelect(sel.second))) {
-          cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+          //cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
           unset.push_back(vd);
         }
 
@@ -1454,7 +1459,6 @@ namespace CoreIR {
   }
 
   void SimulatorState::resetCircuit() {
-
     exeCombinational();
   }
 
@@ -1487,36 +1491,95 @@ namespace CoreIR {
   }
 
   void SimulatorState::exeCombinational() {
-    // Update sequential element outputs
-    //for (auto& vd : topoOrder) {
-    for (auto& vd : gr.getVerts()) {
-      WireNode wd = gr.getNode(vd);
+    for (uint i=0; i<2; ++i) {
+      // Update sequential element outputs
+      for (auto& vd : gr.getVerts()) {
+        WireNode wd = gr.getNode(vd);
 
-      if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
-        // Does this work when the raddr port is not yet defined?
-        updateMemoryOutput(vd);
+        if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
+          // Does this work when the raddr port is not yet defined?
+          updateMemoryOutput(vd);
+        }
+
+        if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
+          // Does this work when the raddr port is not yet defined?
+          updateLinebufferMemOutput(vd);
+        }
+
+        if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+          updateRegisterOutput(vd);
+        }
+
+        if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+          updateDFFOutput(vd);
+        }
+        
       }
 
-      if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
-        // Does this work when the raddr port is not yet defined?
-        updateLinebufferMemOutput(vd);
+      if (!hasCombinationalLoop) {
+        // Update combinational node values
+        for (auto& vd : topoOrder) {
+          updateNodeValues(vd);
+        }
+      } else {
+
+        //ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
+
+        set<vdisc> freshNodes;
+        // Initially all inputs are fresh
+        for (auto& vd : gr.getVerts()) {
+          WireNode w = gr.getNode(vd);
+
+          if (isGraphInput(w)) {
+            freshNodes.insert(vd);
+          }
+        }
+
+        CircuitState lastState = getCircStates().back();
+        while (freshNodes.size() > 0) {
+          vdisc vd = *std::begin(freshNodes);
+          Wireable* w = gr.getNode(vd).getWire();
+          freshNodes.erase(vd);
+
+          unordered_map<Select*, SimValue*> oldVals = lastState.valMap;
+          assert(gr.containsOpNode(w));
+
+          // Need to update and check whether the update actually changed any of
+          // the outputs of this wire
+
+          updateNodeValues(vd);
+
+          unordered_map<Select*, SimValue*> currentVals = lastState.valMap;
+
+          // This check doesnt deal with changed inputs.
+          bool outputsChanged = false;
+          if (currentVals.size() != oldVals.size()) {
+            outputsChanged = true;
+          } else {
+            for (auto v : oldVals) {
+              assert(contains_key(v.first, currentVals));
+              if (*(v.second) != *(currentVals.find(v.first)->second)) {
+                outputsChanged = true;
+                break;
+              }
+            }
+          }
+
+          if (!outputsChanged) {
+            continue;
+          }
+
+          for (auto outEdge : gr.outEdges(vd)) {
+            vdisc wd = gr.target(outEdge);
+
+            // Sequential elements dont get updated in this function
+            if (gr.containsOpNode(gr.getNode(wd).getWire())) {
+              freshNodes.insert(wd);
+            }
+          }
+
+        }
       }
-
-      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-        updateRegisterOutput(vd);
-      }
-
-      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
-        updateDFFOutput(vd);
-      }
-      
-    }
-
-    ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
-
-    // Update combinational node values
-    for (auto& vd : topoOrder) {
-      updateNodeValues(vd);
     }
   }
 
@@ -1663,24 +1726,6 @@ namespace CoreIR {
   SimulatorState::setWatchPointByOriginalName(const std::string& name,
                                               const BitVec& bv) {
     setWatchPoint(name, bv);
-
-    // //Case 1: Value exists in the flattened circuit
-    // if (exists(name)) {
-    //   setWatchPoint(name, bv);
-    // }
-
-    // // Case 2: Value exists in the symbol table
-    // if (symTable.count(name) > 0) {
-    //   SelectPath ent = symTable[name];
-    //   string entName = concatSelects(ent);
-
-    //   cout << "Entry name = " << entName << endl;
-    //   return setWatchPointByOriginalName(entName, bv);
-    // }
-
-    // // Case 3: Need to traverse up and down the type hierarchy looking
-    // // for the value
-    // assert(false);
   }
 
   void
@@ -1733,7 +1778,6 @@ namespace CoreIR {
 
     // Case 1: The value being requested exists in the simulator code
     if (val != nullptr) {
-      cout << "Flattened graph contains " << name << endl;
       return val;
     }
 
@@ -1742,7 +1786,7 @@ namespace CoreIR {
       SelectPath ent = symTable[name];
       string entName = concatSelects(ent);
 
-      cout << "Entry name = " << entName << endl;
+      //cout << "Entry name = " << entName << endl;
       return getValueByOriginalName(entName);
     }
 
@@ -1751,8 +1795,8 @@ namespace CoreIR {
     //      2. Need to traverse up the type hierarchy
     //      3. Need to traverse down the type hierarchy
 
-    cout << name << " is not a key in the symbol table" << endl;
-    cout << "Selects off of this name" << endl;
+    //cout << name << " is not a key in the symbol table" << endl;
+    //cout << "Selects off of this name" << endl;
     vector<string> postFixes =
       selectsOffOf(name, symTable);
 
@@ -1768,12 +1812,12 @@ namespace CoreIR {
 
         assert(isNumber(lastSelStr));
 
-        cout << sp << endl;
+        //cout << sp << endl;
       }
 
       // At this point we know that the result will be an array
       // We are assuming that it is an array of bits
-      cout << "Result is an array of length " << postFixes.size() << endl;
+      //cout << "Result is an array of length " << postFixes.size() << endl;
 
       BitVector result(postFixes.size());
 
@@ -1803,19 +1847,13 @@ namespace CoreIR {
     string access = namePath.back();
     namePath.pop_back();
 
-    cout << "Getting value of " << concatSelects(namePath) << endl;
-
     SimValue* sv = getValueByOriginalName(concatSelects(namePath));
     auto sbv = toSimBitVector(sv);
-    // assert(sv->getType() == SIM_VALUE_BV);
 
-    // SimBitVector* sbv = static_cast<SimBitVector*>(sv);
+    BitVector finalBv(1, 0);
+    finalBv.set(0, sbv->getBits().get(stoi(access)));
+    return makeSimBitVector(finalBv); //makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access)).binary_value()));
 
-    return makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access))));
-
-    // assert(sv->getType() == SIM_VALUE_BV);
-
-    // assert(false);
   }
 
   SimulatorState::~SimulatorState() {

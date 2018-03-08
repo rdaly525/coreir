@@ -909,7 +909,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       //cout << "creating base case linebuffer" << endl;
       // connect based on input size
       for (uint i=0; i<out_dim; ++i) {
-        uint iflip = (out_dim-1) - i; // output goes to mirror position
+        // output goes to mirror position, except keeping order within a single clock cycle
+        uint iflip = (out_dim-1) - (in_dim - 1 - i % in_dim) - (i / in_dim) * in_dim;
+
 
         // connect to input
         if (i < in_dim) {
@@ -940,8 +942,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       if (has_valid && is_last_lb) {
 				// this is a chain of valids
         string valid_prefix = "valreg_";
+
 				uint last_idx = -1;
-        for (uint i=0; i<out_dim; i+=in_dim) {
+        for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
           
           // connect to input wen
           if (i == 0) {
@@ -959,15 +962,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
           }
 
-					// update last idx used
 					last_idx = i;
         }
 
         // connect last valid bit to self.valid
-        string valid_name = valid_prefix + to_string(last_idx);
-        def->connect({"self","valid"},{valid_name,"out"});
-				def->connect({"self","valid_chain"},{valid_name,"out"});
-			}
+        string last_valid_name = valid_prefix + to_string(last_idx);
+        def->connect({"self","valid"},{last_valid_name,"out"});
+				def->connect({"self","valid_chain"},{last_valid_name,"out"});
+        
+      } // valid chain
 
 /*// a counter is not needed since the images are only 1d
 
@@ -1005,7 +1008,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         def->connect({"self","valid"},{valid_name,"out"});
 				def->connect({"self","valid_chain"},{valid_name,"out"});
 				}*/        
-
 
 
     //////////////////////////  
@@ -1583,6 +1585,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint width = genargs.at("width")->get<int>();
       return c->Record({
         {"en",c->BitIn()},
+        {"reset", c->BitIn()},
         {"out",c->Bit()->Arr(width)},
         {"overflow",c->Bit()}
       });
@@ -1616,6 +1619,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     //def->addInstance("and", "corebit.and");
+    def->addInstance("resetOr", "coreir.or", {{"width",Const::make(c, 1)}});
 
     // wire up modules
     // clear if max < count+inc
@@ -1628,7 +1632,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     def->connect("add.out","ult.in1");
     def->connect("max.out","ult.in0");
-    def->connect("ult.out","count.clr");
+    // clear count on either getting to max or reset
+    def->connect("ult.out","resetOr.in0.0");
+    def->connect("self.reset","resetOr.in1.0");
+    def->connect("resetOr.out.0","count.clr");
     def->connect("ult.out","self.overflow");
 
   });
@@ -1649,7 +1656,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint rate  = args.at("rate")->get<int>();
       return c->Record({
         {"en",c->BitIn()},
+        {"reset",c->BitIn()},
         {"count",c->Bit()->Arr(width)},
+        {"ready", c->Bit()}, // have cycled through all outputs, put new inputs on this cycle
         {"in",c->BitIn()->Arr(width)->Arr(rate)},
         {"out",c->Bit()->Arr(width)}
       });
@@ -1673,7 +1682,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     def->addInstance("counter", "commonlib.counter",
-                     {{"width",aBitwidth},{"min",Const::make(c,0)},{"max",Const::make(c,rate)},{"inc",Const::make(c,1)}});
+                     {{"width",aBitwidth},{"min",Const::make(c,0)},{"max",Const::make(c,rate-1)},{"inc",Const::make(c,1)}});
     def->addInstance("muxn", "commonlib.muxn",
                      {{"width",aBitwidth},{"N",Const::make(c,rate)}});
     def->addInstance("equal", eq_gen,
@@ -1689,10 +1698,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (uint i=1; i<rate; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg",
-                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}});
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
+                       {{"init", Const::make(c, width, 0)}});
     }
 
     // wire up modules
+    def->connect("self.reset", "counter.reset");
+    def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
 
@@ -1720,6 +1732,117 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     def->connect("muxn.out","self.out");
 
+  });
+
+
+  
+  /////////////////////////////////
+  // deserializer definition       //
+  /////////////////////////////////
+
+  // on every cycle, input<n> is received where n=count
+  // on count==rate-1, output all input values.
+
+
+  // serializer type
+  commonlib->newTypeGen(
+    "deserializer_type", //name for the typegen
+    {{"width",c->Int()},{"rate",c->Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
+      uint width = args.at("width")->get<int>();
+      uint rate  = args.at("rate")->get<int>();
+      return c->Record({
+        {"en",c->BitIn()},
+        {"reset",c->BitIn()},
+        {"valid", c->Bit()}, // output is valid
+        {"in",c->BitIn()->Arr(width)},
+        {"out",c->Bit()->Arr(width)->Arr(rate)}
+      });
+    }
+  );
+
+  Generator* deserializer = commonlib->newGeneratorDecl("deserializer",commonlib->getTypeGen("deserializer_type"),{{"width",c->Int()},{"rate",c->Int()}});
+
+  deserializer->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    uint rate  = args.at("rate")->get<int>();
+    assert(width>0);
+    assert(rate>1);
+    assert(width > num_bits(rate-1)); // not enough bits in counter for rate
+
+    // create hardware
+    Const* aBitwidth = Const::make(c,width);
+    for (uint i=0; i<rate-1; ++i) {
+      std::string reg_name = "reg_" + std::to_string(i);
+      def->addInstance(reg_name, "mantle.reg",
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
+                       {{"init", Const::make(c, width, 0)}});
+    }
+    // these registers pass along the signal to write to one register
+    // this signal is initalized by reset being passed in, and is passed along
+    // so that only 1 register is written to in each clock cycle
+    // and all reg enables after first with not reset so that, if one reset
+    // before an earlier one finishes, the earlier one is aborted
+    // the first reg starts with signal 1, the rest with 0
+    for (uint i=0; i<rate-1; ++i) {
+      std::string reg_name = "en_reg_" + std::to_string(i);
+      std::string and_name = "en_and_" + std::to_string(i);
+      def->addInstance(reg_name, "mantle.reg", {
+              {"width",Const::make(c,1)},
+              {"has_en",Const::make(c,true)}
+          }, {{"init",Const::make(c, 1, i == 0 ? 1 : 0)}});
+      def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
+    }
+    // this reg is 1 only cycle after last enable reg is 1, to indicate that all registers have been written
+    // to in the last cycle
+    def->addInstance("validReg", "mantle.reg",
+                     {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}},
+                     {{"init", Const::make(c, 1, 0)}});
+    // use this for driving input to first enable reg
+    def->addInstance("firstEnabledOr", "coreir.or", {{"width",Const::make(c,1)}});
+    // the not to invert the reset
+    def->addInstance("resetInvert", "coreir.not", {{"width",Const::make(c,1)}});
+
+    def->connect("self.reset", "resetInvert.in.0");
+
+    // wire up one input to all regs
+    for (uint i=0; i<rate-1; ++i) {
+      std::string idx = std::to_string(i);
+      std::string reg_name = "reg_"+idx;
+      std::string en_reg_name = "en_reg_"+idx;
+      std::string en_and_name = "en_and_"+idx;
+      std::string next_en_reg_name = "en_reg_"+std::to_string(i+1);
+
+      def->connect("self.in", reg_name+".in");
+      def->connect(reg_name+".out", "self.out."+idx);
+
+      // for every data reg, wire in the enable reg
+      def->connect(en_reg_name + ".out.0", reg_name + ".en");
+      def->connect("self.en", en_reg_name + ".en");
+
+      // if this is the last reg, wire it's output and the deserializer reset into the input for the
+      // first enable reg as if either occurs its a reason for starting cycle again
+      if (i == rate - 2) {
+          def->connect("self.reset", "firstEnabledOr.in0.0");
+          def->connect(en_reg_name + ".out", "firstEnabledOr.in1");
+          def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in");
+
+          // wire up the valid signal, which comes one clock after the last reg is enabled, same cycle
+          // as that reg starts emitting the right value
+          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect("resetInvert.out", en_and_name + ".in1");
+          def->connect(en_and_name + ".out", "validReg.in");
+          def->connect("validReg.out.0", "self.valid");
+      }
+      else {
+          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect("resetInvert.out", en_and_name + ".in1");
+          def->connect(en_and_name + ".out", next_en_reg_name + ".in");
+      }
+    }
+    // wire the input to the last output slot, as directly sending that one out so each cycle is
+    // 4 clocks, 3 clock ticks
+    def->connect("self.in", "self.out." + to_string(rate-1));
   });
 
 

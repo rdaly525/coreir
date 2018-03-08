@@ -22,6 +22,9 @@ namespace CoreIR {
 
   std::vector<Select*>
   getSourceSelects(CoreIR::Wireable* inst);
+
+  std::vector<Select*>
+  getIOSelects(CoreIR::Wireable* inst);
   
   std::map<Wireable*, Wireable*>
   signalDriverMap(CoreIR::ModuleDef* const def);
@@ -44,4 +47,13 @@ namespace CoreIR {
 
   std::vector<Connection>
   unpackConnection(const CoreIR::Connection& conn);
+
+  void portToConstant(const std::string& portName,
+                      const BitVector& value,
+                      CoreIR::Module* const mod);
+
+  void setRegisterInit(const std::string& instanceName,
+                       const BitVector& value,
+                       CoreIR::Module* const mod);
+  
 }

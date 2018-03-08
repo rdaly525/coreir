@@ -6,7 +6,7 @@ using namespace CoreIR;
 
 namespace {
 inline bool isBit(Type* t) {
-  return isa<BitType>(t) || isa<BitInType>(t) || isa<NamedType>(t);
+  return t->isBaseType() || isa<NamedType>(t);
 }
 bool isBitOrArrOfBits(Type* t) {
   if (isBit(t)) return true;

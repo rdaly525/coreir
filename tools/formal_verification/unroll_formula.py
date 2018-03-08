@@ -48,7 +48,7 @@ def generate_unrolling(config):
                 next_vars.append(line)
             if (INIT in line):
                 init_vars.append(line)
-        elif ("set" in line):
+        elif ("(set" in line):
             setvals.append(line)
         else:
             trans.append(line)

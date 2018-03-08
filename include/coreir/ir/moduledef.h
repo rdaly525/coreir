@@ -39,8 +39,8 @@ class ModuleDef {
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
-    std::map<std::string,Instance*> getInstances(void) { return instances;}
-    std::set<Connection,ConnectionComp> getConnections(void) { return connections; }
+    const std::map<std::string,Instance*>& getInstances(void) const { return instances;}
+    const std::set<Connection,ConnectionComp>& getConnections(void) const { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     
@@ -98,6 +98,7 @@ class ModuleDef {
 
     //API for deleting an instance
     //This will also delete all connections from all connected things
+    ////Note these will invalidate iterators from the following: getInstances(), getConnections(), getConnectedWireables()
     void removeInstance(std::string inst);
     void removeInstance(Instance* inst);
 
@@ -109,6 +110,7 @@ class ModuleDef {
     //TODO Does not check if Everything (even inputs) is connected
     // Returns true if there is an error
     bool validate();
+    bool checkTypes(Wireable* a, Wireable* b);
 };
 
 }//CoreIR namespace
