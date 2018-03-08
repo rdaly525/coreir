@@ -1407,7 +1407,7 @@ namespace CoreIR {
 
           setRegister(inst->toString(), bv1);
 
-          assert(getRegister(inst->toString()) == bv1);
+          assert(same_representation(getRegister(inst->toString()), bv1));
         }
 
       }
