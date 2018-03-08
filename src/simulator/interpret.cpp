@@ -409,7 +409,6 @@ namespace CoreIR {
 
     setConstantDefaults();
     setMemoryDefaults();
-    //setLinebufferMemDefaults();
     setRegisterDefaults();
     setDFFDefaults();
     setInputDefaults();
