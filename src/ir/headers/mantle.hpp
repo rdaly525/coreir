@@ -30,7 +30,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     //if (genargs.at("has_rst")->get<bool>() || genargs.at("has_clr")->get<bool>()) {
       int width = genargs.at("width")->get<int>();
       modparams["init"] = BitVectorType::make(c,width);
-      defaultargs["init"] = Const::make(c,BitVector(width,0));
+      defaultargs["init"] = Const::make(c,width,0);
     //}
     return {modparams,defaultargs};
   };
@@ -133,6 +133,75 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   Generator* wire = mantle->newGeneratorDecl("wire",wireTG,wireParams);
   wire->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     def->connect("self.in","self.out");
+  });
+  
+
+  Params counterParams({
+    {"width",c->Int()},
+    {"has_en",c->Bool()},
+    {"has_max",c->Bool()}
+  });
+  // counter type
+  mantle->newTypeGen(
+    "counter_type", //name for the typegen
+    counterParams,
+    [](Context* c, Values genargs) { //Function to compute type
+      uint width = genargs.at("width")->get<int>();
+      uint has_en = genargs.at("has_en")->get<bool>();
+      RecordParams r({
+        {"clk", c->Named("coreir.clkIn")},
+        {"out",c->Bit()->Arr(width)}
+      });
+      if (has_en) r.push_back({"en",c->BitIn()});
+      return c->Record(r);
+    }
+  );
+  auto counterModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    uint width = genargs.at("width")->get<int>();
+    bool has_max = genargs.at("has_max")->get<bool>();
+    modparams["init"] = BitVectorType::make(c,width);
+    defaultargs["init"] = Const::make(c,BitVector(width,0));
+    if (has_max) {
+      modparams["max"] = BitVectorType::make(c,width);
+    }
+    return {modparams,defaultargs};
+  };
+
+  Generator* counter = mantle->newGeneratorDecl("counter",mantle->getTypeGen("counter_type"),counterParams);
+  counter->setModParamsGen(counterModParamFun);
+  counter->addDefaultGenArgs({{"has_max",Const::make(c,false)},{"has_en",Const::make(c,false)}});
+  counter->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    uint width = genargs.at("width")->get<int>();
+    bool has_max = genargs.at("has_max")->get<bool>();
+    bool has_en = genargs.at("has_en")->get<bool>();
+    Values widthParams({{"width",Const::make(c,width)}});
+    def->addInstance("r","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,has_en)}},{{"init",def->getModule()->getArg("init")}});
+    def->connect("self.clk","r.clk");
+    if (has_en) {
+      def->connect("self.en","r.en");
+    }
+    def->addInstance("c1","coreir.const",widthParams,{{"value",Const::make(c,width,1)}});
+    def->addInstance("add","coreir.add",widthParams);
+    def->connect("r.out","add.in0");
+    def->connect("c1.out","add.in1");
+    def->connect("r.out","self.out");
+    if (has_max) {
+      def->addInstance("c0","coreir.const",widthParams,{{"value",Const::make(c,width,0)}});
+      def->addInstance("mux","coreir.mux",widthParams);
+      def->addInstance("eq","coreir.eq",widthParams);
+      def->addInstance("maxval","coreir.const",widthParams,{{"value",def->getModule()->getArg("max")}});
+      def->connect("r.out","eq.in0");
+      def->connect("maxval.out","eq.in1");
+      def->connect("eq.out","mux.sel");
+      def->connect("add.out","mux.in0");
+      def->connect("c0.out","mux.in1");
+      def->connect("mux.out","r.in");
+    }
+    else {
+      def->connect("add.out","r.in");
+    }
   });
 
 

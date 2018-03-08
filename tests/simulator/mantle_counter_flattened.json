@@ -3,11 +3,11 @@
   "global":{
     "modules":{
       "simple_flattened":{
-        "type":["Record",{
-          "CLK":["Named","coreir.clkIn"],
-          "COUT":"Bit",
-          "O":["Array",4,"Bit"]
-        }],
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["COUT","Bit"],
+          ["O",["Array",4,"Bit"]]
+        ]],
         "instances":{
           "bit_const_GND":{
             "modref":"corebit.const",
@@ -24,22 +24,22 @@
           "inst1$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",1]},
-            "modargs":{"init":[["BitVector",1],0]}
+            "modargs":{"init":[["BitVector",1],"1'h0"]}
           },
           "inst2$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",1]},
-            "modargs":{"init":[["BitVector",1],0]}
+            "modargs":{"init":[["BitVector",1],"1'h0"]}
           },
           "inst3$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",1]},
-            "modargs":{"init":[["BitVector",1],0]}
+            "modargs":{"init":[["BitVector",1],"1'h0"]}
           },
           "inst4$reg0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",1]},
-            "modargs":{"init":[["BitVector",1],0]}
+            "modargs":{"init":[["BitVector",1],"1'h0"]}
           }
         },
         "connections":[

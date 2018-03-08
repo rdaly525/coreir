@@ -24,11 +24,14 @@ int main() {
     Wireable* self = def->sel("self");
     Wireable* i0 = def->addInstance("i0",const16,{{"value",Const::make(c,BitVector(16,23))}});
     def->connect(i0->sel("out"),self->sel("out"));
-    def->connect(i0->sel("out"),self->sel("out"));
-    def->connect(self->sel("out"),i0->sel("out"));
+    assert(def->hasConnection(i0->sel("out"),self->sel("out")));
+    assert(def->hasConnection(self->sel("out"),i0->sel("out")));
     //Also check other wiring syntax 
+    def->disconnect(i0->sel("out"),self->sel("out"));
     def->connect("self.out","i0.out");
+    def->disconnect(i0->sel("out"),self->sel("out"));
     def->connect({"self","out"},{"i0","out"});
+    def->disconnect(i0->sel("out"),self->sel("out"));
     def->connect({string("self"),string("out")},{string("i0"),string("out")});
   mod->setDef(def);
  

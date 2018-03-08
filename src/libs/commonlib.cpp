@@ -142,13 +142,19 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   // Commonlib Arithmetic primitives
   //   umin,smin,umax,smax
-  //   absd, MAD
+	//   uclamp, sclamp
+  //   abs, absd, MAD
   /////////////////////////////////
 
   //Lazy way:
   unordered_map<string,vector<string>> opmap({
+      {"unary",{
+        "abs"
+    }},
     {"binary",{
-      "umin","smin","umax","smax","absd"
+      "umin","smin","umax","smax",
+      "uclamp","sclamp",
+      "absd"
     }},
     {"ternary",{
       "MAD"
@@ -162,6 +168,50 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       commonlib->newGeneratorDecl(op,tg,widthparams);
     }
   }
+
+  //*** Define min/max modules ***//
+
+  Generator* umin = c->getGenerator("commonlib.umin");
+  umin->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    ASSERT(width==16,"NYI non 16");
+    def->addInstance("ucomp","coreir.ule",args);
+    def->addInstance("min_mux","coreir.mux",args);
+    def->connect("self.in0","ucomp.in0");
+    def->connect("self.in1","ucomp.in1");
+    def->connect("ucomp.out","min_mux.sel");
+    def->connect("self.in1","min_mux.in0");
+    def->connect("self.in0","min_mux.in1");
+    def->connect("self.out","min_mux.out");
+  });
+
+  Generator* smin = c->getGenerator("commonlib.smin");
+  smin->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    ASSERT(width==16,"NYI non 16");
+    def->addInstance("scomp","coreir.sle",args);
+    def->addInstance("min_mux","coreir.mux",args);
+    def->connect("self.in0","scomp.in0");
+    def->connect("self.in1","scomp.in1");
+    def->connect("scomp.out","min_mux.sel");
+    def->connect("self.in1","min_mux.in0");
+    def->connect("self.in0","min_mux.in1");
+    def->connect("self.out","min_mux.out");
+  });
+
+  Generator* umax = c->getGenerator("commonlib.umax");
+  umax->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    ASSERT(width==16,"NYI non 16");
+    def->addInstance("ucomp","coreir.uge",args);
+    def->addInstance("max_mux","coreir.mux",args);
+    def->connect("self.in0","ucomp.in0");
+    def->connect("self.in1","ucomp.in1");
+    def->connect("ucomp.out","max_mux.sel");
+    def->connect("self.in1","max_mux.in0");
+    def->connect("self.in0","max_mux.in1");
+    def->connect("self.out","max_mux.out");
+  });
 
   Generator* smax = c->getGenerator("commonlib.smax");
   smax->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
@@ -177,8 +227,88 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.out","max_mux.out");
   });
 
+  //*** Define clamp ***//
+  Generator* uclamp = c->getGenerator("commonlib.uclamp");
+  uclamp->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("max","coreir.umax",args);
+    def->addInstance("min","coreir.umin",args);
+    def->connect("self.in0","max.in0");
+    def->connect("self.in1","max.in1");
+    def->connect("self.in2","min.in0");
+    def->connect("max.out","min.in1");
+    def->connect("self.out","min.out");
+  });
+
+  Generator* sclamp = c->getGenerator("commonlib.sclamp");
+  sclamp->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("max","coreir.smax",args);
+    def->addInstance("min","coreir.smin",args);
+    def->connect("self.in0","max.in0");
+    def->connect("self.in1","max.in1");
+    def->connect("self.in2","min.in0");
+    def->connect("max.out","min.in1");
+    def->connect("self.out","min.out");
+  });
+
+  //*** Define abs,absd ***//
+  Generator* abs = c->getGenerator("commonlib.abs");
+  abs->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    def->addInstance("out_mux","coreir.mux",args);
+    def->addInstance("is_pos","coreir.sge",args);
+    def->addInstance("mult","coreir.mul",args);
+
+    def->addInstance("negone_const",
+		     "coreir.const",
+		     {{"width",Const::make(c,width)}},
+		     {{"value", Const::make(c, width, -1)}});
+    def->addInstance("zero_const",
+		     "coreir.const",
+		     {{"width",Const::make(c, width)}},
+		     {{"value", Const::make(c, width, 0)}});
+
+    // is_pos = in > 0
+    def->connect("self.in","is_pos.in0");
+    def->connect("zero_const.out","is_pos.in1");
+
+    // in * -1
+    def->connect("negone_const.out","mult.in0");
+    def->connect("self.in","mult.in1");
+
+    // is_pos ? in : -in
+    def->connect("is_pos.out","out_mux.sel");
+    def->connect("self.in","out_mux.in1");
+    def->connect("mult.out","out_mux.in0");
+
+    def->connect("out_mux.out","self.out");
+  });
+
+  Generator* absd = c->getGenerator("commonlib.absd");
+  absd->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("abs","commonlib.abs",args);
+    def->addInstance("sub","coreir.sub",args);
+
+    def->connect("self.in0","sub.in0");
+    def->connect("self.in1","sub.in1");
+    def->connect("sub.out","abs.in");
+    def->connect("abs.out","self.out");
+  });
+
+  //*** Define MAD ***//
+  Generator* MAD = c->getGenerator("commonlib.MAD");
+  MAD->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    def->addInstance("mult","coreir.mul",args);
+    def->addInstance("add","coreir.add",args);
+
+    def->connect("self.in0","mult.in0");
+    def->connect("self.in1","mult.in1");
+    def->connect("self.in2","add.in0");
+    def->connect("mult.out","add.in1");
+    def->connect("add.out", "self.out");
+  });
+
   /////////////////////////////////
-  // reg array definition        //
+  //*** reg array definition  ***//
   /////////////////////////////////
 
   Params reg_array_args =  {{"type",CoreIRType::make(c)},{"has_en",c->Bool()},{"has_clr",c->Bool()},{"has_rst",c->Bool()},{"init",c->Int()}};
@@ -280,7 +410,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
  
 
   /////////////////////////////////
-  // muxN definition             //
+  //*** muxN definition       ***//
   /////////////////////////////////
 
   Generator* muxN = commonlib->newGeneratorDecl("muxn",commonlib->getTypeGen("muxN_type"),{{"width",c->Int()},{"N",c->Int()}});
@@ -358,7 +488,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
   /////////////////////////////////
-  // opN definition             //
+  //*** opN definition        ***//
   /////////////////////////////////
 
   Generator* opN = commonlib->newGeneratorDecl("opn",commonlib->getTypeGen("opN_type"),{{"width",c->Int()},{"N",c->Int()},{"operator",c->String()}});
@@ -413,7 +543,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
   /////////////////////////////////
-  // bitopN definition           //
+  //*** bitopN definition     ***//
   /////////////////////////////////
 
   Generator* bitopN = commonlib->newGeneratorDecl("bitopn",commonlib->getTypeGen("bitopN_type"),{{"N",c->Int()},{"operator",c->String()}});
@@ -466,7 +596,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
-  //Add a LUTN
+  //*** Add a LUTN ***//
   auto LUTModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params p; //params
     Values d; //defaults
@@ -486,10 +616,193 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* lutN = commonlib->newGeneratorDecl("lutN",commonlib->getTypeGen("lutNType"),lutNParams);
   lutN->setModParamsGen(LUTModParamFun);
 
+  Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
+  //*** Linebuffer Memory. Use this for memory in linebuffer mode ***//
+  commonlib->newTypeGen("LinebufferMemType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+	// Is this just wen delayed by N?
+      {"valid", c->Bit()},
+    });
+  });
+  Generator* lbMem = commonlib->newGeneratorDecl("LinebufferMem",commonlib->getTypeGen("LinebufferMemType"),MemGenParams);
+  lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  
+  lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    //uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+
+    def->addInstance("raddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
+    def->addInstance("waddr","mantle.reg",{{"width",Const::make(c,awidth)},{"has_en",Const::make(c,true)}});
+
+    def->addInstance("mem","coreir.mem",genargs);
+
+    def->addInstance("add_r","coreir.add",{{"width",Const::make(c,awidth)}});
+    def->addInstance("add_w","coreir.add",{{"width",Const::make(c,awidth)}});
+    def->addInstance("c1","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,awidth,1)}});
+
+    if (!isPowerOfTwo(depth)) {
+
+      // Multiplexers to check max value
+      def->addInstance("raddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
+      def->addInstance("waddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
+
+      // Equals to test if addresses are at the max
+      def->addInstance("raddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
+      def->addInstance("waddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
+    
+      // Reset constant
+      def->addInstance("zero_const",
+                       "coreir.const",
+                       {{"width",Const::make(c,awidth)}},
+                       {{"value", Const::make(c, awidth, 0)}});
+
+      // Max constant
+      def->addInstance("max_const",
+                       "coreir.const",
+                       {{"width",Const::make(c,awidth)}},
+                       // Fix this for 64 bit constants!
+                       {{"value", Const::make(c, awidth, depth)}}); //(1 << awidth) - 1)}});
+
+      // Wire up the resets
+      def->connect("raddr_eq.out", "raddr_mux.sel");
+      def->connect("waddr_eq.out", "waddr_mux.sel");
+
+      def->connect("zero_const.out", "raddr_mux.in1");
+      def->connect("zero_const.out", "waddr_mux.in1");
+
+      def->connect("add_r.out", "raddr_mux.in0");
+      def->connect("add_w.out", "waddr_mux.in0");
+
+      def->connect("waddr_mux.out", "waddr.in");
+      def->connect("raddr_mux.out", "raddr.in");
+
+      // Wire up equals inputs
+      def->connect("add_r.out", "raddr_eq.in0");
+      def->connect("max_const.out", "raddr_eq.in1");
+
+      def->connect("add_w.out", "waddr_eq.in0");
+      def->connect("max_const.out", "waddr_eq.in1");
+
+    } else {
+      def->connect("add_r.out","raddr.in");    
+      def->connect("add_w.out","waddr.in");
+    }
+
+    // Wire up the rest of the circuit
+    def->connect("self.wdata","mem.wdata");
+
+    def->connect("self.wen","mem.wen");
+    def->connect("self.clk","mem.clk");
+
+    def->connect("waddr.out","mem.waddr");
+    def->connect("raddr.out","mem.raddr");
+    def->connect("mem.rdata","self.rdata");
+
+
+    def->connect("add_r.in0","raddr.out");
+    def->connect("add_r.in1","c1.out");
+
+    def->connect("waddr.en","self.wen");
+    def->connect("waddr.clk","self.clk");
+
+    def->connect("raddr.en","self.wen");
+    def->connect("raddr.clk","self.clk");
+
+    def->connect("add_w.in0","waddr.out");
+    def->connect("add_w.in1","c1.out");
+
+    def->addInstance("veq","coreir.neq",{{"width",Const::make(c,awidth)}});
+    def->connect("veq.in0","raddr.out");
+    def->connect("veq.in1","waddr.out");
+    def->connect("veq.out","self.valid");
+  });
+
+//// reference verilog code for lbmem
+//module #(parameter lbmem {
+//  input clk,
+//  input [W-1:0] wdata,
+//  input wen,
+//  output [W-1:0] rdata,
+//  output valid
+//}
+//
+//  reg [A-1] raddr
+//  reg [A-1] waddr;
+//  
+//  always @(posedge clk) begin
+//    if (wen) waddr <= waddr + 1;
+//  end
+//  assign valid = waddr!=raddr; 
+//  always @(posedge clk) begin
+//    if (valid) raddr <= raddr+1;
+//  end
+//
+//  coreir_mem inst(
+//    .clk(clk),
+//    .wdata(wdata),
+//    .waddr(wptr),
+//    .wen(wen),
+//    .rdata(rdata),
+//    .raddr(rptr)
+//  );
+//
+//endmodule
 
 
 
-  // generic recursively defined linebuffer
+  //*** Fifo Memory. Use this for memory in Fifo mode ***//
+  commonlib->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"ren", c->BitIn()},
+      {"almost_full", c->Bit()},
+      {"valid", c->Bit()}
+    });
+  });
+  Generator* fifoMem = commonlib->newGeneratorDecl("FifoMem",commonlib->getTypeGen("FifoMemType"),MemGenParams);
+  fifoMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  fifoMem->setModParamsGen({{"almost_full_cnt",c->Int()}});
+
+  commonlib->newTypeGen("RamType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"waddr", c->BitIn()->Arr(awidth)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(awidth)},
+      {"ren", c->BitIn()},
+    });
+  });
+  Generator* ram = commonlib->newGeneratorDecl("Ram",commonlib->getTypeGen("RamType"),MemGenParams);
+  ram->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    def->addInstance("mem","coreir.mem",genargs);
+    def->addInstance("readreg","coreir.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
+    def->connect("self.clk","readreg.clk");
+    def->connect("self.clk","mem.clk");
+    def->connect("self.wdata","mem.wdata");
+    def->connect("self.waddr","mem.waddr");
+    def->connect("self.wen","mem.wen");
+    def->connect("mem.rdata","readreg.in");
+    def->connect("self.rdata","readreg.out");
+    def->connect("self.raddr","mem.raddr");
+    def->connect("self.ren","readreg.en");
+  });
+
+  //*** generic recursively defined linebuffer ***//
   Params lb_args = 
     {{"input_type",CoreIRType::make(c)},
      {"output_type",CoreIRType::make(c)},
@@ -508,7 +821,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       Type* out_type  = genargs.at("output_type")->get<Type*>();
       RecordParams recordparams = {
           {"in", in_type},
-          //{"wen",c->BitIn()},
+          {"wen",c->BitIn()},
           {"out", out_type}
       };
 
@@ -541,10 +854,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     vector<uint> img_dims = get_dims(img_type);
 
     uint bitwidth = in_dims[0]; // first array is bitwidth
-    assert(bitwidth > 0);
-    isPowerOfTwo(bitwidth);
-    assert(bitwidth == out_dims[0]); // all bitwidths must match
-    assert(bitwidth == img_dims[0]);
+    ASSERT(bitwidth > 0, "The first dimension for the input is interpretted "
+					 "as the bitwidth which was set to " + to_string(bitwidth));
+
+    ASSERT(bitwidth == out_dims[0], 
+					 to_string(bitwidth) + " != " + to_string(out_dims[0]) + "all bitwidths must match");
+    ASSERT(bitwidth == img_dims[0], 
+					 to_string(bitwidth) + " != " + to_string(img_dims[0]) + "all bitwidths must match");
+
     in_dims.erase(in_dims.begin()); // erase the bitwidth size from vectors
     out_dims.erase(out_dims.begin());
     img_dims.erase(img_dims.begin());
@@ -563,7 +880,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     assert(img_dim >= out_dim); // image dimension length must be larger than output
     assert(out_dim >= in_dim); // output stencil size must be larger than the input
     assert(img_dim % in_dim == 0); // dimension length must be divisible, becuase we can't swizzle data
-    ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + 
+    ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + \
            " != 0, dimension length must be divisible, becuase we can't swizzle data");
 
     if (img_dim - out_dim < 3 && (img_dim != out_dim)) {
@@ -592,7 +909,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       //cout << "creating base case linebuffer" << endl;
       // connect based on input size
       for (uint i=0; i<out_dim; ++i) {
-        uint iflip = (out_dim-1) - i; // output goes to mirror position
+        // output goes to mirror position, except keeping order within a single clock cycle
+        uint iflip = (out_dim-1) - (in_dim - 1 - i % in_dim) - (i / in_dim) * in_dim;
+
 
         // connect to input
         if (i < in_dim) {
@@ -618,11 +937,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         }
       }
 
-      /*
+
       // create and connect valid chain
       if (has_valid && is_last_lb) {
+				// this is a chain of valids
         string valid_prefix = "valreg_";
-        for (uint i=0; i<out_dim; i+=in_dim) {
+
+				uint last_idx = -1;
+        for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
           
           // connect to input wen
           if (i == 0) {
@@ -639,14 +961,54 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             def->connect({prev_reg_name, "out"}, {reg_name, "in"});
 
           }
+
+					last_idx = i;
         }
 
         // connect last valid bit to self.valid
-        string last_valid_name = valid_prefix + to_string(out_dim-in_dim);
+        string last_valid_name = valid_prefix + to_string(last_idx);
         def->connect({"self","valid"},{last_valid_name,"out"});
+				def->connect({"self","valid_chain"},{last_valid_name,"out"});
         
       } // valid chain
-      */
+
+/*// a counter is not needed since the images are only 1d
+
+				// counter 0:1:max/inc
+				// valid = stencil_size-1 <= count 
+				string counter_prefix = "valcounter_";
+				string counter_name = counter_prefix + to_string(0);
+				Values counter_args = {
+					{"width",Const::make(c,bitwidth)},
+					{"min",Const::make(c,0)},
+					{"max",Const::make(c,img_dim / in_dim)},
+					{"inc",Const::make(c,1)}
+				};
+				def->addInstance(counter_name,"commonlib.counter",counter_args);
+
+				// comparator for valid (if stencil_size < count)
+				string compare_name = "valcompare_d" + to_string(0);
+				def->addInstance(compare_name,"coreir.ule",{{"width",aBitwidth}});
+				string const_name = "stencilsize_d" + to_string(0);
+				int const_value = out_dim/in_dim - 1;
+				assert(const_value >= 0);
+				Values const_arg = {{"value",Const::make(c,BitVector(bitwidth, const_value))}};
+				def->addInstance(const_name, "coreir.const", {{"width",aBitwidth}}, const_arg);
+
+				// connections
+				// counter en by wen
+				def->connect({"self","wen"},{counter_name,"en"});
+
+				// wire up comparator
+				def->connect({const_name,"out"},{compare_name,"in0"});
+				def->connect({counter_name,"out"},{compare_name,"in1"});
+
+        // connect last valid bit to self.valid
+        string valid_name = "valcompare_d" + to_string(0);
+        def->connect({"self","valid"},{valid_name,"out"});
+				def->connect({"self","valid_chain"},{valid_name,"out"});
+				}*/        
+
 
     //////////////////////////  
     ///// RECURSIVE CASE /////
@@ -935,7 +1297,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
-  //Linebuffer2d
+  //*** DEPRECATED: Linebuffer2d ***//
   //Declare a TypeGenerator (in global) for 2d linebuffer
   commonlib->newTypeGen(
     "linebuffer2d_type", //name for the typegen
@@ -1090,10 +1452,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
-  //////////////////
-  //3D Linebuffer //
-  //////////////////
 
+  //*** DEPRECATED: 3D Linebuffer ***//
   //Declare a TypeGenerator (in global) for 3d linebuffer
   commonlib->newTypeGen(
     "linebuffer3d_type", //name for the typegen
@@ -1209,7 +1569,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
   /////////////////////////////////
-  // counter definition          //
+  //*** counter definition    ***//
   /////////////////////////////////
 
   // counter follows a for loop of format:
@@ -1225,6 +1585,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint width = genargs.at("width")->get<int>();
       return c->Record({
         {"en",c->BitIn()},
+        {"reset", c->BitIn()},
         {"out",c->Bit()->Arr(width)},
         {"overflow",c->Bit()}
       });
@@ -1258,6 +1619,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     //def->addInstance("and", "corebit.and");
+    def->addInstance("resetOr", "coreir.or", {{"width",Const::make(c, 1)}});
 
     // wire up modules
     // clear if max < count+inc
@@ -1270,13 +1632,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     def->connect("add.out","ult.in1");
     def->connect("max.out","ult.in0");
-    def->connect("ult.out","count.clr");
+    // clear count on either getting to max or reset
+    def->connect("ult.out","resetOr.in0.0");
+    def->connect("self.reset","resetOr.in1.0");
+    def->connect("resetOr.out.0","count.clr");
     def->connect("ult.out","self.overflow");
 
   });
 
   /////////////////////////////////
-  // serializer definition       //
+  //*** serializer definition ***//
   /////////////////////////////////
 
   // on count==0, read in all input values.
@@ -1291,7 +1656,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint rate  = args.at("rate")->get<int>();
       return c->Record({
         {"en",c->BitIn()},
+        {"reset",c->BitIn()},
         {"count",c->Bit()->Arr(width)},
+        {"ready", c->Bit()}, // have cycled through all outputs, put new inputs on this cycle
         {"in",c->BitIn()->Arr(width)->Arr(rate)},
         {"out",c->Bit()->Arr(width)}
       });
@@ -1315,7 +1682,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     def->addInstance("counter", "commonlib.counter",
-                     {{"width",aBitwidth},{"min",Const::make(c,0)},{"max",Const::make(c,rate)},{"inc",Const::make(c,1)}});
+                     {{"width",aBitwidth},{"min",Const::make(c,0)},{"max",Const::make(c,rate-1)},{"inc",Const::make(c,1)}});
     def->addInstance("muxn", "commonlib.muxn",
                      {{"width",aBitwidth},{"N",Const::make(c,rate)}});
     def->addInstance("equal", eq_gen,
@@ -1331,10 +1698,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (uint i=1; i<rate; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
       def->addInstance(reg_name, "mantle.reg",
-                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}});
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
+                       {{"init", Const::make(c, width, 0)}});
     }
 
     // wire up modules
+    def->connect("self.reset", "counter.reset");
+    def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
 
@@ -1365,8 +1735,119 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
+  
   /////////////////////////////////
-  // decoder definition          //
+  // deserializer definition       //
+  /////////////////////////////////
+
+  // on every cycle, input<n> is received where n=count
+  // on count==rate-1, output all input values.
+
+
+  // serializer type
+  commonlib->newTypeGen(
+    "deserializer_type", //name for the typegen
+    {{"width",c->Int()},{"rate",c->Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
+      uint width = args.at("width")->get<int>();
+      uint rate  = args.at("rate")->get<int>();
+      return c->Record({
+        {"en",c->BitIn()},
+        {"reset",c->BitIn()},
+        {"valid", c->Bit()}, // output is valid
+        {"in",c->BitIn()->Arr(width)},
+        {"out",c->Bit()->Arr(width)->Arr(rate)}
+      });
+    }
+  );
+
+  Generator* deserializer = commonlib->newGeneratorDecl("deserializer",commonlib->getTypeGen("deserializer_type"),{{"width",c->Int()},{"rate",c->Int()}});
+
+  deserializer->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    uint rate  = args.at("rate")->get<int>();
+    assert(width>0);
+    assert(rate>1);
+    assert(width > num_bits(rate-1)); // not enough bits in counter for rate
+
+    // create hardware
+    Const* aBitwidth = Const::make(c,width);
+    for (uint i=0; i<rate-1; ++i) {
+      std::string reg_name = "reg_" + std::to_string(i);
+      def->addInstance(reg_name, "mantle.reg",
+                       {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
+                       {{"init", Const::make(c, width, 0)}});
+    }
+    // these registers pass along the signal to write to one register
+    // this signal is initalized by reset being passed in, and is passed along
+    // so that only 1 register is written to in each clock cycle
+    // and all reg enables after first with not reset so that, if one reset
+    // before an earlier one finishes, the earlier one is aborted
+    // the first reg starts with signal 1, the rest with 0
+    for (uint i=0; i<rate-1; ++i) {
+      std::string reg_name = "en_reg_" + std::to_string(i);
+      std::string and_name = "en_and_" + std::to_string(i);
+      def->addInstance(reg_name, "mantle.reg", {
+              {"width",Const::make(c,1)},
+              {"has_en",Const::make(c,true)}
+          }, {{"init",Const::make(c, 1, i == 0 ? 1 : 0)}});
+      def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
+    }
+    // this reg is 1 only cycle after last enable reg is 1, to indicate that all registers have been written
+    // to in the last cycle
+    def->addInstance("validReg", "mantle.reg",
+                     {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}},
+                     {{"init", Const::make(c, 1, 0)}});
+    // use this for driving input to first enable reg
+    def->addInstance("firstEnabledOr", "coreir.or", {{"width",Const::make(c,1)}});
+    // the not to invert the reset
+    def->addInstance("resetInvert", "coreir.not", {{"width",Const::make(c,1)}});
+
+    def->connect("self.reset", "resetInvert.in.0");
+
+    // wire up one input to all regs
+    for (uint i=0; i<rate-1; ++i) {
+      std::string idx = std::to_string(i);
+      std::string reg_name = "reg_"+idx;
+      std::string en_reg_name = "en_reg_"+idx;
+      std::string en_and_name = "en_and_"+idx;
+      std::string next_en_reg_name = "en_reg_"+std::to_string(i+1);
+
+      def->connect("self.in", reg_name+".in");
+      def->connect(reg_name+".out", "self.out."+idx);
+
+      // for every data reg, wire in the enable reg
+      def->connect(en_reg_name + ".out.0", reg_name + ".en");
+      def->connect("self.en", en_reg_name + ".en");
+
+      // if this is the last reg, wire it's output and the deserializer reset into the input for the
+      // first enable reg as if either occurs its a reason for starting cycle again
+      if (i == rate - 2) {
+          def->connect("self.reset", "firstEnabledOr.in0.0");
+          def->connect(en_reg_name + ".out", "firstEnabledOr.in1");
+          def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in");
+
+          // wire up the valid signal, which comes one clock after the last reg is enabled, same cycle
+          // as that reg starts emitting the right value
+          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect("resetInvert.out", en_and_name + ".in1");
+          def->connect(en_and_name + ".out", "validReg.in");
+          def->connect("validReg.out.0", "self.valid");
+      }
+      else {
+          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect("resetInvert.out", en_and_name + ".in1");
+          def->connect(en_and_name + ".out", next_en_reg_name + ".in");
+      }
+    }
+    // wire the input to the last output slot, as directly sending that one out so each cycle is
+    // 4 clocks, 3 clock ticks
+    def->connect("self.in", "self.out." + to_string(rate-1));
+  });
+
+
+  /////////////////////////////////
+  //*** decoder definition    ***//
   /////////////////////////////////
 
   // on count==0, read in all input values.

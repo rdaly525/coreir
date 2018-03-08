@@ -3,10 +3,10 @@
   "global":{
     "modules":{
       "DesignTop":{
-        "type":["Record",{
-          "in":["Array",1,["Array",16,"BitIn"]],
-          "out":["Array",16,"Bit"]
-        }],
+        "type":["Record",[
+          ["in",["Array",1,["Array",16,"BitIn"]]],
+          ["out",["Array",16,"Bit"]]
+        ]],
         "instances":{
           "_341_pt":{
             "genref":"mantle.wire",
@@ -35,42 +35,42 @@
           "const0_0":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],0]}
+            "modargs":{"value":[["BitVector",16],"16'h0"]}
           },
           "const3_3":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],3]}
+            "modargs":{"value":[["BitVector",16],"16'h3"]}
           },
           "const5_5":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],5]}
+            "modargs":{"value":[["BitVector",16],"16'h5"]}
           },
           "const7_7":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],7]}
+            "modargs":{"value":[["BitVector",16],"16'h7"]}
           },
           "const0_0":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],0]}
+            "modargs":{"value":[["BitVector",16],"16'h0"]}
           },
           "const3_3":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],3]}
+            "modargs":{"value":[["BitVector",16],"16'h3"]}
           },
           "const5_5":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],5]}
+            "modargs":{"value":[["BitVector",16],"16'h5"]}
           },
           "const7_7":{
             "genref":"coreir.const",
             "genargs":{"width":["Int",16]},
-            "modargs":{"value":[["BitVector",16],7]}
+            "modargs":{"value":[["BitVector",16],"16'h7"]}
           },
           "lb_p4_clamped_stencil_update_stream":{
             "genref":"commonlib.linebuffer2d",

@@ -112,6 +112,7 @@ void Context::die() {
 
 
 Namespace* Context::newNamespace(string name) { 
+  checkStringSyntax(name);
   Namespace* n = new Namespace(this,name);
   namespaces.emplace(name,n);
   return n;
@@ -231,6 +232,7 @@ bool Context::linkLib(Namespace* nsFrom, Namespace* nsTo) {
 
 BitType* Context::Bit() { return typecache->getBit(); }
 BitInType* Context::BitIn() { return typecache->getBitIn(); }
+BitInOutType* Context::BitInOut() { return typecache->getBitInOut(); }  
 ArrayType* Context::Array(uint n, Type* t) { return typecache->getArray(n,t);}
 RecordType* Context::Record(RecordParams rp) { return typecache->getRecord(rp); }
 NamedType* Context::Named(string nameref) {
@@ -251,11 +253,23 @@ NamedType* Context::Named(string nameref,Values args) {
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 Type* Context::In(Type* t) {
-  assert(0 && "TODO NYI");
+    assert(!t->isMixed() && "can't make all input if part are in and part are out");
+    if (t->isInput()) {
+        return t;
+    }
+    else {
+        return t->getFlipped();
+    }
 }
 
 Type* Context::Out(Type* t) {
-  assert(0 && "TODO NYI");
+    assert(!t->isMixed() && "can't make all output if part are in and part are out");
+    if (t->isInput()) {
+        return t->getFlipped();
+    }
+    else {
+        return t;
+    }
 }
 
 BoolType* Context::Bool() { return BoolType::make(this);}

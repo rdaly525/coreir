@@ -3,16 +3,16 @@
   "global":{
     "modules":{
       "simple_flattened":{
-        "type":["Record",{
-          "I0":["Array",2,"BitIn"],
-          "O":["Array",2,"Bit"],
-          "CLK":["Named","coreir.clkIn"]
-        }],
+        "type":["Record",[
+          ["I0",["Array",2,"BitIn"]],
+          ["O",["Array",2,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
         "instances":{
           "inst0":{
             "genref":"coreir.reg",
             "genargs":{"width":["Int",2]},
-            "modargs":{"init":[["BitVector",2],0]}
+            "modargs":{"init":[["BitVector",2],"2'h0"]}
           }
         },
         "connections":[

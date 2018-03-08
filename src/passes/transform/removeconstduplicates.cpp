@@ -103,7 +103,9 @@ namespace CoreIR {
 
         changed = true;
       }
-      
+
+      cout << "Done with bitconst removal" << endl;
+
       return changed;
     }
   }

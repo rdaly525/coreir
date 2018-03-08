@@ -62,6 +62,7 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmvBVVar var = SmvBVVar(iname, rmap.first, rmap.second);
+      smod->instantiate();
       smod->addPort(var);
       variables.push_back(var.getName());
       smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
@@ -115,14 +116,14 @@ void Passes::SMV::writeToStream(std::ostream& os) {
   
   os << "-- Variable declarations" << endl;
   for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0) {
+    if (external.count(mmap.first)==0 && mmap.second->isInstantiated()) {
       os << mmap.second->toVarDecString() << endl;
     }
   }
 
   os << "-- Modules definitions" << endl;
   for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0) {
+    if (external.count(mmap.first)==0 && mmap.second->isInstantiated()) {
       os << mmap.second->toString() << endl;
     }
   }

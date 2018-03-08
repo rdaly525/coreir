@@ -1,7 +1,5 @@
-[![Build Status](https://travis-ci.org/rdaly525/coreir.svg?branch=master)](https://travis-ci.org/rdaly525/coreir)
 
-## Quick Install:
-
+## Quick Install (Linux Only):
     wget https://github.com/rdaly525/coreir/releases/download/v0.0.3/coreir.tar.gz
     tar -zxf coreir.tar.gz
     cd release
@@ -11,7 +9,7 @@
     
     make uninstall
 
-## How to Install from source
+## How to Install from source (OSX or Linux)
 
 ### Tested Compatable compilers:  
   gcc 4.9  
