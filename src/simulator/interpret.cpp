@@ -635,22 +635,7 @@ namespace CoreIR {
     updateInputs(vd);
 
     WireNode wd = gr.getNode(vd);
-
     Instance* inst = toInstance(wd.getWire());
-
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-    // auto inConns = getInputConnections(vd, gr);
-
-    // assert(inConns.size() == 1);
-
-    // InstanceValue arg1 = findArg("in", inConns);
-
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
 
     Select* inSel = inst->sel("in");
 
@@ -669,7 +654,6 @@ namespace CoreIR {
       }
     }
 
-    //setValue(toSelect(outPair.second), makeSimBitVector(res));
     Select* outSel = inst->sel("out");
     setValue(outSel, makeSimBitVector(res));
   }
@@ -687,23 +671,11 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    // auto inConns = getInputConnections(vd, gr);
-
-    // cout << "orr conns" << endl;
-    // for (auto conn : inConns) {
-    //   cout << "\t" << conn.first.getWire()->toString() << " <---> " << conn.second.getWire()->toString() << endl;
-    // }
-
-    // assert(inConns.size() == 1);
-
-    // InstanceValue arg1 = findArg("in", inConns);
-
     Select* inSel = inst->sel("in");
 
     ASSERT(isSet(inSel), "in must have a value to evaluate this node");
 
     SimBitVector* s1 = static_cast<SimBitVector*>(getValue(inSel));
-      //static_cast<SimBitVector*>(getValue(arg1.getWire()));
     
     assert(s1 != nullptr);
     
@@ -726,23 +698,13 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    // auto outSelects = getOutputSelects(inst);
-
-    // assert(outSelects.size() == 1);
-
-    // pair<string, Wireable*> outPair = *std::begin(outSelects);
-
     Select* outSel = inst->sel("out");
 
-    auto inSels = getInputSelects(inst);
-    assert(inSels.size() == 1);
+    Select* arg1 = inst->sel("in");
+    BitVector bv1 = getBitVec(arg1);
     
-    Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
-    BitVector bv1 = getBitVec(arg1); //s1->getBits();
-    
-    BitVec res = op(bv1); //s1->getBits());
+    BitVec res = op(bv1);
 
-    //setValue(toSelect(outPair.second), makeSimBitVector(res));
     setValue(outSel, makeSimBitVector(res));
 
   }
@@ -767,23 +729,17 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    // auto outSelects = getOutputSelects(inst);
-    // assert(outSelects.size() == 1);
-
-    //pair<string, Wireable*> outPair = *std::begin(outSelects);
-
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 2);
 
     Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
-    BitVector bv1 = getBitVec(arg1); //s1->getBits();
+    BitVector bv1 = getBitVec(arg1);
     
     Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
-    BitVector bv2 = getBitVec(arg2); //s2->getBits();
+    BitVector bv2 = getBitVec(arg2);
 
     BitVec res = op(bv1, bv2);
 
-    //setValue(toSelect(outPair.second), makeSimBitVector(res));
     setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
 
