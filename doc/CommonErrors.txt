@@ -25,3 +25,9 @@ for (auto inst : def.getInstances() ) {
 for (auto inst : toDelete) {
   def->removeInstance(inst)
 }
+
+
+If you see a Casting error when you did not call isa, cast, or dyn_cast, it is likely in a call to Value.get<> 
+
+
+

@@ -132,6 +132,7 @@ namespace bsim {
         return "z";
       }
       assert(false);
+      return "THIS WILL FAIL";
     }
 
     void print(std::ostream& out) const {
@@ -300,6 +301,7 @@ namespace bsim {
       ind++;
 
       char format = str_raw[ind];
+      (void) format;
 
       assert((format == 'b') ||
              (format == 'h') ||

@@ -42,7 +42,7 @@ Module* Generator::getModule(Values genargs) {
     return genCache[genargs];
   }
   
-  checkValuesAreParams(genargs,genparams);
+  checkValuesAreParams(genargs,genparams,getRefName());
   Type* type = typegen->getType(genargs);
   string modname;
   if (nameGen) {

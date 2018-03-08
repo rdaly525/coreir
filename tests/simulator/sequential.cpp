@@ -730,6 +730,7 @@ namespace CoreIR {
       
     }
 
+    /*
     SECTION("LineBufferMem") {
 
       uint index = 4;
@@ -782,8 +783,8 @@ namespace CoreIR {
                                   "test_lbMem.cpp");
 	REQUIRE(s == 0);
       }
-
     }
+    */
 
     // SECTION("Harris") {
     //   CoreIRLoadLibrary_commonlib(c);
@@ -940,7 +941,7 @@ namespace CoreIR {
       
       
     // }
-
+    /*
     SECTION("conv_3_1") {
       CoreIRLoadLibrary_commonlib(c);
 
@@ -990,7 +991,7 @@ namespace CoreIR {
       }
         
     }
-    
+    */
     deleteContext(c);
 
   }

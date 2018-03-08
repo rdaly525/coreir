@@ -107,13 +107,13 @@ void checkStringSyntax(std::string& str) {
 
 
 
-void checkValuesAreParams(Values args, Params params) {
+void checkValuesAreParams(Values args, Params params, string errstring) {
   bool multi = args.size() > 4 || params.size() > 4;
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + toString(args,multi) + "\nParams: " + toString(params,multi));
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + toString(args,multi) + "\nParams: " + toString(params,multi) + "\n" + errstring);
   for (auto const &param : params) {
     auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) + "\nBut only gave:" + toString(args));
-    ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
+    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) + "\nBut only gave:" + toString(args) + "\n" + errstring);
+    ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")" + "\n" + errstring);
   }
 }
 
