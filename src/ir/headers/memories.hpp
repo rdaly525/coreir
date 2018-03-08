@@ -14,23 +14,116 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   //Linebuffer Memory. Use this for memory in linebuffer mode
-  memory->newTypeGen("LinebufferMemType",MemGenParams,[](Context* c, Values genargs) {
+  memory->newTypeGen("rowbufferType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     return c->Record({
       {"clk", c->Named("coreir.clkIn")},
       {"wdata", c->BitIn()->Arr(width)},
       {"wen", c->BitIn()},
       {"rdata", c->Bit()->Arr(width)},
-	// Is this just wen delayed by N?
       {"valid", c->Bit()},
     });
   });
 
   //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
-  Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("LinebufferMemType"),MemGenParams);
-  //lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
   
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    uint depth = genargs.at("depth")->get<int>();
+    uint addrWidth = (uint) ceil(log2(depth));
+    
+    Values awParams({{"width",Const::make(c,addrWidth)}});
+    Values aw1Params({{"width",Const::make(c,addrWidth+1)}});
+    
+    //All State (mem, waddr, raddr, valid)
+    def->addInstance("mem","coreir.mem",genargs);
+    
+    def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
+    def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
+    def->addInstance("cnt","coreir.reg",aw1Params,{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
+
+    def->addInstance("valid","corebit.dff",{{"init",Const::make(c,false)}});
+    
+    //Constants:
+    def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
+
+    //All clk connections:
+    def->connect("self.clk","mem.clk");
+    def->connect("self.clk","raddr.clk");
+    def->connect("self.clk","waddr.clk");
+    def->connect("self.clk","cnt.clk");
+    def->connect("self.clk","valid.clk");
+
+    //mem connections
+    def->connect("raddr.out","mem.raddr");
+    def->connect("waddr.out","mem.waddr");
+    def->connect("mem.rdata","self.rdata");
+    def->connect("self.wdata","mem.wdata");
+    def->connect("self.wen","mem.wen");
+
+    //Other IO
+    def->connect("self.valid","valid.out");
+
+    //Logic to drive raddr
+    def->connect("valid.out","raddr.en");
+    
+    //Logic to drive waddr
+    def->connect("self.wen","waddr.en");
+    
+    //Logic to drive cnt
+    // cnt_n = cnt + wen - valid
+    def->addInstance("add_wen","coreir.add",aw1Params);
+    def->addInstance("sub_valid","coreir.sub",aw1Params);
+    def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
+    def->addInstance("valid_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
+    def->connect("self.wen","wen_ext.in.0");
+    def->connect("valid.out","valid_ext.in.0");
+    def->connect("wen_ext.out","add_wen.in0");
+    def->connect("cnt.out","add_wen.in1");
+    def->connect("add_wen.out","sub_valid.in0");
+    def->connect("valid_ext.out","sub_valid.in1");
+    def->connect("sub_valid.out","cnt.in");
+
+    //Logic to drive valid
+    //valid_n = valid ? (cnt_n !=0) : (cnt_n == depth-1)
+    def->addInstance("valid_n","corebit.mux");
+    def->addInstance("depth_m1","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,depth)}});
+    def->addInstance("eq_depth","coreir.eq",aw1Params);
+    def->addInstance("neq_0","coreir.neq",aw1Params);
+    def->connect("valid_n.out","valid.in");
+    def->connect("valid.out","valid_n.sel");
+    def->connect("eq_depth.out","valid_n.in0");
+    def->connect("neq_0.out","valid_n.in1");
+    def->connect("c0.out","neq_0.in0");
+    def->connect("sub_valid.out","neq_0.in1");
+    def->connect("depth_m1.out","eq_depth.in0");
+    def->connect("sub_valid.out","eq_depth.in1");
+
+  });
+
+
+
+
+
+
+  //Fifo Memory. Use this for memory in Fifo mode
+  memory->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"ren", c->BitIn()},
+      {"almost_full", c->Bit()},
+      {"valid", c->Bit()}
+    });
+  });
+  Generator* fifoMem = memory->newGeneratorDecl("fifo",memory->getTypeGen("FifoMemType"),MemGenParams);
+  fifoMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  fifoMem->setModParamsGen({{"almost_full_cnt",c->Int()}});
+
+  fifoMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
     uint awidth = (uint) ceil(log2(depth));
@@ -121,54 +214,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("veq.out","self.valid");
   });
 
-//// reference verilog code for lbmem
-//module #(parameter lbmem {
-//  input clk,
-//  input [W-1:0] wdata,
-//  input wen,
-//  output [W-1:0] rdata,
-//  output valid
-//}
-//
-//  reg [A-1] raddr
-//  reg [A-1] waddr;
-//  
-//  always @(posedge clk) begin
-//    if (wen) waddr <= waddr + 1;
-//  end
-//  assign valid = waddr!=raddr; 
-//  always @(posedge clk) begin
-//    if (valid) raddr <= raddr+1;
-//  end
-//
-//  coreir_mem inst(
-//    .clk(clk),
-//    .wdata(wdata),
-//    .waddr(wptr),
-//    .wen(wen),
-//    .rdata(rdata),
-//    .raddr(rptr)
-//  );
-//
-//endmodule
 
-
-  //Fifo Memory. Use this for memory in Fifo mode
-  memory->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
-    uint width = genargs.at("width")->get<int>();
-    return c->Record({
-      {"clk", c->Named("coreir.clkIn")},
-      {"wdata", c->BitIn()->Arr(width)},
-      {"wen", c->BitIn()},
-      {"rdata", c->Bit()->Arr(width)},
-      {"ren", c->BitIn()},
-      {"almost_full", c->Bit()},
-      {"valid", c->Bit()}
-    });
-  });
-  Generator* fifoMem = memory->newGeneratorDecl("fifo",memory->getTypeGen("FifoMemType"),MemGenParams);
-  fifoMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
-  fifoMem->setModParamsGen({{"almost_full_cnt",c->Int()}});
 
   memory->newTypeGen("RamType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
