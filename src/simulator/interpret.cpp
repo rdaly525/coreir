@@ -104,30 +104,6 @@ namespace CoreIR {
     return stateIndex;
   }
 
-  // void SimulatorState::setLinebufferMemDefaults() {
-  //   for (auto& vd : gr.getVerts()) {
-  //     WireNode wd = gr.getNode(vd);
-
-  //     if (isLinebufferMemInstance(wd.getWire())) {
-  //       Instance* inst = toInstance(wd.getWire());
-
-  //       Values args = inst->getModuleRef()->getGenArgs();
-  //       uint width = (args["width"])->get<int>();
-  //       uint depth = (args["depth"])->get<int>();
-
-  //       // Set memory state to default value
-  //       LinebufferMemory freshMem(width, depth);
-  //       circStates[stateIndex].lbMemories.erase(inst->toString()); //, freshMem});
-  //       circStates[stateIndex].lbMemories.insert({inst->toString(), freshMem});
-
-  //       // Set memory output port to default
-  //       setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0)));
-  //       setValue(inst->sel("valid"), makeSimBitVector(BitVec(1, 0)));
-  //     }
-  //   }
-
-  // }
-
   void SimulatorState::setMemoryDefaults() {
 
     for (auto& vd : gr.getVerts()) {
@@ -1054,43 +1030,6 @@ namespace CoreIR {
 
   }
 
-  // void SimulatorState::updateLinebufferMemOutput(const vdisc vd) {
-  //   WireNode wd = gr.getNode(vd);
-
-  //   Instance* inst = toInstance(wd.getWire());
-
-  //   auto outSelects = getOutputSelects(inst);
-
-  //   assert(outSelects.size() == 2);
-
-  //   Wireable* outPair = CoreIR::findSelect("rdata", outSelects);
-  //   Wireable* vaidSel = CoreIR::findSelect("valid", outSelects);
-
-  //   BitVec newRData = getLinebufferValue(inst->toString());
-
-  //   setValue(toSelect(outPair), makeSimBitVector(newRData));
-
-  //   BitVector bv(1, 0);
-  //   if (lineBufferOutIsValid(inst->toString())) {
-  //     bv = BitVector(1, 1);
-  //   }
-  //   setValue(toSelect(vaidSel), makeSimBitVector(bv));
-  // }
-
-  // bool SimulatorState::lineBufferOutIsValid(const std::string& memName) {
-  //   LinebufferMemory& mem =
-  //     (circStates[stateIndex].lbMemories.find(memName))->second;
-
-  //   return mem.isValid();
-  // }
-
-  // BitVector SimulatorState::getLinebufferValue(const std::string& memName) {
-  //   LinebufferMemory& mem =
-  //     (circStates[stateIndex].lbMemories.find(memName))->second;
-
-  //   return mem.peek();
-  // }
-
   void SimulatorState::updateMemoryOutput(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -1119,48 +1058,6 @@ namespace CoreIR {
     setValue(toSelect(outPair.second), makeSimBitVector(newRData));
     
   }
-
-  //  void SimulatorState::updateLinebufferMemValue(const vdisc vd) {
-  //   WireNode wd = gr.getNode(vd);
-
-  //   Instance* inst = toInstance(wd.getWire());
-
-  //   auto inConns = getInputConnections(vd, gr);
-
-  //   if (inConns.size() != 3) {
-  //     cout << inConns.size() << " inputs " << endl;
-  //     for (auto& conn : inConns) {
-  //       cout << conn.first.getWire()->toString() << " -> " <<
-  //         conn.second.getWire()->toString() << endl;
-  //     }
-  //     assert(inConns.size() == 3);
-  //   }
-
-  //   InstanceValue wdataV = findArg("wdata", inConns);
-  //   InstanceValue clkArg = findArg("clk", inConns);
-  //   InstanceValue enArg = findArg("wen", inConns);
-
-  //   SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
-  //   SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
-  //   ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
-    
-  //   assert(wdata != nullptr);
-  //   assert(wen != nullptr);
-  //   assert(clkVal != nullptr);
-
-  //   BitVec enBit = wen->getBits();
-
-  //   if ((clkVal->lastValue() == 0) &&
-  //       (clkVal->value() == 1) &&
-  //       (enBit == BitVec(1, 1))) {
-
-      
-  //     setLineBufferMem(inst->toString(), wdata->getBits());
-
-  //     //assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
-  //   }
-    
-    //  }
 
   void SimulatorState::setDFFDefaults() {
     for (auto& vd : gr.getVerts()) {
@@ -1509,12 +1406,6 @@ namespace CoreIR {
     circStates[stateIndex].valMap[sel] = clkVal;
   }
 
-  // void SimulatorState::setLineBufferMem(const std::string& name,
-  //                                       const BitVector& data) {
-  //   LinebufferMemory& mem = (circStates[stateIndex].lbMemories.find(name))->second;
-  //   mem.push(data);
-  // }
-
   void SimulatorState::setRegister(const std::string& name,
                                    const BitVec& data) {
 
@@ -1722,7 +1613,7 @@ namespace CoreIR {
 
     BitVector finalBv(1, 0);
     finalBv.set(0, sbv->getBits().get(stoi(access)));
-    return makeSimBitVector(finalBv); //makeSimBitVector(BitVector(1, sbv->getBits().get(stoi(access)).binary_value()));
+    return makeSimBitVector(finalBv);
 
   }
 

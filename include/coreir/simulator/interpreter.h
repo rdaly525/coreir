@@ -109,52 +109,6 @@ namespace CoreIR {
     
   };
 
-  // class LinebufferMemory {
-  //   std::deque<BitVector> values;
-  //   std::deque<bool> valids;
-  //   int width, depth;
-
-  // public:
-
-  //   LinebufferMemory(const int width_, const int depth_) :
-  //     width(width_), depth(depth_) {
-
-  //     for (int i = 0; i < getDepth(); i++) {
-  //       values.push_back(BitVector(width, 0));
-  //       valids.push_back(false);
-  //     }
-
-  //     assert(((int)values.size()) == depth);
-  //   }
-
-  //   BitVector peek() const {
-  //     assert(((int)values.size()) == depth);
-
-  //     return values[getDepth() - 1];
-  //   }
-
-  //   bool isValid() const {
-  //     assert(((int)valids.size()) == depth);
-  //     return valids.back();
-  //   }
-
-  //   BitVector push(const BitVector& vec) {
-  //     values.push_front(vec);
-  //     valids.push_front(true);
-
-  //     BitVector toRet = values.back();
-  //     values.pop_back();
-  //     valids.pop_back();
-
-  //     assert(((int)values.size()) == depth);
-  //     assert(((int)valids.size()) == depth);
-
-  //     return toRet;
-  //   }
-
-  //   int getDepth() const { return depth; }
-  // };
-
   class CircuitState {
   public:
     // Wire values
