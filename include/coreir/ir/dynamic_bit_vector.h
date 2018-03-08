@@ -484,6 +484,14 @@ namespace bsim {
 
       return str;
     }
+
+    bool is_binary() {
+      bool is_binary = false;
+      for (int i = 0; i < bitLength(); i++) {
+        is_binary |= get(i).is_binary();
+      }
+      return is_binary;
+    }
     
     inline void set(const int ind, const int v) {
       // if ((v != 0) && (v != 1)) {
