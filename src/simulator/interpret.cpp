@@ -185,15 +185,8 @@ namespace CoreIR {
           assert(foundValue);
 
 
-          auto outSelects = getOutputSelects(inst);
-
-          assert(outSelects.size() == 1);
-
-          pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-          Select* outSel = toSelect(outPair.second);
+          Select* outSel = inst->sel("out");
           ArrayType& arrTp = toArray(*(outSel->getType()));
-          
           setValue(outSel, makeSimBitVector(BitVec(arrTp.getLen(), argInt)));
         } else if (opName == "corebit.const") {
 
@@ -203,7 +196,7 @@ namespace CoreIR {
           for (auto& arg : inst->getModArgs()) {
             if (arg.first == "value") {
               foundValue = true;
-              Value* valArg = arg.second; //.get();
+              Value* valArg = arg.second;
 
               bool bv = valArg->get<bool>();
               argInt = bv;
@@ -213,15 +206,7 @@ namespace CoreIR {
 
           assert(foundValue);
 
-
-          auto outSelects = getOutputSelects(inst);
-
-          assert(outSelects.size() == 1);
-
-          pair<string, Wireable*> outPair = *std::begin(outSelects);
-
-          Select* outSel = toSelect(outPair.second);
-          
+          Select* outSel = inst->sel("out");
           setValue(outSel, makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
 
         }
@@ -372,11 +357,6 @@ namespace CoreIR {
     Select* s = findSelect(selStr);
 
     return isSet(s);
-    // if (!valMapContains(s)) {
-    //   return false;
-    // }
-
-    // return true;
   }
 
   bool SimulatorState::isSet(CoreIR::Select* s) const {
@@ -729,13 +709,10 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto inSels = getInputSelects(inst);
-    assert(inSels.size() == 2);
-
-    Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
+    Select* arg1 = inst->sel("in0");
     BitVector bv1 = getBitVec(arg1);
     
-    Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
+    Select* arg2 = inst->sel("in1");
     BitVector bv2 = getBitVec(arg2);
 
     BitVec res = op(bv1, bv2);
@@ -758,8 +735,6 @@ namespace CoreIR {
           return BitVec(1, 0);
         }
       });
-    
-
   }
 
   void SimulatorState::updateNeqNode(const vdisc vd) {
@@ -800,7 +775,6 @@ namespace CoreIR {
     
   }
 
-  // cpuregs$__DOLLAR__memory__BACKSLASH__regs__DOLLAR__rdmux__LEFT_BRACKET__0__RIGHT_BRACKET____LEFT_BRACKET__4__RIGHT_BRACKET____LEFT_BRACKET__15__RIGHT_BRACKET____DOLLAR__4518$mux0pwd
   void SimulatorState::updateMuxNode(const vdisc vd) {
     updateInputs(vd);
 
@@ -814,20 +788,12 @@ namespace CoreIR {
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
 
-    // auto inSels = getInputSelects(inst);
-    // if (inSels.size() != 3) {
-    // }
-    // assert(inSels.size() == 3);
-
-    //Select* arg1 = toSelect(CoreIR::findSelect("in0", inSels));
     Select* arg1 = inst->sel("in0");
     BitVector bv1 = getBitVec(arg1);
     
-    //Select* arg2 = toSelect(CoreIR::findSelect("in1", inSels));
     Select* arg2 = inst->sel("in1");
     BitVector bv2 = getBitVec(arg2);
 
-    //Select* sel = toSelect(CoreIR::findSelect("sel", inSels));
     Select* sel = inst->sel("sel");
     BitVector selB = getBitVec(sel);
     

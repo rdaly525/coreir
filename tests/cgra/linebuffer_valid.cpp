@@ -46,14 +46,14 @@ int main() {
         {"output_type",Const::make(c,out_type)}, {"image_type",Const::make(c,img_type)}, {"has_valid",Const::make(c,true)}});
     def->connect("self", "lb32_inst");
   lb32->setDef(def);
-  lb32->print();
+  //lb32->print();
 
   cout << "Running Generators" << endl;
-  lb32->print();
+  //lb32->print();
 
   //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
   c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
-  lb32->print();
+  //lb32->print();
   lb32->getDef()->validate();
 
   // write out the json
@@ -76,7 +76,7 @@ int main() {
     c->die();
   }
   ASSERT(m, "Could not load top: _linebufferv");
-  m->print();
+  //m->print();
 
   // SPECIAL CASE (stencil width == image width)
   /*
