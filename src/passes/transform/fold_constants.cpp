@@ -43,7 +43,7 @@ namespace CoreIR {
       Instance* inst = *std::begin(toConsider);
       toConsider.erase(inst);
       auto insts = def->getInstances();
-      if (contains_key(inst->toString(), insts)) {
+      if (!contains_key(inst->toString(), insts)) {
         continue;
       }
 
@@ -578,7 +578,7 @@ namespace CoreIR {
           auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {
             auto src = extractSource(elem);
-            if (isa<Instance>(src)) {
+            if (isa<Instance>(src) && (cast<Instance>(src) != inst)) {
               toConsider.insert(cast<Instance>(src));
             }
           }

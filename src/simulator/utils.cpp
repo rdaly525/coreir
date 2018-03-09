@@ -273,7 +273,7 @@ namespace CoreIR {
   }
 
   std::string getQualifiedOpName(CoreIR::Instance& inst) {
-    cout << "Getting qualified opName of " << inst.toString() << endl;
+    //cout << "Getting qualified opName of " << inst.toString() << endl;
     auto modRef = inst.getModuleRef();
 
     ASSERT(modRef != nullptr, "Module ref is NULL");

@@ -428,15 +428,16 @@ namespace CoreIR {
     Values args = inst->getModArgs();
     args["init"] = Const::make(mod->getContext(), value);
 
+    string instTp = getQualifiedOpName(*inst);
     Values genArgs = inst->getModuleRef()->getGenArgs();
 
     def->removeInstance(inst);
 
     Instance* replacement = nullptr;
-    if (getQualifiedOpName(*inst) == "coreir.reg") {
+    if (instTp == "coreir.reg") {
       replacement = def->addInstance(instName, "coreir.reg", genArgs, args);
     } else {
-      assert(getQualifiedOpName(*inst) == "coreir.regrst");
+      assert(instTp == "coreir.regrst");
       replacement = def->addInstance(instName, "coreir.regrst", genArgs, args);
     }
 
