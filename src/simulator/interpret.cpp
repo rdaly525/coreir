@@ -1173,7 +1173,8 @@ namespace CoreIR {
       if (inSels.size() == 2) {
 
         setRegister(inst->toString(), bv1);
-        assert(getRegister(inst->toString()) == bv1);
+        assert(same_representation(getRegister(inst->toString()), bv1));
+        //assert(getRegister(inst->toString()) == bv1);
 
       } else {
         assert(inSels.size() == 3);

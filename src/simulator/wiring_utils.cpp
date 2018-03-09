@@ -245,6 +245,11 @@ namespace CoreIR {
 
   std::vector<CoreIR::Select*>
   getSignalValues(CoreIR::Select* const sel) {
+    if (isBitType(*(sel->getType()))) {
+      Select* driverSel = getDriverSelect(sel);
+      return {driverSel};
+    }
+
     assert(isBitArray(*(sel->getType())));
 
     ArrayType* tp = cast<ArrayType>(sel->getType());
