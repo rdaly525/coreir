@@ -890,6 +890,10 @@ namespace bsim {
   signed_gt(const quad_value_bit_vector& a,
 	    const quad_value_bit_vector& b) {
 
+    if (!a.is_binary() || !b.is_binary()) {
+      return false;
+    }
+    
     assert(a.bitLength() == b.bitLength());
 
     int N = a.bitLength();
@@ -956,6 +960,11 @@ namespace bsim {
   static inline quad_value_bit_vector
   lshr(const quad_value_bit_vector& a,
        const quad_value_bit_vector& shift_amount) {
+
+    if (!a.is_binary() || !shift_amount.is_binary()) {
+      return unknown_bv(a.bitLength());
+    }
+    
     quad_value_bit_vector res(a.bitLength());
 
     bv_uint64 shift_int = get_shift_int(shift_amount);
