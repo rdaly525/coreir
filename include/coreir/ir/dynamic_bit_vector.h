@@ -358,7 +358,7 @@ namespace bsim {
             }
             k++;
           } else {
-            assert(hex_to_binary[j] == '0');
+            //assert(hex_to_binary[j] == '0');
           }
         }
         bit_ind += 4;
