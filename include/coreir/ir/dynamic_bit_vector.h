@@ -205,6 +205,10 @@ namespace bsim {
     assert(!a.is_high_impedance());
     assert(!b.is_high_impedance());
 
+    if(a.is_unknown() || b.is_unknown()) {
+      return quad_value(QBV_UNKNOWN_VALUE);
+    }
+
     assert(a.is_binary());
     assert(b.is_binary());
 
@@ -238,6 +242,10 @@ namespace bsim {
   static inline quad_value operator~(const quad_value& a) {
 
     assert(!a.is_high_impedance());
+
+    if(a.is_unknown()) {
+      return quad_value(QBV_UNKNOWN_VALUE);
+    }
     
     assert(a.is_binary());
 
@@ -350,7 +358,7 @@ namespace bsim {
             }
             k++;
           } else {
-            //assert(hex_to_binary[j] == '0');
+            assert(hex_to_binary[j] == '0');
           }
         }
         bit_ind += 4;
