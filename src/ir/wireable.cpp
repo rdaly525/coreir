@@ -216,7 +216,7 @@ Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Val
   //First merge default args
   mergeValues(modargs,moduleRef->getDefaultModArgs());
   //Check if modargs is the same as expected by ModuleRef
-  checkValuesAreParams(modargs,moduleRef->getModParams());
+  checkValuesAreParams(modargs,moduleRef->getModParams(),instname);
   
   this->modargs = modargs;
 
@@ -233,7 +233,7 @@ void Instance::replace(Module* moduleRef, Values modargs) {
   ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
   this->moduleRef = moduleRef;
   this->modargs = modargs;
-  checkValuesAreParams(modargs,moduleRef->getModParams());
+  checkValuesAreParams(modargs,moduleRef->getModParams(),this->getInstname());
 }
 
 string Select::toString() const {

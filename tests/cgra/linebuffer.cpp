@@ -30,10 +30,10 @@ int main() {
 
   // Define lb32 Module
   Type* lb32Type = c->Record({
-    {"in",in_type},
-      //{"wen",c->BitIn()}, 
+			{"in",in_type},
+			{"wen",c->BitIn()}, 
       //{"valid", c->Bit()},
-    {"out",out_type}
+			{"out",out_type}
   });
 
 

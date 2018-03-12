@@ -1146,7 +1146,7 @@ namespace CoreIR {
     updateInputs(vd);
 
     auto inSels = getInputSelects(inst);
-    assert(inSels.size() == 2);
+    ASSERT(inSels.size() == 2, to_string(inSels.size()) + " inSels" + toString(inst));
 
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
@@ -1175,9 +1175,16 @@ namespace CoreIR {
 
       if (inSels.size() == 2) {
 
-        setRegister(inst->toString(), bv1);
-        assert(same_representation(getRegister(inst->toString()), bv1));
-        //assert(getRegister(inst->toString()) == bv1);
+// <<<<<<< HEAD
+//         setRegister(inst->toString(), bv1);
+//         assert(same_representation(getRegister(inst->toString()), bv1));
+//         //assert(getRegister(inst->toString()) == bv1);
+// =======
+        //cout << "Setting register " << inst->toString() << " to " << bv1 << endl;        
+        //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
+        setRegister(inst->toString(), bv1); //s1->getBits());
+        ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
+        //>>>>>>> upstream/dev
 
       } else {
         assert(inSels.size() == 3);
@@ -1211,7 +1218,7 @@ namespace CoreIR {
         Select* inSel = toSelect(w.getWire());
 
         if (!isSet(inSel)) { //toSelect(sel.second))) {
-          cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+          //cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
           unset.push_back(vd);
         }
 
@@ -1250,87 +1257,100 @@ namespace CoreIR {
   }
 
   void SimulatorState::exeCombinational() {
-    // Update sequential element outputs
-    for (auto& vd : gr.getVerts()) {
-      WireNode wd = gr.getNode(vd);
+    for (uint i=0; i<2; ++i) {
+      // Update sequential element outputs
+      for (auto& vd : gr.getVerts()) {
+        WireNode wd = gr.getNode(vd);
 
-      if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
-        // Does this work when the raddr port is not yet defined?
-        updateMemoryOutput(vd);
-      }
+        if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
+          // Does this work when the raddr port is not yet defined?
+          updateMemoryOutput(vd);
+        }
 
+        //<<<<<<< HEAD
       if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
         updateRegisterOutput(vd);
       }
+      //=======
+//         if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
+//           // Does this work when the raddr port is not yet defined?
+//           updateLinebufferMemOutput(vd);
+//         }
 
-      if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
-        updateDFFOutput(vd);
-      }
-      
-    }
+//         if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+//           updateRegisterOutput(vd);
+//         }
+// >>>>>>> upstream/dev
 
-    if (!hasCombinationalLoop) {
-      // Update combinational node values
-      for (auto& vd : topoOrder) {
-        updateNodeValues(vd);
-      }
-    } else {
-
-      //ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
-
-      set<vdisc> freshNodes;
-      // Initially all inputs are fresh
-      for (auto& vd : gr.getVerts()) {
-        WireNode w = gr.getNode(vd);
-
-        if (isGraphInput(w)) {
-          freshNodes.insert(vd);
+        if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
+          updateDFFOutput(vd);
         }
+        
       }
 
-      CircuitState lastState = getCircStates().back();
-      while (freshNodes.size() > 0) {
-        vdisc vd = *std::begin(freshNodes);
-        Wireable* w = gr.getNode(vd).getWire();
-        freshNodes.erase(vd);
+      if (!hasCombinationalLoop) {
+        // Update combinational node values
+        for (auto& vd : topoOrder) {
+          updateNodeValues(vd);
+        }
+      } else {
 
-        unordered_map<Select*, SimValue*> oldVals = lastState.valMap;
-        assert(gr.containsOpNode(w));
+        //ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have combinational loops");
 
-        // Need to update and check whether the update actually changed any of
-        // the outputs of this wire
+        set<vdisc> freshNodes;
+        // Initially all inputs are fresh
+        for (auto& vd : gr.getVerts()) {
+          WireNode w = gr.getNode(vd);
 
-        updateNodeValues(vd);
+          if (isGraphInput(w)) {
+            freshNodes.insert(vd);
+          }
+        }
 
-        unordered_map<Select*, SimValue*> currentVals = lastState.valMap;
+        CircuitState lastState = getCircStates().back();
+        while (freshNodes.size() > 0) {
+          vdisc vd = *std::begin(freshNodes);
+          Wireable* w = gr.getNode(vd).getWire();
+          freshNodes.erase(vd);
 
-        // This check doesnt deal with changed inputs.
-        bool outputsChanged = false;
-        if (currentVals.size() != oldVals.size()) {
-          outputsChanged = true;
-        } else {
-          for (auto v : oldVals) {
-            assert(contains_key(v.first, currentVals));
-            if (*(v.second) != *(currentVals.find(v.first)->second)) {
-              outputsChanged = true;
-              break;
+          unordered_map<Select*, SimValue*> oldVals = lastState.valMap;
+          assert(gr.containsOpNode(w));
+
+          // Need to update and check whether the update actually changed any of
+          // the outputs of this wire
+
+          updateNodeValues(vd);
+
+          unordered_map<Select*, SimValue*> currentVals = lastState.valMap;
+
+          // This check doesnt deal with changed inputs.
+          bool outputsChanged = false;
+          if (currentVals.size() != oldVals.size()) {
+            outputsChanged = true;
+          } else {
+            for (auto v : oldVals) {
+              assert(contains_key(v.first, currentVals));
+              if (*(v.second) != *(currentVals.find(v.first)->second)) {
+                outputsChanged = true;
+                break;
+              }
             }
           }
-        }
 
-        if (!outputsChanged) {
-          continue;
-        }
-
-        for (auto outEdge : gr.outEdges(vd)) {
-          vdisc wd = gr.target(outEdge);
-
-          // Sequential elements dont get updated in this function
-          if (gr.containsOpNode(gr.getNode(wd).getWire())) {
-            freshNodes.insert(wd);
+          if (!outputsChanged) {
+            continue;
           }
-        }
 
+          for (auto outEdge : gr.outEdges(vd)) {
+            vdisc wd = gr.target(outEdge);
+
+            // Sequential elements dont get updated in this function
+            if (gr.containsOpNode(gr.getNode(wd).getWire())) {
+              freshNodes.insert(wd);
+            }
+          }
+
+        }
       }
     }
   }
