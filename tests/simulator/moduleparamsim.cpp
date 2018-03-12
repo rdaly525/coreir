@@ -47,7 +47,7 @@ namespace CoreIR {
             test->setDef(def);
             test->print();
             map_mul->getModuleRef()->print();
-            c->runPasses({"rungenerators"});
+            c->runPasses({"rungenerators", "flattentypes", "flatten"});
             SimulatorState state(test);
             state.execute();
             test->print();

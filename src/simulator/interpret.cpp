@@ -378,6 +378,9 @@ namespace CoreIR {
   SimulatorState::SimulatorState(CoreIR::Module* mod_) :
     mod(mod_), mainClock(nullptr) {
 
+    assert(mod->hasDef());
+
+    mod->getDef()->getContext()->runPasses({"verifyflattenedtypes"}, {mod->getNamespace()->getName(), "global"});
     hasSymTable = false;
 
     // Create symbol table if it exists

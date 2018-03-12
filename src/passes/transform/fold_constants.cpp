@@ -561,7 +561,7 @@ namespace CoreIR {
         for (auto bitVal : inValues) {
           Wireable* src = extractSource(bitVal);
 
-          if (src->sel("out") != outSel) {
+          if (!isa<Instance>(src) || cast<Instance>(src)->sel("out") != outSel) {
             allInsFromOut = false;
           }
         }
