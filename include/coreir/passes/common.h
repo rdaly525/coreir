@@ -31,6 +31,7 @@
 #include "transform/unpackconnections.h"
 #include "transform/clockifyinterface.h"
 #include "transform/cullzexts.h"
+#include "transform/add_dummy_inputs.h"
 #include "transform/removebulkconnections.h"
 #include "transform/removepassthroughs.h"
 #include "transform/removeunconnected.h"
@@ -86,6 +87,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveConstDuplicates());
     pm.addPass(new Passes::DeleteDeadInstances());
     pm.addPass(new Passes::CullZexts());
+    pm.addPass(new Passes::AddDummyInputs());
     pm.addPass(new Passes::SanitizeNames());
     pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
     pm.addPass(new Passes::RegisterInputs("registerinputs"));
