@@ -59,6 +59,7 @@ Context::Context() : maxErrors(8) {
 // Order of this matters
 Context::~Context() {
   
+  delete pm;
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
   for (auto it : connectionPtrArrays) free(it);
@@ -73,7 +74,6 @@ Context::~Context() {
   for (auto it : valueTypePtrArrays) free(it);
 
   delete typecache;
-  delete pm;
   for (auto it : namespaces) delete it.second;
   delete valuecache;
 }
