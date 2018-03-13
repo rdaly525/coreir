@@ -35,10 +35,10 @@ int main() {
     def->connect("self.in", "lb32_inst.in");
     def->connect("self.out", "lb32_inst.out");
   lb32->setDef(def);
-  lb32->print();
+  //lb32->print();
 
   cout << "Running Generators" << endl;
-  lb32->print();
+  //lb32->print();
 
   c->runPasses({"rungenerators", "flatten"});
   lb32->getDef()->validate();
@@ -56,7 +56,7 @@ int main() {
     c->die();
   }
   ASSERT(m, "Could not load top: _lb32");
-  m->print();
+  //m->print();
 
   // SPECIAL CASE (stencil width == image width)
 
@@ -70,10 +70,10 @@ int main() {
     def2->connect("self.in", "lb32_special_inst.in");
     def2->connect("self.out", "lb32_special_inst.out");
   lb32_special->setDef(def2);
-  lb32_special->print();
+  //lb32_special->print();
 
   cout << "Running Generators" << endl;
-  lb32_special->print();
+  //lb32_special->print();
 
   c->runPasses({"rungenerators", "flatten"});
   lb32_special->getDef()->validate();
@@ -91,7 +91,7 @@ int main() {
     c->die();
   }
   ASSERT(m, "Could not load top: _lb32_special");
-  m->print();
+  //m->print();
 
 
 

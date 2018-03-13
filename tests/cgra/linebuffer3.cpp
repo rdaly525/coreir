@@ -29,10 +29,10 @@ int main() {
     def->connect("self.in", "lb325_inst.in");
     def->connect("self.out", "lb325_inst.out");
   lb325->setDef(def);
-  lb325->print();
+  //lb325->print();
 
   cout << "Running Generators" << endl;
-  lb325->print();
+  //lb325->print();
 
   c->runPasses({"rungenerators", "flatten"});
   lb325->getDef()->validate();
@@ -50,7 +50,7 @@ int main() {
     c->die();
   }
   ASSERT(m, "Could not load top: _lb325");
-  m->print();
+  //m->print();
 
 
   deleteContext(c);
