@@ -158,9 +158,11 @@ class VModule {
       }
       else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
         BitVector bv = bvv->get();
-        return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
+        // return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
 
+        return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
       }
+
       //TODO could add string
       assert(0);
     }

@@ -19,8 +19,12 @@ string VModule::toString() {
   
   vector<string> paramstrs;
   for (auto p : params) {
-    string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults[p] : "1"); 
-    paramstrs.push_back(s);
+
+    // TODO: Find a better way to deal with type parameters in wrap
+    if (p != "type") {
+      string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults[p] : "1"); 
+      paramstrs.push_back(s);
+    }
   }
   string pstring = paramstrs.size()>0 ? " #(" + join(paramstrs.begin(),paramstrs.end(),string(", "))+") " : " ";
 
@@ -35,6 +39,7 @@ string VModule::toString() {
 }
 
 string VModule::toInstanceString(Instance* inst) {
+  //cout << "Instance = " << inst->toString() << endl;
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params0 = params;
@@ -70,8 +75,12 @@ string VModule::toInstanceString(Instance* inst) {
   vector<string> paramstrs;
   for (auto param : params0) {
     ASSERT(args.count(param),"Missing parameter " + param + " from " + ::CoreIR::toString(args));
-    string astr = "." + param + "(" + toConstString(args[param]) + ")";
-    paramstrs.push_back(astr);
+
+    // TODO: Remove this when we have a better solution for verilog output
+    if (param != "type") {
+      string astr = "." + param + "(" + toConstString(args[param]) + ")";
+      paramstrs.push_back(astr);
+    }
   }
   if (paramstrs.size()) {
     o << "#(" << join(paramstrs.begin(),paramstrs.end(),string(",")) << ") ";

@@ -33,6 +33,8 @@ void testFoldEquals() {
   def->connect("c1.out.1", "cmp.in1.1");
 
   def->connect("cmp.out", "self.out");
+
+  c->runPasses({"rungenerators"});
   
   eqMod->setDef(def);
   if (!saveToFile(g, "_eqmod.json",eqMod)) {
@@ -80,7 +82,7 @@ void testFoldRegister() {
 
   md->setDef(def);
 
-  c->runPasses({"fold-constants"});
+  c->runPasses({"rungenerators", "fold-constants"});
 
   cout << "After folding constants" << endl;
 

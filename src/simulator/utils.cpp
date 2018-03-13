@@ -273,6 +273,17 @@ namespace CoreIR {
     
   }
 
+  std::string getQualifiedOpName(CoreIR::Instance& inst) {
+    //cout << "Getting qualified opName of " << inst.toString() << endl;
+    auto modRef = inst.getModuleRef();
+
+    ASSERT(modRef != nullptr, "Module ref is NULL");
+    std::string opName = modRef->getNamespace()->getName() + "." +
+      getOpName(inst);
+
+    return opName;
+  }
+  
   bool isConstant(CoreIR::Wireable* const w) {
     if (isInstance(w)) {
       string name = getQualifiedOpName(*toInstance(w));
