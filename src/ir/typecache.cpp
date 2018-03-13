@@ -25,10 +25,10 @@ TypeCache::TypeCache(Context* c) : c(c) {
 }
 
 TypeCache::~TypeCache() {
-  for (auto it : RecordCache) {
-    cout << "deleting params: " << toString(it.first) << endl;
-    //delete it.second;
-  }
+  //for (auto it : RecordCache) {
+  //  cout << "deleting params: " << toString(it.first) << endl;
+  //  //delete it.second;
+  //}
   for (auto it : RecordCache) {
     //cout << "deleting params: " << toString(it.first) << endl;
     delete it.second;
@@ -100,8 +100,6 @@ RecordType* TypeCache::getRecord(RecordParams params) {
     RecordType* rf = new RecordType(c,paramsF);
     r->setFlipped(rf);
     rf->setFlipped(r);
-    cout << "Adding params " << toString(params) << endl;
-    cout << "Adding params " << toString(paramsF) << endl;
     RecordCache.emplace(params,r);
     RecordCache.emplace(paramsF,rf);
     return r;
