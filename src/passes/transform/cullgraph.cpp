@@ -39,15 +39,18 @@ bool Passes::CullGraph::runOnContext(Context* c) {
       }
     }
   }
+  set<GlobalValue*> genToErase;
   for (auto i : toErase) {
     if (auto m = dyn_cast<Module>(i)) {
       m->getNamespace()->eraseModule(m->getName());
     }
-  }
-  for (auto i : toErase) {
-    if (auto g = dyn_cast<Generator>(i)) {
-      g->getNamespace()->eraseGenerator(g->getName());
+    else {
+      genToErase.insert(i);
     }
+  }
+  for (auto i : genToErase) {
+    auto g = cast<Generator>(i);
+    g->getNamespace()->eraseGenerator(g->getName());
   }
   return toErase.size()>0;
   
