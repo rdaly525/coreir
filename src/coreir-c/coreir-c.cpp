@@ -97,6 +97,20 @@ extern "C" {
     return context->runPasses(vec_passes);
   }
 
+  bool COREContextRunPassesNamespaced(COREContext* ctx, char** passes, int num_passes,
+                                      char** namespaces, int num_namespaces) {
+    Context* context = rcast<Context*>(ctx);
+    vector<string> vec_passes;
+    vector<string> vec_namespaces;
+    for (int i = 0; i < num_passes; i++) {
+      vec_passes.emplace_back(passes[i]);
+    }
+    for (int i = 0; i < num_namespaces; i++) {
+      vec_namespaces.emplace_back(namespaces[i]);
+    }
+    return context->runPasses(vec_passes, vec_namespaces);
+  }
+
   COREValue* COREGetModArg(COREWireable* i, char* s) {
     string str(s);
     Values modargs =cast<Instance>(rcast<Wireable*>(i))->getModArgs();
