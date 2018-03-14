@@ -59,10 +59,9 @@ Context::Context() : maxErrors(8) {
 // Order of this matters
 Context::~Context() {
   
-  //for (auto it : genargsList) delete it;
+  delete pm;
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
-  for (auto it : namespaces) delete it.second;
   for (auto it : connectionPtrArrays) free(it);
   for (auto it : connectionArrays) free(it);
   for (auto it : wireableArrays) free(it);
@@ -75,8 +74,8 @@ Context::~Context() {
   for (auto it : valueTypePtrArrays) free(it);
 
   delete typecache;
+  for (auto it : namespaces) delete it.second;
   delete valuecache;
-  delete pm;
 }
 
 std::map<std::string,Namespace*> Context::getNamespaces() {
