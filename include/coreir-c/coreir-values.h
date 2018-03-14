@@ -16,7 +16,7 @@ extern COREValue* COREValueInt(COREContext* c,int i);
 extern COREValue* COREValueString(COREContext* c,char* str);
 extern COREValue* COREValueBitVector(COREContext* c, int width, uint64_t val);
 extern COREValue* COREValueModule(COREContext* cc, COREModule* mod);
-extern COREValue* COREValueCoreIRType(COREContext* cc, COREType* mod);
+extern COREValue* COREValueCoreIRType(COREContext* cc, COREType* type);
 
 //Arg Getter functions will assert on wrong arg type
 extern bool COREValueBoolGet(COREValue* a);
