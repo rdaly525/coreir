@@ -45,6 +45,7 @@ std::string toString(Values,bool multi=false);
 std::string toString(SelectPath path);
 std::string toString(Connection con);
 std::string toString(Instance* inst);
+std::string toString(RecordParams rp);
 
 template<class T> std::string toString(const T& t) {
   std::ostringstream stream;
