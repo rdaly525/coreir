@@ -46,5 +46,6 @@ int main() {
   state.execute();
 
   assert(state.getBitVec("self.out") == ~BitVec(12, 34534));
-  
+  deleteContext(c);
+
 }

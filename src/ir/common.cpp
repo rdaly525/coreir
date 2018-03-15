@@ -2,6 +2,7 @@
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/module.h"
+#include "coreir/ir/types.h"
 
 #include <regex>
 
@@ -66,6 +67,15 @@ string toString(SelectPath path) {
 string toString(Connection con) {
   return con.first->toString() + " <=> " + con.second->toString();
 }
+
+string toString(RecordParams rp) {
+  vector<string> ss;
+  for (auto r : rp) {
+    ss.push_back(r.first+": " + r.second->toString());
+  }
+  return "(" + join(ss.begin(),ss.end(),string(",")) + ")";
+}
+
 
 
 std::string toString(Instance* inst) {

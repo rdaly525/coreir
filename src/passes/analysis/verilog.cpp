@@ -95,3 +95,13 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
   }
 
 }
+
+Passes::Verilog::~Verilog() {
+  set<VModule*> toDelete;
+  for (auto m : modMap) {
+    toDelete.insert(m.second);
+  }
+  for (auto m : toDelete) {
+    delete m;
+  }
+}

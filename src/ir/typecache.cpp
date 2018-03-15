@@ -25,7 +25,14 @@ TypeCache::TypeCache(Context* c) : c(c) {
 }
 
 TypeCache::~TypeCache() {
-  for (auto it : RecordCache) delete it.second;
+  //for (auto it : RecordCache) {
+  //  cout << "deleting params: " << toString(it.first) << endl;
+  //  //delete it.second;
+  //}
+  for (auto it : RecordCache) {
+    //cout << "deleting params: " << toString(it.first) << endl;
+    delete it.second;
+  }
   
   //TODO this is a little sketch because the first key is the thing you are deleting...
   for (auto tpair : ArrayCache) {
@@ -79,7 +86,7 @@ RecordType* TypeCache::getRecord(RecordParams params) {
     RecordType* r = new RecordType(c,params);
     
     //Inout just needs a single type
-    if (r->isInOut()) {
+    if (r->isInOut() || params.size()==0) {
       r->setFlipped(r);
       RecordCache.emplace(params,r);
       return r;
@@ -93,7 +100,6 @@ RecordType* TypeCache::getRecord(RecordParams params) {
     RecordType* rf = new RecordType(c,paramsF);
     r->setFlipped(rf);
     rf->setFlipped(r);
-
     RecordCache.emplace(params,r);
     RecordCache.emplace(paramsF,rf);
     return r;
