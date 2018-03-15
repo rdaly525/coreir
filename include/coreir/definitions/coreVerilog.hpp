@@ -173,12 +173,14 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     //regrst
     json vjson;
     vjson["prefix"] = "coreir_";
-    vjson["parameters"] = {"init"};
+    vjson["parameters"] = {"init","arst_posedge"};
     vjson["interface"] = coreIMap.at("regrst");
     vjson["definition"] = ""
     "reg [width-1:0] outReg;\n"
-    "always @(posedge clk, negedge rst) begin\n"
-    "  if (!rst) outReg <= init;\n"
+    "wire real_rst;
+    "assign real_rst = arst_posedge ? rst : ~rst;
+    "always @(posedge clk, posedge real_rst) begin\n"
+    "  if (rst) outReg <= init;\n"
     "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";

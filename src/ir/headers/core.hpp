@@ -147,6 +147,8 @@ void core_state(Context* c, Namespace* core) {
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
     modparams["init"] = BitVectorType::make(c,width);
+    modparams["arst_posedge"] = c->Bool();
+    defaultargs["arst_posedge"] = Const::make(c,false);
     return {modparams,defaultargs};
   };
 
