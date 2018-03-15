@@ -46,14 +46,14 @@ namespace CoreIR {
             Instance* map_mul = def->addInstance("map_mul", "global.map", {{"N",Const::make(c,5)},{"op",Const::make(c,mul)}});
             test->setDef(def);
             test->print();
-            map_mul->getModuleRef()->print();
+            //map_mul->getModuleRef()->print();
             c->runPasses({"rungenerators", "flattentypes", "flatten"});
 
             SimulatorState state(test);
             state.execute();
 
             test->print();
-            map_mul->getModuleRef()->print();
+            //map_mul->getModuleRef()->print();
             deleteContext(c);
         }
     }
