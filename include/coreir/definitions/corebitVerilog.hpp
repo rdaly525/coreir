@@ -60,7 +60,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       "input clk",
       "input in",
       "output out"
-    }}
+    }},
     {"regrst",{
       "input clk",
       "input in",
