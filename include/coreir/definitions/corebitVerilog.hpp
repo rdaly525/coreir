@@ -20,7 +20,6 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       {"term",""},
       {"tribuf","en ? in : 1'bz"},
       {"ibuf","in"},
-      //{"reg",""}, TODO
     }}
   });
  
@@ -57,7 +56,12 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       "inout in",
       "output out"
     }},
-    {"dff",{
+    {"reg",{
+      "input clk",
+      "input in",
+      "output out"
+    }}
+    {"regrst",{
       "input clk",
       "input in",
       "input rst",
@@ -107,15 +111,30 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     bit->getModule("term")->getMetaData()["verilog"] = vjson;
   }
   {
-    //dff
+    //reg
     json vjson;
     vjson["parameters"] = {"init"};
-    vjson["interface"] = bitIMap.at("dff");
+    vjson["interface"] = bitIMap.at("reg");
+    vjson["definition"] = ""
+    "reg outReg = init;\n"
+    "always @(posedge clk) begin\n"
+    "  else outReg <= in;\n"
+    "end\n"
+    "assign out = outReg;";
+    bit->getModule("dff")->getMetaData()["verilog"] = vjson;
+  }
+  {
+    //regrst
+    json vjson;
+    vjson["parameters"] = {"init","arst_posedge"};
+    vjson["interface"] = bitIMap.at("regrst");
     vjson["definition"] = ""
     "reg outReg;\n"
-    "always @(posedge clk) begin\n"
-    "  if (!rst) outReg <= in;\n"
-    "  else outReg <= init;\n"
+    "wire real_rst;"
+    "assign real_rst = arst_posedge ? rst : ~rst;"
+    "always @(posedge clk, posedge real_rst) begin\n"
+    "  if (real_rst) outReg <= init;\n"
+    "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
     bit->getModule("dff")->getMetaData()["verilog"] = vjson;
