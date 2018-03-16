@@ -121,7 +121,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    bit->getModule("dff")->getMetaData()["verilog"] = vjson;
+    bit->getModule("reg")->getMetaData()["verilog"] = vjson;
   }
   {
     //regrst
@@ -137,7 +137,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    bit->getModule("dff")->getMetaData()["verilog"] = vjson;
+    bit->getModule("regrst")->getMetaData()["verilog"] = vjson;
   }
   //{
   //  //regrst

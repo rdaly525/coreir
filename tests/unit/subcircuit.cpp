@@ -26,7 +26,7 @@ void testBasicSubCircuit() {
   Module* cl = g->newModuleDecl("cl", clType);
   ModuleDef* def = cl->newModuleDef();
 
-  def->addInstance("config_reg", "corebit.dff");
+  def->addInstance("config_reg", "corebit.reg");
   def->addInstance("toClk",
                    "coreir.wrap",
                    {{"type", Const::make(c, c->Named("coreir.clk"))}});
@@ -94,7 +94,7 @@ void testBasicSubCircuit() {
 //   for (auto inst : subCircuitInstances) {
 //     if ((getQualifiedOpName(*inst) == "coreir.reg") ||
 //         (getQualifiedOpName(*inst) == "coreir.regrst") ||
-//         (getQualifiedOpName(*inst) == "corebit.dff")) {
+//         (getQualifiedOpName(*inst) == "corebit.reg")) {
 //       i++;
 //       //cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
 //     }
