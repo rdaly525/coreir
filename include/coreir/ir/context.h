@@ -75,6 +75,9 @@ class Context {
 
     std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
+    
+    //This will run the following passes in the following namespaces. It defaults only to global, so if you want passes to be run on certain libraries, these need to be specified in the list of namespaces. 
+    //One subtle thing to note is that an InstanceGraphPass will be run on modules regardless of the namespace. All other Pass Types will only be run on the specified namespaces.
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
 
     //TODO figure out a way to hide this (binary/coreir needs it)
