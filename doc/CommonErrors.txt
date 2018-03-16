@@ -29,5 +29,5 @@ for (auto inst : toDelete) {
 
 If you see a Casting error when you did not call isa, cast, or dyn_cast, it is likely in a call to Value.get<> 
 
-
+For missing symbol errors, make sure that you are referring to the generator or the generated module explicitly. Top modules cannot be a generated module
 

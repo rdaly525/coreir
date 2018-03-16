@@ -55,5 +55,6 @@ namespace CoreIR {
   void setRegisterInit(const std::string& instanceName,
                        const BitVector& value,
                        CoreIR::Module* const mod);
-  
+
+  bool isBitType(const Type& tp);
 }

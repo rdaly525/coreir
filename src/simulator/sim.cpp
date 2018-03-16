@@ -499,7 +499,7 @@ namespace CoreIR {
       return new LowId(printAddOrSubWithCIN(wd, vd, g, lp));
     }
 
-    assert(false);
+    ASSERT(false,toString(inst));
   }
 
   LowExpr* printBinop(const WireNode& wd,

@@ -15,6 +15,7 @@ class Verilog : public InstanceGraphPass {
   public :
     static std::string ID;
     Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}
+    ~Verilog();
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
       addDependency("verifyconnectivity-onlyinputs"); //Should change back to check all connections

@@ -35,7 +35,7 @@ string CoreIR::Passes::FModule::type2firrtl(Type* t, bool isInput) {
   }
   else if (auto nt = dyn_cast<NamedType>(t)) {
     if (nt == c->Named("coreir.clk") || nt == c->Named("coreir.clkIn")) return "Clock";
-    else if (nt == c->Named("coreir.rst") || nt == c->Named("coreir.rstIn")) return "UInt<1>";
+    else if (nt == c->Named("coreir.arst") || nt == c->Named("coreir.arstIn")) return "UInt<1>";
     else ASSERT(0,"NYI: " + nt->toString());
   }
   else if (t->isBaseType()) {

@@ -132,7 +132,7 @@ namespace bsim {
         return "z";
       }
       assert(false);
-      return "THIS WILL FAIL";
+      return "";
     }
 
     void print(std::ostream& out) const {
@@ -206,6 +206,10 @@ namespace bsim {
     assert(!a.is_high_impedance());
     assert(!b.is_high_impedance());
 
+    if(a.is_unknown() || b.is_unknown()) {
+      return quad_value(QBV_UNKNOWN_VALUE);
+    }
+
     assert(a.is_binary());
     assert(b.is_binary());
 
@@ -239,6 +243,10 @@ namespace bsim {
   static inline quad_value operator~(const quad_value& a) {
 
     assert(!a.is_high_impedance());
+
+    if(a.is_unknown()) {
+      return quad_value(QBV_UNKNOWN_VALUE);
+    }
     
     assert(a.is_binary());
 
@@ -302,7 +310,6 @@ namespace bsim {
 
       char format = str_raw[ind];
       (void) format;
-
       assert((format == 'b') ||
              (format == 'h') ||
              (format == 'd'));
@@ -477,6 +484,15 @@ namespace bsim {
       return *this;
     }
 
+    bool is_binary() const {
+      for (int i = 0; i < ((int) bitLength()); i++) {
+        if (!get(i).is_binary()) {
+          return false;
+        }
+      }
+      return true;
+    }
+    
     std::string binary_string() const {
       std::string str = "";
       const int N = bitLength();
@@ -485,13 +501,6 @@ namespace bsim {
       }
 
       return str;
-    }
-
-    bool is_binary() {
-      for (int i = 0; i < bitLength(); i++) {
-        if (!get(i).is_binary()) return false;
-      }
-      return true;
     }
     
     inline void set(const int ind, const int v) {
@@ -614,6 +623,11 @@ namespace bsim {
 
   static inline bool operator==(const quad_value_bit_vector& a,
 				const quad_value_bit_vector& b) {
+
+    // if (!a.is_binary() || !b.is_binary()) {
+    //   return false;
+    // }
+
     return a.equals(b);
   }
 
@@ -767,6 +781,13 @@ namespace bsim {
     
   };
 
+  static inline
+  quad_value_bit_vector
+  negate_general_width_bv(const quad_value_bit_vector& a) {
+    quad_value_bit_vector zero(a.bitLength(), 0);
+    return sub_general_width_bv(zero, a);
+  }
+
   static inline quad_value_bit_vector operator~(const quad_value_bit_vector& a) {
     return quad_value_bit_vector_operations::lnot(a);
   }
@@ -788,11 +809,19 @@ namespace bsim {
 
   static inline bool operator!=(const quad_value_bit_vector& a,
   				const quad_value_bit_vector& b) {
+    // if (!a.is_binary() || !b.is_binary()) {
+    //   return false;
+    // }
+
     return !a.equals(b);
   }
 
   static inline bool operator>(const quad_value_bit_vector& a,
   			       const quad_value_bit_vector& b) {
+    if (!a.is_binary() || !b.is_binary()) {
+      return false;
+    }
+
     int N = a.bitLength();
     for (int i = N - 1; i >= 0; i--) {
       if (a.get(i) > b.get(i)) {
@@ -809,11 +838,19 @@ namespace bsim {
 
   static inline bool operator>=(const quad_value_bit_vector& a,
 				const quad_value_bit_vector& b) {
+    if (!a.is_binary() || !b.is_binary()) {
+      return false;
+    }
+
     return (a > b) || (a == b);
   }
   
   static inline bool operator<(const quad_value_bit_vector& a,
   			       const quad_value_bit_vector& b) {
+    if (!a.is_binary() || !b.is_binary()) {
+      return false;
+    }
+
     if (a == b) { return false; }
 
     return !(a > b);
@@ -861,6 +898,10 @@ namespace bsim {
   signed_gt(const quad_value_bit_vector& a,
 	    const quad_value_bit_vector& b) {
 
+    if (!a.is_binary() || !b.is_binary()) {
+      return false;
+    }
+    
     assert(a.bitLength() == b.bitLength());
 
     int N = a.bitLength();
@@ -927,6 +968,11 @@ namespace bsim {
   static inline quad_value_bit_vector
   lshr(const quad_value_bit_vector& a,
        const quad_value_bit_vector& shift_amount) {
+
+    if (!a.is_binary() || !shift_amount.is_binary()) {
+      return unknown_bv(a.bitLength());
+    }
+    
     quad_value_bit_vector res(a.bitLength());
 
     bv_uint64 shift_int = get_shift_int(shift_amount);
@@ -953,6 +999,10 @@ namespace bsim {
   ashr(const quad_value_bit_vector& a,
        const quad_value_bit_vector& shift_amount) {
 
+    if (!a.is_binary() || !shift_amount.is_binary()) {
+      return unknown_bv(a.bitLength());
+    }
+    
     if (shift_amount == quad_value_bit_vector(shift_amount.bitLength(), 0)) {
       return a;
     }
@@ -965,8 +1015,8 @@ namespace bsim {
     for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
       res.set(i - shift_int, a.get(i));
     }
-		
-		int last_index = (int)a.bitLength() - shift_int;
+
+    int last_index = (int)a.bitLength() - shift_int;
     for (int i = a.bitLength() - 1; i >= last_index && i >= 0; i--) {
       res.set(i, sign_bit);
     }
@@ -978,6 +1028,11 @@ namespace bsim {
   quad_value_bit_vector
   shl(const quad_value_bit_vector& a,
       const quad_value_bit_vector& shift_amount) {
+
+    if (!a.is_binary() || !shift_amount.is_binary()) {
+      return unknown_bv(a.bitLength());
+    }
+
     quad_value_bit_vector res(a.bitLength());
 
     bv_uint64 shift_int = get_shift_int(shift_amount);    

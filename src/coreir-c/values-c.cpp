@@ -85,6 +85,12 @@ extern "C" {
     return rcast<COREValue*>(ga);
   }
 
+  COREValue* COREValueCoreIRType(COREContext* cc, COREType* type) {
+    Context* c = rcast<Context*>(cc);
+    Value* ga = Const::make(c, rcast<Type*>(type));
+    return rcast<COREValue*>(ga);
+  }
+
 }
 
 }
