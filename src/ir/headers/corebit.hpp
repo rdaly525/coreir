@@ -67,7 +67,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
   //reg
   Type* regRstType = c->Record({
     {"clk",c->Named("coreir.clkIn")},
-    {"arst",c->Named("coreir.rstIn")},
+    {"arst",c->Named("coreir.arstIn")},
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });

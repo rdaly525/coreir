@@ -160,7 +160,7 @@ void core_state(Context* c, Namespace* core) {
     int width = args.at("width")->get<int>();
     return c->Record({
         {"clk", c->Named("coreir.clkIn")},
-        {"arst", c->Named("coreir.rstIn")},
+        {"arst", c->Named("coreir.arstIn")},
         {"in" , c->BitIn()->Arr(width)},
         {"out", c->Bit()->Arr(width)}
     });
@@ -219,7 +219,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
 
   //Single bit types
   core->newNamedType("clk","clkIn",c->Bit());
-  core->newNamedType("rst","rstIn",c->Bit());
+  core->newNamedType("arst","arstIn",c->Bit());
 
   //Common Function types
   core->newTypeGen(
