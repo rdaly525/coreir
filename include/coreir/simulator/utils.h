@@ -83,9 +83,9 @@ namespace CoreIR {
     }
 
     CoreIR::Instance* inst = toInstance(fst);
-    std::string name = getInstanceName(*inst);
+    std::string name = inst->getModuleRef()->getRefName();
 
-    return name == "dff";
+    return name == "corebit.reg";
   }
 
   static inline bool isRegisterInstance(CoreIR::Wireable* fst) {
@@ -96,7 +96,7 @@ namespace CoreIR {
       //module's name is always either the modules name or the generators name
       //m->getLongName() is a uniquified name for generated modules
       //TODO really should be checking m->getRefName() == "coreir.reg"
-      return m->getName() == "reg";
+      return m->getRefName() == "coreir.reg";
     }
     return false;
 

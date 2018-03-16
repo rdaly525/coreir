@@ -18,7 +18,7 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
       {"term",{""}},
-      {"dff",{"reg myreg: UInt<1>, clk with:","  (reset =>(rst, init))","myreg <= in","out <= myreg"}}, 
+      {"reg",{"reg myreg: UInt<1>, clk with:","  (reset =>(rst, init))","myreg <= in","out <= myreg"}}, 
       //{"mem",""}, //TODO
     }}
   });
@@ -42,7 +42,7 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
 //    }},
 //    {"const",{"input value : UInt","output out : UInt"}},
 //    {"term",{"input in : UInt"}},
-//    {"dff",{
+//    {"reg",{
 //      "input clk : Clock",
 //      "input rst : UInt<1>",
 //      "input in : UInt",
@@ -78,7 +78,7 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
   
   //reg
   fjson["prefix"] = "corebit_";
-  fjson["definition"] = coreFMap["other"]["dff"];
-  corebit->getModule("dff")->getMetaData()["firrtl"] = fjson;
+  fjson["definition"] = coreFMap["other"]["reg"];
+  corebit->getModule("reg")->getMetaData()["firrtl"] = fjson;
   
 }
