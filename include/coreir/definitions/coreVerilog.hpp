@@ -178,7 +178,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     vjson["definition"] = ""
     "reg [width-1:0] outReg;\n"
     "wire real_rst;\n"
-    "assign real_rst = arst_posedge ? rst : ~rst;\n"
+    "assign real_rst = arst_posedge ? arst : ~arst;\n"
     "wire real_clk;\n"
     "assign real_clk = clk_posedge ? clk : ~clk;\n"
     "always @(posedge real_clk, posedge real_rst) begin\n"

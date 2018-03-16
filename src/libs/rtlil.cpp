@@ -671,11 +671,11 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   adffGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
       bool polarity = args.at("CLK_POLARITY")->get<bool>();
 
-      ASSERT(polarity == true,
-             "Currently CoreIR only supports rising edge DFFs");
+      // ASSERT(polarity == true,
+      //        "Currently CoreIR only supports rising edge DFFs");
 
       // TODO: Reintroduce as a parameter
-      // bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
+      bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
       int rstVal = args.at("ARST_VALUE")->get<int>();
 
       // ASSERT(rstPolarity == true,
@@ -686,12 +686,11 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       Instance* reg = nullptr;
 
       reg = def->addInstance("reg0",
-                             "mantle.reg",
-                             {{"width", Const::make(c, width)},
-                                 {"has_rst", Const::make(c, true)}},
-                             {{"init", Const::make(c, BitVec(width, rstVal))}});
-
-                                   
+                             "coreir.reg_arst",
+                             {{"width", Const::make(c, width)}},
+                             {{"init", Const::make(c, BitVec(width, rstVal))},
+                                 {"clk_posedge", Const::make(c, polarity)},
+                                   {"arst_posedge", Const::make(c, rstPolarity)}});
 
       assert(reg != nullptr);
 
@@ -708,7 +707,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                        {{"type", Const::make(c, c->Named("coreir.arst"))}});
       
       def->connect("self.ARST", "toRST0.in");
-      def->connect("toRST0.out", "reg0.rst");
+      def->connect("toRST0.out", "reg0.arst");
       def->connect("self.CLK", "toClk0.in");
       def->connect("toClk0.out", "reg0.clk");
 
