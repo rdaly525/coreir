@@ -61,7 +61,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });
-  auto reg = bitop->newModuleDecl("reg",regType,{{"init",c->Bool()},{"clk_posedge",Const::make(c,true)}});
+  auto reg = bitop->newModuleDecl("reg",regType,{{"init",c->Bool()},{"clk_posedge",c->Bool()}});
   reg->addDefaultModArgs({{"init",Const::make(c,false)}});
 
   //reg
@@ -72,7 +72,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
     {"out",c->Bit()}
   });
   auto regrst = bitop->newModuleDecl("reg_arst",regRstType,{{"init",c->Bool()},{"arst_posedge",c->Bool()},{"clk_posedge",c->Bool()}});
-  regrst->addDefaultModArgs({{"init",Const::make(c,false)},{"arst_posedge",Const::make(c,true)},{"clk_posedge",Const::make(c,true)});
+  regrst->addDefaultModArgs({{"init",Const::make(c,false)},{"arst_posedge",Const::make(c,true)},{"clk_posedge",Const::make(c,true)}});
 
   Type* concatType = c->Record({
     {"in0", c->BitIn()},
