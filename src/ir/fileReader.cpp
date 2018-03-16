@@ -273,7 +273,7 @@ Module* getModSymbol(Context* c, string nsname, string iname) {
       return c->getNamespace(nsname)->getModule(iname);
     }
   }
-  string msg = "Missing Symbol: " + nsname + "." + iname;
+  string msg = "Missing Module Symbol: " + nsname + "." + iname;
   throw std::runtime_error(msg);
 }
 
@@ -283,7 +283,7 @@ Generator* getGenSymbol(Context* c, string nsname, string iname) {
       return c->getNamespace(nsname)->getGenerator(iname);
     }
   }
-  string msg = "Missing Symbol: " + nsname + "." + iname;
+  string msg = "Missing Generator Symbol: " + nsname + "." + iname;
   throw std::runtime_error(msg);
 }
 
