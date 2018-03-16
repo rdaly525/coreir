@@ -705,7 +705,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
       def->addInstance("toRST0",
                        "coreir.wrap",
-                       {{"type", Const::make(c, c->Named("coreir.rst"))}});
+                       {{"type", Const::make(c, c->Named("coreir.arst"))}});
       
       def->connect("self.ARST", "toRST0.in");
       def->connect("toRST0.out", "reg0.rst");

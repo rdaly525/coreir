@@ -61,18 +61,18 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });
-  auto reg = bitop->newModuleDecl("reg",regType,{{"init",c->Bool()}});
-  reg->addDefaultModArgs({{"init",Const::make(c,false)}});
+  auto reg = bitop->newModuleDecl("reg",regType,{{"init",c->Bool()},{"clk_posedge",c->Bool()}});
+  reg->addDefaultModArgs({{"init",Const::make(c,false)},{"clk_posedge",Const::make(c,true)}});
 
   //reg
   Type* regRstType = c->Record({
     {"clk",c->Named("coreir.clkIn")},
-    {"rst",c->Named("coreir.rstIn")},
+    {"arst",c->Named("coreir.arstIn")},
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });
-  auto regrst = bitop->newModuleDecl("regrst",regRstType,{{"init",c->Bool()},{"arst_posedge",c->Bool()}});
-  regrst->addDefaultModArgs({{"init",Const::make(c,false)},{"arst_posedge",Const::make(c,false)}});
+  auto regrst = bitop->newModuleDecl("reg_arst",regRstType,{{"init",c->Bool()},{"arst_posedge",c->Bool()},{"clk_posedge",c->Bool()}});
+  regrst->addDefaultModArgs({{"init",Const::make(c,false)},{"arst_posedge",Const::make(c,true)},{"clk_posedge",Const::make(c,true)}});
 
   Type* concatType = c->Record({
     {"in0", c->BitIn()},
