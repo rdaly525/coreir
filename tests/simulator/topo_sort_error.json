@@ -55,11 +55,11 @@
             "genargs":{"width":["Int",3]}
           },
           "inst1$inst0$inst0":{
-            "modref":"corebit.dff",
+            "modref":"corebit.reg",
             "modargs":{"init":["Bool",false]}
           },
           "inst1$inst1$inst0":{
-            "modref":"corebit.dff",
+            "modref":"corebit.reg",
             "modargs":{"init":["Bool",false]}
           }
         },
@@ -85,7 +85,7 @@
         }],
         "instances":{
           "inst0":{
-            "modref":"corebit.dff",
+            "modref":"corebit.reg",
             "modargs":{"init":["Bool",false]}
           }
         },
@@ -103,11 +103,11 @@
         }],
         "instances":{
           "inst0$inst0":{
-            "modref":"corebit.dff",
+            "modref":"corebit.reg",
             "modargs":{"init":["Bool",false]}
           },
           "inst1$inst0":{
-            "modref":"corebit.dff",
+            "modref":"corebit.reg",
             "modargs":{"init":["Bool",false]}
           }
         },
@@ -144,11 +144,11 @@
             "genargs":{"width":["Int",3]}
           },
           "inst0$inst1$inst0$inst0":{
-            "modref":"corebit.dff",
+            "modref":"corebit.reg",
             "modargs":{"init":["Bool",false]}
           },
           "inst0$inst1$inst1$inst0":{
-            "modref":"corebit.dff",
+            "modref":"corebit.reg",
             "modargs":{"init":["Bool",false]}
           }
         },

@@ -119,11 +119,13 @@ void core_state(Context* c, Namespace* core) {
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
     modparams["init"] = BitVectorType::make(c,width);
+    modparams["clk_posedge"] = c->Bool();
     string startString = "";
     for (int i = 0; i < width; i++) {
       startString += "x";
     }
     defaultargs["init"] = Const::make(c,BitVector(width, startString));
+    defaultargs["clk_posedge"] = Const::make(c,true);
     return {modparams,defaultargs};
   };
 
@@ -147,6 +149,10 @@ void core_state(Context* c, Namespace* core) {
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
     modparams["init"] = BitVectorType::make(c,width);
+    modparams["arst_posedge"] = c->Bool();
+    modparams["clk_posedge"] = c->Bool();
+    defaultargs["arst_posedge"] = Const::make(c,true);
+    defaultargs["clk_posedge"] = Const::make(c,true);
     return {modparams,defaultargs};
   };
 
@@ -154,7 +160,7 @@ void core_state(Context* c, Namespace* core) {
     int width = args.at("width")->get<int>();
     return c->Record({
         {"clk", c->Named("coreir.clkIn")},
-        {"rst", c->Named("coreir.rstIn")},
+        {"arst", c->Named("coreir.arstIn")},
         {"in" , c->BitIn()->Arr(width)},
         {"out", c->Bit()->Arr(width)}
     });
@@ -162,7 +168,7 @@ void core_state(Context* c, Namespace* core) {
 
 
   TypeGen* regRstTypeGen = core->newTypeGen("regRstType",widthparams,regRstFun);
-  auto regRst = core->newGeneratorDecl("regrst",regRstTypeGen,widthparams);
+  auto regRst = core->newGeneratorDecl("reg_arst",regRstTypeGen,widthparams);
   regRst->setModParamsGen(regRstModParamFun);
 
   //TODO Deal with roms
@@ -213,7 +219,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
 
   //Single bit types
   core->newNamedType("clk","clkIn",c->Bit());
-  core->newNamedType("rst","rstIn",c->Bit());
+  core->newNamedType("arst","arstIn",c->Bit());
 
   //Common Function types
   core->newTypeGen(

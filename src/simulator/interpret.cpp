@@ -917,7 +917,7 @@ namespace CoreIR {
       });
     } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
     } else if (opName == "corebit.term") {
-    } else if ((opName == "coreir.reg") || (opName == "corebit.dff")) {
+    } else if ((opName == "coreir.reg") || (opName == "corebit.reg")) {
     } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
     } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
@@ -1064,7 +1064,8 @@ namespace CoreIR {
         Instance* inst = toInstance(wd.getWire());
 
         Values args = inst->getModArgs();
-
+        cout << toString(inst) << endl;
+        cout << toString(args) << endl;
         bool val = args["init"]->get<bool>();
 
         setRegister(inst->toString(), BitVec(1, val ? 1 : 0));

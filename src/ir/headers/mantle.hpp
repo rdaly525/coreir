@@ -20,7 +20,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     });
     if (en) r.push_back({"en",c->BitIn()});
     if (clr) r.push_back({"clr",c->BitIn()});
-    if (rst) r.push_back({"rst",c->Named("coreir.rstIn")});
+    if (rst) r.push_back({"rst",c->Named("coreir.arstIn")});
     return c->Record(r);
   };
 

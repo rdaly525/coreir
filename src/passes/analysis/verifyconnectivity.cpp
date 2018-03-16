@@ -15,8 +15,8 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
   Context* c = this->getContext();
   if (w->getConnectedWireables().size()>0) return true;
   if (auto nt = dyn_cast<NamedType>(w->getType())) {
-    bool crin = nt == c->Named("coreir.clkIn") || nt == c->Named("coreir.rstIn");
-    bool crout = nt == c->Named("coreir.clk") || nt == c->Named("coreir.rst");
+    bool crin = nt == c->Named("coreir.clkIn") || nt == c->Named("coreir.arstIn");
+    bool crout = nt == c->Named("coreir.clk") || nt == c->Named("coreir.arst");
     if (!this->checkClkRst && (crin || (!this->onlyInputs && crout))) {
       return true;
     }
