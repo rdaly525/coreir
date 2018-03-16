@@ -132,6 +132,7 @@ namespace bsim {
         return "z";
       }
       assert(false);
+      return "";
     }
 
     void print(std::ostream& out) const {
