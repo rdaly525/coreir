@@ -877,7 +877,6 @@ namespace CoreIR {
     }
     assert(isInstance(wd.getWire()));
 
-    //string opName = getOpName(*toInstance(wd.getWire()));
     string opName = getQualifiedOpName(*toInstance(wd.getWire()));
 
     if ((opName == "coreir.and") || (opName == "corebit.and")) {
@@ -904,6 +903,10 @@ namespace CoreIR {
       updateOrrNode(vd);
     } else if (opName == "coreir.add") {
       updateAddNode(vd);
+    } else if (opName == "coreir.neg") {
+      updateBitVecUnop(vd, [](const BitVec& bv) {
+          return negate_general_width_bv(bv);
+        });
     } else if (opName == "coreir.sub") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return sub_general_width_bv(l, r);
@@ -914,7 +917,7 @@ namespace CoreIR {
       });
     } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
     } else if (opName == "corebit.term") {
-    } else if ((opName == "coreir.reg") || (opName == "corebit.dff")) {
+    } else if ((opName == "coreir.reg") || (opName == "corebit.reg")) {
     } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
     } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
@@ -1061,7 +1064,8 @@ namespace CoreIR {
         Instance* inst = toInstance(wd.getWire());
 
         Values args = inst->getModArgs();
-
+        cout << toString(inst) << endl;
+        cout << toString(args) << endl;
         bool val = args["init"]->get<bool>();
 
         setRegister(inst->toString(), BitVec(1, val ? 1 : 0));

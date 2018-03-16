@@ -55,16 +55,24 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
 
   //State
   
-  //DFF
-  Type* dffType = c->Record({
+  //reg
+  Type* regType = c->Record({
     {"clk",c->Named("coreir.clkIn")},
     {"in",c->BitIn()},
     {"out",c->Bit()}
   });
-  auto dff = bitop->newModuleDecl("dff",dffType,{{"init",c->Bool()}});
-  dff->addDefaultModArgs({{"init",Const::make(c,false)}});
+  auto reg = bitop->newModuleDecl("reg",regType,{{"init",c->Bool()}});
+  reg->addDefaultModArgs({{"init",Const::make(c,false)}});
 
-  //TODO Add other types of FFs (ones with reset and preset)
+  //reg
+  Type* regRstType = c->Record({
+    {"clk",c->Named("coreir.clkIn")},
+    {"rst",c->Named("coreir.rstIn")},
+    {"in",c->BitIn()},
+    {"out",c->Bit()}
+  });
+  auto regrst = bitop->newModuleDecl("regrst",regRstType,{{"init",c->Bool()},{"arst_posedge",c->Bool()}});
+  regrst->addDefaultModArgs({{"init",Const::make(c,false)},{"arst_posedge",Const::make(c,false)}});
 
   Type* concatType = c->Record({
     {"in0", c->BitIn()},

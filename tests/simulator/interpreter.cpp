@@ -1390,7 +1390,7 @@ namespace CoreIR {
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
       
-      Module* dff = c->getModule("corebit.dff");
+      Module* dff = c->getModule("corebit.reg");
       Type* dffType = c->Record({
           {"IN", c->BitIn()},
             {"CLK", c->Named("coreir.clkIn")},
