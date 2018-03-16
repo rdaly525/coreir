@@ -877,7 +877,6 @@ namespace CoreIR {
     }
     assert(isInstance(wd.getWire()));
 
-    //string opName = getOpName(*toInstance(wd.getWire()));
     string opName = getQualifiedOpName(*toInstance(wd.getWire()));
 
     if ((opName == "coreir.and") || (opName == "corebit.and")) {
@@ -904,6 +903,10 @@ namespace CoreIR {
       updateOrrNode(vd);
     } else if (opName == "coreir.add") {
       updateAddNode(vd);
+    } else if (opName == "coreir.neg") {
+      updateBitVecUnop(vd, [](const BitVec& bv) {
+          return negate_general_width_bv(bv);
+        });
     } else if (opName == "coreir.sub") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return sub_general_width_bv(l, r);

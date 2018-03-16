@@ -132,7 +132,6 @@ namespace bsim {
         return "z";
       }
       assert(false);
-      return "THIS WILL FAIL";
     }
 
     void print(std::ostream& out) const {
@@ -309,7 +308,6 @@ namespace bsim {
       ind++;
 
       char format = str_raw[ind];
-      (void) format;
 
       assert((format == 'b') ||
              (format == 'h') ||
@@ -502,13 +500,6 @@ namespace bsim {
       }
 
       return str;
-    }
-
-    bool is_binary() {
-      for (int i = 0; i < bitLength(); i++) {
-        if (!get(i).is_binary()) return false;
-      }
-      return true;
     }
     
     inline void set(const int ind, const int v) {
@@ -789,6 +780,13 @@ namespace bsim {
     
   };
 
+  static inline
+  quad_value_bit_vector
+  negate_general_width_bv(const quad_value_bit_vector& a) {
+    quad_value_bit_vector zero(a.bitLength(), 0);
+    return sub_general_width_bv(zero, a);
+  }
+
   static inline quad_value_bit_vector operator~(const quad_value_bit_vector& a) {
     return quad_value_bit_vector_operations::lnot(a);
   }
@@ -1016,8 +1014,8 @@ namespace bsim {
     for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
       res.set(i - shift_int, a.get(i));
     }
-		
-		int last_index = (int)a.bitLength() - shift_int;
+
+    int last_index = (int)a.bitLength() - shift_int;
     for (int i = a.bitLength() - 1; i >= last_index && i >= 0; i--) {
       res.set(i, sign_bit);
     }
