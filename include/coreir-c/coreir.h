@@ -26,8 +26,7 @@ extern COREValueType* COREContextBitVector(COREContext* context);
 extern COREValueType* COREContextString(COREContext* context);
 extern COREValueType* COREContextString(COREContext* context);
 
-extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes);
-extern bool COREContextRunPassesNamespaced(COREContext* ctx, char** passes, int num_passes,
+extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes,
                                            char** namespaces, int num_namespaces);
 
 
