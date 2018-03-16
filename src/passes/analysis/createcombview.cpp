@@ -41,7 +41,7 @@ void Passes::CreateCombView::setupCoreir(Module* m) {
 
 void Passes::CreateCombView::setupCorebit(Module* m) {
   string mname = m->getName();
-  if (mname == "dff") {
+  if (mname == "reg") {
     srcs[m].insert({"out"});
     snks[m].insert({"in"});
     snks[m].insert({"clk"});

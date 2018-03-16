@@ -949,7 +949,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           // connect to input wen
           if (i == 0) {
             string reg_name = valid_prefix + to_string(i);
-            def->addInstance(reg_name, "corebit.dff");
+            def->addInstance(reg_name, "corebit.reg");
             def->connect({"self","wen"}, {reg_name,"in"});
          
             // create and connect to register; register connects to previous register
@@ -957,7 +957,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             uint in_idx = i - in_dim;
             string reg_name = valid_prefix + to_string(i);
             string prev_reg_name = valid_prefix + to_string(in_idx);
-            def->addInstance(reg_name, "corebit.dff");
+            def->addInstance(reg_name, "corebit.reg");
             def->connect({prev_reg_name, "out"}, {reg_name, "in"});
 
           }

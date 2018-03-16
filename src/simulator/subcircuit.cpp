@@ -251,7 +251,7 @@ namespace CoreIR {
     for (auto inst : instances) {
       if ((getQualifiedOpName(*inst) == "coreir.reg") ||
           (getQualifiedOpName(*inst) == "coreir.regrst") ||
-          (getQualifiedOpName(*inst) == "corebit.dff")) {
+          (getQualifiedOpName(*inst) == "corebit.reg")) {
 
         Type* tp = inst->sel("out")->getType();
         string name = inst->toString() + "_subcircuit_out";
@@ -274,7 +274,7 @@ namespace CoreIR {
     for (auto inst : instances) {
       if ((getQualifiedOpName(*inst) == "coreir.reg") ||
           (getQualifiedOpName(*inst) == "coreir.regrst") ||
-          (getQualifiedOpName(*inst) == "corebit.dff")) {
+          (getQualifiedOpName(*inst) == "corebit.reg")) {
 
         string destName = "self." + inst->toString() + "_subcircuit_out";
         string instName = inst->getInstname() + ".out";

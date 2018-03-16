@@ -55,8 +55,8 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
           // Add a flip flop in front of single bit inputs
           assert(selTp->getKind() == Type::TK_Bit);
 
-          auto selDFF = def->addInstance(field.first + "_auto_dff",
-                                         "corebit.dff");
+          auto selDFF = def->addInstance(field.first + "_auto_reg",
+                                         "corebit.reg");
           newRegs.insert({sel, selDFF});
         }
 

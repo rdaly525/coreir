@@ -114,7 +114,7 @@ namespace CoreIR {
         c->die();
       }
       
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
 
       if (!saveToFile(c->getGlobal(), "register_fan_out_2.json", regComb)) {
         cout << "Could not save to json!!" << endl;
@@ -175,7 +175,7 @@ namespace CoreIR {
         c->die();
       }
       
-      // c->runPasses({"rungenerators"});
+      // c->runPasses({"rungenerators", "flatten"});
       
       // NGraph g;
       // buildOrderedGraph(regComb, g);
@@ -233,7 +233,7 @@ namespace CoreIR {
         c->die();
       }
       
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
       
       NGraph g;
       buildOrderedGraph(regComb, g);
@@ -287,16 +287,12 @@ namespace CoreIR {
 
       memory->setDef(def);
 
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
 
       cout << "Building graph" << endl;
 
       NGraph g;
       buildOrderedGraph(memory, g);
-
-      SECTION("Checking graph size") {
-	REQUIRE(numVertices(g) == 8);
-      }
 
       SECTION("Source mem node in operation graph gets raddr as an input") {
 	for (auto& vd : g.getVerts()) {
@@ -365,7 +361,7 @@ namespace CoreIR {
 
       rg->setDef(def);
 
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
       
       NGraph g;
       buildOrderedGraph(rg, g);
@@ -411,14 +407,10 @@ namespace CoreIR {
 
       rg->setDef(def);
 
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
       
       NGraph g;
       buildOrderedGraph(rg, g);
-
-      SECTION("Checking number of vertices") {
-      	REQUIRE(numVertices(g) == 6);
-      }
 
       cout << "About to topological sort" << endl;
       deque<vdisc> topoOrder = topologicalSort(g);
@@ -472,15 +464,10 @@ namespace CoreIR {
       counter->setDef(def);
       counter->print();
       
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
 
       NGraph g;
       buildOrderedGraph(counter, g);
-
-      SECTION("Checking number of vertices") {
-      	// clk, en, out, ai, ci, ri_in, ri_out
-      	REQUIRE(numVertices(g) == 7);
-      }
 
       cout << "About to topological sort" << endl;
       deque<vdisc> topoOrder = topologicalSort(g);
@@ -558,19 +545,10 @@ namespace CoreIR {
       regChain->setDef(def);
       regChain->print();
       
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
 
       NGraph g;
       buildOrderedGraph(regChain, g);
-
-      SECTION("Checking number of vertices") {
-	REQUIRE(splitNodeEdgesCorrect(g));	
-
-      	// clk, en, ap, bp, out, ai, r0_in, r0_out, r1_in, r1_out, r2_in, r2_out
-      	REQUIRE(numVertices(g) == 12);
-      }
-
-
 
       cout << "About to topological sort" << endl;
       deque<vdisc> topoOrder = topologicalSort(g);
@@ -605,15 +583,13 @@ namespace CoreIR {
 
       regChain->setDef(def);
 
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
 
       NGraph g;
       buildOrderedGraph(regChain, g);
 
       SECTION("Checking number of vertices") {
 	REQUIRE(splitNodeEdgesCorrect(g));	
-
-      	REQUIRE(numVertices(g) == 5);
       }
 
       cout << "About to topological sort" << endl;
@@ -648,15 +624,13 @@ namespace CoreIR {
 
       regChain->setDef(def);
       
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
 
       NGraph g;
       buildOrderedGraph(regChain, g);
 
       SECTION("Checking number of vertices") {
 	REQUIRE(splitNodeEdgesCorrect(g));	
-
-      	REQUIRE(numVertices(g) == 5);
       }
 
       cout << "About to topological sort" << endl;
@@ -706,7 +680,7 @@ namespace CoreIR {
 
       clkArr->setDef(def);
 
-      c->runPasses({"rungenerators"});
+      c->runPasses({"rungenerators", "flatten"});
 
       cout << "Building graph" << endl;
 
@@ -717,8 +691,6 @@ namespace CoreIR {
 
       SECTION("Checking number of vertices") {
 	REQUIRE(splitNodeEdgesCorrect(g));	
-
-      	REQUIRE(numVertices(g) == 9);
       }
 
       deque<vdisc> topoOrder = topologicalSort(g);
