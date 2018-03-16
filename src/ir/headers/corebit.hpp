@@ -62,7 +62,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
     {"out",c->Bit()}
   });
   auto reg = bitop->newModuleDecl("reg",regType,{{"init",c->Bool()},{"clk_posedge",c->Bool()}});
-  reg->addDefaultModArgs({{"init",Const::make(c,false)}});
+  reg->addDefaultModArgs({{"init",Const::make(c,false)},{"clk_posedge",Const::make(c,true)}});
 
   //reg
   Type* regRstType = c->Record({
