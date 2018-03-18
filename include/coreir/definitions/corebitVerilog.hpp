@@ -107,7 +107,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     vjson["definition"] = ""
     "reg outReg = init;\n"
     "always @(posedge clk) begin\n"
-    "  else outReg <= in;\n"
+    "  outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
     bit->getModule("reg")->getMetaData()["verilog"] = vjson;
@@ -120,7 +120,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     vjson["definition"] = ""
     "reg outReg;\n"
     "wire real_rst;\n"
-    "assign real_rst = arst_posedge ? rst : ~rst;\n"
+    "assign real_rst = arst_posedge ? arst : ~arst;\n"
     "wire real_clk;\n"
     "assign real_clk = clk_posedge ? clk : ~clk;\n"
     "always @(posedge real_clk, posedge real_rst) begin\n"
