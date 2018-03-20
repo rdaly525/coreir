@@ -199,7 +199,6 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       // ASSERT(!b_signed, "Have not yet added signed shift value support for " + name);
 
       ASSERT(y_width >= a_width, "Shift operations must have output at least as long as bit vector being shifted");
-      //ASSERT(y_width >= b_width, "Shift operations must have output at least as long as shift value");
 
       uint res_width = max(a_width, y_width);
       uint ext_width = max(res_width, b_width);
@@ -649,7 +648,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   Params adffParams =
     {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()},
      // NOTE: ARST_VALUE should really be a bit vector
-     {"ARST_POLARITY", c->Bool()}, {"ARST_VALUE", c->Int()}};
+     {"ARST_POLARITY", c->Bool()}}; //, {"ARST_VALUE", c->BitVector()}};
 
   TypeGen* adffTP =
     rtLib->newTypeGen(
@@ -667,20 +666,25 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("adff", adffTP, adffParams);
 
+  auto adffModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    uint width = genargs.at("WIDTH")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    //defaultargs["init"] = Const::make(c,BitVector(width,0));
+    return {modparams,defaultargs};
+  };
+
   auto adffGen = c->getGenerator("rtlil.adff");
+  adffGen->setModParamsGen(adffModParamFun);
   adffGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
       bool polarity = args.at("CLK_POLARITY")->get<bool>();
 
-      // ASSERT(polarity == true,
-      //        "Currently CoreIR only supports rising edge DFFs");
-
-      // TODO: Reintroduce as a parameter
       bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
-      int rstVal = args.at("ARST_VALUE")->get<int>();
 
-      // ASSERT(rstPolarity == true,
-      //        "Currently CoreIR only supports rising edge resets on adffs");
-      
+      Module* mod = def->getModule();
+      auto initVal = mod->getArg("init");
+
       uint width = args.at("WIDTH")->get<int>();
 
       Instance* reg = nullptr;
@@ -688,7 +692,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       reg = def->addInstance("reg0",
                              "coreir.reg_arst",
                              {{"width", Const::make(c, width)}},
-                             {{"init", Const::make(c, BitVec(width, rstVal))},
+                             {{"init", initVal},
                                  {"clk_posedge", Const::make(c, polarity)},
                                    {"arst_posedge", Const::make(c, rstPolarity)}});
 
