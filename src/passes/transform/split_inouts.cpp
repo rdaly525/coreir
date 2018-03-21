@@ -179,10 +179,41 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
         splitInOutToTribuf(portName, inputPort, outputPort, module, def);
 
         changed = true;
+      } else {
+        assert(ioSources.size() == 1);
+        assert(ios.size() == 1);
+
+        Select* innerIOPort = *begin(ios);
+
+        cout << "innerIOPort connected to this module is " << innerIOPort->toString() << endl;
+
+        auto srcInst = innerIOPort->getTopParent();
+        assert(isa<Instance>(srcInst));
+
+        Instance* innerInstance = cast<Instance>(srcInst);
+        cout << "Inner instance is " << innerInstance->toString() << endl;
+
+        assert(isBitType(*(innerIOPort->getType())));
+        
+        string ioSel = innerIOPort->getSelStr();
+
+        string innerInputStr = ioSel + "_input";
+        string innerOutputStr = ioSel + "_output";
+
+        Select* innerInput = innerInstance->sel(innerInputStr);
+        Select* innerOutput = innerInstance->sel(innerOutputStr);
+
+        def->disconnect(ioPort);
+
+        def->connect(inputPort, innerInput);
+        def->connect(outputPort, innerOutput);
+
+        //assert(false);
+
+        changed = true;
       }
-    } else {
-      assert(false);
     }
   }
+  
   return changed;
 }

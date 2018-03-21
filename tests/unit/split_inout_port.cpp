@@ -118,8 +118,9 @@ void io_to_io_test() {
   outer->print();
 
   c->runPasses({"split-inouts"});
-  
-  assert(false);
+
+  cout << "After splitting" << endl;
+  outer->print();
 
   deleteContext(c);
 }
