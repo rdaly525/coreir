@@ -98,12 +98,20 @@ void io_to_io_test() {
   }
 
   {
-    Type* outer_tp = c->Record({{"io_port", c->BitInOut()}});
+    Type* outer_tp =
+      c->Record({{"io_port", c->BitInOut()},
+            {"in", c->BitIn()},
+              {"out", c->Bit()},
+                {"en", c->BitIn()}});
+
     Module* outer = g->newModuleDecl("outer", outer_tp);
     ModuleDef* def = outer->newModuleDef();
     def->addInstance("inner_mod", "global.inner");
 
     def->connect("self.io_port", "inner_mod.io");
+    def->connect("self.en", "inner_mod.en");
+    def->connect("self.out", "inner_mod.from_io");
+    def->connect("self.in", "inner_mod.to_io");
 
     outer->setDef(def);
 
@@ -117,7 +125,7 @@ void io_to_io_test() {
   auto outer = g->getModule("outer");
   outer->print();
 
-  c->runPasses({"split-inouts"});
+  c->runPasses({"split-inouts", "flatten"});
 
   cout << "After splitting" << endl;
   outer->print();
