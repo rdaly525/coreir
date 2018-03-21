@@ -25,6 +25,7 @@
 #include "transform/flattentypes.h"
 #include "transform/fold_constants.h"
 #include "transform/removeconstduplicates.h"
+#include "transform/delete_unused_inouts.h"
 #include "transform/packbitconstants.h"
 #include "transform/packconnections.h"
 #include "transform/sanitize_names.h"
