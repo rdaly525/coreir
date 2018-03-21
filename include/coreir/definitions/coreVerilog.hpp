@@ -170,7 +170,6 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     core->getGenerator("term")->getMetaData()["verilog"] = vjson;
   }
   {
-    //reg_arst
     json vjson;
     vjson["prefix"] = "coreir_";
     vjson["parameters"] = {"init","arst_posedge","clk_posedge"};
@@ -186,7 +185,9 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson;
+    core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson; 
+    cout << "VJSON for reg: " << vjson << endl;
+    cout << "metadata for reg: " << core->getGenerator("reg_arst")->getMetaData() << endl;
   }
   {
     //reg

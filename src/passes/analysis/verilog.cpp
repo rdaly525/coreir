@@ -26,6 +26,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //Create a new Vmodule for this node
   Module* m = node.getModule();
+  cout << "Creating verilog for " << m->getRefName() << endl;
   if (m->isGenerated() && !m->hasDef()) { //TODO linking concern
     Generator* g = m->getGenerator();
     VModule* vmod;
