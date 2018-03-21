@@ -52,12 +52,12 @@ class ModuleDef {
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 
-    bool canSel(std::string selstr);
+    bool canSel(const std::string& selstr);
     bool canSel(SelectPath path);
     //Can select using std::string (inst.port.subport)
-    Wireable* sel(std::string s);
+    Wireable* sel(const std::string& s);
     //Or using a select Path
-    Wireable* sel(SelectPath path);
+    Wireable* sel(const SelectPath& path);
 
     //Ignore these
     Wireable* sel(std::initializer_list<const char*> path);

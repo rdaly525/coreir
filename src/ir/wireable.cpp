@@ -40,7 +40,7 @@ Select* Wireable::sel(const std::string& selStr) {
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
-Select* Wireable::sel(SelectPath path) {
+Select* Wireable::sel(const SelectPath& path) {
   Wireable* ret = this;
   for (auto selstr : path) ret = ret->sel(selstr);
   return cast<Select>(ret);
