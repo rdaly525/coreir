@@ -52,12 +52,12 @@ class ModuleDef {
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 
-    bool canSel(std::string selstr);
+    bool canSel(const std::string& selstr);
     bool canSel(SelectPath path);
     //Can select using std::string (inst.port.subport)
-    Wireable* sel(std::string s);
+    Wireable* sel(const std::string& s);
     //Or using a select Path
-    Wireable* sel(SelectPath path);
+    Wireable* sel(const SelectPath& path);
 
     //Ignore these
     Wireable* sel(std::initializer_list<const char*> path);
@@ -81,8 +81,8 @@ class ModuleDef {
 
     //API for connecting two instances together
     void connect(Wireable* a, Wireable* b);
-    void connect(SelectPath pathA, SelectPath pathB);
-    void connect(std::string pathA, std::string pathB); //dot notation a.b.c, e.f.g
+    void connect(const SelectPath& pathA, const SelectPath& pathB);
+    void connect(const std::string& pathA, const std::string& pathB); //dot notation a.b.c, e.f.g
     void connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB);
     void connect(std::initializer_list<std::string> pA, std::initializer_list<std::string> pB);
     
