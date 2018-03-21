@@ -241,11 +241,11 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
   }
 }
 
-void ModuleDef::connect(SelectPath pathA, SelectPath pathB) {
+void ModuleDef::connect(const SelectPath& pathA, const SelectPath& pathB) {
   this->connect(this->sel(pathA),this->sel(pathB));
 }
 
-void ModuleDef::connect(string pathA, string pathB) {
+void ModuleDef::connect(const string& pathA, const string& pathB) {
   this->connect(this->sel(pathA),this->sel(pathB));
 }
 void ModuleDef::connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB) {
