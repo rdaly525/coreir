@@ -102,6 +102,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
   {
     //reg
     json vjson;
+    vjson["prefix"] = "corebit_";
     vjson["parameters"] = {"init"};
     vjson["interface"] = bitIMap.at("reg");
     vjson["definition"] = ""
@@ -115,6 +116,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
   {
     //reg_arst
     json vjson;
+    vjson["prefix"] = "corebit_";
     vjson["parameters"] = {"init","arst_posedge"};
     vjson["interface"] = bitIMap.at("reg_arst");
     vjson["definition"] = ""

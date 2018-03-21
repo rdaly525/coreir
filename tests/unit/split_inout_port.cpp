@@ -173,7 +173,7 @@ void io_to_io_test() {
   sim.execute();
 
   assert(sim.getBitVec("self.io_port_output") == BitVector(1, 0));
-  
+
   deleteContext(c);
 }
 
