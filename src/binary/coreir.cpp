@@ -264,13 +264,9 @@ int main(int argc, char *argv[]) {
   else if (outExt=="v") {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
-    cout << "reg_rst" << c->get
-    //modified |= c->runPasses({"rungenerators","cullgraph","wireclocks-coreir","removebulkconnections","flattentypes","verilog"},namespaces);
 
     cout << "Running Runningvpasses" << endl;
-    //modified |= c->runPasses({"rungenerators","cullgraph","removebulkconnections","flattentypes","verilog"},namespaces);
     modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes","verilog"},namespaces);
-    //modified |= c->runPasses({"cullgraph","flattentypes","verilog"},namespaces);
     cout << "Running vpasses" << endl;
 
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
