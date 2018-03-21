@@ -9,10 +9,10 @@ namespace CoreIR {
     private :
 
     public:
-      SplitInouts(std::string name) : InstanceGraphPass(name, "Remove and ports that are not used") {}
+      DeleteUnusedInouts(std::string name) : InstanceGraphPass(name, "Remove and ports that are not used") {}
       bool runOnInstanceGraphNode(InstanceGraphNode& node);
     };
 
   }
 }
-#endif
+
