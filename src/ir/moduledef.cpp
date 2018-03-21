@@ -55,8 +55,8 @@ ModuleDef* ModuleDef::copy() {
   }
 
   for (auto con: this->getConnections()) {
-    SelectPath a = con.first->getSelectPath();  
-    SelectPath b = con.second->getSelectPath();
+    const SelectPath& a = con.first->getSelectPath();  
+    const SelectPath& b = con.second->getSelectPath();
     def->connect(a,b);
   }
   return def;
