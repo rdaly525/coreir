@@ -31,7 +31,7 @@ void splitInOutToTribuf(const std::string& portName,
                               {{"width", Const::make(c, width)}});
 
   // Add array connections
-  def->connect(mux->sel("in0")->sel(0), outputPort);
+  def->connect(mux->sel("in0")->sel(0), inputPort);
 
   Instance* tristateBuf = nullptr;
   Instance* tristateCast = nullptr;
@@ -74,7 +74,7 @@ void splitInOutToTribuf(const std::string& portName,
   assert(tribufSels.size() == 1);
 
   auto triBufDriver = tribufSels[0];
-  def->connect(triBufDriver, inputPort);
+  def->connect(triBufDriver, outputPort);
 
   // Wire tricast output receivers to the triput output receivers to
   // the mux output
@@ -122,7 +122,7 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
 
   cout << "Processing module = " << module->getName() << endl;
-  module->print();
+  //module->print();
   
   Context* c = module->getDef()->getContext();
 
@@ -138,8 +138,8 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
       string input = portName + "_input";
       string output = portName + "_output";
 
-      node.appendField(input, c->Bit());
-      node.appendField(output, c->BitIn());
+      node.appendField(input, c->BitIn());
+      node.appendField(output, c->Bit());
 
       Wireable* self = module->getDef()->sel("self");
 

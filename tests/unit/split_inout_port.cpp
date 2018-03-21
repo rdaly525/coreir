@@ -46,20 +46,30 @@ void tribuf_test() {
 
   SimulatorState sim(io);
 
+  // en = 1 means data flows into the IO
+  // en = 0 means data flows from the IO to the outputs
   sim.setValue("self.en", BitVector(1, 0));
-  sim.setValue("self.io_output", BitVector(1, 1));
+  sim.setValue("self.io_input", BitVector(1, 1));
   sim.setValue("self.to_io", BitVector(1, 0));
 
   sim.execute();
 
   assert(sim.getBitVec("self.from_io") == BitVector(1, 1));
 
-  sim.setValue("self.en", BitVector(1, 1));
+  sim.setValue("self.io_input", BitVector(1, 0));
 
   sim.execute();
 
   assert(sim.getBitVec("self.from_io") == BitVector(1, 0));
-  assert(sim.getBitVec("self.io_input") == BitVector(1, 0));
+
+  // Now pass data to the IO
+  sim.setValue("self.en", BitVector(1, 1));
+  sim.setValue("self.to_io", BitVector(1, 0));
+
+  sim.execute();
+
+  assert(sim.getBitVec("self.from_io") == BitVector(1, 0));
+  assert(sim.getBitVec("self.io_output") == BitVector(1, 0));
   
   deleteContext(c);
 }
@@ -130,6 +140,40 @@ void io_to_io_test() {
   cout << "After splitting" << endl;
   outer->print();
 
+  // Note input and output need to be renamed
+  SimulatorState sim(outer);
+
+  // when en = 0 data flows from IO input to mod output
+  // when en = 1 data flows from input to IO output
+
+  sim.setValue("self.en", BitVector(1, 0));
+  sim.setValue("self.in", BitVector(1, 1));
+  sim.setValue("self.io_port_input", BitVector(1, 0));
+
+  sim.execute();
+  
+  assert(sim.getBitVec("self.out") == BitVector(1, 0));
+
+  sim.setValue("self.io_port_input", BitVector(1, 1));
+
+  sim.execute();
+  
+  assert(sim.getBitVec("self.out") == BitVector(1, 1));
+
+  // Now data flows from input port to IO output
+  sim.setValue("self.en", BitVector(1, 1));
+  sim.setValue("self.in", BitVector(1, 1));
+
+  sim.execute();
+
+  assert(sim.getBitVec("self.io_port_output") == BitVector(1, 1));
+
+  sim.setValue("self.in", BitVector(1, 0));
+
+  sim.execute();
+
+  assert(sim.getBitVec("self.io_port_output") == BitVector(1, 0));
+  
   deleteContext(c);
 }
 
