@@ -19,8 +19,6 @@ bool Passes::DeleteUnusedInouts::runOnInstanceGraphNode(InstanceGraphNode& node)
   map<Select*, Select*> inoutsToIns;
   for (auto field : module->getType()->getRecord()) {
     if (field.second->getDir() == Type::DK_InOut) {
-      // TODO: Actually change the underlying array type instead
-      // of just assuming its BitInOut
       string portName = field.first;
 
       Wireable* self = module->getDef()->sel("self");

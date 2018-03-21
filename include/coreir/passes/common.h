@@ -92,6 +92,7 @@ namespace CoreIR {
     pm.addPass(new Passes::SanitizeNames());
     pm.addPass(new Passes::ClockifyInterface("clockifyinterface"));
     pm.addPass(new Passes::RegisterInputs("registerinputs"));
+    pm.addPass(new Passes::DeleteUnusedInouts("delete-unused-inouts"));
     pm.addPass(new Passes::Transform2CombView());
   }
 }
