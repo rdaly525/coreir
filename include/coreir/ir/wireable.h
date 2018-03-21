@@ -42,7 +42,7 @@ class Wireable : public MetaData {
 
     Select* sel(const std::string&);
     Select* sel(uint);
-    Select* sel(SelectPath);
+    Select* sel(const SelectPath&);
     
     //Ignore These
     Select* sel(std::initializer_list<const char*> path);

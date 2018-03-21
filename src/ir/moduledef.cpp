@@ -62,7 +62,7 @@ ModuleDef* ModuleDef::copy() {
   return def;
 }
 
-bool ModuleDef::canSel(std::string selstr) {
+bool ModuleDef::canSel(const std::string& selstr) {
   SelectPath path = splitString<SelectPath>(selstr,'.');
   return this->canSel(path);
 }
@@ -83,7 +83,7 @@ bool ModuleDef::canSel(SelectPath path) {
 
 //Can pass in either a single instance name
 //Or pass in a '.' deleminated string
-Wireable* ModuleDef::sel(string s) { 
+Wireable* ModuleDef::sel(const string& s) { 
   if (hasChar(s,'.')) {
     SelectPath path = splitString<SelectPath>(s,'.');
     return this->sel(path);
@@ -95,7 +95,7 @@ Wireable* ModuleDef::sel(string s) {
   }
 }
 
-Wireable* ModuleDef::sel(SelectPath path) {
+Wireable* ModuleDef::sel(const SelectPath& path) {
   Wireable* cur = this->sel(path[0]);
   for (auto it = std::next(path.begin()); it != path.end(); ++it) {
     cur = cur->sel(*it);
@@ -241,11 +241,11 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
   }
 }
 
-void ModuleDef::connect(SelectPath pathA, SelectPath pathB) {
+void ModuleDef::connect(const SelectPath& pathA, const SelectPath& pathB) {
   this->connect(this->sel(pathA),this->sel(pathB));
 }
 
-void ModuleDef::connect(string pathA, string pathB) {
+void ModuleDef::connect(const string& pathA, const string& pathB) {
   this->connect(this->sel(pathA),this->sel(pathB));
 }
 void ModuleDef::connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB) {
