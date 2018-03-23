@@ -5,6 +5,7 @@ login <github_username>
 password <github_password>
 ```
 
+Install the Python dependencies
 ```
 pip install github3.py netrc
 ```
