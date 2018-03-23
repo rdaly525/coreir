@@ -7,7 +7,7 @@ password <github_password>
 
 Install the Python dependencies
 ```
-pip install github3.py netrc
+pip install github3.py
 ```
 
 Run the following command in a directory that contains the following repositories:
