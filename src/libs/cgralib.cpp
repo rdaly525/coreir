@@ -99,30 +99,33 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   Params MemModParams = {
     {"mode",c->String()},
-    {"fifo_depth",c->Int()},
-    {"almost_full_cnt",c->Int()}
+    {"tile_en",c->Bool()}, //Always put 1
+    {"chain_en",c->Bool()}, //tie to 0 inially. 
+    {"depth",c->Int()}, 
+    {"almost_count",c->Int()} //will do both full and empty
   };
   cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     return c->Record({
-      {"waddr", c->BitIn()->Arr(width)},
+      {"addr", c->BitIn()->Arr(width)}, //both read and write addr
       {"wdata", c->BitIn()->Arr(width)},
-      {"wen", c->BitIn()},
-      {"raddr", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()}, //upstream valid
       {"rdata", c->Bit()->Arr(width)},
-      {"ren", c->BitIn()},
-      {"almost_full", c->Bit()},
-      {"valid", c->Bit()}
+      {"ren", c->BitIn()}, //Downstream ready
+      {"almost_full", c->Bit()}, //Upstream ready
+      {"almost_empty", c->Bit()}, //"downstream validish" Try not to use
+      {"valid", c->Bit()}, //Downstream valid
+      {"cg_en", c->BitIn()}, //Global stall
     });
   });
   auto MemModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params p; //params
     Values d; //defaults
     p["mode"] = c->String();
-    p["fifo_depth"] = c->Int();
-    d["fifo_depth"] = Const::make(c,1024);
-    p["almost_full_cnt"] = c->Int();
-    d["almost_full_cnt"] = Const::make(c,0);
+    p["depth"] = c->Int();
+    d["depth"] = Const::make(c,1024);
+    p["almost_cnt"] = c->Int();
+    d["almost_cnt"] = Const::make(c,0);
     return {p,d};
   };
 
