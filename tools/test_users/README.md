@@ -5,6 +5,10 @@ login <github_username>
 password <github_password>
 ```
 
+```
+pip install github3.py netrc
+```
+
 Run the following command in a directory that contains the following repositories:
 `coreir`, `pycoreir`, `magma`, `mantle`.
 ```
