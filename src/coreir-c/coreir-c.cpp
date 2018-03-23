@@ -154,6 +154,10 @@ extern "C" {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getNamespace(std::string(name)));
   }
 
+  CORENamespace* COREGlobalValueGetNamespace(COREGlobalValue* value) {
+    return rcast<CORENamespace*>(rcast<GlobalValue*>(value)->getNamespace());
+  }
+
   COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* modparams) {
     Params g;
     if (modparams) g =*rcast<Params*>(modparams) ;
