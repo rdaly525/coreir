@@ -113,7 +113,7 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
       {"rdata", c->Bit()->Arr(width)},
       {"ren", c->BitIn()}, //Downstream ready
       {"almost_full", c->Bit()}, //Upstream ready
-      {"almost_empty", c->Bit()}, //"downstream validish"
+      {"almost_empty", c->Bit()}, //"downstream validish" Try not to use
       {"valid", c->Bit()}, //Downstream valid
       {"cg_en", c->BitIn()}, //Global stall
     });
