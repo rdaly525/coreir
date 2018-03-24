@@ -102,6 +102,19 @@ extern "C" {
     return context->runPasses(vec_passes, vec_namespaces);
   }
 
+  void COREGetModArgs(COREWireable* core_wireable, const char*** keys, COREValue*** values, int* num_items) {
+    Values modargs = cast<Instance>(rcast<Wireable*>(core_wireable))->getModArgs();
+    *num_items = modargs.size();
+    *keys = (const char **) malloc(*num_items * sizeof(char*));
+    *values = (COREValue **) malloc(*num_items * sizeof(COREValue*));
+    int i = 0;
+    for (auto const& item : modargs) {
+        (*keys)[i] = item.first.c_str();
+        (*values)[i] = rcast<COREValue*>(item.second);
+        i++;
+    }
+  }
+
   COREValue* COREGetModArg(COREWireable* i, char* s) {
     string str(s);
     Values modargs =cast<Instance>(rcast<Wireable*>(i))->getModArgs();
@@ -377,6 +390,38 @@ extern "C" {
       return rcast<COREModule*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
   }
 
+  void CORENamespaceGetModules(CORENamespace* core_namespace, const char*** keys, COREModule*** values, int* num_items) {
+
+    std::map<std::string, Module*> modules =
+        rcast<Namespace*>(core_namespace)->getModules();
+
+    *num_items = modules.size();
+    *keys = (const char **) malloc(*num_items * sizeof(char*));
+    *values = (COREModule **) malloc(*num_items * sizeof(COREModule*));
+    int i = 0;
+    for (auto const& item : modules) {
+        (*keys)[i] = item.first.c_str();
+        (*values)[i] = rcast<COREModule*>(item.second);
+        i++;
+    }
+  }
+
+  void CORENamespaceGetGenerators(CORENamespace* core_namespace, const char*** keys, COREGenerator*** values, int* num_items) {
+
+    std::map<std::string, Generator*> generators =
+        rcast<Namespace*>(core_namespace)->getGenerators();
+
+    *num_items = generators.size();
+    *keys = (const char **) malloc(*num_items * sizeof(char*));
+    *values = (COREGenerator **) malloc(*num_items * sizeof(COREGenerator*));
+    int i = 0;
+    for (auto const& item : generators) {
+        (*keys)[i] = item.first.c_str();
+        (*values)[i] = rcast<COREGenerator*>(item.second);
+        i++;
+    }
+  }
+
   bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name) {
       std::map<std::string,Module*> modules =
           rcast<Namespace*>(_namespace)->getModules();
@@ -516,6 +561,10 @@ extern "C" {
 
   int COREValueTypeGetKind(COREValueType* value_type) {
       return rcast<ValueType*>(value_type)->getKind();
+  }
+
+  void COREFree(void * ptr) {
+      free(ptr);
   }
 
 }//extern "C"
