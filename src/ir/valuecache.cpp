@@ -38,10 +38,10 @@ ValueCache::~ValueCache() {
   delete boolTrue;
   delete boolFalse;
   for (auto it : intCache) delete it.second;
-  for (auto it : bvCache) delete it.second;
   for (auto it : stringCache) delete it.second;
   for (auto it : typeCache) delete it.second;
   for (auto it : moduleCache) delete it.second;
+  for (auto it : bvCache) delete it.second;
 }
 
 ConstBool* ValueCache::getBool(bool val) {
