@@ -6,7 +6,7 @@ using namespace std;
 namespace CoreIR {
 
 namespace {
-int cmpVal(const quad_value v) {
+int cmpVal(const bsim::quad_value v) {
   if (v.is_binary()) {
     return v.binary_value();
   }
