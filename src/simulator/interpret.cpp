@@ -1178,12 +1178,14 @@ namespace CoreIR {
       bv1 = BitVector(width, 0);
     }
     
-    auto inConns = getInputConnections(vd, gr);
+    //auto inConns = getInputConnections(vd, gr);
 
-    assert(inSels.size() >= 2);
+    //assert(inSels.size() >= 2);
 
-    InstanceValue clkArg = findArg("clk", inConns);
-    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    //InstanceValue clkArg = findArg("clk", inConns);
+    Select* clkArg = inst->sel("clk");
+    //ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    ClockValue* clkVal = toClock(getValue(clkArg));
     
     assert(clkVal != nullptr);
 
@@ -1198,8 +1200,10 @@ namespace CoreIR {
       } else {
         assert(inSels.size() == 3);
 
-        InstanceValue enArg = findArg("en", inConns);   
-        SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+        //InstanceValue enArg = findArg("en", inConns);
+        Select* enArg = inst->sel("en");
+        //SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+        SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg));
 
         assert(enBit != nullptr);
 
