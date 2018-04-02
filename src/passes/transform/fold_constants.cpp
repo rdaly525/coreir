@@ -593,6 +593,22 @@ namespace CoreIR {
           
         }
         
+      } else if (getQualifiedOpName(*inst) == "coreir.wrap") {
+        Select* in = inst->sel("in");
+
+        vector<Select*> in0Values = getSignalValues(in);
+        maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+
+        if (sigValue0.has_value()) {
+          auto recInstances = getReceiverSelects(inst);
+          for (auto elem : recInstances) {
+            auto src = extractSource(elem);
+            if (isa<Instance>(src) && (cast<Instance>(src) != inst)) {
+              toConsider.insert(cast<Instance>(src));
+            }
+          }
+        }
+
       } else if (getQualifiedOpName(*(inst)) == "coreir.orr") {
 
         Select* in = inst->sel("in");
@@ -643,48 +659,6 @@ namespace CoreIR {
 
         }
 
-        // NOTE: Pretty sure this is a duplicate
-      } else if (getQualifiedOpName(*inst) == "coreir.reg") {
-        // Select* inSel = inst->sel("in");
-        // Select* outSel = inst->sel("out");
-
-        // vector<Select*> inValues = getSignalValues(inSel);
-
-        // bool allInsFromOut = true;
-        // for (auto bitVal : inValues) {
-        //   Wireable* src = extractSource(bitVal);
-
-        //   if (src->sel("out") != outSel) {
-        //     allInsFromOut = false;
-        //   }
-        // }
-
-        // if (allInsFromOut) {
-
-        //   BitVector value = inst->getModArgs().at("init")->get<BitVector>();
-        //   auto newConst =
-        //     def->addInstance(inst->toString() + "_reg_const_replacement",
-        //                      "coreir.const",
-        //                      {{"width", Const::make(c, value.bitLength())}},
-        //                      {{"value", Const::make(c, BitVector(value))}});
-
-        //   auto recInstances = getReceiverSelects(inst);
-        //   for (auto elem : recInstances) {
-        //     auto src = extractSource(elem);
-        //     if (isa<Instance>(src)) {
-        //       toConsider.insert(cast<Instance>(src));
-        //     }
-        //   }
-          
-        //   Instance* instPT = addPassthrough(inst, "_remove_reg_PT");
-        //   Select* replacement = newConst->sel("out");
-
-        //   def->removeInstance(inst);
-        //   def->connect(replacement,
-        //                instPT->sel("in")->sel("out"));
-        //   inlineInstance(instPT);
-          
-        // }
       } else {
         cout << "No folding rule for " << getQualifiedOpName(*inst) << endl;
       }
