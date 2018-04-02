@@ -1099,20 +1099,32 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto inConns = getInputConnections(vd, gr);
+    updateInputs(vd);
 
-    assert(inConns.size() == 4);
+    // auto inConns = getInputConnections(vd, gr);
 
-    InstanceValue waddrV = findArg("waddr", inConns);
-    InstanceValue wdataV = findArg("wdata", inConns);
-    InstanceValue clkArg = findArg("clk", inConns);
-    InstanceValue enArg = findArg("wen", inConns);
+    // assert(inConns.size() == 4);
 
+    // InstanceValue waddrV = findArg("waddr", inConns);
+    // InstanceValue wdataV = findArg("wdata", inConns);
+    // InstanceValue clkArg = findArg("clk", inConns);
+    // InstanceValue enArg = findArg("wen", inConns);
 
-    SimBitVector* waddr = static_cast<SimBitVector*>(getValue(waddrV.getWire()));
-    SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
-    SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
-    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    Select* waddrV = inst->sel("waddr");
+    Select* wdataV = inst->sel("wdata");
+    Select* clkArg = inst->sel("clk");
+    Select* enArg = inst->sel("wen");
+    
+
+    // SimBitVector* waddr = static_cast<SimBitVector*>(getValue(waddrV.getWire()));
+    // SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
+    // SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+    // ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+
+    SimBitVector* waddr = static_cast<SimBitVector*>(getValue(waddrV));
+    SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV));
+    SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg));
+    ClockValue* clkVal = toClock(getValue(clkArg));
     
     assert(waddr != nullptr);
     assert(wdata != nullptr);
