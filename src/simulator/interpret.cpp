@@ -123,7 +123,7 @@ namespace CoreIR {
 
         // Set memory output port to default
         setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0)));
-        
+        setValue(inst->sel("raddr"), makeSimBitVector(BitVec(ceil(log2(depth)), 0)));
       }
     }
   }
@@ -531,6 +531,8 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
     auto outSelects = getOutputSelects(inst);
 
+    updateInputs(vd);
+
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
@@ -538,8 +540,12 @@ namespace CoreIR {
 
     assert(inConns.size() == 1);
 
-    InstanceValue arg1 = findArg("in", inConns);
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    Select* argSel = inst->sel("in");
+    ASSERT(isSet(argSel), "in must have a value to evaluate this node");
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
+    
+    // InstanceValue arg1 = findArg("in", inConns);
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
     
     assert(s1 != nullptr);
 
@@ -1044,19 +1050,7 @@ namespace CoreIR {
 
     Select* arg1 = inst->sel("raddr");
     BitVector raddrBits = getBitVec(arg1);
-    
-    // auto inConns = getInputConnections(vd, gr);
 
-    // assert(inConns.size() == 1);
-
-    // InstanceValue raddrV = findArg("raddr", inConns);
-    // SimBitVector* raddr = static_cast<SimBitVector*>(getValue(raddrV.getWire()));
-
-    // assert(raddr != nullptr);
-
-    
-
-    //BitVec raddrBits = raddr->getBits();
     BitVec newRData = getMemory(inst->toString(), raddrBits);
 
     setValue(inst->sel("rdata"), makeSimBitVector(newRData));
@@ -1186,16 +1180,8 @@ namespace CoreIR {
 
       if (inSels.size() == 2) {
 
-// <<<<<<< HEAD
-//         setRegister(inst->toString(), bv1);
-//         assert(same_representation(getRegister(inst->toString()), bv1));
-//         //assert(getRegister(inst->toString()) == bv1);
-// =======
-        //cout << "Setting register " << inst->toString() << " to " << bv1 << endl;        
-        //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), bv1); //s1->getBits());
         ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
-        //>>>>>>> upstream/dev
 
       } else {
         assert(inSels.size() == 3);
