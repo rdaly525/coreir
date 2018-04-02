@@ -6,6 +6,7 @@
 
 typedef struct COREContext COREContext;
 typedef struct CORENamespace CORENamespace;
+typedef struct COREGlobalValue COREGlobalValue;
 typedef struct COREType COREType;
 typedef struct COREModule COREModule;
 typedef struct COREGenerator COREGenerator;
