@@ -1038,18 +1038,25 @@ namespace CoreIR {
   void SimulatorState::updateMemoryOutput(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
+    updateInputs(vd);
+
     Instance* inst = toInstance(wd.getWire());
 
-    auto inConns = getInputConnections(vd, gr);
+    Select* arg1 = inst->sel("raddr");
+    BitVector raddrBits = getBitVec(arg1);
+    
+    // auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() == 1);
+    // assert(inConns.size() == 1);
 
-    InstanceValue raddrV = findArg("raddr", inConns);
-    SimBitVector* raddr = static_cast<SimBitVector*>(getValue(raddrV.getWire()));
+    // InstanceValue raddrV = findArg("raddr", inConns);
+    // SimBitVector* raddr = static_cast<SimBitVector*>(getValue(raddrV.getWire()));
 
-    assert(raddr != nullptr);
+    // assert(raddr != nullptr);
 
-    BitVec raddrBits = raddr->getBits();
+    
+
+    //BitVec raddrBits = raddr->getBits();
     BitVec newRData = getMemory(inst->toString(), raddrBits);
 
     setValue(inst->sel("rdata"), makeSimBitVector(newRData));
@@ -1271,20 +1278,9 @@ namespace CoreIR {
           updateMemoryOutput(vd);
         }
 
-        //<<<<<<< HEAD
       if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
         updateRegisterOutput(vd);
       }
-      //=======
-//         if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
-//           // Does this work when the raddr port is not yet defined?
-//           updateLinebufferMemOutput(vd);
-//         }
-
-//         if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-//           updateRegisterOutput(vd);
-//         }
-// >>>>>>> upstream/dev
 
         if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
           updateDFFOutput(vd);
