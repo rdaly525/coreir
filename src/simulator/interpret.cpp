@@ -123,7 +123,7 @@ namespace CoreIR {
 
         // Set memory output port to default
         setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0)));
-        
+        setValue(inst->sel("raddr"), makeSimBitVector(BitVec(ceil(log2(depth)), 0)));
       }
     }
   }
@@ -531,6 +531,8 @@ namespace CoreIR {
     Instance* inst = toInstance(wd.getWire());
     auto outSelects = getOutputSelects(inst);
 
+    updateInputs(vd);
+
     assert(outSelects.size() == 1);
 
     pair<string, Wireable*> outPair = *std::begin(outSelects);
@@ -538,8 +540,12 @@ namespace CoreIR {
 
     assert(inConns.size() == 1);
 
-    InstanceValue arg1 = findArg("in", inConns);
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
+    Select* argSel = inst->sel("in");
+    ASSERT(isSet(argSel), "in must have a value to evaluate this node");
+    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
+    
+    // InstanceValue arg1 = findArg("in", inConns);
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
     
     assert(s1 != nullptr);
 
@@ -1038,18 +1044,13 @@ namespace CoreIR {
   void SimulatorState::updateMemoryOutput(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
+    updateInputs(vd);
+
     Instance* inst = toInstance(wd.getWire());
 
-    auto inConns = getInputConnections(vd, gr);
+    Select* arg1 = inst->sel("raddr");
+    BitVector raddrBits = getBitVec(arg1);
 
-    assert(inConns.size() == 1);
-
-    InstanceValue raddrV = findArg("raddr", inConns);
-    SimBitVector* raddr = static_cast<SimBitVector*>(getValue(raddrV.getWire()));
-
-    assert(raddr != nullptr);
-
-    BitVec raddrBits = raddr->getBits();
     BitVec newRData = getMemory(inst->toString(), raddrBits);
 
     setValue(inst->sel("rdata"), makeSimBitVector(newRData));
@@ -1098,20 +1099,32 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
 
-    auto inConns = getInputConnections(vd, gr);
+    updateInputs(vd);
 
-    assert(inConns.size() == 4);
+    // auto inConns = getInputConnections(vd, gr);
 
-    InstanceValue waddrV = findArg("waddr", inConns);
-    InstanceValue wdataV = findArg("wdata", inConns);
-    InstanceValue clkArg = findArg("clk", inConns);
-    InstanceValue enArg = findArg("wen", inConns);
+    // assert(inConns.size() == 4);
 
+    // InstanceValue waddrV = findArg("waddr", inConns);
+    // InstanceValue wdataV = findArg("wdata", inConns);
+    // InstanceValue clkArg = findArg("clk", inConns);
+    // InstanceValue enArg = findArg("wen", inConns);
 
-    SimBitVector* waddr = static_cast<SimBitVector*>(getValue(waddrV.getWire()));
-    SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
-    SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
-    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    Select* waddrV = inst->sel("waddr");
+    Select* wdataV = inst->sel("wdata");
+    Select* clkArg = inst->sel("clk");
+    Select* enArg = inst->sel("wen");
+    
+
+    // SimBitVector* waddr = static_cast<SimBitVector*>(getValue(waddrV.getWire()));
+    // SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
+    // SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+    // ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+
+    SimBitVector* waddr = static_cast<SimBitVector*>(getValue(waddrV));
+    SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV));
+    SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg));
+    ClockValue* clkVal = toClock(getValue(clkArg));
     
     assert(waddr != nullptr);
     assert(wdata != nullptr);
@@ -1165,12 +1178,14 @@ namespace CoreIR {
       bv1 = BitVector(width, 0);
     }
     
-    auto inConns = getInputConnections(vd, gr);
+    //auto inConns = getInputConnections(vd, gr);
 
-    assert(inSels.size() >= 2);
+    //assert(inSels.size() >= 2);
 
-    InstanceValue clkArg = findArg("clk", inConns);
-    ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    //InstanceValue clkArg = findArg("clk", inConns);
+    Select* clkArg = inst->sel("clk");
+    //ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
+    ClockValue* clkVal = toClock(getValue(clkArg));
     
     assert(clkVal != nullptr);
 
@@ -1179,22 +1194,16 @@ namespace CoreIR {
 
       if (inSels.size() == 2) {
 
-// <<<<<<< HEAD
-//         setRegister(inst->toString(), bv1);
-//         assert(same_representation(getRegister(inst->toString()), bv1));
-//         //assert(getRegister(inst->toString()) == bv1);
-// =======
-        //cout << "Setting register " << inst->toString() << " to " << bv1 << endl;        
-        //setValue(toSelect(outPair.second), makeSimBitVector(s1->getBits()));
         setRegister(inst->toString(), bv1); //s1->getBits());
         ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
-        //>>>>>>> upstream/dev
 
       } else {
         assert(inSels.size() == 3);
 
-        InstanceValue enArg = findArg("en", inConns);   
-        SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+        //InstanceValue enArg = findArg("en", inConns);
+        Select* enArg = inst->sel("en");
+        //SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
+        SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg));
 
         assert(enBit != nullptr);
 
@@ -1271,20 +1280,9 @@ namespace CoreIR {
           updateMemoryOutput(vd);
         }
 
-        //<<<<<<< HEAD
       if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
         updateRegisterOutput(vd);
       }
-      //=======
-//         if (isLinebufferMemInstance(wd.getWire()) && !wd.isReceiver) {
-//           // Does this work when the raddr port is not yet defined?
-//           updateLinebufferMemOutput(vd);
-//         }
-
-//         if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-//           updateRegisterOutput(vd);
-//         }
-// >>>>>>> upstream/dev
 
         if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
           updateDFFOutput(vd);
