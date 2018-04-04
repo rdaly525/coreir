@@ -1140,7 +1140,8 @@ namespace CoreIR {
 
       setMemory(inst->toString(), waddrBits, wdata->getBits());
 
-      assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+      //assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+      assert(same_representation(getMemory(inst->toString(), waddrBits), wdata->getBits()));
     }
 
   }

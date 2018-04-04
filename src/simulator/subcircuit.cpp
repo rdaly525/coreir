@@ -250,7 +250,7 @@ namespace CoreIR {
 
     for (auto inst : instances) {
       if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-          (getQualifiedOpName(*inst) == "coreir.regrst") ||
+          (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
           (getQualifiedOpName(*inst) == "corebit.reg")) {
 
         Type* tp = inst->sel("out")->getType();
@@ -273,7 +273,7 @@ namespace CoreIR {
 
     for (auto inst : instances) {
       if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-          (getQualifiedOpName(*inst) == "coreir.regrst") ||
+          (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
           (getQualifiedOpName(*inst) == "corebit.reg")) {
 
         string destName = "self." + inst->toString() + "_subcircuit_out";
@@ -381,7 +381,7 @@ namespace CoreIR {
         auto inst = instR.second;
 
         if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-            (getQualifiedOpName(*inst) == "coreir.regrst")) {
+            (getQualifiedOpName(*inst) == "coreir.reg_arst")) {
 
           //cout << "Found register = " << inst->toString() << endl;
 
