@@ -1,6 +1,7 @@
 #include "coreir-c/coreir.h"
 #include "coreir.h"
 #include "common-c.hpp"
+#include <strings.h>
 
 using namespace std;
 namespace CoreIR {
@@ -102,14 +103,16 @@ extern "C" {
     return context->runPasses(vec_passes, vec_namespaces);
   }
 
-  void COREGetModArgs(COREWireable* core_wireable, const char*** keys, COREValue*** values, int* num_items) {
+  void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items) {
     Values modargs = cast<Instance>(rcast<Wireable*>(core_wireable))->getModArgs();
     *num_items = modargs.size();
-    *keys = (const char **) malloc(*num_items * sizeof(char*));
+    *keys = (char **) malloc(*num_items * sizeof(char*));
     *values = (COREValue **) malloc(*num_items * sizeof(COREValue*));
     int i = 0;
     for (auto const& item : modargs) {
-        (*keys)[i] = item.first.c_str();
+        const char* key = item.first.c_str();
+        (*keys)[i] = (char *) malloc(strlen(key) + 1);
+        strcpy((*keys)[i], key);
         (*values)[i] = rcast<COREValue*>(item.second);
         i++;
     }
@@ -390,33 +393,37 @@ extern "C" {
       return rcast<COREModule*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
   }
 
-  void CORENamespaceGetModules(CORENamespace* core_namespace, const char*** keys, COREModule*** values, int* num_items) {
+  void CORENamespaceGetModules(CORENamespace* core_namespace, char*** keys, COREModule*** values, int* num_items) {
 
     std::map<std::string, Module*> modules =
         rcast<Namespace*>(core_namespace)->getModules();
 
     *num_items = modules.size();
-    *keys = (const char **) malloc(*num_items * sizeof(char*));
+    *keys = (char **) malloc(*num_items * sizeof(char*));
     *values = (COREModule **) malloc(*num_items * sizeof(COREModule*));
     int i = 0;
     for (auto const& item : modules) {
-        (*keys)[i] = item.first.c_str();
+        const char* key = item.first.c_str();
+        (*keys)[i] = (char *) malloc(strlen(key) + 1);
+        strcpy((*keys)[i], key);
         (*values)[i] = rcast<COREModule*>(item.second);
         i++;
     }
   }
 
-  void CORENamespaceGetGenerators(CORENamespace* core_namespace, const char*** keys, COREGenerator*** values, int* num_items) {
+  void CORENamespaceGetGenerators(CORENamespace* core_namespace, char*** keys, COREGenerator*** values, int* num_items) {
 
     std::map<std::string, Generator*> generators =
         rcast<Namespace*>(core_namespace)->getGenerators();
 
     *num_items = generators.size();
-    *keys = (const char **) malloc(*num_items * sizeof(char*));
+    *keys = (char **) malloc(*num_items * sizeof(char*));
     *values = (COREGenerator **) malloc(*num_items * sizeof(COREGenerator*));
     int i = 0;
     for (auto const& item : generators) {
-        (*keys)[i] = item.first.c_str();
+        const char* key = item.first.c_str();
+        (*keys)[i] = (char *) malloc(strlen(key) + 1);
+        strcpy((*keys)[i], key);
         (*values)[i] = rcast<COREGenerator*>(item.second);
         i++;
     }
