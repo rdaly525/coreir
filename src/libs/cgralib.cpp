@@ -96,38 +96,42 @@ Namespace* CoreIRLoadLibrary_cgralib(Context* c) {
   cgralib->newModuleDecl("BitIO",c->Record({{"in",c->BitIn()},{"out",c->Bit()}}),modeParams);
   
   //Mem declaration
-  Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
-  Params MemModParams = {
-    {"mode",c->String()},
-    {"fifo_depth",c->Int()},
-    {"almost_full_cnt",c->Int()}
-  };
+  Params MemGenParams = {{"width",c->Int()},{"total_depth",c->Int()}};
   cgralib->newTypeGen("MemType",MemGenParams,[](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     return c->Record({
-      {"waddr", c->BitIn()->Arr(width)},
+      {"addr", c->BitIn()->Arr(width)}, //both read and write addr
       {"wdata", c->BitIn()->Arr(width)},
-      {"wen", c->BitIn()},
-      {"raddr", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()}, //upstream valid
       {"rdata", c->Bit()->Arr(width)},
-      {"ren", c->BitIn()},
-      {"almost_full", c->Bit()},
-      {"valid", c->Bit()}
+      {"ren", c->BitIn()}, //Downstream ready
+      {"almost_full", c->Bit()}, //Upstream ready
+      {"almost_empty", c->Bit()}, //"downstream validish" Try not to use
+      {"valid", c->Bit()}, //Downstream valid
+      {"cg_en", c->BitIn()}, //Global stall
     });
   });
   auto MemModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params p; //params
     Values d; //defaults
     p["mode"] = c->String();
-    p["fifo_depth"] = c->Int();
-    d["fifo_depth"] = Const::make(c,1024);
-    p["almost_full_cnt"] = c->Int();
-    d["almost_full_cnt"] = Const::make(c,0);
+    
+    p["depth"] = c->Int();
+    d["depth"] = Const::make(c,1024);
+    
+    p["almost_count"] = c->Int(); //Will do almost full and empty
+    d["almost_count"] = Const::make(c,0);
+    
+    p["tile_en"] = c->Bool(); //Always put 1
+    d["tile_en"] = Const::make(c,true); //Always put 1
+    
+    p["chain_enable"] = c->Bool(); //tie to 0 inially. 
+    d["chain_enable"] = Const::make(c,false);
     return {p,d};
   };
 
   Generator* Mem = cgralib->newGeneratorDecl("Mem",cgralib->getTypeGen("MemType"),MemGenParams);
-  Mem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+  Mem->addDefaultGenArgs({{"width",Const::make(c,16)},{"total_depth",Const::make(c,1024)}});
   Mem->setModParamsGen(MemModParamFun);
 
   return cgralib;

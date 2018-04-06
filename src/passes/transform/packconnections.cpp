@@ -138,63 +138,6 @@ bool Passes::PackConnections::runOnModule(Module* m) {
   }
 
   cout << "# of connections after deleting = " << def->getConnections().size() << endl;
-  // cout << "GROUPS" << endl;
-  // for (auto& gp : groups) {
-  //   cout << "-------- Group" << endl;
-  //   for (auto& conn : gp) {
-  //     cout << "( " << conn.first->toString() << ", " << conn.second->toString() << " )" << endl;
-  //   }
-  // }
-
-  // vector<Connection> connGroup;
-  // connGroup.push_back(arrayToArrayConns[0]);
-  // Select* lastLeft = cast<Select>(arrayToArrayConns[0].first);
-  // Select* lastRight = cast<Select>(arrayToArrayConns[0].second);
-  
-  // for (uint i = 1; i < arrayToArrayConns.size(); i++) {
-
-  //   Connection conn = arrayToArrayConns[i];
-
-  //   Select* curLeft = cast<Select>(conn.first);
-  //   Select* curRight = cast<Select>(conn.second);
-
-  //   Wireable* curLeftParent = curLeft->getParent();
-  //   Wireable* curRightParent = curRight->getParent();
-
-  //   if ((curLeft->getParent() == lastLeft->getParent()) &&
-  //       (curRight->getParent() == lastRight->getParent())) {
-      
-  //   } else {
-  //     if (connGroup.size() > 0) {
-  //       groups.push_back(connGroup);
-  //     }
-
-  //     connGroup = {};
-  //   }
-    
-  //   lastLeft = curLeft;
-  //   lastRight = curRight;
-
-  // }
-
-  // if (connGroup.size() > 0) {
-  //   groups.push_back(connGroup);
-  // }
-
-  // cout << "--- Sorted connections" << endl;
-  // for (auto& conn : arrayToArrayConns) {
-  //   cout << "( " << conn.first->toString() << ", " << conn.second->toString() << " )" << endl;
-  // }
-
-  // Idea: Sort each pair so that the wireable with the lower value parent is
-  // always on the lhs
-
-  // Next: Sort the list of connections by lhs, then sort by rhs
-  // 
-
-  
-  // cout << "# of array - array connections = " << arrayToArrayConns.size() << endl;
-  // vector<vector<Connection> > cLists;
     
   return true;
 }

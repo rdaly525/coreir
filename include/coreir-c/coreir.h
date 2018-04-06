@@ -52,6 +52,8 @@ COREModule* COREGeneratorGetModule(COREGenerator* core_gen, void* genargs);
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams);
 extern COREGenerator* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name);
 extern COREModule* CORENamespaceGetModule(CORENamespace* _namespace, const char* name);
+extern void CORENamespaceGetGenerators(CORENamespace* core_namespace, char*** keys, COREGenerator*** values, int* num_items);
+extern void CORENamespaceGetModules(CORENamespace* core_namespace, char*** keys, COREModule*** values, int* num_items);
 extern bool CORENamespaceHasGenerator(CORENamespace* _namespace, const char* name);
 extern bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name);
 
@@ -69,6 +71,7 @@ extern COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def
 
 extern COREWireable* COREModuleDefGetInterface(COREModuleDef* m);
 extern COREValue* COREGetModArg(COREWireable* i, char* s);
+extern void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items);
 extern bool COREHasModArg(COREWireable* i, char* s);
 
 //Errors:
@@ -107,5 +110,7 @@ extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstan
 // END   : directedview
 
 int COREValueTypeGetKind(COREValueType* value_type);
+
+void COREFree(void* ptr);
 
 #endif //COREIR_C_H_
