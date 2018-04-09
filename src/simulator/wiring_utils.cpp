@@ -418,7 +418,17 @@ namespace CoreIR {
 
     auto def = mod->getDef();
 
+
+    cout << "Checking for instance name in def" << endl;
+    if (!contains_key(instanceName, def->getInstances())) {
+      return;
+    }
+
+    cout << "Getting instance name from def " << endl;    
     Instance* inst = def->getInstances().at(instanceName);
+
+    cout << "Got instance name from def " << endl;
+
     assert(inst != nullptr);
     assert((getQualifiedOpName(*inst) == "coreir.reg") ||
            (getQualifiedOpName(*inst) == "coreir.reg_arst"));
@@ -426,6 +436,7 @@ namespace CoreIR {
     string instName = inst->getInstname();
     auto pt = addPassthrough(inst, inst->toString() + "_reg_replace_pt");
     Values args = inst->getModArgs();
+    cout << "Getting init value for " << getQualifiedOpName(*inst) << endl;
     args["init"] = Const::make(mod->getContext(), value);
 
     string instTp = getQualifiedOpName(*inst);
