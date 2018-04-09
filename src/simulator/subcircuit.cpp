@@ -357,6 +357,8 @@ namespace CoreIR {
 
     }
 
+    cout << "Done with submod definition" << endl;
+
     subMod->setDef(def);
   }
 
