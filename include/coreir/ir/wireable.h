@@ -17,6 +17,7 @@ class Wireable : public MetaData {
     ModuleDef* container; // ModuleDef which it is contained in 
     Type* type;
 
+    std::vector<Select*> selectList;
     std::set<Wireable*> connected; 
     
     //This manages the memory for the selects

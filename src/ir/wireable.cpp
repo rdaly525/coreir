@@ -34,8 +34,16 @@ Select* Wireable::sel(const std::string& selStr) {
   ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
 
   Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
+  //selectList.push_back(new Select(this->getContainer(),this,selStr, type->sel(selStr)));
   selects[selStr] = select;
+
+  //getContainer()->allSelects.push_back(Select(this->getContainer(),this,selStr, type->sel(selStr)));
+  //selects[selStr] = &(getContainer()->allSelects.back()); //&(*end(selectList)); //&(*(selectList.back()));
+
+  //selects[selStr] = selectList.back();
+
   return select;
+  //return selects.at(selStr);
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
@@ -127,7 +135,10 @@ SelectPath& Wireable::getSelectPath() {
   return selectpath;
 }
 
-Context* Wireable::getContext() { return container->getContext();}
+Context* Wireable::getContext() {
+  ASSERT(container != nullptr, this->toString() + " has null container");
+  return container->getContext();
+}
 string Wireable::wireableKind2Str(WireableKind wb) {
   switch(wb) {
     case WK_Interface: return "Interface";
