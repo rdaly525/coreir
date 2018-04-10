@@ -51,8 +51,8 @@ namespace CoreIR {
       // cout << "Module before trying to fold" << endl;
       // mod->print();
 
-      cout << "Checking instances " << inst->toString() << endl;
-      cout << "Instance name = " << getQualifiedOpName(*inst) << endl;
+      // cout << "Checking instances " << inst->toString() << endl;
+      // cout << "Instance name = " << getQualifiedOpName(*inst) << endl;
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
         //cout << "Found mux " << inst->toString() << endl;
@@ -95,8 +95,8 @@ namespace CoreIR {
 
           int offset = stoi(selStr);
 
-          cout << "\tSource = " << srcConst->toString() << endl;
-          cout << "\tOffset = " << offset << endl;
+          // cout << "\tSource = " << srcConst->toString() << endl;
+          // cout << "\tOffset = " << offset << endl;
 
           uint8_t bit = val.get(offset).binary_value();
 
