@@ -281,7 +281,18 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   Connection connect = connectionCtor(a,b);
   this->disconnect(connect);
 }
-void ModuleDef::disconnect(Connection con) {
+void ModuleDef::disconnect(Connection fstCon) {
+  auto con = connectionCtor(fstCon.first, fstCon.second);
+  
+  if (connections.count(con) == 0) {
+    cout << "All connections" << endl;
+    for (auto conn : getConnections()) {
+      cout << "\t" << toString(conn) << endl;
+    }
+
+    cout << "Contains reverse connection ? " << connections.count({con.second, con.first}) << endl;
+  }
+
   ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + toString(con));
   
   //remove references
