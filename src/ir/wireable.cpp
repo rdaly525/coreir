@@ -22,9 +22,9 @@ namespace CoreIR {
 const string Interface::instname = "self";
 
 Wireable::~Wireable() {
-  for (auto selmap : selects) {
-    delete selmap.second;
-  }
+  // for (auto selmap : selects) {
+  //   delete selmap.second;
+  // }
 }
 
 Select* Wireable::sel(const std::string& selStr) {
@@ -33,17 +33,20 @@ Select* Wireable::sel(const std::string& selStr) {
   }
   ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
 
-  Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
+  //Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
+
+  selectList.push_back(Select(this->getContainer(),this,selStr, type->sel(selStr)));
   //selectList.push_back(new Select(this->getContainer(),this,selStr, type->sel(selStr)));
-  selects[selStr] = select;
+  selects[selStr] = &(selectList.back()); //select;
 
   //getContainer()->allSelects.push_back(Select(this->getContainer(),this,selStr, type->sel(selStr)));
   //selects[selStr] = &(getContainer()->allSelects.back()); //&(*end(selectList)); //&(*(selectList.back()));
 
   //selects[selStr] = selectList.back();
 
-  return select;
+  //return select;
   //return selects.at(selStr);
+  return selects.at(selStr);
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
@@ -112,9 +115,10 @@ void Wireable::disconnectAll() {
 
 void Wireable::removeSel(string selStr) {
   ASSERT(selects.count(selStr),"Cannot remove " + selStr + "Because it does not exist!");
-  Select* s = selects[selStr];
+  //Select* s = selects[selStr];
   selects.erase(selStr);
-  delete s;
+  
+  //delete s;
 }
 
 
