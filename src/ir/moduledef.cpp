@@ -64,7 +64,7 @@ ModuleDef* ModuleDef::copy() {
   
   for (auto inst : this->getInstances()) {
     auto cpyInst = def->addInstance(inst.second);
-    addCorrespondingSelects(inst.second, cpyInst, oldWireablesToCopies);
+    //addCorrespondingSelects(inst.second, cpyInst, oldWireablesToCopies);
     //oldWireablesToCopies[inst.second] = cpyInst;
   }
 
