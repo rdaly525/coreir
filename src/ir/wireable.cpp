@@ -35,20 +35,9 @@ Select* Wireable::sel(const std::string& selStr) {
 
   Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
 
-  //selectList.push_back(Select(this->getContainer(),this,selStr, type->sel(selStr)));
-  //selectList.push_back(new Select(this->getContainer(),this,selStr, type->sel(selStr)));
-  //selects[selStr] = &(selectList.back()); //select;
-
   selects[selStr] = select;
 
-  //getContainer()->allSelects.push_back(Select(this->getContainer(),this,selStr, type->sel(selStr)));
-  //selects[selStr] = &(getContainer()->allSelects.back()); //&(*end(selectList)); //&(*(selectList.back()));
-
-  //selects[selStr] = selectList.back();
-
   return select;
-  //return selects.at(selStr);
-  //return selects.at(selStr);
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }

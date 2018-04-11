@@ -47,18 +47,60 @@ Context* ModuleDef::getContext() { return module->getContext(); }
 const string& ModuleDef::getName() {return module->getName();}
 RecordType* ModuleDef::getType() {return module->getType();}
 
+  void addCorrespondingSelects(Wireable* const original,
+                               Wireable* const cpy,
+                               std::map<Wireable*, Wireable*>& origToCopies) {
+    origToCopies[original] = cpy;
+    for (auto sel : original->getSelects()) {
+      addCorrespondingSelects(sel.second, cpy->sel(sel.first), origToCopies);
+    }
+  }
+
 ModuleDef* ModuleDef::copy() {
   Module* m = this->getModule();
   ModuleDef* def = m->newModuleDef();
+
+  map<Wireable*, Wireable*> oldWireablesToCopies;
+  
   for (auto inst : this->getInstances()) {
-    def->addInstance(inst.second);
+    auto cpyInst = def->addInstance(inst.second);
+    addCorrespondingSelects(inst.second, cpyInst, oldWireablesToCopies);
+    //oldWireablesToCopies[inst.second] = cpyInst;
   }
 
+  auto oldSelf = this->sel("self");
+  auto newSelf = def->sel("self");
+
+  addCorrespondingSelects(oldSelf, newSelf, oldWireablesToCopies);
+  //oldWireablesToCopies[oldSelf] = newSelf;
+
   for (auto con: this->getConnections()) {
-    const SelectPath& a = con.first->getSelectPath();  
-    const SelectPath& b = con.second->getSelectPath();
-    def->connect(a,b);
+
+    auto a = con.first;
+    auto b = con.second;
+
+    // if (!oldWireablesToCopies.count(a)) {
+    //   cout << "Copy map does not contain " << a->toString() << endl;
+    // }
+
+    // if (!oldWireablesToCopies.count(b)) {
+    //   cout << "Copy map does not contain " << b->toString() << endl;
+    // }
+    
+    auto aC = oldWireablesToCopies.at(a);
+    auto bC = oldWireablesToCopies.at(b);
+
+    // assert(aC != nullptr);
+    // assert(bC != nullptr);
+
+    def->connect(aC, bC);
+    
+    // const SelectPath& a = con.first->getSelectPath();
+    // const SelectPath& b = con.second->getSelectPath();
+    // def->connect(a,b);
+
   }
+
   return def;
 }
 
