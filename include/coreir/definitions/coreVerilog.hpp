@@ -212,7 +212,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["mem"];
     vjson["definition"] = ""
-    "reg [width-1:0] data[depth];\n"
+    "reg [width-1:0] data[depth-1:0];\n"
     "always @(posedge clk) begin\n"
     "  if (wen) begin\n"
     "    data[waddr] <= wdata;\n"

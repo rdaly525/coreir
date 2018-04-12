@@ -63,41 +63,14 @@ ModuleDef* ModuleDef::copy() {
   map<Wireable*, Wireable*> oldWireablesToCopies;
   
   for (auto inst : this->getInstances()) {
-    auto cpyInst = def->addInstance(inst.second);
-    //addCorrespondingSelects(inst.second, cpyInst, oldWireablesToCopies);
-    //oldWireablesToCopies[inst.second] = cpyInst;
+    def->addInstance(inst.second);
   }
-
-  auto oldSelf = this->sel("self");
-  auto newSelf = def->sel("self");
-
-  addCorrespondingSelects(oldSelf, newSelf, oldWireablesToCopies);
-  //oldWireablesToCopies[oldSelf] = newSelf;
 
   for (auto con: this->getConnections()) {
 
-    auto a = con.first;
-    auto b = con.second;
-
-    // if (!oldWireablesToCopies.count(a)) {
-    //   cout << "Copy map does not contain " << a->toString() << endl;
-    // }
-
-    // if (!oldWireablesToCopies.count(b)) {
-    //   cout << "Copy map does not contain " << b->toString() << endl;
-    // }
-    
-    auto aC = oldWireablesToCopies.at(a);
-    auto bC = oldWireablesToCopies.at(b);
-
-    // assert(aC != nullptr);
-    // assert(bC != nullptr);
-
-    def->connect(aC, bC);
-    
-    // const SelectPath& a = con.first->getSelectPath();
-    // const SelectPath& b = con.second->getSelectPath();
-    // def->connect(a,b);
+    const SelectPath& a = con.first->getSelectPath();
+    const SelectPath& b = con.second->getSelectPath();
+    def->connect(a,b);
 
   }
 
