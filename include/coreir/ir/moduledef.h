@@ -27,6 +27,7 @@ class ModuleDef {
     Interface* interface; 
     std::map<std::string,Instance*> instances;
     std::set<Connection,ConnectionComp> connections;
+
     
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;

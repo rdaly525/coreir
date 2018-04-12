@@ -25,6 +25,9 @@ void connectToDummy(//CoreIR::Instance* const next,
 
     def->connect(replaceConst->sel("out"), sel);
   } else {
+    if (!isBitType(*(sel->getType()))) {
+      cout << "ERROR: " << sel->toString() << " has type " << sel->getType()->toString() << endl;
+    }
     assert(isBitType(*(sel->getType())));
 
 
