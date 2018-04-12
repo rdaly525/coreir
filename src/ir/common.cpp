@@ -98,7 +98,11 @@ string toString(SelectPath path) {
 }
 
 string toString(Connection con) {
-  return con.first->toString() + " <=> " + con.second->toString();
+  Wireable* fstCon = ConnectionComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath()) ? con.first : con.second;
+  Wireable* sndCon = ConnectionComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath()) ? con.second : con.first;
+  return fstCon->toString() + " <=> " + sndCon->toString();
+
+  //return con.first->toString() + " <=> " + con.second->toString();
 }
 
 string toString(RecordParams rp) {
