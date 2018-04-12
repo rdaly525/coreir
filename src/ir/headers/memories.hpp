@@ -22,6 +22,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
       {"wen", c->BitIn()},
       {"rdata", c->Bit()->Arr(width)},
       {"valid", c->Bit()},
+      {"flush", c->BitIn()},
     });
   });
 
@@ -38,14 +39,15 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     //All State (mem, waddr, raddr, valid)
     def->addInstance("mem","coreir.mem",genargs);
     
-    def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
-    def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
-    def->addInstance("cnt","coreir.reg",aw1Params,{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
+    def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
+    def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
+    def->addInstance("cnt","mantle.reg",{{"width",Const::make(c,addrWidth+1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
 
-    def->addInstance("valid","corebit.reg",{{"init",Const::make(c,false)}});
+    def->addInstance("state","mantle.reg",{{"width",Const::make(c,1)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,1,0)}});
     
     //Constants:
     def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
+    def->addInstance("c1","corebit.const",{{"value",Const::make(c,true)}});
 
     //All clk connections:
     def->connect("self.clk","mem.clk");
@@ -62,48 +64,41 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.wen","mem.wen");
 
     //Other IO
+    def->addInstance("valid","corbit.and");
     def->connect("self.valid","valid.out");
+    def->connect("state.out.0","valid.in0");
+    def->connect("self.wen","valid.in1");
 
     //Logic to drive raddr
     def->connect("valid.out","raddr.en");
-    
+    def->connect("self.flush","raddr.srst");
+
     //Logic to drive waddr
     def->connect("self.wen","waddr.en");
+    def->connect("self.flush","waddr.srst");
     
     //Logic to drive cnt
-    // cnt_n = cnt + wen - valid
+    // cnt_n = !state ? cnt+wen
+    def->addInstance("state0","corebit.not");
     def->addInstance("add_wen","coreir.add",aw1Params);
-    def->addInstance("sub_valid","coreir.sub",aw1Params);
     def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
-    def->addInstance("valid_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
+    def->connect("self.flush","cnt.clr");
+    def->connect("state.out.0","state0.in");
+    def->connect("state0.in","cnt.en");
     def->connect("self.wen","wen_ext.in.0");
-    def->connect("valid.out","valid_ext.in.0");
     def->connect("wen_ext.out","add_wen.in0");
     def->connect("cnt.out","add_wen.in1");
-    def->connect("add_wen.out","sub_valid.in0");
-    def->connect("valid_ext.out","sub_valid.in1");
-    def->connect("sub_valid.out","cnt.in");
+    def->connect("add_wen.out","cnt.in");
 
-    //Logic to drive valid
-    //valid_n = valid ? (cnt_n !=0) : (cnt_n == depth-1)
-    def->addInstance("valid_n","corebit.mux");
+    //Logic to drive state
+    //state_n = flush ? 0 :  (cnt_n == DEPTH) ? 1 : state
+    def->addInstance("state_n","corebit.mux");
     def->addInstance("depth_m1","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,depth)}});
     def->addInstance("eq_depth","coreir.eq",aw1Params);
-    def->addInstance("neq_0","coreir.neq",aw1Params);
-    def->connect("valid_n.out","valid.in");
-    def->connect("valid.out","valid_n.sel");
-    def->connect("eq_depth.out","valid_n.in0");
-    def->connect("neq_0.out","valid_n.in1");
-    def->connect("c0.out","neq_0.in0");
-    def->connect("sub_valid.out","neq_0.in1");
-    def->connect("depth_m1.out","eq_depth.in0");
-    def->connect("sub_valid.out","eq_depth.in1");
-
+    def->connect("self.flush","state.clr");
+    def->connect("eq_depth.out","state.en");
+    def->connect("c1.out","state.in");
   });
-
-
-
-
 
 
   //Fifo Memory. Use this for memory in Fifo mode

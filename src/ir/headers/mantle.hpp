@@ -139,6 +139,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
   Params counterParams({
     {"width",c->Int()},
     {"has_en",c->Bool()},
+    {"has_srst",c->Bool()},
     {"has_max",c->Bool()}
   });
   // counter type
@@ -148,11 +149,13 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     [](Context* c, Values genargs) { //Function to compute type
       uint width = genargs.at("width")->get<int>();
       uint has_en = genargs.at("has_en")->get<bool>();
+      uint has_srst = genargs.at("has_srst")->get<bool>();
       RecordParams r({
         {"clk", c->Named("coreir.clkIn")},
         {"out",c->Bit()->Arr(width)}
       });
       if (has_en) r.push_back({"en",c->BitIn()});
+      if (has_srst) r.push_back({"srst",c->BitIn()});
       return c->Record(r);
     }
   );
@@ -171,16 +174,20 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
 
   Generator* counter = mantle->newGeneratorDecl("counter",mantle->getTypeGen("counter_type"),counterParams);
   counter->setModParamsGen(counterModParamFun);
-  counter->addDefaultGenArgs({{"has_max",Const::make(c,false)},{"has_en",Const::make(c,false)}});
+  counter->addDefaultGenArgs({{"has_max",Const::make(c,false)},{"has_en",Const::make(c,false)},{"has_srst",Const::make(c,false)}});
   counter->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     bool has_max = genargs.at("has_max")->get<bool>();
     bool has_en = genargs.at("has_en")->get<bool>();
+    bool has_srst = genargs.at("has_srst")->get<bool>();
     Values widthParams({{"width",Const::make(c,width)}});
-    def->addInstance("r","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,has_en)}},{{"init",def->getModule()->getArg("init")}});
+    def->addInstance("r","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,has_en)},{"has_srst",Const::make(c,has_srst)}},{{"init",def->getModule()->getArg("init")}});
     def->connect("self.clk","r.clk");
     if (has_en) {
       def->connect("self.en","r.en");
+    }
+    if (has_srst) {
+      def->connect("self.srst","r.srst");
     }
     def->addInstance("c1","coreir.const",widthParams,{{"value",Const::make(c,width,1)}});
     def->addInstance("add","coreir.add",widthParams);
@@ -203,8 +210,6 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       def->connect("add.out","r.in");
     }
   });
-
-
 
   return mantle;
 }
