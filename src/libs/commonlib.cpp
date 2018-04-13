@@ -822,6 +822,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       RecordParams recordparams = {
           {"in", in_type},
           {"wen",c->BitIn()},
+          {"flush",c->BitIn()},
           {"out", out_type}
       };
 
@@ -1117,6 +1118,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
             def->addInstance(lbmem_name, "memory.rowbuffer",
                              {{"width",aBitwidth},{"depth",aLbmemSize}});
+            def->connect({"self","flush"},{lbmem_name,"flush"});
 
             ///// connect lbmem input and wen /////
             //cout << "connecting lbmem input for " << lbmem_name << endl;
@@ -1255,6 +1257,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                 {"inc",Const::make(c,1)}
               };
               def->addInstance(counter_name,"commonlib.counter",counter_args);
+              def->connect({counter_name, "reset"}, {"self", "flush"});
 
               // comparator for valid (if stencil_size < count)
               string compare_name = "valcompare_" + to_string(dim_i);
