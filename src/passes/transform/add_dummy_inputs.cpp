@@ -6,9 +6,7 @@ using namespace CoreIR;
 
 string Passes::AddDummyInputs::ID = "add-dummy-inputs";
 
-void connectToDummy(//CoreIR::Instance* const next,
-                    //const std::string& field,
-                    const std::string& constName,
+void connectToDummy(const std::string& constName,
                     CoreIR::Select* const sel,
                     CoreIR::ModuleDef* const def,
                     CoreIR::Context* const c) {
@@ -87,6 +85,8 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
 
       if (sel->getType()->getDir() == Type::DirKind::DK_In) {
 
+        auto srcSels = getSourceSelects(sel);
+
         if (getSourceSelects(sel).size() == 0) {
           //cout << "\t\t" << sel->toString() << endl;
           //assert(isBitArray(*(sel->getType())) || isBitType(*(sel->getType())));
@@ -94,6 +94,14 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
           string constName = next->toString() + "_" + field + "_const_in";
           connectToDummy(constName, sel, def, c);
           
+        } else if (isBitArray(*(sel->getType()))) {
+          vector<Select*> sels = getSignalValues(sel);
+          for (auto s : sels) {
+            if (s == nullptr) {
+              string constName = next->toString() + "_" + s->getSelStr() + "_const_in";
+              connectToDummy(constName, s, def, c);
+            }
+          }
         }
         
       }
