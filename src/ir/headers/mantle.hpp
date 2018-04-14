@@ -181,13 +181,13 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     bool has_en = genargs.at("has_en")->get<bool>();
     bool has_srst = genargs.at("has_srst")->get<bool>();
     Values widthParams({{"width",Const::make(c,width)}});
-    def->addInstance("r","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,has_en)},{"has_srst",Const::make(c,has_srst)}},{{"init",def->getModule()->getArg("init")}});
+    def->addInstance("r","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,has_en)},{"has_clr",Const::make(c,has_srst)}},{{"init",def->getModule()->getArg("init")}});
     def->connect("self.clk","r.clk");
     if (has_en) {
       def->connect("self.en","r.en");
     }
     if (has_srst) {
-      def->connect("self.srst","r.srst");
+      def->connect("self.srst","r.clr");
     }
     def->addInstance("c1","coreir.const",widthParams,{{"value",Const::make(c,width,1)}});
     def->addInstance("add","coreir.add",widthParams);

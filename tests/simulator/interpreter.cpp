@@ -1051,7 +1051,7 @@ namespace CoreIR {
       
     }
 
-    SECTION("LineBufferMem") {
+    SECTION("Rowbuffer") {
 
       uint index = 4;
       uint width = index;
@@ -1060,12 +1060,13 @@ namespace CoreIR {
       CoreIRLoadLibrary_commonlib(c);
 
       Type* lineBufferMemType = c->Record({
-          {"clk", c->Named("coreir.clkIn")},
-            {"wdata", c->BitIn()->Arr(width)},
-              {"rdata", c->Bit()->Arr(width)},
-        	{"wen", c->BitIn()},
-        	  {"valid", c->Bit()}
-        });
+        {"clk", c->Named("coreir.clkIn")},
+        {"wdata", c->BitIn()->Arr(width)},
+        {"rdata", c->Bit()->Arr(width)},
+        {"wen", c->BitIn()},
+        {"valid", c->Bit()},
+        {"flush", c->BitIn()}
+      });
 
       Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
       ModuleDef* def = lbMem->newModuleDef();
@@ -1080,6 +1081,7 @@ namespace CoreIR {
       def->connect("self.wdata", "m0.wdata");
       def->connect("m0.rdata", "self.rdata");
       def->connect("m0.valid", "self.valid");
+      def->connect("self.flush", "m0.flush");
 
       lbMem->setDef(def);
 
@@ -1099,6 +1101,7 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "0"));
       state.setValue("self.wen", BitVector(1, "0"));
+      state.setValue("self.flush", BitVector(1, "0"));
       state.resetCircuit();
 
       state.setClock("self.clk", 0, 1);
@@ -1113,22 +1116,21 @@ namespace CoreIR {
         state.setValue("self.wen", BitVector(1, "1"));
         cout << "after setting value " << toString(val) << endl;
         state.exeCombinational();
-        cout << "raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
-        cout << "self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
-        cout << "self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        //cout << "raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        //cout << "self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, "0"));
         state.execute();
         val = add_general_width_bv(val, one);
       }
-      
       //Loading and reading (steady state)
       for (uint i = 0; i < depth; i++) {
         cout << "LR self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
         cout << "LR self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
-        cout << "LR raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
-        cout << "LR waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
-	      cout << "mem[0] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 0)) << endl;
-	      cout << "mem[1] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 1)) << endl;
+        //cout << "LR raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+	      //cout << "mem[0] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 0)) << endl;
+	      //cout << "mem[1] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 1)) << endl;
 	      //cout << "mem.addr " << (i) << " = " << state.getBitVec("m0$mem.raddr") << endl;
         //state.exeCombinational(); //TODO It works if This is here, but fails if it is missing
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
@@ -1139,11 +1141,34 @@ namespace CoreIR {
         state.exeCombinational();
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
         REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
-        cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
-        cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        //cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
         state.execute();
         val = add_general_width_bv(val, one);
       }
+      
+      //Loading and reading (steady state)
+      for (uint i = 0; i < depth; i++) {
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        cout << "setting wdata to " << val << endl;
+        state.exeCombinational();
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        //cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      state.setValue("self.wdata", val);
+      state.setValue("self.wen", BitVector(1,0));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      state.execute();
+      state.setValue("self.wen", BitVector(1,1));
       
       //just reading
       for (uint i = 0; i < depth; i++) {
@@ -1152,14 +1177,15 @@ namespace CoreIR {
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, "1"));
         REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (depth+i+1)%16));
         state.setValue("self.wdata", val);
-        state.setValue("self.wen", BitVector(1,0));
+        state.setValue("self.wen", BitVector(1,1));
         state.execute();
         val = add_general_width_bv(val, one);
       }
       REQUIRE(state.getBitVec("self.valid")== BitVec(1,0));
 
     }
-
+    
+    /*
     SECTION("LineBufferMem power of 2") {
 
       uint index = 4;
@@ -1170,10 +1196,11 @@ namespace CoreIR {
 
       Type* lineBufferMemType = c->Record({
           {"clk", c->Named("coreir.clkIn")},
-            {"wdata", c->BitIn()->Arr(width)},
-              {"rdata", c->Bit()->Arr(width)},
+          {"wdata", c->BitIn()->Arr(width)},
+          {"rdata", c->Bit()->Arr(width)},
         	{"wen", c->BitIn()},
-        	  {"valid", c->Bit()}
+        	{"valid", c->Bit()},
+        	{"flush", c->BitIn()}
         });
 
       Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
@@ -1189,6 +1216,7 @@ namespace CoreIR {
       def->connect("self.wdata", "m0.wdata");
       def->connect("m0.rdata", "self.rdata");
       def->connect("m0.valid", "self.valid");
+      def->connect("m0.flush", "self.flush");
 
       lbMem->setDef(def);
 
@@ -1208,6 +1236,7 @@ namespace CoreIR {
 
       state.setValue("self.wdata", BitVector(width, "0"));
       state.setValue("self.wen", BitVector(1, "0"));
+      state.setValue("self.flush", BitVector(1, "0"));
       state.resetCircuit();
 
       state.setClock("self.clk", 0, 1);
@@ -1268,6 +1297,7 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.valid")== BitVec(1,0));
 
     }
+    */
 
     SECTION("Slice") {
       uint inLen = 7;
@@ -1488,6 +1518,7 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
     }
 
+    /*
     SECTION("conv_3_1 from json") {
 
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
@@ -1546,6 +1577,7 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
 
     }
+    */
 
     SECTION("Failing clock test") {
 

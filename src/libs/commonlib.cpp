@@ -901,6 +901,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Const* aBitwidth = Const::make(c,bitwidth);
     assert(isa<ConstInt>(aBitwidth));
 
+    def->addInstance("flush_term","corebit.term");
+    def->connect("flush_term.in","self.flush");
+
     // NOTE: registers and lbmems named such that they correspond to output connections
 
     ////////////////////////////////////////////
@@ -1035,7 +1038,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         //if (!has_valid || (is_last_lb && i == out_dim-1)) { // was used when is_last_lb was used recursively
         
         def->addInstance(lb_name, "commonlib.linebuffer", args);
-
+        def->connect(lb_name + ".flush","self.flush");
       }
 
       // ALL CASES: stencil output connections
@@ -1149,20 +1152,21 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               if (has_valid) {
                  if (out_i < in_dim) {
                    // use self wen; actually stall network for now
-                   //def->connect("self.wen", lbmem_name + ".wen");
-                   string wen_name = lbmem_name + "_wen_high";
-                   Values wen_high = {{"value",Const::make(c,true)}};
-                   def->addInstance(wen_name, "corebit.const", wen_high);
-                   def->connect({wen_name,"out"}, {lbmem_name,"wen"});
+                   def->connect("self.wen", lbmem_name + ".wen");
+                   //string wen_name = lbmem_name + "_wen_high";
+                   //Values wen_high = {{"value",Const::make(c,true)}};
+                   //def->addInstance(wen_name, "corebit.const", wen_high);
+                   //def->connect({wen_name,"out"}, {lbmem_name,"wen"});
                  } else {
                    // use valid from previous lbmem
                    def->connect(input_name + ".valid", lbmem_name + ".wen");
                  }
               } else {
-                string wen_name = lbmem_name + "_wen_high";
-                Values wen_high = {{"value",Const::make(c,true)}};
-                def->addInstance(wen_name, "corebit.const", wen_high);
-                def->connect({wen_name,"out"}, {lbmem_name,"wen"});
+                def->connect("self.wen", lbmem_name + ".wen");
+                //string wen_name = lbmem_name + "_wen_high";
+                //Values wen_high = {{"value",Const::make(c,true)}};
+                //def->addInstance(wen_name, "corebit.const", wen_high);
+                //def->connect({wen_name,"out"}, {lbmem_name,"wen"});
               }
 
             } else {

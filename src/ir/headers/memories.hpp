@@ -43,10 +43,13 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
     def->addInstance("cnt","mantle.reg",{{"width",Const::make(c,addrWidth+1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
 
-    def->addInstance("state","mantle.reg",{{"width",Const::make(c,1)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,1,0)}});
+    def->addInstance("state","mantle.reg",{{"width",Const::make(c,1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,1,0)}});
     
+
+    def->addInstance("valid","corebit.and");
+
     //Constants:
-    def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
+    //def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
     def->addInstance("c1","corebit.const",{{"value",Const::make(c,true)}});
 
     //All clk connections:
@@ -54,7 +57,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.clk","raddr.clk");
     def->connect("self.clk","waddr.clk");
     def->connect("self.clk","cnt.clk");
-    def->connect("self.clk","valid.clk");
+    def->connect("self.clk","state.clk");
 
     //mem connections
     def->connect("raddr.out","mem.raddr");
@@ -64,7 +67,6 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.wen","mem.wen");
 
     //Other IO
-    def->addInstance("valid","corbit.and");
     def->connect("self.valid","valid.out");
     def->connect("state.out.0","valid.in0");
     def->connect("self.wen","valid.in1");
@@ -84,7 +86,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
     def->connect("self.flush","cnt.clr");
     def->connect("state.out.0","state0.in");
-    def->connect("state0.in","cnt.en");
+    def->connect("state0.out","cnt.en");
     def->connect("self.wen","wen_ext.in.0");
     def->connect("wen_ext.out","add_wen.in0");
     def->connect("cnt.out","add_wen.in1");
@@ -92,12 +94,14 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
     //Logic to drive state
     //state_n = flush ? 0 :  (cnt_n == DEPTH) ? 1 : state
-    def->addInstance("state_n","corebit.mux");
+    //def->addInstance("state_n","corebit.mux");
     def->addInstance("depth_m1","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,depth)}});
     def->addInstance("eq_depth","coreir.eq",aw1Params);
     def->connect("self.flush","state.clr");
+    def->connect("depth_m1.out","eq_depth.in0");
+    def->connect("add_wen.out","eq_depth.in1");
     def->connect("eq_depth.out","state.en");
-    def->connect("c1.out","state.in");
+    def->connect("c1.out","state.in.0");
   });
 
 
