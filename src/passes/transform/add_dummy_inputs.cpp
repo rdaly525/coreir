@@ -95,10 +95,17 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
           connectToDummy(constName, sel, def, c);
           
         } else if (isBitArray(*(sel->getType()))) {
-          vector<Select*> sels = getSignalValues(sel);
-          for (auto s : sels) {
-            if (s == nullptr) {
-              string constName = next->toString() + "_" + s->getSelStr() + "_const_in";
+          ArrayType* art = cast<ArrayType>(sel->getType());
+          int len = art->getLen();
+          
+          //for (auto s : sels) {
+          for (int i = 0; i < len; i++) {
+            Select* s = sel->sel(i);
+            //            if (s == nullptr) {
+            auto sDriver = getSourceSelects(s);
+            assert((sDriver.size() == 0) || (sDriver.size() == 1));
+            if (sDriver.size() == 0) {
+              string constName = next->toString() + "_" + sel->getSelStr() + "_" + s->getSelStr() + "_const_in";
               connectToDummy(constName, s, def, c);
             }
           }
