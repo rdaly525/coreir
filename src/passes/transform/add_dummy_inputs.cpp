@@ -88,25 +88,27 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
         auto srcSels = getSourceSelects(sel);
 
         if (getSourceSelects(sel).size() == 0) {
-          //cout << "\t\t" << sel->toString() << endl;
-          //assert(isBitArray(*(sel->getType())) || isBitType(*(sel->getType())));
 
           string constName = next->toString() + "_" + field + "_const_in";
           connectToDummy(constName, sel, def, c);
           
         } else if (isBitArray(*(sel->getType()))) {
-          ArrayType* art = cast<ArrayType>(sel->getType());
-          int len = art->getLen();
+
+          // The array itself is not connected
+          if (sel->getConnectedWireables().size() == 0) {
+            ArrayType* art = cast<ArrayType>(sel->getType());
+            int len = art->getLen();
           
-          //for (auto s : sels) {
-          for (int i = 0; i < len; i++) {
-            Select* s = sel->sel(i);
-            //            if (s == nullptr) {
-            auto sDriver = getSourceSelects(s);
-            assert((sDriver.size() == 0) || (sDriver.size() == 1));
-            if (sDriver.size() == 0) {
-              string constName = next->toString() + "_" + sel->getSelStr() + "_" + s->getSelStr() + "_const_in";
-              connectToDummy(constName, s, def, c);
+            for (int i = 0; i < len; i++) {
+              Select* s = sel->sel(i);
+
+              auto sDriver = getSourceSelects(s);
+              assert((sDriver.size() == 0) || (sDriver.size() == 1));
+
+              if (sDriver.size() == 0) {
+                string constName = next->toString() + "_" + sel->getSelStr() + "_" + s->getSelStr() + "_const_in";
+                connectToDummy(constName, s, def, c);
+              }
             }
           }
         }
