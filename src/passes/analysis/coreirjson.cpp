@@ -209,7 +209,7 @@ string Connections2Json(Connections& cons) {
   }
 
   // Ensure that connections are serialized in select string sorted order
-  ConnectionComp c;
+  ConnectionStrComp c;
   std::sort(begin(sortedConns), end(sortedConns), [c](const Connection& l, const Connection& r) {
       return c(l, r);
     });
@@ -220,8 +220,14 @@ string Connections2Json(Connections& cons) {
     string sa = join(pa.begin(),pa.end(),string("."));
     string sb = join(pb.begin(),pb.end(),string("."));
     Array b;
-    b.add(quote(sa));
-    b.add(quote(sb));
+    if (sa > sb) {
+      b.add(quote(sa));
+      b.add(quote(sb));
+    }
+    else {
+      b.add(quote(sb));
+      b.add(quote(sa));
+    }
     a.add(b.toString());
   }
   return a.toMultiString();
