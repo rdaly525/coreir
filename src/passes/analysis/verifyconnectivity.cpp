@@ -24,7 +24,10 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
     return false;
   }
   if (w->getSelects().size()==0) {
+    w->getContainer()->print();
     e.message("{"+w->getContainer()->getName() + "}." + w->toString()+" Is not connected");
+    e.fatal();
+    w->getContext()->error(e);
     return false;
   }
   if (auto rt = dyn_cast<RecordType>(w->getType())) {
