@@ -1148,7 +1148,7 @@ namespace CoreIR {
       }
       
       //Loading and reading (steady state)
-      for (uint i = 0; i < depth; i++) {
+      for (uint i = depth; i < 2*depth; i++) {
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
         REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
         state.setValue("self.wdata", val);
@@ -1169,19 +1169,19 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
       state.execute();
       state.setValue("self.wen", BitVector(1,1));
+      state.exeCombinational();
       
       //just reading
       for (uint i = 0; i < depth; i++) {
         cout << "R" << i << " self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
         cout << "R" << i << " self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
         REQUIRE(state.getBitVec("self.valid") == BitVec(1, "1"));
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (depth+i+1)%16));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (2*depth+i+1)%16));
         state.setValue("self.wdata", val);
         state.setValue("self.wen", BitVector(1,1));
         state.execute();
         val = add_general_width_bv(val, one);
       }
-      REQUIRE(state.getBitVec("self.valid")== BitVec(1,0));
 
     }
     
