@@ -31,34 +31,24 @@ bool ConnectionComp::operator() (const Connection& l, const Connection& r) const
   if (l.first < r.first) {
     return true;
   }
-
-  // l.first >= r.first
-
   if (l.first == r.first) {
-    // l.first == r.first
     return l.second < r.second;
   }
-
-  // l.first > r.first
   return false;
+}
 
-
-  // if (l.first == r.first) {
-  //   return l.second < r.second;
-  // } else {
-  //   return false;
-  //   // l.first != r.first
-
-  //   // if (l.second == r.second) {
-  //   //   return false;
-  //   // }
-
-  //   //return l.second < r.second;
-  // }
-
-
-  // if (l.first!=r.first) return SPComp(l.first->getSelectPath(),r.first->getSelectPath());
-  // return SPComp(l.second->getSelectPath(),r.second->getSelectPath());
+bool ConnectionStrComp::SPComp(const SelectPath& l, const SelectPath& r) {
+  if (l.size() != r.size()) {
+    return l.size() < r.size();
+  }
+  for (uint i=0; i<l.size(); ++i) {
+    if (l[i] != r[i]) return l[i] < r[i];
+  }
+  return false;
+}
+bool ConnectionStrComp::operator() (const Connection& l, const Connection& r) const {
+  if (l.first!=r.first) return ConnectionStrComp::SPComp(l.first->getSelectPath(),r.first->getSelectPath());
+  return ConnectionStrComp::SPComp(l.second->getSelectPath(),r.second->getSelectPath());
 }
 
 Connection connectionCtor(Wireable* a, Wireable* b) {
