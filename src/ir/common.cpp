@@ -26,17 +26,40 @@ bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
   }
   return false;
 }
+
 bool ConnectionComp::operator() (const Connection& l, const Connection& r) const {
-  if (l.first!=r.first) return SPComp(l.first->getSelectPath(),r.first->getSelectPath());
-  return SPComp(l.second->getSelectPath(),r.second->getSelectPath());
+  if (l.first < r.first) {
+    return true;
+  }
+  if (l.first == r.first) {
+    return l.second < r.second;
+  }
+  return false;
+}
+
+bool ConnectionStrComp::SPComp(const SelectPath& l, const SelectPath& r) {
+  if (l.size() != r.size()) {
+    return l.size() < r.size();
+  }
+  for (uint i=0; i<l.size(); ++i) {
+    if (l[i] != r[i]) return l[i] < r[i];
+  }
+  return false;
+}
+bool ConnectionStrComp::operator() (const Connection& l, const Connection& r) const {
+  if (l.first!=r.first) return ConnectionStrComp::SPComp(l.first->getSelectPath(),r.first->getSelectPath());
+  return ConnectionStrComp::SPComp(l.second->getSelectPath(),r.second->getSelectPath());
 }
 
 Connection connectionCtor(Wireable* a, Wireable* b) {
-  if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
-    return Connection(a,b);
+  //if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
+  if (a < b) {
+    //return Connection(a,b);
+    return {a, b};
   }
   else {
-    return Connection(b,a);
+    //return Connection(b,a);
+    return {b,a};
   }
 }
 
@@ -65,7 +88,11 @@ string toString(SelectPath path) {
 }
 
 string toString(Connection con) {
-  return con.first->toString() + " <=> " + con.second->toString();
+  Wireable* fstCon = ConnectionComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath()) ? con.first : con.second;
+  Wireable* sndCon = ConnectionComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath()) ? con.second : con.first;
+  return fstCon->toString() + " <=> " + sndCon->toString();
+
+  //return con.first->toString() + " <=> " + con.second->toString();
 }
 
 string toString(RecordParams rp) {

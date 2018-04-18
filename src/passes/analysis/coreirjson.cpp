@@ -203,14 +203,31 @@ string Instances2Json(map<string,Instance*>& insts) {
 
 string Connections2Json(Connections& cons) {
   Array a(8);
-  for (auto con : cons) {
+  vector<Connection> sortedConns;
+  for (auto c : cons) {
+    sortedConns.push_back(c);
+  }
+
+  // Ensure that connections are serialized in select string sorted order
+  ConnectionStrComp c;
+  std::sort(begin(sortedConns), end(sortedConns), [c](const Connection& l, const Connection& r) {
+      return c(l, r);
+    });
+
+  for (auto con : sortedConns) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
     string sa = join(pa.begin(),pa.end(),string("."));
     string sb = join(pb.begin(),pb.end(),string("."));
     Array b;
-    b.add(quote(sa));
-    b.add(quote(sb));
+    if (sa > sb) {
+      b.add(quote(sa));
+      b.add(quote(sb));
+    }
+    else {
+      b.add(quote(sb));
+      b.add(quote(sa));
+    }
     a.add(b.toString());
   }
   return a.toMultiString();

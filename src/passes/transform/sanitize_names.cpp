@@ -46,6 +46,7 @@ bool Passes::SanitizeNames::runOnModule(Module* m) {
 
   auto def = m->getDef();
 
+  cout << "Sanitizing names in " << m->getName() << endl;
   set<Instance*> allInstances;
   for (auto inst : def->getInstances()) {
     allInstances.insert(inst.second);

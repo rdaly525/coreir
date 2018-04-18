@@ -14,6 +14,12 @@ class ConnectionComp {
     bool operator() (const Connection& l, const Connection& r) const;
 };
 
+class ConnectionStrComp {
+  public:
+    static bool SPComp(const SelectPath& l, const SelectPath& r);
+    bool operator() (const Connection& l, const Connection& r) const;
+};
+
 class ValuesComp {
   public:
     bool operator() (const Values& l, const Values& r) const;

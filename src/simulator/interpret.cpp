@@ -9,14 +9,14 @@ namespace CoreIR {
     return ceil(log2(depth)) + 1;
   }
 
-  void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
+  void SimMemory::setAddr(const BitVec& addr, const BitVec& val) {
 
     assert(val.bitLength() == ((int) width));
     // Cannot access out of range elements
-    assert(bv.to_type<uint>() < depth);
+    assert(addr.to_type<uint>() < depth);
 
-    values.erase(bv);
-    values.insert({bv, val});
+    values.erase(addr);
+    values.insert({addr, val});
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
@@ -491,10 +491,7 @@ namespace CoreIR {
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
     SimValue* v = getValue(sel);
 
-    if (v == nullptr) {
-      cout << sel->toString() << " cannot be found" << endl;
-    }
-    assert(v != nullptr);
+    ASSERT(v != nullptr, sel->toString() + " cannot be found");
 
     return toSimBitVector(v)->getBits();
   }
@@ -1140,7 +1137,8 @@ namespace CoreIR {
 
       setMemory(inst->toString(), waddrBits, wdata->getBits());
 
-      assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+      //assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+      assert(same_representation(getMemory(inst->toString(), waddrBits), wdata->getBits()));
     }
 
   }

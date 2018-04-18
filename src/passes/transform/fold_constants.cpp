@@ -51,8 +51,8 @@ namespace CoreIR {
       // cout << "Module before trying to fold" << endl;
       // mod->print();
 
-      cout << "Checking instances " << inst->toString() << endl;
-      cout << "Instance name = " << getQualifiedOpName(*inst) << endl;
+      // cout << "Checking instances " << inst->toString() << endl;
+      // cout << "Instance name = " << getQualifiedOpName(*inst) << endl;
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
         //cout << "Found mux " << inst->toString() << endl;
@@ -95,8 +95,8 @@ namespace CoreIR {
 
           int offset = stoi(selStr);
 
-          cout << "\tSource = " << srcConst->toString() << endl;
-          cout << "\tOffset = " << offset << endl;
+          // cout << "\tSource = " << srcConst->toString() << endl;
+          // cout << "\tOffset = " << offset << endl;
 
           uint8_t bit = val.get(offset).binary_value();
 
@@ -551,6 +551,68 @@ namespace CoreIR {
 
         }
 
+      } else if (getQualifiedOpName(*inst) == "coreir.reg_arst") {
+
+        Select* rstSel = inst->sel("arst");
+        auto inSels = getSourceSelects(rstSel);
+
+        ASSERT(inSels.size() == 1, "coreir.reg_arst must have one select");
+
+        Wireable* p = inSels[0]->getTopParent();
+        if (isa<Instance>(p)) {
+          Instance* rstSrcInst = cast<Instance>(p);
+          if (getQualifiedOpName(*rstSrcInst) == "coreir.wrap") {
+            Select* wrapIn = rstSrcInst->sel("in");
+            vector<Select*> in0Values = getSignalValues(wrapIn);
+            maybe<BitVec> rstValue = getSignalBitVec(in0Values);
+
+            // If the reset port is set to a constant then we may be able to constant
+            // fold
+            if (rstValue.has_value()) {
+        
+              Select* inSel = inst->sel("in");
+              Select* outSel = inst->sel("out");
+
+              vector<Select*> inValues = getSignalValues(inSel);
+
+              bool allInsFromOut = true;
+              for (auto bitVal : inValues) {
+                Wireable* src = extractSource(bitVal);
+
+                if (!isa<Instance>(src) || cast<Instance>(src)->sel("out") != outSel) {
+                  allInsFromOut = false;
+                }
+              }
+
+              if (allInsFromOut) {
+
+                BitVector value = inst->getModArgs().at("init")->get<BitVector>();
+                auto newConst =
+                  def->addInstance(inst->toString() + "_reg_const_replacement",
+                                   "coreir.const",
+                                   {{"width", Const::make(c, value.bitLength())}},
+                                   {{"value", Const::make(c, BitVector(value))}});
+
+                auto recInstances = getReceiverSelects(inst);
+                for (auto elem : recInstances) {
+                  auto src = extractSource(elem);
+                  if (isa<Instance>(src) && (cast<Instance>(src) != inst)) {
+                    toConsider.insert(cast<Instance>(src));
+                  }
+                }
+          
+                Instance* instPT = addPassthrough(inst, "_remove_reg_PT");
+                Select* replacement = newConst->sel("out");
+
+                def->removeInstance(inst);
+                def->connect(replacement,
+                             instPT->sel("in")->sel("out"));
+                inlineInstance(instPT);
+          
+              }
+            }
+          }
+        }
       } else if (getQualifiedOpName(*inst) == "coreir.reg") {
         Select* inSel = inst->sel("in");
         Select* outSel = inst->sel("out");
@@ -593,6 +655,22 @@ namespace CoreIR {
           
         }
         
+      } else if (getQualifiedOpName(*inst) == "coreir.wrap") {
+        Select* in = inst->sel("in");
+
+        vector<Select*> in0Values = getSignalValues(in);
+        maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+
+        if (sigValue0.has_value()) {
+          auto recInstances = getReceiverSelects(inst);
+          for (auto elem : recInstances) {
+            auto src = extractSource(elem);
+            if (isa<Instance>(src) && (cast<Instance>(src) != inst)) {
+              toConsider.insert(cast<Instance>(src));
+            }
+          }
+        }
+
       } else if (getQualifiedOpName(*(inst)) == "coreir.orr") {
 
         Select* in = inst->sel("in");
@@ -643,48 +721,6 @@ namespace CoreIR {
 
         }
 
-        // NOTE: Pretty sure this is a duplicate
-      } else if (getQualifiedOpName(*inst) == "coreir.reg") {
-        // Select* inSel = inst->sel("in");
-        // Select* outSel = inst->sel("out");
-
-        // vector<Select*> inValues = getSignalValues(inSel);
-
-        // bool allInsFromOut = true;
-        // for (auto bitVal : inValues) {
-        //   Wireable* src = extractSource(bitVal);
-
-        //   if (src->sel("out") != outSel) {
-        //     allInsFromOut = false;
-        //   }
-        // }
-
-        // if (allInsFromOut) {
-
-        //   BitVector value = inst->getModArgs().at("init")->get<BitVector>();
-        //   auto newConst =
-        //     def->addInstance(inst->toString() + "_reg_const_replacement",
-        //                      "coreir.const",
-        //                      {{"width", Const::make(c, value.bitLength())}},
-        //                      {{"value", Const::make(c, BitVector(value))}});
-
-        //   auto recInstances = getReceiverSelects(inst);
-        //   for (auto elem : recInstances) {
-        //     auto src = extractSource(elem);
-        //     if (isa<Instance>(src)) {
-        //       toConsider.insert(cast<Instance>(src));
-        //     }
-        //   }
-          
-        //   Instance* instPT = addPassthrough(inst, "_remove_reg_PT");
-        //   Select* replacement = newConst->sel("out");
-
-        //   def->removeInstance(inst);
-        //   def->connect(replacement,
-        //                instPT->sel("in")->sel("out"));
-        //   inlineInstance(instPT);
-          
-        // }
       } else {
         cout << "No folding rule for " << getQualifiedOpName(*inst) << endl;
       }

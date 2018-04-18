@@ -47,18 +47,33 @@ Context* ModuleDef::getContext() { return module->getContext(); }
 const string& ModuleDef::getName() {return module->getName();}
 RecordType* ModuleDef::getType() {return module->getType();}
 
+  void addCorrespondingSelects(Wireable* const original,
+                               Wireable* const cpy,
+                               std::map<Wireable*, Wireable*>& origToCopies) {
+    origToCopies[original] = cpy;
+    for (auto sel : original->getSelects()) {
+      addCorrespondingSelects(sel.second, cpy->sel(sel.first), origToCopies);
+    }
+  }
+
 ModuleDef* ModuleDef::copy() {
   Module* m = this->getModule();
   ModuleDef* def = m->newModuleDef();
+
+  map<Wireable*, Wireable*> oldWireablesToCopies;
+  
   for (auto inst : this->getInstances()) {
     def->addInstance(inst.second);
   }
 
   for (auto con: this->getConnections()) {
-    const SelectPath& a = con.first->getSelectPath();  
+
+    const SelectPath& a = con.first->getSelectPath();
     const SelectPath& b = con.second->getSelectPath();
     def->connect(a,b);
+
   }
+
   return def;
 }
 
@@ -281,7 +296,18 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   Connection connect = connectionCtor(a,b);
   this->disconnect(connect);
 }
-void ModuleDef::disconnect(Connection con) {
+void ModuleDef::disconnect(Connection fstCon) {
+  auto con = connectionCtor(fstCon.first, fstCon.second);
+  
+  if (connections.count(con) == 0) {
+    cout << "All connections" << endl;
+    for (auto conn : getConnections()) {
+      cout << "\t" << toString(conn) << endl;
+    }
+
+    cout << "Contains reverse connection ? " << connections.count({con.second, con.first}) << endl;
+  }
+
   ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + toString(con));
   
   //remove references

@@ -10,13 +10,24 @@ namespace CoreIR {
 //True is error
 //False is no error
 bool ModuleDef::checkTypes(Wireable* a, Wireable* b) {
+
+  //cout << "Getting context of " << a->toString() << endl;
   Context* c = a->getContext();
+  //cout << "Got context" << endl;
+
   Type* ta = a->getType();
   Type* tb = b->getType();
   //TODO This might not be valid if:
   //  2 outputs are connected to the same input
+
+  //cout << "Got types" << endl;
   
-  if (ta == c->Flip(tb) ) return false;
+  if (ta == c->Flip(tb) ) {
+    //cout << "ta flipped" << endl;
+    return false;
+  }
+
+  //cout << "Flipped types" << endl;
   
   Error e;
   e.message(a->getContainer()->getName() + ": Cannot wire together");
