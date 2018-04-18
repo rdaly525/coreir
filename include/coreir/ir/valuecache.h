@@ -16,10 +16,10 @@ class ValueCache {
   ConstBool* boolTrue;
   ConstBool* boolFalse;
   std::map<int,ConstInt*> intCache;
-  std::map<BitVector,ConstBitVector*,BitVectorComp> bvCache;
   std::map<std::string,ConstString*> stringCache;
   std::map<Type*,ConstCoreIRType*> typeCache;
   std::map<Module*,ConstModule*> moduleCache;
+  std::map<BitVector,ConstBitVector*,BitVectorComp> bvCache;
   
   public :
     ValueCache(Context* c); 
