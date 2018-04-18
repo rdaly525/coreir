@@ -47,8 +47,9 @@ bool ConnectionStrComp::SPComp(const SelectPath& l, const SelectPath& r) {
   return false;
 }
 bool ConnectionStrComp::operator() (const Connection& l, const Connection& r) const {
-  if (l.first!=r.first) return ConnectionStrComp::SPComp(l.first->getSelectPath(),r.first->getSelectPath());
-  return ConnectionStrComp::SPComp(l.second->getSelectPath(),r.second->getSelectPath());
+  string ls = toString(l);
+  string rs = toString(r);
+  return ls < rs;
 }
 
 Connection connectionCtor(Wireable* a, Wireable* b) {
