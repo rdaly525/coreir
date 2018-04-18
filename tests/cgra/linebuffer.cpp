@@ -58,14 +58,13 @@ int main() {
   cout << "Validating!!" << endl;
   lb32->getDef()->validate();
   cout << "1validated :(" << endl;
-  c->runPasses({"verifyconnectivity-noclkrst"},{"global","commonlib","memory","mantle"});
+  c->runPasses({"verifyconnectivity-onlyinputs-noclkrst"},{"global","commonlib","memory","mantle"});
   cout << "2validated :(" << endl;
   c->runPasses({"flatten"});
   cout << "flattned :(" << endl;
-  c->runPasses({"verifyconnectivity-noclkrst"});
+  c->runPasses({"verifyconnectivity-onlyinputs-noclkrst"});
   //lb32->getDef()->validate();
   cout << "3validated :(" << endl;
-  exit(1);
   //c->runPasses({"rungenerators","verifyconnectivity-noclkrst"});
   //c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
   //lb32->print();

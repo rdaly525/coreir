@@ -916,7 +916,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         // output goes to mirror position, except keeping order within a single clock cycle
         uint iflip = (out_dim-1) - (in_dim - 1 - i % in_dim) - (i / in_dim) * in_dim;
 
-
         // connect to input
         if (i < in_dim) {
           def->connect({"self","in",to_string(i)}, {"self","out",to_string(iflip)});
@@ -1148,7 +1147,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
               def->connect(input_name + input_suffix, lbmem_name + ".wdata");
 
-              // connect wen if has_valid
+              // connect wen
               if (has_valid) {
                  if (out_i < in_dim) {
                    // use self wen; actually stall network for now
@@ -1188,6 +1187,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               if (has_valid) {
                 string valid_name = lb_prefix + to_string(0);
                 def->connect(valid_name + ".valid_chain", lbmem_name + ".wen");
+              } else {
+                def->connect("self.wen", lbmem_name + ".wen");
               }
 
             }
@@ -1223,7 +1224,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         for (uint out_i=0; out_i<in_dim; ++out_i) {
           string lb_name = lb_prefix + to_string(out_i);
           def->connect({"self","in",to_string(out_i)}, {lb_name, "in"});
-          //if (has_valid) { def->connect({"self","wen"}, {lb_name, "wen"}); } // use stall network
+          def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
         }
 
         ///// connect linebuffer outputs /////
@@ -1285,7 +1286,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               def->connect({counter_name,"out"},{compare_name,"in1"});
               def->connect({compare_name,"out"},{andr_name,"in",to_string(dim_i)});
             }
-          }
 
           /*
           // connect last linebuffer output to self.valid
@@ -1294,9 +1294,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           if (num_dims==2 && is_last_lb) {
             def->connect({last_lb_name,"wen"},{last_lbmem_name,"valid"});
             }*/
-
+          }
+        } else { // has_valid == 0
+          // hook up wen for rest of linebuffers
+          for (uint out_i=in_dim; out_i<out_dim; ++out_i) {
+            string lb_name = lb_prefix + to_string(out_i);
+            def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
+          }
         }
-        
         
       } // regular case
 
