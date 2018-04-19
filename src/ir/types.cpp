@@ -53,7 +53,7 @@ vector<std::string> Type::getSelects() {
   }
   else if (auto at = dyn_cast<ArrayType>(this)) {
     vector<std::string> ret;
-    for (auto i=0; i<at->getLen(); ++i) {
+    for (uint i=0; i<at->getLen(); ++i) {
       ret.push_back(to_string(i));
     }
     return ret;
