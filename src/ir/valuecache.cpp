@@ -5,6 +5,16 @@
 using namespace std;
 namespace CoreIR {
 
+namespace {
+int cmpVal(const bsim::quad_value v) {
+  if (v.is_binary()) {
+    return v.binary_value();
+  }
+
+  assert(v.is_unknown());
+  return 2;
+}
+}
 bool BitVectorComp::operator() (const BitVector& l, const BitVector& r) const {
   if (l.bitLength() != r.bitLength()) {
     return l.bitLength() < r.bitLength();
@@ -13,17 +23,14 @@ bool BitVectorComp::operator() (const BitVector& l, const BitVector& r) const {
   for (int i = l.bitLength() - 1; i >= 0; i--) {
     auto lv = l.get(i);
     auto rv = r.get(i);
-
-    if (lv.is_binary() && rv.is_binary()) {
-      if (lv.binary_value() > rv.binary_value()) {
-        return true;
-      }
-    } else if (lv.is_binary()) {
+  
+    uint lval = cmpVal(lv);
+    uint rval = cmpVal(rv);
+    if (lval < rval) {
       return true;
-    } else if (rv.is_binary()) {
+    }
+    else if (lval > rval) {
       return false;
-    } else {
-      assert(lv.is_unknown() && rv.is_unknown());
     }
   }
   return false;
@@ -38,10 +45,10 @@ ValueCache::~ValueCache() {
   delete boolTrue;
   delete boolFalse;
   for (auto it : intCache) delete it.second;
-  for (auto it : bvCache) delete it.second;
   for (auto it : stringCache) delete it.second;
   for (auto it : typeCache) delete it.second;
   for (auto it : moduleCache) delete it.second;
+  for (auto it : bvCache) delete it.second;
 }
 
 ConstBool* ValueCache::getBool(bool val) {
