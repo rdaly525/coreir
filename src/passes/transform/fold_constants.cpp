@@ -523,7 +523,7 @@ namespace CoreIR {
           // TODO: Check for binary values
           BitVec res = BitVec(1, 1);
           for (uint i = 0; i < ((uint) sigVal0.bitLength()); i++) {
-            if (sigVal0.get(i) == 1) {
+            if (sigVal0.get(i) == 0) {
               res = BitVec(1, 0);
               break;
             }
