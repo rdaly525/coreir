@@ -3,21 +3,20 @@ This guide is meant to be a gentle introduction into the CoreIR API. You will bu
 
 `>cd tutorial/hellocounter`
 
-## HelloModuleSugar
+## HelloModule
 
-Open `hellomodulesugar.cpp`
+Open `hellomodule.cpp`
 
-Now go through this code line by line. This is creating the exact same module as before but in a more succinct way (hence the syntax sugar). Compile this by doing:
+This file has a description in comments of how to create a module. This is the 'sugar'ed version of the IR. You can compile and run this by doing:
 
 ```
 >make build/hellomodulesugar
 >./build/hellomodulesugar
 ```
 
+## HelloModule Desgar
 
-## HelloModule
-
-Open `hellomodule.cpp`.
+Open `hellomodule_desugar.cpp`.
 Go through the code step by step. This should introduce you to creating types, creating modules, instantiating Modules/Generators, and connecting things together. To compile simply do:
 
 ```
