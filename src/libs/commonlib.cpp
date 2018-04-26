@@ -822,10 +822,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       RecordParams recordparams = {
           {"in", in_type},
           {"wen",c->BitIn()},
-          {"flush",c->BitIn()},
           {"out", out_type}
       };
-
 
       if (has_valid) { recordparams.push_back({"valid",c->Bit()}); }
       if (has_valid) { recordparams.push_back({"valid_chain",c->Bit()}); }
@@ -882,7 +880,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     assert(out_dim >= in_dim); // output stencil size must be larger than the input
     assert(img_dim % in_dim == 0); // dimension length must be divisible, becuase we can't swizzle data
     ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + \
-           " != 0, dimension length must be divisible, becuase we can't swizzle data");
+          " != 0, dimension length must be divisible, becuase we can't swizzle data");
 
     if (img_dim - out_dim < 3 && (img_dim != out_dim)) {
       std::cout << "Image dimension " << dim << "  is " << img_dim 
@@ -900,9 +898,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     string reg_prefix = "reg_";
     Const* aBitwidth = Const::make(c,bitwidth);
     assert(isa<ConstInt>(aBitwidth));
-
-    def->addInstance("flush_term","corebit.term");
-    def->connect("flush_term.in","self.flush");
 
     // NOTE: registers and lbmems named such that they correspond to output connections
 
@@ -942,37 +937,41 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
       // create and connect valid chain
-      if (has_valid && is_last_lb) {
-				// this is a chain of valids
-        string valid_prefix = "valreg_";
+      if (has_valid) {
+        if (is_last_lb) {
+          // this is a chain of valids
+          string valid_prefix = "valreg_";
 
-				uint last_idx = -1;
-        for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
+          uint last_idx = -1;
+          for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
           
-          // connect to input wen
-          if (i == 0) {
-            string reg_name = valid_prefix + to_string(i);
-            def->addInstance(reg_name, "corebit.reg");
-            def->connect({"self","wen"}, {reg_name,"in"});
+            // connect to input wen
+            if (i == 0) {
+              string reg_name = valid_prefix + to_string(i);
+              def->addInstance(reg_name, "corebit.reg");
+              def->connect({"self","wen"}, {reg_name,"in"});
          
-            // create and connect to register; register connects to previous register
-          } else {
-            uint in_idx = i - in_dim;
-            string reg_name = valid_prefix + to_string(i);
-            string prev_reg_name = valid_prefix + to_string(in_idx);
-            def->addInstance(reg_name, "corebit.reg");
-            def->connect({prev_reg_name, "out"}, {reg_name, "in"});
+              // create and connect to register; register connects to previous register
+            } else {
+              uint in_idx = i - in_dim;
+              string reg_name = valid_prefix + to_string(i);
+              string prev_reg_name = valid_prefix + to_string(in_idx);
+              def->addInstance(reg_name, "corebit.reg");
+              def->connect({prev_reg_name, "out"}, {reg_name, "in"});
 
+            }
+
+            last_idx = i;
           }
 
-					last_idx = i;
-        }
-
-        // connect last valid bit to self.valid
-        string last_valid_name = valid_prefix + to_string(last_idx);
-        def->connect({"self","valid"},{last_valid_name,"out"});
-				def->connect({"self","valid_chain"},{last_valid_name,"out"});
-        
+          // connect last valid bit to self.valid
+          string last_valid_name = valid_prefix + to_string(last_idx);
+          def->connect({"self","valid"},{last_valid_name,"out"});
+          def->connect({"self","valid_chain"},{last_valid_name,"out"});
+        } else {
+          def->connect({"self","wen"},{"self","valid"});
+          def->connect({"self","wen"},{"self","valid_chain"});
+        }        
       } // valid chain
 
 /*// a counter is not needed since the images are only 1d
@@ -1017,7 +1016,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     ///// RECURSIVE CASE /////
     //////////////////////////  
     } else {
-      //cout << "creating a recursive linebuffer" << endl;
       string lb_prefix = "lb" + to_string(dim) + "d_"; // use this for recursively smaller linebuffers
       Type* lb_input = cast<ArrayType>(in_type)->getElemType();
       Type* lb_image = cast<ArrayType>(img_type)->getElemType();
@@ -1037,7 +1035,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         //if (!has_valid || (is_last_lb && i == out_dim-1)) { // was used when is_last_lb was used recursively
         
         def->addInstance(lb_name, "commonlib.linebuffer", args);
-        def->connect(lb_name + ".flush","self.flush");
       }
 
       // ALL CASES: stencil output connections
@@ -1120,7 +1117,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
             def->addInstance(lbmem_name, "memory.rowbuffer",
                              {{"width",aBitwidth},{"depth",aLbmemSize}});
-            def->connect({"self","flush"},{lbmem_name,"flush"});
+
+            // hook up flush
+            // FIXME: actually create flush signal using counters
+            string lbmem_flush_name = lbmem_name + "_flush";
+            def->addInstance(lbmem_flush_name, "corebit.const", {{"value",Const::make(c,false)}});
+            def->connect({lbmem_name,"flush"},{lbmem_flush_name,"out"});
 
             ///// connect lbmem input and wen /////
             //cout << "connecting lbmem input for " << lbmem_name << endl;
@@ -1224,7 +1226,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         for (uint out_i=0; out_i<in_dim; ++out_i) {
           string lb_name = lb_prefix + to_string(out_i);
           def->connect({"self","in",to_string(out_i)}, {lb_name, "in"});
-          def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
         }
 
         ///// connect linebuffer outputs /////
@@ -1249,7 +1250,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 					def->connect(valid_chain_str, "self.valid_chain");
 
           // create counters to create valid output (if top-level linebuffer)
-          if (is_last_lb) {
+          if (is_last_lb == false) {
+            def->connect(valid_chain_str, "self.valid");
+          } else { //if (is_last_lb) {
 
             std::vector<std::string> counter_outputs;
             counter_outputs.push_back("self.wen");
@@ -1310,21 +1313,28 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                                     {"operator",Const::make(c,"corebit.and")}};
               def->addInstance(andr_name,"commonlib.bitopn",andr_params);
               def->connect({andr_name,"out"},{"self","valid"});
+              //def->hasConnection({andr_name,"out"},{"self","valid"});
 
               for (uint dim_i=0; dim_i<counter_outputs.size(); ++dim_i) {
                 def->connect(counter_outputs[dim_i], andr_name +".in."+to_string(dim_i));
               }
+            
             }
-
           }
 
         } else { // has_valid == 0
           // hook up wen for rest of linebuffers
           for (uint out_i=in_dim; out_i<out_dim; ++out_i) {
-            string lb_name = lb_prefix + to_string(out_i);
-            def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
+            //string lb_name = lb_prefix + to_string(out_i);
+            //def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
           }
         }
+
+        for (uint out_i=0; out_i<out_dim; ++out_i) {
+          string lb_name = lb_prefix + to_string(out_i);
+          def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
+        }
+
         
       } // regular case
 

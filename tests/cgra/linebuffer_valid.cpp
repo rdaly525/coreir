@@ -32,7 +32,6 @@ int main() {
   Type* lb32Type = c->Record({
 			{"in",in_type},
 			{"wen",c->BitIn()},
-			{"flush",c->BitIn()},
 			{"out",out_type},
 			{"valid", c->Bit()},
 			{"valid_chain", c->Bit()}
@@ -54,6 +53,7 @@ int main() {
 
   //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
   c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
+  c->runPasses({"verifyconnectivity-onlyinputs-noclkrst"},{"global","commonlib","memory","mantle"});
   //lb32->print();
   lb32->getDef()->validate();
 
