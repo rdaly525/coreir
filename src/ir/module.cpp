@@ -39,6 +39,13 @@ Module::~Module() {
   delete directedModule;
 }
 
+
+
+ModuleDef* Module::getDef() const {
+  ASSERT(hasDef(),"Missing def");
+  return def;
+}
+
 ModuleDef* Module::newModuleDef() {
   
   ModuleDef* md = new ModuleDef(this);
