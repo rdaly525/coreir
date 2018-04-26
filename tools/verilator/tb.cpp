@@ -68,24 +68,6 @@ int main(int argc, char **argv, char **env) {
   top->clk = 1;
   top->eval();
 
-  top->clk = 0;
-  eval();
-  
-  top->clk = 1;
-  eval();
-  //posedge just occured
-
-  top->in = 5;
-  top->in2 = 10;
-  eval();
-  cout << top->out 
-  top->clk = 0;
-  eval();
-  //negedge just occured
-
-  top->clk = 1;
-  eval();
-
   for (int i=0; i<nclks; ++i) {
     top->clk = 0;
     uint16_t in=0;
