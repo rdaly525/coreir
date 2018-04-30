@@ -8,6 +8,7 @@
 #include "aetherlinglib/aeDehydrate.h"
 #include "aetherlinglib/aeStreamifyArrayify.h"
 #include "aetherlinglib/aeOverlapPartition.h"
+#include <string>
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(aetherlinglib);
 
@@ -78,7 +79,9 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
 }
 
 string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width, Const* val) {
-    string constName = "constInput_" + val->toString();
+    string valName = val->toString();
+    replace(valName.begin(), valName.end(), '\'', '-');
+    string constName = "constInput_" + valName;
     def->addInstance(
         constName,
         "coreir.const",

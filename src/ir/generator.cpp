@@ -89,9 +89,9 @@ std::map<std::string,Module*> Generator::getGeneratedModules() {
 
 
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
-  bool err = false;
-  for (auto gpair : genCache) err |= gpair.second->hasDef();
-  ASSERT(!err,"Cannot set generator defention when generator already ran!");
+  //bool err = false;
+  //for (auto gpair : genCache) err |= gpair.second->hasDef();
+  //ASSERT(!err,"Cannot set generator defention when generator already ran!");
   if (this->def) delete this->def;
   this->def = new GeneratorDefFromFun(this,fun);
   
