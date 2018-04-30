@@ -42,7 +42,7 @@ Module::~Module() {
 
 
 ModuleDef* Module::getDef() const {
-  ASSERT(hasDef(),"Missing def");
+  //ASSERT(hasDef(),"Missing def:" + this->toString());
   return def;
 }
 
