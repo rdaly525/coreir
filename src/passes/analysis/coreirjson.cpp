@@ -235,7 +235,7 @@ string Connections2Json(Connections& cons) {
 
 string Module2Json(Module* m) {
   Dict j(6);
-  if (m->hasDef() && m->isGenerated()) {
+  if (m->isGenerated()) {
     j.add("genref",quote(m->getGenerator()->getRefName()));
     j.add("genargs",Values2Json(m->getGenArgs()));
   }
@@ -285,7 +285,7 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
     for (auto m : ns->getModules()) {
       string mname = m.first;
       if (m.second->isGenerated()) mname = m.second->getGenerator()->getName();
-      if (m.second->isGenerated() && !m.second->hasDef()) continue;
+      //if (m.second->isGenerated() && !m.second->hasDef()) continue;
       jmod.add(mname,Module2Json(m.second));
     }
     if (!jmod.isEmpty()) {

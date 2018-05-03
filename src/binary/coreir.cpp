@@ -69,6 +69,14 @@ void parseLib(string lib,string& libname,string& filename,vector<string>& lpaths
     ASSERT(fileExists(filename),"Cannot find lib " +lib);
     return;
   }
+  else if (f2parse.size()==2) {
+    cout << "WARNING not using extension: " << ext << endl;
+    libname = f2parse[0];
+    cout << "Trying to use libname: " << libname << endl;
+    filename = lib;
+    ASSERT(fileExists(filename),"Cannot find lib " +lib);
+    return;
+  }
   ASSERT(0,"Cannot find lib " + lib);
 }
 
@@ -112,13 +120,14 @@ int main(int argc, char *argv[]) {
   options.add_options()
     ("h,help","help")
     ("v,verbose","Set verbose")
-    ("i,input","input file: <file>.json",cxxopts::value<std::string>())
+    ("i,input","input file: '<file1>.json,<file2.jsom,...'",cxxopts::value<std::string>())
     ("o,output","output file: <file>.<json|fir|v|py|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<libname0>,<path/libname1.so>,<libname2>,...'",cxxopts::value<std::string>())
     ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
     ("t,top","top: <namespace>.<modulename>",cxxopts::value<std::string>())
+    ("a,all","run on all namespaces")
     ;
   
   //Do the parsing of the arguments
@@ -200,10 +209,47 @@ int main(int argc, char *argv[]) {
   }
 
   ASSERT(options.count("i"),"No input specified")
-  string infileName = options["i"].as<string>();
-  string inExt = getExt(infileName);
-  ASSERT(inExt=="json","Input needs to be json");
+  string ilist = options["i"].as<string>();
+  vector<string> infileNames = splitString<vector<string>>(ilist,',');
+
+  for (auto infileName : infileNames) {
+    string inExt = getExt(infileName);
+    ASSERT(inExt=="json","Input needs to be json");
+  }
   
+  
+  //Load inputs
+  Module* top;
+  string topRef = "";
+  for (auto infileName : infileNames) {
+    if (!loadFromFile(c,infileName,&top)) {
+      c->die();
+    }
+    if (top) topRef = top->getRefName();
+    if (options.count("t")) {
+      topRef = options["t"].as<string>();
+      c->setTop(topRef);
+    }
+  }
+  
+  vector<string> namespaces;
+  if (options.count("a")) {
+    for (auto ns : c->getNamespaces()) {
+      namespaces.push_back(ns.first);
+    }
+  }
+  else {
+    namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
+  }
+
+  //Load and run passes
+  bool modified = false;
+  if (options.count("p")) {
+    string plist = options["p"].as<string>();
+    vector<string> porder = splitString<vector<string>>(plist,',');
+    modified = c->runPasses(porder,namespaces);
+  }
+
   std::ostream* sout = &std::cout;
   std::ofstream fout;
   string outExt = "json";
@@ -222,34 +268,19 @@ int main(int argc, char *argv[]) {
     ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
     sout = &fout;
   }
-  
-  //Load input
-  Module* top;
-  string topRef = "";
-  if (!loadFromFile(c,infileName,&top)) {
-    c->die();
-  }
-  if (top) topRef = top->getRefName();
-  if (options.count("t")) {
-    topRef = options["t"].as<string>();
-    c->setTop(topRef);
-  }
 
-  vector<string> namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
-  
-  //Load and run passes
-  bool modified = false;
-  if (options.count("p")) {
-    string plist = options["p"].as<string>();
-    vector<string> porder = splitString<vector<string>>(plist,',');
-    modified = c->runPasses(porder,namespaces);
-  }
-  
+
+
+
   //Output to correct format
   if (outExt=="json") {
     c->runPasses({"coreirjson"},namespaces);
     auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
-    jpass->writeToStream(*sout,topRef);
+    string topref = "";
+    if (c->hasTop()) {
+      topref = c->getTop()->getRefName();
+    }
+    jpass->writeToStream(*sout,topref);
   }
   else if (outExt=="fir") {
     CoreIRLoadFirrtl_coreir(c);

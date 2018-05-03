@@ -79,6 +79,7 @@ class Context {
     //This will run the following passes in the following namespaces. It defaults only to global, so if you want passes to be run on certain libraries, these need to be specified in the list of namespaces. 
     //One subtle thing to note is that an InstanceGraphPass will be run on modules regardless of the namespace. All other Pass Types will only be run on the specified namespaces.
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
+    bool runPassesOnAll(std::vector<std::string> order);
 
     //TODO figure out a way to hide this (binary/coreir needs it)
     //Do not use unless you really have to.
@@ -119,6 +120,7 @@ class Context {
     //Sets the top module
     void setTop(std::string topRef);
     void setTop(Module* top);
+    void removeTop();
     bool hasTop() { return !!top;}
     Module* getTop() { return top;}
 
@@ -157,6 +159,7 @@ bool loadFromFile(Context* c, std::string filename,Module** top=nullptr);
 //Save namespace to a file with optional "top" module
 bool saveToFile(Namespace* ns, std::string filename,Module* top=nullptr); //This will go away
 bool saveToFilePretty(Namespace* ns, std::string filename,Module* top=nullptr);
+bool saveToFile(Context* c, std::string filename); //This will go away
 
 
 //Save a module to a dot file (for viewing in graphviz)

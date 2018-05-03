@@ -40,6 +40,7 @@
 #include "transform/wireclocks.h"
 #include "transform/split_inouts.h"
 #include "transform/cullgraph.h"
+#include "transform/unresolvedsymbols.h"
 
 #include "transform/adddirected.h"
 #include "transform/transform2combview.h"
@@ -80,6 +81,7 @@ namespace CoreIR {
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::SplitInouts("split-inouts"));
     pm.addPass(new Passes::CullGraph());
+    pm.addPass(new Passes::UnresolvedSymbols());
     pm.addPass(new Passes::AddDirected());
     pm.addPass(new Passes::PackBitConstants());
     pm.addPass(new Passes::PackConnections());
