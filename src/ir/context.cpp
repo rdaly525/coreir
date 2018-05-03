@@ -183,6 +183,17 @@ bool Context::runPasses(vector<string> order, vector<string> namespaces) {
   assert(pm);
   return pm->run(order,namespaces);
 }
+
+bool Context::runPassesOnAll(std::vector<std::string> order) {
+  assert(pm);
+  vector<string> namespaces;
+  for (auto npair : this->getNamespaces()) {
+    namespaces.push_back(npair.first);
+  }
+  return pm->run(order,namespaces);
+}
+
+
 /* TODO This is not even used in the repo yet. Should write a test for it
 // This tries to link all the definitions of def namespace to declarations of decl namespace
 // This will clobber declns
@@ -281,6 +292,7 @@ void Context::setTop(Module* top) {
   ASSERT(top && top->hasDef(), top->toString() + " has no def!");
   this->top = top;
 }
+
 void Context::setTop(string topRef) {
   auto topsplit = splitString<vector<string>>(topRef,'.');
   ASSERT(topsplit.size()==2,topRef + " is not a valid top!");
@@ -289,6 +301,10 @@ void Context::setTop(string topRef) {
   ASSERT(topns->hasModule(topsplit[1]),"Missing module " + topRef);
   this->top = topns->getModule(topsplit[1]);
   ASSERT(this->top->hasDef(),topRef + " has no def!");
+}
+
+void Context::removeTop() {
+  this->top = nullptr;
 }
 
 

@@ -72,6 +72,14 @@ Module* Generator::getModule(Values genargs) {
   //}
   return m;
 }
+
+void Generator::eraseModule(Values genargs) {
+  ASSERT(genCache.count(genargs),"Module does not exist!");
+  delete genCache[genargs];
+  genCache.erase(genargs);
+}
+
+
 bool Generator::runAll() {
   bool ret = false;
   for (auto mpair : genCache) {
