@@ -37,8 +37,6 @@ Module = {
   "type":Type,
   "modparams"?:Parameter,
   "defaultmodargs"?:Values,
-  "genref"?:NamedRef, //Used for generated modules
-  "genargs"?:Values, //'' '' 
   "instances"?:{<instname>:Instance,...},
   "connections"?: Connection[]
 }
@@ -47,8 +45,10 @@ Generator = {
   "typegen":NamedRef
   "genparams":Parameters,
   "defaultgenargs"?:Consts,
-
+  "modules":[GeneratedModule,GeneratedModule]
 }
+
+GeneratedModule = [Values,Module]
 
 Instance = {
   "genref"?:NamedRef,
@@ -65,13 +65,14 @@ Wireable = "<instname>,<a>,<b>,..."
 
 
 //The following is my Value IR. 
-//This contains a small IR representing constants and Referneces to generator/module args. This will be expanded
+//This contains a small IR representing constants and Referneces to generator/module args. This can be expanded
 
 ValueType = "Bool"
           | "Int"
           | ["BitVector" <N>]
           | "String"
           | "CoreIRType"
+          | "Module"
 
 Params = {<field>:ValueType,...}
 
