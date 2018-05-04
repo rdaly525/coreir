@@ -1,0 +1,32 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "top":{
+        "type":["Record",[
+          ["clk",["Named","coreir.clkIn"]],
+          ["rdata",["Array",32,"Bit"]],
+          ["wdata",["Array",32,"BitIn"]],
+          ["flush","BitIn"],
+          ["wen","BitIn"],
+          ["valid","Bit"]
+        ]],
+        "instances":{
+          "m0":{
+            "genref":"memory.rowbuffer",
+            "genargs":{"width":["Int",32],"depth":["Int",100]}
+          }
+        },
+        "connections":[
+          ["self.clk","m0.clk"],
+          ["self.rdata","m0.rdata"],
+          ["self.wdata","m0.wdata"],
+          ["self.valid","m0.valid"],
+          ["self.wen","m0.wen"],
+          ["self.flush","m0.flush"]
+        ]
+      }
+    }
+  }
+}
+}
