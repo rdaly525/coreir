@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
     c->getPassManager()->setVerbosity(options["v"].as<bool>());
   }
 
-  ASSERT(options.count("i"),"No input specified")
+  ASSERT(options.count("i"),"No input specified");
   string ilist = options["i"].as<string>();
   vector<string> infileNames = splitString<vector<string>>(ilist,',');
 

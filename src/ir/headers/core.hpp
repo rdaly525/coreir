@@ -53,7 +53,7 @@ void core_convert(Context* c, Namespace* core) {
     [](Context* c, Values args) {
       uint width_in = args.at("width_in")->get<int>();
       uint width_out = args.at("width_out")->get<int>();
-      ASSERT(width_out >= width_in,"Bad valudes for widths")
+      ASSERT(width_out >= width_in,"Bad valudes for widths");
       return c->Record({
         {"in",c->BitIn()->Arr(width_in)},
         {"out",c->Bit()->Arr(width_out)}

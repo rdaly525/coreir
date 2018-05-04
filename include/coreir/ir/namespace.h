@@ -38,15 +38,21 @@ class Namespace {
 
     NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);
     void newNominalTypeGen(std::string name, std::string nameFlip,Params genparams, TypeGenFun fun);
-    void addTypeGen(TypeGen* typegen);
-    TypeGen* newTypeGen(std::string name, Params genparams, TypeGenFun fun);
+    
     bool hasNamedType(std::string name);
     
     //Only returns named types without args
+    //TODO depreciate Named Types with args
     std::map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
     NamedType* getNamedType(std::string name);
     NamedType* getNamedType(std::string name, Values genargs);
+    
+    //This is transferring control of typegen to Namespace
+    void addTypeGen(TypeGen* typegen);
+    //TODO depreciate the following function
+    TypeGen* newTypeGen(std::string name, Params genparams, TypeGenFun fun);
     TypeGen* getTypeGen(std::string name);
+    const std::map<std::string,TypeGen*>& getTypeGens() { return typeGenList; }
     bool hasTypeGen(std::string name) {return typeGenList.count(name)>0;}
 
     Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams);

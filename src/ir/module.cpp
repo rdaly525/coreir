@@ -56,7 +56,7 @@ ModuleDef* Module::newModuleDef() {
 void Module::addDefaultModArgs(Values defaultModArgs) {
   //Check to make sure each arg is in the mod params
   for (auto argmap : defaultModArgs) {
-    ASSERT(modparams.count(argmap.first),"Cannot set default module arg. Param " + argmap.first + " Does not exist!")
+    ASSERT(modparams.count(argmap.first),"Cannot set default module arg. Param " + argmap.first + " Does not exist!");
     this->defaultModArgs[argmap.first] = argmap.second;
   }
 }

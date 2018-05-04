@@ -107,7 +107,7 @@ bool saveToDot(Module* m, string filename) {
     c->error(e);
     return false;
   }
-  ASSERT(endsWith(filename, ".txt"),filename + "Does not end with .txt")
+  ASSERT(endsWith(filename, ".txt"),filename + "Does not end with .txt");
   // create a txt dot file for use with graphviz
   ModuleToDot(m, file);
   return true;
@@ -115,7 +115,7 @@ bool saveToDot(Module* m, string filename) {
 
 bool saveToFile(Namespace* ns, string filename,Module* top) {
   Context* c = ns->getContext();
-  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file")
+  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {
     Error e;
@@ -137,7 +137,7 @@ bool saveToFile(Namespace* ns, string filename,Module* top) {
 }
 
 bool saveToFile(Context* c, string filename) {
-  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file")
+  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {
     Error e;
