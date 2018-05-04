@@ -108,7 +108,7 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
 void Generator::addDefaultGenArgs(Values defaultGenArgs) {
   //Check to make sure each arg is in the gen params
   for (auto argmap : defaultGenArgs) {
-    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!")
+    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!");
     this->defaultGenArgs[argmap.first] = argmap.second;
   }
 }

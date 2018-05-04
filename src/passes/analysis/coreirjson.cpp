@@ -319,23 +319,27 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
     //}
     //j["namedtypes"] = jntypes;
   //} 
-  //if (!typeGenNameMap.empty()) {
-  //  ASSERT(0,"NYI");
-    //json jntypegens;
-    //for (auto nPair : typeGenNameMap) {
-    //  string n = nPair.first;
-    //  string nFlip = nPair.second;
-    //  TypeGen* tg = typeGenList.at(n);
-    //  json jntypegen = {
-    //    {"genparams", Params2Json(tg->getParams())}
-    //  };
-    //  if (nFlip != "") {
-    //    jntypegen["flippedname"] = nFlip;
-    //  }
-    //  jntypegens[n] = jntypegen;
-    //}
-    //j["namedtypegens"] = jntypegens;
-  //}
+  if (!ns->getTypeGens().empty()) {
+    Dict jtypegens(4);
+    //Spit out all of the cached types.
+    for (auto tgpair : ns->getTypeGens()) {
+      string tgname = tgpair.first;
+      TypeGen* tg = tgpair.second;
+      Array jtypegen;
+      jtypegen.add(Params2Json(tg->getParams()));
+      jtypegen.add(quote("sparse"));
+      Array jsparselist(6);
+      for (auto vtpair : tg->getCached()) {
+        Array jvtpair;
+        jvtpair.add(Values2Json(vtpair.first));
+        jvtpair.add(Type2Json(vtpair.second));
+        jsparselist.add(jvtpair.toString());
+      }
+      jtypegen.add(jsparselist.toMultiString());
+      jtypegens.add(tgname,jtypegen.toString());
+    }
+    jns.add("typegens",jtypegens.toMultiString());
+  }
   nsMap[ns->getName()] = jns.toMultiString();
   return false;
 }

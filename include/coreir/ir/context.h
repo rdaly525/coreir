@@ -107,6 +107,7 @@ class Context {
     Type* Out(Type* t);
 
     TypeGen* getTypeGen(std::string nameref);
+    bool hasTypeGen(std::string nameref);
 
     RecordParams* newRecordParams();
     Params* newParams();

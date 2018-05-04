@@ -17,15 +17,16 @@
 #include <execinfo.h>
 
 #define ASSERT(C,MSG) \
-  if (!(C)) { \
-    void* array[20]; \
-    size_t size; \
-    size = backtrace(array,20); \
-    std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
-    backtrace_symbols_fd(array,size,2); \
-    exit(1); \
-    while (true) {} /* Hack so GCC knows this doesn't ever return */ \
-  }
+  do { \
+    if (!(C)) { \
+      void* array[20]; \
+      size_t size; \
+      size = backtrace(array,20); \
+      std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
+      backtrace_symbols_fd(array,size,2); \
+      exit(1); \
+    } \
+  } while(0)
 
 typedef uint32_t uint;
 

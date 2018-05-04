@@ -170,7 +170,7 @@ void ModuleDef::removeInstanceFromIter(Instance* instance) {
 
 Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
     ASSERT(instance, "Cannot get next of IterEnd");
-    ASSERT(this->instancesIterNextMap.count(instance) == 1, "DEBUG ME: instance not in iter") // TOOD: Should be an error?
+    ASSERT(this->instancesIterNextMap.count(instance) == 1, "DEBUG ME: instance not in iter"); // TODO: Should be an error?
     return this->instancesIterNextMap[instance];
 }
 

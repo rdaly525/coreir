@@ -308,10 +308,21 @@ void Context::removeTop() {
 }
 
 
-TypeGen* Context::getTypeGen(string nameref) {
+bool Context::hasTypeGen(string nameref) {
   vector<string> split = splitRef(nameref);
-  ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
-  ASSERT(this->getNamespace(split[0])->hasTypeGen(split[1]),"Missing TypeGen + " + nameref);
+  if (!this->hasNamespace(split[0])) {
+    return false;
+  }
+  if(!this->getNamespace(split[0])->hasTypeGen(split[1])) {
+    return false;
+  }
+  return true;
+  
+}
+
+TypeGen* Context::getTypeGen(string nameref) {
+  ASSERT(this->hasTypeGen(nameref),"Missing Typegen: " + nameref);
+  vector<string> split = splitRef(nameref);
   return this->getNamespace(split[0])->getTypeGen(split[1]);
 }
 

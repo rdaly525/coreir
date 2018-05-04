@@ -133,7 +133,7 @@ int main(int argc, char *argv[]) {
     c->getPassManager()->setVerbosity(options["v"].as<bool>());
   }
 
-  ASSERT(options.count("i"),"No input specified")
+  ASSERT(options.count("i"),"No input specified");
   string infileName = options["i"].as<string>();
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");

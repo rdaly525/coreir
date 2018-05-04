@@ -15,7 +15,7 @@ any key followed by a ? means it is optional
 
 Namespace={
   "namedtypes"? : {<name>: NamedType, ...}
-  "namedtypegens"? : {<name>: NamedTypeGen, ...}
+  "typegens" ? {<name>: TypeGen,...}
   "modules"? :{<name>:Module, ...},
   "generators"? :{<name>:Generator, ...}
 }
@@ -32,6 +32,9 @@ NamedRef = "<namespaceName>.<name>"
 NamedType = {"flippedname":<name>,"rawtype":Type}
 NamedTypeGen = {"flippedname"?:<name>,"genparams":Parameter}
 
+TypeGen = [Params, "sparse", [[Values,Type],[Values,Type],...]]
+        | //TODO Type language?
+
 //Note if there are no instances and no connections, this is a declaration
 Module = {
   "type":Type,
@@ -45,7 +48,7 @@ Generator = {
   "typegen":NamedRef
   "genparams":Parameters,
   "defaultgenargs"?:Consts,
-  "modules":[GeneratedModule,GeneratedModule]
+  "modules":[GeneratedModule,GeneratedModule,...]
 }
 
 GeneratedModule = [Values,Module]
