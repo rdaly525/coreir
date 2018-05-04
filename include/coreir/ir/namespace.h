@@ -33,7 +33,7 @@ class Namespace {
     Context* getContext() { return c;}
     //Returns a map of ALL modules including generated ones
     //for generated mdules, the key is the uniquified longname
-    std::map<std::string,Module*> getModules();
+    std::map<std::string,Module*> getModules(bool includeGenerated=true);
     const std::map<std::string,Generator*>& getGenerators() { return generatorList;}
 
     NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);

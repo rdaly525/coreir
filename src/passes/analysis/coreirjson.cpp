@@ -3,7 +3,6 @@
 #include <set>
 #include <map>
 
-//TODO Write out Generator mod defs
 using namespace CoreIR;
 using namespace std;
 namespace {
@@ -124,12 +123,12 @@ string Values2Json(Values vs) {
   return j.toString();
 }
 
-string TopType2Json(Type* t) {
+string TopType2Json(Type* t,int taboffset) {
   ASSERT(isa<RecordType>(t),"Expecting Record type but got " + t->toString());
   Array a;
   a.add(quote("Record"));
   auto rt = cast<RecordType>(t);
-  Array r(8);
+  Array r(taboffset);
   for (auto field : rt->getFields()) {
     Array f;
     f.add(quote(field));
@@ -175,13 +174,12 @@ string Type2Json(Type* t) {
   return a.toString();
 }
 
-string Instances2Json(map<string,Instance*>& insts) {
-  Dict jis(8);
-  //TODO maybe keep an insertion order for all the instances/Modules/Generators/Namespaces
+string Instances2Json(map<string,Instance*>& insts,int taboffset) {
+  Dict jis(taboffset);
   for (auto imap : insts) {
     string iname = imap.first;
     Instance* i = imap.second;
-    Dict j(10);
+    Dict j(taboffset+2);
     Module* m = i->getModuleRef();
     if (m->isGenerated()) {
       j.add("genref",quote(m->getGenerator()->getRefName()));
@@ -201,8 +199,8 @@ string Instances2Json(map<string,Instance*>& insts) {
   return jis.toMultiString();
 }
 
-string Connections2Json(Connections& cons) {
-  Array a(8);
+string Connections2Json(Connections& cons,int taboffset) {
+  Array a(taboffset);
   vector<Connection> sortedConns;
   for (auto c : cons) {
     sortedConns.push_back(c);
@@ -233,13 +231,9 @@ string Connections2Json(Connections& cons) {
   return a.toMultiString();
 }
 
-string Module2Json(Module* m) {
-  Dict j(6);
-  if (m->isGenerated()) {
-    j.add("genref",quote(m->getGenerator()->getRefName()));
-    j.add("genargs",Values2Json(m->getGenArgs()));
-  }
-  j.add("type",TopType2Json(m->getType()));
+string Module2Json(Module* m, int taboffset) {
+  Dict j(taboffset);
+  j.add("type",TopType2Json(m->getType(),taboffset+2));
   if (!m->getModParams().empty()) {
     j.add("modparams",Params2Json(m->getModParams()));
   }
@@ -250,11 +244,11 @@ string Module2Json(Module* m) {
     ModuleDef* def = m->getDef();
     if (!def->getInstances().empty()) {
       auto insts = def->getInstances();
-      j.add("instances",Instances2Json(insts));
+      j.add("instances",Instances2Json(insts, taboffset+2));
     }
     if (!def->getConnections().empty()) {
       auto cons = def->getConnections();
-      j.add("connections",Connections2Json(cons));
+      j.add("connections",Connections2Json(cons,taboffset+2));
     }
   }
   if (m->hasMetaData()) {
@@ -267,6 +261,18 @@ json Generator2Json(Generator* g) {
   Dict j(6);
   j.add("typegen",quote(g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName()));
   j.add("genparams",Params2Json(g->getGenParams()));
+  auto genmods = g->getGeneratedModules();
+  if (!genmods.empty()) {
+    Array gms(8);
+    for (auto genmodp : genmods) {
+      Module* m = genmodp.second;
+      Array gm;
+      gm.add(Values2Json(m->getGenArgs()));
+      gm.add(Module2Json(m,10));
+      gms.add(gm.toString());
+    }
+    j.add("modules",gms.toMultiString());
+  }
   if (!g->getDefaultGenArgs().empty()) {
     j.add("defaultgenargs",Values2Json(g->getDefaultGenArgs()));
   }
@@ -280,13 +286,13 @@ json Generator2Json(Generator* g) {
 string Passes::CoreIRJson::ID = "coreirjson";
 bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   Dict jns(2);
-  if (!ns->getModules().empty()) {
+  auto modlist = ns->getModules(false);
+  if (!modlist.empty()) {
     Dict jmod(4);
-    for (auto m : ns->getModules()) {
+    for (auto m : modlist) {
       string mname = m.first;
       if (m.second->isGenerated()) mname = m.second->getGenerator()->getName();
-      //if (m.second->isGenerated() && !m.second->hasDef()) continue;
-      jmod.add(mname,Module2Json(m.second));
+      jmod.add(mname,Module2Json(m.second,6));
     }
     if (!jmod.isEmpty()) {
       jns.add("modules",jmod.toMultiString());

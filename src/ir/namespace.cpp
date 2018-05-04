@@ -27,12 +27,13 @@ Namespace::~Namespace() {
 }
 
 //This will return all modules including all the generated ones
-//TODO 
-std::map<std::string,Module*> Namespace::getModules() { 
+std::map<std::string,Module*> Namespace::getModules(bool includeGenerated) { 
   std::map<std::string,Module*> ret = moduleList;
-  for (auto g : generatorList) {
-    for (auto m : g.second->getGeneratedModules()) {
-      ret.emplace(m);
+  if (includeGenerated) {
+    for (auto g : generatorList) {
+      for (auto m : g.second->getGeneratedModules()) {
+        ret.emplace(m);
+      }
     }
   }
   return ret;
