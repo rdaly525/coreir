@@ -78,7 +78,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     //Then Load all ModuleDefs
 
     vector<std::pair<Namespace*,json>> nsqueue;
-    cout << "A1" << endl;
     checkJson(j,{"namespaces"},{"top"});
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
@@ -93,7 +92,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       nsqueue.push_back({ns,jnsmap.second});
     }
 
-    cout << "A3" << endl;
     //create all namedtypes
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
@@ -120,7 +118,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       }
     }
 
-    cout << "A4" << endl;
     //create all typegens
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
@@ -131,29 +128,21 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       //Really, it is possible that I want to concat multiple typegen lists together, ore handle duplicate symbols a different way
       if (jns.count("typegens")) {
         for (auto jtgpair : jns.at("typegens").get<jsonmap>()) {
-          cout << "B1" << endl;
           string name = jtgpair.first;
           //Get the typegen if it already exists
           TypeGen* tg = ns->hasTypeGen(name) ? ns->getTypeGen(name) : nullptr;
 
           jsonvector jtg = jtgpair.second.get<jsonvector>();
-          cout << "B2" << endl;
           Params tgparams = json2Params(c,jtg[0]);
-          cout << "B3" << endl;
           string tgkind = jtg[1].get<string>();
           if (tgkind == "sparse") {
-          cout << "B4" << endl;
             vector<std::pair<Values,Type*>> typeList;
             //First just get the list of Values->Types
             for (auto jvaltypes : jtg[2].get<jsonvector>()) {
-              cout << "B5" << endl;
               jsonvector jvaltype = jvaltypes.get<jsonvector>();
-              cout << "B6" << endl;
               ASSERTTHROW(jvaltype.size()==2,"Bad sparse typegen format" + toString(jtg[2]));
               Values jvals = json2Values(c,jvaltype[0]);
-              cout << "B6" << endl;
               Type* t = json2Type(c,jvaltype[1]);
-              cout << "B6" << endl;
               typeList.push_back({jvals,t});
             }
             if (tg) { //If already exists, just check for consistency
@@ -173,7 +162,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       }
     }
     
-    cout << "A5" << endl;
     jsonvector genmodqueue;
     //Saves module declaration and the json representing the module
     vector<std::pair<Module*,json>> modqueue;
@@ -181,14 +169,10 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       Namespace* ns = nsq.first;
       json jns = nsq.second;
       //Load Modules
-      cout << "ns=" << nsq.first->getName();
-      cout << jns << endl;
       if (jns.count("modules")) {
-        cout << "in Modules!" << endl;
         for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
           //Figure out type;
           string jmodname = jmodmap.first;
-          cout << "doing mod! " << jmodname << endl;
           //TODO for now if it already exists, just skip
           if (ns->hasModule(jmodname)) {
             //TODO confirm that is has the same everything like genparams 
@@ -243,7 +227,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           }
           //TODO deal with module parameter generation
           Generator* g = ns->newGeneratorDecl(genname,tg,genparams);
-          cout << "Just generated: " << g->toString() << endl;
           if (jgen.count("defaultgenargs")) {
             g->addDefaultGenArgs(json2Values(c,jgen.at("defaultgenargs")));
           }
@@ -319,7 +302,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
 
     //If top exists return it
     if (top && j.count("top")) {
-      cout << "C1" << endl;
       c->getNamespace("global")->print();
       *top = getModSymbol(c,j["top"].get<string>());
       c->setTop(*top);
