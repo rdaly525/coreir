@@ -162,7 +162,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       }
     }
     
-    jsonvector genmodqueue;
     //Saves module declaration and the json representing the module
     vector<std::pair<Module*,json>> modqueue;
     for (auto nsq : nsqueue) {
@@ -211,7 +210,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           string typeGenName = jgen.at("typegen").get<string>();
           ASSERTTHROW(c->hasTypeGen(typeGenName),"Missing typegen symbol " + typeGenName + " for generator " + jgenmap.first);
           TypeGen* tg = c->getTypeGen(typeGenName);
-          vector<Values> genmodvalues;
+          vector<std::pair<Values,json>> genmodvalues;
           //Verify that this is consistent with all the types
           if (jgen.count("modules")) {
             for (auto jgenmod : jgen.at("modules").get<jsonvector>()) {
@@ -222,7 +221,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
               checkJson(jmod,{"type"});
               Type* t = json2Type(c,jmod.at("type"));
               ASSERTTHROW(t==tg->getType(genargs),"Type mismatch for typegen\n  " + tg->toString() + toString(genargs) + "==" + t->toString() + " but != " +tg->getType(genargs)->toString());
-              genmodvalues.push_back(genargs);
+              genmodvalues.push_back({genargs,jmod});
             }
           }
           //TODO deal with module parameter generation
@@ -233,16 +232,11 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           if (jgen.count("metadata")) {
             g->setMetaData(jgen["metadata"]);
           }
-          for (auto val : genmodvalues) {
-            g->getModule(val); //Populate the generated module cache
+          for (auto vjpair : genmodvalues) {
+            modqueue.push_back({g->getModule(vjpair.first),vjpair.second}); //Populate the generated module cache
           }
         }
       }
-    }
-    for (auto jgenmod : genmodqueue) {
-      Generator* gen = c->getGenerator(jgenmod.at("genref").get<string>());
-      Values genargs = json2Values(c,jgenmod.at("genargs"));
-      modqueue.push_back({gen->getModule(genargs),jgenmod});
     }
     //Now do all the ModuleDefinitions
     for (auto mq : modqueue) {
