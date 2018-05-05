@@ -213,6 +213,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           vector<std::pair<Values,json>> genmodvalues;
           //Verify that this is consistent with all the types
           if (jgen.count("modules")) {
+            cout << "in modules!" << endl;
             for (auto jgenmod : jgen.at("modules").get<jsonvector>()) {
               jsonvector jvalmod = jgenmod.get<jsonvector>();
               ASSERTTHROW(jvalmod.size()==2,"Bad generated module" + toString(jgenmod));
@@ -233,7 +234,10 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             g->setMetaData(jgen["metadata"]);
           }
           for (auto vjpair : genmodvalues) {
-            modqueue.push_back({g->getModule(vjpair.first),vjpair.second}); //Populate the generated module cache
+            cout << "in loop:" << endl;
+            Module* m = g->getModule(vjpair.first);
+            m->print();
+            modqueue.push_back({m,vjpair.second}); //Populate the generated module cache
           }
         }
       }
