@@ -83,9 +83,14 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
       checkJson(jnsmap.second,{},{"namedtypes","typegens","modules","generators"});
+      Namespace* ns;
       if (c->hasNamespace(nsname) ) {
-        c->newNamespace(nsname);
+        ns = c->getNamespace(nsname);
       }
+      else {
+        ns = c->newNamespace(nsname);
+      }
+      nsqueue.push_back({ns,jnsmap.second});
     }
 
     cout << "A3" << endl;
@@ -176,6 +181,8 @@ bool loadFromFile(Context* c, string filename,Module** top) {
       Namespace* ns = nsq.first;
       json jns = nsq.second;
       //Load Modules
+      cout << "ns=" << nsq.first->getName();
+      cout << jns << endl;
       if (jns.count("modules")) {
         cout << "in Modules!" << endl;
         for (auto jmodmap : jns.at("modules").get<jsonmap>()) {
@@ -312,6 +319,8 @@ bool loadFromFile(Context* c, string filename,Module** top) {
 
     //If top exists return it
     if (top && j.count("top")) {
+      cout << "C1" << endl;
+      c->getNamespace("global")->print();
       *top = getModSymbol(c,j["top"].get<string>());
       c->setTop(*top);
     }

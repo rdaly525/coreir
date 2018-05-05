@@ -37,7 +37,7 @@ class Namespace {
     const std::map<std::string,Generator*>& getGenerators() { return generatorList;}
 
     NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);
-    void newNominalTypeGen(std::string name, std::string nameFlip,Params genparams, TypeGenFun fun);
+    //void newNominalTypeGen(std::string name, std::string nameFlip,Params genparams, TypeGenFun fun);
     
     bool hasNamedType(std::string name);
     

@@ -59,22 +59,23 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   return named;
 }
 
-void Namespace::newNominalTypeGen(string name, string nameFlip, Params genparams, TypeGenFun fun) {
-  //Make sure the name and its flip are different
-  assert(name != nameFlip);
-  //Verify this name and the flipped name do not exist yet
-  assert(!typeGenList.count(name) && !typeGenList.count(nameFlip));
-  assert(!namedTypeList.count(name) && !namedTypeList.count(nameFlip) );
- 
-  //Add name to typeGenNameMap
-  typeGenNameMap[name] = nameFlip;
-  typeGenNameMap[nameFlip] = name;
-
-  //Create the TypeGens
-  TypeGenFromFun::make(this,name,genparams,fun,false);
-  TypeGenFromFun::make(this,nameFlip,genparams,fun,true);
-  
-}
+//TODO remove this code
+//void Namespace::newNominalTypeGen(string name, string nameFlip, Params genparams, TypeGenFun fun) {
+//  //Make sure the name and its flip are different
+//  assert(name != nameFlip);
+//  //Verify this name and the flipped name do not exist yet
+//  assert(!typeGenList.count(name) && !typeGenList.count(nameFlip));
+//  assert(!namedTypeList.count(name) && !namedTypeList.count(nameFlip) );
+// 
+//  //Add name to typeGenNameMap
+//  typeGenNameMap[name] = nameFlip;
+//  typeGenNameMap[nameFlip] = name;
+//
+//  //Create the TypeGens
+//  TypeGenFromFun::make(this,name,genparams,fun,false);
+//  TypeGenFromFun::make(this,nameFlip,genparams,fun,true);
+//  
+//}
 
 bool Namespace::hasNamedType(string name) {
   return namedTypeList.count(name) > 0;
