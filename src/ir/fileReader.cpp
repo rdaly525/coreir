@@ -45,7 +45,7 @@ vector<string> getRef(string s) {
 }
 
 //This will verify that json contains ONLY list of possible things
-void checkJson(json j, unordered_set<string> optsRequired, unordered_set<string> optsOptional={}) {
+void checkJson(json j, unordered_set<string> optsRequired, unordered_set<string> optsOptional=unordered_set<string>()) {
   jsonmap jmap = j.get<jsonmap>();
   for (auto req : optsRequired) {
     ASSERTTHROW(jmap.count(req), "Missing " + req + " from\n " + toString(j));
