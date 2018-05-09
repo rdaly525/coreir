@@ -12,6 +12,7 @@
 #include "coreir/ir/generator.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
+#include "coreir/ir/common.h"
 
 using namespace std;
 
