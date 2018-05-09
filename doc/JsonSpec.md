@@ -67,7 +67,7 @@ Wireable = "<instname>,<a>,<b>,..."
 
 
 //The following is my Value IR. 
-//This contains a small IR representing constants and Referneces to generator/module args. This can be expanded
+//This contains a small IR representing constants and refrences to generator/module args. This can be expanded
 
 ValueType = "Bool"
           | "Int"
