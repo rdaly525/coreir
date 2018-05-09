@@ -30,6 +30,14 @@ Type* TypeGen::getType(Values args) {
   }
 }
 
+bool TypeGenFromFun::hasType(Values genargs) {
+  return doValuesMatchParams(genargs,this->getParams());
+}
+
+std::string TypeGenFromFun::toString() const {
+  return this->getRefName() + ::CoreIR::toString(this->getParams());
+}
+
 TypeGenFromFun* TypeGenFromFun::make(Namespace* ns, std::string name, Params genparams, TypeGenFun fun, bool flipped) {
   
   TypeGenFromFun* tg = new TypeGenFromFun(ns,name,genparams,fun,flipped);
