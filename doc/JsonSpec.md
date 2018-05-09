@@ -24,13 +24,12 @@ Type = "BitIn"
      | "Bit" 
      | ["Array", <N>, Type] 
      | ["Record", [[<key>,Type],... ] 
-     | ["Named",NamedRef, Args?]
+     | ["Named",NamedRef]
 
 //This could be referring a type, module, or generator
 NamedRef = "<namespaceName>.<name>"
 
 NamedType = {"flippedname":<name>,"rawtype":Type}
-NamedTypeGen = {"flippedname"?:<name>,"genparams":Parameter}
 
 TypeGen = [Params, "sparse", [[Values,Type],[Values,Type],...]]
         | //TODO Type language?

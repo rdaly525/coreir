@@ -449,14 +449,10 @@ Type* json2Type(Context* c, json jt) {
       return c->Record(rparams);
     }
     else if (kind == "Named") {
+      ASSERTTHROW(args.size()==2,"Invalid Named Type field" + toString(jt));
       vector<string> info = getRef(args[1].get<string>());
       std::string nsname = info[0];
       std::string name   = info[1];
-      if (args.size()==3) { //Has args
-        Params genparams = c->getNamespace(nsname)->getTypeGen(name)->getParams();
-        Values genargs = json2Values(c,args[2]);
-        return c->Named(nsname+"."+name,genargs);
-      }
       return c->Named(nsname+"."+name);
     }
     else {
