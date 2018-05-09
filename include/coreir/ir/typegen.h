@@ -10,15 +10,16 @@ class TypeGen : public GlobalValue {
   std::map<Values,Type*,ValuesComp> typeCache;
   Params params;
   bool flipped;
-  //TODO maybe cache the types based off the args
+  
   protected : 
     TypeGen(Namespace* ns, std::string name, Params params, bool flipped=false) : GlobalValue(GVK_TypeGen,ns,name), params(params), flipped(flipped) {}
     virtual Type* createType(Values args) = 0;
   
   public :
     virtual ~TypeGen() {}
+    // This function should return whether this typegen can return a type if passed these args.
     virtual bool hasType(Values args) = 0;
-    //This is the actual 
+    //Returns the Type as a function of the args
     virtual Type* getType(Values genargs) final;
     Params getParams() const {return params;}
     const std::map<Values,Type*,ValuesComp>& getCached() { return typeCache;}
@@ -36,10 +37,8 @@ class TypeGenFromFun : public TypeGen {
       return fun(this->getContext(),genargs);
     }
   public :
-    bool hasType(Values genargs) override {
-      return true; //Really should check if params are val TODO
-    }
-    std::string toString() const override {return "NYI"; }
+    bool hasType(Values genargs) override;
+    std::string toString() const override;
     
     //Creation function
     static TypeGenFromFun* make(Namespace* ns, std::string name, Params genparams, TypeGenFun fun,bool flipped=false);

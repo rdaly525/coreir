@@ -152,6 +152,18 @@ void checkValuesAreParams(Values args, Params params, string errstring) {
   }
 }
 
+bool doValuesMatchParams(Values args, Params params) {
+  if (args.size() != params.size()) return false;
+  for (auto ppair : params) {
+    string pname = ppair.first;
+    ValueType* param  = ppair.second;
+    if (args.count(pname)==0) return false;
+    if (args[pname]->getValueType() != param) return false;
+  }
+  return true;
+}
+
+
 void checkValuesAreConst(Values vs) {
   for (auto v : vs) {
     ASSERT(isa<Const>(v.second),v.first + " Needs to be a const!");
