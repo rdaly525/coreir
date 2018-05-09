@@ -252,14 +252,6 @@ NamedType* Context::Named(string nameref) {
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
-NamedType* Context::Named(string nameref,Values args) {
-  checkValuesAreConst(args);
-  vector<string> split = splitRef(nameref);
-  ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
-  ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
-  return this->getNamespace(split[0])->getNamedType(split[1],args);
-}
-
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 Type* Context::In(Type* t) {
