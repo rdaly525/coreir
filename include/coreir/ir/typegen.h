@@ -3,7 +3,6 @@
 
 #include "fwd_declare.h"
 #include "globalvalue.h"
-#include "common.h" //This should really be moved to fwd_declare
 
 namespace CoreIR {
 

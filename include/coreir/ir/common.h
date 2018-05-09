@@ -8,22 +8,6 @@
 
 namespace CoreIR {
 
-class ConnectionComp {
-  public:
-    static bool SPComp(const SelectPath& l, const SelectPath& r);
-    bool operator() (const Connection& l, const Connection& r) const;
-};
-
-class ConnectionStrComp {
-  public:
-    static bool SPComp(const SelectPath& l, const SelectPath& r);
-    bool operator() (const Connection& l, const Connection& r) const;
-};
-
-class ValuesComp {
-  public:
-    bool operator() (const Values& l, const Values& r) const;
-};
 
 //TODO Ugly hack to create a sorted connection. Should make my own connection class
 Connection connectionCtor(Wireable* a, Wireable* b);
