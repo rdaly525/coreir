@@ -236,7 +236,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           for (auto vjpair : genmodvalues) {
             cout << "in loop:" << endl;
             Module* m = g->getModule(vjpair.first);
-            m->print();
             modqueue.push_back({m,vjpair.second}); //Populate the generated module cache
           }
         }
@@ -300,7 +299,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
 
     //If top exists return it
     if (top && j.count("top")) {
-      c->getNamespace("global")->print();
       *top = getModSymbol(c,j["top"].get<string>());
       c->setTop(*top);
     }
