@@ -3,6 +3,8 @@ INCS = -I$(HOME)/include -I.
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o) $(wildcard ../simulator/build/*.o)
 
+LIBS = -ldl
+
 DYLIBS = build/coreir.dylib
 SOLIBS = build/coreir.so
 
@@ -16,7 +18,7 @@ clean:
 	rm -rf build/*
 
 build/%.so: $(OBJS)
-	$(CXX) -shared -o $@ $^
+	$(CXX) -shared -o $@ $^ $(LIBS)
 	cp $@ $(HOME)/lib/lib$*.so
 
 build/%.dylib: $(OBJS)
