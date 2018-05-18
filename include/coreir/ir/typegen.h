@@ -33,12 +33,12 @@ class TypeGenFromFun : public TypeGen {
   protected :
     TypeGenFun fun;
     TypeGenFromFun(Namespace* ns, std::string name, Params params, TypeGenFun fun, bool flipped) : TypeGen(ns,name,params,flipped), fun(fun) {}
-    Type* createType(Values genargs) override {
+    virtual Type* createType(Values genargs) override {
       return fun(this->getContext(),genargs);
     }
   public :
-    bool hasType(Values genargs) override;
-    std::string toString() const override;
+    virtual bool hasType(Values genargs) override;
+    virtual std::string toString() const override;
     
     //Creation function
     static TypeGenFromFun* make(Namespace* ns, std::string name, Params genparams, TypeGenFun fun,bool flipped=false);
@@ -49,9 +49,9 @@ class TypeGenSparse : public TypeGen {
     std::map<Values,Type*,ValuesComp> typeLookup;
     TypeGenSparse(Namespace* ns, std::string name, Params params, std::vector<std::pair<Values,Type*>>& typelist );
   public :
-    Type* createType(Values genargs) override;
-    bool hasType(Values genargs) override;
-    std::string toString() const override;
+    virtual Type* createType(Values genargs) override;
+    virtual bool hasType(Values genargs) override;
+    virtual std::string toString() const override;
     
     //Creation function
     static TypeGenSparse* make(Namespace* ns, std::string name, Params params, std::vector<std::pair<Values,Type*>>& typelist);
