@@ -98,6 +98,10 @@ namespace CoreIR {
           // cout << "\tSource = " << srcConst->toString() << endl;
           // cout << "\tOffset = " << offset << endl;
 
+          if (!val.get(offset).is_binary()) {
+            continue;
+          }
+
           uint8_t bit = val.get(offset).binary_value();
 
           assert((bit == 0) || (bit == 1));
@@ -137,6 +141,11 @@ namespace CoreIR {
             (srcConst->getModArgs().find("value"))->second->get<bool>();
 
           BitVector val(1, valB == true ? 1 : 0);
+
+          if (!val.get(0).is_binary()) {
+            continue;
+          }
+          
           uint8_t bit = val.get(0).binary_value();
 
           assert((bit == 0) || (bit == 1));
@@ -514,7 +523,7 @@ namespace CoreIR {
           // TODO: Check for binary values
           BitVec res = BitVec(1, 1);
           for (uint i = 0; i < ((uint) sigVal0.bitLength()); i++) {
-            if (sigVal0.get(i) == 1) {
+            if (sigVal0.get(i) == 0) {
               res = BitVec(1, 0);
               break;
             }

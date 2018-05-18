@@ -38,17 +38,14 @@ bool ConnectionComp::operator() (const Connection& l, const Connection& r) const
 }
 
 bool ConnectionStrComp::SPComp(const SelectPath& l, const SelectPath& r) {
-  if (l.size() != r.size()) {
-    return l.size() < r.size();
-  }
-  for (uint i=0; i<l.size(); ++i) {
-    if (l[i] != r[i]) return l[i] < r[i];
-  }
-  return false;
+  string ls = toString(l);
+  string lr = toString(r);
+  return ls < lr;
 }
 bool ConnectionStrComp::operator() (const Connection& l, const Connection& r) const {
-  if (l.first!=r.first) return ConnectionStrComp::SPComp(l.first->getSelectPath(),r.first->getSelectPath());
-  return ConnectionStrComp::SPComp(l.second->getSelectPath(),r.second->getSelectPath());
+  string ls = toString(l);
+  string rs = toString(r);
+  return ls < rs;
 }
 
 Connection connectionCtor(Wireable* a, Wireable* b) {
@@ -88,8 +85,9 @@ string toString(SelectPath path) {
 }
 
 string toString(Connection con) {
-  Wireable* fstCon = ConnectionComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath()) ? con.first : con.second;
-  Wireable* sndCon = ConnectionComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath()) ? con.second : con.first;
+  bool order = ConnectionStrComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath());
+  Wireable* fstCon = order ? con.first : con.second;
+  Wireable* sndCon = order ? con.second : con.first;
   return fstCon->toString() + " <=> " + sndCon->toString();
 
   //return con.first->toString() + " <=> " + con.second->toString();

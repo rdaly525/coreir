@@ -419,7 +419,7 @@ namespace bsim {
 
     // Note: Need to check that all digits in each clump that
     // contain 'x' or 'z' values are 'x' or 'z' values
-    std::string hex_string() {
+    std::string hex_string() const {
       std::string hex = std::to_string(N) + "'h";
 
       std::string hex_digits = "";
