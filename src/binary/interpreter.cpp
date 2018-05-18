@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
       dlerror();
       //Load the Libraries
       string funname = "ExternalLoadLibrary_"+libname;
-      LoadLibrary_t* loadLib = (LoadLibrary_t*) dlsym(libHandle,funname.c_str());
+      LoadLibrary_t loadLib = (LoadLibrary_t) dlsym(libHandle,funname.c_str());
       const char* dlsym_error = dlerror();
       if (dlsym_error) {
         cout << "ERROR: Cannot load symbol " << funname << ": " << dlsym_error << endl;
