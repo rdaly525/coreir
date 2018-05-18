@@ -13,6 +13,7 @@
 #include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/common.h"
+#include "coreir/ir/coreirlib.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ namespace CoreIR {
 
 
 Context::Context() : maxErrors(8) {
+  libmanager = new CoreIRLibrary(this);
   global = newNamespace("global");
   Namespace* pt = newNamespace("_");
   //This defines a passthrough module. It is basically a nop that just passes the signal through
