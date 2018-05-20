@@ -50,13 +50,13 @@ int main(int argc, char *argv[]) {
   if (options.count("l")) {
     vector<string> libs = splitString<vector<string>>(options["l"].as<string>(),',');
     for (auto lib : libs) {
-      c->getLibraryManager.loadLib(lib);
+      c->getLibraryManager()->loadLib(lib);
     }
   }
    
   PassLibrary loadedPasses(c);
-  if (options.count("p")) {
-    vector<string> passes = splitString<vector<string>>(options["p"].as<string>(),',');
+  if (options.count("e")) {
+    vector<string> passes = splitString<vector<string>>(options["e"].as<string>(),',');
     for (auto pass : passes) {
       loadedPasses.loadPass(pass);
     }
