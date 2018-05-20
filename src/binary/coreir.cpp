@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "cxxopts.hpp"
 #include <fstream>
+#include "passlib.h"
 
 
 #include "coreir/passes/analysis/smtlib2.h"
@@ -25,40 +26,6 @@ string getExt(string s) {
   return split[split.size()-1];
 }
 
-
-//typedef std::map<std::string,std::pair<void*,Pass*>> OpenPassHandles_t;
-
-//bool shutdown(Context* c,OpenPassHandles_t openPassHandles, OpenLibHandles_t openLibHandles) {
-//  bool err = false;
-//  //Close all the open passes
-//  for (auto handle : openPassHandles) {
-//    //Load the registerpass
-//    delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
-//    const char* dlsym_error = dlerror();
-//    if (dlsym_error) {
-//      err = true;
-//      cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
-//      continue;
-//    }
-//    deletePass(handle.second.second);
-//  }
-//  //for (auto handle : openLibHandles) {
-//  //  //Load the registerpass
-//  //  delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
-//  //  const char* dlsym_error = dlerror();
-//  //  if (dlsym_error) {
-//  //    err = true;
-//  //    cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
-//  //    continue;
-//  //  }
-//  //  deletePass(handle.second.second);
-//  //}
-//  deleteContext(c);
-//  return !err;
-//}
-
-
-
 int main(int argc, char *argv[]) {
   int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
@@ -80,35 +47,18 @@ int main(int argc, char *argv[]) {
   
   Context* c = newContext();
   
-  ////Load external passes
-  //if (options.count("e")) {
-  //  vector<string> libs = splitString<vector<string>>(options["e"].as<string>(),',');
-  //  //Open all the libs
-  //  for (auto lib : libs) {
-  //    ASSERT(openPassHandles.count(lib)==0,"Cannot REopen " + lib);
-  //    void* libHandle = dlopen(lib.c_str(),RTLD_LAZY);
-  //    ASSERT(libHandle,"Cannot open file: " + lib);
-  //    dlerror();
-  //    //Load the registerpass
-  //    register_pass_t* registerPass = (register_pass_t*) dlsym(libHandle,"registerPass");
-  //    const char* dlsym_error = dlerror();
-  //    if (dlsym_error) {
-  //      cout << "ERROR: Cannot load symbol registerPass: " << dlsym_error << endl;
-  //      shutdown(c,openPassHandles,openLibHandles);
-  //      return 1;
-  //    }
-  //    Pass* p = registerPass();
-  //    ASSERT(p,"P is null");
-  //    openPassHandles[lib] = {libHandle,p};
-  //    c->addPass(p);
-  //  }
-  //}
-  
-  CoreIRLibrary libManager(c);
   if (options.count("l")) {
     vector<string> libs = splitString<vector<string>>(options["l"].as<string>(),',');
     for (auto lib : libs) {
-      libManager.loadLib(lib);
+      c->getLibraryManager()->loadLib(lib);
+    }
+  }
+   
+  PassLibrary loadedPasses(c);
+  if (options.count("e")) {
+    vector<string> passes = splitString<vector<string>>(options["e"].as<string>(),',');
+    for (auto pass : passes) {
+      loadedPasses.loadPass(pass);
     }
   }
   
@@ -183,9 +133,6 @@ int main(int argc, char *argv[]) {
     ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
     sout = &fout;
   }
-
-
-
 
   //Output to correct format
   if (outExt=="json") {

@@ -61,7 +61,7 @@ Context::Context() : maxErrors(8) {
 
 // Order of this matters
 Context::~Context() {
-  
+  delete libmanager;
   delete pm;
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
