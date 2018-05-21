@@ -7,7 +7,6 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.9
-    - python-virtualenv
 before_install:
 - export COREIRCONFIG="g++-4.9";
 - sudo make -j2 install
