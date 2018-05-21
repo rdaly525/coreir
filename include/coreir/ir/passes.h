@@ -44,8 +44,7 @@ class Pass {
     friend class Context;
 };
 
-typedef Pass* register_pass_t();
-typedef void delete_pass_t(Pass*);
+typedef Pass* (*register_pass_t)();
 
 //You can do whatever you want here
 class ContextPass : public Pass {

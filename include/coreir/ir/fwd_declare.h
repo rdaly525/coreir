@@ -62,6 +62,7 @@ class TypeGen;
 class TypeCache;
 class ValueCache;
 
+class CoreIRLibrary;
 
 class MetaData;
 

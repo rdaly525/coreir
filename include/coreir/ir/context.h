@@ -22,6 +22,8 @@ class Context {
   //Unique int
   uint unique=0;
 
+  CoreIRLibrary* libmanager;
+
   public :
     //Used for caching the types
     ValueCache* valuecache;
@@ -84,6 +86,9 @@ class Context {
     //TODO figure out a way to hide this (binary/coreir needs it)
     //Do not use unless you really have to.
     PassManager* getPassManager() { return pm;}
+
+    //Dynamically load a coreir library
+    CoreIRLibrary* getLibraryManager() { return libmanager; }
 
     //Factory functions for Types
     BitType* Bit(); //Construct a BitOut type
@@ -172,7 +177,7 @@ bool saveToDot(Module* m, std::string filename);
 Instance* addPassthrough(Wireable* w,std::string instname);
 bool inlineInstance(Instance*);
 
-typedef Namespace* LoadLibrary_t(Context*);
+typedef Namespace* (*LoadLibrary_t)(Context*);
 
 Namespace* CoreIRLoadLibrary_coreirprims(Context* c);
 

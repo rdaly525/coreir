@@ -1,8 +1,7 @@
 #include "coreir.h"
 #include "cxxopts.hpp"
-#include <dlfcn.h>
 #include <fstream>
-#include <sys/utsname.h>
+#include "passlib.h"
 
 
 #include "coreir/passes/analysis/smtlib2.h"
@@ -17,7 +16,6 @@
 #include "coreir/definitions/coreFirrtl.hpp"
 #include "coreir/definitions/corebitFirrtl.hpp"
 
-
 using namespace std;
 using namespace CoreIR;
 
@@ -27,92 +25,6 @@ string getExt(string s) {
   ASSERT(split.size()>=2,"File needs extention: " + s);
   return split[split.size()-1];
 }
-
-bool fileExists(string name) {
-  std::ifstream infile(name);
-  return infile.good();
-}
-
-void parseLib(string lib,string& libname,string& filename,vector<string>& lpaths) {
-  struct utsname unameData;
-  assert(!uname(&unameData));
-  string osname = unameData.sysname;
-  string ext;
-  if (osname=="Darwin") {
-    ext = "dylib";
-  }
-  else if (osname=="Linux") {
-    ext = "so";
-  }
-  else {
-    ASSERT(0,"Cannot support OS " + osname);
-  }
-  
-  vector<string> f1parse = splitString<vector<string>>(lib,'/');
-  string libfile = f1parse[f1parse.size()-1];
-  vector<string> f2parse = splitString<vector<string>>(libfile,'.');
-  
-  if (f1parse.size()==1 && f2parse.size()==1) { //Just passed in the name of the library
-    libname = lib;
-    string filecheck = "libcoreir-" + libname + "." + ext;
-    for (auto path : lpaths) {
-      filename = path + "/" + filecheck;
-      if (fileExists(filename)) {
-        return;
-      }
-    }
-    ASSERT(0,"Cannot find lib " + lib + " in the following paths\n" + join(lpaths.begin(),lpaths.end(),string("\n")));
-  }
-  else if (f2parse.size()==2 && f2parse[1]==ext) {
-    libname = f2parse[0].substr(10,f2parse[0].length()-10);
-    filename = lib;
-    ASSERT(fileExists(filename),"Cannot find lib " +lib);
-    return;
-  }
-  else if (f2parse.size()==2) {
-    cout << "WARNING not using extension: " << ext << endl;
-    libname = f2parse[0];
-    cout << "Trying to use libname: " << libname << endl;
-    filename = lib;
-    ASSERT(fileExists(filename),"Cannot find lib " +lib);
-    return;
-  }
-  ASSERT(0,"Cannot find lib " + lib);
-}
-
-
-typedef std::map<std::string,std::pair<void*,Pass*>> OpenPassHandles_t;
-typedef std::map<std::string,std::pair<void*,Namespace*>> OpenLibHandles_t;
-bool shutdown(Context* c,OpenPassHandles_t openPassHandles, OpenLibHandles_t openLibHandles) {
-  bool err = false;
-  //Close all the open passes
-  for (auto handle : openPassHandles) {
-    //Load the registerpass
-    delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
-    const char* dlsym_error = dlerror();
-    if (dlsym_error) {
-      err = true;
-      cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
-      continue;
-    }
-    deletePass(handle.second.second);
-  }
-  //for (auto handle : openLibHandles) {
-  //  //Load the registerpass
-  //  delete_pass_t* deletePass = (delete_pass_t*) dlsym(handle.second.first,"deletePass");
-  //  const char* dlsym_error = dlerror();
-  //  if (dlsym_error) {
-  //    err = true;
-  //    cout << "ERROR: Cannot load symbol deletePass: " << dlsym_error << endl;
-  //    continue;
-  //  }
-  //  deletePass(handle.second.second);
-  //}
-  deleteContext(c);
-  return !err;
-}
-
-
 
 int main(int argc, char *argv[]) {
   int argc_copy = argc;
@@ -133,66 +45,20 @@ int main(int argc, char *argv[]) {
   //Do the parsing of the arguments
   options.parse(argc,argv);
   
-  OpenPassHandles_t openPassHandles;
-  OpenLibHandles_t openLibHandles;
-  
-  
   Context* c = newContext();
-  //Load external passes
-  if (options.count("e")) {
-    vector<string> libs = splitString<vector<string>>(options["e"].as<string>(),',');
-    //Open all the libs
-    for (auto lib : libs) {
-      ASSERT(openPassHandles.count(lib)==0,"Cannot REopen " + lib);
-      void* libHandle = dlopen(lib.c_str(),RTLD_LAZY);
-      ASSERT(libHandle,"Cannot open file: " + lib);
-      dlerror();
-      //Load the registerpass
-      register_pass_t* registerPass = (register_pass_t*) dlsym(libHandle,"registerPass");
-      const char* dlsym_error = dlerror();
-      if (dlsym_error) {
-        cout << "ERROR: Cannot load symbol registerPass: " << dlsym_error << endl;
-        shutdown(c,openPassHandles,openLibHandles);
-        return 1;
-      }
-      Pass* p = registerPass();
-      ASSERT(p,"P is null");
-      openPassHandles[lib] = {libHandle,p};
-      c->addPass(p);
-    }
-  }
   
   if (options.count("l")) {
-    vector<string> lpaths = {"/usr/local/lib","/usr/lib"};
-    if (auto lpath = std::getenv("DYLD_LIBRARY_PATH")) {
-      lpaths.push_back(lpath);
-    }
-    if (auto lpath = std::getenv("LD_LIBRARY_PATH")) {
-      lpaths.push_back(lpath);
-    }
     vector<string> libs = splitString<vector<string>>(options["l"].as<string>(),',');
     for (auto lib : libs) {
-      
-      string libname;
-      string filename;
-      parseLib(lib,libname,filename,lpaths);
-
-      ASSERT(openLibHandles.count(filename)==0,"Cannot REopen " + filename);
-      void* libHandle = dlopen(filename.c_str(),RTLD_LAZY);
-      ASSERT(libHandle,"Cannot open file: " + filename);
-      dlerror();
-      //Load the Libraries
-      string funname = "ExternalLoadLibrary_"+libname;
-      LoadLibrary_t* loadLib = (LoadLibrary_t*) dlsym(libHandle,funname.c_str());
-      const char* dlsym_error = dlerror();
-      if (dlsym_error) {
-        cout << "ERROR: Cannot load symbol " << funname << ": " << dlsym_error << endl;
-        shutdown(c,openPassHandles,openLibHandles);
-        return 1;
-      }
-      Namespace* ns = loadLib(c);
-      ASSERT(ns,"NS is null in file " + filename);
-      openLibHandles[filename] = {libHandle,ns};
+      c->getLibraryManager()->loadLib(lib);
+    }
+  }
+   
+  PassLibrary loadedPasses(c);
+  if (options.count("e")) {
+    vector<string> passes = splitString<vector<string>>(options["e"].as<string>(),',');
+    for (auto pass : passes) {
+      loadedPasses.loadPass(pass);
     }
   }
   
@@ -200,7 +66,6 @@ int main(int argc, char *argv[]) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
     cout << endl;
-    if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
     return 0;
   }
   
@@ -269,9 +134,6 @@ int main(int argc, char *argv[]) {
     sout = &fout;
   }
 
-
-
-
   //Output to correct format
   if (outExt=="json") {
     c->runPasses({"coreirjson"},namespaces);
@@ -333,7 +195,5 @@ int main(int argc, char *argv[]) {
   }
   cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
 
-  //Shutdown
-  if (!shutdown(c,openPassHandles,openLibHandles) ) return 1;
   return 0;
 }
