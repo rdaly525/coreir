@@ -29,9 +29,9 @@ CoreIRLibrary::CoreIRLibrary(Context* c) : DynamicLibrary(), c(c) {
   }
 }
 
-void CoreIRLibrary::loadLib(string lib) {
+Namespace* CoreIRLibrary::loadLib(string lib) {
   if(lib2file.count(lib)) {
-    return;
+    return this->c->getNamespace(lib);
   }
 
   vector<string> f1parse = splitString<vector<string>>(lib,'/');
@@ -52,8 +52,10 @@ void CoreIRLibrary::loadLib(string lib) {
     ASSERT(0,"NYI loading lib: " + lib);
   }
   LoadLibrary_t loadLibFun = (LoadLibrary_t) this->getFunction(filename,"ExternalLoadLibrary_"+libname);
-  loadLibFun(c);
+  Namespace* ns = loadLibFun(c);
+  ASSERT(ns,"loading lib returned a null namespace " + lib);
   lib2file[libname] = filename;
+  return ns;
 }
 
 };

@@ -16,7 +16,7 @@ class CoreIRLibrary : public DynamicLibrary {
     //lib contains either 
     //  "<path>.ext" 
     //  "libname" 
-    void loadLib(std::string lib);   
+    Namespace* loadLib(std::string lib);   
 };
 
 }
