@@ -32,6 +32,7 @@ NamedRef = "<namespaceName>.<name>"
 NamedType = {"flippedname":<name>,"rawtype":Type}
 
 TypeGen = [Params, "sparse", [[Values,Type],[Values,Type],...]]
+        | [Params, "implicit"]
         | //TODO Type language?
 
 //Note if there are no instances and no connections, this is a declaration

@@ -327,15 +327,20 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
       TypeGen* tg = tgpair.second;
       Array jtypegen;
       jtypegen.add(Params2Json(tg->getParams()));
-      jtypegen.add(quote("sparse"));
-      Array jsparselist(6);
-      for (auto vtpair : tg->getCached()) {
-        Array jvtpair;
-        jvtpair.add(Values2Json(vtpair.first));
-        jvtpair.add(Type2Json(vtpair.second));
-        jsparselist.add(jvtpair.toString());
+      if (tg->getCached().size()==0) {
+        jtypegen.add(quote("implicit"));
       }
-      jtypegen.add(jsparselist.toMultiString());
+      else {
+        jtypegen.add(quote("sparse"));
+        Array jsparselist(6);
+        for (auto vtpair : tg->getCached()) {
+          Array jvtpair;
+          jvtpair.add(Values2Json(vtpair.first));
+          jvtpair.add(Type2Json(vtpair.second));
+          jsparselist.add(jvtpair.toString());
+        }
+        jtypegen.add(jsparselist.toMultiString());
+      }
       jtypegens.add(tgname,jtypegen.toString());
     }
     jns.add("typegens",jtypegens.toMultiString());

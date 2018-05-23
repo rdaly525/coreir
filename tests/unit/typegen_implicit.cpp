@@ -56,8 +56,25 @@ int main() {
   top->setDef(def);
   top->print();
   
+  cout << "Checking saving and loading postgen" << endl;
+  if (!saveToFile(g, "_typegen_implicit.json",top)) {
+    cout << "Could not save to json!!" << endl;
+    c->die();
+  }
+  
+  deleteContext(c);
+  
+  c = newContext();
+  
+  top = nullptr;
+  if (!loadFromFile(c,"_typegen_implicit.json", &top)) {
+    cout << "Could not Load from json!!" << endl;
+    c->die();
+  }
+  ASSERT(top, "Could not load top: typegen_implicit");
+  top->print();
+
   c->runPasses({"rungenerators","flatten"});
   top->print();
 
-  deleteContext(c);
 }
