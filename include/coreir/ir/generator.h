@@ -35,6 +35,10 @@ class Generator : public GlobalValue {
     //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Values genargs);
     
+    //This will create a new generated module with the specified type.
+    //If the typegen can create a type, it will verify types match, else it will just use the type
+    Module* getModule(Values genargs, Type* type);
+    
     //Will delete the cached Module
     void eraseModule(Values genargs);
 

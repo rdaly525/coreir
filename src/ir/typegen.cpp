@@ -3,6 +3,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/generator.h"
 
 using namespace std;
 
@@ -71,6 +72,24 @@ std::string TypeGenSparse::toString() const {
 
 TypeGenSparse* TypeGenSparse::make(Namespace* ns, std::string name, Params params, std::vector<std::pair<Values,Type*>>& typelist) {
   TypeGenSparse* tg = new TypeGenSparse(ns,name,params,typelist);
+  ns->addTypeGen(tg);
+  return tg;
+}
+
+bool TypeGenImplicit::hasType(Values genargs) {
+  return false;
+}
+
+Type* TypeGenImplicit::createType(Values genargs) {
+  ASSERT(0,"Cannot ever create a type with a TypeGenImplicit");
+}
+
+std::string TypeGenImplicit::toString() const {
+  return this->getRefName() + ::CoreIR::toString(this->getParams());
+}
+
+TypeGenImplicit* TypeGenImplicit::make(Namespace* ns, std::string name, Params params) {
+  TypeGenImplicit* tg = new TypeGenImplicit(ns,name,params);
   ns->addTypeGen(tg);
   return tg;
 }

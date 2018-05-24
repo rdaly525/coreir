@@ -57,6 +57,23 @@ class TypeGenSparse : public TypeGen {
     static TypeGenSparse* make(Namespace* ns, std::string name, Params params, std::vector<std::pair<Values,Type*>>& typelist);
 };
 
+//TODO could potentially turn into singlton?
+//This is used for 'blank' typegens.
+//createType always fails
+//hasType always returns false
+//This allows the existence of generators with functionally no typegen
+class TypeGenImplicit : public TypeGen {
+  protected :
+    TypeGenImplicit(Namespace* ns, std::string name, Params params) : TypeGen(ns,name,params,false) {}
+  public :
+    Type* createType(Values genargs) override;
+    bool hasType(Values genargs) override;
+    std::string toString() const override;
+    
+    //Creation function
+    static TypeGenImplicit* make(Namespace* ns, std::string name, Params params);
+};
+
 
 
 }// CoreIR

@@ -135,7 +135,14 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           jsonvector jtg = jtgpair.second.get<jsonvector>();
           Params tgparams = json2Params(c,jtg[0]);
           string tgkind = jtg[1].get<string>();
-          if (tgkind == "sparse") {
+          if (tgkind == "implicit") {
+            ASSERTTHROW(jtg.size()==2,"Bad implicit typegen format" + toString(jtg));
+            if (!tg) {
+              tg = TypeGenImplicit::make(ns,name,tgparams);
+              ns->addTypeGen(tg);
+            }
+          }
+          else if (tgkind == "sparse") {
             vector<std::pair<Values,Type*>> typeList;
             //First just get the list of Values->Types
             for (auto jvaltypes : jtg[2].get<jsonvector>()) {
@@ -212,19 +219,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           TypeGen* tg = c->getTypeGen(typeGenName);
           vector<std::pair<Values,json>> genmodvalues;
           //Verify that this is consistent with all the types
-          if (jgen.count("modules")) {
-            cout << "in modules!" << endl;
-            for (auto jgenmod : jgen.at("modules").get<jsonvector>()) {
-              jsonvector jvalmod = jgenmod.get<jsonvector>();
-              ASSERTTHROW(jvalmod.size()==2,"Bad generated module" + toString(jgenmod));
-              Values genargs = json2Values(c,jvalmod[0]);
-              json jmod = jvalmod[1];
-              checkJson(jmod,{"type"});
-              Type* t = json2Type(c,jmod.at("type"));
-              ASSERTTHROW(t==tg->getType(genargs),"Type mismatch for typegen\n  " + tg->toString() + toString(genargs) + "==" + t->toString() + " but != " +tg->getType(genargs)->toString());
-              genmodvalues.push_back({genargs,jmod});
-            }
-          }
           //TODO deal with module parameter generation
           Generator* g = ns->newGeneratorDecl(genname,tg,genparams);
           if (jgen.count("defaultgenargs")) {
@@ -233,10 +227,19 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           if (jgen.count("metadata")) {
             g->setMetaData(jgen["metadata"]);
           }
-          for (auto vjpair : genmodvalues) {
-            cout << "in loop:" << endl;
-            Module* m = g->getModule(vjpair.first);
-            modqueue.push_back({m,vjpair.second}); //Populate the generated module cache
+          if (jgen.count("modules")) {
+            cout << "in modules!" << endl;
+            for (auto jgenmod : jgen.at("modules").get<jsonvector>()) {
+              jsonvector jvalmod = jgenmod.get<jsonvector>();
+              ASSERTTHROW(jvalmod.size()==2,"Bad generated module" + toString(jgenmod));
+              Values genargs = json2Values(c,jvalmod[0]);
+              json jmod = jvalmod[1];
+              checkJson(jmod,{"type"});
+              Type* type = json2Type(c,jmod.at("type"));
+              //This will verify the correct type if typegen can generate the type
+              Module* m = g->getModule(genargs,type);
+              modqueue.push_back({m,jmod}); //Populate the generated module cache
+            }
           }
         }
       }
