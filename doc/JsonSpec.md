@@ -72,6 +72,7 @@ ValueType = "Bool"
           | ["BitVector" <N>]
           | "String"
           | "CoreIRType"
+          | "Module"
 
 Params = {<field>:ValueType,...}
 

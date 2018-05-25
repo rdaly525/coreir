@@ -344,7 +344,18 @@ Value* json2Value(Context* c, json j,Module* m) {
     }
     case ValueType::VTK_String : return Const::make(c,jval.get<string>());
     case ValueType::VTK_CoreIRType : return Const::make(c,json2Type(c,jval));
-    case ValueType::VTK_Module : return Const::make(c,c->getModule(jval));
+    case ValueType::VTK_Module : {
+      Module* mod;
+      if (jval.type() == json::value_t::array) { //This is a generated module
+        vector<json> jgenmod = jval.get<vector<json>>();
+        ASSERTTHROW(jgenmod.size()==2,"Badly constructed module");
+        mod = c->getGenerator(jgenmod[0].get<string>())->getModule(json2Values(c,jgenmod[1],m));
+      }
+      else {
+        mod = c->getModule(jval.get<string>());
+      }
+      return Const::make(c,mod);
+    }
     default : ASSERT(0,"Cannot have a Const of type" + vtype->toString());
   }
 }
