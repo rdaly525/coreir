@@ -1746,12 +1746,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                        {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
                        {{"init", Const::make(c, width, 0)}});
     }
+    def->addInstance("ignoreOverflow", "coreir.term", {{"width", Const::make(c, 1)}});
 
     // wire up modules
     def->connect("self.reset", "counter.reset");
     def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
+    def->connect("counter.overflow", "ignoreOverflow.in.0");
 
     def->connect("counter.out","slice.in");
     def->connect("slice.out","muxn.in.sel");
