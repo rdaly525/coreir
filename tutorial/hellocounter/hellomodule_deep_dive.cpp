@@ -25,7 +25,7 @@ int main() {
   //Namespaces contain Modules, Generators, and NamedTypes
   Namespace* global = c->getNamespace("global");
   
-  //Now lets create a module. This is software function. It has a name and a type signature represented by the Type that we just created.
+  //Now lets create a module. This is like a software function. It has a name and a type signature represented by the Type that we just created.
   Module* counter = global->newModuleDecl("counter",CounterType);
 
   //we now have a module that has a well defined interface, but no definition. Lets now create the coudefinition. The defintion will simply be a graph of instances and connections.
