@@ -451,6 +451,9 @@ namespace CoreIR {
   
   void SimulatorState::setValue(const std::string& name, const BitVec& bv) {
     ModuleDef* def = mod->getDef();
+
+    ASSERT(def->canSel(name), name + " is not a port of the module being simulated");
+
     Wireable* w = def->sel(name);
     Select* s = toSelect(w);
 
