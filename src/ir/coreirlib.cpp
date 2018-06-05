@@ -30,6 +30,9 @@ CoreIRLibrary::CoreIRLibrary(Context* c) : DynamicLibrary(), c(c) {
 }
 
 Namespace* CoreIRLibrary::loadLib(string lib) {
+  if (c->hasNamespace(lib)) {
+    return c->getNamespace(lib);
+  }
   if(lib2file.count(lib)) {
     return this->c->getNamespace(lib);
   }
