@@ -32,6 +32,7 @@ int main() {
   Type* lb32Type = c->Record({
 			{"in",in_type},
 			{"wen",c->BitIn()},
+			{"flush",c->BitIn()},
 			{"out",out_type},
 			{"valid", c->Bit()},
 			{"valid_chain", c->Bit()}

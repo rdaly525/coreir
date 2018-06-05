@@ -100,6 +100,8 @@ void Aetherling_createConvGenerator(Context* c) {
 
             // now wire everythign up
             def->connect("self.in.data", "conv1DLineBuffer.in");
+            def->addInstance("c0","corebit.const",{{"value",Const::make(c,true)}});
+            def->connect("c0.out","conv1DLineBuffer.flush");
             // assuming stride is 1, so each input per clock increases the output width by 1
             def->connect("conv1DLineBuffer.out", "overlapPartition.in");
             def->connect("overlapPartition.out", "conv1DMapForAllInputs.in0");
