@@ -822,10 +822,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       RecordParams recordparams = {
           {"in", in_type},
           {"wen",c->BitIn()},
-          {"flush",c->BitIn()},
           {"out", out_type}
       };
-
 
       if (has_valid) { recordparams.push_back({"valid",c->Bit()}); }
       if (has_valid) { recordparams.push_back({"valid_chain",c->Bit()}); }
@@ -882,7 +880,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     assert(out_dim >= in_dim); // output stencil size must be larger than the input
     assert(img_dim % in_dim == 0); // dimension length must be divisible, becuase we can't swizzle data
     ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + \
-           " != 0, dimension length must be divisible, becuase we can't swizzle data");
+          " != 0, dimension length must be divisible, becuase we can't swizzle data");
 
     if (img_dim - out_dim < 3 && (img_dim != out_dim)) {
       std::cout << "Image dimension " << dim << "  is " << img_dim 
@@ -901,9 +899,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Const* aBitwidth = Const::make(c,bitwidth);
     assert(isa<ConstInt>(aBitwidth));
 
-    def->addInstance("flush_term","corebit.term");
-    def->connect("flush_term.in","self.flush");
-
     // NOTE: registers and lbmems named such that they correspond to output connections
 
     ////////////////////////////////////////////
@@ -915,7 +910,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       for (uint i=0; i<out_dim; ++i) {
         // output goes to mirror position, except keeping order within a single clock cycle
         uint iflip = (out_dim-1) - (in_dim - 1 - i % in_dim) - (i / in_dim) * in_dim;
-
 
         // connect to input
         if (i < in_dim) {
@@ -943,37 +937,41 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
 
       // create and connect valid chain
-      if (has_valid && is_last_lb) {
-				// this is a chain of valids
-        string valid_prefix = "valreg_";
+      if (has_valid) {
+        if (is_last_lb) {
+          // this is a chain of valids
+          string valid_prefix = "valreg_";
 
-				uint last_idx = -1;
-        for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
+          uint last_idx = -1;
+          for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
           
-          // connect to input wen
-          if (i == 0) {
-            string reg_name = valid_prefix + to_string(i);
-            def->addInstance(reg_name, "corebit.reg");
-            def->connect({"self","wen"}, {reg_name,"in"});
+            // connect to input wen
+            if (i == 0) {
+              string reg_name = valid_prefix + to_string(i);
+              def->addInstance(reg_name, "corebit.reg");
+              def->connect({"self","wen"}, {reg_name,"in"});
          
-            // create and connect to register; register connects to previous register
-          } else {
-            uint in_idx = i - in_dim;
-            string reg_name = valid_prefix + to_string(i);
-            string prev_reg_name = valid_prefix + to_string(in_idx);
-            def->addInstance(reg_name, "corebit.reg");
-            def->connect({prev_reg_name, "out"}, {reg_name, "in"});
+              // create and connect to register; register connects to previous register
+            } else {
+              uint in_idx = i - in_dim;
+              string reg_name = valid_prefix + to_string(i);
+              string prev_reg_name = valid_prefix + to_string(in_idx);
+              def->addInstance(reg_name, "corebit.reg");
+              def->connect({prev_reg_name, "out"}, {reg_name, "in"});
 
+            }
+
+            last_idx = i;
           }
 
-					last_idx = i;
-        }
-
-        // connect last valid bit to self.valid
-        string last_valid_name = valid_prefix + to_string(last_idx);
-        def->connect({"self","valid"},{last_valid_name,"out"});
-				def->connect({"self","valid_chain"},{last_valid_name,"out"});
-        
+          // connect last valid bit to self.valid
+          string last_valid_name = valid_prefix + to_string(last_idx);
+          def->connect({"self","valid"},{last_valid_name,"out"});
+          def->connect({"self","valid_chain"},{last_valid_name,"out"});
+        } else {
+          def->connect({"self","wen"},{"self","valid"});
+          def->connect({"self","wen"},{"self","valid_chain"});
+        }        
       } // valid chain
 
 /*// a counter is not needed since the images are only 1d
@@ -1018,7 +1016,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     ///// RECURSIVE CASE /////
     //////////////////////////  
     } else {
-      //cout << "creating a recursive linebuffer" << endl;
       string lb_prefix = "lb" + to_string(dim) + "d_"; // use this for recursively smaller linebuffers
       Type* lb_input = cast<ArrayType>(in_type)->getElemType();
       Type* lb_image = cast<ArrayType>(img_type)->getElemType();
@@ -1038,7 +1035,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         //if (!has_valid || (is_last_lb && i == out_dim-1)) { // was used when is_last_lb was used recursively
         
         def->addInstance(lb_name, "commonlib.linebuffer", args);
-        def->connect(lb_name + ".flush","self.flush");
       }
 
       // ALL CASES: stencil output connections
@@ -1085,9 +1081,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       // REGULAR CASE: lbmems to store image lines
  
       // create lbmems to store data between linebuffers
-      //   size_lbmems = prod((img[x] - (out[x]-1)) / in[x]) 
+      //   size_lbmems = prod((img[x] - (out[x]-in[x])) / in[x]) 
       //      except for x==1, img0 / in0
-        uint size_lbmems = out_dim-1;
+        uint size_lbmems = 1; //out_dim-1;
         for (uint dim_i=0; dim_i<num_dims-1; dim_i++) {
           if (dim_i == 0) {
             size_lbmems *= img_dims[dim_i] / in_dims[dim_i];
@@ -1121,7 +1117,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
             def->addInstance(lbmem_name, "memory.rowbuffer",
                              {{"width",aBitwidth},{"depth",aLbmemSize}});
-            def->connect({"self","flush"},{lbmem_name,"flush"});
+
+            // hook up flush
+            // FIXME: actually create flush signal using counters
+            string lbmem_flush_name = lbmem_name + "_flush";
+            def->addInstance(lbmem_flush_name, "corebit.const", {{"value",Const::make(c,false)}});
+            def->connect({lbmem_name,"flush"},{lbmem_flush_name,"out"});
 
             ///// connect lbmem input and wen /////
             //cout << "connecting lbmem input for " << lbmem_name << endl;
@@ -1148,7 +1149,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
               def->connect(input_name + input_suffix, lbmem_name + ".wdata");
 
-              // connect wen if has_valid
+              // connect wen
               if (has_valid) {
                  if (out_i < in_dim) {
                    // use self wen; actually stall network for now
@@ -1188,6 +1189,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               if (has_valid) {
                 string valid_name = lb_prefix + to_string(0);
                 def->connect(valid_name + ".valid_chain", lbmem_name + ".wen");
+              } else {
+                def->connect("self.wen", lbmem_name + ".wen");
               }
 
             }
@@ -1223,58 +1226,72 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         for (uint out_i=0; out_i<in_dim; ++out_i) {
           string lb_name = lb_prefix + to_string(out_i);
           def->connect({"self","in",to_string(out_i)}, {lb_name, "in"});
-          //if (has_valid) { def->connect({"self","wen"}, {lb_name, "wen"}); } // use stall network
         }
 
         ///// connect linebuffer outputs /////
         if (has_valid) {
-          // use the last lbmem for valid chaining (note this signal is duplicated among all in_dims)
-          //  recall lbmem naming: lbmem_x_<in2>_<in1>_<in0>
-          string last_lbmem_name = lbmem_prefix;
-          for (int dim_i=num_dims-1; dim_i>=0; dim_i--) {
-            if (dim_i == (int)(num_dims-1)) {
-              last_lbmem_name += "_" + to_string(out_dim-1);
-            } else {
-              last_lbmem_name += "_" + to_string(in_dims[dim_i]-1);
-            }
-          }
-          def->connect({"self","valid_chain"},{last_lbmem_name,"valid"});
+					// check if we create lbmems or not
+					string valid_chain_str;
+					if (out_dim - in_dim > 0) {
+						// use the last lbmem for valid chaining (note this signal is duplicated among all in_dims)
+						//  recall lbmem naming: lbmem_x_<in2>_<in1>_<in0>
+						string last_lbmem_name = lbmem_prefix;
+						for (int dim_i=num_dims-1; dim_i>=0; dim_i--) {
+							if (dim_i == (int)(num_dims-1)) {
+								last_lbmem_name += "_" + to_string(out_dim-1);
+							} else {
+								last_lbmem_name += "_" + to_string(in_dims[dim_i]-1);
+							}
+						}
+						valid_chain_str = last_lbmem_name + ".valid";
+					} else {
+						valid_chain_str = "self.wen";
+					}
+					def->connect(valid_chain_str, "self.valid_chain");
 
           // create counters to create valid output (if top-level linebuffer)
-          if (is_last_lb) {
+          if (is_last_lb == false) {
+            def->connect(valid_chain_str, "self.valid");
+          } else { //if (is_last_lb) {
 
-            // andr all comparator outputs
-            string andr_name = "valid_andr";
-            Values andr_params = {{"N",Const::make(c,num_dims-1)},{"operator",Const::make(c,"corebit.and")}};
-            def->addInstance(andr_name,"commonlib.bitopn",andr_params);
-            def->connect({andr_name,"out"},{"self","valid"});
+            std::vector<std::string> counter_outputs;
+            counter_outputs.push_back("self.wen");
             
-            // create a counter for all but the last dimension
-            for (uint dim_i=0; dim_i<num_dims-1; dim_i++) {
+            // create a counter for every dimension
+            for (uint dim_i=0; dim_i<num_dims; dim_i++) {
+              // comparator for valid (if stencil_size-1 <= count)
+              int const_value = (out_dims[dim_i] / in_dims[dim_i]) - 1;
+              //FIXME: not implemented, because overflow needed to trigger next counter
+              //if (const_value == 0) continue;  // no counter needed if stencil_size is 1
+
+              string const_name = "const_stencil" + to_string(dim_i);
+              Values const_arg = {{"value",Const::make(c,BitVector(bitwidth,const_value))}};
+              def->addInstance(const_name, "coreir.const", {{"width",aBitwidth}}, const_arg);
+
+              string compare_name = "valcompare_" + to_string(dim_i);
+              def->addInstance(compare_name,"coreir.ule",{{"width",aBitwidth}});
+
               // counter
               string counter_prefix = "valcounter_";
               string counter_name = counter_prefix + to_string(dim_i);
               Values counter_args = {
                 {"width",Const::make(c,bitwidth)},
                 {"min",Const::make(c,0)},
-                {"max",Const::make(c,img_dims[dim_i] / in_dims[dim_i])},
+                {"max",Const::make(c,img_dims[dim_i] / in_dims[dim_i] - 1)},
                 {"inc",Const::make(c,1)}
               };
               def->addInstance(counter_name,"commonlib.counter",counter_args);
-              def->connect({counter_name, "reset"}, {"self", "flush"});
 
-              // comparator for valid (if stencil_size < count)
-              string compare_name = "valcompare_" + to_string(dim_i);
-              def->addInstance(compare_name,"coreir.ult",{{"width",aBitwidth}});
-              string const_name = "const_stencil" + to_string(dim_i);
-              Values const_value = {{"value",Const::make(c,BitVector(bitwidth,out_dims[dim_i] / in_dims[dim_i]))}};
-              def->addInstance(const_name, "coreir.const", {{"width",aBitwidth}}, const_value);
-
+							// connect reset to 0
+							string counter_reset_name = counter_name + "_reset";
+              def->addInstance(counter_reset_name, "corebit.const", {{"value",Const::make(c,false)}});
+							def->connect({counter_name, "reset"},{counter_reset_name,"out"});
 
               // connections
-              // counter en by valid or overflow bit
+              // counter en by wen or overflow bit
               if (dim_i == 0) {
-                def->connect({last_lbmem_name,"valid"},{counter_name,"en"});
+                //def->connect({last_lbmem_name,"valid"},{counter_name,"en"});
+								def->connect("self.wen",counter_name + ".en");
               } else {
                 string last_counter_name = counter_prefix + to_string(dim_i-1);
                 def->connect({last_counter_name,"overflow"},{counter_name,"en"});
@@ -1283,20 +1300,41 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               // wire up comparator
               def->connect({const_name,"out"},{compare_name,"in0"});
               def->connect({counter_name,"out"},{compare_name,"in1"});
-              def->connect({compare_name,"out"},{andr_name,"in",to_string(dim_i)});
+              counter_outputs.push_back(compare_name + ".out");
+              //def->connect({compare_name,"out"},{andr_name,"in",to_string(dim_i)});
+            }
+
+            if (counter_outputs.size() == 0) {
+              def->connect("self.wen", "self.valid");
+            } else {
+              // andr all comparator outputs
+              string andr_name = "valid_andr";
+              Values andr_params = {{"N",Const::make(c,counter_outputs.size())},
+                                    {"operator",Const::make(c,"corebit.and")}};
+              def->addInstance(andr_name,"commonlib.bitopn",andr_params);
+              def->connect({andr_name,"out"},{"self","valid"});
+              //def->hasConnection({andr_name,"out"},{"self","valid"});
+
+              for (uint dim_i=0; dim_i<counter_outputs.size(); ++dim_i) {
+                def->connect(counter_outputs[dim_i], andr_name +".in."+to_string(dim_i));
+              }
+            
             }
           }
 
-          /*
-          // connect last linebuffer output to self.valid
-          string last_lb_name = lb_prefix + to_string(out_dim-1);
-          def->connect({"self","valid"},{last_lb_name,"valid"});
-          if (num_dims==2 && is_last_lb) {
-            def->connect({last_lb_name,"wen"},{last_lbmem_name,"valid"});
-            }*/
-
+        } else { // has_valid == 0
+          // hook up wen for rest of linebuffers
+          for (uint out_i=in_dim; out_i<out_dim; ++out_i) {
+            //string lb_name = lb_prefix + to_string(out_i);
+            //def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
+          }
         }
-        
+
+        for (uint out_i=0; out_i<out_dim; ++out_i) {
+          string lb_name = lb_prefix + to_string(out_i);
+          def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
+        }
+
         
       } // regular case
 
@@ -1708,12 +1746,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                        {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
                        {{"init", Const::make(c, width, 0)}});
     }
+    def->addInstance("ignoreOverflow", "coreir.term", {{"width", Const::make(c, 1)}});
 
     // wire up modules
     def->connect("self.reset", "counter.reset");
     def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
+    def->connect("counter.overflow", "ignoreOverflow.in.0");
 
     def->connect("counter.out","slice.in");
     def->connect("slice.out","muxn.in.sel");

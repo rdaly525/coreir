@@ -140,7 +140,7 @@ string TemplatedConst<int>::toString() const {
 
 template<>
 string TemplatedConst<BitVector>::toString() const {
-  return to_string(value.to_type<int>());
+  return value.hex_string();
 }
 
 template<>
