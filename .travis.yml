@@ -7,16 +7,15 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.9
-    - python-virtualenv
 before_install:
 - export COREIRCONFIG="g++-4.9";
-- sudo make -j install
-- make release
+- sudo make -j2 install
+- make -j2 release
 script:
-- make installtest
-- sudo make uninstall
+- make -j2 installtest
+- sudo make -j2 uninstall
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
-- make test
+- make -j2 test
 compiler:
 - gcc
 os:

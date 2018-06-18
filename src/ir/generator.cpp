@@ -43,6 +43,7 @@ Module* Generator::getModule(Values genargs) {
   }
   
   checkValuesAreParams(genargs,genparams,getRefName());
+  ASSERT(typegen->hasType(genargs),"Cannot create generated module!");
   Type* type = typegen->getType(genargs);
   string modname;
   if (nameGen) {
@@ -72,6 +73,53 @@ Module* Generator::getModule(Values genargs) {
   //}
   return m;
 }
+
+Module* Generator::getModule(Values genargs, Type* type) {
+  mergeValues(genargs,defaultGenArgs);
+  if (genCache.count(genargs)) {
+    return genCache[genargs];
+  }
+  
+  checkValuesAreParams(genargs,genparams,getRefName());
+  if (typegen->hasType(genargs)) {
+    ASSERT(typegen->getType(genargs) == type,"Cannot create module with inconsistent types");
+  }
+  string modname;
+  if (nameGen) {
+    modname = nameGen(genargs);
+  }
+  else {
+    modname = this->name;
+  }
+  Module* m;
+  if (modParamsGen) {
+    auto pc = modParamsGen(getContext(),genargs);
+    m = new Module(ns,modname,type,pc.first,this,genargs);
+    m->addDefaultModArgs(pc.second);
+  }
+  else {
+     m = new Module(ns,modname,type,Params(),this,genargs);
+  }
+  genCache[genargs] = m;
+  
+  //TODO I am not sure what the default behavior should be
+  //for not having a def
+  //Run the generator if it has the def
+  //if (this->hasDef()) {
+  //  ModuleDef* mdef = m->newModuleDef();
+  //  def->createModuleDef(mdef,genargs); 
+  //  m->setDef(mdef);
+  //}
+  return m;
+}
+
+void Generator::eraseModule(Values genargs) {
+  ASSERT(genCache.count(genargs),"Module does not exist!");
+  delete genCache[genargs];
+  genCache.erase(genargs);
+}
+
+
 bool Generator::runAll() {
   bool ret = false;
   for (auto mpair : genCache) {
@@ -100,7 +148,7 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
 void Generator::addDefaultGenArgs(Values defaultGenArgs) {
   //Check to make sure each arg is in the gen params
   for (auto argmap : defaultGenArgs) {
-    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!")
+    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!");
     this->defaultGenArgs[argmap.first] = argmap.second;
   }
 }

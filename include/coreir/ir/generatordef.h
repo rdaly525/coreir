@@ -2,7 +2,6 @@
 #define COREIR_GENERATORDEF_HPP_
 
 #include "fwd_declare.h"
-#include "common.h"
 
 namespace CoreIR {
 class GeneratorDef {

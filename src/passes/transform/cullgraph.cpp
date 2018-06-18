@@ -8,11 +8,14 @@ namespace {
 void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
   if (m->isGenerated()) {
     gused.insert(m->getGenerator());
-  }
-  else {
     mused.insert(m);
   }
-  if (!m->hasDef()) return;
+  if (m->hasDef()) {
+    mused.insert(m);
+  }
+  else {
+    return;
+  }
   for (auto ipair : m->getDef()->getInstances()) {
     recurse(ipair.second->getModuleRef(),mused,gused);
   }
@@ -21,11 +24,17 @@ void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
 
 string Passes::CullGraph::ID = "cullgraph";
 bool Passes::CullGraph::runOnContext(Context* c) {
-  if (!c->hasTop()) return false;
-  //Find a list of all used Modules and Generators
+  //if (!c->hasTop()) return false;
   set<Module*> mused;
   set<Generator*> gused;
-  recurse(c->getTop(),mused,gused);
+ 
+  for (auto npair: c->getNamespaces()) {
+    for (auto mpair: npair.second->getModules()) {
+      recurse(mpair.second,mused,gused);
+    }
+  }
+  
+  //Find a list of all used Modules and Generators
   set<GlobalValue*> toErase;
   for (auto npair : c->getNamespaces()) {
     for (auto gpair : npair.second->getGenerators()) {

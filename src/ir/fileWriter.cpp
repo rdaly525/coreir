@@ -107,7 +107,7 @@ bool saveToDot(Module* m, string filename) {
     c->error(e);
     return false;
   }
-  ASSERT(endsWith(filename, ".txt"),filename + "Does not end with .txt")
+  ASSERT(endsWith(filename, ".txt"),filename + "Does not end with .txt");
   // create a txt dot file for use with graphviz
   ModuleToDot(m, file);
   return true;
@@ -115,7 +115,7 @@ bool saveToDot(Module* m, string filename) {
 
 bool saveToFile(Namespace* ns, string filename,Module* top) {
   Context* c = ns->getContext();
-  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file")
+  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {
     Error e;
@@ -135,5 +135,26 @@ bool saveToFile(Namespace* ns, string filename,Module* top) {
   return true;
 
 }
+
+bool saveToFile(Context* c, string filename) {
+  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  c->runPassesOnAll({"coreirjson"});
+  auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
+  string topRef = "";
+  if (c->hasTop()) {
+    topRef = c->getTop()->getRefName();
+  }
+  jpass->writeToStream(file,topRef);
+  return true;
+}
+
 
 }//CoreIR namespace

@@ -22,6 +22,8 @@ class Context {
   //Unique int
   uint unique=0;
 
+  CoreIRLibrary* libmanager;
+
   public :
     //Used for caching the types
     ValueCache* valuecache;
@@ -79,10 +81,14 @@ class Context {
     //This will run the following passes in the following namespaces. It defaults only to global, so if you want passes to be run on certain libraries, these need to be specified in the list of namespaces. 
     //One subtle thing to note is that an InstanceGraphPass will be run on modules regardless of the namespace. All other Pass Types will only be run on the specified namespaces.
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
+    bool runPassesOnAll(std::vector<std::string> order);
 
     //TODO figure out a way to hide this (binary/coreir needs it)
     //Do not use unless you really have to.
     PassManager* getPassManager() { return pm;}
+
+    //Dynamically load a coreir library
+    CoreIRLibrary* getLibraryManager() { return libmanager; }
 
     //Factory functions for Types
     BitType* Bit(); //Construct a BitOut type
@@ -91,8 +97,6 @@ class Context {
     ArrayType* Array(uint n, Type* t);
     RecordType* Record(RecordParams rp=RecordParams());
     NamedType* Named(std::string nameref);
-    NamedType* Named(std::string nameref, Values args);
-
 
     //Factory functions for ValueTypes
     BoolType* Bool();
@@ -106,6 +110,7 @@ class Context {
     Type* Out(Type* t);
 
     TypeGen* getTypeGen(std::string nameref);
+    bool hasTypeGen(std::string nameref);
 
     RecordParams* newRecordParams();
     Params* newParams();
@@ -119,6 +124,7 @@ class Context {
     //Sets the top module
     void setTop(std::string topRef);
     void setTop(Module* top);
+    void removeTop();
     bool hasTop() { return !!top;}
     Module* getTop() { return top;}
 
@@ -157,6 +163,7 @@ bool loadFromFile(Context* c, std::string filename,Module** top=nullptr);
 //Save namespace to a file with optional "top" module
 bool saveToFile(Namespace* ns, std::string filename,Module* top=nullptr); //This will go away
 bool saveToFilePretty(Namespace* ns, std::string filename,Module* top=nullptr);
+bool saveToFile(Context* c, std::string filename); //This will go away
 
 
 //Save a module to a dot file (for viewing in graphviz)
@@ -170,7 +177,7 @@ bool saveToDot(Module* m, std::string filename);
 Instance* addPassthrough(Wireable* w,std::string instname);
 bool inlineInstance(Instance*);
 
-typedef Namespace* LoadLibrary_t(Context*);
+typedef Namespace* (*LoadLibrary_t)(Context*);
 
 Namespace* CoreIRLoadLibrary_coreirprims(Context* c);
 
