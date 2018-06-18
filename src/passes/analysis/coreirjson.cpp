@@ -101,11 +101,14 @@ string Value2Json(Value* v) {
     else if (auto cs = dyn_cast<ConstString>(con)) {
       ret.add(quote(cs->get()));
     }
-    else if (auto at = dyn_cast<ConstCoreIRType>(con)) {
-      ret.add(Type2Json(at->get()));
+    else if (auto ct = dyn_cast<ConstCoreIRType>(con)) {
+      ret.add(Type2Json(ct->get()));
     }
-    else if (auto at = dyn_cast<ConstModule>(con)) {
-      ret.add(quote(at->get()->getRefName()));
+    else if (auto cm = dyn_cast<ConstModule>(con)) {
+      ret.add(quote(cm->get()->getRefName()));
+    }
+    else if (auto cj = dyn_cast<ConstJson>(con)) {
+      ret.add(CoreIR::toString(cj->get()));
     }
     else {
       ASSERT(0,"NYI");
@@ -257,7 +260,7 @@ string Module2Json(Module* m, int taboffset) {
   return j.toMultiString();
 }
 
-json Generator2Json(Generator* g) {
+Json Generator2Json(Generator* g) {
   Dict j(6);
   j.add("typegen",quote(g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName()));
   j.add("genparams",Params2Json(g->getGenParams()));
