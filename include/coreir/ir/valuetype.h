@@ -15,6 +15,7 @@ class ValueType {
       VTK_CoreIRType=4,
       VTK_Module=5,
       VTK_Json=6,
+      VTK_Any=7,
     };
   private :
     ValueTypeKind kind;
@@ -75,6 +76,13 @@ class JsonType : public ValueType {
     JsonType(Context* c) : ValueType(c,VTK_Json) {}
     static bool classof(const ValueType* v) {return v->getKind()==VTK_Json;}
     static JsonType* make(Context* c);
+};
+
+class AnyType : public ValueType {
+  public :
+    AnyType(Context* c) : ValueType(c,VTK_Any) {}
+    static bool classof(const ValueType* v) {return v->getKind()==VTK_Any;}
+    static AnyType* make(Context* c);
 };
 
 

@@ -10,6 +10,8 @@
 
 namespace CoreIR {
 
+#include "forcecast.h"
+
 template<class valTy>
 struct Underlying2ValueType;
 
@@ -52,10 +54,13 @@ class Value {
     ValueKind getKind() const {return kind;}
     ValueType* getValueType() const {return vtype;}
     virtual std::string toString() const = 0;
-    
+  public :
     template<typename T>
     const T& get() const {
-      return cast<typename Underlying2ValueType<T>::type>(this)->get();
+      if (auto val = dyn_cast<typename Underlying2ValueType<T>::type>(this)) {
+        return val->get();
+      }
+      return forceCast<T>(this);
     }
 
     virtual bool operator==(const Value& r) const = 0;
@@ -90,15 +95,14 @@ namespace CoreIR {
 
 class Arg : public Value {
   const std::string field;
-  private :
 
- public:
- Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
+  public:
+    Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
     static bool classof(const Value* v) {return v->getKind()==VK_Arg;}
     const std::string& getField() const { return field;}
     bool operator==(const Value& r) const;
     bool operator<(const Value& r) const;
-  std::string toString() const { return "Arg(" + field + ")";}
+    std::string toString() const { return "Arg(" + field + ")";}
 };
 
 template<typename T> 
@@ -183,7 +187,6 @@ class Const : public Value {
 };
 
 
-//T should be bool,BitVector,int,string,Type
 template<typename T>
 class TemplatedConst : public Const {
   const T value;
@@ -197,6 +200,7 @@ class TemplatedConst : public Const {
     
     std::string toString() const override;
     const T& get() const { return value;}
+  
 };
 
 }

@@ -85,6 +85,7 @@ class Select;
 
 //valuetype.h
 class ValueType;
+class AnyType;
 class BoolType;
 class IntType;
 class BitVectorType;

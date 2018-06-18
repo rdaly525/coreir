@@ -20,7 +20,7 @@ Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparam
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);
     ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
-    ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
+
     ASSERT(gen_param->second == type_param.second,"Param type mismatch for: " + gen_param->first + " (" + gen_param->second->toString()+ " vs " + type_param.second->toString()+")");
   }
 }
@@ -29,7 +29,6 @@ Generator::~Generator() {
   if (def) {
     delete def;
   }
-  //Delete all the Generated Modules only if they are Generated and not Namespace
   for (auto m : genCache) {
     delete m.second;
   }

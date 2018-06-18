@@ -16,9 +16,11 @@ std::string ValueType::toString() {
     case VTK_CoreIRType : return "CoreIRType";
     case VTK_Module : return "Module";
     case VTK_Json : return "Json";
+    case VTK_Any : return "Any";
     default : assert(0);
   }
 }
+AnyType* AnyType::make(Context* c) {return c->typecache->getAny();}
 BoolType* BoolType::make(Context* c) {return c->typecache->getBool();}
 IntType* IntType::make(Context* c) {return c->typecache->getInt();}
 BitVectorType* BitVectorType::make(Context* c, int width) {return c->typecache->getBitVector(width);}

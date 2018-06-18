@@ -99,6 +99,7 @@ class Context {
     NamedType* Named(std::string nameref);
 
     //Factory functions for ValueTypes
+    AnyType* Any();
     BoolType* Bool();
     IntType* Int();
     BitVectorType* BitVector(int width);

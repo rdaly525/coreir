@@ -16,6 +16,7 @@ TypeCache::TypeCache(Context* c) : c(c) {
   bitO->setFlipped(bitI);
   bitIO->setFlipped(bitIO);
 
+  anyType = new AnyType(c);
   boolType = new BoolType(c);
   intType = new IntType(c);
   stringType = new StringType(c);
@@ -49,6 +50,7 @@ TypeCache::~TypeCache() {
   delete bitI;
   delete bitO;
   delete bitIO;
+  delete anyType;
   delete boolType;
   delete intType;
   delete stringType;
