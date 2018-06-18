@@ -68,10 +68,10 @@ class Value {
     virtual bool operator<(const Value& r) const = 0;
     bool operator!=(const Value& r) const {return !Value::operator==(r);}
     //TODO do the other ones
-  friend bool operator==(const Values& l, const Values& r);
+    friend bool operator==(const Values& l, const Values& r);
 
-  protected : 
     virtual Value* forceCast(ValueType*) const = 0;
+    virtual bool canCast(ValueType*) const = 0;
 };
 
 //Create a map from underlying types (bool,int,etc) to Value::ValueKind
@@ -107,8 +107,9 @@ class Arg : public Value {
     bool operator==(const Value& r) const override;
     bool operator<(const Value& r) const override;
     std::string toString() const override { return "Arg(" + field + ")";}
-  protected:
+    
     Value* forceCast(ValueType*) const override { ASSERT(0,"Cannot get values from an Arg"); }
+    virtual bool canCast(ValueType*) const override { return false;}
 };
 
 template<typename T> 
@@ -191,6 +192,7 @@ class Const : public Value {
     virtual std::string toString() const override = 0;
     
     virtual Value* forceCast(ValueType*) const override = 0;
+    virtual bool canCast(ValueType*) const override = 0;
 
 };
 
@@ -210,6 +212,7 @@ class TemplatedConst : public Const {
     const T& get() const { return value;}
   
     Value* forceCast(ValueType*) const override;
+    bool canCast(ValueType*) const override;
 
 };
 

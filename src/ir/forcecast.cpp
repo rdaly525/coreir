@@ -175,6 +175,52 @@ Value* TemplatedConst<Json>::forceCast(ValueType* vt) const {
   }
 }
 
+template<>
+bool TemplatedConst<bool>::canCast(ValueType* vt) const {
+  return isa<BoolType>(vt)
+      || isa<IntType>(vt)
+      || isa<BitVectorType>(vt)
+      || isa<JsonType>(vt);
+
+}
+template<>
+bool TemplatedConst<int>::canCast(ValueType* vt) const {
+  return isa<BoolType>(vt)
+      || isa<IntType>(vt)
+      || isa<BitVectorType>(vt)
+      || isa<JsonType>(vt);
+
+}
+template<>
+bool TemplatedConst<BitVector>::canCast(ValueType* vt) const {
+  return isa<BoolType>(vt)
+      || isa<IntType>(vt);
+
+}
+
+template<>
+bool TemplatedConst<std::string>::canCast(ValueType* vt) const {
+  return false;
+}
+
+template<>
+bool TemplatedConst<CoreIR::Type*>::canCast(ValueType* vt) const {
+  return false;
+}
+
+template<>
+bool TemplatedConst<Module*>::canCast(ValueType* vt) const {
+  return false;
+}
+
+template<>
+bool TemplatedConst<Json>::canCast(ValueType* vt) const {
+  return isa<BoolType>(vt)
+      || isa<IntType>(vt)
+      || isa<StringType>(vt)
+      || isa<JsonType>(vt);
+
+}
 
 }
 
