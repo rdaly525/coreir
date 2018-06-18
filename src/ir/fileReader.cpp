@@ -367,6 +367,9 @@ ValueType* json2ValueType(Context* c,json j) {
   else if(vs=="Json") {
     return JsonType::make(c);
   }
+  else if(vs=="Any") {
+    return AnyType::make(c);
+  }
   else {
     ASSERT(0,vs + " is not a ValueType");
   }
