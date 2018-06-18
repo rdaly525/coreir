@@ -21,6 +21,7 @@ TypeCache::TypeCache(Context* c) : c(c) {
   stringType = new StringType(c);
   coreIRType = new CoreIRType(c);
   moduleType = new ModuleType(c);
+  jsonType = new JsonType(c);
 
 }
 
@@ -53,6 +54,7 @@ TypeCache::~TypeCache() {
   delete stringType;
   delete coreIRType;
   delete moduleType;
+  delete jsonType;
 }
 
 
