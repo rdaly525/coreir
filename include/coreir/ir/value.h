@@ -10,8 +10,6 @@
 
 namespace CoreIR {
 
-#include "forcecast.h"
-
 template<class valTy>
 struct Underlying2ValueType;
 
@@ -21,13 +19,13 @@ struct Underlying2ValueType<utype> { \
   typedef vtype type; \
 };
 
-U2V_SPECIALIZE(bool,ConstBool);
-U2V_SPECIALIZE(int,ConstInt);
-U2V_SPECIALIZE(BitVector,ConstBitVector);
-U2V_SPECIALIZE(std::string,ConstString);
-U2V_SPECIALIZE(CoreIR::Type*,ConstCoreIRType);
-U2V_SPECIALIZE(CoreIR::Module*,ConstModule);
-U2V_SPECIALIZE(Json,ConstJson);
+U2V_SPECIALIZE(bool,BoolType);
+U2V_SPECIALIZE(int,IntType);
+U2V_SPECIALIZE(BitVector,BitVectorType);
+U2V_SPECIALIZE(std::string,StringType);
+U2V_SPECIALIZE(CoreIR::Type*,CoreIRType);
+U2V_SPECIALIZE(CoreIR::Module*,ModuleType);
+U2V_SPECIALIZE(Json,JsonType);
 
 #undef U2V_SPECIALIZE
 
@@ -57,10 +55,13 @@ class Value {
   public :
     template<typename T>
     const T& get() const {
-      if (auto val = dyn_cast<typename Underlying2ValueType<T>::type>(this)) {
+      if (auto val = dyn_cast<TemplatedConst<T>>(this)) {
         return val->get();
       }
-      return forceCast<T>(this);
+      ValueType* vt = Underlying2ValueType<T>::type::make(vtype->getContext());
+      Value* casted = this->forceCast(vt);
+      ASSERT(vt == casted->getValueType(),"Bad ForceCast");
+      return casted->get<T>();
     }
 
     virtual bool operator==(const Value& r) const = 0;
@@ -68,6 +69,9 @@ class Value {
     bool operator!=(const Value& r) const {return !Value::operator==(r);}
     //TODO do the other ones
   friend bool operator==(const Values& l, const Values& r);
+
+  protected : 
+    virtual Value* forceCast(ValueType*) const = 0;
 };
 
 //Create a map from underlying types (bool,int,etc) to Value::ValueKind
@@ -100,9 +104,11 @@ class Arg : public Value {
     Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
     static bool classof(const Value* v) {return v->getKind()==VK_Arg;}
     const std::string& getField() const { return field;}
-    bool operator==(const Value& r) const;
-    bool operator<(const Value& r) const;
-    std::string toString() const { return "Arg(" + field + ")";}
+    bool operator==(const Value& r) const override;
+    bool operator<(const Value& r) const override;
+    std::string toString() const override { return "Arg(" + field + ")";}
+  protected:
+    Value* forceCast(ValueType*) const override { ASSERT(0,"Cannot get values from an Arg"); }
 };
 
 template<typename T> 
@@ -183,6 +189,8 @@ class Const : public Value {
     }
 
     virtual std::string toString() const override = 0;
+    
+    virtual Value* forceCast(ValueType*) const override = 0;
 
 };
 
@@ -201,6 +209,8 @@ class TemplatedConst : public Const {
     std::string toString() const override;
     const T& get() const { return value;}
   
+    Value* forceCast(ValueType*) const override;
+
 };
 
 }
