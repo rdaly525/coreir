@@ -6,9 +6,7 @@ using namespace CoreIR;
 
 string Passes::AddDummyInputs::ID = "add-dummy-inputs";
 
-void connectToDummy(//CoreIR::Instance* const next,
-                    //const std::string& field,
-                    const std::string& constName,
+void connectToDummy(const std::string& constName,
                     CoreIR::Select* const sel,
                     CoreIR::ModuleDef* const def,
                     CoreIR::Context* const c) {
@@ -25,6 +23,9 @@ void connectToDummy(//CoreIR::Instance* const next,
 
     def->connect(replaceConst->sel("out"), sel);
   } else {
+    if (!isBitType(*(sel->getType()))) {
+      cout << "ERROR: " << sel->toString() << " has type " << sel->getType()->toString() << endl;
+    }
     assert(isBitType(*(sel->getType())));
 
 
@@ -84,13 +85,32 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
 
       if (sel->getType()->getDir() == Type::DirKind::DK_In) {
 
+        auto srcSels = getSourceSelects(sel);
+
         if (getSourceSelects(sel).size() == 0) {
-          //cout << "\t\t" << sel->toString() << endl;
-          //assert(isBitArray(*(sel->getType())) || isBitType(*(sel->getType())));
 
           string constName = next->toString() + "_" + field + "_const_in";
           connectToDummy(constName, sel, def, c);
           
+        } else if (isBitArray(*(sel->getType()))) {
+
+          // The array itself is not connected
+          if (sel->getConnectedWireables().size() == 0) {
+            ArrayType* art = cast<ArrayType>(sel->getType());
+            int len = art->getLen();
+          
+            for (int i = 0; i < len; i++) {
+              Select* s = sel->sel(i);
+
+              auto sDriver = getSourceSelects(s);
+              assert((sDriver.size() == 0) || (sDriver.size() == 1));
+
+              if (sDriver.size() == 0) {
+                string constName = next->toString() + "_" + sel->getSelStr() + "_" + s->getSelStr() + "_const_in";
+                connectToDummy(constName, s, def, c);
+              }
+            }
+          }
         }
         
       }

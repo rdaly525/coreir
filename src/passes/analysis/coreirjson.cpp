@@ -81,6 +81,7 @@ string Params2Json(Params gp) {
 }
 
 string Type2Json(Type* t);
+string Values2Json(Values vs);
 string Value2Json(Value* v) {
   Array ret;
   ret.add(ValueType2Json(v->getValueType()));
@@ -106,7 +107,17 @@ string Value2Json(Value* v) {
       ret.add(Type2Json(at->get()));
     }
     else if (auto at = dyn_cast<ConstModule>(con)) {
-      ret.add(quote(at->get()->getRefName()));
+      Module* m = at->get();
+      if (m->isGenerated()) {
+        Values args = m->getGenArgs();
+        Array modarray;
+        modarray.add(quote(m->getRefName()));
+        modarray.add(Values2Json(args));
+        ret.add(modarray.toString());
+      }
+      else {
+        ret.add(quote(m->getRefName()));
+      }
     }
     else {
       ASSERT(0,"NYI");
@@ -203,14 +214,31 @@ string Instances2Json(map<string,Instance*>& insts) {
 
 string Connections2Json(Connections& cons) {
   Array a(8);
-  for (auto con : cons) {
+  vector<Connection> sortedConns;
+  for (auto c : cons) {
+    sortedConns.push_back(c);
+  }
+
+  // Ensure that connections are serialized in select string sorted order
+  ConnectionStrComp c;
+  std::sort(begin(sortedConns), end(sortedConns), [c](const Connection& l, const Connection& r) {
+      return c(l, r);
+    });
+
+  for (auto con : sortedConns) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
     string sa = join(pa.begin(),pa.end(),string("."));
     string sb = join(pb.begin(),pb.end(),string("."));
     Array b;
-    b.add(quote(sa));
-    b.add(quote(sb));
+    if (sa > sb) {
+      b.add(quote(sa));
+      b.add(quote(sb));
+    }
+    else {
+      b.add(quote(sb));
+      b.add(quote(sa));
+    }
     a.add(b.toString());
   }
   return a.toMultiString();

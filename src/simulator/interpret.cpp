@@ -9,14 +9,14 @@ namespace CoreIR {
     return ceil(log2(depth)) + 1;
   }
 
-  void SimMemory::setAddr(const BitVec& bv, const BitVec& val) {
+  void SimMemory::setAddr(const BitVec& addr, const BitVec& val) {
 
     assert(val.bitLength() == ((int) width));
     // Cannot access out of range elements
-    assert(bv.to_type<uint>() < depth);
+    assert(addr.to_type<uint>() < depth);
 
-    values.erase(bv);
-    values.insert({bv, val});
+    values.erase(addr);
+    values.insert({addr, val});
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
@@ -451,6 +451,9 @@ namespace CoreIR {
   
   void SimulatorState::setValue(const std::string& name, const BitVec& bv) {
     ModuleDef* def = mod->getDef();
+
+    ASSERT(def->canSel(name), name + " is not a port of the module being simulated");
+
     Wireable* w = def->sel(name);
     Select* s = toSelect(w);
 
@@ -491,10 +494,7 @@ namespace CoreIR {
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
     SimValue* v = getValue(sel);
 
-    if (v == nullptr) {
-      cout << sel->toString() << " cannot be found" << endl;
-    }
-    assert(v != nullptr);
+    ASSERT(v != nullptr, sel->toString() + " cannot be found");
 
     return toSimBitVector(v)->getBits();
   }
@@ -529,16 +529,16 @@ namespace CoreIR {
   void SimulatorState::updateSliceNode(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
     Instance* inst = toInstance(wd.getWire());
-    auto outSelects = getOutputSelects(inst);
+    //auto outSelects = getOutputSelects(inst);
 
     updateInputs(vd);
 
-    assert(outSelects.size() == 1);
+    //assert(outSelects.size() == 1);
 
-    pair<string, Wireable*> outPair = *std::begin(outSelects);
-    auto inConns = getInputConnections(vd, gr);
+    //pair<string, Wireable*> outPair = *std::begin(outSelects);
+    //auto inConns = getInputConnections(vd, gr);
 
-    assert(inConns.size() == 1);
+    //assert(inConns.size() == 1);
 
     Select* argSel = inst->sel("in");
     ASSERT(isSet(argSel), "in must have a value to evaluate this node");
@@ -561,7 +561,8 @@ namespace CoreIR {
       res.set(i - lo, sB.get(i));
     }
 
-    setValue(toSelect(outPair.second), makeSimBitVector(res));
+    //setValue(toSelect(outPair.second), makeSimBitVector(res));
+    setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
 
   void SimulatorState::updateAndrNode(const vdisc vd) {
@@ -1140,7 +1141,8 @@ namespace CoreIR {
 
       setMemory(inst->toString(), waddrBits, wdata->getBits());
 
-      assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+      //assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
+      assert(same_representation(getMemory(inst->toString(), waddrBits), wdata->getBits()));
     }
 
   }

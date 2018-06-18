@@ -33,7 +33,7 @@ class Module : public GlobalValue, public Args {
     virtual ~Module();
     static bool classof(const GlobalValue* i) {return i->getKind()==GVK_Module;}
     bool hasDef() const { return !!def; }
-    ModuleDef* getDef() const { return def; } 
+    ModuleDef* getDef() const;
     //This will validate def
     void setDef(ModuleDef* def, bool validate=true);
    
@@ -56,6 +56,8 @@ class Module : public GlobalValue, public Args {
       ASSERT(isGenerated(),"This is not a generated module!");
       return genargs;
     }
+
+    //Only runs a generator if the module does not already have a definition
     bool runGenerator();
     std::string getLongName() const {return longname;}
 

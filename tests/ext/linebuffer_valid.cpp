@@ -53,6 +53,7 @@ int main() {
 
   //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
   c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
+  c->runPasses({"verifyconnectivity-onlyinputs-noclkrst"},{"global","commonlib","memory","mantle"});
   //lb32->print();
   lb32->getDef()->validate();
 

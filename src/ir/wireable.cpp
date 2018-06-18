@@ -34,7 +34,9 @@ Select* Wireable::sel(const std::string& selStr) {
   ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
 
   Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
+
   selects[selStr] = select;
+
   return select;
 }
 
@@ -106,6 +108,7 @@ void Wireable::removeSel(string selStr) {
   ASSERT(selects.count(selStr),"Cannot remove " + selStr + "Because it does not exist!");
   Select* s = selects[selStr];
   selects.erase(selStr);
+  
   delete s;
 }
 
@@ -127,7 +130,10 @@ SelectPath& Wireable::getSelectPath() {
   return selectpath;
 }
 
-Context* Wireable::getContext() { return container->getContext();}
+Context* Wireable::getContext() {
+  ASSERT(container != nullptr, this->toString() + " has null container");
+  return container->getContext();
+}
 string Wireable::wireableKind2Str(WireableKind wb) {
   switch(wb) {
     case WK_Interface: return "Interface";
