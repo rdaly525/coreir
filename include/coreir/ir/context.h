@@ -163,7 +163,7 @@ bool loadFromFile(Context* c, std::string filename,Module** top=nullptr);
 //Save namespace to a file with optional "top" module
 bool saveToFile(Namespace* ns, std::string filename,Module* top=nullptr); //This will go away
 bool saveToFilePretty(Namespace* ns, std::string filename,Module* top=nullptr);
-bool saveToFile(Context* c, std::string filename); //This will go away
+bool saveToFile(Context* c, std::string filename, bool nocoreir=true);
 
 
 //Save a module to a dot file (for viewing in graphviz)

@@ -37,6 +37,9 @@ bool Passes::CullGraph::runOnContext(Context* c) {
   //Find a list of all used Modules and Generators
   set<GlobalValue*> toErase;
   for (auto npair : c->getNamespaces()) {
+    if (nocoreir && (npair.first=="coreir" || npair.first=="corebit")) {
+      continue;
+    }
     for (auto gpair : npair.second->getGenerators()) {
       if (gused.count(gpair.second)==0) {
         toErase.insert(gpair.second);
