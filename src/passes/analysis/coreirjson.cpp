@@ -80,6 +80,7 @@ string Params2Json(Params gp) {
 }
 
 string Type2Json(Type* t);
+string Values2Json(Values vs);
 string Value2Json(Value* v) {
   Array ret;
   ret.add(ValueType2Json(v->getValueType()));
@@ -104,8 +105,18 @@ string Value2Json(Value* v) {
     else if (auto ct = dyn_cast<ConstCoreIRType>(con)) {
       ret.add(Type2Json(ct->get()));
     }
-    else if (auto cm = dyn_cast<ConstModule>(con)) {
-      ret.add(quote(cm->get()->getRefName()));
+    else if (auto at = dyn_cast<ConstModule>(con)) {
+      Module* m = at->get();
+      if (m->isGenerated()) {
+        Values args = m->getGenArgs();
+        Array modarray;
+        modarray.add(quote(m->getRefName()));
+        modarray.add(Values2Json(args));
+        ret.add(modarray.toString());
+      }
+      else {
+        ret.add(quote(m->getRefName()));
+      }
     }
     else if (auto cj = dyn_cast<ConstJson>(con)) {
       ret.add(CoreIR::toString(cj->get()));
