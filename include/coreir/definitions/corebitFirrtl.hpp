@@ -17,9 +17,12 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
     }},
     {"other",{
       {"mux", {"out <= mux(sel, in1, in0)"}},
-      {"concat",{"out <= cat(in0,in1)"}},
+      {"concat", {"out_b1 <= in1", "out_b0 <= in0"}},
       {"const",{"out <= value"}},
       {"term",{""}},
+      {"tribuf", {"out is invalid"}}, // TODO: implement this
+      {"ibuf", {"in is invalid", "out is invalid"}}, // TODO: implement this
+      {"pullresistor", {"out is invalid"}}, // TODO: implement this
       {"reg", {
         "node regClock = asClock(mux(clk_posedge, asUInt(clk), not(asUInt(clk))))",
         "wire resetWire : UInt<1>",
@@ -28,6 +31,7 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
         "myreg <= in",
         "out <= myreg"
       }},
+      {"reg_arst", {"out is invalid"}}, // firrtl primitive registers don't support async reset yet
       //{"mem",""}, //TODO
     }}
   });
