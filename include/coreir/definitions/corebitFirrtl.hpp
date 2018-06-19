@@ -1,7 +1,9 @@
-
-
 using namespace CoreIR;
 using namespace std;
+
+// The corebit namespace is for 1-bit primitives.
+// TODO: deduplicate overlapping code with coreFirrtl.hpp
+
 void CoreIRLoadFirrtl_corebit(Context* c) {
   std::map<std::string,std::map<std::string,std::vector<std::string>>> coreFMap({
     {"unary",{
@@ -14,11 +16,18 @@ void CoreIRLoadFirrtl_corebit(Context* c) {
       {"xor",{"out <= xor(in0,in1)"}},
     }},
     {"other",{
-      {"mux",{"out <= mux(sel,in1,in0)"}}, //TODO is this the right ordering?
+      {"mux", {"out <= mux(sel, in1, in0)"}},
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
       {"term",{""}},
-      {"reg",{"reg myreg: UInt<1>, clk with:","  (reset =>(rst, init))","myreg <= in","out <= myreg"}}, 
+      {"reg", {
+        "node regClock = asClock(mux(clk_posedge, asUInt(clk), not(asUInt(clk))))",
+        "wire resetWire : UInt<1>",
+        "resetWire <= UInt<1>(\"h00\")",
+        "reg myreg : UInt, regClock with : (reset => (resetWire, init))",
+        "myreg <= in",
+        "out <= myreg"
+      }},
       //{"mem",""}, //TODO
     }}
   });

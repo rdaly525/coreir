@@ -201,13 +201,14 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
           stmt = stmt + toFConst(abv->get());
         }
         else {
-          ASSERT(0,"NYI: Value " +p+ " cannot be " + v->getValueType()->toString());
+          ASSERT(0,"NYI: Value " + p + " cannot be " + v->getValueType()->toString());
         }
         fm->addStmt(stmt);
       }
     }
   }
-  //Then add all connections
+
+  // Then add all connections
   auto dm = m->newDirectedModule();
   for (auto dcon : dm->getConnections()) {
     SelectPath src = dcon->getSrc();

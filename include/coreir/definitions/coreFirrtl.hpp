@@ -1,7 +1,9 @@
-
-
 using namespace CoreIR;
 using namespace std;
+
+// The coreir namespace is for multi-bit primitives.
+// TODO: deduplicate overlapping code with corebitFirrtl.hpp
+
 void CoreIRLoadFirrtl_coreir(Context* c) {
   std::map<std::string,std::map<std::string,std::vector<std::string>>> coreFMap({
     {"unary",{
@@ -40,12 +42,19 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       {"uge",{"out <= geq(in0,in1)"}},
     }},
     {"other",{
-      {"mux",{"out <= mux(sel,in1,in0)"}},
+      {"mux",{"out <= mux(sel, in1, in0)"}},
       {"slice",{"out <= bits(in,%hi%,%lo%)"}},
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
       {"term",{""}},
-      {"reg",{"reg myreg: UInt, clk with:","  (reset => (UInt(0), init))","myreg <= in","out <= myreg"}}, 
+      {"reg", {
+        "node regClock = asClock(mux(clk_posedge, asUInt(clk), not(asUInt(clk))))",
+        "wire resetWire : UInt<1>",
+        "resetWire <= UInt<1>(\"h00\")",
+        "reg myreg : UInt, regClock with : (reset => (resetWire, init))",
+        "myreg <= in",
+        "out <= myreg"
+      }},
       //{"reg_arst",{"reg myreg: UInt, clk with:","  (reset => (rst, init))","myreg <= in","out <= myreg"}}, // firrtl primitive registers don't support async reset yet
       //{"mem",""}, //TODO
     }}
