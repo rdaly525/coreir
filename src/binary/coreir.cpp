@@ -100,7 +100,9 @@ int main(int argc, char *argv[]) {
   vector<string> namespaces;
   if (options.count("a")) {
     for (auto ns : c->getNamespaces()) {
-      namespaces.push_back(ns.first);
+      if (ns.first !="coreir" && ns.first !="corebit") {
+        namespaces.push_back(ns.first);
+      }
     }
   }
   else {
