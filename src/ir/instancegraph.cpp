@@ -27,7 +27,8 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 namespace {
-  void recurse(Module* m, std::unordered_set<Module*> onlyTopNodes) {
+  void recurse(Module* m, std::unordered_set<Module*>& onlyTopNodes) {
+    
     if (!m->hasDef()) {
       return;
     }
