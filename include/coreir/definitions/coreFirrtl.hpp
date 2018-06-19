@@ -40,7 +40,7 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       {"uge",{"out <= geq(in0,in1)"}},
     }},
     {"other",{
-      {"mux",{"out <= mux(sel,in1,in0)"}}, //TODO is this the right ordering?
+      {"mux",{"out <= mux(sel,in1,in0)"}},
       {"slice",{"out <= bits(in,%hi%,%lo%)"}},
       {"concat",{"out <= cat(in0,in1)"}},
       {"const",{"out <= value"}},
