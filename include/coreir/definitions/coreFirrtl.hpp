@@ -46,7 +46,7 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
       {"const",{"out <= value"}},
       {"term",{""}},
       {"reg",{"reg myreg: UInt, clk with:","  (reset => (UInt(0), init))","myreg <= in","out <= myreg"}}, 
-      {"regrst",{"reg myreg: UInt, clk with:","  (reset => (rst, init))","myreg <= in","out <= myreg"}}, 
+      //{"reg_arst",{"reg myreg: UInt, clk with:","  (reset => (rst, init))","myreg <= in","out <= myreg"}}, // firrtl primitive registers don't support async reset yet
       //{"mem",""}, //TODO
     }}
   });
@@ -178,15 +178,6 @@ void CoreIRLoadFirrtl_coreir(Context* c) {
     //fjson["interface"] = coreInterfaceMap["reg"];
     fjson["parameters"] = {"width"};
     core->getGenerator("reg")->getMetaData()["firrtl"] = fjson;
-  }
-  {
-    //regrst
-    json fjson;
-    fjson["prefix"] = "coreir_";
-    fjson["definition"] = coreFMap["other"]["regrst"];
-    //fjson["interface"] = coreInterfaceMap["regrst"];
-    fjson["parameters"] = {"width"};
-    core->getGenerator("regrst")->getMetaData()["firrtl"] = fjson;
   }
   //TODO Now do it for all the corebit
   //wire, not, and, or, xor, mux, const, term, 
