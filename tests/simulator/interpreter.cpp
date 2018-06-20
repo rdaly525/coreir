@@ -65,9 +65,43 @@ namespace CoreIR {
   
   }
 
-  // TEST_CASE("Checking concat") {
-  //   Context* c = newContext();
-  // }
+  TEST_CASE("Checking concat order") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+
+    uint width0 = 12;
+    uint width1 = 18;
+    Type* tp = c->Record({{"in0", c->BitIn()->Arr(width0)},
+          {"in1", c->BitIn()->Arr(width1)},
+            {"out", c->Bit()->Arr(width1 + width0)}});
+
+    Module* mod = g->newModuleDecl("concat_test", tp);
+    ModuleDef* def = mod->newModuleDef();
+
+    def->addInstance("c0", "coreir.concat", {{"width0", Const::make(c, width0)},
+          {"width1", Const::make(c, width1)}});
+    def->connect("self.in0", "c0.in0");
+    def->connect("self.in1", "c0.in1");
+    def->connect("c0.out", "self.out");
+    mod->setDef(def);
+
+    c->runPasses({"rungenerators"});
+
+    SimulatorState state(mod);
+    state.setValue("self.in0", BitVector(width0, 1));
+    state.setValue("self.in1", BitVector(width1, 0));
+    state.execute();
+
+    cout << "Concat output = " << state.getBitVec("self.out") << endl;
+
+    REQUIRE(state.getBitVec("self.out").bitLength() == (width0 + width1));
+    // LSB is from in0
+    REQUIRE(state.getBitVec("self.out").get(0) == BitVector(1, 1).get(0));
+    // MSB is from in1
+    REQUIRE(state.getBitVec("self.out").get(width0 + width1 - 1) == BitVector(1, 0).get(0));
+    
+  }
 
   TEST_CASE("Interpreting coreir.wire and corebit.wire") {
 
