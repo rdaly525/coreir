@@ -65,6 +65,10 @@ namespace CoreIR {
   
   }
 
+  // TEST_CASE("Checking concat") {
+  //   Context* c = newContext();
+  // }
+
   TEST_CASE("Interpreting coreir.wire and corebit.wire") {
 
     Context* c = newContext();

@@ -262,6 +262,7 @@ int main(int argc, char *argv[]) {
     fpass->writeToStream(*sout);
   }
   else if (outExt=="v") {
+    // TODO: Have option to output this or not
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
 
