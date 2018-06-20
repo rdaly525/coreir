@@ -99,7 +99,7 @@ namespace CoreIR {
     // LSB is from in0
     REQUIRE(state.getBitVec("self.out").get(0) == BitVector(1, 1).get(0));
     // MSB is from in1
-    REQUIRE(state.getBitVec("self.out").get(width0 + width1 - 1) == BitVector(1, 0).get(0));
+    REQUIRE(state.getBitVec("self.out").get(width0) == BitVector(1, 0).get(0));
     
   }
 
