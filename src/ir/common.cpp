@@ -11,7 +11,7 @@ using namespace std;
 namespace CoreIR {
 
 bool isNumber(string s) {
-  return s.find_first_not_of("0123456789")==string::npos;
+  return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
 }
 bool isPower2(uint n) {
   return (n & (n-1))==0;
