@@ -233,7 +233,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
               ASSERTTHROW(jvalmod.size()==2,"Bad generated module" + toString(jgenmod));
               Values genargs = json2Values(c,jvalmod[0]);
               json jmod = jvalmod[1];
-              checkJson(jmod,{"type"});
+              checkJson(jmod,{"type"},{"modparams","defaultmodargs","instances","connections","metadata"});
               Type* type = json2Type(c,jmod.at("type"));
               //This will verify the correct type if typegen can generate the type
               Module* m = g->getModule(genargs,type);

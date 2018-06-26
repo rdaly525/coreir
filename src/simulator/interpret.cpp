@@ -451,6 +451,9 @@ namespace CoreIR {
   
   void SimulatorState::setValue(const std::string& name, const BitVec& bv) {
     ModuleDef* def = mod->getDef();
+
+    ASSERT(def->canSel(name), name + " is not a port of the module being simulated");
+
     Wireable* w = def->sel(name);
     Select* s = toSelect(w);
 
@@ -703,15 +706,15 @@ namespace CoreIR {
   }
   
   void SimulatorState::updateConcatNode(const vdisc vd) {
-    updateBitVecBinop(vd, [](const BitVec& s1Bits, const BitVec& s2Bits) {
-        BitVec conc(s1Bits.bitLength() + s2Bits.bitLength());
+    updateBitVecBinop(vd, [](const BitVec& s0Bits, const BitVec& s1Bits) {
+        BitVec conc(s0Bits.bitLength() + s1Bits.bitLength());
 
-        for (int i = 0; i < s1Bits.bitLength(); i++) {
-          conc.set(i, s1Bits.get(i));
+        for (int i = 0; i < s0Bits.bitLength(); i++) {
+          conc.set(i, s0Bits.get(i));
         }
 
-        for (int i = 0; i < s2Bits.bitLength(); i++) {
-          conc.set(i + s1Bits.bitLength(), s2Bits.get(i));
+        for (int i = 0; i < s1Bits.bitLength(); i++) {
+          conc.set(i + s0Bits.bitLength(), s1Bits.get(i));
         }
 
         return conc;
