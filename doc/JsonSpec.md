@@ -76,6 +76,7 @@ ValueType = "Bool"
           | "String"
           | "CoreIRType"
           | "Module"
+          | "Json"
 
 Params = {<field>:ValueType,...}
 

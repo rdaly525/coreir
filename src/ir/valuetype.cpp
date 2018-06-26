@@ -15,6 +15,7 @@ std::string ValueType::toString() {
     case VTK_String : return "String";
     case VTK_CoreIRType : return "CoreIRType";
     case VTK_Module : return "Module";
+    case VTK_Json : return "Json";
     default : assert(0);
   }
 }
@@ -24,5 +25,6 @@ BitVectorType* BitVectorType::make(Context* c, int width) {return c->typecache->
 StringType* StringType::make(Context* c) {return c->typecache->getString();}
 CoreIRType* CoreIRType::make(Context* c) {return c->typecache->getCoreIRType();}
 ModuleType* ModuleType::make(Context* c) {return c->typecache->getModuleType();}
+JsonType* JsonType::make(Context* c) {return c->typecache->getJsonType();}
 
 }

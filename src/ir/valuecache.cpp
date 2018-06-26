@@ -36,6 +36,10 @@ bool BitVectorComp::operator() (const BitVector& l, const BitVector& r) const {
   return false;
 }
 
+//bool JsonComp::operator() (const Json& l, const Json& r) const {
+//  return l < r;
+//}
+
 ValueCache::ValueCache(Context* c) : c(c) {
   this->boolTrue = new ConstBool(c->Bool(),true);
   this->boolFalse = new ConstBool(c->Bool(),false);
@@ -49,6 +53,7 @@ ValueCache::~ValueCache() {
   for (auto it : typeCache) delete it.second;
   for (auto it : moduleCache) delete it.second;
   for (auto it : bvCache) delete it.second;
+  for (auto it : JsonCache) delete it.second;
 }
 
 ConstBool* ValueCache::getBool(bool val) {
@@ -87,6 +92,13 @@ ConstModule* ValueCache::getModule(Module* val) {
   if (moduleCache.count(val) ) return moduleCache[val];
   auto v = new ConstModule(ModuleType::make(c),val);
   moduleCache[val] = v;
+  return v;
+}
+
+ConstJson* ValueCache::getJson(Json val) {
+  if (JsonCache.count(val) ) return JsonCache[val];
+  auto v = new ConstJson(JsonType::make(c),val);
+  JsonCache[val] = v;
   return v;
 }
 

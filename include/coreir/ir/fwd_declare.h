@@ -33,7 +33,11 @@ typedef uint32_t uint;
 namespace bsim {
   class quad_value_bit_vector;
 }
+//TODO HACK
+#include "json.h"
+
 typedef bsim::quad_value_bit_vector BitVector;
+typedef nlohmann::json Json;
 
 namespace CoreIR {
 
@@ -87,6 +91,7 @@ class BitVectorType;
 class StringType;
 class CoreIRType;
 class ModuleType;
+class JsonType;
 
 
 
@@ -103,6 +108,7 @@ typedef TemplatedConst<BitVector> ConstBitVector;
 typedef TemplatedConst<std::string> ConstString;
 typedef TemplatedConst<Type*> ConstCoreIRType;
 typedef TemplatedConst<Module*> ConstModule;
+typedef TemplatedConst<Json> ConstJson;
 
 
 

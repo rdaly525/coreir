@@ -34,6 +34,7 @@ class TypeCache {
   StringType* stringType;
   CoreIRType* coreIRType;
   ModuleType* moduleType;
+  JsonType* jsonType;
 
   public :
     TypeCache(Context* c); 
@@ -53,6 +54,7 @@ class TypeCache {
     StringType* getString() { return stringType;}
     CoreIRType* getCoreIRType() { return coreIRType;}
     ModuleType* getModuleType() { return moduleType;}
+    JsonType* getJsonType() { return jsonType;}
 
 };
 

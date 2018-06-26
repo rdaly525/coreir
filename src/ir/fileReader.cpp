@@ -228,7 +228,6 @@ bool loadFromFile(Context* c, string filename,Module** top) {
             g->setMetaData(jgen["metadata"]);
           }
           if (jgen.count("modules")) {
-            cout << "in modules!" << endl;
             for (auto jgenmod : jgen.at("modules").get<jsonvector>()) {
               jsonvector jvalmod = jgenmod.get<jsonvector>();
               ASSERTTHROW(jvalmod.size()==2,"Bad generated module" + toString(jgenmod));
@@ -365,6 +364,9 @@ ValueType* json2ValueType(Context* c,json j) {
   else if(vs=="Module") {
     return ModuleType::make(c);
   }
+  else if(vs=="Json") {
+    return JsonType::make(c);
+  }
   else {
     ASSERT(0,vs + " is not a ValueType");
   }
@@ -413,6 +415,7 @@ Value* json2Value(Context* c, json j,Module* m) {
       }
       return Const::make(c,mod);
     }
+    case ValueType::VTK_Json : return Const::make(c,jval);
     default : ASSERT(0,"Cannot have a Const of type" + vtype->toString());
   }
 }
