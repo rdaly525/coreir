@@ -17,15 +17,16 @@
 #include <execinfo.h>
 
 #define ASSERT(C,MSG) \
-  if (!(C)) { \
-    void* array[20]; \
-    size_t size; \
-    size = backtrace(array,20); \
-    std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
-    backtrace_symbols_fd(array,size,2); \
-    exit(1); \
-    while (true) {} /* Hack so GCC knows this doesn't ever return */ \
-  }
+  do { \
+    if (!(C)) { \
+      void* array[20]; \
+      size_t size; \
+      size = backtrace(array,20); \
+      std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
+      backtrace_symbols_fd(array,size,2); \
+      exit(1); \
+    } \
+  } while(0)
 
 typedef uint32_t uint;
 
@@ -56,9 +57,12 @@ class NamedType;
 
 class TypeGen;
 
+
+
 class TypeCache;
 class ValueCache;
 
+class CoreIRLibrary;
 
 class MetaData;
 
@@ -110,6 +114,7 @@ class PassManager;
 typedef std::map<std::string,Value*> Values;
 typedef std::map<std::string,ValueType*> Params;
 
+
 bool operator==(const Values& l, const Values& r);
 
 
@@ -127,6 +132,30 @@ typedef std::vector<std::reference_wrapper<const std::string>> ConstSelectPath;
 typedef std::pair<Wireable*,Wireable*> Connection;
 //This is meant to be in relation to an instance. First wireable of the pair is of that instance.
 typedef std::vector<std::pair<Wireable*,Wireable*>> LocalConnections;
+
+
+//Comparison classes for caches
+class ConnectionComp {
+  public:
+    static bool SPComp(const SelectPath& l, const SelectPath& r);
+    bool operator() (const Connection& l, const Connection& r) const;
+};
+
+class ConnectionStrComp {
+  public:
+    static bool SPComp(const SelectPath& l, const SelectPath& r);
+    bool operator() (const Connection& l, const Connection& r) const;
+};
+
+class ValuesComp {
+  public:
+    bool operator() (const Values& l, const Values& r) const;
+};
+
+
+
+
+
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online

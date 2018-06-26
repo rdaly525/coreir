@@ -99,6 +99,12 @@ clean:
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests/install clean
 
+
+.PHONY: testclean
+testclean:
+	$(MAKE) -C tests clean
+
+
 .PHONY: release
 release:
 	-rm -rf release/include release/lib release/bin

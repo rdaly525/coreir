@@ -18,10 +18,7 @@
 
 #define COREIR_GEN_EXTERNAL_PASS(NAME) extern "C" CoreIR::Pass* registerPass() { \
   return new NAME(); \
-} \
-extern "C" void deletePass(CoreIR::Pass* p) { \
-  delete p; \
-} \
+}
 
 #define COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(NAME) extern "C" CoreIR::Namespace* ExternalLoadLibrary_ ## NAME(CoreIR::Context* c) { \
   return CoreIRLoadLibrary_ ## NAME(c); \

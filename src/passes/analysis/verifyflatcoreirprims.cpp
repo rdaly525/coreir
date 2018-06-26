@@ -19,7 +19,7 @@ bool Passes::VerifyFlatCoreirPrims::runOnInstanceGraphNode(InstanceGraphNode & n
     else {
       ns = m->getNamespace();
         }
-    ASSERT(ns == coreir || ns == corebit || ns == mantle, "Expected flattened design and {" + inst->getInstname() + ", namespace= " + ns->getName() + "} is not a recognized primitive.")
+    ASSERT(ns == coreir || ns == corebit || ns == mantle, "Expected flattened design and {" + inst->getInstname() + ", namespace= " + ns->getName() + "} is not a recognized primitive.");
   }
   return false;
 }

@@ -4,7 +4,6 @@
 
 #include "fwd_declare.h"
 #include "globalvalue.h"
-#include "common.h"
 
 namespace CoreIR {
 
@@ -35,6 +34,13 @@ class Generator : public GlobalValue {
     //This will create a fully run module
     //Note, this is stored in the generator itself and is not in the namespace
     Module* getModule(Values genargs);
+    
+    //This will create a new generated module with the specified type.
+    //If the typegen can create a type, it will verify types match, else it will just use the type
+    Module* getModule(Values genargs, Type* type);
+    
+    //Will delete the cached Module
+    void eraseModule(Values genargs);
 
     //Get all generated modules
     std::map<std::string,Module*> getGeneratedModules();

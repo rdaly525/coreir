@@ -11,7 +11,7 @@ using namespace std;
 namespace CoreIR {
 
 bool isNumber(string s) {
-  return s.find_first_not_of("0123456789")==string::npos;
+  return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
 }
 bool isPower2(uint n) {
   return (n & (n-1))==0;
@@ -151,6 +151,18 @@ void checkValuesAreParams(Values args, Params params, string errstring) {
     ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")" + "\n" + errstring);
   }
 }
+
+bool doValuesMatchParams(Values args, Params params) {
+  if (args.size() != params.size()) return false;
+  for (auto ppair : params) {
+    string pname = ppair.first;
+    ValueType* param  = ppair.second;
+    if (args.count(pname)==0) return false;
+    if (args[pname]->getValueType() != param) return false;
+  }
+  return true;
+}
+
 
 void checkValuesAreConst(Values vs) {
   for (auto v : vs) {

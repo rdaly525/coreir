@@ -18,21 +18,17 @@ Namespace::~Namespace() {
   for (auto m : moduleList) delete m.second;
   for (auto g : generatorList) delete g.second;
   for (auto n : namedTypeList) delete n.second;
-  for (auto nmap : namedTypeGenCache) {
-    for (auto n : nmap.second) {
-      delete n.second;
-    }
-  }
   for (auto tg : typeGenList) delete tg.second;
 }
 
 //This will return all modules including all the generated ones
-//TODO 
-std::map<std::string,Module*> Namespace::getModules() { 
+std::map<std::string,Module*> Namespace::getModules(bool includeGenerated) { 
   std::map<std::string,Module*> ret = moduleList;
-  for (auto g : generatorList) {
-    for (auto m : g.second->getGeneratedModules()) {
-      ret.emplace(m);
+  if (includeGenerated) {
+    for (auto g : generatorList) {
+      for (auto m : g.second->getGeneratedModules()) {
+        ret.emplace(m);
+      }
     }
   }
   return ret;
@@ -46,7 +42,7 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   assert(!namedTypeList.count(name) && !namedTypeList.count(nameFlip) );
   
   //Add name to namedTypeNameMap
-  namedTypeNameMap[name] = nameFlip;
+  //namedTypeNameMap[name] = nameFlip;
 
   //Create two new NamedTypes
   NamedType* named = new NamedType(this,name,raw);
@@ -56,27 +52,6 @@ NamedType* Namespace::newNamedType(string name, string nameFlip, Type* raw) {
   namedTypeList[name] = named;
   namedTypeList[nameFlip] = namedFlip;
   return named;
-}
-
-//TODO
-void Namespace::newNominalTypeGen(string name, string nameFlip, Params genparams, TypeGenFun fun) {
-  //Make sure the name and its flip are different
-  assert(name != nameFlip);
-  //Verify this name and the flipped name do not exist yet
-  assert(!typeGenList.count(name) && !typeGenList.count(nameFlip));
-  assert(!namedTypeList.count(name) && !namedTypeList.count(nameFlip) );
- 
-  //Add name to typeGenNameMap
-  typeGenNameMap[name] = nameFlip;
-  typeGenNameMap[nameFlip] = name;
-
-  //Create the TypeGens
-  TypeGen* typegen = new TypeGenFromFun(this,name,genparams,fun,false);
-  TypeGen* typegenFlip = new TypeGenFromFun(this,nameFlip,genparams,fun,true);
-  
-  //Add typegens into list
-  typeGenList[name] = typegen;
-  typeGenList[nameFlip] = typegenFlip;
 }
 
 bool Namespace::hasNamedType(string name) {
@@ -90,64 +65,21 @@ NamedType* Namespace::getNamedType(string name) {
   return found->second;
 }
 
-//Check if cached in namedTypeGenCache
-//Make sure the name is found in the typeGenCache. Error otherwise
-//Then create a new entry in NamedCache if it does not exist
-NamedType* Namespace::getNamedType(string name, Values genargs) {
-  ASSERT(typeGenList.count(name),this->name + "." + name + " was never defined");
-  assert(typeGenNameMap.count(name));
-
-  if (namedTypeGenCache[name].count(genargs)) {
-    return namedTypeGenCache[name][genargs];
-  }
-  //Not found in cache. Create the entry
-  //Not found. Verify that name exists in TypeGenList
-  TypeGen* tgen = typeGenList[name];
-  assert(typeGenNameMap.count(name));
-  string nameFlip = typeGenNameMap.at(name);
-  assert(typeGenList.count(nameFlip));
-  TypeGen* tgenFlip = typeGenList.at(nameFlip);
-
-  //Create two new named entries
-  NamedType* named = new NamedType(this,name,tgen,genargs);
-  NamedType* namedFlip = new NamedType(this,nameFlip,tgenFlip,genargs);
-  named->setFlipped(namedFlip);
-  namedFlip->setFlipped(named);
-  namedTypeGenCache[name][genargs] = named;
-  namedTypeGenCache[nameFlip][genargs] = namedFlip;
-  ASSERT(namedTypeGenCache.count(name),"Bad name missing");
-  ASSERT(namedTypeGenCache[name].count(genargs),"Bad args missing");
-
-  return named;
-}
 
 void Namespace::addTypeGen(TypeGen* typegen) {
   ASSERT(typegen->getNamespace() == this, "Adding typegen to a namespace different than its own");
   ASSERT(namedTypeList.count(typegen->getName())==0, "Name collision in addTypeGen");
 
-  //Add name to typeGenNameMap
-  typeGenNameMap[typegen->getName()] = "";
   typeGenList[typegen->getName()] = typegen;
 }
 
 TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
-  assert(namedTypeList.count(name)==0);
-  ASSERT(typeGenList.count(name)==0, name + " is already a used typegen name");
-  
-  TypeGen* typegen = new TypeGenFromFun(this,name,genparams,fun);
-  
-  //Add name to typeGenNameMap
-  typeGenNameMap[name] = "";
-  
-  typeGenList[name] = typegen;
-  return typegen;
+  return TypeGenFromFun::make(this,name,genparams,fun);
 }
 
-//TODO deal with at errors
 TypeGen* Namespace::getTypeGen(string name) {
   ASSERT(typeGenList.count(name)>0, "missing typegen: " + name);
   TypeGen* ret = typeGenList.at(name);
-  ASSERT(typeGenList.count(name)>0, "Could not find typegen named " + name);
   return ret;
 }
 
@@ -227,7 +159,6 @@ GlobalValue* Namespace::getGlobalValue(string iname) {
   return nullptr;
 }
 
-//TODO Update this
 void Namespace::print() {
   cout << "Namespace: " << name << endl;
   cout << "  Generators:" << endl;

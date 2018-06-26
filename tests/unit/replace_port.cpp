@@ -57,7 +57,7 @@ void testReplaceBitPort() {
   bool error = md->getDef()->validate();
   assert(!error);
 
-  if (!saveToFile(c->getGlobal(), "bit_replacement.json", md)) {
+  if (!saveToFile(c->getGlobal(), "_bit_replacement.json", md)) {
     cout << "Could not save to json!!" << endl;
     c->die();
   }

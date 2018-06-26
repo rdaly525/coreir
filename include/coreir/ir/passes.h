@@ -44,8 +44,7 @@ class Pass {
     friend class Context;
 };
 
-typedef Pass* register_pass_t();
-typedef void delete_pass_t(Pass*);
+typedef Pass* (*register_pass_t)();
 
 //You can do whatever you want here
 class ContextPass : public Pass {
@@ -125,11 +124,14 @@ class InstanceGraphNode;
 //If the Instance is linked in from a different namespace or is a generator instance, then it will run runOnInstanceNode
 //Not allowed 
 class InstanceGraphPass : public Pass {
+  protected:
+    bool onlyTop = false;
   public:
     
     explicit InstanceGraphPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_InstanceGraph,name,description,isAnalysis) {
       addDependency("createinstancegraph");
     }
+    bool isOnlyTop() { return onlyTop; }
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
     virtual void releaseMemory() override {}
