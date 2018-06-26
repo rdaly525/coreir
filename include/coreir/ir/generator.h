@@ -14,7 +14,6 @@ class Generator : public GlobalValue {
   Params genparams;
   Values defaultGenArgs; 
   
-  NameGenFun nameGen=nullptr;
   ModParamsGenFun modParamsGen=nullptr;
 
   //This is memory managed
@@ -56,7 +55,6 @@ class Generator : public GlobalValue {
     void addDefaultGenArgs(Values defaultGenargs);
     Values getDefaultGenArgs() { return defaultGenArgs;}
   
-    void setNameGen(NameGenFun ng) {nameGen = ng;}
     void setModParamsGen(ModParamsGenFun mpg) {modParamsGen = mpg;}
     void setModParamsGen(Params modparams,Values defaultModArgs=Values()) {
       this->modParamsGen = [modparams,defaultModArgs](Context* c,Values genargs) mutable -> std::pair<Params,Values> {
