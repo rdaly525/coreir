@@ -136,7 +136,7 @@ bool saveToFile(Namespace* ns, string filename,Module* top) {
 
 }
 
-bool saveToFile(Context* c, string filename) {
+bool saveToFile(Context* c, string filename, bool nocoreir) {
   ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {
@@ -146,7 +146,18 @@ bool saveToFile(Context* c, string filename) {
     c->error(e);
     return false;
   }
-  c->runPassesOnAll({"coreirjson"});
+  if (nocoreir) {
+    vector<string> nss;
+    for (auto nspair : c->getNamespaces()) {
+      if (nspair.first!="coreir" && nspair.first!="corebit") {
+        nss.push_back(nspair.first);
+      }
+    }
+    c->runPasses({"coreirjson"},nss);
+  }
+  else {
+    c->runPassesOnAll({"coreirjson"});
+  }
   auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
   string topRef = "";
   if (c->hasTop()) {

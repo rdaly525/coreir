@@ -9,12 +9,14 @@ namespace CoreIR {
 class InstanceGraphNode;
 class InstanceGraph {
   std::unordered_map<Module*,InstanceGraphNode*> nodeMap;
+  std::unordered_set<Module*> onlyTopNodes;
   std::list<InstanceGraphNode*> sortedNodes;
   public :
     InstanceGraph() {}
     ~InstanceGraph() {this->releaseMemory();}
     void construct(Context* c);
     std::list<InstanceGraphNode*> getSortedNodes() { return sortedNodes;}
+    bool validOnlyTop(InstanceGraphNode* node);
     void releaseMemory();
     void sortVisit(InstanceGraphNode* node);
 
