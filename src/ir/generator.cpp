@@ -45,13 +45,7 @@ Module* Generator::getModule(Values genargs) {
   checkValuesAreParams(genargs,genparams,getRefName());
   ASSERT(typegen->hasType(genargs),"Cannot create generated module!");
   Type* type = typegen->getType(genargs);
-  string modname;
-  if (nameGen) {
-    modname = nameGen(genargs);
-  }
-  else {
-    modname = this->name;
-  }
+  string modname = this->name;
   Module* m;
   if (modParamsGen) {
     auto pc = modParamsGen(getContext(),genargs);
@@ -84,13 +78,7 @@ Module* Generator::getModule(Values genargs, Type* type) {
   if (typegen->hasType(genargs)) {
     ASSERT(typegen->getType(genargs) == type,"Cannot create module with inconsistent types");
   }
-  string modname;
-  if (nameGen) {
-    modname = nameGen(genargs);
-  }
-  else {
-    modname = this->name;
-  }
+  string modname = this->name;
   Module* m;
   if (modParamsGen) {
     auto pc = modParamsGen(getContext(),genargs);
