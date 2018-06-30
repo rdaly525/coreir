@@ -166,16 +166,14 @@ void PassManager::pushAllDependencies(string oname,stack<string> &work) {
 
 bool PassManager::run(PassOrder order,vector<string> nsnames) {
   this->nss.clear();
-  ASSERT(passMap.count("verifyinputconnections"),"Missing weak verifier pass");
   for (auto nsname : nsnames) {
     ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
     this->nss.push_back(c->getNamespace(nsname));
   }
-  //For now just do all namespaces
-  //for (auto ns : c->getNamespaces()) {
-  //  nss.push_back(ns.second);
-  //}
-
+  vector<vector<string>> orderParsed;
+  for (auto p : order) {
+    orderParsed.push_back(splitStringByWhitespace<std::vector>(p));
+  }
   bool ret = false;
   //Execute each in order (and the respective dependencies) independently
   for (auto oname : order) {

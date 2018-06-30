@@ -23,6 +23,7 @@ class Pass {
     virtual ~Pass() = 0;
     PassKind getKind() const {return kind;}
     
+    virtual void initialize(std::vector<std::string> argv) {}
     virtual void releaseMemory() {}
     virtual void setAnalysisInfo() {}
     void addDependency(std::string name) { dependencies.push_back(name);}
@@ -51,6 +52,7 @@ class ContextPass : public Pass {
   public:
     explicit ContextPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Context,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Context;}
+    virtual void initialize(std::vector<std::string> argv) override {}
     virtual bool runOnContext(Context* c) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -62,6 +64,7 @@ class NamespacePass : public Pass {
   public:
     explicit NamespacePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Namespace,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Namespace;}
+    virtual void initialize(std::vector<std::string> argv) override {}
     virtual bool runOnNamespace(Namespace* n) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -74,6 +77,7 @@ class ModulePass : public Pass {
   public:
     explicit ModulePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Module,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Module;}
+    virtual void initialize(std::vector<std::string> argv) override {}
     virtual bool runOnModule(Module* m) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -87,6 +91,7 @@ class InstancePass : public Pass {
   public:
     explicit InstancePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Instance,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Instance;}
+    virtual void initialize(std::vector<std::string> argv) override {}
     virtual bool runOnInstance(Instance* i) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -101,6 +106,7 @@ class InstanceVisitorPass : public Pass {
       addDependency("createfullinstancemap");
     }
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceVisitor;}
+    virtual void initialize(std::vector<std::string> argv) override {}
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
     virtual void print() override {}
@@ -133,6 +139,7 @@ class InstanceGraphPass : public Pass {
     }
     bool isOnlyTop() { return onlyTop; }
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
+    virtual void initialize(std::vector<std::string> argv) override {}
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}

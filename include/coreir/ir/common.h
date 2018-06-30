@@ -58,6 +58,18 @@ BackInserter splitString(const std::string &s, char delim) {
     return elems;
 }
 
+template<typename BackInserter>
+BackInserter splitStringByWhitespace(const std::string &s) {
+    BackInserter elems;
+    std::stringstream ss;
+    ss.str(s);
+    std::string item;
+    while (std::getline(ss, item," ")) {
+      elems.push_back(item);
+    }
+    return elems;
+}
+
 template <class T, class A>
 T join(const A &begin, const A &end, const T &t) {
   T result;
