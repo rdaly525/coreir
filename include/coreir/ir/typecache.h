@@ -28,6 +28,7 @@ class TypeCache {
   std::unordered_map<Type*,std::unordered_map<int,ArrayType*>> ArrayCache;
   std::unordered_map<RecordParams,RecordType*,RecordParamsHasher> RecordCache;
   
+  AnyType* anyType;
   BoolType* boolType;
   IntType* intType;
   std::unordered_map<int,BitVectorType*> bitVectorCache;
@@ -48,6 +49,7 @@ class TypeCache {
     RecordType* getRecord(RecordParams params);
 
     //ValueTypes
+    AnyType* getAny() { return anyType;}
     BoolType* getBool() { return boolType;}
     IntType* getInt() { return intType;}
     BitVectorType* getBitVector(int width);
