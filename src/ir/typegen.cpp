@@ -24,7 +24,7 @@ Type* TypeGen::getType(Values args) {
     typeCache[args] = t;
     return t;
   }
-  catch(std::out_of_range) {
+  catch(const std::out_of_range&) {
     cout << "Failed on " << this->getRefName() << " with args=" << ::CoreIR::toString(args) << endl;
     assert(0);
     return nullptr;
