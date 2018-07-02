@@ -85,6 +85,7 @@ class Select;
 
 //valuetype.h
 class ValueType;
+class AnyType;
 class BoolType;
 class IntType;
 class BitVectorType;
@@ -126,7 +127,6 @@ bool operator==(const Values& l, const Values& r);
 
 //Function prototypes for APIs
 typedef std::function<Type*(Context* c, Values genargs)> TypeGenFun;
-typedef std::string (*NameGenFun)(Values);
 typedef std::function<std::pair<Params,Values>(Context*,Values)> ModParamsGenFun;
   //typedef void (*ModuleDefGenFun)(Context* c,Values genargs,ModuleDef*);
 typedef std::function<void (Context* c,Values genargs,ModuleDef*) > ModuleDefGenFun;

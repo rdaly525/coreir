@@ -277,6 +277,7 @@ Type* Context::Out(Type* t) {
     }
 }
 
+AnyType* Context::Any() { return AnyType::make(this);}
 BoolType* Context::Bool() { return BoolType::make(this);}
 IntType* Context::Int(){ return IntType::make(this);}
 BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
