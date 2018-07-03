@@ -62,6 +62,7 @@ install: build coreir
 	install -d $(prefix)/include/coreir/passes/analysis
 	install -d $(prefix)/include/coreir/passes/transform
 	install -d $(prefix)/include/coreir/simulator
+	install -d $(prefix)/include/coreir/tools
 	install include/coreir.h $(prefix)/include
 	install include/coreir-c/* $(prefix)/include/coreir-c
 	install include/coreir/*.h $(prefix)/include/coreir
@@ -73,6 +74,7 @@ install: build coreir
 	install include/coreir/passes/analysis/* $(prefix)/include/coreir/passes/analysis
 	install include/coreir/passes/transform/* $(prefix)/include/coreir/passes/transform
 	install include/coreir/simulator/* $(prefix)/include/coreir/simulator
+	install include/coreir/tools/* $(prefix)/include/coreir/tools
 
 .PHONY: uninstall
 uninstall:
