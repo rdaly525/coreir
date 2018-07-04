@@ -8,14 +8,11 @@ namespace {
 void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
   if (m->isGenerated()) {
     gused.insert(m->getGenerator());
-    mused.insert(m);
-  }
-  if (m->hasDef()) {
-    mused.insert(m);
   }
   else {
-    return;
+    mused.insert(m);
   }
+  if (!m->hasDef()) return;
   for (auto ipair : m->getDef()->getInstances()) {
     recurse(ipair.second->getModuleRef(),mused,gused);
   }
