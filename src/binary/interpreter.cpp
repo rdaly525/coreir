@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "cxxopts.hpp"
+#include "coreir/tools/cxxopts.h"
 #include <fstream>
 
 #include "passlib.h"
