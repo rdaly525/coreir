@@ -24,17 +24,11 @@ void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
 
 string Passes::CullGraph::ID = "cullgraph";
 bool Passes::CullGraph::runOnContext(Context* c) {
-  //if (!c->hasTop()) return false;
+  if (!c->hasTop()) return false;
+  //Find a list of all used Modules and Generators
   set<Module*> mused;
   set<Generator*> gused;
- 
-  for (auto npair: c->getNamespaces()) {
-    for (auto mpair: npair.second->getModules()) {
-      recurse(mpair.second,mused,gused);
-    }
-  }
-  
-  //Find a list of all used Modules and Generators
+  recurse(c->getTop(),mused,gused);
   set<GlobalValue*> toErase;
   for (auto npair : c->getNamespaces()) {
     if (nocoreir && (npair.first=="coreir" || npair.first=="corebit")) {
