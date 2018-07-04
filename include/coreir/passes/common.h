@@ -63,10 +63,7 @@ namespace CoreIR {
     pm.addPass(new Passes::SMV());
     pm.addPass(new Passes::VerifyFlatCoreirPrims());
     pm.addPass(new Passes::VerifyInputConnections());
-    pm.addPass(new Passes::VerifyConnectivity(true,true));
-    pm.addPass(new Passes::VerifyConnectivity(true,false));
-    pm.addPass(new Passes::VerifyConnectivity(false,true));
-    pm.addPass(new Passes::VerifyConnectivity(false,false));
+    pm.addPass(new Passes::VerifyConnectivity());
     pm.addPass(new Passes::VerifyFlattenedTypes());
     pm.addPass(new Passes::CreateCombView());
 

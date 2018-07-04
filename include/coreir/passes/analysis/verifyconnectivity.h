@@ -12,7 +12,7 @@ class VerifyConnectivity : public ModulePass {
   bool checkClkRst = true;
   public :
     static std::string ID;
-    VerifyConnectivity(bool onlyInputs=false, bool checkClkRst = true) : ModulePass(ID + (onlyInputs ? "-onlyinputs" : "") + (checkClkRst ? "" : "-noclkrst"),"Checks connectivity",true), onlyInputs(onlyInputs), checkClkRst(checkClkRst) {}
+    VerifyConnectivity() : ModulePass(ID,"Checks connectivity",true) {}
     void setAnalysisInfo() override {
       addDependency("verifyinputconnections");
     }
