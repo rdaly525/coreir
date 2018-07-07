@@ -26,6 +26,14 @@ bool Passes::CullGraph::runOnContext(Context* c) {
   set<Module*> mused;
   set<Generator*> gused;
   recurse(c->getTop(),mused,gused);
+  //if nocoreir, I need to keep all instances of any coreir definitions
+  for (auto mpair : c->getNamespace("coreir")->getModules()) {
+    recurse(mpair.second,mused,gused);
+  }
+  for (auto mpair : c->getNamespace("corebit")->getModules()) {
+    recurse(mpair.second,mused,gused);
+  }
+  
   set<GlobalValue*> toErase;
   for (auto npair : c->getNamespaces()) {
     if (nocoreir && (npair.first=="coreir" || npair.first=="corebit")) {
