@@ -8,14 +8,11 @@ namespace {
 void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
   if (m->isGenerated()) {
     gused.insert(m->getGenerator());
-    mused.insert(m);
-  }
-  if (m->hasDef()) {
-    mused.insert(m);
   }
   else {
-    return;
+    mused.insert(m);
   }
+  if (!m->hasDef()) return;
   for (auto ipair : m->getDef()->getInstances()) {
     recurse(ipair.second->getModuleRef(),mused,gused);
   }
@@ -24,17 +21,19 @@ void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
 
 string Passes::CullGraph::ID = "cullgraph";
 bool Passes::CullGraph::runOnContext(Context* c) {
-  //if (!c->hasTop()) return false;
+  if (!c->hasTop()) return false;
+  //Find a list of all used Modules and Generators
   set<Module*> mused;
   set<Generator*> gused;
- 
-  for (auto npair: c->getNamespaces()) {
-    for (auto mpair: npair.second->getModules()) {
-      recurse(mpair.second,mused,gused);
-    }
+  recurse(c->getTop(),mused,gused);
+  //if nocoreir, I need to keep all instances of any coreir definitions
+  for (auto mpair : c->getNamespace("coreir")->getModules()) {
+    recurse(mpair.second,mused,gused);
+  }
+  for (auto mpair : c->getNamespace("corebit")->getModules()) {
+    recurse(mpair.second,mused,gused);
   }
   
-  //Find a list of all used Modules and Generators
   set<GlobalValue*> toErase;
   for (auto npair : c->getNamespaces()) {
     if (nocoreir && (npair.first=="coreir" || npair.first=="corebit")) {
