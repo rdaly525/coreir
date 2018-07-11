@@ -17,22 +17,27 @@
 #include <execinfo.h>
 
 #define ASSERT(C,MSG) \
-  if (!(C)) { \
-    void* array[20]; \
-    size_t size; \
-    size = backtrace(array,20); \
-    std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
-    backtrace_symbols_fd(array,size,2); \
-    exit(1); \
-    while (true) {} /* Hack so GCC knows this doesn't ever return */ \
-  }
+  do { \
+    if (!(C)) { \
+      void* array[20]; \
+      size_t size; \
+      size = backtrace(array,20); \
+      std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
+      backtrace_symbols_fd(array,size,2); \
+      exit(1); \
+    } \
+  } while(0)
 
 typedef uint32_t uint;
 
 namespace bsim {
   class quad_value_bit_vector;
 }
+//TODO HACK
+#include "json.h"
+
 typedef bsim::quad_value_bit_vector BitVector;
+typedef nlohmann::json Json;
 
 namespace CoreIR {
 
@@ -56,9 +61,12 @@ class NamedType;
 
 class TypeGen;
 
+
+
 class TypeCache;
 class ValueCache;
 
+class CoreIRLibrary;
 
 class MetaData;
 
@@ -77,12 +85,14 @@ class Select;
 
 //valuetype.h
 class ValueType;
+class AnyType;
 class BoolType;
 class IntType;
 class BitVectorType;
 class StringType;
 class CoreIRType;
 class ModuleType;
+class JsonType;
 
 
 
@@ -99,6 +109,7 @@ typedef TemplatedConst<BitVector> ConstBitVector;
 typedef TemplatedConst<std::string> ConstString;
 typedef TemplatedConst<Type*> ConstCoreIRType;
 typedef TemplatedConst<Module*> ConstModule;
+typedef TemplatedConst<Json> ConstJson;
 
 
 
@@ -110,12 +121,12 @@ class PassManager;
 typedef std::map<std::string,Value*> Values;
 typedef std::map<std::string,ValueType*> Params;
 
+
 bool operator==(const Values& l, const Values& r);
 
 
 //Function prototypes for APIs
 typedef std::function<Type*(Context* c, Values genargs)> TypeGenFun;
-typedef std::string (*NameGenFun)(Values);
 typedef std::function<std::pair<Params,Values>(Context*,Values)> ModParamsGenFun;
   //typedef void (*ModuleDefGenFun)(Context* c,Values genargs,ModuleDef*);
 typedef std::function<void (Context* c,Values genargs,ModuleDef*) > ModuleDefGenFun;
@@ -127,6 +138,30 @@ typedef std::vector<std::reference_wrapper<const std::string>> ConstSelectPath;
 typedef std::pair<Wireable*,Wireable*> Connection;
 //This is meant to be in relation to an instance. First wireable of the pair is of that instance.
 typedef std::vector<std::pair<Wireable*,Wireable*>> LocalConnections;
+
+
+//Comparison classes for caches
+class ConnectionComp {
+  public:
+    static bool SPComp(const SelectPath& l, const SelectPath& r);
+    bool operator() (const Connection& l, const Connection& r) const;
+};
+
+class ConnectionStrComp {
+  public:
+    static bool SPComp(const SelectPath& l, const SelectPath& r);
+    bool operator() (const Connection& l, const Connection& r) const;
+};
+
+class ValuesComp {
+  public:
+    bool operator() (const Values& l, const Values& r) const;
+};
+
+
+
+
+
 
 //TODO This stuff is super fragile. 
 // Magic hash function I found online

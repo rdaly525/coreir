@@ -5,7 +5,6 @@
 #include "fwd_declare.h"
 #include "args.h"
 #include "globalvalue.h"
-//#include "common.h"
 
 namespace CoreIR {
 

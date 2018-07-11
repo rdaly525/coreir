@@ -12,6 +12,8 @@
 #include "coreir/ir/generator.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
+#include "coreir/ir/common.h"
+#include "coreir/ir/coreirlib.h"
 
 using namespace std;
 
@@ -24,6 +26,7 @@ namespace CoreIR {
 
 
 Context::Context() : maxErrors(8) {
+  libmanager = new CoreIRLibrary(this);
   global = newNamespace("global");
   Namespace* pt = newNamespace("_");
   //This defines a passthrough module. It is basically a nop that just passes the signal through
@@ -58,7 +61,6 @@ Context::Context() : maxErrors(8) {
 
 // Order of this matters
 Context::~Context() {
-  
   delete pm;
   for (auto it : recordParamsList) delete it;
   for (auto it : paramsList) delete it;
@@ -76,6 +78,7 @@ Context::~Context() {
   delete typecache;
   for (auto it : namespaces) delete it.second;
   delete valuecache;
+  delete libmanager;
 }
 
 std::map<std::string,Namespace*> Context::getNamespaces() {
@@ -183,6 +186,17 @@ bool Context::runPasses(vector<string> order, vector<string> namespaces) {
   assert(pm);
   return pm->run(order,namespaces);
 }
+
+bool Context::runPassesOnAll(std::vector<std::string> order) {
+  assert(pm);
+  vector<string> namespaces;
+  for (auto npair : this->getNamespaces()) {
+    namespaces.push_back(npair.first);
+  }
+  return pm->run(order,namespaces);
+}
+
+
 /* TODO This is not even used in the repo yet. Should write a test for it
 // This tries to link all the definitions of def namespace to declarations of decl namespace
 // This will clobber declns
@@ -241,14 +255,6 @@ NamedType* Context::Named(string nameref) {
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
-NamedType* Context::Named(string nameref,Values args) {
-  checkValuesAreConst(args);
-  vector<string> split = splitRef(nameref);
-  ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
-  ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),"Missing Named type + " + nameref);
-  return this->getNamespace(split[0])->getNamedType(split[1],args);
-}
-
 Type* Context::Flip(Type* t) { return t->getFlipped();}
 
 Type* Context::In(Type* t) {
@@ -271,6 +277,7 @@ Type* Context::Out(Type* t) {
     }
 }
 
+AnyType* Context::Any() { return AnyType::make(this);}
 BoolType* Context::Bool() { return BoolType::make(this);}
 IntType* Context::Int(){ return IntType::make(this);}
 BitVectorType* Context::BitVector(int width) { return BitVectorType::make(this,width);}
@@ -281,6 +288,7 @@ void Context::setTop(Module* top) {
   ASSERT(top && top->hasDef(), top->toString() + " has no def!");
   this->top = top;
 }
+
 void Context::setTop(string topRef) {
   auto topsplit = splitString<vector<string>>(topRef,'.');
   ASSERT(topsplit.size()==2,topRef + " is not a valid top!");
@@ -291,11 +299,26 @@ void Context::setTop(string topRef) {
   ASSERT(this->top->hasDef(),topRef + " has no def!");
 }
 
+void Context::removeTop() {
+  this->top = nullptr;
+}
+
+
+bool Context::hasTypeGen(string nameref) {
+  vector<string> split = splitRef(nameref);
+  if (!this->hasNamespace(split[0])) {
+    return false;
+  }
+  if(!this->getNamespace(split[0])->hasTypeGen(split[1])) {
+    return false;
+  }
+  return true;
+  
+}
 
 TypeGen* Context::getTypeGen(string nameref) {
+  ASSERT(this->hasTypeGen(nameref),"Missing Typegen: " + nameref);
   vector<string> split = splitRef(nameref);
-  ASSERT(this->hasNamespace(split[0]),"Missing Namespace + " + split[0]);
-  ASSERT(this->getNamespace(split[0])->hasTypeGen(split[1]),"Missing TypeGen + " + nameref);
   return this->getNamespace(split[0])->getTypeGen(split[1]);
 }
 

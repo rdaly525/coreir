@@ -53,7 +53,7 @@ void core_convert(Context* c, Namespace* core) {
     [](Context* c, Values args) {
       uint width_in = args.at("width_in")->get<int>();
       uint width_out = args.at("width_out")->get<int>();
-      ASSERT(width_out >= width_in,"Bad valudes for widths")
+      ASSERT(width_out >= width_in,"Bad valudes for widths");
       return c->Record({
         {"in",c->BitIn()->Arr(width_in)},
         {"out",c->Bit()->Arr(width_out)}
@@ -171,13 +171,11 @@ void core_state(Context* c, Namespace* core) {
   auto regRst = core->newGeneratorDecl("reg_arst",regRstTypeGen,widthparams);
   regRst->setModParamsGen(regRstModParamFun);
 
-  //TODO Deal with roms
   //Memory
   Params memGenParams({{"width",c->Int()},{"depth",c->Int()},{"has_init",c->Bool()}});
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
-    //ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth)); // TODO fix this
     int awidth = ceil(std::log2(depth));
     return c->Record({
       {"clk",c->Named("coreir.clkIn")},
@@ -194,9 +192,7 @@ void core_state(Context* c, Namespace* core) {
     Values defaultargs;
     bool has_init = genargs.at("has_init")->get<bool>();
     if (has_init) {
-      int width = genargs.at("width")->get<int>();
-      int depth = genargs.at("depth")->get<int>();
-      modparams["init"] = BitVectorType::make(c,width*depth);
+      modparams["init"] = JsonType::make(c);
     }
     return {modparams,defaultargs};
   };

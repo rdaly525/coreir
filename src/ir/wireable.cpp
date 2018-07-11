@@ -84,7 +84,7 @@ ConstSelectPath Wireable::getConstSelectPath() {
     path.insert(path.begin(), instname);
   }
   else {
-    ASSERT(0,"Cannot be here")
+    ASSERT(0,"Cannot be here");
   }
   return path;
 }
@@ -236,7 +236,7 @@ string Instance::toString() const {
 
 void Instance::replace(Module* moduleRef, Values modargs) {
   ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
-  ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
+  ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type");
   this->moduleRef = moduleRef;
   this->modargs = modargs;
   checkValuesAreParams(modargs,moduleRef->getModParams(),this->getInstname());
