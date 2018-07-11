@@ -11,17 +11,18 @@ cd ..
 cd pycoreir
 git checkout dev
 git pull
-pytest -s
+py.test -s
 cd ..
 
 cd magma
 git checkout coreir-dev
 git pull
-pytest -s
+py.test -s
 cd ..
 
 cd mantle
 git checkout coreir-dev
 git pull
-pytest -s
+py.test --target coreir tests/test_coreir -s
+py.test --target coreir tests/test_mantle
 cd ..
