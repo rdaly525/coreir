@@ -15,7 +15,7 @@ any key followed by a ? means it is optional
 
 Namespace={
   "namedtypes"? : {<name>: NamedType, ...}
-  "namedtypegens"? : {<name>: NamedTypeGen, ...}
+  "typegens" ? {<name>: TypeGen,...}
   "modules"? :{<name>:Module, ...},
   "generators"? :{<name>:Generator, ...}
 }
@@ -24,21 +24,22 @@ Type = "BitIn"
      | "Bit" 
      | ["Array", <N>, Type] 
      | ["Record", [[<key>,Type],... ] 
-     | ["Named",NamedRef, Args?]
+     | ["Named",NamedRef]
 
 //This could be referring a type, module, or generator
 NamedRef = "<namespaceName>.<name>"
 
 NamedType = {"flippedname":<name>,"rawtype":Type}
-NamedTypeGen = {"flippedname"?:<name>,"genparams":Parameter}
+
+TypeGen = [Params, "sparse", [[Values,Type],[Values,Type],...]]
+        | [Params, "implicit"]
+        | //TODO Type language?
 
 //Note if there are no instances and no connections, this is a declaration
 Module = {
   "type":Type,
   "modparams"?:Parameter,
   "defaultmodargs"?:Values,
-  "genref"?:NamedRef, //Used for generated modules
-  "genargs"?:Values, //'' '' 
   "instances"?:{<instname>:Instance,...},
   "connections"?: Connection[]
 }
@@ -47,8 +48,10 @@ Generator = {
   "typegen":NamedRef
   "genparams":Parameters,
   "defaultgenargs"?:Consts,
-
+  "modules":[GeneratedModule,GeneratedModule,...]
 }
+
+GeneratedModule = [Values,Module]
 
 Instance = {
   "genref"?:NamedRef,
@@ -65,7 +68,7 @@ Wireable = "<instname>,<a>,<b>,..."
 
 
 //The following is my Value IR. 
-//This contains a small IR representing constants and Referneces to generator/module args. This will be expanded
+//This contains a small IR representing constants and refrences to generator/module args. This can be expanded
 
 ValueType = "Bool"
           | "Int"
@@ -73,6 +76,7 @@ ValueType = "Bool"
           | "String"
           | "CoreIRType"
           | "Module"
+          | "Json"
 
 Params = {<field>:ValueType,...}
 

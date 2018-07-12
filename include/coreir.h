@@ -14,6 +14,7 @@
 #include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
+#include "coreir/ir/coreirlib.h"
 
 #include "coreir/ir/error.h"
 

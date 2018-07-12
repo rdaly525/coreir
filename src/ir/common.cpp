@@ -1,6 +1,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/valuetype.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/types.h"
 
@@ -11,7 +12,7 @@ using namespace std;
 namespace CoreIR {
 
 bool isNumber(string s) {
-  return s.find_first_not_of("0123456789")==string::npos;
+  return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
 }
 bool isPower2(uint n) {
   return (n & (n-1))==0;
@@ -146,11 +147,33 @@ void checkValuesAreParams(Values args, Params params, string errstring) {
   bool multi = args.size() > 4 || params.size() > 4;
   ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + toString(args,multi) + "\nParams: " + toString(params,multi) + "\n" + errstring);
   for (auto const &param : params) {
+    Context* c = param.second->getContext();
     auto const &arg = args.find(param.first);
     ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) + "\nBut only gave:" + toString(args) + "\n" + errstring);
-    ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")" + "\n" + errstring);
+    if (param.second==AnyType::make(c)) {
+      continue;
+    }
+    ValueType* vt = arg->second->getValueType();
+    ASSERT(vt == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")" + "\n" + errstring);
   }
 }
+
+bool doValuesMatchParams(Values args, Params params) {
+  if (args.size() != params.size()) {
+    return false;
+  }
+  for (auto ppair : params) {
+    Context* c = ppair.second->getContext();
+    string pname = ppair.first;
+    ValueType* param  = ppair.second;
+    if (args.count(pname)==0) return false;
+    if (param == AnyType::make(c)) continue;
+    ValueType* vt = args[pname]->getValueType();
+    if (vt != param) return false;
+  }
+  return true;
+}
+
 
 void checkValuesAreConst(Values vs) {
   for (auto v : vs) {
