@@ -1815,7 +1815,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     uint rate  = args.at("rate")->get<int>();
     assert(width>0);
     assert(rate>1);
-    assert(width > num_bits(rate-1)); // not enough bits in counter for rate
 
     // create hardware
     Const* aBitwidth = Const::make(c,width);
