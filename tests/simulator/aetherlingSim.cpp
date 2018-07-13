@@ -203,7 +203,7 @@ namespace CoreIR {
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)}
                 });
-            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceParallelTest", mainModuleType);
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduce4ParallelTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
             
             string reduceParallelName = "reduce" + to_string(numInputs4);
@@ -251,7 +251,7 @@ namespace CoreIR {
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)}
                 });
-            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceParallelTest", mainModuleType);
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceParallel9Test", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
             
             string reduceParallelName = "reduce" + to_string(numInputs9);
