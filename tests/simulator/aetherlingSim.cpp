@@ -226,19 +226,14 @@ namespace CoreIR {
             }
 
             def->connect(reduceParallelName + ".out", "self.out");
-            cout << "a" << endl;
             mainModule->setDef(def);
-            cout << "b" << endl;
             mainModule->print();
-            cout << "c" << endl;
             reduceParallel_add->getModuleRef()->print();
-            cout << "d" << endl;
             c->runPasses({"rungenerators", "verifyconnectivity-noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
             mainModule->print();
-            cout << "howdy" << endl;
                                     
             SimulatorState state(mainModule);
             state.exeCombinational();
@@ -274,19 +269,14 @@ namespace CoreIR {
             }
 
             def->connect(reduceParallelName + ".out", "self.out");
-            cout << "a" << endl;
             mainModule->setDef(def);
-            cout << "b" << endl;
             mainModule->print();
-            cout << "c" << endl;
             reduceParallel_add->getModuleRef()->print();
-            cout << "d" << endl;
             c->runPasses({"rungenerators", "verifyconnectivity-noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
             mainModule->print();
-            cout << "howdy" << endl;
                                     
             SimulatorState state(mainModule);
             state.exeCombinational();
