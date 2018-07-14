@@ -106,6 +106,8 @@ void Aetherling_createReduceGenerator(Context* c) {
             uint numInputs = genargs.at("numInputs")->get<int>();
             uint numInputsRoundedUpToPow2 = int(pow(2,ceil(log2(numInputs))));
             Module* opModule = genargs.at("operator")->get<Module*>();
+            RecordType* opType = opModule->getType();
+            uint elementWidth = opType->sel("out")->getSize();
             
             def->addInstance("reducer", "aetherlinglib.reduceParallelPower2Inputs", {
                     {"numInputs", Const::make(c, numInputsRoundedUpToPow2)},
@@ -117,9 +119,16 @@ void Aetherling_createReduceGenerator(Context* c) {
                 string iStr = to_string(i);
                 def->connect("self.in.data." + iStr, "reducer.in." + iStr);
             }
-            // connect identity to rest of in now, all others up to power of 2
-            for (; i < numInputsRoundedUpToPow2; i++) {
-                def->connect("self.in.identity", "reducer.in." + to_string(i));
+            // hook up the identity to a term if not needed as power 2 inputs
+            if (i == numInputsRoundedUpToPow2) {
+              def->addInstance("identityTerm", "coreir.term", {{"width", Const::make(c,elementWidth)}});
+              def->connect("self.in.identity", "identityTerm.in");
+            }
+            else {
+              // connect identity to rest of in now, all others up to power of 2
+              for (; i < numInputsRoundedUpToPow2; i++) {
+                  def->connect("self.in.identity", "reducer.in." + to_string(i));
+              }
             }
             def->connect("reducer.out", "self.out");
         });
