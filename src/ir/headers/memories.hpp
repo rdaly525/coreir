@@ -253,9 +253,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   auto RomModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
-    int width = genargs.at("width")->get<int>();
-    int depth = genargs.at("depth")->get<int>();
-    modparams["init"] = BitVectorType::make(c,width*depth);
+    modparams["init"] = JsonType::make(c);
     return {modparams,defaultargs};
   };
   
@@ -282,7 +280,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     Values memargs = genargs;
     memargs.insert({"has_init",Const::make(c,true)});
 
-    def->addInstance("mem","coreir.mem",memargs);
+    def->addInstance("mem","coreir.mem",memargs,{{"init",def->getModule()->getArg("init")}});
     def->addInstance("readreg","coreir.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
     def->addInstance("wdata0","coreir.const",{{"width",Const::make(c,width)}},{{"value",Const::make(c,0)}});
     def->addInstance("waddr0","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,0)}});
