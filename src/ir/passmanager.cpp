@@ -122,7 +122,7 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
   char** argv = new char*[argc];
-  for (uint i=0; i<argc; ++i) {
+  for (int i=0; i<argc; ++i) {
     argv[i] = &(pArgs[i])[0];
   }
   cout << "Numargs=" << argc << endl;
