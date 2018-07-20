@@ -28,16 +28,15 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 
 namespace {
   void recurse(Module* m, std::unordered_set<Module*>& onlyTopNodes) {
-    
+    if (onlyTopNodes.count(m)) {
+      return;
+    }
+    onlyTopNodes.insert(m);
     if (!m->hasDef()) {
       return;
     }
     for (auto ipair : m->getDef()->getInstances()) {
       Module* imod = ipair.second->getModuleRef();
-      if (onlyTopNodes.count(imod)) {
-        continue;
-      }
-      onlyTopNodes.insert(imod);
       recurse(imod,onlyTopNodes);
     }
   }
