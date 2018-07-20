@@ -48,11 +48,11 @@ class Module : public GlobalValue, public Args {
     
     bool isGenerated() const { return !!g;}
     Generator* getGenerator() { 
-      ASSERT(isGenerated(),"This is not a generated module!");
+      ASSERT(isGenerated(),"Cannot getGenerator, is not a generated module: " + this->getRefName());
       return g;
     }
     Values getGenArgs() { 
-      ASSERT(isGenerated(),"This is not a generated module!");
+      ASSERT(isGenerated(),"Cannot getGenArgs, is not a generated module: " + this->getRefName());
       return genargs;
     }
 
