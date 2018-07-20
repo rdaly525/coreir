@@ -40,7 +40,7 @@ class Magma : public InstanceGraphPass {
     Magma() : InstanceGraphPass(ID,"Creates Magma representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
-      addDependency("verifyconnectivity-onlyinputs");
+      addDependency("verifyconnectivity --onlyinputs");
     }
     void writeToStream(std::ostream& os);
 };

@@ -34,7 +34,6 @@ int main() {
   cout << "Running Generators" << endl;
   serial5->print();
 
-  //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
   c->runPasses({"rungenerators", "flatten"});
   serial5->getDef()->validate();
 

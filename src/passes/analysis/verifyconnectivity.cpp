@@ -5,8 +5,7 @@
 using namespace std;
 using namespace CoreIR;
 
-void Passes::VerifyConnectivity::initialize(int argc, char* argv[]) {
-  cout << "HERE!!!!!" << endl;
+void Passes::VerifyConnectivity::initialize(int argc, char** argv) {
   cxxopts::Options options("verifyconnectivity", "verifys the connectivty of the hardware graph");
   options.add_options()
     ("h,help","help")
@@ -18,7 +17,7 @@ void Passes::VerifyConnectivity::initialize(int argc, char* argv[]) {
     this->onlyInputs = true;
   }
   if (options.count("c")) {
-    this->checkClkRst= true;
+    this->checkClkRst= false;
   }
 }
 

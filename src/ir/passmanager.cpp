@@ -121,11 +121,15 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   }
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
-  vector<char*> argvTmp(argc);
-  for (auto arg : pArgs) {
-    argvTmp.push_back(&arg[0]);
+  char** argv = new char*[argc];
+  for (uint i=0; i<argc; ++i) {
+    argv[i] = &(pArgs[i])[0];
   }
-  p->initialize(argc,&argvTmp[0]);
+  cout << "Numargs=" << argc << endl;
+  if (argc > 1) {
+    p->initialize(argc,argv);
+  }
+  delete[] argv;
   bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Context:
@@ -183,6 +187,7 @@ bool PassManager::run(vector<string>& passes,vector<string> nsnames) {
   }
   vector<vector<string>> passesParsed;
   for (auto p : passes) {
+    cout << "pass=" << p << endl;
     passesParsed.push_back(splitStringByWhitespace(p));
   }
   bool ret = false;

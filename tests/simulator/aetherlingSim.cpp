@@ -141,7 +141,7 @@ namespace CoreIR {
             
             mainModule->setDef(def);
             mapSeq_mul->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --onlyinputs --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
@@ -229,7 +229,7 @@ namespace CoreIR {
             mainModule->setDef(def);
             mainModule->print();
             reduceParallel_add->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
@@ -272,7 +272,7 @@ namespace CoreIR {
             mainModule->setDef(def);
             mainModule->print();
             reduceParallel_add->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
@@ -301,7 +301,7 @@ namespace CoreIR {
             
             mainModule->setDef(def);
             mainModule->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --onlyinputs --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
@@ -386,7 +386,7 @@ namespace CoreIR {
             mainModule->setDef(def);
             mainModule->print();
             conv1D->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --onlyinputs --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
@@ -470,7 +470,7 @@ namespace CoreIR {
             mainModule->print();
             conv1D->getModuleRef()->print();
 
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --onlyinputs --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});

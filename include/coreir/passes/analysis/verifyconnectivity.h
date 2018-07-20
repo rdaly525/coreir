@@ -16,7 +16,7 @@ class VerifyConnectivity : public ModulePass {
     void setAnalysisInfo() override {
       addDependency("verifyinputconnections");
     }
-    void initialize(int argc, char* argv[]) override;
+    void initialize(int argc, char** argv) override;
     bool runOnModule(Module* m) override;
     bool finalize() override {
       getContext()->checkerrors();
