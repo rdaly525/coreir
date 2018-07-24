@@ -187,7 +187,6 @@ bool PassManager::run(vector<string>& passes,vector<string> nsnames) {
   }
   vector<vector<string>> passesParsed;
   for (auto p : passes) {
-    cout << "pass=" << p << endl;
     passesParsed.push_back(splitStringByWhitespace(p));
   }
   bool ret = false;
