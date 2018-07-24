@@ -40,6 +40,8 @@ all: build coreir
 test: build
 	$(MAKE) -C tests
 	cd tests; ./run
+	$(MAKE) -C tutorial/hellocounter
+	cd tutorial/hellocounter; ./run
 
 installtest:
 	$(MAKE) -C tests/install
@@ -100,11 +102,13 @@ clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests/install clean
+	$(MAKE) -C tutorial/hellocounter clean
 
 
 .PHONY: testclean
 testclean:
 	$(MAKE) -C tests clean
+
 
 
 .PHONY: release
