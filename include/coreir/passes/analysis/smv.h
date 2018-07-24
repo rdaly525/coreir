@@ -22,7 +22,7 @@ namespace Passes {
     SMV() : InstanceGraphPass(ID,"Creates SMV representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override; // runOnModule(Module* module)
     void setAnalysisInfo() override {
-      addDependency("verifyconnectivity --onlyinputs-noclkrst");
+      addDependency("verifyconnectivity --onlyinputs --noclkrst");
       addDependency("verifyflattenedtypes");
       addDependency("verifyflatcoreirprims");
     }
