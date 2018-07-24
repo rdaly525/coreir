@@ -1,8 +1,8 @@
 #!/bin/sh
-set -x #echo on
+# (e) exist as soon as any line fails, and (x) echo commands as they are run
+set -ex
 echo "$1"
 
-set -e
 if [[ -n $1 &&  "$1" -eq '-memcheck' ]]; then
   for file in build/*; do valgrind --error-exitcode=1 $file; done
 else
