@@ -132,7 +132,6 @@ namespace bsim {
         return "z";
       }
       assert(false);
-      return "";
     }
 
     void print(std::ostream& out) const {
@@ -290,9 +289,9 @@ namespace bsim {
 	bits[i] = quad_value(0);
       }
       
-      for (int i = 0; i < N; i++) {
-	set(i, 0);
-      }
+      // for (int i = 0; i < N; i++) {
+      //   set(i, 0);
+      // }
     }
 
     quad_value_bit_vector(const std::string& str_raw) : N(0) {
@@ -309,7 +308,7 @@ namespace bsim {
       ind++;
 
       char format = str_raw[ind];
-      (void) format;
+
       assert((format == 'b') ||
              (format == 'h') ||
              (format == 'd'));
@@ -982,11 +981,11 @@ namespace bsim {
     }
 
     //unsigned char sign_bit = a.get(a.bitLength() - 1);
-    for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
+    for (int i = a.bitLength() - 1; i >= (int) shift_int; i--) {
       res.set(i - shift_int, a.get(i));
     }
 
-    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
+    for (int i = a.bitLength() - 1; i >= (((int) a.bitLength()) - ((int) shift_int)); i--) {
       res.set(i, 0);
     }
 
@@ -1083,4 +1082,15 @@ namespace bsim {
     return res;
   }
 
+  static inline
+  quad_value_bit_vector
+  zero_extend(const int outWidth, const quad_value_bit_vector& in) {
+    quad_value_bit_vector res(outWidth, 0);
+    for (uint i = 0; i < in.bitLength(); i++) {
+      res.set(i, in.get(i));
+    }
+
+    return res;
+  }
+  
 }
