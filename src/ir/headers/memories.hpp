@@ -9,9 +9,9 @@ bool isPowerOfTwo(const uint n) {
 }
 
 Namespace* CoreIRLoadHeader_memory(Context* c) {
-  
+
   Namespace* memory = c->newNamespace("memory");
-  
+
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   //Linebuffer Memory. Use this for memory in linebuffer mode
   memory->newTypeGen("rowbufferType",MemGenParams,[](Context* c, Values genargs) {
@@ -28,25 +28,25 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
   //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
   Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
-  
+
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint depth = genargs.at("depth")->get<int>();
     uint addrWidth = (uint) ceil(log2(depth));
-    
+
     Values awParams({{"width",Const::make(c,addrWidth)}});
     Values aw1Params({{"width",Const::make(c,addrWidth+1)}});
-    
+
     //All State (mem, waddr, raddr, valid)
     def->addInstance("mem","coreir.mem",genargs);
-    
+
     def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
     def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
     def->addInstance("cnt","mantle.reg",{{"width",Const::make(c,addrWidth+1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
 
     def->addInstance("state","mantle.reg",{{"width",Const::make(c,1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,1,0)}});
-    
 
-    def->addInstance("valid","corebit.and");
+
+    def->addInstance("out_and_wen","corebit.and");
 
     //Constants:
     //def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
@@ -67,18 +67,18 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.wen","mem.wen");
 
     //Other IO
-    def->connect("self.valid","valid.out");
-    def->connect("state.out.0","valid.in0");
-    def->connect("self.wen","valid.in1");
+    def->connect("self.valid","out_and_wen.out");
+    def->connect("state.out.0","out_and_wen.in0");
+    def->connect("self.wen","out_and_wen.in1");
 
     //Logic to drive raddr
-    def->connect("valid.out","raddr.en");
+    def->connect("out_and_wen.out","raddr.en");
     def->connect("self.flush","raddr.srst");
 
     //Logic to drive waddr
     def->connect("self.wen","waddr.en");
     def->connect("self.flush","waddr.srst");
-    
+
     //Logic to drive cnt
     // cnt_n = !state ? cnt+wen
     def->addInstance("state0","corebit.not");
@@ -145,7 +145,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
       // Equals to test if addresses are at the max
       def->addInstance("raddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
       def->addInstance("waddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
-    
+
       // Reset constant
       def->addInstance("zero_const",
                        "coreir.const",
@@ -180,7 +180,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
       def->connect("max_const.out", "waddr_eq.in1");
 
     } else {
-      def->connect("add_r.out","raddr.in");    
+      def->connect("add_r.out","raddr.in");
       def->connect("add_w.out","waddr.in");
     }
 
@@ -256,7 +256,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     modparams["init"] = JsonType::make(c);
     return {modparams,defaultargs};
   };
-  
+
   memory->newTypeGen("RomType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
@@ -268,15 +268,15 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
       {"ren", c->BitIn()},
     });
   });
-  
-  
+
+
   Generator* rom = memory->newGeneratorDecl("rom",memory->getTypeGen("RomType"),MemGenParams);
   rom->setModParamsGen(RomModParamFun);
   rom->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
     uint awidth = (uint) ceil(log2(depth));
-    
+
     Values memargs = genargs;
     memargs.insert({"has_init",Const::make(c,true)});
 
@@ -309,11 +309,11 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 //
 //  reg [A-1] raddr
 //  reg [A-1] waddr;
-//  
+//
 //  always @(posedge clk) begin
 //    if (wen) waddr <= waddr + 1;
 //  end
-//  assign valid = waddr!=raddr; 
+//  assign valid = waddr!=raddr;
 //  always @(posedge clk) begin
 //    if (valid) raddr <= raddr+1;
 //  end
