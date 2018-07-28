@@ -181,6 +181,12 @@ void checkValuesAreConst(Values vs) {
   }
 }
 
+std::vector<std::string> splitStringByWhitespace(std::string const &input) { 
+    std::istringstream buffer(input);
+    std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)), 
+                                 std::istream_iterator<std::string>());
+    return ret;
+}
 
 vector<string> splitRef(string s) {
   auto p = splitString<vector<string>>(s,'.');

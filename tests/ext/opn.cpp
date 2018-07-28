@@ -28,7 +28,7 @@ int main() {
   
   add15->setDef(def);
   //add15->print();
-  c->runPasses({"rungenerators","flatten","verifyconnectivity-onlyinputs-noclkrst"});
+  c->runPasses({"rungenerators","flatten","verifyconnectivity --onlyinputs --noclkrst"});
   add15->print();
 
   add15->getDef()->validate();
@@ -67,7 +67,7 @@ int main() {
   
   bitadd15->setDef(defbit);
   //bitadd15->print();
-  c->runPasses({"rungenerators","flatten","verifyconnectivity-onlyinputs-noclkrst"});
+  c->runPasses({"rungenerators","flatten","verifyconnectivity --onlyinputs --noclkrst"});
   bitadd15->print();
 
   bitadd15->getDef()->validate();

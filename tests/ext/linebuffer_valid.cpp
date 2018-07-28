@@ -51,9 +51,8 @@ int main() {
   cout << "Running Generators" << endl;
   //lb32->print();
 
-  //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
-  c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
-  c->runPasses({"verifyconnectivity-onlyinputs-noclkrst"},{"global","commonlib","memory","mantle"});
+  c->runPasses({"rungenerators", "flatten","verifyconnectivity --onlyinputs --noclkrst"});
+  c->runPasses({"verifyconnectivity --onlyinputs --noclkrst"},{"global","commonlib","memory","mantle"});
   //lb32->print();
   lb32->getDef()->validate();
 

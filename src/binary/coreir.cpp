@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     ("v,verbose","Set verbose")
     ("i,input","input file: '<file1>.json,<file2.jsom,...'",cxxopts::value<std::string>())
     ("o,output","output file: <file>.<json|fir|v|py|dot>",cxxopts::value<std::string>())
-    ("p,passes","Run passes in order: '<pass1>,<pass2>,<pass3>,...'",cxxopts::value<std::string>())
+    ("p,passes","Run passes in order: '<pass1> <pass1args>;<pass2> <pass2args>;...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())
     ("l,load_libs","external libs: '<libname0>,<path/libname1.so>,<libname2>,...'",cxxopts::value<std::string>())
     ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
   bool modified = false;
   if (options.count("p")) {
     string plist = options["p"].as<string>();
-    vector<string> porder = splitString<vector<string>>(plist,',');
+    vector<string> porder = splitString<vector<string>>(plist,';');
     modified = c->runPasses(porder,namespaces);
   }
 

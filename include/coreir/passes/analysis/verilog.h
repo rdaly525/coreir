@@ -19,7 +19,7 @@ class Verilog : public InstanceGraphPass {
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
       onlyTop = true;
-      addDependency("verifyconnectivity-onlyinputs"); //Should change back to check all connections
+      addDependency("verifyconnectivity --onlyinputs"); //Should change back to check all connections
       addDependency("verifyflattenedtypes");
     }
     

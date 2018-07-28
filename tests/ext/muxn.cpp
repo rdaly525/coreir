@@ -33,7 +33,7 @@ int main() {
   muxN->setDef(def);
   muxN->print();
 
-  c->runPasses({"rungenerators", "flatten", "verifyconnectivity-noclkrst"});
+  c->runPasses({"rungenerators", "flatten", "verifyconnectivity --noclkrst"});
   muxN->getDef()->validate();
 
   // write out the json

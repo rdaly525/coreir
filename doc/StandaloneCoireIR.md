@@ -33,8 +33,7 @@ Usage:
 
 Analysis Passes
   verifyflattenedtypes
-  verifyconnectivity-onlyinputs
-  verifyconnectivity-onlyinputs-noclkrst
+  verifyconnectivity --onlyinputs --noclkrst
   verifyinputconnections
   coreirjson
   smv
@@ -47,7 +46,6 @@ Analysis Passes
   createcombview
   verifyconnectivity
   verifyflatcoreirprims
-  verifyconnectivity-noclkrst
   createfullinstancemap
   magma
 

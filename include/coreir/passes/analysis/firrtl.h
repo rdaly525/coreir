@@ -122,7 +122,7 @@ class Firrtl : public InstanceGraphPass {
     Firrtl() : InstanceGraphPass(ID,"Creates Firrtl representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
-      addDependency("verifyconnectivity-onlyinputs"); //Should change back to check all connections
+      addDependency("verifyconnectivity --onlyinputs"); //Should change back to check all connections
     }
     void writeToStream(std::ostream& os);
 };
