@@ -75,12 +75,12 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
             def->connect("baseOp.out", "self.out");
         });
 
-    return aetherlinglib;  
+    return aetherlinglib;
 }
 
 string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width, Const* val) {
     string valName = val->toString();
-    replace(valName.begin(), valName.end(), '\'', '-');
+    replace(valName.begin(), valName.end(), '\'', '_');
     string constName = "constInput_" + valName;
     def->addInstance(
         constName,
