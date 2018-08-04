@@ -111,6 +111,10 @@ class ModuleDef {
     // Returns true if there is an error
     bool validate();
     bool checkTypes(Wireable* a, Wireable* b);
+
+    // Checks if the topClk is wired to clk (works if clk is an array or nested
+    // array of clocks)
+    bool hasClockConnection(Wireable* topClk, Wireable* clk);
 };
 
 }//CoreIR namespace

@@ -4,6 +4,17 @@
 using namespace std;
 using namespace CoreIR;
 
+
+void Passes::WireClocks::connectClk(ModuleDef* def, Wireable* topClk, Wireable* clk) {
+    if (auto arrayType = dyn_cast<ArrayType>(clk->getType())) {
+        for (int i = 0; i < arrayType->getLen(); i++) {
+          this->connectClk(def, topClk, clk->sel(i));
+        }
+    } else if (!def->hasClockConnection(topClk, clk)) {
+        def->connect(topClk,clk);
+    }
+}
+
 bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
     
     Module* module = node.getModule();
@@ -14,7 +25,7 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
     //Check if any instance has a clock type
     for (auto inst : def->getInstances()) {
       for (auto field : cast<RecordType>(inst.second->getType())->getRecord()) {
-        if (field.second == this->clockType) {
+        if (isClockOrNestedClockType(field.second, this->clockType)) {
           clks.push_back(inst.second->sel(field.first));
         }
       }
@@ -25,7 +36,7 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
     
     Wireable* topclk=nullptr;
     for (auto field : module->getType()->getRecord()) {
-      if (field.second == this->clockType) {
+      if (isClockOrNestedClockType(field.second, this->clockType)) {
         topclk = def->sel("self")->sel(field.first);
       }
     }
@@ -35,9 +46,7 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
       topclk = def->sel("self")->sel("clk");
     }
     for (auto clk : clks) {
-      if (!def->hasConnection(topclk,clk)) {
-        def->connect(topclk,clk);
-      }
+      this->connectClk(def, topclk, clk);
     }
 
     return true;

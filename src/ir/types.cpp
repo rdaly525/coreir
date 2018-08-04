@@ -188,4 +188,14 @@ uint RecordType::getSize() const {
   return size;
 }
 
+
+bool isClockOrNestedClockType(Type* type, Type* clockType) {
+    if (type == clockType) {
+        return true;
+    } else if (auto arrayType = dyn_cast<ArrayType>(type)) {
+        return isClockOrNestedClockType(arrayType->getElemType(), clockType);
+    }
+    return false;
+}
+
 }//CoreIR namespace
