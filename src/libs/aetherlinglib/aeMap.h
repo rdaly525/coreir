@@ -12,7 +12,8 @@ vector<pair<string,Type*>> getInputOrOutputFields(Context* c, RecordType* rtype,
     vector<pair<string, Type*>> returnFields;
     for (auto& field : fields) {
         // since all input ops to map should be single cycle, don't deal with this.
-        if (field.first == "ready" || field.first == "valid") {
+        if (field.first == "ready" || field.first == "valid" ||
+                field.second == c->Named("coreir.clkIn")) {
             continue;
         }
         else if (field.second->isInput() && getInputs) {
@@ -51,11 +52,11 @@ Type* generateMapType(Context* c, Values genargs, bool sequential) {
 void Aetherling_createMapGenerator(Context* c) {
 
     Namespace* aetherlinglib = c->getNamespace(AETHERLING_NAMESPACE);
-    
+
     /*
      * This type is for all maps, from fully sequential to fully parallel
      * parallelOperatrs - how many operators to have in parallel
-     * operator - the operator to parallelize. Note that it must have one input known as "in" and 
+     * operator - the operator to parallelize. Note that it must have one input known as "in" and
      * one output known as "out"
      */
     Params mapSeqParParams = Params({
@@ -82,7 +83,7 @@ void Aetherling_createMapGenerator(Context* c) {
 
             // now create each op and wire the inputs and outputs to it
             for (uint i = 0; i < numInputs; i++) {
-                string idxStr = to_string(i);                
+                string idxStr = to_string(i);
                 string opStr = "op_" + idxStr;
                 def->addInstance(opStr, opModule);
                 for (auto opInputField : opInputFields) {
@@ -100,7 +101,7 @@ void Aetherling_createMapGenerator(Context* c) {
         [](Context* c, Values genargs) { //Function to compute type
             return generateMapType(c, genargs, true);
         });
-    /* 
+    /*
      * This implementation of map is fully sequential, takes entire input in first cycle, emits it all
      * on last cycle
      */
