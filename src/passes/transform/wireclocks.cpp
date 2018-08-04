@@ -7,7 +7,7 @@ using namespace CoreIR;
 
 void Passes::WireClocks::connectClk(ModuleDef* def, Wireable* topClk, Wireable* clk) {
     if (auto arrayType = dyn_cast<ArrayType>(clk->getType())) {
-        for (int i = 0; i < arrayType->getLen(); i++) {
+        for (unsigned int i = 0; i < arrayType->getLen(); i++) {
           this->connectClk(def, topClk, clk->sel(i));
         }
     } else if (!def->hasClockConnection(topClk, clk)) {
