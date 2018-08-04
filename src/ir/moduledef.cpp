@@ -352,7 +352,7 @@ void ModuleDef::removeInstance(string iname) {
 
 bool ModuleDef::hasClockConnection(Wireable* topClk, Wireable* clk) {
     if (auto arrayType = dyn_cast<ArrayType>(topClk->getType())) {
-        for (int i = 0; i < arrayType->getLen(); i++) {
+        for (unsigned int i = 0; i < arrayType->getLen(); i++) {
             if (this->hasClockConnection(topClk->sel(i), clk)) {
                 return true;
             };
