@@ -4,6 +4,42 @@
 using namespace std;
 using namespace CoreIR;
 
+int testTuple() {
+    Context* context = newContext();
+    Namespace* global = context->getGlobal();
+    // Namespace* prims = context->getNamespace("coreir");
+    Type* clockType = context->Named("coreir.clk");
+    Type* clockInType = context->Named("coreir.clkIn");
+
+    Module* nested_clock_tuple = nullptr;
+    if (!loadFromFile(context, "circuits/TestNestedClockTuple.json", &nested_clock_tuple)) {
+        context->printerrors();
+        return 1;
+    }
+    ModuleDef* definition = nested_clock_tuple->getDef();
+
+    Passes::WireClocks* wireClock = new Passes::WireClocks("wireclocks",clockInType);
+    context->addPass(wireClock);
+
+    // Run the pass
+    context->runPasses({"wireclocks"});
+    Wireable* topClock = definition->sel("self.CLK");
+
+    // Check that the clocks are now wired
+    for (auto instance : definition->getInstances()) {
+        Module* moduleRef = instance.second->getModuleRef();
+        for (auto field : moduleRef->getType()->getRecord()) {
+            if (isClockOrNestedClockType(field.second, clockType)) {
+                ASSERT(moduleRef->getDef()->hasClockConnection(topClock, instance.second->sel(field.first)),
+                       "Wire Clock Pass Test Failed, not all clocks wired up.");
+            }
+        }
+    }
+    saveToFile(global, "_nested_clock_tuple_wired.json", nested_clock_tuple);
+    deleteContext(context);
+    return 0;
+}
+
 int testMultipleSIPO() {
     Context* context = newContext();
     Namespace* global = context->getGlobal();
@@ -73,5 +109,5 @@ int testShiftRegister() {
 }
 
 int main() {
-    return testShiftRegister() || testMultipleSIPO();
+    return testShiftRegister() || testMultipleSIPO() || testTuple();
 }

@@ -358,6 +358,13 @@ bool ModuleDef::hasClockConnection(Wireable* topClk, Wireable* clk) {
             };
         }
         return false;
+    } else if (auto recordType = dyn_cast<RecordType>(topClk->getType())) {
+        for (auto field : recordType->getRecord()) {
+            if (this->hasClockConnection(topClk->sel(field.first), clk)) {
+                return true;
+            };
+        }
+        return false;
     }
     return this->hasConnection(topClk, clk);
 }

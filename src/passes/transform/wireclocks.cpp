@@ -10,6 +10,12 @@ void Passes::WireClocks::connectClk(ModuleDef* def, Wireable* topClk, Wireable* 
         for (unsigned int i = 0; i < arrayType->getLen(); i++) {
           this->connectClk(def, topClk, clk->sel(i));
         }
+    } else if (auto recordType = dyn_cast<RecordType>(clk->getType())) {
+        for (auto field : recordType->getRecord()) {
+            if (isClockOrNestedClockType(field.second, this->clockType)) {
+                this->connectClk(def, topClk, clk->sel(field.first));
+            }
+        }
     } else if (!def->hasClockConnection(topClk, clk)) {
         def->connect(topClk,clk);
     }
