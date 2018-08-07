@@ -30,7 +30,7 @@ int testTuple() {
         Module* moduleRef = instance.second->getModuleRef();
         for (auto field : moduleRef->getType()->getRecord()) {
             if (isClockOrNestedClockType(field.second, clockType)) {
-                ASSERT(moduleRef->getDef()->hasClockConnection(topClock, instance.second->sel(field.first)),
+                ASSERT(instance.second->sel(field.first)->getConnectedWireables().size() > 0,
                        "Wire Clock Pass Test Failed, not all clocks wired up.");
             }
         }
@@ -66,7 +66,7 @@ int testMultipleSIPO() {
         Module* moduleRef = instance.second->getModuleRef();
         for (auto field : moduleRef->getType()->getRecord()) {
             if (isClockOrNestedClockType(field.second, clockType)) {
-                ASSERT(moduleRef->getDef()->hasClockConnection(topClock, instance.second->sel(field.first)),
+                ASSERT(instance.second->sel(field.first)->getConnectedWireables().size() > 0,
                        "Wire Clock Pass Test Failed, not all clocks wired up.");
             }
         }

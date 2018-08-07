@@ -349,24 +349,4 @@ void ModuleDef::removeInstance(string iname) {
   delete inst;
 }
 
-
-bool ModuleDef::hasClockConnection(Wireable* topClk, Wireable* clk) {
-    if (auto arrayType = dyn_cast<ArrayType>(topClk->getType())) {
-        for (unsigned int i = 0; i < arrayType->getLen(); i++) {
-            if (this->hasClockConnection(topClk->sel(i), clk)) {
-                return true;
-            };
-        }
-        return false;
-    } else if (auto recordType = dyn_cast<RecordType>(topClk->getType())) {
-        for (auto field : recordType->getRecord()) {
-            if (this->hasClockConnection(topClk->sel(field.first), clk)) {
-                return true;
-            };
-        }
-        return false;
-    }
-    return this->hasConnection(topClk, clk);
-}
-
 } //coreir namespace

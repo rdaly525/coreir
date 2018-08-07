@@ -16,7 +16,11 @@ void Passes::WireClocks::connectClk(ModuleDef* def, Wireable* topClk, Wireable* 
                 this->connectClk(def, topClk, clk->sel(field.first));
             }
         }
-    } else if (!def->hasClockConnection(topClk, clk)) {
+    } else if (auto arrayType = dyn_cast<ArrayType>(topClk->getType())) {
+        if (arrayType->getLen() == 1) {
+            this->connectClk(def, topClk->sel(0), clk);
+        }
+    } else {
         def->connect(topClk,clk);
     }
 }
@@ -25,13 +29,15 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
     
     Module* module = node.getModule();
     if (!module->hasDef()) return false;
+    module->print();
 
     ModuleDef* def = module->getDef();
     vector<Wireable*> clks;
     //Check if any instance has a clock type
     for (auto inst : def->getInstances()) {
       for (auto field : cast<RecordType>(inst.second->getType())->getRecord()) {
-        if (isClockOrNestedClockType(field.second, this->clockType)) {
+        if (isClockOrNestedClockType(field.second, this->clockType) &&
+                inst.second->sel(field.first)->getConnectedWireables().size() == 0) {
           clks.push_back(inst.second->sel(field.first));
         }
       }
@@ -54,6 +60,7 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
     for (auto clk : clks) {
       this->connectClk(def, topclk, clk);
     }
+    module->print();
 
     return true;
 }
