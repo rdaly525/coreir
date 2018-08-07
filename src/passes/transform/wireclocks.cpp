@@ -29,7 +29,6 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
     
     Module* module = node.getModule();
     if (!module->hasDef()) return false;
-    module->print();
 
     ModuleDef* def = module->getDef();
     vector<Wireable*> clks;
@@ -60,7 +59,6 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
     for (auto clk : clks) {
       this->connectClk(def, topclk, clk);
     }
-    module->print();
 
     return true;
 }
