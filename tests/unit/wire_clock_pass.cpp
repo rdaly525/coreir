@@ -23,7 +23,6 @@ int testTuple() {
 
     // Run the pass
     context->runPasses({"wireclocks"});
-    Wireable* topClock = definition->sel("self.CLK");
 
     // Check that the clocks are now wired
     for (auto instance : definition->getInstances()) {
@@ -59,7 +58,6 @@ int testMultipleSIPO() {
 
     // Run the pass
     context->runPasses({"wireclocks"});
-    Wireable* topClock = definition->sel("self.CLK");
 
     // Check that the clocks are now wired
     for (auto instance : definition->getInstances()) {
