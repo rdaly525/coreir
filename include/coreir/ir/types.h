@@ -138,6 +138,9 @@ class RecordType : public Type {
 
 };
 
+// Checks if type is a clock or an array (possibly nested) of clocks
+bool isClockOrNestedClockType(Type* type, Type* clockType);
+
 }//CoreIR namespace
 
 

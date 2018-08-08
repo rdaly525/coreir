@@ -58,7 +58,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
 
     Wireable* reg;
     if (rst) {
-      reg = def->addInstance("reg0","coreir.regrst",wval,{{"init",def->getModule()->getArg("init")}});
+      reg = def->addInstance("reg0","coreir.reg_arst",wval,{{"init",def->getModule()->getArg("init")}});
       def->connect("reg0.rst","self.rst");
     }
     else {
