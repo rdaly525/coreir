@@ -125,7 +125,6 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   for (int i=0; i<argc; ++i) {
     argv[i] = &(pArgs[i])[0];
   }
-  cout << "Numargs=" << argc << endl;
   if (argc > 1) {
     p->initialize(argc,argv);
   }
