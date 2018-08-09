@@ -68,7 +68,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     string iname = imap.first;
     Instance* inst = imap.second;
     Module* mref = imap.second->getModuleRef();
-    ASSERT(modMap.count(mref),"DEBUG ME");
+    ASSERT(modMap.count(mref),"Missing mod from inst" + toString(inst));
     VModule* vref = modMap[mref];
     vmod->addStmt("  //Wire declarations for instance '" + iname + "' (Module "+ vref->getName() + ")");
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {

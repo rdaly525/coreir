@@ -60,7 +60,7 @@ namespace Passes {
     for (auto conn : toRemove) {
       def->disconnect(conn);
     }
-    return toRemove.size()>0;
+    return toRemove.size()>0
   }
 
 }

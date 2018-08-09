@@ -44,6 +44,7 @@
 
 #include "transform/adddirected.h"
 #include "transform/transform2combview.h"
+#include "transform/netify.h"
 
 
 //TODO Macrofy this
@@ -94,6 +95,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RegisterInputs("registerinputs"));
     pm.addPass(new Passes::DeleteUnusedInouts("delete-unused-inouts"));
     pm.addPass(new Passes::Transform2CombView());
+    pm.addPass(new Passes::Netify());
   }
 }
 

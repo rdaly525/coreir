@@ -35,11 +35,11 @@ class VWire {
     VWire(Wireable* w) : VWire("",w->getType()) {
       SelectPath sp = w->getSelectPath();
       if (sp.size()==3) {
-        ASSERT(dim==1 && !isNumber(sp[1]) && isNumber(sp[2]),"DEBUG ME:");
+        ASSERT(dim==1 && !isNumber(sp[1]) && isNumber(sp[2]),"Bad vwire " + toString(sp));
         name = sp[1]+"["+sp[2]+"]";
       }
       else if (sp.size()==2) {
-        ASSERT(!isNumber(sp[1]),"DEBUG ME:");
+        ASSERT(!isNumber(sp[1]),"Bad vwire " + toString(sp));
         name = sp[1];
       }
       else {
