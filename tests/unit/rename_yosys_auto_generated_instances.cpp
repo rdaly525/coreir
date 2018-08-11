@@ -25,15 +25,20 @@ int main() {
 
   md->setDef(def);
 
-  c->runPasses({"rename_yosys_auto_generated_instances"});
+  c->runPasses({"rename_yosys_auto_generated_instances", "deletedeadinstances"});
 
+  assert(md->getDef()->getInstances().size() == 1);
+
+  cout << "Module after processing" << endl;
+  cout << md->toString() << endl;
   SimulatorState sim(md);
   sim.setValue("self.in0", BitVector(3, 1));
   sim.setValue("self.in1", BitVector(3, 2));
 
-  assert(sim.getBitVec("self.out") == add_general_width_bv(BitVector(3, 1), BitVector(3, 2)));
+  sim.execute();
+
+  assert(sim.getBitVec("self.out0") == add_general_width_bv(BitVector(3, 1), BitVector(3, 2)));
   
   deleteContext(c);
 
-  assert(false);
 }
