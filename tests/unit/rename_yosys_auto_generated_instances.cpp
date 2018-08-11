@@ -30,7 +30,8 @@ int main() {
   assert(md->getDef()->getInstances().size() == 1);
 
   cout << "Module after processing" << endl;
-  cout << md->toString() << endl;
+  md->print();
+
   SimulatorState sim(md);
   sim.setValue("self.in0", BitVector(3, 1));
   sim.setValue("self.in1", BitVector(3, 2));
@@ -38,6 +39,11 @@ int main() {
   sim.execute();
 
   assert(sim.getBitVec("self.out0") == add_general_width_bv(BitVector(3, 1), BitVector(3, 2)));
+
+  for (auto instM : md->getDef()->getInstances()) {
+    Instance* inst = instM.second;
+    assert(inst->toString()[0] != '_');
+  }
   
   deleteContext(c);
 
