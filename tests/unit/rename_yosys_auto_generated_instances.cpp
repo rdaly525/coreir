@@ -21,17 +21,19 @@ int main() {
   def->addInstance("__DOLLAR__horrible_FORWARD_SLASH_yosys_name", "coreir.add", {{"width", Const::make(c, 3)}});
   def->connect("self.in0", "__DOLLAR__horrible_FORWARD_SLASH_yosys_name.in0");
   def->connect("self.in1", "__DOLLAR__horrible_FORWARD_SLASH_yosys_name.in1");
-  def->connect("__DOLLAR__horrible_FORWARD_SLASH_yosys_name.out", "self.out");
+  def->connect("__DOLLAR__horrible_FORWARD_SLASH_yosys_name.out", "self.out0");
 
   md->setDef(def);
 
   c->runPasses({"rename_yosys_auto_generated_instances"});
 
-  Simulator sim(md);
+  SimulatorState sim(md);
   sim.setValue("self.in0", BitVector(3, 1));
   sim.setValue("self.in1", BitVector(3, 2));
 
-  assert(sim.getBitVec("self.out", BitVector(3, 1) + BitVector(3, 2));
+  assert(sim.getBitVec("self.out") == add_general_width_bv(BitVector(3, 1), BitVector(3, 2)));
   
   deleteContext(c);
+
+  assert(false);
 }
