@@ -19,7 +19,7 @@ void* CORENewMap(COREContext* c, void* keys, void* values, uint len, COREMapKind
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
 extern COREType* COREContextNamedType(COREContext* context, const char* namespace_, const char* type_name);
-  COREType* COREContextFlip(COREContext* context, COREType* type);
+extern COREType* COREContextFlip(COREContext* context, COREType* type);
 
 extern COREValueType* COREContextBool(COREContext* context);
 extern COREValueType* COREContextInt(COREContext* context);
