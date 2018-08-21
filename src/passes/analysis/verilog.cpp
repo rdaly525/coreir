@@ -29,7 +29,6 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
     if (vmod->isExternal) {
       continue;
     }
-    cout << "H1" << endl;
     os << vmod->toString() << endl;
   }
 

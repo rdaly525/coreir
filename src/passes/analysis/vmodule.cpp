@@ -81,7 +81,7 @@ void VModules::addModule(Module* m) {
   
   //Case where VModule might already exist
   bool mightHaveVmodule = isGen && genHasVerilog;
-  cout << isGen << hasDef << genHasVerilog << modHasVerilog << isExtern << mightHaveVmodule << endl;
+  //cout << isGen << hasDef << genHasVerilog << modHasVerilog << isExtern << mightHaveVmodule << endl;
   
   //Already Created modules
   if (mightHaveVmodule && gen2VMod.count(g) > 0) {
@@ -147,11 +147,6 @@ string VModule::toString() {
 
 string VModule::toInstanceString(Instance* inst) {
   assert(this->modname != "");
-  cout << "Instance = " << inst->toString() << endl;
-  for (auto p : this->params) {
-    cout << "  " << p << endl;
-  }
-  cout << endl;
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params_bk = this->params;

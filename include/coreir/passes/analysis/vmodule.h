@@ -169,7 +169,6 @@ struct VInstance : VObject {
   VInstance(VModules* vmods, Instance* inst) : VObject(toString(inst)), vmods(vmods), inst(inst) {
     assert(inst);
     this->line = -100000;
-    cout << "creating VINstance from: " << toString(inst) << endl;
     auto meta = inst->getMetaData();
     if (meta.count("filename")) {
       this->file = meta["filename"].get<string>();
@@ -177,25 +176,22 @@ struct VInstance : VObject {
     if (meta.count("lineno")) {
       this->line = std::stoi(meta["lineno"].get<string>());
     }
-    cout << "f,l" << this->file << ":" << this->line << endl;
 
   }
 
 
   string VWireDec(VWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
   void materialize(CoreIRVModule* vmod) override {
-    cout << "J2" << endl;
     string iname = inst->getInstname();
     Module* mref = inst->getModuleRef();
     assert(mref);
     VModule* vref = vmods->mod2VMod[mref];
     assert(vref);
-    vmod->addStmt("  //Wire declarations for instance '" + iname + "' (Module "+ vref->modname + ")");
+    vmod->addComment("From: " + toString(inst));
     for (auto rmap : cast<RecordType>(mref->getType())->getRecord()) {
       vmod->addStmt(VWireDec(VWire(iname+"__"+rmap.first,rmap.second)));
     }
     vmod->addStmt(vref->toInstanceString(inst));
-    cout << "}J2" << endl;
   }
 };
 
@@ -215,15 +211,11 @@ struct VAssign : VObject {
     }
   }
   void materialize(CoreIRVModule* vmod) override {
-    cout << "J1" << endl;
     Wireable* left = conn.first->getType()->getDir()==Type::DK_In ? conn.first : conn.second;
     Wireable* right = left==conn.first ? conn.second : conn.first;
     VWire vleft(left);
     VWire vright(right);
     vmod->addStmt("  assign " + vleft.getName() + vleft.dimstr() + " = " + vright.getName() + vright.dimstr() + ";");
-    cout << "}J1" << endl;
-
- 
   }
 };
 
