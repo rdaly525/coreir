@@ -23,12 +23,15 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   //Materialize all the statemts
   for (auto fpair : sortedVObj) {
     string file = fpair.first;
+    this->addStmt("");
     if (file != "_") {
-      this->addComment("From " + file);
+      this->addComment("Compiled from " + file);
     }
     for (auto vobj : fpair.second) {
+      this->addStmt("");
       vobj->materialize(this);
     }
+    this->addStmt("");
   }
 }
 
@@ -56,7 +59,7 @@ bool VObjComp::operator() (const VObject* l, const VObject* r) const {
 // Generator has verilog info
 // Module has verilog info
 void VModules::addModule(Module* m) {
-  cout << "vmoding: " <<m->toString() << endl;
+  //cout << "vmoding: " <<m->toString() << endl;
   Generator* g = nullptr;
   bool isGen = m->isGenerated();
   if (isGen) {
@@ -195,7 +198,7 @@ string VModule::toInstanceString(Instance* inst) {
     string pstr = "."+port.first+"(" + instname+"__"+ port.first+")";
     portstrs.push_back(pstr);
   }
-  o << instname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
+  o << instname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );";
 
   //TODO a bit of a hack. return params to original
   this->params = params_bk;

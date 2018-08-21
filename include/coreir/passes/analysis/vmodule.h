@@ -159,7 +159,7 @@ struct VObject {
   int line = -1;
   VObject(string name) : name(name) {}
   VObject(string name, string file,int line) : name(name), file(file), line(line) {}
-  //Returns a block of statemnts 
+  //fills out the body
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
 
@@ -187,7 +187,12 @@ struct VInstance : VObject {
     assert(mref);
     VModule* vref = vmods->mod2VMod[mref];
     assert(vref);
-    vmod->addComment("From: " + toString(inst));
+    if (this->line > 0) {
+      vmod->addComment("Instanced at line " + to_string(this->line));
+    }
+    if (mref->isGenerated()) {
+      vmod->addComment("Instancing generated Module: " + mref->toString());
+    }
     for (auto rmap : cast<RecordType>(mref->getType())->getRecord()) {
       vmod->addStmt(VWireDec(VWire(iname+"__"+rmap.first,rmap.second)));
     }
@@ -215,6 +220,9 @@ struct VAssign : VObject {
     Wireable* right = left==conn.first ? conn.second : conn.first;
     VWire vleft(left);
     VWire vright(right);
+    if (this->line >0) {
+      vmod->addComment("Wired at line: " + to_string(this->line));
+    }
     vmod->addStmt("  assign " + vleft.getName() + vleft.dimstr() + " = " + vright.getName() + vright.dimstr() + ";");
   }
 };
