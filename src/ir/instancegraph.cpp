@@ -7,6 +7,7 @@ void InstanceGraph::releaseMemory() {
   nodeMap.clear();
   for (auto ign : sortedNodes) delete ign;
   sortedNodes.clear();
+  onlyTopNodes.clear();
 }
 
 bool InstanceGraph::validOnlyTop(InstanceGraphNode* node) {
