@@ -18,12 +18,17 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
 void Passes::Verilog::writeToStream(std::ostream& os) {
   
-  cout << "H0" << endl;
-  for (auto ext : vmods.externalVMods) {
-    os << "// " << ext->modname << " defined externally!" << endl;
+  if (vmods.externalVMods.size() > 0) {
+    os << "/* External Modules" << endl;
+    for (auto ext : vmods.externalVMods) {
+      os << ext->toString() << endl << endl;
+    }
+    os << "*/" << endl << endl;
   }
-  os << endl;
   for (auto vmod : vmods.vmods) {
+    if (vmod->isExternal) {
+      continue;
+    }
     cout << "H1" << endl;
     os << vmod->toString() << endl;
   }

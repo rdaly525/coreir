@@ -83,6 +83,7 @@ void VModules::addModule(Module* m) {
   bool mightHaveVmodule = isGen && genHasVerilog;
   cout << isGen << hasDef << genHasVerilog << modHasVerilog << isExtern << mightHaveVmodule << endl;
   
+  //Already Created modules
   if (mightHaveVmodule && gen2VMod.count(g) > 0) {
     mod2VMod[m] = gen2VMod[g];
     return;
@@ -111,7 +112,7 @@ void VModules::addModule(Module* m) {
 }
 
 string VModule::toString() {
-  cout << "H2" << endl;
+  assert(this->modname != "");
   vector<string> pdecs;
   if (interface.size()>0) {
     pdecs = interface;
@@ -145,6 +146,7 @@ string VModule::toString() {
 }
 
 string VModule::toInstanceString(Instance* inst) {
+  assert(this->modname != "");
   cout << "Instance = " << inst->toString() << endl;
   for (auto p : this->params) {
     cout << "  " << p << endl;
