@@ -318,6 +318,21 @@ void ModuleDef::disconnect(Connection fstCon) {
   connections.erase(con);
 }
 
+json& ModuleDef::getMetaData(Wireable* a, Wireable* b) {
+  Connection conn = connectionCtor(a,b);
+  ASSERT(connections.count(conn),"Cannot access metadata to something not connected: " + toString(conn));
+  if (connMetaData.count(conn) == 0) {
+    connMetaData.emplace(conn,new MetaData())
+  }
+  return connMetaData[conn]->getMetaData();
+
+}
+
+bool hasMetaData(Wireable* a, Wireable* b) {
+  Connection conn = connectionCtor(a,b);
+  return connMetaData.count(conn) > 0;
+}
+
 
 void ModuleDef::removeInstance(Instance* inst) {
   removeInstance(inst->getInstname());
