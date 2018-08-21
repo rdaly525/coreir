@@ -5,9 +5,6 @@
 
 //Define the analysis passes in CoreIR::Passes
 namespace CoreIR {
-
-  bool foldConstants(CoreIR::Module* const mod);
-
 namespace Passes {
 
   
