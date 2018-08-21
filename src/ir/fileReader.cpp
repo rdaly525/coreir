@@ -289,9 +289,14 @@ bool loadFromFile(Context* c, string filename,Module** top) {
 
       //Connections
       if (jmod.count("connections")) {
-        for (auto jcon : jmod.at("connections").get<vector<vector<string>>>()) {
-          ASSERTTHROW(jcon.size()==2,"Connection invalid");
-          mdef->connect(jcon[0],jcon[1]);
+        for (auto jcon : jmod.at("connections").get<vector<jsonvector>>()) {
+          ASSERTTHROW(jcon.size()==2 || jcon.size()==3,"Connection invalid");
+          Wireable* a = mdef->sel(jcon[0].get<string>());
+          Wireable* b = mdef->sel(jcon[1].get<string>());
+          mdef->connect(a,b);
+          if (jcon.size()==3) {
+            mdef->getMetaData(a,b) = jcon[2];
+          }
         }
       }
       
