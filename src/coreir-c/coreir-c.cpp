@@ -565,6 +565,10 @@ extern "C" {
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
 
+  void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value) {
+      rcast<Module*>(module)->getMetaData()[key] = value;
+  }
+
   void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value) {
       rcast<Wireable*>(wireable)->getMetaData()[key] = value;
   }

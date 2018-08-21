@@ -99,6 +99,7 @@ extern COREType* COREWireableGetType(COREWireable* wireable);
 extern void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value);
 extern void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
         COREWireable* a, COREWireable* b, char *key, char *value);
+extern void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);
