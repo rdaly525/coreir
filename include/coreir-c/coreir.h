@@ -96,7 +96,9 @@ extern const char** COREWireableGetSelectPath(COREWireable* w, int* num_selects)
 extern void COREPrintErrors(COREContext* c);
 extern const char* CORENamespaceGetName(CORENamespace* n);
 extern COREType* COREWireableGetType(COREWireable* wireable);
-void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value);
+extern void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value);
+extern void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
+        COREWireable* a, COREWireable* b, char *key, char *value);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);

@@ -318,10 +318,6 @@ extern "C" {
     return rcast<COREConnection**>(arr);
   }
 
-  // void COREConnectionAddMetaDataStr(COREConnection* connection, char *key, char *value) {
-  //     rcast<Connection*>(connection)->getMetaData()[key] = value;
-  // }
-
   COREWireable* COREConnectionGetFirst(COREConnection* c) {
     return rcast<COREWireable*>(rcast<Connection*>(c)->first);
   }
@@ -571,6 +567,12 @@ extern "C" {
 
   void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value) {
       rcast<Wireable*>(wireable)->getMetaData()[key] = value;
+  }
+
+  void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
+          COREWireable* a, COREWireable* b, char *key, char *value) {
+      rcast<ModuleDef*>(module_def)->getMetaData(rcast<Wireable*>(a),
+              rcast<Wireable*>(b))[key] = value;
   }
 
   const char* COREInstanceGetInstname(COREWireable* instance) {
