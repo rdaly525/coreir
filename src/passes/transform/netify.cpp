@@ -40,6 +40,9 @@ namespace Passes {
       Instance* wire;
       if (auto at = dyn_cast<ArrayType>(wtype)) {
         int len = at->getLen();
+        auto spa = wa->getSelectPath();
+        auto spb = wb->getSelectPath();
+        string wire_name = join(spa.begin(),spa.end(),string("_")) + "__" + join(spb.begin(),spb.end(),string("_"));
         wire = def->addInstance("wire" + c->getUnique(),"coreir.wire",{{"width",Const::make(c,len)}});
       }
       else {
