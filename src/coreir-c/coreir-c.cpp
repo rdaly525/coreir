@@ -63,6 +63,9 @@ extern "C" {
   COREType* COREContextNamed(COREContext* context, const char* namespace_, const char* type_name) {
       return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_)+"."+std::string(type_name)));
   }
+  COREType* COREContextFlip(COREContext* context, COREType* type) {
+      return rcast<COREType*>(rcast<Context*>(context)->Flip(rcast<Type*>(type)));
+  }
 
   COREValueType* COREContextBool(COREContext* context) {
       return rcast<COREValueType*>(rcast<Context*>(context)->Bool());
@@ -213,7 +216,7 @@ extern "C" {
   const char* COREModuleGetName(COREModule* module) {
     return rcast<Module*>(module)->getName().c_str();
   }
-  
+
   const char* COREGeneratorGetName(COREGenerator* gen) {
       return rcast<Generator*>(gen)->getName().c_str();
   }
@@ -315,6 +318,10 @@ extern "C" {
     return rcast<COREConnection**>(arr);
   }
 
+  // void COREConnectionAddMetaDataStr(COREConnection* connection, char *key, char *value) {
+  //     rcast<Connection*>(connection)->getMetaData()[key] = value;
+  // }
+
   COREWireable* COREConnectionGetFirst(COREConnection* c) {
     return rcast<COREWireable*>(rcast<Connection*>(c)->first);
   }
@@ -352,6 +359,10 @@ extern "C" {
 
   COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name) {
     return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
+  }
+
+  bool COREModuleDefCanSelect(COREModuleDef* m, char* name) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(m)->canSel(string(name)));
   }
 
   COREModuleDef* COREWireableGetContainer(COREWireable* w) {
@@ -556,6 +567,10 @@ extern "C" {
           i++;
       }
       return rcast<COREDirectedConnection**>(ptr_arr);
+  }
+
+  void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value) {
+      rcast<Wireable*>(wireable)->getMetaData()[key] = value;
   }
 
   const char* COREInstanceGetInstname(COREWireable* instance) {
