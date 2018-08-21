@@ -153,10 +153,11 @@ struct CoreIRVModule : VModule {
 //The following are for CoreIR VModules
 //This represents some chunk of lines of code
 struct VObject {
+  string name;
   string file = "_";
   int line = -1;
-  VObject() {}
-  VObject(string file,int line) : file(file), line(line) {}
+  VObject(string name) : name(name) {}
+  VObject(string name, string file,int line) : name(name), file(file), line(line) {}
   //Returns a block of statemnts 
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
@@ -164,7 +165,9 @@ struct VObject {
 struct VInstance : VObject {
   VModules* vmods;
   Instance* inst;
-  VInstance(VModules* vmods, Instance* inst) : VObject(), vmods(vmods), inst(inst) {
+  VInstance(VModules* vmods, Instance* inst) : VObject(toString(inst)), vmods(vmods), inst(inst) {
+    this->line = -100000;
+    cout << "creating VINstance from: " << toString(inst) << endl;
     auto meta = inst->getMetaData();
     if (meta.count("filename")) {
       this->file = meta["filename"].get<string>();
@@ -192,8 +195,8 @@ struct VInstance : VObject {
 struct VAssign : VObject {
   Connection conn;
   ModuleDef* def;
-  VAssign(ModuleDef* def,Connection conn) : VObject(), conn(conn) {
-    this->line = -100000; //Large number to put at bottom of file
+  VAssign(ModuleDef* def,Connection conn) : VObject(toString(conn)), conn(conn) {
+    this->line = -1; //largest number to go at the top of the bottom
     if (def->hasMetaData(conn.first,conn.second)) {
       auto meta = def->getMetaData(conn.first,conn.second);
       if (meta.count("filename")) {

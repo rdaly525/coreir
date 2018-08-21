@@ -10,6 +10,9 @@ namespace VerilogNamespace {
 CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   Type2Ports(m->getType(),this->ports);
   assert(m->hasDef());
+  this->modname = m->getNamespace()->getName() + "_" + m->getName();
+  this->addParams(m->getModParams());
+  this->addDefaults(m->getDefaultModArgs());
   ModuleDef* def = m->getDef();
   for (auto imap : def->getInstances()) {
     this->addInstance(imap.second);
@@ -20,7 +23,9 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   //Materialize all the statemts
   for (auto fpair : sortedVObj) {
     string file = fpair.first;
-    this->addComment("From " + file);
+    if (file != "_") {
+      this->addComment("From " + file);
+    }
     for (auto vobj : fpair.second) {
       vobj->materialize(this);
     }
@@ -39,6 +44,9 @@ void CoreIRVModule::addInstance(Instance* inst) {
 }
 
 bool VObjComp::operator() (const VObject* l, const VObject* r) const {
+  if (l->line == r->line) {
+    return l->name < r->name;
+  }
   return l->line < r->line;
 }
 
@@ -48,6 +56,7 @@ bool VObjComp::operator() (const VObject* l, const VObject* r) const {
 // Generator has verilog info
 // Module has verilog info
 void VModules::addModule(Module* m) {
+  cout << "vmoding: " <<m->toString() << endl;
   Generator* g = nullptr;
   bool isGen = m->isGenerated();
   if (isGen) {
@@ -59,7 +68,6 @@ void VModules::addModule(Module* m) {
     genHasVerilog = g->getMetaData().count("verilog") > 0;
   }
   bool modHasVerilog = m->getMetaData().count("verilog") > 0;
-  
   //Linking concerns:
   //coreir Def and Verilog Def
   //TODO should probably let the verilog def override the coreir def
@@ -73,6 +81,8 @@ void VModules::addModule(Module* m) {
   
   //Case where VModule might already exist
   bool mightHaveVmodule = isGen && genHasVerilog;
+  cout << isGen << hasDef << genHasVerilog << modHasVerilog << isExtern << mightHaveVmodule << endl;
+  
   if (mightHaveVmodule && gen2VMod.count(g) > 0) {
     mod2VMod[m] = gen2VMod[g];
     return;
@@ -97,9 +107,11 @@ void VModules::addModule(Module* m) {
     vmod = new CoreIRVModule(this,m);
   }
   mod2VMod[m] = vmod;
+  vmods.push_back(vmod);
 }
 
 string VModule::toString() {
+  cout << "H2" << endl;
   vector<string> pdecs;
   if (interface.size()>0) {
     pdecs = interface;
@@ -133,14 +145,18 @@ string VModule::toString() {
 }
 
 string VModule::toInstanceString(Instance* inst) {
-  //cout << "Instance = " << inst->toString() << endl;
+  cout << "Instance = " << inst->toString() << endl;
+  for (auto p : this->params) {
+    cout << "  " << p << endl;
+  }
+  cout << endl;
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params_bk = this->params;
-  if (mref->isGenerated()) {
-    auto modparams = mref->getModParams();
-    this->addParams(modparams);
-  }
+  //if (mref->isGenerated()) {
+  //  auto modparams = mref->getModParams();
+  //  this->addParams(modparams);
+  //}
 
   ostringstream o;
   string tab = "  ";
