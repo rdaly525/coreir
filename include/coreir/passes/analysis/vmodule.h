@@ -23,6 +23,77 @@ using namespace std;
 
 namespace CoreIR {
 namespace Passes {
+namespace Verilog {
+
+//This represents some chunk of lines of code
+struct VObject {
+  string file = "_";
+  int line = -1;
+  VObject() {}
+  VObject(string file,int line) : file(file), line(line) {}
+}
+
+class VObjComp {
+  public:
+    bool operator() (const (VObject*)& l, const (VObjet*)& r) const {
+      return l->line < r->line;
+    }
+}
+
+
+struct VInstance : VObject {
+  Instance* inst;
+  VInstance(Instance* inst) : VObject(), inst(inst) {
+    auto meta = inst->getMetaData();
+    if (meta.count("filename")) {
+      this->file = meta["filename"].get<string>();
+    }
+    if (meta.count("lineno")) {
+      this->line = meta["lineno"].get<int>();
+    }
+  }
+}
+
+struct VAssign : VObject {
+  Connection conn;
+  ModuleDef* def;
+  VAssign(ModuleDef* def,Connection conn) : VObject(), conn(conn) {
+    this->line = -100000 //Large number to put at bottom of file
+    if (def->hasMetaData(conn.first,conn.second)) {
+      auto meta = def->getMetaData(conn.first,conn.second);
+      if (meta.count("filename")) {
+        this->file = meta["filename"].get<string>();
+      }
+      if (meta.count("lineno")) {
+        this->line = meta["lineno"].get<int>();
+      }
+    }
+  }
+}
+
+struct VModule {
+  Module* mod;
+  //Backwards maps
+  std::map<Instance*,VObject*> inst2VObj;
+  std::map<Connection,VObject*,ConnectionCmp> conn2VObj;
+
+  std::map<string,std::set<VObject*,VObjSort>> sortedVObj;
+
+  void addConnection(Connection conn) {
+    vass = new VAssign(conn);
+    conn2VObj[conn] = vass;
+    sortedVObj[vass.file].insert(vass);
+  }
+  void addInstance(Instance* inst) {
+    vinst = new VInstance(inst);
+    conn2VObj[conn] = vinst;
+    sortedVObj[vinst.file].insert(vinst);
+  }
+  VModule(Module* mod);
+
+
+}
+
 
 class VWire {
   std::string name;
