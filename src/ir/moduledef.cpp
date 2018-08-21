@@ -299,14 +299,14 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
 void ModuleDef::disconnect(Connection fstCon) {
   auto con = connectionCtor(fstCon.first, fstCon.second);
   
-  if (connections.count(con) == 0) {
-    cout << "All connections" << endl;
-    for (auto conn : getConnections()) {
-      cout << "\t" << toString(conn) << endl;
-    }
+  //if (connections.count(con) == 0) {
+  //  cout << "All connections" << endl;
+  //  for (auto conn : getConnections()) {
+  //    cout << "\t" << toString(conn) << endl;
+  //  }
 
-    cout << "Contains reverse connection ? " << connections.count({con.second, con.first}) << endl;
-  }
+  //  cout << "Contains reverse connection ? " << connections.count({con.second, con.first}) << endl;
+  //}
 
   ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + toString(con));
   
@@ -316,6 +316,11 @@ void ModuleDef::disconnect(Connection fstCon) {
 
   //Delete connection from list
   connections.erase(con);
+  //If it has metadata, remove that as well
+  if (connMetaData.count(con)>0) {
+    delete connMetaData[con];
+    connMetaData.erase(con);
+  }
 }
 
 json& ModuleDef::getMetaData(Wireable* a, Wireable* b) {
