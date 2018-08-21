@@ -213,7 +213,7 @@ extern "C" {
   const char* COREModuleGetName(COREModule* module) {
     return rcast<Module*>(module)->getName().c_str();
   }
-  
+
   const char* COREGeneratorGetName(COREGenerator* gen) {
       return rcast<Generator*>(gen)->getName().c_str();
   }
@@ -352,6 +352,10 @@ extern "C" {
 
   COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name) {
     return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
+  }
+
+  bool COREModuleDefCanSelect(COREModuleDef* m, char* name) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(m)->canSel(string(name)));
   }
 
   COREModuleDef* COREWireableGetContainer(COREWireable* w) {
