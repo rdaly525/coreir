@@ -8,7 +8,7 @@ using namespace std;
 
 namespace CoreIR {
 namespace Passes {
-namespace Verilog {
+namespace VerilogNamespace {
 
 struct VModule;
 struct VModules {
@@ -128,7 +128,7 @@ struct VObject;
 
 class VObjComp {
   public:
-    bool operator() (const VObject*& l, const VObject*& r) const;
+    bool operator() (const VObject* l, const VObject* r) const;
 };
 
 
@@ -205,7 +205,7 @@ struct VAssign : VObject {
     }
   }
   void materialize(CoreIRVModule* vmod) override {
-    Wireable* left = conn.first->getType()->getDir()==Type::DK_In ? conn.first : con.second;
+    Wireable* left = conn.first->getType()->getDir()==Type::DK_In ? conn.first : conn.second;
     Wireable* right = left==conn.first ? conn.second : conn.first;
     VWire vleft(left);
     VWire vright(right);
@@ -215,9 +215,9 @@ struct VAssign : VObject {
   }
 };
 
-struct ExternalVModule : VModule {
+struct ExternVModule : VModule {
   
-  ExternalVModule(VModules* vmods, Module* m) : VModule(vmods) {
+  ExternVModule(VModules* vmods, Module* m) : VModule(vmods) {
     Type2Ports(m->getType(),this->ports);
   }
 
@@ -229,13 +229,14 @@ struct VerilogVModule : VModule {
     Type2Ports(m->getType(),this->ports);
     this->addParams(m->getModParams());
     this->addDefaults(m->getDefaultModArgs());
-    this->addJson(m->getMetaData());
+    this->addJson(m->getMetaData(),m->getName());
   }
-  void addJson(json& jmeta) {
+  VerilogVModule(VModules* vmods) : VModule(vmods) {}
+  void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
-    jver = jmeta["verilog"]
+    json& jver = jmeta["verilog"];
     if (jver.count("prefix")) {
-      this->modname = jver["prefix"].get<std::string>() + m->getModname;
+      this->modname = jver["prefix"].get<std::string>() + name;
     }
     if (jver.count("definition")) {
       stmts.push_back(jver["definition"].get<std::string>());
@@ -253,15 +254,16 @@ struct VerilogVModule : VModule {
 
 //Need to add 
 struct ParamVerilogVModule : VerilogVModule {
-  ParamVerilogVModule(VModules* vmods, Generator* g) : VModule(vmods) {
+  ParamVerilogVModule(VModules* vmods, Generator* g) : VerilogVModule(vmods) {
     this->addParams(g->getGenParams());
     this->addDefaults(g->getDefaultGenArgs());
-    this->addJson(g->getMetaData());
+    this->addJson(g->getMetaData(),g->getName());
   }
 };
 
 
 
+}
 }
 }
 

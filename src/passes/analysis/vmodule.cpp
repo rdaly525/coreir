@@ -3,7 +3,7 @@
 
 namespace CoreIR {
 namespace Passes {
-namespace Verilog {
+namespace VerilogNamespace {
 
 
 
@@ -30,15 +30,15 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
 void CoreIRVModule::addConnection(ModuleDef* def, Connection conn) {
   VObject* vass = new VAssign(def,conn);
   conn2VObj[conn] = vass;
-  sortedVObj[vass.file].insert(vass);
+  sortedVObj[vass->file].insert(vass);
 }
 void CoreIRVModule::addInstance(Instance* inst) {
   VObject* vinst = new VInstance(this->vmods,inst);
-  conn2VObj[conn] = vinst;
-  sortedVObj[vinst.file].insert(vinst);
+  inst2VObj[inst] = vinst;
+  sortedVObj[vinst->file].insert(vinst);
 }
 
-bool VObjComp::operator() (const VObject*& l, const VObject*& r) const {
+bool VObjComp::operator() (const VObject* l, const VObject* r) const {
   return l->line < r->line;
 }
 
@@ -85,7 +85,7 @@ void VModules::addModule(Module* m) {
     externalVMods.push_back(vmod);
   }
   else if (genHasVerilog) {
-    assert(gen2Vmod.count(g)==0);
+    assert(gen2VMod.count(g)==0);
     vmod = new ParamVerilogVModule(this,g);
     gen2VMod[g] = vmod;
   }
@@ -136,13 +136,10 @@ string VModule::toInstanceString(Instance* inst) {
   //cout << "Instance = " << inst->toString() << endl;
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
-  SParams params0 = params;
-  if (this->gen) {
-    assert(mref->isGenerated());
-    auto paramsAndDefaults = gen->getModParams(mref->getGenArgs());
-    if (!this->hasDef()) {
-      this->addParams(params0,paramsAndDefaults.first);
-    }
+  SParams params_bk = this->params;
+  if (mref->isGenerated()) {
+    auto modparams = mref->getModParams();
+    this->addParams(modparams);
   }
 
   ostringstream o;
@@ -150,9 +147,9 @@ string VModule::toInstanceString(Instance* inst) {
   string mname;
   map<string,VWire> iports;
   Values args;
-  if (gen) {
+  if (mref->isGenerated()) {
     args = mref->getGenArgs();
-    Type2Ports(gen->getTypeGen()->getType(args),iports);
+    Type2Ports(mref->getGenerator()->getTypeGen()->getType(args),iports);
     mname = modname; 
   }
   else {
@@ -167,7 +164,7 @@ string VModule::toInstanceString(Instance* inst) {
   o << tab << mname << " ";
   
   vector<string> paramstrs;
-  for (auto param : params0) {
+  for (auto param : this->params) {
     ASSERT(args.count(param),"Missing parameter " + param + " from " + ::CoreIR::toString(args));
 
     // TODO: Remove this when we have a better solution for verilog output
@@ -186,6 +183,10 @@ string VModule::toInstanceString(Instance* inst) {
     portstrs.push_back(pstr);
   }
   o << instname << "(\n" << tab << tab << join(portstrs.begin(),portstrs.end(),",\n"+tab+tab) << "\n  );" << endl;
+
+  //TODO a bit of a hack. return params to original
+  this->params = params_bk;
+
   return o.str();
 }
 
