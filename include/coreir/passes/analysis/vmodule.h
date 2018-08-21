@@ -68,12 +68,13 @@ struct VModule {
   SMap paramDefaults;
   std::vector<std::string> stmts;
   VModules* vmods;
+  string modComment = "";
 
   bool isExternal = false;
   VModule(VModules* vmods) : vmods(vmods) {}
    
   void addStmt(std::string stmt) { stmts.push_back(stmt); }
-  void addComment(std::string stmt,string tab="  ") { stmts.push_back(tab+"// "+stmt); }
+  void addComment(std::string stmt,string tab="  ") { stmts.push_back(tab+"//"+stmt); }
 
   std::string toString();
 
@@ -155,6 +156,7 @@ struct CoreIRVModule : VModule {
 //This represents some chunk of lines of code
 struct VObject {
   string name;
+  int priority = 0; //Lower is earilier in the file
   string file = "_";
   int line = -1;
   VObject(string name) : name(name) {}
@@ -169,6 +171,7 @@ struct VInstance : VObject {
   VInstance(VModules* vmods, Instance* inst) : VObject(toString(inst)), vmods(vmods), inst(inst) {
     assert(inst);
     this->line = -100000;
+    this->priority = 0;
     auto meta = inst->getMetaData();
     if (meta.count("filename")) {
       this->file = meta["filename"].get<string>();
@@ -191,7 +194,7 @@ struct VInstance : VObject {
       vmod->addComment("Instanced at line " + to_string(this->line));
     }
     if (mref->isGenerated()) {
-      vmod->addComment("Instancing generated Module: " + mref->toString());
+      vmod->addComment("Instancing generated Module: " + mref->getRefName() + toString(mref->getGenArgs()));
     }
     for (auto rmap : cast<RecordType>(mref->getType())->getRecord()) {
       vmod->addStmt(VWireDec(VWire(iname+"__"+rmap.first,rmap.second)));
@@ -205,6 +208,7 @@ struct VAssign : VObject {
   ModuleDef* def;
   VAssign(ModuleDef* def,Connection conn) : VObject(toString(conn)), conn(conn) {
     this->line = -1; //largest number to go at the top of the bottom
+    this->priority = 1;
     if (def->hasMetaData(conn.first,conn.second)) {
       auto meta = def->getMetaData(conn.first,conn.second);
       if (meta.count("filename")) {

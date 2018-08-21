@@ -10,7 +10,10 @@ namespace VerilogNamespace {
 CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   Type2Ports(m->getType(),this->ports);
   assert(m->hasDef());
-  this->modname = m->getNamespace()->getName() + "_" + m->getName();
+  this->modname = m->getNamespace()->getName() + "_" + m->getLongName();
+  if (m->isGenerated()) {
+    this->modComment = "//Generated from " + m->getRefName() + ::CoreIR::toString(m->getGenArgs());
+  }
   this->addParams(m->getModParams());
   this->addDefaults(m->getDefaultModArgs());
   ModuleDef* def = m->getDef();
@@ -47,10 +50,13 @@ void CoreIRVModule::addInstance(Instance* inst) {
 }
 
 bool VObjComp::operator() (const VObject* l, const VObject* r) const {
-  if (l->line == r->line) {
-    return l->name < r->name;
+  if (l->line != r->line) {
+    return l->line < r->line;
   }
-  return l->line < r->line;
+  if (l->priority != r->priority) {
+    return l->priority < r->priority;
+  }
+  return l->name < r->name;
 }
 
 //Orthog Cases:
@@ -59,7 +65,6 @@ bool VObjComp::operator() (const VObject* l, const VObject* r) const {
 // Generator has verilog info
 // Module has verilog info
 void VModules::addModule(Module* m) {
-  //cout << "vmoding: " <<m->toString() << endl;
   Generator* g = nullptr;
   bool isGen = m->isGenerated();
   if (isGen) {
@@ -141,10 +146,14 @@ string VModule::toString() {
   ostringstream o;
   string tab = "  ";
   //Module declaration
-  o << endl << "module " << modname << pstring << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
+  
+  if (this->modComment!="") {
+    o << this->modComment << endl;
+  }
+  o << "module " << modname << pstring << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
 
   for (auto s : stmts) o << s << endl;
-  o << endl << "endmodule //" << modname;
+  o << endl << "endmodule //" << modname << endl;
   return o.str();
 }
 

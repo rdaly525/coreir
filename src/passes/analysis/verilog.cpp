@@ -26,6 +26,7 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
     os << "*/" << endl << endl;
   }
   for (auto vmod : vmods.vmods) {
+    cout << "doing: " << vmod->modname << endl;
     if (vmod->isExternal) {
       continue;
     }
