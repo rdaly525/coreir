@@ -1,9 +1,103 @@
 #include "coreir.h"
 #include "coreir/passes/analysis/vmodule.h"
 
-using namespace CoreIR;
-using namespace CoreIR::Passes;
-using namespace std;
+namespace CoreIR {
+namespace Passes {
+namespace Verilog {
+
+
+
+CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
+  Type2Ports(m->getType(),this->ports);
+  assert(m->hasDef());
+  ModuleDef* def = m->getDef();
+  for (auto imap : def->getInstances()) {
+    this->addInstance(imap.second);
+  }
+  for (auto con : def->getConnections()) {
+    this->addConnection(def,con);
+  }
+  //Materialize all the statemts
+  for (auto fpair : sortedVObj) {
+    string file = fpair.first;
+    this->addComment("From " + file);
+    for (auto vobj : fpair.second) {
+      vobj->materialize(this);
+    }
+  }
+}
+
+void CoreIRVModule::addConnection(ModuleDef* def, Connection conn) {
+  VObject* vass = new VAssign(def,conn);
+  conn2VObj[conn] = vass;
+  sortedVObj[vass.file].insert(vass);
+}
+void CoreIRVModule::addInstance(Instance* inst) {
+  VObject* vinst = new VInstance(this->vmods,inst);
+  conn2VObj[conn] = vinst;
+  sortedVObj[vinst.file].insert(vinst);
+}
+
+bool VObjComp::operator() (const VObject*& l, const VObject*& r) const {
+  return l->line < r->line;
+}
+
+//Orthog Cases:
+// Generated Module
+// Has coreir def
+// Generator has verilog info
+// Module has verilog info
+void VModules::addModule(Module* m) {
+  Generator* g = nullptr;
+  bool isGen = m->isGenerated();
+  if (isGen) {
+    g = m->getGenerator();
+  }
+  bool hasDef = m->hasDef();
+  bool genHasVerilog = false;
+  if (isGen) {
+    genHasVerilog = g->getMetaData().count("verilog") > 0;
+  }
+  bool modHasVerilog = m->getMetaData().count("verilog") > 0;
+  
+  //Linking concerns:
+  //coreir Def and Verilog Def
+  //TODO should probably let the verilog def override the coreir def
+  if (hasDef) {
+    ASSERT(!genHasVerilog && !modHasVerilog,"NYI, Verilog def with coreir def");
+  }
+  //Two Verilog defs, should be an error
+  ASSERT(!(modHasVerilog && genHasVerilog),"Linking issue!");
+
+  bool isExtern = !hasDef && !genHasVerilog && !modHasVerilog;
+  
+  //Case where VModule might already exist
+  bool mightHaveVmodule = isGen && genHasVerilog;
+  if (mightHaveVmodule && gen2VMod.count(g) > 0) {
+    mod2VMod[m] = gen2VMod[g];
+    return;
+  }
+  
+  //Creating a new VModule
+  VModule* vmod;
+  if (isExtern) {
+    vmod = new ExternVModule(this,m);
+    externalVMods.push_back(vmod);
+  }
+  else if (genHasVerilog) {
+    assert(gen2Vmod.count(g)==0);
+    vmod = new ParamVerilogVModule(this,g);
+    gen2VMod[g] = vmod;
+  }
+  else if (modHasVerilog) {
+    vmod = new VerilogVModule(this,m);
+  }
+  else {
+    //m is either gen or not
+    vmod = new CoreIRVModule(this,m);
+  }
+  mod2VMod[m] = vmod;
+}
 
 string VModule::toString() {
   vector<string> pdecs;
@@ -95,3 +189,7 @@ string VModule::toInstanceString(Instance* inst) {
   return o.str();
 }
 
+
+}
+}
+}
