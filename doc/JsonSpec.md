@@ -60,7 +60,7 @@ Instance = {
   "modargs"?:Values
 }
 
-Connection = [Wireable, Wireable]
+Connection = [Wireable, Wireable, MetaData?]
 
 //accesses instname.a.b If "instname" is "self" then this is the module's interface.
 //Note: a,b can be digits representing an index. 
