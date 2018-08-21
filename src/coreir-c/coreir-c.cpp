@@ -361,6 +361,10 @@ extern "C" {
     return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
   }
 
+  bool COREModuleDefCanSelect(COREModuleDef* m, char* name) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(m)->canSel(string(name)));
+  }
+
   COREModuleDef* COREWireableGetContainer(COREWireable* w) {
     return rcast<COREModuleDef*>(rcast<Wireable*>(w)->getContainer());
   }
