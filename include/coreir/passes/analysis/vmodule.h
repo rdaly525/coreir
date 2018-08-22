@@ -2,6 +2,7 @@
 #define COREIR_VMODULE_HPP_
 
 #include "coreir.h"
+#include <regex>
 
 //TODO get rid of
 using namespace std;
@@ -10,12 +11,36 @@ namespace CoreIR {
 namespace Passes {
 namespace VerilogNamespace {
 
+namespace {
+std::string toConstString(Value* v) {
+  if (auto av = dyn_cast<Arg>(v)) {
+    return av->getField();
+  }
+  else if (auto iv = dyn_cast<ConstInt>(v)) {
+    return iv->toString();
+  }
+  else if (auto bv = dyn_cast<ConstBool>(v)) {
+    return std::to_string(uint(bv->get()));
+  }
+  else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
+    BitVector bv = bvv->get();
+    // return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
+
+    //return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
+    return bv.hex_string();
+  }
+
+  //TODO could add string
+  assert(0);
+}
+}
+
 struct VModule;
 struct VModules {
   vector<VModule*> mods;
   map<Module*,VModule*> mod2VMod;
   vector<VModule*> vmods;
-
+  bool _inline = false;
   //Only used for genetaors that have verilog
   map<Generator*,VModule*> gen2VMod;
 
@@ -59,9 +84,10 @@ struct VWire {
 };
 
 struct VModule {
+  bool inlineable = false;
   typedef std::set<std::string> SParams;
   typedef std::map<std::string,std::string> SMap;
-  std::string modname;
+  std::string modname = "";
   std::map<std::string,VWire> ports;
   std::vector<std::string> interface;
   SParams params;
@@ -72,7 +98,7 @@ struct VModule {
 
   bool isExternal = false;
   VModule(VModules* vmods) : vmods(vmods) {}
-   
+  virtual ~VModule() {}
   void addStmt(std::string stmt) { stmts.push_back(stmt); }
   void addComment(std::string stmt,string tab="  ") { stmts.push_back(tab+"//"+stmt); }
 
@@ -102,27 +128,6 @@ ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
       this->paramDefaults[dpair.first] = toConstString(dpair.second);
     }
   }
-  std::string toConstString(Value* v) {
-    if (auto av = dyn_cast<Arg>(v)) {
-      return av->getField();
-    }
-    else if (auto iv = dyn_cast<ConstInt>(v)) {
-      return iv->toString();
-    }
-    else if (auto bv = dyn_cast<ConstBool>(v)) {
-      return std::to_string(uint(bv->get()));
-    }
-    else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
-      BitVector bv = bvv->get();
-      // return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
-
-      return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
-    }
-
-    //TODO could add string
-    assert(0);
-  }
-
 
 };
 
@@ -165,7 +170,10 @@ struct VObject {
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
 
+
+
 struct VInstance : VObject {
+  string wireDecs;
   VModules* vmods;
   Instance* inst;
   VInstance(VModules* vmods, Instance* inst) : VObject(toString(inst)), vmods(vmods), inst(inst) {
@@ -180,14 +188,20 @@ struct VInstance : VObject {
       this->line = std::stoi(meta["lineno"].get<string>());
     }
 
+    Module* mref = inst->getModuleRef();
+    vector<string> wires;
+    for (auto rmap : cast<RecordType>(mref->getType())->getRecord()) {
+      wires.push_back(VWireDec(VWire(inst->getInstname()+"__"+rmap.first,rmap.second)));
+    }
+    wireDecs = join(wires.begin(),wires.end(),string("\n"));
+
   }
 
 
   string VWireDec(VWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
-  void materialize(CoreIRVModule* vmod) override {
-    string iname = inst->getInstname();
+  
+  virtual void materialize(CoreIRVModule* vmod) override {
     Module* mref = inst->getModuleRef();
-    assert(mref);
     VModule* vref = vmods->mod2VMod[mref];
     assert(vref);
     if (this->line > 0) {
@@ -196,12 +210,12 @@ struct VInstance : VObject {
     if (mref->isGenerated()) {
       vmod->addComment("Instancing generated Module: " + mref->getRefName() + toString(mref->getGenArgs()));
     }
-    for (auto rmap : cast<RecordType>(mref->getType())->getRecord()) {
-      vmod->addStmt(VWireDec(VWire(iname+"__"+rmap.first,rmap.second)));
-    }
+    vmod->addStmt(wireDecs);
     vmod->addStmt(vref->toInstanceString(inst));
   }
 };
+
+
 
 struct VAssign : VObject {
   Connection conn;
@@ -243,6 +257,7 @@ struct ExternVModule : VModule {
 
 //Verilog VModules
 struct VerilogVModule : VModule {
+  json jver;
   VerilogVModule(VModules* vmods, Module* m) : VModule(vmods) {
     Type2Ports(m->getType(),this->ports);
     this->addParams(m->getModParams());
@@ -252,7 +267,7 @@ struct VerilogVModule : VModule {
   VerilogVModule(VModules* vmods) : VModule(vmods) {}
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
-    json& jver = jmeta["verilog"];
+    jver = jmeta["verilog"];
     if (jver.count("prefix")) {
       this->modname = jver["prefix"].get<std::string>() + name;
     }
@@ -267,6 +282,9 @@ struct VerilogVModule : VModule {
         this->params.insert(p);
       }
     }
+    if (jver.count("inlineable") && jver["inlineable"].get<bool>()) {
+      this->inlineable = true;
+    }
   }
 };
 
@@ -279,6 +297,40 @@ struct ParamVerilogVModule : VerilogVModule {
   }
 };
 
+struct VInlineInstance : VInstance {
+  string vbody;
+  VInlineInstance(VModules* vmods, Instance* inst, VerilogVModule* vermod) : VInstance(vmods,inst) {
+    vbody = vermod->jver["definition"].get<string>();
+    //Search for all high level ports
+    for (auto rpair : cast<RecordType>(inst->getType())->getRecord()) {
+      std::regex expr(rpair.first);
+      string replace(VWire(inst->sel(rpair.first)).getName());
+      vbody = std::regex_replace(vbody,expr,replace);
+    }
+    //Search for modArgs
+    for (auto pval : inst->getModArgs()) {
+      std::regex expr(pval.first);
+      string replace = toConstString(pval.second);
+      vbody = std::regex_replace(vbody,expr,replace);
+    }
+    Module* mref = inst->getModuleRef();
+    //Search for genArgs
+    if (mref->isGenerated()) {
+      for (auto pval : mref->getGenArgs()) {
+        std::regex expr(pval.first);
+        string replace = toConstString(pval.second);
+        vbody = std::regex_replace(vbody,expr,replace);
+      }
+    }
+  }
+
+  void materialize(CoreIRVModule* vmod) override {
+    vmod->addComment("Inlined from " + toString(inst));
+    vmod->addStmt(wireDecs);
+    vmod->addStmt(vbody);
+  }
+
+};
 
 
 }

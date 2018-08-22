@@ -1,10 +1,22 @@
 #include "coreir.h"
 #include "coreir/passes/analysis/vmodule.h"
 #include "coreir/passes/analysis/verilog.h"
+#include "coreir/tools/cxxopts.h"
 
 using namespace std;
 
 namespace CoreIR {
+
+void Passes::Verilog::initialize(int argc, char** argv) {
+  cxxopts::Options options("verilog", "translates coreir graph to verilog and optionally inlines primitives");
+  options.add_options()
+    ("i,inline","Inline verilog modules if possible")
+  ;
+  options.parse(argc,argv);
+  if (options.count("i")) {
+    this->vmods._inline = true;
+  }
+}
 
 std::string Passes::Verilog::ID = "verilog";
 bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
@@ -28,6 +40,9 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
   for (auto vmod : vmods.vmods) {
     cout << "doing: " << vmod->modname << endl;
     if (vmod->isExternal) {
+      continue;
+    }
+    if (vmods._inline && vmod->inlineable) {
       continue;
     }
     os << vmod->toString() << endl;
