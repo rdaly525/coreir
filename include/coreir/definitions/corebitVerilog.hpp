@@ -77,6 +77,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       json vjson;
       vjson["prefix"] = "corebit_";
       vjson["definition"] = "  assign out = " + vbody + ";";
+      vjson["inlineable"] = true;
       if (it0.first!="other") {
         ASSERT(bitIMap.count(it0.first),"missing" + it0.first);
         vjson["interface"] = bitIMap.at(it0.first);

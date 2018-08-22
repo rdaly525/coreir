@@ -147,6 +147,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       json vjson;
       vjson["prefix"] = "coreir_";
       vjson["definition"] = "  assign out = " + vbody + ";";
+      vjson["inlineable"] = true;
       if (it0.first!="other") {
         ASSERT(coreIMap.count(it0.first),"missing" + it0.first);
         vjson["interface"] = coreIMap.at(it0.first);

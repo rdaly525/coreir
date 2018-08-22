@@ -43,8 +43,22 @@ void CoreIRVModule::addConnection(ModuleDef* def, Connection conn) {
   conn2VObj[conn] = vass;
   sortedVObj[vass->file].insert(vass);
 }
+//Need to choose if I am going to inline
 void CoreIRVModule::addInstance(Instance* inst) {
-  VObject* vinst = new VInstance(this->vmods,inst);
+  Module* mref = inst->getModuleRef();
+  VModule* vmref = vmods->mod2VMod[mref];
+  VObject* vinst;
+  if (auto vermod = dynamic_cast<VerilogVModule*>(vmref)) {
+    if (vmods->_inline && vermod->inlineable) {
+      vinst = new VInlineInstance(this->vmods,inst,vermod);
+    } 
+    else {
+      vinst = new VInstance(this->vmods,inst);
+    }
+  }
+  else {
+    vinst = new VInstance(this->vmods,inst);
+  }
   inst2VObj[inst] = vinst;
   sortedVObj[vinst->file].insert(vinst);
 }
@@ -162,10 +176,6 @@ string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params_bk = this->params;
-  //if (mref->isGenerated()) {
-  //  auto modparams = mref->getModParams();
-  //  this->addParams(modparams);
-  //}
 
   ostringstream o;
   string tab = "  ";
