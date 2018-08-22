@@ -40,6 +40,7 @@ int main(int argc, char *argv[]) {
     ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
     ("t,top","top: <namespace>.<modulename>",cxxopts::value<std::string>())
     ("a,all","run on all namespaces")
+    ("z,inline","inlines verilog primitives")
     ;
   
   //Do the parsing of the arguments
@@ -162,7 +163,11 @@ int main(int argc, char *argv[]) {
     CoreIRLoadVerilog_corebit(c);
 
     cout << "Running Runningvpasses" << endl;
-    modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes","verilog"},namespaces);
+    string vstr = "verilog";
+    if (options.count("z")) {
+      vstr += " -i";
+    }
+    modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes",vstr},namespaces);
     cout << "Running vpasses" << endl;
 
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));

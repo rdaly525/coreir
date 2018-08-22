@@ -76,7 +76,7 @@ void Module::setDef(ModuleDef* def, bool validate) {
 }
 
 string Module::toString() const {
-  return "Module: " + name + (isGenerated() ? ::CoreIR::toString(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
+  return "Module: " + this->getRefName() + (isGenerated() ? ::CoreIR::toString(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
 }
 
 bool Module::runGenerator() {

@@ -77,6 +77,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       json vjson;
       vjson["prefix"] = "corebit_";
       vjson["definition"] = "  assign out = " + vbody + ";";
+      vjson["inlineable"] = true;
       if (it0.first!="other") {
         ASSERT(bitIMap.count(it0.first),"missing" + it0.first);
         vjson["interface"] = bitIMap.at(it0.first);
@@ -89,7 +90,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     }
   }
 
-  bit->getModule("const")->getMetaData()["verilog"]["parameters"] = {"value"};
+  //bit->getModule("const")->getMetaData()["verilog"]["parameters"] = {"value"};
   
   {
     //Term
@@ -103,7 +104,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     //reg
     json vjson;
     vjson["prefix"] = "corebit_";
-    vjson["parameters"] = {"init"};
+    //vjson["parameters"] = {"init"};
     vjson["interface"] = bitIMap.at("reg");
     vjson["definition"] = ""
     "reg outReg = init;\n"
@@ -117,7 +118,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     //reg_arst
     json vjson;
     vjson["prefix"] = "corebit_";
-    vjson["parameters"] = {"init","arst_posedge"};
+    //vjson["parameters"] = {"init","arst_posedge"};
     vjson["interface"] = bitIMap.at("reg_arst");
     vjson["definition"] = ""
     "reg outReg;\n"
