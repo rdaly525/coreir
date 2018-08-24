@@ -22,7 +22,9 @@ Module::Module(Namespace* ns,std::string name, Type* type,Params modparams) : Gl
 Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), g(g), genargs(genargs) {
   ASSERT(isa<RecordType>(type), "Module type needs to be a record!\n"+type->toString());
   this->type = cast<RecordType>(type);
-  ASSERT(g && genargs.size(),"Missing genargs!");
+  //ASSERT(g && genargs.size(),"Missing genargs!");
+  ASSERT(g, "Missing generator!");
+  ASSERT(genargs.size() == g->getTypeGen()->getParams().size(), "generator argument size does not match parameter list size!");
   this->longname = name + getContext()->getUnique(); //TODO do a better name
 }
 
