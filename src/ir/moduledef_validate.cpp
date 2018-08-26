@@ -20,15 +20,41 @@ bool ModuleDef::checkTypes(Wireable* a, Wireable* b) {
   //TODO This might not be valid if:
   //  2 outputs are connected to the same input
 
-  //cout << "Got types" << endl;
-  
   if (ta == c->Flip(tb) ) {
-    //cout << "ta flipped" << endl;
     return false;
   }
 
-  //cout << "Flipped types" << endl;
-  
+
+// Potential fix for Inout Connections
+//  cout << "Finding BitInOut Connection in ModuleDef" << std::endl;
+//  if ((ta->getKind() == ta->TypeKind::TK_BitInOut) | (tb->getKind() == tb->TypeKind::TK_BitInOut)) 
+//  {
+//    cout << "Found BitInOut Connection" << std::endl;
+//    return false;   
+//  }
+//  
+//  if ((ta->getKind() == ta->TypeKind::TK_Array) && (tb->getKind() == ta->TypeKind::TK_Array))
+//  {
+//    if (ta->getLen() == tb->getLen()) // Arrays must be same length
+//    {
+//      if (ta->elemType == c->Flip(tb->elemType)) // Arrays must have flipped elements
+//      {   
+//        cout << "Arrays with same length, flipped elements" << endl;
+//        return false;
+//      }
+//        
+//      if ((ta->elemType->getKind() == ta->TypeKind::TK_BitInOut) && ((tb->elemType->getKind() == tb->TypeKind::TK_BitIn) | (tb->elemType->getKind() == tb->TypeKind::TK_Bit)))
+//      {
+//        cout << "1 BitInOut Array, 1 " << tb->toString() << endl; 
+//        return false;
+//      }
+//      if ((tb->elemType->getKind() == tb->TypeKind::TK_BitInOut) && ((ta->elemType->getKind() == ta->TypeKind::TK_BitIn) | (ta->elemType->getKind() == ta->TypeKind::TK_Bit)))
+//      {
+//        cout << "2 BitInOut Array, 1 " << ta->toString() << endl; 
+//        return false;
+//      }
+//    }
+//  }
   Error e;
   e.message(a->getContainer()->getName() + ": Cannot wire together");
   e.message("  " + a->toString() + " : " + a->getType()->toString());

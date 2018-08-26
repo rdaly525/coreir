@@ -11,13 +11,15 @@ bool checkTypes(Wireable* a, Wireable* b) {
   Context* c = a->getContext();
   Type* ta = a->getType();
   Type* tb = b->getType();
+
+
   //TODO This might not be valid if:
   //  2 outputs are connected to the same input
   //  an inout is connected to an input (good!)
   //  an inout is connected to an output (bad!)
-  
+
   if (ta == c->Flip(tb) ) return false;
-  
+
   Error e;
   e.message("Cannot wire together");
   e.message("  " + a->toString() + " : " + a->getType()->toString());
