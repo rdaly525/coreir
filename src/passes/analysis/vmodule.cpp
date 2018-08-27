@@ -12,7 +12,7 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   assert(m->hasDef());
   this->modname = m->getNamespace()->getName() + "_" + m->getLongName();
   if (m->isGenerated()) {
-    this->modComment = "//Generated from " + m->getRefName() + ::CoreIR::toString(m->getGenArgs());
+    this->modComment = "// Generated from " + m->getRefName() + ::CoreIR::toString(m->getGenArgs());
   }
   this->addParams(m->getModParams());
   this->addDefaults(m->getDefaultModArgs());
@@ -167,7 +167,7 @@ string VModule::toString() {
   o << "module " << modname << pstring << "(\n" << tab << join(pdecs.begin(),pdecs.end(),string(",\n  ")) << "\n);" << endl;
 
   for (auto s : stmts) o << s << endl;
-  o << endl << "endmodule //" << modname << endl;
+  o << endl << "endmodule  // " << modname << endl;
   return o.str();
 }
 

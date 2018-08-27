@@ -100,7 +100,7 @@ struct VModule {
   VModule(VModules* vmods) : vmods(vmods) {}
   virtual ~VModule() {}
   void addStmt(std::string stmt) { stmts.push_back(stmt); }
-  void addComment(std::string stmt,string tab="  ") { stmts.push_back(tab+"//"+stmt); }
+  void addComment(std::string stmt,string tab="  ") { stmts.push_back(tab+"// "+stmt); }
 
   std::string toString();
 
