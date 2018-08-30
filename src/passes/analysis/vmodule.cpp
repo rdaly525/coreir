@@ -133,7 +133,7 @@ void VModules::addModule(Module* m) {
   vmods.push_back(vmod);
 }
 
-string VModule::toString() {
+string VModule::toString() const {
   assert(this->modname != "");
   vector<string> pdecs;
   if (interface.size()>0) {
@@ -151,7 +151,7 @@ string VModule::toString() {
 
     // TODO: Find a better way to deal with type parameters in wrap
     if (p != "type") {
-      string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults[p] : "1"); 
+      string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults.at(p) : "1");
       paramstrs.push_back(s);
     }
   }

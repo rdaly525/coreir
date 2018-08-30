@@ -1,11 +1,27 @@
+#include <fstream>
 #include "coreir.h"
 #include "coreir/passes/analysis/vmodule.h"
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir/tools/cxxopts.h"
 
-using namespace std;
-
 namespace CoreIR {
+
+namespace {
+
+void WriteModuleToStream(const Passes::VerilogNamespace::VModule* module,
+                         std::ostream& os) {
+  if (module->isExternal) {
+    // TODO(rsetaluri): Use "defer" like semantics to avoid duplicate calls to
+    // toString().
+    os << "/* External Modules" << std::endl;
+    os << module->toString() << std::endl;
+    os << "*/" << std::endl;
+    return;
+  }
+  os << module->toString() << std::endl;
+}
+
+}  // namespace
 
 void Passes::Verilog::initialize(int argc, char** argv) {
   cxxopts::Options options("verilog", "translates coreir graph to verilog and optionally inlines primitives");
@@ -29,25 +45,22 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
 }
 
 void Passes::Verilog::writeToStream(std::ostream& os) {
-  
-  if (vmods.externalVMods.size() > 0) {
-    os << "/* External Modules" << endl;
-    for (auto ext : vmods.externalVMods) {
-      os << ext->toString() << endl << endl;
-    }
-    os << "*/" << endl << endl;
-  }
-  for (auto vmod : vmods.vmods) {
-    cout << "doing: " << vmod->modname << endl;
-    if (vmod->isExternal) {
+  for (auto module : vmods.vmods) {
+    if (vmods._inline && module->inlineable) {
       continue;
     }
-    if (vmods._inline && vmod->inlineable) {
-      continue;
-    }
-    os << vmod->toString() << endl;
+    WriteModuleToStream(module, os);
   }
+}
 
+void Passes::Verilog::writeToFiles(const std::string& dir) {
+  for (auto module : vmods.vmods) {
+    const std::string filename = dir + "/" + module->modname + ".v";
+    std::ofstream fout(filename);
+    ASSERT(fout.is_open(), "Cannot open file: " + filename);
+    WriteModuleToStream(module, fout);
+    fout.close();
+  }
 }
 
 Passes::Verilog::~Verilog() {
