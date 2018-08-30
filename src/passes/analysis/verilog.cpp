@@ -55,6 +55,9 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
 
 void Passes::Verilog::writeToFiles(const std::string& dir) {
   for (auto module : vmods.vmods) {
+    if (vmods._inline && module->inlineable) {
+      continue;
+    }
     const std::string filename = dir + "/" + module->modname + ".v";
     std::ofstream fout(filename);
     ASSERT(fout.is_open(), "Cannot open file: " + filename);
