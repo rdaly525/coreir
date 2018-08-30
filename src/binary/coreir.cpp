@@ -143,6 +143,9 @@ int main(int argc, char *argv[]) {
       }
     }
     if (split_files) {
+      ASSERT(outExt == "v",
+             "Split files option is only supported in verilog mode currently: "
+             "ext = " + outExt);
       ASSERT(outfile != "", "Must specify outfile with '-o' to split files");
       const auto len = outfile.size();
       const auto ext_len = outExt.size();
