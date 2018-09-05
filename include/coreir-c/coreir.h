@@ -19,6 +19,7 @@ void* CORENewMap(COREContext* c, void* keys, void* values, uint len, COREMapKind
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
 extern COREType* COREContextNamedType(COREContext* context, const char* namespace_, const char* type_name);
+extern COREType* COREContextFlip(COREContext* context, COREType* type);
 
 extern COREValueType* COREContextBool(COREContext* context);
 extern COREValueType* COREContextInt(COREContext* context);
@@ -88,12 +89,14 @@ extern COREWireable* COREConnectionGetFirst(COREConnection* c);
 extern COREWireable* COREConnectionGetSecond(COREConnection* c);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
+extern bool COREModuleDefCanSelect(COREModuleDef* m, char* name);
 extern COREModuleDef* COREWireableGetContainer(COREWireable* w);
 extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
 extern const char** COREWireableGetSelectPath(COREWireable* w, int* num_selects);
 extern void COREPrintErrors(COREContext* c);
 extern const char* CORENamespaceGetName(CORENamespace* n);
 extern COREType* COREWireableGetType(COREWireable* wireable);
+void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);
