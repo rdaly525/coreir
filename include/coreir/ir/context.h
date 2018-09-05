@@ -169,6 +169,7 @@ bool saveToFile(Context* c, std::string filename, bool nocoreir=true);
 
 //Save a module to a dot file (for viewing in graphviz)
 bool saveToDot(Module* m, std::string filename);
+bool saveToDot(Module* m, std::ostream& fout);
   
   
 //addPassthrough will instance a passthrough Module for Wireable w with name <name>

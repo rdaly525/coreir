@@ -55,7 +55,7 @@ bool isSource(Wireable* wire) {
 }
 
 //false is bad
-bool ModuleToDot(Module* m, std::ofstream& stream) {
+bool ModuleToDot(Module* m, std::ostream& stream) {
   Context* c = m->getContext();
   if (!m->hasDef()) {
     Error e;
@@ -108,9 +108,12 @@ bool saveToDot(Module* m, string filename) {
     return false;
   }
   ASSERT(endsWith(filename, ".txt"),filename + "Does not end with .txt");
+  return saveToDot(m, file);
+}
+
+bool saveToDot(Module* m, std::ostream& fout) {
   // create a txt dot file for use with graphviz
-  ModuleToDot(m, file);
-  return true;
+  return ModuleToDot(m, fout);
 }
 
 bool saveToFile(Namespace* ns, string filename,Module* top) {

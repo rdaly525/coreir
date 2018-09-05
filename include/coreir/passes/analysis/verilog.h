@@ -23,6 +23,7 @@ class Verilog : public InstanceGraphPass {
     }
     
     void writeToStream(std::ostream& os);
+    void writeToFiles(const std::string& dir);
 };
 
 }
