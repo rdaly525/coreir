@@ -20,9 +20,9 @@ int main() {
 //  Type* out_type = c->Bit()->Arr(16)->Arr(6)->Arr(6)->Arr(2);
 //  Type* img_type = c->Bit()->Arr(16)->Arr(48)->Arr(48)->Arr(48);
 
-  Type* in_type = c->BitIn()->Arr(16)->Arr(1);
-  Type* out_type = c->Bit()->Arr(16)->Arr(4);
-  Type* img_type = c->Bit()->Arr(16)->Arr(48);
+  Type* in_type = c->BitIn()->Arr(16)->Arr(3)->Arr(1)->Arr(1);
+  Type* out_type = c->Bit()->Arr(16)->Arr(3)->Arr(2)->Arr(2);
+  Type* img_type = c->Bit()->Arr(16)->Arr(3)->Arr(48)->Arr(48);
 
 //  Type* in_type = c->BitIn()->Arr(16)->Arr(1)->Arr(2)->Arr(1);
 //  Type* out_type = c->Bit()->Arr(16)->Arr(3)->Arr(4)->Arr(2);
@@ -31,10 +31,10 @@ int main() {
   // Define lb32 Module
   Type* lb32Type = c->Record({
 			{"in",in_type},
+      {"reset",c->BitIn()},
 			{"wen",c->BitIn()},
 			{"out",out_type},
 			{"valid", c->Bit()},
-			{"valid_chain", c->Bit()}
 		});
 
 
@@ -52,7 +52,7 @@ int main() {
   //lb32->print();
 
   //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
-  c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
+  c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
   c->runPasses({"verifyconnectivity-onlyinputs-noclkrst"},{"global","commonlib","memory","mantle"});
   //lb32->print();
   lb32->getDef()->validate();
