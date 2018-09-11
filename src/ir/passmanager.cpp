@@ -109,8 +109,11 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
   auto cig = static_cast<Passes::CreateInstanceGraph*>(this->getAnalysisPass("createinstancegraph"));
   bool modified = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
+  bool onlyTop = igpass->isOnlyTop();
   for (auto node : cig->getInstanceGraph()->getSortedNodes()) {
-    modified |= igpass->runOnInstanceGraphNode(*node);
+    if (!onlyTop || cig->getInstanceGraph()->validOnlyTop(node)) {
+      modified |= igpass->runOnInstanceGraphNode(*node);
+    }
   }
   return modified;
 }

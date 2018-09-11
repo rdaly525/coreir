@@ -10,9 +10,10 @@ namespace Passes {
 
 
 class CullGraph : public ContextPass {
+  bool nocoreir;
   public :
     static std::string ID;
-    CullGraph() : ContextPass(ID,"Runs all generators") {}
+    CullGraph(bool nocoreir) : ContextPass(ID + (nocoreir ? "" : "-withcoreir"),"Runs all generators"), nocoreir(nocoreir) {}
     bool runOnContext(Context* c);
 };
 

@@ -178,7 +178,8 @@ namespace CoreIR {
         Namespace* g = c->getGlobal();
 
         uint width = 16;
-        uint numInputs = 9;
+        uint numInputs4 = 4;
+        uint numInputs9 = 4;
         uint constInput = 3;
 
         CoreIRLoadLibrary_commonlib(c);
@@ -187,9 +188,14 @@ namespace CoreIR {
         Module* add = c->getGenerator("coreir.add")->getModule({{"width", Const::make(c, width)}});
         add->print();
 
-        Values reduceModArgs = {
-            {"numInputs", Const::make(c, numInputs)},
+        Values reduce4ModArgs = {
+            {"numInputs", Const::make(c, numInputs4)},
             {"operator", Const::make(c, add)}
+        };
+
+        Values reduce9ModArgs = {
+          {"numInputs", Const::make(c, numInputs9)},
+          {"operator", Const::make(c, add)}
         };
             
         SECTION("aetherlinglib reduceParallel with 4 inputs, coreir.add as op, 16 bit width") {
@@ -197,17 +203,17 @@ namespace CoreIR {
             Type* mainModuleType = c->Record({
                     {"out", c->Bit()->Arr(width)}
                 });
-            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceParallelTest", mainModuleType);
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduce4ParallelTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
             
-            string reduceParallelName = "reduce" + to_string(numInputs);
-            Instance* reduceParallel_add = def->addInstance(reduceParallelName, "aetherlinglib.reduceParallel", reduceModArgs);
+            string reduceParallelName = "reduce" + to_string(numInputs4);
+            Instance* reduceParallel_add = def->addInstance(reduceParallelName, "aetherlinglib.reduceParallel", reduce4ModArgs);
             string addIdentityConst = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, 0));
 
             def->connect(addIdentityConst + ".out", reduceParallelName + ".in.identity");
             // create different input for each operator
             uint rightOutput = 0;
-            for (uint i = 0 ; i < numInputs; i++) {
+            for (uint i = 0 ; i < numInputs4; i++) {
                 string constName = "constInput" + to_string(i);
                 def->addInstance(
                     constName,
@@ -223,7 +229,50 @@ namespace CoreIR {
             mainModule->setDef(def);
             mainModule->print();
             reduceParallel_add->getModuleRef()->print();
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity-noclkrst",
+                        "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
+                        "deletedeadinstances"},
+                {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
+            mainModule->print();
+                                    
+            SimulatorState state(mainModule);
+            state.exeCombinational();
+
+            REQUIRE(state.getBitVec("self.out") == BitVector(width, rightOutput));
+        }
+
+        SECTION("aetherlinglib reduceParallel with 9 inputs, coreir.add as op, 16 bit width") {
+            // create the main module to run the test on the adder
+            Type* mainModuleType = c->Record({
+                    {"out", c->Bit()->Arr(width)}
+                });
+            Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceParallel9Test", mainModuleType);
+            ModuleDef* def = mainModule->newModuleDef();
+            
+            string reduceParallelName = "reduce" + to_string(numInputs9);
+            Instance* reduceParallel_add = def->addInstance(reduceParallelName, "aetherlinglib.reduceParallel", reduce9ModArgs);
+            string addIdentityConst = Aetherling_addCoreIRConstantModule(c, def, width, Const::make(c, width, 0));
+
+            def->connect(addIdentityConst + ".out", reduceParallelName + ".in.identity");
+            // create different input for each operator
+            uint rightOutput = 0;
+            for (uint i = 0 ; i < numInputs9; i++) {
+                string constName = "constInput" + to_string(i);
+                def->addInstance(
+                    constName,
+                    "coreir.const",
+                    {{"width", Const::make(c, width)}},
+                    {{"value", Const::make(c, width, i)}});
+
+                def->connect(constName + ".out", reduceParallelName + ".in.data." + to_string(i));
+                rightOutput += i;
+            }
+
+            def->connect(reduceParallelName + ".out", "self.out");
+            mainModule->setDef(def);
+            mainModule->print();
+            reduceParallel_add->getModuleRef()->print();
+            c->runPasses({"rungenerators", "verifyconnectivity-noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});
@@ -244,8 +293,8 @@ namespace CoreIR {
             Module* mainModule = c->getGlobal()->newModuleDecl("mainReduceSequentialTest", mainModuleType);
             ModuleDef* def = mainModule->newModuleDef();
             
-            string reduceSequentialName = "reduce" + to_string(numInputs);
-            Instance* reduceSequential_add = def->addInstance(reduceSequentialName, "aetherlinglib.reduceSequential", reduceModArgs);
+            string reduceSequentialName = "reduce" + to_string(numInputs4);
+            Instance* reduceSequential_add = def->addInstance(reduceSequentialName, "aetherlinglib.reduceSequential", reduce4ModArgs);
             def->connect("self.in", reduceSequentialName + ".in");
             def->connect(reduceSequentialName + ".out", "self.out");
             def->connect(reduceSequentialName + ".valid", "self.valid");
@@ -264,7 +313,7 @@ namespace CoreIR {
             // on first clock, ready should be asserted, then deasserted for rest until processed all input
             // from start until all inputs have gone through, valid should be deasserted
             uint i;
-            for (i = 0; i < numInputs - 1; i++) {
+            for (i = 0; i < numInputs4 - 1; i++) {
                 state.setValue("self.in", BitVector(width, i));
                 rightOutput += i;
                 state.exeCombinational();

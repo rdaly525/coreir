@@ -19,12 +19,13 @@ struct Underlying2ValueType<utype> { \
   typedef vtype type; \
 };
 
-U2V_SPECIALIZE(bool,ConstBool);
-U2V_SPECIALIZE(int,ConstInt);
-U2V_SPECIALIZE(BitVector,ConstBitVector);
-U2V_SPECIALIZE(std::string,ConstString);
-U2V_SPECIALIZE(CoreIR::Type*,ConstCoreIRType);
-U2V_SPECIALIZE(CoreIR::Module*,ConstModule);
+U2V_SPECIALIZE(bool,BoolType);
+U2V_SPECIALIZE(int,IntType);
+U2V_SPECIALIZE(BitVector,BitVectorType);
+U2V_SPECIALIZE(std::string,StringType);
+U2V_SPECIALIZE(CoreIR::Type*,CoreIRType);
+U2V_SPECIALIZE(CoreIR::Module*,ModuleType);
+U2V_SPECIALIZE(Json,JsonType);
 
 #undef U2V_SPECIALIZE
 
@@ -37,9 +38,9 @@ class Value {
       VK_ConstString=3,
       VK_ConstCoreIRType=4,
       VK_ConstModule=5,
-      VK_ConstEnd=6,
-      VK_Arg=7,
-      VK_CPPLambda=8
+      VK_ConstJson=6,
+      VK_ConstEnd=7,
+      VK_Arg=8,
     };
   private :
     ValueKind kind;
@@ -51,17 +52,26 @@ class Value {
     ValueKind getKind() const {return kind;}
     ValueType* getValueType() const {return vtype;}
     virtual std::string toString() const = 0;
-    
+  public :
     template<typename T>
     const T& get() const {
-      return cast<typename Underlying2ValueType<T>::type>(this)->get();
+      if (auto val = dyn_cast<TemplatedConst<T>>(this)) {
+        return val->get();
+      }
+      ValueType* vt = Underlying2ValueType<T>::type::make(vtype->getContext());
+      Value* casted = this->forceCast(vt);
+      ASSERT(vt == casted->getValueType(),"Bad ForceCast");
+      return casted->get<T>();
     }
 
     virtual bool operator==(const Value& r) const = 0;
     virtual bool operator<(const Value& r) const = 0;
     bool operator!=(const Value& r) const {return !Value::operator==(r);}
     //TODO do the other ones
-  friend bool operator==(const Values& l, const Values& r);
+    friend bool operator==(const Values& l, const Values& r);
+
+    virtual Value* forceCast(ValueType*) const = 0;
+    virtual bool canCast(ValueType*) const = 0;
 };
 
 //Create a map from underlying types (bool,int,etc) to Value::ValueKind
@@ -80,6 +90,7 @@ U2K_SPECIALIZE(BitVector,VK_ConstBitVector)
 U2K_SPECIALIZE(std::string,VK_ConstString)
 U2K_SPECIALIZE(Type*,VK_ConstCoreIRType)
 U2K_SPECIALIZE(Module*,VK_ConstModule)
+U2K_SPECIALIZE(Json,VK_ConstJson)
 
 #undef U2K_SPECIALIZE
 }
@@ -88,32 +99,18 @@ namespace CoreIR {
 
 class Arg : public Value {
   const std::string field;
-  private :
 
- public:
- Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
+  public:
+    Arg(ValueType* vtype,std::string field) : Value(vtype,VK_Arg), field(field) {}
     static bool classof(const Value* v) {return v->getKind()==VK_Arg;}
     const std::string& getField() const { return field;}
-    bool operator==(const Value& r) const;
-    bool operator<(const Value& r) const;
-  std::string toString() const { return "Arg(" + field + ")";}
+    bool operator==(const Value& r) const override;
+    bool operator<(const Value& r) const override;
+    std::string toString() const override { return "Arg(" + field + ")";}
+    
+    Value* forceCast(ValueType*) const override { ASSERT(0,"Cannot get values from an Arg"); }
+    virtual bool canCast(ValueType*) const override { return false;}
 };
-
-//class CPPLambda : public Value {
-//  public :
-//    typedef std::function<Const(Consts,Consts)> LambdaType;
-//    CPPLambda(ValueType* vtype,LambdaType lambda) : Value(VK_CPPLambda), lambda(lambda) {}
-//    static bool classof(const Value* v) {return v->getKind()==VK_CPPLambda;}
-//    static std::shared_ptr<CPPLambda> make(LambdaType lambda) {
-//      return std::make_shared<CPPLambda>(lambda);
-//    } 
-//  private :
-//    LambdaType lambda;
-//  public :
-//    bool operator==(const Value& r) const {
-//      return false;
-//    }
-//};
 
 template<typename T> 
 Const* Const_impl(Context* c,T val);
@@ -128,6 +125,7 @@ TSTAMP(BitVector)
 TSTAMP(std::string)
 TSTAMP(Type*)
 TSTAMP(Module*)
+TSTAMP(Json)
 
 #undef TSTAMP
 
@@ -152,7 +150,7 @@ class Const : public Value {
     }
 
     template<typename T>
-    static inline typename std::enable_if<!std::is_same<T,bool>::value && std::is_convertible<T,int>::value,Const*>::type
+    static inline typename std::enable_if<!std::is_same<T,Json>::value && !std::is_same<T,bool>::value && std::is_convertible<T,int>::value,Const*>::type
     make(Context* c,T val) {
       return Const_impl<int>(c,val);
     }
@@ -168,7 +166,7 @@ class Const : public Value {
     }
  
     template<typename T>
-    static inline typename std::enable_if<std::is_convertible<T,std::string>::value,Const*>::type
+    static inline typename std::enable_if<!std::is_same<T,Json>::value && std::is_convertible<T,std::string>::value,Const*>::type
     make (Context* c,T val) {
       return Const_impl<std::string>(c,val);
     }
@@ -184,18 +182,21 @@ class Const : public Value {
     make(Context* c,T val) {
       return Const_impl<Module*>(c,val);
     }
+    
+    template<typename T>
+    static inline typename std::enable_if<std::is_same<T,Json>::value,Const*>::type
+    make(Context* c,T val) {
+      return Const_impl<Json>(c,val);
+    }
 
     virtual std::string toString() const override = 0;
-
-    //template<typename T>
-    //const T& get() const {
-    //  return cast<typename Underlying2ValueType<T>::type>(this)->get();
-    //}
+    
+    virtual Value* forceCast(ValueType*) const override = 0;
+    virtual bool canCast(ValueType*) const override = 0;
 
 };
 
 
-//T should be bool,BitVector,int,string,Type
 template<typename T>
 class TemplatedConst : public Const {
   const T value;
@@ -206,12 +207,13 @@ class TemplatedConst : public Const {
     bool operator<(const Value& r) const override;
 
     static bool classof(const Value* v) {return v->getKind()==Underlying2Kind<T>::kind;}
-    //static std::shared_ptr<TemplatedConst<T>> make(ValueType* type, T value) {
-    //  return std::make_shared<TemplatedConst<T>>(type,value);
-    //}
     
     std::string toString() const override;
     const T& get() const { return value;}
+  
+    Value* forceCast(ValueType*) const override;
+    bool canCast(ValueType*) const override;
+
 };
 
 }

@@ -43,7 +43,7 @@ void saveRegModule() {
 
   cout << "Saving" << endl;
 
-  if (!saveToFile(c->getGlobal(), "register_with_init.json", regComb)) {
+  if (!saveToFile(c->getGlobal(), "_register_with_init.json", regComb)) {
     cout << "Could not save to json!!" << endl;
     c->die();
   }
@@ -59,7 +59,7 @@ void loadRegModule() {
   Module* mod = nullptr;
 
   cout << "loading" << endl;
-  if (!loadFromFile(c, "register_with_init.json", &mod)) {
+  if (!loadFromFile(c, "_register_with_init.json", &mod)) {
     cout << "Could not Load from json!!" << endl;
     c->die();
   }

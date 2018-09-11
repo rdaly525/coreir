@@ -7,11 +7,11 @@ int main() {
   //Declare a new context for this program. This is where namespaces and types are stored. It also performs basic memory management. 
   Context* c = newContext();
 
-  //Our goal is to counterDefine a counter module
+  //Our goal is to define a counter module
   // first we need a type. This represents the interface to the counter module.
   // Our counter will have an "en", "clk" and "out" port
   // Types can be Bit, BitIn, Array, Record, or Named. 
-  // All Modules should have a Reocrd type of the ports. So lets counterDefine that below
+  // All Modules should have a Reocrd type of the ports. So lets define that below
   Type* CounterType = c->Record({
     {"en",c->BitIn()}, //en is declared as a single BitIn
     {"out",c->Array(16,c->Bit())}, //Out is declared as An Array of 16 Bits (with directionality 'Out')
@@ -25,7 +25,7 @@ int main() {
   //Namespaces contain Modules, Generators, and NamedTypes
   Namespace* global = c->getNamespace("global");
   
-  //Now lets create a module. This is software function. It has a name and a type signature represented by the Type that we just created.
+  //Now lets create a module. This is like a software function. It has a name and a type signature represented by the Type that we just created.
   Module* counter = global->newModuleDecl("counter",CounterType);
 
   //we now have a module that has a well defined interface, but no definition. Lets now create the coudefinition. The defintion will simply be a graph of instances and connections.

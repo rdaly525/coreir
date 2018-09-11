@@ -513,16 +513,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         def->connect("self.in.sel.0", "term_sel.in");
       }
       else if (N == 2) {
-        def->addInstance("join",mux2,{{"width",aWidth}});
-        def->connect("join.out","self.out");
+        def->addInstance("_join",mux2,{{"width",aWidth}});
+        def->connect("_join.out","self.out");
 
-        def->connect("self.in.data.0","join.in0");
-        def->connect("self.in.data.1","join.in1");
-        def->connect("self.in.sel.0", "join.sel");
+        def->connect("self.in.data.0","_join.in0");
+        def->connect("self.in.data.1","_join.in1");
+        def->connect("self.in.sel.0", "_join.sel");
       }
       else {
-        def->addInstance("join",mux2,{{"width",aWidth}});
-        def->connect("join.out","self.out");
+        def->addInstance("_join",mux2,{{"width",aWidth}});
+        def->connect("_join.out","self.out");
 
         //Connect half instances
         uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
@@ -545,11 +545,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect({"self","in","data",to_string(i+Nlargehalf)},{"muxN_1","in","data",to_string(i)});
         }
 
-        def->connect("muxN_0.out","join.in0");
-        def->connect("muxN_1.out","join.in1");
+        def->connect("muxN_0.out","_join.in0");
+        def->connect("muxN_1.out","_join.in1");
 
         // wire up selects
-        def->connect({"self","in","sel",to_string(Nbits-1)},{"join","sel"});
+        def->connect({"self","in","sel",to_string(Nbits-1)},{"_join","sel"});
         Values sliceArgs0 = {{"width", Const::make(c,Nbits)},
                              {"lo", Const::make(c,0)},
                              {"hi", Const::make(c,num_bits(Nlargehalf-1))}};
@@ -590,15 +590,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->connect("self.in.0","self.out");
     }
     else if (N == 2) {
-      def->addInstance("join",op2,{{"width",aWidth}});
-      def->connect("join.out","self.out");
+      def->addInstance("_join",op2,{{"width",aWidth}});
+      def->connect("_join.out","self.out");
 
-      def->connect("self.in.0","join.in0");
-      def->connect("self.in.1","join.in1");
+      def->connect("self.in.0","_join.in0");
+      def->connect("self.in.1","_join.in1");
     }
     else {
-      def->addInstance("join",op2,{{"width",aWidth}});
-      def->connect("join.out","self.out");
+      def->addInstance("_join",op2,{{"width",aWidth}});
+      def->connect("_join.out","self.out");
 
       //Connect half instances
       uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
@@ -617,8 +617,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       for (uint i=0; i<Nsmallhalf; ++i) {
         def->connect({"self","in",to_string(i+Nlargehalf)},{"opN_1","in",to_string(i)});
       }
-      def->connect("opN_0.out","join.in0");
-      def->connect("opN_1.out","join.in1");
+      def->connect("opN_0.out","_join.in0");
+      def->connect("opN_1.out","_join.in1");
     }
 
   });
@@ -643,15 +643,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->connect("self.in.0","self.out");
     }
     else if (N == 2) {
-      def->addInstance("join",op2);
-      def->connect("join.out","self.out");
+      def->addInstance("_join",op2);
+      def->connect("_join.out","self.out");
 
-      def->connect("self.in.0","join.in0");
-      def->connect("self.in.1","join.in1");
+      def->connect("self.in.0","_join.in0");
+      def->connect("self.in.1","_join.in1");
     }
     else {
-      def->addInstance("join",op2);
-      def->connect("join.out","self.out");
+      def->addInstance("_join",op2);
+      def->connect("_join.out","self.out");
 
       //Connect half instances
       uint Nbits = num_bits(N-1); // 4 inputs has a max index of 3
@@ -670,8 +670,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       for (uint i=0; i<Nsmallhalf; ++i) {
         def->connect({"self","in",to_string(i+Nlargehalf)},{"opN_1","in",to_string(i)});
       }
-      def->connect("opN_0.out","join.in0");
-      def->connect("opN_1.out","join.in1");
+      def->connect("opN_0.out","_join.in0");
+      def->connect("opN_1.out","_join.in1");
     }
 
   });
@@ -1645,12 +1645,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                        {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
                        {{"init", Const::make(c, width, 0)}});
     }
+    def->addInstance("ignoreOverflow", "coreir.term", {{"width", Const::make(c, 1)}});
 
     // wire up modules
     def->connect("self.reset", "counter.reset");
     def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
+    def->connect("counter.overflow", "ignoreOverflow.in.0");
 
     def->connect("counter.out","slice.in");
     def->connect("slice.out","muxn.in.sel");
@@ -1712,7 +1714,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     uint rate  = args.at("rate")->get<int>();
     assert(width>0);
     assert(rate>1);
-    assert(width > num_bits(rate-1)); // not enough bits in counter for rate
 
     // create hardware
     Const* aBitwidth = Const::make(c,width);

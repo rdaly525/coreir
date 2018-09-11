@@ -42,7 +42,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     {"other",{
       {"mux","sel ? in1 : in0"},
       {"slice","in[hi-1:lo]"},
-      {"concat","{in0,in1}"},
+      {"concat","{in1,in0}"},
       {"zext","{{(width_out-width_in){1'b0}},in}"},
       {"sext","{{(width_out-width_in){in[width_in-1]}},in}"},
       {"strip","in"},

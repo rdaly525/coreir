@@ -26,7 +26,9 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
   if (w->getSelects().size()==0) {
     w->getContainer()->print();
     e.message("{"+w->getContainer()->getName() + "}." + w->toString()+" Is not connected");
-    e.message("with params=" + toString(w->getContainer()->getModule()->getGenArgs()));
+    if (w->getContainer()->getModule()->isGenerated()) {
+      e.message("with params=" + toString(w->getContainer()->getModule()->getGenArgs()));
+    }
     e.fatal();
     w->getContext()->error(e);
     return false;

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -eux
 
 cd coreir
 git checkout dev
@@ -11,17 +11,21 @@ cd ..
 cd pycoreir
 git checkout dev
 git pull
-pytest
+py.test -s
+cd libcoreir-python
+PYTHONPATH=test make test
+cd ..
 cd ..
 
 cd magma
 git checkout coreir-dev
 git pull
-pytest
+py.test -s
 cd ..
 
 cd mantle
 git checkout coreir-dev
 git pull
-pytest
+py.test --target coreir tests/test_coreir -s
+py.test --target coreir tests/test_mantle
 cd ..
