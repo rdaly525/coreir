@@ -1,3 +1,4 @@
+#include <algorithm>  // std::max
 //This file is just included in context.cpp
 
 void core_convert(Context* c, Namespace* core) {
@@ -176,7 +177,7 @@ void core_state(Context* c, Namespace* core) {
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
-    int awidth = ceil(std::log2(depth));
+    int awidth = std::max((int) ceil(std::log2(depth)), 1);
     return c->Record({
       {"clk",c->Named("coreir.clkIn")},
       {"wdata",c->BitIn()->Arr(width)},
