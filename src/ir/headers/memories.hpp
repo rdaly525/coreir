@@ -1,3 +1,4 @@
+#include <algorithm>  // std::max
 //This file is just included in context.cpp
 
 bool isPowerOfTwo(const uint n) {
@@ -31,7 +32,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint depth = genargs.at("depth")->get<int>();
-    uint addrWidth = (uint) ceil(log2(depth));
+    uint addrWidth = std::max((int) ceil(log2(depth)), 1);
 
     Values awParams({{"width",Const::make(c,addrWidth)}});
     Values aw1Params({{"width",Const::make(c,addrWidth+1)}});
@@ -260,7 +261,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   memory->newTypeGen("RomType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
-    uint awidth = (uint) ceil(log2(depth));
+    uint awidth = std::max((int) ceil(log2(depth)), 1);
     return c->Record({
       {"clk", c->Named("coreir.clkIn")},
       {"rdata", c->Bit()->Arr(width)},
@@ -275,7 +276,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   rom->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
-    uint awidth = (uint) ceil(log2(depth));
+    uint awidth = std::max((int) ceil(log2(depth)), 1);
 
     Values memargs = genargs;
     memargs.insert({"has_init",Const::make(c,true)});
