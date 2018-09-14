@@ -1,6 +1,7 @@
 #include "coreir.h"
 #include "coreir/tools/cxxopts.h"
 #include <fstream>
+#include <memory>
 #include "passlib.h"
 
 
@@ -40,6 +41,8 @@ int main(int argc, char *argv[]) {
     ("n,namespaces","namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",cxxopts::value<std::string>()->default_value("global"))
     ("t,top","top: <namespace>.<modulename>",cxxopts::value<std::string>())
     ("a,all","run on all namespaces")
+    ("z,inline","inlines verilog primitives")
+    ("s,split","splits output files by name (expects '-o <path>/*.<ext>')")
     ;
   
   //Do the parsing of the arguments
@@ -81,8 +84,9 @@ int main(int argc, char *argv[]) {
     string inExt = getExt(infileName);
     ASSERT(inExt=="json","Input needs to be json");
   }
-  
-  
+
+  const bool split_files = options.count("s") && options["s"].as<bool>();
+
   //Load inputs
   Module* top;
   string topRef = "";
@@ -118,23 +122,40 @@ int main(int argc, char *argv[]) {
   }
 
   std::ostream* sout = &std::cout;
-  std::ofstream fout;
-  string outExt = "json";
-  string outfileName = "";
-  if (options.count("o")) {
-    outfileName = options["o"].as<string>();
-    outExt = getExt(outfileName);
-    ASSERT(outExt == "json" 
-        || outExt == "txt"
-        || outExt == "fir"
-        || outExt == "py"
-        || outExt == "smt2"
-        || outExt == "smv"
-        || outExt == "v", "Cannot support out extention: " + outExt);
-    fout.open(outfileName);
-    ASSERT(fout.is_open(),"Cannot open file: " + outfileName);
-    sout = &fout;
-  }
+  std::string outExt = "json";
+  std::string output_dir = "";
+  auto parse_outputs = [&] {
+    std::string outfile = "";
+    if (options.count("o")) {
+      outfile = options["o"].as<string>();
+      outExt = getExt(outfile);
+      ASSERT(outExt == "json"
+             || outExt == "txt"
+             || outExt == "fir"
+             || outExt == "py"
+             || outExt == "smt2"
+             || outExt == "smv"
+             || outExt == "v", "Cannot support out extention: " + outExt);
+      if (!split_files) {
+        std::unique_ptr<std::ofstream> fout(new std::ofstream(outfile));
+        ASSERT(fout->is_open(),"Cannot open file: " + outfile);
+        sout = fout.release();
+      }
+    }
+    if (split_files) {
+      ASSERT(outExt == "v",
+             "Split files option is only supported in verilog mode currently: "
+             "ext = " + outExt);
+      ASSERT(outfile != "", "Must specify outfile with '-o' to split files");
+      const auto len = outfile.size();
+      const auto ext_len = outExt.size();
+      ASSERT(outfile.substr(len - (ext_len + 2), 2) == "*.",
+             "Expected -o to be given as '<path>/*.<ext>'");
+      output_dir = outfile.substr(0, len - (ext_len + 2));
+      // TODO(rsetaluri): Check that output_dir exists and is a directory.
+    }
+  };
+  parse_outputs();
 
   //Output to correct format
   if (outExt=="json") {
@@ -162,12 +183,20 @@ int main(int argc, char *argv[]) {
     CoreIRLoadVerilog_corebit(c);
 
     cout << "Running Runningvpasses" << endl;
-    modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes","verilog"},namespaces);
+    string vstr = "verilog";
+    if (options.count("z")) {
+      vstr += " -i";
+    }
+    modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes",vstr},namespaces);
     cout << "Running vpasses" << endl;
 
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
-    
-    vpass->writeToStream(*sout);
+
+    if (split_files) {
+      vpass->writeToFiles(output_dir);
+    } else {
+      vpass->writeToStream(*sout);
+    }
   }
   else if (outExt=="py") {
     modified |= c->runPasses({"rungenerators","cullgraph","wireclocks-coreir","magma"});
@@ -176,8 +205,7 @@ int main(int argc, char *argv[]) {
   }
   else if (outExt=="txt") {
     assert(top);
-    assert(outfileName!="");
-    if (!saveToDot(top,outfileName)) {
+    if (!saveToDot(top,*sout)) {
       c->die();
     }
   }

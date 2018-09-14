@@ -27,6 +27,7 @@ class ModuleDef {
     std::map<std::string,Instance*> instances;
     std::set<Connection,ConnectionComp> connections;
 
+    std::map<Connection,MetaData*,ConnectionComp> connMetaData;
     
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;
@@ -95,6 +96,13 @@ class ModuleDef {
     
     //This will disconnect everything the wireable is connected to
     void disconnect(Wireable* w);
+
+    //API for adding metadata to Connetions
+    json& getMetaData(Wireable* a, Wireable* b);
+    bool hasMetaData(Wireable* a, Wireable* b);
+
+
+
 
     //API for deleting an instance
     //This will also delete all connections from all connected things

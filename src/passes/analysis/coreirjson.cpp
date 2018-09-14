@@ -213,7 +213,7 @@ string Instances2Json(map<string,Instance*>& insts,int taboffset) {
   return jis.toMultiString();
 }
 
-string Connections2Json(Connections& cons,int taboffset) {
+string Connections2Json(Connections& cons,ModuleDef* def,int taboffset) {
   Array a(taboffset);
   vector<Connection> sortedConns;
   for (auto c : cons) {
@@ -240,7 +240,11 @@ string Connections2Json(Connections& cons,int taboffset) {
       b.add(quote(sb));
       b.add(quote(sa));
     }
+    if (def->hasMetaData(con.first,con.second)) {
+      b.add(toString(def->getMetaData(con.first,con.second)));
+    }
     a.add(b.toString());
+
   }
   return a.toMultiString();
 }
@@ -262,7 +266,7 @@ string Module2Json(Module* m, int taboffset) {
     }
     if (!def->getConnections().empty()) {
       auto cons = def->getConnections();
-      j.add("connections",Connections2Json(cons,taboffset+2));
+      j.add("connections",Connections2Json(cons,def,taboffset+2));
     }
   }
   if (m->hasMetaData()) {

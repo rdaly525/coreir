@@ -1,176 +1,339 @@
 #ifndef COREIR_VMODULE_HPP_
 #define COREIR_VMODULE_HPP_
 
-
-//What I need to represent
-//
-//Wire(std::string name, int bits)
-//
-//ModuleDec((Wire w,std::string dir)* puts,stmt* stmsts)
-//Stmt = std::string
-//     | WireDec(Wire w)
-//     | Assigns(std::string left, std::string right)
-//     | Instance(std::string modname,(Wire l, Wire r)*)
-//
-//Expr = std::string
-//     | Wire
-
-
 #include "coreir.h"
+#include <regex>
 
 //TODO get rid of
 using namespace std;
 
 namespace CoreIR {
 namespace Passes {
+namespace VerilogNamespace {
 
-class VWire {
+namespace {
+std::string toConstString(Value* v) {
+  if (auto av = dyn_cast<Arg>(v)) {
+    return av->getField();
+  }
+  else if (auto iv = dyn_cast<ConstInt>(v)) {
+    return iv->toString();
+  }
+  else if (auto bv = dyn_cast<ConstBool>(v)) {
+    return std::to_string(uint(bv->get()));
+  }
+  else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
+    BitVector bv = bvv->get();
+    // return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
+
+    //return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
+    return bv.hex_string();
+  }
+
+  //TODO could add string
+  assert(0);
+}
+}
+
+struct VModule;
+struct VModules {
+  vector<VModule*> mods;
+  map<Module*,VModule*> mod2VMod;
+  vector<VModule*> vmods;
+  bool _inline = false;
+  //Only used for genetaors that have verilog
+  map<Generator*,VModule*> gen2VMod;
+
+  vector<VModule*> externalVMods;
+  
+  void addModule(Module* m);
+
+};
+
+struct VWire {
   std::string name;
   bool isArray;
   unsigned dim;
   Type::DirKind dir;
 
-  public :
-    VWire(std::string field,Type* t) : name(field), isArray(isa<ArrayType>(t)), dim(t->getSize()), dir(t->getDir()) {}
-    VWire(Wireable* w) : VWire("",w->getType()) {
-      SelectPath sp = w->getSelectPath();
-      if (sp.size()==3) {
-        ASSERT(dim==1 && !isNumber(sp[1]) && isNumber(sp[2]),"Bad vwire " + toString(sp));
-        name = sp[1]+"["+sp[2]+"]";
-      }
-      else if (sp.size()==2) {
-        ASSERT(!isNumber(sp[1]),"Bad vwire " + toString(sp));
-        name = sp[1];
-      }
-      else {
-        assert(0);
-      }
-      if (sp[0] != "self") {
-        name = sp[0]+ "__" + name;
-      }
+  VWire(std::string field,Type* t) : name(field), isArray(isa<ArrayType>(t)), dim(t->getSize()), dir(t->getDir()) {}
+  VWire(Wireable* w) : VWire("",w->getType()) {
+    SelectPath sp = w->getSelectPath();
+    if (sp.size()==3) {
+      ASSERT(dim==1 && !isNumber(sp[1]) && isNumber(sp[2]),"Bad vwire " + toString(sp));
+      name = sp[1]+"["+sp[2]+"]";
     }
-    VWire(std::string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
-    std::string dimstr() {
-      if (!isArray) return "";
-      return "["+std::to_string(dim-1)+":0]";
+    else if (sp.size()==2) {
+      ASSERT(!isNumber(sp[1]),"DEBUG ME:");
+      name = sp[1];
     }
-    std::string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
-    std::string getName() { return name;}
-  };
+    else {
+      assert(0);
+    }
+    if (sp[0] != "self") {
+      name = sp[0]+ "__" + name;
+    }
+  }
+  VWire(std::string name, unsigned dim, Type::DirKind dir) : name(name), dim(dim), dir(dir) {}
+  std::string dimstr() {
+    if (!isArray) return "";
+    return "["+std::to_string(dim-1)+":0]";
+  }
+  std::string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
+  std::string getName() { return name;}
+};
 
-
-class VModule {
-  public :
-    typedef std::set<std::string> SParams;
-    typedef std::map<std::string,std::string> SMap;
-  private:
-  std::string modname;
+struct VModule {
+  bool inlineable = false;
+  typedef std::set<std::string> SParams;
+  typedef std::map<std::string,std::string> SMap;
+  std::string modname = "";
   std::map<std::string,VWire> ports;
   std::vector<std::string> interface;
   SParams params;
   SMap paramDefaults;
+  std::vector<std::string> stmts;
+  VModules* vmods;
+  string modComment = "";
 
-    Generator* gen = nullptr;
-  
-    std::vector<std::string> stmts;
+  bool isExternal = false;
+  VModule(VModules* vmods) : vmods(vmods) {}
+  virtual ~VModule() {}
+  void addStmt(std::string stmt) { stmts.push_back(stmt); }
+  void addComment(std::string stmt,string tab="  ") { stmts.push_back(tab+"// "+stmt); }
+
+  std::string toString() const;
+
+  std::string toInstanceString(Instance* inst);
+
+  void Type2Ports(Type* t,std::map<std::string,VWire>& ports) {
+
+    for (auto rmap : cast<RecordType>(t)->getRecord()) {
+ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
+    }
+  }
+
+  std::string p2Str(std::set<std::string> ss) {
+    return "(" + join(ss.begin(),ss.end(),string(",")) + ")";
+  }
+  void addParams(Params ps) { 
+    for (auto p : ps) {
+      ASSERT(this->params.count(p.first)==0,"NYI Cannot have duplicate params\n"+ this->p2Str(params) + " already has " + p.first);
+      this->params.insert(p.first); 
+    }
+  }
+  void addDefaults(Values ds) { 
+    for (auto dpair : ds) {
+      ASSERT(this->params.count(dpair.first),modname + " NYI Cannot Add default! " + dpair.first);
+      this->paramDefaults[dpair.first] = toConstString(dpair.second);
+    }
+  }
+
+};
+
+struct VObject;
+
+class VObjComp {
   public:
-    
-    VModule(std::string modname, Type* t) {
-      this->modname = modname;
-      Type2Ports(t,ports);
-    }
-    VModule(Module* m) : VModule(m->getName(),m->getType()) {
-      if (m->isGenerated()) this->modname = m->getLongName();
-      this->addParams(params,m->getModParams());
-      this->addDefaults(paramDefaults,m->getDefaultModArgs());
-      this->checkJson(m->getMetaData());
-    }
-    VModule(Generator* g) : modname(g->getName()), gen(g) {
-      this->addParams(params,g->getGenParams());
-      this->addDefaults(paramDefaults,g->getDefaultGenArgs());
-      this->checkJson(g->getMetaData());
-    }
-    void checkJson(json jmeta) {
-      if (jmeta.count("verilog") ) {
-        if (jmeta["verilog"].count("prefix")) {
-          this->modname = jmeta["verilog"]["prefix"].get<std::string>() + this->modname;
-        }
-        if (jmeta["verilog"].count("definition")) {
-          stmts.push_back(jmeta["verilog"]["definition"].get<std::string>());
-        }
-        if (jmeta["verilog"].count("interface")) {
-          interface = (jmeta["verilog"]["interface"].get<std::vector<std::string>>());
-        }
-        if (jmeta["verilog"].count("parameters")) {
-          for (auto p : jmeta["verilog"]["parameters"].get<std::vector<std::string>>()) {
-            this->params.insert(p);
-          }
-        }
-      }
+    bool operator() (const VObject* l, const VObject* r) const;
+};
 
-    }
-    std::string getName() { return modname;}
-    bool hasDef() {return stmts.size() > 0 && (interface.size()>0 || ports.size()>0);}
 
-    void addStmt(std::string stmt) { stmts.push_back(stmt); }
 
-    std::string toCommentString() {
-      return "//Module: " + modname + " defined externally";
-    }
+struct CoreIRVModule : VModule {
+  Module* mod;
+  //Backwards maps
+  std::map<Instance*,VObject*> inst2VObj;
+  std::map<Connection,VObject*,ConnectionComp> conn2VObj;
+  std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
 
-    std::string toString();
-
-    std::string toInstanceString(Instance* inst);
-
-  private :
-
-    void Type2Ports(Type* t,std::map<std::string,VWire>& ports) {
-
-      for (auto rmap : cast<RecordType>(t)->getRecord()) {
-	ports.emplace(rmap.first,VWire(rmap.first,rmap.second));
-      }
-    }
-
-    std::string p2Str(std::set<std::string> ss) {
-      return "(" + join(ss.begin(),ss.end(),string(",")) + ")";
-    }
-    void addParams(SParams& sps, Params ps) { 
-      for (auto p : ps) {
-        ASSERT(sps.count(p.first)==0,"NYI Cannot have duplicate params\n"+ this->p2Str(sps) + " already has " + p.first);
-        sps.insert(p.first); 
-      }
-    }
-    void addDefaults(SMap sm, Values ds) { 
-      for (auto dpair : ds) {
-        ASSERT(params.count(dpair.first),modname + " NYI Cannot Add default! " + dpair.first);
-        sm[dpair.first] = toConstString(dpair.second);
-      }
-    }
-    std::string toConstString(Value* v) {
-      if (auto av = dyn_cast<Arg>(v)) {
-        return av->getField();
-      }
-      else if (auto iv = dyn_cast<ConstInt>(v)) {
-        return iv->toString();
-      }
-      else if (auto bv = dyn_cast<ConstBool>(v)) {
-        return std::to_string(uint(bv->get()));
-      }
-      else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
-        BitVector bv = bvv->get();
-        // return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
-
-        return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
-      }
-
-      //TODO could add string
-      assert(0);
-    }
-
+  void addConnection(ModuleDef* def, Connection conn);
+  void addInstance(Instance* inst);
+  
+  CoreIRVModule(VModules* vmods, Module* m);
 
 };
 
 
+
+
+//The following are for CoreIR VModules
+//This represents some chunk of lines of code
+struct VObject {
+  string name;
+  int priority = 0; //Lower is earilier in the file
+  string file = "_";
+  int line = -1;
+  VObject(string name) : name(name) {}
+  VObject(string name, string file,int line) : name(name), file(file), line(line) {}
+  //fills out the body
+  virtual void materialize(CoreIRVModule* vmod) = 0;
+};
+
+
+
+struct VInstance : VObject {
+  string wireDecs;
+  VModules* vmods;
+  Instance* inst;
+  VInstance(VModules* vmods, Instance* inst) : VObject(toString(inst)), vmods(vmods), inst(inst) {
+    assert(inst);
+    this->line = -100000;
+    this->priority = 0;
+    auto meta = inst->getMetaData();
+    if (meta.count("filename")) {
+      this->file = meta["filename"].get<string>();
+    }
+    if (meta.count("lineno")) {
+      this->line = std::stoi(meta["lineno"].get<string>());
+    }
+
+    Module* mref = inst->getModuleRef();
+    vector<string> wires;
+    for (auto rmap : cast<RecordType>(mref->getType())->getRecord()) {
+      wires.push_back(VWireDec(VWire(inst->getInstname()+"__"+rmap.first,rmap.second)));
+    }
+    wireDecs = join(wires.begin(),wires.end(),string("\n"));
+
+  }
+
+
+  string VWireDec(VWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
+  
+  virtual void materialize(CoreIRVModule* vmod) override {
+    Module* mref = inst->getModuleRef();
+    VModule* vref = vmods->mod2VMod[mref];
+    assert(vref);
+    if (this->line > 0) {
+      vmod->addComment("Instanced at line " + to_string(this->line));
+    }
+    if (mref->isGenerated()) {
+      vmod->addComment("Instancing generated Module: " + mref->getRefName() + toString(mref->getGenArgs()));
+    }
+    vmod->addStmt(wireDecs);
+    vmod->addStmt(vref->toInstanceString(inst));
+  }
+};
+
+
+
+struct VAssign : VObject {
+  Connection conn;
+  ModuleDef* def;
+  VAssign(ModuleDef* def,Connection conn) : VObject(toString(conn)), conn(conn) {
+    this->line = -1; //largest number to go at the top of the bottom
+    this->priority = 1;
+    if (def->hasMetaData(conn.first,conn.second)) {
+      auto meta = def->getMetaData(conn.first,conn.second);
+      if (meta.count("filename")) {
+        this->file = meta["filename"].get<string>();
+      }
+      if (meta.count("lineno")) {
+        this->line = std::stoi(meta["lineno"].get<string>());
+      }
+    }
+  }
+  void materialize(CoreIRVModule* vmod) override {
+    Wireable* left = conn.first->getType()->getDir()==Type::DK_In ? conn.first : conn.second;
+    Wireable* right = left==conn.first ? conn.second : conn.first;
+    VWire vleft(left);
+    VWire vright(right);
+    if (this->line >0) {
+      vmod->addComment("Wired at line: " + to_string(this->line));
+    }
+    vmod->addStmt("  assign " + vleft.getName() + vleft.dimstr() + " = " + vright.getName() + vright.dimstr() + ";");
+  }
+};
+
+struct ExternVModule : VModule {
+  
+  ExternVModule(VModules* vmods, Module* m) : VModule(vmods) {
+    Type2Ports(m->getType(),this->ports);
+    this->modname = m->getName();
+    this->isExternal = true;
+  }
+
+};
+
+//Verilog VModules
+struct VerilogVModule : VModule {
+  json jver;
+  VerilogVModule(VModules* vmods, Module* m) : VModule(vmods) {
+    Type2Ports(m->getType(),this->ports);
+    this->addParams(m->getModParams());
+    this->addDefaults(m->getDefaultModArgs());
+    this->addJson(m->getMetaData(),m->getName());
+  }
+  VerilogVModule(VModules* vmods) : VModule(vmods) {}
+  void addJson(json& jmeta,string name) {
+    assert(jmeta.count("verilog") > 0);
+    jver = jmeta["verilog"];
+    if (jver.count("prefix")) {
+      this->modname = jver["prefix"].get<std::string>() + name;
+    }
+    if (jver.count("definition")) {
+      stmts.push_back(jver["definition"].get<std::string>());
+    }
+    if (jver.count("interface")) {
+      interface = (jver["interface"].get<std::vector<std::string>>());
+    }
+    if (jver.count("parameters")) {
+      for (auto p : jver["parameters"].get<std::vector<std::string>>()) {
+        this->params.insert(p);
+      }
+    }
+    if (jver.count("inlineable") && jver["inlineable"].get<bool>()) {
+      this->inlineable = true;
+    }
+  }
+};
+
+//Need to add 
+struct ParamVerilogVModule : VerilogVModule {
+  ParamVerilogVModule(VModules* vmods, Generator* g) : VerilogVModule(vmods) {
+    this->addParams(g->getGenParams());
+    this->addDefaults(g->getDefaultGenArgs());
+    this->addJson(g->getMetaData(),g->getName());
+  }
+};
+
+struct VInlineInstance : VInstance {
+  string vbody;
+  VInlineInstance(VModules* vmods, Instance* inst, VerilogVModule* vermod) : VInstance(vmods,inst) {
+    vbody = vermod->jver["definition"].get<string>();
+    //Search for all high level ports
+    for (auto rpair : cast<RecordType>(inst->getType())->getRecord()) {
+      std::regex expr(rpair.first);
+      string replace(VWire(inst->sel(rpair.first)).getName());
+      vbody = std::regex_replace(vbody,expr,replace);
+    }
+    //Search for modArgs
+    for (auto pval : inst->getModArgs()) {
+      std::regex expr(pval.first);
+      string replace = toConstString(pval.second);
+      vbody = std::regex_replace(vbody,expr,replace);
+    }
+    Module* mref = inst->getModuleRef();
+    //Search for genArgs
+    if (mref->isGenerated()) {
+      for (auto pval : mref->getGenArgs()) {
+        std::regex expr(pval.first);
+        string replace = toConstString(pval.second);
+        vbody = std::regex_replace(vbody,expr,replace);
+      }
+    }
+  }
+
+  void materialize(CoreIRVModule* vmod) override {
+    vmod->addComment("Inlined from " + toString(inst));
+    vmod->addStmt(wireDecs);
+    vmod->addStmt(vbody);
+  }
+
+};
+
+
+}
 }
 }
 
