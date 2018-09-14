@@ -44,7 +44,7 @@ int main() {
   top->setDef(topdef);
 
   top->print();
-  c->runPasses({"verifyconnectivity-onlyinputs"});
+  c->runPasses({"verifyconnectivity --onlyinputs"});
 
   counter->setGeneratorDefFromFun([](Context* c, Values genargs,ModuleDef* def) {
     
@@ -66,7 +66,7 @@ int main() {
     def->connect("ri.out","self.out");
   });
   
-  c->runPasses({"rungenerators","verifyconnectivity-onlyinputs"});
+  c->runPasses({"rungenerators","verifyconnectivity --onlyinputs"});
 
   saveToFile(global,"_counters.json",top);
 

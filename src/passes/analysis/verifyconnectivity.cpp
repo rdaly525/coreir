@@ -1,8 +1,25 @@
 #include "coreir.h"
 #include "coreir/passes/analysis/verifyconnectivity.h"
+#include "coreir/tools/cxxopts.h"
 
 using namespace std;
 using namespace CoreIR;
+
+void Passes::VerifyConnectivity::initialize(int argc, char** argv) {
+  cxxopts::Options options("verifyconnectivity", "verifys the connectivty of the hardware graph");
+  options.add_options()
+    ("h,help","help")
+    ("i,onlyinputs","Only checks inputs")
+    ("c,noclkrst","Do not check clocks")
+  ;
+  options.parse(argc,argv);
+  if (options.count("i")) {
+    this->onlyInputs = true;
+  }
+  if (options.count("c")) {
+    this->checkClkRst= false;
+  }
+}
 
 bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
   if (this->onlyInputs && w->getType()->isOutput()) {

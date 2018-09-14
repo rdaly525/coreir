@@ -131,7 +131,7 @@ namespace CoreIR {
             def->connect("arrayify.valid", "self.valid");
 
             mainModule->setDef(def);
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --onlyinputs --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});

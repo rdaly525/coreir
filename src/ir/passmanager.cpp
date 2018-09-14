@@ -28,9 +28,6 @@ void PassManager::addPass(Pass* p) {
   p->addPassManager(this);
   ASSERT(passMap.count(p->name) == 0,"Cannot add duplicate \"" + p->name + "\" pass");
   passMap[p->name] = p;
-  if (p->isAnalysis) {
-    analysisPasses[p->name] = false;
-  }
   //Setting the dependencies and such
   p->setAnalysisInfo();
 
@@ -118,10 +115,21 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
   return modified;
 }
 
-bool PassManager::runPass(Pass* p) {
+bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   if (verbose) {
     cout << "Running Pass: " << p->getName() << endl;
   }
+  //Translate vector<string> into argc and argv
+  int argc = pArgs.size();
+  char** argv = new char*[argc];
+  for (int i=0; i<argc; ++i) {
+    argv[i] = &(pArgs[i])[0];
+  }
+  cout << "Numargs=" << argc << endl;
+  if (argc > 1) {
+    p->initialize(argc,argv);
+  }
+  delete[] argv;
   bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Context:
@@ -154,51 +162,59 @@ bool PassManager::runPass(Pass* p) {
 }
 
 //TODO should check for circular dependencies
-void PassManager::pushAllDependencies(string oname,stack<string> &work) {
-  ASSERT(passMap.count(oname),"Can not run pass \"" + oname + "\" because it was never loaded!");
-  work.push(oname);
-  for (auto it = passMap[oname]->dependencies.rbegin(); it!=passMap[oname]->dependencies.rend(); ++it) {
-    ASSERT(passMap.count(*it),"Dependency " + *it + " for " + oname + " Was never loaded!");
-    ASSERT(analysisPasses.count(*it),"Dependency \"" + *it + "\" for \"" + oname + "\" cannot be a transform pass");
-    pushAllDependencies(*it,work);
+//pass can have args "mypass -blag -sdf"
+void PassManager::pushAllDependencies(string passString,stack<string> &work) {
+  vector<string> pArgs = splitStringByWhitespace(passString);
+  string passName = pArgs[0];
+  ASSERT(passMap.count(passName),"Can not run pass \"" + passName + "\" because it was never loaded!");
+  work.push(passString);
+  for (auto it = passMap[passName]->dependencies.rbegin(); it!=passMap[passName]->dependencies.rend(); ++it) {
+    string depPass = *it; //Contains args
+    vector<string> dpArgs = splitStringByWhitespace(depPass);
+    string dpName = dpArgs[0];
+    ASSERT(passMap.count(dpName),"Dependency " + depPass + " for " + passName + " Was never loaded!");
+    ASSERT(passMap[dpName]->isAnalysis,"Dependency \"" + depPass + "\" for \"" + passName + "\" cannot be a transform pass");
+    pushAllDependencies(depPass,work);
   }
 }
 
-bool PassManager::run(PassOrder order,vector<string> nsnames) {
+//passes contains "passname -arg1 -arg2"
+bool PassManager::run(vector<string>& passes,vector<string> nsnames) {
   this->nss.clear();
-  ASSERT(passMap.count("verifyinputconnections"),"Missing weak verifier pass");
   for (auto nsname : nsnames) {
     ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
     this->nss.push_back(c->getNamespace(nsname));
   }
-  //For now just do all namespaces
-  //for (auto ns : c->getNamespaces()) {
-  //  nss.push_back(ns.second);
-  //}
-
+  vector<vector<string>> passesParsed;
+  for (auto p : passes) {
+    passesParsed.push_back(splitStringByWhitespace(p));
+  }
   bool ret = false;
   //Execute each in order (and the respective dependencies) independently
-  for (auto oname : order) {
+  for (auto pass : passes) {
     stack<string> work;
-    pushAllDependencies(oname,work);
+    pushAllDependencies(pass,work);
     //Actually run the passes now
     while (!work.empty()) {
-      string pname = work.top(); work.pop();
-      bool anal = analysisPasses.count(pname) > 0;
+      string passString = work.top(); work.pop();
+      vector<string> pArgs = splitStringByWhitespace(passString);
+      string pname = pArgs[0];
+      
       Pass* p = passMap[pname];
+      bool anal = p->isAnalysis;
 
       //If it is an analysis and is not stale, do not run!
-      if (anal && analysisPasses[pname]) {
+      if (anal && analysisPasses.count(passString) && analysisPasses[passString]) {
         continue;
       }
       else if (anal) { //is analysis and needs to be run
         p->releaseMemory(); //clear data structures
       }
       //Run it!
-      bool modified = this->runPass(p);
+      bool modified = this->runPass(p,pArgs);
       if (anal) {
         ASSERT(!modified,"Analysis pass cannot modify IR!");
-        analysisPasses[pname] = true;
+        analysisPasses[passString] = true;
       }
       else if (modified) { //Not analysis
         //If it modified, need to conservatly invalidate all analysis passes
@@ -206,7 +222,8 @@ bool PassManager::run(PassOrder order,vector<string> nsnames) {
           analysisPasses[amap.first] = false;
         }
         //Run Verifier pass
-        this->runPass(passMap["verifyinputconnections"]);
+        vector<string> verArgs = {"verifyinputconnections"};
+        this->runPass(passMap["verifyinputconnections"],verArgs);
         analysisPasses["verifyinputconnections"] = true;
       }
       ret |= modified;

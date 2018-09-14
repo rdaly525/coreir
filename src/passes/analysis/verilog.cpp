@@ -1,24 +1,37 @@
+#include <fstream>
 #include "coreir.h"
 #include "coreir/passes/analysis/vmodule.h"
 #include "coreir/passes/analysis/verilog.h"
+#include "coreir/tools/cxxopts.h"
 
-using namespace std;
-using namespace CoreIR;
-using namespace CoreIR::Passes;
+namespace CoreIR {
 
 namespace {
 
-string VWireDec(VWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
-
-
-string VAssign(Connection con) {
-  Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
-  Wireable* right = left==con.first ? con.second : con.first;
-  VWire vleft(left);
-  VWire vright(right);
-  return "  assign " + vleft.getName() + vleft.dimstr() + " = " + vright.getName() + vright.dimstr() + ";";
+void WriteModuleToStream(const Passes::VerilogNamespace::VModule* module,
+                         std::ostream& os) {
+  if (module->isExternal) {
+    // TODO(rsetaluri): Use "defer" like semantics to avoid duplicate calls to
+    // toString().
+    os << "/* External Modules" << std::endl;
+    os << module->toString() << std::endl;
+    os << "*/" << std::endl;
+    return;
+  }
+  os << module->toString() << std::endl;
 }
 
+}  // namespace
+
+void Passes::Verilog::initialize(int argc, char** argv) {
+  cxxopts::Options options("verilog", "translates coreir graph to verilog and optionally inlines primitives");
+  options.add_options()
+    ("i,inline","Inline verilog modules if possible")
+  ;
+  options.parse(argc,argv);
+  if (options.count("i")) {
+    this->vmods._inline = true;
+  }
 }
 
 std::string Passes::Verilog::ID = "verilog";
@@ -26,83 +39,41 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //Create a new Vmodule for this node
   Module* m = node.getModule();
-  cout << "Creating verilog for " << m->getRefName() << endl;
-  if (m->isGenerated() && !m->hasDef()) { //TODO linking concern
-    Generator* g = m->getGenerator();
-    VModule* vmod;
-    bool hackflag = false;
-    if (modMap.count(g)) { //Slightly hacky doing a cache here. I could just preload this with a GeneratorPass
-      vmod = modMap[g];
-      hackflag = true;
-    }
-    else {
-      vmod = new VModule(g);
-      this->modMap[g] = vmod; //Keeping generators in modMap for cache
-    }
-    this->modMap[m] = vmod;
-    if (!vmod->hasDef()) {
-      this->external.insert(g);
-    }
-    else if (!hackflag) {
-      modList.push_back(vmod);
-    }
-    return false;
-  }
-  VModule* vmod = new VModule(m);
-  modMap[m] = vmod;
-  if (vmod->hasDef()) {
-    ASSERT(!m->hasDef(),"NYI linking error"); //TODO figure out this better
-    modList.push_back(vmod);
-    return false;
-  }
-  if (!m->hasDef()) {
-    this->external.insert(m);
-    return false;
-  }
-  modList.push_back(vmod);
-
-  ModuleDef* def = m->getDef();
   
-  string tab = "  ";
-  for (auto imap : def->getInstances()) {
-    string iname = imap.first;
-    Instance* inst = imap.second;
-    Module* mref = imap.second->getModuleRef();
-    ASSERT(modMap.count(mref),"DEBUG ME");
-    VModule* vref = modMap[mref];
-    vmod->addStmt("  //Wire declarations for instance '" + iname + "' (Module "+ vref->getName() + ")");
-    for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
-      vmod->addStmt(VWireDec(VWire(iname+"__"+rmap.first,rmap.second)));
-    }
-    vmod->addStmt(vref->toInstanceString(inst));
-  }
-
-  vmod->addStmt("  //All the connections");
-  for (auto con : def->getConnections()) {
-    vmod->addStmt(VAssign(con));
-  }
-  
+  vmods.addModule(m);
   return false;
 }
 
 void Passes::Verilog::writeToStream(std::ostream& os) {
-  
-  for (auto ext : external) {
-    os << modMap[ext]->toCommentString() << endl;
+  for (auto module : vmods.vmods) {
+    if (vmods._inline && module->inlineable) {
+      continue;
+    }
+    WriteModuleToStream(module, os);
   }
-  os << endl;
-  for (auto vmod : modList) {
-    os << vmod->toString() << endl;
-  }
+}
 
+void Passes::Verilog::writeToFiles(const std::string& dir) {
+  for (auto module : vmods.vmods) {
+    if (vmods._inline && module->inlineable) {
+      continue;
+    }
+    const std::string filename = dir + "/" + module->modname + ".v";
+    std::ofstream fout(filename);
+    ASSERT(fout.is_open(), "Cannot open file: " + filename);
+    WriteModuleToStream(module, fout);
+    fout.close();
+  }
 }
 
 Passes::Verilog::~Verilog() {
-  set<VModule*> toDelete;
-  for (auto m : modMap) {
-    toDelete.insert(m.second);
-  }
-  for (auto m : toDelete) {
-    delete m;
-  }
+  //set<VModule*> toDelete;
+  //for (auto m : modMap) {
+  //  toDelete.insert(m.second);
+  //}
+  //for (auto m : toDelete) {
+  //  delete m;
+  //}
+}
+
 }

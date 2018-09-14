@@ -147,6 +147,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       json vjson;
       vjson["prefix"] = "coreir_";
       vjson["definition"] = "  assign out = " + vbody + ";";
+      vjson["inlineable"] = true;
       if (it0.first!="other") {
         ASSERT(coreIMap.count(it0.first),"missing" + it0.first);
         vjson["interface"] = coreIMap.at(it0.first);
@@ -175,19 +176,17 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     vjson["parameters"] = {"init","arst_posedge","clk_posedge"};
     vjson["interface"] = coreIMap.at("reg_arst");
     vjson["definition"] = ""
-    "reg [width-1:0] outReg;\n"
-    "wire real_rst;\n"
-    "assign real_rst = arst_posedge ? arst : ~arst;\n"
-    "wire real_clk;\n"
-    "assign real_clk = clk_posedge ? clk : ~clk;\n"
-    "always @(posedge real_clk, posedge real_rst) begin\n"
-    "  if (real_rst) outReg <= init;\n"
-    "  else outReg <= in;\n"
-    "end\n"
-    "assign out = outReg;";
-    core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson; 
-    cout << "VJSON for reg: " << vjson << endl;
-    cout << "metadata for reg: " << core->getGenerator("reg_arst")->getMetaData() << endl;
+    "  reg [width-1:0] outReg;\n"
+    "  wire real_rst;\n"
+    "  assign real_rst = arst_posedge ? arst : ~arst;\n"
+    "  wire real_clk;\n"
+    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+    "  always @(posedge real_clk, posedge real_rst) begin\n"
+    "    if (real_rst) outReg <= init;\n"
+    "    else outReg <= in;\n"
+    "  end\n"
+    "  assign out = outReg;";
+    core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson;
   }
   {
     //reg
@@ -196,13 +195,13 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     vjson["parameters"] = {"init","clk_posedge"};
     vjson["interface"] = coreIMap.at("reg");
     vjson["definition"] = ""
-    "reg [width-1:0] outReg=init;\n"
-    "wire real_clk;\n"
-    "assign real_clk = clk_posedge ? clk : ~clk;\n"
-    "always @(posedge real_clk) begin\n"
-    "  outReg <= in;\n"
-    "end\n"
-    "assign out = outReg;";
+    "  reg [width-1:0] outReg=init;\n"
+    "  wire real_clk;\n"
+    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+    "  always @(posedge real_clk) begin\n"
+    "    outReg <= in;\n"
+    "  end\n"
+    "  assign out = outReg;";
     core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
   }
 
@@ -212,13 +211,13 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["mem"];
     vjson["definition"] = ""
-    "reg [width-1:0] data[depth-1:0];\n"
-    "always @(posedge clk) begin\n"
-    "  if (wen) begin\n"
-    "    data[waddr] <= wdata;\n"
+    "  reg [width-1:0] data[depth-1:0];\n"
+    "  always @(posedge clk) begin\n"
+    "    if (wen) begin\n"
+    "      data[waddr] <= wdata;\n"
+    "    end\n"
     "  end\n"
-    "end\n"
-    "assign rdata = data[raddr];";
+    "  assign rdata = data[raddr];";
     core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
   } 
 }

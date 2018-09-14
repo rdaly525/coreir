@@ -35,7 +35,6 @@ void connectToDummy(const std::string& constName,
                        {{"value", Const::make(c, false)}});
 
     def->connect(replaceConst->sel("out"), sel);
-            
   }
 
 }
@@ -60,7 +59,7 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
 
         string constName = "self_" + field;
         connectToDummy(constName, sel, def, c);
-          
+
       }
         
     }

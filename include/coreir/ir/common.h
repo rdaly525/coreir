@@ -58,6 +58,8 @@ BackInserter splitString(const std::string &s, char delim) {
     return elems;
 }
 
+std::vector<std::string> splitStringByWhitespace(std::string const &input);
+
 template <class T, class A>
 T join(const A &begin, const A &end, const T &t) {
   T result;

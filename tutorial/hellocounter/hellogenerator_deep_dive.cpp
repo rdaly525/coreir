@@ -79,7 +79,7 @@ int main() {
   //We can now pretty print our top module with the counter instantiations.
   top->print();
   //And verify everything is connected.
-  c->runPasses({"verifyconnectivity-onlyinputs"});
+  c->runPasses({"verifyconnectivity --onlyinputs"});
 
   
   //We can now provide (or link) some definitions for our counter.
@@ -176,7 +176,7 @@ int main() {
   count1Module->print();  
  
   //And lets make sure all the inputs are being driven.
-  c->runPasses({"verifyconnectivity-onlyinputs"});
+  c->runPasses({"verifyconnectivity --onlyinputs"});
 
   //Now lets actually save this to a real file.
   //Specify the namespace to save (global), the filename, and an optional "top" module

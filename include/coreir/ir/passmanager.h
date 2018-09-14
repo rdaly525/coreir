@@ -15,12 +15,11 @@ class PassManager {
   std::unordered_map<std::string,Pass*> passMap;
 
   //Name to isValid
-  std::unordered_map<std::string,bool> analysisPasses;
+  std::map<std::string,bool> analysisPasses;
   
   std::vector<std::string> passLog;
   bool verbose = false;
   public:
-    typedef std::vector<std::string> PassOrder;
     explicit PassManager(Context* c);
     ~PassManager();
     Context* getContext() { return c;}
@@ -29,7 +28,7 @@ class PassManager {
 
     //Runs all passes in order over namespaces
     //Returns if graph was modified
-    bool run(PassOrder order, std::vector<std::string> namespaceName={"global"});
+    bool run(std::vector<std::string>& passes, std::vector<std::string> namespaceName={"global"});
 
     void setVerbosity(bool v) { verbose = v;}
     void printLog();
@@ -44,7 +43,7 @@ class PassManager {
     void pushAllDependencies(std::string oname,std::stack<std::string> &work);
 
     friend class Pass;
-    bool runPass(Pass* p);
+    bool runPass(Pass* p, std::vector<std::string>&);
 
     bool runContextPass(Pass* p);
     bool runNamespacePass(Pass* p);
