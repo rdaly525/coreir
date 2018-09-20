@@ -27,81 +27,109 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   });
 
   //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
+  //memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
   Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
 
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint depth = genargs.at("depth")->get<int>();
     uint addrWidth = (uint) ceil(log2(depth));
-
-    Values awParams({{"width",Const::make(c,addrWidth)}});
-    Values aw1Params({{"width",Const::make(c,addrWidth+1)}});
-
-    //All State (mem, waddr, raddr, valid)
-    def->addInstance("mem","coreir.mem",genargs);
-
-    def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
-    def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
-    def->addInstance("cnt","mantle.reg",{{"width",Const::make(c,addrWidth+1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
-
-    def->addInstance("state","mantle.reg",{{"width",Const::make(c,1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,1,0)}});
-
-
-    def->addInstance("out_and_wen","corebit.and");
-
-    //Constants:
-    //def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
-    def->addInstance("c1","corebit.const",{{"value",Const::make(c,true)}});
-
-    //All clk connections:
-    def->connect("self.clk","mem.clk");
-    def->connect("self.clk","raddr.clk");
-    def->connect("self.clk","waddr.clk");
-    def->connect("self.clk","cnt.clk");
-    def->connect("self.clk","state.clk");
-
-    //mem connections
-    def->connect("raddr.out","mem.raddr");
-    def->connect("waddr.out","mem.waddr");
-    def->connect("mem.rdata","self.rdata");
-    def->connect("self.wdata","mem.wdata");
-    def->connect("self.wen","mem.wen");
-
-    //Other IO
-    def->connect("self.valid","out_and_wen.out");
-    def->connect("state.out.0","out_and_wen.in0");
-    def->connect("self.wen","out_and_wen.in1");
-
-    //Logic to drive raddr
-    def->connect("out_and_wen.out","raddr.en");
-    def->connect("self.flush","raddr.srst");
-
-    //Logic to drive waddr
-    def->connect("self.wen","waddr.en");
-    def->connect("self.flush","waddr.srst");
-
-    //Logic to drive cnt
-    // cnt_n = !state ? cnt+wen
-    def->addInstance("state0","corebit.not");
-    def->addInstance("add_wen","coreir.add",aw1Params);
-    def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
-    def->connect("self.flush","cnt.clr");
-    def->connect("state.out.0","state0.in");
-    def->connect("state0.out","cnt.en");
-    def->connect("self.wen","wen_ext.in.0");
-    def->connect("wen_ext.out","add_wen.in0");
-    def->connect("cnt.out","add_wen.in1");
-    def->connect("add_wen.out","cnt.in");
-
-    //Logic to drive state
-    //state_n = flush ? 0 :  (cnt_n == DEPTH) ? 1 : state
-    //def->addInstance("state_n","corebit.mux");
-    def->addInstance("depth_m1","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,depth)}});
-    def->addInstance("eq_depth","coreir.eq",aw1Params);
-    def->connect("self.flush","state.clr");
-    def->connect("depth_m1.out","eq_depth.in0");
-    def->connect("add_wen.out","eq_depth.in1");
-    def->connect("eq_depth.out","state.en");
-    def->connect("c1.out","state.in.0");
+  
+    if (depth == 0) {
+      def->connect("self.wdata", "self.rdata");
+      def->connect("self.wen", "self.valid");
+      
+    } else if (depth == 1) {
+      uint width = genargs.at("width")->get<int>();
+  
+      // create and connect memory element
+      def->addInstance("register", "mantle.reg", {{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
+      def->connect("register.in", "self.wdata");
+      def->connect("register.out", "self.rdata");
+      def->connect("register.en", "self.wen");
+  
+      // create and connect for valid calculation
+      def->addInstance("receivedOne", "corebit.reg");
+      def->addInstance("orgate", "corebit.or");
+      def->addInstance("andgate", "corebit.and");
+      def->connect("self.wen", "orgate.in0");
+      def->connect("receivedOne.out", "orgate.in1");
+      def->connect("orgate.out", "receivedOne.in");
+      def->connect("self.wen", "andgate.in0");
+      def->connect("receivedOne.out", "andgate.in1");
+      def->connect("andgate.out", "self.valid");
+  
+    } else {
+  
+      Values awParams({{"width",Const::make(c,addrWidth)}});
+      Values aw1Params({{"width",Const::make(c,addrWidth+1)}});
+  
+      //All State (mem, waddr, raddr, valid)
+      def->addInstance("mem","coreir.mem",genargs);
+  
+      def->addInstance("raddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
+      def->addInstance("waddr","mantle.counter",{{"width",Const::make(c,addrWidth)},{"has_max",Const::make(c,true)},{"has_en",Const::make(c,true)},{"has_srst",Const::make(c,true)}},{{"max",Const::make(c,addrWidth,depth-1)}});
+      def->addInstance("cnt","mantle.reg",{{"width",Const::make(c,addrWidth+1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,BitVector(addrWidth+1,0))}});
+  
+      def->addInstance("state","mantle.reg",{{"width",Const::make(c,1)},{"has_en",Const::make(c,true)},{"has_clr",Const::make(c,true)}},{{"init",Const::make(c,1,0)}});
+  
+  
+      def->addInstance("out_and_wen","corebit.and");
+  
+      //Constants:
+      //def->addInstance("c0","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,0)}});
+      def->addInstance("c1","corebit.const",{{"value",Const::make(c,true)}});
+  
+      //All clk connections:
+      def->connect("self.clk","mem.clk");
+      def->connect("self.clk","raddr.clk");
+      def->connect("self.clk","waddr.clk");
+      def->connect("self.clk","cnt.clk");
+      def->connect("self.clk","state.clk");
+  
+      //mem connections
+      def->connect("raddr.out","mem.raddr");
+      def->connect("waddr.out","mem.waddr");
+      def->connect("mem.rdata","self.rdata");
+      def->connect("self.wdata","mem.wdata");
+      def->connect("self.wen","mem.wen");
+  
+      //Other IO
+      def->connect("self.valid","out_and_wen.out");
+      def->connect("state.out.0","out_and_wen.in0");
+      def->connect("self.wen","out_and_wen.in1");
+  
+      //Logic to drive raddr
+      def->connect("out_and_wen.out","raddr.en");
+      def->connect("self.flush","raddr.srst");
+  
+      //Logic to drive waddr
+      def->connect("self.wen","waddr.en");
+      def->connect("self.flush","waddr.srst");
+  
+      //Logic to drive cnt
+      // cnt_n = !state ? cnt+wen
+      def->addInstance("state0","corebit.not");
+      def->addInstance("add_wen","coreir.add",aw1Params);
+      def->addInstance("wen_ext","coreir.zext",{{"width_in",Const::make(c,1)},{"width_out",Const::make(c,addrWidth+1)}});
+      def->connect("self.flush","cnt.clr");
+      def->connect("state.out.0","state0.in");
+      def->connect("state0.out","cnt.en");
+      def->connect("self.wen","wen_ext.in.0");
+      def->connect("wen_ext.out","add_wen.in0");
+      def->connect("cnt.out","add_wen.in1");
+      def->connect("add_wen.out","cnt.in");
+  
+      //Logic to drive state
+      //state_n = flush ? 0 :  (cnt_n == DEPTH) ? 1 : state
+      //def->addInstance("state_n","corebit.mux");
+      def->addInstance("depth_m1","coreir.const",aw1Params,{{"value",Const::make(c,addrWidth+1,depth)}});
+      def->addInstance("eq_depth","coreir.eq",aw1Params);
+      def->connect("self.flush","state.clr");
+      def->connect("depth_m1.out","eq_depth.in0");
+      def->connect("add_wen.out","eq_depth.in1");
+      def->connect("eq_depth.out","state.en");
+      def->connect("c1.out","state.in.0");
+    }
   });
 
 
@@ -236,7 +264,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   Generator* ram = memory->newGeneratorDecl("ram",memory->getTypeGen("RamType"),MemGenParams);
   ram->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     def->addInstance("mem","coreir.mem",genargs);
-    def->addInstance("readreg","coreir.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
+    def->addInstance("readreg","mantle.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
     def->connect("self.clk","readreg.clk");
     def->connect("self.clk","mem.clk");
     def->connect("self.wdata","mem.wdata");
@@ -281,20 +309,63 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     memargs.insert({"has_init",Const::make(c,true)});
 
     def->addInstance("mem","coreir.mem",memargs,{{"init",def->getModule()->getArg("init")}});
-    def->addInstance("readreg","coreir.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
-    def->addInstance("wdata0","coreir.const",{{"width",Const::make(c,width)}},{{"value",Const::make(c,0)}});
-    def->addInstance("waddr0","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,0)}});
+    def->addInstance("readreg","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
+    def->addInstance("wdata0","coreir.const",{{"width",Const::make(c,width)}},{{"value",Const::make(c,BitVector(width,0))}});
+    def->addInstance("waddr0","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,BitVector(awidth,0))}});
     def->connect("self.clk","mem.clk");
     def->connect("self.clk","readreg.clk");
-    def->connect("wdata0","mem.wdata");
-    def->connect("waddr0","mem.waddr");
-    def->connect("wdata0.0","mem.wen");
+    def->connect("wdata0.out","mem.wdata");
+    def->connect("waddr0.out","mem.waddr");
+    def->connect("wdata0.out.0","mem.wen");
     def->connect("mem.rdata","readreg.in");
     def->connect("self.rdata","readreg.out");
     def->connect("self.raddr","mem.raddr");
     def->connect("self.ren","readreg.en");
   });
 
+  memory->newTypeGen("Rom2Type",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(width)},
+      {"ren", c->BitIn()},
+    });
+  });
+
+
+  Generator* rom2 = memory->newGeneratorDecl("rom2",memory->getTypeGen("Rom2Type"),MemGenParams);
+  rom2->setModParamsGen(RomModParamFun);
+  rom2->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+    
+    Values memargs = genargs;
+    memargs.insert({"has_init",Const::make(c,true)});
+
+    def->addInstance("mem","coreir.mem",memargs,{{"init",def->getModule()->getArg("init")}});
+    def->addInstance("readreg","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
+    def->addInstance("wdata0","coreir.const",{{"width",Const::make(c,width)}},{{"value",Const::make(c,BitVector(width,0))}});
+    def->addInstance("waddr0","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,BitVector(awidth,0))}});
+    Values sliceArgs = {{"width", Const::make(c,width)},
+                        {"lo", Const::make(c,0)},
+                        {"hi", Const::make(c,awidth)}};
+    def->addInstance("raddr_slice","coreir.slice",sliceArgs);
+                     
+    def->connect("self.clk","mem.clk");
+    def->connect("self.clk","readreg.clk");
+    def->connect("wdata0.out","mem.wdata");
+    def->connect("waddr0.out","mem.waddr");
+    def->connect("wdata0.out.0","mem.wen");
+    def->connect("mem.rdata","readreg.in");
+    def->connect("self.rdata","readreg.out");
+    def->connect("self.raddr","raddr_slice.in");
+    def->connect("raddr_slice.out","mem.raddr");
+    def->connect("self.ren","readreg.en");
+  });
+
+  
   return memory;
 }
 

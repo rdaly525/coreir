@@ -1247,7 +1247,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       //cout << "created all linebuffers" << endl;
       
       // SPECIAL CASE: same sized stencil output as image, so no lbmems needed (all in regs)
-      if (out_dim == img_dim) {
+      //if (out_dim == img_dim) {
+      if (img_dim == 0) {
         ASSERT(false, "out_dim == img_dim isn't implemented yet");
 
       } else {
@@ -1263,9 +1264,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           if (dim_i == 0) {
             size_lbmems *= img_dims[dim_i] / in_dims[dim_i];
           } else {
-            size_lbmems *= (img_dims[dim_i] - (out_dims[dim_i]-in_dims[dim_i])) / in_dims[dim_i];
+            size_lbmems *= img_dims[dim_i] / in_dims[dim_i];
+            //size_lbmems *= (img_dims[dim_i] - (out_dims[dim_i]-in_dims[dim_i])) / in_dims[dim_i];
           }
         }
+
+        //size_lbmems = size_lbmems == 1 ? 0 : size_lbmems;
         Const* aLbmemSize = Const::make(c, size_lbmems);
 
         //   num_lbmems = (prod(in[x]) * (out-in)
@@ -1292,6 +1296,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
             def->addInstance(lbmem_name, "memory.rowbuffer",
                              {{"width",aBitwidth},{"depth",aLbmemSize}});
+
 
             // hook up flush
             // FIXME: actually create flush signal using counters
@@ -1356,8 +1361,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
               // connect wen if has_valid
               if (has_valid) {
-                string valid_name = lb_prefix + to_string(0);
-                def->connect(valid_name + ".valid_chain", lbmem_name + ".wen");
+                 if (out_i < in_dim) {
+                   // use self wen; actually stall network for now
+                   def->connect("self.wen", lbmem_name + ".wen");
+
+                 } else {
+                   // use valid from previous lbmem
+                   def->connect(input_name + ".valid_chain", lbmem_name + ".wen");
+                 }
+                 //string valid_name = lb_prefix + to_string(0);
+                 //def->connect(valid_name + ".valid_chain", lbmem_name + ".wen");
               } else {
                 def->connect("self.wen", lbmem_name + ".wen");
               }
@@ -1537,6 +1550,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   );
 
+  //commonlib->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),{{"width",c->Int()},{"min",c->Int()},{"max",c->Int()},{"inc",c->Int()}});
   Generator* counter = commonlib->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),{{"width",c->Int()},{"min",c->Int()},{"max",c->Int()},{"inc",c->Int()}});
   counter->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
@@ -1545,43 +1559,43 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     uint inc = genargs.at("inc")->get<int>();
     assert(width>0);
     ASSERT(max>min, "max is " + to_string(max) + " while min is " + to_string(min));
-
+  
     // get generators
     Namespace* coreirprims = c->getNamespace("coreir");
     Generator* ult_gen = coreirprims->getGenerator("ult");
     Generator* add_gen = coreirprims->getGenerator("add");
     Generator* const_gen = coreirprims->getGenerator("const");
-
+  
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     Const* aReset = Const::make(c,BitVector(width,min));
     def->addInstance("count", "mantle.reg", {{"width",aBitwidth},{"has_clr",Const::make(c,true)},{"has_en",Const::make(c,true)}},
                          {{"init",aReset}});
-
+  
     def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,max))}});
     def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     //def->addInstance("and", "corebit.and");
-    def->addInstance("resetOr", "coreir.or", {{"width",Const::make(c, 1)}});
-
+    def->addInstance("resetOr", "corebit.or");
+  
     // wire up modules
     // clear if max < count+inc
     def->connect("count.out","self.out");
     def->connect("count.out","add.in0");
     def->connect("inc.out","add.in1");
-
+  
     def->connect("self.en","count.en");
     def->connect("add.out","count.in");
-
+  
     def->connect("add.out","ult.in1");
     def->connect("max.out","ult.in0");
     // clear count on either getting to max or reset
-    def->connect("ult.out","resetOr.in0.0");
-    def->connect("self.reset","resetOr.in1.0");
-    def->connect("resetOr.out.0","count.clr");
+    def->connect("ult.out","resetOr.in0");
+    def->connect("self.reset","resetOr.in1");
+    def->connect("resetOr.out","count.clr");
     def->connect("ult.out","self.overflow");
-
+  
   });
 
   /////////////////////////////////
@@ -1645,14 +1659,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                        {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
                        {{"init", Const::make(c, width, 0)}});
     }
-    def->addInstance("ignoreOverflow", "coreir.term", {{"width", Const::make(c, 1)}});
+    def->addInstance("ignoreOverflow", "corebit.term");
 
     // wire up modules
     def->connect("self.reset", "counter.reset");
     def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
-    def->connect("counter.overflow", "ignoreOverflow.in.0");
+    def->connect("counter.overflow", "ignoreOverflow.in");
 
     def->connect("counter.out","slice.in");
     def->connect("slice.out","muxn.in.sel");
@@ -1736,7 +1750,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               {"width",Const::make(c,1)},
               {"has_en",Const::make(c,true)}
           }, {{"init",Const::make(c, 1, i == 0 ? 1 : 0)}});
-      def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
+      def->addInstance(and_name, "corebit.and");
     }
     // this reg is 1 only cycle after last enable reg is 1, to indicate that all registers have been written
     // to in the last cycle
@@ -1744,11 +1758,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                      {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}},
                      {{"init", Const::make(c, 1, 0)}});
     // use this for driving input to first enable reg
-    def->addInstance("firstEnabledOr", "coreir.or", {{"width",Const::make(c,1)}});
+    def->addInstance("firstEnabledOr", "corebit.or");
     // the not to invert the reset
-    def->addInstance("resetInvert", "coreir.not", {{"width",Const::make(c,1)}});
+    def->addInstance("resetInvert", "corebit.not");
 
-    def->connect("self.reset", "resetInvert.in.0");
+    def->connect("self.reset", "resetInvert.in");
 
     // wire up one input to all regs
     for (uint i=0; i<rate-1; ++i) {
@@ -1768,21 +1782,21 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       // if this is the last reg, wire it's output and the deserializer reset into the input for the
       // first enable reg as if either occurs its a reason for starting cycle again
       if (i == rate - 2) {
-          def->connect("self.reset", "firstEnabledOr.in0.0");
-          def->connect(en_reg_name + ".out", "firstEnabledOr.in1");
-          def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in");
+          def->connect("self.reset", "firstEnabledOr.in0");
+          def->connect(en_reg_name + ".out.0", "firstEnabledOr.in1");
+          def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in.0");
 
           // wire up the valid signal, which comes one clock after the last reg is enabled, same cycle
           // as that reg starts emitting the right value
-          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect(en_reg_name + ".out.0", en_and_name + ".in0");
           def->connect("resetInvert.out", en_and_name + ".in1");
-          def->connect(en_and_name + ".out", "validReg.in");
+          def->connect(en_and_name + ".out", "validReg.in.0");
           def->connect("validReg.out.0", "self.valid");
       }
       else {
-          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect(en_reg_name + ".out.0", en_and_name + ".in0");
           def->connect("resetInvert.out", en_and_name + ".in1");
-          def->connect(en_and_name + ".out", next_en_reg_name + ".in");
+          def->connect(en_and_name + ".out", next_en_reg_name + ".in.0");
       }
     }
     // wire the input to the last output slot, as directly sending that one out so each cycle is
