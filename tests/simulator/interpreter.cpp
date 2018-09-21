@@ -65,6 +65,37 @@ namespace CoreIR {
   
   }
 
+  TEST_CASE("Implementing divide") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+
+    uint width = 16;
+    Type* tp = c->Record({{"in0", c->BitIn()->Arr(width)},
+          {"in1", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+    Module* mod = g->newModuleDecl("div_test", tp);
+    ModuleDef* def = mod->newModuleDef();
+
+    def->addInstance("c0", "coreir.udiv", {{"width", Const::make(c, width)}});
+    def->connect("self.in0", "c0.in0");
+    def->connect("self.in1", "c0.in1");
+    def->connect("c0.out", "self.out");
+    mod->setDef(def);
+
+    c->runPasses({"rungenerators"});
+
+    SimulatorState state(mod);
+    state.setValue("self.in0", BitVector(width, 182));
+    state.setValue("self.in1", BitVector(width, 13));
+    state.execute();
+
+    cout << "Divide output = " << state.getBitVec("self.out") << endl;
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 182 / 13));
+  }
+
   TEST_CASE("Checking concat order") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
