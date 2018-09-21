@@ -1273,7 +1273,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           }
         }
 
-        //size_lbmems = size_lbmems == 1 ? 0 : size_lbmems;
         Const* aLbmemSize = Const::make(c, size_lbmems);
 
         //   num_lbmems = (prod(in[x]) * (out-in)
@@ -1355,10 +1354,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                   // for last dimension, don't go to the end of register chain
                   uint index_i = inverted_index(out_dims[dim_i], in_dims[dim_i], indices[dim_i]);
                   input_name += "." + to_string(index_i);
-                  //input_name += "." + to_string(out_dims[dim_i]-1 - indices[dim_i]);
                 } else {
                   input_name += "." + to_string(in_dims[dim_i]-1 - indices[dim_i]);
-                  //input_name += "." + to_string(indices[dim_i]);
                 }
               }
               def->connect(lbmem_name + ".wdata", input_name);
@@ -1373,8 +1370,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                    // use valid from previous lbmem
                    def->connect(input_name + ".valid_chain", lbmem_name + ".wen");
                  }
-                 //string valid_name = lb_prefix + to_string(0);
-                 //def->connect(valid_name + ".valid_chain", lbmem_name + ".wen");
               } else {
                 def->connect("self.wen", lbmem_name + ".wen");
               }

@@ -28,7 +28,6 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   });
 
   //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
-  //memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
   Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
 
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
@@ -251,6 +250,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   });
 
 
+  // ROM= Read-only memory. Index to read values from memory, but no exposed write port.
   Params RomGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   auto RomModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
@@ -297,6 +297,9 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.ren","readreg.en");
   });
 
+  // ROM= Read-only memory. Index to read values from memory, but no exposed write port.
+  //  This ROM differs in read address size, and maintains a consistent 16 bits for ease
+  //  of connecting to other modules with a constant bitwidth.
   memory->newTypeGen("Rom2Type",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     return c->Record({
