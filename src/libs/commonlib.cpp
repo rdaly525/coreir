@@ -1203,8 +1203,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         } else {
           def->connect({"self","wen"},{"self","valid"});
           def->connect({"self","wen"},{"self","valid_chain"});
-        }        
-      } // valid chain
+        }
+      }  // valid chain
+      
+      def->addInstance("reset_term", "corebit.term");
+      def->connect("self.reset","reset_term.in");
 
     //////////////////////////  
     ///// RECURSIVE CASE /////
@@ -1230,6 +1233,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         //if (!has_valid || (is_last_lb && i == out_dim-1)) { // was used when is_last_lb was used recursively
         
         def->addInstance(lb_name, "commonlib.linebuffer_recursive", args);
+        def->connect({"self","reset"},{lb_name,"reset"});
       }
 
       // ALL CASES: stencil output connections
@@ -1434,6 +1438,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           // create counters to create valid output (if top-level linebuffer)
           if (is_last_lb == false) {
             def->connect(valid_chain_str, "self.valid");
+            def->addInstance("reset_term", "corebit.term");
+            def->connect("self.reset","reset_term.in");
           } else { //if (is_last_lb) {
 
             std::vector<std::string> counter_outputs;
@@ -1489,6 +1495,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
             if (counter_outputs.size() == 0) {
               def->connect("self.wen", "self.valid");
+              def->addInstance("reset_term", "corebit.term");
+              def->connect("self.reset","reset_term.in");
+
             } else {
               // andr all comparator outputs
               string andr_name = "valid_andr";
