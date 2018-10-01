@@ -9,6 +9,7 @@ TARGET = dylib
 prefix?=/usr/local
 endif
 
+COREDEBUG = True
 
 COREIRCONFIG ?= g++
 CXX ?= g++
@@ -27,7 +28,7 @@ CFLAGS = -Wall -fPIC
 CXXFLAGS = -std=c++11 -Wall -fPIC -Werror
 
 ifdef COREDEBUG
-CXXFLAGS += -O0 -g3 -D_GLIBCXX_DEBUG
+CXXFLAGS += -O0 -g3
 endif
 
 export CXX

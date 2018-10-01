@@ -82,12 +82,12 @@ class VModule {
     VModule(Module* m) : VModule(m->getName(),m->getType()) {
       if (m->isGenerated()) this->modname = m->getLongName();
       this->addParams(params,m->getModParams());
-      this->addDefaults(paramDefaults,m->getDefaultModArgs());
+      this->addDefaults(&paramDefaults,m->getDefaultModArgs());
       this->checkJson(m->getMetaData());
     }
     VModule(Generator* g) : modname(g->getName()), gen(g) {
       this->addParams(params,g->getGenParams());
-      this->addDefaults(paramDefaults,g->getDefaultGenArgs());
+      this->addDefaults(&paramDefaults,g->getDefaultGenArgs());
       this->checkJson(g->getMetaData());
     }
     void checkJson(json jmeta) {
@@ -140,10 +140,10 @@ class VModule {
         sps.insert(p.first); 
       }
     }
-    void addDefaults(SMap sm, Values ds) { 
+    void addDefaults(SMap* sm, Values ds) {
       for (auto dpair : ds) {
         ASSERT(params.count(dpair.first),modname + " NYI Cannot Add default! " + dpair.first);
-        sm[dpair.first] = toConstString(dpair.second);
+        (*sm)[dpair.first] = toConstString(dpair.second);
       }
     }
     std::string toConstString(Value* v) {
