@@ -308,7 +308,7 @@ namespace bsim {
       ind++;
 
       char format = str_raw[ind];
-
+      (void) format;
       assert((format == 'b') ||
              (format == 'h') ||
              (format == 'd'));
