@@ -1,3 +1,4 @@
+#include <algorithm>  // std::max
 //This file is just included in context.cpp
 
 bool isPowerOfTwo(const uint n) {
@@ -31,7 +32,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint depth = genargs.at("depth")->get<int>();
-    uint addrWidth = (uint) ceil(log2(depth));
+    uint addrWidth = std::max((int) ceil(log2(depth)), 1);
 
     Values awParams({{"width",Const::make(c,addrWidth)}});
     Values aw1Params({{"width",Const::make(c,addrWidth+1)}});
@@ -236,7 +237,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   Generator* ram = memory->newGeneratorDecl("ram",memory->getTypeGen("RamType"),MemGenParams);
   ram->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     def->addInstance("mem","coreir.mem",genargs);
-    def->addInstance("readreg","coreir.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
+    def->addInstance("readreg","mantle.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
     def->connect("self.clk","readreg.clk");
     def->connect("self.clk","mem.clk");
     def->connect("self.wdata","mem.wdata");
@@ -249,6 +250,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   });
 
 
+  // ROM= Read-only memory. Index to read values from memory, but no exposed write port.
   Params RomGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   auto RomModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
@@ -260,7 +262,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   memory->newTypeGen("RomType",MemGenParams,[](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
-    uint awidth = (uint) ceil(log2(depth));
+    uint awidth = std::max((int) ceil(log2(depth)), 1);
     return c->Record({
       {"clk", c->Named("coreir.clkIn")},
       {"rdata", c->Bit()->Arr(width)},
@@ -275,26 +277,72 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   rom->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
-    uint awidth = (uint) ceil(log2(depth));
+    uint awidth = std::max((int) ceil(log2(depth)), 1);
 
     Values memargs = genargs;
     memargs.insert({"has_init",Const::make(c,true)});
 
     def->addInstance("mem","coreir.mem",memargs,{{"init",def->getModule()->getArg("init")}});
-    def->addInstance("readreg","coreir.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
-    def->addInstance("wdata0","coreir.const",{{"width",Const::make(c,width)}},{{"value",Const::make(c,0)}});
-    def->addInstance("waddr0","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,0)}});
+    def->addInstance("readreg","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
+    def->addInstance("wdata0","coreir.const",{{"width",Const::make(c,width)}},{{"value",Const::make(c,BitVector(width,0))}});
+    def->addInstance("waddr0","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,BitVector(awidth,0))}});
     def->connect("self.clk","mem.clk");
     def->connect("self.clk","readreg.clk");
-    def->connect("wdata0","mem.wdata");
-    def->connect("waddr0","mem.waddr");
-    def->connect("wdata0.0","mem.wen");
+    def->connect("wdata0.out","mem.wdata");
+    def->connect("waddr0.out","mem.waddr");
+    def->connect("wdata0.out.0","mem.wen");
     def->connect("mem.rdata","readreg.in");
     def->connect("self.rdata","readreg.out");
     def->connect("self.raddr","mem.raddr");
     def->connect("self.ren","readreg.en");
   });
 
+  // ROM= Read-only memory. Index to read values from memory, but no exposed write port.
+  //  This ROM differs in read address size, and maintains a consistent 16 bits for ease
+  //  of connecting to other modules with a constant bitwidth.
+  memory->newTypeGen("Rom2Type",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(width)},
+      {"ren", c->BitIn()},
+    });
+  });
+
+
+  Generator* rom2 = memory->newGeneratorDecl("rom2",memory->getTypeGen("Rom2Type"),MemGenParams);
+  rom2->setModParamsGen(RomModParamFun);
+  rom2->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+    
+    Values memargs = genargs;
+    memargs.insert({"has_init",Const::make(c,true)});
+
+    def->addInstance("mem","coreir.mem",memargs,{{"init",def->getModule()->getArg("init")}});
+    def->addInstance("readreg","mantle.reg",{{"width",Const::make(c,width)},{"has_en",Const::make(c,true)}});
+    def->addInstance("wdata0","coreir.const",{{"width",Const::make(c,width)}},{{"value",Const::make(c,BitVector(width,0))}});
+    def->addInstance("waddr0","coreir.const",{{"width",Const::make(c,awidth)}},{{"value",Const::make(c,BitVector(awidth,0))}});
+    Values sliceArgs = {{"width", Const::make(c,width)},
+                        {"lo", Const::make(c,0)},
+                        {"hi", Const::make(c,awidth)}};
+    def->addInstance("raddr_slice","coreir.slice",sliceArgs);
+                     
+    def->connect("self.clk","mem.clk");
+    def->connect("self.clk","readreg.clk");
+    def->connect("wdata0.out","mem.wdata");
+    def->connect("waddr0.out","mem.waddr");
+    def->connect("wdata0.out.0","mem.wen");
+    def->connect("mem.rdata","readreg.in");
+    def->connect("self.rdata","readreg.out");
+    def->connect("self.raddr","raddr_slice.in");
+    def->connect("raddr_slice.out","mem.raddr");
+    def->connect("self.ren","readreg.en");
+  });
+
+  
   return memory;
 }
 

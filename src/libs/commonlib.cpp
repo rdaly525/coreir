@@ -66,6 +66,10 @@ bool isPowerOfTwo(const uint n) {
   return (n & (n - 1)) == 0;
 }
 
+uint inverted_index(uint outx, uint inx, uint i) {
+  return (outx-1) - (inx-1 - i % inx) - (i / inx) * inx;
+}
+
 Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   Namespace* commonlib = c->newNamespace("commonlib");
@@ -144,6 +148,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   //   umin,smin,umax,smax
 	//   uclamp, sclamp
   //   abs, absd, MAD
+  //   div
   /////////////////////////////////
 
   //Lazy way:
@@ -154,7 +159,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     {"binary",{
       "umin","smin","umax","smax",
       "uclamp","sclamp",
-      "absd"
+      "absd", "div"
     }},
     {"ternary",{
       "MAD"
@@ -294,6 +299,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("abs.out","self.out");
   });
 
+  //*** Define iterative divider ***//
+  //Generator* div = c->getGenerator("commonlib.div");
+  // TODO: implement divider
+  
   //*** Define MAD ***//
   Generator* MAD = c->getGenerator("commonlib.MAD");
   MAD->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
@@ -306,6 +315,78 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("mult.out","add.in1");
     def->connect("add.out", "self.out");
   });
+
+  ///////////////////////////////////
+  //*** const array definition  ***//
+  ///////////////////////////////////
+
+  Params const_array_args =  {{"type",CoreIRType::make(c)},{"value",c->Int()}};
+  TypeGen* constArrayTG = coreirprims->newTypeGen(
+    "constArrayTG",
+    const_array_args,
+    [](Context* c, Values args) {
+      Type* t = args.at("type")->get<Type*>();
+
+      RecordParams r({
+          {"out", t}
+        });
+      return c->Record(r);
+    }
+  );
+  Generator* const_array = commonlib->newGeneratorDecl("const_array",constArrayTG,const_array_args);
+  const_array->addDefaultGenArgs({{"value",Const::make(c,0)}});
+
+  const_array->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      Type* type = args.at("type")->get<Type*>();
+      int value = args.at("value")->get<int>();
+      Type* cType = type;
+
+      // identify type size
+      vector<uint> lengths;
+      uint bitwidth = 1;
+      while(!cType->isBaseType()) {
+        assert(cType->getKind() == Type::TypeKind::TK_Array);
+        ArrayType* aType = static_cast<ArrayType*>(cType);
+        uint length = aType->getLen();
+        
+        cType = aType->getElemType();
+        if (cType->isBaseType()) {
+          bitwidth = length;
+        } else {
+          //lengths.insert(lengths.begin(), length);
+          lengths.push_back(length);
+        }
+      }
+
+      // create and connect the interface
+      Wireable* pt_out = def->addInstance("pt_out", "mantle.wire", {{"type",Const::make(c,type)}});
+      def->connect("self.out", "pt_out.out");
+
+      // collect all interface wires
+      std::vector<Wireable*> out_wires; out_wires.push_back(pt_out->sel("in"));
+      for (uint dim_length : lengths) {
+        std::vector<Wireable*> out_temp;
+        out_temp.reserve(out_wires.size() * dim_length);
+
+        for (uint i=0; i<dim_length; ++i) {
+          for (auto out_wire : out_wires) {
+            out_temp.push_back(out_wire->sel(i));
+          }
+        }
+        out_wires = out_temp;
+      }
+
+      // create and wire up constants
+      for (uint i=0; i<out_wires.size(); ++i) {
+        std::string const_name = "const_" + std::to_string(i);
+        Values const_args = {{"width", Const::make(c,bitwidth)}};
+
+        Values const_configargs = {{"value", Const::make(c,BitVector(bitwidth,value))}};
+        Wireable* const_inst = def->addInstance(const_name, "coreir.const", const_args, const_configargs);
+        def->connect(const_inst->sel("out"), out_wires[i]);
+      }
+
+    });
 
   /////////////////////////////////
   //*** reg array definition  ***//
@@ -324,8 +405,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       RecordParams r({
           {"in", t->getFlipped()},
-            {"clk", c->Named("coreir.clkIn")},
-              {"out", t}
+          {"clk", c->Named("coreir.clkIn")},
+          {"out", t}
         });
       if (en) r.push_back({"en",c->BitIn()});
       if (clr) r.push_back({"clr",c->BitIn()});
@@ -631,7 +712,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
   Generator* lbMem = commonlib->newGeneratorDecl("LinebufferMem",commonlib->getTypeGen("LinebufferMemType"),MemGenParams);
   lbMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
-  
+
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
@@ -802,13 +883,17 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.ren","readreg.en");
   });
 
+  
+  //////////////////////////////////////////////////
   //*** generic recursively defined linebuffer ***//
+  //////////////////////////////////////////////////
+
+  // top-level linebuffer that should be used by the user
   Params lb_args = 
     {{"input_type",CoreIRType::make(c)},
      {"output_type",CoreIRType::make(c)},
-     {"image_type",CoreIRType::make(c)}, 
+     {"image_type",CoreIRType::make(c)},
      {"has_valid",c->Bool()},
-     {"is_last_lb",c->Bool()} // use this to denote when to create valid register chain
     };
 
   commonlib->newTypeGen(
@@ -816,19 +901,78 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     lb_args,
     [](Context* c, Values genargs) { //Function to compute type
       bool has_valid = genargs.at("has_valid")->get<bool>();
-      //bool is_last_lb = genargs.at("is_last_lb")->get<bool>();
       Type* in_type  = genargs.at("input_type")->get<Type*>();
       Type* out_type  = genargs.at("output_type")->get<Type*>();
+      Type* img_type = genargs.at("image_type")->get<Type*>();
+
+      // process and check the input arguments
+      vector<uint> in_dims = get_dims(in_type);
+      vector<uint> out_dims = get_dims(out_type);
+      vector<uint> img_dims = get_dims(img_type);
+
+      uint bitwidth = in_dims[0]; // first array is bitwidth
+      ASSERT(bitwidth > 0, "The first dimension for the input is interpretted "
+             "as the bitwidth which was set to " + to_string(bitwidth));
+
+      ASSERT(bitwidth == out_dims[0], 
+             to_string(bitwidth) + " != " + to_string(out_dims[0]) + \
+             "all bitwidths must match (input doesn't match output)");
+      ASSERT(bitwidth == img_dims[0], 
+             to_string(bitwidth) + " != " + to_string(img_dims[0]) + \
+             "all bitwidths must match (input doesn't match image)");
+
+      // erase the bitwidth size from vectors
+      in_dims.erase(in_dims.begin()); 
+      out_dims.erase(out_dims.begin());
+      img_dims.erase(img_dims.begin());
+
+      uint num_dims = in_dims.size();
+      ASSERT(num_dims == out_dims.size(),
+             "all must have same number of dimensions (input and output mismatch)");
+      ASSERT(num_dims == img_dims.size(),
+             "all must have same number of dimensions (input and image mismatch)");
+
+      // we will check all dimensions for correct construction
+      for (uint dim=0; dim<num_dims; ++dim) {
+        uint out_dimx = out_dims[dim];
+        uint img_dimx = img_dims[dim];
+        uint in_dimx = in_dims[dim];
+
+        ASSERT(img_dimx >= out_dimx,
+               "image dimension length (" + to_string(img_dimx) + \
+               ") must be larger than output (" + to_string(out_dimx) + \
+               ") in dim " + to_string(dim));
+        ASSERT(out_dimx >= in_dimx,
+               "output stencil size (" + to_string(out_dimx) + \
+               ") must be larger than input (" + to_string(in_dimx) + \
+               ") in dim " + to_string(dim));
+        ASSERT(img_dimx % in_dimx == 0,
+               "img_dim=" + to_string(img_dimx) + " % in_dim=" + to_string(in_dimx) + \
+               " != 0 in dim=" + to_string(dim) + \
+               ", dimension length must be divisible, because we can't swizzle data");
+        ASSERT(out_dimx % in_dimx == 0,
+               "out_dim=" + to_string(out_dimx) + " % in_dim=" + to_string(in_dimx) + \
+               " != 0 in dim=" + to_string(dim) + \
+               ", dimension length must be divisible, because we can't swizzle data");
+
+        if (img_dimx - out_dimx < 3 && (img_dimx != out_dimx)) {
+          std::cout << "Image dimension " << dim << "  is " << img_dimx
+                    << " and output stencil size is " << out_dimx
+                    << ", which means the linebuffer mem is going to be very small"
+                    << std::endl;
+      
+        }
+      }
+
+      // create the ports for the linebuffer
       RecordParams recordparams = {
           {"in", in_type},
+          {"reset", c->BitIn()},
           {"wen",c->BitIn()},
           {"out", out_type}
       };
 
       if (has_valid) { recordparams.push_back({"valid",c->Bit()}); }
-      if (has_valid) { recordparams.push_back({"valid_chain",c->Bit()}); }
-      // only register chain needs wen for valid bit propagation
-      //if (has_valid && is_last_lb && num_dims(in_type)==2) { recordparams.push_back({"wen",c->BitIn()}); }
       return c->Record(recordparams);
     }
   );
@@ -839,9 +983,115 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     lb_args
   );
   lb->addDefaultGenArgs({{"has_valid",Const::make(c,false)}});
-  lb->addDefaultGenArgs({{"is_last_lb",Const::make(c,true)}}); // asserted false to not create register chain
 
   lb->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+      bool has_valid = genargs.at("has_valid")->get<bool>();
+      bool is_last_lb= true;
+      Type* in_type  = genargs.at("input_type")->get<Type*>();
+      Type* out_type = genargs.at("output_type")->get<Type*>();
+      Type* img_type = genargs.at("image_type")->get<Type*>();
+
+      // create a linebuffer
+      Values lb_args = {
+            {"input_type", Const::make(c, in_type)},
+            {"image_type", Const::make(c, img_type)},
+            {"output_type", Const::make(c, out_type)},
+            {"has_valid", Const::make(c, has_valid)},
+            {"is_last_lb", Const::make(c, is_last_lb)}
+      };
+
+      def->addInstance("lb_recurse",
+                       "commonlib.linebuffer_recursive",
+                       lb_args);
+
+      // connect linebuffer to this generator's ports
+      def->connect("self.in", "lb_recurse.in");
+      def->connect("self.reset", "lb_recurse.reset");
+      def->connect("self.wen", "lb_recurse.wen");
+      if (has_valid) {
+        def->connect("self.valid", "lb_recurse.valid");
+      }
+
+      // flip all of the outputs to the correct output port
+      vector<uint> in_dims = get_dims(in_type);
+      vector<uint> out_dims = get_dims(out_type);
+      vector<uint> img_dims = get_dims(img_type);
+      in_dims.erase(in_dims.begin()); 
+      out_dims.erase(out_dims.begin());
+      img_dims.erase(img_dims.begin());
+      uint num_dims = in_dims.size();
+
+      std::vector<std::pair<string,string>> out_pairs;
+      out_pairs.push_back({"lb_recurse.out", "self.out"});
+      for (int dim=num_dims-1; dim>=0; --dim) {
+        uint  inx =  in_dims[dim];
+        uint outx = out_dims[dim];
+
+        std::vector<std::pair<string,string>> out_temp;
+        out_temp.reserve(out_pairs.size() * outx);
+        for (uint i=0; i<outx; ++i) {
+          for (auto out_pair : out_pairs) {
+            string source = out_pair.first;
+            string sink = out_pair.second;
+            uint iflip = inverted_index(outx, inx, i);
+            out_temp.push_back({source + "." + to_string(i),
+                    sink + "." + to_string(iflip)});
+            
+          }
+        }
+        out_pairs = out_temp;
+      }
+
+      //std::cout << "linebuffer connections:" << std::endl;
+      for (auto out_pair : out_pairs) {
+        //std::cout << "  connecting " << out_pair.first
+        //          << " to " << out_pair.second
+        //          << std::endl;
+        def->connect(out_pair.first, out_pair.second);
+      }
+      //std::cout << std::endl;
+      
+    }
+    );
+
+
+  // recursive version for linebuffer
+  Params lb_recursive_args = 
+      {{"input_type",CoreIRType::make(c)},
+       {"output_type",CoreIRType::make(c)},
+       {"image_type",CoreIRType::make(c)},
+       {"has_valid",c->Bool()},
+       {"is_last_lb",c->Bool()} // use this to denote when to create valid register chain
+      };
+
+  commonlib->newTypeGen(
+      "lb_recursive_type", //name for the typegen
+      lb_recursive_args,
+      [](Context* c, Values genargs) { //Function to compute type
+        bool has_valid = genargs.at("has_valid")->get<bool>();
+        //bool is_last_lb = genargs.at("is_last_lb")->get<bool>();
+        Type* in_type  = genargs.at("input_type")->get<Type*>();
+        Type* out_type  = genargs.at("output_type")->get<Type*>();
+        RecordParams recordparams = {
+          {"in", in_type},
+          {"reset", c->BitIn()},
+          {"wen",c->BitIn()},
+          {"out", out_type}
+        };
+
+        if (has_valid) { recordparams.push_back({"valid",c->Bit()}); }
+        if (has_valid) { recordparams.push_back({"valid_chain",c->Bit()}); }
+        return c->Record(recordparams);
+      }
+                        );
+  
+  Generator* lb_recursive = commonlib->newGeneratorDecl(
+      "linebuffer_recursive",
+      commonlib->getTypeGen("lb_recursive_type"),
+      lb_recursive_args
+                                                        );
+  
+  lb_recursive->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //cout << "running linebuffer generator" << endl;
     bool has_valid = genargs.at("has_valid")->get<bool>();
     bool is_last_lb= genargs.at("is_last_lb")->get<bool>();
@@ -852,42 +1102,21 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     vector<uint> out_dims = get_dims(out_type);
     vector<uint> img_dims = get_dims(img_type);
 
-    uint bitwidth = in_dims[0]; // first array is bitwidth
+    uint bitwidth = in_dims[0]; // first element in array is bitwidth
     ASSERT(bitwidth > 0, "The first dimension for the input is interpretted "
 					 "as the bitwidth which was set to " + to_string(bitwidth));
 
-    ASSERT(bitwidth == out_dims[0], 
-					 to_string(bitwidth) + " != " + to_string(out_dims[0]) + "all bitwidths must match");
-    ASSERT(bitwidth == img_dims[0], 
-					 to_string(bitwidth) + " != " + to_string(img_dims[0]) + "all bitwidths must match");
-
-    in_dims.erase(in_dims.begin()); // erase the bitwidth size from vectors
+    // erase the bitwidth size from vectors
+    in_dims.erase(in_dims.begin()); 
     out_dims.erase(out_dims.begin());
     img_dims.erase(img_dims.begin());
 
+    // last dimension most commonly used
     uint num_dims = in_dims.size();
-    assert(num_dims >= 0);
-    assert(num_dims == out_dims.size()); // all must have same number of dimensions
-    assert(num_dims == img_dims.size());
-
-    // we will check just the last dimension
     uint dim = num_dims-1;
     uint out_dim = out_dims[dim];
     uint img_dim = img_dims[dim];
     uint in_dim = in_dims[dim];
-
-    assert(img_dim >= out_dim); // image dimension length must be larger than output
-    assert(out_dim >= in_dim); // output stencil size must be larger than the input
-    assert(img_dim % in_dim == 0); // dimension length must be divisible, becuase we can't swizzle data
-    ASSERT(out_dim % in_dim == 0, "out_dim=" + to_string(out_dim) + " % in_dim=" + to_string(in_dim) + \
-          " != 0, dimension length must be divisible, becuase we can't swizzle data");
-
-    if (img_dim - out_dim < 3 && (img_dim != out_dim)) {
-      std::cout << "Image dimension " << dim << "  is " << img_dim 
-                << " and output stencil size is " << out_dim
-                << ", which means the linebuffer mem is going to be very small" << std::endl;
-      
-    }
 
     if (!is_last_lb) {
       ASSERT(has_valid, "is_last_lb was set to false when !has_valid. This flag should not be used unless using valid output port");
@@ -909,7 +1138,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       // connect based on input size
       for (uint i=0; i<out_dim; ++i) {
         // output goes to mirror position, except keeping order within a single clock cycle
-        uint iflip = (out_dim-1) - (in_dim - 1 - i % in_dim) - (i / in_dim) * in_dim;
+        //uint iflip = (out_dim-1) - (in_dim - 1 - i % in_dim) - (i / in_dim) * in_dim;
+
+        //uint iflip = (out_dim-1) - i;
+        uint iflip = i;
 
         // connect to input
         if (i < in_dim) {
@@ -971,51 +1203,17 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         } else {
           def->connect({"self","wen"},{"self","valid"});
           def->connect({"self","wen"},{"self","valid_chain"});
-        }        
-      } // valid chain
-
-/*// a counter is not needed since the images are only 1d
-
-				// counter 0:1:max/inc
-				// valid = stencil_size-1 <= count 
-				string counter_prefix = "valcounter_";
-				string counter_name = counter_prefix + to_string(0);
-				Values counter_args = {
-					{"width",Const::make(c,bitwidth)},
-					{"min",Const::make(c,0)},
-					{"max",Const::make(c,img_dim / in_dim)},
-					{"inc",Const::make(c,1)}
-				};
-				def->addInstance(counter_name,"commonlib.counter",counter_args);
-
-				// comparator for valid (if stencil_size < count)
-				string compare_name = "valcompare_d" + to_string(0);
-				def->addInstance(compare_name,"coreir.ule",{{"width",aBitwidth}});
-				string const_name = "stencilsize_d" + to_string(0);
-				int const_value = out_dim/in_dim - 1;
-				assert(const_value >= 0);
-				Values const_arg = {{"value",Const::make(c,BitVector(bitwidth, const_value))}};
-				def->addInstance(const_name, "coreir.const", {{"width",aBitwidth}}, const_arg);
-
-				// connections
-				// counter en by wen
-				def->connect({"self","wen"},{counter_name,"en"});
-
-				// wire up comparator
-				def->connect({const_name,"out"},{compare_name,"in0"});
-				def->connect({counter_name,"out"},{compare_name,"in1"});
-
-        // connect last valid bit to self.valid
-        string valid_name = "valcompare_d" + to_string(0);
-        def->connect({"self","valid"},{valid_name,"out"});
-				def->connect({"self","valid_chain"},{valid_name,"out"});
-				}*/        
-
+        }
+      }  // valid chain
+      
+      def->addInstance("reset_term", "corebit.term");
+      def->connect("self.reset","reset_term.in");
 
     //////////////////////////  
     ///// RECURSIVE CASE /////
     //////////////////////////  
     } else {
+      
       string lb_prefix = "lb" + to_string(dim) + "d_"; // use this for recursively smaller linebuffers
       Type* lb_input = cast<ArrayType>(in_type)->getElemType();
       Type* lb_image = cast<ArrayType>(img_type)->getElemType();
@@ -1034,63 +1232,47 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           };
         //if (!has_valid || (is_last_lb && i == out_dim-1)) { // was used when is_last_lb was used recursively
         
-        def->addInstance(lb_name, "commonlib.linebuffer", args);
+        def->addInstance(lb_name, "commonlib.linebuffer_recursive", args);
+        def->connect({"self","reset"},{lb_name,"reset"});
       }
 
       // ALL CASES: stencil output connections
       // connect the stencil outupts
       for (uint i=0; i<out_dim; ++i) {
-        uint iflip = (out_dim-1) - i; // output goes to mirror position
+        // output goes to mirror position, except keeping order within a single clock cycle
+        //uint iflip = (out_dim-1) - (in_dim-1 - i % in_dim) - (i / in_dim) * in_dim;
+        //uint iflip = out_dim-1 - i;
+        uint iflip = i;
         string lb_name = lb_prefix + to_string(i);
+        
         def->connect({"self","out",to_string(iflip)}, {lb_name,"out"});
       }
 
       //cout << "created all linebuffers" << endl;
       
       // SPECIAL CASE: same sized stencil output as image, so no lbmems needed (all in regs)
-      if (out_dim == img_dim) {
+      //if (out_dim == img_dim) {
+      if (img_dim == 0) {
         ASSERT(false, "out_dim == img_dim isn't implemented yet");
-        /*
-        // connect the inputs
-        for (uint i = 0; i < out_dim; ++i) {
-          std::string lb_name = lb_prefix + std::to_string(i);
-          vector<string> prev_name;
-
-          // lb input depends on how the size of input interface 
-          if (i < in_dim) {
-            prev_name = {"self", "in", to_string(i)};
-          } else {
-            prev_name = {lb2_prefix + std::to_string(i-in_dim)), "in"};
-          }
-
-          // connect every input for this lb
-          for (uint dim_i=0; dim_i<num_dim-1; ++dim) {
-            for (uint lb_in; lb_in<in_dims[dim]; ++lb_in) {
-              
-            }
-          }
-
-          def->connect({"self","in"},{lb_name,"in"});
-          def->connect(prev_lb,lb_name + "in");
-      }
-        */
 
       } else {
         //cout << "in the regular case of linebuffer" << endl;
  
-      // REGULAR CASE: lbmems to store image lines
+        // REGULAR CASE: lbmems to store image lines
  
-      // create lbmems to store data between linebuffers
-      //   size_lbmems = prod((img[x] - (out[x]-in[x])) / in[x]) 
-      //      except for x==1, img0 / in0
+        // create lbmems to store data between linebuffers
+        //   size_lbmems = prod((img[x] - (out[x]-in[x])) / in[x]) 
+        //      except for x==1, img0 / in0
         uint size_lbmems = 1; //out_dim-1;
         for (uint dim_i=0; dim_i<num_dims-1; dim_i++) {
           if (dim_i == 0) {
             size_lbmems *= img_dims[dim_i] / in_dims[dim_i];
           } else {
-            size_lbmems *= (img_dims[dim_i] - (out_dims[dim_i]-in_dims[dim_i])) / in_dims[dim_i];
+            size_lbmems *= img_dims[dim_i] / in_dims[dim_i];
+            //size_lbmems *= (img_dims[dim_i] - (out_dims[dim_i]-in_dims[dim_i])) / in_dims[dim_i];
           }
         }
+
         Const* aLbmemSize = Const::make(c, size_lbmems);
 
         //   num_lbmems = (prod(in[x]) * (out-in)
@@ -1118,6 +1300,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             def->addInstance(lbmem_name, "memory.rowbuffer",
                              {{"width",aBitwidth},{"depth",aLbmemSize}});
 
+
             // hook up flush
             // FIXME: actually create flush signal using counters
             string lbmem_flush_name = lbmem_name + "_flush";
@@ -1140,7 +1323,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                 input_name = lbmem_prefix + "_" + to_string(lbmem_line-in_dim);
                 delim = "_";
                 input_suffix = ".rdata";
-
               }
 
               for (int dim_i=num_indices-1; dim_i>=0; --dim_i) {
@@ -1154,20 +1336,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                  if (out_i < in_dim) {
                    // use self wen; actually stall network for now
                    def->connect("self.wen", lbmem_name + ".wen");
-                   //string wen_name = lbmem_name + "_wen_high";
-                   //Values wen_high = {{"value",Const::make(c,true)}};
-                   //def->addInstance(wen_name, "corebit.const", wen_high);
-                   //def->connect({wen_name,"out"}, {lbmem_name,"wen"});
+
                  } else {
                    // use valid from previous lbmem
                    def->connect(input_name + ".valid", lbmem_name + ".wen");
                  }
               } else {
                 def->connect("self.wen", lbmem_name + ".wen");
-                //string wen_name = lbmem_name + "_wen_high";
-                //Values wen_high = {{"value",Const::make(c,true)}};
-                //def->addInstance(wen_name, "corebit.const", wen_high);
-                //def->connect({wen_name,"out"}, {lbmem_name,"wen"});
               }
 
             } else {
@@ -1177,18 +1352,24 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               for (int dim_i=num_indices-1; dim_i>=0; --dim_i) {
                 if (dim_i == 0) {
                   // for last dimension, don't go to the end of register chain
-                  input_name += "." + to_string(out_dims[dim_i]-1 - indices[dim_i]);
+                  uint index_i = inverted_index(out_dims[dim_i], in_dims[dim_i], indices[dim_i]);
+                  input_name += "." + to_string(index_i);
                 } else {
                   input_name += "." + to_string(in_dims[dim_i]-1 - indices[dim_i]);
-
                 }
               }
               def->connect(lbmem_name + ".wdata", input_name);
 
               // connect wen if has_valid
               if (has_valid) {
-                string valid_name = lb_prefix + to_string(0);
-                def->connect(valid_name + ".valid_chain", lbmem_name + ".wen");
+                 if (out_i < in_dim) {
+                   // use self wen; actually stall network for now
+                   def->connect("self.wen", lbmem_name + ".wen");
+
+                 } else {
+                   // use valid from previous lbmem
+                   def->connect(input_name + ".valid_chain", lbmem_name + ".wen");
+                 }
               } else {
                 def->connect("self.wen", lbmem_name + ".wen");
               }
@@ -1252,6 +1433,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           // create counters to create valid output (if top-level linebuffer)
           if (is_last_lb == false) {
             def->connect(valid_chain_str, "self.valid");
+            def->addInstance("reset_term", "corebit.term");
+            def->connect("self.reset","reset_term.in");
           } else { //if (is_last_lb) {
 
             std::vector<std::string> counter_outputs;
@@ -1262,7 +1445,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               // comparator for valid (if stencil_size-1 <= count)
               int const_value = (out_dims[dim_i] / in_dims[dim_i]) - 1;
               //FIXME: not implemented, because overflow needed to trigger next counter
-              //if (const_value == 0) continue;  // no counter needed if stencil_size is 1
+              if (const_value == 0) continue;  // no counter needed if stencil_size is 1
 
               string const_name = "const_stencil" + to_string(dim_i);
               Values const_arg = {{"value",Const::make(c,BitVector(bitwidth,const_value))}};
@@ -1283,17 +1466,18 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               def->addInstance(counter_name,"commonlib.counter",counter_args);
 
 							// connect reset to 0
-							string counter_reset_name = counter_name + "_reset";
-              def->addInstance(counter_reset_name, "corebit.const", {{"value",Const::make(c,false)}});
-							def->connect({counter_name, "reset"},{counter_reset_name,"out"});
+							def->connect({counter_name, "reset"},{"self","reset"});
 
               // connections
               // counter en by wen or overflow bit
-              if (dim_i == 0) {
+              if (dim_i == 0 || counter_outputs.size() == 1) {
                 //def->connect({last_lbmem_name,"valid"},{counter_name,"en"});
 								def->connect("self.wen",counter_name + ".en");
               } else {
-                string last_counter_name = counter_prefix + to_string(dim_i-1);
+                string last_compare_out_name = counter_outputs[counter_outputs.size()-1];
+                string last_compare_name = last_compare_out_name.substr(0, last_compare_out_name.find(".out"));
+                string last_compare_index = last_compare_name.substr(last_compare_name.find("_")+1);
+                string last_counter_name = counter_prefix + last_compare_index;
                 def->connect({last_counter_name,"overflow"},{counter_name,"en"});
               }
 
@@ -1306,6 +1490,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
             if (counter_outputs.size() == 0) {
               def->connect("self.wen", "self.valid");
+              def->addInstance("reset_term", "corebit.term");
+              def->connect("self.reset","reset_term.in");
+
             } else {
               // andr all comparator outputs
               string andr_name = "valid_andr";
@@ -1342,276 +1529,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
-  //*** DEPRECATED: Linebuffer2d ***//
-  //Declare a TypeGenerator (in global) for 2d linebuffer
-  commonlib->newTypeGen(
-    "linebuffer2d_type", //name for the typegen
-    {{"stencil_width",c->Int()},{"stencil_height",c->Int()},{"image_width",c->Int()},{"bitwidth",c->Int()}}, //generater parameters
-    [](Context* c, Values genargs) { //Function to compute type
-      uint stencil_width  = genargs.at("stencil_width")->get<int>();
-      uint stencil_height  = genargs.at("stencil_height")->get<int>();
-      //uint image_width = genargs.at("image_width")->get<int>();
-      uint bitwidth = genargs.at("bitwidth")->get<int>();
-      return c->Record({
-        {"in",c->BitIn()->Arr(bitwidth)},
-        {"wen",c->BitIn()},
-          //FIXME: add valid bit
-        {"out",c->Bit()->Arr(bitwidth)->Arr(stencil_width)->Arr(stencil_height)}
-      });
-    }
-  );
-
-  Generator* linebuffer2d = commonlib->newGeneratorDecl(
-    "linebuffer2d",
-    commonlib->getTypeGen("linebuffer2d_type"),{
-      {"stencil_width",c->Int()},
-      {"stencil_height",c->Int()},
-      {"image_width",c->Int()},
-      {"bitwidth",c->Int()}
-    }
-  );
-  linebuffer2d->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-    uint stencil_width  = genargs.at("stencil_width")->get<int>();
-    uint stencil_height  = genargs.at("stencil_height")->get<int>();
-    uint image_width = genargs.at("image_width")->get<int>();
-    uint bitwidth = genargs.at("bitwidth")->get<int>();
-    isPowerOfTwo(bitwidth);
-    assert(stencil_height > 0);
-    assert(stencil_width > 0);
-    assert(image_width >= stencil_width);
-    assert(bitwidth > 0);
-
-    if (image_width - stencil_width < 3 && (image_width != stencil_width)) {
-      std::cout << "Image width is " << image_width << " and stencil width " << stencil_width
-                << ", which means the 2d linebuffer is going to be very small" << std::endl;
-    }
-
-    Const* aBitwidth = Const::make(c,bitwidth);
-    assert(isa<ConstInt>(aBitwidth));
-    Const* aImageWidth = Const::make(c,image_width);
-    std::string reg_prefix = "reg_";
-    std::string mem_prefix = "mem_";
-
-    // create the inital register chain
-    for (uint j = 1; j < stencil_width; ++j) {
-
-      std::string reg_name = reg_prefix + "0_" + std::to_string(j);
-      def->addInstance(reg_name, "coreir.reg", {{"width",aBitwidth}});
-
-      // connect the input
-      if (j == 1) {
-        def->connect({"self","in"}, {reg_name, "in"});
-      } else {
-        std::string prev_reg = reg_prefix + "0_" + std::to_string(j-1);
-        def->connect({prev_reg, "out"}, {reg_name, "in"});
-      }
-    }
-
-    // SPECIAL CASE: same sized stencil as image width, so no memories needed (just registers)
-    if (stencil_width == image_width) {
-      // connect together the remaining stencil registers
-      for (uint i = 1; i < stencil_height; ++i) {
-        for (uint j = 1; j < stencil_width; ++j) {
-          std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
-          def->addInstance(reg_name, "coreir.reg", {{"width",aBitwidth}});
-
-          // connect the input
-          if (j == 1) {
-            std::string prev_reg = reg_prefix + std::to_string(i-1) + "_" + std::to_string(stencil_width-1);
-            def->connect({prev_reg, "out"}, {reg_name, "in"});
-          } else {
-            std::string prev_reg = reg_prefix + std::to_string(i) + "_" + std::to_string(j-1);
-            def->connect({prev_reg, "out"}, {reg_name, "in"});
-          }
-        }
-      }
-
-    // REGULAR CASE: memories to store image lines
-    } else {
-      // connect together the memory lines
-      std::string mem_prefix = "mem_";
-      for (uint i = 1; i < stencil_height; ++i) {
-        std::string mem_name = mem_prefix + std::to_string(i);
-        def->addInstance(mem_name,"memory.rowbuffer",{{"width",aBitwidth},{"depth",aImageWidth}});
-        def->addInstance(mem_name+"_valid_term","corebit.term");
-        def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
-        //def->addInstance(mem_name+"_wen", coreirprims->getModule("bitconst"), {{"value",Const::make(c,1)}});
-        def->connect({mem_name,"wen"},{"self", "wen"});
-
-        // connect the input
-        if (i == 1) {
-          def->connect({"self","in"}, {mem_name, "wdata"});
-        } else {
-          std::string prev_mem = mem_prefix + std::to_string(i-1);
-          def->connect({prev_mem, "rdata"}, {mem_name, "wdata"});
-        }
-      }
-
-      // connect together the remaining stencil registers
-      for (uint i = 1; i < stencil_height; ++i) {
-        for (uint j = 1; j < stencil_width; ++j) {
-          std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
-          def->addInstance(reg_name, "coreir.reg", {{"width",aBitwidth}});
-
-          // connect the input
-          if (j == 1) {
-            std::string mem_name = mem_prefix + std::to_string(i);
-            def->connect({mem_name, "rdata"}, {reg_name, "in"});
-          } else {
-            std::string prev_reg = reg_prefix + std::to_string(i) + "_" + std::to_string(j-1);
-            def->connect({prev_reg, "out"}, {reg_name, "in"});
-          }
-        }
-      }
-    }
-
-    // ALL CASES: all dimensions
-    // connect the stencil outputs
-    for (uint i = 0; i < stencil_height; ++i) {
-      for (uint j = 0; j < stencil_width; ++j) {
-        // delays correspond to earlier pixels
-        uint iflip = (stencil_height - 1) - i;
-        uint jflip = (stencil_width - 1) - j;
-
-        if (j == 0) {
-          // the first column comes from input/mem
-          if (i == 0) {
-            def->connect({"self","in"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
-          } else {
-            if (stencil_width == image_width) { // SPECIAL CASE
-              std::string reg_name = reg_prefix + std::to_string(i-1) + "_" + std::to_string(stencil_width-1);
-              def->connect({reg_name, "out"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
-            } else { // REGULAR CASE
-              std::string mem_name = mem_prefix + std::to_string(i);
-              def->connect({mem_name, "rdata"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
-            }
-          }
-        } else {
-          // rest come from registers
-          std::string reg_name = reg_prefix + std::to_string(i) + "_" + std::to_string(j);
-          def->connect({reg_name, "out"}, {"self","out",std::to_string(iflip),std::to_string(jflip)});
-        }
-      }
-    }
-
-  });
-
-
-
-  //*** DEPRECATED: 3D Linebuffer ***//
-  //Declare a TypeGenerator (in global) for 3d linebuffer
-  commonlib->newTypeGen(
-    "linebuffer3d_type", //name for the typegen
-    {{"stencil_d0",c->Int()},{"stencil_d1",c->Int()},{"stencil_d2",c->Int()},{"image_d0",c->Int()},{"image_d1",c->Int()},{"bitwidth",c->Int()}},
-    [](Context* c, Values args) { //Function to compute type
-      uint stencil_d0 = args.at("stencil_d0")->get<int>();
-      uint stencil_d1 = args.at("stencil_d1")->get<int>();
-      uint stencil_d2 = args.at("stencil_d2")->get<int>();
-      uint bitwidth = args.at("bitwidth")->get<int>();
-      return c->Record({
-        {"in",c->BitIn()->Arr(bitwidth)},
-        {"wen",c->BitIn()},
-          //FIXME: add valid bit
-        {"out",c->Bit()->Arr(bitwidth)->Arr(stencil_d0)->Arr(stencil_d1)->Arr(stencil_d2)}
-      });
-    }
-  );
-
-  Generator* linebuffer3d = commonlib->newGeneratorDecl(
-    "linebuffer3d",
-    commonlib->getTypeGen("linebuffer3d_type"),{
-      {"stencil_d0",c->Int()},
-      {"stencil_d1",c->Int()},
-      {"stencil_d2",c->Int()},
-      {"image_d0",c->Int()},
-      {"image_d1",c->Int()},
-      {"bitwidth",c->Int()}
-    }
-  );
-  linebuffer3d->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-    uint stencil_d0  = args.at("stencil_d0")->get<int>();
-    uint stencil_d1  = args.at("stencil_d1")->get<int>();
-    uint stencil_d2  = args.at("stencil_d2")->get<int>();
-    uint image_d0 = args.at("image_d0")->get<int>();
-    uint image_d1 = args.at("image_d1")->get<int>();
-    uint bitwidth = args.at("bitwidth")->get<int>();
-    isPowerOfTwo(bitwidth);
-    assert(stencil_d0 > 0);
-    assert(stencil_d1 > 0);
-    assert(stencil_d2 > 0);
-    assert(image_d0 >= stencil_d0);
-    assert(image_d1 >= stencil_d1);
-    assert(bitwidth > 0);
-
-    Const* aBitwidth = Const::make(c,bitwidth);
-
-    // create the stencil linebuffers
-    std::string lb2_prefix = "lb2_";
-    for (uint i=0; i<stencil_d2; ++i) {
-
-      std::string lb2_name = lb2_prefix + std::to_string(i);
-      Values args = {
-        {"stencil_width",Const::make(c,stencil_d0)},
-        {"stencil_height",Const::make(c,stencil_d1)},
-        {"image_width",Const::make(c,image_d0)},
-        {"bitwidth",aBitwidth}
-      };
-      def->addInstance(lb2_name, "commonlib.linebuffer2d", args);
-      def->connect({lb2_name, "wen"}, {"self","wen"});
-    }
-
-    // SPECIAL CASE: same sized stencil as image, so no memories needed (just lbs)
-    if (stencil_d1 == image_d1) {
-      // connect the linebuffer inputs
-      for (uint i = 0; i < stencil_d2; ++i) {
-        std::string lb_name = lb2_prefix + std::to_string(i);
-
-        if (i == 0) {
-          def->connect({"self","in"},{lb_name,"in"});
-        } else {
-          std::string prev_lb = lb2_prefix + std::to_string(i-1);
-          def->connect({prev_lb,"0","0"},{lb_name,"in"});
-        }
-      }
-
-    // REGULAR CASE: memories to store image lines
-    } else {
-      // connect together the memory lines
-      std::string mem_prefix = "mem_";
-      for (uint i = 1; i < stencil_d2; ++i) {
-        std::string mem_name = mem_prefix + std::to_string(i);
-        Const* aLBWidth = Const::make(c,image_d1 * image_d0);
-        def->addInstance(mem_name,"memory.rowbuffer",{{"width",aBitwidth},{"depth",aLBWidth}});
-        def->addInstance(mem_name+"_valid_term", "corebit.term");
-        def->connect({mem_name,"valid"},{mem_name+"_valid_term", "in"});
-        def->connect({mem_name,"wen"},{"self", "wen"});
-
-        // connect the input
-        if (i == 1) {
-          def->connect({"self","in"}, {mem_name, "wdata"});
-        } else {
-          std::string prev_mem = mem_prefix + std::to_string(i-1);
-          def->connect({prev_mem, "rdata"}, {mem_name, "wdata"});
-        }
-      }
-
-      // connect memory outs to stencil linebuffers
-      for (uint i = 1; i < stencil_d2; ++i) {
-        std::string mem_name = mem_prefix + std::to_string(i);
-        std::string lb_name = lb2_prefix + std::to_string(i);
-        def->connect({mem_name, "rdata"},{lb_name, "in"});
-      }
-    }
-
-    // ALL CASES: connect the stencil outputs
-    for (uint i = 0; i < stencil_d2; ++i) {
-      uint iflip = (stencil_d2 - 1) - i;
-      std::string lb_name = lb2_prefix + std::to_string(i);
-      def->connect({"self","out",std::to_string(iflip)}, {lb_name,"out"});
-    }
-
-  });
-
 
   /////////////////////////////////
   //*** counter definition    ***//
@@ -1637,52 +1554,52 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   );
 
+  //commonlib->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),{{"width",c->Int()},{"min",c->Int()},{"max",c->Int()},{"inc",c->Int()}});
   Generator* counter = commonlib->newGeneratorDecl("counter",commonlib->getTypeGen("counter_type"),{{"width",c->Int()},{"min",c->Int()},{"max",c->Int()},{"inc",c->Int()}});
-
   counter->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint max = genargs.at("max")->get<int>();
     uint min = genargs.at("min")->get<int>();
     uint inc = genargs.at("inc")->get<int>();
     assert(width>0);
-    assert(max>min);
-
+    ASSERT(max>min, "max is " + to_string(max) + " while min is " + to_string(min));
+  
     // get generators
     Namespace* coreirprims = c->getNamespace("coreir");
     Generator* ult_gen = coreirprims->getGenerator("ult");
     Generator* add_gen = coreirprims->getGenerator("add");
     Generator* const_gen = coreirprims->getGenerator("const");
-
+  
     // create hardware
     Const* aBitwidth = Const::make(c,width);
     Const* aReset = Const::make(c,BitVector(width,min));
     def->addInstance("count", "mantle.reg", {{"width",aBitwidth},{"has_clr",Const::make(c,true)},{"has_en",Const::make(c,true)}},
                          {{"init",aReset}});
-
+  
     def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,max))}});
     def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
     def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
     def->addInstance("add", add_gen, {{"width",aBitwidth}});
     //def->addInstance("and", "corebit.and");
-    def->addInstance("resetOr", "coreir.or", {{"width",Const::make(c, 1)}});
-
+    def->addInstance("resetOr", "corebit.or");
+  
     // wire up modules
     // clear if max < count+inc
     def->connect("count.out","self.out");
     def->connect("count.out","add.in0");
     def->connect("inc.out","add.in1");
-
+  
     def->connect("self.en","count.en");
     def->connect("add.out","count.in");
-
+  
     def->connect("add.out","ult.in1");
     def->connect("max.out","ult.in0");
     // clear count on either getting to max or reset
-    def->connect("ult.out","resetOr.in0.0");
-    def->connect("self.reset","resetOr.in1.0");
-    def->connect("resetOr.out.0","count.clr");
+    def->connect("ult.out","resetOr.in0");
+    def->connect("self.reset","resetOr.in1");
+    def->connect("resetOr.out","count.clr");
     def->connect("ult.out","self.overflow");
-
+  
   });
 
   /////////////////////////////////
@@ -1746,14 +1663,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                        {{"width",aBitwidth},{"has_en",Const::make(c,true)}},
                        {{"init", Const::make(c, width, 0)}});
     }
-    def->addInstance("ignoreOverflow", "coreir.term", {{"width", Const::make(c, 1)}});
+    def->addInstance("ignoreOverflow", "corebit.term");
 
     // wire up modules
     def->connect("self.reset", "counter.reset");
     def->connect("equal.out", "self.ready");
     def->connect("self.en","counter.en");
     def->connect("counter.out","self.count");
-    def->connect("counter.overflow", "ignoreOverflow.in.0");
+    def->connect("counter.overflow", "ignoreOverflow.in");
 
     def->connect("counter.out","slice.in");
     def->connect("slice.out","muxn.in.sel");
@@ -1837,7 +1754,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               {"width",Const::make(c,1)},
               {"has_en",Const::make(c,true)}
           }, {{"init",Const::make(c, 1, i == 0 ? 1 : 0)}});
-      def->addInstance(and_name, "coreir.and", {{"width",Const::make(c,1)}});
+      def->addInstance(and_name, "corebit.and");
     }
     // this reg is 1 only cycle after last enable reg is 1, to indicate that all registers have been written
     // to in the last cycle
@@ -1845,11 +1762,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                      {{"width",Const::make(c,1)},{"has_en",Const::make(c,false)}},
                      {{"init", Const::make(c, 1, 0)}});
     // use this for driving input to first enable reg
-    def->addInstance("firstEnabledOr", "coreir.or", {{"width",Const::make(c,1)}});
+    def->addInstance("firstEnabledOr", "corebit.or");
     // the not to invert the reset
-    def->addInstance("resetInvert", "coreir.not", {{"width",Const::make(c,1)}});
+    def->addInstance("resetInvert", "corebit.not");
 
-    def->connect("self.reset", "resetInvert.in.0");
+    def->connect("self.reset", "resetInvert.in");
 
     // wire up one input to all regs
     for (uint i=0; i<rate-1; ++i) {
@@ -1869,21 +1786,21 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       // if this is the last reg, wire it's output and the deserializer reset into the input for the
       // first enable reg as if either occurs its a reason for starting cycle again
       if (i == rate - 2) {
-          def->connect("self.reset", "firstEnabledOr.in0.0");
-          def->connect(en_reg_name + ".out", "firstEnabledOr.in1");
-          def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in");
+          def->connect("self.reset", "firstEnabledOr.in0");
+          def->connect(en_reg_name + ".out.0", "firstEnabledOr.in1");
+          def->connect("firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in.0");
 
           // wire up the valid signal, which comes one clock after the last reg is enabled, same cycle
           // as that reg starts emitting the right value
-          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect(en_reg_name + ".out.0", en_and_name + ".in0");
           def->connect("resetInvert.out", en_and_name + ".in1");
-          def->connect(en_and_name + ".out", "validReg.in");
+          def->connect(en_and_name + ".out", "validReg.in.0");
           def->connect("validReg.out.0", "self.valid");
       }
       else {
-          def->connect(en_reg_name + ".out", en_and_name + ".in0");
+          def->connect(en_reg_name + ".out.0", en_and_name + ".in0");
           def->connect("resetInvert.out", en_and_name + ".in1");
-          def->connect(en_and_name + ".out", next_en_reg_name + ".in");
+          def->connect(en_and_name + ".out", next_en_reg_name + ".in.0");
       }
     }
     // wire the input to the last output slot, as directly sending that one out so each cycle is

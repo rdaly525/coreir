@@ -105,12 +105,23 @@ namespace CoreIR {
             // handle enable/reset beauracracy 
             string wenModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
             string disableModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 0));
+            string conv1_reset = "constInput_1_h0_conv1_reset";
+            string conv2_reset = "constInput_1_h0_conv2_reset";
+            def->addInstance(conv1_reset,"coreir.const",
+                             {{"width", Const::make(c, 1)}},
+                             {{"value", Const::make(c, 1, 0)}});
+            def->addInstance(conv2_reset,"coreir.const",
+                             {{"width", Const::make(c, 1)}},
+                             {{"value", Const::make(c, 1, 0)}});
+            
             def->addInstance("bothConvsValid", "coreir.and",
                              {{"width", Const::make(c, 1)}});
             def->connect(wenModule + ".out.0", conv1Name + ".wen");
             def->connect(wenModule + ".out.0", conv2Name + ".wen");
             def->connect(conv1Name + ".valid", "bothConvsValid.in0.0");
             def->connect(conv2Name + ".valid", "bothConvsValid.in1.0");
+            def->connect(conv1Name + ".reset", conv1_reset + ".out.0");
+            def->connect(conv2Name + ".reset", conv2_reset + ".out.0");
             def->connect("bothConvsValid.out.0", "pairCollector.en");
             def->connect(disableModule + ".out.0", "pairCollector.reset");
             def->connect("pairCollector.valid", "self.valid");
