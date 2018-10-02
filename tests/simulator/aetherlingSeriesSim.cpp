@@ -130,7 +130,7 @@ namespace CoreIR {
             mainModule->print();
             conv1->getModuleRef()->print();
 
-            c->runPasses({"rungenerators", "verifyconnectivity-onlyinputs-noclkrst",
+            c->runPasses({"rungenerators", "verifyconnectivity --onlyinputs --noclkrst",
                         "wireclocks-coreir", "flatten", "flattentypes", "verifyconnectivity",
                         "deletedeadinstances"},
                 {"aetherlinglib", "commonlib", "mantle", "coreir", "global"});

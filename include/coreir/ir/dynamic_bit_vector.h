@@ -290,9 +290,9 @@ namespace bsim {
 	bits[i] = quad_value(0);
       }
       
-      for (int i = 0; i < N; i++) {
-	set(i, 0);
-      }
+      // for (int i = 0; i < N; i++) {
+      //   set(i, 0);
+      // }
     }
 
     quad_value_bit_vector(const std::string& str_raw) : N(0) {
@@ -982,11 +982,11 @@ namespace bsim {
     }
 
     //unsigned char sign_bit = a.get(a.bitLength() - 1);
-    for (uint i = a.bitLength() - 1; i >= shift_int; i--) {
+    for (int i = a.bitLength() - 1; i >= (int) shift_int; i--) {
       res.set(i - shift_int, a.get(i));
     }
 
-    for (uint i = a.bitLength() - 1; i >= (a.bitLength() - shift_int); i--) {
+    for (int i = a.bitLength() - 1; i >= (((int) a.bitLength()) - ((int) shift_int)); i--) {
       res.set(i, 0);
     }
 
@@ -1083,4 +1083,49 @@ namespace bsim {
     return res;
   }
 
+  static inline
+  quad_value_bit_vector
+  zero_extend(const int outWidth, const quad_value_bit_vector& in) {
+    quad_value_bit_vector res(outWidth, 0);
+    for (uint i = 0; i < (uint) in.bitLength(); i++) {
+      res.set(i, in.get(i));
+    }
+
+    return res;
+  }
+
+  static inline
+  bsim::quad_value_bit_vector unsigned_divide(const bsim::quad_value_bit_vector& a,
+                                              const bsim::quad_value_bit_vector& b) {
+    assert(a.bitLength() == b.bitLength());
+
+    bsim::quad_value_bit_vector extA = zero_extend(2*a.bitLength(), a);
+    bsim::quad_value_bit_vector extB = zero_extend(2*b.bitLength(), b);
+
+    bsim::quad_value_bit_vector quotient(a.bitLength(), 0);
+    bsim::quad_value_bit_vector a_tmp = extA;
+
+    //std::cout << "a = " << extA << std::endl;
+    //std::cout << "b = " << extB << std::endl;
+
+    // Use slow divide method
+    for (int i = (a.bitLength() - 1); i >= 0; i--) {
+      bsim::quad_value_bit_vector shifted_b = shl(extB, bsim::quad_value_bit_vector(b.bitLength(), i));
+
+      //std::cout << "Shifted b = " << shifted_b << std::endl;
+      //std::cout << "a_tmp     = " << a_tmp << std::endl;
+
+      if ((shifted_b < a_tmp) || (shifted_b == a_tmp)) {
+        quotient.set(i, quad_value(1));
+        a_tmp = sub_general_width_bv(a_tmp, shifted_b);
+      }
+
+      //std::cout << "Final quotient = " << quotient << std::endl;
+    }
+
+    //std::cout << "Final quotient = " << quotient << std::endl;
+
+    return quotient;
+  }
+  
 }

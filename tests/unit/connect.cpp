@@ -26,8 +26,14 @@ int main() {
     def->connect(i0->sel("out"),self->sel("out"));
     assert(def->hasConnection(i0->sel("out"),self->sel("out")));
     assert(def->hasConnection(self->sel("out"),i0->sel("out")));
+    //Add metadata
+    def->getMetaData(i0->sel("out"),self->sel("out"))["conndata"] = 5;
+    assert(def->hasMetaData(i0->sel("out"),self->sel("out")));
+    cout << "metadata: " << def->getMetaData(i0->sel("out"),self->sel("out")) << endl;
+
     //Also check other wiring syntax 
     def->disconnect(i0->sel("out"),self->sel("out"));
+    assert(!def->hasMetaData(i0->sel("out"),self->sel("out")));
     def->connect("self.out","i0.out");
     def->disconnect(i0->sel("out"),self->sel("out"));
     def->connect({"self","out"},{"i0","out"});
