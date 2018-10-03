@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <type_traits>
+#include "coreir/ir/fwd_declare.h"
 
 // This is a comment
 
