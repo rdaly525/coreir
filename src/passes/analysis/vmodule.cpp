@@ -182,7 +182,8 @@ string VModule::toInstanceString(Instance* inst) {
   string mname;
   map<string,VWire> iports;
   Values args;
-  if (mref->isGenerated()) {
+  bool isVerilogGen = mref->isGenerated() && mref->getGenerator()->getMetaData().count("verilog") > 0;
+  if (isVerilogGen) {
     args = mref->getGenArgs();
     Type2Ports(mref->getGenerator()->getTypeGen()->getType(args),iports);
     mname = modname; 
