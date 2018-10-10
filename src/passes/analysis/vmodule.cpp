@@ -10,7 +10,7 @@ namespace VerilogNamespace {
 CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   Type2Ports(m->getType(),this->ports);
   assert(m->hasDef());
-  this->modname = m->getNamespace()->getName() + "_" + m->getLongName();
+  this->modname = m->getLongName();
   if (m->isGenerated()) {
     this->modComment = "// Generated from " + m->getRefName() + ::CoreIR::toString(m->getGenArgs());
   }
