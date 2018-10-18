@@ -11,6 +11,8 @@ class Context {
   Namespace* global;
   std::map<std::string,Namespace*> namespaces;
   PassManager* pm;
+  
+  bool symtable = false;
 
   uint maxErrors;
   std::vector<std::string> errors;
@@ -19,6 +21,8 @@ class Context {
 
   //Unique int
   uint unique=0;
+
+  CoreIRLibrary* libmanager;
 
   public :
     //Used for caching the types
@@ -31,6 +35,7 @@ class Context {
     std::unordered_map<void*,Value*> valueList;
     std::vector<Values*> valuesList;
     std::vector<Value**> valuePtrArrays;
+    std::vector<ValueType**> valueTypePtrArrays;
     std::vector<Type**> typePtrArrays;
     std::vector<RecordParams*> recordParamsList;
     std::vector<Params*> paramsList;
@@ -57,8 +62,8 @@ class Context {
     void printerrors();
     void print();
 
-    //bool linkLib(Namespace* defns, Namespace* declns);
-    
+    void enSymtable() {symtable = true;}
+    bool hasSymtable() { return symtable;}
     Namespace* newNamespace(std::string name);
     bool hasNamespace(std::string name) { return namespaces.count(name) > 0; }
     Namespace* getNamespace(std::string s);
@@ -72,22 +77,29 @@ class Context {
 
     std::map<std::string,Namespace*> getNamespaces();
     void addPass(Pass* p);
+    
+    //This will run the following passes in the following namespaces. It defaults only to global, so if you want passes to be run on certain libraries, these need to be specified in the list of namespaces. 
+    //One subtle thing to note is that an InstanceGraphPass will be run on modules regardless of the namespace. All other Pass Types will only be run on the specified namespaces.
     bool runPasses(std::vector<std::string> order,std::vector<std::string> namespaces= std::vector<std::string>({"global"}));
+    bool runPassesOnAll(std::vector<std::string> order);
 
     //TODO figure out a way to hide this (binary/coreir needs it)
     //Do not use unless you really have to.
     PassManager* getPassManager() { return pm;}
 
+    //Dynamically load a coreir library
+    CoreIRLibrary* getLibraryManager() { return libmanager; }
+
     //Factory functions for Types
-    BitType* Bit();
+    BitType* Bit(); //Construct a BitOut type
     BitInType* BitIn();
+    BitInOutType* BitInOut();
     ArrayType* Array(uint n, Type* t);
     RecordType* Record(RecordParams rp=RecordParams());
     NamedType* Named(std::string nameref);
-    NamedType* Named(std::string nameref, Values args);
-
 
     //Factory functions for ValueTypes
+    AnyType* Any();
     BoolType* Bool();
     IntType* Int();
     BitVectorType* BitVector(int width);
@@ -99,6 +111,7 @@ class Context {
     Type* Out(Type* t);
 
     TypeGen* getTypeGen(std::string nameref);
+    bool hasTypeGen(std::string nameref);
 
     RecordParams* newRecordParams();
     Params* newParams();
@@ -112,6 +125,7 @@ class Context {
     //Sets the top module
     void setTop(std::string topRef);
     void setTop(Module* top);
+    void removeTop();
     bool hasTop() { return !!top;}
     Module* getTop() { return top;}
 
@@ -124,6 +138,7 @@ class Context {
     
     
     Value** newValueArray(int size);
+    ValueType** newValueTypeArray(int size);
     Type** newTypeArray(int size);
     Connection* newConnectionArray(int size);
     Connection** newConnectionPtrArray(int size);
@@ -149,10 +164,12 @@ bool loadFromFile(Context* c, std::string filename,Module** top=nullptr);
 //Save namespace to a file with optional "top" module
 bool saveToFile(Namespace* ns, std::string filename,Module* top=nullptr); //This will go away
 bool saveToFilePretty(Namespace* ns, std::string filename,Module* top=nullptr);
+bool saveToFile(Context* c, std::string filename, bool nocoreir=true);
 
 
 //Save a module to a dot file (for viewing in graphviz)
 bool saveToDot(Module* m, std::string filename);
+bool saveToDot(Module* m, std::ostream& fout);
   
   
 //addPassthrough will instance a passthrough Module for Wireable w with name <name>
@@ -162,7 +179,7 @@ bool saveToDot(Module* m, std::string filename);
 Instance* addPassthrough(Wireable* w,std::string instname);
 bool inlineInstance(Instance*);
 
-typedef Namespace* LoadLibrary_t(Context*);
+typedef Namespace* (*LoadLibrary_t)(Context*);
 
 Namespace* CoreIRLoadLibrary_coreirprims(Context* c);
 

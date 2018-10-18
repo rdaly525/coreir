@@ -20,7 +20,7 @@ Generator::Generator(Namespace* ns,string name,TypeGen* typegen, Params genparam
   for (auto const &type_param : typegen->getParams()) {
     auto const &gen_param = genparams.find(type_param.first);
     ASSERT(gen_param != genparams.end(),"Param not found: " + type_param.first);
-    ASSERT(gen_param->second == type_param.second,"Param type mismatch for " + type_param.first);
+
     ASSERT(gen_param->second == type_param.second,"Param type mismatch for: " + gen_param->first + " (" + gen_param->second->toString()+ " vs " + type_param.second->toString()+")");
   }
 }
@@ -29,7 +29,6 @@ Generator::~Generator() {
   if (def) {
     delete def;
   }
-  //Delete all the Generated Modules only if they are Generated and not Namespace
   for (auto m : genCache) {
     delete m.second;
   }
@@ -42,15 +41,10 @@ Module* Generator::getModule(Values genargs) {
     return genCache[genargs];
   }
   
-  checkValuesAreParams(genargs,genparams);
+  checkValuesAreParams(genargs,genparams,getRefName());
+  ASSERT(typegen->hasType(genargs),"Cannot create generated module!");
   Type* type = typegen->getType(genargs);
-  string modname;
-  if (nameGen) {
-    modname = nameGen(genargs);
-  }
-  else {
-    modname = this->name;
-  }
+  string modname = this->name;
   Module* m;
   if (modParamsGen) {
     auto pc = modParamsGen(getContext(),genargs);
@@ -72,6 +66,47 @@ Module* Generator::getModule(Values genargs) {
   //}
   return m;
 }
+
+Module* Generator::getModule(Values genargs, Type* type) {
+  mergeValues(genargs,defaultGenArgs);
+  if (genCache.count(genargs)) {
+    return genCache[genargs];
+  }
+  
+  checkValuesAreParams(genargs,genparams,getRefName());
+  if (typegen->hasType(genargs)) {
+    ASSERT(typegen->getType(genargs) == type,"Cannot create module with inconsistent types");
+  }
+  string modname = this->name;
+  Module* m;
+  if (modParamsGen) {
+    auto pc = modParamsGen(getContext(),genargs);
+    m = new Module(ns,modname,type,pc.first,this,genargs);
+    m->addDefaultModArgs(pc.second);
+  }
+  else {
+     m = new Module(ns,modname,type,Params(),this,genargs);
+  }
+  genCache[genargs] = m;
+  
+  //TODO I am not sure what the default behavior should be
+  //for not having a def
+  //Run the generator if it has the def
+  //if (this->hasDef()) {
+  //  ModuleDef* mdef = m->newModuleDef();
+  //  def->createModuleDef(mdef,genargs); 
+  //  m->setDef(mdef);
+  //}
+  return m;
+}
+
+void Generator::eraseModule(Values genargs) {
+  ASSERT(genCache.count(genargs),"Module does not exist!");
+  delete genCache[genargs];
+  genCache.erase(genargs);
+}
+
+
 bool Generator::runAll() {
   bool ret = false;
   for (auto mpair : genCache) {
@@ -89,9 +124,9 @@ std::map<std::string,Module*> Generator::getGeneratedModules() {
 
 
 void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
-  bool err = false;
-  for (auto gpair : genCache) err |= gpair.second->hasDef();
-  ASSERT(!err,"Cannot set generator defention when generator already ran!");
+  //bool err = false;
+  //for (auto gpair : genCache) err |= gpair.second->hasDef();
+  //ASSERT(!err,"Cannot set generator defention when generator already ran!");
   if (this->def) delete this->def;
   this->def = new GeneratorDefFromFun(this,fun);
   
@@ -100,14 +135,14 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
 void Generator::addDefaultGenArgs(Values defaultGenArgs) {
   //Check to make sure each arg is in the gen params
   for (auto argmap : defaultGenArgs) {
-    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!")
+    ASSERT(genparams.count(argmap.first)>0,"Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!");
     this->defaultGenArgs[argmap.first] = argmap.second;
   }
 }
 
 string Generator::toString() const {
   string ret = "Generator: " + name;
-  ret = ret + "\n    Params: " + Params2Str(genparams);
+  ret = ret + "\n    Params: " + ::CoreIR::toString(genparams);
   ret = ret + "\n    TypeGen: TODO";// + typegen->toString();
   ret = ret + "\n    Def? " + (hasDef() ? "Yes" : "No");
   return ret;

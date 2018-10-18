@@ -29,7 +29,7 @@ Type* Type::Arr(uint i) {
   return c->Array(i,this);
 }
 
-bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this);}
+bool Type::isBaseType() {return isa<BitType>(this) || isa<BitInType>(this) || isa<BitInOutType>(this);}
 
 Type* Type::sel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
@@ -45,6 +45,22 @@ Type* Type::sel(string selstr) {
     return at->getElemType();
   }
   ASSERT(0,"Bad Select");
+}
+
+vector<std::string> Type::getSelects() {
+  if (auto rt = dyn_cast<RecordType>(this)) {
+    return rt->getFields();
+  }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
+    vector<std::string> ret;
+    for (uint i=0; i<at->getLen(); ++i) {
+      ret.push_back(to_string(i));
+    }
+    return ret;
+  }
+  else {
+    return vector<std::string>();
+  }
 }
 
 bool Type::canSel(string selstr) {
@@ -67,6 +83,26 @@ bool Type::canSel(SelectPath path) {
   return this->sel(sel)->canSel(path);
 }
 
+bool Type::hasInput() const { 
+  if (isInput() ) return true;
+  if (isMixed()) {
+    if (auto at = dyn_cast<ArrayType>(this)) {
+      return at->getElemType()->hasInput();
+    }
+    else if (auto nt = dyn_cast<NamedType>(this)) {
+      return nt->getRaw()->hasInput();
+    }
+    else if (auto rt = dyn_cast<RecordType>(this)) {
+      bool ret = false;
+      for (auto field : rt->getRecord()) {
+        ret |= field.second->hasInput();
+      }
+      return ret;
+    }
+    assert(0);
+  }
+  return false;
+}
 
 
 std::ostream& operator<<(ostream& os, const Type& t) {
@@ -102,16 +138,17 @@ void NamedType::print() const {
 
 
 //Stupid hashing wrapper for enum
-RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unknown,c) {
+RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Null,c) {
   unordered_set<uint> dirs; // Slight hack because it is not easy to hash enums
   for(auto field : _record) {
-    assert(!isNumber(field.first) && "Cannot have number as record field");
+    checkStringSyntax(field.first);
     record.emplace(field.first,field.second);
     _order.push_back(field.first);
     dirs.insert(field.second->getDir());
   }
-  if (dirs.count(DK_Unknown) || dirs.size()==0) {
-    dir = DK_Unknown;
+  assert(dirs.count(DK_Null) == 0);
+  if (dirs.size()==0) {
+    dir = DK_Null;
   }
   else if (dirs.size() > 1) {
     dir = DK_Mixed;
@@ -122,6 +159,7 @@ RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Unk
 }
 
 RecordType* RecordType::appendField(string label, Type* t) {
+  checkStringSyntax(label);
   ASSERT(this->getRecord().count(label)==0,"Cannot append " + label + " to type: " + this->toString());
   
   RecordParams newParams({{label,t}});
@@ -148,6 +186,23 @@ uint RecordType::getSize() const {
     size += field.second->getSize();
   }
   return size;
+}
+
+
+bool isClockOrNestedClockType(Type* type, Type* clockType) {
+    if (type == clockType) {
+        return true;
+    } else if (auto arrayType = dyn_cast<ArrayType>(type)) {
+        return isClockOrNestedClockType(arrayType->getElemType(), clockType);
+    } else if (auto recordType = dyn_cast<RecordType>(type)) {
+        bool isNestedClockType = false;
+        for (auto field : recordType->getRecord()) {
+            isNestedClockType |= isClockOrNestedClockType(field.second,
+                                                          clockType);
+        }
+        return isNestedClockType;
+    }
+    return false;
 }
 
 }//CoreIR namespace

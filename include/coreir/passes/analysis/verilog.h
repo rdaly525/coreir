@@ -9,19 +9,21 @@ namespace CoreIR {
 namespace Passes {
 
 class Verilog : public InstanceGraphPass {
-  std::vector<VModule*> modList;
-  std::unordered_map<GlobalValue*,VModule*> modMap;
-  std::unordered_set<GlobalValue*> external;
+  VerilogNamespace::VModules vmods;
   public :
     static std::string ID;
     Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}
+    ~Verilog();
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+    void initialize(int argc, char** argv) override;
     void setAnalysisInfo() override {
-      addDependency("verifyconnectivity-onlyinputs"); //Should change back to check all connections
+      onlyTop = true;
+      addDependency("verifyconnectivity --onlyinputs"); //Should change back to check all connections
       addDependency("verifyflattenedtypes");
     }
     
     void writeToStream(std::ostream& os);
+    void writeToFiles(const std::string& dir);
 };
 
 }

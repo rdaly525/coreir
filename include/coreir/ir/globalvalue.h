@@ -15,7 +15,7 @@ class GlobalValue: public MetaData {
     GlobalValueKind kind;
     Namespace* ns;
     std::string name;
-    GlobalValue(GlobalValueKind kind, Namespace* ns, std::string name) : MetaData(), kind(kind), ns(ns), name(name) {}
+    GlobalValue(GlobalValueKind kind, Namespace* ns, std::string name);
     
   public :
     GlobalValueKind getKind() const { return kind;}

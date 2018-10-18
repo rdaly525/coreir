@@ -40,11 +40,13 @@ all: build coreir
 test: build
 	$(MAKE) -C tests
 	cd tests; ./run
+	$(MAKE) -C tutorial/hellocounter
+	cd tutorial/hellocounter; ./run
 
 installtest:
 	$(MAKE) -C tests/install
 	cd tests/install; ./run
-	coreir -i examples/counters.json -p rungenerators,flatten,verifyconnectivity-onlyinputs
+	coreir -i examples/counters.json -p "rungenerators; flatten; verifyconnectivity --onlyinputs"
 
 .PHONY: build
 build:
@@ -58,19 +60,23 @@ install: build coreir
 	install -d $(prefix)/include/coreir-c
 	install -d $(prefix)/include/coreir/ir/casting
 	install -d $(prefix)/include/coreir/libs
+	install -d $(prefix)/include/coreir/definitions
 	install -d $(prefix)/include/coreir/passes/analysis
 	install -d $(prefix)/include/coreir/passes/transform
 	install -d $(prefix)/include/coreir/simulator
+	install -d $(prefix)/include/coreir/tools
 	install include/coreir.h $(prefix)/include
 	install include/coreir-c/* $(prefix)/include/coreir-c
 	install include/coreir/*.h $(prefix)/include/coreir
 	install include/coreir/ir/*.h $(prefix)/include/coreir/ir
 	install include/coreir/ir/casting/* $(prefix)/include/coreir/ir/casting
 	install include/coreir/libs/* $(prefix)/include/coreir/libs
+	install include/coreir/definitions/* $(prefix)/include/coreir/definitions
 	install include/coreir/passes/*.h $(prefix)/include/coreir/passes
 	install include/coreir/passes/analysis/* $(prefix)/include/coreir/passes/analysis
 	install include/coreir/passes/transform/* $(prefix)/include/coreir/passes/transform
 	install include/coreir/simulator/* $(prefix)/include/coreir/simulator
+	install include/coreir/tools/* $(prefix)/include/coreir/tools
 
 .PHONY: uninstall
 uninstall:
@@ -96,10 +102,20 @@ clean:
 	$(MAKE) -C src clean
 	$(MAKE) -C tests clean
 	$(MAKE) -C tests/install clean
+	$(MAKE) -C tutorial/hellocounter clean
+
+
+.PHONY: testclean
+testclean:
+	$(MAKE) -C tests clean
+
+
 
 .PHONY: release
 release:
 	-rm -rf release/include release/lib release/bin
+	#$(MAKE) -C src so
+	#$(MAKE) -C src dylib
 	cp -r include release/.
 	cp -r lib release/.
 	cp -r bin release/.

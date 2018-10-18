@@ -13,6 +13,9 @@ class ValueType {
       VTK_BitVector=2,
       VTK_String=3,
       VTK_CoreIRType=4,
+      VTK_Module=5,
+      VTK_Json=6,
+      VTK_Any=7,
     };
   private :
     ValueTypeKind kind;
@@ -43,7 +46,7 @@ class BitVectorType : public ValueType {
   public : 
     BitVectorType(Context* c,int width) : ValueType(c,VTK_BitVector), width(width) {}
     static bool classof(const ValueType* v) {return v->getKind()==VTK_BitVector;}
-    static BitVectorType* make(Context* c, int width);
+    static BitVectorType* make(Context* c, int width=32);
     int getWidth() { return width;}
 };
 
@@ -60,6 +63,28 @@ class CoreIRType : public ValueType {
     static bool classof(const ValueType* v) {return v->getKind()==VTK_CoreIRType;}
     static CoreIRType* make(Context* c);
 };
+
+class ModuleType : public ValueType {
+  public :
+    ModuleType(Context* c) : ValueType(c,VTK_Module) {}
+    static bool classof(const ValueType* v) {return v->getKind()==VTK_Module;}
+    static ModuleType* make(Context* c);
+};
+
+class JsonType : public ValueType {
+  public :
+    JsonType(Context* c) : ValueType(c,VTK_Json) {}
+    static bool classof(const ValueType* v) {return v->getKind()==VTK_Json;}
+    static JsonType* make(Context* c);
+};
+
+class AnyType : public ValueType {
+  public :
+    AnyType(Context* c) : ValueType(c,VTK_Any) {}
+    static bool classof(const ValueType* v) {return v->getKind()==VTK_Any;}
+    static AnyType* make(Context* c);
+};
+
 
 }
 #endif

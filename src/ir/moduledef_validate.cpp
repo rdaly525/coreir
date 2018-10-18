@@ -9,16 +9,25 @@ using namespace std;
 namespace CoreIR {
 //True is error
 //False is no error
-bool checkTypes(Wireable* a, Wireable* b) {
+bool ModuleDef::checkTypes(Wireable* a, Wireable* b) {
+
+  //cout << "Getting context of " << a->toString() << endl;
   Context* c = a->getContext();
+  //cout << "Got context" << endl;
+
   Type* ta = a->getType();
   Type* tb = b->getType();
   //TODO This might not be valid if:
   //  2 outputs are connected to the same input
-  //  an inout is connected to an input (good!)
-  //  an inout is connected to an output (bad!)
+
+  //cout << "Got types" << endl;
   
-  if (ta == c->Flip(tb) ) return false;
+  if (ta == c->Flip(tb) ) {
+    //cout << "ta flipped" << endl;
+    return false;
+  }
+
+  //cout << "Flipped types" << endl;
   
   Error e;
   e.message(a->getContainer()->getName() + ": Cannot wire together");
@@ -47,12 +56,14 @@ bool checkInputConnected(Wireable* w, Error* e) {
   return err;
 }
 
-//TODO do stuff in numwires==1 even if errors on numwirew>1
 //Checks if multiple thigns are connected to an input. If so an error
 //True is error
 //false is no error
 bool checkInputOutputs(Wireable* w, Error* e) {
-  if (!w->getType()->hasInput()) return false;
+  if (!w->getType()->hasInput()) {
+    return false;
+  }
+
   int numwires = w->getConnectedWireables().size();
   bool err = false;
   if (numwires > 1) {

@@ -1,0 +1,43 @@
+{"top":"global.muxMod",
+"namespaces":{
+  "global":{
+    "modules":{
+      "muxMod":{
+        "type":["Record",{
+          "in0":["Array",7,"BitIn"],
+          "in1":["Array",7,"BitIn"],
+          "out":["Array",7,"Bit"]
+        }],
+        "instances":{
+          "c1":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          },
+          "a":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",7]}
+          },
+          "s":{
+            "genref":"coreir.sub",
+            "genargs":{"width":["Int",7]}
+          },
+          "m":{
+            "genref":"coreir.mux",
+            "genargs":{"width":["Int",7]}
+          }
+        },
+        "connections":[
+          ["self.in0","a.in0"],
+          ["self.in1","a.in1"],
+          ["self.in0","s.in0"],
+          ["self.in1","s.in1"],
+          ["a.out","m.in1"],
+          ["s.out","m.in0"],
+          ["c1.out","m.sel"],
+          ["m.out","self.out"]
+        ]
+      }
+    }
+  }
+}
+}

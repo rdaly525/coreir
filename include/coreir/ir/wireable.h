@@ -17,7 +17,7 @@ class Wireable : public MetaData {
     ModuleDef* container; // ModuleDef which it is contained in 
     Type* type;
 
-    std::unordered_set<Wireable*> connected; 
+    std::set<Wireable*> connected; 
     
     //This manages the memory for the selects
     std::map<std::string,Select*> selects;
@@ -26,9 +26,8 @@ class Wireable : public MetaData {
     Wireable(WireableKind kind, ModuleDef* container, Type* type) : MetaData(), kind(kind),  container(container), type(type) {}
     virtual ~Wireable();
     virtual std::string toString() const=0;
-    std::unordered_set<Wireable*> getConnectedWireables() { return connected;}
+    const std::set<Wireable*>& getConnectedWireables() { return connected;}
     const std::map<std::string,Select*>& getSelects() { return selects;}
-    bool hasSel(std::string selstr) {return selects.count(selstr) >0;}
     ModuleDef* getContainer() { return container;}
     Context* getContext();
     WireableKind getKind() const { return kind; }
@@ -43,7 +42,7 @@ class Wireable : public MetaData {
 
     Select* sel(const std::string&);
     Select* sel(uint);
-    Select* sel(SelectPath);
+    Select* sel(const SelectPath&);
     
     //Ignore These
     Select* sel(std::initializer_list<const char*> path);
@@ -56,6 +55,7 @@ class Wireable : public MetaData {
     void connect(Wireable* w);
 
     //Disconnect everything from this wireable
+    //NOTE This invalidates iterators from getConnectedWireables() and getConnections(). Do not call while iterating over these
     void disconnect();
     void disconnectAll();
 
@@ -79,6 +79,7 @@ class Wireable : public MetaData {
     Wireable* getTopParent();
 
     //removes the select from this wireble.
+    //Note this invalides iterators from getSelects()
     void removeSel(std::string selStr);
 
 
@@ -116,7 +117,7 @@ class Instance : public Wireable {
     bool hasModArgs() {return !modargs.empty();}
     
     Module* getModuleRef() {return moduleRef;}
-    
+
     void replace(Module* moduleRef, Values modargs=Values());
     //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
   

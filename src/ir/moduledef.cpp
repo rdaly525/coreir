@@ -27,10 +27,10 @@ ModuleDef::~ModuleDef() {
 void ModuleDef::print(void) {
   cout << "  Def:" << endl;
   cout << "    Instances:" << endl;
-  for (auto inst : instances) {
+  for (auto inst : this->getInstances()) {
     Module* mref = inst.second->getModuleRef();
     if (mref->isGenerated()) {
-      cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << Values2Str(mref->getGenArgs()) << endl;
+      cout << "      " << inst.first << " : " << mref->getGenerator()->getName() << ::CoreIR::toString(mref->getGenArgs()) << endl;
     }
     else {
       cout << "      " << inst.first << " : " << mref->getName() << endl;
@@ -38,7 +38,7 @@ void ModuleDef::print(void) {
   }
   cout << "    Connections:\n";
   for (auto connection : connections) {
-    cout << "      " << Connection2Str(connection) << endl;
+    cout << "      " << toString(connection) << endl;
   }
   cout << endl;
 }
@@ -47,23 +47,41 @@ Context* ModuleDef::getContext() { return module->getContext(); }
 const string& ModuleDef::getName() {return module->getName();}
 RecordType* ModuleDef::getType() {return module->getType();}
 
+  void addCorrespondingSelects(Wireable* const original,
+                               Wireable* const cpy,
+                               std::map<Wireable*, Wireable*>& origToCopies) {
+    origToCopies[original] = cpy;
+    for (auto sel : original->getSelects()) {
+      addCorrespondingSelects(sel.second, cpy->sel(sel.first), origToCopies);
+    }
+  }
+
 ModuleDef* ModuleDef::copy() {
   Module* m = this->getModule();
   ModuleDef* def = m->newModuleDef();
+
+  map<Wireable*, Wireable*> oldWireablesToCopies;
+  
   for (auto inst : this->getInstances()) {
     def->addInstance(inst.second);
   }
 
   for (auto con: this->getConnections()) {
-    SelectPath a = con.first->getSelectPath();  
-    SelectPath b = con.second->getSelectPath();
+
+    const SelectPath& a = con.first->getSelectPath();
+    const SelectPath& b = con.second->getSelectPath();
     def->connect(a,b);
+
   }
+
   return def;
 }
 
-bool ModuleDef::hasSel(std::string selstr) {
+bool ModuleDef::canSel(const std::string& selstr) {
   SelectPath path = splitString<SelectPath>(selstr,'.');
+  return this->canSel(path);
+}
+bool ModuleDef::canSel(SelectPath path) {
   string iname = path[0];
   Wireable* inst;
   if (iname=="self") {
@@ -74,13 +92,13 @@ bool ModuleDef::hasSel(std::string selstr) {
     inst = this->instances[iname];
   }
   path.pop_front();
-  return inst->hasSel(join(path.begin(),path.end(),string(".")));
+  return inst->canSel(path);
 }
 
 
 //Can pass in either a single instance name
 //Or pass in a '.' deleminated string
-Wireable* ModuleDef::sel(string s) { 
+Wireable* ModuleDef::sel(const string& s) { 
   if (hasChar(s,'.')) {
     SelectPath path = splitString<SelectPath>(s,'.');
     return this->sel(path);
@@ -92,7 +110,7 @@ Wireable* ModuleDef::sel(string s) {
   }
 }
 
-Wireable* ModuleDef::sel(SelectPath path) {
+Wireable* ModuleDef::sel(const SelectPath& path) {
   Wireable* cur = this->sel(path[0]);
   for (auto it = std::next(path.begin()); it != path.end(); ++it) {
     cur = cur->sel(*it);
@@ -152,7 +170,7 @@ void ModuleDef::removeInstanceFromIter(Instance* instance) {
 
 Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
     ASSERT(instance, "Cannot get next of IterEnd");
-    ASSERT(this->instancesIterNextMap.count(instance) == 1, "DEBUG ME: instance not in iter") // TOOD: Should be an error?
+    ASSERT(this->instancesIterNextMap.count(instance) == 1, "DEBUG ME: instance not in iter"); // TODO: Should be an error?
     return this->instancesIterNextMap[instance];
 }
 
@@ -219,6 +237,10 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
   }
 
   // TODO should I type check here at all?
+  bool err = checkTypes(a,b);
+  if (err) {
+    c->die();
+  }
   //checkWiring(a,b);
   
   Connection connect = connectionCtor(a,b);
@@ -230,15 +252,15 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
     connections.insert(connect);
   }
   else {
-    cout << "ALREADY ADDED CONNECTION!" << endl;
+    ASSERT(0,"Trying to add following connection twice! " + toString(connect));
   }
 }
 
-void ModuleDef::connect(SelectPath pathA, SelectPath pathB) {
+void ModuleDef::connect(const SelectPath& pathA, const SelectPath& pathB) {
   this->connect(this->sel(pathA),this->sel(pathB));
 }
 
-void ModuleDef::connect(string pathA, string pathB) {
+void ModuleDef::connect(const string& pathA, const string& pathB) {
   this->connect(this->sel(pathA),this->sel(pathB));
 }
 void ModuleDef::connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB) {
@@ -261,7 +283,11 @@ Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
 
 //This will remove all connections from a specific wireable
 void ModuleDef::disconnect(Wireable* w) {
+  vector<Wireable*> toDelete;
   for (auto wc : w->getConnectedWireables()) {
+    toDelete.push_back(wc);
+  }
+  for (auto wc : toDelete) {
     this->disconnect(w,wc);
   }
 }
@@ -270,8 +296,19 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
   Connection connect = connectionCtor(a,b);
   this->disconnect(connect);
 }
-void ModuleDef::disconnect(Connection con) {
-  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + Connection2Str(con));
+void ModuleDef::disconnect(Connection fstCon) {
+  auto con = connectionCtor(fstCon.first, fstCon.second);
+  
+  //if (connections.count(con) == 0) {
+  //  cout << "All connections" << endl;
+  //  for (auto conn : getConnections()) {
+  //    cout << "\t" << toString(conn) << endl;
+  //  }
+
+  //  cout << "Contains reverse connection ? " << connections.count({con.second, con.first}) << endl;
+  //}
+
+  ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + toString(con));
   
   //remove references
   con.first->removeConnectedWireable(con.second);
@@ -279,6 +316,26 @@ void ModuleDef::disconnect(Connection con) {
 
   //Delete connection from list
   connections.erase(con);
+  //If it has metadata, remove that as well
+  if (connMetaData.count(con)>0) {
+    delete connMetaData[con];
+    connMetaData.erase(con);
+  }
+}
+
+json& ModuleDef::getMetaData(Wireable* a, Wireable* b) {
+  Connection conn = connectionCtor(a,b);
+  ASSERT(connections.count(conn),"Cannot access metadata to something not connected: " + toString(conn));
+  if (connMetaData.count(conn) == 0) {
+    connMetaData.emplace(conn,new MetaData());
+  }
+  return connMetaData[conn]->getMetaData();
+
+}
+
+bool ModuleDef::hasMetaData(Wireable* a, Wireable* b) {
+  Connection conn = connectionCtor(a,b);
+  return connMetaData.count(conn) > 0;
 }
 
 

@@ -17,7 +17,7 @@ class FModule {
   std::vector<std::string> stmts;
   public : 
     FModule(Module* m) : c(m->getContext()), name(m->getLongName()) {
-      addIO(cast<RecordType>(m->getType()));
+      addModuleIOs(cast<RecordType>(m->getType()));
       for (auto ppair : m->getModParams()) {
         auto vtype = ppair.second;
         uint n;
@@ -62,17 +62,53 @@ class FModule {
     void addStmt(std::string stmt) {
       stmts.push_back(stmt);
     }
-    void addIO(RecordType* rt) {
+
+    // Add statements for the given IO record.
+    void addModuleIOs(RecordType* rt) {
       for (auto rpair : rt->getRecord()) {
+        std::string io_name = rpair.first;
         Type* t = rpair.second;
-        //Assumes mixed types are outputs
-        addStmt(std::string(t->isInput() ? "input" : "output") + " " + rpair.first + " : " + type2firrtl(t,t->isInput()));
+        auto io_type = std::string(t->isInput() ? "input" : "output");
+
+        // Assumes mixed types are outputs...
+        addStmt(io_type + " " + io_name + " : " + type2firrtl(t, t->isInput()));
+
+        // For output types that are UInt, add wires for each sub-bit since
+        // CoreIR supports subword assignment and FIRRTL does not.
+        if (!t->isInput() && !(getUIntWidth(t) < 0)) {
+          int width = getUIntWidth(t);
+          for (int i = 0; i < width; i++) {
+            addStmt("wire " + getOutputBitWire(io_name, i) + " : UInt<1>");
+          }
+
+          // Now wire up the bit wires to the main output wire.
+          std::string cat_node;
+          if (width < 2) {
+            // No need for cat if the width is 1.
+            cat_node = getOutputBitWire(io_name, 0);
+          } else {
+            cat_node = "cat(" + getOutputBitWire(io_name, width - 1) + ", " + getOutputBitWire(io_name, width - 2) + ")";
+            for (int i = width - 3; i >= 0; i--) {
+              cat_node = "cat(" + cat_node + ", " + getOutputBitWire(io_name, i) + ")";
+            }
+          }
+          addStmt(io_name + " <= " + cat_node);
+        }
       }
     }
-    //void addIO(vector<string> ios) {
-    //  for (auto it : ios) io.push_back(it);
-    //}
+
+    // Get the wire name for the specified bit in the given output IO.
+    static std::string getOutputBitWire(std::string name, int index) {
+      // TODO: check/verify that there isn't a conflicting wire in the design...
+      return name + "_b" + std::to_string(index);
+    }
+
     std::string type2firrtl(Type* t, bool isInput);
+
+    // Return the width of the given type if it is a UInt, or -1 if it is not a
+    // UInt.
+    int getUIntWidth(Type* t);
+
     std::string toString();
 };
 
@@ -86,7 +122,7 @@ class Firrtl : public InstanceGraphPass {
     Firrtl() : InstanceGraphPass(ID,"Creates Firrtl representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
-      addDependency("verifyconnectivity-onlyinputs"); //Should change back to check all connections
+      addDependency("verifyconnectivity --onlyinputs"); //Should change back to check all connections
     }
     void writeToStream(std::ostream& os);
 };

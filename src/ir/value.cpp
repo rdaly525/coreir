@@ -3,7 +3,9 @@
 #include "coreir/ir/value.h"
 #include "coreir/ir/valuecache.h"
 #include "coreir/ir/types.h"
+#include "coreir/ir/module.h"
 #include "coreir/ir/dynamic_bit_vector.h"
+#include "coreir/ir/json.h"
 
 using namespace std;
 
@@ -44,6 +46,8 @@ TSTAMP(int)
 TSTAMP(BitVector)
 TSTAMP(std::string)
 TSTAMP(Type*)
+TSTAMP(Module*)
+TSTAMP(Json)
 
 #undef TSTAMP
 
@@ -65,7 +69,6 @@ bool ValuesComp::operator() (const Values& l, const Values& r) const {
   for ( ; itl!=l.end(); ++itl, ++itr) {
     if (itl->first != itr->first) return itl->first < itr->first;
     if (itl->second != itr->second) return *(itl->second) < *(itr->second);
-    //if (itl->second != itr->second) return (itl->second) < (itr->second);
   }
   return false;
 }
@@ -74,7 +77,7 @@ template<>
 Const* Const_impl<bool>(Context* c,bool val) {
   return c->valuecache->getBool(val);
 }
-//TODO HERE replace bool with correct tyeps
+
 template<>
 Const* Const_impl<int>(Context* c,int val) {
   return c->valuecache->getInt(val);
@@ -95,31 +98,18 @@ Const* Const_impl<Type*>(Context* c,Type* val) {
   return c->valuecache->getType(val);
 }
 
+template<>
+Const* Const_impl<Module*>(Context* c,Module* val) {
+  return c->valuecache->getModule(val);
+}
 
-//template<>
-//string TemplatedConst<bool>::toString() const {
-//  return vtype->toString() + "(" + (value ? "True" : "False") + ")";
-//}
-//
-//template<>
-//string TemplatedConst<int>::toString() const {
-//  return vtype->toString() + "(" + to_string(value) + ")";
-//}
-//
-//template<>
-//string TemplatedConst<BitVector>::toString() const {
-//  return vtype->toString() + "(" + to_string(value.to_type<int>()) + ")";
-//}
-//
-//template<>
-//string TemplatedConst<std::string>::toString() const {
-//  return vtype->toString() + "(" + value + ")";
-//}
-//
-//template<>
-//string TemplatedConst<Type*>::toString() const {
-//  return vtype->toString() + "(" + value->toString() + ")";
-//}
+template<>
+Const* Const_impl<Json>(Context* c,json val) {
+  return c->valuecache->getJson(val);
+}
+
+//toString methods
+
 
 template<>
 string TemplatedConst<bool>::toString() const {
@@ -133,7 +123,7 @@ string TemplatedConst<int>::toString() const {
 
 template<>
 string TemplatedConst<BitVector>::toString() const {
-  return to_string(value.to_type<int>());
+  return value.hex_string();
 }
 
 template<>
@@ -146,38 +136,14 @@ string TemplatedConst<Type*>::toString() const {
   return value->toString();
 }
 
+template<>
+string TemplatedConst<Module*>::toString() const {
+  return value->getRefName();
 }
 
-//using namespace CoreIR;
-////TODO sketchy because I am overloading a version of unordered_map
-//size_t std::hash<Values>::operator() (const Values& values) const {
-//  size_t ret = 0;
-//  //Need to combine these in an order independent way, so just xor
-//  for (auto it : values) {
-//    size_t hash = 0;
-//    hash_combine(hash,it.first);
-//    auto arg = it.second;
-//    switch(arg->getKind()) {
-//      case Value::VK_Bool : {
-//        hash_combine(hash,arg->get<bool>());
-//        break;
-//      }
-//      case Value::VK_Int : {
-//        hash_combine(hash,arg->get<int>());
-//        break;
-//      }
-//      case Value::VK_String : {
-//        hash_combine(hash,arg->get<string>());
-//        break;
-//      }
-//      case Value::VK_Type : {
-//        hash_combine(hash,arg->get<Type*>());
-//        break;
-//      }
-//      default : 
-//        assert(false);
-//    }
-//    ret ^= hash;
-//  }
-//  return ret;
-//}
+template<>
+string TemplatedConst<Json>::toString() const {
+  return CoreIR::toString(value);
+}
+
+}

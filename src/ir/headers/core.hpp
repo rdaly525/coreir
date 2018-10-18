@@ -1,3 +1,4 @@
+#include <algorithm>  // std::max
 //This file is just included in context.cpp
 
 void core_convert(Context* c, Namespace* core) {
@@ -53,7 +54,7 @@ void core_convert(Context* c, Namespace* core) {
     [](Context* c, Values args) {
       uint width_in = args.at("width_in")->get<int>();
       uint width_out = args.at("width_out")->get<int>();
-      ASSERT(width_out >= width_in,"Bad valudes for widths")
+      ASSERT(width_out >= width_in,"Bad valudes for widths");
       return c->Record({
         {"in",c->BitIn()->Arr(width_in)},
         {"out",c->Bit()->Arr(width_out)}
@@ -64,17 +65,68 @@ void core_convert(Context* c, Namespace* core) {
   core->newGeneratorDecl("zext",extTypeGen,extParams);
   core->newGeneratorDecl("sext",extTypeGen,extParams);
 
+
+  //strip
+  Params stripParams({
+    {"type",CoreIRType::make(c)}
+  });
+  auto stripTypeGen = core->newTypeGen(
+    "stripTypeFun",
+    stripParams,
+    [](Context* c, Values args) {
+      Type* type = args.at("type")->get<Type*>();
+      ASSERT(isa<NamedType>(type),"type needs to be a named type");
+      NamedType* ntype = cast<NamedType>(type);
+      ASSERT(!ntype->isGen(),"NYI named type generators");
+      ASSERT(ntype->getRaw()->isBaseType(), "NYI named type that is not Bit or BitIn");
+      ASSERT(ntype->isOutput(), "NYI named types that are not outputs");
+      return c->Record({
+        {"in",ntype->getFlipped()},
+        {"out",ntype->getRaw()}
+      });
+    }
+  );
+  core->newGeneratorDecl("strip",stripTypeGen,stripParams);
+
+  //wrap
+  Params wrapParams({
+    {"type",CoreIRType::make(c)}
+  });
+  auto wrapTypeGen = core->newTypeGen(
+    "wrapTypeFun",
+    wrapParams,
+    [](Context* c, Values args) {
+      Type* type = args.at("type")->get<Type*>();
+      ASSERT(isa<NamedType>(type),"type needs to be a named type");
+      NamedType* ntype = cast<NamedType>(type);
+      ASSERT(!ntype->isGen(),"NYI named type generators");
+      ASSERT(ntype->getRaw()->isBaseType(), "NYI named type that is not Bit or BitIn");
+      ASSERT(ntype->isOutput(), "NYI named type that is not output");
+      return c->Record({
+        {"in",ntype->getRaw()->getFlipped()},
+        {"out",ntype}
+      });
+    }
+  );
+  core->newGeneratorDecl("wrap",wrapTypeGen,wrapParams);
+
 }
 
 void core_state(Context* c, Namespace* core) {
 
   Params widthparams = Params({{"width",c->Int()}});
-  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+  auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
     modparams["init"] = BitVectorType::make(c,width);
-    defaultargs["init"] = Const::make(c,BitVector(width,0));
+    modparams["clk_posedge"] = c->Bool();
+    string startString = "";
+    for (int i = 0; i < width; i++) {
+      startString += "x";
+    }
+    defaultargs["init"] = Const::make(c,BitVector(width, startString));
+    defaultargs["clk_posedge"] = Const::make(c,true);
     return {modparams,defaultargs};
   };
 
@@ -90,15 +142,26 @@ void core_state(Context* c, Namespace* core) {
 
   TypeGen* regTypeGen = core->newTypeGen("regType",widthparams,regFun);
   auto reg = core->newGeneratorDecl("reg",regTypeGen,widthparams);
-  reg->setModParamsGen(regRstModParamFun);
+  reg->setModParamsGen(regModParamFun);
   
 
+  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    int width = genargs.at("width")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    modparams["arst_posedge"] = c->Bool();
+    modparams["clk_posedge"] = c->Bool();
+    defaultargs["arst_posedge"] = Const::make(c,true);
+    defaultargs["clk_posedge"] = Const::make(c,true);
+    return {modparams,defaultargs};
+  };
 
   auto regRstFun = [](Context* c, Values args) {
     int width = args.at("width")->get<int>();
     return c->Record({
         {"clk", c->Named("coreir.clkIn")},
-        {"rst", c->Named("coreir.rstIn")},
+        {"arst", c->Named("coreir.arstIn")},
         {"in" , c->BitIn()->Arr(width)},
         {"out", c->Bit()->Arr(width)}
     });
@@ -106,17 +169,15 @@ void core_state(Context* c, Namespace* core) {
 
 
   TypeGen* regRstTypeGen = core->newTypeGen("regRstType",widthparams,regRstFun);
-  auto regRst = core->newGeneratorDecl("regrst",regRstTypeGen,widthparams);
+  auto regRst = core->newGeneratorDecl("reg_arst",regRstTypeGen,widthparams);
   regRst->setModParamsGen(regRstModParamFun);
 
-  //TODO Deal with roms
   //Memory
-  Params memGenParams({{"width",c->Int()},{"depth",c->Int()}});
+  Params memGenParams({{"width",c->Int()},{"depth",c->Int()},{"has_init",c->Bool()}});
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
-    //ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth)); // TODO fix this
-    int awidth = ceil(std::log2(depth));
+    int awidth = std::max((int) ceil(std::log2(depth)), 1);
     return c->Record({
       {"clk",c->Named("coreir.clkIn")},
       {"wdata",c->BitIn()->Arr(width)},
@@ -127,21 +188,20 @@ void core_state(Context* c, Namespace* core) {
     });
   };
   
-  //auto memModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
-  //  Params modparams;
-  //  Values defaultargs;
-  //  bool has_init = genargs.at("has_init")->get<bool>();
-  //  if (has_init) {
-  //    int width = genargs.at("width")->get<int>();
-  //    int depth = genargs.at("depth")->get<int>();
-  //    modparams["init"] = BitVectorType::make(c,width*depth);
-  //  }
-  //  return {modparams,defaultargs};
-  //};
+  auto memModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    bool has_init = genargs.at("has_init")->get<bool>();
+    if (has_init) {
+      modparams["init"] = JsonType::make(c);
+    }
+    return {modparams,defaultargs};
+  };
 
   TypeGen* memTypeGen = core->newTypeGen("memType",memGenParams,memFun);
-  core->newGeneratorDecl("mem",memTypeGen,memGenParams); 
-  //mem->setModParamsGen(memModParamFun);
+  Generator* mem = core->newGeneratorDecl("mem",memTypeGen,memGenParams); 
+  mem->setModParamsGen(memModParamFun);
+  mem->addDefaultGenArgs({{"has_init",Const::make(c,false)}});
 
 }
 
@@ -156,7 +216,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
 
   //Single bit types
   core->newNamedType("clk","clkIn",c->Bit());
-  core->newNamedType("rst","rstIn",c->Bit());
+  core->newNamedType("arst","arstIn",c->Bit());
 
   //Common Function types
   core->newTypeGen(
@@ -247,6 +307,56 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
       core->newGeneratorDecl(op,tg,widthparams);
     }
   }
+  
+  TypeGen* tribufTG = core->newTypeGen(
+    "triBuf",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record({
+        {"in",c->BitIn()->Arr(width)},
+        {"en",c->BitIn()},
+        {"out",c->BitInOut()->Arr(width)}
+      });
+    }
+  );
+  core->newGeneratorDecl("tribuf",tribufTG,widthparams);
+  
+  TypeGen* ibufTG = core->newTypeGen(
+    "iBuf",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record({
+        {"in",c->BitInOut()->Arr(width)},
+        {"out",c->Bit()->Arr(width)}
+      });
+    }
+  );
+  core->newGeneratorDecl("ibuf",ibufTG,widthparams);
+  
+  core->newTypeGen(
+    "pullResistor",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+
+      return c->Record({
+        {"out",c->BitInOut()->Arr(width)}
+      });
+    }
+  );
+  
+  auto pullresistorModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    int width = genargs.at("width")->get<int>();
+    Params modparams;
+    modparams["value"] = BitVectorType::make(c,width);
+    return {modparams,Values()};
+  };
+
+  auto pr = core->newGeneratorDecl("pullresistor",core->getTypeGen("pullResistor"),widthparams);
+  pr->setModParamsGen(pullresistorModParamFun);
+
 
   /////////////////////////////////
   // Stdlib stateful primitives

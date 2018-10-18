@@ -7,7 +7,9 @@ using namespace CoreIR;
 string Passes::Flatten::ID = "flatten";
 bool Passes::Flatten::runOnInstanceGraphNode(InstanceGraphNode& node) {
   bool changed = false;
+  //int i = 0;
   for (auto inst : node.getInstanceList()) {
+    //cout << "inlining " << i++ << endl;
     changed |= inlineInstance(inst);
   }
   return changed;

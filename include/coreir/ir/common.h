@@ -8,16 +8,6 @@
 
 namespace CoreIR {
 
-class ConnectionComp {
-  public:
-    static bool SPComp(const SelectPath& l, const SelectPath& r);
-    bool operator() (const Connection& l, const Connection& r) const;
-};
-
-class ValuesComp {
-  public:
-    bool operator() (const Values& l, const Values& r) const;
-};
 
 //TODO Ugly hack to create a sorted connection. Should make my own connection class
 Connection connectionCtor(Wireable* a, Wireable* b);
@@ -27,29 +17,28 @@ typedef std::set<Connection,ConnectionComp> Connections;
 //These are defined in helpers
 bool isNumber(std::string s);
 bool isPower2(uint n);
-std::string Params2Str(Params,bool multi=false);
-std::string Values2Str(Values,bool multi=false);
-std::string SelectPath2Str(SelectPath path);
-std::string Connection2Str(Connection con);
-std::string Inst2Str(Instance* inst);
+
+
+//Used to make sure string formats are valid for inst names, module names, etc
+void checkStringSyntax(std::string& str);
 
 //Checks that the values are of the correct names and types
-void checkValuesAreParams(Values args, Params params);
+void checkValuesAreParams(Values args, Params params,std::string errstring="");
+
+bool doValuesMatchParams(Values args, Params params);
+
 
 //Checks that all the values are actually constants
 void checkValuesAreConst(Values vs);
 
 bool hasChar(const std::string s, char c);
 
-////Used for casting Values, Consts, Args
-//template<typename To,typename FromMap>
-//std::map<std::string,std::shared_ptr<To>> castMap (FromMap fm) {
-//  std::map<std::string,std::shared_ptr<To>> tomap;
-//  for (auto fpair : fm) {
-//    tomap[fpair.first] = cast<To>(fpair.second);
-//  }
-//  return tomap;
-//}
+std::string toString(Params,bool multi=false);
+std::string toString(Values,bool multi=false);
+std::string toString(SelectPath path);
+std::string toString(Connection con);
+std::string toString(Instance* inst);
+std::string toString(RecordParams rp);
 
 template<class T> std::string toString(const T& t) {
   std::ostringstream stream;
@@ -68,6 +57,8 @@ BackInserter splitString(const std::string &s, char delim) {
     }
     return elems;
 }
+
+std::vector<std::string> splitStringByWhitespace(std::string const &input);
 
 template <class T, class A>
 T join(const A &begin, const A &end, const T &t) {

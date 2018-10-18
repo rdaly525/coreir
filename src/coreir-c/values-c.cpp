@@ -33,11 +33,30 @@ extern "C" {
     return val->get<bool>();
   }
 
+  bool COREValueBitVectorIsBinary(COREValue* a) {
+    Value* value = rcast<Value*>(a);
+    BitVector bv = value->get<BitVector>();
+    return bv.is_binary();
+  }
+
+  void COREValueBitVectorGetWidth(COREValue* a, int* width) {
+    Value* value = rcast<Value*>(a);
+    BitVector bv = value->get<BitVector>();
+    *width = bv.bitLength();
+  }
+
   void COREValueBitVectorGet(COREValue* a, int* width, uint64_t* val) {
     Value* value = rcast<Value*>(a);
     BitVector bv = value->get<BitVector>();
     *width = bv.bitLength();
     *val = bv.to_type<uint64_t>();
+  }
+
+  void COREValueBitVectorGetString(COREValue* a, char *dst) {
+    Value *value = rcast<Value*>(a);
+    BitVector bv = value->get<BitVector>();
+    string str = bv.hex_string();
+    memcpy(dst, str.c_str(), str.size());
   }
 
   //Create Arg for Bool
@@ -64,6 +83,24 @@ extern "C" {
   COREValue* COREValueBitVector(COREContext* cc, int width, uint64_t val) {
     Context* c = rcast<Context*>(cc);
     Value* ga = Const::make(c, width, val);
+    return rcast<COREValue*>(ga);
+  }
+
+  COREValue* COREValueBitVectorString(COREContext* cc, char *str) {
+    Context* c = rcast<Context*>(cc);
+    Value* ga = Const::make(c, BitVector(string(str)));
+    return rcast<COREValue*>(ga);
+  }
+
+  COREValue* COREValueModule(COREContext* cc, COREModule* mod) {
+    Context* c = rcast<Context*>(cc);
+    Value* ga = Const::make(c, rcast<Module*>(mod));
+    return rcast<COREValue*>(ga);
+  }
+
+  COREValue* COREValueCoreIRType(COREContext* cc, COREType* type) {
+    Context* c = rcast<Context*>(cc);
+    Value* ga = Const::make(c, rcast<Type*>(type));
     return rcast<COREValue*>(ga);
   }
 

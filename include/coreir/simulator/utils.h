@@ -1,6 +1,7 @@
 #pragma once
 
 #include "coreir/ir/common.h"
+#include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/namespace.h"
 #include "coreir/ir/types.h"
@@ -82,9 +83,9 @@ namespace CoreIR {
     }
 
     CoreIR::Instance* inst = toInstance(fst);
-    std::string name = getInstanceName(*inst);
+    std::string name = inst->getModuleRef()->getRefName();
 
-    return name == "dff";
+    return name == "corebit.reg";
   }
 
   static inline bool isRegisterInstance(CoreIR::Wireable* fst) {
@@ -95,7 +96,7 @@ namespace CoreIR {
       //module's name is always either the modules name or the generators name
       //m->getLongName() is a uniquified name for generated modules
       //TODO really should be checking m->getRefName() == "coreir.reg"
-      return m->getName() == "reg";
+      return m->getRefName() == "coreir.reg";
     }
     return false;
 
@@ -169,7 +170,7 @@ namespace CoreIR {
       return false;
     }
     
-    return cast<Instance>(fst)->getModuleRef()->getRefName() == "commonlib.LinebufferMem";
+    return cast<Instance>(fst)->getModuleRef()->getRefName() == "memory.rowbuffer";
 
 
     //CoreIR::Instance* inst = toInstance(fst);
@@ -214,7 +215,7 @@ namespace CoreIR {
   }
 
   static inline bool isClkIn(CoreIR::Type& t) {
-    return isNamedType(t, "clkIn");
+    return isNamedType(t, "clk"); //isNamedType(t, "clkIn");
   }
 
   
@@ -259,13 +260,7 @@ namespace CoreIR {
 
   std::string getOpName(CoreIR::Instance& inst);
 
-  static inline std::string getQualifiedOpName(CoreIR::Instance& inst) {
-    std::string opName = inst.getModuleRef()->getNamespace()->getName() + "." +
-      getOpName(inst);
-
-    return opName;
-  }
-
+  std::string getQualifiedOpName(CoreIR::Instance& inst);
   
   static inline Generator* getGeneratorRef(Instance& w) {
     Module* m = w.getModuleRef();
@@ -347,5 +342,26 @@ namespace CoreIR {
     Select* parent = toSelect(sel->getParent());
     return arrayLen(parent);
   }
+
+  std::unordered_map<std::string, CoreIR::Type*>
+  outputs(CoreIR::Module& mod);
+
+  bool fromSelfInterface(CoreIR::Select* w);
+
+  bool isConstant(CoreIR::Wireable* const w);
+
+  struct BitStreamConfig {
+    std::vector<BitVector> configAddrs;
+    std::vector<BitVector> configDatas;
+  };
+
+  BitStreamConfig loadConfig(const std::string& configFileName);
+
+  Module* loadModule(CoreIR::Context* const c,
+                     const std::string& fileName,
+                     const std::string& topModName);
+  
+  std::vector<std::string> splitStr(const std::string& str,
+                                    const std::string& delimiter);
 
 }

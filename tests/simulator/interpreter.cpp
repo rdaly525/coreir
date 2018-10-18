@@ -64,6 +64,225 @@ namespace CoreIR {
       }); //end lambda, end function
   
   }
+
+  TEST_CASE("Implementing divide") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+
+    uint width = 16;
+    Type* tp = c->Record({{"in0", c->BitIn()->Arr(width)},
+          {"in1", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+    Module* mod = g->newModuleDecl("div_test", tp);
+    ModuleDef* def = mod->newModuleDef();
+
+    def->addInstance("c0", "coreir.udiv", {{"width", Const::make(c, width)}});
+    def->connect("self.in0", "c0.in0");
+    def->connect("self.in1", "c0.in1");
+    def->connect("c0.out", "self.out");
+    mod->setDef(def);
+
+    c->runPasses({"rungenerators"});
+
+    SimulatorState state(mod);
+    state.setValue("self.in0", BitVector(width, 182));
+    state.setValue("self.in1", BitVector(width, 13));
+    state.execute();
+
+    cout << "Divide output = " << state.getBitVec("self.out") << endl;
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 182 / 13));
+  }
+
+  TEST_CASE("Checking concat order") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+
+    uint width0 = 12;
+    uint width1 = 18;
+    Type* tp = c->Record({{"in0", c->BitIn()->Arr(width0)},
+          {"in1", c->BitIn()->Arr(width1)},
+            {"out", c->Bit()->Arr(width1 + width0)}});
+
+    Module* mod = g->newModuleDecl("concat_test", tp);
+    ModuleDef* def = mod->newModuleDef();
+
+    def->addInstance("c0", "coreir.concat", {{"width0", Const::make(c, width0)},
+          {"width1", Const::make(c, width1)}});
+    def->connect("self.in0", "c0.in0");
+    def->connect("self.in1", "c0.in1");
+    def->connect("c0.out", "self.out");
+    mod->setDef(def);
+
+    c->runPasses({"rungenerators"});
+
+    SimulatorState state(mod);
+    state.setValue("self.in0", BitVector(width0, 1));
+    state.setValue("self.in1", BitVector(width1, 0));
+    state.execute();
+
+    cout << "Concat output = " << state.getBitVec("self.out") << endl;
+
+    REQUIRE(state.getBitVec("self.out").bitLength() == (width0 + width1));
+    // LSB is from in0
+    REQUIRE(state.getBitVec("self.out").get(0) == BitVector(1, 1).get(0));
+    // MSB is from in1
+    REQUIRE(state.getBitVec("self.out").get(width0) == BitVector(1, 0).get(0));
+    
+  }
+
+  TEST_CASE("Interpreting coreir.wire and corebit.wire") {
+
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("coreir.wire") {
+      uint width = 4;
+      Type* tp = c->Record({{"in", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+      def->addInstance("w", "coreir.wire", {{"width", Const::make(c, width)}});
+      def->connect("self.in", "w.in");
+      def->connect("w.out", "self.out");
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(width, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 12));
+    }
+
+    SECTION("corebit.wire") {
+      Type* tp = c->Record({{"in", c->BitIn()},
+            {"out", c->Bit()}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+      def->addInstance("w", "corebit.wire");
+      def->connect("self.in", "w.in");
+      def->connect("w.out", "self.out");
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(1, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 12));
+    }
+    
+    deleteContext(c);
+  }
+
+  TEST_CASE("Interpreting coreir.term and corebit.term") {
+
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("coreir.term") {
+      uint width = 4;
+      Type* tp = c->Record({{"in", c->BitIn()->Arr(width)},
+            {"out", c->Bit()->Arr(width)}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+
+      def->addInstance("w", "coreir.term", {{"width", Const::make(c, width)}});
+      def->connect("self.in", "w.in");
+
+      def->addInstance("c", "coreir.const", {{"width", Const::make(c, width)}}, {{"value", Const::make(c, BitVector(width, 1))}});
+      def->connect("c.out", "self.out");
+
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(width, 12));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 1));
+    }
+
+    SECTION("corebit.term") {
+      Type* tp = c->Record({{"in", c->BitIn()},
+            {"out", c->Bit()}});
+
+      Module* mod = g->newModuleDecl("md", tp);
+      ModuleDef* def = mod->newModuleDef();
+
+      def->addInstance("w", "corebit.term");
+      def->connect("self.in", "w.in");
+
+      def->addInstance("c", "corebit.const", {{"value", Const::make(c, false)}});
+      def->connect("c.out", "self.out");
+
+      mod->setDef(def);
+
+      c->runPasses({"rungenerators"});
+
+      SimulatorState state(mod);
+      state.setValue("self.in", BitVector(1, 1));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 0));
+    }
+    
+    deleteContext(c);
+  }
+  
+  TEST_CASE("Interpreting circuits with combinational loops") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    SECTION("Two muxes") {
+
+      // uint width = 2;
+
+      // Type* twoMuxType =
+      //   c->Record({
+      //       {"in", c->BitIn()->Arr(width)},
+      //         {"sel", c->BitIn()},
+      //           {"out", c->Bit()->Arr(width)}
+      //     });
+
+      // Module* twoMux = c->getGlobal()->newModuleDecl("twoMux", twoMuxType);
+      // ModuleDef* def = twoMux->newModuleDef();
+
+      // def->addInstance("mux0",
+      //                  "coreir.mux",
+      //                  {{"width", Const::make(c, width)}});
+
+      // def->connect("self.sel", "mux0.sel");
+      // def->connect("self.in", "mux0.in0");
+      // def->connect("mux0.out", "mux0.in1");
+      // def->connect("mux0.out", "self.out");
+
+      // twoMux->setDef(def);
+
+      // c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+      // SimulatorState state(twoMux);
+      // state.setValue("self.sel", BitVector(1, 0));
+      // state.setValue("self.in", BitVector(width, "11"));
+
+      // state.execute();
+
+      // REQUIRE(state.getBitVec("self.out") == BitVector(width, "11"));
+      
+    }
+
+    deleteContext(c);
+  }
   
   TEST_CASE("Interpret simulator graphs") {
 
@@ -293,6 +512,7 @@ namespace CoreIR {
     }
 
     SECTION("Counter") {
+      c->enSymtable();
 
       addCounter(c, g);
 
@@ -723,160 +943,6 @@ namespace CoreIR {
       
       
     }
-
-    SECTION("LineBufferMem") {
-
-      uint index = 4;
-      uint width = index;
-      uint depth = pow(2, index) - 6; // 10
-
-      CoreIRLoadLibrary_commonlib(c);
-
-      Type* lineBufferMemType = c->Record({
-          {"clk", c->Named("coreir.clkIn")},
-            {"wdata", c->BitIn()->Arr(width)},
-              {"rdata", c->Bit()->Arr(width)},
-        	{"wen", c->BitIn()},
-        	  {"valid", c->Bit()}
-        });
-
-      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
-      ModuleDef* def = lbMem->newModuleDef();
-
-      def->addInstance("m0",
-        	       "commonlib.LinebufferMem",
-        	       {{"width", Const::make(c, width)},
-        		   {"depth", Const::make(c, depth)}});
-
-      def->connect("self.clk", "m0.clk");
-      def->connect("self.wen", "m0.wen");
-      def->connect("self.wdata", "m0.wdata");
-      def->connect("m0.rdata", "self.rdata");
-      def->connect("m0.valid", "self.valid");
-
-      lbMem->setDef(def);
-
-      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-      
-      c->runPasses({"rungenerators","flattentypes", "flatten"});
-
-      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-
-      SimulatorState state(lbMem);
-
-      state.setValue("self.wdata", BitVector(width, "1111"));
-      state.setValue("self.wen", BitVector(1, "1"));
-      state.resetCircuit();
-
-      state.setClock("self.clk", 0, 1);
-
-      BitVector one(width, "1");
-      BitVector val(width, "1");
-
-      cout << "LINEBUFFER BEHAVIOR" << endl;
-      for (int i = 0; i < 9; i++) {
-        state.setValue("self.wdata", val);
-        state.execute();
-        cout << "self.rdata " << (i + 1) << " = " << state.getBitVec("self.rdata") << endl;
-        val = add_general_width_bv(val, one);
-      }
-
-      SECTION("After 9 high clocks the output is still 0") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0000"));
-      }
-
-      state.execute();
-
-      SECTION("The first value out of the buffer is 1") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0001"));
-      }
-
-      state.execute();
-
-      SECTION("The second value out of the buffer is 2") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "0010"));
-      }
-      
-    }
-
-    SECTION("LineBufferMem power of 2") {
-
-      uint index = 2;
-      uint width = index;
-      uint depth = pow(2, index); // 10
-
-      CoreIRLoadLibrary_commonlib(c);
-
-      Type* lineBufferMemType = c->Record({
-          {"clk", c->Named("coreir.clkIn")},
-            {"wdata", c->BitIn()->Arr(width)},
-              {"rdata", c->Bit()->Arr(width)},
-        	{"wen", c->BitIn()},
-        	  {"valid", c->Bit()}
-        });
-
-      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
-      ModuleDef* def = lbMem->newModuleDef();
-
-      def->addInstance("m0",
-        	       "commonlib.LinebufferMem",
-        	       {{"width", Const::make(c, width)},
-        		   {"depth", Const::make(c, depth)}});
-
-      def->connect("self.clk", "m0.clk");
-      def->connect("self.wen", "m0.wen");
-      def->connect("self.wdata", "m0.wdata");
-      def->connect("m0.rdata", "self.rdata");
-      def->connect("m0.valid", "self.valid");
-
-      lbMem->setDef(def);
-
-      if (!saveToFile(g, "no_flat_linebuffermem.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-      
-      c->runPasses({"rungenerators","flattentypes", "flatten"});
-
-      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
-        cout << "Could not save to json!!" << endl;
-        c->die();
-      }
-
-      SimulatorState state(lbMem);
-
-      state.setValue("self.wdata", BitVector(width, "11"));
-      state.setValue("self.wen", BitVector(1, "1"));
-      state.resetCircuit();
-
-      state.setClock("self.clk", 1, 0);
-
-      cout << "LINEBUFFER BEHAVIOR" << endl;
-      for (int i = 0; i < 3; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
-      }
-
-      SECTION("rdata is 00 after 3 half cycles") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "00"));
-      }
-
-      for (int i = 0; i < 30; i++) {
-        state.runHalfCycle();
-        cout << "self.rdata = " << state.getBitVec("self.rdata") << endl;
-      }
-
-      SECTION("rdata is 11 in steady state") {
-        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, "11"));
-      }
-    }
-    
     SECTION("Memory") {
       uint width = 20;
       uint depth = 4;
@@ -898,7 +964,66 @@ namespace CoreIR {
       def->addInstance("m0",
       		       "coreir.mem",
       		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
-		       //      		       {{"init", Const::make(c,BitVector(80))}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.write_en", "m0.wen");
+      def->connect("self.write_data", "m0.wdata");
+      def->connect("self.write_addr", "m0.waddr");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+
+      memory->setDef(def);
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});      
+
+      SimulatorState state(memory);
+
+      state.setClock("self.clk", 0, 1);
+      state.setValue("self.write_en", BitVec(1, 0));
+      state.setValue("self.write_addr", BitVec(index, 0));
+      state.setValue("self.write_data", BitVec(width, 23));
+      state.setValue("self.read_addr", BitVec(index, 0));
+
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      state.execute();
+      state.setValue("self.write_en", BitVec(1, 1));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      REQUIRE(state.getBitVec("self.write_addr") == BitVec(index, 0));
+      state.execute();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+      state.setValue("self.write_addr", BitVec(index, 1));
+      state.setValue("self.write_data", BitVec(width, 5));
+      state.setValue("self.read_addr", BitVec(index, 1));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      state.execute();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
+
+    }
+    
+    SECTION("Memory2") {
+      uint width = 20;
+      uint depth = 4;
+      uint index = 2;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+      	    {"write_data", c->BitIn()->Arr(width)},
+      	      {"write_addr", c->BitIn()->Arr(index)},
+      		{"write_en", c->BitIn()},
+      		  {"read_data", c->Bit()->Arr(width)},
+      		    {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      def->addInstance("m0",
+      		       "coreir.mem",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.write_en", "m0.wen");
@@ -937,29 +1062,51 @@ namespace CoreIR {
       }
 
       SECTION("Write to address zero") {
+
+        SECTION("Read is combinational") {
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.write_en", BitVec(1, 0));
+          state.setValue("self.write_addr", BitVec(index, 0));
+          state.setValue("self.write_data", BitVec(width, 23));
+          
+          state.setValue("self.read_addr", BitVec(index, 2));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 2));
+
+          state.setClock("self.clk", 0, 0);
+          state.setValue("self.read_addr", BitVec(index, 0));
+
+          state.execute();
+
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+
+        }
+
       	state.setClock("self.clk", 0, 1);
       	state.setValue("self.write_en", BitVec(1, 1));
       	state.setValue("self.write_addr", BitVec(index, 0));
       	state.setValue("self.write_data", BitVec(width, 23));
       	state.setValue("self.read_addr", BitVec(index, 0));
 
-      	// state.execute();
+      	state.exeCombinational();
 
-        // SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
-        //   REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-        // }
+        SECTION("read_data is 0 after zeroth clock cycle, even though the address being read is set by write_addr") {
+          REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+        }
 
         state.execute();
 
-	SECTION("read_data is 23 after the first rising edge") {
-	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
-	}
+	      SECTION("read_data is 23 after the first rising edge") {
+	        REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	      }
 
       	state.execute();
 
-	SECTION("One cycle after setting write_data the result has been updated") {
-	  REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
-	}
+	      SECTION("One cycle after setting write_data the result has been updated") {
+	        REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+	      }
 
       	state.execute();
 
@@ -973,6 +1120,274 @@ namespace CoreIR {
       
     }
 
+    SECTION("Rowbuffer") {
+
+      uint index = 4;
+      uint width = index;
+      uint depth = 10;
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+        {"clk", c->Named("coreir.clkIn")},
+        {"wdata", c->BitIn()->Arr(width)},
+        {"rdata", c->Bit()->Arr(width)},
+        {"wen", c->BitIn()},
+        {"valid", c->Bit()},
+        {"flush", c->BitIn()}
+      });
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("m0",
+        	       "memory.rowbuffer",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.wen", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
+      def->connect("self.flush", "m0.flush");
+
+      lbMem->setDef(def);
+
+      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
+      c->runPasses({"rungenerators","verifyconnectivity","flattentypes", "flatten","verifyconnectivity"});
+
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      SimulatorState state(lbMem);
+
+      state.setValue("self.wdata", BitVector(width, "0"));
+      state.setValue("self.wen", BitVector(1, "0"));
+      state.setValue("self.flush", BitVector(1, "0"));
+      state.resetCircuit();
+
+      state.setClock("self.clk", 0, 1);
+
+      BitVector one(width, "1");
+      BitVector val(width, "1");
+
+      cout << "ROWBUFFER BEHAVIOR" << endl;
+      //Loading up the rowbuffer
+      for (uint i = 0; i < depth; i++) {
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1, "1"));
+        cout << "after setting value " << toString(val) << endl;
+        state.exeCombinational();
+        //cout << "raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        //cout << "self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "0"));
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      //Loading and reading (steady state)
+      for (uint i = 0; i < depth; i++) {
+        cout << "LR self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "LR self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        //cout << "LR raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+	      //cout << "mem[0] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 0)) << endl;
+	      //cout << "mem[1] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 1)) << endl;
+	      //cout << "mem.addr " << (i) << " = " << state.getBitVec("m0$mem.raddr") << endl;
+        //state.exeCombinational(); //TODO It works if This is here, but fails if it is missing
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        cout << "setting wdata to " << val << endl;
+        state.exeCombinational();
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        //cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      //Loading and reading (steady state)
+      for (uint i = depth; i < 2*depth; i++) {
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        cout << "setting wdata to " << val << endl;
+        state.exeCombinational();
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        //cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      state.setValue("self.wdata", val);
+      state.setValue("self.wen", BitVector(1,0));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      state.execute();
+      state.setValue("self.wen", BitVector(1,1));
+      state.exeCombinational();
+      
+      //just reading
+      for (uint i = 0; i < depth; i++) {
+        cout << "R" << i << " self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "R" << i << " self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "1"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (2*depth+i+1)%16));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+
+    }
+
+    SECTION("Rowbuffer power of 2") {
+
+      uint index = 4;
+      uint width = index;
+      uint depth = 16;
+
+      CoreIRLoadLibrary_commonlib(c);
+
+      Type* lineBufferMemType = c->Record({
+        {"clk", c->Named("coreir.clkIn")},
+        {"wdata", c->BitIn()->Arr(width)},
+        {"rdata", c->Bit()->Arr(width)},
+        {"wen", c->BitIn()},
+        {"valid", c->Bit()},
+        {"flush", c->BitIn()}
+      });
+
+      Module* lbMem = c->getGlobal()->newModuleDecl("lbMem", lineBufferMemType);
+      ModuleDef* def = lbMem->newModuleDef();
+
+      def->addInstance("m0",
+        	       "memory.rowbuffer",
+        	       {{"width", Const::make(c, width)},
+        		   {"depth", Const::make(c, depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.wen", "m0.wen");
+      def->connect("self.wdata", "m0.wdata");
+      def->connect("m0.rdata", "self.rdata");
+      def->connect("m0.valid", "self.valid");
+      def->connect("self.flush", "m0.flush");
+
+      lbMem->setDef(def);
+
+      if (!saveToFile(g, "no_flat_linebuffermem_off_2.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+      
+      c->runPasses({"rungenerators","verifyconnectivity","flattentypes", "flatten","verifyconnectivity"});
+
+      if (!saveToFile(g, "linebuffermem.json",lbMem)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      SimulatorState state(lbMem);
+
+      state.setValue("self.wdata", BitVector(width, "0"));
+      state.setValue("self.wen", BitVector(1, "0"));
+      state.setValue("self.flush", BitVector(1, "0"));
+      state.resetCircuit();
+
+      state.setClock("self.clk", 0, 1);
+
+      BitVector one(width, "1");
+      BitVector val(width, "1");
+
+      cout << "ROWBUFFER BEHAVIOR" << endl;
+      //Loading up the rowbuffer
+      for (uint i = 0; i < depth; i++) {
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1, "1"));
+        cout << "after setting value " << toString(val) << endl;
+        state.exeCombinational();
+        //cout << "raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        //cout << "self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "0"));
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      //Loading and reading (steady state)
+      for (uint i = 0; i < depth; i++) {
+        cout << "LR self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "LR self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        //cout << "LR raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+	      //cout << "mem[0] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 0)) << endl;
+	      //cout << "mem[1] " << (i) << " = " << state.getMemory("m0$mem", BitVec(4, 1)) << endl;
+	      //cout << "mem.addr " << (i) << " = " << state.getBitVec("m0$mem.raddr") << endl;
+        //state.exeCombinational(); //TODO It works if This is here, but fails if it is missing
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        cout << "setting wdata to " << val << endl;
+        state.exeCombinational();
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        //cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      //Loading and reading (steady state)
+      for (uint i = depth; i < 2*depth; i++) {
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        cout << "setting wdata to " << val << endl;
+        state.exeCombinational();
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, 1));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, i+1));
+        //cout << "LR2 raddr " << (i) << " = " << state.getBitVec("m0$raddr$r$reg0.out") << endl;
+        //cout << "LR2 waddr " << (i) << " = " << state.getBitVec("m0$waddr$r$reg0.out") << endl;
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+      
+      state.setValue("self.wdata", val);
+      state.setValue("self.wen", BitVector(1,0));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.valid") == BitVec(1, 0));
+      state.execute();
+      state.setValue("self.wen", BitVector(1,1));
+      state.exeCombinational();
+      
+      //just reading
+      for (uint i = 0; i < depth; i++) {
+        cout << "R" << i << " self.rdata " << (i) << " = " << state.getBitVec("self.rdata") << endl;
+        cout << "R" << i << " self.valid " << (i) << " = " << state.getBitVec("self.valid") << endl;
+        REQUIRE(state.getBitVec("self.valid") == BitVec(1, "1"));
+        REQUIRE(state.getBitVec("self.rdata") == BitVec(width, (2*depth+i+1)%16));
+        state.setValue("self.wdata", val);
+        state.setValue("self.wen", BitVector(1,1));
+        state.execute();
+        val = add_general_width_bv(val, one);
+      }
+
+    }
+    
     SECTION("Slice") {
       uint inLen = 7;
       uint lo = 2;
@@ -1094,7 +1509,7 @@ namespace CoreIR {
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
       
-      Module* dff = c->getModule("corebit.dff");
+      Module* dff = c->getModule("corebit.reg");
       Type* dffType = c->Record({
           {"IN", c->BitIn()},
             {"CLK", c->Named("coreir.clkIn")},
@@ -1192,6 +1607,7 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVector(8, "11110000"));
     }
 
+    /*
     SECTION("conv_3_1 from json") {
 
       Namespace* common = CoreIRLoadLibrary_commonlib(c);
@@ -1217,22 +1633,40 @@ namespace CoreIR {
       BitVector zero(16, "0");
       BitVector inVal = one; //zero;
 
-      for (int i = 0; i < 50; i++) {
-        state.setValue("self.in_0", inVal);
+      int val = 1;
+
+      int lastClk = 0;
+      int nextClk = 1;
+
+      state.setClock("self.clk", lastClk, nextClk);
+      state.setValue("self.in_0", BitVec(16, val));
+
+      for (int i = 0; i < 41; i++) {
+        nextClk = i % 2;
+
+        state.setClock("self.clk", lastClk, nextClk);
+
         state.execute();
 
-        cout << "conv_3_1 state.out " << i << " = " << state.getBitVec("self.out").to_type<uint16_t>() << " -- in0 = " << state.getBitVec("self.in_0").to_type<uint16_t>() << endl;
-        
-        inVal = add_general_width_bv(inVal, one);
+        if ((i % 2) == 0) {
+          cout << "Output " << i << " = " <<
+            state.getBitVec("self.out").to_type<uint16_t>() << endl;
+        }
 
+        if ((i % 2) == 1) {
+          val = val + 1;
+
+          state.setValue("self.in_0", BitVec(16, val));
+        }
+
+        lastClk = nextClk;
 
       }
 
-      REQUIRE(state.isSet("self.out"));
+      REQUIRE(state.getBitVec("self.out") == BitVec(16, 205));
 
-
-      
     }
+    */
 
     SECTION("Failing clock test") {
 
@@ -1277,6 +1711,8 @@ namespace CoreIR {
     }
 
     SECTION("Counter 2 read by original name") {
+      c->enSymtable();
+
       if (!loadFromFile(c,"./tmprb3ud4p2.json")) {
     	cout << "Could not Load from json!!" << endl;
     	c->die();
@@ -1400,30 +1836,30 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.O") == BitVec(4, "0010"));
     }
 
-    SECTION("Magma fifo example") {
+    //SECTION("Magma fifo example") {
 
-      Namespace* common = CoreIRLoadLibrary_commonlib(c);
+    //  Namespace* common = CoreIRLoadLibrary_commonlib(c);
 
-      if (!loadFromFile(c,"./fifo_magma_json.json")) {
-    	cout << "Could not Load from json!!" << endl;
-    	c->die();
-      }
+    //  if (!loadFromFile(c,"./fifo_magma_json.json")) {
+    //	cout << "Could not Load from json!!" << endl;
+    //	c->die();
+    //  }
 
-      c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
-      
-      Module* fifoMod = g->getModule("Fifo");
-      SimulatorState state(fifoMod);
-      // state.setValue("self.wdata", BitVector(4, "1010"));
-      // state.setValue("self.wen", BitVector(4, "1"));
-      // state.setValue("self.ren", BitVector(4, "0"));
-      // state.resetCircuit();
+    //  c->runPasses({"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
+    //  
+    //  Module* fifoMod = g->getModule("Fifo");
+    //  SimulatorState state(fifoMod);
+    //  // state.setValue("self.wdata", BitVector(4, "1010"));
+    //  // state.setValue("self.wen", BitVector(4, "1"));
+    //  // state.setValue("self.ren", BitVector(4, "0"));
+    //  // state.resetCircuit();
 
-      // state.setClock("self.CLK", 0, 1);
+    //  // state.setClock("self.CLK", 0, 1);
 
-      // state.execute();
+    //  // state.execute();
 
-      // REQUIRE(state.isSet("self.wdata"));
-    }
+    //  // REQUIRE(state.isSet("self.wdata"));
+    //}
     
     deleteContext(c);
   }

@@ -52,11 +52,11 @@ bool Passes::RemoveBulkConnections::runOnModule(Module* m) {
         assert(0);
       }
 
-      //Now need to remove all modified connections
-      for (auto con : toRemove) {
-        def->disconnect(con);       
-      }
     } //End for connections
+    //Now need to remove all modified connections
+    for (auto con : toRemove) {
+      def->disconnect(con);       
+    }
   }
   return modified;
 

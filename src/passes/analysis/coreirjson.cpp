@@ -3,7 +3,6 @@
 #include <set>
 #include <map>
 
-//TODO Write out Generator mod defs
 using namespace CoreIR;
 using namespace std;
 namespace {
@@ -81,6 +80,7 @@ string Params2Json(Params gp) {
 }
 
 string Type2Json(Type* t);
+string Values2Json(Values vs);
 string Value2Json(Value* v) {
   Array ret;
   ret.add(ValueType2Json(v->getValueType()));
@@ -96,13 +96,30 @@ string Value2Json(Value* v) {
       ret.add(to_string(ci->get()));
     }
     else if (auto cbv = dyn_cast<ConstBitVector>(con)) {
-      ret.add(to_string(cbv->get().to_type<uint64_t>()));
+      BitVector bv = cbv->get();
+      ret.add(quote(bv.hex_string()));
     }
     else if (auto cs = dyn_cast<ConstString>(con)) {
       ret.add(quote(cs->get()));
     }
-    else if (auto at = dyn_cast<ConstCoreIRType>(con)) {
-      ret.add(Type2Json(at->get()));
+    else if (auto ct = dyn_cast<ConstCoreIRType>(con)) {
+      ret.add(Type2Json(ct->get()));
+    }
+    else if (auto at = dyn_cast<ConstModule>(con)) {
+      Module* m = at->get();
+      if (m->isGenerated()) {
+        Values args = m->getGenArgs();
+        Array modarray;
+        modarray.add(quote(m->getRefName()));
+        modarray.add(Values2Json(args));
+        ret.add(modarray.toString());
+      }
+      else {
+        ret.add(quote(m->getRefName()));
+      }
+    }
+    else if (auto cj = dyn_cast<ConstJson>(con)) {
+      ret.add(CoreIR::toString(cj->get()));
     }
     else {
       ASSERT(0,"NYI");
@@ -120,15 +137,17 @@ string Values2Json(Values vs) {
   return j.toString();
 }
 
-string TopType2Json(Type* t) {
+string TopType2Json(Type* t,int taboffset) {
   ASSERT(isa<RecordType>(t),"Expecting Record type but got " + t->toString());
   Array a;
   a.add(quote("Record"));
   auto rt = cast<RecordType>(t);
-  Dict r(8);
-  auto const& fields = rt->getFields();
-  for (auto field : fields) {
-    r.add(field,Type2Json(rt->getRecord().at(field)));
+  Array r(taboffset);
+  for (auto field : rt->getFields()) {
+    Array f;
+    f.add(quote(field));
+    f.add(Type2Json(rt->getRecord().at(field)));
+    r.add(f.toString());
   }
   a.add(r.toMultiString());
   return a.toString();
@@ -138,6 +157,10 @@ string TopType2Json(Type* t) {
 string Type2Json(Type* t) {
   if (isa<BitType>(t)) return quote("Bit");
   if (isa<BitInType>(t)) return quote("BitIn");
+
+  if (isa<BitInOutType>(t)) {
+    return quote("BitInOut");
+  }
   Array a;
   if (auto nt = dyn_cast<NamedType>(t)) {
     a.add(quote("Named"));
@@ -150,9 +173,12 @@ string Type2Json(Type* t) {
   }
   else if (auto rt = dyn_cast<RecordType>(t)) {
     a.add(quote("Record"));
-    Dict r;
+    Array r;
     for (auto field : rt->getFields()) {
-      r.add(field,Type2Json(rt->getRecord().at(field)));
+      Array f;
+      f.add(quote(field));
+      f.add(Type2Json(rt->getRecord().at(field)));
+      r.add(f.toString());
     }
     a.add(r.toString());
   }
@@ -162,13 +188,12 @@ string Type2Json(Type* t) {
   return a.toString();
 }
 
-string Instances2Json(map<string,Instance*>& insts) {
-  Dict jis(8);
-  //TODO maybe keep an insertion order for all the instances/Modules/Generators/Namespaces
+string Instances2Json(map<string,Instance*>& insts,int taboffset) {
+  Dict jis(taboffset);
   for (auto imap : insts) {
     string iname = imap.first;
     Instance* i = imap.second;
-    Dict j(10);
+    Dict j(taboffset+2);
     Module* m = i->getModuleRef();
     if (m->isGenerated()) {
       j.add("genref",quote(m->getGenerator()->getRefName()));
@@ -188,28 +213,45 @@ string Instances2Json(map<string,Instance*>& insts) {
   return jis.toMultiString();
 }
 
-string Connections2Json(Connections& cons) {
-  Array a(8);
-  for (auto con : cons) {
+string Connections2Json(Connections& cons,ModuleDef* def,int taboffset) {
+  Array a(taboffset);
+  vector<Connection> sortedConns;
+  for (auto c : cons) {
+    sortedConns.push_back(c);
+  }
+
+  // Ensure that connections are serialized in select string sorted order
+  ConnectionStrComp c;
+  std::sort(begin(sortedConns), end(sortedConns), [c](const Connection& l, const Connection& r) {
+      return c(l, r);
+    });
+
+  for (auto con : sortedConns) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
     string sa = join(pa.begin(),pa.end(),string("."));
     string sb = join(pb.begin(),pb.end(),string("."));
     Array b;
-    b.add(quote(sa));
-    b.add(quote(sb));
+    if (sa > sb) {
+      b.add(quote(sa));
+      b.add(quote(sb));
+    }
+    else {
+      b.add(quote(sb));
+      b.add(quote(sa));
+    }
+    if (def->hasMetaData(con.first,con.second)) {
+      b.add(toString(def->getMetaData(con.first,con.second)));
+    }
     a.add(b.toString());
+
   }
   return a.toMultiString();
 }
 
-string Module2Json(Module* m) {
-  Dict j(6);
-  if (m->hasDef() && m->isGenerated()) {
-    j.add("genref",quote(m->getGenerator()->getRefName()));
-    j.add("genargs",Values2Json(m->getGenArgs()));
-  }
-  j.add("type",TopType2Json(m->getType()));
+string Module2Json(Module* m, int taboffset) {
+  Dict j(taboffset);
+  j.add("type",TopType2Json(m->getType(),taboffset+2));
   if (!m->getModParams().empty()) {
     j.add("modparams",Params2Json(m->getModParams()));
   }
@@ -220,11 +262,11 @@ string Module2Json(Module* m) {
     ModuleDef* def = m->getDef();
     if (!def->getInstances().empty()) {
       auto insts = def->getInstances();
-      j.add("instances",Instances2Json(insts));
+      j.add("instances",Instances2Json(insts, taboffset+2));
     }
     if (!def->getConnections().empty()) {
       auto cons = def->getConnections();
-      j.add("connections",Connections2Json(cons));
+      j.add("connections",Connections2Json(cons,def,taboffset+2));
     }
   }
   if (m->hasMetaData()) {
@@ -233,10 +275,22 @@ string Module2Json(Module* m) {
   return j.toMultiString();
 }
 
-json Generator2Json(Generator* g) {
+Json Generator2Json(Generator* g) {
   Dict j(6);
   j.add("typegen",quote(g->getTypeGen()->getNamespace()->getName() + "."+g->getTypeGen()->getName()));
   j.add("genparams",Params2Json(g->getGenParams()));
+  auto genmods = g->getGeneratedModules();
+  if (!genmods.empty()) {
+    Array gms(8);
+    for (auto genmodp : genmods) {
+      Module* m = genmodp.second;
+      Array gm;
+      gm.add(Values2Json(m->getGenArgs()));
+      gm.add(Module2Json(m,10));
+      gms.add(gm.toString());
+    }
+    j.add("modules",gms.toMultiString());
+  }
   if (!g->getDefaultGenArgs().empty()) {
     j.add("defaultgenargs",Values2Json(g->getDefaultGenArgs()));
   }
@@ -250,13 +304,13 @@ json Generator2Json(Generator* g) {
 string Passes::CoreIRJson::ID = "coreirjson";
 bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   Dict jns(2);
-  if (!ns->getModules().empty()) {
+  auto modlist = ns->getModules(false);
+  if (!modlist.empty()) {
     Dict jmod(4);
-    for (auto m : ns->getModules()) {
+    for (auto m : modlist) {
       string mname = m.first;
       if (m.second->isGenerated()) mname = m.second->getGenerator()->getName();
-      if (m.second->isGenerated() && !m.second->hasDef()) continue;
-      jmod.add(mname,Module2Json(m.second));
+      jmod.add(mname,Module2Json(m.second,6));
     }
     if (!jmod.isEmpty()) {
       jns.add("modules",jmod.toMultiString());
@@ -283,23 +337,32 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
     //}
     //j["namedtypes"] = jntypes;
   //} 
-  //if (!typeGenNameMap.empty()) {
-  //  ASSERT(0,"NYI");
-    //json jntypegens;
-    //for (auto nPair : typeGenNameMap) {
-    //  string n = nPair.first;
-    //  string nFlip = nPair.second;
-    //  TypeGen* tg = typeGenList.at(n);
-    //  json jntypegen = {
-    //    {"genparams", Params2Json(tg->getParams())}
-    //  };
-    //  if (nFlip != "") {
-    //    jntypegen["flippedname"] = nFlip;
-    //  }
-    //  jntypegens[n] = jntypegen;
-    //}
-    //j["namedtypegens"] = jntypegens;
-  //}
+  if (!ns->getTypeGens().empty()) {
+    Dict jtypegens(4);
+    //Spit out all of the cached types.
+    for (auto tgpair : ns->getTypeGens()) {
+      string tgname = tgpair.first;
+      TypeGen* tg = tgpair.second;
+      Array jtypegen;
+      jtypegen.add(Params2Json(tg->getParams()));
+      if (tg->getCached().size()==0) {
+        jtypegen.add(quote("implicit"));
+      }
+      else {
+        jtypegen.add(quote("sparse"));
+        Array jsparselist(6);
+        for (auto vtpair : tg->getCached()) {
+          Array jvtpair;
+          jvtpair.add(Values2Json(vtpair.first));
+          jvtpair.add(Type2Json(vtpair.second));
+          jsparselist.add(jvtpair.toString());
+        }
+        jtypegen.add(jsparselist.toMultiString());
+      }
+      jtypegens.add(tgname,jtypegen.toString());
+    }
+    jns.add("typegens",jtypegens.toMultiString());
+  }
   nsMap[ns->getName()] = jns.toMultiString();
   return false;
 }

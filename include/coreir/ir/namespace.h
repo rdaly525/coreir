@@ -2,7 +2,6 @@
 #define COREIR_NAMESPACE_HPP_
 
 #include "fwd_declare.h"
-#include "common.h"
 
 namespace CoreIR {
 
@@ -19,34 +18,31 @@ class Namespace {
   //Mapping name to typegen 
   std::map<std::string,TypeGen*> typeGenList;
   
-  //Caches the NamedTypes with args
-  std::map<std::string,std::map<Values,NamedType*,ValuesComp>> namedTypeGenCache;
-
-  //Save the unflipped names for json file
-  std::map<std::string,std::string> namedTypeNameMap;
-  std::map<std::string,std::string> typeGenNameMap;
-
   public :
-    Namespace(Context* c, std::string name) : c(c), name(name) {}
+    Namespace(Context* c, std::string name);
     ~Namespace();
     const std::string& getName() { return name;}
     Context* getContext() { return c;}
     //Returns a map of ALL modules including generated ones
     //for generated mdules, the key is the uniquified longname
-    std::map<std::string,Module*> getModules();
+    std::map<std::string,Module*> getModules(bool includeGenerated=true);
     const std::map<std::string,Generator*>& getGenerators() { return generatorList;}
 
     NamedType* newNamedType(std::string name, std::string nameFlip, Type* raw);
-    void newNominalTypeGen(std::string name, std::string nameFlip,Params genparams, TypeGenFun fun);
-    void addTypeGen(TypeGen* typegen);
-    TypeGen* newTypeGen(std::string name, Params genparams, TypeGenFun fun);
     bool hasNamedType(std::string name);
     
-    //Only returns named types without args
+    //Returns a list of named types
     std::map<std::string,NamedType*> getNamedTypes() { return namedTypeList;}
     NamedType* getNamedType(std::string name);
-    NamedType* getNamedType(std::string name, Values genargs);
+    
+    //This is transferring control of typegen to Namespace
+    //TODO make this accept a unique pointer
+    void addTypeGen(TypeGen* typegen);
+    
+    //TODO depreciate the following function from namespace. Should only be created from a static make function
+    TypeGen* newTypeGen(std::string name, Params genparams, TypeGenFun fun);
     TypeGen* getTypeGen(std::string name);
+    const std::map<std::string,TypeGen*>& getTypeGens() { return typeGenList; }
     bool hasTypeGen(std::string name) {return typeGenList.count(name)>0;}
 
     Generator* newGeneratorDecl(std::string name,TypeGen* typegen, Params genparams);

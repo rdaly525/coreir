@@ -1,8 +1,13 @@
 *~
 **/_*.json
+**/_*.txt
 *.pyc
 \#*\#
 tests/bindings/python/ice40_test.json
+GPATH
+GTAGS
+GRTAGS
+.#*
 
 # Simulator unit test files
 tests/unit/*.o
@@ -34,3 +39,14 @@ revert_interp_only.sh
 revert_stress_only.sh
 interp_tests_only.sh
 stress_only.sh
+
+revert_sequential_only.sh
+sequential_tests_only.sh
+
+DesignTop_sim.cpp
+DesignTop_sim.h
+bit_vector.h
+
+a.out.dSYM/
+
+conv_3_1.o

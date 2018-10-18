@@ -1,0 +1,33 @@
+From github issue:
+
+
+
+The problem was that the following APIs invalidate certain iterators
+ModuleDef.disconnect(), Wireable.disconnect(), Wireable.disconnectAll() invalidates iterators from Wireable.getConnectedWireables()and ModuleDef.getConnections()
+
+ModuleDef.removeInstance() invalidates iterators from Wireable.getConnectedWireables(), ModuleDef.getConnections(), ModuleDef.getInstances()
+
+This was causing segfaults in the following pattern:
+
+for (auto inst : def.getInstances() ) {
+  if (shouldDelete(inst)) {
+    def->removeInstance(inst)
+  }
+}
+The fix I have been using is the following:
+
+vector<Instance*> toDelete;
+for (auto inst : def.getInstances() ) {
+  if (shouldDelete(inst)) {
+    toDelete.push_back(inst);
+  }
+}
+for (auto inst : toDelete) {
+  def->removeInstance(inst)
+}
+
+
+If you see a Casting error when you did not call isa, cast, or dyn_cast, it is likely in a call to Value.get<> 
+
+For missing symbol errors, make sure that you are referring to the generator or the generated module explicitly. Top modules cannot be a generated module
+

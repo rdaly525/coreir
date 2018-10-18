@@ -39,6 +39,13 @@ Module::~Module() {
   delete directedModule;
 }
 
+
+
+ModuleDef* Module::getDef() const {
+  //ASSERT(hasDef(),"Missing def:" + this->toString());
+  return def;
+}
+
 ModuleDef* Module::newModuleDef() {
   
   ModuleDef* md = new ModuleDef(this);
@@ -49,7 +56,7 @@ ModuleDef* Module::newModuleDef() {
 void Module::addDefaultModArgs(Values defaultModArgs) {
   //Check to make sure each arg is in the mod params
   for (auto argmap : defaultModArgs) {
-    ASSERT(modparams.count(argmap.first),"Cannot set default module arg. Param " + argmap.first + " Does not exist!")
+    ASSERT(modparams.count(argmap.first),"Cannot set default module arg. Param " + argmap.first + " Does not exist!");
     this->defaultModArgs[argmap.first] = argmap.second;
   }
 }
@@ -69,7 +76,7 @@ void Module::setDef(ModuleDef* def, bool validate) {
 }
 
 string Module::toString() const {
-  return "Module: " + name + (isGenerated() ? Values2Str(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
+  return "Module: " + this->getRefName() + (isGenerated() ? ::CoreIR::toString(genargs) : "") + "\n  Type: " + type->toString() + "\n  Def? " + (hasDef() ? "Yes" : "No");
 }
 
 bool Module::runGenerator() {
