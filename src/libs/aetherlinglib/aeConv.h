@@ -29,6 +29,7 @@ void Aetherling_createConvGenerator(Context* c) {
                                 {"data", c->BitIn()->Arr(elementWidth)->Arr(inputsPerClock)},
                                 {"kernel", c->BitIn()->Arr(elementWidth)->Arr(kernelWidth)}
                             })},
+                    {"reset",c->BitIn()},
                     {"wen", c->BitIn()},
                     {"out", c->Bit()->Arr(elementWidth)->Arr(inputsPerClock)},
                     {"valid", c->Bit()}
@@ -61,6 +62,9 @@ void Aetherling_createConvGenerator(Context* c) {
                     {"image_type", Const::make(c, lbImgType)},
                     {"has_valid", Const::make(c, true)}
                 });
+
+            // attach reset
+            def->connect("self.reset", "conv1DLineBuffer.reset");
 
             def->addInstance("overlapPartition", "aetherlinglib.overlapPartition", {
                     {"elementType", Const::make(c, lbOutType->getElemType())},
@@ -114,6 +118,7 @@ void Aetherling_createConvGenerator(Context* c) {
             def->connect("conv1DReduceForAllInputs.out", "self.out");
             def->connect("conv1DLineBuffer.valid", "self.valid");
             def->connect("self.wen", "conv1DLineBuffer.wen");
+
             lbInst->getModuleRef()->print();
         });
 }

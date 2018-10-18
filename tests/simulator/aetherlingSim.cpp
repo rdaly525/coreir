@@ -366,7 +366,9 @@ namespace CoreIR {
             string conv1DName = "conv1D_test";
             Instance* conv1D = def->addInstance(conv1DName, "aetherlinglib.conv1D", conv1DGenArgs);
             string wenModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
+            string resetModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 0));
             def->connect(wenModule + ".out.0", conv1DName + ".wen");
+            def->connect(resetModule + ".out.0", conv1DName + ".reset");
             // create different input for each element of kernel
             for (uint i = 0 ; i < kernelWidth; i++) {
                 string constName = "constInput" + to_string(i);
@@ -449,7 +451,9 @@ namespace CoreIR {
             string conv1DName = "conv1D_test";
             Instance* conv1D = def->addInstance(conv1DName, "aetherlinglib.conv1D", conv1DGenArgs);
             string wenModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 1));
+            string resetModule = Aetherling_addCoreIRConstantModule(c, def, 1, Const::make(c, 1, 0));
             def->connect(wenModule + ".out.0", conv1DName + ".wen");
+            def->connect(resetModule + ".out.0", conv1DName + ".reset");
             // create different input for each element of kernel
             for (uint i = 0 ; i < kernelWidth; i++) {
                 string constName = "constInput" + to_string(i);

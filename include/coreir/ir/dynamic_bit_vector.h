@@ -6,6 +6,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <type_traits>
+#include "coreir/ir/fwd_declare.h"
 
 // This is a comment
 
@@ -132,6 +133,7 @@ namespace bsim {
         return "z";
       }
       assert(false);
+      return "";
     }
 
     void print(std::ostream& out) const {
@@ -308,7 +310,7 @@ namespace bsim {
       ind++;
 
       char format = str_raw[ind];
-
+      (void) format;
       assert((format == 'b') ||
              (format == 'h') ||
              (format == 'd'));
@@ -1091,6 +1093,40 @@ namespace bsim {
     }
 
     return res;
+  }
+
+  static inline
+  bsim::quad_value_bit_vector unsigned_divide(const bsim::quad_value_bit_vector& a,
+                                              const bsim::quad_value_bit_vector& b) {
+    assert(a.bitLength() == b.bitLength());
+
+    bsim::quad_value_bit_vector extA = zero_extend(2*a.bitLength(), a);
+    bsim::quad_value_bit_vector extB = zero_extend(2*b.bitLength(), b);
+
+    bsim::quad_value_bit_vector quotient(a.bitLength(), 0);
+    bsim::quad_value_bit_vector a_tmp = extA;
+
+    //std::cout << "a = " << extA << std::endl;
+    //std::cout << "b = " << extB << std::endl;
+
+    // Use slow divide method
+    for (int i = (a.bitLength() - 1); i >= 0; i--) {
+      bsim::quad_value_bit_vector shifted_b = shl(extB, bsim::quad_value_bit_vector(b.bitLength(), i));
+
+      //std::cout << "Shifted b = " << shifted_b << std::endl;
+      //std::cout << "a_tmp     = " << a_tmp << std::endl;
+
+      if ((shifted_b < a_tmp) || (shifted_b == a_tmp)) {
+        quotient.set(i, quad_value(1));
+        a_tmp = sub_general_width_bv(a_tmp, shifted_b);
+      }
+
+      //std::cout << "Final quotient = " << quotient << std::endl;
+    }
+
+    //std::cout << "Final quotient = " << quotient << std::endl;
+
+    return quotient;
   }
   
 }

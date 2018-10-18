@@ -136,7 +136,9 @@ int main() {
     testDef->connect("conv1D.out", "self.outConv1D");
     testDef->connect("conv1D.valid", "self.validConv1D");
     string wenModule = Aetherling_addCoreIRConstantModule(c, testDef, 1, Const::make(c, 1, 1));
+    string resetModule = Aetherling_addCoreIRConstantModule(c, testDef, 1, Const::make(c, 1, 0));
     testDef->connect(wenModule + ".out.0", "conv1D.wen");
+    testDef->connect(resetModule + ".out.0", "conv1D.reset");
 
 
     // wiring up zippped input to mul

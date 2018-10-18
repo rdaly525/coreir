@@ -1015,6 +1015,12 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
+    } else if (opName == "coreir.udiv") {
+
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          return unsigned_divide(l, r);
+        });
+
     } else if (opName == "coreir.slt") {
 
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
