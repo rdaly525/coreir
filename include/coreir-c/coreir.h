@@ -19,6 +19,7 @@ void* CORENewMap(COREContext* c, void* keys, void* values, uint len, COREMapKind
 extern COREContext* CORENewContext();
 extern void COREDeleteContext(COREContext*);
 extern COREType* COREContextNamedType(COREContext* context, const char* namespace_, const char* type_name);
+extern COREType* COREContextFlip(COREContext* context, COREType* type);
 
 extern COREValueType* COREContextBool(COREContext* context);
 extern COREValueType* COREContextInt(COREContext* context);
@@ -26,7 +27,8 @@ extern COREValueType* COREContextBitVector(COREContext* context);
 extern COREValueType* COREContextString(COREContext* context);
 extern COREValueType* COREContextString(COREContext* context);
 
-extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes);
+extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes,
+                                           char** namespaces, int num_namespaces);
 
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
@@ -51,6 +53,8 @@ COREModule* COREGeneratorGetModule(COREGenerator* core_gen, void* genargs);
 extern COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* configparams);
 extern COREGenerator* CORENamespaceGetGenerator(CORENamespace* _namespace, const char* name);
 extern COREModule* CORENamespaceGetModule(CORENamespace* _namespace, const char* name);
+extern void CORENamespaceGetGenerators(CORENamespace* core_namespace, char*** keys, COREGenerator*** values, int* num_items);
+extern void CORENamespaceGetModules(CORENamespace* core_namespace, char*** keys, COREModule*** values, int* num_items);
 extern bool CORENamespaceHasGenerator(CORENamespace* _namespace, const char* name);
 extern bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name);
 
@@ -68,6 +72,7 @@ extern COREWireable* COREModuleDefAddGeneratorInstance(COREModuleDef* module_def
 
 extern COREWireable* COREModuleDefGetInterface(COREModuleDef* m);
 extern COREValue* COREGetModArg(COREWireable* i, char* s);
+extern void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items);
 extern bool COREHasModArg(COREWireable* i, char* s);
 
 //Errors:
@@ -84,12 +89,17 @@ extern COREWireable* COREConnectionGetFirst(COREConnection* c);
 extern COREWireable* COREConnectionGetSecond(COREConnection* c);
 extern COREWireable** COREWireableGetConnectedWireables(COREWireable* wireable, int* numWireables);
 extern COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name);
+extern bool COREModuleDefCanSelect(COREModuleDef* m, char* name);
 extern COREModuleDef* COREWireableGetContainer(COREWireable* w);
 extern COREModule* COREModuleDefGetModule(COREModuleDef* m);
 extern const char** COREWireableGetSelectPath(COREWireable* w, int* num_selects);
 extern void COREPrintErrors(COREContext* c);
 extern const char* CORENamespaceGetName(CORENamespace* n);
 extern COREType* COREWireableGetType(COREWireable* wireable);
+extern void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value);
+extern void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
+        COREWireable* a, COREWireable* b, char *key, char *value);
+extern void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);
@@ -106,5 +116,7 @@ extern COREDirectedConnection** COREDirectedInstanceGetInputs(COREDirectedInstan
 // END   : directedview
 
 int COREValueTypeGetKind(COREValueType* value_type);
+
+void COREFree(void* ptr);
 
 #endif //COREIR_C_H_

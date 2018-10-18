@@ -34,13 +34,15 @@ Select* Wireable::sel(const std::string& selStr) {
   ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
 
   Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
+
   selects[selStr] = select;
+
   return select;
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
-Select* Wireable::sel(SelectPath path) {
+Select* Wireable::sel(const SelectPath& path) {
   Wireable* ret = this;
   for (auto selstr : path) ret = ret->sel(selstr);
   return cast<Select>(ret);
@@ -82,7 +84,7 @@ ConstSelectPath Wireable::getConstSelectPath() {
     path.insert(path.begin(), instname);
   }
   else {
-    ASSERT(0,"Cannot be here")
+    ASSERT(0,"Cannot be here");
   }
   return path;
 }
@@ -106,6 +108,7 @@ void Wireable::removeSel(string selStr) {
   ASSERT(selects.count(selStr),"Cannot remove " + selStr + "Because it does not exist!");
   Select* s = selects[selStr];
   selects.erase(selStr);
+  
   delete s;
 }
 
@@ -127,7 +130,10 @@ SelectPath& Wireable::getSelectPath() {
   return selectpath;
 }
 
-Context* Wireable::getContext() { return container->getContext();}
+Context* Wireable::getContext() {
+  ASSERT(container != nullptr, this->toString() + " has null container");
+  return container->getContext();
+}
 string Wireable::wireableKind2Str(WireableKind wb) {
   switch(wb) {
     case WK_Interface: return "Interface";
@@ -211,12 +217,12 @@ string Interface::toString() const{
 
 Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Values modargs) : Wireable(WK_Instance,container,nullptr), instname(instname), moduleRef(moduleRef) {
   checkStringSyntax(instname);
-  ASSERT(container->getInstances().count(instname)==0,"Cannot add two instances with the same name: " + instname);
+  //ASSERT(container->getInstances().count(instname)==0,"Cannot add two instances with the same name: " + instname);
   ASSERT(moduleRef,"Module is null, in inst: " + this->getInstname());
   //First merge default args
   mergeValues(modargs,moduleRef->getDefaultModArgs());
   //Check if modargs is the same as expected by ModuleRef
-  checkValuesAreParams(modargs,moduleRef->getModParams());
+  checkValuesAreParams(modargs,moduleRef->getModParams(),instname);
   
   this->modargs = modargs;
 
@@ -230,10 +236,10 @@ string Instance::toString() const {
 
 void Instance::replace(Module* moduleRef, Values modargs) {
   ASSERT(moduleRef,"ModuleRef is null in inst: " + this->getInstname());
-  ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type")
+  ASSERT(this->getType()==moduleRef->getType(),"NYI, Cannot replace with a different type");
   this->moduleRef = moduleRef;
   this->modargs = modargs;
-  checkValuesAreParams(modargs,moduleRef->getModParams());
+  checkValuesAreParams(modargs,moduleRef->getModParams(),this->getInstname());
 }
 
 string Select::toString() const {

@@ -6,7 +6,7 @@
 
 namespace CoreIR {
 
-  typedef bsim::dynamic_bit_vector BitVec;
+  typedef bsim::quad_value_bit_vector BitVec;
 
   enum SimValueType {
     SIM_VALUE_BV,
@@ -43,6 +43,12 @@ namespace CoreIR {
     virtual ~SimValue() {}
 
     virtual SimValueType getType() const = 0;
+
+    virtual bool operator==(const SimValue& other) const = 0;
+
+    virtual bool operator!=(const SimValue& other) const {
+      return !((*this) == other);
+    }
   };
 
   class SimBitVector : public SimValue {
@@ -55,6 +61,15 @@ namespace CoreIR {
     BitVec getBits() const { return bv; }
 
     virtual SimValueType getType() const { return SIM_VALUE_BV; }
+
+    virtual bool operator==(const SimValue& other) const {
+      if (other.getType() != SIM_VALUE_BV) {
+        return false;
+      }
+      const SimBitVector& otherBit = static_cast<const SimBitVector&>(other);
+
+      return this->getBits() == otherBit.getBits();
+    }
   };
 
   class ClockValue : public SimValue {
@@ -80,52 +95,18 @@ namespace CoreIR {
     int getHalfCycleCount() const { return halfCycleCount; }
 
     virtual SimValueType getType() const { return SIM_VALUE_CLK; }
-  };
 
-  class LinebufferMemory {
-    std::deque<BitVector> values;
-    std::deque<bool> valids;
-    int width, depth;
-
-  public:
-
-    LinebufferMemory(const int width_, const int depth_) :
-      width(width_), depth(depth_) {
-
-      for (int i = 0; i < getDepth(); i++) {
-	values.push_back(BitVector(width, 0));
-	valids.push_back(false);
+    virtual bool operator==(const SimValue& other) const {
+      if (other.getType() != SIM_VALUE_CLK) {
+        return false;
       }
+      const ClockValue& otherBit = static_cast<const ClockValue&>(other);
 
-      assert(((int)values.size()) == depth);
+      // Q: Should we compare half cycle counts?
+      return (this->value() == otherBit.value()) &&
+        (this->lastValue() == otherBit.lastValue());
     }
-
-    BitVector peek() const {
-      assert(((int)values.size()) == depth);
-
-      return values[getDepth() - 1];
-    }
-
-    bool isValid() const {
-      assert(((int)valids.size()) == depth);
-      return valids.back();
-    }
-
-    BitVector push(const BitVector& vec) {
-      values.push_front(vec);
-      valids.push_front(true);
-
-      BitVector toRet = values.back();
-      values.pop_back();
-      valids.pop_back();
-
-      assert(((int)values.size()) == depth);
-      assert(((int)valids.size()) == depth);
-
-      return toRet;
-    }
-
-    int getDepth() const { return depth; }
+    
   };
 
   class CircuitState {
@@ -136,7 +117,6 @@ namespace CoreIR {
     // Internal state of the circuit
     std::unordered_map<std::string, SimMemory> memories;
     std::unordered_map<std::string, BitVec> registers;
-    std::unordered_map<std::string, LinebufferMemory> lbMemories;
     
   };
 
@@ -226,18 +206,18 @@ namespace CoreIR {
     void updateMemoryOutput(const vdisc vd);
     void setConstantDefaults();
     void setRegisterDefaults();
-    void setLineBufferMem(const std::string& name,
-			  const BitVector& data);
+    // void setLineBufferMem(const std::string& name,
+    //     		  const BitVector& data);
 
     void updateLinebufferMemOutput(const vdisc vd);
     void setMemoryDefaults();
-    void setLinebufferMemDefaults();
+    //void setLinebufferMemDefaults();
 
     void updateBitVecUnop(const vdisc vd, BitVecUnop op);
     void updateBitVecBinop(const vdisc vd, BitVecBinop op);
 
-    bool lineBufferOutIsValid(const std::string& memName);
-    BitVector getLinebufferValue(const std::string& memName);
+    // bool lineBufferOutIsValid(const std::string& memName);
+    // BitVector getLinebufferValue(const std::string& memName);
 
     void setValue(CoreIR::Select* sel, SimValue* val);
     void setValue(CoreIR::Select* sel, const BitVec& bv);
@@ -284,7 +264,7 @@ namespace CoreIR {
 
     void updateRegisterValue(const vdisc vd);
     void updateMemoryValue(const vdisc vd);
-    void updateLinebufferMemValue(const vdisc vd);
+    //void updateLinebufferMemValue(const vdisc vd);
 
     void updateOrrNode(const vdisc vd);
     void updateZextNode(const vdisc vd);

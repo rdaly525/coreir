@@ -11,6 +11,22 @@ using namespace std;
 
 namespace CoreIR {
 
+  bool isBitType(const Type& tp) {
+    if (isa<BitType>(tp)) {
+      return true;
+    }
+
+    if (isa<BitInType>(tp)) {
+      return true;
+    }
+
+    if (isa<BitInOutType>(tp)) {
+      return true;
+    }
+
+    return false;
+  }
+
   CoreIR::Wireable* replaceSelect(CoreIR::Wireable* const toReplace,
                                   CoreIR::Wireable* const replacement,
                                   CoreIR::Wireable* const sel) {
@@ -91,6 +107,23 @@ namespace CoreIR {
 
     for (auto sel : inst->getSelects()) {
       concat(conns, getSourceSelects(sel.second));
+    }
+
+    return conns;
+  }
+
+  std::vector<Select*>
+  getIOSelects(CoreIR::Wireable* inst) {
+    vector<Select*> conns;
+
+    for (auto sel : inst->getConnectedWireables()) {
+      if (sel->getType()->getDir() == Type::DK_InOut) {
+        conns.push_back(cast<Select>(sel));
+      }
+    }
+
+    for (auto sel : inst->getSelects()) {
+      concat(conns, getIOSelects(sel.second));
     }
 
     return conns;
@@ -180,7 +213,7 @@ namespace CoreIR {
     // No direct connections
     if (connected.size() == 0) {
 
-      cout << src->toString() << " has no direct connections" << endl;
+      //cout << src->toString() << " has no direct connections" << endl;
 
       Wireable* parent = src->getParent();
       if (!isa<Select>(parent)) {
@@ -212,6 +245,11 @@ namespace CoreIR {
 
   std::vector<CoreIR::Select*>
   getSignalValues(CoreIR::Select* const sel) {
+    if (isBitType(*(sel->getType()))) {
+      Select* driverSel = getDriverSelect(sel);
+      return {driverSel};
+    }
+
     assert(isBitArray(*(sel->getType())));
 
     ArrayType* tp = cast<ArrayType>(sel->getType());
@@ -291,8 +329,9 @@ namespace CoreIR {
     Type* fstType = fst->getType();
 
     // Bit connections are already unpacked
-    if ((fstType->getKind() == Type::TK_Bit) ||
-        (fstType->getKind() == Type::TK_BitIn)) {
+    // if ((fstType->getKind() == Type::TK_Bit) ||
+    //     (fstType->getKind() == Type::TK_BitIn)) {
+    if (isBitType(*fstType)) {
       return {conn};
     }
 
@@ -307,7 +346,7 @@ namespace CoreIR {
       int len = arrTp->getLen();
 
       for (int i = 0; i < len; i++) {
-        concat(unpackedConns, unpackConnection({fst->sel(i), snd->sel(i)}));
+        concat(unpackedConns, unpackConnection(connectionCtor(fst->sel(i), snd->sel(i))));
       }
 
       return unpackedConns;
@@ -346,7 +385,7 @@ namespace CoreIR {
       //assert(isBitType(*(sel->getType())));
       constReplace = def->addInstance("def_self_const_replace_" + portName,
                                       "corebit.const",
-                                      {{"value", Const::make(c, value.get(0) ? true : false)}});
+                                      {{"value", Const::make(c, value.get(0).binary_value() ? true : false)}});
     }
 
     assert(constReplace != nullptr);
@@ -379,21 +418,41 @@ namespace CoreIR {
 
     auto def = mod->getDef();
 
-    Instance* inst = def->getInstances()[instanceName];
+
+    cout << "Checking for instance name in def" << endl;
+    if (!contains_key(instanceName, def->getInstances())) {
+      return;
+    }
+
+    cout << "Getting instance name from def " << endl;    
+    Instance* inst = def->getInstances().at(instanceName);
+
+    cout << "Got instance name from def " << endl;
+
     assert(inst != nullptr);
-    assert(getQualifiedOpName(*inst) == "coreir.reg");
+    assert((getQualifiedOpName(*inst) == "coreir.reg") ||
+           (getQualifiedOpName(*inst) == "coreir.reg_arst"));
 
     string instName = inst->getInstname();
     auto pt = addPassthrough(inst, inst->toString() + "_reg_replace_pt");
     Values args = inst->getModArgs();
+    cout << "Getting init value for " << getQualifiedOpName(*inst) << endl;
     args["init"] = Const::make(mod->getContext(), value);
 
+    string instTp = getQualifiedOpName(*inst);
     Values genArgs = inst->getModuleRef()->getGenArgs();
 
     def->removeInstance(inst);
 
-    Instance* replacement =
-      def->addInstance(instName, "coreir.reg", genArgs, args);
+    Instance* replacement = nullptr;
+    if (instTp == "coreir.reg") {
+      replacement = def->addInstance(instName, "coreir.reg", genArgs, args);
+    } else {
+      assert(instTp == "coreir.reg_arst");
+      replacement = def->addInstance(instName, "coreir.reg_arst", genArgs, args);
+    }
+
+    assert(replacement != nullptr);
 
     def->connect(pt->sel("in"),
                  replacement);

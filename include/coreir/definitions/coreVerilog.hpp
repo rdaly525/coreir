@@ -42,14 +42,14 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     {"other",{
       {"mux","sel ? in1 : in0"},
       {"slice","in[hi-1:lo]"},
-      {"concat","{in0,in1}"},
+      {"concat","{in1,in0}"},
       {"zext","{{(width_out-width_in){1'b0}},in}"},
       {"sext","{{(width_out-width_in){in[width_in-1]}},in}"},
       {"strip","in"},
       {"wrap","in"},
       {"const","value"},
-      {"triput","en ? in : 'hz"},
-      {"triget","in"},
+      {"tribuf","en ? in : 'hz"},
+      {"ibuf","in"},
       //{"term",""}
       //{"reg",""}, 
       //{"mem",""}, 
@@ -109,12 +109,12 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     }},
     {"const",{"output [width-1:0] out"}},
     {"term",{"input [width-1:0] in"}},
-    {"triput",{
+    {"tribuf",{
       "input [width-1:0] in",
       "input en",
       "inout out"
     }},
-    {"triget",{
+    {"ibuf",{
       "inout [width-1:0] in",
       "output [width-1:0] out"
     }},
@@ -123,9 +123,9 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "input [width-1:0] in",
       "output [width-1:0] out"
     }},
-    {"regrst",{
+    {"reg_arst",{
       "input clk",
-      "input rst",
+      "input arst",
       "input [width-1:0] in",
       "output [width-1:0] out"
     }},
@@ -147,6 +147,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       json vjson;
       vjson["prefix"] = "coreir_";
       vjson["definition"] = "  assign out = " + vbody + ";";
+      vjson["inlineable"] = true;
       if (it0.first!="other") {
         ASSERT(coreIMap.count(it0.first),"missing" + it0.first);
         vjson["interface"] = coreIMap.at(it0.first);
@@ -170,32 +171,37 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     core->getGenerator("term")->getMetaData()["verilog"] = vjson;
   }
   {
-    //regrst
     json vjson;
     vjson["prefix"] = "coreir_";
-    vjson["parameters"] = {"init"};
-    vjson["interface"] = coreIMap.at("regrst");
+    vjson["parameters"] = {"init","arst_posedge","clk_posedge"};
+    vjson["interface"] = coreIMap.at("reg_arst");
     vjson["definition"] = ""
-    "reg [width-1:0] outReg;\n"
-    "always @(posedge clk, negedge rst) begin\n"
-    "  if (!rst) outReg <= init;\n"
-    "  else outReg <= in;\n"
-    "end\n"
-    "assign out = outReg;";
-    core->getGenerator("regrst")->getMetaData()["verilog"] = vjson;
+    "  reg [width-1:0] outReg;\n"
+    "  wire real_rst;\n"
+    "  assign real_rst = arst_posedge ? arst : ~arst;\n"
+    "  wire real_clk;\n"
+    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+    "  always @(posedge real_clk, posedge real_rst) begin\n"
+    "    if (real_rst) outReg <= init;\n"
+    "    else outReg <= in;\n"
+    "  end\n"
+    "  assign out = outReg;";
+    core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson;
   }
   {
     //reg
     json vjson;
     vjson["prefix"] = "coreir_";
-    vjson["parameters"] = {"init"};
+    vjson["parameters"] = {"init","clk_posedge"};
     vjson["interface"] = coreIMap.at("reg");
     vjson["definition"] = ""
-    "reg [width-1:0] outReg=init;\n"
-    "always @(posedge clk) begin\n"
-    "  outReg <= in;\n"
-    "end\n"
-    "assign out = outReg;";
+    "  reg [width-1:0] outReg=init;\n"
+    "  wire real_clk;\n"
+    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+    "  always @(posedge real_clk) begin\n"
+    "    outReg <= in;\n"
+    "  end\n"
+    "  assign out = outReg;";
     core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
   }
 
@@ -205,13 +211,13 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["mem"];
     vjson["definition"] = ""
-    "reg [width-1:0] data[depth];\n"
-    "always @(posedge clk) begin\n"
-    "  if (wen) begin\n"
-    "    data[waddr] <= wdata;\n"
+    "  reg [width-1:0] data[depth-1:0];\n"
+    "  always @(posedge clk) begin\n"
+    "    if (wen) begin\n"
+    "      data[waddr] <= wdata;\n"
+    "    end\n"
     "  end\n"
-    "end\n"
-    "assign rdata = data[raddr];";
+    "  assign rdata = data[raddr];";
     core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
   } 
 }

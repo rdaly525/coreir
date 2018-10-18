@@ -1,3 +1,4 @@
+#include <algorithm>  // std::max
 //This file is just included in context.cpp
 
 void core_convert(Context* c, Namespace* core) {
@@ -53,7 +54,7 @@ void core_convert(Context* c, Namespace* core) {
     [](Context* c, Values args) {
       uint width_in = args.at("width_in")->get<int>();
       uint width_out = args.at("width_out")->get<int>();
-      ASSERT(width_out >= width_in,"Bad valudes for widths")
+      ASSERT(width_out >= width_in,"Bad valudes for widths");
       return c->Record({
         {"in",c->BitIn()->Arr(width_in)},
         {"out",c->Bit()->Arr(width_out)}
@@ -114,12 +115,18 @@ void core_convert(Context* c, Namespace* core) {
 void core_state(Context* c, Namespace* core) {
 
   Params widthparams = Params({{"width",c->Int()}});
-  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+  auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
     Params modparams;
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
     modparams["init"] = BitVectorType::make(c,width);
-    defaultargs["init"] = Const::make(c,BitVector(width,0));
+    modparams["clk_posedge"] = c->Bool();
+    string startString = "";
+    for (int i = 0; i < width; i++) {
+      startString += "x";
+    }
+    defaultargs["init"] = Const::make(c,BitVector(width, startString));
+    defaultargs["clk_posedge"] = Const::make(c,true);
     return {modparams,defaultargs};
   };
 
@@ -135,15 +142,26 @@ void core_state(Context* c, Namespace* core) {
 
   TypeGen* regTypeGen = core->newTypeGen("regType",widthparams,regFun);
   auto reg = core->newGeneratorDecl("reg",regTypeGen,widthparams);
-  reg->setModParamsGen(regRstModParamFun);
+  reg->setModParamsGen(regModParamFun);
   
 
+  auto regRstModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    int width = genargs.at("width")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    modparams["arst_posedge"] = c->Bool();
+    modparams["clk_posedge"] = c->Bool();
+    defaultargs["arst_posedge"] = Const::make(c,true);
+    defaultargs["clk_posedge"] = Const::make(c,true);
+    return {modparams,defaultargs};
+  };
 
   auto regRstFun = [](Context* c, Values args) {
     int width = args.at("width")->get<int>();
     return c->Record({
         {"clk", c->Named("coreir.clkIn")},
-        {"rst", c->Named("coreir.rstIn")},
+        {"arst", c->Named("coreir.arstIn")},
         {"in" , c->BitIn()->Arr(width)},
         {"out", c->Bit()->Arr(width)}
     });
@@ -151,17 +169,15 @@ void core_state(Context* c, Namespace* core) {
 
 
   TypeGen* regRstTypeGen = core->newTypeGen("regRstType",widthparams,regRstFun);
-  auto regRst = core->newGeneratorDecl("regrst",regRstTypeGen,widthparams);
+  auto regRst = core->newGeneratorDecl("reg_arst",regRstTypeGen,widthparams);
   regRst->setModParamsGen(regRstModParamFun);
 
-  //TODO Deal with roms
   //Memory
   Params memGenParams({{"width",c->Int()},{"depth",c->Int()},{"has_init",c->Bool()}});
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
-    //ASSERT(isPower2(depth),"depth needs to be a power of 2: " + to_string(depth)); // TODO fix this
-    int awidth = ceil(std::log2(depth));
+    int awidth = std::max((int) ceil(std::log2(depth)), 1);
     return c->Record({
       {"clk",c->Named("coreir.clkIn")},
       {"wdata",c->BitIn()->Arr(width)},
@@ -177,9 +193,7 @@ void core_state(Context* c, Namespace* core) {
     Values defaultargs;
     bool has_init = genargs.at("has_init")->get<bool>();
     if (has_init) {
-      int width = genargs.at("width")->get<int>();
-      int depth = genargs.at("depth")->get<int>();
-      modparams["init"] = BitVectorType::make(c,width*depth);
+      modparams["init"] = JsonType::make(c);
     }
     return {modparams,defaultargs};
   };
@@ -202,7 +216,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
 
   //Single bit types
   core->newNamedType("clk","clkIn",c->Bit());
-  core->newNamedType("rst","rstIn",c->Bit());
+  core->newNamedType("arst","arstIn",c->Bit());
 
   //Common Function types
   core->newTypeGen(

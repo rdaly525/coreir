@@ -1,6 +1,7 @@
 #include "coreir-c/coreir.h"
 #include "coreir.h"
 #include "common-c.hpp"
+#include <strings.h>
 
 using namespace std;
 namespace CoreIR {
@@ -62,6 +63,9 @@ extern "C" {
   COREType* COREContextNamed(COREContext* context, const char* namespace_, const char* type_name) {
       return rcast<COREType*>(rcast<Context*>(context)->Named(std::string(namespace_)+"."+std::string(type_name)));
   }
+  COREType* COREContextFlip(COREContext* context, COREType* type) {
+      return rcast<COREType*>(rcast<Context*>(context)->Flip(rcast<Type*>(type)));
+  }
 
   COREValueType* COREContextBool(COREContext* context) {
       return rcast<COREValueType*>(rcast<Context*>(context)->Bool());
@@ -88,13 +92,33 @@ extern "C" {
     return rcast<COREModule*>(m);
   }
 
-  bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes) {
+  bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes,
+                                      char** namespaces, int num_namespaces) {
     Context* context = rcast<Context*>(ctx);
     vector<string> vec_passes;
+    vector<string> vec_namespaces;
     for (int i = 0; i < num_passes; i++) {
       vec_passes.emplace_back(passes[i]);
     }
-    return context->runPasses(vec_passes);
+    for (int i = 0; i < num_namespaces; i++) {
+      vec_namespaces.emplace_back(namespaces[i]);
+    }
+    return context->runPasses(vec_passes, vec_namespaces);
+  }
+
+  void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items) {
+    Values modargs = cast<Instance>(rcast<Wireable*>(core_wireable))->getModArgs();
+    *num_items = modargs.size();
+    *keys = (char **) malloc(*num_items * sizeof(char*));
+    *values = (COREValue **) malloc(*num_items * sizeof(COREValue*));
+    int i = 0;
+    for (auto const& item : modargs) {
+        const char* key = item.first.c_str();
+        (*keys)[i] = (char *) malloc(strlen(key) + 1);
+        strcpy((*keys)[i], key);
+        (*values)[i] = rcast<COREValue*>(item.second);
+        i++;
+    }
   }
 
   COREValue* COREGetModArg(COREWireable* i, char* s) {
@@ -149,6 +173,10 @@ extern "C" {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getNamespace(std::string(name)));
   }
 
+  CORENamespace* COREGlobalValueGetNamespace(COREGlobalValue* value) {
+    return rcast<CORENamespace*>(rcast<GlobalValue*>(value)->getNamespace());
+  }
+
   COREModule* CORENewModule(CORENamespace* ns, char* name, COREType* type, void* modparams) {
     Params g;
     if (modparams) g =*rcast<Params*>(modparams) ;
@@ -188,7 +216,7 @@ extern "C" {
   const char* COREModuleGetName(COREModule* module) {
     return rcast<Module*>(module)->getName().c_str();
   }
-  
+
   const char* COREGeneratorGetName(COREGenerator* gen) {
       return rcast<Generator*>(gen)->getName().c_str();
   }
@@ -300,7 +328,7 @@ extern "C" {
 
   COREWireable** COREWireableGetConnectedWireables(COREWireable* w, int* numWireables) {
     Wireable* wireable = rcast<Wireable*>(w);
-    unordered_set<Wireable*> connections_set = wireable->getConnectedWireables();
+    set<Wireable*> connections_set = wireable->getConnectedWireables();
     Context* context = wireable->getContext();
     int size = connections_set.size();
     *numWireables = size;
@@ -327,6 +355,10 @@ extern "C" {
 
   COREWireable* COREModuleDefSelect(COREModuleDef* m, char* name) {
     return rcast<COREWireable*>(rcast<ModuleDef*>(m)->sel(string(name)));
+  }
+
+  bool COREModuleDefCanSelect(COREModuleDef* m, char* name) {
+    return rcast<COREWireable*>(rcast<ModuleDef*>(m)->canSel(string(name)));
   }
 
   COREModuleDef* COREWireableGetContainer(COREWireable* w) {
@@ -366,6 +398,42 @@ extern "C" {
 
   COREModule* CORENamespaceGetModule(CORENamespace* _namespace, const char* name) {
       return rcast<COREModule*>(rcast<Namespace*>(_namespace)->getModule(std::string(name)));
+  }
+
+  void CORENamespaceGetModules(CORENamespace* core_namespace, char*** keys, COREModule*** values, int* num_items) {
+
+    std::map<std::string, Module*> modules =
+        rcast<Namespace*>(core_namespace)->getModules();
+
+    *num_items = modules.size();
+    *keys = (char **) malloc(*num_items * sizeof(char*));
+    *values = (COREModule **) malloc(*num_items * sizeof(COREModule*));
+    int i = 0;
+    for (auto const& item : modules) {
+        const char* key = item.first.c_str();
+        (*keys)[i] = (char *) malloc(strlen(key) + 1);
+        strcpy((*keys)[i], key);
+        (*values)[i] = rcast<COREModule*>(item.second);
+        i++;
+    }
+  }
+
+  void CORENamespaceGetGenerators(CORENamespace* core_namespace, char*** keys, COREGenerator*** values, int* num_items) {
+
+    std::map<std::string, Generator*> generators =
+        rcast<Namespace*>(core_namespace)->getGenerators();
+
+    *num_items = generators.size();
+    *keys = (char **) malloc(*num_items * sizeof(char*));
+    *values = (COREGenerator **) malloc(*num_items * sizeof(COREGenerator*));
+    int i = 0;
+    for (auto const& item : generators) {
+        const char* key = item.first.c_str();
+        (*keys)[i] = (char *) malloc(strlen(key) + 1);
+        strcpy((*keys)[i], key);
+        (*values)[i] = rcast<COREGenerator*>(item.second);
+        i++;
+    }
   }
 
   bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name) {
@@ -497,6 +565,20 @@ extern "C" {
       return rcast<COREDirectedConnection**>(ptr_arr);
   }
 
+  void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value) {
+      rcast<Module*>(module)->getMetaData()[key] = value;
+  }
+
+  void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value) {
+      rcast<Wireable*>(wireable)->getMetaData()[key] = value;
+  }
+
+  void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
+          COREWireable* a, COREWireable* b, char *key, char *value) {
+      rcast<ModuleDef*>(module_def)->getMetaData(rcast<Wireable*>(a),
+              rcast<Wireable*>(b))[key] = value;
+  }
+
   const char* COREInstanceGetInstname(COREWireable* instance) {
       return rcast<Instance*>(instance)->getInstname().c_str();
   }
@@ -507,6 +589,10 @@ extern "C" {
 
   int COREValueTypeGetKind(COREValueType* value_type) {
       return rcast<ValueType*>(value_type)->getKind();
+  }
+
+  void COREFree(void * ptr) {
+      free(ptr);
   }
 
 }//extern "C"

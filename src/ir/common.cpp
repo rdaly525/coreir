@@ -1,7 +1,9 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/wireable.h"
 #include "coreir/ir/value.h"
+#include "coreir/ir/valuetype.h"
 #include "coreir/ir/module.h"
+#include "coreir/ir/types.h"
 
 #include <regex>
 
@@ -10,7 +12,7 @@ using namespace std;
 namespace CoreIR {
 
 bool isNumber(string s) {
-  return s.find_first_not_of("0123456789")==string::npos;
+  return !s.empty() && s.find_first_not_of("0123456789") == string::npos;
 }
 bool isPower2(uint n) {
   return (n & (n-1))==0;
@@ -25,17 +27,37 @@ bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
   }
   return false;
 }
+
 bool ConnectionComp::operator() (const Connection& l, const Connection& r) const {
-  if (l.first!=r.first) return SPComp(l.first->getSelectPath(),r.first->getSelectPath());
-  return SPComp(l.second->getSelectPath(),r.second->getSelectPath());
+  if (l.first < r.first) {
+    return true;
+  }
+  if (l.first == r.first) {
+    return l.second < r.second;
+  }
+  return false;
+}
+
+bool ConnectionStrComp::SPComp(const SelectPath& l, const SelectPath& r) {
+  string ls = toString(l);
+  string lr = toString(r);
+  return ls < lr;
+}
+bool ConnectionStrComp::operator() (const Connection& l, const Connection& r) const {
+  string ls = toString(l);
+  string rs = toString(r);
+  return ls < rs;
 }
 
 Connection connectionCtor(Wireable* a, Wireable* b) {
-  if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
-    return Connection(a,b);
+  //if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
+  if (a < b) {
+    //return Connection(a,b);
+    return {a, b};
   }
   else {
-    return Connection(b,a);
+    //return Connection(b,a);
+    return {b,a};
   }
 }
 
@@ -64,8 +86,22 @@ string toString(SelectPath path) {
 }
 
 string toString(Connection con) {
-  return con.first->toString() + " <=> " + con.second->toString();
+  bool order = ConnectionStrComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath());
+  Wireable* fstCon = order ? con.first : con.second;
+  Wireable* sndCon = order ? con.second : con.first;
+  return fstCon->toString() + " <=> " + sndCon->toString();
+
+  //return con.first->toString() + " <=> " + con.second->toString();
 }
+
+string toString(RecordParams rp) {
+  vector<string> ss;
+  for (auto r : rp) {
+    ss.push_back(r.first+": " + r.second->toString());
+  }
+  return "(" + join(ss.begin(),ss.end(),string(",")) + ")";
+}
+
 
 
 std::string toString(Instance* inst) {
@@ -76,24 +112,68 @@ std::string toString(Instance* inst) {
   return ret + toString(inst->getModArgs()) + " : " + inst->getModuleRef()->getRefName();
 }
 
-static const char* regex_str = "^[a-zA-Z_\\-\\$][0-9a-zA-Z_\\-\\$]*$";
-void checkStringSyntax(std::string str) {
-  static regex reg(regex_str, std::regex_constants::basic);
-  ASSERT(regex_search(str,reg),str+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
+namespace {
+inline bool syntaxW(char c) {
+  return (c >= 'a' && c<='z')
+      || (c >= 'A' && c<= 'Z')
+      || (c=='_')
+      || (c=='-')
+      || (c=='$');
+}
+inline bool syntaxWN(char c) {
+  return (c >= 'a' && c<='z')
+      || (c >= 'A' && c<= 'Z')
+      || (c >= '0' && c<= '9')
+      || (c=='_')
+      || (c=='-')
+      || (c=='$');
+}
+}
+
+static std::string regex_str("^[a-zA-Z_\\-\\$][a-zA-Z0-9_\\-\\$]*");
+void checkStringSyntax(std::string& str) {
+  //static regex reg(regex_str, std::regex_constants::basic);
+  ASSERT(syntaxW(str[0]),str+" 0: is not a valid coreIR name!. Needs to be = " + string(regex_str));
+  for (uint i=1; i<str.length(); ++i) {
+    ASSERT(syntaxWN(str[i]),str+" " +to_string(i)+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
+  }
+  //ASSERT(regex_search(str,syntaxreg),str+" is not a valid coreIR name!. Needs to be = " + string(regex_str));
 }
 
 
 
 
-void checkValuesAreParams(Values args, Params params) {
+void checkValuesAreParams(Values args, Params params, string errstring) {
   bool multi = args.size() > 4 || params.size() > 4;
-  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + toString(args,multi) + "\nParams: " + toString(params,multi));
+  ASSERT(args.size() == params.size(),"Args and params are not the same!\n Args: " + toString(args,multi) + "\nParams: " + toString(params,multi) + "\n" + errstring);
   for (auto const &param : params) {
+    Context* c = param.second->getContext();
     auto const &arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) + "\nBut only gave:" + toString(args));
-    ASSERT(arg->second->getValueType() == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")");
+    ASSERT(arg != args.end(), "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) + "\nBut only gave:" + toString(args) + "\n" + errstring);
+    if (param.second==AnyType::make(c)) {
+      continue;
+    }
+    ValueType* vt = arg->second->getValueType();
+    ASSERT(vt == param.second,"Param type mismatch for: " + param.first + " (" + arg->second->toString()+ " vs " + param.second->toString()+")" + "\n" + errstring);
   }
 }
+
+bool doValuesMatchParams(Values args, Params params) {
+  if (args.size() != params.size()) {
+    return false;
+  }
+  for (auto ppair : params) {
+    Context* c = ppair.second->getContext();
+    string pname = ppair.first;
+    ValueType* param  = ppair.second;
+    if (args.count(pname)==0) return false;
+    if (param == AnyType::make(c)) continue;
+    ValueType* vt = args[pname]->getValueType();
+    if (vt != param) return false;
+  }
+  return true;
+}
+
 
 void checkValuesAreConst(Values vs) {
   for (auto v : vs) {
@@ -101,6 +181,12 @@ void checkValuesAreConst(Values vs) {
   }
 }
 
+std::vector<std::string> splitStringByWhitespace(std::string const &input) { 
+    std::istringstream buffer(input);
+    std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)), 
+                                 std::istream_iterator<std::string>());
+    return ret;
+}
 
 vector<string> splitRef(string s) {
   auto p = splitString<vector<string>>(s,'.');

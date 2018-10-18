@@ -3,7 +3,7 @@
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreir-aetherlinglib
+LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreir-aetherlinglib -lcoreir-commonlib
 #LIBS =  -lcoreir
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))

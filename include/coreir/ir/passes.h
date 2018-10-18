@@ -23,6 +23,7 @@ class Pass {
     virtual ~Pass() = 0;
     PassKind getKind() const {return kind;}
     
+    virtual void initialize(int argc, char** argv) {}
     virtual void releaseMemory() {}
     virtual void setAnalysisInfo() {}
     void addDependency(std::string name) { dependencies.push_back(name);}
@@ -44,14 +45,14 @@ class Pass {
     friend class Context;
 };
 
-typedef Pass* register_pass_t();
-typedef void delete_pass_t(Pass*);
+typedef Pass* (*register_pass_t)();
 
 //You can do whatever you want here
 class ContextPass : public Pass {
   public:
     explicit ContextPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Context,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Context;}
+    virtual void initialize(int argc, char** argv) override {}
     virtual bool runOnContext(Context* c) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -63,6 +64,7 @@ class NamespacePass : public Pass {
   public:
     explicit NamespacePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Namespace,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Namespace;}
+    virtual void initialize(int argc, char** argv) override {}
     virtual bool runOnNamespace(Namespace* n) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -75,6 +77,7 @@ class ModulePass : public Pass {
   public:
     explicit ModulePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Module,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Module;}
+    virtual void initialize(int argc, char** argv) override {}
     virtual bool runOnModule(Module* m) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -88,6 +91,7 @@ class InstancePass : public Pass {
   public:
     explicit InstancePass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_Instance,name,description,isAnalysis) {}
     static bool classof(const Pass* p) {return p->getKind()==PK_Instance;}
+    virtual void initialize(int argc, char** argv) override {}
     virtual bool runOnInstance(Instance* i) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
@@ -102,6 +106,7 @@ class InstanceVisitorPass : public Pass {
       addDependency("createfullinstancemap");
     }
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceVisitor;}
+    virtual void initialize(int argc, char** argv) override {}
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}
     virtual void print() override {}
@@ -125,12 +130,16 @@ class InstanceGraphNode;
 //If the Instance is linked in from a different namespace or is a generator instance, then it will run runOnInstanceNode
 //Not allowed 
 class InstanceGraphPass : public Pass {
+  protected:
+    bool onlyTop = false;
   public:
     
     explicit InstanceGraphPass(std::string name, std::string description, bool isAnalysis=false) : Pass(PK_InstanceGraph,name,description,isAnalysis) {
       addDependency("createinstancegraph");
     }
+    bool isOnlyTop() { return onlyTop; }
     static bool classof(const Pass* p) {return p->getKind()==PK_InstanceGraph;}
+    virtual void initialize(int argc, char** argv) override {}
     virtual bool runOnInstanceGraphNode(InstanceGraphNode& node) = 0;
     virtual void releaseMemory() override {}
     virtual void setAnalysisInfo() override {}

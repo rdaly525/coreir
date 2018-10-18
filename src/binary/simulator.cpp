@@ -1,5 +1,5 @@
 #include "coreir.h"
-#include "cxxopts.hpp"
+#include "coreir/tools/cxxopts.h"
 #include <dlfcn.h>
 #include <fstream>
 
@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
 
   CoreIRLoadLibrary_commonlib(c);
   
-  ASSERT(options.count("i"),"No input specified")
+  ASSERT(options.count("i"),"No input specified");
   string infileName = options["i"].as<string>();
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");

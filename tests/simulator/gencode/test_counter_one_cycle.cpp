@@ -13,16 +13,16 @@ int main() {
   state.self_en = self_en;
   state.self_clk = self_clk;
   state.self_clk_last = self_clk_last;
-  state.ri = 5;
+  state.ri$reg0 = 5;
   state.self_out = self_out;
   
 
   simulate(&state);
 
   printf("output = %hu\n", state.self_out);
-  printf("new_register value = %hu\n", state.ri);
+  printf("new_register value = %hu\n", state.ri$reg0);
   
-  if ((state.ri != 5) || (state.self_out != 5)) {
+  if ((state.ri$reg0 != 5) || (state.self_out != 5)) {
     return 1;
   }
 
@@ -32,9 +32,9 @@ int main() {
 
   printf("output = %hu\n", self_out);
 
-  printf("new_register value = %hu\n", state.ri);
+  printf("new_register value = %hu\n", state.ri$reg0);
 
-  if ((state.ri != 5) || (state.self_out != 5)) {
+  if ((state.ri$reg0 != 5) || (state.self_out != 5)) {
     return 1;
   }
   

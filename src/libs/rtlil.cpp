@@ -199,7 +199,6 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       // ASSERT(!b_signed, "Have not yet added signed shift value support for " + name);
 
       ASSERT(y_width >= a_width, "Shift operations must have output at least as long as bit vector being shifted");
-      //ASSERT(y_width >= b_width, "Shift operations must have output at least as long as shift value");
 
       uint res_width = max(a_width, y_width);
       uint ext_width = max(res_width, b_width);
@@ -649,7 +648,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   Params adffParams =
     {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()},
      // NOTE: ARST_VALUE should really be a bit vector
-     {"ARST_POLARITY", c->Bool()}, {"ARST_VALUE", c->Int()}};
+     {"ARST_POLARITY", c->Bool()}}; //, {"ARST_VALUE", c->BitVector()}};
 
   TypeGen* adffTP =
     rtLib->newTypeGen(
@@ -667,31 +666,35 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   rtLib->newGeneratorDecl("adff", adffTP, adffParams);
 
+  auto adffModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+    Params modparams;
+    Values defaultargs;
+    uint width = genargs.at("WIDTH")->get<int>();
+    modparams["init"] = BitVectorType::make(c,width);
+    //defaultargs["init"] = Const::make(c,BitVector(width,0));
+    return {modparams,defaultargs};
+  };
+
   auto adffGen = c->getGenerator("rtlil.adff");
+  adffGen->setModParamsGen(adffModParamFun);
   adffGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
       bool polarity = args.at("CLK_POLARITY")->get<bool>();
 
-      ASSERT(polarity == true,
-             "Currently CoreIR only supports rising edge DFFs");
+      bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
 
-      // TODO: Reintroduce as a parameter
-      // bool rstPolarity = args.at("ARST_POLARITY")->get<bool>();
-      int rstVal = args.at("ARST_VALUE")->get<int>();
+      Module* mod = def->getModule();
+      auto initVal = mod->getArg("init");
 
-      // ASSERT(rstPolarity == true,
-      //        "Currently CoreIR only supports rising edge resets on adffs");
-      
       uint width = args.at("WIDTH")->get<int>();
 
       Instance* reg = nullptr;
 
       reg = def->addInstance("reg0",
-                             "mantle.reg",
-                             {{"width", Const::make(c, width)},
-                                 {"has_rst", Const::make(c, true)}},
-                             {{"init", Const::make(c, BitVec(width, rstVal))}});
-
-                                   
+                             "coreir.reg_arst",
+                             {{"width", Const::make(c, width)}},
+                             {{"init", initVal},
+                                 {"clk_posedge", Const::make(c, polarity)},
+                                   {"arst_posedge", Const::make(c, rstPolarity)}});
 
       assert(reg != nullptr);
 
@@ -705,10 +708,10 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
       def->addInstance("toRST0",
                        "coreir.wrap",
-                       {{"type", Const::make(c, c->Named("coreir.rst"))}});
+                       {{"type", Const::make(c, c->Named("coreir.arst"))}});
       
       def->connect("self.ARST", "toRST0.in");
-      def->connect("toRST0.out", "reg0.rst");
+      def->connect("toRST0.out", "reg0.arst");
       def->connect("self.CLK", "toClk0.in");
       def->connect("toClk0.out", "reg0.clk");
 
@@ -782,21 +785,52 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                       memParams,
                       [](Context* c, Values genargs) {
                         uint width = genargs.at("WIDTH")->get<int>();
+                        uint depth = genargs.at("SIZE")->get<int>();
+                        uint awidth = ceil(log2(depth));
 
                         return c->Record({
                             {"RD_EN", c->BitIn()},
                               {"RD_DATA", c->Bit()->Arr(width)},
-                                {"RD_ADDR", c->BitIn()->Arr(width)},
+                                {"RD_ADDR", c->BitIn()->Arr(awidth)},
                                   {"RD_CLK", c->BitIn()},
                                     {"WR_EN", c->BitIn()->Arr(width)},
                                       {"WR_DATA", c->BitIn()->Arr(width)},
-                                        {"WR_ADDR", c->BitIn()->Arr(width)},
+                                        {"WR_ADDR", c->BitIn()->Arr(awidth)},
                                           {"WR_CLK", c->BitIn()}
                           });
                       });
 
-  rtLib->newGeneratorDecl("memory", memTP, memParams);
+  auto memGen = rtLib->newGeneratorDecl("memory", memTP, memParams);
 
+  // TODO: Proper RD_EN, RD_CLK use
+  memGen->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+      int depth = args.at("SIZE")->get<int>();
+      int width = args.at("WIDTH")->get<int>();
+
+      def->addInstance("mem",
+                       "coreir.mem",
+                       {{"width", Const::make(c, width)},
+                           {"depth", Const::make(c, depth)}});
+
+      // Add clock cast node, in rtlil the clock input is just another bit
+      //def->addInstance("toClk0", "rtlil.to_clkIn");
+      def->addInstance("toClk0",
+                       "coreir.wrap",
+                       {{"type", Const::make(c, c->Named("coreir.clk"))}});
+
+      def->connect("self.WR_CLK", "toClk0.in");
+      def->connect("toClk0.out", "mem.clk");
+
+      def->connect("self.RD_ADDR", "mem.raddr");
+      // Correct this bitwise enable!
+      def->connect("self.WR_EN.0", "mem.wen");
+
+      def->connect("self.WR_DATA", "mem.wdata");
+      def->connect("self.WR_ADDR", "mem.waddr");
+
+      def->connect("mem.rdata", "self.RD_DATA");
+    });
+  
   // BitInOut conversion facilities
   Params outToInOutParams =
     {{"WIDTH", c->Int()}};
@@ -841,7 +875,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                         return c->Record({
                             {"INOUT_PORT", c->BitInOut()->Arr(width)},
                               {"IN_PORT", c->BitIn()->Arr(width)},
-                                {"OUT_PORT", c->Bit()->Arr(width)}
+                                {"OUT_PORT", c->Bit()->Arr(width)},
+                                  {"INOUT_DRIVER_PORT", c->BitInOut()->Arr(width)}
                           });
                       });
 
@@ -853,7 +888,17 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   Type* unknownBitType =
     c->Record({{"OUT", c->Bit()}});
-  rtLib->newModuleDecl("unknownBit", unknownBitType);
+  auto uMod = rtLib->newModuleDecl("unknownBit", unknownBitType);
+  auto uDef = uMod->newModuleDef();
+
+  uDef->addInstance("uConst",
+                    "coreir.const",
+                    {{"width", Const::make(c, 1)}},
+                    {{"value", Const::make(c, BitVector(1, "x"))}});
+
+  uDef->connect("uConst.out.0", "self.OUT");
+
+  uMod->setDef(uDef);
   
   return rtLib;
 }

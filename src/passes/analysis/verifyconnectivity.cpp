@@ -1,8 +1,25 @@
 #include "coreir.h"
 #include "coreir/passes/analysis/verifyconnectivity.h"
+#include "coreir/tools/cxxopts.h"
 
 using namespace std;
 using namespace CoreIR;
+
+void Passes::VerifyConnectivity::initialize(int argc, char** argv) {
+  cxxopts::Options options("verifyconnectivity", "verifys the connectivty of the hardware graph");
+  options.add_options()
+    ("h,help","help")
+    ("i,onlyinputs","Only checks inputs")
+    ("c,noclkrst","Do not check clocks")
+  ;
+  options.parse(argc,argv);
+  if (options.count("i")) {
+    this->onlyInputs = true;
+  }
+  if (options.count("c")) {
+    this->checkClkRst= false;
+  }
+}
 
 bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
   if (this->onlyInputs && w->getType()->isOutput()) {
@@ -15,8 +32,8 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
   Context* c = this->getContext();
   if (w->getConnectedWireables().size()>0) return true;
   if (auto nt = dyn_cast<NamedType>(w->getType())) {
-    bool crin = nt == c->Named("coreir.clkIn") || nt == c->Named("coreir.rstIn");
-    bool crout = nt == c->Named("coreir.clk") || nt == c->Named("coreir.rst");
+    bool crin = nt == c->Named("coreir.clkIn") || nt == c->Named("coreir.arstIn");
+    bool crout = nt == c->Named("coreir.clk") || nt == c->Named("coreir.arst");
     if (!this->checkClkRst && (crin || (!this->onlyInputs && crout))) {
       return true;
     }
@@ -24,7 +41,13 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
     return false;
   }
   if (w->getSelects().size()==0) {
+    w->getContainer()->print();
     e.message("{"+w->getContainer()->getName() + "}." + w->toString()+" Is not connected");
+    if (w->getContainer()->getModule()->isGenerated()) {
+      e.message("with params=" + toString(w->getContainer()->getModule()->getGenArgs()));
+    }
+    e.fatal();
+    w->getContext()->error(e);
     return false;
   }
   if (auto rt = dyn_cast<RecordType>(w->getType())) {

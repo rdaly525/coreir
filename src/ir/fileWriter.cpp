@@ -55,7 +55,7 @@ bool isSource(Wireable* wire) {
 }
 
 //false is bad
-bool ModuleToDot(Module* m, std::ofstream& stream) {
+bool ModuleToDot(Module* m, std::ostream& stream) {
   Context* c = m->getContext();
   if (!m->hasDef()) {
     Error e;
@@ -107,15 +107,18 @@ bool saveToDot(Module* m, string filename) {
     c->error(e);
     return false;
   }
-  ASSERT(endsWith(filename, ".txt"),filename + "Does not end with .txt")
+  ASSERT(endsWith(filename, ".txt"),filename + "Does not end with .txt");
+  return saveToDot(m, file);
+}
+
+bool saveToDot(Module* m, std::ostream& fout) {
   // create a txt dot file for use with graphviz
-  ModuleToDot(m, file);
-  return true;
+  return ModuleToDot(m, fout);
 }
 
 bool saveToFile(Namespace* ns, string filename,Module* top) {
   Context* c = ns->getContext();
-  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file")
+  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {
     Error e;
@@ -135,5 +138,37 @@ bool saveToFile(Namespace* ns, string filename,Module* top) {
   return true;
 
 }
+
+bool saveToFile(Context* c, string filename, bool nocoreir) {
+  ASSERT(endsWith(filename, ".json"),filename + "Needs to be a json file");
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    Error e;
+    e.message("Cannot open file " + filename);
+    e.fatal();
+    c->error(e);
+    return false;
+  }
+  if (nocoreir) {
+    vector<string> nss;
+    for (auto nspair : c->getNamespaces()) {
+      if (nspair.first!="coreir" && nspair.first!="corebit") {
+        nss.push_back(nspair.first);
+      }
+    }
+    c->runPasses({"coreirjson"},nss);
+  }
+  else {
+    c->runPassesOnAll({"coreirjson"});
+  }
+  auto jpass = static_cast<Passes::CoreIRJson*>(c->getPassManager()->getAnalysisPass("coreirjson"));
+  string topRef = "";
+  if (c->hasTop()) {
+    topRef = c->getTop()->getRefName();
+  }
+  jpass->writeToStream(file,topRef);
+  return true;
+}
+
 
 }//CoreIR namespace

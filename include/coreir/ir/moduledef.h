@@ -3,7 +3,6 @@
 
 
 #include "fwd_declare.h"
-#include "common.h"
 #include "context.h"
 #include "module.h"
 #include "wireable.h"
@@ -27,6 +26,8 @@ class ModuleDef {
     Interface* interface; 
     std::map<std::string,Instance*> instances;
     std::set<Connection,ConnectionComp> connections;
+
+    std::map<Connection,MetaData*,ConnectionComp> connMetaData;
     
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;
@@ -39,8 +40,8 @@ class ModuleDef {
   public :
     ModuleDef(Module* m);
     ~ModuleDef();
-    std::map<std::string,Instance*> getInstances(void) { return instances;}
-    std::set<Connection,ConnectionComp> getConnections(void) { return connections; }
+    const std::map<std::string,Instance*>& getInstances(void) const { return instances;}
+    const std::set<Connection,ConnectionComp>& getConnections(void) const { return connections; }
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     
@@ -52,12 +53,12 @@ class ModuleDef {
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
 
-    bool canSel(std::string selstr);
+    bool canSel(const std::string& selstr);
     bool canSel(SelectPath path);
     //Can select using std::string (inst.port.subport)
-    Wireable* sel(std::string s);
+    Wireable* sel(const std::string& s);
     //Or using a select Path
-    Wireable* sel(SelectPath path);
+    Wireable* sel(const SelectPath& path);
 
     //Ignore these
     Wireable* sel(std::initializer_list<const char*> path);
@@ -81,8 +82,8 @@ class ModuleDef {
 
     //API for connecting two instances together
     void connect(Wireable* a, Wireable* b);
-    void connect(SelectPath pathA, SelectPath pathB);
-    void connect(std::string pathA, std::string pathB); //dot notation a.b.c, e.f.g
+    void connect(const SelectPath& pathA, const SelectPath& pathB);
+    void connect(const std::string& pathA, const std::string& pathB); //dot notation a.b.c, e.f.g
     void connect(std::initializer_list<const char*> pA, std::initializer_list<const char*> pB);
     void connect(std::initializer_list<std::string> pA, std::initializer_list<std::string> pB);
     
@@ -96,8 +97,16 @@ class ModuleDef {
     //This will disconnect everything the wireable is connected to
     void disconnect(Wireable* w);
 
+    //API for adding metadata to Connetions
+    json& getMetaData(Wireable* a, Wireable* b);
+    bool hasMetaData(Wireable* a, Wireable* b);
+
+
+
+
     //API for deleting an instance
     //This will also delete all connections from all connected things
+    ////Note these will invalidate iterators from the following: getInstances(), getConnections(), getConnectedWireables()
     void removeInstance(std::string inst);
     void removeInstance(Instance* inst);
 

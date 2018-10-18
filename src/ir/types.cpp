@@ -47,6 +47,22 @@ Type* Type::sel(string selstr) {
   ASSERT(0,"Bad Select");
 }
 
+vector<std::string> Type::getSelects() {
+  if (auto rt = dyn_cast<RecordType>(this)) {
+    return rt->getFields();
+  }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
+    vector<std::string> ret;
+    for (uint i=0; i<at->getLen(); ++i) {
+      ret.push_back(to_string(i));
+    }
+    return ret;
+  }
+  else {
+    return vector<std::string>();
+  }
+}
+
 bool Type::canSel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
     return rt->getRecord().count(selstr);
@@ -170,6 +186,23 @@ uint RecordType::getSize() const {
     size += field.second->getSize();
   }
   return size;
+}
+
+
+bool isClockOrNestedClockType(Type* type, Type* clockType) {
+    if (type == clockType) {
+        return true;
+    } else if (auto arrayType = dyn_cast<ArrayType>(type)) {
+        return isClockOrNestedClockType(arrayType->getElemType(), clockType);
+    } else if (auto recordType = dyn_cast<RecordType>(type)) {
+        bool isNestedClockType = false;
+        for (auto field : recordType->getRecord()) {
+            isNestedClockType |= isClockOrNestedClockType(field.second,
+                                                          clockType);
+        }
+        return isNestedClockType;
+    }
+    return false;
 }
 
 }//CoreIR namespace

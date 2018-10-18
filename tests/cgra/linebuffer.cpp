@@ -30,10 +30,10 @@ int main() {
 
   // Define lb32 Module
   Type* lb32Type = c->Record({
-    {"in",in_type},
-      //{"wen",c->BitIn()}, 
+			{"in",in_type},
+			{"wen",c->BitIn()}, 
       //{"valid", c->Bit()},
-    {"out",out_type}
+			{"out",out_type}
   });
 
 
@@ -48,11 +48,25 @@ int main() {
   lb32->print();
 
   cout << "Running Generators" << endl;
-  lb32->print();
+  //lb32->print();
+  c->runPasses({"rungenerators"});
+  if (!saveToFile(c->getGlobal(), "_linebuffer.json", lb32)) {
+    cout << "Could not save to json!!" << endl;
+  }
 
-  //c->runPasses({"rungenerators", "flatten", "verifyconnectivity-onlyinputs-noclkrst"});
-  c->runPasses({"rungenerators", "flatten","verifyconnectivity-onlyinputs-noclkrst"});
-  lb32->print();
+  cout << "Validating!!" << endl;
+  lb32->getDef()->validate();
+  cout << "1validated :(" << endl;
+  c->runPasses({"verifyconnectivity --onlyinputs --noclkrst"},{"global","commonlib","memory","mantle"});
+  cout << "2validated :(" << endl;
+  c->runPasses({"flatten"});
+  cout << "flattned :(" << endl;
+  c->runPasses({"verifyconnectivity --onlyinputs --noclkrst"});
+  //lb32->getDef()->validate();
+  cout << "3validated :(" << endl;
+  //c->runPasses({"rungenerators","verifyconnectivity --noclkrst"});
+  //c->runPasses({"rungenerators", "flatten","verifyconnectivity --onlyinputs --noclkrst"});
+  //lb32->print();
   lb32->getDef()->validate();
 
   // write out the json
@@ -75,7 +89,7 @@ int main() {
     c->die();
   }
   ASSERT(m, "Could not load top: _linebuffer");
-  m->print();
+  //m->print();
 
   // SPECIAL CASE (stencil width == image width)
   /*

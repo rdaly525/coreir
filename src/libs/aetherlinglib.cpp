@@ -1,8 +1,14 @@
 #include "coreir/libs/aetherlinglib.h"
 #include "coreir/libs/commonlib.h"
-#include "aetherlinglib/aeMapN.h"
-#include "aetherlinglib/aeReduceN.h"
-//#include "aetherlinglib/aeConvN.h"
+#include "aetherlinglib/aeMap.h"
+#include "aetherlinglib/aeReduce.h"
+#include "aetherlinglib/aeZip2.h"
+#include "aetherlinglib/aeConv.h"
+#include "aetherlinglib/aeFlatten.h"
+#include "aetherlinglib/aeDehydrate.h"
+#include "aetherlinglib/aeStreamifyArrayify.h"
+#include "aetherlinglib/aeOverlapPartition.h"
+#include <string>
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(aetherlinglib);
 
@@ -19,7 +25,12 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
 
     Aetherling_createMapGenerator(c);
     Aetherling_createReduceGenerator(c);
-    //Aetherling_createConvGenerator(c);
+    Aetherling_createZipGenerator(c);
+    Aetherling_createConvGenerator(c);
+    Aetherling_createFlattenGenerator(c);
+    Aetherling_createHydrateAndDehydrateGenerators(c);
+    Aetherling_createStreamifyArrayifyGenerator(c);
+    Aetherling_createOverlapPartitionGenerator(c);
 
     // create a generator to convert two argument modules into one argument
     // modules with a fixed constant for one input
@@ -64,11 +75,13 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
             def->connect("baseOp.out", "self.out");
         });
 
-    return aetherlinglib;  
+    return aetherlinglib;
 }
 
 string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def, uint width, Const* val) {
-    string constName = "constInput_" + val->toString();
+    string valName = val->toString();
+    replace(valName.begin(), valName.end(), '\'', '_');
+    string constName = "constInput_" + valName;
     def->addInstance(
         constName,
         "coreir.const",

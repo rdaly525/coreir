@@ -27,12 +27,12 @@ int main() {
   cout << "Before changing register" << endl;
   md->print();
 
-  Instance* r = def->getInstances()["reg"];
+  Instance* r = def->getInstances().at("reg");
   cout << "reg init = " << r->getModArgs().at("init")->get<BitVector>() << endl;
 
   setRegisterInit("reg", BitVec(3, 1), md);
 
-  r = def->getInstances()["reg"];
+  r = def->getInstances().at("reg");
   cout << "reg init after = " << r->getModArgs().at("init")->get<BitVector>() << endl;;
   
   cout << "After changing register" << endl;

@@ -250,15 +250,15 @@ namespace CoreIR {
 
     for (auto inst : instances) {
       if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-          (getQualifiedOpName(*inst) == "coreir.regrst") ||
-          (getQualifiedOpName(*inst) == "corebit.dff")) {
+          (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
+          (getQualifiedOpName(*inst) == "corebit.reg")) {
 
         Type* tp = inst->sel("out")->getType();
         string name = inst->toString() + "_subcircuit_out";
 
         fields.push_back({name, tp});
 
-        cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+        //cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
       }
     }
 
@@ -273,8 +273,8 @@ namespace CoreIR {
 
     for (auto inst : instances) {
       if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-          (getQualifiedOpName(*inst) == "coreir.regrst") ||
-          (getQualifiedOpName(*inst) == "corebit.dff")) {
+          (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
+          (getQualifiedOpName(*inst) == "corebit.reg")) {
 
         string destName = "self." + inst->toString() + "_subcircuit_out";
         string instName = inst->getInstname() + ".out";
@@ -357,6 +357,8 @@ namespace CoreIR {
 
     }
 
+    cout << "Done with submod definition" << endl;
+
     subMod->setDef(def);
   }
 
@@ -380,7 +382,8 @@ namespace CoreIR {
       for (auto instR : def->getInstances()) {
         auto inst = instR.second;
 
-        if (getQualifiedOpName(*inst) == "coreir.reg") {
+        if ((getQualifiedOpName(*inst) == "coreir.reg") ||
+            (getQualifiedOpName(*inst) == "coreir.reg_arst")) {
 
           //cout << "Found register = " << inst->toString() << endl;
 

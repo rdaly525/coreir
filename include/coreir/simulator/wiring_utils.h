@@ -22,6 +22,9 @@ namespace CoreIR {
 
   std::vector<Select*>
   getSourceSelects(CoreIR::Wireable* inst);
+
+  std::vector<Select*>
+  getIOSelects(CoreIR::Wireable* inst);
   
   std::map<Wireable*, Wireable*>
   signalDriverMap(CoreIR::ModuleDef* const def);
@@ -52,5 +55,6 @@ namespace CoreIR {
   void setRegisterInit(const std::string& instanceName,
                        const BitVector& value,
                        CoreIR::Module* const mod);
-  
+
+  bool isBitType(const Type& tp);
 }

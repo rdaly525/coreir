@@ -114,7 +114,6 @@ namespace CoreIR {
   }
 
   LowExpr* printBVConstant(Instance* inst, const vdisc vd, const NGraph& g) {
-
     for (auto& arg : inst->getModArgs()) {
       if (arg.first == "value") {
 
@@ -128,7 +127,7 @@ namespace CoreIR {
       }
     }
 
-    assert(false);
+    ASSERT(false,"did not find 'value' in modargs of " + toString(inst));
   }
 
   LowExpr* printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
@@ -500,7 +499,7 @@ namespace CoreIR {
       return new LowId(printAddOrSubWithCIN(wd, vd, g, lp));
     }
 
-    assert(false);
+    ASSERT(false,toString(inst));
   }
 
   LowExpr* printBinop(const WireNode& wd,

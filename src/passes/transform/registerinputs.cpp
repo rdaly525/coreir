@@ -55,8 +55,8 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
           // Add a flip flop in front of single bit inputs
           assert(selTp->getKind() == Type::TK_Bit);
 
-          auto selDFF = def->addInstance(field.first + "_auto_dff",
-                                         "corebit.dff");
+          auto selDFF = def->addInstance(field.first + "_auto_reg",
+                                         "corebit.reg");
           newRegs.insert({sel, selDFF});
         }
 
@@ -81,6 +81,7 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //   cout << wd->toString() << endl;
   // }
 
+  vector<Connection> toDelete;
   for (auto& conn : def->getConnections()) {
     //cout << Connection2Str(conn) << " ";
 
@@ -111,10 +112,13 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
     if (foundIn) {
 
-      def->disconnect(conn);
+      toDelete.push_back(conn);
       def->connect(outSel, newRegs[inSel]->sel("out"));
 
     }
+  }
+  for (auto conn : toDelete) {
+    def->disconnect(conn);
   }
 
   for (auto& selPair : newRegs) {

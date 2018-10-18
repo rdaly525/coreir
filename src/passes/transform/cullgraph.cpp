@@ -26,8 +26,19 @@ bool Passes::CullGraph::runOnContext(Context* c) {
   set<Module*> mused;
   set<Generator*> gused;
   recurse(c->getTop(),mused,gused);
+  //if nocoreir, I need to keep all instances of any coreir definitions
+  for (auto mpair : c->getNamespace("coreir")->getModules()) {
+    recurse(mpair.second,mused,gused);
+  }
+  for (auto mpair : c->getNamespace("corebit")->getModules()) {
+    recurse(mpair.second,mused,gused);
+  }
+  
   set<GlobalValue*> toErase;
   for (auto npair : c->getNamespaces()) {
+    if (nocoreir && (npair.first=="coreir" || npair.first=="corebit")) {
+      continue;
+    }
     for (auto gpair : npair.second->getGenerators()) {
       if (gused.count(gpair.second)==0) {
         toErase.insert(gpair.second);
@@ -39,15 +50,18 @@ bool Passes::CullGraph::runOnContext(Context* c) {
       }
     }
   }
+  set<GlobalValue*> genToErase;
   for (auto i : toErase) {
     if (auto m = dyn_cast<Module>(i)) {
       m->getNamespace()->eraseModule(m->getName());
     }
-  }
-  for (auto i : toErase) {
-    if (auto g = dyn_cast<Generator>(i)) {
-      g->getNamespace()->eraseGenerator(g->getName());
+    else {
+      genToErase.insert(i);
     }
+  }
+  for (auto i : genToErase) {
+    auto g = cast<Generator>(i);
+    g->getNamespace()->eraseGenerator(g->getName());
   }
   return toErase.size()>0;
   

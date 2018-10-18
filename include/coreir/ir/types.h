@@ -25,6 +25,7 @@ class Type {
     DirKind getDir() const {return dir;}
     virtual std::string toString(void) const =0;
     Type* sel(std::string sel);
+    std::vector<std::string> getSelects();
     bool canSel(std::string sel);
     bool canSel(SelectPath path);
     virtual uint getSize() const=0;
@@ -136,6 +137,9 @@ class RecordType : public Type {
     RecordType* detachField(std::string label);
 
 };
+
+// Checks if type is a clock or an array (possibly nested) of clocks
+bool isClockOrNestedClockType(Type* type, Type* clockType);
 
 }//CoreIR namespace
 

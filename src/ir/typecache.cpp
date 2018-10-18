@@ -16,16 +16,25 @@ TypeCache::TypeCache(Context* c) : c(c) {
   bitO->setFlipped(bitI);
   bitIO->setFlipped(bitIO);
 
+  anyType = new AnyType(c);
   boolType = new BoolType(c);
   intType = new IntType(c);
   stringType = new StringType(c);
   coreIRType = new CoreIRType(c);
   moduleType = new ModuleType(c);
+  jsonType = new JsonType(c);
 
 }
 
 TypeCache::~TypeCache() {
-  for (auto it : RecordCache) delete it.second;
+  //for (auto it : RecordCache) {
+  //  cout << "deleting params: " << toString(it.first) << endl;
+  //  //delete it.second;
+  //}
+  for (auto it : RecordCache) {
+    //cout << "deleting params: " << toString(it.first) << endl;
+    delete it.second;
+  }
   
   //TODO this is a little sketch because the first key is the thing you are deleting...
   for (auto tpair : ArrayCache) {
@@ -41,11 +50,13 @@ TypeCache::~TypeCache() {
   delete bitI;
   delete bitO;
   delete bitIO;
+  delete anyType;
   delete boolType;
   delete intType;
   delete stringType;
   delete coreIRType;
   delete moduleType;
+  delete jsonType;
 }
 
 
@@ -79,7 +90,7 @@ RecordType* TypeCache::getRecord(RecordParams params) {
     RecordType* r = new RecordType(c,params);
     
     //Inout just needs a single type
-    if (r->isInOut()) {
+    if (r->isInOut() || params.size()==0) {
       r->setFlipped(r);
       RecordCache.emplace(params,r);
       return r;
@@ -93,7 +104,6 @@ RecordType* TypeCache::getRecord(RecordParams params) {
     RecordType* rf = new RecordType(c,paramsF);
     r->setFlipped(rf);
     rf->setFlipped(r);
-
     RecordCache.emplace(params,r);
     RecordCache.emplace(paramsF,rf);
     return r;

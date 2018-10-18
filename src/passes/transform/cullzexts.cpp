@@ -67,6 +67,8 @@ bool Passes::CullZexts::runOnModule(Module* m) {
 
     inlineInstance(instPT);
   }
-  
+
+  cout << "Done culling zero extends" << endl;
+
   return deletedZext;
 }

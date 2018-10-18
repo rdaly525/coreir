@@ -7,6 +7,11 @@ void InstanceGraph::releaseMemory() {
   nodeMap.clear();
   for (auto ign : sortedNodes) delete ign;
   sortedNodes.clear();
+  onlyTopNodes.clear();
+}
+
+bool InstanceGraph::validOnlyTop(InstanceGraphNode* node) {
+  return onlyTopNodes.count(node->getModule()) > 0;
 }
 
 void InstanceGraph::sortVisit(InstanceGraphNode* node) {
@@ -22,11 +27,31 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
   sortedNodes.push_front(node);
 }
 
+namespace {
+  void recurse(Module* m, std::unordered_set<Module*>& onlyTopNodes) {
+    if (onlyTopNodes.count(m)) {
+      return;
+    }
+    onlyTopNodes.insert(m);
+    if (!m->hasDef()) {
+      return;
+    }
+    for (auto ipair : m->getDef()->getInstances()) {
+      Module* imod = ipair.second->getModuleRef();
+      recurse(imod,onlyTopNodes);
+    }
+  }
+}
+
 void InstanceGraph::construct(Context* c) {
 
   //Contains all external nodes referenced
 
-  //Create all Nodes first
+  if (c->hasTop()) {
+    //Only do this on dependent nodes
+    recurse(c->getTop(),onlyTopNodes);
+  }
+  
   for (auto nsmap : c->getNamespaces()) {
     for (auto imap : nsmap.second->getModules()) {
       nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
@@ -39,8 +64,7 @@ void InstanceGraph::construct(Context* c) {
     nodeMap2.insert(nodemap);
   }
   for (auto nodemap : nodeMap2) {
-    if (isa<Generator>(nodemap.first)) continue;
-    Module* m = cast<Module>(nodemap.first);
+    Module* m = nodemap.first;
     if (!m->hasDef()) continue;
     ModuleDef* mdef = cast<Module>(nodemap.first)->getDef();
     for (auto instmap : mdef->getInstances()) {
