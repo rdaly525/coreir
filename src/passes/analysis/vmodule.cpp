@@ -39,6 +39,10 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
 }
 
 void CoreIRVModule::addConnection(ModuleDef* def, Connection conn) {
+  if (conns_to_skip.count(conn) > 0) {
+      // Skip inlined conns
+      return;
+  }
   VObject* vass = new VAssign(def,conn);
   conn2VObj[conn] = vass;
   sortedVObj[vass->file].insert(vass);
@@ -51,6 +55,10 @@ void CoreIRVModule::addInstance(Instance* inst) {
   if (auto vermod = dynamic_cast<VerilogVModule*>(vmref)) {
     if (vmods->_inline && vermod->inlineable) {
       vinst = new VInlineInstance(this->vmods,inst,vermod);
+      conns_to_skip.insert(
+        ((VInlineInstance *) vinst)->conns_to_skip.begin(),
+        ((VInlineInstance *) vinst)->conns_to_skip.end()
+      );
     } 
     else {
       vinst = new VInstance(this->vmods,inst);

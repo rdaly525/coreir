@@ -147,6 +147,7 @@ struct CoreIRVModule : VModule {
   std::map<Instance*,VObject*> inst2VObj;
   std::map<Connection,VObject*,ConnectionComp> conn2VObj;
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
+  std::set<Connection> conns_to_skip;
 
   void addConnection(ModuleDef* def, Connection conn);
   void addInstance(Instance* inst);
@@ -323,13 +324,31 @@ struct ParamVerilogVModule : VerilogVModule {
 
 struct VInlineInstance : VInstance {
   string vbody;
+  std::set<Connection> conns_to_skip;
   VInlineInstance(VModules* vmods, Instance* inst, VerilogVModule* vermod) : VInstance(vmods,inst) {
     vbody = vermod->jver["definition"].get<string>();
-    //Search for all high level ports
-    for (auto rpair : cast<RecordType>(inst->getType())->getRecord()) {
-      std::regex expr(rpair.first);
-      string replace(VWire(inst->sel(rpair.first)).getName());
-      vbody = std::regex_replace(vbody,expr,replace);
+    for (auto conn : inst->getContainer()->getConnections()) {
+        SelectPath sp_first = conn.first->getSelectPath();
+        SelectPath sp_second = conn.second->getSelectPath();
+        SelectPath inst_sp = inst->getSelectPath();
+        // Assume instance is first
+        VWire source(conn.second);
+        std::string sink_str = sp_first[1];
+        if (sp_first[0] == inst_sp[0]) {
+            ASSERT(sp_first.size() == 2, "Assuming connected to top level instance port for inlining");
+        } else if (sp_second[0] == inst_sp[0]) {
+            // Swap if the instance is second
+            source = VWire(conn.first);
+            sink_str = sp_second[1];
+            ASSERT(sp_second.size() == 2, "Assuming connected to top level instance port for inlining");
+        } else {
+            // Skip if instance is not part of connection
+            continue;
+        }
+        conns_to_skip.insert(conn);
+        std::regex expr(sink_str);
+        string replace(source.getName());
+        vbody = std::regex_replace(vbody,expr,replace);
     }
     //Search for modArgs
     for (auto pval : inst->getModArgs()) {
@@ -350,7 +369,7 @@ struct VInlineInstance : VInstance {
 
   void materialize(CoreIRVModule* vmod) override {
     vmod->addComment("Inlined from " + toString(inst));
-    vmod->addStmt(wireDecs);
+    // Skips wireDecs because they are inlined
     vmod->addStmt(vbody);
   }
 
