@@ -31,7 +31,8 @@ void testBlackboxVerilog() {
   std::ifstream golden_stream("blackbox_verilog_golden.v");
   std::string golden((std::istreambuf_iterator<char>(golden_stream)),
                      std::istreambuf_iterator<char>());
-  assert(golden == verilog);
+  ASSERT(golden == verilog,
+         "Expected '" + golden + "' but got '" + verilog + "'");
   
   deleteContext(c);
 }
