@@ -9,7 +9,7 @@
         ]],
         "metadata": {
           "verilog": {
-            "full_module": "// This is an important comment for foo!!\nmodule foo (input I, output O);\n    assign O = I;\nendmodule"
+            "verilog_string": "// This is an important comment for foo!!\nmodule foo (input I, output O);\n    assign O = I;\nendmodule"
           }
         }
       },

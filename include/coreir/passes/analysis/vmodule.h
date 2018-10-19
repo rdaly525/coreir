@@ -95,7 +95,7 @@ struct VModule {
   std::vector<std::string> stmts;
   VModules* vmods;
   string modComment = "";
-  string full_module = "";
+  string verilog_string = "";
 
   bool isExternal = false;
   VModule(VModules* vmods) : vmods(vmods) {}
@@ -269,16 +269,16 @@ struct VerilogVModule : VModule {
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
     jver = jmeta["verilog"];
-    if (jver.count("full_module")) {
+    if (jver.count("verilog_string")) {
       this->modname = name;
-      this->full_module = jver["full_module"].get<std::string>();
-      // Ensure that if the field full_module is included that the remaining
+      this->verilog_string = jver["verilog_string"].get<std::string>();
+      // Ensure that if the field verilog_string is included that the remaining
       // fields are not included.
 #define VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, field)                   \
       ASSERT(jver.count(field) == 0,                                    \
              string("Can not include ") +                               \
              string(field) +                                            \
-             string(" with full_module"))
+             string(" with verilog_string"))
       VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "prefix");
       VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "definition");
       VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "interface");
