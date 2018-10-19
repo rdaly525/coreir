@@ -1,0 +1,34 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "metadata": {
+          "verilog": {
+            "verilog_string": "// This is an important comment for foo!!\nmodule foo (input I, output O);\n    assign O = I;\nendmodule"
+          }
+        }
+      },
+      "top":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.foo"
+          }
+        },
+        "connections":[
+          ["self.I","inst0.I"],
+          ["self.O","inst0.O"]
+        ]
+      }
+    }
+  }
+}
+}
