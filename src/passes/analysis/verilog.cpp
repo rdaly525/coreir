@@ -28,8 +28,8 @@ void Passes::Verilog::initialize(int argc, char** argv) {
   options.add_options()
     ("i,inline","Inline verilog modules if possible")
   ;
-  options.parse(argc,argv);
-  if (options.count("i")) {
+  auto opts = options.parse(argc,argv);
+  if (opts.count("i")) {
     this->vmods._inline = true;
   }
 }
