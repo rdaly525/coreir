@@ -12,11 +12,11 @@ void Passes::VerifyConnectivity::initialize(int argc, char** argv) {
     ("i,onlyinputs","Only checks inputs")
     ("c,noclkrst","Do not check clocks")
   ;
-  options.parse(argc,argv);
-  if (options.count("i")) {
+  auto opts = options.parse(argc,argv);
+  if (opts.count("i")) {
     this->onlyInputs = true;
   }
-  if (options.count("c")) {
+  if (opts.count("c")) {
     this->checkClkRst= false;
   }
 }
