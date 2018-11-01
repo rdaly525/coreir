@@ -47,7 +47,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       {"sext","{{(width_out-width_in){in[width_in-1]}},in}"},
       {"strip","in"},
       {"wrap","in"},
-      {"const","value"},
+      {"const","width'value"},
       {"tribuf","en ? in : 'hz"},
       {"ibuf","in"},
       //{"term",""}

@@ -16,7 +16,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     {"other",{
       {"mux","sel ? in1 : in0"},
       {"concat","{in0, in1}"},
-      {"const","value"},
+      {"const","1'value"},
       {"term",""},
       {"tribuf","en ? in : 1'bz"},
       {"ibuf","in"},

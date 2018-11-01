@@ -1,8 +1,11 @@
+/* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */ 
+
 #ifndef COREIR_VMODULE_HPP_
 #define COREIR_VMODULE_HPP_
 
 #include "coreir.h"
 #include <regex>
+#include <queue>
 
 //TODO get rid of
 using namespace std;
@@ -149,8 +152,15 @@ struct CoreIRVModule : VModule {
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
   std::set<Connection> conns_to_skip;
 
-  void addConnection(ModuleDef* def, Connection conn);
+  void addConnections(ModuleDef* def);
   void addInstance(Instance* inst);
+  std::string inline_instance(ModuleDef* def, std::queue<Connection> &worklist,
+          Instance* right_parent);
+  std::string get_replace_str(std::string input_name, Instance* instance,
+          ModuleDef* def, std::queue<Connection> &worklist);
+  std::string get_inline_str(Wireable* sink, 
+          SelectPath select_path, Connection conn, ModuleDef* def,
+          std::queue<Connection> &worklist);
   
   CoreIRVModule(VModules* vmods, Module* m);
 
@@ -247,6 +257,28 @@ struct VAssign : VObject {
   }
 };
 
+
+// Assign a wireable to a string
+struct VAssignStr : VObject {
+  Wireable* target;
+  ModuleDef* def;
+  std::string value_str;
+  VAssignStr(ModuleDef* def, Wireable* target, std::string value_str) :
+      VObject(toString(target) + value_str), target(target),
+      value_str(value_str) {
+    this->line = -1; //largest number to go at the top of the bottom
+    this->priority = 1;
+    // Ignore metadata for inlining until we have a good proposal for how to
+    // handle this
+  }
+  void materialize(CoreIRVModule* vmod) override {
+    VWire vtarget(target);
+    // Ignore metadata for inlining until we have a good proposal for how to
+    // handle this
+    vmod->addStmt("  assign " + vtarget.getName() + vtarget.dimstr() + " = " + value_str + ";");
+  }
+};
+
 struct ExternVModule : VModule {
   
   ExternVModule(VModules* vmods, Module* m) : VModule(vmods) {
@@ -332,22 +364,42 @@ struct VInlineInstance : VInstance {
         SelectPath sp_second = conn.second->getSelectPath();
         SelectPath inst_sp = inst->getSelectPath();
         // Assume instance is first
-        VWire source(conn.second);
-        std::string sink_str = sp_first[1];
+        Wireable* source = conn.second;
+        Wireable* sink = conn.first;
         if (sp_first[0] == inst_sp[0]) {
-            ASSERT(sp_first.size() == 2, "Assuming connected to top level instance port for inlining");
+            // Use default case
         } else if (sp_second[0] == inst_sp[0]) {
             // Swap if the instance is second
-            source = VWire(conn.first);
-            sink_str = sp_second[1];
-            ASSERT(sp_second.size() == 2, "Assuming connected to top level instance port for inlining");
+            source = conn.first;
+            sink = conn.second;
         } else {
             // Skip if instance is not part of connection
             continue;
         }
-        conns_to_skip.insert(conn);
-        std::regex expr(sink_str);
-        string replace(source.getName());
+        // Remove reference to instance
+        // select as if it were from the module so we can get the `self`
+        // reference, which is properly processed (dropped) by VWire
+        std::string sink_str = VWire(sink).getName();
+        // Remove <inst_name>__ prefix
+        sink_str.erase(0, inst->getInstname().size() + 2);
+        // sink string followed by space, bracket, close paren, or semicolon
+        // and prefixed by space or open paren
+        //
+        // TODO are there any more? This avoids issue where, for example, we
+        // want to replace "in" which also matches "inst0" (so it would replace
+        // the first two letters of the inst0)
+        std::regex expr("( |\\()" + sink_str + "( |;|\\[|\\))");
+        std::string replace;
+        if (sink->getType()->getDir() == Type::DK_Out) {
+            replace = VWire(sink).getName();
+        } else {
+            replace = VWire(source).getName();
+            conns_to_skip.insert(conn);
+        }
+        // Append the second match group (space, subscript, etc...)
+        replace = "$1" + replace + "$2";
+        std::cout << "expr=" << sink_str << std::endl;
+        std::cout << "replace=" << replace << std::endl;
         vbody = std::regex_replace(vbody,expr,replace);
     }
     //Search for modArgs
