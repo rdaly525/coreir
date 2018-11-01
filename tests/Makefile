@@ -5,6 +5,7 @@ all:
 	$(MAKE) -C unit-c
 	$(MAKE) -C ext 
 	$(MAKE) -C simulator
+	cd magma/inline && ls && ./run_tests.sh
 
 clean:
 	$(MAKE) -C unit clean
