@@ -1,4 +1,4 @@
-/* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */ 
+/* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */
 
 #ifndef COREIR_VMODULE_HPP_
 #define COREIR_VMODULE_HPP_
@@ -158,7 +158,7 @@ struct CoreIRVModule : VModule {
           Instance* right_parent);
   std::string get_replace_str(std::string input_name, Instance* instance,
           ModuleDef* def, std::queue<Connection> &worklist);
-  std::string get_inline_str(Wireable* sink, 
+  std::string get_inline_str(Wireable* sink,
           SelectPath select_path, Connection conn, ModuleDef* def,
           std::queue<Connection> &worklist);
   

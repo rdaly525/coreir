@@ -1,4 +1,4 @@
-/* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */ 
+/* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */
 
 #include "coreir.h"
 #include "coreir/passes/analysis/vmodule.h"
