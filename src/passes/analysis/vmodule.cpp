@@ -67,22 +67,21 @@ static inline void ltrim(std::string &s) {
 
 
 static bool str_in_select_path(SelectPath select_path, std::string search_str) {
-    for (auto item : select_path) {
-        if (item == search_str) {
-            return true;
-        }
+  for (auto item : select_path) {
+    if (item == search_str) {
+      return true;
     }
-    return false;
+  }
+  return false;
 }
 
 
-std::string CoreIRVModule::get_inline_str(Wireable* sink, SelectPath select_path,
+std::string CoreIRVModule::get_inline_str(Wireable* source, SelectPath select_path,
         Connection conn, ModuleDef* def, std::queue<Connection> &worklist) {
   std::string to_replace;
   if (select_path[0] == "self") {
     // If it's a reference to an input port, just inline the reference directly
-    sink = conn.second;
-    to_replace = VWire(sink).getName();
+    to_replace = VWire(source).getName();
   } else {
     // Otherwise, we try to get the result of inlining the instance (which may
     // recursively inline other instances)
@@ -91,7 +90,7 @@ std::string CoreIRVModule::get_inline_str(Wireable* sink, SelectPath select_path
     if (result == "") {
       // If the instance can't be inlined, denoted by empty string, we just
       // replace it with the standard wire name
-      to_replace = VWire(sink).getName();
+      to_replace = VWire(source).getName();
       worklist.push(conn);
     } else{
       // Otherwise, use the result of inlining
@@ -114,15 +113,15 @@ std::string CoreIRVModule::get_replace_str(std::string input_name, Instance* ins
     SelectPath sp_second = conn.second->getSelectPath();
     SelectPath inst_sp = instance->getSelectPath();
     // Assume instance is first
-    Wireable* sink = conn.first;
+    Wireable* source = conn.second;
     std::string to_replace = "";
     if (sp_first[0] == inst_sp[0] && str_in_select_path(sp_first, input_name)) {
-        to_replace = get_inline_str(sink, sp_second, conn, def, worklist);
+        to_replace = get_inline_str(source, sp_second, conn, def, worklist);
     } else if (sp_second[0] == inst_sp[0] && 
                str_in_select_path(sp_second, input_name)) {
       // Swap if the instance is second
-      sink = conn.second;
-      to_replace = get_inline_str(sink, sp_first, conn, def, worklist);
+      source = conn.first;
+      to_replace = get_inline_str(source, sp_first, conn, def, worklist);
     } else {
       // Skip if instance is not part of connection
       continue;
