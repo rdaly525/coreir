@@ -1,4 +1,5 @@
 #include "coreir-c/coreir.h"
+#include "coreir/ir/json.h"
 #include "coreir.h"
 #include "common-c.hpp"
 #include <strings.h>
@@ -566,17 +567,20 @@ extern "C" {
   }
 
   void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value) {
-      rcast<Module*>(module)->getMetaData()[key] = value;
+      const auto json = nlohmann::json::parse(std::string(value));
+      rcast<Module*>(module)->getMetaData()[key] = json;
   }
 
   void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *value) {
-      rcast<Wireable*>(wireable)->getMetaData()[key] = value;
+      const auto json = nlohmann::json::parse(std::string(value));
+      rcast<Wireable*>(wireable)->getMetaData()[key] = json;
   }
 
   void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
           COREWireable* a, COREWireable* b, char *key, char *value) {
+      const auto json = nlohmann::json::parse(std::string(value));
       rcast<ModuleDef*>(module_def)->getMetaData(rcast<Wireable*>(a),
-              rcast<Wireable*>(b))[key] = value;
+              rcast<Wireable*>(b))[key] = json;
   }
 
   const char* COREInstanceGetInstname(COREWireable* instance) {
