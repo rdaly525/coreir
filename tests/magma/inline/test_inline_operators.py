@@ -30,15 +30,39 @@ def test_two_ops():
     # Roundabout way to do this since we can't pass the --inline flag through
     # fault's tester interface yet
 
-    # tester = fault.Tester(Top)
+    tester = fault.Tester(Top)
 
-    # for i in range(0, 16):
-    #     I0 = fault.random.random_bv(8)
-    #     I1 = fault.random.random_bv(8)
-    #     tester.poke(Top.I0, I0)
-    #     tester.poke(Top.I1, I1)
-    #     tester.eval()
-    #     tester.expect(Top.O, I0 + I1 - I0)
+    for i in range(0, 16):
+        I0 = fault.random.random_bv(8)
+        I1 = fault.random.random_bv(8)
+        tester.poke(Top.I0, I0)
+        tester.poke(Top.I1, I1)
+        tester.eval()
+        tester.expect(Top.O, I0 + I1 - I0)
 
-    # tester.compile_and_run(target="verilator",
-    #                        skip_compile=True)
+    tester.compile_and_run(target="verilator",
+                           skip_compile=True,
+                           directory=".")
+
+
+def test_const():
+    Top = m.DefineCircuit("test_const", "I0", m.In(m.UInt(8)), "I1", m.In(m.UInt(8)), "O", m.Out(m.UInt(8)))
+    result = Top.I0 + Top.I1 * m.uint(3, 8)
+    m.wire(result, Top.O)
+    m.EndCircuit()
+
+    m.compile("test_const", Top, output="coreir-verilog", inline=True)
+
+    tester = fault.Tester(Top)
+
+    for i in range(0, 16):
+        I0 = fault.random.random_bv(8)
+        I1 = fault.random.random_bv(8)
+        tester.poke(Top.I0, I0)
+        tester.poke(Top.I1, I1)
+        tester.eval()
+        tester.expect(Top.O, I0 + I1 * 3)
+
+    tester.compile_and_run(target="verilator",
+                           skip_compile=True,
+                           directory=".")
