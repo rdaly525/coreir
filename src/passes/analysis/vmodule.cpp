@@ -164,12 +164,12 @@ std::string CoreIRVModule::inline_instance(ModuleDef* def, std::queue<Connection
                     std::string replace = get_replace_str(record_pair.first, right_parent, def, worklist);
                     // std::cout << replace << std::endl;
                     ASSERT(replace != "", "Expected something to inline");
-                        // replace string followed by space, bracket, close paren, or semicolon
-                        // and prefixed by space or open paren
-                        //
-                        // TODO are there any more? This avoids issue where, for example, we
-                        // want to replace "in" which also matches "inst0" (so it would replace
-                        // the first two letters of the inst0)
+                    // replace string followed by space, bracket, close paren, or semicolon
+                    // and prefixed by space or open paren
+                    //
+                    // TODO are there any more? This avoids issue where, for example, we
+                    // want to replace "in" which also matches "inst0" (so it would replace
+                    // the first two letters of the inst0)
                     std::regex expr("( |\\()?" + record_pair.first + "( |;|\\[|\\))?");
                     // Append the second match group (space, subscript, etc...), also concat
                     replace = "$1" + replace + "$2";
