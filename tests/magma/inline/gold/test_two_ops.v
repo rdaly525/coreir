@@ -6,7 +6,7 @@ module Add8_cin (
 );
 
 
-  assign O[7:0] = {1'0, 1'0, 1'0, 1'0, 1'0, 1'0, 1'0, CIN} + I0 + I1;
+  assign O[7:0] = {1b'0, 1b'0, 1b'0, 1b'0, 1b'0, 1b'0, 1b'0, CIN} + I0 + I1;
 
 
 endmodule  // Add8_cin
@@ -29,7 +29,7 @@ module Sub8 (
     .O(inst1__O)
   );
 
-  assign inst1__CIN = 1'1;
+  assign inst1__CIN = 1b'1;
 
   assign inst1__I1[7:0] = ~I1;
 
