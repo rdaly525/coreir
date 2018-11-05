@@ -150,7 +150,6 @@ struct CoreIRVModule : VModule {
   std::map<Instance*,VObject*> inst2VObj;
   std::map<Connection,VObject*,ConnectionComp> conn2VObj;
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
-  std::set<Connection> conns_to_skip;
 
   void addConnections(ModuleDef* def);
   void addInstance(Instance* inst);
