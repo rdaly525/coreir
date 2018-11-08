@@ -12,7 +12,7 @@
 ## Documentation
 
 ### Documentation for Users
-  * This [document](doc/StandaloneCoreIR.md) describes the standalone coreir tool (similar to LLVM's 'opt')
+  * This [document](doc/Standalone.md) describes the standalone coreir tool (similar to LLVM's 'opt')
   * This is the [specification](doc/JsonSpec.md) for the CoreIR serialization format (hardware object file)
   * This is a [specification](doc/coreirprims.csv) of CoreIR Primitives and Primitive Extentions
 
