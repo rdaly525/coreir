@@ -11,13 +11,13 @@
 
 ## Documentation
 
-###Documentation for Users
+### Documentation for Users
   * This [document](doc/StandaloneCoreIR.md) describes the standalone coreir tool (similar to LLVM's 'opt')
   * This is the [specification](doc/JsonSpec.md) for the CoreIR serialization format (hardware object file)
   * This is a [specification](doc/coreirprims.csv) of CoreIR Primitives and Primitive Extentions
 
 
-###Documentation for Developers
+### Documentation for Developers
   * This [Getting Started Guide](doc/GettingStarted.md) provides an introduction and in depth look at how to use the CoreIR C++ API
   * This [Compilation Passes Guide](doc/WritingPasses.md) describes the process of creating new compilation passes
   * This [Library Guide](doc/LibraryGuide.md) talks about creating standalone CoreIR compatible Libraries
