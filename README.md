@@ -1,8 +1,7 @@
 [![Build Status](https://travis-ci.org/rdaly525/coreir.svg?branch=master)](https://travis-ci.org/rdaly525/coreir)
 
 ## CoreIR
-  A simple LLVM-style hardware compiler
-  TODO describe this better
+  An LLVM-style hardware compiler with first class support for generators
 
 ## Installation Instructions
   Found [here](INSTALL.md)
