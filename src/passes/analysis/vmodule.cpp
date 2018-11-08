@@ -134,6 +134,12 @@ void VModules::addModule(Module* m) {
 }
 
 string VModule::toString() const {
+  // In the case that we want to blackbox the entirety of the module source, we
+  // just return the verilog_string field.
+  if (verilog_string != "") {
+    return verilog_string;
+  }
+
   assert(this->modname != "");
   vector<string> pdecs;
   if (interface.size()>0) {

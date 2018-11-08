@@ -95,6 +95,7 @@ struct VModule {
   std::vector<std::string> stmts;
   VModules* vmods;
   string modComment = "";
+  string verilog_string = "";
 
   bool isExternal = false;
   VModule(VModules* vmods) : vmods(vmods) {}
@@ -268,6 +269,29 @@ struct VerilogVModule : VModule {
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
     jver = jmeta["verilog"];
+    if (jver.count("verilog_string")) {
+      this->modname = name;
+      this->verilog_string = jver["verilog_string"].get<std::string>();
+      // Ensure that if the field verilog_string is included that the remaining
+      // fields are not included.
+#define VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, field)                   \
+      ASSERT(jver.count(field) == 0,                                    \
+             string("Can not include ") +                               \
+             string(field) +                                            \
+             string(" with verilog_string"))
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "prefix");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "definition");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "interface");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "parameters");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "inlineable");
+#undef VERILOG_FULL_MODULE_ASSERT_MUTEX
+      // TODO(rsetaluri): Issue warning that we are including black-box
+      // verilog. Most importantly the user should know that there is *no
+      // guarantee* at this level that things are in sync. For example, if the
+      // CoreIR module declaration does not match the verilog's, then the output
+      // may be garbage for downstream tools.
+      return;
+    }
     if (jver.count("prefix")) {
       this->modname = jver["prefix"].get<std::string>() + name;
     }
