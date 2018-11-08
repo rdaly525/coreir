@@ -10,10 +10,12 @@
   CoreIR is open source under the terms of the freeBSD license found in this [license file](LICENSE.txt)
 
 ## Documentation
+
 ###Documentation for Users
   * This [document](doc/StandaloneCoreIR.md) describes the standalone coreir tool (similar to LLVM's 'opt')
   * This is the [specification](doc/JsonSpec.md) for the CoreIR serialization format (hardware object file)
   * This is a [specification](doc/coreirprims.csv) of CoreIR Primitives and Primitive Extentions
+
 
 ###Documentation for Developers
   * This [Getting Started Guide](doc/GettingStarted.md) provides an introduction and in depth look at how to use the CoreIR C++ API
