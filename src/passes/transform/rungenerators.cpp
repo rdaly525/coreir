@@ -1,12 +1,13 @@
 #include "coreir.h"
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/passes/transform/rungenerators.h"
 
-using namespace std;
 using namespace CoreIR;
 
-string Passes::RunGenerators::ID = "rungenerators";
+std::string Passes::RunGenerators::ID = "rungenerators";
+
 bool Passes::RunGenerators::runOnContext(Context* c) {
-  cout << "In Run Generators" << endl;
+  LOG(INFO) << "In Run Generators";
   bool changed = true;
   bool modified = false;
   while (changed) {
@@ -22,7 +23,7 @@ bool Passes::RunGenerators::runOnContext(Context* c) {
     modified |= changed;
   }
 
-  cout << "Done running generators" << endl;
+  LOG(INFO) << "Done running generators";
 
   return modified;
   

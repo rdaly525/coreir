@@ -1,16 +1,11 @@
-
+#include <stack>
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/ir/passmanager.h"
 #include "coreir/passes/common.h"
-#include <stack>
-
 #include "coreir/passes/analysis/createinstancegraph.h"
 #include "coreir/passes/analysis/createinstancemap.h"
 
-
-
-using namespace std;
 using namespace CoreIR;
-
 
 PassManager::PassManager(Context* c) : c(c) {
   initializePasses(*this);
@@ -117,7 +112,7 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
 
 bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   if (verbose) {
-    cout << "Running Pass: " << p->getName() << endl;
+    LOG(INFO) << "Running Pass: " << p->getName();
   }
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
@@ -125,7 +120,7 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   for (int i=0; i<argc; ++i) {
     argv[i] = &(pArgs[i])[0];
   }
-  cout << "Numargs=" << argc << endl;
+  LOG(INFO) << "Numargs=" << argc;
   if (argc > 1) {
     p->initialize(argc,argv);
   }
@@ -234,20 +229,20 @@ bool PassManager::run(vector<string>& passes,vector<string> nsnames) {
 }
 
 void PassManager::printLog() {
-  cout << "Ran the following passes:" << endl;
+  LOG(INFO) << "Ran the following passes:";
   for (auto p : passLog) {
-    cout << "  " << p << endl;
+    LOG(INFO) << "  " << p;
   }
 }
 void PassManager::printPassChoices() {
-  cout << "Analysis Passes" << endl;
+  LOG(INFO) << "Analysis Passes";
   for (auto ap : analysisPasses) {
-    cout << "  " << ap.first << endl;
+    LOG(INFO) << "  " << ap.first;
   }
-  cout << endl << "Transform Passes" << endl;
+  LOG(INFO) << "Transform Passes";
   for (auto p : passMap) {
     if (analysisPasses.count(p.first)==0) {
-      cout << "  " << p.first << endl;
+      LOG(INFO) << "  " << p.first;
     }
   }
 }
