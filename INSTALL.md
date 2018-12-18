@@ -1,13 +1,21 @@
 
 ## Quick Install (Linux Only):
-    wget https://github.com/rdaly525/coreir/releases/download/v0.0.3/coreir.tar.gz
+    wget https://github.com/rdaly525/coreir/releases/download/v0.0.29/coreir.tar.gz
     tar -zxf coreir.tar.gz
     cd release
     sudo make install
 
 ### Uninstall:
-    
     make uninstall
+
+## If you do not want to sudo make install:
+### If you are using osx:  
+Add `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile`
+If this does not work, you may have System Integrity Protection enabled on your Mac.
+
+### If you are using linux:  
+Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile` 
+  
 
 ## How to Install from source (OSX or Linux)
 
@@ -15,13 +23,6 @@
   gcc 4.9  
   Apple LLVM version 8.0.0 (clang-800.0.42.1)  
 
-### If you are using osx:  
-Add `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile`
-
-### If you are using linux:  
-Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile` 
-
-    
 Note: To specify a specific version of `g++` (typically required on older, shared Linux systems), set the `CXX` variable in the make command (e.g. `make install CXX=g++-4.9`)
 
 ### To build:
