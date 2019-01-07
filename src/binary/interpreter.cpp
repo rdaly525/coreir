@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     ;
   
   //Do the parsing of the arguments
-  options.parse(argc,argv);
+  auto opts = options.parse(argc,argv);
   
   OpenPassHandles_t openPassHandles;
   OpenLibHandles_t openLibHandles;
@@ -50,42 +50,42 @@ int main(int argc, char *argv[]) {
 
   CoreIRLoadLibrary_commonlib(c);
   
-  if (options.count("l")) {
-    vector<string> libs = splitString<vector<string>>(options["l"].as<string>(),',');
+  if (opts.count("l")) {
+    vector<string> libs = splitString<vector<string>>(opts["l"].as<string>(),',');
     for (auto lib : libs) {
       c->getLibraryManager()->loadLib(lib);
     }
   }
    
   PassLibrary loadedPasses(c);
-  if (options.count("e")) {
-    vector<string> passes = splitString<vector<string>>(options["e"].as<string>(),',');
+  if (opts.count("e")) {
+    vector<string> passes = splitString<vector<string>>(opts["e"].as<string>(),',');
     for (auto pass : passes) {
       loadedPasses.loadPass(pass);
     }
   }
 
-  if (options.count("h") || argc_copy==1) {
+  if (opts.count("h") || argc_copy==1) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
     cout << endl;
     return 0;
   }
   
-  if (options.count("v")) {
-    c->getPassManager()->setVerbosity(options["v"].as<bool>());
+  if (opts.count("v")) {
+    c->getPassManager()->setVerbosity(opts["v"].as<bool>());
   }
 
-  ASSERT(options.count("i"),"No input specified");
-  string infileName = options["i"].as<string>();
+  ASSERT(opts.count("i"),"No input specified");
+  string infileName = opts["i"].as<string>();
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");
   
   //std::ostream* sout = &std::cout;
   std::ofstream fout;
   string outExt = "json";
-  if (options.count("o")) {
-    string outfileName = options["o"].as<string>();
+  if (opts.count("o")) {
+    string outfileName = opts["o"].as<string>();
     outExt = getExt(outfileName);
     ASSERT(outExt == "json" 
         || outExt == "txt"
@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
     c->die();
   }
   if (top) topRef = top->getRefName();
-  if (options.count("t")) {
-    topRef = options["t"].as<string>();
+  if (opts.count("t")) {
+    topRef = opts["t"].as<string>();
     c->setTop(topRef);
   }
 

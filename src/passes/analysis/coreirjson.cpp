@@ -379,6 +379,6 @@ void Passes::CoreIRJson::writeToStream(std::ostream& os,string topRef) {
     jn.add(nmap.first,nmap.second);
   }
   os << quote("namespaces") << ":" << jn.toMultiString();
-  os << endl << "}";
+  os << endl << "}" << endl;
 }
 

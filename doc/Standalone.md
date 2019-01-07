@@ -71,3 +71,6 @@ Transform Passes
   packconnections
   wireclocks-coreir
 ```
+
+## SMT2 Generation
+coreir -i examples/counters.json -o test.smt2 

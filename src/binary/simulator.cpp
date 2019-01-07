@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     ;
   
   //Do the parsing of the arguments
-  options.parse(argc,argv);
+  auto opts = options.parse(argc,argv);
   
   OpenPassHandles_t openPassHandles;
   OpenLibHandles_t openLibHandles;
@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
 
   CoreIRLoadLibrary_commonlib(c);
   
-  ASSERT(options.count("i"),"No input specified");
-  string infileName = options["i"].as<string>();
+  ASSERT(opts.count("i"),"No input specified");
+  string infileName = opts["i"].as<string>();
   string inExt = getExt(infileName);
   ASSERT(inExt=="json","Input needs to be json");
   
