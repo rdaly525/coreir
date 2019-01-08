@@ -9,10 +9,8 @@ TARGET = dylib
 prefix?=/usr/local
 endif
 
-
 COREIRCONFIG ?= g++
 CXX ?= g++
-
 
 ifeq ($(COREIRCONFIG),g++)
 CXX = g++
