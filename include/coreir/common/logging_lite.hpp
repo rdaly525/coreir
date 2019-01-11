@@ -45,8 +45,8 @@ class Logger {
   }
 
   template<typename T>
-  static void Write(const T& x) { std::cout << x; }
-  static void EndLine() { std::cout << std::endl; }
+  static void Write(const T& x) { std::cerr << x; }
+  static void EndLine() { std::cerr << std::endl; }
 
  private:
   bool alive_;
