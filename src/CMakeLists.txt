@@ -7,7 +7,7 @@ file(GLOB SRC_FILES
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
-add_library(coreir ${SRC_FILES})
+add_library(coreir SHARED ${SRC_FILES})
 
 #message(STATUS ${SRC_FILES})
 #message(STATUS "1")
