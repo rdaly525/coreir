@@ -33,6 +33,26 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
                                    {"Q", c->Bit()}});
     ice40->newModuleDecl("SB_DFFE", SB_DFFEType);
 
+    Type* SB_RAM40_4KType = c->Record({{"RDATA", c->Bit()->Arr(16)},
+                                       {"RADDR", c->BitIn()->Arr(11)},
+                                       {"RCLK",  c->Named("coreir.clkIn")},
+                                       {"RCLKE", c->BitIn()},
+                                       {"RE",    c->BitIn()},
+                                       {"WCLK",  c->Named("coreir.clkIn")},
+                                       {"WCLKE", c->BitIn()},
+                                       {"WE",    c->BitIn()},
+                                       {"WADDR", c->BitIn()->Arr(11)},
+                                       {"MASK",  c->BitIn()->Arr(16)},
+                                       {"WDATA", c->BitIn()->Arr(16)}});
+    Params SB_RAM40_4KParams({{"READ_MODE",  c->Int()},
+                              {"WRITE_MODE", c->Int()}});
+    for (int i = 0; i < 16; i++) {
+      ostringstream o;
+      o << "INIT_" << uppercase << hex << i;
+      SB_RAM40_4KParams[o.str()] = c->BitVector(256);
+    }
+    ice40->newModuleDecl("SB_RAM40_4K", SB_RAM40_4KType, SB_RAM40_4KParams);
+
     return ice40;
 }
 
