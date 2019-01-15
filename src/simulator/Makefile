@@ -22,7 +22,6 @@ build/%.so: $(OBJS)
 	cp $@ $(HOME)/lib/lib$*.so
 
 build/%.dylib: $(OBJS)
-	echo "ROSS"
 	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^ -L$(HOME)/lib/. $(LIBS)
 	cp $@ $(HOME)/lib/lib$*.dylib
 
