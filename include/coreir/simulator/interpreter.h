@@ -6,8 +6,6 @@
 
 namespace CoreIR {
 
-  typedef bsim::quad_value_bit_vector BitVec;
-
   enum SimValueType {
     SIM_VALUE_BV,
     SIM_VALUE_CLK

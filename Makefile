@@ -50,6 +50,7 @@ installtest:
 
 .PHONY: build
 build:
+	echo $(TARGET)
 	$(MAKE) -C src $(TARGET)
 
 .PHONY: install

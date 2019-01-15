@@ -35,8 +35,8 @@ OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 
 LIBS = -ldl -lcoreir
 
-DYLIBS = build/coresim.dylib
-SOLIBS = build/coresim.so
+DYLIBS = build/coreirsim.dylib
+SOLIBS = build/coreirsim.so
 
 all: $(DYLIBS) $(SOLIBS)
 
@@ -53,8 +53,7 @@ build/%.so: $(OBJS)
 
 build/%.dylib: $(OBJS)
 	echo "ROSS"
-	echo $(OBJS)
-	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^ $(LIBS)
+	$(CXX) -install_name "@rpath/lib$*.dylib" -dynamiclib -o $@ $^ -L$(HOME)/lib/. $(LIBS)
 	cp $@ $(HOME)/lib/lib$*.dylib
 
 build/%.o: %.cpp

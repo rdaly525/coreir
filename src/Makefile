@@ -8,14 +8,14 @@ all:
 so:
 	$(MAKE) -C passes
 	$(MAKE) -C ir so
-	$(MAKE) -C simulator
+	$(MAKE) -C simulator so
 	$(MAKE) -C coreir-c so
 	$(MAKE) -C libs so
 
 dylib:
 	$(MAKE) -C passes
 	$(MAKE) -C ir dylib
-	$(MAKE) -C simulator
+	$(MAKE) -C simulator dylib
 	$(MAKE) -C coreir-c dylib
 	$(MAKE) -C libs dylib
 
