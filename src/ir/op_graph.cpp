@@ -1,4 +1,4 @@
-#include "coreir/simulator/op_graph.h"
+#include "coreir/common/op_graph.h"
 
 #include "coreir/common/algorithm.h"
 #include "coreir/common/utils.h"
