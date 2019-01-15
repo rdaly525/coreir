@@ -1,6 +1,6 @@
 #include "coreir/common/utils.h"
 
-#include "coreir/common/context.h"
+#include "coreir/ir/context.h"
 
 #include <fstream>
 
