@@ -56,8 +56,7 @@ build:
 .PHONY: install
 install: build coreir
 	install bin/coreir $(prefix)/bin
-	install lib/libcoreir.$(TARGET) $(prefix)/lib
-	install lib/libcoreir-* $(prefix)/lib
+	install lib/libcoreir* $(prefix)/lib
 	install -d $(prefix)/include/coreir-c
 	install -d $(prefix)/include/coreir/ir/casting
 	install -d $(prefix)/include/coreir/common
