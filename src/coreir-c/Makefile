@@ -23,19 +23,19 @@ clean:
 
 build/coreir-c.so: $(COBJS)
 	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir
-	cp $@ $(HOME)/lib/lib$*.so
+	cp $@ $(HOME)/lib/libcoreir-c.so
 
 build/coreir-c.dylib: $(COBJS)
 	$(CXX) -install_name "@rpath/libcoreir-c.dylib" -dynamiclib $(LPATH) -lcoreir -o $@ $^
-	cp $@ $(HOME)/lib/lib$*.dylib
+	cp $@ $(HOME)/lib/libcoreir-c.dylib
 
 build/coreirsim-c.so: $(CSIMOBJS)
 	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir
-	cp $@ $(HOME)/lib/lib$*.so
+	cp $@ $(HOME)/lib/libcoreirsim-c.so
 
 build/coreirsim-c.dylib: $(CSIMOBJS)
 	$(CXX) -install_name "@rpath/libcoreirsim-c.dylib" -dynamiclib $(LPATH) -lcoreirsim -o $@ $^
-	cp $@ $(HOME)/lib/lib$*.dylib
+	cp $@ $(HOME)/lib/libcoreirsim-c.dylib
 
 build/%.o: %.cpp
 	$(CXX) $(CXXFLAGS) $(INCS) -c -o $@ $<
