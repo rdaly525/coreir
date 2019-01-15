@@ -18,7 +18,7 @@ clean:
 	rm -rf build/*
 
 build/%.so: $(OBJS)
-	$(CXX) -shared -o $@ $^ $(LIBS)
+	$(CXX) -shared -o $@ $^ -L$(HOME)/lib/. $(LIBS)
 	cp $@ $(HOME)/lib/lib$*.so
 
 build/%.dylib: $(OBJS)
