@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coreir/simulator/op_graph.h"
+#include "coreir/common/op_graph.h"
 #include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir/ir/value.h"
 
