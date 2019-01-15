@@ -2,8 +2,8 @@
 
 #include "coreir/simulator/output.h"
 #include "coreir/simulator/simulator.h"
-#include "coreir/simulator/utils.h"
 #include "coreir/simulator/print_c.h"
+#include "coreir/common/utils.h"
 
 // #include "../src/simulator/algorithm.hpp"
 // #include "../src/simulator/sim.hpp"

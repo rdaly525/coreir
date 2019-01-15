@@ -8,8 +8,8 @@
 #include "coreir/simulator/output.h"
 #include "coreir/simulator/simulator.h"
 #include "coreir/simulator/subcircuit.h"
-#include "coreir/simulator/utils.h"
 #include "coreir/simulator/wiring_utils.h"
+#include "coreir/common/utils.h"
 
 using namespace CoreIR;
 using namespace CoreIR::Passes;
