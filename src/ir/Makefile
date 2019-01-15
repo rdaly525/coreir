@@ -1,7 +1,7 @@
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 SRCFILES = $(wildcard [^_]*.cpp)
-OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o) $(wildcard ../simulator/build/*.o)
+OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES)) $(wildcard ../passes/analysis/build/*.o) $(wildcard ../passes/transform/build/*.o)
 
 LIBS = -ldl
 

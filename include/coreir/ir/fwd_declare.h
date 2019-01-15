@@ -37,6 +37,7 @@ namespace bsim {
 #include "json.h"
 
 typedef bsim::quad_value_bit_vector BitVector;
+typedef bsim::quad_value_bit_vector BitVec;
 typedef nlohmann::json Json;
 
 namespace CoreIR {

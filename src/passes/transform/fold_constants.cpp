@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir/passes/transform/fold_constants.h"
+#include "coreir/common/util.h"
 
 using namespace std;
 using namespace CoreIR;

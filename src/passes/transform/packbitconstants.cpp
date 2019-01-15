@@ -1,6 +1,7 @@
 #include "coreir.h"
 
 #include "coreir/passes/transform/packbitconstants.h"
+#include "coreir/common/util.h"
 
 using namespace std;
 using namespace CoreIR;
