@@ -1,5 +1,5 @@
-#ifndef COREIR_H_
-#define COREIR_H_
+#ifndef COREIRSIM_H_
+#define COREIRSIM_H_
 
 #ifdef __cplusplus //C++ header
 
