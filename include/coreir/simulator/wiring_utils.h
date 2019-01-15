@@ -3,7 +3,7 @@
 #include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"
 #include "coreir/ir/wireable.h"
-#include "coreir/simulator/algorithm.h"
+#include "coreir/common/algorithm.h"
 
 namespace CoreIR {
 

@@ -5,7 +5,7 @@
 
 #include "coreir/simulator/op_graph.h"
 #include "coreir/simulator/print_c.h"
-#include "coreir/simulator/utils.h"
+#include "coreir/common/utils.h"
 
 namespace CoreIR {
 

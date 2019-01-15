@@ -3,9 +3,9 @@
 #include "coreir/ir/types.h"
 #include "coreir/ir/value.h"
 #include "coreir/ir/dynamic_bit_vector.h"
-#include "coreir/simulator/algorithm.h"
 #include "coreir/simulator/op_graph.h"
-#include "coreir/simulator/utils.h"
+#include "coreir/common/algorithm.h"
+#include "coreir/common/utils.h"
 
 using namespace std;
 
