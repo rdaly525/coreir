@@ -71,7 +71,7 @@ install: build coreir
 	install include/coreir/*.h $(prefix)/include/coreir
 	install include/coreir/ir/*.h $(prefix)/include/coreir/ir
 	install include/coreir/ir/casting/* $(prefix)/include/coreir/ir/casting
-	install include/coreir/common/* $(prefix)/include/coreir/ir/common
+	install include/coreir/common/* $(prefix)/include/coreir/common
 	install include/coreir/libs/* $(prefix)/include/coreir/libs
 	install include/coreir/definitions/* $(prefix)/include/coreir/definitions
 	install include/coreir/passes/*.h $(prefix)/include/coreir/passes
