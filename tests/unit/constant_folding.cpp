@@ -1,4 +1,5 @@
 #include "coreir.h"
+#include "coreirsim.h"
 
 #include "coreir/libs/rtlil.h"
 #include "coreir/passes/transform/deletedeadinstances.h"

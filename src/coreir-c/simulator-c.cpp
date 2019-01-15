@@ -3,17 +3,24 @@
 #include "common-c.hpp"
 #include "coreir/simulator/interpreter.h"
 
+
+
 using namespace std;
+
+namespace {
+  static vector<string> MakeSimPath(char** cpath, int len) {
+    vector<string> path;
+    for (int i = 0; i < len; i++) {
+      path.emplace_back(cpath[i]);
+    }
+
+    return path;
+  }
+}
+
 namespace CoreIR {
 
-static vector<string> MakeSimPath(char** cpath, int len) {
-  vector<string> path;
-  for (int i = 0; i < len; i++) {
-    path.emplace_back(cpath[i]);
-  }
 
-  return path;
-}
 
 extern "C" {
 

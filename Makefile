@@ -53,10 +53,10 @@ build:
 .PHONY: install
 install: build coreir
 	install bin/coreir $(prefix)/bin
-	install lib/libcoreir.$(TARGET) $(prefix)/lib
-	install lib/libcoreir-* $(prefix)/lib
+	install lib/libcoreir* $(prefix)/lib
 	install -d $(prefix)/include/coreir-c
 	install -d $(prefix)/include/coreir/ir/casting
+	install -d $(prefix)/include/coreir/common
 	install -d $(prefix)/include/coreir/libs
 	install -d $(prefix)/include/coreir/definitions
 	install -d $(prefix)/include/coreir/passes/analysis
@@ -64,10 +64,12 @@ install: build coreir
 	install -d $(prefix)/include/coreir/simulator
 	install -d $(prefix)/include/coreir/tools
 	install include/coreir.h $(prefix)/include
+	install include/coreirsim.h $(prefix)/include
 	install include/coreir-c/* $(prefix)/include/coreir-c
 	install include/coreir/*.h $(prefix)/include/coreir
 	install include/coreir/ir/*.h $(prefix)/include/coreir/ir
 	install include/coreir/ir/casting/* $(prefix)/include/coreir/ir/casting
+	install include/coreir/common/* $(prefix)/include/coreir/common
 	install include/coreir/libs/* $(prefix)/include/coreir/libs
 	install include/coreir/definitions/* $(prefix)/include/coreir/definitions
 	install include/coreir/passes/*.h $(prefix)/include/coreir/passes
@@ -82,6 +84,7 @@ uninstall:
 	-rm $(prefix)/lib/libcoreir.*
 	-rm $(prefix)/lib/libcoreir-*
 	-rm $(prefix)/include/coreir.h
+	-rm $(prefix)/include/coreirsim.h
 	-rm -r $(prefix)/include/coreir
 	-rm -r $(prefix)/include/coreir-c
 

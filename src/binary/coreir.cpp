@@ -4,6 +4,7 @@
 #include <memory>
 #include "passlib.h"
 
+#include "coreir/common/logging_lite.hpp"
 
 #include "coreir/passes/analysis/smtlib2.h"
 #include "coreir/passes/analysis/smv.h"
@@ -182,13 +183,13 @@ int main(int argc, char *argv[]) {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
 
-    cout << "Running Runningvpasses" << endl;
+    LOG(INFO) << "Running Runningvpasses";
     string vstr = "verilog";
     if (opts.count("z")) {
       vstr += " -i";
     }
     modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes",vstr},namespaces);
-    cout << "Running vpasses" << endl;
+    LOG(INFO) << "Running vpasses";
 
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
 
@@ -222,9 +223,9 @@ int main(int argc, char *argv[]) {
     vpass->writeToStream(*sout);
   }
   else {
-    cout << "NYI" << endl;
+    LOG(INFO) << "NYI";
   }
-  cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
+  LOG(INFO) << "Modified?: " << (modified ? "Yes" : "No");
 
   return 0;
 }

@@ -1,4 +1,6 @@
 #include "coreir.h"
+#include "coreir/common/util.h"
+#include "coreirsim.h"
 
 using namespace CoreIR;
 using namespace std;

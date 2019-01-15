@@ -1,6 +1,6 @@
 .SUFFIXES:
 
-LIBS = -lcoreir
+LIBS = -lcoreir -lcoreirsim
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))

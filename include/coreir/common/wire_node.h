@@ -2,7 +2,7 @@
 
 #include "coreir/ir/moduledef.h"
 
-#include "coreir/simulator/utils.h"
+#include "coreir/common/utils.h"
 
 namespace CoreIR {
 

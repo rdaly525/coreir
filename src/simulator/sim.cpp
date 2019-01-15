@@ -3,11 +3,11 @@
 #include "coreir/passes/transform/flatten.h"
 #include "coreir/passes/transform/rungenerators.h"
 
-#include "coreir/simulator/algorithm.h"
+#include "coreir/common/algorithm.h"
+#include "coreir/common/utils.h"
 #include "coreir/simulator/dag_optimization.h"
 #include "coreir/simulator/low_rep.h"
 #include "coreir/simulator/print_c.h"
-#include "coreir/simulator/utils.h"
 
 using namespace CoreIR;
 using namespace CoreIR::Passes;
