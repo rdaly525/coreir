@@ -10,7 +10,7 @@ set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include)
 
-include_directories(${INCLUDE_OUTPUT_PATH})
+#include_directories(${INCLUDE_OUTPUT_PATH})
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 #file(GLOB_RECURSE sources "${CMAKE_SOURCE_DIR}/src/*.cpp")
