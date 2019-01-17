@@ -35,7 +35,7 @@ export CXXFLAGS
 all: build coreir
 
 .PHONY: test
-test: build
+test: 
 	$(MAKE) -C tests
 	cd tests; ./run
 	$(MAKE) -C tutorial/hellocounter
