@@ -12,3 +12,10 @@ add_library(coreirsim SHARED ${SRC_FILES})
 target_include_directories(coreirsim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 target_link_libraries(coreirsim PUBLIC coreir)
 
+install(
+    TARGETS coreirsim
+    DESTINATION lib
+)
+
+
+

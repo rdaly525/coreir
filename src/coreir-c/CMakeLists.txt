@@ -19,4 +19,10 @@ target_include_directories(coreirsim-c PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../
 target_link_libraries(coreirsim-c PUBLIC coreir)
 target_link_libraries(coreirsim-c PUBLIC coreirsim)
 
+#Install libcoreir
+install(
+    TARGETS coreir-c coreirsim-c
+    DESTINATION lib
+)
+
 

@@ -22,6 +22,12 @@ foreach(CLIB ${COREIRLIBS})
     add_library(${COREIRLIB} SHARED ${SRC_FILES})
     target_include_directories(${COREIRLIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
     target_link_libraries(${COREIRLIB} PUBLIC coreir)
+    install(
+        TARGETS ${COREIRLIB}
+        DESTINATION lib
+    )
+
+
 endforeach()
 
 
