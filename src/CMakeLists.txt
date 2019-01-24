@@ -6,7 +6,6 @@ file(GLOB SRC_FILES
 )
 
 
-
 #Create libcoreir
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
