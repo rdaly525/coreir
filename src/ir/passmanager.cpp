@@ -232,6 +232,10 @@ bool PassManager::run(vector<string>& passes,vector<string> nsnames) {
   }
   return ret;
 }
+bool PassManager::isAnalysisCached(string pass) {
+  ASSERT(analysisPasses.count(pass),pass + " was never loaded");
+  return analysisPasses.at(pass);
+}
 
 void PassManager::printLog() {
   cout << "Ran the following passes:" << endl;
