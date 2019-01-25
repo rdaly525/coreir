@@ -28,23 +28,22 @@ Note: To specify a specific version of `g++` (typically required on older, share
 ### To build:
 
     git clone https://github.com/rdaly525/coreir.git
-    cd coreir
+    cd coreir/build
+    cmake ..
     make -j
 
 ### To verify coreir build
     
+    cd coreir
     make -j test
-
-### create standalone binary
-
-    make -j coreir
 
 ### install to /usr or /usr/bin 
   
+    cd coreir/build
     sudo make install
 
 ### clean uninstall of coreir 
-
+    cd coreir
     sudo make uninstall
 
 ## Python Bindings

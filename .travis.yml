@@ -9,9 +9,12 @@ addons:
     - g++-4.9
 before_install:
 - export COREIRCONFIG="g++-4.9";
+- cd build
+- cmake ..
 - sudo make -j2 install
-- make -j2 release
+  #- make -j2 release
 script:
+- cd ..
 - make -j2 installtest
 - sudo make -j2 uninstall
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
