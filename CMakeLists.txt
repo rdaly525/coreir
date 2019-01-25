@@ -2,6 +2,22 @@ cmake_minimum_required(VERSION 2.8)
 
 project(coreir)
 
+if(DEFINED ENV{COREIRCONFIG})
+  if($ENV{COREIRCONFIG} STREQUAL "g++-4.9")
+    set(CMAKE_CXX_COMPILER $ENV{COREIRCONFIG})
+    message(INFO "Setting Compiler to be g++-4.9")
+  endif()
+endif()
+    
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    # require at least gcc 4.8
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+        message(FATAL_ERROR "GCC version must be at least 4.8!")
+    endif()
+else()
+    message(WARNING "You are using an untested compiler")
+endif()
+
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror")
 #CXXFLAGS = -std=c++11 -Wall -fPIC -Werror -ferror-limit=5
 
