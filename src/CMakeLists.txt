@@ -12,6 +12,7 @@ set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
 
 add_library(coreir SHARED ${SRC_FILES})
 target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_link_libraries(coreir dl)
 
 #Install libcoreir
 install(
