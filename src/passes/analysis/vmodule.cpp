@@ -192,6 +192,9 @@ string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params_bk = this->params;
+  for (auto p : mref->getModParams()) {
+    this->params.insert(p.first);
+  }
 
   ostringstream o;
   string tab = "  ";
