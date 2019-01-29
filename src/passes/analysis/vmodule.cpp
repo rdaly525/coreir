@@ -358,7 +358,11 @@ string VModule::toString() const {
   else {
     for (auto pmap : ports) {
       auto port = pmap.second;
-      pdecs.push_back(port.dirstr() + " " + port.dimstr() + " " + port.getName());
+      string pdec = port.dirstr() + " " + port.dimstr() + " " + port.getName();
+      if (this->vmods->_verilator_debug) {
+          pdec += "/*verilator public*/";
+      }
+      pdecs.push_back(pdec);
     }
   }
   
