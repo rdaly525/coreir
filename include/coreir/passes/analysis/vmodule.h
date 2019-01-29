@@ -41,6 +41,7 @@ struct VModules {
   map<Module*,VModule*> mod2VMod;
   vector<VModule*> vmods;
   bool _inline = false;
+  bool _verilator_debug = false;
   //Only used for genetaors that have verilog
   map<Generator*,VModule*> gen2VMod;
 
@@ -199,7 +200,13 @@ struct VInstance : VObject {
   }
 
 
-  string VWireDec(VWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
+  string VWireDec(VWire w) { 
+    string s = "  wire " + w.dimstr() + " " + w.getName();
+    if (this->vmods->_verilator_debug) {
+      s +=  "/*verilator public*/";
+    }
+    return s + ";";
+  }
   
   virtual void materialize(CoreIRVModule* vmod) override {
     Module* mref = inst->getModuleRef();
