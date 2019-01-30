@@ -42,6 +42,7 @@ int main(int argc, char *argv[]) {
     ("t,top","top: <namespace>.<modulename>",cxxopts::value<std::string>())
     ("a,all","run on all namespaces")
     ("z,inline","inlines verilog primitives")
+    ("y,verilator_debug","mark signals with /*veriltor public*/")
     ("s,split","splits output files by name (expects '-o <path>/*.<ext>')")
     ;
   
@@ -186,6 +187,9 @@ int main(int argc, char *argv[]) {
     string vstr = "verilog";
     if (opts.count("z")) {
       vstr += " -i";
+    }
+    if (opts.count("y")) {
+      vstr += " -y";
     }
     modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes",vstr},namespaces);
     cout << "Running vpasses" << endl;
