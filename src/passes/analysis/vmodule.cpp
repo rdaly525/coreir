@@ -162,9 +162,6 @@ string VModule::toString() const {
     // TODO: Find a better way to deal with type parameters in wrap
     if (p != "type") {
       string defaultVal = paramDefaults.count(p)>0 ? paramDefaults.at(p) : "1";
-      if (p=="lo") {
-        defaultVal = "0";
-      }
       string s = "parameter " + p + "=" + defaultVal;
       paramstrs.push_back(s);
     }
