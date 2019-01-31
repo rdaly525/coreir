@@ -13,11 +13,11 @@ before_install:
 - make -j2 release
 - sudo pip install delegator.py pytest
 script:
+- pytest tests/binary
 - make -j2 installtest
 - sudo make -j2 uninstall
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
 - make -j2 test
-- pytest
 compiler:
 - gcc
 os:
