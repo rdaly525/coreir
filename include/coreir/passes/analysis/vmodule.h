@@ -275,11 +275,7 @@ struct VerilogVModule : VModule {
   VerilogVModule(VModules* vmods) : VModule(vmods) {}
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
-    if (this->vmods->_verilator_debug && jmeta.count("verilog_debug") > 0) {
-        jver = jmeta["verilog_debug"];
-    } else {
-        jver = jmeta["verilog"];
-    }
+    jver = jmeta["verilog"];
     if (jver.count("verilog_string")) {
       this->modname = name;
       this->verilog_string = jver["verilog_string"].get<std::string>();
@@ -307,7 +303,11 @@ struct VerilogVModule : VModule {
       this->modname = jver["prefix"].get<std::string>() + name;
     }
     if (jver.count("definition")) {
-      stmts.push_back(jver["definition"].get<std::string>());
+      if (this->vmods->_verilator_debug && jmeta.count("debug_definition") > 0) {
+        stmts.push_back(jver["debug_definition"].get<std::string>());
+      } else {
+        stmts.push_back(jver["definition"].get<std::string>());
+      }
     }
     if (jver.count("interface")) {
       interface = (jver["interface"].get<std::vector<std::string>>());

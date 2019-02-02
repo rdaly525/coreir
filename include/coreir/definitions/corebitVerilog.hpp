@@ -112,14 +112,13 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    bit->getModule("reg")->getMetaData()["verilog"] = vjson;
-    vjson["definition"] = ""
+    vjson["debug_definition"] = ""
     "reg outReg/*verilator public*/ = init;\n"
     "always @(posedge clk) begin\n"
     "  outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    bit->getModule("reg")->getMetaData()["verilog_debug"] = vjson;
+    bit->getModule("reg")->getMetaData()["verilog"] = vjson;
   }
   {
     //reg_arst
@@ -138,8 +137,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    bit->getModule("reg_arst")->getMetaData()["verilog"] = vjson;
-    vjson["definition"] = ""
+    vjson["debug_definition"] = ""
     "reg outReg/*verilator public*/;\n"
     "wire real_rst;\n"
     "assign real_rst = arst_posedge ? arst : ~arst;\n"
@@ -150,6 +148,6 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    bit->getModule("reg_arst")->getMetaData()["verilog_debug"] = vjson;
+    bit->getModule("reg_arst")->getMetaData()["verilog"] = vjson;
   }
 }

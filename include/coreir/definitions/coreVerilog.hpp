@@ -186,8 +186,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    else outReg <= in;\n"
     "  end\n"
     "  assign out = outReg;";
-    core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson;
-    vjson["definition"] = ""
+    vjson["debug_definition"] = ""
     "  reg [width-1:0] outReg/*verilator public*/;\n"
     "  wire real_rst;\n"
     "  assign real_rst = arst_posedge ? arst : ~arst;\n"
@@ -198,7 +197,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    else outReg <= in;\n"
     "  end\n"
     "  assign out = outReg;";
-    core->getGenerator("reg_arst")->getMetaData()["verilog_debug"] = vjson;
+    core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson;
   }
   {
     //reg
@@ -214,8 +213,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    outReg <= in;\n"
     "  end\n"
     "  assign out = outReg;";
-    core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
-    vjson["definition"] = ""
+    vjson["debug_definition"] = ""
     "  reg [width-1:0] outReg/*verilator public*/=init;\n"
     "  wire real_clk;\n"
     "  assign real_clk = clk_posedge ? clk : ~clk;\n"
@@ -223,7 +221,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    outReg <= in;\n"
     "  end\n"
     "  assign out = outReg;";
-    core->getGenerator("reg")->getMetaData()["verilog_debug"] = vjson;
+    core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
   }
 
   {
@@ -239,8 +237,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    end\n"
     "  end\n"
     "  assign rdata = data[raddr];";
-    core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
-    vjson["definition"] = ""
+    vjson["debug_definition"] = ""
     "  reg [width-1:0] data[depth-1:0] /*verilator public*/;\n"
     "  always @(posedge clk) begin\n"
     "    if (wen) begin\n"
@@ -248,6 +245,6 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    end\n"
     "  end\n"
     "  assign rdata = data[raddr];";
-    core->getGenerator("mem")->getMetaData()["verilog_debug"] = vjson;
+    core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
   } 
 }
