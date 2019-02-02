@@ -144,6 +144,11 @@ string VModule::toString() const {
   vector<string> pdecs;
   if (interface.size()>0) {
     pdecs = interface;
+    if (this->vmods->_verilator_debug) {
+      for (auto& pdec : pdecs) {
+        pdec += "/*verilator public*/";
+      }
+    }
   }
   else {
     for (auto pmap : ports) {
