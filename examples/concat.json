@@ -4,10 +4,10 @@
     "global": {
       "modules": {
         "concats": {
-          "type": ["Record",{
-            "in": ["Array",16,"BitIn"],
-            "out": ["Array",16,"Bit"]
-          }],
+          "type": ["Record",[
+            ["in", ["Array",16,"BitIn"]],
+            ["out", ["Array",16,"Bit"]]
+          ]],
           "instances": {
             "s0": {
               "genref": "coreir.slice",
