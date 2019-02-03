@@ -1,3 +1,11 @@
+module coreir_slice #(parameter hi=1, parameter lo=0, parameter width=1) (
+  input [width-1:0] in,
+  output [hi-lo-1:0] out
+);
+  assign out = in[hi-1:lo];
+
+endmodule  // coreir_slice
+
 module coreir_concat #(parameter width0=1, parameter width1=1) (
   input [width0-1:0] in0,
   input [width1-1:0] in1,
@@ -6,14 +14,6 @@ module coreir_concat #(parameter width0=1, parameter width1=1) (
   assign out = {in1,in0};
 
 endmodule  // coreir_concat
-
-module coreir_slice #(parameter hi=1, parameter lo=0, parameter width=1) (
-  input [width-1:0] in,
-  output [hi-lo-1:0] out
-);
-  assign out = in[hi-1:lo];
-
-endmodule  // coreir_slice
 
 module concats (
   input [15:0] in,

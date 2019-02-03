@@ -3,6 +3,10 @@
 using namespace std;
 using namespace CoreIR;
 
+bool InstanceGraph::ModuleCmp::operator()(const Module* l, const Module* r) const {
+  return l->getLongName() < r->getLongName();
+}
+
 void InstanceGraph::releaseMemory() {
   nodeMap.clear();
   for (auto ign : sortedNodes) delete ign;
@@ -28,7 +32,7 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 namespace {
-  void recurse(Module* m, std::unordered_set<Module*>& onlyTopNodes) {
+  void recurse(Module* m, std::set<Module*,InstanceGraph::ModuleCmp>& onlyTopNodes) {
     if (onlyTopNodes.count(m)) {
       return;
     }
@@ -59,7 +63,7 @@ void InstanceGraph::construct(Context* c) {
   }
 
   //populate all the nodes with pointers to the instances
-  unordered_map<Module*,InstanceGraphNode*> nodeMap2;
+  map<Module*,InstanceGraphNode*,InstanceGraph::ModuleCmp> nodeMap2;
   for (auto nodemap : nodeMap) {
     nodeMap2.insert(nodemap);
   }
