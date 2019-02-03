@@ -15,7 +15,7 @@ using namespace std;
 
 namespace CoreIR {
 
-Module::Module(Namespace* ns,std::string name, Type* type,Params modparams) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), longname(name) {
+  Module::Module(Namespace* ns,std::string name, Type* type,Params modparams) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), longname(ns->getName() + "_" + name) {
   ASSERT(isa<RecordType>(type), "Module type needs to be a record!\n"+type->toString());
   this->type = cast<RecordType>(type);
 }
@@ -23,7 +23,10 @@ Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Gene
   ASSERT(isa<RecordType>(type), "Module type needs to be a record!\n"+type->toString());
   this->type = cast<RecordType>(type);
   ASSERT(g && genargs.size(),"Missing genargs!");
-  this->longname = name + getContext()->getUnique(); //TODO do a better name
+  this->longname = ns->getName() + "_" + name;
+  for (auto genarg : genargs) {
+    this->longname += "__" + genarg.first + genarg.second->toString() ;
+  }
 }
 
 DirectedModule* Module::newDirectedModule() {
