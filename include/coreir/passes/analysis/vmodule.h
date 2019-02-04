@@ -303,7 +303,11 @@ struct VerilogVModule : VModule {
       this->modname = jver["prefix"].get<std::string>() + name;
     }
     if (jver.count("definition")) {
-      stmts.push_back(jver["definition"].get<std::string>());
+      if (this->vmods->_verilator_debug && jver.count("verilator_debug_definition") > 0) {
+        stmts.push_back(jver["verilator_debug_definition"].get<std::string>());
+      } else {
+        stmts.push_back(jver["definition"].get<std::string>());
+      }
     }
     if (jver.count("interface")) {
       interface = (jver["interface"].get<std::vector<std::string>>());
