@@ -112,7 +112,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    vjson["debug_definition"] = ""
+    vjson["verilator_debug_definition"] = ""
     "reg outReg/*verilator public*/ = init;\n"
     "always @(posedge clk) begin\n"
     "  outReg <= in;\n"
@@ -137,7 +137,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  else outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
-    vjson["debug_definition"] = ""
+    vjson["verilator_debug_definition"] = ""
     "reg outReg/*verilator public*/;\n"
     "wire real_rst;\n"
     "assign real_rst = arst_posedge ? arst : ~arst;\n"

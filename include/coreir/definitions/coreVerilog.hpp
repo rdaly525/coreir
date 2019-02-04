@@ -186,7 +186,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    else outReg <= in;\n"
     "  end\n"
     "  assign out = outReg;";
-    vjson["debug_definition"] = ""
+    vjson["verilator_debug_definition"] = ""
     "  reg [width-1:0] outReg/*verilator public*/;\n"
     "  wire real_rst;\n"
     "  assign real_rst = arst_posedge ? arst : ~arst;\n"
@@ -213,7 +213,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    outReg <= in;\n"
     "  end\n"
     "  assign out = outReg;";
-    vjson["debug_definition"] = ""
+    vjson["verilator_debug_definition"] = ""
     "  reg [width-1:0] outReg/*verilator public*/=init;\n"
     "  wire real_clk;\n"
     "  assign real_clk = clk_posedge ? clk : ~clk;\n"
@@ -237,7 +237,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    end\n"
     "  end\n"
     "  assign rdata = data[raddr];";
-    vjson["debug_definition"] = ""
+    vjson["verilator_debug_definition"] = ""
     "  reg [width-1:0] data[depth-1:0] /*verilator public*/;\n"
     "  always @(posedge clk) begin\n"
     "    if (wen) begin\n"
