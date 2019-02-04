@@ -27,7 +27,7 @@ Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Gene
     this->longname = ns->getName() + "_" + name;
   }
   else {
-    this->longname =  name;
+    this->longname = name;
   }
   for (auto genarg : genargs) {
     this->longname += "__" + genarg.first + genarg.second->toString() ;
