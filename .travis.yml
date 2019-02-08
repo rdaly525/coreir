@@ -11,7 +11,9 @@ before_install:
 - export COREIRCONFIG="g++-4.9";
 - sudo make -j2 install
 - make -j2 release
+- sudo pip install delegator.py pytest
 script:
+- pytest tests/binary
 - make -j2 installtest
 - sudo make -j2 uninstall
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH

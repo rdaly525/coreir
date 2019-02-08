@@ -20,7 +20,7 @@
 HOME = ../..
 INCS = -I$(HOME)/include -I.
 LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreir-commonlib -lcoreir-aetherlinglib
+LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-aetherlinglib
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))

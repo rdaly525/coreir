@@ -4,6 +4,7 @@
 #include <memory>
 #include "passlib.h"
 
+#include "coreir/common/logging_lite.hpp"
 
 #include "coreir/passes/analysis/smtlib2.h"
 #include "coreir/passes/analysis/smv.h"
@@ -42,42 +43,43 @@ int main(int argc, char *argv[]) {
     ("t,top","top: <namespace>.<modulename>",cxxopts::value<std::string>())
     ("a,all","run on all namespaces")
     ("z,inline","inlines verilog primitives")
+    ("y,verilator_debug","mark signals with /*veriltor public*/")
     ("s,split","splits output files by name (expects '-o <path>/*.<ext>')")
     ;
   
   //Do the parsing of the arguments
-  options.parse(argc,argv);
+  auto opts = options.parse(argc,argv);
   
   Context* c = newContext();
   
-  if (options.count("l")) {
-    vector<string> libs = splitString<vector<string>>(options["l"].as<string>(),',');
+  if (opts.count("l")) {
+    vector<string> libs = splitString<vector<string>>(opts["l"].as<string>(),',');
     for (auto lib : libs) {
       c->getLibraryManager()->loadLib(lib);
     }
   }
    
   PassLibrary loadedPasses(c);
-  if (options.count("e")) {
-    vector<string> passes = splitString<vector<string>>(options["e"].as<string>(),',');
+  if (opts.count("e")) {
+    vector<string> passes = splitString<vector<string>>(opts["e"].as<string>(),',');
     for (auto pass : passes) {
       loadedPasses.loadPass(pass);
     }
   }
   
-  if (options.count("h") || argc_copy==1) {
+  if (opts.count("h") || argc_copy==1) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
     cout << endl;
     return 0;
   }
   
-  if (options.count("v")) {
-    c->getPassManager()->setVerbosity(options["v"].as<bool>());
+  if (opts.count("v")) {
+    c->getPassManager()->setVerbosity(opts["v"].as<bool>());
   }
 
-  ASSERT(options.count("i"),"No input specified");
-  string ilist = options["i"].as<string>();
+  ASSERT(opts.count("i"),"No input specified");
+  string ilist = opts["i"].as<string>();
   vector<string> infileNames = splitString<vector<string>>(ilist,',');
 
   for (auto infileName : infileNames) {
@@ -85,7 +87,7 @@ int main(int argc, char *argv[]) {
     ASSERT(inExt=="json","Input needs to be json");
   }
 
-  const bool split_files = options.count("s") && options["s"].as<bool>();
+  const bool split_files = opts.count("s") && opts["s"].as<bool>();
 
   //Load inputs
   Module* top;
@@ -95,14 +97,14 @@ int main(int argc, char *argv[]) {
       c->die();
     }
     if (top) topRef = top->getRefName();
-    if (options.count("t")) {
-      topRef = options["t"].as<string>();
+    if (opts.count("t")) {
+      topRef = opts["t"].as<string>();
       c->setTop(topRef);
     }
   }
   
   vector<string> namespaces;
-  if (options.count("a")) {
+  if (opts.count("a")) {
     for (auto ns : c->getNamespaces()) {
       if (ns.first !="coreir" && ns.first !="corebit") {
         namespaces.push_back(ns.first);
@@ -110,13 +112,13 @@ int main(int argc, char *argv[]) {
     }
   }
   else {
-    namespaces = splitString<vector<string>>(options["n"].as<string>(),',');
+    namespaces = splitString<vector<string>>(opts["n"].as<string>(),',');
   }
 
   //Load and run passes
   bool modified = false;
-  if (options.count("p")) {
-    string plist = options["p"].as<string>();
+  if (opts.count("p")) {
+    string plist = opts["p"].as<string>();
     vector<string> porder = splitString<vector<string>>(plist,';');
     modified = c->runPasses(porder,namespaces);
   }
@@ -126,8 +128,8 @@ int main(int argc, char *argv[]) {
   std::string output_dir = "";
   auto parse_outputs = [&] {
     std::string outfile = "";
-    if (options.count("o")) {
-      outfile = options["o"].as<string>();
+    if (opts.count("o")) {
+      outfile = opts["o"].as<string>();
       outExt = getExt(outfile);
       ASSERT(outExt == "json"
              || outExt == "txt"
@@ -182,13 +184,16 @@ int main(int argc, char *argv[]) {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
 
-    cout << "Running Runningvpasses" << endl;
+    LOG(INFO) << "Running Runningvpasses";
     string vstr = "verilog";
-    if (options.count("z")) {
+    if (opts.count("z")) {
       vstr += " -i";
     }
+    if (opts.count("y")) {
+      vstr += " -y";
+    }
     modified |= c->runPasses({"rungenerators","removebulkconnections","flattentypes",vstr},namespaces);
-    cout << "Running vpasses" << endl;
+    LOG(INFO) << "Running vpasses";
 
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
 
@@ -222,9 +227,9 @@ int main(int argc, char *argv[]) {
     vpass->writeToStream(*sout);
   }
   else {
-    cout << "NYI" << endl;
+    LOG(INFO) << "NYI";
   }
-  cout << endl << "Modified?: " << (modified?"Yes":"No") << endl;
+  LOG(INFO) << "Modified?: " << (modified ? "Yes" : "No");
 
   return 0;
 }

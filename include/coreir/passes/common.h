@@ -41,6 +41,7 @@
 #include "transform/wireclocks.h"
 #include "transform/split_inouts.h"
 #include "transform/cullgraph.h"
+#include "transform/markdirty.h"
 #include "transform/unresolvedsymbols.h"
 
 #include "transform/adddirected.h"
@@ -98,6 +99,7 @@ namespace CoreIR {
     pm.addPass(new Passes::DeleteUnusedInouts("delete-unused-inouts"));
     pm.addPass(new Passes::Transform2CombView());
     pm.addPass(new Passes::Netify());
+    pm.addPass(new Passes::MarkDirty());
   }
 }
 

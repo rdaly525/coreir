@@ -1,8 +1,11 @@
+/* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */
+
 #ifndef COREIR_VMODULE_HPP_
 #define COREIR_VMODULE_HPP_
 
 #include "coreir.h"
 #include <regex>
+#include <queue>
 
 //TODO get rid of
 using namespace std;
@@ -41,6 +44,7 @@ struct VModules {
   map<Module*,VModule*> mod2VMod;
   vector<VModule*> vmods;
   bool _inline = false;
+  bool _verilator_debug = false;
   //Only used for genetaors that have verilog
   map<Generator*,VModule*> gen2VMod;
 
@@ -95,6 +99,7 @@ struct VModule {
   std::vector<std::string> stmts;
   VModules* vmods;
   string modComment = "";
+  string verilog_string = "";
 
   bool isExternal = false;
   VModule(VModules* vmods) : vmods(vmods) {}
@@ -147,8 +152,15 @@ struct CoreIRVModule : VModule {
   std::map<Connection,VObject*,ConnectionComp> conn2VObj;
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
 
-  void addConnection(ModuleDef* def, Connection conn);
+  void addConnections(ModuleDef* def);
   void addInstance(Instance* inst);
+  std::string inline_instance(ModuleDef* def, std::queue<Connection> &worklist,
+          Instance* right_parent);
+  std::string get_replace_str(std::string input_name, Instance* instance,
+          ModuleDef* def, std::queue<Connection> &worklist);
+  std::string get_inline_str(Wireable* sink,
+          SelectPath select_path, Connection conn, ModuleDef* def,
+          std::queue<Connection> &worklist);
   
   CoreIRVModule(VModules* vmods, Module* m);
 
@@ -198,7 +210,13 @@ struct VInstance : VObject {
   }
 
 
-  string VWireDec(VWire w) { return "  wire " + w.dimstr() + " " + w.getName() + ";"; }
+  string VWireDec(VWire w) { 
+    string s = "  wire " + w.dimstr() + " " + w.getName();
+    if (this->vmods->_verilator_debug) {
+      s +=  "/*verilator public*/";
+    }
+    return s + ";";
+  }
   
   virtual void materialize(CoreIRVModule* vmod) override {
     Module* mref = inst->getModuleRef();
@@ -245,6 +263,28 @@ struct VAssign : VObject {
   }
 };
 
+
+// Assign a wireable to a string
+struct VAssignStr : VObject {
+  Wireable* target;
+  ModuleDef* def;
+  std::string value_str;
+  VAssignStr(ModuleDef* def, Wireable* target, std::string value_str) :
+      VObject(toString(target) + value_str), target(target),
+      value_str(value_str) {
+    this->line = -1; //largest number to go at the top of the bottom
+    this->priority = 1;
+    // Ignore metadata for inlining until we have a good proposal for how to
+    // handle this
+  }
+  void materialize(CoreIRVModule* vmod) override {
+    VWire vtarget(target);
+    // Ignore metadata for inlining until we have a good proposal for how to
+    // handle this
+    vmod->addStmt("  assign " + vtarget.getName() + vtarget.dimstr() + " = " + value_str + ";");
+  }
+};
+
 struct ExternVModule : VModule {
   
   ExternVModule(VModules* vmods, Module* m) : VModule(vmods) {
@@ -268,11 +308,38 @@ struct VerilogVModule : VModule {
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
     jver = jmeta["verilog"];
+    if (jver.count("verilog_string")) {
+      this->modname = name;
+      this->verilog_string = jver["verilog_string"].get<std::string>();
+      // Ensure that if the field verilog_string is included that the remaining
+      // fields are not included.
+#define VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, field)                   \
+      ASSERT(jver.count(field) == 0,                                    \
+             string("Can not include ") +                               \
+             string(field) +                                            \
+             string(" with verilog_string"))
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "prefix");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "definition");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "interface");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "parameters");
+      VERILOG_FULL_MODULE_ASSERT_MUTEX(jver, "inlineable");
+#undef VERILOG_FULL_MODULE_ASSERT_MUTEX
+      // TODO(rsetaluri): Issue warning that we are including black-box
+      // verilog. Most importantly the user should know that there is *no
+      // guarantee* at this level that things are in sync. For example, if the
+      // CoreIR module declaration does not match the verilog's, then the output
+      // may be garbage for downstream tools.
+      return;
+    }
     if (jver.count("prefix")) {
       this->modname = jver["prefix"].get<std::string>() + name;
     }
     if (jver.count("definition")) {
-      stmts.push_back(jver["definition"].get<std::string>());
+      if (this->vmods->_verilator_debug && jver.count("verilator_debug_definition") > 0) {
+        stmts.push_back(jver["verilator_debug_definition"].get<std::string>());
+      } else {
+        stmts.push_back(jver["definition"].get<std::string>());
+      }
     }
     if (jver.count("interface")) {
       interface = (jver["interface"].get<std::vector<std::string>>());
@@ -295,41 +362,6 @@ struct ParamVerilogVModule : VerilogVModule {
     this->addDefaults(g->getDefaultGenArgs());
     this->addJson(g->getMetaData(),g->getName());
   }
-};
-
-struct VInlineInstance : VInstance {
-  string vbody;
-  VInlineInstance(VModules* vmods, Instance* inst, VerilogVModule* vermod) : VInstance(vmods,inst) {
-    vbody = vermod->jver["definition"].get<string>();
-    //Search for all high level ports
-    for (auto rpair : cast<RecordType>(inst->getType())->getRecord()) {
-      std::regex expr(rpair.first);
-      string replace(VWire(inst->sel(rpair.first)).getName());
-      vbody = std::regex_replace(vbody,expr,replace);
-    }
-    //Search for modArgs
-    for (auto pval : inst->getModArgs()) {
-      std::regex expr(pval.first);
-      string replace = toConstString(pval.second);
-      vbody = std::regex_replace(vbody,expr,replace);
-    }
-    Module* mref = inst->getModuleRef();
-    //Search for genArgs
-    if (mref->isGenerated()) {
-      for (auto pval : mref->getGenArgs()) {
-        std::regex expr(pval.first);
-        string replace = toConstString(pval.second);
-        vbody = std::regex_replace(vbody,expr,replace);
-      }
-    }
-  }
-
-  void materialize(CoreIRVModule* vmod) override {
-    vmod->addComment("Inlined from " + toString(inst));
-    vmod->addStmt(wireDecs);
-    vmod->addStmt(vbody);
-  }
-
 };
 
 

@@ -75,7 +75,7 @@ std::vector<std::string> splitRef(std::string s);
 
 
 //Does not include
-static std::unordered_map<std::string,std::unordered_set<std::string>> coreMap({
+static std::map<std::string,std::set<std::string>> coreMap({
   {"unary",{"wire","not","neg"}},
   {"unaryReduce",{"andr","orr","xorr"}},
   {"binary",{

@@ -1,12 +1,10 @@
 #pragma once
 
-#include "coreir/simulator/op_graph.h"
+#include "coreir/common/op_graph.h"
 #include "coreir/ir/dynamic_bit_vector.h"
 #include "coreir/ir/value.h"
 
 namespace CoreIR {
-
-  typedef bsim::quad_value_bit_vector BitVec;
 
   enum SimValueType {
     SIM_VALUE_BV,
