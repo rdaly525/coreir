@@ -295,7 +295,7 @@ namespace CoreIR {
 
     int expBits = 8;
     int fracBits = 23;
-    int width = expBits + fracBits;
+    int width = 1 + expBits + fracBits;
     
     Type* faddType =
       c->Record({
