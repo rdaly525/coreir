@@ -1066,6 +1066,9 @@ namespace CoreIR {
           float lf = bitCastToFloat(lv);
           float rf = bitCastToFloat(rv);
 
+          cout << "lf = " << lf << endl;
+          cout << "rf = " << rf << endl;
+
           float res = lf + rf;
 
           int resI = bitCastToInt(res);

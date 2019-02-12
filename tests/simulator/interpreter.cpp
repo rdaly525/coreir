@@ -320,12 +320,27 @@ namespace CoreIR {
     c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
 
     SimulatorState state(faddM);
-    state.setValue("self.in0", BitVector(width, 0));
-    state.setValue("self.in1", BitVector(width, 0));
 
-    state.execute();
+    SECTION("0 + 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
 
-    REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("1.73 + 2.34") {
+      float a = 1.73;
+      float b = 2.34;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(a + b)));
+    }
   }
   
   TEST_CASE("Interpret simulator graphs") {

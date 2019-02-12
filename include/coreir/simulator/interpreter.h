@@ -321,4 +321,7 @@ namespace CoreIR {
   std::string concatSelects(const std::deque<std::string>& str);
   std::string concatSelects(const std::vector<std::string>& str);
 
+  int bitCastToInt(float val);  
+  float bitCastToFloat(int val);
+
 }
