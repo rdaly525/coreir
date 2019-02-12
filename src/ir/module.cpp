@@ -18,10 +18,11 @@ namespace {
 //This will make it a valid coreir string
 //Specifically for the case that toString on a type produces square brackets
 string sanatizeParamString(string name) {
-  //Strip out the '[' and ']' chars 
   string out = name;
+  //For type
   out.erase(std::remove(out.begin(),out.end(),'['),out.end());
   out.erase(std::remove(out.begin(),out.end(),']'),out.end());
+  out.erase(std::remove(out.begin(),out.end(),'.'),out.end());
   return out;
 }
 }
