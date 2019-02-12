@@ -27,13 +27,13 @@ void Passes::Verilog::initialize(int argc, char** argv) {
   cxxopts::Options options("verilog", "translates coreir graph to verilog and optionally inlines primitives");
   options.add_options()
     ("i,inline","Inline verilog modules if possible")
-    ("vdbg,verilator_debug","Mark IO and intermediate wires as /*verilator_public*/")
+    ("y,verilator_debug","Mark IO and intermediate wires as /*verilator_public*/")
   ;
   auto opts = options.parse(argc,argv);
   if (opts.count("i")) {
     this->vmods._inline = true;
   }
-  if (opts.count("vdbg")) {
+  if (opts.count("y")) {
     this->vmods._verilator_debug = true;
   }
 }

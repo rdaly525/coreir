@@ -16,7 +16,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     {"other",{
       {"mux","sel ? in1 : in0"},
       {"concat","{in0, in1}"},
-      {"const","1b'value"},
+      {"const","value"},
       {"term",""},
       {"tribuf","en ? in : 1'bz"},
       {"ibuf","in"},
@@ -112,6 +112,12 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     "  outReg <= in;\n"
     "end\n"
     "assign out = outReg;";
+    vjson["verilator_debug_definition"] = ""
+    "reg outReg/*verilator public*/ = init;\n"
+    "always @(posedge clk) begin\n"
+    "  outReg <= in;\n"
+    "end\n"
+    "assign out = outReg;";
     bit->getModule("reg")->getMetaData()["verilog"] = vjson;
   }
   {
@@ -122,6 +128,17 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     vjson["interface"] = bitIMap.at("reg_arst");
     vjson["definition"] = ""
     "reg outReg;\n"
+    "wire real_rst;\n"
+    "assign real_rst = arst_posedge ? arst : ~arst;\n"
+    "wire real_clk;\n"
+    "assign real_clk = clk_posedge ? clk : ~clk;\n"
+    "always @(posedge real_clk, posedge real_rst) begin\n"
+    "  if (real_rst) outReg <= init;\n"
+    "  else outReg <= in;\n"
+    "end\n"
+    "assign out = outReg;";
+    vjson["verilator_debug_definition"] = ""
+    "reg outReg/*verilator public*/;\n"
     "wire real_rst;\n"
     "assign real_rst = arst_posedge ? arst : ~arst;\n"
     "wire real_clk;\n"

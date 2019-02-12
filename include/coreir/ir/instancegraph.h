@@ -8,9 +8,14 @@ namespace CoreIR {
 
 class InstanceGraphNode;
 class InstanceGraph {
-  std::unordered_map<Module*,InstanceGraphNode*> nodeMap;
-  std::unordered_set<Module*> onlyTopNodes;
-  std::list<InstanceGraphNode*> sortedNodes;
+  public:
+    struct ModuleCmp {
+      bool operator()(const Module* l, const Module* r) const;
+    };
+  private:
+    std::map<Module*,InstanceGraphNode*,ModuleCmp> nodeMap;
+    std::set<Module*,ModuleCmp> onlyTopNodes;
+    std::list<InstanceGraphNode*> sortedNodes;
   public :
     InstanceGraph() {}
     ~InstanceGraph() {this->releaseMemory();}
@@ -19,7 +24,6 @@ class InstanceGraph {
     bool validOnlyTop(InstanceGraphNode* node);
     void releaseMemory();
     void sortVisit(InstanceGraphNode* node);
-
 };
 
 class InstanceGraphNode {
