@@ -22,7 +22,8 @@ void core_convert(Context* c, Namespace* core) {
       });
     }
   );
-  core->newGeneratorDecl("slice",sliceTypeGen,sliceParams);
+  auto slice = core->newGeneratorDecl("slice",sliceTypeGen,sliceParams);
+  slice->addDefaultGenArgs({{"hi",Const::make(c,1)},{"lo",Const::make(c,0)}});
 
   Params concatParams({
     {"width0",c->Int()},

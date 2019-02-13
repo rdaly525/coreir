@@ -354,11 +354,20 @@ string VModule::toString() const {
   vector<string> pdecs;
   if (interface.size()>0) {
     pdecs = interface;
+    if (this->vmods->_verilator_debug) {
+      for (auto& pdec : pdecs) {
+        pdec += "/*verilator public*/";
+      }
+    }
   }
   else {
     for (auto pmap : ports) {
       auto port = pmap.second;
-      pdecs.push_back(port.dirstr() + " " + port.dimstr() + " " + port.getName());
+      string pdec = port.dirstr() + " " + port.dimstr() + " " + port.getName();
+      if (this->vmods->_verilator_debug) {
+          pdec += "/*verilator public*/";
+      }
+      pdecs.push_back(pdec);
     }
   }
   
@@ -367,7 +376,8 @@ string VModule::toString() const {
 
     // TODO: Find a better way to deal with type parameters in wrap
     if (p != "type") {
-      string s = "parameter " + p + "=" + (paramDefaults.count(p)>0 ? paramDefaults.at(p) : "1");
+      string defaultVal = paramDefaults.count(p)>0 ? paramDefaults.at(p) : "1";
+      string s = "parameter " + p + "=" + defaultVal;
       paramstrs.push_back(s);
     }
   }

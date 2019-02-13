@@ -29,7 +29,7 @@ class PassManager {
     //Runs all passes in order over namespaces
     //Returns if graph was modified
     bool run(std::vector<std::string>& passes, std::vector<std::string> namespaceName={"global"});
-
+    bool isAnalysisCached(std::string);
     void setVerbosity(bool v) { verbose = v;}
     void printLog();
     void printPassChoices();

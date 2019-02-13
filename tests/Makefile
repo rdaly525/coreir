@@ -4,6 +4,7 @@ all:
 	$(MAKE) -C unit
 	$(MAKE) -C unit-c
 	$(MAKE) -C ext 
+	$(MAKE) -C float
 	$(MAKE) -C simulator
 	cd magma/inline && ls && ./run_tests.sh
 
