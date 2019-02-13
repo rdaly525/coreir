@@ -29,13 +29,10 @@ bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
 }
 
 bool ConnectionComp::operator() (const Connection& l, const Connection& r) const {
-  if (l.first < r.first) {
-    return true;
+  if (l.first != r.first) {
+    return l.first < r.first
   }
-  if (l.first == r.first) {
-    return l.second < r.second;
-  }
-  return false;
+  return l.second < r.second;
 }
 
 bool ConnectionStrComp::SPComp(const SelectPath& l, const SelectPath& r) {
