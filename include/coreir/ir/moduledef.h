@@ -32,8 +32,8 @@ class ModuleDef {
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;
     Instance* instancesIterLast = nullptr;
-    std::unordered_map<Instance*,Instance*> instancesIterNextMap;
-    std::unordered_map<Instance*,Instance*> instancesIterPrevMap;
+    std::map<Instance*,Instance*> instancesIterNextMap;
+    std::map<Instance*,Instance*> instancesIterPrevMap;
     void appendInstanceToIter(Instance* instance);
     void removeInstanceFromIter(Instance* instance);
     

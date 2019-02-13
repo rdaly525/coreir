@@ -3,6 +3,8 @@
 
 #include "fwd_declare.h"
 
+#include <unordered_map>
+
 namespace CoreIR {
 
 struct RecordParamsHasher {
@@ -25,13 +27,13 @@ class TypeCache {
   BitInType* bitI;
   BitType* bitO;
   BitInOutType* bitIO;
-  std::unordered_map<Type*,std::unordered_map<int,ArrayType*>> ArrayCache;
+  std::map<Type*,std::map<int,ArrayType*>> ArrayCache;
   std::unordered_map<RecordParams,RecordType*,RecordParamsHasher> RecordCache;
   
   AnyType* anyType;
   BoolType* boolType;
   IntType* intType;
-  std::unordered_map<int,BitVectorType*> bitVectorCache;
+  std::map<int,BitVectorType*> bitVectorCache;
   StringType* stringType;
   CoreIRType* coreIRType;
   ModuleType* moduleType;

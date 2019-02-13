@@ -44,7 +44,7 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
   auto waSelects = wa->getSelects();
   auto wbSelects = wb->getSelects();
   
-  unordered_set<string> both;
+  set<string> both;
   for (auto waSelmap : waSelects) {
     if (wbSelects.count(waSelmap.first)>0) {
       both.insert(waSelmap.first);
@@ -116,7 +116,7 @@ Instance* addPassthrough(Wireable* w,string instname) {
   //Add actual passthrough instance
   Instance* pt = def->addInstance(instname,c->getGenerator("_.passthrough"),{{"type",Const::make(c,wtype)}});
   
-  unordered_set<Wireable*> completed;
+  set<Wireable*> completed;
   PTTraverse(def,w,pt->sel("out"));
   
   //Connect the passthrough back to w
