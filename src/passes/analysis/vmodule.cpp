@@ -243,7 +243,7 @@ void CoreIRVModule::addConnections(ModuleDef* def) {
         // skip if module def input connected to output
         if (vmods->_inline) {
           if (!(left->getSelectPath()[0] == "self" && right->getSelectPath()[0] == "self")) {
-              if (Instance* right_parent = dynamic_cast<Instance*>(right->getTopParent())) {
+              if (Instance* right_parent = dyn_cast<Instance>(right->getTopParent())) {
                   right_conn_str = CoreIRVModule::inline_instance(def, worklist, right_parent);
               } else {
                   ASSERT(right->getSelectPath()[0] == "self", "Expected reference to self port");
