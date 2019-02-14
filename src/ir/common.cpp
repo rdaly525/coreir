@@ -18,42 +18,31 @@ bool isPower2(uint n) {
   return (n & (n-1))==0;
 }
 
-bool ConnectionComp::SPComp(const SelectPath& l, const SelectPath& r) {
-  if (l.size() != r.size()) {
-    return l.size() < r.size();
-  }
-  for (uint i=0; i<l.size(); ++i) {
-    if (l[i] != r[i]) return l[i] < r[i];
-  }
-  return false;
+bool SPComp(const SelectPath& l, const SelectPath& r) {
+  string ls = toString(l);
+  string lr = toString(r);
+  return ls < lr;
 }
 
-bool ConnectionComp::operator() (const Connection& l, const Connection& r) const {
+bool ConnectionCompFast::operator() (const Connection& l, const Connection& r) const {
   if (l.first != r.first) {
     return l.first < r.first;
   }
   return l.second < r.second;
 }
 
-bool ConnectionStrComp::SPComp(const SelectPath& l, const SelectPath& r) {
-  string ls = toString(l);
-  string lr = toString(r);
-  return ls < lr;
-}
-bool ConnectionStrComp::operator() (const Connection& l, const Connection& r) const {
+bool ConnectionCompConsistent::operator() (const Connection& l, const Connection& r) const {
   string ls = toString(l);
   string rs = toString(r);
   return ls < rs;
 }
 
+//Creates a connection with no consistency guarentee
 Connection connectionCtor(Wireable* a, Wireable* b) {
-  //if (ConnectionComp::SPComp(a->getSelectPath(),b->getSelectPath())) {
   if (a < b) {
-    //return Connection(a,b);
     return {a, b};
   }
   else {
-    //return Connection(b,a);
     return {b,a};
   }
 }
@@ -82,8 +71,9 @@ string toString(SelectPath path) {
   return join(path.begin(),path.end(),string("."));
 }
 
+//This will always be consistent
 string toString(Connection con) {
-  bool order = ConnectionStrComp::SPComp(con.first->getSelectPath(), con.second->getSelectPath());
+  bool order = SPComp(con.first->getSelectPath(), con.second->getSelectPath());
   Wireable* fstCon = order ? con.first : con.second;
   Wireable* sndCon = order ? con.second : con.first;
   return fstCon->toString() + " <=> " + sndCon->toString();

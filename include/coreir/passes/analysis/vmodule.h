@@ -149,7 +149,7 @@ struct CoreIRVModule : VModule {
   Module* mod;
   //Backwards maps
   std::map<Instance*,VObject*> inst2VObj;
-  std::map<Connection,VObject*,ConnectionComp> conn2VObj;
+  std::map<Connection,VObject*,ConnectionCompConsistent> conn2VObj;
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
 
   void addConnections(ModuleDef* def);

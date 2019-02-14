@@ -50,7 +50,7 @@ static bool is_input_from_self(Wireable* wireable) {
 // Helper function to initialize work list with connections feeding the module
 // def outputs
 static void init_worklist(ModuleDef* def, std::queue<Connection> &worklist) {
-  for (auto conn : def->getConnections()) {
+  for (auto conn : def->getSortedConnections()) {
     if (is_input_from_self(conn.first) || is_input_from_self(conn.second)) {
       worklist.push(conn);
     }
