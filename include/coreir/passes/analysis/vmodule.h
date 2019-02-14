@@ -167,8 +167,6 @@ struct CoreIRVModule : VModule {
 };
 
 
-
-
 //The following are for CoreIR VModules
 //This represents some chunk of lines of code
 struct VObject {
@@ -181,8 +179,6 @@ struct VObject {
   //fills out the body
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
-
-
 
 struct VInstance : VObject {
   string wireDecs;

@@ -108,7 +108,7 @@ std::string CoreIRVModule::get_replace_str(std::string input_name, Instance* ins
   // concat syntax
   int count = 0;
 
-  for (auto conn : def->getConnections()) {
+  for (auto conn : def->getSortedConnections()) {
     SelectPath sp_first = conn.first->getSelectPath();
     SelectPath sp_second = conn.second->getSelectPath();
     SelectPath inst_sp = instance->getSelectPath();
@@ -195,7 +195,7 @@ std::string CoreIRVModule::inline_instance(ModuleDef* def, std::queue<Connection
     }
     if (right_conn_str == "") {
         // not inlined, so add it's connections to the worklist
-        for (auto conn : def->getConnections()) {
+        for (auto conn : def->getSortedConnections()) {
             SelectPath sp_first = conn.first->getSelectPath();
             SelectPath sp_second = conn.second->getSelectPath();
             SelectPath inst_sp = right_parent->getSelectPath();
@@ -241,12 +241,14 @@ void CoreIRVModule::addConnections(ModuleDef* def) {
         Wireable* right = left == conn.first ? conn.second : conn.first;
         string right_conn_str = "";
         // skip if module def input connected to output
-        if (!(left->getSelectPath()[0] == "self" && right->getSelectPath()[0] == "self")) {
-            if (Instance* right_parent = dynamic_cast<Instance*>(right->getTopParent())) {
-                right_conn_str = CoreIRVModule::inline_instance(def, worklist, right_parent);
-            } else {
-                ASSERT(right->getSelectPath()[0] == "self", "Expected reference to self port");
-            }
+        if (vmods->_inline) {
+          if (!(left->getSelectPath()[0] == "self" && right->getSelectPath()[0] == "self")) {
+              if (Instance* right_parent = dynamic_cast<Instance*>(right->getTopParent())) {
+                  right_conn_str = CoreIRVModule::inline_instance(def, worklist, right_parent);
+              } else {
+                  ASSERT(right->getSelectPath()[0] == "self", "Expected reference to self port");
+              }
+          }
         }
         if (right_conn_str == "") {
             VWire vright(right);

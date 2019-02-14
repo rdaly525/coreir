@@ -77,8 +77,6 @@ string toString(Connection con) {
   Wireable* fstCon = order ? con.first : con.second;
   Wireable* sndCon = order ? con.second : con.first;
   return fstCon->toString() + " <=> " + sndCon->toString();
-
-  //return con.first->toString() + " <=> " + con.second->toString();
 }
 
 string toString(RecordParams rp) {
