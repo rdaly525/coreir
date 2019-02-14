@@ -3,6 +3,7 @@
 
 #include "fwd_declare.h"
 
+//TODO need to add a comparison function for RecordParams in order to use map
 #include <unordered_map>
 
 namespace CoreIR {

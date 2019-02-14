@@ -47,7 +47,15 @@ module concats (
     .out(s1__out)
   );
 
+  assign cc0__in0[3:0] = s0__out[3:0];
+
+  assign cc0__in1[11:0] = s1__out[11:0];
+
   assign out[15:0] = cc0__out[15:0];
+
+  assign s0__in[15:0] = in[15:0];
+
+  assign s1__in[15:0] = in[15:0];
 
 
 endmodule  // concats
