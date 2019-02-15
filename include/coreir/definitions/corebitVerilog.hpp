@@ -46,7 +46,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       "output [1:0] out"
     }},
     {"const",{"output out"}},
-    {"term",{"input in"}},
+    {"term",{"/*verilator lint_off UNUSED */input in/*verilator lint_on UNUSED */"}},
     {"tribuf",{
       "input in",
       "input en",

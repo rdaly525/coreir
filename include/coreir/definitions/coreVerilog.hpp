@@ -83,7 +83,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "output [width-1:0] out"
     }},
     {"slice",{
-      "input [width-1:0] in",
+      "/*verilator lint_off UNUSED */input [width-1:0] in/*verilator lint_on UNUSED */",
       "output [hi-lo-1:0] out"
     }},
     {"concat",{
@@ -108,7 +108,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "output out"
     }},
     {"const",{"output [width-1:0] out"}},
-    {"term",{"input [width-1:0] in"}},
+    {"term",{"/*verilator lint_off UNUSED */input [width-1:0] in/*verilator lint_on UNUSED */"}},
     {"tribuf",{
       "input [width-1:0] in",
       "input en",
