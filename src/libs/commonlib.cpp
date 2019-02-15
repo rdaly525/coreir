@@ -703,7 +703,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   json vjson;
   vjson["parameters"] = {"init"};
   vjson["interface"] = {"input [N-1:0] in","output out"};
-  vjson["definition"] = "  assign out = init[in];"
+  vjson["definition"] = "  assign out = init[in];";
   lutN->getMetaData()["verilog"] = vjson;
 
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
