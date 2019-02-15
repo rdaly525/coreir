@@ -274,7 +274,8 @@ struct VerilogVModule : VModule {
   }
   VerilogVModule(VModules* vmods) : VModule(vmods) {}
   void addJson(json& jmeta,string name) {
-    assert(jmeta.count("verilog") > 0);
+    ASSERT(name != "", name);
+    this->modname = name;
     jver = jmeta["verilog"];
     if (jver.count("verilog_string")) {
       this->modname = name;
