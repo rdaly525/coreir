@@ -30,15 +30,15 @@ def test_examples():
         assert not res.return_code, res.out + res.err
         print(4)
 
-        ##Test serializing to verilog (inlined)
-        #res = delegator.run(f"bin/coreir -i examples/{example} -o examples/build/{name}_inline.v --inline")
-        #assert not res.return_code, res.out + res.err
-        #print(5)
+        #Test serializing to verilog (inlined)
+        res = delegator.run(f"bin/coreir -i examples/{example} -o examples/build/{name}_inline.v --inline")
+        assert not res.return_code, res.out + res.err
+        print(5)
 
-        ##Verify verilog syntax (inlined)
-        #res = delegator.run(f"verilator --lint-only examples/build/{name}_inline.v")
-        #assert not res.return_code, res.out + res.err
-        #print(6)
+        #Verify verilog syntax (inlined)
+        res = delegator.run(f"verilator --lint-only examples/build/{name}_inline.v")
+        assert not res.return_code, res.out + res.err
+        print(6)
 
       
      
