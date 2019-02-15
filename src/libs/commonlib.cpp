@@ -697,6 +697,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* lutN = commonlib->newGeneratorDecl("lutN",commonlib->getTypeGen("lutNType"),lutNParams);
   lutN->setModParamsGen(LUTModParamFun);
 
+
+  //TODO this really should exist in a separate verilog definitions file for commonlib
+  //Set verilog for the LutN
+  json vjson;
+  vjson["parameters"] = {"init"};
+  vjson["interface"] = {"input [N-1:0] in","output out"};
+  vjson["definition"] = "  assign out = init[in];"
+  lutN->getMetaData()["verilog"] = vjson;
+
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   //*** Linebuffer Memory. Use this for memory in linebuffer mode ***//
   commonlib->newTypeGen("LinebufferMemType",MemGenParams,[](Context* c, Values genargs) {
