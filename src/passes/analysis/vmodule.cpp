@@ -144,7 +144,7 @@ string VModule::toString() const {
   vector<string> pdecs;
   if (interface.size()>0) {
     pdecs = interface;
-    if (this->vmods->_verilator_debug) {
+    if (!this->isExternal && this->vmods->_verilator_debug) {
       for (auto& pdec : pdecs) {
         pdec += "/*verilator public*/";
       }
@@ -154,7 +154,7 @@ string VModule::toString() const {
     for (auto pmap : ports) {
       auto port = pmap.second;
       string pdec = port.dirstr() + " " + port.dimstr() + " " + port.getName();
-      if (this->vmods->_verilator_debug) {
+      if (!this->isExternal && this->vmods->_verilator_debug) {
           pdec += "/*verilator public*/";
       }
       pdecs.push_back(pdec);
