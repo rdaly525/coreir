@@ -8,13 +8,11 @@ addons:
     packages:
     - g++-4.9
     - verilator
-    - python3.6
-    - python3-pip
 before_install:
 - export COREIRCONFIG="g++-4.9";
 - sudo make -j2 install
 - make -j2 release
-- sudo pip3 install delegator.py pytest
+- sudo pip install delegator.py pytest
 script:
 - pytest tests/binary
 - make -j2 installtest
