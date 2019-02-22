@@ -13,17 +13,42 @@
 
 using namespace std;
 
+namespace {
+
+//This will make it a valid coreir string
+//Specifically for the case that toString on a type produces square brackets
+string sanatizeParamString(string name) {
+  string out = name;
+  //For type
+  out.erase(std::remove(out.begin(),out.end(),'['),out.end());
+  out.erase(std::remove(out.begin(),out.end(),']'),out.end());
+  out.erase(std::remove(out.begin(),out.end(),'.'),out.end());
+  return out;
+}
+}
+
+
 namespace CoreIR {
 
-Module::Module(Namespace* ns,std::string name, Type* type,Params modparams) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), longname(name) {
+  Module::Module(Namespace* ns,std::string name, Type* type,Params modparams) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), longname((ns->getName()=="global" ? "" : ns->getName() + "_" )  + name) {
   ASSERT(isa<RecordType>(type), "Module type needs to be a record!\n"+type->toString());
   this->type = cast<RecordType>(type);
 }
+
+
 Module::Module(Namespace* ns,std::string name, Type* type,Params modparams, Generator* g, Values genargs) : GlobalValue(GVK_Module,ns,name), Args(modparams), modparams(modparams), g(g), genargs(genargs) {
   ASSERT(isa<RecordType>(type), "Module type needs to be a record!\n"+type->toString());
   this->type = cast<RecordType>(type);
   ASSERT(g && genargs.size(),"Missing genargs!");
-  this->longname = name + getContext()->getUnique(); //TODO do a better name
+  if (ns->getName() != "global") {
+    this->longname = ns->getName() + "_" + name;
+  }
+  else {
+    this->longname = name;
+  }
+  for (auto genarg : genargs) {
+    this->longname += "__" + genarg.first + sanatizeParamString(genarg.second->toString()) ;
+  }
 }
 
 DirectedModule* Module::newDirectedModule() {

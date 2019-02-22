@@ -591,6 +591,10 @@ extern "C" {
       return rcast<Type*>(type)->isInput();
   }
 
+  bool CORETypeIsOutput(COREType* type) {
+      return rcast<Type*>(type)->isOutput();
+  }
+
   int COREValueTypeGetKind(COREValueType* value_type) {
       return rcast<ValueType*>(value_type)->getKind();
   }
