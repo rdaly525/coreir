@@ -1,5 +1,5 @@
 module coreir_slice #(parameter hi=1, parameter lo=0, parameter width=1) (
-  input [width-1:0] in,
+  /*verilator lint_off UNUSED */input [width-1:0] in/*verilator lint_on UNUSED */,
   output [hi-lo-1:0] out
 );
   assign out = in[hi-1:lo];
