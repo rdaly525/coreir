@@ -134,7 +134,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "input [width-1:0] wdata",
       "input [$clog2(depth)-1:0] waddr",
       "input wen",
-      "output [width-1:0] rdata",
+      "output reg [width-1:0] rdata",
       "input [$clog2(depth)-1:0] raddr"
     }}
   });
@@ -235,16 +235,16 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     "    if (wen) begin\n"
     "      data[waddr] <= wdata;\n"
     "    end\n"
-    "  end\n"
-    "  assign rdata = data[raddr];";
+    "    rdata <= data[raddr];\n"
+    "  end";
     vjson["verilator_debug_definition"] = ""
     "  reg [width-1:0] data[depth-1:0] /*verilator public*/;\n"
     "  always @(posedge clk) begin\n"
     "    if (wen) begin\n"
     "      data[waddr] <= wdata;\n"
     "    end\n"
-    "  end\n"
-    "  assign rdata = data[raddr];";
+    "    rdata <= data[raddr];\n"
+    "  end";
     core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
   } 
 }
