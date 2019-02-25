@@ -11,14 +11,15 @@ def test_examples():
             continue
     
         name = example_split[0]
-        #Test input parsing
-        res = delegator.run(f"bin/coreir -i examples/{example}")
-        assert not res.return_code, res.out + res.err
         
-        #Test serializing to json
+        #Test input parsing and serializing to json
         res = delegator.run(f"bin/coreir -i examples/{example} -o examples/build/{name}.json")
         assert not res.return_code, res.out + res.err
-
+        
+        #Test syntax of serialized json
+        res = delegator.run(f"bin/coreir -i examples/build/{name}.json")
+        assert not res.return_code, res.out + res.err
+        
         #Test serializing to verilog
         res = delegator.run(f"bin/coreir -i examples/{example} -o examples/build/{name}.v")
         assert not res.return_code, res.out + res.err
