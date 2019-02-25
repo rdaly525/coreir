@@ -1,5 +1,8 @@
 dist: trusty
-language: c
+#Hack to be able to install python 3.6
+language: python
+python:
+  - "3.6"
 sudo: true
 addons:
   apt:
