@@ -32,7 +32,7 @@ class Context {
   private :
     
     //Memory management
-    std::unordered_map<void*,Value*> valueList;
+    std::map<void*,Value*> valueList;
     std::vector<Values*> valuesList;
     std::vector<Value**> valuePtrArrays;
     std::vector<ValueType**> valueTypePtrArrays;

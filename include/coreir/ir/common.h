@@ -12,7 +12,7 @@ namespace CoreIR {
 //TODO Ugly hack to create a sorted connection. Should make my own connection class
 Connection connectionCtor(Wireable* a, Wireable* b);
 
-typedef std::set<Connection,ConnectionComp> Connections;
+typedef std::set<Connection,ConnectionCompFast> ConnectionsFast;
 
 //These are defined in helpers
 bool isNumber(std::string s);
