@@ -181,7 +181,7 @@ std::map<SelectPath,Wireable*> Wireable::getAllParents() {
 
 LocalConnections Wireable::getLocalConnections() {
   //For the annoying case where connections connect bact to self
-  Connections uniqueCons;
+  ConnectionsFast uniqueCons;
   LocalConnections cons;
   std::function<void(Wireable*)> traverse;
   traverse = [&cons,&traverse,&uniqueCons](Wireable* curw) ->void {
