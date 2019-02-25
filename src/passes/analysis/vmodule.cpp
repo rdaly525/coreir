@@ -23,9 +23,7 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
     this->addInstance(imap.second);
   }
   if (vmods->_inline) {
-    cout << "H1" << endl;
     this->addConnectionsInlined(def);
-    cout << "H2" << endl;
   }
   else {
     this->addConnections(def);
@@ -58,7 +56,6 @@ static bool is_input_from_self(Wireable* wireable) {
 // def outputs
 static void init_worklist(ModuleDef* def, std::queue<Connection> &worklist) {
   for (auto conn : def->getSortedConnections()) {
-    cout << toString(conn) << endl;
     if (is_input_from_self(conn.first) || is_input_from_self(conn.second)) {
       worklist.push(conn);
     }
@@ -253,7 +250,6 @@ void CoreIRVModule::addConnectionsInlined(ModuleDef* def) {
     init_worklist(def, worklist);
 
     while (!worklist.empty()) {
-        cout << "worklist_not_empty " << worklist.size() << endl;
         Connection conn = worklist.front();
         worklist.pop();
         Wireable* left = conn.first->getType()->getDir() == Type::DK_In ? conn.first : conn.second;
