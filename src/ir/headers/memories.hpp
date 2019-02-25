@@ -231,22 +231,30 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     });
   });
 
-  //This has a 1 cycle read delay
-  //TODO describe the read after write behavior
-  //TODO add in parameterized read after write behavior and the read delay
-  Generator* ram = memory->newGeneratorDecl("ram",memory->getTypeGen("RamType"),MemGenParams);
+  //TODO specify and parameterize the read before write behavior
+  Params RamGenParams = {{"width",c->Int()},{"depth",c->Int()}, {"read_latency",c->Int()}};
+  Generator* ram = memory->newGeneratorDecl("ram",memory->getTypeGen("RamType"),RamGenParams);
   ram->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-    def->addInstance("mem","coreir.mem",genargs);
-    def->addInstance("readreg","mantle.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
-    def->connect("self.clk","readreg.clk");
+    auto io = def->getInterface();
+    int read_latency = genargs.at("read_latency")->get<int>();
+    ASSERT(read_latency >= 0,"Bad Read latency argument " + to_string(read_latency));
+    Values memargs = {{"width",genargs.at("width")},{"depth",genargs.at("depth")}};
+    auto mem = def->addInstance("mem","coreir.mem",memargs);
     def->connect("self.clk","mem.clk");
     def->connect("self.wdata","mem.wdata");
     def->connect("self.waddr","mem.waddr");
     def->connect("self.wen","mem.wen");
-    def->connect("mem.rdata","readreg.in");
-    def->connect("self.rdata","readreg.out");
     def->connect("self.raddr","mem.raddr");
-    def->connect("self.ren","readreg.en");
+   
+    //Create chain of registers for the read latency
+    auto rdata = mem->sel("rdata");
+    for (int i=0; i<read_latency; ++i) {
+      auto rdreg = def->addInstance("readreg","coreir.reg",{{"width",genargs.at("width")}});
+      def->connect(rdreg->sel("clk"),io->sel("clk"));
+      def->connect(rdreg->sel("in"),rdata);
+      rdata = rdreg->sel("out");
+    }
+    def->connect(rdata,io->sel("rdata"));
   });
 
 
