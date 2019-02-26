@@ -22,7 +22,12 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   for (auto imap : def->getInstances()) {
     this->addInstance(imap.second);
   }
-  this->addConnections(def);
+  if (vmods->_inline) {
+    this->addConnectionsInlined(def);
+  }
+  else {
+    this->addConnections(def);
+  }
   //Materialize all the statemts
   for (auto fpair : sortedVObj) {
     string file = fpair.first;
@@ -50,7 +55,8 @@ static bool is_input_from_self(Wireable* wireable) {
 // Helper function to initialize work list with connections feeding the module
 // def outputs
 static void init_worklist(ModuleDef* def, std::queue<Connection> &worklist) {
-  for (auto conn : def->getConnections()) {
+  for (auto conn : def->getSortedConnections()) {
+    cout << toString(conn) << endl;
     if (is_input_from_self(conn.first) || is_input_from_self(conn.second)) {
       worklist.push(conn);
     }
@@ -85,7 +91,7 @@ std::string CoreIRVModule::get_inline_str(Wireable* source, SelectPath select_pa
   } else {
     // Otherwise, we try to get the result of inlining the instance (which may
     // recursively inline other instances)
-    Instance* inst = dynamic_cast<Instance*>(def->sel(select_path[0]));
+    Instance* inst = dyn_cast<Instance>(def->sel(select_path[0]));
     std::string result = inline_instance(def, worklist, inst);
     if (result == "") {
       // If the instance can't be inlined, denoted by empty string, we just
@@ -108,7 +114,7 @@ std::string CoreIRVModule::get_replace_str(std::string input_name, Instance* ins
   // concat syntax
   int count = 0;
 
-  for (auto conn : def->getConnections()) {
+  for (auto conn : def->getSortedConnections()) {
     SelectPath sp_first = conn.first->getSelectPath();
     SelectPath sp_second = conn.second->getSelectPath();
     SelectPath inst_sp = instance->getSelectPath();
@@ -195,7 +201,7 @@ std::string CoreIRVModule::inline_instance(ModuleDef* def, std::queue<Connection
     }
     if (right_conn_str == "") {
         // not inlined, so add it's connections to the worklist
-        for (auto conn : def->getConnections()) {
+        for (auto conn : def->getSortedConnections()) {
             SelectPath sp_first = conn.first->getSelectPath();
             SelectPath sp_second = conn.second->getSelectPath();
             SelectPath inst_sp = right_parent->getSelectPath();
@@ -219,6 +225,16 @@ std::string CoreIRVModule::inline_instance(ModuleDef* def, std::queue<Connection
     return right_conn_str;
 }
 
+
+
+//Non-inlined version of connections
+void CoreIRVModule::addConnections(ModuleDef* def) {
+  for (auto conn : def->getSortedConnections()) {
+    VObject* vassign = new VAssign(def,conn);
+    sortedVObj[vassign->file].insert(vassign);
+  }
+}
+
 // queue = output ports of current definition
 // while queue is not empty
 //     output = queue.pop()
@@ -229,7 +245,7 @@ std::string CoreIRVModule::inline_instance(ModuleDef* def, std::queue<Connection
 //     else
 //        emit code normally for the output and instance
 //        add the inputs of the instance to the queue
-void CoreIRVModule::addConnections(ModuleDef* def) {
+void CoreIRVModule::addConnectionsInlined(ModuleDef* def) {
     std::queue<Connection> worklist;
     // Initialize work list with connections feeding the module def outputs
     init_worklist(def, worklist);
@@ -242,7 +258,7 @@ void CoreIRVModule::addConnections(ModuleDef* def) {
         string right_conn_str = "";
         // skip if module def input connected to output
         if (!(left->getSelectPath()[0] == "self" && right->getSelectPath()[0] == "self")) {
-            if (Instance* right_parent = dynamic_cast<Instance*>(right->getTopParent())) {
+            if (Instance* right_parent = dyn_cast<Instance>(right->getTopParent())) {
                 right_conn_str = CoreIRVModule::inline_instance(def, worklist, right_parent);
             } else {
                 ASSERT(right->getSelectPath()[0] == "self", "Expected reference to self port");
@@ -253,7 +269,6 @@ void CoreIRVModule::addConnections(ModuleDef* def) {
             right_conn_str = vright.getName() + vright.dimstr();
         }
         VObject* vassign = new VAssignStr(def, left, right_conn_str);
-        conn2VObj[conn] = vassign;
         sortedVObj[vassign->file].insert(vassign);
     }
 }
@@ -354,7 +369,7 @@ string VModule::toString() const {
   vector<string> pdecs;
   if (interface.size()>0) {
     pdecs = interface;
-    if (this->vmods->_verilator_debug) {
+    if (!this->isExternal && this->vmods->_verilator_debug) {
       for (auto& pdec : pdecs) {
         pdec += "/*verilator public*/";
       }
@@ -364,7 +379,7 @@ string VModule::toString() const {
     for (auto pmap : ports) {
       auto port = pmap.second;
       string pdec = port.dirstr() + " " + port.dimstr() + " " + port.getName();
-      if (this->vmods->_verilator_debug) {
+      if (!this->isExternal && this->vmods->_verilator_debug) {
           pdec += "/*verilator public*/";
       }
       pdecs.push_back(pdec);
@@ -402,6 +417,9 @@ string VModule::toInstanceString(Instance* inst) {
   string instname = inst->getInstname();
   Module* mref = inst->getModuleRef();
   SParams params_bk = this->params;
+  for (auto p : mref->getModParams()) {
+    this->params.insert(p.first);
+  }
 
   ostringstream o;
   string tab = "  ";

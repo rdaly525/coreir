@@ -19,7 +19,7 @@ void testBlackboxVerilog() {
     "rungenerators",
     "removebulkconnections",
     "flattentypes",
-    "verilog"
+    "verilog --inline"
   };
   c->runPasses(passes, {});
   auto vpass = static_cast<Passes::Verilog*>(
