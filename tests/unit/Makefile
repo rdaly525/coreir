@@ -1,8 +1,8 @@
 .SUFFIXES:
 
 HOME = ../..
-INCS = #-I$(HOME)/include -I.
-LPATH = #-L$(HOME)/lib
+INCS = -I$(HOME)/include -I.
+LPATH = -L$(HOME)/lib
 LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreirsim -lcoreir-aetherlinglib -lcoreir-commonlib
 #LIBS =  -lcoreir
 SRCFILES = $(wildcard [^_]*.cpp)
