@@ -4,6 +4,7 @@ set -e
 cd unit; ./run; cd -
 cd unit-c; ./run; cd -
 cd ext; ./run; cd -
+cd float; ./run; cd -
 cd simulator; ./run; cd -
 GREEN='\033[0;32m'
 NC='\033[0m'

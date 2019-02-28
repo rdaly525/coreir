@@ -1,8 +1,11 @@
+/* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */
+
 #ifndef COREIR_VMODULE_HPP_
 #define COREIR_VMODULE_HPP_
 
 #include "coreir.h"
 #include <regex>
+#include <queue>
 
 //TODO get rid of
 using namespace std;
@@ -148,17 +151,22 @@ struct CoreIRVModule : VModule {
   Module* mod;
   //Backwards maps
   std::map<Instance*,VObject*> inst2VObj;
-  std::map<Connection,VObject*,ConnectionComp> conn2VObj;
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
 
-  void addConnection(ModuleDef* def, Connection conn);
+  void addConnectionsInlined(ModuleDef* def);
+  void addConnections(ModuleDef* def);
   void addInstance(Instance* inst);
+  std::string inline_instance(ModuleDef* def, std::queue<Connection> &worklist,
+          Instance* right_parent);
+  std::string get_replace_str(std::string input_name, Instance* instance,
+          ModuleDef* def, std::queue<Connection> &worklist);
+  std::string get_inline_str(Wireable* sink,
+          SelectPath select_path, Connection conn, ModuleDef* def,
+          std::queue<Connection> &worklist);
   
   CoreIRVModule(VModules* vmods, Module* m);
 
 };
-
-
 
 
 //The following are for CoreIR VModules
@@ -173,8 +181,6 @@ struct VObject {
   //fills out the body
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
-
-
 
 struct VInstance : VObject {
   string wireDecs;
@@ -252,6 +258,28 @@ struct VAssign : VObject {
       vmod->addComment("Wired at line: " + to_string(this->line));
     }
     vmod->addStmt("  assign " + vleft.getName() + vleft.dimstr() + " = " + vright.getName() + vright.dimstr() + ";");
+  }
+};
+
+
+// Assign a wireable to a string
+struct VAssignStr : VObject {
+  Wireable* target;
+  ModuleDef* def;
+  std::string value_str;
+  VAssignStr(ModuleDef* def, Wireable* target, std::string value_str) :
+      VObject(toString(target) + value_str), target(target),
+      value_str(value_str) {
+    this->line = -1; //largest number to go at the top of the bottom
+    this->priority = 1;
+    // Ignore metadata for inlining until we have a good proposal for how to
+    // handle this
+  }
+  void materialize(CoreIRVModule* vmod) override {
+    VWire vtarget(target);
+    // Ignore metadata for inlining until we have a good proposal for how to
+    // handle this
+    vmod->addStmt("  assign " + vtarget.getName() + vtarget.dimstr() + " = " + value_str + ";");
   }
 };
 
@@ -334,41 +362,6 @@ struct ParamVerilogVModule : VerilogVModule {
     this->addDefaults(g->getDefaultGenArgs());
     this->addJson(g->getMetaData(),g->getName());
   }
-};
-
-struct VInlineInstance : VInstance {
-  string vbody;
-  VInlineInstance(VModules* vmods, Instance* inst, VerilogVModule* vermod) : VInstance(vmods,inst) {
-    vbody = vermod->jver["definition"].get<string>();
-    //Search for all high level ports
-    for (auto rpair : cast<RecordType>(inst->getType())->getRecord()) {
-      std::regex expr(rpair.first);
-      string replace(VWire(inst->sel(rpair.first)).getName());
-      vbody = std::regex_replace(vbody,expr,replace);
-    }
-    //Search for modArgs
-    for (auto pval : inst->getModArgs()) {
-      std::regex expr(pval.first);
-      string replace = toConstString(pval.second);
-      vbody = std::regex_replace(vbody,expr,replace);
-    }
-    Module* mref = inst->getModuleRef();
-    //Search for genArgs
-    if (mref->isGenerated()) {
-      for (auto pval : mref->getGenArgs()) {
-        std::regex expr(pval.first);
-        string replace = toConstString(pval.second);
-        vbody = std::regex_replace(vbody,expr,replace);
-      }
-    }
-  }
-
-  void materialize(CoreIRVModule* vmod) override {
-    vmod->addComment("Inlined from " + toString(inst));
-    vmod->addStmt(wireDecs);
-    vmod->addStmt(vbody);
-  }
-
 };
 
 

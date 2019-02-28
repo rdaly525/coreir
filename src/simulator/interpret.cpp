@@ -5,6 +5,20 @@ using namespace std;
 
 namespace CoreIR {
 
+  int bitCastToInt(float val) {
+    float* valPtr = &val;
+    void* vPtr = (void*) valPtr;
+    int* iPtr = (int*) vPtr;
+    return *iPtr;
+  }
+
+  float bitCastToFloat(int val) {
+    int* valPtr = &val;
+    void* vPtr = (void*) valPtr;
+    float* iPtr = (float*) vPtr;
+    return *iPtr;
+  }
+  
   int bitsToIndex(const int depth) {
     return ceil(log2(depth)) + 1;
   }
@@ -1041,6 +1055,26 @@ namespace CoreIR {
         });
     } else if (opName == "commonlib.lutN") {
       updateLUTNNode(vd);
+    } else if (opName == "float.add") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          assert(l.bitLength() == 32);
+          assert(r.bitLength() == 32);
+
+          int lv = l.to_type<int>();
+          int rv = r.to_type<int>();
+
+          float lf = bitCastToFloat(lv);
+          float rf = bitCastToFloat(rv);
+
+          cout << "lf = " << lf << endl;
+          cout << "rf = " << rf << endl;
+
+          float res = lf + rf;
+
+          int resI = bitCastToInt(res);
+
+          return BitVec(l.bitLength(), resI);
+        });
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);

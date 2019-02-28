@@ -1,0 +1,37 @@
+{"top":"global.test_const",
+"namespaces":{
+  "global":{
+    "modules":{
+      "test_const":{
+        "type":["Record",[
+          ["I0",["Array",8,"BitIn"]],
+          ["I1",["Array",8,"BitIn"]],
+          ["O",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "const_3_8":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",8]},
+            "modargs":{"value":[["BitVector",8],"8'h03"]}
+          },
+          "inst0":{
+            "genref":"coreir.mul",
+            "genargs":{"width":["Int",8]}
+          },
+          "inst1":{
+            "genref":"coreir.add",
+            "genargs":{"width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["inst0.in1","const_3_8.out"],
+          ["self.I1","inst0.in0"],
+          ["inst1.in1","inst0.out"],
+          ["self.I0","inst1.in0"],
+          ["self.O","inst1.out"]
+        ]
+      }
+    }
+  }
+}
+}
