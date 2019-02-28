@@ -53,6 +53,19 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
     }
     ice40->newModuleDecl("SB_RAM40_4K", SB_RAM40_4KType, SB_RAM40_4KParams);
 
+    Type* SB_PLL40_COREType = c->Record({{"BYPASS",       c->BitIn()},
+                                         {"PLLOUTCORE",   c->Bit()},
+                                         {"PLLOUTGLOBAL", c->Named("coreir.clk")},
+                                         {"REFERENCECLK", c->Named("coreir.clkIn")},
+                                         {"RESETB",       c->BitIn()}});
+    Params SB_PLL40_COREParams({{"DIVF",          c->BitVector(7)},
+                                {"DIVQ",          c->BitVector(3)},
+                                {"DIVR",          c->BitVector(4)},
+                                {"FEEDBACK_PATH", c->String()},
+                                {"FILTER_RANGE",  c->BitVector(3)},
+                                {"PLLOUT_SELECT", c->String()}});
+    ice40->newModuleDecl("SB_PLL40_CORE", SB_PLL40_COREType, SB_PLL40_COREParams);
+
     return ice40;
 }
 
