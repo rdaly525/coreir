@@ -151,9 +151,9 @@ struct CoreIRVModule : VModule {
   Module* mod;
   //Backwards maps
   std::map<Instance*,VObject*> inst2VObj;
-  std::map<Connection,VObject*,ConnectionComp> conn2VObj;
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
 
+  void addConnectionsInlined(ModuleDef* def);
   void addConnections(ModuleDef* def);
   void addInstance(Instance* inst);
   std::string inline_instance(ModuleDef* def, std::queue<Connection> &worklist,
@@ -169,8 +169,6 @@ struct CoreIRVModule : VModule {
 };
 
 
-
-
 //The following are for CoreIR VModules
 //This represents some chunk of lines of code
 struct VObject {
@@ -183,8 +181,6 @@ struct VObject {
   //fills out the body
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
-
-
 
 struct VInstance : VObject {
   string wireDecs;
