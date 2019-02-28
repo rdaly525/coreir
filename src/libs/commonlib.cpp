@@ -174,16 +174,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   }
 
-  auto constModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
-    int width = genargs.at("width")->get<int>();
-    Params modparams;
-    modparams["value"] = BitVectorType::make(c,width);
-    return {modparams,Values()};
-  };
-
-  auto fconst = commonlib->newGeneratorDecl("fconst",coreirprims->getTypeGen("out"),widthparams);
-  fconst->setModParamsGen(constModParamFun);
-  
   //*** Define min/max modules ***//
 
   Generator* umin = c->getGenerator("commonlib.umin");
