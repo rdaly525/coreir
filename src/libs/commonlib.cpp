@@ -159,12 +159,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     {"binary",{
       "umin","smin","umax","smax",
       "uclamp","sclamp",
-        "absd", "div",
-        "fmul","fadd","fsub",
-        "feq","fneq","flt","fgt","fle","fge"
+      "absd", "div",
     }},
     {"ternary",{
-        "MAD","fmux"
+        "MAD"
     }},
   });
 
