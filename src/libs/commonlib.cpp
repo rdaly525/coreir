@@ -154,15 +154,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   //Lazy way:
   unordered_map<string,vector<string>> opmap({
       {"unary",{
-        "abs"
+          "abs"
     }},
     {"binary",{
       "umin","smin","umax","smax",
       "uclamp","sclamp",
-      "absd", "div"
+      "absd", "div",
     }},
     {"ternary",{
-      "MAD"
+        "MAD"
     }},
   });
 
@@ -1451,10 +1451,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             
             // create a counter for every dimension
             for (uint dim_i=0; dim_i<num_dims; dim_i++) {
+            //for (int dim_i=num_dims-1; dim_i>=0; dim_i--) {
               // comparator for valid (if stencil_size-1 <= count)
               int const_value = (out_dims[dim_i] / in_dims[dim_i]) - 1;
               //FIXME: not implemented, because overflow needed to trigger next counter
-              if (const_value == 0) continue;  // no counter needed if stencil_size is 1
+              //if (const_value == 0) continue;  // no counter needed if stencil_size is 1
 
               string const_name = "const_stencil" + to_string(dim_i);
               Values const_arg = {{"value",Const::make(c,BitVector(bitwidth,const_value))}};
@@ -1474,14 +1475,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               };
               def->addInstance(counter_name,"commonlib.counter",counter_args);
 
-							// connect reset to 0
-							def->connect({counter_name, "reset"},{"self","reset"});
+              // connect reset to 0
+              def->connect({counter_name, "reset"},{"self","reset"});
 
               // connections
               // counter en by wen or overflow bit
+              //if (dim_i == 0 || counter_outputs.size() == 1) {
               if (dim_i == 0 || counter_outputs.size() == 1) {
                 //def->connect({last_lbmem_name,"valid"},{counter_name,"en"});
-								def->connect("self.wen",counter_name + ".en");
+                def->connect("self.wen",counter_name + ".en");
               } else {
                 string last_compare_out_name = counter_outputs[counter_outputs.size()-1];
                 string last_compare_name = last_compare_out_name.substr(0, last_compare_out_name.find(".out"));
@@ -1494,6 +1496,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               def->connect({const_name,"out"},{compare_name,"in0"});
               def->connect({counter_name,"out"},{compare_name,"in1"});
               counter_outputs.push_back(compare_name + ".out");
+              //std::cout << "counter" << dim_i << " counts to " << const_value << std::endl;
               //def->connect({compare_name,"out"},{andr_name,"in",to_string(dim_i)});
             }
 
@@ -1571,44 +1574,57 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     uint min = genargs.at("min")->get<int>();
     uint inc = genargs.at("inc")->get<int>();
     assert(width>0);
-    ASSERT(max>min, "max is " + to_string(max) + " while min is " + to_string(min));
+    if (max == min) {
+      def->addInstance("count_const",
+                       "coreir.const",
+                       {{"width",Const::make(c, width)}},
+                       {{"value", Const::make(c, width, max)}});
+      def->addInstance("one_const",
+                       "corebit.const",
+                       {{"value", Const::make(c, true)}});
+
+      def->connect("self.out", "count_const.out");
+      def->connect("self.overflow", "one_const.out");
+    } else {
+    
+      ASSERT(max>min, "max is " + to_string(max) + " while min is " + to_string(min));
   
-    // get generators
-    Namespace* coreirprims = c->getNamespace("coreir");
-    Generator* ult_gen = coreirprims->getGenerator("ult");
-    Generator* add_gen = coreirprims->getGenerator("add");
-    Generator* const_gen = coreirprims->getGenerator("const");
+      // get generators
+      Namespace* coreirprims = c->getNamespace("coreir");
+      Generator* ult_gen = coreirprims->getGenerator("ult");
+      Generator* add_gen = coreirprims->getGenerator("add");
+      Generator* const_gen = coreirprims->getGenerator("const");
   
-    // create hardware
-    Const* aBitwidth = Const::make(c,width);
-    Const* aReset = Const::make(c,BitVector(width,min));
-    def->addInstance("count", "mantle.reg", {{"width",aBitwidth},{"has_clr",Const::make(c,true)},{"has_en",Const::make(c,true)}},
-                         {{"init",aReset}});
+      // create hardware
+      Const* aBitwidth = Const::make(c,width);
+      Const* aReset = Const::make(c,BitVector(width,min));
+      def->addInstance("count", "mantle.reg", {{"width",aBitwidth},{"has_clr",Const::make(c,true)},{"has_en",Const::make(c,true)}},
+                       {{"init",aReset}});
   
-    def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,max))}});
-    def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
-    def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
-    def->addInstance("add", add_gen, {{"width",aBitwidth}});
-    //def->addInstance("and", "corebit.and");
-    def->addInstance("resetOr", "corebit.or");
+      def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,max))}});
+      def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
+      def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
+      def->addInstance("add", add_gen, {{"width",aBitwidth}});
+      //def->addInstance("and", "corebit.and");
+      def->addInstance("resetOr", "corebit.or");
   
-    // wire up modules
-    // clear if max < count+inc
-    def->connect("count.out","self.out");
-    def->connect("count.out","add.in0");
-    def->connect("inc.out","add.in1");
+      // wire up modules
+      // clear if max < count+inc
+      def->connect("count.out","self.out");
+      def->connect("count.out","add.in0");
+      def->connect("inc.out","add.in1");
   
-    def->connect("self.en","count.en");
-    def->connect("add.out","count.in");
+      def->connect("self.en","count.en");
+      def->connect("add.out","count.in");
   
-    def->connect("add.out","ult.in1");
-    def->connect("max.out","ult.in0");
-    // clear count on either getting to max or reset
-    def->connect("ult.out","resetOr.in0");
-    def->connect("self.reset","resetOr.in1");
-    def->connect("resetOr.out","count.clr");
-    def->connect("ult.out","self.overflow");
-  
+      def->connect("add.out","ult.in1");
+      def->connect("max.out","ult.in0");
+      // clear count on either getting to max or reset
+      def->connect("ult.out","resetOr.in0");
+      def->connect("self.reset","resetOr.in1");
+      def->connect("resetOr.out","count.clr");
+      def->connect("ult.out","self.overflow");
+    }
   });
 
   /////////////////////////////////
