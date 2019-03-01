@@ -56,7 +56,6 @@ static bool is_input_from_self(Wireable* wireable) {
 // def outputs
 static void init_worklist(ModuleDef* def, std::queue<Connection> &worklist) {
   for (auto conn : def->getSortedConnections()) {
-    cout << toString(conn) << endl;
     if (is_input_from_self(conn.first) || is_input_from_self(conn.second)) {
       worklist.push(conn);
     }

@@ -1,5 +1,8 @@
 dist: trusty
-language: c
+#Hack to be able to install python 3.6
+language: python
+python:
+  - "3.6"
 sudo: true
 addons:
   apt:
@@ -7,11 +10,12 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.9
+    - verilator
 before_install:
 - export COREIRCONFIG="g++-4.9";
 - sudo make -j2 install
 - make -j2 release
-- sudo pip install delegator.py pytest
+- pip install delegator.py
 script:
 - pytest tests/binary
 - make -j2 installtest
