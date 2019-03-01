@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
   options.add_options()
     ("h,help","help")
     ("v,verbose","Set verbose")
-    ("i,input","input file: '<file1>.json,<file2.jsom,...'",cxxopts::value<std::string>())
+    ("i,input","input file: '<file1>.json,<file2.json,...'",cxxopts::value<std::string>())
     ("o,output","output file: <file>.<json|fir|v|py|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass1> <pass1args>;<pass2> <pass2args>;...'",cxxopts::value<std::string>())
     ("e,load_passes","external passes: '<path1.so>,<path2.so>,<path3.so>,...'",cxxopts::value<std::string>())

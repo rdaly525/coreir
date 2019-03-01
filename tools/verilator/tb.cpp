@@ -1,5 +1,6 @@
 
 #include "coreir.h"
+#include "coreir/simulator/print_c.h"
 #include "cxxopts.hpp"
 
 #include "Vtop.h"
@@ -34,11 +35,11 @@ int main(int argc, char **argv, char **env) {
     exit(1);
   }
 
-  ASSERT(options.count("i"),"No input specified")
+  ASSERT(options.count("i"),"No input specified");
   string infileName = options["i"].as<string>();
   ASSERT(getExt(infileName) == "raw",infileName + " is not raw");
   
-  ASSERT(options.count("o"),"No output specified")
+  ASSERT(options.count("o"),"No output specified");
   string outfileName = options["o"].as<string>();
   ASSERT(getExt(outfileName) == "raw",outfileName + " is not raw");
 
@@ -76,15 +77,16 @@ int main(int argc, char **argv, char **env) {
       cout << "i=" << i << endl;
       break;
     }
-    top->in_0 = in;
-    //cout << "in: " << in << endl;
+    top->in_arg_0_0_0 = in;
+    cout << "i=" << i << "  ";
+    cout << hex << "in: " << in << dec << "  ";
  
     top->eval();
     //negedge ---------------
     
     if (i >=delay) {
-      uint16_t out = top->out & 0xff;
-      //cout << "out: " << out << endl;
+      uint16_t out = top->out_0_0 & 0xff;
+      cout << hex << "out: " << top->out_0_0 << dec << endl;
       ofile.write((char*)&out,1);
     }
 
@@ -95,12 +97,12 @@ int main(int argc, char **argv, char **env) {
     //posedge ---------------
   }
 
-  top->in_0 = 0; //Dont care
+  top->in_arg_0_0_0 = 0; //Dont care
   for (int i=0; i<delay; ++i) {
     top->clk = 0;
     top->eval();
     //negedge ---------------
-    uint16_t out = top->out;
+    uint16_t out = top->out_0_0;
     ofile.write((char*)&out,1);
     
     top->clk = 1;
