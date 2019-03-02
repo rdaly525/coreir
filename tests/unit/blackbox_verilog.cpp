@@ -1,7 +1,5 @@
-#include <fstream>
-#include <streambuf>
 #include "coreir.h"
-#include "coreir/passes/analysis/verilog.h"
+#include "assert_pass.h"
 
 using namespace CoreIR;
 
@@ -22,17 +20,7 @@ void testBlackboxVerilog() {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  auto vpass = static_cast<Passes::Verilog*>(
-      c->getPassManager()->getAnalysisPass("verilog"));
-  std::ostringstream stream;
-  vpass->writeToStream(stream);
-  const std::string verilog = stream.str();
-
-  std::ifstream golden_stream("blackbox_verilog_golden.v");
-  std::string golden((std::istreambuf_iterator<char>(golden_stream)),
-                     std::istreambuf_iterator<char>());
-  ASSERT(golden == verilog,
-         "Expected '" + golden + "' but got '" + verilog + "'");
+  assertPassEq<Passes::Verilog>(c, "blackbox_verilog_golden.v");
   
   deleteContext(c);
 }
