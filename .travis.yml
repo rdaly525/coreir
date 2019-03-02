@@ -7,6 +7,7 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-4.9
+    - libdw-dev
 before_install:
 - export COREIRCONFIG="g++-4.9";
 - sudo make -j2 install
