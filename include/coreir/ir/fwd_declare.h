@@ -16,7 +16,24 @@
 
 #include <execinfo.h>
 
-#define ASSERT(C,MSG) \
+#if BACKWARD_HAS_DW == 1
+
+# include "coreir/tools/backward.hpp"
+# define ASSERT(C,MSG) \
+  do { \
+    if (!(C)) { \
+      std::cerr << "ERROR: " << MSG << std::endl << std::endl; \
+      backward::StackTrace st; \
+      backward::Printer p; \
+      st.load_here(20); \
+      p.print(st, stderr); \
+      exit(1); \
+    } \
+  } while(0)
+
+#else
+
+# define ASSERT(C,MSG) \
   do { \
     if (!(C)) { \
       void* array[20]; \
@@ -27,6 +44,8 @@
       exit(1); \
     } \
   } while(0)
+
+#endif
 
 typedef uint32_t uint;
 
