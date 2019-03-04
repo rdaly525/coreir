@@ -12,16 +12,17 @@ def test_examples():
     
         name = example_split[0]
         
+        libs = "-l commonlib"
         #Test input parsing and serializing to json
-        res = delegator.run(f"bin/coreir -i examples/{example} -o examples/build/{name}.json")
+        res = delegator.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.json")
         assert not res.return_code, res.out + res.err
         
         #Test syntax of serialized json
-        res = delegator.run(f"bin/coreir -i examples/build/{name}.json")
+        res = delegator.run(f"bin/coreir -i examples/build/{name}.json {libs}")
         assert not res.return_code, res.out + res.err
         
         #Test serializing to verilog
-        res = delegator.run(f"bin/coreir -i examples/{example} -o examples/build/{name}.v")
+        res = delegator.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.v")
         assert not res.return_code, res.out + res.err
 
         #Verify verilog syntax
