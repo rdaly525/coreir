@@ -23,7 +23,7 @@ Namespace* CoreIRLoadHeader_corebit(Context* c) {
     {"out",c->Bit()}
   });
 
-  vector<string> bitops = {"and","or","xor"};
+  vector<string> bitops = {"and","or","xor","xnor","lt","le","gt","ge"};
   for (auto op : bitops) {
     bitop->newModuleDecl(op, bitBinaryType);
   }
