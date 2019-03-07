@@ -1,4 +1,5 @@
 #include "coreir.h"
+#include "coreirsim.h"
 
 using namespace CoreIR;
 using namespace std;

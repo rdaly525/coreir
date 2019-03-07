@@ -1,4 +1,5 @@
 #include "coreir.h"
+#include "coreirsim.h"
 
 #include "coreir/passes/transform/rename_yosys_auto_generated_instances.h"
 
