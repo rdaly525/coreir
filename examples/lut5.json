@@ -1,0 +1,28 @@
+{
+  "top": "global.lut5",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "lut5": {
+          "type": ["Record",[
+            ["in", ["Array",5,"BitIn"]],
+            ["out", ["Array",1,"Bit"]]
+          ]],
+          "instances": {
+            "lut_inst": {
+              "genref": "commonlib.lutN",
+              "genargs": {"N":["Int",5]},
+              "modargs": {"init": [["BitVector", 32], "32'h160"]}
+            }
+          },
+          "connections": [
+            ["self.in","lut_inst.in"],
+            ["self.out.0","lut_inst.out"]
+          ]
+        }
+      }
+    }
+  }
+}
+
+

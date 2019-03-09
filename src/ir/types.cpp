@@ -139,7 +139,7 @@ void NamedType::print() const {
 
 //Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record) : Type(TK_Record,DK_Null,c) {
-  unordered_set<uint> dirs; // Slight hack because it is not easy to hash enums
+  set<uint> dirs; // Slight hack because it is not easy to hash enums
   for(auto field : _record) {
     checkStringSyntax(field.first);
     record.emplace(field.first,field.second);

@@ -1,5 +1,6 @@
 #include "coreir.h"
 #include "coreir/passes/transform/delete_unused_inouts.h"
+#include "coreir/common/util.h"
 
 using namespace std;
 using namespace CoreIR;

@@ -6,8 +6,6 @@
 #include <deque>
 #include <map>
 #include <set>
-#include <unordered_map>
-#include <unordered_set>
 #include <memory>
 #include <cassert>
 #include <sstream>
@@ -56,6 +54,7 @@ namespace bsim {
 #include "json.h"
 
 typedef bsim::quad_value_bit_vector BitVector;
+typedef bsim::quad_value_bit_vector BitVec;
 typedef nlohmann::json Json;
 
 namespace CoreIR {
@@ -159,16 +158,17 @@ typedef std::pair<Wireable*,Wireable*> Connection;
 typedef std::vector<std::pair<Wireable*,Wireable*>> LocalConnections;
 
 
-//Comparison classes for caches
-class ConnectionComp {
+//Comparison classes
+
+//This will do fast comparisons on Connections, but makes no guarentees on being the same between different runs of the program
+class ConnectionCompFast {
   public:
-    static bool SPComp(const SelectPath& l, const SelectPath& r);
     bool operator() (const Connection& l, const Connection& r) const;
 };
 
-class ConnectionStrComp {
+//This will do slow comparisons on Connections but makes guarentee on being consistent between different runs
+class ConnectionCompConsistent {
   public:
-    static bool SPComp(const SelectPath& l, const SelectPath& r);
     bool operator() (const Connection& l, const Connection& r) const;
 };
 

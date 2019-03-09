@@ -213,20 +213,10 @@ string Instances2Json(map<string,Instance*>& insts,int taboffset) {
   return jis.toMultiString();
 }
 
-string Connections2Json(Connections& cons,ModuleDef* def,int taboffset) {
+string Connections2Json(ModuleDef* def,int taboffset) {
   Array a(taboffset);
-  vector<Connection> sortedConns;
-  for (auto c : cons) {
-    sortedConns.push_back(c);
-  }
-
-  // Ensure that connections are serialized in select string sorted order
-  ConnectionStrComp c;
-  std::sort(begin(sortedConns), end(sortedConns), [c](const Connection& l, const Connection& r) {
-      return c(l, r);
-    });
-
-  for (auto con : sortedConns) {
+  
+  for (auto con : def->getSortedConnections()) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
     string sa = join(pa.begin(),pa.end(),string("."));
@@ -265,8 +255,7 @@ string Module2Json(Module* m, int taboffset) {
       j.add("instances",Instances2Json(insts, taboffset+2));
     }
     if (!def->getConnections().empty()) {
-      auto cons = def->getConnections();
-      j.add("connections",Connections2Json(cons,def,taboffset+2));
+      j.add("connections",Connections2Json(def,taboffset+2));
     }
   }
   if (m->hasMetaData()) {

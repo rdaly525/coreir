@@ -4,7 +4,7 @@ HOME = ../..
 INCS = -I$(HOME)/include -I.
 CXXFLAGS += -g -DBACKWARD_HAS_DW=1
 LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreir-aetherlinglib -lcoreir-commonlib -ldw
+LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreirsim -lcoreir-aetherlinglib -lcoreir-commonlib -ldw
 #LIBS =  -lcoreir
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))

@@ -9,31 +9,21 @@
 
 namespace CoreIR {
 
-//struct ConnectionHasher {
-//  size_t operator()(const Connection& rp) const {
-//    size_t hash = 0;
-//    hash_combine(hash,rp.first);
-//    hash_combine(hash,rp.second);
-//    return hash;
-//  }
-//};
-
-
 class ModuleDef {
     friend class Wireable;
   protected:
     Module* module;
     Interface* interface; 
     std::map<std::string,Instance*> instances;
-    std::set<Connection,ConnectionComp> connections;
+    std::set<Connection,ConnectionCompFast> connections;
 
-    std::map<Connection,MetaData*,ConnectionComp> connMetaData;
+    std::map<Connection,MetaData*,ConnectionCompFast> connMetaData;
     
     // Instances Iterator Internal Fields/API
     Instance* instancesIterFirst = nullptr;
     Instance* instancesIterLast = nullptr;
-    std::unordered_map<Instance*,Instance*> instancesIterNextMap;
-    std::unordered_map<Instance*,Instance*> instancesIterPrevMap;
+    std::map<Instance*,Instance*> instancesIterNextMap;
+    std::map<Instance*,Instance*> instancesIterPrevMap;
     void appendInstanceToIter(Instance* instance);
     void removeInstanceFromIter(Instance* instance);
     
@@ -41,7 +31,8 @@ class ModuleDef {
     ModuleDef(Module* m);
     ~ModuleDef();
     const std::map<std::string,Instance*>& getInstances(void) const { return instances;}
-    const std::set<Connection,ConnectionComp>& getConnections(void) const { return connections; }
+    const std::set<Connection,ConnectionCompFast>& getConnections(void) const { return connections; }
+    const std::vector<Connection> getSortedConnections(void) const;
     bool hasInstances(void) { return !instances.empty();}
     void print(void);
     
