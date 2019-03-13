@@ -112,6 +112,20 @@ extern "C" {
     Instance* i = cast<Instance>(rcast<Wireable*>(inst));
     return inlineInstance(i);
   }
+  
+  COREWireable* COREAddPassthrough(COREWireable* corew) {
+    Wireable* w = rcast<Wireable*>(corew);
+    Context* c = w->getContext();
+    Instance* inst = addPassthrough(w, "pt" + c->getUnique());
+    return rcast<COREWireable*>(cast<Wireable>(inst));
+  }
+  
+
+  void CORERemoveInstance(COREWireable* inst) {
+    Instance* i = cast<Instance>(rcast<Wireable*>(inst));
+    ModuleDef* def = i->getContainer();
+    return def->removeInstance(i);
+  }
 
 
   void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items) {

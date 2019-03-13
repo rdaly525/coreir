@@ -32,6 +32,8 @@ extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes
 
 
 extern bool COREInlineInstance(COREWireable* inst);
+extern COREWireable* COREAddPassthrough(COREWireable* w);
+extern void CORERemoveInstance(COREWireable* inst);
 
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
