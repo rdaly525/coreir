@@ -315,6 +315,10 @@ extern "C" {
   void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
     rcast<ModuleDef*>(module_def)->connect(rcast<Wireable*>(a), rcast<Wireable*>(b));
   }
+  
+  void COREModuleDefDisconnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
+    rcast<ModuleDef*>(module_def)->disconnect(rcast<Wireable*>(a), rcast<Wireable*>(b));
+  }
 
   COREWireable* COREModuleDefGetInterface(COREModuleDef* module_def) {
     return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)->getInterface());
