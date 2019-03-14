@@ -124,7 +124,7 @@ extern "C" {
   void CORERemoveInstance(COREWireable* inst) {
     Instance* i = cast<Instance>(rcast<Wireable*>(inst));
     ModuleDef* def = i->getContainer();
-    return def->removeInstance(i);
+    def->removeInstance(i);
   }
 
 
