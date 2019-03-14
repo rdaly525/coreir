@@ -112,6 +112,20 @@ extern "C" {
     Instance* i = cast<Instance>(rcast<Wireable*>(inst));
     return inlineInstance(i);
   }
+  
+  COREWireable* COREAddPassthrough(COREWireable* corew) {
+    Wireable* w = rcast<Wireable*>(corew);
+    Context* c = w->getContext();
+    Instance* inst = addPassthrough(w, "pt" + c->getUnique());
+    return rcast<COREWireable*>(cast<Wireable>(inst));
+  }
+  
+
+  void CORERemoveInstance(COREWireable* inst) {
+    Instance* i = cast<Instance>(rcast<Wireable*>(inst));
+    ModuleDef* def = i->getContainer();
+    def->removeInstance(i);
+  }
 
 
   void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items) {
@@ -300,6 +314,10 @@ extern "C" {
 
   void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
     rcast<ModuleDef*>(module_def)->connect(rcast<Wireable*>(a), rcast<Wireable*>(b));
+  }
+  
+  void COREModuleDefDisconnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
+    rcast<ModuleDef*>(module_def)->disconnect(rcast<Wireable*>(a), rcast<Wireable*>(b));
   }
 
   COREWireable* COREModuleDefGetInterface(COREModuleDef* module_def) {

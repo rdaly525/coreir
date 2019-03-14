@@ -32,6 +32,8 @@ extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes
 
 
 extern bool COREInlineInstance(COREWireable* inst);
+extern COREWireable* COREAddPassthrough(COREWireable* w);
+extern void CORERemoveInstance(COREWireable* inst);
 
 
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
@@ -86,6 +88,8 @@ extern bool COREHasModArg(COREWireable* i, char* s);
 //  Wire Error;
 //  Typechecking errors
 extern void COREModuleDefConnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
+extern void COREModuleDefDisconnect(COREModuleDef* module_def, COREWireable* a, COREWireable* b);
+
 extern COREWireable* COREWireableSelect(COREWireable* w, char* sel);
 extern COREBool COREWireableCanSelect(COREWireable* w, char* sel);
 extern COREWireable* COREModuleDefInstancesIterBegin(COREModuleDef* module_def);
