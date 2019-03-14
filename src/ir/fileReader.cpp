@@ -45,7 +45,7 @@ vector<string> getRef(string s) {
 }
 
 //This will verify that json contains ONLY list of possible things
-void checkJson(json j, unordered_set<string> optsRequired, unordered_set<string> optsOptional=unordered_set<string>()) {
+void checkJson(json j, set<string> optsRequired, set<string> optsOptional=set<string>()) {
   jsonmap jmap = j.get<jsonmap>();
   for (auto req : optsRequired) {
     ASSERTTHROW(jmap.count(req), "Missing " + req + " from\n " + toString(j));
@@ -81,7 +81,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
     checkJson(j,{"namespaces"},{"top"});
     for (auto jnsmap : j.at("namespaces").get<jsonmap>() ) {
       string nsname = jnsmap.first;
-      checkJson(jnsmap.second,unordered_set<string>(),{"namedtypes","typegens","modules","generators"});
+      checkJson(jnsmap.second,set<string>(),{"namedtypes","typegens","modules","generators"});
       Namespace* ns;
       if (c->hasNamespace(nsname) ) {
         ns = c->getNamespace(nsname);
@@ -255,7 +255,7 @@ bool loadFromFile(Context* c, string filename,Module** top) {
         for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
           string instname = jinstmap.first;
           json jinst = jinstmap.second;
-          checkJson(jinst,unordered_set<string>(),{"modref","genref","genargs","modargs","metadata",});
+          checkJson(jinst,set<string>(),{"modref","genref","genargs","modargs","metadata",});
           // This function can throw an error
           Instance* inst;
           if (jinst.count("modref")) {

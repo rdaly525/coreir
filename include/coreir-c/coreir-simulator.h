@@ -3,6 +3,9 @@
 
 #include <coreir-c/ctypes.h>
 
+typedef struct CORESimulatorState CORESimulatorState;
+typedef struct CORESimValue CORESimValue;
+
 extern bool CORESimValueGetBit(CORESimValue *val, int bit);
 extern int CORESimValueGetLength(CORESimValue *val);
 extern CORESimulatorState *CORENewSimulatorState(COREModule* module);

@@ -1,6 +1,4 @@
-import os
 import delegator
-
 
 def test_concat_example():
     res = delegator.run('bin/coreir -i examples/concat.json    '

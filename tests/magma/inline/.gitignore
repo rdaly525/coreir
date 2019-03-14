@@ -1,0 +1,5 @@
+.mypy_cache
+
+*.v
+obj_dir
+*_driver.cpp

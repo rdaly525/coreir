@@ -8,7 +8,7 @@
 
 #include "coreir/simulator/output.h"
 #include "coreir/simulator/simulator.h"
-#include "coreir/simulator/utils.h"
+#include "coreir/common/utils.h"
 
 #include "fuzzing.hpp"
 

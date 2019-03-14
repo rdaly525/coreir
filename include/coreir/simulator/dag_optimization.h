@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coreir/simulator/op_graph.h"
+#include "coreir/common/op_graph.h"
 
 namespace CoreIR {
 
