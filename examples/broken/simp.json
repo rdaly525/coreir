@@ -4,9 +4,9 @@
     "global": {
       "modules": {
         "simp": {
-          "type": ["Record",{
-            "out": ["Array",3,"Bit"]
-          }],
+          "type": ["Record",[
+            ["out", ["Array",3,"Bit"]]
+          ]],
           "instances": {
             "mreg0": {
               "genref": "mantle.reg",
@@ -28,10 +28,10 @@
           ]
         },
         "myreg": {
-          "type": ["Record",{
-            "in": ["Array",3,"BitIn"],
-            "out": ["Array",3,"Bit"]
-          }],
+          "type": ["Record",[
+            ["in", ["Array",3,"BitIn"]],
+            ["out", ["Array",3,"Bit"]]
+          ]],
           "instances": {
             "r0": {
               "genref": "coreir.reg",

@@ -903,7 +903,9 @@ namespace bsim {
       return false;
     }
     
-    assert(a.bitLength() == b.bitLength());
+    ASSERT(a.bitLength() == b.bitLength(),
+           "a=" + std::to_string(a.bitLength()) +
+           " b=" + std::to_string(b.bitLength()));
 
     int N = a.bitLength();
 

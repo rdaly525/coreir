@@ -12,7 +12,7 @@ class PassManager {
   std::vector<Namespace*> nss; 
   
   //Data structure for storing passes
-  std::unordered_map<std::string,Pass*> passMap;
+  std::map<std::string,Pass*> passMap;
 
   //Name to isValid
   std::map<std::string,bool> analysisPasses;

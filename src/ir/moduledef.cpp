@@ -23,6 +23,20 @@ ModuleDef::~ModuleDef() {
   for(auto inst : instances) delete inst.second;
 }
 
+//
+const std::vector<Connection> ModuleDef::getSortedConnections(void) const {
+  vector<Connection> sortedConns;
+  for (auto c : this->connections) {
+    sortedConns.push_back(c);
+  }
+
+  // Ensure that connections are serialized in select string sorted order
+  ConnectionCompConsistent c;
+  std::sort(begin(sortedConns), end(sortedConns), [c](const Connection& l, const Connection& r) {
+    return c(l, r);
+  });
+  return sortedConns;
+}
 
 void ModuleDef::print(void) {
   cout << "  Def:" << endl;

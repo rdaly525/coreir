@@ -32,8 +32,10 @@ std::string toConstString(Value* v) {
     //return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
     return bv.hex_string();
   }
+  else if (auto sv = dyn_cast<ConstString>(v)) {
+    return std::string("\"") + sv->toString() + std::string("\"");
+  }
 
-  //TODO could add string
   assert(0);
 }
 }
@@ -149,9 +151,9 @@ struct CoreIRVModule : VModule {
   Module* mod;
   //Backwards maps
   std::map<Instance*,VObject*> inst2VObj;
-  std::map<Connection,VObject*,ConnectionComp> conn2VObj;
   std::map<string,std::set<VObject*,VObjComp>> sortedVObj;
 
+  void addConnectionsInlined(ModuleDef* def);
   void addConnections(ModuleDef* def);
   void addInstance(Instance* inst);
   std::string inline_instance(ModuleDef* def, std::queue<Connection> &worklist,
@@ -167,8 +169,6 @@ struct CoreIRVModule : VModule {
 };
 
 
-
-
 //The following are for CoreIR VModules
 //This represents some chunk of lines of code
 struct VObject {
@@ -181,8 +181,6 @@ struct VObject {
   //fills out the body
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
-
-
 
 struct VInstance : VObject {
   string wireDecs;
@@ -307,6 +305,8 @@ struct VerilogVModule : VModule {
   VerilogVModule(VModules* vmods) : VModule(vmods) {}
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
+    ASSERT(name != "", name);
+    this->modname = name;
     jver = jmeta["verilog"];
     if (jver.count("verilog_string")) {
       this->modname = name;

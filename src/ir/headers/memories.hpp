@@ -249,6 +249,48 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.ren","readreg.en");
   });
 
+  memory->newTypeGen("RamType2",MemGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"waddr", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(width)},
+      {"ren", c->BitIn()},
+    });
+  });
+
+  //This has a 1 cycle read delay
+  //TODO describe the read after write behavior
+  //TODO add in parameterized read after write behavior and the read delay
+  Generator* ram2 = memory->newGeneratorDecl("ram2",memory->getTypeGen("RamType2"),MemGenParams);
+  ram2->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    uint width = genargs.at("width")->get<int>();
+    uint depth = genargs.at("depth")->get<int>();
+    uint awidth = (uint) ceil(log2(depth));
+    Values sliceArgs = {{"width", Const::make(c,width)},
+                        {"lo", Const::make(c,0)},
+                        {"hi", Const::make(c,awidth)}};
+    def->addInstance("raddr_slice","coreir.slice",sliceArgs);
+    def->addInstance("waddr_slice","coreir.slice",sliceArgs);
+
+    def->addInstance("mem","coreir.mem",genargs);
+    def->addInstance("readreg","mantle.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
+    def->connect("self.clk","readreg.clk");
+    def->connect("self.clk","mem.clk");
+    def->connect("self.wdata","mem.wdata");
+    def->connect("self.waddr","waddr_slice.in");
+    def->connect("waddr_slice.out","mem.waddr");
+    def->connect("self.wen","mem.wen");
+    def->connect("mem.rdata","readreg.in");
+    def->connect("self.rdata","readreg.out");
+    def->connect("self.raddr","raddr_slice.in");
+    def->connect("raddr_slice.out","mem.raddr");
+    def->connect("self.ren","readreg.en");
+  });
+
 
   // ROM= Read-only memory. Index to read values from memory, but no exposed write port.
   Params RomGenParams = {{"width",c->Int()},{"depth",c->Int()}};

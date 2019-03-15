@@ -31,6 +31,9 @@ extern bool COREContextRunPasses(COREContext* ctx, char** passes, int num_passes
                                            char** namespaces, int num_namespaces);
 
 
+extern bool COREInlineInstance(COREWireable* inst);
+
+
 extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err);
 
 //Errors:
@@ -38,11 +41,15 @@ extern COREModule* CORELoadModule(COREContext* c, char* filename, COREBool* err)
 extern void CORESaveModule(COREModule* module, char* filename, COREBool* err);
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern CORENamespace* COREGetNamespace(COREContext* c, char* name);
+extern CORENamespace* CORENewNamespace(COREContext* c, char* name);
 
 extern COREModule* COREGetModuleRef(COREWireable* iref);
 extern bool COREModuleIsGenerated(COREModule* mod);
 extern COREGenerator* COREModuleGetGenerator(COREModule* mod);
 void COREModuleGetGenArgs(COREModule* mod, char*** names, COREValue** args, int* num_args);
+
+void COREModuleGetModParams(COREModule* mod, char*** names, COREValueType*** params, int* num_params);
+
 extern const char* COREModuleGetName(COREModule* module);
 extern const char* COREGeneratorGetName(COREModule* module);
 void COREGeneratorGetGenParams(COREGenerator* core_gen, char*** names, COREValueType*** params, int* num_params);
