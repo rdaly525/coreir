@@ -124,7 +124,39 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
     fp->newGeneratorDecl(op,tg,floatParams);
   }
   
+  //Add verilog to FP add and FP mul
+  {
+    json vjson;
+    vjson["interface"] =  {
+      "input clk",
+      "input [exp_bits+frac_bits:0] in0",
+      "input [exp_bits+frac_bits:0] in1",
+      "output [exp_bits+frac_bits:0] out"
+    };
+    vjson["definition"] = ""
+    "CW_fp_mult #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a(in0),.b(in1),.rnd('h0),.z(out),.status());";
+    fp->getGenerator("mul")->getMetaData()["verilog"] = vjson;
+  }
+  {
+    json vjson;
+    vjson["interface"] =  {
+      "input clk",
+      "input [exp_bits+frac_bits:0] in0",
+      "input [exp_bits+frac_bits:0] in1",
+      "output [exp_bits+frac_bits:0] out"
+    };
+    vjson["definition"] = ""
+    "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(0)) add1 (.a(in0),.b(in1),.rnd('h0),.z(out),.status());";
+    fp->getGenerator("add")->getMetaData()["verilog"] = vjson;
+  }
+
   return fp;
+
+
+  
+
+
+
 
 }
 
