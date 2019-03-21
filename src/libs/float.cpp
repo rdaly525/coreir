@@ -128,19 +128,18 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
   {
     json vjson;
     vjson["interface"] =  {
-      "input clk",
       "input [exp_bits+frac_bits:0] in0",
       "input [exp_bits+frac_bits:0] in1",
       "output [exp_bits+frac_bits:0] out"
     };
     vjson["definition"] = ""
-    "CW_fp_mult #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a(in0),.b(in1),.rnd('h0),.z(out),.status());";
+    "logic [2:0] result_x;
+    "CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h0),.z({out,result_x}),.status());";
     fp->getGenerator("mul")->getMetaData()["verilog"] = vjson;
   }
   {
     json vjson;
     vjson["interface"] =  {
-      "input clk",
       "input [exp_bits+frac_bits:0] in0",
       "input [exp_bits+frac_bits:0] in1",
       "output [exp_bits+frac_bits:0] out"
