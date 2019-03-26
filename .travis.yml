@@ -15,14 +15,14 @@ before_install:
 - export CXX="g++-4.9";
 - cd build
 - cmake ..
-- make -j2 install
+- sudo make -j2 install
 - cd -
 - make release
 - pip install delegator.py
 script:
 - pytest tests/binary
 - make -j2 installtest
-- cd build && make -j2 uninstall && cd -
+- cd build && sudo make -j2 uninstall && cd -
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
 - make -j2 test
 compiler:
