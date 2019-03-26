@@ -16,15 +16,15 @@ installtest:
 	cd tests/install; ./run
 	coreir -i examples/counters.json -p "rungenerators; flatten; verifyconnectivity --onlyinputs"
 
-.PHONY: uninstall
-uninstall:
-	-rm $(prefix)/bin/coreir
-	-rm $(prefix)/lib/libcoreir.*
-	-rm $(prefix)/lib/libcoreir-*
-	-rm $(prefix)/include/coreir.h
-	-rm $(prefix)/include/coreirsim.h
-	-rm -r $(prefix)/include/coreir
-	-rm -r $(prefix)/include/coreir-c
+#.PHONY: uninstall
+#uninstall:
+#	-rm $(prefix)/bin/coreir
+#	-rm $(prefix)/lib/libcoreir.*
+#	-rm $(prefix)/lib/libcoreir-*
+#	-rm $(prefix)/include/coreir.h
+#	-rm $(prefix)/include/coreirsim.h
+#	-rm -r $(prefix)/include/coreir
+#	-rm -r $(prefix)/include/coreir-c
 
 .PHONY: testclean
 testclean:

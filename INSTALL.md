@@ -8,6 +8,16 @@
 ### Uninstall:
     make uninstall
 
+
+### Cmake install: 
+    cd build
+    cmake ..
+    make -j
+    make install
+
+
+
+
 ## If you do not want to sudo make install:
 ### If you are using osx:  
 Add `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile`

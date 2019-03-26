@@ -26,4 +26,7 @@ install(
     FILES_MATCHING PATTERN "*.h"
 )
 
+add_custom_target(uninstall
+  "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/tools/cmake/uninstall.cmake"
+)
 
