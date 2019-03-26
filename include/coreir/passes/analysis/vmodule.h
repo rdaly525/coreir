@@ -32,8 +32,10 @@ std::string toConstString(Value* v) {
     //return std::to_string(bv.bitLength()) + "'b" + bv.binary_string();
     return bv.hex_string();
   }
+  else if (auto sv = dyn_cast<ConstString>(v)) {
+    return std::string("\"") + sv->toString() + std::string("\"");
+  }
 
-  //TODO could add string
   assert(0);
 }
 }
@@ -303,6 +305,8 @@ struct VerilogVModule : VModule {
   VerilogVModule(VModules* vmods) : VModule(vmods) {}
   void addJson(json& jmeta,string name) {
     assert(jmeta.count("verilog") > 0);
+    ASSERT(name != "", name);
+    this->modname = name;
     jver = jmeta["verilog"];
     if (jver.count("verilog_string")) {
       this->modname = name;

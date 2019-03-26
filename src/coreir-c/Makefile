@@ -30,7 +30,7 @@ build/coreir-c.dylib: $(COBJS)
 	cp $@ $(HOME)/lib/libcoreir-c.dylib
 
 build/coreirsim-c.so: $(CSIMOBJS)
-	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreir
+	$(CXX) -shared $(LPATH) -o $@ $^ -lcoreirsim
 	cp $@ $(HOME)/lib/libcoreirsim-c.so
 
 build/coreirsim-c.dylib: $(CSIMOBJS)

@@ -107,6 +107,13 @@ extern "C" {
     return context->runPasses(vec_passes, vec_namespaces);
   }
 
+
+  bool COREInlineInstance(COREWireable* inst) {
+    Instance* i = cast<Instance>(rcast<Wireable*>(inst));
+    return inlineInstance(i);
+  }
+
+
   void COREGetModArgs(COREWireable* core_wireable, char*** keys, COREValue*** values, int* num_items) {
     Values modargs = cast<Instance>(rcast<Wireable*>(core_wireable))->getModArgs();
     *num_items = modargs.size();
@@ -174,6 +181,10 @@ extern "C" {
     return rcast<CORENamespace*>(rcast<Context*>(c)->getNamespace(std::string(name)));
   }
 
+  CORENamespace* CORENewNamespace(COREContext* c, char* name) {
+    return rcast<CORENamespace*>(rcast<Context*>(c)->newNamespace(std::string(name)));
+  }
+
   CORENamespace* COREGlobalValueGetNamespace(COREGlobalValue* value) {
     return rcast<CORENamespace*>(rcast<GlobalValue*>(value)->getNamespace());
   }
@@ -212,6 +223,24 @@ extern "C" {
           (*args)[count] = rcast<COREValue*>(element.second);
           count++;
       }
+  }
+
+  void COREModuleGetModParams(COREModule* core_mod, char*** names, COREValueType*** params, int* num_params) {
+    Module* mod = rcast<Module*>(core_mod);
+    Params modParams = mod->getModParams();
+    int size = modParams.size();
+    Context* context = mod->getContext();
+    *names = context->newStringArray(size);
+    *params = (COREValueType **) context->newValueTypeArray(size);
+    *num_params = size;
+    int count = 0;
+    for (auto element : modParams) {
+      std::size_t name_length = element.first.size();
+      (*names)[count] = context->newStringBuffer(name_length + 1);
+      memcpy((*names)[count], element.first.c_str(), name_length + 1);
+      (*params)[count] = rcast<COREValueType*>(element.second);
+      count++;
+    }
   }
 
   const char* COREModuleGetName(COREModule* module) {
