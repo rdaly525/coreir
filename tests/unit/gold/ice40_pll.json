@@ -1,0 +1,30 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "top":{
+        "type":["Record",[
+          ["clk",["Named","coreir.clkIn"]],
+          ["reset","BitIn"],
+          ["in","BitIn"],
+          ["out","Bit"],
+          ["outClk",["Named","coreir.clk"]]
+        ]],
+        "instances":{
+          "pll":{
+            "modref":"ice40.SB_PLL40_CORE",
+            "modargs":{"DIVF":[["BitVector",7],"7'h21"], "DIVQ":[["BitVector",3],"3'h4"], "DIVR":[["BitVector",4],"4'h0"], "FEEDBACK_PATH":["String","SIMPLE"], "FILTER_RANGE":[["BitVector",3],"3'h1"], "PLLOUT_SELECT":["String","GENCLK"]}
+          }
+        },
+        "connections":[
+          ["self.in","pll.BYPASS"],
+          ["self.out","pll.PLLOUTCORE"],
+          ["self.outClk","pll.PLLOUTGLOBAL"],
+          ["self.clk","pll.REFERENCECLK"],
+          ["self.reset","pll.RESETB"]
+        ]
+      }
+    }
+  }
+}
+}
