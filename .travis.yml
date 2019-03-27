@@ -18,6 +18,7 @@ before_install:
 - ls ../bin
 - sudo make -j2 install
 - ls ../bin
+- ldconfig -v 2>/dev/null | grep -v ^$'\t'
 - cd -
 - pip install delegator.py
 script:
