@@ -35,9 +35,7 @@ std::string toConstString(Value* v) {
   else if (auto sv = dyn_cast<ConstString>(v)) {
     return std::string("\"") + sv->toString() + std::string("\"");
   }
-
-  assert(0);
-  return "";
+  coreir_unreachable();
 }
 }
 
