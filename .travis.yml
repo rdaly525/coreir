@@ -13,10 +13,11 @@ addons:
     - verilator
 before_install:
 - export CXX="g++-4.9";
+- export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 - cd build
 - cmake ..
 - make -j2
-- sudo make DESTDIR=/usr install
+- sudo install
 - cd -
 - pip install delegator.py
 script:
