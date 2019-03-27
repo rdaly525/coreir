@@ -15,10 +15,13 @@ before_install:
 - export CXX="g++-4.9";
 - cd build
 - cmake ..
+- ls ../bin
 - sudo make -j2 install
+- ls ../bin
 - cd -
 - pip install delegator.py
 script:
+- ls bin/
 - pytest tests/binary
 - make -j2 installtest
 - cd build && sudo make -j2 uninstall && cd ..
