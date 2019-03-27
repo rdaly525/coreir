@@ -17,7 +17,6 @@ before_install:
 - cmake ..
 - sudo make -j2 install
 - cd -
-- ./tools/scripts/release.sh
 - pip install delegator.py
 script:
 - pytest tests/binary
@@ -29,6 +28,8 @@ compiler:
 - gcc
 os:
 - linux
+before_deploy:
+- ./tools/scripts/release.sh
 deploy:
   provider: releases
   api_key:
