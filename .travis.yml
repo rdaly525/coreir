@@ -15,9 +15,9 @@ before_install:
 - export CXX="g++-4.9";
 - cd build
 - cmake ..
-- ls ../bin
+- sudo ls /usr/local/lib | grep coreir
 - sudo make -j2 install
-- ls ../bin
+- sudo ls /usr/local/lib | grep coreir
 - ldconfig -v 2>/dev/null | grep -v ^$'\t'
 - cd -
 - pip install delegator.py
