@@ -484,6 +484,7 @@ Type* json2Type(Context* c, json jt) {
     }
   }
   else throw std::runtime_error("Error parsing Type");
+  coreir_unreachable();
 }
 
 #undef ASSERTTHROW

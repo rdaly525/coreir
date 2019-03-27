@@ -26,15 +26,17 @@
     } \
   } while(0)
 
-void coreir_unreachable_internal(const char* msg=nullptr,const char* file=nullptr, unsigned line=0);
+//void coreir_unreachable_internal(const char* file=nullptr, unsigned line=0);
 
-#ifndef NDEBUG
-#define coreir_unreachable(msg) coreir_unreachable_internal(msg,__FILE__,__LINE__)
-#elif defined(LLVM_BUILTIN_UNREACHABLE)
-#define coreir_unreachable(msg) LLVM_BUILTIN_UNREACHABLE
-#else
-#define coreir_unreachable(msg) abort()
-#endif
+#define coreir_unreachable() abort()
+
+//#ifndef NDEBUG
+//#define coreir_unreachable() coreir_unreachable_internal(__FILE__,__LINE__)
+//#elif defined(LLVM_BUILTIN_UNREACHABLE)
+//#define coreir_unreachable() LLVM_BUILTIN_UNREACHABLE
+//#else
+//#define coreir_unreachable() abort()
+//#endif
 
 typedef uint32_t uint;
 
