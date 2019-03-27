@@ -14,8 +14,9 @@ addons:
 before_install:
 - export CXX="g++-4.9";
 - cd build
-- cmake DCMAKE_INSTALL_PREFIX=/usr ..
-- sudo make -j2 install
+- cmake ..
+- make -j2
+- sudo make DESTDIR=/usr install
 - cd -
 - pip install delegator.py
 script:
