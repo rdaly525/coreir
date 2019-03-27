@@ -17,7 +17,7 @@ before_install:
 - cd build
 - cmake ..
 - make -j2
-- sudo install
+- sudo make install
 - cd -
 - pip install delegator.py
 script:
