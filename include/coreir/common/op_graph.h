@@ -228,7 +228,7 @@ namespace CoreIR {
 	vdisc src = g.source(ed);
 	vdisc dest = g.target(ed);
 
-	assert(src == vd);
+	ASSERT(src == vd,"Debugme");
 
 	bool noOtherEdges = true;
 
@@ -366,8 +366,7 @@ namespace CoreIR {
 	  return vpair.first;
 	}
       }
-
-      assert(false);
+      coreir_unreachable();
     }
 
     int numVertices() const { return g.numVertices(); }

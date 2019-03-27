@@ -17,5 +17,13 @@ install(
     DESTINATION lib
 )
 
+add_custom_command(
+  TARGET coreirsim
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreirsim>" "${CMAKE_SOURCE_DIR}/lib/"
+  COMMENT "Copying to lib/"
+)
+
+
 
 

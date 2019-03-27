@@ -132,8 +132,7 @@ namespace CoreIR {
       return "uint64_t";
     }
     
-    assert(false);
-
+    coreir_unreachable();
   }
 
   string signedCTypeString(Type& tp) {
@@ -157,7 +156,7 @@ namespace CoreIR {
       return "int64_t";
     }
     
-    assert(false);
+    coreir_unreachable();
   }
 
   string lastMask(const uint startWidth, const uint endWidth) {
@@ -200,7 +199,7 @@ namespace CoreIR {
       return "uint64_t" ;
     }
 
-    assert(false);
+    coreir_unreachable();
 
   }
 
@@ -252,7 +251,7 @@ namespace CoreIR {
 
     cout << "ERROR: Unsupported type = " << t.toString() << endl;    
 
-    assert(false);
+    coreir_unreachable();
 
   }
 

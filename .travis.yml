@@ -13,22 +13,26 @@ addons:
     - verilator
 before_install:
 - export CXX="g++-4.9";
+- export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 - cd build
 - cmake ..
-- sudo make -j2 install
+- make -j2
+- sudo make install
 - cd -
-- make release
 - pip install delegator.py
 script:
+- ls bin/
 - pytest tests/binary
 - make -j2 installtest
-- cd build && sudo make -j2 uninstall && cd -
+- cd build && sudo make -j2 uninstall && cd ..
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
 - make -j2 test
 compiler:
 - gcc
 os:
 - linux
+before_deploy:
+- ./tools/scripts/release.sh
 deploy:
   provider: releases
   api_key:

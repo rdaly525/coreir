@@ -67,6 +67,7 @@ namespace bsim {
     }
 
     assert(false);
+    return "";
   }
 
   class quad_value {

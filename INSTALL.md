@@ -12,11 +12,8 @@
 ### Cmake install: 
     cd build
     cmake ..
-    make -j
-    make install
-
-
-
+    make -j<num_processors>
+    sudo make install
 
 ## If you do not want to sudo make install:
 ### If you are using osx:  
