@@ -17,7 +17,7 @@ before_install:
 - cmake ..
 - sudo make -j2 install
 - cd -
-- ./release.sh
+- ./tools/scripts/release.sh
 - pip install delegator.py
 script:
 - pytest tests/binary
