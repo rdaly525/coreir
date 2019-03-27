@@ -26,7 +26,12 @@ foreach(CLIB ${COREIRLIBS})
         TARGETS ${COREIRLIB}
         DESTINATION lib
     )
-
+  add_custom_command(
+    TARGET ${COREIRLIB}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIRLIB}>" "${CMAKE_SOURCE_DIR}/lib/"
+    COMMENT "Copying to lib/"
+  )
 
 endforeach()
 

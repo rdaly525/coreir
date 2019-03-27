@@ -20,6 +20,16 @@ install(
     DESTINATION lib
 )
 
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir>" "${CMAKE_SOURCE_DIR}/lib/"
+  COMMENT "Copying to lib/"
+)
+
+
+
+
 #Create coreir executable
 add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
 target_link_libraries(coreir-bin PUBLIC coreir)
@@ -27,6 +37,13 @@ target_include_directories(coreir-bin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../incl
 set_target_properties(coreir-bin
     PROPERTIES OUTPUT_NAME coreir
 )
+add_custom_command(
+  TARGET coreir-bin
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir-bin>" "${CMAKE_SOURCE_DIR}/bin/"
+  COMMENT "Copying to bin/"
+)
+
 
 install(
     TARGETS coreir-bin
@@ -61,6 +78,22 @@ install(
     TARGETS coreir-interpreter coreir-simulator
     DESTINATION bin
 )
+
+add_custom_command(
+  TARGET coreir-interpreter
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir-interpreter>" "${CMAKE_SOURCE_DIR}/bin/"
+  COMMENT "Copying to bin/"
+)
+
+add_custom_command(
+  TARGET coreir-simulator
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir-simulator>" "${CMAKE_SOURCE_DIR}/bin/"
+  COMMENT "Copying to bin/"
+)
+
+
 #TARGETS coreir coreirsim coreir-commonlib
 
 
