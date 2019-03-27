@@ -170,6 +170,7 @@ private :
       return std::to_string(bv.bitLength())+"'d"+std::to_string(bv.to_type<uint64_t>());
     }
     assert(0);
+    return "";
   }
 };
 

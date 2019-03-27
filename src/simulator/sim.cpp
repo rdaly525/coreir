@@ -149,8 +149,7 @@ namespace CoreIR {
       }
     }
 
-    assert(false);
-
+    coreir_unreachable();
   }
 
   LowExpr* printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
@@ -236,7 +235,7 @@ namespace CoreIR {
       return arg;
     } else {
       cout << "ERROR: trying to sign extend from " << startWidth << " to " << extWidth << endl;
-      assert(false);
+      coreir_unreachable();
     }
 
   }
@@ -525,8 +524,7 @@ namespace CoreIR {
     }
 
     cout << "Unsupported binop = " << inst->toString() << " from module = " << inst->getModuleRef()->getName() << endl;
-
-    assert(false);
+    coreir_unreachable();
   }
 
   bool hasEnable(Wireable* w) {

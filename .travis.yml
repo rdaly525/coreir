@@ -17,12 +17,12 @@ before_install:
 - cmake ..
 - sudo make -j2 install
 - cd -
-- make release
+- ./release.sh
 - pip install delegator.py
 script:
 - pytest tests/binary
 - make -j2 installtest
-- cd build && sudo make -j2 uninstall && cd -
+- cd build && sudo make -j2 uninstall && cd ..
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
 - make -j2 test
 compiler:

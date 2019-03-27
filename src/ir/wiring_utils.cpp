@@ -257,7 +257,7 @@ namespace CoreIR {
     uint len = tp->getLen();
     Type* elemType = tp->getElemType();
 
-    assert(elemType->getDir() == Type::DK_In);
+    ASSERT(elemType->isInput(),"Needs to be input");
 
     vector<Select*> sels;
     for (uint i = 0; i < len; i++) {
@@ -356,8 +356,7 @@ namespace CoreIR {
       assert(false);
     }
 
-    assert(false);
-    return {};
+    coreir_unreachable();
   }
 
   void portToConstant(const std::string& portName,

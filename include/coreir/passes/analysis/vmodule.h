@@ -37,6 +37,7 @@ std::string toConstString(Value* v) {
   }
 
   assert(0);
+  return "";
 }
 }
 

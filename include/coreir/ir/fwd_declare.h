@@ -26,6 +26,16 @@
     } \
   } while(0)
 
+void coreir_unreachable_internal(const char* msg=nullptr,const char* file=nullptr, unsigned line=0);
+
+#ifndef NDEBUG
+#define coreir_unreachable(msg) coreir_unreachable_internal(msg,__FILE__,__LINE__)
+#elif defined(LLVM_BUILTIN_UNREACHABLE)
+#define coreir_unreachable(msg) LLVM_BUILTIN_UNREACHABLE
+#else
+#define coreir_unreachable(msg) abort()
+#endif
+
 typedef uint32_t uint;
 
 namespace bsim {

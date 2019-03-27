@@ -75,7 +75,7 @@ string toWire(SelectPath snk, SelectPath src) {
 
 string toUpper(string s) {
   int f = s[0];
-  assert( f-'a' >=0 && 'z'-f >=0);
+  ASSERT( f-'a' >=0 && 'z'-f >=0, "Bad to upper");
   s[0] = s[0]-'a'+'A';
   return s;
 }

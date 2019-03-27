@@ -91,8 +91,8 @@ namespace CoreIR {
           string selStr = bitSelect->getSelStr();
           Wireable* parent = cast<Select>(bitSelect->getParent())->getParent();
 
-          assert(parent == src);
-          assert(isNumber(selStr));
+          ASSERT(parent == src,"parent must be src");
+          ASSERT(isNumber(selStr),"Must be a number");
 
           int offset = stoi(selStr);
 
@@ -256,7 +256,7 @@ namespace CoreIR {
           uint inWidth =
             inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-          assert(((uint) sigVal0.bitLength()) == inWidth);
+          ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
           assert(((uint) sigVal1.bitLength()) == inWidth);
           assert(res.bitLength() == 1);
 
@@ -533,7 +533,7 @@ namespace CoreIR {
           uint inWidth =
             inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-          assert(((uint) sigVal0.bitLength()) == inWidth);
+          ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
           assert(res.bitLength() == 1);
 
           bool resVal = res == BitVec(1, 1) ? true : false;
@@ -703,7 +703,7 @@ namespace CoreIR {
           uint inWidth =
             inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-          assert(((uint) sigVal0.bitLength()) == inWidth);
+          ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
           assert(res.bitLength() == 1);
 
           bool resVal = res == BitVec(1, 1) ? true : false;
