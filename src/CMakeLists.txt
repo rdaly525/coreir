@@ -5,7 +5,6 @@ file(GLOB SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/transform/[^_]*.cpp
 )
 
-
 #Create libcoreir
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
@@ -26,9 +25,6 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir>" "${CMAKE_SOURCE_DIR}/lib/"
   COMMENT "Copying to lib/"
 )
-
-
-
 
 #Create coreir executable
 add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
@@ -92,8 +88,3 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir-simulator>" "${CMAKE_SOURCE_DIR}/bin/"
   COMMENT "Copying to bin/"
 )
-
-
-#TARGETS coreir coreirsim coreir-commonlib
-
-
