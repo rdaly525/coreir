@@ -81,12 +81,12 @@ namespace CoreIR {
 
         auto wArg = args["width"];
 
-        assert(wArg != nullptr);
+        ASSERT(wArg != nullptr,"DEBUGME");
 
         int width = (args["width"])->get<int>();
         BitVector initVal = inst->getModArgs().at("init")->get<BitVector>();
 
-        assert(initVal.bitLength() == width);
+        ASSERT(initVal.bitLength() == width,"BitLength is wrong");
 
         // Set memory output port to default
         setRegister(inst->toString(), initVal);
@@ -873,7 +873,7 @@ namespace CoreIR {
 
     BitVector vals = args["init"]->get<BitVector>();
 
-    assert(vals.bitLength() == (1 << width));
+    ASSERT(vals.bitLength() == (1 << width),"BitLength wrong");
 
     bv_uint64 i = get_shift_int(bv1); //get_shift_int(s1->getBits());
     unsigned char lutBit = vals.get(i).binary_value();
@@ -1358,7 +1358,7 @@ namespace CoreIR {
           freshNodes.erase(vd);
 
           unordered_map<Select*, SimValue*> oldVals = lastState.valMap;
-          assert(gr.containsOpNode(w));
+          ASSERT(gr.containsOpNode(w),"Missing Op Node");
 
           // Need to update and check whether the update actually changed any of
           // the outputs of this wire

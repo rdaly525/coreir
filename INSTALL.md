@@ -1,23 +1,23 @@
-
-## Quick Install (Linux Only):
-    wget https://github.com/rdaly525/coreir/releases/download/v0.0.29/coreir.tar.gz
+# Quick Install (Linux Only for now):
+    wget https://github.com/rdaly525/coreir/releases/download/v0.0.45/coreir.tar.gz
     tar -zxf coreir.tar.gz
     cd release
     sudo make install
 
-### Uninstall:
-    make uninstall
 
 ## If you do not want to sudo make install:
-### If you are using osx:  
-Add `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile`
+Option 1: you could provide use `cmake DCMAKE\_INSTALL\_PREFIX=\<path\> ..`
+
+Option 2:
+#### If you are using osx:  
+Add `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir_release>/lib` to your `~/.bashrc` or `~/.profile`
 If this does not work, you may have System Integrity Protection enabled on your Mac.
 
 ### If you are using linux:  
-Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir>/lib` to your `~/.bashrc` or `~/.profile` 
-  
+Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir_release>/lib` to your `~/.bashrc` or `~/.profile` 
+ 
 
-## How to Install from source (OSX or Linux)
+# How to Install from source (OSX or Linux)
 
 ### Tested Compatable compilers:  
   gcc 4.9  
@@ -28,23 +28,23 @@ Note: To specify a specific version of `g++` (typically required on older, share
 ### To build:
 
     git clone https://github.com/rdaly525/coreir.git
-    cd coreir
-    make -j
+    cd coreir/build
+    cmake ..
+    make -j<num_processors>
+    sudo make install
 
 ### To verify coreir build
     
+    cd coreir
     make -j test
 
-### create standalone binary
-
-    make -j coreir
-
-### install to /usr or /usr/bin 
+### install to /usr/local
   
+    cd coreir/build
     sudo make install
 
 ### clean uninstall of coreir 
-
+    cd coreir
     sudo make uninstall
 
 ## Python Bindings

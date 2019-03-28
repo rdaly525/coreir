@@ -108,8 +108,8 @@ bool loadFromFile(Context* c, string filename,Module** top) {
           if (ns->hasNamedType(name)) {
             //Verify it also has nameflip
             NamedType* namedtype = ns->getNamedType(name);
-            assert(raw==namedtype->getRaw());
-            assert(c->Flip(namedtype) == ns->getNamedType(nameFlip));
+            ASSERT(raw==namedtype->getRaw(),"Wrong named type");
+            ASSERT(c->Flip(namedtype) == ns->getNamedType(nameFlip),"Missing the flip");
           }
           else {
             ns->newNamedType(name,nameFlip,raw);
@@ -480,11 +480,11 @@ Type* json2Type(Context* c, json jt) {
     }
     else {
       cout << "ERROR NYI!: " << args[0].get<string>() << endl;
-      assert(false);
-      return NULL;
+      coreir_unreachable();
     }
   }
   else throw std::runtime_error("Error parsing Type");
+  coreir_unreachable();
 }
 
 #undef ASSERTTHROW

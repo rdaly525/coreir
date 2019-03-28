@@ -157,7 +157,7 @@ namespace CoreIR {
     }
 
     cout << "ERROR: No type width for " << tp.toString() << endl;
-    assert(false);
+    coreir_unreachable();
   }
 
   uint containerTypeWidth(Type& tp) {
@@ -181,7 +181,7 @@ namespace CoreIR {
       return 64;
     }
 
-    assert(false);
+    coreir_unreachable();
   }
 
   bool standardWidth(Type& tp) {
@@ -231,7 +231,7 @@ namespace CoreIR {
     }
 
     cout << "Could not find select with name = " << selName << endl;
-    assert(false);
+    coreir_unreachable();
   }
 
   bool fromSelfInterface(Select* w) {

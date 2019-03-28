@@ -37,7 +37,7 @@ std::string rtlilSignedComparatorName(const std::string& name) {
   }
 
   cout << "Unsupported signed comparator " << name << endl;
-  assert(false);
+  coreir_unreachable();
 }
 
 std::string rtlilCorebitName(const std::string& name) {
@@ -53,7 +53,7 @@ std::string rtlilCorebitName(const std::string& name) {
     return "corebit.xor";
   }
   
-  assert(false);
+  coreir_unreachable();
 }
 
 std::string rtlilCoreirName(const std::string& name) {
@@ -140,7 +140,7 @@ std::string rtlilCoreirName(const std::string& name) {
   }
   
   cout << "Unsupported name = " << name << endl;
-  assert(false);
+  coreir_unreachable();
 }
 
 Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
