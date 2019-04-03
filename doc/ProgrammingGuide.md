@@ -1,3 +1,9 @@
+##Errors
+
+Use the 'ASSERT(condition,msg)' macro for assertions.
+Use 'coreir\_unreachable()' for unreachable control paths
+
+
 ##Casting
 
 I have the functions `isa<>`, `cast<>`, and `dyn_cast<>` that should fulfill any casting needs. Anyone familiar with writing in llvm should recognize these functions. They work the exact same way as in LLVM.

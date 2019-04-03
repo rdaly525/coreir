@@ -54,7 +54,7 @@ namespace CoreIR {
 
 	CoreIR::Select* sel = static_cast<Select*>(edge_conn.second.getWire());
 
-	assert(extractSource(sel) == w);
+	ASSERT(extractSource(sel) == w, "DEBUGME");
 
 	inConss.push_back(edge_conn);
       }
@@ -76,7 +76,7 @@ namespace CoreIR {
 
       assert(isSelect(edge_conn.first.getWire()));
       Select* sel = static_cast<Select*>(edge_conn.first.getWire());
-      assert(sel->getParent() == w);
+      ASSERT(sel->getParent() == w,"DEBUGME");
 
       outputs.push_back(edge_conn.second.getWire());
       
@@ -102,7 +102,7 @@ namespace CoreIR {
 
       Select* sel = static_cast<Select*>(edge_conn.second.getWire());
 
-      assert(extractSource(sel) == w); //->getParent() == w);
+      ASSERT(extractSource(sel) == w,"DEBUGME"); //->getParent() == w);
 
       inputs.push_back(edge_conn.first.getWire());
       
@@ -217,7 +217,7 @@ namespace CoreIR {
 	vdisc src = g.source(ed);
 	vdisc dest = g.target(ed);
 
-	assert(src == vd);
+	ASSERT(src == vd,"DEBUGME");
 
 	bool noOtherEdges = true;
 
@@ -302,7 +302,7 @@ namespace CoreIR {
 
       Select* sel = static_cast<Select*>(edge_conn.first.getWire());
 
-      assert(extractSource(sel) == w);
+      ASSERT(extractSource(sel) == w,"DEBUGME");
       //assert(sel->getParent() == w);
 
       outConns.push_back(edge_conn);
@@ -523,8 +523,7 @@ namespace CoreIR {
     }
 
     cout << "Error: Could not find argument: " << argName << endl;
-
-    assert(false);
+    coreir_unreachable();
   }
 
   void setEdgeClean(const edisc ed,
