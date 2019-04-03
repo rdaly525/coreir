@@ -1,4 +1,5 @@
-# Quick Install (Linux Only for now):
+
+## Quick Install (Linux Only):
     wget https://github.com/rdaly525/coreir/releases/download/v0.0.45/coreir.tar.gz
     tar -zxf coreir.tar.gz
     cd release
