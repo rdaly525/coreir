@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 
 project(coreir)
+option(STATIC "Statically link everything" OFF)
+
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # require at least gcc 4.8
@@ -11,7 +13,11 @@ else()
     message(WARNING "You are using an untested compiler")
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror")
+if (STATIC)
+    set(STATIC_FLAGS "-static-libgcc -static-libstdc++")
+endif()
+
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror ${STATIC_FLAGS}")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
