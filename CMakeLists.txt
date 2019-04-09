@@ -14,10 +14,11 @@ else()
 endif()
 
 if (STATIC)
-    set(STATIC_FLAGS "-static-libgcc -static-libstdc++")
+    set(CMAKE_STATIC_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 endif()
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror ${STATIC_FLAGS}")
+
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
