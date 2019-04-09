@@ -14,7 +14,9 @@ else()
 endif()
 
 if (STATIC)
-    set(STATIC_FLAGS "-static-libgcc -static-libstdc++")
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(STATIC_FLAGS "-static-libgcc -static-libstdc++")
+    endif()
 endif()
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror ${STATIC_FLAGS}")
