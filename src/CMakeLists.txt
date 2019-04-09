@@ -34,6 +34,19 @@ add_custom_command(
 #Create coreir executable
 add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
 target_link_libraries(coreir-bin PUBLIC coreir)
+
+set(COREIRLIBS
+    "commonlib"
+    "rtlil"
+    "aetherlinglib"
+    "ice40"
+    "float"
+)
+foreach(CLIB ${COREIRLIBS})
+    set(COREIRLIB "coreir-${CLIB}")
+    target_link_libraries(coreir-bin PUBLIC ${COREIRLIB})
+endforeach()
+
 target_include_directories(coreir-bin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set_target_properties(coreir-bin
     PROPERTIES OUTPUT_NAME coreir
