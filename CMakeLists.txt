@@ -17,8 +17,7 @@ if (STATIC)
     set(CMAKE_STATIC_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror ${STATIC_FLAGS}")
-
+set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
