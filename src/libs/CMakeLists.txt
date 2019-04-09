@@ -20,11 +20,7 @@ foreach(CLIB ${COREIRLIBS})
 
     set(SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${CLIB}.cpp")
 
-    if (STATIC)
-        add_library(${COREIRLIB} STATIC ${SRC_FILES})
-    else()
-        add_library(${COREIRLIB} SHARED ${SRC_FILES})
-    endif()
+    add_library(${COREIRLIB} SHARED ${SRC_FILES})
     target_include_directories(${COREIRLIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
     target_link_libraries(${COREIRLIB} PUBLIC coreir)
     install(
