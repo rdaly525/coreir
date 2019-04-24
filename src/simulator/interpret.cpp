@@ -53,7 +53,7 @@ namespace CoreIR {
 
     res.set(31, sgn.get(0));
 
-    cout << "Final result = " << res << endl;
+    cout << "Extension result = " << res << endl;
     return res;
   }
   
