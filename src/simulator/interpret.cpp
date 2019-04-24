@@ -8,6 +8,7 @@ namespace CoreIR {
   BitVector extendBfloat(const BitVector& r) {
     cout << "bfloat = " << r << endl;
     assert(r.bitLength() == 16);
+
     BitVector sgn(1, 0);
     sgn.set(1, r.get(15));
 
@@ -27,7 +28,7 @@ namespace CoreIR {
     }
 
     for (int i = 23; i < 31; i++) {
-      res.set(i, sgn.get(i - 23));
+      res.set(i, exp.get(i - 23));
     }
 
     res.set(31, sgn.get(0));
