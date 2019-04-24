@@ -5,6 +5,37 @@ using namespace std;
 
 namespace CoreIR {
 
+  BitVector extendBfloat(const BitVector& r) {
+    cout << "bfloat = " << r << endl;
+    assert(r.bitLength() == 16);
+    BitVector sgn(1, 0);
+    sgn.set(1, r.get(15));
+
+    BitVector exp = slice(r, 7, 15);
+    assert(exp.bitLength() == 8);
+
+    BitVector mant = slice(r, 0, 7);
+    assert(mant.bitLength() == 7);
+
+    BitVector res(32, 0);
+    for (int i = 0; i < 16; i++) {
+      res.set(i, 0);
+    }
+
+    for (int i = 16; i < 23; i++) {
+      res.set(i, mant.get(i - 16));
+    }
+
+    for (int i = 23; i < 31; i++) {
+      res.set(i, sgn.get(i - 23));
+    }
+
+    res.set(31, sgn.get(0));
+
+    cout << "Final result = " << res << endl;
+    return res;
+  }
+  
   int bitCastToInt(float val) {
     float* valPtr = &val;
     void* vPtr = (void*) valPtr;
@@ -1077,23 +1108,51 @@ namespace CoreIR {
         });
     } else if (opName == "float.mul") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-          assert(l.bitLength() == 32);
-          assert(r.bitLength() == 32);
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
 
-          int lv = l.to_type<int>();
-          int rv = r.to_type<int>();
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
 
-          float lf = bitCastToFloat(lv);
-          float rf = bitCastToFloat(rv);
+            cout << "lf = " << lf << endl;
+            cout << "rf = " << rf << endl;
 
-          cout << "lf = " << lf << endl;
-          cout << "rf = " << rf << endl;
+            float res = lf * rf;
 
-          float res = lf * rf;
+            int resI = bitCastToInt(res);
 
-          int resI = bitCastToInt(res);
+            return BitVec(lv, resI);
 
-          return BitVec(l.bitLength(), resI);
+            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            cout << "lf = " << lf << endl;
+            cout << "rf = " << rf << endl;
+
+            float res = lf * rf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+
+            cout << "res = " << res << endl;
+            cout << "32 bit result before rounding = " << longRes << endl;
+            assert(false);
+            //return BitVec(l.bitLength(), resI);
+          }
+
         });
       } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
