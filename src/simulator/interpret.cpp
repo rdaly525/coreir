@@ -5,6 +5,26 @@ using namespace std;
 
 namespace CoreIR {
 
+  BitVector truncateToBfloat(const BitVector& longRes) {
+    cout << "32 bit result = " << longRes << endl;
+    assert(longRes.bitLength() == 32);
+
+    BitVector bRes(16, 0);
+    bRes.set(15, longRes.get(31));
+
+    // Set exponent
+    for (int i = 23; i < 31; i++) {
+      bRes.set(i - 16, longRes.get(i));
+    }
+
+    for (int i = 23 - 7; i < 23; i++) {
+      bRes.set(i - (23 - 7), longRes.get(i));
+    }
+    
+    cout << "Final bres = " << bRes << endl;
+    return bRes;
+  }
+  
   BitVector extendBfloat(const BitVector& r) {
     cout << "bfloat = " << r << endl;
     assert(r.bitLength() == 16);
@@ -1150,7 +1170,9 @@ namespace CoreIR {
 
             cout << "res = " << res << endl;
             cout << "32 bit result before rounding = " << longRes << endl;
-            assert(false);
+
+            BitVector bfloatRes = truncateToBfloat(longRes);
+            return bfloatRes;
             //return BitVec(l.bitLength(), resI);
           }
 
