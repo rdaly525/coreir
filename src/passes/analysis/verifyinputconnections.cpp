@@ -16,7 +16,13 @@ bool checkTypes(Wireable* a, Wireable* b) {
   //  an inout is connected to an input (good!)
   //  an inout is connected to an output (bad!)
   
-  if (ta == c->Flip(tb) ) return false;
+  if (ta == c->Flip(tb) || 
+      // Check if we are connecting inouts
+      ((ta->isInOut() && (tb->isInput() || tb->isOutput())) || 
+       (tb->isInOut() && (ta->isInput() || ta->isOutput())))
+     ) {
+    return false;
+  }
   
   Error e;
   e.message("Cannot wire together");

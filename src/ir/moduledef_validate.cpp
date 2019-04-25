@@ -22,7 +22,11 @@ bool ModuleDef::checkTypes(Wireable* a, Wireable* b) {
 
   //cout << "Got types" << endl;
   
-  if (ta == c->Flip(tb) ) {
+  if (ta == c->Flip(tb) || 
+      // Check if we are connecting inouts
+      ((ta->isInOut() && (tb->isInput() || tb->isOutput())) || 
+       (tb->isInOut() && (ta->isInput() || ta->isOutput())))
+     ) {
     //cout << "ta flipped" << endl;
     return false;
   }
