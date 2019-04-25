@@ -1143,7 +1143,7 @@ namespace CoreIR {
 
             int resI = bitCastToInt(res);
 
-            return BitVec(lv, resI);
+            return BitVec(l.bitLength(), resI);
 
             
           } else {
