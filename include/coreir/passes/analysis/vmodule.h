@@ -84,7 +84,17 @@ struct VWire {
     if (!isArray) return "";
     return "["+std::to_string(dim-1)+":0]";
   }
-  std::string dirstr() { return (dir==Type::DK_In) ? "input" : "output"; }
+  std::string dirstr() { 
+      if (dir==Type::DK_In) {
+          return "input";
+      } else if (dir==Type::DK_Out) {
+          return "output";
+      } else if (dir==Type::DK_InOut) {
+          return "inout";
+      } else {
+          ASSERT(false, "dirstr not implemented for dir=" + toString(dir));
+      }
+  }
   std::string getName() { return name;}
 };
 
