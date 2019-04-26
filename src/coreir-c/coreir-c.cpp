@@ -256,13 +256,13 @@ extern "C" {
       count++;
     }
   }
-
+  
   const char* COREModuleGetMetaData(COREModule* core_mod) {
     Module* mod = rcast<Module*>(core_mod);
     string mstr = mod->getMetaData().dump();
     std::size_t len = mstr.size() + 1;
     char* cstr = (char*) malloc(len);
-    memcpy(cstr,mstr.c_str(),len);
+    strcpy(cstr,mstr.c_str());
     return cstr;
   }
 
