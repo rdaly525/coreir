@@ -112,6 +112,9 @@ extern void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
         COREWireable* a, COREWireable* b, char *key, char *value);
 extern void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value);
 
+//This returns a malloc'd string that should be freed by the user
+extern const char* COREModuleGetMetaData(COREModule* module);
+
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);
 extern const char** COREDirectedConnectionGetSnk(COREDirectedConnection* directed_connection);
