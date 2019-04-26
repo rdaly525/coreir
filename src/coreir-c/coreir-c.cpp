@@ -257,6 +257,17 @@ extern "C" {
     }
   }
 
+  const char* COREModuleGetMetaData(COREModule* core_mod) {
+    Module* mod = rcast<Module*>(core_mod);
+    Context* c = mod->getContext();
+    string mstr = mod->getMetaData().dump();
+    std::size_t len = mstr.size() + 1;
+    char* cstr = c->newStringBuffer(len);
+    memcpy(cstr,mstr.c_str(),len);
+    return cstr;
+  }
+
+
   const char* COREModuleGetName(COREModule* module) {
     return rcast<Module*>(module)->getName().c_str();
   }

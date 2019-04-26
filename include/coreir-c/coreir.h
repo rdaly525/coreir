@@ -111,6 +111,8 @@ extern void COREWireableAddMetaDataStr(COREWireable* wireable, char *key, char *
 extern void COREModuleDefAddConnectionMetaDataStr(COREModuleDef* module_def,
         COREWireable* a, COREWireable* b, char *key, char *value);
 extern void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value);
+extern void COREModuleAddMetaDataStr(COREModule* module, char *key, char *value);
+extern const char* COREModuleGetMetaData(COREModule* module);
 
 // BEGIN : directedview
 extern const char** COREDirectedConnectionGetSrc(COREDirectedConnection* directed_connection);
