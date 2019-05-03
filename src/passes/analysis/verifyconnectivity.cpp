@@ -5,6 +5,13 @@
 using namespace std;
 using namespace CoreIR;
 
+namespace {
+bool IsVerilogDefn(ModuleDef* defn) {
+  const auto& metadata = defn->getModule()->getMetaData();
+  return metadata.count("verilog") > 0;
+}
+}
+
 void Passes::VerifyConnectivity::initialize(int argc, char** argv) {
   cxxopts::Options options("verifyconnectivity", "verifys the connectivty of the hardware graph");
   options.add_options()
@@ -79,16 +86,21 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w,Error& e) {
 }
 
 string Passes::VerifyConnectivity::ID = "verifyconnectivity";
+
 bool Passes::VerifyConnectivity::runOnModule(Module* m) {
-  //Check if all ports are connected for everything
+  // Check if all ports are connected for everything.
   Context* c = this->getContext();
   ModuleDef* def = m->getDef();
+
+  if (IsVerilogDefn(def)) {
+    return false;
+  }
   
   Error e;
   bool verify = true;
-  verify &= checkIfFullyConnected(def->getInterface(),e);
+  verify &= checkIfFullyConnected(def->getInterface(), e);
   for (auto inst : def->getInstances()) {
-    verify &= checkIfFullyConnected(inst.second,e);
+     verify &= checkIfFullyConnected(inst.second, e);
   }
   if (!verify) {
     c->error(e);
