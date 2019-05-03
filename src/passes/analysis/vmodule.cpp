@@ -314,13 +314,8 @@ void VModules::addModule(Module* m) {
     genHasVerilog = g->getMetaData().count("verilog") > 0;
   }
   bool modHasVerilog = m->getMetaData().count("verilog") > 0;
-  //Linking concerns:
-  //coreir Def and Verilog Def
-  //TODO should probably let the verilog def override the coreir def
-  if (hasDef) {
-    ASSERT(!genHasVerilog && !modHasVerilog,"NYI, Verilog def with coreir def");
-  }
-  //Two Verilog defs, should be an error
+  // Linking concerns:
+  //   Two Verilog defs, should be an error.
   ASSERT(!(modHasVerilog && genHasVerilog),"Linking issue!");
 
   bool isExtern = !hasDef && !genHasVerilog && !modHasVerilog;
