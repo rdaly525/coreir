@@ -1262,6 +1262,15 @@ namespace CoreIR {
           }
 
         });
+    } else if (opName == "float.eq") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          return BitVector(1, l == r);
+        });
+      
+    } else if (opName == "float.neq") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          return BitVector(1, l != r);
+        });
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
