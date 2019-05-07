@@ -413,6 +413,23 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.out") == res);
     }
 
+    SECTION("0.0352941 / PI") {
+      float a = 0.0352941;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res("16'h3c37");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+    
   }
   
   TEST_CASE("Run 32 bit float mul") {
