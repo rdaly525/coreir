@@ -343,6 +343,95 @@ namespace CoreIR {
     }
   }
 
+  TEST_CASE("Run 16 bit float div") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 7;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("add0",
+                     "float.div",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("add0.in0", "self.in0");
+    def->connect("add0.in1", "self.in1");        
+    def->connect("add0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("22.0 / PI") {
+      float a = 22.0;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res(16, "0100000011100000");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+
+    SECTION("3.17187 / PI") {
+      float a = 3.17187;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res("16'h3f80");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+
+    SECTION("0.0352941 / PI") {
+      float a = 0.0352941;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res("16'h3c37");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+    
+  }
+  
   TEST_CASE("Run 32 bit float mul") {
 
     // New context
