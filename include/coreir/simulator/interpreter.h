@@ -120,7 +120,8 @@ namespace CoreIR {
 
   typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
   typedef BitVec (*BitVecUnop)(const BitVec& l);
-
+  typedef float (*FloatOp)(const float l, const float r);
+  
   typedef std::function<bool()> StopFunction;
 
   struct StopCondition {
