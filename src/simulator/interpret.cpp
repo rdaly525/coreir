@@ -1,6 +1,8 @@
 #include "coreir/simulator/interpreter.h"
 #include "coreir/simulator/simulator.h"
 
+#include <functional>
+
 using namespace std;
 
 namespace CoreIR {
@@ -691,7 +693,7 @@ namespace CoreIR {
 
     setValue(toSelect(outPair.second), makeSimBitVector(res));
   }
-  
+
   void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
     updateInputs(vd);
 
@@ -963,13 +965,13 @@ namespace CoreIR {
     } else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
-      });
+        });
     } else if ((opName == "coreir.zext")) {
       updateZextNode(vd);
     } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
-      });
+        });
     } else if (opName == "coreir.andr") {
       updateAndrNode(vd);
     } else if (opName == "coreir.orr") {
@@ -982,12 +984,12 @@ namespace CoreIR {
         });
     } else if (opName == "coreir.sub") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-        return sub_general_width_bv(l, r);
-      });
+          return sub_general_width_bv(l, r);
+        });
     } else if ((opName == "coreir.mul")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-        return mul_general_width_bv(l, r);
-      });
+          return mul_general_width_bv(l, r);
+        });
     } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
     } else if (opName == "corebit.term") {
     } else if ((opName == "coreir.reg") || (opName == "corebit.reg")) {
@@ -997,7 +999,7 @@ namespace CoreIR {
     } else if ((opName == "coreir.wire") || (opName == "corebit.wire")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return r;
-      });
+        });
     } else if ((opName == "coreir.term") || (opName == "corebit.term")) {
       // No-op
     } else if (opName == "coreir.slice") {
@@ -1013,9 +1015,9 @@ namespace CoreIR {
           return ashr(l, r);
         });
     } else if (opName == "coreir.shl") {
-       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-           return shl(l, r);
-         });
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          return shl(l, r);
+        });
     } else if (opName == "coreir.ult") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (l < r) {
@@ -1109,23 +1111,52 @@ namespace CoreIR {
       updateLUTNNode(vd);
     } else if (opName == "float.add") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-          assert(l.bitLength() == 32);
-          assert(r.bitLength() == 32);
 
-          int lv = l.to_type<int>();
-          int rv = r.to_type<int>();
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
 
-          float lf = bitCastToFloat(lv);
-          float rf = bitCastToFloat(rv);
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
 
-          cout << "lf = " << lf << endl;
-          cout << "rf = " << rf << endl;
+            cout << "lf = " << lf << endl;
+            cout << "rf = " << rf << endl;
 
-          float res = lf + rf;
+            float res = lf + rf;
 
-          int resI = bitCastToInt(res);
+            int resI = bitCastToInt(res);
 
-          return BitVec(l.bitLength(), resI);
+            return BitVec(l.bitLength(), resI);
+
+            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            cout << "lf = " << lf << endl;
+            cout << "rf = " << rf << endl;
+
+            float res = lf + rf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+
+            cout << "res = " << res << endl;
+            cout << "32 bit result before rounding = " << longRes << endl;
+
+            BitVector bfloatRes = truncateToBfloat(longRes);
+            return bfloatRes;
+          }
         });
     } else if (opName == "float.mul") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
@@ -1271,6 +1302,61 @@ namespace CoreIR {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return BitVector(1, l != r);
         });
+    } else if (opName == "float.gt") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf > rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf > rf);
+          }
+
+        });
+    } else if (opName == "float.ge") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf >= rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf >= rf);
+          }
+
+        });
+      
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
@@ -1518,9 +1604,9 @@ namespace CoreIR {
           updateMemoryOutput(vd);
         }
 
-      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-        updateRegisterOutput(vd);
-      }
+        if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+          updateRegisterOutput(vd);
+        }
 
         if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
           updateDFFOutput(vd);
