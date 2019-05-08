@@ -1357,6 +1357,61 @@ namespace CoreIR {
 
         });
       
+    } else if (opName == "float.lt") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf < rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf < rf);
+          }
+
+        });
+    } else if (opName == "float.le") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf <= rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf <= rf);
+          }
+
+        });
+      
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
