@@ -8,7 +8,7 @@ using namespace std;
 namespace CoreIR {
 
   BitVector truncateToBfloat(const BitVector& longRes) {
-    cout << "32 bit result = " << longRes << endl;
+    //cout << "32 bit result = " << longRes << endl;
     assert(longRes.bitLength() == 32);
 
     BitVector bRes(16, 0);
@@ -23,12 +23,12 @@ namespace CoreIR {
       bRes.set(i - (23 - 7), longRes.get(i));
     }
     
-    cout << "Final bres = " << bRes << endl;
+    //cout << "Final bres = " << bRes << endl;
     return bRes;
   }
   
   BitVector extendBfloat(const BitVector& r) {
-    cout << "bfloat = " << r << endl;
+    //cout << "bfloat = " << r << endl;
     assert(r.bitLength() == 16);
 
     BitVector sgn(1, 0);
@@ -55,7 +55,7 @@ namespace CoreIR {
 
     res.set(31, sgn.get(0));
 
-    cout << "Extension result = " << res << endl;
+    //cout << "Extension result = " << res << endl;
     return res;
   }
   
@@ -1119,8 +1119,8 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            cout << "lf = " << lf << endl;
-            cout << "rf = " << rf << endl;
+            // cout << "lf = " << lf << endl;
+            // cout << "rf = " << rf << endl;
 
             float res = lf + rf;
 
@@ -1142,8 +1142,8 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            cout << "lf = " << lf << endl;
-            cout << "rf = " << rf << endl;
+            // cout << "lf = " << lf << endl;
+            // cout << "rf = " << rf << endl;
 
             float res = lf + rf;
 
@@ -1151,8 +1151,8 @@ namespace CoreIR {
 
             BitVector longRes = BitVec(32, resI);
 
-            cout << "res = " << res << endl;
-            cout << "32 bit result before rounding = " << longRes << endl;
+            //cout << "res = " << res << endl;
+            //cout << "32 bit result before rounding = " << longRes << endl;
 
             BitVector bfloatRes = truncateToBfloat(longRes);
             return bfloatRes;
@@ -1167,8 +1167,8 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            cout << "lf = " << lf << endl;
-            cout << "rf = " << rf << endl;
+            //cout << "lf = " << lf << endl;
+            //cout << "rf = " << rf << endl;
 
             float res = lf * rf;
 
@@ -1190,8 +1190,8 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            cout << "lf = " << lf << endl;
-            cout << "rf = " << rf << endl;
+            //cout << "lf = " << lf << endl;
+            //cout << "rf = " << rf << endl;
 
             float res = lf * rf;
 
@@ -1199,8 +1199,8 @@ namespace CoreIR {
 
             BitVector longRes = BitVec(32, resI);
 
-            cout << "res = " << res << endl;
-            cout << "32 bit result before rounding = " << longRes << endl;
+           //cout << "res = " << res << endl;
+           //cout << "32 bit result before rounding = " << longRes << endl;
 
             BitVector bfloatRes = truncateToBfloat(longRes);
             return bfloatRes;
@@ -1242,8 +1242,8 @@ namespace CoreIR {
 
             BitVector longRes = BitVec(32, resI);
 
-            cout << "res = " << res << endl;
-            cout << "32 bit result before rounding = " << longRes << endl;
+           //cout << "res = " << res << endl;
+           //cout << "32 bit result before rounding = " << longRes << endl;
 
             BitVector bfloatRes = truncateToBfloat(longRes);
             return bfloatRes;
@@ -1285,8 +1285,8 @@ namespace CoreIR {
 
             BitVector longRes = BitVec(32, resI);
 
-            cout << "res = " << res << endl;
-            cout << "32 bit result before rounding = " << longRes << endl;
+           //cout << "res = " << res << endl;
+           //cout << "32 bit result before rounding = " << longRes << endl;
 
             BitVector bfloatRes = truncateToBfloat(longRes);
             return bfloatRes;
