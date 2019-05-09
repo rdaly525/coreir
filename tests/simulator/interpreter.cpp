@@ -791,6 +791,51 @@ namespace CoreIR {
     }
     
   }  
+
+  TEST_CASE("32 bit negate") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.neg",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in", "self.in");
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("-(12.7) == -12.7") {
+      float a = 12.7;
+      state.setValue("self.in", BitVector(width, bitCastToInt(a)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(-a)));
+    }
+
+  }  
   
   TEST_CASE("Interpret simulator graphs") {
 
