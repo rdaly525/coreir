@@ -57,7 +57,7 @@ set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
 # Misc
 # ---------------------------------------------------------------------------- #
 ##
-## Only tested with gcc (> 4.8)
+## Compiler options
 ##
 if(${CMAKE_COMPILER_IS_GNUCXX})
 
@@ -72,13 +72,27 @@ else()
 
 endif()
 
+macro(coreir_set_compile_option IARG_TARGET_NAME)
+
+  if(${CMAKE_COMPILER_IS_GUNCXX})
+    target_compile_options(${IARG_TARGET_NAME} PRIVATE "-Wall")
+    target_compile_options(${IARG_TARGET_NAME} PRIVATE "-Werror")
+  endif()
+
+  set_property(
+    TARGET ${IARG_TARGET_NAME}
+    PROPERTY POSITION_INDEPENDENT_CODE ON
+  )
+
+endmacro()
+
+
 ##
 ## RPATH for shared target
 ##
-if(NOT ${COREIR_STATIC})
-  set(CMAKE_INSTALL_RPATH ${COREIR_INSTALL_RPATH})
-  set(CMAKE_MACOSX_RPATH TRUE)
-endif()
+set(CMAKE_INSTALL_RPATH ${COREIR_INSTALL_RPATH})
+set(CMAKE_MACOSX_RPATH TRUE)
+
 
 # ---------------------------------------------------------------------------- #
 # TARGET

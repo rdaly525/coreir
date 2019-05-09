@@ -15,6 +15,8 @@ endif()
 
 target_link_libraries(${COREIR_SIMLIB} PUBLIC ${COREIR_LIB_NAME})
 
+coreir_set_compile_option(${COREIR_SIMLIB})
+
 install(
   TARGETS ${COREIR_SIMLIB}
   LIBRARY DESTINATION lib

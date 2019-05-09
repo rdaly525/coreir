@@ -7,6 +7,7 @@ macro(add_coreir_sub_lib CLIB)
 
   set(SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${CLIB}.cpp")
 
+  # create lib
   if(${COREIR_STATIC})
     add_library(${COREIR_SUB_LIB} STATIC ${SRC_FILES})
   else()
@@ -15,9 +16,12 @@ macro(add_coreir_sub_lib CLIB)
 
   target_link_libraries(${COREIR_SUB_LIB} PUBLIC ${COREIR_LIB_NAME})
 
+  # compile features/options
+  coreir_set_compile_option(${COREIR_SUB_LIB})
+
+  # install lib
   install(
     TARGETS ${COREIR_SUB_LIB}
-    #EXPORT 
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
   )

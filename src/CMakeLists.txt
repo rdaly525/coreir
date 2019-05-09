@@ -28,6 +28,7 @@ add_library(${PROJECT_NAME}::${COREIR_LIB_NAME} ALIAS ${COREIR_LIB_NAME})
 ## compile features/options
 ##
 target_compile_features(${COREIR_LIB_NAME} PUBLIC cxx_std_11)
+coreir_set_compile_option(${COREIR_LIB_NAME})
 
 ##
 ## include paths
@@ -78,6 +79,7 @@ add_executable(${COREIR_EXE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
 target_link_libraries(${COREIR_EXE_NAME} PUBLIC ${COREIR_LIB_NAME})
 set_target_properties(${COREIR_EXE_NAME} PROPERTIES RUNTIME_OUTPUT_NAME coreir)
 
+coreir_set_compile_option(${COREIR_EXE_NAME})
 
 # ---------------------------------------------------------------------------- #
 # INSTALL
@@ -112,6 +114,8 @@ target_link_libraries(${COREIR_ITP_NAME} PUBLIC ${COREIR_LIB_NAME})
 target_link_libraries(${COREIR_ITP_NAME} PUBLIC coreirsim)
 target_link_libraries(${COREIR_ITP_NAME} PUBLIC coreir-commonlib)
 
+coreir_set_compile_option(${COREIR_ITP_NAME})
+
 
 # ---------------------------------------------------------------------------- #
 # INSTALL
@@ -131,6 +135,8 @@ add_executable(${COREIR_SIM_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/binary/simulator.c
 target_link_libraries(${COREIR_SIM_NAME} PUBLIC ${COREIR_LIB_NAME})
 target_link_libraries(${COREIR_SIM_NAME} PUBLIC coreirsim)
 target_link_libraries(${COREIR_SIM_NAME} PUBLIC coreir-commonlib)
+
+coreir_set_compile_option(${COREIR_SIM_NAME})
 
 
 # ---------------------------------------------------------------------------- #
