@@ -21,9 +21,18 @@ Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir_release>/lib` to yo
 Add the below lines in your `CMakeLists.txt`. (No `PATH` variable needs to be set.)
 
 ``` cmake
+# CMakeLists.txt
+
 find_package(coreir REQUIRED)
 
 target_link_libraries(MyTarget coreir::coreir)
+```
+
+For non-standard install path (`/usr` or `/usr/local`), set `CMAKE_PREFIX_PATH` to the customed install path.
+
+``` bash
+# bash
+cmake .. -DCMAKE_PREFIX_PATH=<coreir/install/path>
 ```
  
 
