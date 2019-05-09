@@ -23,3 +23,10 @@ install(
   ARCHIVE DESTINATION lib
 )
 
+add_custom_command(
+  TARGET ${COREIR_SIMLIB}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_SIMLIB}>" "${CMAKE_SOURCE_DIR}/lib"
+  COMMENT "Copying to lib/"
+)
+

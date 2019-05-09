@@ -26,6 +26,14 @@ macro(add_coreir_sub_lib CLIB)
     ARCHIVE DESTINATION lib
   )
 
+  # copy to source dir for tests (legacy)
+  add_custom_command(
+    TARGET ${COREIR_SUB_LIB}
+    POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_SUB_LIB}>" "${CMAKE_SOURCE_DIR}/lib"
+    COMMENT "Copying to lib/"
+  )
+
 endmacro()
 
 add_coreir_sub_lib("commonlib")

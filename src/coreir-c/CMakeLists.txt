@@ -20,6 +20,12 @@ install(
   ARCHIVE DESTINATION lib
 )
 
+add_custom_command(
+  TARGET ${COREIR_LIB_C}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_LIB_C}>" "${CMAKE_SOURCE_DIR}/lib"
+  COMMENT "Copying to lib/"
+)
 
 ##
 ## libcoreirsim-c
@@ -42,5 +48,13 @@ install(
   TARGETS ${COREIR_SIMLIB_C}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
+)
+
+
+add_custom_command(
+  TARGET ${COREIR_SIMLIB_C}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_SIMLIB_C}>" "${CMAKE_SOURCE_DIR}/lib"
+  COMMENT "Copying to lib/"
 )
 

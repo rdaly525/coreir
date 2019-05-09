@@ -61,6 +61,16 @@ install(
 )
 
 ##
+## copy to source dir for tests (legacy)
+##
+add_custom_command(
+  TARGET ${COREIR_LIB_NAME}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_LIB_NAME}>" "${CMAKE_SOURCE_DIR}/lib"
+  COMMENT "Copying to lib/"
+)
+
+##
 ## include directory
 ##
 install(
@@ -69,7 +79,6 @@ install(
   DESTINATION "." # XXX wrap the header in "coreir" to make this cleaner
   FILES_MATCHING PATTERN "*.h"
 )
-
 
 # ---------------------------------------------------------------------------- #
 # TARGET
@@ -90,6 +99,15 @@ install(
   RUNTIME DESTINATION bin
 )
 
+##
+## copy to source dir for tests (legacy)
+##
+add_custom_command(
+  TARGET ${COREIR_EXE_NAME}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_EXE_NAME}>" "${CMAKE_SOURCE_DIR}/bin"
+  COMMENT "Copying to bin/"
+)
 
 #Create the coreir libraries
 set(COREIR_SUBLIB_PREFIX ${COREIR_LIB_NAME})
@@ -126,6 +144,16 @@ install(
   RUNTIME DESTINATION bin
 )
 
+##
+## copy to source dir for tests (legacy)
+##
+add_custom_command(
+  TARGET ${COREIR_ITP_NAME}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_ITP_NAME}>" "${CMAKE_SOURCE_DIR}/bin"
+  COMMENT "Copying to bin/"
+)
+
 
 # ---------------------------------------------------------------------------- #
 # TARGET
@@ -146,5 +174,15 @@ coreir_set_compile_option(${COREIR_SIM_NAME})
 install(
   TARGETS ${COREIR_SIM_NAME}
   RUNTIME DESTINATION bin
+)
+
+##
+## copy to source dir for tests (legacy)
+##
+add_custom_command(
+  TARGET ${COREIR_SIM_NAME}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_SIM_NAME}>" "${CMAKE_SOURCE_DIR}/bin"
+  COMMENT "Copying to bin/"
 )
 
