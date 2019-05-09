@@ -1412,7 +1412,35 @@ namespace CoreIR {
 
         });
       
-    } else {
+    } else if (opName == "float.neg") {
+      updateBitVecUnop(vd, [](const BitVec& l) {
+          if ((l.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            float lf = bitCastToFloat(lv);
+            float res = -lf;
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+            return longRes;
+            
+          } else {
+            assert(l.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            int lv = lExt.to_type<int>();
+            float lf = bitCastToFloat(lv);
+            float res = -lf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+            BitVector bfloatRes = truncateToBfloat(longRes);
+            return bfloatRes;
+          }
+
+        });
+      
+  } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
     }
