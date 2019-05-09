@@ -1,29 +1,23 @@
-project(coreirsim)
+##
+## libcoreirsim
+##
+project(${COREIR_SIMLIB} LANGUAGES CXX)
 
 file(GLOB SRC_FILES 
     ${CMAKE_CURRENT_SOURCE_DIR}/[^_]*.cpp
 )
 
-#Create libcoreir
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
+if(${COREIR_STATIC})
+  add_library(${COREIR_SIMLIB} STATIC ${SRC_FILES})
+else()
+  add_library(${COREIR_SIMLIB} SHARED ${SRC_FILES})
+endif()
 
-add_library(coreirsim SHARED ${SRC_FILES})
-target_include_directories(coreirsim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
-target_link_libraries(coreirsim PUBLIC coreir)
+target_link_libraries(${COREIR_SIMLIB} PUBLIC ${COREIR_LIB_NAME})
 
 install(
-    TARGETS coreirsim
-    DESTINATION lib
+  TARGETS ${COREIR_SIMLIB}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
 )
-
-add_custom_command(
-  TARGET coreirsim
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreirsim>" "${CMAKE_SOURCE_DIR}/lib/"
-  COMMENT "Copying to lib/"
-)
-
-
-
 

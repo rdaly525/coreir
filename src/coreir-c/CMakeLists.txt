@@ -1,42 +1,42 @@
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
-
-
-#Create libcoreir-c
-project(coreir-c)
+##
+## libcoreir-c
+##
+project(${COREIR_LIB_C} LANGUAGES CXX)
 set(CSRC coreir-c.cpp types-c.cpp values-c.cpp)
 
-add_library(coreir-c SHARED ${CSRC})
-target_include_directories(coreir-c PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
-target_link_libraries(coreir-c PUBLIC coreir)
+if(${COREIR_STATIC})
+  add_library(${COREIR_LIB_C} STATIC ${CSRC})
+else()
+  add_library(${COREIR_LIB_C} SHARED ${CSRC})
+endif()
 
-#Create libcoreirsim-c
-project(coreirsim-c)
+target_link_libraries(${COREIR_LIB_C} PUBLIC ${COREIR_LIB_NAME})
+
+install(
+  TARGETS ${COREIR_LIB_C}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
+
+##
+## libcoreirsim-c
+##
+project(${COREIR_SIMLIB_C} LANGUAGES CXX)
 set(CSIMSRC simulator-c.cpp)
 
-add_library(coreirsim-c SHARED ${CSIMSRC})
-target_include_directories(coreirsim-c PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
-target_link_libraries(coreirsim-c PUBLIC coreir)
-target_link_libraries(coreirsim-c PUBLIC coreirsim)
+if(${COREIR_STATIC})
+  add_library(${COREIR_SIMLIB_C} STATIC ${CSIMSRC})
+else()
+  add_library(${COREIR_SIMLIB_C} SHARED ${CSIMSRC})
+endif()
 
-#Install libcoreir
+target_link_libraries(${COREIR_SIMLIB_C} PUBLIC ${COREIR_LIB_NAME})
+target_link_libraries(${COREIR_SIMLIB_C} PUBLIC ${COREIR_SIMLIB})
+
 install(
-    TARGETS coreir-c coreirsim-c
-    DESTINATION lib
+  TARGETS ${COREIR_SIMLIB_C}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
 )
-add_custom_command(
-  TARGET coreir-c
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir-c>" "${CMAKE_SOURCE_DIR}/lib/"
-  COMMENT "Copying to lib/"
-)
-
-add_custom_command(
-  TARGET coreirsim-c
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreirsim-c>" "${CMAKE_SOURCE_DIR}/lib/"
-  COMMENT "Copying to lib/"
-)
-
-
 

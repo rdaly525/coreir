@@ -1,39 +1,32 @@
+##
+## Macro for creating sub-units
+##
+macro(add_coreir_sub_lib CLIB)
+  set(COREIR_SUB_LIB "${COREIR_SUBLIB_PREFIX}-${CLIB}")
+  project(${COREIR_SUB_LIB} LANGUAGES CXX)
 
+  set(SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${CLIB}.cpp")
 
-#Common things for  creating the libraries
-#find_library(COREIR_LIB coreir)
-#message(STATUS ${COREIR_LIB})
-set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
+  if(${COREIR_STATIC})
+    add_library(${COREIR_SUB_LIB} STATIC ${SRC_FILES})
+  else()
+    add_library(${COREIR_SUB_LIB} SHARED ${SRC_FILES})
+  endif()
 
-set(COREIRLIBS
-    "commonlib"
-    "rtlil"
-    "aetherlinglib"
-    "ice40"
-    "float"
-)
-foreach(CLIB ${COREIRLIBS})
-    #message(STATUS ${COREIRLIB})
-    set(COREIRLIB "coreir-${CLIB}")
-    project(${COREIRLIB})
+  target_link_libraries(${COREIR_SUB_LIB} PUBLIC ${COREIR_LIB_NAME})
 
-    set(SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${CLIB}.cpp")
-
-    add_library(${COREIRLIB} SHARED ${SRC_FILES})
-    target_include_directories(${COREIRLIB} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
-    target_link_libraries(${COREIRLIB} PUBLIC coreir)
-    install(
-        TARGETS ${COREIRLIB}
-        DESTINATION lib
-    )
-  add_custom_command(
-    TARGET ${COREIRLIB}
-    POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIRLIB}>" "${CMAKE_SOURCE_DIR}/lib/"
-    COMMENT "Copying to lib/"
+  install(
+    TARGETS ${COREIR_SUB_LIB}
+    #EXPORT 
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
   )
 
-endforeach()
+endmacro()
 
+add_coreir_sub_lib("commonlib")
+add_coreir_sub_lib("rtlil")
+add_coreir_sub_lib("aetherlinglib")
+add_coreir_sub_lib("ice40")
+add_coreir_sub_lib("float")
 
