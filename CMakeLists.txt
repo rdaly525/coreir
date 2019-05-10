@@ -33,7 +33,7 @@ set(COREIR_INCLUDE_INSTALL_DIR        "include")
 set(COREIR_INCLUDE_BUILD_DIR          "${PROJECT_SOURCE_DIR}/include")
 set(COREIR_INSTALL_RPATH              "${CMAKE_INSTALL_PREFIX}/lib")
 set(COREIR_TARGETS_EXPORT_NAME        "${PROJECT_NAME}Targets")
-set(COREIR_CMAKE_CONFIG_TEMPLATE      "cmake/config.cmake.in")
+set(COREIR_CMAKE_CONFIG_TEMPLATE      "tools/cmake/config.cmake.in")
 set(COREIR_CMAKE_CONFIG_DIR           "${CMAKE_CURRENT_BINARY_DIR}")
 set(COREIR_CMAKE_PROJECT_TARGETS_FILE "${PROJECT_NAME}Targets.cmake")
 
@@ -50,7 +50,7 @@ set(COREIR_CMAKE_PROJECT_CONFIG_FILE
 ##
 ## Make sure that custom modules can be found.
 ##
-set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/tools/cmake" ${CMAKE_MODULE_PATH})
 
 
 # ---------------------------------------------------------------------------- #
@@ -159,8 +159,8 @@ endif()
 # ---------------------------------------------------------------------------- #
 if(NOT TARGET uninstall)
   configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/tools/cmake/cmake_uninstall.cmake"
     IMMEDIATE @ONLY
   )
 
