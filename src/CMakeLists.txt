@@ -66,7 +66,10 @@ install(
 add_custom_command(
   TARGET ${COREIR_LIB_NAME}
   POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_LIB_NAME}>" "${CMAKE_SOURCE_DIR}/lib"
+  COMMAND 
+    ${CMAKE_COMMAND} -E copy 
+    "$<TARGET_FILE:${COREIR_LIB_NAME}>" 
+    "${CMAKE_SOURCE_DIR}/lib"
   COMMENT "Copying to lib/"
 )
 
@@ -80,15 +83,20 @@ install(
   FILES_MATCHING PATTERN "*.h"
 )
 
+
 # ---------------------------------------------------------------------------- #
 # TARGET
 # coreir executable
 # ---------------------------------------------------------------------------- #
-add_executable(${COREIR_EXE_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
+add_executable(
+  ${COREIR_EXE_NAME} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp
+)
 target_link_libraries(${COREIR_EXE_NAME} PUBLIC ${COREIR_LIB_NAME})
 set_target_properties(${COREIR_EXE_NAME} PROPERTIES RUNTIME_OUTPUT_NAME coreir)
 
 coreir_set_compile_option(${COREIR_EXE_NAME})
+
 
 # ---------------------------------------------------------------------------- #
 # INSTALL
@@ -105,9 +113,13 @@ install(
 add_custom_command(
   TARGET ${COREIR_EXE_NAME}
   POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_EXE_NAME}>" "${CMAKE_SOURCE_DIR}/bin"
+  COMMAND 
+    ${CMAKE_COMMAND} -E copy 
+    "$<TARGET_FILE:${COREIR_EXE_NAME}>" 
+    "${CMAKE_SOURCE_DIR}/bin"
   COMMENT "Copying to bin/"
 )
+
 
 #Create the coreir libraries
 set(COREIR_SUBLIB_PREFIX ${COREIR_LIB_NAME})
@@ -127,10 +139,13 @@ add_subdirectory(coreir-c)
 # TARGET
 # interpreter executable
 # ---------------------------------------------------------------------------- #
-add_executable(${COREIR_ITP_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/binary/interpreter.cpp)
+add_executable(
+  ${COREIR_ITP_NAME} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/binary/interpreter.cpp
+)
 target_link_libraries(${COREIR_ITP_NAME} PUBLIC ${COREIR_LIB_NAME})
-target_link_libraries(${COREIR_ITP_NAME} PUBLIC coreirsim)
-target_link_libraries(${COREIR_ITP_NAME} PUBLIC coreir-commonlib)
+target_link_libraries(${COREIR_ITP_NAME} PUBLIC ${COREIR_SIMLIB})
+target_link_libraries(${COREIR_ITP_NAME} PUBLIC "${COREIR_SUBLIB_PREFIX}-commonlib")
 
 coreir_set_compile_option(${COREIR_ITP_NAME})
 
@@ -150,7 +165,10 @@ install(
 add_custom_command(
   TARGET ${COREIR_ITP_NAME}
   POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_ITP_NAME}>" "${CMAKE_SOURCE_DIR}/bin"
+  COMMAND 
+    ${CMAKE_COMMAND} -E copy 
+    "$<TARGET_FILE:${COREIR_ITP_NAME}>" 
+    "${CMAKE_SOURCE_DIR}/bin"
   COMMENT "Copying to bin/"
 )
 
@@ -159,10 +177,13 @@ add_custom_command(
 # TARGET
 # simulator executable
 # ---------------------------------------------------------------------------- #
-add_executable(${COREIR_SIM_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/binary/simulator.cpp)
+add_executable(
+  ${COREIR_SIM_NAME} 
+  ${CMAKE_CURRENT_SOURCE_DIR}/binary/simulator.cpp
+)
 target_link_libraries(${COREIR_SIM_NAME} PUBLIC ${COREIR_LIB_NAME})
-target_link_libraries(${COREIR_SIM_NAME} PUBLIC coreirsim)
-target_link_libraries(${COREIR_SIM_NAME} PUBLIC coreir-commonlib)
+target_link_libraries(${COREIR_SIM_NAME} PUBLIC ${COREIR_SIMLIB})
+target_link_libraries(${COREIR_SIM_NAME} PUBLIC "${COREIR_SUBLIB_PREFIX}-commonlib")
 
 coreir_set_compile_option(${COREIR_SIM_NAME})
 
@@ -182,7 +203,10 @@ install(
 add_custom_command(
   TARGET ${COREIR_SIM_NAME}
   POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:${COREIR_SIM_NAME}>" "${CMAKE_SOURCE_DIR}/bin"
+  COMMAND 
+    ${CMAKE_COMMAND} -E copy 
+    "$<TARGET_FILE:${COREIR_SIM_NAME}>" 
+    "${CMAKE_SOURCE_DIR}/bin"
   COMMENT "Copying to bin/"
 )
 
