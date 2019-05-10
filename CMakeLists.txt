@@ -166,7 +166,7 @@ if(NOT TARGET uninstall)
 
   add_custom_target(uninstall
     COMMAND 
-      ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/cmake/cmake_uninstall.cmake
+      ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/tools/cmake/cmake_uninstall.cmake
   )
 
 endif()
