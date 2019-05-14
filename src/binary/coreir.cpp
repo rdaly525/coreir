@@ -3,16 +3,13 @@
 #include <fstream>
 #include <memory>
 #include "passlib.h"
-
 #include "coreir/common/logging_lite.hpp"
-
 #include "coreir/passes/analysis/smtlib2.h"
 #include "coreir/passes/analysis/smv.h"
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/magma.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
-
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
 #include "coreir/definitions/coreFirrtl.hpp"
@@ -33,7 +30,7 @@ int main(int argc, char *argv[]) {
   cxxopts::Options options("coreir", "a simple hardware compiler");
   options.add_options()
     ("h,help","help")
-    ("v,verbose","Set verbose")
+    ("v,verbose", "Set verbosity", cxxopts::value<int>())
     ("i,input","input file: '<file1>.json,<file2.json,...'",cxxopts::value<std::string>())
     ("o,output","output file: <file>.<json|fir|v|py|dot>",cxxopts::value<std::string>())
     ("p,passes","Run passes in order: '<pass1> <pass1args>;<pass2> <pass2args>;...'",cxxopts::value<std::string>())
@@ -76,7 +73,11 @@ int main(int argc, char *argv[]) {
   }
   
   if (opts.count("v")) {
-    c->getPassManager()->setVerbosity(opts["v"].as<bool>());
+    const auto verbosity = opts["v"].as<int>();
+    if (verbosity < 0 || verbosity >= NUM_LOG_LEVELS) {
+      LOG(FATAL) << "Unsupported verbosity: " << verbosity;
+    }
+    ::common::SetLogLevel(verbosity);
   }
 
   ASSERT(opts.count("i"),"No input specified");
