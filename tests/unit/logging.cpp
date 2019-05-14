@@ -5,12 +5,12 @@
 using namespace CoreIR;
 
 void TestLogInfo() {
-  LOG(DEBUG) << "Hello!";
+  LOG(INFO) << "Hello!";
 }
 
 void TestLogDebug() {
   LOG(DEBUG) << "Debug Hello!";
-  ::common::internal::LogSeverityStore::set_severity(DEBUG);
+  ::common::SetLogLevel(DEBUG);
   LOG(DEBUG) << "Debug Hello!";
 }
 
