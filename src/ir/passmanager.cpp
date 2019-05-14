@@ -111,9 +111,7 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
 }
 
 bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
-  if (verbose) {
-    LOG(INFO) << "Running Pass: " << p->getName();
-  }
+  LOG(INFO) << "Running Pass: " << p->getName();
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
   char** argv = new char*[argc];
@@ -148,9 +146,7 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
       ASSERT(0,"NYI!");
   }
   modified |= p->finalize();
-  if (verbose) {
-    p->print();
-  }
+  p->print();
   passLog.push_back(p->getName());
   return modified;
 }

@@ -11,29 +11,23 @@
 enum LogSeverity {
   INFO = 0,
   DEBUG,
-  FATAL
+  FATAL,
+  NUM_LOG_LEVELS,
 };
 
 namespace common {
+
+LogSeverity GetLogLevel();
+void SetLogLevel(int severity);
+
 namespace internal {
-
-class LogSeverityStore {
- public:
-  static LogSeverity severity() { return severity_; }
-  static void set_severity(LogSeverity severity) { severity_ = severity; }
-
- private:
-  static LogSeverity severity_;
-};
-
-LogSeverity LogSeverityStore::severity_ = INFO;
 
 // LoggerWrapper is a thread safe class.
 class LoggerWrapper {
  public:
   LoggerWrapper(LogSeverity severity) {
     abort_ = (severity == FATAL);
-    write_ = (severity == FATAL) or (severity == LogSeverityStore::severity());
+    write_ = (severity == FATAL) || (severity == GetLogLevel());
   }
 
   bool abort() const { return abort_; }
@@ -57,16 +51,7 @@ class Logger {
     that.alive_ = false;
   }
   Logger(const Logger& that) = delete;
-  ~Logger() {
-    if (alive_) {
-      if (write_) EndLine();
-      if (abort_) {
-        Write("Check failed! aborting.");
-        EndLine();
-        abort();
-      }
-    }
-  }
+  ~Logger();
 
   template<typename T>
   static void Write(const T& x) { std::cerr << x; }
@@ -98,15 +83,6 @@ class LoggerVoidify {
 
 }  // namespace internal
 }  // namespace common
-
-
-void SetLogLevelInfo() {
-  ::common::internal::LogSeverityStore::set_severity(INFO);
-}
-
-void SetLogLevelDebug() {
-  ::common::internal::LogSeverityStore::set_severity(DEBUG);
-}
 
 #define LOG(severity)                                                   \
   ::common::internal::LoggerWrapper(severity)                           \

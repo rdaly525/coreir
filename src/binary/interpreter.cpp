@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/verilog.h"
@@ -73,7 +74,11 @@ int main(int argc, char *argv[]) {
   }
   
   if (opts.count("v")) {
-    c->getPassManager()->setVerbosity(opts["v"].as<bool>());
+    const auto verbosity = opts["v"].as<int>();
+    if (verbosity < 0 || verbosity >= NUM_LOG_LEVELS) {
+      LOG(FATAL) << "Unsupported verbosity: " << verbosity;
+    }
+    ::common::SetLogLevel(verbosity);
   }
 
   ASSERT(opts.count("i"),"No input specified");
