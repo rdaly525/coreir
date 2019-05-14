@@ -27,7 +27,7 @@ class LoggerWrapper {
  public:
   LoggerWrapper(LogSeverity severity) {
     abort_ = (severity == FATAL);
-    write_ = (severity == FATAL) || (severity == GetLogLevel());
+    write_ = (severity == FATAL) || (severity <= GetLogLevel());
   }
 
   bool abort() const { return abort_; }
