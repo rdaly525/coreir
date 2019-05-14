@@ -5,7 +5,7 @@
 using namespace CoreIR;
 
 void TestLogInfo() {
-  LOG(INFO) << "Hello!";
+  LOG(DEBUG) << "Hello!";
 }
 
 void TestLogDebug() {
