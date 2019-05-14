@@ -1605,11 +1605,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
       def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
       def->addInstance("add", add_gen, {{"width",aBitwidth}});
-      //def->addInstance("and", "corebit.and");
+      def->addInstance("and", "corebit.and");
       def->addInstance("resetOr", "corebit.or");
   
       // wire up modules
-      // clear if max < count+inc
+      // clear if max < count+inc && en == 1
       def->connect("count.out","self.out");
       def->connect("count.out","add.in0");
       def->connect("inc.out","add.in1");
@@ -1619,11 +1619,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   
       def->connect("add.out","ult.in1");
       def->connect("max.out","ult.in0");
+
+      def->connect("ult.out","and.in0");
+      def->connect("self.en","and.in1");
+      // and.out === (max < count+inc  &&  en == 1)
+      
       // clear count on either getting to max or reset
-      def->connect("ult.out","resetOr.in0");
+      def->connect("and.out","resetOr.in0");
       def->connect("self.reset","resetOr.in1");
       def->connect("resetOr.out","count.clr");
-      def->connect("ult.out","self.overflow");
+      def->connect("and.out","self.overflow");
     }
   });
 
