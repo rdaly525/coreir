@@ -342,6 +342,500 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(a + b)));
     }
   }
+
+  TEST_CASE("Run 16 bit float div") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 7;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("add0",
+                     "float.div",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("add0.in0", "self.in0");
+    def->connect("add0.in1", "self.in1");        
+    def->connect("add0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("22.0 / PI") {
+      float a = 22.0;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res(16, "0100000011100000");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+
+    SECTION("3.17187 / PI") {
+      float a = 3.17187;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res("16'h3f80");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+
+    SECTION("0.0352941 / PI") {
+      float a = 0.0352941;
+      float b = 3.14159;
+
+      cout << "Float div = " << (a / b) << endl;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
+
+      state.execute();
+
+      BitVector res("16'h3c37");
+
+      cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
+      REQUIRE(state.getBitVec("self.out") == res);
+    }
+    
+  }
+  
+  TEST_CASE("Run 32 bit float mul") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.mul",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 + 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("1.73 * 2.34") {
+      float a = 1.73;
+      float b = 2.34;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(a * b)));
+    }
+  }
+
+  TEST_CASE("Floating point gt") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.gt",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("27.0 > 9.4") {
+      float a = 27.0;
+      float b = 9.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 1));
+    }
+  }
+
+  TEST_CASE("Floating point ge") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.ge",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("!(-1.2 >= 0.4)") {
+      float a = -1.2;
+      float b = 0.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 0));
+    }
+  }
+
+  TEST_CASE("Floating point lt") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.lt",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("27.0 < 9.4") {
+      float a = 27.0;
+      float b = 9.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 0));
+    }
+  }
+
+  TEST_CASE("Floating point le") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.le",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("-1.2 <= 0.4") {
+      float a = -1.2;
+      float b = 0.4;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(1, 1));
+    }
+  }
+  
+  TEST_CASE("16 bit bfloat multiply") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 7;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.mul",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 * 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+  }
+
+  TEST_CASE("16 bit bfloat sub") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 7;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.sub",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 - 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("7.0 - 9.7") {
+      float a = 7.0;
+      float b = 9.7;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      //REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(a - b)));
+    }
+    
+  }  
+
+  TEST_CASE("32 bit negate") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.neg",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in", "self.in");
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("-(12.7) == -12.7") {
+      float a = 12.7;
+      state.setValue("self.in", BitVector(width, bitCastToInt(a)));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(-a)));
+    }
+
+  }  
   
   TEST_CASE("Interpret simulator graphs") {
 
