@@ -44,7 +44,7 @@ target_include_directories(${COREIR_LIB_NAME}
 # LINK LIBRARIES
 # external dependencies
 # ---------------------------------------------------------------------------- #
-target_link_libraries(${COREIR_LIB_NAME} PUBLIC dl)
+target_link_libraries(${COREIR_LIB_NAME} PUBLIC ${CMAKE_DL_LIBS})
 
 
 # ---------------------------------------------------------------------------- #
