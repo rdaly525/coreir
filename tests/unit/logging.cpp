@@ -8,6 +8,13 @@ void TestLogInfo() {
   LOG(INFO) << "Hello!";
 }
 
+void TestLogDebug() {
+  LOG(DEBUG) << "Debug Hello!";
+  ::common::internal::LogSeverityStore::set_severity(DEBUG);
+  LOG(DEBUG) << "Debug Hello!";
+}
+
 int main() {
   TestLogInfo();
+  TestLogDebug();
 }
