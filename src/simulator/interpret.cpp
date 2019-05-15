@@ -32,7 +32,7 @@ namespace CoreIR {
     assert(r.bitLength() == 16);
 
     BitVector sgn(1, 0);
-    sgn.set(1, r.get(15));
+    sgn.set(0, r.get(15));
 
     BitVector exp = slice(r, 7, 15);
     assert(exp.bitLength() == 8);
