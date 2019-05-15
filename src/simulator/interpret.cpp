@@ -1112,6 +1112,11 @@ namespace CoreIR {
     } else if (opName == "float.add") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+          
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1160,7 +1165,13 @@ namespace CoreIR {
         });
     } else if (opName == "float.mul") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+          
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
 
@@ -1208,7 +1219,15 @@ namespace CoreIR {
 
         });
     } else if (opName == "float.sub") {
+
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+      
+          
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1251,7 +1270,15 @@ namespace CoreIR {
 
         });
     } else if (opName == "float.div") {
+
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+      
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1285,8 +1312,8 @@ namespace CoreIR {
 
             BitVector longRes = BitVec(32, resI);
 
-           //cout << "res = " << res << endl;
-           //cout << "32 bit result before rounding = " << longRes << endl;
+            //cout << "res = " << res << endl;
+            //cout << "32 bit result before rounding = " << longRes << endl;
 
             BitVector bfloatRes = truncateToBfloat(longRes);
             return bfloatRes;
@@ -1295,15 +1322,33 @@ namespace CoreIR {
         });
     } else if (opName == "float.eq") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
           return BitVector(1, l == r);
         });
       
     } else if (opName == "float.neq") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
           return BitVector(1, l != r);
         });
     } else if (opName == "float.gt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1331,6 +1376,12 @@ namespace CoreIR {
         });
     } else if (opName == "float.ge") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1359,6 +1410,12 @@ namespace CoreIR {
       
     } else if (opName == "float.lt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1386,6 +1443,12 @@ namespace CoreIR {
         });
     } else if (opName == "float.le") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1414,6 +1477,12 @@ namespace CoreIR {
       
     } else if (opName == "float.neg") {
       updateBitVecUnop(vd, [](const BitVec& l) {
+
+          if (!l.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+          
           if ((l.bitLength() == 32)) {
             int lv = l.to_type<int>();
             float lf = bitCastToFloat(lv);
