@@ -14,8 +14,26 @@ Option 2:
 Add `export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:<path_to_coreir_release>/lib` to your `~/.bashrc` or `~/.profile`
 If this does not work, you may have System Integrity Protection enabled on your Mac.
 
-### If you are using linux:  
+#### If you are using linux:  
 Add `export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<path_to_coreir_release>/lib` to your `~/.bashrc` or `~/.profile` 
+
+#### If you are using CMake:
+Add the below lines in your `CMakeLists.txt`. (No `PATH` variable needs to be set.)
+
+``` cmake
+# CMakeLists.txt
+
+find_package(coreir REQUIRED)
+
+target_link_libraries(MyTarget coreir::coreir)
+```
+
+For non-standard install path (`/usr` or `/usr/local`), set `CMAKE_PREFIX_PATH` to the customed install path.
+
+``` bash
+# bash
+cmake .. -DCMAKE_PREFIX_PATH=<coreir/install/path>
+```
  
 
 # How to Install from source (OSX or Linux)

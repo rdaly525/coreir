@@ -1,40 +1,173 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.8)
 
-project(coreir)
-option(STATIC "Statically link everything" OFF)
-
-
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    # require at least gcc 4.8
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-        message(FATAL_ERROR "GCC version must be at least 4.9!")
-    endif()
+if(${CMAKE_VERSION} VERSION_LESS 3.13)
+  cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
 else()
-    message(WARNING "You are using an untested compiler")
+  cmake_policy(VERSION 3.13)
 endif()
 
-if (STATIC)
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        set(STATIC_FLAGS "-static-libgcc -static-libstdc++")
-        add_definitions(-D_GLIBCXX_USE_CXX11_ABI=0)
-    endif()
+
+# ---------------------------------------------------------------------------- #
+# PROJECT
+# name version language
+# ---------------------------------------------------------------------------- #
+project(coreir VERSION     0.0.30
+               LANGUAGES   CXX
+)
+
+
+# ---------------------------------------------------------------------------- #
+# OPTION
+# build configuration
+# ---------------------------------------------------------------------------- #
+option(BUILD_SHARED_LIBS "To build shared librareis"                         ON)
+
+
+# ---------------------------------------------------------------------------- #
+# VARARIABLE
+# alias and configurations
+# ---------------------------------------------------------------------------- #
+set(COREIR_TARGET_NAME                ${PROJECT_NAME})
+set(COREIR_CONFIG_INSTALL_DIR         "lib/cmake/${PROJECT_NAME}" CACHE INTERNAL "")
+set(COREIR_INCLUDE_INSTALL_DIR        "include")
+set(COREIR_INCLUDE_BUILD_DIR          "${PROJECT_SOURCE_DIR}/include")
+set(COREIR_INSTALL_RPATH              "${CMAKE_INSTALL_PREFIX}/lib")
+set(COREIR_TARGETS_EXPORT_NAME        "${PROJECT_NAME}Targets")
+set(COREIR_CMAKE_CONFIG_TEMPLATE      "tools/cmake/config.cmake.in")
+set(COREIR_CMAKE_CONFIG_DIR           "${CMAKE_CURRENT_BINARY_DIR}")
+set(COREIR_CMAKE_PROJECT_TARGETS_FILE "${PROJECT_NAME}Targets.cmake")
+
+set(COREIR_CMAKE_VERSION_CONFIG_FILE 
+  "${COREIR_CMAKE_CONFIG_DIR}/${PROJECT_NAME}ConfigVersion.cmake")
+
+set(COREIR_CMAKE_PROJECT_CONFIG_FILE
+  "${COREIR_CMAKE_CONFIG_DIR}/${PROJECT_NAME}Config.cmake")
+
+
+# ---------------------------------------------------------------------------- #
+# External dependencies
+# ---------------------------------------------------------------------------- #
+##
+## Make sure that custom modules can be found.
+##
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/tools/cmake" ${CMAKE_MODULE_PATH})
+
+
+# ---------------------------------------------------------------------------- #
+# Misc
+# ---------------------------------------------------------------------------- #
+##
+## Compiler options
+##
+if(${CMAKE_COMPILER_IS_GNUCXX})
+
+  # require at least gcc 4.8
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
+    message(FATAL_ERROR "GCC version must be at least 4.9!")
+  endif()
+
+else() 
+
+  message(WARNING "You are using an untested compiler")
+
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror ${STATIC_FLAGS}")
+macro(coreir_set_compile_option IARG_TARGET_NAME)
 
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
-set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include)
+  if(${CMAKE_COMPILER_IS_GUNCXX})
+    target_compile_options(${IARG_TARGET_NAME} PRIVATE "-Wall")
+    target_compile_options(${IARG_TARGET_NAME} PRIVATE "-Werror")
+  endif()
 
-add_subdirectory(${CMAKE_SOURCE_DIR}/src)
+  set_property(
+    TARGET ${IARG_TARGET_NAME}
+    PROPERTY POSITION_INDEPENDENT_CODE ON
+  )
+
+endmacro()
+
+
+##
+## RPATH for shared target
+##
+set(CMAKE_INSTALL_RPATH ${COREIR_INSTALL_RPATH})
+set(CMAKE_MACOSX_RPATH TRUE)
+
+
+# ---------------------------------------------------------------------------- #
+# TARGET
+# library target
+# ---------------------------------------------------------------------------- #
+set(COREIR_LIB_NAME ${COREIR_TARGET_NAME})
+set(COREIR_EXE_NAME ${COREIR_TARGET_NAME}-bin)
+set(COREIR_ITP_NAME ${COREIR_TARGET_NAME}-interpreter)
+set(COREIR_SIM_NAME ${COREIR_TARGET_NAME}-simulator)
+add_subdirectory(src)
+
+
+# ---------------------------------------------------------------------------- #
+# INSTALL
+# project related
+# ---------------------------------------------------------------------------- #
+##
+## forward version for find_package
+##
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+  ${COREIR_CMAKE_VERSION_CONFIG_FILE} 
+  COMPATIBILITY SameMajorVersion # AnyNewVersion
+)
+
+##
+## cmake config
+##
+configure_file(
+  ${COREIR_CMAKE_CONFIG_TEMPLATE}
+  ${COREIR_CMAKE_PROJECT_CONFIG_FILE}
+  @ONLY
+)
 
 install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/include/
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.h"
+  FILES ${COREIR_CMAKE_PROJECT_CONFIG_FILE} ${COREIR_CMAKE_VERSION_CONFIG_FILE}
+  DESTINATION ${COREIR_CONFIG_INSTALL_DIR}
 )
 
-add_custom_target(uninstall
-  "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/tools/cmake/uninstall.cmake"
+##
+## project export
+##
+install(
+  EXPORT ${COREIR_TARGETS_EXPORT_NAME}
+  DESTINATION ${COREIR_CONFIG_INSTALL_DIR}
+  NAMESPACE ${PROJECT_NAME}::
+  FILE ${COREIR_CMAKE_PROJECT_TARGETS_FILE}
 )
+
+export(
+  TARGETS ${COREIR_LIB_NAME}
+  NAMESPACE ${PROJECT_NAME}::
+  FILE ${COREIR_CMAKE_PROJECT_TARGETS_FILE}
+)
+
+if(${COREIR_EXPORT_PACKAGE})
+  export(PACKAGE ${PROJECT_NAME})
+endif()
+
+
+# ---------------------------------------------------------------------------- #
+# UNINSTALL
+# uninstall files listed in install_manifest.txt
+# ---------------------------------------------------------------------------- #
+if(NOT TARGET uninstall)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/tools/cmake/cmake_uninstall.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/tools/cmake/cmake_uninstall.cmake"
+    IMMEDIATE @ONLY
+  )
+
+  add_custom_target(uninstall
+    COMMAND 
+      ${CMAKE_COMMAND} -P ${CMAKE_CURRENT_BINARY_DIR}/tools/cmake/cmake_uninstall.cmake
+  )
+
+endif()
 
