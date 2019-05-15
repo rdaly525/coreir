@@ -20,7 +20,7 @@ project(coreir VERSION     0.0.30
 # OPTION
 # build configuration
 # ---------------------------------------------------------------------------- #
-option(COREIR_STATIC "Statically link everything"                           OFF)
+option(BUILD_SHARED_LIBS "To build shared librareis"                         ON)
 
 
 # ---------------------------------------------------------------------------- #

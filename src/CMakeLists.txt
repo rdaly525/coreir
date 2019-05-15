@@ -16,12 +16,7 @@ file(GLOB SRC_FILES
 ##
 ## create lib
 ##
-if(${COREIR_STATIC})
-  add_library(${COREIR_LIB_NAME} STATIC ${SRC_FILES})
-else()
-  add_library(${COREIR_LIB_NAME} SHARED ${SRC_FILES})
-endif()
-
+add_library(${COREIR_LIB_NAME} ${SRC_FILES})
 add_library(${PROJECT_NAME}::${COREIR_LIB_NAME} ALIAS ${COREIR_LIB_NAME})
 
 ##

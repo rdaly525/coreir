@@ -4,11 +4,7 @@
 project(${COREIR_LIB_C} LANGUAGES CXX)
 set(CSRC coreir-c.cpp types-c.cpp values-c.cpp)
 
-if(${COREIR_STATIC})
-  add_library(${COREIR_LIB_C} STATIC ${CSRC})
-else()
-  add_library(${COREIR_LIB_C} SHARED ${CSRC})
-endif()
+add_library(${COREIR_LIB_C} ${CSRC})
 
 target_link_libraries(${COREIR_LIB_C} PUBLIC ${COREIR_LIB_NAME})
 
@@ -36,11 +32,7 @@ add_custom_command(
 project(${COREIR_SIMLIB_C} LANGUAGES CXX)
 set(CSIMSRC simulator-c.cpp)
 
-if(${COREIR_STATIC})
-  add_library(${COREIR_SIMLIB_C} STATIC ${CSIMSRC})
-else()
-  add_library(${COREIR_SIMLIB_C} SHARED ${CSIMSRC})
-endif()
+add_library(${COREIR_SIMLIB_C} ${CSIMSRC})
 
 target_link_libraries(${COREIR_SIMLIB_C} PUBLIC ${COREIR_LIB_NAME})
 target_link_libraries(${COREIR_SIMLIB_C} PUBLIC ${COREIR_SIMLIB})

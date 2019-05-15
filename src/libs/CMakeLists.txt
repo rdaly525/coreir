@@ -8,11 +8,7 @@ macro(add_coreir_sub_lib CLIB)
   set(SRC_FILES "${CMAKE_CURRENT_SOURCE_DIR}/${CLIB}.cpp")
 
   # create lib
-  if(${COREIR_STATIC})
-    add_library(${COREIR_SUB_LIB} STATIC ${SRC_FILES})
-  else()
-    add_library(${COREIR_SUB_LIB} SHARED ${SRC_FILES})
-  endif()
+  add_library(${COREIR_SUB_LIB} ${SRC_FILES})
 
   target_link_libraries(${COREIR_SUB_LIB} PUBLIC ${COREIR_LIB_NAME})
 
