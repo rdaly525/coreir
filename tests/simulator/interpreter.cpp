@@ -1,5 +1,3 @@
-//#define CATCH_CONFIG_MAIN
-
 #include "catch.hpp"
 
 #include "coreir.h"
@@ -733,6 +731,69 @@ namespace CoreIR {
 
   }
 
+  TEST_CASE("32 bit bfloat sub") {
+
+    // New context
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    CoreIRLoadLibrary_float(c);
+
+    int expBits = 8;
+    int fracBits = 23;
+    int width = 1 + expBits + fracBits;
+    
+    Type* faddType =
+      c->Record({
+          {"in0", c->BitIn()->Arr(width)},
+            {"in1", c->BitIn()->Arr(width)},
+              {"out",c->Bit()->Arr(width)}
+        });
+
+    Module* faddM = c->getGlobal()->newModuleDecl("faddM", faddType);
+    ModuleDef* def = faddM->newModuleDef();
+
+    def->addInstance("mul0",
+                     "float.sub",
+                     {{"exp_bits", Const::make(c, expBits)},
+                         {"frac_bits", Const::make(c, fracBits)}});
+
+    def->connect("mul0.in0", "self.in0");
+    def->connect("mul0.in1", "self.in1");        
+    def->connect("mul0.out", "self.out");
+    faddM->setDef(def);
+
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    SimulatorState state(faddM);
+
+    SECTION("0 - 0 == 0") {
+      state.setValue("self.in0", BitVector(width, 0));
+      state.setValue("self.in1", BitVector(width, 0));
+
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("7.0 - 9.7") {
+      float a = 7.0;
+      float b = 9.7;
+
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+
+      state.execute();
+
+      float res = a - b;
+      BitVector expectedFp = BitVector(width, bitCastToInt(a - b));
+      cout << "Expected fsub     = " << expectedFp << endl;
+      cout << "Actual fsub       = " << state.getBitVec("self.out") << endl;      
+      REQUIRE(state.getBitVec("self.out") == expectedFp);
+    }
+    
+  }  
+
   TEST_CASE("16 bit bfloat sub") {
 
     // New context
@@ -782,16 +843,20 @@ namespace CoreIR {
       float a = 7.0;
       float b = 9.7;
 
-      state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
-      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+      state.setValue("self.in0", BitVector(width, bitCastToInt(a) >> 16));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b) >> 16));
 
       state.execute();
 
-      //REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(a - b)));
+      float res = a - b;
+      BitVector expectedFp = BitVector(width, bitCastToInt(a - b) >> 16);
+      cout << "Expected fsub     = " << expectedFp << endl;
+      cout << "Actual fsub       = " << state.getBitVec("self.out") << endl;      
+      REQUIRE(state.getBitVec("self.out") == expectedFp);
     }
     
   }  
-
+  
   TEST_CASE("32 bit negate") {
 
     // New context
