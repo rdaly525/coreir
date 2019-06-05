@@ -151,7 +151,6 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
       "output [exp_bits+frac_bits:0] out"
     };
     vjson["definition"] = ""
-    "wire [2:0] result_x;\n"
     "wire [7:0] status;\n"
     "CW_fp_mult #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a(in0),.b(in1),.rnd('h0),.z(out),.status(status));";
     fp->getGenerator("mul")->getMetaData()["verilog"] = vjson;
