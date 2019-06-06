@@ -62,6 +62,9 @@ class Constructor {
 
     Wireable* zext(Wireable* in0, uint extend_bits);
     Wireable* sext(Wireable* in0, uint extend_bits);
+    
+    Wireable* reg(Wireable* in0, uint init, Wireable* clk=nullptr);
+    Wireable* reg_arst(Wireable* in0, uint init, Wireable* clk=nullptr, Wireable* rst=nullptr);
 
 };
 

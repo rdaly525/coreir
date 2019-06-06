@@ -173,4 +173,38 @@ EXT_OP(zext)
 
 #undef EXT_OP
 
+//Register
+Wireable* Constructor::reg(Wireable* in0, uint init, Wireable* clk) {
+  ASSERT(isBitInArray(in0),"input needs to be a BitVector");
+  uint bits = in0->getType()->getSize();
+  auto def = in0->getContainer();
+  auto c = this->def->getContext();
+  auto inst = this->def->addInstance(def->generateUniqueInstanceName(),"coreir.reg",{{"width",Const::make(c,bits)}},{{"init",Const::make(c,bits,init)}});
+  def->connect(in0,inst->sel("in"));
+  if (clk != nullptr) {
+    def->connect(clk,inst->sel("clk"));
+  }
+  return inst->sel("out");
+}
+
+Wireable* Constructor::reg_arst(Wireable* in0, uint init, Wireable* clk, Wireable* rst) {
+  ASSERT(isBitInArray(in0),"input needs to be a BitVector");
+  uint bits = in0->getType()->getSize();
+  auto def = in0->getContainer();
+  auto c = this->def->getContext();
+  auto inst = this->def->addInstance(def->generateUniqueInstanceName(),"coreir.reg_arst",{{"width",Const::make(c,bits)}},{{"init",Const::make(c,bits,init)}});
+  def->connect(in0,inst->sel("in"));
+  if (clk != nullptr) {
+    def->connect(clk,inst->sel("clk"));
+  }
+  if (rst != nullptr) {
+    def->connect(rst,inst->sel("arst"));
+  }
+  return inst->sel("out");
+}
+
+
+
+
+
 }
