@@ -25,6 +25,7 @@ int main() {
   def->connect(mul->sel("out"),add->sel("in1"));
   app->setDef(def);
   app->print();
+  c->setTop(app);
   c->runPasses({"rungenerators"});
   //Write to verilog file
   saveToFile(c->getGlobal(),"_float_CW.json");

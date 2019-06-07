@@ -62,7 +62,7 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
       "input [exp_bits+frac_bits:0] a",
       "input [exp_bits+frac_bits:0] b",
       "input [2:0] rnd",
-      "output [exp_bits+frac_bits:0] z"
+      "output [exp_bits+frac_bits:0] z",
       "output [7:0] status"
     };
     vjson["definition"] = ""
@@ -78,7 +78,7 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
       "input [exp_bits+frac_bits:0] a",
       "input [exp_bits+frac_bits:0] b",
       "input [2:0] rnd",
-      "output [exp_bits+frac_bits:0] z"
+      "output [exp_bits+frac_bits:0] z",
       "output [7:0] status"
     };
     vjson["definition"] = ""
