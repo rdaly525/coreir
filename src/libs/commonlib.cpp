@@ -1554,6 +1554,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"dimensionality",c->Int()},
       {"stride_0",c->Int()},
       {"range_0",c->Int()},
+      {"stride_1",c->Int()},
+      {"range_1",c->Int()},
       {"chain_en",c->Bool()},
       {"chain_idx",c->Int()},
       {"starting_addr",c->Int()}
@@ -1567,7 +1569,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint width = genargs.at("width")->get<int>();
       return c->Record({
         {"wen",c->BitIn()},
-        {"wen",c->Bit()},
+        {"valid",c->Bit()},
         {"flush", c->BitIn()},
         {"dataout",c->Bit()->Arr(width)},
         {"datain",c->BitIn()->Arr(width)},
