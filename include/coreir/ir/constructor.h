@@ -53,11 +53,11 @@ class Constructor {
     DECLARE_UNARY_OP(orr)
     DECLARE_UNARY_OP(xorr)
 
-
     Wireable* mux(Wireable* sel, Wireable* in0, Wireable* in1);
     Wireable* concat(Wireable* in0, Wireable* in1);
     Wireable* slice(Wireable* in0, uint lo, uint hi);
     Wireable* const_(int bits,int value);
+    Wireable* const_(bool value);
     void term(Wireable* in0);
 
     Wireable* zext(Wireable* in0, uint extend_bits);
