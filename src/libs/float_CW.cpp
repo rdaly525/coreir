@@ -112,19 +112,20 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
   {
     json vjson;
     vjson["interface"] =  {
-      "input [exp_bits+frac_bits:0] a",
-      "input [exp_bits+frac_bits:0] b",
-      "input [2:0] rnd",
-      "output [exp_bits+frac_bits:0] z"
-      "output [7:0] status"
+      "input [15:0] in0",
+      "input [15:0] in1",
+      "output [15:0] out"
     };
     vjson["definition"] = R"(
+localparam exp_bits = 8;
+localparam frac_bits = 7;
 wire [exp_bits+frac_bits:0] int_out;
+wire [2:0] results_x;
 reg sign;
 reg [exp_bits-1:0] exp;
 reg [frac_bits:0] frac;
 
-CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h1),.z({int_out,result_x}),.status());
+CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h1),.z({int_out,results_x}),.status());
 
 always @(*) begin
   sign = int_out[exp_bits+frac_bits];
