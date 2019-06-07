@@ -1541,6 +1541,43 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
+  /////////////////////////////////////
+  //*** unified buffer definition ***//
+  /////////////////////////////////////
+
+  Params ubparams = Params({
+      {"width",c->Int()},
+      {"depth",c->Int()},
+      {"rate_matched",c->Bool()},
+      {"stencil_width",c->Int()},
+      {"iter_cnt",c->Int()},
+      {"dimensionality",c->Int()},
+      {"stride_0",c->Int()},
+      {"range_0",c->Int()},
+      {"chain_en",c->Bool()},
+      {"chain_idx",c->Int()},
+      {"starting_addr",c->Int()}
+        });
+  
+  // unified buffer type
+  commonlib->newTypeGen(
+    "unified_buffer_type", //name for the typegen
+    ubparams, //generator parameters
+    [](Context* c, Values genargs) { //Function to compute type
+      uint width = genargs.at("width")->get<int>();
+      return c->Record({
+        {"wen",c->BitIn()},
+        {"wen",c->Bit()},
+        {"flush", c->BitIn()},
+        {"dataout",c->Bit()->Arr(width)},
+        {"datain",c->BitIn()->Arr(width)},
+      });
+    }
+  );
+
+  commonlib->newGeneratorDecl("unified_buffer",commonlib->getTypeGen("unified_buffer_type"),ubparams);
+
+  
 
   /////////////////////////////////
   //*** counter definition    ***//
