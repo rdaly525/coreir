@@ -10,7 +10,6 @@ using namespace CoreIR;
 Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
 
   Namespace* fpcw = c->newNamespace("float_CW");
-  
   Params floatParams = Params({
     {"exp_bits",c->Int()},
     {"frac_bits",c->Int()},
@@ -107,9 +106,8 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
     def->connect(add->sel("z"),io->sel("out"));
   });
 
-    
   //Special case the verilog for BFloat16 mul
-  auto bfmul = fp->getGenerator("mul")->getModule({{"exp_bits",Const::make(c,8)},{"frac_bits",Const::make(c,7)},{"ieee_compliance",Const::make(c,false)}});
+  auto bfmul = fp->getGenerator("mul")->getModule({{"exp_bits",Const::make(c,8)},{"frac_bits",Const::make(c,7)}});
   //Add verilog to add
   {
     json vjson;
