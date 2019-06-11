@@ -67,7 +67,7 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
     };
     vjson["definition"] = ""
     "wire [7:0] status;\n"
-    "CW_fp_mult #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(ieee_compliance)) mul1 (.a(a),.b(b),.rnd(rnd),.z(out),.status(status));";
+    "CW_fp_mult #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(ieee_compliance)) mul_inst (.a(a),.b(b),.rnd(rnd),.z(out),.status(status));";
     mulcw->getMetaData()["verilog"] = vjson;
   }
   
@@ -83,7 +83,7 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
     };
     vjson["definition"] = ""
     "wire [7:0] status;\n"
-    "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(ieee_compliance)) add (.a(a),.b(b),.rnd(rnd),.z(out),.status(status));";
+    "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(ieee_compliance)) add_inst (.a(a),.b(b),.rnd(rnd),.z(z),.status(status));";
     addcw->getMetaData()["verilog"] = vjson;
   }
 
@@ -124,8 +124,9 @@ wire [2:0] results_x;
 reg sign;
 reg [exp_bits-1:0] exp;
 reg [frac_bits:0] frac;
+wire [7:0] status;
 
-CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h1),.z({int_out,results_x}),.status());
+CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h1),.z({int_out,results_x}),.status(status));
 
 always @(*) begin
   sign = int_out[exp_bits+frac_bits];
@@ -134,7 +135,7 @@ always @(*) begin
   if ((results_x[2]&(results_x[1] | results_x[0])) | (int_out[0] & results_x[2])) begin
     frac = frac + 1'd1;
     if (~&exp) begin
-      exp = exp + frac[frac_bits]; 
+      exp = exp + {{(exp_bits-1){1'b0}},frac[frac_bits]}; 
     end
   end
 end
