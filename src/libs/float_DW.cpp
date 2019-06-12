@@ -1,22 +1,22 @@
-#include "coreir/libs/float_DC.h"
+#include "coreir/libs/float_DW.h"
 #include "coreir/ir/constructor.h"
 
-COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(float_DC);
+COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(float_DW);
 
 using namespace std;
 using namespace CoreIR;
 
 //This will only implement the float library for add and mul
-Namespace* CoreIRLoadLibrary_float_DC(Context* c) {
+Namespace* CoreIRLoadLibrary_float_DW(Context* c) {
 
-  Namespace* fpdc = c->newNamespace("float_DC");
+  Namespace* fpdw = c->newNamespace("float_DW");
   Params floatParams = Params({
     {"exp_width",c->Int()},
     {"sig_width",c->Int()},
     {"ieee_compliance",c->Bool()}
   });
   
-  auto binary_tg = fpdc->newTypeGen(
+  auto binary_tg = fpdw->newTypeGen(
     "binary",
     floatParams,
     [](Context* c, Values args) {
@@ -34,8 +34,8 @@ Namespace* CoreIRLoadLibrary_float_DC(Context* c) {
     }
   );
  
-  auto muldw = fpdc->newGeneratorDecl("fp_mul",binary_tg,floatParams);
-  auto adddw = fpdc->newGeneratorDecl("fp_add",binary_tg,floatParams);
+  auto muldw = fpdw->newGeneratorDecl("fp_mul",binary_tg,floatParams);
+  auto adddw = fpdw->newGeneratorDecl("fp_add",binary_tg,floatParams);
 
   //Add verilog to mul
   {
@@ -76,7 +76,7 @@ Namespace* CoreIRLoadLibrary_float_DC(Context* c) {
   //load the definition of float.add and float.mul
   auto fp = c->getNamespace("float");
   fp->getGenerator("add")->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-    auto add = def->addInstance("ai","float_DC.fp_add",{{"exp_width",args.at("exp_bits")},{"sig_width",args.at("frac_bits")},{"ieee_compliance",Const::make(c,false)}});
+    auto add = def->addInstance("ai","float_DW.fp_add",{{"exp_width",args.at("exp_bits")},{"sig_width",args.at("frac_bits")},{"ieee_compliance",Const::make(c,false)}});
     auto io = def->getInterface();
     auto C = Constructor(def);
     def->connect(io->sel("in0"),add->sel("a"));
@@ -86,7 +86,7 @@ Namespace* CoreIRLoadLibrary_float_DC(Context* c) {
   });
   
   fp->getGenerator("mul")->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
-    auto add = def->addInstance("mi","float_DC.fp_mul",{{"exp_width",args.at("exp_bits")},{"sig_width",args.at("frac_bits")},{"ieee_compliance",Const::make(c,false)}});
+    auto add = def->addInstance("mi","float_DW.fp_mul",{{"exp_width",args.at("exp_bits")},{"sig_width",args.at("frac_bits")},{"ieee_compliance",Const::make(c,false)}});
     auto io = def->getInterface();
     auto C = Constructor(def);
     def->connect(io->sel("in0"),add->sel("a"));
@@ -99,4 +99,4 @@ Namespace* CoreIRLoadLibrary_float_DC(Context* c) {
 }
 
 
-COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(float_DC)
+COREIR_GEN_EXTERNAL_API_FOR_LIBRARY(float_DW)
