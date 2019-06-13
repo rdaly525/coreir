@@ -49,7 +49,7 @@ Namespace* CoreIRLoadLibrary_float_DW(Context* c) {
     };
     vjson["definition"] = ""
     "wire [7:0] status;\n"
-    "DW_fp_mult #(.sig_width(sig_width), .exp_width(exp_width), .ieee_compliance(ieee_compliance)) mul_inst (.a(a),.b(b),.rnd(rnd),.z(out),.status(status));";
+    "DW_fp_mult #(.sig_width(sig_width), .exp_width(exp_width), .ieee_compliance(ieee_compliance)) mul_inst (.a(a),.b(b),.rnd(rnd),.z(z),.status(status));";
     muldw->getMetaData()["verilog"] = vjson;
   }
   
