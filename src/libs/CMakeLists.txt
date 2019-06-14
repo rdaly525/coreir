@@ -12,6 +12,8 @@ set(COREIRLIBS
     "aetherlinglib"
     "ice40"
     "float"
+    "float_CW"
+    "float_DW"
 )
 foreach(CLIB ${COREIRLIBS})
     #message(STATUS ${COREIRLIB})
