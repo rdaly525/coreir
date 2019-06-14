@@ -13,6 +13,23 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
   Namespace* memory = c->newNamespace("memory");
 
+
+  // Note this is a linebuffer MEMORY (a single row), with a stencil valid
+  Params RbwsvGenParams = {{"width",c->Int()},{"depth",c->Int()},{"stencil_width",c->Int()}};
+  memory->newTypeGen("rowbufferWithStencilValidType",RbwsvGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"valid", c->Bit()},
+      {"flush", c->BitIn()},
+    });
+  });
+  memory->newGeneratorDecl("rowbuffer_stencil_valid",memory->getTypeGen("rowbufferWithStencilValidType"),RbwsvGenParams);
+  
+  
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   //Linebuffer Memory. Use this for memory in linebuffer mode
   memory->newTypeGen("rowbufferType",MemGenParams,[](Context* c, Values genargs) {
@@ -26,7 +43,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
       {"flush", c->BitIn()},
     });
   });
-
+  
   //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
   Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
 

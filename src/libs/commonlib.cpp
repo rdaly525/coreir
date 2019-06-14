@@ -903,6 +903,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
      {"output_type",CoreIRType::make(c)},
      {"image_type",CoreIRType::make(c)},
      {"has_valid",c->Bool()},
+     {"has_stencil_valid",c->Bool()}
     };
 
   commonlib->newTypeGen(
@@ -910,9 +911,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     lb_args,
     [](Context* c, Values genargs) { //Function to compute type
       bool has_valid = genargs.at("has_valid")->get<bool>();
+      bool has_stencil_valid = genargs.at("has_stencil_valid")->get<bool>();
       Type* in_type  = genargs.at("input_type")->get<Type*>();
       Type* out_type  = genargs.at("output_type")->get<Type*>();
       Type* img_type = genargs.at("image_type")->get<Type*>();
+
+      // can't have has_stencil_valid without a valid
+      ASSERT(!(!has_valid && has_stencil_valid),
+        "One must have a valid signal to utilize stencil valid");
 
       // process and check the input arguments
       vector<uint> in_dims = get_dims(in_type);
@@ -992,9 +998,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     lb_args
   );
   lb->addDefaultGenArgs({{"has_valid",Const::make(c,false)}});
+  lb->addDefaultGenArgs({{"has_stencil_valid",Const::make(c,false)}});
 
   lb->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
       bool has_valid = genargs.at("has_valid")->get<bool>();
+      bool has_stencil_valid = genargs.at("has_stencil_valid")->get<bool>();
       bool is_last_lb= true;
       Type* in_type  = genargs.at("input_type")->get<Type*>();
       Type* out_type = genargs.at("output_type")->get<Type*>();
@@ -1006,6 +1014,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             {"image_type", Const::make(c, img_type)},
             {"output_type", Const::make(c, out_type)},
             {"has_valid", Const::make(c, has_valid)},
+            {"has_stencil_valid", Const::make(c, has_stencil_valid)},
             {"is_last_lb", Const::make(c, is_last_lb)}
       };
 
@@ -1070,6 +1079,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
        {"output_type",CoreIRType::make(c)},
        {"image_type",CoreIRType::make(c)},
        {"has_valid",c->Bool()},
+       {"has_stencil_valid",c->Bool()},
        {"is_last_lb",c->Bool()} // use this to denote when to create valid register chain
       };
 
@@ -1098,11 +1108,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       "linebuffer_recursive",
       commonlib->getTypeGen("lb_recursive_type"),
       lb_recursive_args
-                                                        );
+    );
   
   lb_recursive->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //cout << "running linebuffer generator" << endl;
     bool has_valid = genargs.at("has_valid")->get<bool>();
+    bool has_stencil_valid = genargs.at("has_stencil_valid")->get<bool>();
     bool is_last_lb= genargs.at("is_last_lb")->get<bool>();
     Type* in_type  = genargs.at("input_type")->get<Type*>();
     Type* out_type = genargs.at("output_type")->get<Type*>();
@@ -1237,9 +1248,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             {"image_type", Const::make(c, lb_image)},
             {"output_type", Const::make(c, lb_output)},
             {"has_valid", Const::make(c, has_valid)},
+            {"has_stencil_valid", Const::make(c, has_stencil_valid)},
             {"is_last_lb", Const::make(c, !has_valid)}
           };
-        //if (!has_valid || (is_last_lb && i == out_dim-1)) { // was used when is_last_lb was used recursively
+        // was used when is_last_lb was used recursively, now only lastlb makes valid counter chain
+        //if (!has_valid || (is_last_lb && i == out_dim-1)) { 
         
         def->addInstance(lb_name, "commonlib.linebuffer_recursive", args);
         def->connect({"self","reset"},{lb_name,"reset"});
@@ -1306,8 +1319,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               lbmem_name += "_" + to_string(indices[dim_i]);
             }
 
-            def->addInstance(lbmem_name, "memory.rowbuffer",
-                             {{"width",aBitwidth},{"depth",aLbmemSize}});
+            if (has_stencil_valid) {
+              def->addInstance(lbmem_name, "memory.rowbuffer_stencil_valid",
+                               {{"width",aBitwidth},{"depth",aLbmemSize},{"stencil_width",Const::make(c, 0)}});
+
+            } else {
+              def->addInstance(lbmem_name, "memory.rowbuffer",
+                               {{"width",aBitwidth},{"depth",aLbmemSize}});
+            }
 
 
             // hook up flush
@@ -1444,7 +1463,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             def->connect(valid_chain_str, "self.valid");
             def->addInstance("reset_term", "corebit.term");
             def->connect("self.reset","reset_term.in");
-          } else { //if (is_last_lb) {
+          } else if (is_last_lb && !has_stencil_valid) {
 
             std::vector<std::string> counter_outputs;
             counter_outputs.push_back("self.wen");
@@ -1517,8 +1536,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               for (uint dim_i=0; dim_i<counter_outputs.size(); ++dim_i) {
                 def->connect(counter_outputs[dim_i], andr_name +".in."+to_string(dim_i));
               }
-            
             }
+            
+          } else { //if (is_last_lb && has_stencil_valid) {
+            ASSERT(is_last_lb && has_stencil_valid,
+                   "This should be the only case left if these conditionals are correct");
+            
+            // By setting the stencil_width on the rowbuffer correctly, we don't need external counters.
+            def->connect(valid_chain_str, "self.valid");
           }
 
         } else { // has_valid == 0
@@ -1558,7 +1583,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"range_1",c->Int()},
       {"chain_en",c->Bool()},
       {"chain_idx",c->Int()},
-      {"starting_addr",c->Int()}
+      {"starting_addr",c->Int()},
+      {"init",c->Json()}
     });
   
   // unified buffer type
@@ -1578,6 +1604,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   );
 
   auto unified_buffer_gen = commonlib->newGeneratorDecl("unified_buffer",commonlib->getTypeGen("unified_buffer_type"),ubparams);
+  Json jdata;
+  jdata["init"][0] = 0; // set default init to "0"
+  unified_buffer_gen->addDefaultGenArgs({{"init",Const::make(c,jdata)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
   
