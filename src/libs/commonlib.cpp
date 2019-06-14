@@ -1559,7 +1559,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"chain_en",c->Bool()},
       {"chain_idx",c->Int()},
       {"starting_addr",c->Int()}
-        });
+    });
   
   // unified buffer type
   commonlib->newTypeGen(
@@ -1577,8 +1577,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   );
 
-  commonlib->newGeneratorDecl("unified_buffer",commonlib->getTypeGen("unified_buffer_type"),ubparams);
-
+  auto unified_buffer_gen = commonlib->newGeneratorDecl("unified_buffer",commonlib->getTypeGen("unified_buffer_type"),ubparams);
+  unified_buffer_gen->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
   
 
   /////////////////////////////////
