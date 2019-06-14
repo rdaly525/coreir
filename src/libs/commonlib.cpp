@@ -1577,9 +1577,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     }
   );
 
-  commonlib->newGeneratorDecl("unified_buffer",commonlib->getTypeGen("unified_buffer_type"),ubparams);
-  const_array->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
-  const_array->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
+  auto unified_buffer_gen = commonlib->newGeneratorDecl("unified_buffer",commonlib->getTypeGen("unified_buffer_type"),ubparams);
+  unified_buffer_gen->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
   
 
   /////////////////////////////////
