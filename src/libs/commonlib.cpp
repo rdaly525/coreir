@@ -1595,10 +1595,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint width = genargs.at("width")->get<int>();
       return c->Record({
         {"wen",c->BitIn()},
-        {"valid",c->Bit()},
+        {"ren",c->BitIn()},
         {"flush", c->BitIn()},
-        {"dataout",c->Bit()->Arr(width)},
         {"datain",c->BitIn()->Arr(width)},
+        {"valid",c->Bit()},
+        {"dataout",c->Bit()->Arr(width)}
       });
     }
   );
