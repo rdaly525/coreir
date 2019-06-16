@@ -1581,6 +1581,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"range_0",c->Int()},
       {"stride_1",c->Int()},
       {"range_1",c->Int()},
+      {"stride_2",c->Int()},
+      {"range_2",c->Int()},
       {"chain_en",c->Bool()},
       {"chain_idx",c->Int()},
       {"starting_addr",c->Int()},
@@ -1610,6 +1612,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"init",Const::make(c,jdata)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_2",Const::make(c,0)}});
   
 
   /////////////////////////////////
