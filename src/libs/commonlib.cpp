@@ -1583,6 +1583,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"range_1",c->Int()},
       {"stride_2",c->Int()},
       {"range_2",c->Int()},
+      {"stride_3",c->Int()},
+      {"range_3",c->Int()},
+      {"stride_4",c->Int()},
+      {"range_4",c->Int()},
+      {"stride_5",c->Int()},
+      {"range_5",c->Int()},
       {"chain_en",c->Bool()},
       {"chain_idx",c->Int()},
       {"starting_addr",c->Int()},
@@ -1614,6 +1620,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_2",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_5",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_5",Const::make(c,0)}});
   
 
   /////////////////////////////////
