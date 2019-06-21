@@ -186,6 +186,10 @@ namespace CoreIR {
         
 
         // Set memory state to default value
+        Values params = inst->getModArgs();
+        if (contains_key(string("init"), params)) {
+          assert(false);
+        }
         SimMemory freshMem(width, depth);
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});
 
