@@ -18,7 +18,6 @@ class PassManager {
   std::map<std::string,bool> analysisPasses;
   
   std::vector<std::string> passLog;
-  bool verbose = false;
   public:
     explicit PassManager(Context* c);
     ~PassManager();
@@ -30,7 +29,6 @@ class PassManager {
     //Returns if graph was modified
     bool run(std::vector<std::string>& passes, std::vector<std::string> namespaceName={"global"});
     bool isAnalysisCached(std::string);
-    void setVerbosity(bool v) { verbose = v;}
     void printLog();
     void printPassChoices();
 

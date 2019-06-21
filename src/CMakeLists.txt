@@ -3,13 +3,19 @@ file(GLOB SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/ir/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/analysis/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/transform/[^_]*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/common/[^_]*.cpp
 )
 
 #Create libcoreir
 set(CMAKE_MACOSX_RPATH 1)
 set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
 
-add_library(coreir SHARED ${SRC_FILES})
+if (STATIC)
+    add_library(coreir STATIC ${SRC_FILES})
+else()
+    add_library(coreir SHARED ${SRC_FILES})
+endif()
+
 target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
 

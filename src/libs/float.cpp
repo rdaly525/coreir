@@ -106,10 +106,27 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
       });
     }
   );
+
+  fp->newTypeGen(
+    "muxType",
+    floatParams,
+    [](Context* c, Values args) {
+      uint exp_bits = args.at("exp_bits")->get<int>();
+      uint frac_bits = args.at("frac_bits")->get<int>();
+      uint width = 1+exp_bits+frac_bits;
+      Type* ptype = c->Bit()->Arr(width);
+      return c->Record({
+        {"in0",c->Flip(ptype)},
+        {"in1",c->Flip(ptype)},
+        {"sel",c->BitIn()},
+        {"out",ptype}
+      });
+    }
+  );
   
-  vector<string> unaryOps = {"neg", "sqr"};
-  vector<string> binaryOps = {"abs", "add", "sub", "mul", "div", "rem" };
-  vector<string> binaryReduceOps = {"le","lt","ge","gt","eq"};
+  vector<string> unaryOps = {"neg", "sqr", "flr", "ceil"};
+  vector<string> binaryOps = {"abs", "add", "sub", "mul", "div", "rem", "min","max"};
+  vector<string> binaryReduceOps = {"le","lt","ge","gt","eq","neq"};
 
   for (auto op : unaryOps) {
     TypeGen* tg = fp->getTypeGen("unary");
@@ -123,6 +140,7 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
     TypeGen* tg = fp->getTypeGen("binaryReduce");
     fp->newGeneratorDecl(op,tg,floatParams);
   }
+  fp->newGeneratorDecl("mux",fp->getTypeGen("muxType"),floatParams);
   
   //Add verilog to FP add and FP mul
   {
@@ -134,7 +152,8 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
     };
     vjson["definition"] = ""
     "wire [2:0] result_x;\n"
-    "CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h0),.z({out,result_x}),.status());";
+    "wire [7:0] status;\n"
+    "CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h0),.z({out,result_x}),.status(status));";
     fp->getGenerator("mul")->getMetaData()["verilog"] = vjson;
   }
   {
@@ -145,7 +164,8 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
       "output [exp_bits+frac_bits:0] out"
     };
     vjson["definition"] = ""
-    "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(0)) add1 (.a(in0),.b(in1),.rnd('h0),.z(out),.status());";
+    "wire [7:0] status;\n"
+    "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), .ieee_compliance(0)) add1 (.a(in0),.b(in1),.rnd('h0),.z(out),.status(status));";
     fp->getGenerator("add")->getMetaData()["verilog"] = vjson;
   }
 
