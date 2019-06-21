@@ -20,9 +20,7 @@ if (STATIC)
     endif()
 endif()
 
-set(CMAKE_CXX_STANDARD 17)
-
-set(CMAKE_CXX_FLAGS "-Wall -fPIC -Werror ${STATIC_FLAGS}")
+set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fPIC -Werror ${STATIC_FLAGS}")
 
 # Based on
 # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
