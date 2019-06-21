@@ -27,7 +27,7 @@ void checkValuesAreParams(Values args, Params params,std::string errstring="");
 
 bool doValuesMatchParams(Values args, Params params);
 
-
+BitVector hexStringToBitVector(const std::string& str);
 //Checks that all the values are actually constants
 void checkValuesAreConst(Values vs);
 

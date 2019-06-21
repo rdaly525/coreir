@@ -16,6 +16,10 @@ using namespace std;
 
 namespace CoreIR {
 
+  string quote(string s) {
+    return "\""+s+"\"";
+  }
+  
   void addCounter(Context* c, Namespace* global) {
 
     //assert(false);
@@ -1636,12 +1640,12 @@ namespace CoreIR {
       Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
       ModuleDef* def = memory->newModuleDef();
 
-      vector<BitVector> memValues;
-      for (int i = 0; i < depth; i++) {
-        memValues.push_back(BitVector(width, i));
-      }
-      //JsonType vals;
       Json vals;
+      for (int i = 0; i < depth; i++) {
+        BitVector bv(width, i);
+        vals.emplace_back(bv.hex_string());
+      }
+      
       def->addInstance("m0",
       		       "memory.rom",
       		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
