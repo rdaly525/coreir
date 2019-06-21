@@ -1667,8 +1667,8 @@ namespace CoreIR {
 
       state.setClock("self.clk", 0, 1);
       state.setValue("self.read_addr", BitVec(index, 1));
-
       state.exeCombinational();
+      state.execute();
 
       REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
 
