@@ -206,7 +206,7 @@ namespace CoreIR {
             numVals++;
           }
 
-          assert(numVals == depth);
+          assert(((int) numVals) == ((int) depth));
         }
 
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});
