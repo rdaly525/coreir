@@ -1642,8 +1642,9 @@ namespace CoreIR {
 
       Json vals;
       for (int i = 0; i < (int) depth; i++) {
-        BitVector bv(width, i);
-        vals.emplace_back(bv.hex_string());
+        //BitVector bv(width, i);
+        //vals.emplace_back(bv.hex_string());
+        vals.emplace_back(to_string(i));
       }
       
       def->addInstance("m0",

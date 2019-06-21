@@ -193,10 +193,12 @@ namespace CoreIR {
           int numVals = 0;
           for (auto val : ramValues) {
             cout << val << endl;
-            string valstr = val;
-            string str = valstr.substr(4);
-            cout << "truncated = " << str << endl;
-            BitVector valueBv = hexStringToBitVector(str);
+            // string valstr = val;
+            // string str = valstr.substr(4);
+            // cout << "truncated = " << str << endl;
+            // BitVector valueBv = hexStringToBitVector(str);
+            string v = val;
+            BitVector valueBv = BitVector(width, stoi(v));
             BitVector addrBv(ceil(log2(depth)), numVals);
 
             cout << "AddrBv  = " << addrBv << endl;            
