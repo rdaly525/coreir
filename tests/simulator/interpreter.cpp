@@ -1641,7 +1641,7 @@ namespace CoreIR {
       ModuleDef* def = memory->newModuleDef();
 
       Json vals;
-      for (int i = 0; i < depth; i++) {
+      for (int i = 0; i < (int) depth; i++) {
         BitVector bv(width, i);
         vals.emplace_back(bv.hex_string());
       }
