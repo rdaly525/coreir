@@ -1647,9 +1647,12 @@ namespace CoreIR {
       		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
                        {{"init", Const::make(c, vals)}});
 
+      def->addInstance("rdConst","coreir.const",{{"width",Const::make(c,1)}},{{"value",Const::make(c,BitVector(1,1))}});      
+
       def->connect("self.clk", "m0.clk");
       def->connect("self.read_data", "m0.rdata");
       def->connect("self.read_addr", "m0.raddr");
+      def->connect("m0.ren", "rdConst.out.0");
 
       memory->setDef(def);
 
