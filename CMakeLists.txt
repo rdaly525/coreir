@@ -22,6 +22,29 @@ endif()
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror ${STATIC_FLAGS}")
 
+# Based on
+# https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
+# 
+# Download and unpack verilogAST at configure time
+configure_file(CMakeLists.txt.in verilogAST-download/CMakeLists.txt)
+execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/verilogAST-download )
+if(result)
+    message(FATAL_ERROR "CMake step for verilogAST failed: ${result}")
+endif()
+execute_process(COMMAND ${CMAKE_COMMAND} --build .
+    RESULT_VARIABLE result
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/verilogAST-download )
+if(result)
+    message(FATAL_ERROR "Build step for verilogAST failed: ${result}")
+endif()
+
+# Add verilogAST directly to our build.
+add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/verilogAST-src
+                 ${CMAKE_CURRENT_BINARY_DIR}/verilogAST-build
+                 EXCLUDE_FROM_ALL)
+
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include)
