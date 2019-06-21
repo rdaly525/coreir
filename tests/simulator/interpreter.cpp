@@ -1636,9 +1636,16 @@ namespace CoreIR {
       Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
       ModuleDef* def = memory->newModuleDef();
 
+      vector<BitVector> memValues;
+      for (int i = 0; i < depth; i++) {
+        memValues.push_back(BitVector(width, i));
+      }
+      //JsonType vals;
+      Json vals;
       def->addInstance("m0",
-      		       "coreir.rom",
-      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
+      		       "memory.rom",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
+                       {{"init", Const::make(c, vals)}});
 
       def->connect("self.clk", "m0.clk");
       def->connect("self.read_data", "m0.rdata");
@@ -1646,16 +1653,17 @@ namespace CoreIR {
 
       memory->setDef(def);
 
-      c->runPasses({"rungenerators","flattentypes","flatten"});      
+      c->runPasses({"rungenerators","flattentypes","flatten"});
 
+      cout << "Starting test of ROM" << endl;
       SimulatorState state(memory);
 
       state.setClock("self.clk", 0, 1);
-      state.setValue("self.read_addr", BitVec(index, 0));
+      state.setValue("self.read_addr", BitVec(index, 1));
 
       state.exeCombinational();
 
-      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 10));
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
 
       // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
       // REQUIRE(state.getBitVec("self.write_addr") == BitVec(index, 0));
