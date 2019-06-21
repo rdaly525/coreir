@@ -1620,6 +1620,63 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
 
     }
+
+    SECTION("ROM") {
+      uint width = 20;
+      uint depth = 4;
+      uint index = 2;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+            {"read_data", c->Bit()->Arr(width)},
+              {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      def->addInstance("m0",
+      		       "coreir.mem",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}});
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.write_en", "m0.wen");
+      def->connect("self.write_data", "m0.wdata");
+      def->connect("self.write_addr", "m0.waddr");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+
+      memory->setDef(def);
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});      
+
+      SimulatorState state(memory);
+
+      state.setClock("self.clk", 0, 1);
+      state.setValue("self.write_en", BitVec(1, 0));
+      state.setValue("self.write_addr", BitVec(index, 0));
+      state.setValue("self.write_data", BitVec(width, 23));
+      state.setValue("self.read_addr", BitVec(index, 0));
+
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      state.execute();
+      state.setValue("self.write_en", BitVec(1, 1));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      REQUIRE(state.getBitVec("self.write_addr") == BitVec(index, 0));
+      state.execute();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+      state.setValue("self.write_addr", BitVec(index, 1));
+      state.setValue("self.write_data", BitVec(width, 5));
+      state.setValue("self.read_addr", BitVec(index, 1));
+      state.exeCombinational();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      state.execute();
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
+
+    }
     
     SECTION("Memory2") {
       uint width = 20;
