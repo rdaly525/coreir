@@ -331,7 +331,7 @@ namespace CoreIR {
     //assert(addrBytes.size() == 4);
     int numBits = str.size() * 4;
 
-    cout << "# of bits in " << str << " is " << numBits << endl;
+    //cout << "# of bits in " << str << " is " << numBits << endl;
     reverse(addrBytes);
 
     BitVector configAddr(numBits, 0);
@@ -340,7 +340,7 @@ namespace CoreIR {
     for (auto byte : addrBytes) {
       BitVector tmp(8, byte);
       for (uint i = 0; i < (uint) tmp.bitLength(); i++) {
-        cout << "offset = " << offset << endl;
+        //cout << "offset = " << offset << endl;
         if (offset < numBits) {
           configAddr.set(offset, tmp.get(i));
         }

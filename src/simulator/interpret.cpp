@@ -193,17 +193,17 @@ namespace CoreIR {
           int numVals = 0;
           for (auto val : ramValues) {
             cout << val << endl;
-            numVals++;
             string valstr = val;
             string str = valstr.substr(4);
             cout << "truncated = " << str << endl;
             BitVector valueBv = hexStringToBitVector(str);
             BitVector addrBv(ceil(log2(depth)), numVals);
 
-            cout << "AddrBv  = " << valueBv << endl;            
+            cout << "AddrBv  = " << addrBv << endl;            
             cout << "Valuebv = " << valueBv << endl;
 
-            freshMem.setAddr(BitVector(ceil(log2(depth)), numVals), valueBv);
+            freshMem.setAddr(addrBv, valueBv);
+            numVals++;
           }
 
           assert(numVals == depth);
