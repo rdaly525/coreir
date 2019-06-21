@@ -4,15 +4,23 @@
 #include "coreir.h"
 #include <ostream>
 #include "vmodule.h"
+#include "verilogAST.hpp"
+
+namespace vAST = verilogAST;
 
 namespace CoreIR {
 namespace Passes {
 
 class Verilog : public InstanceGraphPass {
-  VerilogNamespace::VModules vmods;
+  bool _inline = false;
+  bool verilator_debug = true;
+
+  std::vector<vAST::File*> files;
+
+  void compileModule(Module* module);
   public :
     static std::string ID;
-    Verilog() : InstanceGraphPass(ID,"Creates Verilog representation of IR",true) {}
+    Verilog() : InstanceGraphPass(ID,"Compiles IR to Verilog files",true) {}
     ~Verilog();
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void initialize(int argc, char** argv) override;

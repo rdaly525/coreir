@@ -31,7 +31,7 @@ before_install:
 - make -j2
 - sudo make install
 - cd -
-- pip install delegator.py
+- pip install pytest delegator.py
 script:
 - ls bin/
 - pytest tests/binary

@@ -44,6 +44,7 @@ endif()
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/verilogAST-src
                  ${CMAKE_CURRENT_BINARY_DIR}/verilogAST-build
                  EXCLUDE_FROM_ALL)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/verilogAST-src/include)
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
