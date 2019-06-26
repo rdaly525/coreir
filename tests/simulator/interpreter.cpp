@@ -16,6 +16,10 @@ using namespace std;
 
 namespace CoreIR {
 
+  string quote(string s) {
+    return "\""+s+"\"";
+  }
+  
   void addCounter(Context* c, Namespace* global) {
 
     //assert(false);
@@ -1618,6 +1622,68 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
       state.execute();
       REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
+
+    }
+
+    SECTION("ROM") {
+      uint width = 20;
+      uint depth = 4;
+      uint index = 2;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+            {"read_data", c->Bit()->Arr(width)},
+              {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      Json vals;
+      for (int i = 0; i < (int) depth; i++) {
+        //BitVector bv(width, i);
+        //vals.emplace_back(bv.hex_string());
+        vals.emplace_back(to_string(i));
+      }
+      
+      def->addInstance("m0",
+      		       "memory.rom",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
+                       {{"init", Const::make(c, vals)}});
+
+      def->addInstance("rdConst","coreir.const",{{"width",Const::make(c,1)}},{{"value",Const::make(c,BitVector(1,1))}});      
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+      def->connect("m0.ren", "rdConst.out.0");
+
+      memory->setDef(def);
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      cout << "Starting test of ROM" << endl;
+      SimulatorState state(memory);
+
+      state.setClock("self.clk", 0, 1);
+      state.setValue("self.read_addr", BitVec(index, 1));
+      state.exeCombinational();
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
+
+      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      // REQUIRE(state.getBitVec("self.write_addr") == BitVec(index, 0));
+      // state.execute();
+      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
+      // state.setValue("self.write_addr", BitVec(index, 1));
+      // state.setValue("self.write_data", BitVec(width, 5));
+      // state.setValue("self.read_addr", BitVec(index, 1));
+      // state.exeCombinational();
+      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
+      // state.execute();
+      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
 
     }
     

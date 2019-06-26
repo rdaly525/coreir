@@ -186,7 +186,31 @@ namespace CoreIR {
         
 
         // Set memory state to default value
+        Values params = inst->getModArgs();
         SimMemory freshMem(width, depth);
+        if (contains_key(string("init"), params)) {
+          Json ramValues = params["init"]->get<Json>();
+          int numVals = 0;
+          for (auto val : ramValues) {
+            cout << val << endl;
+            // string valstr = val;
+            // string str = valstr.substr(4);
+            // cout << "truncated = " << str << endl;
+            // BitVector valueBv = hexStringToBitVector(str);
+            string v = val;
+            BitVector valueBv = BitVector(width, stoi(v));
+            BitVector addrBv(ceil(log2(depth)), numVals);
+
+            cout << "AddrBv  = " << addrBv << endl;            
+            cout << "Valuebv = " << valueBv << endl;
+
+            freshMem.setAddr(addrBv, valueBv);
+            numVals++;
+          }
+
+          assert(((int) numVals) == ((int) depth));
+        }
+
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});
 
         // Set memory output port to default
