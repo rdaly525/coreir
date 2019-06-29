@@ -62,15 +62,59 @@ void Passes::Verilog::compileModule(Module* module) {
             // guarantee* at this level that things are in sync. For example, if the
             // CoreIR module declaration does not match the verilog's, then the output
             // may be garbage for downstream tools.
-            vAST::StringModule* module = new
+            vAST::StringModule *module = new
                 vAST::StringModule(verilog_json["verilog_string"].get<std::string>());
-            std::vector<vAST::AbstractModule *> modules = {module};
-            vAST::File *file = new vAST::File(modules);
-            files.push_back(file);
+            modules.push_back(module);
             return;
         }
         return;
     }
+    std::vector<vAST::Port *> ports;
+    for (auto record : cast<RecordType>(module->getType())->getRecord()) {
+        vAST::Identifier *name = new vAST::Identifier(record.first);
+        Type* t = record.second;
+        Type::DirKind direction = t->getDir();
+        vAST::Direction verilog_direction;
+        if (direction == Type::DK_In) {
+            verilog_direction = vAST::INPUT;
+        } else if (direction == Type::DK_Out) {
+            verilog_direction = vAST::OUTPUT;
+        } else if (direction == Type::DK_InOut) {
+            verilog_direction = vAST::INOUT;
+        } else {
+            ASSERT(false, "Not implemented for direction = " + toString(direction));
+        }
+        ports.push_back(new vAST::Port(name, verilog_direction, vAST::WIRE));
+    };
+    std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
+        body;
+    for (auto instance : module->getDef()->getInstances()) {
+        std::string module_name = instance.second->getModuleRef()->getLongName();
+        vAST::Parameters instance_parameters;
+        std::string instance_name = instance.first;
+        std::map<std::string, std::variant<vAST::Identifier *, vAST::Index *, vAST::Slice *>>
+            connections;
+        for (auto connection : module->getDef()->getSortedConnections()) {
+            if (connection.first->getSelectPath()[0] == "self" && connection.second->getSelectPath()[0] == instance_name) {
+                connections.insert(
+                        std::pair<std::string, vAST::Identifier *>(
+                            connection.second->getSelectPath()[1],
+                            new vAST::Identifier(connection.first->getSelectPath()[1])));
+            } else if (connection.second->getSelectPath()[0] == "self" && connection.first->getSelectPath()[0] == instance_name) {
+                connections.insert(
+                        std::pair<std::string, vAST::Identifier *>(
+                            connection.first->getSelectPath()[1],
+                            new vAST::Identifier(connection.second->getSelectPath()[1])));
+
+            } else {
+                ASSERT(false, "NOT IMPLEMENTED");
+            }
+        }
+        body.push_back(new vAST::ModuleInstantiation(module_name, instance_parameters, instance_name, connections));
+    }
+    vAST::Parameters parameters;
+    vAST::Module *verilog_module = new vAST::Module(module->getLongName(), ports, body, parameters);
+    modules.push_back(verilog_module);
 }
 
 bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
@@ -79,13 +123,9 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
 }
 
 void Passes::Verilog::writeToStream(std::ostream& os) {
-    ASSERT(false, "NOT IMPLEMENTED");
-  // for (auto module : vmods.vmods) {
-  //   if (vmods._inline && module->inlineable) {
-  //     continue;
-  //   }
-  //   WriteModuleToStream(module, os);
-  // }
+    for (auto module : modules) {
+        os << module->toString() << std::endl;
+    }
 }
 
 void Passes::Verilog::writeToFiles(const std::string& dir) {

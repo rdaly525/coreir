@@ -15,7 +15,7 @@ class Verilog : public InstanceGraphPass {
   bool _inline = false;
   bool verilator_debug = true;
 
-  std::vector<vAST::File*> files;
+  std::vector<vAST::AbstractModule*> modules;
 
   void compileModule(Module* module);
   public :

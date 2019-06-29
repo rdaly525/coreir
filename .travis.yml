@@ -39,6 +39,7 @@ script:
 - cd build && sudo make -j2 uninstall && cd ..
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
 - make -j2 test
+- cd build && ctest -V
 compiler:
 - gcc
 os:
