@@ -1,0 +1,29 @@
+{"top":"global.SplitFilesTop",
+"namespaces":{
+  "global":{
+    "modules":{
+      "SplitFilesTop":{
+        "type":["Record",[
+          ["I0","BitIn"],
+          ["I1","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "and_inst0":{
+            "modref":"corebit.and"
+          },
+          "not_inst0":{
+            "modref":"corebit.not"
+          }
+        },
+        "connections":[
+          ["not_inst0.out","and_inst0.in0"],
+          ["self.I1","and_inst0.in1"],
+          ["self.O","and_inst0.out"],
+          ["self.I0","not_inst0.in"]
+        ]
+      }
+    }
+  }
+}
+}
