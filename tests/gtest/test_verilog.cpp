@@ -24,10 +24,27 @@ TEST(VerilogTests, TestStringModule) {
   };
   c->runPasses(passes, {});
   assertPassEq<Passes::Verilog>(c, "blackbox_verilog_golden.v");
-  std::ifstream t("generated_file.txt");
-  std::string genfile((std::istreambuf_iterator<char>(t)),
-                       std::istreambuf_iterator<char>());
-  
+  deleteContext(c);
+}
+
+TEST(VerilogTests, TestIntermediateConnection) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "intermediate_connection.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "intermediate_connection_golden.v");
   deleteContext(c);
 }
 
