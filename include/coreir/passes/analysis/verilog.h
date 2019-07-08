@@ -1,8 +1,9 @@
 #ifndef COREIR_VERILOG_HPP_
 #define COREIR_VERILOG_HPP_
 
-#include "coreir.h"
+#include <memory>
 #include <ostream>
+#include "coreir.h"
 #include "vmodule.h"
 
 namespace CoreIR {
@@ -23,7 +24,8 @@ class Verilog : public InstanceGraphPass {
     }
     
     void writeToStream(std::ostream& os);
-    void writeToFiles(const std::string& dir);
+    void writeToFiles(const std::string& dir,
+                      std::unique_ptr<string> product_file);
 };
 
 }
