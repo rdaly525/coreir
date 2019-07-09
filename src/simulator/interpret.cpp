@@ -1750,6 +1750,10 @@ namespace CoreIR {
 
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
+      //if (contains_key(wd, plugMods) && wd.isReceiver) {
+        //plugMods[wd]->exeSequential(wd, *this);
+      //}
+
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
         updateRegisterValue(vd);
       }
