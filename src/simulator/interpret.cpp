@@ -1751,7 +1751,6 @@ namespace CoreIR {
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
-
         updateRegisterValue(vd);
       }
 
@@ -2128,6 +2127,11 @@ namespace CoreIR {
     for (auto& val : allocatedValues) {
       delete val;
     }
+
+    for (auto pg : plugMods) {
+      delete pg.second;
+    }
+    
   }
 
 }

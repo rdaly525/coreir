@@ -134,11 +134,9 @@ namespace CoreIR {
   class SimulatorPlugin {
   public:
 
-    SimulatorPlugin() {}
-
-    virtual void initialize(WireNode& wd);
-    virtual void exeSequential(WireNode& wd, SimulatorState& simState);
-    virtual void exeCombinational(WireNode& wd, SimulatorState& simState);
+    virtual void initialize(WireNode& wd) = 0;
+    virtual void exeSequential(WireNode& wd, SimulatorState& simState) = 0;
+    virtual void exeCombinational(WireNode& wd, SimulatorState& simState) = 0;
     virtual ~SimulatorPlugin() {}
   };
 
@@ -160,6 +158,7 @@ namespace CoreIR {
     std::set<SimValue*> allocatedValues;
 
     bool hasCombinationalLoop;
+    std::map<WireNode, SimulatorPlugin*> plugMods;
 
   public:
 
@@ -324,7 +323,6 @@ namespace CoreIR {
                                 const BitVec& bv);
 
     // Destructor
-
     ~SimulatorState();
   };
 
