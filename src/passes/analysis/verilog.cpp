@@ -43,7 +43,7 @@ std::string Passes::Verilog::ID = "verilog";
 vAST::Expression *convert_value(Value *value) {
     if (auto arg_value = dyn_cast<Arg>(value)) {
         // return arg_value->getField();
-        throw std::logic_error("NOT IMPLEMENTED: converting arg value");
+        throw std::logic_error("NOT IMPLEMENTED: converting arg value" + arg_value->getField());
     } else if (auto int_value = dyn_cast<ConstInt>(value)) {
         return new vAST::NumericLiteral(int_value->toString());
     } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
@@ -51,9 +51,8 @@ vAST::Expression *convert_value(Value *value) {
             std::to_string(uint(bool_value->get())));
     } else if (auto bit_vector_value = dyn_cast<ConstBitVector>(value)) {
         BitVector bit_vector = bit_vector_value->get();
-        return new vAST::NumericLiteral(bit_vector.hex_digits(),
-                                        bit_vector.bitLength(), false,
-                                        vAST::HEX);
+        return new vAST::NumericLiteral(
+            bit_vector.hex_digits(), bit_vector.bitLength(), false, vAST::HEX);
     } else if (auto string_value = dyn_cast<ConstString>(value)) {
         return new vAST::String(string_value->toString());
     }
@@ -61,11 +60,17 @@ vAST::Expression *convert_value(Value *value) {
 }
 
 std::string declare_connection(
+    // TODO: It would be better if we just declared a wire for each
+    // instance output, but this works for now by creating a unique wire
+    // for all connections
     Connection connection, std::set<Connection> &declared_connections,
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         &wire_declarations) {
-    SelectPath select_path = connection.first->getSelectPath();
-    std::string name = select_path[0] + "_" + select_path[1];
+    SelectPath first_select_path = connection.first->getSelectPath();
+    SelectPath second_select_path = connection.second->getSelectPath();
+    std::string name = first_select_path[0] + "_" + first_select_path[1] +
+                       "__" + second_select_path[0] + "_" +
+                       second_select_path[1];
     if (declared_connections.find(connection) == declared_connections.end()) {
         declared_connections.insert(connection);
         wire_declarations.push_back(new vAST::Wire(new vAST::Identifier(name)));
