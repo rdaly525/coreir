@@ -374,7 +374,102 @@ namespace CoreIR {
                        instPT->sel("in")->sel("out"));
           inlineInstance(instPT);
             
+        } else if (sigValue0.has_value()) {
+          BitVec sigVal0 = sigValue0.get_value();
+
+          if ((sigVal0.bitLength() == 1) && (sigVal0 == BitVec(1, 0))) {
+            cout << "Should remove and with 0" << endl;
+            //BitVec res = sigVal; //sigVal0 & sigVal1;
+
+            // uint inWidth =
+            //   inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+            // assert(((uint) sigVal0.bitLength()) == inWidth);
+            // assert(((uint) sigVal1.bitLength()) == inWidth);
+            // assert(((uint) res.bitLength()) == inWidth);
+
+            // auto newConst =
+            //   def->addInstance(inst->toString() + "_const_replacement",
+            //                    "coreir.const",
+            //                    {{"width", Const::make(c, inWidth)}},
+            //                    {{"value", Const::make(c, res)}});
+
+            // auto recInstances = getReceiverSelects(inst);
+            // for (auto elem : recInstances) {
+            //   auto src = extractSource(elem);
+            //   if (isa<Instance>(src)) {
+            //     toConsider.insert(cast<Instance>(src));
+            //   }
+            // }
+
+            // Instance* instPT = addPassthrough(inst, "_inline_or_PT");
+            // Select* replacement = newConst->sel("out");
+
+            // def->removeInstance(inst);
+            // def->connect(replacement,
+            //              instPT->sel("in")->sel("out"));
+            // inlineInstance(instPT);
+          }
+            
+        } else if (sigValue1.has_value()) {
+          BitVec sigVal1 = sigValue1.get_value();
+
+          if ((sigVal1.bitLength() == 1) && (sigVal1 == BitVec(1, 0))) {
+            cout << "Should remove and with 0" << endl;
+
+            BitVec res = BitVec(1, 0);
+
+            uint inWidth =
+              inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+            auto newConst =
+              def->addInstance(inst->toString() + "_const_replacement",
+                               "coreir.const",
+                               {{"width", Const::make(c, inWidth)}},
+                               {{"value", Const::make(c, res)}});
+
+            auto recInstances = getReceiverSelects(inst);
+            for (auto elem : recInstances) {
+              auto src = extractSource(elem);
+              if (isa<Instance>(src)) {
+                toConsider.insert(cast<Instance>(src));
+              }
+            }
+
+            Instance* instPT = addPassthrough(inst, "_inline_or_PT");
+            Select* replacement = newConst->sel("out");
+
+            def->removeInstance(inst);
+            def->connect(replacement,
+                         instPT->sel("in")->sel("out"));
+            inlineInstance(instPT);
+            
+            // auto recInstances = getReceiverSelects(inst);
+            // for (auto elem : recInstances) {
+            //   auto src = extractSource(elem);
+            //   if (isa<Instance>(src)) {
+            //     toConsider.insert(cast<Instance>(src));
+            //   }
+            // }
+
+            // Instance* instPT = addPassthrough(inst, "_inline_or_PT");
+            // // Need to get the source of code?
+            // // in0?
+            // //Select* replacement = in0; //newConst->sel("out");
+
+            // def->removeInstance(inst);
+            // // def->connect(replacement,
+            // //              instPT->sel("in")->sel("out"));
+            // for (int i = 0; i < (int) in0Values.size(); i++) {
+            //   def->connect(in0Values[i],
+            //                instPT->sel("in")->sel("out")->sel(i));
+            // }
+            
+            // inlineInstance(instPT);
+            
+          }
         }
+
 
       } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
 
@@ -473,6 +568,45 @@ namespace CoreIR {
           inlineInstance(instPT);
             
         }
+        
+      } else if (getQualifiedOpName(*(inst)) == "coreir.slice") {
+        // Select* in = inst->sel("in");
+
+        // vector<Select*> in0Values = getSignalValues(in);
+        // maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+
+        // if (sigValue0.has_value()) {
+
+        //   BitVec sigVal0 = sigValue0.get_value();
+
+        //   // TODO: Check for binary values
+        //   BitVec res = ~sigVal0;
+
+        //   auto newConst =
+        //     def->addInstance(inst->toString() + "_const_replacement",
+        //                      "coreir.const",
+        //                      {{"width", Const::make(c, res.bitLength())}},
+        //                      {{"value", Const::make(c, res)}});
+
+        //   auto recInstances = getReceiverSelects(inst);
+        //   for (auto elem : recInstances) {
+        //     auto src = extractSource(elem);
+        //     if (isa<Instance>(src)) {
+        //       toConsider.insert(cast<Instance>(src));
+        //     }
+        //   }
+            
+        //   Instance* instPT = addPassthrough(inst, "_inline_andr_PT");
+        //   Select* replacement = newConst->sel("out");
+
+        //   def->removeInstance(inst);
+        //   def->connect(replacement,
+        //                instPT->sel("in")->sel("out"));
+        //   inlineInstance(instPT);
+
+        // }
+
+        cout << "Not folding slice" << endl;
         
       } else if (getQualifiedOpName(*(inst)) == "coreir.not") {
         Select* in = inst->sel("in");
@@ -712,6 +846,61 @@ namespace CoreIR {
             def->addInstance(inst->toString() + "_const_replacement",
                              "corebit.const",
                              {{"value", Const::make(c, resVal)}});
+
+          auto recInstances = getReceiverSelects(inst);
+          for (auto elem : recInstances) {
+            auto src = extractSource(elem);
+            if (isa<Instance>(src)) {
+              toConsider.insert(cast<Instance>(src));
+            }
+          }
+            
+          Instance* instPT = addPassthrough(inst, "_inline_orr_PT");
+          Select* replacement = newConst->sel("out");
+
+          def->removeInstance(inst);
+          def->connect(replacement,
+                       instPT->sel("in")->sel("out"));
+          inlineInstance(instPT);
+
+        }
+
+      } else if (getQualifiedOpName(*(inst)) == "coreir.wire") {
+
+        Select* in = inst->sel("in");
+
+        vector<Select*> in0Values = getSignalValues(in);
+        maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
+
+        if (sigValue0.has_value()) {
+
+
+          BitVec sigVal0 = sigValue0.get_value();
+
+          cout << "Folding wire with value: " << sigVal0 << endl;
+          
+          // BitVec res = BitVec(1, 0);
+          // for (uint i = 0; i < ((uint) sigVal0.bitLength()); i++) {
+          //   if (sigVal0.get(i) == 1) {
+          //     res = BitVec(1, 1);
+          //     break;
+          //   }
+          // }
+
+          // uint inWidth =
+          //   inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+
+          // ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
+          // assert(res.bitLength() == 1);
+
+          // bool resVal = res == BitVec(1, 1) ? true : false;
+
+          BitVector value = inst->getModArgs().at("init")->get<BitVector>();
+          auto newConst =
+            def->addInstance(inst->toString() + "_reg_const_replacement",
+                             "coreir.const",
+                             {{"width", Const::make(c, value.bitLength())}},
+                             {{"value", Const::make(c, BitVector(value))}});
 
           auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {

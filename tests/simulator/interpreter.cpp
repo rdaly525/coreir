@@ -905,6 +905,19 @@ namespace CoreIR {
     }
 
   }  
+
+  TEST_CASE("Unified buffer simulation stub") {
+    Context* c = newContext();
+    Namespace* g = c->getGlobal();
+
+    // Define unified buffer generator
+
+    // Define unified buffer generator simulation class
+
+    // Should this be a class with virtual methods?
+    
+    deleteContext(c);
+  }
   
   TEST_CASE("Interpret simulator graphs") {
 

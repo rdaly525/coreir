@@ -129,6 +129,19 @@ namespace CoreIR {
     StopFunction stopTest;
   };
 
+  class SimulatorState;
+
+  class SimulatorPlugin {
+  public:
+
+    SimulatorPlugin() {}
+
+    virtual void initialize(WireNode& wd);
+    virtual void exeSequential(WireNode& wd, SimulatorState& simState);
+    virtual void exeCombinational(WireNode& wd, SimulatorState& simState);
+    virtual ~SimulatorPlugin() {}
+  };
+
   class SimulatorState {
     CoreIR::Module* mod;
     std::map<std::string, json> symTable;
