@@ -906,16 +906,29 @@ namespace CoreIR {
 
   }  
 
+  // Define unified buffer generator simulation class
+  class UnifiedBufferStub : public SimulatorPlugin {
+    std::map<BitVector, BitVector> buffer;
+
+  public:
+
+    void initialize(WireNode& wd) {
+    }
+
+    void exeSequential(WireNode& wd, SimulatorState& simState) {
+    }
+
+    void exeCombinational(WireNode& wd, SimulatorState& simState) {
+    }
+
+  };
+  
   TEST_CASE("Unified buffer simulation stub") {
     Context* c = newContext();
     Namespace* g = c->getGlobal();
 
     // Define unified buffer generator
 
-    // Define unified buffer generator simulation class
-
-    // Should this be a class with virtual methods?
-    
     deleteContext(c);
   }
   
