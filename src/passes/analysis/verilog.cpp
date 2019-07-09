@@ -40,6 +40,26 @@ void Passes::Verilog::initialize(int argc, char **argv) {
 
 std::string Passes::Verilog::ID = "verilog";
 
+vAST::Expression *convert_value(Value *value) {
+    if (auto arg_value = dyn_cast<Arg>(value)) {
+        // return arg_value->getField();
+        throw std::logic_error("NOT IMPLEMENTED: converting arg value");
+    } else if (auto int_value = dyn_cast<ConstInt>(value)) {
+        return new vAST::NumericLiteral(int_value->toString());
+    } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
+        return new vAST::NumericLiteral(
+            std::to_string(uint(bool_value->get())));
+    } else if (auto bit_vector_value = dyn_cast<ConstBitVector>(value)) {
+        BitVector bit_vector = bit_vector_value->get();
+        return new vAST::NumericLiteral(bit_vector.hex_digits(),
+                                        bit_vector.bitLength(), false,
+                                        vAST::HEX);
+    } else if (auto string_value = dyn_cast<ConstString>(value)) {
+        return new vAST::String(string_value->toString());
+    }
+    coreir_unreachable();
+}
+
 std::string declare_connection(
     Connection connection, std::set<Connection> &declared_connections,
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
@@ -80,6 +100,8 @@ void Passes::Verilog::compileModule(Module *module) {
             return;
         }
         return;
+    } else if (!module->hasDef()) {
+        return;
     }
     std::vector<vAST::Port *> ports;
     for (auto record : cast<RecordType>(module->getType())->getRecord()) {
@@ -105,8 +127,7 @@ void Passes::Verilog::compileModule(Module *module) {
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         body;
     for (auto instance : module->getDef()->getInstances()) {
-        std::string module_name =
-            instance.second->getModuleRef()->getLongName();
+        std::string module_name = instance.second->getModuleRef()->getName();
         vAST::Parameters instance_parameters;
         std::string instance_name = instance.first;
         std::map<std::string,
@@ -127,24 +148,36 @@ void Passes::Verilog::compileModule(Module *module) {
                         connection.second->getSelectPath()[1])));
 
             } else if (connection.first->getSelectPath()[0] == instance_name) {
-                std::string name =
-                    declare_connection(connection, declared_connections, wire_declarations);
+                std::string name = declare_connection(
+                    connection, declared_connections, wire_declarations);
                 connections.insert(std::pair<std::string, vAST::Identifier *>(
                     connection.first->getSelectPath()[1],
                     new vAST::Identifier(name)));
             } else if (connection.second->getSelectPath()[0] == instance_name) {
-                std::string name =
-                    declare_connection(connection, declared_connections, wire_declarations);
+                std::string name = declare_connection(
+                    connection, declared_connections, wire_declarations);
                 connections.insert(std::pair<std::string, vAST::Identifier *>(
                     connection.second->getSelectPath()[1],
                     new vAST::Identifier(name)));
             }
         }
+        if (instance.second->hasModArgs()) {
+            for (auto parameter : instance.second->getModArgs()) {
+                instance_parameters.push_back(
+                    std::pair(new vAST::Identifier(parameter.first),
+                              convert_value(parameter.second)));
+            }
+        }
         body.push_back(new vAST::ModuleInstantiation(
             module_name, instance_parameters, instance_name, connections));
     }
-    body.insert(body.begin(), wire_declarations.begin(), wire_declarations.end());
+    body.insert(body.begin(), wire_declarations.begin(),
+                wire_declarations.end());
     vAST::Parameters parameters;
+    if (module->getModParams().size()) {
+        throw std::logic_error(
+            "NOT IMPLEMENTED: compiling parametrized module to verilog");
+    }
     vAST::Module *verilog_module =
         new vAST::Module(module->getLongName(), ports, body, parameters);
     modules.push_back(verilog_module);
