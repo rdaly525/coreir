@@ -43,7 +43,8 @@ std::string Passes::Verilog::ID = "verilog";
 vAST::Expression *convert_value(Value *value) {
     if (auto arg_value = dyn_cast<Arg>(value)) {
         // return arg_value->getField();
-        throw std::logic_error("NOT IMPLEMENTED: converting arg value" + arg_value->getField());
+        throw std::logic_error("NOT IMPLEMENTED: converting arg value" +
+                               arg_value->getField());
     } else if (auto int_value = dyn_cast<ConstInt>(value)) {
         return new vAST::NumericLiteral(int_value->toString());
     } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
@@ -99,16 +100,48 @@ void Passes::Verilog::compileModule(Module *module) {
             // guarantee* at this level that things are in sync. For example, if
             // the CoreIR module declaration does not match the verilog's, then
             // the output may be garbage for downstream tools.
-            vAST::StringModule *module = new vAST::StringModule(
+            vAST::StringModule *verilog_module = new vAST::StringModule(
                 verilog_json["verilog_string"].get<std::string>());
-            modules.push_back(module);
+            modules.push_back(verilog_module);
             return;
         }
+        return;
+    } else if (module->isGenerated() &&
+               module->getGenerator()->getMetaData().count("verilog") > 0) {
+        json verilog_json = module->getGenerator()->getMetaData()["verilog"];
+        std::vector<vAST::AbstractPort *> ports;
+        for (auto port_str :
+             verilog_json["interface"].get<std::vector<std::string>>()) {
+            ports.push_back(new vAST::StringPort(port_str));
+        }
+        vAST::Parameters parameters;
+        std::set<std::string> parameters_seen;
+        for (auto parameter : module->getGenerator()->getDefaultGenArgs()) {
+            parameters.push_back(
+                std::pair(new vAST::Identifier(parameter.first),
+                          convert_value(parameter.second)));
+            parameters_seen.insert(parameter.first);
+        }
+        for (auto parameter : module->getGenerator()->getGenParams()) {
+            if (parameters_seen.count(parameter.first) == 0) {
+                // Old coreir backend defaults these (genparams without
+                // defaults) to 0
+                parameters.push_back(
+                    std::pair(new vAST::Identifier(parameter.first),
+                              new vAST::NumericLiteral("1")));
+            }
+        }
+        vAST::StringBodyModule *string_body_module = new vAST::StringBodyModule(
+            verilog_json["prefix"].get<std::string>() + module->getName(),
+            ports, verilog_json["definition"].get<std::string>(),
+            parameters);
+        modules.push_back(string_body_module);
+        verilog_generators_seen.insert(module->getGenerator());
         return;
     } else if (!module->hasDef()) {
         return;
     }
-    std::vector<vAST::Port *> ports;
+    std::vector<vAST::AbstractPort *> ports;
     for (auto record : cast<RecordType>(module->getType())->getRecord()) {
         vAST::Identifier *name = new vAST::Identifier(record.first);
         Type *t = record.second;
@@ -132,7 +165,14 @@ void Passes::Verilog::compileModule(Module *module) {
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         body;
     for (auto instance : module->getDef()->getInstances()) {
-        std::string module_name = instance.second->getModuleRef()->getName();
+        Module *instance_module = instance.second->getModuleRef();
+        std::string module_name = instance_module->getName();
+        if (instance_module->isGenerated() &&
+                instance_module->getGenerator()->getMetaData().count("verilog")
+                > 0) {
+            json verilog_json = instance_module->getGenerator()->getMetaData()["verilog"];
+            module_name = verilog_json["prefix"].get<std::string>() + module_name;
+        }
         vAST::Parameters instance_parameters;
         std::string instance_name = instance.first;
         std::map<std::string,
@@ -173,6 +213,14 @@ void Passes::Verilog::compileModule(Module *module) {
                               convert_value(parameter.second)));
             }
         }
+        if (instance.second->getModuleRef()->isGenerated()) {
+            for (auto parameter :
+                 instance.second->getModuleRef()->getGenArgs()) {
+                instance_parameters.push_back(
+                    std::pair(new vAST::Identifier(parameter.first),
+                              convert_value(parameter.second)));
+            }
+        }
         body.push_back(new vAST::ModuleInstantiation(
             module_name, instance_parameters, instance_name, connections));
     }
@@ -189,7 +237,13 @@ void Passes::Verilog::compileModule(Module *module) {
 }
 
 bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode &node) {
-    compileModule(node.getModule());
+    Module *module = node.getModule();
+    if (module->isGenerated() &&
+            module->getGenerator()->getMetaData().count("verilog") > 0 &&
+            verilog_generators_seen.count(module->getGenerator()) > 0) {
+        return false;
+    }
+    compileModule(module);
     return false;
 }
 

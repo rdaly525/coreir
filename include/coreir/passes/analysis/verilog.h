@@ -16,6 +16,7 @@ class Verilog : public InstanceGraphPass {
   bool verilator_debug = true;
 
   std::vector<vAST::AbstractModule*> modules;
+  std::set<Generator *> verilog_generators_seen;
 
   void compileModule(Module* module);
   public :
