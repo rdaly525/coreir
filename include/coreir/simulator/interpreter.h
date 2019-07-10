@@ -140,7 +140,9 @@ namespace CoreIR {
     virtual ~SimulatorPlugin() {}
   };
 
-  typedef SimulatorPlugin* (*SimModelBuilder)(WireNode& wd);
+  //typedef SimulatorPlugin* (*SimModelBuilder)(WireNode& wd);
+
+  typedef std::function<SimulatorPlugin*(WireNode& wd)> SimModelBuilder;
   
   class SimulatorState {
     CoreIR::Module* mod;

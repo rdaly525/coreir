@@ -951,7 +951,9 @@ namespace CoreIR {
       simModel->initialize(wd);
       return simModel;
     };
-    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{};
+
+    //SimModelBuilder builder = modBuilder;
+    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubuf"), modBuilder}};
     
     deleteContext(c);
   }
