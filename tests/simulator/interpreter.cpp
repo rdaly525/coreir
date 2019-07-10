@@ -926,9 +926,8 @@ namespace CoreIR {
   TEST_CASE("Unified buffer simulation stub") {
     Context* c = newContext();
     Namespace* g = c->newNamespace("bufferLib");    
-    //Namespace* g = c->getGlobal();
 
-    // Define unified buffer generator
+    // Define (dummy) unified buffer generator
     Params params = {{"width", c->Int()}, {"depth", c->Int()}};
     auto uBufTg = g->newTypeGen(
                   "ubuf_type",
@@ -944,15 +943,13 @@ namespace CoreIR {
 
     g->newGeneratorDecl("ubuf", uBufTg, params);
 
-    // Run simulation?
-
+    // Build the simulator with the new model
     auto modBuilder = [](WireNode& wd) {
       UnifiedBufferStub* simModel = new UnifiedBufferStub();
       simModel->initialize(wd);
       return simModel;
     };
 
-    //SimModelBuilder builder = modBuilder;
     map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubuf"), modBuilder}};
     
     deleteContext(c);
