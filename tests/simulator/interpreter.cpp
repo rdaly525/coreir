@@ -928,7 +928,19 @@ namespace CoreIR {
     Namespace* g = c->getGlobal();
 
     // Define unified buffer generator
+    g->newTypeGen(
+                  "ubuf_type",
+                  {{"width", c->Int()}, {"depth", c->Int()}},
+                  [](Context* c, Values genargs) {
+                    uint width = genargs.at("width")->get<int>();
+                    uint depth = genargs.at("depth")->get<int>();
 
+                    return c->Record({{"in", c->BitIn()->Arr(width)},
+                          {"out", c->BitIn()->Arr(width)}});
+                  }
+                  );
+
+    
     deleteContext(c);
   }
   
