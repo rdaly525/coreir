@@ -140,6 +140,8 @@ namespace CoreIR {
     virtual ~SimulatorPlugin() {}
   };
 
+  typedef SimulatorPlugin* (*SimModelBuilder)(WireNode& wd);
+  
   class SimulatorState {
     CoreIR::Module* mod;
     std::map<std::string, json> symTable;

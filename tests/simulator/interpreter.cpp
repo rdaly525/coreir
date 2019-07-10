@@ -925,12 +925,14 @@ namespace CoreIR {
   
   TEST_CASE("Unified buffer simulation stub") {
     Context* c = newContext();
-    Namespace* g = c->getGlobal();
+    Namespace* g = c->newNamespace("bufferLib");    
+    //Namespace* g = c->getGlobal();
 
     // Define unified buffer generator
-    g->newTypeGen(
+    Params params = {{"width", c->Int()}, {"depth", c->Int()}};
+    auto uBufTg = g->newTypeGen(
                   "ubuf_type",
-                  {{"width", c->Int()}, {"depth", c->Int()}},
+                  params,
                   [](Context* c, Values genargs) {
                     uint width = genargs.at("width")->get<int>();
                     uint depth = genargs.at("depth")->get<int>();
@@ -940,6 +942,16 @@ namespace CoreIR {
                   }
                   );
 
+    g->newGeneratorDecl("ubuf", uBufTg, params);
+
+    // Run simulation?
+
+    auto modBuilder = [](WireNode& wd) {
+      UnifiedBufferStub* simModel = new UnifiedBufferStub();
+      simModel->initialize(wd);
+      return simModel;
+    };
+    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{};
     
     deleteContext(c);
   }
