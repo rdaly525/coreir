@@ -416,25 +416,16 @@ namespace CoreIR {
 	WireNode wOutput = outputNode(w1);
 	WireNode wInput = receiverNode(w1);
 
-	// bool setV1 = false;
-	// bool setV2 = false;
-	
 	vdisc v1, v2;
 	if (imap.find(wOutput) == end(imap)) {
 	  v1 = g.addVertex(wOutput);
 	  imap.insert({wOutput, v1});
-	  //setV1 = true;
 	}
 
 	if (imap.find(wInput) == end(imap)) {
 	  v2 = g.addVertex(wInput);
 	  imap.insert({wInput, v2});
-	  //setV2 = true;
 	}
-
-	// if (setV1 && setV2) {
-	//   g.addEdge(v1, v2);
-	// }
 
 	return;
       }
