@@ -7,10 +7,22 @@ using namespace std;
 
 namespace CoreIR {
 
+  bool isSequentialPlugin(CoreIR::Wireable* fst, PluginMap& pluginMap) {
+    if (!isInstance(fst)) {
+      return false;
+    }
+
+    CoreIR::Instance* inst = toInstance(fst);
+    std::string name = inst->getModuleRef()->getRefName();
+
+    return contains_key(name, pluginMap);
+  }
+  
   bool isSequential(CoreIR::Wireable* p1, PluginMap& pluginMap) {
     if (isRegisterInstance(p1) ||
         isMemoryInstance(p1) ||
-        isDFFInstance(p1)) {
+        isDFFInstance(p1) ||
+        isSequentialPlugin(p1, pluginMap)) {
       return true;
     }
 
