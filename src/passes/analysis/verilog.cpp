@@ -88,7 +88,8 @@ void declare_connections(
     std::vector<Connection> connections,
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         &wire_declarations,
-    std::map<Connection, std::string> &connection_map) {
+    std::map<Wireable *, std::string> &connection_map) {
+    std::set<Wireable *> sources_seen;
     for (auto connection : connections) {
         if (connection.first->getSelectPath()[0] == "self" ||
             connection.second->getSelectPath()[0] == "self") {
@@ -96,19 +97,39 @@ void declare_connections(
             continue;
         }
 
-        std::string connection_name;
         Type *type = connection.second->getType();
+        Wireable *orig_source;
+        Wireable *source;
+        Wireable *sink;
         // If the second connection member is an output, we use it, otherwise
         // we use the first (even if it's an inout, this should be consistent)
         if (type->getDir() == Type::DK_Out) {
-            connection_name = connection.second->toString();
+            orig_source = connection.second;
+            sink = connection.first;
         } else {
-            connection_name = connection.first->toString();
+            orig_source = connection.first;
+            sink = connection.second;
         }
+        // Types are flattened, so at most we have an array select
+        ASSERT(orig_source->getSelectPath().size() <= 3,
+               "Did not expect select path deeper than 3");
+        if (orig_source->getSelectPath().size() == 3) {
+            source = cast<Select>(orig_source)->getParent();
+            type = source->getType();
+        } else {
+            source = orig_source;
+        }
+        std::string connection_name = orig_source->toString();
         std::replace(connection_name.begin(), connection_name.end(), '.', '_');
-        vAST::Identifier *id = new vAST::Identifier(connection_name);
-        wire_declarations.push_back(new vAST::Wire(process_decl(id, type)));
-        connection_map[connection] = connection_name;
+        connection_map[sink] = connection_name;
+        if (sources_seen.count(source) == 0) {
+            connection_name = source->toString();
+            std::replace(connection_name.begin(), connection_name.end(), '.',
+                         '_');
+            vAST::Identifier *id = new vAST::Identifier(connection_name);
+            wire_declarations.push_back(new vAST::Wire(process_decl(id, type)));
+        }
+        connection_map[orig_source] = connection_name;
     }
 }
 
@@ -203,7 +224,7 @@ void Passes::Verilog::compileModule(Module *module) {
     };
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         wire_declarations;
-    std::map<Connection, std::string> connection_map;
+    std::map<Wireable *, std::string> connection_map;
     declare_connections(module->getDef()->getSortedConnections(),
                         wire_declarations, connection_map);
 
@@ -244,11 +265,11 @@ void Passes::Verilog::compileModule(Module *module) {
             } else if (connection.first->getSelectPath()[0] == instance_name) {
                 connections.insert(std::pair<std::string, vAST::Identifier *>(
                     connection.first->getSelectPath()[1],
-                    new vAST::Identifier(connection_map[connection])));
+                    new vAST::Identifier(connection_map[connection.first])));
             } else if (connection.second->getSelectPath()[0] == instance_name) {
                 connections.insert(std::pair<std::string, vAST::Identifier *>(
                     connection.second->getSelectPath()[1],
-                    new vAST::Identifier(connection_map[connection])));
+                    new vAST::Identifier(connection_map[connection.second])));
             }
         }
         if (instance.second->hasModArgs()) {
