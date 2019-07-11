@@ -7,7 +7,7 @@ using namespace std;
 
 namespace CoreIR {
 
-  bool isSequential(CoreIR::Wireable* p1) {
+  bool isSequential(CoreIR::Wireable* p1, PluginMap& pluginMap) {
     if (isRegisterInstance(p1) ||
         isMemoryInstance(p1) ||
         isDFFInstance(p1)) {
@@ -344,7 +344,7 @@ namespace CoreIR {
     //     isMemoryInstance(p1) ||
     //     isDFFInstance(p1)) {
 
-    if (isSequential(p1)) {
+    if (isSequential(p1, pluginMap)) {
       c1_disc_it = imap.find(outputNode(p1));
     }
 
@@ -377,7 +377,7 @@ namespace CoreIR {
         // if (isRegisterInstance(p2) ||
         //     isMemoryInstance(p2) ||
         //     isDFFInstance(p2)) {
-        if (isSequential(p2)) {          
+        if (isSequential(p2, pluginMap)) {          
           c2_disc_it = imap.find(receiverNode(p2));
         }
         
@@ -392,7 +392,7 @@ namespace CoreIR {
       // if (isRegisterInstance(p2) ||
       //     isMemoryInstance(p2) ||
       //     isDFFInstance(p2)) {
-      if (isSequential(p2)) {
+      if (isSequential(p2, pluginMap)) {
         c2_disc_it = imap.find(receiverNode(p2));
       }
 
@@ -418,7 +418,7 @@ namespace CoreIR {
       // if (isRegisterInstance(inst) ||
       //     isMemoryInstance(inst) ||
       //     isDFFInstance(inst)) {
-      if (isSequential(inst)) {
+      if (isSequential(inst, pluginMap)) {
 	WireNode wOutput = outputNode(w1);
 	WireNode wInput = receiverNode(w1);
 
