@@ -60,6 +60,20 @@ vAST::Expression *convert_value(Value *value) {
     coreir_unreachable();
 }
 
+std::variant<vAST::Identifier *, vAST::Vector *> process_decl(
+    vAST::Identifier *id, Type *type) {
+    if (type->getKind() == Type::TK_Array) {
+        ArrayType *array_type = cast<ArrayType>(type);
+        ASSERT(array_type->getElemType()->isBaseType(),
+               "Expected Array of Bits");
+        return new vAST::Vector(
+            id, new vAST::NumericLiteral(toString(array_type->getLen() - 1)),
+            new vAST::NumericLiteral("0"));
+    }
+    ASSERT(type->getKind() == Type::TK_Bit, "Expected Bit or Array of Bits");
+    return id;
+}
+
 void declare_connections(
     std::vector<Connection> connections,
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
@@ -73,16 +87,17 @@ void declare_connections(
         }
 
         std::string connection_name;
+        Type *type = connection.second->getType();
         // If the second connection member is an output, we use it, otherwise
         // we use the first (even if it's an inout, this should be consistent)
-        if (connection.second->getType()->getDir() == Type::DK_Out) {
+        if (type->getDir() == Type::DK_Out) {
             connection_name = connection.second->toString();
         } else {
             connection_name = connection.first->toString();
         }
         std::replace(connection_name.begin(), connection_name.end(), '.', '_');
-        wire_declarations.push_back(
-            new vAST::Wire(new vAST::Identifier(connection_name)));
+        vAST::Identifier *id = new vAST::Identifier(connection_name);
+        wire_declarations.push_back(new vAST::Wire(process_decl(id, type)));
         connection_map[connection] = connection_name;
     }
 }
@@ -151,8 +166,8 @@ void Passes::Verilog::compileModule(Module *module) {
     std::vector<vAST::AbstractPort *> ports;
     for (auto record : cast<RecordType>(module->getType())->getRecord()) {
         vAST::Identifier *name = new vAST::Identifier(record.first);
-        Type *t = record.second;
-        Type::DirKind direction = t->getDir();
+        Type *type = record.second;
+        Type::DirKind direction = type->getDir();
         vAST::Direction verilog_direction;
         if (direction == Type::DK_In) {
             verilog_direction = vAST::INPUT;
@@ -164,7 +179,8 @@ void Passes::Verilog::compileModule(Module *module) {
             ASSERT(false,
                    "Not implemented for direction = " + toString(direction));
         }
-        ports.push_back(new vAST::Port(name, verilog_direction, vAST::WIRE));
+        ports.push_back(new vAST::Port(process_decl(name, type),
+                                       verilog_direction, vAST::WIRE));
     };
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         wire_declarations;
