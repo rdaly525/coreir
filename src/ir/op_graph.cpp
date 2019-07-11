@@ -465,7 +465,7 @@ namespace CoreIR {
   
   }
 
-  void buildOrderedGraph(Module* mod, NGraph& g) {
+  void buildOrderedGraph(PluginMap& pluginMap, Module* mod, NGraph& g) {
 
     auto ord_conns = buildOrderedConnections(mod);
 
@@ -492,6 +492,11 @@ namespace CoreIR {
 
   }
 
+  void buildOrderedGraph(Module* mod, NGraph& g) {
+    PluginMap m;
+    buildOrderedGraph(m, mod, g);
+  }
+  
   InstanceValue findArg(string argName, std::vector<Conn>& ins) {
     for (auto& conn : ins) {
       InstanceValue arg = conn.first;

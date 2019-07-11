@@ -481,7 +481,7 @@ namespace CoreIR {
         mod->getMetaData()["symtable"].get<map<string,json>>();
     }
 
-    buildOrderedGraph(mod, gr);
+    buildOrderedGraph(pluginBuilders, mod, gr);
 
     deque<vdisc> order = topologicalSortNoFail(gr);
 

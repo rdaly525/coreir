@@ -128,21 +128,6 @@ namespace CoreIR {
     std::string name;
     StopFunction stopTest;
   };
-
-  class SimulatorState;
-
-  class SimulatorPlugin {
-  public:
-
-    virtual void initialize(WireNode& wd) = 0;
-    virtual void exeSequential(WireNode& wd, SimulatorState& simState) = 0;
-    virtual void exeCombinational(WireNode& wd, SimulatorState& simState) = 0;
-    virtual ~SimulatorPlugin() {}
-  };
-
-  //typedef SimulatorPlugin* (*SimModelBuilder)(WireNode& wd);
-
-  typedef std::function<SimulatorPlugin*(WireNode& wd)> SimModelBuilder;
   
   class SimulatorState {
     CoreIR::Module* mod;
