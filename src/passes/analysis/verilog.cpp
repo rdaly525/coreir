@@ -40,11 +40,16 @@ void Passes::Verilog::initialize(int argc, char **argv) {
 
 std::string Passes::Verilog::ID = "verilog";
 
+std::string make_name(std::string name, json metadata) {
+    if (metadata.count("prefix") > 0) {
+        name = metadata["prefix"].get<std::string>() + name;
+    }
+    return name;
+}
+
 vAST::Expression *convert_value(Value *value) {
     if (auto arg_value = dyn_cast<Arg>(value)) {
-        // return arg_value->getField();
-        throw std::logic_error("NOT IMPLEMENTED: converting arg value" +
-                               arg_value->getField());
+        return new vAST::Identifier(arg_value->getField());
     } else if (auto int_value = dyn_cast<ConstInt>(value)) {
         return new vAST::NumericLiteral(int_value->toString());
     } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
@@ -70,7 +75,12 @@ std::variant<vAST::Identifier *, vAST::Vector *> process_decl(
             id, new vAST::NumericLiteral(toString(array_type->getLen() - 1)),
             new vAST::NumericLiteral("0"));
     }
-    ASSERT(type->getKind() == Type::TK_Bit, "Expected Bit or Array of Bits");
+    // unpack named types to get the raw type (so we can check that it's a
+    // bit), iteratively because perhaps you can name and named type?
+    while (type->getKind() == Type::TK_Named) {
+        type = cast<NamedType>(type)->getRaw();
+    }
+    ASSERT(type->isBaseType(), "Expected Bit, or Array of Bits");
     return id;
 }
 
@@ -154,9 +164,18 @@ void Passes::Verilog::compileModule(Module *module) {
                               new vAST::NumericLiteral("1")));
             }
         }
+        for (auto parameter : module->getModParams()) {
+            if (parameters_seen.count(parameter.first) == 0) {
+                // Old coreir backend defaults these (genparams without
+                // defaults) to 0
+                parameters.push_back(
+                    std::pair(new vAST::Identifier(parameter.first),
+                              new vAST::NumericLiteral("1")));
+            }
+        }
         vAST::StringBodyModule *string_body_module = new vAST::StringBodyModule(
-            verilog_json["prefix"].get<std::string>() + module->getName(),
-            ports, verilog_json["definition"].get<std::string>(), parameters);
+            make_name(module->getName(), verilog_json), ports,
+            verilog_json["definition"].get<std::string>(), parameters);
         modules.push_back(string_body_module);
         verilog_generators_seen.insert(module->getGenerator());
         return;
@@ -193,13 +212,15 @@ void Passes::Verilog::compileModule(Module *module) {
     for (auto instance : module->getDef()->getInstances()) {
         Module *instance_module = instance.second->getModuleRef();
         std::string module_name = instance_module->getName();
-        if (instance_module->isGenerated() &&
-            instance_module->getGenerator()->getMetaData().count("verilog") >
-                0) {
-            json verilog_json =
-                instance_module->getGenerator()->getMetaData()["verilog"];
-            module_name =
-                verilog_json["prefix"].get<std::string>() + module_name;
+        if (instance_module->isGenerated()) {
+            if (instance_module->getGenerator()->getMetaData().count(
+                    "verilog") > 0) {
+                json verilog_json =
+                    instance_module->getGenerator()->getMetaData()["verilog"];
+                module_name = make_name(module_name, verilog_json);
+            } else {
+                module_name = instance_module->getLongName();
+            }
         }
         vAST::Parameters instance_parameters;
         std::string instance_name = instance.first;
@@ -237,7 +258,9 @@ void Passes::Verilog::compileModule(Module *module) {
                               convert_value(parameter.second)));
             }
         }
-        if (instance.second->getModuleRef()->isGenerated()) {
+        if (instance_module->isGenerated() &&
+            instance_module->getGenerator()->getMetaData().count("verilog") >
+                0) {
             for (auto parameter :
                  instance.second->getModuleRef()->getGenArgs()) {
                 instance_parameters.push_back(
@@ -251,9 +274,23 @@ void Passes::Verilog::compileModule(Module *module) {
     body.insert(body.begin(), wire_declarations.begin(),
                 wire_declarations.end());
     vAST::Parameters parameters;
+    std::set<std::string> parameters_seen;
     if (module->getModParams().size()) {
-        throw std::logic_error(
-            "NOT IMPLEMENTED: compiling parametrized module to verilog");
+        for (auto parameter : module->getDefaultModArgs()) {
+            parameters.push_back(
+                std::pair(new vAST::Identifier(parameter.first),
+                          convert_value(parameter.second)));
+            parameters_seen.insert(parameter.first);
+        }
+        for (auto parameter : module->getModParams()) {
+            if (parameters_seen.count(parameter.first) == 0) {
+                // Old coreir backend defaults these (genparams without
+                // defaults) to 0
+                parameters.push_back(
+                    std::pair(new vAST::Identifier(parameter.first),
+                              new vAST::NumericLiteral("1")));
+            }
+        }
     }
     vAST::Module *verilog_module =
         new vAST::Module(module->getLongName(), ports, body, parameters);
