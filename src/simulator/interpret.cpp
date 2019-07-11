@@ -555,6 +555,7 @@ namespace CoreIR {
 
       plugMods[source] = plugin;
       plugMods[receiver] = plugin;
+      plugin->initialize(source, *this);
     }
 
     cout << "Built plugMods: " << endl;
@@ -1622,7 +1623,7 @@ namespace CoreIR {
       
     } else if (contains_key(vd, plugMods) && wd.isReceiver) {
         auto plugin = map_find(vd, plugMods);
-        plugin->exeCombinational(wd, *this);
+        plugin->exeCombinational(vd, *this);
     } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
       // Ignore sequential node
     } else {
@@ -1885,7 +1886,7 @@ namespace CoreIR {
 
         if (contains_key(vd, plugMods) && !wd.isReceiver) {
           auto plugin = map_find(vd, plugMods);
-          plugin->exeSequential(wd, *this);
+          plugin->exeSequential(vd, *this);
         }
         
       }
@@ -2229,7 +2230,7 @@ namespace CoreIR {
       delete val;
     }
 
-    // TODO: Reintroduce
+    // TODO: Reintroduce to prevent memory leaks
     // for (auto pg : plugMods) {
     //   delete pg.second;
     // }
