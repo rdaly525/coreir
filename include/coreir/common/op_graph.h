@@ -406,9 +406,9 @@ namespace CoreIR {
   class SimulatorPlugin {
   public:
 
-    virtual void initialize(WireNode& wd) = 0;
-    virtual void exeSequential(WireNode& wd, SimulatorState& simState) = 0;
-    virtual void exeCombinational(WireNode& wd, SimulatorState& simState) = 0;
+    virtual void initialize(vdisc wd, SimulatorState& simState) = 0;
+    virtual void exeSequential(vdisc wd, SimulatorState& simState) = 0;
+    virtual void exeCombinational(vdisc wd, SimulatorState& simState) = 0;
     virtual ~SimulatorPlugin() {}
   };
 
