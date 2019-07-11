@@ -167,7 +167,12 @@ namespace CoreIR {
   public:
 
     SimulatorState(CoreIR::Module* mod_);
+    SimulatorState(CoreIR::Module* mod_,
+                   std::map<std::string, SimModelBuilder>& pluginBuilders);
 
+    void initializeState(CoreIR::Module* mod_,
+                       std::map<std::string, SimModelBuilder>& pluginBuilders);
+    
     int numCircStates() const;
 
     void findMainClock();
