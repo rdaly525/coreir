@@ -7,6 +7,16 @@ using namespace std;
 
 namespace CoreIR {
 
+  bool isSequential(CoreIR::Wireable* p1) {
+    if (isRegisterInstance(p1) ||
+        isMemoryInstance(p1) ||
+        isDFFInstance(p1)) {
+      return true;
+    }
+
+    return false;
+  }
+
   void addConnection(std::unordered_map<WireNode, vdisc>& imap,
 		     Conn& conn,
 		     NGraph& g);
@@ -313,7 +323,8 @@ namespace CoreIR {
   }
 
 
-  void addConnection(unordered_map<WireNode, vdisc>& imap,
+  void addConnection(PluginMap& pluginMap,
+                     unordered_map<WireNode, vdisc>& imap,
 		     Conn& conn,
 		     NGraph& g) {
 
@@ -329,9 +340,11 @@ namespace CoreIR {
 
     auto c1_disc_it = imap.find(combNode(p1));
 
-    if (isRegisterInstance(p1) ||
-        isMemoryInstance(p1) ||
-        isDFFInstance(p1)) {
+    // if (isRegisterInstance(p1) ||
+    //     isMemoryInstance(p1) ||
+    //     isDFFInstance(p1)) {
+
+    if (isSequential(p1)) {
       c1_disc_it = imap.find(outputNode(p1));
     }
 
@@ -361,9 +374,10 @@ namespace CoreIR {
       } else {
         auto c2_disc_it = imap.find(combNode(p2));
 
-        if (isRegisterInstance(p2) ||
-            isMemoryInstance(p2) ||
-            isDFFInstance(p2)) {
+        // if (isRegisterInstance(p2) ||
+        //     isMemoryInstance(p2) ||
+        //     isDFFInstance(p2)) {
+        if (isSequential(p2)) {          
           c2_disc_it = imap.find(receiverNode(p2));
         }
         
@@ -375,9 +389,10 @@ namespace CoreIR {
     } else {
 
       auto c2_disc_it = imap.find(combNode(p2));
-      if (isRegisterInstance(p2) ||
-          isMemoryInstance(p2) ||
-          isDFFInstance(p2)) {
+      // if (isRegisterInstance(p2) ||
+      //     isMemoryInstance(p2) ||
+      //     isDFFInstance(p2)) {
+      if (isSequential(p2)) {
         c2_disc_it = imap.find(receiverNode(p2));
       }
 
@@ -392,6 +407,7 @@ namespace CoreIR {
   }
 
   void addWireableToGraph(Wireable* w1,
+                          PluginMap& pluginMap,
 			  unordered_map<WireNode, vdisc>& imap,
 			  NGraph& g) {
 
@@ -399,9 +415,10 @@ namespace CoreIR {
       Instance* inst = toInstance(w1);
       string genRefName = getInstanceName(*inst);
 
-      if (isRegisterInstance(inst) ||
-          isMemoryInstance(inst) ||
-          isDFFInstance(inst)) {
+      // if (isRegisterInstance(inst) ||
+      //     isMemoryInstance(inst) ||
+      //     isDFFInstance(inst)) {
+      if (isSequential(inst)) {
 	WireNode wOutput = outputNode(w1);
 	WireNode wInput = receiverNode(w1);
 
@@ -480,14 +497,14 @@ namespace CoreIR {
       Wireable* w1 = extractSource(sel1);
       Wireable* w2 = extractSource(sel2);
 
-      addWireableToGraph(w1, imap, g);
-      addWireableToGraph(w2, imap, g);
+      addWireableToGraph(w1, pluginMap, imap, g);
+      addWireableToGraph(w2, pluginMap, imap, g);
 
     }
 
     // Add edges to the graph
     for (Conn conn : ord_conns) {
-      addConnection(imap, conn, g);
+      addConnection(pluginMap, imap, conn, g);
     }
 
   }
