@@ -61,3 +61,4 @@ tests/unit/registered_switch_partially_evaluated.json
 tests/unit/sb_unq1_registered.json
 tests/unit/sb_unq1_safe_name.json
 tests/unit/topModConfig.json
+*.cmake
