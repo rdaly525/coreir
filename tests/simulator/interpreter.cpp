@@ -937,11 +937,35 @@ namespace CoreIR {
                     uint depth = genargs.at("depth")->get<int>();
 
                     return c->Record({{"in", c->BitIn()->Arr(width)},
-                          {"out", c->BitIn()->Arr(width)}});
+                          {"out", c->Bit()->Arr(width)}});
                   }
                   );
 
     g->newGeneratorDecl("ubuf", uBufTg, params);
+
+    // Build container module
+    Namespace* global = c->getNamespace("global");
+    int width = 16;
+    Type* bufWrapperType =
+        c->Record({
+            {"in",c->BitIn()->Arr(width)},
+            {"out",c->Bit()->Arr(width)}
+          });
+
+    Module* wrapperMod =
+      c->getGlobal()->newModuleDecl("bufWrapper", bufWrapperType);
+    ModuleDef* def = wrapperMod->newModuleDef();
+
+    def->addInstance("buf0",
+                       "bufferLib.ubuf",
+                       {{"width", Const::make(c, width)},
+                           {"depth", Const::make(c, 64)}});
+
+    def->connect("buf0.out", "self.out");
+    def->connect("buf0.in", "self.in");
+
+    wrapperMod->setDef(def);
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
 
     // Build the simulator with the new model
     auto modBuilder = [](WireNode& wd) {
