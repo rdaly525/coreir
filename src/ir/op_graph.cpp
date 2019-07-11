@@ -326,30 +326,19 @@ namespace CoreIR {
     Wireable* p1 = extractSource(c1);
 
     vdisc c1_disc;
-    // if (isRegisterInstance(p1) ||
-    //     isMemoryInstance(p1) ||
-    //     isDFFInstance(p1)) {
-    //   auto c1_disc_it = imap.find(outputNode(p1));
 
-    //   assert(c1_disc_it != imap.end());
+    auto c1_disc_it = imap.find(combNode(p1));
 
-    //   c1_disc = (*c1_disc_it).second;
+    if (isRegisterInstance(p1) ||
+        isMemoryInstance(p1) ||
+        isDFFInstance(p1)) {
+      c1_disc_it = imap.find(outputNode(p1));
+    }
 
-    // } else {
-    //   assert(!isRegisterInstance(p1));
+    assert(c1_disc_it != imap.end());
 
-      auto c1_disc_it = imap.find(combNode(p1));
-
-      if (isRegisterInstance(p1) ||
-          isMemoryInstance(p1) ||
-          isDFFInstance(p1)) {
-        c1_disc_it = imap.find(outputNode(p1));
-      }
-
-      assert(c1_disc_it != imap.end());
-
-      c1_disc = (*c1_disc_it).second;
-      //}
+    c1_disc = (*c1_disc_it).second;
+    //}
       
     Wireable* p2 = extractSource(c2);
 
