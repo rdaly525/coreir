@@ -147,7 +147,7 @@ namespace CoreIR {
     std::set<SimValue*> allocatedValues;
 
     bool hasCombinationalLoop;
-    std::map<WireNode, SimulatorPlugin*> plugMods;
+    std::map<vdisc, SimulatorPlugin*> plugMods;
 
   public:
 

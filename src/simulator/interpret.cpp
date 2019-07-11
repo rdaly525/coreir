@@ -467,6 +467,16 @@ namespace CoreIR {
     }
   }
 
+  string getQualifiedOpNameWire(CoreIR::Wireable* wire) {
+    assert(wire != nullptr);
+    assert(isInstance(wire));
+
+    CoreIR::Instance* inst = toInstance(wire);
+
+    cout << "Wire " << inst->getInstname() << " is instance" << endl;
+    return getQualifiedOpName(*inst);
+  }
+  
   void SimulatorState::initializeState(CoreIR::Module* mod_,
                                        std::map<std::string, SimModelBuilder>& pluginBuilders) {
     assert(mod->hasDef());
@@ -484,6 +494,70 @@ namespace CoreIR {
     buildOrderedGraph(pluginBuilders, mod, gr);
 
     deque<vdisc> order = topologicalSortNoFail(gr);
+    vector<vdisc> pluginReceivers;
+    vector<vdisc> pluginSources;
+    vector<vdisc> pluginNodes;
+    
+    for (auto vd : order) {
+      WireNode wireNode = gr.getNode(vd);
+      Wireable* wd = wireNode.getWire();
+      if (isSequentialPlugin(wd, pluginBuilders)) {
+        if (wireNode.isReceiver) {
+          pluginReceivers.push_back(vd);
+        } else {
+          pluginSources.push_back(vd);          
+        }
+
+        pluginNodes.push_back(vd);
+      }
+    }
+
+    cout << "# of plugin nodes = " << pluginNodes.size() << endl;
+    cout << "# of plugin rcvs  = " << pluginReceivers.size() << endl;
+    cout << "# of plugin srcs  = " << pluginSources.size() << endl;        
+
+    assert((pluginNodes.size() % 2) == 0);
+
+    map<vdisc, vdisc> rcvToSrc;
+    for (auto rcv : pluginReceivers) {
+      bool foundSrc = false;
+      vdisc srcV = 0;
+      for (auto src : pluginSources) {
+        if (gr.getNode(src).getWire() == gr.getNode(rcv).getWire()) {
+          foundSrc = true;
+          srcV = src;
+          break;
+        }
+      }
+      assert(foundSrc);
+      rcvToSrc[rcv] = srcV;
+    }
+
+    cout << "# of receiver, source pairs: " << rcvToSrc.size() << endl;
+    for (auto vdPair : rcvToSrc) {
+      vdisc receiver = vdPair.first;
+      vdisc source = vdPair.second;
+      cout << "Receiver = " << receiver << endl;
+      cout << "Source   = " << source << endl;
+
+      WireNode srcNode = gr.getNode(source);
+      cout << "Found source node" << endl;
+      
+      string instName = getQualifiedOpNameWire(srcNode.getWire());
+
+      cout << "Inst name = " << instName << endl;
+      
+      assert(contains_key(instName, pluginBuilders));
+      
+      WireNode wd = gr.getNode(source);
+      SimulatorPlugin* plugin =
+        pluginBuilders[instName](wd);
+
+      plugMods[source] = plugin;
+      plugMods[receiver] = plugin;
+    }
+
+    cout << "Built plugMods: " << endl;
 
     // TODO: This test for combinational loops can fail for 2 element circuits,
     // replace it with something more robust
@@ -1546,7 +1620,12 @@ namespace CoreIR {
 
         });
       
-  } else {
+    } else if (contains_key(vd, plugMods) && wd.isReceiver) {
+        auto plugin = map_find(vd, plugMods);
+        plugin->exeCombinational(wd, *this);
+    } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
+      // Ignore sequential node
+    } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
     }
@@ -1802,6 +1881,11 @@ namespace CoreIR {
 
         if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
           updateDFFOutput(vd);
+        }
+
+        if (contains_key(vd, plugMods) && !wd.isReceiver) {
+          auto plugin = map_find(vd, plugMods);
+          plugin->exeSequential(wd, *this);
         }
         
       }
@@ -2145,9 +2229,10 @@ namespace CoreIR {
       delete val;
     }
 
-    for (auto pg : plugMods) {
-      delete pg.second;
-    }
+    // TODO: Reintroduce
+    // for (auto pg : plugMods) {
+    //   delete pg.second;
+    // }
     
   }
 
