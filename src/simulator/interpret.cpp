@@ -467,9 +467,8 @@ namespace CoreIR {
     }
   }
 
-  SimulatorState::SimulatorState(CoreIR::Module* mod_) :
-    mod(mod_), mainClock(nullptr) {
-
+  void SimulatorState::initializeState(CoreIR::Module* mod_,
+                                       std::map<std::string, SimModelBuilder>& pluginBuilders) {
     assert(mod->hasDef());
 
     mod->getDef()->getContext()->runPasses({"verifyflattenedtypes"}, {mod->getNamespace()->getName(), "global"});
@@ -507,10 +506,24 @@ namespace CoreIR {
     setRegisterDefaults();
     setDFFDefaults();
     setInputDefaults();
+    
+  }
 
+  SimulatorState::SimulatorState(CoreIR::Module* mod_,
+                                 std::map<std::string, SimModelBuilder>& pluginBuilders) :
+    mod(mod_), mainClock(nullptr) {
+
+    initializeState(mod, pluginBuilders);
 
   }
 
+  SimulatorState::SimulatorState(CoreIR::Module* mod_) :
+    mod(mod_), mainClock(nullptr) {
+    
+    std::map<std::string, SimModelBuilder> pluginBuilders;
+    initializeState(mod, pluginBuilders);
+  }
+  
   void SimulatorState::setInputDefaults() {
     
   }
