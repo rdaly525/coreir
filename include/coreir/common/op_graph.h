@@ -400,8 +400,24 @@ namespace CoreIR {
 
   std::vector<Conn> buildOrderedConnections(Module* mod);
 
-  void buildOrderedGraph(Module* mod, NGraph& g);
 
+  class SimulatorState;
+
+  class SimulatorPlugin {
+  public:
+
+    virtual void initialize(WireNode& wd) = 0;
+    virtual void exeSequential(WireNode& wd, SimulatorState& simState) = 0;
+    virtual void exeCombinational(WireNode& wd, SimulatorState& simState) = 0;
+    virtual ~SimulatorPlugin() {}
+  };
+
+  typedef std::function<SimulatorPlugin*(WireNode& wd)> SimModelBuilder;
+  typedef std::map<std::string, SimModelBuilder> PluginMap;
+
+  void buildOrderedGraph(PluginMap& pluginMap, Module* mod, NGraph& g);
+  void buildOrderedGraph(Module* mod, NGraph& g);
+  
   InstanceValue findArg(std::string argName, std::vector<Conn>& ins);
 
   void eliminateMasks(const std::deque<vdisc>& topoOrder,

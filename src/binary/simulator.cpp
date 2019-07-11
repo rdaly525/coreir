@@ -70,7 +70,8 @@ int main(int argc, char *argv[]) {
   cout << "Done running passes" << endl;
 
   NGraph gr;
-  buildOrderedGraph(top, gr);
+  PluginMap m;
+  buildOrderedGraph(m, top, gr);
 
   cout << "Starting topological sort" << endl;
 
