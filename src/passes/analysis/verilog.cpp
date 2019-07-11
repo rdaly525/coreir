@@ -60,23 +60,31 @@ vAST::Expression *convert_value(Value *value) {
     coreir_unreachable();
 }
 
-std::string declare_connection(
-    // TODO: It would be better if we just declared a wire for each
-    // instance output, but this works for now by creating a unique wire
-    // for all connections
-    Connection connection, std::set<Connection> &declared_connections,
+void declare_connections(
+    std::vector<Connection> connections,
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
-        &wire_declarations) {
-    SelectPath first_select_path = connection.first->getSelectPath();
-    SelectPath second_select_path = connection.second->getSelectPath();
-    std::string name = first_select_path[0] + "_" + first_select_path[1] +
-                       "__" + second_select_path[0] + "_" +
-                       second_select_path[1];
-    if (declared_connections.find(connection) == declared_connections.end()) {
-        declared_connections.insert(connection);
-        wire_declarations.push_back(new vAST::Wire(new vAST::Identifier(name)));
+        &wire_declarations,
+    std::map<Connection, std::string> &connection_map) {
+    for (auto connection : connections) {
+        if (connection.first->getSelectPath()[0] == "self" ||
+            connection.second->getSelectPath()[0] == "self") {
+            // These are wired up directly
+            continue;
+        }
+
+        std::string connection_name;
+        // If the second connection member is an output, we use it, otherwise
+        // we use the first (even if it's an inout, this should be consistent)
+        if (connection.second->getType()->getDir() == Type::DK_Out) {
+            connection_name = connection.second->toString();
+        } else {
+            connection_name = connection.first->toString();
+        }
+        std::replace(connection_name.begin(), connection_name.end(), '.', '_');
+        wire_declarations.push_back(
+            new vAST::Wire(new vAST::Identifier(connection_name)));
+        connection_map[connection] = connection_name;
     }
-    return name;
 }
 
 void Passes::Verilog::compileModule(Module *module) {
@@ -133,8 +141,7 @@ void Passes::Verilog::compileModule(Module *module) {
         }
         vAST::StringBodyModule *string_body_module = new vAST::StringBodyModule(
             verilog_json["prefix"].get<std::string>() + module->getName(),
-            ports, verilog_json["definition"].get<std::string>(),
-            parameters);
+            ports, verilog_json["definition"].get<std::string>(), parameters);
         modules.push_back(string_body_module);
         verilog_generators_seen.insert(module->getGenerator());
         return;
@@ -159,19 +166,24 @@ void Passes::Verilog::compileModule(Module *module) {
         }
         ports.push_back(new vAST::Port(name, verilog_direction, vAST::WIRE));
     };
-    std::set<Connection> declared_connections;
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         wire_declarations;
+    std::map<Connection, std::string> connection_map;
+    declare_connections(module->getDef()->getSortedConnections(),
+                        wire_declarations, connection_map);
+
     std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
         body;
     for (auto instance : module->getDef()->getInstances()) {
         Module *instance_module = instance.second->getModuleRef();
         std::string module_name = instance_module->getName();
         if (instance_module->isGenerated() &&
-                instance_module->getGenerator()->getMetaData().count("verilog")
-                > 0) {
-            json verilog_json = instance_module->getGenerator()->getMetaData()["verilog"];
-            module_name = verilog_json["prefix"].get<std::string>() + module_name;
+            instance_module->getGenerator()->getMetaData().count("verilog") >
+                0) {
+            json verilog_json =
+                instance_module->getGenerator()->getMetaData()["verilog"];
+            module_name =
+                verilog_json["prefix"].get<std::string>() + module_name;
         }
         vAST::Parameters instance_parameters;
         std::string instance_name = instance.first;
@@ -193,17 +205,13 @@ void Passes::Verilog::compileModule(Module *module) {
                         connection.second->getSelectPath()[1])));
 
             } else if (connection.first->getSelectPath()[0] == instance_name) {
-                std::string name = declare_connection(
-                    connection, declared_connections, wire_declarations);
                 connections.insert(std::pair<std::string, vAST::Identifier *>(
                     connection.first->getSelectPath()[1],
-                    new vAST::Identifier(name)));
+                    new vAST::Identifier(connection_map[connection])));
             } else if (connection.second->getSelectPath()[0] == instance_name) {
-                std::string name = declare_connection(
-                    connection, declared_connections, wire_declarations);
                 connections.insert(std::pair<std::string, vAST::Identifier *>(
                     connection.second->getSelectPath()[1],
-                    new vAST::Identifier(name)));
+                    new vAST::Identifier(connection_map[connection])));
             }
         }
         if (instance.second->hasModArgs()) {
@@ -239,8 +247,8 @@ void Passes::Verilog::compileModule(Module *module) {
 bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode &node) {
     Module *module = node.getModule();
     if (module->isGenerated() &&
-            module->getGenerator()->getMetaData().count("verilog") > 0 &&
-            verilog_generators_seen.count(module->getGenerator()) > 0) {
+        module->getGenerator()->getMetaData().count("verilog") > 0 &&
+        verilog_generators_seen.count(module->getGenerator()) > 0) {
         return false;
     }
     compileModule(module);
