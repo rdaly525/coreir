@@ -50,3 +50,13 @@ bit_vector.h
 a.out.dSYM/
 
 conv_3_1.o
+tests/unit/bit_replacement.json
+tests/unit/oh_fifo_generic.json
+tests/unit/register_with_init.json
+tests/unit/registered_connect_box.json
+tests/unit/registered_switch_box.json
+tests/unit/registered_switch_box.v
+tests/unit/registered_switch_partially_evaluated.json
+tests/unit/sb_unq1_registered.json
+tests/unit/sb_unq1_safe_name.json
+tests/unit/topModConfig.json
