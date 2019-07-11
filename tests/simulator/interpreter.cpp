@@ -919,6 +919,9 @@ namespace CoreIR {
     }
 
     void exeCombinational(WireNode& wd, SimulatorState& simState) {
+      Instance* inst = toInstance(wd.getWire());
+      
+      simState.setValue(toSelect(inst->sel("out")), BitVector(16, 123));
     }
 
   };
@@ -936,8 +939,10 @@ namespace CoreIR {
                     uint width = genargs.at("width")->get<int>();
                     uint depth = genargs.at("depth")->get<int>();
 
-                    return c->Record({{"in", c->BitIn()->Arr(width)},
-                          {"out", c->Bit()->Arr(width)}});
+                    return c->Record({
+                        {"clk",c->Named("coreir.clkIn")},
+                          {"in", c->BitIn()->Arr(width)},
+                            {"out", c->Bit()->Arr(width)}});
                   }
                   );
 
@@ -948,6 +953,7 @@ namespace CoreIR {
     int width = 16;
     Type* bufWrapperType =
         c->Record({
+            {"clk",c->Named("coreir.clkIn")},            
             {"in",c->BitIn()->Arr(width)},
             {"out",c->Bit()->Arr(width)}
           });
@@ -963,6 +969,7 @@ namespace CoreIR {
 
     def->connect("buf0.out", "self.out");
     def->connect("buf0.in", "self.in");
+    def->connect("buf0.clk", "self.clk");
 
     wrapperMod->setDef(def);
     c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
@@ -977,6 +984,18 @@ namespace CoreIR {
     map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubuf"), modBuilder}};
 
     SimulatorState state(wrapperMod, qualifiedNamesToSimPlugins);
+
+    state.setValue("self.in", BitVector(width, 89));
+    state.setClock("self.clk", 0, 1);    
+
+    state.resetCircuit();
+
+    state.execute();
+
+    state.setClock("self.clk", 0, 1);
+    state.execute();
+
+    cout << "Output of ubuf = " << state.getBitVec("self.out") << endl;
     
     deleteContext(c);
   }

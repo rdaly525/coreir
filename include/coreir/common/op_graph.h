@@ -417,7 +417,8 @@ namespace CoreIR {
 
   void buildOrderedGraph(PluginMap& pluginMap, Module* mod, NGraph& g);
   void buildOrderedGraph(Module* mod, NGraph& g);
-  
+
+  bool isSequentialPlugin(CoreIR::Wireable* fst, PluginMap& pluginMap);
   InstanceValue findArg(std::string argName, std::vector<Conn>& ins);
 
   void eliminateMasks(const std::deque<vdisc>& topoOrder,
