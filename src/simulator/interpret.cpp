@@ -1622,8 +1622,9 @@ namespace CoreIR {
         });
       
     } else if (contains_key(vd, plugMods) && wd.isReceiver) {
-        auto plugin = map_find(vd, plugMods);
-        plugin->exeCombinational(vd, *this);
+      //auto plugin = map_find(vd, plugMods);
+        //plugin->exeCombinational(vd, *this);
+        //plugin->exeSequential(vd, *this);
     } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
       // Ignore sequential node
     } else {
@@ -1843,9 +1844,9 @@ namespace CoreIR {
 
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
-      //if (contains_key(wd, plugMods) && wd.isReceiver) {
-        //plugMods[wd]->exeSequential(wd, *this);
-      //}
+      if (contains_key(vd, plugMods) && wd.isReceiver) {
+        plugMods[vd]->exeSequential(vd, *this);
+      }
 
       if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
         updateRegisterValue(vd);
@@ -1886,7 +1887,8 @@ namespace CoreIR {
 
         if (contains_key(vd, plugMods) && !wd.isReceiver) {
           auto plugin = map_find(vd, plugMods);
-          plugin->exeSequential(vd, *this);
+          //plugin->exeSequential(vd, *this);
+          plugin->exeCombinational(vd, *this);
         }
         
       }
