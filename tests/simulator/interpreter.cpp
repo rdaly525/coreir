@@ -1040,7 +1040,7 @@ namespace CoreIR {
     state.setValue("self.in", BitVector(width, 89));
     state.setClock("self.clk", 0, 1);
 
-    //state.resetCircuit();
+    state.resetCircuit();
 
     cout << "Done with reset" << endl;
 
