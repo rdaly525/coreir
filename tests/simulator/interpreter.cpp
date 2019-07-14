@@ -1040,14 +1040,21 @@ namespace CoreIR {
     state.setValue("self.in", BitVector(width, 89));
     state.setClock("self.clk", 0, 1);
 
-    state.resetCircuit();
+    //state.resetCircuit();
 
     cout << "Done with reset" << endl;
 
     state.execute();
+
+    cout << "First Output of ubuf = " << state.getBitVec("self.out") << endl;
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 89));
+
+    state.setValue("self.in", BitVector(width, 7));
+    
     state.execute();
 
-    cout << "Output of ubuf = " << state.getBitVec("self.out") << endl;
+    cout << "Second Output of ubuf = " << state.getBitVec("self.out") << endl;    
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 7));
     
     deleteContext(c);
   }
