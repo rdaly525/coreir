@@ -65,7 +65,7 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
         type = cast<NamedType>(type)->getRaw();
     }
     ASSERT(type->isBaseType(), "Expected Bit, or Array of Bits");
-    return id;
+    return std::move(id);
 }
 
 void declare_connections(
@@ -127,7 +127,7 @@ void declare_connections(
                 },
                 process_decl(std::move(id), type));
         }
-        // The original source (could be sub element of a source array) is
+        // The original source (if the source is ) is
         // connected by the select path
         connection_map[orig_source] = connection_name;
     }
