@@ -48,6 +48,27 @@ TEST(VerilogTests, TestIntermediateConnection) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestArraySelect) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "array_select.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "array_select_golden.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {

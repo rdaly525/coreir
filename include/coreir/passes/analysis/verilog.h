@@ -4,7 +4,6 @@
 #include <ostream>
 #include "coreir.h"
 #include "verilogAST.hpp"
-#include "vmodule.h"
 
 namespace vAST = verilogAST;
 
