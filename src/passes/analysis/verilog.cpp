@@ -6,24 +6,6 @@
 
 namespace CoreIR {
 
-// namespace {
-//
-// void WriteModuleToStream(const Passes::VerilogNamespace::VModule* module,
-//                          std::ostream& os) {
-//   if (module->isExternal) {
-//     // TODO(rsetaluri): Use "defer" like semantics to avoid duplicate calls
-//     to
-//     // toString().
-//     os << "/* External Modules" << std::endl;
-//     os << module->toString() << std::endl;
-//     os << "*/" << std::endl;
-//     return;
-//   }
-//   os << module->toString() << std::endl;
-// }
-//
-// }  // namespace
-
 void Passes::Verilog::initialize(int argc, char **argv) {
     cxxopts::Options options("verilog", "translates coreir graph to verilog");
     options.add_options()("i,inline", "Inline verilog modules if possible")(
@@ -47,33 +29,35 @@ std::string make_name(std::string name, json metadata) {
     return name;
 }
 
-vAST::Expression *convert_value(Value *value) {
+std::unique_ptr<vAST::Expression> convert_value(Value *value) {
     if (auto arg_value = dyn_cast<Arg>(value)) {
-        return new vAST::Identifier(arg_value->getField());
+        return std::make_unique<vAST::Identifier>(arg_value->getField());
     } else if (auto int_value = dyn_cast<ConstInt>(value)) {
-        return new vAST::NumericLiteral(int_value->toString());
+        return std::make_unique<vAST::NumericLiteral>(int_value->toString());
     } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
-        return new vAST::NumericLiteral(
+        return std::make_unique<vAST::NumericLiteral>(
             std::to_string(uint(bool_value->get())));
     } else if (auto bit_vector_value = dyn_cast<ConstBitVector>(value)) {
         BitVector bit_vector = bit_vector_value->get();
-        return new vAST::NumericLiteral(
+        return std::make_unique<vAST::NumericLiteral>(
             bit_vector.hex_digits(), bit_vector.bitLength(), false, vAST::HEX);
     } else if (auto string_value = dyn_cast<ConstString>(value)) {
-        return new vAST::String(string_value->toString());
+        return std::make_unique<vAST::String>(string_value->toString());
     }
     coreir_unreachable();
 }
 
-std::variant<vAST::Identifier *, vAST::Vector *> process_decl(
-    vAST::Identifier *id, Type *type) {
+std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
+process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
     if (type->getKind() == Type::TK_Array) {
         ArrayType *array_type = cast<ArrayType>(type);
         ASSERT(array_type->getElemType()->isBaseType(),
                "Expected Array of Bits");
-        return new vAST::Vector(
-            id, new vAST::NumericLiteral(toString(array_type->getLen() - 1)),
-            new vAST::NumericLiteral("0"));
+        return std::make_unique<vAST::Vector>(
+            std::move(id),
+            std::make_unique<vAST::NumericLiteral>(
+                toString(array_type->getLen() - 1)),
+            std::make_unique<vAST::NumericLiteral>("0"));
     }
     // unpack named types to get the raw type (so we can check that it's a
     // bit), iteratively because perhaps you can name and named type?
@@ -86,7 +70,8 @@ std::variant<vAST::Identifier *, vAST::Vector *> process_decl(
 
 void declare_connections(
     std::vector<Connection> connections,
-    std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
+    std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                             std::unique_ptr<vAST::Declaration>>>
         &wire_declarations,
     std::map<Wireable *, std::string> &connection_map) {
     std::set<Wireable *> sources_seen;
@@ -126,8 +111,17 @@ void declare_connections(
             connection_name = source->toString();
             std::replace(connection_name.begin(), connection_name.end(), '.',
                          '_');
-            vAST::Identifier *id = new vAST::Identifier(connection_name);
-            wire_declarations.push_back(new vAST::Wire(process_decl(id, type)));
+            std::unique_ptr<vAST::Identifier> id =
+                std::make_unique<vAST::Identifier>(connection_name);
+            // Can't find a simple way to "promote" a variant type to a
+            // superset, so we just manually unpack it to call the Wire
+            // constructor
+            std::visit(
+                [&](auto &&arg) -> void {
+                    wire_declarations.push_back(
+                        std::make_unique<vAST::Wire>(std::move(arg)));
+                },
+                process_decl(std::move(id), type));
         }
         connection_map[orig_source] = connection_name;
     }
@@ -154,25 +148,26 @@ void Passes::Verilog::compileModule(Module *module) {
             // guarantee* at this level that things are in sync. For example, if
             // the CoreIR module declaration does not match the verilog's, then
             // the output may be garbage for downstream tools.
-            vAST::StringModule *verilog_module = new vAST::StringModule(
-                verilog_json["verilog_string"].get<std::string>());
-            modules.push_back(verilog_module);
+            std::unique_ptr<vAST::AbstractModule> verilog_module =
+                std::make_unique<vAST::StringModule>(
+                    verilog_json["verilog_string"].get<std::string>());
+            modules.push_back(std::move(verilog_module));
             return;
         }
         return;
     } else if (module->isGenerated() &&
                module->getGenerator()->getMetaData().count("verilog") > 0) {
         json verilog_json = module->getGenerator()->getMetaData()["verilog"];
-        std::vector<vAST::AbstractPort *> ports;
+        std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
         for (auto port_str :
              verilog_json["interface"].get<std::vector<std::string>>()) {
-            ports.push_back(new vAST::StringPort(port_str));
+            ports.push_back(std::make_unique<vAST::StringPort>(port_str));
         }
         vAST::Parameters parameters;
         std::set<std::string> parameters_seen;
         for (auto parameter : module->getGenerator()->getDefaultGenArgs()) {
             parameters.push_back(
-                std::pair(new vAST::Identifier(parameter.first),
+                std::pair(std::make_unique<vAST::Identifier>(parameter.first),
                           convert_value(parameter.second)));
             parameters_seen.insert(parameter.first);
         }
@@ -180,32 +175,35 @@ void Passes::Verilog::compileModule(Module *module) {
             if (parameters_seen.count(parameter.first) == 0) {
                 // Old coreir backend defaults these (genparams without
                 // defaults) to 0
-                parameters.push_back(
-                    std::pair(new vAST::Identifier(parameter.first),
-                              new vAST::NumericLiteral("1")));
+                parameters.push_back(std::pair(
+                    std::make_unique<vAST::Identifier>(parameter.first),
+                    std::make_unique<vAST::NumericLiteral>("1")));
             }
         }
         for (auto parameter : module->getModParams()) {
             if (parameters_seen.count(parameter.first) == 0) {
                 // Old coreir backend defaults these (genparams without
                 // defaults) to 0
-                parameters.push_back(
-                    std::pair(new vAST::Identifier(parameter.first),
-                              new vAST::NumericLiteral("1")));
+                parameters.push_back(std::pair(
+                    std::make_unique<vAST::Identifier>(parameter.first),
+                    std::make_unique<vAST::NumericLiteral>("1")));
             }
         }
-        vAST::StringBodyModule *string_body_module = new vAST::StringBodyModule(
-            make_name(module->getName(), verilog_json), ports,
-            verilog_json["definition"].get<std::string>(), parameters);
-        modules.push_back(string_body_module);
+        std::unique_ptr<vAST::AbstractModule> string_body_module =
+            std::make_unique<vAST::StringBodyModule>(
+                make_name(module->getName(), verilog_json), std::move(ports),
+                verilog_json["definition"].get<std::string>(),
+                std::move(parameters));
+        modules.push_back(std::move(string_body_module));
         verilog_generators_seen.insert(module->getGenerator());
         return;
     } else if (!module->hasDef()) {
         return;
     }
-    std::vector<vAST::AbstractPort *> ports;
+    std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
     for (auto record : cast<RecordType>(module->getType())->getRecord()) {
-        vAST::Identifier *name = new vAST::Identifier(record.first);
+        std::unique_ptr<vAST::Identifier> name =
+            std::make_unique<vAST::Identifier>(record.first);
         Type *type = record.second;
         Type::DirKind direction = type->getDir();
         vAST::Direction verilog_direction;
@@ -219,16 +217,19 @@ void Passes::Verilog::compileModule(Module *module) {
             ASSERT(false,
                    "Not implemented for direction = " + toString(direction));
         }
-        ports.push_back(new vAST::Port(process_decl(name, type),
-                                       verilog_direction, vAST::WIRE));
+        ports.push_back(
+            std::make_unique<vAST::Port>(process_decl(std::move(name), type),
+                                         verilog_direction, vAST::WIRE));
     };
-    std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
+    std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                             std::unique_ptr<vAST::Declaration>>>
         wire_declarations;
     std::map<Wireable *, std::string> connection_map;
     declare_connections(module->getDef()->getSortedConnections(),
                         wire_declarations, connection_map);
 
-    std::vector<std::variant<vAST::StructuralStatement *, vAST::Declaration *>>
+    std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                             std::unique_ptr<vAST::Declaration>>>
         body;
     for (auto instance : module->getDef()->getInstances()) {
         Module *instance_module = instance.second->getModuleRef();
@@ -245,38 +246,45 @@ void Passes::Verilog::compileModule(Module *module) {
         }
         vAST::Parameters instance_parameters;
         std::string instance_name = instance.first;
-        std::map<std::string,
-                 std::variant<vAST::Identifier *, vAST::Index *, vAST::Slice *>>
+        std::map<std::string, std::variant<std::unique_ptr<vAST::Identifier>,
+                                           std::unique_ptr<vAST::Index>,
+                                           std::unique_ptr<vAST::Slice>>>
             connections;
         for (auto connection : module->getDef()->getSortedConnections()) {
             if (connection.first->getSelectPath()[0] == "self" &&
                 connection.second->getSelectPath()[0] == instance_name) {
-                connections.insert(std::pair<std::string, vAST::Identifier *>(
-                    connection.second->getSelectPath()[1],
-                    new vAST::Identifier(
-                        connection.first->getSelectPath()[1])));
+                connections.insert(
+                    std::pair<std::string, std::unique_ptr<vAST::Identifier>>(
+                        connection.second->getSelectPath()[1],
+                        std::make_unique<vAST::Identifier>(
+                            connection.first->getSelectPath()[1])));
             } else if (connection.second->getSelectPath()[0] == "self" &&
                        connection.first->getSelectPath()[0] == instance_name) {
-                connections.insert(std::pair<std::string, vAST::Identifier *>(
-                    connection.first->getSelectPath()[1],
-                    new vAST::Identifier(
-                        connection.second->getSelectPath()[1])));
+                connections.insert(
+                    std::pair<std::string, std::unique_ptr<vAST::Identifier>>(
+                        connection.first->getSelectPath()[1],
+                        std::make_unique<vAST::Identifier>(
+                            connection.second->getSelectPath()[1])));
 
             } else if (connection.first->getSelectPath()[0] == instance_name) {
-                connections.insert(std::pair<std::string, vAST::Identifier *>(
-                    connection.first->getSelectPath()[1],
-                    new vAST::Identifier(connection_map[connection.first])));
+                connections.insert(
+                    std::pair<std::string, std::unique_ptr<vAST::Identifier>>(
+                        connection.first->getSelectPath()[1],
+                        std::make_unique<vAST::Identifier>(
+                            connection_map[connection.first])));
             } else if (connection.second->getSelectPath()[0] == instance_name) {
-                connections.insert(std::pair<std::string, vAST::Identifier *>(
-                    connection.second->getSelectPath()[1],
-                    new vAST::Identifier(connection_map[connection.second])));
+                connections.insert(
+                    std::pair<std::string, std::unique_ptr<vAST::Identifier>>(
+                        connection.second->getSelectPath()[1],
+                        std::make_unique<vAST::Identifier>(
+                            connection_map[connection.second])));
             }
         }
         if (instance.second->hasModArgs()) {
             for (auto parameter : instance.second->getModArgs()) {
-                instance_parameters.push_back(
-                    std::pair(new vAST::Identifier(parameter.first),
-                              convert_value(parameter.second)));
+                instance_parameters.push_back(std::pair(
+                    std::make_unique<vAST::Identifier>(parameter.first),
+                    convert_value(parameter.second)));
             }
         }
         if (instance_module->isGenerated() &&
@@ -284,22 +292,26 @@ void Passes::Verilog::compileModule(Module *module) {
                 0) {
             for (auto parameter :
                  instance.second->getModuleRef()->getGenArgs()) {
-                instance_parameters.push_back(
-                    std::pair(new vAST::Identifier(parameter.first),
-                              convert_value(parameter.second)));
+                instance_parameters.push_back(std::pair(
+                    std::make_unique<vAST::Identifier>(parameter.first),
+                    convert_value(parameter.second)));
             }
         }
-        body.push_back(new vAST::ModuleInstantiation(
-            module_name, instance_parameters, instance_name, connections));
+        std::unique_ptr<vAST::StructuralStatement> statement =
+            std::make_unique<vAST::ModuleInstantiation>(
+                module_name, std::move(instance_parameters), instance_name,
+                std::move(connections));
+        body.push_back(std::move(statement));
     }
-    body.insert(body.begin(), wire_declarations.begin(),
-                wire_declarations.end());
+    body.insert(body.begin(),
+                std::make_move_iterator(wire_declarations.begin()),
+                std::make_move_iterator(wire_declarations.end()));
     vAST::Parameters parameters;
     std::set<std::string> parameters_seen;
     if (module->getModParams().size()) {
         for (auto parameter : module->getDefaultModArgs()) {
             parameters.push_back(
-                std::pair(new vAST::Identifier(parameter.first),
+                std::pair(std::make_unique<vAST::Identifier>(parameter.first),
                           convert_value(parameter.second)));
             parameters_seen.insert(parameter.first);
         }
@@ -307,15 +319,16 @@ void Passes::Verilog::compileModule(Module *module) {
             if (parameters_seen.count(parameter.first) == 0) {
                 // Old coreir backend defaults these (genparams without
                 // defaults) to 0
-                parameters.push_back(
-                    std::pair(new vAST::Identifier(parameter.first),
-                              new vAST::NumericLiteral("1")));
+                parameters.push_back(std::pair(
+                    std::make_unique<vAST::Identifier>(parameter.first),
+                    std::make_unique<vAST::NumericLiteral>("1")));
             }
         }
     }
-    vAST::Module *verilog_module =
-        new vAST::Module(module->getLongName(), ports, body, parameters);
-    modules.push_back(verilog_module);
+    std::unique_ptr<vAST::AbstractModule> verilog_module =
+        std::make_unique<vAST::Module>(module->getLongName(), std::move(ports),
+                                       std::move(body), std::move(parameters));
+    modules.push_back(std::move(verilog_module));
 }
 
 bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode &node) {
@@ -330,7 +343,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode &node) {
 }
 
 void Passes::Verilog::writeToStream(std::ostream &os) {
-    for (auto module : modules) {
+    for (auto &module : modules) {
         os << module->toString() << std::endl;
     }
 }
@@ -347,16 +360,6 @@ void Passes::Verilog::writeToFiles(const std::string &dir) {
     //   WriteModuleToStream(module, fout);
     //   fout.close();
     // }
-}
-
-Passes::Verilog::~Verilog() {
-    // set<VModule*> toDelete;
-    // for (auto m : modMap) {
-    //  toDelete.insert(m.second);
-    //}
-    // for (auto m : toDelete) {
-    //  delete m;
-    //}
 }
 
 }  // namespace CoreIR

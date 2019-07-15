@@ -15,14 +15,14 @@ class Verilog : public InstanceGraphPass {
   bool _inline = false;
   bool verilator_debug = true;
 
-  std::vector<vAST::AbstractModule*> modules;
+  std::vector<std::unique_ptr<vAST::AbstractModule>> modules;
   std::set<Generator *> verilog_generators_seen;
 
   void compileModule(Module* module);
   public :
     static std::string ID;
     Verilog() : InstanceGraphPass(ID,"Compiles IR to Verilog files",true) {}
-    ~Verilog();
+    ~Verilog() {};
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void initialize(int argc, char** argv) override;
     void setAnalysisInfo() override {
