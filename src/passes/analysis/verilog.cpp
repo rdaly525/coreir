@@ -98,6 +98,8 @@ void declare_connections(
         // Types are flattened, so at most we have an array select
         ASSERT(orig_source->getSelectPath().size() <= 3,
                "Did not expect select path deeper than 3");
+        // If we're selecting a sub element of an array as the source, we'll
+        // declare/wire up the whole array for the output of the source
         if (orig_source->getSelectPath().size() == 3) {
             source = cast<Select>(orig_source)->getParent();
             type = source->getType();
@@ -107,6 +109,8 @@ void declare_connections(
         std::string connection_name = orig_source->toString();
         std::replace(connection_name.begin(), connection_name.end(), '.', '_');
         connection_map[sink] = connection_name;
+        // If we haven't already seen the source, add it to the
+        // declarations
         if (sources_seen.count(source) == 0) {
             connection_name = source->toString();
             std::replace(connection_name.begin(), connection_name.end(), '.',
@@ -123,6 +127,8 @@ void declare_connections(
                 },
                 process_decl(std::move(id), type));
         }
+        // The original source (could be sub element of a source array) is
+        // connected by the select path
         connection_map[orig_source] = connection_name;
     }
 }
@@ -151,7 +157,8 @@ void Passes::Verilog::compileModule(Module *module) {
             std::unique_ptr<vAST::AbstractModule> verilog_module =
                 std::make_unique<vAST::StringModule>(
                     verilog_json["verilog_string"].get<std::string>());
-            modules.push_back(std::move(verilog_module));
+            modules.push_back(
+                std::make_pair(module->getName(), std::move(verilog_module)));
             return;
         }
         return;
@@ -189,12 +196,13 @@ void Passes::Verilog::compileModule(Module *module) {
                     std::make_unique<vAST::NumericLiteral>("1")));
             }
         }
+        std::string name = make_name(module->getName(), verilog_json);
         std::unique_ptr<vAST::AbstractModule> string_body_module =
             std::make_unique<vAST::StringBodyModule>(
-                make_name(module->getName(), verilog_json), std::move(ports),
+                name, std::move(ports),
                 verilog_json["definition"].get<std::string>(),
                 std::move(parameters));
-        modules.push_back(std::move(string_body_module));
+        modules.push_back(std::make_pair(name, std::move(string_body_module)));
         verilog_generators_seen.insert(module->getGenerator());
         return;
     } else if (!module->hasDef()) {
@@ -325,10 +333,11 @@ void Passes::Verilog::compileModule(Module *module) {
             }
         }
     }
+    std::string name = module->getLongName();
     std::unique_ptr<vAST::AbstractModule> verilog_module =
-        std::make_unique<vAST::Module>(module->getLongName(), std::move(ports),
-                                       std::move(body), std::move(parameters));
-    modules.push_back(std::move(verilog_module));
+        std::make_unique<vAST::Module>(name, std::move(ports), std::move(body),
+                                       std::move(parameters));
+    modules.push_back(std::make_pair(name, std::move(verilog_module)));
 }
 
 bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode &node) {
@@ -344,22 +353,20 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode &node) {
 
 void Passes::Verilog::writeToStream(std::ostream &os) {
     for (auto &module : modules) {
-        os << module->toString() << std::endl;
+        os << module.second->toString() << std::endl;
     }
 }
 
 void Passes::Verilog::writeToFiles(const std::string &dir) {
-    ASSERT(false, "NOT IMPLEMENTED");
-    // for (auto module : vmods.vmods) {
-    //   if (vmods._inline && module->inlineable) {
-    //     continue;
-    //   }
-    //   const std::string filename = dir + "/" + module->modname + ".v";
-    //   std::ofstream fout(filename);
-    //   ASSERT(fout.is_open(), "Cannot open file: " + filename);
-    //   WriteModuleToStream(module, fout);
-    //   fout.close();
-    // }
+    for (auto &module : modules) {
+        const std::string filename = dir + "/" + module.first + ".v";
+        std::ofstream output_file(filename);
+        if (!output_file.is_open()) {
+            throw std::runtime_error("Could not open file: " + filename);
+        }
+        output_file << module.second->toString() << std::endl;
+        output_file.close();
+    }
 }
 
 }  // namespace CoreIR
