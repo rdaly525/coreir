@@ -392,6 +392,29 @@ compile_module_body(RecordType *module_type,
     return body;
 }
 
+vAST::Parameters compile_params(Module *module) {
+    vAST::Parameters parameters;
+    std::set<std::string> parameters_seen;
+    if (module->getModParams().size()) {
+        for (auto parameter : module->getDefaultModArgs()) {
+            parameters.push_back(
+                std::pair(std::make_unique<vAST::Identifier>(parameter.first),
+                          convert_value(parameter.second)));
+            parameters_seen.insert(parameter.first);
+        }
+        for (auto parameter : module->getModParams()) {
+            if (parameters_seen.count(parameter.first) == 0) {
+                // Old coreir backend defaults these (genparams without
+                // defaults) to 0
+                parameters.push_back(std::pair(
+                    std::make_unique<vAST::Identifier>(parameter.first),
+                    std::make_unique<vAST::NumericLiteral>("1")));
+            }
+        }
+    }
+    return parameters;
+}
+
 void Passes::Verilog::compileModule(Module *module) {
     if (module->getMetaData().count("verilog") > 0) {
         json verilog_json = module->getMetaData()["verilog"];
@@ -431,25 +454,8 @@ void Passes::Verilog::compileModule(Module *module) {
                                    module->getDef()->getSortedConnections(),
                                    module->getDef()->getInstances());
 
-    vAST::Parameters parameters;
-    std::set<std::string> parameters_seen;
-    if (module->getModParams().size()) {
-        for (auto parameter : module->getDefaultModArgs()) {
-            parameters.push_back(
-                std::pair(std::make_unique<vAST::Identifier>(parameter.first),
-                          convert_value(parameter.second)));
-            parameters_seen.insert(parameter.first);
-        }
-        for (auto parameter : module->getModParams()) {
-            if (parameters_seen.count(parameter.first) == 0) {
-                // Old coreir backend defaults these (genparams without
-                // defaults) to 0
-                parameters.push_back(std::pair(
-                    std::make_unique<vAST::Identifier>(parameter.first),
-                    std::make_unique<vAST::NumericLiteral>("1")));
-            }
-        }
-    }
+    vAST::Parameters parameters = compile_params(module);
+
     std::string name = module->getLongName();
     std::unique_ptr<vAST::AbstractModule> verilog_module =
         std::make_unique<vAST::Module>(name, std::move(ports), std::move(body),
