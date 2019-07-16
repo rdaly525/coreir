@@ -28,6 +28,7 @@ std::string make_name(std::string name, json metadata) {
     return name;
 }
 
+// Converts a CoreIR `Value` type into a Verilog literal
 std::unique_ptr<vAST::Expression> convert_value(Value *value) {
     if (auto arg_value = dyn_cast<Arg>(value)) {
         return std::make_unique<vAST::Identifier>(arg_value->getField());
@@ -46,6 +47,8 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
     coreir_unreachable();
 }
 
+// Given a signal named `id` and a type `type`, wrap the signal name in a
+// `Vector` node if the signal is of type Array
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
 process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
     if (type->getKind() == Type::TK_Array) {
@@ -58,20 +61,30 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
                 toString(array_type->getLen() - 1)),
             std::make_unique<vAST::NumericLiteral>("0"));
     }
+
     // unpack named types to get the raw type (so we can check that it's a
     // bit), iteratively because perhaps you can name and named type?
+    // This is just a safety check for internal code, to improve performance,
+    // we could guard this assert logic behind a macro
     while (type->getKind() == Type::TK_Named) {
         type = cast<NamedType>(type)->getRaw();
     }
     ASSERT(type->isBaseType(), "Expected Bit, or Array of Bits");
+
+    // If it's not an Array type, just return the original identifier
     return std::move(id);
 }
 
-void declare_connections(
-    std::map<std::string, Instance *> instances,
+// Given a map of instances, return a vector of containing declarations for all
+// the output ports of each instance.  We return a vector of a variant type for
+// compatibility with the module AST node constructor, even though we only ever
+// create Wire nodes.
+std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                         std::unique_ptr<vAST::Declaration>>>
+declare_connections(std::map<std::string, Instance *> instances) {
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>>
-        &wire_declarations) {
+        wire_declarations;
     for (auto instance : instances) {
         for (auto port :
              cast<RecordType>(instance.second->getModuleRef()->getType())
@@ -92,81 +105,97 @@ void declare_connections(
             }
         }
     }
+    return wire_declarations;
+}
+
+std::unique_ptr<vAST::AbstractModule> compile_string_module(json verilog_json) {
+    // Ensure that if the field verilog_string is included that the
+    // remaining fields are not included.
+#define VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, field)     \
+    ASSERT(verilog_json.count(field) == 0,                        \
+           std::string("Can not include ") + std::string(field) + \
+               std::string(" with verilog_string"))
+    VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "prefix");
+    VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "definition");
+    VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "interface");
+    VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "parameters");
+    VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "inlineable");
+#undef VERILOG_FULL_MODULE_ASSERT_MUTEX
+    // TODO(rsetaluri): Issue warning that we are including black-box
+    // verilog. Most importantly the user should know that there is *no
+    // guarantee* at this level that things are in sync. For example, if
+    // the CoreIR module declaration does not match the verilog's, then
+    // the output may be garbage for downstream tools.
+    return std::make_unique<vAST::StringModule>(
+        verilog_json["verilog_string"].get<std::string>());
+}
+
+std::unique_ptr<vAST::AbstractModule> compile_string_body_module(
+    json verilog_json, std::string name, Module *module) {
+    std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
+    for (auto port_str :
+         verilog_json["interface"].get<std::vector<std::string>>()) {
+        ports.push_back(std::make_unique<vAST::StringPort>(port_str));
+    }
+    vAST::Parameters parameters;
+    std::set<std::string> parameters_seen;
+    for (auto parameter : module->getGenerator()->getDefaultGenArgs()) {
+        parameters.push_back(
+            std::pair(std::make_unique<vAST::Identifier>(parameter.first),
+                      convert_value(parameter.second)));
+        parameters_seen.insert(parameter.first);
+    }
+    for (auto parameter : module->getGenerator()->getGenParams()) {
+        if (parameters_seen.count(parameter.first) == 0) {
+            // Old coreir backend defaults these (genparams without
+            // defaults) to 0
+            parameters.push_back(
+                std::pair(std::make_unique<vAST::Identifier>(parameter.first),
+                          std::make_unique<vAST::NumericLiteral>("1")));
+        }
+    }
+    for (auto parameter : module->getModParams()) {
+        if (parameters_seen.count(parameter.first) == 0) {
+            // Old coreir backend defaults these (genparams without
+            // defaults) to 0
+            parameters.push_back(
+                std::pair(std::make_unique<vAST::Identifier>(parameter.first),
+                          std::make_unique<vAST::NumericLiteral>("1")));
+        }
+    }
+    return std::make_unique<vAST::StringBodyModule>(
+        name, std::move(ports), verilog_json["definition"].get<std::string>(),
+        std::move(parameters));
 }
 
 void Passes::Verilog::compileModule(Module *module) {
     if (module->getMetaData().count("verilog") > 0) {
         json verilog_json = module->getMetaData()["verilog"];
         if (verilog_json.count("verilog_string") > 0) {
-            // Ensure that if the field verilog_string is included that the
-            // remaining fields are not included.
-#define VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, field)     \
-    ASSERT(verilog_json.count(field) == 0,                        \
-           std::string("Can not include ") + std::string(field) + \
-               std::string(" with verilog_string"))
-            VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "prefix");
-            VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "definition");
-            VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "interface");
-            VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "parameters");
-            VERILOG_FULL_MODULE_ASSERT_MUTEX(verilog_json, "inlineable");
-#undef VERILOG_FULL_MODULE_ASSERT_MUTEX
-            // TODO(rsetaluri): Issue warning that we are including black-box
-            // verilog. Most importantly the user should know that there is *no
-            // guarantee* at this level that things are in sync. For example, if
-            // the CoreIR module declaration does not match the verilog's, then
-            // the output may be garbage for downstream tools.
-            std::unique_ptr<vAST::AbstractModule> verilog_module =
-                std::make_unique<vAST::StringModule>(
-                    verilog_json["verilog_string"].get<std::string>());
-            modules.push_back(
-                std::make_pair(module->getName(), std::move(verilog_module)));
+            // module is defined by a verilog string, we just emit the entire
+            // string
+            modules.push_back(std::make_pair(
+                module->getName(), compile_string_module(verilog_json)));
             return;
         }
-        return;
     } else if (module->isGenerated() &&
                module->getGenerator()->getMetaData().count("verilog") > 0) {
+        // This module is an instance of generator defined as a parametrized
+        // verilog module
         json verilog_json = module->getGenerator()->getMetaData()["verilog"];
-        std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
-        for (auto port_str :
-             verilog_json["interface"].get<std::vector<std::string>>()) {
-            ports.push_back(std::make_unique<vAST::StringPort>(port_str));
-        }
-        vAST::Parameters parameters;
-        std::set<std::string> parameters_seen;
-        for (auto parameter : module->getGenerator()->getDefaultGenArgs()) {
-            parameters.push_back(
-                std::pair(std::make_unique<vAST::Identifier>(parameter.first),
-                          convert_value(parameter.second)));
-            parameters_seen.insert(parameter.first);
-        }
-        for (auto parameter : module->getGenerator()->getGenParams()) {
-            if (parameters_seen.count(parameter.first) == 0) {
-                // Old coreir backend defaults these (genparams without
-                // defaults) to 0
-                parameters.push_back(std::pair(
-                    std::make_unique<vAST::Identifier>(parameter.first),
-                    std::make_unique<vAST::NumericLiteral>("1")));
-            }
-        }
-        for (auto parameter : module->getModParams()) {
-            if (parameters_seen.count(parameter.first) == 0) {
-                // Old coreir backend defaults these (genparams without
-                // defaults) to 0
-                parameters.push_back(std::pair(
-                    std::make_unique<vAST::Identifier>(parameter.first),
-                    std::make_unique<vAST::NumericLiteral>("1")));
-            }
-        }
         std::string name = make_name(module->getName(), verilog_json);
-        std::unique_ptr<vAST::AbstractModule> string_body_module =
-            std::make_unique<vAST::StringBodyModule>(
-                name, std::move(ports),
-                verilog_json["definition"].get<std::string>(),
-                std::move(parameters));
-        modules.push_back(std::make_pair(name, std::move(string_body_module)));
+
+        modules.push_back(std::make_pair(
+            name, compile_string_body_module(verilog_json, name, module)));
+
+        // We only need to compile the verilog generator once, even though
+        // there may be multiple instances of the generator represented as
+        // different modules. We populate this set so that instance graph pass
+        // can filter out other instnaces of the generator.
         verilog_generators_seen.insert(module->getGenerator());
         return;
     } else if (!module->hasDef()) {
+        extern_modules.push_back(module);
         return;
     }
     std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
@@ -192,10 +221,8 @@ void Passes::Verilog::compileModule(Module *module) {
     };
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>>
-        wire_declarations;
-    // std::map<Wireable *, std::vector<std::string>> connection_map;
-    declare_connections(module->getDef()->getInstances(), wire_declarations);
-    // wire_declarations, connection_map);
+        wire_declarations =
+            declare_connections(module->getDef()->getInstances());
 
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>>
@@ -390,6 +417,12 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode &node) {
 }
 
 void Passes::Verilog::writeToStream(std::ostream &os) {
+    for (auto &module : extern_modules) {
+        os << vAST::SingleLineComment("Module `" + module->getName() +
+                                      "` defined externally")
+                  .toString()
+           << std::endl;
+    }
     for (auto &module : modules) {
         os << module.second->toString() << std::endl;
     }

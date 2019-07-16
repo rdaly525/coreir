@@ -1,3 +1,4 @@
+// Module `SB_PLL40_CORE` defined externally
 module top (input clk, input in, output out, output outClk, input reset);
 wire pll_PLLOUTCORE;
 wire pll_PLLOUTGLOBAL;

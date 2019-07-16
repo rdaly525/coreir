@@ -14,8 +14,18 @@ class Verilog : public InstanceGraphPass {
     bool _inline = false;
     bool verilator_debug = true;
 
+    // We store a vector of module name, module AST node pairs to support
+    // serializing to a single or multiple files
     std::vector<std::pair<std::string, std::unique_ptr<vAST::AbstractModule>>>
         modules;
+
+    // Externally defined modules (no moduleDef), for now we just emit comments
+    // listing them when compiling to a single file
+    std::vector<Module*> extern_modules;
+
+    // Set used to track generators that are compiled as parametrized verilog
+    // modules. These parametrized modules have been instanced to create coreir
+    // modules, but we only need to compile the verilog definition once
     std::set<Generator*> verilog_generators_seen;
 
     void compileModule(Module* module);
