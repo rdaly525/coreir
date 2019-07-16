@@ -780,22 +780,6 @@ namespace CoreIR {
 
           cout << "Folding wire with value: " << sigVal0 << endl;
           
-          // BitVec res = BitVec(1, 0);
-          // for (uint i = 0; i < ((uint) sigVal0.bitLength()); i++) {
-          //   if (sigVal0.get(i) == 1) {
-          //     res = BitVec(1, 1);
-          //     break;
-          //   }
-          // }
-
-          // uint inWidth =
-          //   inst->getModuleRef()->getGenArgs().at("width")->get<int>();
-
-          // ASSERT(((uint) sigVal0.bitLength()) == inWidth,"BitLength is incorrect");
-          // assert(res.bitLength() == 1);
-
-          // bool resVal = res == BitVec(1, 1) ? true : false;
-
           BitVector value = inst->getModArgs().at("init")->get<BitVector>();
           auto newConst =
             def->addInstance(inst->toString() + "_reg_const_replacement",
