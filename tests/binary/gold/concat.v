@@ -7,10 +7,12 @@ module coreir_concat #(parameter width0 = 1, parameter width1 = 1) (input [width
 endmodule
 
 module concats (input [15:0] in, output [15:0] out);
+wire [15:0] cc0_out;
 wire [3:0] s0_out;
 wire [11:0] s1_out;
-coreir_concat #(.width0(4), .width1(12)) cc0(.in0(s0_out), .in1(s1_out), .out(out));
+coreir_concat #(.width0(4), .width1(12)) cc0(.in0(s0_out), .in1(s1_out), .out(cc0_out));
 coreir_slice #(.hi(16), .lo(12), .width(16)) s0(.in(in), .out(s0_out));
 coreir_slice #(.hi(15), .lo(3), .width(16)) s1(.in(in), .out(s1_out));
+assign out = cc0_out;
 endmodule
 
