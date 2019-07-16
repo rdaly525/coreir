@@ -1609,9 +1609,7 @@ namespace CoreIR {
         });
       
     } else if (contains_key(vd, plugMods) && wd.isReceiver) {
-      //auto plugin = map_find(vd, plugMods);
-        //plugin->exeCombinational(vd, *this);
-        //plugin->exeSequential(vd, *this);
+      // Ignore, updates already done in caller of this function
     } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
       // Ignore sequential node
     } else {
@@ -1874,7 +1872,6 @@ namespace CoreIR {
 
         if (contains_key(vd, plugMods) && !wd.isReceiver) {
           auto plugin = map_find(vd, plugMods);
-          //plugin->exeSequential(vd, *this);
           plugin->exeCombinational(vd, *this);
         }
         
@@ -2219,10 +2216,14 @@ namespace CoreIR {
       delete val;
     }
 
-    // TODO: Reintroduce to prevent memory leaks
-    // for (auto pg : plugMods) {
-    //   delete pg.second;
-    // }
+    set<SimulatorPlugin*> plugs;
+    for (auto pg : plugMods) {
+      plugs.insert(pg.second);
+    }
+
+    for (auto p : plugs) {
+      delete p;
+    }
     
   }
 

@@ -33,13 +33,8 @@ namespace CoreIR {
 
     int i = 0;
     while (toConsider.size() > 0) {
-      if ((i % 100) == 0) {
-        cout << "Folding constants, i = " << i << endl;
-      }
 
       i++;
-
-      // assert(sel->getConnectedWireables().size() == 1);
 
       Instance* inst = *std::begin(toConsider);
       toConsider.erase(inst);
@@ -48,29 +43,13 @@ namespace CoreIR {
         continue;
       }
 
-      // cout << "Considering instance " << inst->toString() << endl;
-      // cout << "Module before trying to fold" << endl;
-      // mod->print();
-
-      // cout << "Checking instances " << inst->toString() << endl;
-      // cout << "Instance name = " << getQualifiedOpName(*inst) << endl;
       if (getQualifiedOpName(*(inst)) == "coreir.mux") {
 
-        //cout << "Found mux " << inst->toString() << endl;
         auto wbs = inst->sel("sel")->getConnectedWireables();
-
-        if (wbs.size() != 1) {
-          cout << inst->sel("sel")->toString() << " selects has " << wbs.size() << " connected wireables" << endl;
-          for (auto w : wbs) {
-            cout << "\t" << w->toString() << endl;
-          }
-        }
 
         assert(wbs.size() == 1);
 
         Wireable* ptr = *std::begin(wbs);
-
-        //cout << "Conneted to " << ptr->toString() << endl;
 
         assert(isa<Select>(ptr));
 
@@ -79,12 +58,9 @@ namespace CoreIR {
         if (isa<Instance>(src) &&
             (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
           Instance* srcConst = cast<Instance>(src);
-          //cout << "Found constant mux" << endl;
 
           BitVec val =
             (srcConst->getModArgs().find("value"))->second->get<BitVec>();
-
-          //cout << "value = " << val << endl;
 
           Select* bitSelect = cast<Select>(ptr);
 
@@ -95,9 +71,6 @@ namespace CoreIR {
           ASSERT(isNumber(selStr),"Must be a number");
 
           int offset = stoi(selStr);
-
-          // cout << "\tSource = " << srcConst->toString() << endl;
-          // cout << "\tOffset = " << offset << endl;
 
           if (!val.get(offset).is_binary()) {
             continue;
@@ -232,15 +205,6 @@ namespace CoreIR {
         vector<Select*> in0Values = getSignalValues(in0);
         vector<Select*> in1Values = getSignalValues(in1);
 
-        // cout << "in0 values" << endl;
-        // for (auto val : in0Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
-        // cout << "in1 values" << endl;
-        // for (auto val : in1Values) {
-        //   cout << "\t" << val->toString() << endl;
-        // }
-
         maybe<BitVec> sigValue0 = getSignalBitVec(in0Values);
         maybe<BitVec> sigValue1 = getSignalBitVec(in1Values);
 
@@ -249,8 +213,6 @@ namespace CoreIR {
           BitVec sigVal0 = sigValue0.get_value();
           BitVec sigVal1 = sigValue1.get_value();
 
-          // cout << "sigVal0 = " << sigVal0 << endl;
-          // cout << "sigVal1 = " << sigVal1 << endl;
           BitVec res = BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
 
           uint inWidth =
@@ -378,7 +340,6 @@ namespace CoreIR {
           BitVec sigVal1 = sigValue1.get_value();
 
           if ((sigVal1.bitLength() == 1) && (sigVal1 == BitVec(1, 0))) {
-            cout << "Should remove and with 0" << endl;
 
             BitVec res = BitVec(1, 0);
 
@@ -778,8 +739,6 @@ namespace CoreIR {
 
           BitVec sigVal0 = sigValue0.get_value();
 
-          cout << "Folding wire with value: " << sigVal0 << endl;
-          
           BitVector value = inst->getModArgs().at("init")->get<BitVector>();
           auto newConst =
             def->addInstance(inst->toString() + "_reg_const_replacement",
@@ -805,8 +764,6 @@ namespace CoreIR {
 
         }
 
-      } else {
-        cout << "No folding rule for " << getQualifiedOpName(*inst) << endl;
       }
     }
 
