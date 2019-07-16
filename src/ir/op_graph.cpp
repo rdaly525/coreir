@@ -352,10 +352,6 @@ namespace CoreIR {
 
     auto c1_disc_it = imap.find(combNode(p1));
 
-    // if (isRegisterInstance(p1) ||
-    //     isMemoryInstance(p1) ||
-    //     isDFFInstance(p1)) {
-
     if (isSequential(p1, pluginMap)) {
       c1_disc_it = imap.find(outputNode(p1));
     }
@@ -363,7 +359,6 @@ namespace CoreIR {
     assert(c1_disc_it != imap.end());
 
     c1_disc = (*c1_disc_it).second;
-    //}
       
     Wireable* p2 = extractSource(c2);
 
@@ -376,7 +371,6 @@ namespace CoreIR {
       auto c2_disc_it = imap.find(receiverNode(p2));
 
       if (c2->getSelStr() == "raddr") {
-        cout << "Found raddr" << endl;
         c2_disc_it = imap.find(outputNode(p2));
 
         assert(c2_disc_it != imap.end());
@@ -386,9 +380,6 @@ namespace CoreIR {
       } else {
         auto c2_disc_it = imap.find(combNode(p2));
 
-        // if (isRegisterInstance(p2) ||
-        //     isMemoryInstance(p2) ||
-        //     isDFFInstance(p2)) {
         if (isSequential(p2, pluginMap)) {          
           c2_disc_it = imap.find(receiverNode(p2));
         }
@@ -401,9 +392,6 @@ namespace CoreIR {
     } else {
 
       auto c2_disc_it = imap.find(combNode(p2));
-      // if (isRegisterInstance(p2) ||
-      //     isMemoryInstance(p2) ||
-      //     isDFFInstance(p2)) {
       if (isSequential(p2, pluginMap)) {
         c2_disc_it = imap.find(receiverNode(p2));
       }
@@ -427,9 +415,6 @@ namespace CoreIR {
       Instance* inst = toInstance(w1);
       string genRefName = getInstanceName(*inst);
 
-      // if (isRegisterInstance(inst) ||
-      //     isMemoryInstance(inst) ||
-      //     isDFFInstance(inst)) {
       if (isSequential(inst, pluginMap)) {
 	WireNode wOutput = outputNode(w1);
 	WireNode wInput = receiverNode(w1);

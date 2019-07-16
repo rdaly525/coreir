@@ -915,7 +915,6 @@ namespace CoreIR {
   public:
 
     void initialize(vdisc vd, SimulatorState& simState) {
-      cout << "Start initialize" << endl;
       auto wd = simState.getCircuitGraph().getNode(vd);
       Wireable* w = wd.getWire();
 
@@ -925,55 +924,32 @@ namespace CoreIR {
       width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
       lastVal = BitVector(width, 0);
 
-      cout << "Done initialize" << endl;
     }
 
     void exeSequential(vdisc vd, SimulatorState& simState) {
-      cout << "Start sequential" << endl;
       auto wd = simState.getCircuitGraph().getNode(vd);
 
-      cout << "Got wd" << endl;      
-
       simState.updateInputs(vd);
-
-      cout << "Done updating inputs" << endl;
 
       assert(isInstance(wd.getWire()));
       
       Instance* inst = toInstance(wd.getWire());
 
-      cout << "Got inst" << endl;
-      
       auto inSels = getInputSelects(inst);
 
-      cout << "Got input selects" << endl;
-      
       Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
       assert(arg1 != nullptr);
       
-      cout << "Converted to select" << endl;
-
       lastVal = simState.getBitVec(arg1);
-      // SimBitVector* s1 =
-      //   static_cast<SimBitVector*>(simState.getValue(arg1));
-
-      // cout << "Got s1 pointer" << endl;
-      // assert(s1 != nullptr);
-      
-      // lastVal = s1->getBits();
-
-      cout << "End sequential" << endl;      
     }
 
     void exeCombinational(vdisc vd, SimulatorState& simState) {
-      cout << "Start combinational" << endl;      
       auto wd = simState.getCircuitGraph().getNode(vd);
       
       Instance* inst = toInstance(wd.getWire());
       
       simState.setValue(toSelect(inst->sel("out")), lastVal);
 
-      cout << "End combinational" << endl;            
     }
 
   };
@@ -1029,7 +1005,6 @@ namespace CoreIR {
     // Build the simulator with the new model
     auto modBuilder = [](WireNode& wd) {
       UnifiedBufferStub* simModel = new UnifiedBufferStub();
-      //simModel->initialize(wd);
       return simModel;
     };
 
@@ -1042,18 +1017,14 @@ namespace CoreIR {
 
     state.resetCircuit();
 
-    cout << "Done with reset" << endl;
-
     state.execute();
 
-    cout << "First Output of ubuf = " << state.getBitVec("self.out") << endl;
     REQUIRE(state.getBitVec("self.out") == BitVector(width, 89));
 
     state.setValue("self.in", BitVector(width, 7));
     
     state.execute();
 
-    cout << "Second Output of ubuf = " << state.getBitVec("self.out") << endl;    
     REQUIRE(state.getBitVec("self.out") == BitVector(width, 7));
     
     deleteContext(c);
