@@ -473,7 +473,6 @@ namespace CoreIR {
 
     CoreIR::Instance* inst = toInstance(wire);
 
-    cout << "Wire " << inst->getInstname() << " is instance" << endl;
     return getQualifiedOpName(*inst);
   }
   
