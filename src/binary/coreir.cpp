@@ -45,6 +45,7 @@ int main(int argc, char *argv[]) {
     ("z,inline","inlines verilog primitives")
     ("y,verilator_debug","mark signals with /*veriltor public*/")
     ("s,split","splits output files by name (expects '-o <path>/*.<ext>')")
+    ("product", "specify product list filename", cxxopts::value<std::string>())
     ;
   
   //Do the parsing of the arguments
@@ -198,7 +199,12 @@ int main(int argc, char *argv[]) {
     auto vpass = static_cast<Passes::Verilog*>(c->getPassManager()->getAnalysisPass("verilog"));
 
     if (split_files) {
-      vpass->writeToFiles(output_dir);
+      std::unique_ptr<std::string> product_file;
+      if (opts.count("product")) {
+        const auto val = opts["product"].as<std::string>();
+        product_file.reset(new std::string(val));
+      }
+      vpass->writeToFiles(output_dir, std::move(product_file));
     } else {
       vpass->writeToStream(*sout);
     }

@@ -485,17 +485,50 @@ void Passes::Verilog::writeToStream(std::ostream &os) {
         os << module.second->toString() << std::endl;
     }
 }
+// =======
+// void Passes::Verilog::writeToFiles(const std::string& dir,
+//                                    std::unique_ptr<std::string> product_file) {
+//   for (auto module : vmods.vmods) {
+//     if (vmods._inline && module->inlineable) continue;
+//     const std::string filename = module->modname + ".v";
+//     products.push_back(filename);
+//     const std::string full_filename = dir + "/" + filename;
+//     std::ofstream fout(full_filename);
+//     ASSERT(fout.is_open(), "Cannot open file: " + full_filename);
+//     WriteModuleToStream(module, fout);
+//     fout.close();
+//   }
+//   // Write out the product list, if requested.
+//   if (!product_file) return;
+//   std::ofstream fout(*product_file);
+//   ASSERT(fout.is_open(), "Cannot open file: " + *product_file);
+//   for (const auto& product : products) {
+//     fout << product << "\n";
+//   }
+//   fout.close();
+// >>>>>>> master
 
 void Passes::Verilog::writeToFiles(const std::string &dir) {
+  std::vector<std::string> products;
     for (auto &module : modules) {
-        const std::string filename = dir + "/" + module.first + ".v";
-        std::ofstream output_file(filename);
+        const std::string filename = module->first + ".v";
+        products.push_back(filename);
+        const std::string full_filename = dir + "/" + filename;
+        std::ofstream output_file(full_filename);
         if (!output_file.is_open()) {
-            throw std::runtime_error("Could not open file: " + filename);
+            throw std::runtime_error("Could not open file: " + full_filename);
         }
         output_file << module.second->toString() << std::endl;
         output_file.close();
     }
+    // Write out the product list, if requested.
+    if (!product_file) return;
+    std::ofstream fout(*product_file);
+    ASSERT(fout.is_open(), "Cannot open file: " + *product_file);
+    for (const auto& product : products) {
+      fout << product << "\n";
+    }
+    fout.close();
 }
 
 }  // namespace CoreIR
