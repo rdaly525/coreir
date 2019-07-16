@@ -47,7 +47,7 @@ class Verilog : public InstanceGraphPass {
 
     void writeToStream(std::ostream& os);
     void writeToFiles(const std::string& dir,
-                      std::unique_ptr<string> product_file);
+                      std::unique_ptr<std::string> product_file);
 };
 
 }  // namespace Passes
