@@ -512,10 +512,6 @@ namespace CoreIR {
       }
     }
 
-    cout << "# of plugin nodes = " << pluginNodes.size() << endl;
-    cout << "# of plugin rcvs  = " << pluginReceivers.size() << endl;
-    cout << "# of plugin srcs  = " << pluginSources.size() << endl;        
-
     assert((pluginNodes.size() % 2) == 0);
 
     map<vdisc, vdisc> rcvToSrc;
@@ -533,19 +529,13 @@ namespace CoreIR {
       rcvToSrc[rcv] = srcV;
     }
 
-    cout << "# of receiver, source pairs: " << rcvToSrc.size() << endl;
     for (auto vdPair : rcvToSrc) {
       vdisc receiver = vdPair.first;
       vdisc source = vdPair.second;
-      cout << "Receiver = " << receiver << endl;
-      cout << "Source   = " << source << endl;
 
       WireNode srcNode = gr.getNode(source);
-      cout << "Found source node" << endl;
       
       string instName = getQualifiedOpNameWire(srcNode.getWire());
-
-      cout << "Inst name = " << instName << endl;
       
       assert(contains_key(instName, pluginBuilders));
       
@@ -557,8 +547,6 @@ namespace CoreIR {
       plugMods[receiver] = plugin;
       plugin->initialize(source, *this);
     }
-
-    cout << "Built plugMods: " << endl;
 
     // TODO: This test for combinational loops can fail for 2 element circuits,
     // replace it with something more robust
