@@ -905,6 +905,130 @@ namespace CoreIR {
     }
 
   }  
+
+  // Define unified buffer generator simulation class
+  class UnifiedBufferStub : public SimulatorPlugin {
+    BitVector lastVal;
+
+    int width;
+
+  public:
+
+    void initialize(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      Wireable* w = wd.getWire();
+
+      assert(isInstance(w));
+
+      Instance* inst = toInstance(w);
+      width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+      lastVal = BitVector(width, 0);
+
+    }
+
+    void exeSequential(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+
+      simState.updateInputs(vd);
+
+      assert(isInstance(wd.getWire()));
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      auto inSels = getInputSelects(inst);
+
+      Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
+      assert(arg1 != nullptr);
+      
+      lastVal = simState.getBitVec(arg1);
+    }
+
+    void exeCombinational(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      
+      Instance* inst = toInstance(wd.getWire());
+      
+      simState.setValue(toSelect(inst->sel("out")), lastVal);
+
+    }
+
+  };
+  
+  TEST_CASE("Unified buffer simulation stub") {
+    Context* c = newContext();
+    Namespace* g = c->newNamespace("bufferLib");    
+
+    // Define (dummy) unified buffer generator
+    Params params = {{"width", c->Int()}, {"depth", c->Int()}};
+    auto uBufTg = g->newTypeGen(
+                  "ubuf_type",
+                  params,
+                  [](Context* c, Values genargs) {
+                    uint width = genargs.at("width")->get<int>();
+                    uint depth = genargs.at("depth")->get<int>();
+
+                    return c->Record({
+                        {"clk",c->Named("coreir.clkIn")},
+                          {"in", c->BitIn()->Arr(width)},
+                            {"out", c->Bit()->Arr(width)}});
+                  }
+                  );
+
+    g->newGeneratorDecl("ubuf", uBufTg, params);
+
+    // Build container module
+    Namespace* global = c->getNamespace("global");
+    int width = 16;
+    Type* bufWrapperType =
+        c->Record({
+            {"clk",c->Named("coreir.clkIn")},            
+            {"in",c->BitIn()->Arr(width)},
+            {"out",c->Bit()->Arr(width)}
+          });
+
+    Module* wrapperMod =
+      c->getGlobal()->newModuleDecl("bufWrapper", bufWrapperType);
+    ModuleDef* def = wrapperMod->newModuleDef();
+
+    def->addInstance("buf0",
+                       "bufferLib.ubuf",
+                       {{"width", Const::make(c, width)},
+                           {"depth", Const::make(c, 64)}});
+
+    def->connect("buf0.out", "self.out");
+    def->connect("buf0.in", "self.in");
+    def->connect("buf0.clk", "self.clk");
+
+    wrapperMod->setDef(def);
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    // Build the simulator with the new model
+    auto modBuilder = [](WireNode& wd) {
+      UnifiedBufferStub* simModel = new UnifiedBufferStub();
+      return simModel;
+    };
+
+    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubuf"), modBuilder}};
+
+    SimulatorState state(wrapperMod, qualifiedNamesToSimPlugins);
+
+    state.setValue("self.in", BitVector(width, 89));
+    state.setClock("self.clk", 0, 1);
+
+    state.resetCircuit();
+
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 89));
+
+    state.setValue("self.in", BitVector(width, 7));
+    
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 7));
+    
+    deleteContext(c);
+  }
   
   TEST_CASE("Interpret simulator graphs") {
 

@@ -467,9 +467,17 @@ namespace CoreIR {
     }
   }
 
-  SimulatorState::SimulatorState(CoreIR::Module* mod_) :
-    mod(mod_), mainClock(nullptr) {
+  string getQualifiedOpNameWire(CoreIR::Wireable* wire) {
+    assert(wire != nullptr);
+    assert(isInstance(wire));
 
+    CoreIR::Instance* inst = toInstance(wire);
+
+    return getQualifiedOpName(*inst);
+  }
+  
+  void SimulatorState::initializeState(CoreIR::Module* mod_,
+                                       std::map<std::string, SimModelBuilder>& pluginBuilders) {
     assert(mod->hasDef());
 
     mod->getDef()->getContext()->runPasses({"verifyflattenedtypes"}, {mod->getNamespace()->getName(), "global"});
@@ -482,9 +490,62 @@ namespace CoreIR {
         mod->getMetaData()["symtable"].get<map<string,json>>();
     }
 
-    buildOrderedGraph(mod, gr);
+    buildOrderedGraph(pluginBuilders, mod, gr);
 
     deque<vdisc> order = topologicalSortNoFail(gr);
+    vector<vdisc> pluginReceivers;
+    vector<vdisc> pluginSources;
+    vector<vdisc> pluginNodes;
+    
+    for (auto vd : order) {
+      WireNode wireNode = gr.getNode(vd);
+      Wireable* wd = wireNode.getWire();
+      if (isSequentialPlugin(wd, pluginBuilders)) {
+        if (wireNode.isReceiver) {
+          pluginReceivers.push_back(vd);
+        } else {
+          pluginSources.push_back(vd);          
+        }
+
+        pluginNodes.push_back(vd);
+      }
+    }
+
+    assert((pluginNodes.size() % 2) == 0);
+
+    map<vdisc, vdisc> rcvToSrc;
+    for (auto rcv : pluginReceivers) {
+      bool foundSrc = false;
+      vdisc srcV = 0;
+      for (auto src : pluginSources) {
+        if (gr.getNode(src).getWire() == gr.getNode(rcv).getWire()) {
+          foundSrc = true;
+          srcV = src;
+          break;
+        }
+      }
+      assert(foundSrc);
+      rcvToSrc[rcv] = srcV;
+    }
+
+    for (auto vdPair : rcvToSrc) {
+      vdisc receiver = vdPair.first;
+      vdisc source = vdPair.second;
+
+      WireNode srcNode = gr.getNode(source);
+      
+      string instName = getQualifiedOpNameWire(srcNode.getWire());
+      
+      assert(contains_key(instName, pluginBuilders));
+      
+      WireNode wd = gr.getNode(source);
+      SimulatorPlugin* plugin =
+        pluginBuilders[instName](wd);
+
+      plugMods[source] = plugin;
+      plugMods[receiver] = plugin;
+      plugin->initialize(source, *this);
+    }
 
     // TODO: This test for combinational loops can fail for 2 element circuits,
     // replace it with something more robust
@@ -507,10 +568,24 @@ namespace CoreIR {
     setRegisterDefaults();
     setDFFDefaults();
     setInputDefaults();
+    
+  }
 
+  SimulatorState::SimulatorState(CoreIR::Module* mod_,
+                                 std::map<std::string, SimModelBuilder>& pluginBuilders) :
+    mod(mod_), mainClock(nullptr) {
+
+    initializeState(mod, pluginBuilders);
 
   }
 
+  SimulatorState::SimulatorState(CoreIR::Module* mod_) :
+    mod(mod_), mainClock(nullptr) {
+    
+    std::map<std::string, SimModelBuilder> pluginBuilders;
+    initializeState(mod, pluginBuilders);
+  }
+  
   void SimulatorState::setInputDefaults() {
     
   }
@@ -1533,7 +1608,11 @@ namespace CoreIR {
 
         });
       
-  } else {
+    } else if (contains_key(vd, plugMods) && wd.isReceiver) {
+      // Ignore, updates already done in caller of this function
+    } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
+      // Ignore sequential node
+    } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
     }
@@ -1750,8 +1829,11 @@ namespace CoreIR {
 
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
-      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+      if (contains_key(vd, plugMods) && wd.isReceiver) {
+        plugMods[vd]->exeSequential(vd, *this);
+      }
 
+      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
         updateRegisterValue(vd);
       }
 
@@ -1786,6 +1868,11 @@ namespace CoreIR {
 
         if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
           updateDFFOutput(vd);
+        }
+
+        if (contains_key(vd, plugMods) && !wd.isReceiver) {
+          auto plugin = map_find(vd, plugMods);
+          plugin->exeCombinational(vd, *this);
         }
         
       }
@@ -2128,6 +2215,16 @@ namespace CoreIR {
     for (auto& val : allocatedValues) {
       delete val;
     }
+
+    set<SimulatorPlugin*> plugs;
+    for (auto pg : plugMods) {
+      plugs.insert(pg.second);
+    }
+
+    for (auto p : plugs) {
+      delete p;
+    }
+    
   }
 
 }

@@ -128,7 +128,7 @@ namespace CoreIR {
     std::string name;
     StopFunction stopTest;
   };
-
+  
   class SimulatorState {
     CoreIR::Module* mod;
     std::map<std::string, json> symTable;
@@ -147,11 +147,17 @@ namespace CoreIR {
     std::set<SimValue*> allocatedValues;
 
     bool hasCombinationalLoop;
+    std::map<vdisc, SimulatorPlugin*> plugMods;
 
   public:
 
     SimulatorState(CoreIR::Module* mod_);
+    SimulatorState(CoreIR::Module* mod_,
+                   std::map<std::string, SimModelBuilder>& pluginBuilders);
 
+    void initializeState(CoreIR::Module* mod_,
+                       std::map<std::string, SimModelBuilder>& pluginBuilders);
+    
     int numCircStates() const;
 
     void findMainClock();
@@ -311,7 +317,6 @@ namespace CoreIR {
                                 const BitVec& bv);
 
     // Destructor
-
     ~SimulatorState();
   };
 
