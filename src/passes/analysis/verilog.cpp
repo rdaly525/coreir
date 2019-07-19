@@ -448,11 +448,12 @@ void Passes::Verilog::compileModule(Module *module) {
     std::vector<std::unique_ptr<vAST::AbstractPort>> ports =
         compile_ports(cast<RecordType>(module->getType()));
 
+    ModuleDef *definition = module->getDef();
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>>
         body = compile_module_body(module->getType(),
-                                   module->getDef()->getSortedConnections(),
-                                   module->getDef()->getInstances());
+                                   definition->getSortedConnections(),
+                                   definition->getInstances());
 
     vAST::Parameters parameters = compile_params(module);
 
