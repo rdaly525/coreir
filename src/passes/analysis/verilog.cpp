@@ -21,6 +21,8 @@ void Passes::Verilog::initialize(int argc, char **argv) {
 
 std::string Passes::Verilog::ID = "verilog";
 
+// Helper function that prepends a prefix contained in json metadata if it
+// exists
 std::string make_name(std::string name, json metadata) {
     if (metadata.count("prefix") > 0) {
         name = metadata["prefix"].get<std::string>() + name;
@@ -212,8 +214,12 @@ std::vector<std::unique_ptr<vAST::AbstractPort>> compile_ports(
 }
 
 // Builds a map from pairs of strings of the form <instance_name, port_name>
-// to the source Wireable which will be used to generate the verilog identifier
-// corresponding to the wire connecting the two entities
+// to the source Wireable(s) which will be used to generate the verilog
+// identifier corresponding to the wire connecting the two entities
+//
+// connection_map entries are a vector of wireables to handle the case when
+// multiple signals drive an input to an instance (e.g. the input is an array
+// of 3 bits, and each bit is connected to a 1-bit driver).
 //
 // **TODO** Need to add support for inouts
 std::map<std::pair<std::string, std::string>, std::vector<Wireable *>>
@@ -252,6 +258,16 @@ build_connection_map(std::vector<Connection> connections,
     return connection_map;
 }
 
+// Remove `self.` prefix from select strings, replace "." with "_"
+std::string convert_to_verilog_connection(std::string connection_name) {
+    connection_name =
+        std::regex_replace(connection_name, std::regex("self."), "");
+    std::replace(connection_name.begin(), connection_name.end(), '.', '_');
+    return connection_name;
+}
+
+// For each output of the current module definition, emit a statement of the
+// form: `assign <output> = <driver(s)>;`
 void assign_module_outputs(
     RecordType *record_type,
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
@@ -264,15 +280,15 @@ void assign_module_outputs(
         }
         auto entry = connection_map[std::make_pair("self", port.first)];
         if (entry.size() == 0) {
+            // Unconnected, should we throw an error?
             continue;
         } else if (entry.size() > 1) {
+            // Non-bulk connection, pack them into a Concat node
             std::vector<std::unique_ptr<vAST::Expression>> args;
             for (auto wireable : entry) {
                 std::string connection_name = wireable->toString();
-                connection_name = std::regex_replace(connection_name,
-                                                     std::regex("self."), "");
-                std::replace(connection_name.begin(), connection_name.end(),
-                             '.', '_');
+                connection_name =
+                    convert_to_verilog_connection(connection_name);
                 args.push_back(
                     std::make_unique<vAST::Identifier>(connection_name));
             }
@@ -282,11 +298,9 @@ void assign_module_outputs(
                 std::make_unique<vAST::Identifier>(port.first),
                 std::move(concat)));
         } else {
+            // Regular (possibly bulk) connection
             std::string connection_name = entry[0]->toString();
-            connection_name =
-                std::regex_replace(connection_name, std::regex("self."), "");
-            std::replace(connection_name.begin(), connection_name.end(), '.',
-                         '_');
+            connection_name = convert_to_verilog_connection(connection_name);
             body.push_back(std::make_unique<vAST::ContinuousAssign>(
                 std::make_unique<vAST::Identifier>(port.first),
                 std::make_unique<vAST::Identifier>(connection_name)));
@@ -343,10 +357,8 @@ compile_module_body(RecordType *module_type,
                 std::vector<std::unique_ptr<vAST::Expression>> args;
                 for (auto wireable : entry) {
                     std::string connection_name = wireable->toString();
-                    connection_name = std::regex_replace(
-                        connection_name, std::regex("self."), "");
-                    std::replace(connection_name.begin(), connection_name.end(),
-                                 '.', '_');
+                    connection_name =
+                        convert_to_verilog_connection(connection_name);
                     args.push_back(
                         std::make_unique<vAST::Identifier>(connection_name));
                 }
@@ -356,10 +368,8 @@ compile_module_body(RecordType *module_type,
                     std::make_pair(port.first, std::move(concat)));
             } else {
                 std::string connection_name = entry[0]->toString();
-                connection_name = std::regex_replace(connection_name,
-                                                     std::regex("self."), "");
-                std::replace(connection_name.begin(), connection_name.end(),
-                             '.', '_');
+                connection_name =
+                    convert_to_verilog_connection(connection_name);
                 connections.insert(std::make_pair(
                     port.first,
                     std::make_unique<vAST::Identifier>(connection_name)));
@@ -432,7 +442,7 @@ void Passes::Verilog::compileModule(Module *module) {
         return;
     }
     if (module->isGenerated() &&
-               module->getGenerator()->getMetaData().count("verilog") > 0) {
+        module->getGenerator()->getMetaData().count("verilog") > 0) {
         // This module is an instance of generator defined as a parametrized
         // verilog module
         json verilog_json = module->getGenerator()->getMetaData()["verilog"];
