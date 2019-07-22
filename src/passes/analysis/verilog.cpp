@@ -423,9 +423,15 @@ void Passes::Verilog::compileModule(Module *module) {
             // string
             modules.push_back(std::make_pair(
                 module->getName(), compile_string_module(verilog_json)));
-            return;
+        } else {
+            std::string name = make_name(module->getName(), verilog_json);
+
+            modules.push_back(std::make_pair(
+                name, compile_string_body_module(verilog_json, name, module)));
         }
-    } else if (module->isGenerated() &&
+        return;
+    }
+    if (module->isGenerated() &&
                module->getGenerator()->getMetaData().count("verilog") > 0) {
         // This module is an instance of generator defined as a parametrized
         // verilog module
@@ -441,7 +447,8 @@ void Passes::Verilog::compileModule(Module *module) {
         // can filter out other instnaces of the generator.
         verilog_generators_seen.insert(module->getGenerator());
         return;
-    } else if (!module->hasDef()) {
+    }
+    if (!module->hasDef()) {
         extern_modules.push_back(module);
         return;
     }
