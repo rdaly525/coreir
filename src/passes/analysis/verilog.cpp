@@ -213,6 +213,13 @@ std::vector<std::unique_ptr<vAST::AbstractPort>> compile_ports(
     return ports;
 }
 
+class ConnMapEntry {
+   public:
+    Wireable *source;
+    int index;
+    ConnMapEntry(Wireable *source, int index) : source(source), index(index){};
+};
+
 // Builds a map from pairs of strings of the form <instance_name, port_name>
 // to the source Wireable(s) which will be used to generate the verilog
 // identifier corresponding to the wire connecting the two entities
@@ -222,37 +229,53 @@ std::vector<std::unique_ptr<vAST::AbstractPort>> compile_ports(
 // of 3 bits, and each bit is connected to a 1-bit driver).
 //
 // **TODO** Need to add support for inouts
-std::map<std::pair<std::string, std::string>, std::vector<Wireable *>>
-build_connection_map(std::vector<Connection> connections,
+std::map<std::pair<std::string, std::string>, std::vector<ConnMapEntry>>
+build_connection_map(std::set<Connection, ConnectionCompFast> connections,
                      std::map<std::string, Instance *> instances) {
-    std::map<std::pair<std::string, std::string>, std::vector<Wireable *>>
+    std::map<std::pair<std::string, std::string>, std::vector<ConnMapEntry>>
         connection_map;
     for (auto connection : connections) {
         for (auto instance : instances) {
             if (connection.first->getTopParent() == instance.second &&
                 connection.first->getType()->getDir() == Type::DK_In) {
-                connection_map[std::make_pair(
-                                   instance.first,
-                                   connection.first->getSelectPath()[1])]
-                    .push_back(connection.second);
+                SelectPath first_sel_path = connection.first->getSelectPath();
+                int index = 0;
+                if (first_sel_path.size() > 2) {
+                    index = std::stoi(first_sel_path[2]);
+                }
+                connection_map[std::make_pair(instance.first,
+                                              first_sel_path[1])]
+                    .push_back(ConnMapEntry(connection.second, index));
             } else if (connection.second->getTopParent() == instance.second &&
                        connection.second->getType()->getDir() == Type::DK_In) {
-                connection_map[std::make_pair(
-                                   instance.first,
-                                   connection.second->getSelectPath()[1])]
-                    .push_back(connection.first);
+                SelectPath second_sel_path = connection.second->getSelectPath();
+                int index = 0;
+                if (second_sel_path.size() > 2) {
+                    index = std::stoi(second_sel_path[2]);
+                }
+                connection_map[std::make_pair(instance.first,
+                                              second_sel_path[1])]
+                    .push_back(ConnMapEntry(connection.first, index));
             }
         }
         if (connection.first->getSelectPath()[0] == "self" &&
             connection.first->getType()->getDir() == Type::DK_In) {
-            connection_map[std::make_pair("self",
-                                          connection.first->getSelectPath()[1])]
-                .push_back(connection.second);
+            SelectPath first_sel_path = connection.first->getSelectPath();
+            int index = 0;
+            if (first_sel_path.size() > 2) {
+                index = std::stoi(first_sel_path[2]);
+            }
+            connection_map[std::make_pair("self", first_sel_path[1])].push_back(
+                ConnMapEntry(connection.second, index));
         } else if (connection.second->getSelectPath()[0] == "self" &&
                    connection.second->getType()->getDir() == Type::DK_In) {
-            connection_map[std::make_pair(
-                               "self", connection.second->getSelectPath()[1])]
-                .push_back(connection.first);
+            SelectPath second_sel_path = connection.second->getSelectPath();
+            int index = 0;
+            if (second_sel_path.size() > 2) {
+                index = std::stoi(second_sel_path[2]);
+            }
+            connection_map[std::make_pair("self", second_sel_path[1])]
+                .push_back(ConnMapEntry(connection.first, index));
         }
     }
     return connection_map;
@@ -272,25 +295,26 @@ void assign_module_outputs(
     RecordType *record_type,
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>> &body,
-    std::map<std::pair<std::string, std::string>, std::vector<Wireable *>>
+    std::map<std::pair<std::string, std::string>, std::vector<ConnMapEntry>>
         connection_map) {
     for (auto port : record_type->getRecord()) {
         if (port.second->getDir() == Type::DK_In) {
             continue;
         }
-        auto entry = connection_map[std::make_pair("self", port.first)];
-        if (entry.size() == 0) {
-            // Unconnected, should we throw an error?
+        auto entries = connection_map[std::make_pair("self", port.first)];
+        if (entries.size() == 0) {
             continue;
-        } else if (entry.size() > 1) {
-            // Non-bulk connection, pack them into a Concat node
+        } else if (entries.size() > 1) {
             std::vector<std::unique_ptr<vAST::Expression>> args;
-            for (auto wireable : entry) {
-                std::string connection_name = wireable->toString();
-                connection_name =
-                    convert_to_verilog_connection(connection_name);
-                args.push_back(
-                    std::make_unique<vAST::Identifier>(connection_name));
+            args.resize(entries.size());
+            for (auto entry : entries) {
+                std::string connection_name = entry.source->toString();
+                connection_name = std::regex_replace(connection_name,
+                                                     std::regex("self."), "");
+                std::replace(connection_name.begin(), connection_name.end(),
+                             '.', '_');
+                args[entry.index] =
+                    (std::make_unique<vAST::Identifier>(connection_name));
             }
             std::unique_ptr<vAST::Concat> concat =
                 std::make_unique<vAST::Concat>(std::move(args));
@@ -299,7 +323,7 @@ void assign_module_outputs(
                 std::move(concat)));
         } else {
             // Regular (possibly bulk) connection
-            std::string connection_name = entry[0]->toString();
+            std::string connection_name = entries[0].source->toString();
             connection_name = convert_to_verilog_connection(connection_name);
             body.push_back(std::make_unique<vAST::ContinuousAssign>(
                 std::make_unique<vAST::Identifier>(port.first),
@@ -314,13 +338,13 @@ void assign_module_outputs(
 std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                          std::unique_ptr<vAST::Declaration>>>
 compile_module_body(RecordType *module_type,
-                    std::vector<Connection> connections,
+                    std::set<Connection, ConnectionCompFast> connections,
                     std::map<std::string, Instance *> instances) {
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>>
         body = declare_connections(instances);
 
-    std::map<std::pair<std::string, std::string>, std::vector<Wireable *>>
+    std::map<std::pair<std::string, std::string>, std::vector<ConnMapEntry>>
         connection_map = build_connection_map(connections, instances);
 
     for (auto instance : instances) {
@@ -342,35 +366,38 @@ compile_module_body(RecordType *module_type,
                                            std::unique_ptr<vAST::Index>,
                                            std::unique_ptr<vAST::Slice>,
                                            std::unique_ptr<vAST::Concat>>>
-            connections;
+            verilog_connections;
         for (auto port :
              cast<RecordType>(instance_module->getType())->getRecord()) {
             if (port.second->getDir() == Type::DK_Out) {
-                connections.insert(std::make_pair(
+                verilog_connections.insert(std::make_pair(
                     port.first, std::make_unique<vAST::Identifier>(
                                     instance.first + "_" + port.first)));
                 continue;
             }
-            auto entry =
+            auto entries =
                 connection_map[std::make_pair(instance.first, port.first)];
-            if (entry.size() > 1) {
+            if (entries.size() > 1) {
                 std::vector<std::unique_ptr<vAST::Expression>> args;
-                for (auto wireable : entry) {
-                    std::string connection_name = wireable->toString();
-                    connection_name =
-                        convert_to_verilog_connection(connection_name);
-                    args.push_back(
-                        std::make_unique<vAST::Identifier>(connection_name));
+                args.resize(entries.size());
+                for (auto entry : entries) {
+                    std::string connection_name = entry.source->toString();
+                    connection_name = std::regex_replace(
+                        connection_name, std::regex("self."), "");
+                    std::replace(connection_name.begin(), connection_name.end(),
+                                 '.', '_');
+                    args[entry.index] =
+                        std::make_unique<vAST::Identifier>(connection_name);
                 }
                 std::unique_ptr<vAST::Concat> concat =
                     std::make_unique<vAST::Concat>(std::move(args));
-                connections.insert(
+                verilog_connections.insert(
                     std::make_pair(port.first, std::move(concat)));
             } else {
-                std::string connection_name = entry[0]->toString();
+                std::string connection_name = entries[0].source->toString();
                 connection_name =
                     convert_to_verilog_connection(connection_name);
-                connections.insert(std::make_pair(
+                verilog_connections.insert(std::make_pair(
                     port.first,
                     std::make_unique<vAST::Identifier>(connection_name)));
             }
@@ -395,7 +422,7 @@ compile_module_body(RecordType *module_type,
         std::unique_ptr<vAST::StructuralStatement> statement =
             std::make_unique<vAST::ModuleInstantiation>(
                 module_name, std::move(instance_parameters), instance_name,
-                std::move(connections));
+                std::move(verilog_connections));
         body.push_back(std::move(statement));
     }
     assign_module_outputs(module_type, body, connection_map);
@@ -435,7 +462,6 @@ void Passes::Verilog::compileModule(Module *module) {
                 module->getName(), compile_string_module(verilog_json)));
         } else {
             std::string name = make_name(module->getName(), verilog_json);
-
             modules.push_back(std::make_pair(
                 name, compile_string_body_module(verilog_json, name, module)));
         }
@@ -468,9 +494,9 @@ void Passes::Verilog::compileModule(Module *module) {
     ModuleDef *definition = module->getDef();
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>>
-        body = compile_module_body(module->getType(),
-                                   definition->getSortedConnections(),
-                                   definition->getInstances());
+        body =
+            compile_module_body(module->getType(), definition->getConnections(),
+                                definition->getInstances());
 
     vAST::Parameters parameters = compile_params(module);
 
