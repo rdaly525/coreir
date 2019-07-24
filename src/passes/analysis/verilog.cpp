@@ -53,7 +53,7 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
 // `Vector` node if the signal is of type Array
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
 process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
-  if (type->getKind() == Type::TK_Array) {
+  if (isa<ArrayType>(type)) {
     ArrayType *array_type = cast<ArrayType>(type);
     ASSERT(array_type->getElemType()->isBaseType(), "Expected Array of Bits");
     return std::make_unique<vAST::Vector>(
@@ -67,7 +67,7 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
   // bit), iteratively because perhaps you can name and named type?
   // This is just a safety check for internal code, to improve performance,
   // we could guard this assert logic behind a macro
-  while (type->getKind() == Type::TK_Named) {
+  while (isa<NamedType>(type)) {
     type = cast<NamedType>(type)->getRaw();
   }
   ASSERT(type->isBaseType(), "Expected Bit, or Array of Bits");
@@ -90,7 +90,7 @@ declare_connections(std::map<std::string, Instance *> instances) {
     for (auto port :
          cast<RecordType>(instance.second->getModuleRef()->getType())
              ->getRecord()) {
-      if (port.second->getDir() == Type::DK_Out) {
+      if (port.second->isOutput()) {
         std::unique_ptr<vAST::Identifier> id =
             std::make_unique<vAST::Identifier>(instance.first + "_" +
                                                port.first);
@@ -192,14 +192,13 @@ compile_ports(RecordType *record_type) {
         std::make_unique<vAST::Identifier>(entry.first);
 
     Type *type = entry.second;
-    Type::DirKind direction = type->getDir();
 
     vAST::Direction verilog_direction;
-    if (direction == Type::DK_In) {
+    if (type->isInput()) {
       verilog_direction = vAST::INPUT;
-    } else if (direction == Type::DK_Out) {
+    } else if (type->isOutput()) {
       verilog_direction = vAST::OUTPUT;
-    } else if (direction == Type::DK_InOut) {
+    } else if (type->isInOut()) {
       verilog_direction = vAST::INOUT;
     } else {
       ASSERT(false, "Not implemented for direction = " + toString(direction));
@@ -261,7 +260,7 @@ build_connection_map(std::set<Connection, ConnectionCompFast> connections,
     // it is, populate the entry in the connection map
     for (auto instance : instances) {
       if (connection.first->getTopParent() == instance.second &&
-          connection.first->getType()->getDir() == Type::DK_In) {
+          connection.first->getType()->isInput()) {
         SelectPath first_sel_path = connection.first->getSelectPath();
         int index = 0;
         if (first_sel_path.size() > 2) {
@@ -270,7 +269,7 @@ build_connection_map(std::set<Connection, ConnectionCompFast> connections,
         connection_map[ConnMapKey(instance.first, first_sel_path[1])].push_back(
             ConnMapEntry(connection.second, index));
       } else if (connection.second->getTopParent() == instance.second &&
-                 connection.second->getType()->getDir() == Type::DK_In) {
+                 connection.second->getType()->isInput()) {
         SelectPath second_sel_path = connection.second->getSelectPath();
         int index = 0;
         if (second_sel_path.size() > 2) {
@@ -283,7 +282,7 @@ build_connection_map(std::set<Connection, ConnectionCompFast> connections,
     // Also check if the connection is driving a self port, which will be
     // wired up at the end
     if (connection.first->getSelectPath()[0] == "self" &&
-        connection.first->getType()->getDir() == Type::DK_In) {
+        connection.first->getType()->isInput()) {
       SelectPath first_sel_path = connection.first->getSelectPath();
       int index = 0;
       if (first_sel_path.size() > 2) {
@@ -292,7 +291,7 @@ build_connection_map(std::set<Connection, ConnectionCompFast> connections,
       connection_map[ConnMapKey("self", first_sel_path[1])].push_back(
           ConnMapEntry(connection.second, index));
     } else if (connection.second->getSelectPath()[0] == "self" &&
-               connection.second->getType()->getDir() == Type::DK_In) {
+               connection.second->getType()->isInput()) {
       SelectPath second_sel_path = connection.second->getSelectPath();
       int index = 0;
       if (second_sel_path.size() > 2) {
@@ -321,7 +320,7 @@ void assign_module_outputs(
                              std::unique_ptr<vAST::Declaration>>> &body,
     std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map) {
   for (auto port : record_type->getRecord()) {
-    if (port.second->getDir() == Type::DK_In) {
+    if (port.second->isInput()) {
       continue;
     }
     auto entries = connection_map[ConnMapKey("self", port.first)];
@@ -388,7 +387,7 @@ compile_module_body(RecordType *module_type,
         verilog_connections;
     for (auto port :
          cast<RecordType>(instance_module->getType())->getRecord()) {
-      if (port.second->getDir() == Type::DK_Out) {
+      if (port.second->isOutput()) {
         verilog_connections.insert(
             std::make_pair(port.first, std::make_unique<vAST::Identifier>(
                                            instance.first + "_" + port.first)));
