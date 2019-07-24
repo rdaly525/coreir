@@ -201,7 +201,7 @@ compile_ports(RecordType *record_type) {
     } else if (type->isInOut()) {
       verilog_direction = vAST::INOUT;
     } else {
-      ASSERT(false, "Not implemented for direction = " + toString(direction));
+      ASSERT(false, "Not implemented for type = " + toString(type));
     }
 
     ports.push_back(std::make_unique<vAST::Port>(
