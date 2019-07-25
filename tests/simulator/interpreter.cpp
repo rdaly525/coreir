@@ -955,6 +955,7 @@ namespace CoreIR {
   };
   
   TEST_CASE("Unified buffer simulation stub") {
+    std::cout << "unified buffer sim stub running...\n";
     Context* c = newContext();
     Namespace* g = c->newNamespace("bufferLib");    
 
@@ -1028,8 +1029,237 @@ namespace CoreIR {
     REQUIRE(state.getBitVec("self.out") == BitVector(width, 7));
     
     deleteContext(c);
+    std::cout << "PASSED: unified buffer stub simulation!\n";
   }
+
+  // Define address generator simulation class
+  class UnifiedBufferAddressGenerator : public SimulatorPlugin {
+    int width;
+    vector<int> iter_list;
+
+    vector<int> range;
+    vector<int> stride;
+    vector<int> start;
+    
+    size_t dimension;
+    size_t port;
+    int total_iter;
+
+    void restart() {
+      for (auto &iter : iter_list) {
+        iter = 0;
+      }
+    }
+
+    vector<int> get_dims(Type* type) {
+      vector<int> lengths;
+      uint bitwidth = 1;
+      Type* cType = type;
+      while(!cType->isBaseType()) {
+        if (auto aType = dyn_cast<ArrayType>(cType)) {
+      
+          uint length = aType->getLen();
+          
+          cType = aType->getElemType();
+          if (cType->isBaseType()) {
+            bitwidth = length;
+          } else {
+            lengths.insert(lengths.begin(), length);
+            //lengths.push_back(length);
+          }
+        }
+      }
+
+      lengths.insert(lengths.begin(), bitwidth);
+      return lengths;
+    }
+
+  public:
+
+    void initialize(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      Wireable* w = wd.getWire();
+
+      assert(isInstance(w));
+
+      // extract parameters
+      Instance* inst = toInstance(w);
+      width = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
+      auto rangeType = inst->getModuleRef()->getGenArgs().at("range_type")->get<Type*>();
+      auto strideType = inst->getModuleRef()->getGenArgs().at("stride_type")->get<Type*>();
+      auto startType = inst->getModuleRef()->getGenArgs().at("start_type")->get<Type*>();
+      range = get_dims(rangeType);
+      stride = get_dims(strideType);
+      start = get_dims(startType);
+      
+      // start values all need to decrement 1
+      for (auto& start_num : start) {
+        start_num -= 1;
+      }
+
+      // deduce from other parameters
+      assert(range.size() == stride.size());
+      dimension = range.size();
+      std::cout << "buffer has " << dimension << " dims\n";
+      port = start.size();
+      total_iter = 1;
+
+      for (size_t i = 0; i < dimension; ++i) {
+        total_iter *= range.at(i) / stride.at(i);
+      }
+
+      // initialize parameters
+      iter_list = vector<int>(dimension);
+      assert(iter_list.size() == dimension);
+      restart();
+
+    }
+
+    void exeSequential(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+
+      simState.updateInputs(vd);
+
+      assert(isInstance(wd.getWire()));
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      auto inSels = getInputSelects(inst);
+
+      Select* arg1 = toSelect(CoreIR::findSelect("reset", inSels));
+      assert(arg1 != nullptr);
+      BitVector resetVal = simState.getBitVec(arg1);
+
+      if (resetVal == BitVector(1, 1)) {
+        restart();
+        return;
+      }
+
+      // logic to update the internal iterator
+      for (size_t dim = 0; dim < dimension; dim++) {
+        iter_list[dim] += 1;
+
+        //return to zero for the previous dim if we enter the next dim
+        if (dim > 0)
+          iter_list[dim - 1] = 0;
+
+        //not the last dimension
+        if (dim < dimension - 1) {
+          if (iter_list[dim] < range[dim])
+            break;
+        }
+        else {
+          if (iter_list[dim] == range[dim]){
+            //done = true;
+            break;
+          }
+        }
+      }
+
+    }
+
+    void exeCombinational(vdisc vd, SimulatorState& simState) {
+      auto wd = simState.getCircuitGraph().getNode(vd);
+      
+      Instance* inst = toInstance(wd.getWire());
+
+      int addr_offset = 0;
+      for (size_t i = 0; i < dimension; i++) {
+        addr_offset += iter_list[i] * stride[i];
+      }
+
+      simState.setValue(toSelect(inst->sel("out")), BitVector(width, addr_offset));
+
+    }
+
+  };
   
+  TEST_CASE("Unified buffer address generator simulation") {
+    std::cout << "unified buffer address generator sim running...\n";
+    Context* c = newContext();
+    Namespace* g = c->newNamespace("bufferLib");
+
+    // Define unified buffer address generator
+    Params params =
+      {{"width", c->Int()},
+       {"range_type", CoreIRType::make(c)},
+       {"stride_type", CoreIRType::make(c)},
+       {"start_type", CoreIRType::make(c)}
+      };
+    auto uBufAddrTg = g->newTypeGen(
+                  "ubufaddrgen_type",
+                  params,
+                  [](Context* c, Values genargs) {
+                    uint width = genargs.at("width")->get<int>();
+
+                    return c->Record({
+                        {"clk",c->Named("coreir.clkIn")},
+                        {"reset", c->BitIn()},
+                        {"out", c->Bit()->Arr(width)}});
+                  }
+                  );
+
+    g->newGeneratorDecl("ubufaddr", uBufAddrTg, params);
+
+    // Build container module
+    Namespace* global = c->getNamespace("global");
+    int width = 16;
+    Type* bufaddrWrapperType =
+        c->Record({
+            {"clk",c->Named("coreir.clkIn")},            
+            {"reset",c->BitIn()},
+            {"out",c->Bit()->Arr(width)}
+          });
+
+    Module* wrapperMod =
+      c->getGlobal()->newModuleDecl("bufaddrWrapper", bufaddrWrapperType);
+    ModuleDef* def = wrapperMod->newModuleDef();
+
+    def->addInstance("bufaddr0",
+                       "bufferLib.ubufaddr",
+                       {{"width",       Const::make(c, width)},
+                        {"range_type",  Const::make(c, c->Bit()->Arr(6)->Arr(3)->Arr(32)->Arr(32))},
+                        {"stride_type", Const::make(c, c->Bit()->Arr(4)->Arr(272)->Arr(8)->Arr(272))},
+                        {"start_type",  Const::make(c, c->Bit()->Arr(0)->Arr(2)->Arr(3)->Arr(4))}
+                     });
+
+    def->connect("bufaddr0.out", "self.out");
+    def->connect("bufaddr0.reset", "self.reset");
+    def->connect("bufaddr0.clk", "self.clk");
+
+    wrapperMod->setDef(def);
+    c->runPasses({"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+
+    // Build the simulator with the new model
+    auto modBuilder = [](WireNode& wd) {
+      UnifiedBufferAddressGenerator* simModel = new UnifiedBufferAddressGenerator();
+      return simModel;
+    };
+
+    map<std::string, SimModelBuilder> qualifiedNamesToSimPlugins{{string("bufferLib.ubufaddr"), modBuilder}};
+
+    SimulatorState state(wrapperMod, qualifiedNamesToSimPlugins);
+
+    state.setValue("self.reset", BitVector(1, 1));
+    state.setClock("self.clk", 0, 1);
+
+    state.resetCircuit();
+
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+
+    state.setValue("self.reset", BitVector(1, 0));
+    
+    state.execute();
+
+    REQUIRE(state.getBitVec("self.out") == BitVector(width, 4));
+    
+    deleteContext(c);
+    std::cout << "PASSED: unified buffer address generator simulation!\n";
+  }
+
+    
   TEST_CASE("Interpret simulator graphs") {
 
     // New context
