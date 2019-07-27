@@ -1669,13 +1669,13 @@ namespace CoreIR {
           getQualifiedOpNameWire(wd.getWire()) == "coreir.slice") {
         Instance* inst = toInstance(wd.getWire());
 
-        //Select* w = inst->sel("out");
+        Select* w = inst->sel("out");
         // Values args = inst->getModArgs();
         // cout << toString(inst) << endl;
         // cout << toString(args) << endl;
         // bool val = args["init"]->get<bool>();
 
-        setValue(inst->sel("out"), BitVector(2, 0));
+        setValue(inst->sel("out"), BitVector(typeWidth(*(w->getType())), 0));
       }
     }
   }
