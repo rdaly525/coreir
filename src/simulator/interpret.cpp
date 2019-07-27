@@ -8,7 +8,6 @@ using namespace std;
 namespace CoreIR {
 
   BitVector truncateToBfloat(const BitVector& longRes) {
-    //cout << "32 bit result = " << longRes << endl;
     assert(longRes.bitLength() == 32);
 
     BitVector bRes(16, 0);
@@ -23,12 +22,10 @@ namespace CoreIR {
       bRes.set(i - (23 - 7), longRes.get(i));
     }
     
-    //cout << "Final bres = " << bRes << endl;
     return bRes;
   }
   
   BitVector extendBfloat(const BitVector& r) {
-    //cout << "bfloat = " << r << endl;
     assert(r.bitLength() == 16);
 
     BitVector sgn(1, 0);
@@ -55,7 +52,6 @@ namespace CoreIR {
 
     res.set(31, sgn.get(0));
 
-    //cout << "Extension result = " << res << endl;
     return res;
   }
   
@@ -88,11 +84,6 @@ namespace CoreIR {
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
-    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    // cout << "log2(depth))   = " << log2(depth) << endl;
-
-    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
-
     // Cannot access out of range elements
     assert(bv.to_type<uint>() < depth);
 
@@ -100,7 +91,6 @@ namespace CoreIR {
 
     
     if (it == std::end(values)) {
-      //cout << "Could not find " << bv << endl;
       return BitVec(width, 0);
     }
 
@@ -662,20 +652,6 @@ namespace CoreIR {
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
     SimValue* v = getValue(sel);
 
-    if (v == nullptr) {
-      CircuitState st = circStates[stateIndex];
-      cout << "CircuitState valMap..." << endl;
-      for (auto c : st.valMap) {
-        cout << "\t" << c.first->toString() << endl;
-        if (c.first == sel) {
-          cout << "\tFound " << sel->toString() << endl;
-        }
-        if (c.first->toString() == sel->toString()) {
-          cout << "\tFound select with the same name as " << sel->toString() << endl;
-        }
-      }
-    }
-    
     ASSERT(v != nullptr, sel->toString() + " cannot be found");
 
     return toSimBitVector(v)->getBits();
@@ -699,31 +675,10 @@ namespace CoreIR {
 
     assert(mod->getDef()->canSel(sel->toString()));
 
-    //cout << "Directly finding select: " << sel->toString() << endl;
-
-
-    CircuitState& st = circStates[stateIndex];
-    if (!contains_key(sel, st.valMap)) {
-      cout << "No select for " << sel->toString() << " in valMap..." << endl;
-      for (auto c : st.valMap) {
-        cout << "\t" << c.first->toString() << endl;
-        if (c.first == sel) {
-          cout << "\tFound " << sel->toString() << endl;
-        }
-        if (c.first->toString() == sel->toString()) {
-          cout << "\tFound select with the same name as " << sel->toString() << endl;
-        }
-      }
-
-      assert(false);
-    }
-    
     auto it = circStates[stateIndex].valMap.find(sel);
 
     if (it == std::end(circStates[stateIndex].valMap)) {
-      cout << "No value found for " << sel->toString() << "..." << endl;
       assert(false);
-      //return nullptr;
     }
 
     return (*it).second;
@@ -1670,10 +1625,6 @@ namespace CoreIR {
         Instance* inst = toInstance(wd.getWire());
 
         Select* w = inst->sel("out");
-        // Values args = inst->getModArgs();
-        // cout << toString(inst) << endl;
-        // cout << toString(args) << endl;
-        // bool val = args["init"]->get<bool>();
 
         setValue(inst->sel("out"), BitVector(typeWidth(*(w->getType())), 0));
       }
@@ -1688,8 +1639,6 @@ namespace CoreIR {
         Instance* inst = toInstance(wd.getWire());
 
         Values args = inst->getModArgs();
-        cout << toString(inst) << endl;
-        cout << toString(args) << endl;
         bool val = args["init"]->get<bool>();
 
         setRegister(inst->toString(), BitVec(1, val ? 1 : 0));
@@ -1855,7 +1804,7 @@ namespace CoreIR {
         Select* inSel = toSelect(w.getWire());
 
         if (!isSet(inSel)) { //toSelect(sel.second))) {
-          //cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+
           unset.push_back(vd);
         }
 
