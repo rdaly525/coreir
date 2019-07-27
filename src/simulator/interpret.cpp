@@ -568,6 +568,7 @@ namespace CoreIR {
     setRegisterDefaults();
     setDFFDefaults();
     setInputDefaults();
+    setNodeDefaults();
     
   }
 
@@ -661,6 +662,20 @@ namespace CoreIR {
   BitVec SimulatorState::getBitVec(CoreIR::Select* sel) {
     SimValue* v = getValue(sel);
 
+    if (v == nullptr) {
+      CircuitState st = circStates[stateIndex];
+      cout << "CircuitState valMap..." << endl;
+      for (auto c : st.valMap) {
+        cout << "\t" << c.first->toString() << endl;
+        if (c.first == sel) {
+          cout << "\tFound " << sel->toString() << endl;
+        }
+        if (c.first->toString() == sel->toString()) {
+          cout << "\tFound select with the same name as " << sel->toString() << endl;
+        }
+      }
+    }
+    
     ASSERT(v != nullptr, sel->toString() + " cannot be found");
 
     return toSimBitVector(v)->getBits();
@@ -684,39 +699,48 @@ namespace CoreIR {
 
     assert(mod->getDef()->canSel(sel->toString()));
 
+    //cout << "Directly finding select: " << sel->toString() << endl;
+
+
+    CircuitState& st = circStates[stateIndex];
+    if (!contains_key(sel, st.valMap)) {
+      cout << "No select for " << sel->toString() << " in valMap..." << endl;
+      for (auto c : st.valMap) {
+        cout << "\t" << c.first->toString() << endl;
+        if (c.first == sel) {
+          cout << "\tFound " << sel->toString() << endl;
+        }
+        if (c.first->toString() == sel->toString()) {
+          cout << "\tFound select with the same name as " << sel->toString() << endl;
+        }
+      }
+
+      assert(false);
+    }
+    
     auto it = circStates[stateIndex].valMap.find(sel);
 
     if (it == std::end(circStates[stateIndex].valMap)) {
-      return nullptr;
+      cout << "No value found for " << sel->toString() << "..." << endl;
+      assert(false);
+      //return nullptr;
     }
 
     return (*it).second;
   }
 
   void SimulatorState::updateSliceNode(const vdisc vd) {
+    updateInputs(vd);
+    
     WireNode wd = gr.getNode(vd);
     Instance* inst = toInstance(wd.getWire());
-    //auto outSelects = getOutputSelects(inst);
-
-    updateInputs(vd);
-
-    //assert(outSelects.size() == 1);
-
-    //pair<string, Wireable*> outPair = *std::begin(outSelects);
-    //auto inConns = getInputConnections(vd, gr);
-
-    //assert(inConns.size() == 1);
-
     Select* argSel = inst->sel("in");
-    ASSERT(isSet(argSel), "in must have a value to evaluate this node");
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
-    
-    // InstanceValue arg1 = findArg("in", inConns);
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    
-    assert(s1 != nullptr);
 
-    cout << "Input to select = " << s1->getBits() << endl;
+    BitVector sB = getBitVec(argSel);
+    // ASSERT(isSet(argSel), "in must have a value to evaluate this node");
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
+    
+    // assert(s1 != nullptr);
 
     Values args = inst->getModuleRef()->getGenArgs();
     uint lo = (args["lo"])->get<int>();
@@ -725,7 +749,7 @@ namespace CoreIR {
     assert((hi - lo) > 0);
 
     BitVec res(hi - lo, 1);
-    BitVec sB = s1->getBits();
+    //BitVec sB = s1->getBits();
     for (uint i = lo; i < hi; i++) {
       res.set(i - lo, sB.get(i));
     }
@@ -801,9 +825,7 @@ namespace CoreIR {
     updateInputs(vd);
 
     WireNode wd = gr.getNode(vd);
-
     Instance* inst = toInstance(wd.getWire());
-
     Select* outSel = inst->sel("out");
 
     Select* arg1 = inst->sel("in");
@@ -1637,6 +1659,25 @@ namespace CoreIR {
 
     setValue(inst->sel("rdata"), makeSimBitVector(newRData));
     
+  }
+
+  void SimulatorState::setNodeDefaults() {
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isInstance(wd.getWire()) &&
+          getQualifiedOpNameWire(wd.getWire()) == "coreir.slice") {
+        Instance* inst = toInstance(wd.getWire());
+
+        //Select* w = inst->sel("out");
+        // Values args = inst->getModArgs();
+        // cout << toString(inst) << endl;
+        // cout << toString(args) << endl;
+        // bool val = args["init"]->get<bool>();
+
+        setValue(inst->sel("out"), BitVector(2, 0));
+      }
+    }
   }
 
   void SimulatorState::setDFFDefaults() {

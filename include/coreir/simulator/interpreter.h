@@ -163,7 +163,8 @@ namespace CoreIR {
     void findMainClock();
     void setInputDefaults();
     std::vector<vdisc> unsetInputs();
-
+    void setNodeDefaults();
+    
     std::vector<CircuitState> getCircStates() const;
 
     NGraph& getCircuitGraph() { return gr; }
