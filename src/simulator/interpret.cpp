@@ -716,6 +716,8 @@ namespace CoreIR {
     
     assert(s1 != nullptr);
 
+    cout << "Input to select = " << s1->getBits() << endl;
+
     Values args = inst->getModuleRef()->getGenArgs();
     uint lo = (args["lo"])->get<int>();
     uint hi = (args["hi"])->get<int>();
@@ -728,6 +730,8 @@ namespace CoreIR {
       res.set(i - lo, sB.get(i));
     }
 
+
+    cout << "Setting output of slice to: " << res << endl;
     //setValue(toSelect(outPair.second), makeSimBitVector(res));
     setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
