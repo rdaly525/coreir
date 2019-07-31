@@ -343,6 +343,7 @@ void assign_module_outputs(
         args[entry.index] =
             (std::make_unique<vAST::Identifier>(connection_name));
       }
+      std::reverse(args.begin(), args.end());
       std::unique_ptr<vAST::Concat> concat =
           std::make_unique<vAST::Concat>(std::move(args));
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
@@ -431,6 +432,7 @@ compile_module_body(RecordType *module_type,
           args[entry.index] =
               std::make_unique<vAST::Identifier>(connection_name);
         }
+        std::reverse(args.begin(), args.end());
         std::unique_ptr<vAST::Concat> concat =
             std::make_unique<vAST::Concat>(std::move(args));
         verilog_connections.insert(
