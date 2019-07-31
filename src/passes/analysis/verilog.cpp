@@ -90,7 +90,7 @@ declare_connections(std::map<std::string, Instance *> instances) {
     for (auto port :
          cast<RecordType>(instance.second->getModuleRef()->getType())
              ->getRecord()) {
-      if (port.second->isOutput()) {
+      if (!port.second->isInput()) {
         std::unique_ptr<vAST::Identifier> id =
             std::make_unique<vAST::Identifier>(instance.first + "_" +
                                                port.first);
@@ -249,10 +249,8 @@ public:
 // when multiple signals drive an input to an instance (e.g. the input is an
 // array of 3 bits, and each bit is connected to a 1-bit driver).  In this
 // case, each entry stores the index that it drives.
-//
-// **TODO** Need to add support for inouts
 std::map<ConnMapKey, std::vector<ConnMapEntry>>
-build_connection_map(std::set<Connection, ConnectionCompFast> connections,
+build_connection_map(std::vector<Connection> connections,
                      std::map<std::string, Instance *> instances) {
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map;
   for (auto connection : connections) {
@@ -360,12 +358,25 @@ void assign_module_outputs(
   }
 }
 
+// assign inout ports
+void assign_inouts(std::vector<Connection> connections,
+    std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                             std::unique_ptr<vAST::Declaration>>> &body) {
+    for (auto connection : connections) {
+        if (connection.first->getType()->isInOut() || connection.second->getType()->isInOut()) {
+            body.push_back(std::make_unique<vAST::ContinuousAssign>(
+                std::make_unique<vAST::Identifier>(convert_to_verilog_connection(connection.first)),
+                std::make_unique<vAST::Identifier>(convert_to_verilog_connection(connection.second))));
+        };
+    };
+}
+
 // Traverses the instance map and creates a vector of module instantiations
 // using connection_map to wire up instance ports
 std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                          std::unique_ptr<vAST::Declaration>>>
 compile_module_body(RecordType *module_type,
-                    std::set<Connection, ConnectionCompFast> connections,
+                    std::vector<Connection> connections,
                     std::map<std::string, Instance *> instances) {
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
@@ -395,16 +406,19 @@ compile_module_body(RecordType *module_type,
         verilog_connections;
     for (auto port :
          cast<RecordType>(instance_module->getType())->getRecord()) {
-      if (port.second->isOutput()) {
+      if (!port.second->isInput()) {
+        // output or inout, emit wire name
         verilog_connections.insert(
             std::make_pair(port.first, std::make_unique<vAST::Identifier>(
                                            instance.first + "_" + port.first)));
         continue;
       }
       auto entries = connection_map[ConnMapKey(instance.first, port.first)];
-      // If it is not a bulk connection, create a concat node and wire up
-      // the inputs by index
-      if (entries.size() > 1) {
+      if (entries.size() == 0) {
+        continue;
+      } else if (entries.size() > 1) {
+        // If it is not a bulk connection, create a concat node and wire up
+        // the inputs by index
         std::vector<std::unique_ptr<vAST::Expression>> args;
         args.resize(entries.size());
         for (auto entry : entries) {
@@ -448,8 +462,9 @@ compile_module_body(RecordType *module_type,
             std::move(verilog_connections));
     body.push_back(std::move(statement));
   }
-  // Wire the outputs of the module
+  // Wire the outputs of the module and inout connections
   assign_module_outputs(module_type, body, connection_map);
+  assign_inouts(connections, body);
   return body;
 }
 
@@ -520,7 +535,7 @@ void Passes::Verilog::compileModule(Module *module) {
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
       body =
-          compile_module_body(module->getType(), definition->getConnections(),
+          compile_module_body(module->getType(), definition->getSortedConnections(),
                               definition->getInstances());
 
   vAST::Parameters parameters = compile_params(module);
