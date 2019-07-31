@@ -308,16 +308,16 @@ build_connection_map(std::set<Connection, ConnectionCompFast> connections,
 std::string convert_to_verilog_connection(Wireable *value) {
   SelectPath select_path = value->getSelectPath();
   if (select_path.front() == "self") {
-      select_path.pop_front();
+    select_path.pop_front();
   }
   std::string connection_name = "";
   for (auto item : select_path) {
-      if (isNumber(item)) {
-          item = "[" + item + "]";
-      } else if (connection_name != "") {
-          connection_name += "_";
-      }
-      connection_name += item;
+    if (isNumber(item)) {
+      item = "[" + item + "]";
+    } else if (connection_name != "") {
+      connection_name += "_";
+    }
+    connection_name += item;
   }
   return connection_name;
 }
@@ -340,7 +340,8 @@ void assign_module_outputs(
       std::vector<std::unique_ptr<vAST::Expression>> args;
       args.resize(entries.size());
       for (auto entry : entries) {
-        std::string connection_name = convert_to_verilog_connection(entry.source);
+        std::string connection_name =
+            convert_to_verilog_connection(entry.source);
         args[entry.index] =
             (std::make_unique<vAST::Identifier>(connection_name));
       }
@@ -407,7 +408,8 @@ compile_module_body(RecordType *module_type,
         std::vector<std::unique_ptr<vAST::Expression>> args;
         args.resize(entries.size());
         for (auto entry : entries) {
-          std::string connection_name = convert_to_verilog_connection(entry.source);
+          std::string connection_name =
+              convert_to_verilog_connection(entry.source);
           args[entry.index] =
               std::make_unique<vAST::Identifier>(connection_name);
         }
