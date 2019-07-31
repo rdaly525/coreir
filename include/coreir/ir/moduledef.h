@@ -11,6 +11,7 @@ namespace CoreIR {
 
 class ModuleDef {
     friend class Wireable;
+    uint unique = 0;
   protected:
     Module* module;
     Interface* interface; 
@@ -43,6 +44,7 @@ class ModuleDef {
     RecordType* getType();
     Module* getModule() { return module; }
     Interface* getInterface(void) {return interface;}
+    std::string generateUniqueInstanceName() { return "_$"+std::to_string(this->unique++);}
 
     bool canSel(const std::string& selstr);
     bool canSel(SelectPath path);

@@ -903,6 +903,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
      {"output_type",CoreIRType::make(c)},
      {"image_type",CoreIRType::make(c)},
      {"has_valid",c->Bool()},
+     {"has_stencil_valid",c->Bool()}
     };
 
   commonlib->newTypeGen(
@@ -910,9 +911,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     lb_args,
     [](Context* c, Values genargs) { //Function to compute type
       bool has_valid = genargs.at("has_valid")->get<bool>();
+      bool has_stencil_valid = genargs.at("has_stencil_valid")->get<bool>();
       Type* in_type  = genargs.at("input_type")->get<Type*>();
       Type* out_type  = genargs.at("output_type")->get<Type*>();
       Type* img_type = genargs.at("image_type")->get<Type*>();
+
+      // can't have has_stencil_valid without a valid
+      ASSERT(!(!has_valid && has_stencil_valid),
+        "One must have a valid signal to utilize stencil valid");
 
       // process and check the input arguments
       vector<uint> in_dims = get_dims(in_type);
@@ -992,9 +998,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     lb_args
   );
   lb->addDefaultGenArgs({{"has_valid",Const::make(c,false)}});
+  lb->addDefaultGenArgs({{"has_stencil_valid",Const::make(c,false)}});
 
   lb->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
       bool has_valid = genargs.at("has_valid")->get<bool>();
+      bool has_stencil_valid = genargs.at("has_stencil_valid")->get<bool>();
       bool is_last_lb= true;
       Type* in_type  = genargs.at("input_type")->get<Type*>();
       Type* out_type = genargs.at("output_type")->get<Type*>();
@@ -1006,6 +1014,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             {"image_type", Const::make(c, img_type)},
             {"output_type", Const::make(c, out_type)},
             {"has_valid", Const::make(c, has_valid)},
+            {"has_stencil_valid", Const::make(c, has_stencil_valid)},
             {"is_last_lb", Const::make(c, is_last_lb)}
       };
 
@@ -1070,6 +1079,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
        {"output_type",CoreIRType::make(c)},
        {"image_type",CoreIRType::make(c)},
        {"has_valid",c->Bool()},
+       {"has_stencil_valid",c->Bool()},
        {"is_last_lb",c->Bool()} // use this to denote when to create valid register chain
       };
 
@@ -1098,11 +1108,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       "linebuffer_recursive",
       commonlib->getTypeGen("lb_recursive_type"),
       lb_recursive_args
-                                                        );
+    );
   
   lb_recursive->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //cout << "running linebuffer generator" << endl;
     bool has_valid = genargs.at("has_valid")->get<bool>();
+    bool has_stencil_valid = genargs.at("has_stencil_valid")->get<bool>();
     bool is_last_lb= genargs.at("is_last_lb")->get<bool>();
     Type* in_type  = genargs.at("input_type")->get<Type*>();
     Type* out_type = genargs.at("output_type")->get<Type*>();
@@ -1237,9 +1248,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             {"image_type", Const::make(c, lb_image)},
             {"output_type", Const::make(c, lb_output)},
             {"has_valid", Const::make(c, has_valid)},
+            {"has_stencil_valid", Const::make(c, has_stencil_valid)},
             {"is_last_lb", Const::make(c, !has_valid)}
           };
-        //if (!has_valid || (is_last_lb && i == out_dim-1)) { // was used when is_last_lb was used recursively
+        // was used when is_last_lb was used recursively, now only lastlb makes valid counter chain
+        //if (!has_valid || (is_last_lb && i == out_dim-1)) { 
         
         def->addInstance(lb_name, "commonlib.linebuffer_recursive", args);
         def->connect({"self","reset"},{lb_name,"reset"});
@@ -1306,8 +1319,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               lbmem_name += "_" + to_string(indices[dim_i]);
             }
 
-            def->addInstance(lbmem_name, "memory.rowbuffer",
-                             {{"width",aBitwidth},{"depth",aLbmemSize}});
+            if (has_stencil_valid) {
+              def->addInstance(lbmem_name, "memory.rowbuffer_stencil_valid",
+                               {{"width",aBitwidth},{"depth",aLbmemSize},{"stencil_width",Const::make(c, 0)}});
+
+            } else {
+              def->addInstance(lbmem_name, "memory.rowbuffer",
+                               {{"width",aBitwidth},{"depth",aLbmemSize}});
+            }
 
 
             // hook up flush
@@ -1444,7 +1463,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             def->connect(valid_chain_str, "self.valid");
             def->addInstance("reset_term", "corebit.term");
             def->connect("self.reset","reset_term.in");
-          } else { //if (is_last_lb) {
+          } else if (is_last_lb && !has_stencil_valid) {
 
             std::vector<std::string> counter_outputs;
             counter_outputs.push_back("self.wen");
@@ -1517,8 +1536,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
               for (uint dim_i=0; dim_i<counter_outputs.size(); ++dim_i) {
                 def->connect(counter_outputs[dim_i], andr_name +".in."+to_string(dim_i));
               }
-            
             }
+            
+          } else { //if (is_last_lb && has_stencil_valid) {
+            ASSERT(is_last_lb && has_stencil_valid,
+                   "This should be the only case left if these conditionals are correct");
+            
+            // By setting the stencil_width on the rowbuffer correctly, we don't need external counters.
+            def->connect(valid_chain_str, "self.valid");
           }
 
         } else { // has_valid == 0
@@ -1541,13 +1566,112 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
+  /////////////////////////////////////
+  //*** unified buffer definition ***//
+  /////////////////////////////////////
+
+  Params ubparams = Params({
+      {"width",c->Int()},
+      {"depth",c->Int()},
+      {"rate_matched",c->Bool()},
+      {"stencil_width",c->Int()},
+      {"iter_cnt",c->Int()},
+      {"num_input_ports",c->Int()},
+      {"num_output_ports",c->Int()},
+      {"dimensionality",c->Int()},
+      {"stride_0",c->Int()},
+      {"range_0",c->Int()},
+      {"stride_1",c->Int()},
+      {"range_1",c->Int()},
+      {"stride_2",c->Int()},
+      {"range_2",c->Int()},
+      {"stride_3",c->Int()},
+      {"range_3",c->Int()},
+      {"stride_4",c->Int()},
+      {"range_4",c->Int()},
+      {"stride_5",c->Int()},
+      {"range_5",c->Int()},
+      {"input_stride_0",c->Int()},
+      {"input_range_0",c->Int()},
+      {"input_stride_1",c->Int()},
+      {"input_range_1",c->Int()},
+      {"input_stride_2",c->Int()},
+      {"input_range_2",c->Int()},
+      {"input_stride_3",c->Int()},
+      {"input_range_3",c->Int()},
+      {"input_stride_4",c->Int()},
+      {"input_range_4",c->Int()},
+      {"input_stride_5",c->Int()},
+      {"input_range_5",c->Int()},
+      {"chain_en",c->Bool()},
+      {"chain_idx",c->Int()},
+      {"input_starting_addrs",c->Json()},
+      {"output_starting_addrs",c->Json()},
+      {"init",c->Json()}
+    });
+  
+  // unified buffer type
+  commonlib->newTypeGen(
+    "unified_buffer_type", //name for the typegen
+    ubparams, //generator parameters
+    [](Context* c, Values genargs) { //Function to compute type
+      uint width = genargs.at("width")->get<int>();
+      uint num_inputs = genargs.at("num_input_ports")->get<int>();
+      uint num_outputs = genargs.at("num_output_ports")->get<int>();
+      
+      return c->Record({
+        {"wen",c->BitIn()},
+        {"ren",c->BitIn()},
+        {"flush", c->BitIn()},
+        {"datain",c->BitIn()->Arr(width)->Arr(num_inputs)},
+        {"valid",c->Bit()},
+        {"dataout",c->Bit()->Arr(width)->Arr(num_outputs)}
+      });
+    }
+  );
+
+  auto unified_buffer_gen = commonlib->newGeneratorDecl("unified_buffer",commonlib->getTypeGen("unified_buffer_type"),ubparams);
+  Json jdata;
+  jdata["init"][0] = 0; // set default init to "0"
+  unified_buffer_gen->addDefaultGenArgs({{"init",Const::make(c,jdata)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_5",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_5",Const::make(c,0)}});
+
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_5",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_5",Const::make(c,0)}});
+
+  // set default as a single input and output at index 0
+  Json jinputs;
+  Json joutputs;
+  jinputs["input_start"][0] = 0;
+  joutputs["output_start"][0] = 0;
+  unified_buffer_gen->addDefaultGenArgs({{"input_starting_addrs",Const::make(c,jinputs)}});
+  unified_buffer_gen->addDefaultGenArgs({{"output_starting_addrs",Const::make(c,joutputs)}});
+  unified_buffer_gen->addDefaultGenArgs({{"num_input_ports",Const::make(c,1)}});
+  unified_buffer_gen->addDefaultGenArgs({{"num_output_ports",Const::make(c,1)}});
 
   /////////////////////////////////
   //*** counter definition    ***//
   /////////////////////////////////
 
   // counter follows a for loop of format:
-  //   for ( int i = $min ; $min < $max ; i += $inc )
+  //   for ( int i = $min ; $min <= $max ; i += $inc )
   // input:  "valid", when to start counting
   // output: "i", the count
 
@@ -1605,11 +1729,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
       def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
       def->addInstance("add", add_gen, {{"width",aBitwidth}});
-      //def->addInstance("and", "corebit.and");
+      def->addInstance("and", "corebit.and");
       def->addInstance("resetOr", "corebit.or");
   
       // wire up modules
-      // clear if max < count+inc
+      // clear if max < count+inc && en == 1
       def->connect("count.out","self.out");
       def->connect("count.out","add.in0");
       def->connect("inc.out","add.in1");
@@ -1619,11 +1743,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   
       def->connect("add.out","ult.in1");
       def->connect("max.out","ult.in0");
+
+      def->connect("ult.out","and.in0");
+      def->connect("self.en","and.in1");
+      // and.out === (max < count+inc  &&  en == 1)
+      
       // clear count on either getting to max or reset
-      def->connect("ult.out","resetOr.in0");
+      def->connect("and.out","resetOr.in0");
       def->connect("self.reset","resetOr.in1");
       def->connect("resetOr.out","count.clr");
-      def->connect("ult.out","self.overflow");
+      def->connect("and.out","self.overflow");
     }
   });
 

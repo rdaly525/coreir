@@ -104,6 +104,7 @@ class Context {
     IntType* Int();
     BitVectorType* BitVector(int width);
     StringType* String();
+    JsonType* Json();
     //CoreIRType* CoreIRType();
 
     Type* Flip(Type* t);
