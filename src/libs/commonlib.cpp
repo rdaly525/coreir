@@ -1576,6 +1576,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"rate_matched",c->Bool()},
       {"stencil_width",c->Int()},
       {"iter_cnt",c->Int()},
+      {"num_input_ports",c->Int()},
+      {"num_output_ports",c->Int()},
       {"dimensionality",c->Int()},
       {"stride_0",c->Int()},
       {"range_0",c->Int()},
@@ -1589,9 +1591,22 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"range_4",c->Int()},
       {"stride_5",c->Int()},
       {"range_5",c->Int()},
+      {"input_stride_0",c->Int()},
+      {"input_range_0",c->Int()},
+      {"input_stride_1",c->Int()},
+      {"input_range_1",c->Int()},
+      {"input_stride_2",c->Int()},
+      {"input_range_2",c->Int()},
+      {"input_stride_3",c->Int()},
+      {"input_range_3",c->Int()},
+      {"input_stride_4",c->Int()},
+      {"input_range_4",c->Int()},
+      {"input_stride_5",c->Int()},
+      {"input_range_5",c->Int()},
       {"chain_en",c->Bool()},
       {"chain_idx",c->Int()},
-      {"starting_addr",c->Int()},
+      {"input_starting_addrs",c->Json()},
+      {"output_starting_addrs",c->Json()},
       {"init",c->Json()}
     });
   
@@ -1601,13 +1616,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     ubparams, //generator parameters
     [](Context* c, Values genargs) { //Function to compute type
       uint width = genargs.at("width")->get<int>();
+      uint num_inputs = genargs.at("num_input_ports")->get<int>();
+      uint num_outputs = genargs.at("num_output_ports")->get<int>();
+      
       return c->Record({
         {"wen",c->BitIn()},
         {"ren",c->BitIn()},
         {"flush", c->BitIn()},
-        {"datain",c->BitIn()->Arr(width)},
+        {"datain",c->BitIn()->Arr(width)->Arr(num_inputs)},
         {"valid",c->Bit()},
-        {"dataout",c->Bit()->Arr(width)}
+        {"dataout",c->Bit()->Arr(width)->Arr(num_outputs)}
       });
     }
   );
@@ -1626,14 +1644,34 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"range_4",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_5",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_5",Const::make(c,0)}});
-  
+
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_5",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_5",Const::make(c,0)}});
+
+  // set default as a single input and output at index 0
+  Json jinputs;
+  Json joutputs;
+  jinputs["input_start"][0] = 0;
+  joutputs["output_start"][0] = 0;
+  unified_buffer_gen->addDefaultGenArgs({{"input_starting_addrs",Const::make(c,jinputs)}});
+  unified_buffer_gen->addDefaultGenArgs({{"output_starting_addrs",Const::make(c,joutputs)}});
+  unified_buffer_gen->addDefaultGenArgs({{"num_input_ports",Const::make(c,1)}});
+  unified_buffer_gen->addDefaultGenArgs({{"num_output_ports",Const::make(c,1)}});
 
   /////////////////////////////////
   //*** counter definition    ***//
   /////////////////////////////////
 
   // counter follows a for loop of format:
-  //   for ( int i = $min ; $min < $max ; i += $inc )
+  //   for ( int i = $min ; $min <= $max ; i += $inc )
   // input:  "valid", when to start counting
   // output: "i", the count
 
