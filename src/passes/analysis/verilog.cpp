@@ -147,6 +147,11 @@ Passes::Verilog::compileStringBodyModule(json verilog_json, std::string name,
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
   for (auto port_str :
        verilog_json["interface"].get<std::vector<std::string>>()) {
+    if (this->verilator_debug) {
+        // FIXME: Hack to get comment into port name, we need to design a way
+        // to attach comments to expressions
+        port_str += "/*verilator public*/";
+    }
     ports.push_back(std::make_unique<vAST::StringPort>(port_str));
   }
   vAST::Parameters parameters;
