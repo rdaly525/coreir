@@ -15,7 +15,7 @@
       },
       "top":{
         "type":["Record",[
-          ["I",["Array",4,"BitIn"]],
+          ["self_I",["Array",4,"BitIn"]],
           ["O",["Array",4,"Bit"]]
         ]],
         "instances":{
@@ -27,18 +27,18 @@
           }
         },
         "connections":[
-          ["self.I.0","inst0.I.0"],
-          ["self.I.0","inst0.I.1"],
-          ["self.I.1","inst0.I.2"],
-          ["self.I.2","inst0.I.3"],
+          ["self.self_I.0","inst0.I.0"],
+          ["self.self_I.0","inst0.I.1"],
+          ["self.self_I.1","inst0.I.2"],
+          ["self.self_I.2","inst0.I.3"],
           ["inst0.O.0","inst1.I.0"],
           ["inst0.O.1","inst1.I.1"],
           ["inst0.O.1","inst1.I.2"],
-          ["self.I.1","inst1.I.3"],
+          ["self.self_I.1","inst1.I.3"],
           ["inst1.O.0","self.O.0"],
           ["inst1.O.0","self.O.1"],
-          ["self.I.0","self.O.2"],
-          ["self.I.1","self.O.3"]
+          ["self.self_I.0","self.O.2"],
+          ["self.self_I.1","self.O.3"]
         ]
       }
     }

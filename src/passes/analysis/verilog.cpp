@@ -304,11 +304,21 @@ build_connection_map(std::set<Connection, ConnectionCompFast> connections,
   return connection_map;
 }
 
-// Remove `self.` prefix from select strings, replace "." with "_"
-std::string convert_to_verilog_connection(std::string connection_name) {
-  connection_name =
-      std::regex_replace(connection_name, std::regex("self."), "");
-  std::replace(connection_name.begin(), connection_name.end(), '.', '_');
+// Join select path fields by "_" (ignoring intial self if present)
+std::string convert_to_verilog_connection(Wireable *value) {
+  SelectPath select_path = value->getSelectPath();
+  if (select_path.front() == "self") {
+    select_path.pop_front();
+  }
+  std::string connection_name = "";
+  for (auto item : select_path) {
+    if (isNumber(item)) {
+      item = "[" + item + "]";
+    } else if (connection_name != "") {
+      connection_name += "_";
+    }
+    connection_name += item;
+  }
   return connection_name;
 }
 
@@ -330,10 +340,8 @@ void assign_module_outputs(
       std::vector<std::unique_ptr<vAST::Expression>> args;
       args.resize(entries.size());
       for (auto entry : entries) {
-        std::string connection_name = entry.source->toString();
-        connection_name =
-            std::regex_replace(connection_name, std::regex("self."), "");
-        std::replace(connection_name.begin(), connection_name.end(), '.', '_');
+        std::string connection_name =
+            convert_to_verilog_connection(entry.source);
         args[entry.index] =
             (std::make_unique<vAST::Identifier>(connection_name));
       }
@@ -343,8 +351,8 @@ void assign_module_outputs(
           std::make_unique<vAST::Identifier>(port.first), std::move(concat)));
     } else {
       // Regular (possibly bulk) connection
-      std::string connection_name = entries[0].source->toString();
-      connection_name = convert_to_verilog_connection(connection_name);
+      std::string connection_name =
+          convert_to_verilog_connection(entries[0].source);
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(port.first),
           std::make_unique<vAST::Identifier>(connection_name)));
@@ -400,11 +408,8 @@ compile_module_body(RecordType *module_type,
         std::vector<std::unique_ptr<vAST::Expression>> args;
         args.resize(entries.size());
         for (auto entry : entries) {
-          std::string connection_name = entry.source->toString();
-          connection_name =
-              std::regex_replace(connection_name, std::regex("self."), "");
-          std::replace(connection_name.begin(), connection_name.end(), '.',
-                       '_');
+          std::string connection_name =
+              convert_to_verilog_connection(entry.source);
           args[entry.index] =
               std::make_unique<vAST::Identifier>(connection_name);
         }
@@ -414,8 +419,8 @@ compile_module_body(RecordType *module_type,
             std::make_pair(port.first, std::move(concat)));
         // Otherwise we just use the entry in the connection map
       } else {
-        std::string connection_name = entries[0].source->toString();
-        connection_name = convert_to_verilog_connection(connection_name);
+        std::string connection_name =
+            convert_to_verilog_connection(entries[0].source);
         verilog_connections.insert(std::make_pair(
             port.first, std::make_unique<vAST::Identifier>(connection_name)));
       }
