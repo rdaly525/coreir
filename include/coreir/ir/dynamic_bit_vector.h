@@ -506,6 +506,7 @@ namespace bsim {
     }
     
     inline void set(const int ind, const int v) {
+      assert(ind < (int) bits.size());
       // if ((v != 0) && (v != 1)) {
       //   std::cout << "\tv = " << (int) v << std::endl;
       // }
@@ -515,6 +516,8 @@ namespace bsim {
     }
 
     inline void set(const int ind, const quad_value val) {
+      assert(ind < (int) bits.size());
+      
       //const unsigned char val) {
       // int byte_num = ind / 8;
       // int bit_num = ind % 8;
@@ -528,6 +531,7 @@ namespace bsim {
     }
 
     quad_value get(const int ind) const {
+      assert(ind < (int) bits.size());
       return bits[ind];
       // int byte_num = ind / 8;
       // int bit_num = ind % 8;
