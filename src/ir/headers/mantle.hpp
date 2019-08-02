@@ -67,14 +67,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     def->connect("reg0.out","self.out");
     def->connect("reg0.clk","self.clk");
     Wireable* toIn = reg->sel("in");
-    
-    if (en) {
-      auto mux = def->addInstance("enMux","coreir.mux",wval);
-      def->connect(mux->sel("out"),toIn);
-      def->connect(mux->sel("in0"),reg->sel("out"));
-      def->connect(mux->sel("sel"),io->sel("en"));
-      toIn = mux->sel("in1");
-    }
+
     if (clr) {
       auto mux = def->addInstance("clrMux","coreir.mux",wval);
       auto zero = def->addInstance("c0","coreir.const",wval,{{"value",Const::make(c,width,0)}});
@@ -82,6 +75,14 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       def->connect(mux->sel("in1"),zero->sel("out"));
       def->connect(mux->sel("sel"),io->sel("clr"));
       toIn = mux->sel("in0");
+    }
+
+    if (en) {
+      auto mux = def->addInstance("enMux","coreir.mux",wval);
+      def->connect(mux->sel("out"),toIn);
+      def->connect(mux->sel("in0"),reg->sel("out"));
+      def->connect(mux->sel("sel"),io->sel("en"));
+      toIn = mux->sel("in1");
     }
     def->connect(io->sel("in"),toIn);
   });

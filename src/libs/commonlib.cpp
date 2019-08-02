@@ -1541,6 +1541,41 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
+  //////////////////////////////////////////////
+  //*** abstract unified buffer definition ***//
+  //////////////////////////////////////////////
+  Params aubparams = 
+    {
+     {"input_ports", CoreIRType::make(c)},
+     {"output_ports", CoreIRType::make(c)},
+     {"capacity", CoreIRType::make(c)},
+     {"range", CoreIRType::make(c)},
+     {"dim_ref", CoreIRType::make(c)},
+     {"stride", CoreIRType::make(c)}
+    };
+
+    commonlib->newTypeGen(
+      "abstract_unified_buffer_type",
+      aubparams,
+      [](Context* c, Values genargs) { //Function to compute type
+      Type* input_port = genargs.at("input_ports")->get<Type*>();
+      Type* output_port = genargs.at("output_ports")->get<Type*>();
+      
+      return c->Record({
+        {"wen",c->BitIn()},
+        {"ren",c->BitIn()},
+        {"flush", c->BitIn()},
+        {"reset", c->BitIn()},
+        {"in",input_port},
+        {"valid",c->Bit()},
+        {"out",output_port}
+      });
+    }
+  );
+    
+  Generator* aub = commonlib->newGeneratorDecl("abstract_unified_buffer",commonlib->getTypeGen("abstract_unified_buffer_type"),aubparams);
+  aub->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    });
 
   /////////////////////////////////
   //*** counter definition    ***//
