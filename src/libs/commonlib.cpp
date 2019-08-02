@@ -1702,7 +1702,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Generator* aub = commonlib->newGeneratorDecl("abstract_unified_buffer",commonlib->getTypeGen("abstract_unified_buffer_type"),aubparams);
   aub->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     });
->>>>>>> 059c9353a5734b7f873579fc69d805ec192b10ec
 
   /////////////////////////////////
   //*** counter definition    ***//
