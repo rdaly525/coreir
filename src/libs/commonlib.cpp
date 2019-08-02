@@ -1618,7 +1618,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint width = genargs.at("width")->get<int>();
       uint num_inputs = genargs.at("num_input_ports")->get<int>();
       uint num_outputs = genargs.at("num_output_ports")->get<int>();
-      
+
       return c->Record({
         {"wen",c->BitIn()},
         {"ren",c->BitIn()},
@@ -1665,6 +1665,44 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"output_starting_addrs",Const::make(c,joutputs)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_input_ports",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_output_ports",Const::make(c,1)}});
+
+      
+  //////////////////////////////////////////////
+  //*** abstract unified buffer definition ***//
+  //////////////////////////////////////////////
+  Params aubparams = 
+    {
+     {"input_ports", CoreIRType::make(c)},
+     {"output_ports", CoreIRType::make(c)},
+     {"capacity", CoreIRType::make(c)},
+     {"range", CoreIRType::make(c)},
+     {"dim_ref", CoreIRType::make(c)},
+     {"stride", CoreIRType::make(c)}
+    };
+
+    commonlib->newTypeGen(
+      "abstract_unified_buffer_type",
+      aubparams,
+      [](Context* c, Values genargs) { //Function to compute type
+      Type* input_port = genargs.at("input_ports")->get<Type*>();
+      Type* output_port = genargs.at("output_ports")->get<Type*>();
+      
+      return c->Record({
+        {"wen",c->BitIn()},
+        {"ren",c->BitIn()},
+        {"flush", c->BitIn()},
+        {"reset", c->BitIn()},
+        {"in",input_port},
+        {"valid",c->Bit()},
+        {"out",output_port}
+      });
+    }
+  );
+    
+  Generator* aub = commonlib->newGeneratorDecl("abstract_unified_buffer",commonlib->getTypeGen("abstract_unified_buffer_type"),aubparams);
+  aub->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    });
+>>>>>>> 059c9353a5734b7f873579fc69d805ec192b10ec
 
   /////////////////////////////////
   //*** counter definition    ***//

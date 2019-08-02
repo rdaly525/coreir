@@ -125,7 +125,7 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
   );
   
   vector<string> unaryOps = {"neg", "sqr", "flr", "ceil"};
-  vector<string> binaryOps = {"abs", "add", "sub", "mul", "div", "rem", "min","max"};
+  vector<string> binaryOps = {"abs", "add", "sub", "mul", "div", "rem", "min", "max"};
   vector<string> binaryReduceOps = {"le","lt","ge","gt","eq","neq"};
 
   for (auto op : unaryOps) {
