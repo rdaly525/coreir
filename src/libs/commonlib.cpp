@@ -1623,6 +1623,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         {"wen",c->BitIn()},
         {"ren",c->BitIn()},
         {"flush", c->BitIn()},
+        {"reset", c->BitIn()},
         {"datain",c->BitIn()->Arr(width)->Arr(num_inputs)},
         {"valid",c->Bit()},
         {"dataout",c->Bit()->Arr(width)->Arr(num_outputs)}
@@ -2008,6 +2009,108 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   // on every cycle, input<n> is outputted where n=count
 
   // Not yet implemented
+
+  /////////////////////////////////
+  //*** reshape definition    ***//
+  /////////////////////////////////
+  Params reshape_params = 
+    {
+     {"input_type", CoreIRType::make(c)},
+     {"output_type", CoreIRType::make(c)},
+    };
+
+  commonlib->newTypeGen(
+    "reshape_type",
+    reshape_params,
+    [](Context* c, Values genargs) { //Function to compute type
+      Type* input_type = genargs.at("input_type")->get<Type*>();
+      Type* output_type = genargs.at("output_type")->get<Type*>();
+
+      // check that the vectors have the same bitwidth
+      auto input_vector = get_dims(input_type);
+      auto output_vector = get_dims(output_type);
+      assert(input_vector.at(0) == output_vector.at(0));
+
+      // check that the number of elements in each are the same
+      int num_inputs = 1;
+      int num_outputs = 1;
+      for (const auto& input_value : input_vector) {
+        num_inputs *= input_value;
+      }
+      for (const auto& output_value : output_vector) {
+        num_outputs *= output_value;
+      }
+      assert(num_inputs == num_outputs);
+      
+      return c->Record({
+          {"in",input_type},
+          {"out",output_type}
+        });
+    }
+    );
+
+  Generator* reshape = commonlib->newGeneratorDecl("reshape",
+                                                   commonlib->getTypeGen("reshape_type"),
+                                                   reshape_params);
+  reshape->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    auto input_type = genargs.at("width")->get<Type*>();
+    auto output_type = genargs.at("max")->get<Type*>();
+
+    auto input_vector = get_dims(input_type);
+    auto output_vector = get_dims(output_type);
+    
+    // remove the first dimension (bitwidth)
+    input_vector.erase(input_vector.begin());
+    output_vector.erase(output_vector.begin());
+
+    int num_inputs = 1;
+    for (const auto& input_value : input_vector) {
+      num_inputs *= input_value;
+    }
+
+    vector<uint> input_idxs(input_vector.size());
+    vector<uint> output_idxs(output_vector.size());
+    
+    for (int idx = 0; idx < num_inputs; ++idx) {
+      // create input and output port names
+      string input_name = "self.in";
+      for (const auto& input_port : input_idxs) {
+        input_name += "." + std::to_string(input_port);
+      }
+      string output_name = "self.out";
+      for (const auto& output_port : output_idxs) {
+        output_name += "." + std::to_string(output_port);
+      }
+      
+      def->connect(input_name, output_name);
+      
+      // increment input index
+      input_idxs.at(0) += 1;
+      for (size_t dim = 0; dim < input_idxs.size(); ++dim) {
+        if (input_idxs.at(dim) >= input_vector.at(dim)) {
+          input_idxs.at(dim) = 0;
+          if (dim + 1 < input_idxs.size()) {
+            input_idxs.at(dim+1) += 1;
+          }
+        }
+      }
+
+      // increment output index
+      output_idxs.at(0) += 1;
+      for (size_t dim = 0; dim < output_idxs.size(); ++dim) {
+        if (output_idxs.at(dim) >= output_vector.at(dim)) {
+          output_idxs.at(dim) = 0;
+          if (dim + 1 < output_idxs.size()) {
+            output_idxs.at(dim+1) += 1;
+          }
+        }
+      }
+    }
+      
+    });
+
+
+  
 
   return commonlib;
 }
