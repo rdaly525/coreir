@@ -1607,6 +1607,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"chain_idx",c->Int()},
       {"input_starting_addrs",c->Json()},
       {"output_starting_addrs",c->Json()},
+      {"logical_size",c->Json()},
       {"init",c->Json()}
     });
   
@@ -2053,8 +2054,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                                                    commonlib->getTypeGen("reshape_type"),
                                                    reshape_params);
   reshape->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
-    auto input_type = genargs.at("width")->get<Type*>();
-    auto output_type = genargs.at("max")->get<Type*>();
+    auto input_type = genargs.at("input_type")->get<Type*>();
+    auto output_type = genargs.at("output_type")->get<Type*>();
 
     auto input_vector = get_dims(input_type);
     auto output_vector = get_dims(output_type);
