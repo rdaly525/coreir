@@ -70,6 +70,50 @@ uint inverted_index(uint outx, uint inx, uint i) {
   return (outx-1) - (inx-1 - i % inx) - (i / inx) * inx;
 }
 
+vector<CoreIR::Wireable*> get_wires(CoreIR::Wireable* base_wire, const vector<size_t> ports) {
+  int num_ports = 1;
+  for (const auto& port_length : ports) {
+    num_ports *= port_length;
+  }
+
+  vector<CoreIR::Wireable*> all_wires(num_ports);
+
+  vector<uint> port_idxs(ports.size());
+    
+  for (int idx = 0; idx < num_ports; ++idx) {
+    // find the wire associated with the indices
+    CoreIR::Wireable* cur_wire = base_wire;
+    for (const auto& port_idx : port_idxs) {
+      cur_wire = cur_wire->sel(port_idx);
+    }
+
+    // add the wire to our list
+    all_wires.at(idx) = cur_wire;
+    
+    // increment  index
+    port_idxs.at(0) += 1;
+    for (size_t dim = 0; dim < port_idxs.size(); ++dim) {
+      if (port_idxs.at(dim) >= ports.at(dim)) {
+        port_idxs.at(dim) = 0;
+        if (dim + 1 < port_idxs.size()) {
+          port_idxs.at(dim+1) += 1;
+        }
+      }
+    }
+  }
+    
+  return all_wires;
+}
+
+
+void connect_wires(ModuleDef *def, vector<Wireable*> in_wires, vector<Wireable*> out_wires) {
+  assert(in_wires.size() == out_wires.size());
+  
+  for (size_t idx=0; idx<in_wires.size(); ++idx) {
+    def->connect(in_wires.at(idx), out_wires.at(idx));
+  }
+}
+
 Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   Namespace* commonlib = c->newNamespace("commonlib");
@@ -1620,15 +1664,29 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint num_inputs = genargs.at("num_input_ports")->get<int>();
       uint num_outputs = genargs.at("num_output_ports")->get<int>();
 
-      return c->Record({
+      RecordParams recordparams = {
         {"wen",c->BitIn()},
         {"ren",c->BitIn()},
         {"flush", c->BitIn()},
         {"reset", c->BitIn()},
-        {"datain",c->BitIn()->Arr(width)->Arr(num_inputs)},
-        {"valid",c->Bit()},
-        {"dataout",c->Bit()->Arr(width)->Arr(num_outputs)}
-      });
+        {"valid",c->Bit()}
+      };
+
+      // Add the dataports. The simulator needs them to be flattened
+      bool simulation_compatible = true;
+      if (simulation_compatible) {
+        for (size_t i=0; i < num_inputs; ++i) {
+          recordparams.push_back({"datain"+std::to_string(i), c->BitIn()->Arr(width)});
+        }
+        for (size_t i=0; i < num_outputs; ++i) {
+          recordparams.push_back({"dataout"+std::to_string(i), c->Bit()->Arr(width)});
+        }
+      } else {
+        recordparams.push_back({"datain",c->BitIn()->Arr(width)->Arr(num_inputs)});
+        recordparams.push_back({"dataout",c->Bit()->Arr(width)->Arr(num_outputs)});
+      }
+
+      return c->Record(recordparams);
     }
   );
 
@@ -1647,6 +1705,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"stride_5",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_5",Const::make(c,0)}});
 
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_0",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_0",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"input_stride_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"input_range_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"input_stride_2",Const::make(c,0)}});
@@ -1894,7 +1954,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   
   /////////////////////////////////
-  // deserializer definition       //
+  // deserializer definition     //
   /////////////////////////////////
 
   // on every cycle, input<n> is received where n=count
@@ -2110,9 +2170,93 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       
     });
 
+  ////////////////////////////////
+  //*** transpose definition ***//
+  ////////////////////////////////
+  Params transpose_params = 
+    {
+     {"input_type", CoreIRType::make(c)},
+    };
+
+  commonlib->newTypeGen(
+    "transpose_type",
+    transpose_params,
+    [](Context* c, Values genargs) { //Function to compute type
+      Type* input_type = genargs.at("input_type")->get<Type*>();
+      
+      return c->Record({
+          {"in",input_type},
+          {"out",c->Flip(input_type)}
+        });
+    }
+    );
+
+  Generator* transpose = commonlib->newGeneratorDecl("transpose",
+                                                   commonlib->getTypeGen("transpose_type"),
+                                                   transpose_params);
+  transpose->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    auto input_type = genargs.at("input_type")->get<Type*>();
+    auto input_dims = get_dims(input_type);
+    input_dims.erase(input_dims.begin());
+
+    // determine number of ports
+    int num_ports = 1;
+    for (const auto& port_length : input_dims) {
+      num_ports *= port_length;
+    }
+
+    // store the current port index
+    vector<uint> port_idxs(input_dims.size());
+    
+    for (int idx = 0; idx < num_ports; ++idx) {
+      // find the wires associated with the indices
+      CoreIR::Wireable* cur_wire = def->sel("self")->sel("in");
+      CoreIR::Wireable* opposite_wire = def->sel("self")->sel("out");
+      for (size_t i = 0; i < port_idxs.size(); ++i) {
+        auto port_idx = port_idxs.at(i);
+        auto opposite_idx = input_dims.at(i) - port_idx - 1;
+        cur_wire = cur_wire->sel(port_idx);
+        opposite_wire = opposite_wire->sel(opposite_idx);
+      }
+
+      // connect the wire to transposed version
+      def->connect(cur_wire, opposite_wire);
+    
+      // increment  index
+      port_idxs.at(0) += 1;
+      for (size_t dim = 0; dim < port_idxs.size(); ++dim) {
+        if (port_idxs.at(dim) >= input_dims.at(dim)) {
+          port_idxs.at(dim) = 0;
+          if (dim + 1 < port_idxs.size()) {
+            port_idxs.at(dim+1) += 1;
+          }
+        }
+      }
+    }
+    });
+    
+  ////////////////////////////////////////
+  //*** transpose reshape definition ***//
+  ////////////////////////////////////////
+
+  Generator* transpose_reshape = commonlib->newGeneratorDecl("transpose_reshape",
+                                                             commonlib->getTypeGen("reshape_type"),
+                                                             reshape_params);
+  transpose_reshape->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+      auto input_type = genargs.at("input_type")->get<Type*>();
+
+      auto self = def->sel("self");
+      auto transpose = def->addInstance("transpose", "commonlib.transpose", {{"input_type",Const::make(c,input_type)}});
+      auto reshape = def->addInstance("reshape", "commonlib.reshape", genargs);
+      
+      def->connect(self->sel("in"), transpose->sel("in"));
+      def->connect(transpose->sel("out"), reshape->sel("in"));
+      def->connect(reshape->sel("out"), self->sel("out"));
+      
+    });
+
 
   
-
   return commonlib;
 }
 
