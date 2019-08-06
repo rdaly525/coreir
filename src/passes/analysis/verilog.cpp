@@ -90,7 +90,7 @@ declare_connections(std::map<std::string, Instance *> instances) {
     for (auto port :
          cast<RecordType>(instance.second->getModuleRef()->getType())
              ->getRecord()) {
-      if (port.second->isOutput()) {
+      if (!port.second->isInput()) {
         std::unique_ptr<vAST::Identifier> id =
             std::make_unique<vAST::Identifier>(instance.first + "_" +
                                                port.first);
@@ -142,11 +142,16 @@ std::unique_ptr<vAST::AbstractModule> compile_string_module(json verilog_json) {
 // If the module `isGenerated`, the parameters to the module include
 // `getDefaultGenArgs` and `getGenParams`
 std::unique_ptr<vAST::AbstractModule>
-compile_string_body_module(json verilog_json, std::string name,
-                           Module *module) {
+Passes::Verilog::compileStringBodyModule(json verilog_json, std::string name,
+                                         Module *module) {
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
   for (auto port_str :
        verilog_json["interface"].get<std::vector<std::string>>()) {
+    if (this->verilator_debug) {
+        // FIXME: Hack to get comment into port name, we need to design a way
+        // to attach comments to expressions
+        port_str += "/*verilator public*/";
+    }
     ports.push_back(std::make_unique<vAST::StringPort>(port_str));
   }
   vAST::Parameters parameters;
@@ -177,19 +182,31 @@ compile_string_body_module(json verilog_json, std::string name,
                     std::make_unique<vAST::NumericLiteral>("1")));
     }
   }
+  std::string definition;
+  if (this->verilator_debug &&
+      verilog_json.count("verilator_debug_definition")) {
+    definition = verilog_json["verilator_debug_definition"].get<std::string>();
+  } else {
+    definition = verilog_json["definition"].get<std::string>();
+  }
   return std::make_unique<vAST::StringBodyModule>(
-      name, std::move(ports), verilog_json["definition"].get<std::string>(),
-      std::move(parameters));
+      name, std::move(ports), definition, std::move(parameters));
 }
 
 // Compile a CoreIR record type corresponding to the interface of a module with
 // flattened types into a vector of vAST Ports
 std::vector<std::unique_ptr<vAST::AbstractPort>>
-compile_ports(RecordType *record_type) {
+Passes::Verilog::compilePorts(RecordType *record_type) {
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
   for (auto entry : record_type->getRecord()) {
+    std::string name_str = entry.first;
+    if (this->verilator_debug) {
+        // FIXME: Hack to get comment into port name, we need to design a way
+        // to attach comments to expressions
+        name_str += "/*verilator public*/";
+    }
     std::unique_ptr<vAST::Identifier> name =
-        std::make_unique<vAST::Identifier>(entry.first);
+        std::make_unique<vAST::Identifier>(name_str);
 
     Type *type = entry.second;
 
@@ -249,10 +266,8 @@ public:
 // when multiple signals drive an input to an instance (e.g. the input is an
 // array of 3 bits, and each bit is connected to a 1-bit driver).  In this
 // case, each entry stores the index that it drives.
-//
-// **TODO** Need to add support for inouts
 std::map<ConnMapKey, std::vector<ConnMapEntry>>
-build_connection_map(std::set<Connection, ConnectionCompFast> connections,
+build_connection_map(std::vector<Connection> connections,
                      std::map<std::string, Instance *> instances) {
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map;
   for (auto connection : connections) {
@@ -345,6 +360,7 @@ void assign_module_outputs(
         args[entry.index] =
             (std::make_unique<vAST::Identifier>(connection_name));
       }
+      std::reverse(args.begin(), args.end());
       std::unique_ptr<vAST::Concat> concat =
           std::make_unique<vAST::Concat>(std::move(args));
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
@@ -360,12 +376,29 @@ void assign_module_outputs(
   }
 }
 
+// assign inout ports
+void assign_inouts(
+    std::vector<Connection> connections,
+    std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                             std::unique_ptr<vAST::Declaration>>> &body) {
+  for (auto connection : connections) {
+    if (connection.first->getType()->isInOut() ||
+        connection.second->getType()->isInOut()) {
+      body.push_back(std::make_unique<vAST::ContinuousAssign>(
+          std::make_unique<vAST::Identifier>(
+              convert_to_verilog_connection(connection.first)),
+          std::make_unique<vAST::Identifier>(
+              convert_to_verilog_connection(connection.second))));
+    };
+  };
+}
+
 // Traverses the instance map and creates a vector of module instantiations
 // using connection_map to wire up instance ports
 std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                          std::unique_ptr<vAST::Declaration>>>
 compile_module_body(RecordType *module_type,
-                    std::set<Connection, ConnectionCompFast> connections,
+                    std::vector<Connection> connections,
                     std::map<std::string, Instance *> instances) {
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
@@ -385,6 +418,9 @@ compile_module_body(RecordType *module_type,
       } else {
         module_name = instance_module->getLongName();
       }
+    } else if (instance_module->getMetaData().count("verilog") > 0) {
+      json verilog_json = instance_module->getMetaData()["verilog"];
+      module_name = make_name(module_name, verilog_json);
     }
     vAST::Parameters instance_parameters;
     std::string instance_name = instance.first;
@@ -395,16 +431,19 @@ compile_module_body(RecordType *module_type,
         verilog_connections;
     for (auto port :
          cast<RecordType>(instance_module->getType())->getRecord()) {
-      if (port.second->isOutput()) {
+      if (!port.second->isInput()) {
+        // output or inout, emit wire name
         verilog_connections.insert(
             std::make_pair(port.first, std::make_unique<vAST::Identifier>(
                                            instance.first + "_" + port.first)));
         continue;
       }
       auto entries = connection_map[ConnMapKey(instance.first, port.first)];
-      // If it is not a bulk connection, create a concat node and wire up
-      // the inputs by index
-      if (entries.size() > 1) {
+      if (entries.size() == 0) {
+        continue;
+      } else if (entries.size() > 1) {
+        // If it is not a bulk connection, create a concat node and wire up
+        // the inputs by index
         std::vector<std::unique_ptr<vAST::Expression>> args;
         args.resize(entries.size());
         for (auto entry : entries) {
@@ -413,6 +452,7 @@ compile_module_body(RecordType *module_type,
           args[entry.index] =
               std::make_unique<vAST::Identifier>(connection_name);
         }
+        std::reverse(args.begin(), args.end());
         std::unique_ptr<vAST::Concat> concat =
             std::make_unique<vAST::Concat>(std::move(args));
         verilog_connections.insert(
@@ -448,8 +488,9 @@ compile_module_body(RecordType *module_type,
             std::move(verilog_connections));
     body.push_back(std::move(statement));
   }
-  // Wire the outputs of the module
+  // Wire the outputs of the module and inout connections
   assign_module_outputs(module_type, body, connection_map);
+  assign_inouts(connections, body);
   return body;
 }
 
@@ -488,7 +529,7 @@ void Passes::Verilog::compileModule(Module *module) {
     } else {
       std::string name = make_name(module->getName(), verilog_json);
       modules.push_back(std::make_pair(
-          name, compile_string_body_module(verilog_json, name, module)));
+          name, compileStringBodyModule(verilog_json, name, module)));
     }
     return;
   }
@@ -500,7 +541,7 @@ void Passes::Verilog::compileModule(Module *module) {
     std::string name = make_name(module->getName(), verilog_json);
 
     modules.push_back(std::make_pair(
-        name, compile_string_body_module(verilog_json, name, module)));
+        name, compileStringBodyModule(verilog_json, name, module)));
 
     // We only need to compile the verilog generator once, even though
     // there may be multiple instances of the generator represented as
@@ -514,14 +555,14 @@ void Passes::Verilog::compileModule(Module *module) {
     return;
   }
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports =
-      compile_ports(cast<RecordType>(module->getType()));
+      compilePorts(cast<RecordType>(module->getType()));
 
   ModuleDef *definition = module->getDef();
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
-      body =
-          compile_module_body(module->getType(), definition->getConnections(),
-                              definition->getInstances());
+      body = compile_module_body(module->getType(),
+                                 definition->getSortedConnections(),
+                                 definition->getInstances());
 
   vAST::Parameters parameters = compile_params(module);
 
