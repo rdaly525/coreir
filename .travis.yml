@@ -41,7 +41,7 @@ script:
 # Install verilogAST headers/library for old style tests
 - cd build/verilogAST-build && sudo make install && cd ../..
 - make -j2 test
-- cd build && ctest -V
+- cd build && ctest -V && cd ..
 compiler:
 - gcc
 os:
