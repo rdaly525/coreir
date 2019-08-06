@@ -5,17 +5,20 @@
       "foo":{
         "type":["Record",[
           ["I","BitIn"],
+          ["IO","BitInOut"],
           ["O","Bit"]
         ]],
         "metadata": {
           "verilog": {
-            "verilog_string": "// This is an important comment for foo!!\nmodule foo (input I, output O);\n    assign O = I;\nendmodule"
+            "verilog_string": "// This is an important comment for foo!!\nmodule foo (input I, inout IO, output O);\n    assign O = I;\n    assign IO = I;\nendmodule"
           }
         }
       },
       "top":{
         "type":["Record",[
           ["I","BitIn"],
+          ["IO0","BitInOut"],
+          ["IO1","BitInOut"],
           ["O","Bit"]
         ]],
         "instances":{
@@ -28,7 +31,10 @@
         },
         "connections":[
           ["self.I","inst0.I"],
+          ["self.IO0","inst0.IO"],
+          ["inst0.IO","self.IO1"],
           ["inst0.O","inst1.I"],
+          ["inst0.IO","inst1.IO"],
           ["inst1.O","self.O"]
         ]
       }
