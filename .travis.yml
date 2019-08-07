@@ -25,9 +25,9 @@ before_install:
 - conda install pip
 # End install conda
 - export CXX="g++-7";
-- wget https://github.com/leonardt/verilogAST-cpp/releases/download/0.0.8/libverilogAST-linux.tar.gz
+- wget https://github.com/leonardt/verilogAST-cpp/releases/download/0.0.9/libverilogAST-linux.tar.gz
 - tar -xf libverilogAST-linux.tar.gz
-- cd libverilogAST-linux && sudo sh -c "yes | ./verilogAST-0.0.8-Linux.sh" && cd ..
+- cd libverilogAST-linux && sudo sh -c "yes | ./verilogAST-0.0.9-Linux.sh" && cd ..
 - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 - cd build
 - cmake ..
