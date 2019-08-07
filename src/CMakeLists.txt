@@ -19,7 +19,7 @@ include_directories(/usr/local/include)
 target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
 
-target_link_libraries(coreir ${VERILOG_AST})
+target_link_libraries(coreir PUBLIC ${VERILOG_AST})
 
 #Install libcoreir
 install(
