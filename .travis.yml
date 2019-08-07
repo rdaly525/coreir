@@ -27,7 +27,7 @@ before_install:
 - export CXX="g++-7";
 - wget https://github.com/leonardt/verilogAST-cpp/releases/download/0.0.6/libverilogAST-linux.tar.gz
 - tar -xf libverilogAST-linux.tar.gz
-- cd libverilogAST-linux && ./verilogAST-0.0.7-Linux.sh && cd ..
+- cd libverilogAST-linux && sudo ./verilogAST-0.0.7-Linux.sh && cd ..
 - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 - cd build
 - cmake ..
