@@ -25,7 +25,7 @@ before_install:
 - conda install pip
 # End install conda
 - export CXX="g++-7";
-- curl -s -L https://github.com/rdaly525/verilogAST-cpp/releases/latest | grep "href.*libverilogAST.tar.gz" | cut -d \" -f 2 | xargs -I {} wget https://github.com"{}"
+- curl -s -L https://github.com/leonardt/verilogAST-cpp/releases/latest | grep "href.*libverilogAST.tar.gz" | cut -d \" -f 2 | xargs -I {} wget https://github.com"{}"
 - mkdir libverilogAST_release;
 - tar -xf libverilogAST.tar.gz -C libverilogAST_release --strip-components 1;
 - cd libverilogAST && sudo make install && cd ..
