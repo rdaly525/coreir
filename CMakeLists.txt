@@ -61,8 +61,7 @@ add_custom_target(uninstall
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
-include_directories(${CMAKE_SOURCE_DIR}/include)
-include_directories(/usr/local/include)
+include_directories(${CMAKE_SOURCE_DIR}/include /usr/local/include)
 enable_testing()
 add_executable(test_verilog tests/gtest/test_verilog.cpp)
 find_library(VERILOG_AST verilogAST)
