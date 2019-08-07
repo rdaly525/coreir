@@ -25,10 +25,10 @@ before_install:
 - conda install pip
 # End install conda
 - export CXX="g++-7";
-- curl -s -L https://github.com/leonardt/verilogAST-cpp/releases/latest | grep "href.*libverilogAST-linux.tar.gz" | cut -d \" -f 2 | xargs -I {} wget https://github.com"{}"
+- wget https://github.com/leonardt/verilogAST-cpp/releases/download/0.0.6/libverilogAST-linux.tar.gz
 - mkdir libverilogAST_linux;
 - tar -xf libverilogAST-linux.tar.gz -C libverilogAST_linux --strip-components 1;
-- cd libverilogAST_linux && sudo make install && cd ..
+- cd libverilogAST_linux && ./verilogAST-0.0.7-Linux.sh && cd ..
 - export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
 - cd build
 - cmake ..
