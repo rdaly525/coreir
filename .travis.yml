@@ -42,8 +42,6 @@ script:
 - make -j2 installtest
 - cd build && sudo make -j2 uninstall && cd ..
 - export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
-# Install verilogAST headers/library for old style tests
-- cd build/verilogAST-build && sudo make install && cd ../..
 - make -j2 test
 - cd build && ctest -V && cd ..
 compiler:
