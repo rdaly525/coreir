@@ -16,11 +16,11 @@ else()
 endif()
 
 include_directories(/usr/local/include)
-link_directories(/usr/local/lib)
-
 target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
-target_link_libraries(coreir verilogAST)
+
+find_library(VERILOG_AST verilogAST)
+target_link_libraries(coreir ${VERILOG_AST})
 
 #Install libcoreir
 install(

@@ -62,6 +62,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
 include_directories(${CMAKE_SOURCE_DIR}/include)
+include_directories(/usr/local/include)
 enable_testing()
 add_executable(test_verilog tests/gtest/test_verilog.cpp)
 target_link_libraries(test_verilog gtest_main coreir)
