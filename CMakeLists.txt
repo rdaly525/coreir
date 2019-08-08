@@ -46,18 +46,18 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/verilogAST-src
                  EXCLUDE_FROM_ALL)
 include_directories(${CMAKE_CURRENT_BINARY_DIR}/verilogAST-src/include)
 
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include)
+
+add_subdirectory(${CMAKE_SOURCE_DIR}/src)
+
 add_custom_command(
   TARGET coreir
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/lib/libverilogAST.${CMAKE_SHARED_LIBRARY_SUFFIX}" "${CMAKE_SOURCE_DIR}/lib/"
   COMMENT "Copying to lib/"
 )
-
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
-set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include)
-
-add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/include/
