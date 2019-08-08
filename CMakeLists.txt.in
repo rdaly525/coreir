@@ -12,7 +12,7 @@ ExternalProject_Add(verilogAST
   BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/verilogAST-build"
   CONFIGURE_COMMAND ""
   BUILD_COMMAND     ""
-  INSTALL_COMMAND   "${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR} --build . --target install"
+  INSTALL_COMMAND   ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX=${CMAKE_SOURCE_DIR} --build . --target install
   TEST_COMMAND      ""
 )
 project(googletest-download NONE)
