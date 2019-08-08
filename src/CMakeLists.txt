@@ -32,6 +32,20 @@ add_custom_command(
   COMMENT "Copying to lib/"
 )
 
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/lib/libverilogAST${CMAKE_SHARED_LIBRARY_SUFFIX}" "${CMAKE_SOURCE_DIR}/lib/"
+  COMMENT "Copying libverilogAST"
+)
+
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/verilogAST-src/include/verilogAST.hpp" "${CMAKE_SOURCE_DIR}/include/"
+  COMMENT "Copying verilogAST.hpp"
+)
+
 #Create coreir executable
 add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
 target_link_libraries(coreir-bin PUBLIC coreir)

@@ -52,20 +52,6 @@ set(INCLUDE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/include)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/src)
 
-add_custom_command(
-  TARGET coreir
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/lib/libverilogAST.${CMAKE_SHARED_LIBRARY_SUFFIX}" "${CMAKE_SOURCE_DIR}/lib/"
-  COMMENT "Copying to lib/"
-)
-
-add_custom_command(
-  TARGET coreir
-  POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/verilogAST-src/include/verilogAST.hpp" "${CMAKE_SOURCE_DIR}/include/"
-  COMMENT "Copying to include/"
-)
-
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/include/
     DESTINATION include
