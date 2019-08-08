@@ -36,7 +36,7 @@ add_custom_command(
 
 #Create coreir executable
 add_executable(coreir-bin ${CMAKE_CURRENT_SOURCE_DIR}/binary/coreir.cpp)
-target_link_libraries(coreir-bin PUBLIC coreir)
+target_link_libraries(coreir-bin PUBLIC coreir ${VERILOG_AST})
 target_include_directories(coreir-bin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set_target_properties(coreir-bin
     PROPERTIES OUTPUT_NAME coreir
@@ -66,14 +66,14 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/coreir-c)
 
 #create interpreter executable
 add_executable(coreir-interpreter ${CMAKE_CURRENT_SOURCE_DIR}/binary/interpreter.cpp)
-target_link_libraries(coreir-interpreter PUBLIC coreir)
+target_link_libraries(coreir-interpreter PUBLIC coreir ${VERILOG_AST})
 target_link_libraries(coreir-interpreter PUBLIC coreirsim)
 target_link_libraries(coreir-interpreter PUBLIC coreir-commonlib)
 target_include_directories(coreir-interpreter PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 
 #create simulator executable
 add_executable(coreir-simulator ${CMAKE_CURRENT_SOURCE_DIR}/binary/simulator.cpp)
-target_link_libraries(coreir-simulator PUBLIC coreir)
+target_link_libraries(coreir-simulator PUBLIC coreir ${VERILOG_AST})
 target_link_libraries(coreir-simulator PUBLIC coreirsim)
 target_link_libraries(coreir-simulator PUBLIC coreir-commonlib)
 target_include_directories(coreir-simulator PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
