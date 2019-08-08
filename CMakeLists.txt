@@ -59,10 +59,19 @@ add_custom_command(
   COMMENT "Copying to lib/"
 )
 
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/verilogAST-src/include/verilogAST.hpp" "${CMAKE_SOURCE_DIR}/include/"
+  COMMENT "Copying to include/"
+)
+
 install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/include/
     DESTINATION include
-    FILES_MATCHING PATTERN "*.h"
+    FILES_MATCHING 
+        PATTERN "*.h"
+        PATTERN "*.hpp"
 )
 
 add_custom_target(uninstall
