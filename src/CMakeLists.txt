@@ -21,7 +21,7 @@ target_link_libraries(coreir verilogAST)
 
 #Install libcoreir
 install(
-    TARGETS coreir
+    TARGETS coreir verilogAST
     DESTINATION lib
 )
 
