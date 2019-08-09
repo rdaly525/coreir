@@ -15,6 +15,10 @@ matrix:
     - CXX=g++-7
   - os: osx
     osx_image: xcode10.2
+    addons:
+      homebrew:
+        packages:
+          - verilator
 before_install:
 # install conda for py 3.7
 - |
