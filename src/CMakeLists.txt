@@ -39,6 +39,8 @@ add_custom_command(
   COMMENT "Copying libverilogAST"
 )
 
+install(FILES "${CMAKE_SOURCE_DIR}/lib/libverilogAST.dylib" DESTINATION lib)
+
 add_custom_command(
   TARGET coreir
   POST_BUILD
