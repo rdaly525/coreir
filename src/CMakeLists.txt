@@ -39,7 +39,7 @@ add_custom_command(
   COMMENT "Copying libverilogAST"
 )
 
-install(FILES "${CMAKE_SOURCE_DIR}/lib/libverilogAST.dylib" DESTINATION lib)
+install(FILES "${CMAKE_SOURCE_DIR}/lib/libverilogAST.${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION lib)
 
 add_custom_command(
   TARGET coreir
