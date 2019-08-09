@@ -15,6 +15,10 @@ matrix:
     - CXX=g++-7
   - os: osx
     osx_image: xcode10.2
+    addons:
+      homebrew:
+        packages:
+          - cmake
 before_install:
 # install conda for py 3.7
 - |
@@ -34,8 +38,14 @@ before_install:
 - source activate test-env
 - conda install pip
 # End install conda
+- |
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+  else
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+  fi
 - cd build
-- cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+- cmake ..
 - make -j2
 - sudo make install
 - cd -
