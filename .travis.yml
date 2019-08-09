@@ -56,15 +56,9 @@ script:
 - ls bin/
 - pytest tests/binary
 - make -j2 installtest
-- cd build && sudo make -j2 uninstall && cd ..
-- |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    export DYLD_LIBRARY_PATH=`pwd`/lib:$DYLD_LIBRARY_PATH
-  else
-    export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
-  fi
 - make -j2 test
 - cd build && ctest -V && cd ..
+- cd build && sudo make -j2 uninstall && cd ..
 before_deploy:
 - ./tools/scripts/release.sh
 deploy:
