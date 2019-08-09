@@ -34,14 +34,8 @@ before_install:
 - source activate test-env
 - conda install pip
 # End install conda
-- |
-  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:/usr/local/lib
-  else
-    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
-  fi
 - cd build
-- cmake ..
+- cmake -DCMAKE_INSTALL_PREFIX=/usr ..
 - make -j2
 - sudo make install
 - cd -
