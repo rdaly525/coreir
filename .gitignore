@@ -50,3 +50,4 @@ bit_vector.h
 a.out.dSYM/
 
 conv_3_1.o
+include/verilogAST.hpp
