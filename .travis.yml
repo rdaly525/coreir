@@ -15,10 +15,6 @@ matrix:
     - CXX=g++-7
   - os: osx
     osx_image: xcode10.2
-    addons:
-      homebrew:
-        packages:
-          - cmake
 before_install:
 # install conda for py 3.7
 - |
@@ -40,9 +36,11 @@ before_install:
 # End install conda
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+    # avoid strange libjpeg error (see https://github.com/sgrif/pq-sys/issues/1
+    # for some more info)
+    export DYLD_LIBRARY_PATH=/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/:/usr/local/lib:$DYLD_LIBRARY_PATH
   else
-    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   fi
 - cd build
 - cmake ..
