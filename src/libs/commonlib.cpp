@@ -360,6 +360,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("add.out", "self.out");
   });
 
+
+  //*** Define demux2 ***//
+  // TODO: implement demux
+  
+  
+  
+
   ///////////////////////////////////
   //*** const array definition  ***//
   ///////////////////////////////////
@@ -612,6 +619,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     });
 
+
+  
   /////////////////////////////////
   //*** opN definition        ***//
   /////////////////////////////////
@@ -2119,7 +2128,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     auto input_vector = get_dims(input_type);
     auto output_vector = get_dims(output_type);
-    
+
     // remove the first dimension (bitwidth)
     input_vector.erase(input_vector.begin());
     output_vector.erase(output_vector.begin());
@@ -2135,14 +2144,19 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     for (int idx = 0; idx < num_inputs; ++idx) {
       // create input and output port names
       string input_name = "self.in";
-      for (const auto& input_port : input_idxs) {
+      //for (const auto& input_port : input_idxs) {
+      for (int i=input_idxs.size()-1; i >= 0; --i) {
+        assert(i < (int)input_idxs.size());
+        auto input_port = input_idxs.at(i);
         input_name += "." + std::to_string(input_port);
       }
       string output_name = "self.out";
-      for (const auto& output_port : output_idxs) {
+      //for (const auto& output_port : output_idxs) {
+      for (int i=output_idxs.size()-1; i >= 0; --i) {
+        assert(i < (int)output_idxs.size());
+        auto output_port = output_idxs.at(i);
         output_name += "." + std::to_string(output_port);
       }
-      
       def->connect(input_name, output_name);
       
       // increment input index
