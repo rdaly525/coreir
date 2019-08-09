@@ -34,7 +34,6 @@ before_install:
 - source activate test-env
 - conda install pip
 # End install conda
-- export CXX="g++-7";
 - cd build
 - cmake ..
 - make -j2
