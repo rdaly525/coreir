@@ -34,6 +34,12 @@ before_install:
 - source activate test-env
 - conda install pip
 # End install conda
+- |
+  if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+    export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH
+  else
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+  fi
 - cd build
 - cmake ..
 - make -j2
@@ -47,9 +53,9 @@ script:
 - cd build && sudo make -j2 uninstall && cd ..
 - |
   if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-    export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
-  else
     export DYLD_LIBRARY_PATH=`pwd`/lib:$DYLD_LIBRARY_PATH
+  else
+    export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
   fi
 - make -j2 test
 - cd build && ctest -V && cd ..
