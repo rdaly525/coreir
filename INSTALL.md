@@ -1,9 +1,12 @@
 
-## Quick Install (Linux Only):
-    wget https://github.com/rdaly525/coreir/releases/download/v0.0.45/coreir.tar.gz
-    tar -zxf coreir.tar.gz
-    cd release
-    sudo make install
+## Quick Install Release:
+    # Uncomment one of the following lines
+    # export OS_NAME="linux"
+    # export OS_NAME="mac"
+    curl -s -L https://github.com/rdaly525/coreir/releases/latest | grep "href.*coreir-${OS_NAME}.tar.gz" | cut -d \" -f 2 | xargs -I {} wget https://github.com"{}"  # Fetch the latest release from GitHub
+    mkdir coreir_release;
+    tar -xf coreir-${OS_NAME}.tar.gz -C coreir_release --strip-components 1;
+    cd coreir_release && sudo make install && cd ..
 
 
 ## If you do not want to sudo make install:
