@@ -2345,7 +2345,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("valid_mux.in0", "invalid_bit.out");
     def->connect("valid_mux.in1", "self.in_valid");
     def->connect("valid_mux.sel", "phase_sel.out");
-    def->connect("valid_mux.out", "self.out");
+    def->connect("valid_mux.out", "self.out_data");
 
     // create output data
     def->connect("accum_adder.in0", "self.in_data");
