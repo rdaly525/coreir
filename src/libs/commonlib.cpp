@@ -1739,7 +1739,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"output_starting_addrs",Const::make(c,joutputs)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_input_ports",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_output_ports",Const::make(c,1)}});
-
+  unified_buffer_gen->addDefaultGenArgs({{"num_reduction_iter",Const::make(c,1)}});
       
   //////////////////////////////////////////////
   //*** abstract unified buffer definition ***//
@@ -2334,8 +2334,6 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("input_mux", "coreir.mux", bitwidthParams);
     def->addInstance("phase_sel", "coreir.eq", bitwidthParams);
     def->addInstance("accum_adder", "coreir.add", bitwidthParams);
-
-    def->addInstance("valid_mux", "coreir.add", bitwidthParams);
 
     // create output phase logic
     def->connect("self.in_valid", "phase_counter.en");
