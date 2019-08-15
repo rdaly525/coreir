@@ -1661,7 +1661,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"input_starting_addrs",c->Json()},
       {"output_starting_addrs",c->Json()},
       {"logical_size",c->Json()},
-      {"init",c->Json()}
+      {"init",c->Json()},
+      {"num_reduction_iter", c->Int()}
     });
   
   // unified buffer type
@@ -1703,6 +1704,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Json jdata;
   jdata["init"][0] = 0; // set default init to "0"
   unified_buffer_gen->addDefaultGenArgs({{"init",Const::make(c,jdata)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_0",Const::make(c,1)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_0",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_2",Const::make(c,0)}});
@@ -2269,7 +2272,93 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       
     });
 
+  ////////////////////////////////////////////
+  //*** accumulation register definition ***//
+  ////////////////////////////////////////////
+  // connections: input:      accumulated data
+  //                          bias value
+  //                          input valid
+  //                          reset
+  //
+  //              output:     partial/final data
+  //                          valid
+  //
+  //              parameters: number of reduction iterations
+  //                          
+  commonlib->newTypeGen(
+    "accumulation_register_type", //name for the typegen
+    {{"width",c->Int()},{"iterations",c->Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
+      uint width = args.at("width")->get<int>();
+      uint iterations  = args.at("iterations")->get<int>();
+      assert(width>0);
+      assert(iterations>1);
 
+      return c->Record({
+        {"in_valid",c->BitIn()},
+        {"reset",c->BitIn()},
+        {"bias",c->BitIn()->Arr(width)},
+        {"in_data",c->BitIn()->Arr(width)},
+        {"out_data",c->Bit()->Arr(width)},
+        {"valid",c->Bit()}
+      });
+    }
+  );
+
+  Generator* accum_reg = commonlib->newGeneratorDecl("accumulation_register",commonlib->getTypeGen("accumulation_register_type"),{{"width",c->Int()},{"iterations",c->Int()}});
+
+  accum_reg->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    uint iterations  = args.at("iterations")->get<int>();
+
+    Const* aBitwidth = Const::make(c,width);
+    Values bitwidthParams = {{"width",aBitwidth}};
+
+    Values counter_args = {
+      {"width",Const::make(c,width)},
+      {"min",Const::make(c,0)},
+      {"max",Const::make(c,iterations-1)},
+      {"inc",Const::make(c,1)}
+    };
+    
+    def->addInstance("phase_counter", "commonlib.counter", counter_args);
+    Values const_value = {{"value", Const::make(c,BitVector(width,iterations-1))}};
+    def->addInstance("output_phase_value", "coreir.const", bitwidthParams, const_value);
+
+    def->addInstance("invalid_bit", "corebit.reg");
+    def->addInstance("valid_mux", "corebit.mux");
+
+    Values reg_configargs = {{"init", Const::make(c,BitVector(width,0))}};
+    def->addInstance("accum_reg", "mantle.reg", bitwidthParams, reg_configargs);
+
+    def->addInstance("input_mux", "coreir.mux", bitwidthParams);
+    def->addInstance("phase_sel", "coreir.eq", bitwidthParams);
+    def->addInstance("accum_adder", "coreir.add", bitwidthParams);
+
+    def->addInstance("valid_mux", "coreir.add", bitwidthParams);
+
+    // create output phase logic
+    def->connect("self.in_valid", "phase_counter.en");
+    def->connect("self.reset", "phase_counter.reset");
+    def->connect("phase_sel.in0", "phase_counter.out");
+    def->connect("phase_sel.in1", "output_phase_value.out");
+    
+    // create valid logic
+    def->connect("valid_mux.in0", "invalid_bit.out");
+    def->connect("valid_mux.in1", "self.in_valid");
+    def->connect("valid_mux.sel", "phase_sel.out");
+    def->connect("valid_mux.out", "self.out");
+
+    // create output data
+    def->connect("accum_adder.in0", "self.in_data");
+    def->connect("accum_adder.in1", "accum_reg.out");
+    def->connect("accum_adder.out", "self.out_data");
+    def->connect("input_mux.in1", "self.bias");
+    def->connect("input_mux.in0", "accum_adder.out");
+    def->connect("input_mux.sel", "phase_sel.out");
+    def->connect("input_mux.out", "accum_reg.in");
+
+    });
   
   return commonlib;
 }
