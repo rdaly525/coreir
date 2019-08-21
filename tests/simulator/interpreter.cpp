@@ -1452,6 +1452,7 @@ namespace CoreIR {
     std::cout << "unified buffer address generator sim running...\n";
     Context* c = newContext();
     Namespace* g = c->newNamespace("bufferLib");
+    CoreIRLoadLibrary_commonlib(c);
 
     // Define unified buffer generator
     Params params =
