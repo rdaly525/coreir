@@ -1634,6 +1634,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Json jdata;
   jdata["init"][0] = 0; // set default init to "0"
   unified_buffer_gen->addDefaultGenArgs({{"init",Const::make(c,jdata)}});
+  unified_buffer_gen->addDefaultGenArgs({{"stride_0",Const::make(c,1)}});
+  unified_buffer_gen->addDefaultGenArgs({{"range_0",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_2",Const::make(c,0)}});
@@ -1645,6 +1647,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"stride_5",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_5",Const::make(c,0)}});
 
+  unified_buffer_gen->addDefaultGenArgs({{"input_stride_0",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_range_0",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"input_stride_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"input_range_1",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"input_stride_2",Const::make(c,0)}});
@@ -1892,7 +1896,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   
   /////////////////////////////////
-  // deserializer definition       //
+  // deserializer definition     //
   /////////////////////////////////
 
   // on every cycle, input<n> is received where n=count

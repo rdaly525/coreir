@@ -2015,6 +2015,11 @@ namespace CoreIR {
 
       memory->setDef(def);
 
+      if (!saveToFile(g, "rom_unit_test_mod.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
       c->runPasses({"rungenerators","flattentypes","flatten"});
 
       cout << "Starting test of ROM" << endl;
@@ -2039,6 +2044,66 @@ namespace CoreIR {
       // state.execute();
       // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
 
+    }
+
+    SECTION("ROM2") {
+      uint width = 16;
+      uint depth = 4;
+      uint index = width;
+
+      Type* memoryType = c->Record({
+      	  {"clk", c->Named("coreir.clkIn")},
+            {"read_data", c->Bit()->Arr(width)},
+              {"read_addr", c->BitIn()->Arr(index)}
+      	});
+
+      
+      Module* memory = c->getGlobal()->newModuleDecl("memory0", memoryType);
+      ModuleDef* def = memory->newModuleDef();
+
+      Json vals;
+      for (int i = 0; i < (int) depth; i++) {
+        vals.emplace_back(to_string(i));
+      }
+      
+      def->addInstance("m0",
+      		       "memory.rom2",
+      		       {{"width", Const::make(c,width)},{"depth", Const::make(c,depth)}},
+                       {{"init", Const::make(c, vals)}});
+
+      def->addInstance("rdConst","coreir.const",{{"width",Const::make(c,1)}},{{"value",Const::make(c,BitVector(1,1))}});      
+
+      def->connect("self.clk", "m0.clk");
+      def->connect("self.read_data", "m0.rdata");
+      def->connect("self.read_addr", "m0.raddr");
+      def->connect("m0.ren", "rdConst.out.0");
+
+      memory->setDef(def);
+
+      if (!saveToFile(g, "rom2_unit_test_mod.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      c->runPasses({"rungenerators","flattentypes","flatten"});
+
+      if (!saveToFile(g, "rom2_unit_test_mod_after_opt.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
+
+      cout << "After optimization" << endl;
+      memory->print();
+      
+      cout << "Starting test of ROM" << endl;
+      SimulatorState state(memory);
+
+      state.setClock("self.clk", 0, 1);
+      state.setValue("self.read_addr", BitVec(index, 1));
+      state.exeCombinational();
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
     }
     
     SECTION("Memory2") {
