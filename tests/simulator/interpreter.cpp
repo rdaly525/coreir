@@ -1447,7 +1447,8 @@ namespace CoreIR {
       }
     }
   };
-  
+
+/*
   TEST_CASE("Unified buffer simulation") {
     std::cout << "unified buffer address generator sim running...\n";
     Context* c = newContext();
@@ -1533,7 +1534,7 @@ namespace CoreIR {
     deleteContext(c);
     std::cout << "PASSED: unified buffer simulation!\n";
   }
-
+*/
 
 
     
