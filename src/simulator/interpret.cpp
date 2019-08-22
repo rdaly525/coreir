@@ -924,6 +924,7 @@ namespace CoreIR {
 
     Select* inst = toSelect(wd.getWire());
 
+
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 0);
@@ -937,7 +938,7 @@ namespace CoreIR {
 
       SimBitVector* s = static_cast<SimBitVector*>(getValue(arg.getWire()));
 
-      assert(s != nullptr);
+      ASSERT(s != nullptr, "updating " + inst->toString() + " failed\n");
 
       Select* receiverSel = toSelect(receiver.getWire());
 

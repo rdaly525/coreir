@@ -70,6 +70,50 @@ uint inverted_index(uint outx, uint inx, uint i) {
   return (outx-1) - (inx-1 - i % inx) - (i / inx) * inx;
 }
 
+vector<CoreIR::Wireable*> get_wires(CoreIR::Wireable* base_wire, const vector<size_t> ports) {
+  int num_ports = 1;
+  for (const auto& port_length : ports) {
+    num_ports *= port_length;
+  }
+
+  vector<CoreIR::Wireable*> all_wires(num_ports);
+
+  vector<uint> port_idxs(ports.size());
+    
+  for (int idx = 0; idx < num_ports; ++idx) {
+    // find the wire associated with the indices
+    CoreIR::Wireable* cur_wire = base_wire;
+    for (const auto& port_idx : port_idxs) {
+      cur_wire = cur_wire->sel(port_idx);
+    }
+
+    // add the wire to our list
+    all_wires.at(idx) = cur_wire;
+    
+    // increment  index
+    port_idxs.at(0) += 1;
+    for (size_t dim = 0; dim < port_idxs.size(); ++dim) {
+      if (port_idxs.at(dim) >= ports.at(dim)) {
+        port_idxs.at(dim) = 0;
+        if (dim + 1 < port_idxs.size()) {
+          port_idxs.at(dim+1) += 1;
+        }
+      }
+    }
+  }
+    
+  return all_wires;
+}
+
+
+void connect_wires(ModuleDef *def, vector<Wireable*> in_wires, vector<Wireable*> out_wires) {
+  assert(in_wires.size() == out_wires.size());
+  
+  for (size_t idx=0; idx<in_wires.size(); ++idx) {
+    def->connect(in_wires.at(idx), out_wires.at(idx));
+  }
+}
+
 Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   Namespace* commonlib = c->newNamespace("commonlib");
@@ -315,6 +359,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("mult.out","add.in1");
     def->connect("add.out", "self.out");
   });
+
+
+  //*** Define demux2 ***//
+  // TODO: implement demux
+  
+  
+  
 
   ///////////////////////////////////
   //*** const array definition  ***//
@@ -568,6 +619,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     });
 
+
+  
   /////////////////////////////////
   //*** opN definition        ***//
   /////////////////////////////////
@@ -1607,7 +1660,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"chain_idx",c->Int()},
       {"input_starting_addrs",c->Json()},
       {"output_starting_addrs",c->Json()},
-      {"init",c->Json()}
+      {"logical_size",c->Json()},
+      {"init",c->Json()},
+      {"num_reduction_iter", c->Int()}
     });
   
   // unified buffer type
@@ -1619,14 +1674,29 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       uint num_inputs = genargs.at("num_input_ports")->get<int>();
       uint num_outputs = genargs.at("num_output_ports")->get<int>();
 
-      return c->Record({
+      RecordParams recordparams = {
         {"wen",c->BitIn()},
         {"ren",c->BitIn()},
         {"flush", c->BitIn()},
-        {"datain",c->BitIn()->Arr(width)->Arr(num_inputs)},
-        {"valid",c->Bit()},
-        {"dataout",c->Bit()->Arr(width)->Arr(num_outputs)}
-      });
+        {"reset", c->BitIn()},
+        {"valid",c->Bit()}
+      };
+
+      // Add the dataports. The simulator needs them to be flattened
+      bool simulation_compatible = true;
+      if (simulation_compatible) {
+        for (size_t i=0; i < num_inputs; ++i) {
+          recordparams.push_back({"datain"+std::to_string(i), c->BitIn()->Arr(width)});
+        }
+        for (size_t i=0; i < num_outputs; ++i) {
+          recordparams.push_back({"dataout"+std::to_string(i), c->Bit()->Arr(width)});
+        }
+      } else {
+        recordparams.push_back({"datain",c->BitIn()->Arr(width)->Arr(num_inputs)});
+        recordparams.push_back({"dataout",c->Bit()->Arr(width)->Arr(num_outputs)});
+      }
+
+      return c->Record(recordparams);
     }
   );
 
@@ -1669,7 +1739,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"output_starting_addrs",Const::make(c,joutputs)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_input_ports",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_output_ports",Const::make(c,1)}});
-
+  unified_buffer_gen->addDefaultGenArgs({{"num_reduction_iter",Const::make(c,1)}});
       
   //////////////////////////////////////////////
   //*** abstract unified buffer definition ***//
@@ -2013,6 +2083,281 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   // Not yet implemented
 
+  /////////////////////////////////
+  //*** reshape definition    ***//
+  /////////////////////////////////
+  Params reshape_params = 
+    {
+     {"input_type", CoreIRType::make(c)},
+     {"output_type", CoreIRType::make(c)},
+    };
+
+  commonlib->newTypeGen(
+    "reshape_type",
+    reshape_params,
+    [](Context* c, Values genargs) { //Function to compute type
+      Type* input_type = genargs.at("input_type")->get<Type*>();
+      Type* output_type = genargs.at("output_type")->get<Type*>();
+
+      // check that the vectors have the same bitwidth
+      auto input_vector = get_dims(input_type);
+      auto output_vector = get_dims(output_type);
+      assert(input_vector.at(0) == output_vector.at(0));
+
+      // check that the number of elements in each are the same
+      int num_inputs = 1;
+      int num_outputs = 1;
+      for (const auto& input_value : input_vector) {
+        num_inputs *= input_value;
+      }
+      for (const auto& output_value : output_vector) {
+        num_outputs *= output_value;
+      }
+      assert(num_inputs == num_outputs);
+      
+      return c->Record({
+          {"in",input_type},
+          {"out",output_type}
+        });
+    }
+    );
+
+  Generator* reshape = commonlib->newGeneratorDecl("reshape",
+                                                   commonlib->getTypeGen("reshape_type"),
+                                                   reshape_params);
+  reshape->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    auto input_type = genargs.at("input_type")->get<Type*>();
+    auto output_type = genargs.at("output_type")->get<Type*>();
+
+    auto input_vector = get_dims(input_type);
+    auto output_vector = get_dims(output_type);
+
+    // remove the first dimension (bitwidth)
+    input_vector.erase(input_vector.begin());
+    output_vector.erase(output_vector.begin());
+
+    int num_inputs = 1;
+    for (const auto& input_value : input_vector) {
+      num_inputs *= input_value;
+    }
+
+    vector<uint> input_idxs(input_vector.size());
+    vector<uint> output_idxs(output_vector.size());
+    
+    for (int idx = 0; idx < num_inputs; ++idx) {
+      // create input and output port names
+      string input_name = "self.in";
+      //for (const auto& input_port : input_idxs) {
+      for (int i=input_idxs.size()-1; i >= 0; --i) {
+        assert(i < (int)input_idxs.size());
+        auto input_port = input_idxs.at(i);
+        input_name += "." + std::to_string(input_port);
+      }
+      string output_name = "self.out";
+      //for (const auto& output_port : output_idxs) {
+      for (int i=output_idxs.size()-1; i >= 0; --i) {
+        assert(i < (int)output_idxs.size());
+        auto output_port = output_idxs.at(i);
+        output_name += "." + std::to_string(output_port);
+      }
+      def->connect(input_name, output_name);
+      
+      // increment input index
+      input_idxs.at(0) += 1;
+      for (size_t dim = 0; dim < input_idxs.size(); ++dim) {
+        if (input_idxs.at(dim) >= input_vector.at(dim)) {
+          input_idxs.at(dim) = 0;
+          if (dim + 1 < input_idxs.size()) {
+            input_idxs.at(dim+1) += 1;
+          }
+        }
+      }
+
+      // increment output index
+      output_idxs.at(0) += 1;
+      for (size_t dim = 0; dim < output_idxs.size(); ++dim) {
+        if (output_idxs.at(dim) >= output_vector.at(dim)) {
+          output_idxs.at(dim) = 0;
+          if (dim + 1 < output_idxs.size()) {
+            output_idxs.at(dim+1) += 1;
+          }
+        }
+      }
+    }
+      
+    });
+
+  ////////////////////////////////
+  //*** transpose definition ***//
+  ////////////////////////////////
+  Params transpose_params = 
+    {
+     {"input_type", CoreIRType::make(c)},
+    };
+
+  commonlib->newTypeGen(
+    "transpose_type",
+    transpose_params,
+    [](Context* c, Values genargs) { //Function to compute type
+      Type* input_type = genargs.at("input_type")->get<Type*>();
+      
+      return c->Record({
+          {"in",input_type},
+          {"out",c->Flip(input_type)}
+        });
+    }
+    );
+
+  Generator* transpose = commonlib->newGeneratorDecl("transpose",
+                                                   commonlib->getTypeGen("transpose_type"),
+                                                   transpose_params);
+  transpose->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+    auto input_type = genargs.at("input_type")->get<Type*>();
+    auto input_dims = get_dims(input_type);
+    input_dims.erase(input_dims.begin());
+
+    // determine number of ports
+    int num_ports = 1;
+    for (const auto& port_length : input_dims) {
+      num_ports *= port_length;
+    }
+
+    // store the current port index
+    vector<uint> port_idxs(input_dims.size());
+    
+    for (int idx = 0; idx < num_ports; ++idx) {
+      // find the wires associated with the indices
+      CoreIR::Wireable* cur_wire = def->sel("self")->sel("in");
+      CoreIR::Wireable* opposite_wire = def->sel("self")->sel("out");
+      for (size_t i = 0; i < port_idxs.size(); ++i) {
+        auto port_idx = port_idxs.at(i);
+        auto opposite_idx = input_dims.at(i) - port_idx - 1;
+        cur_wire = cur_wire->sel(port_idx);
+        opposite_wire = opposite_wire->sel(opposite_idx);
+      }
+
+      // connect the wire to transposed version
+      def->connect(cur_wire, opposite_wire);
+    
+      // increment  index
+      port_idxs.at(0) += 1;
+      for (size_t dim = 0; dim < port_idxs.size(); ++dim) {
+        if (port_idxs.at(dim) >= input_dims.at(dim)) {
+          port_idxs.at(dim) = 0;
+          if (dim + 1 < port_idxs.size()) {
+            port_idxs.at(dim+1) += 1;
+          }
+        }
+      }
+    }
+    });
+    
+  ////////////////////////////////////////
+  //*** transpose reshape definition ***//
+  ////////////////////////////////////////
+
+  Generator* transpose_reshape = commonlib->newGeneratorDecl("transpose_reshape",
+                                                             commonlib->getTypeGen("reshape_type"),
+                                                             reshape_params);
+  transpose_reshape->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+      auto input_type = genargs.at("input_type")->get<Type*>();
+
+      auto self = def->sel("self");
+      auto transpose = def->addInstance("transpose", "commonlib.transpose", {{"input_type",Const::make(c,input_type)}});
+      auto reshape = def->addInstance("reshape", "commonlib.reshape", genargs);
+      
+      def->connect(self->sel("in"), transpose->sel("in"));
+      def->connect(transpose->sel("out"), reshape->sel("in"));
+      def->connect(reshape->sel("out"), self->sel("out"));
+      
+    });
+
+  ////////////////////////////////////////////
+  //*** accumulation register definition ***//
+  ////////////////////////////////////////////
+  // connections: input:      accumulated data
+  //                          bias value
+  //                          input valid
+  //                          reset
+  //
+  //              output:     partial/final data
+  //                          valid
+  //
+  //              parameters: number of reduction iterations
+  //                          
+  commonlib->newTypeGen(
+    "accumulation_register_type", //name for the typegen
+    {{"width",c->Int()},{"iterations",c->Int()}}, //generater parameters
+    [](Context* c, Values args) { //Function to compute type
+      uint width = args.at("width")->get<int>();
+      uint iterations  = args.at("iterations")->get<int>();
+      assert(width>0);
+      assert(iterations>1);
+
+      return c->Record({
+        {"in_valid",c->BitIn()},
+        {"reset",c->BitIn()},
+        {"bias",c->BitIn()->Arr(width)},
+        {"in_data",c->BitIn()->Arr(width)},
+        {"out_data",c->Bit()->Arr(width)},
+        {"valid",c->Bit()}
+      });
+    }
+  );
+
+  Generator* accum_reg = commonlib->newGeneratorDecl("accumulation_register",commonlib->getTypeGen("accumulation_register_type"),{{"width",c->Int()},{"iterations",c->Int()}});
+
+  accum_reg->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
+    uint width = args.at("width")->get<int>();
+    uint iterations  = args.at("iterations")->get<int>();
+
+    Const* aBitwidth = Const::make(c,width);
+    Values bitwidthParams = {{"width",aBitwidth}};
+
+    Values counter_args = {
+      {"width",Const::make(c,width)},
+      {"min",Const::make(c,0)},
+      {"max",Const::make(c,iterations-1)},
+      {"inc",Const::make(c,1)}
+    };
+    
+    def->addInstance("phase_counter", "commonlib.counter", counter_args);
+    Values const_value = {{"value", Const::make(c,BitVector(width,iterations-1))}};
+    def->addInstance("output_phase_value", "coreir.const", bitwidthParams, const_value);
+
+    def->addInstance("invalid_bit", "corebit.reg");
+    def->addInstance("valid_mux", "corebit.mux");
+
+    Values reg_configargs = {{"init", Const::make(c,BitVector(width,0))}};
+    def->addInstance("accum_reg", "mantle.reg", bitwidthParams, reg_configargs);
+
+    def->addInstance("input_mux", "coreir.mux", bitwidthParams);
+    def->addInstance("phase_sel", "coreir.eq", bitwidthParams);
+    def->addInstance("accum_adder", "coreir.add", bitwidthParams);
+
+    // create output phase logic
+    def->connect("self.in_valid", "phase_counter.en");
+    def->connect("self.reset", "phase_counter.reset");
+    def->connect("phase_sel.in0", "phase_counter.out");
+    def->connect("phase_sel.in1", "output_phase_value.out");
+    
+    // create valid logic
+    def->connect("valid_mux.in0", "invalid_bit.out");
+    def->connect("valid_mux.in1", "self.in_valid");
+    def->connect("valid_mux.sel", "phase_sel.out");
+    def->connect("valid_mux.out", "self.valid");
+
+    // create output data
+    def->connect("accum_adder.in0", "self.in_data");
+    def->connect("accum_adder.in1", "accum_reg.out");
+    def->connect("accum_adder.out", "self.out_data");
+    def->connect("input_mux.in1", "self.bias");
+    def->connect("input_mux.in0", "accum_adder.out");
+    def->connect("input_mux.sel", "phase_sel.out");
+    def->connect("input_mux.out", "accum_reg.in");
+
+    });
+  
   return commonlib;
 }
 
