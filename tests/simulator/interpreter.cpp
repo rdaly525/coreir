@@ -1768,9 +1768,9 @@ namespace CoreIR {
       for (int i = 0; i < (int) depth; i++) {
         //BitVector bv(width, i);
         //vals.emplace_back(bv.hex_string());
-        vals.emplace_back(to_string(i));
+        //vals.emplace_back(to_string(i));
         //vals["init"].emplace_back(i);
-        //vals["init"].emplace_back(i);
+        vals["init"].emplace_back(i);
       }
       
       def->addInstance("m0",
@@ -1809,9 +1809,14 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
 
 
+      cout << "Done with ROM" << endl;
     }
 
     SECTION("ROM2") {
+
+     
+      cout << "Starting ROM2" << endl;
+
       uint width = 16;
       uint depth = 4;
       uint index = width;
