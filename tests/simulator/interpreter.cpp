@@ -1768,7 +1768,8 @@ namespace CoreIR {
       for (int i = 0; i < (int) depth; i++) {
         //BitVector bv(width, i);
         //vals.emplace_back(bv.hex_string());
-        vals.emplace_back(to_string(i));
+        //vals.emplace_back(to_string(i));
+        vals["init"].emplace_back(i);
       }
       
       def->addInstance("m0",
@@ -1802,17 +1803,6 @@ namespace CoreIR {
 
       REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 1));
 
-      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-      // REQUIRE(state.getBitVec("self.write_addr") == BitVec(index, 0));
-      // state.execute();
-      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 23));
-      // state.setValue("self.write_addr", BitVec(index, 1));
-      // state.setValue("self.write_data", BitVec(width, 5));
-      // state.setValue("self.read_addr", BitVec(index, 1));
-      // state.exeCombinational();
-      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 0));
-      // state.execute();
-      // REQUIRE(state.getBitVec("self.read_data") == BitVec(width, 5));
 
     }
 
