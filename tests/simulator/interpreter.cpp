@@ -1765,13 +1765,12 @@ namespace CoreIR {
       ModuleDef* def = memory->newModuleDef();
 
       Json vals;
-      vals["init"] = {};
       for (int i = 0; i < (int) depth; i++) {
         //BitVector bv(width, i);
         //vals.emplace_back(bv.hex_string());
-        //vals.emplace_back(to_string(i));
+        vals.emplace_back(to_string(i));
         //vals["init"].emplace_back(i);
-        vals["init"].emplace_back(i);
+        //vals["init"].emplace_back(i);
       }
       
       def->addInstance("m0",
