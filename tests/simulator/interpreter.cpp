@@ -1765,6 +1765,7 @@ namespace CoreIR {
       ModuleDef* def = memory->newModuleDef();
 
       Json vals;
+      vals["init"] = {};
       for (int i = 0; i < (int) depth; i++) {
         //BitVector bv(width, i);
         //vals.emplace_back(bv.hex_string());
@@ -1794,6 +1795,10 @@ namespace CoreIR {
 
       c->runPasses({"rungenerators","flattentypes","flatten"});
 
+      if (!saveToFile(g, "rom_unit_test_mod_inlined.json", memory)) {
+        cout << "Could not save to json!!" << endl;
+        c->die();
+      }
       cout << "Starting test of ROM" << endl;
       SimulatorState state(memory);
 
