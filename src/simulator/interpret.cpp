@@ -197,10 +197,13 @@ namespace CoreIR {
             // string str = valstr.substr(4);
             // cout << "truncated = " << str << endl;
             // BitVector valueBv = hexStringToBitVector(str);
-            string v = val;
-            BitVector valueBv = BitVector(width, stoi(v));
+            //string v = val;
+            //BitVector valueBv = BitVector(width, stoi(v));
             BitVector addrBv(ceil(log2(depth)), numVals);
 
+            int v = val;
+            BitVector valueBv = BitVector(width, v);
+ 
             //cout << "AddrBv  = " << addrBv << endl;            
             //cout << "Valuebv = " << valueBv << endl;
 

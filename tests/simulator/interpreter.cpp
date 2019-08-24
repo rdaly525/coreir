@@ -1834,7 +1834,7 @@ namespace CoreIR {
       Json vals;
       for (int i = 0; i < (int) depth; i++) {
         //vals.emplace_back(to_string(i));
-        vals["init"].emplace_back(to_string(i));
+        vals["init"].emplace_back(i);
       }
       
       def->addInstance("m0",
