@@ -182,7 +182,7 @@ namespace CoreIR {
           Json ramValues = params["init"]->get<Json>();
           int numVals = 0;
           for (auto val : ramValues) {
-            cout << val << endl;
+            //cout << val << endl;
             // string valstr = val;
             // string str = valstr.substr(4);
             // cout << "truncated = " << str << endl;
@@ -191,8 +191,8 @@ namespace CoreIR {
             BitVector valueBv = BitVector(width, stoi(v));
             BitVector addrBv(ceil(log2(depth)), numVals);
 
-            cout << "AddrBv  = " << addrBv << endl;            
-            cout << "Valuebv = " << valueBv << endl;
+            //cout << "AddrBv  = " << addrBv << endl;            
+            //cout << "Valuebv = " << valueBv << endl;
 
             freshMem.setAddr(addrBv, valueBv);
             numVals++;
@@ -710,7 +710,7 @@ namespace CoreIR {
     }
 
 
-    cout << "Setting output of slice to: " << res << endl;
+    //cout << "Setting output of slice to: " << res << endl;
     //setValue(toSelect(outPair.second), makeSimBitVector(res));
     setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
