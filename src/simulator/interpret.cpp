@@ -179,10 +179,20 @@ namespace CoreIR {
         Values params = inst->getModArgs();
         SimMemory freshMem(width, depth);
         if (contains_key(string("init"), params)) {
-          Json ramValues = params["init"]->get<Json>();
+
+          
+          Instance* inst = static_cast<Instance*>(wd.getWire());
+          cout << "Memory node " << inst->getInstname() << " has init params" << endl;
+          cout << "Its params size = " << params.size()  << endl;
+          for (auto p : params) {
+            cout << "\t" << p.first << endl;
+          }
+          
+          Json ramValues = params["init"]->get<Json>()["init"];
+          cout << "Memory params are " << ramValues << endl;
           int numVals = 0;
           for (auto val : ramValues) {
-            //cout << val << endl;
+            cout << "RAM Value = " << val << endl;
             // string valstr = val;
             // string str = valstr.substr(4);
             // cout << "truncated = " << str << endl;
