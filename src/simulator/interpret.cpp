@@ -199,6 +199,13 @@ namespace CoreIR {
           }
 
           assert(((int) numVals) == ((int) depth));
+        } else {
+          Instance* inst = static_cast<Instance*>(wd.getWire());
+          cout << "Memory node " << inst->getInstname() << " has no params" << endl;
+          cout << "Its params size = " << params.size()  << endl;
+          for (auto p : params) {
+            cout << "\t" << p.first << endl;
+          }
         }
 
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});
