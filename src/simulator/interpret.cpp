@@ -181,12 +181,12 @@ namespace CoreIR {
         if (contains_key(string("init"), params)) {
 
           
-          Instance* inst = static_cast<Instance*>(wd.getWire());
-          cout << "Memory node " << inst->getInstname() << " has init params" << endl;
-          cout << "Its params size = " << params.size()  << endl;
-          for (auto p : params) {
-            cout << "\t" << p.first << endl;
-          }
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has init params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
           
           Json ramValues = params["init"]->get<Json>()["init"];
           cout << "Memory params are " << ramValues << endl;
@@ -213,12 +213,12 @@ namespace CoreIR {
 
           assert(((int) numVals) == ((int) depth));
         } else {
-          Instance* inst = static_cast<Instance*>(wd.getWire());
-          cout << "Memory node " << inst->getInstname() << " has no params" << endl;
-          cout << "Its params size = " << params.size()  << endl;
-          for (auto p : params) {
-            cout << "\t" << p.first << endl;
-          }
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has no params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
         }
 
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});
