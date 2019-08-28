@@ -20,6 +20,9 @@ if (STATIC)
     endif()
 endif()
 
+LINK_DIRECTORIES(/Users/joeyliu/Documents/work/Mapper/DBmapping/cfunc/bin)
+TARGET_LINK_LIBRARIES(funcubuf)
+
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -fPIC -Werror ${STATIC_FLAGS}")
 
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)

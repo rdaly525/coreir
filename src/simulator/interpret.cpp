@@ -8,7 +8,6 @@ using namespace std;
 namespace CoreIR {
 
   BitVector truncateToBfloat(const BitVector& longRes) {
-    //cout << "32 bit result = " << longRes << endl;
     assert(longRes.bitLength() == 32);
 
     BitVector bRes(16, 0);
@@ -23,12 +22,10 @@ namespace CoreIR {
       bRes.set(i - (23 - 7), longRes.get(i));
     }
     
-    //cout << "Final bres = " << bRes << endl;
     return bRes;
   }
   
   BitVector extendBfloat(const BitVector& r) {
-    //cout << "bfloat = " << r << endl;
     assert(r.bitLength() == 16);
 
     BitVector sgn(1, 0);
@@ -55,7 +52,6 @@ namespace CoreIR {
 
     res.set(31, sgn.get(0));
 
-    //cout << "Extension result = " << res << endl;
     return res;
   }
   
@@ -88,11 +84,6 @@ namespace CoreIR {
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
-    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    // cout << "log2(depth))   = " << log2(depth) << endl;
-
-    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
-
     // Cannot access out of range elements
     assert(bv.to_type<uint>() < depth);
 
@@ -100,7 +91,6 @@ namespace CoreIR {
 
     
     if (it == std::end(values)) {
-      //cout << "Could not find " << bv << endl;
       return BitVec(width, 0);
     }
 
@@ -192,7 +182,7 @@ namespace CoreIR {
           Json ramValues = params["init"]->get<Json>();
           int numVals = 0;
           for (auto val : ramValues) {
-            cout << val << endl;
+            //cout << val << endl;
             // string valstr = val;
             // string str = valstr.substr(4);
             // cout << "truncated = " << str << endl;
@@ -201,8 +191,8 @@ namespace CoreIR {
             BitVector valueBv = BitVector(width, stoi(v));
             BitVector addrBv(ceil(log2(depth)), numVals);
 
-            cout << "AddrBv  = " << addrBv << endl;            
-            cout << "Valuebv = " << valueBv << endl;
+            //cout << "AddrBv  = " << addrBv << endl;            
+            //cout << "Valuebv = " << valueBv << endl;
 
             freshMem.setAddr(addrBv, valueBv);
             numVals++;
@@ -568,6 +558,7 @@ namespace CoreIR {
     setRegisterDefaults();
     setDFFDefaults();
     setInputDefaults();
+    setNodeDefaults();
     
   }
 
@@ -687,34 +678,24 @@ namespace CoreIR {
     auto it = circStates[stateIndex].valMap.find(sel);
 
     if (it == std::end(circStates[stateIndex].valMap)) {
-      return nullptr;
+      assert(false);
     }
 
     return (*it).second;
   }
 
   void SimulatorState::updateSliceNode(const vdisc vd) {
+    updateInputs(vd);
+    
     WireNode wd = gr.getNode(vd);
     Instance* inst = toInstance(wd.getWire());
-    //auto outSelects = getOutputSelects(inst);
-
-    updateInputs(vd);
-
-    //assert(outSelects.size() == 1);
-
-    //pair<string, Wireable*> outPair = *std::begin(outSelects);
-    //auto inConns = getInputConnections(vd, gr);
-
-    //assert(inConns.size() == 1);
-
     Select* argSel = inst->sel("in");
-    ASSERT(isSet(argSel), "in must have a value to evaluate this node");
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
+
+    BitVector sB = getBitVec(argSel);
+    // ASSERT(isSet(argSel), "in must have a value to evaluate this node");
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
     
-    // InstanceValue arg1 = findArg("in", inConns);
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    
-    assert(s1 != nullptr);
+    // assert(s1 != nullptr);
 
     Values args = inst->getModuleRef()->getGenArgs();
     uint lo = (args["lo"])->get<int>();
@@ -723,11 +704,13 @@ namespace CoreIR {
     assert((hi - lo) > 0);
 
     BitVec res(hi - lo, 1);
-    BitVec sB = s1->getBits();
+    //BitVec sB = s1->getBits();
     for (uint i = lo; i < hi; i++) {
       res.set(i - lo, sB.get(i));
     }
 
+
+    //cout << "Setting output of slice to: " << res << endl;
     //setValue(toSelect(outPair.second), makeSimBitVector(res));
     setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
@@ -797,9 +780,7 @@ namespace CoreIR {
     updateInputs(vd);
 
     WireNode wd = gr.getNode(vd);
-
     Instance* inst = toInstance(wd.getWire());
-
     Select* outSel = inst->sel("out");
 
     Select* arg1 = inst->sel("in");
@@ -1636,6 +1617,21 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::setNodeDefaults() {
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isInstance(wd.getWire()) &&
+          getQualifiedOpNameWire(wd.getWire()) == "coreir.slice") {
+        Instance* inst = toInstance(wd.getWire());
+
+        Select* w = inst->sel("out");
+
+        setValue(inst->sel("out"), BitVector(typeWidth(*(w->getType())), 0));
+      }
+    }
+  }
+
   void SimulatorState::setDFFDefaults() {
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
@@ -1644,8 +1640,6 @@ namespace CoreIR {
         Instance* inst = toInstance(wd.getWire());
 
         Values args = inst->getModArgs();
-        cout << toString(inst) << endl;
-        cout << toString(args) << endl;
         bool val = args["init"]->get<bool>();
 
         setRegister(inst->toString(), BitVec(1, val ? 1 : 0));
@@ -1811,7 +1805,7 @@ namespace CoreIR {
         Select* inSel = toSelect(w.getWire());
 
         if (!isSet(inSel)) { //toSelect(sel.second))) {
-          //cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+
           unset.push_back(vd);
         }
 
