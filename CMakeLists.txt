@@ -20,9 +20,9 @@ if (STATIC)
     endif()
 endif()
 
-if(NOT DEFINED $ENV{FUNCUBUF_PATH})
-    message(STATUS "THING environment variable defined")
-endif()
+if(NOT DEFINED ENV{FUNCUBUF_PATH})
+    message(FATAL_ERROR "Functional model environment variable not defined!")
+endif(NOT DEFINED ENV{FUNCUBUF_PATH})
 
 LINK_DIRECTORIES($ENV{FUNCUBUF_PATH}/bin)
 TARGET_LINK_LIBRARIES(funcubuf)
