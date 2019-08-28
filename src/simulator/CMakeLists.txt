@@ -10,7 +10,7 @@ set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
 
 add_library(coreirsim SHARED ${SRC_FILES})
 target_include_directories(coreirsim PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
-target_link_libraries(coreirsim PUBLIC coreir)
+target_link_libraries(coreirsim PUBLIC coreir funcubuf)
 
 install(
     TARGETS coreirsim

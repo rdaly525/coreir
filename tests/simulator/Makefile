@@ -1,9 +1,10 @@
 .SUFFIXES:
 
 HOME = ../..
-INCS = -I$(HOME)/include -I.
-LPATH = -L$(HOME)/lib
-LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-aetherlinglib -lcoreir-float
+FUNCPATH = /Users/joeyliu/Documents/work/Mapper/DBmapping/cfunc
+INCS = -I$(HOME)/include -I. -I$(FUNCPATH)/include
+LPATH = -L$(HOME)/lib -L$(FUNCPATH)/bin
+LIBS =  -Wl,-rpath,$(HOME)/lib -lfuncubuf -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-aetherlinglib -lcoreir-float
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))

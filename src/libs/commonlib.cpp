@@ -26,9 +26,9 @@ vector<uint> get_dims(Type* type) {
   Type* cType = type;
   while(!cType->isBaseType()) {
     if (auto aType = dyn_cast<ArrayType>(cType)) {
-      
+
       uint length = aType->getLen();
-          
+
       cType = aType->getElemType();
       if (cType->isBaseType()) {
         bitwidth = length;
@@ -52,7 +52,7 @@ uint num_dims(Type* type) {
     assert(cType->getKind() == Type::TypeKind::TK_Array);
     ArrayType* aType = static_cast<ArrayType*>(cType);
     cType = aType->getElemType();
-    
+
     num_dims++;
   }
   return num_dims;
@@ -79,7 +79,7 @@ vector<CoreIR::Wireable*> get_wires(CoreIR::Wireable* base_wire, const vector<si
   vector<CoreIR::Wireable*> all_wires(num_ports);
 
   vector<uint> port_idxs(ports.size());
-    
+
   for (int idx = 0; idx < num_ports; ++idx) {
     // find the wire associated with the indices
     CoreIR::Wireable* cur_wire = base_wire;
@@ -89,7 +89,7 @@ vector<CoreIR::Wireable*> get_wires(CoreIR::Wireable* base_wire, const vector<si
 
     // add the wire to our list
     all_wires.at(idx) = cur_wire;
-    
+
     // increment  index
     port_idxs.at(0) += 1;
     for (size_t dim = 0; dim < port_idxs.size(); ++dim) {
@@ -101,14 +101,14 @@ vector<CoreIR::Wireable*> get_wires(CoreIR::Wireable* base_wire, const vector<si
       }
     }
   }
-    
+
   return all_wires;
 }
 
 
 void connect_wires(ModuleDef *def, vector<Wireable*> in_wires, vector<Wireable*> out_wires) {
   assert(in_wires.size() == out_wires.size());
-  
+
   for (size_t idx=0; idx<in_wires.size(); ++idx) {
     def->connect(in_wires.at(idx), out_wires.at(idx));
   }
@@ -346,7 +346,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   //*** Define iterative divider ***//
   //Generator* div = c->getGenerator("commonlib.div");
   // TODO: implement divider
-  
+
   //*** Define MAD ***//
   Generator* MAD = c->getGenerator("commonlib.MAD");
   MAD->setGeneratorDefFromFun([](Context* c, Values args, ModuleDef* def) {
@@ -363,9 +363,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
   //*** Define demux2 ***//
   // TODO: implement demux
-  
-  
-  
+
+
+
 
   ///////////////////////////////////
   //*** const array definition  ***//
@@ -399,7 +399,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         assert(cType->getKind() == Type::TypeKind::TK_Array);
         ArrayType* aType = static_cast<ArrayType*>(cType);
         uint length = aType->getLen();
-        
+
         cType = aType->getElemType();
         if (cType->isBaseType()) {
           bitwidth = length;
@@ -483,7 +483,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         assert(cType->getKind() == Type::TypeKind::TK_Array);
         ArrayType* aType = static_cast<ArrayType*>(cType);
         uint length = aType->getLen();
-        
+
         cType = aType->getElemType();
         if (cType->isBaseType()) {
           bitwidth = length;
@@ -503,7 +503,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       std::vector<Wireable*> in_wires; in_wires.push_back(pt_in->sel("out"));
       std::vector<Wireable*> out_wires; out_wires.push_back(pt_out->sel("in"));
       for (uint dim_length : lengths) {
-        std::vector<Wireable*> in_temp; 
+        std::vector<Wireable*> in_temp;
         std::vector<Wireable*> out_temp;
         in_temp.reserve(in_wires.size() * dim_length);
         out_temp.reserve(out_wires.size() * dim_length);
@@ -539,7 +539,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     });
 
- 
+
 
   /////////////////////////////////
   //*** muxN definition       ***//
@@ -608,11 +608,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                              {"lo", Const::make(c,0)},
                              {"hi", Const::make(c,num_bits(Nsmallhalf-1))}};
 
-        def->addInstance("sel_slice0", "coreir.slice", sliceArgs0); 
+        def->addInstance("sel_slice0", "coreir.slice", sliceArgs0);
         def->connect("self.in.sel", "sel_slice0.in");
         def->connect("sel_slice0.out", "muxN_0.in.sel");
 
-        def->addInstance("sel_slice1", "coreir.slice", sliceArgs1); 
+        def->addInstance("sel_slice1", "coreir.slice", sliceArgs1);
         def->connect("self.in.sel", "sel_slice1.in");
         def->connect("sel_slice1.out", "muxN_1.in.sel");
       }
@@ -620,7 +620,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
 
-  
+
   /////////////////////////////////
   //*** opN definition        ***//
   /////////////////////////////////
@@ -798,7 +798,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       // Equals to test if addresses are at the max
       def->addInstance("raddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
       def->addInstance("waddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
-    
+
       // Reset constant
       def->addInstance("zero_const",
                        "coreir.const",
@@ -833,7 +833,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->connect("max_const.out", "waddr_eq.in1");
 
     } else {
-      def->connect("add_r.out","raddr.in");    
+      def->connect("add_r.out","raddr.in");
       def->connect("add_w.out","waddr.in");
     }
 
@@ -877,11 +877,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 //
 //  reg [A-1] raddr
 //  reg [A-1] waddr;
-//  
+//
 //  always @(posedge clk) begin
 //    if (wen) waddr <= waddr + 1;
 //  end
-//  assign valid = waddr!=raddr; 
+//  assign valid = waddr!=raddr;
 //  always @(posedge clk) begin
 //    if (valid) raddr <= raddr+1;
 //  end
@@ -945,13 +945,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.ren","readreg.en");
   });
 
-  
+
   //////////////////////////////////////////////////
   //*** generic recursively defined linebuffer ***//
   //////////////////////////////////////////////////
 
   // top-level linebuffer that should be used by the user
-  Params lb_args = 
+  Params lb_args =
     {{"input_type",CoreIRType::make(c)},
      {"output_type",CoreIRType::make(c)},
      {"image_type",CoreIRType::make(c)},
@@ -982,15 +982,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       ASSERT(bitwidth > 0, "The first dimension for the input is interpretted "
              "as the bitwidth which was set to " + to_string(bitwidth));
 
-      ASSERT(bitwidth == out_dims[0], 
+      ASSERT(bitwidth == out_dims[0],
              to_string(bitwidth) + " != " + to_string(out_dims[0]) + \
              "all bitwidths must match (input doesn't match output)");
-      ASSERT(bitwidth == img_dims[0], 
+      ASSERT(bitwidth == img_dims[0],
              to_string(bitwidth) + " != " + to_string(img_dims[0]) + \
              "all bitwidths must match (input doesn't match image)");
 
       // erase the bitwidth size from vectors
-      in_dims.erase(in_dims.begin()); 
+      in_dims.erase(in_dims.begin());
       out_dims.erase(out_dims.begin());
       img_dims.erase(img_dims.begin());
 
@@ -1028,7 +1028,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                     << " and output stencil size is " << out_dimx
                     << ", which means the linebuffer mem is going to be very small"
                     << std::endl;
-      
+
         }
       }
 
@@ -1087,7 +1087,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       vector<uint> in_dims = get_dims(in_type);
       vector<uint> out_dims = get_dims(out_type);
       vector<uint> img_dims = get_dims(img_type);
-      in_dims.erase(in_dims.begin()); 
+      in_dims.erase(in_dims.begin());
       out_dims.erase(out_dims.begin());
       img_dims.erase(img_dims.begin());
       uint num_dims = in_dims.size();
@@ -1107,7 +1107,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             uint iflip = inverted_index(outx, inx, i);
             out_temp.push_back({source + "." + to_string(i),
                     sink + "." + to_string(iflip)});
-            
+
           }
         }
         out_pairs = out_temp;
@@ -1121,13 +1121,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         def->connect(out_pair.first, out_pair.second);
       }
       //std::cout << std::endl;
-      
+
     }
     );
 
 
   // recursive version for linebuffer
-  Params lb_recursive_args = 
+  Params lb_recursive_args =
       {{"input_type",CoreIRType::make(c)},
        {"output_type",CoreIRType::make(c)},
        {"image_type",CoreIRType::make(c)},
@@ -1156,13 +1156,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         return c->Record(recordparams);
       }
                         );
-  
+
   Generator* lb_recursive = commonlib->newGeneratorDecl(
       "linebuffer_recursive",
       commonlib->getTypeGen("lb_recursive_type"),
       lb_recursive_args
     );
-  
+
   lb_recursive->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     //cout << "running linebuffer generator" << endl;
     bool has_valid = genargs.at("has_valid")->get<bool>();
@@ -1180,7 +1180,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 					 "as the bitwidth which was set to " + to_string(bitwidth));
 
     // erase the bitwidth size from vectors
-    in_dims.erase(in_dims.begin()); 
+    in_dims.erase(in_dims.begin());
     out_dims.erase(out_dims.begin());
     img_dims.erase(img_dims.begin());
 
@@ -1227,7 +1227,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->addInstance(reg_name, "coreir.reg", {{"width",aBitwidth}});
           def->connect({"self","in",to_string(in_idx)}, {reg_name, "in"});
           def->connect({reg_name, "out"}, {"self","out",to_string(iflip)});
-         
+
         // create and connect to register; register connects to previous register
         } else {
           uint in_idx = i - in_dim;
@@ -1249,13 +1249,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
           uint last_idx = -1;
           for (uint i=0; i<out_dim-in_dim; i+=in_dim) {
-          
+
             // connect to input wen
             if (i == 0) {
               string reg_name = valid_prefix + to_string(i);
               def->addInstance(reg_name, "corebit.reg");
               def->connect({"self","wen"}, {reg_name,"in"});
-         
+
               // create and connect to register; register connects to previous register
             } else {
               uint in_idx = i - in_dim;
@@ -1278,15 +1278,15 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect({"self","wen"},{"self","valid_chain"});
         }
       }  // valid chain
-      
+
       def->addInstance("reset_term", "corebit.term");
       def->connect("self.reset","reset_term.in");
 
-    //////////////////////////  
+    //////////////////////////
     ///// RECURSIVE CASE /////
-    //////////////////////////  
+    //////////////////////////
     } else {
-      
+
       string lb_prefix = "lb" + to_string(dim) + "d_"; // use this for recursively smaller linebuffers
       Type* lb_input = cast<ArrayType>(in_type)->getElemType();
       Type* lb_image = cast<ArrayType>(img_type)->getElemType();
@@ -1305,8 +1305,8 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
             {"is_last_lb", Const::make(c, !has_valid)}
           };
         // was used when is_last_lb was used recursively, now only lastlb makes valid counter chain
-        //if (!has_valid || (is_last_lb && i == out_dim-1)) { 
-        
+        //if (!has_valid || (is_last_lb && i == out_dim-1)) {
+
         def->addInstance(lb_name, "commonlib.linebuffer_recursive", args);
         def->connect({"self","reset"},{lb_name,"reset"});
       }
@@ -1319,12 +1319,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         //uint iflip = out_dim-1 - i;
         uint iflip = i;
         string lb_name = lb_prefix + to_string(i);
-        
+
         def->connect({"self","out",to_string(iflip)}, {lb_name,"out"});
       }
 
       //cout << "created all linebuffers" << endl;
-      
+
       // SPECIAL CASE: same sized stencil output as image, so no lbmems needed (all in regs)
       //if (out_dim == img_dim) {
       if (img_dim == 0) {
@@ -1332,11 +1332,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       } else {
         //cout << "in the regular case of linebuffer" << endl;
- 
+
         // REGULAR CASE: lbmems to store image lines
- 
+
         // create lbmems to store data between linebuffers
-        //   size_lbmems = prod((img[x] - (out[x]-in[x])) / in[x]) 
+        //   size_lbmems = prod((img[x] - (out[x]-in[x])) / in[x])
         //      except for x==1, img0 / in0
         uint size_lbmems = 1; //out_dim-1;
         for (uint dim_i=0; dim_i<num_dims-1; dim_i++) {
@@ -1363,7 +1363,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           bool create_more_lbmems = true;
           while (create_more_lbmems) {
             ///// create lbmem //////
-            
+
             // create lbmem name (lbmem_x_<in2>_<in1>_<in0>)
             uint lbmem_line = out_i + in_dim;
             string lbmem_name = lbmem_prefix + "_" + to_string(lbmem_line);
@@ -1479,7 +1479,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                 }
               }
             } // indices increment
-            
+
           } // while create_more_lbmems
         } // for out_i
 
@@ -1520,7 +1520,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
             std::vector<std::string> counter_outputs;
             counter_outputs.push_back("self.wen");
-            
+
             // create a counter for every dimension
             for (uint dim_i=0; dim_i<num_dims; dim_i++) {
             //for (int dim_i=num_dims-1; dim_i>=0; dim_i--) {
@@ -1590,11 +1590,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                 def->connect(counter_outputs[dim_i], andr_name +".in."+to_string(dim_i));
               }
             }
-            
+
           } else { //if (is_last_lb && has_stencil_valid) {
             ASSERT(is_last_lb && has_stencil_valid,
                    "This should be the only case left if these conditionals are correct");
-            
+
             // By setting the stencil_width on the rowbuffer correctly, we don't need external counters.
             def->connect(valid_chain_str, "self.valid");
           }
@@ -1612,7 +1612,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect({"self","wen"}, {lb_name, "wen"}); // use stall network
         }
 
-        
+
       } // regular case
 
     }
@@ -1659,12 +1659,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"chain_en",c->Bool()},
       {"chain_idx",c->Int()},
       {"input_starting_addrs",c->Json()},
+      {"input_chunk",c->Json()},
       {"output_starting_addrs",c->Json()},
+      {"output_stencil",c->Json()},
       {"logical_size",c->Json()},
       {"init",c->Json()},
-      {"num_reduction_iter", c->Int()}
+      {"num_reduction_iter", c->Int()},
+      //this parameter identify how many dimension of the access pattern range is inside stencil
+      {"num_stencil_acc_dim", c->Int()}
     });
-  
+
   // unified buffer type
   commonlib->newTypeGen(
     "unified_buffer_type", //name for the typegen
@@ -1733,18 +1737,25 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   // set default as a single input and output at index 0
   Json jinputs;
   Json joutputs;
+  Json jinchunk;
+  Json joutstencil;
   jinputs["input_start"][0] = 0;
   joutputs["output_start"][0] = 0;
+  jinchunk["input_chunk"][0] = 1;
+  joutputs["output_stencil"][0] = 1;
   unified_buffer_gen->addDefaultGenArgs({{"input_starting_addrs",Const::make(c,jinputs)}});
   unified_buffer_gen->addDefaultGenArgs({{"output_starting_addrs",Const::make(c,joutputs)}});
+  unified_buffer_gen->addDefaultGenArgs({{"input_chunk",Const::make(c,jinchunk)}});
+  unified_buffer_gen->addDefaultGenArgs({{"output_stencil",Const::make(c,joutstencil)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_input_ports",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_output_ports",Const::make(c,1)}});
   unified_buffer_gen->addDefaultGenArgs({{"num_reduction_iter",Const::make(c,1)}});
-      
+  unified_buffer_gen->addDefaultGenArgs({{"num_stencil_acc_dim",Const::make(c,0)}});
+
   //////////////////////////////////////////////
   //*** abstract unified buffer definition ***//
   //////////////////////////////////////////////
-  Params aubparams = 
+  Params aubparams =
     {
      {"input_ports", CoreIRType::make(c)},
      {"output_ports", CoreIRType::make(c)},
@@ -1760,7 +1771,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       [](Context* c, Values genargs) { //Function to compute type
       Type* input_port = genargs.at("input_ports")->get<Type*>();
       Type* output_port = genargs.at("output_ports")->get<Type*>();
-      
+
       return c->Record({
         {"wen",c->BitIn()},
         {"ren",c->BitIn()},
@@ -1772,7 +1783,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       });
     }
   );
-    
+
   Generator* aub = commonlib->newGeneratorDecl("abstract_unified_buffer",commonlib->getTypeGen("abstract_unified_buffer_type"),aubparams);
   aub->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     });
@@ -1821,44 +1832,44 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->connect("self.out", "count_const.out");
       def->connect("self.overflow", "one_const.out");
     } else {
-    
+
       ASSERT(max>min, "max is " + to_string(max) + " while min is " + to_string(min));
-  
+
       // get generators
       Namespace* coreirprims = c->getNamespace("coreir");
       Generator* ult_gen = coreirprims->getGenerator("ult");
       Generator* add_gen = coreirprims->getGenerator("add");
       Generator* const_gen = coreirprims->getGenerator("const");
-  
+
       // create hardware
       Const* aBitwidth = Const::make(c,width);
       Const* aReset = Const::make(c,BitVector(width,min));
       def->addInstance("count", "mantle.reg", {{"width",aBitwidth},{"has_clr",Const::make(c,true)},{"has_en",Const::make(c,true)}},
                        {{"init",aReset}});
-  
+
       def->addInstance("max", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,max))}});
       def->addInstance("inc", const_gen, {{"width",aBitwidth}}, {{"value",Const::make(c,BitVector(width,inc))}});
       def->addInstance("ult", ult_gen, {{"width",aBitwidth}});
       def->addInstance("add", add_gen, {{"width",aBitwidth}});
       def->addInstance("and", "corebit.and");
       def->addInstance("resetOr", "corebit.or");
-  
+
       // wire up modules
       // clear if max < count+inc && en == 1
       def->connect("count.out","self.out");
       def->connect("count.out","add.in0");
       def->connect("inc.out","add.in1");
-  
+
       def->connect("self.en","count.en");
       def->connect("add.out","count.in");
-  
+
       def->connect("add.out","ult.in1");
       def->connect("max.out","ult.in0");
 
       def->connect("ult.out","and.in0");
       def->connect("self.en","and.in1");
       // and.out === (max < count+inc  &&  en == 1)
-      
+
       // clear count on either getting to max or reset
       def->connect("and.out","resetOr.in0");
       def->connect("self.reset","resetOr.in1");
@@ -1920,7 +1931,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                         {"lo", Const::make(c,0)},
                         {"hi", Const::make(c,num_bits(rate-1))}};
     def->addInstance("slice", "coreir.slice", sliceArgs);
-    
+
     // all but input0 are stored in registers
     for (uint i=1; i<rate; ++i) {
       std::string reg_name = "reg_" + std::to_string(i);
@@ -1964,7 +1975,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   });
 
 
-  
+
   /////////////////////////////////
   // deserializer definition     //
   /////////////////////////////////
@@ -2086,7 +2097,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   /////////////////////////////////
   //*** reshape definition    ***//
   /////////////////////////////////
-  Params reshape_params = 
+  Params reshape_params =
     {
      {"input_type", CoreIRType::make(c)},
      {"output_type", CoreIRType::make(c)},
@@ -2114,7 +2125,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         num_outputs *= output_value;
       }
       assert(num_inputs == num_outputs);
-      
+
       return c->Record({
           {"in",input_type},
           {"out",output_type}
@@ -2143,7 +2154,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     vector<uint> input_idxs(input_vector.size());
     vector<uint> output_idxs(output_vector.size());
-    
+
     for (int idx = 0; idx < num_inputs; ++idx) {
       // create input and output port names
       string input_name = "self.in";
@@ -2161,7 +2172,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         output_name += "." + std::to_string(output_port);
       }
       def->connect(input_name, output_name);
-      
+
       // increment input index
       input_idxs.at(0) += 1;
       for (size_t dim = 0; dim < input_idxs.size(); ++dim) {
@@ -2184,13 +2195,13 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         }
       }
     }
-      
+
     });
 
   ////////////////////////////////
   //*** transpose definition ***//
   ////////////////////////////////
-  Params transpose_params = 
+  Params transpose_params =
     {
      {"input_type", CoreIRType::make(c)},
     };
@@ -2200,7 +2211,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     transpose_params,
     [](Context* c, Values genargs) { //Function to compute type
       Type* input_type = genargs.at("input_type")->get<Type*>();
-      
+
       return c->Record({
           {"in",input_type},
           {"out",c->Flip(input_type)}
@@ -2224,7 +2235,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // store the current port index
     vector<uint> port_idxs(input_dims.size());
-    
+
     for (int idx = 0; idx < num_ports; ++idx) {
       // find the wires associated with the indices
       CoreIR::Wireable* cur_wire = def->sel("self")->sel("in");
@@ -2238,7 +2249,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // connect the wire to transposed version
       def->connect(cur_wire, opposite_wire);
-    
+
       // increment  index
       port_idxs.at(0) += 1;
       for (size_t dim = 0; dim < port_idxs.size(); ++dim) {
@@ -2251,7 +2262,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       }
     }
     });
-    
+
   ////////////////////////////////////////
   //*** transpose reshape definition ***//
   ////////////////////////////////////////
@@ -2265,11 +2276,11 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       auto self = def->sel("self");
       auto transpose = def->addInstance("transpose", "commonlib.transpose", {{"input_type",Const::make(c,input_type)}});
       auto reshape = def->addInstance("reshape", "commonlib.reshape", genargs);
-      
+
       def->connect(self->sel("in"), transpose->sel("in"));
       def->connect(transpose->sel("out"), reshape->sel("in"));
       def->connect(reshape->sel("out"), self->sel("out"));
-      
+
     });
 
   ////////////////////////////////////////////
@@ -2284,7 +2295,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   //                          valid
   //
   //              parameters: number of reduction iterations
-  //                          
+  //
   commonlib->newTypeGen(
     "accumulation_register_type", //name for the typegen
     {{"width",c->Int()},{"iterations",c->Int()}}, //generater parameters
@@ -2320,7 +2331,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"max",Const::make(c,iterations-1)},
       {"inc",Const::make(c,1)}
     };
-    
+
     def->addInstance("phase_counter", "commonlib.counter", counter_args);
     Values const_value = {{"value", Const::make(c,BitVector(width,iterations-1))}};
     def->addInstance("output_phase_value", "coreir.const", bitwidthParams, const_value);
@@ -2340,7 +2351,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("self.reset", "phase_counter.reset");
     def->connect("phase_sel.in0", "phase_counter.out");
     def->connect("phase_sel.in1", "output_phase_value.out");
-    
+
     // create valid logic
     def->connect("valid_mux.in0", "invalid_bit.out");
     def->connect("valid_mux.in1", "self.in_valid");
@@ -2357,7 +2368,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("input_mux.out", "accum_reg.in");
 
     });
-  
+
   return commonlib;
 }
 
