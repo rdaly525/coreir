@@ -3,9 +3,9 @@
 #include "coreir/simulator/interpreter.h"
 #include "coreir/libs/commonlib.h"
 #include "coreir/libs/float.h"
-#include "../../DBmapping/cfunc/include/access.h"
-#include "../../DBmapping/cfunc/include/util.h"
-#include "../../DBmapping/cfunc/include/virtualbuffer.h"
+#include "access.h"
+#include "util.h"
+#include "virtualbuffer.h"
 
 #include "fuzzing.hpp"
 

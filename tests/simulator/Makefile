@@ -1,7 +1,7 @@
 .SUFFIXES:
 
 HOME = ../..
-FUNCPATH = /Users/joeyliu/Documents/work/Mapper/DBmapping/cfunc
+FUNCPATH = ${FUNCUBUF_PATH}
 INCS = -I$(HOME)/include -I. -I$(FUNCPATH)/include
 LPATH = -L$(HOME)/lib -L$(FUNCPATH)/bin
 LIBS =  -Wl,-rpath,$(HOME)/lib -lfuncubuf -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-aetherlinglib -lcoreir-float
