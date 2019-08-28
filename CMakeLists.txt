@@ -20,6 +20,10 @@ if (STATIC)
     endif()
 endif()
 
+if(NOT DEFINED $ENV{FUNCUBUF_PATH})
+    message(STATUS "THING environment variable defined")
+endif()
+
 LINK_DIRECTORIES($ENV{FUNCUBUF_PATH}/bin)
 TARGET_LINK_LIBRARIES(funcubuf)
 
