@@ -2335,6 +2335,10 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->addInstance("phase_sel", "coreir.eq", bitwidthParams);
     def->addInstance("accum_adder", "coreir.add", bitwidthParams);
 
+    Values init_phase_const = {{"value", Const::make(c,BitVector(width,0))}};
+    def->addInstance("init_phase_value", "coreir.const", bitwidthParams, init_phase_const);
+    def->addInstance("init_phase_sel", "coreir.eq", bitwidthParams);
+
     // create output phase logic
     def->connect("self.in_valid", "phase_counter.en");
     def->connect("self.reset", "phase_counter.reset");
@@ -2347,13 +2351,17 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     def->connect("valid_mux.sel", "phase_sel.out");
     def->connect("valid_mux.out", "self.valid");
 
+    // initialize register
+    def->connect("init_phase_sel.in0", "init_phase_value.out");
+    def->connect("init_phase_sel.in0", "phase_counter.out");
+
     // create output data
     def->connect("accum_adder.in0", "self.in_data");
     def->connect("accum_adder.in1", "accum_reg.out");
     def->connect("accum_adder.out", "self.out_data");
     def->connect("input_mux.in1", "self.bias");
     def->connect("input_mux.in0", "accum_adder.out");
-    def->connect("input_mux.sel", "phase_sel.out");
+    def->connect("input_mux.sel", "init_phase_sel.out");
     def->connect("input_mux.out", "accum_reg.in");
 
     });
