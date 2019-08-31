@@ -2353,16 +2353,16 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
     // initialize register
     def->connect("init_phase_sel.in0", "init_phase_value.out");
-    def->connect("init_phase_sel.in0", "phase_counter.out");
+    def->connect("init_phase_sel.in1", "phase_counter.out");
 
     // create output data
     def->connect("accum_adder.in0", "self.in_data");
-    def->connect("accum_adder.in1", "accum_reg.out");
+    def->connect("accum_adder.in1", "input_mux.out");
     def->connect("accum_adder.out", "self.out_data");
     def->connect("input_mux.in1", "self.bias");
-    def->connect("input_mux.in0", "accum_adder.out");
+    def->connect("input_mux.in0", "accum_reg.out");
     def->connect("input_mux.sel", "init_phase_sel.out");
-    def->connect("input_mux.out", "accum_reg.in");
+    def->connect("accum_adder.out", "accum_reg.in");
 
     });
   
