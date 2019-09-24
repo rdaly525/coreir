@@ -18,6 +18,7 @@
 #include "analysis/createinstancemap.h"
 #include "analysis/createcombview.h"
 #include "analysis/instancecount.h"
+#include "analysis/verify_bitvector_form.h"
 
 
 //Transform passes
@@ -71,6 +72,7 @@ namespace CoreIR {
     pm.addPass(new Passes::VerifyFlattenedTypes());
     pm.addPass(new Passes::CreateCombView());
     pm.addPass(new Passes::InstanceCount());
+    pm.addPass(new Passes::VerifyBitvectorForm());
 
 
     //Transform
