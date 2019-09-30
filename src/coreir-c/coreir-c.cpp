@@ -407,6 +407,13 @@ extern "C" {
     return rcast<Wireable*>(w)->canSel(string(sel));
   }
 
+  COREWireable* COREWireableGetParent(COREWireable* cw) {
+    Wireable* w = rcast<Wireable*>(cw);
+    ASSERT(isa<Select>(w),"Can only get the parent of a Select");
+    return rcast<COREWireable*>(cast<Select>(w)->getParent());
+  }
+
+
   COREType* COREWireableGetType(COREWireable* wireable) {
     return rcast<COREType*>(rcast<Wireable*>(wireable)->getType());
   }
