@@ -2501,6 +2501,7 @@ namespace CoreIR {
       
     }
 
+/*
     SECTION("Rowbuffer") {
 
       uint index = 4;
@@ -2634,7 +2635,8 @@ namespace CoreIR {
       }
 
     }
-
+*/
+/*
     SECTION("Rowbuffer power of 2") {
 
       uint index = 4;
@@ -2768,7 +2770,7 @@ namespace CoreIR {
       }
 
     }
-    
+*/
     SECTION("Slice") {
       uint inLen = 7;
       uint lo = 2;
