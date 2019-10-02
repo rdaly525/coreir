@@ -651,6 +651,10 @@ extern "C" {
       return rcast<Instance*>(instance)->getInstname().c_str();
   }
 
+  const char* COREInstanceGetModArgs(COREWireable* instance) {
+      return rcast<Instance*>(instance)->getInstname().c_str();
+  }
+
   bool CORETypeIsInput(COREType* type) {
       return rcast<Type*>(type)->isInput();
   }
