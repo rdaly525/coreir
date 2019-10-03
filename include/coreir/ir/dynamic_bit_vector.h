@@ -419,11 +419,7 @@ namespace bsim {
       }
     }
 
-    // Note: Need to check that all digits in each clump that
-    // contain 'x' or 'z' values are 'x' or 'z' values
-    std::string hex_string() const {
-      std::string hex = std::to_string(N) + "'h";
-
+    std::string hex_digits() const {
       std::string hex_digits = "";
 
       for (int i = 0; i < ((int) bits.size()); i += 4) {
@@ -458,7 +454,15 @@ namespace bsim {
       }
 
       std::reverse(std::begin(hex_digits), std::end(hex_digits));
-      return hex + hex_digits;
+      return hex_digits;
+    }
+
+    // Note: Need to check that all digits in each clump that
+    // contain 'x' or 'z' values are 'x' or 'z' values
+    std::string hex_string() const {
+      std::string hex = std::to_string(N) + "'h";
+
+      return hex + hex_digits();
     }
     
     quad_value_bit_vector(const quad_value_bit_vector& other) {

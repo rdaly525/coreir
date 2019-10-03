@@ -1,0 +1,47 @@
+{"top":"global.top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "foo":{
+        "type":["Record",[
+          ["I",["Array",4,"BitIn"]],
+          ["O",["Array",4,"Bit"]]
+        ]],
+        "metadata": {
+          "verilog": {
+            "verilog_string": "// This is an important comment for foo!!\nmodule foo (input [3:0] I, output [3:0] O);\n    assign O = I;\nendmodule"
+          }
+        }
+      },
+      "top":{
+        "type":["Record",[
+          ["self_I",["Array",4,"BitIn"]],
+          ["O",["Array",4,"Bit"]]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"global.foo"
+          },
+          "inst1":{
+            "modref":"global.foo"
+          }
+        },
+        "connections":[
+          ["self.self_I.0","inst0.I.0"],
+          ["self.self_I.0","inst0.I.1"],
+          ["self.self_I.1","inst0.I.2"],
+          ["self.self_I.2","inst0.I.3"],
+          ["inst0.O.0","inst1.I.0"],
+          ["inst0.O.1","inst1.I.1"],
+          ["inst0.O.1","inst1.I.2"],
+          ["self.self_I.1","inst1.I.3"],
+          ["inst1.O.0","self.O.0"],
+          ["inst1.O.0","self.O.1"],
+          ["self.self_I.0","self.O.2"],
+          ["self.self_I.1","self.O.3"]
+        ]
+      }
+    }
+  }
+}
+}

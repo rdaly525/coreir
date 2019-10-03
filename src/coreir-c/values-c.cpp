@@ -27,6 +27,13 @@ extern "C" {
     return s.c_str();
   }
 
+  const char* COREValueJSONGet(COREValue* a) {
+    Value* val = rcast<Value*>(a);
+    //Get will assert if wrong val kind
+    const string& s = val->get<json>().dump();
+    return s.c_str();
+  }
+
   bool COREValueBoolGet(COREValue* a) {
     Value* val = rcast<Value*>(a);
     //Get will assert if wrong val kind
@@ -101,6 +108,12 @@ extern "C" {
   COREValue* COREValueCoreIRType(COREContext* cc, COREType* type) {
     Context* c = rcast<Context*>(cc);
     Value* ga = Const::make(c, rcast<Type*>(type));
+    return rcast<COREValue*>(ga);
+  }
+
+  COREValue* COREValueJSON(COREContext* cc, char *jsonstr) {
+    Context* c = rcast<Context*>(cc);
+    Value* ga = Const::make(c, nlohmann::json::parse(std::string(jsonstr)));
     return rcast<COREValue*>(ga);
   }
 

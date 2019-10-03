@@ -179,7 +179,17 @@ namespace CoreIR {
         Values params = inst->getModArgs();
         SimMemory freshMem(width, depth);
         if (contains_key(string("init"), params)) {
-          Json ramValues = params["init"]->get<Json>();
+
+          
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has init params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
+
+          Json ramValues = params["init"]->get<Json>()["init"];
+          cout << "Memory params are " << ramValues << endl;
           int numVals = 0;
           for (auto val : ramValues) {
             //cout << val << endl;
@@ -187,18 +197,25 @@ namespace CoreIR {
             // string str = valstr.substr(4);
             // cout << "truncated = " << str << endl;
             // BitVector valueBv = hexStringToBitVector(str);
-            string v = val;
-            BitVector valueBv = BitVector(width, stoi(v));
+            //string v = val;
+            //BitVector valueBv = BitVector(width, stoi(v));
             BitVector addrBv(ceil(log2(depth)), numVals);
 
-            //cout << "AddrBv  = " << addrBv << endl;            
-            //cout << "Valuebv = " << valueBv << endl;
+            int v = val;
+            BitVector valueBv = BitVector(width, v);
 
             freshMem.setAddr(addrBv, valueBv);
             numVals++;
           }
 
           assert(((int) numVals) == ((int) depth));
+        } else {
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has no params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
         }
 
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});

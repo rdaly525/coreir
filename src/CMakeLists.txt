@@ -18,6 +18,7 @@ endif()
 
 target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
+target_link_libraries(coreir verilogAST)
 
 #Install libcoreir
 install(
@@ -30,6 +31,22 @@ add_custom_command(
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir>" "${CMAKE_SOURCE_DIR}/lib/"
   COMMENT "Copying to lib/"
+)
+
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/lib/libverilogAST${CMAKE_SHARED_LIBRARY_SUFFIX}" "${CMAKE_SOURCE_DIR}/lib/"
+  COMMENT "Copying libverilogAST"
+)
+
+install(FILES "${CMAKE_SOURCE_DIR}/lib/libverilogAST${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION lib)
+
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/verilogAST-src/include/verilogAST.hpp" "${CMAKE_SOURCE_DIR}/include/"
+  COMMENT "Copying verilogAST.hpp"
 )
 
 #Create coreir executable

@@ -92,6 +92,10 @@ extern void COREModuleDefDisconnect(COREModuleDef* module_def, COREWireable* a, 
 
 extern COREWireable* COREWireableSelect(COREWireable* w, char* sel);
 extern COREBool COREWireableCanSelect(COREWireable* w, char* sel);
+
+//Only valid for Wireable == Select
+extern COREWireable* COREWireableGetParent(COREWireable* w);
+
 extern COREWireable* COREModuleDefInstancesIterBegin(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterEnd(COREModuleDef* module_def);
 extern COREWireable* COREModuleDefInstancesIterNext(COREModuleDef* module_def, COREWireable* curr);

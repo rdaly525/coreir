@@ -7,4 +7,5 @@ cp -r lib release/.
 #cmake -DCMAKE_BUILD_TYPE=release ..
 #make -j8
 #cd ..
-tar -zcvf coreir.tar.gz release 
+cp -r release coreir-${TRAVIS_OS_NAME}
+tar -zcvf coreir-${TRAVIS_OS_NAME}.tar.gz coreir-${TRAVIS_OS_NAME}

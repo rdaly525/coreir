@@ -1,4 +1,4 @@
-CXXFLAGS = -std=c++11 -Wall -fPIC -Werror
+CXXFLAGS = -std=c++17 -Wall -fPIC -Werror
 
 export CXX
 export CFLAGS
