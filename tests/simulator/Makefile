@@ -7,6 +7,7 @@ LIBS =  -Wl,-rpath,$(HOME)/lib -lcoreir -lcoreirsim -lcoreir-commonlib -lcoreir-
 SRCFILES = $(wildcard [^_]*.cpp)
 OBJS = $(patsubst %.cpp,build/%.o,$(SRCFILES))
 EXES = $(patsubst %.cpp,build/%,$(SRCFILES))
+CXXFLAGS += -Wno-unused-variable
 
 #all: $(EXES)
 

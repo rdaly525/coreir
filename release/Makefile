@@ -12,6 +12,7 @@ endif
 install:
 	install bin/coreir* $(prefix)/bin
 	install lib/libcoreir* $(prefix)/lib
+	install lib/libverilogAST* $(prefix)/lib
 	install -d $(prefix)/include/coreir-c
 	install -d $(prefix)/include/coreir/ir/casting
 	install -d $(prefix)/include/coreir/common
@@ -30,6 +31,7 @@ install:
 	install include/coreir/passes/analysis/* $(prefix)/include/coreir/passes/analysis
 	install include/coreir/passes/transform/* $(prefix)/include/coreir/passes/transform
 	install include/coreir/simulator/* $(prefix)/include/coreir/simulator
+	install include/verilogAST.hpp $(prefix)/include
 
 .PHONY: uninstall
 uninstall:

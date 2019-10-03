@@ -1,26 +1,28 @@
 import delegator
 import os
+import pytest
 
+examples = []
+for example in os.listdir('examples'):
+    example_split = example.split('.')
+    if len(example_split) !=2 or example_split[-1] != 'json':
+        continue
+    examples.append(example)
 
-def test_examples():
-    
-    for example in os.listdir('examples'):
-        print("file",example)
+@pytest.mark.parametrize("example",examples)
+def test_examples(example):
         example_split = example.split('.')
-        if len(example_split) !=2 or example_split[-1] != 'json':
-            continue
-    
         name = example_split[0]
-        
-        libs = "-l commonlib"
+
+        libs = "-l commonlib,float,float_CW"
         #Test input parsing and serializing to json
         res = delegator.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.json")
         assert not res.return_code, res.out + res.err
-        
+
         #Test syntax of serialized json
         res = delegator.run(f"bin/coreir -i examples/build/{name}.json {libs}")
         assert not res.return_code, res.out + res.err
-        
+
         #Test serializing to verilog
         res = delegator.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.v")
         assert not res.return_code, res.out + res.err
