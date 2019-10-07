@@ -1,6 +1,7 @@
 
 #include "coreir.h"
 #include "coreir/passes/transform/flattentypes.h"
+#include "coreir/common/logging_lite.hpp"
 #include <set>
 
 using namespace std;
@@ -95,6 +96,12 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   if (mod->hasDef()) {
       ModuleDef* def = mod->getDef();
       work.push_back(def->getInterface());
+  } else {
+    for (auto rpair : mod->getType()->getRecord()) {	
+        if (!isBitOrArrOfBits(rpair.second)) {
+            LOG(WARN) << "WARNING: Flatten type of generator or module with no definition, assumes definition follows the flatten types scheme, see https://github.com/rdaly525/coreir/issues/800 for more info\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString();
+        }	
+    }
   }
  
   for (auto inst : node.getInstanceList()) {

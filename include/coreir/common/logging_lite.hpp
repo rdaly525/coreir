@@ -10,6 +10,7 @@
 
 enum LogSeverity {
   INFO = 0,
+  WARN = 1,
   FATAL
 };
 
