@@ -62,14 +62,6 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //If it is a generator or has no def:
   //Make sure all instances already have flat types
-  if (!mod->hasDef()) {
-    for (auto rpair : mod->getType()->getRecord()) {
-      ASSERT(isBitOrArrOfBits(rpair.second),
-      "NYI flatten types of generator or nodef module\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString()); 
-    }
-  }
- 
-  ModuleDef* def = mod->getDef();
   
   //Get a list of all the correct ports necessary. 
   vector<std::pair<SelectPath,Type*>> ports;
@@ -93,6 +85,12 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto newportpair : newports) {
     node.appendField(newportpair.first,newportpair.second);
   }
+
+  if (!mod->hasDef()) {
+    return 0;
+  }
+ 
+  ModuleDef* def = mod->getDef();
 
   //TODO use definition of instance itsefl
 
