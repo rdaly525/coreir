@@ -99,7 +99,8 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   } else {
     for (auto rpair : mod->getType()->getRecord()) {	
         if (!isBitOrArrOfBits(rpair.second)) {
-            LOG(WARN) << "WARNING: Flatten type of generator or module with no definition, assumes definition follows the flatten types scheme, see https://github.com/rdaly525/coreir/issues/800 for more info\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString();
+            LOG(WARN) << "WARNING: Flattening type of generator or module with no definition, assumes definition follows the flatten types scheme, see https://github.com/rdaly525/coreir/issues/800 for more info\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString();
+            break;  // only issue warning once
         }	
     }
   }
