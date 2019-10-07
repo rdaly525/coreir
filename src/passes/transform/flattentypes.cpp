@@ -86,18 +86,17 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     node.appendField(newportpair.first,newportpair.second);
   }
 
-  if (!mod->hasDef()) {
-    return 0;
-  }
- 
-  ModuleDef* def = mod->getDef();
-
   //TODO use definition of instance itsefl
 
   //Now the fun part.
   //Get a list of interface + instances
   vector<Wireable*> work;
-  work.push_back(def->getInterface());
+
+  if (mod->hasDef()) {
+      ModuleDef* def = mod->getDef();
+      work.push_back(def->getInterface());
+  }
+ 
   for (auto inst : node.getInstanceList()) {
     work.push_back(inst);
   }
