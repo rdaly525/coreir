@@ -3,7 +3,6 @@
 #include "aetherlinglib/aeMap.h"
 #include "aetherlinglib/aeReduce.h"
 #include "aetherlinglib/aeZip2.h"
-#include "aetherlinglib/aeConv.h"
 #include "aetherlinglib/aeFlatten.h"
 #include "aetherlinglib/aeDehydrate.h"
 #include "aetherlinglib/aeStreamifyArrayify.h"
@@ -26,7 +25,6 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     Aetherling_createMapGenerator(c);
     Aetherling_createReduceGenerator(c);
     Aetherling_createZipGenerator(c);
-    Aetherling_createConvGenerator(c);
     Aetherling_createFlattenGenerator(c);
     Aetherling_createHydrateAndDehydrateGenerators(c);
     Aetherling_createStreamifyArrayifyGenerator(c);

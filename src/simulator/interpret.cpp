@@ -187,12 +187,12 @@ namespace CoreIR {
           //for (auto p : params) {
             //cout << "\t" << p.first << endl;
           //}
-          
+
           Json ramValues = params["init"]->get<Json>()["init"];
           cout << "Memory params are " << ramValues << endl;
           int numVals = 0;
           for (auto val : ramValues) {
-            cout << "RAM Value = " << val << endl;
+            //cout << val << endl;
             // string valstr = val;
             // string str = valstr.substr(4);
             // cout << "truncated = " << str << endl;
@@ -203,9 +203,6 @@ namespace CoreIR {
 
             int v = val;
             BitVector valueBv = BitVector(width, v);
- 
-            //cout << "AddrBv  = " << addrBv << endl;            
-            //cout << "Valuebv = " << valueBv << endl;
 
             freshMem.setAddr(addrBv, valueBv);
             numVals++;
@@ -944,6 +941,7 @@ namespace CoreIR {
 
     Select* inst = toSelect(wd.getWire());
 
+
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 0);
@@ -957,7 +955,7 @@ namespace CoreIR {
 
       SimBitVector* s = static_cast<SimBitVector*>(getValue(arg.getWire()));
 
-      assert(s != nullptr);
+      ASSERT(s != nullptr, "updating " + inst->toString() + " failed\n");
 
       Select* receiverSel = toSelect(receiver.getWire());
 
