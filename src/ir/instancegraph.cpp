@@ -110,16 +110,17 @@ void InstanceGraphNode::appendField(string label,Type* t) {
 
 void InstanceGraphNode::detachField(string label) {
   Module* m = getModule();
-  ASSERT(m->hasDef(),"NYI Handling changing types for module declaration");
   RecordType* mtype = cast<RecordType>(m->getType());
 
   //Will assert if field does not exist
   RecordType* newType = mtype->detachField(label);
 
-  //Remove anything connected to the module def interface
-  Interface* iface = m->getDef()->getInterface();
-  iface->sel(label)->disconnectAll();
-  iface->removeSel(label);
+  if (m->hasDef()) {
+      //Remove anything connected to the module def interface
+      Interface* iface = m->getDef()->getInterface();
+      iface->sel(label)->disconnectAll();
+      iface->removeSel(label);
+  }
 
   //Remove anything connected to all the isntances
   for (auto inst : getInstanceList()) {
