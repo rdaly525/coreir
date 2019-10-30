@@ -1,6 +1,5 @@
 #!/bin/bash
 
-set -e
 mkdir deps
 cd deps;
 if [[ "$TRAVIS_BRANCH" == "coreir-dev" ]]; then
@@ -15,7 +14,6 @@ else
   curl -s -L https://github.com/rdaly525/coreir/releases/latest | grep "href.*coreir-${TRAVIS_OS_NAME}.tar.gz" | cut -d \" -f 2 | xargs -I {} wget https://github.com"{}"
   mkdir coreir_release;
   tar -xf coreir-${TRAVIS_OS_NAME}.tar.gz -C coreir_release --strip-components 1;
-  
   mkdir bin;
   mkdir lib;
   mkdir include;
@@ -33,5 +31,6 @@ if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 else
   export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/deps/lib:$LD_LIBRARY_PATH
 fi
+
 export PATH=$TRAVIS_BUILD_DIR/deps/bin:$PATH
 cd ..;  # deps
