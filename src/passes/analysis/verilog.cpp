@@ -156,7 +156,8 @@ Passes::Verilog::compileStringBodyModule(json verilog_json, std::string name,
   }
   vAST::Parameters parameters;
   std::set<std::string> parameters_seen;
-  if (module->isGenerated()) {
+  // The wrap primitive has an unused parameter "type" that we ignore
+  if (module->isGenerated() && module->getGenerator()->getName() != "wrap") {
     for (auto parameter : module->getGenerator()->getDefaultGenArgs()) {
       parameters.push_back(
           std::pair(std::make_unique<vAST::Identifier>(parameter.first),
@@ -475,7 +476,9 @@ compile_module_body(RecordType *module_type,
     }
     // Handle generator arguments
     if (instance_module->isGenerated() &&
-        instance_module->getGenerator()->getMetaData().count("verilog") > 0) {
+        instance_module->getGenerator()->getMetaData().count("verilog") > 0 &&
+        // Ignore wrap "type" parameter
+        instance_module->getGenerator()->getName() != "wrap") {
       for (auto parameter : instance.second->getModuleRef()->getGenArgs()) {
         instance_parameters.push_back(
             std::pair(std::make_unique<vAST::Identifier>(parameter.first),
