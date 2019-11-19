@@ -49,13 +49,25 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
   coreir_unreachable();
 }
 
+// unpack named types to get the raw type (so we can check that it's a
+// bit), iteratively because perhaps you can name and named type?
+// This is just a safety check for internal code, to improve performance,
+// we could guard this assert logic behind a macro
+Type *get_raw_type(Type *type) {
+  while (isa<NamedType>(type)) {
+    type = cast<NamedType>(type)->getRaw();
+  }
+  return type;
+}
+
 // Given a signal named `id` and a type `type`, wrap the signal name in a
 // `Vector` node if the signal is of type Array
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
 process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
   if (isa<ArrayType>(type)) {
     ArrayType *array_type = cast<ArrayType>(type);
-    ASSERT(array_type->getElemType()->isBaseType(), "Expected Array of Bits");
+    Type *internal_type = get_raw_type(array_type->getElemType());
+    ASSERT(internal_type->isBaseType(), "Expected Array of Bits");
     return std::make_unique<vAST::Vector>(
         std::move(id),
         std::make_unique<vAST::NumericLiteral>(
@@ -63,13 +75,7 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
         std::make_unique<vAST::NumericLiteral>("0"));
   }
 
-  // unpack named types to get the raw type (so we can check that it's a
-  // bit), iteratively because perhaps you can name and named type?
-  // This is just a safety check for internal code, to improve performance,
-  // we could guard this assert logic behind a macro
-  while (isa<NamedType>(type)) {
-    type = cast<NamedType>(type)->getRaw();
-  }
+  type = get_raw_type(type);
   ASSERT(type->isBaseType(), "Expected Bit, or Array of Bits");
 
   // If it's not an Array type, just return the original identifier
