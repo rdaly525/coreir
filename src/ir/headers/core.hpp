@@ -102,11 +102,17 @@ void core_convert(Context* c, Namespace* core) {
       NamedType* ntype = cast<NamedType>(type);
       ASSERT(!ntype->isGen(),"NYI named type generators");
       ASSERT(ntype->getRaw()->isBaseType(), "NYI named type that is not Bit or BitIn");
-      ASSERT(ntype->isOutput(), "NYI named type that is not output");
-      return c->Record({
-        {"in",ntype->getRaw()->getFlipped()},
-        {"out",ntype}
-      });
+      if (ntype->isOutput()) {
+          return c->Record({
+            {"in",ntype->getRaw()->getFlipped()},
+            {"out",ntype}
+          });
+      } else {
+          return c->Record({
+            {"in",ntype},
+            {"out",ntype->getRaw()->getFlipped()}
+          });
+      }
     }
   );
   core->newGeneratorDecl("wrap",wrapTypeGen,wrapParams);
