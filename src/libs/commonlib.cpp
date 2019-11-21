@@ -1644,6 +1644,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       {"range_4",c->Int()},
       {"stride_5",c->Int()},
       {"range_5",c->Int()},
+      {"valid_sched_0",c->Int()},
+      {"valid_sched_1",c->Int()},
+      {"valid_sched_2",c->Int()},
+      {"valid_sched_3",c->Int()},
+      {"valid_sched_4",c->Int()},
+      {"valid_sched_5",c->Int()},
       {"input_stride_0",c->Int()},
       {"input_range_0",c->Int()},
       {"input_stride_1",c->Int()},
@@ -1716,6 +1722,12 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   unified_buffer_gen->addDefaultGenArgs({{"range_4",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"stride_5",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"range_5",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"valid_sched_0",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"valid_sched_1",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"valid_sched_2",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"valid_sched_3",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"valid_sched_4",Const::make(c,0)}});
+  unified_buffer_gen->addDefaultGenArgs({{"valid_sched_5",Const::make(c,0)}});
 
   unified_buffer_gen->addDefaultGenArgs({{"input_stride_0",Const::make(c,0)}});
   unified_buffer_gen->addDefaultGenArgs({{"input_range_0",Const::make(c,1)}});
