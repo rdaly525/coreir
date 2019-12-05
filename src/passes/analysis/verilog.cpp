@@ -3,6 +3,28 @@
 #include "coreir/tools/cxxopts.h"
 #include <fstream>
 
+// Unpack variant type and convert to parent type Expression
+std::unique_ptr<vAST::Expression>
+convert_to_expression(std::variant<std::unique_ptr<vAST::Identifier>,
+                                   std::unique_ptr<vAST::Index>> value) {
+  return std::visit([](auto &&value) -> std::unique_ptr<vAST::Expression> {
+    return std::move(value); 
+  }, value);
+}
+
+// Unpack variant type and convert to assign variant type
+std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>,
+             std::unique_ptr<vAST::Slice>> 
+convert_to_assign_target(std::variant<std::unique_ptr<vAST::Identifier>,
+                         std::unique_ptr<vAST::Index>> value) {
+  return std::visit([](auto &&value) ->
+    std::variant<std::unique_ptr<vAST::Identifier>,
+    std::unique_ptr<vAST::Index>, std::unique_ptr<vAST::Slice>> 
+    { return std::move(value); }, 
+    value
+  );
+}
+
 namespace CoreIR {
 
 void Passes::Verilog::initialize(int argc, char **argv) {
@@ -100,7 +122,7 @@ declare_connections(std::map<std::string, Instance *> instances) {
         std::unique_ptr<vAST::Identifier> id =
             std::make_unique<vAST::Identifier>(instance.first + "_" +
                                                port.first);
-        // Can't find a simple way to "promote" a variant type to a
+        // Can't find a simple way to "convert" a variant type to a
         // superset, so we just manually unpack it to call the Wire
         // constructor
         std::visit(
@@ -327,21 +349,25 @@ build_connection_map(std::vector<Connection> connections,
 }
 
 // Join select path fields by "_" (ignoring intial self if present)
-std::string convert_to_verilog_connection(Wireable *value) {
+std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>>
+convert_to_verilog_connection(Wireable *value) {
   SelectPath select_path = value->getSelectPath();
   if (select_path.front() == "self") {
     select_path.pop_front();
   }
   std::string connection_name = "";
-  for (auto item : select_path) {
+  for (uint i = 0; i < select_path.size(); i++) {
+    auto item = select_path[i];
     if (isNumber(item)) {
-      item = "[" + item + "]";
+      ASSERT(i == select_path.size() - 1, "Assumed flattened types have array index as last element in select path");
+      return std::make_unique<vAST::Index>(vAST::make_id(connection_name),
+                                           vAST::make_num(item));
     } else if (connection_name != "") {
       connection_name += "_";
     }
     connection_name += item;
   }
-  return connection_name;
+  return vAST::make_id(connection_name);
 }
 
 // For each output of the current module definition, emit a statement of the
@@ -362,10 +388,8 @@ void assign_module_outputs(
       std::vector<std::unique_ptr<vAST::Expression>> args;
       args.resize(entries.size());
       for (auto entry : entries) {
-        std::string connection_name =
-            convert_to_verilog_connection(entry.source);
         args[entry.index] =
-            (std::make_unique<vAST::Identifier>(connection_name));
+            convert_to_expression(convert_to_verilog_connection(entry.source));
       }
       std::reverse(args.begin(), args.end());
       std::unique_ptr<vAST::Concat> concat =
@@ -374,11 +398,10 @@ void assign_module_outputs(
           std::make_unique<vAST::Identifier>(port.first), std::move(concat)));
     } else {
       // Regular (possibly bulk) connection
-      std::string connection_name =
-          convert_to_verilog_connection(entries[0].source);
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(port.first),
-          std::make_unique<vAST::Identifier>(connection_name)));
+          convert_to_expression(convert_to_verilog_connection(entries[0].source))
+      ));
     }
   }
 }
@@ -392,10 +415,9 @@ void assign_inouts(
     if (connection.first->getType()->isInOut() ||
         connection.second->getType()->isInOut()) {
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-          std::make_unique<vAST::Identifier>(
-              convert_to_verilog_connection(connection.first)),
-          std::make_unique<vAST::Identifier>(
-              convert_to_verilog_connection(connection.second))));
+              convert_to_assign_target(convert_to_verilog_connection(connection.first)),
+              convert_to_expression(convert_to_verilog_connection(connection.second))
+       ));
     };
   };
 }
@@ -454,10 +476,8 @@ compile_module_body(RecordType *module_type,
         std::vector<std::unique_ptr<vAST::Expression>> args;
         args.resize(entries.size());
         for (auto entry : entries) {
-          std::string connection_name =
-              convert_to_verilog_connection(entry.source);
-          args[entry.index] =
-              std::make_unique<vAST::Identifier>(connection_name);
+          args[entry.index] = 
+              convert_to_expression(convert_to_verilog_connection(entry.source));
         }
         std::reverse(args.begin(), args.end());
         std::unique_ptr<vAST::Concat> concat =
@@ -466,10 +486,14 @@ compile_module_body(RecordType *module_type,
             std::make_pair(port.first, std::move(concat)));
         // Otherwise we just use the entry in the connection map
       } else {
-        std::string connection_name =
-            convert_to_verilog_connection(entries[0].source);
         verilog_connections.insert(std::make_pair(
-            port.first, std::make_unique<vAST::Identifier>(connection_name)));
+            port.first, 
+            std::visit([](auto &&value) -> std::variant<std::unique_ptr<vAST::Identifier>,
+                                       std::unique_ptr<vAST::Index>,
+                                       std::unique_ptr<vAST::Slice>,
+                                       std::unique_ptr<vAST::Concat>> { return std::move(value); },
+              convert_to_verilog_connection(entries[0].source))
+            ));
       }
     }
     // Handle module arguments
