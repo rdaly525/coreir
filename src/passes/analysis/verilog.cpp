@@ -415,11 +415,7 @@ void assign_inouts(
     if (connection.first->getType()->isInOut() ||
         connection.second->getType()->isInOut()) {
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-              std::visit([](auto &&value) ->
-                  std::variant<std::unique_ptr<vAST::Identifier>,
-                  std::unique_ptr<vAST::Index>, std::unique_ptr<vAST::Slice>> 
-                  { return std::move(value); },
-                  convert_to_verilog_connection(connection.first)),
+              convert_to_assign_target(convert_to_verilog_connection(connection.first)),
               convert_to_expression(convert_to_verilog_connection(connection.second))
        ));
     };
