@@ -49,13 +49,25 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
   coreir_unreachable();
 }
 
+// unpack named types to get the raw type (so we can check that it's a
+// bit), iteratively because perhaps you can name and named type?
+// This is just a safety check for internal code, to improve performance,
+// we could guard this assert logic behind a macro
+Type *get_raw_type(Type *type) {
+  while (isa<NamedType>(type)) {
+    type = cast<NamedType>(type)->getRaw();
+  }
+  return type;
+}
+
 // Given a signal named `id` and a type `type`, wrap the signal name in a
 // `Vector` node if the signal is of type Array
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
 process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
   if (isa<ArrayType>(type)) {
     ArrayType *array_type = cast<ArrayType>(type);
-    ASSERT(array_type->getElemType()->isBaseType(), "Expected Array of Bits");
+    Type *internal_type = get_raw_type(array_type->getElemType());
+    ASSERT(internal_type->isBaseType(), "Expected Array of Bits");
     return std::make_unique<vAST::Vector>(
         std::move(id),
         std::make_unique<vAST::NumericLiteral>(
@@ -63,13 +75,7 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
         std::make_unique<vAST::NumericLiteral>("0"));
   }
 
-  // unpack named types to get the raw type (so we can check that it's a
-  // bit), iteratively because perhaps you can name and named type?
-  // This is just a safety check for internal code, to improve performance,
-  // we could guard this assert logic behind a macro
-  while (isa<NamedType>(type)) {
-    type = cast<NamedType>(type)->getRaw();
-  }
+  type = get_raw_type(type);
   ASSERT(type->isBaseType(), "Expected Bit, or Array of Bits");
 
   // If it's not an Array type, just return the original identifier
@@ -156,7 +162,8 @@ Passes::Verilog::compileStringBodyModule(json verilog_json, std::string name,
   }
   vAST::Parameters parameters;
   std::set<std::string> parameters_seen;
-  if (module->isGenerated()) {
+  // The wrap primitive has an unused parameter "type" that we ignore
+  if (module->isGenerated() && module->getGenerator()->getName() != "wrap") {
     for (auto parameter : module->getGenerator()->getDefaultGenArgs()) {
       parameters.push_back(
           std::pair(std::make_unique<vAST::Identifier>(parameter.first),
@@ -475,7 +482,9 @@ compile_module_body(RecordType *module_type,
     }
     // Handle generator arguments
     if (instance_module->isGenerated() &&
-        instance_module->getGenerator()->getMetaData().count("verilog") > 0) {
+        instance_module->getGenerator()->getMetaData().count("verilog") > 0 &&
+        // Ignore wrap "type" parameter
+        instance_module->getGenerator()->getName() != "wrap") {
       for (auto parameter : instance.second->getModuleRef()->getGenArgs()) {
         instance_parameters.push_back(
             std::pair(std::make_unique<vAST::Identifier>(parameter.first),
