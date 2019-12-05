@@ -356,7 +356,7 @@ convert_to_verilog_connection(Wireable *value) {
     select_path.pop_front();
   }
   std::string connection_name = "";
-  for (int i = 0; i < select_path.size(); i++) {
+  for (uint i = 0; i < select_path.size(); i++) {
     auto item = select_path[i];
     if (isNumber(item)) {
       ASSERT(i == select_path.size() - 1, "Assumed flattened types have array index as last element in select path");
