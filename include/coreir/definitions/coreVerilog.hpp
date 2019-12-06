@@ -11,6 +11,11 @@ std::vector<std::unique_ptr<vAST::Expression>>
     return arg_ptrs;
 }
 
+std::vector<std::unique_ptr<vAST::Expression>>
+        make_ext_args(std::vector<std::unique_ptr<vAST::Expression>> args) {
+    return args;
+}
+
 std::unique_ptr<vAST::CallExpr> make_signed_call(const char *id) {
     std::vector<std::unique_ptr<vAST::Expression>> args;
     args.push_back(vAST::make_id(std::string(id)));
@@ -20,188 +25,205 @@ std::unique_ptr<vAST::CallExpr> make_signed_call(const char *id) {
 using namespace CoreIR;
 using namespace std;
 void CoreIRLoadVerilog_coreir(Context* c) {
-  std::map<std::string,std::map<std::string,std::string,vAST::Expression>>
+  std::map<std::string,std::map<std::string,std::pair<std::string,std::function<std::unique_ptr<vAST::Expression>()>>>>
       coreVMap({
     {"unary",{
-      {"wire","in", 
-        vAST::make_id("in")
-      },
-      {"not","~in", 
-        vAST::UnaryOp(vAST::make_id("in"),
-                      vAST::UnOp::INVERT)
-      },
-      {"neg","-in",
-        vAST::UnaryOp(vAST::make_id("in"),
-                      vAST::UnOp::MINUS)
-      }
+      {"wire",{
+        "in", 
+        []() {return vAST::make_id("in");}
+      }},
+      {"not",{
+        "~in", 
+        []() {return std::make_unique<vAST::UnaryOp>(vAST::make_id("in"), vAST::UnOp::INVERT);}
+      }},
+      {"neg",{
+        "-in",
+        []() {return std::make_unique<vAST::UnaryOp>(vAST::make_id("in"), vAST::UnOp::MINUS);}
+      }}
     }},
     {"unaryReduce",{
-      {"andr","&in",
-        vAST::UnaryOp(vAST::make_id("in"),
-                      vAST::UnOp::AND)
-      },
-      {"orr","|in",
-        vAST::UnaryOp(vAST::make_id("in"),
-                      vAST::UnOp::OR)
-      },
-      {"xorr","^in",
-        vAST::UnaryOp(vAST::make_id("in"),
-                      vAST::UnOp::XOR)
-      }
+      {"andr",{"&in",
+        []() {return std::make_unique<vAST::UnaryOp>(vAST::make_id("in"), vAST::UnOp::AND);}
+      }},
+      {"orr",{"|in",
+        []() {return std::make_unique<vAST::UnaryOp>(vAST::make_id("in"), vAST::UnOp::OR);}
+      }},
+      {"xorr",{"^in",
+        []() {return std::make_unique<vAST::UnaryOp>(vAST::make_id("in"), vAST::UnOp::XOR);}
+      }}
     }},
     {"binary",{
-      {"and","in0 & in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::AND,
-                       vAST::make_id("in1"))
-      },
-      {"or","in0 | in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::OR,
-                       vAST::make_id("in1"))
-      },
-      {"xor","in0 ^ in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::XOR,
-                       vAST::make_id("in1"))
-      },
-      {"shl","in0 << in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::LSHIFT,
-                       vAST::make_id("in1"))
-      },
-      {"lshr","in0 >> in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::RSHIFT,
-                       vAST::make_id("in1"))
-      },
-      {"ashr","$signed(in0) >>> in1",
-        vAST::BinaryOp(make_signed_call("in0"),
-                       vAST::BinOp::ARSHIFT,
-                       vAST::make_id("in1"))
-      },
-      {"add","in0 + in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::ADD,
-                       vAST::make_id("in1"))
-      },
-      {"sub","in0 - in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::SUB,
-                       vAST::make_id("in1"))
-      },
-      {"mul","in0 * in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::MUL,
-                       vAST::make_id("in1"))
-      },
-      {"udiv","in0 / in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::DIV,
-                       vAST::make_id("in1"))
-      },
-      {"sdiv","$signed(in0) / $signed(in1)",
-        vAST::BinaryOp(make_signed_call("in0"),
-                       vAST::BinOp::DIV,
-                       make_signed_call("in1"))
-      }
+      {"and",{"in0 & in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::AND, vAST::make_id("in1"));
+      }}},
+      {"or",{"in0 | in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::OR, vAST::make_id("in1"));
+      }}},
+      {"xor",{"in0 ^ in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::XOR, vAST::make_id("in1"));
+      }}},
+      {"shl",{"in0 << in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::LSHIFT, vAST::make_id("in1"));
+      }}},
+      {"lshr",{"in0 >> in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::RSHIFT, vAST::make_id("in1"));
+      }}},
+      {"ashr",{"$signed(in0) >>> in1",
+        []() {return std::make_unique<vAST::BinaryOp>(make_signed_call("in0"),
+                vAST::BinOp::ARSHIFT, vAST::make_id("in1"));
+      }}},
+      {"add",{"in0 + in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::ADD, vAST::make_id("in1"));
+      }}},
+      {"sub",{"in0 - in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::SUB, vAST::make_id("in1"));
+      }}},
+      {"mul",{"in0 * in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::MUL, vAST::make_id("in1"));
+      }}},
+      {"udiv",{"in0 / in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::DIV, vAST::make_id("in1"));
+      }}},
+      {"sdiv",{"$signed(in0) / $signed(in1)",
+        []() {return std::make_unique<vAST::BinaryOp>(make_signed_call("in0"),
+                vAST::BinOp::DIV, make_signed_call("in1"));
+      }}}
     }},
     {"binaryReduce",{
-      {"eq","in0 == in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::EQ,
-                       vAST::make_id("in1"))
-      },
-      {"neq","in0 != in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::NEQ,
-                       vAST::make_id("in1"))
-      },
-      {"slt","$signed(in0) < $signed(in1)",
-        vAST::BinaryOp(make_signed_call("in0"),
-                       vAST::BinOp::LT,
-                       make_signed_call("in1"))
-      },
-      {"sgt","$signed(in0) > $signed(in1)",
-        vAST::BinaryOp(make_signed_call("in0"),
-                       vAST::BinOp::GT,
-                       make_signed_call("in1"))
-      },
-      {"sle","$signed(in0) <= $signed(in1)",
-        vAST::BinaryOp(make_signed_call("in0"),
-                       vAST::BinOp::LTE,
-                       make_signed_call("in1"))
-      },
-      {"sge","$signed(in0) >= $signed(in1)",
-        vAST::BinaryOp(make_signed_call("in0"),
-                       vAST::BinOp::GTE,
-                       make_signed_call("in1"))
-      },
-      {"ult","in0 < in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::LT,
-                       vAST::make_id("in1"))
-      },
-      {"ugt","in0 > in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::GT,
-                       vAST::make_id("in1"))
-      },
-      {"ule","in0 <= in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::LTE,
-                       vAST::make_id("in1"))
-      },
-      {"uge","in0 >= in1",
-        vAST::BinaryOp(vAST::make_id("in0"),
-                       vAST::BinOp::GTE,
-                       vAST::make_id("in1"))
-      }
+      {"eq",{"in0 == in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::EQ, vAST::make_id("in1"));
+      }}},
+      {"neq",{"in0 != in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::NEQ, vAST::make_id("in1"));
+      }}},
+      {"slt",{"$signed(in0) < $signed(in1)",
+        []() {return std::make_unique<vAST::BinaryOp>(make_signed_call("in0"),
+                vAST::BinOp::LT, make_signed_call("in1"));
+      }}},
+      {"sgt",{"$signed(in0) > $signed(in1)",
+        []() {return std::make_unique<vAST::BinaryOp>(make_signed_call("in0"),
+                vAST::BinOp::GT, make_signed_call("in1"));
+      }}},
+      {"sle",{"$signed(in0) <= $signed(in1)",
+        []() {return std::make_unique<vAST::BinaryOp>(make_signed_call("in0"),
+                vAST::BinOp::LTE, make_signed_call("in1"));
+      }}},
+      {"sge",{"$signed(in0) >= $signed(in1)",
+        []() {return std::make_unique<vAST::BinaryOp>(make_signed_call("in0"),
+                vAST::BinOp::GTE, make_signed_call("in1"));
+      }}},
+      {"ult",{"in0 < in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::LT, vAST::make_id("in1"));
+      }}},
+      {"ugt",{"in0 > in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::GT, vAST::make_id("in1"));
+      }}},
+      {"ule",{"in0 <= in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::LTE, vAST::make_id("in1"));
+      }}},
+      {"uge",{"in0 >= in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::GTE, vAST::make_id("in1"));
+      }}}
     }},
     {"other",{
-      {"mux","sel ? in1 : in0",
-          vAST::TernaryOp(
+      {"mux",{"sel ? in1 : in0",
+          [](){ return std::make_unique<vAST::TernaryOp>(
                   vAST::make_id("sel"),
                   vAST::make_id("in1"),
-                  vAST::make_id("in0"))
-      },
-      {"slice","in[hi-1:lo]",
-          vAST::Slice(
+                  vAST::make_id("in0")); 
+      }}},
+      {"slice",{"in[hi-1:lo]",
+          [](){ return std::make_unique<vAST::Slice>(
                   vAST::make_id("in"),
                   vAST::make_binop(
                       vAST::make_id("hi"), 
                       vAST::BinOp::SUB,
                       vAST::make_num("1")
                   ),
-                  vAST::make_id("lo"))
-      },
-      {"concat","{in1,in0}",
-          vAST::Concat(make_args({"in1", "in0"}))
-      },
-      {"zext","{{(width_out-width_in){1'b0}},in}",
-
-      },
-      {"sext","{{(width_out-width_in){in[width_in-1]}},in}",
-
-      },
-      {"strip","in",
-        vAST::make_id("in")
-      },
-      {"wrap","in",
-        vAST::make_id("in")
-      },
-      {"const","value",
-        vAST::make_id("value")
-      },
-      {"tribuf","en ? in : 'hz",
-          vAST::TernaryOp(
+                  vAST::make_id("lo")); 
+      }}},
+      {"concat",{"{in1,in0}",
+          [](){ return std::make_unique<vAST::Concat>(make_args({"in1", "in0"})); 
+      }}},
+      {"zext",{"{{(width_out-width_in){1'b0}},in}",
+          [](){
+            // Can't use initializer list of vector of unique ptrs, so we
+            // explicitly construct it
+            std::vector<std::unique_ptr<vAST::Expression>> zext_args;
+            zext_args.push_back(
+                std::make_unique<vAST::Replicate>(
+                  vAST::make_binop(
+                      vAST::make_id("width_out"),
+                      vAST::BinOp::SUB,
+                      vAST::make_id("width_in")
+                  ),
+                  std::make_unique<vAST::NumericLiteral>("0", 1, false,
+                      vAST::Radix::BINARY)
+                )
+            );
+            zext_args.push_back(
+                vAST::make_id("in")
+            );
+            return std::make_unique<vAST::Concat>(std::move(zext_args)); 
+      }}},
+      {"sext",{"{{(width_out-width_in){in[width_in-1]}},in}",
+          [](){ 
+            // Can't use initializer list of vector of unique ptrs, so we
+            // explicitly construct it
+            std::vector<std::unique_ptr<vAST::Expression>> sext_args;
+            sext_args.push_back(
+                std::make_unique<vAST::Replicate>(
+                    vAST::make_binop(
+                        vAST::make_id("width_out"),
+                        vAST::BinOp::SUB,
+                        vAST::make_id("width_in")
+                        ),
+                    std::make_unique<vAST::Index>(
+                        vAST::make_id("in"),
+                        vAST::make_binop(
+                            vAST::make_id("width_in"),
+                            vAST::BinOp::SUB,
+                            vAST::make_num("1")
+                        )
+                    )
+                ) 
+            );
+            sext_args.push_back(vAST::make_id("in"));
+            return std::make_unique<vAST::Concat>(std::move(sext_args)); 
+      }}},
+      {"strip",{"in",
+        [](){ return vAST::make_id("in"); 
+      }}},
+      {"wrap",{"in",
+        [](){ return vAST::make_id("in"); 
+      }}},
+      {"const",{"value",
+        [](){ return vAST::make_id("value"); 
+      }}},
+      {"tribuf",{"en ? in : 'hz",
+          [](){ return std::make_unique<vAST::TernaryOp>(
                   vAST::make_id("en"),
                   vAST::make_id("in"),
-                  std::make_unique<vAST::NumericLiteral>("z", vAST::Radix::HEX))
-      },
-      {"ibuf","in",
-        vAST::make_id("in")
-      },
+                  std::make_unique<vAST::NumericLiteral>("z", vAST::Radix::HEX)); 
+      }}},
+      {"ibuf",{"in",
+        [](){ return vAST::make_id("in"); 
+      }}}
       //{"term",""}
       //{"reg",""}, 
       //{"mem",""}, 
@@ -295,7 +317,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
   for (auto it0 : coreVMap) {
     for (auto it1 : it0.second) {
       string op = it1.first;
-      string vbody = it1.second;
+      string vbody = it1.second.first;
       json vjson;
       vjson["prefix"] = "coreir_";
       vjson["definition"] = "  assign out = " + vbody + ";";
