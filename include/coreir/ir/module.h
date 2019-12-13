@@ -5,10 +5,11 @@
 #include "fwd_declare.h"
 #include "args.h"
 #include "globalvalue.h"
+#include "coreir/primitive.h"
 
 namespace CoreIR {
 
-class Module : public GlobalValue, public Args {
+class Module : public GlobalValue, public Args, public Primitive {
   RecordType* type;
   ModuleDef* def = nullptr;
   

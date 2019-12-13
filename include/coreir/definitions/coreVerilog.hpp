@@ -330,7 +330,9 @@ void CoreIRLoadVerilog_coreir(Context* c) {
         ASSERT(coreIMap.count(it1.first),"missing" + it1.first);
         vjson["interface"] = coreIMap.at(it1.first);
       }
+      vjson["primitive_type"] = it0.first;
       core->getGenerator(op)->getMetaData()["verilog"] = vjson;
+      core->getGenerator(op)->setPrimitiveExpressionLambda(it1.second.second);
     }
   }
 

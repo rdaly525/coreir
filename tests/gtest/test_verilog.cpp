@@ -1,5 +1,7 @@
 #include "gtest/gtest.h"
 #include "coreir.h"
+#include "coreir/definitions/coreVerilog.hpp"
+#include "coreir/definitions/corebitVerilog.hpp"
 #include "assert_pass.h"
 
 using namespace CoreIR;
@@ -66,6 +68,53 @@ TEST(VerilogTests, TestArraySelect) {
   };
   c->runPasses(passes, {});
   assertPassEq<Passes::Verilog>(c, "array_select_golden.v");
+  deleteContext(c);
+}
+
+
+TEST(VerilogTests, TestAddInline) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  Module* top;
+
+  if (!loadFromFile(c, "add.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "add_golden.v");
+  deleteContext(c);
+}
+
+
+TEST(VerilogTests, TestTwoInline) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  Module* top;
+
+  if (!loadFromFile(c, "two_ops.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "two_ops_golden.v");
   deleteContext(c);
 }
 

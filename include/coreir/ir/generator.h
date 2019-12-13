@@ -4,10 +4,11 @@
 
 #include "fwd_declare.h"
 #include "globalvalue.h"
+#include "coreir/primitive.h"
 
 namespace CoreIR {
 
-class Generator : public GlobalValue {
+class Generator : public GlobalValue, public Primitive {
     
   TypeGen* typegen;
   
