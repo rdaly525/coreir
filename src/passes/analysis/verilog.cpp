@@ -2,6 +2,7 @@
 #include "coreir.h"
 #include "coreir/tools/cxxopts.h"
 #include "verilogAST/transformer.hpp"
+#include "verilogAST/assign_inliner.hpp"
 #include <fstream>
 
 namespace vAST = verilogAST;
@@ -68,20 +69,11 @@ bool can_inline_binary_op(CoreIR::Module *module, bool _inline) {
 
 std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     std::pair<std::string, CoreIR::Instance *> instance,
-    std::map<std::string, std::variant<std::unique_ptr<vAST::Identifier>,
-                                       std::unique_ptr<vAST::Index>,
-                                       std::unique_ptr<vAST::Slice>,
-                                       std::unique_ptr<vAST::Concat>>>
-        verilog_connections
+    std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections
         ) {
-    BinaryOpReplacer transformer(
-            std::visit([](auto &&value) -> std::unique_ptr<vAST::Expression> {
-              return std::move(value); 
-            }, std::move(verilog_connections["in0"])) ,
-            std::visit([](auto &&value) -> std::unique_ptr<vAST::Expression> {
-              return std::move(value); 
-            }, std::move(verilog_connections["in1"]))
-            );
+    BinaryOpReplacer transformer( 
+            std::move(verilog_connections["in0"]),
+            std::move(verilog_connections["in1"]));
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
         transformer.visit(instance.second->getModuleRef()->getGenerator()->getPrimitiveExpressionLambda()()));
@@ -100,16 +92,9 @@ bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
 
 std::unique_ptr<vAST::StructuralStatement> inline_unary_op(
     std::pair<std::string, CoreIR::Instance *> instance,
-    std::map<std::string, std::variant<std::unique_ptr<vAST::Identifier>,
-                                       std::unique_ptr<vAST::Index>,
-                                       std::unique_ptr<vAST::Slice>,
-                                       std::unique_ptr<vAST::Concat>>>
-        verilog_connections
+    std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections
         ) {
-    UnaryOpReplacer transformer(
-            std::visit([](auto &&value) -> std::unique_ptr<vAST::Expression> {
-              return std::move(value); 
-            }, std::move(verilog_connections["in"])));
+    UnaryOpReplacer transformer(std::move(verilog_connections["in"]));
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
         transformer.visit(instance.second->getModuleRef()->getGenerator()->getPrimitiveExpressionLambda()()));
@@ -584,11 +569,7 @@ compile_module_body(RecordType *module_type,
     }
     vAST::Parameters instance_parameters;
     std::string instance_name = instance.first;
-    std::map<std::string, std::variant<std::unique_ptr<vAST::Identifier>,
-                                       std::unique_ptr<vAST::Index>,
-                                       std::unique_ptr<vAST::Slice>,
-                                       std::unique_ptr<vAST::Concat>>>
-        verilog_connections;
+    std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections;
     for (auto port :
          cast<RecordType>(instance_module->getType())->getRecord()) {
       if (!port.second->isInput()) {
@@ -618,13 +599,8 @@ compile_module_body(RecordType *module_type,
         // Otherwise we just use the entry in the connection map
       } else {
         verilog_connections.insert(std::make_pair(
-            port.first, 
-            std::visit([](auto &&value) -> std::variant<std::unique_ptr<vAST::Identifier>,
-                                       std::unique_ptr<vAST::Index>,
-                                       std::unique_ptr<vAST::Slice>,
-                                       std::unique_ptr<vAST::Concat>> { return std::move(value); },
-              convert_to_verilog_connection(entries[0].source))
-            ));
+            port.first,
+            convert_to_expression(convert_to_verilog_connection(entries[0].source))));
       }
     }
     // Handle module arguments
@@ -759,6 +735,9 @@ void Passes::Verilog::compileModule(Module *module) {
   std::unique_ptr<vAST::AbstractModule> verilog_module =
       std::make_unique<vAST::Module>(name, std::move(ports), std::move(body),
                                      std::move(parameters));
+
+  vAST::AssignInliner transformer;
+  verilog_module = transformer.visit(std::move(verilog_module));
   modules.push_back(std::make_pair(name, std::move(verilog_module)));
 }
 
