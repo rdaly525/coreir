@@ -344,11 +344,6 @@ Passes::Verilog::compilePorts(RecordType *record_type) {
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
   for (auto entry : record_type->getRecord()) {
     std::string name_str = entry.first;
-    if (this->verilator_debug) {
-        // FIXME: Hack to get comment into port name, we need to design a way
-        // to attach comments to expressions
-        name_str += "/*verilator public*/";
-    }
     std::unique_ptr<vAST::Identifier> name =
         std::make_unique<vAST::Identifier>(name_str);
 
@@ -364,9 +359,17 @@ Passes::Verilog::compilePorts(RecordType *record_type) {
     } else {
       ASSERT(false, "Not implemented for type = " + toString(type));
     }
-
-    ports.push_back(std::make_unique<vAST::Port>(
-        process_decl(std::move(name), type), verilog_direction, vAST::WIRE));
+    std::unique_ptr<vAST::Port> port = std::make_unique<vAST::Port>(
+            process_decl(std::move(name), type), verilog_direction, vAST::WIRE);
+    if (this->verilator_debug) {
+      // FIXME: Hack to get comment into port decl, we need to add support
+      // attaching comments to expressions
+      std::string port_str = port->toString();
+      port_str += "/*verilator public*/";
+      ports.push_back(std::make_unique<vAST::StringPort>(port_str));
+    } else {
+      ports.push_back(std::move(port));
+    }
   };
   return ports;
 }
