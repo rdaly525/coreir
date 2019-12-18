@@ -739,8 +739,10 @@ void Passes::Verilog::compileModule(Module *module) {
       std::make_unique<vAST::Module>(name, std::move(ports), std::move(body),
                                      std::move(parameters));
 
-  vAST::AssignInliner transformer;
-  verilog_module = transformer.visit(std::move(verilog_module));
+  if (this->_inline) {
+      vAST::AssignInliner transformer;
+      verilog_module = transformer.visit(std::move(verilog_module));
+  }
   modules.push_back(std::make_pair(name, std::move(verilog_module)));
 }
 
