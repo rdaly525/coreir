@@ -599,6 +599,10 @@ void Passes::Verilog::compileModule(Module *module) {
       body = compile_module_body(module->getType(),
                                  definition->getSortedConnections(),
                                  definition->getInstances());
+  if (module->getMetaData().count("inline_verilog") > 0) {
+    std::string inline_str = module->getMetaData()["inline_verilog"].get<std::string>();
+    body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
+  }
 
   vAST::Parameters parameters = compile_params(module);
 
