@@ -53,6 +53,7 @@ class BinaryOpReplacer : public vAST::Transformer {
 
 bool is_inlined(std::string primitive_type, std::string name) {
     return primitive_type == "binary" || primitive_type == "unary" ||
+        primitive_type == "binaryReduce" ||
         (primitive_type == "other" && name == "const");
 }
 
@@ -62,7 +63,9 @@ bool can_inline_binary_op(CoreIR::Module *module, bool _inline) {
         json verilog_json =
             module->getGenerator()->getMetaData()["verilog"];
         return module->getGenerator()->hasPrimitiveExpressionLambda() &&
-            verilog_json["primitive_type"] == "binary" && _inline;
+            (verilog_json["primitive_type"] == "binary" ||
+             verilog_json["primitive_type"] == "binaryReduce")
+            && _inline;
     }
     return false;
 }
