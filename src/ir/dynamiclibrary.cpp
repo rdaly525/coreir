@@ -6,10 +6,16 @@
 #include <sys/utsname.h>
 #include <fstream>
 
+#if defined(__linux__)
+#include <link.h>
+#include <dlfcn.h>
+#endif // __linux__
+
 
 
 using namespace std;
 
+#if !defined(__linux__)
 namespace {
   bool fileExists(string name) {
     //return true;
@@ -17,6 +23,7 @@ namespace {
     return infile.good();
   } 
 }
+#endif // !__linux__
 
 namespace CoreIR {
 
@@ -54,6 +61,8 @@ void* DynamicLibrary::openLibrary(string fileName) {
   if (libCache.count(fileName)) {
     return libCache[fileName];
   }
+
+#if !defined(__linux__)
   string file;
   string foundPath;
   bool found = false;
@@ -66,10 +75,18 @@ void* DynamicLibrary::openLibrary(string fileName) {
     }
   }
   ASSERT(found,"Cannot find library " + fileName + " in paths:\n  " + pathsToString());
+#endif // !__linux__
   
   void* handle = dlopen(fileName.c_str(),RTLD_LAZY);
-  const char* dlsym_error = dlerror();
-  ASSERT(!dlsym_error,"dlsym error " + fileName + " "+ string(dlsym_error));
+  ASSERT(handle, "dlopen error " + fileName + " " + string(dlerror()));
+
+#if defined(__linux__)
+  struct link_map* linkMap;
+  int ret = dlinfo(handle, RTLD_DI_LINKMAP, &linkMap);
+  ASSERT(ret == 0, "dlinfo error " + fileName + " " + string(dlerror()));
+  string foundPath = linkMap->l_name;
+#endif
+
   pathMap[fileName] = foundPath;
   libCache[fileName] = handle;
   return handle;
