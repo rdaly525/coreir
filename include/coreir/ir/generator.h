@@ -8,7 +8,7 @@
 
 namespace CoreIR {
 
-class Generator : public GlobalValue, public Primitive {
+class Generator : public GlobalValue, public VerilogPrimitive {
     
   TypeGen* typegen;
   

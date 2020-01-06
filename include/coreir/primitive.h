@@ -3,7 +3,7 @@
 #include "verilogAST.hpp"
 namespace vAST = verilogAST;
 namespace CoreIR {
-class Primitive {
+class VerilogPrimitive {
     std::function<std::unique_ptr<vAST::Expression>()> primitiveExpressionLambda = nullptr;
     public:
 

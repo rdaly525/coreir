@@ -9,7 +9,7 @@
 
 namespace CoreIR {
 
-class Module : public GlobalValue, public Args, public Primitive {
+class Module : public GlobalValue, public Args, public VerilogPrimitive {
   RecordType* type;
   ModuleDef* def = nullptr;
   
