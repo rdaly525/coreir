@@ -175,7 +175,7 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
     return std::make_unique<vAST::NumericLiteral>(int_value->toString());
   } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
     return std::make_unique<vAST::NumericLiteral>(
-        std::to_string(uint(bool_value->get())));
+        std::to_string(uint(bool_value->get())), 1, false, vAST::BINARY);
   } else if (auto bit_vector_value = dyn_cast<ConstBitVector>(value)) {
     BitVector bit_vector = bit_vector_value->get();
     return std::make_unique<vAST::NumericLiteral>(
