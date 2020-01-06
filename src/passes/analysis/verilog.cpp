@@ -51,10 +51,38 @@ class BinaryOpReplacer : public vAST::Transformer {
   };
 };
 
+class MuxReplacer : public vAST::Transformer {
+    std::unique_ptr<vAST::Expression> in0;
+    std::unique_ptr<vAST::Expression> in1;
+    std::unique_ptr<vAST::Expression> sel;
+  public:
+  MuxReplacer(std::unique_ptr<vAST::Expression> in0,
+              std::unique_ptr<vAST::Expression> in1,
+              std::unique_ptr<vAST::Expression> sel) :
+        in0(std::move(in0)), in1(std::move(in1)), sel(std::move(sel)){};
+
+  virtual std::unique_ptr<vAST::Expression> visit(
+      std::unique_ptr<vAST::Expression> node) {
+    if (auto ptr = dynamic_cast<vAST::Identifier *>(node.get())) {
+      node.release();
+      std::unique_ptr<vAST::Identifier> id(ptr);
+      if (id->value == "in0") {
+        return std::move(this->in0);
+      } else if (id->value == "in1") {
+        return std::move(this->in1);
+      } else if (id->value == "sel") {
+        return std::move(this->sel);
+      }
+      return vAST::Transformer::visit(std::move(id));
+    }
+    return vAST::Transformer::visit(std::move(node));
+  };
+};
+
 bool is_inlined(std::string primitive_type, std::string name) {
     return primitive_type == "binary" || primitive_type == "unary" ||
         primitive_type == "binaryReduce" ||
-        (primitive_type == "other" && name == "const");
+        (primitive_type == "other" && (name == "const" || name == "mux"));
 }
 
 bool can_inline_binary_op(CoreIR::Module *module, bool _inline) {
@@ -119,6 +147,30 @@ bool can_inline_const_op(CoreIR::Module *module, bool _inline) {
             module->getName() == "const" && _inline;
     }
     return false;
+}
+
+bool can_inline_mux_op(CoreIR::Module *module, bool _inline) {
+    if (module->isGenerated() &&
+        module->getGenerator()->getMetaData().count("verilog") > 0) {
+        json verilog_json =
+            module->getGenerator()->getMetaData()["verilog"];
+        return module->getGenerator()->hasPrimitiveExpressionLambda() &&
+            verilog_json["primitive_type"] == "other" &&
+            module->getName() == "mux" && _inline;
+    }
+    return false;
+}
+
+std::unique_ptr<vAST::StructuralStatement> inline_mux_op(
+    std::pair<std::string, CoreIR::Instance *> instance,
+    std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections
+        ) {
+    MuxReplacer transformer(std::move(verilog_connections["in0"]),
+                            std::move(verilog_connections["in1"]),
+                            std::move(verilog_connections["sel"]));
+    return std::make_unique<vAST::ContinuousAssign>(
+        std::make_unique<vAST::Identifier>(instance.first + "_out"),
+        transformer.visit(instance.second->getModuleRef()->getGenerator()->getPrimitiveExpressionLambda()()));
 }
 
 // Unpack variant type and convert to parent type Expression
@@ -633,6 +685,8 @@ compile_module_body(RecordType *module_type,
         statement = inline_binary_op(instance, std::move(verilog_connections));
     } else if (can_inline_unary_op(instance_module, _inline)) {
         statement = inline_unary_op(instance, std::move(verilog_connections));
+    } else if (can_inline_mux_op(instance_module, _inline)) {
+        statement = inline_mux_op(instance, std::move(verilog_connections));
     } else if (can_inline_const_op(instance_module, _inline)) {
         ASSERT(instance_parameters[0].first->value == "value", 
             "expected first param to be const value");

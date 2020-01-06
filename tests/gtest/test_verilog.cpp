@@ -2,6 +2,7 @@
 #include "coreir.h"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/libs/commonlib.h"
 #include "assert_pass.h"
 
 using namespace CoreIR;
@@ -115,6 +116,30 @@ TEST(VerilogTests, TestTwoInline) {
   };
   c->runPasses(passes, {});
   assertPassEq<Passes::Verilog>(c, "two_ops_golden.v");
+  deleteContext(c);
+}
+
+TEST(VerilogTests, TestMuxInline) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "mux.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "mux_golden.v");
   deleteContext(c);
 }
 
