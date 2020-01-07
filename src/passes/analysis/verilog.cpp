@@ -81,7 +81,7 @@ class MuxReplacer : public vAST::Transformer {
 
 bool is_inlined(std::string primitive_type, std::string name) {
     return primitive_type == "binary" || primitive_type == "unary" ||
-        primitive_type == "binaryReduce" ||
+        primitive_type == "unaryReduce" || primitive_type == "binaryReduce" ||
         (primitive_type == "other" && 
          (name == "const" || name == "mux" || name == "slice"));
 }
@@ -117,7 +117,9 @@ bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
         json verilog_json =
             module->getGenerator()->getMetaData()["verilog"];
         return module->getGenerator()->hasPrimitiveExpressionLambda() &&
-            verilog_json["primitive_type"] == "unary" && _inline;
+            (verilog_json["primitive_type"] == "unary" ||
+             verilog_json["primitive_type"] == "unaryReduce")
+            && _inline;
     }
     return false;
 }
