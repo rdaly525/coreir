@@ -82,7 +82,8 @@ class MuxReplacer : public vAST::Transformer {
 bool is_inlined(std::string primitive_type, std::string name) {
     return primitive_type == "binary" || primitive_type == "unary" ||
         primitive_type == "binaryReduce" ||
-        (primitive_type == "other" && (name == "const" || name == "mux"));
+        (primitive_type == "other" && 
+         (name == "const" || name == "mux" || name == "slice"));
 }
 
 bool can_inline_binary_op(CoreIR::Module *module, bool _inline) {
@@ -171,6 +172,18 @@ std::unique_ptr<vAST::StructuralStatement> inline_mux_op(
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
         transformer.visit(instance.second->getModuleRef()->getGenerator()->getPrimitiveExpressionLambda()()));
+}
+
+bool can_inline_slice_op(CoreIR::Module *module, bool _inline) {
+    if (module->isGenerated() &&
+        module->getGenerator()->getMetaData().count("verilog") > 0) {
+        json verilog_json =
+            module->getGenerator()->getMetaData()["verilog"];
+        return module->getGenerator()->hasPrimitiveExpressionLambda() &&
+            verilog_json["primitive_type"] == "other" &&
+            module->getName() == "slice" && _inline;
+    }
+    return false;
 }
 
 // Unpack variant type and convert to parent type Expression
@@ -693,6 +706,22 @@ compile_module_body(RecordType *module_type,
         statement = std::make_unique<vAST::ContinuousAssign>(
             std::make_unique<vAST::Identifier>(instance.first + "_out"),
             std::move(instance_parameters[0].second));
+    } else if (can_inline_slice_op(instance_module, _inline)) {
+        ASSERT(instance_parameters[0].first->value == "hi", 
+            "expected first param to be hi");
+        ASSERT(instance_parameters[1].first->value == "lo", 
+            "expected second param to be lo");
+        statement = std::make_unique<vAST::ContinuousAssign>(
+            std::make_unique<vAST::Identifier>(instance.first + "_out"),
+            std::make_unique<vAST::Slice>(
+                std::move(verilog_connections["in"]),
+                vAST::make_binop(
+                    std::move(instance_parameters[0].second), 
+                    vAST::BinOp::SUB,
+                    vAST::make_num("1")
+                ),
+                std::move(instance_parameters[1].second)
+            ));
     } else {
         statement = std::make_unique<vAST::ModuleInstantiation>(
             module_name, std::move(instance_parameters), instance_name,
