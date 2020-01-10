@@ -69,6 +69,27 @@ TEST(VerilogTests, TestArraySelect) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestInlineVerilogMetadata) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "inline_verilog.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "inline_verilog_golden.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
