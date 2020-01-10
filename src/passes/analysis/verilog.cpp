@@ -456,11 +456,7 @@ compile_module_body(RecordType *module_type,
     }
     vAST::Parameters instance_parameters;
     std::string instance_name = instance.first;
-    std::map<std::string, std::variant<std::unique_ptr<vAST::Identifier>,
-                                       std::unique_ptr<vAST::Index>,
-                                       std::unique_ptr<vAST::Slice>,
-                                       std::unique_ptr<vAST::Concat>>>
-        verilog_connections;
+    std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections;
     for (auto port :
          cast<RecordType>(instance_module->getType())->getRecord()) {
       if (!port.second->isInput()) {
@@ -490,12 +486,8 @@ compile_module_body(RecordType *module_type,
         // Otherwise we just use the entry in the connection map
       } else {
         verilog_connections.insert(std::make_pair(
-            port.first, 
-            std::visit([](auto &&value) -> std::variant<std::unique_ptr<vAST::Identifier>,
-                                       std::unique_ptr<vAST::Index>,
-                                       std::unique_ptr<vAST::Slice>,
-                                       std::unique_ptr<vAST::Concat>> { return std::move(value); },
-              convert_to_verilog_connection(entries[0].source))
+            port.first,
+            convert_to_expression(convert_to_verilog_connection(entries[0].source))
             ));
       }
     }
