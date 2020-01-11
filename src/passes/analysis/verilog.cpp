@@ -820,6 +820,13 @@ void Passes::Verilog::compileModule(Module *module) {
                                  definition->getInstances(),
                                  this->_inline);
 
+  // Temporary support for inline verilog
+  // See https://github.com/rdaly525/coreir/pull/823 for context
+  if (module->getMetaData().count("inline_verilog") > 0) {
+    std::string inline_str = module->getMetaData()["inline_verilog"].get<std::string>();
+    body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
+  }
+
   vAST::Parameters parameters = compile_params(module);
 
   std::string name = module->getLongName();

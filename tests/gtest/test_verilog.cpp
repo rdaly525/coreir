@@ -72,7 +72,6 @@ TEST(VerilogTests, TestArraySelect) {
   deleteContext(c);
 }
 
-
 TEST(VerilogTests, TestAddInline) {
   Context* c = newContext();
   CoreIRLoadVerilog_coreir(c);
@@ -140,6 +139,27 @@ TEST(VerilogTests, TestMuxInline) {
   };
   c->runPasses(passes, {});
   assertPassEq<Passes::Verilog>(c, "mux_golden.v");
+  deleteContext(c);
+}
+    
+TEST(VerilogTests, TestInlineVerilogMetadata) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "inline_verilog.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "inline_verilog_golden.v");
   deleteContext(c);
 }
 
