@@ -498,12 +498,15 @@ public:
 
 // An entry in the connection map contains a source wireable (driving the port
 // denoted by the key). It also contains an index in the case of a driver
-// connecting to a sub element of the port.
+// connecting to a sub element of the port.  Metadata is used to generate debug
+// info
 class ConnMapEntry {
 public:
   Wireable *source;
   int index;
-  ConnMapEntry(Wireable *source, int index) : source(source), index(index){};
+  json& metadata;
+  ConnMapEntry(Wireable *source, int index, json& metadata) : source(source),
+    index(index), metadata(metadata){};
 };
 
 // Builds a map from pairs of strings of the form <instance_name, port_name>
@@ -515,8 +518,9 @@ public:
 // array of 3 bits, and each bit is connected to a 1-bit driver).  In this
 // case, each entry stores the index that it drives.
 std::map<ConnMapKey, std::vector<ConnMapEntry>>
-build_connection_map(std::vector<Connection> connections,
+build_connection_map(CoreIR::ModuleDef *definition,
                      std::map<std::string, Instance *> instances) {
+  std::vector<Connection> connections = definition->getSortedConnections();
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map;
   for (auto connection : connections) {
     // Check if this is connected to an instance to an instance input, if
@@ -530,7 +534,8 @@ build_connection_map(std::vector<Connection> connections,
           index = std::stoi(first_sel_path[2]);
         }
         connection_map[ConnMapKey(instance.first, first_sel_path[1])].push_back(
-            ConnMapEntry(connection.second, index));
+            ConnMapEntry(connection.second, index,
+                definition->getMetaData(connection.first, connection.second)));
       } else if (connection.second->getTopParent() == instance.second &&
                  connection.second->getType()->isInput()) {
         SelectPath second_sel_path = connection.second->getSelectPath();
@@ -539,7 +544,9 @@ build_connection_map(std::vector<Connection> connections,
           index = std::stoi(second_sel_path[2]);
         }
         connection_map[ConnMapKey(instance.first, second_sel_path[1])]
-            .push_back(ConnMapEntry(connection.first, index));
+            .push_back(ConnMapEntry(connection.first, index,
+                        definition->getMetaData(connection.first,
+                            connection.second)));
       }
     }
     // Also check if the connection is driving a self port, which will be
@@ -552,7 +559,8 @@ build_connection_map(std::vector<Connection> connections,
         index = std::stoi(first_sel_path[2]);
       }
       connection_map[ConnMapKey("self", first_sel_path[1])].push_back(
-          ConnMapEntry(connection.second, index));
+          ConnMapEntry(connection.second, index,
+              definition->getMetaData(connection.first, connection.second)));
     } else if (connection.second->getSelectPath()[0] == "self" &&
                connection.second->getType()->isInput()) {
       SelectPath second_sel_path = connection.second->getSelectPath();
@@ -561,7 +569,8 @@ build_connection_map(std::vector<Connection> connections,
         index = std::stoi(second_sel_path[2]);
       }
       connection_map[ConnMapKey("self", second_sel_path[1])].push_back(
-          ConnMapEntry(connection.first, index));
+          ConnMapEntry(connection.first, index,
+              definition->getMetaData(connection.first, connection.second)));
     }
   }
   return connection_map;
@@ -607,8 +616,19 @@ void assign_module_outputs(
       std::vector<std::unique_ptr<vAST::Expression>> args;
       args.resize(entries.size());
       for (auto entry : entries) {
-        args[entry.index] =
+        std::unique_ptr<vAST::Expression> verilog_conn =
             convert_to_expression(convert_to_verilog_connection(entry.source));
+        if (entry.metadata.count("filename") > 0) {
+          std::string debug_str = "Connection `(" + port.first + "[" +
+              std::to_string(entry.index) + "]" + ", " +
+              verilog_conn->toString() +")` created at " +
+              entry.metadata["filename"].get<std::string>();
+          if (entry.metadata.count("lineno") > 0) {
+            debug_str += ":" + entry.metadata["lineno"].get<std::string>();
+          }
+          body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
+        }
+        args[entry.index] = std::move(verilog_conn);
       }
       std::reverse(args.begin(), args.end());
       std::unique_ptr<vAST::Concat> concat =
@@ -616,10 +636,21 @@ void assign_module_outputs(
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(port.first), std::move(concat)));
     } else {
+      std::unique_ptr<vAST::Expression> verilog_conn =
+          convert_to_expression(convert_to_verilog_connection(entries[0].source));
+      if (entries[0].metadata.count("filename") > 0) {
+        std::string debug_str = "Connection `(" + port.first + ", " +
+            verilog_conn->toString() +")` created at " +
+            entries[0].metadata["filename"].get<std::string>();
+        if (entries[0].metadata.count("lineno") > 0) {
+          debug_str += ":" + entries[0].metadata["lineno"].get<std::string>();
+        }
+        body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
+      }
       // Regular (possibly bulk) connection
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(port.first),
-          convert_to_expression(convert_to_verilog_connection(entries[0].source))
+          std::move(verilog_conn)
       ));
     }
   }
@@ -646,15 +677,16 @@ void assign_inouts(
 std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                          std::unique_ptr<vAST::Declaration>>>
 compile_module_body(RecordType *module_type,
-                    std::vector<Connection> connections,
-                    std::map<std::string, Instance *> instances,
+                    CoreIR::ModuleDef *definition,
                     bool _inline) {
+  std::map<std::string, Instance *> instances = definition->getInstances();
+
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
       body = declare_connections(instances);
 
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map =
-      build_connection_map(connections, instances);
+      build_connection_map(definition, instances);
 
   for (auto instance : instances) {
     Module *instance_module = instance.second->getModuleRef();
@@ -673,6 +705,16 @@ compile_module_body(RecordType *module_type,
     }
     vAST::Parameters instance_parameters;
     std::string instance_name = instance.first;
+
+    if (instance.second->getMetaData().count("filename") > 0) {
+      std::string debug_str = "Instance `" + instance_name + "` created at " +
+        instance.second->getMetaData()["filename"].get<std::string>();
+      if (instance.second->getMetaData().count("lineno") > 0) {
+        debug_str += ":" + instance.second->getMetaData()["lineno"].get<std::string>();
+      }
+      body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
+    }
+
     std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections;
     for (auto port :
          cast<RecordType>(instance_module->getType())->getRecord()) {
@@ -692,8 +734,19 @@ compile_module_body(RecordType *module_type,
         std::vector<std::unique_ptr<vAST::Expression>> args;
         args.resize(entries.size());
         for (auto entry : entries) {
-          args[entry.index] = 
+          std::unique_ptr<vAST::Expression> verilog_conn =
               convert_to_expression(convert_to_verilog_connection(entry.source));
+          if (entry.metadata.count("filename") > 0) {
+            std::string debug_str = "Connection `(" + instance_name + "." + port.first + "[" +
+                std::to_string(entry.index) + "]" + ", " +
+                verilog_conn->toString() +")` created at " +
+                entry.metadata["filename"].get<std::string>();
+            if (entry.metadata.count("lineno") > 0) {
+              debug_str += ":" + entry.metadata["lineno"].get<std::string>();
+            }
+            body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
+          }
+          args[entry.index] = std::move(verilog_conn);
         }
         std::reverse(args.begin(), args.end());
         std::unique_ptr<vAST::Concat> concat =
@@ -702,9 +755,18 @@ compile_module_body(RecordType *module_type,
             std::make_pair(port.first, std::move(concat)));
         // Otherwise we just use the entry in the connection map
       } else {
-        verilog_connections.insert(std::make_pair(
-            port.first,
-            convert_to_expression(convert_to_verilog_connection(entries[0].source))));
+        std::unique_ptr<vAST::Expression> verilog_conn =
+            convert_to_expression(convert_to_verilog_connection(entries[0].source));
+        if (entries[0].metadata.count("filename") > 0) {
+          std::string debug_str = "Connection `(" + instance_name + "." +
+              port.first + ", " + verilog_conn->toString() +")` created at " +
+              entries[0].metadata["filename"].get<std::string>();
+          if (entries[0].metadata.count("lineno") > 0) {
+            debug_str += ":" + entries[0].metadata["lineno"].get<std::string>();
+          }
+          body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
+        }
+        verilog_connections.insert(std::make_pair(port.first, std::move(verilog_conn)));
       }
     }
     // Handle module arguments
@@ -764,7 +826,7 @@ compile_module_body(RecordType *module_type,
   }
   // Wire the outputs of the module and inout connections
   assign_module_outputs(module_type, body, connection_map);
-  assign_inouts(connections, body);
+  assign_inouts(definition->getSortedConnections(), body);
   return body;
 }
 
@@ -846,10 +908,7 @@ void Passes::Verilog::compileModule(Module *module) {
   ModuleDef *definition = module->getDef();
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
-      body = compile_module_body(module->getType(),
-                                 definition->getSortedConnections(),
-                                 definition->getInstances(),
-                                 this->_inline);
+      body = compile_module_body(module->getType(), definition, this->_inline);
 
   if (module->getMetaData().count("filename") > 0) { 
     std::string debug_str = "Module `" + module->getName() + "` defined at " +
