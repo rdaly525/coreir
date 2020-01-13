@@ -851,6 +851,18 @@ void Passes::Verilog::compileModule(Module *module) {
                                  definition->getInstances(),
                                  this->_inline);
 
+  if (module->getMetaData().count("filename") > 0) { 
+    std::string debug_str = "Module `" + module->getName() + "` defined at " +
+      module->getMetaData()["filename"].get<std::string>();
+    if (module->getMetaData().count("lineno") > 0) {
+      debug_str += ":" + module->getMetaData()["lineno"].get<std::string>();
+    }
+    body.insert(
+      body.begin(), std::make_unique<vAST::SingleLineComment>(debug_str));
+  }
+
+
+
   // Temporary support for inline verilog
   // See https://github.com/rdaly525/coreir/pull/823 for context
   if (module->getMetaData().count("inline_verilog") > 0) {
