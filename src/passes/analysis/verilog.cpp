@@ -96,7 +96,23 @@ bool can_inline_binary_op(CoreIR::Module *module, bool _inline) {
              verilog_json["primitive_type"] == "binaryReduce")
             && _inline;
     }
+    if (module->getMetaData().count("verilog") > 0) {
+        json verilog_json =
+            module->getMetaData()["verilog"];
+        return module->hasPrimitiveExpressionLambda() &&
+            (verilog_json["primitive_type"] == "binary" ||
+             verilog_json["primitive_type"] == "binaryReduce")
+            && _inline;
+    }
     return false;
+}
+
+std::unique_ptr<vAST::Expression> get_primitive_expr(CoreIR::Instance *instance) {
+    CoreIR::Module *module = instance->getModuleRef();
+    if (module->isGenerated()) {
+        return module->getGenerator()->getPrimitiveExpressionLambda()();
+    }
+    return module->getPrimitiveExpressionLambda()();
 }
 
 std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
@@ -108,7 +124,7 @@ std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
             std::move(verilog_connections["in1"]));
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
-        transformer.visit(instance.second->getModuleRef()->getGenerator()->getPrimitiveExpressionLambda()()));
+        transformer.visit(get_primitive_expr(instance.second)));
 }
 
 bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
@@ -117,6 +133,14 @@ bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
         json verilog_json =
             module->getGenerator()->getMetaData()["verilog"];
         return module->getGenerator()->hasPrimitiveExpressionLambda() &&
+            (verilog_json["primitive_type"] == "unary" ||
+             verilog_json["primitive_type"] == "unaryReduce")
+            && _inline;
+    }
+    if (module->getMetaData().count("verilog") > 0) {
+        json verilog_json =
+            module->getMetaData()["verilog"];
+        return module->hasPrimitiveExpressionLambda() &&
             (verilog_json["primitive_type"] == "unary" ||
              verilog_json["primitive_type"] == "unaryReduce")
             && _inline;
@@ -131,7 +155,7 @@ std::unique_ptr<vAST::StructuralStatement> inline_unary_op(
     UnaryOpReplacer transformer(std::move(verilog_connections["in"]));
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
-        transformer.visit(instance.second->getModuleRef()->getGenerator()->getPrimitiveExpressionLambda()()));
+        transformer.visit(get_primitive_expr(instance.second)));
 }
 
 bool can_inline_const_op(CoreIR::Module *module, bool _inline) {
@@ -161,6 +185,13 @@ bool can_inline_mux_op(CoreIR::Module *module, bool _inline) {
             verilog_json["primitive_type"] == "other" &&
             module->getName() == "mux" && _inline;
     }
+    if (module->getMetaData().count("verilog") > 0) {
+        json verilog_json =
+            module->getMetaData()["verilog"];
+        return module->hasPrimitiveExpressionLambda() &&
+            verilog_json["primitive_type"] == "other" &&
+            module->getName() == "mux" && _inline;
+    }
     return false;
 }
 
@@ -173,7 +204,7 @@ std::unique_ptr<vAST::StructuralStatement> inline_mux_op(
                             std::move(verilog_connections["sel"]));
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
-        transformer.visit(instance.second->getModuleRef()->getGenerator()->getPrimitiveExpressionLambda()()));
+        transformer.visit(get_primitive_expr(instance.second)));
 }
 
 bool can_inline_slice_op(CoreIR::Module *module, bool _inline) {
