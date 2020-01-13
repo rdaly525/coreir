@@ -107,6 +107,14 @@ bool can_inline_binary_op(CoreIR::Module *module, bool _inline) {
     return false;
 }
 
+std::unique_ptr<vAST::Expression> get_primitive_expr(CoreIR::Instance *instance) {
+    CoreIR::Module *module = instance->getModuleRef();
+    if (module->isGenerated()) {
+        return module->getGenerator()->getPrimitiveExpressionLambda()();
+    }
+    return module->getPrimitiveExpressionLambda()();
+}
+
 std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     std::pair<std::string, CoreIR::Instance *> instance,
     std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections
@@ -114,16 +122,9 @@ std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     BinaryOpReplacer transformer( 
             std::move(verilog_connections["in0"]),
             std::move(verilog_connections["in1"]));
-    std::unique_ptr<vAST::Expression> primitive_expr;
-    CoreIR::Module *module = instance.second->getModuleRef();
-    if (module->isGenerated()) {
-        primitive_expr = module->getGenerator()->getPrimitiveExpressionLambda()();
-    } else {
-        primitive_expr = module->getPrimitiveExpressionLambda()();
-    }
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
-        transformer.visit(std::move(primitive_expr)));
+        transformer.visit(get_primitive_expr(instance.second)));
 }
 
 bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
@@ -152,16 +153,9 @@ std::unique_ptr<vAST::StructuralStatement> inline_unary_op(
     std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections
         ) {
     UnaryOpReplacer transformer(std::move(verilog_connections["in"]));
-    std::unique_ptr<vAST::Expression> primitive_expr;
-    CoreIR::Module *module = instance.second->getModuleRef();
-    if (module->isGenerated()) {
-        primitive_expr = module->getGenerator()->getPrimitiveExpressionLambda()();
-    } else {
-        primitive_expr = module->getPrimitiveExpressionLambda()();
-    }
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
-        transformer.visit(std::move(primitive_expr)));
+        transformer.visit(get_primitive_expr(instance.second)));
 }
 
 bool can_inline_const_op(CoreIR::Module *module, bool _inline) {
@@ -208,16 +202,9 @@ std::unique_ptr<vAST::StructuralStatement> inline_mux_op(
     MuxReplacer transformer(std::move(verilog_connections["in0"]),
                             std::move(verilog_connections["in1"]),
                             std::move(verilog_connections["sel"]));
-    std::unique_ptr<vAST::Expression> primitive_expr;
-    CoreIR::Module *module = instance.second->getModuleRef();
-    if (module->isGenerated()) {
-        primitive_expr = module->getGenerator()->getPrimitiveExpressionLambda()();
-    } else {
-        primitive_expr = module->getPrimitiveExpressionLambda()();
-    }
     return std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
-        transformer.visit(std::move(primitive_expr)));
+        transformer.visit(get_primitive_expr(instance.second)));
 }
 
 bool can_inline_slice_op(CoreIR::Module *module, bool _inline) {
