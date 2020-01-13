@@ -598,6 +598,43 @@ convert_to_verilog_connection(Wireable *value) {
   return vAST::make_id(connection_name);
 }
 
+void process_connection_debug_metadata(
+        ConnMapEntry entry, 
+        std::string verilog_conn_str,
+        std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                                 std::unique_ptr<vAST::Declaration>>> &body,
+        std::string source_str) {
+  if (entry.metadata.count("filename") > 0) {
+    std::string debug_str = "Connection `(" + source_str + ", " +
+        verilog_conn_str +")` created at " +
+        entry.metadata["filename"].get<std::string>();
+    if (entry.metadata.count("lineno") > 0) {
+      debug_str += ":" + entry.metadata["lineno"].get<std::string>();
+    }
+    body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
+  }
+}
+
+// If it is not a bulk connection, create a concat node and wire up the inputs
+// by index
+std::unique_ptr<vAST::Concat>
+convert_non_bulk_connection_to_concat(std::vector<ConnMapEntry> entries,
+        std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                                 std::unique_ptr<vAST::Declaration>>> &body,
+        std::string debug_prefix) {
+  std::vector<std::unique_ptr<vAST::Expression>> args;
+  args.resize(entries.size());
+  for (auto entry : entries) {
+    std::unique_ptr<vAST::Expression> verilog_conn =
+        convert_to_expression(convert_to_verilog_connection(entry.source));
+    process_connection_debug_metadata(entry, verilog_conn->toString(), body,
+            debug_prefix + "[" + std::to_string(entry.index) + "]");
+    args[entry.index] = std::move(verilog_conn);
+  }
+  std::reverse(args.begin(), args.end());
+  return std::make_unique<vAST::Concat>(std::move(args));
+}
+
 // For each output of the current module definition, emit a statement of the
 // form: `assign <output> = <driver(s)>;`
 void assign_module_outputs(
@@ -613,40 +650,15 @@ void assign_module_outputs(
     if (entries.size() == 0) {
       continue;
     } else if (entries.size() > 1) {
-      std::vector<std::unique_ptr<vAST::Expression>> args;
-      args.resize(entries.size());
-      for (auto entry : entries) {
-        std::unique_ptr<vAST::Expression> verilog_conn =
-            convert_to_expression(convert_to_verilog_connection(entry.source));
-        if (entry.metadata.count("filename") > 0) {
-          std::string debug_str = "Connection `(" + port.first + "[" +
-              std::to_string(entry.index) + "]" + ", " +
-              verilog_conn->toString() +")` created at " +
-              entry.metadata["filename"].get<std::string>();
-          if (entry.metadata.count("lineno") > 0) {
-            debug_str += ":" + entry.metadata["lineno"].get<std::string>();
-          }
-          body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
-        }
-        args[entry.index] = std::move(verilog_conn);
-      }
-      std::reverse(args.begin(), args.end());
       std::unique_ptr<vAST::Concat> concat =
-          std::make_unique<vAST::Concat>(std::move(args));
+          convert_non_bulk_connection_to_concat(entries, body, port.first);
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(port.first), std::move(concat)));
     } else {
       std::unique_ptr<vAST::Expression> verilog_conn =
           convert_to_expression(convert_to_verilog_connection(entries[0].source));
-      if (entries[0].metadata.count("filename") > 0) {
-        std::string debug_str = "Connection `(" + port.first + ", " +
-            verilog_conn->toString() +")` created at " +
-            entries[0].metadata["filename"].get<std::string>();
-        if (entries[0].metadata.count("lineno") > 0) {
-          debug_str += ":" + entries[0].metadata["lineno"].get<std::string>();
-        }
-        body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
-      }
+      process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
+              port.first);
       // Regular (possibly bulk) connection
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(port.first),
@@ -671,6 +683,7 @@ void assign_inouts(
     };
   };
 }
+
 
 // Traverses the instance map and creates a vector of module instantiations
 // using connection_map to wire up instance ports
@@ -729,43 +742,17 @@ compile_module_body(RecordType *module_type,
       if (entries.size() == 0) {
         continue;
       } else if (entries.size() > 1) {
-        // If it is not a bulk connection, create a concat node and wire up
-        // the inputs by index
-        std::vector<std::unique_ptr<vAST::Expression>> args;
-        args.resize(entries.size());
-        for (auto entry : entries) {
-          std::unique_ptr<vAST::Expression> verilog_conn =
-              convert_to_expression(convert_to_verilog_connection(entry.source));
-          if (entry.metadata.count("filename") > 0) {
-            std::string debug_str = "Connection `(" + instance_name + "." + port.first + "[" +
-                std::to_string(entry.index) + "]" + ", " +
-                verilog_conn->toString() +")` created at " +
-                entry.metadata["filename"].get<std::string>();
-            if (entry.metadata.count("lineno") > 0) {
-              debug_str += ":" + entry.metadata["lineno"].get<std::string>();
-            }
-            body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
-          }
-          args[entry.index] = std::move(verilog_conn);
-        }
-        std::reverse(args.begin(), args.end());
         std::unique_ptr<vAST::Concat> concat =
-            std::make_unique<vAST::Concat>(std::move(args));
+            convert_non_bulk_connection_to_concat(entries, body, 
+                instance_name + "." + port.first);
         verilog_connections.insert(
             std::make_pair(port.first, std::move(concat)));
         // Otherwise we just use the entry in the connection map
       } else {
         std::unique_ptr<vAST::Expression> verilog_conn =
             convert_to_expression(convert_to_verilog_connection(entries[0].source));
-        if (entries[0].metadata.count("filename") > 0) {
-          std::string debug_str = "Connection `(" + instance_name + "." +
-              port.first + ", " + verilog_conn->toString() +")` created at " +
-              entries[0].metadata["filename"].get<std::string>();
-          if (entries[0].metadata.count("lineno") > 0) {
-            debug_str += ":" + entries[0].metadata["lineno"].get<std::string>();
-          }
-          body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
-        }
+        process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
+                instance_name + "." + port.first);
         verilog_connections.insert(std::make_pair(port.first, std::move(verilog_conn)));
       }
     }
