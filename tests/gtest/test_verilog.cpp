@@ -185,6 +185,27 @@ TEST(VerilogTests, TestInlineVerilogMetadata) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestDebugInfo) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "debug_info.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "debug_info_golden.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
