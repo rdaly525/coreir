@@ -42,7 +42,6 @@ void CoreIRLoadVerilog_corebit(Context* c) {
       {"const",{"value",
         [](){ return vAST::make_id("value"); 
       }}},
-      {"term",{"", [](){ return nullptr; }}},
       {"tribuf",{"en ? in : 'hz",
           [](){ return std::make_unique<vAST::TernaryOp>(
                   vAST::make_id("en"),
