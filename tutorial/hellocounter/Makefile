@@ -1,5 +1,5 @@
 CXX ?= g++
-CXXFLAGS = -std=c++11 -Wall -fPIC -Werror
+CXXFLAGS = -std=c++17 -Wall -fPIC -Werror
 
 HOME = ../..
 INCS = -I$(HOME)/include -I.

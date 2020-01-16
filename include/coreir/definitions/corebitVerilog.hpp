@@ -3,23 +3,54 @@
 using namespace CoreIR;
 using namespace std;
 void CoreIRLoadVerilog_corebit(Context* c) {
-  std::map<std::string,std::map<std::string,std::string>> bitVMap({
+  std::map<std::string,std::map<std::string,std::pair<std::string,std::function<std::unique_ptr<vAST::Expression>()>>>>
+      bitVMap({
     {"unary",{
-      {"wire","in"},
-      {"not","~in"},
+      {"wire",{
+        "in", 
+        []() {return vAST::make_id("in");}
+      }},
+      {"not",{
+        "~in", 
+        []() {return std::make_unique<vAST::UnaryOp>(vAST::make_id("in"), vAST::UnOp::INVERT);}
+      }}
     }},
     {"binary",{
-      {"and","in0 & in1"},
-      {"or","in0 | in1"},
-      {"xor","in0 ^ in1"},
+      {"and",{"in0 & in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::AND, vAST::make_id("in1"));
+      }}},
+      {"or",{"in0 | in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::OR, vAST::make_id("in1"));
+      }}},
+      {"xor",{"in0 ^ in1",
+        []() {return std::make_unique<vAST::BinaryOp>(vAST::make_id("in0"),
+                vAST::BinOp::XOR, vAST::make_id("in1"));
+      }}}
     }},
     {"other",{
-      {"mux","sel ? in1 : in0"},
-      {"concat","{in0, in1}"},
-      {"const","value"},
-      {"term",""},
-      {"tribuf","en ? in : 1'bz"},
-      {"ibuf","in"},
+      {"mux",{"sel ? in1 : in0",
+          [](){ return std::make_unique<vAST::TernaryOp>(
+                  vAST::make_id("sel"),
+                  vAST::make_id("in1"),
+                  vAST::make_id("in0")); 
+      }}},
+      {"concat",{"{in1,in0}",
+          [](){ return std::make_unique<vAST::Concat>(make_args({"in1", "in0"})); 
+      }}},
+      {"const",{"value",
+        [](){ return vAST::make_id("value"); 
+      }}},
+      {"tribuf",{"en ? in : 'hz",
+          [](){ return std::make_unique<vAST::TernaryOp>(
+                  vAST::make_id("en"),
+                  vAST::make_id("in"),
+                  std::make_unique<vAST::NumericLiteral>("z", vAST::Radix::HEX)); 
+      }}},
+      {"ibuf",{"in",
+        [](){ return vAST::make_id("in"); 
+      }}}
     }}
   });
  
@@ -73,7 +104,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
   for (auto it0 : bitVMap) {
     for (auto it1 : it0.second) {
       string op = it1.first;
-      string vbody = it1.second;
+      string vbody = it1.second.first;
       json vjson;
       vjson["prefix"] = "corebit_";
       vjson["definition"] = "  assign out = " + vbody + ";";
@@ -86,6 +117,8 @@ void CoreIRLoadVerilog_corebit(Context* c) {
         ASSERT(bitIMap.count(it1.first),"missing" + it1.first);
         vjson["interface"] = bitIMap.at(it1.first);
       }
+      vjson["primitive_type"] = it0.first;
+      bit->getModule(op)->setPrimitiveExpressionLambda(it1.second.second);
       bit->getModule(op)->getMetaData()["verilog"] = vjson;
     }
   }
