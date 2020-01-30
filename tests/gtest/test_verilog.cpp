@@ -246,7 +246,7 @@ TEST(VerilogTests, TestUndriven) {
     "rungenerators",
     "removebulkconnections",
     "flattentypes",
-    "verilog"
+    "verilog --inline"
   };
   c->runPasses(passes, {});
   assertPassEq<Passes::Verilog>(c, "undriven_golden.v");
