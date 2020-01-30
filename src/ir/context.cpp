@@ -285,7 +285,7 @@ StringType* Context::String() { return StringType::make(this);}
 //CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
-  ASSERT(top && top->hasDef() || top->hasVerilogDef(), top->toString() + " has no def!");
+  ASSERT(top && (top->hasDef() || top->hasVerilogDef()), top->toString() + " has no def!");
   this->top = top;
 }
 
