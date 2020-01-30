@@ -78,6 +78,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     }},
     {"const",{"output out"}},
     {"term",{"input in"}},
+    {"undriven",{"output out"}},
     {"tribuf",{
       "input in",
       "input en",
@@ -132,6 +133,14 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     vjson["interface"] = bitIMap["term"];
     vjson["definition"] = "";
     bit->getModule("term")->getMetaData()["verilog"] = vjson;
+  }
+  {
+    //Undriven
+    json vjson;
+    vjson["prefix"] = "corebit_";
+    vjson["interface"] = bitIMap["undriven"];
+    vjson["definition"] = "";
+    bit->getModule("undriven")->getMetaData()["verilog"] = vjson;
   }
   {
     //reg

@@ -283,6 +283,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     }},
     {"const",{"output [width-1:0] out"}},
     {"term",{"input [width-1:0] in"}},
+    {"undriven",{"output [width-1:0] out"}},
     {"tribuf",{
       "input [width-1:0] in",
       "input en",
@@ -345,6 +346,14 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     vjson["interface"] = coreIMap["term"];
     vjson["definition"] = "";
     core->getGenerator("term")->getMetaData()["verilog"] = vjson;
+  }
+  {
+    //Undriven
+    json vjson;
+    vjson["prefix"] = "coreir_";
+    vjson["interface"] = coreIMap["undriven"];
+    vjson["definition"] = "";
+    core->getGenerator("undriven")->getMetaData()["verilog"] = vjson;
   }
   {
     json vjson;
