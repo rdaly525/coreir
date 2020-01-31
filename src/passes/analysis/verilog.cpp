@@ -842,6 +842,10 @@ vAST::Parameters compile_params(Module *module) {
 }
 
 void Passes::Verilog::compileModule(Module *module) {
+  if ((module->getMetaData().count("inline_verilog") > 0) &&
+      (module->getMetaData().count("verilog") > 0)) {
+    LOG(WARN) << "WARNING: " + module->getRefName() + " has both `inline_verilog` and `verilog` metadata, `inline_verilog` will be ignored";
+  }
   if (module->getMetaData().count("verilog") > 0) {
     json verilog_json = module->getMetaData()["verilog"];
     if (module->hasPrimitiveExpressionLambda() &&
