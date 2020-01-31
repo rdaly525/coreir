@@ -409,7 +409,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   );
   core->newGeneratorDecl("term",core->getTypeGen("in"),widthparams);
 
-  //Add Undriven
+  // Add Undriven
   core->newTypeGen(
     "out",
     widthparams,
