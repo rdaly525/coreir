@@ -273,7 +273,6 @@ TEST(VerilogTests, TestUndriven) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-
   assertPassEq<Passes::Verilog>(c, "undriven_golden.v");
   deleteContext(c);
 }
