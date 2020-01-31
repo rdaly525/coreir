@@ -135,7 +135,7 @@ void CoreIRLoadVerilog_corebit(Context* c) {
     bit->getModule("term")->getMetaData()["verilog"] = vjson;
   }
   {
-    //Undriven
+    // Undriven
     json vjson;
     vjson["prefix"] = "corebit_";
     vjson["interface"] = bitIMap["undriven"];

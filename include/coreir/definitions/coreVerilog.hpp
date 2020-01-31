@@ -348,7 +348,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     core->getGenerator("term")->getMetaData()["verilog"] = vjson;
   }
   {
-    //Undriven
+    // Undriven
     json vjson;
     vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["undriven"];
