@@ -460,17 +460,15 @@ Passes::Verilog::compilePorts(RecordType *record_type) {
     } else {
       ASSERT(false, "Not implemented for type = " + toString(type));
     }
-    std::unique_ptr<vAST::Port> port = std::make_unique<vAST::Port>(
+    std::unique_ptr<vAST::AbstractPort> port = std::make_unique<vAST::Port>(
             process_decl(std::move(name), type), verilog_direction, vAST::WIRE);
     if (this->verilator_debug) {
-      // FIXME: Hack to get comment into port decl, we need to add support
-      // attaching comments to expressions
-      std::string port_str = port->toString();
-      port_str += "/*verilator public*/";
-      ports.push_back(std::make_unique<vAST::StringPort>(port_str));
-    } else {
-      ports.push_back(std::move(port));
+      port = std::make_unique<vAST::PortComment>(
+        std::move(port), 
+        "verilator public"
+      );
     }
+    ports.push_back(std::move(port));
   };
   return ports;
 }
