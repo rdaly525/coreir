@@ -230,6 +230,29 @@ TEST(VerilogTests, TestRegisterMode) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestUndriven) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  Module* top;
+
+  if (!loadFromFile(c, "undriven.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "undriven_golden.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
