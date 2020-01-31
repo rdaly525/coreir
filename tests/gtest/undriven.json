@@ -1,0 +1,27 @@
+{"top":"global.Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Top":{
+        "type":["Record",[
+          ["O0","Bit"],
+          ["O1",["Array",8,"Bit"]]
+        ]],
+        "instances":{
+          "inst0":{
+            "modref":"corebit.undriven"
+          },
+          "inst1":{
+            "genref":"coreir.undriven",
+            "genargs":{"width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["self.O0","inst0.out"],
+          ["self.O1","inst1.out"]
+        ]
+      }
+    }
+  }
+}
+}

@@ -409,6 +409,20 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   );
   core->newGeneratorDecl("term",core->getTypeGen("in"),widthparams);
 
+  // Add Undriven
+  core->newTypeGen(
+    "out",
+    widthparams,
+    [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      Type* ptype = c->Bit()->Arr(width);
+      return c->Record({
+        {"out",ptype}
+      });
+    }
+  );
+  core->newGeneratorDecl("undriven",core->getTypeGen("out"),widthparams);
+
   /////////////////////////////////
   // Stdlib convert primitives
   //   slice,concat,cast,strip
