@@ -274,7 +274,6 @@ TEST(VerilogTests, TestUndriven) {
   };
   c->runPasses(passes, {});
 
-  if (!loadFromFile(c, "undriven.json", &top)) {
   assertPassEq<Passes::Verilog>(c, "undriven_golden.v");
   deleteContext(c);
 }
