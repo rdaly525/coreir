@@ -1,3 +1,4 @@
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir.h"
 #include "coreir/tools/cxxopts.h"
