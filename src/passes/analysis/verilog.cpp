@@ -1,3 +1,4 @@
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir.h"
 #include "coreir/tools/cxxopts.h"
@@ -842,6 +843,10 @@ vAST::Parameters compile_params(Module *module) {
 }
 
 void Passes::Verilog::compileModule(Module *module) {
+  if ((module->getMetaData().count("inline_verilog") > 0) &&
+      (module->getMetaData().count("verilog") > 0)) {
+    LOG(WARN) << "WARNING: " + module->getRefName() + " has both `inline_verilog` and `verilog` metadata, `inline_verilog` will be ignored";
+  }
   if (module->getMetaData().count("verilog") > 0) {
     json verilog_json = module->getMetaData()["verilog"];
     if (module->hasPrimitiveExpressionLambda() &&
@@ -885,7 +890,7 @@ void Passes::Verilog::compileModule(Module *module) {
     verilog_generators_seen.insert(module->getGenerator());
     return;
   }
-  if (!module->hasDef()) {
+  if (!(module->hasDef() || module->hasVerilogDef())) {
     extern_modules.push_back(module);
     return;
   }
@@ -895,7 +900,11 @@ void Passes::Verilog::compileModule(Module *module) {
   ModuleDef *definition = module->getDef();
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
-      body = compile_module_body(module->getType(), definition, this->_inline);
+      body;
+  if (module->hasDef()) {
+      body = compile_module_body(module->getType(), definition,
+                                 this->_inline);
+  }
 
   if (module->getMetaData().count("filename") > 0) { 
     std::string debug_str = "Module `" + module->getName() + "` defined at " +
