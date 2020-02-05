@@ -120,5 +120,18 @@ void Module::print(void) const {
   if(def) def->print();
 
 }
+bool Module::hasVerilogDef() {
+  if (this->getMetaData().count("inline_verilog")) {
+    return true;
+  }
+  if (this->getMetaData().count("verilog") > 0) {
+    return true;
+  }
+  if (this->isGenerated() &&
+      this->getGenerator()->getMetaData().count("verilog") > 0) {
+    return true;
+  }
+  return false;
+}
 
 }//CoreIR namespace
