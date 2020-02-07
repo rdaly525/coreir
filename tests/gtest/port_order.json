@@ -62,7 +62,7 @@
           ["self.x","inst0.in"],
           ["inst1.x","inst0.out"],
           ["self.z","inst1.z"],
-          ["self.a","inst1.O"]
+          ["self.a","inst1.a"]
         ]
       },
       "test_two_ops":{
@@ -85,7 +85,7 @@
           ["self.x","inst0.in1"],
           ["inst1.z","inst0.out"],
           ["self.z","inst1.x"],
-          ["self.a","inst1.O"]
+          ["self.a","inst1.a"]
         ]
       }
     }
