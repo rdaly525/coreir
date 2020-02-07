@@ -342,13 +342,13 @@ declare_connections(std::map<std::string, Instance *> instances) {
                            std::unique_ptr<vAST::Declaration>>>
       wire_declarations;
   for (auto instance : instances) {
-    for (auto port :
-         cast<RecordType>(instance.second->getModuleRef()->getType())
-             ->getRecord()) {
-      if (!port.second->isInput()) {
+    RecordType *record_type =
+        cast<RecordType>(instance.second->getModuleRef()->getType());
+    for (auto field : record_type->getFields()) {
+      Type *field_type = record_type->getRecord().at(field);
+      if (!field_type->isInput()) {
         std::unique_ptr<vAST::Identifier> id =
-            std::make_unique<vAST::Identifier>(instance.first + "_" +
-                                               port.first);
+            std::make_unique<vAST::Identifier>(instance.first + "_" + field);
         // Can't find a simple way to "convert" a variant type to a
         // superset, so we just manually unpack it to call the Wire
         // constructor
@@ -357,7 +357,7 @@ declare_connections(std::map<std::string, Instance *> instances) {
               wire_declarations.push_back(
                   std::make_unique<vAST::Wire>(std::move(arg)));
             },
-            process_decl(std::move(id), port.second));
+            process_decl(std::move(id), field_type));
       }
     }
   }
@@ -454,26 +454,24 @@ Passes::Verilog::compileStringBodyModule(json verilog_json, std::string name,
 std::vector<std::unique_ptr<vAST::AbstractPort>>
 Passes::Verilog::compilePorts(RecordType *record_type) {
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
-  for (auto entry : record_type->getRecord()) {
-    std::string name_str = entry.first;
+  for (auto field : record_type->getFields()) {
+    Type *field_type = record_type->getRecord().at(field);
     std::unique_ptr<vAST::Identifier> name =
-        std::make_unique<vAST::Identifier>(name_str);
-
-    Type *type = entry.second;
+        std::make_unique<vAST::Identifier>(field);
 
     vAST::Direction verilog_direction;
-    if (type->isInput()) {
+    if (field_type->isInput()) {
       verilog_direction = vAST::INPUT;
-    } else if (type->isOutput()) {
+    } else if (field_type->isOutput()) {
       verilog_direction = vAST::OUTPUT;
-    } else if (type->isInOut()) {
+    } else if (field_type->isInOut()) {
       verilog_direction = vAST::INOUT;
     } else {
-      ASSERT(false, "Not implemented for type = " + toString(type));
+      ASSERT(false, "Not implemented for type = " + toString(field_type));
     }
-    std::unique_ptr<vAST::Port> port = std::make_unique<vAST::Port>(
-            process_decl(std::move(name), type), verilog_direction,
-            vAST::WIRE);
+    std::unique_ptr<vAST::Port> port =
+        std::make_unique<vAST::Port>(process_decl(std::move(name), field_type),
+                                     verilog_direction, vAST::WIRE);
     if (this->verilator_debug) {
       port = vAST::AddComment(std::move(port), "verilator public");
     }
@@ -649,26 +647,27 @@ void assign_module_outputs(
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>> &body,
     std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map) {
-  for (auto port : record_type->getRecord()) {
-    if (port.second->isInput()) {
+  for (auto field : record_type->getFields()) {
+    Type *field_type = record_type->getRecord().at(field);
+    if (field_type->isInput()) {
       continue;
     }
-    auto entries = connection_map[ConnMapKey("self", port.first)];
+    auto entries = connection_map[ConnMapKey("self", field)];
     if (entries.size() == 0) {
       continue;
     } else if (entries.size() > 1) {
       std::unique_ptr<vAST::Concat> concat =
-          convert_non_bulk_connection_to_concat(entries, body, port.first);
+          convert_non_bulk_connection_to_concat(entries, body, field);
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-          std::make_unique<vAST::Identifier>(port.first), std::move(concat)));
+          std::make_unique<vAST::Identifier>(field), std::move(concat)));
     } else {
       std::unique_ptr<vAST::Expression> verilog_conn =
           convert_to_expression(convert_to_verilog_connection(entries[0].source));
       process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
-              port.first);
+              field);
       // Regular (possibly bulk) connection
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-          std::make_unique<vAST::Identifier>(port.first),
+          std::make_unique<vAST::Identifier>(field),
           std::move(verilog_conn)
       ));
     }
@@ -737,31 +736,32 @@ compile_module_body(RecordType *module_type,
 
     std::vector<std::pair<std::string, std::unique_ptr<vAST::Expression>>>
         verilog_connections;
-    for (auto port :
-         cast<RecordType>(instance_module->getType())->getRecord()) {
-      if (!port.second->isInput()) {
+    RecordType *record_type = cast<RecordType>(instance_module->getType());
+    for (auto field : record_type->getFields()) {
+      Type *field_type = record_type->getRecord().at(field);
+      if (!field_type->isInput()) {
         // output or inout, emit wire name
-        verilog_connections.push_back(
-            std::make_pair(port.first, std::make_unique<vAST::Identifier>(
-                                           instance.first + "_" + port.first)));
+        verilog_connections.push_back(std::make_pair(
+            field,
+            std::make_unique<vAST::Identifier>(instance.first + "_" + field)));
         continue;
       }
-      auto entries = connection_map[ConnMapKey(instance.first, port.first)];
+      auto entries = connection_map[ConnMapKey(instance.first, field)];
       if (entries.size() == 0) {
         continue;
       } else if (entries.size() > 1) {
         std::unique_ptr<vAST::Concat> concat =
             convert_non_bulk_connection_to_concat(entries, body, 
-                instance_name + "." + port.first);
+                instance_name + "." + field);
         verilog_connections.push_back(
-            std::make_pair(port.first, std::move(concat)));
+            std::make_pair(field, std::move(concat)));
         // Otherwise we just use the entry in the connection map
       } else {
         std::unique_ptr<vAST::Expression> verilog_conn =
             convert_to_expression(convert_to_verilog_connection(entries[0].source));
         process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
-                instance_name + "." + port.first);
-        verilog_connections.push_back(std::make_pair(port.first, std::move(verilog_conn)));
+                instance_name + "." + field);
+        verilog_connections.push_back(std::make_pair(field, std::move(verilog_conn)));
       }
     }
     // Handle module arguments
