@@ -1,6 +1,7 @@
 #ifndef IR_TYPE_HPP_
 #define IR_TYPE_HPP_
 
+#include <string>
 #include "contextual.hpp"
 
 namespace CoreIR {

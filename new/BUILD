@@ -10,7 +10,9 @@ cc_library(
 
 cc_library(
     name = 'array_type_cache',
-    hdrs = [ 'array_type_cache.hpp' ])
+    hdrs = [ 'array_type_cache.hpp' ],
+    srcs = [ 'array_type_cache.cpp' ],
+    deps = [ ':array_type' ])
 
 cc_library(
     name = 'bit_in_out_type',
