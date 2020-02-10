@@ -20,22 +20,22 @@ class CoreIRContext : public CoreIRContextInterface {
   ~CoreIRContext() override = default;
 
   std::shared_ptr<BitType> Bit() override {
-    return std::make_shared<BitType>(this);
+    return TheTypeCache.getBitType();
   }
   std::shared_ptr<BitInType> BitIn() override {
-    return std::make_shared<BitInType>(this);
+    return TheTypeCache.getBitInType();
   }
   std::shared_ptr<BitInOutType> BitInOut() override {
-    return std::make_shared<BitInOutType>(this);
+    return TheTypeCache.getBitInOutType();
   }
   std::shared_ptr<ArrayType> Array(
       int Size,
       std::shared_ptr<Type> ElementType) override {
-    return std::shared_ptr<ArrayType>(nullptr);
+    return TheTypeCache.getArrayType(Size, ElementType);
   }
   std::shared_ptr<RecordType> Record(
       std::vector<RecordArg> RecordArgs) override {
-    return std::shared_ptr<RecordType>(nullptr);
+    return TheTypeCache.getRecordType(RecordArgs);
   }
   std::shared_ptr<NamedType> Named(std::string NameRef) override {
     return std::shared_ptr<NamedType>(nullptr);

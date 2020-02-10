@@ -9,12 +9,6 @@ cc_library(
     deps = [ ':type' ])
 
 cc_library(
-    name = 'array_type_cache',
-    hdrs = [ 'array_type_cache.hpp' ],
-    srcs = [ 'array_type_cache.cpp' ],
-    deps = [ ':array_type' ])
-
-cc_library(
     name = 'bit_in_out_type',
     hdrs = [ 'bit_in_out_type.hpp' ],
     deps = [ ':type' ])
@@ -28,6 +22,10 @@ cc_library(
     name = 'bit_type',
     hdrs = [ 'bit_type.hpp' ],
     deps = [ ':type' ])
+
+cc_library(
+    name = 'common',
+    hdrs = [ 'common.hpp' ])
 
 cc_library(
     name = 'contextual',
@@ -68,4 +66,11 @@ cc_library(
 cc_library(
     name = 'type_cache',
     hdrs = [ 'type_cache.hpp' ],
-    deps = [ 'array_type_cache' ])
+    srcs = [ 'type_cache.cpp' ],
+    deps = [ ':array_type',
+             ':common',
+             ':contextual',
+             ':bit_in_out_type',
+             ':bit_in_type',
+             ':bit_type',
+             ':record_type' ])
