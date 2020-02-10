@@ -8,6 +8,7 @@
 #include "bit_type.hpp"
 #include "named_type.hpp"
 #include "record_type.hpp"
+#include "type_cache.hpp"
 
 namespace CoreIR {
 
@@ -15,7 +16,7 @@ using RecordArg = std::pair<std::string, std::shared_ptr<Type>>;
 
 class CoreIRContext : public CoreIRContextInterface {
  public:
-  CoreIRContext() = default;
+  CoreIRContext() : TheTypeCache(this) {}
   ~CoreIRContext() override = default;
 
   std::shared_ptr<BitType> Bit() override {
@@ -38,7 +39,10 @@ class CoreIRContext : public CoreIRContextInterface {
   }
   std::shared_ptr<NamedType> Named(std::string NameRef) override {
     return std::shared_ptr<NamedType>(nullptr);
-  } 
+  }
+
+ private:
+  TypeCache TheTypeCache;
 };
 
 }  // namespace CoreIR
