@@ -1,11 +1,11 @@
 #ifndef IR_COREIR_CONTEXT_HPP_
 #define IR_COREIR_CONTEXT_HPP_
 
-#include "coreir_context_interface.hpp"
 #include "array_type.hpp"
 #include "bit_in_out_type.hpp"
 #include "bit_in_type.hpp"
 #include "bit_type.hpp"
+#include "coreir_context_interface.hpp"
 #include "named_type.hpp"
 #include "record_type.hpp"
 #include "type_cache.hpp"
