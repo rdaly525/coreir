@@ -25,11 +25,14 @@ class Type : public Contextual {
   };
 
   Type(CoreIRContextInterface* Context, TypeKind Kind, DirKind Dir)
-      : Contextual(Context), Kind(Kind), Dir(Dir) {}
+      : Contextual(Context), Kind(Kind), Dir(Dir), Flipped(nullptr) {}
   virtual ~Type() = default;
 
   TypeKind getKind() const { return Kind; }
   DirKind getDir() const { return Dir; }
+  std::shared_ptr<Type> getFlipped() const { return Flipped; }
+  void setFlipped(std::shared_ptr<Type> FlippedIn) { Flipped = FlippedIn; }
+
   bool isInput() const { return Dir == DK_In;}
   bool isOutput() const { return Dir == DK_Out; }
   bool isInOut() const { return Dir == DK_InOut; }
@@ -43,6 +46,7 @@ class Type : public Contextual {
  protected:
   TypeKind Kind;
   DirKind Dir;
+  std::shared_ptr<Type> Flipped;
 };
 
 }  // namespace CoreIR

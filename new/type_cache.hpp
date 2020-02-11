@@ -19,13 +19,8 @@ using RecordArg = std::pair<std::string, std::shared_ptr<Type>>;
 
 class TypeCache : Contextual {
  public:
-  TypeCache(CoreIRContextInterface* Context)
-      : Contextual(Context),
-        Bit(std::make_shared<BitType>(Context)),
-        BitIn(std::make_shared<BitInType>(Context)),
-        BitInOut(std::make_shared<BitInOutType>(Context)),
-        ArrayTypeCache(),
-        RecordTypeCache() {}
+  TypeCache(CoreIRContextInterface* Context);
+  ~TypeCache() = default;
 
   std::shared_ptr<BitType> getBitType() { return Bit; }
   std::shared_ptr<BitInType> getBitInType() { return BitIn; }

@@ -2,23 +2,37 @@
 
 namespace CoreIR {
 
+TypeCache::TypeCache(CoreIRContextInterface* Context)
+    : Contextual(Context),
+      Bit(std::make_shared<BitType>(Context)),
+      BitIn(std::make_shared<BitInType>(Context)),
+      BitInOut(std::make_shared<BitInOutType>(Context)),
+      ArrayTypeCache(),
+      RecordTypeCache() {
+  Bit->setFlipped(BitIn);
+  BitIn->setFlipped(Bit);
+  BitInOut->setFlipped(BitInOut);
+}
+
 std::shared_ptr<ArrayType> TypeCache::getArrayType(
     int Size,
     std::shared_ptr<Type> ElementType) {
   const auto Key = std::make_pair(Size, ElementType.get());
   auto It = ArrayTypeCache.find(Key);
   if (It != ArrayTypeCache.end()) return It->second;
-  if (ElementType->isInOut()) {
-    auto NewArrayType = std::make_shared<ArrayType>(getContext(), Size,
-                                                    ElementType);
-    // TODO(rsetaluri): Set flipped.
-    ArrayTypeCache[Key] = NewArrayType;
-    return NewArrayType;
-  }
   auto NewArrayType = std::make_shared<ArrayType>(getContext(), Size,
                                                   ElementType);
-  // TODO(rsetaluri): Set flipped.
   ArrayTypeCache[Key] = NewArrayType;
+  if (ElementType->isInOut()) {
+    NewArrayType->setFlipped(NewArrayType);
+  } else {
+    auto FlippedElementType = ElementType->getFlipped();
+    auto Flipped = std::make_shared<ArrayType>(getContext(), Size,
+                                               FlippedElementType);
+    NewArrayType->setFlipped(Flipped);
+    auto FlippedKey = std::make_pair(Size, FlippedElementType.get());
+    ArrayTypeCache[FlippedKey] = Flipped;
+  }
   return NewArrayType;
 }
 
