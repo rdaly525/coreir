@@ -56,6 +56,7 @@ cc_library(
 cc_library(
     name = 'record_type',
     hdrs = [ 'record_type.hpp' ],
+    srcs = [ 'record_type.cpp' ],
     deps = [ ':type' ])
 
 cc_library(

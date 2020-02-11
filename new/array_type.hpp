@@ -13,7 +13,7 @@ class ArrayType : public Type {
         Size(Size),
         ElementType(ElementType) {}
 
-  std::string toString(void) const override { 
+  std::string toString() const override {
     return ElementType->toString() + "[" + std::to_string(Size) + "]";
   };
   int getSize() const override { return Size * ElementType->getSize(); }

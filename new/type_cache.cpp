@@ -38,7 +38,12 @@ std::shared_ptr<ArrayType> TypeCache::getArrayType(
 
 std::shared_ptr<RecordType> TypeCache::getRecordType(
     std::vector<RecordArg> RecordArgs) {
-  return std::shared_ptr<RecordType>(nullptr);  
+  auto It = RecordTypeCache.find(RecordArgs);
+  if (It != RecordTypeCache.end()) return It->second;
+  auto NewRecordType = std::make_shared<RecordType>(getContext(), RecordArgs);
+  RecordTypeCache[RecordArgs] = NewRecordType;
+  return NewRecordType;
+  // TODO(rsetaluri): Flipped stuff.
 }
 
 }  // namespace CoreIR

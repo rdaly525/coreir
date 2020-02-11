@@ -11,6 +11,10 @@ int main(int argc, char** argv) {
   types.push_back(std::static_pointer_cast<Type>(context->BitIn()));
   types.push_back(std::static_pointer_cast<Type>(context->BitInOut()));
   types.push_back(std::static_pointer_cast<Type>(context->Array(10, context->Bit())));
+  types.push_back(std::static_pointer_cast<Type>(context->Record(
+      {
+        {"hello", context->Bit()}
+      })));
   for (auto x : types) {
     std::cout << x->toString() << std::endl;
   }
