@@ -18,11 +18,8 @@ class RecordType : public Type {
              std::vector<RecordArg> RecordArgs);
 
   std::string toString() const override;
-  int getSize() const override {
-    int Size = 0;
-    for (auto Field : Record) Size += Field.second->getSize();
-    return Size;
-  }
+  int getSize() const override;
+
   const std::vector<std::string>& getFields() const { return Order; }
   const std::map<std::string, std::shared_ptr<Type>>& getRecord() const {
     return Record;

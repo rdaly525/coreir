@@ -36,5 +36,10 @@ std::string RecordType::toString(void) const {
   return String;
 }
 
+int RecordType::getSize() const {
+  int Size = 0;
+  for (auto Field : Record) Size += Field.second->getSize();
+  return Size;
+}
 
 }  // namespace CoreIR
