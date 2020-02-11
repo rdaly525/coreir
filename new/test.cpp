@@ -17,5 +17,8 @@ int main(int argc, char** argv) {
       })));
   for (auto x : types) {
     std::cout << x->toString() << std::endl;
+    std::cout << x->getFlipped()->toString() << std::endl;
+    std::cout << x->getFlipped()->getFlipped()->toString() << std::endl;
+    std::cout << "===============" << std::endl;
   }
 }

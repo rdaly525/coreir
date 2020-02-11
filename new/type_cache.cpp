@@ -23,6 +23,7 @@ std::shared_ptr<ArrayType> TypeCache::getArrayType(
   auto NewArrayType = std::make_shared<ArrayType>(getContext(), Size,
                                                   ElementType);
   ArrayTypeCache[Key] = NewArrayType;
+  // Set flipped type of NewArrayType.
   if (ElementType->isInOut()) {
     NewArrayType->setFlipped(NewArrayType);
   } else {
@@ -30,6 +31,7 @@ std::shared_ptr<ArrayType> TypeCache::getArrayType(
     auto Flipped = std::make_shared<ArrayType>(getContext(), Size,
                                                FlippedElementType);
     NewArrayType->setFlipped(Flipped);
+    Flipped->setFlipped(NewArrayType);
     auto FlippedKey = std::make_pair(Size, FlippedElementType.get());
     ArrayTypeCache[FlippedKey] = Flipped;
   }
@@ -41,9 +43,23 @@ std::shared_ptr<RecordType> TypeCache::getRecordType(
   auto It = RecordTypeCache.find(RecordArgs);
   if (It != RecordTypeCache.end()) return It->second;
   auto NewRecordType = std::make_shared<RecordType>(getContext(), RecordArgs);
-  RecordTypeCache[RecordArgs] = NewRecordType;
+  RecordTypeCache.emplace(RecordArgs, NewRecordType);
+  // Set flipped type of NewRecordType.
+  if (NewRecordType->isInOut() || RecordArgs.size() == 0) {
+    NewRecordType->setFlipped(NewRecordType);
+  } else {
+    std::vector<RecordArg> FlippedRecordArgs;
+    for (auto& Arg : RecordArgs) {
+      FlippedRecordArgs.push_back({Arg.first, Arg.second->getFlipped()});
+    }
+    auto Flipped = std::make_shared<RecordType>(getContext(),
+                                                FlippedRecordArgs);
+    NewRecordType->setFlipped(Flipped);
+    Flipped->setFlipped(NewRecordType);
+    RecordTypeCache.emplace(RecordArgs, NewRecordType);
+    RecordTypeCache.emplace(FlippedRecordArgs, Flipped);
+  }
   return NewRecordType;
-  // TODO(rsetaluri): Flipped stuff.
 }
 
 }  // namespace CoreIR
