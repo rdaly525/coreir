@@ -27,7 +27,7 @@ std::string RecordType::toString(void) const {
   std::string String = "{";
   const auto Length = Record.size();
   int Index = 0;
-  for(auto Name : Order) {
+  for (auto Name : Order) {
     String += "'" + Name + "': " + Record.at(Name)->toString();
     String += (Index == Length - 1) ? "" : ", ";
     Index++;

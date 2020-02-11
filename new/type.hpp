@@ -33,7 +33,7 @@ class Type : public Contextual {
   std::shared_ptr<Type> getFlipped() const { return Flipped; }
   void setFlipped(std::shared_ptr<Type> FlippedIn) { Flipped = FlippedIn; }
 
-  bool isInput() const { return Dir == DK_In;}
+  bool isInput() const { return Dir == DK_In; }
   bool isOutput() const { return Dir == DK_Out; }
   bool isInOut() const { return Dir == DK_InOut; }
   bool isMixed() const { return Dir == DK_Mixed; }

@@ -3,12 +3,12 @@
 
 #include <map>
 #include <unordered_map>
+#include "array_type.hpp"
+#include "bit_in_out_type.hpp"
+#include "bit_in_type.hpp"
+#include "bit_type.hpp"
 #include "common.hpp"
 #include "contextual.hpp"
-#include "array_type.hpp"
-#include "bit_type.hpp"
-#include "bit_in_type.hpp"
-#include "bit_in_out_type.hpp"
 #include "record_type.hpp"
 
 namespace CoreIR {

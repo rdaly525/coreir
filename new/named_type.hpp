@@ -3,7 +3,7 @@
 
 #include "type.hpp"
 
-namespace CoreIR{
+namespace CoreIR {
 
 class NamedType : public Type {
  public:
@@ -12,11 +12,11 @@ class NamedType : public Type {
 
   // TODO(rsetaluri): Implement.
   std::string toString() const override { return ""; }
-  int getSize() const override { return Raw->getSize();}
+  int getSize() const override { return Raw->getSize(); }
 
   std::shared_ptr<Type> getRaw() const { return Raw; }
 
- private:    
+ private:
   std::shared_ptr<Type> Raw;
 };
 

@@ -10,13 +10,8 @@ class Contextual {
  public:
   Contextual(CoreIRContextInterface* Context) : Context(Context) {}
 
-  CoreIRContextInterface* getContext() {
-    return Context;
-  }
-
-  const CoreIRContextInterface* getContext() const {
-    return Context;
-  }
+  CoreIRContextInterface* getContext() { return Context; }
+  const CoreIRContextInterface* getContext() const { return Context; }
 
  private:
   CoreIRContextInterface* Context;

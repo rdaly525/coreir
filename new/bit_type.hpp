@@ -3,7 +3,7 @@
 
 #include "type.hpp"
 
-namespace CoreIR{
+namespace CoreIR {
 
 class BitType : public Type {
  public:

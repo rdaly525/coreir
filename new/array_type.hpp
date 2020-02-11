@@ -3,10 +3,10 @@
 
 #include "type.hpp"
 
-namespace CoreIR{
+namespace CoreIR {
 
 class ArrayType : public Type {
- public :
+ public:
   ArrayType(CoreIRContextInterface* Context, int Size,
             std::shared_ptr<Type> ElementType)
       : Type(Context, TK_Array, ElementType->getDir()),
