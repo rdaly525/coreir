@@ -25,7 +25,7 @@ class CoreIRContextInterface {
       int Size,
       std::shared_ptr<Type> ElementType) = 0;
   virtual std::shared_ptr<RecordType> Record(
-      std::vector<RecordArg> RecordArgs) = 0;
+      const std::vector<RecordArg>& RecordArgs) = 0;
   virtual std::shared_ptr<NamedType> Named(std::string NameRef) = 0;
 };
 

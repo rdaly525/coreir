@@ -15,7 +15,7 @@ class RecordType : public Type {
       : Type(Context, TK_Record, DK_Null), Record(), Order() {}
 
   RecordType(CoreIRContextInterface* Context,
-             std::vector<RecordArg> RecordArgs);
+             const std::vector<RecordArg>& RecordArgs);
 
   std::string toString() const override;
   int getSize() const override;

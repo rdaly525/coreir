@@ -39,7 +39,7 @@ std::shared_ptr<ArrayType> TypeCache::getArrayType(
 }
 
 std::shared_ptr<RecordType> TypeCache::getRecordType(
-    std::vector<RecordArg> RecordArgs) {
+    const std::vector<RecordArg>& RecordArgs) {
   auto It = RecordTypeCache.find(RecordArgs);
   if (It != RecordTypeCache.end()) return It->second;
   auto NewRecordType = std::make_shared<RecordType>(getContext(), RecordArgs);

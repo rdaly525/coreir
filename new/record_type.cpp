@@ -6,7 +6,7 @@ namespace CoreIR {
 // Note that the members are initialized to be empty in the initializer list,
 // but filled in the constructor body.
 RecordType::RecordType(CoreIRContextInterface* Context,
-                       std::vector<RecordArg> RecordArgs)
+                       const std::vector<RecordArg>& RecordArgs)
     : Type(Context, TK_Record, DK_Null), Record(), Order() {
   std::set<int> Dirs;
   for (const auto& Field : RecordArgs) {

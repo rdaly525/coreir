@@ -27,7 +27,8 @@ class TypeCache : Contextual {
   std::shared_ptr<BitInOutType> getBitInOutType() { return BitInOut; }
   std::shared_ptr<ArrayType> getArrayType(int Size,
                                           std::shared_ptr<Type> ElementType);
-  std::shared_ptr<RecordType> getRecordType(std::vector<RecordArg> RecordArgs);
+  std::shared_ptr<RecordType> getRecordType(
+      const std::vector<RecordArg>& RecordArgs);
 
  private:
   struct RecordArgsHasher {

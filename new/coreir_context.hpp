@@ -34,7 +34,7 @@ class CoreIRContext : public CoreIRContextInterface {
     return TheTypeCache.getArrayType(Size, ElementType);
   }
   std::shared_ptr<RecordType> Record(
-      std::vector<RecordArg> RecordArgs) override {
+      const std::vector<RecordArg>& RecordArgs) override {
     return TheTypeCache.getRecordType(RecordArgs);
   }
   std::shared_ptr<NamedType> Named(std::string NameRef) override {
