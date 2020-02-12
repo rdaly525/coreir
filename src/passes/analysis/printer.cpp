@@ -8,10 +8,10 @@ using namespace CoreIR;
 bool Passes::Printer::runOnContext(Context* c) {
   cout << "Printer!\n";
   if (c->hasTop()) {
-    getAnalysisPass<Passes::CoreIRJson>("json")->writeToStream(cout,c->getTop()->getRefName());
+    getAnalysisPass<Passes::CoreIRJson>("coreirjson")->writeToStream(cout,c->getTop()->getRefName());
   }
   else {
-    getAnalysisPass<Passes::CoreIRJson>("json")->writeToStream(cout,"");
+    getAnalysisPass<Passes::CoreIRJson>("coreirjson")->writeToStream(cout,"");
   }
   cout << endl << endl;
   return false;
