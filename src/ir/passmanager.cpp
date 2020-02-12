@@ -123,10 +123,10 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   if (argc > 1) {
     p->initialize(argc,argv);
   }
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wmismatched-new-delete"
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wmismatched-new-delete"
   delete argv;
-  #pragma clang diagnostic pop
+  #pragma GCC diagnostic pop
   bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Context:
