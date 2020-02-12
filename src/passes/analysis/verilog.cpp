@@ -8,17 +8,6 @@
 
 namespace vAST = verilogAST;
 
-std::unique_ptr<vAST::Expression> get_connection(
-std::vector<std::pair<std::string, std::unique_ptr<vAST::Expression>>>
-        &verilog_connections, std::string name) {
-  for (auto &it : verilog_connections) {
-    if (it.first == name) {
-      return std::move(it.second);
-    }
-  }
-  throw std::runtime_error("Could not find connection: " + name);
-}
-
 class UnaryOpReplacer : public vAST::Transformer {
     std::unique_ptr<vAST::Expression> in;
   public:
@@ -129,10 +118,9 @@ std::unique_ptr<vAST::Expression> get_primitive_expr(CoreIR::Instance *instance)
 
 std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     std::pair<std::string, CoreIR::Instance *> instance,
-    std::vector<std::pair<std::string, std::unique_ptr<vAST::Expression>>>
-        verilog_connections) {
-  BinaryOpReplacer transformer(get_connection(verilog_connections, "in0"),
-                               get_connection(verilog_connections, "in1"));
+    std::unique_ptr<vAST::Connections> verilog_connections) {
+  BinaryOpReplacer transformer(verilog_connections->at("in0"),
+                               verilog_connections->at("in1"));
   return std::make_unique<vAST::ContinuousAssign>(
       std::make_unique<vAST::Identifier>(instance.first + "_out"),
       transformer.visit(get_primitive_expr(instance.second)));
@@ -161,9 +149,8 @@ bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
 
 std::unique_ptr<vAST::StructuralStatement> inline_unary_op(
     std::pair<std::string, CoreIR::Instance *> instance,
-    std::vector<std::pair<std::string, std::unique_ptr<vAST::Expression>>>
-        verilog_connections) {
-  UnaryOpReplacer transformer(get_connection(verilog_connections, "in"));
+    std::unique_ptr<vAST::Connections> verilog_connections) {
+  UnaryOpReplacer transformer(verilog_connections->at("in"));
   return std::make_unique<vAST::ContinuousAssign>(
       std::make_unique<vAST::Identifier>(instance.first + "_out"),
       transformer.visit(get_primitive_expr(instance.second)));
@@ -208,11 +195,10 @@ bool can_inline_mux_op(CoreIR::Module *module, bool _inline) {
 
 std::unique_ptr<vAST::StructuralStatement> inline_mux_op(
     std::pair<std::string, CoreIR::Instance *> instance,
-    std::vector<std::pair < std::string, std::unique_ptr<vAST::Expression>>>
-        verilog_connections) {
-  MuxReplacer transformer(get_connection(verilog_connections, "in0"),
-                          get_connection(verilog_connections, "in1"),
-                          get_connection(verilog_connections, "sel"));
+    std::unique_ptr<vAST::Connections> verilog_connections) {
+  MuxReplacer transformer(verilog_connections->at("in0"),
+                          verilog_connections->at("in1"),
+                          verilog_connections->at("sel"));
   return std::make_unique<vAST::ContinuousAssign>(
       std::make_unique<vAST::Identifier>(instance.first + "_out"),
       transformer.visit(get_primitive_expr(instance.second)));
@@ -734,16 +720,16 @@ compile_module_body(RecordType *module_type,
       body.push_back(std::make_unique<vAST::SingleLineComment>(debug_str));
     }
 
-    std::vector<std::pair<std::string, std::unique_ptr<vAST::Expression>>>
-        verilog_connections;
+    std::unique_ptr<vAST::Connections> verilog_connections =
+        std::make_unique<vAST::Connections>();
     RecordType *record_type = cast<RecordType>(instance_module->getType());
     for (auto field : record_type->getFields()) {
       Type *field_type = record_type->getRecord().at(field);
       if (!field_type->isInput()) {
         // output or inout, emit wire name
-        verilog_connections.push_back(std::make_pair(
+        verilog_connections->insert(
             field,
-            std::make_unique<vAST::Identifier>(instance.first + "_" + field)));
+            std::make_unique<vAST::Identifier>(instance.first + "_" + field));
         continue;
       }
       auto entries = connection_map[ConnMapKey(instance.first, field)];
@@ -753,15 +739,14 @@ compile_module_body(RecordType *module_type,
         std::unique_ptr<vAST::Concat> concat =
             convert_non_bulk_connection_to_concat(entries, body, 
                 instance_name + "." + field);
-        verilog_connections.push_back(
-            std::make_pair(field, std::move(concat)));
+        verilog_connections->insert(field, std::move(concat));
         // Otherwise we just use the entry in the connection map
       } else {
         std::unique_ptr<vAST::Expression> verilog_conn =
             convert_to_expression(convert_to_verilog_connection(entries[0].source));
         process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
                 instance_name + "." + field);
-        verilog_connections.push_back(std::make_pair(field, std::move(verilog_conn)));
+        verilog_connections->insert(field, std::move(verilog_conn));
       }
     }
     // Handle module arguments
@@ -804,7 +789,7 @@ compile_module_body(RecordType *module_type,
         statement = std::make_unique<vAST::ContinuousAssign>(
             std::make_unique<vAST::Identifier>(instance.first + "_out"),
             std::make_unique<vAST::Slice>(
-                get_connection(verilog_connections, "in"),
+                verilog_connections->at("in"),
                 vAST::make_binop(
                     std::move(instance_parameters[0].second), 
                     vAST::BinOp::SUB,
