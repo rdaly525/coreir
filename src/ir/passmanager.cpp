@@ -116,18 +116,13 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   }
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
-  char** argv = new char*[argc];
+  std::vector<char*> argv(arc);
   for (int i=0; i<argc; ++i) {
-    argv[i] = &(pArgs[i])[0];
+    argv[i] = p_arg.c_str();
   }
   if (argc > 1) {
     p->initialize(argc,argv);
   }
-  #pragma clang diagnostic push
-  #pragma clang diagnostic ignored "-Wmismatched-new-delete"
-  delete argv;
-  #pragma clang diagnostic pop
-  bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Context:
       modified = runContextPass(p);
