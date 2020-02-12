@@ -116,13 +116,14 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   }
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
-  std::vector<char*> argv(arc);
+  std::vector<char*> argv(argc);
   for (int i=0; i<argc; ++i) {
-    argv[i] = p_arg.c_str();
+    argv[i] = const_cast<char*>(pArgs[i].c_str());
   }
   if (argc > 1) {
-    p->initialize(argc,argv);
+    p->initialize(argc,&argv[0]);
   }
+  bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Context:
       modified = runContextPass(p);
