@@ -123,7 +123,7 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   if (argc > 1) {
     p->initialize(argc,argv);
   }
-  delete[] argv;
+  delete argv;
   bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Context:
