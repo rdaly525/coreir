@@ -49,8 +49,6 @@ void getPortList(Type* t, SelectPath cur,vector<std::pair<SelectPath,Type*>>& po
 }
 
 }//namespace
-
-std::string Passes::FlattenTypes::ID = "flattentypes";
 bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Outline of algorithm.
   //For every non-flattened field of Record type:

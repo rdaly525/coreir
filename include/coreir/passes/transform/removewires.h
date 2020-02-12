@@ -8,8 +8,7 @@ namespace Passes {
 
   class RemoveWires : public InstanceVisitorPass {
   public :
-    static std::string ID;
-  RemoveWires() : InstanceVisitorPass(ID,"Inlines all wires") {}
+  RemoveWires() : InstanceVisitorPass("removewires","Inlines all wires") {}
     void setVisitorInfo() override;
   };
 

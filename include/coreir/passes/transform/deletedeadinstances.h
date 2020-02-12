@@ -11,8 +11,7 @@ namespace CoreIR {
 
     class DeleteDeadInstances : public ModulePass {
     public:
-      static std::string ID;
-      DeleteDeadInstances() : ModulePass(ID, "Delete all instances with no outputs used") {}
+      DeleteDeadInstances() : ModulePass("deletedeadinstances", "Delete all instances with no outputs used") {}
       bool runOnModule(Module* m) override;
     };
   }

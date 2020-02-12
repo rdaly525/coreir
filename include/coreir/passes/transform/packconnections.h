@@ -11,8 +11,7 @@ namespace Passes {
 class PackConnections : public ModulePass {
   
   public:
-    static std::string ID;
-    PackConnections() : ModulePass(ID, "Collapse bitwise connections into packed connections where possible") {}
+    PackConnections() : ModulePass("packconnections", "Collapse bitwise connections into packed connections where possible") {}
     bool runOnModule(Module* m) override;
 };
 

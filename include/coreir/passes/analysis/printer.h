@@ -9,8 +9,7 @@ namespace Passes {
 
 class Printer : public ContextPass {
   public :
-    static std::string ID;
-    Printer() : ContextPass(ID,"Prints",true) {}
+    Printer() : ContextPass("printer","Prints",true) {}
     bool runOnContext(Context* c) override;
     void setAnalysisInfo() override {
       addDependency("coreirjson");

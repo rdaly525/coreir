@@ -8,7 +8,6 @@ namespace CoreIR {
 
   namespace Passes {
 
-    string Passes::RemoveConstDuplicates::ID = "removeconstduplicates";
     bool RemoveConstDuplicates::runOnModule(Module* m) {
       if (!m->hasDef()) {
         return false;

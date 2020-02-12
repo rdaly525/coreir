@@ -38,8 +38,11 @@ class Verilog : public InstanceGraphPass {
   compileStringBodyModule(json verilog_json, std::string name, Module *module);
 
 public:
-  static std::string ID;
-  Verilog() : InstanceGraphPass(ID, "Compiles IR to Verilog files", true) {}
+  Verilog() : InstanceGraphPass(
+    "verilog",
+    "Compiles IR to Verilog files",
+    true
+  ) {}
   ~Verilog(){};
   bool runOnInstanceGraphNode(InstanceGraphNode &node) override;
   void initialize(int argc, char **argv) override;
@@ -50,7 +53,7 @@ public:
     addDependency("verifyflattenedtypes");
   }
 
-  void writeToStream(std::ostream &os);
+  void writeToStream(std::ostream &os) override;
   void writeToFiles(const std::string &dir,
                     std::unique_ptr<std::string> product_file);
 };

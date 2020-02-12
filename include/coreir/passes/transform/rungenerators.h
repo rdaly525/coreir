@@ -11,8 +11,7 @@ namespace Passes {
 
 class RunGenerators : public ContextPass {
   public :
-    static std::string ID;
-    RunGenerators() : ContextPass(ID,"Runs all generators") {}
+    RunGenerators() : ContextPass("rungenerators","Runs all generators") {}
     bool runOnContext(Context* ns);
 };
 

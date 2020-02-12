@@ -31,12 +31,14 @@ class Pass {
     std::string getName() { return name;}
     virtual void print() {}
     virtual bool finalize() { return false;}
+    virtual void writeToStream(std::ostream& os) {};
+    virtual void writeToStream(std::ostream& os, std::string topRef) {};
     
     template<typename T>
-    T* getAnalysisPass() {
+    T* getAnalysisPass(std::string ID) {
       assert(pm);
-      ASSERT(std::find(dependencies.begin(),dependencies.end(),T::ID)!=dependencies.end(),T::ID + " not declared as a dependency for " + name);
-      return (T*) getAnalysisOutside(T::ID);
+      ASSERT(std::find(dependencies.begin(),dependencies.end(),ID)!=dependencies.end(),ID + " not declared as a dependency for " + name);
+      return (T*) getAnalysisOutside(ID);
     }
   private:
     Pass* getAnalysisOutside(std::string ID);

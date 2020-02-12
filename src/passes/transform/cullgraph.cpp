@@ -19,7 +19,6 @@ void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
 }
 }
 
-string Passes::CullGraph::ID = "cullgraph";
 bool Passes::CullGraph::runOnContext(Context* c) {
   if (!c->hasTop()) return false;
   //Find a list of all used Modules and Generators

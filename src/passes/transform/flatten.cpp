@@ -4,7 +4,6 @@
 using namespace std;
 using namespace CoreIR;
 
-string Passes::Flatten::ID = "flatten";
 bool Passes::Flatten::runOnInstanceGraphNode(InstanceGraphNode& node) {
   bool changed = false;
   //int i = 0;

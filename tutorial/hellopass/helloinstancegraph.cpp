@@ -32,9 +32,8 @@ class HelloInstanceGraph : public InstanceGraphPass {
   std::string globalEnName = "global_en";
   public:
     //The static keyword is important here!
-    static std::string ID;
     //
-    HelloInstanceGraph() : InstanceGraphPass(ID,"Descritpion Blah Blah",false) {}
+    HelloInstanceGraph() : InstanceGraphPass("helloinstancegraph","Descritpion Blah Blah",false) {}
 
     //Function that needs to be overrided
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
@@ -47,7 +46,6 @@ class HelloInstanceGraph : public InstanceGraphPass {
     }
 };
 
-string HelloInstanceGraph::ID = "helloinstancegraph";
 bool HelloInstanceGraph::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Context* c = this->getContext();
   Instantiable* i = node.getInstantiable();

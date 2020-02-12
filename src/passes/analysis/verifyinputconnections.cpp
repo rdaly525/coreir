@@ -82,7 +82,6 @@ bool checkInputOutputs(Wireable* w, Error* e) {
 
 }
 
-string Passes::VerifyInputConnections::ID = "verifyinputconnections";
 bool Passes::VerifyInputConnections::runOnModule(Module* m) {
   if (!m->hasDef()) return false;
   ModuleDef* mdef = m->getDef();

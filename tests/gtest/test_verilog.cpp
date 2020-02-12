@@ -26,7 +26,7 @@ TEST(VerilogTests, TestStringModule) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "blackbox_verilog_golden.v");
+  assertPassEq(c, "verilog", "blackbox_verilog_golden.v");
   deleteContext(c);
 }
 
@@ -47,7 +47,7 @@ TEST(VerilogTests, TestIntermediateConnection) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "intermediate_connection_golden.v");
+  assertPassEq(c, "verilog", "intermediate_connection_golden.v");
   deleteContext(c);
 }
 
@@ -68,7 +68,7 @@ TEST(VerilogTests, TestArraySelect) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "array_select_golden.v");
+  assertPassEq(c, "verilog", "array_select_golden.v");
   deleteContext(c);
 }
 
@@ -90,7 +90,7 @@ TEST(VerilogTests, TestAddInline) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "add_golden.v");
+  assertPassEq(c, "verilog", "add_golden.v");
   deleteContext(c);
 }
 
@@ -114,7 +114,7 @@ TEST(VerilogTests, TestTwoInline) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "two_ops_golden.v");
+  assertPassEq(c, "verilog", "two_ops_golden.v");
   deleteContext(c);
 }
 
@@ -136,7 +136,7 @@ TEST(VerilogTests, TestTwoBitInline) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "two_ops_bit_golden.v");
+  assertPassEq(c, "verilog", "two_ops_bit_golden.v");
   deleteContext(c);
 }
 
@@ -160,7 +160,7 @@ TEST(VerilogTests, TestMuxInline) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "mux_golden.v");
+  assertPassEq(c, "verilog", "mux_golden.v");
   deleteContext(c);
 }
     
@@ -181,7 +181,7 @@ TEST(VerilogTests, TestInlineVerilogMetadata) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "inline_verilog_golden.v");
+  assertPassEq(c, "verilog", "inline_verilog_golden.v");
   deleteContext(c);
 }
 
@@ -202,7 +202,7 @@ TEST(VerilogTests, TestDebugInfo) {
     "verilog"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "debug_info_golden.v");
+  assertPassEq(c, "verilog", "debug_info_golden.v");
   deleteContext(c);
 }
 
@@ -226,7 +226,7 @@ TEST(VerilogTests, TestVerilatorDebugInline) {
     "verilog --inline --verilator_debug"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "verilator_debug_inline_golden.v");
+  assertPassEq(c, "verilog", "verilator_debug_inline_golden.v");
   deleteContext(c);
 }
 
@@ -250,7 +250,7 @@ TEST(VerilogTests, TestRegisterMode) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "register_mode_golden.v");
+  assertPassEq(c, "verilog", "register_mode_golden.v");
   deleteContext(c);
 }
 
@@ -274,7 +274,7 @@ TEST(VerilogTests, TestInlineVerilogTop) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "inline_verilog_top_golden.v");
+  assertPassEq(c, "verilog", "inline_verilog_top_golden.v");
   deleteContext(c);
 }
 
@@ -297,7 +297,7 @@ TEST(VerilogTests, TestUndriven) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "undriven_golden.v");
+  assertPassEq(c, "verilog", "undriven_golden.v");
   deleteContext(c);
 }
 
@@ -321,7 +321,7 @@ TEST(VerilogTests, TestWrappedVerilogTop) {
     "verilog --inline"
   };
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "wrapped_verilog_top_golden.v");
+  assertPassEq(c, "verilog", "wrapped_verilog_top_golden.v");
   deleteContext(c);
 }
 

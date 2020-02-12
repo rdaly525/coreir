@@ -8,8 +8,11 @@ namespace Passes {
 
 	class VerifyFlatCoreirPrims : public InstanceGraphPass {
 	public :
-		static std::string ID;
-	  VerifyFlatCoreirPrims() : InstanceGraphPass(ID, "Verify all instances have been flattened", true) {}
+	  VerifyFlatCoreirPrims() : InstanceGraphPass(
+            "verifyflatcoreirprims",
+            "Verify all instances have been flattened",
+            true
+        ) {}
 		bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
 	}; /* class VerifyFlatCoreirPrims */
 

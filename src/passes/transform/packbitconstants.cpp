@@ -6,8 +6,6 @@
 using namespace std;
 using namespace CoreIR;
 
-//Do not forget to set this static variable!!
-string Passes::PackBitConstants::ID = "packbitconstants";
 bool Passes::PackBitConstants::runOnModule(Module* m) {
   if (!m->hasDef()) {
     return false;

@@ -14,8 +14,6 @@
 using namespace CoreIR;
 
 
-//Do not forget to set this static variable!!
-string HelloModule::ID = "hellomodule";
 bool HelloModule::runOnModule(Module* m) {
   Context* c = this->getContext();
 

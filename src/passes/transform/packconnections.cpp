@@ -7,8 +7,6 @@ using namespace std;
 using namespace CoreIR;
 
 
-//Do not forget to set this static variable!!
-string Passes::PackConnections::ID = "packconnections";
 bool Passes::PackConnections::runOnModule(Module* m) {
   if (!m->hasDef()) {
     return false;

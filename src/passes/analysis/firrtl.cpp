@@ -162,7 +162,6 @@ string CoreIR::Passes::FModule::toString() {
 
 
 
-string Passes::Firrtl::ID = "firrtl";
 bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Module* m = node.getModule();
   auto fm = new FModule(m);

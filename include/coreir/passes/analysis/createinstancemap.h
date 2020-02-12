@@ -10,8 +10,11 @@ class CreateInstanceMap : public ModulePass {
   std::map<Module*,std::set<Instance*>> modInstanceMap;
   std::map<Generator*,std::set<Instance*>> genInstanceMap;
   public :
-    static std::string ID;
-    CreateInstanceMap() : ModulePass(ID,"Create Instance Map",true) {}
+    CreateInstanceMap() : ModulePass(
+        "createinstancemap",
+        "Create Instance Map",
+        true
+    ) {}
     bool runOnModule(Module* ns) override;
     void releaseMemory() override {
       modInstanceMap.clear();

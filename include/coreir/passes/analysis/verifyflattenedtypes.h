@@ -8,8 +8,11 @@ namespace Passes {
 
 class VerifyFlattenedTypes : public InstanceGraphPass {
   public :
-    static std::string ID;
-    VerifyFlattenedTypes() : InstanceGraphPass(ID,"Verify all modules and instances have flattened types",true) {}
+    VerifyFlattenedTypes() : InstanceGraphPass(
+        "verifyflattenedtypes",
+        "Verify all modules and instances have flattened types",
+        true
+    ) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
 };
 

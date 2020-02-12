@@ -24,10 +24,8 @@ class HelloModule : public ModulePass {
   unordered_map<Instantiable*,vector<Instance*>> registerMap;
 
   public:
-    //The static keyword is important here!
-    static std::string ID;
     //Note we are passing in "true" to the isAnalysis param.
-    HelloModule() : ModulePass(ID,"Descritpion Blah Blah",true) {}
+    HelloModule() : ModulePass("hellomodule","Descritpion Blah Blah",true) {}
     bool runOnModule(Module* m) override;
     //We get a print function that will print when we are in verbose mode.
     void print() override;

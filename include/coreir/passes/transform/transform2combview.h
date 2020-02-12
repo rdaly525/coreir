@@ -8,8 +8,7 @@ namespace Passes {
 
 class Transform2CombView : public InstanceGraphPass {
   public :
-    static std::string ID;
-    Transform2CombView() : InstanceGraphPass(ID,"Transform2CombViews everything!") {}
+    Transform2CombView() : InstanceGraphPass("transform2combview","Transform2CombViews everything!") {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
 
     void setAnalysisInfo() override {

@@ -17,8 +17,7 @@ namespace Passes {
 class UnpackConnections : public ModulePass {
   
   public:
-    static std::string ID;
-    UnpackConnections() : ModulePass(ID, "Collapse bitwise connections into unpacked connections where possible") {}
+    UnpackConnections() : ModulePass("unpackconnections", "Collapse bitwise connections into unpacked connections where possible") {}
     bool runOnModule(Module* m) override;
 };
 

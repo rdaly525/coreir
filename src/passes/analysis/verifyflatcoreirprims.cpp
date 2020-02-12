@@ -4,7 +4,6 @@
 using namespace CoreIR;
 using namespace std;
 
-string Passes::VerifyFlatCoreirPrims::ID = "verifyflatcoreirprims";
 bool Passes::VerifyFlatCoreirPrims::runOnInstanceGraphNode(InstanceGraphNode & node) {
   // check that all instances are coreir primitives
   Namespace* coreir = this->getContext()->getNamespace("coreir");

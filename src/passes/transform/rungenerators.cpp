@@ -4,8 +4,6 @@
 
 using namespace CoreIR;
 
-std::string Passes::RunGenerators::ID = "rungenerators";
-
 bool Passes::RunGenerators::runOnContext(Context* c) {
   LOG(INFO) << "In Run Generators";
   bool changed = true;

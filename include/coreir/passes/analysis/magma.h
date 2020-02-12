@@ -36,13 +36,12 @@ class Magma : public InstanceGraphPass {
   std::map<Module*,MModule*> modMap;
   std::vector<MModule*> mmods;
   public :
-    static std::string ID;
-    Magma() : InstanceGraphPass(ID,"Creates Magma representation of IR",true) {}
+    Magma() : InstanceGraphPass("magma","Creates Magma representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
       addDependency("verifyconnectivity --onlyinputs");
     }
-    void writeToStream(std::ostream& os);
+    void writeToStream(std::ostream& os) override;
 };
 
 }

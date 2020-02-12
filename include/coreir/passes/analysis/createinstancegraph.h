@@ -9,8 +9,11 @@ namespace Passes {
 class CreateInstanceGraph : public ContextPass {
   InstanceGraph* ig = nullptr;
   public :
-    static std::string ID;
-    CreateInstanceGraph() : ContextPass(ID,"Creates the InstanceGraph",true) {
+    CreateInstanceGraph() : ContextPass(
+        "createinstancegraph",
+        "Creates the InstanceGraph",
+        true
+    ) {
       ig = new InstanceGraph;
     }
     ~CreateInstanceGraph() { delete ig;}

@@ -17,7 +17,6 @@ bool isBitOrArrOfBits(Type* t) {
 }
 }
 
-string Passes::VerifyFlattenedTypes::ID = "verifyflattenedtypes";
 bool Passes::VerifyFlattenedTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   Module* m = node.getModule();

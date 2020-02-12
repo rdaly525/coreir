@@ -11,8 +11,7 @@ namespace Passes {
 class SanitizeNames : public ModulePass {
   
   public:
-    static std::string ID;
-    SanitizeNames() : ModulePass(ID, "Change names to only include verilog and C++ legal identifiers") {}
+    SanitizeNames() : ModulePass("sanitize-names", "Change names to only include verilog and C++ legal identifiers") {}
     bool runOnModule(Module* m) override;
 };
 

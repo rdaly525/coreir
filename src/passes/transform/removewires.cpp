@@ -15,8 +15,6 @@ namespace {
 }
 
 
-std::string Passes::RemoveWires::ID = "removewires";
-
 void Passes::RemoveWires::setVisitorInfo() {
   addVisitorFunction(getContext()->getGenerator("mantle.wire"),inlineWire);
   addVisitorFunction(getContext()->getGenerator("coreir.wire"),inlineWire);

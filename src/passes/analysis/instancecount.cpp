@@ -17,7 +17,6 @@ namespace {
   }
 }
 
-std::string Passes::InstanceCount::ID = "instancecount";
 bool Passes::InstanceCount::runOnInstanceGraphNode(InstanceGraphNode& node) {
   
   //Create a new Vmodule for this node

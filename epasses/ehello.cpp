@@ -5,16 +5,13 @@ using namespace CoreIR;
 
 class EHello : public NamespacePass {
   public :
-    static std::string ID;
-    
-    EHello() : NamespacePass(ID,"External Hello Transform") {}
+    EHello() : NamespacePass("ehello","External Hello Transform") {}
     bool runOnNamespace(Namespace* n) override;
     void setAnalysisInfo() override {
       addDependency("helloa");
     }
 };
 
-string EHello::ID = "ehello";
 bool EHello::runOnNamespace(Namespace* ns) {
   Passes::HelloA* dp = getAnalysisPass<Passes::HelloA>();
   cout << "EHello!" << endl;

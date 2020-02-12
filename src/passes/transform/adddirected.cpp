@@ -12,8 +12,6 @@ using namespace std;
 using namespace CoreIR;
 
 
-//Do not forget to set this static variable!!
-string Passes::AddDirected::ID = "adddirected";
 bool Passes::AddDirected::runOnModule(Module* m) {
   
   if (!m->hasDef()) return false;

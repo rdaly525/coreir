@@ -177,7 +177,6 @@ string CoreIR::Passes::MModule::toString() {
 }
 
 
-string Passes::Magma::ID = "magma";
 bool Passes::Magma::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Module* m = node.getModule();
   ASSERT(modMap.count(m)==0,"DEBUGME");

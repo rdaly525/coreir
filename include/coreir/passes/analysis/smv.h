@@ -18,8 +18,7 @@ namespace Passes {
   // operators ignored by smv translation
   set<string> no_ops = {"term"};
   public :
-    static std::string ID;
-    SMV() : InstanceGraphPass(ID,"Creates SMV representation of IR",true) {}
+    SMV() : InstanceGraphPass("smv","Creates SMV representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override; // runOnModule(Module* module)
     void setAnalysisInfo() override {
       addDependency("verifyconnectivity --onlyinputs --noclkrst");
@@ -27,7 +26,7 @@ namespace Passes {
       addDependency("verifyflatcoreirprims");
     }
     
-    void writeToStream(std::ostream& os);
+    void writeToStream(std::ostream& os) override;
 };
 
 }

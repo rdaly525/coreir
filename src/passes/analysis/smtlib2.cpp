@@ -27,7 +27,6 @@ namespace {
 
 }
 
-std::string Passes::SmtLib2::ID = "smtlib2";
 bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   //Create a new SMTmodule for this node

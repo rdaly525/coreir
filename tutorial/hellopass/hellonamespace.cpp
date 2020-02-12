@@ -15,21 +15,15 @@ using namespace CoreIR;
 //  NamespacePass, ModulePass, InstancePass
 class HelloNamespace : public NamespacePass {
   public :
-    //Declare a std::static string called ID. This is necessary
-    //in order for the PassManager to uniquely identify the pass.
-    static std::string ID;
-    
     //the Pass Constructor looks like:
     //  NamespacePass(std::string ID, std::string description, bool isAnalysis=false)
-    HelloNamespace() : NamespacePass(ID,"External Hello namespace Pass") {}
+    HelloNamespace() : NamespacePass("hellonamespace","External Hello namespace Pass") {}
 
     //This function is where the magic happens. It will be called for each namespace
     //You as the pass writer will define this function
     bool runOnNamespace(Namespace* n) override;
 };
 
-//Give this pass a unique name. This is how we will reference it
-string HelloNamespace::ID = "hellonamespace";
 bool HelloNamespace::runOnNamespace(Namespace* ns) {
   cout << "Hello! I am running on Namespace: " << ns->getName() << endl;
 

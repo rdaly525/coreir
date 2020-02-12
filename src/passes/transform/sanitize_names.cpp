@@ -4,8 +4,6 @@
 using namespace std;
 using namespace CoreIR;
 
-string Passes::SanitizeNames::ID = "sanitize-names";
-
 std::string sanitizedName(const std::string& cellName) {
   string instName = "";
   for (uint i = 0; i < cellName.size(); i++) {

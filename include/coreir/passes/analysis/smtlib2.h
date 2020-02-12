@@ -17,8 +17,7 @@ class SmtLib2 : public InstanceGraphPass {
   // operators ignored by smt translation
   set<string> no_ops = {"term"};
   public :
-    static std::string ID;
-    SmtLib2() : InstanceGraphPass(ID,"Creates SmtLib2 representation of IR",true) {}
+    SmtLib2() : InstanceGraphPass("smtlib2","Creates SmtLib2 representation of IR",true) {}
     bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
     void setAnalysisInfo() override {
       addDependency("verifyconnectivity --onlyinputs --noclkrst");
@@ -26,7 +25,7 @@ class SmtLib2 : public InstanceGraphPass {
       addDependency("verifyflatcoreirprims");
     }
     
-    void writeToStream(std::ostream& os);
+    void writeToStream(std::ostream& os) override;
 };
 
 }
