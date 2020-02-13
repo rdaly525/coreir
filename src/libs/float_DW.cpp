@@ -48,7 +48,6 @@ Namespace* CoreIRLoadLibrary_float_DW(Context* c) {
       "output [7:0] status"
     };
     vjson["definition"] = ""
-    "wire [7:0] status;\n"
     "DW_fp_mult #(.sig_width(sig_width), .exp_width(exp_width), .ieee_compliance(ieee_compliance)) mul_inst (.a(a),.b(b),.rnd(rnd),.z(z),.status(status));";
     muldw->getMetaData()["verilog"] = vjson;
   }
@@ -64,7 +63,6 @@ Namespace* CoreIRLoadLibrary_float_DW(Context* c) {
       "output [7:0] status"
     };
     vjson["definition"] = ""
-    "wire [7:0] status;\n"
     "DW_fp_add #(.sig_width(sig_width), .exp_width(exp_width), .ieee_compliance(ieee_compliance)) add_inst (.a(a),.b(b),.rnd(rnd),.z(z),.status(status));";
     adddw->getMetaData()["verilog"] = vjson;
   }
