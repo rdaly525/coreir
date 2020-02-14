@@ -151,11 +151,16 @@ bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
 
 std::unique_ptr<vAST::StructuralStatement> inline_unary_op(
     std::pair<std::string, CoreIR::Instance *> instance,
-    std::map<std::string, std::unique_ptr<vAST::Expression>> verilog_connections
-        ) {
+    std::map<std::string, std::unique_ptr<vAST::Expression>>
+        verilog_connections,
+    bool is_wire) {
     UnaryOpReplacer transformer(std::move(verilog_connections["in"]));
+    std::string wire_name = instance.first;
+    if (!is_wire) {
+        wire_name += "_out";
+    }
     return std::make_unique<vAST::ContinuousAssign>(
-        std::make_unique<vAST::Identifier>(instance.first + "_out"),
+        std::make_unique<vAST::Identifier>(wire_name),
         transformer.visit(get_primitive_expr(instance.second)));
 }
 
@@ -321,33 +326,49 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type *type) {
   return std::move(id);
 }
 
+void make_wire_decl(
+    std::string name, Type *type,
+    std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
+                             std::unique_ptr<vAST::Declaration>>>
+        &wire_declarations) {
+    std::unique_ptr<vAST::Identifier> id =
+        std::make_unique<vAST::Identifier>(name);
+    // Can't find a simple way to "convert" a variant type to a
+    // superset, so we just manually unpack it to call the Wire
+    // constructor
+    std::visit(
+        [&](auto &&arg) -> void {
+            wire_declarations.push_back(
+                std::make_unique<vAST::Wire>(std::move(arg)));
+        },
+        process_decl(std::move(id), type));
+}
+
 // Given a map of instances, return a vector of containing declarations for all
 // the output ports of each instance.  We return a vector of a variant type for
 // compatibility with the module AST node constructor, even though we only ever
 // create Wire nodes.
 std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                          std::unique_ptr<vAST::Declaration>>>
-declare_connections(std::map<std::string, Instance *> instances) {
+declare_connections(std::map<std::string, Instance *> instances, bool _inline) {
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
       wire_declarations;
   for (auto instance : instances) {
+    if (instance.second->getModuleRef()->getName() == "wire" && _inline) {
+        // Emit inline wire
+        Type *type =
+            cast<RecordType>(instance.second->getModuleRef()->getType())
+                ->getRecord().at("in");
+        make_wire_decl(instance.first, type, wire_declarations);
+        continue;
+    }
     for (auto port :
          cast<RecordType>(instance.second->getModuleRef()->getType())
              ->getRecord()) {
       if (!port.second->isInput()) {
-        std::unique_ptr<vAST::Identifier> id =
-            std::make_unique<vAST::Identifier>(instance.first + "_" +
-                                               port.first);
-        // Can't find a simple way to "convert" a variant type to a
-        // superset, so we just manually unpack it to call the Wire
-        // constructor
-        std::visit(
-            [&](auto &&arg) -> void {
-              wire_declarations.push_back(
-                  std::make_unique<vAST::Wire>(std::move(arg)));
-            },
-            process_decl(std::move(id), port.second));
+        make_wire_decl(instance.first + "_" + port.first, port.second,
+                       wire_declarations);
       }
     }
   }
@@ -575,10 +596,17 @@ build_connection_map(CoreIR::ModuleDef *definition,
 
 // Join select path fields by "_" (ignoring intial self if present)
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>>
-convert_to_verilog_connection(Wireable *value) {
+convert_to_verilog_connection(Wireable *value, bool _inline) {
   SelectPath select_path = value->getSelectPath();
   if (select_path.front() == "self") {
     select_path.pop_front();
+  }
+  Wireable *parent = value->getTopParent();
+  if (_inline && parent->getKind() == Wireable::WK_Instance &&
+      cast<Instance>(parent)->getModuleRef()->getName() == "wire") {
+    // Use instance name as wire name
+    select_path.pop_front();
+    select_path[0] = parent->toString();
   }
   std::string connection_name = "";
   for (uint i = 0; i < select_path.size(); i++) {
@@ -618,12 +646,12 @@ std::unique_ptr<vAST::Concat>
 convert_non_bulk_connection_to_concat(std::vector<ConnMapEntry> entries,
         std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                                  std::unique_ptr<vAST::Declaration>>> &body,
-        std::string debug_prefix) {
+        std::string debug_prefix, bool _inline) {
   std::vector<std::unique_ptr<vAST::Expression>> args;
   args.resize(entries.size());
   for (auto entry : entries) {
     std::unique_ptr<vAST::Expression> verilog_conn =
-        convert_to_expression(convert_to_verilog_connection(entry.source));
+        convert_to_expression(convert_to_verilog_connection(entry.source, _inline));
     process_connection_debug_metadata(entry, verilog_conn->toString(), body,
             debug_prefix + "[" + std::to_string(entry.index) + "]");
     args[entry.index] = std::move(verilog_conn);
@@ -638,7 +666,7 @@ void assign_module_outputs(
     RecordType *record_type,
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                              std::unique_ptr<vAST::Declaration>>> &body,
-    std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map) {
+    std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map, bool _inline) {
   for (auto port : record_type->getRecord()) {
     if (port.second->isInput()) {
       continue;
@@ -648,12 +676,12 @@ void assign_module_outputs(
       continue;
     } else if (entries.size() > 1) {
       std::unique_ptr<vAST::Concat> concat =
-          convert_non_bulk_connection_to_concat(entries, body, port.first);
+          convert_non_bulk_connection_to_concat(entries, body, port.first, _inline);
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(port.first), std::move(concat)));
     } else {
       std::unique_ptr<vAST::Expression> verilog_conn =
-          convert_to_expression(convert_to_verilog_connection(entries[0].source));
+          convert_to_expression(convert_to_verilog_connection(entries[0].source, _inline));
       process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
               port.first);
       // Regular (possibly bulk) connection
@@ -669,13 +697,14 @@ void assign_module_outputs(
 void assign_inouts(
     std::vector<Connection> connections,
     std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
-                             std::unique_ptr<vAST::Declaration>>> &body) {
+                             std::unique_ptr<vAST::Declaration>>> &body,
+    bool _inline) {
   for (auto connection : connections) {
     if (connection.first->getType()->isInOut() ||
         connection.second->getType()->isInOut()) {
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-              convert_to_assign_target(convert_to_verilog_connection(connection.first)),
-              convert_to_expression(convert_to_verilog_connection(connection.second))
+              convert_to_assign_target(convert_to_verilog_connection(connection.first, _inline)),
+              convert_to_expression(convert_to_verilog_connection(connection.second, _inline))
        ));
     };
   };
@@ -688,12 +717,12 @@ std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                          std::unique_ptr<vAST::Declaration>>>
 compile_module_body(RecordType *module_type,
                     CoreIR::ModuleDef *definition,
-                    bool _inline) {
+                    bool _inline, std::set<std::string> &wires) {
   std::map<std::string, Instance *> instances = definition->getInstances();
 
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
                            std::unique_ptr<vAST::Declaration>>>
-      body = declare_connections(instances);
+      body = declare_connections(instances, _inline);
 
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map =
       build_connection_map(definition, instances);
@@ -741,13 +770,13 @@ compile_module_body(RecordType *module_type,
       } else if (entries.size() > 1) {
         std::unique_ptr<vAST::Concat> concat =
             convert_non_bulk_connection_to_concat(entries, body, 
-                instance_name + "." + port.first);
+                instance_name + "." + port.first, _inline);
         verilog_connections.insert(
             std::make_pair(port.first, std::move(concat)));
         // Otherwise we just use the entry in the connection map
       } else {
         std::unique_ptr<vAST::Expression> verilog_conn =
-            convert_to_expression(convert_to_verilog_connection(entries[0].source));
+            convert_to_expression(convert_to_verilog_connection(entries[0].source, _inline));
         process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
                 instance_name + "." + port.first);
         verilog_connections.insert(std::make_pair(port.first, std::move(verilog_conn)));
@@ -776,7 +805,12 @@ compile_module_body(RecordType *module_type,
     if (can_inline_binary_op(instance_module, _inline)) {
         statement = inline_binary_op(instance, std::move(verilog_connections));
     } else if (can_inline_unary_op(instance_module, _inline)) {
-        statement = inline_unary_op(instance, std::move(verilog_connections));
+        bool is_wire = instance_module->getName() == "wire";
+        if (is_wire) {
+            wires.insert(instance.first);
+        }
+        statement = inline_unary_op(instance, std::move(verilog_connections),
+                                    is_wire);
     } else if (can_inline_mux_op(instance_module, _inline)) {
         statement = inline_mux_op(instance, std::move(verilog_connections));
     } else if (can_inline_const_op(instance_module, _inline)) {
@@ -809,8 +843,8 @@ compile_module_body(RecordType *module_type,
     body.push_back(std::move(statement));
   }
   // Wire the outputs of the module and inout connections
-  assign_module_outputs(module_type, body, connection_map);
-  assign_inouts(definition->getSortedConnections(), body);
+  assign_module_outputs(module_type, body, connection_map, _inline);
+  assign_inouts(definition->getSortedConnections(), body, _inline);
   return body;
 }
 
@@ -899,7 +933,7 @@ void Passes::Verilog::compileModule(Module *module) {
       body;
   if (module->hasDef()) {
       body = compile_module_body(module->getType(), definition,
-                                 this->_inline);
+                                 this->_inline, this->wires);
   }
 
   if (module->getMetaData().count("filename") > 0) { 
@@ -929,7 +963,7 @@ void Passes::Verilog::compileModule(Module *module) {
                                      std::move(parameters));
 
   if (this->_inline) {
-      vAST::AssignInliner transformer;
+      vAST::AssignInliner transformer(this->wires);
       verilog_module = transformer.visit(std::move(verilog_module));
   }
   modules.push_back(std::make_pair(name, std::move(verilog_module)));

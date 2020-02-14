@@ -1,0 +1,34 @@
+{"top":"global.Main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Main":{
+        "type":["Record",[
+          ["I",["Record",[["_0",["Array",5,"BitIn"]],["_1","BitIn"]]]],
+          ["O",["Record",[["_0",["Array",5,"Bit"]],["_1","Bit"]]]]
+        ]],
+        "instances":{
+          "x":{
+            "genref":"coreir.wire",
+            "genargs":{"width":["Int",6]}
+          }
+        },
+        "connections":[
+          ["x.in.0","self.I._0.0"],
+          ["x.in.1","self.I._0.1"],
+          ["x.in.2","self.I._0.2"],
+          ["x.in.3","self.I._0.3"],
+          ["x.in.4","self.I._0.4"],
+          ["x.in.5","self.I._1"],
+          ["x.out.0","self.O._0.0"],
+          ["x.out.1","self.O._0.1"],
+          ["x.out.2","self.O._0.2"],
+          ["x.out.3","self.O._0.3"],
+          ["x.out.4","self.O._0.4"],
+          ["x.out.5","self.O._1"]
+        ]
+      }
+    }
+  }
+}
+}
