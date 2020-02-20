@@ -114,14 +114,13 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   LOG(DEBUG) << "Running Pass: " << p->getName();
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
-  char** argv = new char*[argc];
+  std::vector<char*> argv(argc);
   for (int i=0; i<argc; ++i) {
-    argv[i] = &(pArgs[i])[0];
+    argv[i] = const_cast<char*>(pArgs[i].c_str());
   }
   if (argc > 1) {
-    p->initialize(argc,argv);
+    p->initialize(argc,&argv[0]);
   }
-  delete[] argv;
   bool modified = false;
   switch(p->getKind()) {
     case Pass::PK_Context:

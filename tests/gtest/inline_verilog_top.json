@@ -1,0 +1,22 @@
+{"top":"global.Monitor",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Monitor":{
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["in1",["Array",4,"BitIn"]],
+          ["in2",["Array",4,"BitIn"]],
+          ["out","BitIn"],
+          ["handshake",["Record",[["ready","BitIn"],["valid","BitIn"]]]],
+          ["handshake_arr",["Array",3,["Record",[["ready","BitIn"],["valid","BitIn"]]]]],
+          ["mon_temp1","BitIn"],
+          ["mon_temp2","BitIn"],
+          ["intermediate_tuple",["Record",[["_0","BitIn"],["_1","BitIn"]]]]
+        ]],
+        "metadata":{"inline_verilog":"\n                        logic temp1, temp2;\n                        assign temp1 = |(in1);\n                        assign temp2 = &(in1);\n                        assert property (@(posedge CLK) handshake_valid -> out === temp1 && temp2);\n                    "}
+      }
+    }
+  }
+}
+}

@@ -206,6 +206,30 @@ TEST(VerilogTests, TestDebugInfo) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestVerilatorDebugInline) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "verilator_debug_inline.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline --verilator_debug"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "verilator_debug_inline_golden.v");
+  deleteContext(c);
+}
+
 TEST(VerilogTests, TestRegisterMode) {
   Context* c = newContext();
   CoreIRLoadVerilog_coreir(c);
@@ -227,6 +251,77 @@ TEST(VerilogTests, TestRegisterMode) {
   };
   c->runPasses(passes, {});
   assertPassEq<Passes::Verilog>(c, "register_mode_golden.v");
+  deleteContext(c);
+}
+
+TEST(VerilogTests, TestInlineVerilogTop) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "inline_verilog_top.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "inline_verilog_top_golden.v");
+  deleteContext(c);
+}
+
+TEST(VerilogTests, TestUndriven) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  Module* top;
+
+  if (!loadFromFile(c, "undriven.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "undriven_golden.v");
+  deleteContext(c);
+}
+
+TEST(VerilogTests, TestWrappedVerilogTop) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "wrapped_verilog_top.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "wrapped_verilog_top_golden.v");
   deleteContext(c);
 }
 
