@@ -19,6 +19,7 @@ matrix:
       homebrew:
         packages:
           - verilator
+        update: true
 before_install:
 # install conda for py 3.7
 - |

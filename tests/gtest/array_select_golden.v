@@ -2,7 +2,7 @@
 module foo (input [3:0] I, output [3:0] O);
     assign O = I;
 endmodule
-module top (output [3:0] O, input [3:0] self_I);
+module top (input [3:0] self_I, output [3:0] O);
 wire [3:0] inst0_O;
 wire [3:0] inst1_O;
 foo inst0(.I({self_I[2],self_I[1],self_I[0],self_I[0]}), .O(inst0_O));
