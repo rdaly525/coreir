@@ -840,6 +840,8 @@ compile_module_body(RecordType *module_type,
     body.push_back(std::move(statement));
   }
   // Wire the outputs of the module and inout connections
+  // TODO: Make these object methods so we don't have to pass things aorund so
+  // much (e.g. _inline flag)
   assign_module_outputs(module_type, body, connection_map, _inline);
   assign_inouts(definition->getSortedConnections(), body, _inline);
   return body;
