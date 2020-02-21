@@ -151,7 +151,7 @@ std::unique_ptr<vAST::StructuralStatement> inline_unary_op(
     std::pair<std::string, CoreIR::Instance *> instance,
     std::unique_ptr<vAST::Connections> verilog_connections,
     bool is_wire) {
-    UnaryOpReplacer transformer(std::move(verilog_connections->at("in")));
+    UnaryOpReplacer transformer(verilog_connections->at("in"));
     std::string wire_name = instance.first;
     if (!is_wire) {
         wire_name += "_out";
