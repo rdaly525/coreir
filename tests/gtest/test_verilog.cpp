@@ -140,6 +140,29 @@ TEST(VerilogTests, TestTwoBitInline) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestPortOrder) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  Module* top;
+
+  if (!loadFromFile(c, "port_order.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "port_order_golden.v");
+  deleteContext(c);
+}
+
 TEST(VerilogTests, TestMuxInline) {
   Context* c = newContext();
   CoreIRLoadVerilog_coreir(c);
