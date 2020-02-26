@@ -1237,28 +1237,6 @@ namespace CoreIR {
 
         setRegister(inst->toString(), bv1); //s1->getBits());
         ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
-
-      // TODO: Unused enable logic, remove?
-      // if (inSels.size() == 2) {
-      // } 
-      // else {
-      //   assert(inSels.size() == 3);
-
-      //   //InstanceValue enArg = findArg("en", inConns);
-      //   Select* enArg = inst->sel("en");
-      //   //SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
-      //   SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg));
-
-      //   assert(enBit != nullptr);
-
-      //   if (enBit->getBits() == BitVec(1, 1)) {
-
-      //     setRegister(inst->toString(), bv1);
-
-      //     assert(same_representation(getRegister(inst->toString()), bv1));
-      //   }
-
-      // }
     }
     // TODO: For now reset gets priority, should this be the case?
     if (inst->getModuleRef()->getRefName() == "coreir.reg_arst") {
