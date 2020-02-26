@@ -938,7 +938,7 @@ namespace CoreIR {
       });
     } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
     } else if (opName == "corebit.term") {
-    } else if ((opName == "coreir.reg") || (opName == "corebit.reg")) {
+    } else if ((opName == "coreir.reg") || (opName == "corebit.reg") || (opName == "coreir.reg_arst")) {
     } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
     } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
@@ -1205,7 +1205,8 @@ namespace CoreIR {
     updateInputs(vd);
 
     auto inSels = getInputSelects(inst);
-    ASSERT(inSels.size() == 2, to_string(inSels.size()) + " inSels" + toString(inst));
+    ASSERT(inSels.size() == 2 || inSels.size() == 3, 
+           to_string(inSels.size()) + " inSels" + toString(inst));
 
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
@@ -1222,7 +1223,6 @@ namespace CoreIR {
     
     //auto inConns = getInputConnections(vd, gr);
 
-    //assert(inSels.size() >= 2);
 
     //InstanceValue clkArg = findArg("clk", inConns);
     Select* clkArg = inst->sel("clk");
@@ -1234,30 +1234,26 @@ namespace CoreIR {
     if ((clkVal->lastValue() == 0) &&
         (clkVal->value() == 1)) {
 
-      if (inSels.size() == 2) {
 
         setRegister(inst->toString(), bv1); //s1->getBits());
         ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
+    }
+    // TODO: For now reset gets priority, should this be the case?
+    if (inst->getModuleRef()->getRefName() == "coreir.reg_arst") {
+      Select* arst = inst->sel("arst");
+      SimBitVector* arstBit = static_cast<SimBitVector*>(getValue(arst));
+      bool posedge = inst->getModArgs().at("arst_posedge")->get<bool>();
+      // TODO: Ideally we'd check the edge, but for now we just use level
+      // since that would require the introduction of a new type (ala
+      // clockvalue)
+      if ((posedge && arstBit->getBits() == BitVec(1, 1)) || (!posedge && arstBit->getBits() == BitVec(1, 0))) {
+        BitVector init = inst->getModArgs().at("init")->get<BitVector>();
+        setRegister(inst->toString(), init);
 
-      } else {
-        assert(inSels.size() == 3);
-
-        //InstanceValue enArg = findArg("en", inConns);
-        Select* enArg = inst->sel("en");
-        //SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
-        SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg));
-
-        assert(enBit != nullptr);
-
-        if (enBit->getBits() == BitVec(1, 1)) {
-
-          setRegister(inst->toString(), bv1);
-
-          assert(same_representation(getRegister(inst->toString()), bv1));
-        }
-
+        assert(same_representation(getRegister(inst->toString()), init));
       }
     }
+    
 
   }
 
