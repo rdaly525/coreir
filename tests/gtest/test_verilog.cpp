@@ -348,6 +348,30 @@ TEST(VerilogTests, TestWrappedVerilogTop) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestInlineIndex) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/inline_index.json", &top)) {
+    c->die();
+  }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline"
+  };
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "golds/inline_index.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
