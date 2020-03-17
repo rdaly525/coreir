@@ -40,6 +40,7 @@ class Wireable : public MetaData {
     
     
 
+    Select* make_sel(const std::string& sel_str, Type* type, bool is_instance);
     Select* sel(const std::string&);
     Select* sel(uint);
     Select* sel(const SelectPath&);
@@ -128,12 +129,15 @@ class Select : public Wireable {
   protected :
     Wireable* parent;
     std::string selStr;
+    bool _isInstance;
   public :
-    Select(ModuleDef* container, Wireable* parent, std::string selStr, Type* type) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr) {}
+    Select(ModuleDef* container, Wireable* parent, std::string selStr, Type* type) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr), _isInstance(false) {}
+    Select(ModuleDef* container, Wireable* parent, std::string selStr, Type* type, bool isInstance) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr), _isInstance(isInstance) {}
     static bool classof(const Wireable* w) {return w->getKind()==WK_Select;}
     std::string toString() const;
     Wireable* getParent() { return parent; }
     const std::string& getSelStr() { return selStr; }
+    bool isInstance() { return _isInstance; }
 };
 
 }//CoreIR namespace

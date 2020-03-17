@@ -78,3 +78,7 @@ add_test(NAME test_verilog COMMAND test_verilog WORKING_DIRECTORY ${CMAKE_SOURCE
 add_executable(test_inline_wires tests/gtest/test_inline_wires.cpp)
 target_link_libraries(test_inline_wires gtest_main coreir coreir-commonlib)
 add_test(NAME test_inline_wires COMMAND test_inline_wires WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_hierarchical_select tests/gtest/test_hierarchical_select.cpp)
+target_link_libraries(test_hierarchical_select gtest_main coreir coreir-commonlib)
+add_test(NAME test_hierarchical_select COMMAND test_hierarchical_select WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)

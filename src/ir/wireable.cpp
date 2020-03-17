@@ -27,17 +27,23 @@ Wireable::~Wireable() {
   }
 }
 
+Select* Wireable::make_sel(const std::string& sel_str, Type* type, bool is_instance) {
+  Select* select = new Select(this->getContainer(), this, sel_str, type, is_instance);
+  selects[sel_str] = select;
+  return select;
+}
+
 Select* Wireable::sel(const std::string& selStr) {
   if (selects.count(selStr)) {
     return selects[selStr];
   }
+  if (isa<Instance>(this) &&
+      cast<Instance>(this)->getModuleRef()->canSel(selStr)) {
+    Type* type = cast<Instance>(this)->getModuleRef()->getDef()->sel(selStr)->getType();
+    return this->make_sel(selStr, type, true);
+  }
   ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
-
-  Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
-
-  selects[selStr] = select;
-
-  return select;
+  return this->make_sel(selStr, type->sel(selStr), false);
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }

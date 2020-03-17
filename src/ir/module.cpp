@@ -134,4 +134,12 @@ bool Module::hasVerilogDef() {
   return false;
 }
 
+bool Module::canSel(std::string sel_str) {
+    return this->hasDef() && this->getDef()->canSel(sel_str);
+}
+
+bool Module::canSel(SelectPath sel_path) {
+    return this->hasDef() && this->getDef()->canSel(sel_path);
+}
+
 }//CoreIR namespace

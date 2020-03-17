@@ -221,26 +221,24 @@ bool can_inline_slice_op(CoreIR::Module *module, bool _inline) {
     return false;
 }
 
-// Unpack variant type and convert to parent type Expression
-std::unique_ptr<vAST::Expression>
-convert_to_expression(std::variant<std::unique_ptr<vAST::Identifier>,
-                                   std::unique_ptr<vAST::Index>> value) {
-  return std::visit([](auto &&value) -> std::unique_ptr<vAST::Expression> {
-    return std::move(value); 
-  }, value);
-}
-
-// Unpack variant type and convert to assign variant type
+// Checks runtype type of expression and return assign target or error
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>,
              std::unique_ptr<vAST::Slice>> 
-convert_to_assign_target(std::variant<std::unique_ptr<vAST::Identifier>,
-                         std::unique_ptr<vAST::Index>> value) {
-  return std::visit([](auto &&value) ->
-    std::variant<std::unique_ptr<vAST::Identifier>,
-    std::unique_ptr<vAST::Index>, std::unique_ptr<vAST::Slice>> 
-    { return std::move(value); }, 
-    value
-  );
+convert_to_assign_target(std::unique_ptr<vAST::Expression> value) {
+    if (auto ptr = dynamic_cast<vAST::Identifier*>(value.get())) {
+        value.release();
+        return std::unique_ptr<vAST::Identifier>(ptr);
+    }
+    if (auto ptr = dynamic_cast<vAST::Index*>(value.get())) {
+        value.release();
+        return std::unique_ptr<vAST::Index>(ptr);
+    }
+    if (auto ptr = dynamic_cast<vAST::Slice*>(value.get())) {
+        value.release();
+        return std::unique_ptr<vAST::Slice>(ptr);
+    }
+    throw std::runtime_error("Could not convert expression to assign target");
+    return std::unique_ptr<vAST::Identifier>{};  // nullptr
 }
 
 namespace CoreIR {
@@ -590,7 +588,7 @@ build_connection_map(CoreIR::ModuleDef *definition,
 }
 
 // Join select path fields by "_" (ignoring intial self if present)
-std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>>
+std::unique_ptr<vAST::Expression>
 convert_to_verilog_connection(Wireable *value, bool _inline) {
   SelectPath select_path = value->getSelectPath();
   if (select_path.front() == "self") {
@@ -603,19 +601,55 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
     select_path.pop_front();
     select_path[0] = parent->toString();
   }
-  std::string connection_name = "";
+
+  // Used to track the current select so we can see if it's an instance
+  Wireable* curr_wireable = value->getTopParent();
+
+  std::unique_ptr<vAST::Expression> curr_expr;
+  bool prev_is_inst = false;
   for (uint i = 0; i < select_path.size(); i++) {
     auto item = select_path[i];
     if (isNumber(item)) {
       ASSERT(i == select_path.size() - 1, "Assumed flattened types have array index as last element in select path");
-      return std::make_unique<vAST::Index>(vAST::make_id(connection_name),
-                                           vAST::make_num(item));
-    } else if (connection_name != "") {
-      connection_name += "_";
+      return std::make_unique<vAST::Index>(std::move(curr_expr), vAST::make_num(item));
+    } else {
+      if (i > 0) {
+          // advance to next wireable if we're past the first select
+          curr_wireable = curr_wireable->sel(item);
+      }
+      // Handle hierarchical select of instance
+      if (isa<Select>(curr_wireable) && cast<Select>(curr_wireable)->isInstance()) {
+          prev_is_inst = true;
+          if (curr_expr) {
+              // append an attribute (e.g. if we're selecting two instances deep)
+              curr_expr = std::make_unique<vAST::Attribute>(std::move(curr_expr), item);
+          } else {
+              // first level instance select, just make an ID
+              curr_expr = vAST::make_id(item);
+          }
+      } else {
+        if (!curr_expr) {
+            // first level select, make an id
+            curr_expr = vAST::make_id(item);
+        } else if (prev_is_inst) {
+            // Select an attribute of the previous instance select
+            curr_expr = std::make_unique<vAST::Attribute>(std::move(curr_expr), item);
+        } else if (auto attr = dynamic_cast<vAST::Attribute *>(curr_expr.get())) {
+            // Not previously an instance, but an attribute, we append to the
+            // name of hte attribute (for flattened types)
+            attr->attr += "_" + item;
+        } else {
+            // curr expr is not null (first case) so it must be an ID at this
+            // point, append to name for flattened types
+            auto id = dynamic_cast<vAST::Identifier *>(curr_expr.get());
+            ASSERT(id, "Expected ID");
+            id->value += "_" + item;
+        }
+        prev_is_inst = false;
+      }
     }
-    connection_name += item;
   }
-  return vAST::make_id(connection_name);
+  return curr_expr;
 }
 
 void process_connection_debug_metadata(
@@ -646,7 +680,7 @@ convert_non_bulk_connection_to_concat(std::vector<ConnMapEntry> entries,
   args.resize(entries.size());
   for (auto entry : entries) {
     std::unique_ptr<vAST::Expression> verilog_conn =
-        convert_to_expression(convert_to_verilog_connection(entry.source, _inline));
+        convert_to_verilog_connection(entry.source, _inline);
     process_connection_debug_metadata(entry, verilog_conn->toString(), body,
             debug_prefix + "[" + std::to_string(entry.index) + "]");
     args[entry.index] = std::move(verilog_conn);
@@ -677,7 +711,7 @@ void assign_module_outputs(
           std::make_unique<vAST::Identifier>(field), std::move(concat)));
     } else {
       std::unique_ptr<vAST::Expression> verilog_conn =
-          convert_to_expression(convert_to_verilog_connection(entries[0].source, _inline));
+          convert_to_verilog_connection(entries[0].source, _inline);
       process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
               field);
       // Regular (possibly bulk) connection
@@ -698,10 +732,10 @@ void assign_inouts(
   for (auto connection : connections) {
     if (connection.first->getType()->isInOut() ||
         connection.second->getType()->isInOut()) {
-      body.push_back(std::make_unique<vAST::ContinuousAssign>(
-              convert_to_assign_target(convert_to_verilog_connection(connection.first, _inline)),
-              convert_to_expression(convert_to_verilog_connection(connection.second, _inline))
-       ));
+        body.push_back(std::make_unique<vAST::ContinuousAssign>(
+            convert_to_assign_target(
+                convert_to_verilog_connection(connection.first, _inline)),
+            convert_to_verilog_connection(connection.second, _inline)));
     };
   };
 }
@@ -773,7 +807,7 @@ compile_module_body(RecordType *module_type,
         // Otherwise we just use the entry in the connection map
       } else {
         std::unique_ptr<vAST::Expression> verilog_conn =
-            convert_to_expression(convert_to_verilog_connection(entries[0].source, _inline));
+            convert_to_verilog_connection(entries[0].source, _inline);
         process_connection_debug_metadata(entries[0], verilog_conn->toString(), body,
                 instance_name + "." + field);
         verilog_connections->insert(field, std::move(verilog_conn));
