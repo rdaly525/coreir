@@ -3,6 +3,6 @@ module Main (
     input [7:0] I1,
     output O
 );
-assign O = (I0 + I1)[0];
+wire [7:0] magma_Bits_8_add_inst0_out = I0 + I1;
+assign O = magma_Bits_8_add_inst0_out[0];
 endmodule
-
