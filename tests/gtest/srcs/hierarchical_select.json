@@ -41,7 +41,7 @@
         "connections":[
           ["self.I","Bar_inst0.I"],
           ["self.O0","Bar_inst0.O"],
-          ["Bar_inst0.Baz_inst0.O","Bar_inst1.I"],
+          ["Bar_inst0;Baz_inst0.O","Bar_inst1.I"],
           ["self.O1","Bar_inst1.O"]
         ]
       }
