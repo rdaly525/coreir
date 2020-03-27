@@ -118,9 +118,10 @@ Wireable* ModuleDef::sel(const string& s) {
     return this->sel(path);
   }
   if (s=="self") return interface;
-  else if (hasChar(s,';')) {
+  else if (hasChar(s, ';')) {
     SelectPath path = splitString<SelectPath>(s, ';');
     std::string inst_name = path[0];
+    // Pop off and select first instance, then select the rest of the string
     return cast<Instance>(this->sel(inst_name))->sel(s.substr(inst_name.length() + 1));
   } else {
     ASSERT(instances.count(s),"Cannot find instance " + s);

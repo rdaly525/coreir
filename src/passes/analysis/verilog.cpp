@@ -649,8 +649,6 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
             // Handle hierarchical select of instance
             bool curr_is_inst = isa<InstanceSelect>(curr_wireable) ||
                                 isa<Instance>(curr_wireable);
-            std::cout << item << " : " << curr_wireable->getKind() << std::endl;
-            std::cout << prev_is_inst << " & " << curr_is_inst << std::endl;
             if (prev_is_inst && curr_is_inst) {
                 if (curr_expr) {
                     // append an attribute (e.g. if we're selecting two
@@ -667,9 +665,11 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
                     curr_expr = vAST::make_id(item);
                 } else if (auto attr = dynamic_cast<vAST::Attribute *>(
                                curr_expr.get())) {
+                    // selecting off a hierarchical instance select
                     curr_expr = std::make_unique<vAST::Attribute>(
                         std::move(curr_expr), item);
                 } else {
+                    // append to current name being constructed
                     auto id = dynamic_cast<vAST::Identifier *>(curr_expr.get());
                     ASSERT(id, "Expected ID");
                     id->value += "_" + item;

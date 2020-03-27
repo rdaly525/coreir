@@ -135,6 +135,7 @@ class Select : public Wireable {
     Select(ModuleDef* container, Wireable* parent, std::string selStr,
            Type* type)
         : Select(WK_Select, container, parent, selStr, type) {}
+    // Accept kind as first argument so child class can override
     Select(WireableKind wireable_kind, ModuleDef* container, Wireable* parent,
            std::string selStr, Type* type)
         : Wireable(wireable_kind, container, type),
