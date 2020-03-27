@@ -10,7 +10,7 @@ class InstanceGraphNode;
 
 class Wireable : public MetaData {
   public:
-    enum WireableKind {WK_Interface,WK_Instance,WK_Select};
+    enum WireableKind {WK_Interface,WK_Instance,WK_Select,WK_InstanceSelect};
 
   protected :
     WireableKind kind;
@@ -40,7 +40,6 @@ class Wireable : public MetaData {
     
     
 
-    Select* make_sel(const std::string& sel_str, Type* type, bool is_instance);
     Select* sel(const std::string&);
     Select* sel(uint);
     Select* sel(const SelectPath&);
@@ -121,23 +120,40 @@ class Instance : public Wireable {
 
     void replace(Module* moduleRef, Values modargs=Values());
     //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
+    using Wireable::sel;  // for overloaded sel
+    Select* sel(const std::string&);
   
   friend class InstanceGraphNode;
 };
 
 class Select : public Wireable {
-  protected :
+   protected:
     Wireable* parent;
     std::string selStr;
-    bool _isInstance;
-  public :
-    Select(ModuleDef* container, Wireable* parent, std::string selStr, Type* type) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr), _isInstance(false) {}
-    Select(ModuleDef* container, Wireable* parent, std::string selStr, Type* type, bool isInstance) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr), _isInstance(isInstance) {}
-    static bool classof(const Wireable* w) {return w->getKind()==WK_Select;}
+
+   public:
+    Select(ModuleDef* container, Wireable* parent, std::string selStr,
+           Type* type)
+        : Select(WK_Select, container, parent, selStr, type) {}
+    Select(WireableKind wireable_kind, ModuleDef* container, Wireable* parent,
+           std::string selStr, Type* type)
+        : Wireable(wireable_kind, container, type),
+          parent(parent),
+          selStr(selStr) {}
+    static bool classof(const Wireable* w) { return w->getKind() == WK_Select; }
     std::string toString() const;
     Wireable* getParent() { return parent; }
     const std::string& getSelStr() { return selStr; }
-    bool isInstance() { return _isInstance; }
+};
+
+class InstanceSelect : public Select {
+   public:
+    InstanceSelect(ModuleDef* container, Wireable* parent, std::string selStr,
+                   Type* type)
+        : Select(WK_InstanceSelect, container, parent, selStr, type) {}
+    static bool classof(const Wireable* w) {
+        return w->getKind() == WK_InstanceSelect;
+    }
 };
 
 }//CoreIR namespace

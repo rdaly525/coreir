@@ -647,9 +647,11 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
                 curr_wireable = curr_wireable->sel(item);
             }
             // Handle hierarchical select of instance
-            if (isa<Select>(curr_wireable) &&
-                cast<Select>(curr_wireable)->isInstance()) {
-                prev_is_inst = true;
+            bool curr_is_inst = isa<InstanceSelect>(curr_wireable) ||
+                                isa<Instance>(curr_wireable);
+            std::cout << item << " : " << curr_wireable->getKind() << std::endl;
+            std::cout << prev_is_inst << " & " << curr_is_inst << std::endl;
+            if (prev_is_inst && curr_is_inst) {
                 if (curr_expr) {
                     // append an attribute (e.g. if we're selecting two
                     // instances deep)
@@ -663,24 +665,17 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
                 if (!curr_expr) {
                     // first level select, make an id
                     curr_expr = vAST::make_id(item);
-                } else if (prev_is_inst) {
-                    // Select an attribute of the previous instance select
-                    curr_expr = std::make_unique<vAST::Attribute>(
-                        std::move(curr_expr), item);
                 } else if (auto attr = dynamic_cast<vAST::Attribute *>(
                                curr_expr.get())) {
-                    // Not previously an instance, but an attribute, we append
-                    // to the name of hte attribute (for flattened types)
-                    attr->attr += "_" + item;
+                    curr_expr = std::make_unique<vAST::Attribute>(
+                        std::move(curr_expr), item);
                 } else {
-                    // curr expr is not null (first case) so it must be an ID at
-                    // this point, append to name for flattened types
                     auto id = dynamic_cast<vAST::Identifier *>(curr_expr.get());
                     ASSERT(id, "Expected ID");
                     id->value += "_" + item;
                 }
-                prev_is_inst = false;
             }
+            prev_is_inst = curr_is_inst;
         }
     }
     if (auto ptr = dynamic_cast<vAST::Identifier *>(curr_expr.get())) {
