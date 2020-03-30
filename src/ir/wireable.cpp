@@ -280,11 +280,11 @@ Select* Instance::sel(const std::string& selStr) {
 }
 
 bool InstanceSelect::canSel(string selstr) {
-  return Wireable::canSel(selstr) || this->getContainer()->canSel(selstr);
+  return Wireable::canSel(selstr) || this->wireable->canSel(selstr);
 }
 
 bool InstanceSelect::canSel(SelectPath path) {
-  return Wireable::canSel(path) || this->getContainer()->canSel(path);
+  return Wireable::canSel(path) || this->wireable->canSel(path);
 }
 
 Select* InstanceSelect::sel(const std::string& selStr) {
