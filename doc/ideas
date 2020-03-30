@@ -1,4 +1,14 @@
  
+Easy way to translate into combinational:
+
+Have a pass where I translate a single module into two modules. One with all the state (and modules) and another with the just the combinational portion.
+
+In some sense this is a generic graph operation. tag each instance as either inside or outside. then have a generic pass that appropriately moves all the things inside or outside.
+
+The intereface to the inside is just all the modules to the outside + any port where an inside module connects to the IO
+
+
+
 
 Patter Matching Pass steps
 Step 1: Analyze pattern (can be done at pass creation time)
