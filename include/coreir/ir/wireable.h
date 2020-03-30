@@ -153,13 +153,13 @@ class Select : public Wireable {
 
 class InstanceSelect : public Select {
    private:
-    Wireable* wireable;
+    Wireable* wrapped_wireable;
 
    public:
     InstanceSelect(ModuleDef* container, Wireable* parent, std::string selStr,
-                   Wireable* wireable)
-        : Select(WK_InstanceSelect, container, parent, selStr, wireable->getType()),
-          wireable(wireable) {}
+                   Wireable* wrapped_wireable)
+        : Select(WK_InstanceSelect, container, parent, selStr, wrapped_wireable->getType()),
+          wrapped_wireable(wrapped_wireable) {}
     static bool classof(const Wireable* w) {
         return w->getKind() == WK_InstanceSelect;
     }

@@ -280,19 +280,19 @@ Select* Instance::sel(const std::string& selStr) {
 }
 
 bool InstanceSelect::canSel(string selstr) {
-  return Wireable::canSel(selstr) || this->wireable->canSel(selstr);
+  return Wireable::canSel(selstr) || this->wrapped_wireable->canSel(selstr);
 }
 
 bool InstanceSelect::canSel(SelectPath path) {
-  return Wireable::canSel(path) || this->wireable->canSel(path);
+  return Wireable::canSel(path) || this->wrapped_wireable->canSel(path);
 }
 
 Select* InstanceSelect::sel(const std::string& selStr) {
     if (selects.count(selStr)) {
         return selects[selStr];
     }
-    if (this->wireable->canSel(selStr)) {
-        Wireable* sel = this->wireable->sel(selStr);
+    if (this->wrapped_wireable->canSel(selStr)) {
+        Wireable* sel = this->wrapped_wireable->sel(selStr);
         InstanceSelect* instance_select = new InstanceSelect(
             this->getContainer(), this, selStr, sel);
         selects[selStr] = instance_select;
