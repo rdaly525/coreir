@@ -683,13 +683,14 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
             }
         }
     }
-    return std::visit(
-        [](auto curr_node) -> std::variant<std::unique_ptr<vAST::Identifier>,
-                                           std::unique_ptr<vAST::Attribute>,
-                                           std::unique_ptr<vAST::Index>> {
-            return curr_node;
-        },
-        std::move(curr_node));
+    if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(curr_node)) {
+        return std::get<std::unique_ptr<vAST::Identifier>>(std::move(curr_node));
+    }
+    if (std::holds_alternative<std::unique_ptr<vAST::Attribute>>(curr_node)) {
+        return std::get<std::unique_ptr<vAST::Attribute>>(std::move(curr_node));
+    }
+    throw std::runtime_error("Unreachable");
+    return std::unique_ptr<vAST::Identifier>{};
 }
 
 void process_connection_debug_metadata(
