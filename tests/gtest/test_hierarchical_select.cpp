@@ -23,14 +23,19 @@ void check_verilog(Context *context, std::string gold_file) {
 
 TEST(HierarchicalSelectTest, TestHierarchicalSelectBasic) {
     Context *c = newContext();
-    CoreIRLoadVerilog_corebit(c);
     load_file(c, "srcs/hierarchical_select.json");
-
     check_verilog(c, "golds/hierarchical_select.v");
     deleteContext(c);
 }
 
+TEST(HierarchicalSelectTest, TestHierarchicalSelectDouble) {
+    Context *c = newContext();
+    load_file(c, "srcs/hierarchical_select_2.json");
+    check_verilog(c, "golds/hierarchical_select_2.v");
+    deleteContext(c);
 }
+
+}  // namespace
 
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);

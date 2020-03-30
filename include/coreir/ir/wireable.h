@@ -120,6 +120,10 @@ class Instance : public Wireable {
 
     void replace(Module* moduleRef, Values modargs=Values());
     //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
+  
+    bool canSel(std::string);
+    bool canSel(SelectPath);
+
     using Wireable::sel;  // for overloaded sel
     Select* sel(const std::string&);
   
@@ -148,13 +152,23 @@ class Select : public Wireable {
 };
 
 class InstanceSelect : public Select {
+   private:
+    Wireable* wireable;
+
    public:
     InstanceSelect(ModuleDef* container, Wireable* parent, std::string selStr,
-                   Type* type)
-        : Select(WK_InstanceSelect, container, parent, selStr, type) {}
+                   Wireable* wireable)
+        : Select(WK_InstanceSelect, container, parent, selStr, wireable->getType()),
+          wireable(wireable) {}
     static bool classof(const Wireable* w) {
         return w->getKind() == WK_InstanceSelect;
     }
+
+    bool canSel(std::string);
+    bool canSel(SelectPath);
+
+    using Wireable::sel;  // for overloaded sel
+    Select* sel(const std::string&);
 };
 
 }//CoreIR namespace

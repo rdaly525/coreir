@@ -625,18 +625,20 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
     // Used to track the current select so we can see if it's an instance
     Wireable *curr_wireable = value->getTopParent();
 
-    std::unique_ptr<vAST::Expression> curr_expr;
-    bool prev_is_inst = false;
+    std::variant<std::unique_ptr<vAST::Identifier>,
+                 std::unique_ptr<vAST::Attribute>>
+        curr_node;
     for (uint i = 0; i < select_path.size(); i++) {
         auto item = select_path[i];
         if (isNumber(item)) {
             ASSERT(i == select_path.size() - 1,
                    "Assumed flattened types have array index as last element "
                    "in select path");
-            if (auto ptr = dynamic_cast<vAST::Identifier *>(curr_expr.get())) {
-                curr_expr.release();
+            if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
+                    curr_node)) {
                 return std::make_unique<vAST::Index>(
-                    std::unique_ptr<vAST::Identifier>(ptr),
+                    std::move(
+                        std::get<std::unique_ptr<vAST::Identifier>>(curr_node)),
                     vAST::make_num(item));
             }
             throw std::runtime_error(
@@ -647,48 +649,47 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
                 curr_wireable = curr_wireable->sel(item);
             }
             // Handle hierarchical select of instance
-            bool curr_is_inst = isa<InstanceSelect>(curr_wireable) ||
-                                isa<Instance>(curr_wireable);
-            if (prev_is_inst && curr_is_inst) {
-                if (curr_expr) {
-                    // append an attribute (e.g. if we're selecting two
-                    // instances deep)
-                    curr_expr = std::make_unique<vAST::Attribute>(
-                        std::move(curr_expr), item);
-                } else {
-                    // first level instance select, just make an ID
-                    curr_expr = vAST::make_id(item);
+            if (isa<InstanceSelect>(curr_wireable)) {
+                // First node should have been a normal instance
+                ASSERT(
+                    std::visit([](auto &&node) -> bool { return node != NULL; },
+                               curr_node),
+                    "Expected non-null node for hierarchical reference");
+                for (auto inst : splitString<SelectPath>(item, ';')) {
+                    // Construct nested attribute node
+                    curr_node = std::make_unique<vAST::Attribute>(
+                        std::move(curr_node), inst);
                 }
             } else {
-                if (!curr_expr) {
+                if (std::visit([](auto &&node) -> bool { return node == NULL; },
+                               curr_node)) {
                     // first level select, make an id
-                    curr_expr = vAST::make_id(item);
-                } else if (auto attr = dynamic_cast<vAST::Attribute *>(
-                               curr_expr.get())) {
+                    curr_node = vAST::make_id(item);
+                } else if (std::holds_alternative<
+                               std::unique_ptr<vAST::Attribute>>(curr_node)) {
                     // selecting off a hierarchical instance select
-                    curr_expr = std::make_unique<vAST::Attribute>(
-                        std::move(curr_expr), item);
+                    curr_node = std::make_unique<vAST::Attribute>(
+                        std::move(std::get<std::unique_ptr<vAST::Attribute>>(
+                            curr_node)),
+                        item);
                 } else {
                     // append to current name being constructed
-                    auto id = dynamic_cast<vAST::Identifier *>(curr_expr.get());
-                    ASSERT(id, "Expected ID");
-                    id->value += "_" + item;
+                    ASSERT(std::holds_alternative<
+                               std::unique_ptr<vAST::Identifier>>(curr_node),
+                           "Expected ID");
+                    std::get<std::unique_ptr<vAST::Identifier>>(curr_node)
+                        ->value += "_" + item;
                 }
             }
-            prev_is_inst = curr_is_inst;
         }
     }
-    if (auto ptr = dynamic_cast<vAST::Identifier *>(curr_expr.get())) {
-        curr_expr.release();
-        return std::unique_ptr<vAST::Identifier>(ptr);
-    }
-    if (auto ptr = dynamic_cast<vAST::Attribute *>(curr_expr.get())) {
-        curr_expr.release();
-        return std::unique_ptr<vAST::Attribute>(ptr);
-    }
-    throw std::runtime_error("Did not get identifier or attribute when "
-                             "converting to verilog connection");
-    return std::unique_ptr<vAST::Identifier>{};
+    return std::visit(
+        [](auto curr_node) -> std::variant<std::unique_ptr<vAST::Identifier>,
+                                           std::unique_ptr<vAST::Attribute>,
+                                           std::unique_ptr<vAST::Index>> {
+            return curr_node;
+        },
+        std::move(curr_node));
 }
 
 void process_connection_debug_metadata(

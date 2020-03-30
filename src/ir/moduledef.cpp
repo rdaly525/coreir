@@ -102,6 +102,11 @@ bool ModuleDef::canSel(SelectPath path) {
     inst = this->interface;
   }
   else {
+    if (hasChar(iname, ';')) {
+        // Hierarchical reference, pop off first instance name from string
+        iname = splitString<SelectPath>(iname, ';')[0];
+        path[0] = path[0].substr(iname.length() + 1);
+    }
     if (this->instances.count(iname)==0) return false;
     inst = this->instances[iname];
   }

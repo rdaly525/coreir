@@ -257,17 +257,46 @@ void Instance::replace(Module* moduleRef, Values modargs) {
   checkValuesAreParams(modargs,moduleRef->getModParams(),this->getInstname());
 }
 
+bool Instance::canSel(string selstr) {
+  return Wireable::canSel(selstr) || this->canSel(selstr);
+}
+
+bool Instance::canSel(SelectPath path) {
+  return Wireable::canSel(path) || this->canSel(path);
+}
+
+bool InstanceSelect::canSel(string selstr) {
+  return Wireable::canSel(selstr) || this->getContainer()->canSel(selstr);
+}
+
+bool InstanceSelect::canSel(SelectPath path) {
+  return Wireable::canSel(path) || this->getContainer()->canSel(path);
+}
+
 Select* Instance::sel(const std::string& selStr) {
     if (selects.count(selStr)) {
         return selects[selStr];
     }
     if (this->getModuleRef()->canSel(selStr)) {
-        Wireable* wireable = this->getModuleRef()->getDef()->sel(selStr);
-        Type* type = wireable->getType();
-        InstanceSelect* select =
-            new InstanceSelect(this->getContainer(), this, selStr, type);
-        selects[selStr] = select;
-        return select;
+        Wireable* sel = this->getModuleRef()->getDef()->sel(selStr);
+        InstanceSelect* instance_select = new InstanceSelect(
+            this->getContainer(), this, selStr, sel);
+        selects[selStr] = instance_select;
+        return selects[selStr];
+    }
+    return Wireable::sel(selStr);
+}
+
+Select* InstanceSelect::sel(const std::string& selStr) {
+    if (selects.count(selStr)) {
+        return selects[selStr];
+    }
+    if (this->wireable->canSel(selStr)) {
+        Wireable* sel = this->wireable->sel(selStr);
+        InstanceSelect* instance_select = new InstanceSelect(
+            this->getContainer(), this, selStr, sel);
+        selects[selStr] = instance_select;
+        return selects[selStr];
     }
     return Wireable::sel(selStr);
 }
