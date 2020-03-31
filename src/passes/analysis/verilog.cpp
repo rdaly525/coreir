@@ -655,7 +655,8 @@ convert_to_verilog_connection(Wireable *value, bool _inline) {
                     std::visit([](auto &&node) -> bool { return node != NULL; },
                                curr_node),
                     "Expected non-null node for hierarchical reference");
-                for (auto inst : splitString<SelectPath>(item, ';')) {
+                // .substr(1) to skip ; prefix
+                for (auto inst : splitString<SelectPath>(item.substr(1), ';')) {
                     // Construct nested attribute node
                     curr_node = std::make_unique<vAST::Attribute>(
                         std::move(curr_node), inst);

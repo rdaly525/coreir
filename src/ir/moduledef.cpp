@@ -126,8 +126,9 @@ Wireable* ModuleDef::sel(const string& s) {
   else if (hasChar(s, ';')) {
     SelectPath path = splitString<SelectPath>(s, ';');
     std::string inst_name = path[0];
-    // Pop off and select first instance, then select the rest of the string
-    return cast<Instance>(this->sel(inst_name))->sel(s.substr(inst_name.length() + 1));
+    // Pop off and select first instance, then select the rest of the string,
+    // keep ; prefix to differentiate between port and instance name
+    return cast<Instance>(this->sel(inst_name))->sel(s.substr(inst_name.length()));
   } else {
     ASSERT(instances.count(s),"Cannot find instance " + s);
     return instances[s]; 

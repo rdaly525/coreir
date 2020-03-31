@@ -35,6 +35,13 @@ TEST(HierarchicalSelectTest, TestHierarchicalSelectDouble) {
     deleteContext(c);
 }
 
+TEST(HierarchicalSelectTest, TestHierarchicalSelectNameAlisa) {
+    Context *c = newContext();
+    load_file(c, "srcs/hierarchical_select_3.json");
+    check_verilog(c, "golds/hierarchical_select_3.v");
+    deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char **argv) {
