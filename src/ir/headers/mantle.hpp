@@ -211,5 +211,39 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     }
   });
 
-  return mantle;
+    auto regCEFun = [](Context* c, Values args) {
+        uint width = args.at("width")->get<int>();
+        Type* ptype = c->Bit()->Arr(width);
+
+        RecordParams r({
+            {"in" , ptype->getFlipped()},
+            {"ce", c->BitIn()},
+            {"out", ptype},
+            {"clk", c->Named("coreir.clkIn")},
+        });
+        return c->Record(r);
+    };
+    Params regCEGenParams({{"width", c->Int()}});
+    TypeGen* regCETypeGen = mantle->newTypeGen("regCEType", regCEGenParams, regCEFun);
+    auto regCE = mantle->newGeneratorDecl("regCE", regCETypeGen, regCEGenParams);
+    {
+      json vjson;
+      vjson["interface"] = {
+         "input [width-1:0] in",
+         "input ce",
+         "output [width-1:0] out",
+         "input clk"
+      };
+      vjson["definition"] = ""
+         "  reg [width-1:0] value;\n"
+         "  always @(posedge clk) begin\n"
+         "    if (ce) begin\n"
+         "      value <= in;\n"
+         "    end\n"
+         "  end\n"
+         "  assign out = value;";
+
+      regCE->getMetaData()["verilog"] = vjson;
+    }
+    return mantle;
 }
