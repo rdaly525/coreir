@@ -222,25 +222,42 @@ bool can_inline_slice_op(CoreIR::Module *module, bool _inline) {
 }
 
 // Unpack variant type and convert to parent type Expression
-std::unique_ptr<vAST::Expression>
-convert_to_expression(std::variant<std::unique_ptr<vAST::Identifier>,
-                                   std::unique_ptr<vAST::Index>> value) {
-  return std::visit([](auto &&value) -> std::unique_ptr<vAST::Expression> {
-    return std::move(value); 
-  }, value);
+std::unique_ptr<vAST::Expression> convert_to_expression(
+    std::variant<std::unique_ptr<vAST::Identifier>,
+                 std::unique_ptr<vAST::Attribute>,
+                 std::unique_ptr<vAST::Index>>
+        value) {
+    return std::visit(
+        [](auto &&value) -> std::unique_ptr<vAST::Expression> {
+            return std::move(value);
+        },
+        value);
 }
 
-// Unpack variant type and convert to assign variant type
+// Checks runtype type of expression and return assign target or error
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>,
-             std::unique_ptr<vAST::Slice>> 
-convert_to_assign_target(std::variant<std::unique_ptr<vAST::Identifier>,
-                         std::unique_ptr<vAST::Index>> value) {
-  return std::visit([](auto &&value) ->
+             std::unique_ptr<vAST::Slice>>
+convert_to_assign_target(
     std::variant<std::unique_ptr<vAST::Identifier>,
-    std::unique_ptr<vAST::Index>, std::unique_ptr<vAST::Slice>> 
-    { return std::move(value); }, 
-    value
-  );
+                 std::unique_ptr<vAST::Attribute>, std::unique_ptr<vAST::Index>>
+        value) {
+    return std::visit(
+        [](auto &&value) -> std::variant<std::unique_ptr<vAST::Identifier>,
+                                         std::unique_ptr<vAST::Index>,
+                                         std::unique_ptr<vAST::Slice>> {
+            if (auto ptr = dynamic_cast<vAST::Identifier *>(value.get())) {
+                value.release();
+                return std::unique_ptr<vAST::Identifier>(ptr);
+            }
+            if (auto ptr = dynamic_cast<vAST::Index *>(value.get())) {
+                value.release();
+                return std::unique_ptr<vAST::Index>(ptr);
+            }
+            throw std::runtime_error(
+                "Cannot convert Attribute to assign target");
+            return std::unique_ptr<vAST::Identifier>{};  // nullptr
+        },
+        std::move(value));
 }
 
 namespace CoreIR {
@@ -590,32 +607,91 @@ build_connection_map(CoreIR::ModuleDef *definition,
 }
 
 // Join select path fields by "_" (ignoring intial self if present)
-std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>>
+std::variant<std::unique_ptr<vAST::Identifier>,
+             std::unique_ptr<vAST::Attribute>, std::unique_ptr<vAST::Index>>
 convert_to_verilog_connection(Wireable *value, bool _inline) {
-  SelectPath select_path = value->getSelectPath();
-  if (select_path.front() == "self") {
-    select_path.pop_front();
-  }
-  Wireable *parent = value->getTopParent();
-  if (_inline && parent->getKind() == Wireable::WK_Instance &&
-      cast<Instance>(parent)->getModuleRef()->getName() == "wire") {
-    // Use instance name as wire name
-    select_path.pop_front();
-    select_path[0] = parent->toString();
-  }
-  std::string connection_name = "";
-  for (uint i = 0; i < select_path.size(); i++) {
-    auto item = select_path[i];
-    if (isNumber(item)) {
-      ASSERT(i == select_path.size() - 1, "Assumed flattened types have array index as last element in select path");
-      return std::make_unique<vAST::Index>(vAST::make_id(connection_name),
-                                           vAST::make_num(item));
-    } else if (connection_name != "") {
-      connection_name += "_";
+    SelectPath select_path = value->getSelectPath();
+    if (select_path.front() == "self") {
+        select_path.pop_front();
     }
-    connection_name += item;
-  }
-  return vAST::make_id(connection_name);
+    Wireable *parent = value->getTopParent();
+    if (_inline && parent->getKind() == Wireable::WK_Instance &&
+        cast<Instance>(parent)->getModuleRef()->getName() == "wire") {
+        // Use instance name as wire name
+        select_path.pop_front();
+        select_path[0] = parent->toString();
+    }
+
+    // Used to track the current select so we can see if it's an instance
+    Wireable *curr_wireable = value->getTopParent();
+
+    std::variant<std::unique_ptr<vAST::Identifier>,
+                 std::unique_ptr<vAST::Attribute>>
+        curr_node;
+    for (uint i = 0; i < select_path.size(); i++) {
+        auto item = select_path[i];
+        if (isNumber(item)) {
+            ASSERT(i == select_path.size() - 1,
+                   "Assumed flattened types have array index as last element "
+                   "in select path");
+            if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
+                    curr_node)) {
+                return std::make_unique<vAST::Index>(
+                    std::move(
+                        std::get<std::unique_ptr<vAST::Identifier>>(curr_node)),
+                    vAST::make_num(item));
+            }
+            throw std::runtime_error(
+                "Got non identifier for Index constructor");
+        } else {
+            if (i > 0) {
+                // advance to next wireable if we're past the first select
+                curr_wireable = curr_wireable->sel(item);
+            }
+            // Handle hierarchical select of instance
+            if (isa<InstanceSelect>(curr_wireable)) {
+                // First node should have been a normal instance
+                ASSERT(
+                    std::visit([](auto &&node) -> bool { return node != NULL; },
+                               curr_node),
+                    "Expected non-null node for hierarchical reference");
+                // .substr(1) to skip ; prefix
+                for (auto inst : splitString<SelectPath>(item.substr(1), ';')) {
+                    // Construct nested attribute node
+                    curr_node = std::make_unique<vAST::Attribute>(
+                        std::move(curr_node), inst);
+                }
+            } else {
+                if (std::visit([](auto &&node) -> bool { return node == NULL; },
+                               curr_node)) {
+                    // first level select, make an id
+                    curr_node = vAST::make_id(item);
+                } else if (std::holds_alternative<
+                               std::unique_ptr<vAST::Attribute>>(curr_node)) {
+                    // selecting off a hierarchical instance select
+                    curr_node = std::make_unique<vAST::Attribute>(
+                        std::move(std::get<std::unique_ptr<vAST::Attribute>>(
+                            curr_node)),
+                        item);
+                } else {
+                    // append to current name being constructed
+                    ASSERT(std::holds_alternative<
+                               std::unique_ptr<vAST::Identifier>>(curr_node),
+                           "Expected ID");
+                    std::get<std::unique_ptr<vAST::Identifier>>(curr_node)
+                        ->value += "_" + item;
+                }
+            }
+        }
+    }
+    if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(curr_node)) {
+        return std::get<std::unique_ptr<vAST::Identifier>>(std::move(curr_node));
+    }
+    if (std::holds_alternative<std::unique_ptr<vAST::Attribute>>(curr_node)) {
+        return std::get<std::unique_ptr<vAST::Attribute>>(std::move(curr_node));
+    }
+    throw std::runtime_error("Unreachable");
+    return std::unique_ptr<vAST::Identifier>{};
 }
 
 void process_connection_debug_metadata(
@@ -698,10 +774,10 @@ void assign_inouts(
   for (auto connection : connections) {
     if (connection.first->getType()->isInOut() ||
         connection.second->getType()->isInOut()) {
-      body.push_back(std::make_unique<vAST::ContinuousAssign>(
-              convert_to_assign_target(convert_to_verilog_connection(connection.first, _inline)),
-              convert_to_expression(convert_to_verilog_connection(connection.second, _inline))
-       ));
+        body.push_back(std::make_unique<vAST::ContinuousAssign>(
+            convert_to_assign_target(
+                convert_to_verilog_connection(connection.first, _inline)),
+            convert_to_expression(convert_to_verilog_connection(connection.second, _inline))));
     };
   };
 }
