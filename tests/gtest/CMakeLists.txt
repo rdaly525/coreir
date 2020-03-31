@@ -1,4 +1,4 @@
-it # Based on
+# Based on
 # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
 # 
 # Download and unpack gtest at configure time
