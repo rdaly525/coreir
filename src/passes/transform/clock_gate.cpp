@@ -92,6 +92,10 @@ bool ClockGate::runOnModule(Module* m) {
       if (!inst->getModArgs().at("clk_posedge")->get<bool>()) {
         continue;
       }
+      // NYI arst being negedge
+      if (is_coreir_reg_arst && !inst->getModArgs().at("arst_posedge")->get<bool>()) {
+        continue;
+      }
       auto info = check_register(inst);
       if (info.can_replace) {
         info.has_arst = is_coreir_reg_arst;
