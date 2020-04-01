@@ -8,8 +8,9 @@ struct CEInfo {
   CoreIR::Instance *reg = nullptr;
   CoreIR::Instance *mux = nullptr;
   int mux_in_port = 0;
+  bool has_arst = false;
   CEInfo() : can_replace(false) {}
-  CEInfo(CoreIR::Instance *reg, CoreIR::Instance *mux, bool mux_in_port)
+  CEInfo(CoreIR::Instance *reg, CoreIR::Instance *mux, int mux_in_port)
       : can_replace(true), reg(reg), mux(mux), mux_in_port(mux_in_port) {}
 };
 
@@ -33,12 +34,17 @@ CoreIR::Instance *get_instance(CoreIR::Wireable *w) {
 
 CoreIR::Wireable *get_driver(CoreIR::Wireable *w) {
   auto conns = w->getConnectedWireables();
-  ASSERT(conns.size() == 1, "NYI, non-bitvector connection");
+  if (conns.size() != 1) {
+      return nullptr;
+  }
   return *conns.begin();
 }
 
 CEInfo check_register(CoreIR::Instance *reg) {
   auto reg_driver = get_driver(reg->sel("in"));
+  if (reg_driver == nullptr) {
+      return CEInfo();
+  }
   auto mux = get_instance(reg_driver);
   // Conditions that need to hold:
   // is an instance
@@ -74,9 +80,16 @@ bool ClockGate::runOnModule(Module *m) {
   std::vector<CEInfo> to_replace;
   for (auto ipair : def->getInstances()) {
     auto inst = ipair.second;
-    if (instance_of(inst, "coreir", "reg")) {
+    bool is_coreir_reg = instance_of(inst, "coreir", "reg");
+    bool is_coreir_reg_arst = instance_of(inst, "coreir", "reg_arst");
+    if (is_coreir_reg || is_coreir_reg_arst) {
+      //NYI clock being negedge
+      if (!inst->getModArgs().at("clk_posedge")->get<bool>()  ) {
+          continue;
+      }
       auto info = check_register(inst);
       if (info.can_replace) {
+          info.has_arst = is_coreir_reg_arst;
         to_replace.push_back(info);
       }
     }
@@ -84,12 +97,19 @@ bool ClockGate::runOnModule(Module *m) {
   for (auto info : to_replace) {
     auto replace_name = info.reg->getInstname() + "__CE";
     auto width = info.reg->getModuleRef()->getGenArgs()["width"];
+    std::string mod_name = std::string("mantle.regCE") + (info.has_arst ? "_arst" : "");
     auto ce_inst =
-        def->addInstance(replace_name, "mantle.regCE", {{"width", width}});
+        def->addInstance(replace_name, mod_name, {{"width", width}});
 
     // Connect the clock
     auto clk_driver = get_driver(info.reg->sel("clk"));
     def->connect(clk_driver, ce_inst->sel("clk"));
+
+    //Connect the reset
+    if (info.has_arst) {
+        auto rst_driver = get_driver(info.reg->sel("arst"));
+        def->connect(rst_driver, ce_inst->sel("arst"));
+    }
 
     // Connect mux input
     auto regCE_driver =

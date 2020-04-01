@@ -211,6 +211,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     }
   });
 
+  { //Clock en register (no reset)
     auto regCEFun = [](Context* c, Values args) {
         uint width = args.at("width")->get<int>();
         Type* ptype = c->Bit()->Arr(width);
@@ -226,24 +227,75 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     Params regCEGenParams({{"width", c->Int()}});
     TypeGen* regCETypeGen = mantle->newTypeGen("regCEType", regCEGenParams, regCEFun);
     auto regCE = mantle->newGeneratorDecl("regCE", regCETypeGen, regCEGenParams);
-    {
-      json vjson;
-      vjson["interface"] = {
-         "input [width-1:0] in",
-         "input ce",
-         "output [width-1:0] out",
-         "input clk"
-      };
-      vjson["definition"] = ""
-         "  reg [width-1:0] value;\n"
-         "  always @(posedge clk) begin\n"
-         "    if (ce) begin\n"
-         "      value <= in;\n"
-         "    end\n"
-         "  end\n"
-         "  assign out = value;";
+    json vjson;
+    vjson["interface"] = {
+       "input [width-1:0] in",
+       "input ce",
+       "output [width-1:0] out",
+       "input clk"
+    };
+    vjson["definition"] = ""
+       "  reg [width-1:0] value;\n"
+       "  always @(posedge clk) begin\n"
+       "    if (ce) begin\n"
+       "      value <= in;\n"
+       "    end\n"
+       "  end\n"
+       "  assign out = value;";
 
-      regCE->getMetaData()["verilog"] = vjson;
-    }
-    return mantle;
+    regCE->getMetaData()["verilog"] = vjson;
+  }
+  
+  { //Clock en register with reset
+    auto regCEArstFun = [](Context* c, Values args) {
+        uint width = args.at("width")->get<int>();
+        Type* ptype = c->Bit()->Arr(width);
+
+        RecordParams r({
+            {"in" , ptype->getFlipped()},
+            {"ce", c->BitIn()},
+            {"out", ptype},
+            {"clk", c->Named("coreir.clkIn")},
+            {"arst", c->Named("coreir.arstIn")},
+        });
+        return c->Record(r);
+    };
+    auto regModParamFun = [](Context* c,Values genargs) -> std::pair<Params,Values> {
+      Params modparams;
+      Values defaultargs;
+        int width = genargs.at("width")->get<int>();
+        modparams["init"] = BitVectorType::make(c,width);
+        defaultargs["init"] = Const::make(c,width,0);
+      //}
+      return {modparams,defaultargs};
+    };
+
+
+    Params regCEArstGenParams({{"width", c->Int()}});
+    TypeGen* regCEArstTypeGen = mantle->newTypeGen("regCEArstType", regCEArstGenParams, regCEArstFun);
+    auto regCEArst = mantle->newGeneratorDecl("regCE_arst", regCEArstTypeGen, regCEArstGenParams);
+    regCEArst->setModParamsGen(regModParamFun);
+    json vjson;
+    vjson["parameters"] = {"init"};
+    vjson["interface"] = {
+       "input [width-1:0] in",
+       "input ce",
+       "output [width-1:0] out",
+       "input clk",
+       "input arst"
+    };
+    vjson["definition"] = ""
+       "  reg [width-1:0] value;\n"
+       "  always @(posedge clk, posedge arst) begin\n"
+       "    if (arst) begin\n"
+       "      value <= init;\n"
+       "    end\n"
+       "    else if (ce) begin\n"
+       "      value <= in;\n"
+       "    end\n"
+       "  end\n"
+       "  assign out = value;";
+    regCEArst->getMetaData()["verilog"] = vjson;
+  }
+  return mantle;
 }
