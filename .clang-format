@@ -1,0 +1,27 @@
+BasedOnStyle: LLVM
+IndentWidth: 2
+
+# Produces code like this:
+# auto res = f(
+#   longarg1,
+#   longarg2
+# );
+# params = Params({
+#   {arg1a, arg1b},
+#   {arg2a, arg2b},
+# });
+ContinuationIndentWidth: 2
+BinPackArguments: false
+BinPackParameters: false
+AlignAfterOpenBracket: AlwaysBreak
+AllowAllParametersOfDeclarationOnNextLine: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  BeforeElse: true
+AlwaysBreakBeforeMultilineStrings: true
+
+# Force pointer to be on the type
+DerivePointerAlignment: false
+PointerAlignment: Left
+
+AllowShortIfStatementsOnASingleLine: true
