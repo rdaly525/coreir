@@ -1028,7 +1028,6 @@ void Passes::Verilog::compileModule(Module *module) {
   // Temporary support for inline verilog
   // See https://github.com/rdaly525/coreir/pull/823 for context
   json metadata = module->getMetaData();
-  std::vector<std::pair<std::string, std::unique_ptr<vAST::Expression>>> interpolated_symbols;
   if (metadata.count("inline_verilog") > 0) {
       json inline_verilog = metadata["inline_verilog"];
       std::string inline_str = inline_verilog["str"].get<std::string>();
@@ -1048,13 +1047,14 @@ void Passes::Verilog::compileModule(Module *module) {
                   it.key() + " -- " + connect_select_path +
                   " , orig =" + it.value().get<std::string>());
           }
-          interpolated_symbols.push_back(std::make_pair(
-              it.key(),
-              convert_to_expression(convert_to_verilog_connection(
-                  module->getDef()->sel(connect_select_path), this->_inline))));
+          std::string value = std::visit(
+              [](auto &&value) -> std::string { return value->toString(); },
+              convert_to_verilog_connection(
+                  module->getDef()->sel(connect_select_path), this->_inline));
+          inline_str = std::regex_replace(
+              inline_str, std::regex("\\{" + it.key() + "\\}"), value);
       }
-      body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str,
-                  std::move(interpolated_symbols)));
+      body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
   }
 
   vAST::Parameters parameters = compile_params(module);
