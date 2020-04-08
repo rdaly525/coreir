@@ -5,6 +5,8 @@
 #include "verilogAST/transformer.hpp"
 #include "verilogAST/assign_inliner.hpp"
 #include <fstream>
+#include <regex>
+
 
 namespace vAST = verilogAST;
 
@@ -1025,9 +1027,34 @@ void Passes::Verilog::compileModule(Module *module) {
 
   // Temporary support for inline verilog
   // See https://github.com/rdaly525/coreir/pull/823 for context
-  if (module->getMetaData().count("inline_verilog") > 0) {
-    std::string inline_str = module->getMetaData()["inline_verilog"].get<std::string>();
-    body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
+  json metadata = module->getMetaData();
+  if (metadata.count("inline_verilog") > 0) {
+      json inline_verilog = metadata["inline_verilog"];
+      std::string inline_str = inline_verilog["str"].get<std::string>();
+      for (auto it :
+           json::iterator_wrapper(inline_verilog["connect_references"])) {
+          std::string connect_select_path = it.value().get<std::string>();
+          if (metadata.count("symbol_table")) {
+              while (metadata["symbol_table"].count(connect_select_path)) {
+                  connect_select_path =
+                      metadata["symbol_table"][connect_select_path]
+                          .get<std::string>();
+              }
+          }
+          if (!module->hasDef() || !module->getDef()->canSel(connect_select_path)) {
+              throw std::runtime_error(
+                  "Cannot select inline verilog connect reference: " +
+                  it.key() + " -- " + connect_select_path +
+                  " , orig =" + it.value().get<std::string>());
+          }
+          std::string value = std::visit(
+              [](auto &&value) -> std::string { return value->toString(); },
+              convert_to_verilog_connection(
+                  module->getDef()->sel(connect_select_path), this->_inline));
+          inline_str = std::regex_replace(
+              inline_str, std::regex("\\{" + it.key() + "\\}"), value);
+      }
+      body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
   }
 
   vAST::Parameters parameters = compile_params(module);

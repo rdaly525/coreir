@@ -72,6 +72,8 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Early out if no new ports
   if (ports.size()==0) return false;
 
+  json symbol_table = json::object();
+
   //Create a list of new names for the ports
   vector<std::pair<string,Type*>> newports;
   unordered_set<string> verifyUnique;
@@ -80,7 +82,10 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     ASSERT(verifyUnique.count(newport)==0,"NYI: Name clashes");
     newports.push_back({newport,portpair.second});
     verifyUnique.insert(newport);
+    symbol_table["self." + toString(portpair.first)] = "self." + newport;
   }
+
+  mod->getMetaData()["symbol_table"] = symbol_table;
 
   //Append new ports to this module (should not affect any connections)
   for (auto newportpair : newports) {
