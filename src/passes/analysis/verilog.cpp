@@ -1053,8 +1053,8 @@ void Passes::Verilog::compileModule(Module *module) {
               convert_to_expression(convert_to_verilog_connection(
                   module->getDef()->sel(connect_select_path), this->_inline))));
       }
-      body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str,
-                  std::move(interpolated_symbols)));
+      body.push_back(std::make_unique<vAST::InlineVerilog>(
+          inline_str, std::move(interpolated_symbols)));
   }
 
   vAST::Parameters parameters = compile_params(module);
