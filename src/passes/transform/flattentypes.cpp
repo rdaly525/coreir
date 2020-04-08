@@ -72,7 +72,12 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Early out if no new ports
   if (ports.size()==0) return false;
 
-  json symbol_table = json::object();
+  json symbol_table;
+  if (!mod->getMetaData().count("symbol_table")) {
+    symbol_table = json::object();
+  } else {
+    symbol_table = mod->getMetaData()["symbol_table"];
+  }
 
   //Create a list of new names for the ports
   vector<std::pair<string,Type*>> newports;
