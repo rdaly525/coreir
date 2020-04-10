@@ -69,6 +69,9 @@ class Module : public GlobalValue, public Args, public VerilogPrimitive {
     void addDefaultModArgs(Values defaultModArgs);
     Values& getDefaultModArgs() { return defaultModArgs;}
 
+    bool canSel(std::string sel_str);
+    bool canSel(SelectPath sel_path);
+
   private :
     //This should be used very carefully. Could make things inconsistent
     friend class InstanceGraphNode;

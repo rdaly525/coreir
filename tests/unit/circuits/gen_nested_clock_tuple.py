@@ -3,8 +3,8 @@ import mantle
 
 
 class TestNestedClockTuple(m.Circuit):
-    IO = ["I", m.In(m.Tuple(clk1=m.Clock, clk2=m.Clock, i=m.Bit)),
-          "O", m.Out(m.Bits(2))]
+    io = m.IO(I=m.In(m.Tuple(clk1=m.Clock, clk2=m.Clock, i=m.Bit)),
+          O=m.Out(m.Bits(2)))
 
     @classmethod
     def definition(io):
@@ -18,7 +18,7 @@ class TestNestedClockTuple(m.Circuit):
 
 
 class TestNestedClockTupleMain(m.Circuit):
-    IO = ["CLK", m.In(m.Clock), "I", m.In(m.Bit), "O", m.Out(m.Bits(2))]
+    io = m.IO(CLK=m.In(m.Clock), I=m.In(m.Bit), O=m.Out(m.Bits(2)))
 
     @classmethod
     def definition(io):

@@ -102,6 +102,11 @@ bool ModuleDef::canSel(SelectPath path) {
     inst = this->interface;
   }
   else {
+    if (hasChar(iname, ';')) {
+        // Hierarchical reference, pop off first instance name from string
+        iname = splitString<SelectPath>(iname, ';')[0];
+        path[0] = path[0].substr(iname.length() + 1);
+    }
     if (this->instances.count(iname)==0) return false;
     inst = this->instances[iname];
   }
@@ -118,7 +123,13 @@ Wireable* ModuleDef::sel(const string& s) {
     return this->sel(path);
   }
   if (s=="self") return interface;
-  else {
+  else if (hasChar(s, ';')) {
+    SelectPath path = splitString<SelectPath>(s, ';');
+    std::string inst_name = path[0];
+    // Pop off and select first instance, then select the rest of the string,
+    // keep ; prefix to differentiate between port and instance name
+    return cast<Instance>(this->sel(inst_name))->sel(s.substr(inst_name.length()));
+  } else {
     ASSERT(instances.count(s),"Cannot find instance " + s);
     return instances[s]; 
   }

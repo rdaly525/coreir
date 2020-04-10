@@ -1,0 +1,51 @@
+
+{"top":"global.Foo",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Bar":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "Baz_inst0":{
+            "modref":"global.Baz"
+          }
+        },
+        "connections":[
+          ["self.I","Baz_inst0.I"],
+          ["self.O","Baz_inst0.O"]
+        ]
+      },
+      "Baz":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]]
+      },
+      "Foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O0","Bit"],
+          ["O1","Bit"]
+        ]],
+        "instances":{
+          "Bar_inst0":{
+            "modref":"global.Bar"
+          },
+          "Bar_inst1":{
+            "modref":"global.Bar"
+          }
+        },
+        "connections":[
+          ["self.I","Bar_inst0.I"],
+          ["self.O0","Bar_inst0.O"],
+          ["Bar_inst0;Baz_inst0.O","Bar_inst1.I"],
+          ["self.O1","Bar_inst1.O"]
+        ]
+      }
+    }
+  }
+}
+}
