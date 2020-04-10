@@ -10,7 +10,7 @@ namespace CoreIR {
   BitVector BfloatRoundToNearestEven(const BitVector& val) {
     assert(val.bitLength() == 32);
 
-    auto half = BitVector(32, 0x0000800);
+    auto half = BitVector(32, 0x00008000);
     auto sum = add_general_width_bv(half, val);
     auto mantissa_mask = BitVector(32, 0x0000ffff);
     bool zeroed = (sum & mantissa_mask) == 0;
