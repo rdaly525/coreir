@@ -733,6 +733,18 @@ namespace CoreIR {
       REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
     }
 
+    SECTION("3.140625 * 7 == 22") {
+      float a = 3.140625;
+      float b = 7;
+      float res = 22;
+
+    state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
+      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+      state.execute();
+
+      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(res)));
+    }
+
   }
 
   TEST_CASE("32 bit bfloat sub") {
