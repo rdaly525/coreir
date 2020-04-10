@@ -433,7 +433,7 @@ namespace CoreIR {
     }
     
   }
-  
+
   TEST_CASE("Run 32 bit float mul") {
 
     // New context
@@ -735,14 +735,15 @@ namespace CoreIR {
 
     SECTION("3.140625 * 7 == 22") {
       float a = 3.140625;
-      float b = 7;
-      float res = 22;
-
-    state.setValue("self.in0", BitVector(width, bitCastToInt(a)));
-      state.setValue("self.in1", BitVector(width, bitCastToInt(b)));
+      float b = 7.0;
+      float res = 22.0;
+      auto a_bv = BitVector(width, bitCastToInt(a) >> 16);
+      auto b_bv = BitVector(width, bitCastToInt(b) >> 16);
+      auto res_bv = BitVector(width, bitCastToInt(res) >> 16);
+      state.setValue("self.in0", a_bv);
+      state.setValue("self.in1", b_bv);
       state.execute();
-
-      REQUIRE(state.getBitVec("self.out") == BitVector(width, bitCastToInt(res)));
+      REQUIRE(state.getBitVec("self.out") == res_bv);
     }
 
   }

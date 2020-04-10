@@ -7,6 +7,26 @@ using namespace std;
 
 namespace CoreIR {
 
+  BitVector BfloatRoundToNearestEven(const BitVector& val) {
+    assert(val.bitLength() == 32);
+
+    auto half = BitVector(32, 0x0000800);
+    auto sum = add_general_width_bv(half, val);
+    auto mantissa_mask = BitVector(32, 0x0000ffff);
+    bool zeroed = (sum & mantissa_mask) == 0;
+
+    auto clear_mask = ~shl(BitVector(32, zeroed), 16);
+    auto val_shifted = sum & clear_mask;
+
+    BitVector bRes(16, 0);
+
+    for (int i = 0; i<16; ++i) {
+      bRes.set(i, val_shifted.get(i+16));
+    }
+
+    return bRes;
+  }
+
   BitVector truncateToBfloat(const BitVector& longRes) {
     assert(longRes.bitLength() == 32);
 
@@ -24,6 +44,8 @@ namespace CoreIR {
     
     return bRes;
   }
+
+
   
   BitVector extendBfloat(const BitVector& r) {
     assert(r.bitLength() == 16);
@@ -1257,7 +1279,7 @@ namespace CoreIR {
             //cout << "res = " << res << endl;
             //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
         });
@@ -1311,7 +1333,7 @@ namespace CoreIR {
            //cout << "res = " << res << endl;
            //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
@@ -1362,7 +1384,7 @@ namespace CoreIR {
            //cout << "res = " << res << endl;
            //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
@@ -1413,7 +1435,7 @@ namespace CoreIR {
             //cout << "res = " << res << endl;
             //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
@@ -1601,7 +1623,7 @@ namespace CoreIR {
             int resI = bitCastToInt(res);
 
             BitVector longRes = BitVec(32, resI);
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
