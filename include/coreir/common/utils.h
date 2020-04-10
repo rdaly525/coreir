@@ -96,7 +96,7 @@ namespace CoreIR {
       //module's name is always either the modules name or the generators name
       //m->getLongName() is a uniquified name for generated modules
       //TODO really should be checking m->getRefName() == "coreir.reg"
-      return m->getRefName() == "coreir.reg";
+      return m->getRefName() == "coreir.reg" || m->getRefName() == "coreir.reg_arst";
     }
     return false;
 

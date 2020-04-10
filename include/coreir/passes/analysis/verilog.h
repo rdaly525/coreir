@@ -28,6 +28,9 @@ class Verilog : public InstanceGraphPass {
   // modules. These parametrized modules have been instanced to create coreir
   // modules, but we only need to compile the verilog definition once
   std::set<Generator *> verilog_generators_seen;
+  
+  // Keep track of wire primitive instances, we do not inline these
+  std::set<std::string> wires;
 
   void compileModule(Module *module);
 
