@@ -64,13 +64,4 @@ add_custom_target(uninstall
   "${CMAKE_COMMAND}" -P "${CMAKE_SOURCE_DIR}/tools/cmake/uninstall.cmake"
 )
 
-# Add googletest directly to our build. This defines
-# the gtest and gtest_main targets.
-add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
-                 ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
-                 EXCLUDE_FROM_ALL)
-include_directories(${CMAKE_SOURCE_DIR}/include)
-enable_testing()
-add_executable(test_verilog tests/gtest/test_verilog.cpp)
-target_link_libraries(test_verilog gtest_main coreir coreir-commonlib)
-add_test(NAME test_verilog COMMAND test_verilog WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+add_subdirectory(${CMAKE_SOURCE_DIR}/tests/gtest)

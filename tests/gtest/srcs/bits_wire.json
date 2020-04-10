@@ -1,0 +1,24 @@
+{"top":"global.Main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Main":{
+        "type":["Record",[
+          ["I",["Array",5,"BitIn"]],
+          ["O",["Array",5,"Bit"]]
+        ]],
+        "instances":{
+          "x":{
+            "genref":"coreir.wire",
+            "genargs":{"width":["Int",5]}
+          }
+        },
+        "connections":[
+          ["x.in","self.I"],
+          ["x.out","self.O"]
+        ]
+      }
+    }
+  }
+}
+}
