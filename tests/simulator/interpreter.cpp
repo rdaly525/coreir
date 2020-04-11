@@ -409,7 +409,7 @@ namespace CoreIR {
 
       state.execute();
 
-      BitVector res("16'h3f80");
+      BitVector res("16'h3f81");
 
       cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
       REQUIRE(state.getBitVec("self.out") == res);
