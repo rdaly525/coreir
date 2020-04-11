@@ -409,7 +409,7 @@ namespace CoreIR {
 
       state.execute();
 
-      BitVector res("16'h3f80");
+      BitVector res("16'h3f81");
 
       cout << "result as float = " << bitCastToFloat(res.to_type<int>() << 16) << endl;
       REQUIRE(state.getBitVec("self.out") == res);
@@ -433,7 +433,7 @@ namespace CoreIR {
     }
     
   }
-  
+
   TEST_CASE("Run 32 bit float mul") {
 
     // New context
@@ -731,6 +731,19 @@ namespace CoreIR {
       state.execute();
 
       REQUIRE(state.getBitVec("self.out") == BitVector(width, 0));
+    }
+
+    SECTION("3.140625 * 7 == 22") {
+      float a = 3.140625;
+      float b = 7.0;
+      float res = 22.0;
+      auto a_bv = BitVector(width, bitCastToInt(a) >> 16);
+      auto b_bv = BitVector(width, bitCastToInt(b) >> 16);
+      auto res_bv = BitVector(width, bitCastToInt(res) >> 16);
+      state.setValue("self.in0", a_bv);
+      state.setValue("self.in1", b_bv);
+      state.execute();
+      REQUIRE(state.getBitVec("self.out") == res_bv);
     }
 
   }
