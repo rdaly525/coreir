@@ -39,6 +39,7 @@
 #include "transform/removebulkconnections.h"
 #include "transform/removewires.h"
 #include "transform/removeunconnected.h"
+#include "transform/removesinglemuxes.h"
 #include "transform/registerinputs.h"
 #include "transform/wireclocks.h"
 #include "transform/split_inouts.h"
@@ -83,6 +84,7 @@ namespace CoreIR {
     pm.addPass(new Passes::RemoveBulkConnections());
     pm.addPass(new Passes::RemoveWires());
     pm.addPass(new Passes::RemoveUnconnected());
+    pm.addPass(new Passes::RemoveSingleMuxes());
     pm.addPass(new Passes::WireClocks("wireclocks-coreir",c->Named("coreir.clkIn")));
     pm.addPass(new Passes::SplitInouts("split-inouts"));
     pm.addPass(new Passes::CullGraph(true));

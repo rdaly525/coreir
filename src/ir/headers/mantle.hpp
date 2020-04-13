@@ -87,6 +87,7 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       def->connect(mux->sel("sel"), io->sel("clr"));
       toIn = mux->sel("in0");
     }
+
     if (en) {
       auto mux = def->addInstance("enMux", "coreir.mux", wval);
       def->connect(mux->sel("out"), toIn);
