@@ -434,6 +434,10 @@ Passes::Verilog::compileStringBodyModule(json verilog_json, std::string name,
         // to attach comments to expressions
         port_str += "/*verilator public*/";
     }
+    if (name == "coreir_undriven" || name == "corebit_undriven") {
+        port_str = "/* verilator lint_off UNDRIVEN */" + port_str +
+                   "/* verilator lint_on UNDRIVEN */";
+    }
     ports.push_back(std::make_unique<vAST::StringPort>(port_str));
   }
   vAST::Parameters parameters;
