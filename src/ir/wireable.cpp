@@ -258,11 +258,18 @@ void Instance::replace(Module* moduleRef, Values modargs) {
 }
 
 bool Instance::canSel(string selstr) {
-  return Wireable::canSel(selstr) || this->getModuleRef()->canSel(selstr);
+  if (selstr[0] == ';') {
+    return this->getModuleRef()->canSel(selstr.substr(1));
+  }
+  return Wireable::canSel(selstr);
 }
 
 bool Instance::canSel(SelectPath path) {
-  return Wireable::canSel(path) || this->getModuleRef()->canSel(path);
+  if (path[0][0] == ';') {
+    path[0] = path[0].substr(1);
+    return this->getModuleRef()->canSel(path);
+  }
+  return Wireable::canSel(path);
 }
 
 Select* Instance::sel(const std::string& selStr) {

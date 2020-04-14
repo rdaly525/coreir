@@ -97,21 +97,25 @@ bool ModuleDef::canSel(const std::string& selstr) {
 }
 bool ModuleDef::canSel(SelectPath path) {
   string iname = path[0];
-  Wireable* inst;
   if (iname=="self") {
-    inst = this->interface;
+    path.pop_front();
+    return this->interface->canSel(path);
   }
-  else {
-    if (hasChar(iname, ';')) {
-        // Hierarchical reference, pop off first instance name from string
-        iname = splitString<SelectPath>(iname, ';')[0];
-        path[0] = path[0].substr(iname.length() + 1);
-    }
-    if (this->instances.count(iname)==0) return false;
-    inst = this->instances[iname];
+  Instance* inst;
+  if (hasChar(iname, ';')) {
+      // Hierarchical reference, pop off first instance name from string
+      iname = splitString<SelectPath>(iname, ';')[0];
+      path[0] = path[0].substr(iname.length());
+  } else {
+      path.pop_front();
   }
-  path.pop_front();
-  return inst->canSel(path);
+  if (this->instances.count(iname)==0) {
+        return false;
+  };
+  inst = this->instances[iname];
+  
+  bool result = inst->canSel(path);
+  return result;
 }
 
 
