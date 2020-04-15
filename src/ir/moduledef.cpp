@@ -100,6 +100,8 @@ bool ModuleDef::canSel(SelectPath path) {
   if (hasChar(inst_name, ';')) {
       // Hierarchical reference, pop off first instance name from string
       inst_name = splitString<SelectPath>(inst_name, ';')[0];
+      // Preserves ; as prefix so instance knows it's a hierarchical rather
+      // than port select
       path[0] = path[0].substr(inst_name.length());
   } else {
       path.pop_front();

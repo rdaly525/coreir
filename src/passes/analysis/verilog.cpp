@@ -919,19 +919,6 @@ compile_module_body(RecordType *module_type,
                json::iterator_wrapper(inline_verilog["connect_references"])) {
               SelectPath connect_select_path =
                   splitString<SelectPath>(it.value().get<std::string>(), '.');
-              // if (metadata.count("symbol_table")) {
-              //     while (metadata["symbol_table"].count(connect_select_path)) {
-              //         connect_select_path =
-              //             metadata["symbol_table"][connect_select_path]
-              //                 .get<std::string>();
-              //     }
-              // }
-              // if (!instance_module->canSel(connect_select_path)) {
-              //     throw std::runtime_error(
-              //         "Cannot select inline verilog connect reference: " +
-              //         it.key() + " -- " + connect_select_path +
-              //         " , orig =" + it.value().get<std::string>());
-              // }
               ASSERT(connect_select_path[0] == "self", "Expected self reference");
               connect_select_path.pop_front();
               std::string value = verilog_connections->at(toString(connect_select_path))->toString();
