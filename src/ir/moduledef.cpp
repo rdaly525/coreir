@@ -109,7 +109,6 @@ bool ModuleDef::canSel(SelectPath path) {
   if (inst_name=="self") {
     return this->interface->canSel(path);
   }
-  Instance* inst;
   if (this->instances.count(inst_name) == 0) {
         return false;
   };
