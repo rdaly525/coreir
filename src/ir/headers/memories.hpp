@@ -13,6 +13,23 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
   Namespace* memory = c->newNamespace("memory");
 
+
+  // Note this is a linebuffer MEMORY (a single row), with a stencil valid
+  Params RbwsvGenParams = {{"width",c->Int()},{"depth",c->Int()},{"stencil_width",c->Int()}};
+  memory->newTypeGen("rowbufferWithStencilValidType",RbwsvGenParams,[](Context* c, Values genargs) {
+    uint width = genargs.at("width")->get<int>();
+    return c->Record({
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"valid", c->Bit()},
+      {"flush", c->BitIn()},
+    });
+  });
+  memory->newGeneratorDecl("rowbuffer_stencil_valid",memory->getTypeGen("rowbufferWithStencilValidType"),RbwsvGenParams);
+  
+  
   Params MemGenParams = {{"width",c->Int()},{"depth",c->Int()}};
   //Linebuffer Memory. Use this for memory in linebuffer mode
   memory->newTypeGen("rowbufferType",MemGenParams,[](Context* c, Values genargs) {
@@ -26,7 +43,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
       {"flush", c->BitIn()},
     });
   });
-
+  
   //Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
   Generator* lbMem = memory->newGeneratorDecl("rowbuffer",memory->getTypeGen("rowbufferType"),MemGenParams);
 
@@ -105,6 +122,52 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("c1.out","state.in.0");
   });
 
+
+//  //*** Fifo Memory. Use this for memory in Fifo mode ***//
+//  commonlib->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {
+//    uint width = genargs.at("width")->get<int>();
+//    return c->Record({
+//      {"clk", c->Named("coreir.clkIn")},
+//      {"wdata", c->BitIn()->Arr(width)},
+//      {"wen", c->BitIn()},
+//      {"rdata", c->Bit()->Arr(width)},
+//      {"ren", c->BitIn()},
+//      {"almost_full", c->Bit()},
+//      {"valid", c->Bit()}
+//    });
+//  });
+//  Generator* fifoMem = commonlib->newGeneratorDecl("FifoMem",commonlib->getTypeGen("FifoMemType"),MemGenParams);
+//  fifoMem->addDefaultGenArgs({{"width",Const::make(c,16)},{"depth",Const::make(c,1024)}});
+//  fifoMem->setModParamsGen({{"almost_full_cnt",c->Int()}});
+//
+//  commonlib->newTypeGen("RamType",MemGenParams,[](Context* c, Values genargs) {
+//    uint width = genargs.at("width")->get<int>();
+//    uint depth = genargs.at("depth")->get<int>();
+//    uint awidth = (uint) ceil(log2(depth));
+//    return c->Record({
+//      {"clk", c->Named("coreir.clkIn")},
+//      {"wdata", c->BitIn()->Arr(width)},
+//      {"waddr", c->BitIn()->Arr(awidth)},
+//      {"wen", c->BitIn()},
+//      {"rdata", c->Bit()->Arr(width)},
+//      {"raddr", c->BitIn()->Arr(awidth)},
+//      {"ren", c->BitIn()},
+//    });
+//  });
+//  Generator* ram = commonlib->newGeneratorDecl("Ram",commonlib->getTypeGen("RamType"),MemGenParams);
+//  ram->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
+//    def->addInstance("mem","coreir.mem",genargs);
+//    def->addInstance("readreg","coreir.reg",{{"width",genargs["width"]},{"has_en",Const::make(c,true)}});
+//    def->connect("self.clk","readreg.clk");
+//    def->connect("self.clk","mem.clk");
+//    def->connect("self.wdata","mem.wdata");
+//    def->connect("self.waddr","mem.waddr");
+//    def->connect("self.wen","mem.wen");
+//    def->connect("mem.rdata","readreg.in");
+//    def->connect("self.rdata","readreg.out");
+//    def->connect("self.raddr","mem.raddr");
+//    def->connect("self.ren","readreg.en");
+//  });
 
   //Fifo Memory. Use this for memory in Fifo mode
   memory->newTypeGen("FifoMemType",MemGenParams,[](Context* c, Values genargs) {

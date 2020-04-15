@@ -111,9 +111,7 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
 }
 
 bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
-  if (verbose) {
-    LOG(INFO) << "Running Pass: " << p->getName();
-  }
+  LOG(DEBUG) << "Running Pass: " << p->getName();
   //Translate vector<string> into argc and argv
   int argc = pArgs.size();
   std::vector<char*> argv(argc);
@@ -147,9 +145,7 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
       ASSERT(0,"NYI!");
   }
   modified |= p->finalize();
-  if (verbose) {
-    p->print();
-  }
+  p->print();
   passLog.push_back(p->getName());
   return modified;
 }
@@ -231,20 +227,20 @@ bool PassManager::isAnalysisCached(string pass) {
 }
 
 void PassManager::printLog() {
-  LOG(INFO) << "Ran the following passes:";
+  LOG(DEBUG) << "Ran the following passes:";
   for (auto p : passLog) {
-    LOG(INFO) << "  " << p;
+    LOG(DEBUG) << "  " << p;
   }
 }
 void PassManager::printPassChoices() {
-  LOG(INFO) << "Analysis Passes";
+  LOG(DEBUG) << "Analysis Passes";
   for (auto ap : analysisPasses) {
-    LOG(INFO) << "  " << ap.first;
+    LOG(DEBUG) << "  " << ap.first;
   }
-  LOG(INFO) << "Transform Passes";
+  LOG(DEBUG) << "Transform Passes";
   for (auto p : passMap) {
     if (analysisPasses.count(p.first)==0) {
-      LOG(INFO) << "  " << p.first;
+      LOG(DEBUG) << "  " << p.first;
     }
   }
 }

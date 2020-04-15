@@ -60,7 +60,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //delete the passthrough
   
   Module* mod = node.getModule();
-  
+
   //If it is a generator or has no def:
   //Make sure all instances already have flat types
   
@@ -87,7 +87,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     node.appendField(newportpair.first,newportpair.second);
   }
 
-  //TODO use definition of instance itsefl
+  //TODO use definition of instance itself
 
   //Now the fun part.
   //Get a list of interface + instances

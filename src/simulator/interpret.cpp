@@ -1,10 +1,82 @@
 #include "coreir/simulator/interpreter.h"
 #include "coreir/simulator/simulator.h"
 
+#include <functional>
+
 using namespace std;
 
 namespace CoreIR {
 
+  BitVector BfloatRoundToNearestEven(const BitVector& val) {
+    assert(val.bitLength() == 32);
+
+    auto half = BitVector(32, 0x00008000);
+    auto sum = add_general_width_bv(half, val);
+    auto mantissa_mask = BitVector(32, 0x0000ffff);
+    bool zeroed = (sum & mantissa_mask) == 0;
+
+    auto clear_mask = ~shl(BitVector(32, zeroed), 16);
+    auto val_shifted = sum & clear_mask;
+
+    BitVector bRes(16, 0);
+
+    for (int i = 0; i<16; ++i) {
+      bRes.set(i, val_shifted.get(i+16));
+    }
+
+    return bRes;
+  }
+
+  BitVector truncateToBfloat(const BitVector& longRes) {
+    assert(longRes.bitLength() == 32);
+
+    BitVector bRes(16, 0);
+    bRes.set(15, longRes.get(31));
+
+    // Set exponent
+    for (int i = 23; i < 31; i++) {
+      bRes.set(i - 16, longRes.get(i));
+    }
+
+    for (int i = 23 - 7; i < 23; i++) {
+      bRes.set(i - (23 - 7), longRes.get(i));
+    }
+    
+    return bRes;
+  }
+
+
+  
+  BitVector extendBfloat(const BitVector& r) {
+    assert(r.bitLength() == 16);
+
+    BitVector sgn(1, 0);
+    sgn.set(0, r.get(15));
+
+    BitVector exp = slice(r, 7, 15);
+    assert(exp.bitLength() == 8);
+
+    BitVector mant = slice(r, 0, 7);
+    assert(mant.bitLength() == 7);
+
+    BitVector res(32, 0);
+    for (int i = 0; i < 16; i++) {
+      res.set(i, 0);
+    }
+
+    for (int i = 16; i < 23; i++) {
+      res.set(i, mant.get(i - 16));
+    }
+
+    for (int i = 23; i < 31; i++) {
+      res.set(i, exp.get(i - 23));
+    }
+
+    res.set(31, sgn.get(0));
+
+    return res;
+  }
+  
   int bitCastToInt(float val) {
     float* valPtr = &val;
     void* vPtr = (void*) valPtr;
@@ -34,11 +106,6 @@ namespace CoreIR {
   }
 
   BitVec SimMemory::getAddr(const BitVec& bv) const {
-    // cout << "bv.bitLength() = " << bv.bitLength() << endl;
-    // cout << "log2(depth))   = " << log2(depth) << endl;
-
-    //assert(bv.bitLength() == bitsToIndex(depth)); //log2(depth));
-
     // Cannot access out of range elements
     assert(bv.to_type<uint>() < depth);
 
@@ -46,7 +113,6 @@ namespace CoreIR {
 
     
     if (it == std::end(values)) {
-      //cout << "Could not find " << bv << endl;
       return BitVec(width, 0);
     }
 
@@ -132,7 +198,48 @@ namespace CoreIR {
         
 
         // Set memory state to default value
+        Values params = inst->getModArgs();
         SimMemory freshMem(width, depth);
+        if (contains_key(string("init"), params)) {
+
+          
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has init params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
+
+          Json ramValues = params["init"]->get<Json>()["init"];
+          cout << "Memory params are " << ramValues << endl;
+          int numVals = 0;
+          for (auto val : ramValues) {
+            //cout << val << endl;
+            // string valstr = val;
+            // string str = valstr.substr(4);
+            // cout << "truncated = " << str << endl;
+            // BitVector valueBv = hexStringToBitVector(str);
+            //string v = val;
+            //BitVector valueBv = BitVector(width, stoi(v));
+            BitVector addrBv(ceil(log2(depth)), numVals);
+
+            int v = val;
+            BitVector valueBv = BitVector(width, v);
+
+            freshMem.setAddr(addrBv, valueBv);
+            numVals++;
+          }
+
+          assert(((int) numVals) == ((int) depth));
+        } else {
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has no params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
+        }
+
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});
 
         // Set memory output port to default
@@ -389,9 +496,17 @@ namespace CoreIR {
     }
   }
 
-  SimulatorState::SimulatorState(CoreIR::Module* mod_) :
-    mod(mod_), mainClock(nullptr) {
+  string getQualifiedOpNameWire(CoreIR::Wireable* wire) {
+    assert(wire != nullptr);
+    assert(isInstance(wire));
 
+    CoreIR::Instance* inst = toInstance(wire);
+
+    return getQualifiedOpName(*inst);
+  }
+  
+  void SimulatorState::initializeState(CoreIR::Module* mod_,
+                                       std::map<std::string, SimModelBuilder>& pluginBuilders) {
     assert(mod->hasDef());
 
     mod->getDef()->getContext()->runPasses({"verifyflattenedtypes"}, {mod->getNamespace()->getName(), "global"});
@@ -404,9 +519,62 @@ namespace CoreIR {
         mod->getMetaData()["symtable"].get<map<string,json>>();
     }
 
-    buildOrderedGraph(mod, gr);
+    buildOrderedGraph(pluginBuilders, mod, gr);
 
     deque<vdisc> order = topologicalSortNoFail(gr);
+    vector<vdisc> pluginReceivers;
+    vector<vdisc> pluginSources;
+    vector<vdisc> pluginNodes;
+    
+    for (auto vd : order) {
+      WireNode wireNode = gr.getNode(vd);
+      Wireable* wd = wireNode.getWire();
+      if (isSequentialPlugin(wd, pluginBuilders)) {
+        if (wireNode.isReceiver) {
+          pluginReceivers.push_back(vd);
+        } else {
+          pluginSources.push_back(vd);          
+        }
+
+        pluginNodes.push_back(vd);
+      }
+    }
+
+    assert((pluginNodes.size() % 2) == 0);
+
+    map<vdisc, vdisc> rcvToSrc;
+    for (auto rcv : pluginReceivers) {
+      bool foundSrc = false;
+      vdisc srcV = 0;
+      for (auto src : pluginSources) {
+        if (gr.getNode(src).getWire() == gr.getNode(rcv).getWire()) {
+          foundSrc = true;
+          srcV = src;
+          break;
+        }
+      }
+      assert(foundSrc);
+      rcvToSrc[rcv] = srcV;
+    }
+
+    for (auto vdPair : rcvToSrc) {
+      vdisc receiver = vdPair.first;
+      vdisc source = vdPair.second;
+
+      WireNode srcNode = gr.getNode(source);
+      
+      string instName = getQualifiedOpNameWire(srcNode.getWire());
+      
+      assert(contains_key(instName, pluginBuilders));
+      
+      WireNode wd = gr.getNode(source);
+      SimulatorPlugin* plugin =
+        pluginBuilders[instName](wd);
+
+      plugMods[source] = plugin;
+      plugMods[receiver] = plugin;
+      plugin->initialize(source, *this);
+    }
 
     // TODO: This test for combinational loops can fail for 2 element circuits,
     // replace it with something more robust
@@ -429,10 +597,25 @@ namespace CoreIR {
     setRegisterDefaults();
     setDFFDefaults();
     setInputDefaults();
+    setNodeDefaults();
+    
+  }
 
+  SimulatorState::SimulatorState(CoreIR::Module* mod_,
+                                 std::map<std::string, SimModelBuilder>& pluginBuilders) :
+    mod(mod_), mainClock(nullptr) {
+
+    initializeState(mod, pluginBuilders);
 
   }
 
+  SimulatorState::SimulatorState(CoreIR::Module* mod_) :
+    mod(mod_), mainClock(nullptr) {
+    
+    std::map<std::string, SimModelBuilder> pluginBuilders;
+    initializeState(mod, pluginBuilders);
+  }
+  
   void SimulatorState::setInputDefaults() {
     
   }
@@ -534,34 +717,24 @@ namespace CoreIR {
     auto it = circStates[stateIndex].valMap.find(sel);
 
     if (it == std::end(circStates[stateIndex].valMap)) {
-      return nullptr;
+      assert(false);
     }
 
     return (*it).second;
   }
 
   void SimulatorState::updateSliceNode(const vdisc vd) {
+    updateInputs(vd);
+    
     WireNode wd = gr.getNode(vd);
     Instance* inst = toInstance(wd.getWire());
-    //auto outSelects = getOutputSelects(inst);
-
-    updateInputs(vd);
-
-    //assert(outSelects.size() == 1);
-
-    //pair<string, Wireable*> outPair = *std::begin(outSelects);
-    //auto inConns = getInputConnections(vd, gr);
-
-    //assert(inConns.size() == 1);
-
     Select* argSel = inst->sel("in");
-    ASSERT(isSet(argSel), "in must have a value to evaluate this node");
-    SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
+
+    BitVector sB = getBitVec(argSel);
+    // ASSERT(isSet(argSel), "in must have a value to evaluate this node");
+    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
     
-    // InstanceValue arg1 = findArg("in", inConns);
-    // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1.getWire()));
-    
-    assert(s1 != nullptr);
+    // assert(s1 != nullptr);
 
     Values args = inst->getModuleRef()->getGenArgs();
     uint lo = (args["lo"])->get<int>();
@@ -570,11 +743,13 @@ namespace CoreIR {
     assert((hi - lo) > 0);
 
     BitVec res(hi - lo, 1);
-    BitVec sB = s1->getBits();
+    //BitVec sB = s1->getBits();
     for (uint i = lo; i < hi; i++) {
       res.set(i - lo, sB.get(i));
     }
 
+
+    //cout << "Setting output of slice to: " << res << endl;
     //setValue(toSelect(outPair.second), makeSimBitVector(res));
     setValue(toSelect(inst->sel("out")), makeSimBitVector(res));
   }
@@ -639,14 +814,12 @@ namespace CoreIR {
 
     setValue(toSelect(outPair.second), makeSimBitVector(res));
   }
-  
+
   void SimulatorState::updateBitVecUnop(const vdisc vd, BitVecUnop op) {
     updateInputs(vd);
 
     WireNode wd = gr.getNode(vd);
-
     Instance* inst = toInstance(wd.getWire());
-
     Select* outSel = inst->sel("out");
 
     Select* arg1 = inst->sel("in");
@@ -790,6 +963,7 @@ namespace CoreIR {
 
     Select* inst = toSelect(wd.getWire());
 
+
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 0);
@@ -803,7 +977,7 @@ namespace CoreIR {
 
       SimBitVector* s = static_cast<SimBitVector*>(getValue(arg.getWire()));
 
-      assert(s != nullptr);
+      ASSERT(s != nullptr, "updating " + inst->toString() + " failed\n");
 
       Select* receiverSel = toSelect(receiver.getWire());
 
@@ -911,13 +1085,13 @@ namespace CoreIR {
     } else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           return l ^ r;
-      });
+        });
     } else if ((opName == "coreir.zext")) {
       updateZextNode(vd);
     } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return ~r;
-      });
+        });
     } else if (opName == "coreir.andr") {
       updateAndrNode(vd);
     } else if (opName == "coreir.orr") {
@@ -930,12 +1104,12 @@ namespace CoreIR {
         });
     } else if (opName == "coreir.sub") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-        return sub_general_width_bv(l, r);
-      });
+          return sub_general_width_bv(l, r);
+        });
     } else if ((opName == "coreir.mul")) {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-        return mul_general_width_bv(l, r);
-      });
+          return mul_general_width_bv(l, r);
+        });
     } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
     } else if (opName == "corebit.term") {
     } else if ((opName == "coreir.reg") || (opName == "corebit.reg") || (opName == "coreir.reg_arst")) {
@@ -945,7 +1119,7 @@ namespace CoreIR {
     } else if ((opName == "coreir.wire") || (opName == "corebit.wire")) {
       updateBitVecUnop(vd, [](const BitVec& r) {
           return r;
-      });
+        });
     } else if ((opName == "coreir.term") || (opName == "corebit.term")) {
       // No-op
     } else if (opName == "coreir.slice") {
@@ -961,9 +1135,9 @@ namespace CoreIR {
           return ashr(l, r);
         });
     } else if (opName == "coreir.shl") {
-       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-           return shl(l, r);
-         });
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          return shl(l, r);
+        });
     } else if (opName == "coreir.ult") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if (l < r) {
@@ -1057,24 +1231,408 @@ namespace CoreIR {
       updateLUTNNode(vd);
     } else if (opName == "float.add") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-          assert(l.bitLength() == 32);
-          assert(r.bitLength() == 32);
 
-          int lv = l.to_type<int>();
-          int rv = r.to_type<int>();
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+          
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
 
-          float lf = bitCastToFloat(lv);
-          float rf = bitCastToFloat(rv);
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
 
-          cout << "lf = " << lf << endl;
-          cout << "rf = " << rf << endl;
+            // cout << "lf = " << lf << endl;
+            // cout << "rf = " << rf << endl;
 
-          float res = lf + rf;
+            float res = lf + rf;
 
-          int resI = bitCastToInt(res);
+            int resI = bitCastToInt(res);
 
-          return BitVec(l.bitLength(), resI);
+            return BitVec(l.bitLength(), resI);
+
+            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            // cout << "lf = " << lf << endl;
+            // cout << "rf = " << rf << endl;
+
+            float res = lf + rf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+
+            //cout << "res = " << res << endl;
+            //cout << "32 bit result before rounding = " << longRes << endl;
+
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
+            return bfloatRes;
+          }
         });
+    } else if (opName == "float.mul") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+          
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            //cout << "lf = " << lf << endl;
+            //cout << "rf = " << rf << endl;
+
+            float res = lf * rf;
+
+            int resI = bitCastToInt(res);
+
+            return BitVec(l.bitLength(), resI);
+
+            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            //cout << "lf = " << lf << endl;
+            //cout << "rf = " << rf << endl;
+
+            float res = lf * rf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+
+           //cout << "res = " << res << endl;
+           //cout << "32 bit result before rounding = " << longRes << endl;
+
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
+            return bfloatRes;
+          }
+
+        });
+    } else if (opName == "float.sub") {
+
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+      
+          
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            float res = lf - rf;
+
+            int resI = bitCastToInt(res);
+
+            return BitVec(l.bitLength(), resI);
+
+            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            float res = lf - rf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+
+           //cout << "res = " << res << endl;
+           //cout << "32 bit result before rounding = " << longRes << endl;
+
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
+            return bfloatRes;
+          }
+
+        });
+    } else if (opName == "float.div") {
+
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+      
+
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            float res = lf / rf;
+
+            int resI = bitCastToInt(res);
+
+            return BitVec(l.bitLength(), resI);
+
+            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            float res = lf / rf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+
+            //cout << "res = " << res << endl;
+            //cout << "32 bit result before rounding = " << longRes << endl;
+
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
+            return bfloatRes;
+          }
+
+        });
+    } else if (opName == "float.eq") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
+          return BitVector(1, l == r);
+        });
+      
+    } else if (opName == "float.neq") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
+          return BitVector(1, l != r);
+        });
+    } else if (opName == "float.gt") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf > rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf > rf);
+          }
+
+        });
+    } else if (opName == "float.ge") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf >= rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf >= rf);
+          }
+
+        });
+      
+    } else if (opName == "float.lt") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf < rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf < rf);
+          }
+
+        });
+    } else if (opName == "float.le") {
+      updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+
+          if (!l.is_binary() || !r.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(1);
+          }
+          
+          if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            int rv = r.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf <= rf);            
+          } else {
+            assert(l.bitLength() == 16);
+            assert(r.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            BitVec rExt = extendBfloat(r);
+
+            int lv = lExt.to_type<int>();
+            int rv = rExt.to_type<int>();
+
+            float lf = bitCastToFloat(lv);
+            float rf = bitCastToFloat(rv);
+
+            return BitVector(1, lf <= rf);
+          }
+
+        });
+      
+    } else if (opName == "float.neg") {
+      updateBitVecUnop(vd, [](const BitVec& l) {
+
+          if (!l.is_binary()) {
+            // Undefined value
+            return bsim::unknown_bv(l.bitLength());
+          }
+          
+          if ((l.bitLength() == 32)) {
+            int lv = l.to_type<int>();
+            float lf = bitCastToFloat(lv);
+            float res = -lf;
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+            return longRes;
+            
+          } else {
+            assert(l.bitLength() == 16);
+
+            BitVec lExt = extendBfloat(l);
+            int lv = lExt.to_type<int>();
+            float lf = bitCastToFloat(lv);
+            float res = -lf;
+
+            int resI = bitCastToInt(res);
+
+            BitVector longRes = BitVec(32, resI);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
+            return bfloatRes;
+          }
+
+        });
+      
+    } else if (contains_key(vd, plugMods) && wd.isReceiver) {
+      // Ignore, updates already done in caller of this function
+    } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
+      // Ignore sequential node
     } else {
       cout << "Unsupported node: " << wd.getWire()->toString() << " has operation name: " << opName << endl;
       assert(false);
@@ -1098,6 +1656,21 @@ namespace CoreIR {
     
   }
 
+  void SimulatorState::setNodeDefaults() {
+    for (auto& vd : gr.getVerts()) {
+      WireNode wd = gr.getNode(vd);
+
+      if (isInstance(wd.getWire()) &&
+          getQualifiedOpNameWire(wd.getWire()) == "coreir.slice") {
+        Instance* inst = toInstance(wd.getWire());
+
+        Select* w = inst->sel("out");
+
+        setValue(inst->sel("out"), BitVector(typeWidth(*(w->getType())), 0));
+      }
+    }
+  }
+
   void SimulatorState::setDFFDefaults() {
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
@@ -1106,8 +1679,6 @@ namespace CoreIR {
         Instance* inst = toInstance(wd.getWire());
 
         Values args = inst->getModArgs();
-        cout << toString(inst) << endl;
-        cout << toString(args) << endl;
         bool val = args["init"]->get<bool>();
 
         setRegister(inst->toString(), BitVec(1, val ? 1 : 0));
@@ -1269,7 +1840,7 @@ namespace CoreIR {
         Select* inSel = toSelect(w.getWire());
 
         if (!isSet(inSel)) { //toSelect(sel.second))) {
-          //cout << "Select " << inSel->toString() << " is not set" << " in " << w.getWire()->toString() << endl;
+
           unset.push_back(vd);
         }
 
@@ -1288,8 +1859,11 @@ namespace CoreIR {
 
     for (auto& vd : gr.getVerts()) {
       WireNode wd = gr.getNode(vd);
-      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
+      if (contains_key(vd, plugMods) && wd.isReceiver) {
+        plugMods[vd]->exeSequential(vd, *this);
+      }
 
+      if (isRegisterInstance(wd.getWire()) && wd.isReceiver) {
         updateRegisterValue(vd);
       }
 
@@ -1318,12 +1892,17 @@ namespace CoreIR {
           updateMemoryOutput(vd);
         }
 
-      if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
-        updateRegisterOutput(vd);
-      }
+        if (isRegisterInstance(wd.getWire()) && !wd.isReceiver) {
+          updateRegisterOutput(vd);
+        }
 
         if (isDFFInstance(wd.getWire()) && !wd.isReceiver) {
           updateDFFOutput(vd);
+        }
+
+        if (contains_key(vd, plugMods) && !wd.isReceiver) {
+          auto plugin = map_find(vd, plugMods);
+          plugin->exeCombinational(vd, *this);
         }
         
       }
@@ -1666,6 +2245,16 @@ namespace CoreIR {
     for (auto& val : allocatedValues) {
       delete val;
     }
+
+    set<SimulatorPlugin*> plugs;
+    for (auto pg : plugMods) {
+      plugs.insert(pg.second);
+    }
+
+    for (auto p : plugs) {
+      delete p;
+    }
+    
   }
 
 }
