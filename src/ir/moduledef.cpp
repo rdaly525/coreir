@@ -96,26 +96,22 @@ bool ModuleDef::canSel(const std::string& selstr) {
   return this->canSel(path);
 }
 bool ModuleDef::canSel(SelectPath path) {
-  string iname = path[0];
-  if (iname=="self") {
-    path.pop_front();
-    return this->interface->canSel(path);
-  }
-  Instance* inst;
-  if (hasChar(iname, ';')) {
+  string inst_name = path[0];
+  if (hasChar(inst_name, ';')) {
       // Hierarchical reference, pop off first instance name from string
-      iname = splitString<SelectPath>(iname, ';')[0];
-      path[0] = path[0].substr(iname.length());
+      inst_name = splitString<SelectPath>(inst_name, ';')[0];
+      path[0] = path[0].substr(inst_name.length());
   } else {
       path.pop_front();
   }
-  if (this->instances.count(iname)==0) {
+  if (inst_name=="self") {
+    return this->interface->canSel(path);
+  }
+  Instance* inst;
+  if (this->instances.count(inst_name) == 0) {
         return false;
   };
-  inst = this->instances[iname];
-  
-  bool result = inst->canSel(path);
-  return result;
+  return this->instances[inst_name]->canSel(path);
 }
 
 
