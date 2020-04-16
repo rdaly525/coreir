@@ -258,6 +258,7 @@ void Instance::replace(Module* moduleRef, Values modargs) {
 }
 
 bool Instance::canSel(string selstr) {
+    std::cout << selstr << std::endl;
   if (selstr[0] == ';') {
     return this->getModuleRef()->canSel(selstr.substr(1));
   }
@@ -265,6 +266,7 @@ bool Instance::canSel(string selstr) {
 }
 
 bool Instance::canSel(SelectPath path) {
+    std::cout << ::CoreIR::toString(path) << std::endl;
   if (path[0][0] == ';') {
     path[0] = path[0].substr(1);
     return this->getModuleRef()->canSel(path);
