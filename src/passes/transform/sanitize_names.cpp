@@ -1,5 +1,5 @@
-#include "coreir.h"
 #include "coreir/passes/transform/sanitize_names.h"
+#include "coreir.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -10,31 +10,38 @@ std::string sanitizedName(const std::string& cellName) {
   string instName = "";
   for (uint i = 0; i < cellName.size(); i++) {
     if (cellName[i] == '$') {
-      //instName += "UDOLLARU";
-    } else if (cellName[i] == ':') {
-      //instName += "UCOLONU";
-    } else if (cellName[i] == '.') {
-      //instName += "UDOTU";
-    } else if (cellName[i] == '\\') {
+      // instName += "UDOLLARU";
+    }
+    else if (cellName[i] == ':') {
+      // instName += "UCOLONU";
+    }
+    else if (cellName[i] == '.') {
+      // instName += "UDOTU";
+    }
+    else if (cellName[i] == '\\') {
       instName += "UBACKSLASHU";
-    } else if (cellName[i] == '=') {
+    }
+    else if (cellName[i] == '=') {
       instName += "UEQUALSU";
-    } else if (cellName[i] == '[') {
+    }
+    else if (cellName[i] == '[') {
       instName += "ULEFTUBRACKETU";
-    } else if (cellName[i] == ']') {
+    }
+    else if (cellName[i] == ']') {
       instName += "URIGHTUBRACKETU";
-    } else if (cellName[i] == '/') {
+    }
+    else if (cellName[i] == '/') {
       instName += "UFORWARDUSLASHU";
-    } else if (cellName[i] == '_') {
-      //instName += "UUNDERSCOREU";
-    } else {
+    }
+    else if (cellName[i] == '_') {
+      // instName += "UUNDERSCOREU";
+    }
+    else {
       instName += cellName[i];
     }
-
   }
 
   return instName;
-  
 }
 
 bool Passes::SanitizeNames::runOnModule(Module* m) {
@@ -65,12 +72,12 @@ bool Passes::SanitizeNames::runOnModule(Module* m) {
 
       inst->disconnectAll();
 
-      auto safeNameInstance =
-        def->addInstance(inst, sName);
+      auto safeNameInstance = def->addInstance(inst, sName);
 
       for (auto selR : sels) {
-        def->connect(instPT->sel("in")->sel(selR.first),
-                     safeNameInstance->sel(selR.first));
+        def->connect(
+          instPT->sel("in")->sel(selR.first),
+          safeNameInstance->sel(selR.first));
       }
 
       def->removeInstance(inst);

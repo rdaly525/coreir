@@ -8,17 +8,17 @@ namespace internal {
 
 namespace {
 class LogSeverityStore {
- public:
+public:
   static LogSeverity severity() { return severity_; }
   static void set_severity(LogSeverity severity) { severity_ = severity; }
 
- private:
+private:
   static LogSeverity severity_;
 };
 
 LogSeverity LogSeverityStore::severity_ = INFO;
 
-}  // namespace
+} // namespace
 
 Logger::~Logger() {
   if (alive_) {
@@ -31,15 +31,13 @@ Logger::~Logger() {
   }
 }
 
-}  // namespace internal
+} // namespace internal
 
 void SetLogLevel(int severity) {
   const auto as_severity = static_cast<LogSeverity>(severity);
   internal::LogSeverityStore::set_severity(as_severity);
 }
 
-LogSeverity GetLogLevel() {
-  return internal::LogSeverityStore::severity();
-}
+LogSeverity GetLogLevel() { return internal::LogSeverityStore::severity(); }
 
-}  // namespace common
+} // namespace common

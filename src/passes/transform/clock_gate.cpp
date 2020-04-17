@@ -53,11 +53,9 @@ CEInfo check_register(CoreIR::Instance* reg) {
   // generatorRef is coreir.mux
   // mux.out is reg_driver
   // mux.out has a single connection
-  bool mux_valid =
-    mux != nullptr &&
-    instance_of(mux, "coreir", "mux") &&
-    mux->sel("out") == reg_driver &&
-    mux->sel("out")->getConnectedWireables().size() == 1;
+  bool mux_valid = mux != nullptr && instance_of(mux, "coreir", "mux") &&
+                   mux->sel("out") == reg_driver &&
+                   mux->sel("out")->getConnectedWireables().size() == 1;
 
   if (!mux_valid) {
     return CEInfo();
@@ -93,7 +91,9 @@ bool ClockGate::runOnModule(Module* m) {
         continue;
       }
       // NYI arst being negedge
-      if (is_coreir_reg_arst && !inst->getModArgs().at("arst_posedge")->get<bool>()) {
+      if (
+        is_coreir_reg_arst &&
+        !inst->getModArgs().at("arst_posedge")->get<bool>()) {
         continue;
       }
       auto info = check_register(inst);

@@ -1,5 +1,5 @@
-#include "coreir.h"
 #include "coreir/passes/transform/transform2combview.h"
+#include "coreir.h"
 
 #include "coreir/passes/analysis/createcombview.h"
 
@@ -9,7 +9,7 @@ using namespace CoreIR;
 namespace {
 struct Helper {
   Context* c;
-  map<string,Helper*> selects;
+  map<string, Helper*> selects;
   Type* type = nullptr;
   Helper(Context* c) : c(c) {}
   ~Helper() {
@@ -19,7 +19,7 @@ struct Helper {
   }
   Type* getType() {
     if (type) return type;
-    assert(selects.size()>0);
+    assert(selects.size() > 0);
     if (isNumber(selects.begin()->first)) {
       int max = -1;
       set<uint> nums;
@@ -27,47 +27,46 @@ struct Helper {
       for (auto spair : selects) {
         assert(isNumber(spair.first));
         Type* checktype = spair.second->getType();
-        ASSERT(checktype == elemtype,"Type is incorrect");
+        ASSERT(checktype == elemtype, "Type is incorrect");
         int i = stoi(spair.first);
         nums.insert(i);
-        if (i>max) max = i;
+        if (i > max) max = i;
       }
-      for (int i=0; i<=max; ++i) {
-        assert(nums.count(i)>0);
+      for (int i = 0; i <= max; ++i) {
+        assert(nums.count(i) > 0);
       }
-      this->type = c->Array(max+1,elemtype);
+      this->type = c->Array(max + 1, elemtype);
       return this->type;
     }
-    else { //Is a record
+    else { // Is a record
       RecordParams rps;
       for (auto spair : selects) {
-        rps.push_back({spair.first,spair.second->getType()});
+        rps.push_back({spair.first, spair.second->getType()});
       }
       this->type = c->Record(rps);
       return this->type;
     }
   }
-  void addPath(SelectPath path,Type* t) {
-    if (path.size()==0) {
+  void addPath(SelectPath path, Type* t) {
+    if (path.size() == 0) {
       this->type = t;
       return;
     }
     string sel = path.front();
     assert(t->canSel(sel));
-    if (selects.count(sel)==0) {
+    if (selects.count(sel) == 0) {
       selects[sel] = new Helper(c);
     }
     path.pop_front();
-    selects[sel]->addPath(path,t->sel(sel));
+    selects[sel]->addPath(path, t->sel(sel));
   }
-
 };
 
-RecordType* createType(Context* c,RecordType* mtype,set<SelectPath>& paths) {
+RecordType* createType(Context* c, RecordType* mtype, set<SelectPath>& paths) {
   Helper* h = new Helper(c);
   for (auto path : paths) {
     assert(mtype->canSel(path));
-    h->addPath(path,mtype);
+    h->addPath(path, mtype);
   }
   RecordType* ret = cast<RecordType>(h->getType());
   delete h;
@@ -81,109 +80,105 @@ void connect(ModuleDef* def, SelectPath path, string ptname, string iname) {
 
   SelectPath snkpath = path;
   snkpath.push_front(iname);
-  def->connect(ptpath,snkpath);
+  def->connect(ptpath, snkpath);
 }
 
-
-}
+} // namespace
 
 string Passes::Transform2CombView::ID = "transform2combview";
-bool Passes::Transform2CombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
+bool Passes::Transform2CombView::runOnInstanceGraphNode(
+  InstanceGraphNode& node) {
 
   Context* c = getContext();
   Module* m = node.getModule();
-  
+
   if (node.getInstanceList().size() == 0) {
     return false;
   }
-  
+
   RecordType* mtype = m->getType();
   Namespace* ns = m->getNamespace();
   auto combview = getAnalysisPass<CreateCombView>();
-  
+
   string mname = m->getLongName();
-  string mname_src = mname+"_src";
-  string mname_snk = mname+"_snk";
-  string mname_comb = mname+"_comb";
+  string mname_src = mname + "_src";
+  string mname_snk = mname + "_snk";
+  string mname_comb = mname + "_comb";
   if (combview->hasSrc(m)) {
-    //cout << "HEREsrc" << endl;
-    RecordType* srctype = createType(c,mtype,combview->getSrc(m));
-    auto newmod = ns->newModuleDecl(mname_src,srctype);
+    // cout << "HEREsrc" << endl;
+    RecordType* srctype = createType(c, mtype, combview->getSrc(m));
+    auto newmod = ns->newModuleDecl(mname_src, srctype);
     newmod->getMetaData()["original"] = m->getRefName();
   }
 
   if (combview->hasSnk(m)) {
-    //cout << "HEREsnk" << endl;
-    RecordType* snktype = createType(c,mtype,combview->getSnk(m));
-    auto newmod = ns->newModuleDecl(mname_snk,snktype);
-    newmod->getMetaData()["original"] = m->getRefName();
-  }
-  
-  if (combview->hasComb(m)) {
-    //cout << "HEREcomb " << mname_comb << endl;
-    set<SelectPath> combset = combview->getComb(m).inputs;
-    set<SelectPath> combouts = combview->getComb(m).outputs;
-    combset.insert(combouts.begin(),combouts.end());
-    RecordType* combtype = createType(c,mtype,combset);
-    auto newmod = ns->newModuleDecl(mname_comb,combtype);
+    // cout << "HEREsnk" << endl;
+    RecordType* snktype = createType(c, mtype, combview->getSnk(m));
+    auto newmod = ns->newModuleDecl(mname_snk, snktype);
     newmod->getMetaData()["original"] = m->getRefName();
   }
 
+  if (combview->hasComb(m)) {
+    // cout << "HEREcomb " << mname_comb << endl;
+    set<SelectPath> combset = combview->getComb(m).inputs;
+    set<SelectPath> combouts = combview->getComb(m).outputs;
+    combset.insert(combouts.begin(), combouts.end());
+    RecordType* combtype = createType(c, mtype, combset);
+    auto newmod = ns->newModuleDecl(mname_comb, combtype);
+    newmod->getMetaData()["original"] = m->getRefName();
+  }
 
   for (auto inst : node.getInstanceList()) {
     ModuleDef* def = inst->getContainer();
     string ptname = "_pt" + getContext()->getUnique();
-    auto pt = addPassthrough(inst,ptname);
+    auto pt = addPassthrough(inst, ptname);
     string iname = inst->getInstname();
     string iname_src = iname + "_src";
     string iname_snk = iname + "_snk";
     string iname_comb = iname + "_comb";
 
-    //inst is now freed
+    // inst is now freed
     def->removeInstance(inst);
-   
-    //Add new instances
+
+    // Add new instances
     if (combview->hasSrc(m)) {
-      auto newinst = def->addInstance(iname_src,ns->getModule(mname_src));
+      auto newinst = def->addInstance(iname_src, ns->getModule(mname_src));
       newinst->getMetaData()["srcsnkcomb"] = "src";
       newinst->getMetaData()["original"] = iname;
     }
     if (combview->hasSnk(m)) {
-      auto newinst = def->addInstance(iname_snk,ns->getModule(mname_snk));
+      auto newinst = def->addInstance(iname_snk, ns->getModule(mname_snk));
       newinst->getMetaData()["srcsnkcomb"] = "snk";
       newinst->getMetaData()["original"] = iname;
     }
     if (combview->hasComb(m)) {
-      auto newinst = def->addInstance(iname_comb,ns->getModule(mname_comb));
+      auto newinst = def->addInstance(iname_comb, ns->getModule(mname_comb));
       newinst->getMetaData()["srcsnkcomb"] = "comb";
       newinst->getMetaData()["original"] = iname;
     }
 
-    //Src
+    // Src
     for (auto path : combview->getSrc(m)) {
-      connect(def,path,ptname,iname_src);
+      connect(def, path, ptname, iname_src);
     }
-    
-    //Snk
+
+    // Snk
     for (auto path : combview->getSnk(m)) {
-      connect(def,path,ptname,iname_snk);
+      connect(def, path, ptname, iname_snk);
     }
 
-    //Comb inputs
+    // Comb inputs
     for (auto path : combview->getComb(m).inputs) {
-      connect(def,path,ptname,iname_comb);
+      connect(def, path, ptname, iname_comb);
     }
 
-    //Comb outputs 
+    // Comb outputs
     for (auto path : combview->getComb(m).outputs) {
-      connect(def,path,ptname,iname_comb);
+      connect(def, path, ptname, iname_comb);
     }
-    
-    //inline passthrough
-    inlineInstance(pt);
 
+    // inline passthrough
+    inlineInstance(pt);
   }
   return true;
 }
-
-

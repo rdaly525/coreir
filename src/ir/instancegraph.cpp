@@ -3,13 +3,15 @@
 using namespace std;
 using namespace CoreIR;
 
-bool InstanceGraph::ModuleCmp::operator()(const Module* l, const Module* r) const {
+bool InstanceGraph::ModuleCmp::operator()(const Module* l, const Module* r)
+  const {
   return l->getLongName() < r->getLongName();
 }
 
 void InstanceGraph::releaseMemory() {
   nodeMap.clear();
-  for (auto ign : sortedNodes) delete ign;
+  for (auto ign : sortedNodes)
+    delete ign;
   sortedNodes.clear();
   onlyTopNodes.clear();
 }
@@ -19,10 +21,10 @@ bool InstanceGraph::validOnlyTop(InstanceGraphNode* node) {
 }
 
 void InstanceGraph::sortVisit(InstanceGraphNode* node) {
-  if (node->mark==2) {
+  if (node->mark == 2) {
     return;
   }
-  ASSERT(node->mark!=1,"SOMEHOW not a DAG");
+  ASSERT(node->mark != 1, "SOMEHOW not a DAG");
   node->mark = 1;
   for (auto nextnode : node->ignList) {
     sortVisit(nextnode);
@@ -32,38 +34,40 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 namespace {
-  void recurse(Module* m, std::set<Module*,InstanceGraph::ModuleCmp>& onlyTopNodes) {
-    if (onlyTopNodes.count(m)) {
-      return;
-    }
-    onlyTopNodes.insert(m);
-    if (!m->hasDef()) {
-      return;
-    }
-    for (auto ipair : m->getDef()->getInstances()) {
-      Module* imod = ipair.second->getModuleRef();
-      recurse(imod,onlyTopNodes);
-    }
+void recurse(
+  Module* m,
+  std::set<Module*, InstanceGraph::ModuleCmp>& onlyTopNodes) {
+  if (onlyTopNodes.count(m)) {
+    return;
+  }
+  onlyTopNodes.insert(m);
+  if (!m->hasDef()) {
+    return;
+  }
+  for (auto ipair : m->getDef()->getInstances()) {
+    Module* imod = ipair.second->getModuleRef();
+    recurse(imod, onlyTopNodes);
   }
 }
+} // namespace
 
 void InstanceGraph::construct(Context* c) {
 
-  //Contains all external nodes referenced
+  // Contains all external nodes referenced
 
   if (c->hasTop()) {
-    //Only do this on dependent nodes
-    recurse(c->getTop(),onlyTopNodes);
+    // Only do this on dependent nodes
+    recurse(c->getTop(), onlyTopNodes);
   }
-  
+
   for (auto nsmap : c->getNamespaces()) {
     for (auto imap : nsmap.second->getModules()) {
-      nodeMap[imap.second] = new InstanceGraphNode(imap.second,false);
+      nodeMap[imap.second] = new InstanceGraphNode(imap.second, false);
     }
   }
 
-  //populate all the nodes with pointers to the instances
-  map<Module*,InstanceGraphNode*,InstanceGraph::ModuleCmp> nodeMap2;
+  // populate all the nodes with pointers to the instances
+  map<Module*, InstanceGraphNode*, InstanceGraph::ModuleCmp> nodeMap2;
   for (auto nodemap : nodeMap) {
     nodeMap2.insert(nodemap);
   }
@@ -73,9 +77,9 @@ void InstanceGraph::construct(Context* c) {
     ModuleDef* mdef = cast<Module>(nodemap.first)->getDef();
     for (auto instmap : mdef->getInstances()) {
       Module* icheck = instmap.second->getModuleRef();
-      ASSERT(nodeMap.count(icheck),"missing: " + icheck->toString());
+      ASSERT(nodeMap.count(icheck), "missing: " + icheck->toString());
       InstanceGraphNode* node = nodeMap[icheck];
-      node->addInstance(instmap.second,nodemap.second);
+      node->addInstance(instmap.second, nodemap.second);
     }
   }
 
@@ -84,25 +88,24 @@ void InstanceGraph::construct(Context* c) {
   }
 }
 
-
-void InstanceGraphNode::appendField(string label,Type* t) {
+void InstanceGraphNode::appendField(string label, Type* t) {
   auto m = getModule();
   RecordType* mtype = cast<RecordType>(m->getType());
 
-  //appendField will assert if the field already exists
-  RecordType* newType = mtype->appendField(label,t);
+  // appendField will assert if the field already exists
+  RecordType* newType = mtype->appendField(label, t);
 
-  //Do not have to check any connections because I am adding a new field
+  // Do not have to check any connections because I am adding a new field
 
-  //First change the Module Type
+  // First change the Module Type
   m->setType(newType);
 
-  //Then change Interface of module def (if exists)
+  // Then change Interface of module def (if exists)
   if (m->hasDef()) {
     m->getDef()->getInterface()->setType(newType->getFlipped());
   }
 
-  //Finally change all the instances
+  // Finally change all the instances
   for (auto inst : getInstanceList()) {
     inst->setType(newType);
   }
@@ -112,34 +115,33 @@ void InstanceGraphNode::detachField(string label) {
   Module* m = getModule();
   RecordType* mtype = cast<RecordType>(m->getType());
 
-  //Will assert if field does not exist
+  // Will assert if field does not exist
   RecordType* newType = mtype->detachField(label);
 
   if (m->hasDef()) {
-      //Remove anything connected to the module def interface
-      Interface* iface = m->getDef()->getInterface();
-      iface->sel(label)->disconnectAll();
-      iface->removeSel(label);
+    // Remove anything connected to the module def interface
+    Interface* iface = m->getDef()->getInterface();
+    iface->sel(label)->disconnectAll();
+    iface->removeSel(label);
   }
 
-  //Remove anything connected to all the isntances
+  // Remove anything connected to all the isntances
   for (auto inst : getInstanceList()) {
     inst->sel(label)->disconnectAll();
 
     inst->removeSel(label);
   }
 
-  //First change the Module Type
+  // First change the Module Type
   m->setType(newType);
 
-  //Then change Interface of module def (if exists)
+  // Then change Interface of module def (if exists)
   if (m->hasDef()) {
     m->getDef()->getInterface()->setType(newType->getFlipped());
   }
 
-  //Finally change all the instances
+  // Finally change all the instances
   for (auto inst : getInstanceList()) {
     inst->setType(newType);
   }
 }
-

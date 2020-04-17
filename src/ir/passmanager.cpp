@@ -1,36 +1,34 @@
-#include <stack>
-#include "coreir/common/logging_lite.hpp"
 #include "coreir/ir/passmanager.h"
-#include "coreir/passes/common.h"
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/passes/analysis/createinstancegraph.h"
 #include "coreir/passes/analysis/createinstancemap.h"
+#include "coreir/passes/common.h"
+#include <stack>
 
 using namespace CoreIR;
 
 PassManager::PassManager(Context* c) : c(c) {
   initializePasses(*this);
-  
 
-  //Give all the passes access to passmanager
+  // Give all the passes access to passmanager
   for (auto pmap : passMap) {
     pmap.second->addPassManager(this);
   }
-
 }
-
 
 void PassManager::addPass(Pass* p) {
   p->addPassManager(this);
-  ASSERT(passMap.count(p->name) == 0,"Cannot add duplicate \"" + p->name + "\" pass");
+  ASSERT(
+    passMap.count(p->name) == 0,
+    "Cannot add duplicate \"" + p->name + "\" pass");
   passMap[p->name] = p;
-  //Setting the dependencies and such
+  // Setting the dependencies and such
   p->setAnalysisInfo();
 
-  //Little hacky
+  // Little hacky
   if (auto ivp = dyn_cast<InstanceVisitorPass>(p)) {
     ivp->setVisitorInfo();
   }
-
 }
 
 bool PassManager::runNamespacePass(Pass* pass) {
@@ -44,7 +42,7 @@ bool PassManager::runContextPass(Pass* pass) {
   return cast<ContextPass>(pass)->runOnContext(c);
 }
 
-//Only runs on modules with definitions
+// Only runs on modules with definitions
 bool PassManager::runModulePass(Pass* pass) {
   bool modified = false;
   ModulePass* mpass = cast<ModulePass>(pass);
@@ -59,10 +57,10 @@ bool PassManager::runModulePass(Pass* pass) {
   return modified;
 }
 
-//Only runs on Instances
+// Only runs on Instances
 bool PassManager::runInstancePass(Pass* pass) {
-  //Load up list of instances in case the pass changes the list
-  //Turn this into a pass
+  // Load up list of instances in case the pass changes the list
+  // Turn this into a pass
   vector<Instance*> insts;
   for (auto ns : this->nss) {
     for (auto modmap : ns->getModules()) {
@@ -82,23 +80,25 @@ bool PassManager::runInstancePass(Pass* pass) {
 
 bool PassManager::runInstanceVisitorPass(Pass* pass) {
 
-  //Get the analysis pass which constructs the instancegraph
-  auto cfim = static_cast<Passes::CreateInstanceMap*>(this->getAnalysisPass("createfullinstancemap"));
+  // Get the analysis pass which constructs the instancegraph
+  auto cfim = static_cast<Passes::CreateInstanceMap*>(
+    this->getAnalysisPass("createfullinstancemap"));
   bool modified = false;
   InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
   for (auto imap : cfim->getModInstanceMap()) {
-    modified |= ivpass->runOnModInstances(imap.first,imap.second);
+    modified |= ivpass->runOnModInstances(imap.first, imap.second);
   }
   for (auto imap : cfim->getGenInstanceMap()) {
-    modified |= ivpass->runOnGenInstances(imap.first,imap.second);
+    modified |= ivpass->runOnGenInstances(imap.first, imap.second);
   }
   return modified;
 }
 
 bool PassManager::runInstanceGraphPass(Pass* pass) {
 
-  //Get the analysis pass which constructs the instancegraph
-  auto cig = static_cast<Passes::CreateInstanceGraph*>(this->getAnalysisPass("createinstancegraph"));
+  // Get the analysis pass which constructs the instancegraph
+  auto cig = static_cast<Passes::CreateInstanceGraph*>(
+    this->getAnalysisPass("createinstancegraph"));
   bool modified = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
   bool onlyTop = igpass->isOnlyTop();
@@ -110,39 +110,39 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
   return modified;
 }
 
-bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
+bool PassManager::runPass(Pass* p, vector<string>& pArgs) {
   LOG(DEBUG) << "Running Pass: " << p->getName();
-  //Translate vector<string> into argc and argv
+  // Translate vector<string> into argc and argv
   int argc = pArgs.size();
   std::vector<char*> argv(argc);
-  for (int i=0; i<argc; ++i) {
+  for (int i = 0; i < argc; ++i) {
     argv[i] = const_cast<char*>(pArgs[i].c_str());
   }
   if (argc > 1) {
-    p->initialize(argc,&argv[0]);
+    p->initialize(argc, &argv[0]);
   }
   bool modified = false;
-  switch(p->getKind()) {
-    case Pass::PK_Context:
-      modified = runContextPass(p);
-      break;
-    case Pass::PK_Namespace:
-      modified = runNamespacePass(p);
-      break;
-    case Pass::PK_Module:
-      modified = runModulePass(p);
-      break;
-    case Pass::PK_Instance:
-      modified = runInstancePass(p);
-      break;
-    case Pass::PK_InstanceVisitor:
-      modified = runInstanceVisitorPass(p);
-      break;
-    case Pass::PK_InstanceGraph:
-      modified = runInstanceGraphPass(p);
-      break;
-    default:
-      ASSERT(0,"NYI!");
+  switch (p->getKind()) {
+  case Pass::PK_Context:
+    modified = runContextPass(p);
+    break;
+  case Pass::PK_Namespace:
+    modified = runNamespacePass(p);
+    break;
+  case Pass::PK_Module:
+    modified = runModulePass(p);
+    break;
+  case Pass::PK_Instance:
+    modified = runInstancePass(p);
+    break;
+  case Pass::PK_InstanceVisitor:
+    modified = runInstanceVisitorPass(p);
+    break;
+  case Pass::PK_InstanceGraph:
+    modified = runInstanceGraphPass(p);
+    break;
+  default:
+    ASSERT(0, "NYI!");
   }
   modified |= p->finalize();
   p->print();
@@ -150,28 +150,37 @@ bool PassManager::runPass(Pass* p,vector<string>& pArgs) {
   return modified;
 }
 
-//TODO should check for circular dependencies
-//pass can have args "mypass -blag -sdf"
-void PassManager::pushAllDependencies(string passString,stack<string> &work) {
+// TODO should check for circular dependencies
+// pass can have args "mypass -blag -sdf"
+void PassManager::pushAllDependencies(string passString, stack<string>& work) {
   vector<string> pArgs = splitStringByWhitespace(passString);
   string passName = pArgs[0];
-  ASSERT(passMap.count(passName),"Can not run pass \"" + passName + "\" because it was never loaded!");
+  ASSERT(
+    passMap.count(passName),
+    "Can not run pass \"" + passName + "\" because it was never loaded!");
   work.push(passString);
-  for (auto it = passMap[passName]->dependencies.rbegin(); it!=passMap[passName]->dependencies.rend(); ++it) {
-    string depPass = *it; //Contains args
+  for (auto it = passMap[passName]->dependencies.rbegin();
+       it != passMap[passName]->dependencies.rend();
+       ++it) {
+    string depPass = *it; // Contains args
     vector<string> dpArgs = splitStringByWhitespace(depPass);
     string dpName = dpArgs[0];
-    ASSERT(passMap.count(dpName),"Dependency " + depPass + " for " + passName + " Was never loaded!");
-    ASSERT(passMap[dpName]->isAnalysis,"Dependency \"" + depPass + "\" for \"" + passName + "\" cannot be a transform pass");
-    pushAllDependencies(depPass,work);
+    ASSERT(
+      passMap.count(dpName),
+      "Dependency " + depPass + " for " + passName + " Was never loaded!");
+    ASSERT(
+      passMap[dpName]->isAnalysis,
+      "Dependency \"" + depPass + "\" for \"" + passName +
+        "\" cannot be a transform pass");
+    pushAllDependencies(depPass, work);
   }
 }
 
-//passes contains "passname -arg1 -arg2"
-bool PassManager::run(vector<string>& passes,vector<string> nsnames) {
+// passes contains "passname -arg1 -arg2"
+bool PassManager::run(vector<string>& passes, vector<string> nsnames) {
   this->nss.clear();
   for (auto nsname : nsnames) {
-    ASSERT(c->hasNamespace(nsname),"Missing namespace: " + nsname);
+    ASSERT(c->hasNamespace(nsname), "Missing namespace: " + nsname);
     this->nss.push_back(c->getNamespace(nsname));
   }
   vector<vector<string>> passesParsed;
@@ -179,50 +188,52 @@ bool PassManager::run(vector<string>& passes,vector<string> nsnames) {
     passesParsed.push_back(splitStringByWhitespace(p));
   }
   bool ret = false;
-  //Execute each in order (and the respective dependencies) independently
+  // Execute each in order (and the respective dependencies) independently
   for (auto pass : passes) {
     stack<string> work;
-    pushAllDependencies(pass,work);
-    //Actually run the passes now
+    pushAllDependencies(pass, work);
+    // Actually run the passes now
     while (!work.empty()) {
-      string passString = work.top(); work.pop();
+      string passString = work.top();
+      work.pop();
       vector<string> pArgs = splitStringByWhitespace(passString);
       string pname = pArgs[0];
-      
+
       Pass* p = passMap[pname];
       bool anal = p->isAnalysis;
 
-      //If it is an analysis and is not stale, do not run!
-      if (anal && analysisPasses.count(passString) && analysisPasses[passString]) {
+      // If it is an analysis and is not stale, do not run!
+      if (
+        anal && analysisPasses.count(passString) &&
+        analysisPasses[passString]) {
         continue;
       }
-      else if (anal) { //is analysis and needs to be run
-        p->releaseMemory(); //clear data structures
+      else if (anal) {      // is analysis and needs to be run
+        p->releaseMemory(); // clear data structures
       }
-      //Run it!
-      bool modified = this->runPass(p,pArgs);
+      // Run it!
+      bool modified = this->runPass(p, pArgs);
       if (anal) {
-        ASSERT(!modified,"Analysis pass cannot modify IR!");
+        ASSERT(!modified, "Analysis pass cannot modify IR!");
         analysisPasses[passString] = true;
       }
-      else if (modified) { //Not analysis
-        //If it modified, need to conservatly invalidate all analysis passes
+      else if (modified) { // Not analysis
+        // If it modified, need to conservatly invalidate all analysis passes
         for (auto amap : analysisPasses) {
           analysisPasses[amap.first] = false;
         }
-        //Run Verifier pass
+        // Run Verifier pass
         vector<string> verArgs = {"verifyinputconnections"};
-        this->runPass(passMap["verifyinputconnections"],verArgs);
+        this->runPass(passMap["verifyinputconnections"], verArgs);
         analysisPasses["verifyinputconnections"] = true;
       }
       ret |= modified;
-
     }
   }
   return ret;
 }
 bool PassManager::isAnalysisCached(string pass) {
-  ASSERT(analysisPasses.count(pass),pass + " was never loaded");
+  ASSERT(analysisPasses.count(pass), pass + " was never loaded");
   return analysisPasses.at(pass);
 }
 
@@ -239,13 +250,11 @@ void PassManager::printPassChoices() {
   }
   LOG(DEBUG) << "Transform Passes";
   for (auto p : passMap) {
-    if (analysisPasses.count(p.first)==0) {
+    if (analysisPasses.count(p.first) == 0) {
       LOG(DEBUG) << "  " << p.first;
     }
   }
 }
-
-
 
 PassManager::~PassManager() {
   for (auto p : passMap) {
