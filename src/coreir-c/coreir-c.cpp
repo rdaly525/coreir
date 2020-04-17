@@ -10,11 +10,7 @@ namespace CoreIR {
 extern "C" {
 
 void* CORENewMap(
-  COREContext* cc,
-  void* keys,
-  void* values,
-  uint len,
-  COREMapKind kind) {
+  COREContext* cc, void* keys, void* values, uint len, COREMapKind kind) {
   Context* c = rcast<Context*>(cc);
   void* ret;
   switch (kind) {
@@ -67,9 +63,7 @@ COREContext* CORENewContext() { return rcast<COREContext*>(newContext()); }
 void COREDeleteContext(COREContext* c) { deleteContext(rcast<Context*>(c)); }
 
 COREType* COREContextNamed(
-  COREContext* context,
-  const char* namespace_,
-  const char* type_name) {
+  COREContext* context, const char* namespace_, const char* type_name) {
   return rcast<COREType*>(rcast<Context*>(context)->Named(
     std::string(namespace_) + "." + std::string(type_name)));
 }
@@ -219,10 +213,7 @@ CORENamespace* COREGlobalValueGetNamespace(COREGlobalValue* value) {
 }
 
 COREModule* CORENewModule(
-  CORENamespace* ns,
-  char* name,
-  COREType* type,
-  void* modparams) {
+  CORENamespace* ns, char* name, COREType* type, void* modparams) {
   Params g;
   if (modparams) g = *rcast<Params*>(modparams);
   return rcast<COREModule*>(
@@ -242,10 +233,7 @@ COREGenerator* COREModuleGetGenerator(COREModule* mod) {
 }
 
 void COREModuleGetGenArgs(
-  COREModule* core_mod,
-  char*** names,
-  COREValue*** args,
-  int* num_args) {
+  COREModule* core_mod, char*** names, COREValue*** args, int* num_args) {
   Module* mod = rcast<Module*>(core_mod);
   Values genValues = mod->getGenArgs();
   int size = genValues.size();
@@ -338,15 +326,11 @@ COREModuleDef* COREModuleGetDef(COREModule* module) {
 }
 
 COREWireable* COREModuleDefAddModuleInstance(
-  COREModuleDef* module_def,
-  char* name,
-  COREModule* module,
-  void* mod) {
-  return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)
-                                ->addInstance(
-                                  string(name),
-                                  rcast<Module*>(module),
-                                  *rcast<Values*>(mod)));
+  COREModuleDef* module_def, char* name, COREModule* module, void* mod) {
+  return rcast<COREWireable*>(
+    rcast<ModuleDef*>(module_def)
+      ->addInstance(
+        string(name), rcast<Module*>(module), *rcast<Values*>(mod)));
 }
 
 COREWireable* COREModuleDefAddGeneratorInstance(
@@ -373,17 +357,13 @@ COREDirectedModule* COREModuleGetDirectedModule(COREModule* module) {
 }
 
 void COREModuleDefConnect(
-  COREModuleDef* module_def,
-  COREWireable* a,
-  COREWireable* b) {
+  COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
   rcast<ModuleDef*>(module_def)
     ->connect(rcast<Wireable*>(a), rcast<Wireable*>(b));
 }
 
 void COREModuleDefDisconnect(
-  COREModuleDef* module_def,
-  COREWireable* a,
-  COREWireable* b) {
+  COREModuleDef* module_def, COREWireable* a, COREWireable* b) {
   rcast<ModuleDef*>(module_def)
     ->disconnect(rcast<Wireable*>(a), rcast<Wireable*>(b));
 }
@@ -411,15 +391,13 @@ COREWireable* COREModuleDefInstancesIterEnd(COREModuleDef* module_def) {
 }
 
 COREWireable* COREModuleDefInstancesIterNext(
-  COREModuleDef* module_def,
-  COREWireable* curr) {
+  COREModuleDef* module_def, COREWireable* curr) {
   return rcast<COREWireable*>(rcast<ModuleDef*>(module_def)
                                 ->getInstancesIterNext(rcast<Instance*>(curr)));
 }
 
 COREConnection** COREModuleDefGetConnections(
-  COREModuleDef* m,
-  int* numConnections) {
+  COREModuleDef* m, int* numConnections) {
   ModuleDef* module_def = rcast<ModuleDef*>(m);
   auto connection_set = module_def->getConnections();
   Context* context = module_def->getContext();
@@ -445,8 +423,7 @@ COREWireable* COREConnectionGetSecond(COREConnection* c) {
 }
 
 COREWireable** COREWireableGetConnectedWireables(
-  COREWireable* w,
-  int* numWireables) {
+  COREWireable* w, int* numWireables) {
   Wireable* wireable = rcast<Wireable*>(w);
   set<Wireable*> connections_set = wireable->getConnectedWireables();
   Context* context = wireable->getContext();
@@ -510,8 +487,7 @@ const char* CORENamespaceGetName(CORENamespace* n) {
 }
 
 COREGenerator* CORENamespaceGetGenerator(
-  CORENamespace* _namespace,
-  const char* name) {
+  CORENamespace* _namespace, const char* name) {
   return rcast<COREGenerator*>(
     rcast<Namespace*>(_namespace)->getGenerator(std::string(name)));
 }
@@ -524,8 +500,7 @@ bool CORENamespaceHasGenerator(CORENamespace* _namespace, const char* name) {
 }
 
 COREModule* CORENamespaceGetModule(
-  CORENamespace* _namespace,
-  const char* name) {
+  CORENamespace* _namespace, const char* name) {
   return rcast<COREModule*>(
     rcast<Namespace*>(_namespace)->getModule(std::string(name)));
 }
@@ -582,8 +557,7 @@ bool CORENamespaceHasModule(CORENamespace* _namespace, const char* name) {
 }
 
 const char** COREDirectedConnectionGetSrc(
-  COREDirectedConnection* directed_connection,
-  int* path_len) {
+  COREDirectedConnection* directed_connection, int* path_len) {
   DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
   ConstSelectPath path = conn->getConstSrc();
   Context* c = conn->getContext();
@@ -595,8 +569,7 @@ const char** COREDirectedConnectionGetSrc(
 }
 
 const char** COREDirectedConnectionGetSnk(
-  COREDirectedConnection* directed_connection,
-  int* path_len) {
+  COREDirectedConnection* directed_connection, int* path_len) {
   DirectedConnection* conn = rcast<DirectedConnection*>(directed_connection);
   ConstSelectPath path = conn->getConstSnk();
   Context* c = conn->getContext();
@@ -613,9 +586,7 @@ COREDirectedModule* CORENewDirectedModule(COREModule* module) {
 }
 
 COREWireable* COREDirectedModuleSel(
-  COREDirectedModule* directed_module,
-  const char** path,
-  int path_len) {
+  COREDirectedModule* directed_module, const char** path, int path_len) {
   SelectPath select_path;
   for (int i = 0; i < path_len; i++) {
     select_path.push_back(std::string(path[i]));
@@ -625,8 +596,7 @@ COREWireable* COREDirectedModuleSel(
 }
 
 COREDirectedConnection** COREDirectedModuleGetConnections(
-  COREDirectedModule* directed_module,
-  int* num_connections) {
+  COREDirectedModule* directed_module, int* num_connections) {
   DirectedModule* module = rcast<DirectedModule*>(directed_module);
   DirectedConnections directed_connections = module->getConnections();
   int size = directed_connections.size();
@@ -642,8 +612,7 @@ COREDirectedConnection** COREDirectedModuleGetConnections(
 }
 
 COREDirectedInstance** COREDirectedModuleGetInstances(
-  COREDirectedModule* directed_module,
-  int* num_instances) {
+  COREDirectedModule* directed_module, int* num_instances) {
   DirectedModule* module = rcast<DirectedModule*>(directed_module);
   DirectedInstances directed_instances = module->getInstances();
   int size = directed_instances.size();
@@ -659,8 +628,7 @@ COREDirectedInstance** COREDirectedModuleGetInstances(
 }
 
 COREDirectedConnection** COREDirectedModuleGetInputs(
-  COREDirectedModule* directed_module,
-  int* num_connections) {
+  COREDirectedModule* directed_module, int* num_connections) {
   DirectedModule* module = rcast<DirectedModule*>(directed_module);
   DirectedConnections inputs = module->getInputs();
   int size = inputs.size();
@@ -676,8 +644,7 @@ COREDirectedConnection** COREDirectedModuleGetInputs(
 }
 
 COREDirectedConnection** COREDirectedModuleGetOutputs(
-  COREDirectedModule* directed_module,
-  int* num_connections) {
+  COREDirectedModule* directed_module, int* num_connections) {
   DirectedModule* module = rcast<DirectedModule*>(directed_module);
   DirectedConnections outputs = module->getOutputs();
   int size = outputs.size();
@@ -693,8 +660,7 @@ COREDirectedConnection** COREDirectedModuleGetOutputs(
 }
 
 COREDirectedConnection** COREDirectedInstanceGetInputs(
-  COREDirectedInstance* directed_instance,
-  int* num_connections) {
+  COREDirectedInstance* directed_instance, int* num_connections) {
   DirectedInstance* instance = rcast<DirectedInstance*>(directed_instance);
   DirectedConnections inputs = instance->getInputs();
   int size = inputs.size();
@@ -710,8 +676,7 @@ COREDirectedConnection** COREDirectedInstanceGetInputs(
 }
 
 COREDirectedConnection** COREDirectedInstanceGetOutputs(
-  COREDirectedInstance* directed_instance,
-  int* num_connections) {
+  COREDirectedInstance* directed_instance, int* num_connections) {
   DirectedInstance* instance = rcast<DirectedInstance*>(directed_instance);
   DirectedConnections outputs = instance->getOutputs();
   int size = outputs.size();
@@ -732,9 +697,7 @@ void COREModuleAddMetaDataStr(COREModule* module, char* key, char* value) {
 }
 
 void COREWireableAddMetaDataStr(
-  COREWireable* wireable,
-  char* key,
-  char* value) {
+  COREWireable* wireable, char* key, char* value) {
   const auto json = nlohmann::json::parse(std::string(value));
   rcast<Wireable*>(wireable)->getMetaData()[key] = json;
 }

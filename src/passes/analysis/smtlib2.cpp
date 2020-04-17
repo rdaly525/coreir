@@ -11,9 +11,7 @@ namespace {
 string CLOCK = "clk";
 
 std::vector<string> check_interface_variable(
-  std::vector<string> variables,
-  SmtBVVar var,
-  SMTModule* smod) {
+  std::vector<string> variables, SmtBVVar var, SMTModule* smod) {
   if (
     find(variables.begin(), variables.end(), var.getName()) ==
     variables.end()) {

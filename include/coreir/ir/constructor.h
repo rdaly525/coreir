@@ -64,10 +64,7 @@ class Constructor {
 
   Wireable* reg(Wireable* in0, uint init, Wireable* clk = nullptr);
   Wireable* reg_arst(
-    Wireable* in0,
-    uint init,
-    Wireable* clk = nullptr,
-    Wireable* rst = nullptr);
+    Wireable* in0, uint init, Wireable* clk = nullptr, Wireable* rst = nullptr);
 };
 
 }  // namespace CoreIR

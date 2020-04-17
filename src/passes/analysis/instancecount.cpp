@@ -6,10 +6,7 @@ using namespace CoreIR;
 
 namespace {
 void incrementMap(
-  std::map<string, std::pair<int, int>>& map,
-  string name,
-  int val0,
-  int val1) {
+  std::map<string, std::pair<int, int>>& map, string name, int val0, int val1) {
   if (map.count(name)) {
     map[name].first += val0;
     map[name].second += val1;

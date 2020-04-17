@@ -14,8 +14,7 @@ class PassLibrary : public DynamicLibrary {
   void loadPass(std::string passFile) {
     if (pass2file.count(passFile)) { return; }
     register_pass_t registerPass = (register_pass_t)this->getFunction(
-      passFile,
-      "registerPass");
+      passFile, "registerPass");
     Pass* p = registerPass();
     ASSERT(p, "pass is null");
     c->addPass(p);

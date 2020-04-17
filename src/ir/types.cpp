@@ -126,10 +126,7 @@ NamedType::NamedType(Namespace* ns, std::string name, Type* raw)
     GlobalValue(GVK_NamedType, ns, name),
     raw(raw) {}
 NamedType::NamedType(
-  Namespace* ns,
-  string name,
-  TypeGen* typegen,
-  Values genargs)
+  Namespace* ns, string name, TypeGen* typegen, Values genargs)
   : Type(TK_Named, DK_Mixed, ns->getContext()),
     GlobalValue(GVK_NamedType, ns, name),
     typegen(typegen),

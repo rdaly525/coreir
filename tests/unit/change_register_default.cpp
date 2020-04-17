@@ -10,15 +10,17 @@ int main() {
 
   Namespace* g = c->getGlobal();
   Type* tp = c->Record({{"in", c->BitIn()->Arr(3)},
-        {"clk", c->Named("coreir.clkIn")},
-          {"out", c->Bit()->Arr(3)}});
+                        {"clk", c->Named("coreir.clkIn")},
+                        {"out", c->Bit()->Arr(3)}});
 
   Module* md = g->newModuleDecl("port_in", tp);
   ModuleDef* def = md->newModuleDef();
 
-  def->addInstance("reg", "coreir.reg",
-                   {{"width", Const::make(c, 3)}},
-                   {{"init", Const::make(c, BitVec(3, 0))}});
+  def->addInstance(
+    "reg",
+    "coreir.reg",
+    {{"width", Const::make(c, 3)}},
+    {{"init", Const::make(c, BitVec(3, 0))}});
 
   def->connect("self.in", "reg.in");
   def->connect("self.clk", "reg.clk");
@@ -35,8 +37,10 @@ int main() {
   setRegisterInit("reg", BitVec(3, 1), md);
 
   r = def->getInstances().at("reg");
-  cout << "reg init after = " << r->getModArgs().at("init")->get<BitVector>() << endl;;
-  
+  cout << "reg init after = " << r->getModArgs().at("init")->get<BitVector>()
+       << endl;
+  ;
+
   cout << "After changing register" << endl;
   md->print();
 
@@ -59,8 +63,7 @@ int main() {
   state2.execute();
 
   assert(state2.getRegister("reg") == BitVec(3, 3));
-  
 
-  //assert(false);
+  // assert(false);
   deleteContext(c);
 }

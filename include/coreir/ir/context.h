@@ -168,9 +168,7 @@ bool saveToFile(
   std::string filename,
   Module* top = nullptr);  // This will go away
 bool saveToFilePretty(
-  Namespace* ns,
-  std::string filename,
-  Module* top = nullptr);
+  Namespace* ns, std::string filename, Module* top = nullptr);
 bool saveToFile(Context* c, std::string filename, bool nocoreir = true);
 
 // Save a module to a dot file (for viewing in graphviz)

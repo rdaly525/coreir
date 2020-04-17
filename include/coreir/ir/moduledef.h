@@ -70,9 +70,7 @@ class ModuleDef {
     Values genargs,
     Values modargs = Values());
   Instance* addInstance(
-    std::string instname,
-    Module* modref,
-    Values modargs = Values());
+    std::string instname, Module* modref, Values modargs = Values());
 
   // Add instance using a GlobalValue ref std::string
   Instance* addInstance(

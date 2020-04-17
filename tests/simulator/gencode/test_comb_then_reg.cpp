@@ -1,8 +1,8 @@
 #include "comb_then_reg.h"
 
+#include <bitset>
 #include <cassert>
 #include <iostream>
-#include <bitset>
 
 using namespace std;
 
@@ -27,7 +27,7 @@ int main() {
 
   assert(state.self_out_0 == 2);
   assert(state.self_out_1 == 2);
-  
+
   cout << "After second high clock" << endl;
   cout << "state.self_out_0 = " << bitset<8>(state.self_out_0) << endl;
   cout << "state.self_out_1 = " << bitset<8>(state.self_out_1) << endl;
@@ -44,6 +44,6 @@ int main() {
 
   assert(state.self_out_0 == 1);
   assert(state.self_out_1 == 2);
-  
+
   return 0;
 }

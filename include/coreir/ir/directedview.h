@@ -67,9 +67,7 @@ class DirectedInstance {
 
  public:
   DirectedInstance(
-    Instance* i,
-    DirectedConnections inputs,
-    DirectedConnections outputs);
+    Instance* i, DirectedConnections inputs, DirectedConnections outputs);
   DirectedConnections getInputs() { return inputs; }
   DirectedConnections getOutputs() { return outputs; }
   Context* getContext();

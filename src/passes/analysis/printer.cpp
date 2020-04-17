@@ -10,8 +10,7 @@ bool Passes::Printer::runOnContext(Context* c) {
   cout << "Printer!\n";
   if (c->hasTop()) {
     getAnalysisPass<Passes::CoreIRJson>()->writeToStream(
-      cout,
-      c->getTop()->getRefName());
+      cout, c->getTop()->getRefName());
   }
   else {
     getAnalysisPass<Passes::CoreIRJson>()->writeToStream(cout);

@@ -25,10 +25,7 @@ class Wireable : public MetaData {
 
  public:
   Wireable(WireableKind kind, ModuleDef* container, Type* type)
-    : MetaData(),
-      kind(kind),
-      container(container),
-      type(type) {}
+    : MetaData(), kind(kind), container(container), type(type) {}
   virtual ~Wireable();
   virtual std::string toString() const = 0;
   const std::set<Wireable*>& getConnectedWireables() { return connected; }

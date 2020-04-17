@@ -537,8 +537,7 @@ class quad_value_bit_vector {
 };
 
 static inline bool same_representation(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   if (a.bitLength() != b.bitLength()) { return false; }
 
   for (int i = 0; i < ((int)a.bitLength()); i++) {
@@ -556,16 +555,14 @@ static inline quad_value_bit_vector unknown_bv(const int len) {
 }
 
 static inline std::ostream& operator<<(
-  std::ostream& out,
-  const quad_value_bit_vector& a) {
+  std::ostream& out, const quad_value_bit_vector& a) {
   out << a.binary_string();
 
   return out;
 }
 
 static inline bool operator==(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
 
   // if (!a.is_binary() || !b.is_binary()) {
   //   return false;
@@ -579,8 +576,7 @@ static inline quad_value highBit(const quad_value_bit_vector& a) {
 }
 
 static inline quad_value_bit_vector add_general_width_bv(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
 
   quad_value_bit_vector res(a.bitLength());
   unsigned char carry = 0;
@@ -605,8 +601,7 @@ static inline quad_value_bit_vector add_general_width_bv(
 }
 
 static inline quad_value_bit_vector sub_general_width_bv(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   int Width = a.bitLength();
   quad_value_bit_vector diff(a.bitLength());
   quad_value_bit_vector a_cpy = a;
@@ -645,8 +640,7 @@ static inline quad_value_bit_vector sub_general_width_bv(
 }
 
 static inline quad_value_bit_vector mul_general_width_bv(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   int Width = a.bitLength();
   quad_value_bit_vector full_len(2 * Width);
 
@@ -669,8 +663,7 @@ static inline quad_value_bit_vector mul_general_width_bv(
 class quad_value_bit_vector_operations {
  public:
   static inline quad_value_bit_vector land(
-    const quad_value_bit_vector& a,
-    const quad_value_bit_vector& b) {
+    const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
     quad_value_bit_vector a_and_b(a.bitLength());
     for (int i = 0; i < a.bitLength(); i++) {
       a_and_b.set(i, a.get(i) & b.get(i));
@@ -685,8 +678,7 @@ class quad_value_bit_vector_operations {
   }
 
   static inline quad_value_bit_vector lor(
-    const quad_value_bit_vector& a,
-    const quad_value_bit_vector& b) {
+    const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
     quad_value_bit_vector a_or_b(a.bitLength());
     for (int i = 0; i < a.bitLength(); i++) {
       a_or_b.set(i, a.get(i) | b.get(i));
@@ -695,8 +687,7 @@ class quad_value_bit_vector_operations {
   }
 
   static inline quad_value_bit_vector lxor(
-    const quad_value_bit_vector& a,
-    const quad_value_bit_vector& b) {
+    const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
     quad_value_bit_vector a_or_b(a.bitLength());
     for (int i = 0; i < a.bitLength(); i++) {
       a_or_b.set(i, a.get(i) ^ b.get(i));
@@ -716,26 +707,22 @@ static inline quad_value_bit_vector operator~(const quad_value_bit_vector& a) {
 }
 
 static inline quad_value_bit_vector operator&(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   return quad_value_bit_vector_operations::land(a, b);
 }
 
 static inline quad_value_bit_vector operator|(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   return quad_value_bit_vector_operations::lor(a, b);
 }
 
 static inline quad_value_bit_vector operator^(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   return quad_value_bit_vector_operations::lxor(a, b);
 }
 
 static inline bool operator!=(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   // if (!a.is_binary() || !b.is_binary()) {
   //   return false;
   // }
@@ -744,8 +731,7 @@ static inline bool operator!=(
 }
 
 static inline bool operator>(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   if (!a.is_binary() || !b.is_binary()) { return false; }
 
   int N = a.bitLength();
@@ -759,16 +745,14 @@ static inline bool operator>(
 }
 
 static inline bool operator>=(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   if (!a.is_binary() || !b.is_binary()) { return false; }
 
   return (a > b) || (a == b);
 }
 
 static inline bool operator<(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   if (!a.is_binary() || !b.is_binary()) { return false; }
 
   if (a == b) { return false; }
@@ -804,8 +788,7 @@ static inline quad_value_bit_vector xorr(const quad_value_bit_vector& a) {
 }
 
 static inline bool signed_gt(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
 
   if (!a.is_binary() || !b.is_binary()) { return false; }
 
@@ -835,8 +818,7 @@ static inline bool signed_gt(
 }
 
 static inline bool signed_gte(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   return (signed_gt(a, b)) || (a == b);
 }
 
@@ -867,8 +849,7 @@ static inline bv_uint64 get_shift_int(
 }
 
 static inline quad_value_bit_vector lshr(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& shift_amount) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& shift_amount) {
 
   if (!a.is_binary() || !shift_amount.is_binary()) {
     return unknown_bv(a.bitLength());
@@ -896,8 +877,7 @@ static inline quad_value_bit_vector lshr(
 
 // Arithmetic shift right
 static inline quad_value_bit_vector ashr(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& shift_amount) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& shift_amount) {
 
   if (!a.is_binary() || !shift_amount.is_binary()) {
     return unknown_bv(a.bitLength());
@@ -925,8 +905,7 @@ static inline quad_value_bit_vector ashr(
 }
 
 static inline quad_value_bit_vector shl(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& shift_amount) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& shift_amount) {
 
   if (!a.is_binary() || !shift_amount.is_binary()) {
     return unknown_bv(a.bitLength());
@@ -943,8 +922,7 @@ static inline quad_value_bit_vector shl(
 }
 
 static inline quad_value_bit_vector concat(
-  const quad_value_bit_vector& a,
-  const quad_value_bit_vector& b) {
+  const quad_value_bit_vector& a, const quad_value_bit_vector& b) {
   quad_value_bit_vector res(a.bitLength() + b.bitLength());
   for (int i = 0; i < a.bitLength(); i++) { res.set(i, a.get(i)); }
   for (int i = 0; i < ((int)b.bitLength()); i++) {
@@ -955,9 +933,7 @@ static inline quad_value_bit_vector concat(
 }
 
 static inline quad_value_bit_vector slice(
-  const quad_value_bit_vector& a,
-  const int start,
-  const int end) {
+  const quad_value_bit_vector& a, const int start, const int end) {
   quad_value_bit_vector res(end - start);
 
   for (int i = 0; i < res.bitLength(); i++) { res.set(i, a.get(i + start)); }
@@ -965,8 +941,7 @@ static inline quad_value_bit_vector slice(
 }
 
 static inline quad_value_bit_vector extend(
-  const quad_value_bit_vector& a,
-  const int extra_bits) {
+  const quad_value_bit_vector& a, const int extra_bits) {
   quad_value_bit_vector res(a.bitLength() + extra_bits);
   for (int i = 0; i < a.bitLength(); i++) { res.set(i, a.get(i)); }
 
@@ -974,8 +949,7 @@ static inline quad_value_bit_vector extend(
 }
 
 static inline quad_value_bit_vector zero_extend(
-  const int outWidth,
-  const quad_value_bit_vector& in) {
+  const int outWidth, const quad_value_bit_vector& in) {
   quad_value_bit_vector res(outWidth, 0);
   for (uint i = 0; i < (uint)in.bitLength(); i++) { res.set(i, in.get(i)); }
 
@@ -983,8 +957,7 @@ static inline quad_value_bit_vector zero_extend(
 }
 
 static inline bsim::quad_value_bit_vector unsigned_divide(
-  const bsim::quad_value_bit_vector& a,
-  const bsim::quad_value_bit_vector& b) {
+  const bsim::quad_value_bit_vector& a, const bsim::quad_value_bit_vector& b) {
   assert(a.bitLength() == b.bitLength());
 
   bsim::quad_value_bit_vector extA = zero_extend(2 * a.bitLength(), a);
@@ -999,8 +972,7 @@ static inline bsim::quad_value_bit_vector unsigned_divide(
   // Use slow divide method
   for (int i = (a.bitLength() - 1); i >= 0; i--) {
     bsim::quad_value_bit_vector shifted_b = shl(
-      extB,
-      bsim::quad_value_bit_vector(b.bitLength(), i));
+      extB, bsim::quad_value_bit_vector(b.bitLength(), i));
 
     // std::cout << "Shifted b = " << shifted_b << std::endl;
     // std::cout << "a_tmp     = " << a_tmp << std::endl;

@@ -1,7 +1,7 @@
 #include "multiply_shift_16.h"
 
-#include <iostream>
 #include <bitset>
+#include <iostream>
 
 using namespace std;
 

@@ -32,9 +32,7 @@ class WireNode {
       isReceiver(other.isReceiver) {}
 
   WireNode(
-    CoreIR::Wireable* wire_,
-    const bool isSequential_,
-    const bool isReceiver_)
+    CoreIR::Wireable* wire_, const bool isSequential_, const bool isReceiver_)
     : highBitsDirty(true),
       threadNumber(0),
       wire(wire_),

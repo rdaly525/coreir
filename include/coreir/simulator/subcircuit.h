@@ -7,8 +7,7 @@
 namespace CoreIR {
 
 std::vector<CoreIR::Instance*> extractSubcircuit(
-  CoreIR::Module* mod,
-  const std::vector<Wireable*>& startingPorts);
+  CoreIR::Module* mod, const std::vector<Wireable*>& startingPorts);
 
 void addSubcircuitModule(
   const std::string& moduleName,

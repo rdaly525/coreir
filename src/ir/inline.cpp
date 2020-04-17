@@ -13,10 +13,7 @@ namespace CoreIR {
 // This helper will connect everything from wa to wb with a spDelta.
 // spDelta is the SelectPath delta to get from wa to wb
 void connectOffsetLevel(
-  ModuleDef* def,
-  Wireable* wa,
-  SelectPath spDelta,
-  Wireable* wb) {
+  ModuleDef* def, Wireable* wa, SelectPath spDelta, Wireable* wb) {
 
   for (auto waCon : wa->getConnectedWireables()) {
     for (auto wbCon : wb->getConnectedWireables()) {  // was inw

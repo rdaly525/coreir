@@ -55,9 +55,7 @@ void COREDeleteSimulatorState(CORESimulatorState* state) {
 }
 
 CORESimValue* CORESimGetValue(
-  CORESimulatorState* cstate,
-  char** cpath,
-  int path_len) {
+  CORESimulatorState* cstate, char** cpath, int path_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
 
@@ -84,9 +82,7 @@ void CORESimResetCircuit(CORESimulatorState* cstate) {
 }
 
 void CORESimSetMainClock(
-  CORESimulatorState* cstate,
-  char** cpath,
-  int path_len) {
+  CORESimulatorState* cstate, char** cpath, int path_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
   state->setMainClock(path);
@@ -105,9 +101,7 @@ void CORESimSetClock(
 }
 
 int CORESimGetClockCycles(
-  CORESimulatorState* cstate,
-  char** cpath,
-  int path_len) {
+  CORESimulatorState* cstate, char** cpath, int path_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
   ClockValue* clk = toClock(state->getValue(path));

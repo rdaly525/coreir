@@ -110,10 +110,7 @@ string sinkPathToString(CoreIR::Passes::FModule* fm, SelectPath sp) {
 }
 
 void addConnection(
-  Context* c,
-  CoreIR::Passes::FModule* fm,
-  SelectPath snk,
-  SelectPath src) {
+  Context* c, CoreIR::Passes::FModule* fm, SelectPath snk, SelectPath src) {
   string snkstr = sinkPathToString(fm, snk);
   if (!isNumber(src.back())) {
     if (src[0] == "self") src.pop_front();
@@ -139,9 +136,7 @@ void addConnection(
 }
 
 std::string ReplaceString(
-  std::string subject,
-  const std::string& search,
-  const std::string& replace) {
+  std::string subject, const std::string& search, const std::string& replace) {
   size_t pos = 0;
   while ((pos = subject.find(search, pos)) != std::string::npos) {
     subject.replace(pos, search.length(), replace);

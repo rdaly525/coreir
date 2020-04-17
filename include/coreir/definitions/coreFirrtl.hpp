@@ -6,67 +6,68 @@ using namespace std;
 
 void CoreIRLoadFirrtl_coreir(Context* c) {
   std::map<std::string, std::map<std::string, std::vector<std::string>>>
-      coreFMap(
-          {{"unary",
-            {{"wire", {"out <= in"}},
-             {"not", {"out <= not(in)"}},
-             {"neg", {"out <= neg(in)"}}}},
-           {"unaryReduce",
-            {{"andr", {"out <= andr(in)"}},
-             {"orr", {"out <= orr(in)"}},
-             {"xorr", {"out <= xorr(in)"}}}},
-           {"binary",
-            {
-                {"and", {"out <= and(in0,in1)"}},
-                {"or", {"out <= or(in0,in1)"}},
-                {"xor", {"out <= xor(in0,in1)"}},
-                {"shl", {"out <= dshl(in0,in1)"}},  // TODO probably should bit
-                                                    // select from in1?
-                {"lshr", {"out <= dshr(in0,in1)"}},
-                {"ashr", {"out <= dshr(toSInt(in0),toSInt(in1))"}},
-                {"add", {"out <= tail(add(in0,in1),1)"}},
-                {"sub", {"out <= tail(sub(in0,in1),1)"}},
-                {"mul", {"out <= mul(in0,in1)"}},  // TODO
-                {"udiv", {"out <= div(in0,in1)"}},
-                {"sdiv", {"out <= div(toSInt(in0),toSInt(in1))"}},
-            }},
-           {"binaryReduce",
-            {
-                {"eq", {"out <= eq(in0,in1)"}},
-                {"neq", {"out <= neq(in0,in1)"}},
-                {"slt", {"out <= lt(asSInt(in0),asSInt(in1))"}},
-                {"sgt", {"out <= gt(asSInt(in0),asSInt(in1))"}},
-                {"sle", {"out <= leq(asSInt(in0),asSInt(in1))"}},
-                {"sge", {"out <= geq(asSInt(in0),asSInt(in1))"}},
-                {"ult", {"out <= lt(in0,in1)"}},
-                {"ugt", {"out <= gt(in0,in1)"}},
-                {"ule", {"out <= leq(in0,in1)"}},
-                {"uge", {"out <= geq(in0,in1)"}},
-            }},
-           {"other",
-            {
-                {"mux", {"out <= mux(sel, in1, in0)"}},
-                {"slice", {"out <= bits(in,%hi%,%lo%)"}},
-                {"concat",
-                 {"out <= cat(in1, in0)"}},  // TODO: implement this properly
-                {"const", {"out <= value"}},
-                {"term", {""}},
-                {"tribuf", {"out is invalid"}},  // TODO: implement this
-                {"ibuf",
-                 {"in is invalid", "out is invalid"}},  // TODO: implement this
-                {"pullresistor", {"out is invalid"}},   // TODO: implement this
-                {"reg",
-                 {"node regClock = asClock(mux(clk_posedge, asUInt(clk), "
-                  "not(asUInt(clk))))",
-                  "wire resetWire : UInt<1>", "resetWire <= UInt<1>(\"h00\")",
-                  "reg myreg : UInt, regClock with : (reset => (resetWire, "
-                  "init))",
-                  "myreg <= in", "out <= myreg"}},
-                {"reg_arst",
-                 {"out is invalid"}},  // firrtl primitive registers don't
-                                       // support async reset yet
-                //{"mem",""}, //TODO
-            }}});
+    coreFMap(
+      {{"unary",
+        {{"wire", {"out <= in"}},
+         {"not", {"out <= not(in)"}},
+         {"neg", {"out <= neg(in)"}}}},
+       {"unaryReduce",
+        {{"andr", {"out <= andr(in)"}},
+         {"orr", {"out <= orr(in)"}},
+         {"xorr", {"out <= xorr(in)"}}}},
+       {"binary",
+        {
+          {"and", {"out <= and(in0,in1)"}},
+          {"or", {"out <= or(in0,in1)"}},
+          {"xor", {"out <= xor(in0,in1)"}},
+          {"shl", {"out <= dshl(in0,in1)"}},  // TODO probably should bit
+                                              // select from in1?
+          {"lshr", {"out <= dshr(in0,in1)"}},
+          {"ashr", {"out <= dshr(toSInt(in0),toSInt(in1))"}},
+          {"add", {"out <= tail(add(in0,in1),1)"}},
+          {"sub", {"out <= tail(sub(in0,in1),1)"}},
+          {"mul", {"out <= mul(in0,in1)"}},  // TODO
+          {"udiv", {"out <= div(in0,in1)"}},
+          {"sdiv", {"out <= div(toSInt(in0),toSInt(in1))"}},
+        }},
+       {"binaryReduce",
+        {
+          {"eq", {"out <= eq(in0,in1)"}},
+          {"neq", {"out <= neq(in0,in1)"}},
+          {"slt", {"out <= lt(asSInt(in0),asSInt(in1))"}},
+          {"sgt", {"out <= gt(asSInt(in0),asSInt(in1))"}},
+          {"sle", {"out <= leq(asSInt(in0),asSInt(in1))"}},
+          {"sge", {"out <= geq(asSInt(in0),asSInt(in1))"}},
+          {"ult", {"out <= lt(in0,in1)"}},
+          {"ugt", {"out <= gt(in0,in1)"}},
+          {"ule", {"out <= leq(in0,in1)"}},
+          {"uge", {"out <= geq(in0,in1)"}},
+        }},
+       {"other",
+        {
+          {"mux", {"out <= mux(sel, in1, in0)"}},
+          {"slice", {"out <= bits(in,%hi%,%lo%)"}},
+          {"concat",
+           {"out <= cat(in1, in0)"}},  // TODO: implement this properly
+          {"const", {"out <= value"}},
+          {"term", {""}},
+          {"tribuf", {"out is invalid"}},  // TODO: implement this
+          {"ibuf",
+           {"in is invalid", "out is invalid"}},  // TODO: implement this
+          {"pullresistor", {"out is invalid"}},   // TODO: implement this
+          {"reg",
+           {"node regClock = asClock(mux(clk_posedge, asUInt(clk), "
+            "not(asUInt(clk))))",
+            "wire resetWire : UInt<1>",
+            "resetWire <= UInt<1>(\"h00\")",
+            "reg myreg : UInt, regClock with : (reset => (resetWire, "
+            "init))",
+            "myreg <= in",
+            "out <= myreg"}},
+          {"reg_arst", {"out is invalid"}},  // firrtl primitive registers don't
+                                             // support async reset yet
+                                             //{"mem",""}, //TODO
+        }}});
 
   /*
   std::map<std::string,std::vector<std::string>> coreInterfaceMap({

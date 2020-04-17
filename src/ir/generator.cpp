@@ -16,10 +16,7 @@ using namespace std;
 namespace CoreIR {
 
 Generator::Generator(
-  Namespace* ns,
-  string name,
-  TypeGen* typegen,
-  Params genparams)
+  Namespace* ns, string name, TypeGen* typegen, Params genparams)
   : GlobalValue(GVK_Generator, ns, name),
     typegen(typegen),
     genparams(genparams) {
@@ -27,8 +24,7 @@ Generator::Generator(
   for (auto const& type_param : typegen->getParams()) {
     auto const& gen_param = genparams.find(type_param.first);
     ASSERT(
-      gen_param != genparams.end(),
-      "Param not found: " + type_param.first);
+      gen_param != genparams.end(), "Param not found: " + type_param.first);
 
     ASSERT(
       gen_param->second == type_param.second,

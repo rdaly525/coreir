@@ -8,29 +8,30 @@ void saveRegModule() {
   uint width = 32;
 
   Type* regType = c->Record({
-      {"clk", c->Named("coreir.clkIn")},
-        {"in", c->BitIn()->Arr(width)},
-          {"out", c->Bit()->Arr(width)},
-    });
+    {"clk", c->Named("coreir.clkIn")},
+    {"in", c->BitIn()->Arr(width)},
+    {"out", c->Bit()->Arr(width)},
+  });
 
-  Module* regComb =
-    c->getGlobal()->newModuleDecl("regComb", regType);
+  Module* regComb = c->getGlobal()->newModuleDecl("regComb", regType);
 
   ModuleDef* def = regComb->newModuleDef();
 
-  def->addInstance("reg0", "coreir.reg", {{"width", Const::make(c, width)}}, {{"init", Const::make(c, BitVec(width, 24))}});
+  def->addInstance(
+    "reg0",
+    "coreir.reg",
+    {{"width", Const::make(c, width)}},
+    {{"init", Const::make(c, BitVec(width, 24))}});
 
-
-  def->connect("self.clk", "reg0.clk");  
+  def->connect("self.clk", "reg0.clk");
   def->connect("self.in", "reg0.in");
 
   def->connect("reg0.out", "self.out");
 
   regComb->setDef(def);
 
-
   c->runPasses({"rungenerators"});
-  
+
   SimulatorState state(regComb);
   state.setClock("self.clk", 0, 0);
   state.setValue("self.in", BitVec(width, 3));
@@ -68,7 +69,7 @@ void loadRegModule() {
   assert(mod->hasDef());
 
   c->runPasses({"rungenerators"});
-  
+
   SimulatorState state(mod);
 
   state.setClock("self.clk", 0, 0);
@@ -76,7 +77,7 @@ void loadRegModule() {
   state.execute();
 
   assert(state.getBitVec("self.out") == BitVec(width, 24));
-  
+
   deleteContext(c);
 }
 

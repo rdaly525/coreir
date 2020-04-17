@@ -34,15 +34,14 @@ bool SPComp(const SelectPath& l, const SelectPath& r) {
   return ls < lr;
 }
 
-bool ConnectionCompFast::operator()(const Connection& l, const Connection& r)
-  const {
+bool ConnectionCompFast::operator()(
+  const Connection& l, const Connection& r) const {
   if (l.first != r.first) { return l.first < r.first; }
   return l.second < r.second;
 }
 
 bool ConnectionCompConsistent::operator()(
-  const Connection& l,
-  const Connection& r) const {
+  const Connection& l, const Connection& r) const {
   string ls = toString(l);
   string rs = toString(r);
   return ls < rs;

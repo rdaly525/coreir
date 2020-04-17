@@ -30,12 +30,16 @@ string SMVAdd(string context, SmvBVVar in1, SmvBVVar in2, SmvBVVar out);
 string SMVSub(string context, SmvBVVar in1, SmvBVVar in2, SmvBVVar out);
 string SMVConcat(string context, SmvBVVar in1, SmvBVVar in2, SmvBVVar out);
 string SMVReg(string context, SmvBVVar in, SmvBVVar clk, SmvBVVar out);
-string SMVRegPE(string context, SmvBVVar in, SmvBVVar clk, SmvBVVar out,
-                SmvBVVar en);
+string SMVRegPE(
+  string context, SmvBVVar in, SmvBVVar clk, SmvBVVar out, SmvBVVar en);
 string SMVSlice(string context, SmvBVVar in, SmvBVVar out, int low, int high);
 string SMVClock(string context, SmvBVVar clk_p);
-string SMVMux(string context, SmvBVVar in0_p, SmvBVVar in1_p, SmvBVVar sel_p,
-              SmvBVVar out_p);
+string SMVMux(
+  string context,
+  SmvBVVar in0_p,
+  SmvBVVar in1_p,
+  SmvBVVar sel_p,
+  SmvBVVar out_p);
 
 string SMVProperty(string name, PropType type, string value);
 }  // namespace Passes

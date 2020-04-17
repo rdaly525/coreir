@@ -11,10 +11,7 @@ struct CEInfo {
   bool has_arst = false;
   CEInfo() : can_replace(false) {}
   CEInfo(CoreIR::Instance* reg, CoreIR::Instance* mux, int mux_in_port)
-    : can_replace(true),
-      reg(reg),
-      mux(mux),
-      mux_in_port(mux_in_port) {}
+    : can_replace(true), reg(reg), mux(mux), mux_in_port(mux_in_port) {}
 };
 
 // Checks if inst of generated module and generated module has the following

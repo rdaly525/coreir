@@ -60,9 +60,7 @@ void Aetherling_createFlattenGenerator(Context* c) {
     });
 
   Generator* flatten = aetherlinglib->newGeneratorDecl(
-    "flatten",
-    aetherlinglib->getTypeGen("flatten_type"),
-    flattenParams);
+    "flatten", aetherlinglib->getTypeGen("flatten_type"), flattenParams);
 
   flatten->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
@@ -89,9 +87,7 @@ void Aetherling_createFlattenGenerator(Context* c) {
       else {
         uint inputTypeLen = inputType->getLen();
         uint flattenInnerOutputLen = getFlattenedSize(
-          c,
-          inputType->getElemType(),
-          singleElementOutputType);
+          c, inputType->getElemType(), singleElementOutputType);
         for (uint i = 0; i < inputTypeLen; i++) {
           string iStr = to_string(i);
           def->addInstance(
@@ -106,8 +102,7 @@ void Aetherling_createFlattenGenerator(Context* c) {
             string jStr = to_string(j);
             string outIdxStr = to_string(i * flattenInnerOutputLen + j);
             def->connect(
-              "flattenInner_" + iStr + ".out." + jStr,
-              "self.out." + outIdxStr);
+              "flattenInner_" + iStr + ".out." + jStr, "self.out." + outIdxStr);
           }
         }
       }

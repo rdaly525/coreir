@@ -49,13 +49,9 @@ class Namespace {
   bool hasTypeGen(std::string name) { return typeGenList.count(name) > 0; }
 
   Generator* newGeneratorDecl(
-    std::string name,
-    TypeGen* typegen,
-    Params genparams);
+    std::string name, TypeGen* typegen, Params genparams);
   Module* newModuleDecl(
-    std::string name,
-    Type* t,
-    Params moduleparams = Params());
+    std::string name, Type* t, Params moduleparams = Params());
 
   // Use with caution!!
   // This will also delete all modules in generator

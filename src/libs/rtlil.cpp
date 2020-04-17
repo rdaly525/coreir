@@ -101,9 +101,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                           {"B_WIDTH", c->Int()},
                           {"Y_WIDTH", c->Int()}};
     TypeGen* logic_andTP = rtLib->newTypeGen(
-      name,
-      binopParams,
-      [](Context* c, Values genargs) {
+      name, binopParams, [](Context* c, Values genargs) {
         uint a_width = genargs.at("A_WIDTH")->get<int>();
         uint b_width = genargs.at("B_WIDTH")->get<int>();
         uint y_width = genargs.at("Y_WIDTH")->get<int>();
@@ -160,9 +158,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
         string opGenName = rtlilCoreirName(name);
         def->addInstance(
-          "op0",
-          opGenName,
-          {{"width", Const::make(c, ext_width)}});
+          "op0", opGenName, {{"width", Const::make(c, ext_width)}});
 
         def->addInstance(
           "slice0",
@@ -239,9 +235,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
         string opGenName = rtlilCoreirName(name);
         def->addInstance(
-          "op0",
-          opGenName,
-          {{"width", Const::make(c, ext_width)}});
+          "op0", opGenName, {{"width", Const::make(c, ext_width)}});
 
         def->connect("self.A", "extendA.in");
         def->connect("self.B", "extendB.in");
@@ -256,8 +250,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   }
 
   // - Comparators
-  vector<string>
-    rtlilBinaryComps{"eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt"};
+  vector<string> rtlilBinaryComps{
+    "eqx", "nex", "lt", "le", "eq", "ne", "ge", "gt"};
   for (auto& name : rtlilBinaryComps) {
     auto gen = rtLib->getGenerator(name);
 
@@ -309,9 +303,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
           opGenName = rtlilCoreirName(name);
         }
         def->addInstance(
-          "op0",
-          opGenName,
-          {{"width", Const::make(c, ext_width)}});
+          "op0", opGenName, {{"width", Const::make(c, ext_width)}});
 
         def->connect("self.A", "extendA.in");
         def->connect("self.B", "extendB.in");
@@ -356,13 +348,9 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
          {"width_out", Const::make(c, ext_width)}});
 
       def->addInstance(
-        "aRed",
-        "coreir.orr",
-        {{"width", Const::make(c, ext_width)}});
+        "aRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
       def->addInstance(
-        "bRed",
-        "coreir.orr",
-        {{"width", Const::make(c, ext_width)}});
+        "bRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
       def->addInstance("orOps", "corebit.or");
 
       def->connect("self.A", "extendA.in");
@@ -393,11 +381,9 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
       bool b_signed = args.at("B_SIGNED")->get<bool>();
 
       ASSERT(
-        !a_signed,
-        "Have not yet added signed logic_and support for RTLIL");
+        !a_signed, "Have not yet added signed logic_and support for RTLIL");
       ASSERT(
-        !b_signed,
-        "Have not yet added signed logic_and support for RTLIL");
+        !b_signed, "Have not yet added signed logic_and support for RTLIL");
 
       uint ext_width = max(a_width, b_width);
 
@@ -414,13 +400,9 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
          {"width_out", Const::make(c, ext_width)}});
 
       def->addInstance(
-        "aRed",
-        "coreir.orr",
-        {{"width", Const::make(c, ext_width)}});
+        "aRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
       def->addInstance(
-        "bRed",
-        "coreir.orr",
-        {{"width", Const::make(c, ext_width)}});
+        "bRed", "coreir.orr", {{"width", Const::make(c, ext_width)}});
       def->addInstance("andOps", "corebit.and");
 
       def->connect("self.A", "extendA.in");
@@ -449,13 +431,10 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                             "logic_not"};
 
   for (auto& name : rtlilUnops) {
-    Params binopParams = {{"A_SIGNED", c->Bool()},
-                          {"A_WIDTH", c->Int()},
-                          {"Y_WIDTH", c->Int()}};
+    Params binopParams = {
+      {"A_SIGNED", c->Bool()}, {"A_WIDTH", c->Int()}, {"Y_WIDTH", c->Int()}};
     TypeGen* logic_andTP = rtLib->newTypeGen(
-      name,
-      binopParams,
-      [](Context* c, Values genargs) {
+      name, binopParams, [](Context* c, Values genargs) {
         uint a_width = genargs.at("A_WIDTH")->get<int>();
         uint y_width = genargs.at("Y_WIDTH")->get<int>();
 
@@ -515,9 +494,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
         "Have not yet added signed negation support for rtlil.logic_not");
 
       def->addInstance(
-        "reduce",
-        "coreir.orr",
-        {{"width", Const::make(c, a_width)}});
+        "reduce", "coreir.orr", {{"width", Const::make(c, a_width)}});
       def->addInstance("negate", "corebit.not");
 
       def->connect("self.A", "reduce.in");
@@ -536,10 +513,8 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   logicNotGen->setGeneratorDefFromFun(lnotGenFun);
 
   // Reduction ops
-  vector<string> rtlilReduceOps{"reduce_and",
-                                "reduce_or",
-                                "reduce_xor",
-                                "reduce_bool"};
+  vector<string> rtlilReduceOps{
+    "reduce_and", "reduce_or", "reduce_xor", "reduce_bool"};
   for (auto& name : rtlilReduceOps) {
     auto gen = rtLib->getGenerator(name);
 
@@ -571,9 +546,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   Params muxParams = {{"WIDTH", c->Int()}};
   TypeGen* muxTP = rtLib->newTypeGen(
-    "rtMux",
-    muxParams,
-    [](Context* c, Values genargs) {
+    "rtMux", muxParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record({{"A", c->BitIn()->Arr(width)},
@@ -591,9 +564,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     Instance* mux = nullptr;
     // if (width > 1) {
     mux = def->addInstance(
-      "mux0",
-      "coreir.mux",
-      {{"width", Const::make(c, width)}});
+      "mux0", "coreir.mux", {{"width", Const::make(c, width)}});
     //} else {
     // mux = def->addInstance("mux0", "corebit.mux");
     //}
@@ -609,9 +580,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   // Sequential nodes
   Params dffParams = {{"WIDTH", c->Int()}, {"CLK_POLARITY", c->Bool()}};
   TypeGen* dffTP = rtLib->newTypeGen(
-    "dff",
-    dffParams,
-    [](Context* c, Values genargs) {
+    "dff", dffParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record({{"CLK", c->BitIn()},
@@ -632,9 +601,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     Instance* reg = nullptr;
 
     reg = def->addInstance(
-      "reg0",
-      "coreir.reg",
-      {{"width", Const::make(c, width)}});
+      "reg0", "coreir.reg", {{"width", Const::make(c, width)}});
 
     assert(reg != nullptr);
 
@@ -660,9 +627,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     {"ARST_POLARITY", c->Bool()}};  //, {"ARST_VALUE", c->BitVector()}};
 
   TypeGen* adffTP = rtLib->newTypeGen(
-    "adff",
-    adffParams,
-    [](Context* c, Values genargs) {
+    "adff", adffParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record({{"CLK", c->BitIn()},
@@ -731,9 +696,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   Params dlatchParams = {{"WIDTH", c->Int()}, {"EN_POLARITY", c->Bool()}};
   TypeGen* dlatchTP = rtLib->newTypeGen(
-    "dlatch",
-    dlatchParams,
-    [](Context* c, Values genargs) {
+    "dlatch", dlatchParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record({{"D", c->BitIn()->Arr(width)},
@@ -748,9 +711,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                         {"SET_POLARITY", c->Bool()},
                         {"CLK_POLARITY", c->Bool()}};
   TypeGen* dffsrTP = rtLib->newTypeGen(
-    "dffsr",
-    dffsrParams,
-    [](Context* c, Values genargs) {
+    "dffsr", dffsrParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record({{"D", c->BitIn()->Arr(width)},
@@ -769,9 +730,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
                          {"Y_WIDTH", c->Int()}};
 
   TypeGen* shiftxTP = rtLib->newTypeGen(
-    "shiftx",
-    shiftxParams,
-    [](Context* c, Values genargs) {
+    "shiftx", shiftxParams, [](Context* c, Values genargs) {
       uint a_width = genargs.at("A_WIDTH")->get<int>();
       uint b_width = genargs.at("B_WIDTH")->get<int>();
       uint y_width = genargs.at("Y_WIDTH")->get<int>();
@@ -785,9 +744,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
 
   Params memParams = {{"SIZE", c->Int()}, {"WIDTH", c->Int()}};
   TypeGen* memTP = rtLib->newTypeGen(
-    "memory",
-    memParams,
-    [](Context* c, Values genargs) {
+    "memory", memParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
       uint depth = genargs.at("SIZE")->get<int>();
       uint awidth = ceil(log2(depth));
@@ -837,9 +794,7 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
   // BitInOut conversion facilities
   Params outToInOutParams = {{"WIDTH", c->Int()}};
   TypeGen* outToInOutTP = rtLib->newTypeGen(
-    "outArrayToInOutArray",
-    outToInOutParams,
-    [](Context* c, Values genargs) {
+    "outArrayToInOutArray", outToInOutParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record(
@@ -847,15 +802,11 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     });
 
   rtLib->newGeneratorDecl(
-    "outArrayToInOutArray",
-    outToInOutTP,
-    outToInOutParams);
+    "outArrayToInOutArray", outToInOutTP, outToInOutParams);
 
   Params inOutToOutParams = {{"WIDTH", c->Int()}};
   TypeGen* inOutToOutTP = rtLib->newTypeGen(
-    "inOutToOut",
-    outToInOutParams,
-    [](Context* c, Values genargs) {
+    "inOutToOut", outToInOutParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record(
@@ -863,15 +814,11 @@ Namespace* CoreIRLoadLibrary_rtlil(CoreIR::Context* c) {
     });
 
   rtLib->newGeneratorDecl(
-    "inOutArrayToOutArray",
-    inOutToOutTP,
-    inOutToOutParams);
+    "inOutArrayToOutArray", inOutToOutTP, inOutToOutParams);
 
   Params padIOParams = {{"WIDTH", c->Int()}};
   TypeGen* padIOTP = rtLib->newTypeGen(
-    "padIO",
-    padIOParams,
-    [](Context* c, Values genargs) {
+    "padIO", padIOParams, [](Context* c, Values genargs) {
       uint width = genargs.at("WIDTH")->get<int>();
 
       return c->Record({{"INOUT_PORT", c->BitInOut()->Arr(width)},

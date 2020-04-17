@@ -330,9 +330,7 @@ CoreIR::Wireable* extractSource(CoreIR::Select* sel);
 std::vector<Conn> getOutputConnections(const vdisc vd, const NGraph& g);
 
 void addWireableToGraph(
-  CoreIR::Wireable* w1,
-  std::unordered_map<WireNode, vdisc>& imap,
-  NGraph& g);
+  CoreIR::Wireable* w1, std::unordered_map<WireNode, vdisc>& imap, NGraph& g);
 
 std::vector<Conn> buildOrderedConnections(Module* mod);
 
@@ -368,46 +366,34 @@ bool isThreadShared(const vdisc v, const NGraph& g);
 Select* findMainClock(const NGraph& g);
 
 bool isSubgraphInput(
-  const vdisc vd,
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const vdisc vd, const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool isSubgraphOutput(
-  const vdisc vd,
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const vdisc vd, const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasCombinationalInput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasAllSequentialOutputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasAllSequentialInputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasCombinationalOutput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasSequentialInput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasSequentialOutput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasAllCombinationalInputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool subgraphHasAllCombinationalOutputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g);
+  const std::deque<vdisc>& nodes, const NGraph& g);
 
 bool isConstant(const WireNode& wd);
 

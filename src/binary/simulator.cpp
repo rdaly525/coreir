@@ -28,9 +28,7 @@ int main(int argc, char* argv[]) {
   // int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
   options.add_options()("h,help", "help")("v,verbose", "Set verbose")(
-    "i,input",
-    "input file: <file>.json",
-    cxxopts::value<std::string>())(
+    "i,input", "input file: <file>.json", cxxopts::value<std::string>())(
     "o,output",
     "output file: <file>.<json|fir|v|dot>",
     cxxopts::value<std::string>())(

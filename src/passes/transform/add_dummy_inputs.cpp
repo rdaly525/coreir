@@ -34,9 +34,7 @@ void connectToDummy(
     assert(isBitType(*(sel->getType())));
 
     auto replaceConst = def->addInstance(
-      constName,
-      "corebit.const",
-      {{"value", Const::make(c, false)}});
+      constName, "corebit.const", {{"value", Const::make(c, false)}});
 
     def->connect(replaceConst->sel("out"), sel);
   }

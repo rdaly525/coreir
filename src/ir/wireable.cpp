@@ -31,10 +31,7 @@ Select* Wireable::sel(const std::string& selStr) {
     "Cannot select " + selStr + " From " + this->toString() +
       "\n  Type: " + type->toString());
   Select* select = new Select(
-    this->getContainer(),
-    this,
-    selStr,
-    type->sel(selStr));
+    this->getContainer(), this, selStr, type->sel(selStr));
   selects[selStr] = select;
   return select;
 }
@@ -140,9 +137,7 @@ string Wireable::wireableKind2Str(WireableKind wb) {
 
 namespace {
 void traverse2(
-  std::map<SelectPath, Wireable*>& ret,
-  SelectPath path,
-  Wireable* w) {
+  std::map<SelectPath, Wireable*>& ret, SelectPath path, Wireable* w) {
   ret.emplace(path, w);
   for (auto spair : w->getSelects()) {
     SelectPath newpath = path;
@@ -161,9 +156,7 @@ std::map<SelectPath, Wireable*> Wireable::getAllSelects() {
 
 namespace {
 void traverse3(
-  std::map<SelectPath, Wireable*>& ret,
-  SelectPath path,
-  Wireable* w) {
+  std::map<SelectPath, Wireable*>& ret, SelectPath path, Wireable* w) {
   if (!isa<Select>(w)) return;
   Select* select = cast<Select>(w);
   path.push_front(select->getSelStr());
@@ -216,10 +209,7 @@ Wireable* Wireable::getTopParent() {
 string Interface::toString() const { return "self"; }
 
 Instance::Instance(
-  ModuleDef* container,
-  string instname,
-  Module* moduleRef,
-  Values modargs)
+  ModuleDef* container, string instname, Module* moduleRef, Values modargs)
   : Wireable(WK_Instance, container, nullptr),
     instname(instname),
     moduleRef(moduleRef) {
@@ -264,10 +254,7 @@ Select* Instance::sel(const std::string& selStr) {
   if (selStr[0] == ';') {
     Wireable* sel = this->getModuleRef()->getDef()->sel(selStr.substr(1));
     InstanceSelect* instance_select = new InstanceSelect(
-      this->getContainer(),
-      this,
-      selStr,
-      sel);
+      this->getContainer(), this, selStr, sel);
     selects[selStr] = instance_select;
     return selects[selStr];
   }
@@ -287,10 +274,7 @@ Select* InstanceSelect::sel(const std::string& selStr) {
   if (this->wrapped_wireable->canSel(selStr)) {
     Wireable* sel = this->wrapped_wireable->sel(selStr);
     InstanceSelect* instance_select = new InstanceSelect(
-      this->getContainer(),
-      this,
-      selStr,
-      sel);
+      this->getContainer(), this, selStr, sel);
     selects[selStr] = instance_select;
     return selects[selStr];
   }

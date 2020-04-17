@@ -1,6 +1,7 @@
 #pragma once
 
 #include "coreir.h"
+
 namespace CoreIR {
 namespace Passes {
 

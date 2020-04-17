@@ -22,10 +22,7 @@ class Generator : public GlobalValue, public VerilogPrimitive {
 
  public:
   Generator(
-    Namespace* ns,
-    std::string name,
-    TypeGen* typegen,
-    Params genparams);
+    Namespace* ns, std::string name, TypeGen* typegen, Params genparams);
   virtual ~Generator();
   static bool classof(const GlobalValue* i) {
     return i->getKind() == GVK_Generator;
@@ -69,8 +66,7 @@ class Generator : public GlobalValue, public VerilogPrimitive {
   void setModParamsGen(Params modparams, Values defaultModArgs = Values()) {
     this->modParamsGen =
       [modparams, defaultModArgs](
-        Context* c,
-        Values genargs) mutable -> std::pair<Params, Values> {
+        Context* c, Values genargs) mutable -> std::pair<Params, Values> {
       return {modparams, defaultModArgs};
     };
   }

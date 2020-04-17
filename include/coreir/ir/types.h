@@ -119,9 +119,7 @@ class ArrayType : public Type {
 
  public:
   ArrayType(Context* c, Type* elemType, uint len)
-    : Type(TK_Array, elemType->getDir(), c),
-      elemType(elemType),
-      len(len) {}
+    : Type(TK_Array, elemType->getDir(), c), elemType(elemType), len(len) {}
   static bool classof(const Type* t) { return t->getKind() == TK_Array; }
   uint getLen() const { return len; }
   Type* getElemType() const { return elemType; }

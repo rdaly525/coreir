@@ -12,43 +12,45 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   Namespace* memory = c->newNamespace("memory");
 
   // Note this is a linebuffer MEMORY (a single row), with a stencil valid
-  Params RbwsvGenParams = {{"width", c->Int()},
-                           {"depth", c->Int()},
-                           {"stencil_width", c->Int()}};
-  memory->newTypeGen("rowbufferWithStencilValidType", RbwsvGenParams,
-                     [](Context* c, Values genargs) {
-                       uint width = genargs.at("width")->get<int>();
-                       return c->Record({
-                           {"clk", c->Named("coreir.clkIn")},
-                           {"wdata", c->BitIn()->Arr(width)},
-                           {"wen", c->BitIn()},
-                           {"rdata", c->Bit()->Arr(width)},
-                           {"valid", c->Bit()},
-                           {"flush", c->BitIn()},
-                       });
-                     });
-  memory->newGeneratorDecl("rowbuffer_stencil_valid",
-                           memory->getTypeGen("rowbufferWithStencilValidType"),
-                           RbwsvGenParams);
+  Params RbwsvGenParams = {
+    {"width", c->Int()}, {"depth", c->Int()}, {"stencil_width", c->Int()}};
+  memory->newTypeGen(
+    "rowbufferWithStencilValidType",
+    RbwsvGenParams,
+    [](Context* c, Values genargs) {
+      uint width = genargs.at("width")->get<int>();
+      return c->Record({
+        {"clk", c->Named("coreir.clkIn")},
+        {"wdata", c->BitIn()->Arr(width)},
+        {"wen", c->BitIn()},
+        {"rdata", c->Bit()->Arr(width)},
+        {"valid", c->Bit()},
+        {"flush", c->BitIn()},
+      });
+    });
+  memory->newGeneratorDecl(
+    "rowbuffer_stencil_valid",
+    memory->getTypeGen("rowbufferWithStencilValidType"),
+    RbwsvGenParams);
 
   Params MemGenParams = {{"width", c->Int()}, {"depth", c->Int()}};
   // Linebuffer Memory. Use this for memory in linebuffer mode
-  memory->newTypeGen("rowbufferType", MemGenParams,
-                     [](Context* c, Values genargs) {
-                       uint width = genargs.at("width")->get<int>();
-                       return c->Record({
-                           {"clk", c->Named("coreir.clkIn")},
-                           {"wdata", c->BitIn()->Arr(width)},
-                           {"wen", c->BitIn()},
-                           {"rdata", c->Bit()->Arr(width)},
-                           {"valid", c->Bit()},
-                           {"flush", c->BitIn()},
-                       });
-                     });
+  memory->newTypeGen(
+    "rowbufferType", MemGenParams, [](Context* c, Values genargs) {
+      uint width = genargs.at("width")->get<int>();
+      return c->Record({
+        {"clk", c->Named("coreir.clkIn")},
+        {"wdata", c->BitIn()->Arr(width)},
+        {"wen", c->BitIn()},
+        {"rdata", c->Bit()->Arr(width)},
+        {"valid", c->Bit()},
+        {"flush", c->BitIn()},
+      });
+    });
 
   // Note this is a linebuffer MEMORY (a single row) and not a full linebuffer.
   Generator* lbMem = memory->newGeneratorDecl(
-      "rowbuffer", memory->getTypeGen("rowbufferType"), MemGenParams);
+    "rowbuffer", memory->getTypeGen("rowbufferType"), MemGenParams);
 
   lbMem->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint depth = genargs.at("depth")->get<int>();
@@ -60,29 +62,37 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     // All State (mem, waddr, raddr, valid)
     def->addInstance("mem", "coreir.mem", genargs);
 
-    def->addInstance("raddr", "mantle.counter",
-                     {{"width", Const::make(c, addrWidth)},
-                      {"has_max", Const::make(c, true)},
-                      {"has_en", Const::make(c, true)},
-                      {"has_srst", Const::make(c, true)}},
-                     {{"max", Const::make(c, addrWidth, depth - 1)}});
-    def->addInstance("waddr", "mantle.counter",
-                     {{"width", Const::make(c, addrWidth)},
-                      {"has_max", Const::make(c, true)},
-                      {"has_en", Const::make(c, true)},
-                      {"has_srst", Const::make(c, true)}},
-                     {{"max", Const::make(c, addrWidth, depth - 1)}});
-    def->addInstance("cnt", "mantle.reg",
-                     {{"width", Const::make(c, addrWidth + 1)},
-                      {"has_en", Const::make(c, true)},
-                      {"has_clr", Const::make(c, true)}},
-                     {{"init", Const::make(c, BitVector(addrWidth + 1, 0))}});
+    def->addInstance(
+      "raddr",
+      "mantle.counter",
+      {{"width", Const::make(c, addrWidth)},
+       {"has_max", Const::make(c, true)},
+       {"has_en", Const::make(c, true)},
+       {"has_srst", Const::make(c, true)}},
+      {{"max", Const::make(c, addrWidth, depth - 1)}});
+    def->addInstance(
+      "waddr",
+      "mantle.counter",
+      {{"width", Const::make(c, addrWidth)},
+       {"has_max", Const::make(c, true)},
+       {"has_en", Const::make(c, true)},
+       {"has_srst", Const::make(c, true)}},
+      {{"max", Const::make(c, addrWidth, depth - 1)}});
+    def->addInstance(
+      "cnt",
+      "mantle.reg",
+      {{"width", Const::make(c, addrWidth + 1)},
+       {"has_en", Const::make(c, true)},
+       {"has_clr", Const::make(c, true)}},
+      {{"init", Const::make(c, BitVector(addrWidth + 1, 0))}});
 
-    def->addInstance("state", "mantle.reg",
-                     {{"width", Const::make(c, 1)},
-                      {"has_en", Const::make(c, true)},
-                      {"has_clr", Const::make(c, true)}},
-                     {{"init", Const::make(c, 1, 0)}});
+    def->addInstance(
+      "state",
+      "mantle.reg",
+      {{"width", Const::make(c, 1)},
+       {"has_en", Const::make(c, true)},
+       {"has_clr", Const::make(c, true)}},
+      {{"init", Const::make(c, 1, 0)}});
 
     def->addInstance("out_and_wen", "corebit.and");
 
@@ -121,9 +131,11 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     // cnt_n = !state ? cnt+wen
     def->addInstance("state0", "corebit.not");
     def->addInstance("add_wen", "coreir.add", aw1Params);
-    def->addInstance("wen_ext", "coreir.zext",
-                     {{"width_in", Const::make(c, 1)},
-                      {"width_out", Const::make(c, addrWidth + 1)}});
+    def->addInstance(
+      "wen_ext",
+      "coreir.zext",
+      {{"width_in", Const::make(c, 1)},
+       {"width_out", Const::make(c, addrWidth + 1)}});
     def->connect("self.flush", "cnt.clr");
     def->connect("state.out.0", "state0.in");
     def->connect("state0.out", "cnt.en");
@@ -135,8 +147,11 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     // Logic to drive state
     // state_n = flush ? 0 :  (cnt_n == DEPTH) ? 1 : state
     // def->addInstance("state_n","corebit.mux");
-    def->addInstance("depth_m1", "coreir.const", aw1Params,
-                     {{"value", Const::make(c, addrWidth + 1, depth)}});
+    def->addInstance(
+      "depth_m1",
+      "coreir.const",
+      aw1Params,
+      {{"value", Const::make(c, addrWidth + 1, depth)}});
     def->addInstance("eq_depth", "coreir.eq", aw1Params);
     def->connect("self.flush", "state.clr");
     def->connect("depth_m1.out", "eq_depth.in0");
@@ -197,69 +212,80 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   //  });
 
   // Fifo Memory. Use this for memory in Fifo mode
-  memory->newTypeGen("FifoMemType", MemGenParams,
-                     [](Context* c, Values genargs) {
-                       uint width = genargs.at("width")->get<int>();
-                       return c->Record({{"clk", c->Named("coreir.clkIn")},
-                                         {"wdata", c->BitIn()->Arr(width)},
-                                         {"wen", c->BitIn()},
-                                         {"rdata", c->Bit()->Arr(width)},
-                                         {"ren", c->BitIn()},
-                                         {"almost_full", c->Bit()},
-                                         {"valid", c->Bit()}});
-                     });
+  memory->newTypeGen(
+    "FifoMemType", MemGenParams, [](Context* c, Values genargs) {
+      uint width = genargs.at("width")->get<int>();
+      return c->Record({{"clk", c->Named("coreir.clkIn")},
+                        {"wdata", c->BitIn()->Arr(width)},
+                        {"wen", c->BitIn()},
+                        {"rdata", c->Bit()->Arr(width)},
+                        {"ren", c->BitIn()},
+                        {"almost_full", c->Bit()},
+                        {"valid", c->Bit()}});
+    });
   Generator* fifoMem = memory->newGeneratorDecl(
-      "fifo", memory->getTypeGen("FifoMemType"), MemGenParams);
+    "fifo", memory->getTypeGen("FifoMemType"), MemGenParams);
   fifoMem->addDefaultGenArgs(
-      {{"width", Const::make(c, 16)}, {"depth", Const::make(c, 1024)}});
+    {{"width", Const::make(c, 16)}, {"depth", Const::make(c, 1024)}});
   fifoMem->setModParamsGen({{"almost_full_cnt", c->Int()}});
 
-  fifoMem->setGeneratorDefFromFun([](Context* c, Values genargs,
-                                     ModuleDef* def) {
+  fifoMem->setGeneratorDefFromFun([](
+                                    Context* c,
+                                    Values genargs,
+                                    ModuleDef* def) {
     // uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
     uint awidth = (uint)ceil(log2(depth));
 
     def->addInstance(
-        "raddr", "mantle.reg",
-        {{"width", Const::make(c, awidth)}, {"has_en", Const::make(c, true)}});
+      "raddr",
+      "mantle.reg",
+      {{"width", Const::make(c, awidth)}, {"has_en", Const::make(c, true)}});
     def->addInstance(
-        "waddr", "mantle.reg",
-        {{"width", Const::make(c, awidth)}, {"has_en", Const::make(c, true)}});
+      "waddr",
+      "mantle.reg",
+      {{"width", Const::make(c, awidth)}, {"has_en", Const::make(c, true)}});
 
     def->addInstance("mem", "coreir.mem", genargs);
 
-    def->addInstance("add_r", "coreir.add",
-                     {{"width", Const::make(c, awidth)}});
-    def->addInstance("add_w", "coreir.add",
-                     {{"width", Const::make(c, awidth)}});
-    def->addInstance("c1", "coreir.const", {{"width", Const::make(c, awidth)}},
-                     {{"value", Const::make(c, awidth, 1)}});
+    def->addInstance(
+      "add_r", "coreir.add", {{"width", Const::make(c, awidth)}});
+    def->addInstance(
+      "add_w", "coreir.add", {{"width", Const::make(c, awidth)}});
+    def->addInstance(
+      "c1",
+      "coreir.const",
+      {{"width", Const::make(c, awidth)}},
+      {{"value", Const::make(c, awidth, 1)}});
 
     if (!isPowerOfTwo(depth)) {
 
       // Multiplexers to check max value
-      def->addInstance("raddr_mux", "coreir.mux",
-                       {{"width", Const::make(c, awidth)}});
-      def->addInstance("waddr_mux", "coreir.mux",
-                       {{"width", Const::make(c, awidth)}});
+      def->addInstance(
+        "raddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
+      def->addInstance(
+        "waddr_mux", "coreir.mux", {{"width", Const::make(c, awidth)}});
 
       // Equals to test if addresses are at the max
-      def->addInstance("raddr_eq", "coreir.eq",
-                       {{"width", Const::make(c, awidth)}});
-      def->addInstance("waddr_eq", "coreir.eq",
-                       {{"width", Const::make(c, awidth)}});
+      def->addInstance(
+        "raddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
+      def->addInstance(
+        "waddr_eq", "coreir.eq", {{"width", Const::make(c, awidth)}});
 
       // Reset constant
-      def->addInstance("zero_const", "coreir.const",
-                       {{"width", Const::make(c, awidth)}},
-                       {{"value", Const::make(c, awidth, 0)}});
+      def->addInstance(
+        "zero_const",
+        "coreir.const",
+        {{"width", Const::make(c, awidth)}},
+        {{"value", Const::make(c, awidth, 0)}});
 
       // Max constant
       def->addInstance(
-          "max_const", "coreir.const", {{"width", Const::make(c, awidth)}},
-          // Fix this for 64 bit constants!
-          {{"value", Const::make(c, awidth, depth)}});  //(1 << awidth) - 1)}});
+        "max_const",
+        "coreir.const",
+        {{"width", Const::make(c, awidth)}},
+        // Fix this for 64 bit constants!
+        {{"value", Const::make(c, awidth, depth)}});  //(1 << awidth) - 1)}});
 
       // Wire up the resets
       def->connect("raddr_eq.out", "raddr_mux.sel");
@@ -280,8 +306,8 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
       def->connect("add_w.out", "waddr_eq.in0");
       def->connect("max_const.out", "waddr_eq.in1");
-
-    } else {
+    }
+    else {
       def->connect("add_r.out", "raddr.in");
       def->connect("add_w.out", "waddr.in");
     }
@@ -319,13 +345,13 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     uint depth = genargs.at("depth")->get<int>();
     uint awidth = (uint)ceil(log2(depth));
     return c->Record({
-        {"clk", c->Named("coreir.clkIn")},
-        {"wdata", c->BitIn()->Arr(width)},
-        {"waddr", c->BitIn()->Arr(awidth)},
-        {"wen", c->BitIn()},
-        {"rdata", c->Bit()->Arr(width)},
-        {"raddr", c->BitIn()->Arr(awidth)},
-        {"ren", c->BitIn()},
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"waddr", c->BitIn()->Arr(awidth)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(awidth)},
+      {"ren", c->BitIn()},
     });
   });
 
@@ -333,12 +359,13 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   // TODO describe the read after write behavior
   // TODO add in parameterized read after write behavior and the read delay
   Generator* ram = memory->newGeneratorDecl(
-      "ram", memory->getTypeGen("RamType"), MemGenParams);
+    "ram", memory->getTypeGen("RamType"), MemGenParams);
   ram->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     def->addInstance("mem", "coreir.mem", genargs);
     def->addInstance(
-        "readreg", "mantle.reg",
-        {{"width", genargs["width"]}, {"has_en", Const::make(c, true)}});
+      "readreg",
+      "mantle.reg",
+      {{"width", genargs["width"]}, {"has_en", Const::make(c, true)}});
     def->connect("self.clk", "readreg.clk");
     def->connect("self.clk", "mem.clk");
     def->connect("self.wdata", "mem.wdata");
@@ -353,13 +380,13 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   memory->newTypeGen("RamType2", MemGenParams, [](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     return c->Record({
-        {"clk", c->Named("coreir.clkIn")},
-        {"wdata", c->BitIn()->Arr(width)},
-        {"waddr", c->BitIn()->Arr(width)},
-        {"wen", c->BitIn()},
-        {"rdata", c->Bit()->Arr(width)},
-        {"raddr", c->BitIn()->Arr(width)},
-        {"ren", c->BitIn()},
+      {"clk", c->Named("coreir.clkIn")},
+      {"wdata", c->BitIn()->Arr(width)},
+      {"waddr", c->BitIn()->Arr(width)},
+      {"wen", c->BitIn()},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(width)},
+      {"ren", c->BitIn()},
     });
   });
 
@@ -367,7 +394,7 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   // TODO describe the read after write behavior
   // TODO add in parameterized read after write behavior and the read delay
   Generator* ram2 = memory->newGeneratorDecl(
-      "ram2", memory->getTypeGen("RamType2"), MemGenParams);
+    "ram2", memory->getTypeGen("RamType2"), MemGenParams);
   ram2->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
     uint depth = genargs.at("depth")->get<int>();
@@ -380,8 +407,9 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
 
     def->addInstance("mem", "coreir.mem", genargs);
     def->addInstance(
-        "readreg", "mantle.reg",
-        {{"width", genargs["width"]}, {"has_en", Const::make(c, true)}});
+      "readreg",
+      "mantle.reg",
+      {{"width", genargs["width"]}, {"has_en", Const::make(c, true)}});
     def->connect("self.clk", "readreg.clk");
     def->connect("self.clk", "mem.clk");
     def->connect("self.wdata", "mem.wdata");
@@ -398,8 +426,8 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   // ROM= Read-only memory. Index to read values from memory, but no exposed
   // write port.
   Params RomGenParams = {{"width", c->Int()}, {"depth", c->Int()}};
-  auto RomModParamFun = [](Context* c,
-                           Values genargs) -> std::pair<Params, Values> {
+  auto RomModParamFun =
+    [](Context* c, Values genargs) -> std::pair<Params, Values> {
     Params modparams;
     Values defaultargs;
     modparams["init"] = JsonType::make(c);
@@ -411,15 +439,15 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     uint depth = genargs.at("depth")->get<int>();
     uint awidth = std::max((int)ceil(log2(depth)), 1);
     return c->Record({
-        {"clk", c->Named("coreir.clkIn")},
-        {"rdata", c->Bit()->Arr(width)},
-        {"raddr", c->BitIn()->Arr(awidth)},
-        {"ren", c->BitIn()},
+      {"clk", c->Named("coreir.clkIn")},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(awidth)},
+      {"ren", c->BitIn()},
     });
   });
 
   Generator* rom = memory->newGeneratorDecl(
-      "rom", memory->getTypeGen("RomType"), MemGenParams);
+    "rom", memory->getTypeGen("RomType"), MemGenParams);
   rom->setModParamsGen(RomModParamFun);
   rom->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
@@ -429,17 +457,25 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     Values memargs = genargs;
     memargs.insert({"has_init", Const::make(c, true)});
 
-    def->addInstance("mem", "coreir.mem", memargs,
-                     {{"init", def->getModule()->getArg("init")}});
     def->addInstance(
-        "readreg", "mantle.reg",
-        {{"width", Const::make(c, width)}, {"has_en", Const::make(c, true)}});
-    def->addInstance("wdata0", "coreir.const",
-                     {{"width", Const::make(c, width)}},
-                     {{"value", Const::make(c, BitVector(width, 0))}});
-    def->addInstance("waddr0", "coreir.const",
-                     {{"width", Const::make(c, awidth)}},
-                     {{"value", Const::make(c, BitVector(awidth, 0))}});
+      "mem",
+      "coreir.mem",
+      memargs,
+      {{"init", def->getModule()->getArg("init")}});
+    def->addInstance(
+      "readreg",
+      "mantle.reg",
+      {{"width", Const::make(c, width)}, {"has_en", Const::make(c, true)}});
+    def->addInstance(
+      "wdata0",
+      "coreir.const",
+      {{"width", Const::make(c, width)}},
+      {{"value", Const::make(c, BitVector(width, 0))}});
+    def->addInstance(
+      "waddr0",
+      "coreir.const",
+      {{"width", Const::make(c, awidth)}},
+      {{"value", Const::make(c, BitVector(awidth, 0))}});
     def->connect("self.clk", "mem.clk");
     def->connect("self.clk", "readreg.clk");
     def->connect("wdata0.out", "mem.wdata");
@@ -458,15 +494,15 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
   memory->newTypeGen("Rom2Type", MemGenParams, [](Context* c, Values genargs) {
     uint width = genargs.at("width")->get<int>();
     return c->Record({
-        {"clk", c->Named("coreir.clkIn")},
-        {"rdata", c->Bit()->Arr(width)},
-        {"raddr", c->BitIn()->Arr(width)},
-        {"ren", c->BitIn()},
+      {"clk", c->Named("coreir.clkIn")},
+      {"rdata", c->Bit()->Arr(width)},
+      {"raddr", c->BitIn()->Arr(width)},
+      {"ren", c->BitIn()},
     });
   });
 
   Generator* rom2 = memory->newGeneratorDecl(
-      "rom2", memory->getTypeGen("Rom2Type"), MemGenParams);
+    "rom2", memory->getTypeGen("Rom2Type"), MemGenParams);
   rom2->setModParamsGen(RomModParamFun);
   rom2->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     uint width = genargs.at("width")->get<int>();
@@ -476,17 +512,25 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     Values memargs = genargs;
     memargs.insert({"has_init", Const::make(c, true)});
 
-    def->addInstance("mem", "coreir.mem", memargs,
-                     {{"init", def->getModule()->getArg("init")}});
     def->addInstance(
-        "readreg", "mantle.reg",
-        {{"width", Const::make(c, width)}, {"has_en", Const::make(c, true)}});
-    def->addInstance("wdata0", "coreir.const",
-                     {{"width", Const::make(c, width)}},
-                     {{"value", Const::make(c, BitVector(width, 0))}});
-    def->addInstance("waddr0", "coreir.const",
-                     {{"width", Const::make(c, awidth)}},
-                     {{"value", Const::make(c, BitVector(awidth, 0))}});
+      "mem",
+      "coreir.mem",
+      memargs,
+      {{"init", def->getModule()->getArg("init")}});
+    def->addInstance(
+      "readreg",
+      "mantle.reg",
+      {{"width", Const::make(c, width)}, {"has_en", Const::make(c, true)}});
+    def->addInstance(
+      "wdata0",
+      "coreir.const",
+      {{"width", Const::make(c, width)}},
+      {{"value", Const::make(c, BitVector(width, 0))}});
+    def->addInstance(
+      "waddr0",
+      "coreir.const",
+      {{"width", Const::make(c, awidth)}},
+      {{"value", Const::make(c, BitVector(awidth, 0))}});
     Values sliceArgs = {{"width", Const::make(c, width)},
                         {"lo", Const::make(c, 0)},
                         {"hi", Const::make(c, awidth)}};

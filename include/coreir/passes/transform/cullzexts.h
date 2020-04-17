@@ -14,8 +14,7 @@ class CullZexts : public ModulePass {
   static std::string ID;
   CullZexts()
     : ModulePass(
-        ID,
-        "Remove zero extend nodes that extend from width N to width N") {}
+        ID, "Remove zero extend nodes that extend from width N to width N") {}
   bool runOnModule(Module* m) override;
 };
 

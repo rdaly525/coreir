@@ -92,8 +92,7 @@ bool inputsAreDeterminedBy(
 }
 
 std::vector<CoreIR::Instance*> receiverInstances(
-  CoreIR::Wireable* const w,
-  map<Wireable*, vector<Wireable*>>& receiverMap) {
+  CoreIR::Wireable* const w, map<Wireable*, vector<Wireable*>>& receiverMap) {
   vector<Select*> outSels = allOutputSelects(w);
 
   if (isa<Select>(w)) {
@@ -115,8 +114,7 @@ std::vector<CoreIR::Instance*> receiverInstances(
 }
 
 std::vector<CoreIR::Instance*> extractSubcircuit(
-  CoreIR::Module* mod,
-  const std::vector<Wireable*>& startingPorts) {
+  CoreIR::Module* mod, const std::vector<Wireable*>& startingPorts) {
   if (!mod->hasDef()) { return {}; }
 
   ModuleDef* def = mod->getDef();
@@ -220,8 +218,7 @@ void addSubcircuitModule(
     Wireable* parent = sel->getParent();
 
     ASSERT(
-      parent == srcSelf,
-      "All subcircuit ports must be selects off of self");
+      parent == srcSelf, "All subcircuit ports must be selects off of self");
   }
 
   vector<pair<string, Type*>> fields;
@@ -297,9 +294,7 @@ void addSubcircuitModule(
 
       if (foundField) {
         newFst = replaceSelect(
-          fstSrc,
-          def->sel("self")->sel(fstSel->getSelStr()),
-          fst);
+          fstSrc, def->sel("self")->sel(fstSel->getSelStr()), fst);
 
         // cout << "Found self select " << newFst->toString() << endl;
       }
@@ -326,9 +321,7 @@ void addSubcircuitModule(
 
       if (foundField) {
         newSnd = replaceSelect(
-          sndSrc,
-          def->sel("self")->sel(sndSel->getSelStr()),
-          snd);
+          sndSrc, def->sel("self")->sel(sndSel->getSelStr()), snd);
 
         // cout << "Found self select " << newSnd->toString() << endl;
       }

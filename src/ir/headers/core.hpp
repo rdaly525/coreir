@@ -5,40 +5,41 @@ void core_convert(Context* c, Namespace* core) {
 
   Params sliceParams({{"width", c->Int()}, {"lo", c->Int()}, {"hi", c->Int()}});
   auto sliceTypeGen = core->newTypeGen(
-      "sliceTypeFun", sliceParams, [](Context* c, Values args) {
-        uint width = args.at("width")->get<int>();
-        uint lo = args.at("lo")->get<int>();
-        uint hi = args.at("hi")->get<int>();
-        ASSERT(lo < hi && hi <= width,
-               "Bad slice args! lo=" + to_string(lo) + ", hi=" + to_string(hi));
-        return c->Record(
-            {{"in", c->BitIn()->Arr(width)}, {"out", c->Bit()->Arr(hi - lo)}});
-      });
+    "sliceTypeFun", sliceParams, [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      uint lo = args.at("lo")->get<int>();
+      uint hi = args.at("hi")->get<int>();
+      ASSERT(
+        lo < hi && hi <= width,
+        "Bad slice args! lo=" + to_string(lo) + ", hi=" + to_string(hi));
+      return c->Record(
+        {{"in", c->BitIn()->Arr(width)}, {"out", c->Bit()->Arr(hi - lo)}});
+    });
   auto slice = core->newGeneratorDecl("slice", sliceTypeGen, sliceParams);
   slice->addDefaultGenArgs(
-      {{"hi", Const::make(c, 1)}, {"lo", Const::make(c, 0)}});
+    {{"hi", Const::make(c, 1)}, {"lo", Const::make(c, 0)}});
 
   Params concatParams({{"width0", c->Int()}, {"width1", c->Int()}});
   auto concatTypeGen = core->newTypeGen(
-      "concatTypeFun", concatParams, [](Context* c, Values args) {
-        uint width0 = args.at("width0")->get<int>();
-        uint width1 = args.at("width1")->get<int>();
-        return c->Record({{"in0", c->BitIn()->Arr(width0)},
-                          {"in1", c->BitIn()->Arr(width1)},
-                          {"out", c->Bit()->Arr(width0 + width1)}});
-      });
+    "concatTypeFun", concatParams, [](Context* c, Values args) {
+      uint width0 = args.at("width0")->get<int>();
+      uint width1 = args.at("width1")->get<int>();
+      return c->Record({{"in0", c->BitIn()->Arr(width0)},
+                        {"in1", c->BitIn()->Arr(width1)},
+                        {"out", c->Bit()->Arr(width0 + width1)}});
+    });
 
   core->newGeneratorDecl("concat", concatTypeGen, concatParams);
 
   Params extParams({{"width_in", c->Int()}, {"width_out", c->Int()}});
   auto extTypeGen = core->newTypeGen(
-      "extTypeFun", extParams, [](Context* c, Values args) {
-        uint width_in = args.at("width_in")->get<int>();
-        uint width_out = args.at("width_out")->get<int>();
-        ASSERT(width_out >= width_in, "Bad valudes for widths");
-        return c->Record({{"in", c->BitIn()->Arr(width_in)},
-                          {"out", c->Bit()->Arr(width_out)}});
-      });
+    "extTypeFun", extParams, [](Context* c, Values args) {
+      uint width_in = args.at("width_in")->get<int>();
+      uint width_out = args.at("width_out")->get<int>();
+      ASSERT(width_out >= width_in, "Bad valudes for widths");
+      return c->Record(
+        {{"in", c->BitIn()->Arr(width_in)}, {"out", c->Bit()->Arr(width_out)}});
+    });
 
   core->newGeneratorDecl("zext", extTypeGen, extParams);
   core->newGeneratorDecl("sext", extTypeGen, extParams);
@@ -46,45 +47,47 @@ void core_convert(Context* c, Namespace* core) {
   // strip
   Params stripParams({{"type", CoreIRType::make(c)}});
   auto stripTypeGen = core->newTypeGen(
-      "stripTypeFun", stripParams, [](Context* c, Values args) {
-        Type* type = args.at("type")->get<Type*>();
-        ASSERT(isa<NamedType>(type), "type needs to be a named type");
-        NamedType* ntype = cast<NamedType>(type);
-        ASSERT(!ntype->isGen(), "NYI named type generators");
-        ASSERT(ntype->getRaw()->isBaseType(),
-               "NYI named type that is not Bit or BitIn");
-        ASSERT(ntype->isOutput(), "NYI named types that are not outputs");
-        return c->Record(
-            {{"in", ntype->getFlipped()}, {"out", ntype->getRaw()}});
-      });
+    "stripTypeFun", stripParams, [](Context* c, Values args) {
+      Type* type = args.at("type")->get<Type*>();
+      ASSERT(isa<NamedType>(type), "type needs to be a named type");
+      NamedType* ntype = cast<NamedType>(type);
+      ASSERT(!ntype->isGen(), "NYI named type generators");
+      ASSERT(
+        ntype->getRaw()->isBaseType(),
+        "NYI named type that is not Bit or BitIn");
+      ASSERT(ntype->isOutput(), "NYI named types that are not outputs");
+      return c->Record({{"in", ntype->getFlipped()}, {"out", ntype->getRaw()}});
+    });
   core->newGeneratorDecl("strip", stripTypeGen, stripParams);
 
   // wrap
   Params wrapParams({{"type", CoreIRType::make(c)}});
   auto wrapTypeGen = core->newTypeGen(
-      "wrapTypeFun", wrapParams, [](Context* c, Values args) {
-        Type* type = args.at("type")->get<Type*>();
-        ASSERT(isa<NamedType>(type), "type needs to be a named type");
-        NamedType* ntype = cast<NamedType>(type);
-        ASSERT(!ntype->isGen(), "NYI named type generators");
-        ASSERT(ntype->getRaw()->isBaseType(),
-               "NYI named type that is not Bit or BitIn");
-        if (ntype->isOutput()) {
-          return c->Record(
-              {{"in", ntype->getRaw()->getFlipped()}, {"out", ntype}});
-        } else {
-          return c->Record(
-              {{"in", ntype}, {"out", ntype->getRaw()->getFlipped()}});
-        }
-      });
+    "wrapTypeFun", wrapParams, [](Context* c, Values args) {
+      Type* type = args.at("type")->get<Type*>();
+      ASSERT(isa<NamedType>(type), "type needs to be a named type");
+      NamedType* ntype = cast<NamedType>(type);
+      ASSERT(!ntype->isGen(), "NYI named type generators");
+      ASSERT(
+        ntype->getRaw()->isBaseType(),
+        "NYI named type that is not Bit or BitIn");
+      if (ntype->isOutput()) {
+        return c->Record(
+          {{"in", ntype->getRaw()->getFlipped()}, {"out", ntype}});
+      }
+      else {
+        return c->Record(
+          {{"in", ntype}, {"out", ntype->getRaw()->getFlipped()}});
+      }
+    });
   core->newGeneratorDecl("wrap", wrapTypeGen, wrapParams);
 }
 
 void core_state(Context* c, Namespace* core) {
 
   Params widthparams = Params({{"width", c->Int()}});
-  auto regModParamFun = [](Context* c,
-                           Values genargs) -> std::pair<Params, Values> {
+  auto regModParamFun =
+    [](Context* c, Values genargs) -> std::pair<Params, Values> {
     Params modparams;
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
@@ -109,8 +112,8 @@ void core_state(Context* c, Namespace* core) {
   auto reg = core->newGeneratorDecl("reg", regTypeGen, widthparams);
   reg->setModParamsGen(regModParamFun);
 
-  auto regRstModParamFun = [](Context* c,
-                              Values genargs) -> std::pair<Params, Values> {
+  auto regRstModParamFun =
+    [](Context* c, Values genargs) -> std::pair<Params, Values> {
     Params modparams;
     Values defaultargs;
     int width = genargs.at("width")->get<int>();
@@ -130,14 +133,14 @@ void core_state(Context* c, Namespace* core) {
                       {"out", c->Bit()->Arr(width)}});
   };
 
-  TypeGen* regRstTypeGen = core->newTypeGen("regRstType", widthparams,
-                                            regRstFun);
+  TypeGen* regRstTypeGen = core->newTypeGen(
+    "regRstType", widthparams, regRstFun);
   auto regRst = core->newGeneratorDecl("reg_arst", regRstTypeGen, widthparams);
   regRst->setModParamsGen(regRstModParamFun);
 
   // Memory
   Params memGenParams(
-      {{"width", c->Int()}, {"depth", c->Int()}, {"has_init", c->Bool()}});
+    {{"width", c->Int()}, {"depth", c->Int()}, {"has_init", c->Bool()}});
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
@@ -150,8 +153,8 @@ void core_state(Context* c, Namespace* core) {
                       {"raddr", c->BitIn()->Arr(awidth)}});
   };
 
-  auto memModParamFun = [](Context* c,
-                           Values genargs) -> std::pair<Params, Values> {
+  auto memModParamFun =
+    [](Context* c, Values genargs) -> std::pair<Params, Values> {
     Params modparams;
     Values defaultargs;
     bool has_init = genargs.at("has_init")->get<bool>();
@@ -188,14 +191,14 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
     uint width = args.at("width")->get<int>();
     Type* ptype = c->Bit()->Arr(width);
     return c->Record(
-        {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", ptype}});
+      {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", ptype}});
   });
 
   core->newTypeGen("binaryReduce", widthparams, [](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     Type* ptype = c->Bit()->Arr(width);
     return c->Record(
-        {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", c->Bit()}});
+      {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", c->Bit()}});
   });
   core->newTypeGen("unaryReduce", widthparams, [](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
@@ -233,20 +236,20 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   }
 
   TypeGen* tribufTG = core->newTypeGen(
-      "triBuf", widthparams, [](Context* c, Values args) {
-        uint width = args.at("width")->get<int>();
-        return c->Record({{"in", c->BitIn()->Arr(width)},
-                          {"en", c->BitIn()},
-                          {"out", c->BitInOut()->Arr(width)}});
-      });
+    "triBuf", widthparams, [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record({{"in", c->BitIn()->Arr(width)},
+                        {"en", c->BitIn()},
+                        {"out", c->BitInOut()->Arr(width)}});
+    });
   core->newGeneratorDecl("tribuf", tribufTG, widthparams);
 
   TypeGen* ibufTG = core->newTypeGen(
-      "iBuf", widthparams, [](Context* c, Values args) {
-        uint width = args.at("width")->get<int>();
-        return c->Record(
-            {{"in", c->BitInOut()->Arr(width)}, {"out", c->Bit()->Arr(width)}});
-      });
+    "iBuf", widthparams, [](Context* c, Values args) {
+      uint width = args.at("width")->get<int>();
+      return c->Record(
+        {{"in", c->BitInOut()->Arr(width)}, {"out", c->Bit()->Arr(width)}});
+    });
   core->newGeneratorDecl("ibuf", ibufTG, widthparams);
 
   core->newTypeGen("pullResistor", widthparams, [](Context* c, Values args) {
@@ -256,7 +259,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   });
 
   auto pullresistorModParamFun =
-      [](Context* c, Values genargs) -> std::pair<Params, Values> {
+    [](Context* c, Values genargs) -> std::pair<Params, Values> {
     int width = genargs.at("width")->get<int>();
     Params modparams;
     modparams["value"] = BitVectorType::make(c, width);
@@ -264,7 +267,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   };
 
   auto pr = core->newGeneratorDecl(
-      "pullresistor", core->getTypeGen("pullResistor"), widthparams);
+    "pullresistor", core->getTypeGen("pullResistor"), widthparams);
   pr->setModParamsGen(pullresistorModParamFun);
 
   /////////////////////////////////
@@ -281,16 +284,16 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
     return c->Record({{"out", ptype}});
   });
 
-  auto constModParamFun = [](Context* c,
-                             Values genargs) -> std::pair<Params, Values> {
+  auto constModParamFun =
+    [](Context* c, Values genargs) -> std::pair<Params, Values> {
     int width = genargs.at("width")->get<int>();
     Params modparams;
     modparams["value"] = BitVectorType::make(c, width);
     return {modparams, Values()};
   };
 
-  auto Const = core->newGeneratorDecl("const", core->getTypeGen("out"),
-                                      widthparams);
+  auto Const = core->newGeneratorDecl(
+    "const", core->getTypeGen("out"), widthparams);
   Const->setModParamsGen(constModParamFun);
 
   // Add Term

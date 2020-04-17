@@ -8,9 +8,7 @@ using namespace std;
 using namespace CoreIR;
 
 vector<pair<string, Type*>> getInputOrOutputFields(
-  Context* c,
-  RecordType* rtype,
-  bool getInputs) {
+  Context* c, RecordType* rtype, bool getInputs) {
   auto fields = rtype->getRecord();
   vector<pair<string, Type*>> returnFields;
   for (auto& field : fields) {
@@ -38,13 +36,11 @@ Type* generateMapType(Context* c, Values genargs, bool sequential) {
   RecordType* mapPorts = c->Record({});
   for (auto opInputField : opInputFields) {
     mapPorts = mapPorts->appendField(
-      opInputField.first,
-      opInputField.second->Arr(numInputs));
+      opInputField.first, opInputField.second->Arr(numInputs));
   }
   for (auto opOutputField : opOutputFields) {
     mapPorts = mapPorts->appendField(
-      opOutputField.first,
-      opOutputField.second->Arr(numInputs));
+      opOutputField.first, opOutputField.second->Arr(numInputs));
   }
   if (sequential) {
     mapPorts = mapPorts->appendField("ready", c->Bit());
@@ -76,9 +72,7 @@ void Aetherling_createMapGenerator(Context* c) {
     });
 
   Generator* mapParallel = aetherlinglib->newGeneratorDecl(
-    "mapParallel",
-    aetherlinglib->getTypeGen("mapPar_type"),
-    mapSeqParParams);
+    "mapParallel", aetherlinglib->getTypeGen("mapPar_type"), mapSeqParParams);
 
   mapParallel->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
@@ -117,82 +111,68 @@ void Aetherling_createMapGenerator(Context* c) {
    * cycle, emits it all on last cycle
    */
   Generator* mapSequential = aetherlinglib->newGeneratorDecl(
-    "mapSequential",
-    aetherlinglib->getTypeGen("mapSeq_type"),
-    mapSeqParParams);
+    "mapSequential", aetherlinglib->getTypeGen("mapSeq_type"), mapSeqParParams);
 
-  mapSequential->setGeneratorDefFromFun([](
-                                          Context* c,
-                                          Values genargs,
-                                          ModuleDef* def) {
-    uint numInputs = genargs.at("numInputs")->get<int>();
-    Module* opModule = genargs.at("operator")->get<Module*>();
-    RecordType* opType = opModule->getType();
-    auto opInputFields = getInputOrOutputFields(c, opType, true);
-    auto opOutputFields = getInputOrOutputFields(c, opType, false);
+  mapSequential->setGeneratorDefFromFun(
+    [](Context* c, Values genargs, ModuleDef* def) {
+      uint numInputs = genargs.at("numInputs")->get<int>();
+      Module* opModule = genargs.at("operator")->get<Module*>();
+      RecordType* opType = opModule->getType();
+      auto opInputFields = getInputOrOutputFields(c, opType, true);
+      auto opOutputFields = getInputOrOutputFields(c, opType, false);
 
-    def->addInstance("op", opModule);
-    string enableConst = Aetherling_addCoreIRConstantModule(
-      c,
-      def,
-      1,
-      Const::make(c, 1, 1));
-    string disableConst = Aetherling_addCoreIRConstantModule(
-      c,
-      def,
-      1,
-      Const::make(c, 1, 0));
-    // create a streamify for each input and wire each streamify to its op input
-    for (auto opInputField : opInputFields) {
-      Values streamifyParams(
-        {{"elementType", Const::make(c, opInputField.second)},
-         {"arrayLength", Const::make(c, numInputs)}});
-      string streamifyName = "streamify_" + opInputField.first;
-      def->addInstance(
-        streamifyName,
-        "aetherlinglib.streamify",
-        streamifyParams);
-      def->connect("self." + opInputField.first, streamifyName + ".in");
-      def->connect(streamifyName + ".out", "op." + opInputField.first);
-      // enable and prevent reset of all streamifies
-      def->connect(enableConst + ".out.0", streamifyName + ".en");
-      def->connect(disableConst + ".out.0", streamifyName + ".reset");
-      // ignore the readys from all the streamifies, will take one later
-      def->addInstance(
-        "ignoreReady" + streamifyName,
-        "coreir.term",
-        {{"width", Const::make(c, 1)}});
+      def->addInstance("op", opModule);
+      string enableConst = Aetherling_addCoreIRConstantModule(
+        c, def, 1, Const::make(c, 1, 1));
+      string disableConst = Aetherling_addCoreIRConstantModule(
+        c, def, 1, Const::make(c, 1, 0));
+      // create a streamify for each input and wire each streamify to its op
+      // input
+      for (auto opInputField : opInputFields) {
+        Values streamifyParams(
+          {{"elementType", Const::make(c, opInputField.second)},
+           {"arrayLength", Const::make(c, numInputs)}});
+        string streamifyName = "streamify_" + opInputField.first;
+        def->addInstance(
+          streamifyName, "aetherlinglib.streamify", streamifyParams);
+        def->connect("self." + opInputField.first, streamifyName + ".in");
+        def->connect(streamifyName + ".out", "op." + opInputField.first);
+        // enable and prevent reset of all streamifies
+        def->connect(enableConst + ".out.0", streamifyName + ".en");
+        def->connect(disableConst + ".out.0", streamifyName + ".reset");
+        // ignore the readys from all the streamifies, will take one later
+        def->addInstance(
+          "ignoreReady" + streamifyName,
+          "coreir.term",
+          {{"width", Const::make(c, 1)}});
+        def->connect(
+          streamifyName + ".ready", "ignoreReady" + streamifyName + ".in.0");
+      }
+      for (auto opOutputField : opOutputFields) {
+        Values arrayifyParams(
+          {{"elementType", Const::make(c, opOutputField.second)},
+           {"arrayLength", Const::make(c, numInputs)}});
+        string arrayifyName = "arrayify_" + opOutputField.first;
+        def->addInstance(
+          arrayifyName, "aetherlinglib.arrayify", arrayifyParams);
+        def->connect("op." + opOutputField.first, arrayifyName + ".in");
+        def->connect(arrayifyName + ".out", "self." + opOutputField.first);
+        // enable and prevent reset of all streamifies
+        def->connect(enableConst + ".out.0", arrayifyName + ".en");
+        def->connect(disableConst + ".out.0", arrayifyName + ".reset");
+        // ignore the readys from all the streamifies, will take one later
+        def->addInstance(
+          "ignoreValid" + arrayifyName,
+          "coreir.term",
+          {{"width", Const::make(c, 1)}});
+        def->connect(
+          arrayifyName + ".valid", "ignoreValid" + arrayifyName + ".in.0");
+      }
+
+      // handle the ready and valid from one streamify and arrayify
       def->connect(
-        streamifyName + ".ready",
-        "ignoreReady" + streamifyName + ".in.0");
-    }
-    for (auto opOutputField : opOutputFields) {
-      Values arrayifyParams(
-        {{"elementType", Const::make(c, opOutputField.second)},
-         {"arrayLength", Const::make(c, numInputs)}});
-      string arrayifyName = "arrayify_" + opOutputField.first;
-      def->addInstance(arrayifyName, "aetherlinglib.arrayify", arrayifyParams);
-      def->connect("op." + opOutputField.first, arrayifyName + ".in");
-      def->connect(arrayifyName + ".out", "self." + opOutputField.first);
-      // enable and prevent reset of all streamifies
-      def->connect(enableConst + ".out.0", arrayifyName + ".en");
-      def->connect(disableConst + ".out.0", arrayifyName + ".reset");
-      // ignore the readys from all the streamifies, will take one later
-      def->addInstance(
-        "ignoreValid" + arrayifyName,
-        "coreir.term",
-        {{"width", Const::make(c, 1)}});
+        "streamify_" + opInputFields.front().first + ".ready", "self.ready");
       def->connect(
-        arrayifyName + ".valid",
-        "ignoreValid" + arrayifyName + ".in.0");
-    }
-
-    // handle the ready and valid from one streamify and arrayify
-    def->connect(
-      "streamify_" + opInputFields.front().first + ".ready",
-      "self.ready");
-    def->connect(
-      "arrayify_" + opOutputFields.front().first + ".valid",
-      "self.valid");
-  });
+        "arrayify_" + opOutputFields.front().first + ".valid", "self.valid");
+    });
 }

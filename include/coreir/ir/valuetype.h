@@ -48,8 +48,7 @@ class BitVectorType : public ValueType {
 
  public:
   BitVectorType(Context* c, int width)
-    : ValueType(c, VTK_BitVector),
-      width(width) {}
+    : ValueType(c, VTK_BitVector), width(width) {}
   static bool classof(const ValueType* v) {
     return v->getKind() == VTK_BitVector;
   }

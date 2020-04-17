@@ -14,11 +14,9 @@ bool IsVerilogDefn(ModuleDef* defn) {
 
 void Passes::VerifyConnectivity::initialize(int argc, char** argv) {
   cxxopts::Options options(
-    "verifyconnectivity",
-    "verifys the connectivty of the hardware graph");
+    "verifyconnectivity", "verifys the connectivty of the hardware graph");
   options.add_options()("h,help", "help")("i,onlyinputs", "Only checks inputs")(
-    "c,noclkrst",
-    "Do not check clocks");
+    "c,noclkrst", "Do not check clocks");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->onlyInputs = true; }
   if (opts.count("c")) { this->checkClkRst = false; }

@@ -58,9 +58,7 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
         {{"width", Const::make(c, elementWidth)},
          {"rate", Const::make(c, arrayLength)}});
       def->addInstance(
-        "hydrateForSerializer",
-        "aetherlinglib.hydrate",
-        hydratedType);
+        "hydrateForSerializer", "aetherlinglib.hydrate", hydratedType);
 
       def->connect("self.in", "dehydrateForSerializer.in");
       def->connect("self.reset", "serializer.reset");
@@ -107,9 +105,7 @@ void Aetherling_createStreamifyArrayifyGenerator(Context* c) {
       // them back
 
       def->addInstance(
-        "dehydrateForDeserializer",
-        "aetherlinglib.dehydrate",
-        hydratedType);
+        "dehydrateForDeserializer", "aetherlinglib.dehydrate", hydratedType);
 
       def->addInstance(
         "deserializer",

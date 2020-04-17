@@ -17,8 +17,7 @@ class SimMemory {
 
  public:
   SimMemory(const uint width_, const uint depth_)
-    : width(width_),
-      depth(depth_) {}
+    : width(width_), depth(depth_) {}
 
   std::map<BitVec, BitVec>::const_iterator begin() const {
     return std::begin(values);
@@ -71,9 +70,7 @@ class ClockValue : public SimValue {
 
  public:
   ClockValue(const unsigned char lastVal_, const unsigned char val_)
-    : lastVal(lastVal_),
-      val(val_),
-      halfCycleCount(0) {}
+    : lastVal(lastVal_), val(val_), halfCycleCount(0) {}
 
   unsigned char value() const { return val; }
   unsigned char lastValue() const { return lastVal; }
@@ -222,9 +219,7 @@ class SimulatorState {
   void setValue(const std::vector<std::string>& name, const BitVec& bv);
 
   void setClock(
-    CoreIR::Select* sel,
-    const unsigned char clk_last,
-    const unsigned char clk);
+    CoreIR::Select* sel, const unsigned char clk_last, const unsigned char clk);
 
   void setClock(
     const std::string& name,
@@ -241,9 +236,7 @@ class SimulatorState {
   BitVec getRegister(const std::string& name);
 
   void setMemory(
-    const std::string& name,
-    const BitVec& addr,
-    const BitVec& data);
+    const std::string& name, const BitVec& addr, const BitVec& data);
 
   BitVec getMemory(const std::string& name, const BitVec& addr);
 

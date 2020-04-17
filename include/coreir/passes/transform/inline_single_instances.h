@@ -10,8 +10,7 @@ class InlineSingleInstances : public InstanceGraphPass {
   static std::string ID;
   InlineSingleInstances()
     : InstanceGraphPass(
-        ID,
-        "Inlines any modules that contains a single instance") {}
+        ID, "Inlines any modules that contains a single instance") {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node);
 };
 

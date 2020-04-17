@@ -29,8 +29,7 @@ Wireable* binaryOp(Wireable* in0, Wireable* in1, std::string name) {
   Instance* inst;
   if (isa<BitType>(in0->getType()) && isa<BitType>(in1->getType())) {
     inst = def->addInstance(
-      def->generateUniqueInstanceName(),
-      "corebit." + name);
+      def->generateUniqueInstanceName(), "corebit." + name);
   }
   else {
     check_binary_inputs(in0, in1);
@@ -50,8 +49,7 @@ Wireable* unaryOp(Wireable* in0, std::string name) {
   Instance* inst;
   if (isa<BitType>(in0->getType())) {
     inst = def->addInstance(
-      def->generateUniqueInstanceName(),
-      "corebit." + name);
+      def->generateUniqueInstanceName(), "corebit." + name);
   }
   else {
     ASSERT(isBitInArray(in0), "input needs to be bit or bit array");
@@ -193,8 +191,7 @@ Wireable* Constructor::concat(Wireable* in0, Wireable* in1) {
   Instance* inst;
   if (isa<BitType>(in0->getType()) && isa<BitType>(in1->getType())) {
     inst = def->addInstance(
-      def->generateUniqueInstanceName(),
-      "corebit.cocnat");
+      def->generateUniqueInstanceName(), "corebit.cocnat");
   }
   else {
     ASSERT(
@@ -274,16 +271,12 @@ Wireable* Constructor::reg(Wireable* in0, uint init, Wireable* clk) {
 }
 
 Wireable* Constructor::reg_arst(
-  Wireable* in0,
-  uint init,
-  Wireable* clk,
-  Wireable* rst) {
+  Wireable* in0, uint init, Wireable* clk, Wireable* rst) {
   auto def = in0->getContainer();
   Instance* inst;
   if (isa<BitType>(in0->getType())) {
     inst = def->addInstance(
-      def->generateUniqueInstanceName(),
-      "corebit.reg_arst");
+      def->generateUniqueInstanceName(), "corebit.reg_arst");
   }
   else {
     ASSERT(isBitInArray(in0), "input needs to be a BitVector");

@@ -29,9 +29,7 @@ int main(int argc, char* argv[]) {
   int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
   options.add_options()("h,help", "help")("v,verbose", "Set verbose")(
-    "i,input",
-    "input file: <file>.json",
-    cxxopts::value<std::string>())(
+    "i,input", "input file: <file>.json", cxxopts::value<std::string>())(
     "o,output",
     "output file: <file>.<json|fir|v|dot>",
     cxxopts::value<std::string>())(
@@ -48,9 +46,7 @@ int main(int argc, char* argv[]) {
     "n,namespaces",
     "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
     cxxopts::value<std::string>()->default_value("global"))(
-    "t,top",
-    "top: <namespace>.<modulename>",
-    cxxopts::value<std::string>());
+    "t,top", "top: <namespace>.<modulename>", cxxopts::value<std::string>());
 
   // Do the parsing of the arguments
   auto opts = options.parse(argc, argv);
@@ -64,16 +60,14 @@ int main(int argc, char* argv[]) {
 
   if (opts.count("l")) {
     vector<string> libs = splitString<vector<string>>(
-      opts["l"].as<string>(),
-      ',');
+      opts["l"].as<string>(), ',');
     for (auto lib : libs) { c->getLibraryManager()->loadLib(lib); }
   }
 
   PassLibrary loadedPasses(c);
   if (opts.count("e")) {
     vector<string> passes = splitString<vector<string>>(
-      opts["e"].as<string>(),
-      ',');
+      opts["e"].as<string>(), ',');
     for (auto pass : passes) { loadedPasses.loadPass(pass); }
   }
 

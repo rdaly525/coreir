@@ -91,9 +91,7 @@ void Aetherling_createHydrateAndDehydrateGenerators(Context* c) {
     });
 
   Generator* dehydrate = aetherlinglib->newGeneratorDecl(
-    "dehydrate",
-    aetherlinglib->getTypeGen("dehydrate_type"),
-    hydrateParams);
+    "dehydrate", aetherlinglib->getTypeGen("dehydrate_type"), hydrateParams);
 
   dehydrate->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
@@ -120,9 +118,7 @@ void Aetherling_createHydrateAndDehydrateGenerators(Context* c) {
     });
 
   Generator* hydrate = aetherlinglib->newGeneratorDecl(
-    "hydrate",
-    aetherlinglib->getTypeGen("hydrate_type"),
-    hydrateParams);
+    "hydrate", aetherlinglib->getTypeGen("hydrate_type"), hydrateParams);
 
   hydrate->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {

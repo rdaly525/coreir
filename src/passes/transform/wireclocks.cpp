@@ -5,9 +5,7 @@ using namespace std;
 using namespace CoreIR;
 
 void Passes::WireClocks::connectClk(
-  ModuleDef* def,
-  Wireable* topClk,
-  Wireable* clk) {
+  ModuleDef* def, Wireable* topClk, Wireable* clk) {
   if (auto arrayType = dyn_cast<ArrayType>(clk->getType())) {
     for (unsigned int i = 0; i < arrayType->getLen(); i++) {
       this->connectClk(def, topClk, clk->sel(i));

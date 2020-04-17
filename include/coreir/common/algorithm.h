@@ -131,9 +131,7 @@ std::vector<std::vector<I>> split_by(const std::vector<I>& elems, F f) {
 }
 
 template <typename I, typename F> void split_by(
-  const std::vector<I>& elems,
-  std::vector<std::vector<I>>& res,
-  F f) {
+  const std::vector<I>& elems, std::vector<std::vector<I>>& res, F f) {
   auto it = elems.begin();
   auto not_f = [&f](const I& i, const I& j) { return !f(i, j); };
   while (it != elems.end()) {
@@ -221,9 +219,7 @@ template <typename I, typename P> std::vector<unsigned> select_neighbors(
 }
 
 template <typename I, typename P> std::vector<unsigned> dfs_by_neighbors(
-  std::vector<unsigned>& inds,
-  const std::vector<I>& elems,
-  P p) {
+  std::vector<unsigned>& inds, const std::vector<I>& elems, P p) {
   std::vector<unsigned> comp;
   if (inds.size() == 0) { return comp; }
 
@@ -246,9 +242,7 @@ template <typename I, typename P> std::vector<unsigned> dfs_by_neighbors(
 }
 
 template <typename I, typename P> std::vector<unsigned> dfs_by(
-  std::vector<unsigned>& inds,
-  const std::vector<I>& elems,
-  P p) {
+  std::vector<unsigned>& inds, const std::vector<I>& elems, P p) {
   auto neighbors = [p](
                      std::vector<unsigned>& inds,
                      const std::vector<I>& elems,
@@ -262,8 +256,7 @@ template <typename I, typename P> std::vector<unsigned> dfs_by(
 
 template <typename I, typename P>
 std::vector<std::vector<unsigned>> connected_components_by(
-  const std::vector<I>& elems,
-  P p) {
+  const std::vector<I>& elems, P p) {
   std::vector<std::vector<unsigned>> components;
   std::vector<unsigned> inds(elems.size());
   std::iota(begin(inds), end(inds), 0);
@@ -275,8 +268,7 @@ std::vector<std::vector<unsigned>> connected_components_by(
 
 template <typename I, typename P>
 std::vector<std::vector<I>> connected_components_by_elems(
-  const std::vector<I>& elems,
-  P p) {
+  const std::vector<I>& elems, P p) {
   auto ccs = connected_components_by(elems, p);
   std::vector<std::vector<I>> res;
   for (auto cc : ccs) {
@@ -308,8 +300,7 @@ std::vector<I> greedy_chain(const I& init, const std::vector<I>& elems, F f) {
 }
 
 template <typename I> std::vector<I> copy_not_indexes(
-  const std::vector<I>& elems,
-  std::vector<unsigned>& inds) {
+  const std::vector<I>& elems, std::vector<unsigned>& inds) {
   std::sort(begin(inds), end(inds));
   std::vector<I> cp_elems;
   for (unsigned i = 0; i < elems.size(); i++) {
@@ -321,8 +312,7 @@ template <typename I> std::vector<I> copy_not_indexes(
 }
 
 template <typename I> std::vector<I> select_indexes(
-  const std::vector<I>& elems,
-  std::vector<unsigned>& inds) {
+  const std::vector<I>& elems, std::vector<unsigned>& inds) {
   std::sort(begin(inds), end(inds));
   std::vector<I> cp_elems;
   for (unsigned i = 0; i < elems.size(); i++) {
@@ -367,8 +357,7 @@ std::vector<A> intersection(const std::vector<A>& l, const std::vector<A>& r) {
 }
 
 template <typename A> std::unordered_set<A> intersection(
-  const std::unordered_set<A>& l,
-  const std::unordered_set<A>& r) {
+  const std::unordered_set<A>& l, const std::unordered_set<A>& r) {
   std::unordered_set<A> it;
   for (auto& e : l) {
     if (elem(e, r)) { it.insert(e); }
@@ -399,8 +388,7 @@ std::set<T> difference(const std::set<T>& a, const std::set<T>& b) {
 }
 
 template <typename T> std::unordered_set<T> difference(
-  const std::unordered_set<T>& a,
-  const std::unordered_set<T>& b) {
+  const std::unordered_set<T>& a, const std::unordered_set<T>& b) {
   std::unordered_set<T> diff;
   for (auto& e : a) {
     if (!elem(e, b)) { diff.insert(e); }
@@ -536,9 +524,8 @@ template <typename T> std::vector<T*> ptrs(std::vector<T>& elems) {
 template <typename T> void reverse(T& t) { std::reverse(begin(t), end(t)); }
 
 template <typename T, typename F> T min_e(const std::deque<T>& e, F f) {
-  return *min_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *min_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T min_e(const std::deque<T>& e) {
@@ -546,9 +533,8 @@ template <typename T> T min_e(const std::deque<T>& e) {
 }
 
 template <typename T, typename F> T min_e(const std::vector<T>& e, F f) {
-  return *min_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *min_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T min_e(const std::vector<T>& e) {
@@ -556,9 +542,8 @@ template <typename T> T min_e(const std::vector<T>& e) {
 }
 
 template <typename T, typename F> T min_e(const std::set<T>& e, F f) {
-  return *min_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *min_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T min_e(const std::set<T>& e) {
@@ -571,9 +556,8 @@ template <typename T> T min_e(const std::set<T>& e) {
 // }
 
 template <typename T, typename F> T max_e(const std::vector<T>& e, F f) {
-  return *max_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *max_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T max_e(const std::vector<T>& e) {
@@ -581,9 +565,8 @@ template <typename T> T max_e(const std::vector<T>& e) {
 }
 
 template <typename T, typename F> T max_e(const std::deque<T>& e, F f) {
-  return *max_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *max_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T max_e(const std::deque<T>& e) {
@@ -591,9 +574,8 @@ template <typename T> T max_e(const std::deque<T>& e) {
 }
 
 template <typename T, typename F> T max_e(const std::set<T>& e, F f) {
-  return *max_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *max_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T max_e(const std::set<T>& e) {
@@ -601,9 +583,8 @@ template <typename T> T max_e(const std::set<T>& e) {
 }
 
 template <typename T, typename F> T max_e(const std::unordered_set<T>& e, F f) {
-  return *max_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *max_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T max_e(const std::unordered_set<T>& e) {
@@ -611,9 +592,8 @@ template <typename T> T max_e(const std::unordered_set<T>& e) {
 }
 
 template <typename T, typename F> T min_e(const std::unordered_set<T>& e, F f) {
-  return *min_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *min_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T min_e(const std::unordered_set<T>& e) {
@@ -621,9 +601,8 @@ template <typename T> T min_e(const std::unordered_set<T>& e) {
 }
 
 template <typename T, typename F> T max_e(const std::list<T>& e, F f) {
-  return *max_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *max_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T max_e(const std::list<T>& e) {
@@ -631,9 +610,8 @@ template <typename T> T max_e(const std::list<T>& e) {
 }
 
 template <typename T, typename F> T min_e(const std::list<T>& e, F f) {
-  return *min_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *min_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T min_e(const std::list<T>& e) {
@@ -641,9 +619,8 @@ template <typename T> T min_e(const std::list<T>& e) {
 }
 
 template <typename T, typename F> T max_e(const std::forward_list<T>& e, F f) {
-  return *max_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *max_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T max_e(const std::forward_list<T>& e) {
@@ -651,9 +628,8 @@ template <typename T> T max_e(const std::forward_list<T>& e) {
 }
 
 template <typename T, typename F> T min_e(const std::forward_list<T>& e, F f) {
-  return *min_element(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  return *min_element(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T> T min_e(const std::forward_list<T>& e) {
@@ -661,15 +637,13 @@ template <typename T> T min_e(const std::forward_list<T>& e) {
 }
 
 template <typename T, typename F> void sort_lt(std::vector<T>& e, F f) {
-  std::sort(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) < f(r);
-  });
+  std::sort(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) < f(r); });
 }
 
 template <typename T, typename F> void sort_gt(std::vector<T>& e, F f) {
-  std::sort(begin(e), end(e), [f](const T& l, const T& r) {
-    return f(l) > f(r);
-  });
+  std::sort(
+    begin(e), end(e), [f](const T& l, const T& r) { return f(l) > f(r); });
 }
 
 template <typename T> void sort(std::vector<T>& e) {

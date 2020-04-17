@@ -13,9 +13,7 @@ class TypeGen : public GlobalValue {
 
  protected:
   TypeGen(Namespace* ns, std::string name, Params params, bool flipped = false)
-    : GlobalValue(GVK_TypeGen, ns, name),
-      params(params),
-      flipped(flipped) {}
+    : GlobalValue(GVK_TypeGen, ns, name), params(params), flipped(flipped) {}
   virtual Type* createType(Values args) = 0;
 
  public:
@@ -44,8 +42,7 @@ class TypeGenFromFun : public TypeGen {
     Params params,
     TypeGenFun fun,
     bool flipped)
-    : TypeGen(ns, name, params, flipped),
-      fun(fun) {}
+    : TypeGen(ns, name, params, flipped), fun(fun) {}
   Type* createType(Values genargs) override {
     return fun(this->getContext(), genargs);
   }

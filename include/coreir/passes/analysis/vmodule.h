@@ -80,9 +80,7 @@ struct VWire {
     if (sp[0] != "self") { name = sp[0] + "__" + name; }
   }
   VWire(std::string name, unsigned dim, Type::DirKind dir)
-    : name(name),
-      dim(dim),
-      dir(dir) {}
+    : name(name), dim(dim), dir(dir) {}
   std::string dimstr() {
     if (!isArray) return "";
     return "[" + std::to_string(dim - 1) + ":0]";
@@ -174,9 +172,7 @@ struct CoreIRVModule : VModule {
   void addConnections(ModuleDef* def);
   void addInstance(Instance* inst);
   std::string inline_instance(
-    ModuleDef* def,
-    std::queue<Connection>& worklist,
-    Instance* right_parent);
+    ModuleDef* def, std::queue<Connection>& worklist, Instance* right_parent);
   std::string get_replace_str(
     std::string input_name,
     Instance* instance,
@@ -201,9 +197,7 @@ struct VObject {
   int line = -1;
   VObject(string name) : name(name) {}
   VObject(string name, string file, int line)
-    : name(name),
-      file(file),
-      line(line) {}
+    : name(name), file(file), line(line) {}
   // fills out the body
   virtual void materialize(CoreIRVModule* vmod) = 0;
 };
@@ -213,9 +207,7 @@ struct VInstance : VObject {
   VModules* vmods;
   Instance* inst;
   VInstance(VModules* vmods, Instance* inst)
-    : VObject(toString(inst)),
-      vmods(vmods),
-      inst(inst) {
+    : VObject(toString(inst)), vmods(vmods), inst(inst) {
     assert(inst);
     this->line = -100000;
     this->priority = 0;
@@ -261,8 +253,7 @@ struct VAssign : VObject {
   Connection conn;
   ModuleDef* def;
   VAssign(ModuleDef* def, Connection conn)
-    : VObject(toString(conn)),
-      conn(conn) {
+    : VObject(toString(conn)), conn(conn) {
     this->line = -1;  // largest number to go at the top of the bottom
     this->priority = 1;
     if (def->hasMetaData(conn.first, conn.second)) {

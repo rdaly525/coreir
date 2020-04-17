@@ -24,17 +24,13 @@ std::vector<SIMDGroup> deleteDuplicates(
   const std::vector<SIMDGroup>& allUpdates);
 
 std::vector<SIMDGroup> pruneSequentialSinks(
-  const std::vector<SIMDGroup> dags,
-  const NGraph& g);
+  const std::vector<SIMDGroup> dags, const NGraph& g);
 
 std::vector<SIMDGroup> pruneOutputs(
-  const std::vector<SIMDGroup> dags,
-  const NGraph& g);
+  const std::vector<SIMDGroup> dags, const NGraph& g);
 
 CircuitPaths buildCircuitPaths(
-  const std::deque<vdisc>& topoOrder,
-  NGraph& g,
-  Module& mod);
+  const std::deque<vdisc>& topoOrder, NGraph& g, Module& mod);
 
 SubDAG addInputs(const SubDAG& dag, const NGraph& g);
 SubDAG addConstants(const SubDAG& dag, const NGraph& g);

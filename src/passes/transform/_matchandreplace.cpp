@@ -260,10 +260,7 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
     if (isa<Generator>(replacement)) {
 
       cdef->addInstance(
-        rName,
-        cast<Generator>(replacement),
-        this->genargs,
-        rModArgs);
+        rName, cast<Generator>(replacement), this->genargs, rModArgs);
     }
     else {
       container->print();

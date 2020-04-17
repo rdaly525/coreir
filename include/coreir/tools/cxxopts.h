@@ -50,9 +50,8 @@ THE SOFTWARE.
 namespace cxxopts {
 static constexpr struct {
   uint8_t major, minor, patch;
-} version = {CXXOPTS__VERSION_MAJOR,
-             CXXOPTS__VERSION_MINOR,
-             CXXOPTS__VERSION_PATCH};
+} version = {
+  CXXOPTS__VERSION_MAJOR, CXXOPTS__VERSION_MINOR, CXXOPTS__VERSION_PATCH};
 }  // namespace cxxopts
 
 // when we ask cxxopts to use Unicode, help strings are processed using ICU,
@@ -75,8 +74,7 @@ class UnicodeStringIterator
   : public std::iterator<std::forward_iterator_tag, int32_t> {
  public:
   UnicodeStringIterator(const icu::UnicodeString* string, int32_t pos)
-    : s(string),
-      i(pos) {}
+    : s(string), i(pos) {}
 
   value_type operator*() const { return s->char32At(i); }
 
@@ -273,8 +271,7 @@ class option_requires_argument_exception : public OptionParseException {
 class option_not_has_argument_exception : public OptionParseException {
  public:
   option_not_has_argument_exception(
-    const std::string& option,
-    const std::string& arg)
+    const std::string& option, const std::string& arg)
     : OptionParseException(
         u8"Option " + LQUOTE + option + RQUOTE +
         u8" does not take an argument, but argument " + LQUOTE + arg + RQUOTE +
@@ -397,9 +394,7 @@ template <typename T> void integer_parser(const std::string& text, T& value) {
 
   if (negative) {
     value = checked_negate<T>(
-      result,
-      text,
-      std::integral_constant<bool, is_signed>());
+      result, text, std::integral_constant<bool, is_signed>());
   }
   else {
     value = result;
@@ -617,15 +612,10 @@ class OptionDetails {
     const std::string& long_,
     const String& desc,
     std::shared_ptr<const Value> val)
-    : m_short(short_),
-      m_long(long_),
-      m_desc(desc),
-      m_value(val),
-      m_count(0) {}
+    : m_short(short_), m_long(long_), m_desc(desc), m_value(val), m_count(0) {}
 
   OptionDetails(const OptionDetails& rhs)
-    : m_desc(rhs.m_desc),
-      m_count(rhs.m_count) {
+    : m_desc(rhs.m_desc), m_count(rhs.m_count) {
     m_value = rhs.m_value->clone();
   }
 
@@ -671,8 +661,7 @@ struct HelpGroupDetails {
 class OptionValue {
  public:
   void parse(
-    std::shared_ptr<const OptionDetails> details,
-    const std::string& text) {
+    std::shared_ptr<const OptionDetails> details, const std::string& text) {
     ensure_value(details);
     ++m_count;
     m_value->parse(text);
@@ -705,8 +694,7 @@ class OptionValue {
 class KeyValue {
  public:
   KeyValue(std::string key_, std::string value_)
-    : m_key(std::move(key_)),
-      m_value(std::move(value_)) {}
+    : m_key(std::move(key_)), m_value(std::move(value_)) {}
 
   const std::string& key() const { return m_key; }
 
@@ -849,14 +837,12 @@ class Options {
 
  private:
   void add_one_option(
-    const std::string& option,
-    std::shared_ptr<OptionDetails> details);
+    const std::string& option, std::shared_ptr<OptionDetails> details);
 
   String help_one_group(const std::string& group) const;
 
   void generate_group_help(
-    String& result,
-    const std::vector<std::string>& groups) const;
+    String& result, const std::vector<std::string>& groups) const;
 
   void generate_all_groups_help(String& result) const;
 
@@ -879,8 +865,7 @@ class Options {
 class OptionAdder {
  public:
   OptionAdder(Options& options, std::string group)
-    : m_options(options),
-      m_group(std::move(group)) {}
+    : m_options(options), m_group(std::move(group)) {}
 
   OptionAdder& operator()(
     const std::string& opts,
@@ -931,9 +916,7 @@ String format_option(const HelpOptionDetails& o) {
 }
 
 String format_description(
-  const HelpOptionDetails& o,
-  size_t start,
-  size_t width) {
+  const HelpOptionDetails& o, size_t start, size_t width) {
   auto desc = o.desc;
 
   if (o.has_default && (!o.is_boolean || o.default_value != "false")) {
@@ -1085,8 +1068,7 @@ inline void ParseResult::checked_parse_arg(
 }
 
 inline void ParseResult::add_to_option(
-  const std::string& option,
-  const std::string& arg) {
+  const std::string& option, const std::string& arg) {
   auto iter = m_options.find(option);
 
   if (iter == m_options.end()) { throw option_not_exists_exception(option); }
@@ -1296,8 +1278,7 @@ inline void Options::add_option(
 }
 
 inline void Options::add_one_option(
-  const std::string& option,
-  std::shared_ptr<OptionDetails> details) {
+  const std::string& option, std::shared_ptr<OptionDetails> details) {
   auto in = m_options.emplace(option, details);
 
   if (!in.second) { throw option_exists_error(option); }
@@ -1351,8 +1332,7 @@ inline String Options::help_one_group(const std::string& g) const {
     }
     else {
       result += toLocalString(std::string(
-        longest + OPTION_DESC_GAP - stringLength(fiter->first),
-        ' '));
+        longest + OPTION_DESC_GAP - stringLength(fiter->first), ' '));
     }
     result += d;
     result += '\n';
@@ -1364,8 +1344,7 @@ inline String Options::help_one_group(const std::string& g) const {
 }
 
 inline void Options::generate_group_help(
-  String& result,
-  const std::vector<std::string>& print_groups) const {
+  String& result, const std::vector<std::string>& print_groups) const {
   for (size_t i = 0; i != print_groups.size(); ++i) {
     const String& group_help_text = help_one_group(print_groups[i]);
     if (empty(group_help_text)) { continue; }

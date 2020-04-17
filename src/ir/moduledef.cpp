@@ -13,12 +13,9 @@ using namespace std;
 namespace CoreIR {
 
 ModuleDef::ModuleDef(Module* module)
-  : module(module),
-    instancesIterFirst(nullptr),
-    instancesIterLast(nullptr) {
+  : module(module), instancesIterFirst(nullptr), instancesIterLast(nullptr) {
   interface = new Interface(
-    this,
-    cast<RecordType>(module->getType()->getFlipped()));
+    this, cast<RecordType>(module->getType()->getFlipped()));
 }
 
 ModuleDef::~ModuleDef() {
@@ -209,17 +206,11 @@ Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
 //   Instance(ModuleDef* container, std::string instname, Module* moduleRef,
 //   Values modargs);
 Instance* ModuleDef::addInstance(
-  string instname,
-  Generator* gen,
-  Values genargs,
-  Values modargs) {
+  string instname, Generator* gen, Values genargs, Values modargs) {
   ASSERT(instances.count(instname) == 0, instname + " already an instance");
 
   Instance* inst = new Instance(
-    this,
-    instname,
-    gen->getModule(genargs),
-    modargs);
+    this, instname, gen->getModule(genargs), modargs);
   instances[instname] = inst;
 
   appendInstanceToIter(inst);
@@ -238,10 +229,7 @@ Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
 }
 
 Instance* ModuleDef::addInstance(
-  string instname,
-  string iref,
-  Values genOrModargs,
-  Values modargs) {
+  string instname, string iref, Values genOrModargs, Values modargs) {
   vector<string> split = splitRef(iref);
   GlobalValue* ref = this->getContext()->getGlobalValue(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
@@ -258,10 +246,7 @@ Instance* ModuleDef::addInstance(Instance* i, string iname) {
   Module* mref = i->getModuleRef();
   if (mref->isGenerated()) {
     return addInstance(
-      iname,
-      mref->getGenerator(),
-      mref->getGenArgs(),
-      i->getModArgs());
+      iname, mref->getGenerator(), mref->getGenArgs(), i->getModArgs());
   }
   else {
     return addInstance(iname, i->getModuleRef(), i->getModArgs());
@@ -315,8 +300,7 @@ void ModuleDef::connect(
   connect(SelectPath(pA.begin(), pA.end()), SelectPath(pB.begin(), pB.end()));
 }
 void ModuleDef::connect(
-  std::initializer_list<std::string> pA,
-  std::initializer_list<string> pB) {
+  std::initializer_list<std::string> pA, std::initializer_list<string> pB) {
   connect(SelectPath(pA.begin(), pA.end()), SelectPath(pB.begin(), pB.end()));
 }
 bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {

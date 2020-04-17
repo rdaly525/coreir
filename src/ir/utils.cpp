@@ -260,8 +260,7 @@ std::vector<char> hexToBytes(const std::string& hex) {
 }
 
 std::vector<std::string> splitStr(
-  const std::string& str,
-  const std::string& delimiter) {
+  const std::string& str, const std::string& delimiter) {
   std::vector<std::string> strings;
 
   std::string::size_type pos = 0;

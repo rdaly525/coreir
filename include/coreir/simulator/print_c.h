@@ -28,8 +28,7 @@ static inline std::string maskResultStr(const uint w, const std::string& expr) {
 }
 
 static inline std::string maskResult(
-  CoreIR::Type& tp,
-  const std::string& expr) {
+  CoreIR::Type& tp, const std::string& expr) {
   if (standardWidth(tp)) { return expr; }
 
   return maskResultStr(typeWidth(tp), expr);
@@ -40,16 +39,12 @@ std::string cVar(const InstanceValue& w);
 std::string cVar(const InstanceValue& w, const std::string& suffix);
 
 std::string cVar(
-  const std::string& prefix,
-  const InstanceValue& w,
-  const std::string& suffix);
+  const std::string& prefix, const InstanceValue& w, const std::string& suffix);
 
 std::string cVar(CoreIR::Wireable& w);
 
 std::string cVar(
-  const std::string& prefix,
-  CoreIR::Wireable& w,
-  const std::string& suffix);
+  const std::string& prefix, CoreIR::Wireable& w, const std::string& suffix);
 
 std::string cVar(CoreIR::Wireable& w, const std::string& suffix);
 
@@ -73,8 +68,7 @@ std::string signedCTypeString(Type& tp);
 std::string unSignedCTypeString(Type& tp);
 
 std::string lastMask(
-  const std::string& startWidth,
-  const std::string& endWidth);
+  const std::string& startWidth, const std::string& endWidth);
 
 std::string lastMask(const uint startWidth, const uint endWidth);
 

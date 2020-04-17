@@ -161,41 +161,26 @@ string SMTSub(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
 }
 
 string SMTConcat(
-  string context,
-  SmtBVVar in1_p,
-  SmtBVVar in2_p,
-  SmtBVVar out_p) {
+  string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
   return SMTBop(context, "Concat", "concat", in1_p, in2_p, out_p);
 }
 
 string SMTUop(
-  string context,
-  string opname,
-  string op,
-  SmtBVVar in_p,
-  SmtBVVar out_p) {
+  string context, string opname, string op, SmtBVVar in_p, SmtBVVar out_p) {
   // INIT: TRUE
   // TRANS: (in <op> out) & (in' <op> out')
   string in = in_p.getPortName();
   string out = out_p.getPortName();
   string comment = ";; SMT" + opname + " (in, out) = (" + in + ", " + out + ")";
   string curr = unary_op_eqass(
-    op,
-    SMTgetCurr(context, in),
-    SMTgetCurr(context, out));
+    op, SMTgetCurr(context, in), SMTgetCurr(context, out));
   string next = unary_op_eqass(
-    op,
-    SMTgetNext(context, in),
-    SMTgetNext(context, out));
+    op, SMTgetNext(context, in), SMTgetNext(context, out));
   return comment + NL + curr + NL + next;
 }
 
 string SMTSlice(
-  string context,
-  SmtBVVar in_p,
-  SmtBVVar out_p,
-  int low_p,
-  int high_p) {
+  string context, SmtBVVar in_p, SmtBVVar out_p, int low_p, int high_p) {
   string low = to_string(low_p);
   string high = to_string(high_p);
   string op = "(_ extract " + high + " " + low + ")";

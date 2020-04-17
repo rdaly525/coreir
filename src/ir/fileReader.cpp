@@ -44,9 +44,7 @@ vector<string> getRef(string s) {
 
 // This will verify that json contains ONLY list of possible things
 void checkJson(
-  json j,
-  set<string> optsRequired,
-  set<string> optsOptional = set<string>()) {
+  json j, set<string> optsRequired, set<string> optsOptional = set<string>()) {
   jsonmap jmap = j.get<jsonmap>();
   for (auto req : optsRequired) {
     ASSERTTHROW(jmap.count(req), "Missing " + req + " from\n " + toString(j));
@@ -144,8 +142,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           string tgkind = jtg[1].get<string>();
           if (tgkind == "implicit") {
             ASSERTTHROW(
-              jtg.size() == 2,
-              "Bad implicit typegen format" + toString(jtg));
+              jtg.size() == 2, "Bad implicit typegen format" + toString(jtg));
             if (!tg) {
               tg = TypeGenImplicit::make(ns, name, tgparams);
               ns->addTypeGen(tg);
@@ -334,8 +331,7 @@ bool loadFromFile(Context* c, string filename, Module** top) {
       if (jmod.count("connections")) {
         for (auto jcon : jmod.at("connections").get<vector<jsonvector>>()) {
           ASSERTTHROW(
-            jcon.size() == 2 || jcon.size() == 3,
-            "Connection invalid");
+            jcon.size() == 2 || jcon.size() == 3, "Connection invalid");
           Wireable* a = mdef->sel(jcon[0].get<string>());
           Wireable* b = mdef->sel(jcon[1].get<string>());
           mdef->connect(a, b);

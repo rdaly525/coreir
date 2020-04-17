@@ -16,28 +16,16 @@ using namespace std;
 namespace CoreIR {
 
 std::vector<std::string> printSIMDNode(
-  const vdisc vd,
-  const int opWidth,
-  NGraph& g,
-  Module& mod,
-  LayoutPolicy& lp);
+  const vdisc vd, const int opWidth, NGraph& g, Module& mod, LayoutPolicy& lp);
 
 LowExpr* printBinop(
-  const WireNode& wd,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp);
+  const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp);
 
 LowExpr* printOpResultStr(
-  const InstanceValue& wd,
-  const NGraph& g,
-  LayoutPolicy& lp);
+  const InstanceValue& wd, const NGraph& g, LayoutPolicy& lp);
 
 LowExpr* opResultStr(
-  const WireNode& wd,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp);
+  const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp);
 
 LowExpr* bitMaskExpression(LowExpr* exp) {
   return new LowBinop(
@@ -76,10 +64,7 @@ std::pair<std::string, Wireable*> getOutSelect(Instance* const inst) {
 }
 
 LowExpr* printUnop(
-  Instance* inst,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  Instance* inst, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
   auto outPair = getOutSelect(inst);
 
   auto inConns = getInputConnections(vd, g);
@@ -107,9 +92,7 @@ LowExpr* printUnop(
 
     uint w = typeWidth(*(cn.first.getWire()->getType()));
     val = new LowBinop(
-      "==",
-      printOpResultStr(cn.first, g, lp),
-      bitMaskExpression(w));
+      "==", printOpResultStr(cn.first, g, lp), bitMaskExpression(w));
   }
 
   return maskResultExpression(*((outPair.second)->getType()), val);
@@ -172,10 +155,7 @@ LowExpr* castToUnSigned(Type& tp, LowExpr* const expr) {
 }
 
 LowExpr* printOpThenMaskBinop(
-  const WireNode& wd,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
   Instance* inst = toInstance(wd.getWire());
 
   pair<string, Wireable*> outPair = getOutSelect(inst);
@@ -190,9 +170,7 @@ LowExpr* printOpThenMaskBinop(
   string opString = getOpString(*inst);
 
   LowExpr* expr = new LowBinop(
-    opString,
-    printOpResultStr(arg1, g, lp),
-    printOpResultStr(arg2, g, lp));
+    opString, printOpResultStr(arg1, g, lp), printOpResultStr(arg2, g, lp));
 
   // And not standard width
   if (isDASHR(*inst)) {
@@ -202,9 +180,7 @@ LowExpr* printOpThenMaskBinop(
       "<<",
       bitMaskExpression(printOpResultStr(arg2, g, lp)),
       new LowBinop(
-        "-",
-        new LowId(to_string(tw)),
-        printOpResultStr(arg2, g, lp)));
+        "-", new LowId(to_string(tw)), printOpResultStr(arg2, g, lp)));
 
     string mask = maskExpr->cString();
 
@@ -212,14 +188,10 @@ LowExpr* printOpThenMaskBinop(
       "&",
       new LowBitVec(BitVec(1, 1)),
       new LowBinop(
-        ">>",
-        printOpResultStr(arg1, g, lp),
-        new LowId(to_string(tw - 1))));
+        ">>", printOpResultStr(arg1, g, lp), new LowId(to_string(tw - 1))));
 
     expr = new LowBinop(
-      "|",
-      new LowId(ite(signBitSet->cString(), mask, "0")),
-      expr);
+      "|", new LowId(ite(signBitSet->cString(), mask, "0")), expr);
   }
 
   if (g.getOutputConnections(vd)[0].first.needsMask()) {
@@ -249,10 +221,7 @@ LowExpr* seString(Type& tp, LowExpr* const arg) {
 }
 
 LowExpr* printSEThenOpThenMaskBinop(
-  Instance* inst,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  Instance* inst, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
   auto outSelects = getOutputSelects(inst);
 
   assert(outSelects.size() == 1);
@@ -296,10 +265,7 @@ bool isMux(Instance& inst) {
 }
 
 string printMux(
-  Instance* inst,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  Instance* inst, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
   assert(isMux(*inst));
 
   auto ins = getInputConnections(vd, g);
@@ -317,10 +283,7 @@ string printMux(
 }
 
 string printAddOrSubWithCIN(
-  const WireNode& wd,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
   auto ins = getInputs(vd, g);
 
   assert(ins.size() == 3);
@@ -362,9 +325,7 @@ string printAddOrSubWithCIN(
 }
 
 LowExpr* checkSumOverflowStr(
-  Type& tp,
-  LowExpr* const in0StrNC,
-  LowExpr* const in1StrNC) {
+  Type& tp, LowExpr* const in0StrNC, LowExpr* const in1StrNC) {
 
   // const std::string& in0StrNC,
   // const std::string& in1StrNC) {
@@ -372,8 +333,7 @@ LowExpr* checkSumOverflowStr(
   LowExpr* in1Str = castToUnSigned(tp, in1StrNC);
 
   LowExpr* sumString = castToUnSigned(
-    tp,
-    new LowId(parens(in0StrNC->cString() + " + " + in1StrNC->cString())));
+    tp, new LowId(parens(in0StrNC->cString() + " + " + in1StrNC->cString())));
   string test1 = parens(sumString->cString() + " < " + in0Str->cString());
   string test2 = parens(sumString->cString() + " < " + in1Str->cString());
   return new LowId(parens(test1 + " || " + test2));
@@ -508,10 +468,7 @@ void printAddOrSubCOUT(
 }
 
 LowExpr* printTernop(
-  const WireNode& wd,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
   assert(getInputs(vd, g).size() == 3);
 
   Instance* inst = toInstance(wd.getWire());
@@ -526,10 +483,7 @@ LowExpr* printTernop(
 }
 
 LowExpr* printBinop(
-  const WireNode& wd,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
 
   assert(getInputs(vd, g).size() == 2);
 
@@ -648,10 +602,7 @@ void printRegister(
 }
 
 LowExpr* opResultStr(
-  const WireNode& wd,
-  const vdisc vd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
 
   Instance* inst = toInstance(wd.getWire());
   auto ins = getInputs(vd, g);
@@ -785,9 +736,7 @@ bool isCombinationalInstance(const WireNode& wd) {
 }
 
 LowExpr* printOpResultStr(
-  const InstanceValue& wd,
-  const NGraph& g,
-  LayoutPolicy& lp) {
+  const InstanceValue& wd, const NGraph& g, LayoutPolicy& lp) {
   assert(isSelect(wd.getWire()));
 
   Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
@@ -827,9 +776,7 @@ LowExpr* printOpResultStr(
 }
 
 string printInternalVariables(
-  const std::deque<vdisc>& topo_order,
-  NGraph& g,
-  Module&) {
+  const std::deque<vdisc>& topo_order, NGraph& g, Module&) {
   string str = "";
   for (auto& vd : topo_order) {
     WireNode wd = getNode(g, vd);
@@ -859,9 +806,7 @@ string printInternalVariables(
 }
 
 string printSimFunctionPrefix(
-  const std::deque<vdisc>& topo_order,
-  NGraph& g,
-  Module& mod) {
+  const std::deque<vdisc>& topo_order, NGraph& g, Module& mod) {
   string str = "";
 
   // Declare all variables
@@ -968,11 +913,7 @@ void addScalarDAGCode(
 }
 
 std::vector<std::string> printSIMDNode(
-  const vdisc vd,
-  const int opWidth,
-  NGraph& g,
-  Module& mod,
-  LayoutPolicy& lp) {
+  const vdisc vd, const int opWidth, NGraph& g, Module& mod, LayoutPolicy& lp) {
   vector<string> simLines;
   if (isGraphInput(g.getNode(vd))) {
     string stateInLoc = lp.outputVarName(*(g.getNode(vd).getWire()));
@@ -1179,11 +1120,7 @@ string printSimFunctionBody(
 
     LowProgram aProg;
     addDAGCode(
-      {paths.preSequentialAlwaysDAGs, false},
-      g,
-      mod,
-      layoutPolicy,
-      aProg);
+      {paths.preSequentialAlwaysDAGs, false}, g, mod, layoutPolicy, aProg);
     simLines.push_back(aProg.cString());
 
     simLines.push_back("if " + condition + " {\n");
@@ -1276,11 +1213,7 @@ string printSimFunctionBody(
 
     LowProgram postProg;
     addDAGCode(
-      {paths.postSequentialAlwaysDAGs, false},
-      g,
-      mod,
-      layoutPolicy,
-      postProg);
+      {paths.postSequentialAlwaysDAGs, false}, g, mod, layoutPolicy, postProg);
     simLines.push_back(postProg.cString());
   }
 
@@ -1299,8 +1232,7 @@ string printSimFunctionBody(
 
     simLines.push_back("\n// ----- Setting last clock values\n");
     LowAssign* clkUpdate = new LowAssign(
-      new LowId(lastClkName),
-      new LowId(clkName));
+      new LowId(lastClkName), new LowId(clkName));
     simLines.push_back(clkUpdate->cString());
 
     delete clkUpdate;

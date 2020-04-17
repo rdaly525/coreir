@@ -44,9 +44,7 @@ Context::Context() : maxErrors(8) {
     {"type", CoreIRType::make(this)},
   });
   TypeGen* passthroughTG = pt->newTypeGen(
-    "passthrough",
-    passthroughParams,
-    [](Context* c, Values args) {
+    "passthrough", passthroughParams, [](Context* c, Values args) {
       Type* t = args.at("type")->get<Type*>();
       return c->Record({{"in", t->getFlipped()}, {"out", t}});
     });
@@ -295,8 +293,7 @@ void Context::setTop(string topRef) {
   ASSERT(topns->hasModule(topsplit[1]), "Missing module " + topRef);
   this->top = topns->getModule(topsplit[1]);
   ASSERT(
-    this->top->hasDef() || this->top->hasVerilogDef(),
-    topRef + " has no def!");
+    this->top->hasDef() || this->top->hasVerilogDef(), topRef + " has no def!");
 }
 
 void Context::removeTop() { this->top = nullptr; }

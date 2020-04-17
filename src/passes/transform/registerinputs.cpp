@@ -54,8 +54,7 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
           assert(selTp->getKind() == Type::TK_Bit);
 
           auto selDFF = def->addInstance(
-            field.first + "_auto_reg",
-            "corebit.reg");
+            field.first + "_auto_reg", "corebit.reg");
           newRegs.insert({sel, selDFF});
         }
 

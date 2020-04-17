@@ -215,8 +215,7 @@ void SimulatorState::setMemoryDefaults() {
       // Set memory output port to default
       setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0)));
       setValue(
-        inst->sel("raddr"),
-        makeSimBitVector(BitVec(ceil(log2(depth)), 0)));
+        inst->sel("raddr"), makeSimBitVector(BitVec(ceil(log2(depth)), 0)));
     }
   }
 }
@@ -249,8 +248,7 @@ void SimulatorState::setConstantDefaults() {
 
         Select* outSel = inst->sel("out");
         setValue(
-          outSel,
-          makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
+          outSel, makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
       }
     }
   }
@@ -369,8 +367,7 @@ BitVec SimulatorState::getBitVec(const std::vector<std::string>& str) {
 }
 
 void SimulatorState::setWatchPoint(
-  const std::vector<std::string>& path,
-  const BitVec& bv) {
+  const std::vector<std::string>& path, const BitVec& bv) {
   string concatName = concatInlined(path);
 
   return setWatchPoint(concatName, bv);
@@ -454,8 +451,7 @@ void SimulatorState::initializeState(
   assert(mod->hasDef());
 
   mod->getDef()->getContext()->runPasses(
-    {"verifyflattenedtypes"},
-    {mod->getNamespace()->getName(), "global"});
+    {"verifyflattenedtypes"}, {mod->getNamespace()->getName(), "global"});
   hasSymTable = false;
 
   // Create symbol table if it exists
@@ -545,17 +541,14 @@ void SimulatorState::initializeState(
 }
 
 SimulatorState::SimulatorState(
-  CoreIR::Module* mod_,
-  std::map<std::string, SimModelBuilder>& pluginBuilders)
-  : mod(mod_),
-    mainClock(nullptr) {
+  CoreIR::Module* mod_, std::map<std::string, SimModelBuilder>& pluginBuilders)
+  : mod(mod_), mainClock(nullptr) {
 
   initializeState(mod, pluginBuilders);
 }
 
 SimulatorState::SimulatorState(CoreIR::Module* mod_)
-  : mod(mod_),
-    mainClock(nullptr) {
+  : mod(mod_), mainClock(nullptr) {
 
   std::map<std::string, SimModelBuilder> pluginBuilders;
   initializeState(mod, pluginBuilders);
@@ -564,8 +557,7 @@ SimulatorState::SimulatorState(CoreIR::Module* mod_)
 void SimulatorState::setInputDefaults() {}
 
 void SimulatorState::setValue(
-  const std::vector<std::string>& name,
-  const BitVec& bv) {
+  const std::vector<std::string>& name, const BitVec& bv) {
   setValue(concatInlined(name), bv);
 }
 
@@ -593,8 +585,7 @@ void SimulatorState::setValue(const std::string& name, const BitVec& bv) {
   ModuleDef* def = mod->getDef();
 
   ASSERT(
-    def->canSel(name),
-    name + " is not a port of the module being simulated");
+    def->canSel(name), name + " is not a port of the module being simulated");
 
   Wireable* w = def->sel(name);
   Select* s = toSelect(w);
@@ -1001,9 +992,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
     updateOrNode(vd);
   }
   else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
-    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      return l ^ r;
-    });
+    updateBitVecBinop(
+      vd, [](const BitVec& l, const BitVec& r) { return l ^ r; });
   }
   else if ((opName == "coreir.zext")) {
     updateZextNode(vd);
@@ -1021,9 +1011,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
     updateAddNode(vd);
   }
   else if (opName == "coreir.neg") {
-    updateBitVecUnop(vd, [](const BitVec& bv) {
-      return negate_general_width_bv(bv);
-    });
+    updateBitVecUnop(
+      vd, [](const BitVec& bv) { return negate_general_width_bv(bv); });
   }
   else if (opName == "coreir.sub") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
@@ -1061,19 +1050,16 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
     updateConcatNode(vd);
   }
   else if (opName == "coreir.lshr") {
-    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      return lshr(l, r);
-    });
+    updateBitVecBinop(
+      vd, [](const BitVec& l, const BitVec& r) { return lshr(l, r); });
   }
   else if (opName == "coreir.ashr") {
-    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      return ashr(l, r);
-    });
+    updateBitVecBinop(
+      vd, [](const BitVec& l, const BitVec& r) { return ashr(l, r); });
   }
   else if (opName == "coreir.shl") {
-    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      return shl(l, r);
-    });
+    updateBitVecBinop(
+      vd, [](const BitVec& l, const BitVec& r) { return shl(l, r); });
   }
   else if (opName == "coreir.ult") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
@@ -1678,8 +1664,7 @@ void SimulatorState::updateMemoryValue(const vdisc vd) {
 
     // assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
     assert(same_representation(
-      getMemory(inst->toString(), waddrBits),
-      wdata->getBits()));
+      getMemory(inst->toString(), waddrBits), wdata->getBits()));
   }
 }
 
@@ -1929,9 +1914,7 @@ void SimulatorState::setClock(
 }
 
 void SimulatorState::setClock(
-  CoreIR::Select* sel,
-  const unsigned char clkLast,
-  const unsigned char clk) {
+  CoreIR::Select* sel, const unsigned char clkLast, const unsigned char clk) {
   auto clkVal = new ClockValue(clkLast, clk);
   allocatedValues.insert(clkVal);
   circStates[stateIndex].valMap[sel] = clkVal;
@@ -1950,9 +1933,7 @@ BitVec SimulatorState::getRegister(const std::string& name) {
 }
 
 void SimulatorState::setMemory(
-  const std::string& name,
-  const BitVec& addr,
-  const BitVec& data) {
+  const std::string& name, const BitVec& addr, const BitVec& data) {
 
   SimMemory& mem = (circStates[stateIndex].memories.find(name))->second;
   mem.setAddr(addr, data);
@@ -2012,8 +1993,7 @@ void SimulatorState::deleteWatchPointByOriginalName(
 }
 
 void SimulatorState::setWatchPointByOriginalName(
-  const std::string& name,
-  const BitVec& bv) {
+  const std::string& name, const BitVec& bv) {
   setWatchPoint(name, bv);
 }
 
@@ -2042,8 +2022,7 @@ bool isPrefixOf(const std::string& foo, const std::string& foobar) {
 }
 
 std::vector<string> selectsOffOf(
-  const std::string& selectName,
-  std::map<std::string, json>& symTable) {
+  const std::string& selectName, std::map<std::string, json>& symTable) {
 
   vector<string> sels;
 

@@ -50,8 +50,7 @@ Namespace* CoreIRLibrary::loadLib(string lib) {
     ASSERT(0, "NYI loading lib: " + lib);
   }
   LoadLibrary_t loadLibFun = (LoadLibrary_t)this->getFunction(
-    filename,
-    "ExternalLoadLibrary_" + libname);
+    filename, "ExternalLoadLibrary_" + libname);
   Namespace* ns = loadLibFun(c);
   ASSERT(ns, "loading lib returned a null namespace " + lib);
   lib2file[libname] = filename;

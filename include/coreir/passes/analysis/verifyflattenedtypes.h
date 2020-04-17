@@ -11,9 +11,7 @@ class VerifyFlattenedTypes : public InstanceGraphPass {
   static std::string ID;
   VerifyFlattenedTypes()
     : InstanceGraphPass(
-        ID,
-        "Verify all modules and instances have flattened types",
-        true) {}
+        ID, "Verify all modules and instances have flattened types", true) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
 };
 

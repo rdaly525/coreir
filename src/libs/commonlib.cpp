@@ -68,8 +68,7 @@ uint inverted_index(uint outx, uint inx, uint i) {
 }
 
 vector<CoreIR::Wireable*> get_wires(
-  CoreIR::Wireable* base_wire,
-  const vector<size_t> ports) {
+  CoreIR::Wireable* base_wire, const vector<size_t> ports) {
   int num_ports = 1;
   for (const auto& port_length : ports) { num_ports *= port_length; }
 
@@ -101,9 +100,7 @@ vector<CoreIR::Wireable*> get_wires(
 }
 
 void connect_wires(
-  ModuleDef* def,
-  vector<Wireable*> in_wires,
-  vector<Wireable*> out_wires) {
+  ModuleDef* def, vector<Wireable*> in_wires, vector<Wireable*> out_wires) {
   assert(in_wires.size() == out_wires.size());
 
   for (size_t idx = 0; idx < in_wires.size(); ++idx) {
@@ -356,18 +353,14 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   Params const_array_args = {{"type", CoreIRType::make(c)},
                              {"value", c->Int()}};
   TypeGen* constArrayTG = coreirprims->newTypeGen(
-    "constArrayTG",
-    const_array_args,
-    [](Context* c, Values args) {
+    "constArrayTG", const_array_args, [](Context* c, Values args) {
       Type* t = args.at("type")->get<Type*>();
 
       RecordParams r({{"out", t}});
       return c->Record(r);
     });
   Generator* const_array = commonlib->newGeneratorDecl(
-    "const_array",
-    constArrayTG,
-    const_array_args);
+    "const_array", constArrayTG, const_array_args);
   const_array->addDefaultGenArgs({{"value", Const::make(c, 0)}});
 
   const_array->setGeneratorDefFromFun(
@@ -394,9 +387,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // create and connect the interface
       Wireable* pt_out = def->addInstance(
-        "pt_out",
-        "mantle.wire",
-        {{"type", Const::make(c, type)}});
+        "pt_out", "mantle.wire", {{"type", Const::make(c, type)}});
       def->connect("self.out", "pt_out.out");
 
       // collect all interface wires
@@ -422,10 +413,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         Values const_configargs = {
           {"value", Const::make(c, BitVector(bitwidth, value))}};
         Wireable* const_inst = def->addInstance(
-          const_name,
-          "coreir.const",
-          const_args,
-          const_configargs);
+          const_name, "coreir.const", const_args, const_configargs);
         def->connect(const_inst->sel("out"), out_wires[i]);
       }
     });
@@ -440,9 +428,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
                            {"has_rst", c->Bool()},
                            {"init", c->Int()}};
   TypeGen* regArrayTG = coreirprims->newTypeGen(
-    "regArrayTG",
-    reg_array_args,
-    [](Context* c, Values args) {
+    "regArrayTG", reg_array_args, [](Context* c, Values args) {
       Type* t = args.at("type")->get<Type*>();
       bool en = args.at("has_en")->get<bool>();
       bool clr = args.at("has_clr")->get<bool>();
@@ -458,9 +444,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       return c->Record(r);
     });
   Generator* reg_array = commonlib->newGeneratorDecl(
-    "reg_array",
-    regArrayTG,
-    reg_array_args);
+    "reg_array", regArrayTG, reg_array_args);
   reg_array->addDefaultGenArgs({{"has_en", Const::make(c, false)},
                                 {"has_clr", Const::make(c, false)},
                                 {"has_rst", Const::make(c, false)},
@@ -493,13 +477,9 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // create and connect the interface
       Wireable* pt_in = def->addInstance(
-        "pt_in",
-        "mantle.wire",
-        {{"type", Const::make(c, type)}});
+        "pt_in", "mantle.wire", {{"type", Const::make(c, type)}});
       Wireable* pt_out = def->addInstance(
-        "pt_out",
-        "mantle.wire",
-        {{"type", Const::make(c, type)}});
+        "pt_out", "mantle.wire", {{"type", Const::make(c, type)}});
       def->connect("self.in", "pt_in.in");
       def->connect("self.out", "pt_out.out");
 
@@ -535,10 +515,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         Values reg_configargs = {
           {"init", Const::make(c, BitVector(bitwidth, init))}};
         Wireable* reg = def->addInstance(
-          reg_name,
-          "mantle.reg",
-          reg_args,
-          reg_configargs);
+          reg_name, "mantle.reg", reg_args, reg_configargs);
         if (en) { def->connect("self.en", reg_name + ".en"); }
         if (clr) { def->connect("self.clr", reg_name + ".clr"); }
         if (rst) { def->connect("self.rst", reg_name + ".rst"); }
@@ -615,8 +592,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
 
       // wire up selects
       def->connect(
-        {"self", "in", "sel", to_string(Nbits - 1)},
-        {"_join", "sel"});
+        {"self", "in", "sel", to_string(Nbits - 1)}, {"_join", "sel"});
       Values sliceArgs0 = {{"width", Const::make(c, Nbits)},
                            {"lo", Const::make(c, 0)},
                            {"hi", Const::make(c, num_bits(Nlargehalf - 1))}};
@@ -687,8 +663,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
         {{"width", aWidth}, {"N", aNsmall}, {"operator", aOperator}});
       for (uint i = 0; i < Nlargehalf; ++i) {
         def->connect(
-          {"self", "in", to_string(i)},
-          {"opN_0", "in", to_string(i)});
+          {"self", "in", to_string(i)}, {"opN_0", "in", to_string(i)});
       }
       for (uint i = 0; i < Nsmallhalf; ++i) {
         def->connect(
@@ -710,9 +685,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     {{"N", c->Int()}, {"operator", c->String()}});
 
   bitopN->setGeneratorDefFromFun([](
-                                   Context* c,
-                                   Values genargs,
-                                   ModuleDef* def) {
+                                   Context* c, Values genargs, ModuleDef* def) {
     uint N = genargs.at("N")->get<int>();
     std::string op2 = genargs.at("operator")->get<string>();
     assert(N > 0);
@@ -748,8 +721,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
       def->addInstance("opN_1", opN, {{"N", aNsmall}, {"operator", aOperator}});
       for (uint i = 0; i < Nlargehalf; ++i) {
         def->connect(
-          {"self", "in", to_string(i)},
-          {"opN_0", "in", to_string(i)});
+          {"self", "in", to_string(i)}, {"opN_0", "in", to_string(i)});
       }
       for (uint i = 0; i < Nsmallhalf; ++i) {
         def->connect(
@@ -777,9 +749,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     return c->Record({{"in", c->BitIn()->Arr(N)}, {"out", c->Bit()}});
   });
   Generator* lutN = commonlib->newGeneratorDecl(
-    "lutN",
-    commonlib->getTypeGen("lutNType"),
-    lutNParams);
+    "lutN", commonlib->getTypeGen("lutNType"), lutNParams);
   lutN->setModParamsGen(LUTModParamFun);
 
   // TODO this really should exist in a separate verilog definitions file for
@@ -836,9 +806,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           {{"width", Const::make(c, width)}},
           {{"value", Const::make(c, width, max)}});
         def->addInstance(
-          "one_const",
-          "corebit.const",
-          {{"value", Const::make(c, true)}});
+          "one_const", "corebit.const", {{"value", Const::make(c, true)}});
 
         def->connect("self.out", "count_const.out");
         def->connect("self.overflow", "one_const.out");
@@ -1108,8 +1076,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
           def->connect("self.reset", "firstEnabledOr.in0");
           def->connect(en_reg_name + ".out.0", "firstEnabledOr.in1");
           def->connect(
-            "firstEnabledOr.out",
-            "en_reg_" + std::to_string(0) + ".in.0");
+            "firstEnabledOr.out", "en_reg_" + std::to_string(0) + ".in.0");
 
           // wire up the valid signal, which comes one clock after the last reg
           // is enabled, same cycle as that reg starts emitting the right value
@@ -1173,9 +1140,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
   Generator* reshape = commonlib->newGeneratorDecl(
-    "reshape",
-    commonlib->getTypeGen("reshape_type"),
-    reshape_params);
+    "reshape", commonlib->getTypeGen("reshape_type"), reshape_params);
   reshape->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
       auto input_type = genargs.at("input_type")->get<Type*>();
@@ -1251,9 +1216,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     });
 
   Generator* transpose = commonlib->newGeneratorDecl(
-    "transpose",
-    commonlib->getTypeGen("transpose_type"),
-    transpose_params);
+    "transpose", commonlib->getTypeGen("transpose_type"), transpose_params);
   transpose->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
       auto input_type = genargs.at("input_type")->get<Type*>();
@@ -1297,9 +1260,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
   ////////////////////////////////////////
 
   Generator* transpose_reshape = commonlib->newGeneratorDecl(
-    "transpose_reshape",
-    commonlib->getTypeGen("reshape_type"),
-    reshape_params);
+    "transpose_reshape", commonlib->getTypeGen("reshape_type"), reshape_params);
   transpose_reshape->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
       auto input_type = genargs.at("input_type")->get<Type*>();
@@ -1352,9 +1313,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     {{"width", c->Int()}, {"iterations", c->Int()}});
 
   accum_reg->setGeneratorDefFromFun([](
-                                      Context* c,
-                                      Values args,
-                                      ModuleDef* def) {
+                                      Context* c, Values args, ModuleDef* def) {
     uint width = args.at("width")->get<int>();
     uint iterations = args.at("iterations")->get<int>();
 
@@ -1370,10 +1329,7 @@ Namespace* CoreIRLoadLibrary_commonlib(Context* c) {
     Values const_value = {
       {"value", Const::make(c, BitVector(width, iterations - 1))}};
     def->addInstance(
-      "output_phase_value",
-      "coreir.const",
-      bitwidthParams,
-      const_value);
+      "output_phase_value", "coreir.const", bitwidthParams, const_value);
 
     def->addInstance("invalid_bit", "corebit.reg");
     def->addInstance("valid_mux", "corebit.mux");

@@ -15,9 +15,7 @@ Namespace* CoreIRLoadLibrary_float_DW(Context* c) {
                                {"ieee_compliance", c->Bool()}});
 
   auto binary_tg = fpdw->newTypeGen(
-    "binary",
-    floatParams,
-    [](Context* c, Values args) {
+    "binary", floatParams, [](Context* c, Values args) {
       uint exp_width = args.at("exp_width")->get<int>();
       uint sig_width = args.at("sig_width")->get<int>();
       uint width = 1 + exp_width + sig_width;

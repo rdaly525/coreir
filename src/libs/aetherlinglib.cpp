@@ -41,18 +41,14 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
     {{"width", c->Int()}, {"constant", c->Int()}, {"operator", c->String()}});
 
   aetherlinglib->newTypeGen(
-    "op2To1_type",
-    op2To1Params,
-    [](Context* c, Values genargs) {
+    "op2To1_type", op2To1Params, [](Context* c, Values genargs) {
       uint width = genargs.at("width")->get<int>();
       return c->Record(
         {{"in", c->BitIn()->Arr(width)}, {"out", c->Bit()->Arr(width)}});
     });
 
   Generator* op2To1 = aetherlinglib->newGeneratorDecl(
-    "op2To1",
-    aetherlinglib->getTypeGen("op2To1_type"),
-    op2To1Params);
+    "op2To1", aetherlinglib->getTypeGen("op2To1_type"), op2To1Params);
 
   op2To1->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
@@ -79,10 +75,7 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
 }
 
 string Aetherling_addCoreIRConstantModule(
-  Context* c,
-  ModuleDef* def,
-  uint width,
-  Const* val) {
+  Context* c, ModuleDef* def, uint width, Const* val) {
   string valName = val->toString();
   replace(valName.begin(), valName.end(), '\'', '_');
   string constName = "constInput_" + valName;

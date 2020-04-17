@@ -40,10 +40,7 @@ COREType* CORERecord(COREContext* context, void* record_param) {
 }
 
 void CORERecordTypeGetItems(
-  COREType* recordType,
-  char*** keys,
-  COREType*** values,
-  int* size) {
+  COREType* recordType, char*** keys, COREType*** values, int* size) {
   RecordType* type = rcast<RecordType*>(recordType);
   auto const& record = type->getRecord();
   *size = record.size();

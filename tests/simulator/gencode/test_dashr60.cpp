@@ -11,7 +11,8 @@ int main() {
   state.self_A[0] = 1ULL << 59;
   state.self_A[1] = 3ULL;
 
-  uint64_t expected1 = (1ULL << 59) | (1ULL << 58) | (1ULL << 57) | (1ULL << 56);
+  uint64_t expected1 = (1ULL << 59) | (1ULL << 58) | (1ULL << 57) |
+                       (1ULL << 56);
 
   state.self_out = 34;
 
@@ -22,25 +23,20 @@ int main() {
   cout << "Expected1 = " << std::bitset<64>(expected1) << endl;
   cout << "Result1   = " << std::bitset<64>(state.self_out) << endl;
 
-  if ((expected1 != state.self_out)) {
-    return 1;
-  }
-  
+  if ((expected1 != state.self_out)) { return 1; }
+
   state.self_A[0] = 1ULL << 58;
   state.self_A[1] = 5ULL;
-  
+
   uint64_t expected2 = (1ULL << 53);
   state.self_out = 32;
 
-  simulate(&state);  
+  simulate(&state);
 
   cout << "Expected2 = " << std::bitset<64>(expected2) << endl;
   cout << "Result2   = " << std::bitset<64>(state.self_out) << endl;
-  
-  if ((expected2 != state.self_out)) {
-    return 1;
-  }
+
+  if ((expected2 != state.self_out)) { return 1; }
 
   return 0;
 }
-

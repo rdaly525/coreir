@@ -1,6 +1,7 @@
 #pragma once
 
 #include "coreir.h"
+
 using namespace CoreIR;  // TODO get rid of this
 using namespace std;
 
@@ -17,8 +18,7 @@ class SmvBVVar {
  public:
   SmvBVVar() = default;
   SmvBVVar(string instname, string field, Type* t)
-      : instname(instname), portname(field), dim(t->getSize()),
-        dir(t->getDir()) {
+    : instname(instname), portname(field), dim(t->getSize()), dir(t->getDir()) {
     name = (instname == "" ? "" : instname + "$") + portname;
     fullname = field + name;
   }
@@ -30,10 +30,12 @@ class SmvBVVar {
       need_extract = true;
       idx = sp[2];
       portname = sp[1];
-    } else if (sp.size() == 2) {
+    }
+    else if (sp.size() == 2) {
       ASSERT(!isNumber(sp[1]), "DEBUG ME:");
       portname = sp[1];
-    } else {
+    }
+    else {
       assert(0);
     }
 
@@ -46,7 +48,7 @@ class SmvBVVar {
     return (name.compare(other.name) == 0);
   }
   SmvBVVar(string instname, string portname, unsigned dim, Type::DirKind dir)
-      : instname(instname), portname(portname), dim(dim), dir(dir) {}
+    : instname(instname), portname(portname), dim(dim), dir(dir) {}
   string dimstr() { return to_string(dim); }
   string dirstr() { return (dir == Type::DK_In) ? "input" : "output"; }
   string getExtractName() {
@@ -141,13 +143,14 @@ class SMVModule {
     for (auto dpair : ds) { sm[dpair.first] = toConstString(dpair.second); }
   }
   std::string toConstString(Value* v) {
-    if (auto av = dyn_cast<Arg>(v)) {
-      return av->getField();
-    } else if (auto iv = dyn_cast<ConstInt>(v)) {
+    if (auto av = dyn_cast<Arg>(v)) { return av->getField(); }
+    else if (auto iv = dyn_cast<ConstInt>(v)) {
       return iv->toString();
-    } else if (auto bv = dyn_cast<ConstBool>(v)) {
+    }
+    else if (auto bv = dyn_cast<ConstBool>(v)) {
       return std::to_string(uint(bv->get()));
-    } else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
+    }
+    else if (auto bvv = dyn_cast<ConstBitVector>(v)) {
       BitVector bv = bvv->get();
       return std::to_string(bv.bitLength()) + "'d" +
              std::to_string(bv.to_type<uint64_t>());

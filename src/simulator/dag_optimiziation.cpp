@@ -84,9 +84,7 @@ vector<SIMDGroup> groupIdenticalSubDAGs(
 }
 
 CircuitPaths buildCircuitPaths(
-  const std::deque<vdisc>& topoOrder,
-  NGraph& g,
-  Module& mod) {
+  const std::deque<vdisc>& topoOrder, NGraph& g, Module& mod) {
   CircuitPaths paths;
 
   vector<set<vdisc>> ccs = connectedComponentsIgnoringInputs(g);
@@ -178,8 +176,7 @@ vector<SIMDGroup> deleteDuplicates(const std::vector<SIMDGroup>& allUpdates) {
 }
 
 vector<SIMDGroup> pruneSequentialSinks(
-  const std::vector<SIMDGroup> dags,
-  const NGraph& g) {
+  const std::vector<SIMDGroup> dags, const NGraph& g) {
   vector<SIMDGroup> gp;
 
   for (auto& dag : dags) {
@@ -239,8 +236,7 @@ vector<SIMDGroup> pruneSequentialSinks(
 }
 
 vector<SIMDGroup> pruneOutputs(
-  const std::vector<SIMDGroup> dags,
-  const NGraph& g) {
+  const std::vector<SIMDGroup> dags, const NGraph& g) {
   vector<SIMDGroup> gp;
 
   for (auto& dag : dags) {
@@ -385,9 +381,7 @@ bool nodesMatch(const vdisc ref, const vdisc a, const NGraph& g) {
 }
 
 SubDAG alignWRT(
-  const SubDAG& reference,
-  const SubDAG& toAlign,
-  const NGraph& g) {
+  const SubDAG& reference, const SubDAG& toAlign, const NGraph& g) {
   set<vdisc> alreadyUsed;
 
   map<vdisc, vdisc> nodeMap;
@@ -413,8 +407,7 @@ SubDAG alignWRT(
 }
 
 vector<vector<SubDAG>> alignIdenticalGraphs(
-  const std::vector<SubDAG>& dags,
-  const NGraph& g) {
+  const std::vector<SubDAG>& dags, const NGraph& g) {
 
   vector<vector<SubDAG>> eqClasses;
 

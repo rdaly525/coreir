@@ -29,9 +29,7 @@ string get_trans(string trans) { return "TRANS" + NL + trans + ";"; }
 string get_invar(string invar) { return "INVAR" + NL + invar + ";"; }
 
 void findAndReplaceAll(
-  std::string& data,
-  std::string toSearch,
-  std::string replaceStr) {
+  std::string& data, std::string toSearch, std::string replaceStr) {
   size_t pos = data.find(toSearch);
   while (pos != std::string::npos) {
     data.replace(pos, toSearch.size(), replaceStr);
@@ -85,9 +83,7 @@ string SMVAssign(SmvBVVar vleft, SmvBVVar vright) {
   SmvBVVar vleft_n = SmvBVVarGetNext(vleft);
   SmvBVVar vright_n = SmvBVVarGetNext(vright);
   string curr = binary_op(
-    "=",
-    vleft_c.getExtractName(),
-    vright_c.getExtractName());
+    "=", vleft_c.getExtractName(), vright_c.getExtractName());
   return get_invar(curr);
 }
 
@@ -133,19 +129,12 @@ string SMVSub(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
 }
 
 string SMVConcat(
-  string context,
-  SmvBVVar in1_p,
-  SmvBVVar in2_p,
-  SmvBVVar out_p) {
+  string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
   return SMVBop(context, "Concat", "::", in1_p, in2_p, out_p);
 }
 
 string SMVSlice(
-  string context,
-  SmvBVVar in_p,
-  SmvBVVar out_p,
-  int low_p,
-  int high_p) {
+  string context, SmvBVVar in_p, SmvBVVar out_p, int low_p, int high_p) {
   // INVAR: (in[high:low] = out)
   string in = in_p.getPortName();
   string out = out_p.getPortName();
@@ -165,9 +154,7 @@ string SMVNot(string context, SmvBVVar in_p, SmvBVVar out_p) {
   string comment = "-- SMVNot (in, out) = (" + in + ", " + out + ")";
   string op = "!";
   string curr = unary_op_eq(
-    op,
-    SMVgetCurr(context, in),
-    SMVgetCurr(context, out));
+    op, SMVgetCurr(context, in), SMVgetCurr(context, out));
   return comment + NL + get_invar(curr);
 }
 
@@ -245,9 +232,7 @@ string SMVClock(string context, SmvBVVar clk_p) {
   string comment = "-- SMVClock (clk) = (" + clk + ")";
   string init = binary_op("=", "0ud1_0", SMVgetCurr(context, clk));
   string trans = binary_op(
-    "=",
-    SMVgetCurr(context, clk),
-    unary_op("!", SMVgetNext(context, clk)));
+    "=", SMVgetCurr(context, clk), unary_op("!", SMVgetNext(context, clk)));
   return comment + NL + get_init(init) + NL + get_trans(trans);
 }
 

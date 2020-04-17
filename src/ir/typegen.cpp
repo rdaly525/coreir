@@ -100,9 +100,7 @@ std::string TypeGenImplicit::toString() const {
 }
 
 TypeGenImplicit* TypeGenImplicit::make(
-  Namespace* ns,
-  std::string name,
-  Params params) {
+  Namespace* ns, std::string name, Params params) {
   TypeGenImplicit* tg = new TypeGenImplicit(ns, name, params);
   ns->addTypeGen(tg);
   return tg;

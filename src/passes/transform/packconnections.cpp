@@ -77,9 +77,7 @@ bool Passes::PackConnections::runOnModule(Module* m) {
 
     vector<vector<Connection>> packs;
     split_by(
-      arrayToArrayConns,
-      packs,
-      [](const Connection& l, const Connection& r) {
+      arrayToArrayConns, packs, [](const Connection& l, const Connection& r) {
         Select* lastL = cast<Select>(l.first);
         Select* lastR = cast<Select>(l.second);
 

@@ -205,15 +205,9 @@ void Aetherling_createReduceGenerator(Context* c) {
       def->connect("counter.overflow", "self.valid");
       // force no reset on counter
       string disableConst = Aetherling_addCoreIRConstantModule(
-        c,
-        def,
-        1,
-        Const::make(c, 1, 0));
+        c, def, 1, Const::make(c, 1, 0));
       string enableConst = Aetherling_addCoreIRConstantModule(
-        c,
-        def,
-        1,
-        Const::make(c, 1, 1));
+        c, def, 1, Const::make(c, 1, 1));
       def->connect(disableConst + ".out.0", "counter.reset");
       def->connect(enableConst + ".out.0", "counter.en");
     });

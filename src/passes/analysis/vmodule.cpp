@@ -136,9 +136,7 @@ std::string CoreIRVModule::get_replace_str(
 }
 
 std::string CoreIRVModule::inline_instance(
-  ModuleDef* def,
-  std::queue<Connection>& worklist,
-  Instance* right_parent) {
+  ModuleDef* def, std::queue<Connection>& worklist, Instance* right_parent) {
   std::string right_conn_str = "";
   Module* right_parent_module = right_parent->getModuleRef();
   VModule* right_parent_verilog_module = vmods->mod2VMod[right_parent_module];
@@ -151,9 +149,7 @@ std::string CoreIRVModule::inline_instance(
       // replace assign out = since that will be handled by the
       // current connection target
       right_conn_str = std::regex_replace(
-        right_conn_str,
-        std::regex("assign out = "),
-        "");
+        right_conn_str, std::regex("assign out = "), "");
 
       // semicolon inserted later, so we remove it now
       right_conn_str = std::regex_replace(right_conn_str, std::regex(";"), "");
@@ -166,10 +162,7 @@ std::string CoreIRVModule::inline_instance(
            cast<RecordType>(right_parent->getType())->getRecord()) {
         if (record_pair.second->getDir() == Type::DK_In) {
           std::string replace = get_replace_str(
-            record_pair.first,
-            right_parent,
-            def,
-            worklist);
+            record_pair.first, right_parent, def, worklist);
           // std::cout << replace << std::endl;
           ASSERT(replace != "", "Expected something to inline");
           // replace string followed by space, bracket, close paren, or
@@ -264,9 +257,7 @@ void CoreIRVModule::addConnectionsInlined(ModuleDef* def) {
           right->getSelectPath()[0] == "self")) {
       if (Instance* right_parent = dyn_cast<Instance>(right->getTopParent())) {
         right_conn_str = CoreIRVModule::inline_instance(
-          def,
-          worklist,
-          right_parent);
+          def, worklist, right_parent);
       }
       else {
         ASSERT(
@@ -391,13 +382,12 @@ string VModule::toString() const {
       paramstrs.push_back(s);
     }
   }
-  string pstring = paramstrs.size() > 0 ? " #(" +
-                                            join(
-                                              paramstrs.begin(),
-                                              paramstrs.end(),
-                                              string(", ")) +
-                                            ") "
-                                        : " ";
+  string pstring = paramstrs.size() > 0
+                     ? " #(" +
+                         join(
+                           paramstrs.begin(), paramstrs.end(), string(", ")) +
+                         ") "
+                     : " ";
 
   ostringstream o;
   string tab = "  ";

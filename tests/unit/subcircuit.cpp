@@ -3,8 +3,8 @@
 
 #include "coreir/libs/rtlil.h"
 #include "coreir/passes/transform/deletedeadinstances.h"
-#include "coreir/passes/transform/unpackconnections.h"
 #include "coreir/passes/transform/packconnections.h"
+#include "coreir/passes/transform/unpackconnections.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -16,22 +16,20 @@ void testBasicSubCircuit() {
 
   uint width = 16;
 
-  Type* clType = c->Record({
-      {"clk", c->BitIn()},
-        {"in0", c->BitIn()->Arr(width)},
-          {"in1", c->BitIn()->Arr(width)},
-            {"config_bit", c->BitIn()},
-              {"out", c->Bit()->Arr(width)}
-    });
+  Type* clType = c->Record({{"clk", c->BitIn()},
+                            {"in0", c->BitIn()->Arr(width)},
+                            {"in1", c->BitIn()->Arr(width)},
+                            {"config_bit", c->BitIn()},
+                            {"out", c->Bit()->Arr(width)}});
 
   Module* cl = g->newModuleDecl("cl", clType);
   ModuleDef* def = cl->newModuleDef();
 
   def->addInstance("config_reg", "corebit.reg");
-  def->addInstance("toClk",
-                   "coreir.wrap",
-                   {{"type", Const::make(c, c->Named("coreir.clk"))}});
-  def->addInstance("config_mux", "coreir.mux", {{"width", Const::make(c, width)}});
+  def->addInstance(
+    "toClk", "coreir.wrap", {{"type", Const::make(c, c->Named("coreir.clk"))}});
+  def->addInstance(
+    "config_mux", "coreir.mux", {{"width", Const::make(c, width)}});
 
   def->connect("self.clk", "toClk.in");
   def->connect("toClk.out", "config_reg.clk");
@@ -46,9 +44,8 @@ void testBasicSubCircuit() {
 
   c->runPasses({"rungenerators"});
 
-  auto subCircuitInstances =
-    extractSubcircuit(cl, {def->sel("self")->sel("clk"),
-          def->sel("self")->sel("config_bit")});
+  auto subCircuitInstances = extractSubcircuit(
+    cl, {def->sel("self")->sel("clk"), def->sel("self")->sel("config_bit")});
 
   cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
   for (auto inst : subCircuitInstances) {
@@ -68,7 +65,9 @@ void testBasicSubCircuit() {
 //   cout << "Loading CGRA" << endl;
 
 // Q: How did this ever pass on travis??
-//   if (!loadFromFile(c,"/Users/dillon/VerilogWorkspace/CGRAGenerator/hardware/generator_z/top/top_flat_clk.json", &topMod)) {
+//   if
+//   (!loadFromFile(c,"/Users/dillon/VerilogWorkspace/CGRAGenerator/hardware/generator_z/top/top_flat_clk.json",
+//   &topMod)) {
 //     cout << "Could not Load from json!!" << endl;
 //     c->die();
 //   }
@@ -97,7 +96,8 @@ void testBasicSubCircuit() {
 //         (getQualifiedOpName(*inst) == "coreir.regrst") ||
 //         (getQualifiedOpName(*inst) == "corebit.reg")) {
 //       i++;
-//       //cout << "\t" << inst->toString() << " : " << inst->getModuleRef()->toString() << endl;
+//       //cout << "\t" << inst->toString() << " : " <<
+//       inst->getModuleRef()->toString() << endl;
 //     }
 //   }
 
@@ -110,17 +110,18 @@ void testBasicSubCircuit() {
 //                       c,
 //                       c->getGlobal());
 
-
 //   Module* topConfig = c->getGlobal()->getModule("top_config");
 //   cout << "Deleting dead instances" << endl;
 //   deleteDeadInstances(topConfig);
 //   cout << "Done deleting dead instances" << endl;
 
-//   cout << "# of top config instances " << topConfig->getDef()->getInstances().size() << endl;
-//   cout << "# of top config connections " << topConfig->getDef()->getConnections().size() << endl;
+//   cout << "# of top config instances " <<
+//   topConfig->getDef()->getInstances().size() << endl; cout << "# of top
+//   config connections " << topConfig->getDef()->getConnections().size() <<
+//   endl;
 
 //   deleteContext(c);
-  
+
 // }
 
 void testNodeAfterConstant() {
@@ -130,20 +131,20 @@ void testNodeAfterConstant() {
 
   uint width = 16;
 
-  Type* clType = c->Record({
-        {"in", c->BitIn()->Arr(width)},
-          {"out0", c->Bit()->Arr(width)},
-              {"out1", c->Bit()->Arr(width)}
-    });
+  Type* clType = c->Record({{"in", c->BitIn()->Arr(width)},
+                            {"out0", c->Bit()->Arr(width)},
+                            {"out1", c->Bit()->Arr(width)}});
 
   Module* cl = g->newModuleDecl("cl", clType);
   ModuleDef* def = cl->newModuleDef();
 
-  def->addInstance("neg_node", "coreir.neg", {{"width", Const::make(c, width)}});
-  def->addInstance("const_node",
-                   "coreir.const",
-                   {{"width", Const::make(c, width)}},
-                   {{"value", Const::make(c, BitVector(width, 12))}});
+  def->addInstance(
+    "neg_node", "coreir.neg", {{"width", Const::make(c, width)}});
+  def->addInstance(
+    "const_node",
+    "coreir.const",
+    {{"width", Const::make(c, width)}},
+    {{"value", Const::make(c, BitVector(width, 12))}});
 
   def->connect("self.in", "neg_node.in");
   def->connect("neg_node.out", "self.out0");
@@ -153,8 +154,8 @@ void testNodeAfterConstant() {
 
   c->runPasses({"rungenerators"});
 
-  auto subCircuitInstances =
-    extractSubcircuit(cl, {def->sel("self")->sel("in")});
+  auto subCircuitInstances = extractSubcircuit(
+    cl, {def->sel("self")->sel("in")});
 
   cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
   for (auto inst : subCircuitInstances) {
@@ -164,7 +165,6 @@ void testNodeAfterConstant() {
   assert(subCircuitInstances.size() == 2);
 
   deleteContext(c);
-
 }
 
 void testSubcircuitModule() {
@@ -176,47 +176,38 @@ void testSubcircuitModule() {
   uint width = 32;
   uint addr_width = 16;
 
-  Type* miniChipType = c->Record({
-      {"in0", c->BitIn()->Arr(width)},
-        {"in1", c->BitIn()->Arr(width)},
-          {"config_addr", c->BitIn()->Arr(addr_width)},
-            {"config_data", c->BitIn()},
-              {"clk", c->Named("coreir.clkIn")},
-                {"out", c->Bit()->Arr(width)}
-    });
+  Type* miniChipType = c->Record({{"in0", c->BitIn()->Arr(width)},
+                                  {"in1", c->BitIn()->Arr(width)},
+                                  {"config_addr", c->BitIn()->Arr(addr_width)},
+                                  {"config_data", c->BitIn()},
+                                  {"clk", c->Named("coreir.clkIn")},
+                                  {"out", c->Bit()->Arr(width)}});
 
   Module* miniChip = g->newModuleDecl("miniChip", miniChipType);
   ModuleDef* def = miniChip->newModuleDef();
 
-  def->addInstance("config_data_reg",
-                   "mantle.reg",
-                   {{"width", Const::make(c, 1)},
-                       {"has_en", Const::make(c, true)}});
+  def->addInstance(
+    "config_data_reg",
+    "mantle.reg",
+    {{"width", Const::make(c, 1)}, {"has_en", Const::make(c, true)}});
 
-  def->addInstance("compare_addr",
-                   "coreir.eq",
-                   {{"width", Const::make(c, addr_width)}});
+  def->addInstance(
+    "compare_addr", "coreir.eq", {{"width", Const::make(c, addr_width)}});
 
-  def->addInstance("and_op",
-                   "coreir.and",
-                   {{"width", Const::make(c, width)}});
+  def->addInstance("and_op", "coreir.and", {{"width", Const::make(c, width)}});
 
-  def->addInstance("or_op",
-                   "coreir.or",
-                   {{"width", Const::make(c, width)}});
+  def->addInstance("or_op", "coreir.or", {{"width", Const::make(c, width)}});
 
-  def->addInstance("op_select",
-                   "coreir.mux",
-                   {{"width", Const::make(c, width)}});
+  def->addInstance(
+    "op_select", "coreir.mux", {{"width", Const::make(c, width)}});
 
-  def->addInstance("out_reg",
-                   "coreir.reg",
-                   {{"width", Const::make(c, width)}});
+  def->addInstance("out_reg", "coreir.reg", {{"width", Const::make(c, width)}});
 
-  def->addInstance("chip_addr",
-                   "coreir.const",
-                   {{"width", Const::make(c, addr_width)}},
-                   {{"value", Const::make(c, BitVec(addr_width, 12))}});
+  def->addInstance(
+    "chip_addr",
+    "coreir.const",
+    {{"width", Const::make(c, addr_width)}},
+    {{"value", Const::make(c, BitVec(addr_width, 12))}});
 
   // Wire up clock
   def->connect("self.clk", "config_data_reg.clk");
@@ -228,7 +219,7 @@ void testSubcircuitModule() {
 
   def->connect("self.in0", "or_op.in0");
   def->connect("self.in1", "or_op.in1");
-  
+
   // Wire up data outputs
   def->connect("and_op.out", "op_select.in0");
   def->connect("or_op.out", "op_select.in1");
@@ -248,11 +239,10 @@ void testSubcircuitModule() {
 
   // Extract the configuration subcircuit
   vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
-      def->sel("self")->sel("config_data"),
-      def->sel("self")->sel("clk")};
+                                    def->sel("self")->sel("config_data"),
+                                    def->sel("self")->sel("clk")};
 
-  auto subCircuitInstances =
-    extractSubcircuit(miniChip, subCircuitPorts);
+  auto subCircuitInstances = extractSubcircuit(miniChip, subCircuitPorts);
 
   cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
   for (auto inst : subCircuitInstances) {
@@ -262,15 +252,15 @@ void testSubcircuitModule() {
   assert(subCircuitInstances.size() == 4);
 
   // Create the subcircuit for the config
-  addSubcircuitModule("miniChip_config",
-                      miniChip,
-                      subCircuitPorts,
-                      subCircuitInstances,
-                      c,
-                      c->getGlobal());
+  addSubcircuitModule(
+    "miniChip_config",
+    miniChip,
+    subCircuitPorts,
+    subCircuitInstances,
+    c,
+    c->getGlobal());
 
-  Module* miniChip_conf =
-    c->getGlobal()->getModule("miniChip_config");
+  Module* miniChip_conf = c->getGlobal()->getModule("miniChip_config");
 
   assert(miniChip_conf != nullptr);
   assert(miniChip_conf->hasDef());
@@ -283,7 +273,8 @@ void testSubcircuitModule() {
 
   cout << "miniChip config connections" << endl;
   for (auto conn : mcDef->getConnections()) {
-    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
+         << endl;
   }
 
   SimulatorState state(miniChip_conf);
@@ -294,12 +285,13 @@ void testSubcircuitModule() {
   state.execute();
   state.execute();
 
-  assert(state.getBitVec("self.config_data_reg$reg0_subcircuit_out") ==
-         BitVec(1, 1));
+  assert(
+    state.getBitVec("self.config_data_reg$reg0_subcircuit_out") ==
+    BitVec(1, 1));
 
   registersToConstants(miniChip, state.getCircStates().back().registers);
   deleteDeadInstances(miniChip);
-  //unpackConnections(miniChip);
+  // unpackConnections(miniChip);
   foldConstants(miniChip);
   deleteDeadInstances(miniChip);
 
@@ -312,7 +304,8 @@ void testSubcircuitModule() {
 
   cout << "miniChip partially evaluated connections" << endl;
   for (auto conn : miniChip->getDef()->getConnections()) {
-    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
+         << endl;
   }
 
   assert(miniChip->getDef()->getInstances().size() == 2);
@@ -326,7 +319,7 @@ void testSubcircuitModule() {
   fs.execute();
 
   assert(fs.getBitVec("self.out") == BitVec(width, 234 | 34534));
-  
+
   deleteContext(c);
 }
 
@@ -347,13 +340,12 @@ void testCGRAConnectBox() {
 
   // Extract the configuration subcircuit
   vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
-      def->sel("self")->sel("config_data"),
-      def->sel("self")->sel("config_en"),
-      def->sel("self")->sel("clk"),
-      def->sel("self")->sel("reset")};
+                                    def->sel("self")->sel("config_data"),
+                                    def->sel("self")->sel("config_en"),
+                                    def->sel("self")->sel("clk"),
+                                    def->sel("self")->sel("reset")};
 
-  auto subCircuitInstances =
-    extractSubcircuit(topMod, subCircuitPorts);
+  auto subCircuitInstances = extractSubcircuit(topMod, subCircuitPorts);
 
   cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
   for (auto inst : subCircuitInstances) {
@@ -361,15 +353,15 @@ void testCGRAConnectBox() {
   }
 
   // Create the subcircuit for the config
-  addSubcircuitModule("topMod_config",
-                      topMod,
-                      subCircuitPorts,
-                      subCircuitInstances,
-                      c,
-                      c->getGlobal());
+  addSubcircuitModule(
+    "topMod_config",
+    topMod,
+    subCircuitPorts,
+    subCircuitInstances,
+    c,
+    c->getGlobal());
 
-  Module* topMod_conf =
-    c->getGlobal()->getModule("topMod_config");
+  Module* topMod_conf = c->getGlobal()->getModule("topMod_config");
 
   // cout << "topMod_config interface" << endl;
   // cout << topMod_conf->toString() << endl;
@@ -385,7 +377,8 @@ void testCGRAConnectBox() {
 
   // cout << "topMod config connections" << endl;
   // for (auto conn : mcDef->getConnections()) {
-  //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  //   cout << "\t" << conn.first->toString() << " <-> " <<
+  //   conn.second->toString() << endl;
   // }
 
   c->runPasses({"clockifyinterface"});
@@ -400,12 +393,15 @@ void testCGRAConnectBox() {
   configState.execute();
   configState.execute();
 
-  //assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26UDOLLARUreg0.out") == BitVec(32, 6));
+  // assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26UDOLLARUreg0.out")
+  // == BitVec(32, 6));
 
-  cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
+  cout << "# of instances in topMod before partial eval = "
+       << topMod->getDef()->getInstances().size() << endl;
 
   auto regs = configState.getCircStates().back().registers;
-  cout << "Connect box converting " << regs.size() << " registers to constants" << endl;
+  cout << "Connect box converting " << regs.size() << " registers to constants"
+       << endl;
   for (auto reg : regs) {
     cout << "\t" << reg.first << " ---> " << reg.second << endl;
   }
@@ -416,36 +412,38 @@ void testCGRAConnectBox() {
   //   cout << "Could not save to json!!" << endl;
   //   c->die();
   // }
-  
+
   // cout << "connect box partially evaluated:" << endl;
   // topMod->print();
 
   deleteDeadInstances(topMod);
-  //unpackConnections(topMod);
+  // unpackConnections(topMod);
   foldConstants(topMod);
   deleteDeadInstances(topMod);
 
   c->runPasses({"packconnections"});
 
-  cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
+  cout << "# of instances in topMod after partial eval = "
+       << topMod->getDef()->getInstances().size() << endl;
 
   assert(topMod->getDef()->getInstances().size() == 0);
 
   cout << "topMod partially evaluated instances" << endl;
   for (auto instR : topMod->getDef()->getInstances()) {
-    cout << "\t" << instR.second->toString() << " : " << instR.second->getModuleRef()->toString() << endl;
+    cout << "\t" << instR.second->toString() << " : "
+         << instR.second->getModuleRef()->toString() << endl;
   }
 
   cout << "topMod partially evaluated connections" << endl;
   for (auto conn : topMod->getDef()->getConnections()) {
-    cout << "\t" << conn.first->toString() << " <-> " <<
-      conn.second->toString() << endl;
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
+         << endl;
   }
 
   // assert(topMod->getDef()->getInstances().size() == 2);
 
   c->runPasses({"clockifyinterface"});
-  
+
   SimulatorState fs(topMod);
   fs.setValue("self.in_0", BitVec(16, 0));
   fs.setValue("self.in_1", BitVec(16, 1));
@@ -457,7 +455,7 @@ void testCGRAConnectBox() {
   fs.setValue("self.in_7", BitVec(16, 7));
   fs.setValue("self.in_8", BitVec(16, 8));
   fs.setValue("self.in_9", BitVec(16, 9));
-  //fs.setClock("self.clk", 0, 1);
+  // fs.setClock("self.clk", 0, 1);
 
   fs.execute();
   fs.execute();
@@ -465,7 +463,6 @@ void testCGRAConnectBox() {
   assert(fs.getBitVec("self.out") == BitVec(16, 6));
 
   deleteContext(c);
-
 }
 
 void testCGRASwitchBox() {
@@ -487,13 +484,12 @@ void testCGRASwitchBox() {
 
   // Extract the configuration subcircuit
   vector<Wireable*> subCircuitPorts{def->sel("self")->sel("config_addr"),
-      def->sel("self")->sel("config_data"),
-      def->sel("self")->sel("config_en"),
-      def->sel("self")->sel("clk"),
-      def->sel("self")->sel("reset")};
+                                    def->sel("self")->sel("config_data"),
+                                    def->sel("self")->sel("config_en"),
+                                    def->sel("self")->sel("clk"),
+                                    def->sel("self")->sel("reset")};
 
-  auto subCircuitInstances =
-    extractSubcircuit(topMod, subCircuitPorts);
+  auto subCircuitInstances = extractSubcircuit(topMod, subCircuitPorts);
 
   // cout << "Size of subciruit = " << subCircuitInstances.size() << endl;
   // for (auto inst : subCircuitInstances) {
@@ -501,15 +497,15 @@ void testCGRASwitchBox() {
   // }
 
   // Create the subcircuit for the config
-  addSubcircuitModule("topMod_config",
-                      topMod,
-                      subCircuitPorts,
-                      subCircuitInstances,
-                      c,
-                      c->getGlobal());
+  addSubcircuitModule(
+    "topMod_config",
+    topMod,
+    subCircuitPorts,
+    subCircuitInstances,
+    c,
+    c->getGlobal());
 
-  Module* topMod_conf =
-    c->getGlobal()->getModule("topMod_config");
+  Module* topMod_conf = c->getGlobal()->getModule("topMod_config");
 
   // cout << "topMod_config interface" << endl;
   // cout << topMod_conf->toString() << endl;
@@ -525,11 +521,12 @@ void testCGRASwitchBox() {
 
   // cout << "topMod config connections" << endl;
   // for (auto conn : mcDef->getConnections()) {
-  //   cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString() << endl;
+  //   cout << "\t" << conn.first->toString() << " <-> " <<
+  //   conn.second->toString() << endl;
   // }
 
   c->runPasses({"clockifyinterface"});
-  
+
   SimulatorState configState(topMod_conf);
   configState.setClock("self.clk", 0, 1);
   configState.setValue("self.config_en", BitVec(1, 1));
@@ -540,16 +537,19 @@ void testCGRASwitchBox() {
   configState.execute();
   configState.execute();
 
-  // assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0.out") == BitVec(32, 6));
+  // assert(configState.getBitVec("__DOLLAR__procdff__DOLLAR__26$reg0.out") ==
+  // BitVec(32, 6));
 
-  cout << "# of instances in topMod before partial eval = " << topMod->getDef()->getInstances().size() << endl;
+  cout << "# of instances in topMod before partial eval = "
+       << topMod->getDef()->getInstances().size() << endl;
 
   auto regs = configState.getCircStates().back().registers;
-  cout << "Connect box converting " << regs.size() << " registers to constants" << endl;
+  cout << "Connect box converting " << regs.size() << " registers to constants"
+       << endl;
   for (auto reg : regs) {
     cout << "\t" << reg.first << " ---> " << reg.second << endl;
   }
-  
+
   registersToConstants(topMod, regs);
 
   deleteDeadInstances(topMod);
@@ -558,42 +558,40 @@ void testCGRASwitchBox() {
 
   c->runPasses({"packconnections"});
 
-  cout << "# of instances in topMod after partial eval = " << topMod->getDef()->getInstances().size() << endl;
+  cout << "# of instances in topMod after partial eval = "
+       << topMod->getDef()->getInstances().size() << endl;
 
   assert(topMod->getDef()->getInstances().size() == 0);
 
   cout << "switch box partially evaluated connections" << endl;
   for (auto conn : topMod->getDef()->getConnections()) {
-    cout << "\t" << conn.first->toString() << " <-> " <<
-      conn.second->toString() << endl;
+    cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
+         << endl;
   }
 
-  //assert(false);
+  // assert(false);
 
   deleteContext(c);
-
 }
 
 void testMixedRegister() {
 
   Context* c = newContext();
 
-  Type* tp = c->Record({
-      {"config_data", c->BitIn()->Arr(8)},
-        {"data", c->BitIn()->Arr(2)},
-          {"const_val", c->BitIn()->Arr(2)}
-    });
+  Type* tp = c->Record({{"config_data", c->BitIn()->Arr(8)},
+                        {"data", c->BitIn()->Arr(2)},
+                        {"const_val", c->BitIn()->Arr(2)}});
 
   Module* m = c->getGlobal()->newModuleDecl("opt_reg", tp);
   ModuleDef* def = m->newModuleDef();
 
-  //def->addInstance("");
+  // def->addInstance("");
 
   m->setDef(def);
-  
+
   deleteContext(c);
 
-  //assert(false);
+  // assert(false);
 }
 
 int main() {

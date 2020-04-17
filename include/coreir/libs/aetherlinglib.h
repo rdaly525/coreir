@@ -24,10 +24,7 @@ void Aetherling_createOverlapPartitionGenerator(CoreIR::Context* c);
 
 // helper functions
 std::string Aetherling_addCoreIRConstantModule(
-  CoreIR::Context* c,
-  CoreIR::ModuleDef* def,
-  uint width,
-  CoreIR::Const* val);
+  CoreIR::Context* c, CoreIR::ModuleDef* def, uint width, CoreIR::Const* val);
 CoreIR::Module* Aetherling_convert2InputModuleTo2ZippedInput(
   CoreIR::Context* c,
   CoreIR::Module* moduleToWrap,

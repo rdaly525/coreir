@@ -84,9 +84,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   unordered_set<string> verifyUnique;
   for (auto portpair : ports) {
     string newport = join(
-      portpair.first.begin(),
-      portpair.first.end(),
-      string("_"));
+      portpair.first.begin(), portpair.first.end(), string("_"));
     ASSERT(verifyUnique.count(newport) == 0, "NYI: Name clashes");
     newports.push_back({newport, portpair.second});
     verifyUnique.insert(newport);
@@ -140,8 +138,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     // connect all old ports of passtrhough to new ports of wireable
     for (uint i = 0; i < ports.size(); ++i) {
       wdef->connect(
-        pt->sel("in")->sel(ports[i].first),
-        w->sel(newports[i].first));
+        pt->sel("in")->sel(ports[i].first), w->sel(newports[i].first));
     }
     // reconnect all unchanged ports
     for (auto p : unchanged) {

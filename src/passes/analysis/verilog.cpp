@@ -35,8 +35,7 @@ class BinaryOpReplacer : public vAST::Transformer {
   BinaryOpReplacer(
     std::unique_ptr<vAST::Expression> in0,
     std::unique_ptr<vAST::Expression> in1)
-    : in0(std::move(in0)),
-      in1(std::move(in1)){};
+    : in0(std::move(in0)), in1(std::move(in1)){};
 
   virtual std::unique_ptr<vAST::Expression> visit(
     std::unique_ptr<vAST::Expression> node) {
@@ -63,9 +62,7 @@ class MuxReplacer : public vAST::Transformer {
     std::unique_ptr<vAST::Expression> in0,
     std::unique_ptr<vAST::Expression> in1,
     std::unique_ptr<vAST::Expression> sel)
-    : in0(std::move(in0)),
-      in1(std::move(in1)),
-      sel(std::move(sel)){};
+    : in0(std::move(in0)), in1(std::move(in1)), sel(std::move(sel)){};
 
   virtual std::unique_ptr<vAST::Expression> visit(
     std::unique_ptr<vAST::Expression> node) {
@@ -125,8 +122,7 @@ std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
   std::pair<std::string, CoreIR::Instance*> instance,
   std::unique_ptr<vAST::Connections> verilog_connections) {
   BinaryOpReplacer transformer(
-    verilog_connections->at("in0"),
-    verilog_connections->at("in1"));
+    verilog_connections->at("in0"), verilog_connections->at("in1"));
   return std::make_unique<vAST::ContinuousAssign>(
     std::make_unique<vAST::Identifier>(instance.first + "_out"),
     transformer.visit(get_primitive_expr(instance.second)));
@@ -298,18 +294,12 @@ std::unique_ptr<vAST::Expression> convert_value(Value* value) {
   }
   else if (auto bool_value = dyn_cast<ConstBool>(value)) {
     return std::make_unique<vAST::NumericLiteral>(
-      std::to_string(uint(bool_value->get())),
-      1,
-      false,
-      vAST::BINARY);
+      std::to_string(uint(bool_value->get())), 1, false, vAST::BINARY);
   }
   else if (auto bit_vector_value = dyn_cast<ConstBitVector>(value)) {
     BitVector bit_vector = bit_vector_value->get();
     return std::make_unique<vAST::NumericLiteral>(
-      bit_vector.hex_digits(),
-      bit_vector.bitLength(),
-      false,
-      vAST::HEX);
+      bit_vector.hex_digits(), bit_vector.bitLength(), false, vAST::HEX);
   }
   else if (auto string_value = dyn_cast<ConstString>(value)) {
     return std::make_unique<vAST::String>(string_value->toString());
@@ -393,9 +383,7 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
       Type* field_type = record_type->getRecord().at(field);
       if (!field_type->isInput()) {
         make_wire_decl(
-          instance.first + "_" + field,
-          field_type,
-          wire_declarations);
+          instance.first + "_" + field, field_type, wire_declarations);
       }
     }
   }
@@ -436,9 +424,7 @@ std::unique_ptr<vAST::AbstractModule> compile_string_module(json verilog_json) {
 // If the module `isGenerated`, the parameters to the module include
 // `getDefaultGenArgs` and `getGenParams`
 std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
-  json verilog_json,
-  std::string name,
-  Module* module) {
+  json verilog_json, std::string name, Module* module) {
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports;
   for (auto port_str :
        verilog_json["interface"].get<std::vector<std::string>>()) {
@@ -487,10 +473,7 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
     definition = verilog_json["definition"].get<std::string>();
   }
   return std::make_unique<vAST::StringBodyModule>(
-    name,
-    std::move(ports),
-    definition,
-    std::move(parameters));
+    name, std::move(ports), definition, std::move(parameters));
 }
 
 // Compile a CoreIR record type corresponding to the interface of a module with
@@ -515,9 +498,7 @@ std::vector<std::unique_ptr<vAST::AbstractPort>> Passes::Verilog::compilePorts(
       ASSERT(false, "Not implemented for type = " + toString(field_type));
     }
     std::unique_ptr<vAST::Port> port = std::make_unique<vAST::Port>(
-      process_decl(std::move(name), field_type),
-      verilog_direction,
-      vAST::WIRE);
+      process_decl(std::move(name), field_type), verilog_direction, vAST::WIRE);
     if (this->verilator_debug) {
       port = vAST::AddComment(std::move(port), "verilator public");
     }
@@ -534,8 +515,7 @@ class ConnMapKey {
   std::string instance_name;
   std::string port_name;
   ConnMapKey(std::string instance_name, std::string port_name)
-    : instance_name(instance_name),
-      port_name(port_name){};
+    : instance_name(instance_name), port_name(port_name){};
   bool operator==(const ConnMapKey& other) const {
     return instance_name == other.instance_name && port_name == other.port_name;
   }
@@ -558,9 +538,7 @@ class ConnMapEntry {
   int index;
   json& metadata;
   ConnMapEntry(Wireable* source, int index, json& metadata)
-    : source(source),
-      index(index),
-      metadata(metadata){};
+    : source(source), index(index), metadata(metadata){};
 };
 
 // Builds a map from pairs of strings of the form <instance_name, port_name>
@@ -572,8 +550,7 @@ class ConnMapEntry {
 // array of 3 bits, and each bit is connected to a 1-bit driver).  In this
 // case, each entry stores the index that it drives.
 std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
-  CoreIR::ModuleDef* definition,
-  std::map<std::string, Instance*> instances) {
+  CoreIR::ModuleDef* definition, std::map<std::string, Instance*> instances) {
   std::vector<Connection> connections = definition->getSortedConnections();
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map;
   for (auto connection : connections) {
@@ -685,21 +662,18 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
         // First node should have been a normal instance
         ASSERT(
           std::visit(
-            [](auto&& node) -> bool { return node != NULL; },
-            curr_node),
+            [](auto&& node) -> bool { return node != NULL; }, curr_node),
           "Expected non-null node for hierarchical reference");
         // .substr(1) to skip ; prefix
         for (auto inst : splitString<SelectPath>(item.substr(1), ';')) {
           // Construct nested attribute node
           curr_node = std::make_unique<vAST::Attribute>(
-            std::move(curr_node),
-            inst);
+            std::move(curr_node), inst);
         }
       }
       else {
         if (std::visit(
-              [](auto&& node) -> bool { return node == NULL; },
-              curr_node)) {
+              [](auto&& node) -> bool { return node == NULL; }, curr_node)) {
           // first level select, make an id
           curr_node = vAST::make_id(item);
         }
@@ -792,26 +766,18 @@ void assign_module_outputs(
     else if (entries.size() > 1) {
       std::unique_ptr<vAST::Concat>
         concat = convert_non_bulk_connection_to_concat(
-          entries,
-          body,
-          field,
-          _inline);
+          entries, body, field, _inline);
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-        std::make_unique<vAST::Identifier>(field),
-        std::move(concat)));
+        std::make_unique<vAST::Identifier>(field), std::move(concat)));
     }
     else {
       std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
         convert_to_verilog_connection(entries[0].source, _inline));
       process_connection_debug_metadata(
-        entries[0],
-        verilog_conn->toString(),
-        body,
-        field);
+        entries[0], verilog_conn->toString(), body, field);
       // Regular (possibly bulk) connection
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-        std::make_unique<vAST::Identifier>(field),
-        std::move(verilog_conn)));
+        std::make_unique<vAST::Identifier>(field), std::move(verilog_conn)));
     }
   }
 }
@@ -904,10 +870,7 @@ compile_module_body(
       else if (entries.size() > 1) {
         std::unique_ptr<vAST::Concat>
           concat = convert_non_bulk_connection_to_concat(
-            entries,
-            body,
-            instance_name + "." + field,
-            _inline);
+            entries, body, instance_name + "." + field, _inline);
         verilog_connections->insert(field, std::move(concat));
         // Otherwise we just use the entry in the connection map
       }
@@ -950,9 +913,7 @@ compile_module_body(
       bool is_wire = instance_module->getName() == "wire";
       if (is_wire) { wires.insert(instance.first); }
       statement = inline_unary_op(
-        instance,
-        std::move(verilog_connections),
-        is_wire);
+        instance, std::move(verilog_connections), is_wire);
     }
     else if (can_inline_mux_op(instance_module, _inline)) {
       statement = inline_mux_op(instance, std::move(verilog_connections));
@@ -1049,8 +1010,7 @@ void Passes::Verilog::compileModule(Module* module) {
     else {
       std::string name = make_name(module->getName(), verilog_json);
       modules.push_back(std::make_pair(
-        name,
-        compileStringBodyModule(verilog_json, name, module)));
+        name, compileStringBodyModule(verilog_json, name, module)));
     }
     return;
   }
@@ -1070,8 +1030,7 @@ void Passes::Verilog::compileModule(Module* module) {
     std::string name = make_name(module->getName(), verilog_json);
 
     modules.push_back(std::make_pair(
-      name,
-      compileStringBodyModule(verilog_json, name, module)));
+      name, compileStringBodyModule(verilog_json, name, module)));
 
     // We only need to compile the verilog generator once, even though
     // there may be multiple instances of the generator represented as
@@ -1094,10 +1053,7 @@ void Passes::Verilog::compileModule(Module* module) {
     body;
   if (module->hasDef()) {
     body = compile_module_body(
-      module->getType(),
-      definition,
-      this->_inline,
-      this->wires);
+      module->getType(), definition, this->_inline, this->wires);
   }
 
   if (module->getMetaData().count("filename") > 0) {
@@ -1108,8 +1064,7 @@ void Passes::Verilog::compileModule(Module* module) {
       debug_str += ":" + module->getMetaData()["lineno"].get<std::string>();
     }
     body.insert(
-      body.begin(),
-      std::make_unique<vAST::SingleLineComment>(debug_str));
+      body.begin(), std::make_unique<vAST::SingleLineComment>(debug_str));
   }
 
   // Temporary support for inline verilog
@@ -1136,12 +1091,9 @@ void Passes::Verilog::compileModule(Module* module) {
       std::string value = std::visit(
         [](auto&& value) -> std::string { return value->toString(); },
         convert_to_verilog_connection(
-          module->getDef()->sel(connect_select_path),
-          this->_inline));
+          module->getDef()->sel(connect_select_path), this->_inline));
       inline_str = std::regex_replace(
-        inline_str,
-        std::regex("\\{" + it.key() + "\\}"),
-        value);
+        inline_str, std::regex("\\{" + it.key() + "\\}"), value);
     }
     body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
   }
@@ -1151,10 +1103,7 @@ void Passes::Verilog::compileModule(Module* module) {
   std::string name = module->getLongName();
   std::unique_ptr<vAST::AbstractModule>
     verilog_module = std::make_unique<vAST::Module>(
-      name,
-      std::move(ports),
-      std::move(body),
-      std::move(parameters));
+      name, std::move(ports), std::move(body), std::move(parameters));
 
   if (this->_inline) {
     vAST::AssignInliner transformer(this->wires);
@@ -1186,8 +1135,7 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
 }
 
 void Passes::Verilog::writeToFiles(
-  const std::string& dir,
-  std::unique_ptr<std::string> product_file) {
+  const std::string& dir, std::unique_ptr<std::string> product_file) {
   std::vector<std::string> products;
   for (auto& module : modules) {
     const std::string filename = module.first + ".v";

@@ -10,9 +10,7 @@ namespace {
 string CLOCK = "clk";
 
 std::vector<string> check_interface_variable(
-  std::vector<string> variables,
-  SmvBVVar var,
-  SMVModule* smod) {
+  std::vector<string> variables, SmvBVVar var, SMVModule* smod) {
   if (
     find(variables.begin(), variables.end(), var.getName()) ==
     variables.end()) {
@@ -141,9 +139,7 @@ void Passes::SMV::writeToStream(std::ostream& os) {
   os << "-- Properties" << endl;
   for (auto property : properties) {
     os << SMVProperty(
-            property.first,
-            property.second.first,
-            property.second.second)
+            property.first, property.second.first, property.second.second)
        << endl;
   }
 }

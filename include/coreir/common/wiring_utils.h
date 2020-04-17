@@ -30,8 +30,7 @@ std::map<Wireable*, std::vector<Wireable*>> signalReceiverMap(
 bool isAncestorOf(Wireable* const possibleAncestor, Wireable* const w);
 
 std::vector<Wireable*> drivenBy(
-  Wireable* const w,
-  std::map<Wireable*, std::vector<Wireable*>>& receiverMap);
+  Wireable* const w, std::map<Wireable*, std::vector<Wireable*>>& receiverMap);
 
 std::vector<CoreIR::Select*> getSignalValues(CoreIR::Select* const sel);
 

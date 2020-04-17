@@ -42,9 +42,9 @@ class LoggerWrapper {
 class Logger {
  public:
   Logger(bool alive, bool abort, bool write)
-      : alive_(alive), abort_(abort), write_(write) {}
+    : alive_(alive), abort_(abort), write_(write) {}
   Logger(Logger&& that)
-      : alive_(true), abort_(that.abort_), write_(that.write_) {
+    : alive_(true), abort_(that.abort_), write_(that.write_) {
     that.alive_ = false;
   }
   Logger(const Logger& that) = delete;
@@ -82,7 +82,7 @@ class LoggerVoidify {
 
 #define LOG(severity)                                                          \
   ::common::internal::LoggerWrapper(severity)                                  \
-      << __FILE__ << ":" << __LINE__ << " "
+    << __FILE__ << ":" << __LINE__ << " "
 
 #define LOG_IF(severity, condition)                                            \
   (!condition) ? ((void)0) : ::common::internal::LoggerVoidify() & LOG(severity)

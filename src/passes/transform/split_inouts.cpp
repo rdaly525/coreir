@@ -29,9 +29,7 @@ void splitInOutToTribuf(
 
   int width = 1;
   auto mux = def->addInstance(
-    portName + "_split_mux",
-    "coreir.mux",
-    {{"width", Const::make(c, width)}});
+    portName + "_split_mux", "coreir.mux", {{"width", Const::make(c, width)}});
 
   // Add array connections
   def->connect(mux->sel("in0")->sel(0), inputPort);
@@ -62,14 +60,10 @@ void splitInOutToTribuf(
     cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
          << endl;
     Wireable* f = replaceSelect(
-      tristateBuf->sel("in"),
-      mux->sel("in1"),
-      conn.first);
+      tristateBuf->sel("in"), mux->sel("in1"), conn.first);
 
     Wireable* s = replaceSelect(
-      tristateBuf->sel("in"),
-      mux->sel("in1"),
-      conn.second);
+      tristateBuf->sel("in"), mux->sel("in1"), conn.second);
 
     def->connect(f, s);
   }
@@ -92,14 +86,10 @@ void splitInOutToTribuf(
     cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
          << endl;
     Wireable* f = replaceSelect(
-      tristateCast->sel("out"),
-      mux->sel("out"),
-      conn.first);
+      tristateCast->sel("out"), mux->sel("out"), conn.first);
 
     Wireable* s = replaceSelect(
-      tristateCast->sel("out"),
-      mux->sel("out"),
-      conn.second);
+      tristateCast->sel("out"), mux->sel("out"), conn.second);
 
     freshConns.push_back({f, s});
   }

@@ -21,9 +21,7 @@ std::string cVar(CoreIR::Wireable& w) {
 }
 
 std::string cVar(
-  const std::string& prefix,
-  CoreIR::Wireable& w,
-  const std::string& suffix) {
+  const std::string& prefix, CoreIR::Wireable& w, const std::string& suffix) {
 
   if (isSelect(w)) {
     CoreIR::Select& s = toSelect(w);
@@ -224,8 +222,7 @@ std::string cArrayTypeDecl(Type& t, const std::string& varName) {
     Type& underlying = *(tArr.getElemType());
 
     return cArrayTypeDecl(
-      underlying,
-      varName + "[ " + std::to_string(tArr.getLen()) + " ]");
+      underlying, varName + "[ " + std::to_string(tArr.getLen()) + " ]");
   }
 
   cout << "ERROR: Unsupported type = " << t.toString() << endl;

@@ -48,14 +48,10 @@ bool RemoveConstDuplicates::runOnModule(Module* m) {
         Wireable* snd = conn.second;
 
         Wireable* newFst = replaceSelect(
-          zeroConst->sel("out"),
-          zC->sel("out"),
-          fst);
+          zeroConst->sel("out"), zC->sel("out"), fst);
 
         Wireable* newSnd = replaceSelect(
-          zeroConst->sel("out"),
-          zC->sel("out"),
-          snd);
+          zeroConst->sel("out"), zC->sel("out"), snd);
 
         newConns.push_back({newFst, newSnd});
       }
@@ -81,14 +77,10 @@ bool RemoveConstDuplicates::runOnModule(Module* m) {
         Wireable* snd = conn.second;
 
         Wireable* newFst = replaceSelect(
-          zeroConst->sel("out"),
-          zC->sel("out"),
-          fst);
+          zeroConst->sel("out"), zC->sel("out"), fst);
 
         Wireable* newSnd = replaceSelect(
-          zeroConst->sel("out"),
-          zC->sel("out"),
-          snd);
+          zeroConst->sel("out"), zC->sel("out"), snd);
 
         newConns.push_back({newFst, newSnd});
       }

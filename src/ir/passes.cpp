@@ -15,8 +15,7 @@ Context* Pass::getContext() {
 }
 
 bool InstanceVisitorPass::runOnModInstances(
-  Module* m,
-  set<Instance*>& instances) {
+  Module* m, set<Instance*>& instances) {
   if (modVisitorMap.count(m) == 0) return false;
   auto fun = modVisitorMap[m];
   bool modified = false;
@@ -25,8 +24,7 @@ bool InstanceVisitorPass::runOnModInstances(
 }
 
 bool InstanceVisitorPass::runOnGenInstances(
-  Generator* g,
-  set<Instance*>& instances) {
+  Generator* g, set<Instance*>& instances) {
   if (genVisitorMap.count(g) == 0) return false;
   auto fun = genVisitorMap[g];
   bool modified = false;
@@ -43,8 +41,7 @@ void InstanceVisitorPass::addVisitorFunction(Module* m, InstanceVisitor_t fun) {
 }
 
 void InstanceVisitorPass::addVisitorFunction(
-  Generator* g,
-  InstanceVisitor_t fun) {
+  Generator* g, InstanceVisitor_t fun) {
   ASSERT(
     genVisitorMap.count(g) == 0,
     "Already added Function for " + g->getRefName());

@@ -202,8 +202,7 @@ bool foldConstants(CoreIR::Module* const mod) {
           inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
         ASSERT(
-          ((uint)sigVal0.bitLength()) == inWidth,
-          "BitLength is incorrect");
+          ((uint)sigVal0.bitLength()) == inWidth, "BitLength is incorrect");
         assert(((uint)sigVal1.bitLength()) == inWidth);
         assert(res.bitLength() == 1);
 
@@ -488,8 +487,7 @@ bool foldConstants(CoreIR::Module* const mod) {
           inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
         ASSERT(
-          ((uint)sigVal0.bitLength()) == inWidth,
-          "BitLength is incorrect");
+          ((uint)sigVal0.bitLength()) == inWidth, "BitLength is incorrect");
         assert(res.bitLength() == 1);
 
         bool resVal = res == BitVec(1, 1) ? true : false;
@@ -655,8 +653,7 @@ bool foldConstants(CoreIR::Module* const mod) {
           inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
         ASSERT(
-          ((uint)sigVal0.bitLength()) == inWidth,
-          "BitLength is incorrect");
+          ((uint)sigVal0.bitLength()) == inWidth, "BitLength is incorrect");
         assert(res.bitLength() == 1);
 
         bool resVal = res == BitVec(1, 1) ? true : false;

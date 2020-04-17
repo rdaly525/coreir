@@ -68,9 +68,7 @@ class LowBinop : public LowExpr {
 
  public:
   LowBinop(const std::string& op_, LowExpr* const op0_, LowExpr* const op1_)
-    : op(op_),
-      op0(op0_),
-      op1(op1_) {}
+    : op(op_), op0(op0_), op1(op1_) {}
 
   virtual std::string cString() const {
     if (op == "MASK") {

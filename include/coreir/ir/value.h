@@ -97,8 +97,7 @@ class Arg : public Value {
 
  public:
   Arg(ValueType* vtype, std::string field)
-    : Value(vtype, VK_Arg),
-      field(field) {}
+    : Value(vtype, VK_Arg), field(field) {}
   static bool classof(const Value* v) { return v->getKind() == VK_Arg; }
   const std::string& getField() const { return field; }
   bool operator==(const Value& r) const override;

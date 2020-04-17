@@ -169,8 +169,7 @@ bool isAncestorOf(Wireable* const possibleAncestor, Wireable* const w) {
 }
 
 vector<Wireable*> drivenBy(
-  Wireable* const w,
-  std::map<Wireable*, std::vector<Wireable*>>& receiverMap) {
+  Wireable* const w, std::map<Wireable*, std::vector<Wireable*>>& receiverMap) {
   vector<Wireable*> driven;
   for (auto rec : receiverMap) {
     if (isAncestorOf(w, rec.first)) { concat(driven, rec.second); }
@@ -272,8 +271,7 @@ maybe<BitVector> getSignalBitVec(const std::vector<CoreIR::Select*>& signals) {
     }
     else {
       ASSERT(
-        getQualifiedOpName(*srcConst) == "coreir.const",
-        "must be constant");
+        getQualifiedOpName(*srcConst) == "coreir.const", "must be constant");
 
       ASSERT(
         isNumber(sigi->getSelStr()),
@@ -364,8 +362,7 @@ void portToConstant(
   Select* replacement = constReplace->sel("out");
 
   Instance* wbPassthrough = addPassthrough(
-    sel,
-    constReplace->getInstname() + "_tmp_passthrough");
+    sel, constReplace->getInstname() + "_tmp_passthrough");
 
   // cout << "passthrough type = " << wbPassthrough->getType()->toString() <<
   // endl; cout << "replacement type = " << replacement->getType()->toString()

@@ -281,8 +281,8 @@ static inline bool isUDivOrRem(Instance& inst) {
 
 static inline bool isBitwiseOp(Instance& inst) {
   std::string genRefName = getInstanceName(inst);
-  std::vector<std::string>
-    bitwiseOps{"not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
+  std::vector<std::string> bitwiseOps{
+    "not", "and", "or", "xor", "bitor", "bitand", "bitxor"};
   return elem(genRefName, bitwiseOps);
 }
 
@@ -345,7 +345,6 @@ Module* loadModule(
   const std::string& topModName);
 
 std::vector<std::string> splitStr(
-  const std::string& str,
-  const std::string& delimiter);
+  const std::string& str, const std::string& delimiter);
 
 }  // namespace CoreIR

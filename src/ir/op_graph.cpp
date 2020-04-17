@@ -27,9 +27,7 @@ bool isSequential(CoreIR::Wireable* p1, PluginMap& pluginMap) {
 }
 
 void addConnection(
-  std::unordered_map<WireNode, vdisc>& imap,
-  Conn& conn,
-  NGraph& g);
+  std::unordered_map<WireNode, vdisc>& imap, Conn& conn, NGraph& g);
 
 Wireable* extractSource(Select* sel) {
   Wireable* p = sel->getParent();
@@ -604,9 +602,7 @@ Select* findMainClock(const NGraph& g) {
 }
 
 bool isSubgraphInput(
-  const vdisc vd,
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const vdisc vd, const std::deque<vdisc>& nodes, const NGraph& g) {
 
   if (g.inEdges(vd).size() == 0) {
     WireNode wd = g.getNode(vd);
@@ -634,16 +630,13 @@ bool isSubgraphInput(
 }
 
 bool isSubgraphOutput(
-  const vdisc vd,
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const vdisc vd, const std::deque<vdisc>& nodes, const NGraph& g) {
 
   return g.outEdges(vd).size() == 0;
 }
 
 bool subgraphHasCombinationalInput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
   bool hasCombInput = false;
   for (auto& vd : nodes) {
     if (isSubgraphInput(vd, nodes, g)) {
@@ -660,8 +653,7 @@ bool subgraphHasCombinationalInput(
 }
 
 bool subgraphHasAllSequentialOutputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
   for (auto& vd : nodes) {
     if (isSubgraphOutput(vd, nodes, g)) {
       WireNode wd = g.getNode(vd);
@@ -673,8 +665,7 @@ bool subgraphHasAllSequentialOutputs(
 }
 
 bool subgraphHasAllSequentialInputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
   for (auto& vd : nodes) {
     if (isSubgraphInput(vd, nodes, g)) {
       WireNode wd = g.getNode(vd);
@@ -686,8 +677,7 @@ bool subgraphHasAllSequentialInputs(
 }
 
 bool subgraphHasCombinationalOutput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
   bool hasCombOutput = false;
   for (auto& vd : nodes) {
     if (isSubgraphOutput(vd, nodes, g)) {
@@ -704,8 +694,7 @@ bool subgraphHasCombinationalOutput(
 }
 
 bool subgraphHasSequentialInput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
 
   for (auto& vd : nodes) {
     if (isSubgraphInput(vd, nodes, g)) {
@@ -719,8 +708,7 @@ bool subgraphHasSequentialInput(
 }
 
 bool subgraphHasSequentialOutput(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
 
   for (auto& vd : nodes) {
     if (isSubgraphOutput(vd, nodes, g)) {
@@ -734,14 +722,12 @@ bool subgraphHasSequentialOutput(
 }
 
 bool subgraphHasAllCombinationalInputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
   return !subgraphHasSequentialInput(nodes, g);
 }
 
 bool subgraphHasAllCombinationalOutputs(
-  const std::deque<vdisc>& nodes,
-  const NGraph& g) {
+  const std::deque<vdisc>& nodes, const NGraph& g) {
   return !subgraphHasSequentialOutput(nodes, g);
 }
 

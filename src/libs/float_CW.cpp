@@ -15,9 +15,7 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
                                {"ieee_compliance", c->Bool()}});
 
   auto add_tg = fpcw->newTypeGen(
-    "addtype",
-    floatParams,
-    [](Context* c, Values args) {
+    "addtype", floatParams, [](Context* c, Values args) {
       uint exp_bits = args.at("exp_bits")->get<int>();
       uint frac_bits = args.at("frac_bits")->get<int>();
       uint width = 1 + exp_bits + frac_bits;
@@ -29,14 +27,11 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
                         {"status", c->Bit()->Arr(8)}});
     });
   auto mul_tg = fpcw->newTypeGen(
-    "mul_tg",
-    floatParams,
-    [](Context* c, Values args) {
+    "mul_tg", floatParams, [](Context* c, Values args) {
       uint exp_bits = args.at("exp_bits")->get<int>();
       uint frac_bits = args.at("frac_bits")->get<int>();
       ASSERT(
-        frac_bits >= 10,
-        "Cannot instantiate multiplier less than 10 bits");
+        frac_bits >= 10, "Cannot instantiate multiplier less than 10 bits");
       uint width = 1 + exp_bits + frac_bits;
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({{"a", c->Flip(ptype)},
@@ -112,9 +107,8 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
   // Add verilog to add
   {
     json vjson;
-    vjson["interface"] = {"input [15:0] in0",
-                          "input [15:0] in1",
-                          "output [15:0] out"};
+    vjson["interface"] = {
+      "input [15:0] in0", "input [15:0] in1", "output [15:0] out"};
     vjson["definition"] = R"(
 localparam exp_bits = 8;
 localparam frac_bits = 7;

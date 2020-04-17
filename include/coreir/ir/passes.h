@@ -29,10 +29,7 @@ class Pass {
 
  public:
   explicit Pass(
-    PassKind kind,
-    std::string name,
-    std::string description,
-    bool isAnalysis)
+    PassKind kind, std::string name, std::string description, bool isAnalysis)
     : kind(kind),
       name(name),
       description(description),
@@ -71,9 +68,7 @@ typedef Pass* (*register_pass_t)();
 class ContextPass : public Pass {
  public:
   explicit ContextPass(
-    std::string name,
-    std::string description,
-    bool isAnalysis = false)
+    std::string name, std::string description, bool isAnalysis = false)
     : Pass(PK_Context, name, description, isAnalysis) {}
   static bool classof(const Pass* p) { return p->getKind() == PK_Context; }
   virtual void initialize(int argc, char** argv) override {}
@@ -87,9 +82,7 @@ class ContextPass : public Pass {
 class NamespacePass : public Pass {
  public:
   explicit NamespacePass(
-    std::string name,
-    std::string description,
-    bool isAnalysis = false)
+    std::string name, std::string description, bool isAnalysis = false)
     : Pass(PK_Namespace, name, description, isAnalysis) {}
   static bool classof(const Pass* p) { return p->getKind() == PK_Namespace; }
   virtual void initialize(int argc, char** argv) override {}
@@ -104,9 +97,7 @@ class NamespacePass : public Pass {
 class ModulePass : public Pass {
  public:
   explicit ModulePass(
-    std::string name,
-    std::string description,
-    bool isAnalysis = false)
+    std::string name, std::string description, bool isAnalysis = false)
     : Pass(PK_Module, name, description, isAnalysis) {}
   static bool classof(const Pass* p) { return p->getKind() == PK_Module; }
   virtual void initialize(int argc, char** argv) override {}
@@ -121,9 +112,7 @@ class ModulePass : public Pass {
 class InstancePass : public Pass {
  public:
   explicit InstancePass(
-    std::string name,
-    std::string description,
-    bool isAnalysis = false)
+    std::string name, std::string description, bool isAnalysis = false)
     : Pass(PK_Instance, name, description, isAnalysis) {}
   static bool classof(const Pass* p) { return p->getKind() == PK_Instance; }
   virtual void initialize(int argc, char** argv) override {}
@@ -138,9 +127,7 @@ class InstancePass : public Pass {
 class InstanceVisitorPass : public Pass {
  public:
   explicit InstanceVisitorPass(
-    std::string name,
-    std::string description,
-    bool isAnalysis = false)
+    std::string name, std::string description, bool isAnalysis = false)
     : Pass(PK_InstanceVisitor, name, description, isAnalysis) {
     addDependency("createfullinstancemap");
   }
@@ -176,9 +163,7 @@ class InstanceGraphPass : public Pass {
 
  public:
   explicit InstanceGraphPass(
-    std::string name,
-    std::string description,
-    bool isAnalysis = false)
+    std::string name, std::string description, bool isAnalysis = false)
     : Pass(PK_InstanceGraph, name, description, isAnalysis) {
     addDependency("createinstancegraph");
   }

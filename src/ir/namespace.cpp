@@ -85,9 +85,7 @@ TypeGen* Namespace::getTypeGen(string name) {
 }
 
 Generator* Namespace::newGeneratorDecl(
-  string name,
-  TypeGen* typegen,
-  Params genparams) {
+  string name, TypeGen* typegen, Params genparams) {
   // Make sure module does not already exist as a module or generator
   ASSERT(moduleList.count(name) == 0, "Already added " + name);
   ASSERT(generatorList.count(name) == 0, "Already added " + name);
@@ -100,11 +98,9 @@ Generator* Namespace::newGeneratorDecl(
 Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
   // Make sure module does not already exist as a module or generator
   ASSERT(
-    moduleList.count(name) == 0,
-    name + " already exists in " + this->name);
+    moduleList.count(name) == 0, name + " already exists in " + this->name);
   ASSERT(
-    generatorList.count(name) == 0,
-    name + " already exists in " + this->name);
+    generatorList.count(name) == 0, name + " already exists in " + this->name);
   ASSERT(
     isa<RecordType>(t),
     "Module type needs to be a record but is: " + t->toString());
