@@ -1,19 +1,6 @@
-#ifndef SMVMODULE_HPP_
-#define SMVMODULE_HPP_
+#pragma once
 
-// What I need to represent
-//
-// Wire(string name, int bits)
-//
-// ModuleDec((Wire w,string dir)* puts,stmt* stmsts)
-// Stmt = string
-//     | WireDec(Wire w)
-//     | Assigns(string left, string right)
-//     | Instance(string modname,(Wire l, Wire r)*)
-//
-// Expr = string
-//     | Wire
-
+#include "coreir.h"
 using namespace CoreIR;  // TODO get rid of this
 using namespace std;
 
@@ -168,5 +155,3 @@ class SMVModule {
     coreir_unreachable();
   }
 };
-
-#endif
