@@ -38,46 +38,59 @@ Namespace* CoreIRLoadLibrary_aetherlinglib(Context* c) {
   // passed as inputs to generators, only other generators can. I need to
   // convert this int a function that produces generators, will do later
   Params op2To1Params = Params(
-      {{"width", c->Int()}, {"constant", c->Int()}, {"operator", c->String()}});
+    {{"width", c->Int()}, {"constant", c->Int()}, {"operator", c->String()}});
 
-  aetherlinglib->newTypeGen("op2To1_type", op2To1Params,
-                            [](Context* c, Values genargs) {
-                              uint width = genargs.at("width")->get<int>();
-                              return c->Record({{"in", c->BitIn()->Arr(width)},
-                                                {"out", c->Bit()->Arr(width)}});
-                            });
+  aetherlinglib->newTypeGen(
+    "op2To1_type",
+    op2To1Params,
+    [](Context* c, Values genargs) {
+      uint width = genargs.at("width")->get<int>();
+      return c->Record(
+        {{"in", c->BitIn()->Arr(width)}, {"out", c->Bit()->Arr(width)}});
+    });
 
   Generator* op2To1 = aetherlinglib->newGeneratorDecl(
-      "op2To1", aetherlinglib->getTypeGen("op2To1_type"), op2To1Params);
+    "op2To1",
+    aetherlinglib->getTypeGen("op2To1_type"),
+    op2To1Params);
 
   op2To1->setGeneratorDefFromFun(
-      [](Context* c, Values genargs, ModuleDef* def) {
-        uint width = genargs.at("width")->get<int>();
-        uint constant = genargs.at("constant")->get<int>();
-        string op = genargs.at("operator")->get<string>();
-        assert(width > 0);
+    [](Context* c, Values genargs, ModuleDef* def) {
+      uint width = genargs.at("width")->get<int>();
+      uint constant = genargs.at("constant")->get<int>();
+      string op = genargs.at("operator")->get<string>();
+      assert(width > 0);
 
-        Const* aWidth = Const::make(c, width);
+      Const* aWidth = Const::make(c, width);
 
-        def->addInstance("baseOp", op, {{"width", aWidth}});
-        def->addInstance("constIn", "coreir.const", {{"width", aWidth}},
-                         {{"value", Const::make(c, width, constant)}});
+      def->addInstance("baseOp", op, {{"width", aWidth}});
+      def->addInstance(
+        "constIn",
+        "coreir.const",
+        {{"width", aWidth}},
+        {{"value", Const::make(c, width, constant)}});
 
-        def->connect("self.in", "baseOp.in.0");
-        def->connect("constIn.out", "baseOp.in.1");
-        def->connect("baseOp.out", "self.out");
-      });
+      def->connect("self.in", "baseOp.in.0");
+      def->connect("constIn.out", "baseOp.in.1");
+      def->connect("baseOp.out", "self.out");
+    });
 
   return aetherlinglib;
 }
 
-string Aetherling_addCoreIRConstantModule(Context* c, ModuleDef* def,
-                                          uint width, Const* val) {
+string Aetherling_addCoreIRConstantModule(
+  Context* c,
+  ModuleDef* def,
+  uint width,
+  Const* val) {
   string valName = val->toString();
   replace(valName.begin(), valName.end(), '\'', '_');
   string constName = "constInput_" + valName;
-  def->addInstance(constName, "coreir.const",
-                   {{"width", Const::make(c, width)}}, {{"value", val}});
+  def->addInstance(
+    constName,
+    "coreir.const",
+    {{"width", Const::make(c, width)}},
+    {{"value", val}});
   return constName;
 }
 

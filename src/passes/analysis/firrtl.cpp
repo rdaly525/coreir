@@ -26,27 +26,31 @@ string CoreIR::Passes::FModule::type2firrtl(Type* t, bool isInput) {
       for (auto rec : rt->getRecord()) {
         sels.push_back(rec.first + " : " + type2firrtl(rec.second, isInput));
       }
-    } else {
+    }
+    else {
       ASSERT(0, "NYI Bundles");
     }
     return join(sels.begin(), sels.end(), string(", "));
-  } else if (auto at = dyn_cast<ArrayType>(t)) {
+  }
+  else if (auto at = dyn_cast<ArrayType>(t)) {
     Type* et = at->getElemType();
-    if (et->isBaseType()) {
-      return "UInt<" + to_string(at->getLen()) + ">";
-    } else {
+    if (et->isBaseType()) { return "UInt<" + to_string(at->getLen()) + ">"; }
+    else {
       return type2firrtl(et, isInput) + "[" + to_string(at->getLen()) + "]";
     }
-  } else if (auto nt = dyn_cast<NamedType>(t)) {
+  }
+  else if (auto nt = dyn_cast<NamedType>(t)) {
     if (nt == c->Named("coreir.clk") || nt == c->Named("coreir.clkIn"))
       return "Clock";
     else if (nt == c->Named("coreir.arst") || nt == c->Named("coreir.arstIn"))
       return "UInt<1>";
     else
       ASSERT(0, "NYI: " + nt->toString());
-  } else if (t->isBaseType()) {
+  }
+  else if (t->isBaseType()) {
     return "UInt<1>";
-  } else {
+  }
+  else {
     ASSERT(0, "DEBUGME: " + t->toString());
   }
 }
@@ -78,18 +82,22 @@ string sinkPathToString(CoreIR::Passes::FModule* fm, SelectPath sp) {
 
     if (isNumber(current)) {
       ASSERT(0, "Illegal sink SelectPath (illegal indexing): " + sp2Str(sp));
-    } else {
+    }
+    else {
       if (isNumber(next)) {
         if (seenNumber) {
-          ASSERT(0, "Illegal sink SelectPath (cannot multiply index in one "
-                    "sink expression): " +
-                        sp2Str(sp));
+          ASSERT(
+            0,
+            "Illegal sink SelectPath (cannot multiply index in one "
+            "sink expression): " +
+              sp2Str(sp));
         }
         int next_int = std::stoi(next);
         ret += "." + fm->getOutputBitWire(current, next_int);
         seenNumber = true;
         i += 2;
-      } else {
+      }
+      else {
         ret += "." + current;
         i++;
       }
@@ -101,31 +109,39 @@ string sinkPathToString(CoreIR::Passes::FModule* fm, SelectPath sp) {
   return ret;
 }
 
-void addConnection(Context* c, CoreIR::Passes::FModule* fm, SelectPath snk,
-                   SelectPath src) {
+void addConnection(
+  Context* c,
+  CoreIR::Passes::FModule* fm,
+  SelectPath snk,
+  SelectPath src) {
   string snkstr = sinkPathToString(fm, snk);
   if (!isNumber(src.back())) {
     if (src[0] == "self") src.pop_front();
 
     fm->addStmt(snkstr + " <= " + sp2Str(src));
-  } else if (src.size() == 3) {
+  }
+  else if (src.size() == 3) {
     SelectPath tsrc = src;
     if (tsrc[0] == "self") tsrc.pop_front();
 
     tsrc.pop_back();
     string tname = "tmpidx" + c->getUnique();
     fm->addStmt("wire " + tname + " : UInt");
-    fm->addStmt(tname + " <= bits(" + sp2Str(tsrc) + "," + src.back() + "," +
-                src.back() + ")");
+    fm->addStmt(
+      tname + " <= bits(" + sp2Str(tsrc) + "," + src.back() + "," + src.back() +
+      ")");
     fm->addStmt(snkstr + " <= " + tname);
-  } else {
+  }
+  else {
     std::cout << toString(src) << "," << toString(snk) << std::endl;
     assert(false);
   }
 }
 
-std::string ReplaceString(std::string subject, const std::string& search,
-                          const std::string& replace) {
+std::string ReplaceString(
+  std::string subject,
+  const std::string& search,
+  const std::string& replace) {
   size_t pos = 0;
   while ((pos = subject.find(search, pos)) != std::string::npos) {
     subject.replace(pos, search.length(), replace);
@@ -157,8 +173,9 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
   this->modMap[m] = fm;
   this->fmods.push_back(fm);
 
-  ASSERT(fm->hasDef(),
-         "NYI external modules: " + fm->getName() + " : " + m->toString());
+  ASSERT(
+    fm->hasDef(),
+    "NYI external modules: " + fm->getName() + " : " + m->toString());
   if (!m->hasDef()) return false;
   ModuleDef* def = m->getDef();
 
@@ -176,17 +193,20 @@ bool Passes::Firrtl::runOnInstanceGraphNode(InstanceGraphNode& node) {
         string p = vpair.first;
         Value* v = vpair.second;
         string stmt = iname + "." + p + " <= ";
-        if (auto av = dyn_cast<Arg>(v)) {
-          stmt = stmt + av->getField();
-        } else if (auto abool = dyn_cast<ConstBool>(v)) {
+        if (auto av = dyn_cast<Arg>(v)) { stmt = stmt + av->getField(); }
+        else if (auto abool = dyn_cast<ConstBool>(v)) {
           stmt = stmt + toFConst(int(abool->get()));
-        } else if (auto aint = dyn_cast<ConstInt>(v)) {
+        }
+        else if (auto aint = dyn_cast<ConstInt>(v)) {
           stmt = stmt + toFConst(aint->get());
-        } else if (auto abv = dyn_cast<ConstBitVector>(v)) {
+        }
+        else if (auto abv = dyn_cast<ConstBitVector>(v)) {
           stmt = stmt + toFConst(abv->get());
-        } else {
-          ASSERT(0, "NYI: Value " + p + " cannot be " +
-                        v->getValueType()->toString());
+        }
+        else {
+          ASSERT(
+            0,
+            "NYI: Value " + p + " cannot be " + v->getValueType()->toString());
         }
         fm->addStmt(stmt);
       }

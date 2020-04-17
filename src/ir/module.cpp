@@ -30,24 +30,37 @@ string sanatizeParamString(string name) {
 namespace CoreIR {
 
 Module::Module(Namespace* ns, std::string name, Type* type, Params modparams)
-    : GlobalValue(GVK_Module, ns, name), Args(modparams), modparams(modparams),
-      longname((ns->getName() == "global" ? "" : ns->getName() + "_") + name) {
-  ASSERT(isa<RecordType>(type),
-         "Module type needs to be a record!\n" + type->toString());
+  : GlobalValue(GVK_Module, ns, name),
+    Args(modparams),
+    modparams(modparams),
+    longname((ns->getName() == "global" ? "" : ns->getName() + "_") + name) {
+  ASSERT(
+    isa<RecordType>(type),
+    "Module type needs to be a record!\n" + type->toString());
   this->type = cast<RecordType>(type);
 }
 
-Module::Module(Namespace* ns, std::string name, Type* type, Params modparams,
-               Generator* g, Values genargs)
-    : GlobalValue(GVK_Module, ns, name), Args(modparams), modparams(modparams),
-      g(g), genargs(genargs) {
-  ASSERT(isa<RecordType>(type),
-         "Module type needs to be a record!\n" + type->toString());
+Module::Module(
+  Namespace* ns,
+  std::string name,
+  Type* type,
+  Params modparams,
+  Generator* g,
+  Values genargs)
+  : GlobalValue(GVK_Module, ns, name),
+    Args(modparams),
+    modparams(modparams),
+    g(g),
+    genargs(genargs) {
+  ASSERT(
+    isa<RecordType>(type),
+    "Module type needs to be a record!\n" + type->toString());
   this->type = cast<RecordType>(type);
   ASSERT(g && genargs.size(), "Missing genargs!");
   if (ns->getName() != "global") {
     this->longname = ns->getName() + "_" + name;
-  } else {
+  }
+  else {
     this->longname = name;
   }
   for (auto genarg : genargs) {
@@ -82,9 +95,10 @@ ModuleDef* Module::newModuleDef() {
 void Module::addDefaultModArgs(Values defaultModArgs) {
   // Check to make sure each arg is in the mod params
   for (auto argmap : defaultModArgs) {
-    ASSERT(modparams.count(argmap.first),
-           "Cannot set default module arg. Param " + argmap.first +
-               " Does not exist!");
+    ASSERT(
+      modparams.count(argmap.first),
+      "Cannot set default module arg. Param " + argmap.first +
+        " Does not exist!");
     this->defaultModArgs[argmap.first] = argmap.second;
   }
 }
@@ -126,8 +140,9 @@ void Module::print(void) const {
 bool Module::hasVerilogDef() {
   if (this->getMetaData().count("inline_verilog")) { return true; }
   if (this->getMetaData().count("verilog") > 0) { return true; }
-  if (this->isGenerated() &&
-      this->getGenerator()->getMetaData().count("verilog") > 0) {
+  if (
+    this->isGenerated() &&
+    this->getGenerator()->getMetaData().count("verilog") > 0) {
     return true;
   }
   return false;

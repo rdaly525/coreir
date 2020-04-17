@@ -34,14 +34,15 @@ bool SPComp(const SelectPath& l, const SelectPath& r) {
   return ls < lr;
 }
 
-bool ConnectionCompFast::operator()(const Connection& l,
-                                    const Connection& r) const {
+bool ConnectionCompFast::operator()(const Connection& l, const Connection& r)
+  const {
   if (l.first != r.first) { return l.first < r.first; }
   return l.second < r.second;
 }
 
-bool ConnectionCompConsistent::operator()(const Connection& l,
-                                          const Connection& r) const {
+bool ConnectionCompConsistent::operator()(
+  const Connection& l,
+  const Connection& r) const {
   string ls = toString(l);
   string rs = toString(r);
   return ls < rs;
@@ -49,9 +50,8 @@ bool ConnectionCompConsistent::operator()(const Connection& l,
 
 // Creates a connection with no consistency guarentee
 Connection connectionCtor(Wireable* a, Wireable* b) {
-  if (a < b) {
-    return {a, b};
-  } else {
+  if (a < b) { return {a, b}; }
+  else {
     return {b, a};
   }
 }
@@ -117,14 +117,15 @@ inline bool syntaxWN(char c) {
 static std::string regex_str("^[a-zA-Z_\\-\\$][a-zA-Z0-9_\\-\\$]*");
 void checkStringSyntax(std::string& str) {
   // static regex reg(regex_str, std::regex_constants::basic);
-  ASSERT(syntaxW(str[0]),
-         str + " 0: is not a valid coreIR name!. Needs to be = " +
-             string(regex_str));
+  ASSERT(
+    syntaxW(str[0]),
+    str +
+      " 0: is not a valid coreIR name!. Needs to be = " + string(regex_str));
   for (uint i = 1; i < str.length(); ++i) {
     ASSERT(
-        syntaxWN(str[i]),
-        str + " " + to_string(i) +
-            " is not a valid coreIR name!. Needs to be = " + string(regex_str));
+      syntaxWN(str[i]),
+      str + " " + to_string(i) +
+        " is not a valid coreIR name!. Needs to be = " + string(regex_str));
   }
   // ASSERT(regex_search(str,syntaxreg),str+" is not a valid coreIR name!. Needs
   // to be = " + string(regex_str));
@@ -132,22 +133,24 @@ void checkStringSyntax(std::string& str) {
 
 void checkValuesAreParams(Values args, Params params, string errstring) {
   bool multi = args.size() > 4 || params.size() > 4;
-  ASSERT(args.size() == params.size(),
-         "Args and params are not the same!\n Args: " + toString(args, multi) +
-             "\nParams: " + toString(params, multi) + "\n" + errstring);
+  ASSERT(
+    args.size() == params.size(),
+    "Args and params are not the same!\n Args: " + toString(args, multi) +
+      "\nParams: " + toString(params, multi) + "\n" + errstring);
   for (auto const& param : params) {
     Context* c = param.second->getContext();
     auto const& arg = args.find(param.first);
-    ASSERT(arg != args.end(), "Missing Arg: " + param.first +
-                                  "\nExpects Params: " + toString(params) +
-                                  "\nBut only gave:" + toString(args) + "\n" +
-                                  errstring);
+    ASSERT(
+      arg != args.end(),
+      "Missing Arg: " + param.first + "\nExpects Params: " + toString(params) +
+        "\nBut only gave:" + toString(args) + "\n" + errstring);
     if (param.second == AnyType::make(c)) { continue; }
     ValueType* vt = arg->second->getValueType();
-    ASSERT(vt == param.second, "Param type mismatch for: " + param.first +
-                                   " (" + arg->second->toString() + " vs " +
-                                   param.second->toString() + ")" + "\n" +
-                                   errstring);
+    ASSERT(
+      vt == param.second,
+      "Param type mismatch for: " + param.first + " (" +
+        arg->second->toString() + " vs " + param.second->toString() + ")" +
+        "\n" + errstring);
   }
 }
 
@@ -173,8 +176,9 @@ void checkValuesAreConst(Values vs) {
 
 std::vector<std::string> splitStringByWhitespace(std::string const& input) {
   std::istringstream buffer(input);
-  std::vector<std::string> ret((std::istream_iterator<std::string>(buffer)),
-                               std::istream_iterator<std::string>());
+  std::vector<std::string> ret(
+    (std::istream_iterator<std::string>(buffer)),
+    std::istream_iterator<std::string>());
   return ret;
 }
 

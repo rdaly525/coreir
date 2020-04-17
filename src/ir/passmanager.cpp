@@ -16,8 +16,9 @@ PassManager::PassManager(Context* c) : c(c) {
 
 void PassManager::addPass(Pass* p) {
   p->addPassManager(this);
-  ASSERT(passMap.count(p->name) == 0,
-         "Cannot add duplicate \"" + p->name + "\" pass");
+  ASSERT(
+    passMap.count(p->name) == 0,
+    "Cannot add duplicate \"" + p->name + "\" pass");
   passMap[p->name] = p;
   // Setting the dependencies and such
   p->setAnalysisInfo();
@@ -73,7 +74,7 @@ bool PassManager::runInstanceVisitorPass(Pass* pass) {
 
   // Get the analysis pass which constructs the instancegraph
   auto cfim = static_cast<Passes::CreateInstanceMap*>(
-      this->getAnalysisPass("createfullinstancemap"));
+    this->getAnalysisPass("createfullinstancemap"));
   bool modified = false;
   InstanceVisitorPass* ivpass = cast<InstanceVisitorPass>(pass);
   for (auto imap : cfim->getModInstanceMap()) {
@@ -89,7 +90,7 @@ bool PassManager::runInstanceGraphPass(Pass* pass) {
 
   // Get the analysis pass which constructs the instancegraph
   auto cig = static_cast<Passes::CreateInstanceGraph*>(
-      this->getAnalysisPass("createinstancegraph"));
+    this->getAnalysisPass("createinstancegraph"));
   bool modified = false;
   InstanceGraphPass* igpass = cast<InstanceGraphPass>(pass);
   bool onlyTop = igpass->isOnlyTop();
@@ -144,19 +145,23 @@ bool PassManager::runPass(Pass* p, vector<string>& pArgs) {
 void PassManager::pushAllDependencies(string passString, stack<string>& work) {
   vector<string> pArgs = splitStringByWhitespace(passString);
   string passName = pArgs[0];
-  ASSERT(passMap.count(passName),
-         "Can not run pass \"" + passName + "\" because it was never loaded!");
+  ASSERT(
+    passMap.count(passName),
+    "Can not run pass \"" + passName + "\" because it was never loaded!");
   work.push(passString);
   for (auto it = passMap[passName]->dependencies.rbegin();
-       it != passMap[passName]->dependencies.rend(); ++it) {
+       it != passMap[passName]->dependencies.rend();
+       ++it) {
     string depPass = *it;  // Contains args
     vector<string> dpArgs = splitStringByWhitespace(depPass);
     string dpName = dpArgs[0];
-    ASSERT(passMap.count(dpName),
-           "Dependency " + depPass + " for " + passName + " Was never loaded!");
-    ASSERT(passMap[dpName]->isAnalysis, "Dependency \"" + depPass +
-                                            "\" for \"" + passName +
-                                            "\" cannot be a transform pass");
+    ASSERT(
+      passMap.count(dpName),
+      "Dependency " + depPass + " for " + passName + " Was never loaded!");
+    ASSERT(
+      passMap[dpName]->isAnalysis,
+      "Dependency \"" + depPass + "\" for \"" + passName +
+        "\" cannot be a transform pass");
     pushAllDependencies(depPass, work);
   }
 }
@@ -186,10 +191,12 @@ bool PassManager::run(vector<string>& passes, vector<string> nsnames) {
       bool anal = p->isAnalysis;
 
       // If it is an analysis and is not stale, do not run!
-      if (anal && analysisPasses.count(passString) &&
-          analysisPasses[passString]) {
+      if (
+        anal && analysisPasses.count(passString) &&
+        analysisPasses[passString]) {
         continue;
-      } else if (anal) {     // is analysis and needs to be run
+      }
+      else if (anal) {       // is analysis and needs to be run
         p->releaseMemory();  // clear data structures
       }
       // Run it!
@@ -197,7 +204,8 @@ bool PassManager::run(vector<string>& passes, vector<string> nsnames) {
       if (anal) {
         ASSERT(!modified, "Analysis pass cannot modify IR!");
         analysisPasses[passString] = true;
-      } else if (modified) {  // Not analysis
+      }
+      else if (modified) {  // Not analysis
         // If it modified, need to conservatly invalidate all analysis passes
         for (auto amap : analysisPasses) { analysisPasses[amap.first] = false; }
         // Run Verifier pass

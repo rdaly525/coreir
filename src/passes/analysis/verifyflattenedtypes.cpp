@@ -15,14 +15,14 @@ bool isBitOrArrOfBits(Type* t) {
 
 string Passes::VerifyFlattenedTypes::ID = "verifyflattenedtypes";
 bool Passes::VerifyFlattenedTypes::runOnInstanceGraphNode(
-    InstanceGraphNode& node) {
+  InstanceGraphNode& node) {
 
   Module* m = node.getModule();
   for (auto rpair : m->getType()->getRecord()) {
-    ASSERT(isBitOrArrOfBits(rpair.second),
-           "{" + m->getRefName() + "}." + rpair.first +
-               " Is not a flattened type!\n  Type is: " +
-               rpair.second->toString());
+    ASSERT(
+      isBitOrArrOfBits(rpair.second),
+      "{" + m->getRefName() + "}." + rpair.first +
+        " Is not a flattened type!\n  Type is: " + rpair.second->toString());
   }
 
   return false;

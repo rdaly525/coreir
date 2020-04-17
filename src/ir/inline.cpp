@@ -12,8 +12,11 @@ namespace CoreIR {
 
 // This helper will connect everything from wa to wb with a spDelta.
 // spDelta is the SelectPath delta to get from wa to wb
-void connectOffsetLevel(ModuleDef* def, Wireable* wa, SelectPath spDelta,
-                        Wireable* wb) {
+void connectOffsetLevel(
+  ModuleDef* def,
+  Wireable* wa,
+  SelectPath spDelta,
+  Wireable* wb) {
 
   for (auto waCon : wa->getConnectedWireables()) {
     for (auto wbCon : wb->getConnectedWireables()) {  // was inw
@@ -105,15 +108,18 @@ Instance* addPassthrough(Wireable* w, string instname) {
   Wireable* wcheck = w;
   while (Select* wchecksel = dyn_cast<Select>(wcheck)) {
     wcheck = wchecksel->getParent();
-    ASSERT(wcheck->getConnectedWireables().size() == 0,
-           "Cannot add a passthrough to a wireable with connected selparents");
+    ASSERT(
+      wcheck->getConnectedWireables().size() == 0,
+      "Cannot add a passthrough to a wireable with connected selparents");
   }
   ModuleDef* def = w->getContainer();
   Type* wtype = w->getType();
 
   // Add actual passthrough instance
-  Instance* pt = def->addInstance(instname, c->getGenerator("_.passthrough"),
-                                  {{"type", Const::make(c, wtype)}});
+  Instance* pt = def->addInstance(
+    instname,
+    c->getGenerator("_.passthrough"),
+    {{"type", Const::make(c, wtype)}});
 
   set<Wireable*> completed;
   PTTraverse(def, w, pt->sel("out"));
@@ -141,7 +147,8 @@ void saveSymTable(json& symtable, string path, Wireable* w) {
     for (auto spair : w->getSelects()) {
       saveSymTable(symtable, path + "." + spair.first, spair.second);
     }
-  } else {
+  }
+  else {
     Wireable* other = *(w->getConnectedWireables().begin());
     assert(other);
     bool check = symtable.get<map<string, json>>().count(path) == 0;
@@ -156,8 +163,9 @@ bool inlineInstance(Instance* inst) {
   // Special case for a passthrough
   // TODO should have a better check for passthrough than string compare
   Module* mref = inst->getModuleRef();
-  if (mref->isGenerated() &&
-      mref->getGenerator()->getRefName() == "_.passthrough") {
+  if (
+    mref->isGenerated() &&
+    mref->getGenerator()->getRefName() == "_.passthrough") {
     // cout << "Inlining: " << toString(inst) << endl;
     inlinePassthrough(inst);
     return true;
@@ -248,9 +256,8 @@ bool inlineInstance(Instance* inst) {
 
         ASSERT(jsym.count(newkey) == 0, "DEBUGME");
         SelectPath path = p.second.get<SelectPath>();
-        if (path[0] == "self") {
-          path[0] = instname;
-        } else {
+        if (path[0] == "self") { path[0] = instname; }
+        else {
           path[0] = inlinePrefix + path[0];
         }
         jsym[newkey] = path;
@@ -258,7 +265,7 @@ bool inlineInstance(Instance* inst) {
     }
 
     if (def->getModule()->getMetaData().get<map<string, json>>().count(
-            "symtable")) {
+          "symtable")) {
       json jmerge = def->getModule()->getMetaData()["symtable"];
       for (auto pair : jsym.get<map<string, json>>()) {
         bool check = jmerge.get<map<string, json>>().count(pair.first) == 0;
@@ -266,7 +273,8 @@ bool inlineInstance(Instance* inst) {
         jmerge[pair.first] = pair.second;
       }
       def->getModule()->getMetaData()["symtable"] = jmerge;
-    } else {
+    }
+    else {
       def->getModule()->getMetaData()["symtable"] = jsym;
     }
   }

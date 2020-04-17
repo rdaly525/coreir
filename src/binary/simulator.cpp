@@ -28,21 +28,25 @@ int main(int argc, char* argv[]) {
   // int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
   options.add_options()("h,help", "help")("v,verbose", "Set verbose")(
-      "i,input", "input file: <file>.json", cxxopts::value<std::string>())(
-      "o,output", "output file: <file>.<json|fir|v|dot>",
-      cxxopts::value<std::string>())(
-      "p,passes", "Run passes in order: '<pass1>,<pass2>,<pass3>,...'",
-      cxxopts::value<std::string>())(
-      "e,load_passes",
-      "external passes: '<path1.so>,<path2.so>,<path3.so>,...'",
-      cxxopts::value<std::string>())(
-      "l,load_libs",
-      "external libs: "
-      "'<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",
-      cxxopts::value<std::string>())(
-      "n,namespaces",
-      "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
-      cxxopts::value<std::string>()->default_value("global"));
+    "i,input",
+    "input file: <file>.json",
+    cxxopts::value<std::string>())(
+    "o,output",
+    "output file: <file>.<json|fir|v|dot>",
+    cxxopts::value<std::string>())(
+    "p,passes",
+    "Run passes in order: '<pass1>,<pass2>,<pass3>,...'",
+    cxxopts::value<std::string>())(
+    "e,load_passes",
+    "external passes: '<path1.so>,<path2.so>,<path3.so>,...'",
+    cxxopts::value<std::string>())(
+    "l,load_libs",
+    "external libs: "
+    "'<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",
+    cxxopts::value<std::string>())(
+    "n,namespaces",
+    "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
+    cxxopts::value<std::string>()->default_value("global"));
 
   // Do the parsing of the arguments
   auto opts = options.parse(argc, argv);
@@ -69,7 +73,7 @@ int main(int argc, char* argv[]) {
   cout << "Starting passes" << endl;
 
   c->runPasses(
-      {"rungenerators", "flattentypes", "flatten"});  //, "wireclocks-coreir"});
+    {"rungenerators", "flattentypes", "flatten"});  //, "wireclocks-coreir"});
 
   cout << "Done running passes" << endl;
 

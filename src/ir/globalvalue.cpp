@@ -6,7 +6,10 @@ using namespace std;
 namespace CoreIR {
 
 GlobalValue::GlobalValue(GlobalValueKind kind, Namespace* ns, std::string name)
-    : MetaData(), kind(kind), ns(ns), name(name) {
+  : MetaData(),
+    kind(kind),
+    ns(ns),
+    name(name) {
   checkStringSyntax(name);
 }
 string GlobalValue::getRefName() const {

@@ -9,29 +9,34 @@ std::string cVar(CoreIR::Wireable& w) {
     CoreIR::Select& s = toSelect(w);
     if (CoreIR::isNumber(s.getSelStr())) {
       return cVar(*(s.getParent())) + "[" + s.getSelStr() + "]";
-    } else {
+    }
+    else {
       return cVar(*(s.getParent())) + "_" + s.getSelStr();
     }
-  } else {
+  }
+  else {
 
     return w.toString();
   }
 }
 
-std::string cVar(const std::string& prefix, CoreIR::Wireable& w,
-                 const std::string& suffix) {
+std::string cVar(
+  const std::string& prefix,
+  CoreIR::Wireable& w,
+  const std::string& suffix) {
 
   if (isSelect(w)) {
     CoreIR::Select& s = toSelect(w);
     if (CoreIR::isNumber(s.getSelStr())) {
 
       return cVar(prefix, *(s.getParent()), suffix) + "[" + s.getSelStr() + "]";
-
-    } else {
+    }
+    else {
 
       return prefix + cVar(*(s.getParent())) + "_" + s.getSelStr() + suffix;
     }
-  } else {
+  }
+  else {
 
     return prefix + w.toString() + suffix;
   }
@@ -47,8 +52,10 @@ std::string cVar(const InstanceValue& w) {
   return cv;
 }
 
-std::string cVar(const std::string& prefix, const InstanceValue& w,
-                 const std::string& suffix) {
+std::string cVar(
+  const std::string& prefix,
+  const InstanceValue& w,
+  const std::string& suffix) {
   string cv = cVar(prefix, *(w.getWire()), suffix);
 
   return cv;
@@ -63,43 +70,59 @@ std::string cVar(const InstanceValue& w, const std::string& suffix) {
 std::string getOpString(Instance& inst) {
   string genRefName = getInstanceName(inst);
 
-  if (genRefName == "add") {
-    return " + ";
-  } else if (genRefName == "sub") {
+  if (genRefName == "add") { return " + "; }
+  else if (genRefName == "sub") {
     return " - ";
-  } else if (genRefName == "mul") {
+  }
+  else if (genRefName == "mul") {
     return " * ";
-  } else if ((genRefName == "and") || (genRefName == "bitand")) {
+  }
+  else if ((genRefName == "and") || (genRefName == "bitand")) {
     return " & ";
-  } else if (genRefName == "or") {
+  }
+  else if (genRefName == "or") {
     return " | ";
-  } else if ((genRefName == "xor") || (genRefName == "bitxor")) {
+  }
+  else if ((genRefName == "xor") || (genRefName == "bitxor")) {
     return " ^ ";
-  } else if (genRefName == "not") {
+  }
+  else if (genRefName == "not") {
     return "~";
-  } else if (genRefName == "eq") {
+  }
+  else if (genRefName == "eq") {
     return " == ";
-  } else if (genRefName == "neq") {
+  }
+  else if (genRefName == "neq") {
     return " != ";
-  } else if ((genRefName == "sge") || (genRefName == "uge")) {
+  }
+  else if ((genRefName == "sge") || (genRefName == "uge")) {
     return " >= ";
-  } else if ((genRefName == "sle") || (genRefName == "ule")) {
+  }
+  else if ((genRefName == "sle") || (genRefName == "ule")) {
     return " <= ";
-  } else if ((genRefName == "sgt") || (genRefName == "ugt")) {
+  }
+  else if ((genRefName == "sgt") || (genRefName == "ugt")) {
     return " > ";
-  } else if ((genRefName == "slt") || (genRefName == "ult")) {
+  }
+  else if ((genRefName == "slt") || (genRefName == "ult")) {
     return " < ";
-  } else if (genRefName == "shl") {
+  }
+  else if (genRefName == "shl") {
     return " << ";
-  } else if ((genRefName == "ashr") || (genRefName == "lshr")) {
+  }
+  else if ((genRefName == "ashr") || (genRefName == "lshr")) {
     return " >> ";
-  } else if ((genRefName == "udiv") || (genRefName == "sdiv")) {
+  }
+  else if ((genRefName == "udiv") || (genRefName == "sdiv")) {
     return " / ";
-  } else if ((genRefName == "urem") || (genRefName == "srem")) {
+  }
+  else if ((genRefName == "urem") || (genRefName == "srem")) {
     return " % ";
-  } else if ((genRefName == "orr")) {
+  }
+  else if ((genRefName == "orr")) {
     return "!!";
-  } else if (genRefName == "andr") {
+  }
+  else if (genRefName == "andr") {
     return "andr";
   }
 
@@ -142,13 +165,13 @@ string signedCTypeString(Type& tp) {
 }
 
 string lastMask(const uint startWidth, const uint endWidth) {
-  return parens(bitMaskString(endWidth - startWidth) + " << " +
-                to_string(startWidth));
+  return parens(
+    bitMaskString(endWidth - startWidth) + " << " + to_string(startWidth));
 }
 
 string lastMask(const std::string& startWidth, const std::string& endWidth) {
-  return parens(bitMaskString(parens(endWidth + " - " + startWidth)) + " << " +
-                startWidth);
+  return parens(
+    bitMaskString(parens(endWidth + " - " + startWidth)) + " << " + startWidth);
 }
 
 std::string cPrimitiveTypeString(Type& t) {
@@ -200,8 +223,9 @@ std::string cArrayTypeDecl(Type& t, const std::string& varName) {
     ArrayType& tArr = static_cast<ArrayType&>(t);
     Type& underlying = *(tArr.getElemType());
 
-    return cArrayTypeDecl(underlying, varName + "[ " +
-                                          std::to_string(tArr.getLen()) + " ]");
+    return cArrayTypeDecl(
+      underlying,
+      varName + "[ " + std::to_string(tArr.getLen()) + " ]");
   }
 
   cout << "ERROR: Unsupported type = " << t.toString() << endl;
@@ -225,11 +249,11 @@ string seMacroDef() {
   string def = "#define SIGN_EXTEND(start, end, x) ";
   string mask = parens(arg + " & " + bitMaskString(startWidth));
 
-  string testClause = parens(arg + " & " +
-                             parens("1ULL << " + parens(startWidth + " - 1")));
+  string testClause = parens(
+    arg + " & " + parens("1ULL << " + parens(startWidth + " - 1")));
 
-  string res = parens(mask + " | " +
-                      ite(testClause, lastMask(startWidth, extWidth), "0"));
+  string res = parens(
+    mask + " | " + ite(testClause, lastMask(startWidth, extWidth), "0"));
 
   def += res + "\n\n";
 

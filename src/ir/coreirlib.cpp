@@ -35,20 +35,23 @@ Namespace* CoreIRLibrary::loadLib(string lib) {
 
   string libname;
   string filename;
-  if (f1parse.size() == 1 &&
-      f2parse.size() == 1) {  // Just passed in the name of the library
+  if (f1parse.size() == 1 && f2parse.size() == 1) {  // Just passed in the name
+                                                     // of the library
     libname = lib;
     filename = "libcoreir-" + libname + "." + this->ext;
-  } else if (f2parse.size() == 2 && f2parse[1] == ext &&
-             libfile.substr(0, 10) ==
-                 "libcoreir-") {  // passed in path to library
+  }
+  else if (
+    f2parse.size() == 2 && f2parse[1] == ext &&
+    libfile.substr(0, 10) == "libcoreir-") {  // passed in path to library
     libname = f2parse[0].substr(10, f2parse[0].length() - 10);
     filename = lib;
-  } else {
+  }
+  else {
     ASSERT(0, "NYI loading lib: " + lib);
   }
   LoadLibrary_t loadLibFun = (LoadLibrary_t)this->getFunction(
-      filename, "ExternalLoadLibrary_" + libname);
+    filename,
+    "ExternalLoadLibrary_" + libname);
   Namespace* ns = loadLibFun(c);
   ASSERT(ns, "loading lib returned a null namespace " + lib);
   lib2file[libname] = filename;

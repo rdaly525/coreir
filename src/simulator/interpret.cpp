@@ -201,7 +201,8 @@ void SimulatorState::setMemoryDefaults() {
         }
 
         assert(((int)numVals) == ((int)depth));
-      } else {
+      }
+      else {
         // Instance* inst = static_cast<Instance*>(wd.getWire());
         // cout << "Memory node " << inst->getInstname() << " has no params" <<
         // endl; cout << "Its params size = " << params.size()  << endl; for
@@ -213,8 +214,9 @@ void SimulatorState::setMemoryDefaults() {
 
       // Set memory output port to default
       setValue(inst->sel("rdata"), makeSimBitVector(BitVec(width, 0)));
-      setValue(inst->sel("raddr"),
-               makeSimBitVector(BitVec(ceil(log2(depth)), 0)));
+      setValue(
+        inst->sel("raddr"),
+        makeSimBitVector(BitVec(ceil(log2(depth)), 0)));
     }
   }
 }
@@ -240,13 +242,15 @@ void SimulatorState::setConstantDefaults() {
         Select* outSel = inst->sel("out");
 
         setValue(outSel, makeSimBitVector(argInt));
-      } else if (opName == "corebit.const") {
+      }
+      else if (opName == "corebit.const") {
 
         bool argInt = inst->getModArgs().at("value")->get<bool>();
 
         Select* outSel = inst->sel("out");
-        setValue(outSel,
-                 makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
+        setValue(
+          outSel,
+          makeSimBitVector(BitVec(1, argInt == 0 ? false : true)));
       }
     }
   }
@@ -275,13 +279,13 @@ void SimulatorState::setWatchPoint(const std::string& val, const BitVec& bv) {
         if (nm != nullptr) {
           SimBitVector* simVal = toSimBitVector(nm);
 
-          if (simVal->getBits() == bv) {
-            return true;
-          } else {
+          if (simVal->getBits() == bv) { return true; }
+          else {
             return false;
           }
         }
-      } else {
+      }
+      else {
         return false;
       }
     }
@@ -290,9 +294,8 @@ void SimulatorState::setWatchPoint(const std::string& val, const BitVec& bv) {
     if (res != nullptr) {
       SimBitVector* simVal = toSimBitVector(res);
 
-      if (simVal->getBits() == bv) {
-        return true;
-      } else {
+      if (simVal->getBits() == bv) { return true; }
+      else {
         return false;
       }
     }
@@ -304,8 +307,9 @@ void SimulatorState::setWatchPoint(const std::string& val, const BitVec& bv) {
 }
 
 void SimulatorState::deleteWatchPoint(const std::string& name) {
-  delete_if(stopConditions,
-            [name](const StopCondition& sc) { return sc.name == name; });
+  delete_if(stopConditions, [name](const StopCondition& sc) {
+    return sc.name == name;
+  });
 }
 
 bool SimulatorState::exists(const std::string& selStr) const {
@@ -364,8 +368,9 @@ BitVec SimulatorState::getBitVec(const std::vector<std::string>& str) {
   return getBitVec(concatName);
 }
 
-void SimulatorState::setWatchPoint(const std::vector<std::string>& path,
-                                   const BitVec& bv) {
+void SimulatorState::setWatchPoint(
+  const std::vector<std::string>& path,
+  const BitVec& bv) {
   string concatName = concatInlined(path);
 
   return setWatchPoint(concatName, bv);
@@ -421,9 +426,8 @@ bool SimulatorState::atLastState() {
 }
 
 void SimulatorState::runHalfCycle() {
-  if (!atLastState()) {
-    stateIndex++;
-  } else {
+  if (!atLastState()) { stateIndex++; }
+  else {
     execute();
     stepClock(mainClock);
   }
@@ -445,12 +449,13 @@ string getQualifiedOpNameWire(CoreIR::Wireable* wire) {
 }
 
 void SimulatorState::initializeState(
-    CoreIR::Module* mod_,
-    std::map<std::string, SimModelBuilder>& pluginBuilders) {
+  CoreIR::Module* mod_,
+  std::map<std::string, SimModelBuilder>& pluginBuilders) {
   assert(mod->hasDef());
 
   mod->getDef()->getContext()->runPasses(
-      {"verifyflattenedtypes"}, {mod->getNamespace()->getName(), "global"});
+    {"verifyflattenedtypes"},
+    {mod->getNamespace()->getName(), "global"});
   hasSymTable = false;
 
   // Create symbol table if it exists
@@ -470,9 +475,8 @@ void SimulatorState::initializeState(
     WireNode wireNode = gr.getNode(vd);
     Wireable* wd = wireNode.getWire();
     if (isSequentialPlugin(wd, pluginBuilders)) {
-      if (wireNode.isReceiver) {
-        pluginReceivers.push_back(vd);
-      } else {
+      if (wireNode.isReceiver) { pluginReceivers.push_back(vd); }
+      else {
         pluginSources.push_back(vd);
       }
 
@@ -520,7 +524,8 @@ void SimulatorState::initializeState(
   if (order.size() == gr.getVerts().size()) {
     topoOrder = order;
     hasCombinationalLoop = false;
-  } else {
+  }
+  else {
     hasCombinationalLoop = true;
   }
 
@@ -540,15 +545,17 @@ void SimulatorState::initializeState(
 }
 
 SimulatorState::SimulatorState(
-    CoreIR::Module* mod_,
-    std::map<std::string, SimModelBuilder>& pluginBuilders)
-    : mod(mod_), mainClock(nullptr) {
+  CoreIR::Module* mod_,
+  std::map<std::string, SimModelBuilder>& pluginBuilders)
+  : mod(mod_),
+    mainClock(nullptr) {
 
   initializeState(mod, pluginBuilders);
 }
 
 SimulatorState::SimulatorState(CoreIR::Module* mod_)
-    : mod(mod_), mainClock(nullptr) {
+  : mod(mod_),
+    mainClock(nullptr) {
 
   std::map<std::string, SimModelBuilder> pluginBuilders;
   initializeState(mod, pluginBuilders);
@@ -556,8 +563,9 @@ SimulatorState::SimulatorState(CoreIR::Module* mod_)
 
 void SimulatorState::setInputDefaults() {}
 
-void SimulatorState::setValue(const std::vector<std::string>& name,
-                              const BitVec& bv) {
+void SimulatorState::setValue(
+  const std::vector<std::string>& name,
+  const BitVec& bv) {
   setValue(concatInlined(name), bv);
 }
 
@@ -584,8 +592,9 @@ CoreIR::Select* SimulatorState::findSelect(const std::string& name) const {
 void SimulatorState::setValue(const std::string& name, const BitVec& bv) {
   ModuleDef* def = mod->getDef();
 
-  ASSERT(def->canSel(name),
-         name + " is not a port of the module being simulated");
+  ASSERT(
+    def->canSel(name),
+    name + " is not a port of the module being simulated");
 
   Wireable* w = def->sel(name);
   Select* s = toSelect(w);
@@ -634,7 +643,7 @@ SimValue* SimulatorState::getValue(CoreIR::Select* sel) {
   if (arrayAccess(sel)) {
 
     SimBitVector* val = static_cast<SimBitVector*>(
-        getValue(toSelect(sel->getParent())));
+      getValue(toSelect(sel->getParent())));
 
     assert(val != nullptr);
 
@@ -794,9 +803,8 @@ void SimulatorState::updateAndNode(const vdisc vd) {
 
 void SimulatorState::updateEqNode(const vdisc vd) {
   updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-    if (l == r) {
-      return BitVec(1, 1);
-    } else {
+    if (l == r) { return BitVec(1, 1); }
+    else {
       return BitVec(1, 0);
     }
   });
@@ -805,9 +813,8 @@ void SimulatorState::updateEqNode(const vdisc vd) {
 void SimulatorState::updateNeqNode(const vdisc vd) {
 
   updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-    if (l != r) {
-      return BitVec(1, 1);
-    } else {
+    if (l != r) { return BitVec(1, 1); }
+    else {
       return BitVec(1, 0);
     }
   });
@@ -857,9 +864,8 @@ void SimulatorState::updateMuxNode(const vdisc vd) {
 
   BitVec sum(bv1.bitLength());
 
-  if (selB == BitVec(1, 0)) {
-    sum = bv1;
-  } else {
+  if (selB == BitVec(1, 0)) { sum = bv1; }
+  else {
     sum = bv2;
   }
 
@@ -905,7 +911,7 @@ void SimulatorState::updateZextNode(const vdisc vd) {
 
   uint inWidth = inst->getModuleRef()->getGenArgs().at("width_in")->get<int>();
   uint
-      outWidth = inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
+    outWidth = inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
 
   auto outSelects = getOutputSelects(inst);
 
@@ -919,8 +925,9 @@ void SimulatorState::updateZextNode(const vdisc vd) {
   Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
   BitVector bv1 = getBitVec(arg1);  // s1->getBits();
 
-  ASSERT(((uint)bv1.bitLength()) == inWidth,
-         "bit vector argument to coreir.zext has wrong input width");
+  ASSERT(
+    ((uint)bv1.bitLength()) == inWidth,
+    "bit vector argument to coreir.zext has wrong input width");
 
   BitVec res(outWidth, 0);
   for (uint i = 0; i < inWidth; i++) { res.set(i, bv1.get(i)); }
@@ -983,152 +990,183 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
 
   if ((opName == "coreir.and") || (opName == "corebit.and")) {
     updateAndNode(vd);
-  } else if (opName == "coreir.eq") {
+  }
+  else if (opName == "coreir.eq") {
     updateEqNode(vd);
-  } else if (opName == "coreir.neq") {
+  }
+  else if (opName == "coreir.neq") {
     updateNeqNode(vd);
-  } else if ((opName == "coreir.or") || (opName == "corebit.or")) {
+  }
+  else if ((opName == "coreir.or") || (opName == "corebit.or")) {
     updateOrNode(vd);
-  } else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
-    updateBitVecBinop(vd,
-                      [](const BitVec& l, const BitVec& r) { return l ^ r; });
-  } else if ((opName == "coreir.zext")) {
+  }
+  else if ((opName == "coreir.xor") || (opName == "corebit.xor")) {
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+      return l ^ r;
+    });
+  }
+  else if ((opName == "coreir.zext")) {
     updateZextNode(vd);
-  } else if ((opName == "coreir.not") || (opName == "corebit.not")) {
+  }
+  else if ((opName == "coreir.not") || (opName == "corebit.not")) {
     updateBitVecUnop(vd, [](const BitVec& r) { return ~r; });
-  } else if (opName == "coreir.andr") {
+  }
+  else if (opName == "coreir.andr") {
     updateAndrNode(vd);
-  } else if (opName == "coreir.orr") {
+  }
+  else if (opName == "coreir.orr") {
     updateOrrNode(vd);
-  } else if (opName == "coreir.add") {
+  }
+  else if (opName == "coreir.add") {
     updateAddNode(vd);
-  } else if (opName == "coreir.neg") {
-    updateBitVecUnop(
-        vd, [](const BitVec& bv) { return negate_general_width_bv(bv); });
-  } else if (opName == "coreir.sub") {
+  }
+  else if (opName == "coreir.neg") {
+    updateBitVecUnop(vd, [](const BitVec& bv) {
+      return negate_general_width_bv(bv);
+    });
+  }
+  else if (opName == "coreir.sub") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       return sub_general_width_bv(l, r);
     });
-  } else if ((opName == "coreir.mul")) {
+  }
+  else if ((opName == "coreir.mul")) {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       return mul_general_width_bv(l, r);
     });
-  } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
-  } else if (opName == "corebit.term") {
-  } else if ((opName == "coreir.reg") || (opName == "corebit.reg") ||
-             (opName == "coreir.reg_arst")) {
-  } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
-  } else if ((opName == "coreir.mux") || (opName == "corebit.mux")) {
+  }
+  else if ((opName == "coreir.const") || (opName == "corebit.const")) {
+  }
+  else if (opName == "corebit.term") {
+  }
+  else if (
+    (opName == "coreir.reg") || (opName == "corebit.reg") ||
+    (opName == "coreir.reg_arst")) {
+  }
+  else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
+  }
+  else if ((opName == "coreir.mux") || (opName == "corebit.mux")) {
     updateMuxNode(vd);
-  } else if ((opName == "coreir.wire") || (opName == "corebit.wire")) {
+  }
+  else if ((opName == "coreir.wire") || (opName == "corebit.wire")) {
     updateBitVecUnop(vd, [](const BitVec& r) { return r; });
-  } else if ((opName == "coreir.term") || (opName == "corebit.term")) {
+  }
+  else if ((opName == "coreir.term") || (opName == "corebit.term")) {
     // No-op
-  } else if (opName == "coreir.slice") {
+  }
+  else if (opName == "coreir.slice") {
     updateSliceNode(vd);
-  } else if (opName == "coreir.concat") {
+  }
+  else if (opName == "coreir.concat") {
     updateConcatNode(vd);
-  } else if (opName == "coreir.lshr") {
-    updateBitVecBinop(
-        vd, [](const BitVec& l, const BitVec& r) { return lshr(l, r); });
-  } else if (opName == "coreir.ashr") {
-    updateBitVecBinop(
-        vd, [](const BitVec& l, const BitVec& r) { return ashr(l, r); });
-  } else if (opName == "coreir.shl") {
-    updateBitVecBinop(
-        vd, [](const BitVec& l, const BitVec& r) { return shl(l, r); });
-  } else if (opName == "coreir.ult") {
+  }
+  else if (opName == "coreir.lshr") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (l < r) {
-        return BitVec(1, 1);
-      } else {
+      return lshr(l, r);
+    });
+  }
+  else if (opName == "coreir.ashr") {
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+      return ashr(l, r);
+    });
+  }
+  else if (opName == "coreir.shl") {
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+      return shl(l, r);
+    });
+  }
+  else if (opName == "coreir.ult") {
+    updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
+      if (l < r) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-  } else if (opName == "coreir.ule") {
+  }
+  else if (opName == "coreir.ule") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if ((l < r) || (l == r)) {
-        return BitVec(1, 1);
-      } else {
+      if ((l < r) || (l == r)) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-  } else if (opName == "coreir.ugt") {
+  }
+  else if (opName == "coreir.ugt") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (l > r) {
-        return BitVec(1, 1);
-      } else {
+      if (l > r) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-
-  } else if (opName == "coreir.uge") {
+  }
+  else if (opName == "coreir.uge") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if ((l > r) || (l == r)) {
-        return BitVec(1, 1);
-      } else {
+      if ((l > r) || (l == r)) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-  } else if (opName == "coreir.smax") {
+  }
+  else if (opName == "coreir.smax") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (signed_gt(l, r) || (l == r)) {
-        return l;
-      } else {
+      if (signed_gt(l, r) || (l == r)) { return l; }
+      else {
         return r;
       }
     });
-  } else if (opName == "coreir.smin") {
+  }
+  else if (opName == "coreir.smin") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (signed_gt(l, r) || (l == r)) {
-        return r;
-      } else {
+      if (signed_gt(l, r) || (l == r)) { return r; }
+      else {
         return l;
       }
     });
-  } else if (opName == "coreir.sgt") {
+  }
+  else if (opName == "coreir.sgt") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (signed_gt(l, r)) {
-        return BitVec(1, 1);
-      } else {
+      if (signed_gt(l, r)) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-  } else if (opName == "coreir.sge") {
+  }
+  else if (opName == "coreir.sge") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (signed_gte(l, r)) {
-        return BitVec(1, 1);
-      } else {
+      if (signed_gte(l, r)) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-  } else if (opName == "coreir.udiv") {
+  }
+  else if (opName == "coreir.udiv") {
 
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       return unsigned_divide(l, r);
     });
-
-  } else if (opName == "coreir.slt") {
+  }
+  else if (opName == "coreir.slt") {
 
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (!signed_gte(l, r)) {
-        return BitVec(1, 1);
-      } else {
+      if (!signed_gte(l, r)) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-  } else if (opName == "coreir.sle") {
+  }
+  else if (opName == "coreir.sle") {
 
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
-      if (!signed_gt(l, r)) {
-        return BitVec(1, 1);
-      } else {
+      if (!signed_gt(l, r)) { return BitVec(1, 1); }
+      else {
         return BitVec(1, 0);
       }
     });
-  } else if (opName == "commonlib.lutN") {
+  }
+  else if (opName == "commonlib.lutN") {
     updateLUTNNode(vd);
-  } else if (opName == "float.add") {
+  }
+  else if (opName == "float.add") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1150,8 +1188,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         int resI = bitCastToInt(res);
 
         return BitVec(l.bitLength(), resI);
-
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1180,7 +1218,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return bfloatRes;
       }
     });
-  } else if (opName == "float.mul") {
+  }
+  else if (opName == "float.mul") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1203,8 +1242,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         int resI = bitCastToInt(res);
 
         return BitVec(l.bitLength(), resI);
-
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1233,7 +1272,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return bfloatRes;
       }
     });
-  } else if (opName == "float.sub") {
+  }
+  else if (opName == "float.sub") {
 
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
@@ -1253,8 +1293,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         int resI = bitCastToInt(res);
 
         return BitVec(l.bitLength(), resI);
-
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1280,7 +1320,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return bfloatRes;
       }
     });
-  } else if (opName == "float.div") {
+  }
+  else if (opName == "float.div") {
 
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
@@ -1300,8 +1341,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         int resI = bitCastToInt(res);
 
         return BitVec(l.bitLength(), resI);
-
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1327,7 +1368,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return bfloatRes;
       }
     });
-  } else if (opName == "float.eq") {
+  }
+  else if (opName == "float.eq") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1336,8 +1378,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
 
       return BitVector(1, l == r);
     });
-
-  } else if (opName == "float.neq") {
+  }
+  else if (opName == "float.neq") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1346,7 +1388,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
 
       return BitVector(1, l != r);
     });
-  } else if (opName == "float.gt") {
+  }
+  else if (opName == "float.gt") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1361,7 +1404,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         float rf = bitCastToFloat(rv);
 
         return BitVector(1, lf > rf);
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1377,7 +1421,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return BitVector(1, lf > rf);
       }
     });
-  } else if (opName == "float.ge") {
+  }
+  else if (opName == "float.ge") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1392,7 +1437,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         float rf = bitCastToFloat(rv);
 
         return BitVector(1, lf >= rf);
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1408,8 +1454,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return BitVector(1, lf >= rf);
       }
     });
-
-  } else if (opName == "float.lt") {
+  }
+  else if (opName == "float.lt") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1424,7 +1470,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         float rf = bitCastToFloat(rv);
 
         return BitVector(1, lf < rf);
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1440,7 +1487,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return BitVector(1, lf < rf);
       }
     });
-  } else if (opName == "float.le") {
+  }
+  else if (opName == "float.le") {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
       if (!l.is_binary() || !r.is_binary()) {
         // Undefined value
@@ -1455,7 +1503,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         float rf = bitCastToFloat(rv);
 
         return BitVector(1, lf <= rf);
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
         assert(r.bitLength() == 16);
 
@@ -1471,8 +1520,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return BitVector(1, lf <= rf);
       }
     });
-
-  } else if (opName == "float.neg") {
+  }
+  else if (opName == "float.neg") {
     updateBitVecUnop(vd, [](const BitVec& l) {
       if (!l.is_binary()) {
         // Undefined value
@@ -1487,8 +1536,8 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
 
         BitVector longRes = BitVec(32, resI);
         return longRes;
-
-      } else {
+      }
+      else {
         assert(l.bitLength() == 16);
 
         BitVec lExt = extendBfloat(l);
@@ -1503,12 +1552,14 @@ void SimulatorState::updateNodeValues(const vdisc vd) {
         return bfloatRes;
       }
     });
-
-  } else if (contains_key(vd, plugMods) && wd.isReceiver) {
+  }
+  else if (contains_key(vd, plugMods) && wd.isReceiver) {
     // Ignore, updates already done in caller of this function
-  } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
+  }
+  else if (contains_key(vd, plugMods) && !wd.isReceiver) {
     // Ignore sequential node
-  } else {
+  }
+  else {
     cout << "Unsupported node: " << wd.getWire()->toString()
          << " has operation name: " << opName << endl;
     assert(false);
@@ -1534,8 +1585,9 @@ void SimulatorState::setNodeDefaults() {
   for (auto& vd : gr.getVerts()) {
     WireNode wd = gr.getNode(vd);
 
-    if (isInstance(wd.getWire()) &&
-        getQualifiedOpNameWire(wd.getWire()) == "coreir.slice") {
+    if (
+      isInstance(wd.getWire()) &&
+      getQualifiedOpNameWire(wd.getWire()) == "coreir.slice") {
       Instance* inst = toInstance(wd.getWire());
 
       Select* w = inst->sel("out");
@@ -1618,14 +1670,16 @@ void SimulatorState::updateMemoryValue(const vdisc vd) {
   BitVec waddrBits = waddr->getBits();
   BitVec enBit = wen->getBits();
 
-  if ((clkVal->lastValue() == 0) && (clkVal->value() == 1) &&
-      (enBit == BitVec(1, 1))) {
+  if (
+    (clkVal->lastValue() == 0) && (clkVal->value() == 1) &&
+    (enBit == BitVec(1, 1))) {
 
     setMemory(inst->toString(), waddrBits, wdata->getBits());
 
     // assert(getMemory(inst->toString(), waddrBits) == wdata->getBits());
-    assert(same_representation(getMemory(inst->toString(), waddrBits),
-                               wdata->getBits()));
+    assert(same_representation(
+      getMemory(inst->toString(), waddrBits),
+      wdata->getBits()));
   }
 }
 
@@ -1646,16 +1700,16 @@ void SimulatorState::updateRegisterValue(const vdisc vd) {
   updateInputs(vd);
 
   auto inSels = getInputSelects(inst);
-  ASSERT(inSels.size() == 2 || inSels.size() == 3,
-         to_string(inSels.size()) + " inSels" + toString(inst));
+  ASSERT(
+    inSels.size() == 2 || inSels.size() == 3,
+    to_string(inSels.size()) + " inSels" + toString(inst));
 
   Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
   SimBitVector* s1 = static_cast<SimBitVector*>(getValue(arg1));
 
   BitVector bv1(0);
-  if (s1 != nullptr) {
-    bv1 = s1->getBits();
-  } else {
+  if (s1 != nullptr) { bv1 = s1->getBits(); }
+  else {
     int width = (inst->getModuleRef()->getGenArgs())["width"]->get<int>();
     // Set dummy value for initilization
     bv1 = BitVector(width, 0);
@@ -1673,8 +1727,9 @@ void SimulatorState::updateRegisterValue(const vdisc vd) {
   if ((clkVal->lastValue() == 0) && (clkVal->value() == 1)) {
 
     setRegister(inst->toString(), bv1);  // s1->getBits());
-    ASSERT(same_representation(getRegister(inst->toString()), bv1),
-           inst->toString() + " != " + toString(bv1));  // s1->getBits());
+    ASSERT(
+      same_representation(getRegister(inst->toString()), bv1),
+      inst->toString() + " != " + toString(bv1));  // s1->getBits());
   }
   // TODO: For now reset gets priority, should this be the case?
   if (inst->getModuleRef()->getRefName() == "coreir.reg_arst") {
@@ -1684,8 +1739,9 @@ void SimulatorState::updateRegisterValue(const vdisc vd) {
     // TODO: Ideally we'd check the edge, but for now we just use level
     // since that would require the introduction of a new type (ala
     // clockvalue)
-    if ((posedge && arstBit->getBits() == BitVec(1, 1)) ||
-        (!posedge && arstBit->getBits() == BitVec(1, 0))) {
+    if (
+      (posedge && arstBit->getBits() == BitVec(1, 1)) ||
+      (!posedge && arstBit->getBits() == BitVec(1, 0))) {
       BitVector init = inst->getModArgs().at("init")->get<BitVector>();
       setRegister(inst->toString(), init);
 
@@ -1765,7 +1821,8 @@ void SimulatorState::exeCombinational() {
     if (!hasCombinationalLoop) {
       // Update combinational node values
       for (auto& vd : topoOrder) { updateNodeValues(vd); }
-    } else {
+    }
+    else {
 
       // ASSERT(!hasCombinationalLoop, "Circuits in the interpreter cannot have
       // combinational loops");
@@ -1796,9 +1853,8 @@ void SimulatorState::exeCombinational() {
 
         // This check doesnt deal with changed inputs.
         bool outputsChanged = false;
-        if (currentVals.size() != oldVals.size()) {
-          outputsChanged = true;
-        } else {
+        if (currentVals.size() != oldVals.size()) { outputsChanged = true; }
+        else {
           for (auto v : oldVals) {
             assert(contains_key(v.first, currentVals));
             if (*(v.second) != *(currentVals.find(v.first)->second)) {
@@ -1852,16 +1908,18 @@ void SimulatorState::execute() {
   exeCombinational();
 }
 
-void SimulatorState::setClock(const std::vector<std::string>& path,
-                              const unsigned char clk_last,
-                              const unsigned char clk) {
+void SimulatorState::setClock(
+  const std::vector<std::string>& path,
+  const unsigned char clk_last,
+  const unsigned char clk) {
   string name = concatInlined(path);
   setClock(name, clk_last, clk);
 }
 
-void SimulatorState::setClock(const std::string& name,
-                              const unsigned char clk_last,
-                              const unsigned char clk) {
+void SimulatorState::setClock(
+  const std::string& name,
+  const unsigned char clk_last,
+  const unsigned char clk) {
 
   ModuleDef* def = mod->getDef();
   Wireable* w = def->sel(name);
@@ -1870,8 +1928,10 @@ void SimulatorState::setClock(const std::string& name,
   setClock(s, clk_last, clk);
 }
 
-void SimulatorState::setClock(CoreIR::Select* sel, const unsigned char clkLast,
-                              const unsigned char clk) {
+void SimulatorState::setClock(
+  CoreIR::Select* sel,
+  const unsigned char clkLast,
+  const unsigned char clk) {
   auto clkVal = new ClockValue(clkLast, clk);
   allocatedValues.insert(clkVal);
   circStates[stateIndex].valMap[sel] = clkVal;
@@ -1889,8 +1949,10 @@ BitVec SimulatorState::getRegister(const std::string& name) {
   return map_find(name, circStates[stateIndex].registers);
 }
 
-void SimulatorState::setMemory(const std::string& name, const BitVec& addr,
-                               const BitVec& data) {
+void SimulatorState::setMemory(
+  const std::string& name,
+  const BitVec& addr,
+  const BitVec& data) {
 
   SimMemory& mem = (circStates[stateIndex].memories.find(name))->second;
   mem.setAddr(addr, data);
@@ -1915,9 +1977,8 @@ void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
     int arrLen = arrayLen(parent);
 
     SimBitVector* val;
-    if (isSet(parent)) {
-      val = static_cast<SimBitVector*>(getValue(parent));
-    } else {
+    if (isSet(parent)) { val = static_cast<SimBitVector*>(getValue(parent)); }
+    else {
       // TODO: Wrap allocations and delete at end of context
       val = makeSimBitVector(BitVector(arrLen));
     }
@@ -1932,8 +1993,9 @@ void SimulatorState::setValue(CoreIR::Select* sel, SimValue* val) {
   circStates[stateIndex].valMap[sel] = val;
 }
 
-string reconstructName(const std::vector<std::string>& instanceList,
-                       const std::vector<std::string>& portSelectList) {
+string reconstructName(
+  const std::vector<std::string>& instanceList,
+  const std::vector<std::string>& portSelectList) {
   string selectVal = concatSelects(portSelectList);
   vector<string> insts = instanceList;
   insts[insts.size() - 1] = insts[insts.size() - 1] + "." + selectVal;
@@ -1943,28 +2005,30 @@ string reconstructName(const std::vector<std::string>& instanceList,
 }
 
 void SimulatorState::deleteWatchPointByOriginalName(
-    const std::vector<std::string>& instanceList,
-    const std::vector<std::string>& portSelectList) {
+  const std::vector<std::string>& instanceList,
+  const std::vector<std::string>& portSelectList) {
   string originalName = reconstructName(instanceList, portSelectList);
   deleteWatchPoint(originalName);
 }
 
-void SimulatorState::setWatchPointByOriginalName(const std::string& name,
-                                                 const BitVec& bv) {
+void SimulatorState::setWatchPointByOriginalName(
+  const std::string& name,
+  const BitVec& bv) {
   setWatchPoint(name, bv);
 }
 
 void SimulatorState::setWatchPointByOriginalName(
-    const std::vector<std::string>& instanceList,
-    const std::vector<std::string>& portSelectList, const BitVec& bv) {
+  const std::vector<std::string>& instanceList,
+  const std::vector<std::string>& portSelectList,
+  const BitVec& bv) {
   string originalName = reconstructName(instanceList, portSelectList);
 
   setWatchPointByOriginalName(originalName, bv);
 }
 
 SimValue* SimulatorState::getValueByOriginalName(
-    const std::vector<std::string>& instanceList,
-    const std::vector<std::string>& portSelectList) {
+  const std::vector<std::string>& instanceList,
+  const std::vector<std::string>& portSelectList) {
   string name = reconstructName(instanceList, portSelectList);
   return getValueByOriginalName(name);
 }
@@ -1977,8 +2041,9 @@ bool isPrefixOf(const std::string& foo, const std::string& foobar) {
   return false;
 }
 
-std::vector<string> selectsOffOf(const std::string& selectName,
-                                 std::map<std::string, json>& symTable) {
+std::vector<string> selectsOffOf(
+  const std::string& selectName,
+  std::map<std::string, json>& symTable) {
 
   vector<string> sels;
 

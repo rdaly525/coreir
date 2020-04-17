@@ -54,7 +54,7 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
   Namespace* fp = c->newNamespace("float");
 
   Params floatParams = Params(
-      {{"exp_bits", c->Int()}, {"frac_bits", c->Int()}});
+    {{"exp_bits", c->Int()}, {"frac_bits", c->Int()}});
 
   // Common Function types
   fp->newTypeGen("unary", floatParams, [](Context* c, Values args) {
@@ -70,7 +70,7 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
     uint width = 1 + exp_bits + frac_bits;
     Type* ptype = c->Bit()->Arr(width);
     return c->Record(
-        {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", ptype}});
+      {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", ptype}});
   });
 
   fp->newTypeGen("binaryReduce", floatParams, [](Context* c, Values args) {
@@ -79,7 +79,7 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
     uint width = 1 + exp_bits + frac_bits;
     Type* ptype = c->Bit()->Arr(width);
     return c->Record(
-        {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", c->Bit()}});
+      {{"in0", c->Flip(ptype)}, {"in1", c->Flip(ptype)}, {"out", c->Bit()}});
   });
 
   fp->newTypeGen("muxType", floatParams, [](Context* c, Values args) {
@@ -94,8 +94,8 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
   });
 
   vector<string> unaryOps = {"neg", "sqr", "flr", "ceil"};
-  vector<string> binaryOps = {"abs", "add", "sub", "mul",
-                              "div", "rem", "min", "max"};
+  vector<string> binaryOps =
+    {"abs", "add", "sub", "mul", "div", "rem", "min", "max"};
   vector<string> binaryReduceOps = {"le", "lt", "ge", "gt", "eq", "neq"};
 
   for (auto op : unaryOps) {

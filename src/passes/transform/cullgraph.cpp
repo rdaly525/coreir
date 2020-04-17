@@ -6,9 +6,8 @@ using namespace CoreIR;
 
 namespace {
 void recurse(Module* m, set<Module*>& mused, set<Generator*>& gused) {
-  if (m->isGenerated()) {
-    gused.insert(m->getGenerator());
-  } else {
+  if (m->isGenerated()) { gused.insert(m->getGenerator()); }
+  else {
     mused.insert(m);
   }
   if (!m->hasDef()) return;
@@ -51,7 +50,8 @@ bool Passes::CullGraph::runOnContext(Context* c) {
   for (auto i : toErase) {
     if (auto m = dyn_cast<Module>(i)) {
       m->getNamespace()->eraseModule(m->getName());
-    } else {
+    }
+    else {
       genToErase.insert(i);
     }
   }

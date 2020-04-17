@@ -137,9 +137,10 @@ template <> Value* TemplatedConst<Json>::forceCast(ValueType* vt) const {
     return Const::make(c, value.get<bool>());
   }
   case ValueType::VTK_Int: {
-    ASSERT(value.type() == Json::value_t::number_integer ||
-               value.type() == Json::value_t::number_unsigned,
-           "Json not an int");
+    ASSERT(
+      value.type() == Json::value_t::number_integer ||
+        value.type() == Json::value_t::number_unsigned,
+      "Json not an int");
     return Const::make(c, value.get<int>());
   }
   case ValueType::VTK_BitVector: {

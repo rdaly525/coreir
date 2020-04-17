@@ -7,9 +7,11 @@ using namespace std;
 
 namespace CoreIR {
 
-vector<SIMDGroup> groupIdenticalSubDAGs(const vector<SubDAG>& dags,
-                                        const NGraph& g, const int groupSize,
-                                        LayoutPolicy& lp) {
+vector<SIMDGroup> groupIdenticalSubDAGs(
+  const vector<SubDAG>& dags,
+  const NGraph& g,
+  const int groupSize,
+  LayoutPolicy& lp) {
 
   vector<SIMDGroup> groups;
 
@@ -81,8 +83,10 @@ vector<SIMDGroup> groupIdenticalSubDAGs(const vector<SubDAG>& dags,
   return groups;
 }
 
-CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder, NGraph& g,
-                               Module& mod) {
+CircuitPaths buildCircuitPaths(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  Module& mod) {
   CircuitPaths paths;
 
   vector<set<vdisc>> ccs = connectedComponentsIgnoringInputs(g);
@@ -110,16 +114,18 @@ CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder, NGraph& g,
       if (elem(vd, cc)) { nodes.push_back(vd); }
     }
 
-    if (subgraphHasCombinationalOutput(nodes, g) &&
-        subgraphHasSequentialOutput(nodes, g) &&
-        subgraphHasCombinationalInput(nodes, g)) {
+    if (
+      subgraphHasCombinationalOutput(nodes, g) &&
+      subgraphHasSequentialOutput(nodes, g) &&
+      subgraphHasCombinationalInput(nodes, g)) {
       // Need to split up graphs of this form
       paths.preSequentialAlwaysDAGs.push_back({-1, {nodes}});
     }
 
-    if (subgraphHasCombinationalInput(nodes, g) &&
-        subgraphHasSequentialInput(nodes, g) &&
-        subgraphHasCombinationalOutput(nodes, g)) {
+    if (
+      subgraphHasCombinationalInput(nodes, g) &&
+      subgraphHasSequentialInput(nodes, g) &&
+      subgraphHasCombinationalOutput(nodes, g)) {
       // Need to split up graphs of this form
       paths.postSequentialAlwaysDAGs.push_back({-1, {nodes}});
     }
@@ -134,8 +140,9 @@ CircuitPaths buildCircuitPaths(const std::deque<vdisc>& topoOrder, NGraph& g,
       paths.postSequentialDAGs.push_back({-1, {nodes}});
     }
 
-    if (subgraphHasAllCombinationalInputs(nodes, g) &&
-        subgraphHasAllCombinationalOutputs(nodes, g)) {
+    if (
+      subgraphHasAllCombinationalInputs(nodes, g) &&
+      subgraphHasAllCombinationalOutputs(nodes, g)) {
       paths.pureCombDAGs.push_back({-1, {nodes}});
     }
   }
@@ -156,8 +163,9 @@ vector<SIMDGroup> deleteDuplicates(const std::vector<SIMDGroup>& allUpdates) {
         set<vdisc> ex_set(begin(existing.nodes[0]), end(existing.nodes[0]));
         set<vdisc> up_set(begin(update.nodes[0]), end(update.nodes[0]));
 
-        if ((intersection(ex_set, up_set).size() == ex_set.size()) &&
-            (ex_set.size() == up_set.size())) {
+        if (
+          (intersection(ex_set, up_set).size() == ex_set.size()) &&
+          (ex_set.size() == up_set.size())) {
           isDuplicate = true;
           break;
         }
@@ -169,8 +177,9 @@ vector<SIMDGroup> deleteDuplicates(const std::vector<SIMDGroup>& allUpdates) {
   return unique;
 }
 
-vector<SIMDGroup> pruneSequentialSinks(const std::vector<SIMDGroup> dags,
-                                       const NGraph& g) {
+vector<SIMDGroup> pruneSequentialSinks(
+  const std::vector<SIMDGroup> dags,
+  const NGraph& g) {
   vector<SIMDGroup> gp;
 
   for (auto& dag : dags) {
@@ -179,9 +188,8 @@ vector<SIMDGroup> pruneSequentialSinks(const std::vector<SIMDGroup> dags,
 
       for (auto& node : dag.nodes[0]) {
         WireNode wd = g.getNode(node);
-        if (!(wd.isSequential && wd.isReceiver)) {
-          sd.push_back(node);
-        } else {
+        if (!(wd.isSequential && wd.isReceiver)) { sd.push_back(node); }
+        else {
           cout << "Removing " << nodeString(wd) << endl;
         }
       }
@@ -221,7 +229,8 @@ vector<SIMDGroup> pruneSequentialSinks(const std::vector<SIMDGroup> dags,
       }
 
       gp.push_back({dag.totalWidth, {sd}});
-    } else {
+    }
+    else {
       gp.push_back(dag);
     }
   }
@@ -229,8 +238,9 @@ vector<SIMDGroup> pruneSequentialSinks(const std::vector<SIMDGroup> dags,
   return gp;
 }
 
-vector<SIMDGroup> pruneOutputs(const std::vector<SIMDGroup> dags,
-                               const NGraph& g) {
+vector<SIMDGroup> pruneOutputs(
+  const std::vector<SIMDGroup> dags,
+  const NGraph& g) {
   vector<SIMDGroup> gp;
 
   for (auto& dag : dags) {
@@ -273,7 +283,8 @@ vector<SIMDGroup> pruneOutputs(const std::vector<SIMDGroup> dags,
       }
 
       gp.push_back({dag.totalWidth, {sd}});
-    } else {
+    }
+    else {
       gp.push_back(dag);
     }
   }
@@ -292,9 +303,10 @@ SubDAG addInputs(const SubDAG& dag, const NGraph& g) {
       cout << g.getNode(src).getWire()->toString();
       cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
 
-      if (isGraphInput(g.getNode(src)) &&
-          !isClkIn(*(g.getNode(src).getWire()->getType())) &&
-          !elem(src, fulldag)) {
+      if (
+        isGraphInput(g.getNode(src)) &&
+        !isClkIn(*(g.getNode(src).getWire()->getType())) &&
+        !elem(src, fulldag)) {
         cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
         fulldag.push_back(src);
       }
@@ -316,9 +328,10 @@ SubDAG addConstants(const SubDAG& dag, const NGraph& g) {
       cout << g.getNode(src).getWire()->toString();
       cout << ", type = " << *(g.getNode(src).getWire()->getType()) << endl;
 
-      if (isConstant(g.getNode(src)) &&
-          !isClkIn(*(g.getNode(src).getWire()->getType())) &&
-          !elem(src, fulldag)) {
+      if (
+        isConstant(g.getNode(src)) &&
+        !isClkIn(*(g.getNode(src).getWire()->getType())) &&
+        !elem(src, fulldag)) {
         cout << "Adding " << g.getNode(src).getWire()->toString() << endl;
         fulldag.push_back(src);
       }
@@ -359,8 +372,8 @@ bool nodesMatch(const vdisc ref, const vdisc a, const NGraph& g) {
       return true;
     }
 
-    if (!isRegisterInstance(rn.getWire()) &&
-        !isRegisterInstance(an.getWire())) {
+    if (
+      !isRegisterInstance(rn.getWire()) && !isRegisterInstance(an.getWire())) {
       Instance* ri = toInstance(rn.getWire());
       Instance* ai = toInstance(an.getWire());
 
@@ -371,8 +384,10 @@ bool nodesMatch(const vdisc ref, const vdisc a, const NGraph& g) {
   return false;
 }
 
-SubDAG alignWRT(const SubDAG& reference, const SubDAG& toAlign,
-                const NGraph& g) {
+SubDAG alignWRT(
+  const SubDAG& reference,
+  const SubDAG& toAlign,
+  const NGraph& g) {
   set<vdisc> alreadyUsed;
 
   map<vdisc, vdisc> nodeMap;
@@ -397,8 +412,9 @@ SubDAG alignWRT(const SubDAG& reference, const SubDAG& toAlign,
   return aligned;
 }
 
-vector<vector<SubDAG>> alignIdenticalGraphs(const std::vector<SubDAG>& dags,
-                                            const NGraph& g) {
+vector<vector<SubDAG>> alignIdenticalGraphs(
+  const std::vector<SubDAG>& dags,
+  const NGraph& g) {
 
   vector<vector<SubDAG>> eqClasses;
 
@@ -430,8 +446,10 @@ vector<vector<SubDAG>> alignIdenticalGraphs(const std::vector<SubDAG>& dags,
 }
 
 std::vector<SIMDGroup> optimizeSIMD(
-    const std::vector<SIMDGroup>& originalGroups, NGraph& g, Module& mod,
-    LayoutPolicy& layoutPolicy) {
+  const std::vector<SIMDGroup>& originalGroups,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& layoutPolicy) {
 
   if (originalGroups.size() == 0) { return originalGroups; }
 

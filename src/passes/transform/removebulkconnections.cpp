@@ -41,11 +41,13 @@ bool Passes::RemoveBulkConnections::runOnModule(Module* m) {
         for (uint i = 0; i < at->getLen(); ++i) {
           def->connect(con.first->sel(i), con.second->sel(i));
         }
-      } else if (auto rt = dyn_cast<RecordType>(t)) {
+      }
+      else if (auto rt = dyn_cast<RecordType>(t)) {
         for (auto field : rt->getFields()) {
           def->connect(con.first->sel(field), con.second->sel(field));
         }
-      } else {
+      }
+      else {
         assert(0);
       }
 

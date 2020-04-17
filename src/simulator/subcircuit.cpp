@@ -45,15 +45,17 @@ std::vector<Select*> allInputSelects(CoreIR::Wireable* inst) {
   return conns;
 }
 
-bool hasInputFrom(CoreIR::Instance* const inst,
-                  const std::set<Wireable*>& alreadyDetermined,
-                  std::map<Wireable*, Wireable*>& driverMap) {
+bool hasInputFrom(
+  CoreIR::Instance* const inst,
+  const std::set<Wireable*>& alreadyDetermined,
+  std::map<Wireable*, Wireable*>& driverMap) {
   // cout << "Checking determination of " << inst->toString() << endl;
 
   for (Select* sel : allInputSelects(inst)) {
 
-    if (contains_key(cast<Wireable>(sel), driverMap) &&
-        elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {
+    if (
+      contains_key(cast<Wireable>(sel), driverMap) &&
+      elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {
 
       return true;
     }
@@ -62,9 +64,10 @@ bool hasInputFrom(CoreIR::Instance* const inst,
   return false;
 }
 
-bool inputsAreDeterminedBy(CoreIR::Instance* const inst,
-                           const std::set<Wireable*>& alreadyDetermined,
-                           std::map<Wireable*, Wireable*>& driverMap) {
+bool inputsAreDeterminedBy(
+  CoreIR::Instance* const inst,
+  const std::set<Wireable*>& alreadyDetermined,
+  std::map<Wireable*, Wireable*>& driverMap) {
 
   cout << "Checking determination of " << inst->toString() << endl;
 
@@ -72,8 +75,9 @@ bool inputsAreDeterminedBy(CoreIR::Instance* const inst,
 
   for (Select* sel : allInputSelects(inst)) {
 
-    if (contains_key(cast<Wireable>(sel), driverMap) &&
-        !elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {
+    if (
+      contains_key(cast<Wireable>(sel), driverMap) &&
+      !elem(extractSource(cast<Select>(driverMap[sel])), alreadyDetermined)) {
 
       cout << sel->toString() << " is not determined by " << endl;
       for (auto det : alreadyDetermined) {
@@ -88,7 +92,8 @@ bool inputsAreDeterminedBy(CoreIR::Instance* const inst,
 }
 
 std::vector<CoreIR::Instance*> receiverInstances(
-    CoreIR::Wireable* const w, map<Wireable*, vector<Wireable*>>& receiverMap) {
+  CoreIR::Wireable* const w,
+  map<Wireable*, vector<Wireable*>>& receiverMap) {
   vector<Select*> outSels = allOutputSelects(w);
 
   if (isa<Select>(w)) {
@@ -110,7 +115,8 @@ std::vector<CoreIR::Instance*> receiverInstances(
 }
 
 std::vector<CoreIR::Instance*> extractSubcircuit(
-    CoreIR::Module* mod, const std::vector<Wireable*>& startingPorts) {
+  CoreIR::Module* mod,
+  const std::vector<Wireable*>& startingPorts) {
   if (!mod->hasDef()) { return {}; }
 
   ModuleDef* def = mod->getDef();
@@ -159,8 +165,9 @@ std::vector<CoreIR::Instance*> extractSubcircuit(
     Instance* found = nullptr;
     toConsider.pop_back();
 
-    if (!elem(cast<Wireable>(next), undetermined) &&
-        hasInputFrom(next, undetermined, driverMap)) {
+    if (
+      !elem(cast<Wireable>(next), undetermined) &&
+      hasInputFrom(next, undetermined, driverMap)) {
       undetermined.insert(next);
 
       found = next;
@@ -190,11 +197,13 @@ std::vector<CoreIR::Instance*> extractSubcircuit(
   return subCircuitValues;
 }
 
-void addSubcircuitModule(const std::string& moduleName,
-                         CoreIR::Module* const srcModule,
-                         const std::vector<Wireable*>& selfPorts,
-                         const std::vector<CoreIR::Instance*>& instances,
-                         CoreIR::Context* const c, CoreIR::Namespace* const g) {
+void addSubcircuitModule(
+  const std::string& moduleName,
+  CoreIR::Module* const srcModule,
+  const std::vector<Wireable*>& selfPorts,
+  const std::vector<CoreIR::Instance*>& instances,
+  CoreIR::Context* const c,
+  CoreIR::Namespace* const g) {
 
   assert(srcModule->hasDef());
 
@@ -210,8 +219,9 @@ void addSubcircuitModule(const std::string& moduleName,
     Select* sel = cast<Select>(port);
     Wireable* parent = sel->getParent();
 
-    ASSERT(parent == srcSelf,
-           "All subcircuit ports must be selects off of self");
+    ASSERT(
+      parent == srcSelf,
+      "All subcircuit ports must be selects off of self");
   }
 
   vector<pair<string, Type*>> fields;
@@ -223,9 +233,10 @@ void addSubcircuitModule(const std::string& moduleName,
   cout << "Created subcircuit type with " << fields.size() << " fields" << endl;
 
   for (auto inst : instances) {
-    if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-        (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
-        (getQualifiedOpName(*inst) == "corebit.reg")) {
+    if (
+      (getQualifiedOpName(*inst) == "coreir.reg") ||
+      (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
+      (getQualifiedOpName(*inst) == "corebit.reg")) {
 
       Type* tp = inst->sel("out")->getType();
       string name = inst->toString() + "_subcircuit_out";
@@ -244,9 +255,10 @@ void addSubcircuitModule(const std::string& moduleName,
   for (auto inst : instances) { def->addInstance(inst, inst->getInstname()); }
 
   for (auto inst : instances) {
-    if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-        (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
-        (getQualifiedOpName(*inst) == "corebit.reg")) {
+    if (
+      (getQualifiedOpName(*inst) == "coreir.reg") ||
+      (getQualifiedOpName(*inst) == "coreir.reg_arst") ||
+      (getQualifiedOpName(*inst) == "corebit.reg")) {
 
       string destName = "self." + inst->toString() + "_subcircuit_out";
       string instName = inst->getInstname() + ".out";
@@ -265,10 +277,12 @@ void addSubcircuitModule(const std::string& moduleName,
     Wireable* newFst = nullptr;
     Wireable* newSnd = nullptr;
 
-    if (isa<Instance>(fstSrc) &&
-        contains_key(fstSrc->toString(), thisDefInstances)) {
+    if (
+      isa<Instance>(fstSrc) &&
+      contains_key(fstSrc->toString(), thisDefInstances)) {
       newFst = replaceSelect(fstSrc, thisDefInstances[fstSrc->toString()], fst);
-    } else if (isa<Select>(fstSrc)) {
+    }
+    else if (isa<Select>(fstSrc)) {
 
       Select* fstSel = cast<Select>(fstSrc);
       string str = fstSel->getSelStr();
@@ -282,18 +296,22 @@ void addSubcircuitModule(const std::string& moduleName,
       }
 
       if (foundField) {
-        newFst = replaceSelect(fstSrc,
-                               def->sel("self")->sel(fstSel->getSelStr()), fst);
+        newFst = replaceSelect(
+          fstSrc,
+          def->sel("self")->sel(fstSel->getSelStr()),
+          fst);
 
         // cout << "Found self select " << newFst->toString() << endl;
       }
     }
 
-    if (isa<Instance>(sndSrc) &&
-        contains_key(sndSrc->toString(), thisDefInstances)) {
+    if (
+      isa<Instance>(sndSrc) &&
+      contains_key(sndSrc->toString(), thisDefInstances)) {
 
       newSnd = replaceSelect(sndSrc, thisDefInstances[sndSrc->toString()], snd);
-    } else if (isa<Select>(sndSrc)) {
+    }
+    else if (isa<Select>(sndSrc)) {
 
       Select* sndSel = cast<Select>(sndSrc);
       string str = sndSel->getSelStr();
@@ -307,8 +325,10 @@ void addSubcircuitModule(const std::string& moduleName,
       }
 
       if (foundField) {
-        newSnd = replaceSelect(sndSrc,
-                               def->sel("self")->sel(sndSel->getSelStr()), snd);
+        newSnd = replaceSelect(
+          sndSrc,
+          def->sel("self")->sel(sndSel->getSelStr()),
+          snd);
 
         // cout << "Found self select " << newSnd->toString() << endl;
       }
@@ -326,8 +346,9 @@ void addSubcircuitModule(const std::string& moduleName,
 
 void printConnectionInfo(const std::string& sel) {}
 
-void registersToConstants(CoreIR::Module* const mod,
-                          std::unordered_map<std::string, BitVec>& regValues) {
+void registersToConstants(
+  CoreIR::Module* const mod,
+  std::unordered_map<std::string, BitVec>& regValues) {
   if (!mod->hasDef()) { return; }
 
   ModuleDef* def = mod->getDef();
@@ -341,8 +362,9 @@ void registersToConstants(CoreIR::Module* const mod,
     for (auto instR : def->getInstances()) {
       auto inst = instR.second;
 
-      if ((getQualifiedOpName(*inst) == "coreir.reg") ||
-          (getQualifiedOpName(*inst) == "coreir.reg_arst")) {
+      if (
+        (getQualifiedOpName(*inst) == "coreir.reg") ||
+        (getQualifiedOpName(*inst) == "coreir.reg_arst")) {
 
         // cout << "Found register = " << inst->toString() << endl;
 
@@ -358,9 +380,10 @@ void registersToConstants(CoreIR::Module* const mod,
 
           string cName = inst->toString() + "_const_value";
           Instance* constR = def->addInstance(
-              cName, "coreir.const",
-              {{"width", Const::make(c, value.bitLength())}},
-              {{"value", Const::make(c, value)}});
+            cName,
+            "coreir.const",
+            {{"width", Const::make(c, value.bitLength())}},
+            {{"value", Const::make(c, value)}});
 
           Instance* instPT = addPassthrough(inst, "_const_to_register_PT");
           def->removeInstance(inst);
@@ -376,8 +399,8 @@ void registersToConstants(CoreIR::Module* const mod,
 }
 
 void partiallyEvaluateCircuit(
-    CoreIR::Module* const wholeTopMod,
-    std::unordered_map<std::string, BitVector>& regMap) {
+  CoreIR::Module* const wholeTopMod,
+  std::unordered_map<std::string, BitVector>& regMap) {
   cout << "Converting " << regMap.size() << " registers to constants" << endl;
   for (auto reg : regMap) {
     cout << "\t" << reg.first << " ---> " << reg.second << endl;
@@ -409,8 +432,10 @@ void partiallyEvaluateCircuit(
   // wholeTopMod->print();
 
   cout << wholeTopMod->toString() << endl;
-  if (!saveToFile(wholeTopMod->getContext()->getGlobal(),
-                  "sb_unq1_registered.json", wholeTopMod)) {
+  if (!saveToFile(
+        wholeTopMod->getContext()->getGlobal(),
+        "sb_unq1_registered.json",
+        wholeTopMod)) {
     cout << "Could not save to json!!" << endl;
     assert(false);
   }
@@ -433,15 +458,21 @@ void partiallyEvaluateCircuit(
        << wholeTopMod->getDef()->getInstances().size() << endl;
 }
 
-Module* createSubCircuit(CoreIR::Module* const topMod,
-                         std::vector<CoreIR::Wireable*>& subCircuitPorts,
-                         std::vector<CoreIR::Instance*>& subCircuitInstances,
-                         CoreIR::Context* const c) {
+Module* createSubCircuit(
+  CoreIR::Module* const topMod,
+  std::vector<CoreIR::Wireable*>& subCircuitPorts,
+  std::vector<CoreIR::Instance*>& subCircuitInstances,
+  CoreIR::Context* const c) {
 
   // Create the subcircuit for the config, this could be isolated into a
   // function
-  addSubcircuitModule("topMod_config", topMod, subCircuitPorts,
-                      subCircuitInstances, c, c->getGlobal());
+  addSubcircuitModule(
+    "topMod_config",
+    topMod,
+    subCircuitPorts,
+    subCircuitInstances,
+    c,
+    c->getGlobal());
 
   Module* topMod_conf = c->getGlobal()->getModule("topMod_config");
 

@@ -8,7 +8,7 @@ using namespace CoreIR;
 // Do not forget to set this static variable!!
 
 bool Passes::ClockifyInterface::runOnInstanceGraphNode(
-    InstanceGraphNode& node) {
+  InstanceGraphNode& node) {
 
   Module* m = node.getModule();
   if (!m->hasDef()) { return false; }
@@ -43,7 +43,8 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(
              << parent->toString() << ", which is not an instance" << endl;
         allClocks = false;
         break;
-      } else {
+      }
+      else {
         Instance* inst = cast<Instance>(parent);
         if (getQualifiedOpName(*inst) != "coreir.wrap") {
 
@@ -51,7 +52,8 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(
                << inst->toString() << ", which is not a wrap node" << endl;
           allClocks = false;
           break;
-        } else {
+        }
+        else {
           // cout << inst->toString() << " is a wrap node" << endl;
 
           // cout << "args" << endl;
@@ -59,9 +61,8 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(
           //   cout << arg.first << " = " << arg.second->toString() << endl;
           // }
 
-          auto arg = (inst->getModuleRef()->getGenArgs())
-                         .at("type")
-                         ->get<Type*>();
+          auto
+            arg = (inst->getModuleRef()->getGenArgs()).at("type")->get<Type*>();
 
           // cout << "Got arg = " << arg->toString() << endl;
 
@@ -80,7 +81,8 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(
               allClocks = false;
               break;
             }
-          } else {
+          }
+          else {
             cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to "
                  << inst->toString() << ", which casts to type "
                  << arg->toString() << endl;

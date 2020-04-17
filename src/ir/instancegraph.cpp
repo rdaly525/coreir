@@ -3,8 +3,8 @@
 using namespace std;
 using namespace CoreIR;
 
-bool InstanceGraph::ModuleCmp::operator()(const Module* l,
-                                          const Module* r) const {
+bool InstanceGraph::ModuleCmp::operator()(const Module* l, const Module* r)
+  const {
   return l->getLongName() < r->getLongName();
 }
 
@@ -29,8 +29,9 @@ void InstanceGraph::sortVisit(InstanceGraphNode* node) {
 }
 
 namespace {
-void recurse(Module* m,
-             std::set<Module*, InstanceGraph::ModuleCmp>& onlyTopNodes) {
+void recurse(
+  Module* m,
+  std::set<Module*, InstanceGraph::ModuleCmp>& onlyTopNodes) {
   if (onlyTopNodes.count(m)) { return; }
   onlyTopNodes.insert(m);
   if (!m->hasDef()) { return; }

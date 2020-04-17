@@ -6,15 +6,14 @@
 namespace CoreIR {
 namespace Passes {
 
-
 class UnresolvedSymbols : public ContextPass {
-  public :
-    static std::string ID;
-    UnresolvedSymbols() : ContextPass(ID,"outputs all unresolved symbols") {}
-    bool runOnContext(Context* c);
+ public:
+  static std::string ID;
+  UnresolvedSymbols() : ContextPass(ID, "outputs all unresolved symbols") {}
+  bool runOnContext(Context* c);
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 
 #endif

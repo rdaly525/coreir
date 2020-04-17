@@ -28,8 +28,10 @@ string get_trans(string trans) { return "TRANS" + NL + trans + ";"; }
 
 string get_invar(string invar) { return "INVAR" + NL + invar + ";"; }
 
-void findAndReplaceAll(std::string& data, std::string toSearch,
-                       std::string replaceStr) {
+void findAndReplaceAll(
+  std::string& data,
+  std::string toSearch,
+  std::string replaceStr) {
   size_t pos = data.find(toSearch);
   while (pos != std::string::npos) {
     data.replace(pos, toSearch.size(), replaceStr);
@@ -82,22 +84,31 @@ string SMVAssign(SmvBVVar vleft, SmvBVVar vright) {
   SmvBVVar vright_c = SmvBVVarGetCurr(vright);
   SmvBVVar vleft_n = SmvBVVarGetNext(vleft);
   SmvBVVar vright_n = SmvBVVarGetNext(vright);
-  string curr = binary_op("=", vleft_c.getExtractName(),
-                          vright_c.getExtractName());
+  string curr = binary_op(
+    "=",
+    vleft_c.getExtractName(),
+    vright_c.getExtractName());
   return get_invar(curr);
 }
 
-string SMVBop(string context, string opname, string op, SmvBVVar in1_p,
-              SmvBVVar in2_p, SmvBVVar out_p) {
+string SMVBop(
+  string context,
+  string opname,
+  string op,
+  SmvBVVar in1_p,
+  SmvBVVar in2_p,
+  SmvBVVar out_p) {
   // INVAR: (in1 <op> in2) = out
   string in1 = in1_p.getPortName();
   string in2 = in2_p.getPortName();
   string out = out_p.getPortName();
   string comment = "-- SMV" + opname + " (in1, in2, out) = (" + in1 + ", " +
                    in2 + ", " + out + ")";
-  string curr = binary_op_eq(op, SMVgetCurr(context, in1),
-                             SMVgetCurr(context, in2),
-                             SMVgetCurr(context, out));
+  string curr = binary_op_eq(
+    op,
+    SMVgetCurr(context, in1),
+    SMVgetCurr(context, in2),
+    SMVgetCurr(context, out));
   return comment + NL + get_invar(curr);
 }
 
@@ -121,13 +132,20 @@ string SMVSub(string context, SmvBVVar in1_p, SmvBVVar in2_p, SmvBVVar out_p) {
   return SMVBop(context, "Sub", "-", in1_p, in2_p, out_p);
 }
 
-string SMVConcat(string context, SmvBVVar in1_p, SmvBVVar in2_p,
-                 SmvBVVar out_p) {
+string SMVConcat(
+  string context,
+  SmvBVVar in1_p,
+  SmvBVVar in2_p,
+  SmvBVVar out_p) {
   return SMVBop(context, "Concat", "::", in1_p, in2_p, out_p);
 }
 
-string SMVSlice(string context, SmvBVVar in_p, SmvBVVar out_p, int low_p,
-                int high_p) {
+string SMVSlice(
+  string context,
+  SmvBVVar in_p,
+  SmvBVVar out_p,
+  int low_p,
+  int high_p) {
   // INVAR: (in[high:low] = out)
   string in = in_p.getPortName();
   string out = out_p.getPortName();
@@ -146,8 +164,10 @@ string SMVNot(string context, SmvBVVar in_p, SmvBVVar out_p) {
   string out = out_p.getPortName();
   string comment = "-- SMVNot (in, out) = (" + in + ", " + out + ")";
   string op = "!";
-  string curr = unary_op_eq(op, SMVgetCurr(context, in),
-                            SMVgetCurr(context, out));
+  string curr = unary_op_eq(
+    op,
+    SMVgetCurr(context, in),
+    SMVgetCurr(context, out));
   return comment + NL + get_invar(curr);
 }
 
@@ -175,9 +195,9 @@ string SMVReg(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p) {
   replace_map.emplace("{in}", SMVgetCurr(context, in));
   replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
 
-  string
-      trans = "(((!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & "
-              "((!(!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
+  string trans =
+    "(((!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & "
+    "((!(!{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
   string init = "{out} = {zero}";
 
   trans = format_string(trans, replace_map);
@@ -185,8 +205,12 @@ string SMVReg(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p) {
   return comment + NL + get_init(init) + NL + get_trans(trans);
 }
 
-string SMVRegPE(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p,
-                SmvBVVar en_p) {
+string SMVRegPE(
+  string context,
+  SmvBVVar in_p,
+  SmvBVVar clk_p,
+  SmvBVVar out_p,
+  SmvBVVar en_p) {
   // INIT: out = 0
   // TRANS: ((en & !clk & clk') -> (out' = in)) & (!(en & !clk & clk') -> (out'
   // = out))
@@ -205,8 +229,8 @@ string SMVRegPE(string context, SmvBVVar in_p, SmvBVVar clk_p, SmvBVVar out_p,
   replace_map.emplace("{zero}", getSMVbits(stoi(out_p.dimstr()), 0));
 
   string trans =
-      "((({en} & !{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & "
-      "((!({en} & !{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
+    "((({en} & !{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {in})) & "
+    "((!({en} & !{clk} & next({clk})) = 0ud1_1) -> (next({out}) = {out}))";
   string init = "{out} = {zero}";
 
   trans = format_string(trans, replace_map);
@@ -220,13 +244,19 @@ string SMVClock(string context, SmvBVVar clk_p) {
   string clk = clk_p.getPortName();
   string comment = "-- SMVClock (clk) = (" + clk + ")";
   string init = binary_op("=", "0ud1_0", SMVgetCurr(context, clk));
-  string trans = binary_op("=", SMVgetCurr(context, clk),
-                           unary_op("!", SMVgetNext(context, clk)));
+  string trans = binary_op(
+    "=",
+    SMVgetCurr(context, clk),
+    unary_op("!", SMVgetNext(context, clk)));
   return comment + NL + get_init(init) + NL + get_trans(trans);
 }
 
-string SMVMux(string context, SmvBVVar in0_p, SmvBVVar in1_p, SmvBVVar sel_p,
-              SmvBVVar out_p) {
+string SMVMux(
+  string context,
+  SmvBVVar in0_p,
+  SmvBVVar in1_p,
+  SmvBVVar sel_p,
+  SmvBVVar out_p) {
   string in0 = in0_p.getPortName();
   string in1 = in1_p.getPortName();
   string sel = sel_p.getPortName();
@@ -240,11 +270,13 @@ string SMVMux(string context, SmvBVVar in0_p, SmvBVVar in1_p, SmvBVVar sel_p,
   string then_bc = binary_op("=", SMVgetCurr(context, sel), one);
   string else_bc = binary_op("=", SMVgetCurr(context, sel), zero);
   string curr_1 = binary_op(
-      "->", then_bc,
-      binary_op("=", SMVgetCurr(context, in0), SMVgetCurr(context, out)));
+    "->",
+    then_bc,
+    binary_op("=", SMVgetCurr(context, in0), SMVgetCurr(context, out)));
   string curr_2 = binary_op(
-      "->", else_bc,
-      binary_op("=", SMVgetCurr(context, in1), SMVgetCurr(context, out)));
+    "->",
+    else_bc,
+    binary_op("=", SMVgetCurr(context, in1), SMVgetCurr(context, out)));
   string invar = binary_op("&", curr_1, curr_2);
 
   return comment + NL + get_invar(invar);

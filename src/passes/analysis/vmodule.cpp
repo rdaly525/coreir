@@ -19,9 +19,8 @@ CoreIRVModule::CoreIRVModule(VModules* vmods, Module* m) : VModule(vmods) {
   this->addDefaults(m->getDefaultModArgs());
   ModuleDef* def = m->getDef();
   for (auto imap : def->getInstances()) { this->addInstance(imap.second); }
-  if (vmods->_inline) {
-    this->addConnectionsInlined(def);
-  } else {
+  if (vmods->_inline) { this->addConnectionsInlined(def); }
+  else {
     this->addConnections(def);
   }
   // Materialize all the statemts
@@ -56,8 +55,9 @@ static void init_worklist(ModuleDef* def, std::queue<Connection>& worklist) {
 
 // https://stackoverflow.com/questions/216823/whats-the-best-way-to-trim-stdstring
 static inline void ltrim(std::string& s) {
-  s.erase(s.begin(), std::find_if(s.begin(), s.end(),
-                                  [](int ch) { return !std::isspace(ch); }));
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+            return !std::isspace(ch);
+          }));
 }
 
 static bool str_in_select_path(SelectPath select_path, std::string search_str) {
@@ -67,15 +67,18 @@ static bool str_in_select_path(SelectPath select_path, std::string search_str) {
   return false;
 }
 
-std::string CoreIRVModule::get_inline_str(Wireable* source,
-                                          SelectPath select_path,
-                                          Connection conn, ModuleDef* def,
-                                          std::queue<Connection>& worklist) {
+std::string CoreIRVModule::get_inline_str(
+  Wireable* source,
+  SelectPath select_path,
+  Connection conn,
+  ModuleDef* def,
+  std::queue<Connection>& worklist) {
   std::string to_replace;
   if (select_path[0] == "self") {
     // If it's a reference to an input port, just inline the reference directly
     to_replace = VWire(source).getName();
-  } else {
+  }
+  else {
     // Otherwise, we try to get the result of inlining the instance (which may
     // recursively inline other instances)
     Instance* inst = dyn_cast<Instance>(def->sel(select_path[0]));
@@ -85,7 +88,8 @@ std::string CoreIRVModule::get_inline_str(Wireable* source,
       // replace it with the standard wire name
       to_replace = VWire(source).getName();
       worklist.push(conn);
-    } else {
+    }
+    else {
       // Otherwise, use the result of inlining
       to_replace = result;
     }
@@ -93,9 +97,11 @@ std::string CoreIRVModule::get_inline_str(Wireable* source,
   return to_replace;
 }
 
-std::string CoreIRVModule::get_replace_str(std::string input_name,
-                                           Instance* instance, ModuleDef* def,
-                                           std::queue<Connection>& worklist) {
+std::string CoreIRVModule::get_replace_str(
+  std::string input_name,
+  Instance* instance,
+  ModuleDef* def,
+  std::queue<Connection>& worklist) {
   std::string replace_str = "";
   // Track the number of connections added, if more than one, we use verilog
   // concat syntax
@@ -110,12 +116,14 @@ std::string CoreIRVModule::get_replace_str(std::string input_name,
     std::string to_replace = "";
     if (sp_first[0] == inst_sp[0] && str_in_select_path(sp_first, input_name)) {
       to_replace = get_inline_str(source, sp_second, conn, def, worklist);
-    } else if (sp_second[0] == inst_sp[0] &&
-               str_in_select_path(sp_second, input_name)) {
+    }
+    else if (
+      sp_second[0] == inst_sp[0] && str_in_select_path(sp_second, input_name)) {
       // Swap if the instance is second
       source = conn.first;
       to_replace = get_inline_str(source, sp_first, conn, def, worklist);
-    } else {
+    }
+    else {
       // Skip if instance is not part of connection
       continue;
     }
@@ -127,22 +135,25 @@ std::string CoreIRVModule::get_replace_str(std::string input_name,
   return replace_str;
 }
 
-std::string CoreIRVModule::inline_instance(ModuleDef* def,
-                                           std::queue<Connection>& worklist,
-                                           Instance* right_parent) {
+std::string CoreIRVModule::inline_instance(
+  ModuleDef* def,
+  std::queue<Connection>& worklist,
+  Instance* right_parent) {
   std::string right_conn_str = "";
   Module* right_parent_module = right_parent->getModuleRef();
   VModule* right_parent_verilog_module = vmods->mod2VMod[right_parent_module];
-  if (auto vermod = dynamic_cast<VerilogVModule*>(
-          right_parent_verilog_module)) {
+  if (
+    auto vermod = dynamic_cast<VerilogVModule*>(right_parent_verilog_module)) {
     if (vmods->_inline && right_parent_verilog_module->inlineable) {
       right_conn_str = vermod->jver["definition"].get<string>();
       // assumes that if it's inlineable it only has one output named out
 
       // replace assign out = since that will be handled by the
       // current connection target
-      right_conn_str = std::regex_replace(right_conn_str,
-                                          std::regex("assign out = "), "");
+      right_conn_str = std::regex_replace(
+        right_conn_str,
+        std::regex("assign out = "),
+        "");
 
       // semicolon inserted later, so we remove it now
       right_conn_str = std::regex_replace(right_conn_str, std::regex(";"), "");
@@ -154,8 +165,11 @@ std::string CoreIRVModule::inline_instance(ModuleDef* def,
       for (auto record_pair :
            cast<RecordType>(right_parent->getType())->getRecord()) {
         if (record_pair.second->getDir() == Type::DK_In) {
-          std::string replace = get_replace_str(record_pair.first, right_parent,
-                                                def, worklist);
+          std::string replace = get_replace_str(
+            record_pair.first,
+            right_parent,
+            def,
+            worklist);
           // std::cout << replace << std::endl;
           ASSERT(replace != "", "Expected something to inline");
           // replace string followed by space, bracket, close paren, or
@@ -197,10 +211,12 @@ std::string CoreIRVModule::inline_instance(ModuleDef* def,
       Wireable* sink = conn.first;
       if (sp_first[0] == inst_sp[0]) {
         // Use default case
-      } else if (sp_second[0] == inst_sp[0]) {
+      }
+      else if (sp_second[0] == inst_sp[0]) {
         // Swap if the instance is second
         sink = conn.second;
-      } else {
+      }
+      else {
         // Skip if instance is not part of connection
         continue;
       }
@@ -239,19 +255,23 @@ void CoreIRVModule::addConnectionsInlined(ModuleDef* def) {
     Connection conn = worklist.front();
     worklist.pop();
     Wireable* left = conn.first->getType()->getDir() == Type::DK_In
-                         ? conn.first
-                         : conn.second;
+                       ? conn.first
+                       : conn.second;
     Wireable* right = left == conn.first ? conn.second : conn.first;
     string right_conn_str = "";
     // skip if module def input connected to output
     if (!(left->getSelectPath()[0] == "self" &&
           right->getSelectPath()[0] == "self")) {
       if (Instance* right_parent = dyn_cast<Instance>(right->getTopParent())) {
-        right_conn_str = CoreIRVModule::inline_instance(def, worklist,
-                                                        right_parent);
-      } else {
-        ASSERT(right->getSelectPath()[0] == "self",
-               "Expected reference to self port");
+        right_conn_str = CoreIRVModule::inline_instance(
+          def,
+          worklist,
+          right_parent);
+      }
+      else {
+        ASSERT(
+          right->getSelectPath()[0] == "self",
+          "Expected reference to self port");
       }
     }
     if (right_conn_str == "") {
@@ -319,13 +339,16 @@ void VModules::addModule(Module* m) {
   if (isExtern) {
     vmod = new ExternVModule(this, m);
     externalVMods.push_back(vmod);
-  } else if (genHasVerilog) {
+  }
+  else if (genHasVerilog) {
     assert(gen2VMod.count(g) == 0);
     vmod = new ParamVerilogVModule(this, g);
     gen2VMod[g] = vmod;
-  } else if (modHasVerilog) {
+  }
+  else if (modHasVerilog) {
     vmod = new VerilogVModule(this, m);
-  } else {
+  }
+  else {
     // m is either gen or not
     vmod = new CoreIRVModule(this, m);
   }
@@ -345,7 +368,8 @@ string VModule::toString() const {
     if (!this->isExternal && this->vmods->_verilator_debug) {
       for (auto& pdec : pdecs) { pdec += "/*verilator public*/"; }
     }
-  } else {
+  }
+  else {
     for (auto pmap : ports) {
       auto port = pmap.second;
       string pdec = port.dirstr() + " " + port.dimstr() + " " + port.getName();
@@ -367,12 +391,13 @@ string VModule::toString() const {
       paramstrs.push_back(s);
     }
   }
-  string pstring = paramstrs.size() > 0
-                       ? " #(" +
-                             join(paramstrs.begin(), paramstrs.end(),
-                                  string(", ")) +
-                             ") "
-                       : " ";
+  string pstring = paramstrs.size() > 0 ? " #(" +
+                                            join(
+                                              paramstrs.begin(),
+                                              paramstrs.end(),
+                                              string(", ")) +
+                                            ") "
+                                        : " ";
 
   ostringstream o;
   string tab = "  ";
@@ -406,7 +431,8 @@ string VModule::toInstanceString(Instance* inst) {
     args = mref->getGenArgs();
     Type2Ports(mref->getGenerator()->getTypeGen()->getType(args), iports);
     mname = modname;
-  } else {
+  }
+  else {
     mname = modname;
     iports = ports;
   }
@@ -419,8 +445,9 @@ string VModule::toInstanceString(Instance* inst) {
 
   vector<string> paramstrs;
   for (auto param : this->params) {
-    ASSERT(args.count(param),
-           "Missing parameter " + param + " from " + ::CoreIR::toString(args));
+    ASSERT(
+      args.count(param),
+      "Missing parameter " + param + " from " + ::CoreIR::toString(args));
 
     // TODO: Remove this when we have a better solution for verilog output
     if (param != "type") {

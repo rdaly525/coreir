@@ -7,12 +7,16 @@ namespace CoreIR {
 namespace Passes {
 
 class VerifyFlattenedTypes : public InstanceGraphPass {
-  public :
-    static std::string ID;
-    VerifyFlattenedTypes() : InstanceGraphPass(ID,"Verify all modules and instances have flattened types",true) {}
-    bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+ public:
+  static std::string ID;
+  VerifyFlattenedTypes()
+    : InstanceGraphPass(
+        ID,
+        "Verify all modules and instances have flattened types",
+        true) {}
+  bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 #endif

@@ -43,8 +43,10 @@ vector<string> getRef(string s) {
 }
 
 // This will verify that json contains ONLY list of possible things
-void checkJson(json j, set<string> optsRequired,
-               set<string> optsOptional = set<string>()) {
+void checkJson(
+  json j,
+  set<string> optsRequired,
+  set<string> optsOptional = set<string>()) {
   jsonmap jmap = j.get<jsonmap>();
   for (auto req : optsRequired) {
     ASSERTTHROW(jmap.count(req), "Missing " + req + " from\n " + toString(j));
@@ -52,9 +54,9 @@ void checkJson(json j, set<string> optsRequired,
 
   for (auto opt : jmap) {
 
-    ASSERTTHROW(optsRequired.count(opt.first) || optsOptional.count(opt.first),
-                "Cannot put \"" + opt.first + "\" here in json file\n" +
-                    toString(j));
+    ASSERTTHROW(
+      optsRequired.count(opt.first) || optsOptional.count(opt.first),
+      "Cannot put \"" + opt.first + "\" here in json file\n" + toString(j));
   }
 }
 
@@ -72,21 +74,22 @@ bool loadFromFile(Context* c, string filename, Module** top) {
   try {
     file >> j;
     // There are the following dependencies moduleDefs->(all
-    // modules/generaors)->typegens->(all Types)->namespaces Therefore first load
-    // all namespaces Then load all namedtypes (No namedtypegens, only simple
-    // named types) Then Load all typegens Then Load all Modules and Generators
-    // Then Load all ModuleDefs
+    // modules/generaors)->typegens->(all Types)->namespaces Therefore first
+    // load all namespaces Then load all namedtypes (No namedtypegens, only
+    // simple named types) Then Load all typegens Then Load all Modules and
+    // Generators Then Load all ModuleDefs
 
     vector<std::pair<Namespace*, json>> nsqueue;
     checkJson(j, {"namespaces"}, {"top"});
     for (auto jnsmap : j.at("namespaces").get<jsonmap>()) {
       string nsname = jnsmap.first;
-      checkJson(jnsmap.second, set<string>(),
-                {"namedtypes", "typegens", "modules", "generators"});
+      checkJson(
+        jnsmap.second,
+        set<string>(),
+        {"namedtypes", "typegens", "modules", "generators"});
       Namespace* ns;
-      if (c->hasNamespace(nsname)) {
-        ns = c->getNamespace(nsname);
-      } else {
+      if (c->hasNamespace(nsname)) { ns = c->getNamespace(nsname); }
+      else {
         ns = c->newNamespace(nsname);
       }
       nsqueue.push_back({ns, jnsmap.second});
@@ -109,9 +112,11 @@ bool loadFromFile(Context* c, string filename, Module** top) {
             // Verify it also has nameflip
             NamedType* namedtype = ns->getNamedType(name);
             ASSERT(raw == namedtype->getRaw(), "Wrong named type");
-            ASSERT(c->Flip(namedtype) == ns->getNamedType(nameFlip),
-                   "Missing the flip");
-          } else {
+            ASSERT(
+              c->Flip(namedtype) == ns->getNamedType(nameFlip),
+              "Missing the flip");
+          }
+          else {
             ns->newNamedType(name, nameFlip, raw);
           }
         }
@@ -125,9 +130,9 @@ bool loadFromFile(Context* c, string filename, Module** top) {
       Namespace* ns = c->getNamespace(nsname);
 
       // TODO this is a little sketch because if there is a symbol conflict, I
-      // just make sure they are consistent Really, it is possible that I want to
-      // concat multiple typegen lists together, ore handle duplicate symbols a
-      // different way
+      // just make sure they are consistent Really, it is possible that I want
+      // to concat multiple typegen lists together, ore handle duplicate symbols
+      // a different way
       if (jns.count("typegens")) {
         for (auto jtgpair : jns.at("typegens").get<jsonmap>()) {
           string name = jtgpair.first;
@@ -138,33 +143,39 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           Params tgparams = json2Params(c, jtg[0]);
           string tgkind = jtg[1].get<string>();
           if (tgkind == "implicit") {
-            ASSERTTHROW(jtg.size() == 2,
-                        "Bad implicit typegen format" + toString(jtg));
+            ASSERTTHROW(
+              jtg.size() == 2,
+              "Bad implicit typegen format" + toString(jtg));
             if (!tg) {
               tg = TypeGenImplicit::make(ns, name, tgparams);
               ns->addTypeGen(tg);
             }
-          } else if (tgkind == "sparse") {
+          }
+          else if (tgkind == "sparse") {
             vector<std::pair<Values, Type*>> typeList;
             // First just get the list of Values->Types
             for (auto jvaltypes : jtg[2].get<jsonvector>()) {
               jsonvector jvaltype = jvaltypes.get<jsonvector>();
-              ASSERTTHROW(jvaltype.size() == 2,
-                          "Bad sparse typegen format" + toString(jtg[2]));
+              ASSERTTHROW(
+                jvaltype.size() == 2,
+                "Bad sparse typegen format" + toString(jtg[2]));
               Values jvals = json2Values(c, jvaltype[0]);
               Type* t = json2Type(c, jvaltype[1]);
               typeList.push_back({jvals, t});
             }
             if (tg) {  // If already exists, just check for consistency
               for (auto vtpair : typeList) {
-                ASSERTTHROW(tg->getType(vtpair.first) == vtpair.second,
-                            "Typegens are inconsistent... " + tg->toString());
+                ASSERTTHROW(
+                  tg->getType(vtpair.first) == vtpair.second,
+                  "Typegens are inconsistent... " + tg->toString());
               }
-            } else {
+            }
+            else {
               tg = TypeGenSparse::make(ns, name, tgparams, typeList);
               ns->addTypeGen(tg);
             }
-          } else {
+          }
+          else {
             ASSERTTHROW(0, "NYI typegenkind=" + tgkind);
           }
         }
@@ -188,9 +199,14 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           }
 
           json jmod = jmodmap.second;
-          checkJson(jmod, {"type"},
-                    {"modparams", "defaultmodargs", "instances", "connections",
-                     "metadata"});
+          checkJson(
+            jmod,
+            {"type"},
+            {"modparams",
+             "defaultmodargs",
+             "instances",
+             "connections",
+             "metadata"});
           Type* t = json2Type(c, jmod.at("type"));
           Params modparams;
           if (jmod.count("modparams")) {
@@ -214,14 +230,17 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           }
 
           json jgen = jgenmap.second;
-          checkJson(jgen, {"typegen", "genparams"},
-                    {"modules", "defaultgenargs", "metadata"});
+          checkJson(
+            jgen,
+            {"typegen", "genparams"},
+            {"modules", "defaultgenargs", "metadata"});
           Params genparams = json2Params(c, jgen.at("genparams"));
 
           string typeGenName = jgen.at("typegen").get<string>();
-          ASSERTTHROW(c->hasTypeGen(typeGenName),
-                      "Missing typegen symbol " + typeGenName +
-                          " for generator " + jgenmap.first);
+          ASSERTTHROW(
+            c->hasTypeGen(typeGenName),
+            "Missing typegen symbol " + typeGenName + " for generator " +
+              jgenmap.first);
           TypeGen* tg = c->getTypeGen(typeGenName);
           vector<std::pair<Values, json>> genmodvalues;
           // Verify that this is consistent with all the types
@@ -234,19 +253,25 @@ bool loadFromFile(Context* c, string filename, Module** top) {
           if (jgen.count("modules")) {
             for (auto jgenmod : jgen.at("modules").get<jsonvector>()) {
               jsonvector jvalmod = jgenmod.get<jsonvector>();
-              ASSERTTHROW(jvalmod.size() == 2,
-                          "Bad generated module" + toString(jgenmod));
+              ASSERTTHROW(
+                jvalmod.size() == 2,
+                "Bad generated module" + toString(jgenmod));
               Values genargs = json2Values(c, jvalmod[0]);
               json jmod = jvalmod[1];
-              checkJson(jmod, {"type"},
-                        {"modparams", "defaultmodargs", "instances",
-                         "connections", "metadata"});
+              checkJson(
+                jmod,
+                {"type"},
+                {"modparams",
+                 "defaultmodargs",
+                 "instances",
+                 "connections",
+                 "metadata"});
               Type* type = json2Type(c, jmod.at("type"));
               // This will verify the correct type if typegen can generate the
               // type
               Module* m = g->getModule(genargs, type);
               modqueue.push_back(
-                  {m, jmod});  // Populate the generated module cache
+                {m, jmod});  // Populate the generated module cache
             }
           }
         }
@@ -262,14 +287,16 @@ bool loadFromFile(Context* c, string filename, Module** top) {
         for (auto jinstmap : jmod.at("instances").get<jsonmap>()) {
           string instname = jinstmap.first;
           json jinst = jinstmap.second;
-          checkJson(jinst, set<string>(),
-                    {
-                        "modref",
-                        "genref",
-                        "genargs",
-                        "modargs",
-                        "metadata",
-                    });
+          checkJson(
+            jinst,
+            set<string>(),
+            {
+              "modref",
+              "genref",
+              "genargs",
+              "modargs",
+              "metadata",
+            });
           // This function can throw an error
           Instance* inst;
           if (jinst.count("modref")) {
@@ -281,8 +308,10 @@ bool loadFromFile(Context* c, string filename, Module** top) {
               modargs = json2Values(c, jinst.at("modargs"), modRef);
             }
             inst = mdef->addInstance(instname, modRef, modargs);
-          } else if (jinst.count("genargs") &&
-                     jinst.count("genref")) {  // This is a generator
+          }
+          else if (
+            jinst.count("genargs") &&
+            jinst.count("genref")) {  // This is a generator
             auto gref = getRef(jinst.at("genref").get<string>());
             Generator* genRef = getGenSymbol(c, gref[0], gref[1]);
             Values genargs = json2Values(c, jinst.at("genargs"));
@@ -291,10 +320,11 @@ bool loadFromFile(Context* c, string filename, Module** top) {
               modargs = json2Values(c, jinst.at("modargs"));
             }
             inst = mdef->addInstance(instname, genRef, genargs, modargs);
-          } else {
-            ASSERTTHROW(0,
-                        "Bad Instance. Need (modref || (genref && genargs)) " +
-                            instname);
+          }
+          else {
+            ASSERTTHROW(
+              0,
+              "Bad Instance. Need (modref || (genref && genargs)) " + instname);
           }
           if (jinst.count("metadata")) { inst->setMetaData(jinst["metadata"]); }
         }  // End Instances
@@ -303,8 +333,9 @@ bool loadFromFile(Context* c, string filename, Module** top) {
       // Connections
       if (jmod.count("connections")) {
         for (auto jcon : jmod.at("connections").get<vector<jsonvector>>()) {
-          ASSERTTHROW(jcon.size() == 2 || jcon.size() == 3,
-                      "Connection invalid");
+          ASSERTTHROW(
+            jcon.size() == 2 || jcon.size() == 3,
+            "Connection invalid");
           Wireable* a = mdef->sel(jcon[0].get<string>());
           Wireable* b = mdef->sel(jcon[1].get<string>());
           mdef->connect(a, b);
@@ -320,10 +351,12 @@ bool loadFromFile(Context* c, string filename, Module** top) {
     if (top && j.count("top")) {
       *top = getModSymbol(c, j["top"].get<string>());
       c->setTop(*top);
-    } else if (top) {
+    }
+    else if (top) {
       *top = nullptr;
     }
-  } catch (std::exception& exc) {
+  }
+  catch (std::exception& exc) {
     Error e;
     e.message("In file: " + filename);
     e.message(exc.what());
@@ -365,21 +398,26 @@ ValueType* json2ValueType(Context* c, json j) {
     return c->BitVector(j[1].get<int>());
   }
   string vs = j.get<string>();
-  if (vs == "Bool") {
-    return c->Bool();
-  } else if (vs == "Int") {
+  if (vs == "Bool") { return c->Bool(); }
+  else if (vs == "Int") {
     return c->Int();
-  } else if (vs == "String") {
+  }
+  else if (vs == "String") {
     return c->String();
-  } else if (vs == "CoreIRType") {
+  }
+  else if (vs == "CoreIRType") {
     return CoreIRType::make(c);
-  } else if (vs == "Module") {
+  }
+  else if (vs == "Module") {
     return ModuleType::make(c);
-  } else if (vs == "Json") {
+  }
+  else if (vs == "Json") {
     return JsonType::make(c);
-  } else if (vs == "Any") {
+  }
+  else if (vs == "Any") {
     return AnyType::make(c);
-  } else {
+  }
+  else {
     ASSERT(0, vs + " is not a ValueType");
   }
 }
@@ -398,8 +436,9 @@ Value* json2Value(Context* c, json j, Module* m) {
   ValueType* vtype = json2ValueType(c, jlist[0]);
   if (jlist.size() == 3) {
     // Arg
-    ASSERT(jlist[1].get<string>() == "Arg",
-           "Value with json array of size=3 must be an Arg");
+    ASSERT(
+      jlist[1].get<string>() == "Arg",
+      "Value with json array of size=3 must be an Arg");
     ASSERT(m, "Can only use 'Arg' reference in modargs");
     return m->getArg(jlist[2].get<string>());
   }
@@ -411,9 +450,9 @@ Value* json2Value(Context* c, json j, Module* m) {
   case ValueType::VTK_Int:
     return Const::make(c, jval.get<int>());
   case ValueType::VTK_BitVector: {
-    ASSERTTHROW(jval.is_string(),
-                toString(jval) +
-                    " needs to be a bitvector string <N>'h<value>");
+    ASSERTTHROW(
+      jval.is_string(),
+      toString(jval) + " needs to be a bitvector string <N>'h<value>");
     auto bv = BitVector(jval.get<string>());
     assert(bv.bitLength() == cast<BitVectorType>(vtype)->getWidth());
     return Const::make(c, bv);
@@ -428,8 +467,9 @@ Value* json2Value(Context* c, json j, Module* m) {
       vector<json> jgenmod = jval.get<vector<json>>();
       ASSERTTHROW(jgenmod.size() == 2, "Badly constructed module");
       mod = c->getGenerator(jgenmod[0].get<string>())
-                ->getModule(json2Values(c, jgenmod[1], m));
-    } else {
+              ->getModule(json2Values(c, jgenmod[1], m));
+    }
+    else {
       mod = c->getModule(jval.get<string>());
     }
     return Const::make(c, mod);
@@ -455,24 +495,26 @@ Type* json2Type(Context* c, json jt) {
   if (jt.type() == json::value_t::string) {
     // Will be bitIn or Bit
     string kind = jt.get<string>();
-    if (kind == "BitIn") {
-      return c->BitIn();
-
-    } else if (kind == "Bit") {
+    if (kind == "BitIn") { return c->BitIn(); }
+    else if (kind == "Bit") {
       return c->Bit();
-    } else if (kind == "BitInOut") {
+    }
+    else if (kind == "BitInOut") {
       return c->BitInOut();
-    } else {
+    }
+    else {
       throw std::runtime_error(kind + " is not a type!");
     }
-  } else if (jt.type() == json::value_t::array) {
+  }
+  else if (jt.type() == json::value_t::array) {
     jsonvector args = jt.get<jsonvector>();
     string kind = args[0].get<string>();
     if (kind == "Array") {
       uint n = args[1].get<uint>();
       Type* t = json2Type(c, args[2]);
       return c->Array(n, t);
-    } else if (kind == "Record") {
+    }
+    else if (kind == "Record") {
       RecordParams rparams;
       for (auto it : args[1].get<jsonvector>()) {
         jsonvector field = it.get<jsonvector>();
@@ -480,17 +522,20 @@ Type* json2Type(Context* c, json jt) {
         rparams.push_back({field[0].get<string>(), json2Type(c, field[1])});
       }
       return c->Record(rparams);
-    } else if (kind == "Named") {
+    }
+    else if (kind == "Named") {
       ASSERTTHROW(args.size() == 2, "Invalid Named Type field" + toString(jt));
       vector<string> info = getRef(args[1].get<string>());
       std::string nsname = info[0];
       std::string name = info[1];
       return c->Named(nsname + "." + name);
-    } else {
+    }
+    else {
       cout << "ERROR NYI!: " << args[0].get<string>() << endl;
       coreir_unreachable();
     }
-  } else
+  }
+  else
     throw std::runtime_error("Error parsing Type");
   coreir_unreachable();
 }

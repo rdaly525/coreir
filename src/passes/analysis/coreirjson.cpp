@@ -85,19 +85,25 @@ string Value2Json(Value* v) {
   if (auto a = dyn_cast<Arg>(v)) {
     ret.add(quote("Arg"));
     ret.add(quote(a->getField()));
-  } else if (auto con = dyn_cast<Const>(v)) {
+  }
+  else if (auto con = dyn_cast<Const>(v)) {
     if (auto cb = dyn_cast<ConstBool>(con)) {
       ret.add(cb->get() ? "true" : "false");
-    } else if (auto ci = dyn_cast<ConstInt>(con)) {
+    }
+    else if (auto ci = dyn_cast<ConstInt>(con)) {
       ret.add(to_string(ci->get()));
-    } else if (auto cbv = dyn_cast<ConstBitVector>(con)) {
+    }
+    else if (auto cbv = dyn_cast<ConstBitVector>(con)) {
       BitVector bv = cbv->get();
       ret.add(quote(bv.hex_string()));
-    } else if (auto cs = dyn_cast<ConstString>(con)) {
+    }
+    else if (auto cs = dyn_cast<ConstString>(con)) {
       ret.add(quote(cs->get()));
-    } else if (auto ct = dyn_cast<ConstCoreIRType>(con)) {
+    }
+    else if (auto ct = dyn_cast<ConstCoreIRType>(con)) {
       ret.add(Type2Json(ct->get()));
-    } else if (auto at = dyn_cast<ConstModule>(con)) {
+    }
+    else if (auto at = dyn_cast<ConstModule>(con)) {
       Module* m = at->get();
       if (m->isGenerated()) {
         Values args = m->getGenArgs();
@@ -105,15 +111,19 @@ string Value2Json(Value* v) {
         modarray.add(quote(m->getRefName()));
         modarray.add(Values2Json(args));
         ret.add(modarray.toString());
-      } else {
+      }
+      else {
         ret.add(quote(m->getRefName()));
       }
-    } else if (auto cj = dyn_cast<ConstJson>(con)) {
+    }
+    else if (auto cj = dyn_cast<ConstJson>(con)) {
       ret.add(CoreIR::toString(cj->get()));
-    } else {
+    }
+    else {
       ASSERT(0, "NYI");
     }
-  } else {
+  }
+  else {
     ASSERT(0, "NYI");
   }
   return ret.toString();
@@ -151,11 +161,13 @@ string Type2Json(Type* t) {
   if (auto nt = dyn_cast<NamedType>(t)) {
     a.add(quote("Named"));
     a.add(quote(nt->getNamespace()->getName() + "." + nt->getName()));
-  } else if (auto at = dyn_cast<ArrayType>(t)) {
+  }
+  else if (auto at = dyn_cast<ArrayType>(t)) {
     a.add(quote("Array"));
     a.add(to_string(at->getLen()));
     a.add(Type2Json(at->getElemType()));
-  } else if (auto rt = dyn_cast<RecordType>(t)) {
+  }
+  else if (auto rt = dyn_cast<RecordType>(t)) {
     a.add(quote("Record"));
     Array r;
     for (auto field : rt->getFields()) {
@@ -165,7 +177,8 @@ string Type2Json(Type* t) {
       r.add(f.toString());
     }
     a.add(r.toString());
-  } else {
+  }
+  else {
     assert(0);
   }
   return a.toString();
@@ -181,9 +194,13 @@ string Instances2Json(map<string, Instance*>& insts, int taboffset) {
     if (m->isGenerated()) {
       j.add("genref", quote(m->getGenerator()->getRefName()));
       j.add("genargs", Values2Json(m->getGenArgs()));
-    } else {
-      j.add("modref", quote(i->getModuleRef()->getNamespace()->getName() + "." +
-                            i->getModuleRef()->getName()));
+    }
+    else {
+      j.add(
+        "modref",
+        quote(
+          i->getModuleRef()->getNamespace()->getName() + "." +
+          i->getModuleRef()->getName()));
     }
     if (i->hasModArgs()) { j.add("modargs", Values2Json(i->getModArgs())); }
     if (i->hasMetaData()) { j.add("metadata", toString(i->getMetaData())); }
@@ -204,7 +221,8 @@ string Connections2Json(ModuleDef* def, int taboffset) {
     if (sa > sb) {
       b.add(quote(sa));
       b.add(quote(sb));
-    } else {
+    }
+    else {
       b.add(quote(sb));
       b.add(quote(sa));
     }
@@ -241,8 +259,11 @@ string Module2Json(Module* m, int taboffset) {
 
 Json Generator2Json(Generator* g) {
   Dict j(6);
-  j.add("typegen", quote(g->getTypeGen()->getNamespace()->getName() + "." +
-                         g->getTypeGen()->getName()));
+  j.add(
+    "typegen",
+    quote(
+      g->getTypeGen()->getNamespace()->getName() + "." +
+      g->getTypeGen()->getName()));
   j.add("genparams", Params2Json(g->getGenParams()));
   auto genmods = g->getGeneratedModules();
   if (!genmods.empty()) {
@@ -307,9 +328,8 @@ bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
       TypeGen* tg = tgpair.second;
       Array jtypegen;
       jtypegen.add(Params2Json(tg->getParams()));
-      if (tg->getCached().size() == 0) {
-        jtypegen.add(quote("implicit"));
-      } else {
+      if (tg->getCached().size() == 0) { jtypegen.add(quote("implicit")); }
+      else {
         jtypegen.add(quote("sparse"));
         Array jsparselist(6);
         for (auto vtpair : tg->getCached()) {

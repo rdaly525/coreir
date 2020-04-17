@@ -21,7 +21,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         auto src = extractSource(elem);
         if (isa<Instance>(src)) { toConsider.insert(cast<Instance>(src)); }
       }
-    } else if (getQualifiedOpName(*(inst.second)) == "coreir.reg") {
+    }
+    else if (getQualifiedOpName(*(inst.second)) == "coreir.reg") {
       toConsider.insert(inst.second);
     }
   }
@@ -48,12 +49,13 @@ bool foldConstants(CoreIR::Module* const mod) {
 
       Wireable* src = extractSource(cast<Select>(ptr));
 
-      if (isa<Instance>(src) &&
-          (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
+      if (
+        isa<Instance>(src) &&
+        (getQualifiedOpName(*(cast<Instance>(src))) == "coreir.const")) {
         Instance* srcConst = cast<Instance>(src);
 
         BitVec val = (srcConst->getModArgs().find("value"))
-                         ->second->get<BitVec>();
+                       ->second->get<BitVec>();
 
         Select* bitSelect = cast<Select>(ptr);
 
@@ -81,9 +83,8 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         Instance* instPT = addPassthrough(inst, "_inline_mux_PT");
 
-        if (bit == 0) {
-          replacement = instPT->sel("in")->sel("in0");
-        } else {
+        if (bit == 0) { replacement = instPT->sel("in")->sel("in0"); }
+        else {
           assert(bit == 1);
           replacement = instPT->sel("in")->sel("in1");
         }
@@ -95,9 +96,10 @@ bool foldConstants(CoreIR::Module* const mod) {
         inlineInstance(instPT);
 
         // unchecked.erase(inst);
-      } else if (isa<Instance>(src) &&
-                 (getQualifiedOpName(*(cast<Instance>(src))) ==
-                  "corebit.const")) {
+      }
+      else if (
+        isa<Instance>(src) &&
+        (getQualifiedOpName(*(cast<Instance>(src))) == "corebit.const")) {
 
         Instance* srcConst = cast<Instance>(src);
         bool valB = (srcConst->getModArgs().find("value"))->second->get<bool>();
@@ -119,9 +121,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         Instance* instPT = addPassthrough(inst, "_inline_mux_PT");
 
         Select* replacement = nullptr;
-        if (bit == 0) {
-          replacement = instPT->sel("in")->sel("in0");
-        } else {
+        if (bit == 0) { replacement = instPT->sel("in")->sel("in0"); }
+        else {
           assert(bit == 1);
           replacement = instPT->sel("in")->sel("in1");
         }
@@ -132,8 +133,8 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.zext") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.zext") {
 
       Select* input = inst->sel("in");
       vector<Select*> values = getSignalValues(input);
@@ -144,13 +145,13 @@ bool foldConstants(CoreIR::Module* const mod) {
         BitVec sigVal = sigValue.get_value();
 
         uint inWidth = inst->getModuleRef()
-                           ->getGenArgs()
-                           .at("width_in")
-                           ->get<int>();
+                         ->getGenArgs()
+                         .at("width_in")
+                         ->get<int>();
         uint outWidth = inst->getModuleRef()
-                            ->getGenArgs()
-                            .at("width_out")
-                            ->get<int>();
+                          ->getGenArgs()
+                          .at("width_out")
+                          ->get<int>();
 
         assert(inWidth == ((uint)sigVal.bitLength()));
 
@@ -158,9 +159,10 @@ bool foldConstants(CoreIR::Module* const mod) {
         for (uint i = 0; i < inWidth; i++) { res.set(i, sigVal.get(i)); }
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "coreir.const",
-            {{"width", Const::make(c, outWidth)}},
-            {{"value", Const::make(c, res)}});
+          inst->toString() + "_const_replacement",
+          "coreir.const",
+          {{"width", Const::make(c, outWidth)}},
+          {{"value", Const::make(c, res)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -177,7 +179,8 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         // unchecked.erase(inst);
       }
-    } else if (getQualifiedOpName(*(inst)) == "coreir.eq") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.eq") {
 
       Select* in0 = inst->sel("in0");
       Select* in1 = inst->sel("in1");
@@ -195,21 +198,21 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         BitVec res = BitVec(1, (sigVal0 == sigVal1) ? 1 : 0);
 
-        uint inWidth = inst->getModuleRef()
-                           ->getGenArgs()
-                           .at("width")
-                           ->get<int>();
+        uint
+          inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-        ASSERT(((uint)sigVal0.bitLength()) == inWidth,
-               "BitLength is incorrect");
+        ASSERT(
+          ((uint)sigVal0.bitLength()) == inWidth,
+          "BitLength is incorrect");
         assert(((uint)sigVal1.bitLength()) == inWidth);
         assert(res.bitLength() == 1);
 
         bool resVal = res == BitVec(1, 1) ? true : false;
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "corebit.const",
-            {{"value", Const::make(c, resVal)}});
+          inst->toString() + "_const_replacement",
+          "corebit.const",
+          {{"value", Const::make(c, resVal)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -224,8 +227,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "corebit.and") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "corebit.and") {
       Select* in0 = inst->sel("in0");
       Select* in1 = inst->sel("in1");
 
@@ -245,8 +248,9 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         bool resVal = res == BitVec(1, 1) ? true : false;
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "corebit.const",
-            {{"value", Const::make(c, resVal)}});
+          inst->toString() + "_const_replacement",
+          "corebit.const",
+          {{"value", Const::make(c, resVal)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -261,8 +265,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.and") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.and") {
 
       Select* in0 = inst->sel("in0");
       Select* in1 = inst->sel("in1");
@@ -280,19 +284,18 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         BitVec res = sigVal0 & sigVal1;
 
-        uint inWidth = inst->getModuleRef()
-                           ->getGenArgs()
-                           .at("width")
-                           ->get<int>();
+        uint
+          inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
         assert(((uint)sigVal0.bitLength()) == inWidth);
         assert(((uint)sigVal1.bitLength()) == inWidth);
         assert(((uint)res.bitLength()) == inWidth);
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "coreir.const",
-            {{"width", Const::make(c, inWidth)}},
-            {{"value", Const::make(c, res)}});
+          inst->toString() + "_const_replacement",
+          "coreir.const",
+          {{"width", Const::make(c, inWidth)}},
+          {{"value", Const::make(c, res)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -306,8 +309,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->removeInstance(inst);
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
-
-      } else if (sigValue1.has_value()) {
+      }
+      else if (sigValue1.has_value()) {
         BitVec sigVal1 = sigValue1.get_value();
 
         if ((sigVal1.bitLength() == 1) && (sigVal1 == BitVec(1, 0))) {
@@ -315,14 +318,15 @@ bool foldConstants(CoreIR::Module* const mod) {
           BitVec res = BitVec(1, 0);
 
           uint inWidth = inst->getModuleRef()
-                             ->getGenArgs()
-                             .at("width")
-                             ->get<int>();
+                           ->getGenArgs()
+                           .at("width")
+                           ->get<int>();
 
           auto newConst = def->addInstance(
-              inst->toString() + "_const_replacement", "coreir.const",
-              {{"width", Const::make(c, inWidth)}},
-              {{"value", Const::make(c, res)}});
+            inst->toString() + "_const_replacement",
+            "coreir.const",
+            {{"width", Const::make(c, inWidth)}},
+            {{"value", Const::make(c, res)}});
 
           auto recInstances = getReceiverSelects(inst);
           for (auto elem : recInstances) {
@@ -338,8 +342,8 @@ bool foldConstants(CoreIR::Module* const mod) {
           inlineInstance(instPT);
         }
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.or") {
 
       Select* in0 = inst->sel("in0");
       Select* in1 = inst->sel("in1");
@@ -357,19 +361,18 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         BitVec res = sigVal0 | sigVal1;
 
-        uint inWidth = inst->getModuleRef()
-                           ->getGenArgs()
-                           .at("width")
-                           ->get<int>();
+        uint
+          inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
         assert(((uint)sigVal0.bitLength()) == inWidth);
         assert(((uint)sigVal1.bitLength()) == inWidth);
         assert(((uint)res.bitLength()) == inWidth);
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "coreir.const",
-            {{"width", Const::make(c, inWidth)}},
-            {{"value", Const::make(c, res)}});
+          inst->toString() + "_const_replacement",
+          "coreir.const",
+          {{"width", Const::make(c, inWidth)}},
+          {{"value", Const::make(c, res)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -384,8 +387,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.or") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.or") {
       Select* in0 = inst->sel("in0");
       Select* in1 = inst->sel("in1");
 
@@ -402,19 +405,18 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         BitVec res = sigVal0 | sigVal1;
 
-        uint inWidth = inst->getModuleRef()
-                           ->getGenArgs()
-                           .at("width")
-                           ->get<int>();
+        uint
+          inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
         assert(((uint)sigVal0.bitLength()) == inWidth);
         assert(((uint)sigVal1.bitLength()) == inWidth);
         assert(((uint)res.bitLength()) == inWidth);
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "coreir.const",
-            {{"width", Const::make(c, inWidth)}},
-            {{"value", Const::make(c, res)}});
+          inst->toString() + "_const_replacement",
+          "coreir.const",
+          {{"width", Const::make(c, inWidth)}},
+          {{"value", Const::make(c, res)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -429,8 +431,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.not") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.not") {
       Select* in = inst->sel("in");
 
       vector<Select*> in0Values = getSignalValues(in);
@@ -444,9 +446,10 @@ bool foldConstants(CoreIR::Module* const mod) {
         BitVec res = ~sigVal0;
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "coreir.const",
-            {{"width", Const::make(c, res.bitLength())}},
-            {{"value", Const::make(c, res)}});
+          inst->toString() + "_const_replacement",
+          "coreir.const",
+          {{"width", Const::make(c, res.bitLength())}},
+          {{"value", Const::make(c, res)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -461,8 +464,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.andr") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.andr") {
       Select* in = inst->sel("in");
 
       vector<Select*> in0Values = getSignalValues(in);
@@ -481,20 +484,20 @@ bool foldConstants(CoreIR::Module* const mod) {
           }
         }
 
-        uint inWidth = inst->getModuleRef()
-                           ->getGenArgs()
-                           .at("width")
-                           ->get<int>();
+        uint
+          inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-        ASSERT(((uint)sigVal0.bitLength()) == inWidth,
-               "BitLength is incorrect");
+        ASSERT(
+          ((uint)sigVal0.bitLength()) == inWidth,
+          "BitLength is incorrect");
         assert(res.bitLength() == 1);
 
         bool resVal = res == BitVec(1, 1) ? true : false;
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "corebit.const",
-            {{"value", Const::make(c, resVal)}});
+          inst->toString() + "_const_replacement",
+          "corebit.const",
+          {{"value", Const::make(c, resVal)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -509,8 +512,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*inst) == "coreir.reg_arst") {
+    }
+    else if (getQualifiedOpName(*inst) == "coreir.reg_arst") {
 
       Select* rstSel = inst->sel("arst");
       auto inSels = getSourceSelects(rstSel);
@@ -538,8 +541,9 @@ bool foldConstants(CoreIR::Module* const mod) {
             for (auto bitVal : inValues) {
               Wireable* src = extractSource(bitVal);
 
-              if (!isa<Instance>(src) ||
-                  cast<Instance>(src)->sel("out") != outSel) {
+              if (
+                !isa<Instance>(src) ||
+                cast<Instance>(src)->sel("out") != outSel) {
                 allInsFromOut = false;
               }
             }
@@ -548,9 +552,10 @@ bool foldConstants(CoreIR::Module* const mod) {
 
               BitVector value = inst->getModArgs().at("init")->get<BitVector>();
               auto newConst = def->addInstance(
-                  inst->toString() + "_reg_const_replacement", "coreir.const",
-                  {{"width", Const::make(c, value.bitLength())}},
-                  {{"value", Const::make(c, BitVector(value))}});
+                inst->toString() + "_reg_const_replacement",
+                "coreir.const",
+                {{"width", Const::make(c, value.bitLength())}},
+                {{"value", Const::make(c, BitVector(value))}});
 
               auto recInstances = getReceiverSelects(inst);
               for (auto elem : recInstances) {
@@ -570,7 +575,8 @@ bool foldConstants(CoreIR::Module* const mod) {
           }
         }
       }
-    } else if (getQualifiedOpName(*inst) == "coreir.reg") {
+    }
+    else if (getQualifiedOpName(*inst) == "coreir.reg") {
       Select* inSel = inst->sel("in");
       Select* outSel = inst->sel("out");
 
@@ -589,9 +595,10 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         BitVector value = inst->getModArgs().at("init")->get<BitVector>();
         auto newConst = def->addInstance(
-            inst->toString() + "_reg_const_replacement", "coreir.const",
-            {{"width", Const::make(c, value.bitLength())}},
-            {{"value", Const::make(c, BitVector(value))}});
+          inst->toString() + "_reg_const_replacement",
+          "coreir.const",
+          {{"width", Const::make(c, value.bitLength())}},
+          {{"value", Const::make(c, BitVector(value))}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -608,8 +615,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*inst) == "coreir.wrap") {
+    }
+    else if (getQualifiedOpName(*inst) == "coreir.wrap") {
       Select* in = inst->sel("in");
 
       vector<Select*> in0Values = getSignalValues(in);
@@ -624,8 +631,8 @@ bool foldConstants(CoreIR::Module* const mod) {
           }
         }
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.orr") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.orr") {
 
       Select* in = inst->sel("in");
 
@@ -644,20 +651,20 @@ bool foldConstants(CoreIR::Module* const mod) {
           }
         }
 
-        uint inWidth = inst->getModuleRef()
-                           ->getGenArgs()
-                           .at("width")
-                           ->get<int>();
+        uint
+          inWidth = inst->getModuleRef()->getGenArgs().at("width")->get<int>();
 
-        ASSERT(((uint)sigVal0.bitLength()) == inWidth,
-               "BitLength is incorrect");
+        ASSERT(
+          ((uint)sigVal0.bitLength()) == inWidth,
+          "BitLength is incorrect");
         assert(res.bitLength() == 1);
 
         bool resVal = res == BitVec(1, 1) ? true : false;
 
         auto newConst = def->addInstance(
-            inst->toString() + "_const_replacement", "corebit.const",
-            {{"value", Const::make(c, resVal)}});
+          inst->toString() + "_const_replacement",
+          "corebit.const",
+          {{"value", Const::make(c, resVal)}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {
@@ -672,8 +679,8 @@ bool foldConstants(CoreIR::Module* const mod) {
         def->connect(replacement, instPT->sel("in")->sel("out"));
         inlineInstance(instPT);
       }
-
-    } else if (getQualifiedOpName(*(inst)) == "coreir.wire") {
+    }
+    else if (getQualifiedOpName(*(inst)) == "coreir.wire") {
 
       Select* in = inst->sel("in");
 
@@ -686,9 +693,10 @@ bool foldConstants(CoreIR::Module* const mod) {
 
         BitVector value = inst->getModArgs().at("init")->get<BitVector>();
         auto newConst = def->addInstance(
-            inst->toString() + "_reg_const_replacement", "coreir.const",
-            {{"width", Const::make(c, value.bitLength())}},
-            {{"value", Const::make(c, BitVector(value))}});
+          inst->toString() + "_reg_const_replacement",
+          "coreir.const",
+          {{"width", Const::make(c, value.bitLength())}},
+          {{"value", Const::make(c, BitVector(value))}});
 
         auto recInstances = getReceiverSelects(inst);
         for (auto elem : recInstances) {

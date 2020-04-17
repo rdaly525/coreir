@@ -7,9 +7,11 @@ namespace CoreIR {
 
 int numThreads(const ThreadGraph& g) { return g.numVertices(); }
 
-bool connectionFromTo(const vdisc sourceThread, const vdisc destThread,
-                      const NGraph& opG,
-                      unordered_map<vdisc, vector<vdisc>>& threadComps) {
+bool connectionFromTo(
+  const vdisc sourceThread,
+  const vdisc destThread,
+  const NGraph& opG,
+  unordered_map<vdisc, vector<vdisc>>& threadComps) {
   vector<vdisc> sourceNodes = threadComps[sourceThread];
   vector<vdisc> destNodes = threadComps[destThread];
   sort(begin(destNodes), end(destNodes));
@@ -62,7 +64,7 @@ set<vdisc> connectedComponent(const vdisc v, const NGraph& gr) {
 }
 
 std::vector<std::set<vdisc>> connectedComponentsIgnoringInputs(
-    const NGraph& gr) {
+  const NGraph& gr) {
   set<vdisc> nodes;
   for (auto& vd : gr.getVerts()) { nodes.insert(vd); }
 

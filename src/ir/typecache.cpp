@@ -58,12 +58,14 @@ TypeCache::~TypeCache() {
 ArrayType* TypeCache::getArray(uint len, Type* t) {
   if (ArrayCache.count(t) && ArrayCache[t].count(len)) {
     return ArrayCache[t][len];
-  } else if (t->isInOut()) {
+  }
+  else if (t->isInOut()) {
     ArrayType* a = new ArrayType(c, t, len);
     a->setFlipped(a);
     ArrayCache[t][len] = a;
     return a;
-  } else {
+  }
+  else {
     ArrayType* a = new ArrayType(c, t, len);
     ArrayType* af = new ArrayType(c, c->Flip(t), len);
     a->setFlipped(af);
@@ -76,9 +78,8 @@ ArrayType* TypeCache::getArray(uint len, Type* t) {
 
 RecordType* TypeCache::getRecord(RecordParams params) {
   auto it = RecordCache.find(params);
-  if (it != RecordCache.end()) {
-    return it->second;
-  } else {
+  if (it != RecordCache.end()) { return it->second; }
+  else {
     RecordType* r = new RecordType(c, params);
 
     // Inout just needs a single type

@@ -33,7 +33,8 @@ struct Helper {
       for (int i = 0; i <= max; ++i) { assert(nums.count(i) > 0); }
       this->type = c->Array(max + 1, elemtype);
       return this->type;
-    } else {  // Is a record
+    }
+    else {  // Is a record
       RecordParams rps;
       for (auto spair : selects) {
         rps.push_back({spair.first, spair.second->getType()});
@@ -80,7 +81,7 @@ void connect(ModuleDef* def, SelectPath path, string ptname, string iname) {
 
 string Passes::Transform2CombView::ID = "transform2combview";
 bool Passes::Transform2CombView::runOnInstanceGraphNode(
-    InstanceGraphNode& node) {
+  InstanceGraphNode& node) {
 
   Context* c = getContext();
   Module* m = node.getModule();

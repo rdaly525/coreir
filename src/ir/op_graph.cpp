@@ -17,16 +17,19 @@ bool isSequentialPlugin(CoreIR::Wireable* fst, PluginMap& pluginMap) {
 }
 
 bool isSequential(CoreIR::Wireable* p1, PluginMap& pluginMap) {
-  if (isRegisterInstance(p1) || isMemoryInstance(p1) || isDFFInstance(p1) ||
-      isSequentialPlugin(p1, pluginMap)) {
+  if (
+    isRegisterInstance(p1) || isMemoryInstance(p1) || isDFFInstance(p1) ||
+    isSequentialPlugin(p1, pluginMap)) {
     return true;
   }
 
   return false;
 }
 
-void addConnection(std::unordered_map<WireNode, vdisc>& imap, Conn& conn,
-                   NGraph& g);
+void addConnection(
+  std::unordered_map<WireNode, vdisc>& imap,
+  Conn& conn,
+  NGraph& g);
 
 Wireable* extractSource(Select* sel) {
   Wireable* p = sel->getParent();
@@ -302,8 +305,11 @@ std::vector<Conn> NGraph::getOutputConnections(const vdisc vd) const {
   return outConns;
 }
 
-void addConnection(PluginMap& pluginMap, unordered_map<WireNode, vdisc>& imap,
-                   Conn& conn, NGraph& g) {
+void addConnection(
+  PluginMap& pluginMap,
+  unordered_map<WireNode, vdisc>& imap,
+  Conn& conn,
+  NGraph& g) {
 
   assert(isSelect(conn.first.getWire()));
   assert(isSelect(conn.second.getWire()));
@@ -339,8 +345,8 @@ void addConnection(PluginMap& pluginMap, unordered_map<WireNode, vdisc>& imap,
       assert(c2_disc_it != imap.end());
 
       c2_disc = (*c2_disc_it).second;
-
-    } else {
+    }
+    else {
       auto c2_disc_it = imap.find(combNode(p2));
 
       if (isSequential(p2, pluginMap)) {
@@ -351,7 +357,8 @@ void addConnection(PluginMap& pluginMap, unordered_map<WireNode, vdisc>& imap,
 
       c2_disc = (*c2_disc_it).second;
     }
-  } else {
+  }
+  else {
 
     auto c2_disc_it = imap.find(combNode(p2));
     if (isSequential(p2, pluginMap)) {
@@ -368,8 +375,11 @@ void addConnection(PluginMap& pluginMap, unordered_map<WireNode, vdisc>& imap,
   g.addEdgeLabel(ed, conn);
 }
 
-void addWireableToGraph(Wireable* w1, PluginMap& pluginMap,
-                        unordered_map<WireNode, vdisc>& imap, NGraph& g) {
+void addWireableToGraph(
+  Wireable* w1,
+  PluginMap& pluginMap,
+  unordered_map<WireNode, vdisc>& imap,
+  NGraph& g) {
 
   if (isInstance(w1)) {
     Instance* inst = toInstance(w1);
@@ -424,9 +434,8 @@ vector<Conn> buildOrderedConnections(Module* mod) {
     InstanceValue w_fst(toSelect(fst));
     InstanceValue w_snd(toSelect(snd));
 
-    if (fst_tp->isInput()) {
-      conns.push_back({w_snd, w_fst});
-    } else {
+    if (fst_tp->isInput()) { conns.push_back({w_snd, w_fst}); }
+    else {
       conns.push_back({w_fst, w_snd});
     }
   }
@@ -501,13 +510,15 @@ void eliminateMasks(const std::deque<vdisc>& topoOrder, NGraph& g) {
     // Outputs from an input are all clean
     if (!isInstance(opNode.getWire())) {
       for (auto& ed : g.outEdges(vd)) { setEdgeClean(ed, g); }
-    } else {
+    }
+    else {
       Instance* inst = toInstance(opNode.getWire());
       string name = getOpName(*inst);
 
-      if ((name == "and") || (name == "or") || (name == "xor") ||
-          (name == "bitand") || (name == "bitand") || isUnsignedCmp(*inst) ||
-          isSignedCmp(*inst)) {
+      if (
+        (name == "and") || (name == "or") || (name == "xor") ||
+        (name == "bitand") || (name == "bitand") || isUnsignedCmp(*inst) ||
+        isSignedCmp(*inst)) {
         for (auto& ed : g.outEdges(vd)) { setEdgeClean(ed, g); }
       }
     }
@@ -592,8 +603,10 @@ Select* findMainClock(const NGraph& g) {
   return clockInputs[0];
 }
 
-bool isSubgraphInput(const vdisc vd, const std::deque<vdisc>& nodes,
-                     const NGraph& g) {
+bool isSubgraphInput(
+  const vdisc vd,
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
 
   if (g.inEdges(vd).size() == 0) {
     WireNode wd = g.getNode(vd);
@@ -603,8 +616,9 @@ bool isSubgraphInput(const vdisc vd, const std::deque<vdisc>& nodes,
 
     if (isInstance(src)) {
       Instance* inst = toInstance(src);
-      if ((getQualifiedOpName(*inst) == "coreir.const") ||
-          (getQualifiedOpName(*inst) == "corebit.const")) {
+      if (
+        (getQualifiedOpName(*inst) == "coreir.const") ||
+        (getQualifiedOpName(*inst) == "corebit.const")) {
         return false;
       }
     }
@@ -619,14 +633,17 @@ bool isSubgraphInput(const vdisc vd, const std::deque<vdisc>& nodes,
   return true;
 }
 
-bool isSubgraphOutput(const vdisc vd, const std::deque<vdisc>& nodes,
-                      const NGraph& g) {
+bool isSubgraphOutput(
+  const vdisc vd,
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
 
   return g.outEdges(vd).size() == 0;
 }
 
-bool subgraphHasCombinationalInput(const std::deque<vdisc>& nodes,
-                                   const NGraph& g) {
+bool subgraphHasCombinationalInput(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
   bool hasCombInput = false;
   for (auto& vd : nodes) {
     if (isSubgraphInput(vd, nodes, g)) {
@@ -642,8 +659,9 @@ bool subgraphHasCombinationalInput(const std::deque<vdisc>& nodes,
   return hasCombInput;
 }
 
-bool subgraphHasAllSequentialOutputs(const std::deque<vdisc>& nodes,
-                                     const NGraph& g) {
+bool subgraphHasAllSequentialOutputs(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
   for (auto& vd : nodes) {
     if (isSubgraphOutput(vd, nodes, g)) {
       WireNode wd = g.getNode(vd);
@@ -654,8 +672,9 @@ bool subgraphHasAllSequentialOutputs(const std::deque<vdisc>& nodes,
   return true;
 }
 
-bool subgraphHasAllSequentialInputs(const std::deque<vdisc>& nodes,
-                                    const NGraph& g) {
+bool subgraphHasAllSequentialInputs(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
   for (auto& vd : nodes) {
     if (isSubgraphInput(vd, nodes, g)) {
       WireNode wd = g.getNode(vd);
@@ -666,8 +685,9 @@ bool subgraphHasAllSequentialInputs(const std::deque<vdisc>& nodes,
   return true;
 }
 
-bool subgraphHasCombinationalOutput(const std::deque<vdisc>& nodes,
-                                    const NGraph& g) {
+bool subgraphHasCombinationalOutput(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
   bool hasCombOutput = false;
   for (auto& vd : nodes) {
     if (isSubgraphOutput(vd, nodes, g)) {
@@ -683,8 +703,9 @@ bool subgraphHasCombinationalOutput(const std::deque<vdisc>& nodes,
   return hasCombOutput;
 }
 
-bool subgraphHasSequentialInput(const std::deque<vdisc>& nodes,
-                                const NGraph& g) {
+bool subgraphHasSequentialInput(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
 
   for (auto& vd : nodes) {
     if (isSubgraphInput(vd, nodes, g)) {
@@ -697,8 +718,9 @@ bool subgraphHasSequentialInput(const std::deque<vdisc>& nodes,
   return false;
 }
 
-bool subgraphHasSequentialOutput(const std::deque<vdisc>& nodes,
-                                 const NGraph& g) {
+bool subgraphHasSequentialOutput(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
 
   for (auto& vd : nodes) {
     if (isSubgraphOutput(vd, nodes, g)) {
@@ -711,13 +733,15 @@ bool subgraphHasSequentialOutput(const std::deque<vdisc>& nodes,
   return false;
 }
 
-bool subgraphHasAllCombinationalInputs(const std::deque<vdisc>& nodes,
-                                       const NGraph& g) {
+bool subgraphHasAllCombinationalInputs(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
   return !subgraphHasSequentialInput(nodes, g);
 }
 
-bool subgraphHasAllCombinationalOutputs(const std::deque<vdisc>& nodes,
-                                        const NGraph& g) {
+bool subgraphHasAllCombinationalOutputs(
+  const std::deque<vdisc>& nodes,
+  const NGraph& g) {
   return !subgraphHasSequentialOutput(nodes, g);
 }
 

@@ -21,8 +21,9 @@ bool Passes::PackBitConstants::runOnModule(Module* m) {
     for (auto selR : inst->getSelects()) {
       Select* sel = selR.second;
 
-      if (isBitArray(*(sel->getType())) &&
-          (sel->getType()->getDir() == Type::DK_In)) {
+      if (
+        isBitArray(*(sel->getType())) &&
+        (sel->getType()->getDir() == Type::DK_In)) {
         cout << sel->toString() << " is input" << endl;
         vector<Select*> selSig = getSignalValues(sel);
         maybe<BitVec> sigValue = getSignalBitVec(selSig);

@@ -46,8 +46,9 @@ bool checkInputConnected(Wireable* w, Error* e) {
   // Assume this type is an input
   if (w->getConnectedWireables().size() > 0) {
     for (auto other : w->getConnectedWireables())
-      e->message("  " + w->toString() + " : " + w->getType()->toString() +
-                 " <== " + other->toString());
+      e->message(
+        "  " + w->toString() + " : " + w->getType()->toString() +
+        " <== " + other->toString());
     return true;
   }
   bool err = false;
@@ -65,22 +66,27 @@ bool checkInputOutputs(Wireable* w, Error* e) {
   bool err = false;
   if (numwires > 1) {
     for (auto other : w->getConnectedWireables())
-      e->message("  " + w->toString() + " : " + w->getType()->toString() +
-                 " <== " + other->toString());
+      e->message(
+        "  " + w->toString() + " : " + w->getType()->toString() +
+        " <== " + other->toString());
     return true;
-  } else if (numwires == 0) {
+  }
+  else if (numwires == 0) {
     for (auto it : w->getSelects()) { err |= checkInputOutputs(it.second, e); }
-  } else if (numwires == 1) {
+  }
+  else if (numwires == 1) {
     // Check if any children is an input and connected
     for (auto it : w->getSelects()) {
       if (checkInputConnected(it.second, e)) {
         err = true;
         for (auto other : w->getConnectedWireables())
-          e->message("  " + w->toString() + " : " + w->getType()->toString() +
-                     " <== " + other->toString());
+          e->message(
+            "  " + w->toString() + " : " + w->getType()->toString() +
+            " <== " + other->toString());
       }
     }
-  } else {
+  }
+  else {
     assert(false);
   }
   return err;

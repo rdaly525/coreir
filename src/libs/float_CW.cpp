@@ -15,31 +15,36 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
                                {"ieee_compliance", c->Bool()}});
 
   auto add_tg = fpcw->newTypeGen(
-      "addtype", floatParams, [](Context* c, Values args) {
-        uint exp_bits = args.at("exp_bits")->get<int>();
-        uint frac_bits = args.at("frac_bits")->get<int>();
-        uint width = 1 + exp_bits + frac_bits;
-        Type* ptype = c->Bit()->Arr(width);
-        return c->Record({{"a", c->Flip(ptype)},
-                          {"b", c->Flip(ptype)},
-                          {"rnd", c->BitIn()->Arr(3)},
-                          {"z", ptype},
-                          {"status", c->Bit()->Arr(8)}});
-      });
+    "addtype",
+    floatParams,
+    [](Context* c, Values args) {
+      uint exp_bits = args.at("exp_bits")->get<int>();
+      uint frac_bits = args.at("frac_bits")->get<int>();
+      uint width = 1 + exp_bits + frac_bits;
+      Type* ptype = c->Bit()->Arr(width);
+      return c->Record({{"a", c->Flip(ptype)},
+                        {"b", c->Flip(ptype)},
+                        {"rnd", c->BitIn()->Arr(3)},
+                        {"z", ptype},
+                        {"status", c->Bit()->Arr(8)}});
+    });
   auto mul_tg = fpcw->newTypeGen(
-      "mul_tg", floatParams, [](Context* c, Values args) {
-        uint exp_bits = args.at("exp_bits")->get<int>();
-        uint frac_bits = args.at("frac_bits")->get<int>();
-        ASSERT(frac_bits >= 10,
-               "Cannot instantiate multiplier less than 10 bits");
-        uint width = 1 + exp_bits + frac_bits;
-        Type* ptype = c->Bit()->Arr(width);
-        return c->Record({{"a", c->Flip(ptype)},
-                          {"b", c->Flip(ptype)},
-                          {"rnd", c->BitIn()->Arr(3)},
-                          {"z", ptype},
-                          {"status", c->Bit()->Arr(8)}});
-      });
+    "mul_tg",
+    floatParams,
+    [](Context* c, Values args) {
+      uint exp_bits = args.at("exp_bits")->get<int>();
+      uint frac_bits = args.at("frac_bits")->get<int>();
+      ASSERT(
+        frac_bits >= 10,
+        "Cannot instantiate multiplier less than 10 bits");
+      uint width = 1 + exp_bits + frac_bits;
+      Type* ptype = c->Bit()->Arr(width);
+      return c->Record({{"a", c->Flip(ptype)},
+                        {"b", c->Flip(ptype)},
+                        {"rnd", c->BitIn()->Arr(3)},
+                        {"z", ptype},
+                        {"status", c->Bit()->Arr(8)}});
+    });
 
   auto mulcw = fpcw->newGeneratorDecl("mul", mul_tg, floatParams);
   auto addcw = fpcw->newGeneratorDecl("add", add_tg, floatParams);
@@ -48,15 +53,16 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
   {
     json vjson;
     vjson["interface"] = {"input [exp_bits+frac_bits:0] a",
-                          "input [exp_bits+frac_bits:0] b", "input [2:0] rnd",
+                          "input [exp_bits+frac_bits:0] b",
+                          "input [2:0] rnd",
                           "output [exp_bits+frac_bits:0] z",
                           "output [7:0] status"};
     vjson["definition"] =
-        ""
-        "wire [7:0] status;\n"
-        "CW_fp_mult #(.sig_width(frac_bits), .exp_width(exp_bits), "
-        ".ieee_compliance(ieee_compliance)) mul_inst "
-        "(.a(a),.b(b),.rnd(rnd),.z(out),.status(status));";
+      ""
+      "wire [7:0] status;\n"
+      "CW_fp_mult #(.sig_width(frac_bits), .exp_width(exp_bits), "
+      ".ieee_compliance(ieee_compliance)) mul_inst "
+      "(.a(a),.b(b),.rnd(rnd),.z(out),.status(status));";
     mulcw->getMetaData()["verilog"] = vjson;
   }
 
@@ -64,15 +70,16 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
   {
     json vjson;
     vjson["interface"] = {"input [exp_bits+frac_bits:0] a",
-                          "input [exp_bits+frac_bits:0] b", "input [2:0] rnd",
+                          "input [exp_bits+frac_bits:0] b",
+                          "input [2:0] rnd",
                           "output [exp_bits+frac_bits:0] z",
                           "output [7:0] status"};
     vjson["definition"] =
-        ""
-        "wire [7:0] status;\n"
-        "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), "
-        ".ieee_compliance(ieee_compliance)) add_inst "
-        "(.a(a),.b(b),.rnd(rnd),.z(z),.status(status));";
+      ""
+      "wire [7:0] status;\n"
+      "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), "
+      ".ieee_compliance(ieee_compliance)) add_inst "
+      "(.a(a),.b(b),.rnd(rnd),.z(z),.status(status));";
     addcw->getMetaData()["verilog"] = vjson;
   }
 
@@ -80,30 +87,33 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
 
   // Load the def for add
   auto fp = c->getNamespace("float");
-  fp->getGenerator("add")->setGeneratorDefFromFun([](Context* c, Values args,
-                                                     ModuleDef* def) {
-    // uint exp_bits = args.at("exp_bits")->get<int>();
-    // uint frac_bits = args.at("frac_bits")->get<int>();
-    // uint ieee_compliance = args.at("ieee_compliance")->get<bool>();
-    auto add = def->addInstance("mi", "float_CW.add",
-                                {{"exp_bits", args.at("exp_bits")},
-                                 {"frac_bits", args.at("frac_bits")},
-                                 {"ieee_compliance", Const::make(c, false)}});
-    auto io = def->getInterface();
-    auto C = Constructor(def);
-    def->connect(io->sel("in0"), add->sel("a"));
-    def->connect(io->sel("in1"), add->sel("b"));
-    def->connect(C.const_(3, 0), add->sel("rnd"));
-    def->connect(add->sel("z"), io->sel("out"));
-  });
+  fp->getGenerator("add")->setGeneratorDefFromFun(
+    [](Context* c, Values args, ModuleDef* def) {
+      // uint exp_bits = args.at("exp_bits")->get<int>();
+      // uint frac_bits = args.at("frac_bits")->get<int>();
+      // uint ieee_compliance = args.at("ieee_compliance")->get<bool>();
+      auto add = def->addInstance(
+        "mi",
+        "float_CW.add",
+        {{"exp_bits", args.at("exp_bits")},
+         {"frac_bits", args.at("frac_bits")},
+         {"ieee_compliance", Const::make(c, false)}});
+      auto io = def->getInterface();
+      auto C = Constructor(def);
+      def->connect(io->sel("in0"), add->sel("a"));
+      def->connect(io->sel("in1"), add->sel("b"));
+      def->connect(C.const_(3, 0), add->sel("rnd"));
+      def->connect(add->sel("z"), io->sel("out"));
+    });
 
   // Special case the verilog for BFloat16 mul
   auto bfmul = fp->getGenerator("mul")->getModule(
-      {{"exp_bits", Const::make(c, 8)}, {"frac_bits", Const::make(c, 7)}});
+    {{"exp_bits", Const::make(c, 8)}, {"frac_bits", Const::make(c, 7)}});
   // Add verilog to add
   {
     json vjson;
-    vjson["interface"] = {"input [15:0] in0", "input [15:0] in1",
+    vjson["interface"] = {"input [15:0] in0",
+                          "input [15:0] in1",
                           "output [15:0] out"};
     vjson["definition"] = R"(
 localparam exp_bits = 8;

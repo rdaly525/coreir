@@ -26,11 +26,15 @@ Wireable::~Wireable() {
 
 Select* Wireable::sel(const std::string& selStr) {
   if (selects.count(selStr)) { return selects[selStr]; }
-  ASSERT(type->canSel(selStr), "Cannot select " + selStr + " From " +
-                                   this->toString() +
-                                   "\n  Type: " + type->toString());
-  Select* select = new Select(this->getContainer(), this, selStr,
-                              type->sel(selStr));
+  ASSERT(
+    type->canSel(selStr),
+    "Cannot select " + selStr + " From " + this->toString() +
+      "\n  Type: " + type->toString());
+  Select* select = new Select(
+    this->getContainer(),
+    this,
+    selStr,
+    type->sel(selStr));
   selects[selStr] = select;
   return select;
 }
@@ -64,10 +68,12 @@ ConstSelectPath Wireable::getConstSelectPath() {
   if (auto iface = dyn_cast<Interface>(top)) {
     const string& instname = iface->getInstname();
     path.insert(path.begin(), instname);
-  } else if (auto inst = dyn_cast<Instance>(top)) {
+  }
+  else if (auto inst = dyn_cast<Instance>(top)) {
     const string& instname = inst->getInstname();
     path.insert(path.begin(), instname);
-  } else {
+  }
+  else {
     ASSERT(0, "Cannot be here");
   }
   return path;
@@ -83,8 +89,9 @@ void Wireable::disconnectAll() {
 }
 
 void Wireable::removeSel(string selStr) {
-  ASSERT(selects.count(selStr),
-         "Cannot remove " + selStr + "Because it does not exist!");
+  ASSERT(
+    selects.count(selStr),
+    "Cannot remove " + selStr + "Because it does not exist!");
   Select* s = selects[selStr];
   selects.erase(selStr);
 
@@ -96,9 +103,8 @@ SelectPath& Wireable::getSelectPath() {
     Wireable* top = this;
     while (isa<Select>(top) || isa<InstanceSelect>(top)) {
       Select* s;
-      if (isa<Select>(top)) {
-        s = cast<Select>(top);
-      } else {
+      if (isa<Select>(top)) { s = cast<Select>(top); }
+      else {
         s = cast<InstanceSelect>(top);
       }
       selectpath.push_front(s->getSelStr());
@@ -133,8 +139,10 @@ string Wireable::wireableKind2Str(WireableKind wb) {
 }
 
 namespace {
-void traverse2(std::map<SelectPath, Wireable*>& ret, SelectPath path,
-               Wireable* w) {
+void traverse2(
+  std::map<SelectPath, Wireable*>& ret,
+  SelectPath path,
+  Wireable* w) {
   ret.emplace(path, w);
   for (auto spair : w->getSelects()) {
     SelectPath newpath = path;
@@ -152,8 +160,10 @@ std::map<SelectPath, Wireable*> Wireable::getAllSelects() {
 }
 
 namespace {
-void traverse3(std::map<SelectPath, Wireable*>& ret, SelectPath path,
-               Wireable* w) {
+void traverse3(
+  std::map<SelectPath, Wireable*>& ret,
+  SelectPath path,
+  Wireable* w) {
   if (!isa<Select>(w)) return;
   Select* select = cast<Select>(w);
   path.push_front(select->getSelStr());
@@ -194,9 +204,8 @@ Wireable* Wireable::getTopParent() {
   Wireable* top = this;
   while (isa<Select>(top) || isa<InstanceSelect>(top)) {
     Select* s;
-    if (isa<Select>(top)) {
-      s = cast<Select>(top);
-    } else {
+    if (isa<Select>(top)) { s = cast<Select>(top); }
+    else {
       s = cast<InstanceSelect>(top);
     }
     top = s->getParent();
@@ -206,10 +215,14 @@ Wireable* Wireable::getTopParent() {
 
 string Interface::toString() const { return "self"; }
 
-Instance::Instance(ModuleDef* container, string instname, Module* moduleRef,
-                   Values modargs)
-    : Wireable(WK_Instance, container, nullptr), instname(instname),
-      moduleRef(moduleRef) {
+Instance::Instance(
+  ModuleDef* container,
+  string instname,
+  Module* moduleRef,
+  Values modargs)
+  : Wireable(WK_Instance, container, nullptr),
+    instname(instname),
+    moduleRef(moduleRef) {
   checkStringSyntax(instname);
   // ASSERT(container->getInstances().count(instname)==0,"Cannot add two
   // instances with the same name: " + instname);
@@ -229,8 +242,9 @@ string Instance::toString() const { return instname; }
 
 void Instance::replace(Module* moduleRef, Values modargs) {
   ASSERT(moduleRef, "ModuleRef is null in inst: " + this->getInstname());
-  ASSERT(this->getType() == moduleRef->getType(),
-         "NYI, Cannot replace with a different type");
+  ASSERT(
+    this->getType() == moduleRef->getType(),
+    "NYI, Cannot replace with a different type");
   this->moduleRef = moduleRef;
   this->modargs = modargs;
   checkValuesAreParams(modargs, moduleRef->getModParams(), this->getInstname());
@@ -249,8 +263,11 @@ Select* Instance::sel(const std::string& selStr) {
   // Prefixed with ";" for instance select
   if (selStr[0] == ';') {
     Wireable* sel = this->getModuleRef()->getDef()->sel(selStr.substr(1));
-    InstanceSelect* instance_select = new InstanceSelect(this->getContainer(),
-                                                         this, selStr, sel);
+    InstanceSelect* instance_select = new InstanceSelect(
+      this->getContainer(),
+      this,
+      selStr,
+      sel);
     selects[selStr] = instance_select;
     return selects[selStr];
   }
@@ -269,8 +286,11 @@ Select* InstanceSelect::sel(const std::string& selStr) {
   if (selects.count(selStr)) { return selects[selStr]; }
   if (this->wrapped_wireable->canSel(selStr)) {
     Wireable* sel = this->wrapped_wireable->sel(selStr);
-    InstanceSelect* instance_select = new InstanceSelect(this->getContainer(),
-                                                         this, selStr, sel);
+    InstanceSelect* instance_select = new InstanceSelect(
+      this->getContainer(),
+      this,
+      selStr,
+      sel);
     selects[selStr] = instance_select;
     return selects[selStr];
   }

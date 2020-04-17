@@ -23,9 +23,8 @@ bool RemoveConstDuplicates::runOnModule(Module* m) {
 
     if (getQualifiedOpName(*inst) == "corebit.const") {
       bool val = inst->getModArgs().at("value")->get<bool>();
-      if (val == true) {
-        bitConstOnes.push_back(inst);
-      } else {
+      if (val == true) { bitConstOnes.push_back(inst); }
+      else {
         bitConstZeros.push_back(inst);
       }
     }
@@ -48,11 +47,15 @@ bool RemoveConstDuplicates::runOnModule(Module* m) {
         Wireable* fst = conn.first;
         Wireable* snd = conn.second;
 
-        Wireable* newFst = replaceSelect(zeroConst->sel("out"), zC->sel("out"),
-                                         fst);
+        Wireable* newFst = replaceSelect(
+          zeroConst->sel("out"),
+          zC->sel("out"),
+          fst);
 
-        Wireable* newSnd = replaceSelect(zeroConst->sel("out"), zC->sel("out"),
-                                         snd);
+        Wireable* newSnd = replaceSelect(
+          zeroConst->sel("out"),
+          zC->sel("out"),
+          snd);
 
         newConns.push_back({newFst, newSnd});
       }
@@ -77,11 +80,15 @@ bool RemoveConstDuplicates::runOnModule(Module* m) {
         Wireable* fst = conn.first;
         Wireable* snd = conn.second;
 
-        Wireable* newFst = replaceSelect(zeroConst->sel("out"), zC->sel("out"),
-                                         fst);
+        Wireable* newFst = replaceSelect(
+          zeroConst->sel("out"),
+          zC->sel("out"),
+          fst);
 
-        Wireable* newSnd = replaceSelect(zeroConst->sel("out"), zC->sel("out"),
-                                         snd);
+        Wireable* newSnd = replaceSelect(
+          zeroConst->sel("out"),
+          zC->sel("out"),
+          snd);
 
         newConns.push_back({newFst, newSnd});
       }

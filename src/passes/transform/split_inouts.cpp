@@ -5,10 +5,12 @@
 using namespace std;
 using namespace CoreIR;
 
-void splitInOutToTribuf(const std::string& portName,
-                        CoreIR::Select* const inputPort,
-                        CoreIR::Select* const outputPort, Module* const module,
-                        ModuleDef* const def) {
+void splitInOutToTribuf(
+  const std::string& portName,
+  CoreIR::Select* const inputPort,
+  CoreIR::Select* const outputPort,
+  Module* const module,
+  ModuleDef* const def) {
 
   Context* c = def->getContext();
 
@@ -26,8 +28,10 @@ void splitInOutToTribuf(const std::string& portName,
   }
 
   int width = 1;
-  auto mux = def->addInstance(portName + "_split_mux", "coreir.mux",
-                              {{"width", Const::make(c, width)}});
+  auto mux = def->addInstance(
+    portName + "_split_mux",
+    "coreir.mux",
+    {{"width", Const::make(c, width)}});
 
   // Add array connections
   def->connect(mux->sel("in0")->sel(0), inputPort);
@@ -39,9 +43,8 @@ void splitInOutToTribuf(const std::string& portName,
   for (auto ioSrc : ioSources) {
     cout << "\t" << ioSrc->toString() << endl;
 
-    if (getQualifiedOpName(*ioSrc) == "coreir.tribuf") {
-      tristateBuf = ioSrc;
-    } else if (getQualifiedOpName(*ioSrc) == "coreir.ibuf") {
+    if (getQualifiedOpName(*ioSrc) == "coreir.tribuf") { tristateBuf = ioSrc; }
+    else if (getQualifiedOpName(*ioSrc) == "coreir.ibuf") {
       tristateCast = ioSrc;
     }
   }
@@ -58,11 +61,15 @@ void splitInOutToTribuf(const std::string& portName,
   for (auto conn : triBufConns) {
     cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
          << endl;
-    Wireable* f = replaceSelect(tristateBuf->sel("in"), mux->sel("in1"),
-                                conn.first);
+    Wireable* f = replaceSelect(
+      tristateBuf->sel("in"),
+      mux->sel("in1"),
+      conn.first);
 
-    Wireable* s = replaceSelect(tristateBuf->sel("in"), mux->sel("in1"),
-                                conn.second);
+    Wireable* s = replaceSelect(
+      tristateBuf->sel("in"),
+      mux->sel("in1"),
+      conn.second);
 
     def->connect(f, s);
   }
@@ -84,11 +91,15 @@ void splitInOutToTribuf(const std::string& portName,
   for (auto conn : triCastConns) {
     cout << "\t" << conn.first->toString() << " <-> " << conn.second->toString()
          << endl;
-    Wireable* f = replaceSelect(tristateCast->sel("out"), mux->sel("out"),
-                                conn.first);
+    Wireable* f = replaceSelect(
+      tristateCast->sel("out"),
+      mux->sel("out"),
+      conn.first);
 
-    Wireable* s = replaceSelect(tristateCast->sel("out"), mux->sel("out"),
-                                conn.second);
+    Wireable* s = replaceSelect(
+      tristateCast->sel("out"),
+      mux->sel("out"),
+      conn.second);
 
     freshConns.push_back({f, s});
   }
@@ -168,7 +179,8 @@ bool Passes::SplitInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
         splitInOutToTribuf(portName, inputPort, outputPort, module, def);
 
         changed = true;
-      } else {
+      }
+      else {
         assert(ioSources.size() == 1);
         assert(ios.size() == 1);
 

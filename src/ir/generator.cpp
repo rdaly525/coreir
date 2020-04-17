@@ -15,20 +15,26 @@ using namespace std;
 
 namespace CoreIR {
 
-Generator::Generator(Namespace* ns, string name, TypeGen* typegen,
-                     Params genparams)
-    : GlobalValue(GVK_Generator, ns, name), typegen(typegen),
-      genparams(genparams) {
+Generator::Generator(
+  Namespace* ns,
+  string name,
+  TypeGen* typegen,
+  Params genparams)
+  : GlobalValue(GVK_Generator, ns, name),
+    typegen(typegen),
+    genparams(genparams) {
   // Verify that typegen params are a subset of genparams
   for (auto const& type_param : typegen->getParams()) {
     auto const& gen_param = genparams.find(type_param.first);
-    ASSERT(gen_param != genparams.end(),
-           "Param not found: " + type_param.first);
+    ASSERT(
+      gen_param != genparams.end(),
+      "Param not found: " + type_param.first);
 
-    ASSERT(gen_param->second == type_param.second,
-           "Param type mismatch for: " + gen_param->first + " (" +
-               gen_param->second->toString() + " vs " +
-               type_param.second->toString() + ")");
+    ASSERT(
+      gen_param->second == type_param.second,
+      "Param type mismatch for: " + gen_param->first + " (" +
+        gen_param->second->toString() + " vs " + type_param.second->toString() +
+        ")");
   }
 }
 
@@ -51,7 +57,8 @@ Module* Generator::getModule(Values genargs) {
     auto pc = modParamsGen(getContext(), genargs);
     m = new Module(ns, modname, type, pc.first, this, genargs);
     m->addDefaultModArgs(pc.second);
-  } else {
+  }
+  else {
     m = new Module(ns, modname, type, Params(), this, genargs);
   }
   genCache[genargs] = m;
@@ -73,8 +80,9 @@ Module* Generator::getModule(Values genargs, Type* type) {
 
   checkValuesAreParams(genargs, genparams, getRefName());
   if (typegen->hasType(genargs)) {
-    ASSERT(typegen->getType(genargs) == type,
-           "Cannot create module with inconsistent types");
+    ASSERT(
+      typegen->getType(genargs) == type,
+      "Cannot create module with inconsistent types");
   }
   string modname = this->name;
   Module* m;
@@ -82,7 +90,8 @@ Module* Generator::getModule(Values genargs, Type* type) {
     auto pc = modParamsGen(getContext(), genargs);
     m = new Module(ns, modname, type, pc.first, this, genargs);
     m->addDefaultModArgs(pc.second);
-  } else {
+  }
+  else {
     m = new Module(ns, modname, type, Params(), this, genargs);
   }
   genCache[genargs] = m;
@@ -128,9 +137,9 @@ void Generator::setGeneratorDefFromFun(ModuleDefGenFun fun) {
 void Generator::addDefaultGenArgs(Values defaultGenArgs) {
   // Check to make sure each arg is in the gen params
   for (auto argmap : defaultGenArgs) {
-    ASSERT(genparams.count(argmap.first) > 0,
-           "Cannot set default Gen Arg. Param " + argmap.first +
-               " Does not exist!");
+    ASSERT(
+      genparams.count(argmap.first) > 0,
+      "Cannot set default Gen Arg. Param " + argmap.first + " Does not exist!");
     this->defaultGenArgs[argmap.first] = argmap.second;
   }
 }

@@ -15,28 +15,32 @@ bool isBitOrArrOfBits(Type* t) {
 }
 
 // Gets all the ports that are not the top level
-void getPortList(Type* t, SelectPath cur,
-                 vector<std::pair<SelectPath, Type*>>& ports,
-                 vector<string>& uports) {
+void getPortList(
+  Type* t,
+  SelectPath cur,
+  vector<std::pair<SelectPath, Type*>>& ports,
+  vector<string>& uports) {
   if (isBitOrArrOfBits(t)) {
-    if (cur.size() > 1) {
-      ports.push_back({cur, t});
-    } else {
+    if (cur.size() > 1) { ports.push_back({cur, t}); }
+    else {
       uports.push_back({cur[0]});
     }
-  } else if (auto at = dyn_cast<ArrayType>(t)) {
+  }
+  else if (auto at = dyn_cast<ArrayType>(t)) {
     for (uint i = 0; i < at->getLen(); ++i) {
       SelectPath next = cur;
       next.push_back(to_string(i));
       getPortList(at->getElemType(), next, ports, uports);
     }
-  } else if (auto rt = dyn_cast<RecordType>(t)) {
+  }
+  else if (auto rt = dyn_cast<RecordType>(t)) {
     for (auto record : rt->getRecord()) {
       SelectPath next = cur;
       next.push_back(record.first);
       getPortList(record.second, next, ports, uports);
     }
-  } else {
+  }
+  else {
     cout << t->toString() << endl;
     assert(0);
   }
@@ -70,7 +74,8 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   json symbol_table;
   if (!mod->getMetaData().count("symbol_table")) {
     symbol_table = json::object();
-  } else {
+  }
+  else {
     symbol_table = mod->getMetaData()["symbol_table"];
   }
 
@@ -78,8 +83,10 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   vector<std::pair<string, Type*>> newports;
   unordered_set<string> verifyUnique;
   for (auto portpair : ports) {
-    string newport = join(portpair.first.begin(), portpair.first.end(),
-                          string("_"));
+    string newport = join(
+      portpair.first.begin(),
+      portpair.first.end(),
+      string("_"));
     ASSERT(verifyUnique.count(newport) == 0, "NYI: Name clashes");
     newports.push_back({newport, portpair.second});
     verifyUnique.insert(newport);
@@ -102,17 +109,18 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   if (mod->hasDef()) {
     ModuleDef* def = mod->getDef();
     work.push_back(def->getInterface());
-  } else {
+  }
+  else {
     for (auto rpair : mod->getType()->getRecord()) {
       if (!isBitOrArrOfBits(rpair.second)) {
         LOG(WARN)
-            << "WARNING: Flattening type of generator or module with no "
-               "definition, assumes definition follows the flatten types "
-               "scheme, see https://github.com/rdaly525/coreir/issues/800 for "
-               "more info\n{" +
-                   mod->getRefName() + "}." + rpair.first +
-                   " Is not a flattened type!\n  Type is: " +
-                   rpair.second->toString();
+          << "WARNING: Flattening type of generator or module with no "
+             "definition, assumes definition follows the flatten types "
+             "scheme, see https://github.com/rdaly525/coreir/issues/800 for "
+             "more info\n{" +
+               mod->getRefName() + "}." + rpair.first +
+               " Is not a flattened type!\n  Type is: " +
+               rpair.second->toString();
         break;  // only issue warning once
       }
     }
@@ -131,8 +139,9 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
     // connect all old ports of passtrhough to new ports of wireable
     for (uint i = 0; i < ports.size(); ++i) {
-      wdef->connect(pt->sel("in")->sel(ports[i].first),
-                    w->sel(newports[i].first));
+      wdef->connect(
+        pt->sel("in")->sel(ports[i].first),
+        w->sel(newports[i].first));
     }
     // reconnect all unchanged ports
     for (auto p : unchanged) {

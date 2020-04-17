@@ -20,7 +20,7 @@ bool underlyingTypeIsClkIn(Type& tp) {
 }
 
 std::vector<std::pair<CoreIR::Type*, std::string>> threadSharedVariableDecls(
-    const NGraph& g) {
+  const NGraph& g) {
   vector<pair<Type*, string>> declStrs;
 
   for (auto& vd : g.getVerts()) {
@@ -71,7 +71,7 @@ std::string printEvalStruct(const ModuleCode& mc) {
 }
 
 std::vector<std::pair<CoreIR::Type*, std::string>> simMemoryInputs(
-    Module& mod) {
+  Module& mod) {
   vector<pair<Type*, string>> declStrs;
 
   // Add register inputs
@@ -98,7 +98,7 @@ std::vector<std::pair<CoreIR::Type*, std::string>> simMemoryInputs(
 }
 
 std::vector<std::pair<CoreIR::Type*, std::string>> simRegisterInputs(
-    Module& mod) {
+  Module& mod) {
 
   vector<pair<Type*, string>> declStrs;
 
@@ -120,7 +120,7 @@ std::vector<std::pair<CoreIR::Type*, std::string>> simRegisterInputs(
 }
 
 std::vector<std::pair<CoreIR::Type*, std::string>> sortedSimArgumentPairs(
-    Module& mod) {
+  Module& mod) {
 
   Type* tp = mod.getType();
 
@@ -135,11 +135,13 @@ std::vector<std::pair<CoreIR::Type*, std::string>> sortedSimArgumentPairs(
     if (tp->isInput()) {
       if (!underlyingTypeIsClkIn(*tp)) {
         declStrs.push_back({tp, "self_" + name_type_pair.first});
-      } else {
+      }
+      else {
         declStrs.push_back({tp, "self_" + name_type_pair.first});
         declStrs.push_back({tp, "self_" + name_type_pair.first + "_last"});
       }
-    } else {
+    }
+    else {
       assert(tp->isOutput());
 
       declStrs.push_back({tp, "self_" + name_type_pair.first});

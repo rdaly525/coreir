@@ -13,10 +13,12 @@ bool IsVerilogDefn(ModuleDef* defn) {
 }  // namespace
 
 void Passes::VerifyConnectivity::initialize(int argc, char** argv) {
-  cxxopts::Options options("verifyconnectivity",
-                           "verifys the connectivty of the hardware graph");
+  cxxopts::Options options(
+    "verifyconnectivity",
+    "verifys the connectivty of the hardware graph");
   options.add_options()("h,help", "help")("i,onlyinputs", "Only checks inputs")(
-      "c,noclkrst", "Do not check clocks");
+    "c,noclkrst",
+    "Do not check clocks");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->onlyInputs = true; }
   if (opts.count("c")) { this->checkClkRst = false; }
@@ -37,17 +39,20 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w, Error& e) {
     if (!this->checkClkRst && (crin || (!this->onlyInputs && crout))) {
       return true;
     }
-    e.message("{" + w->getContainer()->getName() + "}." + w->toString() +
-              " Is not fully connected (N)");
+    e.message(
+      "{" + w->getContainer()->getName() + "}." + w->toString() +
+      " Is not fully connected (N)");
     return false;
   }
   if (w->getSelects().size() == 0) {
     w->getContainer()->print();
-    e.message("{" + w->getContainer()->getName() + "}." + w->toString() +
-              " Is not connected");
+    e.message(
+      "{" + w->getContainer()->getName() + "}." + w->toString() +
+      " Is not connected");
     if (w->getContainer()->getModule()->isGenerated()) {
-      e.message("with params=" +
-                toString(w->getContainer()->getModule()->getGenArgs()));
+      e.message(
+        "with params=" +
+        toString(w->getContainer()->getModule()->getGenArgs()));
     }
     e.fatal();
     w->getContext()->error(e);
@@ -59,23 +64,27 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w, Error& e) {
       isConnected &= checkIfFullyConnected(w->sel(field), e);
     }
     if (!isConnected) {
-      e.message("{" + w->getContainer()->getName() + "}." + w->toString() +
-                " Is not fully connected (R)");
+      e.message(
+        "{" + w->getContainer()->getName() + "}." + w->toString() +
+        " Is not fully connected (R)");
     }
     return isConnected;
-  } else if (auto at = dyn_cast<ArrayType>(w->getType())) {
+  }
+  else if (auto at = dyn_cast<ArrayType>(w->getType())) {
     bool isConnected = true;
     for (uint i = 0; i < at->getLen(); ++i) {
       // TODO bug with named types here
       if (!w->canSel(to_string(i))) {
-        e.message("{" + w->getContainer()->getName() + "}." + w->toString() +
-                  "." + to_string(i) + " Is not fully connected (A)");
+        e.message(
+          "{" + w->getContainer()->getName() + "}." + w->toString() + "." +
+          to_string(i) + " Is not fully connected (A)");
         return false;
       }
       isConnected &= checkIfFullyConnected(w->sel(i), e);
     }
     return isConnected;
-  } else {
+  }
+  else {
     ASSERT(0, "CANNOT HANDLE TYPE: " + w->getType()->toString());
     return false;
   }

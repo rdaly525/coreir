@@ -43,7 +43,8 @@ Type* Type::sel(string selstr) {
 
     // return *(rt->getRecord().find(selstr));
     return rt->getRecord().at(selstr);
-  } else if (auto at = dyn_cast<ArrayType>(this)) {
+  }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
     ASSERT(isNumber(selstr), selstr + " needs to be a number!");
     uint i = std::stoi(selstr, nullptr, 0);
     ASSERT(i < at->getLen(), "Bad Select!");
@@ -53,13 +54,13 @@ Type* Type::sel(string selstr) {
 }
 
 vector<std::string> Type::getSelects() {
-  if (auto rt = dyn_cast<RecordType>(this)) {
-    return rt->getFields();
-  } else if (auto at = dyn_cast<ArrayType>(this)) {
+  if (auto rt = dyn_cast<RecordType>(this)) { return rt->getFields(); }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
     vector<std::string> ret;
     for (uint i = 0; i < at->getLen(); ++i) { ret.push_back(to_string(i)); }
     return ret;
-  } else {
+  }
+  else {
     return vector<std::string>();
   }
 }
@@ -67,7 +68,8 @@ vector<std::string> Type::getSelects() {
 bool Type::canSel(string selstr) {
   if (auto rt = dyn_cast<RecordType>(this)) {
     return rt->getRecord().count(selstr);
-  } else if (auto at = dyn_cast<ArrayType>(this)) {
+  }
+  else if (auto at = dyn_cast<ArrayType>(this)) {
     if (!isNumber(selstr)) return false;
     uint i = std::stoi(selstr, nullptr, 0);
     return i < at->getLen();
@@ -88,9 +90,11 @@ bool Type::hasInput() const {
   if (isMixed()) {
     if (auto at = dyn_cast<ArrayType>(this)) {
       return at->getElemType()->hasInput();
-    } else if (auto nt = dyn_cast<NamedType>(this)) {
+    }
+    else if (auto nt = dyn_cast<NamedType>(this)) {
       return nt->getRaw()->hasInput();
-    } else if (auto rt = dyn_cast<RecordType>(this)) {
+    }
+    else if (auto rt = dyn_cast<RecordType>(this)) {
       bool ret = false;
       for (auto field : rt->getRecord()) { ret |= field.second->hasInput(); }
       return ret;
@@ -118,12 +122,18 @@ string RecordType::toString(void) const {
 }
 
 NamedType::NamedType(Namespace* ns, std::string name, Type* raw)
-    : Type(TK_Named, raw->getDir(), ns->getContext()),
-      GlobalValue(GVK_NamedType, ns, name), raw(raw) {}
-NamedType::NamedType(Namespace* ns, string name, TypeGen* typegen,
-                     Values genargs)
-    : Type(TK_Named, DK_Mixed, ns->getContext()),
-      GlobalValue(GVK_NamedType, ns, name), typegen(typegen), genargs(genargs) {
+  : Type(TK_Named, raw->getDir(), ns->getContext()),
+    GlobalValue(GVK_NamedType, ns, name),
+    raw(raw) {}
+NamedType::NamedType(
+  Namespace* ns,
+  string name,
+  TypeGen* typegen,
+  Values genargs)
+  : Type(TK_Named, DK_Mixed, ns->getContext()),
+    GlobalValue(GVK_NamedType, ns, name),
+    typegen(typegen),
+    genargs(genargs) {
   // Check args here.
   checkValuesAreParams(genargs, typegen->getParams());
 
@@ -136,7 +146,7 @@ void NamedType::print() const { cout << "NYI print on named type" << endl; }
 
 // Stupid hashing wrapper for enum
 RecordType::RecordType(Context* c, RecordParams _record)
-    : Type(TK_Record, DK_Null, c) {
+  : Type(TK_Record, DK_Null, c) {
   set<uint> dirs;  // Slight hack because it is not easy to hash enums
   for (auto field : _record) {
     checkStringSyntax(field.first);
@@ -145,19 +155,20 @@ RecordType::RecordType(Context* c, RecordParams _record)
     dirs.insert(field.second->getDir());
   }
   assert(dirs.count(DK_Null) == 0);
-  if (dirs.size() == 0) {
-    dir = DK_Null;
-  } else if (dirs.size() > 1) {
+  if (dirs.size() == 0) { dir = DK_Null; }
+  else if (dirs.size() > 1) {
     dir = DK_Mixed;
-  } else {
+  }
+  else {
     dir = (DirKind) * (dirs.begin());
   }
 }
 
 RecordType* RecordType::appendField(string label, Type* t) {
   checkStringSyntax(label);
-  ASSERT(this->getRecord().count(label) == 0,
-         "Cannot append " + label + " to type: " + this->toString());
+  ASSERT(
+    this->getRecord().count(label) == 0,
+    "Cannot append " + label + " to type: " + this->toString());
 
   RecordParams newParams({{label, t}});
   for (auto rparam : this->getRecord()) {
@@ -167,8 +178,9 @@ RecordType* RecordType::appendField(string label, Type* t) {
 }
 
 RecordType* RecordType::detachField(string label) {
-  ASSERT(this->getRecord().count(label) == 1,
-         "Cannot detach" + label + " from type: " + this->toString());
+  ASSERT(
+    this->getRecord().count(label) == 1,
+    "Cannot detach" + label + " from type: " + this->toString());
 
   RecordParams newParams;
   for (auto rparam : this->getRecord()) {
@@ -185,11 +197,11 @@ uint RecordType::getSize() const {
 }
 
 bool isClockOrNestedClockType(Type* type, Type* clockType) {
-  if (type == clockType) {
-    return true;
-  } else if (auto arrayType = dyn_cast<ArrayType>(type)) {
+  if (type == clockType) { return true; }
+  else if (auto arrayType = dyn_cast<ArrayType>(type)) {
     return isClockOrNestedClockType(arrayType->getElemType(), clockType);
-  } else if (auto recordType = dyn_cast<RecordType>(type)) {
+  }
+  else if (auto recordType = dyn_cast<RecordType>(type)) {
     bool isNestedClockType = false;
     for (auto field : recordType->getRecord()) {
       isNestedClockType |= isClockOrNestedClockType(field.second, clockType);

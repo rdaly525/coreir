@@ -9,15 +9,18 @@ namespace {
 
 string CLOCK = "clk";
 
-std::vector<string> check_interface_variable(std::vector<string> variables,
-                                             SmvBVVar var, SMVModule* smod) {
-  if (find(variables.begin(), variables.end(), var.getName()) ==
-      variables.end()) {
+std::vector<string> check_interface_variable(
+  std::vector<string> variables,
+  SmvBVVar var,
+  SMVModule* smod) {
+  if (
+    find(variables.begin(), variables.end(), var.getName()) ==
+    variables.end()) {
     variables.push_back(var.getName());
     smod->addVarDec(SmvBVVarDec(SmvBVVarGetCurr(var)));
     if (var.getName().find(CLOCK) != string::npos) {
-      smod->addStmt("-- START module declaration for signal '" + var.getName() +
-                    "'");
+      smod->addStmt(
+        "-- START module declaration for signal '" + var.getName() + "'");
       smod->addStmt(SMVClock("", var));
       smod->addStmt("-- END module declaration\n");
     }
@@ -36,8 +39,9 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
   modMap[m] = smod;
   if (!m->hasDef()) { return false; }
 
-  if (this->getContext()->hasTop() &&
-      this->getContext()->getTop()->getMetaData().count("properties") > 0) {
+  if (
+    this->getContext()->hasTop() &&
+    this->getContext()->getTop()->getMetaData().count("properties") > 0) {
     json jprop = this->getContext()->getTop()->getMetaData()["properties"];
     if (jprop.size()) {
       for (uint i = 0; i < jprop.size(); i++) {
@@ -59,8 +63,9 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Module* mref = imap.second->getModuleRef();
     // do not add comment for no ops
     if (no_ops.count(imap.first) == 0) {
-      smod->addStmt("-- START module declaration for instance '" + imap.first +
-                    "' (Module " + mref->getName() + ")");
+      smod->addStmt(
+        "-- START module declaration for instance '" + imap.first +
+        "' (Module " + mref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmvBVVar var = SmvBVVar(iname, rmap.first, rmap.second);
@@ -87,14 +92,16 @@ bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
     if (isNumber(left->getSelectPath().back())) {
       auto lsel = dyn_cast<Select>(left)->getParent();
       vleft = SmvBVVar(lsel);
-    } else {
+    }
+    else {
       vleft = SmvBVVar(left);
     }
 
     if (isNumber(right->getSelectPath().back())) {
       auto rsel = dyn_cast<Select>(right)->getParent();
       vright = SmvBVVar(rsel);
-    } else {
+    }
+    else {
       vright = SmvBVVar(right);
     }
 
@@ -133,8 +140,10 @@ void Passes::SMV::writeToStream(std::ostream& os) {
 
   os << "-- Properties" << endl;
   for (auto property : properties) {
-    os << SMVProperty(property.first, property.second.first,
-                      property.second.second)
+    os << SMVProperty(
+            property.first,
+            property.second.first,
+            property.second.second)
        << endl;
   }
 }

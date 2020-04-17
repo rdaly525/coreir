@@ -7,12 +7,12 @@ namespace CoreIR {
 namespace Passes {
 
 class Flatten : public InstanceGraphPass {
-  public :
-    static std::string ID;
-    Flatten() : InstanceGraphPass(ID,"Flattens everything!") {}
-    bool runOnInstanceGraphNode(InstanceGraphNode& node);
+ public:
+  static std::string ID;
+  Flatten() : InstanceGraphPass(ID, "Flattens everything!") {}
+  bool runOnInstanceGraphNode(InstanceGraphNode& node);
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 #endif

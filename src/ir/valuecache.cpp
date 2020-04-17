@@ -22,9 +22,8 @@ bool BitVectorComp::operator()(const BitVector& l, const BitVector& r) const {
 
     uint lval = cmpVal(lv);
     uint rval = cmpVal(rv);
-    if (lval < rval) {
-      return true;
-    } else if (lval > rval) {
+    if (lval < rval) { return true; }
+    else if (lval > rval) {
       return false;
     }
   }

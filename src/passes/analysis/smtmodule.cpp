@@ -43,7 +43,8 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
     addPortsFromGen(inst);
     mname = modname;  // gen->getNamespace()->getName() + "_" +
                       // gen->getName(args);
-  } else {
+  }
+  else {
     mname = modname;
   }
 
@@ -64,13 +65,15 @@ string SMTModule::toInstanceString(Instance* inst, string path) {
   const json& jmeta = mref->getMetaData();
   if (jmeta.count("verilog") && jmeta["verilog"].count("parameters")) {
     params = jmeta["verilog"]["parameters"].get<vector<string>>();
-  } else {
+  }
+  else {
     for (auto amap : args) { params.push_back(amap.first); }
   }
   vector<string> paramstrs;
   for (auto param : params) {
-    ASSERT(args.count(param),
-           "Missing parameter " + param + " from " + ::CoreIR::toString(args));
+    ASSERT(
+      args.count(param),
+      "Missing parameter " + param + " from " + ::CoreIR::toString(args));
     string astr = "." + param + "(" + args[param]->toString() + ")";
     paramstrs.push_back(astr);
   }

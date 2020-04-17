@@ -11,23 +11,32 @@ std::string sanitizedName(const std::string& cellName) {
   for (uint i = 0; i < cellName.size(); i++) {
     if (cellName[i] == '$') {
       // instName += "UDOLLARU";
-    } else if (cellName[i] == ':') {
+    }
+    else if (cellName[i] == ':') {
       // instName += "UCOLONU";
-    } else if (cellName[i] == '.') {
+    }
+    else if (cellName[i] == '.') {
       // instName += "UDOTU";
-    } else if (cellName[i] == '\\') {
+    }
+    else if (cellName[i] == '\\') {
       instName += "UBACKSLASHU";
-    } else if (cellName[i] == '=') {
+    }
+    else if (cellName[i] == '=') {
       instName += "UEQUALSU";
-    } else if (cellName[i] == '[') {
+    }
+    else if (cellName[i] == '[') {
       instName += "ULEFTUBRACKETU";
-    } else if (cellName[i] == ']') {
+    }
+    else if (cellName[i] == ']') {
       instName += "URIGHTUBRACKETU";
-    } else if (cellName[i] == '/') {
+    }
+    else if (cellName[i] == '/') {
       instName += "UFORWARDUSLASHU";
-    } else if (cellName[i] == '_') {
+    }
+    else if (cellName[i] == '_') {
       // instName += "UUNDERSCOREU";
-    } else {
+    }
+    else {
       instName += cellName[i];
     }
   }
@@ -62,8 +71,9 @@ bool Passes::SanitizeNames::runOnModule(Module* m) {
       auto safeNameInstance = def->addInstance(inst, sName);
 
       for (auto selR : sels) {
-        def->connect(instPT->sel("in")->sel(selR.first),
-                     safeNameInstance->sel(selR.first));
+        def->connect(
+          instPT->sel("in")->sel(selR.first),
+          safeNameInstance->sel(selR.first));
       }
 
       def->removeInstance(inst);

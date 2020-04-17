@@ -17,8 +17,8 @@ bool Passes::HelloModule::runOnModule(Module* m) {
   Context* c = this->getContext();
 
   // The ModulePass runs on Modules whether or not they are a declaration or a
-  // definition. since this pass only cares about finding registers, we early-out
-  // on the declarations
+  // definition. since this pass only cares about finding registers, we
+  // early-out on the declarations
   if (!m->hasDef()) return false;
 
   ModuleDef* def = m->getDef();

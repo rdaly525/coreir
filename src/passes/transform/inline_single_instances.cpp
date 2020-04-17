@@ -6,7 +6,7 @@ using namespace CoreIR;
 
 string Passes::InlineSingleInstances::ID = "inline_single_instances";
 bool Passes::InlineSingleInstances::runOnInstanceGraphNode(
-    InstanceGraphNode& node) {
+  InstanceGraphNode& node) {
   auto m = node.getModule();
   if (!m->hasDef()) { return false; }
   auto numInstances = node.getModule()->getDef()->getInstances().size();

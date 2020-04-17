@@ -8,8 +8,9 @@ namespace CoreIR {
 
 bool hasOutputConnection(Wireable* w) {
   for (auto wb : w->getConnectedWireables()) {
-    if ((wb->getType()->getDir() == Type::DK_In) ||
-        (wb->getType()->getDir() == Type::DK_InOut)) {
+    if (
+      (wb->getType()->getDir() == Type::DK_In) ||
+      (wb->getType()->getDir() == Type::DK_InOut)) {
       return true;
     }
   }

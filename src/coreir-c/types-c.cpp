@@ -32,15 +32,18 @@ COREType* COREBit(COREContext* c) {
 }
 COREType* COREArray(COREContext* c, uint len, COREType* elemType) {
   return rcast<COREType*>(
-      rcast<Context*>(c)->Array(len, rcast<Type*>(elemType)));
+    rcast<Context*>(c)->Array(len, rcast<Type*>(elemType)));
 }
 COREType* CORERecord(COREContext* context, void* record_param) {
   return rcast<COREType*>(
-      rcast<Context*>(context)->Record(*rcast<RecordParams*>(record_param)));
+    rcast<Context*>(context)->Record(*rcast<RecordParams*>(record_param)));
 }
 
-void CORERecordTypeGetItems(COREType* recordType, char*** keys,
-                            COREType*** values, int* size) {
+void CORERecordTypeGetItems(
+  COREType* recordType,
+  char*** keys,
+  COREType*** values,
+  int* size) {
   RecordType* type = rcast<RecordType*>(recordType);
   auto const& record = type->getRecord();
   *size = record.size();

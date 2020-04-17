@@ -13,9 +13,12 @@ using namespace std;
 namespace CoreIR {
 
 ModuleDef::ModuleDef(Module* module)
-    : module(module), instancesIterFirst(nullptr), instancesIterLast(nullptr) {
-  interface = new Interface(this,
-                            cast<RecordType>(module->getType()->getFlipped()));
+  : module(module),
+    instancesIterFirst(nullptr),
+    instancesIterLast(nullptr) {
+  interface = new Interface(
+    this,
+    cast<RecordType>(module->getType()->getFlipped()));
 }
 
 ModuleDef::~ModuleDef() {
@@ -31,8 +34,10 @@ const std::vector<Connection> ModuleDef::getSortedConnections(void) const {
 
   // Ensure that connections are serialized in select string sorted order
   ConnectionCompConsistent c;
-  std::sort(begin(sortedConns), end(sortedConns),
-            [c](const Connection& l, const Connection& r) { return c(l, r); });
+  std::sort(
+    begin(sortedConns),
+    end(sortedConns),
+    [c](const Connection& l, const Connection& r) { return c(l, r); });
   return sortedConns;
 }
 
@@ -44,7 +49,8 @@ void ModuleDef::print(void) {
     if (mref->isGenerated()) {
       cout << "      " << inst.first << " : " << mref->getGenerator()->getName()
            << ::CoreIR::toString(mref->getGenArgs()) << endl;
-    } else {
+    }
+    else {
       cout << "      " << inst.first << " : " << mref->getName() << endl;
     }
   }
@@ -59,8 +65,10 @@ Context* ModuleDef::getContext() { return module->getContext(); }
 const string& ModuleDef::getName() { return module->getName(); }
 RecordType* ModuleDef::getType() { return module->getType(); }
 
-void addCorrespondingSelects(Wireable* const original, Wireable* const cpy,
-                             std::map<Wireable*, Wireable*>& origToCopies) {
+void addCorrespondingSelects(
+  Wireable* const original,
+  Wireable* const cpy,
+  std::map<Wireable*, Wireable*>& origToCopies) {
   origToCopies[original] = cpy;
   for (auto sel : original->getSelects()) {
     addCorrespondingSelects(sel.second, cpy->sel(sel.first), origToCopies);
@@ -92,9 +100,8 @@ bool ModuleDef::canSel(const std::string& selstr) {
 bool ModuleDef::canSel(SelectPath path) {
   string iname = path[0];
   Wireable* inst;
-  if (iname == "self") {
-    inst = this->interface;
-  } else {
+  if (iname == "self") { inst = this->interface; }
+  else {
     if (hasChar(iname, ';')) {
       // Hierarchical reference, pop off first instance name from string
       iname = splitString<SelectPath>(iname, ';')[0];
@@ -122,8 +129,9 @@ Wireable* ModuleDef::sel(const string& s) {
     // Pop off and select first instance, then select the rest of the string,
     // keep ; prefix to differentiate between port and instance name
     return cast<Instance>(this->sel(inst_name))
-        ->sel(s.substr(inst_name.length()));
-  } else {
+      ->sel(s.substr(inst_name.length()));
+  }
+  else {
     ASSERT(instances.count(s), "Cannot find instance " + s);
     return instances[s];
   }
@@ -152,12 +160,14 @@ void ModuleDef::appendInstanceToIter(Instance* instance) {
     this->instancesIterLast = instance;
     this->instancesIterNextMap[instance] = nullptr;
     this->instancesIterPrevMap[instance] = nullptr;
-  } else {
+  }
+  else {
     assert(this->instancesIterLast != nullptr);
     Instance* currLast = this->instancesIterLast;
     // Updates the current last instance's next to point to the new instance,
-    assert(this->instancesIterNextMap[currLast] ==
-           nullptr);  // current last shouldn't have a next
+    assert(
+      this->instancesIterNextMap[currLast] ==
+      nullptr);  // current last shouldn't have a next
     this->instancesIterNextMap[currLast] = instance;
     // Sets the new instance's prev to point the current last instance,
     this->instancesIterPrevMap[instance] = currLast;
@@ -190,19 +200,26 @@ void ModuleDef::removeInstanceFromIter(Instance* instance) {
 
 Instance* ModuleDef::getInstancesIterNext(Instance* instance) {
   ASSERT(instance, "Cannot get next of IterEnd");
-  ASSERT(this->instancesIterNextMap.count(instance) == 1,
-         "DEBUG ME: instance not in iter");  // TODO: Should be an error?
+  ASSERT(
+    this->instancesIterNextMap.count(instance) == 1,
+    "DEBUG ME: instance not in iter");  // TODO: Should be an error?
   return this->instancesIterNextMap[instance];
 }
 
 //   Instance(ModuleDef* container, std::string instname, Module* moduleRef,
 //   Values modargs);
-Instance* ModuleDef::addInstance(string instname, Generator* gen,
-                                 Values genargs, Values modargs) {
+Instance* ModuleDef::addInstance(
+  string instname,
+  Generator* gen,
+  Values genargs,
+  Values modargs) {
   ASSERT(instances.count(instname) == 0, instname + " already an instance");
 
-  Instance* inst = new Instance(this, instname, gen->getModule(genargs),
-                                modargs);
+  Instance* inst = new Instance(
+    this,
+    instname,
+    gen->getModule(genargs),
+    modargs);
   instances[instname] = inst;
 
   appendInstanceToIter(inst);
@@ -220,13 +237,17 @@ Instance* ModuleDef::addInstance(string instname, Module* m, Values modargs) {
   return inst;
 }
 
-Instance* ModuleDef::addInstance(string instname, string iref,
-                                 Values genOrModargs, Values modargs) {
+Instance* ModuleDef::addInstance(
+  string instname,
+  string iref,
+  Values genOrModargs,
+  Values modargs) {
   vector<string> split = splitRef(iref);
   GlobalValue* ref = this->getContext()->getGlobalValue(iref);
   if (auto g = dyn_cast<Generator>(ref)) {
     return this->addInstance(instname, g, genOrModargs, modargs);
-  } else {
+  }
+  else {
     auto m = cast<Module>(ref);
     return this->addInstance(instname, m, genOrModargs);
   }
@@ -236,9 +257,13 @@ Instance* ModuleDef::addInstance(Instance* i, string iname) {
   if (iname == "") { iname = i->getInstname(); }
   Module* mref = i->getModuleRef();
   if (mref->isGenerated()) {
-    return addInstance(iname, mref->getGenerator(), mref->getGenArgs(),
-                       i->getModArgs());
-  } else {
+    return addInstance(
+      iname,
+      mref->getGenerator(),
+      mref->getGenArgs(),
+      i->getModArgs());
+  }
+  else {
     return addInstance(iname, i->getModuleRef(), i->getModArgs());
   }
 }
@@ -251,10 +276,10 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
     Error e;
     e.message("connections can only occur within the same module");
     e.message("  This ModuleDef: " + module->getName());
-    e.message("  ModuleDef of " + a->toString() + ": " +
-              a->getContainer()->getName());
-    e.message("  ModuleDef of " + b->toString() + ": " +
-              b->getContainer()->getName());
+    e.message(
+      "  ModuleDef of " + a->toString() + ": " + a->getContainer()->getName());
+    e.message(
+      "  ModuleDef of " + b->toString() + ": " + b->getContainer()->getName());
     c->error(e);
     return;
   }
@@ -271,7 +296,8 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
     a->addConnectedWireable(b);
     b->addConnectedWireable(a);
     connections.insert(connect);
-  } else {
+  }
+  else {
     ASSERT(0, "Trying to add following connection twice! " + toString(connect));
   }
 }
@@ -283,12 +309,14 @@ void ModuleDef::connect(const SelectPath& pathA, const SelectPath& pathB) {
 void ModuleDef::connect(const string& pathA, const string& pathB) {
   this->connect(this->sel(pathA), this->sel(pathB));
 }
-void ModuleDef::connect(std::initializer_list<const char*> pA,
-                        std::initializer_list<const char*> pB) {
+void ModuleDef::connect(
+  std::initializer_list<const char*> pA,
+  std::initializer_list<const char*> pB) {
   connect(SelectPath(pA.begin(), pA.end()), SelectPath(pB.begin(), pB.end()));
 }
-void ModuleDef::connect(std::initializer_list<std::string> pA,
-                        std::initializer_list<string> pB) {
+void ModuleDef::connect(
+  std::initializer_list<std::string> pA,
+  std::initializer_list<string> pB) {
   connect(SelectPath(pA.begin(), pA.end()), SelectPath(pB.begin(), pB.end()));
 }
 bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {
@@ -327,8 +355,9 @@ void ModuleDef::disconnect(Connection fstCon) {
   //  con.first}) << endl;
   //}
 
-  ASSERT(connections.count(con),
-         "Cannot delete connection that is not connected! " + toString(con));
+  ASSERT(
+    connections.count(con),
+    "Cannot delete connection that is not connected! " + toString(con));
 
   // remove references
   con.first->removeConnectedWireable(con.second);
@@ -345,9 +374,9 @@ void ModuleDef::disconnect(Connection fstCon) {
 
 json& ModuleDef::getMetaData(Wireable* a, Wireable* b) {
   Connection conn = connectionCtor(a, b);
-  ASSERT(connections.count(conn),
-         "Cannot access metadata to something not connected: " +
-             toString(conn));
+  ASSERT(
+    connections.count(conn),
+    "Cannot access metadata to something not connected: " + toString(conn));
   if (connMetaData.count(conn) == 0) {
     connMetaData.emplace(conn, new MetaData());
   }

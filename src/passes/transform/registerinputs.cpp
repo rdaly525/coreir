@@ -42,17 +42,20 @@ bool Passes::RegisterInputs::runOnInstanceGraphNode(InstanceGraphNode& node) {
           // cout << "Array length = " << len << endl;
 
           // TODO: Ensure truly unique name
-          auto selReg = def->addInstance(field.first + "_auto_reg",
-                                         "coreir.reg",
-                                         {{"width", Const::make(c, len)}});
+          auto selReg = def->addInstance(
+            field.first + "_auto_reg",
+            "coreir.reg",
+            {{"width", Const::make(c, len)}});
 
           newRegs.insert({sel, selReg});
-        } else {
+        }
+        else {
           // Add a flip flop in front of single bit inputs
           assert(selTp->getKind() == Type::TK_Bit);
 
-          auto selDFF = def->addInstance(field.first + "_auto_reg",
-                                         "corebit.reg");
+          auto selDFF = def->addInstance(
+            field.first + "_auto_reg",
+            "corebit.reg");
           newRegs.insert({sel, selDFF});
         }
 

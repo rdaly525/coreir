@@ -27,31 +27,39 @@ string getExt(string s) {
 int main(int argc, char* argv[]) {
   int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
-  options.add_options()("h,help", "help")("v,verbose", "Set verbosity",
-                                          cxxopts::value<int>())(
-      "i,input", "input file: '<file1>.json,<file2.json,...'",
-      cxxopts::value<std::string>())("o,output",
-                                     "output file: <file>.<json|fir|v|py|dot>",
-                                     cxxopts::value<std::string>())(
-      "p,passes",
-      "Run passes in order: '<pass1> <pass1args>;<pass2> <pass2args>;...'",
-      cxxopts::value<std::string>())(
-      "e,load_passes",
-      "external passes: '<path1.so>,<path2.so>,<path3.so>,...'",
-      cxxopts::value<std::string>())(
-      "l,load_libs",
-      "external libs: '<libname0>,<path/libname1.so>,<libname2>,...'",
-      cxxopts::value<std::string>())(
-      "n,namespaces",
-      "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
-      cxxopts::value<std::string>()->default_value("global"))(
-      "t,top", "top: <namespace>.<modulename>", cxxopts::value<std::string>())(
-      "a,all", "run on all namespaces")("z,inline",
-                                        "inlines verilog primitives")(
-      "y,verilator_debug", "mark signals with /*veriltor public*/")(
-      "s,split", "splits output files by name (expects '-o <path>/*.<ext>')")(
-      "product", "specify product list filename",
-      cxxopts::value<std::string>());
+  options.add_options()(
+    "h,help",
+    "help")("v,verbose", "Set verbosity", cxxopts::value<int>())(
+    "i,input",
+    "input file: '<file1>.json,<file2.json,...'",
+    cxxopts::value<std::string>())(
+    "o,output",
+    "output file: <file>.<json|fir|v|py|dot>",
+    cxxopts::value<std::string>())(
+    "p,passes",
+    "Run passes in order: '<pass1> <pass1args>;<pass2> <pass2args>;...'",
+    cxxopts::value<std::string>())(
+    "e,load_passes",
+    "external passes: '<path1.so>,<path2.so>,<path3.so>,...'",
+    cxxopts::value<std::string>())(
+    "l,load_libs",
+    "external libs: '<libname0>,<path/libname1.so>,<libname2>,...'",
+    cxxopts::value<std::string>())(
+    "n,namespaces",
+    "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
+    cxxopts::value<std::string>()->default_value("global"))(
+    "t,top",
+    "top: <namespace>.<modulename>",
+    cxxopts::value<std::string>())("a,all", "run on all namespaces")(
+    "z,inline",
+    "inlines verilog primitives")(
+    "y,verilator_debug",
+    "mark signals with /*veriltor public*/")(
+    "s,split",
+    "splits output files by name (expects '-o <path>/*.<ext>')")(
+    "product",
+    "specify product list filename",
+    cxxopts::value<std::string>());
 
   // Do the parsing of the arguments
   auto opts = options.parse(argc, argv);
@@ -59,15 +67,17 @@ int main(int argc, char* argv[]) {
   Context* c = newContext();
 
   if (opts.count("l")) {
-    vector<string> libs = splitString<vector<string>>(opts["l"].as<string>(),
-                                                      ',');
+    vector<string> libs = splitString<vector<string>>(
+      opts["l"].as<string>(),
+      ',');
     for (auto lib : libs) { c->getLibraryManager()->loadLib(lib); }
   }
 
   PassLibrary loadedPasses(c);
   if (opts.count("e")) {
-    vector<string> passes = splitString<vector<string>>(opts["e"].as<string>(),
-                                                        ',');
+    vector<string> passes = splitString<vector<string>>(
+      opts["e"].as<string>(),
+      ',');
     for (auto pass : passes) { loadedPasses.loadPass(pass); }
   }
 
@@ -116,7 +126,8 @@ int main(int argc, char* argv[]) {
         namespaces.push_back(ns.first);
       }
     }
-  } else {
+  }
+  else {
     namespaces = splitString<vector<string>>(opts["n"].as<string>(), ',');
   }
 
@@ -136,10 +147,11 @@ int main(int argc, char* argv[]) {
     if (opts.count("o")) {
       outfile = opts["o"].as<string>();
       outExt = getExt(outfile);
-      ASSERT(outExt == "json" || outExt == "txt" || outExt == "fir" ||
-                 outExt == "py" || outExt == "smt2" || outExt == "smv" ||
-                 outExt == "v",
-             "Cannot support out extention: " + outExt);
+      ASSERT(
+        outExt == "json" || outExt == "txt" || outExt == "fir" ||
+          outExt == "py" || outExt == "smt2" || outExt == "smv" ||
+          outExt == "v",
+        "Cannot support out extention: " + outExt);
       if (!split_files) {
         std::unique_ptr<std::ofstream> fout(new std::ofstream(outfile));
         ASSERT(fout->is_open(), "Cannot open file: " + outfile);
@@ -147,15 +159,17 @@ int main(int argc, char* argv[]) {
       }
     }
     if (split_files) {
-      ASSERT(outExt == "v",
-             "Split files option is only supported in verilog mode currently: "
-             "ext = " +
-                 outExt);
+      ASSERT(
+        outExt == "v",
+        "Split files option is only supported in verilog mode currently: "
+        "ext = " +
+          outExt);
       ASSERT(outfile != "", "Must specify outfile with '-o' to split files");
       const auto len = outfile.size();
       const auto ext_len = outExt.size();
-      ASSERT(outfile.substr(len - (ext_len + 2), 2) == "*.",
-             "Expected -o to be given as '<path>/*.<ext>'");
+      ASSERT(
+        outfile.substr(len - (ext_len + 2), 2) == "*.",
+        "Expected -o to be given as '<path>/*.<ext>'");
       output_dir = outfile.substr(0, len - (ext_len + 2));
       // TODO(rsetaluri): Check that output_dir exists and is a directory.
     }
@@ -166,22 +180,25 @@ int main(int argc, char* argv[]) {
   if (outExt == "json") {
     c->runPasses({"coreirjson"}, namespaces);
     auto jpass = static_cast<Passes::CoreIRJson*>(
-        c->getPassManager()->getAnalysisPass("coreirjson"));
+      c->getPassManager()->getAnalysisPass("coreirjson"));
     string topref = "";
     if (c->hasTop()) { topref = c->getTop()->getRefName(); }
     jpass->writeToStream(*sout, topref);
-  } else if (outExt == "fir") {
+  }
+  else if (outExt == "fir") {
     CoreIRLoadFirrtl_coreir(c);
     CoreIRLoadFirrtl_corebit(c);
-    c->runPasses({"rungenerators", "cullgraph", "wireclocks-coreir", "firrtl"},
-                 namespaces);
+    c->runPasses(
+      {"rungenerators", "cullgraph", "wireclocks-coreir", "firrtl"},
+      namespaces);
     // Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(
-        c->getPassManager()->getAnalysisPass("firrtl"));
+      c->getPassManager()->getAnalysisPass("firrtl"));
 
     // Create file here.
     fpass->writeToStream(*sout);
-  } else if (outExt == "v") {
+  }
+  else if (outExt == "v") {
     // TODO: Have option to output this or not
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
@@ -191,12 +208,12 @@ int main(int argc, char* argv[]) {
     if (opts.count("z")) { vstr += " -i"; }
     if (opts.count("y")) { vstr += " -y"; }
     modified |= c->runPasses(
-        {"rungenerators", "removebulkconnections", "flattentypes", vstr},
-        namespaces);
+      {"rungenerators", "removebulkconnections", "flattentypes", vstr},
+      namespaces);
     LOG(DEBUG) << "Running vpasses";
 
     auto vpass = static_cast<Passes::Verilog*>(
-        c->getPassManager()->getAnalysisPass("verilog"));
+      c->getPassManager()->getAnalysisPass("verilog"));
 
     if (split_files) {
       std::unique_ptr<std::string> product_file;
@@ -205,32 +222,38 @@ int main(int argc, char* argv[]) {
         product_file.reset(new std::string(val));
       }
       vpass->writeToFiles(output_dir, std::move(product_file));
-    } else {
+    }
+    else {
       vpass->writeToStream(*sout);
     }
-  } else if (outExt == "py") {
+  }
+  else if (outExt == "py") {
     modified |= c->runPasses(
-        {"rungenerators", "cullgraph", "wireclocks-coreir", "magma"});
+      {"rungenerators", "cullgraph", "wireclocks-coreir", "magma"});
     auto mpass = static_cast<Passes::Magma*>(
-        c->getPassManager()->getAnalysisPass("magma"));
+      c->getPassManager()->getAnalysisPass("magma"));
     mpass->writeToStream(*sout);
-  } else if (outExt == "txt") {
+  }
+  else if (outExt == "txt") {
     assert(top);
     if (!saveToDot(top, *sout)) { c->die(); }
-  } else if (outExt == "smt2") {
+  }
+  else if (outExt == "smt2") {
     modified |= c->runPasses(
-        {"removebulkconnections", "flattentypes", "smtlib2"});
+      {"removebulkconnections", "flattentypes", "smtlib2"});
     auto vpass = static_cast<Passes::SmtLib2*>(
-        c->getPassManager()->getAnalysisPass("smtlib2"));
+      c->getPassManager()->getAnalysisPass("smtlib2"));
 
     vpass->writeToStream(*sout);
-  } else if (outExt == "smv") {
+  }
+  else if (outExt == "smv") {
     modified |= c->runPasses({"removebulkconnections", "flattentypes", "smv"});
     auto vpass = static_cast<Passes::SMV*>(
-        c->getPassManager()->getAnalysisPass("smv"));
+      c->getPassManager()->getAnalysisPass("smv"));
 
     vpass->writeToStream(*sout);
-  } else {
+  }
+  else {
     LOG(DEBUG) << "NYI";
   }
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");

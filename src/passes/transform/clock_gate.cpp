@@ -11,7 +11,10 @@ struct CEInfo {
   bool has_arst = false;
   CEInfo() : can_replace(false) {}
   CEInfo(CoreIR::Instance* reg, CoreIR::Instance* mux, int mux_in_port)
-      : can_replace(true), reg(reg), mux(mux), mux_in_port(mux_in_port) {}
+    : can_replace(true),
+      reg(reg),
+      mux(mux),
+      mux_in_port(mux_in_port) {}
 };
 
 // Checks if inst of generated module and generated module has the following
@@ -53,7 +56,8 @@ CEInfo check_register(CoreIR::Instance* reg) {
   // either mux.in0 or mux.in1 is driven by reg.out
   if (get_driver(mux->sel("in0")) == reg->sel("out")) {
     return CEInfo(reg, mux, 1);
-  } else if (get_driver(mux->sel("in1")) == reg->sel("out")) {
+  }
+  else if (get_driver(mux->sel("in1")) == reg->sel("out")) {
     return CEInfo(reg, mux, 0);
   }
   return CEInfo();
@@ -76,8 +80,9 @@ bool ClockGate::runOnModule(Module* m) {
       // NYI clock being negedge
       if (!inst->getModArgs().at("clk_posedge")->get<bool>()) { continue; }
       // NYI arst being negedge
-      if (is_coreir_reg_arst &&
-          !inst->getModArgs().at("arst_posedge")->get<bool>()) {
+      if (
+        is_coreir_reg_arst &&
+        !inst->getModArgs().at("arst_posedge")->get<bool>()) {
         continue;
       }
       auto info = check_register(inst);
@@ -106,7 +111,7 @@ bool ClockGate::runOnModule(Module* m) {
 
     // Connect mux input
     auto regCE_driver = get_driver(
-        info.mux->sel("in" + std::to_string(info.mux_in_port)));
+      info.mux->sel("in" + std::to_string(info.mux_in_port)));
     def->connect(regCE_driver, ce_inst->sel("in"));
 
     // Connect mux select

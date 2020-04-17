@@ -8,27 +8,35 @@ using namespace CoreIR;
 
 string Passes::AddDummyInputs::ID = "add-dummy-inputs";
 
-void connectToDummy(const std::string& constName, CoreIR::Select* const sel,
-                    CoreIR::ModuleDef* const def, CoreIR::Context* const c) {
+void connectToDummy(
+  const std::string& constName,
+  CoreIR::Select* const sel,
+  CoreIR::ModuleDef* const def,
+  CoreIR::Context* const c) {
 
   if (isBitArray(*(sel->getType()))) {
     ArrayType* arrTp = cast<ArrayType>(sel->getType());
     int width = arrTp->getLen();
 
     auto replaceConst = def->addInstance(
-        constName, "coreir.const", {{"width", Const::make(c, width)}},
-        {{"value", Const::make(c, BitVector(width, 0))}});
+      constName,
+      "coreir.const",
+      {{"width", Const::make(c, width)}},
+      {{"value", Const::make(c, BitVector(width, 0))}});
 
     def->connect(replaceConst->sel("out"), sel);
-  } else {
+  }
+  else {
     if (!isBitType(*(sel->getType()))) {
       cout << "ERROR: " << sel->toString() << " has type "
            << sel->getType()->toString() << endl;
     }
     assert(isBitType(*(sel->getType())));
 
-    auto replaceConst = def->addInstance(constName, "corebit.const",
-                                         {{"value", Const::make(c, false)}});
+    auto replaceConst = def->addInstance(
+      constName,
+      "corebit.const",
+      {{"value", Const::make(c, false)}});
 
     def->connect(replaceConst->sel("out"), sel);
   }
@@ -78,8 +86,8 @@ bool Passes::AddDummyInputs::runOnModule(Module* m) {
 
           string constName = next->toString() + "_" + field + "_const_in";
           connectToDummy(constName, sel, def, c);
-
-        } else if (isBitArray(*(sel->getType()))) {
+        }
+        else if (isBitArray(*(sel->getType()))) {
 
           // The array itself is not connected
           if (sel->getConnectedWireables().size() == 0) {

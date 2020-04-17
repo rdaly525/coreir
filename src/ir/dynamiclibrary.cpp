@@ -29,11 +29,11 @@ DynamicLibrary::DynamicLibrary() {
   struct utsname unameData;
   assert(!uname(&unameData));
   string osname = unameData.sysname;
-  if (osname == "Darwin") {
-    this->ext = "dylib";
-  } else if (osname == "Linux") {
+  if (osname == "Darwin") { this->ext = "dylib"; }
+  else if (osname == "Linux") {
     this->ext = "so";
-  } else {
+  }
+  else {
     ASSERT(0, "Cannot support OS " + osname);
   }
 }
@@ -41,9 +41,8 @@ DynamicLibrary::~DynamicLibrary() {
   for (auto lcpair : libCache) { dlclose(lcpair.second); }
 }
 void DynamicLibrary::addSearchPath(string path, bool front) {
-  if (front) {
-    searchPaths.push_front(path);
-  } else {
+  if (front) { searchPaths.push_front(path); }
+  else {
     searchPaths.push_back(path);
   }
 }
@@ -65,8 +64,9 @@ void* DynamicLibrary::openLibrary(string fileName) {
       break;
     }
   }
-  ASSERT(found, "Cannot find library " + fileName + " in paths:\n  " +
-                    pathsToString());
+  ASSERT(
+    found,
+    "Cannot find library " + fileName + " in paths:\n  " + pathsToString());
 #endif  // !__linux__
 
   void* handle = dlopen(fileName.c_str(), RTLD_LAZY);
@@ -87,8 +87,10 @@ void* DynamicLibrary::getFunction(string fileName, string functionName) {
   void* handle = this->openLibrary(fileName.c_str());
   void* function = dlsym(handle, functionName.c_str());
   const char* dlsym_error = dlerror();
-  ASSERT(!dlsym_error, "Cannot load function " + functionName + " from " +
-                           pathMap[fileName] + "\n" + string(dlsym_error));
+  ASSERT(
+    !dlsym_error,
+    "Cannot load function " + functionName + " from " + pathMap[fileName] +
+      "\n" + string(dlsym_error));
   ASSERT(function, "function is null");
   return function;
 }

@@ -15,7 +15,8 @@ void Passes::MatchAndReplace::verifyOpts(Opts opts) {
   Type* rType;
   if (auto rGen = dyn_cast<Generator>(replacement)) {
     rType = rGen->getTypeGen()->getType(genargs);
-  } else {
+  }
+  else {
     rType = cast<Module>(replacement)->getType();
   }
   ASSERT(pattern->getType() == rType, "Pattern and Replace need the same type");
@@ -23,16 +24,19 @@ void Passes::MatchAndReplace::verifyOpts(Opts opts) {
   ASSERT(pattern->hasDef(), "pattern needs to have a definition!");
 
   if (opts.genargs.size() > 0) {
-    ASSERT(isa<Generator>(replacement),
-           "replacement needs to be a generator if you have genargs");
+    ASSERT(
+      isa<Generator>(replacement),
+      "replacement needs to be a generator if you have genargs");
   }
-  ASSERT(((opts.modargs.size() > 0) && (!!opts.getModArgs)) == false,
-         "Cannot provide modargs and getModArgs at the same time")
+  ASSERT(
+    ((opts.modargs.size() > 0) && (!!opts.getModArgs)) == false,
+    "Cannot provide modargs and getModArgs at the same time")
   if (opts.instanceKey.size() > 0) {
     auto key = opts.instanceKey;
     // Verify that each instance is a unique instance of pattern.
-    ASSERT(key.size() == pattern->getDef()->getInstances().size(),
-           "InstanceKey must contain each instance from pattern")
+    ASSERT(
+      key.size() == pattern->getDef()->getInstances().size(),
+      "InstanceKey must contain each instance from pattern")
     for (auto instmap : pattern->getDef()->getInstances()) {
       if (find(key.begin(), key.end(), instmap.first) == key.end()) {
         ASSERT(false, "InstanceKey must contain each instance from pattern");
@@ -60,7 +64,7 @@ void Passes::MatchAndReplace::preprocessPattern() {
   // Initialize Internal/ExternalConnections
   for (uint i = 0; i < instanceKey.size(); ++i) {
     this->inCons.push_back(
-        unordered_map<SelectPath, vector<std::pair<SelectPath, uint>>>());
+      unordered_map<SelectPath, vector<std::pair<SelectPath, uint>>>());
     this->exCons.push_back(vector<std::pair<SelectPath, SelectPath>>());
   }
 
@@ -79,7 +83,8 @@ void Passes::MatchAndReplace::preprocessPattern() {
       pathConnected.pop_front();
       if (conInst == "self") {  // This is an external connection
         this->exCons[i].push_back({pathLocal, pathConnected});
-      } else {  // This is an internal connection
+      }
+      else {  // This is an internal connection
         assert(reverseKey.count(conInst) == 1);
         uint conIdx = reverseKey[conInst];
         if (inConCache.count({conIdx, {pathConnected, pathLocal}}) > 0) {
@@ -114,9 +119,9 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
   ModuleDef* pdef = pattern->getDef();
   ModuleDef* cdef = container->getDef();
   auto cinstMap = getAnalysisPass<Passes::CreateModInstanceMap>()
-                      ->getInstanceMap(container);
+                    ->getInstanceMap(container);
   auto pinstMap = getAnalysisPass<Passes::CreateModInstanceMap>()
-                      ->getInstanceMap(pattern);
+                    ->getInstanceMap(pattern);
 
   // If this module contains none of the any of the pattern instances, I will
   // never find a match, so just return
@@ -248,16 +253,19 @@ bool Passes::MatchAndReplace::runOnModule(Module* m) {
     // Add the replacement pattern
     string rName = replacement->getName() + c->getUnique();
     Values rModArgs;
-    if (this->getModArgs) {
-      rModArgs = this->getModArgs(matchedInstances);
-    } else if (this->modargs.size() > 0) {
+    if (this->getModArgs) { rModArgs = this->getModArgs(matchedInstances); }
+    else if (this->modargs.size() > 0) {
       rModArgs = this->modargs;
     }
     if (isa<Generator>(replacement)) {
 
-      cdef->addInstance(rName, cast<Generator>(replacement), this->genargs,
-                        rModArgs);
-    } else {
+      cdef->addInstance(
+        rName,
+        cast<Generator>(replacement),
+        this->genargs,
+        rModArgs);
+    }
+    else {
       container->print();
       pattern->print();
       cdef->addInstance(rName, cast<Module>(replacement), rModArgs);

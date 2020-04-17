@@ -64,10 +64,12 @@ NamedType* Namespace::getNamedType(string name) {
 }
 
 void Namespace::addTypeGen(TypeGen* typegen) {
-  ASSERT(typegen->getNamespace() == this,
-         "Adding typegen to a namespace different than its own");
-  ASSERT(namedTypeList.count(typegen->getName()) == 0,
-         "Name collision in addTypeGen");
+  ASSERT(
+    typegen->getNamespace() == this,
+    "Adding typegen to a namespace different than its own");
+  ASSERT(
+    namedTypeList.count(typegen->getName()) == 0,
+    "Name collision in addTypeGen");
 
   typeGenList[typegen->getName()] = typegen;
 }
@@ -82,8 +84,10 @@ TypeGen* Namespace::getTypeGen(string name) {
   return ret;
 }
 
-Generator* Namespace::newGeneratorDecl(string name, TypeGen* typegen,
-                                       Params genparams) {
+Generator* Namespace::newGeneratorDecl(
+  string name,
+  TypeGen* typegen,
+  Params genparams) {
   // Make sure module does not already exist as a module or generator
   ASSERT(moduleList.count(name) == 0, "Already added " + name);
   ASSERT(generatorList.count(name) == 0, "Already added " + name);
@@ -95,21 +99,25 @@ Generator* Namespace::newGeneratorDecl(string name, TypeGen* typegen,
 
 Module* Namespace::newModuleDecl(string name, Type* t, Params configparams) {
   // Make sure module does not already exist as a module or generator
-  ASSERT(moduleList.count(name) == 0,
-         name + " already exists in " + this->name);
-  ASSERT(generatorList.count(name) == 0,
-         name + " already exists in " + this->name);
-  ASSERT(isa<RecordType>(t),
-         "Module type needs to be a record but is: " + t->toString());
+  ASSERT(
+    moduleList.count(name) == 0,
+    name + " already exists in " + this->name);
+  ASSERT(
+    generatorList.count(name) == 0,
+    name + " already exists in " + this->name);
+  ASSERT(
+    isa<RecordType>(t),
+    "Module type needs to be a record but is: " + t->toString());
   Module* m = new Module(this, name, t, configparams);
   moduleList[name] = m;
   return m;
 }
 
 void Namespace::eraseGenerator(std::string name) {
-  ASSERT(generatorList.count(name),
-         "Cannot delete generator because it does not exist! " + getName() +
-             "." + name);
+  ASSERT(
+    generatorList.count(name),
+    "Cannot delete generator because it does not exist! " + getName() + "." +
+      name);
   delete generatorList[name];
   generatorList.erase(name);
 }
@@ -118,9 +126,9 @@ void Namespace::eraseModule(std::string name) {
   // TODO hacky fix
   if (generatorList.count(name)) return;
 
-  ASSERT(moduleList.count(name),
-         "Cannot delete module because it does not exist!" + getName() + "." +
-             name);
+  ASSERT(
+    moduleList.count(name),
+    "Cannot delete module because it does not exist!" + getName() + "." + name);
   delete moduleList[name];
   moduleList.erase(name);
 }

@@ -10,22 +10,22 @@ void Passes::CreateCombView::setupCoreir(Module* m) {
     srcs[m].insert({"out"});
     snks[m].insert({"in"});
     snks[m].insert({"clk"});
-  } else if (mname == "mem") {
+  }
+  else if (mname == "mem") {
     for (auto record : m->getType()->getRecord()) {
-      if (record.second->isInput()) {
-        snks[m].insert({record.first});
-      } else {
+      if (record.second->isInput()) { snks[m].insert({record.first}); }
+      else {
         assert(record.second->isOutput());
         srcs[m].insert({record.first});
       }
     }
-  } else {
+  }
+  else {
     set<SelectPath> inputs;
     set<SelectPath> outputs;
     for (auto record : m->getType()->getRecord()) {
-      if (record.second->isInput()) {
-        inputs.insert({record.first});
-      } else {
+      if (record.second->isInput()) { inputs.insert({record.first}); }
+      else {
         assert(record.second->isOutput());
         outputs.insert({record.first});
       }
@@ -41,13 +41,13 @@ void Passes::CreateCombView::setupCorebit(Module* m) {
     srcs[m].insert({"out"});
     snks[m].insert({"in"});
     snks[m].insert({"clk"});
-  } else {
+  }
+  else {
     set<SelectPath> inputs;
     set<SelectPath> outputs;
     for (auto record : m->getType()->getRecord()) {
-      if (record.second->isInput()) {
-        inputs.insert({record.first});
-      } else {
+      if (record.second->isInput()) { inputs.insert({record.first}); }
+      else {
         assert(record.second->isOutput());
         outputs.insert({record.first});
       }
@@ -102,7 +102,7 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Wireable* output = outcon->getSnkWireable();
     if (outputInfo[output]->inputs.size() == 0) {
       outputInfo[output]->states.insert(
-          output);  // Not sure why I am adding this here
+        output);  // Not sure why I am adding this here
     }
   }
 
@@ -112,7 +112,7 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto ipair : inputInfo) {
     if (ipair.second->outputs.size() == 0) {
       ipair.second->states.insert(
-          mdef->getInterface());  // TODO actually calculate this
+        mdef->getInterface());  // TODO actually calculate this
     }
   }
 
@@ -157,9 +157,11 @@ bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   return false;
 }
 
-void Passes::CreateCombView::traverseOut2In(Wireable* curin, Wireable* out,
-                                            map<Wireable*, Output*>& outputInfo,
-                                            map<Wireable*, Input*>& inputInfo) {
+void Passes::CreateCombView::traverseOut2In(
+  Wireable* curin,
+  Wireable* out,
+  map<Wireable*, Output*>& outputInfo,
+  map<Wireable*, Input*>& inputInfo) {
   assert(curin->getType()->isOutput());
   Wireable* parent = curin->getTopParent();
   if (isa<Interface>(parent)) {

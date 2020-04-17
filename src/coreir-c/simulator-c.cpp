@@ -23,7 +23,8 @@ bool CORESimValueGetBit(CORESimValue* cval, int bit) {
   if (val->getType() == SIM_VALUE_BV) {
     SimBitVector* bv = static_cast<SimBitVector*>(val);
     return bv->getBits().get(bit).binary_value();
-  } else if (val->getType() == SIM_VALUE_CLK) {
+  }
+  else if (val->getType() == SIM_VALUE_CLK) {
     ClockValue* cv = static_cast<ClockValue*>(val);
     return cv->value();
   }
@@ -35,7 +36,8 @@ int CORESimValueGetLength(CORESimValue* cval) {
   if (val->getType() == SIM_VALUE_BV) {
     SimBitVector* bv = static_cast<SimBitVector*>(val);
     return bv->getBits().bitLength();
-  } else if (val->getType() == SIM_VALUE_CLK) {
+  }
+  else if (val->getType() == SIM_VALUE_CLK) {
     return 1;
   }
   return 0;
@@ -52,18 +54,22 @@ void COREDeleteSimulatorState(CORESimulatorState* state) {
   delete rcast<SimulatorState*>(state);
 }
 
-CORESimValue* CORESimGetValue(CORESimulatorState* cstate, char** cpath,
-                              int path_len) {
+CORESimValue* CORESimGetValue(
+  CORESimulatorState* cstate,
+  char** cpath,
+  int path_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
 
   return rcast<CORESimValue*>(state->getValue(path));
 }
 
-CORESimValue* CORESimGetValueByOriginalName(CORESimulatorState* cstate,
-                                            char** inst_path, int inst_path_len,
-                                            char** port_selects,
-                                            int port_selects_len) {
+CORESimValue* CORESimGetValueByOriginalName(
+  CORESimulatorState* cstate,
+  char** inst_path,
+  int inst_path_len,
+  char** port_selects,
+  int port_selects_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> instPath = MakeSimPath(inst_path, inst_path_len);
   vector<string> selects = MakeSimPath(port_selects, port_selects_len);
@@ -77,31 +83,43 @@ void CORESimResetCircuit(CORESimulatorState* cstate) {
   state->resetCircuit();
 }
 
-void CORESimSetMainClock(CORESimulatorState* cstate, char** cpath,
-                         int path_len) {
+void CORESimSetMainClock(
+  CORESimulatorState* cstate,
+  char** cpath,
+  int path_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
   state->setMainClock(path);
 }
 
-void CORESimSetClock(CORESimulatorState* cstate, char** cpath, int path_len,
-                     bool lastval, bool curval) {
+void CORESimSetClock(
+  CORESimulatorState* cstate,
+  char** cpath,
+  int path_len,
+  bool lastval,
+  bool curval) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
 
   state->setClock(path, lastval, curval);
 }
 
-int CORESimGetClockCycles(CORESimulatorState* cstate, char** cpath,
-                          int path_len) {
+int CORESimGetClockCycles(
+  CORESimulatorState* cstate,
+  char** cpath,
+  int path_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
   ClockValue* clk = toClock(state->getValue(path));
   return clk->getCycleCount();
 }
 
-void CORESimSetValue(CORESimulatorState* cstate, char** cpath, int path_len,
-                     bool* new_val, int val_len) {
+void CORESimSetValue(
+  CORESimulatorState* cstate,
+  char** cpath,
+  int path_len,
+  bool* new_val,
+  int val_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
   BitVec bv(val_len);
@@ -134,18 +152,24 @@ bool CORESimRewind(CORESimulatorState* cstate, int halfCycles) {
   return state->rewind(halfCycles);
 }
 
-void CORESimDeleteWatchPointByOriginalName(CORESimulatorState* cstate,
-                                           char** inst_path, int inst_path_len,
-                                           char** port_selects,
-                                           int port_selects_len) {
+void CORESimDeleteWatchPointByOriginalName(
+  CORESimulatorState* cstate,
+  char** inst_path,
+  int inst_path_len,
+  char** port_selects,
+  int port_selects_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> instPath = MakeSimPath(inst_path, inst_path_len);
   vector<string> selects = MakeSimPath(port_selects, port_selects_len);
   state->deleteWatchPointByOriginalName(instPath, selects);
 }
 
-void CORESimSetWatchPoint(CORESimulatorState* cstate, char** cpath,
-                          int path_len, bool* watch_val, int watch_len) {
+void CORESimSetWatchPoint(
+  CORESimulatorState* cstate,
+  char** cpath,
+  int path_len,
+  bool* watch_val,
+  int watch_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> path = MakeSimPath(cpath, path_len);
   BitVec bv(watch_len);
@@ -153,11 +177,14 @@ void CORESimSetWatchPoint(CORESimulatorState* cstate, char** cpath,
   state->setWatchPoint(path, bv);
 }
 
-void CORESimSetWatchPointByOriginalName(CORESimulatorState* cstate,
-                                        char** inst_path, int inst_path_len,
-                                        char** port_selects,
-                                        int port_selects_len, bool* watch_val,
-                                        int watch_len) {
+void CORESimSetWatchPointByOriginalName(
+  CORESimulatorState* cstate,
+  char** inst_path,
+  int inst_path_len,
+  char** port_selects,
+  int port_selects_len,
+  bool* watch_val,
+  int watch_len) {
   SimulatorState* state = rcast<SimulatorState*>(cstate);
   vector<string> instPath = MakeSimPath(inst_path, inst_path_len);
   vector<string> selects = MakeSimPath(port_selects, port_selects_len);

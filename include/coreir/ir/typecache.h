@@ -3,7 +3,7 @@
 
 #include "fwd_declare.h"
 
-//TODO need to add a comparison function for RecordParams in order to use map
+// TODO need to add a comparison function for RecordParams in order to use map
 #include <unordered_map>
 
 namespace CoreIR {
@@ -13,57 +13,54 @@ struct RecordParamsHasher {
     size_t hash = 0;
     for (auto it : rp) {
       size_t h = 0;
-      hash_combine(h,it.first);
-      hash_combine(h,it.second);
+      hash_combine(h, it.first);
+      hash_combine(h, it.second);
       hash ^= h;
     }
     return hash;
   }
 };
 
-
-//This stores Types and VTypes
+// This stores Types and VTypes
 class TypeCache {
   Context* c;
   BitInType* bitI;
   BitType* bitO;
   BitInOutType* bitIO;
-  std::map<Type*,std::map<int,ArrayType*>> ArrayCache;
-  std::unordered_map<RecordParams,RecordType*,RecordParamsHasher> RecordCache;
-  
+  std::map<Type*, std::map<int, ArrayType*>> ArrayCache;
+  std::unordered_map<RecordParams, RecordType*, RecordParamsHasher> RecordCache;
+
   AnyType* anyType;
   BoolType* boolType;
   IntType* intType;
-  std::map<int,BitVectorType*> bitVectorCache;
+  std::map<int, BitVectorType*> bitVectorCache;
   StringType* stringType;
   CoreIRType* coreIRType;
   ModuleType* moduleType;
   JsonType* jsonType;
 
-  public :
-    TypeCache(Context* c); 
-    ~TypeCache();
-    
-    //Types
-    BitType* getBit() { return bitO; }
-    BitInType* getBitIn() { return bitI; }
-    BitInOutType* getBitInOut() { return bitIO; }
-    ArrayType* getArray(uint32_t len, Type* t);
-    RecordType* getRecord(RecordParams params);
+ public:
+  TypeCache(Context* c);
+  ~TypeCache();
 
-    //ValueTypes
-    AnyType* getAny() { return anyType;}
-    BoolType* getBool() { return boolType;}
-    IntType* getInt() { return intType;}
-    BitVectorType* getBitVector(int width);
-    StringType* getString() { return stringType;}
-    CoreIRType* getCoreIRType() { return coreIRType;}
-    ModuleType* getModuleType() { return moduleType;}
-    JsonType* getJsonType() { return jsonType;}
+  // Types
+  BitType* getBit() { return bitO; }
+  BitInType* getBitIn() { return bitI; }
+  BitInOutType* getBitInOut() { return bitIO; }
+  ArrayType* getArray(uint32_t len, Type* t);
+  RecordType* getRecord(RecordParams params);
 
+  // ValueTypes
+  AnyType* getAny() { return anyType; }
+  BoolType* getBool() { return boolType; }
+  IntType* getInt() { return intType; }
+  BitVectorType* getBitVector(int width);
+  StringType* getString() { return stringType; }
+  CoreIRType* getCoreIRType() { return coreIRType; }
+  ModuleType* getModuleType() { return moduleType; }
+  JsonType* getJsonType() { return jsonType; }
 };
 
-}//CoreIR namespace
+}  // namespace CoreIR
 
-
-#endif //TYPECACHE_HPP_
+#endif  // TYPECACHE_HPP_

@@ -10,10 +10,13 @@ namespace {
 
 string CLOCK = "clk";
 
-std::vector<string> check_interface_variable(std::vector<string> variables,
-                                             SmtBVVar var, SMTModule* smod) {
-  if (find(variables.begin(), variables.end(), var.getName()) ==
-      variables.end()) {
+std::vector<string> check_interface_variable(
+  std::vector<string> variables,
+  SmtBVVar var,
+  SMTModule* smod) {
+  if (
+    find(variables.begin(), variables.end(), var.getName()) ==
+    variables.end()) {
     variables.push_back(var.getName());
     smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
     smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
@@ -51,8 +54,9 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Module* mref = imap.second->getModuleRef();
     // do not add comment for no ops
     if (no_ops.count(imap.first) == 0) {
-      smod->addStmt(";; START module declaration for instance '" + imap.first +
-                    "' (Module " + mref->getName() + ")");
+      smod->addStmt(
+        ";; START module declaration for instance '" + imap.first +
+        "' (Module " + mref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmtBVVar var = SmtBVVar(iname, rmap.first, rmap.second);
@@ -81,14 +85,16 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     if (isNumber(left->getSelectPath().back())) {
       auto lsel = dyn_cast<Select>(left)->getParent();
       vleft = SmtBVVar(lsel);
-    } else {
+    }
+    else {
       vleft = SmtBVVar(left);
     }
 
     if (isNumber(right->getSelectPath().back())) {
       auto rsel = dyn_cast<Select>(right)->getParent();
       vright = SmtBVVar(rsel);
-    } else {
+    }
+    else {
       vright = SmtBVVar(right);
     }
 

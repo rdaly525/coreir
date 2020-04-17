@@ -29,8 +29,9 @@ bool isBitArrayOfLength(Type& t, const uint len) {
   ArrayType& tArr = static_cast<ArrayType&>(t);
 
   Type::TypeKind elemKind = (tArr.getElemType())->getKind();
-  if ((elemKind == Type::TK_Bit || elemKind == Type::TK_BitIn) &&
-      (tArr.getLen() == len)) {
+  if (
+    (elemKind == Type::TK_Bit || elemKind == Type::TK_BitIn) &&
+    (tArr.getLen() == len)) {
     return true;
   }
 
@@ -43,8 +44,9 @@ bool isBitArrayOfLengthLEQ(Type& t, const uint len) {
   ArrayType& tArr = static_cast<ArrayType&>(t);
 
   Type::TypeKind elemKind = (tArr.getElemType())->getKind();
-  if ((elemKind == Type::TK_Bit || elemKind == Type::TK_BitIn) &&
-      (tArr.getLen() <= len)) {
+  if (
+    (elemKind == Type::TK_Bit || elemKind == Type::TK_BitIn) &&
+    (tArr.getLen() <= len)) {
     return true;
   }
 
@@ -167,8 +169,9 @@ bool connectionIsOrdered(const Connection& connection) {
   Type* fst_tp = fst->getType();
   Type* snd_tp = snd->getType();
 
-  if ((fst_tp->isInput() && snd_tp->isOutput()) ||
-      (fst_tp->isOutput() && snd_tp->isInput())) {
+  if (
+    (fst_tp->isInput() && snd_tp->isOutput()) ||
+    (fst_tp->isOutput() && snd_tp->isInput())) {
     return true;
   }
 
@@ -181,8 +184,8 @@ std::string getOpName(Instance& inst) {
 }
 
 CoreIR::Wireable* findSelect(
-    const std::string& selName,
-    const std::unordered_map<std::string, CoreIR::Wireable*> selects) {
+  const std::string& selName,
+  const std::unordered_map<std::string, CoreIR::Wireable*> selects) {
   for (auto& sel : selects) {
     if (sel.first == selName) { return sel.second; }
   }
@@ -195,9 +198,8 @@ bool fromSelfInterface(Select* w) {
   if (!fromSelf(w)) { return false; }
 
   Wireable* parent = w->getParent();
-  if (isInterface(parent)) {
-    return true;
-  } else if (isInstance(parent)) {
+  if (isInterface(parent)) { return true; }
+  else if (isInstance(parent)) {
     return false;
   }
 
@@ -257,8 +259,9 @@ std::vector<char> hexToBytes(const std::string& hex) {
   return bytes;
 }
 
-std::vector<std::string> splitStr(const std::string& str,
-                                  const std::string& delimiter) {
+std::vector<std::string> splitStr(
+  const std::string& str,
+  const std::string& delimiter) {
   std::vector<std::string> strings;
 
   std::string::size_type pos = 0;
@@ -305,8 +308,9 @@ BitStreamConfig loadConfig(const std::string& configFileName) {
 
   // configFile("./bitstream/shell_bitstream.bs")
   std::ifstream configFile(configFileName);
-  std::string str((std::istreambuf_iterator<char>(configFile)),
-                  std::istreambuf_iterator<char>());
+  std::string str(
+    (std::istreambuf_iterator<char>(configFile)),
+    std::istreambuf_iterator<char>());
 
   cout << "Config file text" << endl;
   cout << str << endl;
@@ -355,8 +359,10 @@ BitStreamConfig loadConfig(const std::string& configFileName) {
   return {configAddrs, configDatas};
 }
 
-Module* loadModule(CoreIR::Context* const c, const std::string& fileName,
-                   const std::string& topModName) {
+Module* loadModule(
+  CoreIR::Context* const c,
+  const std::string& fileName,
+  const std::string& topModName) {
   Module* topMod = nullptr;
 
   if (!loadFromFile(c, fileName, &topMod)) {

@@ -21,25 +21,31 @@ string type2magma(Context* c, Type* t) {
   if (auto at = dyn_cast<ArrayType>(t)) {
     Type* et = at->getElemType();
     return "Array(" + to_string(at->getLen()) + "," + type2magma(c, et) + ")";
-  } else if (auto nt = dyn_cast<NamedType>(t)) {
+  }
+  else if (auto nt = dyn_cast<NamedType>(t)) {
     if (nt == c->Named("coreir.clkIn"))
       return "In(Clock)";
     else if (nt == c->Named("coreir.clk"))
       return "Out(Clock)";
     else
       ASSERT(0, "NYI: " + nt->toString());
-  } else if (isa<BitInType>(t)) {
+  }
+  else if (isa<BitInType>(t)) {
     return "In(Bit)";
-  } else if (isa<BitType>(t)) {
+  }
+  else if (isa<BitType>(t)) {
     return "Out(Bit)";
-  } else {
+  }
+  else {
     ASSERT(0, "DEBUGME: " + t->toString());
   }
 }
 
 namespace {
-std::string ReplaceString(std::string subject, const std::string& search,
-                          const std::string& replace) {
+std::string ReplaceString(
+  std::string subject,
+  const std::string& search,
+  const std::string& replace) {
   size_t pos = 0;
   while ((pos = subject.find(search, pos)) != std::string::npos) {
     subject.replace(pos, search.length(), replace);
@@ -85,7 +91,8 @@ string toUpper(string s) {
 std::string CoreIR::Passes::MModule::toName(Module* m) {
   if (m->getNamespace()->getName() == "coreir") {
     return "mantle.coreir.DefineCoreir" + toUpper(m->getName());
-  } else if (m->getNamespace()->getName() == "corebit") {
+  }
+  else if (m->getNamespace()->getName() == "corebit") {
     return "mantle.coreir.DefineCorebit" + toUpper(m->getName());
   }
   return m->getNamespace()->getName() + "_" + m->getLongName();
@@ -100,11 +107,14 @@ string BV2Str(Value* v) {
 string V2MStr(Value* v) {
   if (auto vbv = dyn_cast<ConstBitVector>(v)) {
     return to_string(vbv->get().to_type<uint>());
-  } else if (auto vint = dyn_cast<ConstInt>(v)) {
+  }
+  else if (auto vint = dyn_cast<ConstInt>(v)) {
     return to_string(vint->get());
-  } else if (auto vbool = dyn_cast<ConstBool>(v)) {
+  }
+  else if (auto vbool = dyn_cast<ConstBool>(v)) {
     return vbool->get() ? "1" : "0";
-  } else if (auto varg = dyn_cast<Arg>(v)) {
+  }
+  else if (auto varg = dyn_cast<Arg>(v)) {
     return varg->getField();
   }
   ASSERT(0, "DEBUGME");
@@ -124,11 +134,14 @@ string CoreIR::Passes::MModule::toInstanceString(string iname, Values modargs) {
   if (m->getNamespace()->getName() == "coreir") {
     mergeValues(modargs, m->getGenArgs());
     return this->name + Values2MStr(modargs) + "(name=" + "\"" + iname + "\")";
-  } else if (m->getNamespace()->getName() == "corebit") {
+  }
+  else if (m->getNamespace()->getName() == "corebit") {
     return this->name + Values2MStr(modargs) + "(name=" + "\"" + iname + "\")";
-  } else if (modargs.size()) {
+  }
+  else if (modargs.size()) {
     return "Define_" + this->name + Values2MStr(modargs) + "()";
-  } else {
+  }
+  else {
     return this->name + "()";
   }
 }
@@ -157,8 +170,9 @@ string CoreIR::Passes::MModule::toString() {
   }
   lines.push_back(ts + "class " + this->name + "(Circuit):");
   lines.push_back(ts + "  name = " + magname);
-  lines.push_back(ts + "  IO = [" +
-                  join(this->io.begin(), this->io.end(), string(", ")) + "]");
+  lines.push_back(
+    ts + "  IO = [" + join(this->io.begin(), this->io.end(), string(", ")) +
+    "]");
   lines.push_back(ts + "  @classmethod");
   lines.push_back(ts + "  def definition(io):");
   for (auto s : this->stmts) { lines.push_back(ts + "    " + s); }
@@ -178,8 +192,9 @@ bool Passes::Magma::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   fm = new MModule(m);
   this->modMap[m] = fm;
-  if (m->getNamespace()->getName() != "corebit" &&
-      m->getNamespace()->getName() != "coreir") {
+  if (
+    m->getNamespace()->getName() != "corebit" &&
+    m->getNamespace()->getName() != "coreir") {
     this->mmods.push_back(fm);
   }
 
@@ -195,8 +210,8 @@ bool Passes::Magma::runOnInstanceGraphNode(InstanceGraphNode& node) {
     MModule* fmref = modMap[mref];
 
     iname = ReplaceString(iname, string("$"), string("__ds__"));
-    fm->addStmt(iname + " = " +
-                fmref->toInstanceString(iname, inst->getModArgs()));
+    fm->addStmt(
+      iname + " = " + fmref->toInstanceString(iname, inst->getModArgs()));
   }
 
   // Then add all connections

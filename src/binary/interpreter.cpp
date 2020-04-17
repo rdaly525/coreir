@@ -29,22 +29,28 @@ int main(int argc, char* argv[]) {
   int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
   options.add_options()("h,help", "help")("v,verbose", "Set verbose")(
-      "i,input", "input file: <file>.json", cxxopts::value<std::string>())(
-      "o,output", "output file: <file>.<json|fir|v|dot>",
-      cxxopts::value<std::string>())(
-      "p,passes", "Run passes in order: '<pass1>,<pass2>,<pass3>,...'",
-      cxxopts::value<std::string>())(
-      "e,load_passes",
-      "external passes: '<path1.so>,<path2.so>,<path3.so>,...'",
-      cxxopts::value<std::string>())(
-      "l,load_libs",
-      "external libs: "
-      "'<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",
-      cxxopts::value<std::string>())(
-      "n,namespaces",
-      "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
-      cxxopts::value<std::string>()->default_value("global"))(
-      "t,top", "top: <namespace>.<modulename>", cxxopts::value<std::string>());
+    "i,input",
+    "input file: <file>.json",
+    cxxopts::value<std::string>())(
+    "o,output",
+    "output file: <file>.<json|fir|v|dot>",
+    cxxopts::value<std::string>())(
+    "p,passes",
+    "Run passes in order: '<pass1>,<pass2>,<pass3>,...'",
+    cxxopts::value<std::string>())(
+    "e,load_passes",
+    "external passes: '<path1.so>,<path2.so>,<path3.so>,...'",
+    cxxopts::value<std::string>())(
+    "l,load_libs",
+    "external libs: "
+    "'<path/libname0.so>,<path/libname1.so>,<path/libname2.so>,...'",
+    cxxopts::value<std::string>())(
+    "n,namespaces",
+    "namespaces to output: '<namespace1>,<namespace2>,<namespace3>,...'",
+    cxxopts::value<std::string>()->default_value("global"))(
+    "t,top",
+    "top: <namespace>.<modulename>",
+    cxxopts::value<std::string>());
 
   // Do the parsing of the arguments
   auto opts = options.parse(argc, argv);
@@ -57,15 +63,17 @@ int main(int argc, char* argv[]) {
   CoreIRLoadLibrary_commonlib(c);
 
   if (opts.count("l")) {
-    vector<string> libs = splitString<vector<string>>(opts["l"].as<string>(),
-                                                      ',');
+    vector<string> libs = splitString<vector<string>>(
+      opts["l"].as<string>(),
+      ',');
     for (auto lib : libs) { c->getLibraryManager()->loadLib(lib); }
   }
 
   PassLibrary loadedPasses(c);
   if (opts.count("e")) {
-    vector<string> passes = splitString<vector<string>>(opts["e"].as<string>(),
-                                                        ',');
+    vector<string> passes = splitString<vector<string>>(
+      opts["e"].as<string>(),
+      ',');
     for (auto pass : passes) { loadedPasses.loadPass(pass); }
   }
 
@@ -95,9 +103,9 @@ int main(int argc, char* argv[]) {
   if (opts.count("o")) {
     string outfileName = opts["o"].as<string>();
     outExt = getExt(outfileName);
-    ASSERT(outExt == "json" || outExt == "txt" || outExt == "fir" ||
-               outExt == "v",
-           "Cannot support out extention: " + outExt);
+    ASSERT(
+      outExt == "json" || outExt == "txt" || outExt == "fir" || outExt == "v",
+      "Cannot support out extention: " + outExt);
     fout.open(outfileName);
     ASSERT(fout.is_open(), "Cannot open file: " + outfileName);
     // sout = &fout;
@@ -114,7 +122,7 @@ int main(int argc, char* argv[]) {
   }
 
   c->runPasses(
-      {"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
+    {"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
 
   SimulatorState state(top);
 
@@ -133,7 +141,8 @@ int main(int argc, char* argv[]) {
     if (cmd == "quit") {
       std::cout << "Exiting..." << std::endl;
       break;
-    } else if (cmd == "set") {
+    }
+    else if (cmd == "set") {
       if (args.size() == 3) {
 
         string valName = args[1];
@@ -142,17 +151,19 @@ int main(int argc, char* argv[]) {
         int len = bitString.size();
 
         state.setValue(valName, BitVector(len, bitString));
-      } else if (args.size() == 4) {
+      }
+      else if (args.size() == 4) {
         string clkName = args[1];
         string oldVal = args[2];
         string newVal = args[3];
 
         state.setClock(clkName, stoi(oldVal), stoi(newVal));
-      } else {
+      }
+      else {
         assert(false);
       }
-
-    } else if (cmd == "print") {
+    }
+    else if (cmd == "print") {
       if (args.size() != 2) {
         cout << cmd << " requires " << 2 << " argument(s)" << endl;
         continue;
@@ -201,7 +212,8 @@ int main(int argc, char* argv[]) {
       if (val->getType() == SIM_VALUE_BV) {
 
         cout << static_cast<SimBitVector*>(val)->getBits() << endl;
-      } else {
+      }
+      else {
         assert(val->getType() == SIM_VALUE_CLK);
 
         ClockValue* clk = toClock(val);
@@ -209,53 +221,59 @@ int main(int argc, char* argv[]) {
         cout << "Last value    = " << (int)(clk->lastValue()) << endl;
         cout << "Current value = " << (int)(clk->value()) << endl;
       }
-
-    } else if (cmd == "exec") {
+    }
+    else if (cmd == "exec") {
       assert(args.size() == 1);
 
       state.runHalfCycle();
       state.runHalfCycle();
-
-    } else if (cmd == "cycle-count") {
+    }
+    else if (cmd == "cycle-count") {
       if (args.size() != 1) {
         cout << "Error: Cycle count takes no arguments!" << endl;
-
-      } else {
+      }
+      else {
 
         cout << toClock(state.getValue(state.getMainClock()))->getCycleCount()
              << endl;
       }
-
-    } else if (cmd == "watch") {
+    }
+    else if (cmd == "watch") {
       if (args.size() != 3) {
         cout << "Error: watchpoint setting requires a name and value" << endl;
-      } else {
+      }
+      else {
         string name = args[1];
         string value = args[2];
 
         BitVector vec(value.size(), value);
         state.setWatchPoint(name, vec);
       }
-    } else if (cmd == "run") {
-      if (args.size() != 1) {
-        cout << "run takes no arguments!" << endl;
-      } else {
+    }
+    else if (cmd == "run") {
+      if (args.size() != 1) { cout << "run takes no arguments!" << endl; }
+      else {
         state.run();
       }
-    } else if (cmd == "rewind") {
+    }
+    else if (cmd == "rewind") {
       if (args.size() != 2) {
         cout << "Error: rewind requires the number of cycles to rewind" << endl;
-      } else {
+      }
+      else {
         int cyclesToRewind = stoi(args[1]);
         state.rewind(2 * cyclesToRewind);
       }
-    } else if (cmd == "delete-watch") {
+    }
+    else if (cmd == "delete-watch") {
       if (args.size() != 2) {
         cout << "Error: delete-watch needs 1 argument" << endl;
-      } else {
+      }
+      else {
         state.deleteWatchPoint(args[1]);
       }
-    } else {
+    }
+    else {
       cout << "Unrecognized command: " << cmd << endl;
     }
   }

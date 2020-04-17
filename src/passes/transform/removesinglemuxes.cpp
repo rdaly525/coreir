@@ -40,19 +40,22 @@ bool RemoveSingleMuxes::runOnModule(Module* m) {
 
         // should only have two connections
         for (auto conn : getSourceConnections(inst)) {
-          if (((Select*)(conn.first))->getSelStr() != "sel" &&
-              ((Select*)(conn.second))->getSelStr() != "sel") {
+          if (
+            ((Select*)(conn.first))->getSelStr() != "sel" &&
+            ((Select*)(conn.second))->getSelStr() != "sel") {
             // upstream connection
             auto up = conn.first;
             if (conn.first->getTopParent() == inst) { up = conn.second; }
             // connect upstream and downstream
             def->connect(up, down);
-          } else {
+          }
+          else {
             // get instance used for select signal
             if (((Select*)(conn.first))->getSelStr() == "sel") {
               selects.push_back((Instance*)(conn.second->getTopParent()));
               del_sel.push_back(0);
-            } else if (((Select*)(conn.second))->getSelStr() == "sel") {
+            }
+            else if (((Select*)(conn.second))->getSelStr() == "sel") {
               selects.push_back((Instance*)(conn.first->getTopParent()));
               del_sel.push_back(0);
             }

@@ -5,12 +5,16 @@ using namespace std;
 using namespace CoreIR;
 
 namespace {
-void incrementMap(std::map<string, std::pair<int, int>>& map, string name,
-                  int val0, int val1) {
+void incrementMap(
+  std::map<string, std::pair<int, int>>& map,
+  string name,
+  int val0,
+  int val1) {
   if (map.count(name)) {
     map[name].first += val0;
     map[name].second += val1;
-  } else {
+  }
+  else {
     map[name].first = val0;
     map[name].second = val1;
   }
@@ -39,12 +43,17 @@ bool Passes::InstanceCount::runOnInstanceGraphNode(InstanceGraphNode& node) {
     string longname = inst->getModuleRef()->getLongName();
     if (nsname == "coreir" || nsname == "corebit") {
       incrementMap(primmap, longname, 1, 0);
-    } else if (this->cntMap.count(imod)) {
+    }
+    else if (this->cntMap.count(imod)) {
       for (auto cntpair : this->cntMap[imod]) {
-        incrementMap(primmap, cntpair.first, 0,
-                     cntpair.second.first + cntpair.second.second);
+        incrementMap(
+          primmap,
+          cntpair.first,
+          0,
+          cntpair.second.first + cntpair.second.second);
       }
-    } else {
+    }
+    else {
       ASSERT(this->missingDefs.count(imod) > 0, imod->getLongName());
     }
   }
@@ -58,9 +67,8 @@ bool Passes::InstanceCount::finalize() {
   cout << "=======================================" << endl;
   for (auto m : this->modOrder) {
     cout << m->getLongName();
-    if (this->missingDefs.count(m)) {
-      cout << "| Missing def " << endl;
-    } else {
+    if (this->missingDefs.count(m)) { cout << "| Missing def " << endl; }
+    else {
       ASSERT(this->cntMap.count(m), "Bug in Pass" + m->getLongName());
       cout << " | instances in current | instances in children | " << endl;
       for (auto cntpair : cntMap[m]) {

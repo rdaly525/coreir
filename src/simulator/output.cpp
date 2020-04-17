@@ -35,9 +35,13 @@ int compileCode(const std::string& code, const std::string& outFile) {
   return s;
 }
 
-void writeFiles(const std::deque<vdisc>& topoOrder, NGraph& g, Module* mod,
-                const std::string& codePath, const std::string& codeFile,
-                const std::string& hFile) {
+void writeFiles(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  Module* mod,
+  const std::string& codePath,
+  const std::string& codeFile,
+  const std::string& hFile) {
 
   cout << "Writing out code" << endl;
 
@@ -66,8 +70,12 @@ void writeFiles(const std::deque<vdisc>& topoOrder, NGraph& g, Module* mod,
   outH.close();
 }
 
-void writeFiles(const std::deque<vdisc>& topoOrder, NGraph& g, Module* mod,
-                const std::string& codeFile, const std::string& hFile) {
+void writeFiles(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  Module* mod,
+  const std::string& codeFile,
+  const std::string& hFile) {
 
   ModuleCode mc = buildCode(topoOrder, g, mod, hFile);
   string codeStr = printCode(mc);
@@ -82,8 +90,12 @@ void writeFiles(const std::deque<vdisc>& topoOrder, NGraph& g, Module* mod,
   outH.close();
 }
 
-int compileCode(const std::deque<vdisc>& topoOrder, NGraph& g, Module* mod,
-                const std::string& outDir, const std::string& baseFileName) {
+int compileCode(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  Module* mod,
+  const std::string& outDir,
+  const std::string& baseFileName) {
   writeBitVectorLib();
 
   string hFile = baseFileName + ".h";
@@ -102,10 +114,13 @@ int compileCode(const std::deque<vdisc>& topoOrder, NGraph& g, Module* mod,
   return s;
 }
 
-int compileCodeAndRun(const std::deque<vdisc>& topoOrder, NGraph& g,
-                      Module* mod, const std::string& outDir,
-                      const std::string& baseFileName,
-                      const std::string& harnessFile) {
+int compileCodeAndRun(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  Module* mod,
+  const std::string& outDir,
+  const std::string& baseFileName,
+  const std::string& harnessFile) {
 
   writeBitVectorLib();
 
@@ -131,8 +146,10 @@ int compileCodeAndRun(const std::deque<vdisc>& topoOrder, NGraph& g,
   return s || r;
 }
 
-int compileCodeAndRun(const std::string& code, const std::string& outFile,
-                      const std::string& harnessFile) {
+int compileCodeAndRun(
+  const std::string& code,
+  const std::string& outFile,
+  const std::string& harnessFile) {
 
   writeBitVectorLib();
 

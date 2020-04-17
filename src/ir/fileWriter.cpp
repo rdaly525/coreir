@@ -18,8 +18,8 @@ using json = nlohmann::json;
 
 bool endsWith(const string& str, const string& suffix) {
   return (
-      (str.size() >= suffix.size()) &&
-      (str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0));
+    (str.size() >= suffix.size()) &&
+    (str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0));
 }
 /*
 string instStr(Wireable* wire) {
@@ -35,9 +35,8 @@ return parent->toString() == "self" ? child->toString() : parent->toString();
 }
 */
 string instStr(SelectPath wire) {
-  if (wire[0] == "self") {
-    return wire[0] + "." + wire[1];
-  } else {
+  if (wire[0] == "self") { return wire[0] + "." + wire[1]; }
+  else {
     return wire[0];
   }
 }
@@ -52,8 +51,8 @@ bool isSource(Wireable* wire) {
   }
 
   return parent->toString() == "self"
-             ? child->getSelStr() != "out"
-             : (child ? child->getSelStr() == "out" : false);
+           ? child->getSelStr() != "out"
+           : (child ? child->getSelStr() == "out" : false);
 }
 
 // false is bad
@@ -61,8 +60,9 @@ bool ModuleToDot(Module* m, std::ostream& stream) {
   Context* c = m->getContext();
   if (!m->hasDef()) {
     Error e;
-    e.message("Module " + m->getName() +
-              " is not defined, so cannot be saved to dot file");
+    e.message(
+      "Module " + m->getName() +
+      " is not defined, so cannot be saved to dot file");
     c->error(e);
     return false;
   }
@@ -126,7 +126,7 @@ bool saveToFile(Namespace* ns, string filename, Module* top) {
 
   c->runPasses({"coreirjson"}, {ns->getName()});
   auto jpass = static_cast<Passes::CoreIRJson*>(
-      c->getPassManager()->getAnalysisPass("coreirjson"));
+    c->getPassManager()->getAnalysisPass("coreirjson"));
   string topRef = "";
   if (top) { topRef = top->getNamespace()->getName() + "." + top->getName(); }
   jpass->writeToStream(file, topRef);
@@ -151,11 +151,12 @@ bool saveToFile(Context* c, string filename, bool nocoreir) {
       }
     }
     c->runPasses({"coreirjson"}, nss);
-  } else {
+  }
+  else {
     c->runPassesOnAll({"coreirjson"});
   }
   auto jpass = static_cast<Passes::CoreIRJson*>(
-      c->getPassManager()->getAnalysisPass("coreirjson"));
+    c->getPassManager()->getAnalysisPass("coreirjson"));
   string topRef = "";
   if (c->hasTop()) { topRef = c->getTop()->getRefName(); }
   jpass->writeToStream(file, topRef);

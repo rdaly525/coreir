@@ -15,9 +15,8 @@ bool Passes::UnresolvedSymbols::runOnContext(Context* c) {
     }
   }
   for (auto m : toErase) {
-    if (m->isGenerated()) {
-      m->getGenerator()->eraseModule(m->getGenArgs());
-    } else {
+    if (m->isGenerated()) { m->getGenerator()->eraseModule(m->getGenArgs()); }
+    else {
       m->getNamespace()->eraseModule(m->getName());
     }
   }

@@ -68,14 +68,19 @@ string SMTAssign(SmtBVVar vleft, SmtBVVar vright) {
   SmtBVVar vleft_n = SmtBVVarGetNext(vleft);
   SmtBVVar vright_n = SmtBVVarGetNext(vright);
   string curr = assert_op(
-      binary_op("=", vleft_c.getExtractName(), vright_c.getExtractName()));
+    binary_op("=", vleft_c.getExtractName(), vright_c.getExtractName()));
   string next = assert_op(
-      binary_op("=", vleft_n.getExtractName(), vright_n.getExtractName()));
+    binary_op("=", vleft_n.getExtractName(), vright_n.getExtractName()));
   return curr + NL + next;
 }
 
-string SMTBop(string context, string opname, string op, SmtBVVar in1_p,
-              SmtBVVar in2_p, SmtBVVar out_p) {
+string SMTBop(
+  string context,
+  string opname,
+  string op,
+  SmtBVVar in1_p,
+  SmtBVVar in2_p,
+  SmtBVVar out_p) {
   // INIT: TRUE
   // TRANS: ((in1 <op> in2) = out) & ((in1' & in2') = out')
   string in1 = in1_p.getPortName();
@@ -83,12 +88,16 @@ string SMTBop(string context, string opname, string op, SmtBVVar in1_p,
   string out = out_p.getPortName();
   string comment = ";; SMT" + opname + " (in1, in2, out) = (" + in1 + ", " +
                    in2 + ", " + out + ")";
-  string curr = binary_op_eqass(op, SMTgetCurr(context, in1),
-                                SMTgetCurr(context, in2),
-                                SMTgetCurr(context, out));
-  string next = binary_op_eqass(op, SMTgetNext(context, in1),
-                                SMTgetNext(context, in2),
-                                SMTgetNext(context, out));
+  string curr = binary_op_eqass(
+    op,
+    SMTgetCurr(context, in1),
+    SMTgetCurr(context, in2),
+    SMTgetCurr(context, out));
+  string next = binary_op_eqass(
+    op,
+    SMTgetNext(context, in1),
+    SMTgetNext(context, in2),
+    SMTgetNext(context, out));
   return comment + NL + curr + NL + next;
 }
 
@@ -151,27 +160,42 @@ string SMTSub(string context, SmtBVVar in1_p, SmtBVVar in2_p, SmtBVVar out_p) {
   return SMTBop(context, "Sub", "bvsub", in1_p, in2_p, out_p);
 }
 
-string SMTConcat(string context, SmtBVVar in1_p, SmtBVVar in2_p,
-                 SmtBVVar out_p) {
+string SMTConcat(
+  string context,
+  SmtBVVar in1_p,
+  SmtBVVar in2_p,
+  SmtBVVar out_p) {
   return SMTBop(context, "Concat", "concat", in1_p, in2_p, out_p);
 }
 
-string SMTUop(string context, string opname, string op, SmtBVVar in_p,
-              SmtBVVar out_p) {
+string SMTUop(
+  string context,
+  string opname,
+  string op,
+  SmtBVVar in_p,
+  SmtBVVar out_p) {
   // INIT: TRUE
   // TRANS: (in <op> out) & (in' <op> out')
   string in = in_p.getPortName();
   string out = out_p.getPortName();
   string comment = ";; SMT" + opname + " (in, out) = (" + in + ", " + out + ")";
-  string curr = unary_op_eqass(op, SMTgetCurr(context, in),
-                               SMTgetCurr(context, out));
-  string next = unary_op_eqass(op, SMTgetNext(context, in),
-                               SMTgetNext(context, out));
+  string curr = unary_op_eqass(
+    op,
+    SMTgetCurr(context, in),
+    SMTgetCurr(context, out));
+  string next = unary_op_eqass(
+    op,
+    SMTgetNext(context, in),
+    SMTgetNext(context, out));
   return comment + NL + curr + NL + next;
 }
 
-string SMTSlice(string context, SmtBVVar in_p, SmtBVVar out_p, int low_p,
-                int high_p) {
+string SMTSlice(
+  string context,
+  SmtBVVar in_p,
+  SmtBVVar out_p,
+  int low_p,
+  int high_p) {
   string low = to_string(low_p);
   string high = to_string(high_p);
   string op = "(_ extract " + high + " " + low + ")";
@@ -186,14 +210,17 @@ string SMTConst(string context, SmtBVVar out_p, string val) {
   string out = out_p.getPortName();
   string vals;
 
-  if (val == "False") {
+  if (val == "False") { vals = getSMTbits(1, 1); }
+  else if (val == "True") {
     vals = getSMTbits(1, 1);
-  } else if (val == "True") {
-    vals = getSMTbits(1, 1);
-  } else {
+  }
+  else {
     try {
       vals = getSMTbits(stoi(out_p.dimstr()), stoi(val));
-    } catch (std::invalid_argument& e) { std::cerr << e.what() << std::endl; }
+    }
+    catch (std::invalid_argument& e) {
+      std::cerr << e.what() << std::endl;
+    }
   }
 
   string comment = ";; SMTConst (out, val) = (" + out + ", " + vals + ")";
@@ -227,9 +254,15 @@ string SMTReg(string context, SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p) {
 // TODO: Translate Mantle Reg
 // Need parameters for CLR, CE and RESET
 // string SMTMantleReg
-string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p,
-                    SmtBVVar CLK_p, SmtBVVar CLR_p, SmtBVVar CE_p,
-                    SmtBVVar RESET_p) {
+string SMTMantleReg(
+  string context,
+  Values args,
+  SmtBVVar I_p,
+  SmtBVVar O_p,
+  SmtBVVar CLK_p,
+  SmtBVVar CLR_p,
+  SmtBVVar CE_p,
+  SmtBVVar RESET_p) {
   // INIT: out = modargs:init:val
   int width = stoi(args["width"]->toString());
   string I = I_p.getPortName();
@@ -262,7 +295,8 @@ string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p,
                     clkToggle + ")) (= " + SMTgetNext(context, O) + " " +
                     SMTgetCurr(context, O) + "))";
     trans = assert_op("(and " + trans1 + " " + trans2 + " " + trans3 + ")");
-  } else if (has_ce) {
+  }
+  else if (has_ce) {
     string ce = "(= " + SMTgetCurr(context, CE_p.getPortName()) + " #b1)";
     string trans1 = "(=> (and " + ce + " " + clkToggle +
                     ") (= " + SMTgetNext(context, O) + " " +
@@ -273,7 +307,8 @@ string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p,
                     SMTgetNext(context, O) + " " + SMTgetCurr(context, O) +
                     "))";
     trans = assert_op("(and " + trans1 + " " + trans2 + ")");
-  } else if (has_rst) {
+  }
+  else if (has_rst) {
     string rst = "(= " + SMTgetCurr(context, RESET_p.getPortName()) + " #b1)";
     string trans1 = "(=> (and " + rst + " " + clkToggle +
                     ") (= " + SMTgetNext(context, O) + " " + initval + "))";
@@ -286,7 +321,8 @@ string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p,
                     SMTgetNext(context, O) + " " + SMTgetCurr(context, O) +
                     "))";
     trans = assert_op("(and " + trans1 + " " + trans2 + " " + trans3 + ")");
-  } else {
+  }
+  else {
     string trans1 = "(=> " + clkToggle + " " + "(= " + SMTgetNext(context, O) +
                     " " + SMTgetCurr(context, I) + "))";
     string trans2 = "(=> (not " + clkToggle + ") " +
@@ -299,8 +335,12 @@ string SMTMantleReg(string context, Values args, SmtBVVar I_p, SmtBVVar O_p,
   return comment + NL + init + NL + trans;
 }
 
-string SMTRegPE(string context, SmtBVVar in_p, SmtBVVar clk_p, SmtBVVar out_p,
-                SmtBVVar en_p) {
+string SMTRegPE(
+  string context,
+  SmtBVVar in_p,
+  SmtBVVar clk_p,
+  SmtBVVar out_p,
+  SmtBVVar en_p) {
   // INIT: out = 0
   // TRANS: ((en & !clk & clk') -> (out' = in)) & (!(en & !clk & clk') -> (out'
   // = out))
@@ -332,13 +372,18 @@ string SMTClock(string context, SmtBVVar clk_p) {
   string clk = clk_p.getPortName();
   string comment = ";; SMTClock (clk) = (" + clk + ")";
   string init = assert_op("(= #b0 " + SMTgetInit(context, clk) + ")");
-  string trans = assert_op("(= " + SMTgetCurr(context, clk) + " (bvnot " +
-                           SMTgetNext(context, clk) + "))");
+  string trans = assert_op(
+    "(= " + SMTgetCurr(context, clk) + " (bvnot " + SMTgetNext(context, clk) +
+    "))");
   return comment + NL + init + NL + trans;
 }
 
-string SMTMux(string context, SmtBVVar in0_p, SmtBVVar in1_p, SmtBVVar sel_p,
-              SmtBVVar out_p) {
+string SMTMux(
+  string context,
+  SmtBVVar in0_p,
+  SmtBVVar in1_p,
+  SmtBVVar sel_p,
+  SmtBVVar out_p) {
   string in0 = in0_p.getPortName();
   string in1 = in1_p.getPortName();
   string sel = sel_p.getPortName();

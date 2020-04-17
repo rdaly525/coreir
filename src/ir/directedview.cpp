@@ -20,9 +20,11 @@ DirectedConnection::DirectedConnection(Connection& c) : c(c) {
     ASSERT(tb->isOutput(), "tb must be an output");
     src = wb;
     snk = wa;
-  } else {
-    ASSERT(ta->isOutput() && tb->isInput(),
-           "ta needs to be output, tb needs to be input");
+  }
+  else {
+    ASSERT(
+      ta->isOutput() && tb->isInput(),
+      "ta needs to be output, tb needs to be input");
     src = wa;
     snk = wb;
   }
@@ -55,7 +57,7 @@ DirectedModule::DirectedModule(Module* m) : m(m) {
   for (auto inst : m->getDef()->getInstances()) {
     string selstr = inst.first;
     insts.push_back(
-        new DirectedInstance(inst.second, ins[selstr], outs[selstr]));
+      new DirectedInstance(inst.second, ins[selstr], outs[selstr]));
   }
   inputs = outs["self"];
   outputs = ins["self"];
@@ -80,8 +82,12 @@ DirectedConnections inputs;
 // Output edges from this module
 DirectedConnections outputs;
 
-DirectedInstance::DirectedInstance(Instance* i, DirectedConnections inputs,
-                                   DirectedConnections outputs)
-    : i(i), inputs(inputs), outputs(outputs) {}
+DirectedInstance::DirectedInstance(
+  Instance* i,
+  DirectedConnections inputs,
+  DirectedConnections outputs)
+  : i(i),
+    inputs(inputs),
+    outputs(outputs) {}
 
 Context* DirectedInstance::getContext() { return i->getContext(); }

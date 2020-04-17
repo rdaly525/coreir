@@ -4,20 +4,23 @@
 namespace vAST = verilogAST;
 namespace CoreIR {
 class VerilogPrimitive {
-    std::function<std::unique_ptr<vAST::Expression>()> primitiveExpressionLambda = nullptr;
-    public:
+  std::function<std::unique_ptr<vAST::Expression>()>
+    primitiveExpressionLambda = nullptr;
 
-    void setPrimitiveExpressionLambda(std::function<std::unique_ptr<vAST::Expression>()> lambda) {
-        this->primitiveExpressionLambda = lambda;
-    };
+ public:
+  void setPrimitiveExpressionLambda(
+    std::function<std::unique_ptr<vAST::Expression>()> lambda) {
+    this->primitiveExpressionLambda = lambda;
+  };
 
-    bool hasPrimitiveExpressionLambda() {
-        return this->primitiveExpressionLambda != nullptr;
-    }
+  bool hasPrimitiveExpressionLambda() {
+    return this->primitiveExpressionLambda != nullptr;
+  }
 
-    std::function<std::unique_ptr<vAST::Expression>()> getPrimitiveExpressionLambda() {
-        return this->primitiveExpressionLambda;
-    }
+  std::function<std::unique_ptr<vAST::Expression>()>
+  getPrimitiveExpressionLambda() {
+    return this->primitiveExpressionLambda;
+  }
 };
-}
-#endif 
+}  // namespace CoreIR
+#endif

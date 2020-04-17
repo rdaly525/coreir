@@ -41,13 +41,15 @@ Context::Context() : maxErrors(8) {
 
   pm = new PassManager(this);
   Params passthroughParams({
-      {"type", CoreIRType::make(this)},
+    {"type", CoreIRType::make(this)},
   });
   TypeGen* passthroughTG = pt->newTypeGen(
-      "passthrough", passthroughParams, [](Context* c, Values args) {
-        Type* t = args.at("type")->get<Type*>();
-        return c->Record({{"in", t->getFlipped()}, {"out", t}});
-      });
+    "passthrough",
+    passthroughParams,
+    [](Context* c, Values args) {
+      Type* t = args.at("type")->get<Type*>();
+      return c->Record({{"in", t->getFlipped()}, {"out", t}});
+    });
   pt->newGeneratorDecl("passthrough", passthroughTG, passthroughParams);
 }
 
@@ -242,29 +244,28 @@ RecordType* Context::Record(RecordParams rp) {
 NamedType* Context::Named(string nameref) {
   vector<string> split = splitRef(nameref);
   ASSERT(this->hasNamespace(split[0]), "Missing Namespace + " + split[0]);
-  ASSERT(this->getNamespace(split[0])->hasNamedType(split[1]),
-         "Missing Named type + " + nameref);
+  ASSERT(
+    this->getNamespace(split[0])->hasNamedType(split[1]),
+    "Missing Named type + " + nameref);
   return this->getNamespace(split[0])->getNamedType(split[1]);
 }
 
 Type* Context::Flip(Type* t) { return t->getFlipped(); }
 
 Type* Context::In(Type* t) {
-  assert(!t->isMixed() &&
-         "can't make all input if part are in and part are out");
-  if (t->isInput()) {
-    return t;
-  } else {
+  assert(
+    !t->isMixed() && "can't make all input if part are in and part are out");
+  if (t->isInput()) { return t; }
+  else {
     return t->getFlipped();
   }
 }
 
 Type* Context::Out(Type* t) {
-  assert(!t->isMixed() &&
-         "can't make all output if part are in and part are out");
-  if (t->isInput()) {
-    return t->getFlipped();
-  } else {
+  assert(
+    !t->isMixed() && "can't make all output if part are in and part are out");
+  if (t->isInput()) { return t->getFlipped(); }
+  else {
     return t;
   }
 }
@@ -280,8 +281,9 @@ JsonType* Context::Json() { return JsonType::make(this); }
 // CoreIRType* Context::CoreIRType() { return CoreIRType::make(this);}
 
 void Context::setTop(Module* top) {
-  ASSERT(top && (top->hasDef() || top->hasVerilogDef()),
-         top->toString() + " has no def!");
+  ASSERT(
+    top && (top->hasDef() || top->hasVerilogDef()),
+    top->toString() + " has no def!");
   this->top = top;
 }
 
@@ -292,8 +294,9 @@ void Context::setTop(string topRef) {
   Namespace* topns = this->getNamespace(topsplit[0]);
   ASSERT(topns->hasModule(topsplit[1]), "Missing module " + topRef);
   this->top = topns->getModule(topsplit[1]);
-  ASSERT(this->top->hasDef() || this->top->hasVerilogDef(),
-         topRef + " has no def!");
+  ASSERT(
+    this->top->hasDef() || this->top->hasVerilogDef(),
+    topRef + " has no def!");
 }
 
 void Context::removeTop() { this->top = nullptr; }
@@ -385,14 +388,14 @@ Wireable** Context::newWireableArray(int size) {
 
 DirectedConnection** Context::newDirectedConnectionPtrArray(int size) {
   DirectedConnection** arr = (DirectedConnection**)malloc(
-      sizeof(DirectedConnection*) * size);
+    sizeof(DirectedConnection*) * size);
   directedConnectionPtrArrays.push_back(arr);
   return arr;
 }
 
 DirectedInstance** Context::newDirectedInstancePtrArray(int size) {
   DirectedInstance** arr = (DirectedInstance**)malloc(
-      sizeof(DirectedInstance*) * size);
+    sizeof(DirectedInstance*) * size);
   directedInstancePtrArrays.push_back(arr);
   return arr;
 }

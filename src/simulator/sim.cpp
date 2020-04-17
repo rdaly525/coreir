@@ -15,30 +15,44 @@ using namespace std;
 
 namespace CoreIR {
 
-std::vector<std::string> printSIMDNode(const vdisc vd, const int opWidth,
-                                       NGraph& g, Module& mod,
-                                       LayoutPolicy& lp);
+std::vector<std::string> printSIMDNode(
+  const vdisc vd,
+  const int opWidth,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& lp);
 
-LowExpr* printBinop(const WireNode& wd, const vdisc vd, const NGraph& g,
-                    LayoutPolicy& lp);
+LowExpr* printBinop(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp);
 
-LowExpr* printOpResultStr(const InstanceValue& wd, const NGraph& g,
-                          LayoutPolicy& lp);
+LowExpr* printOpResultStr(
+  const InstanceValue& wd,
+  const NGraph& g,
+  LayoutPolicy& lp);
 
-LowExpr* opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g,
-                     LayoutPolicy& lp);
+LowExpr* opResultStr(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp);
 
 LowExpr* bitMaskExpression(LowExpr* exp) {
-  return new LowBinop("-", new LowBinop("<<", new LowId("1ULL"), exp),
-                      new LowBitVec(BitVec(64, 1)));
+  return new LowBinop(
+    "-",
+    new LowBinop("<<", new LowId("1ULL"), exp),
+    new LowBitVec(BitVec(64, 1)));
 }
 
 LowExpr* bitMaskExpression(uint w) {
   assert(w > 0);
 
   return new LowBinop(
-      "-", new LowBinop("<<", new LowId("1ULL"), new LowBitVec(BitVec(64, w))),
-      new LowBitVec(BitVec(64, 1)));
+    "-",
+    new LowBinop("<<", new LowId("1ULL"), new LowBitVec(BitVec(64, w))),
+    new LowBitVec(BitVec(64, 1)));
 }
 
 LowExpr* maskResultExpr(const uint w, LowExpr* const expr) {
@@ -61,8 +75,11 @@ std::pair<std::string, Wireable*> getOutSelect(Instance* const inst) {
   return outPair;
 }
 
-LowExpr* printUnop(Instance* inst, const vdisc vd, const NGraph& g,
-                   LayoutPolicy& lp) {
+LowExpr* printUnop(
+  Instance* inst,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
   auto outPair = getOutSelect(inst);
 
   auto inConns = getInputConnections(vd, g);
@@ -85,11 +102,14 @@ LowExpr* printUnop(Instance* inst, const vdisc vd, const NGraph& g,
   LowExpr* val = nullptr;
   if (opString != "andr") {
     val = new LowUnop(opString, printOpResultStr(cn.first, g, lp));
-  } else {
+  }
+  else {
 
     uint w = typeWidth(*(cn.first.getWire()->getType()));
-    val = new LowBinop("==", printOpResultStr(cn.first, g, lp),
-                       bitMaskExpression(w));
+    val = new LowBinop(
+      "==",
+      printOpResultStr(cn.first, g, lp),
+      bitMaskExpression(w));
   }
 
   return maskResultExpression(*((outPair.second)->getType()), val);
@@ -122,9 +142,8 @@ LowExpr* printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 
       bool bv = valArg->get<bool>();
 
-      if (bv == true) {
-        return new LowBitVec(BitVec(1, 1));
-      } else {
+      if (bv == true) { return new LowBitVec(BitVec(1, 1)); }
+      else {
         return new LowBitVec(BitVec(1, 0));
       }
     }
@@ -136,23 +155,27 @@ LowExpr* printBitConstant(Instance* inst, const vdisc vd, const NGraph& g) {
 LowExpr* printConstant(Instance* inst, const vdisc vd, const NGraph& g) {
   if (getQualifiedOpName(*inst) == "corebit.const") {
     return printBitConstant(inst, vd, g);
-  } else {
+  }
+  else {
     return printBVConstant(inst, vd, g);
   }
 }
 
 LowExpr* castToSigned(Type& tp, LowExpr* const expr) {
   return new LowId(
-      parens(parens(signedCTypeString(tp)) + " " + expr->cString()));
+    parens(parens(signedCTypeString(tp)) + " " + expr->cString()));
 }
 
 LowExpr* castToUnSigned(Type& tp, LowExpr* const expr) {
   return new LowId(
-      parens(parens(unSignedCTypeString(tp)) + " " + expr->cString()));
+    parens(parens(unSignedCTypeString(tp)) + " " + expr->cString()));
 }
 
-LowExpr* printOpThenMaskBinop(const WireNode& wd, const vdisc vd,
-                              const NGraph& g, LayoutPolicy& lp) {
+LowExpr* printOpThenMaskBinop(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
   Instance* inst = toInstance(wd.getWire());
 
   pair<string, Wireable*> outPair = getOutSelect(inst);
@@ -166,27 +189,37 @@ LowExpr* printOpThenMaskBinop(const WireNode& wd, const vdisc vd,
 
   string opString = getOpString(*inst);
 
-  LowExpr* expr = new LowBinop(opString, printOpResultStr(arg1, g, lp),
-                               printOpResultStr(arg2, g, lp));
+  LowExpr* expr = new LowBinop(
+    opString,
+    printOpResultStr(arg1, g, lp),
+    printOpResultStr(arg2, g, lp));
 
   // And not standard width
   if (isDASHR(*inst)) {
     uint tw = typeWidth(*(arg1.getWire()->getType()));
 
     LowExpr* maskExpr = new LowBinop(
-        "<<", bitMaskExpression(printOpResultStr(arg2, g, lp)),
-        new LowBinop("-", new LowId(to_string(tw)),
-                     printOpResultStr(arg2, g, lp)));
+      "<<",
+      bitMaskExpression(printOpResultStr(arg2, g, lp)),
+      new LowBinop(
+        "-",
+        new LowId(to_string(tw)),
+        printOpResultStr(arg2, g, lp)));
 
     string mask = maskExpr->cString();
 
     LowExpr* signBitSet = new LowBinop(
-        "&", new LowBitVec(BitVec(1, 1)),
-        new LowBinop(">>", printOpResultStr(arg1, g, lp),
-                     new LowId(to_string(tw - 1))));
+      "&",
+      new LowBitVec(BitVec(1, 1)),
+      new LowBinop(
+        ">>",
+        printOpResultStr(arg1, g, lp),
+        new LowId(to_string(tw - 1))));
 
-    expr = new LowBinop("|", new LowId(ite(signBitSet->cString(), mask, "0")),
-                        expr);
+    expr = new LowBinop(
+      "|",
+      new LowId(ite(signBitSet->cString(), mask, "0")),
+      expr);
   }
 
   if (g.getOutputConnections(vd)[0].first.needsMask()) {
@@ -201,19 +234,25 @@ LowExpr* seString(Type& tp, LowExpr* const arg) {
   uint extWidth = containerTypeWidth(tp);
 
   if (startWidth < extWidth) {
-    return new LowId("SIGN_EXTEND( " + to_string(startWidth) + ", " +
-                     to_string(extWidth) + ", " + arg->cString() + " )");
-  } else if (startWidth == extWidth) {
+    return new LowId(
+      "SIGN_EXTEND( " + to_string(startWidth) + ", " + to_string(extWidth) +
+      ", " + arg->cString() + " )");
+  }
+  else if (startWidth == extWidth) {
     return arg;
-  } else {
+  }
+  else {
     cout << "ERROR: trying to sign extend from " << startWidth << " to "
          << extWidth << endl;
     coreir_unreachable();
   }
 }
 
-LowExpr* printSEThenOpThenMaskBinop(Instance* inst, const vdisc vd,
-                                    const NGraph& g, LayoutPolicy& lp) {
+LowExpr* printSEThenOpThenMaskBinop(
+  Instance* inst,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
   auto outSelects = getOutputSelects(inst);
 
   assert(outSelects.size() == 1);
@@ -235,14 +274,16 @@ LowExpr* printSEThenOpThenMaskBinop(Instance* inst, const vdisc vd,
   LowExpr* rs1 = printOpResultStr(arg1, g, lp);
   LowExpr* rs2 = printOpResultStr(arg2, g, lp);
 
-  LowExpr* opStr = new LowBinop(opString,
-                                castToSigned(arg1Tp, seString(arg1Tp, rs1)),
-                                castToSigned(arg2Tp, seString(arg2Tp, rs2)));
+  LowExpr* opStr = new LowBinop(
+    opString,
+    castToSigned(arg1Tp, seString(arg1Tp, rs1)),
+    castToSigned(arg2Tp, seString(arg2Tp, rs2)));
 
   LowExpr* res;
   if (g.getOutputConnections(vd)[0].first.needsMask()) {
     res = maskResultExpression(*(outPair.second->getType()), opStr);
-  } else {
+  }
+  else {
     res = opStr;
   }
 
@@ -254,8 +295,11 @@ bool isMux(Instance& inst) {
   return genRefName == "mux";
 }
 
-string printMux(Instance* inst, const vdisc vd, const NGraph& g,
-                LayoutPolicy& lp) {
+string printMux(
+  Instance* inst,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
   assert(isMux(*inst));
 
   auto ins = getInputConnections(vd, g);
@@ -266,13 +310,17 @@ string printMux(Instance* inst, const vdisc vd, const NGraph& g,
   InstanceValue i0 = findArg("in0", ins);
   InstanceValue i1 = findArg("in1", ins);
 
-  return ite(printOpResultStr(sel, g, lp)->cString(),
-             printOpResultStr(i1, g, lp)->cString(),
-             printOpResultStr(i0, g, lp)->cString());
+  return ite(
+    printOpResultStr(sel, g, lp)->cString(),
+    printOpResultStr(i1, g, lp)->cString(),
+    printOpResultStr(i0, g, lp)->cString());
 }
 
-string printAddOrSubWithCIN(const WireNode& wd, const vdisc vd, const NGraph& g,
-                            LayoutPolicy& lp) {
+string printAddOrSubWithCIN(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
   auto ins = getInputs(vd, g);
 
   assert(ins.size() == 3);
@@ -297,23 +345,26 @@ string printAddOrSubWithCIN(const WireNode& wd, const vdisc vd, const NGraph& g,
 
   string opString = getOpString(*inst);
 
-  string compString = parens(printOpResultStr(arg1, g, lp)->cString() +
-                             opString +
-                             printOpResultStr(arg2, g, lp)->cString() + " + " +
-                             printOpResultStr(carry, g, lp)->cString());
+  string compString = parens(
+    printOpResultStr(arg1, g, lp)->cString() + opString +
+    printOpResultStr(arg2, g, lp)->cString() + " + " +
+    printOpResultStr(carry, g, lp)->cString());
 
   // Check if this output needs a mask
   if (g.getOutputConnections(vd)[0].first.needsMask()) {
     res += maskResult(*(outPair.second->getType()), compString);
-  } else {
+  }
+  else {
     res += compString;
   }
 
   return res;
 }
 
-LowExpr* checkSumOverflowStr(Type& tp, LowExpr* const in0StrNC,
-                             LowExpr* const in1StrNC) {
+LowExpr* checkSumOverflowStr(
+  Type& tp,
+  LowExpr* const in0StrNC,
+  LowExpr* const in1StrNC) {
 
   // const std::string& in0StrNC,
   // const std::string& in1StrNC) {
@@ -321,15 +372,20 @@ LowExpr* checkSumOverflowStr(Type& tp, LowExpr* const in0StrNC,
   LowExpr* in1Str = castToUnSigned(tp, in1StrNC);
 
   LowExpr* sumString = castToUnSigned(
-      tp, new LowId(parens(in0StrNC->cString() + " + " + in1StrNC->cString())));
+    tp,
+    new LowId(parens(in0StrNC->cString() + " + " + in1StrNC->cString())));
   string test1 = parens(sumString->cString() + " < " + in0Str->cString());
   string test2 = parens(sumString->cString() + " < " + in1Str->cString());
   return new LowId(parens(test1 + " || " + test2));
 }
 
 // NOTE: This function prints the full assignment of values
-void printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g,
-                           LayoutPolicy& lp, LowProgram& prog) {
+void printAddOrSubCIN_COUT(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp,
+  LowProgram& prog) {
   auto ins = getInputs(vd, g);
 
   assert(ins.size() == 3);
@@ -360,8 +416,10 @@ void printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g,
   auto in0Str = printOpResultStr(arg1, g, lp);
   auto in1Str = printOpResultStr(arg2, g, lp);
   auto carryStr = printOpResultStr(carry, g, lp);
-  auto sumStr = new LowBinop(opString, in0Str,
-                             in1Str);  // parens(in0Str + opString + in1Str);
+  auto sumStr = new LowBinop(
+    opString,
+    in0Str,
+    in1Str);  // parens(in0Str + opString + in1Str);
 
   string compString = parens(sumStr->cString() + " + " + carryStr->cString());
 
@@ -374,12 +432,13 @@ void printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g,
   if (standardWidth(tp)) {
     auto firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
     auto secondOverflow = checkSumOverflowStr(tp, sumStr, carryStr);
-    carryRes = parens(firstOverflow->cString() + " || " +
-                      secondOverflow->cString());
-  } else {
+    carryRes = parens(
+      firstOverflow->cString() + " || " + secondOverflow->cString());
+  }
+  else {
 
-    carryRes = parens(parens(compString + " >> " + to_string(typeWidth(tp))) +
-                      " & 0x1");
+    carryRes = parens(
+      parens(compString + " >> " + to_string(typeWidth(tp))) + " & 0x1");
   }
 
   prog.addAssignStmt(new LowId(cVar(*resultSelect)), new LowId(res));
@@ -388,8 +447,12 @@ void printAddOrSubCIN_COUT(const WireNode& wd, const vdisc vd, const NGraph& g,
 }
 
 // NOTE: This function prints the full assignment of values
-void printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g,
-                       LayoutPolicy& lp, LowProgram& prog) {
+void printAddOrSubCOUT(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp,
+  LowProgram& prog) {
   auto ins = getInputs(vd, g);
 
   assert(ins.size() == 2);
@@ -431,11 +494,12 @@ void printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g,
   if (standardWidth(tp)) {
     LowExpr* firstOverflow = checkSumOverflowStr(tp, in0Str, in1Str);
     carryRes = parens(firstOverflow->cString());
-  } else {
+  }
+  else {
 
     carryRes = parens(
-        parens(compString->cString() + " >> " + to_string(typeWidth(tp))) +
-        " & 0x1");
+      parens(compString->cString() + " >> " + to_string(typeWidth(tp))) +
+      " & 0x1");
   }
 
   prog.addAssignStmt(new LowId(cVar(*resultSelect)), res);
@@ -443,8 +507,11 @@ void printAddOrSubCOUT(const WireNode& wd, const vdisc vd, const NGraph& g,
   prog.addAssignStmt(new LowId(cVar(*coutSelect)), new LowId(carryRes));
 }
 
-LowExpr* printTernop(const WireNode& wd, const vdisc vd, const NGraph& g,
-                     LayoutPolicy& lp) {
+LowExpr* printTernop(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
   assert(getInputs(vd, g).size() == 3);
 
   Instance* inst = toInstance(wd.getWire());
@@ -458,15 +525,19 @@ LowExpr* printTernop(const WireNode& wd, const vdisc vd, const NGraph& g,
   ASSERT(false, toString(inst));
 }
 
-LowExpr* printBinop(const WireNode& wd, const vdisc vd, const NGraph& g,
-                    LayoutPolicy& lp) {
+LowExpr* printBinop(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
 
   assert(getInputs(vd, g).size() == 2);
 
   Instance* inst = toInstance(wd.getWire());
 
-  if (isBitwiseOp(*inst) || isSignInvariantOp(*inst) || isUnsignedCmp(*inst) ||
-      isShiftOp(*inst) || isUDivOrRem(*inst)) {
+  if (
+    isBitwiseOp(*inst) || isSignInvariantOp(*inst) || isUnsignedCmp(*inst) ||
+    isShiftOp(*inst) || isUDivOrRem(*inst)) {
     return printOpThenMaskBinop(wd, vd, g, lp);
   }
 
@@ -485,8 +556,12 @@ bool hasEnable(Wireable* w) {
   return recordTypeHasField("en", w->getType());
 }
 
-void enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g,
-                       LayoutPolicy& lp, LowProgram& prog) {
+void enableRegReceiver(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp,
+  LowProgram& prog) {
 
   auto outSel = getOutputSelects(wd.getWire());
 
@@ -516,17 +591,24 @@ void enableRegReceiver(const WireNode& wd, const vdisc vd, const NGraph& g,
     InstanceValue en = findArg("en", ins);
     condition = printOpResultStr(en, g, lp);
 
-    resStr = ite(parens(condition->cString()),
-                 printOpResultStr(add, g, lp)->cString(), oldValName);
-  } else {
+    resStr = ite(
+      parens(condition->cString()),
+      printOpResultStr(add, g, lp)->cString(),
+      oldValName);
+  }
+  else {
     resStr = printOpResultStr(add, g, lp)->cString();
   }
 
   prog.addAssignStmt(new LowId(resName), new LowId(resStr));
 }
 
-void printRegister(const WireNode& wd, const vdisc vd, const NGraph& g,
-                   LayoutPolicy& lp, LowProgram& prog) {
+void printRegister(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp,
+  LowProgram& prog) {
   assert(wd.isSequential);
 
   auto outSel = getOutputSelects(wd.getWire());
@@ -555,17 +637,21 @@ void printRegister(const WireNode& wd, const vdisc vd, const NGraph& g,
     if (!lp.getReadRegsDirectly()) {
 
       prog.addAssignStmt(new LowId(cVar(*s)), new LowId(lp.outputVarName(*r)));
-
-    } else {
+    }
+    else {
       return;  // "";
     }
-  } else {
+  }
+  else {
     enableRegReceiver(wd, vd, g, lp, prog);
   }
 }
 
-LowExpr* opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g,
-                     LayoutPolicy& lp) {
+LowExpr* opResultStr(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
 
   Instance* inst = toInstance(wd.getWire());
   auto ins = getInputs(vd, g);
@@ -583,8 +669,12 @@ LowExpr* opResultStr(const WireNode& wd, const vdisc vd, const NGraph& g,
   return nullptr;
 }
 
-void printMemory(const WireNode& wd, const vdisc vd, const NGraph& g,
-                 LayoutPolicy& lp, LowProgram& prog) {
+void printMemory(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& lp,
+  LowProgram& prog) {
   assert(wd.isSequential);
 
   auto outSel = getOutputSelects(wd.getWire());
@@ -604,11 +694,12 @@ void printMemory(const WireNode& wd, const vdisc vd, const NGraph& g,
     InstanceValue raddr = findArg("raddr", ins);
 
     prog.addAssignStmt(
-        new LowId(cVar(*s)),
-        new LowId(parens(lp.outputVarName(*r) + "[ " +
-                         printOpResultStr(raddr, g, lp)->cString() + " ]")));
-
-  } else {
+      new LowId(cVar(*s)),
+      new LowId(parens(
+        lp.outputVarName(*r) + "[ " +
+        printOpResultStr(raddr, g, lp)->cString() + " ]")));
+  }
+  else {
     assert(ins.size() == 4);
 
     InstanceValue waddr = findArg("waddr", ins);
@@ -620,23 +711,31 @@ void printMemory(const WireNode& wd, const vdisc vd, const NGraph& g,
     string oldValueName = lp.outputVarName(*r) + "[ " +
                           printOpResultStr(waddr, g, lp)->cString() + " ]";
 
-    prog.addAssignStmt(new LowId(oldValueName),
-                       new LowId(ite(parens(condition),
-                                     printOpResultStr(wdata, g, lp)->cString(),
-                                     oldValueName)));
+    prog.addAssignStmt(
+      new LowId(oldValueName),
+      new LowId(ite(
+        parens(condition),
+        printOpResultStr(wdata, g, lp)->cString(),
+        oldValueName)));
   }
 }
 
-void printInstance(const WireNode& wd, const vdisc vd, const NGraph& g,
-                   LayoutPolicy& layoutPolicy, LowProgram& prog) {
+void printInstance(
+  const WireNode& wd,
+  const vdisc vd,
+  const NGraph& g,
+  LayoutPolicy& layoutPolicy,
+  LowProgram& prog) {
 
   Instance* inst = toInstance(wd.getWire());
 
   if (isRegisterInstance(inst)) {
     printRegister(wd, vd, g, layoutPolicy, prog);
-  } else if (isMemoryInstance(inst)) {
+  }
+  else if (isMemoryInstance(inst)) {
     printMemory(wd, vd, g, layoutPolicy, prog);
-  } else {
+  }
+  else {
 
     auto outSelects = getOutputSelects(inst);
 
@@ -644,27 +743,27 @@ void printInstance(const WireNode& wd, const vdisc vd, const NGraph& g,
 
       pair<string, Wireable*> outPair = *std::begin(outSelects);
       string res;
-      if (!isThreadShared(vd, g)) {
-        res = cVar(*(outPair.second));
-      } else {
+      if (!isThreadShared(vd, g)) { res = cVar(*(outPair.second)); }
+      else {
         res = layoutPolicy.outputVarName(*(outPair.second));
       }
 
       prog.addAssignStmt(new LowId(res), opResultStr(wd, vd, g, layoutPolicy));
-
-    } else {
+    }
+    else {
       assert(outSelects.size() == 2);
-      ASSERT(isAddOrSub(*inst),
-             "This instance with 2+ output ports is undefined: " +
-                 inst->getModuleRef()->toString());
+      ASSERT(
+        isAddOrSub(*inst),
+        "This instance with 2+ output ports is undefined: " +
+          inst->getModuleRef()->toString());
 
       auto ins = getInputs(vd, g);
 
       if (ins.size() == 3) {
 
         printAddOrSubCIN_COUT(wd, vd, g, layoutPolicy, prog);
-
-      } else {
+      }
+      else {
         assert(ins.size() == 2);
 
         printAddOrSubCOUT(wd, vd, g, layoutPolicy, prog);
@@ -685,16 +784,17 @@ bool isCombinationalInstance(const WireNode& wd) {
   return true;
 }
 
-LowExpr* printOpResultStr(const InstanceValue& wd, const NGraph& g,
-                          LayoutPolicy& lp) {
+LowExpr* printOpResultStr(
+  const InstanceValue& wd,
+  const NGraph& g,
+  LayoutPolicy& lp) {
   assert(isSelect(wd.getWire()));
 
   Wireable* sourceInstance = extractSource(toSelect(wd.getWire()));
   if (isRegisterInstance(sourceInstance)) {
 
-    if (lp.getReadRegsDirectly() == false) {
-      return new LowId(cVar(wd));
-    } else {
+    if (lp.getReadRegsDirectly() == false) { return new LowId(cVar(wd)); }
+    else {
       return new LowId(lp.outputVarName(*sourceInstance));
     }
   }
@@ -716,8 +816,9 @@ LowExpr* printOpResultStr(const InstanceValue& wd, const NGraph& g,
 
   // TODO: Should really check whether or not there is one connection using
   // the given variable, this is slightly too conservative
-  if ((g.getOutputConnections(opNodeD).size() == 1) ||
-      (isConstant(g.getNode(opNodeD)))) {
+  if (
+    (g.getOutputConnections(opNodeD).size() == 1) ||
+    (isConstant(g.getNode(opNodeD)))) {
 
     return opResultStr(combNode(sourceInstance), opNodeD, g, lp);
   }
@@ -725,8 +826,10 @@ LowExpr* printOpResultStr(const InstanceValue& wd, const NGraph& g,
   return new LowId(cVar(wd));
 }
 
-string printInternalVariables(const std::deque<vdisc>& topo_order, NGraph& g,
-                              Module&) {
+string printInternalVariables(
+  const std::deque<vdisc>& topo_order,
+  NGraph& g,
+  Module&) {
   string str = "";
   for (auto& vd : topo_order) {
     WireNode wd = getNode(g, vd);
@@ -741,8 +844,8 @@ string printInternalVariables(const std::deque<vdisc>& topo_order, NGraph& g,
           if (!wd.isSequential) {
 
             str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
-
-          } else {
+          }
+          else {
             if (wd.isReceiver) {
               str += cArrayTypeDecl(*(in->getType()), " " + cVar(*in)) + ";\n";
             }
@@ -755,8 +858,10 @@ string printInternalVariables(const std::deque<vdisc>& topo_order, NGraph& g,
   return str;
 }
 
-string printSimFunctionPrefix(const std::deque<vdisc>& topo_order, NGraph& g,
-                              Module& mod) {
+string printSimFunctionPrefix(
+  const std::deque<vdisc>& topo_order,
+  NGraph& g,
+  Module& mod) {
   string str = "";
 
   // Declare all variables
@@ -768,8 +873,12 @@ string printSimFunctionPrefix(const std::deque<vdisc>& topo_order, NGraph& g,
   return str;
 }
 
-void updateSequentialElements(const SIMDGroup& group, NGraph& g, Module& mod,
-                              LayoutPolicy& layoutPolicy, LowProgram& prog) {
+void updateSequentialElements(
+  const SIMDGroup& group,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& layoutPolicy,
+  LowProgram& prog) {
 
   auto topoOrder = group.nodes[0];
 
@@ -785,15 +894,19 @@ void updateSequentialElements(const SIMDGroup& group, NGraph& g, Module& mod,
         }
       }
     }
-  } else {
+  }
+  else {
 
     assert(false);
   }
 }
 
-void updateCombinationalLogic(const std::deque<vdisc>& topoOrder, NGraph& g,
-                              Module& mod, LayoutPolicy& layoutPolicy,
-                              LowProgram& prog) {
+void updateCombinationalLogic(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& layoutPolicy,
+  LowProgram& prog) {
   vector<string> simLines;
 
   int i = 0;
@@ -807,15 +920,16 @@ void updateCombinationalLogic(const std::deque<vdisc>& topoOrder, NGraph& g,
 
     if (isInstance(inst)) {
 
-      if (((isCombinationalInstance(wd)) &&
-           ((g.getOutputConnections(vd).size() > 1))) ||
+      if (
+        ((isCombinationalInstance(wd)) &&
+         ((g.getOutputConnections(vd).size() > 1))) ||
 
-          (!isCombinationalInstance(wd) && !wd.isReceiver)) {
+        (!isCombinationalInstance(wd) && !wd.isReceiver)) {
 
         printInstance(wd, vd, g, layoutPolicy, prog);
       }
-
-    } else {
+    }
+    else {
 
       if (inst->getType()->isInput()) {
 
@@ -827,8 +941,9 @@ void updateCombinationalLogic(const std::deque<vdisc>& topoOrder, NGraph& g,
           Wireable& outSel = *(inConn.second.getWire());
           string outVarName = layoutPolicy.outputVarName(outSel);
 
-          prog.addAssignStmt(new LowId(outVarName),
-                             printOpResultStr(inConn.first, g, layoutPolicy));
+          prog.addAssignStmt(
+            new LowId(outVarName),
+            printOpResultStr(inConn.first, g, layoutPolicy));
         }
       }
     }
@@ -840,28 +955,35 @@ void updateCombinationalLogic(const std::deque<vdisc>& topoOrder, NGraph& g,
   }
 }
 
-void addScalarDAGCode(const std::vector<std::deque<vdisc>>& dags, NGraph& g,
-                      Module& mod, LayoutPolicy& layoutPolicy,
-                      LowProgram& prog) {
+void addScalarDAGCode(
+  const std::vector<std::deque<vdisc>>& dags,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& layoutPolicy,
+  LowProgram& prog) {
   for (auto& nodes : dags) {
     updateCombinationalLogic(nodes, g, mod, layoutPolicy, prog);
   }
   return;
 }
 
-std::vector<std::string> printSIMDNode(const vdisc vd, const int opWidth,
-                                       NGraph& g, Module& mod,
-                                       LayoutPolicy& lp) {
+std::vector<std::string> printSIMDNode(
+  const vdisc vd,
+  const int opWidth,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& lp) {
   vector<string> simLines;
   if (isGraphInput(g.getNode(vd))) {
     string stateInLoc = lp.outputVarName(*(g.getNode(vd).getWire()));
 
-    simLines.push_back("__m128i " + cVar(*(g.getNode(vd).getWire())) +
-                       " = _mm_loadu_si128((__m128i const*) &" + stateInLoc +
-                       ");\n");
+    simLines.push_back(
+      "__m128i " + cVar(*(g.getNode(vd).getWire())) +
+      " = _mm_loadu_si128((__m128i const*) &" + stateInLoc + ");\n");
 
     return simLines;
-  } else if (isGraphOutput(g.getNode(vd))) {
+  }
+  else if (isGraphOutput(g.getNode(vd))) {
 
     string stateOutLoc = lp.outputVarName(*(g.getNode(vd).getWire()));
 
@@ -879,11 +1001,12 @@ std::vector<std::string> printSIMDNode(const vdisc vd, const int opWidth,
     // InstanceValue resV = findArg("in", ins);
     string res = cVar(resV.getWire());
 
-    simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc + ", " +
-                       res + ");\n");
+    simLines.push_back(
+      "_mm_storeu_si128((__m128i *) &" + stateOutLoc + ", " + res + ");\n");
 
     return simLines;
-  } else {
+  }
+  else {
 
     Instance* inst = toInstance(g.getNode(vd).getWire());
 
@@ -895,29 +1018,18 @@ std::vector<std::string> printSIMDNode(const vdisc vd, const int opWidth,
         auto ins = getInputConnections(vd, g);
         InstanceValue resV = findArg("in", ins);
         string res = cVar(resV.getWire());
-        simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
-                           ", " + res + ");\n");
-
-      } else {
+        simLines.push_back(
+          "_mm_storeu_si128((__m128i *) &" + stateOutLoc + ", " + res + ");\n");
+      }
+      else {
         string stateInLoc = lp.outputVarName(*(g.getNode(vd).getWire()));
 
         simLines.push_back(
-            "__m128i " + cVar(g.getNode(vd).getWire()->sel("out")) +
-            " = _mm_loadu_si128((__m128i const*) &" + stateInLoc + ");\n");
+          "__m128i " + cVar(g.getNode(vd).getWire()->sel("out")) +
+          " = _mm_loadu_si128((__m128i const*) &" + stateInLoc + ");\n");
       }
-
-    } else if (getQualifiedOpName(*inst) == "coreir.and") {
-
-      auto ins = getInputConnections(vd, g);
-      string arg0 = cVar(findArg("in0", ins).getWire());
-      string arg1 = cVar(findArg("in1", ins).getWire());
-
-      string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
-
-      simLines.push_back(ln("__m128i " + resName + " = _mm_and_si128(" + arg0 +
-                            ", " + arg1 + ")"));
-
-    } else if (getQualifiedOpName(*inst) == "coreir.or") {
+    }
+    else if (getQualifiedOpName(*inst) == "coreir.and") {
 
       auto ins = getInputConnections(vd, g);
       string arg0 = cVar(findArg("in0", ins).getWire());
@@ -925,12 +1037,23 @@ std::vector<std::string> printSIMDNode(const vdisc vd, const int opWidth,
 
       string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
 
-      simLines.push_back(ln("__m128i " + resName + " = _mm_or_si128(" + arg0 +
-                            ", " + arg1 + ")"));
+      simLines.push_back(ln(
+        "__m128i " + resName + " = _mm_and_si128(" + arg0 + ", " + arg1 + ")"));
+    }
+    else if (getQualifiedOpName(*inst) == "coreir.or") {
 
-    } else {
+      auto ins = getInputConnections(vd, g);
+      string arg0 = cVar(findArg("in0", ins).getWire());
+      string arg1 = cVar(findArg("in1", ins).getWire());
+
+      string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
+
+      simLines.push_back(ln(
+        "__m128i " + resName + " = _mm_or_si128(" + arg0 + ", " + arg1 + ")"));
+    }
+    else {
       simLines.push_back(
-          "// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
+        "// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
     }
 
     return simLines;
@@ -941,8 +1064,12 @@ std::vector<std::string> printSIMDNode(const vdisc vd, const int opWidth,
 }
 
 // std::vector<std::string>
-void printSIMDGroup(const SIMDGroup& group, NGraph& g, Module& mod,
-                    LayoutPolicy& lp, LowProgram& prog) {
+void printSIMDGroup(
+  const SIMDGroup& group,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& lp,
+  LowProgram& prog) {
   // If the group actually is scalar code just call the scalar printout
   if (group.nodes.size() == 1) {
     // LowProgram prog;
@@ -954,8 +1081,12 @@ void printSIMDGroup(const SIMDGroup& group, NGraph& g, Module& mod,
   assert(false);
 }
 
-void addDAGCode(const std::vector<SIMDGroup>& dags, NGraph& g, Module& mod,
-                LayoutPolicy& layoutPolicy, LowProgram& prog) {
+void addDAGCode(
+  const std::vector<SIMDGroup>& dags,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& layoutPolicy,
+  LowProgram& prog) {
 
   for (auto& simdGroup : dags) {
     printSIMDGroup(simdGroup, g, mod, layoutPolicy, prog);
@@ -974,14 +1105,18 @@ struct CodeGroup {
   GroupType tp;
 };
 
-void addDAGCode(const CodeGroup& code, NGraph& g, Module& mod,
-                LayoutPolicy& layoutPolicy, LowProgram& prog) {
+void addDAGCode(
+  const CodeGroup& code,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& layoutPolicy,
+  LowProgram& prog) {
 
   if (!code.sequentialUpdate) {
 
     addDAGCode(code.dags, g, mod, layoutPolicy, prog);
-
-  } else {
+  }
+  else {
     for (auto& dag : code.dags) {
 
       updateSequentialElements(dag, g, mod, layoutPolicy, prog);
@@ -1014,8 +1149,11 @@ bool outToIn(const CodeGroup& gp, const CodeGroup& op, const NGraph& g) {
   return true;
 }
 
-string printSimFunctionBody(const std::deque<vdisc>& topoOrder, NGraph& g,
-                            Module& mod, LayoutPolicy& layoutPolicy) {
+string printSimFunctionBody(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  Module& mod,
+  LayoutPolicy& layoutPolicy) {
 
   string str = printSimFunctionPrefix(topoOrder, g, mod);
 
@@ -1036,18 +1174,23 @@ string printSimFunctionBody(const std::deque<vdisc>& topoOrder, NGraph& g,
     InstanceValue clkInst(clk);
 
     string condition = parens(
-        parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
-        parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
+      parens(layoutPolicy.lastClkVarName(clkInst) + " == 0") + " && " +
+      parens(layoutPolicy.clkVarName(clkInst) + " == 1"));
 
     LowProgram aProg;
-    addDAGCode({paths.preSequentialAlwaysDAGs, false}, g, mod, layoutPolicy,
-               aProg);
+    addDAGCode(
+      {paths.preSequentialAlwaysDAGs, false},
+      g,
+      mod,
+      layoutPolicy,
+      aProg);
     simLines.push_back(aProg.cString());
 
     simLines.push_back("if " + condition + " {\n");
 
-    if ((paths.postSequentialAlwaysDAGs.size() == 0) &&
-        (paths.postSequentialAlwaysDAGs.size() == 0)) {
+    if (
+      (paths.postSequentialAlwaysDAGs.size() == 0) &&
+      (paths.postSequentialAlwaysDAGs.size() == 0)) {
       cout << "All updates inside the clock!" << endl;
       simLines.push_back("// All updates inside clock\n");
 
@@ -1103,8 +1246,8 @@ string printSimFunctionBody(const std::deque<vdisc>& topoOrder, NGraph& g,
         addDAGCode(updateOrder.getNode(group), g, mod, layoutPolicy, clkProg);
       }
       simLines.push_back(clkProg.cString());
-
-    } else {
+    }
+    else {
 
       vector<CodeGroup> codeGroups;
 
@@ -1132,8 +1275,12 @@ string printSimFunctionBody(const std::deque<vdisc>& topoOrder, NGraph& g,
     simLines.push_back("\n}\n");
 
     LowProgram postProg;
-    addDAGCode({paths.postSequentialAlwaysDAGs, false}, g, mod, layoutPolicy,
-               postProg);
+    addDAGCode(
+      {paths.postSequentialAlwaysDAGs, false},
+      g,
+      mod,
+      layoutPolicy,
+      postProg);
     simLines.push_back(postProg.cString());
   }
 
@@ -1151,8 +1298,9 @@ string printSimFunctionBody(const std::deque<vdisc>& topoOrder, NGraph& g,
     string clkName = layoutPolicy.clkVarName(clkV);
 
     simLines.push_back("\n// ----- Setting last clock values\n");
-    LowAssign* clkUpdate = new LowAssign(new LowId(lastClkName),
-                                         new LowId(clkName));
+    LowAssign* clkUpdate = new LowAssign(
+      new LowId(lastClkName),
+      new LowId(clkName));
     simLines.push_back(clkUpdate->cString());
 
     delete clkUpdate;
@@ -1184,8 +1332,11 @@ string printDecl(const ModuleCode& mc) {
 
 std::string printCode(const ModuleCode& mc) { return mc.codeString; }
 
-ModuleCode buildCode(const std::deque<vdisc>& topoOrder, NGraph& g,
-                     CoreIR::Module* mod, const std::string& baseName) {
+ModuleCode buildCode(
+  const std::deque<vdisc>& topoOrder,
+  NGraph& g,
+  CoreIR::Module* mod,
+  const std::string& baseName) {
 
   string code = "";
 

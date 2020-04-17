@@ -21,15 +21,16 @@ bool isBitType(const Type& tp) {
   return false;
 }
 
-CoreIR::Wireable* replaceSelect(CoreIR::Wireable* const toReplace,
-                                CoreIR::Wireable* const replacement,
-                                CoreIR::Wireable* const sel) {
+CoreIR::Wireable* replaceSelect(
+  CoreIR::Wireable* const toReplace,
+  CoreIR::Wireable* const replacement,
+  CoreIR::Wireable* const sel) {
   if (toReplace == sel) { return replacement; }
 
   if (isa<Select>(sel)) {
     Select* selP = cast<Select>(sel);
     return replaceSelect(toReplace, replacement, selP->getParent())
-        ->sel(selP->getSelStr());
+      ->sel(selP->getSelStr());
   }
 
   return sel;
@@ -125,9 +126,8 @@ std::map<Wireable*, Wireable*> signalDriverMap(CoreIR::ModuleDef* const def) {
 
     Type* fst_tp = fst_select->getType();
 
-    if (fst_tp->isInput()) {
-      bitToDriver[fst] = snd;
-    } else {
+    if (fst_tp->isInput()) { bitToDriver[fst] = snd; }
+    else {
       bitToDriver[snd] = fst;
     }
   }
@@ -135,7 +135,7 @@ std::map<Wireable*, Wireable*> signalDriverMap(CoreIR::ModuleDef* const def) {
 }
 
 std::map<Wireable*, std::vector<Wireable*>> signalReceiverMap(
-    CoreIR::ModuleDef* const def) {
+  CoreIR::ModuleDef* const def) {
   map<Wireable*, vector<Wireable*>> bitToDriver;
 
   for (auto connection : def->getConnections()) {
@@ -149,9 +149,8 @@ std::map<Wireable*, std::vector<Wireable*>> signalReceiverMap(
 
     Type* fst_tp = fst_select->getType();
 
-    if (fst_tp->isInput()) {
-      map_insert(bitToDriver, snd, fst);
-    } else {
+    if (fst_tp->isInput()) { map_insert(bitToDriver, snd, fst); }
+    else {
       map_insert(bitToDriver, fst, snd);
     }
   }
@@ -170,8 +169,8 @@ bool isAncestorOf(Wireable* const possibleAncestor, Wireable* const w) {
 }
 
 vector<Wireable*> drivenBy(
-    Wireable* const w,
-    std::map<Wireable*, std::vector<Wireable*>>& receiverMap) {
+  Wireable* const w,
+  std::map<Wireable*, std::vector<Wireable*>>& receiverMap) {
   vector<Wireable*> driven;
   for (auto rec : receiverMap) {
     if (isAncestorOf(w, rec.first)) { concat(driven, rec.second); }
@@ -266,17 +265,19 @@ maybe<BitVector> getSignalBitVec(const std::vector<CoreIR::Select*>& signals) {
     Instance* srcConst = cast<Instance>(src);
     if (getQualifiedOpName(*srcConst) == "corebit.const") {
       bool val = srcConst->getModArgs().at("value")->get<bool>();
-      if (val == true) {
-        bv.set(i, 1);
-      } else {
+      if (val == true) { bv.set(i, 1); }
+      else {
         bv.set(i, 0);
       }
-    } else {
-      ASSERT(getQualifiedOpName(*srcConst) == "coreir.const",
-             "must be constant");
+    }
+    else {
+      ASSERT(
+        getQualifiedOpName(*srcConst) == "coreir.const",
+        "must be constant");
 
-      ASSERT(isNumber(sigi->getSelStr()),
-             "Bit must be driven by a single bit from a constant");
+      ASSERT(
+        isNumber(sigi->getSelStr()),
+        "Bit must be driven by a single bit from a constant");
 
       int offset = stoi(sigi->getSelStr());
       BitVector val = srcConst->getModArgs().at("value")->get<BitVector>();
@@ -309,13 +310,14 @@ std::vector<Connection> unpackConnection(const CoreIR::Connection& conn) {
     int len = arrTp->getLen();
 
     for (int i = 0; i < len; i++) {
-      concat(unpackedConns,
-             unpackConnection(connectionCtor(fst->sel(i), snd->sel(i))));
+      concat(
+        unpackedConns,
+        unpackConnection(connectionCtor(fst->sel(i), snd->sel(i))));
     }
 
     return unpackedConns;
-
-  } else {
+  }
+  else {
     cout << "Wireable " << fst->toString()
          << " has unsupported type in unpackConnection = "
          << fstType->toString() << endl;
@@ -325,8 +327,10 @@ std::vector<Connection> unpackConnection(const CoreIR::Connection& conn) {
   coreir_unreachable();
 }
 
-void portToConstant(const std::string& portName, const BitVector& value,
-                    CoreIR::Module* const mod) {
+void portToConstant(
+  const std::string& portName,
+  const BitVector& value,
+  CoreIR::Module* const mod) {
   assert(mod->hasDef());
 
   cout << "Replacing port " << portName << endl;
@@ -342,23 +346,26 @@ void portToConstant(const std::string& portName, const BitVector& value,
   Instance* constReplace = nullptr;
   if (isBitArray(*(sel->getType()))) {
     constReplace = def->addInstance(
-        "def_self_const_replace_" + portName, "coreir.const",
-        {{"width", Const::make(c, value.bitLength())}},
-        {{"value", Const::make(c, value)}});
-  } else {
+      "def_self_const_replace_" + portName,
+      "coreir.const",
+      {{"width", Const::make(c, value.bitLength())}},
+      {{"value", Const::make(c, value)}});
+  }
+  else {
     // assert(isBitType(*(sel->getType())));
     constReplace = def->addInstance(
-        "def_self_const_replace_" + portName, "corebit.const",
-        {{"value",
-          Const::make(c, value.get(0).binary_value() ? true : false)}});
+      "def_self_const_replace_" + portName,
+      "corebit.const",
+      {{"value", Const::make(c, value.get(0).binary_value() ? true : false)}});
   }
 
   assert(constReplace != nullptr);
 
   Select* replacement = constReplace->sel("out");
 
-  Instance* wbPassthrough = addPassthrough(sel, constReplace->getInstname() +
-                                                    "_tmp_passthrough");
+  Instance* wbPassthrough = addPassthrough(
+    sel,
+    constReplace->getInstname() + "_tmp_passthrough");
 
   // cout << "passthrough type = " << wbPassthrough->getType()->toString() <<
   // endl; cout << "replacement type = " << replacement->getType()->toString()
@@ -376,8 +383,10 @@ void portToConstant(const std::string& portName, const BitVector& value,
   return;
 }
 
-void setRegisterInit(const std::string& instanceName, const BitVector& value,
-                     CoreIR::Module* const mod) {
+void setRegisterInit(
+  const std::string& instanceName,
+  const BitVector& value,
+  CoreIR::Module* const mod) {
   cout << "Replacing " << instanceName << endl;
   assert(mod->hasDef());
 
@@ -392,8 +401,9 @@ void setRegisterInit(const std::string& instanceName, const BitVector& value,
   cout << "Got instance name from def " << endl;
 
   assert(inst != nullptr);
-  assert((getQualifiedOpName(*inst) == "coreir.reg") ||
-         (getQualifiedOpName(*inst) == "coreir.reg_arst"));
+  assert(
+    (getQualifiedOpName(*inst) == "coreir.reg") ||
+    (getQualifiedOpName(*inst) == "coreir.reg_arst"));
 
   string instName = inst->getInstname();
   auto pt = addPassthrough(inst, inst->toString() + "_reg_replace_pt");
@@ -409,7 +419,8 @@ void setRegisterInit(const std::string& instanceName, const BitVector& value,
   Instance* replacement = nullptr;
   if (instTp == "coreir.reg") {
     replacement = def->addInstance(instName, "coreir.reg", genArgs, args);
-  } else {
+  }
+  else {
     assert(instTp == "coreir.reg_arst");
     replacement = def->addInstance(instName, "coreir.reg_arst", genArgs, args);
   }

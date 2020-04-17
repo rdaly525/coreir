@@ -6,7 +6,7 @@ using namespace std;
 using namespace CoreIR;
 
 bool Passes::DeleteUnusedInouts::runOnInstanceGraphNode(
-    InstanceGraphNode& node) {
+  InstanceGraphNode& node) {
   Module* module = node.getModule();
 
   if (!module->hasDef()) { return false; }

@@ -8,8 +8,9 @@ using namespace CoreIR;
 string Passes::CullZexts::ID = "cullzexts";
 
 bool noSubSelects(CoreIR::Select* const outSel) {
-  if ((outSel->getSelects().size() == 0) &&
-      (outSel->getConnectedWireables().size() == 0)) {
+  if (
+    (outSel->getSelects().size() == 0) &&
+    (outSel->getConnectedWireables().size() == 0)) {
     return true;
   }
 
