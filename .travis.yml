@@ -54,7 +54,6 @@ before_install:
 - cd -
 - pip install pytest delegator.py
 script:
-  - 
 - ls bin/
 - pytest tests/binary
 - make -j2 installtest
