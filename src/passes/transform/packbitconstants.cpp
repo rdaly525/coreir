@@ -1,17 +1,15 @@
 #include "coreir.h"
 
-#include "coreir/passes/transform/packbitconstants.h"
 #include "coreir/common/util.h"
+#include "coreir/passes/transform/packbitconstants.h"
 
 using namespace std;
 using namespace CoreIR;
 
-//Do not forget to set this static variable!!
+// Do not forget to set this static variable!!
 string Passes::PackBitConstants::ID = "packbitconstants";
 bool Passes::PackBitConstants::runOnModule(Module* m) {
-  if (!m->hasDef()) {
-    return false;
-  }
+  if (!m->hasDef()) { return false; }
 
   cout << "Processing module: " << m->getName() << endl;
 
@@ -30,7 +28,8 @@ bool Passes::PackBitConstants::runOnModule(Module* m) {
         maybe<BitVec> sigValue = getSignalBitVec(selSig);
 
         if (sigValue.has_value()) {
-          cout << "\t" << sel->toString() << " is fully connected to constants " << endl;
+          cout << "\t" << sel->toString() << " is fully connected to constants "
+               << endl;
         }
       }
     }

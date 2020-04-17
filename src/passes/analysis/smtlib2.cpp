@@ -1,45 +1,45 @@
+#include "coreir/passes/analysis/smtlib2.h"
 #include "coreir.h"
 #include "coreir/passes/analysis/smtmodule.hpp"
 #include "coreir/passes/analysis/smtoperators.hpp"
-#include "coreir/passes/analysis/smtlib2.h"
 
 using namespace CoreIR;
 using namespace Passes;
 
 namespace {
 
-  string CLOCK = "clk";
+string CLOCK = "clk";
 
-  std::vector<string> check_interface_variable(std::vector<string> variables, SmtBVVar var, SMTModule* smod) {
-  if ( find(variables.begin(), variables.end(), var.getName()) == variables.end() ) {
-      variables.push_back(var.getName());
-      smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
-      smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
-      smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
-      if (var.getName().find(CLOCK) != string::npos) {
-        smod->addStmt(";; START module declaration for signal '" + var.getName());
-        smod->addStmt(SMTClock("", var));
-        smod->addStmt(";; END module declaration\n");
-      }
+std::vector<string> check_interface_variable(std::vector<string> variables,
+                                             SmtBVVar var, SMTModule* smod) {
+  if (find(variables.begin(), variables.end(), var.getName()) ==
+      variables.end()) {
+    variables.push_back(var.getName());
+    smod->addVarDec(SmtBVVarDec(SmtBVVarGetCurr(var)));
+    smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
+    smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
+    if (var.getName().find(CLOCK) != string::npos) {
+      smod->addStmt(";; START module declaration for signal '" + var.getName());
+      smod->addStmt(SMTClock("", var));
+      smod->addStmt(";; END module declaration\n");
     }
-  return variables;
   }
-
+  return variables;
 }
+
+}  // namespace
 
 std::string Passes::SmtLib2::ID = "smtlib2";
 bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
-  //Create a new SMTmodule for this node
+  // Create a new SMTmodule for this node
 
   Module* m = node.getModule();
   SMTModule* smod = new SMTModule(m);
   modMap[m] = smod;
 
   // There will be plenty of extraneous modules that don't make it past here
-  if (!m->hasDef()) {
-    return false;
-  }
+  if (!m->hasDef()) { return false; }
 
   ModuleDef* def = m->getDef();
 
@@ -50,8 +50,9 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
     Instance* inst = imap.second;
     Module* mref = imap.second->getModuleRef();
     // do not add comment for no ops
-    if (no_ops.count(imap.first) == 0 ) {
-      smod->addStmt(";; START module declaration for instance '" + imap.first + "' (Module "+ mref->getName() + ")");
+    if (no_ops.count(imap.first) == 0) {
+      smod->addStmt(";; START module declaration for instance '" + imap.first +
+                    "' (Module " + mref->getName() + ")");
     }
     for (auto rmap : cast<RecordType>(imap.second->getType())->getRecord()) {
       SmtBVVar var = SmtBVVar(iname, rmap.first, rmap.second);
@@ -62,17 +63,18 @@ bool Passes::SmtLib2::runOnInstanceGraphNode(InstanceGraphNode& node) {
       smod->addNextVarDec(SmtBVVarDec(SmtBVVarGetNext(var)));
       smod->addInitVarDec(SmtBVVarDec(SmtBVVarGetInit(var)));
     }
-    ASSERT(modMap.count(mref),"DEBUG ME: Missing iref: " + mref->getName());
+    ASSERT(modMap.count(mref), "DEBUG ME: Missing iref: " + mref->getName());
     smod->addStmt(modMap[mref]->toInstanceString(inst, imap.first));
-    if (no_ops.count(imap.first) == 0 ) {
+    if (no_ops.count(imap.first) == 0) {
       smod->addStmt(";; END module declaration\n");
     }
   }
 
   smod->addStmt(";; START connections definition");
   for (auto con : def->getConnections()) {
-    Wireable* left = con.first->getType()->getDir()==Type::DK_In ? con.first : con.second;
-    Wireable* right = left==con.first ? con.second : con.first;
+    Wireable* left = con.first->getType()->getDir() == Type::DK_In ? con.first
+                                                                   : con.second;
+    Wireable* right = left == con.first ? con.second : con.first;
 
     SmtBVVar vleft, vright;
 
@@ -109,31 +111,29 @@ void Passes::SmtLib2::writeToStream(std::ostream& os) {
 
   os << ";; Init Variable declarations" << endl;
   for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0 && mmap.second->isInstantiated()) {
+    if (external.count(mmap.first) == 0 && mmap.second->isInstantiated()) {
       os << mmap.second->toInitVarDecString() << endl;
     }
   }
 
   os << ";; Variable declarations" << endl;
   for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0  && mmap.second->isInstantiated()) {
+    if (external.count(mmap.first) == 0 && mmap.second->isInstantiated()) {
       os << mmap.second->toVarDecString() << endl;
     }
   }
 
   os << ";; Next Variable declarations" << endl;
   for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0 && mmap.second->isInstantiated()) {
+    if (external.count(mmap.first) == 0 && mmap.second->isInstantiated()) {
       os << mmap.second->toNextVarDecString() << endl;
     }
   }
 
   os << ";; Modules definitions" << endl;
   for (auto mmap : modMap) {
-    if (external.count(mmap.first)==0 && mmap.second->isInstantiated()) {
+    if (external.count(mmap.first) == 0 && mmap.second->isInstantiated()) {
       os << mmap.second->toString() << endl;
     }
   }
-
-
 }

@@ -2,24 +2,22 @@
 
 namespace vAST = verilogAST;
 
-std::vector<std::unique_ptr<vAST::Expression>>
-        make_args(std::vector<std::string> args) {
-    std::vector<std::unique_ptr<vAST::Expression>> arg_ptrs;
-    for (auto a : args) {
-        arg_ptrs.push_back(vAST::make_id(a));
-    }
-    return arg_ptrs;
+std::vector<std::unique_ptr<vAST::Expression>> make_args(
+    std::vector<std::string> args) {
+  std::vector<std::unique_ptr<vAST::Expression>> arg_ptrs;
+  for (auto a : args) { arg_ptrs.push_back(vAST::make_id(a)); }
+  return arg_ptrs;
 }
 
-std::vector<std::unique_ptr<vAST::Expression>>
-        make_ext_args(std::vector<std::unique_ptr<vAST::Expression>> args) {
-    return args;
+std::vector<std::unique_ptr<vAST::Expression>> make_ext_args(
+    std::vector<std::unique_ptr<vAST::Expression>> args) {
+  return args;
 }
 
-std::unique_ptr<vAST::CallExpr> make_signed_call(const char *id) {
-    std::vector<std::unique_ptr<vAST::Expression>> args;
-    args.push_back(vAST::make_id(std::string(id)));
-    return std::make_unique<vAST::CallExpr>("$signed", std::move(args));
+std::unique_ptr<vAST::CallExpr> make_signed_call(const char* id) {
+  std::vector<std::unique_ptr<vAST::Expression>> args;
+  args.push_back(vAST::make_id(std::string(id)));
+  return std::make_unique<vAST::CallExpr>("$signed", std::move(args));
 }
 
 using namespace CoreIR;
@@ -229,90 +227,39 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       //{"mem",""}, 
     }}
   });
- 
-  
-  std::map<std::string,std::vector<std::string>> coreIMap({
-    {"unary",{
-      "input [width-1:0] in",
-      "output [width-1:0] out"
-    }},
-    {"unaryReduce",{
-      "input [width-1:0] in",
-      "output out"
-    }},
-    {"binary",{
-      "input [width-1:0] in0",
-      "input [width-1:0] in1",
-      "output [width-1:0] out"
-    }},
-    {"binaryReduce",{
-      "input [width-1:0] in0",
-      "input [width-1:0] in1",
-      "output out"
-    }},
-    {"mux",{
-      "input [width-1:0] in0",
-      "input [width-1:0] in1",
-      "input sel",
-      "output [width-1:0] out"
-    }},
-    {"slice",{
-      "input [width-1:0] in",
-      "output [hi-lo-1:0] out"
-    }},
-    {"concat",{
-      "input [width0-1:0] in0",
-      "input [width1-1:0] in1",
-      "output [width0+width1-1:0] out"
-    }},
-    {"zext",{
-      "input [width_in-1:0] in",
-      "output [width_out-1:0] out"
-    }},
-    {"sext",{
-      "input [width_in-1:0] in",
-      "output [width_out-1:0] out"
-    }},
-    {"strip",{
-      "input in",
-      "output out"
-    }},
-    {"wrap",{
-      "input in",
-      "output out"
-    }},
-    {"const",{"output [width-1:0] out"}},
-    {"term",{"input [width-1:0] in"}},
-    {"undriven",{"output [width-1:0] out"}},
-    {"tribuf",{
-      "input [width-1:0] in",
-      "input en",
-      "inout out"
-    }},
-    {"ibuf",{
-      "inout [width-1:0] in",
-      "output [width-1:0] out"
-    }},
-    {"reg",{
-      "input clk",
-      "input [width-1:0] in",
-      "output [width-1:0] out"
-    }},
-    {"reg_arst",{
-      "input clk",
-      "input arst",
-      "input [width-1:0] in",
-      "output [width-1:0] out"
-    }},
-    {"mem",{
-      "input clk",
-      "input [width-1:0] wdata",
-      "input [$clog2(depth)-1:0] waddr",
-      "input wen",
-      "output [width-1:0] rdata",
-      "input [$clog2(depth)-1:0] raddr"
-    }}
-  });
+
+  std::map<std::string, std::vector<std::string>> coreIMap(
+      {{"unary", {"input [width-1:0] in", "output [width-1:0] out"}},
+       {"unaryReduce", {"input [width-1:0] in", "output out"}},
+       {"binary",
+        {"input [width-1:0] in0", "input [width-1:0] in1",
+         "output [width-1:0] out"}},
+       {"binaryReduce",
+        {"input [width-1:0] in0", "input [width-1:0] in1", "output out"}},
+       {"mux",
+        {"input [width-1:0] in0", "input [width-1:0] in1", "input sel",
+         "output [width-1:0] out"}},
+       {"slice", {"input [width-1:0] in", "output [hi-lo-1:0] out"}},
+       {"concat",
+        {"input [width0-1:0] in0", "input [width1-1:0] in1",
+         "output [width0+width1-1:0] out"}},
+       {"zext", {"input [width_in-1:0] in", "output [width_out-1:0] out"}},
+       {"sext", {"input [width_in-1:0] in", "output [width_out-1:0] out"}},
+       {"strip", {"input in", "output out"}},
+       {"wrap", {"input in", "output out"}},
+       {"const", {"output [width-1:0] out"}},
+       {"term", {"input [width-1:0] in"}},
+       {"undriven", {"output [width-1:0] out"}},
+       {"tribuf", {"input [width-1:0] in", "input en", "inout out"}},
+       {"ibuf", {"inout [width-1:0] in", "output [width-1:0] out"}},
+       {"reg", {"input clk", "input [width-1:0] in", "output [width-1:0] out"}},
+       {"reg_arst",
+        {"input clk", "input arst", "input [width-1:0] in",
+         "output [width-1:0] out"}},
+       {"mem",
+        {"input clk", "input [width-1:0] wdata",
+         "input [$clog2(depth)-1:0] waddr", "input wen",
+         "output [width-1:0] rdata", "input [$clog2(depth)-1:0] raddr"}}});
 
   Namespace* core = c->getNamespace("coreir");
   for (auto it0 : coreVMap) {
@@ -323,12 +270,11 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       vjson["prefix"] = "coreir_";
       vjson["definition"] = "  assign out = " + vbody + ";";
       vjson["inlineable"] = true;
-      if (it0.first!="other") {
-        ASSERT(coreIMap.count(it0.first),"missing" + it0.first);
+      if (it0.first != "other") {
+        ASSERT(coreIMap.count(it0.first), "missing" + it0.first);
         vjson["interface"] = coreIMap.at(it0.first);
-      }
-      else {
-        ASSERT(coreIMap.count(it1.first),"missing" + it1.first);
+      } else {
+        ASSERT(coreIMap.count(it1.first), "missing" + it1.first);
         vjson["interface"] = coreIMap.at(it1.first);
       }
       vjson["primitive_type"] = it0.first;
@@ -337,10 +283,11 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     }
   }
 
-  core->getGenerator("const")->getMetaData()["verilog"]["parameters"] = {"value"};
-  
+  core->getGenerator("const")->getMetaData()["verilog"]["parameters"] = {
+      "value"};
+
   {
-    //Term
+    // Term
     json vjson;
     vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["term"];
@@ -358,78 +305,82 @@ void CoreIRLoadVerilog_coreir(Context* c) {
   {
     json vjson;
     vjson["prefix"] = "coreir_";
-    vjson["parameters"] = {"init","arst_posedge","clk_posedge"};
+    vjson["parameters"] = {"init", "arst_posedge", "clk_posedge"};
     vjson["interface"] = coreIMap.at("reg_arst");
-    vjson["definition"] = ""
-    "  reg [width-1:0] outReg;\n"
-    "  wire real_rst;\n"
-    "  assign real_rst = arst_posedge ? arst : ~arst;\n"
-    "  wire real_clk;\n"
-    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
-    "  always @(posedge real_clk, posedge real_rst) begin\n"
-    "    if (real_rst) outReg <= init;\n"
-    "    else outReg <= in;\n"
-    "  end\n"
-    "  assign out = outReg;";
-    vjson["verilator_debug_definition"] = ""
-    "  reg [width-1:0] outReg/*verilator public*/;\n"
-    "  wire real_rst;\n"
-    "  assign real_rst = arst_posedge ? arst : ~arst;\n"
-    "  wire real_clk;\n"
-    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
-    "  always @(posedge real_clk, posedge real_rst) begin\n"
-    "    if (real_rst) outReg <= init;\n"
-    "    else outReg <= in;\n"
-    "  end\n"
-    "  assign out = outReg;";
+    vjson["definition"] =
+        ""
+        "  reg [width-1:0] outReg;\n"
+        "  wire real_rst;\n"
+        "  assign real_rst = arst_posedge ? arst : ~arst;\n"
+        "  wire real_clk;\n"
+        "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+        "  always @(posedge real_clk, posedge real_rst) begin\n"
+        "    if (real_rst) outReg <= init;\n"
+        "    else outReg <= in;\n"
+        "  end\n"
+        "  assign out = outReg;";
+    vjson["verilator_debug_definition"] =
+        ""
+        "  reg [width-1:0] outReg/*verilator public*/;\n"
+        "  wire real_rst;\n"
+        "  assign real_rst = arst_posedge ? arst : ~arst;\n"
+        "  wire real_clk;\n"
+        "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+        "  always @(posedge real_clk, posedge real_rst) begin\n"
+        "    if (real_rst) outReg <= init;\n"
+        "    else outReg <= in;\n"
+        "  end\n"
+        "  assign out = outReg;";
     core->getGenerator("reg_arst")->getMetaData()["verilog"] = vjson;
   }
   {
-    //reg
+    // reg
     json vjson;
     vjson["prefix"] = "coreir_";
-    vjson["parameters"] = {"init","clk_posedge"};
+    vjson["parameters"] = {"init", "clk_posedge"};
     vjson["interface"] = coreIMap.at("reg");
     vjson["definition"] = ""
-    "  reg [width-1:0] outReg=init;\n"
-    "  wire real_clk;\n"
-    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
-    "  always @(posedge real_clk) begin\n"
-    "    outReg <= in;\n"
-    "  end\n"
-    "  assign out = outReg;";
-    vjson["verilator_debug_definition"] = ""
-    "  reg [width-1:0] outReg/*verilator public*/=init;\n"
-    "  wire real_clk;\n"
-    "  assign real_clk = clk_posedge ? clk : ~clk;\n"
-    "  always @(posedge real_clk) begin\n"
-    "    outReg <= in;\n"
-    "  end\n"
-    "  assign out = outReg;";
+                          "  reg [width-1:0] outReg=init;\n"
+                          "  wire real_clk;\n"
+                          "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+                          "  always @(posedge real_clk) begin\n"
+                          "    outReg <= in;\n"
+                          "  end\n"
+                          "  assign out = outReg;";
+    vjson["verilator_debug_definition"] =
+        ""
+        "  reg [width-1:0] outReg/*verilator public*/=init;\n"
+        "  wire real_clk;\n"
+        "  assign real_clk = clk_posedge ? clk : ~clk;\n"
+        "  always @(posedge real_clk) begin\n"
+        "    outReg <= in;\n"
+        "  end\n"
+        "  assign out = outReg;";
     core->getGenerator("reg")->getMetaData()["verilog"] = vjson;
   }
 
   {
-    //mem
+    // mem
     json vjson;
     vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["mem"];
     vjson["definition"] = ""
-    "  reg [width-1:0] data[depth-1:0];\n"
-    "  always @(posedge clk) begin\n"
-    "    if (wen) begin\n"
-    "      data[waddr] <= wdata;\n"
-    "    end\n"
-    "  end\n"
-    "  assign rdata = data[raddr];";
-    vjson["verilator_debug_definition"] = ""
-    "  reg [width-1:0] data[depth-1:0] /*verilator public*/;\n"
-    "  always @(posedge clk) begin\n"
-    "    if (wen) begin\n"
-    "      data[waddr] <= wdata;\n"
-    "    end\n"
-    "  end\n"
-    "  assign rdata = data[raddr];";
+                          "  reg [width-1:0] data[depth-1:0];\n"
+                          "  always @(posedge clk) begin\n"
+                          "    if (wen) begin\n"
+                          "      data[waddr] <= wdata;\n"
+                          "    end\n"
+                          "  end\n"
+                          "  assign rdata = data[raddr];";
+    vjson["verilator_debug_definition"] =
+        ""
+        "  reg [width-1:0] data[depth-1:0] /*verilator public*/;\n"
+        "  always @(posedge clk) begin\n"
+        "    if (wen) begin\n"
+        "      data[waddr] <= wdata;\n"
+        "    end\n"
+        "  end\n"
+        "  assign rdata = data[raddr];";
     core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
-  } 
+  }
 }

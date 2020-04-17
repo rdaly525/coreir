@@ -1,5 +1,5 @@
-#include "coreir.h"
 #include "coreir/passes/transform/removeunconnected.h"
+#include "coreir.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -7,13 +7,13 @@ using namespace CoreIR;
 namespace {
 bool hasConnection(Wireable* w) {
   if (w->getConnectedWireables().size()) return true;
-  
+
   for (auto smap : w->getSelects()) {
     if (hasConnection(smap.second)) return true;
   }
   return false;
 }
-}
+}  // namespace
 
 string Passes::RemoveUnconnected::ID = "removeunconnected";
 bool Passes::RemoveUnconnected::runOnInstance(Instance* i) {

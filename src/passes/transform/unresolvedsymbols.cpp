@@ -1,5 +1,5 @@
-#include "coreir.h"
 #include "coreir/passes/transform/unresolvedsymbols.h"
+#include "coreir.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -11,26 +11,22 @@ bool Passes::UnresolvedSymbols::runOnContext(Context* c) {
   for (auto npair : c->getNamespaces()) {
     for (auto mpair : npair.second->getModules()) {
       Module* m = mpair.second;
-      if (m->hasDef()) {
-        toErase.insert(m);
-      }
+      if (m->hasDef()) { toErase.insert(m); }
     }
   }
   for (auto m : toErase) {
     if (m->isGenerated()) {
       m->getGenerator()->eraseModule(m->getGenArgs());
-    }
-    else {
+    } else {
       m->getNamespace()->eraseModule(m->getName());
     }
   }
   if (c->hasTop()) {
     c->removeTop();
-    ASSERT(!c->hasTop(),"BAD!");
+    ASSERT(!c->hasTop(), "BAD!");
     return true;
   }
-  ASSERT(!c->hasTop(),"BAD!");
+  ASSERT(!c->hasTop(), "BAD!");
 
-  return toErase.size()>0;
-  
+  return toErase.size() > 0;
 }

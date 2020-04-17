@@ -1,21 +1,20 @@
-#include "coreir.h"
 #include "coreir/passes/transform/delete_unused_inouts.h"
+#include "coreir.h"
 #include "coreir/common/util.h"
 
 using namespace std;
 using namespace CoreIR;
 
-bool Passes::DeleteUnusedInouts::runOnInstanceGraphNode(InstanceGraphNode& node) {
+bool Passes::DeleteUnusedInouts::runOnInstanceGraphNode(
+    InstanceGraphNode& node) {
   Module* module = node.getModule();
 
-  if (!module->hasDef()) {
-    return false;
-  }
+  if (!module->hasDef()) { return false; }
 
   cout << "Processing module = " << module->getName() << endl;
-  
+
   bool changed = false;
-  
+
   map<Select*, Select*> inoutsToOuts;
   map<Select*, Select*> inoutsToIns;
   for (auto field : module->getType()->getRecord()) {
@@ -32,9 +31,8 @@ bool Passes::DeleteUnusedInouts::runOnInstanceGraphNode(InstanceGraphNode& node)
         changed = true;
         node.detachField(portName);
       }
-
     }
   }
-  
+
   return changed;
 }

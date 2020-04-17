@@ -1,5 +1,5 @@
-#include "coreir.h"
 #include "coreir/passes/transform/sanitize_names.h"
+#include "coreir.h"
 
 using namespace std;
 using namespace CoreIR;
@@ -10,11 +10,11 @@ std::string sanitizedName(const std::string& cellName) {
   string instName = "";
   for (uint i = 0; i < cellName.size(); i++) {
     if (cellName[i] == '$') {
-      //instName += "UDOLLARU";
+      // instName += "UDOLLARU";
     } else if (cellName[i] == ':') {
-      //instName += "UCOLONU";
+      // instName += "UCOLONU";
     } else if (cellName[i] == '.') {
-      //instName += "UDOTU";
+      // instName += "UDOTU";
     } else if (cellName[i] == '\\') {
       instName += "UBACKSLASHU";
     } else if (cellName[i] == '=') {
@@ -26,21 +26,17 @@ std::string sanitizedName(const std::string& cellName) {
     } else if (cellName[i] == '/') {
       instName += "UFORWARDUSLASHU";
     } else if (cellName[i] == '_') {
-      //instName += "UUNDERSCOREU";
+      // instName += "UUNDERSCOREU";
     } else {
       instName += cellName[i];
     }
-
   }
 
   return instName;
-  
 }
 
 bool Passes::SanitizeNames::runOnModule(Module* m) {
-  if (!m->hasDef()) {
-    return false;
-  }
+  if (!m->hasDef()) { return false; }
 
   bool changedName = false;
 
@@ -48,9 +44,7 @@ bool Passes::SanitizeNames::runOnModule(Module* m) {
 
   cout << "Sanitizing names in " << m->getName() << endl;
   set<Instance*> allInstances;
-  for (auto inst : def->getInstances()) {
-    allInstances.insert(inst.second);
-  }
+  for (auto inst : def->getInstances()) { allInstances.insert(inst.second); }
 
   while (allInstances.size() > 0) {
     Instance* inst = *begin(allInstances);
@@ -65,8 +59,7 @@ bool Passes::SanitizeNames::runOnModule(Module* m) {
 
       inst->disconnectAll();
 
-      auto safeNameInstance =
-        def->addInstance(inst, sName);
+      auto safeNameInstance = def->addInstance(inst, sName);
 
       for (auto selR : sels) {
         def->connect(instPT->sel("in")->sel(selR.first),
