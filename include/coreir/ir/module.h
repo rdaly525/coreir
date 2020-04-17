@@ -11,7 +11,7 @@ namespace CoreIR {
 class Module : public GlobalValue, public Args {
   RecordType* type;
   ModuleDef* def = nullptr;
-  
+
   const Params modparams;
   Values defaultModArgs;
 
@@ -35,23 +35,23 @@ class Module : public GlobalValue, public Args {
     ModuleDef* getDef() const;
     //This will validate def
     void setDef(ModuleDef* def, bool validate=true);
-   
+
     ModuleDef* newModuleDef();
-    
+
     const Params& getModParams() const { return modparams;}
 
     //TODO move this
     DirectedModule* newDirectedModule();
-    
+
     std::string toString() const override;
     RecordType* getType() { return type;}
-    
+
     bool isGenerated() const { return !!g;}
-    Generator* getGenerator() { 
+    Generator* getGenerator() {
       ASSERT(isGenerated(),"Cannot getGenerator, is not a generated module: " + this->getRefName());
       return g;
     }
-    Values getGenArgs() { 
+    Values getGenArgs() {
       ASSERT(isGenerated(),"Cannot getGenArgs, is not a generated module: " + this->getRefName());
       return genargs;
     }

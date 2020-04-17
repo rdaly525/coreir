@@ -42,7 +42,7 @@ namespace CoreIR {
                                      exp),
                         new LowBitVec(BitVec(64, 1)));
   }
-  
+
   LowExpr* bitMaskExpression(uint w) {
     assert(w > 0);
 
@@ -52,7 +52,7 @@ namespace CoreIR {
                                      new LowBitVec(BitVec(64, w))),
                         new LowBitVec(BitVec(64, 1)));
   }
-  
+
   LowExpr* maskResultExpr(const uint w, LowExpr* const expr) {
     return new LowBinop("MASK", new LowBitVec(BitVec(32, w)), expr);
   }
@@ -168,7 +168,7 @@ namespace CoreIR {
   LowExpr* castToUnSigned(Type& tp, LowExpr* const expr) {
     return new LowId(parens(parens(unSignedCTypeString(tp)) + " " + expr->cString()));
   }
-  
+
   LowExpr* printOpThenMaskBinop(const WireNode& wd,
                                 const vdisc vd,
                                 const NGraph& g,
@@ -277,7 +277,7 @@ namespace CoreIR {
     } else {
       res = opStr;
     }
-      
+
     return res;
   }
 
@@ -296,7 +296,7 @@ namespace CoreIR {
     InstanceValue sel = findArg("sel", ins);
     InstanceValue i0 = findArg("in0", ins);
     InstanceValue i1 = findArg("in1", ins);
-    
+
     return ite(printOpResultStr(sel, g, lp)->cString(),
                printOpResultStr(i1, g, lp)->cString(),
                printOpResultStr(i0, g, lp)->cString());
@@ -309,7 +309,7 @@ namespace CoreIR {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 3);
-    
+
     Instance* inst = toInstance(wd.getWire());
     auto outSelects = getOutputSelects(inst);
 
@@ -368,7 +368,7 @@ namespace CoreIR {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 3);
-    
+
     Instance* inst = toInstance(wd.getWire());
     auto outSelects = getOutputSelects(inst);
 
@@ -432,7 +432,7 @@ namespace CoreIR {
     auto ins = getInputs(vd, g);
 
     assert(ins.size() == 2);
-    
+
     Instance* inst = toInstance(wd.getWire());
     auto outSelects = getOutputSelects(inst);
 
@@ -484,7 +484,7 @@ namespace CoreIR {
                        new LowId(carryRes));
 
   }
-  
+
   LowExpr* printTernop(const WireNode& wd, const vdisc vd, const NGraph& g, LayoutPolicy& lp) {
     assert(getInputs(vd, g).size() == 3);
 
@@ -563,7 +563,7 @@ namespace CoreIR {
     string resStr;
     if (hasEnable(wd.getWire())) {
       LowExpr* condition;
-      
+
       InstanceValue en = findArg("en", ins);
       condition = printOpResultStr(en, g, lp);
 
@@ -629,7 +629,7 @@ namespace CoreIR {
 
     Instance* inst = toInstance(wd.getWire());
     auto ins = getInputs(vd, g);
-    
+
     if (ins.size() == 3) {
       return printTernop(wd, vd, g, lp);
     }
@@ -659,16 +659,16 @@ namespace CoreIR {
     assert(wd.isSequential);
 
     auto outSel = getOutputSelects(wd.getWire());
-    
+
     assert(outSel.size() == 1);
     Select* s = toSelect((*(begin(outSel))).second);
-    
+
     assert(isInstance(s->getParent()));
 
     Instance* r = toInstance(s->getParent());
 
     auto ins = getInputConnections(vd, g);
-    
+
     if (!wd.isReceiver) {
       assert(ins.size() == 1);
 
@@ -857,13 +857,13 @@ namespace CoreIR {
                            LowProgram& prog) {
 
     auto topoOrder = group.nodes[0];
-    
+
     if (group.nodes.size() == 1) {
 
       for (auto& vd : topoOrder) {
         WireNode wd = getNode(g, vd);
         Wireable* inst = wd.getWire();
-        if (isInstance(inst)) { 
+        if (isInstance(inst)) {
           if (!isCombinationalInstance(wd) &&
               wd.isReceiver) {
 
@@ -875,7 +875,7 @@ namespace CoreIR {
     } else {
 
       assert(false);
-      
+
     }
 
   }
@@ -897,7 +897,7 @@ namespace CoreIR {
 
         Wireable* inst = wd.getWire();
 
-        if (isInstance(inst)) { 
+        if (isInstance(inst)) {
 
           if (((isCombinationalInstance(wd)) &&
                ((g.getOutputConnections(vd).size() > 1))) ||
@@ -970,7 +970,7 @@ namespace CoreIR {
 
       string stateOutLoc =
         lp.outputVarName(*(g.getNode(vd).getWire()));
-        
+
       auto ins = getInputConnections(vd, g);
 
       cout << "Inputs to " << g.getNode(vd).getWire()->toString() << endl;
@@ -984,7 +984,7 @@ namespace CoreIR {
       InstanceValue resV = ins[0].first;
       // InstanceValue resV = findArg("in", ins);
       string res = cVar(resV.getWire());
-        
+
       simLines.push_back("_mm_storeu_si128((__m128i *) &" + stateOutLoc +
                          ", " +
                          res + ");\n");
@@ -1014,7 +1014,7 @@ namespace CoreIR {
           simLines.push_back("__m128i " + cVar(g.getNode(vd).getWire()->sel("out")) +
                              " = _mm_loadu_si128((__m128i const*) &" +
                              stateInLoc + ");\n");
-            
+
         }
 
       } else if (getQualifiedOpName(*inst) == "coreir.and") {
@@ -1024,9 +1024,9 @@ namespace CoreIR {
         string arg1 = cVar(findArg("in1", ins).getWire());
 
         string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
-          
+
         simLines.push_back(ln("__m128i " + resName + " = _mm_and_si128(" + arg0 + ", " + arg1 + ")"));
-          
+
       } else if (getQualifiedOpName(*inst) == "coreir.or") {
 
         auto ins = getInputConnections(vd, g);
@@ -1034,9 +1034,9 @@ namespace CoreIR {
         string arg1 = cVar(findArg("in1", ins).getWire());
 
         string resName = cVar(*g.getNode(vd).getWire()->sel("out"));
-          
+
         simLines.push_back(ln("__m128i " + resName + " = _mm_or_si128(" + arg0 + ", " + arg1 + ")"));
-          
+
       } else {
         simLines.push_back("// NO CODE FOR: " + g.getNode(vd).getWire()->toString() + "\n");
       }
@@ -1047,7 +1047,7 @@ namespace CoreIR {
     cout << "Cannot print node " << g.getNode(vd).getWire()->toString() << endl;
     assert(false);
   }
-  
+
   //std::vector<std::string>
   void
   printSIMDGroup(const SIMDGroup& group,
@@ -1145,7 +1145,7 @@ namespace CoreIR {
     }
 
     return true;
-    
+
   }
 
   string printSimFunctionBody(const std::deque<vdisc>& topoOrder,
@@ -1169,7 +1169,7 @@ namespace CoreIR {
 
     paths.postSequentialDAGs =
       pruneSequentialSinks(paths.postSequentialDAGs, g);
-    
+
     if (clk != nullptr) {
       InstanceValue clkInst(clk);
 
@@ -1237,13 +1237,13 @@ namespace CoreIR {
             }
           }
         }
-        
+
         LowProgram clkProg;
         for (auto& group : topologicalSort(updateOrder)) {
           addDAGCode(updateOrder.getNode(group), g, mod, layoutPolicy, clkProg);
         }
         simLines.push_back(clkProg.cString());
-        
+
       } else {
 
         vector<CodeGroup> codeGroups;
@@ -1256,7 +1256,7 @@ namespace CoreIR {
 
         concat(allUpdates, paths.postSequentialDAGs);
         concat(allUpdates, paths.preSequentialDAGs);
-      
+
         allUpdates = deleteDuplicates(allUpdates);
 
         codeGroups.push_back({allUpdates, true});
@@ -1275,7 +1275,7 @@ namespace CoreIR {
       addDAGCode({paths.postSequentialAlwaysDAGs, false},
                  g, mod, layoutPolicy, postProg);
       simLines.push_back(postProg.cString());
-      
+
     }
 
     simLines.push_back("\n// ----- Update pure combinational logic\n");
@@ -1285,7 +1285,7 @@ namespace CoreIR {
                g, mod, layoutPolicy, combProg);
     simLines.push_back(combProg.cString());
 
-    
+
     simLines.push_back("\n// ----- Done\n");
 
     if (clk != nullptr) {
@@ -1300,7 +1300,7 @@ namespace CoreIR {
 
       delete clkUpdate;
     }
-    
+
     cout << "Done writing sim lines, now need to concatenate them" << endl;
 
     for (auto& ln : simLines) {

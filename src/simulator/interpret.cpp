@@ -21,10 +21,10 @@ namespace CoreIR {
     for (int i = 23 - 7; i < 23; i++) {
       bRes.set(i - (23 - 7), longRes.get(i));
     }
-    
+
     return bRes;
   }
-  
+
   BitVector extendBfloat(const BitVector& r) {
     assert(r.bitLength() == 16);
 
@@ -54,7 +54,7 @@ namespace CoreIR {
 
     return res;
   }
-  
+
   int bitCastToInt(float val) {
     float* valPtr = &val;
     void* vPtr = (void*) valPtr;
@@ -68,7 +68,7 @@ namespace CoreIR {
     float* iPtr = (float*) vPtr;
     return *iPtr;
   }
-  
+
   int bitsToIndex(const int depth) {
     return ceil(log2(depth)) + 1;
   }
@@ -89,14 +89,14 @@ namespace CoreIR {
 
     auto it = values.find(bv);
 
-    
+
     if (it == std::end(values)) {
       return BitVec(width, 0);
     }
 
     return it->second;
   }
-  
+
   ClockValue* toClock(SimValue* val) {
     assert(val->getType() == SIM_VALUE_CLK);
 
@@ -135,7 +135,7 @@ namespace CoreIR {
         // Set memory output port to default
         setRegister(inst->toString(), initVal);
         setValue(inst->sel("out"), getRegister(inst->toString()));
-        
+
       }
     }
 
@@ -157,7 +157,7 @@ namespace CoreIR {
   SimulatorState::numCircStates() const {
     return circStates.size();
   }
-  
+
   int SimulatorState::getStateIndex() const {
     return stateIndex;
   }
@@ -173,7 +173,7 @@ namespace CoreIR {
         Values args = inst->getModuleRef()->getGenArgs();
         uint width = (args["width"])->get<int>();
         uint depth = (args["depth"])->get<int>();
-        
+
 
         // Set memory state to default value
         Values params = inst->getModArgs();
@@ -191,7 +191,7 @@ namespace CoreIR {
             BitVector valueBv = BitVector(width, stoi(v));
             BitVector addrBv(ceil(log2(depth)), numVals);
 
-            //cout << "AddrBv  = " << addrBv << endl;            
+            //cout << "AddrBv  = " << addrBv << endl;
             //cout << "Valuebv = " << valueBv << endl;
 
             freshMem.setAddr(addrBv, valueBv);
@@ -252,7 +252,7 @@ namespace CoreIR {
   void SimulatorState::setMainClock(CoreIR::Select* s) {
     mainClock = s;
   }
-  
+
   void SimulatorState::setMainClock(const std::vector<std::string>& path) {
     std::string name = concatInlined(path);
     setMainClock(name);
@@ -362,13 +362,13 @@ namespace CoreIR {
 
     return final;
   }
-  
+
   SimValue* SimulatorState::getValue(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
 
     return getValue(concatName);
   }
-  
+
   BitVec SimulatorState::getBitVec(const std::vector<std::string>& str)  {
     string concatName = concatInlined(str);
 
@@ -465,7 +465,7 @@ namespace CoreIR {
 
     return getQualifiedOpName(*inst);
   }
-  
+
   void SimulatorState::initializeState(CoreIR::Module* mod_,
                                        std::map<std::string, SimModelBuilder>& pluginBuilders) {
     assert(mod->hasDef());
@@ -486,15 +486,17 @@ namespace CoreIR {
     vector<vdisc> pluginReceivers;
     vector<vdisc> pluginSources;
     vector<vdisc> pluginNodes;
-    
+
     for (auto vd : order) {
       WireNode wireNode = gr.getNode(vd);
       Wireable* wd = wireNode.getWire();
       if (isSequentialPlugin(wd, pluginBuilders)) {
         if (wireNode.isReceiver) {
           pluginReceivers.push_back(vd);
+          //cout << "\tPush wire in to rcv: " << wd->toString() << endl;
         } else {
-          pluginSources.push_back(vd);          
+          pluginSources.push_back(vd);
+          //cout << "\tPush wire in to src: " << wd->toString() << endl;
         }
 
         pluginNodes.push_back(vd);
@@ -518,16 +520,21 @@ namespace CoreIR {
       rcvToSrc[rcv] = srcV;
     }
 
+    // Set initial state of the circuit
+    CircuitState init;
+    circStates = {init};
+    stateIndex = 0;
+
     for (auto vdPair : rcvToSrc) {
       vdisc receiver = vdPair.first;
       vdisc source = vdPair.second;
 
       WireNode srcNode = gr.getNode(source);
-      
+
       string instName = getQualifiedOpNameWire(srcNode.getWire());
-      
+
       assert(contains_key(instName, pluginBuilders));
-      
+
       WireNode wd = gr.getNode(source);
       SimulatorPlugin* plugin =
         pluginBuilders[instName](wd);
@@ -546,11 +553,6 @@ namespace CoreIR {
       hasCombinationalLoop = true;
     }
 
-    // Set initial state of the circuit
-    CircuitState init;
-    circStates = {init};
-    stateIndex = 0;
-
     findMainClock();
 
     setConstantDefaults();
@@ -559,7 +561,7 @@ namespace CoreIR {
     setDFFDefaults();
     setInputDefaults();
     setNodeDefaults();
-    
+
   }
 
   SimulatorState::SimulatorState(CoreIR::Module* mod_,
@@ -572,13 +574,13 @@ namespace CoreIR {
 
   SimulatorState::SimulatorState(CoreIR::Module* mod_) :
     mod(mod_), mainClock(nullptr) {
-    
+
     std::map<std::string, SimModelBuilder> pluginBuilders;
     initializeState(mod, pluginBuilders);
   }
-  
+
   void SimulatorState::setInputDefaults() {
-    
+
   }
 
   void SimulatorState::setValue(const std::vector<std::string>& name,
@@ -594,7 +596,7 @@ namespace CoreIR {
 
     assert(atLastState());
 
-    SimBitVector* b = makeSimBitVector(bv);    
+    SimBitVector* b = makeSimBitVector(bv);
     setValue(sel, b);
   }
 
@@ -606,7 +608,7 @@ namespace CoreIR {
     return s;
   }
 
-  
+
   void SimulatorState::setValue(const std::string& name, const BitVec& bv) {
     ModuleDef* def = mod->getDef();
 
@@ -676,8 +678,8 @@ namespace CoreIR {
     assert(mod->getDef()->canSel(sel->toString()));
 
     auto it = circStates[stateIndex].valMap.find(sel);
-
     if (it == std::end(circStates[stateIndex].valMap)) {
+      std::cout << "DEBUG:" << *sel << " not found." << std::endl;
       assert(false);
     }
 
@@ -686,7 +688,7 @@ namespace CoreIR {
 
   void SimulatorState::updateSliceNode(const vdisc vd) {
     updateInputs(vd);
-    
+
     WireNode wd = gr.getNode(vd);
     Instance* inst = toInstance(wd.getWire());
     Select* argSel = inst->sel("in");
@@ -694,7 +696,7 @@ namespace CoreIR {
     BitVector sB = getBitVec(argSel);
     // ASSERT(isSet(argSel), "in must have a value to evaluate this node");
     // SimBitVector* s1 = static_cast<SimBitVector*>(getValue(argSel));
-    
+
     // assert(s1 != nullptr);
 
     Values args = inst->getModuleRef()->getGenArgs();
@@ -727,9 +729,9 @@ namespace CoreIR {
     ASSERT(isSet(inSel), "in must have a value to evaluate this node");
 
     SimBitVector* s1 = static_cast<SimBitVector*>(getValue(inSel));
-    
+
     assert(s1 != nullptr);
-    
+
     BitVec res(1, 1);
     BitVec sB = s1->getBits();
     for (int i = 0; i < sB.bitLength(); i++) {
@@ -761,9 +763,9 @@ namespace CoreIR {
     ASSERT(isSet(inSel), "in must have a value to evaluate this node");
 
     SimBitVector* s1 = static_cast<SimBitVector*>(getValue(inSel));
-    
+
     assert(s1 != nullptr);
-    
+
     BitVec res(1, 0);
     BitVec sB = s1->getBits();
     for (int i = 0; i < sB.bitLength(); i++) {
@@ -785,7 +787,7 @@ namespace CoreIR {
 
     Select* arg1 = inst->sel("in");
     BitVector bv1 = getBitVec(arg1);
-    
+
     BitVec res = op(bv1);
 
     setValue(outSel, makeSimBitVector(res));
@@ -814,7 +816,7 @@ namespace CoreIR {
 
     Select* arg1 = inst->sel("in0");
     BitVector bv1 = getBitVec(arg1);
-    
+
     Select* arg2 = inst->sel("in1");
     BitVector bv2 = getBitVec(arg2);
 
@@ -852,7 +854,7 @@ namespace CoreIR {
 
 
   }
-  
+
   void SimulatorState::updateConcatNode(const vdisc vd) {
     updateBitVecBinop(vd, [](const BitVec& s0Bits, const BitVec& s1Bits) {
         BitVec conc(s0Bits.bitLength() + s1Bits.bitLength());
@@ -870,12 +872,12 @@ namespace CoreIR {
 
 
   }
-  
+
   void SimulatorState::updateAddNode(const vdisc vd) {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return add_general_width_bv(l, r);
       });
-    
+
   }
 
   void SimulatorState::updateMuxNode(const vdisc vd) {
@@ -893,15 +895,15 @@ namespace CoreIR {
 
     Select* arg1 = inst->sel("in0");
     BitVector bv1 = getBitVec(arg1);
-    
+
     Select* arg2 = inst->sel("in1");
     BitVector bv2 = getBitVec(arg2);
 
     Select* sel = inst->sel("sel");
     BitVector selB = getBitVec(sel);
-    
+
     BitVec sum(bv1.bitLength());
-    
+
     if (selB == BitVec(1, 0)) {
       sum = bv1;
     } else {
@@ -916,9 +918,9 @@ namespace CoreIR {
     updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
         return l | r;
       });
-    
+
   }
-  
+
   void SimulatorState::updateOutput(const vdisc vd) {
     WireNode wd = gr.getNode(vd);
 
@@ -944,7 +946,7 @@ namespace CoreIR {
 
       setValue(receiverSel, makeSimBitVector(s->getBits()));
     }
-    
+
   }
 
   void SimulatorState::updateZextNode(const vdisc vd) {
@@ -956,7 +958,7 @@ namespace CoreIR {
 
     uint inWidth = inst->getModuleRef()->getGenArgs().at("width_in")->get<int>();
     uint outWidth = inst->getModuleRef()->getGenArgs().at("width_out")->get<int>();
-    
+
     auto outSelects = getOutputSelects(inst);
 
     assert(outSelects.size() == 1);
@@ -965,7 +967,7 @@ namespace CoreIR {
 
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 1);
-    
+
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     BitVector bv1 = getBitVec(arg1); //s1->getBits();
 
@@ -996,10 +998,10 @@ namespace CoreIR {
 
     auto inSels = getInputSelects(inst);
     assert(inSels.size() == 1);
-    
+
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     BitVector bv1 = getBitVec(arg1); //s1->getBits();
-    
+
     Values genArgs = inst->getModuleRef()->getGenArgs();
 
     int width = genArgs["N"]->get<int>();
@@ -1012,7 +1014,7 @@ namespace CoreIR {
 
     bv_uint64 i = get_shift_int(bv1); //get_shift_int(s1->getBits());
     unsigned char lutBit = vals.get(i).binary_value();
-    
+
     setValue(toSelect(outPair.second), makeSimBitVector(BitVector(1, lutBit)));
   }
 
@@ -1123,7 +1125,7 @@ namespace CoreIR {
             return BitVec(1, 0);
           }
         });
-      
+
     } else if (opName == "coreir.uge") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
           if ((l > r) || (l == r)) {
@@ -1197,7 +1199,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(l.bitLength());
           }
-          
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1214,7 +1216,7 @@ namespace CoreIR {
 
             return BitVec(l.bitLength(), resI);
 
-            
+
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1250,9 +1252,9 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(l.bitLength());
           }
-          
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
-            
+
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
 
@@ -1268,7 +1270,7 @@ namespace CoreIR {
 
             return BitVec(l.bitLength(), resI);
 
-            
+
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1307,8 +1309,8 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(l.bitLength());
           }
-      
-          
+
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1322,7 +1324,7 @@ namespace CoreIR {
 
             return BitVec(l.bitLength(), resI);
 
-            
+
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1358,7 +1360,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(l.bitLength());
           }
-      
+
 
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
@@ -1373,7 +1375,7 @@ namespace CoreIR {
 
             return BitVec(l.bitLength(), resI);
 
-            
+
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1408,10 +1410,10 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(1);
           }
-          
+
           return BitVector(1, l == r);
         });
-      
+
     } else if (opName == "float.neq") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 
@@ -1419,7 +1421,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(1);
           }
-          
+
           return BitVector(1, l != r);
         });
     } else if (opName == "float.gt") {
@@ -1429,7 +1431,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(1);
           }
-          
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1437,7 +1439,7 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            return BitVector(1, lf > rf);            
+            return BitVector(1, lf > rf);
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1462,7 +1464,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(1);
           }
-          
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1470,7 +1472,7 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            return BitVector(1, lf >= rf);            
+            return BitVector(1, lf >= rf);
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1488,7 +1490,7 @@ namespace CoreIR {
           }
 
         });
-      
+
     } else if (opName == "float.lt") {
       updateBitVecBinop(vd, [](const BitVec& l, const BitVec& r) {
 
@@ -1496,7 +1498,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(1);
           }
-          
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1504,7 +1506,7 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            return BitVector(1, lf < rf);            
+            return BitVector(1, lf < rf);
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1529,7 +1531,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(1);
           }
-          
+
           if ((l.bitLength() == 32) && (r.bitLength() == 32)) {
             int lv = l.to_type<int>();
             int rv = r.to_type<int>();
@@ -1537,7 +1539,7 @@ namespace CoreIR {
             float lf = bitCastToFloat(lv);
             float rf = bitCastToFloat(rv);
 
-            return BitVector(1, lf <= rf);            
+            return BitVector(1, lf <= rf);
           } else {
             assert(l.bitLength() == 16);
             assert(r.bitLength() == 16);
@@ -1555,7 +1557,7 @@ namespace CoreIR {
           }
 
         });
-      
+
     } else if (opName == "float.neg") {
       updateBitVecUnop(vd, [](const BitVec& l) {
 
@@ -1563,7 +1565,7 @@ namespace CoreIR {
             // Undefined value
             return bsim::unknown_bv(l.bitLength());
           }
-          
+
           if ((l.bitLength() == 32)) {
             int lv = l.to_type<int>();
             float lf = bitCastToFloat(lv);
@@ -1572,7 +1574,7 @@ namespace CoreIR {
 
             BitVector longRes = BitVec(32, resI);
             return longRes;
-            
+
           } else {
             assert(l.bitLength() == 16);
 
@@ -1589,9 +1591,12 @@ namespace CoreIR {
           }
 
         });
-      
+
     } else if (contains_key(vd, plugMods) && wd.isReceiver) {
-      // Ignore, updates already done in caller of this function
+      // Second pass to propagate the value in topological sort,
+      // Although updates already done in caller of this function
+      auto plugin = map_find(vd, plugMods);
+      plugin->exeCombinational(vd, *this);
     } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
       // Ignore sequential node
     } else {
@@ -1614,7 +1619,7 @@ namespace CoreIR {
     BitVec newRData = getMemory(inst->toString(), raddrBits);
 
     setValue(inst->sel("rdata"), makeSimBitVector(newRData));
-    
+
   }
 
   void SimulatorState::setNodeDefaults() {
@@ -1655,7 +1660,7 @@ namespace CoreIR {
   void SimulatorState::updateDFFValue(const vdisc vd) {
     updateRegisterValue(vd);
   }
-  
+
   void SimulatorState::updateRegisterOutput(const vdisc vd) {
 
     WireNode wd = gr.getNode(vd);
@@ -1687,7 +1692,7 @@ namespace CoreIR {
     Select* wdataV = inst->sel("wdata");
     Select* clkArg = inst->sel("clk");
     Select* enArg = inst->sel("wen");
-    
+
 
     // SimBitVector* waddr = static_cast<SimBitVector*>(getValue(waddrV.getWire()));
     // SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV.getWire()));
@@ -1698,7 +1703,7 @@ namespace CoreIR {
     SimBitVector* wdata = static_cast<SimBitVector*>(getValue(wdataV));
     SimBitVector* wen = static_cast<SimBitVector*>(getValue(enArg));
     ClockValue* clkVal = toClock(getValue(clkArg));
-    
+
     assert(waddr != nullptr);
     assert(wdata != nullptr);
     assert(wen != nullptr);
@@ -1751,7 +1756,7 @@ namespace CoreIR {
       // Set dummy value for initilization
       bv1 = BitVector(width, 0);
     }
-    
+
     //auto inConns = getInputConnections(vd, gr);
 
     //assert(inSels.size() >= 2);
@@ -1760,7 +1765,7 @@ namespace CoreIR {
     Select* clkArg = inst->sel("clk");
     //ClockValue* clkVal = toClock(getValue(clkArg.getWire()));
     ClockValue* clkVal = toClock(getValue(clkArg));
-    
+
     assert(clkVal != nullptr);
 
     if ((clkVal->lastValue() == 0) &&
@@ -1841,7 +1846,7 @@ namespace CoreIR {
       if (isDFFInstance(wd.getWire()) && wd.isReceiver) {
         updateDFFValue(vd);
       }
-      
+
     }
 
   }
@@ -1851,6 +1856,7 @@ namespace CoreIR {
       // Update sequential element outputs
       for (auto& vd : gr.getVerts()) {
         WireNode wd = gr.getNode(vd);
+        //cout << "\tGet node: " << wd.getWire()->toString() << endl;
 
         if (isMemoryInstance(wd.getWire()) && !wd.isReceiver) {
           // Does this work when the raddr port is not yet defined?
@@ -1869,7 +1875,7 @@ namespace CoreIR {
           auto plugin = map_find(vd, plugMods);
           plugin->exeCombinational(vd, *this);
         }
-        
+
       }
 
       if (!hasCombinationalLoop) {
@@ -1986,7 +1992,7 @@ namespace CoreIR {
     setClock(s, clk_last, clk);
 
   }
-  
+
   void SimulatorState::setClock(CoreIR::Select* sel,
                                 const unsigned char clkLast,
                                 const unsigned char clk) {
@@ -2031,7 +2037,7 @@ namespace CoreIR {
       BitVector bits = bv->getBits();
 
       assert(bits.bitLength() == 1);
-      
+
       Select* parent = toSelect(sel->getParent());
       int arrLen = arrayLen(parent);
 
@@ -2123,7 +2129,7 @@ namespace CoreIR {
 
   SimValue*
   SimulatorState::getValueByOriginalName(const std::string& name) {
-    
+
     SimValue* val = getValue(name);
 
     // Case 1: The value being requested exists in the simulator code
@@ -2219,7 +2225,7 @@ namespace CoreIR {
     for (auto p : plugs) {
       delete p;
     }
-    
+
   }
 
 }
