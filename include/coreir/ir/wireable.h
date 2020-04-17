@@ -10,7 +10,7 @@ class InstanceGraphNode;
 
 class Wireable : public MetaData {
   public:
-    enum WireableKind {WK_Interface,WK_Instance,WK_Select};
+    enum WireableKind {WK_Interface,WK_Instance,WK_Select,WK_InstanceSelect};
 
   protected :
     WireableKind kind;
@@ -121,19 +121,54 @@ class Instance : public Wireable {
     void replace(Module* moduleRef, Values modargs=Values());
     //void replace(Generator* generatorRef, Values genargs, Values modargs=Values());
   
+    bool canSel(std::string);
+    bool canSel(SelectPath);
+
+    using Wireable::sel;  // for overloaded sel
+    Select* sel(const std::string&);
+  
   friend class InstanceGraphNode;
 };
 
 class Select : public Wireable {
-  protected :
+   protected:
     Wireable* parent;
     std::string selStr;
-  public :
-    Select(ModuleDef* container, Wireable* parent, std::string selStr, Type* type) : Wireable(WK_Select,container,type), parent(parent), selStr(selStr) {}
-    static bool classof(const Wireable* w) {return w->getKind()==WK_Select;}
+
+   public:
+    Select(ModuleDef* container, Wireable* parent, std::string selStr,
+           Type* type)
+        : Select(WK_Select, container, parent, selStr, type) {}
+    // Accept kind as first argument so child class can override
+    Select(WireableKind wireable_kind, ModuleDef* container, Wireable* parent,
+           std::string selStr, Type* type)
+        : Wireable(wireable_kind, container, type),
+          parent(parent),
+          selStr(selStr) {}
+    static bool classof(const Wireable* w) { return w->getKind() == WK_Select; }
     std::string toString() const;
     Wireable* getParent() { return parent; }
     const std::string& getSelStr() { return selStr; }
+};
+
+class InstanceSelect : public Select {
+   private:
+    Wireable* wrapped_wireable;
+
+   public:
+    InstanceSelect(ModuleDef* container, Wireable* parent, std::string selStr,
+                   Wireable* wrapped_wireable)
+        : Select(WK_InstanceSelect, container, parent, selStr, wrapped_wireable->getType()),
+          wrapped_wireable(wrapped_wireable) {}
+    static bool classof(const Wireable* w) {
+        return w->getKind() == WK_InstanceSelect;
+    }
+
+    bool canSel(std::string);
+    bool canSel(SelectPath);
+
+    using Wireable::sel;  // for overloaded sel
+    Select* sel(const std::string&);
 };
 
 }//CoreIR namespace

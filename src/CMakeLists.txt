@@ -7,8 +7,26 @@ file(GLOB SRC_FILES
 )
 
 #Create libcoreir
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+
 set(CMAKE_MACOSX_RPATH 1)
-set(CMAKE_INSTALL_RPATH "${LIBRARY_OUTPUT_PATH}")
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
+# the RPATH to be used when installing, but only if it's not a system directory
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+ENDIF("${isSystemDir}" STREQUAL "-1")
 
 if (STATIC)
     add_library(coreir STATIC ${SRC_FILES})
@@ -18,6 +36,7 @@ endif()
 
 target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
+target_link_libraries(coreir verilogAST)
 
 #Install libcoreir
 install(
@@ -30,6 +49,22 @@ add_custom_command(
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy "$<TARGET_FILE:coreir>" "${CMAKE_SOURCE_DIR}/lib/"
   COMMENT "Copying to lib/"
+)
+
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/lib/libverilogAST${CMAKE_SHARED_LIBRARY_SUFFIX}" "${CMAKE_SOURCE_DIR}/lib/"
+  COMMENT "Copying libverilogAST"
+)
+
+install(FILES "${CMAKE_SOURCE_DIR}/lib/libverilogAST${CMAKE_SHARED_LIBRARY_SUFFIX}" DESTINATION lib)
+
+add_custom_command(
+  TARGET coreir
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_BINARY_DIR}/verilogAST-src/include/verilogAST.hpp" "${CMAKE_SOURCE_DIR}/include/"
+  COMMENT "Copying verilogAST.hpp"
 )
 
 #Create coreir executable

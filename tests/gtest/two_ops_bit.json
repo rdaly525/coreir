@@ -1,0 +1,53 @@
+{"top":"global.Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Top":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["I1","BitIn"],
+          ["I2","BitIn"],
+          ["I3","BitIn"],
+          ["O","Bit"],
+          ["O1","Bit"]
+        ]],
+        "instances":{
+          "bit_const_1_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",true]}
+          },
+          "magma_Bit_and_inst0":{
+            "modref":"corebit.and"
+          },
+          "magma_Bit_not_inst0":{
+            "modref":"corebit.not"
+          },
+          "magma_Bit_or_inst0":{
+            "modref":"corebit.or"
+          },
+          "magma_Bit_xor_inst0":{
+            "modref":"corebit.xor"
+          },
+          "test_mux":{
+            "modref":"corebit.mux"
+          }
+        },
+        "connections":[
+          ["magma_Bit_and_inst0.in1","bit_const_1_None.out"],
+          ["magma_Bit_not_inst0.out","magma_Bit_and_inst0.in0"],
+          ["magma_Bit_or_inst0.in1","magma_Bit_and_inst0.out"],
+          ["self.I","magma_Bit_not_inst0.in"],
+          ["magma_Bit_xor_inst0.out","magma_Bit_or_inst0.in0"],
+          ["self.O","magma_Bit_or_inst0.out"],
+          ["self.I","magma_Bit_xor_inst0.in0"],
+          ["self.I","magma_Bit_xor_inst0.in1"],
+          ["self.I1","test_mux.in0"],
+          ["self.I2","test_mux.in1"],
+          ["self.I3","test_mux.sel"],
+          ["self.O1","test_mux.out"]
+        ]
+      }
+    }
+  }
+}
+}

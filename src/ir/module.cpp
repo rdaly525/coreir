@@ -120,5 +120,26 @@ void Module::print(void) const {
   if(def) def->print();
 
 }
+bool Module::hasVerilogDef() {
+  if (this->getMetaData().count("inline_verilog")) {
+    return true;
+  }
+  if (this->getMetaData().count("verilog") > 0) {
+    return true;
+  }
+  if (this->isGenerated() &&
+      this->getGenerator()->getMetaData().count("verilog") > 0) {
+    return true;
+  }
+  return false;
+}
+
+bool Module::canSel(std::string sel_str) {
+    return this->hasDef() && this->getDef()->canSel(sel_str);
+}
+
+bool Module::canSel(SelectPath sel_path) {
+    return this->hasDef() && this->getDef()->canSel(sel_path);
+}
 
 }//CoreIR namespace

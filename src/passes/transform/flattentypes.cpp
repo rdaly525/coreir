@@ -1,6 +1,7 @@
 
 #include "coreir.h"
 #include "coreir/passes/transform/flattentypes.h"
+#include "coreir/common/logging_lite.hpp"
 #include <set>
 
 using namespace std;
@@ -62,14 +63,6 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   //If it is a generator or has no def:
   //Make sure all instances already have flat types
-  if (!mod->hasDef()) {
-    for (auto rpair : mod->getType()->getRecord()) {
-      ASSERT(isBitOrArrOfBits(rpair.second),
-      "NYI flatten types of generator or nodef module\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString()); 
-    }
-  }
- 
-  ModuleDef* def = mod->getDef();
   
   //Get a list of all the correct ports necessary. 
   vector<std::pair<SelectPath,Type*>> ports;
@@ -79,6 +72,13 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Early out if no new ports
   if (ports.size()==0) return false;
 
+  json symbol_table;
+  if (!mod->getMetaData().count("symbol_table")) {
+    symbol_table = json::object();
+  } else {
+    symbol_table = mod->getMetaData()["symbol_table"];
+  }
+
   //Create a list of new names for the ports
   vector<std::pair<string,Type*>> newports;
   unordered_set<string> verifyUnique;
@@ -87,7 +87,10 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
     ASSERT(verifyUnique.count(newport)==0,"NYI: Name clashes");
     newports.push_back({newport,portpair.second});
     verifyUnique.insert(newport);
+    symbol_table["self." + toString(portpair.first)] = "self." + newport;
   }
+
+  mod->getMetaData()["symbol_table"] = symbol_table;
 
   //Append new ports to this module (should not affect any connections)
   for (auto newportpair : newports) {
@@ -99,7 +102,19 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   //Now the fun part.
   //Get a list of interface + instances
   vector<Wireable*> work;
-  work.push_back(def->getInterface());
+
+  if (mod->hasDef()) {
+      ModuleDef* def = mod->getDef();
+      work.push_back(def->getInterface());
+  } else {
+    for (auto rpair : mod->getType()->getRecord()) {	
+        if (!isBitOrArrOfBits(rpair.second)) {
+            LOG(WARN) << "WARNING: Flattening type of generator or module with no definition, assumes definition follows the flatten types scheme, see https://github.com/rdaly525/coreir/issues/800 for more info\n{"+mod->getRefName()+"}."+rpair.first + " Is not a flattened type!\n  Type is: " + rpair.second->toString();
+            break;  // only issue warning once
+        }	
+    }
+  }
+ 
   for (auto inst : node.getInstanceList()) {
     work.push_back(inst);
   }

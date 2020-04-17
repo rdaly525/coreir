@@ -28,24 +28,26 @@ Wireable::~Wireable() {
 }
 
 Select* Wireable::sel(const std::string& selStr) {
-  if (selects.count(selStr)) {
-    return selects[selStr];
-  }
-  ASSERT(type->canSel(selStr),"Cannot select " + selStr + " From " + this->toString() + "\n  Type: " + type->toString());
-
-  Select* select = new Select(this->getContainer(),this,selStr, type->sel(selStr));
-
-  selects[selStr] = select;
-
-  return select;
+    if (selects.count(selStr)) {
+        return selects[selStr];
+    }
+    ASSERT(type->canSel(selStr), 
+           "Cannot select " + selStr + " From " + this->toString() + 
+           "\n  Type: " + type->toString());
+    Select* select =
+        new Select(this->getContainer(), this, selStr, type->sel(selStr));
+    selects[selStr] = select;
+    return select;
 }
 
 Select* Wireable::sel(uint selStr) { return sel(to_string(selStr)); }
 
 Select* Wireable::sel(const SelectPath& path) {
-  Wireable* ret = this;
-  for (auto selstr : path) ret = ret->sel(selstr);
-  return cast<Select>(ret);
+    Wireable* ret = this;
+    for (auto selstr : path) {
+        ret = ret->sel(selstr);
+    }
+    return cast<Select>(ret);
 }
 
 Select* Wireable::sel(std::initializer_list<const char*> path) {
@@ -116,7 +118,13 @@ void Wireable::removeSel(string selStr) {
 SelectPath& Wireable::getSelectPath() {
   if (selectpath.size()==0) {
     Wireable* top = this;
-    while(auto s = dyn_cast<Select>(top)) {
+    while (isa<Select>(top) || isa<InstanceSelect>(top)) {
+      Select* s;
+      if (isa<Select>(top)) {
+          s = cast<Select>(top);
+      } else {
+          s = cast<InstanceSelect>(top);
+      }
       selectpath.push_front(s->getSelStr());
       top = s->getParent();
     }
@@ -139,6 +147,7 @@ string Wireable::wireableKind2Str(WireableKind wb) {
     case WK_Interface: return "Interface";
     case WK_Instance: return "Instance";
     case WK_Select: return "Select";
+    case WK_InstanceSelect: return "InstanceSelect";
   }
   ASSERT(false,"Unknown WireableKind: " + to_string(wb));
 }
@@ -203,8 +212,14 @@ LocalConnections Wireable::getLocalConnections() {
 
 Wireable* Wireable::getTopParent() {
   Wireable* top = this;
-  while (auto wsel = dyn_cast<Select>(top)) {
-    top = wsel->getParent();
+  while (isa<Select>(top) || isa<InstanceSelect>(top)) {
+      Select* s;
+      if (isa<Select>(top)) {
+          s = cast<Select>(top);
+      } else {
+          s = cast<InstanceSelect>(top);
+      }
+      top = s->getParent();
   }
   return top;
 }
@@ -240,6 +255,51 @@ void Instance::replace(Module* moduleRef, Values modargs) {
   this->moduleRef = moduleRef;
   this->modargs = modargs;
   checkValuesAreParams(modargs,moduleRef->getModParams(),this->getInstname());
+}
+
+bool Instance::canSel(string selstr) {
+  return Wireable::canSel(selstr) || this->getModuleRef()->canSel(selstr);
+}
+
+bool Instance::canSel(SelectPath path) {
+  return Wireable::canSel(path) || this->getModuleRef()->canSel(path);
+}
+
+Select* Instance::sel(const std::string& selStr) {
+    if (selects.count(selStr)) {
+        return selects[selStr];
+    }
+    // Prefixed with ";" for instance select
+    if (selStr[0] == ';') {
+        Wireable* sel = this->getModuleRef()->getDef()->sel(selStr.substr(1));
+        InstanceSelect* instance_select = new InstanceSelect(
+            this->getContainer(), this, selStr, sel);
+        selects[selStr] = instance_select;
+        return selects[selStr];
+    }
+    return Wireable::sel(selStr);
+}
+
+bool InstanceSelect::canSel(string selstr) {
+  return Wireable::canSel(selstr) || this->wrapped_wireable->canSel(selstr);
+}
+
+bool InstanceSelect::canSel(SelectPath path) {
+  return Wireable::canSel(path) || this->wrapped_wireable->canSel(path);
+}
+
+Select* InstanceSelect::sel(const std::string& selStr) {
+    if (selects.count(selStr)) {
+        return selects[selStr];
+    }
+    if (this->wrapped_wireable->canSel(selStr)) {
+        Wireable* sel = this->wrapped_wireable->sel(selStr);
+        InstanceSelect* instance_select = new InstanceSelect(
+            this->getContainer(), this, selStr, sel);
+        selects[selStr] = instance_select;
+        return selects[selStr];
+    }
+    return Wireable::sel(selStr);
 }
 
 string Select::toString() const {

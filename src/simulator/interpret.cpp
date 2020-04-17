@@ -7,6 +7,26 @@ using namespace std;
 
 namespace CoreIR {
 
+  BitVector BfloatRoundToNearestEven(const BitVector& val) {
+    assert(val.bitLength() == 32);
+
+    auto half = BitVector(32, 0x00008000);
+    auto sum = add_general_width_bv(half, val);
+    auto mantissa_mask = BitVector(32, 0x0000ffff);
+    bool zeroed = (sum & mantissa_mask) == 0;
+
+    auto clear_mask = ~shl(BitVector(32, zeroed), 16);
+    auto val_shifted = sum & clear_mask;
+
+    BitVector bRes(16, 0);
+
+    for (int i = 0; i<16; ++i) {
+      bRes.set(i, val_shifted.get(i+16));
+    }
+
+    return bRes;
+  }
+
   BitVector truncateToBfloat(const BitVector& longRes) {
     assert(longRes.bitLength() == 32);
 
@@ -179,7 +199,17 @@ namespace CoreIR {
         Values params = inst->getModArgs();
         SimMemory freshMem(width, depth);
         if (contains_key(string("init"), params)) {
-          Json ramValues = params["init"]->get<Json>();
+
+
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has init params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
+
+          Json ramValues = params["init"]->get<Json>()["init"];
+          cout << "Memory params are " << ramValues << endl;
           int numVals = 0;
           for (auto val : ramValues) {
             //cout << val << endl;
@@ -187,18 +217,25 @@ namespace CoreIR {
             // string str = valstr.substr(4);
             // cout << "truncated = " << str << endl;
             // BitVector valueBv = hexStringToBitVector(str);
-            string v = val;
-            BitVector valueBv = BitVector(width, stoi(v));
+            //string v = val;
+            //BitVector valueBv = BitVector(width, stoi(v));
             BitVector addrBv(ceil(log2(depth)), numVals);
 
-            //cout << "AddrBv  = " << addrBv << endl;
-            //cout << "Valuebv = " << valueBv << endl;
+            int v = val;
+            BitVector valueBv = BitVector(width, v);
 
             freshMem.setAddr(addrBv, valueBv);
             numVals++;
           }
 
           assert(((int) numVals) == ((int) depth));
+        } else {
+          //Instance* inst = static_cast<Instance*>(wd.getWire());
+          //cout << "Memory node " << inst->getInstname() << " has no params" << endl;
+          //cout << "Its params size = " << params.size()  << endl;
+          //for (auto p : params) {
+            //cout << "\t" << p.first << endl;
+          //}
         }
 
         circStates[stateIndex].memories.insert({inst->toString(), freshMem});
@@ -1075,7 +1112,7 @@ namespace CoreIR {
         });
     } else if ((opName == "coreir.const") || (opName == "corebit.const")) {
     } else if (opName == "corebit.term") {
-    } else if ((opName == "coreir.reg") || (opName == "corebit.reg")) {
+    } else if ((opName == "coreir.reg") || (opName == "corebit.reg") || (opName == "coreir.reg_arst")) {
     } else if ((opName == "coreir.mem") || (opName == "memory.rowbuffer")) {
     } else if ((opName == "coreir.mux")  || (opName == "corebit.mux")) {
       updateMuxNode(vd);
@@ -1242,7 +1279,7 @@ namespace CoreIR {
             //cout << "res = " << res << endl;
             //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
         });
@@ -1296,7 +1333,7 @@ namespace CoreIR {
            //cout << "res = " << res << endl;
            //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
@@ -1347,7 +1384,7 @@ namespace CoreIR {
            //cout << "res = " << res << endl;
            //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
@@ -1398,7 +1435,7 @@ namespace CoreIR {
             //cout << "res = " << res << endl;
             //cout << "32 bit result before rounding = " << longRes << endl;
 
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
@@ -1586,7 +1623,7 @@ namespace CoreIR {
             int resI = bitCastToInt(res);
 
             BitVector longRes = BitVec(32, resI);
-            BitVector bfloatRes = truncateToBfloat(longRes);
+            BitVector bfloatRes = BfloatRoundToNearestEven(longRes);
             return bfloatRes;
           }
 
@@ -1742,7 +1779,8 @@ namespace CoreIR {
     updateInputs(vd);
 
     auto inSels = getInputSelects(inst);
-    ASSERT(inSels.size() == 2, to_string(inSels.size()) + " inSels" + toString(inst));
+    ASSERT(inSels.size() == 2 || inSels.size() == 3,
+           to_string(inSels.size()) + " inSels" + toString(inst));
 
     Select* arg1 = toSelect(CoreIR::findSelect("in", inSels));
     SimBitVector* s1 =
@@ -1759,7 +1797,6 @@ namespace CoreIR {
 
     //auto inConns = getInputConnections(vd, gr);
 
-    //assert(inSels.size() >= 2);
 
     //InstanceValue clkArg = findArg("clk", inConns);
     Select* clkArg = inst->sel("clk");
@@ -1771,30 +1808,26 @@ namespace CoreIR {
     if ((clkVal->lastValue() == 0) &&
         (clkVal->value() == 1)) {
 
-      if (inSels.size() == 2) {
 
         setRegister(inst->toString(), bv1); //s1->getBits());
         ASSERT(same_representation(getRegister(inst->toString()),bv1),inst->toString() + " != " + toString(bv1)); //s1->getBits());
+    }
+    // TODO: For now reset gets priority, should this be the case?
+    if (inst->getModuleRef()->getRefName() == "coreir.reg_arst") {
+      Select* arst = inst->sel("arst");
+      SimBitVector* arstBit = static_cast<SimBitVector*>(getValue(arst));
+      bool posedge = inst->getModArgs().at("arst_posedge")->get<bool>();
+      // TODO: Ideally we'd check the edge, but for now we just use level
+      // since that would require the introduction of a new type (ala
+      // clockvalue)
+      if ((posedge && arstBit->getBits() == BitVec(1, 1)) || (!posedge && arstBit->getBits() == BitVec(1, 0))) {
+        BitVector init = inst->getModArgs().at("init")->get<BitVector>();
+        setRegister(inst->toString(), init);
 
-      } else {
-        assert(inSels.size() == 3);
-
-        //InstanceValue enArg = findArg("en", inConns);
-        Select* enArg = inst->sel("en");
-        //SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg.getWire()));
-        SimBitVector* enBit = static_cast<SimBitVector*>(getValue(enArg));
-
-        assert(enBit != nullptr);
-
-        if (enBit->getBits() == BitVec(1, 1)) {
-
-          setRegister(inst->toString(), bv1);
-
-          assert(same_representation(getRegister(inst->toString()), bv1));
-        }
-
+        assert(same_representation(getRegister(inst->toString()), init));
       }
     }
+
 
   }
 

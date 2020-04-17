@@ -1,0 +1,25 @@
+{"top":"global.Main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Main":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O0","Bit"],
+          ["O1","Bit"]
+        ]],
+        "instances":{
+          "x":{
+            "modref":"corebit.wire"
+          }
+        },
+        "connections":[
+          ["x.in","self.I"],
+          ["x.out","self.O0"],
+          ["x.out","self.O1"]
+        ]
+      }
+    }
+  }
+}
+}
