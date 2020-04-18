@@ -1,4 +1,5 @@
 #include "coreir-c/coreir.h"
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/ir/json.h"
 #include "coreir/passes/analysis/verilog.h"
 #include "coreir/definitions/coreVerilog.hpp"
@@ -112,7 +113,7 @@ extern "C" {
   }
 
 
-  void CORECompileToVerilog(COREContext* ctx,
+  bool CORECompileToVerilog(COREContext* ctx,
                             COREModule* top,
                             char* filename,
                             int num_libs,
@@ -160,13 +161,17 @@ extern "C" {
         product_file_ptr.reset(new std::string(product));
       }
       pass->writeToFiles(output_dir, std::move(product_file_ptr));
-      return;
+      return true;
     }
     // Do not split; write to filename.
     std::string outfile(filename);
     std::ofstream fout(outfile);
-    ASSERT(fout.is_open(),"Cannot open file: " + outfile);
+    if (not fout.is_open()) {
+      LOG(DEBUG) << "Cannot open file '" + outfile + "' to compile to verilog";
+      return false;
+    }
     pass->writeToStream(fout);
+    return true;
   }
 
   bool COREInlineInstance(COREWireable* inst) {
