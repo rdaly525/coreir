@@ -1,4 +1,5 @@
 #include "coreir-c/coreir.h"
+#include "coreir/common/defer.hpp"
 #include "coreir/common/logging_lite.hpp"
 #include "coreir/ir/json.h"
 #include "coreir/passes/analysis/verilog.h"
@@ -151,6 +152,7 @@ extern "C" {
     context->runPasses(passes, namespaces);
     auto pass = static_cast<Passes::Verilog*>(
         context->getPassManager()->getAnalysisPass("verilog"));
+    defer(pass->clear());
 
     std::string output_dir(split);
     // Split files, and write to output_dir.
@@ -161,7 +163,6 @@ extern "C" {
         product_file_ptr.reset(new std::string(product));
       }
       pass->writeToFiles(output_dir, std::move(product_file_ptr));
-      pass->clear();
       return true;
     }
     // Do not split; write to filename.
@@ -172,7 +173,6 @@ extern "C" {
       return false;
     }
     pass->writeToStream(fout);
-    pass->clear();
     return true;
   }
 
