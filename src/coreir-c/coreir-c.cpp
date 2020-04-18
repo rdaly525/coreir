@@ -1,8 +1,12 @@
 #include "coreir-c/coreir.h"
 #include "coreir/ir/json.h"
+#include "coreir/passes/analysis/verilog.h"
+#include "coreir/definitions/coreVerilog.hpp"
+#include "coreir/definitions/corebitVerilog.hpp"
 #include "coreir.h"
 #include "common-c.hpp"
 #include <strings.h>
+#include <fstream>
 
 using namespace std;
 namespace CoreIR {
@@ -107,6 +111,63 @@ extern "C" {
     return context->runPasses(vec_passes, vec_namespaces);
   }
 
+
+  void CORECompileToVerilog(COREContext* ctx,
+                            COREModule* top,
+                            char* filename,
+                            int num_libs,
+                            char** libs,
+                            char* split,
+                            char* product,
+                            bool inline_,
+                            bool verilator_debug) {
+    auto context = reinterpret_cast<Context*>(ctx);
+    auto module = reinterpret_cast<Module*>(top);
+    context->setTop(module->getRefName());
+
+    // TODO(rsetaluri): This code duplicates much of the verilog compilation
+    // codepath in the coreir.cpp binary. We should extract this into a common
+    // place.
+    std::vector<std::string> libraries;
+    for (int i = 0; i < num_libs; i++) {
+      std::string lib(libs[i]);
+      context->getLibraryManager()->loadLib(lib);
+    }
+    // TODO(rsetaluri): Have option to output this or not.
+    CoreIRLoadVerilog_coreir(context);
+    CoreIRLoadVerilog_corebit(context);
+
+    std::string verilog_pass = "verilog";
+    if (inline_) verilog_pass += " -i";
+    if (verilator_debug) verilog_pass += " -y";
+    std::vector<std::string> namespaces {"global"};
+    std::vector<std::string> passes {
+      "rungenerators",
+      "removebulkconnections",
+      "flattentypes",
+      verilog_pass
+    };
+    context->runPasses(passes, namespaces);
+    auto pass = static_cast<Passes::Verilog*>(
+        context->getPassManager()->getAnalysisPass("verilog"));
+
+    std::string output_dir(split);
+    // Split files, and write to output_dir.
+    if (output_dir != "") {
+      std::string product_file(product);
+      std::unique_ptr<std::string> product_file_ptr;
+      if (product_file != "") {
+        product_file_ptr.reset(new std::string(product));
+      }
+      pass->writeToFiles(output_dir, std::move(product_file_ptr));
+      return;
+    }
+    // Do not split; write to filename.
+    std::string outfile(filename);
+    std::ofstream fout(outfile);
+    ASSERT(fout.is_open(),"Cannot open file: " + outfile);
+    pass->writeToStream(fout);
+  }
 
   bool COREInlineInstance(COREWireable* inst) {
     Instance* i = cast<Instance>(rcast<Wireable*>(inst));
