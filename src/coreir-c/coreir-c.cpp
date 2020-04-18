@@ -161,6 +161,7 @@ extern "C" {
         product_file_ptr.reset(new std::string(product));
       }
       pass->writeToFiles(output_dir, std::move(product_file_ptr));
+      pass->clear();
       return true;
     }
     // Do not split; write to filename.
@@ -171,6 +172,7 @@ extern "C" {
       return false;
     }
     pass->writeToStream(fout);
+    pass->clear();
     return true;
   }
 
