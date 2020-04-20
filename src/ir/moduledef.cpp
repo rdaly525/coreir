@@ -112,7 +112,11 @@ bool ModuleDef::canSel(SelectPath path) {
   if (this->instances.count(inst_name) == 0) {
         return false;
   };
-  return this->instances[inst_name]->canSel(path);
+  Instance* inst = this->instances[inst_name];
+  if (path.size() == 0) {
+      return true;
+  }
+  return inst->canSel(path);
 }
 
 
