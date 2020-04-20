@@ -189,8 +189,6 @@ TEST(VerilogTests, TestMuxInline) {
     
 TEST(VerilogTests, TestInlineVerilogMetadata) {
   Context* c = newContext();
-  CoreIRLoadVerilog_coreir(c);
-  CoreIRLoadVerilog_corebit(c);
   Module* top;
 
   if (!loadFromFile(c, "inline_verilog.json", &top)) {

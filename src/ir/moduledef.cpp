@@ -96,23 +96,22 @@ bool ModuleDef::canSel(const std::string& selstr) {
   return this->canSel(path);
 }
 bool ModuleDef::canSel(SelectPath path) {
-  string inst_name = path[0];
-  if (hasChar(inst_name, ';')) {
-      // Hierarchical reference, pop off first instance name from string
-      inst_name = splitString<SelectPath>(inst_name, ';')[0];
-      // Preserves ; as prefix so instance knows it's a hierarchical rather
-      // than port select
-      path[0] = path[0].substr(inst_name.length());
-  } else {
-      path.pop_front();
+  string iname = path[0];
+  Wireable* inst;
+  if (iname=="self") {
+    inst = this->interface;
   }
-  if (inst_name=="self") {
-    return this->interface->canSel(path);
+  else {
+    if (hasChar(iname, ';')) {
+        // Hierarchical reference, pop off first instance name from string
+        iname = splitString<SelectPath>(iname, ';')[0];
+        path[0] = path[0].substr(iname.length() + 1);
+    }
+    if (this->instances.count(iname)==0) return false;
+    inst = this->instances[iname];
   }
-  if (this->instances.count(inst_name) == 0) {
-        return false;
-  };
-  return this->instances[inst_name]->canSel(path);
+  path.pop_front();
+  return inst->canSel(path);
 }
 
 

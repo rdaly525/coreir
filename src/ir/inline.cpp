@@ -91,9 +91,7 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
     def->disconnect(from,other);
   }
   for (auto sels : from->getSelects()) {
-    if (!isa<InstanceSelect>(sels.second)) {
-      PTTraverse(def,sels.second,to->sel(sels.first));
-    }
+    PTTraverse(def,sels.second,to->sel(sels.first));
   }
 }
 }

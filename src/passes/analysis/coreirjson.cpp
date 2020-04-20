@@ -213,27 +213,14 @@ string Instances2Json(map<string,Instance*>& insts,int taboffset) {
   return jis.toMultiString();
 }
 
-string build_select_str(SelectPath select_path) {
-    string select_str = "";
-    for (auto select : select_path) {
-        // Don't insert "." when there is the hierarchical select separator
-        // already present
-        if (select_str != "" && select[0] != ';') {
-            select_str += ".";
-        }
-        select_str += select;
-    }
-    return select_str;
-}
-
 string Connections2Json(ModuleDef* def,int taboffset) {
   Array a(taboffset);
   
   for (auto con : def->getSortedConnections()) {
     auto pa = con.first->getSelectPath();
     auto pb = con.second->getSelectPath();
-    string sa = build_select_str(pa);
-    string sb = build_select_str(pb);
+    string sa = join(pa.begin(),pa.end(),string("."));
+    string sb = join(pb.begin(),pb.end(),string("."));
     Array b;
     if (sa > sb) {
       b.add(quote(sa));
