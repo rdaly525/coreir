@@ -121,9 +121,29 @@ std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     std::unique_ptr<vAST::Connections> verilog_connections) {
   BinaryOpReplacer transformer(verilog_connections->at("in0"),
                                verilog_connections->at("in1"));
+
+  std::unique_ptr<vAST::Expression> primitive_expr =
+      get_primitive_expr(instance.second);
+
+  vAST::BinaryOp *binary_op =
+      dynamic_cast<vAST::BinaryOp *>(primitive_expr.get());
+  ASSERT(binary_op, "Expected binary_op for primitive expr");
+  if (binary_op->op == vAST::BinOp::ADD || binary_op->op == vAST::BinOp::SUB ||
+      binary_op->op == vAST::BinOp::MUL || binary_op->op == vAST::BinOp::DIV) {
+
+      // Cast output so linters are happy (e.g. default verilog add
+      // appends an extra bit)
+      CoreIR::Value *width_value =
+          instance.second->getModuleRef()->getGenArgs().at("width");
+      auto width_int = CoreIR::dyn_cast<CoreIR::ConstInt>(width_value);
+      ASSERT(width_int, "Expected ConstInt for width parameter");
+      primitive_expr = std::make_unique<vAST::Cast>(width_int->get(),
+                                                    std::move(primitive_expr));
+  }
+
   return std::make_unique<vAST::ContinuousAssign>(
       std::make_unique<vAST::Identifier>(instance.first + "_out"),
-      transformer.visit(get_primitive_expr(instance.second)));
+      transformer.visit(std::move(primitive_expr)));
 }
 
 bool can_inline_unary_op(CoreIR::Module *module, bool _inline) {
