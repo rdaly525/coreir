@@ -31,8 +31,8 @@ Select* Wireable::sel(const std::string& selStr) {
     if (selects.count(selStr)) {
         return selects[selStr];
     }
-    ASSERT(type->canSel(selStr), 
-           "Cannot select " + selStr + " From " + this->toString() + 
+    ASSERT(type->canSel(selStr),
+           "Cannot select " + selStr + " From " + this->toString() +
            "\n  Type: " + type->toString());
     Select* select =
         new Select(this->getContainer(), this, selStr, type->sel(selStr));
@@ -110,7 +110,7 @@ void Wireable::removeSel(string selStr) {
   ASSERT(selects.count(selStr),"Cannot remove " + selStr + "Because it does not exist!");
   Select* s = selects[selStr];
   selects.erase(selStr);
-  
+
   delete s;
 }
 
@@ -238,7 +238,7 @@ Instance::Instance(ModuleDef* container, string instname, Module* moduleRef, Val
   mergeValues(modargs,moduleRef->getDefaultModArgs());
   //Check if modargs is the same as expected by ModuleRef
   checkValuesAreParams(modargs,moduleRef->getModParams(),instname);
-  
+
   this->modargs = modargs;
 
   //TODO checkif instname is unique
@@ -258,11 +258,18 @@ void Instance::replace(Module* moduleRef, Values modargs) {
 }
 
 bool Instance::canSel(string selstr) {
-  return Wireable::canSel(selstr) || this->getModuleRef()->canSel(selstr);
+  if (selstr[0] == ';') {
+    return this->getModuleRef()->canSel(selstr.substr(1));
+  }
+  return Wireable::canSel(selstr);
 }
 
 bool Instance::canSel(SelectPath path) {
-  return Wireable::canSel(path) || this->getModuleRef()->canSel(path);
+  if (path[0][0] == ';') {
+    path[0] = path[0].substr(1);
+    return this->getModuleRef()->canSel(path);
+  }
+  return Wireable::canSel(path);
 }
 
 Select* Instance::sel(const std::string& selStr) {

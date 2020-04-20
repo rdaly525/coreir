@@ -75,7 +75,7 @@ ModuleDef* ModuleDef::copy() {
   ModuleDef* def = m->newModuleDef();
 
   map<Wireable*, Wireable*> oldWireablesToCopies;
-  
+
   for (auto inst : this->getInstances()) {
     def->addInstance(inst.second);
   }
@@ -96,28 +96,29 @@ bool ModuleDef::canSel(const std::string& selstr) {
   return this->canSel(path);
 }
 bool ModuleDef::canSel(SelectPath path) {
-  string iname = path[0];
-  Wireable* inst;
-  if (iname=="self") {
-    inst = this->interface;
+  string inst_name = path[0];
+  if (hasChar(inst_name, ';')) {
+      // Hierarchical reference, pop off first instance name from string
+      inst_name = splitString<SelectPath>(inst_name, ';')[0];
+      // Preserves ; as prefix so instance knows it's a hierarchical rather
+      // than port select
+      path[0] = path[0].substr(inst_name.length());
+  } else {
+      path.pop_front();
   }
-  else {
-    if (hasChar(iname, ';')) {
-        // Hierarchical reference, pop off first instance name from string
-        iname = splitString<SelectPath>(iname, ';')[0];
-        path[0] = path[0].substr(iname.length() + 1);
-    }
-    if (this->instances.count(iname)==0) return false;
-    inst = this->instances[iname];
+  if (inst_name=="self") {
+    return this->interface->canSel(path);
   }
-  path.pop_front();
-  return inst->canSel(path);
+  if (this->instances.count(inst_name) == 0) {
+        return false;
+  };
+  return this->instances[inst_name]->canSel(path);
 }
 
 
 //Can pass in either a single instance name
 //Or pass in a '.' deleminated string
-Wireable* ModuleDef::sel(const string& s) { 
+Wireable* ModuleDef::sel(const string& s) {
   if (hasChar(s,'.')) {
     SelectPath path = splitString<SelectPath>(s,'.');
     return this->sel(path);
@@ -131,7 +132,7 @@ Wireable* ModuleDef::sel(const string& s) {
     return cast<Instance>(this->sel(inst_name))->sel(s.substr(inst_name.length()));
   } else {
     ASSERT(instances.count(s),"Cannot find instance " + s);
-    return instances[s]; 
+    return instances[s];
   }
 }
 
@@ -216,9 +217,9 @@ Instance* ModuleDef::addInstance(string instname,Module* m,Values modargs) {
   ASSERT(instances.count(instname)==0,instname + " already an instance");
   Instance* inst = new Instance(this,instname,m,modargs);
   instances[instname] = inst;
-  
+
   appendInstanceToIter(inst);
-  
+
   return inst;
 }
 
@@ -267,10 +268,10 @@ void ModuleDef::connect(Wireable* a, Wireable* b) {
     c->die();
   }
   //checkWiring(a,b);
-  
+
   Connection connect = connectionCtor(a,b);
   if (!connections.count(connect)) {
-    
+
     //Update 'a' and 'b'
     a->addConnectedWireable(b);
     b->addConnectedWireable(a);
@@ -302,7 +303,7 @@ bool ModuleDef::hasConnection(Wireable* a, Wireable* b) {
 Connection ModuleDef::getConnection(Wireable* a, Wireable* b) {
   Connection con = connectionCtor(a,b);
   ASSERT(connections.count(con)>0,"Could not find connection!");
-  
+
   return *connections.find(con);
 }
 
@@ -323,7 +324,7 @@ void ModuleDef::disconnect(Wireable* a, Wireable* b) {
 }
 void ModuleDef::disconnect(Connection fstCon) {
   auto con = connectionCtor(fstCon.first, fstCon.second);
-  
+
   //if (connections.count(con) == 0) {
   //  cout << "All connections" << endl;
   //  for (auto conn : getConnections()) {
@@ -334,7 +335,7 @@ void ModuleDef::disconnect(Connection fstCon) {
   //}
 
   ASSERT(connections.count(con),"Cannot delete connection that is not connected! " + toString(con));
-  
+
   //remove references
   con.first->removeConnectedWireable(con.second);
   con.second->removeConnectedWireable(con.first);
@@ -373,7 +374,7 @@ void ModuleDef::removeInstance(string iname) {
   //First verify that instance exists
   ASSERT(instances.count(iname), "Instance " + iname + " does not exist");
   Instance* inst = instances.at(iname);
-  
+
   //First remove all the connections from this instance
   inst->disconnectAll();
 
@@ -388,7 +389,7 @@ void ModuleDef::removeInstance(string iname) {
 
   //Now remove this instance
   instances.erase(iname);
-  
+
   removeInstanceFromIter(inst);
 
   delete inst;

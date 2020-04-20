@@ -200,7 +200,6 @@ namespace CoreIR {
         SimMemory freshMem(width, depth);
         if (contains_key(string("init"), params)) {
 
-
           //Instance* inst = static_cast<Instance*>(wd.getWire());
           //cout << "Memory node " << inst->getInstname() << " has init params" << endl;
           //cout << "Its params size = " << params.size()  << endl;
@@ -1827,6 +1826,7 @@ namespace CoreIR {
         assert(same_representation(getRegister(inst->toString()), init));
       }
     }
+
 
 
   }

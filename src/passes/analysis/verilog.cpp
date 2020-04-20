@@ -910,6 +910,25 @@ compile_module_body(RecordType *module_type,
                 ),
                 std::move(instance_parameters[1].second)
             ));
+    } else if (instance_module->getMetaData().count("inline_verilog") > 0) {
+      json metadata = instance_module->getMetaData();
+      if (metadata.count("inline_verilog") > 0) {
+          json inline_verilog = metadata["inline_verilog"];
+          std::string inline_str = inline_verilog["str"].get<std::string>();
+          for (auto it :
+               json::iterator_wrapper(inline_verilog["connect_references"])) {
+              SelectPath connect_select_path =
+                  splitString<SelectPath>(it.value().get<std::string>(), '.');
+              ASSERT(connect_select_path[0] == "self", "Expected self reference");
+              connect_select_path.pop_front();
+              std::string value = verilog_connections->at(toString(connect_select_path))->toString();
+              inline_str = std::regex_replace(
+                  inline_str, std::regex("\\{" + it.key() + "\\}"), value);
+          }
+          body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
+      }
+      // no statement to push
+      continue;
     } else {
         statement = std::make_unique<vAST::ModuleInstantiation>(
             module_name, std::move(instance_parameters), instance_name,
@@ -1001,6 +1020,10 @@ void Passes::Verilog::compileModule(Module *module) {
     extern_modules.push_back(module);
     return;
   }
+  if (module->getMetaData().count("inline_verilog") > 0) {
+      // These are inlined directly into the module they are used
+      return;
+  }
   std::vector<std::unique_ptr<vAST::AbstractPort>> ports =
       compilePorts(cast<RecordType>(module->getType()));
 
@@ -1021,40 +1044,6 @@ void Passes::Verilog::compileModule(Module *module) {
     }
     body.insert(
       body.begin(), std::make_unique<vAST::SingleLineComment>(debug_str));
-  }
-
-
-
-  // Temporary support for inline verilog
-  // See https://github.com/rdaly525/coreir/pull/823 for context
-  json metadata = module->getMetaData();
-  if (metadata.count("inline_verilog") > 0) {
-      json inline_verilog = metadata["inline_verilog"];
-      std::string inline_str = inline_verilog["str"].get<std::string>();
-      for (auto it :
-           json::iterator_wrapper(inline_verilog["connect_references"])) {
-          std::string connect_select_path = it.value().get<std::string>();
-          if (metadata.count("symbol_table")) {
-              while (metadata["symbol_table"].count(connect_select_path)) {
-                  connect_select_path =
-                      metadata["symbol_table"][connect_select_path]
-                          .get<std::string>();
-              }
-          }
-          if (!module->hasDef() || !module->getDef()->canSel(connect_select_path)) {
-              throw std::runtime_error(
-                  "Cannot select inline verilog connect reference: " +
-                  it.key() + " -- " + connect_select_path +
-                  " , orig =" + it.value().get<std::string>());
-          }
-          std::string value = std::visit(
-              [](auto &&value) -> std::string { return value->toString(); },
-              convert_to_verilog_connection(
-                  module->getDef()->sel(connect_select_path), this->_inline));
-          inline_str = std::regex_replace(
-              inline_str, std::regex("\\{" + it.key() + "\\}"), value);
-      }
-      body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
   }
 
   vAST::Parameters parameters = compile_params(module);
