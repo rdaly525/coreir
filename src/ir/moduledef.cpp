@@ -112,11 +112,11 @@ bool ModuleDef::canSel(SelectPath path) {
   if (this->instances.count(inst_name) == 0) {
     return false;
   };
-  Instance* inst = this->instances[inst_name];
   if (path.size() == 0) {
+    // Nothing left to select, instance exists
     return true;
   }
-  return inst->canSel(path);
+  return this->instances[inst_name]->canSel(path);
 }
 
 
