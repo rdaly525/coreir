@@ -1,8 +1,8 @@
-{"top":"global.RTLMonitor",
+{"top":"global.Monitor",
 "namespaces":{
   "global":{
     "modules":{
-      "RTLMonitor":{
+      "Monitor":{
         "type":["Record",[
           ["CLK",["Named","coreir.clkIn"]],
           ["in1",["Array",4,"BitIn"]],
@@ -14,43 +14,7 @@
           ["mon_temp2","BitIn"],
           ["intermediate_tuple",["Record",[["_0","BitIn"],["_1","BitIn"]]]]
         ]],
-        "instances":{
-          "arr_2d_0":{
-            "genref":"coreir.wire",
-            "genargs":{"width":["Int",4]}
-          },
-          "arr_2d_1":{
-            "genref":"coreir.wire",
-            "genargs":{"width":["Int",4]}
-          },
-          "corebit_term_inst0":{
-            "modref":"corebit.term"
-          },
-          "corebit_term_inst1":{
-            "modref":"corebit.term"
-          },
-          "corebit_term_inst2":{
-            "modref":"corebit.term"
-          },
-          "term_inst0":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",4]}
-          },
-          "term_inst1":{
-            "genref":"coreir.term",
-            "genargs":{"width":["Int",4]}
-          }
-        },
-        "connections":[
-          ["self.in1","arr_2d_0.in"],
-          ["term_inst0.in","arr_2d_0.out"],
-          ["corebit_term_inst1.in","arr_2d_0.out.1"],
-          ["self.in2","arr_2d_1.in"],
-          ["term_inst1.in","arr_2d_1.out"],
-          ["self.intermediate_tuple._0","corebit_term_inst0.in"],
-          ["self.handshake.valid","corebit_term_inst2.in"]
-        ],
-        "metadata":{"inline_verilog":{"connect_references":{"__magma_inline_value_1":"self.intermediate_tuple._0","__magma_inline_value_2":"arr_2d_0.out.1","__magma_inline_value_3":"arr_2d_1.out","__magma_inline_value_4":"arr_2d_0.out","__magma_inline_value_5":"self.handshake.valid"},"str":"\nlogic temp1, temp2;\nlogic temp3;\nassign temp1 = |(in1);\nassign temp2 = &(in1) & {__magma_inline_value_1};\nassign temp3 = temp1 ^ temp2 & {__magma_inline_value_2};\nassert property (@(posedge CLK) {__magma_inline_value_5} -> out === temp1 && temp2);\nlogic [3:0] temp4 [1:0];\nassign temp4 = '{{__magma_inline_value_3}, {__magma_inline_value_4}};\n                                   "}}
+        "metadata":{"inline_verilog":"\n                        logic temp1, temp2;\n                        assign temp1 = |(in1);\n                        assign temp2 = &(in1);\n                        assert property (@(posedge CLK) handshake_valid -> out === temp1 && temp2);\n                    "}
       }
     }
   }
