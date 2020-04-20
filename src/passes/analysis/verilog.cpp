@@ -301,7 +301,7 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
   } else if (auto bit_vector_value = dyn_cast<ConstBitVector>(value)) {
     BitVector bit_vector = bit_vector_value->get();
     return std::make_unique<vAST::NumericLiteral>(
-        bit_vector.hex_digits(), bit_vector.bitLength(), false, vAST::HEX);
+        bit_vector.hex_digits(), bit_vector.bitLength(), false, vAST::HEX, true);
   } else if (auto string_value = dyn_cast<ConstString>(value)) {
     return std::make_unique<vAST::String>(string_value->toString());
   }
