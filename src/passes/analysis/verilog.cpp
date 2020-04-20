@@ -294,14 +294,14 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
   if (auto arg_value = dyn_cast<Arg>(value)) {
     return std::make_unique<vAST::Identifier>(arg_value->getField());
   } else if (auto int_value = dyn_cast<ConstInt>(value)) {
-    return std::make_unique<vAST::NumericLiteral>(int_value->toString());
+    return std::make_unique<vAST::NumericLiteral>(int_value->toString(), 32, false, vAST::DECIMAL, true);
   } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
     return std::make_unique<vAST::NumericLiteral>(
         std::to_string(uint(bool_value->get())), 1, false, vAST::BINARY);
   } else if (auto bit_vector_value = dyn_cast<ConstBitVector>(value)) {
     BitVector bit_vector = bit_vector_value->get();
     return std::make_unique<vAST::NumericLiteral>(
-        bit_vector.hex_digits(), bit_vector.bitLength(), false, vAST::HEX);
+        bit_vector.hex_digits(), bit_vector.bitLength(), false, vAST::HEX, true);
   } else if (auto string_value = dyn_cast<ConstString>(value)) {
     return std::make_unique<vAST::String>(string_value->toString());
   }
