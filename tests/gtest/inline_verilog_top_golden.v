@@ -61,12 +61,12 @@ corebit_term corebit_term_inst0 (
     .in(_magma_inline_wire0)
 );
 coreir_term #(
-    .width(32'4)
+    .width(4)
 ) term_inst0 (
     .in(_magma_inline_wire1)
 );
 coreir_term #(
-    .width(32'4)
+    .width(4)
 ) term_inst1 (
     .in(_magma_inline_wire2)
 );

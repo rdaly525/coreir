@@ -294,7 +294,7 @@ std::unique_ptr<vAST::Expression> convert_value(Value *value) {
   if (auto arg_value = dyn_cast<Arg>(value)) {
     return std::make_unique<vAST::Identifier>(arg_value->getField());
   } else if (auto int_value = dyn_cast<ConstInt>(value)) {
-    return std::make_unique<vAST::NumericLiteral>(int_value->toString(), 32, false, vAST::DECIMAL, true);
+    return std::make_unique<vAST::NumericLiteral>(int_value->toString());
   } else if (auto bool_value = dyn_cast<ConstBool>(value)) {
     return std::make_unique<vAST::NumericLiteral>(
         std::to_string(uint(bool_value->get())), 1, false, vAST::BINARY);

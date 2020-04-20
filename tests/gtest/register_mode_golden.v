@@ -82,7 +82,7 @@ Register_comb Register_comb_inst0 (
 coreir_reg #(
     .clk_posedge(1'b1),
     .init(4'h0),
-    .width(32'4)
+    .width(4)
 ) reg_P_inst0 (
     .clk(CLK),
     .in(Register_comb_inst0_O0),
