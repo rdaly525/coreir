@@ -20,7 +20,7 @@ corebit_undriven inst0 (
     .out(O0)
 );
 coreir_undriven #(
-    .width(8)
+    .width(32'8)
 ) inst1 (
     .out(O1)
 );
