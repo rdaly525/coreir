@@ -53,6 +53,14 @@ public:
     addDependency("verifyflattenedtypes");
   }
 
+  void clear() {
+    using TModule = std::vector<std::pair<std::string, std::unique_ptr<vAST::AbstractModule>>>;
+    TModule().swap(modules);
+    extern_modules.clear();
+    verilog_generators_seen.clear();
+    wires.clear();
+  }
+
   void writeToStream(std::ostream &os);
   void writeToFiles(const std::string &dir,
                     std::unique_ptr<std::string> product_file);
