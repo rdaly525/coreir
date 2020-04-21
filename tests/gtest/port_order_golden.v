@@ -4,7 +4,7 @@ module Add8_cin (
     output [7:0] a,
     input CIN
 );
-assign a = (({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,CIN}) + z) + x;
+assign a = 8'((8'(({1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,1'b0,CIN}) + z)) + x);
 endmodule
 
 module Sub8 (
@@ -26,7 +26,7 @@ module test_two_ops (
     output [7:0] a
 );
 Sub8 inst1 (
-    .z(z + x),
+    .z(8'(z + x)),
     .x(z),
     .a(a)
 );
