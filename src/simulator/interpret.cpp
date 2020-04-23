@@ -1,3 +1,4 @@
+#include "coreir/common/logging_lite.hpp"
 #include "coreir/simulator/interpreter.h"
 #include "coreir/simulator/simulator.h"
 
@@ -557,6 +558,11 @@ namespace CoreIR {
       rcvToSrc[rcv] = srcV;
     }
 
+    // Set initial state of the circuit
+    CircuitState init;
+    circStates = {init};
+    stateIndex = 0;
+
     for (auto vdPair : rcvToSrc) {
       vdisc receiver = vdPair.first;
       vdisc source = vdPair.second;
@@ -584,11 +590,6 @@ namespace CoreIR {
     } else {
       hasCombinationalLoop = true;
     }
-
-    // Set initial state of the circuit
-    CircuitState init;
-    circStates = {init};
-    stateIndex = 0;
 
     findMainClock();
 
@@ -717,6 +718,7 @@ namespace CoreIR {
     auto it = circStates[stateIndex].valMap.find(sel);
 
     if (it == std::end(circStates[stateIndex].valMap)) {
+      LOG(DEBUG) << *sel << " not found";
       assert(false);
     }
 
@@ -1630,7 +1632,10 @@ namespace CoreIR {
         });
       
     } else if (contains_key(vd, plugMods) && wd.isReceiver) {
-      // Ignore, updates already done in caller of this function
+      // Second pass to propagate the value in topological sort, although
+      // updates already done in caller of this function.
+      auto plugin = map_find(vd, plugMods);
+      plugin->exeCombinational(vd, *this);
     } else if (contains_key(vd, plugMods) && !wd.isReceiver) {
       // Ignore sequential node
     } else {
