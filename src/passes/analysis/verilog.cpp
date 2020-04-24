@@ -966,7 +966,7 @@ compile_module_body(RecordType *module_type,
   assign_inouts(definition->getSortedConnections(), body, _inline);
 
   for (auto &&it : inline_verilog_body) {
-      body.push_back(std::move(it.second));
+      body.push_back(std::move(it));
   }
   return body;
 }
