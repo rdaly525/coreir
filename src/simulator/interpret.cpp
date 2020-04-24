@@ -14,9 +14,9 @@ namespace CoreIR {
     auto half = BitVector(32, 0x00008000);
     auto sum = add_general_width_bv(half, val);
     auto mantissa_mask = BitVector(32, 0x0000ffff);
-    bool zeroed = (sum & mantissa_mask) == 0;
+    bool zeroed = (sum & mantissa_mask) == BitVector(32, 0);
 
-    auto clear_mask = ~shl(BitVector(32, zeroed), 16);
+    auto clear_mask = ~shl(BitVector(32, zeroed), BitVector(32, 16));
     auto val_shifted = sum & clear_mask;
 
     BitVector bRes(16, 0);
