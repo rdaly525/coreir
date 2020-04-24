@@ -814,8 +814,7 @@ compile_module_body(RecordType *module_type,
                     bool _inline, std::set<std::string> &wires) {
   std::map<std::string, Instance *> instances = definition->getInstances();
 
-  std::vector<
-      std::pair<std::string, std::unique_ptr<vAST::StructuralStatement>>>
+  std::vector<std::unique_ptr<vAST::StructuralStatement>>
       inline_verilog_body;
 
   std::vector<std::variant<std::unique_ptr<vAST::StructuralStatement>,
@@ -949,9 +948,7 @@ compile_module_body(RecordType *module_type,
               inline_str = std::regex_replace(
                   inline_str, std::regex("\\{" + it.key() + "\\}"), value);
           }
-          inline_verilog_body.push_back(std::make_pair(
-              instance_name,
-              std::make_unique<vAST::InlineVerilog>(inline_str)));
+          inline_verilog_body.push_back(std::make_unique<vAST::InlineVerilog>(inline_str));
       }
       // no statement to push
       continue;
@@ -968,9 +965,6 @@ compile_module_body(RecordType *module_type,
   assign_module_outputs(module_type, body, connection_map, _inline);
   assign_inouts(definition->getSortedConnections(), body, _inline);
 
-  // Sort inline verilog by instance name (so ordering is preserved) and append
-  // to body
-  sort(inline_verilog_body.begin(), inline_verilog_body.end());
   for (auto &&it : inline_verilog_body) {
       body.push_back(std::move(it.second));
   }
