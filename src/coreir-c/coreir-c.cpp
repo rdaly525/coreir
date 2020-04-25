@@ -176,6 +176,13 @@ extern "C" {
     return true;
   }
 
+  bool COREAddLibrarySearchPath(COREContext* ctx, char* path, bool front) {
+    auto context = reinterpret_cast<Context*>(ctx);
+    std::string path_string(path);
+    context->getLibraryManager()->addSearchPath(path_string, front);
+    return true;
+  }
+
   bool COREInlineInstance(COREWireable* inst) {
     Instance* i = cast<Instance>(rcast<Wireable*>(inst));
     return inlineInstance(i);
