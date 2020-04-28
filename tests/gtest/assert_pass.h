@@ -5,7 +5,7 @@
 #include <string>
 #include "coreir/passes/common.h"
 
-template<typename T>
+template <typename T>
 void assertPassEq(CoreIR::Context* c, std::string golden_path) {
   auto pass = static_cast<T*>(c->getPassManager()->getAnalysisPass(T::ID));
   std::ostringstream stream;
@@ -15,7 +15,8 @@ void assertPassEq(CoreIR::Context* c, std::string golden_path) {
   std::ifstream golden_stream(golden_path);
   ASSERT_TRUE(golden_stream.good());
 
-  std::string golden((std::istreambuf_iterator<char>(golden_stream)),
-                     std::istreambuf_iterator<char>());
+  std::string golden(
+    (std::istreambuf_iterator<char>(golden_stream)),
+    std::istreambuf_iterator<char>());
   EXPECT_EQ(golden, result);
 }

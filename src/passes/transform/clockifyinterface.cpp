@@ -1,18 +1,17 @@
-#include "coreir.h"
 #include "coreir/passes/transform/clockifyinterface.h"
+#include "coreir.h"
 #include "coreir/common/util.h"
 
 using namespace std;
 using namespace CoreIR;
 
-//Do not forget to set this static variable!!
+// Do not forget to set this static variable!!
 
-bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) {
+bool Passes::ClockifyInterface::runOnInstanceGraphNode(
+  InstanceGraphNode& node) {
 
   Module* m = node.getModule();
-  if (!m->hasDef()) {
-    return false;
-  }
+  if (!m->hasDef()) { return false; }
 
   ModuleDef* def = m->getDef();
   Context* c = def->getContext();
@@ -33,49 +32,60 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
 
     for (auto sel : pclk->getConnectedWireables()) {
 
-      //cout << pclk->toString() << " is connected to " << sel->toString() << endl;
+      // cout << pclk->toString() << " is connected to " << sel->toString() <<
+      // endl;
 
       Select* selS = cast<Select>(sel);
       Wireable* parent = selS->getParent();
 
       if (!isa<Instance>(parent)) {
-        cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << parent->toString() << ", which is not an instance" << endl;
+        cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to "
+             << parent->toString() << ", which is not an instance" << endl;
         allClocks = false;
         break;
-      } else {
+      }
+      else {
         Instance* inst = cast<Instance>(parent);
         if (getQualifiedOpName(*inst) != "coreir.wrap") {
 
-          cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << inst->toString() << ", which is not a wrap node" << endl;
+          cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to "
+               << inst->toString() << ", which is not a wrap node" << endl;
           allClocks = false;
           break;
-        } else {
-          //cout << inst->toString() << " is a wrap node" << endl;
+        }
+        else {
+          // cout << inst->toString() << " is a wrap node" << endl;
 
           // cout << "args" << endl;
           // for (auto arg : inst->getModArgs()) {
           //   cout << arg.first << " = " << arg.second->toString() << endl;
           // }
 
-          auto arg = (inst->getModuleRef()->getGenArgs()).at("type")->get<Type*>();
+          auto
+            arg = (inst->getModuleRef()->getGenArgs()).at("type")->get<Type*>();
 
-          //cout << "Got arg = " << arg->toString() << endl;
+          // cout << "Got arg = " << arg->toString() << endl;
 
           if (isa<NamedType>(arg)) {
             cout << arg->toString() << " is a named type" << endl;
 
             NamedType* ntp = cast<NamedType>(arg);
 
-            //cout << "arg name = " << ntp->getName() << endl;
+            // cout << "arg name = " << ntp->getName() << endl;
 
             if (ntp->getRefName() != "coreir.clk") {
 
-              cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << inst->toString() << ", which casts to type " << ntp->toString() << endl;
+              cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to "
+                   << inst->toString() << ", which casts to type "
+                   << ntp->toString() << endl;
               allClocks = false;
               break;
             }
-          } else {
-            cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to " << inst->toString() << ", which casts to type " << arg->toString() << endl;
+          }
+          else {
+            cout << "NOT ALL CLOCKS: " << pclk->toString() << " connects to "
+                 << inst->toString() << ", which casts to type "
+                 << arg->toString() << endl;
             allClocks = false;
             break;
           }
@@ -84,7 +94,8 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
     }
 
     if (allClocks && (numInputs > 0)) {
-      cout << "All receivers of " << pclk->toString() << " are clock casts" << endl;
+      cout << "All receivers of " << pclk->toString() << " are clock casts"
+           << endl;
 
       // Now need to:
       // 1. Delete original BitIn field from interface type
@@ -100,8 +111,8 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
 
         // Need to build receiver map and use it here
         for (auto receiverPort : outConn->getConnectedWireables()) {
-          cout << "\t" << receiverPort->toString() <<
-            " connects to " << outConn->toString() << endl;
+          cout << "\t" << receiverPort->toString() << " connects to "
+               << outConn->toString() << endl;
 
           connectToNewClock.push_back(receiverPort);
         }
@@ -113,9 +124,7 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
         Instance* inst = cast<Instance>(cast<Select>(sel)->getParent());
         toDelete.push_back(inst);
       }
-      for (auto inst : toDelete) {
-        def->removeInstance(inst);
-      }
+      for (auto inst : toDelete) { def->removeInstance(inst); }
 
       string clkFieldName = pclk->getSelStr();
       node.detachField(clkFieldName);
@@ -125,10 +134,8 @@ bool Passes::ClockifyInterface::runOnInstanceGraphNode(InstanceGraphNode& node) 
       Select* s = def->sel("self")->sel(clkFieldName);
 
       // Wire the new clock port to all old connections
-      for (auto w : connectToNewClock) {
-        def->connect(s, w);
-      }
-      
+      for (auto w : connectToNewClock) { def->connect(s, w); }
+
       modifiedClock = true;
     }
   }

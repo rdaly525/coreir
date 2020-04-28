@@ -7,14 +7,13 @@ namespace CoreIR {
 namespace Passes {
 
 class RegisterInputs : public InstanceGraphPass {
-  private :
-
-  public :
-  RegisterInputs(std::string name) : InstanceGraphPass(name, "Register all non-clock inputs.") {}
+ private:
+ public:
+  RegisterInputs(std::string name)
+      : InstanceGraphPass(name, "Register all non-clock inputs.") {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node);
-
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 #endif

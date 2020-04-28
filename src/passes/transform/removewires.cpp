@@ -1,25 +1,19 @@
 
-#include "coreir.h"
 #include "coreir/passes/transform/removewires.h"
+#include "coreir.h"
 
 using namespace CoreIR;
 
 namespace {
 
-  bool inlineWire(Instance* inst) {
+bool inlineWire(Instance* inst) { return inlineInstance(inst); }
 
-    return inlineInstance(inst);
-
-  }
-
-}
-
+}  // namespace
 
 std::string Passes::RemoveWires::ID = "removewires";
 
 void Passes::RemoveWires::setVisitorInfo() {
-  addVisitorFunction(getContext()->getGenerator("mantle.wire"),inlineWire);
-  addVisitorFunction(getContext()->getGenerator("coreir.wire"),inlineWire);
-  addVisitorFunction(getContext()->getModule("corebit.wire"),inlineWire);
-
+  addVisitorFunction(getContext()->getGenerator("mantle.wire"), inlineWire);
+  addVisitorFunction(getContext()->getGenerator("coreir.wire"), inlineWire);
+  addVisitorFunction(getContext()->getModule("corebit.wire"), inlineWire);
 }

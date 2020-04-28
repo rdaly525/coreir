@@ -1,6 +1,6 @@
+#include "coreir/passes/transform/rungenerators.h"
 #include "coreir.h"
 #include "coreir/common/logging_lite.hpp"
-#include "coreir/passes/transform/rungenerators.h"
 
 using namespace CoreIR;
 
@@ -26,5 +26,4 @@ bool Passes::RunGenerators::runOnContext(Context* c) {
   LOG(DEBUG) << "Done running generators";
 
   return modified;
-  
 }

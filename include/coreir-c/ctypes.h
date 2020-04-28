@@ -1,8 +1,8 @@
 #ifndef COREIR_CTYPES_H_
 #define COREIR_CTYPES_H_
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 typedef struct COREContext COREContext;
 typedef struct CORENamespace CORENamespace;
@@ -21,12 +21,10 @@ typedef struct COREDirectedConnection COREDirectedConnection;
 typedef struct COREDirectedModule COREDirectedModule;
 typedef struct COREDirectedInstance COREDirectedInstance;
 
-
 typedef enum {
   STR2TYPE_ORDEREDMAP = 0,
   STR2VALUETYPE_MAP = 1,
   STR2VALUE_MAP = 2
 } COREMapKind;
 
-
-#endif //COREIR_CTYPES_H_
+#endif  // COREIR_CTYPES_H_

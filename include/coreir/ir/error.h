@@ -7,15 +7,14 @@
 namespace CoreIR {
 
 struct Error {
-  
+
   bool isfatal = false;
   std::string msg;
   Error() {}
-  void fatal() { isfatal = true;}
+  void fatal() { isfatal = true; }
   void message(std::string s) { msg = msg + s + "\n"; }
 };
 
-}//CoreIR namespace
+}  // namespace CoreIR
 
-
-#endif //ERROR_HPP_
+#endif  // ERROR_HPP_
