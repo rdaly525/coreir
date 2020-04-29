@@ -6,329 +6,319 @@
 
 namespace CoreIR {
 
-  enum SimValueType {
-    SIM_VALUE_BV,
-    SIM_VALUE_CLK
-  };
+enum SimValueType { SIM_VALUE_BV, SIM_VALUE_CLK };
 
-  class SimMemory {
-  protected:
-    std::map<BitVec, BitVec> values;
+class SimMemory {
+ protected:
+  std::map<BitVec, BitVec> values;
 
-    uint width;
-    uint depth;
-
-  public:
-
-    SimMemory(const uint width_, const uint depth_) :
-      width(width_), depth(depth_)
-    {}
-
-    std::map<BitVec, BitVec>::const_iterator begin() const {
-      return std::begin(values);
-    }
-
-    std::map<BitVec, BitVec>::const_iterator end() const {
-      return std::end(values);
-    }
-
-    BitVec getAddr(const BitVec& bv) const;
-    void setAddr(const BitVec& bv, const BitVec& val);
-  };
-
-  class SimValue {
-  public:
-    virtual ~SimValue() {}
-
-    virtual SimValueType getType() const = 0;
-
-    virtual bool operator==(const SimValue& other) const = 0;
-
-    virtual bool operator!=(const SimValue& other) const {
-      return !((*this) == other);
-    }
-  };
-
-  class SimBitVector : public SimValue {
-  protected:
-    BitVec bv;
+  uint width;
+  uint depth;
 
-  public:
-    SimBitVector(const BitVec& bv_) : bv(bv_) {}
+ public:
+  SimMemory(const uint width_, const uint depth_)
+      : width(width_),
+        depth(depth_) {}
 
-    BitVec getBits() const { return bv; }
+  std::map<BitVec, BitVec>::const_iterator begin() const {
+    return std::begin(values);
+  }
 
-    virtual SimValueType getType() const { return SIM_VALUE_BV; }
-
-    virtual bool operator==(const SimValue& other) const {
-      if (other.getType() != SIM_VALUE_BV) {
-        return false;
-      }
-      const SimBitVector& otherBit = static_cast<const SimBitVector&>(other);
-
-      return this->getBits() == otherBit.getBits();
-    }
-  };
+  std::map<BitVec, BitVec>::const_iterator end() const {
+    return std::end(values);
+  }
 
-  class ClockValue : public SimValue {
-  protected:
-    unsigned char lastVal, val;
-    int halfCycleCount;
+  BitVec getAddr(const BitVec& bv) const;
+  void setAddr(const BitVec& bv, const BitVec& val);
+};
 
-  public:
-    ClockValue(const unsigned char lastVal_,
-	       const unsigned char val_) : lastVal(lastVal_), val(val_), halfCycleCount(0) {}
+class SimValue {
+ public:
+  virtual ~SimValue() {}
 
-    unsigned char value() const { return val; }
-    unsigned char lastValue() const { return lastVal; }
+  virtual SimValueType getType() const = 0;
 
-    void flip() {
-      unsigned char tmp = lastVal;
-      lastVal = val;
-      val = tmp;
-      halfCycleCount++;
-    }
+  virtual bool operator==(const SimValue& other) const = 0;
 
-    int getCycleCount() const { return halfCycleCount / 2; }
-    int getHalfCycleCount() const { return halfCycleCount; }
+  virtual bool operator!=(const SimValue& other) const {
+    return !((*this) == other);
+  }
+};
 
-    virtual SimValueType getType() const { return SIM_VALUE_CLK; }
+class SimBitVector : public SimValue {
+ protected:
+  BitVec bv;
 
-    virtual bool operator==(const SimValue& other) const {
-      if (other.getType() != SIM_VALUE_CLK) {
-        return false;
-      }
-      const ClockValue& otherBit = static_cast<const ClockValue&>(other);
+ public:
+  SimBitVector(const BitVec& bv_) : bv(bv_) {}
 
-      // Q: Should we compare half cycle counts?
-      return (this->value() == otherBit.value()) &&
-        (this->lastValue() == otherBit.lastValue());
-    }
-    
-  };
+  BitVec getBits() const { return bv; }
 
-  class CircuitState {
-  public:
-    // Wire values
-    std::unordered_map<CoreIR::Select*, SimValue*> valMap;
+  virtual SimValueType getType() const { return SIM_VALUE_BV; }
 
-    // Internal state of the circuit
-    std::unordered_map<std::string, SimMemory> memories;
-    std::unordered_map<std::string, BitVec> registers;
-    
-  };
+  virtual bool operator==(const SimValue& other) const {
+    if (other.getType() != SIM_VALUE_BV) { return false; }
+    const SimBitVector& otherBit = static_cast<const SimBitVector&>(other);
 
-  typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
-  typedef BitVec (*BitVecUnop)(const BitVec& l);
-  typedef float (*FloatOp)(const float l, const float r);
-  
-  typedef std::function<bool()> StopFunction;
+    return this->getBits() == otherBit.getBits();
+  }
+};
 
-  struct StopCondition {
-    std::string name;
-    StopFunction stopTest;
-  };
-  
-  class SimulatorState {
-    CoreIR::Module* mod;
-    std::map<std::string, json> symTable;
-    bool hasSymTable;
+class ClockValue : public SimValue {
+ protected:
+  unsigned char lastVal, val;
+  int halfCycleCount;
 
-    NGraph gr;
-    std::deque<vdisc> topoOrder;
+ public:
+  ClockValue(const unsigned char lastVal_, const unsigned char val_)
+      : lastVal(lastVal_),
+        val(val_),
+        halfCycleCount(0) {}
 
-    std::vector<StopCondition> stopConditions;
+  unsigned char value() const { return val; }
+  unsigned char lastValue() const { return lastVal; }
 
-    CoreIR::Select* mainClock;
+  void flip() {
+    unsigned char tmp = lastVal;
+    lastVal = val;
+    val = tmp;
+    halfCycleCount++;
+  }
 
-    std::vector<CircuitState> circStates;
-    int stateIndex;
+  int getCycleCount() const { return halfCycleCount / 2; }
+  int getHalfCycleCount() const { return halfCycleCount; }
 
-    std::set<SimValue*> allocatedValues;
+  virtual SimValueType getType() const { return SIM_VALUE_CLK; }
 
-    bool hasCombinationalLoop;
-    std::map<vdisc, SimulatorPlugin*> plugMods;
+  virtual bool operator==(const SimValue& other) const {
+    if (other.getType() != SIM_VALUE_CLK) { return false; }
+    const ClockValue& otherBit = static_cast<const ClockValue&>(other);
 
-  public:
+    // Q: Should we compare half cycle counts?
+    return (this->value() == otherBit.value()) &&
+      (this->lastValue() == otherBit.lastValue());
+  }
+};
 
-    SimulatorState(CoreIR::Module* mod_);
-    SimulatorState(CoreIR::Module* mod_,
-                   std::map<std::string, SimModelBuilder>& pluginBuilders);
+class CircuitState {
+ public:
+  // Wire values
+  std::unordered_map<CoreIR::Select*, SimValue*> valMap;
 
-    void initializeState(CoreIR::Module* mod_,
-                       std::map<std::string, SimModelBuilder>& pluginBuilders);
-    
-    int numCircStates() const;
+  // Internal state of the circuit
+  std::unordered_map<std::string, SimMemory> memories;
+  std::unordered_map<std::string, BitVec> registers;
+};
 
-    void findMainClock();
-    void setInputDefaults();
-    std::vector<vdisc> unsetInputs();
-    void setNodeDefaults();
-    
-    std::vector<CircuitState> getCircStates() const;
+typedef BitVec (*BitVecBinop)(const BitVec& l, const BitVec& r);
+typedef BitVec (*BitVecUnop)(const BitVec& l);
+typedef float (*FloatOp)(const float l, const float r);
 
-    NGraph& getCircuitGraph() { return gr; }
+typedef std::function<bool()> StopFunction;
 
-    SimBitVector* makeSimBitVector(const BitVector& bv);
+struct StopCondition {
+  std::string name;
+  StopFunction stopTest;
+};
 
-    int getStateIndex() const;
-    
-    bool valMapContains(CoreIR::Select* sel) const;
+class SimulatorState {
+  CoreIR::Module* mod;
+  std::map<std::string, json> symTable;
+  bool hasSymTable;
 
-    bool hitWatchPoint() const;
+  NGraph gr;
+  std::deque<vdisc> topoOrder;
 
-    void setMainClock(const std::string& val);
-    CoreIR::Select* getMainClock() { return mainClock; }
+  std::vector<StopCondition> stopConditions;
 
-    void setMainClock(CoreIR::Select* s);
+  CoreIR::Select* mainClock;
 
-    bool hasMainClock() const { return mainClock != nullptr; }
+  std::vector<CircuitState> circStates;
+  int stateIndex;
 
-    void setMainClock(const std::vector<std::string>& path);
+  std::set<SimValue*> allocatedValues;
 
-    bool rewind(const int halfCycles);
+  bool hasCombinationalLoop;
+  std::map<vdisc, SimulatorPlugin*> plugMods;
 
-    void updateInputs(const vdisc vd);    
+ public:
+  SimulatorState(CoreIR::Module* mod_);
+  SimulatorState(
+    CoreIR::Module* mod_,
+    std::map<std::string, SimModelBuilder>& pluginBuilders);
 
-    CoreIR::Select* findSelect(const std::string& name) const;
+  void initializeState(
+    CoreIR::Module* mod_,
+    std::map<std::string, SimModelBuilder>& pluginBuilders);
 
-    bool atLastState();
-    void runHalfCycle();
-    void stepMainClock();
-    void stepClock(const std::string& str);
-    void stepClock(CoreIR::Select* clkSelect);
+  int numCircStates() const;
 
-    void setWatchPoint(const std::string& val,
-		       const BitVec& bv);
-    void setWatchPoint(const std::vector<std::string>& path,
-		       const BitVec& bv);
+  void findMainClock();
+  void setInputDefaults();
+  std::vector<vdisc> unsetInputs();
+  void setNodeDefaults();
 
-    void deleteWatchPoint(const std::string& name);
+  std::vector<CircuitState> getCircStates() const;
 
-    void setDFFDefaults();
-    void updateDFFOutput(const vdisc vd);
-    void updateDFFValue(const vdisc vd);
+  NGraph& getCircuitGraph() { return gr; }
 
-    void updateMemoryOutput(const vdisc vd);
-    void setConstantDefaults();
-    void setRegisterDefaults();
-    // void setLineBufferMem(const std::string& name,
-    //     		  const BitVector& data);
+  SimBitVector* makeSimBitVector(const BitVector& bv);
 
-    void updateLinebufferMemOutput(const vdisc vd);
-    void setMemoryDefaults();
-    //void setLinebufferMemDefaults();
+  int getStateIndex() const;
 
-    void updateBitVecUnop(const vdisc vd, BitVecUnop op);
-    void updateBitVecBinop(const vdisc vd, BitVecBinop op);
+  bool valMapContains(CoreIR::Select* sel) const;
 
-    // bool lineBufferOutIsValid(const std::string& memName);
-    // BitVector getLinebufferValue(const std::string& memName);
+  bool hitWatchPoint() const;
 
-    void setValue(CoreIR::Select* sel, SimValue* val);
-    void setValue(CoreIR::Select* sel, const BitVec& bv);
-    void setValue(const std::string& name, const BitVec& bv);
-    void setValue(const std::vector<std::string>& name, const BitVec& bv);
+  void setMainClock(const std::string& val);
+  CoreIR::Select* getMainClock() { return mainClock; }
 
-    void setClock(CoreIR::Select* sel,
-		  const unsigned char clk_last,
-		  const unsigned char clk);
+  void setMainClock(CoreIR::Select* s);
 
-    void setClock(const std::string& name,
-		  const unsigned char clk_last,
-		  const unsigned char clk);
+  bool hasMainClock() const { return mainClock != nullptr; }
 
-    void setClock(const std::vector<std::string>& path,
-                  const unsigned char clk_last,
-                  const unsigned char clk);
+  void setMainClock(const std::vector<std::string>& path);
 
-    void setRegister(const std::string& name,
-                     const BitVec& data);
+  bool rewind(const int halfCycles);
 
-    BitVec getRegister(const std::string& name);
-    
-    void setMemory(const std::string& name,
-		   const BitVec& addr,
-		   const BitVec& data);
+  void updateInputs(const vdisc vd);
 
-    BitVec getMemory(const std::string& name,
-		     const BitVec& addr);
+  CoreIR::Select* findSelect(const std::string& name) const;
 
-    bool exists(const std::string& selStr) const;
-    bool isSet(const std::string& selStr) const;
-    bool isSet(CoreIR::Select* s) const;
+  bool atLastState();
+  void runHalfCycle();
+  void stepMainClock();
+  void stepClock(const std::string& str);
+  void stepClock(CoreIR::Select* clkSelect);
 
-    SimValue* getValue(const std::string& name);
-    SimValue* getValue(CoreIR::Select* sel);
-    SimValue* getValue(const std::vector<std::string>& str);
+  void setWatchPoint(const std::string& val, const BitVec& bv);
+  void setWatchPoint(const std::vector<std::string>& path, const BitVec& bv);
 
-    BitVec getBitVec(CoreIR::Select* sel);
-    BitVec getBitVec(const std::string& str);
-    BitVec getBitVec(const std::vector<std::string>& str);
+  void deleteWatchPoint(const std::string& name);
 
-    void updateRegisterOutput(const vdisc vd);
+  void setDFFDefaults();
+  void updateDFFOutput(const vdisc vd);
+  void updateDFFValue(const vdisc vd);
 
-    void updateRegisterValue(const vdisc vd);
-    void updateMemoryValue(const vdisc vd);
-    //void updateLinebufferMemValue(const vdisc vd);
+  void updateMemoryOutput(const vdisc vd);
+  void setConstantDefaults();
+  void setRegisterDefaults();
+  // void setLineBufferMem(const std::string& name,
+  //     		  const BitVector& data);
 
-    void updateOrrNode(const vdisc vd);
-    void updateZextNode(const vdisc vd);
-    void updateLUTNNode(const vdisc vd);
-    void updateMuxNode(const vdisc vd);
-    void updateAddNode(const vdisc vd);
-    void updateNeqNode(const vdisc vd);
-    void updateEqNode(const vdisc vd);    
-    void updateConcatNode(const vdisc vd);
-    void updateSliceNode(const vdisc vd);    
-    void updateAndrNode(const vdisc vd);
-    void updateOutput(const vdisc vd);
-    void updateOrNode(const vdisc vd);
-    void updateAndNode(const vdisc vd);
-    void updateNodeValues(const vdisc vd);
+  void updateLinebufferMemOutput(const vdisc vd);
+  void setMemoryDefaults();
+  // void setLinebufferMemDefaults();
 
-    void exeSequential();
-    void exeCombinational();
-    void execute();
+  void updateBitVecUnop(const vdisc vd, BitVecUnop op);
+  void updateBitVecBinop(const vdisc vd, BitVecBinop op);
 
-    void resetCircuit();
+  // bool lineBufferOutIsValid(const std::string& memName);
+  // BitVector getLinebufferValue(const std::string& memName);
 
-    void run();
-    void runBack();
+  void setValue(CoreIR::Select* sel, SimValue* val);
+  void setValue(CoreIR::Select* sel, const BitVec& bv);
+  void setValue(const std::string& name, const BitVec& bv);
+  void setValue(const std::vector<std::string>& name, const BitVec& bv);
 
-    // Symbol table lookup
-    SimValue*
-    getValueByOriginalName(const std::vector<std::string>& instanceList,
-                           const std::vector<std::string>& portSelectList);
+  void setClock(
+    CoreIR::Select* sel,
+    const unsigned char clk_last,
+    const unsigned char clk);
 
-    SimValue*
-    getValueByOriginalName(const std::string& name);
+  void setClock(
+    const std::string& name,
+    const unsigned char clk_last,
+    const unsigned char clk);
 
-    void
-    deleteWatchPointByOriginalName(const std::vector<std::string>& instanceList,
-                                const std::vector<std::string>& portSelectList);
+  void setClock(
+    const std::vector<std::string>& path,
+    const unsigned char clk_last,
+    const unsigned char clk);
 
-    void
-    setWatchPointByOriginalName(const std::vector<std::string>& instanceList,
-                                const std::vector<std::string>& portSelectList,
-                                const BitVec& value);
+  void setRegister(const std::string& name, const BitVec& data);
 
-    void
-    setWatchPointByOriginalName(const std::string& name,
-                                const BitVec& bv);
+  BitVec getRegister(const std::string& name);
 
-    // Destructor
-    ~SimulatorState();
-  };
+  void setMemory(
+    const std::string& name,
+    const BitVec& addr,
+    const BitVec& data);
 
-  ClockValue* toClock(SimValue* val);
-  SimBitVector* toSimBitVector(SimValue* v);
+  BitVec getMemory(const std::string& name, const BitVec& addr);
 
-  std::string concatInlined(const std::vector<std::string>& str);
-  std::string concatSelects(const std::deque<std::string>& str);
-  std::string concatSelects(const std::vector<std::string>& str);
+  bool exists(const std::string& selStr) const;
+  bool isSet(const std::string& selStr) const;
+  bool isSet(CoreIR::Select* s) const;
 
-  int bitCastToInt(float val);  
-  float bitCastToFloat(int val);
+  SimValue* getValue(const std::string& name);
+  SimValue* getValue(CoreIR::Select* sel);
+  SimValue* getValue(const std::vector<std::string>& str);
 
-}
+  BitVec getBitVec(CoreIR::Select* sel);
+  BitVec getBitVec(const std::string& str);
+  BitVec getBitVec(const std::vector<std::string>& str);
+
+  void updateRegisterOutput(const vdisc vd);
+
+  void updateRegisterValue(const vdisc vd);
+  void updateMemoryValue(const vdisc vd);
+  // void updateLinebufferMemValue(const vdisc vd);
+
+  void updateOrrNode(const vdisc vd);
+  void updateZextNode(const vdisc vd);
+  void updateLUTNNode(const vdisc vd);
+  void updateMuxNode(const vdisc vd);
+  void updateAddNode(const vdisc vd);
+  void updateNeqNode(const vdisc vd);
+  void updateEqNode(const vdisc vd);
+  void updateConcatNode(const vdisc vd);
+  void updateSliceNode(const vdisc vd);
+  void updateAndrNode(const vdisc vd);
+  void updateOutput(const vdisc vd);
+  void updateOrNode(const vdisc vd);
+  void updateAndNode(const vdisc vd);
+  void updateNodeValues(const vdisc vd);
+
+  void exeSequential();
+  void exeCombinational();
+  void execute();
+
+  void resetCircuit();
+
+  void run();
+  void runBack();
+
+  // Symbol table lookup
+  SimValue* getValueByOriginalName(
+    const std::vector<std::string>& instanceList,
+    const std::vector<std::string>& portSelectList);
+
+  SimValue* getValueByOriginalName(const std::string& name);
+
+  void deleteWatchPointByOriginalName(
+    const std::vector<std::string>& instanceList,
+    const std::vector<std::string>& portSelectList);
+
+  void setWatchPointByOriginalName(
+    const std::vector<std::string>& instanceList,
+    const std::vector<std::string>& portSelectList,
+    const BitVec& value);
+
+  void setWatchPointByOriginalName(const std::string& name, const BitVec& bv);
+
+  // Destructor
+  ~SimulatorState();
+};
+
+ClockValue* toClock(SimValue* val);
+SimBitVector* toSimBitVector(SimValue* v);
+
+std::string concatInlined(const std::vector<std::string>& str);
+std::string concatSelects(const std::deque<std::string>& str);
+std::string concatSelects(const std::vector<std::string>& str);
+
+int bitCastToInt(float val);
+float bitCastToFloat(int val);
+
+}  // namespace CoreIR

@@ -1,5 +1,5 @@
-#include "coreir.h"
 #include "assert_pass.h"
+#include "coreir.h"
 
 using namespace CoreIR;
 
@@ -8,9 +8,7 @@ void testIce40Verilog(const char* json, const char* verilog) {
   c->getLibraryManager()->loadLib("ice40");
 
   Module* top;
-  if (!loadFromFile(c, json, &top)) {
-    c->printerrors();
-  }
+  if (!loadFromFile(c, json, &top)) { c->printerrors(); }
   assert(top);
 
   c->runPasses({"verilog"});

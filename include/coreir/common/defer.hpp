@@ -2,23 +2,19 @@
 
 namespace {
 
-template <typename Fn>
-struct defer {
+template <typename Fn> struct defer {
   Fn f;
   defer(Fn f) : f(f) {}
   ~defer() { f(); }
 };
 
-template <typename Fn>
-defer<Fn> defer_func(Fn f) {
-  return defer<Fn>(f);
-}
+template <typename Fn> defer<Fn> defer_func(Fn f) { return defer<Fn>(f); }
 
 }  // namespace
 
 #define DEFER_1(x, y) x##y
 #define DEFER_2(x, y) DEFER_1(x, y)
-#define DEFER_3(x)    DEFER_2(x, __COUNTER__)
+#define DEFER_3(x) DEFER_2(x, __COUNTER__)
 
 // defer() is a macro for RAII semantics, ala python "with". For example, we
 // could use it as follows:
@@ -34,4 +30,4 @@ defer<Fn> defer_func(Fn f) {
 // there are many other similar implementations available, though nothing is in
 // a common library.
 
-#define defer(code)   auto DEFER_3(_defer_) = defer_func([&](){code;})
+#define defer(code) auto DEFER_3(_defer_) = defer_func([&]() { code; })

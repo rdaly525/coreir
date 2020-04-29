@@ -38,8 +38,6 @@ void SetLogLevel(int severity) {
   internal::LogSeverityStore::set_severity(as_severity);
 }
 
-LogSeverity GetLogLevel() {
-  return internal::LogSeverityStore::severity();
-}
+LogSeverity GetLogLevel() { return internal::LogSeverityStore::severity(); }
 
 }  // namespace common

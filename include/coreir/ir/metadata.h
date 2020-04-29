@@ -9,13 +9,14 @@ using json = nlohmann::json;
 namespace CoreIR {
 class MetaData {
   json metadata;
-  public:
-    MetaData() : metadata(json::value_t::object) {}
-    json& getMetaData() {return metadata;}
-    bool hasMetaData() {return !metadata.empty();}
-    void setMetaData(json j) {metadata = j;}
+
+ public:
+  MetaData() : metadata(json::value_t::object) {}
+  json& getMetaData() { return metadata; }
+  bool hasMetaData() { return !metadata.empty(); }
+  void setMetaData(json j) { metadata = j; }
 };
 
-}//CoreIR namespace
+}  // namespace CoreIR
 
-#endif // METADATA_HPP_
+#endif  // METADATA_HPP_

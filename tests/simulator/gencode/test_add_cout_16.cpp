@@ -1,7 +1,7 @@
 #include "add_cout_16.h"
 
-#include <iostream>
 #include <bitset>
+#include <iostream>
 
 using namespace std;
 
@@ -16,13 +16,9 @@ int main() {
   cout << "self_cout = " << bitset<16>(state.self_cout) << endl;
   cout << "self_out  = " << bitset<16>(state.self_out) << endl;
 
-  if (state.self_out != ((1 << 14) | 1)) {
-    return 1;
-  }
+  if (state.self_out != ((1 << 14) | 1)) { return 1; }
 
-  if (state.self_cout != 1) {
-    return 1;
-  }
+  if (state.self_cout != 1) { return 1; }
 
   return 0;
 }

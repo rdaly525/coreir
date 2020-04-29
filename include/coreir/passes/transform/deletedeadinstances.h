@@ -5,18 +5,19 @@
 
 namespace CoreIR {
 
-  bool deleteDeadInstances(CoreIR::Module* const mod);
+bool deleteDeadInstances(CoreIR::Module* const mod);
 
-  namespace Passes {
+namespace Passes {
 
-    class DeleteDeadInstances : public ModulePass {
-    public:
-      static std::string ID;
-      DeleteDeadInstances() : ModulePass(ID, "Delete all instances with no outputs used") {}
-      bool runOnModule(Module* m) override;
-    };
-  }
+class DeleteDeadInstances : public ModulePass {
+ public:
+  static std::string ID;
+  DeleteDeadInstances()
+      : ModulePass(ID, "Delete all instances with no outputs used") {}
+  bool runOnModule(Module* m) override;
+};
+}  // namespace Passes
 
-}
+}  // namespace CoreIR
 
 #endif

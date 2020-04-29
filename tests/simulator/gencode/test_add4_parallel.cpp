@@ -12,11 +12,9 @@ int main() {
 
   uint32_t expected = 1 + 2 + 5 + 3;
 
-  simulate( &state );
+  simulate(&state);
 
-  if (state.self_out != expected) {
-    return 1;
-  }
+  if (state.self_out != expected) { return 1; }
 
   return 0;
 }

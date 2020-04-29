@@ -6,20 +6,18 @@ using namespace std;
 
 namespace CoreIR {
 
-  string LowProgram::cString() const {
-    string res = "";
+string LowProgram::cString() const {
+  string res = "";
 
-    for (auto& stmt : stmts) {
-      assert(stmt != nullptr);
+  for (auto& stmt : stmts) {
+    assert(stmt != nullptr);
 
-      res += stmt->cString();
-    }
-
-    return res;
+    res += stmt->cString();
   }
 
-  std::string LowId::cString() const {
-    return name;
-  }
-
+  return res;
 }
+
+std::string LowId::cString() const { return name; }
+
+}  // namespace CoreIR

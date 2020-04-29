@@ -7,17 +7,13 @@ int main() {
 
   simulate(&state);
 
-  if (state.self_out != 1) {
-    return 1;
-  }
+  if (state.self_out != 1) { return 1; }
 
   state.self_A = 0;
 
   simulate(&state);
 
-  if (state.self_out != 0) {
-    return 1;
-  }
+  if (state.self_out != 0) { return 1; }
 
   return 0;
 }
