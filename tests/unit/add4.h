@@ -1,5 +1,5 @@
-include "coreir.h"
-  
+#include "coreir.h"
+
 using namespace std;
 using namespace CoreIR;
 
