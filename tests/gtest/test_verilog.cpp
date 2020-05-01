@@ -27,22 +27,20 @@ TEST(VerilogTests, TestStringModule) {
 }
 
 TEST(VerilogTests, TestIntermediateConnection) {
-  for (int i = 0; i < 15; i++) {
-    Context* c = newContext();
-    Module* top;
+  Context* c = newContext();
+  Module* top;
 
-    if (!loadFromFile(c, "intermediate_connection.json", &top)) { c->die(); }
-    assert(top != nullptr);
-    c->setTop(top->getRefName());
+  if (!loadFromFile(c, "intermediate_connection.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
 
-    const std::vector<std::string> passes = {"rungenerators",
-                                             "removebulkconnections",
-                                             "flattentypes",
-                                             "verilog --inline"};
-    c->runPasses(passes, {});
-    assertPassEq<Passes::Verilog>(c, "intermediate_connection_golden.v");
-    deleteContext(c);
-  }
+  const std::vector<std::string> passes = {"rungenerators",
+                                           "removebulkconnections",
+                                           "flattentypes",
+                                           "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "intermediate_connection_golden.v");
+  deleteContext(c);
 }
 
 TEST(VerilogTests, TestArraySelect) {
