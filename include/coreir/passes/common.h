@@ -46,6 +46,7 @@
 #include "transform/unresolvedsymbols.h"
 #include "transform/wireclocks.h"
 
+#include "coreir/passes/transform/isolate_primitives.h"
 #include "transform/adddirected.h"
 #include "transform/clock_gate.h"
 #include "transform/inline_single_instances.h"
@@ -105,6 +106,7 @@ void initializePasses(PassManager& pm) {
   pm.addPass(new Passes::MarkDirty());
   pm.addPass(new Passes::InlineSingleInstances());
   pm.addPass(new Passes::ClockGate());
+  pm.addPass(new Passes::IsolatePrimitives());
 }
 }  // namespace CoreIR
 

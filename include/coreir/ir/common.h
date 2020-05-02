@@ -97,6 +97,27 @@ static std::map<std::string, std::set<std::string>> coreMap({
 
 void mergeValues(Values& v0, Values v1);
 
+template <typename ContainerT, typename PredicateT>
+ContainerT filterOver(const ContainerT& container, PredicateT predicate) {
+  ContainerT result;
+  std::copy_if(
+    container.begin(),
+    container.end(),
+    std::inserter(result, result.end()),
+    predicate);
+  return result;
+}
+
+template <typename ContainerT, typename PredicateT>
+bool anyOf(const ContainerT& container, PredicateT predicate) {
+  return std::any_of(container.begin(), container.end(), predicate);
+}
+
+template <typename ContainerT, typename PredicateT>
+bool allOf(const ContainerT& container, PredicateT predicate) {
+  return std::all_of(container.begin(), container.end(), predicate);
+}
+
 // Compare select paths
 bool SPComp(const SelectPath& l, const SelectPath& r);
 
