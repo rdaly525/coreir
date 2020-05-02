@@ -5,7 +5,53 @@
 #include "coreir/ir/valuetype.h"
 #include "coreir/ir/wireable.h"
 
+#include <cxxabi.h>
+#include <dlfcn.h>
+#include <execinfo.h>
 #include <regex>
+
+// (with modifications) taken from
+// https://gist.github.com/fmela/591333/c64f4eb86037bb237862a8283df70cdfc25f01d3
+void print_stack_trace(int skip) {
+  void* callstack[128];
+  const int nMaxFrames = sizeof(callstack) / sizeof(callstack[0]);
+  char buf[1024];
+  int nFrames = backtrace(callstack, nMaxFrames);
+  char** symbols = backtrace_symbols(callstack, nFrames);
+
+  std::ostringstream trace_buf;
+  for (int i = skip; i < nFrames; i++) {
+    Dl_info info;
+    if (dladdr(callstack[i], &info)) {
+      char* demangled = NULL;
+      int status;
+      demangled = abi::__cxa_demangle(info.dli_sname, NULL, 0, &status);
+      snprintf(
+        buf,
+        sizeof(buf),
+        "%-3d %*p %s + %zd\n",
+        i,
+        (int)(2 + sizeof(void*) * 2),
+        callstack[i],
+        status == 0 ? demangled : info.dli_sname,
+        (char*)callstack[i] - (char*)info.dli_saddr);
+      free(demangled);
+    }
+    else {
+      snprintf(
+        buf,
+        sizeof(buf),
+        "%-3d %*p\n",
+        i,
+        (int)(2 + sizeof(void*) * 2),
+        callstack[i]);
+    }
+    trace_buf << buf;
+  }
+  free(symbols);
+  if (nFrames == nMaxFrames) trace_buf << "[truncated]\n";
+  std::cerr << trace_buf.str() << std::endl;
+}
 
 using namespace std;
 namespace CoreIR {
