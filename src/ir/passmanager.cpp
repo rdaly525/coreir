@@ -42,9 +42,12 @@ bool PassManager::runContextPass(Pass* pass) {
 bool PassManager::runModulePass(Pass* pass) {
   bool modified = false;
   ModulePass* mpass = cast<ModulePass>(pass);
-  for (auto ns : this->nss) {
-    for (auto modmap : ns->getModules()) {
-      Module* m = modmap.second;
+  std::map<Namespace*, std::map<std::string, Module*>> modMap;
+  // create static list of modules in case new modules are added in the pass
+  for (auto ns : this->nss) { modMap[ns] = ns->getModules(); }
+
+  for (auto const& [ns, modules] : modMap) {
+    for (auto const& [mname, m] : modules) {
       if (m->hasDef()) { modified |= mpass->runOnModule(m); }
     }
   }
