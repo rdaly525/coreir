@@ -59,7 +59,7 @@ bool IsolatePrimitives::runOnModule(Module* m) {
   // Add all primitive instances into new module
   auto pdef = primModule->newModuleDef();
   for (auto const& [iname, inst] : primitiveInstances) {
-    pdef->addInstance(iname, inst->getModuleRef());
+    pdef->addInstance(iname, inst->getModuleRef(), inst->getModArgs());
   }
 
   // Internal connections
