@@ -47,7 +47,9 @@ bool PassManager::runModulePass(Pass* pass) {
   for (auto ns : this->nss) { modMap[ns] = ns->getModules(); }
 
   for (auto const& [_, modules] : modMap) {
+    UNUSED(_);
     for (auto const& [_, m] : modules) {
+      UNUSED(_);
       if (m->hasDef()) { modified |= mpass->runOnModule(m); }
     }
   }

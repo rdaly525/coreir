@@ -69,6 +69,7 @@ bool IsolatePrimitives::runOnModule(Module* m) {
 
   // External connections
   for (auto const& [wP, _, portName] : boundary_info) {
+    UNUSED(_);
     auto portSP = SelectPath({"self", portName});
     pdef->connect(wP->getSelectPath(), portSP);
   }
@@ -77,11 +78,13 @@ bool IsolatePrimitives::runOnModule(Module* m) {
   // Create instance of prim module and connect appropriately
   auto primInst = def->addInstance("primitive_" + c->getUnique(), primModule);
   for (auto const& [_, connE, portName] : boundary_info) {
+    UNUSED(_);
     def->connect(connE, primInst->sel(portName));
   }
 
   // remove all primtiive instnaces
   for (auto const& [_, inst] : primitiveInstances) {
+    UNUSED(_);
     def->removeInstance(inst);
   }
 

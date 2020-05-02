@@ -14,6 +14,9 @@
 
 #include <execinfo.h>
 
+#define UNUSED(var)                                                            \
+  do { (void)(var); } while (0)
+
 #define ASSERT(C, MSG)                                                         \
   do {                                                                         \
     if (!(C)) {                                                                \
