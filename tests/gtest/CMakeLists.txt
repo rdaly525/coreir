@@ -36,3 +36,7 @@ add_test(NAME test_inline_wires COMMAND test_inline_wires WORKING_DIRECTORY ${CM
 add_executable(test_hierarchical_select test_hierarchical_select.cpp)
 target_link_libraries(test_hierarchical_select gtest_main coreir coreir-commonlib)
 add_test(NAME test_hierarchical_select COMMAND test_hierarchical_select WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_isolate test_isolate.cpp)
+target_link_libraries(test_isolate gtest_main coreir coreir-commonlib)
+add_test(NAME test_isolate COMMAND test_isolate WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
