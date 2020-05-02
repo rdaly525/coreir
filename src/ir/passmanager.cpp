@@ -46,8 +46,8 @@ bool PassManager::runModulePass(Pass* pass) {
   // create static list of modules in case new modules are added in the pass
   for (auto ns : this->nss) { modMap[ns] = ns->getModules(); }
 
-  for (auto const& [ns, modules] : modMap) {
-    for (auto const& [mname, m] : modules) {
+  for (auto const& [_, modules] : modMap) {
+    for (auto const& [_, m] : modules) {
       if (m->hasDef()) { modified |= mpass->runOnModule(m); }
     }
   }
