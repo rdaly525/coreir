@@ -23,7 +23,7 @@ foo inst1 (
     .O(O)
 );
 assign inst0_IO = inst1_IO;
-assign IO0 = inst0_IO;
+assign inst0_IO = IO0;
 assign inst0_IO = IO1;
 endmodule
 

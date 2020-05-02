@@ -850,11 +850,22 @@ void assign_inouts(
     if (
       connection.first->getType()->isInOut() ||
       connection.second->getType()->isInOut()) {
+      // coreir connections aren't assumed to be sorted, see
+      // https://github.com/rdaly525/coreir/blob/f98c7bd8189d640ac078f6d60a1e86511bda4d64/src/ir/common.cpp#L84-L89),
+      // so we sort them here
+      // based on their lexical ordering so the code generation is consistent
+      // (otherwise we can get flipped assignment statements)
+      // note this is only an issue in the inout logic because the normal port
+      // logic depends on the input/output relationship (output drives input) so
+      // the order is enforced through other means
+      Wireable* target = connection.first;
+      Wireable* value = connection.second;
+      bool order = SPComp(target->getSelectPath(), value->getSelectPath());
+      if (!order) { std::swap(target, value); }
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
         convert_to_assign_target(
-          convert_to_verilog_connection(connection.first, _inline)),
-        convert_to_expression(
-          convert_to_verilog_connection(connection.second, _inline))));
+          convert_to_verilog_connection(target, _inline)),
+        convert_to_expression(convert_to_verilog_connection(value, _inline))));
     };
   };
 }

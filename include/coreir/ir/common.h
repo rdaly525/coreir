@@ -97,6 +97,9 @@ static std::map<std::string, std::set<std::string>> coreMap({
 
 void mergeValues(Values& v0, Values v1);
 
+// Compare select paths
+bool SPComp(const SelectPath& l, const SelectPath& r);
+
 }  // namespace CoreIR
 
 #endif
