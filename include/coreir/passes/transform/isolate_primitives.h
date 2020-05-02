@@ -11,7 +11,8 @@ class IsolatePrimitives : public ModulePass {
   IsolatePrimitives()
       : ModulePass(
           ID,
-          "Isolates all coreir/corebit primitives into its own module", false) {}
+          "Isolates all coreir/corebit primitives into its own module",
+          false) {}
   bool runOnModule(Module* m) override;
 };
 }  // namespace Passes
