@@ -72,7 +72,22 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w, Error& e) {
   }
   else if (auto at = dyn_cast<ArrayType>(w->getType())) {
     bool isConnected = true;
+
+    // Collect slice connections
+    std::set<int> to_skip;
+    for (auto sel : w->getSelects()) {
+      std::string selStr = sel.second->getSelStr();
+      if (isSlice(selStr)) {
+        int low;
+        int high;
+        std::tie(low, high) = parseSlice(selStr);
+        for (int i = low; i < high; i++) { to_skip.insert(i); }
+      }
+    }
+
     for (uint i = 0; i < at->getLen(); ++i) {
+      // Skip indices contained within slices
+      if (to_skip.count(i)) { continue; }
       // TODO bug with named types here
       if (!w->canSel(to_string(i))) {
         e.message(
