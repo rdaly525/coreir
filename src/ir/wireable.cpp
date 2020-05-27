@@ -3,6 +3,7 @@
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/error.h"
+
 #include "coreir/ir/generator.h"
 #include "coreir/ir/module.h"
 #include "coreir/ir/moduledef.h"

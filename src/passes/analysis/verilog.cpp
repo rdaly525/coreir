@@ -251,7 +251,8 @@ std::unique_ptr<vAST::Expression> convert_to_expression(
   std::variant<
     std::unique_ptr<vAST::Identifier>,
     std::unique_ptr<vAST::Attribute>,
-    std::unique_ptr<vAST::Index>> value) {
+    std::unique_ptr<vAST::Index>,
+    std::unique_ptr<vAST::Slice>> value) {
   return std::visit(
     [](auto&& value) -> std::unique_ptr<vAST::Expression> {
       return std::move(value);
@@ -267,7 +268,8 @@ std::variant<
 convert_to_assign_target(std::variant<
                          std::unique_ptr<vAST::Identifier>,
                          std::unique_ptr<vAST::Attribute>,
-                         std::unique_ptr<vAST::Index>> value) {
+                         std::unique_ptr<vAST::Index>,
+                         std::unique_ptr<vAST::Slice>> value) {
   return std::visit(
     [](auto&& value) -> std::variant<
                        std::unique_ptr<vAST::Identifier>,
@@ -280,6 +282,10 @@ convert_to_assign_target(std::variant<
       if (auto ptr = dynamic_cast<vAST::Index*>(value.get())) {
         value.release();
         return std::unique_ptr<vAST::Index>(ptr);
+      }
+      if (auto ptr = dynamic_cast<vAST::Slice*>(value.get())) {
+        value.release();
+        return std::unique_ptr<vAST::Slice>(ptr);
       }
       throw std::runtime_error("Cannot convert Attribute to assign target");
       return std::unique_ptr<vAST::Identifier>{};  // nullptr
@@ -664,7 +670,8 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
 std::variant<
   std::unique_ptr<vAST::Identifier>,
   std::unique_ptr<vAST::Attribute>,
-  std::unique_ptr<vAST::Index>>
+  std::unique_ptr<vAST::Index>,
+  std::unique_ptr<vAST::Slice>>
 convert_to_verilog_connection(Wireable* value, bool _inline) {
   SelectPath select_path = value->getSelectPath();
   if (select_path.front() == "self") { select_path.pop_front(); }
@@ -697,6 +704,22 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
           vAST::make_num(item));
       }
       throw std::runtime_error("Got non identifier for Index constructor");
+    }
+    else if (isSlice(item)) {
+      ASSERT(
+        i == select_path.size() - 1,
+        "Assumed flattened types have array slice as last element "
+        "in select path");
+      if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
+            curr_node)) {
+        uint low, high;
+        parseSlice(item, &low, &high);
+        return std::make_unique<vAST::Slice>(
+          std::move(std::get<std::unique_ptr<vAST::Identifier>>(curr_node)),
+          vAST::make_num(std::to_string(high - 1)),
+          vAST::make_num(std::to_string(low)));
+      }
+      throw std::runtime_error("Got non identifier for Slice constructor");
     }
     else {
       if (i > 0) {
@@ -776,14 +799,19 @@ void process_connection_debug_metadata(
 // If it is not a bulk connection, create a concat node and wire up the inputs
 // by index
 std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
+  Type* field_type,
   std::vector<ConnMapEntry> entries,
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>& body,
   std::string debug_prefix,
   bool _inline) {
+
   std::vector<std::unique_ptr<vAST::Expression>> args;
-  args.resize(entries.size());
+  ASSERT(isa<ArrayType>(field_type), "Expected Array for concat connection");
+  ArrayType* arr_type = cast<ArrayType>(field_type);
+  args.resize(arr_type->getLen());
+
   for (auto entry : entries) {
     std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
       convert_to_verilog_connection(entry.source, _inline));
@@ -794,7 +822,19 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
       debug_prefix + "[" + std::to_string(entry.index) + "]");
     args[entry.index] = std::move(verilog_conn);
   }
+
+  // Verilog uses MSB -> LSB ordering
   std::reverse(args.begin(), args.end());
+
+  // Remove empty cells, since there might be slices that only populate the
+  // start index of the slice
+  args.erase(
+    std::remove_if(
+      args.begin(),
+      args.end(),
+      [](std::unique_ptr<vAST::Expression>& arg) { return arg == NULL; }),
+    args.end());
+
   return std::make_unique<vAST::Concat>(std::move(args));
 }
 
@@ -815,6 +855,7 @@ void assign_module_outputs(
     else if (entries.size() > 1) {
       std::unique_ptr<vAST::Concat>
         concat = convert_non_bulk_connection_to_concat(
+          field_type,
           entries,
           body,
           field,
@@ -939,6 +980,7 @@ compile_module_body(
       else if (entries.size() > 1) {
         std::unique_ptr<vAST::Concat>
           concat = convert_non_bulk_connection_to_concat(
+            field_type,
             entries,
             body,
             instance_name + "." + field,
