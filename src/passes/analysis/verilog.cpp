@@ -712,8 +712,9 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
         "in select path");
       if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
             curr_node)) {
-        uint low, high;
-        parseSlice(item, &low, &high);
+        int low;
+        int high;
+        std::tie(low, high) = parseSlice(item);
         return std::make_unique<vAST::Slice>(
           std::move(std::get<std::unique_ptr<vAST::Identifier>>(curr_node)),
           vAST::make_num(std::to_string(high - 1)),

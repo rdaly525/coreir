@@ -37,7 +37,7 @@ bool Type::isBaseType() {
   return isa<BitType>(this) || isa<BitInType>(this) || isa<BitInOutType>(this);
 }
 
-bool sliceIsValid(uint low, uint high, ArrayType* arr) {
+bool sliceIsValid(uint low, uint high, ArrayType* const arr) {
   return (low >= 0) && (high <= arr->getLen()) && (low < high);
 }
 
@@ -50,8 +50,9 @@ Type* Type::sel(string selstr) {
   }
   else if (auto at = dyn_cast<ArrayType>(this)) {
     if (isSlice(selstr)) {
-      uint low, high;
-      parseSlice(selstr, &low, &high);
+      int low;
+      int high;
+      std::tie(low, high) = parseSlice(selstr);
       ASSERT(
         sliceIsValid(low, high, at),
         "Invalid slice = " + std::to_string(low) + ":" + std::to_string(high));
@@ -84,8 +85,9 @@ bool Type::canSel(string selstr) {
   else if (auto at = dyn_cast<ArrayType>(this)) {
     if (!isNumber(selstr) && !isSlice(selstr)) return false;
     if (isSlice(selstr)) {
-      uint low, high;
-      parseSlice(selstr, &low, &high);
+      int low;
+      int high;
+      std::tie(low, high) = parseSlice(selstr);
       return sliceIsValid(low, high, at);
     };
     uint i = std::stoi(selstr, nullptr, 0);

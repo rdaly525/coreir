@@ -31,16 +31,17 @@ bool isPower2(uint n) { return (n & (n - 1)) == 0; }
 
 bool isSlice(std::string selstr) {
   auto colon_pos = selstr.find_first_of(":");
-  if (colon_pos == std::string::npos) { return false; }
+  if (colon_pos == std::string::npos) return false;
   return isNumber(selstr.substr(0, colon_pos)) &&
     isNumber(selstr.substr(colon_pos + 1));
 }
 
-void parseSlice(std::string selstr, uint* low, uint* high) {
-  // assumes guarded by isSlice and is a valid slice
+std::pair<int, int> void parseSlice(const std::string& selstr) {
+  // Assumes guarded by isSlice and is a valid slice.
   size_t colon_pos;  // will be set by stoi to first non-num (colon)
-  *low = std::stoi(selstr, &colon_pos, 0);
-  *high = std::stoi(selstr.substr(colon_pos + 1), nullptr, 0);
+  int low = std::stoi(selstr, &colon_pos, 0);
+  int high = std::stoi(selstr.substr(colon_pos + 1), nullptr, 0);
+  return {low, high};
 }
 
 bool SPComp(const SelectPath& l, const SelectPath& r) {
