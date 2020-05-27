@@ -36,7 +36,7 @@ bool isSlice(std::string selstr) {
     isNumber(selstr.substr(colon_pos + 1));
 }
 
-std::pair<int, int> void parseSlice(const std::string& selstr) {
+std::pair<int, int> parseSlice(const std::string& selstr) {
   // Assumes guarded by isSlice and is a valid slice.
   size_t colon_pos;  // will be set by stoi to first non-num (colon)
   int low = std::stoi(selstr, &colon_pos, 0);
