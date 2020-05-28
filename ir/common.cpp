@@ -1,9 +1,9 @@
-#include "coreir/ir/common.h"
-#include "coreir/ir/module.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/value.h"
-#include "coreir/ir/valuetype.h"
-#include "coreir/ir/wireable.h"
+#include "ir/common.h"
+#include "ir/module.h"
+#include "ir/types.h"
+#include "ir/value.h"
+#include "ir/valuetype.h"
+#include "ir/wireable.h"
 
 #include <regex>
 

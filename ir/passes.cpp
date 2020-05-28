@@ -1,7 +1,7 @@
-#include "coreir/ir/passes.h"
-#include "coreir/ir/generator.h"
-#include "coreir/ir/module.h"
-#include "coreir/ir/passmanager.h"
+#include "ir/passes.h"
+#include "ir/generator.h"
+#include "ir/module.h"
+#include "ir/passmanager.h"
 
 using namespace std;
 using namespace CoreIR;

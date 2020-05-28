@@ -1,6 +1,6 @@
-#include "coreir/ir/globalvalue.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/namespace.h"
+#include "ir/globalvalue.h"
+#include "ir/common.h"
+#include "ir/namespace.h"
 
 using namespace std;
 namespace CoreIR {

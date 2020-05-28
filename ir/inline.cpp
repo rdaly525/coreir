@@ -1,10 +1,10 @@
-#include "coreir/ir/casting/casting.h"
-#include "coreir/ir/context.h"
-#include "coreir/ir/generator.h"
-#include "coreir/ir/moduledef.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/value.h"
-#include "coreir/ir/wireable.h"
+#include "ir/casting/casting.h"
+#include "ir/context.h"
+#include "ir/generator.h"
+#include "ir/moduledef.h"
+#include "ir/types.h"
+#include "ir/value.h"
+#include "ir/wireable.h"
 
 using namespace std;
 

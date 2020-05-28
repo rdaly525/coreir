@@ -2,12 +2,12 @@
 #include <fstream>
 #include <set>
 #include <unordered_map>
-#include "coreir/ir/context.h"
-#include "coreir/ir/json.h"
-#include "coreir/ir/module.h"
-#include "coreir/ir/namespace.h"
-#include "coreir/ir/typegen.h"
-#include "coreir/passes/analysis/coreirjson.h"
+#include "ir/context.h"
+#include "ir/json.h"
+#include "ir/module.h"
+#include "ir/namespace.h"
+#include "ir/typegen.h"
+#include "passes/analysis/coreirjson.h"
 
 using namespace std;
 namespace CoreIR {

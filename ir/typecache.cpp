@@ -1,8 +1,8 @@
-#include "coreir/ir/typecache.h"
-#include "coreir/ir/context.h"
-#include "coreir/ir/namespace.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/valuetype.h"
+#include "ir/typecache.h"
+#include "ir/context.h"
+#include "ir/namespace.h"
+#include "ir/types.h"
+#include "ir/valuetype.h"
 
 using namespace std;
 

@@ -1,12 +1,12 @@
-#include "coreir/ir/types.h"
-#include "coreir/ir/casting/casting.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/context.h"
-#include "coreir/ir/error.h"
-#include "coreir/ir/globalvalue.h"
-#include "coreir/ir/namespace.h"
-#include "coreir/ir/typegen.h"
-#include "coreir/ir/value.h"
+#include "ir/types.h"
+#include "ir/casting/casting.h"
+#include "ir/common.h"
+#include "ir/context.h"
+#include "ir/error.h"
+#include "ir/globalvalue.h"
+#include "ir/namespace.h"
+#include "ir/typegen.h"
+#include "ir/value.h"
 
 using namespace std;
 

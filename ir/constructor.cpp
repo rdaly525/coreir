@@ -1,11 +1,11 @@
 // Needs to have the same lenght
 // Needs to both be bitvector
-#include "coreir/ir/constructor.h"
-#include "coreir/common/utils.h"
-#include "coreir/ir/moduledef.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/value.h"
-#include "coreir/ir/wireable.h"
+#include "ir/constructor.h"
+#include "common/utils.h"
+#include "ir/moduledef.h"
+#include "ir/types.h"
+#include "ir/value.h"
+#include "ir/wireable.h"
 
 namespace CoreIR {
 

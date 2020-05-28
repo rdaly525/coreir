@@ -1,6 +1,6 @@
 
-#include "coreir/ir/dynamiclibrary.h"
-#include "coreir/ir/common.h"
+#include "ir/dynamiclibrary.h"
+#include "ir/common.h"
 
 #include <dlfcn.h>
 #include <fstream>

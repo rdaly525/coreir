@@ -1,9 +1,9 @@
-#include "coreir/ir/typegen.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/generator.h"
-#include "coreir/ir/namespace.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/value.h"
+#include "ir/typegen.h"
+#include "ir/common.h"
+#include "ir/generator.h"
+#include "ir/namespace.h"
+#include "ir/types.h"
+#include "ir/value.h"
 
 using namespace std;
 

@@ -1,6 +1,6 @@
-#include "coreir/ir/generatordef.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/generator.h"
+#include "ir/generatordef.h"
+#include "ir/common.h"
+#include "ir/generator.h"
 
 namespace CoreIR {
 void GeneratorDefFromFun::createModuleDef(ModuleDef* mdef, Values genargs) {

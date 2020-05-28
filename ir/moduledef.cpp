@@ -1,12 +1,12 @@
-#include "coreir/ir/moduledef.h"
+#include "ir/moduledef.h"
 #include <iterator>
-#include "coreir/ir/casting/casting.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/error.h"
-#include "coreir/ir/generator.h"
-#include "coreir/ir/typegen.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/value.h"
+#include "ir/casting/casting.h"
+#include "ir/common.h"
+#include "ir/error.h"
+#include "ir/generator.h"
+#include "ir/typegen.h"
+#include "ir/types.h"
+#include "ir/value.h"
 
 using namespace std;
 

@@ -1,7 +1,7 @@
-#include "coreir/ir/valuetype.h"
-#include "coreir/ir/casting/casting.h"
-#include "coreir/ir/context.h"
-#include "coreir/ir/typecache.h"
+#include "ir/valuetype.h"
+#include "ir/casting/casting.h"
+#include "ir/context.h"
+#include "ir/typecache.h"
 
 using namespace std;
 

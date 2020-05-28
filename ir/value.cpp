@@ -1,11 +1,11 @@
-#include "coreir/ir/value.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/context.h"
-#include "coreir/ir/dynamic_bit_vector.h"
-#include "coreir/ir/json.h"
-#include "coreir/ir/module.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/valuecache.h"
+#include "ir/value.h"
+#include "ir/common.h"
+#include "ir/context.h"
+#include "ir/dynamic_bit_vector.h"
+#include "ir/json.h"
+#include "ir/module.h"
+#include "ir/types.h"
+#include "ir/valuecache.h"
 
 using namespace std;
 

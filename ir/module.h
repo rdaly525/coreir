@@ -2,7 +2,7 @@
 #define COREIR_MODULE_HPP_
 
 #include "args.h"
-#include "coreir/primitive.h"
+#include "primitive.h"
 #include "fwd_declare.h"
 #include "globalvalue.h"
 

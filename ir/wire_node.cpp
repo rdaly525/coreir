@@ -1,4 +1,4 @@
-#include "coreir/common/wire_node.h"
+#include "common/wire_node.h"
 
 namespace CoreIR {
 

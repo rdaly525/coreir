@@ -1,7 +1,7 @@
 #ifndef COREIR_COREIRLIB_HPP_
 #define COREIR_COREIRLIB_HPP_
 
-#include "coreir/ir/dynamiclibrary.h"
+#include "ir/dynamiclibrary.h"
 #include "fwd_declare.h"
 
 namespace CoreIR {

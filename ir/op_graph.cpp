@@ -1,7 +1,7 @@
-#include "coreir/common/op_graph.h"
+#include "common/op_graph.h"
 
-#include "coreir/common/algorithm.h"
-#include "coreir/common/utils.h"
+#include "common/algorithm.h"
+#include "common/utils.h"
 
 using namespace std;
 

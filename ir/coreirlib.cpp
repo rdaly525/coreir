@@ -1,7 +1,7 @@
 
-#include "coreir/ir/coreirlib.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/context.h"
+#include "ir/coreirlib.h"
+#include "ir/common.h"
+#include "ir/context.h"
 
 using namespace std;
 

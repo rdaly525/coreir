@@ -1,6 +1,6 @@
-#include "coreir/ir/valuecache.h"
-#include "coreir/ir/context.h"
-#include "coreir/ir/value.h"
+#include "ir/valuecache.h"
+#include "ir/context.h"
+#include "ir/value.h"
 
 using namespace std;
 namespace CoreIR {

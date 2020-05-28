@@ -1,9 +1,9 @@
-#include "coreir/ir/passmanager.h"
+#include "ir/passmanager.h"
 #include <stack>
-#include "coreir/common/logging_lite.hpp"
-#include "coreir/passes/analysis/createinstancegraph.h"
-#include "coreir/passes/analysis/createinstancemap.h"
-#include "coreir/passes/common.h"
+#include "common/logging_lite.hpp"
+#include "passes/analysis/createinstancegraph.h"
+#include "passes/analysis/createinstancemap.h"
+#include "passes/common.h"
 
 using namespace CoreIR;
 

@@ -1,11 +1,11 @@
-#include "coreir/common/wiring_utils.h"
+#include "common/wiring_utils.h"
 
-#include "coreir/common/algorithm.h"
-#include "coreir/common/op_graph.h"
-#include "coreir/common/utils.h"
-#include "coreir/ir/dynamic_bit_vector.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/value.h"
+#include "common/algorithm.h"
+#include "common/op_graph.h"
+#include "common/utils.h"
+#include "ir/dynamic_bit_vector.h"
+#include "ir/types.h"
+#include "ir/value.h"
 
 using namespace std;
 

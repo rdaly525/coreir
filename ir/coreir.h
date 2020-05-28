@@ -2,29 +2,29 @@
 #define COREIR_H_
 
 #ifdef __cplusplus  // C++ header
-#include "coreir/ir/casting/casting.h"
-#include "coreir/ir/common.h"
-#include "coreir/ir/constructor.h"
-#include "coreir/ir/context.h"
-#include "coreir/ir/coreirlib.h"
-#include "coreir/ir/generator.h"
-#include "coreir/ir/module.h"
-#include "coreir/ir/moduledef.h"
-#include "coreir/ir/namespace.h"
-#include "coreir/ir/typegen.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/value.h"
-#include "coreir/ir/valuetype.h"
-#include "coreir/ir/wireable.h"
+#include "ir/casting/casting.h"
+#include "ir/common.h"
+#include "ir/constructor.h"
+#include "ir/context.h"
+#include "ir/coreirlib.h"
+#include "ir/generator.h"
+#include "ir/module.h"
+#include "ir/moduledef.h"
+#include "ir/namespace.h"
+#include "ir/typegen.h"
+#include "ir/types.h"
+#include "ir/value.h"
+#include "ir/valuetype.h"
+#include "ir/wireable.h"
 
-#include "coreir/ir/error.h"
+#include "ir/error.h"
 
-#include "coreir/ir/directedview.h"
-#include "coreir/ir/instancegraph.h"
-#include "coreir/ir/passes.h"
-#include "coreir/ir/passmanager.h"
+#include "ir/directedview.h"
+#include "ir/instancegraph.h"
+#include "ir/passes.h"
+#include "ir/passmanager.h"
 
-#include "coreir/common/util.h"
+#include "common/util.h"
 
 #else  // C header
 

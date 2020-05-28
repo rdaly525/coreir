@@ -1,7 +1,7 @@
-#include "coreir/ir/common.h"
-#include "coreir/ir/json.h"
-#include "coreir/ir/value.h"
-#include "coreir/ir/valuetype.h"
+#include "ir/common.h"
+#include "ir/json.h"
+#include "ir/value.h"
+#include "ir/valuetype.h"
 
 namespace CoreIR {
 

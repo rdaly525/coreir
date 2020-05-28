@@ -1,5 +1,5 @@
-#include "coreir/ir/args.h"
-#include "coreir/ir/value.h"
+#include "ir/args.h"
+#include "ir/value.h"
 
 using namespace std;
 
