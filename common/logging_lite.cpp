@@ -1,7 +1,7 @@
 // Copyright: Raj Setaluri 2019
 // Author: Raj Setaluri (raj.setlauri@gmail.com)
 
-#include "coreir/common/logging_lite.hpp"
+#include "common/logging_lite.hpp"
 
 namespace common {
 namespace internal {
