@@ -60,6 +60,17 @@ TEST(SliceTests, TestSelectOfSlice) {
   deleteContext(c);
 }
 
+TEST(SliceTests, TestSliceNestedArrayError) {
+  // For now, we don't support slicing non-array of bits
+  Context* c = newContext();
+  Module* top;
+
+  EXPECT_EXIT(
+    loadFromFile(c, "srcs/slice_error.json", &top),
+    ::testing::ExitedWithCode(1),
+    "ERROR: Slicing of non-array-of-bits is not yet supported, sorry!");
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {

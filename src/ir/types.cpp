@@ -85,6 +85,9 @@ bool Type::canSel(string selstr) {
   else if (auto at = dyn_cast<ArrayType>(this)) {
     if (!isNumber(selstr) && !isSlice(selstr)) return false;
     if (isSlice(selstr)) {
+      ASSERT(
+        at->getElemType()->isBaseType(),
+        "Slicing of non-array-of-bits is not yet supported, sorry!");
       int low;
       int high;
       std::tie(low, high) = parseSlice(selstr);
