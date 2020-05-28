@@ -687,9 +687,11 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   // Used to track the current select so we can see if it's an instance
   Wireable* curr_wireable = value->getTopParent();
 
-  std::
-    variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Attribute>>
-      curr_node;
+  std::variant<
+    std::unique_ptr<vAST::Identifier>,
+    std::unique_ptr<vAST::Attribute>,
+    std::unique_ptr<vAST::Slice>>
+    curr_node;
   for (uint i = 0; i < select_path.size(); i++) {
     auto item = select_path[i];
     if (isNumber(item)) {
@@ -706,21 +708,17 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
       throw std::runtime_error("Got non identifier for Index constructor");
     }
     else if (isSlice(item)) {
-      ASSERT(
-        i == select_path.size() - 1,
-        "Assumed flattened types have array slice as last element "
-        "in select path");
-      if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
-            curr_node)) {
-        int low;
-        int high;
-        std::tie(low, high) = parseSlice(item);
-        return std::make_unique<vAST::Slice>(
-          std::move(std::get<std::unique_ptr<vAST::Identifier>>(curr_node)),
-          vAST::make_num(std::to_string(high - 1)),
-          vAST::make_num(std::to_string(low)));
-      }
-      throw std::runtime_error("Got non identifier for Slice constructor");
+      int low;
+      int high;
+      std::tie(low, high) = parseSlice(item);
+      curr_node = std::make_unique<vAST::Slice>(
+        std::visit(
+          [](auto&& value) -> std::unique_ptr<vAST::Expression> {
+            return std::move(value);
+          },
+          curr_node),
+        vAST::make_num(std::to_string(high - 1)),
+        vAST::make_num(std::to_string(low)));
     }
     else {
       if (i > 0) {
@@ -735,13 +733,40 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
             [](auto&& node) -> bool { return node != NULL; },
             curr_node),
           "Expected non-null node for hierarchical reference");
+        // We need to pack into restricted type for attribute expression (can't
+        // attribute a Slice)
+        std::variant<
+          std::unique_ptr<vAST::Identifier>,
+          std::unique_ptr<vAST::Attribute>>
+          attr_expr = std::visit(
+            [](auto&& value) -> std::variant<
+                               std::unique_ptr<vAST::Identifier>,
+                               std::unique_ptr<vAST::Attribute>> {
+              if (auto ptr = dynamic_cast<vAST::Identifier*>(value.get())) {
+                value.release();
+                return std::unique_ptr<vAST::Identifier>(ptr);
+              }
+              if (auto ptr = dynamic_cast<vAST::Attribute*>(value.get())) {
+                value.release();
+                return std::unique_ptr<vAST::Attribute>(ptr);
+              }
+              throw std::runtime_error(
+                "Found unexpected slice inside hierarchical select");
+            },
+            std::move(curr_node));
+
         // .substr(1) to skip ; prefix
         for (auto inst : splitString<SelectPath>(item.substr(1), ';')) {
           // Construct nested attribute node
-          curr_node = std::make_unique<vAST::Attribute>(
-            std::move(curr_node),
+          attr_expr = std::make_unique<vAST::Attribute>(
+            std::move(attr_expr),
             inst);
         }
+        // Should be an attribute since we assume theres at least one
+        // hierarchical select if we're in this code path (will runtime error if
+        // otherwise)
+        curr_node = std::move(
+          std::get<std::unique_ptr<vAST::Attribute>>(attr_expr));
       }
       else {
         if (std::visit(
@@ -774,6 +799,9 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   }
   if (std::holds_alternative<std::unique_ptr<vAST::Attribute>>(curr_node)) {
     return std::get<std::unique_ptr<vAST::Attribute>>(std::move(curr_node));
+  }
+  if (std::holds_alternative<std::unique_ptr<vAST::Slice>>(curr_node)) {
+    return std::get<std::unique_ptr<vAST::Slice>>(std::move(curr_node));
   }
   throw std::runtime_error("Unreachable");
   return std::unique_ptr<vAST::Identifier>{};
