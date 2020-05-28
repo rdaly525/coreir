@@ -75,7 +75,7 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w, Error& e) {
 
     // Collect slice connections ranges, we will skip these since they are
     // already connected
-    std::deque<std::pair<int, int>> ranges_to_skip;
+    std::deque<std::pair<uint, uint>> ranges_to_skip;
     for (auto sel : w->getSelects()) {
       std::string selStr = sel.second->getSelStr();
       if (isSlice(selStr)) { ranges_to_skip.push_back(parseSlice(selStr)); }

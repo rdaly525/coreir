@@ -43,6 +43,23 @@ TEST(SliceTests, TestSliceOfSlice) {
   deleteContext(c);
 }
 
+TEST(SliceTests, TestSelectOfSlice) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/select_slice.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {"rungenerators",
+                                           "removebulkconnections",
+                                           "flattentypes",
+                                           "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "golds/select_slice.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {

@@ -699,13 +699,9 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
         i == select_path.size() - 1,
         "Assumed flattened types have array index as last element "
         "in select path");
-      if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
-            curr_node)) {
-        return std::make_unique<vAST::Index>(
-          std::move(std::get<std::unique_ptr<vAST::Identifier>>(curr_node)),
-          vAST::make_num(item));
-      }
-      throw std::runtime_error("Got non identifier for Index constructor");
+      return std::make_unique<vAST::Index>(
+        std::move(curr_node),
+        vAST::make_num(item));
     }
     else if (isSlice(item)) {
       int low;
