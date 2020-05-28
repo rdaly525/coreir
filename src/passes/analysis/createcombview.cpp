@@ -47,6 +47,9 @@ void Passes::CreateCombView::setupCorebit(Module* m) {
     set<SelectPath> outputs;
     for (auto record : m->getType()->getRecord()) {
       if (record.second->isInput()) { inputs.insert({record.first}); }
+      else if (record.second->isInOut()) {
+        continue;  // skip inouts for now
+      }
       else {
         assert(record.second->isOutput());
         outputs.insert({record.first});

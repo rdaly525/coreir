@@ -1,0 +1,31 @@
+{
+  "top": "global.top",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "top": {
+          "type": ["Record",[
+            ["in", ["Array",16,"BitIn"]],
+            ["out", ["Array",16,"Bit"]],
+            ["CLK",["Named","coreir.clkIn"]]
+          ]],
+          "instances":{
+            "value":{
+              "genref":"coreir.reg",
+              "genargs":{"width":["Int",16]},
+              "modargs":{"clk_posedge":["Bool",true], "init":[["BitVector",16],"16'h0000"]}
+            }
+          },
+          "connections": [
+            ["value.clk","self.CLK"],
+            ["self.in.0:8","value.in.8:16"],
+            ["self.in.8:16","value.in.0:8"],
+            ["self.out.8:16","value.out.0:8"],
+            ["self.out.0:8","value.out.8:16"]
+          ]
+        }
+      }
+    }
+  }
+}
+

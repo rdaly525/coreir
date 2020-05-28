@@ -71,6 +71,29 @@ TEST(SliceTests, TestSliceNestedArrayError) {
     "ERROR: Slicing of non-array-of-bits is not yet supported, sorry!");
 }
 
+TEST(SliceTests, TestCombView) {
+  // Verify Wireable.getAllSelects and Wireable.getLocalConnections API still
+  // works
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/slice_combview.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {"rungenerators",
+                                           "transform2combview",
+                                           "removebulkconnections",
+                                           "flattentypes",
+                                           "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "golds/slice_combview.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
