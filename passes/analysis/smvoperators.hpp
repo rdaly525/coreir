@@ -2,8 +2,8 @@
 #define SMVOPERATORS_HPP_
 
 #include <ostream>
-#include "coreir.h"
-#include "coreir/passes/analysis/smvmodule.hpp"
+#include "ir/coreir.h"
+#include "passes/analysis/smvmodule.hpp"
 
 using namespace CoreIR;
 using namespace std;

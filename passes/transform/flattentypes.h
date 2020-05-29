@@ -1,7 +1,7 @@
 #ifndef FLATTENTYPES_HPP_
 #define FLATTENTYPES_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

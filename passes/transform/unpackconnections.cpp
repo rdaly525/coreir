@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/unpackconnections.h"
-#include "coreir.h"
+#include "passes/transform/unpackconnections.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

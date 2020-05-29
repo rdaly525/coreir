@@ -1,6 +1,6 @@
-#include "coreir/passes/transform/rungenerators.h"
-#include "coreir.h"
-#include "coreir/common/logging_lite.hpp"
+#include "passes/transform/rungenerators.h"
+#include "ir/coreir.h"
+#include "common/logging_lite.hpp"
 
 using namespace CoreIR;
 

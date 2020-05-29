@@ -1,7 +1,7 @@
-#include "coreir/passes/transform/transform2combview.h"
-#include "coreir.h"
+#include "passes/transform/transform2combview.h"
+#include "ir/coreir.h"
 
-#include "coreir/passes/analysis/createcombview.h"
+#include "passes/analysis/createcombview.h"
 
 using namespace std;
 using namespace CoreIR;

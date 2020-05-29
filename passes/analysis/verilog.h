@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <ostream>
-#include "coreir.h"
+#include "ir/coreir.h"
 #include "verilogAST.hpp"
 
 namespace vAST = verilogAST;

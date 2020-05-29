@@ -1,7 +1,7 @@
 #ifndef WIRECLOCKPORTPASS_HPP_
 #define WIRECLOCKPORTPASS_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

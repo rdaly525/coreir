@@ -1,5 +1,5 @@
-#include "coreir/passes/analysis/createcombview.h"
-#include "coreir.h"
+#include "passes/analysis/createcombview.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

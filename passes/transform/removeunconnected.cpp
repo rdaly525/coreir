@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/removeunconnected.h"
-#include "coreir.h"
+#include "passes/transform/removeunconnected.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

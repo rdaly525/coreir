@@ -2,8 +2,8 @@
 #define SMTOPERATORS_HPP_
 
 #include <ostream>
-#include "coreir.h"
-#include "coreir/passes/analysis/smtmodule.hpp"
+#include "ir/coreir.h"
+#include "passes/analysis/smtmodule.hpp"
 
 using namespace CoreIR;
 using namespace std;

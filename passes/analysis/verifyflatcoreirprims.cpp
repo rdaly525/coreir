@@ -1,5 +1,5 @@
-#include "coreir/passes/analysis/verifyflatcoreirprims.h"
-#include "coreir.h"
+#include "passes/analysis/verifyflatcoreirprims.h"
+#include "ir/coreir.h"
 
 using namespace CoreIR;
 using namespace std;

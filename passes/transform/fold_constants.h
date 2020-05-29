@@ -1,7 +1,7 @@
 #ifndef COREIR_FOLDCONSTANTS_HPP_
 #define COREIR_FOLDCONSTANTS_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 // Define the analysis passes in CoreIR::Passes
 namespace CoreIR {

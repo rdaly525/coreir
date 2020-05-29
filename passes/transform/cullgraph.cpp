@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/cullgraph.h"
-#include "coreir.h"
+#include "passes/transform/cullgraph.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

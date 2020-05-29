@@ -1,7 +1,7 @@
 /* vim: set tabstop=2:softtabstop=2:shiftwidth=2 */
 
-#include "coreir/passes/analysis/vmodule.h"
-#include "coreir.h"
+#include "passes/analysis/vmodule.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/unresolvedsymbols.h"
-#include "coreir.h"
+#include "passes/transform/unresolvedsymbols.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

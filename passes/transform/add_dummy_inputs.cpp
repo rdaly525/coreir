@@ -1,7 +1,7 @@
-#include "coreir/passes/transform/add_dummy_inputs.h"
-#include "coreir.h"
+#include "passes/transform/add_dummy_inputs.h"
+#include "ir/coreir.h"
 
-#include "coreir/common/util.h"
+#include "common/util.h"
 
 using namespace std;
 using namespace CoreIR;

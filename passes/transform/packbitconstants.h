@@ -1,7 +1,7 @@
 #ifndef COREIR_PACKBITCONSTANTS_HPP_
 #define COREIR_PACKBITCONSTANTS_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

@@ -1,7 +1,7 @@
 #ifndef COREIR_CULLGRAPH_HPP_
 #define COREIR_CULLGRAPH_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 // This will recusrively run all the generators and replace module definitions
 // For every instance, if it is a generator, it
 

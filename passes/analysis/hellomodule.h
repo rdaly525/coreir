@@ -16,7 +16,7 @@
  * pass.
  */
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 // Define the analysis passes in CoreIR::Passes
 namespace CoreIR {

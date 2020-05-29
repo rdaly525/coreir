@@ -1,7 +1,7 @@
 #ifndef COREIR_ADDDIRECTED_HPP_
 #define COREIR_ADDDIRECTED_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 // Define the analysis passes in CoreIR::Passes
 namespace CoreIR {

@@ -1,6 +1,6 @@
 
-#include "coreir/passes/transform/removewires.h"
-#include "coreir.h"
+#include "passes/transform/removewires.h"
+#include "ir/coreir.h"
 
 using namespace CoreIR;
 

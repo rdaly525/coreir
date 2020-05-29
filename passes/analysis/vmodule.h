@@ -5,7 +5,7 @@
 
 #include <queue>
 #include <regex>
-#include "coreir.h"
+#include "ir/coreir.h"
 
 // TODO get rid of
 using namespace std;

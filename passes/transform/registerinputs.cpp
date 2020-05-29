@@ -1,4 +1,4 @@
-#include "coreir/passes/transform/registerinputs.h"
+#include "passes/transform/registerinputs.h"
 
 using namespace std;
 using namespace CoreIR;

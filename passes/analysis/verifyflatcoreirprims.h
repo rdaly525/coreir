@@ -1,7 +1,7 @@
 #ifndef VERIFYFLATCOREIRPRIMS_H_
 #define VERIFYFLATCOREIRPRIMS_H_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

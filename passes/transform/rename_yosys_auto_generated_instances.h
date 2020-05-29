@@ -1,7 +1,7 @@
 #ifndef COREIR_RENAME_YOSYS_AUTO_GENERATED_INSTANCES_HPP_
 #define COREIR_RENAME_YOSYS_AUTO_GENERATED_INSTANCES_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 // Define the analysis passes in CoreIR::Passes
 namespace CoreIR {

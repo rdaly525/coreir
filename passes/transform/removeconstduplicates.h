@@ -1,7 +1,7 @@
 #ifndef COREIR_REMOVECONSTDUPLICATES_HPP_
 #define COREIR_REMOVECONSTDUPLICATES_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 

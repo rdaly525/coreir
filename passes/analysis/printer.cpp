@@ -1,6 +1,6 @@
-#include "coreir/passes/analysis/printer.h"
-#include "coreir.h"
-#include "coreir/passes/analysis/coreirjson.h"
+#include "passes/analysis/printer.h"
+#include "ir/coreir.h"
+#include "passes/analysis/coreirjson.h"
 
 using namespace std;
 using namespace CoreIR;

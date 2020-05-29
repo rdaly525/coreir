@@ -1,5 +1,5 @@
-#include "coreir/passes/analysis/firrtl.h"
-#include "coreir.h"
+#include "passes/analysis/firrtl.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

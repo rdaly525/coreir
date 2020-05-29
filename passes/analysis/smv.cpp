@@ -1,6 +1,6 @@
-#include "coreir/passes/analysis/smv.h"
-#include "coreir.h"
-#include "coreir/passes/analysis/smvmodule.hpp"
+#include "passes/analysis/smv.h"
+#include "ir/coreir.h"
+#include "passes/analysis/smvmodule.hpp"
 
 using namespace CoreIR;
 using namespace Passes;

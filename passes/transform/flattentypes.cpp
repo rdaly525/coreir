@@ -1,8 +1,8 @@
 
-#include "coreir/passes/transform/flattentypes.h"
+#include "passes/transform/flattentypes.h"
 #include <set>
-#include "coreir.h"
-#include "coreir/common/logging_lite.hpp"
+#include "ir/coreir.h"
+#include "common/logging_lite.hpp"
 
 using namespace std;
 using namespace CoreIR;

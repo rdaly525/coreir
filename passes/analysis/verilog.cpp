@@ -1,9 +1,9 @@
-#include "coreir/passes/analysis/verilog.h"
+#include "passes/analysis/verilog.h"
 #include <fstream>
 #include <regex>
-#include "coreir.h"
-#include "coreir/common/logging_lite.hpp"
-#include "coreir/tools/cxxopts.h"
+#include "ir/coreir.h"
+#include "common/logging_lite.hpp"
+#include "tools/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
 #include "verilogAST/transformer.hpp"
 

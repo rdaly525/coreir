@@ -1,5 +1,5 @@
-#include "coreir/passes/analysis/verifyflattenedtypes.h"
-#include "coreir.h"
+#include "passes/analysis/verifyflattenedtypes.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

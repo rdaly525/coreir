@@ -5,8 +5,8 @@
  * This is just filling out some function definitions
  */
 
-#include "coreir/passes/analysis/hellomodule.h"
-#include "coreir.h"
+#include "passes/analysis/hellomodule.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

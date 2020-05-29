@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/sanitize_names.h"
-#include "coreir.h"
+#include "passes/transform/sanitize_names.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

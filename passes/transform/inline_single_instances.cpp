@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/inline_single_instances.h"
-#include "coreir.h"
+#include "passes/transform/inline_single_instances.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

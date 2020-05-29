@@ -1,7 +1,7 @@
-#include "coreir/passes/analysis/smtlib2.h"
-#include "coreir.h"
-#include "coreir/passes/analysis/smtmodule.hpp"
-#include "coreir/passes/analysis/smtoperators.hpp"
+#include "passes/analysis/smtlib2.h"
+#include "ir/coreir.h"
+#include "passes/analysis/smtmodule.hpp"
+#include "passes/analysis/smtoperators.hpp"
 
 using namespace CoreIR;
 using namespace Passes;

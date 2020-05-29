@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/removeconstduplicates.h"
-#include "coreir/common/util.h"
+#include "passes/transform/removeconstduplicates.h"
+#include "common/util.h"
 
 using namespace std;
 using namespace CoreIR;

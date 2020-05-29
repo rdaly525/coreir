@@ -1,5 +1,5 @@
-#include "coreir/passes/analysis/magma.h"
-#include "coreir.h"
+#include "passes/analysis/magma.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

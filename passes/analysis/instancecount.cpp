@@ -1,5 +1,5 @@
-#include "coreir/passes/analysis/instancecount.h"
-#include "coreir.h"
+#include "passes/analysis/instancecount.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

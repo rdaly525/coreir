@@ -1,6 +1,6 @@
-#include "coreir/passes/transform/rename_yosys_auto_generated_instances.h"
+#include "passes/transform/rename_yosys_auto_generated_instances.h"
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

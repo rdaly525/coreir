@@ -1,5 +1,5 @@
-#include "coreir/passes/analysis/verifyinputconnections.h"
-#include "coreir.h"
+#include "passes/analysis/verifyinputconnections.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

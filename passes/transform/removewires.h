@@ -1,7 +1,7 @@
 #ifndef REMOVEWIRES_H_
 #define REMOVEWIRES_H_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

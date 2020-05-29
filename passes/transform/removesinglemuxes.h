@@ -1,7 +1,7 @@
 #ifndef REMOVESINGLEMUXES_HPP_
 #define REMOVESINGLEMUXES_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

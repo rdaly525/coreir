@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/removebulkconnections.h"
-#include "coreir.h"
+#include "passes/transform/removebulkconnections.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/flatten.h"
-#include "coreir.h"
+#include "passes/transform/flatten.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

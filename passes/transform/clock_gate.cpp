@@ -1,4 +1,4 @@
-#include "coreir/passes/transform/clock_gate.h"
+#include "passes/transform/clock_gate.h"
 
 std::string CoreIR::Passes::ClockGate::ID = "clock_gate";
 

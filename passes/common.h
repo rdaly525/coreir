@@ -15,13 +15,13 @@
 #include "analysis/verifyflattenedtypes.h"
 #include "analysis/verifyinputconnections.h"
 #include "analysis/verilog.h"
-#include "coreir/passes/analysis/smtlib2.h"
-#include "coreir/passes/analysis/smv.h"
-#include "coreir/passes/analysis/verifyflatcoreirprims.h"
+#include "passes/analysis/smtlib2.h"
+#include "passes/analysis/smv.h"
+#include "passes/analysis/verifyflatcoreirprims.h"
 
 // Transform passes
-#include "coreir/passes/transform/deletedeadinstances.h"
-#include "coreir/passes/transform/rename_yosys_auto_generated_instances.h"
+#include "passes/transform/deletedeadinstances.h"
+#include "passes/transform/rename_yosys_auto_generated_instances.h"
 #include "transform/add_dummy_inputs.h"
 #include "transform/clockifyinterface.h"
 #include "transform/cullgraph.h"
@@ -46,7 +46,7 @@
 #include "transform/unresolvedsymbols.h"
 #include "transform/wireclocks.h"
 
-#include "coreir/passes/transform/isolate_primitives.h"
+#include "passes/transform/isolate_primitives.h"
 #include "transform/adddirected.h"
 #include "transform/clock_gate.h"
 #include "transform/inline_single_instances.h"

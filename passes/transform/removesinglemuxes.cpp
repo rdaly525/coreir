@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/removesinglemuxes.h"
-#include "coreir/common/util.h"
+#include "passes/transform/removesinglemuxes.h"
+#include "common/util.h"
 
 using namespace std;
 using namespace CoreIR;

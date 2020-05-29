@@ -2,7 +2,7 @@
 #define COREIR_PRINTER_HPP_
 
 #include <ostream>
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

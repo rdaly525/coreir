@@ -1,7 +1,7 @@
-#include "coreir/passes/analysis/smvoperators.hpp"
+#include "passes/analysis/smvoperators.hpp"
 #include <algorithm>
 #include <bitset>
-#include "coreir.h"
+#include "ir/coreir.h"
 
 using namespace CoreIR;
 

@@ -1,4 +1,4 @@
-#include "coreir/passes/transform/isolate_primitives.h"
+#include "passes/transform/isolate_primitives.h"
 
 std::string CoreIR::Passes::IsolatePrimitives::ID = "isolate_primitives";
 

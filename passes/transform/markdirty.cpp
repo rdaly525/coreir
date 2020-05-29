@@ -1,5 +1,5 @@
-#include "coreir/passes/transform/markdirty.h"
-#include "coreir.h"
+#include "passes/transform/markdirty.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

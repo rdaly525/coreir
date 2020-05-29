@@ -1,7 +1,7 @@
-#include "coreir/passes/transform/packconnections.h"
+#include "passes/transform/packconnections.h"
 
-#include "coreir.h"
-#include "coreir/common/util.h"
+#include "ir/coreir.h"
+#include "common/util.h"
 
 using namespace std;
 using namespace CoreIR;

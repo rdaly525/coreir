@@ -1,7 +1,7 @@
 #ifndef COREIR_CULLZEXTS_HPP_
 #define COREIR_CULLZEXTS_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 // Define the analysis passes in CoreIR::Passes
 namespace CoreIR {

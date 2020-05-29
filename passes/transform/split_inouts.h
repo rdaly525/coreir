@@ -1,7 +1,7 @@
 #ifndef SPLIT_INOUTS_PASS_HPP_
 #define SPLIT_INOUTS_PASS_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

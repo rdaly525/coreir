@@ -1,6 +1,6 @@
-#include "coreir/passes/analysis/smtoperators.hpp"
+#include "passes/analysis/smtoperators.hpp"
 #include <bitset>
-#include "coreir.h"
+#include "ir/coreir.h"
 
 using namespace CoreIR;
 

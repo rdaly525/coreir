@@ -1,6 +1,6 @@
-#include "coreir/passes/transform/cullzexts.h"
-#include "coreir.h"
-#include "coreir/common/util.h"
+#include "passes/transform/cullzexts.h"
+#include "ir/coreir.h"
+#include "common/util.h"
 
 using namespace std;
 using namespace CoreIR;

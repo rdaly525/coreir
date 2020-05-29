@@ -1,7 +1,7 @@
 #ifndef COREIR_DELETEDEADINSTANCES_HPP_
 #define COREIR_DELETEDEADINSTANCES_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 

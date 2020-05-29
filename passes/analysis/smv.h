@@ -4,7 +4,7 @@
 #include <ostream>
 #include <set>
 #include <string>
-#include "coreir.h"
+#include "ir/coreir.h"
 #include "smvmodule.hpp"
 #include "smvoperators.hpp"
 

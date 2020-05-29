@@ -5,8 +5,8 @@
  * This is just filling out some function definitions
  */
 
-#include "coreir/passes/transform/adddirected.h"
-#include "coreir.h"
+#include "passes/transform/adddirected.h"
+#include "ir/coreir.h"
 
 using namespace std;
 using namespace CoreIR;

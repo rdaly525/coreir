@@ -1,7 +1,7 @@
-#include "coreir/passes/analysis/coreirjson.h"
+#include "passes/analysis/coreirjson.h"
 #include <map>
 #include <set>
-#include "coreir.h"
+#include "ir/coreir.h"
 
 using namespace CoreIR;
 using namespace std;

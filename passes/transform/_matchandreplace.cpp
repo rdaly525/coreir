@@ -1,6 +1,6 @@
-#include "coreir.h"
-#include "coreir/passes/analysis/createmodinstancemap.h"
-#include "coreir/passes/transform/matchandreplace.h"
+#include "ir/coreir.h"
+#include "passes/analysis/createmodinstancemap.h"
+#include "passes/transform/matchandreplace.h"
 
 #include <algorithm>
 #include <queue>

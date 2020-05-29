@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 using namespace CoreIR;  // TODO get rid of this
 using namespace std;
