@@ -19,10 +19,10 @@ using namespace std;
 
 namespace CoreIR {
 // TODO sketchy
-#include "headers/core.hpp"
-#include "headers/corebit.hpp"
-#include "headers/mantle.hpp"
-#include "headers/memories.hpp"
+#include "ir/headers/core.hpp"
+#include "ir/headers/corebit.hpp"
+#include "ir/headers/mantle.hpp"
+#include "ir/headers/memories.hpp"
 
 Context::Context() : maxErrors(8) {
   libmanager = new CoreIRLibrary(this);

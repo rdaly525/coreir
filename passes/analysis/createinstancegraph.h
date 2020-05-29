@@ -1,7 +1,7 @@
 #ifndef CREATEINSTANCEGRAPH_HPP_
 #define CREATEINSTANCEGRAPH_HPP_
 
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

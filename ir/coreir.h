@@ -24,7 +24,7 @@
 #include "ir/passes.h"
 #include "ir/passmanager.h"
 
-#include "common/util.h"
+#include "utils/util.h"
 
 #else  // C header
 

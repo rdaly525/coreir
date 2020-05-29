@@ -2,7 +2,7 @@
 #define COREIRJSON_HPP_
 
 #include <map>
-#include "coreir.h"
+#include "ir/coreir.h"
 
 namespace CoreIR {
 namespace Passes {

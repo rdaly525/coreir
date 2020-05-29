@@ -35,7 +35,10 @@ cc_library(
              'wireable.cpp',
              'wiring_utils.cpp' ],
     deps = [ ':ir_hdrs',
+             '//passes:passes',
+             '//passes/analysis:analysis_hdrs',
              '//ir/casting:casting',
+             '//ir/headers:headers',
              '//common:common',
              '//utils:utils' ])
 

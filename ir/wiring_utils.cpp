@@ -1,8 +1,8 @@
 #include "utils/wiring_utils.h"
 
 #include "common/algorithm.h"
-#include "common/op_graph.h"
-#include "common/utils.h"
+#include "utils/op_graph.h"
+#include "utils/utils.h"
 #include "ir/dynamic_bit_vector.h"
 #include "ir/types.h"
 #include "ir/value.h"
