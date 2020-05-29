@@ -1,4 +1,4 @@
-#include "common/wiring_utils.h"
+#include "utils/wiring_utils.h"
 
 #include "common/algorithm.h"
 #include "common/op_graph.h"

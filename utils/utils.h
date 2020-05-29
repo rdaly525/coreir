@@ -1,13 +1,13 @@
 #pragma once
 
-#include "coreir/ir/common.h"
-#include "coreir/ir/dynamic_bit_vector.h"
-#include "coreir/ir/module.h"
-#include "coreir/ir/namespace.h"
-#include "coreir/ir/types.h"
-#include "coreir/ir/wireable.h"
+#include "ir/common.h"
+#include "ir/dynamic_bit_vector.h"
+#include "ir/module.h"
+#include "ir/namespace.h"
+#include "ir/types.h"
+#include "ir/wireable.h"
 
-#include "coreir/common/algorithm.h"
+#include "common/algorithm.h"
 
 namespace CoreIR {
 

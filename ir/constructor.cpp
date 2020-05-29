@@ -1,7 +1,7 @@
 // Needs to have the same lenght
 // Needs to both be bitvector
 #include "ir/constructor.h"
-#include "common/utils.h"
+#include "utils/utils.h"
 #include "ir/moduledef.h"
 #include "ir/types.h"
 #include "ir/value.h"

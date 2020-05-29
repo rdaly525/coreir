@@ -1,8 +1,8 @@
 #pragma once
 
-#include "coreir/ir/moduledef.h"
+#include "ir/moduledef.h"
 
-#include "coreir/common/utils.h"
+#include "utils/utils.h"
 
 namespace CoreIR {
 

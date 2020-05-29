@@ -1,9 +1,9 @@
 #pragma once
 
-#include "coreir/common/algorithm.h"
-#include "coreir/ir/module.h"
-#include "coreir/ir/moduledef.h"
-#include "coreir/ir/wireable.h"
+#include "common/algorithm.h"
+#include "ir/module.h"
+#include "ir/moduledef.h"
+#include "ir/wireable.h"
 
 namespace CoreIR {
 

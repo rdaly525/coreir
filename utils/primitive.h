@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coreir/ir/fwd_declare.h"
+#include "ir/fwd_declare.h"
 #include "verilogAST.hpp"
 
 namespace vAST = verilogAST;

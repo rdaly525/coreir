@@ -1,7 +1,7 @@
 #ifndef COREIR_GENERATOR_HPP_
 #define COREIR_GENERATOR_HPP_
 
-#include "primitive.h"
+#include "utils/primitive.h"
 #include "fwd_declare.h"
 #include "globalvalue.h"
 

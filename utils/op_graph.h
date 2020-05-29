@@ -1,6 +1,6 @@
 #pragma once
 
-#include "coreir/common/wire_node.h"
+#include "utils/wire_node.h"
 
 namespace CoreIR {
 
