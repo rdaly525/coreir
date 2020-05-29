@@ -1,0 +1,19 @@
+{
+  "top": "global.top",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "top": {
+          "type": ["Record",[
+            ["in", ["Array",4,["Array",4,"BitIn"]]],
+            ["out", ["Array",2,["Array",4,"Bit"]]]
+          ]],
+          "connections": [
+            ["self.in.0:2","self.out"]
+          ]
+        }
+      }
+    }
+  }
+}
+

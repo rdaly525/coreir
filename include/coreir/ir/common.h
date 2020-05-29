@@ -18,6 +18,9 @@ typedef std::set<Connection, ConnectionCompFast> ConnectionsFast;
 bool isNumber(std::string s);
 bool isPower2(uint n);
 
+bool isSlice(std::string selstr);
+std::pair<int, int> parseSlice(const std::string& selstr);
+
 // Used to make sure string formats are valid for inst names, module names, etc
 void checkStringSyntax(std::string& str);
 

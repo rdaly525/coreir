@@ -72,7 +72,28 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w, Error& e) {
   }
   else if (auto at = dyn_cast<ArrayType>(w->getType())) {
     bool isConnected = true;
+
+    // Collect slice connections ranges, we will skip these since they are
+    // already connected
+    std::deque<std::pair<uint, uint>> ranges_to_skip;
+    for (auto sel : w->getSelects()) {
+      std::string selStr = sel.second->getSelStr();
+      if (isSlice(selStr)) { ranges_to_skip.push_back(parseSlice(selStr)); }
+    }
+
+    // Sort in ascending order by slice beginning (first elem of pair)
+    sort(ranges_to_skip.begin(), ranges_to_skip.end());
+
     for (uint i = 0; i < at->getLen(); ++i) {
+      // If we're greater than or equal to the current slice to skip's end idx,
+      // remove slice (iteratively since we may have overlapping slices)
+      while (ranges_to_skip.size() && i >= ranges_to_skip[0].second) {
+        ranges_to_skip.pop_front();
+      }
+      // If we're greater than the current slice to skip's start idx,
+      // continue
+      if (ranges_to_skip.size() && i >= ranges_to_skip[0].first) continue;
+
       // TODO bug with named types here
       if (!w->canSel(to_string(i))) {
         e.message(
