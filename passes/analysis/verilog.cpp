@@ -3,7 +3,7 @@
 #include <regex>
 #include "ir/coreir.h"
 #include "common/logging_lite.hpp"
-#include "tools/cxxopts.h"
+#include "common/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
 #include "verilogAST/transformer.hpp"
 

@@ -1,6 +1,6 @@
 #include "passes/analysis/verifyconnectivity.h"
 #include "ir/coreir.h"
-#include "tools/cxxopts.h"
+#include "common/cxxopts.h"
 
 using namespace std;
 using namespace CoreIR;

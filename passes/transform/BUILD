@@ -33,7 +33,8 @@ cc_library(
              'unpackconnections.cpp',
              'unresolvedsymbols.cpp',
              'wireclocks.cpp' ],
-    deps = [ ':transform_hdrs' ])
+    deps = [ ':transform_hdrs',
+             '//ir:ir_hdrs' ])
 
 cc_library(
     name = 'transform_hdrs',

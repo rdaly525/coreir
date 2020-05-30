@@ -23,7 +23,12 @@ cc_library(
              'verifyinputconnections.cpp',
              'verilog.cpp',
              'vmodule.cpp' ],
-    deps = [ ':analysis_hdrs' ])
+    deps = [ ':analysis_hdrs',
+             '//common:common',
+             '//external/verilogAST:verilogAST',
+             '//ir/casting:casting',
+             '//ir:ir_hdrs',
+             '//utils:utils' ])
 
 cc_library(
     name = 'analysis_hdrs',
