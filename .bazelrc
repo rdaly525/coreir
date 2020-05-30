@@ -1,0 +1,3 @@
+build --cxxopt='-std=c++17' \
+      --cxxopt='-Werror' \
+      --cxxopt='-fPIC'
