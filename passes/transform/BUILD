@@ -2,8 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = 'transform',
-    srcs = [ '_matchandreplace.cpp',
-             'add_dummy_inputs.cpp',
+    srcs = [ 'add_dummy_inputs.cpp',
              'adddirected.cpp',
              'clock_gate.cpp',
              'clockifyinterface.cpp',
@@ -34,7 +33,11 @@ cc_library(
              'unresolvedsymbols.cpp',
              'wireclocks.cpp' ],
     deps = [ ':transform_hdrs',
-             '//ir:ir_hdrs' ])
+             '//common:common',
+             '//ir/casting:casting',
+             '//ir:ir_hdrs',
+             '//passes/analysis:analysis_hdrs',
+             '//utils:utils' ])
 
 cc_library(
     name = 'transform_hdrs',
