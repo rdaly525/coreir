@@ -1,5 +1,4 @@
-
-#include "coreir/ir/dynamiclibrary.h"
+#include "ir/dynamiclibrary.h"
 
 using namespace CoreIR;
 class PassLibrary : public DynamicLibrary {
