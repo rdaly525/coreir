@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <vector>
-#include "coreir/libs/aetherlinglib.h"
-#include "coreir/libs/commonlib.h"
+#include "libs/aetherlinglib.h"
+#include "libs/commonlib.h"
 
 using namespace std;
 using namespace CoreIR;

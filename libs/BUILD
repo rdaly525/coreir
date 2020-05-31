@@ -1,0 +1,25 @@
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = 'libs',
+    hdrs = [ 'aetherlinglib.h',
+             'common.h',
+             'commonlib.h',
+             'float.h',
+             'float_CW.h',
+             'float_DW.h',
+             'ice40.h',
+             'rtlil.h' ],
+    srcs = [ 'aetherlinglib.cpp',
+             'commonlib.cpp',
+             'float.cpp',
+             'float_CW.cpp',
+             'float_DW.cpp',
+             'ice40.cpp',
+             'rtlil.cpp' ],
+    deps = [ '//libs/aetherlinglib:aetherlinglib',
+             '//common:common',
+             '//coreir-c:coreir-c_hdrs',
+             '//ir/casting:casting',
+             '//ir:ir_hdrs',
+             '//utils:utils' ])

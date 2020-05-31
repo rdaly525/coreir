@@ -1,4 +1,4 @@
-#include "coreir/libs/float.h"
+#include "libs/float.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(float);
 

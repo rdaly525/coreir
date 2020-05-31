@@ -1,5 +1,5 @@
-#include "coreir/libs/rtlil.h"
-#include "coreir/common/util.h"
+#include "libs/rtlil.h"
+#include "utils/util.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(rtlil);
 

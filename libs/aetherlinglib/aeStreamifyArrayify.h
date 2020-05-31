@@ -1,7 +1,7 @@
 #include <iostream>
 #include <stdio.h>
-#include "coreir/libs/aetherlinglib.h"
-#include "coreir/libs/commonlib.h"
+#include "libs/aetherlinglib.h"
+#include "libs/commonlib.h"
 
 using namespace std;
 using namespace CoreIR;

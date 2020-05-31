@@ -1,4 +1,4 @@
-#include "coreir/libs/ice40.h"
+#include "libs/ice40.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(ice40);
 

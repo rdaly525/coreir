@@ -5,7 +5,7 @@
 #include "coreir-macros.h"
 
 #ifdef __cplusplus
-#include "coreir.h"
+#include "ir/coreir.h"
 COREIR_GEN_CPP_API_DECLARATION_FOR_LIBRARY(common);
 #endif
 

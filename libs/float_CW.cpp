@@ -1,5 +1,5 @@
-#include "coreir/libs/float_CW.h"
-#include "coreir/ir/constructor.h"
+#include "libs/float_CW.h"
+#include "ir/constructor.h"
 
 COREIR_GEN_C_API_DEFINITION_FOR_LIBRARY(float_CW);
 
