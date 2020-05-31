@@ -13,7 +13,7 @@
 #include "passes/analysis/smv.h"
 #include "passes/analysis/verilog.h"
 #include "common/cxxopts.h"
-#include "passlib.h"
+#include "binary/passlib.h"
 
 using namespace std;
 using namespace CoreIR;

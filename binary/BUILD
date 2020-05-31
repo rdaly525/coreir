@@ -12,6 +12,14 @@ cc_binary(
              '//passes/transform:transform',
              '//utils:utils' ])
 
+cc_binary(
+    name = 'interpreter',
+    srcs = [ 'interpreter.cpp' ],
+    deps = [ ':passlib',
+             '//ir:ir',
+             '//libs:libs',
+             '//simulator:simulator' ])
+
 cc_library(
     name = 'passlib',
     hdrs = [ 'passlib.h' ])

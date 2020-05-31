@@ -1,6 +1,6 @@
 #include <dlfcn.h>
 #include <fstream>
-#include "coreir.h"
+#include "ir/coreir.h"
 #include "coreir/tools/cxxopts.h"
 
 #include "coreir/libs/commonlib.h"

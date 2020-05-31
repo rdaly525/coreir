@@ -1,17 +1,17 @@
 #include <fstream>
-#include "coreir.h"
-#include "coreir/tools/cxxopts.h"
+#include "ir/coreir.h"
+#include "common/cxxopts.h"
 
-#include "passlib.h"
+#include "binary/passlib.h"
 
 #include <string>
 
-#include "coreir/common/logging_lite.hpp"
-#include "coreir/libs/commonlib.h"
-#include "coreir/passes/analysis/coreirjson.h"
-#include "coreir/passes/analysis/firrtl.h"
-#include "coreir/passes/analysis/verilog.h"
-#include "coreir/simulator/interpreter.h"
+#include "common/logging_lite.hpp"
+#include "libs/commonlib.h"
+#include "passes/analysis/coreirjson.h"
+#include "passes/analysis/firrtl.h"
+#include "passes/analysis/verilog.h"
+#include "simulator/interpreter.h"
 
 using namespace std;
 using namespace CoreIR;
