@@ -20,6 +20,13 @@ cc_binary(
              '//libs:libs',
              '//simulator:simulator' ])
 
+cc_binary(
+    name = 'simulator',
+    srcs = [ 'simulator.cpp' ],
+    deps = [ '//ir:ir',
+             '//libs:libs',
+             '//simulator:simulator' ])
+
 cc_library(
     name = 'passlib',
     hdrs = [ 'passlib.h' ])

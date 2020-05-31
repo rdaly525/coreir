@@ -1,16 +1,16 @@
 #include <dlfcn.h>
 #include <fstream>
 #include "ir/coreir.h"
-#include "coreir/tools/cxxopts.h"
+#include "common/cxxopts.h"
 
-#include "coreir/libs/commonlib.h"
-#include "coreir/passes/analysis/coreirjson.h"
-#include "coreir/passes/analysis/firrtl.h"
-#include "coreir/passes/analysis/verilog.h"
+#include "libs/commonlib.h"
+#include "passes/analysis/coreirjson.h"
+#include "passes/analysis/firrtl.h"
+#include "passes/analysis/verilog.h"
 
-#include "coreir/simulator/multithreading.h"
-#include "coreir/simulator/output.h"
-#include "coreir/simulator/simulator.h"
+#include "simulator/multithreading.h"
+#include "simulator/output.h"
+#include "simulator/simulator.h"
 
 using namespace std;
 using namespace CoreIR;
