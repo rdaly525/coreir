@@ -1,4 +1,4 @@
-#include "coreir/simulator/low_rep.h"
+#include "simulator/low_rep.h"
 
 #include <iostream>
 

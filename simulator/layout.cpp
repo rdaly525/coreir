@@ -1,3 +1,3 @@
-#include "coreir/simulator/layout.h"
+#include "simulator/layout.h"
 
 namespace CoreIR {}

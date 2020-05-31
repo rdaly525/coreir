@@ -1,13 +1,13 @@
-#include "coreir/simulator/simulator.h"
+#include "simulator/simulator.h"
 
-#include "coreir/passes/transform/flatten.h"
-#include "coreir/passes/transform/rungenerators.h"
+#include "passes/transform/flatten.h"
+#include "passes/transform/rungenerators.h"
 
-#include "coreir/common/algorithm.h"
-#include "coreir/common/utils.h"
-#include "coreir/simulator/dag_optimization.h"
-#include "coreir/simulator/low_rep.h"
-#include "coreir/simulator/print_c.h"
+#include "common/algorithm.h"
+#include "utils/utils.h"
+#include "simulator/dag_optimization.h"
+#include "simulator/low_rep.h"
+#include "simulator/print_c.h"
 
 using namespace CoreIR;
 using namespace CoreIR::Passes;

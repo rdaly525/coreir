@@ -1,13 +1,13 @@
-#include "coreir/simulator/subcircuit.h"
+#include "simulator/subcircuit.h"
 
-#include "coreir/common/algorithm.h"
-#include "coreir/common/op_graph.h"
-#include "coreir/common/utils.h"
-#include "coreir/common/wiring_utils.h"
-#include "coreir/ir/moduledef.h"
-#include "coreir/ir/types.h"
-#include "coreir/passes/transform/deletedeadinstances.h"
-#include "coreir/passes/transform/fold_constants.h"
+#include "common/algorithm.h"
+#include "utils/op_graph.h"
+#include "utils/utils.h"
+#include "utils/wiring_utils.h"
+#include "ir/moduledef.h"
+#include "ir/types.h"
+#include "passes/transform/deletedeadinstances.h"
+#include "passes/transform/fold_constants.h"
 
 using namespace std;
 

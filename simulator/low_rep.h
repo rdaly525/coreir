@@ -4,9 +4,9 @@
 #include <string>
 #include <vector>
 
-#include "coreir/ir/dynamic_bit_vector.h"
-#include "coreir/ir/fwd_declare.h"
-#include "coreir/simulator/print_c.h"
+#include "ir/dynamic_bit_vector.h"
+#include "ir/fwd_declare.h"
+#include "simulator/print_c.h"
 
 namespace CoreIR {
 

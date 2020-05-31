@@ -1,7 +1,7 @@
 #pragma once
 
-#include "coreir/common/op_graph.h"
-#include "coreir/common/utils.h"
+#include "utils/op_graph.h"
+#include "utils/utils.h"
 
 namespace CoreIR {
 

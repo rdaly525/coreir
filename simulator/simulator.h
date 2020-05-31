@@ -1,10 +1,10 @@
 #pragma once
 
-#include "coreir/common/wiring_utils.h"
-#include "coreir/simulator/codegen.h"
-#include "coreir/simulator/layout.h"
-#include "coreir/simulator/multithreading.h"
-#include "coreir/simulator/subcircuit.h"
+#include "utils/wiring_utils.h"
+#include "simulator/codegen.h"
+#include "simulator/layout.h"
+#include "simulator/multithreading.h"
+#include "simulator/subcircuit.h"
 
 namespace CoreIR {
 

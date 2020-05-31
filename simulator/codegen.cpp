@@ -1,8 +1,8 @@
-#include "coreir/simulator/codegen.h"
+#include "simulator/codegen.h"
 
-#include "coreir/ir/value.h"
+#include "ir/value.h"
 
-#include "coreir/simulator/print_c.h"
+#include "simulator/print_c.h"
 
 using namespace std;
 

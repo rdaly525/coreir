@@ -4,9 +4,9 @@
 #ifdef __cplusplus  // C++ header
 
 #include "coreir.h"
-#include "coreir/simulator/interpreter.h"
-#include "coreir/simulator/print_c.h"
-#include "coreir/simulator/simulator.h"
+#include "simulator/interpreter.h"
+#include "simulator/print_c.h"
+#include "simulator/simulator.h"
 
 #else  // C header
 

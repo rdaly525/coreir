@@ -1,7 +1,7 @@
-#include "coreir/simulator/dag_optimization.h"
+#include "simulator/dag_optimization.h"
 
-#include "coreir/simulator/layout.h"
-#include "coreir/simulator/multithreading.h"
+#include "simulator/layout.h"
+#include "simulator/multithreading.h"
 
 using namespace std;
 

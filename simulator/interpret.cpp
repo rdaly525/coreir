@@ -1,6 +1,6 @@
-#include "coreir/common/logging_lite.hpp"
-#include "coreir/simulator/interpreter.h"
-#include "coreir/simulator/simulator.h"
+#include "common/logging_lite.hpp"
+#include "simulator/interpreter.h"
+#include "simulator/simulator.h"
 
 #include <functional>
 

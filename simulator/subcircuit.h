@@ -1,8 +1,8 @@
 #pragma once
 
-#include "coreir/ir/module.h"
-#include "coreir/ir/wireable.h"
-#include "coreir/simulator/interpreter.h"
+#include "ir/module.h"
+#include "ir/wireable.h"
+#include "simulator/interpreter.h"
 
 namespace CoreIR {
 

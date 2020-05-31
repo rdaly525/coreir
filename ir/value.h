@@ -1,7 +1,7 @@
 #ifndef COREIR_VALUE_HPP_
 #define COREIR_VALUE_HPP_
 
-#include "casting/casting.h"
+#include "ir/casting/casting.h"
 #include "dynamic_bit_vector.h"
 #include "fwd_declare.h"
 

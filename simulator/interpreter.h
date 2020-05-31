@@ -1,8 +1,8 @@
 #pragma once
 
-#include "coreir/common/op_graph.h"
-#include "coreir/ir/dynamic_bit_vector.h"
-#include "coreir/ir/value.h"
+#include "utils/op_graph.h"
+#include "ir/dynamic_bit_vector.h"
+#include "ir/value.h"
 
 namespace CoreIR {
 

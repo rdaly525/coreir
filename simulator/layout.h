@@ -1,11 +1,11 @@
 #pragma once
 
-#include "coreir/ir/value.h"
-#include "coreir/ir/wireable.h"
+#include "ir/value.h"
+#include "ir/wireable.h"
 
-#include "coreir/common/op_graph.h"
-#include "coreir/common/utils.h"
-#include "coreir/simulator/print_c.h"
+#include "utils/op_graph.h"
+#include "utils/utils.h"
+#include "simulator/print_c.h"
 
 namespace CoreIR {
 

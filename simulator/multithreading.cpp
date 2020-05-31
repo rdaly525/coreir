@@ -1,4 +1,4 @@
-#include "coreir/simulator/multithreading.h"
+#include "simulator/multithreading.h"
 
 using namespace CoreIR;
 using namespace std;

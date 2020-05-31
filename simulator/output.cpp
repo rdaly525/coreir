@@ -1,10 +1,10 @@
-#include "coreir/simulator/output.h"
+#include "simulator/output.h"
 
 #include <fstream>
 #include <iostream>
 
 #include "bsim_lib.hpp"
-#include "coreir/simulator/simulator.h"
+#include "simulator/simulator.h"
 
 using namespace std;
 
