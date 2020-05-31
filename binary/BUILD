@@ -18,6 +18,7 @@ cc_binary(
     deps = [ ':passlib',
              '//ir:ir',
              '//libs:libs',
+             '//passes/analysis:analysis',
              '//simulator:simulator' ])
 
 cc_binary(
@@ -25,6 +26,7 @@ cc_binary(
     srcs = [ 'simulator.cpp' ],
     deps = [ '//ir:ir',
              '//libs:libs',
+             '//passes/analysis:analysis',
              '//simulator:simulator' ])
 
 cc_library(
