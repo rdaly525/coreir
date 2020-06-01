@@ -1,25 +1,61 @@
 package(default_visibility = ["//visibility:public"])
 
+common_deps = [ ':common',
+                '//common:common',
+                '//coreir-c:coreir-c_hdrs',
+                '//ir/casting:casting',
+                '//ir:ir_hdrs',
+                '//utils:utils' ]
+
 cc_library(
-    name = 'libs',
-    hdrs = [ 'aetherlinglib.h',
-             'common.h',
-             'commonlib.h',
-             'float.h',
-             'float_CW.h',
-             'float_DW.h',
-             'ice40.h',
-             'rtlil.h' ],
-    srcs = [ 'aetherlinglib.cpp',
-             'commonlib.cpp',
-             'float.cpp',
-             'float_CW.cpp',
-             'float_DW.cpp',
-             'ice40.cpp',
-             'rtlil.cpp' ],
-    deps = [ '//libs/aetherlinglib:aetherlinglib',
-             '//common:common',
-             '//coreir-c:coreir-c_hdrs',
-             '//ir/casting:casting',
-             '//ir:ir_hdrs',
-             '//utils:utils' ])
+    name = 'aetherlinglib',
+    hdrs = [ 'aetherlinglib.h' ],
+    srcs = [ 'aetherlinglib.cpp' ],
+    linkstatic = False,
+    deps = common_deps)
+
+cc_library(
+    name = 'common',
+    hdrs = [ 'common.h' ])
+
+cc_library(
+    name = 'commonlib',
+    hdrs = [ 'commonlib.h' ],
+    srcs = [ 'commonlib.cpp' ],
+    linkstatic = False,
+    deps = common_deps)
+
+cc_library(
+    name = 'float',
+    hdrs = [ 'float.h' ],
+    srcs = [ 'float.cpp' ],
+    linkstatic = False,
+    deps = common_deps)
+
+cc_library(
+    name = 'float_CW',
+    hdrs = [ 'float_CW.h' ],
+    srcs = [ 'float_CW.cpp' ],
+    linkstatic = False,
+    deps = common_deps)
+
+cc_library(
+    name = 'float_DW',
+    hdrs = [ 'float_DW.h' ],
+    srcs = [ 'float_DW.cpp' ],
+    linkstatic = False,
+    deps = common_deps)
+
+cc_library(
+    name = 'ice40',
+    hdrs = [ 'ice40.h' ],
+    srcs = [ 'ice40.cpp' ],
+    linkstatic = False,
+    deps = common_deps)
+
+cc_library(
+    name = 'rtlil',
+    hdrs = [ 'rtlil.h' ],
+    srcs = [ 'rtlil.cpp' ],
+    linkstatic = False,
+    deps = common_deps)
