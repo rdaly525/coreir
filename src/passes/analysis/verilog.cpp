@@ -3,7 +3,7 @@
 #include <regex>
 #include "coreir.h"
 #include "coreir/common/logging_lite.hpp"
-#include "coreir/passes/analysis/verilog/util.hpp"
+#include "coreir/passes/analysis/verilog/inline_utils.hpp"
 #include "coreir/tools/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
 #include "verilogAST/transformer.hpp"
