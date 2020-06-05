@@ -1028,8 +1028,10 @@ void Passes::Verilog::compileModule(Module* module) {
       std::move(parameters));
 
   if (this->_inline) {
-    vAST::AssignInliner transformer(this->wires);
-    verilog_module = transformer.visit(std::move(verilog_module));
+    vAST::AssignInliner assign_inliner(this->wires);
+    verilog_module = assign_inliner.visit(std::move(verilog_module));
+    AlwaysStarMerger always_star_merger;
+    verilog_module = always_star_merger.visit(std::move(verilog_module));
   }
   modules.push_back(std::make_pair(name, std::move(verilog_module)));
 }

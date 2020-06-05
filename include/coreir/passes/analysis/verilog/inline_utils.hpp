@@ -82,4 +82,11 @@ std::unique_ptr<vAST::Always> make_muxn_if(
   std::unique_ptr<vAST::Connections> verilog_connections,
   int n);
 
+class AlwaysStarMerger : public vAST::Transformer {
+ public:
+  using vAST::Transformer::visit;
+  virtual std::unique_ptr<vAST::Module> visit(
+    std::unique_ptr<vAST::Module> node);
+};
+
 #endif

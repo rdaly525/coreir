@@ -272,3 +272,60 @@ std::unique_ptr<vAST::Always> make_muxn_if(
     std::move(sensitivity_list),
     std::move(body));
 }
+
+bool is_always_star(std::variant<
+                    std::unique_ptr<vAST::StructuralStatement>,
+                    std::unique_ptr<vAST::Declaration>>& statement) {
+  if (std::holds_alternative<std::unique_ptr<vAST::Declaration>>(statement)) {
+    return false;
+  }
+  std::unique_ptr<vAST::StructuralStatement>&
+    structural_statement = std::get<std::unique_ptr<vAST::StructuralStatement>>(
+      statement);
+
+  vAST::Always* always_ptr = dynamic_cast<vAST::Always*>(
+    structural_statement.get());
+  if (!always_ptr) { return false; }
+  if (always_ptr->sensitivity_list.size() != 1) { return false; }
+  if (!std::holds_alternative<std::unique_ptr<vAST::Star>>(
+        always_ptr->sensitivity_list[0])) {
+    return false;
+  }
+  return true;
+}
+
+std::unique_ptr<vAST::Module> AlwaysStarMerger::visit(
+  std::unique_ptr<vAST::Module> node) {
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>
+    new_body;
+  for (auto&& statement : node->body) {
+    if (is_always_star(statement) && is_always_star(new_body.back())) {
+      std::unique_ptr<vAST::StructuralStatement>
+        curr_stmt = std::get<std::unique_ptr<vAST::StructuralStatement>>(
+          std::move(statement));
+      std::unique_ptr<vAST::Always> curr_always = std::unique_ptr<vAST::Always>(
+        dynamic_cast<vAST::Always*>(curr_stmt.get()));
+      curr_stmt.release();
+
+      std::unique_ptr<vAST::StructuralStatement>
+        prev_stmt = std::get<std::unique_ptr<vAST::StructuralStatement>>(
+          std::move(new_body.back()));
+      new_body.pop_back();
+      std::unique_ptr<vAST::Always> prev_always = std::unique_ptr<vAST::Always>(
+        dynamic_cast<vAST::Always*>(prev_stmt.get()));
+      prev_stmt.release();
+
+      for (auto&& inner_statement : curr_always->body) {
+        prev_always->body.push_back(std::move(inner_statement));
+      }
+      new_body.push_back(std::move(prev_always));
+    }
+    else {
+      new_body.push_back(std::move(statement));
+    }
+  }
+  node->body = std::move(new_body);
+  return node;
+}

@@ -77,257 +77,161 @@ if (run == 0) begin
 end else begin
     Mux2xOutBit_inst0$coreir_commonlib_mux2x1_inst0_out = 1'b0;
 end
-end
-
-always @(*) begin
 if ((~ (self_i_O == 3'h7)) == 0) begin
     Mux2xOutBit_inst1$coreir_commonlib_mux2x1_inst0_out = 1'b1;
 end else begin
     Mux2xOutBit_inst1$coreir_commonlib_mux2x1_inst0_out = magma_Bits_8_lshr_inst1_out[0];
 end
-end
-
-always @(*) begin
 if ((run & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBit_inst10$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst8$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst10$coreir_commonlib_mux2x1_inst0_out = 1'b0;
 end
-end
-
-always @(*) begin
 if ((run & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBit_inst11$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst9$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst11$coreir_commonlib_mux2x1_inst0_out = self_tx_O;
 end
-end
-
-always @(*) begin
 if ((self_yield_state_O == 2'h1) == 0) begin
     Mux2xOutBit_inst2$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst1$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst2$coreir_commonlib_mux2x1_inst0_out = magma_Bits_8_lshr_inst0_out[0];
 end
-end
-
-always @(*) begin
 if ((self_yield_state_O == 2'h0) == 0) begin
     Mux2xOutBit_inst3$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst2$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst3$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst0$coreir_commonlib_mux2x1_inst0_out[0];
 end
-end
-
-always @(*) begin
 if ((((~ (self_i_O == 3'h7)) & (~ (self_yield_state_O == 2'h0))) & (~ (self_yield_state_O == 2'h1))) == 0) begin
     Mux2xOutBit_inst4$coreir_commonlib_mux2x1_inst0_out = 1'b1;
 end else begin
     Mux2xOutBit_inst4$coreir_commonlib_mux2x1_inst0_out = magma_Bits_8_lshr_inst1_out[0];
 end
-end
-
-always @(*) begin
 if ((((~ (self_i_O == 3'h7)) & (~ (self_yield_state_O == 2'h0))) & (~ (self_yield_state_O == 2'h1))) == 0) begin
     Mux2xOutBit_inst5$coreir_commonlib_mux2x1_inst0_out = self_tx_O;
 end else begin
     Mux2xOutBit_inst5$coreir_commonlib_mux2x1_inst0_out = self_tx_O;
 end
-end
-
-always @(*) begin
 if (((self_yield_state_O == 2'h1) & (~ (self_yield_state_O == 2'h0))) == 0) begin
     Mux2xOutBit_inst6$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst4$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst6$coreir_commonlib_mux2x1_inst0_out = magma_Bits_8_lshr_inst0_out[0];
 end
-end
-
-always @(*) begin
 if (((self_yield_state_O == 2'h1) & (~ (self_yield_state_O == 2'h0))) == 0) begin
     Mux2xOutBit_inst7$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst5$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst7$coreir_commonlib_mux2x1_inst0_out = self_tx_O;
 end
-end
-
-always @(*) begin
 if (((~ run) & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBit_inst8$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst6$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst8$coreir_commonlib_mux2x1_inst0_out = 1'b1;
 end
-end
-
-always @(*) begin
 if (((~ run) & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBit_inst9$coreir_commonlib_mux2x1_inst0_out = Mux2xOutBit_inst7$coreir_commonlib_mux2x1_inst0_out[0];
 end else begin
     Mux2xOutBit_inst9$coreir_commonlib_mux2x1_inst0_out = self_tx_O;
 end
-end
-
-always @(*) begin
 if (run == 0) begin
     Mux2xOutBits2_inst0$coreir_commonlib_mux2x2_inst0_out = 2'h0;
 end else begin
     Mux2xOutBits2_inst0$coreir_commonlib_mux2x2_inst0_out = 2'h1;
 end
-end
-
-always @(*) begin
 if ((~ (self_i_O == 3'h7)) == 0) begin
     Mux2xOutBits2_inst1$coreir_commonlib_mux2x2_inst0_out = 2'h0;
 end else begin
     Mux2xOutBits2_inst1$coreir_commonlib_mux2x2_inst0_out = 2'h2;
 end
-end
-
-always @(*) begin
 if ((self_yield_state_O == 2'h1) == 0) begin
     Mux2xOutBits2_inst2$coreir_commonlib_mux2x2_inst0_out = Mux2xOutBits2_inst1$coreir_commonlib_mux2x2_inst0_out;
 end else begin
     Mux2xOutBits2_inst2$coreir_commonlib_mux2x2_inst0_out = 2'h2;
 end
-end
-
-always @(*) begin
 if ((self_yield_state_O == 2'h0) == 0) begin
     Mux2xOutBits2_inst3$coreir_commonlib_mux2x2_inst0_out = Mux2xOutBits2_inst2$coreir_commonlib_mux2x2_inst0_out;
 end else begin
     Mux2xOutBits2_inst3$coreir_commonlib_mux2x2_inst0_out = Mux2xOutBits2_inst0$coreir_commonlib_mux2x2_inst0_out;
 end
-end
-
-always @(*) begin
 if ((((~ (self_i_O == 3'h7)) & (~ (self_yield_state_O == 2'h0))) & (~ (self_yield_state_O == 2'h1))) == 0) begin
     Mux2xOutBits2_inst4$coreir_commonlib_mux2x2_inst0_out = 2'h0;
 end else begin
     Mux2xOutBits2_inst4$coreir_commonlib_mux2x2_inst0_out = 2'h2;
 end
-end
-
-always @(*) begin
 if (((self_yield_state_O == 2'h1) & (~ (self_yield_state_O == 2'h0))) == 0) begin
     Mux2xOutBits2_inst5$coreir_commonlib_mux2x2_inst0_out = Mux2xOutBits2_inst4$coreir_commonlib_mux2x2_inst0_out;
 end else begin
     Mux2xOutBits2_inst5$coreir_commonlib_mux2x2_inst0_out = 2'h2;
 end
-end
-
-always @(*) begin
 if (((~ run) & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBits2_inst6$coreir_commonlib_mux2x2_inst0_out = Mux2xOutBits2_inst5$coreir_commonlib_mux2x2_inst0_out;
 end else begin
     Mux2xOutBits2_inst6$coreir_commonlib_mux2x2_inst0_out = 2'h0;
 end
-end
-
-always @(*) begin
 if ((run & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBits2_inst7$coreir_commonlib_mux2x2_inst0_out = Mux2xOutBits2_inst6$coreir_commonlib_mux2x2_inst0_out;
 end else begin
     Mux2xOutBits2_inst7$coreir_commonlib_mux2x2_inst0_out = 2'h1;
 end
-end
-
-always @(*) begin
 if (run == 0) begin
     Mux2xOutBits8_inst0$coreir_commonlib_mux2x8_inst0_out = self_message_O;
 end else begin
     Mux2xOutBits8_inst0$coreir_commonlib_mux2x8_inst0_out = message;
 end
-end
-
-always @(*) begin
 if ((self_yield_state_O == 2'h0) == 0) begin
     Mux2xOutBits8_inst1$coreir_commonlib_mux2x8_inst0_out = self_message_O;
 end else begin
     Mux2xOutBits8_inst1$coreir_commonlib_mux2x8_inst0_out = Mux2xOutBits8_inst0$coreir_commonlib_mux2x8_inst0_out;
 end
-end
-
-always @(*) begin
 if ((((~ (self_i_O == 3'h7)) & (~ (self_yield_state_O == 2'h0))) & (~ (self_yield_state_O == 2'h1))) == 0) begin
     Mux2xOutBits8_inst2$coreir_commonlib_mux2x8_inst0_out = self_message_O;
 end else begin
     Mux2xOutBits8_inst2$coreir_commonlib_mux2x8_inst0_out = self_message_O;
 end
-end
-
-always @(*) begin
 if (((self_yield_state_O == 2'h1) & (~ (self_yield_state_O == 2'h0))) == 0) begin
     Mux2xOutBits8_inst3$coreir_commonlib_mux2x8_inst0_out = Mux2xOutBits8_inst2$coreir_commonlib_mux2x8_inst0_out;
 end else begin
     Mux2xOutBits8_inst3$coreir_commonlib_mux2x8_inst0_out = self_message_O;
 end
-end
-
-always @(*) begin
 if (((~ run) & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBits8_inst4$coreir_commonlib_mux2x8_inst0_out = Mux2xOutBits8_inst3$coreir_commonlib_mux2x8_inst0_out;
 end else begin
     Mux2xOutBits8_inst4$coreir_commonlib_mux2x8_inst0_out = self_message_O;
 end
-end
-
-always @(*) begin
 if ((run & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutBits8_inst5$coreir_commonlib_mux2x8_inst0_out = Mux2xOutBits8_inst4$coreir_commonlib_mux2x8_inst0_out;
 end else begin
     Mux2xOutBits8_inst5$coreir_commonlib_mux2x8_inst0_out = message;
 end
-end
-
-always @(*) begin
 if ((~ (self_i_O == 3'h7)) == 0) begin
     Mux2xOutUInt3_inst0$coreir_commonlib_mux2x3_inst0_out = self_i_O;
 end else begin
     Mux2xOutUInt3_inst0$coreir_commonlib_mux2x3_inst0_out = magma_Bits_3_sub_inst1_out;
 end
-end
-
-always @(*) begin
 if ((self_yield_state_O == 2'h1) == 0) begin
     Mux2xOutUInt3_inst1$coreir_commonlib_mux2x3_inst0_out = Mux2xOutUInt3_inst0$coreir_commonlib_mux2x3_inst0_out;
 end else begin
     Mux2xOutUInt3_inst1$coreir_commonlib_mux2x3_inst0_out = magma_Bits_3_sub_inst0_out;
 end
-end
-
-always @(*) begin
 if ((self_yield_state_O == 2'h0) == 0) begin
     Mux2xOutUInt3_inst2$coreir_commonlib_mux2x3_inst0_out = Mux2xOutUInt3_inst1$coreir_commonlib_mux2x3_inst0_out;
 end else begin
     Mux2xOutUInt3_inst2$coreir_commonlib_mux2x3_inst0_out = self_i_O;
 end
-end
-
-always @(*) begin
 if ((((~ (self_i_O == 3'h7)) & (~ (self_yield_state_O == 2'h0))) & (~ (self_yield_state_O == 2'h1))) == 0) begin
     Mux2xOutUInt3_inst3$coreir_commonlib_mux2x3_inst0_out = self_i_O;
 end else begin
     Mux2xOutUInt3_inst3$coreir_commonlib_mux2x3_inst0_out = magma_Bits_3_sub_inst1_out;
 end
-end
-
-always @(*) begin
 if (((self_yield_state_O == 2'h1) & (~ (self_yield_state_O == 2'h0))) == 0) begin
     Mux2xOutUInt3_inst4$coreir_commonlib_mux2x3_inst0_out = Mux2xOutUInt3_inst3$coreir_commonlib_mux2x3_inst0_out;
 end else begin
     Mux2xOutUInt3_inst4$coreir_commonlib_mux2x3_inst0_out = magma_Bits_3_sub_inst0_out;
 end
-end
-
-always @(*) begin
 if (((~ run) & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutUInt3_inst5$coreir_commonlib_mux2x3_inst0_out = Mux2xOutUInt3_inst4$coreir_commonlib_mux2x3_inst0_out;
 end else begin
     Mux2xOutUInt3_inst5$coreir_commonlib_mux2x3_inst0_out = self_i_O;
 end
-end
-
-always @(*) begin
 if ((run & (self_yield_state_O == 2'h0)) == 0) begin
     Mux2xOutUInt3_inst6$coreir_commonlib_mux2x3_inst0_out = Mux2xOutUInt3_inst5$coreir_commonlib_mux2x3_inst0_out;
 end else begin
