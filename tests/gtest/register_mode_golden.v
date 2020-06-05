@@ -22,7 +22,7 @@ module Mux2xOutBits4 (
     input S,
     output [3:0] O
 );
-wire [3:0] coreir_commonlib_mux2x4_inst0_out;
+reg [3:0] coreir_commonlib_mux2x4_inst0_out;
 always @(*) begin
 if (S == 0) begin
     coreir_commonlib_mux2x4_inst0_out = I0;
@@ -82,7 +82,7 @@ module Mux2xOutBit (
     input S,
     output O
 );
-wire [0:0] coreir_commonlib_mux2x1_inst0_out;
+reg [0:0] coreir_commonlib_mux2x1_inst0_out;
 always @(*) begin
 if (S == 0) begin
     coreir_commonlib_mux2x1_inst0_out = I0;

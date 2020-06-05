@@ -10,7 +10,7 @@ module Mux8x8 (
     input [2:0] S,
     output [7:0] O
 );
-wire [7:0] coreir_commonlib_mux8x8_inst0_out;
+reg [7:0] coreir_commonlib_mux8x8_inst0_out;
 always @(*) begin
 if (S == 0) begin
     coreir_commonlib_mux8x8_inst0_out = I0;

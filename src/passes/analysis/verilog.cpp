@@ -141,12 +141,13 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type* type) {
   return std::move(id);
 }
 
-void make_wire_decl(
+void make_decl(
   std::string name,
   Type* type,
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
-    std::unique_ptr<vAST::Declaration>>>& wire_declarations) {
+    std::unique_ptr<vAST::Declaration>>>& declarations,
+  bool is_reg) {
   std::unique_ptr<vAST::Identifier> id = std::make_unique<vAST::Identifier>(
     name);
   // Can't find a simple way to "convert" a variant type to a
@@ -154,7 +155,12 @@ void make_wire_decl(
   // constructor
   std::visit(
     [&](auto&& arg) -> void {
-      wire_declarations.push_back(std::make_unique<vAST::Wire>(std::move(arg)));
+      std::unique_ptr<vAST::Declaration> decl;
+      if (is_reg) { decl = std::make_unique<vAST::Reg>(std::move(arg)); }
+      else {
+        decl = std::make_unique<vAST::Wire>(std::move(arg));
+      }
+      declarations.push_back(std::move(decl));
     },
     process_decl(std::move(id), type));
 }
@@ -170,29 +176,31 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
-    wire_declarations;
+    declarations;
   for (auto instance : instances) {
     if (instance.second->getModuleRef()->getName() == "wire" && _inline) {
       // Emit inline wire
       Type* type = cast<RecordType>(instance.second->getModuleRef()->getType())
                      ->getRecord()
                      .at("in");
-      make_wire_decl(instance.first, type, wire_declarations);
+      make_decl(instance.first, type, declarations, false);
       continue;
     }
     RecordType* record_type = cast<RecordType>(
       instance.second->getModuleRef()->getType());
+    bool is_reg = _inline && is_muxn(instance.second->getModuleRef());
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
       if (!field_type->isInput()) {
-        make_wire_decl(
+        make_decl(
           instance.first + "_" + field,
           field_type,
-          wire_declarations);
+          declarations,
+          is_reg);
       }
     }
   }
-  return wire_declarations;
+  return declarations;
 }
 
 // Compiles a module defined with `verilog_string` in the `verilog` metadata
