@@ -202,3 +202,73 @@ bool can_inline_slice_op(CoreIR::Module* module, bool _inline) {
   }
   return false;
 }
+
+bool is_muxn(CoreIR::Module* module) {
+  return module->isGenerated() && module->getGenerator()->getName() == "muxn" &&
+    module->getGenerator()->getNamespace()->getName() == "commonlib";
+}
+
+std::unique_ptr<vAST::Always> make_muxn_if(
+  std::unique_ptr<vAST::Connections> verilog_connections,
+  int n) {
+  std::vector<std::variant<
+    std::unique_ptr<vAST::Identifier>,
+    std::unique_ptr<vAST::PosEdge>,
+    std::unique_ptr<vAST::NegEdge>,
+    std::unique_ptr<vAST::Star>>>
+    sensitivity_list;
+  sensitivity_list.push_back(std::make_unique<vAST::Star>());
+
+  std::unique_ptr<vAST::Expression> target = verilog_connections->at("out");
+  auto ptr = dynamic_cast<vAST::Identifier*>(target.get());
+  target.release();
+  ASSERT(ptr, "Expected muxn output to be an identifier");
+
+  std::unique_ptr<vAST::Identifier>
+    target_id = std::unique_ptr<vAST::Identifier>(ptr);
+
+  std::vector<std::unique_ptr<vAST::BehavioralStatement>> true_body;
+  true_body.push_back(std::make_unique<vAST::BlockingAssign>(
+    target_id->clone(),
+    verilog_connections->at("in_data_0")));
+
+  std::vector<std::unique_ptr<vAST::BehavioralStatement>> else_body;
+  else_body.push_back(std::make_unique<vAST::BlockingAssign>(
+    target_id->clone(),
+    verilog_connections->at("in_data_" + std::to_string(n - 1))));
+
+  std::unique_ptr<vAST::Expression> in_sel = verilog_connections->at("in_sel");
+
+  std::vector<std::pair<
+    std::unique_ptr<vAST::Expression>,
+    std::vector<std::unique_ptr<vAST::BehavioralStatement>>>>
+    else_ifs;
+
+  for (int i = 1; i < n - 1; i++) {
+    std::unique_ptr<vAST::Expression> cond = std::make_unique<vAST::BinaryOp>(
+      in_sel->clone(),
+      vAST::BinOp::EQ,
+      vAST::make_num(std::to_string(i)));
+    std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
+    body.push_back(std::make_unique<vAST::BlockingAssign>(
+      target_id->clone(),
+      verilog_connections->at("in_data_" + std::to_string(i))));
+    else_ifs.push_back({std::move(cond), std::move(body)});
+  }
+
+  std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
+  body.push_back(std::make_unique<vAST::If>(
+    std::make_unique<vAST::BinaryOp>(
+      in_sel->clone(),
+      vAST::BinOp::EQ,
+      vAST::make_num("0")),
+    std::move(true_body),
+    std::move(else_ifs),
+    std::move(else_body))
+
+  );
+
+  return std::make_unique<vAST::Always>(
+    std::move(sensitivity_list),
+    std::move(body));
+}

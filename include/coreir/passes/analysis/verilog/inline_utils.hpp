@@ -76,4 +76,10 @@ std::unique_ptr<vAST::StructuralStatement> inline_mux_op(
 
 bool can_inline_slice_op(CoreIR::Module* module, bool _inline);
 
+bool is_muxn(CoreIR::Module* module);
+
+std::unique_ptr<vAST::Always> make_muxn_if(
+  std::unique_ptr<vAST::Connections> verilog_connections,
+  int n);
+
 #endif
