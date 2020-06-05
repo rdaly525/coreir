@@ -3,87 +3,12 @@
 #include <regex>
 #include "coreir.h"
 #include "coreir/common/logging_lite.hpp"
+#include "coreir/passes/analysis/verilog/util.hpp"
 #include "coreir/tools/cxxopts.h"
 #include "verilogAST/assign_inliner.hpp"
 #include "verilogAST/transformer.hpp"
 
 namespace vAST = verilogAST;
-
-class UnaryOpReplacer : public vAST::Transformer {
-  std::unique_ptr<vAST::Expression> in;
-
- public:
-  UnaryOpReplacer(std::unique_ptr<vAST::Expression> in) : in(std::move(in)){};
-
-  virtual std::unique_ptr<vAST::Expression> visit(
-    std::unique_ptr<vAST::Expression> node) {
-    if (auto ptr = dynamic_cast<vAST::Identifier*>(node.get())) {
-      node.release();
-      std::unique_ptr<vAST::Identifier> id(ptr);
-      if (id->value == "in") { return std::move(this->in); }
-      return vAST::Transformer::visit(std::move(id));
-    }
-    return vAST::Transformer::visit(std::move(node));
-  };
-};
-
-class BinaryOpReplacer : public vAST::Transformer {
-  std::unique_ptr<vAST::Expression> in0;
-  std::unique_ptr<vAST::Expression> in1;
-
- public:
-  BinaryOpReplacer(
-    std::unique_ptr<vAST::Expression> in0,
-    std::unique_ptr<vAST::Expression> in1)
-      : in0(std::move(in0)),
-        in1(std::move(in1)){};
-
-  virtual std::unique_ptr<vAST::Expression> visit(
-    std::unique_ptr<vAST::Expression> node) {
-    if (auto ptr = dynamic_cast<vAST::Identifier*>(node.get())) {
-      node.release();
-      std::unique_ptr<vAST::Identifier> id(ptr);
-      if (id->value == "in0") { return std::move(this->in0); }
-      else if (id->value == "in1") {
-        return std::move(this->in1);
-      }
-      return vAST::Transformer::visit(std::move(id));
-    }
-    return vAST::Transformer::visit(std::move(node));
-  };
-};
-
-class MuxReplacer : public vAST::Transformer {
-  std::unique_ptr<vAST::Expression> in0;
-  std::unique_ptr<vAST::Expression> in1;
-  std::unique_ptr<vAST::Expression> sel;
-
- public:
-  MuxReplacer(
-    std::unique_ptr<vAST::Expression> in0,
-    std::unique_ptr<vAST::Expression> in1,
-    std::unique_ptr<vAST::Expression> sel)
-      : in0(std::move(in0)),
-        in1(std::move(in1)),
-        sel(std::move(sel)){};
-
-  virtual std::unique_ptr<vAST::Expression> visit(
-    std::unique_ptr<vAST::Expression> node) {
-    if (auto ptr = dynamic_cast<vAST::Identifier*>(node.get())) {
-      node.release();
-      std::unique_ptr<vAST::Identifier> id(ptr);
-      if (id->value == "in0") { return std::move(this->in0); }
-      else if (id->value == "in1") {
-        return std::move(this->in1);
-      }
-      else if (id->value == "sel") {
-        return std::move(this->sel);
-      }
-      return vAST::Transformer::visit(std::move(id));
-    }
-    return vAST::Transformer::visit(std::move(node));
-  };
-};
 
 bool is_inlined(std::string primitive_type, std::string name) {
   return primitive_type == "binary" || primitive_type == "unary" ||
