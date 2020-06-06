@@ -2,6 +2,10 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = 'utils',
+    deps = [ ':utils_hdrs' ])
+
+cc_library(
+    name = 'utils_hdrs',
     hdrs = [ 'op_graph.h',
              'primitive.h',
              'util.h',

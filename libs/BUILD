@@ -12,7 +12,9 @@ cc_library(
     hdrs = [ 'aetherlinglib.h' ],
     srcs = [ 'aetherlinglib.cpp' ],
     linkstatic = False,
-    deps = common_deps)
+    deps = common_deps + [
+        ":commonlib",
+        "//libs/aetherlinglib:aetherlinglib" ])
 
 cc_library(
     name = 'common',
