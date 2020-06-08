@@ -2,7 +2,8 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = 'utils',
-    deps = [ ':utils_hdrs' ])
+    deps = [ ':utils_hdrs',
+             '//external/verilogAST:verilogAST' ])
 
 cc_library(
     name = 'utils_hdrs',

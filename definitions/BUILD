@@ -5,4 +5,5 @@ cc_library(
     hdrs = [ 'coreFirrtl.hpp',
              'coreVerilog.hpp',
              'corebitFirrtl.hpp',
-             'corebitVerilog.hpp' ])
+             'corebitVerilog.hpp' ],
+    deps = [ '//external/verilogAST:verilogAST' ])
