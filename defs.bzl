@@ -49,7 +49,7 @@ function parse() {{
   while getopts ':sh' flag; do
     case "${{flag}}" in
       s) SUDO="1" ;;
-      h) usage ;;
+      h) usage; exit 0 ;;
       *) bad_option ${{OPTARG}} ;;
     esac
   done
