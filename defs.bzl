@@ -1,4 +1,8 @@
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@bazel_skylib//lib:selects.bzl", "selects")
+
+_LINUX = ("linux_aarch64", "linux_x86_64",)
+_OSX = ("darwin", "darwin_x86_64",)
 
 # TODO(rsetaluri): Move this in a separate template file.
 _INSTALL_SCRIPT_TPL = """
@@ -235,4 +239,22 @@ install_set = rule(
     },
     outputs = {
         "master": "%{name}_master.sh"
+    })
+
+
+def platform_specific_shared_libraries(names):
+    linux = tuple(["@bazel_tools//src/conditions:" + os for os in _LINUX])
+    osx = tuple(["@bazel_tools//src/conditions:" + os for os in _OSX])
+    return selects.with_or({
+        linux: [name + ".so" for name in names],
+        osx: [name + ".dylib" for name in names]
+    })
+
+
+def platform_specific_shared_library(name):
+    linux = tuple(["@bazel_tools//src/conditions:" + os for os in _LINUX])
+    osx = tuple(["@bazel_tools//src/conditions:" + os for os in _OSX])
+    return selects.with_or({
+        linux: name + ".so",
+        osx: name + ".dylib"
     })
