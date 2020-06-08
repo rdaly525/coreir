@@ -1,3 +1,17 @@
+# System Requirements
+CoreIR uses the [Bazel](https://bazel.build/) build system. See [here](https://docs.bazel.build/versions/master/install.html) for installation instructions.
+
+This build has been tested so far on OSX.
+
+# Installation instructions
+    $ bazel run install [--] [PREFIX]
+
+The default installation prefix is `/usr/local`. If you specify a system location requiring permissions, use the `-s` flag to run under `sudo`. Note that the default (`/usr/local`) will likely require `sudo`. So you should run it like:
+    $ bazel run install -- -s
+
+**** WARNING ** DO NOT RUN BAZEL ITSELF UNDER SUDO** (i.e. `sudo bazel ...` **is bad**)
+
+# -- OLD STUFF --
 
 ## Quick Install Release:
     # Uncomment one of the following lines to choose your OS
