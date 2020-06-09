@@ -206,6 +206,9 @@ void insertWiresForSlices(ModuleDef* def) {
   for (auto conn : def->getSortedConnections()) {
     Wireable* first = conn.first;
     Wireable* second = conn.second;
+    // Sort connections so we get deterministic ordering of wire instances
+    bool order = SPComp(first->getSelectPath(), second->getSelectPath());
+    if (!order) { std::swap(first, second); }
     if (!(isSlice(first->getSelectPath().back()) ||
           isSlice(second->getSelectPath().back()))) {
       continue;

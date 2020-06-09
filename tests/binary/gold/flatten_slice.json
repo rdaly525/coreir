@@ -10,11 +10,11 @@
         "instances":{
           "i0$_$0":{
             "genref":"mantle.wire",
-            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
+            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]}
           },
           "i0$_$1":{
             "genref":"mantle.wire",
-            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]}
+            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
           },
           "i0$n1":{
             "genref":"coreir.neg",
@@ -22,11 +22,11 @@
           }
         },
         "connections":[
-          ["self.in.0:3","i0$_$0.in.0:3"],
-          ["self.in.3:16","i0$_$0.in.3:16"],
+          ["i0$n1.in","i0$_$0.in"],
           ["i0$_$1.out.0:10","i0$_$0.out.0:10"],
           ["i0$_$1.out.10:16","i0$_$0.out.10:16"],
-          ["i0$n1.in","i0$_$1.in"],
+          ["self.in.0:3","i0$_$1.in.0:3"],
+          ["self.in.3:16","i0$_$1.in.3:16"],
           ["self.out","i0$n1.out"]
         ]
       },
