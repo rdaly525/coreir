@@ -1,11 +1,12 @@
 package(default_visibility = ["//visibility:public"])
 
 common_deps = [ ':common',
-                '//common:common',
+                '//common:common_hdrs',
                 '//coreir-c:coreir-c_hdrs',
-                '//ir/casting:casting',
+                '//external/verilogAST:verilogAST',
                 '//ir:ir_hdrs',
-                '//utils:utils' ]
+                '//ir/casting:casting_hdrs',
+                '//utils:utils_hdrs' ]
 
 cc_library(
     name = 'aetherlinglib',

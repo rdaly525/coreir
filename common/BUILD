@@ -2,6 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = 'common',
+    linkstatic = False,
     srcs = [ 'logging_lite.cpp' ],
     deps = [ ':common_hdrs' ] )
 

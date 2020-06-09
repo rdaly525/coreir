@@ -2,15 +2,14 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = 'coreir',
+    linkstatic = True,
     srcs = [ 'coreir.cpp' ],
     deps = [ ':passlib',
              '//common:common',
-             '//definitions:definitions',
+             '//definitions:definitions_hdrs',
              '//ir:ir',
-             '//ir/casting:casting',
              '//passes/analysis:analysis',
-             '//passes/transform:transform',
-             '//utils:utils' ])
+             '//passes/transform:transform' ])
 
 cc_binary(
     name = 'interpreter',

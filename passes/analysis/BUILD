@@ -2,6 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = 'analysis',
+    linkstatic = False,
     srcs = [ 'coreirjson.cpp',
              'createcombview.cpp',
              'createinstancegraph.cpp',
@@ -24,11 +25,11 @@ cc_library(
              'verilog.cpp',
              'vmodule.cpp' ],
     deps = [ ':analysis_hdrs',
-             '//common:common',
+             '//common:common_hdrs',
              '//external/verilogAST:verilogAST',
-             '//ir/casting:casting',
              '//ir:ir_hdrs',
-             '//utils:utils' ])
+             '//ir/casting:casting_hdrs',
+             '//utils:utils_hdrs' ])
 
 cc_library(
     name = 'analysis_hdrs',

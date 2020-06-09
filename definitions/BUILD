@@ -1,9 +1,8 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = 'definitions',
+    name = 'definitions_hdrs',
     hdrs = [ 'coreFirrtl.hpp',
              'coreVerilog.hpp',
              'corebitFirrtl.hpp',
-             'corebitVerilog.hpp' ],
-    deps = [ '//external/verilogAST:verilogAST' ])
+             'corebitVerilog.hpp' ])
