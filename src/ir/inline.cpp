@@ -163,7 +163,7 @@ void saveSymTable(json& symtable, string path, Wireable* w) {
 Wireable* removeIfSlice(
   Wireable* wireable,
   std::map<Wireable*, Instance*>& wire_map,
-  std::set<Connection, ConnectionCompFast>& to_add,
+  std::vector<Connection>& to_add,
   ModuleDef* def) {
   if (isSlice(wireable->getSelectPath().back())) {
 
@@ -182,7 +182,7 @@ Wireable* removeIfSlice(
         c->getGenerator("mantle.wire"),
         {{"type", Const::make(c, parent->getType())}});
       wire_map[parent] = wire;
-      to_add.insert({parent, wire->sel("in")});
+      to_add.push_back({parent, wire->sel("in")});
     }
     // Select slice off wire output
     wireable = wire->sel("out")->sel(wireable->getSelectPath().back());
@@ -196,26 +196,26 @@ void insertWiresForSlices(ModuleDef* def) {
   // * Set of connections to remove (replacing slice connections with
   //   connections to wires)
   // * Set of connections to add (new wire to slice connections)
-  std::set<Connection, ConnectionCompFast> to_remove;
-  std::set<Connection, ConnectionCompFast> to_add;
+  std::vector<Connection> to_remove;
+  std::vector<Connection> to_add;
 
   // Since slices will introduce wire nodes for their parents, we keep track of
   // a map so we only introduce one wire per parent
   std::map<Wireable*, Instance*> wire_map;
 
-  for (auto conn : def->getConnections()) {
+  for (auto conn : def->getSortedConnections()) {
     Wireable* first = conn.first;
     Wireable* second = conn.second;
     if (!(isSlice(first->getSelectPath().back()) ||
           isSlice(second->getSelectPath().back()))) {
       continue;
     }
-    to_remove.insert(conn);
+    to_remove.push_back(conn);
     // Will return slice off wire if first or second is a slice, otherwise
     // original wireable
     first = removeIfSlice(first, wire_map, to_add, def);
     second = removeIfSlice(second, wire_map, to_add, def);
-    to_add.insert({first, second});
+    to_add.push_back({first, second});
   }
   for (auto conn : to_remove) { def->disconnect(conn.first, conn.second); }
   for (auto conn : to_add) { def->connect(conn.first, conn.second); }
