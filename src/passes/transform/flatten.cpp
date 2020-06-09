@@ -10,7 +10,7 @@ bool Passes::Flatten::runOnInstanceGraphNode(InstanceGraphNode& node) {
   // int i = 0;
   for (auto inst : node.getInstanceList()) {
     // cout << "inlining " << i++ << endl;
-    changed |= inlineInstance(inst);
+    changed |= inlineInstance(inst, this->moduleDefsWithWiresForSlicesCache);
   }
   return changed;
 }

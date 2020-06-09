@@ -225,7 +225,9 @@ void insertWiresForSlices(ModuleDef* def) {
 }
 
 // This will modify the moduledef to inline the instance
-bool inlineInstance(Instance* inst) {
+bool inlineInstance(
+  Instance* inst,
+  std::map<ModuleDef*, ModuleDef*>& moduleDefsWithWiresForSlicesCache) {
   Context* c = inst->getContext();
   // Special case for a passthrough
   // TODO should have a better check for passthrough than string compare
@@ -258,11 +260,15 @@ bool inlineInstance(Instance* inst) {
   // I will be inlining defInline into def
   // Making a copy because i want to modify it first without modifying all of
   // the other instnaces of modInline
-  ModuleDef* defInline = modInline->getDef()->copy();
-
-  // Inlining doesn't handle slices, for now we insert a wire node before slice
-  // connections so the existing inlining logic works
-  insertWiresForSlices(defInline);
+  ModuleDef* defInline = modInline->getDef();
+  if (!moduleDefsWithWiresForSlicesCache.count(defInline)) {
+    ModuleDef* defCopy = defInline->copy();
+    // Inlining doesn't handle slices, for now we insert a wire node before
+    // slice connections so the existing inlining logic works
+    insertWiresForSlices(defCopy);
+    moduleDefsWithWiresForSlicesCache[defInline] = defCopy;
+  }
+  defInline = moduleDefsWithWiresForSlicesCache[defInline]->copy();
 
   // Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(), "_insidePT");
@@ -308,9 +314,11 @@ bool inlineInstance(Instance* inst) {
   def->removeInstance(inst);
 
   // Now inline both of the passthroughs
-  inlineInstance(outsidePT);
+  inlineInstance(outsidePT, moduleDefsWithWiresForSlicesCache);
 
-  inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
+  inlineInstance(
+    cast<Instance>(def->sel(inlinePrefix + "_insidePT")),
+    moduleDefsWithWiresForSlicesCache);
 
   // typecheck the module
   // WARNING: Temporarily removed to check performance impact in _stereo.json
@@ -352,5 +360,10 @@ bool inlineInstance(Instance* inst) {
 
   return true;
 }
+
+bool inlineInstance(Instance* inst) {
+  std::map<ModuleDef*, ModuleDef*> moduleDefsWithWiresForSlicesCache;
+  return inlineInstance(inst, moduleDefsWithWiresForSlicesCache);
+};
 
 }  // namespace CoreIR

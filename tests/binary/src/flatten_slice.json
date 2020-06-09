@@ -5,15 +5,20 @@
         "A": {
           "type": ["Record",[
             ["in", ["Array",16,"BitIn"]],
-            ["out", ["Array",16,"Bit"]]
+            ["out0", ["Array",16,"Bit"]],
+            ["out1", ["Array",16,"Bit"]]
           ]],
             "instances": {
-            "i0": {"modref": "global.B"}
+            "i0": {"modref": "global.B"},
+            "i1": {"modref": "global.B"}
           },
           "connections": [
             ["self.in.0:3", "i0.in.0:3"],
             ["self.in.3:16", "i0.in.3:16"],
-            ["i0.out", "self.out"]
+            ["i0.out", "self.out0"],
+            ["self.in.0:7", "i1.in.0:7"],
+            ["self.in.7:16", "i1.in.7:16"],
+            ["i1.out", "self.out1"]
           ]
         },
         "B": {
