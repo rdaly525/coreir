@@ -1,4 +1,5 @@
 #include "coreir/ir/casting/casting.h"
+#include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
@@ -159,6 +160,67 @@ void saveSymTable(json& symtable, string path, Wireable* w) {
   }
 }
 
+Wireable* removeIfSlice(
+  Wireable* wireable,
+  std::map<Wireable*, Instance*>& wire_map,
+  std::set<Connection, ConnectionCompFast>& to_add,
+  ModuleDef* def) {
+  if (isSlice(wireable->getSelectPath().back())) {
+
+    // Get the parent (the array being sliced)
+    Select* sel = dynamic_cast<Select*>(wireable);
+    Wireable* parent = sel->getParent();
+
+    Instance* wire;
+    // Lookup wire if it's already been created
+    if (wire_map.count(parent)) { wire = wire_map[parent]; }
+    else {
+      // Create wire for parent, add connection from original wireable to wire
+      Context* c = def->getContext();
+      wire = def->addInstance(
+        def->generateUniqueInstanceName(),
+        c->getGenerator("mantle.wire"),
+        {{"type", Const::make(c, parent->getType())}});
+      wire_map[parent] = wire;
+      to_add.insert({parent, wire->sel("in")});
+    }
+    // Select slice off wire output
+    wireable = wire->sel("out")->sel(wireable->getSelectPath().back());
+  }
+  return wireable;
+}
+
+void insertWiresForSlices(ModuleDef* def) {
+  // We construct sets to modify connections afterwards, rather than modifying
+  // while we're iterating over it
+  // * Set of connections to remove (replacing slice connections with
+  //   connections to wires)
+  // * Set of connections to add (new wire to slice connections)
+  std::set<Connection, ConnectionCompFast> to_remove;
+  std::set<Connection, ConnectionCompFast> to_add;
+
+  // Since slices will introduce wire nodes for their parents, we keep track of
+  // a map so we only introduce one wire per parent
+  std::map<Wireable*, Instance*> wire_map;
+
+  for (auto conn : def->getConnections()) {
+    Wireable* first = conn.first;
+    Wireable* second = conn.second;
+    if (!(isSlice(first->getSelectPath().back()) ||
+          isSlice(second->getSelectPath().back()))) {
+      continue;
+    }
+    to_remove.insert(conn);
+    // Will return slice off wire if first or second is a slice, otherwise
+    // original wireable
+    first = removeIfSlice(first, wire_map, to_add, def);
+    second = removeIfSlice(second, wire_map, to_add, def);
+    to_add.insert({first, second});
+  }
+  for (auto conn : to_remove) { def->disconnect(conn.first, conn.second); }
+  for (auto conn : to_add) { def->connect(conn.first, conn.second); }
+}
+
 // This will modify the moduledef to inline the instance
 bool inlineInstance(Instance* inst) {
   Context* c = inst->getContext();
@@ -194,6 +256,10 @@ bool inlineInstance(Instance* inst) {
   // Making a copy because i want to modify it first without modifying all of
   // the other instnaces of modInline
   ModuleDef* defInline = modInline->getDef()->copy();
+
+  // Inlining doesn't handle slices, for now we insert a wire node before slice
+  // connections so the existing inlining logic works
+  insertWiresForSlices(defInline);
 
   // Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(), "_insidePT");
