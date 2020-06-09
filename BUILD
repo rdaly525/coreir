@@ -6,6 +6,15 @@ load('//:defs.bzl', 'install_hdrs')
 load('//:defs.bzl', 'install_all_hdrs')
 load('//:defs.bzl', 'install_set')
 
+cc_binary(
+    name = "libcoreir.so",
+    linkshared = 1,
+    linkopts = [ '-all_load' ],
+    deps = [ "//common:common",
+             "//ir:ir",
+             "//passes/analysis:analysis",
+             "//passes/transform:transform" ])
+
 install_set(
     name = "install",
     deps = [ ":install_aetherlinglib",
@@ -14,6 +23,7 @@ install_set(
              ":install_float_CW",
              ":install_float_DW",
              ":install_ice40",
+             ":install_libcoreir",
              ":install_rtlil",
              ":install_coreir",
              ":install_ir_hdrs",
@@ -22,6 +32,12 @@ install_set(
              ":install_passes_hdrs",
              ":install_passes_analysis_hdrs",
              ":install_passes_transform_hdrs" ])
+
+install_bin(
+    name = "install_libcoreir",
+    bin = ":libcoreir.so",
+    subdirectory = "lib",
+    default_directory = "/usr/local")
 
 install_lib(
     name = "install_aetherlinglib",
