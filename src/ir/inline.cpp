@@ -92,29 +92,26 @@ Wireable* replaceSliceWithWire(
   Wireable* wireable,
   std::map<Wireable*, Instance*>& wire_map,
   ModuleDef* def) {
-  if (isSlice(wireable->getSelectPath().back())) {
+  if (!isSlice(wireable->getSelectPath().back())) { return wireable; }
+  // Get the parent (the array being sliced)
+  Select* sel = dynamic_cast<Select*>(wireable);
+  Wireable* parent = sel->getParent();
 
-    // Get the parent (the array being sliced)
-    Select* sel = dynamic_cast<Select*>(wireable);
-    Wireable* parent = sel->getParent();
-
-    Instance* wire;
-    // Lookup wire if it's already been created
-    if (wire_map.count(parent)) { wire = wire_map[parent]; }
-    else {
-      // Create wire for parent, add connection from original wireable to wire
-      Context* c = def->getContext();
-      wire = def->addInstance(
-        def->generateUniqueInstanceName(),
-        c->getGenerator("mantle.wire"),
-        {{"type", Const::make(c, parent->getType())}});
-      wire_map[parent] = wire;
-      def->connect(parent, wire->sel("in"));
-    }
-    // Select slice off wire output
-    wireable = wire->sel("out")->sel(wireable->getSelectPath().back());
+  Instance* wire;
+  // Lookup wire if it's already been created
+  if (wire_map.count(parent)) { wire = wire_map[parent]; }
+  else {
+    // Create wire for parent, add connection from original wireable to wire
+    Context* c = def->getContext();
+    wire = def->addInstance(
+      def->generateUniqueInstanceName(),
+      c->getGenerator("mantle.wire"),
+      {{"type", Const::make(c, parent->getType())}});
+    wire_map[parent] = wire;
+    def->connect(parent, wire->sel("in"));
   }
-  return wireable;
+  // Select slice off wire output
+  return wire->sel("out")->sel(wireable->getSelectPath().back());
 }
 
 void PTTraverse(
