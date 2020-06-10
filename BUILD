@@ -25,6 +25,12 @@ cc_library(
              '//utils:utils_hdrs' ],
     deps = [ '//external/verilogAST:verilogAST' ])
 
+cc_library(
+    name = "coreir-c",
+    srcs = [ '//coreir-c:coreir-c_srcs' ],
+    hdrs = [ '//coreir-c:coreir-c_hdrs' ],
+    deps = [ ':coreir' ])
+
 install_set(
     name = "install",
     deps = [ ":install_aetherlinglib",
@@ -34,6 +40,7 @@ install_set(
              ":install_float_DW",
              ":install_ice40",
              ":install_libcoreir",
+             ":install_libcoreir-c",
              ":install_rtlil",
              ":install_coreir",
              ":install_ir_hdrs",
@@ -46,6 +53,12 @@ install_set(
 install_lib(
     name = "install_libcoreir",
     lib = ":coreir",
+    subdirectory = "lib",
+    default_directory = "/usr/local")
+
+install_lib(
+    name = "install_libcoreir-c",
+    lib = ":coreir-c",
     subdirectory = "lib",
     default_directory = "/usr/local")
 

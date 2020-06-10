@@ -1,14 +1,14 @@
 #include <fstream>
 #include <strings.h>
-#include "common-c.hpp"
+#include "coreir-c/common-c.hpp"
 #include "coreir-c/coreir.h"
-#include "coreir.h"
-#include "coreir/common/defer.hpp"
-#include "coreir/common/logging_lite.hpp"
-#include "coreir/definitions/coreVerilog.hpp"
-#include "coreir/definitions/corebitVerilog.hpp"
-#include "coreir/ir/json.h"
-#include "coreir/passes/analysis/verilog.h"
+#include "ir/coreir.h"
+#include "common/defer.hpp"
+#include "common/logging_lite.hpp"
+#include "definitions/coreVerilog.hpp"
+#include "definitions/corebitVerilog.hpp"
+#include "ir/json.h"
+#include "passes/analysis/verilog.h"
 
 using namespace std;
 namespace CoreIR {

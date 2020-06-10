@@ -1,7 +1,7 @@
 #ifndef COREIR_SIMULATOR_H
 #define COREIR_SIMULATOR_H
 
-#include <coreir-c/ctypes.h>
+#include "coreir-c/ctypes.h"
 
 typedef struct CORESimulatorState CORESimulatorState;
 typedef struct CORESimValue CORESimValue;

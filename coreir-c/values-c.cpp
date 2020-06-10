@@ -1,5 +1,5 @@
 #include "coreir-c/coreir.h"
-#include "coreir.h"
+#include "ir/coreir.h"
 
 #include "common-c.hpp"
 
