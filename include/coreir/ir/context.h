@@ -183,11 +183,7 @@ bool saveToDot(Module* m, std::ostream& fout);
 // that originally connected to w connecting to name.out which has the same type
 // as w
 Instance* addPassthrough(Wireable* w, std::string instname);
-bool inlineInstance(
-  Instance* inst,
-  std::map<ModuleDef*, ModuleDef*>& moduleDefsWithWiresForSlicesCache);
-
-bool inlineInstance(Instance* inst);
+bool inlineInstance(Instance*);
 
 typedef Namespace* (*LoadLibrary_t)(Context*);
 

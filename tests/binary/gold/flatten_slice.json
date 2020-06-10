@@ -9,11 +9,15 @@
           ["out1",["Array",16,"Bit"]]
         ]],
         "instances":{
-          "i0$_$0":{
+          "_$0":{
             "genref":"mantle.wire",
             "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]}
           },
-          "i0$_$1":{
+          "_$1":{
+            "genref":"mantle.wire",
+            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]}
+          },
+          "i0$_$0":{
             "genref":"mantle.wire",
             "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
           },
@@ -23,10 +27,6 @@
           },
           "i1$_$0":{
             "genref":"mantle.wire",
-            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]}
-          },
-          "i1$_$1":{
-            "genref":"mantle.wire",
             "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
           },
           "i1$n1":{
@@ -35,17 +35,17 @@
           }
         },
         "connections":[
-          ["i0$n1.in","i0$_$0.in"],
-          ["i0$_$1.out.0:10","i0$_$0.out.0:10"],
-          ["i0$_$1.out.10:16","i0$_$0.out.10:16"],
-          ["self.in.0:3","i0$_$1.in.0:3"],
-          ["self.in.3:16","i0$_$1.in.3:16"],
+          ["i0$_$0.in","_$0.in"],
+          ["self.in.3:16","_$0.out.0:13"],
+          ["self.in.0:3","_$0.out.13:16"],
+          ["i1$_$0.in","_$1.in"],
+          ["self.in.7:16","_$1.out.0:9"],
+          ["self.in.0:7","_$1.out.9:16"],
+          ["i0$n1.in.0:10","i0$_$0.out.0:10"],
+          ["i0$n1.in.10:16","i0$_$0.out.10:16"],
           ["self.out0","i0$n1.out"],
-          ["i1$n1.in","i1$_$0.in"],
-          ["i1$_$1.out.0:10","i1$_$0.out.0:10"],
-          ["i1$_$1.out.10:16","i1$_$0.out.10:16"],
-          ["self.in.0:7","i1$_$1.in.0:7"],
-          ["self.in.7:16","i1$_$1.in.7:16"],
+          ["i1$n1.in.0:10","i1$_$0.out.0:10"],
+          ["i1$n1.in.10:16","i1$_$0.out.10:16"],
           ["self.out1","i1$n1.out"]
         ]
       },

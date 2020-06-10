@@ -13,11 +13,11 @@
             "i1": {"modref": "global.B"}
           },
           "connections": [
-            ["self.in.0:3", "i0.in.0:3"],
-            ["self.in.3:16", "i0.in.3:16"],
+            ["self.in.0:3", "i0.in.13:16"],
+            ["self.in.3:16", "i0.in.0:13"],
             ["i0.out", "self.out0"],
-            ["self.in.0:7", "i1.in.0:7"],
-            ["self.in.7:16", "i1.in.7:16"],
+            ["self.in.0:7", "i1.in.9:16"],
+            ["self.in.7:16", "i1.in.0:9"],
             ["i1.out", "self.out1"]
           ]
         },

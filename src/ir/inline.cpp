@@ -82,8 +82,52 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
 }
 
 namespace {
-void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
-  for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
+// If we encounter a slice, we insert a wire so the passthrough logic works (it
+// was originally written before slices were implemented, so assumes there are
+// no slices)
+// We use wire_map to cache wire insertions so we only do it once, this is
+// necessary when slicing inputs, since otherwise we would introduce multiple
+// wires/drivers per slice
+Wireable* replaceSliceWithWire(
+  Wireable* wireable,
+  std::map<Wireable*, Instance*>& wire_map,
+  ModuleDef* def) {
+  if (isSlice(wireable->getSelectPath().back())) {
+
+    // Get the parent (the array being sliced)
+    Select* sel = dynamic_cast<Select*>(wireable);
+    Wireable* parent = sel->getParent();
+
+    Instance* wire;
+    // Lookup wire if it's already been created
+    if (wire_map.count(parent)) { wire = wire_map[parent]; }
+    else {
+      // Create wire for parent, add connection from original wireable to wire
+      Context* c = def->getContext();
+      wire = def->addInstance(
+        def->generateUniqueInstanceName(),
+        c->getGenerator("mantle.wire"),
+        {{"type", Const::make(c, parent->getType())}});
+      wire_map[parent] = wire;
+      def->connect(parent, wire->sel("in"));
+    }
+    // Select slice off wire output
+    wireable = wire->sel("out")->sel(wireable->getSelectPath().back());
+  }
+  return wireable;
+}
+
+void PTTraverse(
+  ModuleDef* def,
+  Wireable* from,
+  Wireable* to,
+  std::map<Wireable*, Instance*>& wire_map) {
+  //
+  to = replaceSliceWithWire(to, wire_map, def);
+  for (auto other : from->getConnectedWireables()) {
+    // other = replaceSliceWithWire(other, wire_map, def);
+    def->connect(to, other);
+  }
   vector<Wireable*> toDelete;
   for (auto other : from->getConnectedWireables()) {
     toDelete.push_back(other);
@@ -91,7 +135,7 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : toDelete) { def->disconnect(from, other); }
   for (auto sels : from->getSelects()) {
     if (!isa<InstanceSelect>(sels.second)) {
-      PTTraverse(def, sels.second, to->sel(sels.first));
+      PTTraverse(def, sels.second, to->sel(sels.first), wire_map);
     }
   }
 }
@@ -124,8 +168,12 @@ Instance* addPassthrough(Wireable* w, string instname) {
     c->getGenerator("_.passthrough"),
     {{"type", Const::make(c, wtype)}});
 
+  // Since slices will introduce wire nodes for their parents, we keep track of
+  // a map so we only introduce one wire per parent
+  std::map<Wireable*, Instance*> wire_map;
+
   set<Wireable*> completed;
-  PTTraverse(def, w, pt->sel("out"));
+  PTTraverse(def, w, pt->sel("out"), wire_map);
 
   // Connect the passthrough back to w
   def->connect(w, pt->sel("in"));
@@ -160,74 +208,8 @@ void saveSymTable(json& symtable, string path, Wireable* w) {
   }
 }
 
-Wireable* removeIfSlice(
-  Wireable* wireable,
-  std::map<Wireable*, Instance*>& wire_map,
-  std::vector<Connection>& to_add,
-  ModuleDef* def) {
-  if (isSlice(wireable->getSelectPath().back())) {
-
-    // Get the parent (the array being sliced)
-    Select* sel = dynamic_cast<Select*>(wireable);
-    Wireable* parent = sel->getParent();
-
-    Instance* wire;
-    // Lookup wire if it's already been created
-    if (wire_map.count(parent)) { wire = wire_map[parent]; }
-    else {
-      // Create wire for parent, add connection from original wireable to wire
-      Context* c = def->getContext();
-      wire = def->addInstance(
-        def->generateUniqueInstanceName(),
-        c->getGenerator("mantle.wire"),
-        {{"type", Const::make(c, parent->getType())}});
-      wire_map[parent] = wire;
-      to_add.push_back({parent, wire->sel("in")});
-    }
-    // Select slice off wire output
-    wireable = wire->sel("out")->sel(wireable->getSelectPath().back());
-  }
-  return wireable;
-}
-
-void insertWiresForSlices(ModuleDef* def) {
-  // We construct sets to modify connections afterwards, rather than modifying
-  // while we're iterating over it
-  // * Set of connections to remove (replacing slice connections with
-  //   connections to wires)
-  // * Set of connections to add (new wire to slice connections)
-  std::vector<Connection> to_remove;
-  std::vector<Connection> to_add;
-
-  // Since slices will introduce wire nodes for their parents, we keep track of
-  // a map so we only introduce one wire per parent
-  std::map<Wireable*, Instance*> wire_map;
-
-  for (auto conn : def->getSortedConnections()) {
-    Wireable* first = conn.first;
-    Wireable* second = conn.second;
-    // Sort connections so we get deterministic ordering of wire instances
-    bool order = SPComp(first->getSelectPath(), second->getSelectPath());
-    if (!order) { std::swap(first, second); }
-    if (!(isSlice(first->getSelectPath().back()) ||
-          isSlice(second->getSelectPath().back()))) {
-      continue;
-    }
-    to_remove.push_back(conn);
-    // Will return slice off wire if first or second is a slice, otherwise
-    // original wireable
-    first = removeIfSlice(first, wire_map, to_add, def);
-    second = removeIfSlice(second, wire_map, to_add, def);
-    to_add.push_back({first, second});
-  }
-  for (auto conn : to_remove) { def->disconnect(conn.first, conn.second); }
-  for (auto conn : to_add) { def->connect(conn.first, conn.second); }
-}
-
 // This will modify the moduledef to inline the instance
-bool inlineInstance(
-  Instance* inst,
-  std::map<ModuleDef*, ModuleDef*>& moduleDefsWithWiresForSlicesCache) {
+bool inlineInstance(Instance* inst) {
   Context* c = inst->getContext();
   // Special case for a passthrough
   // TODO should have a better check for passthrough than string compare
@@ -260,15 +242,7 @@ bool inlineInstance(
   // I will be inlining defInline into def
   // Making a copy because i want to modify it first without modifying all of
   // the other instnaces of modInline
-  ModuleDef* defInline = modInline->getDef();
-  if (!moduleDefsWithWiresForSlicesCache.count(defInline)) {
-    ModuleDef* defCopy = defInline->copy();
-    // Inlining doesn't handle slices, for now we insert a wire node before
-    // slice connections so the existing inlining logic works
-    insertWiresForSlices(defCopy);
-    moduleDefsWithWiresForSlicesCache[defInline] = defCopy;
-  }
-  defInline = moduleDefsWithWiresForSlicesCache[defInline]->copy();
+  ModuleDef* defInline = modInline->getDef()->copy();
 
   // Add a passthrough Module to quarentine 'self'
   addPassthrough(defInline->getInterface(), "_insidePT");
@@ -314,11 +288,9 @@ bool inlineInstance(
   def->removeInstance(inst);
 
   // Now inline both of the passthroughs
-  inlineInstance(outsidePT, moduleDefsWithWiresForSlicesCache);
+  inlineInstance(outsidePT);
 
-  inlineInstance(
-    cast<Instance>(def->sel(inlinePrefix + "_insidePT")),
-    moduleDefsWithWiresForSlicesCache);
+  inlineInstance(cast<Instance>(def->sel(inlinePrefix + "_insidePT")));
 
   // typecheck the module
   // WARNING: Temporarily removed to check performance impact in _stereo.json
@@ -360,10 +332,5 @@ bool inlineInstance(
 
   return true;
 }
-
-bool inlineInstance(Instance* inst) {
-  std::map<ModuleDef*, ModuleDef*> moduleDefsWithWiresForSlicesCache;
-  return inlineInstance(inst, moduleDefsWithWiresForSlicesCache);
-};
 
 }  // namespace CoreIR
