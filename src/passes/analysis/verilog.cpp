@@ -293,6 +293,14 @@ convert_to_assign_target(std::variant<
     std::move(value));
 }
 
+bool is_wire_module(CoreIR::Module* mod) {
+  if (mod->getNamespace()->getName() == "corebit" && mod->getName() == "wire")
+    return true;
+  if (!mod->isGenerated()) return false;
+  CoreIR::Generator* gen = mod->getGenerator();
+  return gen->getName() == "wire" && gen->getNamespace()->getName() == "coreir";
+}
+
 namespace CoreIR {
 
 void Passes::Verilog::initialize(int argc, char** argv) {
@@ -408,7 +416,7 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
     std::unique_ptr<vAST::Declaration>>>
     wire_declarations;
   for (auto instance : instances) {
-    if (instance.second->getModuleRef()->getName() == "wire" && _inline) {
+    if (is_wire_module(instance.second->getModuleRef()) && _inline) {
       // Emit inline wire
       Type* type = cast<RecordType>(instance.second->getModuleRef()->getType())
                      ->getRecord()
@@ -678,7 +686,7 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   Wireable* parent = value->getTopParent();
   if (
     _inline && parent->getKind() == Wireable::WK_Instance &&
-    cast<Instance>(parent)->getModuleRef()->getName() == "wire") {
+    is_wire_module(cast<Instance>(parent)->getModuleRef())) {
     // Use instance name as wire name
     select_path.pop_front();
     select_path[0] = parent->toString();
@@ -1049,7 +1057,7 @@ compile_module_body(
       statement = inline_binary_op(instance, std::move(verilog_connections));
     }
     else if (can_inline_unary_op(instance_module, _inline)) {
-      bool is_wire = instance_module->getName() == "wire";
+      bool is_wire = is_wire_module(instance_module);
       if (is_wire) { wires.insert(instance.first); }
       statement = inline_unary_op(
         instance,
