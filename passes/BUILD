@@ -1,5 +1,5 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+filegroup(
     name = 'passes_hdrs',
-    hdrs = [ 'common.h' ])
+    srcs = [ 'common.h' ])

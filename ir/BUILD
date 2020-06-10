@@ -1,8 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = 'ir',
-    linkstatic = False,
+filegroup(
+    name = 'ir_srcs',
     srcs = [ 'args.cpp',
              'common.cpp',
              'constructor.cpp',
@@ -34,20 +33,11 @@ cc_library(
              'valuetype.cpp',
              'wire_node.cpp',
              'wireable.cpp',
-             'wiring_utils.cpp' ],
-    deps = [ ':ir_hdrs',
-             '//common:common_hdrs',
-             '//external/verilogAST:verilogAST',
-             '//ir/casting:casting_hdrs',
-             '//ir/headers:headers_hdrs',
-             '//passes:passes_hdrs',
-             '//passes/analysis:analysis_hdrs',
-             '//passes/transform:transform_hdrs',
-             '//utils:utils_hdrs' ])
+             'wiring_utils.cpp' ])
 
-cc_library(
+filegroup(
     name = 'ir_hdrs',
-    hdrs = [ 'args.h',
+    srcs = [ 'args.h',
              'common.h',
              'constructor.h',
              'context.h',

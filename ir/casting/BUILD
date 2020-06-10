@@ -1,6 +1,6 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+filegroup(
     name = 'casting_hdrs',
-    hdrs = [ 'casting.h',
+    srcs = [ 'casting.h',
              'type_traits.h' ])

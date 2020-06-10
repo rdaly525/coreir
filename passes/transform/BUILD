@@ -1,8 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = 'transform',
-    linkstatic = False,
+filegroup(
+    name = 'transform_srcs',
     srcs = [ 'add_dummy_inputs.cpp',
              'adddirected.cpp',
              'clock_gate.cpp',
@@ -32,18 +31,11 @@ cc_library(
              'transform2combview.cpp',
              'unpackconnections.cpp',
              'unresolvedsymbols.cpp',
-             'wireclocks.cpp' ],
-    deps = [ ':transform_hdrs',
-             '//common:common_hdrs',
-             '//external/verilogAST:verilogAST',
-             '//ir:ir_hdrs',
-             '//ir/casting:casting_hdrs',
-             '//passes/analysis:analysis_hdrs',
-             '//utils:utils_hdrs' ])
+             'wireclocks.cpp' ])
 
-cc_library(
+filegroup(
     name = 'transform_hdrs',
-    hdrs = [ 'add_dummy_inputs.h',
+    srcs = [ 'add_dummy_inputs.h',
              'adddirected.h',
              'clock_gate.h',
              'clockifyinterface.h',

@@ -1,14 +1,12 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = 'common',
-    linkstatic = False,
-    srcs = [ 'logging_lite.cpp' ],
-    deps = [ ':common_hdrs' ] )
+filegroup(
+    name = 'common_srcs',
+    srcs = [ 'logging_lite.cpp' ])
 
-cc_library(
+filegroup(
     name = 'common_hdrs',
-    hdrs = [ 'algorithm.h',
+    srcs = [ 'algorithm.h',
              'common-macros.h',
              'cxxopts.h',
              'defer.hpp',

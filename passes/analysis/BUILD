@@ -1,8 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = 'analysis',
-    linkstatic = False,
+filegroup(
+    name = 'analysis_srcs',
     srcs = [ 'coreirjson.cpp',
              'createcombview.cpp',
              'createinstancegraph.cpp',
@@ -23,17 +22,11 @@ cc_library(
              'verifyflattenedtypes.cpp',
              'verifyinputconnections.cpp',
              'verilog.cpp',
-             'vmodule.cpp' ],
-    deps = [ ':analysis_hdrs',
-             '//common:common_hdrs',
-             '//external/verilogAST:verilogAST',
-             '//ir:ir_hdrs',
-             '//ir/casting:casting_hdrs',
-             '//utils:utils_hdrs' ])
+             'vmodule.cpp' ])
 
-cc_library(
+filegroup(
     name = 'analysis_hdrs',
-    hdrs = [ 'coreirjson.h',
+    srcs = [ 'coreirjson.h',
              'createcombview.h',
              'createinstancegraph.h',
              'createinstancemap.h',

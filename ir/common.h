@@ -4,7 +4,7 @@
 #include "fwd_declare.h"
 
 // TODO stupid hack
-#include "casting/casting.h"
+#include "ir/casting/casting.h"
 
 namespace CoreIR {
 

@@ -1,8 +1,8 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
+filegroup(
     name = 'utils_hdrs',
-    hdrs = [ 'op_graph.h',
+    srcs = [ 'op_graph.h',
              'primitive.h',
              'util.h',
              'utils.h',

@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
-cc_library(
-    name = 'simulator',
+filegroup(
+    name = 'simulator_srcs',
     srcs = [ 'codegen.cpp',
              'dag_optimiziation.cpp',
              'interpret.cpp',
@@ -11,17 +11,11 @@ cc_library(
              'output.cpp',
              'print_c.cpp',
              'sim.cpp',
-             'subcircuit.cpp' ],
-    deps = [ ':simulator_hdrs',
-             '//common:common',
-             '//ir/casting:casting',
-             '//ir:ir_hdrs',
-             '//passes/transform:transform',
-             '//utils:utils' ])
+             'subcircuit.cpp' ])
 
-cc_library(
+filegroup(
     name = 'simulator_hdrs',
-    hdrs = [ 'bsim_lib.hpp',
+    srcs = [ 'bsim_lib.hpp',
              'codegen.h',
              'coreirsim.h',
              'dag_optimization.h',

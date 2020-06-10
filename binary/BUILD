@@ -5,28 +5,21 @@ cc_binary(
     linkstatic = True,
     srcs = [ 'coreir.cpp' ],
     deps = [ ':passlib',
-             '//common:common',
-             '//definitions:definitions_hdrs',
-             '//ir:ir',
-             '//passes/analysis:analysis',
-             '//passes/transform:transform' ])
+             '//:coreir' ])
 
 cc_binary(
     name = 'interpreter',
     srcs = [ 'interpreter.cpp' ],
     deps = [ ':passlib',
-             '//ir:ir',
-             '//libs:libs',
-             '//passes/analysis:analysis',
-             '//simulator:simulator' ])
+             '//:coreir',
+             '//libs:commonlib' ])
 
 cc_binary(
     name = 'simulator',
     srcs = [ 'simulator.cpp' ],
-    deps = [ '//ir:ir',
-             '//libs:libs',
-             '//passes/analysis:analysis',
-             '//simulator:simulator' ])
+    deps = [ ':passlib',
+             '//:coreir',
+             '//libs:commonlib' ])
 
 cc_library(
     name = 'passlib',
