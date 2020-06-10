@@ -1,7 +1,8 @@
 package(default_visibility = ["//visibility:public"])
 
 common_deps = [ ':common',
-                '//:coreir' ]
+                '//:coreir',
+                '//:coreir-c' ]
 
 cc_library(
     name = 'aetherlinglib',
