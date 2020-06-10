@@ -8,6 +8,7 @@ load('//:defs.bzl', 'install_set')
 
 cc_library(
     name = "coreir",
+    linkopts = [ '-ldl' ],
     srcs = [ '//common:common_srcs',
              '//ir:ir_srcs',
              '//passes/analysis:analysis_srcs',
