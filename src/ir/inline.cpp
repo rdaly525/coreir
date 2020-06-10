@@ -109,6 +109,7 @@ Wireable* replaceSliceWithWire(
       {{"type", Const::make(c, parent->getType())}});
     wire_map[parent] = wire;
     def->connect(parent, wire->sel("in"));
+    wire->getModuleRef()->runGenerator();
   }
   // Select slice off wire output
   return wire->sel("out")->sel(wireable->getSelectPath().back());
