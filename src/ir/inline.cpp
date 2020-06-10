@@ -122,12 +122,8 @@ void PTTraverse(
   Wireable* from,
   Wireable* to,
   std::map<Wireable*, Instance*>& wire_map) {
-  //
   to = replaceSliceWithWire(to, wire_map, def);
-  for (auto other : from->getConnectedWireables()) {
-    // other = replaceSliceWithWire(other, wire_map, def);
-    def->connect(to, other);
-  }
+  for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
   vector<Wireable*> toDelete;
   for (auto other : from->getConnectedWireables()) {
     toDelete.push_back(other);
