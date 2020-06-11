@@ -11,8 +11,7 @@
 enum LogSeverity {
   INFO = 0,
   WARN = 1,
-  DEBUG,
-  FATAL,
+  FATAL = 2,
   NUM_LOG_LEVELS,
 };
 
@@ -94,8 +93,14 @@ class LoggerVoidify {
 #define CHECK(condition) LOG_IF(FATAL, !(condition))
 
 #ifndef NDEBUG
+#define DLOG(severity) LOG(severity)
+#define DLOG_IF(severity, condition) LOG_IF(severity, condition)
 #define DCHECK(condition) CHECK(condition)
 #else  // !NDEBUG
+#define DLOG(severity) LOG(severity)                                           \
+  while (false) LOG(severity)
+#define DLOG_IF(severity, condition)                                           \
+  while (false) LOG_IF(severity, condition)
 #define DCHECK(condition)                                                      \
   while (false) CHECK(condition)
 #endif  // NDEBUG

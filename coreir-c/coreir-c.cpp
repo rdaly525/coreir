@@ -178,7 +178,7 @@ bool CORECompileToVerilog(
   std::string outfile(filename);
   std::ofstream fout(outfile);
   if (not fout.is_open()) {
-    LOG(DEBUG) << "Cannot open file '" + outfile + "' to compile to verilog";
+    DLOG(INFO) << "Cannot open file '" + outfile + "' to compile to verilog";
     return false;
   }
   pass->writeToStream(fout);

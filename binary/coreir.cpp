@@ -203,14 +203,14 @@ int main(int argc, char* argv[]) {
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
 
-    LOG(DEBUG) << "Running Runningvpasses";
+    DLOG(INFO) << "Running Runningvpasses";
     string vstr = "verilog";
     if (opts.count("z")) { vstr += " -i"; }
     if (opts.count("y")) { vstr += " -y"; }
     modified |= c->runPasses(
       {"rungenerators", "removebulkconnections", "flattentypes", vstr},
       namespaces);
-    LOG(DEBUG) << "Running vpasses";
+    DLOG(INFO) << "Running vpasses";
 
     auto vpass = static_cast<Passes::Verilog*>(
       c->getPassManager()->getAnalysisPass("verilog"));
@@ -254,9 +254,9 @@ int main(int argc, char* argv[]) {
     vpass->writeToStream(*sout);
   }
   else {
-    LOG(DEBUG) << "NYI";
+    DLOG(INFO) << "NYI";
   }
-  LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
+  DLOG(INFO) << "Modified?: " << (modified ? "Yes" : "No");
 
   return 0;
 }

@@ -7,9 +7,9 @@ using namespace CoreIR;
 void TestLogInfo() { LOG(INFO) << "Hello!"; }
 
 void TestLogDebug() {
-  LOG(DEBUG) << "Debug Hello!";
+  DLOG(INFO) << "Debug Hello!";
   ::common::SetLogLevel(DEBUG);
-  LOG(DEBUG) << "Debug Hello!";
+  DLOG(INFO) << "Debug Hello!";
 }
 
 int main() {

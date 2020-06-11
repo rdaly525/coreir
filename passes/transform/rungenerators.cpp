@@ -7,7 +7,7 @@ using namespace CoreIR;
 std::string Passes::RunGenerators::ID = "rungenerators";
 
 bool Passes::RunGenerators::runOnContext(Context* c) {
-  LOG(DEBUG) << "In Run Generators";
+  DLOG(INFO) << "In Run Generators";
   bool changed = true;
   bool modified = false;
   while (changed) {
@@ -23,7 +23,7 @@ bool Passes::RunGenerators::runOnContext(Context* c) {
     modified |= changed;
   }
 
-  LOG(DEBUG) << "Done running generators";
+  DLOG(INFO) << "Done running generators";
 
   return modified;
 }

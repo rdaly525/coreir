@@ -661,7 +661,7 @@ SimValue* SimulatorState::getValue(CoreIR::Select* sel) {
   auto it = circStates[stateIndex].valMap.find(sel);
 
   if (it == std::end(circStates[stateIndex].valMap)) {
-    LOG(DEBUG) << *sel << " not found";
+    DLOG(INFO) << *sel << " not found";
     assert(false);
   }
 
