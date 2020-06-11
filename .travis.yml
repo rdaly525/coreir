@@ -61,7 +61,7 @@ before_install:
 - bazel run install -- -s
 - pip install pytest delegator.py
 script:
-- ls bin/
+- ls bazel-bin/
 - pytest tests/binary
 - make -j2 installtest
 - make -j2 test
