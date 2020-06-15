@@ -2,7 +2,7 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = 'coreir',
-    linkstatic = True,
+    linkstatic = False,
     srcs = [ 'coreir.cpp' ],
     deps = [ ':passlib',
              '//:coreir' ])

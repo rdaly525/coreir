@@ -46,7 +46,7 @@ before_install:
     # for some more info)
     export DYLD_LIBRARY_PATH=/System/Library/Frameworks/ImageIO.framework/Versions/A/Resources/:/usr/local/lib:$DYLD_LIBRARY_PATH
   else
-    export LD_LIBRARY_PATH=`pwd`/lib:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
   fi
 # Install bazel on linux
 - |
