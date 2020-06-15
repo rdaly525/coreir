@@ -2,9 +2,9 @@ package(default_visibility = ["//visibility:public"])
 
 load('//:defs.bzl', 'install_lib')
 load('//:defs.bzl', 'install_bin')
-load('//:defs.bzl', 'install_hdrs')
 load('//:defs.bzl', 'install_all_hdrs')
 load('//:defs.bzl', 'install_set')
+load('//:defs.bzl', 'platform_specific_shared_library')
 
 cc_library(
     name = "coreir",
@@ -30,7 +30,8 @@ cc_library(
     name = "coreir-c",
     srcs = [ '//coreir-c:coreir-c_srcs' ],
     hdrs = [ '//coreir-c:coreir-c_hdrs' ],
-    deps = [ ':coreir' ])
+    deps = [ ':coreir',
+             '//external/verilogAST:verilogAST' ])
 
 install_set(
     name = "install",
@@ -54,61 +55,63 @@ install_set(
 install_lib(
     name = "install_libcoreir",
     lib = ":coreir",
+    rename = platform_specific_shared_library("libcoreir"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_libcoreir-c",
     lib = ":coreir-c",
+    rename = platform_specific_shared_library("libcoreir-c"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_aetherlinglib",
     lib = "//libs:aetherlinglib",
-    rename = "libcoreir-aetherlinglib.dylib",
+    rename = platform_specific_shared_library("libcoreir-aetherlinglib"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_commonlib",
     lib = "//libs:commonlib",
-    rename = "libcoreir-commonlib.dylib",
+    rename = platform_specific_shared_library("libcoreir-commonlib"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_float",
     lib = "//libs:float",
-    rename = "libcoreir-float.dylib",
+    rename = platform_specific_shared_library("libcoreir-float"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_float_CW",
     lib = "//libs:float_CW",
-    rename = "libcoreir-float_CW.dylib",
+    rename = platform_specific_shared_library("libcoreir-float_CW"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_float_DW",
     lib = "//libs:float_DW",
-    rename = "libcoreir-float_DW.dylib",
+    rename = platform_specific_shared_library("libcoreir-float_DW"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_ice40",
     lib = "//libs:ice40",
-    rename = "libcoreir-ice40.dylib",
+    rename = platform_specific_shared_library("libcoreir-ice40"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
 install_lib(
     name = "install_rtlil",
     lib = "//libs:rtlil",
-    rename = "libcoreir-rtlil.dylib",
+    rename = platform_specific_shared_library("libcoreir-rtlil"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
