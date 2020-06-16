@@ -6,15 +6,16 @@ load('//:defs.bzl', 'install_all_hdrs')
 load('//:defs.bzl', 'install_set')
 load('//:defs.bzl', 'platform_specific_shared_library')
 
-cc_library(
-    name = "coreir",
-    linkopts = [ '-ldl' ],
+cc_binary(
+    name = "libcoreir.so",
+    linkopts = [ '-ldl', '-lverilogAST'],
+    linkshared = True,
     srcs = [ '//common:common_srcs',
              '//ir:ir_srcs',
              '//passes/analysis:analysis_srcs',
              '//passes/transform:transform_srcs',
-             '//simulator:simulator_srcs' ],
-    hdrs = [ '//common:common_hdrs',
+             '//simulator:simulator_srcs',
+             '//common:common_hdrs',
              '//definitions:definitions_hdrs',
              '//ir:ir_hdrs',
              '//ir/casting:casting_hdrs',
@@ -26,11 +27,14 @@ cc_library(
              '//utils:utils_hdrs' ],
     deps = [ '//external/verilogAST:verilogAST' ])
 
-cc_library(
-    name = "coreir-c",
-    srcs = [ '//coreir-c:coreir-c_srcs' ],
-    hdrs = [ '//coreir-c:coreir-c_hdrs' ],
-    deps = [ ':coreir',
+cc_binary(
+    name = "libcoreir-c.so",
+    linkshared = True,
+    linkopts = [ '-lcoreir', '-lverilogAST' ],
+    srcs = [ '//simulator:simulator_srcs',
+             '//coreir-c:coreir-c_srcs',
+             '//coreir-c:coreir-c_hdrs' ],
+    deps = [ ':libcoreir.so',
              '//external/verilogAST:verilogAST' ])
 
 install_set(
@@ -52,16 +56,16 @@ install_set(
              ":install_passes_analysis_hdrs",
              ":install_passes_transform_hdrs" ])
 
-install_lib(
+install_bin(
     name = "install_libcoreir",
-    lib = ":coreir",
+    bin = ":libcoreir.so",
     rename = platform_specific_shared_library("libcoreir"),
     subdirectory = "lib",
     default_directory = "/usr/local")
 
-install_lib(
+install_bin(
     name = "install_libcoreir-c",
-    lib = ":coreir-c",
+    bin = ":libcoreir-c.so",
     rename = platform_specific_shared_library("libcoreir-c"),
     subdirectory = "lib",
     default_directory = "/usr/local")

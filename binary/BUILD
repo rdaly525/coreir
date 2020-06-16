@@ -2,10 +2,12 @@ package(default_visibility = ["//visibility:public"])
 
 cc_binary(
     name = 'coreir',
-    linkstatic = False,
+    linkopts = [ '-lcoreir' ],
     srcs = [ 'coreir.cpp' ],
     deps = [ ':passlib',
-             '//:coreir' ])
+             '//:libcoreir.so',
+             '//:libcoreir-c.so',
+             '//external/verilogAST:verilogAST' ])
 
 cc_binary(
     name = 'interpreter',
