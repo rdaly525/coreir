@@ -507,6 +507,14 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
     }
   }
   for (auto parameter : module->getModParams()) {
+    if (
+      module->isGenerated() && module->getGenerator()->getName() == "mem" &&
+      module->getGenerator()->getNamespace()->getName() == "coreir" &&
+      parameter.first == "init") {
+      // init param is handled using a parameter statement in verilog string
+      // defn
+      continue;
+    }
     if (parameters_seen.count(parameter.first) == 0) {
       // Old coreir backend defaults these (genparams without
       // defaults) to 0
