@@ -455,7 +455,9 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     [](Context* c, Values genargs) -> std::pair<Params, Values> {
     Params modparams;
     Values defaultargs;
-    modparams["init"] = JsonType::make(c);
+    int width = genargs.at("width")->get<int>();
+    int depth = genargs.at("depth")->get<int>();
+    modparams["init"] = BitVectorType::make(c, width * depth);
     return {modparams, defaultargs};
   };
 
