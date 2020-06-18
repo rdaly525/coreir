@@ -35,7 +35,7 @@ module Memory (
     input CLK
 );
 coreir_mem #(
-    .init({5'11,5'21,5'0,5'5}),
+    .init({5'd11,5'd21,5'd0,5'd5}),
     .depth(4),
     .has_init(1'b1),
     .width(5)
