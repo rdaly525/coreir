@@ -324,6 +324,27 @@ std::string make_name(std::string name, json metadata) {
   return name;
 }
 
+std::unique_ptr<vAST::Expression> convert_mem_init_param_value(
+  Value* value,
+  int width) {
+  // Assumes json list of ints
+  json json_value = dyn_cast<ConstJson>(value)->get();
+  ASSERT(json_value != NULL, "Got non-json value for mem init");
+  ASSERT(json_value.is_array(), "Got non-json array for mem init");
+  std::vector<std::unique_ptr<vAST::Expression>> concat_args;
+  for (auto& element : json_value) {
+    ASSERT(
+      element.is_number(),
+      "Got non-number for json array element in mem init");
+    concat_args.push_back(std::make_unique<vAST::NumericLiteral>(
+      std::to_string(element.get<unsigned long long>()),
+      width));
+  }
+  std::reverse(concat_args.begin(), concat_args.end());
+
+  return std::make_unique<vAST::Concat>(std::move(concat_args));
+}
+
 // Converts a CoreIR `Value` type into a Verilog literal
 std::unique_ptr<vAST::Expression> convert_value(Value* value) {
   if (auto arg_value = dyn_cast<Arg>(value)) {
@@ -1040,12 +1061,25 @@ compile_module_body(
         verilog_connections->insert(field, std::move(verilog_conn));
       }
     }
+    bool is_mem_inst = instance_module->isGenerated() &&
+      instance_module->getGenerator()->getName() == "mem" &&
+      instance_module->getGenerator()->getNamespace()->getName() == "coreir";
     // Handle module arguments
     if (instance.second->hasModArgs()) {
       for (auto parameter : instance.second->getModArgs()) {
+        std::unique_ptr<vAST::Expression> value;
+        if (is_mem_inst && parameter.first == "init") {
+          int width = dyn_cast<ConstInt>(
+                        instance_module->getGenArgs().at("width"))
+                        ->get();
+          value = convert_mem_init_param_value(parameter.second, width);
+        }
+        else {
+          value = convert_value(parameter.second);
+        }
         instance_parameters.push_back(std::pair(
           std::make_unique<vAST::Identifier>(parameter.first),
-          convert_value(parameter.second)));
+          std::move(value)));
       }
     }
     // Handle generator arguments

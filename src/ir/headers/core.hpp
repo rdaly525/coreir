@@ -170,9 +170,7 @@ void core_state(Context* c, Namespace* core) {
     Params modparams;
     Values defaultargs;
     bool has_init = genargs.at("has_init")->get<bool>();
-    int width = genargs.at("width")->get<int>();
-    int depth = genargs.at("depth")->get<int>();
-    if (has_init) { modparams["init"] = BitVectorType::make(c, width * depth); }
+    if (has_init) { modparams["init"] = JsonType::make(c); }
     return {modparams, defaultargs};
   };
 

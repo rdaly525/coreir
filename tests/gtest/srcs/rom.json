@@ -26,7 +26,7 @@
           "coreir_mem4x5_inst0":{
             "genref":"coreir.mem",
             "genargs":{"depth":["Int",4], "has_init":["Bool",true], "width":["Int",5]},
-            "modargs":{"init":[["BitVector",20],"20'h04d47"]}
+            "modargs":{"init":["Json",[5,0,21,11]]}
           }
         },
         "connections":[
