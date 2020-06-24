@@ -26,7 +26,17 @@ module coreir_mem #(
       data[waddr] <= wdata;
     end
   end
+  generate if (sync_read) begin
+  reg [width-1:0] rdata_reg;
+  always @(posedge clk) begin
+    rdata_reg <= data[raddr]
+  end
+  assign rdata = rdata_reg;
+  end else begin
   assign rdata = data[raddr];
+  end
+  endgenerate
+
 endmodule
 
 module Memory (

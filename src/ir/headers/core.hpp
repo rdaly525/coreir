@@ -151,8 +151,10 @@ void core_state(Context* c, Namespace* core) {
   regRst->setModParamsGen(regRstModParamFun);
 
   // Memory
-  Params memGenParams(
-    {{"width", c->Int()}, {"depth", c->Int()}, {"has_init", c->Bool()}});
+  Params memGenParams({{"width", c->Int()},
+                       {"depth", c->Int()},
+                       {"has_init", c->Bool()},
+                       {"sync_read", c->Bool()}});
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();

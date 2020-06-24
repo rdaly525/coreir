@@ -661,11 +661,23 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "      data[waddr] <= wdata;\n"
       "    end\n"
       "  end\n"
-      "  assign rdata = data[raddr];";
+      ""
+      "  generate if (sync_read) begin\n"
+      "  reg [width-1:0] rdata_reg;\n"
+      "  always @(posedge clk) begin\n"
+      "    rdata_reg <= data[raddr]\n"
+      "  end\n"
+      "  assign rdata = rdata_reg;\n"
+      "  end else begin\n"
+      "  assign rdata = data[raddr];\n"
+      "  end\n"
+      "  endgenerate\n";
     vjson["verilator_debug_definition"] =
       ""
-      "  parameter [width*depth-1:0] init = 0;\n"
+      "  reg [width-1:0] data [depth-1:0];/*verilator public*/;\n"
       ""
+      // verilator doesn't support 2d array parameter, so we pack it into a 1d
+      // array
       "  parameter [width*depth-1:0] init = 0;\n"
       "  generate if (has_init) begin\n"
       "    genvar j;\n"
@@ -682,7 +694,17 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "      data[waddr] <= wdata;\n"
       "    end\n"
       "  end\n"
-      "  assign rdata = data[raddr];";
+      ""
+      "  generate if (sync_read) begin\n"
+      "  reg [width-1:0] rdata_reg;\n"
+      "  always @(posedge clk) begin\n"
+      "    rdata_reg <= data[raddr]\n"
+      "  end\n"
+      "  assign rdata = rdata_reg;\n"
+      "  end else begin\n"
+      "  assign rdata = data[raddr];\n"
+      "  end\n"
+      "  endgenerate\n";
     core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
   }
 }
