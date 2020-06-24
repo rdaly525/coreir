@@ -12,3 +12,18 @@ def test_slice_connectivity():
         '           -l commonlib'
     )
     assert not res.return_code, res.out + res.err
+
+
+def test_flatten_slice():
+    res = delegator.run(
+        'bin/coreir -i tests/binary/src/flatten_slice.json'
+        '           -p flatten'
+        '           -o tests/binary/build/out.json'
+    )
+    print(res.out)
+    assert not res.return_code, res.err
+
+    res = delegator.run('diff tests/binary/build/out.json  '
+                        '     tests/binary/gold/flatten_slice.json')
+    assert not res.return_code, res.out + res.err
+
