@@ -151,8 +151,10 @@ void core_state(Context* c, Namespace* core) {
   regRst->setModParamsGen(regRstModParamFun);
 
   // Memory
-  Params memGenParams(
-    {{"width", c->Int()}, {"depth", c->Int()}, {"has_init", c->Bool()}});
+  Params memGenParams({{"width", c->Int()},
+                       {"depth", c->Int()},
+                       {"has_init", c->Bool()},
+                       {"sync_read", c->Bool()}});
   auto memFun = [](Context* c, Values genargs) {
     int width = genargs.at("width")->get<int>();
     int depth = genargs.at("depth")->get<int>();
@@ -177,7 +179,8 @@ void core_state(Context* c, Namespace* core) {
   TypeGen* memTypeGen = core->newTypeGen("memType", memGenParams, memFun);
   Generator* mem = core->newGeneratorDecl("mem", memTypeGen, memGenParams);
   mem->setModParamsGen(memModParamFun);
-  mem->addDefaultGenArgs({{"has_init", Const::make(c, false)}});
+  mem->addDefaultGenArgs({{"has_init", Const::make(c, false)},
+                          {"sync_read", Const::make(c, false)}});
 }
 
 Namespace* CoreIRLoadHeader_core(Context* c) {
