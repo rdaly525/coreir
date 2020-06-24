@@ -295,6 +295,14 @@ convert_to_assign_target(std::variant<
     std::move(value));
 }
 
+bool is_wire_module(CoreIR::Module* mod) {
+  if (mod->getNamespace()->getName() == "corebit" && mod->getName() == "wire")
+    return true;
+  if (!mod->isGenerated()) return false;
+  CoreIR::Generator* gen = mod->getGenerator();
+  return gen->getName() == "wire" && gen->getNamespace()->getName() == "coreir";
+}
+
 namespace CoreIR {
 
 void Passes::Verilog::initialize(int argc, char** argv) {
@@ -319,6 +327,27 @@ std::string make_name(std::string name, json metadata) {
     name = metadata["prefix"].get<std::string>() + name;
   }
   return name;
+}
+
+std::unique_ptr<vAST::Expression> convert_mem_init_param_value(
+  Value* value,
+  int width) {
+  // Assumes json list of ints
+  json json_value = dyn_cast<ConstJson>(value)->get();
+  ASSERT(json_value != NULL, "Got non-json value for mem init");
+  ASSERT(json_value.is_array(), "Got non-json array for mem init");
+  std::vector<std::unique_ptr<vAST::Expression>> concat_args;
+  for (auto& element : json_value) {
+    ASSERT(
+      element.is_number(),
+      "Got non-number for json array element in mem init");
+    concat_args.push_back(std::make_unique<vAST::NumericLiteral>(
+      std::to_string(element.get<unsigned long long>()),
+      width));
+  }
+  std::reverse(concat_args.begin(), concat_args.end());
+
+  return std::make_unique<vAST::Concat>(std::move(concat_args));
 }
 
 // Converts a CoreIR `Value` type into a Verilog literal
@@ -413,7 +442,7 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
     std::unique_ptr<vAST::Declaration>>>
     wire_declarations;
   for (auto instance : instances) {
-    if (instance.second->getModuleRef()->getName() == "wire" && _inline) {
+    if (is_wire_module(instance.second->getModuleRef()) && _inline) {
       // Emit inline wire
       Type* type = cast<RecordType>(instance.second->getModuleRef()->getType())
                      ->getRecord()
@@ -504,6 +533,14 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
     }
   }
   for (auto parameter : module->getModParams()) {
+    if (
+      module->isGenerated() && module->getGenerator()->getName() == "mem" &&
+      module->getGenerator()->getNamespace()->getName() == "coreir" &&
+      parameter.first == "init") {
+      // init param is handled using a parameter statement in verilog string
+      // defn
+      continue;
+    }
     if (parameters_seen.count(parameter.first) == 0) {
       // Old coreir backend defaults these (genparams without
       // defaults) to 0
@@ -683,7 +720,7 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   Wireable* parent = value->getTopParent();
   if (
     _inline && parent->getKind() == Wireable::WK_Instance &&
-    cast<Instance>(parent)->getModuleRef()->getName() == "wire") {
+    is_wire_module(cast<Instance>(parent)->getModuleRef())) {
     // Use instance name as wire name
     select_path.pop_front();
     select_path[0] = parent->toString();
@@ -1030,12 +1067,25 @@ compile_module_body(
         verilog_connections->insert(field, std::move(verilog_conn));
       }
     }
+    bool is_mem_inst = instance_module->isGenerated() &&
+      instance_module->getGenerator()->getName() == "mem" &&
+      instance_module->getGenerator()->getNamespace()->getName() == "coreir";
     // Handle module arguments
     if (instance.second->hasModArgs()) {
       for (auto parameter : instance.second->getModArgs()) {
+        std::unique_ptr<vAST::Expression> value;
+        if (is_mem_inst && parameter.first == "init") {
+          int width = dyn_cast<ConstInt>(
+                        instance_module->getGenArgs().at("width"))
+                        ->get();
+          value = convert_mem_init_param_value(parameter.second, width);
+        }
+        else {
+          value = convert_value(parameter.second);
+        }
         instance_parameters.push_back(std::pair(
           std::make_unique<vAST::Identifier>(parameter.first),
-          convert_value(parameter.second)));
+          std::move(value)));
       }
     }
     // Handle generator arguments
@@ -1058,7 +1108,7 @@ compile_module_body(
         disable_width_cast);
     }
     else if (can_inline_unary_op(instance_module, _inline)) {
-      bool is_wire = instance_module->getName() == "wire";
+      bool is_wire = is_wire_module(instance_module);
       if (is_wire) { wires.insert(instance.first); }
       statement = inline_unary_op(
         instance,

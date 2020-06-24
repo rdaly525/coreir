@@ -638,9 +638,24 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     json vjson;
     vjson["prefix"] = "coreir_";
     vjson["interface"] = coreIMap["mem"];
+    vjson["parameters"] = {"has_init"};
     vjson["definition"] =
       ""
-      "  reg [width-1:0] data[depth-1:0];\n"
+      "  reg [width-1:0] data [depth-1:0];\n"
+      ""
+      // verilator doesn't support 2d array parameter, so we pack it into a 1d
+      // array
+      "  parameter [width*depth-1:0] init = 0;\n"
+      "  generate if (has_init) begin\n"
+      "    genvar j;\n"
+      "    for (j = 0; j < depth; j = j + 1) begin\n"
+      "      initial begin\n"
+      "        data[j] = init[(j+1)*width-1:j*width];\n"
+      "      end\n"
+      "    end\n"
+      "  end\n"
+      "  endgenerate\n"
+      ""
       "  always @(posedge clk) begin\n"
       "    if (wen) begin\n"
       "      data[waddr] <= wdata;\n"
@@ -649,7 +664,19 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "  assign rdata = data[raddr];";
     vjson["verilator_debug_definition"] =
       ""
-      "  reg [width-1:0] data[depth-1:0] /*verilator public*/;\n"
+      "  parameter [width*depth-1:0] init = 0;\n"
+      ""
+      "  parameter [width*depth-1:0] init = 0;\n"
+      "  generate if (has_init) begin\n"
+      "    genvar j;\n"
+      "    for (j = 0; j < depth; j = j + 1) begin\n"
+      "      initial begin\n"
+      "        data[j] = init[(j+1)*width-1:j*width];\n"
+      "      end\n"
+      "    end\n"
+      "  end\n"
+      "  endgenerate\n"
+      ""
       "  always @(posedge clk) begin\n"
       "    if (wen) begin\n"
       "      data[waddr] <= wdata;\n"

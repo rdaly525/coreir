@@ -44,3 +44,7 @@ add_test(NAME test_isolate COMMAND test_isolate WORKING_DIRECTORY ${CMAKE_SOURCE
 add_executable(test_slice test_slice.cpp)
 target_link_libraries(test_slice gtest_main coreir coreir-commonlib)
 add_test(NAME test_slice COMMAND test_slice WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_memory test_memory.cpp)
+target_link_libraries(test_memory gtest_main coreir coreir-commonlib)
+add_test(NAME test_memory COMMAND test_memory WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
