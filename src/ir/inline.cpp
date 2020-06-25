@@ -82,66 +82,33 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
 }
 
 namespace {
-// If we encounter a slice, we insert a wire so the passthrough logic works (it
-// was originally written before slices were implemented, so assumes there are
-// no slices)
-// We use wire_map to cache wire insertions so we only do it once, this is
-// necessary when slicing inputs, since otherwise we would introduce multiple
-// wires/drivers per slice
-Wireable* getWireIfSlice(
-  Wireable* wireable,
-  std::map<Wireable*, Instance*>& wire_map,
-  ModuleDef* def) {
-  Select* sel = dynamic_cast<Select*>(wireable);
-  if (!sel) { return wireable; }
-  // Get the parent (the array being sliced)
-  Wireable* parent = sel->getParent();
-  // Check if it's connected to a slice
-  bool connected_to_slice = false;
-  for (auto sel : parent->getSelects()) {
-    if (isSlice(sel.first)) {
-      connected_to_slice = true;
-      break;
-    }
-  }
-  // If not, just use standard wire
-  if (!connected_to_slice) { return wireable; }
-
-  // otherwise, use inserted wire
-
-  Instance* wire;
-  // Lookup wire if it's already been created
-  if (wire_map.count(parent)) { wire = wire_map[parent]; }
-  else {
-    // Create wire for parent, add connection from original wireable to wire
-    Context* c = def->getContext();
-    wire = def->addInstance(
-      def->generateUniqueInstanceName(),
-      c->getGenerator("mantle.wire"),
-      {{"type", Const::make(c, parent->getType())}});
-    wire_map[parent] = wire;
-    def->connect(parent, wire->sel("in"));
-    wire->getModuleRef()->runGenerator();
-  }
-  // Select slice off wire output
-  return wire->sel("out")->sel(wireable->getSelectPath().back());
-}
-
-void PTTraverse(
-  ModuleDef* def,
-  Wireable* from,
-  Wireable* to,
-  std::map<Wireable*, Instance*>& wire_map) {
-  to = getWireIfSlice(to, wire_map, def);
+void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
   vector<Wireable*> toDelete;
   for (auto other : from->getConnectedWireables()) {
     toDelete.push_back(other);
   }
   for (auto other : toDelete) { def->disconnect(from, other); }
+
+  // If we encounter a slice, we insert a wire so the passthrough logic works
+  // (it was originally written before slices were implemented, so assumes there
+  // are no slices)
+  for (auto sel : from->getSelects()) {
+    if (isSlice(sel.first)) {
+      Context* c = def->getContext();
+      Instance* wire = def->addInstance(
+        def->generateUniqueInstanceName(),
+        c->getGenerator("mantle.wire"),
+        {{"type", Const::make(c, from->getType())}});
+      def->connect(to, wire->sel("in"));
+      wire->getModuleRef()->runGenerator();
+      to = wire->sel("out");
+      break;
+    }
+  }
   for (auto sels : from->getSelects()) {
     if (!isa<InstanceSelect>(sels.second)) {
-      PTTraverse(def, sels.second, to->sel(sels.first), wire_map);
+      PTTraverse(def, sels.second, to->sel(sels.first));
     }
   }
 }
@@ -174,12 +141,8 @@ Instance* addPassthrough(Wireable* w, string instname) {
     c->getGenerator("_.passthrough"),
     {{"type", Const::make(c, wtype)}});
 
-  // Since slices will introduce wire nodes for their parents, we keep track of
-  // a map so we only introduce one wire per parent
-  std::map<Wireable*, Instance*> wire_map;
-
   set<Wireable*> completed;
-  PTTraverse(def, w, pt->sel("out"), wire_map);
+  PTTraverse(def, w, pt->sel("out"));
 
   // Connect the passthrough back to w
   def->connect(w, pt->sel("in"));
