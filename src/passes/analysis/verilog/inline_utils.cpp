@@ -80,7 +80,8 @@ std::unique_ptr<vAST::Expression> get_primitive_expr(
 
 std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
   std::pair<std::string, CoreIR::Instance*> instance,
-  std::unique_ptr<vAST::Connections> verilog_connections) {
+  std::unique_ptr<vAST::Connections> verilog_connections,
+  bool disable_width_cast) {
   BinaryOpReplacer transformer(
     verilog_connections->at("in0"),
     verilog_connections->at("in1"));
@@ -92,8 +93,9 @@ std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     primitive_expr.get());
   ASSERT(binary_op, "Expected binary_op for primitive expr");
   if (
-    binary_op->op == vAST::BinOp::ADD || binary_op->op == vAST::BinOp::SUB ||
-    binary_op->op == vAST::BinOp::MUL || binary_op->op == vAST::BinOp::DIV) {
+    !disable_width_cast &&
+    (binary_op->op == vAST::BinOp::ADD || binary_op->op == vAST::BinOp::SUB ||
+     binary_op->op == vAST::BinOp::MUL || binary_op->op == vAST::BinOp::DIV)) {
 
     // Cast output so linters are happy (e.g. default verilog add
     // appends an extra bit)
