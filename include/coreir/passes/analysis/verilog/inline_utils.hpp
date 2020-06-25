@@ -57,7 +57,8 @@ std::unique_ptr<vAST::Expression> get_primitive_expr(
 
 std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
   std::pair<std::string, CoreIR::Instance*> instance,
-  std::unique_ptr<vAST::Connections> verilog_connections);
+  std::unique_ptr<vAST::Connections> verilog_connections,
+  bool disable_width_cast);
 
 bool can_inline_unary_op(CoreIR::Module* module, bool _inline);
 
