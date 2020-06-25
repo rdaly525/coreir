@@ -71,10 +71,13 @@ void Passes::Verilog::initialize(int argc, char** argv) {
   cxxopts::Options options("verilog", "translates coreir graph to verilog");
   options.add_options()("i,inline", "Inline verilog modules if possible")(
     "y,verilator_debug",
-    "Mark IO and intermediate wires as /*verilator_public*/");
+    "Mark IO and intermediate wires as /*verilator_public*/")(
+    "w,disable-width-cast",
+    "Omit width cast in generated verilog when using inline");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
+  if (opts.count("w")) { this->disable_width_cast = true; }
 }
 
 std::string Passes::Verilog::ID = "verilog";
@@ -754,6 +757,7 @@ compile_module_body(
   RecordType* module_type,
   CoreIR::ModuleDef* definition,
   bool _inline,
+  bool disable_width_cast,
   std::set<std::string>& wires) {
   std::map<std::string, Instance*> instances = definition->getInstances();
 
@@ -868,7 +872,10 @@ compile_module_body(
     }
     std::unique_ptr<vAST::StructuralStatement> statement;
     if (can_inline_binary_op(instance_module, _inline)) {
-      statement = inline_binary_op(instance, std::move(verilog_connections));
+      statement = inline_binary_op(
+        instance,
+        std::move(verilog_connections),
+        disable_width_cast);
     }
     else if (can_inline_unary_op(instance_module, _inline)) {
       bool is_wire = is_wire_module(instance_module);
@@ -1061,6 +1068,7 @@ void Passes::Verilog::compileModule(Module* module) {
       module->getType(),
       definition,
       this->_inline,
+      this->disable_width_cast,
       this->wires);
   }
 

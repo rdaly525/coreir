@@ -14,6 +14,7 @@ namespace Passes {
 class Verilog : public InstanceGraphPass {
   bool _inline = false;
   bool verilator_debug = false;
+  bool disable_width_cast = false;
 
   // We store a vector of module name, module AST node pairs to support
   // serializing to a single or multiple files
