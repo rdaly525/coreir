@@ -97,6 +97,26 @@ TEST(VerilogTests, TestTwoInline) {
   deleteContext(c);
 }
 
+TEST(VerilogTests, TestDisableWidthCast) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  Module* top;
+
+  if (!loadFromFile(c, "two_ops.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    "verilog --inline --disable-width-cast"};
+  c->runPasses(passes, {});
+  assertPassEq<Passes::Verilog>(c, "two_ops_golden_no_cast.v");
+  deleteContext(c);
+}
+
 TEST(VerilogTests, TestTwoBitInline) {
   Context* c = newContext();
   CoreIRLoadVerilog_corebit(c);

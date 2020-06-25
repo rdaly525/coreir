@@ -123,7 +123,8 @@ std::unique_ptr<vAST::Expression> get_primitive_expr(
 
 std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
   std::pair<std::string, CoreIR::Instance*> instance,
-  std::unique_ptr<vAST::Connections> verilog_connections) {
+  std::unique_ptr<vAST::Connections> verilog_connections,
+  bool disable_width_cast) {
   BinaryOpReplacer transformer(
     verilog_connections->at("in0"),
     verilog_connections->at("in1"));
@@ -135,8 +136,9 @@ std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     primitive_expr.get());
   ASSERT(binary_op, "Expected binary_op for primitive expr");
   if (
-    binary_op->op == vAST::BinOp::ADD || binary_op->op == vAST::BinOp::SUB ||
-    binary_op->op == vAST::BinOp::MUL || binary_op->op == vAST::BinOp::DIV) {
+    !disable_width_cast &&
+    (binary_op->op == vAST::BinOp::ADD || binary_op->op == vAST::BinOp::SUB ||
+     binary_op->op == vAST::BinOp::MUL || binary_op->op == vAST::BinOp::DIV)) {
 
     // Cast output so linters are happy (e.g. default verilog add
     // appends an extra bit)
@@ -307,10 +309,13 @@ void Passes::Verilog::initialize(int argc, char** argv) {
   cxxopts::Options options("verilog", "translates coreir graph to verilog");
   options.add_options()("i,inline", "Inline verilog modules if possible")(
     "y,verilator_debug",
-    "Mark IO and intermediate wires as /*verilator_public*/");
+    "Mark IO and intermediate wires as /*verilator_public*/")(
+    "w,disable-width-cast",
+    "Omit width cast in generated verilog when using inline");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
+  if (opts.count("w")) { this->disable_width_cast = true; }
 }
 
 std::string Passes::Verilog::ID = "verilog";
@@ -982,6 +987,7 @@ compile_module_body(
   RecordType* module_type,
   CoreIR::ModuleDef* definition,
   bool _inline,
+  bool disable_width_cast,
   std::set<std::string>& wires) {
   std::map<std::string, Instance*> instances = definition->getInstances();
 
@@ -1096,7 +1102,10 @@ compile_module_body(
     }
     std::unique_ptr<vAST::StructuralStatement> statement;
     if (can_inline_binary_op(instance_module, _inline)) {
-      statement = inline_binary_op(instance, std::move(verilog_connections));
+      statement = inline_binary_op(
+        instance,
+        std::move(verilog_connections),
+        disable_width_cast);
     }
     else if (can_inline_unary_op(instance_module, _inline)) {
       bool is_wire = is_wire_module(instance_module);
@@ -1281,6 +1290,7 @@ void Passes::Verilog::compileModule(Module* module) {
       module->getType(),
       definition,
       this->_inline,
+      this->disable_width_cast,
       this->wires);
   }
 
