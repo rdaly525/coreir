@@ -88,14 +88,26 @@ namespace {
 // We use wire_map to cache wire insertions so we only do it once, this is
 // necessary when slicing inputs, since otherwise we would introduce multiple
 // wires/drivers per slice
-Wireable* replaceSliceWithWire(
+Wireable* getWireIfSlice(
   Wireable* wireable,
   std::map<Wireable*, Instance*>& wire_map,
   ModuleDef* def) {
-  if (!isSlice(wireable->getSelectPath().back())) { return wireable; }
-  // Get the parent (the array being sliced)
   Select* sel = dynamic_cast<Select*>(wireable);
+  if (!sel) { return wireable; }
+  // Get the parent (the array being sliced)
   Wireable* parent = sel->getParent();
+  // Check if it's connected to a slice
+  bool connected_to_slice = false;
+  for (auto sel : parent->getSelects()) {
+    if (isSlice(sel.first)) {
+      connected_to_slice = true;
+      break;
+    }
+  }
+  // If not, just use standard wire
+  if (!connected_to_slice) { return wireable; }
+
+  // otherwise, use inserted wire
 
   Instance* wire;
   // Lookup wire if it's already been created
@@ -120,7 +132,7 @@ void PTTraverse(
   Wireable* from,
   Wireable* to,
   std::map<Wireable*, Instance*>& wire_map) {
-  to = replaceSliceWithWire(to, wire_map, def);
+  to = getWireIfSlice(to, wire_map, def);
   for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
   vector<Wireable*> toDelete;
   for (auto other : from->getConnectedWireables()) {
