@@ -133,7 +133,8 @@ bool CORECompileToVerilog(
   char* split,
   char* product,
   bool inline_,
-  bool verilator_debug) {
+  bool verilator_debug,
+  bool disable_width_cast) {
   auto context = reinterpret_cast<Context*>(ctx);
   auto module = reinterpret_cast<Module*>(top);
   context->setTop(module->getRefName());
@@ -153,6 +154,7 @@ bool CORECompileToVerilog(
   std::string verilog_pass = "verilog";
   if (inline_) verilog_pass += " -i";
   if (verilator_debug) verilog_pass += " -y";
+  if (disable_width_cast) verilog_pass += " -w";
   std::vector<std::string> namespaces{"global"};
   std::vector<std::string> passes{"rungenerators",
                                   "removebulkconnections",
