@@ -2,6 +2,7 @@ message(STATUS ${CMAKE_CURRENT_SOURCE_DIR})
 file(GLOB SRC_FILES 
     ${CMAKE_CURRENT_SOURCE_DIR}/ir/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/analysis/[^_]*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/passes/analysis/verilog/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/passes/transform/[^_]*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/common/[^_]*.cpp
 )
