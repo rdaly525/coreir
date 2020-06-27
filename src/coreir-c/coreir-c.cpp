@@ -837,5 +837,9 @@ int COREValueTypeGetKind(COREValueType* value_type) {
 
 void COREFree(void* ptr) { free(ptr); }
 
+const char* COREGetVersion() { return COREIR_VERSION; }
+
+const char* COREGetRevision() { return GIT_SHA1; }
+
 }  // extern "C"
 }  // namespace CoreIR
