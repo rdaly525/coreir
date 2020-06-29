@@ -74,6 +74,7 @@ target_link_libraries(coreir-bin PUBLIC coreir)
 target_include_directories(coreir-bin PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 set_target_properties(coreir-bin
     PROPERTIES OUTPUT_NAME coreir
+    COMPILE_FLAGS "-DCOREIR_VERSION=\\\"${COREIR_VERSION}\\\" -DGIT_SHA1=\\\"${GIT_SHA1}\\\""
 )
 add_custom_command(
   TARGET coreir-bin

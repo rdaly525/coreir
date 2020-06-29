@@ -233,4 +233,7 @@ int COREValueTypeGetKind(COREValueType* value_type);
 
 void COREFree(void* ptr);
 
+const char* COREGetVersion();
+const char* COREGetRevision();
+
 #endif  // COREIR_C_H_

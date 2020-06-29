@@ -4,6 +4,13 @@ project(coreir)
 option(STATIC "Statically link everything" OFF)
 
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/version.txt" COREIR_VERSION)
+STRING(REGEX REPLACE "\n" "" COREIR_VERSION "${COREIR_VERSION}")
+
+
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     # require at least gcc 4.8
     if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)

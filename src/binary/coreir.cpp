@@ -29,7 +29,8 @@ int main(int argc, char* argv[]) {
   cxxopts::Options options("coreir", "a simple hardware compiler");
   options.add_options()(
     "h,help",
-    "help")("v,verbose", "Set verbosity", cxxopts::value<int>())(
+    "help")("version",
+    "Show version")("v,verbose", "Set verbosity", cxxopts::value<int>())(
     "i,input",
     "input file: '<file1>.json,<file2.json,...'",
     cxxopts::value<std::string>())(
@@ -87,6 +88,11 @@ int main(int argc, char* argv[]) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
     cout << endl;
+    return 0;
+  }
+
+  if (opts.count("version")) {
+    cout << COREIR_VERSION << " " << GIT_SHA1 << endl;
     return 0;
   }
 
