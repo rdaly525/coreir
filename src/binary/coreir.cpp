@@ -56,6 +56,8 @@ int main(int argc, char* argv[]) {
     "inlines verilog primitives")(
     "y,verilator_debug",
     "mark signals with /*veriltor public*/")(
+    "w,disable-width-cast",
+    "disable verilog code generation of width casting when inlining")(
     "s,split",
     "splits output files by name (expects '-o <path>/*.<ext>')")(
     "product",
@@ -213,6 +215,7 @@ int main(int argc, char* argv[]) {
     string vstr = "verilog";
     if (opts.count("z")) { vstr += " -i"; }
     if (opts.count("y")) { vstr += " -y"; }
+    if (opts.count("w")) { vstr += " -w"; }
     modified |= c->runPasses(
       {"rungenerators", "removebulkconnections", "flattentypes", vstr},
       namespaces);
