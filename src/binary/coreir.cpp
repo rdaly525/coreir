@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
           outExt == "v",
         "Cannot support out extention: " + outExt);
       if (!split_files) {
-        std::unique_ptr<std::ofstream> fout(new std::ofstream(outfile));
+        std::unique_ptr<std::ofstream> fout(std::ofstream(outfile));
         ASSERT(fout->is_open(), "Cannot open file: " + outfile);
         sout = fout.release();
       }
@@ -266,6 +266,8 @@ int main(int argc, char* argv[]) {
     LOG(DEBUG) << "NYI";
   }
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
+
+  delete c;
 
   return 0;
 }
