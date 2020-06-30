@@ -40,7 +40,7 @@ Generator::Generator(
 
 Generator::~Generator() {
   delete def;
-  for (auto m : genCache) { delete  m.second; }
+  for (auto m : genCache) { delete m.second; }
 }
 
 // This is the tough one
