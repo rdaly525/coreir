@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
 
   if (delete_sout) delete sout;
-  delete c;
+  deleteContext(c);
 
   return 0;
 }
