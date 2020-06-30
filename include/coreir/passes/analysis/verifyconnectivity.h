@@ -12,8 +12,7 @@ class VerifyConnectivity : public ModulePass {
   bool checkClkRst = true;
 
  public:
-  static std::string ID;
-  VerifyConnectivity() : ModulePass(ID, "Checks connectivity", true) {}
+  VerifyConnectivity() : ModulePass("verifyconnectivity", "Checks connectivity", true) {}
   void setAnalysisInfo() override { addDependency("verifyinputconnections"); }
   void initialize(int argc, char** argv) override;
   bool runOnModule(Module* m) override;

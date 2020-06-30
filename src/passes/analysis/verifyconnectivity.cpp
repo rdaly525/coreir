@@ -111,8 +111,6 @@ bool Passes::VerifyConnectivity::checkIfFullyConnected(Wireable* w, Error& e) {
   }
 }
 
-string Passes::VerifyConnectivity::ID = "verifyconnectivity";
-
 bool Passes::VerifyConnectivity::runOnModule(Module* m) {
   // Check if all ports are connected for everything.
   Context* c = this->getContext();
