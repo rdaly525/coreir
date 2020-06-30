@@ -1,0 +1,34 @@
+{"top":"global.Main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Foo":{
+        "type":["Record",[
+          ["I",["Array",5,"BitIn"]],
+          ["O",["Array",5,"Bit"]]
+        ]]
+      },
+      "Main":{
+        "type":["Record",[
+          ["I",["Array",5,"BitIn"]],
+          ["O",["Array",5,"Bit"]]
+        ]],
+        "instances":{
+          "Foo_inst0":{
+            "modref":"global.Foo"
+          },
+          "x":{
+            "genref":"coreir.wire",
+            "genargs":{"width":["Int",5]}
+          }
+        },
+        "connections":[
+          ["self.I","Foo_inst0.I"],
+          ["x.in","Foo_inst0.O"],
+          ["x.out","self.O"]
+        ]
+      }
+    }
+  }
+}
+}

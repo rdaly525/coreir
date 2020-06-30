@@ -3,15 +3,13 @@
 using namespace std;
 using namespace CoreIR;
 
-
 int main() {
 
   Context* c = newContext();
   Namespace* g = c->getGlobal();
 
-  Type* mTp = c->Record({{"pad", c->BitInOut()},
-        {"input", c->BitIn()},
-          {"en", c->BitIn()}});
+  Type* mTp = c->Record(
+    {{"pad", c->BitInOut()}, {"input", c->BitIn()}, {"en", c->BitIn()}});
   Module* md = g->newModuleDecl("m", mTp);
   ModuleDef* def = md->newModuleDef();
 

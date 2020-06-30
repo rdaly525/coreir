@@ -24,15 +24,13 @@ int main() {
   printf("expected as long before calling simulate = %hhu\n", expected);
 
   simulate(&state);
-  //uint8_t r = 10;
-  //simulate(&r, a);
+  // uint8_t r = 10;
+  // simulate(&r, a);
 
   printf("expected as long = %hhu\n", expected);
   printf("result   as long = %hhu\n", state.self_out);
-  
-  if (expected == state.self_out) {
-    return 0;
-  }
+
+  if (expected == state.self_out) { return 0; }
 
   return 1;
 }

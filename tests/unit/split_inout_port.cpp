@@ -9,22 +9,24 @@ void tribuf_test() {
   Namespace* g = c->getGlobal();
 
   uint width = 1;
-  
+
   Type* tp = c->Record({{"io", c->BitInOut()},
-        {"en", c->BitIn()},
-          {"from_io", c->Bit()},
-            {"to_io", c->BitIn()}});
+                        {"en", c->BitIn()},
+                        {"from_io", c->Bit()},
+                        {"to_io", c->BitIn()}});
 
   Module* io = g->newModuleDecl("io", tp);
   ModuleDef* def = io->newModuleDef();
 
-  def->addInstance("tristate_buf",
-                   "coreir.tribuf",
-                   {{"width", Const::make(c, width)}});
+  def->addInstance(
+    "tristate_buf",
+    "coreir.tribuf",
+    {{"width", Const::make(c, width)}});
 
-  def->addInstance("tristate_out",
-                   "coreir.ibuf",
-                   {{"width", Const::make(c, width)}});
+  def->addInstance(
+    "tristate_out",
+    "coreir.ibuf",
+    {{"width", Const::make(c, width)}});
 
   def->connect("tristate_buf.en", "self.en");
   def->connect("tristate_buf.in.0", "self.to_io");
@@ -71,7 +73,7 @@ void tribuf_test() {
 
   assert(sim.getBitVec("self.from_io") == BitVector(1, 0));
   assert(sim.getBitVec("self.io_output") == BitVector(1, 0));
-  
+
   deleteContext(c);
 }
 
@@ -83,20 +85,22 @@ void io_to_io_test() {
 
   {
     Type* tp = c->Record({{"io", c->BitInOut()},
-          {"en", c->BitIn()},
-            {"from_io", c->Bit()},
-              {"to_io", c->BitIn()}});
+                          {"en", c->BitIn()},
+                          {"from_io", c->Bit()},
+                          {"to_io", c->BitIn()}});
 
     Module* inner = g->newModuleDecl("inner", tp);
     ModuleDef* def = inner->newModuleDef();
 
-    def->addInstance("tristate_buf",
-                     "coreir.tribuf",
-                     {{"width", Const::make(c, width)}});
+    def->addInstance(
+      "tristate_buf",
+      "coreir.tribuf",
+      {{"width", Const::make(c, width)}});
 
-    def->addInstance("tristate_out",
-                     "coreir.ibuf",
-                     {{"width", Const::make(c, width)}});
+    def->addInstance(
+      "tristate_out",
+      "coreir.ibuf",
+      {{"width", Const::make(c, width)}});
 
     def->connect("tristate_buf.en", "self.en");
     def->connect("tristate_buf.in.0", "self.to_io");
@@ -109,11 +113,10 @@ void io_to_io_test() {
   }
 
   {
-    Type* outer_tp =
-      c->Record({{"io_port", c->BitInOut()},
-            {"in", c->BitIn()},
-              {"out", c->Bit()},
-                {"en", c->BitIn()}});
+    Type* outer_tp = c->Record({{"io_port", c->BitInOut()},
+                                {"in", c->BitIn()},
+                                {"out", c->Bit()},
+                                {"en", c->BitIn()}});
 
     Module* outer = g->newModuleDecl("outer", outer_tp);
     ModuleDef* def = outer->newModuleDef();
@@ -152,13 +155,13 @@ void io_to_io_test() {
   sim.setValue("self.io_port_input", BitVector(1, 0));
 
   sim.execute();
-  
+
   assert(sim.getBitVec("self.out") == BitVector(1, 0));
 
   sim.setValue("self.io_port_input", BitVector(1, 1));
 
   sim.execute();
-  
+
   assert(sim.getBitVec("self.out") == BitVector(1, 1));
 
   // Now data flows from input port to IO output

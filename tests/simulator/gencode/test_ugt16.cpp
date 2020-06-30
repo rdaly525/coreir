@@ -9,9 +9,7 @@ int main() {
   simulate(&state);
 
   // In this example self_A[0] < self_A[1] so (self_A[0] > self_A[1]) == 0
-  if (state.self_out != 0) {
-    return 1;
-  }
+  if (state.self_out != 0) { return 1; }
 
   return 0;
 }

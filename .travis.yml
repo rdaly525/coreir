@@ -19,6 +19,7 @@ matrix:
       homebrew:
         packages:
           - verilator
+        update: true
 before_install:
 # install conda for py 3.7
 - |
@@ -57,7 +58,7 @@ script:
 - pytest tests/binary
 - make -j2 installtest
 - make -j2 test
-- cd build && ctest -V && cd ..
+- cd build/tests/gtest && ctest -V && cd ../../../
 - cd build && sudo make -j2 uninstall && cd ..
 before_deploy:
 - ./tools/scripts/release.sh

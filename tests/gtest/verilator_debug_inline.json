@@ -1,0 +1,36 @@
+{"top":"global.Top",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Top":{
+        "type":["Record",[
+          ["CLK",["Named","coreir.clkIn"]],
+          ["O",["Record",[["A","Bit"]]]]
+        ]],
+        "instances":{
+          "Top_comb_inst0":{
+            "modref":"global.Top_comb"
+          }
+        },
+        "connections":[
+          ["self.O","Top_comb_inst0.O"]
+        ]
+      },
+      "Top_comb":{
+        "type":["Record",[
+          ["O",["Record",[["A","Bit"]]]]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          }
+        },
+        "connections":[
+          ["self.O.A","bit_const_0_None.out"]
+        ]
+      }
+    }
+  }
+}
+}

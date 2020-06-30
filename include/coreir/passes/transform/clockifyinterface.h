@@ -3,20 +3,23 @@
 
 #include "coreir.h"
 
-//Define the analysis passes in CoreIR::Passes
+// Define the analysis passes in CoreIR::Passes
 namespace CoreIR {
 namespace Passes {
 
-//This will add directed connection metadata to modules
-  class ClockifyInterface : public InstanceGraphPass {
-  
-  public:
+// This will add directed connection metadata to modules
+class ClockifyInterface : public InstanceGraphPass {
 
-    ClockifyInterface(std::string name) : InstanceGraphPass(name, "Convert any BitIn fields in the interface that are only used as clocks into fields with named type coreir.clkIn") {}
-    bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+ public:
+  ClockifyInterface(std::string name)
+      : InstanceGraphPass(
+          name,
+          "Convert any BitIn fields in the interface that are only used as "
+          "clocks into fields with named type coreir.clkIn") {}
+  bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
 };
 
-}
-}
+}  // namespace Passes
+}  // namespace CoreIR
 
 #endif

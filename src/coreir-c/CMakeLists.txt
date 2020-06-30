@@ -9,6 +9,9 @@ set(CSRC coreir-c.cpp types-c.cpp values-c.cpp)
 add_library(coreir-c SHARED ${CSRC})
 target_include_directories(coreir-c PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../include)
 target_link_libraries(coreir-c PUBLIC coreir)
+set_target_properties(coreir-c PROPERTIES
+  COMPILE_FLAGS "-DCOREIR_VERSION=\\\"${COREIR_VERSION}\\\" -DGIT_SHA1=\\\"${GIT_SHA1}\\\""
+)
 
 #Create libcoreirsim-c
 project(coreirsim-c)

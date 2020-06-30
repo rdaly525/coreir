@@ -1,5 +1,5 @@
-#include "neg2.h"
 #include <cstdio>
+#include "neg2.h"
 
 int main() {
   uint8_t a = 1;
@@ -13,16 +13,14 @@ int main() {
 
   printf("Neg2 before simulating\n");
 
-  //simulate(&res, a);
+  // simulate(&res, a);
 
   simulate(&state);
 
   // printf("2 bit not expected = %c\n", expected);
   // printf("2 bit not result   = %c\n", res);
 
-  if (state.self_res == expected) {
-    return 0;
-  }
+  if (state.self_res == expected) { return 0; }
 
   return 1;
 }

@@ -1,0 +1,3 @@
+- https://github.com/rpavlik/cmake-modules
+  - GetGitRevisionDescription.cmake
+  - GetGitRevisionDescription.cmake.in

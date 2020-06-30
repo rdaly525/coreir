@@ -4,13 +4,13 @@
 
 namespace CoreIR {
 
-  typedef NGraph ThreadGraph;
+typedef NGraph ThreadGraph;
 
-  int numThreads(const ThreadGraph& g);
+int numThreads(const ThreadGraph& g);
 
-  void balancedComponentsParallel(NGraph& gr);
+void balancedComponentsParallel(NGraph& gr);
 
-  std::vector<std::set<vdisc>>
-  connectedComponentsIgnoringInputs(const NGraph& opG);
+std::vector<std::set<vdisc>> connectedComponentsIgnoringInputs(
+  const NGraph& opG);
 
-}
+}  // namespace CoreIR

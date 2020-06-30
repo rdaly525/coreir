@@ -9,12 +9,10 @@ int main() {
   Context* c = newContext();
   Namespace* g = c->getGlobal();
 
-  Type* mTp = c->Record({
-      {"input", c->BitIn()->Arr(3)},
-        {"out0", c->Bit()->Arr(3)},
-          {"out1", c->Bit()->Arr(3)}
-    });
-  
+  Type* mTp = c->Record({{"input", c->BitIn()->Arr(3)},
+                         {"out0", c->Bit()->Arr(3)},
+                         {"out1", c->Bit()->Arr(3)}});
+
   Module* md = g->newModuleDecl("m", mTp);
   ModuleDef* def = md->newModuleDef();
 
@@ -32,7 +30,5 @@ int main() {
 
   assert(def->getConnections().size() == 2);
 
-  
-  
   deleteContext(c);
 }
