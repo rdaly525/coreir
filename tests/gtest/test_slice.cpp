@@ -22,7 +22,7 @@ TEST(SliceTests, TestBasicSlice) {
                                            "flattentypes",
                                            "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "golds/basic_slice.v");
+  assertPassEq(c, "verilog", "golds/basic_slice.v");
   deleteContext(c);
 }
 
@@ -39,7 +39,7 @@ TEST(SliceTests, TestSliceOfSlice) {
                                            "flattentypes",
                                            "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "golds/slice_slice.v");
+  assertPassEq(c, "verilog", "golds/slice_slice.v");
   deleteContext(c);
 }
 
@@ -56,7 +56,7 @@ TEST(SliceTests, TestSelectOfSlice) {
                                            "flattentypes",
                                            "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "golds/select_slice.v");
+  assertPassEq(c, "verilog", "golds/select_slice.v");
   deleteContext(c);
 }
 
@@ -90,7 +90,7 @@ TEST(SliceTests, TestCombView) {
                                            "flattentypes",
                                            "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "golds/slice_combview.v");
+  assertPassEq(c, "verilog", "golds/slice_combview.v");
   deleteContext(c);
 }
 

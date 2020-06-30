@@ -24,7 +24,7 @@ TEST(MemoryTests, TestROM) {
                                            "flattentypes",
                                            "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "golds/rom.v");
+  assertPassEq(c, "verilog", "golds/rom.v");
   deleteContext(c);
 }
 
