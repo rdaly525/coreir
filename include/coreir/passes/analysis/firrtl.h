@@ -127,7 +127,7 @@ class Firrtl : public InstanceGraphPass {
 
  public:
   Firrtl()
-      : InstanceGraphPassID(
+      : InstanceGraphPass(
           "firrtl",
           "Creates Firrtl representation of IR",
           true) {}
