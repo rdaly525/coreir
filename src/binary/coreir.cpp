@@ -27,9 +27,8 @@ string getExt(string s) {
 int main(int argc, char* argv[]) {
   int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
-  options.add_options()(
-    "h,help",
-    "help")("version",
+  options.add_options()("h,help", "help")(
+    "version",
     "Show version")("v,verbose", "Set verbosity", cxxopts::value<int>())(
     "i,input",
     "input file: '<file1>.json,<file2.json,...'",
@@ -148,6 +147,8 @@ int main(int argc, char* argv[]) {
   }
 
   std::ostream* sout = &std::cout;
+  // split files logic overwrites default sout, needs to be freed
+  bool delete_sout = false;
   std::string outExt = "json";
   std::string output_dir = "";
   auto parse_outputs = [&] {
@@ -164,6 +165,7 @@ int main(int argc, char* argv[]) {
         std::unique_ptr<std::ofstream> fout(new std::ofstream(outfile));
         ASSERT(fout->is_open(), "Cannot open file: " + outfile);
         sout = fout.release();
+        delete_sout = true;
       }
     }
     if (split_files) {
@@ -266,6 +268,9 @@ int main(int argc, char* argv[]) {
     LOG(DEBUG) << "NYI";
   }
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
+
+  if (delete_sout) delete sout;
+  deleteContext(c);
 
   return 0;
 }
