@@ -13,8 +13,7 @@ class InstanceCount : public InstanceGraphPass {
   std::vector<Module*> modOrder;
 
  public:
-  static std::string ID;
-  InstanceCount() : InstanceGraphPass(ID, "", true) {}
+  InstanceCount() : InstanceGraphPass("instancecount", "", true) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
   // void initialize(int argc, char** argv) override;
 

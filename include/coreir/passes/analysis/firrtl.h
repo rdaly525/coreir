@@ -126,9 +126,11 @@ class Firrtl : public InstanceGraphPass {
   std::vector<FModule*> fmods;
 
  public:
-  static std::string ID;
   Firrtl()
-      : InstanceGraphPass(ID, "Creates Firrtl representation of IR", true) {}
+      : InstanceGraphPassID(
+          "firrtl",
+          "Creates Firrtl representation of IR",
+          true) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
   void setAnalysisInfo() override {
     addDependency("verifyconnectivity --onlyinputs");  // Should change back to

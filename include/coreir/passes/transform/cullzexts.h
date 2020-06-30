@@ -11,10 +11,9 @@ namespace Passes {
 class CullZexts : public ModulePass {
 
  public:
-  static std::string ID;
   CullZexts()
       : ModulePass(
-          ID,
+          "cullzexts",
           "Remove zero extend nodes that extend from width N to width N") {}
   bool runOnModule(Module* m) override;
 };

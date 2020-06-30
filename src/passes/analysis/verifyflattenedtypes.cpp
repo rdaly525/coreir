@@ -13,7 +13,6 @@ bool isBitOrArrOfBits(Type* t) {
 }
 }  // namespace
 
-string Passes::VerifyFlattenedTypes::ID = "verifyflattenedtypes";
 bool Passes::VerifyFlattenedTypes::runOnInstanceGraphNode(
   InstanceGraphNode& node) {
 

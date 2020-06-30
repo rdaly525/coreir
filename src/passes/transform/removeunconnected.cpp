@@ -15,7 +15,6 @@ bool hasConnection(Wireable* w) {
 }
 }  // namespace
 
-string Passes::RemoveUnconnected::ID = "removeunconnected";
 bool Passes::RemoveUnconnected::runOnInstance(Instance* i) {
   if (!hasConnection(i)) {
     i->getContainer()->removeInstance(i);

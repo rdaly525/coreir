@@ -14,8 +14,8 @@ namespace Passes {
 class FoldConstants : public ModulePass {
 
  public:
-  static std::string ID;
-  FoldConstants() : ModulePass(ID, "Evaluate constant expressions") {}
+  FoldConstants()
+      : ModulePass("fold-constants", "Evaluate constant expressions") {}
   bool runOnModule(Module* m) override;
 };
 

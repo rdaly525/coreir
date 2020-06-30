@@ -294,7 +294,6 @@ Json Generator2Json(Generator* g) {
 }
 }  // namespace
 
-string Passes::CoreIRJson::ID = "coreirjson";
 bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
   Dict jns(2);
   auto modlist = ns->getModules(false);
