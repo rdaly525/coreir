@@ -6,7 +6,7 @@
 #include "coreir/passes/common.h"
 
 void assertPassEq(CoreIR::Context* c, std::string ID, std::string golden_path) {
-  auto pass = static_cast<T*>(c->getPassManager()->getAnalysisPass(ID));
+  auto pass = c->getPassManager()->getAnalysisPass(ID);
   std::ostringstream stream;
   pass->writeToStream(stream);
   const std::string result = stream.str();
