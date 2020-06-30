@@ -27,9 +27,8 @@ string getExt(string s) {
 int main(int argc, char* argv[]) {
   int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
-  options.add_options()(
-    "h,help",
-    "help")("version",
+  options.add_options()("h,help", "help")(
+    "version",
     "Show version")("v,verbose", "Set verbosity", cxxopts::value<int>())(
     "i,input",
     "input file: '<file1>.json,<file2.json,...'",
@@ -148,6 +147,7 @@ int main(int argc, char* argv[]) {
   }
 
   std::ostream* sout = &std::cout;
+  bool delete_sout = false;
   std::string outExt = "json";
   std::string output_dir = "";
   auto parse_outputs = [&] {
@@ -161,9 +161,9 @@ int main(int argc, char* argv[]) {
           outExt == "v",
         "Cannot support out extention: " + outExt);
       if (!split_files) {
-        std::unique_ptr<std::ofstream> fout(std::ofstream(outfile));
-        ASSERT(fout->is_open(), "Cannot open file: " + outfile);
-        sout = fout.release();
+        sout = new std::ofstream(outfile);
+        ASSERT(sout->is_open(), "Cannot open file: " + outfile);
+        delete_sout = true;
       }
     }
     if (split_files) {
@@ -267,6 +267,7 @@ int main(int argc, char* argv[]) {
   }
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
 
+  if (delete_sout) delete sout;
   delete c;
 
   return 0;
