@@ -136,7 +136,7 @@ class Firrtl : public InstanceGraphPass {
     addDependency("verifyconnectivity --onlyinputs");  // Should change back to
                                                        // check all connections
   }
-  void writeToStream(std::ostream& os);
+  void writeToStream(std::ostream& os) override;
 };
 
 }  // namespace Passes
