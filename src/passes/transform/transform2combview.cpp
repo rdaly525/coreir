@@ -79,7 +79,6 @@ void connect(ModuleDef* def, SelectPath path, string ptname, string iname) {
 
 }  // namespace
 
-string Passes::Transform2CombView::ID = "transform2combview";
 bool Passes::Transform2CombView::runOnInstanceGraphNode(
   InstanceGraphNode& node) {
 
@@ -90,7 +89,7 @@ bool Passes::Transform2CombView::runOnInstanceGraphNode(
 
   RecordType* mtype = m->getType();
   Namespace* ns = m->getNamespace();
-  auto combview = getAnalysisPass<CreateCombView>();
+  auto combview = getAnalysisPass<CreateCombView>("createcombview");
 
   string mname = m->getLongName();
   string mname_src = mname + "_src";

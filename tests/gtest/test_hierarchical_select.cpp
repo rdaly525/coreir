@@ -18,7 +18,7 @@ void load_file(Context* context, std::string file_name) {
 
 void check_verilog(Context* context, std::string gold_file) {
   context->runPasses({"flattentypes", "verilog --inline"}, {});
-  assertPassEq<Passes::Verilog>(context, gold_file);
+  assertPassEq(context, "verilog", gold_file);
 }
 
 TEST(HierarchicalSelectTest, TestHierarchicalSelectBasic) {

@@ -13,7 +13,7 @@ void testIce40Verilog(const char* json, const char* verilog) {
 
   c->runPasses({"verilog"});
 
-  assertPassEq<Passes::Verilog>(c, verilog);
+  assertPassEq(c, "verilog", verilog);
 
   deleteContext(c);
 }

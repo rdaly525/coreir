@@ -44,8 +44,8 @@ class Verilog : public InstanceGraphPass {
     Module* module);
 
  public:
-  static std::string ID;
-  Verilog() : InstanceGraphPass(ID, "Compiles IR to Verilog files", true) {}
+  Verilog()
+      : InstanceGraphPass("verilog", "Compiles IR to Verilog files", true) {}
   ~Verilog(){};
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
   void initialize(int argc, char** argv) override;
@@ -65,7 +65,7 @@ class Verilog : public InstanceGraphPass {
     wires.clear();
   }
 
-  void writeToStream(std::ostream& os);
+  void writeToStream(std::ostream& os) override;
   void writeToFiles(
     const std::string& dir,
     std::unique_ptr<std::string> product_file);

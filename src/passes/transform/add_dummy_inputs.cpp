@@ -6,8 +6,6 @@
 using namespace std;
 using namespace CoreIR;
 
-string Passes::AddDummyInputs::ID = "add-dummy-inputs";
-
 void connectToDummy(
   const std::string& constName,
   CoreIR::Select* const sel,

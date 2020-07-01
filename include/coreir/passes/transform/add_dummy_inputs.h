@@ -10,10 +10,9 @@ namespace Passes {
 class AddDummyInputs : public ModulePass {
 
  public:
-  static std::string ID;
   AddDummyInputs()
       : ModulePass(
-          ID,
+          "add-dummy-inputs",
           "Connect any input ports that are unconnected to zero valued "
           "constants") {}
   bool runOnModule(Module* m) override;

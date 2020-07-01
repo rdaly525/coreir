@@ -8,8 +8,7 @@ namespace Passes {
 
 class MarkDirty : public ContextPass {
  public:
-  static std::string ID;
-  MarkDirty() : ContextPass(ID, "Forces analysis passes to rerun") {}
+  MarkDirty() : ContextPass("markdirty", "Forces analysis passes to rerun") {}
   bool runOnContext(Context* c);
 };
 

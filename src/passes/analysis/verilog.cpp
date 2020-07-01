@@ -80,8 +80,6 @@ void Passes::Verilog::initialize(int argc, char** argv) {
   if (opts.count("w")) { this->disable_width_cast = true; }
 }
 
-std::string Passes::Verilog::ID = "verilog";
-
 // Helper function that prepends a prefix contained in json metadata if it
 // exists
 std::string make_name(std::string name, json metadata) {

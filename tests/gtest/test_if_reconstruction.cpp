@@ -26,7 +26,7 @@ TEST(IfReconstructionTests, TestUart) {
                                            "flattentypes",
                                            "verilog --inline"};
   c->runPasses(passes, {});
-  assertPassEq<Passes::Verilog>(c, "golds/uart.v");
+  assertPassEq(c, "verilog", "golds/uart.v");
   deleteContext(c);
 }
 

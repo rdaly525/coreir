@@ -30,7 +30,6 @@ std::vector<string> check_interface_variable(
 
 }  // namespace
 
-std::string Passes::SMV::ID = "smv";
 bool Passes::SMV::runOnInstanceGraphNode(InstanceGraphNode& node) {
 
   // Create a new SMVmodule for this node

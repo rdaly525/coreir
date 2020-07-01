@@ -5,8 +5,6 @@
 using namespace std;
 using namespace CoreIR;
 
-string Passes::FoldConstants::ID = "fold-constants";
-
 namespace CoreIR {
 bool foldConstants(CoreIR::Module* const mod) {
   if (!mod->hasDef()) { return false; }

@@ -12,10 +12,9 @@ class CullGraph : public ContextPass {
   bool nocoreir;
 
  public:
-  static std::string ID;
   CullGraph(bool nocoreir)
       : ContextPass(
-          ID + (nocoreir ? "" : "-withcoreir"),
+          (nocoreir ? "cullgraph" : "cullgraph-withcoreir"),
           "Runs all generators"),
         nocoreir(nocoreir) {}
   bool runOnContext(Context* c);

@@ -15,7 +15,6 @@ bool isBitOrArrOfBits(Type* t) {
   return false;
 }
 }  // namespace
-string Passes::RemoveBulkConnections::ID = "removebulkconnections";
 bool Passes::RemoveBulkConnections::runOnModule(Module* m) {
   if (!m->hasDef()) return false;
   ModuleDef* def = m->getDef();

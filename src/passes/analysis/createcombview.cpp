@@ -60,7 +60,6 @@ void Passes::CreateCombView::setupCorebit(Module* m) {
   }
 }
 
-string Passes::CreateCombView::ID = "createcombview";
 bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Module* m = node.getModule();
   if (m->getNamespace()->getName() == "coreir") {
