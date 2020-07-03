@@ -44,10 +44,10 @@ Namespace* CoreIRLoadLibrary_ice40(Context* c) {
                                      {"MASK", c->BitIn()->Arr(16)},
                                      {"WDATA", c->BitIn()->Arr(16)}});
   Params SB_RAM40_4KParams({{"READ_MODE", c->Int()}, {"WRITE_MODE", c->Int()}});
+  constexpr char hextable[] = "0123456789ABCDEF";
+  const string init_("INIT_");
   for (int i = 0; i < 16; i++) {
-    ostringstream o;
-    o << "INIT_" << uppercase << hex << i;
-    SB_RAM40_4KParams[o.str()] = c->BitVector(256);
+    SB_RAM40_4KParams[init_ + hextable[i]] = c->BitVector(256);
   }
   ice40->newModuleDecl("SB_RAM40_4K", SB_RAM40_4KType, SB_RAM40_4KParams);
 
