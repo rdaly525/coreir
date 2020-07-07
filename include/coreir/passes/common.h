@@ -84,7 +84,9 @@ void initializePasses(PassManager& pm) {
   pm.addPass(new Passes::RemoveUnconnected());
   pm.addPass(new Passes::RemoveSingleMuxes());
   pm.addPass(
-    new Passes::WireClocks("wireclocks-coreir", c->Named("coreir.clkIn")));
+    new Passes::WireClocks("wireclocks-clk", c->Named("coreir.clkIn"), "CLK"));
+  pm.addPass(
+    new Passes::WireClocks("wireclocks-arst", c->Named("coreir.arstIn"), "ARST"));
   pm.addPass(new Passes::SplitInouts("split-inouts"));
   pm.addPass(new Passes::CullGraph(true));
   pm.addPass(new Passes::CullGraph(false));

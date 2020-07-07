@@ -9,6 +9,7 @@ namespace CoreIR {
 namespace Passes {
 bool IsolatePrimitives::runOnModule(Module* m) {
   if (!m->hasDef()) return false;
+  if (this->getContext()->getTop() != m) return false;
   auto def = m->getDef();
   auto c = this->getContext();
 
@@ -53,8 +54,8 @@ bool IsolatePrimitives::runOnModule(Module* m) {
   }
 
   // Create new prim module and definition
-  auto primModule = c->getNamespace("_")->newModuleDecl(
-    m->getName() + "_primitives",
+  auto primModule = c->getNamespace("global")->newModuleDecl(
+    m->getName() + "___primitives",
     c->Record(ports));
   // Add all primitive instances into new module
   auto pdef = primModule->newModuleDef();
