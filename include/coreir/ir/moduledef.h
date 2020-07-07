@@ -49,7 +49,7 @@ class ModuleDef {
   Module* getModule() { return module; }
   Interface* getInterface(void) { return interface; }
   std::string generateUniqueInstanceName() {
-    return "_$" + std::to_string(this->unique++);
+    return "_$" + this->getContext()->getUnique();
   }
 
   bool canSel(const std::string& selstr);
