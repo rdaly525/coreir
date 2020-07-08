@@ -16,7 +16,8 @@ bool IsolatePrimitives::runOnModule(Module* m) {
   // get a map of only primitive instances
   auto primitiveInstances = filterOver(def->getInstances(), [](auto it) {
     auto nsname = it.second->getModuleRef()->getNamespace()->getName();
-    return nsname == "coreir" || nsname == "corebit";
+    auto mname = it.second->getModuleRef()->getName();
+    return nsname == "coreir" || nsname == "corebit" || (nsname == "commonlib" && mname != "counter" && mname != "reshape");
   });
 
   // early out
