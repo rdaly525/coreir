@@ -3,6 +3,19 @@ cmake_minimum_required(VERSION 2.8)
 project(coreir)
 option(STATIC "Statically link everything" OFF)
 
+# handle different versions of CMake
+if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0 AND NOT APPLE)
+  set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++17")
+  set(CMAKE_CXX17_EXTENSION_COMPILE_OPTION "-std=gnu++17")
+elseif (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1 OR APPLE)
+  set(CMAKE_CXX17_STANDARD_COMPILE_OPTION "-std=c++1z")
+  set(CMAKE_CXX17_EXTENSION_COMPILE_OPTION "-std=gnu++1z")
+endif()
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake_modules")
 include(GetGitRevisionDescription)
@@ -27,7 +40,7 @@ if (STATIC)
     endif()
 endif()
 
-set(CMAKE_CXX_FLAGS "-std=c++17 -Wall -fPIC -Werror ${STATIC_FLAGS}")
+set(CMAKE_CXX_FLAGS "-Wall -Werror ${STATIC_FLAGS}")
 
 # Based on
 # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
