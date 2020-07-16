@@ -784,6 +784,10 @@ compile_module_body(
       module_name = make_name(instance_module->getName(), verilog_json);
     }
     else if (instance_module->getMetaData().count("verilog_name") > 0) {
+      // Allow user to provide specific module verilog name using metadata (e.g.
+      // for ice40 primitives that are normally contained in the ice40
+      // namespace, but we want to use their names without the ice40_ prefix
+      // from longname)
       module_name = instance_module->getMetaData()["verilog_name"]
                       .get<std::string>();
     }
