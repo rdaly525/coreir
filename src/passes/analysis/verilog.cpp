@@ -783,6 +783,10 @@ compile_module_body(
       json verilog_json = instance_module->getMetaData()["verilog"];
       module_name = make_name(instance_module->getName(), verilog_json);
     }
+    else if (instance_module->getMetaData().count("verilog_name") > 0) {
+      module_name = instance_module->getMetaData()["verilog_name"]
+                      .get<std::string>();
+    }
     vAST::Parameters instance_parameters;
     std::string instance_name = instance.first;
 
