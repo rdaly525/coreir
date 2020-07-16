@@ -30,11 +30,11 @@ mantle_wire__typeBit16 _$_U2 (
     .in(value_src_out),
     .out(_$_U2_out)
 );
-coreir_reg__width16_snk value_snk (
+coreir_coreir_reg__width16_snk value_snk (
     .clk(CLK),
     .in(_$_U1_in)
 );
-coreir_reg__width16_src value_src (
+coreir_coreir_reg__width16_src value_src (
     .out(value_src_out)
 );
 assign out = {_$_U2_out[7:0],_$_U2_out[15:8]};
