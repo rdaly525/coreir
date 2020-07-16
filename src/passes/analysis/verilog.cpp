@@ -771,15 +771,12 @@ compile_module_body(
 
   for (auto instance : instances) {
     Module* instance_module = instance.second->getModuleRef();
-    std::string module_name = instance_module->getName();
+    std::string module_name = instance_module->getLongName();
     if (instance_module->isGenerated()) {
       if (instance_module->getGenerator()->getMetaData().count("verilog") > 0) {
         json verilog_json = instance_module->getGenerator()
                               ->getMetaData()["verilog"];
         module_name = make_name(module_name, verilog_json);
-      }
-      else {
-        module_name = instance_module->getLongName();
       }
     }
     else if (instance_module->getMetaData().count("verilog") > 0) {
