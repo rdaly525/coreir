@@ -19,24 +19,24 @@ module top (
     output [15:0] out,
     input CLK
 );
-wire [15:0] _$0_in;
-wire [15:0] _$1_out;
+wire [15:0] _$_U1_in;
+wire [15:0] _$_U2_out;
 wire [15:0] value_src_out;
-mantle_wire__typeBitIn16 _$0 (
-    .in(_$0_in),
+mantle_wire__typeBitIn16 _$_U1 (
+    .in(_$_U1_in),
     .out({in[7:0],in[15:8]})
 );
-mantle_wire__typeBit16 _$1 (
+mantle_wire__typeBit16 _$_U2 (
     .in(value_src_out),
-    .out(_$1_out)
+    .out(_$_U2_out)
 );
-coreir_reg__width16_snk value_snk (
+coreir_coreir_reg__width16_snk value_snk (
     .clk(CLK),
-    .in(_$0_in)
+    .in(_$_U1_in)
 );
-coreir_reg__width16_src value_src (
+coreir_coreir_reg__width16_src value_src (
     .out(value_src_out)
 );
-assign out = {_$1_out[7:0],_$1_out[15:8]};
+assign out = {_$_U2_out[7:0],_$_U2_out[15:8]};
 endmodule
 
