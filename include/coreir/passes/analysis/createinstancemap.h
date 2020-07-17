@@ -12,7 +12,7 @@ class CreateInstanceMap : public ModulePass {
 
  public:
   CreateInstanceMap()
-      : ModulePass("createinstancemap", "Create Instance Map", true) {}
+      : ModulePass("createfullinstancemap", "Create Instance Map", true) {}
   bool runOnModule(Module* ns) override;
   void releaseMemory() override {
     modInstanceMap.clear();
