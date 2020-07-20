@@ -42,6 +42,8 @@ extern bool COREContextRunPasses(
   char** namespaces,
   int num_namespaces);
 
+void COREContextSetTop(COREContext* context, COREModule* module);
+
 extern bool COREInlineInstance(COREWireable* inst);
 extern COREWireable* COREAddPassthrough(COREWireable* w);
 extern void CORERemoveInstance(COREWireable* inst);
@@ -54,6 +56,12 @@ extern COREModule* CORELoadModule(
 // Errors:
 // Cannot open file for reading/writing
 extern void CORESaveModule(COREModule* module, char* filename, COREBool* err);
+extern void CORESaveContext(
+  COREContext* context,
+  char* filename,
+  COREBool* nocoreir,
+  COREBool* no_default_libs,
+  COREBool* err);
 extern CORENamespace* COREGetGlobal(COREContext* c);
 extern CORENamespace* COREGetNamespace(COREContext* c, char* name);
 extern CORENamespace* CORENewNamespace(COREContext* c, char* name);

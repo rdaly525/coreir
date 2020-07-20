@@ -295,8 +295,14 @@ Json Generator2Json(Generator* g) {
 }  // namespace
 
 bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
-  Dict jns(2);
   auto modlist = ns->getModules(false);
+  if (
+    ns->getGenerators().empty() && ns->getTypeGens().empty() &&
+    modlist.empty()) {
+    // Skip if empty
+    return false;
+  }
+  Dict jns(2);
   if (!modlist.empty()) {
     Dict jmod(4);
     for (auto m : modlist) {
