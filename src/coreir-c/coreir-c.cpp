@@ -124,6 +124,10 @@ bool COREContextRunPasses(
   return context->runPasses(vec_passes, vec_namespaces);
 }
 
+void COREContextSetTop(COREContext* context, COREModule* module) {
+  rcast<Context*>(context)->setTop(rcast<Module*>(module));
+}
+
 bool CORECompileToVerilog(
   COREContext* ctx,
   COREModule* top,
@@ -156,10 +160,11 @@ bool CORECompileToVerilog(
   if (verilator_debug) verilog_pass += " -y";
   if (disable_width_cast) verilog_pass += " -w";
   std::vector<std::string> namespaces{"global"};
-  std::vector<std::string> passes{"rungenerators",
-                                  "removebulkconnections",
-                                  "flattentypes",
-                                  verilog_pass};
+  std::vector<std::string> passes{
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    verilog_pass};
   context->runPasses(passes, namespaces);
   auto pass = static_cast<Passes::Verilog*>(
     context->getPassManager()->getAnalysisPass("verilog"));
@@ -258,6 +263,24 @@ COREModule* CORELoadModule(COREContext* c, char* filename, bool* err) {
   }
   *err = !correct;
   return rcast<COREModule*>(top);
+}
+
+void CORESaveContext(
+  COREContext* context,
+  char* filename,
+  bool nocoreir,
+  bool no_default_libs,
+  bool* err) {
+
+  string file(filename);
+  std::cout << filename << std::endl;
+  bool correct = saveToFile(
+    rcast<Context*>(context),
+    file,
+    nocoreir,
+    no_default_libs);
+  *err = !correct;
+  return;
 }
 
 // bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);

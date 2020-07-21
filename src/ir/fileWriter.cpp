@@ -133,7 +133,24 @@ bool saveToFile(Namespace* ns, string filename, Module* top) {
   return true;
 }
 
-bool saveToFile(Context* c, string filename, bool nocoreir) {
+// Allows user to skip code generation of namespaces that are loaded by default
+// as coreir "standard libraries".  This cleans up the generated JSON to contain
+// only the user-defined modules
+bool skip_namespace(std::string name, bool nocoreir, bool no_default_libs) {
+  if (nocoreir && (name == "coreir" || name == "corebit")) { return true; }
+  else if (
+    no_default_libs &&
+    (name == "mantle" || name == "commonlib" || name == "memory")) {
+    return true;
+  }
+  return false;
+}
+
+bool saveToFile(
+  Context* c,
+  string filename,
+  bool nocoreir,
+  bool no_default_libs) {
   ASSERT(endsWith(filename, ".json"), filename + "Needs to be a json file");
   std::ofstream file(filename);
   if (!file.is_open()) {
@@ -143,10 +160,11 @@ bool saveToFile(Context* c, string filename, bool nocoreir) {
     c->error(e);
     return false;
   }
-  if (nocoreir) {
+  if (no_default_libs) { nocoreir = true; }
+  if (nocoreir || no_default_libs) {
     vector<string> nss;
     for (auto nspair : c->getNamespaces()) {
-      if (nspair.first != "coreir" && nspair.first != "corebit") {
+      if (!skip_namespace(nspair.first, nocoreir, no_default_libs)) {
         nss.push_back(nspair.first);
       }
     }

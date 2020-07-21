@@ -171,7 +171,11 @@ bool saveToFilePretty(
   Namespace* ns,
   std::string filename,
   Module* top = nullptr);
-bool saveToFile(Context* c, std::string filename, bool nocoreir = true);
+bool saveToFile(
+  Context* c,
+  std::string filename,
+  bool nocoreir = true,
+  bool no_default_libs = false);
 
 // Save a module to a dot file (for viewing in graphviz)
 bool saveToDot(Module* m, std::string filename);
