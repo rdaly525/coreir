@@ -9,7 +9,6 @@ int testTuple() {
   Namespace* global = context->getGlobal();
   // Namespace* prims = context->getNamespace("coreir");
   Type* clockType = context->Named("coreir.clk");
-  Type* clockInType = context->Named("coreir.clkIn");
 
   Module* nested_clock_tuple = nullptr;
   if (!loadFromFile(
@@ -21,13 +20,8 @@ int testTuple() {
   }
   ModuleDef* definition = nested_clock_tuple->getDef();
 
-  Passes::WireClocks* wireClock = new Passes::WireClocks(
-    "wireclocks",
-    clockInType);
-  context->addPass(wireClock);
-
   // Run the pass
-  context->runPasses({"wireclocks"});
+  context->runPasses({"wireclocks-clk"});
 
   // Check that the clocks are now wired
   for (auto instance : definition->getInstances()) {
@@ -48,9 +42,7 @@ int testTuple() {
 int testMultipleSIPO() {
   Context* context = newContext();
   Namespace* global = context->getGlobal();
-  // Namespace* prims = context->getNamespace("coreir");
   Type* clockType = context->Named("coreir.clk");
-  Type* clockInType = context->Named("coreir.clkIn");
 
   Module* multiple_sipo = nullptr;
   if (!loadFromFile(context, "circuits/multiple_sipo.json", &multiple_sipo)) {
@@ -59,13 +51,8 @@ int testMultipleSIPO() {
   }
   ModuleDef* definition = multiple_sipo->getDef();
 
-  Passes::WireClocks* wireClock = new Passes::WireClocks(
-    "wireclocks",
-    clockInType);
-  context->addPass(wireClock);
-
   // Run the pass
-  context->runPasses({"wireclocks"});
+  context->runPasses({"wireclocks-clk"});
 
   // Check that the clocks are now wired
   for (auto instance : definition->getInstances()) {
@@ -86,9 +73,6 @@ int testMultipleSIPO() {
 int testShiftRegister() {
   Context* context = newContext();
   Namespace* global = context->getGlobal();
-  // Namespace* prims = context->getNamespace("coreir");
-  // Type* clockType = context->Named("coreir", "clk");
-  Type* clockInType = context->Named("coreir.clkIn");
 
   Module* shift_register = nullptr;
   if (!loadFromFile(
@@ -101,13 +85,8 @@ int testShiftRegister() {
   // shift_register->print();
   ModuleDef* definition = shift_register->getDef();
 
-  Passes::WireClocks* wireClock = new Passes::WireClocks(
-    "wireclocks",
-    clockInType);
-  context->addPass(wireClock);
-
   // Run the pass
-  context->runPasses({"wireclocks"});
+  context->runPasses({"wireclocks-clk"});
   Wireable* topClock = definition->sel("self.clk");
 
   // Check that the clocks are now wired

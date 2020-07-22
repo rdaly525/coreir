@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     CoreIRLoadFirrtl_coreir(c);
     CoreIRLoadFirrtl_corebit(c);
     c->runPasses(
-      {"rungenerators", "cullgraph", "wireclocks-coreir", "firrtl"},
+      {"rungenerators", "cullgraph", "wireclocks-clk", "firrtl"},
       namespaces);
     // Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
   }
   else if (outExt == "py") {
     modified |= c->runPasses(
-      {"rungenerators", "cullgraph", "wireclocks-coreir", "magma"});
+      {"rungenerators", "cullgraph", "wireclocks-clk", "magma"});
     auto mpass = static_cast<Passes::Magma*>(
       c->getPassManager()->getAnalysisPass("magma"));
     mpass->writeToStream(*sout);
