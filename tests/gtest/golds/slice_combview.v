@@ -1,19 +1,5 @@
 // Module `coreir_reg__width16_src` defined externally
 // Module `coreir_reg__width16_snk` defined externally
-module mantle_wire__typeBitIn16 (
-    output [15:0] in,
-    input [15:0] out
-);
-assign in = out;
-endmodule
-
-module mantle_wire__typeBit16 (
-    input [15:0] in,
-    output [15:0] out
-);
-assign out = in;
-endmodule
-
 module top (
     input [15:0] in,
     output [15:0] out,

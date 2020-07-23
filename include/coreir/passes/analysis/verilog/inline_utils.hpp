@@ -90,4 +90,6 @@ class AlwaysStarMerger : public vAST::Transformer {
     std::unique_ptr<vAST::Module> node);
 };
 
+bool is_mantle_wire(CoreIR::Module* module);
+
 #endif
