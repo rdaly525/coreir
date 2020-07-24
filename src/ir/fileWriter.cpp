@@ -140,7 +140,8 @@ bool skip_namespace(std::string name, bool nocoreir, bool no_default_libs) {
   if (nocoreir && (name == "coreir" || name == "corebit")) { return true; }
   else if (
     no_default_libs &&
-    (name == "mantle" || name == "commonlib" || name == "memory")) {
+    (name == "mantle" || name == "commonlib" || name == "memory" ||
+     name == "ice40")) {
     return true;
   }
   return false;
