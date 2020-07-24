@@ -100,7 +100,6 @@ TEST(IsolateTest, Test1) {
   // All instances should be primitives
   bool only_primitives = allOf(pdef->getInstances(), [](auto it) {
     auto nsname = it.second->getModuleRef()->getNamespace()->getName();
-    std::cerr << toString(it.second) << std::endl;
     return nsname == "coreir" || nsname == "corebit";
   });
   ASSERT_TRUE(only_primitives);
