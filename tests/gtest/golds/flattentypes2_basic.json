@@ -1,0 +1,35 @@
+{"top":"global.Main",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Main":{
+        "type":["Record",[
+          ["I0",["Array",12,["Array",16,["Array",8,"BitIn"]]]],
+          ["I1__0","BitIn"],
+          ["I1__1",["Array",3,"BitIn"]],
+          ["O0",["Array",4,["Array",16,["Array",8,"Bit"]]]],
+          ["O1",["Array",8,["Array",16,["Array",8,"Bit"]]]],
+          ["O2__0",["Array",3,"Bit"]],
+          ["O2__1","Bit"]
+        ]],
+        "connections":[
+          ["self.O0.0","self.I0.0"],
+          ["self.O1.6","self.I0.10"],
+          ["self.O1.7","self.I0.11"],
+          ["self.O0.1","self.I0.1"],
+          ["self.O0.2","self.I0.2"],
+          ["self.O0.3","self.I0.3"],
+          ["self.O1.0","self.I0.4"],
+          ["self.O1.1","self.I0.5"],
+          ["self.O1.2","self.I0.6"],
+          ["self.O1.3","self.I0.7"],
+          ["self.O1.4","self.I0.8"],
+          ["self.O1.5","self.I0.9"],
+          ["self.O2__1","self.I1__0"],
+          ["self.O2__0","self.I1__1"]
+        ]
+      }
+    }
+  }
+}
+}

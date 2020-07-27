@@ -371,3 +371,10 @@ void Passes::CoreIRJson::writeToStream(std::ostream& os, string topRef) {
   os << quote("namespaces") << ":" << jn.toMultiString();
   os << endl << "}" << endl;
 }
+
+void Passes::CoreIRJson::writeToStream(std::ostream& os) {
+  std::string top = "";
+  Context* c = this->getContext();
+  if (c->hasTop()) { top = c->getTop()->getRefName(); };
+  return Passes::CoreIRJson::writeToStream(os, top);
+}
