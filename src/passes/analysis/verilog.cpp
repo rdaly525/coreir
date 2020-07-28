@@ -1124,13 +1124,13 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
   if (is_mantle_wire(module)) {
-      // Check if all instances are inlined
-      bool all_inlined = true;
-      for (auto inst : node.getInstanceList()) {
-          all_inlined &= check_inline_verilog_wire_metadata(inst);
-      }
-      // if all inlined, don't compile the module
-      if (all_inlined) return false;
+    // Check if all instances are inlined
+    bool all_inlined = true;
+    for (auto inst : node.getInstanceList()) {
+      all_inlined &= check_inline_verilog_wire_metadata(inst);
+    }
+    // if all inlined, don't compile the module
+    if (all_inlined) return false;
   }
   compileModule(module);
   return false;
