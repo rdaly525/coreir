@@ -3,13 +3,14 @@
 #include "coreir.h"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/libs/commonlib.h"
 
 using namespace CoreIR;
 
 namespace {
 
 Module* create_module(Context* c, std::string mname) {
-  c->getLibraryManager()->loadLib("commonlib");
+  CoreIRLoadLibrary_commonlib(c);
   auto Bits16 = c->Bit()->Arr(16);
   auto ab = c->Record({
     {"a", c->In(Bits16)},
