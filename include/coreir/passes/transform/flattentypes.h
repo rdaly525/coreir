@@ -17,7 +17,6 @@ class FlattenTypes : public InstanceGraphPass {
 
   bool preserve_ndarrays = false;
 
- protected:
   virtual bool isLeafType(Type* t);
 
  public:
@@ -25,9 +24,6 @@ class FlattenTypes : public InstanceGraphPass {
       : InstanceGraphPass(
           "flattentypes",
           "Flattens the Type hierarchy to only bits or arrays of bits") {}
-  // For sub-classes, like flattentypes2
-  FlattenTypes(std::string name, std::string description)
-      : InstanceGraphPass(name, description) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
   void initialize(int argc, char** argv) override;
 };
