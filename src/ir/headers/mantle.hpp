@@ -37,17 +37,19 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     return {modparams, defaultargs};
   };
 
-  Params regGenParams({{"width", c->Int()},
-                       {"has_en", c->Bool()},
-                       {"has_clr", c->Bool()},
-                       {"has_rst", c->Bool()}});
+  Params regGenParams(
+    {{"width", c->Int()},
+     {"has_en", c->Bool()},
+     {"has_clr", c->Bool()},
+     {"has_rst", c->Bool()}});
   TypeGen* regTypeGen = mantle->newTypeGen("regType", regGenParams, regFun);
 
   auto reg = mantle->newGeneratorDecl("reg", regTypeGen, regGenParams);
   reg->setModParamsGen(regModParamFun);
-  reg->addDefaultGenArgs({{"has_en", Const::make(c, false)},
-                          {"has_clr", Const::make(c, false)},
-                          {"has_rst", Const::make(c, false)}});
+  reg->addDefaultGenArgs(
+    {{"has_en", Const::make(c, false)},
+     {"has_clr", Const::make(c, false)},
+     {"has_rst", Const::make(c, false)}});
 
   reg->setGeneratorDefFromFun([](Context* c, Values genargs, ModuleDef* def) {
     int width = genargs.at("width")->get<int>();
@@ -147,10 +149,13 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     def->connect("self.in", "self.out");
   });
 
-  Params counterParams({{"width", c->Int()},
-                        {"has_en", c->Bool()},
-                        {"has_srst", c->Bool()},
-                        {"has_max", c->Bool()}});
+  wire->setPrimitiveExpressionLambda([]() { return vAST::make_id("in"); });
+
+  Params counterParams(
+    {{"width", c->Int()},
+     {"has_en", c->Bool()},
+     {"has_srst", c->Bool()},
+     {"has_max", c->Bool()}});
   // counter type
   mantle->newTypeGen(
     "counter_type",  // name for the typegen
@@ -182,9 +187,10 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
     mantle->getTypeGen("counter_type"),
     counterParams);
   counter->setModParamsGen(counterModParamFun);
-  counter->addDefaultGenArgs({{"has_max", Const::make(c, false)},
-                              {"has_en", Const::make(c, false)},
-                              {"has_srst", Const::make(c, false)}});
+  counter->addDefaultGenArgs(
+    {{"has_max", Const::make(c, false)},
+     {"has_en", Const::make(c, false)},
+     {"has_srst", Const::make(c, false)}});
   counter->setGeneratorDefFromFun(
     [](Context* c, Values genargs, ModuleDef* def) {
       uint width = genargs.at("width")->get<int>();
@@ -259,10 +265,11 @@ Namespace* CoreIRLoadHeader_mantle(Context* c) {
       regCETypeGen,
       regCEGenParams);
     json vjson;
-    vjson["interface"] = {"input [width-1:0] in",
-                          "input ce",
-                          "output [width-1:0] out",
-                          "input clk"};
+    vjson["interface"] = {
+      "input [width-1:0] in",
+      "input ce",
+      "output [width-1:0] out",
+      "input clk"};
     vjson["definition"] =
       ""
       "  reg [width-1:0] value;\n"
