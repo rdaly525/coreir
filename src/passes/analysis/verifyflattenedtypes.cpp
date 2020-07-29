@@ -4,15 +4,6 @@
 using namespace std;
 using namespace CoreIR;
 
-namespace {
-inline bool isBit(Type* t) { return t->isBaseType() || isa<NamedType>(t); }
-bool isBitOrArrOfBits(Type* t) {
-  if (isBit(t)) return true;
-  if (auto at = dyn_cast<ArrayType>(t)) { return isBit(at->getElemType()); }
-  return false;
-}
-}  // namespace
-
 bool Passes::VerifyFlattenedTypes::runOnInstanceGraphNode(
   InstanceGraphNode& node) {
 
