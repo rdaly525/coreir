@@ -100,6 +100,7 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
         def->generateUniqueInstanceName(),
         c->getGenerator("mantle.wire"),
         {{"type", Const::make(c, from->getType())}});
+      wire->getMetaData()["inline_verilog_wire"] = true;
       def->connect(to, wire->sel("in"));
       wire->getModuleRef()->runGenerator();
       to = wire->sel("out");
@@ -229,7 +230,11 @@ bool inlineInstance(Instance* inst) {
         modargs[vpair.first] = instModArgs[varg->getField()];
       }
     }
-    def->addInstance(iname, instpair.second->getModuleRef(), modargs);
+    Instance* inst = def->addInstance(
+      iname,
+      instpair.second->getModuleRef(),
+      modargs);
+    inst->setMetaData(instpair.second->getMetaData());
   }
 
   // Now add all the easy connections (that do not touch the boundary)

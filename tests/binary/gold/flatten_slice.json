@@ -11,15 +11,18 @@
         "instances":{
           "_$_U1":{
             "genref":"mantle.wire",
-            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]}
+            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]},
+            "metadata":{"inline_verilog_wire":true}
           },
           "_$_U3":{
             "genref":"mantle.wire",
-            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]}
+            "genargs":{"type":["CoreIRType",["Array",16,"BitIn"]]},
+            "metadata":{"inline_verilog_wire":true}
           },
           "i0$_$_U0":{
             "genref":"mantle.wire",
-            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
+            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]},
+            "metadata":{"inline_verilog_wire":true}
           },
           "i0$n1":{
             "genref":"coreir.neg",
@@ -27,7 +30,8 @@
           },
           "i1$_$_U2":{
             "genref":"mantle.wire",
-            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]}
+            "genargs":{"type":["CoreIRType",["Array",16,"Bit"]]},
+            "metadata":{"inline_verilog_wire":true}
           },
           "i1$n1":{
             "genref":"coreir.neg",
