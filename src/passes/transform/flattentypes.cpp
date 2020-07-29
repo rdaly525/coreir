@@ -3,11 +3,21 @@
 #include <set>
 #include "coreir.h"
 #include "coreir/common/logging_lite.hpp"
+#include "coreir/tools/cxxopts.h"
 
 using namespace std;
 using namespace CoreIR;
 
+bool isBitOrNDArrOfBits(Type* t) {
+  if (isBit(t)) return true;
+  if (auto at = dyn_cast<ArrayType>(t)) {
+    return isBitOrNDArrOfBits(at->getElemType());
+  }
+  return false;
+}
+
 bool CoreIR::Passes::FlattenTypes::isLeafType(Type* t) {
+  if (this->preserve_ndarrays) { return isBitOrNDArrOfBits(t); }
   return isBitOrArrOfBits(t);
 }
 
@@ -140,4 +150,16 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto port : oldports) { node.detachField(port); }
   // Conservatively assume you modifieid it
   return oldports.size() > 0;
+}
+
+void Passes::FlattenTypes::initialize(int argc, char** argv) {
+  cxxopts::Options options(
+    "flattentypes",
+    "Flattens record and array types into Bit or Array of Bit (optionally "
+    "preserve multi-dimensional array of bits)");
+  options.add_options()(
+    "n,ndarray",
+    "Preserve multi-dimensional array of bits (ndarrays)");
+  auto opts = options.parse(argc, argv);
+  if (opts.count("n")) { this->preserve_ndarrays = true; }
 }

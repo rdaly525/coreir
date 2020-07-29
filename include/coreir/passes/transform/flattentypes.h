@@ -15,6 +15,8 @@ class FlattenTypes : public InstanceGraphPass {
     std::vector<std::pair<SelectPath, Type*>>& ports,
     std::vector<std::string>& uports);
 
+  bool preserve_ndarrays = false;
+
  protected:
   virtual bool isLeafType(Type* t);
 
@@ -27,6 +29,7 @@ class FlattenTypes : public InstanceGraphPass {
   FlattenTypes(std::string name, std::string description)
       : InstanceGraphPass(name, description) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+  void initialize(int argc, char** argv) override;
 };
 
 }  // namespace Passes
