@@ -1123,7 +1123,7 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     verilog_generators_seen.count(module->getGenerator()) > 0) {
     return false;
   }
-  if (is_mantle_wire(module)) {
+  if (this->_inline && is_mantle_wire(module)) {
     // Check if all instances are inlined
     bool all_inlined = true;
     for (auto inst : node.getInstanceList()) {
