@@ -22,6 +22,22 @@ TEST(VerilogNDArrayTests, TestVerilogNDArray) {
   deleteContext(c);
 }
 
+TEST(VerilogNDArrayTests, TestVerilogNDArrayIndex) {
+  Context* c = newContext();
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/verilog_nd_array_index.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "flattentypes --ndarray",
+    "verilog --ndarray"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/verilog_nd_array_index.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {

@@ -198,7 +198,8 @@ Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
 
     // Get inner dimension and remove from dims vector
     std::unique_ptr<vAST::NumericLiteral>
-      inner_dim = std::make_unique<vAST::NumericLiteral>(toString(dims.back()));
+      inner_dim = std::make_unique<vAST::NumericLiteral>(
+        toString(dims.back() - 1));
     dims.pop_back();
 
     // Reverse ordering for outer last
@@ -555,16 +556,13 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   std::variant<
     std::unique_ptr<vAST::Identifier>,
     std::unique_ptr<vAST::Attribute>,
-    std::unique_ptr<vAST::Slice>>
+    std::unique_ptr<vAST::Slice>,
+    std::unique_ptr<vAST::Index>>
     curr_node;
   for (uint i = 0; i < select_path.size(); i++) {
     auto item = select_path[i];
     if (isNumber(item)) {
-      ASSERT(
-        i == select_path.size() - 1,
-        "Assumed flattened types have array index as last element "
-        "in select path");
-      return std::make_unique<vAST::Index>(
+      curr_node = std::make_unique<vAST::Index>(
         std::move(curr_node),
         vAST::make_num(item));
     }
@@ -654,6 +652,9 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
         }
       }
     }
+  }
+  if (std::holds_alternative<std::unique_ptr<vAST::Index>>(curr_node)) {
+    return std::get<std::unique_ptr<vAST::Index>>(std::move(curr_node));
   }
   if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(curr_node)) {
     return std::get<std::unique_ptr<vAST::Identifier>>(std::move(curr_node));
