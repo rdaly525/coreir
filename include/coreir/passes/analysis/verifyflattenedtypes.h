@@ -7,6 +7,10 @@ namespace CoreIR {
 namespace Passes {
 
 class VerifyFlattenedTypes : public InstanceGraphPass {
+  bool allow_ndarrays = false;
+
+  bool check(Type* t);
+
  public:
   VerifyFlattenedTypes()
       : InstanceGraphPass(
@@ -14,6 +18,7 @@ class VerifyFlattenedTypes : public InstanceGraphPass {
           "Verify all modules and instances have flattened types",
           true) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
+  void initialize(int argc, char** argv) override;
 };
 
 }  // namespace Passes

@@ -156,6 +156,7 @@ bool isClockOrNestedClockType(Type* type, Type* clockType);
 inline bool isBit(Type* t) { return t->isBaseType() || isa<NamedType>(t); }
 
 bool isBitOrArrOfBits(Type* t);
+bool isBitOrNDArrOfBits(Type* t);
 
 }  // namespace CoreIR
 

@@ -15,6 +15,7 @@ class Verilog : public InstanceGraphPass {
   bool _inline = false;
   bool verilator_debug = false;
   bool disable_width_cast = false;
+  bool codegen_ndarrays = false;
 
   // We store a vector of module name, module AST node pairs to support
   // serializing to a single or multiple files
@@ -38,6 +39,32 @@ class Verilog : public InstanceGraphPass {
   std::vector<std::unique_ptr<vAST::AbstractPort>> compilePorts(
     RecordType* record_type);
 
+  std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
+  processDecl(std::unique_ptr<vAST::Identifier> id, Type* type);
+
+  void makeDecl(
+    std::string name,
+    Type* type,
+    std::vector<std::variant<
+      std::unique_ptr<vAST::StructuralStatement>,
+      std::unique_ptr<vAST::Declaration>>>& declarations,
+    bool is_reg);
+
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>
+  declareConnections(std::map<std::string, Instance*> instances, bool _inline);
+
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>
+  compileModuleBody(
+    RecordType* module_type,
+    CoreIR::ModuleDef* definition,
+    bool _inline,
+    bool disable_width_cast,
+    std::set<std::string>& wires);
+
   std::unique_ptr<vAST::AbstractModule> compileStringBodyModule(
     json verilog_json,
     std::string name,
@@ -53,7 +80,10 @@ class Verilog : public InstanceGraphPass {
     onlyTop = true;
     addDependency("verifyconnectivity --onlyinputs");  // Should change back to
                                                        // check all connections
-    addDependency("verifyflattenedtypes");
+    // For now we allow ndarrays, but error later, since dependencies are added
+    // before pass args are processed (otherwise we could add the dependency
+    // once we knew whether ndarrays should be allowed)
+    addDependency("verifyflattenedtypes --ndarray");
   }
 
   void clear() {

@@ -81,11 +81,14 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "y,verilator_debug",
     "Mark IO and intermediate wires as /*verilator_public*/")(
     "w,disable-width-cast",
-    "Omit width cast in generated verilog when using inline");
+    "Omit width cast in generated verilog when using inline")(
+    "n,ndarray",
+    "Code generate multi-dimensional arrays of bits (ndarrays)");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
   if (opts.count("w")) { this->disable_width_cast = true; }
+  if (opts.count("n")) { this->codegen_ndarrays = true; }
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -157,19 +160,61 @@ Type* get_raw_type(Type* type) {
   return type;
 }
 
+void getNDArrayDims(Type* type, std::vector<int>& dims) {
+  if (get_raw_type(type)->isBaseType()) { return; }
+  else if (!isa<ArrayType>(type)) {
+    throw std::runtime_error(
+      "VERILOG BACKEND ERROR: Unsupported array type (not flattened or ndarray "
+      "of bits)");
+  }
+  ArrayType* array_type = cast<ArrayType>(type);
+  dims.push_back(array_type->getLen());
+  getNDArrayDims(array_type->getElemType(), dims);
+}
+
 // Given a signal named `id` and a type `type`, wrap the signal name in a
 // `Vector` node if the signal is of type Array
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
-process_decl(std::unique_ptr<vAST::Identifier> id, Type* type) {
+Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
   if (isa<ArrayType>(type)) {
     ArrayType* array_type = cast<ArrayType>(type);
     Type* internal_type = get_raw_type(array_type->getElemType());
-    ASSERT(internal_type->isBaseType(), "Expected Array of Bits");
-    return std::make_unique<vAST::Vector>(
+    if (internal_type->isBaseType()) {
+      return std::make_unique<vAST::Vector>(
+        std::move(id),
+        std::make_unique<vAST::NumericLiteral>(
+          toString(array_type->getLen() - 1)),
+        std::make_unique<vAST::NumericLiteral>("0"));
+    }
+    else {
+      ASSERT(
+        this->codegen_ndarrays,
+        "Expected Array of Bits or --ndarray arg enabled");
+    }
+
+    // Collect dimensions in a vector
+    std::vector<int> dims;
+    getNDArrayDims(type, dims);
+
+    // Get inner dimension and remove from dims vector
+    std::unique_ptr<vAST::NumericLiteral>
+      inner_dim = std::make_unique<vAST::NumericLiteral>(toString(dims.back()));
+    dims.pop_back();
+
+    // Reverse ordering for outer last
+    std::reverse(dims.begin(), dims.end());
+
+    // Convert to vAST
+    std::vector<std::unique_ptr<vAST::Expression>> outer_dims;
+    for (auto dim : dims) {
+      outer_dims.push_back(vAST::make_num(toString(dim)));
+    }
+
+    return std::make_unique<vAST::NDVector>(
       std::move(id),
-      std::make_unique<vAST::NumericLiteral>(
-        toString(array_type->getLen() - 1)),
-      std::make_unique<vAST::NumericLiteral>("0"));
+      std::move(inner_dim),
+      std::make_unique<vAST::NumericLiteral>("0"),
+      std::move(outer_dims));
   }
 
   type = get_raw_type(type);
@@ -179,7 +224,7 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type* type) {
   return std::move(id);
 }
 
-void make_decl(
+void Passes::Verilog::makeDecl(
   std::string name,
   Type* type,
   std::vector<std::variant<
@@ -200,7 +245,7 @@ void make_decl(
       }
       declarations.push_back(std::move(decl));
     },
-    process_decl(std::move(id), type));
+    this->processDecl(std::move(id), type));
 }
 
 // Given a map of instances, return a vector of containing declarations for all
@@ -210,7 +255,9 @@ void make_decl(
 std::vector<std::variant<
   std::unique_ptr<vAST::StructuralStatement>,
   std::unique_ptr<vAST::Declaration>>>
-declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
+Passes::Verilog::declareConnections(
+  std::map<std::string, Instance*> instances,
+  bool _inline) {
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
@@ -221,7 +268,7 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
       Type* type = cast<RecordType>(instance.second->getModuleRef()->getType())
                      ->getRecord()
                      .at("in");
-      make_decl(instance.first, type, declarations, false);
+      this->makeDecl(instance.first, type, declarations, false);
       continue;
     }
     RecordType* record_type = cast<RecordType>(
@@ -230,7 +277,7 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
       if (!field_type->isInput()) {
-        make_decl(
+        this->makeDecl(
           instance.first + "_" + field,
           field_type,
           declarations,
@@ -362,7 +409,7 @@ std::vector<std::unique_ptr<vAST::AbstractPort>> Passes::Verilog::compilePorts(
       ASSERT(false, "Not implemented for type = " + toString(field_type));
     }
     std::unique_ptr<vAST::Port> port = std::make_unique<vAST::Port>(
-      process_decl(std::move(name), field_type),
+      this->processDecl(std::move(name), field_type),
       verilog_direction,
       vAST::WIRE);
     if (this->verilator_debug) {
@@ -759,7 +806,7 @@ void assign_inouts(
 std::vector<std::variant<
   std::unique_ptr<vAST::StructuralStatement>,
   std::unique_ptr<vAST::Declaration>>>
-compile_module_body(
+Passes::Verilog::compileModuleBody(
   RecordType* module_type,
   CoreIR::ModuleDef* definition,
   bool _inline,
@@ -772,7 +819,7 @@ compile_module_body(
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
-    body = declare_connections(instances, _inline);
+    body = this->declareConnections(instances, _inline);
 
   std::map<ConnMapKey, std::vector<ConnMapEntry>>
     connection_map = build_connection_map(definition, instances);
@@ -1077,7 +1124,7 @@ void Passes::Verilog::compileModule(Module* module) {
     std::unique_ptr<vAST::Declaration>>>
     body;
   if (module->hasDef()) {
-    body = compile_module_body(
+    body = this->compileModuleBody(
       module->getType(),
       definition,
       this->_inline,
