@@ -454,11 +454,6 @@ class ConnMapEntry {
         metadata(metadata){};
 };
 
-std::vector<std::unique_ptr<vAST::Expression>> processArgs(
-  std::vector<std::unique_ptr<vAST::Expression>> args) {
-  return args;
-}
-
 std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
   std::vector<std::unique_ptr<vAST::Expression>>& nd_args,
   std::vector<int> dims,
