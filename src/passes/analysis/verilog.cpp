@@ -454,6 +454,16 @@ class ConnMapEntry {
         metadata(metadata){};
 };
 
+// Recursive logic for generating a Concat node for an ND Array connection
+// if the array is 1 dimensional, just return a concat of the arguments
+// else, build a concat for each index in the current outer most dimension
+// (using recursion for each index in the dimension)
+//
+// Uses nd_args which contains the flat index space of connections and
+// reconstructs the multi-dimensional concat tree
+//
+// offset argument is used to provide a start index for the final (leaf)
+// recursion
 std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
   std::vector<std::unique_ptr<vAST::Expression>>& nd_args,
   std::vector<int> dims,
@@ -461,6 +471,7 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
   std::vector<std::unique_ptr<vAST::Expression>> args;
   int curr_dim = dims.back();
   if (dims.size() == 1) {
+    // Simple case, concat args are fetched based on index from offset
     for (int i = 0; i < curr_dim; i++) {
       args.push_back(std::move(nd_args[offset + i]));
     }
@@ -470,6 +481,9 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
     inner_dims.pop_back();
     int inner_offset = 1;
     for (auto dim : inner_dims) { inner_offset *= dim; }
+    // For each index in the current (outer) dimension
+    // build concat for inner dimension(s) using offset that is incremented each
+    // iteration
     for (int i = 0; i < curr_dim; i++) {
       args.push_back(
         buildConcatFromNDArgs(nd_args, inner_dims, offset + inner_offset * i));
@@ -495,7 +509,10 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
       }),
     args.end());
 
-  // unpack concat of single element (handles bulk connections)
+  // unpack concat of single element (handles bulk connections where only one
+  // [the start] index is connected)
+  // Right now this makes an assumption about how bulk connections are handled,
+  // but it's hard to capture in an assertion
   for (int i = 0; i < args.size(); i++) {
     auto ptr = dynamic_cast<vAST::Concat*>(args[i].get());
     if (ptr && ptr->args.size() == 1) { args[i] = std::move(ptr->args[0]); }
@@ -757,6 +774,7 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
   std::string debug_prefix,
   bool _inline) {
 
+  // nd-args contains a flat encoding of the index space of the array
   std::vector<std::unique_ptr<vAST::Expression>> nd_args;
   ASSERT(isa<ArrayType>(field_type), "Expected Array for concat connection");
   ArrayType* arr_type = cast<ArrayType>(field_type);
@@ -767,6 +785,8 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
   for (auto dim : dims) { total_size *= dim; }
   nd_args.resize(total_size);
 
+  // map entries from the connection map into the flat index space, then we
+  // construct the appropriate Concat tree to map to the multi-dimensional space
   for (auto entry : entries) {
     std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
       convert_to_verilog_connection(entry.source, _inline));
@@ -778,6 +798,7 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
     ASSERT(
       entry.index.size() <= dims.size(),
       "Expected index size to be less than or equal to dimensions");
+    // convert index vector to flat index
     int inner_offset = total_size;
     int index = 0;
     for (int i = 0; i < entry.index.size(); i++) {
