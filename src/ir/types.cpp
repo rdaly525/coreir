@@ -233,4 +233,10 @@ bool isClockOrNestedClockType(Type* type, Type* clockType) {
   return false;
 }
 
+bool isBitOrArrOfBits(Type* t) {
+  if (isBit(t)) return true;
+  if (auto at = dyn_cast<ArrayType>(t)) { return isBit(at->getElemType()); }
+  return false;
+}
+
 }  // namespace CoreIR

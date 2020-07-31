@@ -174,11 +174,9 @@ bool saveToFile(
   else {
     c->runPassesOnAll({"coreirjson"});
   }
-  auto jpass = static_cast<Passes::CoreIRJson*>(
-    c->getPassManager()->getAnalysisPass("coreirjson"));
-  string topRef = "";
-  if (c->hasTop()) { topRef = c->getTop()->getRefName(); }
-  jpass->writeToStream(file, topRef);
+  static_cast<Passes::CoreIRJson*>(
+    c->getPassManager()->getAnalysisPass("coreirjson"))
+    ->writeToStream(file);
   return true;
 }
 

@@ -3,24 +3,31 @@
 #include <set>
 #include "coreir.h"
 #include "coreir/common/logging_lite.hpp"
+#include "coreir/tools/cxxopts.h"
 
 using namespace std;
 using namespace CoreIR;
-namespace {
-inline bool isBit(Type* t) { return t->isBaseType() || isa<NamedType>(t); }
-bool isBitOrArrOfBits(Type* t) {
+
+bool isBitOrNDArrOfBits(Type* t) {
   if (isBit(t)) return true;
-  if (auto at = dyn_cast<ArrayType>(t)) { return isBit(at->getElemType()); }
+  if (auto at = dyn_cast<ArrayType>(t)) {
+    return isBitOrNDArrOfBits(at->getElemType());
+  }
   return false;
 }
 
+bool CoreIR::Passes::FlattenTypes::isLeafType(Type* t) {
+  if (this->preserve_ndarrays) { return isBitOrNDArrOfBits(t); }
+  return isBitOrArrOfBits(t);
+}
+
 // Gets all the ports that are not the top level
-void getPortList(
+void Passes::FlattenTypes::getPortList(
   Type* t,
   SelectPath cur,
   vector<std::pair<SelectPath, Type*>>& ports,
   vector<string>& uports) {
-  if (isBitOrArrOfBits(t)) {
+  if (this->isLeafType(t)) {
     if (cur.size() > 1) { ports.push_back({cur, t}); }
     else {
       uports.push_back({cur[0]});
@@ -30,14 +37,14 @@ void getPortList(
     for (uint i = 0; i < at->getLen(); ++i) {
       SelectPath next = cur;
       next.push_back(to_string(i));
-      getPortList(at->getElemType(), next, ports, uports);
+      this->getPortList(at->getElemType(), next, ports, uports);
     }
   }
   else if (auto rt = dyn_cast<RecordType>(t)) {
     for (auto record : rt->getRecord()) {
       SelectPath next = cur;
       next.push_back(record.first);
-      getPortList(record.second, next, ports, uports);
+      this->getPortList(record.second, next, ports, uports);
     }
   }
   else {
@@ -45,8 +52,6 @@ void getPortList(
     assert(0);
   }
 }
-
-}  // namespace
 
 bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   // Outline of algorithm.
@@ -65,7 +70,7 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   // Get a list of all the correct ports necessary.
   vector<std::pair<SelectPath, Type*>> ports;
   vector<string> unchanged;
-  getPortList(mod->getType(), {}, ports, unchanged);
+  this->getPortList(mod->getType(), {}, ports, unchanged);
 
   // Early out if no new ports
   if (ports.size() == 0) return false;
@@ -145,4 +150,16 @@ bool Passes::FlattenTypes::runOnInstanceGraphNode(InstanceGraphNode& node) {
   for (auto port : oldports) { node.detachField(port); }
   // Conservatively assume you modifieid it
   return oldports.size() > 0;
+}
+
+void Passes::FlattenTypes::initialize(int argc, char** argv) {
+  cxxopts::Options options(
+    "flattentypes",
+    "Flattens record and array types into Bit or Array of Bit (optionally "
+    "preserve multi-dimensional array of bits)");
+  options.add_options()(
+    "n,ndarray",
+    "Preserve multi-dimensional array of bits (ndarrays)");
+  auto opts = options.parse(argc, argv);
+  if (opts.count("n")) { this->preserve_ndarrays = true; }
 }

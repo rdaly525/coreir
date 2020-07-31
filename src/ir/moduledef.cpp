@@ -81,7 +81,10 @@ ModuleDef* ModuleDef::copy() {
 
   map<Wireable*, Wireable*> oldWireablesToCopies;
 
-  for (auto inst : this->getInstances()) { def->addInstance(inst.second); }
+  for (auto inst : this->getInstances()) {
+    Instance* new_inst = def->addInstance(inst.second);
+    new_inst->setMetaData(inst.second->getMetaData());
+  }
 
   for (auto con : this->getConnections()) {
 

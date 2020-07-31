@@ -113,6 +113,11 @@ std::unique_ptr<vAST::StructuralStatement> inline_binary_op(
     transformer.visit(std::move(primitive_expr)));
 }
 
+bool is_mantle_wire(CoreIR::Module* module) {
+  return module->isGenerated() && module->getGenerator()->getName() == "wire" &&
+    module->getGenerator()->getNamespace()->getName() == "mantle";
+}
+
 bool can_inline_unary_op(CoreIR::Module* module, bool _inline) {
   if (
     module->isGenerated() &&
@@ -130,6 +135,7 @@ bool can_inline_unary_op(CoreIR::Module* module, bool _inline) {
        verilog_json["primitive_type"] == "unaryReduce") &&
       _inline;
   }
+  if (is_mantle_wire(module) && _inline) { return true; }
   return false;
 }
 
@@ -137,7 +143,16 @@ std::unique_ptr<vAST::StructuralStatement> inline_unary_op(
   std::pair<std::string, CoreIR::Instance*> instance,
   std::unique_ptr<vAST::Connections> verilog_connections,
   bool is_wire) {
-  UnaryOpReplacer transformer(verilog_connections->at("in"));
+  std::unique_ptr<vAST::Expression> expr = verilog_connections->at("in");
+  if (is_mantle_wire(instance.second->getModuleRef())) {
+    // mantle wire can have flipped in/out depending on parameter type
+    CoreIR::Type* t = instance.second->getModuleRef()
+                        ->getGenArgs()
+                        .at("type")
+                        ->get<CoreIR::Type*>();
+    if (t->isInput()) { expr = verilog_connections->at("out"); }
+  }
+  UnaryOpReplacer transformer(std::move(expr));
   std::string wire_name = instance.first;
   if (!is_wire) { wire_name += "_out"; }
   return std::make_unique<vAST::ContinuousAssign>(
