@@ -513,7 +513,7 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
   // [the start] index is connected)
   // Right now this makes an assumption about how bulk connections are handled,
   // but it's hard to capture in an assertion
-  for (int i = 0; i < args.size(); i++) {
+  for (unsigned int i = 0; i < args.size(); i++) {
     auto ptr = dynamic_cast<vAST::Concat*>(args[i].get());
     if (ptr && ptr->args.size() == 1) { args[i] = std::move(ptr->args[0]); }
   }
@@ -542,7 +542,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
         connection.first->getType()->isInput()) {
         SelectPath first_sel_path = connection.first->getSelectPath();
         std::vector<int> index;
-        for (int i = 2; i < first_sel_path.size(); i++) {
+        for (unsigned int i = 2; i < first_sel_path.size(); i++) {
           index.push_back(std::stoi(first_sel_path[i]));
         }
         connection_map[ConnMapKey(instance.first, first_sel_path[1])].push_back(
@@ -556,7 +556,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
         connection.second->getType()->isInput()) {
         SelectPath second_sel_path = connection.second->getSelectPath();
         std::vector<int> index;
-        for (int i = 2; i < second_sel_path.size(); i++) {
+        for (unsigned int i = 2; i < second_sel_path.size(); i++) {
           index.push_back(std::stoi(second_sel_path[i]));
         }
         connection_map[ConnMapKey(instance.first, second_sel_path[1])]
@@ -573,7 +573,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       connection.first->getType()->isInput()) {
       SelectPath first_sel_path = connection.first->getSelectPath();
       std::vector<int> index;
-      for (int i = 2; i < first_sel_path.size(); i++) {
+      for (unsigned int i = 2; i < first_sel_path.size(); i++) {
         index.push_back(std::stoi(first_sel_path[i]));
       }
       connection_map[ConnMapKey("self", first_sel_path[1])].push_back(
@@ -587,7 +587,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       connection.second->getType()->isInput()) {
       SelectPath second_sel_path = connection.second->getSelectPath();
       std::vector<int> index;
-      for (int i = 2; i < second_sel_path.size(); i++) {
+      for (unsigned int i = 2; i < second_sel_path.size(); i++) {
         index.push_back(std::stoi(second_sel_path[i]));
       }
       connection_map[ConnMapKey("self", second_sel_path[1])].push_back(
