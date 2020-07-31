@@ -81,14 +81,11 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "y,verilator_debug",
     "Mark IO and intermediate wires as /*verilator_public*/")(
     "w,disable-width-cast",
-    "Omit width cast in generated verilog when using inline")(
-    "n,ndarray",
-    "Code generate multi-dimensional arrays of bits (ndarrays)");
+    "Omit width cast in generated verilog when using inline");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
   if (opts.count("w")) { this->disable_width_cast = true; }
-  if (opts.count("n")) { this->codegen_ndarrays = true; }
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -185,11 +182,6 @@ Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
         std::make_unique<vAST::NumericLiteral>(
           toString(array_type->getLen() - 1)),
         std::make_unique<vAST::NumericLiteral>("0"));
-    }
-    else {
-      ASSERT(
-        this->codegen_ndarrays,
-        "Expected Array of Bits or --ndarray arg enabled");
     }
 
     // Collect dimensions in a vector
