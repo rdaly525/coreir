@@ -797,7 +797,7 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
     // convert index vector to flat index
     int inner_offset = total_size;
     int index = 0;
-    for (int i = 0; i < entry.index.size(); i++) {
+    for (unsigned int i = 0; i < entry.index.size(); i++) {
       inner_offset /= dims[i];
       if (i < dims.size() - 1) { index += entry.index[i] * inner_offset; }
       else {
