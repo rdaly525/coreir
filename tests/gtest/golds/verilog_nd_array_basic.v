@@ -1,9 +1,9 @@
 module Main (
-    input [7:0] I0 [16][12],
+    input [7:0][15:0][11:0] I0,
     input I1__0,
     input [2:0] I1__1,
-    output [7:0] O0 [16][4],
-    output [7:0] O1 [16][8],
+    output [7:0][15:0][3:0] O0,
+    output [7:0][15:0][7:0] O1,
     output [2:0] O2__0,
     output O2__1
 );

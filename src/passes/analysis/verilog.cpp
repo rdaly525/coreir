@@ -196,9 +196,9 @@ Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
     std::vector<int> dims;
     getNDArrayDims(type, dims);
 
-    // Get inner dimension and remove from dims vector
+    // Get outer dimension and remove from dims vector
     std::unique_ptr<vAST::NumericLiteral>
-      inner_dim = std::make_unique<vAST::NumericLiteral>(
+      outer_dim = std::make_unique<vAST::NumericLiteral>(
         toString(dims.back() - 1));
     dims.pop_back();
 
@@ -206,16 +206,20 @@ Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
     std::reverse(dims.begin(), dims.end());
 
     // Convert to vAST
-    std::vector<std::unique_ptr<vAST::Expression>> outer_dims;
+    std::vector<std::pair<
+      std::unique_ptr<vAST::Expression>,
+      std::unique_ptr<vAST::Expression>>>
+      inner_dims;
     for (auto dim : dims) {
-      outer_dims.push_back(vAST::make_num(toString(dim)));
+      inner_dims.push_back(
+        {vAST::make_num(toString(dim - 1)), vAST::make_num("0")});
     }
 
     return std::make_unique<vAST::NDVector>(
       std::move(id),
-      std::move(inner_dim),
+      std::move(outer_dim),
       std::make_unique<vAST::NumericLiteral>("0"),
-      std::move(outer_dims));
+      std::move(inner_dims));
   }
 
   type = get_raw_type(type);
@@ -450,13 +454,67 @@ class ConnMapKey {
 class ConnMapEntry {
  public:
   Wireable* source;
-  int index;
+  std::vector<int> index;
   json& metadata;
-  ConnMapEntry(Wireable* source, int index, json& metadata)
+  ConnMapEntry(Wireable* source, std::vector<int> index, json& metadata)
       : source(source),
         index(index),
         metadata(metadata){};
 };
+
+std::vector<std::unique_ptr<vAST::Expression>> processArgs(
+  std::vector<std::unique_ptr<vAST::Expression>> args) {
+  return args;
+}
+
+std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
+  std::vector<std::unique_ptr<vAST::Expression>>& nd_args,
+  std::vector<int> dims,
+  int offset = 0) {
+  std::vector<std::unique_ptr<vAST::Expression>> args;
+  int curr_dim = dims.back();
+  if (dims.size() == 1) {
+    for (int i = 0; i < curr_dim; i++) {
+      args.push_back(std::move(nd_args[offset + i]));
+    }
+  }
+  else {
+    std::vector<int> inner_dims = dims;
+    inner_dims.pop_back();
+    int inner_offset = 1;
+    for (auto dim : inner_dims) { inner_offset *= dim; }
+    for (int i = 0; i < curr_dim; i++) {
+      args.push_back(
+        buildConcatFromNDArgs(nd_args, inner_dims, offset + inner_offset * i));
+    }
+  }
+
+  // Verilog uses MSB -> LSB ordering
+  std::reverse(args.begin(), args.end());
+
+  // Remove empty cells, since there might be slices that only populate the
+  // start index of the slice
+  args.erase(
+    std::remove_if(
+      args.begin(),
+      args.end(),
+      [](std::unique_ptr<vAST::Expression>& arg) {
+        if (arg == NULL) { return true; }
+        // Empty indices (e.g. connected by bulk or slice)
+        if (auto ptr = dynamic_cast<vAST::Concat*>(arg.get())) {
+          if (ptr->args.size() == 0) { return true; }
+        }
+        return false;
+      }),
+    args.end());
+
+  // unpack concat of single element (handles bulk connections)
+  for (int i = 0; i < args.size(); i++) {
+    auto ptr = dynamic_cast<vAST::Concat*>(args[i].get());
+    if (ptr && ptr->args.size() == 1) { args[i] = std::move(ptr->args[0]); }
+  }
+  return std::make_unique<vAST::Concat>(std::move(args));
+}
 
 // Builds a map from pairs of strings of the form <instance_name, port_name>
 // to the source Wireable(s) which will be used to generate the verilog
@@ -479,8 +537,10 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
         connection.first->getTopParent() == instance.second &&
         connection.first->getType()->isInput()) {
         SelectPath first_sel_path = connection.first->getSelectPath();
-        int index = 0;
-        if (first_sel_path.size() > 2) { index = std::stoi(first_sel_path[2]); }
+        std::vector<int> index;
+        for (int i = 2; i < first_sel_path.size(); i++) {
+          index.push_back(std::stoi(first_sel_path[i]));
+        }
         connection_map[ConnMapKey(instance.first, first_sel_path[1])].push_back(
           ConnMapEntry(
             connection.second,
@@ -491,9 +551,9 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
         connection.second->getTopParent() == instance.second &&
         connection.second->getType()->isInput()) {
         SelectPath second_sel_path = connection.second->getSelectPath();
-        int index = 0;
-        if (second_sel_path.size() > 2) {
-          index = std::stoi(second_sel_path[2]);
+        std::vector<int> index;
+        for (int i = 2; i < second_sel_path.size(); i++) {
+          index.push_back(std::stoi(second_sel_path[i]));
         }
         connection_map[ConnMapKey(instance.first, second_sel_path[1])]
           .push_back(ConnMapEntry(
@@ -508,8 +568,10 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       connection.first->getSelectPath()[0] == "self" &&
       connection.first->getType()->isInput()) {
       SelectPath first_sel_path = connection.first->getSelectPath();
-      int index = 0;
-      if (first_sel_path.size() > 2) { index = std::stoi(first_sel_path[2]); }
+      std::vector<int> index;
+      for (int i = 2; i < first_sel_path.size(); i++) {
+        index.push_back(std::stoi(first_sel_path[i]));
+      }
       connection_map[ConnMapKey("self", first_sel_path[1])].push_back(
         ConnMapEntry(
           connection.second,
@@ -520,8 +582,10 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       connection.second->getSelectPath()[0] == "self" &&
       connection.second->getType()->isInput()) {
       SelectPath second_sel_path = connection.second->getSelectPath();
-      int index = 0;
-      if (second_sel_path.size() > 2) { index = std::stoi(second_sel_path[2]); }
+      std::vector<int> index;
+      for (int i = 2; i < second_sel_path.size(); i++) {
+        index.push_back(std::stoi(second_sel_path[i]));
+      }
       connection_map[ConnMapKey("self", second_sel_path[1])].push_back(
         ConnMapEntry(
           connection.first,
@@ -687,6 +751,14 @@ void process_connection_debug_metadata(
   }
 }
 
+std::string indexToString(std::vector<int> index) {
+  std::string str = "";
+  for (auto i : index) { str += std::to_string(i) + ", "; }
+  // remove extra comma/space
+  str.resize(str.size() - 2);
+  return str;
+}
+
 // If it is not a bulk connection, create a concat node and wire up the inputs
 // by index
 std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
@@ -698,10 +770,15 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
   std::string debug_prefix,
   bool _inline) {
 
-  std::vector<std::unique_ptr<vAST::Expression>> args;
+  std::vector<std::unique_ptr<vAST::Expression>> nd_args;
   ASSERT(isa<ArrayType>(field_type), "Expected Array for concat connection");
   ArrayType* arr_type = cast<ArrayType>(field_type);
-  args.resize(arr_type->getLen());
+
+  std::vector<int> dims;
+  getNDArrayDims(arr_type, dims);
+  int total_size = 1;
+  for (auto dim : dims) { total_size *= dim; }
+  nd_args.resize(total_size);
 
   for (auto entry : entries) {
     std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
@@ -710,23 +787,23 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
       entry,
       verilog_conn->toString(),
       body,
-      debug_prefix + "[" + std::to_string(entry.index) + "]");
-    args[entry.index] = std::move(verilog_conn);
+      debug_prefix + "[" + indexToString(entry.index) + "]");
+    ASSERT(
+      entry.index.size() <= dims.size(),
+      "Expected index size to be less than or equal to dimensions");
+    int inner_offset = total_size;
+    int index = 0;
+    for (int i = 0; i < entry.index.size(); i++) {
+      inner_offset /= dims[i];
+      if (i < dims.size() - 1) { index += entry.index[i] * inner_offset; }
+      else {
+        index += entry.index[i];
+      }
+    }
+    nd_args[index] = std::move(verilog_conn);
   }
 
-  // Verilog uses MSB -> LSB ordering
-  std::reverse(args.begin(), args.end());
-
-  // Remove empty cells, since there might be slices that only populate the
-  // start index of the slice
-  args.erase(
-    std::remove_if(
-      args.begin(),
-      args.end(),
-      [](std::unique_ptr<vAST::Expression>& arg) { return arg == NULL; }),
-    args.end());
-
-  return std::make_unique<vAST::Concat>(std::move(args));
+  return buildConcatFromNDArgs(nd_args, dims);
 }
 
 // For each output of the current module definition, emit a statement of the
