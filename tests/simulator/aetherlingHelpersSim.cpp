@@ -159,7 +159,7 @@ TEST_CASE("Simulate streamify/arrayify from aetherlinglib") {
     c->runPasses(
       {"rungenerators",
        "verifyconnectivity --onlyinputs --noclkrst",
-       "wireclocks-coreir",
+       "wireclocks-clk",
        "flatten",
        "flattentypes",
        "verifyconnectivity",

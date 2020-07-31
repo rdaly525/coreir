@@ -57,8 +57,8 @@ bool Passes::WireClocks::runOnInstanceGraphNode(InstanceGraphNode& node) {
   }
   // Add clk if needed
   if (!topclk) {
-    node.appendField("clk", this->clockType);
-    topclk = def->sel("self")->sel("clk");
+    node.appendField(this->port_name, this->clockType);
+    topclk = def->sel("self")->sel(this->port_name);
   }
   for (auto clk : clks) { this->connectClk(def, topclk, clk); }
 
