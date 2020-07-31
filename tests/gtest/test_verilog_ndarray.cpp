@@ -14,9 +14,7 @@ TEST(VerilogNDArrayTests, TestVerilogNDArray) {
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
-  const std::vector<std::string> passes = {
-    "flattentypes --ndarray",
-    "verilog --ndarray"};
+  const std::vector<std::string> passes = {"flattentypes --ndarray", "verilog"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/verilog_nd_array_basic.v");
   deleteContext(c);
@@ -30,9 +28,7 @@ TEST(VerilogNDArrayTests, TestVerilogNDArrayIndex) {
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
-  const std::vector<std::string> passes = {
-    "flattentypes --ndarray",
-    "verilog --ndarray"};
+  const std::vector<std::string> passes = {"flattentypes --ndarray", "verilog"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/verilog_nd_array_index.v");
   deleteContext(c);

@@ -520,6 +520,14 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
   return std::make_unique<vAST::Concat>(std::move(args));
 }
 
+std::vector<int> selPathToIndex(SelectPath sp) {
+  std::vector<int> index;
+  for (unsigned int i = 2; i < sp.size(); i++) {
+    index.push_back(std::stoi(sp[i]));
+  }
+  return index;
+}
+
 // Builds a map from pairs of strings of the form <instance_name, port_name>
 // to the source Wireable(s) which will be used to generate the verilog
 // identifier corresponding to the wire connecting the two entities
@@ -541,10 +549,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
         connection.first->getTopParent() == instance.second &&
         connection.first->getType()->isInput()) {
         SelectPath first_sel_path = connection.first->getSelectPath();
-        std::vector<int> index;
-        for (unsigned int i = 2; i < first_sel_path.size(); i++) {
-          index.push_back(std::stoi(first_sel_path[i]));
-        }
+        std::vector<int> index = selPathToIndex(first_sel_path);
         connection_map[ConnMapKey(instance.first, first_sel_path[1])].push_back(
           ConnMapEntry(
             connection.second,
@@ -555,10 +560,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
         connection.second->getTopParent() == instance.second &&
         connection.second->getType()->isInput()) {
         SelectPath second_sel_path = connection.second->getSelectPath();
-        std::vector<int> index;
-        for (unsigned int i = 2; i < second_sel_path.size(); i++) {
-          index.push_back(std::stoi(second_sel_path[i]));
-        }
+        std::vector<int> index = selPathToIndex(second_sel_path);
         connection_map[ConnMapKey(instance.first, second_sel_path[1])]
           .push_back(ConnMapEntry(
             connection.first,
@@ -572,10 +574,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       connection.first->getSelectPath()[0] == "self" &&
       connection.first->getType()->isInput()) {
       SelectPath first_sel_path = connection.first->getSelectPath();
-      std::vector<int> index;
-      for (unsigned int i = 2; i < first_sel_path.size(); i++) {
-        index.push_back(std::stoi(first_sel_path[i]));
-      }
+      std::vector<int> index = selPathToIndex(first_sel_path);
       connection_map[ConnMapKey("self", first_sel_path[1])].push_back(
         ConnMapEntry(
           connection.second,
@@ -586,10 +585,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       connection.second->getSelectPath()[0] == "self" &&
       connection.second->getType()->isInput()) {
       SelectPath second_sel_path = connection.second->getSelectPath();
-      std::vector<int> index;
-      for (unsigned int i = 2; i < second_sel_path.size(); i++) {
-        index.push_back(std::stoi(second_sel_path[i]));
-      }
+      std::vector<int> index = selPathToIndex(second_sel_path);
       connection_map[ConnMapKey("self", second_sel_path[1])].push_back(
         ConnMapEntry(
           connection.first,
