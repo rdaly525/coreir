@@ -522,8 +522,8 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
     auto ptr = dynamic_cast<vAST::Concat*>(args[i].get());
     if (ptr && ptr->args.size() == 1) { args[i] = std::move(ptr->args[0]); }
   }
-  auto result = std::make_unique<vAST::Concat>(std::move(args));
-  return result;
+  bool unpacked = dims.size() != 1;
+  return std::make_unique<vAST::Concat>(std::move(args), unpacked);
 }
 
 std::vector<int> selPathToIndex(SelectPath sp) {
