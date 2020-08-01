@@ -248,7 +248,6 @@ std::unique_ptr<vAST::Always> make_muxn_if(
 
   std::unique_ptr<vAST::Expression> in_data = verilog_connections->at(
     "in_data");
-  std::cout << in_data->toString() << std::endl;
   vAST::Concat* in_data_concat = dynamic_cast<vAST::Concat*>(in_data.get());
   in_data.release();
   ASSERT(in_data_concat, "In data NDArray input should be a concat node");
