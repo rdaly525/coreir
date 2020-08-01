@@ -190,9 +190,9 @@ Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
 
     // Get outer dimension and remove from dims vector
     std::unique_ptr<vAST::NumericLiteral>
-      outer_dim = std::make_unique<vAST::NumericLiteral>(
-        toString(dims.front() - 1));
-    dims.pop_front();
+      inner_dim = std::make_unique<vAST::NumericLiteral>(
+        toString(dims.back() - 1));
+    dims.pop_back();
 
     // Convert to vAST
     std::vector<std::pair<
@@ -206,7 +206,7 @@ Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
 
     return std::make_unique<vAST::NDVector>(
       std::move(id),
-      std::move(outer_dim),
+      std::move(inner_dim),
       std::make_unique<vAST::NumericLiteral>("0"),
       std::move(inner_dims));
   }
