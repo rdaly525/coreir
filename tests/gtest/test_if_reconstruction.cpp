@@ -23,7 +23,7 @@ TEST(IfReconstructionTests, TestUart) {
   const std::vector<std::string> passes = {"inline_single_instances",
                                            "rungenerators",
                                            "removebulkconnections",
-                                           "flattentypes",
+                                           "flattentypes --ndarray",
                                            "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/uart.v");

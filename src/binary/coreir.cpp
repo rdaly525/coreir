@@ -219,7 +219,10 @@ int main(int argc, char* argv[]) {
     if (opts.count("y")) { vstr += " -y"; }
     if (opts.count("w")) { vstr += " -w"; }
     modified |= c->runPasses(
-      {"rungenerators", "removebulkconnections", "flattentypes", vstr},
+      {"rungenerators",
+       "removebulkconnections",
+       "flattentypes --ndarray",
+       vstr},
       namespaces);
     LOG(DEBUG) << "Running vpasses";
 

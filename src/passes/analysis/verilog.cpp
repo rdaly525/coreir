@@ -157,7 +157,7 @@ Type* get_raw_type(Type* type) {
   return type;
 }
 
-void getNDArrayDims(Type* type, std::vector<int>& dims) {
+void getNDArrayDims(Type* type, std::deque<int>& dims) {
   if (get_raw_type(type)->isBaseType()) { return; }
   else if (!isa<ArrayType>(type)) {
     throw std::runtime_error(
@@ -185,17 +185,14 @@ Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
     }
 
     // Collect dimensions in a vector
-    std::vector<int> dims;
+    std::deque<int> dims;
     getNDArrayDims(type, dims);
 
     // Get outer dimension and remove from dims vector
     std::unique_ptr<vAST::NumericLiteral>
       outer_dim = std::make_unique<vAST::NumericLiteral>(
-        toString(dims.back() - 1));
-    dims.pop_back();
-
-    // Reverse ordering for outer last
-    std::reverse(dims.begin(), dims.end());
+        toString(dims.front() - 1));
+    dims.pop_front();
 
     // Convert to vAST
     std::vector<std::pair<
@@ -454,6 +451,14 @@ class ConnMapEntry {
         metadata(metadata){};
 };
 
+std::string indexToString(std::vector<int> index) {
+  std::string str = "";
+  for (auto i : index) { str += std::to_string(i) + ", "; }
+  // remove extra comma/space
+  str.resize(str.size() - 2);
+  return str;
+}
+
 // Recursive logic for generating a Concat node for an ND Array connection
 // if the array is 1 dimensional, just return a concat of the arguments
 // else, build a concat for each index in the current outer most dimension
@@ -466,10 +471,10 @@ class ConnMapEntry {
 // recursion
 std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
   std::vector<std::unique_ptr<vAST::Expression>>& nd_args,
-  std::vector<int> dims,
+  std::deque<int> dims,
   int offset = 0) {
   std::vector<std::unique_ptr<vAST::Expression>> args;
-  int curr_dim = dims.back();
+  int curr_dim = dims.front();
   if (dims.size() == 1) {
     // Simple case, concat args are fetched based on index from offset
     for (int i = 0; i < curr_dim; i++) {
@@ -477,8 +482,8 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
     }
   }
   else {
-    std::vector<int> inner_dims = dims;
-    inner_dims.pop_back();
+    std::deque<int> inner_dims = dims;
+    inner_dims.pop_front();
     int inner_offset = 1;
     for (auto dim : inner_dims) { inner_offset *= dim; }
     // For each index in the current (outer) dimension
@@ -517,7 +522,8 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
     auto ptr = dynamic_cast<vAST::Concat*>(args[i].get());
     if (ptr && ptr->args.size() == 1) { args[i] = std::move(ptr->args[0]); }
   }
-  return std::make_unique<vAST::Concat>(std::move(args));
+  auto result = std::make_unique<vAST::Concat>(std::move(args));
+  return result;
 }
 
 std::vector<int> selPathToIndex(SelectPath sp) {
@@ -751,14 +757,6 @@ void process_connection_debug_metadata(
   }
 }
 
-std::string indexToString(std::vector<int> index) {
-  std::string str = "";
-  for (auto i : index) { str += std::to_string(i) + ", "; }
-  // remove extra comma/space
-  str.resize(str.size() - 2);
-  return str;
-}
-
 // If it is not a bulk connection, create a concat node and wire up the inputs
 // by index
 std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
@@ -775,7 +773,7 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
   ASSERT(isa<ArrayType>(field_type), "Expected Array for concat connection");
   ArrayType* arr_type = cast<ArrayType>(field_type);
 
-  std::vector<int> dims;
+  std::deque<int> dims;
   getNDArrayDims(arr_type, dims);
   int total_size = 1;
   for (auto dim : dims) { total_size *= dim; }
@@ -844,6 +842,7 @@ void assign_module_outputs(
         verilog_conn->toString(),
         body,
         field);
+      ;
       // Regular (possibly bulk) connection
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(field),

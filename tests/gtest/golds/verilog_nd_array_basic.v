@@ -1,8 +1,8 @@
 module Main (
-    input [7:0][15:0][11:0] I0,
+    input [11:0][15:0][7:0] I0,
     input I1__0,
     input [2:0] I1__1,
-    output [7:0][15:0][3:0] O0,
+    output [3:0][15:0][7:0] O0,
     output [7:0][15:0][7:0] O1,
     output [2:0] O2__0,
     output O2__1
