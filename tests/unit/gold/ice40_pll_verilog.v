@@ -6,8 +6,14 @@ module top (
     output out,
     output outClk
 );
+wire pll_BYPASS;
 wire pll_PLLOUTCORE;
 wire pll_PLLOUTGLOBAL;
+wire pll_REFERENCECLK;
+wire pll_RESETB;
+assign pll_BYPASS = in;
+assign pll_REFERENCECLK = clk;
+assign pll_RESETB = reset;
 SB_PLL40_CORE #(
     .DIVF(7'h21),
     .DIVQ(3'h4),
@@ -16,11 +22,11 @@ SB_PLL40_CORE #(
     .FILTER_RANGE(3'h1),
     .PLLOUT_SELECT("GENCLK")
 ) pll (
-    .BYPASS(in),
+    .BYPASS(pll_BYPASS),
     .PLLOUTCORE(pll_PLLOUTCORE),
     .PLLOUTGLOBAL(pll_PLLOUTGLOBAL),
-    .REFERENCECLK(clk),
-    .RESETB(reset)
+    .REFERENCECLK(pll_REFERENCECLK),
+    .RESETB(pll_RESETB)
 );
 assign out = pll_PLLOUTCORE;
 assign outClk = pll_PLLOUTGLOBAL;
