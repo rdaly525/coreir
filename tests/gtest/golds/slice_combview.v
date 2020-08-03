@@ -5,10 +5,14 @@ module top (
     output [15:0] out,
     input CLK
 );
+wire value_snk_clk;
+wire [15:0] value_snk_in;
 wire [15:0] value_src_out;
+assign value_snk_clk = CLK;
+assign value_snk_in = {in[7:0],in[15:8]};
 coreir_coreir_reg__width16_snk value_snk (
-    .clk(CLK),
-    .in({in[7:0],in[15:8]})
+    .clk(value_snk_clk),
+    .in(value_snk_in)
 );
 coreir_coreir_reg__width16_src value_src (
     .out(value_src_out)

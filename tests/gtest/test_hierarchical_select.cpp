@@ -35,7 +35,7 @@ TEST(HierarchicalSelectTest, TestHierarchicalSelectDouble) {
   deleteContext(c);
 }
 
-TEST(HierarchicalSelectTest, TestHierarchicalSelectNameAlisa) {
+TEST(HierarchicalSelectTest, TestHierarchicalSelectNameAlias) {
   Context* c = newContext();
   load_file(c, "srcs/hierarchical_select_3.json");
   check_verilog(c, "golds/hierarchical_select_3.v");

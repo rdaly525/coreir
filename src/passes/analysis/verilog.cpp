@@ -270,12 +270,27 @@ Passes::Verilog::declareConnections(
     bool is_reg = _inline && is_muxn(instance.second->getModuleRef());
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
-      if (!field_type->isInput()) {
-        this->makeDecl(
-          instance.first + "_" + field,
-          field_type,
-          declarations,
-          is_reg);
+      if (
+        field_type->isInput() &&
+        isInlined(instance.second->getModuleRef(), _inline)) {
+        // skip inlined input (don't need wire to assign to)
+        continue;
+      }
+      this->makeDecl(
+        instance.first + "_" + field,
+        field_type,
+        declarations,
+        is_reg);
+      if (field_type->isInput()) {
+        // insert into wire blacklist so they aren't inlined into module
+        // instance statements (needed for tool compatibility, e.g. verilator
+        // doesn't support packed array concat inside module instance, so we
+        // need to do it in an assign to wire input statement)
+        //
+        // TODO: In the future, we could improve this logic downstream in
+        // verilogAST so that input wires are inlined if they just map an id to
+        // an id
+        this->wires.insert(instance.first + "_" + field);
       }
     }
   }
@@ -945,35 +960,48 @@ Passes::Verilog::compileModuleBody(
     RecordType* record_type = cast<RecordType>(instance_module->getType());
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
-      if (!field_type->isInput()) {
-        // output or inout, emit wire name
+      std::string wire_name = instance.first + "_" + field;
+      // connect wire (unless inlined input)
+      if (!(field_type->isInput() && isInlined(instance_module, _inline))) {
         verilog_connections->insert(
           field,
-          std::make_unique<vAST::Identifier>(instance.first + "_" + field));
-        continue;
+          std::make_unique<vAST::Identifier>(wire_name));
       }
+      // if not an input, continue, otherwise, emit assign for input wire
+      if (!field_type->isInput()) { continue; }
+
       auto entries = connection_map[ConnMapKey(instance.first, field)];
-      if (entries.size() == 0) { continue; }
+      std::unique_ptr<vAST::Expression> driver;
+      if (entries.size() == 0) {
+        throw std::runtime_error(
+          "COREIR_VERILOG_ERROR: No connections driving input");
+      }
       else if (entries.size() > 1) {
-        std::unique_ptr<vAST::Concat>
-          concat = convert_non_bulk_connection_to_concat(
-            field_type,
-            entries,
-            body,
-            instance_name + "." + field,
-            _inline);
-        verilog_connections->insert(field, std::move(concat));
-        // Otherwise we just use the entry in the connection map
+        driver = convert_non_bulk_connection_to_concat(
+          field_type,
+          entries,
+          body,
+          instance_name + "." + field,
+          _inline);
       }
       else {
-        std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
+        driver = convert_to_expression(
           convert_to_verilog_connection(entries[0].source, _inline));
         process_connection_debug_metadata(
           entries[0],
-          verilog_conn->toString(),
+          driver->toString(),
           body,
           instance_name + "." + field);
-        verilog_connections->insert(field, std::move(verilog_conn));
+      }
+      if (isInlined(instance_module, _inline)) {
+        // insert into connections since it will be extracted by inline logic
+        // (don't need input wire assign)
+        verilog_connections->insert(field, std::move(driver));
+      }
+      else {
+        body.push_back(std::make_unique<vAST::ContinuousAssign>(
+          std::make_unique<vAST::Identifier>(wire_name),
+          std::move(driver)));
       }
     }
     bool is_mem_inst = instance_module->isGenerated() &&

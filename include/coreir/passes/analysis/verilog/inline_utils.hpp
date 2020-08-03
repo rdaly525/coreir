@@ -92,4 +92,6 @@ class AlwaysStarMerger : public vAST::Transformer {
 
 bool is_mantle_wire(CoreIR::Module* module);
 
+bool isInlined(CoreIR::Module* module, bool _inline);
+
 #endif
