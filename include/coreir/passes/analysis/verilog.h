@@ -79,9 +79,6 @@ class Verilog : public InstanceGraphPass {
     onlyTop = true;
     addDependency("verifyconnectivity --onlyinputs");  // Should change back to
                                                        // check all connections
-    // For now we allow ndarrays, but error later, since dependencies are added
-    // before pass args are processed (otherwise we could add the dependency
-    // once we knew whether ndarrays should be allowed)
     addDependency("verifyflattenedtypes --ndarray");
   }
 

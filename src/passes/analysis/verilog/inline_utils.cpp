@@ -356,10 +356,11 @@ std::unique_ptr<vAST::Module> AlwaysStarMerger::visit(
 }
 
 bool isInlined(CoreIR::Module* module, bool _inline) {
-  return can_inline_binary_op(module, _inline) ||
-    can_inline_unary_op(module, _inline) ||
-    can_inline_mux_op(module, _inline) || is_muxn(module) ||
-    can_inline_const_op(module, _inline) ||
-    can_inline_slice_op(module, _inline) ||
-    (module->getMetaData().count("inline_verilog") > 0);
+  return _inline &&
+    (can_inline_binary_op(module, _inline) ||
+     can_inline_unary_op(module, _inline) ||
+     can_inline_mux_op(module, _inline) || is_muxn(module) ||
+     can_inline_const_op(module, _inline) ||
+     can_inline_slice_op(module, _inline) ||
+     (module->getMetaData().count("inline_verilog") > 0));
 }

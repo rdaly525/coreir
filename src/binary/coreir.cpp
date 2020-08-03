@@ -57,6 +57,9 @@ int main(int argc, char* argv[]) {
     "mark signals with /*veriltor public*/")(
     "w,disable-width-cast",
     "disable verilog code generation of width casting when inlining")(
+    "x,disable-ndarray",
+    "disable verilog code generation of ndarrays (multi-dimensional arrays of "
+    "bits)")(
     "s,split",
     "splits output files by name (expects '-o <path>/*.<ext>')")(
     "product",
@@ -218,11 +221,10 @@ int main(int argc, char* argv[]) {
     if (opts.count("z")) { vstr += " -i"; }
     if (opts.count("y")) { vstr += " -y"; }
     if (opts.count("w")) { vstr += " -w"; }
+    std::string flattentypes_str = "flattentypes";
+    if (!opts.count("x")) { flattentypes_str += " --ndarray"; }
     modified |= c->runPasses(
-      {"rungenerators",
-       "removebulkconnections",
-       "flattentypes --ndarray",
-       vstr},
+      {"rungenerators", "removebulkconnections", flattentypes_str, vstr},
       namespaces);
     LOG(DEBUG) << "Running vpasses";
 
