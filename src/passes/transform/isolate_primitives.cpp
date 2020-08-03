@@ -9,13 +9,15 @@ namespace CoreIR {
 namespace Passes {
 bool IsolatePrimitives::runOnModule(Module* m) {
   if (!m->hasDef()) return false;
+  if (this->getContext()->getTop() != m) return false;
   auto def = m->getDef();
   auto c = this->getContext();
 
   // get a map of only primitive instances
   auto primitiveInstances = filterOver(def->getInstances(), [](auto it) {
     auto nsname = it.second->getModuleRef()->getNamespace()->getName();
-    return nsname == "coreir" || nsname == "corebit";
+    auto mname = it.second->getModuleRef()->getName();
+    return nsname == "coreir" || nsname == "corebit" || (nsname == "commonlib" && mname != "counter" && mname != "reshape" && mname != "muxn");
   });
 
   // early out
@@ -53,8 +55,8 @@ bool IsolatePrimitives::runOnModule(Module* m) {
   }
 
   // Create new prim module and definition
-  auto primModule = c->getNamespace("_")->newModuleDecl(
-    m->getName() + "_primitives",
+  auto primModule = c->getNamespace("global")->newModuleDecl(
+    m->getName() + "___primitives",
     c->Record(ports));
   // Add all primitive instances into new module
   auto pdef = primModule->newModuleDef();

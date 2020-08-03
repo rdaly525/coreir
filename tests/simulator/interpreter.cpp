@@ -276,7 +276,7 @@ TEST_CASE("Interpreting circuits with combinational loops") {
     // twoMux->setDef(def);
 
     // c->runPasses({"rungenerators", "flatten", "flattentypes",
-    // "wireclocks-coreir"});
+    // "wireclocks-clk"});
 
     // SimulatorState state(twoMux);
     // state.setValue("self.sel", BitVector(1, 0));
@@ -321,7 +321,7 @@ TEST_CASE("Run 32 bit float add") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -379,7 +379,7 @@ TEST_CASE("Run 16 bit float div") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -469,7 +469,7 @@ TEST_CASE("Run 32 bit float mul") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -527,7 +527,7 @@ TEST_CASE("Floating point gt") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -575,7 +575,7 @@ TEST_CASE("Floating point ge") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -623,7 +623,7 @@ TEST_CASE("Floating point lt") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -671,7 +671,7 @@ TEST_CASE("Floating point le") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -719,7 +719,7 @@ TEST_CASE("16 bit bfloat multiply") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -777,7 +777,7 @@ TEST_CASE("32 bit bfloat sub") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -838,7 +838,7 @@ TEST_CASE("16 bit bfloat sub") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -897,7 +897,7 @@ TEST_CASE("32 bit negate") {
   faddM->setDef(def);
 
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   SimulatorState state(faddM);
 
@@ -999,7 +999,7 @@ TEST_CASE("Unified buffer simulation stub") {
 
   wrapperMod->setDef(def);
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   // Build the simulator with the new model
   auto modBuilder = [](WireNode& wd) {
@@ -1277,7 +1277,7 @@ TEST_CASE("Unified buffer address generator simulation") {
 
   wrapperMod->setDef(def);
   c->runPasses(
-    {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+    {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
   // Build the simulator with the new model
   auto modBuilder = [](WireNode& wd) {
@@ -1537,7 +1537,7 @@ class UnifiedBuffer : public SimulatorPlugin {
 
     wrapperMod->setDef(def);
     c->runPasses({"rungenerators", "flatten", "flattentypes",
-  "wireclocks-coreir"});
+  "wireclocks-clk"});
 
     // Build the simulator with the new model
     auto modBuilder = [](WireNode& wd) {
@@ -1608,7 +1608,7 @@ TEST_CASE("Interpret simulator graphs") {
     muxNTest->setDef(def);
 
     c->runPasses(
-      {"rungenerators", "flatten", "flattentypes", "wireclocks-coreir"});
+      {"rungenerators", "flatten", "flattentypes", "wireclocks-clk"});
 
     SimulatorState state(muxNTest);
     for (uint i = 0; i < N; i++) {
@@ -3053,7 +3053,7 @@ TEST_CASE("Interpret simulator graphs") {
     }
 
     c->runPasses({"rungenerators", "flattentypes", "flatten",
-  "wireclocks-coreir"});
+  "wireclocks-clk"});
 
     Module* m = g->getModule("DesignTop");
 
@@ -3147,7 +3147,7 @@ TEST_CASE("Interpret simulator graphs") {
     }
 
     c->runPasses(
-      {"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
+      {"rungenerators", "flattentypes", "flatten", "wireclocks-clk"});
 
     Module* regMod = g->getModule("simple");
     SimulatorState state(regMod);
@@ -3217,7 +3217,7 @@ TEST_CASE("Interpret simulator graphs") {
     }
 
     c->runPasses(
-      {"rungenerators", "flattentypes", "flatten"});  //, "wireclocks-coreir"});
+      {"rungenerators", "flattentypes", "flatten"});  //, "wireclocks-clk"});
 
     Module* regMod = g->getModule("simple");
     SimulatorState state(regMod);
@@ -3273,7 +3273,7 @@ TEST_CASE("Interpret simulator graphs") {
   //  }
 
   //  c->runPasses({"rungenerators", "flattentypes", "flatten",
-  //  "wireclocks-coreir"});
+  //  "wireclocks-clk"});
   //
   //  Module* fifoMod = g->getModule("Fifo");
   //  SimulatorState state(fifoMod);

@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
   cout << "Starting passes" << endl;
 
   c->runPasses(
-    {"rungenerators", "flattentypes", "flatten"});  //, "wireclocks-coreir"});
+    {"rungenerators", "flattentypes", "flatten"});  //, "wireclocks-clk"});
 
   cout << "Done running passes" << endl;
 
