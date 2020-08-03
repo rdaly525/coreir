@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
   }
 
   c->runPasses(
-    {"rungenerators", "flattentypes", "flatten", "wireclocks-coreir"});
+    {"rungenerators", "flattentypes", "flatten", "wireclocks-clk"});
 
   SimulatorState state(top);
 

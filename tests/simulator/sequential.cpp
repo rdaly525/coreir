@@ -830,7 +830,7 @@ TEST_CASE("Sequential logic") {
   //   }
 
   //   c->runPasses({"rungenerators","flattentypes", "flatten",
-  //   "wireclocks-coreir"}); Module* m =
+  //   "wireclocks-clk"}); Module* m =
   //   c->getGlobal()->getModule("DesignTop");
 
   //   map<int, vector<vdisc>> numOutputsHisto;
@@ -984,7 +984,7 @@ TEST_CASE("Sequential logic") {
     }
 
     c->runPasses({"rungenerators","flattentypes","flatten",
-  "wireclocks-coreir"});
+  "wireclocks-clk"});
 
     Module* m = c->getGlobal()->getModule("DesignTop");
 
