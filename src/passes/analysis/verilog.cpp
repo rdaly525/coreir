@@ -549,6 +549,18 @@ std::vector<int> selPathToIndex(SelectPath sp) {
   return index;
 }
 
+void addConnectionMapEntry(
+  std::string inst_name,
+  Wireable* sink,
+  Wireable* source,
+  std::map<ConnMapKey, std::vector<ConnMapEntry>>& connection_map,
+  CoreIR::ModuleDef* definition) {
+  SelectPath sink_sel_path = sink->getSelectPath();
+  std::vector<int> index = selPathToIndex(sink_sel_path);
+  connection_map[ConnMapKey(inst_name, sink_sel_path[1])].push_back(
+    ConnMapEntry(source, index, definition->getMetaData(sink, source)));
+}
+
 // Builds a map from pairs of strings of the form <instance_name, port_name>
 // to the source Wireable(s) which will be used to generate the verilog
 // identifier corresponding to the wire connecting the two entities
@@ -569,24 +581,22 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       if (
         connection.first->getTopParent() == instance.second &&
         connection.first->getType()->isInput()) {
-        SelectPath first_sel_path = connection.first->getSelectPath();
-        std::vector<int> index = selPathToIndex(first_sel_path);
-        connection_map[ConnMapKey(instance.first, first_sel_path[1])].push_back(
-          ConnMapEntry(
-            connection.second,
-            index,
-            definition->getMetaData(connection.first, connection.second)));
+        addConnectionMapEntry(
+          instance.first,
+          connection.first,
+          connection.second,
+          connection_map,
+          definition);
       }
       else if (
         connection.second->getTopParent() == instance.second &&
         connection.second->getType()->isInput()) {
-        SelectPath second_sel_path = connection.second->getSelectPath();
-        std::vector<int> index = selPathToIndex(second_sel_path);
-        connection_map[ConnMapKey(instance.first, second_sel_path[1])]
-          .push_back(ConnMapEntry(
-            connection.first,
-            index,
-            definition->getMetaData(connection.first, connection.second)));
+        addConnectionMapEntry(
+          instance.first,
+          connection.second,
+          connection.first,
+          connection_map,
+          definition);
       }
     }
     // Also check if the connection is driving a self port, which will be
@@ -594,24 +604,22 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
     if (
       connection.first->getSelectPath()[0] == "self" &&
       connection.first->getType()->isInput()) {
-      SelectPath first_sel_path = connection.first->getSelectPath();
-      std::vector<int> index = selPathToIndex(first_sel_path);
-      connection_map[ConnMapKey("self", first_sel_path[1])].push_back(
-        ConnMapEntry(
-          connection.second,
-          index,
-          definition->getMetaData(connection.first, connection.second)));
+      addConnectionMapEntry(
+        "self",
+        connection.first,
+        connection.second,
+        connection_map,
+        definition);
     }
     else if (
       connection.second->getSelectPath()[0] == "self" &&
       connection.second->getType()->isInput()) {
-      SelectPath second_sel_path = connection.second->getSelectPath();
-      std::vector<int> index = selPathToIndex(second_sel_path);
-      connection_map[ConnMapKey("self", second_sel_path[1])].push_back(
-        ConnMapEntry(
-          connection.first,
-          index,
-          definition->getMetaData(connection.first, connection.second)));
+      addConnectionMapEntry(
+        "self",
+        connection.second,
+        connection.first,
+        connection_map,
+        definition);
     }
   }
   return connection_map;
