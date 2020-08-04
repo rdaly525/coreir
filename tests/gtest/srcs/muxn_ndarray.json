@@ -1,0 +1,31 @@
+
+{"top":"global.MuxWrapper_5_32",
+"namespaces":{
+  "global":{
+      "modules": {
+      "MuxWrapper_5_32":{
+        "type":["Record",[
+          ["I",["Array",5,["Array",32,"BitIn"]]],
+          ["O",["Array",32,"Bit"]],
+          ["S",["Array",3,"BitIn"]]
+        ]],
+        "instances":{
+          "Mux5x32_inst0$coreir_commonlib_mux5x32_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",5], "width":["Int",32]}
+          }
+        },
+        "connections":[
+          ["self.I.0","Mux5x32_inst0$coreir_commonlib_mux5x32_inst0.in.data.0"],
+          ["self.I.1","Mux5x32_inst0$coreir_commonlib_mux5x32_inst0.in.data.1"],
+          ["self.I.2","Mux5x32_inst0$coreir_commonlib_mux5x32_inst0.in.data.2"],
+          ["self.I.3","Mux5x32_inst0$coreir_commonlib_mux5x32_inst0.in.data.3"],
+          ["self.I.4","Mux5x32_inst0$coreir_commonlib_mux5x32_inst0.in.data.4"],
+          ["self.S","Mux5x32_inst0$coreir_commonlib_mux5x32_inst0.in.sel"],
+          ["self.O","Mux5x32_inst0$coreir_commonlib_mux5x32_inst0.out"]
+        ]
+      }
+  }
+  }
+}
+}
