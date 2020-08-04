@@ -1,6 +1,9 @@
 #include "gtest/gtest.h"
 #include "assert_pass.h"
 #include "coreir.h"
+#include "coreir/definitions/coreVerilog.hpp"
+#include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/libs/commonlib.h"
 
 using namespace CoreIR;
 
@@ -31,6 +34,26 @@ TEST(VerilogNDArrayTests, TestVerilogNDArrayIndex) {
   const std::vector<std::string> passes = {"flattentypes --ndarray", "verilog"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/verilog_nd_array_index.v");
+  deleteContext(c);
+}
+
+TEST(VerilogNDArrayTests, TestVerilogNDArrayMuxN) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/muxn_ndarray.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "flattentypes --ndarray",
+    "verilog"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/muxn_ndarray.v");
   deleteContext(c);
 }
 

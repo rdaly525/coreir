@@ -857,10 +857,34 @@ void assign_module_outputs(
         verilog_conn->toString(),
         body,
         field);
-      ;
+      std::
+        variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>>
+          target = std::make_unique<vAST::Identifier>(field);
+      // handle single entry for array of length 1
+      // e.g. assign x[0] = y;
+      if (
+        isa<ArrayType>(field_type) && (entries.size() == 1) &&
+        (entries[0].index.size() == 1)) {
+        ArrayType* array_type = cast<ArrayType>(field_type);
+        if (array_type->getLen() != 1) {
+          throw std::runtime_error(
+            "Expected array with one connection to have length 1");
+        }
+        target = std::make_unique<vAST::Index>(
+          std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
+          vAST::make_num("0"));
+      }
+
       // Regular (possibly bulk) connection
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-        std::make_unique<vAST::Identifier>(field),
+        std::visit(
+          [](auto&& arg) -> std::variant<
+                           std::unique_ptr<vAST::Identifier>,
+                           std::unique_ptr<vAST::Index>,
+                           std::unique_ptr<vAST::Slice>> {
+            return std::move(arg);
+          },
+          std::move(target)),
         std::move(verilog_conn)));
     }
   }
@@ -999,8 +1023,35 @@ Passes::Verilog::compileModuleBody(
         verilog_connections->insert(field, std::move(driver));
       }
       else {
+        std::variant<
+          std::unique_ptr<vAST::Identifier>,
+          std::unique_ptr<vAST::Index>>
+          target = std::make_unique<vAST::Identifier>(wire_name);
+        // handle single entry for array of length 1
+        // e.g. assign x[0] = y;
+        if (
+          isa<ArrayType>(field_type) && (entries.size() == 1) &&
+          (entries[0].index.size() == 1)) {
+          ArrayType* array_type = cast<ArrayType>(field_type);
+          if (array_type->getLen() != 1) {
+            throw std::runtime_error(
+              "Expected array with one connection to have length 1");
+          }
+          target = std::make_unique<vAST::Index>(
+            std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
+            vAST::make_num("0"));
+        }
+
+        // Regular (possibly bulk) connection
         body.push_back(std::make_unique<vAST::ContinuousAssign>(
-          std::make_unique<vAST::Identifier>(wire_name),
+          std::visit(
+            [](auto&& arg) -> std::variant<
+                             std::unique_ptr<vAST::Identifier>,
+                             std::unique_ptr<vAST::Index>,
+                             std::unique_ptr<vAST::Slice>> {
+              return std::move(arg);
+            },
+            std::move(target)),
           std::move(driver)));
       }
     }

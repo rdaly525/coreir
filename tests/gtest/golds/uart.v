@@ -285,7 +285,7 @@ wire [1:0] reg_PR_inst2_in;
 wire [1:0] reg_PR_inst2_out;
 assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_clk = CLK;
 assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_arst = ASYNCRESET;
-assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in = UART_comb_inst0_O2;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in[0] = UART_comb_inst0_O2;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
