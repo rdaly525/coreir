@@ -847,13 +847,13 @@ processSingleArrayElementTarget(
     isa<ArrayType>(type) && (entries.size() == 1) &&
     (entries[0].index.size() == 1)) {
     ArrayType* array_type = cast<ArrayType>(type);
-    if (array_type->getLen() != 1) {
-      throw std::runtime_error(
-        "Expected array with one connection to have length 1");
+    // Check if array is length 1, because sometimes we only have one connection
+    // for a slice
+    if (array_type->getLen() == 1) {
+      target = std::make_unique<vAST::Index>(
+        std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
+        vAST::make_num("0"));
     }
-    target = std::make_unique<vAST::Index>(
-      std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
-      vAST::make_num("0"));
   }
   return std::visit(
     [](auto&& arg) -> std::variant<
