@@ -252,16 +252,15 @@ std::unique_ptr<vAST::Always> make_muxn_if(
   in_data.release();
   ASSERT(in_data_concat, "In data NDArray input should be a concat node");
 
-  // note in_data_concat->args uses verilog style indexing so MSB first
   std::vector<std::unique_ptr<vAST::BehavioralStatement>> true_body;
   true_body.push_back(std::make_unique<vAST::BlockingAssign>(
     target_id->clone(),
-    std::move(in_data_concat->args[n - 1])));
+    std::move(in_data_concat->args[0])));
 
   std::vector<std::unique_ptr<vAST::BehavioralStatement>> else_body;
   else_body.push_back(std::make_unique<vAST::BlockingAssign>(
     target_id->clone(),
-    std::move(in_data_concat->args[0])));
+    std::move(in_data_concat->args[n - 1])));
 
   std::unique_ptr<vAST::Expression> in_sel = verilog_connections->at("in_sel");
 
@@ -278,7 +277,7 @@ std::unique_ptr<vAST::Always> make_muxn_if(
     std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
     body.push_back(std::make_unique<vAST::BlockingAssign>(
       target_id->clone(),
-      std::move(in_data_concat->args[n - 1 - i])));
+      std::move(in_data_concat->args[i])));
     else_ifs.push_back({std::move(cond), std::move(body)});
   }
 
