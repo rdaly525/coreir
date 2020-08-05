@@ -510,9 +510,6 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
     }
   }
 
-  // Verilog uses MSB -> LSB ordering
-  std::reverse(args.begin(), args.end());
-
   // Remove empty cells, since there might be slices that only populate the
   // start index of the slice
   args.erase(
@@ -538,6 +535,11 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
     if (ptr && ptr->args.size() == 1) { args[i] = std::move(ptr->args[0]); }
   }
   bool unpacked = dims.size() != 1;
+
+  if (!unpacked) {
+    // Verilog uses MSB -> LSB ordering
+    std::reverse(args.begin(), args.end());
+  }
   return std::make_unique<vAST::Concat>(std::move(args), unpacked);
 }
 
