@@ -536,7 +536,7 @@ std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
   }
   bool unpacked = dims.size() != 1;
 
-  if (unpacked) {
+  if (!unpacked) {
     // Verilog uses MSB -> LSB ordering
     std::reverse(args.begin(), args.end());
   }
