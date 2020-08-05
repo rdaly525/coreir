@@ -276,7 +276,6 @@ Passes::Verilog::declareConnections(
         // skip inlined input (don't need wire to assign to)
         continue;
       }
-      if (field_type->isInput()) { continue; }
       this->makeDecl(
         instance.first + "_" + field,
         field_type,
@@ -1009,12 +1008,7 @@ Passes::Verilog::compileModuleBody(
       Type* field_type = record_type->getRecord().at(field);
       std::string wire_name = instance.first + "_" + field;
       // connect wire (unless inlined input)
-      // if (!(field_type->isInput() && isInlined(instance_module, _inline))) {
-      //   verilog_connections->insert(
-      //     field,
-      //     std::make_unique<vAST::Identifier>(wire_name));
-      // }
-      if (!field_type->isInput()) {
+      if (!(field_type->isInput() && isInlined(instance_module, _inline))) {
         verilog_connections->insert(
           field,
           std::make_unique<vAST::Identifier>(wire_name));
@@ -1045,8 +1039,7 @@ Passes::Verilog::compileModuleBody(
           body,
           instance_name + "." + field);
       }
-      // if (isInlined(instance_module, _inline)) {
-      if (true) {
+      if (isInlined(instance_module, _inline)) {
         // insert into connections since it will be extracted by inline logic
         // (don't need input wire assign)
         verilog_connections->insert(field, std::move(driver));
