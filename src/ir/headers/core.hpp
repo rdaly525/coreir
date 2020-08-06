@@ -298,7 +298,7 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
   core_state(c, core);
 
   // Add Const
-  core->newTypeGen("out", widthparams, [](Context* c, Values args) {
+  auto singleOutTypeGen = core->newTypeGen("singleOutType", widthparams, [](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     Type* ptype = c->Bit()->Arr(width);
 
@@ -315,25 +315,20 @@ Namespace* CoreIRLoadHeader_core(Context* c) {
 
   auto Const = core->newGeneratorDecl(
     "const",
-    core->getTypeGen("out"),
+    singleOutTypeGen,
     widthparams);
   Const->setModParamsGen(constModParamFun);
 
   // Add Term
-  core->newTypeGen("in", widthparams, [](Context* c, Values args) {
+  auto singleInTypeGen = core->newTypeGen("sngleInType", widthparams, [](Context* c, Values args) {
     uint width = args.at("width")->get<int>();
     Type* ptype = c->Bit()->Arr(width);
     return c->Record({{"in", ptype->getFlipped()}});
   });
-  core->newGeneratorDecl("term", core->getTypeGen("in"), widthparams);
+  core->newGeneratorDecl("term", singleInTypeGen, widthparams);
 
   // Add Undriven
-  core->newTypeGen("out", widthparams, [](Context* c, Values args) {
-    uint width = args.at("width")->get<int>();
-    Type* ptype = c->Bit()->Arr(width);
-    return c->Record({{"out", ptype}});
-  });
-  core->newGeneratorDecl("undriven", core->getTypeGen("out"), widthparams);
+  core->newGeneratorDecl("undriven", singleOutTypeGen, widthparams);
 
   /////////////////////////////////
   // Stdlib convert primitives

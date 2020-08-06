@@ -106,6 +106,9 @@ void Context::die() {
 
 Namespace* Context::newNamespace(string name) {
   checkStringSyntax(name);
+  if (this->namespaces.count(name) != 0) {
+    ASSERT(false, "Already added namespace! " + name);
+  }
   Namespace* n = new Namespace(this, name);
   namespaces.emplace(name, n);
   return n;
