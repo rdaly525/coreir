@@ -157,19 +157,58 @@ Type* get_raw_type(Type* type) {
   return type;
 }
 
+void getNDArrayDims(Type* type, std::deque<int>& dims) {
+  if (get_raw_type(type)->isBaseType()) { return; }
+  else if (!isa<ArrayType>(type)) {
+    throw std::runtime_error(
+      "VERILOG BACKEND ERROR: Unsupported array type (not flattened or ndarray "
+      "of bits)");
+  }
+  ArrayType* array_type = cast<ArrayType>(type);
+  dims.push_back(array_type->getLen());
+  getNDArrayDims(array_type->getElemType(), dims);
+}
+
 // Given a signal named `id` and a type `type`, wrap the signal name in a
 // `Vector` node if the signal is of type Array
 std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Vector>>
-process_decl(std::unique_ptr<vAST::Identifier> id, Type* type) {
+Passes::Verilog::processDecl(std::unique_ptr<vAST::Identifier> id, Type* type) {
   if (isa<ArrayType>(type)) {
     ArrayType* array_type = cast<ArrayType>(type);
     Type* internal_type = get_raw_type(array_type->getElemType());
-    ASSERT(internal_type->isBaseType(), "Expected Array of Bits");
-    return std::make_unique<vAST::Vector>(
+    if (internal_type->isBaseType()) {
+      return std::make_unique<vAST::Vector>(
+        std::move(id),
+        std::make_unique<vAST::NumericLiteral>(
+          toString(array_type->getLen() - 1)),
+        std::make_unique<vAST::NumericLiteral>("0"));
+    }
+
+    // Collect dimensions in a vector
+    std::deque<int> dims;
+    getNDArrayDims(type, dims);
+
+    // Get outer dimension and remove from dims vector
+    std::unique_ptr<vAST::NumericLiteral>
+      inner_dim = std::make_unique<vAST::NumericLiteral>(
+        toString(dims.back() - 1));
+    dims.pop_back();
+
+    // Convert to vAST
+    std::vector<std::pair<
+      std::unique_ptr<vAST::Expression>,
+      std::unique_ptr<vAST::Expression>>>
+      inner_dims;
+    for (auto dim : dims) {
+      inner_dims.push_back(
+        {vAST::make_num(toString(dim - 1)), vAST::make_num("0")});
+    }
+
+    return std::make_unique<vAST::NDVector>(
       std::move(id),
-      std::make_unique<vAST::NumericLiteral>(
-        toString(array_type->getLen() - 1)),
-      std::make_unique<vAST::NumericLiteral>("0"));
+      std::move(inner_dim),
+      std::make_unique<vAST::NumericLiteral>("0"),
+      std::move(inner_dims));
   }
 
   type = get_raw_type(type);
@@ -179,7 +218,7 @@ process_decl(std::unique_ptr<vAST::Identifier> id, Type* type) {
   return std::move(id);
 }
 
-void make_decl(
+void Passes::Verilog::makeDecl(
   std::string name,
   Type* type,
   std::vector<std::variant<
@@ -200,7 +239,7 @@ void make_decl(
       }
       declarations.push_back(std::move(decl));
     },
-    process_decl(std::move(id), type));
+    this->processDecl(std::move(id), type));
 }
 
 // Given a map of instances, return a vector of containing declarations for all
@@ -210,7 +249,9 @@ void make_decl(
 std::vector<std::variant<
   std::unique_ptr<vAST::StructuralStatement>,
   std::unique_ptr<vAST::Declaration>>>
-declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
+Passes::Verilog::declareConnections(
+  std::map<std::string, Instance*> instances,
+  bool _inline) {
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
@@ -221,7 +262,7 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
       Type* type = cast<RecordType>(instance.second->getModuleRef()->getType())
                      ->getRecord()
                      .at("in");
-      make_decl(instance.first, type, declarations, false);
+      this->makeDecl(instance.first, type, declarations, false);
       continue;
     }
     RecordType* record_type = cast<RecordType>(
@@ -229,12 +270,27 @@ declare_connections(std::map<std::string, Instance*> instances, bool _inline) {
     bool is_reg = _inline && is_muxn(instance.second->getModuleRef());
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
-      if (!field_type->isInput()) {
-        make_decl(
-          instance.first + "_" + field,
-          field_type,
-          declarations,
-          is_reg);
+      if (
+        field_type->isInput() &&
+        isInlined(instance.second->getModuleRef(), _inline)) {
+        // skip inlined input (don't need wire to assign to)
+        continue;
+      }
+      this->makeDecl(
+        instance.first + "_" + field,
+        field_type,
+        declarations,
+        is_reg);
+      if (field_type->isInput()) {
+        // insert into wire blacklist so they aren't inlined into module
+        // instance statements (needed for tool compatibility, e.g. verilator
+        // doesn't support packed array concat inside module instance, so we
+        // need to do it in an assign to wire input statement)
+        //
+        // TODO: In the future, we could improve this logic downstream in
+        // verilogAST so that input wires are inlined if they just map an id to
+        // an id
+        this->wires.insert(instance.first + "_" + field);
       }
     }
   }
@@ -362,7 +418,7 @@ std::vector<std::unique_ptr<vAST::AbstractPort>> Passes::Verilog::compilePorts(
       ASSERT(false, "Not implemented for type = " + toString(field_type));
     }
     std::unique_ptr<vAST::Port> port = std::make_unique<vAST::Port>(
-      process_decl(std::move(name), field_type),
+      this->processDecl(std::move(name), field_type),
       verilog_direction,
       vAST::WIRE);
     if (this->verilator_debug) {
@@ -402,13 +458,108 @@ class ConnMapKey {
 class ConnMapEntry {
  public:
   Wireable* source;
-  int index;
+  std::vector<int> index;
   json& metadata;
-  ConnMapEntry(Wireable* source, int index, json& metadata)
+  ConnMapEntry(Wireable* source, std::vector<int> index, json& metadata)
       : source(source),
         index(index),
         metadata(metadata){};
 };
+
+std::string indexToString(std::vector<int> index) {
+  std::string str = "";
+  for (auto i : index) { str += std::to_string(i) + ", "; }
+  // remove extra comma/space
+  str.resize(str.size() - 2);
+  return str;
+}
+
+// Recursive logic for generating a Concat node for an ND Array connection
+// if the array is 1 dimensional, just return a concat of the arguments
+// else, build a concat for each index in the current outer most dimension
+// (using recursion for each index in the dimension)
+//
+// Uses nd_args which contains the flat index space of connections and
+// reconstructs the multi-dimensional concat tree
+//
+// offset argument is used to provide a start index for the final (leaf)
+// recursion
+std::unique_ptr<vAST::Concat> buildConcatFromNDArgs(
+  std::vector<std::unique_ptr<vAST::Expression>>& nd_args,
+  std::deque<int> dims,
+  int offset = 0) {
+  std::vector<std::unique_ptr<vAST::Expression>> args;
+  int curr_dim = dims.front();
+  if (dims.size() == 1) {
+    // Simple case, concat args are fetched based on index from offset
+    for (int i = 0; i < curr_dim; i++) {
+      args.push_back(std::move(nd_args[offset + i]));
+    }
+  }
+  else {
+    std::deque<int> inner_dims = dims;
+    inner_dims.pop_front();
+    int inner_offset = 1;
+    for (auto dim : inner_dims) { inner_offset *= dim; }
+    // For each index in the current (outer) dimension
+    // build concat for inner dimension(s) using offset that is incremented each
+    // iteration
+    for (int i = 0; i < curr_dim; i++) {
+      args.push_back(
+        buildConcatFromNDArgs(nd_args, inner_dims, offset + inner_offset * i));
+    }
+  }
+
+  // Verilog uses MSB -> LSB ordering
+  std::reverse(args.begin(), args.end());
+
+  // Remove empty cells, since there might be slices that only populate the
+  // start index of the slice
+  args.erase(
+    std::remove_if(
+      args.begin(),
+      args.end(),
+      [](std::unique_ptr<vAST::Expression>& arg) {
+        if (arg == NULL) { return true; }
+        // Empty indices (e.g. connected by bulk or slice)
+        if (auto ptr = dynamic_cast<vAST::Concat*>(arg.get())) {
+          if (ptr->args.size() == 0) { return true; }
+        }
+        return false;
+      }),
+    args.end());
+
+  // unpack concat of single element (handles bulk connections where only one
+  // [the start] index is connected)
+  // Right now this makes an assumption about how bulk connections are handled,
+  // but it's hard to capture in an assertion
+  for (unsigned int i = 0; i < args.size(); i++) {
+    auto ptr = dynamic_cast<vAST::Concat*>(args[i].get());
+    if (ptr && ptr->args.size() == 1) { args[i] = std::move(ptr->args[0]); }
+  }
+  bool unpacked = dims.size() != 1;
+  return std::make_unique<vAST::Concat>(std::move(args), unpacked);
+}
+
+std::vector<int> selPathToIndex(SelectPath sp) {
+  std::vector<int> index;
+  for (unsigned int i = 2; i < sp.size(); i++) {
+    index.push_back(std::stoi(sp[i]));
+  }
+  return index;
+}
+
+void addConnectionMapEntry(
+  std::string inst_name,
+  Wireable* sink,
+  Wireable* source,
+  std::map<ConnMapKey, std::vector<ConnMapEntry>>& connection_map,
+  CoreIR::ModuleDef* definition) {
+  SelectPath sink_sel_path = sink->getSelectPath();
+  std::vector<int> index = selPathToIndex(sink_sel_path);
+  connection_map[ConnMapKey(inst_name, sink_sel_path[1])].push_back(
+    ConnMapEntry(source, index, definition->getMetaData(sink, source)));
+}
 
 // Builds a map from pairs of strings of the form <instance_name, port_name>
 // to the source Wireable(s) which will be used to generate the verilog
@@ -430,28 +581,22 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
       if (
         connection.first->getTopParent() == instance.second &&
         connection.first->getType()->isInput()) {
-        SelectPath first_sel_path = connection.first->getSelectPath();
-        int index = 0;
-        if (first_sel_path.size() > 2) { index = std::stoi(first_sel_path[2]); }
-        connection_map[ConnMapKey(instance.first, first_sel_path[1])].push_back(
-          ConnMapEntry(
-            connection.second,
-            index,
-            definition->getMetaData(connection.first, connection.second)));
+        addConnectionMapEntry(
+          instance.first,
+          connection.first,
+          connection.second,
+          connection_map,
+          definition);
       }
       else if (
         connection.second->getTopParent() == instance.second &&
         connection.second->getType()->isInput()) {
-        SelectPath second_sel_path = connection.second->getSelectPath();
-        int index = 0;
-        if (second_sel_path.size() > 2) {
-          index = std::stoi(second_sel_path[2]);
-        }
-        connection_map[ConnMapKey(instance.first, second_sel_path[1])]
-          .push_back(ConnMapEntry(
-            connection.first,
-            index,
-            definition->getMetaData(connection.first, connection.second)));
+        addConnectionMapEntry(
+          instance.first,
+          connection.second,
+          connection.first,
+          connection_map,
+          definition);
       }
     }
     // Also check if the connection is driving a self port, which will be
@@ -459,26 +604,22 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
     if (
       connection.first->getSelectPath()[0] == "self" &&
       connection.first->getType()->isInput()) {
-      SelectPath first_sel_path = connection.first->getSelectPath();
-      int index = 0;
-      if (first_sel_path.size() > 2) { index = std::stoi(first_sel_path[2]); }
-      connection_map[ConnMapKey("self", first_sel_path[1])].push_back(
-        ConnMapEntry(
-          connection.second,
-          index,
-          definition->getMetaData(connection.first, connection.second)));
+      addConnectionMapEntry(
+        "self",
+        connection.first,
+        connection.second,
+        connection_map,
+        definition);
     }
     else if (
       connection.second->getSelectPath()[0] == "self" &&
       connection.second->getType()->isInput()) {
-      SelectPath second_sel_path = connection.second->getSelectPath();
-      int index = 0;
-      if (second_sel_path.size() > 2) { index = std::stoi(second_sel_path[2]); }
-      connection_map[ConnMapKey("self", second_sel_path[1])].push_back(
-        ConnMapEntry(
-          connection.first,
-          index,
-          definition->getMetaData(connection.first, connection.second)));
+      addConnectionMapEntry(
+        "self",
+        connection.second,
+        connection.first,
+        connection_map,
+        definition);
     }
   }
   return connection_map;
@@ -508,16 +649,13 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   std::variant<
     std::unique_ptr<vAST::Identifier>,
     std::unique_ptr<vAST::Attribute>,
-    std::unique_ptr<vAST::Slice>>
+    std::unique_ptr<vAST::Slice>,
+    std::unique_ptr<vAST::Index>>
     curr_node;
   for (uint i = 0; i < select_path.size(); i++) {
     auto item = select_path[i];
     if (isNumber(item)) {
-      ASSERT(
-        i == select_path.size() - 1,
-        "Assumed flattened types have array index as last element "
-        "in select path");
-      return std::make_unique<vAST::Index>(
+      curr_node = std::make_unique<vAST::Index>(
         std::move(curr_node),
         vAST::make_num(item));
     }
@@ -608,6 +746,9 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
       }
     }
   }
+  if (std::holds_alternative<std::unique_ptr<vAST::Index>>(curr_node)) {
+    return std::get<std::unique_ptr<vAST::Index>>(std::move(curr_node));
+  }
   if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(curr_node)) {
     return std::get<std::unique_ptr<vAST::Identifier>>(std::move(curr_node));
   }
@@ -650,11 +791,19 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
   std::string debug_prefix,
   bool _inline) {
 
-  std::vector<std::unique_ptr<vAST::Expression>> args;
+  // nd-args contains a flat encoding of the index space of the array
+  std::vector<std::unique_ptr<vAST::Expression>> nd_args;
   ASSERT(isa<ArrayType>(field_type), "Expected Array for concat connection");
   ArrayType* arr_type = cast<ArrayType>(field_type);
-  args.resize(arr_type->getLen());
 
+  std::deque<int> dims;
+  getNDArrayDims(arr_type, dims);
+  int total_size = 1;
+  for (auto dim : dims) { total_size *= dim; }
+  nd_args.resize(total_size);
+
+  // map entries from the connection map into the flat index space, then we
+  // construct the appropriate Concat tree to map to the multi-dimensional space
   for (auto entry : entries) {
     std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
       convert_to_verilog_connection(entry.source, _inline));
@@ -662,23 +811,102 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
       entry,
       verilog_conn->toString(),
       body,
-      debug_prefix + "[" + std::to_string(entry.index) + "]");
-    args[entry.index] = std::move(verilog_conn);
+      debug_prefix + "[" + indexToString(entry.index) + "]");
+    ASSERT(
+      entry.index.size() <= dims.size(),
+      "Expected index size to be less than or equal to dimensions");
+    // convert index vector to flat index
+    int inner_offset = total_size;
+    int index = 0;
+    for (unsigned int i = 0; i < entry.index.size(); i++) {
+      inner_offset /= dims[i];
+      if (i < dims.size() - 1) { index += entry.index[i] * inner_offset; }
+      else {
+        index += entry.index[i];
+      }
+    }
+    nd_args[index] = std::move(verilog_conn);
   }
 
-  // Verilog uses MSB -> LSB ordering
-  std::reverse(args.begin(), args.end());
+  return buildConcatFromNDArgs(nd_args, dims);
+}
 
-  // Remove empty cells, since there might be slices that only populate the
-  // start index of the slice
-  args.erase(
-    std::remove_if(
-      args.begin(),
-      args.end(),
-      [](std::unique_ptr<vAST::Expression>& arg) { return arg == NULL; }),
-    args.end());
+std::variant<
+  std::unique_ptr<vAST::Identifier>,
+  std::unique_ptr<vAST::Index>,
+  std::unique_ptr<vAST::Slice>>
+processSingleArrayElementTarget(
+  std::string target_id,
+  Type* type,
+  std::vector<ConnMapEntry>& entries) {
+  std::variant<std::unique_ptr<vAST::Identifier>, std::unique_ptr<vAST::Index>>
+    target = std::make_unique<vAST::Identifier>(target_id);
+  // handle single entry for array of length 1
+  // e.g. assign x[0] = y;
+  if (
+    isa<ArrayType>(type) && (entries.size() == 1) &&
+    (entries[0].index.size() == 1)) {
+    ArrayType* array_type = cast<ArrayType>(type);
+    // Check if array is length 1, because sometimes we only have one connection
+    // for a slice
+    if (array_type->getLen() == 1) {
+      target = std::make_unique<vAST::Index>(
+        std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
+        vAST::make_num("0"));
+    }
+  }
+  return std::visit(
+    [](auto&& arg) -> std::variant<
+                     std::unique_ptr<vAST::Identifier>,
+                     std::unique_ptr<vAST::Index>,
+                     std::unique_ptr<vAST::Slice>> { return std::move(arg); },
+    std::move(target));
+}
 
-  return std::make_unique<vAST::Concat>(std::move(args));
+// unpacked concat doesn't seem to work with ncsim/garnet test,
+// so instead we emit an assignment statement for each index of the
+// unpacked array
+void wireUnpackecDriver(
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>& body,
+  std::unique_ptr<vAST::Concat> concat,
+  std::variant<
+    std::unique_ptr<vAST::Identifier>,
+    std::unique_ptr<vAST::Index>,
+    std::unique_ptr<vAST::Slice>> target) {
+  unsigned int len = concat->args.size();
+  for (unsigned int i = 0; i < len; i++) {
+    std::unique_ptr<vAST::Expression> curr_arg = std::move(concat->args[i]);
+    std::variant<
+      std::unique_ptr<vAST::Identifier>,
+      std::unique_ptr<vAST::Index>,
+      std::unique_ptr<vAST::Slice>>
+      curr_target = std::make_unique<vAST::Index>(
+        std::visit(
+          [](auto&& value) -> std::variant<
+                             std::unique_ptr<vAST::Identifier>,
+                             std::unique_ptr<vAST::Attribute>,
+                             std::unique_ptr<vAST::Slice>,
+                             std::unique_ptr<vAST::Index>> {
+            return value->clone();
+          },
+          target),
+        vAST::make_num(std::to_string(len - 1 - i)));
+    if (auto ptr = dynamic_cast<vAST::Concat*>(curr_arg.get())) {
+      if (ptr->unpacked) {
+        curr_arg.release();
+        wireUnpackecDriver(
+          body,
+          std::unique_ptr<vAST::Concat>(ptr),
+          std::move(curr_target));
+        continue;
+      }
+    }
+    body.push_back(std::make_unique<vAST::ContinuousAssign>(
+      std::move(curr_target),
+      std::move(curr_arg)));
+  }
 }
 
 // For each output of the current module definition, emit a statement of the
@@ -703,9 +931,13 @@ void assign_module_outputs(
           body,
           field,
           _inline);
-      body.push_back(std::make_unique<vAST::ContinuousAssign>(
-        std::make_unique<vAST::Identifier>(field),
-        std::move(concat)));
+      if (concat->unpacked) {
+        wireUnpackecDriver(body, std::move(concat), vAST::make_id(field));
+      } else {
+        body.push_back(std::make_unique<vAST::ContinuousAssign>(
+          std::make_unique<vAST::Identifier>(field),
+          std::move(concat)));
+      }
     }
     else {
       std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
@@ -715,9 +947,16 @@ void assign_module_outputs(
         verilog_conn->toString(),
         body,
         field);
+
+      std::variant<
+        std::unique_ptr<vAST::Identifier>,
+        std::unique_ptr<vAST::Index>,
+        std::unique_ptr<vAST::Slice>>
+        target = processSingleArrayElementTarget(field, field_type, entries);
+
       // Regular (possibly bulk) connection
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
-        std::make_unique<vAST::Identifier>(field),
+        std::move(target),
         std::move(verilog_conn)));
     }
   }
@@ -740,8 +979,8 @@ void assign_inouts(
       // based on their lexical ordering so the code generation is consistent
       // (otherwise we can get flipped assignment statements)
       // note this is only an issue in the inout logic because the normal port
-      // logic depends on the input/output relationship (output drives input) so
-      // the order is enforced through other means
+      // logic depends on the input/output relationship (output drives input)
+      // so the order is enforced through other means
       Wireable* target = connection.first;
       Wireable* value = connection.second;
       bool order = SPComp(target->getSelectPath(), value->getSelectPath());
@@ -759,7 +998,7 @@ void assign_inouts(
 std::vector<std::variant<
   std::unique_ptr<vAST::StructuralStatement>,
   std::unique_ptr<vAST::Declaration>>>
-compile_module_body(
+Passes::Verilog::compileModuleBody(
   RecordType* module_type,
   CoreIR::ModuleDef* definition,
   bool _inline,
@@ -772,7 +1011,7 @@ compile_module_body(
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
-    body = declare_connections(instances, _inline);
+    body = this->declareConnections(instances, _inline);
 
   std::map<ConnMapKey, std::vector<ConnMapEntry>>
     connection_map = build_connection_map(definition, instances);
@@ -792,8 +1031,8 @@ compile_module_body(
       module_name = make_name(instance_module->getName(), verilog_json);
     }
     else if (instance_module->getMetaData().count("verilog_name") > 0) {
-      // Allow user to provide specific module verilog name using metadata (e.g.
-      // for ice40 primitives that are normally contained in the ice40
+      // Allow user to provide specific module verilog name using metadata
+      // (e.g. for ice40 primitives that are normally contained in the ice40
       // namespace, but we want to use their names without the ice40_ prefix
       // from longname)
       module_name = instance_module->getMetaData()["verilog_name"]
@@ -817,15 +1056,23 @@ compile_module_body(
     RecordType* record_type = cast<RecordType>(instance_module->getType());
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
-      if (!field_type->isInput()) {
-        // output or inout, emit wire name
+      std::string wire_name = instance.first + "_" + field;
+      // connect wire (unless inlined input)
+      if (!(field_type->isInput() && isInlined(instance_module, _inline))) {
         verilog_connections->insert(
           field,
-          std::make_unique<vAST::Identifier>(instance.first + "_" + field));
-        continue;
+          std::make_unique<vAST::Identifier>(wire_name));
       }
+      // if not an input, continue, otherwise, emit assign for input wire
+      if (!field_type->isInput()) { continue; }
+
+      bool is_inlined = isInlined(instance_module, _inline);
       auto entries = connection_map[ConnMapKey(instance.first, field)];
-      if (entries.size() == 0) { continue; }
+      std::unique_ptr<vAST::Expression> driver;
+      if (entries.size() == 0) {
+        throw std::runtime_error(
+          "COREIR_VERILOG_ERROR: No connections driving input");
+      }
       else if (entries.size() > 1) {
         std::unique_ptr<vAST::Concat>
           concat = convert_non_bulk_connection_to_concat(
@@ -834,18 +1081,40 @@ compile_module_body(
             body,
             instance_name + "." + field,
             _inline);
-        verilog_connections->insert(field, std::move(concat));
-        // Otherwise we just use the entry in the connection map
+        if (concat->unpacked && !is_inlined) {
+          wireUnpackecDriver(body, std::move(concat), vAST::make_id(wire_name));
+          continue;
+        }
+        driver = std::move(concat);
       }
       else {
-        std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
+        driver = convert_to_expression(
           convert_to_verilog_connection(entries[0].source, _inline));
         process_connection_debug_metadata(
           entries[0],
-          verilog_conn->toString(),
+          driver->toString(),
           body,
           instance_name + "." + field);
-        verilog_connections->insert(field, std::move(verilog_conn));
+      }
+      if (is_inlined) {
+        // insert into connections since it will be extracted by inline logic
+        // (don't need input wire assign)
+        verilog_connections->insert(field, std::move(driver));
+      }
+      else {
+        std::variant<
+          std::unique_ptr<vAST::Identifier>,
+          std::unique_ptr<vAST::Index>,
+          std::unique_ptr<vAST::Slice>>
+          target = processSingleArrayElementTarget(
+            wire_name,
+            field_type,
+            entries);
+
+        // Regular (possibly bulk) connection
+        body.push_back(std::make_unique<vAST::ContinuousAssign>(
+          std::move(target),
+          std::move(driver)));
       }
     }
     bool is_mem_inst = instance_module->isGenerated() &&
@@ -1077,7 +1346,7 @@ void Passes::Verilog::compileModule(Module* module) {
     std::unique_ptr<vAST::Declaration>>>
     body;
   if (module->hasDef()) {
-    body = compile_module_body(
+    body = this->compileModuleBody(
       module->getType(),
       definition,
       this->_inline,

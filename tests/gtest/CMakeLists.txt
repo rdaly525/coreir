@@ -58,3 +58,7 @@ add_test(NAME test_memory COMMAND test_memory WORKING_DIRECTORY ${CMAKE_SOURCE_D
 add_executable(test_flattentypes test_flattentypes.cpp)
 target_link_libraries(test_flattentypes gtest_main coreir coreir-commonlib)
 add_test(NAME test_flattentypes COMMAND test_flattentypes WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_verilog_ndarray test_verilog_ndarray.cpp)
+target_link_libraries(test_verilog_ndarray gtest_main coreir coreir-commonlib)
+add_test(NAME test_verilog_ndarray COMMAND test_verilog_ndarray WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)

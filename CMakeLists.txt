@@ -40,7 +40,8 @@ if (STATIC)
     endif()
 endif()
 
-set(CMAKE_CXX_FLAGS "-Wall -Werror ${STATIC_FLAGS}")
+# Add explicit sign-compare because clang doesn't enable it by default
+set(CMAKE_CXX_FLAGS "-Wall -Werror -Wsign-compare ${STATIC_FLAGS}")
 
 # Based on
 # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project

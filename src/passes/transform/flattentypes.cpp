@@ -8,14 +8,6 @@
 using namespace std;
 using namespace CoreIR;
 
-bool isBitOrNDArrOfBits(Type* t) {
-  if (isBit(t)) return true;
-  if (auto at = dyn_cast<ArrayType>(t)) {
-    return isBitOrNDArrOfBits(at->getElemType());
-  }
-  return false;
-}
-
 bool CoreIR::Passes::FlattenTypes::isLeafType(Type* t) {
   if (this->preserve_ndarrays) { return isBitOrNDArrOfBits(t); }
   return isBitOrArrOfBits(t);

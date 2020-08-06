@@ -13,6 +13,26 @@ module top (
     input WE
 );
 wire [15:0] SB_RAM40_4K_inst0_RDATA;
+wire [10:0] SB_RAM40_4K_inst0_RADDR;
+wire SB_RAM40_4K_inst0_RCLK;
+wire SB_RAM40_4K_inst0_RCLKE;
+wire SB_RAM40_4K_inst0_RE;
+wire SB_RAM40_4K_inst0_WCLK;
+wire SB_RAM40_4K_inst0_WCLKE;
+wire SB_RAM40_4K_inst0_WE;
+wire [10:0] SB_RAM40_4K_inst0_WADDR;
+wire [15:0] SB_RAM40_4K_inst0_MASK;
+wire [15:0] SB_RAM40_4K_inst0_WDATA;
+assign SB_RAM40_4K_inst0_RADDR = RADDR;
+assign SB_RAM40_4K_inst0_RCLK = RCLK;
+assign SB_RAM40_4K_inst0_RCLKE = RCLKE;
+assign SB_RAM40_4K_inst0_RE = RE;
+assign SB_RAM40_4K_inst0_WCLK = WCLK;
+assign SB_RAM40_4K_inst0_WCLKE = WCLKE;
+assign SB_RAM40_4K_inst0_WE = WE;
+assign SB_RAM40_4K_inst0_WADDR = WADDR;
+assign SB_RAM40_4K_inst0_MASK = MASK;
+assign SB_RAM40_4K_inst0_WDATA = WDATA;
 SB_RAM40_4K #(
     .INIT_0(256'h0000000000000000000000000000000000000000000000000000000000ff00fe),
     .INIT_1(256'h0000000000000000000000000000000000000000000000000000000000000000),
@@ -34,16 +54,16 @@ SB_RAM40_4K #(
     .WRITE_MODE(0)
 ) SB_RAM40_4K_inst0 (
     .RDATA(SB_RAM40_4K_inst0_RDATA),
-    .RADDR(RADDR),
-    .RCLK(RCLK),
-    .RCLKE(RCLKE),
-    .RE(RE),
-    .WCLK(WCLK),
-    .WCLKE(WCLKE),
-    .WE(WE),
-    .WADDR(WADDR),
-    .MASK(MASK),
-    .WDATA(WDATA)
+    .RADDR(SB_RAM40_4K_inst0_RADDR),
+    .RCLK(SB_RAM40_4K_inst0_RCLK),
+    .RCLKE(SB_RAM40_4K_inst0_RCLKE),
+    .RE(SB_RAM40_4K_inst0_RE),
+    .WCLK(SB_RAM40_4K_inst0_WCLK),
+    .WCLKE(SB_RAM40_4K_inst0_WCLKE),
+    .WE(SB_RAM40_4K_inst0_WE),
+    .WADDR(SB_RAM40_4K_inst0_WADDR),
+    .MASK(SB_RAM40_4K_inst0_MASK),
+    .WDATA(SB_RAM40_4K_inst0_WDATA)
 );
 assign RDATA = SB_RAM40_4K_inst0_RDATA;
 endmodule

@@ -257,69 +257,105 @@ module UART (
     input ASYNCRESET,
     output O
 );
+wire DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_clk;
+wire DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_arst;
+wire [0:0] DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in;
 wire [0:0] DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_out;
+wire UART_comb_inst0_run;
+wire [7:0] UART_comb_inst0_message;
+wire [7:0] UART_comb_inst0_self_message_O;
+wire [2:0] UART_comb_inst0_self_i_O;
+wire UART_comb_inst0_self_tx_O;
+wire [1:0] UART_comb_inst0_self_yield_state_O;
 wire [7:0] UART_comb_inst0_O0;
 wire [2:0] UART_comb_inst0_O1;
 wire UART_comb_inst0_O2;
 wire [1:0] UART_comb_inst0_O3;
+wire reg_PR_inst0_clk;
+wire reg_PR_inst0_arst;
+wire [7:0] reg_PR_inst0_in;
 wire [7:0] reg_PR_inst0_out;
+wire reg_PR_inst1_clk;
+wire reg_PR_inst1_arst;
+wire [2:0] reg_PR_inst1_in;
 wire [2:0] reg_PR_inst1_out;
+wire reg_PR_inst2_clk;
+wire reg_PR_inst2_arst;
+wire [1:0] reg_PR_inst2_in;
 wire [1:0] reg_PR_inst2_out;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_clk = CLK;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_arst = ASYNCRESET;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in[0] = UART_comb_inst0_O2;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(1'h1),
     .width(1)
 ) DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(UART_comb_inst0_O2),
+    .clk(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_clk),
+    .arst(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_arst),
+    .in(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in),
     .out(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_out)
 );
+assign UART_comb_inst0_run = run;
+assign UART_comb_inst0_message = message;
+assign UART_comb_inst0_self_message_O = reg_PR_inst0_out;
+assign UART_comb_inst0_self_i_O = reg_PR_inst1_out;
+assign UART_comb_inst0_self_tx_O = DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_out[0];
+assign UART_comb_inst0_self_yield_state_O = reg_PR_inst2_out;
 UART_comb UART_comb_inst0 (
-    .run(run),
-    .message(message),
-    .self_message_O(reg_PR_inst0_out),
-    .self_i_O(reg_PR_inst1_out),
-    .self_tx_O(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_out[0]),
-    .self_yield_state_O(reg_PR_inst2_out),
+    .run(UART_comb_inst0_run),
+    .message(UART_comb_inst0_message),
+    .self_message_O(UART_comb_inst0_self_message_O),
+    .self_i_O(UART_comb_inst0_self_i_O),
+    .self_tx_O(UART_comb_inst0_self_tx_O),
+    .self_yield_state_O(UART_comb_inst0_self_yield_state_O),
     .O0(UART_comb_inst0_O0),
     .O1(UART_comb_inst0_O1),
     .O2(UART_comb_inst0_O2),
     .O3(UART_comb_inst0_O3),
     .O4(O)
 );
+assign reg_PR_inst0_clk = CLK;
+assign reg_PR_inst0_arst = ASYNCRESET;
+assign reg_PR_inst0_in = UART_comb_inst0_O0;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(8'h00),
     .width(8)
 ) reg_PR_inst0 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(UART_comb_inst0_O0),
+    .clk(reg_PR_inst0_clk),
+    .arst(reg_PR_inst0_arst),
+    .in(reg_PR_inst0_in),
     .out(reg_PR_inst0_out)
 );
+assign reg_PR_inst1_clk = CLK;
+assign reg_PR_inst1_arst = ASYNCRESET;
+assign reg_PR_inst1_in = UART_comb_inst0_O1;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(3'h7),
     .width(3)
 ) reg_PR_inst1 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(UART_comb_inst0_O1),
+    .clk(reg_PR_inst1_clk),
+    .arst(reg_PR_inst1_arst),
+    .in(reg_PR_inst1_in),
     .out(reg_PR_inst1_out)
 );
+assign reg_PR_inst2_clk = CLK;
+assign reg_PR_inst2_arst = ASYNCRESET;
+assign reg_PR_inst2_in = UART_comb_inst0_O3;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
     .init(2'h0),
     .width(2)
 ) reg_PR_inst2 (
-    .clk(CLK),
-    .arst(ASYNCRESET),
-    .in(UART_comb_inst0_O3),
+    .clk(reg_PR_inst2_clk),
+    .arst(reg_PR_inst2_arst),
+    .in(reg_PR_inst2_in),
     .out(reg_PR_inst2_out)
 );
 endmodule

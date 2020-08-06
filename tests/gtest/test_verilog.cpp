@@ -20,7 +20,7 @@ TEST(VerilogTests, TestStringModule) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "blackbox_verilog_golden.v");
@@ -38,7 +38,7 @@ TEST(VerilogTests, TestIntermediateConnection) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "intermediate_connection_golden.v");
@@ -56,7 +56,7 @@ TEST(VerilogTests, TestArraySelect) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "array_select_golden.v");
@@ -75,7 +75,7 @@ TEST(VerilogTests, TestAddInline) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "add_golden.v");
@@ -95,7 +95,7 @@ TEST(VerilogTests, TestTwoInline) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "two_ops_golden.v");
@@ -115,7 +115,7 @@ TEST(VerilogTests, TestDisableWidthCast) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline --disable-width-cast"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "two_ops_golden_no_cast.v");
@@ -134,7 +134,7 @@ TEST(VerilogTests, TestTwoBitInline) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "two_ops_bit_golden.v");
@@ -154,7 +154,7 @@ TEST(VerilogTests, TestPortOrder) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "port_order_golden.v");
@@ -175,7 +175,7 @@ TEST(VerilogTests, TestMuxInline) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "mux_golden.v");
@@ -195,7 +195,7 @@ TEST(VerilogTests, TestInlineVerilogMetadata) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "inline_verilog_golden.v");
@@ -210,8 +210,11 @@ TEST(VerilogTests, TestDebugInfo) {
   assert(top != nullptr);
   c->setTop(top->getRefName());
 
-  const std::vector<std::string> passes =
-    {"rungenerators", "removebulkconnections", "flattentypes", "verilog"};
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes --ndarray",
+    "verilog"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "debug_info_golden.v");
   deleteContext(c);
@@ -231,7 +234,7 @@ TEST(VerilogTests, TestVerilatorDebugInline) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline --verilator_debug"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "verilator_debug_inline_golden.v");
@@ -252,7 +255,7 @@ TEST(VerilogTests, TestRegisterMode) {
   const std::vector<std::string> passes = {
     "rungenerators",
     "removebulkconnections",
-    "flattentypes",
+    "flattentypes --ndarray",
     "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "register_mode_golden.v");

@@ -239,4 +239,12 @@ bool isBitOrArrOfBits(Type* t) {
   return false;
 }
 
+bool isBitOrNDArrOfBits(Type* t) {
+  if (isBit(t)) return true;
+  if (auto at = dyn_cast<ArrayType>(t)) {
+    return isBitOrNDArrOfBits(at->getElemType());
+  }
+  return false;
+}
+
 }  // namespace CoreIR

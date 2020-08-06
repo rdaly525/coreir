@@ -241,18 +241,27 @@ std::unique_ptr<vAST::Always> make_muxn_if(
   target.release();
   ASSERT(ptr, "Expected muxn output to be an identifier");
 
+  std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
+
   std::unique_ptr<vAST::Identifier>
     target_id = std::unique_ptr<vAST::Identifier>(ptr);
 
+  std::unique_ptr<vAST::Expression> in_data = verilog_connections->at(
+    "in_data");
+  vAST::Concat* in_data_concat = dynamic_cast<vAST::Concat*>(in_data.get());
+  in_data.release();
+  ASSERT(in_data_concat, "In data NDArray input should be a concat node");
+
+  // note in_data_concat->args uses verilog style indexing so MSB first
   std::vector<std::unique_ptr<vAST::BehavioralStatement>> true_body;
   true_body.push_back(std::make_unique<vAST::BlockingAssign>(
     target_id->clone(),
-    verilog_connections->at("in_data_0")));
+    std::move(in_data_concat->args[n - 1])));
 
   std::vector<std::unique_ptr<vAST::BehavioralStatement>> else_body;
   else_body.push_back(std::make_unique<vAST::BlockingAssign>(
     target_id->clone(),
-    verilog_connections->at("in_data_" + std::to_string(n - 1))));
+    std::move(in_data_concat->args[0])));
 
   std::unique_ptr<vAST::Expression> in_sel = verilog_connections->at("in_sel");
 
@@ -269,11 +278,10 @@ std::unique_ptr<vAST::Always> make_muxn_if(
     std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
     body.push_back(std::make_unique<vAST::BlockingAssign>(
       target_id->clone(),
-      verilog_connections->at("in_data_" + std::to_string(i))));
+      std::move(in_data_concat->args[n - 1 - i])));
     else_ifs.push_back({std::move(cond), std::move(body)});
   }
 
-  std::vector<std::unique_ptr<vAST::BehavioralStatement>> body;
   body.push_back(std::make_unique<vAST::If>(
     std::make_unique<vAST::BinaryOp>(
       in_sel->clone(),
@@ -345,4 +353,14 @@ std::unique_ptr<vAST::Module> AlwaysStarMerger::visit(
   }
   node->body = std::move(new_body);
   return node;
+}
+
+bool isInlined(CoreIR::Module* module, bool _inline) {
+  return _inline &&
+    (can_inline_binary_op(module, _inline) ||
+     can_inline_unary_op(module, _inline) ||
+     can_inline_mux_op(module, _inline) || is_muxn(module) ||
+     can_inline_const_op(module, _inline) ||
+     can_inline_slice_op(module, _inline) ||
+     (module->getMetaData().count("inline_verilog") > 0));
 }
