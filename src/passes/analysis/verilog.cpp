@@ -863,55 +863,6 @@ processSingleArrayElementTarget(
     std::move(target));
 }
 
-// For each output of the current module definition, emit a statement of the
-// form: `assign <output> = <driver(s)>;`
-void assign_module_outputs(
-  RecordType* record_type,
-  std::vector<std::variant<
-    std::unique_ptr<vAST::StructuralStatement>,
-    std::unique_ptr<vAST::Declaration>>>& body,
-  std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map,
-  bool _inline) {
-  for (auto field : record_type->getFields()) {
-    Type* field_type = record_type->getRecord().at(field);
-    if (field_type->isInput()) { continue; }
-    auto entries = connection_map[ConnMapKey("self", field)];
-    if (entries.size() == 0) { continue; }
-    else if (entries.size() > 1) {
-      std::unique_ptr<vAST::Concat>
-        concat = convert_non_bulk_connection_to_concat(
-          field_type,
-          entries,
-          body,
-          field,
-          _inline);
-      body.push_back(std::make_unique<vAST::ContinuousAssign>(
-        std::make_unique<vAST::Identifier>(field),
-        std::move(concat)));
-    }
-    else {
-      std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
-        convert_to_verilog_connection(entries[0].source, _inline));
-      process_connection_debug_metadata(
-        entries[0],
-        verilog_conn->toString(),
-        body,
-        field);
-
-      std::variant<
-        std::unique_ptr<vAST::Identifier>,
-        std::unique_ptr<vAST::Index>,
-        std::unique_ptr<vAST::Slice>>
-        target = processSingleArrayElementTarget(field, field_type, entries);
-
-      // Regular (possibly bulk) connection
-      body.push_back(std::make_unique<vAST::ContinuousAssign>(
-        std::move(target),
-        std::move(verilog_conn)));
-    }
-  }
-}
-
 // unpacked concat doesn't seem to work with ncsim/garnet test,
 // so instead we emit an assignment statement for each index of the
 // unpacked array
@@ -955,6 +906,59 @@ void wireUnpackecDriver(
     body.push_back(std::make_unique<vAST::ContinuousAssign>(
       std::move(curr_target),
       std::move(curr_arg)));
+  }
+}
+
+// For each output of the current module definition, emit a statement of the
+// form: `assign <output> = <driver(s)>;`
+void assign_module_outputs(
+  RecordType* record_type,
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>& body,
+  std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map,
+  bool _inline) {
+  for (auto field : record_type->getFields()) {
+    Type* field_type = record_type->getRecord().at(field);
+    if (field_type->isInput()) { continue; }
+    auto entries = connection_map[ConnMapKey("self", field)];
+    if (entries.size() == 0) { continue; }
+    else if (entries.size() > 1) {
+      std::unique_ptr<vAST::Concat>
+        concat = convert_non_bulk_connection_to_concat(
+          field_type,
+          entries,
+          body,
+          field,
+          _inline);
+      if (concat->unpacked) {
+        wireUnpackecDriver(body, std::move(concat), vAST::make_id(field));
+      } else {
+        body.push_back(std::make_unique<vAST::ContinuousAssign>(
+          std::make_unique<vAST::Identifier>(field),
+          std::move(concat)));
+      }
+    }
+    else {
+      std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
+        convert_to_verilog_connection(entries[0].source, _inline));
+      process_connection_debug_metadata(
+        entries[0],
+        verilog_conn->toString(),
+        body,
+        field);
+
+      std::variant<
+        std::unique_ptr<vAST::Identifier>,
+        std::unique_ptr<vAST::Index>,
+        std::unique_ptr<vAST::Slice>>
+        target = processSingleArrayElementTarget(field, field_type, entries);
+
+      // Regular (possibly bulk) connection
+      body.push_back(std::make_unique<vAST::ContinuousAssign>(
+        std::move(target),
+        std::move(verilog_conn)));
+    }
   }
 }
 
