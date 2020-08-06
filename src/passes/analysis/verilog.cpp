@@ -912,6 +912,52 @@ void assign_module_outputs(
   }
 }
 
+// unpacked concat doesn't seem to work with ncsim/garnet test,
+// so instead we emit an assignment statement for each index of the
+// unpacked array
+void wireUnpackecDriver(
+  std::vector<std::variant<
+    std::unique_ptr<vAST::StructuralStatement>,
+    std::unique_ptr<vAST::Declaration>>>& body,
+  std::unique_ptr<vAST::Concat> concat,
+  std::variant<
+    std::unique_ptr<vAST::Identifier>,
+    std::unique_ptr<vAST::Index>,
+    std::unique_ptr<vAST::Slice>> target) {
+  unsigned int len = concat->args.size();
+  for (unsigned int i = 0; i < len; i++) {
+    std::unique_ptr<vAST::Expression> curr_arg = std::move(concat->args[i]);
+    std::variant<
+      std::unique_ptr<vAST::Identifier>,
+      std::unique_ptr<vAST::Index>,
+      std::unique_ptr<vAST::Slice>>
+      curr_target = std::make_unique<vAST::Index>(
+        std::visit(
+          [](auto&& value) -> std::variant<
+                             std::unique_ptr<vAST::Identifier>,
+                             std::unique_ptr<vAST::Attribute>,
+                             std::unique_ptr<vAST::Slice>,
+                             std::unique_ptr<vAST::Index>> {
+            return value->clone();
+          },
+          target),
+        vAST::make_num(std::to_string(len - 1 - i)));
+    if (auto ptr = dynamic_cast<vAST::Concat*>(curr_arg.get())) {
+      if (ptr->unpacked) {
+        curr_arg.release();
+        wireUnpackecDriver(
+          body,
+          std::unique_ptr<vAST::Concat>(ptr),
+          std::move(curr_target));
+        continue;
+      }
+    }
+    body.push_back(std::make_unique<vAST::ContinuousAssign>(
+      std::move(curr_target),
+      std::move(curr_arg)));
+  }
+}
+
 // assign inout ports
 void assign_inouts(
   std::vector<Connection> connections,
@@ -929,8 +975,8 @@ void assign_inouts(
       // based on their lexical ordering so the code generation is consistent
       // (otherwise we can get flipped assignment statements)
       // note this is only an issue in the inout logic because the normal port
-      // logic depends on the input/output relationship (output drives input) so
-      // the order is enforced through other means
+      // logic depends on the input/output relationship (output drives input)
+      // so the order is enforced through other means
       Wireable* target = connection.first;
       Wireable* value = connection.second;
       bool order = SPComp(target->getSelectPath(), value->getSelectPath());
@@ -981,8 +1027,8 @@ Passes::Verilog::compileModuleBody(
       module_name = make_name(instance_module->getName(), verilog_json);
     }
     else if (instance_module->getMetaData().count("verilog_name") > 0) {
-      // Allow user to provide specific module verilog name using metadata (e.g.
-      // for ice40 primitives that are normally contained in the ice40
+      // Allow user to provide specific module verilog name using metadata
+      // (e.g. for ice40 primitives that are normally contained in the ice40
       // namespace, but we want to use their names without the ice40_ prefix
       // from longname)
       module_name = instance_module->getMetaData()["verilog_name"]
@@ -1016,6 +1062,7 @@ Passes::Verilog::compileModuleBody(
       // if not an input, continue, otherwise, emit assign for input wire
       if (!field_type->isInput()) { continue; }
 
+      bool is_inlined = isInlined(instance_module, _inline);
       auto entries = connection_map[ConnMapKey(instance.first, field)];
       std::unique_ptr<vAST::Expression> driver;
       if (entries.size() == 0) {
@@ -1023,12 +1070,18 @@ Passes::Verilog::compileModuleBody(
           "COREIR_VERILOG_ERROR: No connections driving input");
       }
       else if (entries.size() > 1) {
-        driver = convert_non_bulk_connection_to_concat(
-          field_type,
-          entries,
-          body,
-          instance_name + "." + field,
-          _inline);
+        std::unique_ptr<vAST::Concat>
+          concat = convert_non_bulk_connection_to_concat(
+            field_type,
+            entries,
+            body,
+            instance_name + "." + field,
+            _inline);
+        if (concat->unpacked && !is_inlined) {
+          wireUnpackecDriver(body, std::move(concat), vAST::make_id(wire_name));
+          continue;
+        }
+        driver = std::move(concat);
       }
       else {
         driver = convert_to_expression(
@@ -1039,7 +1092,7 @@ Passes::Verilog::compileModuleBody(
           body,
           instance_name + "." + field);
       }
-      if (isInlined(instance_module, _inline)) {
+      if (is_inlined) {
         // insert into connections since it will be extracted by inline logic
         // (don't need input wire assign)
         verilog_connections->insert(field, std::move(driver));
