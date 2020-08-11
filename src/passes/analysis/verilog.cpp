@@ -856,7 +856,7 @@ processSingleArrayElementTarget(
 // unpacked concat doesn't seem to work with ncsim/garnet test,
 // so instead we emit an assignment statement for each index of the
 // unpacked array
-void wireUnpackecDriver(
+void wireUnpackedDriver(
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>& body,
@@ -886,7 +886,7 @@ void wireUnpackecDriver(
     if (auto ptr = dynamic_cast<vAST::Concat*>(curr_arg.get())) {
       if (ptr->unpacked) {
         curr_arg.release();
-        wireUnpackecDriver(
+        wireUnpackedDriver(
           body,
           std::unique_ptr<vAST::Concat>(ptr),
           std::move(curr_target));
@@ -922,7 +922,7 @@ void assign_module_outputs(
           field,
           _inline);
       if (concat->unpacked) {
-        wireUnpackecDriver(body, std::move(concat), vAST::make_id(field));
+        wireUnpackedDriver(body, std::move(concat), vAST::make_id(field));
       }
       else {
         body.push_back(std::make_unique<vAST::ContinuousAssign>(
@@ -1077,7 +1077,7 @@ Passes::Verilog::compileModuleBody(
           verilog_connections->insert(
             field,
             std::make_unique<vAST::Identifier>(wire_name));
-          wireUnpackecDriver(body, std::move(concat), vAST::make_id(wire_name));
+          wireUnpackedDriver(body, std::move(concat), vAST::make_id(wire_name));
           continue;
         }
         driver = std::move(concat);
