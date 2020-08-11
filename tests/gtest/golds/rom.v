@@ -77,4 +77,5 @@ Memory Memory_inst0 (
     .RDATA(rdata),
     .CLK(clk)
 );
-endmodula
+endmodule
+

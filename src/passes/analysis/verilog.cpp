@@ -1105,15 +1105,25 @@ Passes::Verilog::compileModuleBody(
             wire_name,
             field_type,
             entries);
-        auto id_ptr = dynamic_cast<vAST::Identifier*>(driver.get());
+        auto target_id = dynamic_cast<vAST::Identifier*>(driver.get());
         if (
-          id_ptr &&
-          std::holds_alternative<std::unique_ptr<vAST::Identifier>>(target)) {
-          // prevent inlining of this wire into the module instance statement
-          this->wires.insert(id_ptr->value);
+          target_id &&
+          (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(target) ||
+           std::holds_alternative<std::unique_ptr<vAST::Index>>(target) ||
+           std::holds_alternative<std::unique_ptr<vAST::Slice>>(target))) {
+          // If it's not a concat, we connect it directly and prevent it from
+          // being inlined
+          //
+          // slices/indices are blacklisted automatically, but identifiers need
+          // to be marked
+          if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
+                target)) {
+            this->wires.insert(target_id->value);
+          }
           verilog_connections->insert(field, std::move(driver));
         }
         else {
+          // otherwise it's a concat, so we emit an input wire for it
           this->makeDecl(wire_name, field_type, body, false);
           // prevent inlining of this wire into the module instance statement
           this->wires.insert(wire_name);
