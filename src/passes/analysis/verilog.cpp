@@ -839,7 +839,12 @@ processSingleArrayElementTarget(
     ArrayType* array_type = cast<ArrayType>(type);
     // Check if array is length 1, because sometimes we only have one connection
     // for a slice
-    if (array_type->getLen() == 1) {
+    //
+    // Also for bit <- bits[1] in verilog, we don't don't need to do this (but
+    // we do need to for unpacked multidimensional arrays)
+    if (
+      array_type->getLen() == 1 &&
+      !get_raw_type(array_type->getElemType())->isBaseType()) {
       target = std::make_unique<vAST::Index>(
         std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
         vAST::make_num("0"));
