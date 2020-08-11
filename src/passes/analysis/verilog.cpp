@@ -100,6 +100,12 @@ std::string make_name(std::string name, json metadata) {
 std::unique_ptr<vAST::Expression> convert_mem_init_param_value(
   Value* value,
   int width) {
+
+  if (value->getKind() == Value::VK_Arg) {
+    auto arg = dyn_cast<Arg>(value);
+    return std::make_unique<vAST::Identifier>(arg->getField());
+  }
+
   // Assumes json list of ints
   json json_value = dyn_cast<ConstJson>(value)->get();
   ASSERT(json_value != NULL, "Got non-json value for mem init");
@@ -1118,8 +1124,10 @@ Passes::Verilog::compileModuleBody(
       }
     }
     bool is_mem_inst = instance_module->isGenerated() &&
-      instance_module->getGenerator()->getName() == "mem" &&
-      instance_module->getGenerator()->getNamespace()->getName() == "coreir";
+        ((instance_module->getGenerator()->getName() == "mem" &&
+          instance_module->getGenerator()->getNamespace()->getName() == "coreir") ||
+         (instance_module->getGenerator()->getName() == "rom2" &&
+          instance_module->getGenerator()->getNamespace()->getName() == "memory"));
     // Handle module arguments
     if (instance.second->hasModArgs()) {
       for (auto parameter : instance.second->getModArgs()) {
