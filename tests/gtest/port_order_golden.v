@@ -12,17 +12,15 @@ module Sub8 (
     input [7:0] x,
     output [7:0] a
 );
-wire [7:0] inst1_z;
-wire [7:0] inst1_x;
-wire inst1_CIN;
-assign inst1_z = z;
-assign inst1_x = ~ x;
-assign inst1_CIN = 1'b1;
+wire bit_const_1_None_out;
+wire [7:0] inst0_out;
+assign bit_const_1_None_out = 1'b1;
+assign inst0_out = ~ x;
 Add8_cin inst1 (
-    .z(inst1_z),
-    .x(inst1_x),
+    .z(z),
+    .x(inst0_out),
     .a(a),
-    .CIN(inst1_CIN)
+    .CIN(bit_const_1_None_out)
 );
 endmodule
 
@@ -31,13 +29,11 @@ module test_two_ops (
     input [7:0] x,
     output [7:0] a
 );
-wire [7:0] inst1_z;
-wire [7:0] inst1_x;
-assign inst1_z = 8'(z + x);
-assign inst1_x = z;
+wire [7:0] inst0_out;
+assign inst0_out = 8'(z + x);
 Sub8 inst1 (
-    .z(inst1_z),
-    .x(inst1_x),
+    .z(inst0_out),
+    .x(z),
     .a(a)
 );
 endmodule

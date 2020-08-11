@@ -21,20 +21,14 @@ module test (
     input CLK,
     input CE
 );
-wire [15:0] Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_in;
-wire Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_ce;
 wire [15:0] Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_out;
-wire Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_clk;
-assign Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_in = In0;
-assign Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_ce = CE;
-assign Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_clk = CLK;
 regCE #(
     .width(16)
 ) Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE (
-    .in(Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_in),
-    .ce(Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_ce),
+    .in(In0),
+    .ce(CE),
     .out(Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_out),
-    .clk(Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_clk)
+    .clk(CLK)
 );
 assign Out0 = Register_has_ce_True_has_reset_False_has_async_reset_False_has_async_resetn_False_type_Bits_n_16_inst0$value__CE_out;
 endmodule
