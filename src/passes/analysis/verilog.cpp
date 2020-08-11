@@ -984,6 +984,14 @@ void assign_inouts(
   };
 }
 
+bool isMemModule(Module* module) {
+  return module->isGenerated() &&
+    ((module->getGenerator()->getName() == "mem" &&
+      module->getGenerator()->getNamespace()->getName() == "coreir") ||
+     (module->getGenerator()->getName() == "rom2" &&
+      module->getGenerator()->getNamespace()->getName() == "memory"));
+}
+
 // Traverses the instance map and creates a vector of module instantiations
 // using connection_map to wire up instance ports
 std::vector<std::variant<
@@ -1135,13 +1143,7 @@ Passes::Verilog::compileModuleBody(
         }
       }
     }
-    bool is_mem_inst = instance_module->isGenerated() &&
-      ((instance_module->getGenerator()->getName() == "mem" &&
-        instance_module->getGenerator()->getNamespace()->getName() ==
-          "coreir") ||
-       (instance_module->getGenerator()->getName() == "rom2" &&
-        instance_module->getGenerator()->getNamespace()->getName() ==
-          "memory"));
+    bool is_mem_inst = isMemModule(instance_module);
     // Handle module arguments
     if (instance.second->hasModArgs()) {
       for (auto parameter : instance.second->getModArgs()) {
