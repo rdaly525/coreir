@@ -28,6 +28,27 @@ TEST(MemoryTests, TestROM) {
   deleteContext(c);
 }
 
+TEST(MemoryTests, TestIssue932) {
+  // https://github.com/rdaly525/coreir/issues/932
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/camera_pipeline_dse1.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {"rungenerators",
+                                           "removebulkconnections",
+                                           "flattentypes",
+                                           "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/camera_pipeline_dse1.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
