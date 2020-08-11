@@ -6,10 +6,8 @@ module top (
     input I,
     output O
 );
-wire inst0_I;
-assign inst0_I = I;
 foo inst0 (
-    .I(inst0_I),
+    .I(I),
     .O(O)
 );
 endmodule

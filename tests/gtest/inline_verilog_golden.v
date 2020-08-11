@@ -15,21 +15,15 @@ module Main (
     input [1:0] arr,
     input CLK
 );
-wire FF_inst0_I;
-wire FF_inst0_CLK;
 wire _magma_inline_wire0;
-wire corebit_term_inst0_in;
-assign FF_inst0_I = I;
-assign FF_inst0_CLK = CLK;
 FF FF_inst0 (
-    .I(FF_inst0_I),
+    .I(I),
     .O(O),
-    .CLK(FF_inst0_CLK)
+    .CLK(CLK)
 );
 assign _magma_inline_wire0 = O;
-assign corebit_term_inst0_in = _magma_inline_wire0;
 corebit_term corebit_term_inst0 (
-    .in(corebit_term_inst0_in)
+    .in(_magma_inline_wire0)
 );
 
 assert property (@(posedge CLK) I |-> ##1 _magma_inline_wire0);

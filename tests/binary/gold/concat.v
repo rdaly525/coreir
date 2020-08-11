@@ -24,39 +24,31 @@ module concats (
     input [15:0] in,
     output [15:0] out
 );
-wire [3:0] cc0_in0;
-wire [11:0] cc0_in1;
 wire [15:0] cc0_out;
-wire [15:0] s0_in;
 wire [3:0] s0_out;
-wire [15:0] s1_in;
 wire [11:0] s1_out;
-assign cc0_in0 = s0_out;
-assign cc0_in1 = s1_out;
 coreir_concat #(
     .width0(4),
     .width1(12)
 ) cc0 (
-    .in0(cc0_in0),
-    .in1(cc0_in1),
+    .in0(s0_out),
+    .in1(s1_out),
     .out(cc0_out)
 );
-assign s0_in = in;
 coreir_slice #(
     .hi(16),
     .lo(12),
     .width(16)
 ) s0 (
-    .in(s0_in),
+    .in(in),
     .out(s0_out)
 );
-assign s1_in = in;
 coreir_slice #(
     .hi(15),
     .lo(3),
     .width(16)
 ) s1 (
-    .in(s1_in),
+    .in(in),
     .out(s1_out)
 );
 assign out = cc0_out;

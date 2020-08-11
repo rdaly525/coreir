@@ -276,28 +276,12 @@ Passes::Verilog::declareConnections(
     bool is_reg = _inline && is_muxn(instance.second->getModuleRef());
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
-      if (
-        field_type->isInput() &&
-        isInlined(instance.second->getModuleRef(), _inline)) {
-        // skip inlined input (don't need wire to assign to)
-        continue;
-      }
+      if (field_type->isInput()) { continue; }
       this->makeDecl(
         instance.first + "_" + field,
         field_type,
         declarations,
         is_reg);
-      if (field_type->isInput()) {
-        // insert into wire blacklist so they aren't inlined into module
-        // instance statements (needed for tool compatibility, e.g. verilator
-        // doesn't support packed array concat inside module instance, so we
-        // need to do it in an assign to wire input statement)
-        //
-        // TODO: In the future, we could improve this logic downstream in
-        // verilogAST so that input wires are inlined if they just map an id to
-        // an id
-        this->wires.insert(instance.first + "_" + field);
-      }
     }
   }
   return declarations;
@@ -939,7 +923,8 @@ void assign_module_outputs(
           _inline);
       if (concat->unpacked) {
         wireUnpackecDriver(body, std::move(concat), vAST::make_id(field));
-      } else {
+      }
+      else {
         body.push_back(std::make_unique<vAST::ContinuousAssign>(
           std::make_unique<vAST::Identifier>(field),
           std::move(concat)));
@@ -1063,14 +1048,13 @@ Passes::Verilog::compileModuleBody(
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
       std::string wire_name = instance.first + "_" + field;
-      // connect wire (unless inlined input)
-      if (!(field_type->isInput() && isInlined(instance_module, _inline))) {
+      if (!field_type->isInput()) {
+        // connect wire
         verilog_connections->insert(
           field,
           std::make_unique<vAST::Identifier>(wire_name));
+        continue;
       }
-      // if not an input, continue, otherwise, emit assign for input wire
-      if (!field_type->isInput()) { continue; }
 
       bool is_inlined = isInlined(instance_module, _inline);
       auto entries = connection_map[ConnMapKey(instance.first, field)];
@@ -1088,6 +1072,11 @@ Passes::Verilog::compileModuleBody(
             instance_name + "." + field,
             _inline);
         if (concat->unpacked && !is_inlined) {
+          this->makeDecl(wire_name, field_type, body, false);
+          this->wires.insert(wire_name);
+          verilog_connections->insert(
+            field,
+            std::make_unique<vAST::Identifier>(wire_name));
           wireUnpackecDriver(body, std::move(concat), vAST::make_id(wire_name));
           continue;
         }
@@ -1116,18 +1105,36 @@ Passes::Verilog::compileModuleBody(
             wire_name,
             field_type,
             entries);
+        auto id_ptr = dynamic_cast<vAST::Identifier*>(driver.get());
+        if (
+          id_ptr &&
+          std::holds_alternative<std::unique_ptr<vAST::Identifier>>(target)) {
+          // prevent inlining of this wire into the module instance statement
+          this->wires.insert(id_ptr->value);
+          verilog_connections->insert(field, std::move(driver));
+        }
+        else {
+          this->makeDecl(wire_name, field_type, body, false);
+          // prevent inlining of this wire into the module instance statement
+          this->wires.insert(wire_name);
+          verilog_connections->insert(
+            field,
+            std::make_unique<vAST::Identifier>(wire_name));
 
-        // Regular (possibly bulk) connection
-        body.push_back(std::make_unique<vAST::ContinuousAssign>(
-          std::move(target),
-          std::move(driver)));
+          // Regular (possibly bulk) connection
+          body.push_back(std::make_unique<vAST::ContinuousAssign>(
+            std::move(target),
+            std::move(driver)));
+        }
       }
     }
     bool is_mem_inst = instance_module->isGenerated() &&
-        ((instance_module->getGenerator()->getName() == "mem" &&
-          instance_module->getGenerator()->getNamespace()->getName() == "coreir") ||
-         (instance_module->getGenerator()->getName() == "rom2" &&
-          instance_module->getGenerator()->getNamespace()->getName() == "memory"));
+      ((instance_module->getGenerator()->getName() == "mem" &&
+        instance_module->getGenerator()->getNamespace()->getName() ==
+          "coreir") ||
+       (instance_module->getGenerator()->getName() == "rom2" &&
+        instance_module->getGenerator()->getNamespace()->getName() ==
+          "memory"));
     // Handle module arguments
     if (instance.second->hasModArgs()) {
       for (auto parameter : instance.second->getModArgs()) {
