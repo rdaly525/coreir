@@ -91,8 +91,6 @@ wire [15:0] mem_rdata;
 wire [7:0] raddr_slice_out;
 wire [7:0] waddr0_out;
 wire [15:0] wdata0_out;
-wire mem_wen;
-assign mem_wen = wdata0_out[0];
 coreir_mem #(
     .init(init),
     .depth(255),
@@ -103,7 +101,7 @@ coreir_mem #(
     .clk(clk),
     .wdata(wdata0_out),
     .waddr(waddr0_out),
-    .wen(mem_wen),
+    .wen(wdata0_out[0]),
     .rdata(mem_rdata),
     .raddr(raddr_slice_out)
 );

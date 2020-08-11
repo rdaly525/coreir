@@ -32,18 +32,12 @@ module commonlib_muxn__N2__width32 (
     output [31:0] out
 );
 wire [31:0] _join_out;
-wire [31:0] _join_in0;
-assign _join_in0 = in_data[0];
-wire [31:0] _join_in1;
-assign _join_in1 = in_data[1];
-wire _join_sel;
-assign _join_sel = in_sel[0];
 coreir_mux #(
     .width(32)
 ) _join (
-    .in0(_join_in0),
-    .in1(_join_in1),
-    .sel(_join_sel),
+    .in0(in_data[0]),
+    .in1(in_data[1]),
+    .sel(in_sel[0]),
     .out(_join_out)
 );
 assign out = _join_out;
@@ -59,14 +53,12 @@ wire [31:0] muxN_0_out;
 wire [31:0] muxN_1_out;
 wire [0:0] sel_slice0_out;
 wire [0:0] sel_slice1_out;
-wire _join_sel;
-assign _join_sel = in_sel[1];
 coreir_mux #(
     .width(32)
 ) _join (
     .in0(muxN_0_out),
     .in1(muxN_1_out),
-    .sel(_join_sel),
+    .sel(in_sel[1]),
     .out(_join_out)
 );
 wire [31:0] muxN_0_in_data [1:0];
@@ -109,10 +101,8 @@ module commonlib_muxn__N1__width32 (
     input [0:0] in_sel,
     output [31:0] out
 );
-wire term_sel_in;
-assign term_sel_in = in_sel[0];
 corebit_term term_sel (
-    .in(term_sel_in)
+    .in(in_sel[0])
 );
 assign out = in_data[0];
 endmodule
@@ -127,14 +117,12 @@ wire [31:0] muxN_0_out;
 wire [31:0] muxN_1_out;
 wire [1:0] sel_slice0_out;
 wire [0:0] sel_slice1_out;
-wire _join_sel;
-assign _join_sel = in_sel[2];
 coreir_mux #(
     .width(32)
 ) _join (
     .in0(muxN_0_out),
     .in1(muxN_1_out),
-    .sel(_join_sel),
+    .sel(in_sel[2]),
     .out(_join_out)
 );
 wire [31:0] muxN_0_in_data [3:0];

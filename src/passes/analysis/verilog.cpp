@@ -1105,21 +1105,18 @@ Passes::Verilog::compileModuleBody(
             wire_name,
             field_type,
             entries);
-        auto target_id = dynamic_cast<vAST::Identifier*>(driver.get());
+        auto driver_id = dynamic_cast<vAST::Identifier*>(driver.get());
+        auto driver_index = dynamic_cast<vAST::Index*>(driver.get());
+        auto driver_slice = dynamic_cast<vAST::Slice*>(driver.get());
         if (
-          target_id &&
-          (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(target) ||
-           std::holds_alternative<std::unique_ptr<vAST::Index>>(target) ||
-           std::holds_alternative<std::unique_ptr<vAST::Slice>>(target))) {
+          (driver_id || driver_index || driver_slice) &&
+          std::holds_alternative<std::unique_ptr<vAST::Identifier>>(target)) {
           // If it's not a concat, we connect it directly and prevent it from
           // being inlined
           //
           // slices/indices are blacklisted automatically, but identifiers need
           // to be marked
-          if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
-                target)) {
-            this->wires.insert(target_id->value);
-          }
+          if (driver_id) { this->wires.insert(driver_id->value); }
           verilog_connections->insert(field, std::move(driver));
         }
         else {

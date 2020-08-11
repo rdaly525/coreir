@@ -265,6 +265,8 @@ wire [1:0] UART_comb_inst0_O3;
 wire [7:0] reg_PR_inst0_out;
 wire [2:0] reg_PR_inst1_out;
 wire [1:0] reg_PR_inst2_out;
+wire [0:0] DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in;
+assign DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in[0] = UART_comb_inst0_O2;
 coreir_reg_arst #(
     .arst_posedge(1'b1),
     .clk_posedge(1'b1),
@@ -273,17 +275,15 @@ coreir_reg_arst #(
 ) DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0 (
     .clk(CLK),
     .arst(ASYNCRESET),
-    .in(UART_comb_inst0_O2),
+    .in(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_in),
     .out(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_out)
 );
-wire UART_comb_inst0_self_tx_O;
-assign UART_comb_inst0_self_tx_O = DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_out[0];
 UART_comb UART_comb_inst0 (
     .run(run),
     .message(message),
     .self_message_O(reg_PR_inst0_out),
     .self_i_O(reg_PR_inst1_out),
-    .self_tx_O(UART_comb_inst0_self_tx_O),
+    .self_tx_O(DFF_initTrue_has_ceFalse_has_resetFalse_has_async_resetTrue_inst0$reg_PR_inst0_out[0]),
     .self_yield_state_O(reg_PR_inst2_out),
     .O0(UART_comb_inst0_O0),
     .O1(UART_comb_inst0_O1),

@@ -12,44 +12,34 @@ wire and2_2_O;
 wire and2_3_O;
 // Instance `and2_0` created at tests/test_circuit/test_define.py:61
 // Connection `(and2_0.I0, I[0])` created at tests/test_circuit/test_define.py:63
-wire and2_0_I0;
-assign and2_0_I0 = I[0];
 // Connection `(and2_0.I1, I[1])` created at tests/test_circuit/test_define.py:64
-wire and2_0_I1;
-assign and2_0_I1 = I[1];
 And2 and2_0 (
-    .I0(and2_0_I0),
-    .I1(and2_0_I1),
+    .I0(I[0]),
+    .I1(I[1]),
     .O(and2_0_O)
 );
 // Instance `and2_1` created at tests/test_circuit/test_define.py:61
 // Connection `(and2_1.I0, and2_0_O)` created at tests/test_circuit/test_define.py:66
 // Connection `(and2_1.I1, I[1])` created at tests/test_circuit/test_define.py:67
-wire and2_1_I1;
-assign and2_1_I1 = I[1];
 And2 and2_1 (
     .I0(and2_0_O),
-    .I1(and2_1_I1),
+    .I1(I[1]),
     .O(and2_1_O)
 );
 // Instance `and2_2` created at tests/test_circuit/test_define.py:61
 // Connection `(and2_2.I0, and2_1_O)` created at tests/test_circuit/test_define.py:66
 // Connection `(and2_2.I1, I[1])` created at tests/test_circuit/test_define.py:67
-wire and2_2_I1;
-assign and2_2_I1 = I[1];
 And2 and2_2 (
     .I0(and2_1_O),
-    .I1(and2_2_I1),
+    .I1(I[1]),
     .O(and2_2_O)
 );
 // Instance `and2_3` created at tests/test_circuit/test_define.py:61
 // Connection `(and2_3.I0, and2_2_O)` created at tests/test_circuit/test_define.py:66
 // Connection `(and2_3.I1, I[1])` created at tests/test_circuit/test_define.py:67
-wire and2_3_I1;
-assign and2_3_I1 = I[1];
 And2 and2_3 (
     .I0(and2_2_O),
-    .I1(and2_3_I1),
+    .I1(I[1]),
     .O(and2_3_O)
 );
 // Instance `term0` created at tests/test_circuit/test_define.py:77
