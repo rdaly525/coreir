@@ -1,7 +1,5 @@
 #include "coreir/passes/transform/isolate_primitives.h"
 
-std::string CoreIR::Passes::IsolatePrimitives::ID = "isolate_primitives";
-
 // Creates a separate module that isolates all the primitive (coreir/corebit)
 // instances
 

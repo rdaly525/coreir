@@ -4,7 +4,6 @@
 using namespace std;
 using namespace CoreIR;
 
-string Passes::InlineSingleInstances::ID = "inline_single_instances";
 bool Passes::InlineSingleInstances::runOnInstanceGraphNode(
   InstanceGraphNode& node) {
   auto m = node.getModule();
