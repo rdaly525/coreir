@@ -25,6 +25,7 @@ ModuleDef::~ModuleDef() {
   // Delete interface, instances, cache
   delete interface;
   for (auto inst : instances) delete inst.second;
+  for (auto item : connMetaData) delete item.second;
 }
 
 //
