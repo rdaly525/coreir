@@ -94,7 +94,7 @@ class Wireable : public MetaData {
 std::ostream& operator<<(std::ostream&, const Wireable&);
 
 class Interface : public Wireable {
-  static const std::string instname;
+  const std::string instname = "self";
 
  public:
   Interface(ModuleDef* container, Type* type)

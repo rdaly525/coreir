@@ -18,8 +18,6 @@ using namespace std;
 
 namespace CoreIR {
 
-const string Interface::instname = "self";
-
 Wireable::~Wireable() {
   for (auto selmap : selects) { delete selmap.second; }
 }
