@@ -359,6 +359,9 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       module->isGenerated() && module->getGenerator()->getName() == "mem" &&
       module->getGenerator()->getNamespace()->getName() == "coreir" &&
       parameter.first == "init") {
+      ASSERT(
+        parameters_seen.count(parameter.first) == 0,
+        "Did not expect to see init param more than once");
       parameters.push_back(std::pair(
         std::make_unique<vAST::Vector>(
           std::make_unique<vAST::Identifier>(parameter.first),
