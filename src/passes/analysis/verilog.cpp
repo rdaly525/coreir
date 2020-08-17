@@ -384,7 +384,7 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       // Handled above, we always generate this parameter
       continue;
     }
-    else if (parameters_seen.count(parameter.first) == 0) {
+    if (parameters_seen.count(parameter.first) == 0) {
       // Old coreir backend defaults these (genparams without
       // defaults) to 0
       parameters.push_back(std::pair(
