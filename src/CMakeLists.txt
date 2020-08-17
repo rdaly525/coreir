@@ -39,6 +39,13 @@ target_include_directories(coreir PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(coreir dl)
 target_link_libraries(coreir verilogAST)
 
+if (COREIR_PROFILE)
+    # requires gperftools, e.g. brew install gperftools
+    set (Gperftools_DIR "${CMAKE_CURRENT_LIST_DIR}/../cmake/")
+    find_package(Gperftools REQUIRED)
+    target_link_libraries(coreir ${GPERFTOOLS_LIBRARIES})
+endif()
+
 #Install libcoreir
 install(
     TARGETS coreir
