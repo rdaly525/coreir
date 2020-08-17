@@ -359,11 +359,20 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       module->isGenerated() && module->getGenerator()->getName() == "mem" &&
       module->getGenerator()->getNamespace()->getName() == "coreir" &&
       parameter.first == "init") {
-      // init param is handled using a parameter statement in verilog string
-      // defn
-      continue;
+      parameters.push_back(std::pair(
+        std::make_unique<vAST::Vector>(
+          std::make_unique<vAST::Identifier>(parameter.first),
+          vAST::make_binop(
+            vAST::make_binop(
+              vAST::make_id("width"),
+              vAST::BinOp::MUL,
+              vAST::make_id("depth")),
+            vAST::BinOp::SUB,
+            vAST::make_num("1")),
+          vAST::make_num("0")),
+        std::make_unique<vAST::NumericLiteral>("0")));
     }
-    if (parameters_seen.count(parameter.first) == 0) {
+    else if (parameters_seen.count(parameter.first) == 0) {
       // Old coreir backend defaults these (genparams without
       // defaults) to 0
       parameters.push_back(std::pair(
@@ -1201,7 +1210,9 @@ Passes::Verilog::compileModuleBody(
     }
     else if (can_inline_const_op(instance_module, _inline)) {
       ASSERT(
-        instance_parameters[0].first->value == "value",
+        std::get<std::unique_ptr<vAST::Identifier>>(
+          instance_parameters[0].first)
+            ->value == "value",
         "expected first param to be const value");
       statement = std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
@@ -1209,10 +1220,14 @@ Passes::Verilog::compileModuleBody(
     }
     else if (can_inline_slice_op(instance_module, _inline)) {
       ASSERT(
-        instance_parameters[0].first->value == "hi",
+        std::get<std::unique_ptr<vAST::Identifier>>(
+          instance_parameters[0].first)
+            ->value == "hi",
         "expected first param to be hi");
       ASSERT(
-        instance_parameters[1].first->value == "lo",
+        std::get<std::unique_ptr<vAST::Identifier>>(
+          instance_parameters[1].first)
+            ->value == "lo",
         "expected second param to be lo");
       statement = std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
