@@ -80,6 +80,7 @@ class Wireable : public MetaData {
   // Get all the connections from self and all the selects
   LocalConnections getLocalConnections();
 
+  // NOTE: Will cache the result, assumes that the parent never change
   Wireable* getTopParent();
 
   // removes the select from this wireble.
