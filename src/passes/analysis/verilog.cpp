@@ -604,7 +604,7 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   }
 
   // Used to track the current select so we can see if it's an instance
-  Wireable* curr_wireable = value->getTopParent();
+  Wireable* curr_wireable = parent;
 
   std::variant<
     std::unique_ptr<vAST::Identifier>,
