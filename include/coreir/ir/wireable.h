@@ -16,7 +16,7 @@ class Wireable : public MetaData {
   WireableKind kind;
   ModuleDef* container;  // ModuleDef which it is contained in
   Type* type;
-  Wireable* topParent = NULL;
+  Wireable* topParent = nullptr;
 
   std::set<Wireable*> connected;
 
