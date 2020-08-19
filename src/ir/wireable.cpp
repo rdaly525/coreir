@@ -199,20 +199,17 @@ LocalConnections Wireable::getLocalConnections() {
 }
 
 Wireable* Wireable::getTopParent() {
-  if (this->topParent == NULL) {
-    if (isa<Select>(this) || isa<InstanceSelect>(this)) {
-      Select* s;
-      if (isa<Select>(this)) { s = cast<Select>(this); }
-      else {
-        s = cast<InstanceSelect>(this);
-      }
-      this->topParent = s->getParent()->getTopParent();
-    }
-    else {
-      this->topParent = this;
-    }
+  if (topParent != nullptr) return topParent;
+  if (isa<Select>(this) || isa<InstanceSelect>(this)) {
+    Select* s = isa<Select>(this) ?
+        cast<Select>(this) :
+        cast<InstanceSelect>(this);
+    topParent = s->getParent()->getTopParent();
   }
-  return this->topParent;
+  else {
+    topParent = this;
+  }
+  return topParent;
 }
 
 string Interface::toString() const { return "self"; }
