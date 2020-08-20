@@ -582,51 +582,21 @@ void addConnectionMapEntry(
 // case, each entry stores the index that it drives.
 std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
   CoreIR::ModuleDef* definition,
-  std::map<std::string, Instance*> instances) {
-  std::vector<Connection> connections = definition->getSortedConnections();
+  std::map<std::string, Instance*> instances,
+  std::vector<Connection>& connections) {
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map;
   for (auto connection : connections) {
-    // Check if this is connected to an instance to an instance input, if
-    // it is, populate the entry in the connection map
-    for (auto instance : instances) {
-      if (
-        connection.first->getTopParent() == instance.second &&
-        connection.first->getType()->isInput()) {
-        addConnectionMapEntry(
-          instance.first,
-          connection.first,
-          connection.second,
-          connection_map,
-          definition);
-      }
-      else if (
-        connection.second->getTopParent() == instance.second &&
-        connection.second->getType()->isInput()) {
-        addConnectionMapEntry(
-          instance.first,
-          connection.second,
-          connection.first,
-          connection_map,
-          definition);
-      }
-    }
-    // Also check if the connection is driving a self port, which will be
-    // wired up at the end
-    if (
-      connection.first->getSelectPath()[0] == "self" &&
-      connection.first->getType()->isInput()) {
+    if (connection.first->getType()->isInput()) {
       addConnectionMapEntry(
-        "self",
+        connection.first->getSelectPath()[0],
         connection.first,
         connection.second,
         connection_map,
         definition);
     }
-    else if (
-      connection.second->getSelectPath()[0] == "self" &&
-      connection.second->getType()->isInput()) {
+    else if (connection.second->getType()->isInput()) {
       addConnectionMapEntry(
-        "self",
+        connection.second->getSelectPath()[0],
         connection.second,
         connection.first,
         connection_map,
@@ -634,7 +604,7 @@ std::map<ConnMapKey, std::vector<ConnMapEntry>> build_connection_map(
     }
   }
   return connection_map;
-}
+}  // namespace CoreIR
 
 // Join select path fields by "_" (ignoring intial self if present)
 std::variant<
@@ -655,7 +625,7 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   }
 
   // Used to track the current select so we can see if it's an instance
-  Wireable* curr_wireable = value->getTopParent();
+  Wireable* curr_wireable = parent;
 
   std::variant<
     std::unique_ptr<vAST::Identifier>,
@@ -981,7 +951,7 @@ void assign_module_outputs(
 
 // assign inout ports
 void assign_inouts(
-  std::vector<Connection> connections,
+  std::vector<Connection>& connections,
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>& body,
@@ -1038,8 +1008,10 @@ Passes::Verilog::compileModuleBody(
     std::unique_ptr<vAST::Declaration>>>
     body = this->declareConnections(instances, _inline);
 
+  std::vector<Connection> connections = definition->getSortedConnections();
+
   std::map<ConnMapKey, std::vector<ConnMapEntry>>
-    connection_map = build_connection_map(definition, instances);
+    connection_map = build_connection_map(definition, instances, connections);
 
   for (auto instance : instances) {
     Module* instance_module = instance.second->getModuleRef();
@@ -1294,7 +1266,7 @@ Passes::Verilog::compileModuleBody(
   // TODO: Make these object methods so we don't have to pass things aorund so
   // much (e.g. _inline flag)
   assign_module_outputs(module_type, body, connection_map, _inline);
-  assign_inouts(definition->getSortedConnections(), body, _inline);
+  assign_inouts(connections, body, _inline);
 
   for (auto&& it : inline_verilog_body) { body.push_back(std::move(it)); }
   return body;
