@@ -354,13 +354,34 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       }
     }
   }
+  // We always generate memory init param, even if has_init is false since the
+  // verilog code expects it for syntax (just use a default value since the
+  // generate if statement will not be run)
+  if (
+    module->isGenerated() && module->getGenerator()->getName() == "mem" &&
+    module->getGenerator()->getNamespace()->getName() == "coreir") {
+    ASSERT(
+      parameters_seen.count("init") == 0,
+      "Did not expect to see init param already");
+    parameters.push_back(std::pair(
+      std::make_unique<vAST::Vector>(
+        std::make_unique<vAST::Identifier>("init"),
+        vAST::make_binop(
+          vAST::make_binop(
+            vAST::make_id("width"),
+            vAST::BinOp::MUL,
+            vAST::make_id("depth")),
+          vAST::BinOp::SUB,
+          vAST::make_num("1")),
+        vAST::make_num("0")),
+      std::make_unique<vAST::NumericLiteral>("0")));
+  }
   for (auto parameter : module->getModParams()) {
     if (
       module->isGenerated() && module->getGenerator()->getName() == "mem" &&
       module->getGenerator()->getNamespace()->getName() == "coreir" &&
       parameter.first == "init") {
-      // init param is handled using a parameter statement in verilog string
-      // defn
+      // Handled above, we always generate this parameter
       continue;
     }
     if (parameters_seen.count(parameter.first) == 0) {
@@ -1173,7 +1194,9 @@ Passes::Verilog::compileModuleBody(
     }
     else if (can_inline_const_op(instance_module, _inline)) {
       ASSERT(
-        instance_parameters[0].first->value == "value",
+        std::get<std::unique_ptr<vAST::Identifier>>(
+          instance_parameters[0].first)
+            ->value == "value",
         "expected first param to be const value");
       statement = std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),
@@ -1181,10 +1204,14 @@ Passes::Verilog::compileModuleBody(
     }
     else if (can_inline_slice_op(instance_module, _inline)) {
       ASSERT(
-        instance_parameters[0].first->value == "hi",
+        std::get<std::unique_ptr<vAST::Identifier>>(
+          instance_parameters[0].first)
+            ->value == "hi",
         "expected first param to be hi");
       ASSERT(
-        instance_parameters[1].first->value == "lo",
+        std::get<std::unique_ptr<vAST::Identifier>>(
+          instance_parameters[1].first)
+            ->value == "lo",
         "expected second param to be lo");
       statement = std::make_unique<vAST::ContinuousAssign>(
         std::make_unique<vAST::Identifier>(instance.first + "_out"),

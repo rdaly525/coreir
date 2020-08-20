@@ -645,7 +645,6 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       ""
       // verilator doesn't support 2d array parameter, so we pack it into a 1d
       // array
-      "  parameter [width*depth-1:0] init = 0;\n"
       "  generate if (has_init) begin\n"
       "    genvar j;\n"
       "    for (j = 0; j < depth; j = j + 1) begin\n"
@@ -678,7 +677,6 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       ""
       // verilator doesn't support 2d array parameter, so we pack it into a 1d
       // array
-      "  parameter [width*depth-1:0] init = 0;\n"
       "  generate if (has_init) begin\n"
       "    genvar j;\n"
       "    for (j = 0; j < depth; j = j + 1) begin\n"
