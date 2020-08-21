@@ -834,11 +834,11 @@ processSingleArrayElementTarget(
          (entries.size() == 1) && (entries[0].index.size() > 0)) {
     target = std::make_unique<vAST::Index>(
       std::visit(
-        [](auto target) -> std::variant<
-                          std::unique_ptr<vAST::Identifier>,
-                          std::unique_ptr<vAST::Attribute>,
-                          std::unique_ptr<vAST::Slice>,
-                          std::unique_ptr<vAST::Index>> { return target; },
+        [](auto&& target) -> std::variant<
+                            std::unique_ptr<vAST::Identifier>,
+                            std::unique_ptr<vAST::Attribute>,
+                            std::unique_ptr<vAST::Slice>,
+                            std::unique_ptr<vAST::Index>> { return target; },
         std::move(target)),
       vAST::make_num("0"));
     type = cast<ArrayType>(type)->getElemType();
