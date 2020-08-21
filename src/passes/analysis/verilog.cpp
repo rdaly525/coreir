@@ -824,22 +824,18 @@ processSingleArrayElementTarget(
     target = std::make_unique<vAST::Identifier>(target_id);
   // handle single entry for array of length 1
   // e.g. assign x[0] = y;
-  if (
-    isa<ArrayType>(type) && (entries.size() == 1) &&
-    (entries[0].index.size() == 1)) {
-    ArrayType* array_type = cast<ArrayType>(type);
-    // Check if array is length 1, because sometimes we only have one connection
-    // for a slice
-    //
-    // Also for bit <- bits[1] in verilog, we don't don't need to do this (but
-    // we do need to for unpacked multidimensional arrays)
-    if (
-      array_type->getLen() == 1 &&
-      !get_raw_type(array_type->getElemType())->isBaseType()) {
-      target = std::make_unique<vAST::Index>(
-        std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
-        vAST::make_num("0"));
-    }
+  // Check if array is length 1, because sometimes we only have one connection
+  // for a slice
+  //
+  // Also for bit <- bits[1] in verilog, we don't don't need to do this (but
+  // we do need to for unpacked multidimensional arrays)
+  while (isa<ArrayType>(type) && cast<ArrayType>(type)->getLen() == 1 &&
+         !get_raw_type(cast<ArrayType>(type)->getElemType())->isBaseType() &&
+         (entries.size() == 1) && (entries[0].index.size() > 0)) {
+    target = std::make_unique<vAST::Index>(
+      std::get<std::unique_ptr<vAST::Identifier>>(std::move(target)),
+      vAST::make_num("0"));
+    type = cast<ArrayType>(type)->getElemType();
   }
   return std::visit(
     [](auto&& arg) -> std::variant<

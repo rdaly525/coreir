@@ -57,6 +57,26 @@ TEST(VerilogNDArrayTests, TestVerilogNDArrayMuxN) {
   deleteContext(c);
 }
 
+TEST(VerilogNDArrayTests, TestVerilogNDArrayNestedSize1) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadLibrary_commonlib(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/nested_ndarray_size1.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {
+    "rungenerators",
+    "flattentypes --ndarray",
+    "verilog"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/nested_ndarray_size1.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
