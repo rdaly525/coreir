@@ -1,0 +1,23 @@
+{"top":"global.Test",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Test":{
+        "type":["Record",[
+          ["a",["Array",1,["Array",1,["Array",1,"Bit"]]]],
+          ["b",["Array",1,["Array",2,"BitIn"]]]
+        ]],
+        "instances":{
+          "corebit_term_inst0":{
+            "modref":"corebit.term"
+          }
+        },
+        "connections":[
+          ["self.b.0.1","corebit_term_inst0.in"],
+          ["self.b.0.0","self.a.0.0.0"]
+        ]
+      }
+    }
+  }
+}
+}
