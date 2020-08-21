@@ -838,7 +838,9 @@ processSingleArrayElementTarget(
                             std::unique_ptr<vAST::Identifier>,
                             std::unique_ptr<vAST::Attribute>,
                             std::unique_ptr<vAST::Slice>,
-                            std::unique_ptr<vAST::Index>> { return target; },
+                            std::unique_ptr<vAST::Index>> {
+          return std::move(target);
+        },
         std::move(target)),
       vAST::make_num("0"));
     type = cast<ArrayType>(type)->getElemType();
