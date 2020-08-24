@@ -59,7 +59,8 @@ class Verilog : public InstanceGraphPass {
     CoreIR::ModuleDef* definition,
     bool _inline,
     bool disable_width_cast,
-    std::set<std::string>& wires);
+    std::set<std::string>& wires,
+    std::set<std::string>& inlined_wires);
 
   std::unique_ptr<vAST::AbstractModule> compileStringBodyModule(
     json verilog_json,
