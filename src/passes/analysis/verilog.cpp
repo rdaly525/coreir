@@ -1083,7 +1083,7 @@ Passes::Verilog::compileModuleBody(
             _inline);
         if (concat->unpacked && !is_inlined) {
           this->makeDecl(wire_name, field_type, body, false);
-          this->wires.insert(wire_name);
+          wires.insert(wire_name);
           verilog_connections->insert(
             field,
             std::make_unique<vAST::Identifier>(wire_name));
@@ -1126,14 +1126,14 @@ Passes::Verilog::compileModuleBody(
           //
           // slices/indices are blacklisted automatically, but identifiers need
           // to be marked
-          if (driver_id) { this->wires.insert(driver_id->value); }
+          if (driver_id) { wires.insert(driver_id->value); }
           verilog_connections->insert(field, std::move(driver));
         }
         else {
           // otherwise it's a concat, so we emit an input wire for it
           this->makeDecl(wire_name, field_type, body, false);
           // prevent inlining of this wire into the module instance statement
-          this->wires.insert(wire_name);
+          wires.insert(wire_name);
           verilog_connections->insert(
             field,
             std::make_unique<vAST::Identifier>(wire_name));
@@ -1377,13 +1377,17 @@ void Passes::Verilog::compileModule(Module* module) {
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
     body;
+
+  // Keep track of wire primitive instances, we do not inline these
+  std::set<std::string> wires;
+
   if (module->hasDef()) {
     body = this->compileModuleBody(
       module->getType(),
       definition,
       this->_inline,
       this->disable_width_cast,
-      this->wires);
+      wires);
   }
 
   if (module->getMetaData().count("filename") > 0) {
@@ -1408,7 +1412,7 @@ void Passes::Verilog::compileModule(Module* module) {
       std::move(parameters));
 
   if (this->_inline) {
-    vAST::AssignInliner assign_inliner(this->wires);
+    vAST::AssignInliner assign_inliner(wires);
     verilog_module = assign_inliner.visit(std::move(verilog_module));
     AlwaysStarMerger always_star_merger;
     verilog_module = always_star_merger.visit(std::move(verilog_module));
