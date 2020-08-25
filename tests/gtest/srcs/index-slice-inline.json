@@ -1,0 +1,44 @@
+
+{"top":"global.Register",
+"namespaces":{
+  "global":{
+      "modules": {
+        "VerilogReg":{
+          "type":["Record",[
+            ["I",["Array",10,"BitIn"]],
+            ["O",["Array",10,"Bit"]],
+            ["CE","BitIn"],
+            ["AsyncResetN",["Named","coreir.arstIn"]],
+            ["CLK",["Named","coreir.clkIn"]]
+          ]],
+          "metadata":{"verilog":{"verilog_string":"module VerilogReg (input [9:0] I, output [9:0] O, input CE, input AsyncResetN, input   CLK);\n  reg [9:0] R;\n  always @ (posedge CLK or negedge AsyncResetN) begin\n    if (AsyncResetN == 1'b0) begin\n      R <= 10'd0;\n    end else begin\n      if (CE == 1'b1)\n          R <= I;\n    end\n  end\n  assign O = R;\nendmodule"}}
+        },
+        "Register":{
+          "type":["Record",[
+            ["CLK",["Named","coreir.clkIn"]],
+            ["I",["Record",[["valid","BitIn"],["addressValid",["Array",1,"BitIn"]],["address",["Array",1,["Array",8,"BitIn"]]]]]],
+            ["O",["Record",[["valid","Bit"],["addressValid",["Array",1,"Bit"]],["address",["Array",1,["Array",8,"Bit"]]]]]],
+            ["AsyncResetN",["Named","coreir.arstIn"]],
+            ["CE","BitIn"]
+          ]],
+          "instances":{
+            "v_reg":{
+              "modref":"global.VerilogReg"
+            }
+          },
+          "connections":[
+            ["self.AsyncResetN","v_reg.AsyncResetN"],
+            ["self.CE","v_reg.CE"],
+            ["self.CLK","v_reg.CLK"],
+            ["self.I.address.0.0:8","v_reg.I.2:10"],
+            ["self.I.valid","v_reg.I.0"],
+            ["self.I.addressValid.0","v_reg.I.1"],
+            ["self.O.address.0.0:8","v_reg.O.2:10"],
+            ["self.O.valid","v_reg.O.0"],
+            ["self.O.addressValid.0","v_reg.O.1"]
+          ]
+        }
+      }
+  }
+}
+}
