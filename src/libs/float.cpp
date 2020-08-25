@@ -35,6 +35,43 @@ using namespace CoreIR;
 // fp.gt
 // fp.eq
 
+//Halide FP ops
+//add
+//sub
+//mul
+//div
+//mod
+//neg
+//lt
+//le
+//gt
+//ge
+//ne
+//eq
+//ceil
+//flr
+//rnd
+//max
+//min
+//tanh
+//exp
+//log
+//power
+
+//atan2
+
+//sqrt
+//asin
+//acos
+//atan
+//sin
+//cos
+//tan
+
+
+
+
+
 // fp.isNormal
 // fp.isSubnormal
 // fp.isZero
@@ -93,9 +130,9 @@ Namespace* CoreIRLoadLibrary_float(Context* c) {
                       {"out", ptype}});
   });
 
-  vector<string> unaryOps = {"neg", "sqr", "flr", "ceil"};
+  vector<string> unaryOps = {"neg", "sqr", "flr", "ceil", "rnd", "exp", "ln", "sin", "cos", "tan", "asin", "acos", "atan"};
   vector<string> binaryOps =
-    {"abs", "add", "sub", "mul", "div", "rem", "min", "max"};
+    {"abs", "add", "sub", "mul", "div", "rem", "min", "max", "atan2"};
   vector<string> binaryReduceOps = {"le", "lt", "ge", "gt", "eq", "neq"};
 
   for (auto op : unaryOps) {
