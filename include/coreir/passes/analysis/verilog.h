@@ -30,9 +30,6 @@ class Verilog : public InstanceGraphPass {
   // modules, but we only need to compile the verilog definition once
   std::set<Generator*> verilog_generators_seen;
 
-  // Keep track of wire primitive instances, we do not inline these
-  std::set<std::string> wires;
-
   void compileModule(Module* module);
 
   std::vector<std::unique_ptr<vAST::AbstractPort>> compilePorts(
@@ -62,7 +59,8 @@ class Verilog : public InstanceGraphPass {
     CoreIR::ModuleDef* definition,
     bool _inline,
     bool disable_width_cast,
-    std::set<std::string>& wires);
+    std::set<std::string>& wires,
+    std::set<std::string>& inlined_wires);
 
   std::unique_ptr<vAST::AbstractModule> compileStringBodyModule(
     json verilog_json,
@@ -88,7 +86,6 @@ class Verilog : public InstanceGraphPass {
     TModule().swap(modules);
     extern_modules.clear();
     verilog_generators_seen.clear();
-    wires.clear();
   }
 
   void writeToStream(std::ostream& os) override;

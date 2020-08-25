@@ -1002,7 +1002,8 @@ Passes::Verilog::compileModuleBody(
   CoreIR::ModuleDef* definition,
   bool _inline,
   bool disable_width_cast,
-  std::set<std::string>& wires) {
+  std::set<std::string>& wires,
+  std::set<std::string>& inlined_wires) {
   std::map<std::string, Instance*> instances = definition->getInstances();
 
   std::vector<std::unique_ptr<vAST::StructuralStatement>> inline_verilog_body;
@@ -1083,7 +1084,7 @@ Passes::Verilog::compileModuleBody(
             _inline);
         if (concat->unpacked && !is_inlined) {
           this->makeDecl(wire_name, field_type, body, false);
-          this->wires.insert(wire_name);
+          wires.insert(wire_name);
           verilog_connections->insert(
             field,
             std::make_unique<vAST::Identifier>(wire_name));
@@ -1126,14 +1127,14 @@ Passes::Verilog::compileModuleBody(
           //
           // slices/indices are blacklisted automatically, but identifiers need
           // to be marked
-          if (driver_id) { this->wires.insert(driver_id->value); }
+          if (driver_id) { wires.insert(driver_id->value); }
           verilog_connections->insert(field, std::move(driver));
         }
         else {
           // otherwise it's a concat, so we emit an input wire for it
           this->makeDecl(wire_name, field_type, body, false);
           // prevent inlining of this wire into the module instance statement
-          this->wires.insert(wire_name);
+          wires.insert(wire_name);
           verilog_connections->insert(
             field,
             std::make_unique<vAST::Identifier>(wire_name));
@@ -1185,8 +1186,12 @@ Passes::Verilog::compileModuleBody(
     }
     else if (can_inline_unary_op(instance_module, _inline)) {
       bool is_wire = is_wire_module(instance_module);
-      if (is_wire && !check_inline_verilog_wire_metadata(instance.second)) {
-        wires.insert(instance.first);
+      if (is_wire) { wires.insert(instance.first); }
+      if (check_inline_verilog_wire_metadata(instance.second)) {
+        // We handle these later since instance inputs will mark wire inputs to
+        // prevent inlining, but we override that with this metadata after
+        // instance inputs have been processed
+        inlined_wires.insert(instance.first);
       }
       statement = inline_unary_op(
         instance,
@@ -1377,13 +1382,22 @@ void Passes::Verilog::compileModule(Module* module) {
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
     body;
+
+  // Keep track of wire primitive instances, we do not inline these
+  std::set<std::string> wires;
+
+  // Wires marked to force inlining (overrides standard wire inline blocking
+  // logic)
+  std::set<std::string> inlined_wires;
+
   if (module->hasDef()) {
     body = this->compileModuleBody(
       module->getType(),
       definition,
       this->_inline,
       this->disable_width_cast,
-      this->wires);
+      wires,
+      inlined_wires);
   }
 
   if (module->getMetaData().count("filename") > 0) {
@@ -1408,7 +1422,11 @@ void Passes::Verilog::compileModule(Module* module) {
       std::move(parameters));
 
   if (this->_inline) {
-    vAST::AssignInliner assign_inliner(this->wires);
+    for (auto wire : inlined_wires) {
+      // force inlining of wires based on metadata
+      wires.erase(wire);
+    }
+    vAST::AssignInliner assign_inliner(wires);
     verilog_module = assign_inliner.visit(std::move(verilog_module));
     AlwaysStarMerger always_star_merger;
     verilog_module = always_star_merger.visit(std::move(verilog_module));
