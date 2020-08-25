@@ -1,3 +1,4 @@
+#include <regex>
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
@@ -81,6 +82,22 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
   // cout << "Done connecting wireables" << endl;
 }
 
+// Generate a unique mantle wire instance for slice passthrough logic,
+// we use the instance input port name (select path to string) but for safety
+// we check existing instance names and make sure it's unique
+std::string makeUniqueInstanceName(ModuleDef* def, Wireable* from) {
+  SelectPath select_path = from->getSelectPath();
+  std::string inst_name = join(
+    select_path.begin(),
+    select_path.end(),
+    std::string("_"));
+  auto instances = def->getInstances();
+  if (!instances.count(inst_name)) { return inst_name; }
+  int count = 0;
+  while (instances.count(inst_name + std::to_string(count))) { count++; }
+  return inst_name + std::to_string(count);
+}
+
 namespace {
 void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
@@ -97,10 +114,17 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
     if (isSlice(sel.first)) {
       Context* c = def->getContext();
       Instance* wire = def->addInstance(
-        def->generateUniqueInstanceName(),
+        makeUniqueInstanceName(def, from),
         c->getGenerator("mantle.wire"),
         {{"type", Const::make(c, from->getType())}});
-      wire->getMetaData()["inline_verilog_wire"] = true;
+      if (
+        !(isa<Instance>(from->getTopParent()) && from->getType()->isInput()) ||
+        from->getSelects().size() == 1) {
+        // Only inline instance input wires if there's a single driver,
+        // otherwise, it will generate a concat node that shouldn't be inlined
+        // since we avoid inserting expressions into instance inputs
+        wire->getMetaData()["inline_verilog_wire"] = true;
+      }
       def->connect(to, wire->sel("in"));
       wire->getModuleRef()->runGenerator();
       to = wire->sel("out");

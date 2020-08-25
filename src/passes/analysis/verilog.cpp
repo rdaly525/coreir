@@ -1443,13 +1443,10 @@ bool Passes::Verilog::runOnInstanceGraphNode(InstanceGraphNode& node) {
     return false;
   }
   if (this->_inline && is_mantle_wire(module)) {
-    // Check if all instances are inlined
-    bool all_inlined = true;
-    for (auto inst : node.getInstanceList()) {
-      all_inlined &= check_inline_verilog_wire_metadata(inst);
-    }
-    // if all inlined, don't compile the module
-    if (all_inlined) return false;
+    // Mantle wire modules are always inlined into verilog wires rather than
+    // module instances (but not all the verilog wires are inlined, based on
+    // metadata)
+    return false;
   }
   compileModule(module);
   return false;
