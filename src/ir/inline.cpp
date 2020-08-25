@@ -1,4 +1,3 @@
-#include <regex>
 #include "coreir/ir/casting/casting.h"
 #include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
