@@ -111,19 +111,26 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   // are no slices)
   for (auto sel : from->getSelects()) {
     if (isSlice(sel.first)) {
+      // Only inline instance input wires if there's a single driver,
+      // otherwise, it will generate a concat node that shouldn't be inlined
+      // since we avoid inserting expressions into instance inputs
+      bool inlined_ = !(isa<Instance>(from->getTopParent()) &&
+                        from->getType()->isInput()) ||
+        from->getSelects().size() == 1;
+      std::string wire_name = makeUniqueInstanceName(def, from);
+      if (inlined_) {
+        // Fix for https://github.com/rdaly525/coreir/issues/935
+        // Makes it backwards compatible with non --inline verilog code
+        // generation (since the wire isn't inlined, we'll clobber the name of
+        // the output port wire if we don't add a suffix)
+        wire_name += "_wire";
+      }
       Context* c = def->getContext();
       Instance* wire = def->addInstance(
-        makeUniqueInstanceName(def, from),
+        wire_name,
         c->getGenerator("mantle.wire"),
         {{"type", Const::make(c, from->getType())}});
-      if (
-        !(isa<Instance>(from->getTopParent()) && from->getType()->isInput()) ||
-        from->getSelects().size() == 1) {
-        // Only inline instance input wires if there's a single driver,
-        // otherwise, it will generate a concat node that shouldn't be inlined
-        // since we avoid inserting expressions into instance inputs
-        wire->getMetaData()["inline_verilog_wire"] = true;
-      }
+      if (inlined_) { wire->getMetaData()["inline_verilog_wire"] = true; }
       def->connect(to, wire->sel("in"));
       wire->getModuleRef()->runGenerator();
       to = wire->sel("out");
