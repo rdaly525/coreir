@@ -49,7 +49,11 @@ class Verilog : public InstanceGraphPass {
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
-  declareConnections(std::map<std::string, Instance*> instances, bool _inline);
+  declareConnections(
+    std::map<std::string, Instance*> instances,
+    bool _inline,
+    std::set<std::string>& instance_names,
+    std::map<std::string, std::string>& non_input_port_map);
 
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
