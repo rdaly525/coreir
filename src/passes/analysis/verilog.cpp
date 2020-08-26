@@ -784,7 +784,7 @@ convert_to_verilog_connection(
     std::unique_ptr<vAST::Identifier>
       id = std::get<std::unique_ptr<vAST::Identifier>>(std::move(curr_node));
     id->value = getUniquifiedName(non_input_port_map, id->value);
-    return id;
+    return std::move(id);
   }
   if (std::holds_alternative<std::unique_ptr<vAST::Attribute>>(curr_node)) {
     return std::get<std::unique_ptr<vAST::Attribute>>(std::move(curr_node));
