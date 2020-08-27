@@ -45,12 +45,6 @@ module Memory (
     output [4:0] RDATA,
     input CLK
 );
-wire bit_const_0_None_out;
-wire [1:0] const_0_2_out;
-wire [4:0] const_0_5_out;
-assign bit_const_0_None_out = 1'b0;
-assign const_0_2_out = 2'h0;
-assign const_0_5_out = 5'h00;
 coreir_mem #(
     .init({5'd11,5'd21,5'd0,5'd5}),
     .depth(4),
@@ -59,9 +53,9 @@ coreir_mem #(
     .width(5)
 ) coreir_mem4x5_inst0 (
     .clk(CLK),
-    .wdata(const_0_5_out),
-    .waddr(const_0_2_out),
-    .wen(bit_const_0_None_out),
+    .wdata(5'h00),
+    .waddr(2'h0),
+    .wen(1'b0),
     .rdata(RDATA),
     .raddr(RADDR)
 );

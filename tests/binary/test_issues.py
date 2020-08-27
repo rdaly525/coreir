@@ -26,3 +26,15 @@ def test_name_clobber():
     res = delegator.run('verilator --lint-only tests/binary/build/out.v')
     assert not res.return_code, res.out + res.err
 
+
+def test_953():
+    res = delegator.run(
+        'coreir -i tests/binary/src/simple_mux.json'
+        '           -o tests/binary/build/out.v'
+        '           -l commonlib --inline'
+    )
+    assert not res.return_code, res.out + res.err
+
+    res = delegator.run('diff tests/binary/build/out.v  '
+                        '     tests/binary/gold/simple_mux.v')
+    assert not res.return_code, res.out + res.err

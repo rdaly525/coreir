@@ -119,11 +119,7 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
         makeUniqueInstanceName(def, from),
         c->getGenerator("mantle.wire"),
         {{"type", Const::make(c, from->getType())}});
-      if (
-        !(isa<Instance>(from->getTopParent()) && from->getType()->isInput()) ||
-        from->getSelects().size() == 1) {
-        wire->getMetaData()["inline_verilog_wire"] = true;
-      }
+      wire->getMetaData()["inline_verilog_wire"] = true;
       def->connect(to, wire->sel("in"));
       wire->getModuleRef()->runGenerator();
       to = wire->sel("out");
