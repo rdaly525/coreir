@@ -54,7 +54,9 @@ int main(int argc, char* argv[]) {
     "z,inline",
     "inlines verilog primitives")(
     "y,verilator_debug",
-    "mark signals with /*veriltor public*/")(
+    "mark signals with /*verilator public*/")(
+    "u,verilator_compat",
+    "Emit verilog primitives with verilator compatibility")(
     "w,disable-width-cast",
     "disable verilog code generation of width casting when inlining")(
     "x,disable-ndarray",
@@ -221,6 +223,7 @@ int main(int argc, char* argv[]) {
     if (opts.count("z")) { vstr += " -i"; }
     if (opts.count("y")) { vstr += " -y"; }
     if (opts.count("w")) { vstr += " -w"; }
+    if (opts.count("u")) { vstr += " -v"; }
     std::string flattentypes_str = "flattentypes";
     if (!opts.count("x")) { flattentypes_str += " --ndarray"; }
     modified |= c->runPasses(
