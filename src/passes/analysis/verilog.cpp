@@ -336,8 +336,9 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       port_str += "/*verilator public*/";
     }
     if (
-      name == "coreir_term" || name == "coreir_slice" ||
-      name == "corebit_term") {
+      this->verilator_compat &&
+      (name == "coreir_term" || name == "coreir_slice" ||
+       name == "corebit_term")) {
       port_str = "/*verilator lint_off UNUSED */" + port_str +
         "/*verilator lint_on UNUSED */";
     }
