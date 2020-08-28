@@ -1,0 +1,36 @@
+{
+  "top": "global.verilator_compat",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "verilator_compat": {
+          "type": ["Record",[
+            ["in", ["Array",16,"BitIn"]],
+            ["out", ["Array",4,"Bit"]]
+          ]],
+          "instances": {
+            "s": {
+              "genref": "coreir.slice",
+              "genargs": {"width":["Int", 16], "hi":["Int",16], "lo":["Int",12]}
+            },
+            "term": {
+              "genref": "coreir.term",
+              "genargs": {"width":["Int", 4]}
+            },
+            "bit_term": {
+              "modref": "corebit.term"
+            }
+          },
+          "connections": [
+            ["self.in","s.in"],
+            ["s.out","self.out"],
+            ["self.in.0","bit_term.in"],
+            ["self.in.0:4","term.in"]
+          ]
+        }
+      }
+    }
+  }
+}
+
+
