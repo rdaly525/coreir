@@ -81,11 +81,14 @@ void Passes::Verilog::initialize(int argc, char** argv) {
     "y,verilator_debug",
     "Mark IO and intermediate wires as /*verilator_public*/")(
     "w,disable-width-cast",
-    "Omit width cast in generated verilog when using inline");
+    "Omit width cast in generated verilog when using inline")(
+    "v,verilator-compat",
+    "Emit primitives with verilator compatibility");
   auto opts = options.parse(argc, argv);
   if (opts.count("i")) { this->_inline = true; }
   if (opts.count("y")) { this->verilator_debug = true; }
   if (opts.count("w")) { this->disable_width_cast = true; }
+  if (opts.count("v")) { this->verilator_compat = true; }
 }
 
 // Helper function that prepends a prefix contained in json metadata if it
@@ -361,6 +364,13 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       // FIXME: Hack to get comment into port name, we need to design a way
       // to attach comments to expressions
       port_str += "/*verilator public*/";
+    }
+    if (
+      this->verilator_compat &&
+      (name == "coreir_term" || name == "coreir_slice" ||
+       name == "corebit_term")) {
+      port_str = "/*verilator lint_off UNUSED */" + port_str +
+        "/*verilator lint_on UNUSED */";
     }
     ports.push_back(std::make_unique<vAST::StringPort>(port_str));
   }
