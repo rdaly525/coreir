@@ -124,8 +124,6 @@ wire [3:0] Mux2xOutBits4_inst6_O;
 wire [3:0] Mux2xOutBits4_inst7_O;
 wire [3:0] Mux2xOutBits4_inst8_O;
 wire [3:0] Mux2xOutBits4_inst9_O;
-wire bit_const_0_None_out;
-wire bit_const_1_None_out;
 wire magma_Bit_not_inst0_out;
 wire magma_Bit_not_inst1_out;
 wire magma_Bit_not_inst2_out;
@@ -149,37 +147,37 @@ wire magma_Bits_2_eq_inst8_out;
 wire magma_Bits_2_eq_inst9_out;
 Mux2xOutBit Mux2xOutBit_inst0 (
     .I0(clk_en),
-    .I1(bit_const_0_None_out),
+    .I1(1'b0),
     .S(magma_Bits_2_eq_inst1_out),
     .O(Mux2xOutBit_inst0_O)
 );
 Mux2xOutBit Mux2xOutBit_inst1 (
     .I0(Mux2xOutBit_inst0_O),
-    .I1(bit_const_0_None_out),
+    .I1(1'b0),
     .S(magma_Bits_2_eq_inst4_out),
     .O(Mux2xOutBit_inst1_O)
 );
 Mux2xOutBit Mux2xOutBit_inst2 (
     .I0(Mux2xOutBit_inst1_O),
-    .I1(bit_const_1_None_out),
+    .I1(1'b1),
     .S(magma_Bit_not_inst1_out),
     .O(Mux2xOutBit_inst2_O)
 );
 Mux2xOutBit Mux2xOutBit_inst3 (
     .I0(clk_en),
-    .I1(bit_const_0_None_out),
+    .I1(1'b0),
     .S(magma_Bits_2_eq_inst7_out),
     .O(Mux2xOutBit_inst3_O)
 );
 Mux2xOutBit Mux2xOutBit_inst4 (
     .I0(Mux2xOutBit_inst3_O),
-    .I1(bit_const_0_None_out),
+    .I1(1'b0),
     .S(magma_Bits_2_eq_inst11_out),
     .O(Mux2xOutBit_inst4_O)
 );
 Mux2xOutBit Mux2xOutBit_inst5 (
     .I0(Mux2xOutBit_inst4_O),
-    .I1(bit_const_1_None_out),
+    .I1(1'b1),
     .S(magma_Bit_not_inst4_out),
     .O(O1)
 );
@@ -273,15 +271,13 @@ Mux2xOutBits4 Mux2xOutBits4_inst9 (
     .S(magma_Bits_2_eq_inst10_out),
     .O(Mux2xOutBits4_inst9_O)
 );
-assign bit_const_0_None_out = 1'b0;
-assign bit_const_1_None_out = 1'b1;
-assign magma_Bit_not_inst0_out = ~ (config_we ^ bit_const_1_None_out);
-assign magma_Bit_not_inst1_out = ~ (config_we ^ bit_const_1_None_out);
-assign magma_Bit_not_inst2_out = ~ (config_we ^ bit_const_1_None_out);
-assign magma_Bit_not_inst3_out = ~ (config_we ^ bit_const_1_None_out);
-assign magma_Bit_not_inst4_out = ~ (config_we ^ bit_const_1_None_out);
-assign magma_Bit_not_inst5_out = ~ (config_we ^ bit_const_1_None_out);
-assign magma_Bit_not_inst6_out = ~ (config_we ^ bit_const_1_None_out);
+assign magma_Bit_not_inst0_out = ~ (config_we ^ 1'b1);
+assign magma_Bit_not_inst1_out = ~ (config_we ^ 1'b1);
+assign magma_Bit_not_inst2_out = ~ (config_we ^ 1'b1);
+assign magma_Bit_not_inst3_out = ~ (config_we ^ 1'b1);
+assign magma_Bit_not_inst4_out = ~ (config_we ^ 1'b1);
+assign magma_Bit_not_inst5_out = ~ (config_we ^ 1'b1);
+assign magma_Bit_not_inst6_out = ~ (config_we ^ 1'b1);
 assign magma_Bits_2_eq_inst0_out = mode == 2'h1;
 assign magma_Bits_2_eq_inst1_out = mode == 2'h1;
 assign magma_Bits_2_eq_inst10_out = mode == 2'h0;

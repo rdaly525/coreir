@@ -12,15 +12,13 @@ module Sub8 (
     input [7:0] I1,
     output [7:0] O
 );
-wire bit_const_1_None_out;
 wire [7:0] inst0_out;
-assign bit_const_1_None_out = 1'b1;
 assign inst0_out = ~ I1;
 Add8_cin inst1 (
     .I0(I0),
     .I1(inst0_out),
     .O(O),
-    .CIN(bit_const_1_None_out)
+    .CIN(1'b1)
 );
 endmodule
 

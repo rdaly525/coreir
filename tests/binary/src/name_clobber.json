@@ -1,0 +1,40 @@
+{"top":"global.Bar",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Bar":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "instances":{
+          "Foo_inst0":{
+            "modref":"global.Foo"
+          },
+          "Foo_inst0_O":{
+            "modref":"corebit.wire"
+          },
+          "Foo_inst1":{
+            "modref":"global.Foo"
+          }
+        },
+        "connections":[
+          ["self.I","Foo_inst0.I"],
+          ["Foo_inst0_O.in","Foo_inst0.O"],
+          ["Foo_inst1.I","Foo_inst0_O.out"],
+          ["self.O","Foo_inst1.O"]
+        ]
+      },
+      "Foo":{
+        "type":["Record",[
+          ["I","BitIn"],
+          ["O","Bit"]
+        ]],
+        "connections":[
+          ["self.I","self.O"]
+        ]
+      }
+    }
+  }
+}
+}

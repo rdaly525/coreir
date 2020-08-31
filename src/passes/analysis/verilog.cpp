@@ -251,6 +251,29 @@ void Passes::Verilog::makeDecl(
     this->processDecl(std::move(id), type));
 }
 
+// Make sure it doesn't conflict with any instance names
+std::string genFreshWireName(
+  std::string base_name,
+  std::set<std::string>& instance_names) {
+  if (!instance_names.count(base_name)) { return base_name; }
+  int counter = 1;
+  while (instance_names.count(base_name + "_unq" + std::to_string(counter))) {
+    counter += 1;
+  }
+  return base_name + "_unq" + std::to_string(counter);
+}
+
+// Lookup to see if port name has been remapped (to avoid name conflicts with
+// port and instance names)
+std::string getUniquifiedName(
+  std::map<std::string, std::string>& non_input_port_map,
+  std::string port_name) {
+  if (non_input_port_map.count(port_name)) {
+    return non_input_port_map[port_name];
+  }
+  return port_name;
+}
+
 // Given a map of instances, return a vector of containing declarations for all
 // the output ports of each instance.  We return a vector of a variant type for
 // compatibility with the module AST node constructor, even though we only ever
@@ -260,7 +283,9 @@ std::vector<std::variant<
   std::unique_ptr<vAST::Declaration>>>
 Passes::Verilog::declareConnections(
   std::map<std::string, Instance*> instances,
-  bool _inline) {
+  bool _inline,
+  std::set<std::string>& instance_names,
+  std::map<std::string, std::string>& non_input_port_map) {
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
@@ -280,11 +305,16 @@ Passes::Verilog::declareConnections(
     for (auto field : record_type->getFields()) {
       Type* field_type = record_type->getRecord().at(field);
       if (field_type->isInput()) { continue; }
-      this->makeDecl(
-        instance.first + "_" + field,
-        field_type,
-        declarations,
-        is_reg);
+      std::string wire_name = instance.first + "_" + field;
+      // Generate a fresh name in case theres a conflict with an existing
+      // instance name
+      wire_name = genFreshWireName(wire_name, instance_names);
+      non_input_port_map[instance.first + "_" + field] = wire_name;
+      // We don't need track conflicts with other instance port names this since
+      // at this point the only identifiers introduced are inst_name + port
+      // (and instance names must be unique), so only instance names can
+      // clobber instance port names
+      this->makeDecl(wire_name, field_type, declarations, is_reg);
     }
   }
   return declarations;
@@ -622,7 +652,10 @@ std::variant<
   std::unique_ptr<vAST::Attribute>,
   std::unique_ptr<vAST::Index>,
   std::unique_ptr<vAST::Slice>>
-convert_to_verilog_connection(Wireable* value, bool _inline) {
+convert_to_verilog_connection(
+  Wireable* value,
+  bool _inline,
+  std::map<std::string, std::string>& non_input_port_map) {
   SelectPath select_path = value->getSelectPath();
   if (select_path.front() == "self") { select_path.pop_front(); }
   Wireable* parent = value->getTopParent();
@@ -646,11 +679,27 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
   for (uint i = 0; i < select_path.size(); i++) {
     auto item = select_path[i];
     if (isNumber(item)) {
+      if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
+            curr_node)) {
+        std::unique_ptr<vAST::Identifier>
+          id = std::get<std::unique_ptr<vAST::Identifier>>(
+            std::move(curr_node));
+        id->value = getUniquifiedName(non_input_port_map, id->value);
+        curr_node = std::move(id);
+      }
       curr_node = std::make_unique<vAST::Index>(
         std::move(curr_node),
         vAST::make_num(item));
     }
     else if (isSlice(item)) {
+      if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(
+            curr_node)) {
+        std::unique_ptr<vAST::Identifier>
+          id = std::get<std::unique_ptr<vAST::Identifier>>(
+            std::move(curr_node));
+        id->value = getUniquifiedName(non_input_port_map, id->value);
+        curr_node = std::move(id);
+      }
       int low;
       int high;
       std::tie(low, high) = parseSlice(item);
@@ -723,7 +772,7 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
           // selecting off a hierarchical instance select
           curr_node = std::make_unique<vAST::Attribute>(
             std::move(std::get<std::unique_ptr<vAST::Attribute>>(curr_node)),
-            item);
+            getUniquifiedName(non_input_port_map, item));
         }
         else {
           // append to current name being constructed
@@ -741,7 +790,10 @@ convert_to_verilog_connection(Wireable* value, bool _inline) {
     return std::get<std::unique_ptr<vAST::Index>>(std::move(curr_node));
   }
   if (std::holds_alternative<std::unique_ptr<vAST::Identifier>>(curr_node)) {
-    return std::get<std::unique_ptr<vAST::Identifier>>(std::move(curr_node));
+    std::unique_ptr<vAST::Identifier>
+      id = std::get<std::unique_ptr<vAST::Identifier>>(std::move(curr_node));
+    id->value = getUniquifiedName(non_input_port_map, id->value);
+    return std::move(id);
   }
   if (std::holds_alternative<std::unique_ptr<vAST::Attribute>>(curr_node)) {
     return std::get<std::unique_ptr<vAST::Attribute>>(std::move(curr_node));
@@ -780,7 +832,8 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>& body,
   std::string debug_prefix,
-  bool _inline) {
+  bool _inline,
+  std::map<std::string, std::string>& non_input_port_map) {
 
   // nd-args contains a flat encoding of the index space of the array
   std::vector<std::unique_ptr<vAST::Expression>> nd_args;
@@ -797,7 +850,7 @@ std::unique_ptr<vAST::Concat> convert_non_bulk_connection_to_concat(
   // construct the appropriate Concat tree to map to the multi-dimensional space
   for (auto entry : entries) {
     std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
-      convert_to_verilog_connection(entry.source, _inline));
+      convert_to_verilog_connection(entry.source, _inline, non_input_port_map));
     process_connection_debug_metadata(
       entry,
       verilog_conn->toString(),
@@ -917,7 +970,8 @@ void assign_module_outputs(
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>& body,
   std::map<ConnMapKey, std::vector<ConnMapEntry>> connection_map,
-  bool _inline) {
+  bool _inline,
+  std::map<std::string, std::string>& non_input_port_map) {
   for (auto field : record_type->getFields()) {
     Type* field_type = record_type->getRecord().at(field);
     if (field_type->isInput()) { continue; }
@@ -930,7 +984,8 @@ void assign_module_outputs(
           entries,
           body,
           field,
-          _inline);
+          _inline,
+          non_input_port_map);
       if (concat->unpacked) {
         wireUnpackedDriver(body, std::move(concat), vAST::make_id(field));
       }
@@ -942,7 +997,10 @@ void assign_module_outputs(
     }
     else {
       std::unique_ptr<vAST::Expression> verilog_conn = convert_to_expression(
-        convert_to_verilog_connection(entries[0].source, _inline));
+        convert_to_verilog_connection(
+          entries[0].source,
+          _inline,
+          non_input_port_map));
       process_connection_debug_metadata(
         entries[0],
         verilog_conn->toString(),
@@ -969,7 +1027,8 @@ void assign_inouts(
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>& body,
-  bool _inline) {
+  bool _inline,
+  std::map<std::string, std::string>& non_input_port_map) {
   for (auto connection : connections) {
     if (
       connection.first->getType()->isInOut() ||
@@ -988,8 +1047,9 @@ void assign_inouts(
       if (!order) { std::swap(target, value); }
       body.push_back(std::make_unique<vAST::ContinuousAssign>(
         convert_to_assign_target(
-          convert_to_verilog_connection(target, _inline)),
-        convert_to_expression(convert_to_verilog_connection(value, _inline))));
+          convert_to_verilog_connection(target, _inline, non_input_port_map)),
+        convert_to_expression(
+          convert_to_verilog_connection(value, _inline, non_input_port_map))));
     };
   };
 }
@@ -1014,14 +1074,29 @@ Passes::Verilog::compileModuleBody(
   bool disable_width_cast,
   std::set<std::string>& wires,
   std::set<std::string>& inlined_wires) {
+
+  std::set<std::string> instance_names;
+  std::map<std::string, std::string> non_input_port_map;
+
   std::map<std::string, Instance*> instances = definition->getInstances();
+
+  // initialize used ids with instance names
+  std::transform(
+    instances.begin(),
+    instances.end(),
+    std::inserter(instance_names, instance_names.end()),
+    [](auto pair) { return pair.first; });
 
   std::vector<std::unique_ptr<vAST::StructuralStatement>> inline_verilog_body;
 
   std::vector<std::variant<
     std::unique_ptr<vAST::StructuralStatement>,
     std::unique_ptr<vAST::Declaration>>>
-    body = this->declareConnections(instances, _inline);
+    body = this->declareConnections(
+      instances,
+      _inline,
+      instance_names,
+      non_input_port_map);
 
   std::vector<Connection> connections = definition->getSortedConnections();
 
@@ -1073,7 +1148,8 @@ Passes::Verilog::compileModuleBody(
         // connect wire
         verilog_connections->insert(
           field,
-          std::make_unique<vAST::Identifier>(wire_name));
+          std::make_unique<vAST::Identifier>(
+            getUniquifiedName(non_input_port_map, wire_name)));
         continue;
       }
 
@@ -1091,8 +1167,10 @@ Passes::Verilog::compileModuleBody(
             entries,
             body,
             instance_name + "." + field,
-            _inline);
+            _inline,
+            non_input_port_map);
         if (concat->unpacked && !is_inlined) {
+          wire_name = genFreshWireName(wire_name, instance_names);
           this->makeDecl(wire_name, field_type, body, false);
           wires.insert(wire_name);
           verilog_connections->insert(
@@ -1104,8 +1182,10 @@ Passes::Verilog::compileModuleBody(
         driver = std::move(concat);
       }
       else {
-        driver = convert_to_expression(
-          convert_to_verilog_connection(entries[0].source, _inline));
+        driver = convert_to_expression(convert_to_verilog_connection(
+          entries[0].source,
+          _inline,
+          non_input_port_map));
         process_connection_debug_metadata(
           entries[0],
           driver->toString(),
@@ -1132,19 +1212,13 @@ Passes::Verilog::compileModuleBody(
         if (
           (driver_id || driver_index || driver_slice) &&
           std::holds_alternative<std::unique_ptr<vAST::Identifier>>(target)) {
-          // If it's not a concat, we connect it directly and prevent it from
-          // being inlined
-          //
-          // slices/indices are blacklisted automatically, but identifiers need
-          // to be marked
-          if (driver_id) { wires.insert(driver_id->value); }
+          // If it's not a concat, we connect it directly
           verilog_connections->insert(field, std::move(driver));
         }
         else {
           // otherwise it's a concat, so we emit an input wire for it
+          wire_name = genFreshWireName(wire_name, instance_names);
           this->makeDecl(wire_name, field_type, body, false);
-          // prevent inlining of this wire into the module instance statement
-          wires.insert(wire_name);
           verilog_connections->insert(
             field,
             std::make_unique<vAST::Identifier>(wire_name));
@@ -1284,8 +1358,13 @@ Passes::Verilog::compileModuleBody(
   // Wire the outputs of the module and inout connections
   // TODO: Make these object methods so we don't have to pass things aorund so
   // much (e.g. _inline flag)
-  assign_module_outputs(module_type, body, connection_map, _inline);
-  assign_inouts(connections, body, _inline);
+  assign_module_outputs(
+    module_type,
+    body,
+    connection_map,
+    _inline,
+    non_input_port_map);
+  assign_inouts(connections, body, _inline, non_input_port_map);
 
   for (auto&& it : inline_verilog_body) { body.push_back(std::move(it)); }
   return body;
