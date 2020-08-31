@@ -294,7 +294,6 @@ Passes::Verilog::declareConnections(
                      ->getRecord()
                      .at("in");
       this->makeDecl(instance.first, type, declarations, false);
-      non_input_port_map[instance.first] = instance.first;
       continue;
     }
     RecordType* record_type = cast<RecordType>(
@@ -1203,20 +1202,13 @@ Passes::Verilog::compileModuleBody(
         if (
           (driver_id || driver_index || driver_slice) &&
           std::holds_alternative<std::unique_ptr<vAST::Identifier>>(target)) {
-          // If it's not a concat, we connect it directly and prevent it from
-          // being inlined
-          //
-          // slices/indices are blacklisted automatically, but identifiers need
-          // to be marked
-          if (driver_id) { wires.insert(driver_id->value); }
+          // If it's not a concat, we connect it directly
           verilog_connections->insert(field, std::move(driver));
         }
         else {
           // otherwise it's a concat, so we emit an input wire for it
           wire_name = genFreshWireName(wire_name, instance_names);
           this->makeDecl(wire_name, field_type, body, false);
-          // prevent inlining of this wire into the module instance statement
-          wires.insert(wire_name);
           verilog_connections->insert(
             field,
             std::make_unique<vAST::Identifier>(wire_name));
