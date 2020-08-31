@@ -13,6 +13,11 @@ namespace Passes {
 
 class Verilog : public InstanceGraphPass {
   bool _inline = false;
+
+  // Setting this to true will emit `/*verilator lint_off UNUSED */` around
+  // certain primitives to avoid verilator lint errors
+  bool verilator_compat = false;
+
   bool verilator_debug = false;
   bool disable_width_cast = false;
 
