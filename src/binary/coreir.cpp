@@ -27,9 +27,9 @@ string getExt(string s) {
 int main(int argc, char* argv[]) {
   int argc_copy = argc;
   cxxopts::Options options("coreir", "a simple hardware compiler");
-  options.add_options()(
-    "h,help",
-    "help")("v,verbose", "Set verbosity", cxxopts::value<int>())(
+  options.add_options()("h,help", "help")(
+    "version",
+    "Show version")("v,verbose", "Set verbosity", cxxopts::value<int>())(
     "i,input",
     "input file: '<file1>.json,<file2.json,...'",
     cxxopts::value<std::string>())(
@@ -54,7 +54,14 @@ int main(int argc, char* argv[]) {
     "z,inline",
     "inlines verilog primitives")(
     "y,verilator_debug",
-    "mark signals with /*veriltor public*/")(
+    "mark signals with /*verilator public*/")(
+    "u,verilator_compat",
+    "Emit verilog primitives with verilator compatibility")(
+    "w,disable-width-cast",
+    "disable verilog code generation of width casting when inlining")(
+    "x,disable-ndarray",
+    "disable verilog code generation of ndarrays (multi-dimensional arrays of "
+    "bits)")(
     "s,split",
     "splits output files by name (expects '-o <path>/*.<ext>')")(
     "product",
@@ -85,6 +92,11 @@ int main(int argc, char* argv[]) {
     cout << options.help() << endl << endl;
     c->getPassManager()->printPassChoices();
     cout << endl;
+    return 0;
+  }
+
+  if (opts.count("version")) {
+    cout << COREIR_VERSION << " " << GIT_SHA1 << endl;
     return 0;
   }
 
@@ -140,6 +152,8 @@ int main(int argc, char* argv[]) {
   }
 
   std::ostream* sout = &std::cout;
+  // split files logic overwrites default sout, needs to be freed
+  bool delete_sout = false;
   std::string outExt = "json";
   std::string output_dir = "";
   auto parse_outputs = [&] {
@@ -156,6 +170,7 @@ int main(int argc, char* argv[]) {
         std::unique_ptr<std::ofstream> fout(new std::ofstream(outfile));
         ASSERT(fout->is_open(), "Cannot open file: " + outfile);
         sout = fout.release();
+        delete_sout = true;
       }
     }
     if (split_files) {
@@ -189,7 +204,7 @@ int main(int argc, char* argv[]) {
     CoreIRLoadFirrtl_coreir(c);
     CoreIRLoadFirrtl_corebit(c);
     c->runPasses(
-      {"rungenerators", "cullgraph", "wireclocks-coreir", "firrtl"},
+      {"rungenerators", "cullgraph", "wireclocks-clk", "firrtl"},
       namespaces);
     // Get the analysis pass
     auto fpass = static_cast<Passes::Firrtl*>(
@@ -207,8 +222,12 @@ int main(int argc, char* argv[]) {
     string vstr = "verilog";
     if (opts.count("z")) { vstr += " -i"; }
     if (opts.count("y")) { vstr += " -y"; }
+    if (opts.count("w")) { vstr += " -w"; }
+    if (opts.count("u")) { vstr += " -v"; }
+    std::string flattentypes_str = "flattentypes";
+    if (!opts.count("x")) { flattentypes_str += " --ndarray"; }
     modified |= c->runPasses(
-      {"rungenerators", "removebulkconnections", "flattentypes", vstr},
+      {"rungenerators", "removebulkconnections", flattentypes_str, vstr},
       namespaces);
     LOG(DEBUG) << "Running vpasses";
 
@@ -229,7 +248,7 @@ int main(int argc, char* argv[]) {
   }
   else if (outExt == "py") {
     modified |= c->runPasses(
-      {"rungenerators", "cullgraph", "wireclocks-coreir", "magma"});
+      {"rungenerators", "cullgraph", "wireclocks-clk", "magma"});
     auto mpass = static_cast<Passes::Magma*>(
       c->getPassManager()->getAnalysisPass("magma"));
     mpass->writeToStream(*sout);
@@ -257,6 +276,9 @@ int main(int argc, char* argv[]) {
     LOG(DEBUG) << "NYI";
   }
   LOG(DEBUG) << "Modified?: " << (modified ? "Yes" : "No");
+
+  if (delete_sout) delete sout;
+  deleteContext(c);
 
   return 0;
 }

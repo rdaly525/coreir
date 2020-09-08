@@ -18,7 +18,7 @@ void load_file(Context* context, std::string file_name) {
 
 void check_verilog(Context* context, std::string gold_file) {
   context->runPasses({"flattentypes", "verilog --inline"}, {});
-  assertPassEq<Passes::Verilog>(context, gold_file);
+  assertPassEq(context, "verilog", gold_file);
 }
 
 TEST(HierarchicalSelectTest, TestHierarchicalSelectBasic) {
@@ -35,7 +35,7 @@ TEST(HierarchicalSelectTest, TestHierarchicalSelectDouble) {
   deleteContext(c);
 }
 
-TEST(HierarchicalSelectTest, TestHierarchicalSelectNameAlisa) {
+TEST(HierarchicalSelectTest, TestHierarchicalSelectNameAlias) {
   Context* c = newContext();
   load_file(c, "srcs/hierarchical_select_3.json");
   check_verilog(c, "golds/hierarchical_select_3.v");

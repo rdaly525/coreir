@@ -69,7 +69,7 @@ Transform Passes
   deletedeadinstances
   removeconstduplicates
   packconnections
-  wireclocks-coreir
+  wireclocks-clk
 ```
 
 ## SMT2 Generation

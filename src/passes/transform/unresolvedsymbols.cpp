@@ -4,7 +4,6 @@
 using namespace std;
 using namespace CoreIR;
 
-string Passes::UnresolvedSymbols::ID = "unresolved";
 bool Passes::UnresolvedSymbols::runOnContext(Context* c) {
   cout << "NEW THING!" << endl;
   set<Module*> toErase;

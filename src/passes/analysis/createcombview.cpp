@@ -47,6 +47,9 @@ void Passes::CreateCombView::setupCorebit(Module* m) {
     set<SelectPath> outputs;
     for (auto record : m->getType()->getRecord()) {
       if (record.second->isInput()) { inputs.insert({record.first}); }
+      else if (record.second->isInOut()) {
+        continue;  // skip inouts for now
+      }
       else {
         assert(record.second->isOutput());
         outputs.insert({record.first});
@@ -57,7 +60,6 @@ void Passes::CreateCombView::setupCorebit(Module* m) {
   }
 }
 
-string Passes::CreateCombView::ID = "createcombview";
 bool Passes::CreateCombView::runOnInstanceGraphNode(InstanceGraphNode& node) {
   Module* m = node.getModule();
   if (m->getNamespace()->getName() == "coreir") {

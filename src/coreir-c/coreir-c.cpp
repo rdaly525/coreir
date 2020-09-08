@@ -124,6 +124,10 @@ bool COREContextRunPasses(
   return context->runPasses(vec_passes, vec_namespaces);
 }
 
+void COREContextSetTop(COREContext* context, COREModule* module) {
+  rcast<Context*>(context)->setTop(rcast<Module*>(module));
+}
+
 bool CORECompileToVerilog(
   COREContext* ctx,
   COREModule* top,
@@ -133,7 +137,8 @@ bool CORECompileToVerilog(
   char* split,
   char* product,
   bool inline_,
-  bool verilator_debug) {
+  bool verilator_debug,
+  bool disable_width_cast) {
   auto context = reinterpret_cast<Context*>(ctx);
   auto module = reinterpret_cast<Module*>(top);
   context->setTop(module->getRefName());
@@ -153,11 +158,13 @@ bool CORECompileToVerilog(
   std::string verilog_pass = "verilog";
   if (inline_) verilog_pass += " -i";
   if (verilator_debug) verilog_pass += " -y";
+  if (disable_width_cast) verilog_pass += " -w";
   std::vector<std::string> namespaces{"global"};
-  std::vector<std::string> passes{"rungenerators",
-                                  "removebulkconnections",
-                                  "flattentypes",
-                                  verilog_pass};
+  std::vector<std::string> passes{
+    "rungenerators",
+    "removebulkconnections",
+    "flattentypes",
+    verilog_pass};
   context->runPasses(passes, namespaces);
   auto pass = static_cast<Passes::Verilog*>(
     context->getPassManager()->getAnalysisPass("verilog"));
@@ -256,6 +263,24 @@ COREModule* CORELoadModule(COREContext* c, char* filename, bool* err) {
   }
   *err = !correct;
   return rcast<COREModule*>(top);
+}
+
+void CORESaveContext(
+  COREContext* context,
+  char* filename,
+  bool nocoreir,
+  bool no_default_libs,
+  bool* err) {
+
+  string file(filename);
+  std::cout << filename << std::endl;
+  bool correct = saveToFile(
+    rcast<Context*>(context),
+    file,
+    nocoreir,
+    no_default_libs);
+  *err = !correct;
+  return;
 }
 
 // bool saveToFile(Namespace* ns, string filename,Module* top=nullptr);
@@ -834,6 +859,10 @@ int COREValueTypeGetKind(COREValueType* value_type) {
 }
 
 void COREFree(void* ptr) { free(ptr); }
+
+const char* COREGetVersion() { return COREIR_VERSION; }
+
+const char* COREGetRevision() { return GIT_SHA1; }
 
 }  // extern "C"
 }  // namespace CoreIR

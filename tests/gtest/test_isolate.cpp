@@ -3,13 +3,14 @@
 #include "coreir.h"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/libs/commonlib.h"
 
 using namespace CoreIR;
 
 namespace {
 
 Module* create_module(Context* c, std::string mname) {
-  c->getLibraryManager()->loadLib("commonlib");
+  CoreIRLoadLibrary_commonlib(c);
   auto Bits16 = c->Bit()->Arr(16);
   auto ab = c->Record({
     {"a", c->In(Bits16)},
@@ -84,10 +85,10 @@ TEST(IsolateTest, Test1) {
 
   ASSERT_TRUE(!has_primitives);
 
-  // Also a single instance with namespace "_"
+  // Also a single instance with name "___primitives"
   auto isolated_insts = filterOver(def->getInstances(), [](auto it) {
-    auto nsname = it.second->getModuleRef()->getNamespace()->getName();
-    return nsname == "_";
+    auto nsname = it.second->getModuleRef()->getName();
+    return nsname.find(std::string("___primitives")) != std::string::npos;
   });
   ASSERT_TRUE(isolated_insts.size() == 1);
 

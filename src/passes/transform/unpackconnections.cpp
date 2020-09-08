@@ -5,8 +5,6 @@ using namespace std;
 using namespace CoreIR;
 
 namespace CoreIR {
-// Do not forget to set this static variable!!
-string Passes::UnpackConnections::ID = "unpackconnections";
 
 bool unpackConnections(CoreIR::Module* const mod) {
   if (!mod->hasDef()) { return false; }

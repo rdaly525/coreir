@@ -8,11 +8,9 @@ namespace Passes {
 
 class RemoveBulkConnections : public ModulePass {
  public:
-  static std::string ID;
-
   RemoveBulkConnections()
       : ModulePass(
-          ID,
+          "removebulkconnections",
           "Removes any bulk connections. Only connections will be bits and "
           "arrays of bits") {}
   bool runOnModule(Module* m) override;

@@ -1,4 +1,5 @@
 #include "coreir/ir/casting/casting.h"
+#include "coreir/ir/common.h"
 #include "coreir/ir/context.h"
 #include "coreir/ir/generator.h"
 #include "coreir/ir/moduledef.h"
@@ -80,6 +81,22 @@ void connectSameLevel(ModuleDef* def, Wireable* wa, Wireable* wb) {
   // cout << "Done connecting wireables" << endl;
 }
 
+// Generate a unique mantle wire instance for slice passthrough logic,
+// we use the instance input port name (select path to string) but for safety
+// we check existing instance names and make sure it's unique
+std::string makeUniqueInstanceName(ModuleDef* def, Wireable* from) {
+  SelectPath select_path = from->getSelectPath();
+  std::string inst_name = join(
+    select_path.begin(),
+    select_path.end(),
+    std::string("_"));
+  auto instances = def->getInstances();
+  if (!instances.count(inst_name)) { return inst_name; }
+  int count = 0;
+  while (instances.count(inst_name + std::to_string(count))) { count++; }
+  return inst_name + std::to_string(count);
+}
+
 namespace {
 void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
   for (auto other : from->getConnectedWireables()) { def->connect(to, other); }
@@ -88,6 +105,27 @@ void PTTraverse(ModuleDef* def, Wireable* from, Wireable* to) {
     toDelete.push_back(other);
   }
   for (auto other : toDelete) { def->disconnect(from, other); }
+
+  // If we encounter a slice, we insert a wire so the passthrough logic works
+  // (it was originally written before slices were implemented, so assumes there
+  // are no slices)
+  for (auto sel : from->getSelects()) {
+    if (isSlice(sel.first)) {
+      // Only inline instance input wires if there's a single driver,
+      // otherwise, it will generate a concat node that shouldn't be inlined
+      // since we avoid inserting expressions into instance inputs
+      Context* c = def->getContext();
+      Instance* wire = def->addInstance(
+        makeUniqueInstanceName(def, from),
+        c->getGenerator("mantle.wire"),
+        {{"type", Const::make(c, from->getType())}});
+      wire->getMetaData()["inline_verilog_wire"] = true;
+      def->connect(to, wire->sel("in"));
+      wire->getModuleRef()->runGenerator();
+      to = wire->sel("out");
+      break;
+    }
+  }
   for (auto sels : from->getSelects()) {
     if (!isa<InstanceSelect>(sels.second)) {
       PTTraverse(def, sels.second, to->sel(sels.first));
@@ -211,7 +249,11 @@ bool inlineInstance(Instance* inst) {
         modargs[vpair.first] = instModArgs[varg->getField()];
       }
     }
-    def->addInstance(iname, instpair.second->getModuleRef(), modargs);
+    Instance* inst = def->addInstance(
+      iname,
+      instpair.second->getModuleRef(),
+      modargs);
+    inst->setMetaData(instpair.second->getMetaData());
   }
 
   // Now add all the easy connections (that do not touch the boundary)

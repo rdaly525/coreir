@@ -8,11 +8,9 @@ namespace Passes {
 
 class RemoveSingleMuxes : public ModulePass {
  public:
-  static std::string ID;
-
   RemoveSingleMuxes()
       : ModulePass(
-          ID,
+          "removesinglemuxes",
           "Removes single-input muxes and their control signals, if they are "
           "not "
           "used elsewhere.") {}

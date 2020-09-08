@@ -16,6 +16,7 @@ class Wireable : public MetaData {
   WireableKind kind;
   ModuleDef* container;  // ModuleDef which it is contained in
   Type* type;
+  Wireable* topParent = nullptr;
 
   std::set<Wireable*> connected;
 
@@ -79,6 +80,7 @@ class Wireable : public MetaData {
   // Get all the connections from self and all the selects
   LocalConnections getLocalConnections();
 
+  // NOTE: Will cache the result, assumes that the parent never change
   Wireable* getTopParent();
 
   // removes the select from this wireble.
@@ -94,7 +96,7 @@ class Wireable : public MetaData {
 std::ostream& operator<<(std::ostream&, const Wireable&);
 
 class Interface : public Wireable {
-  static const std::string instname;
+  const std::string instname = "self";
 
  public:
   Interface(ModuleDef* container, Type* type)

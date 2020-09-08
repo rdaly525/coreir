@@ -24,7 +24,7 @@ def test_examples(example):
         assert not res.return_code, res.out + res.err
 
         #Test serializing to verilog
-        res = delegator.run(f"bin/coreir -i examples/{example} {libs} -o examples/build/{name}.v")
+        res = delegator.run(f"bin/coreir -i examples/{example} {libs} -p wireclocks-clk -o examples/build/{name}.v")
         assert not res.return_code, res.out + res.err
 
         #Verify verilog syntax

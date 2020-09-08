@@ -11,8 +11,6 @@
 using namespace std;
 using namespace CoreIR;
 
-// Do not forget to set this static variable!!
-string Passes::HelloModule::ID = "hellomodule2";
 bool Passes::HelloModule::runOnModule(Module* m) {
   Context* c = this->getContext();
 

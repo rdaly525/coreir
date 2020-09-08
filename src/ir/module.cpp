@@ -112,7 +112,7 @@ void Module::setDef(ModuleDef* def, bool validate) {
   }
   this->def = def;
   // Directed View is not valid anymore
-  if (this->directedModule) { delete this->directedModule; }
+  delete this->directedModule;
 }
 
 string Module::toString() const {

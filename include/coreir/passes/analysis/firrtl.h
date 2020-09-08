@@ -126,15 +126,17 @@ class Firrtl : public InstanceGraphPass {
   std::vector<FModule*> fmods;
 
  public:
-  static std::string ID;
   Firrtl()
-      : InstanceGraphPass(ID, "Creates Firrtl representation of IR", true) {}
+      : InstanceGraphPass(
+          "firrtl",
+          "Creates Firrtl representation of IR",
+          true) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
   void setAnalysisInfo() override {
     addDependency("verifyconnectivity --onlyinputs");  // Should change back to
                                                        // check all connections
   }
-  void writeToStream(std::ostream& os);
+  void writeToStream(std::ostream& os) override;
 };
 
 }  // namespace Passes

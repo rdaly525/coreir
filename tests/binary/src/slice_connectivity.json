@@ -1,0 +1,52 @@
+{"top":"global.TestSlice",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Mux4xOutBits6":{
+        "type":["Record",[
+          ["I0",["Array",6,"BitIn"]],
+          ["I1",["Array",6,"BitIn"]],
+          ["I2",["Array",6,"BitIn"]],
+          ["I3",["Array",6,"BitIn"]],
+          ["S",["Array",2,"BitIn"]],
+          ["O",["Array",6,"Bit"]]
+        ]],
+        "instances":{
+          "coreir_commonlib_mux4x6_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",4], "width":["Int",6]}
+          }
+        },
+        "connections":[
+          ["self.I0","coreir_commonlib_mux4x6_inst0.in.data.0"],
+          ["self.I1","coreir_commonlib_mux4x6_inst0.in.data.1"],
+          ["self.I2","coreir_commonlib_mux4x6_inst0.in.data.2"],
+          ["self.I3","coreir_commonlib_mux4x6_inst0.in.data.3"],
+          ["self.S","coreir_commonlib_mux4x6_inst0.in.sel"],
+          ["self.O","coreir_commonlib_mux4x6_inst0.out"]
+        ]
+      },
+      "TestSlice":{
+        "type":["Record",[
+          ["I",["Array",10,"BitIn"]],
+          ["x",["Array",2,"BitIn"]],
+          ["O",["Array",6,"Bit"]]
+        ]],
+        "instances":{
+          "Mux4xOutBits6_inst0":{
+            "modref":"global.Mux4xOutBits6"
+          }
+        },
+        "connections":[
+          ["self.I.0:6","Mux4xOutBits6_inst0.I0.0:6"],
+          ["self.I.1:7","Mux4xOutBits6_inst0.I1.0:6"],
+          ["self.I.2:8","Mux4xOutBits6_inst0.I2.0:6"],
+          ["self.I.3:9","Mux4xOutBits6_inst0.I3.0:6"],
+          ["self.O","Mux4xOutBits6_inst0.O"],
+          ["self.x","Mux4xOutBits6_inst0.S"]
+        ]
+      }
+    }
+  }
+}
+}

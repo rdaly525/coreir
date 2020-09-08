@@ -1,6 +1,7 @@
 #ifndef COREIR_TYPES_HPP_
 #define COREIR_TYPES_HPP_
 
+#include "casting/casting.h"
 #include "fwd_declare.h"
 #include "globalvalue.h"
 
@@ -151,6 +152,11 @@ class RecordType : public Type {
 
 // Checks if type is a clock or an array (possibly nested) of clocks
 bool isClockOrNestedClockType(Type* type, Type* clockType);
+
+inline bool isBit(Type* t) { return t->isBaseType() || isa<NamedType>(t); }
+
+bool isBitOrArrOfBits(Type* t);
+bool isBitOrNDArrOfBits(Type* t);
 
 }  // namespace CoreIR
 

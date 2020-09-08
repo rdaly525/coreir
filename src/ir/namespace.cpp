@@ -75,6 +75,7 @@ void Namespace::addTypeGen(TypeGen* typegen) {
 }
 
 TypeGen* Namespace::newTypeGen(string name, Params genparams, TypeGenFun fun) {
+  ASSERT(typeGenList.count(name) == 0, "Typegen already exists!: " + name);
   return TypeGenFromFun::make(this, name, genparams, fun);
 }
 

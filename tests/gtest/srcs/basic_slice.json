@@ -1,0 +1,24 @@
+{
+  "top": "global.top",
+  "namespaces": {
+    "global": {
+      "modules": {
+        "top": {
+          "type": ["Record",[
+            ["in", ["Array",16,"BitIn"]],
+            ["out0", ["Array",2,["Array",4,"Bit"]]],
+            ["out1", ["Array",8,"Bit"]]
+          ]],
+          "connections": [
+            ["self.in.0:2","self.out0.0.2:4"],
+            ["self.in.2:4","self.out0.0.0:2"],
+            ["self.in.4:8","self.out0.1"],
+            ["self.in.8:12","self.out1.0:4"],
+            ["self.in.12:16","self.out1.4:8"]
+          ]
+        }
+      }
+    }
+  }
+}
+

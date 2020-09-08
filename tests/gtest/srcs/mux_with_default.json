@@ -1,0 +1,71 @@
+
+{"top":"global.MuxWithDefaultWrapper_9_32_8_0",
+"namespaces":{
+  "global":{
+    "modules":{
+      "MuxWithDefaultWrapper_9_32_8_0":{
+        "type":["Record",[
+          ["I",["Array",9,["Array",32,"BitIn"]]],
+          ["S",["Array",8,"BitIn"]],
+          ["EN",["Array",1,"BitIn"]],
+          ["O",["Array",32,"Bit"]]
+        ]],
+        "instances":{
+          "MuxWrapper_2_32_inst0$Mux2x32_inst0$coreir_commonlib_mux2x32_inst0$_join":{
+            "genref":"coreir.mux",
+            "genargs":{"width":["Int",32]}
+          },
+          "MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0":{
+            "genref":"commonlib.muxn",
+            "genargs":{"N":["Int",9], "width":["Int",32]}
+          },
+          "_$_U592":{
+            "genref":"mantle.wire",
+            "genargs":{"type":["CoreIRType",["Array",4,"BitIn"]]},
+            "metadata":{"inline_verilog_wire":true}
+          },
+          "and_inst0":{
+            "modref":"corebit.and"
+          },
+          "const_0_32":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",32]},
+            "modargs":{"value":[["BitVector",32],"32'h00000000"]}
+          },
+          "const_9_8":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",8]},
+            "modargs":{"value":[["BitVector",8],"8'h09"]}
+          },
+          "coreir_ult8_inst0":{
+            "genref":"coreir.ult",
+            "genargs":{"width":["Int",8]}
+          }
+        },
+        "connections":[
+          ["const_0_32.out","MuxWrapper_2_32_inst0$Mux2x32_inst0$coreir_commonlib_mux2x32_inst0$_join.in0"],
+          ["MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.out","MuxWrapper_2_32_inst0$Mux2x32_inst0$coreir_commonlib_mux2x32_inst0$_join.in1"],
+          ["self.O","MuxWrapper_2_32_inst0$Mux2x32_inst0$coreir_commonlib_mux2x32_inst0$_join.out"],
+          ["and_inst0.out","MuxWrapper_2_32_inst0$Mux2x32_inst0$coreir_commonlib_mux2x32_inst0$_join.sel"],
+          ["self.I.0","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.0"],
+          ["self.I.1","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.1"],
+          ["self.I.2","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.2"],
+          ["self.I.3","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.3"],
+          ["self.I.4","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.4"],
+          ["self.I.5","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.5"],
+          ["self.I.6","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.6"],
+          ["self.I.7","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.7"],
+          ["self.I.8","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.data.8"],
+          ["_$_U592.in","MuxWrapper_9_32_inst0$Mux9x32_inst0$coreir_commonlib_mux9x32_inst0.in.sel"],
+          ["self.S.0:4","_$_U592.out.0:4"],
+          ["coreir_ult8_inst0.out","and_inst0.in0"],
+          ["self.EN.0","and_inst0.in1"],
+          ["coreir_ult8_inst0.in1","const_9_8.out"],
+          ["self.S","coreir_ult8_inst0.in0"]
+        ]
+      }
+    }
+  }
+}
+}
+

@@ -10,10 +10,9 @@ namespace Passes {
 class PackBitConstants : public ModulePass {
 
  public:
-  static std::string ID;
   PackBitConstants()
       : ModulePass(
-          ID,
+          "packbitconstants",
           "Convert lists of corebit.const into coreir.const. E.G. convert 32 1 "
           "bit constants into one 32 bit constant.") {}
   bool runOnModule(Module* m) override;

@@ -8,7 +8,6 @@ namespace CoreIR {
 
 namespace Passes {
 
-string Passes::RemoveSingleMuxes::ID = "removesinglemuxes";
 bool RemoveSingleMuxes::runOnModule(Module* m) {
   if (!m->hasDef()) { return false; }
 

@@ -7,10 +7,9 @@ namespace Passes {
 
 class InlineSingleInstances : public InstanceGraphPass {
  public:
-  static std::string ID;
   InlineSingleInstances()
       : InstanceGraphPass(
-          ID,
+          "inline_single_instances",
           "Inlines any modules that contains a single instance") {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node);
 };

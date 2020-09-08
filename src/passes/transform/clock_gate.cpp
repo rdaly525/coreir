@@ -1,7 +1,5 @@
 #include "coreir/passes/transform/clock_gate.h"
 
-std::string CoreIR::Passes::ClockGate::ID = "clock_gate";
-
 namespace {
 struct CEInfo {
   bool can_replace = false;

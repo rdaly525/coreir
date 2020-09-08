@@ -19,8 +19,7 @@ class SMV : public InstanceGraphPass {  // ModulePass
   set<string> no_ops = {"term"};
 
  public:
-  static std::string ID;
-  SMV() : InstanceGraphPass(ID, "Creates SMV representation of IR", true) {}
+  SMV() : InstanceGraphPass("smv", "Creates SMV representation of IR", true) {}
   bool runOnInstanceGraphNode(
     InstanceGraphNode& node) override;  // runOnModule(Module* module)
   void setAnalysisInfo() override {
@@ -29,7 +28,7 @@ class SMV : public InstanceGraphPass {  // ModulePass
     addDependency("verifyflatcoreirprims");
   }
 
-  void writeToStream(std::ostream& os);
+  void writeToStream(std::ostream& os) override;
 };
 
 }  // namespace Passes

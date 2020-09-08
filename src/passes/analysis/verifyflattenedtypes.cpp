@@ -1,26 +1,22 @@
 #include "coreir/passes/analysis/verifyflattenedtypes.h"
 #include "coreir.h"
+#include "coreir/tools/cxxopts.h"
 
 using namespace std;
 using namespace CoreIR;
 
-namespace {
-inline bool isBit(Type* t) { return t->isBaseType() || isa<NamedType>(t); }
-bool isBitOrArrOfBits(Type* t) {
-  if (isBit(t)) return true;
-  if (auto at = dyn_cast<ArrayType>(t)) { return isBit(at->getElemType()); }
-  return false;
+bool Passes::VerifyFlattenedTypes::check(Type* t) {
+  if (this->allow_ndarrays) { return isBitOrNDArrOfBits(t); }
+  return isBitOrArrOfBits(t);
 }
-}  // namespace
 
-string Passes::VerifyFlattenedTypes::ID = "verifyflattenedtypes";
 bool Passes::VerifyFlattenedTypes::runOnInstanceGraphNode(
   InstanceGraphNode& node) {
 
   Module* m = node.getModule();
   for (auto rpair : m->getType()->getRecord()) {
     ASSERT(
-      isBitOrArrOfBits(rpair.second),
+      this->check(rpair.second),
       "{" + m->getRefName() + "}." + rpair.first +
         " Is not a flattened type!\n  Type is: " + rpair.second->toString());
   }
@@ -50,4 +46,15 @@ bool Passes::VerifyFlattenedTypes::runOnInstanceGraphNode(
   //}
   //
   // return false;
+}
+
+void Passes::VerifyFlattenedTypes::initialize(int argc, char** argv) {
+  cxxopts::Options options(
+    "verifyflattentypes",
+    "Checks that all types have beeen flattened");
+  options.add_options()(
+    "n,ndarray",
+    "Allow multi-dimensional array of bits (ndarrays)");
+  auto opts = options.parse(argc, argv);
+  if (opts.count("n")) { this->allow_ndarrays = true; }
 }

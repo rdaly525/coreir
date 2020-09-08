@@ -40,3 +40,25 @@ add_test(NAME test_hierarchical_select COMMAND test_hierarchical_select WORKING_
 add_executable(test_isolate test_isolate.cpp)
 target_link_libraries(test_isolate gtest_main coreir coreir-commonlib)
 add_test(NAME test_isolate COMMAND test_isolate WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_slice test_slice.cpp)
+target_link_libraries(test_slice gtest_main coreir coreir-commonlib)
+add_test(NAME test_slice COMMAND test_slice WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_if_reconstruction test_if_reconstruction.cpp)
+target_link_libraries(test_if_reconstruction gtest_main coreir
+                      coreir-commonlib)
+add_test(NAME test_if_reconstruction COMMAND test_if_reconstruction
+         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_memory test_memory.cpp)
+target_link_libraries(test_memory gtest_main coreir coreir-commonlib)
+add_test(NAME test_memory COMMAND test_memory WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_flattentypes test_flattentypes.cpp)
+target_link_libraries(test_flattentypes gtest_main coreir coreir-commonlib)
+add_test(NAME test_flattentypes COMMAND test_flattentypes WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)
+
+add_executable(test_verilog_ndarray test_verilog_ndarray.cpp)
+target_link_libraries(test_verilog_ndarray gtest_main coreir coreir-commonlib)
+add_test(NAME test_verilog_ndarray COMMAND test_verilog_ndarray WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/tests/gtest)

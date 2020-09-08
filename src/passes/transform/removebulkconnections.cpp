@@ -4,18 +4,6 @@
 using namespace std;
 using namespace CoreIR;
 
-namespace {
-inline bool isBit(Type* t) {
-  return isa<BitType>(t) || isa<BitInType>(t) || isa<NamedType>(t) ||
-    isa<BitInOutType>(t);
-}
-bool isBitOrArrOfBits(Type* t) {
-  if (isBit(t)) return true;
-  if (auto at = dyn_cast<ArrayType>(t)) { return isBit(at->getElemType()); }
-  return false;
-}
-}  // namespace
-string Passes::RemoveBulkConnections::ID = "removebulkconnections";
 bool Passes::RemoveBulkConnections::runOnModule(Module* m) {
   if (!m->hasDef()) return false;
   ModuleDef* def = m->getDef();

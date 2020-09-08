@@ -11,8 +11,7 @@ namespace Passes {
 class AddDirected : public ModulePass {
 
  public:
-  static std::string ID;
-  AddDirected() : ModulePass(ID, "Descritpion Blah Blah") {}
+  AddDirected() : ModulePass("adddirected", "Descritpion Blah Blah") {}
   bool runOnModule(Module* m) override;
 };
 

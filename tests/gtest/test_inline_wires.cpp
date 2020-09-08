@@ -16,9 +16,15 @@ void load_file(Context* context, std::string file_name) {
   context->setTop(top->getRefName());
 }
 
-void check_verilog(Context* context, std::string gold_file) {
-  context->runPasses({"flattentypes", "verilog --inline"}, {});
-  assertPassEq<Passes::Verilog>(context, gold_file);
+void check_verilog(
+  Context* context,
+  std::string gold_file,
+  bool ndarray = false) {
+  context->runPasses(
+    {"flattentypes" + std::string(ndarray ? " --ndarray" : ""),
+     "verilog --inline"},
+    {});
+  assertPassEq(context, "verilog", gold_file);
 }
 
 TEST(VerilogInlineWireTest, TestBitWire) {
@@ -82,6 +88,15 @@ TEST(VerilogInlineWireTest, TestInstance) {
   load_file(c, "srcs/bits_instance.json");
 
   check_verilog(c, "golds/bits_instance.v");
+  deleteContext(c);
+}
+
+TEST(VerilogInlineWireTest, TestIndexSliceInline) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  load_file(c, "srcs/index-slice-inline.json");
+
+  check_verilog(c, "golds/index-slice-inline.v", true);
   deleteContext(c);
 }
 

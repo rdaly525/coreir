@@ -29,9 +29,11 @@ class CreateCombView : public InstanceGraphPass {
   std::map<Module*, Comb> combs;
 
  public:
-  static std::string ID;
   CreateCombView()
-      : InstanceGraphPass(ID, "create comb view datastructures", true) {}
+      : InstanceGraphPass(
+          "createcombview",
+          "create comb view datastructures",
+          true) {}
   bool runOnInstanceGraphNode(InstanceGraphNode& node) override;
   bool hasSrc(Module* m) { return (srcs.count(m) > 0) && srcs[m].size() > 0; }
   bool hasSnk(Module* m) { return (snks.count(m) > 0) && snks[m].size() > 0; }

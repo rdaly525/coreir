@@ -7,10 +7,9 @@ namespace Passes {
 
 class IsolatePrimitives : public ModulePass {
  public:
-  static std::string ID;
   IsolatePrimitives()
       : ModulePass(
-          ID,
+          "isolate_primitives",
           "Isolates all coreir/corebit primitives into its own module",
           false) {}
   bool runOnModule(Module* m) override;

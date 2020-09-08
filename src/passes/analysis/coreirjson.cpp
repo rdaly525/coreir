@@ -294,10 +294,15 @@ Json Generator2Json(Generator* g) {
 }
 }  // namespace
 
-string Passes::CoreIRJson::ID = "coreirjson";
 bool Passes::CoreIRJson::runOnNamespace(Namespace* ns) {
-  Dict jns(2);
   auto modlist = ns->getModules(false);
+  if (
+    ns->getGenerators().empty() && ns->getTypeGens().empty() &&
+    modlist.empty()) {
+    // Skip if empty
+    return false;
+  }
+  Dict jns(2);
   if (!modlist.empty()) {
     Dict jmod(4);
     for (auto m : modlist) {
@@ -365,4 +370,11 @@ void Passes::CoreIRJson::writeToStream(std::ostream& os, string topRef) {
   for (auto nmap : nsMap) { jn.add(nmap.first, nmap.second); }
   os << quote("namespaces") << ":" << jn.toMultiString();
   os << endl << "}" << endl;
+}
+
+void Passes::CoreIRJson::writeToStream(std::ostream& os) {
+  std::string top = "";
+  Context* c = this->getContext();
+  if (c->hasTop()) { top = c->getTop()->getRefName(); };
+  return Passes::CoreIRJson::writeToStream(os, top);
 }

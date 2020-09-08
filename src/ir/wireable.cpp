@@ -18,8 +18,6 @@ using namespace std;
 
 namespace CoreIR {
 
-const string Interface::instname = "self";
-
 Wireable::~Wireable() {
   for (auto selmap : selects) { delete selmap.second; }
 }
@@ -201,16 +199,17 @@ LocalConnections Wireable::getLocalConnections() {
 }
 
 Wireable* Wireable::getTopParent() {
-  Wireable* top = this;
-  while (isa<Select>(top) || isa<InstanceSelect>(top)) {
-    Select* s;
-    if (isa<Select>(top)) { s = cast<Select>(top); }
-    else {
-      s = cast<InstanceSelect>(top);
-    }
-    top = s->getParent();
+  if (topParent != nullptr) return topParent;
+  if (isa<Select>(this) || isa<InstanceSelect>(this)) {
+    Select* s = isa<Select>(this) ?
+        cast<Select>(this) :
+        cast<InstanceSelect>(this);
+    topParent = s->getParent()->getTopParent();
   }
-  return top;
+  else {
+    topParent = this;
+  }
+  return topParent;
 }
 
 string Interface::toString() const { return "self"; }
