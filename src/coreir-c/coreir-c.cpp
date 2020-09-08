@@ -301,6 +301,10 @@ CORENamespace* COREGetNamespace(COREContext* c, char* name) {
     rcast<Context*>(c)->getNamespace(std::string(name)));
 }
 
+bool COREHasNamespace(COREContext* c, char* name) {
+  return rcast<Context*>(c)->hasNamespace(std::string(name));
+}
+
 CORENamespace* CORENewNamespace(COREContext* c, char* name) {
   return rcast<CORENamespace*>(
     rcast<Context*>(c)->newNamespace(std::string(name)));
