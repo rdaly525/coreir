@@ -144,8 +144,9 @@ assign out = {sign, exp, frac[frac_bits-1:0]};
 
   fp->getGenerator("mul")->setGeneratorDefFromFun(
     [](Context* c, Values args, ModuleDef* def) {
-      // uint exp_bits = args.at("exp_bits")->get<int>();
-      // uint frac_bits = args.at("frac_bits")->get<int>();
+      uint exp_bits = args.at("exp_bits")->get<int>();
+      uint frac_bits = args.at("frac_bits")->get<int>();
+      ASSERT(frac_bits==7 && exp_bits == 8, "NYI for non bfloat16");
       // uint ieee_compliance = args.at("ieee_compliance")->get<bool>();
       auto add = def->addInstance(
         "mi",
