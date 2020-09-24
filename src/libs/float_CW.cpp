@@ -34,9 +34,12 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
     [](Context* c, Values args) {
       uint exp_bits = args.at("exp_bits")->get<int>();
       uint frac_bits = args.at("frac_bits")->get<int>();
-      ASSERT(
-        frac_bits >= 10,
-        "Cannot instantiate multiplier less than 10 bits");
+      // This module is known to be unsafe/incorrect for < 10 frac
+      // bits. However, we are still using it with a slight workaround, and
+      // therefore disable the assertion.
+      // ASSERT(
+      //   frac_bits >= 10,
+      //   "Cannot instantiate multiplier less than 10 bits");
       uint width = 1 + exp_bits + frac_bits;
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({{"a", c->Flip(ptype)},
@@ -47,6 +50,7 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
     });
 
   auto mulcw = fpcw->newGeneratorDecl("mul", mul_tg, floatParams);
+  auto mulcw_hack = fpcw->newGeneratorDecl("mul_hack", mul_tg, floatParams);
   auto addcw = fpcw->newGeneratorDecl("add", add_tg, floatParams);
 
   // Add verilog to mul
@@ -64,6 +68,41 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
       ".ieee_compliance(ieee_compliance)) mul_inst "
       "(.a(a),.b(b),.rnd(rnd),.z(out),.status(status));";
     mulcw->getMetaData()["verilog"] = vjson;
+  }
+
+  //rnd should be passed as 3'h1
+  // Special case the verilog for BFloat16 mul
+  {
+    json vjson;
+    vjson["interface"] = {"input [exp_bits+frac_bits:0] a",
+                          "input [exp_bits+frac_bits:0] b",
+                          "input [2:0] rnd",
+                          "output [exp_bits+frac_bits:0] z",
+                          "output [7:0] status"};
+    vjson["definition"] = R"(
+wire [exp_bits+frac_bits:0] int_out;
+wire [2:0] results_x;
+reg sign;
+reg [exp_bits-1:0] exp;
+reg [frac_bits:0] frac;
+wire [7:0] status;
+
+CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd(rnd),.z({int_out,results_x}),.status(status));
+
+always @(*) begin
+  sign = int_out[exp_bits+frac_bits];
+  exp  = int_out[exp_bits+frac_bits-1:frac_bits];
+  frac = {1'b0,int_out[frac_bits-1:0]};
+  if ((results_x[2]&(results_x[1] | results_x[0])) | (int_out[0] & results_x[2])) begin
+    frac = frac + 1'd1;
+    if (~&exp) begin
+      exp = exp + {{(exp_bits-1){1'b0}},frac[frac_bits]};
+    end
+  end
+end
+assign out = {sign, exp, frac[frac_bits-1:0]};
+)";
+    mulcw_hack->getMetaData()["verilog"] = vjson;
   }
 
   // Add verilog to add
@@ -106,42 +145,25 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
       def->connect(add->sel("z"), io->sel("out"));
     });
 
-  // Special case the verilog for BFloat16 mul
-  auto bfmul = fp->getGenerator("mul")->getModule(
-    {{"exp_bits", Const::make(c, 8)}, {"frac_bits", Const::make(c, 7)}});
-  // Add verilog to add
-  {
-    json vjson;
-    vjson["interface"] = {"input [15:0] in0",
-                          "input [15:0] in1",
-                          "output [15:0] out"};
-    vjson["definition"] = R"(
-localparam exp_bits = 8;
-localparam frac_bits = 7;
-wire [exp_bits+frac_bits:0] int_out;
-wire [2:0] results_x;
-reg sign;
-reg [exp_bits-1:0] exp;
-reg [frac_bits:0] frac;
-wire [7:0] status;
-
-CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd('h1),.z({int_out,results_x}),.status(status));
-
-always @(*) begin
-  sign = int_out[exp_bits+frac_bits];
-  exp  = int_out[exp_bits+frac_bits-1:frac_bits];
-  frac = {1'b0,int_out[frac_bits-1:0]};
-  if ((results_x[2]&(results_x[1] | results_x[0])) | (int_out[0] & results_x[2])) begin
-    frac = frac + 1'd1;
-    if (~&exp) begin
-      exp = exp + {{(exp_bits-1){1'b0}},frac[frac_bits]}; 
-    end
-  end
-end
-assign out = {sign, exp, frac[frac_bits-1:0]};
-)";
-    bfmul->getMetaData()["verilog"] = vjson;
-  }
+  fp->getGenerator("mul")->setGeneratorDefFromFun(
+    [](Context* c, Values args, ModuleDef* def) {
+      uint exp_bits = args.at("exp_bits")->get<int>();
+      uint frac_bits = args.at("frac_bits")->get<int>();
+      ASSERT(frac_bits==7 && exp_bits == 8, "NYI for non bfloat16");
+      // uint ieee_compliance = args.at("ieee_compliance")->get<bool>();
+      auto add = def->addInstance(
+        "mi",
+        "float_CW.mul_hack",
+        {{"exp_bits", args.at("exp_bits")},
+         {"frac_bits", args.at("frac_bits")},
+         {"ieee_compliance", Const::make(c, false)}});
+      auto io = def->getInterface();
+      auto C = Constructor(def);
+      def->connect(io->sel("in0"), add->sel("a"));
+      def->connect(io->sel("in1"), add->sel("b"));
+      def->connect(C.const_(3, 1), add->sel("rnd"));
+      def->connect(add->sel("z"), io->sel("out"));
+    });
 
   /*
   wire [exp_bits+frac_bits:0] int_out;
