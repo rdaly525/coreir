@@ -34,9 +34,12 @@ Namespace* CoreIRLoadLibrary_float_CW(Context* c) {
     [](Context* c, Values args) {
       uint exp_bits = args.at("exp_bits")->get<int>();
       uint frac_bits = args.at("frac_bits")->get<int>();
-      ASSERT(
-        frac_bits >= 10,
-        "Cannot instantiate multiplier less than 10 bits");
+      // This module is known to be unsafe/incorrect for < 10 frac
+      // bits. However, we are still using it with a slight workaround, and
+      // therefore disable the assertion.
+      // ASSERT(
+      //   frac_bits >= 10,
+      //   "Cannot instantiate multiplier less than 10 bits");
       uint width = 1 + exp_bits + frac_bits;
       Type* ptype = c->Bit()->Arr(width);
       return c->Record({{"a", c->Flip(ptype)},
