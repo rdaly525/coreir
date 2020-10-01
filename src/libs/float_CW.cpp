@@ -85,7 +85,6 @@ wire [2:0] results_x;
 reg sign;
 reg [exp_bits-1:0] exp;
 reg [frac_bits:0] frac;
-wire [7:0] status;
 
 CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({in0,3'h0}),.b({in1,3'h0}),.rnd(rnd),.z({int_out,results_x}),.status(status));
 
@@ -100,7 +99,7 @@ always @(*) begin
     end
   end
 end
-assign out = {sign, exp, frac[frac_bits-1:0]};
+assign z = {sign, exp, frac[frac_bits-1:0]};
 )";
     mulcw_hack->getMetaData()["verilog"] = vjson;
   }
