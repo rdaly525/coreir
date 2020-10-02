@@ -114,7 +114,6 @@ assign z = {sign, exp, frac[frac_bits-1:0]};
                           "output [7:0] status"};
     vjson["definition"] =
       ""
-      "wire [7:0] status;\n"
       "CW_fp_add #(.sig_width(frac_bits), .exp_width(exp_bits), "
       ".ieee_compliance(ieee_compliance)) add_inst "
       "(.a(a),.b(b),.rnd(rnd),.z(z),.status(status));";
