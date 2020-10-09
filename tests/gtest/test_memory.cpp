@@ -49,6 +49,25 @@ TEST(MemoryTests, TestIssue932) {
   deleteContext(c);
 }
 
+TEST(MemoryTests, TestSyncReadMem) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/sync_read_mem.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {"rungenerators",
+                                           "removebulkconnections",
+                                           "flattentypes",
+                                           "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/sync_read_mem.v");
+  deleteContext(c);
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {

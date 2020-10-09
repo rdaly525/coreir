@@ -181,6 +181,38 @@ void core_state(Context* c, Namespace* core) {
   mem->setModParamsGen(memModParamFun);
   mem->addDefaultGenArgs({{"has_init", Const::make(c, false)},
                           {"sync_read", Const::make(c, false)}});
+
+  // SyncReadMemory
+  Params syncReadMemGenParams(
+    {{"width", c->Int()}, {"depth", c->Int()}, {"has_init", c->Bool()}});
+  auto syncReadMemFun = [](Context* c, Values genargs) {
+    int width = genargs.at("width")->get<int>();
+    int depth = genargs.at("depth")->get<int>();
+    int awidth = std::max((int)ceil(std::log2(depth)), 1);
+    return c->Record(
+      {{"clk", c->Named("coreir.clkIn")},
+       {"wdata", c->BitIn()->Arr(width)},
+       {"waddr", c->BitIn()->Arr(awidth)},
+       {"wen", c->BitIn()},
+       {"rdata", c->Bit()->Arr(width)},
+       {"ren", c->BitIn()},
+       {"raddr", c->BitIn()->Arr(awidth)}});
+  };
+
+  // can reuse normal mem fun
+  auto syncReadMemModParamFun = memModParamFun;
+
+  TypeGen* syncReadMemTypeGen = core->newTypeGen(
+    "syncReadMemType",
+    syncReadMemGenParams,
+    syncReadMemFun);
+
+  Generator* syncReadMem = core->newGeneratorDecl(
+    "sync_read_mem",
+    syncReadMemTypeGen,
+    syncReadMemGenParams);
+  syncReadMem->setModParamsGen(syncReadMemModParamFun);
+  syncReadMem->addDefaultGenArgs({{"has_init", Const::make(c, false)}});
 }
 
 Namespace* CoreIRLoadHeader_core(Context* c) {

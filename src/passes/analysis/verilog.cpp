@@ -398,8 +398,10 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
   // verilog code expects it for syntax (just use a default value since the
   // generate if statement will not be run)
   if (
-    module->isGenerated() && module->getGenerator()->getName() == "mem" &&
-    module->getGenerator()->getNamespace()->getName() == "coreir") {
+    module->isGenerated() &&
+    module->getGenerator()->getNamespace()->getName() == "coreir" &&
+    (module->getGenerator()->getName() == "mem" ||
+     module->getGenerator()->getName() == "sync_read_mem")) {
     ASSERT(
       parameters_seen.count("init") == 0,
       "Did not expect to see init param already");
@@ -418,8 +420,10 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
   }
   for (auto parameter : module->getModParams()) {
     if (
-      module->isGenerated() && module->getGenerator()->getName() == "mem" &&
+      module->isGenerated() &&
       module->getGenerator()->getNamespace()->getName() == "coreir" &&
+      (module->getGenerator()->getName() == "mem" ||
+       module->getGenerator()->getName() == "sync_read_mem") &&
       parameter.first == "init") {
       // Handled above, we always generate this parameter
       continue;
@@ -1056,8 +1060,9 @@ void assign_inouts(
 
 bool isMemModule(Module* module) {
   return module->isGenerated() &&
-    ((module->getGenerator()->getName() == "mem" &&
-      module->getGenerator()->getNamespace()->getName() == "coreir") ||
+    ((module->getGenerator()->getNamespace()->getName() == "coreir" && 
+      (module->getGenerator()->getName() == "mem" ||
+       module->getGenerator()->getName() == "sync_read_mem")) ||
      (module->getGenerator()->getName() == "rom2" &&
       module->getGenerator()->getNamespace()->getName() == "memory"));
 }
