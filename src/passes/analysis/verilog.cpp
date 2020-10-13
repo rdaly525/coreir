@@ -345,6 +345,16 @@ std::unique_ptr<vAST::AbstractModule> compile_string_module(json verilog_json) {
     verilog_json["verilog_string"].get<std::string>());
 }
 
+// These memory modules have special handling for the verilog code generation
+// of the `init` parameter in definitions
+bool isVerilogMemPrimitive(Module* module) {
+  return module->isGenerated() &&
+    ((module->getGenerator()->getNamespace()->getName() == "coreir" &&
+      module->getGenerator()->getName() == "mem") ||
+     (module->getGenerator()->getNamespace()->getName() == "memory" &&
+      module->getGenerator()->getName() == "sync_read_mem"));
+}
+
 // Compiles a module defined by the following entries in the `verilog` metadata
 // field
 // * "interface" -> used to define the module interface
@@ -1049,24 +1059,15 @@ void assign_inouts(
   };
 }
 
-// These memory modules have special handling for the verilog code generation
-// of the `init` parameter in definitions
-bool isVerilogMemPrimitive(Module* module) {
-  return module->isGenerated() &&
-    module->getGenerator()->getNamespace()->getName() == "coreir" &&
-    (module->getGenerator()->getName() == "mem" ||
-     module->getGenerator()->getName() == "sync_read_mem");
-}
-
 // These memory modules have special handling for the `init` parameter in
 // verilog code generation of instances
 bool isMemModule(Module* module) {
   return module->isGenerated() &&
     ((module->getGenerator()->getNamespace()->getName() == "coreir" &&
-      (module->getGenerator()->getName() == "mem" ||
-       module->getGenerator()->getName() == "sync_read_mem")) ||
-     (module->getGenerator()->getName() == "rom2" &&
-      module->getGenerator()->getNamespace()->getName() == "memory"));
+      (module->getGenerator()->getName() == "mem")) ||
+     (module->getGenerator()->getNamespace()->getName() == "memory" &&
+      (module->getGenerator()->getName() == "rom2" ||
+       module->getGenerator()->getName() == "sync_read_mem")));
 }
 
 // Traverses the instance map and creates a vector of module instantiations

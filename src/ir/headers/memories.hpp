@@ -577,6 +577,44 @@ Namespace* CoreIRLoadHeader_memory(Context* c) {
     def->connect("self.ren", "readreg.en");
   });
 
+  // SyncReadMemory
+  Params syncReadMemGenParams(
+    {{"width", c->Int()}, {"depth", c->Int()}, {"has_init", c->Bool()}});
+  auto syncReadMemFun = [](Context* c, Values genargs) {
+    int width = genargs.at("width")->get<int>();
+    int depth = genargs.at("depth")->get<int>();
+    int awidth = std::max((int)ceil(std::log2(depth)), 1);
+    return c->Record(
+      {{"clk", c->Named("coreir.clkIn")},
+       {"wdata", c->BitIn()->Arr(width)},
+       {"waddr", c->BitIn()->Arr(awidth)},
+       {"wen", c->BitIn()},
+       {"rdata", c->Bit()->Arr(width)},
+       {"ren", c->BitIn()},
+       {"raddr", c->BitIn()->Arr(awidth)}});
+  };
+
+  auto syncReadMemModParamFun =
+    [](Context* c, Values genargs) -> std::pair<Params, Values> {
+    Params modparams;
+    Values defaultargs;
+    bool has_init = genargs.at("has_init")->get<bool>();
+    if (has_init) { modparams["init"] = JsonType::make(c); }
+    return {modparams, defaultargs};
+  };
+
+  TypeGen* syncReadMemTypeGen = memory->newTypeGen(
+    "syncReadMemType",
+    syncReadMemGenParams,
+    syncReadMemFun);
+
+  Generator* syncReadMem = memory->newGeneratorDecl(
+    "sync_read_mem",
+    syncReadMemTypeGen,
+    syncReadMemGenParams);
+  syncReadMem->setModParamsGen(syncReadMemModParamFun);
+  syncReadMem->addDefaultGenArgs({{"has_init", Const::make(c, false)}});
+
   return memory;
 }
 

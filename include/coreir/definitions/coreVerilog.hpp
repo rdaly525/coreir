@@ -777,6 +777,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
       "    if (ren) rdata_reg <= data[raddr];\n"
       "  end\n"
       "  assign rdata = rdata_reg;\n";
-    core->getGenerator("sync_read_mem")->getMetaData()["verilog"] = vjson;
+    Namespace* memory = c->getNamespace("memory");
+    memory->getGenerator("sync_read_mem")->getMetaData()["verilog"] = vjson;
   }
 }

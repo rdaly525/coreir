@@ -25,7 +25,7 @@
             "modargs":{"value":[["BitVector",5],"5'h00"]}
           },
           "coreir_sync_read_mem4x5_inst0":{
-            "genref":"coreir.sync_read_mem",
+            "genref":"memory.sync_read_mem",
             "genargs":{"depth":["Int",4], "has_init":["Bool",true], "width":["Int",5]},
             "modargs":{"init":["Json",[5,0,21,11]]}
           }
