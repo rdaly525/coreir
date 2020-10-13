@@ -397,11 +397,7 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
   // We always generate memory init param, even if has_init is false since the
   // verilog code expects it for syntax (just use a default value since the
   // generate if statement will not be run)
-  if (
-    module->isGenerated() &&
-    module->getGenerator()->getNamespace()->getName() == "coreir" &&
-    (module->getGenerator()->getName() == "mem" ||
-     module->getGenerator()->getName() == "sync_read_mem")) {
+  if (isVerilogMemPrimitive(module)) {
     ASSERT(
       parameters_seen.count("init") == 0,
       "Did not expect to see init param already");
@@ -419,12 +415,7 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       std::make_unique<vAST::NumericLiteral>("0")));
   }
   for (auto parameter : module->getModParams()) {
-    if (
-      module->isGenerated() &&
-      module->getGenerator()->getNamespace()->getName() == "coreir" &&
-      (module->getGenerator()->getName() == "mem" ||
-       module->getGenerator()->getName() == "sync_read_mem") &&
-      parameter.first == "init") {
+    if (isVerilogMemPrimitive(module) && parameter.first == "init") {
       // Handled above, we always generate this parameter
       continue;
     }
@@ -1058,9 +1049,20 @@ void assign_inouts(
   };
 }
 
+// These memory modules have special handling for the verilog code generation
+// of the `init` parameter in definitions
+bool isVerilogMemPrimitive(Module* module) {
+  return module->isGenerated() &&
+    module->getGenerator()->getNamespace()->getName() == "coreir" &&
+    (module->getGenerator()->getName() == "mem" ||
+     module->getGenerator()->getName() == "sync_read_mem");
+}
+
+// These memory modules have special handling for the `init` parameter in
+// verilog code generation of instances
 bool isMemModule(Module* module) {
   return module->isGenerated() &&
-    ((module->getGenerator()->getNamespace()->getName() == "coreir" && 
+    ((module->getGenerator()->getNamespace()->getName() == "coreir" &&
       (module->getGenerator()->getName() == "mem" ||
        module->getGenerator()->getName() == "sync_read_mem")) ||
      (module->getGenerator()->getName() == "rom2" &&
