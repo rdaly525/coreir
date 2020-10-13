@@ -3,6 +3,7 @@
 #include "coreir.h"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/definitions/memoryVerilog.hpp"
 #include "coreir/libs/commonlib.h"
 
 using namespace CoreIR;
@@ -53,6 +54,7 @@ TEST(MemoryTests, TestSyncReadMem) {
   Context* c = newContext();
   CoreIRLoadVerilog_coreir(c);
   CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadVerilog_memory(c);
   Module* top;
 
   if (!loadFromFile(c, "srcs/sync_read_mem.json", &top)) { c->die(); }

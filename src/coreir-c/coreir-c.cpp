@@ -7,6 +7,7 @@
 #include "coreir/common/logging_lite.hpp"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/definitions/memoryVerilog.hpp"
 #include "coreir/ir/json.h"
 #include "coreir/passes/analysis/verilog.h"
 
