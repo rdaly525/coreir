@@ -1,4 +1,5 @@
 #include "verilogAST.hpp"
+#include "coreir/definitions/memoryVerilog.hpp"
 
 namespace vAST = verilogAST;
 
@@ -519,18 +520,7 @@ void CoreIRLoadVerilog_coreir(Context* c) {
         "input [width-1:0] in",
         "output [width-1:0] out",
       },
-    },
-    {
-      "mem",
-      {
-        "input clk",
-        "input [width-1:0] wdata",
-        "input [$clog2(depth)-1:0] waddr",
-        "input wen",
-        "output [width-1:0] rdata",
-        "input [$clog2(depth)-1:0] raddr",
-      },
-    },
+    }
   };
 
   Namespace* core = c->getNamespace("coreir");
@@ -637,72 +627,10 @@ void CoreIRLoadVerilog_coreir(Context* c) {
     // mem
     json vjson;
     vjson["prefix"] = "coreir_";
-    vjson["interface"] = coreIMap["mem"];
+    vjson["interface"] = generateMemoryVerilogInterface(false);
     vjson["parameters"] = {"has_init"};
-    vjson["definition"] =
-      ""
-      "  reg [width-1:0] data [depth-1:0];\n"
-      ""
-      // verilator doesn't support 2d array parameter, so we pack it into a 1d
-      // array
-      "  generate if (has_init) begin\n"
-      "    genvar j;\n"
-      "    for (j = 0; j < depth; j = j + 1) begin\n"
-      "      initial begin\n"
-      "        data[j] = init[(j+1)*width-1:j*width];\n"
-      "      end\n"
-      "    end\n"
-      "  end\n"
-      "  endgenerate\n"
-      ""
-      "  always @(posedge clk) begin\n"
-      "    if (wen) begin\n"
-      "      data[waddr] <= wdata;\n"
-      "    end\n"
-      "  end\n"
-      ""
-      "  generate if (sync_read) begin\n"
-      "  reg [width-1:0] rdata_reg;\n"
-      "  always @(posedge clk) begin\n"
-      "    rdata_reg <= data[raddr];\n"
-      "  end\n"
-      "  assign rdata = rdata_reg;\n"
-      "  end else begin\n"
-      "  assign rdata = data[raddr];\n"
-      "  end\n"
-      "  endgenerate\n";
-    vjson["verilator_debug_definition"] =
-      ""
-      "  reg [width-1:0] data [depth-1:0];/*verilator public*/;\n"
-      ""
-      // verilator doesn't support 2d array parameter, so we pack it into a 1d
-      // array
-      "  generate if (has_init) begin\n"
-      "    genvar j;\n"
-      "    for (j = 0; j < depth; j = j + 1) begin\n"
-      "      initial begin\n"
-      "        data[j] = init[(j+1)*width-1:j*width];\n"
-      "      end\n"
-      "    end\n"
-      "  end\n"
-      "  endgenerate\n"
-      ""
-      "  always @(posedge clk) begin\n"
-      "    if (wen) begin\n"
-      "      data[waddr] <= wdata;\n"
-      "    end\n"
-      "  end\n"
-      ""
-      "  generate if (sync_read) begin\n"
-      "  reg [width-1:0] rdata_reg;\n"
-      "  always @(posedge clk) begin\n"
-      "    rdata_reg <= data[raddr];\n"
-      "  end\n"
-      "  assign rdata = rdata_reg;\n"
-      "  end else begin\n"
-      "  assign rdata = data[raddr];\n"
-      "  end\n"
-      "  endgenerate\n";
+    vjson["definition"] = generateMemoryVerilogBody(false, false, true);
+    vjson["verilator_debug_definition"] = generateMemoryVerilogBody(true, false, true);
     core->getGenerator("mem")->getMetaData()["verilog"] = vjson;
   }
 }

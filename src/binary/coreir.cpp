@@ -6,6 +6,7 @@
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitFirrtl.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/definitions/memoryVerilog.hpp"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/magma.h"
@@ -217,6 +218,7 @@ int main(int argc, char* argv[]) {
     // TODO: Have option to output this or not
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
+    CoreIRLoadVerilog_memory(c);
 
     LOG(DEBUG) << "Running Runningvpasses";
     string vstr = "verilog";

@@ -1,0 +1,46 @@
+{"top":"global.Memory",
+"namespaces":{
+  "global":{
+    "modules":{
+      "Memory":{
+        "type":["Record",[
+          ["RADDR",["Array",2,"BitIn"]],
+          ["RE","BitIn"],
+          ["RDATA",["Array",5,"Bit"]],
+          ["CLK",["Named","coreir.clkIn"]]
+        ]],
+        "instances":{
+          "bit_const_0_None":{
+            "modref":"corebit.const",
+            "modargs":{"value":["Bool",false]}
+          },
+          "const_0_2":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",2]},
+            "modargs":{"value":[["BitVector",2],"2'h0"]}
+          },
+          "const_0_5":{
+            "genref":"coreir.const",
+            "genargs":{"width":["Int",5]},
+            "modargs":{"value":[["BitVector",5],"5'h00"]}
+          },
+          "coreir_sync_read_mem4x5_inst0":{
+            "genref":"memory.sync_read_mem",
+            "genargs":{"depth":["Int",4], "has_init":["Bool",true], "width":["Int",5]},
+            "modargs":{"init":["Json",[5,0,21,11]]}
+          }
+        },
+        "connections":[
+          ["coreir_sync_read_mem4x5_inst0.wen","bit_const_0_None.out"],
+          ["coreir_sync_read_mem4x5_inst0.waddr","const_0_2.out"],
+          ["coreir_sync_read_mem4x5_inst0.wdata","const_0_5.out"],
+          ["coreir_sync_read_mem4x5_inst0.ren","self.RE"],
+          ["self.CLK","coreir_sync_read_mem4x5_inst0.clk"],
+          ["self.RADDR","coreir_sync_read_mem4x5_inst0.raddr"],
+          ["self.RDATA","coreir_sync_read_mem4x5_inst0.rdata"]
+        ]
+      }
+    }
+  }
+}
+}
