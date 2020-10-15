@@ -71,7 +71,8 @@ COREType* COREArrayTypeGetElemType(COREType* arrayType) {
 }
 
 const char* CORENamedTypeToString(COREType* namedType) {
-  return rcast<NamedType*>(namedType)->toString().c_str();
+  // NOTE: this memory needs to be freed
+  return strdup(rcast<NamedType*>(namedType)->toString().c_str());
 }
 }
 
