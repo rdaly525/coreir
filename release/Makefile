@@ -18,6 +18,7 @@ install:
 	install -d $(prefix)/include/coreir/common
 	install -d $(prefix)/include/coreir/libs
 	install -d $(prefix)/include/coreir/passes/analysis
+	install -d $(prefix)/include/coreir/passes/analysis/verilog
 	install -d $(prefix)/include/coreir/passes/transform
 	install -d $(prefix)/include/coreir/simulator
 	install include/coreir.h $(prefix)/include
