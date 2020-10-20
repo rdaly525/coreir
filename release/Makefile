@@ -29,7 +29,8 @@ install:
 	install include/coreir/common/* $(prefix)/include/coreir/common
 	install include/coreir/libs/* $(prefix)/include/coreir/libs
 	install include/coreir/passes/*.h $(prefix)/include/coreir/passes
-	install include/coreir/passes/analysis/* $(prefix)/include/coreir/passes/analysis
+	install include/coreir/passes/analysis/*.h $(prefix)/include/coreir/passes/analysis
+	install include/coreir/passes/analysis/verilog/* $(prefix)/include/coreir/passes/analysis/verilog
 	install include/coreir/passes/transform/* $(prefix)/include/coreir/passes/transform
 	install include/coreir/simulator/* $(prefix)/include/coreir/simulator
 	install include/verilogAST.hpp $(prefix)/include
