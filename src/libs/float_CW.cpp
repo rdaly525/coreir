@@ -134,7 +134,7 @@ assign z = {sign, exp, frac[frac_bits-1:0]};
         "float_CW.add",
         {{"exp_bits", args.at("exp_bits")},
          {"frac_bits", args.at("frac_bits")},
-         {"ieee_compliance", Const::make(c, false)}});
+         {"ieee_compliance", Const::make(c, true)}});
       auto io = def->getInterface();
       auto C = Constructor(def);
       def->connect(io->sel("in0"), add->sel("a"));
@@ -149,18 +149,18 @@ assign z = {sign, exp, frac[frac_bits-1:0]};
       uint frac_bits = args.at("frac_bits")->get<int>();
       ASSERT(frac_bits==7 && exp_bits == 8, "NYI for non bfloat16");
       // uint ieee_compliance = args.at("ieee_compliance")->get<bool>();
-      auto add = def->addInstance(
+      auto mul_hack = def->mul_hackInstance(
         "mi",
         "float_CW.mul_hack",
         {{"exp_bits", args.at("exp_bits")},
          {"frac_bits", args.at("frac_bits")},
-         {"ieee_compliance", Const::make(c, false)}});
+         {"ieee_compliance", Const::make(c, true)}});
       auto io = def->getInterface();
       auto C = Constructor(def);
-      def->connect(io->sel("in0"), add->sel("a"));
-      def->connect(io->sel("in1"), add->sel("b"));
-      def->connect(C.const_(3, 1), add->sel("rnd"));
-      def->connect(add->sel("z"), io->sel("out"));
+      def->connect(io->sel("in0"), mul_hack->sel("a"));
+      def->connect(io->sel("in1"), mul_hack->sel("b"));
+      def->connect(C.const_(3, 1), mul_hack->sel("rnd"));
+      def->connect(mul_hack->sel("z"), io->sel("out"));
     });
 
   /*
