@@ -149,7 +149,7 @@ assign z = {sign, exp, frac[frac_bits-1:0]};
       uint frac_bits = args.at("frac_bits")->get<int>();
       ASSERT(frac_bits==7 && exp_bits == 8, "NYI for non bfloat16");
       // uint ieee_compliance = args.at("ieee_compliance")->get<bool>();
-      auto mul_hack = def->mul_hackInstance(
+      auto mul_hack = def->addInstance(
         "mi",
         "float_CW.mul_hack",
         {{"exp_bits", args.at("exp_bits")},
