@@ -7,7 +7,7 @@ project(verilogAST-download NONE)
 include(ExternalProject)
 ExternalProject_Add(verilogAST
   GIT_REPOSITORY    https://github.com/leonardt/verilogAST-cpp.git
-  GIT_TAG           b23b95325f8c711c2b8ab9b91f07ba18c21ed1fd
+  GIT_TAG           54a121f
   SOURCE_DIR        "${CMAKE_CURRENT_BINARY_DIR}/verilogAST-src"
   BINARY_DIR        "${CMAKE_CURRENT_BINARY_DIR}/verilogAST-build"
   CONFIGURE_COMMAND ""
