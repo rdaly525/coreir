@@ -86,7 +86,7 @@ reg sign;
 reg [exp_bits-1:0] exp;
 reg [frac_bits:0] frac;
 
-CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(0)) mul1 (.a({a,3'h0}),.b({b,3'h0}),.rnd(rnd),.z({int_out,results_x}),.status(status));
+CW_fp_mult #(.sig_width(frac_bits+3), .exp_width(exp_bits), .ieee_compliance(ieee_compliance)) mul1 (.a({a,3'h0}),.b({b,3'h0}),.rnd(rnd),.z({int_out,results_x}),.status(status));
 
 always @(*) begin
   sign = int_out[exp_bits+frac_bits];
