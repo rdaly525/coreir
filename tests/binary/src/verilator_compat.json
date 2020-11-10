@@ -6,7 +6,9 @@
         "verilator_compat": {
           "type": ["Record",[
             ["in", ["Array",16,"BitIn"]],
-            ["out", ["Array",4,"Bit"]]
+            ["out", ["Array",4,"Bit"]],
+            ["out_undriven", ["Array",4,"Bit"]],
+            ["out_undriven_bit", "Bit"]
           ]],
           "instances": {
             "s": {
@@ -19,13 +21,22 @@
             },
             "bit_term": {
               "modref": "corebit.term"
+            },
+            "undriven": {
+              "genref": "coreir.undriven",
+              "genargs": {"width":["Int", 4]}
+            },
+            "bit_undriven": {
+              "modref": "corebit.undriven"
             }
           },
           "connections": [
             ["self.in","s.in"],
             ["s.out","self.out"],
             ["self.in.0","bit_term.in"],
-            ["self.in.0:4","term.in"]
+            ["self.in.0:4","term.in"],
+            ["self.out_undriven.0:4","undriven.out"],
+            ["self.out_undriven_bit","bit_undriven.out"]
           ]
         }
       }
