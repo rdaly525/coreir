@@ -43,6 +43,7 @@ class Module : public GlobalValue, public Args, public VerilogPrimitive {
   ModuleDef* getDef() const;
   // This will validate def
   void setDef(ModuleDef* def, bool validate = true);
+  void unlinkDef() {this->def = nullptr;}
 
   bool hasVerilogDef();
 
