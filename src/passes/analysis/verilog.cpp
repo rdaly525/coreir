@@ -382,6 +382,12 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       port_str = "/*verilator lint_off UNUSED */" + port_str +
         "/*verilator lint_on UNUSED */";
     }
+    if (
+      this->verilator_compat &&
+      (name == "coreir_undriven" || name == "corebit_undriven")) {
+      port_str = "/*verilator lint_off UNDRIVEN */" + port_str +
+        "/*verilator lint_on UNDRIVEN */";
+    }
     ports.push_back(std::make_unique<vAST::StringPort>(port_str));
   }
   vAST::Parameters parameters;
