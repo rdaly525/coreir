@@ -1567,10 +1567,14 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
 
 void Passes::Verilog::writeToFiles(
   const std::string& dir,
-  std::unique_ptr<std::string> product_file) {
+  std::unique_ptr<std::string> product_file,
+  std::string outExt) {
   std::vector<std::string> products;
+  ASSERT(
+    outExt == "v" || outExt == "sv",
+    "Expect outext to be v or sv, not " + outExt);
   for (auto& module : modules) {
-    const std::string filename = module.first + ".v";
+    const std::string filename = module.first + "." + outExt;
     products.push_back(filename);
     const std::string full_filename = dir + "/" + filename;
     std::ofstream output_file(full_filename);
