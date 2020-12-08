@@ -179,7 +179,7 @@ bool CORECompileToVerilog(
     if (product_file != "") {
       product_file_ptr.reset(new std::string(product));
     }
-    pass->writeToFiles(output_dir, std::move(product_file_ptr));
+    pass->writeToFiles(output_dir, std::move(product_file_ptr), "v");
     return true;
   }
   // Do not split; write to filename.
