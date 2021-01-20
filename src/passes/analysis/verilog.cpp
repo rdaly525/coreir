@@ -345,6 +345,16 @@ std::unique_ptr<vAST::AbstractModule> compile_string_module(json verilog_json) {
     verilog_json["verilog_string"].get<std::string>());
 }
 
+// These memory modules have special handling for the verilog code generation
+// of the `init` parameter in definitions
+bool isVerilogMemPrimitive(Module* module) {
+  return module->isGenerated() &&
+    ((module->getGenerator()->getNamespace()->getName() == "coreir" &&
+      module->getGenerator()->getName() == "mem") ||
+     (module->getGenerator()->getNamespace()->getName() == "memory" &&
+      module->getGenerator()->getName() == "sync_read_mem"));
+}
+
 // Compiles a module defined by the following entries in the `verilog` metadata
 // field
 // * "interface" -> used to define the module interface
@@ -372,6 +382,12 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       port_str = "/*verilator lint_off UNUSED */" + port_str +
         "/*verilator lint_on UNUSED */";
     }
+    if (
+      this->verilator_compat &&
+      (name == "coreir_undriven" || name == "corebit_undriven")) {
+      port_str = "/*verilator lint_off UNDRIVEN */" + port_str +
+        "/*verilator lint_on UNDRIVEN */";
+    }
     ports.push_back(std::make_unique<vAST::StringPort>(port_str));
   }
   vAST::Parameters parameters;
@@ -397,9 +413,7 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
   // We always generate memory init param, even if has_init is false since the
   // verilog code expects it for syntax (just use a default value since the
   // generate if statement will not be run)
-  if (
-    module->isGenerated() && module->getGenerator()->getName() == "mem" &&
-    module->getGenerator()->getNamespace()->getName() == "coreir") {
+  if (isVerilogMemPrimitive(module)) {
     ASSERT(
       parameters_seen.count("init") == 0,
       "Did not expect to see init param already");
@@ -417,10 +431,7 @@ std::unique_ptr<vAST::AbstractModule> Passes::Verilog::compileStringBodyModule(
       std::make_unique<vAST::NumericLiteral>("0")));
   }
   for (auto parameter : module->getModParams()) {
-    if (
-      module->isGenerated() && module->getGenerator()->getName() == "mem" &&
-      module->getGenerator()->getNamespace()->getName() == "coreir" &&
-      parameter.first == "init") {
+    if (isVerilogMemPrimitive(module) && parameter.first == "init") {
       // Handled above, we always generate this parameter
       continue;
     }
@@ -1054,12 +1065,15 @@ void assign_inouts(
   };
 }
 
+// These memory modules have special handling for the `init` parameter in
+// verilog code generation of instances
 bool isMemModule(Module* module) {
   return module->isGenerated() &&
-    ((module->getGenerator()->getName() == "mem" &&
-      module->getGenerator()->getNamespace()->getName() == "coreir") ||
-     (module->getGenerator()->getName() == "rom2" &&
-      module->getGenerator()->getNamespace()->getName() == "memory"));
+    ((module->getGenerator()->getNamespace()->getName() == "coreir" &&
+      (module->getGenerator()->getName() == "mem")) ||
+     (module->getGenerator()->getNamespace()->getName() == "memory" &&
+      (module->getGenerator()->getName() == "rom2" ||
+       module->getGenerator()->getName() == "sync_read_mem")));
 }
 
 // Traverses the instance map and creates a vector of module instantiations
@@ -1553,10 +1567,14 @@ void Passes::Verilog::writeToStream(std::ostream& os) {
 
 void Passes::Verilog::writeToFiles(
   const std::string& dir,
-  std::unique_ptr<std::string> product_file) {
+  std::unique_ptr<std::string> product_file,
+  std::string outExt) {
   std::vector<std::string> products;
+  ASSERT(
+    outExt == "v" || outExt == "sv",
+    "Expect outext to be v or sv, not " + outExt);
   for (auto& module : modules) {
-    const std::string filename = module.first + ".v";
+    const std::string filename = module.first + "." + outExt;
     products.push_back(filename);
     const std::string full_filename = dir + "/" + filename;
     std::ofstream output_file(full_filename);

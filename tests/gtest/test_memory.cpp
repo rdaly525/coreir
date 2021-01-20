@@ -3,6 +3,7 @@
 #include "coreir.h"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/definitions/memoryVerilog.hpp"
 #include "coreir/libs/commonlib.h"
 
 using namespace CoreIR;
@@ -46,6 +47,26 @@ TEST(MemoryTests, TestIssue932) {
                                            "verilog --inline"};
   c->runPasses(passes, {});
   assertPassEq(c, "verilog", "golds/camera_pipeline_dse1.v");
+  deleteContext(c);
+}
+
+TEST(MemoryTests, TestSyncReadMem) {
+  Context* c = newContext();
+  CoreIRLoadVerilog_coreir(c);
+  CoreIRLoadVerilog_corebit(c);
+  CoreIRLoadVerilog_memory(c);
+  Module* top;
+
+  if (!loadFromFile(c, "srcs/sync_read_mem.json", &top)) { c->die(); }
+  assert(top != nullptr);
+  c->setTop(top->getRefName());
+
+  const std::vector<std::string> passes = {"rungenerators",
+                                           "removebulkconnections",
+                                           "flattentypes",
+                                           "verilog --inline"};
+  c->runPasses(passes, {});
+  assertPassEq(c, "verilog", "golds/sync_read_mem.v");
   deleteContext(c);
 }
 

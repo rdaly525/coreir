@@ -6,6 +6,7 @@
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitFirrtl.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/definitions/memoryVerilog.hpp"
 #include "coreir/passes/analysis/coreirjson.h"
 #include "coreir/passes/analysis/firrtl.h"
 #include "coreir/passes/analysis/magma.h"
@@ -164,7 +165,7 @@ int main(int argc, char* argv[]) {
       ASSERT(
         outExt == "json" || outExt == "txt" || outExt == "fir" ||
           outExt == "py" || outExt == "smt2" || outExt == "smv" ||
-          outExt == "v",
+          outExt == "v" || outExt == "sv" ,
         "Cannot support out extention: " + outExt);
       if (!split_files) {
         std::unique_ptr<std::ofstream> fout(new std::ofstream(outfile));
@@ -175,7 +176,7 @@ int main(int argc, char* argv[]) {
     }
     if (split_files) {
       ASSERT(
-        outExt == "v",
+        outExt == "v" || outExt == "sv",
         "Split files option is only supported in verilog mode currently: "
         "ext = " +
           outExt);
@@ -213,10 +214,11 @@ int main(int argc, char* argv[]) {
     // Create file here.
     fpass->writeToStream(*sout);
   }
-  else if (outExt == "v") {
+  else if (outExt == "v" || outExt == "sv") {
     // TODO: Have option to output this or not
     CoreIRLoadVerilog_coreir(c);
     CoreIRLoadVerilog_corebit(c);
+    CoreIRLoadVerilog_memory(c);
 
     LOG(DEBUG) << "Running Runningvpasses";
     string vstr = "verilog";
@@ -240,7 +242,7 @@ int main(int argc, char* argv[]) {
         const auto val = opts["product"].as<std::string>();
         product_file.reset(new std::string(val));
       }
-      vpass->writeToFiles(output_dir, std::move(product_file));
+      vpass->writeToFiles(output_dir, std::move(product_file), outExt);
     }
     else {
       vpass->writeToStream(*sout);

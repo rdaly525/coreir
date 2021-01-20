@@ -59,7 +59,7 @@ bool FileExists(std::string filename) {
 void TestSplitFiles() {
   SplitFilesFixture fixture("split_files_in.json");
   auto verilog_pass = fixture.RunVerilogPass();
-  verilog_pass->writeToFiles("./", {});
+  verilog_pass->writeToFiles("./", {}, "v");
   for (int i = 0; i < kNumExpectedFiles; i++) {
     const std::string expected = std::string(kExpectedFilenames[i]);
     ASSERT(FileExists(expected), "File '" + expected + "' does not exist");
@@ -70,7 +70,7 @@ void TestProductList() {
   SplitFilesFixture fixture("split_files_in.json");
   auto verilog_pass = fixture.RunVerilogPass();
   std::unique_ptr<std::string> product_file(new std::string("product.txt"));
-  verilog_pass->writeToFiles("./", std::move(product_file));
+  verilog_pass->writeToFiles("./", std::move(product_file), "v");
   std::ifstream infile("product.txt");
   std::string filename;
   for (int i = 0; i < kNumExpectedFiles; i++) {

@@ -7,6 +7,7 @@
 #include "coreir/common/logging_lite.hpp"
 #include "coreir/definitions/coreVerilog.hpp"
 #include "coreir/definitions/corebitVerilog.hpp"
+#include "coreir/definitions/memoryVerilog.hpp"
 #include "coreir/ir/json.h"
 #include "coreir/passes/analysis/verilog.h"
 
@@ -178,7 +179,7 @@ bool CORECompileToVerilog(
     if (product_file != "") {
       product_file_ptr.reset(new std::string(product));
     }
-    pass->writeToFiles(output_dir, std::move(product_file_ptr));
+    pass->writeToFiles(output_dir, std::move(product_file_ptr), "v");
     return true;
   }
   // Do not split; write to filename.
@@ -299,6 +300,10 @@ CORENamespace* COREGetGlobal(COREContext* c) {
 CORENamespace* COREGetNamespace(COREContext* c, char* name) {
   return rcast<CORENamespace*>(
     rcast<Context*>(c)->getNamespace(std::string(name)));
+}
+
+bool COREHasNamespace(COREContext* c, char* name) {
+  return rcast<Context*>(c)->hasNamespace(std::string(name));
 }
 
 CORENamespace* CORENewNamespace(COREContext* c, char* name) {
